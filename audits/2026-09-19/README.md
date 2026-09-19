@@ -97,7 +97,20 @@ The third follow-up covers 52 items in 10 Korean/English documents: 51 source co
 | Distributed serving | Separate prefill/decode serving from coupled TP/PP; wire LWS ranks, rendezvous, GPU allocation, checkpoint mounts and leader health routing. | `76eb06e5` |
 | Prompt versions and recovery | Replace unsupported Bedrock aliases, use returned version ARNs, distinguish registry changes from traffic recovery and qualify retention policies. | `1e9bdc1c` |
 
-`EKSN-POD-020` remains partial because 13 related locations outside the scheduling pair still use obsolete Karpenter fields. The previously recorded Trainium specification conflict and three Gateway cookbook partial corrections also remain open. Other findings in the registry and scheduling guides are separate work; accepting this subset does not certify either whole guide.
+At the end of the third follow-up, `EKSN-POD-020` remained partial because 13 related locations outside the scheduling pair still used obsolete Karpenter fields. The Trainium specification conflict and three Gateway cookbook corrections also remained open.
+
+The fourth follow-up adds 26 decisions across 11 document sources and one shared component: 24 accepted source corrections and two partial corrections. It completes the four previous Gateway/Karpenter partial corrections by checking all 29 later locations and preserving their earlier fixes.
+
+| Area | Reviewed change | Source commit |
+| --- | --- | --- |
+| Prompt promotion | Use the returned Langfuse prompt name/version and supported label API, with explicit approval and concurrency requirements. | `4eae31a1` |
+| Init containers | Correct retry behavior, failure propagation, configuration serialization, bounded TCP checks and Fluent Bit arguments. | `d1cf978a` |
+| Gateway cookbook | Correct Cilium, NGINX Gateway Fabric and kgateway rate, persistence, body-limit and maintenance examples; clarify the NetworkPolicy boundary. | `a1e450a4` |
+| Langfuse installation | Pin chart 2.1.1, use the consumed configuration fields and Secret references, and document external stores and migrations. | `c63c34e7` |
+| Karpenter fields | Correct the 13 remaining consolidation/expiration locations, including the English GPU table; preserve the Korean component output. | `94a25ba5` |
+| AZ placement and traffic | Correct topology arithmetic, distinguish ARC traffic shifts from Pod replacement, and repair Istio and alarm examples. | `2f68ff9b` |
+
+`HYP-OPS-073` remains partial because eight registered selector defects occur in four other document pairs. `EKSN-POD-077` retains four outside Istio-field occurrences. The Trainium specification conflict, neighboring findings and operational evidence remain separate work. The full offline example suite passed 678 tests. Metadata was checked for all 11 changed sources, and five Korean pages passed desktop/mobile browser checks. These results do not establish runtime behavior.
 
 Each ledger entry identifies the source commit, reviewed files, checks and remaining limits. Offline examples use fakes or parsers; browser checks establish rendering. Neither establishes successful cloud execution, fault recovery or measured performance. Later entries, if present, are authoritative for subsequent decisions; the original occurrence and classification totals remain unchanged.
 
@@ -114,7 +127,7 @@ The new correction workstreams are:
 - [#99 — AI-DLC](https://github.com/devfloor9/engineering-playbook/issues/99): 404 items covering methodology, executable examples, approvals, evaluation, quantities and legal scope.
 - [#100 — Industry and sales examples](https://github.com/devfloor9/engineering-playbook/issues/100): 283 industry items and 14 sales/event items covering evidence, implementation status and assumptions.
 
-The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 260 accepted source corrections, 1,930 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,930 confirmed errors.
+The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 284 accepted source corrections, 1,906 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,906 confirmed errors.
 
 Follow-up edits must preserve useful detail, routes, anchors, creation dates and author attribution. Content changes update the revision date and reading estimate together; presentation-only changes preserve them.
 

@@ -1,0 +1,187 @@
+{
+  "documents": {
+    "ko": "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+    "en": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+  },
+  "locators": [
+    {
+      "key": "db_client",
+      "headings": {
+        "ko": [
+          "#### 사용 사례별 YAML 예시"
+        ],
+        "en": [
+          "#### YAML Examples by Use Case"
+        ]
+      },
+      "ordinal": 3,
+      "language": "yaml"
+    },
+    {
+      "key": "hard_anti",
+      "headings": {
+        "ko": [
+          "#### Hard Anti-Affinity (장애 도메인 격리)"
+        ],
+        "en": [
+          "#### Hard Anti-Affinity (Failure Domain Isolation)"
+        ]
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "basic_spread",
+      "headings": {
+        "ko": [
+          "##### 패턴 1: Multi-AZ 균등 분배 (기본)"
+        ],
+        "en": [
+          "##### Pattern 1: Even Multi-AZ Distribution (Basic)"
+        ]
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "minimum_domains",
+      "headings": {
+        "ko": [
+          "##### 패턴 2: minDomains 활용 (최소 AZ 보장)",
+          "##### 패턴 2: minDomains 활용 (global minimum 계산) {#패턴-2-mindomains-활용-최소-az-보장}"
+        ],
+        "en": [
+          "##### Pattern 2: Using minDomains (Minimum AZ Guarantee)",
+          "##### Pattern 2: Using minDomains (Global Minimum Calculation) {#pattern-2-using-mindomains-minimum-az-guarantee}"
+        ]
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "combined",
+      "headings": {
+        "ko": [
+          "##### 패턴 3: Anti-Affinity + Topology Spread 조합"
+        ],
+        "en": [
+          "##### Pattern 3: Combining Anti-Affinity + Topology Spread"
+        ]
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "multiple_spread",
+      "headings": {
+        "ko": [
+          "##### 패턴 4: 다중 Topology Spread (Zone + Node)"
+        ],
+        "en": [
+          "##### Pattern 4: Multiple Topology Spread Constraints (Zone + Node)"
+        ]
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "arc_workload",
+      "headings": {
+        "ko": [
+          "### 10.3 ARC + Karpenter 통합 AZ 대피",
+          "### 10.3 ARC Zonal Shift와 Karpenter {#103-arc--karpenter-통합-az-대피}"
+        ],
+        "en": [
+          "### 10.3 AZ Evacuation with ARC + Karpenter Integration",
+          "### 10.3 ARC Zonal Shift and Karpenter {#103-az-evacuation-with-arc--karpenter-integration}"
+        ]
+      },
+      "ordinal": 2,
+      "language": "yaml"
+    },
+    {
+      "key": "mesh",
+      "headings": {
+        "ko": [
+          "### 10.3 ARC + Karpenter 통합 AZ 대피",
+          "### 10.3 ARC Zonal Shift와 Karpenter {#103-arc--karpenter-통합-az-대피}"
+        ],
+        "en": [
+          "### 10.3 AZ Evacuation with ARC + Karpenter Integration",
+          "### 10.3 ARC Zonal Shift and Karpenter {#103-az-evacuation-with-arc--karpenter-integration}"
+        ]
+      },
+      "ordinal": 3,
+      "language": "yaml"
+    },
+    {
+      "key": "alarm",
+      "headings": {
+        "ko": [
+          "### 10.3 ARC + Karpenter 통합 AZ 대피",
+          "### 10.3 ARC Zonal Shift와 Karpenter {#103-arc--karpenter-통합-az-대피}"
+        ],
+        "en": [
+          "### 10.3 AZ Evacuation with ARC + Karpenter Integration",
+          "### 10.3 ARC Zonal Shift and Karpenter {#103-az-evacuation-with-arc--karpenter-integration}"
+        ]
+      },
+      "ordinal": 4,
+      "language": "yaml"
+    },
+    {
+      "key": "network_affinity",
+      "headings": {
+        "ko": [
+          "### 10.4 Container Network Observability와 스케줄링"
+        ],
+        "en": [
+          "### 10.4 Container Network Observability and Scheduling"
+        ]
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "ml_affinity",
+      "headings": {
+        "ko": [
+          "### 10.4 Container Network Observability와 스케줄링"
+        ],
+        "en": [
+          "### 10.4 Container Network Observability and Scheduling"
+        ]
+      },
+      "ordinal": 4,
+      "language": "yaml"
+    },
+    {
+      "key": "arc_diagram",
+      "headings": {
+        "ko": [
+          "### 10.3 ARC + Karpenter 통합 AZ 대피",
+          "### 10.3 ARC Zonal Shift와 Karpenter {#103-arc--karpenter-통합-az-대피}"
+        ],
+        "en": [
+          "### 10.3 AZ Evacuation with ARC + Karpenter Integration",
+          "### 10.3 ARC Zonal Shift and Karpenter {#103-az-evacuation-with-arc--karpenter-integration}"
+        ]
+      },
+      "ordinal": 1,
+      "language": "mermaid"
+    },
+    {
+      "key": "network_diagram",
+      "headings": {
+        "ko": [
+          "### 10.4 Container Network Observability와 스케줄링"
+        ],
+        "en": [
+          "### 10.4 Container Network Observability and Scheduling"
+        ]
+      },
+      "ordinal": 3,
+      "language": "mermaid"
+    }
+  ]
+}

@@ -5364,6 +5364,1559 @@
       "verification_commands": [
         "python3 scripts/tests/document-examples/test_aidlc_registry.py"
       ]
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c036-wave4",
+      "package": "aidlc",
+      "id": "AIDLC-C036",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Retained the prompt returned by create_prompt and promoted its actual name/version through update_prompt(new_labels=...), after matching the externally verified approval identity. Removed the unsupported label-update method and hard-coded version; documented project, approval, concurrency and uncertain-outcome reconciliation requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "4eae31a1e2e737e76d7b17cea7f96fbf57e8b6d3"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "Both original registry occurrences are mapped. Current creation/promotion code matches the independently reviewed SDK-4.15.3 correction.",
+        "Inspected the final applied-registry evidence: 38 promotion tests and 39 existing registry helper tests passed with in-memory API doubles."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/langfuse/langfuse-python/commits/v4.15.3",
+        "https://api.github.com/repos/langfuse/langfuse-python/releases/tags/v4.15.3",
+        "https://raw.githubusercontent.com/langfuse/langfuse-python/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/_client/client.py",
+        "https://raw.githubusercontent.com/langfuse/langfuse-python/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/api/prompt_version/client.py",
+        "https://raw.githubusercontent.com/langfuse/langfuse-python/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/api/prompts/types/create_text_prompt_request.py",
+        "https://raw.githubusercontent.com/langfuse/langfuse-python/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/model.py",
+        "https://raw.githubusercontent.com/langfuse/langfuse-python/49b8f9e7f2767295c7b61809e943813d202d10ee/pyproject.toml"
+      ],
+      "evidence_limit": "Langfuse Python SDK 4.15.3 source contract and offline helpers only. Approval authenticity, project authorization, concurrent label updates, real server behavior and traffic/cache propagation remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/test_aidlc_prompt_promotion.py"
+      ],
+      "verification_commands": [
+        "python3 -B scripts/tests/document-examples/test_aidlc_prompt_promotion.py"
+      ],
+      "original_occurrence_ids": [
+        "AIDLC-REGISTRY-EN-01",
+        "AIDLC-REGISTRY-KO-01"
+      ],
+      "source_snapshot_sha256": {
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md": "d9a7571dc21ac8590b659eb0d26361d3f7ed0d2b8cdf99f4c8af8b796d124b3f",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md": "a05d3ed82680badb61f2f8b0108f0823511e5410ec0ecf70057ff43203e27765"
+      }
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c041-wave4",
+      "package": "aidlc",
+      "id": "AIDLC-C041",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the unpinned Helm example with chart 2.1.1/appVersion 4.35.0 values under their consumed keys. Configured eight Secret references and separately provisioned backing stores, disabled bundled services and automatic migrations, and clarified web/worker replica-resource scope, TLS, schema and new-install prerequisites.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "c63c34e7b30e5907d49b0bb7496ec9e620ce4da9"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "Both original Helm occurrences are mapped; final applied YAML matches the reviewed chart-specific reference and both final source hashes match the applied review.",
+        "Inspected 63 passing current semantic tests, 12 public-package/source checks and passing 38/39 prior helper suites. Source/template inspection is explicitly not Helm rendering or deployment."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/langfuse/langfuse-k8s/commits/langfuse-2.1.1",
+        "https://github.com/langfuse/langfuse-k8s/releases/download/langfuse-2.1.1/langfuse-2.1.1.tgz",
+        "https://langfuse.github.io/langfuse-k8s/index.yaml",
+        "https://raw.githubusercontent.com/langfuse/langfuse-k8s/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/Chart.yaml",
+        "https://raw.githubusercontent.com/langfuse/langfuse-k8s/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/_helpers.tpl",
+        "https://raw.githubusercontent.com/langfuse/langfuse-k8s/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/validations.yaml",
+        "https://raw.githubusercontent.com/langfuse/langfuse-k8s/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/web/deployment.yaml",
+        "https://raw.githubusercontent.com/langfuse/langfuse-k8s/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/worker/deployment.yaml",
+        "https://raw.githubusercontent.com/langfuse/langfuse-k8s/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/values.yaml"
+      ],
+      "evidence_limit": "Pinned chart/source reference only; no Helm rendering, installation, upgrade, Secret/certificate/permission check, backing-store connectivity, migration or capacity measurement. Unknown historical chart contracts are not ruled out.",
+      "verification_files": [
+        "scripts/tests/document-examples/langfuse-helm.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/langfuse-helm.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "AIDLC-REGISTRY-EN-08",
+        "AIDLC-REGISTRY-KO-08"
+      ],
+      "source_snapshot_sha256": {
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md": "d9a7571dc21ac8590b659eb0d26361d3f7ed0d2b8cdf99f4c8af8b796d124b3f",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md": "a05d3ed82680badb61f2f8b0108f0823511e5410ec0ecf70057ff43203e27765"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-073-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-073",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Added matching selectors and Pod-template labels to all four Deployment examples in each init-container locale. Eight registered selector defects in four other document pairs remain open.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: all four Deployments; selector deletion."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/controllers/deployment.md"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-02-EN",
+        "EKS-OPS-INIT-CONTAINERS-02-KO"
+      ],
+      "remaining": "Eight original selector/Pod-label occurrences remain open in workload, node-readiness, probe-load-balancers and shutdown-languages bilingual pairs.",
+      "remaining_occurrences": [
+        {
+          "occurrence_id": "EKS-OPS-WORKLOAD-04-EN",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/workload.md",
+          "line": 182,
+          "end_line": 199,
+          "status": "open",
+          "related_baseline_ranges": [
+            [
+              295,
+              310
+            ],
+            [
+              572,
+              611
+            ]
+          ]
+        },
+        {
+          "occurrence_id": "EKS-OPS-WORKLOAD-04-KO",
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/workload.md",
+          "line": 183,
+          "end_line": 200,
+          "status": "open",
+          "related_baseline_ranges": [
+            [
+              296,
+              311
+            ],
+            [
+              573,
+              612
+            ]
+          ]
+        },
+        {
+          "occurrence_id": "EKS-OPS-NODE-READINESS-12-EN",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+          "line": 397,
+          "end_line": 424,
+          "status": "open",
+          "related_baseline_ranges": []
+        },
+        {
+          "occurrence_id": "EKS-OPS-NODE-READINESS-12-KO",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+          "line": 397,
+          "end_line": 424,
+          "status": "open",
+          "related_baseline_ranges": []
+        },
+        {
+          "occurrence_id": "EKS-OPS-PROBE-LOAD-BALANCERS-04-EN",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md",
+          "line": 87,
+          "end_line": 108,
+          "status": "open",
+          "related_baseline_ranges": []
+        },
+        {
+          "occurrence_id": "EKS-OPS-PROBE-LOAD-BALANCERS-04-KO",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md",
+          "line": 87,
+          "end_line": 108,
+          "status": "open",
+          "related_baseline_ranges": []
+        },
+        {
+          "occurrence_id": "EKS-OPS-SHUTDOWN-LANGUAGES-01-EN",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md",
+          "line": 84,
+          "end_line": 110,
+          "status": "open",
+          "related_baseline_ranges": [
+            [
+              173,
+              202
+            ],
+            [
+              283,
+              309
+            ],
+            [
+              358,
+              384
+            ]
+          ]
+        },
+        {
+          "occurrence_id": "EKS-OPS-SHUTDOWN-LANGUAGES-01-KO",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md",
+          "line": 84,
+          "end_line": 110,
+          "status": "open",
+          "related_baseline_ranges": [
+            [
+              173,
+              202
+            ],
+            [
+              283,
+              309
+            ],
+            [
+              358,
+              384
+            ]
+          ]
+        }
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-147-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-147",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected regular init-container retries and the retry diagram to retry the failed init step, and distinguished Pod restart policy, possible re-execution and native-sidecar behavior.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: retry diagram."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/init-containers.md",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/sidecar-containers.md"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-01-EN",
+        "EKS-OPS-INIT-CONTAINERS-01-KO"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-149-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-149",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Made migration, ownership, mode and configuration-generation failures propagate as init failure instead of being hidden by a later success message.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: migration failure; migration success; failed ownership; failed chmod; successful permission; configuration read/write."
+      ],
+      "primary_urls": [
+        "https://pubs.opengroup.org/onlinepubs/9799919799/utilities/V3_chap02.html",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/init-containers.md"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-03-EN",
+        "EKS-OPS-INIT-CONTAINERS-03-KO"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-150-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-150",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed the Secret-bearing configuration dump; generated configuration is written to the intended file while completion logging contains no Secret values.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: serializer preserves; configuration read/write."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/python/cpython/v3.13.0/Doc/library/json.rst"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-04-EN",
+        "EKS-OPS-INIT-CONTAINERS-04-KO"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-151-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-151",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced shell substitution with Python JSON parsing and serialization, preserving literal HOST/DB_URL values and validating the port; made application-parser compatibility explicit.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: serializer preserves; invalid port; malformed template."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/python/cpython/v3.13.0/Doc/library/json.rst"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-05-EN",
+        "EKS-OPS-INIT-CONTAINERS-05-KO"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-152-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-152",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced indefinite connection loops with at most 30 TCP attempts per execution and explicit exhaustion failure, distinguishing TCP reachability from application readiness and a DNS-inclusive deadline.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: successful TCP; transient TCP; TCP retry exhaustion."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md",
+        "https://raw.githubusercontent.com/python/cpython/v3.13.0/Doc/library/socket.rst"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-06-EN",
+        "EKS-OPS-INIT-CONTAINERS-06-KO"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-153-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-153",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated startup prerequisites from ongoing application reconnect/retry and conditional readiness, and documented init re-execution and idempotence requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: Manual bilingual semantic review; not reducible to the TCP test."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/init-containers.md",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-07-EN",
+        "EKS-OPS-INIT-CONTAINERS-07-KO"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-154-wave4",
+      "package": "eks-operations",
+      "id": "HYP-OPS-154",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Configured the native Fluent Bit sidecar with an explicit executable, shared-volume tail path/tag and matching stdout output, while retaining delivery and duplication/loss limitations.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md"
+      ],
+      "verification": [
+        "Inspected current-source 18/18 extracting tests and the applied independent review; all five YAML blocks per locale retain their reviewed bytes.",
+        "The focused regression coverage for this ID is: Fluent Bit explicitly; missing logging configuration."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/fluent/fluent-bit/v2.0.0/conf/fluent-bit.conf",
+        "https://raw.githubusercontent.com/fluent/fluent-bit/v2.0.0/dockerfiles/Dockerfile",
+        "https://raw.githubusercontent.com/fluent/fluent-bit/v2.0.0/plugins/in_tail/tail.c",
+        "https://raw.githubusercontent.com/fluent/fluent-bit/v2.0.0/src/fluent-bit.c",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/sidecar-containers.md"
+      ],
+      "evidence_limit": "Offline source correction only. HYP-UV-034/035 remain open for private application images, migration concurrency/idempotence, parser/recovery, root/PVC/CSI/admission and runtime behavior. TCP attempts do not prove database readiness or a total deadline; log delivery is not measured.",
+      "verification_files": [
+        "scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/init-containers.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-INIT-CONTAINERS-08-EN",
+        "EKS-OPS-INIT-CONTAINERS-08-KO"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801"
+      }
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-003-wave4-followup",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-003",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the four later Cilium rate/body listener locations with Service binding, HCM/RDS/EDS/router chains and explicit filter activation, and documented process-local rate and full-body-buffer limits. Retained the earlier OIDC-proxy authentication correction.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6",
+        "a1e450a4af1a7f50a179213d11cd5be41ff78787"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "Mapped all 4 later locations for this ID; the two protected earlier authentication sections remain unchanged.",
+        "Current-source suites passed 28 parent and 15 supplemental cases; 29 independent applied checks passed. The installed combined 43-test log was also inspected."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/cilium/cilium/v1.19.3/pkg/ciliumenvoyconfig/cec_resource_parser.go",
+        "https://raw.githubusercontent.com/cilium/cilium/v1.19.3/pkg/k8s/apis/cilium.io/v2/cec_types.go",
+        "https://raw.githubusercontent.com/cilium/proxy/2437d2edeaf4d9b56ef279bd0d71127440c067aa/envoy_build_config/extensions_build_config.bzl",
+        "https://raw.githubusercontent.com/envoyproxy/envoy/v1.36.0/api/envoy/extensions/filters/http/buffer/v3/buffer.proto",
+        "https://raw.githubusercontent.com/envoyproxy/envoy/v1.36.0/api/envoy/extensions/filters/http/local_ratelimit/v3/local_rate_limit.proto",
+        "https://raw.githubusercontent.com/envoyproxy/envoy/v1.36.0/api/envoy/extensions/filters/network/http_connection_manager/v3/http_connection_manager.proto"
+      ],
+      "evidence_limit": "Source/offline acceptance only. No controller admission, arbitrary Envoy protobuf validation, real requests, CNI enforcement, original-client identity, cookie/rate/body behavior or authentication composition was executed. Unrelated EPN-CB-011/014/017/020/023 remain separate.",
+      "verification_files": [
+        "scripts/tests/document-examples/gateway-cookbook-followup.test.cjs",
+        "scripts/tests/document-examples/gateway-cookbook-ip-contract.test.cjs",
+        "scripts/tests/document-examples/gateway-cookbook-schemas.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/gateway-cookbook-followup.test.cjs scripts/tests/document-examples/gateway-cookbook-ip-contract.test.cjs"
+      ],
+      "followup_of": "2026-09-19-epn-cb-003",
+      "original_occurrence_ids": [
+        "EPN-CB-003-ko",
+        "EPN-CB-003-en"
+      ],
+      "later_occurrence_ids": [
+        "EPN-CB-003-later-ko-section-2-cilium",
+        "EPN-CB-003-later-ko-section-7-cilium",
+        "EPN-CB-003-later-en-section-2-cilium",
+        "EPN-CB-003-later-en-section-7-cilium"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md": "dcfa40de010a218d407ad9b516dc386f6d497f99b598b814d464ccebe689410c",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md": "a817c069695f7d0bce7acfa7008d3dbcdaf7fa91b45fbb44c3ce3256dbb85e91"
+      }
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-004-wave4-followup",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-004",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected both later NGINX Gateway Fabric cookie-persistence locations to HTTPRoute rule sessionPersistence with NGF 2.4.0 Plus and Gateway API 1.4.1 experimental prerequisites, preserving the earlier Basic-authentication route.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6",
+        "a1e450a4af1a7f50a179213d11cd5be41ff78787"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "Mapped all 2 later locations for this ID; the two protected earlier authentication sections remain unchanged.",
+        "Current-source suites passed 28 parent and 15 supplemental cases; 29 independent applied checks passed. The installed combined 43-test log was also inspected."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.4.1/apis/v1/httproute_types.go",
+        "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.4.1/config/crd/experimental/gateway.networking.k8s.io_httproutes.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.4.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml",
+        "https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v2.4.0/internal/controller/state/graph/httproute.go",
+        "https://raw.githubusercontent.com/nginx/nginx-gateway-fabric/v2.4.0/tests/suite/manifests/session-persistence/routes-plus.yaml"
+      ],
+      "evidence_limit": "Source/offline acceptance only. No controller admission, arbitrary Envoy protobuf validation, real requests, CNI enforcement, original-client identity, cookie/rate/body behavior or authentication composition was executed. Unrelated EPN-CB-011/014/017/020/023 remain separate.",
+      "verification_files": [
+        "scripts/tests/document-examples/gateway-cookbook-followup.test.cjs",
+        "scripts/tests/document-examples/gateway-cookbook-ip-contract.test.cjs",
+        "scripts/tests/document-examples/gateway-cookbook-schemas.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/gateway-cookbook-followup.test.cjs scripts/tests/document-examples/gateway-cookbook-ip-contract.test.cjs"
+      ],
+      "followup_of": "2026-09-19-epn-cb-004",
+      "original_occurrence_ids": [
+        "EPN-CB-004-ko",
+        "EPN-CB-004-en"
+      ],
+      "later_occurrence_ids": [
+        "EPN-CB-004-later-ko-section-6-nginx",
+        "EPN-CB-004-later-en-section-6-nginx"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md": "dcfa40de010a218d407ad9b516dc386f6d497f99b598b814d464ccebe689410c",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md": "a817c069695f7d0bce7acfa7008d3dbcdaf7fa91b45fbb44c3ce3256dbb85e91"
+      }
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-006-wave4-followup",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-006",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed ten later kgateway locations using the 2.2.0 Envoy rate/body TrafficPolicy, HTTPRoute session persistence and scoped DirectResponse contracts. Removed the remaining legacy IP-control claim and clarified Kubernetes NetworkPolicy's Pod/CNI/NAT boundary while preserving prior JWT authentication.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "0ffe5ec4dad56043eb0a8eabeb063edec8f2adf6",
+        "a1e450a4af1a7f50a179213d11cd5be41ff78787"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "Mapped all 10 later locations for this ID; the two protected earlier authentication sections remain unchanged.",
+        "Current-source suites passed 28 parent and 15 supplemental cases; 29 independent applied checks passed. The installed combined 43-test log was also inspected."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.2.0/api/v1alpha1/kgateway/direct_response_types.go",
+        "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go",
+        "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/buffer.go",
+        "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/local_rate_limit_plugin.go",
+        "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.2.0/test/e2e/features/session_persistence/testdata/cookie-session-persistence.yaml",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/services-networking/network-policies.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only. No controller admission, arbitrary Envoy protobuf validation, real requests, CNI enforcement, original-client identity, cookie/rate/body behavior or authentication composition was executed. Unrelated EPN-CB-011/014/017/020/023 remain separate.",
+      "verification_files": [
+        "scripts/tests/document-examples/gateway-cookbook-followup.test.cjs",
+        "scripts/tests/document-examples/gateway-cookbook-ip-contract.test.cjs",
+        "scripts/tests/document-examples/gateway-cookbook-schemas.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/gateway-cookbook-followup.test.cjs scripts/tests/document-examples/gateway-cookbook-ip-contract.test.cjs"
+      ],
+      "followup_of": "2026-09-19-epn-cb-006",
+      "original_occurrence_ids": [
+        "EPN-CB-006-ko",
+        "EPN-CB-006-en"
+      ],
+      "later_occurrence_ids": [
+        "EPN-CB-006-later-ko-section-2-kgateway",
+        "EPN-CB-006-later-ko-section-6-kgateway",
+        "EPN-CB-006-later-ko-section-7-kgateway",
+        "EPN-CB-006-later-ko-section-8-kgateway",
+        "EPN-CB-006-later-ko-section-3-kgateway",
+        "EPN-CB-006-later-en-section-2-kgateway",
+        "EPN-CB-006-later-en-section-6-kgateway",
+        "EPN-CB-006-later-en-section-7-kgateway",
+        "EPN-CB-006-later-en-section-8-kgateway",
+        "EPN-CB-006-later-en-section-3-kgateway"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md": "dcfa40de010a218d407ad9b516dc386f6d497f99b598b814d464ccebe689410c",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md": "a817c069695f7d0bce7acfa7008d3dbcdaf7fa91b45fbb44c3ce3256dbb85e91"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-020-wave4-followup",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-020",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the thirteen remaining consolidation-policy locations in the troubleshooting pair and English shared-component row. Used WhenEmptyOrUnderutilized, correctly nested expireAfter and required consolidateAfter in the selected examples; retained both prior scheduling corrections and their 1m wait.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+        "94a25ba53bad4d769f25b84f4bae6c97d72efc86"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "src/components/AgenticSolutionsTables/KarpenterGpuOptimization.js",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md"
+      ],
+      "verification": [
+        "All 13 later locations and both earlier scheduling blocks were reviewed; the previous 1m wait and provider reference remain intact.",
+        "The installed current-source guard passed 46 tests, including invalid field, extraction and locale-binding controls. Independent source, coverage and component checks passed 26 checks."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/aws/karpenter-provider-aws/releases/tags/v1.14.1",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+      ],
+      "evidence_limit": "Karpenter v1.14.1 selected-field source correction only. No full NodePool/provider validation, controller/admission, consolidation, expiration, availability or cost test. Unrelated scheduled-budget and full-resource gaps remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/karpenter-remaining.test.cjs",
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/karpenter-remaining.test.cjs",
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 -B scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "followup_of": "2026-09-19-eksn-pod-020",
+      "original_occurrence_ids": [
+        "EKSN-POD-020-ko",
+        "EKSN-POD-020-en"
+      ],
+      "later_occurrence_ids": [
+        "EKSN-POD-020-supplemental-01",
+        "EKSN-POD-020-supplemental-02",
+        "EKSN-POD-020-supplemental-03",
+        "EKSN-POD-020-supplemental-04",
+        "EKSN-POD-020-supplemental-05",
+        "EKSN-POD-020-supplemental-06",
+        "EKSN-POD-020-supplemental-07",
+        "EKSN-POD-020-supplemental-08",
+        "EKSN-POD-020-supplemental-09",
+        "EKSN-POD-020-supplemental-10",
+        "EKSN-POD-020-supplemental-11",
+        "EKSN-POD-020-supplemental-12",
+        "EKSN-POD-020-supplemental-13"
+      ],
+      "retained_prior_source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "new_source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "src/components/AgenticSolutionsTables/KarpenterGpuOptimization.js"
+      ],
+      "shared_component_hosts": [
+        {
+          "source_path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+          "locale": "ko",
+          "visible_output_changed": false
+        },
+        {
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+          "locale": "en",
+          "visible_output_changed": true
+        }
+      ],
+      "verification_scope_note": "The new guard covers all 13 later locations and the two retained scheduling examples. It checks selected fields and component bindings, not complete NodePool admission or controller behavior.",
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9",
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "5adb31a999db038b31ea9eafb1ddd87763a740c95c3f0835a38517cd4a287d02",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "ae41ed804ad994dd713a1d51b278def6eaf81ebc2dcb8d2c78e0e91d38572cd5",
+        "src/components/AgenticSolutionsTables/KarpenterGpuOptimization.js": "5f081ca10a512653f9821cbec96b95494d54fb5209e7e6dd74974588ffc75187",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md": "078298d4c80227cc887a812ae93b42fd2d3f496e0529a1516c9bf31774c1ff1b"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-005-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-005",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the RDS writer-AZ hard pin with a static preferred affinity and actual endpoint input, and explained DNS refresh/reconnection after Multi-AZ DB instance failover.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Concepts.MultiAZ.Failover.html",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source/offline correction only. Actual RDS deployment type, endpoint, client DNS cache/reconnect policy, usable image and observed latency/cross-AZ cost. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-005-ko",
+        "EKSN-POD-005-en"
+      ],
+      "version_limits": [
+        "Kubernetes preferred node affinity; cited RDS Multi-AZ DB instance behavior. Other RDS deployment types require their own endpoint/failover contract."
+      ],
+      "selected_edit_ids": [
+        "ko-002",
+        "ko-003",
+        "en-024",
+        "en-025"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-007-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-007",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Qualified hostname anti-affinity by matching Pods and eligible nodes, documented rollout headroom and hard zone-affinity admission constraints, and removed complete failure-isolation guarantees.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/"
+      ],
+      "evidence_limit": "Source/offline correction only. Eligible labeled nodes, namespace/selector membership, admission policy, rollout capacity and common-mode dependency failures. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-007-ko",
+        "EKSN-POD-007-en"
+      ],
+      "version_limits": [
+        "Kubernetes v1.34 Pod anti-affinity. Hard zone-level anti-affinity depends on the admission configuration; hostname-only restriction is documented."
+      ],
+      "selected_edit_ids": [
+        "ko-001",
+        "ko-006",
+        "ko-007",
+        "ko-008",
+        "ko-016",
+        "ko-017",
+        "en-023",
+        "en-028",
+        "en-029",
+        "en-030",
+        "en-038",
+        "en-039"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-008-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-008",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Defined topology skew using matching Pods in the same namespace and eligible domains, replacing unqualified all-Pod and per-AZ caps throughout the selected examples and checklist.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/scheduler/framework/plugins/podtopologyspread/filtering.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/"
+      ],
+      "evidence_limit": "Source/offline correction only. Live labels, selector matches, domain eligibility, topology keys and all other scheduler filters. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-008-ko",
+        "EKSN-POD-008-en"
+      ],
+      "version_limits": [
+        "Kubernetes v1.34 topology spread; node inclusion policies are stable in v1.33. nodeAffinityPolicy defaults to Honor; nodeTaintsPolicy defaults to Ignore."
+      ],
+      "selected_edit_ids": [
+        "ko-009",
+        "ko-010",
+        "ko-011",
+        "ko-012",
+        "ko-022",
+        "en-031",
+        "en-032",
+        "en-033",
+        "en-034",
+        "en-044"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-009-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-009",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected minDomains/global-minimum arithmetic, including the two-empty-domain and 2/2-count counterexamples, and removed the claim that minDomains guarantees an AZ count.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/scheduler/framework/plugins/podtopologyspread/filtering.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/"
+      ],
+      "evidence_limit": "Source/offline correction only. Live eligible domains and counts; cordon or resource exhaustion alone does not establish the topology-domain set. No live scheduler decision was observed. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-009-ko",
+        "EKSN-POD-009-en"
+      ],
+      "version_limits": [
+        "minDomains is stable in Kubernetes v1.30 and valid only with DoNotSchedule. The deterministic fixtures follow the v1.34.0 topology-spread filter for prequalified counts."
+      ],
+      "selected_edit_ids": [
+        "ko-010",
+        "ko-011",
+        "ko-012",
+        "ko-013",
+        "ko-014",
+        "ko-015",
+        "ko-016",
+        "ko-017",
+        "ko-020",
+        "ko-021",
+        "en-032",
+        "en-033",
+        "en-034",
+        "en-035",
+        "en-036",
+        "en-037",
+        "en-038",
+        "en-039",
+        "en-042",
+        "en-043"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-010-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-010",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Retained combined placement constraints and conditional 12-minus-4 replica arithmetic while separating those assumptions from healthy endpoints, capacity and service survival.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/"
+      ],
+      "evidence_limit": "Source/offline correction only. Actual 4/4/4 placement, endpoint readiness, capacity after failure, shared dependencies and measured service continuity. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-010-ko",
+        "EKSN-POD-010-en"
+      ],
+      "version_limits": [
+        "Kubernetes v1.34 topology-spread and anti-affinity constraints apply together; independent hard filters still apply."
+      ],
+      "selected_edit_ids": [
+        "ko-001",
+        "ko-016",
+        "ko-017",
+        "en-023",
+        "en-038",
+        "en-039"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-011-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-011",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Explained concurrent Hard filtering and Soft scoring without a Soft override or hard per-AZ cap; corrected the Korean quantity to Pod counts per node.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/scheduler/framework/plugins/podtopologyspread/filtering.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/"
+      ],
+      "evidence_limit": "Source/offline correction only. Live scheduler configuration, feasible nodes and scoring outcomes. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-011-ko",
+        "EKSN-POD-011-en"
+      ],
+      "version_limits": [
+        "Kubernetes v1.34 DoNotSchedule/ScheduleAnyway semantics; all hard filters must be satisfied."
+      ],
+      "selected_edit_ids": [
+        "ko-009",
+        "ko-010",
+        "ko-018",
+        "ko-019",
+        "ko-020",
+        "ko-022",
+        "en-031",
+        "en-032",
+        "en-040",
+        "en-041",
+        "en-042",
+        "en-044"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-075-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-075",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the automatic-evacuation workflow with EKS cordon/EndpointSlice and separate Karpenter impaired-zone behavior, supplied versioned flag/IAM/NodeClass requirements, and removed unsupported RTO and alarm-action guarantees.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/blogs/containers/arc-zonal-shift-support-for-eks-auto-mode-and-karpenter/",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html",
+        "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html",
+        "https://docs.aws.amazon.com/r53recovery/latest/dg/arc-zonal-autoshift.html",
+        "https://istio.io/latest/docs/reference/config/networking/destination-rule/",
+        "https://istio.io/latest/docs/reference/config/networking/virtual-service/",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://karpenter.sh/v1.14/reference/cloudformation/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/operator/options/options.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/services-networking/service/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      ],
+      "evidence_limit": "Source/offline correction only. ARC enablement, controller version/flags/IAM, NodeClass existence, LB target/endpoint consumption behavior, CoreDNS, healthy remaining endpoints, dependencies, capacity and measured recovery time. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-075-ko",
+        "EKSN-POD-075-en"
+      ],
+      "version_limits": [
+        "Enable zonal shift for the cluster and check the supported traffic path separately. Self-managed Karpenter support starts at v1.12.0 according to the AWS article.",
+        "Pinned v1.14.1 uses --enable-zonal-shift=true (or chart settings.enableZonalShift), default false; the controller needs arc-zonal-shift:GetManagedResource for its cluster.",
+        "The AWS-provider NodePool assumes an existing karpenter.k8s.aws/EC2NodeClass named default, regional image/network/IAM inputs, real application image/readiness, and remaining capacity. Auto Mode enablement is separate."
+      ],
+      "selected_edit_ids": [
+        "ko-045",
+        "ko-046",
+        "ko-047",
+        "ko-048",
+        "ko-049",
+        "ko-051",
+        "ko-053",
+        "ko-057",
+        "ko-058",
+        "ko-060",
+        "ko-061",
+        "en-062",
+        "en-063",
+        "en-064",
+        "en-065",
+        "en-066",
+        "en-068",
+        "en-070",
+        "en-074",
+        "en-075",
+        "en-077",
+        "en-078"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-076-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-076",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Changed the ARC companion to Soft AZ spread without minDomains, preserving other hard constraints and clarifying that domain loss does not itself create replacement replicas.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/blogs/containers/arc-zonal-shift-support-for-eks-auto-mode-and-karpenter/",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html",
+        "https://docs.aws.amazon.com/r53recovery/latest/dg/arc-zonal-autoshift.html",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://karpenter.sh/v1.14/reference/cloudformation/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/operator/options/options.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      ],
+      "evidence_limit": "Source/offline correction only. Actual available capacity, hard affinity, taints, storage constraints and replica/endpoint state after a shift. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-076-ko",
+        "EKSN-POD-076-en"
+      ],
+      "version_limits": [
+        "Kubernetes v1.34 ScheduleAnyway semantics. Existing Pods are not evicted by EKS zonal shift; other hard placement constraints still apply."
+      ],
+      "selected_edit_ids": [
+        "ko-047",
+        "ko-048",
+        "ko-053",
+        "en-064",
+        "en-065",
+        "en-070"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-077-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-077",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Corrected the selected scheduling pair to consecutive5xxErrors and region/zone failoverPriority with outlier detection, replacing AZ-shaped failover entries. Four outside legacy-field occurrences remain open.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html",
+        "https://istio.io/latest/docs/reference/config/networking/destination-rule/",
+        "https://istio.io/latest/docs/reference/config/networking/virtual-service/"
+      ],
+      "evidence_limit": "Source/offline correction only. Installed Istio version/served CRDs and proxy configuration, Service/ports, endpoint metadata, ejection behavior and actual failover. Four outside repetitions remain untouched/open. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-077-ko",
+        "EKSN-POD-077-en"
+      ],
+      "version_limits": [
+        "Current Istio DestinationRule API. This concrete example assumes a sidecar mesh, the named Service, HTTP service ports, discoverable healthy endpoints and populated region/zone locality metadata.",
+        "failoverPriority is mutually exclusive with failover/distribute and requires outlier detection. An installed release's served API must be checked before operational use."
+      ],
+      "selected_edit_ids": [
+        "ko-049",
+        "ko-050",
+        "en-066",
+        "en-067"
+      ],
+      "remaining": "Four consecutiveErrors repetitions remain outside the selected pair: both ddd-integration locales and both shutdown-karpenter locales. The separate outside-fix proposal is excluded from this wave.",
+      "remaining_occurrences": [
+        {
+          "occurrence_id": "EKSN-POD-077-outside-ko-ddd-integration",
+          "source_path": "docs/aidlc/methodology/ddd-integration.md",
+          "line": 400,
+          "end_line": 400,
+          "status": "open"
+        },
+        {
+          "occurrence_id": "EKSN-POD-077-outside-ko-shutdown-karpenter",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+          "line": 341,
+          "end_line": 341,
+          "status": "open"
+        },
+        {
+          "occurrence_id": "EKSN-POD-077-outside-en-shutdown-karpenter",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+          "line": 341,
+          "end_line": 341,
+          "status": "open"
+        },
+        {
+          "occurrence_id": "EKSN-POD-077-outside-en-ddd-integration",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+          "line": 403,
+          "end_line": 403,
+          "status": "open"
+        }
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-078-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-078",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed permanent 50/50 AZ-subset routing and routed to the original Service host, leaving locality policy to DestinationRule and making the absence of an ARC route-rewrite controller explicit.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html",
+        "https://istio.io/latest/docs/reference/config/networking/destination-rule/",
+        "https://istio.io/latest/docs/reference/config/networking/virtual-service/"
+      ],
+      "evidence_limit": "Source/offline correction only. Actual routing and endpoint discovery, HTTP retries/timeouts and application behavior; no automated route-rewrite integration is proven. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-078-ko",
+        "EKSN-POD-078-en"
+      ],
+      "version_limits": [
+        "Current Istio VirtualService and DestinationRule APIs; Service endpoints and mesh discovery must provide the required locality information. Node AZ labels do not automatically create Pod subset labels."
+      ],
+      "selected_edit_ids": [
+        "ko-049",
+        "ko-050",
+        "en-066",
+        "en-067"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-079-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-079",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Made the ConfigMap stored alarm-definition data with ALB/AZ dimensions and Seconds units, disabled actions, and separated alarm provisioning, operator automation and AWS autoshift telemetry.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/blogs/containers/arc-zonal-shift-support-for-eks-auto-mode-and-karpenter/",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html",
+        "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-cloudwatch-metrics.html",
+        "https://docs.aws.amazon.com/r53recovery/latest/dg/arc-zonal-autoshift.html",
+        "https://karpenter.sh/v1.14/reference/cloudformation/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/operator/options/options.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      ],
+      "evidence_limit": "Source/offline correction only. Real ALB metric series and resource suffix, traffic-path compatibility, justified thresholds, provisioned alarm, missing-data behavior and any separately implemented action controller. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-079-ko",
+        "EKSN-POD-079-en"
+      ],
+      "version_limits": [
+        "AWS/ApplicationELB TargetResponseTime uses seconds and supports the LoadBalancer/AvailabilityZone dimension set. The illustrative load-balancer suffix must be replaced with the real resource value.",
+        "PutMetricAlarm or equivalent provisioning creates an alarm; Kubernetes does not interpret ConfigMap alarm.json as a CloudWatch API request. Autoshift uses AWS telemetry."
+      ],
+      "selected_edit_ids": [
+        "ko-051",
+        "ko-052",
+        "ko-053",
+        "en-068",
+        "en-069",
+        "en-070"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-081-wave4",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-081",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated placement affinity from Service/mesh/load-balancer routing and measured cross-AZ cost, keeping useful static co-location preferences without routing or savings guarantees.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Both original locale occurrences and the related code, tables and diagrams were reviewed. All authored code and diagram fences match the tested correction.",
+        "The new 22 tests and prior 14 JavaScript/8 Python tests passed. Independent review passed 361 source, catalog and preservation checks; the reported Korean Pod-count wording error was corrected."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/blogs/containers/arc-zonal-shift-support-for-eks-auto-mode-and-karpenter/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/zone-shift.html",
+        "https://docs.aws.amazon.com/r53recovery/latest/dg/arc-zonal-autoshift.html",
+        "https://istio.io/latest/docs/reference/config/networking/destination-rule/",
+        "https://karpenter.sh/v1.14/reference/cloudformation/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/operator/options/options.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/services-networking/service/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      ],
+      "evidence_limit": "Source/offline correction only. Actual Service/mesh/LB routing, endpoint health, traffic volume and measured cost. POD083's separate savings table is deferred and unchanged. No live scheduler, mesh/ARC/controller, alarm-action, fault, availability or cost validation.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-availability.test.cjs",
+        "scripts/tests/document-examples/scheduling-availability-locators.json"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-availability.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-081-ko",
+        "EKSN-POD-081-en"
+      ],
+      "version_limits": [
+        "Kubernetes v1.34 Pod affinity and Service routing semantics. Any topology-aware routing mechanism must be named and separately configured if used."
+      ],
+      "selected_edit_ids": [
+        "ko-004",
+        "ko-005",
+        "en-026",
+        "en-027",
+        "ko-054",
+        "ko-055",
+        "ko-056",
+        "ko-057",
+        "ko-058",
+        "ko-059",
+        "en-071",
+        "en-072",
+        "en-073",
+        "en-074",
+        "en-075",
+        "en-076"
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
+      }
     }
   ]
 }

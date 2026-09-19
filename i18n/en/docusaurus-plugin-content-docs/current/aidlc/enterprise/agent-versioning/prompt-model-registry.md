@@ -5,7 +5,7 @@ created: "2026-04-19"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 16
+reading_time: 23
 tags:
   - prompt-registry
   - versioning
@@ -36,6 +36,8 @@ Central repository managing prompt and model versions like code. Solves the foll
 - **Diff View**: Visualize changes between versions
 - **Access Log**: Track which session used which prompt version
 
+The example below uses [Langfuse Python SDK 4.15.3](https://github.com/langfuse/langfuse-python/blob/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/_client/client.py#L4119-L4224). Register a version with a client authenticated to the intended project and save the response in `candidate`. Evaluation and release approval follow registration.
+
 ```python
 from langfuse import Langfuse
 
@@ -46,15 +48,39 @@ prompt = client.get_prompt("financial-analysis", label="production")
 print(prompt.version)  # Example: 5
 print(prompt.prompt)   # Actual text
 
-# Deploy new version
-client.create_prompt(
+# Register a staging candidate
+candidate = client.create_prompt(
     name="financial-analysis",
     prompt="You are a conservative investment advisor...",
-    labels=["staging"]  # Deploy to staging first
+    labels=["staging"]
 )
-# After validation
-client.update_prompt_label("financial-analysis", version=6, label="production")
 ```
+
+Save `candidate.name` and `candidate.version` with the project identity and evaluation record. Another author may create a version in between, so evaluate the returned version instead of assuming that the next version is 6.
+
+Have the release workflow verify evaluation evidence and approval for the exact project, name and version before calling the function below. Pass the name and version from that verified record as `approved_name` and `approved_version`.
+
+```python
+# langfuse_prompt_promotion.py
+def promote_evaluated_prompt(
+    client, *, candidate, approved_name, approved_version
+):
+    """Match a candidate to an externally verified approval record."""
+    if (not isinstance(approved_name, str) or not approved_name.strip()
+            or type(approved_version) is not int or approved_version < 1
+            or candidate.name != approved_name
+            or type(candidate.version) is not int
+            or candidate.version != approved_version
+            or candidate.is_fallback):
+        raise ValueError("candidate_not_approved")
+    return client.update_prompt(
+        name=candidate.name,
+        version=candidate.version,
+        new_labels=["production"],
+    )
+```
+
+This function checks that the candidate's name and version match the approval record. The calling workflow must authenticate the approval, verify the target project and coordinate concurrent label changes. Read back the label afterward and check application propagation as described below. An API error can occur after the server applies a change, so reconcile registry state before retrying.
 
 **Rollback verification:** applications can continue using the previous prompt after a label changes. [Langfuse's prompt cache](https://langfuse.com/docs/prompt-management/features/caching) has a default TTL of 60 seconds and can return an expired entry while fetching a new value in the background. The deployed SDK version, TTL settings, failed refreshes, fallback prompts and requests already in progress affect when the change takes effect.
 
@@ -221,41 +247,93 @@ After evaluation and approval, map `PROD` to that ARN in the application configu
 
 ### Langfuse Self-hosted Deployment
 
+This new-install example uses [chart 2.1.1](https://github.com/langfuse/langfuse-k8s/releases/tag/langfuse-2.1.1), appVersion `4.35.0` and its [versioned values](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/values.yaml). Provision the backing services first. An upgrade from chart 1.x needs a separate migration procedure. Replace the `.invalid` endpoints, example ports and region with settings reviewed for the deployment environment.
+
+Choose and record the target Kubernetes context and namespace (for example, `langfuse`) before deployment. Prepare these dependencies separately:
+
+- Prepare PostgreSQL with the `langfuse` database, user and compatible schema.
+- Prepare a Redis/Valkey user and TLS endpoint, and configure the `noeviction` policy.
+- Prepare an external, non-clustered ClickHouse database and user, with HTTPS and native TLS endpoints.
+- Grant access to the event, export and media prefixes in an S3-compatible bucket. Check endpoint, region and path-style settings, plus browser access and CORS for media.
+- Create the `langfuse-runtime` Secret in the release namespace with all eight keys referenced below. Supply backing-service credentials, a 64-hex-character encryption key, and securely generated salt and NextAuth secret. Preserve application keys across redeployments. The Redis password enters a connection URL, so follow the encoding requirements for special characters.
+
+This example disables automatic PostgreSQL and ClickHouse migrations. Complete the approved schema migrations before starting the application. Check certificate trust for each service as well. PostgreSQL's `sslmode=require` requests TLS; review server-certificate verification separately for the environment.
+
 ```yaml
-# langfuse-values.yaml (Helm)
-replicaCount: 2
+# langfuse-values.yaml
+# Chart: langfuse/langfuse 2.1.1; appVersion: 4.35.0
+langfuse:
+  image:
+    tag: "4.35.0"
+  replicas: 2
+  resources:
+    requests: {cpu: "500m", memory: "1Gi"}
+    limits: {cpu: "2000m", memory: "4Gi"}
+  salt:
+    secretKeyRef: {name: langfuse-runtime, key: salt}
+  encryptionKey:
+    secretKeyRef: {name: langfuse-runtime, key: encryption-key}
+  nextauth:
+    url: "https://langfuse.example.invalid"
+    secret:
+      secretKeyRef: {name: langfuse-runtime, key: nextauth-secret}
 
 postgresql:
-  enabled: true
+  deploy: false
+  host: postgresql.example.invalid
+  port: 5432
+  args: "sslmode=require"
   auth:
-    password: "secure-password"
+    username: langfuse
+    database: langfuse
+    existingSecret: langfuse-runtime
+    secretKeys: {userPasswordKey: postgresql-password}
+  migration: {autoMigrate: false}
 
-env:
-  - name: DATABASE_URL
-    value: "postgresql://user:pass@postgres:5432/langfuse"
-  - name: NEXTAUTH_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: langfuse-secrets
-        key: nextauth-secret
-  - name: S3_BUCKET_NAME
-    value: "langfuse-prompts"
-  - name: S3_ENDPOINT
-    value: "https://s3.us-east-1.amazonaws.com"
+redis:
+  deploy: false
+  host: redis.example.invalid
+  port: 6379
+  tls: {enabled: true}
+  auth:
+    username: "default"
+    existingSecret: langfuse-runtime
+    existingSecretPasswordKey: redis-password
 
-resources:
-  requests:
-    cpu: "500m"
-    memory: "1Gi"
-  limits:
-    cpu: "2000m"
-    memory: "4Gi"
+clickhouse:
+  deploy: false
+  host: "https://clickhouse.example.invalid"
+  httpPort: 8443
+  nativePort: 9440
+  database: langfuse
+  cluster: {enabled: false}
+  auth:
+    username: langfuse
+    existingSecret: langfuse-runtime
+    existingSecretKey: clickhouse-password
+  migration: {ssl: true, autoMigrate: false}
+
+s3:
+  deploy: false
+  storageProvider: s3
+  bucket: langfuse-prompts
+  region: us-east-1
+  endpoint: "https://object-store.example.invalid"
+  forcePathStyle: true
+  accessKeyId:
+    secretKeyRef: {name: langfuse-runtime, key: s3-access-key-id}
+  secretAccessKey:
+    secretKeyRef: {name: langfuse-runtime, key: s3-secret-access-key}
+  eventUpload: {prefix: "events/"}
+  batchExport: {enabled: true, prefix: "exports/"}
+  mediaUpload: {enabled: true, prefix: "media/"}
 ```
 
-```bash
-helm repo add langfuse https://langfuse.github.io/langfuse-k8s
-helm install langfuse langfuse/langfuse -f langfuse-values.yaml
-```
+`deploy: false` disables the chart's bundled PostgreSQL, Valkey, SeaweedFS and ClickHouse/Keeper deployments. The application uses the external databases, users, buckets and Secret prepared earlier.
+
+The shared replica and resource settings apply to both the web and worker Deployments. This gives two web pods and two worker pods, with the listed resources allocated per pod. Adjust these example values for the workload; they are not measured sizing recommendations. Size the backing services separately.
+
+The release has [template checks](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/validations.yaml), but no top-level `values.schema.json`. Review against this exact chart and keep the chart version fixed in the deployment configuration. Ingress/TLS termination, access policy, Secret existence, connectivity, schema compatibility and application health still require environment validation. This reference was checked offline; it has not been installed or rendered with Helm.
 
 ### Bedrock Prompt Management Setup
 

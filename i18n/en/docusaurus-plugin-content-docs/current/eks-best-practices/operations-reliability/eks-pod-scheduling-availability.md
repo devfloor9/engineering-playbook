@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 156
+reading_time: 169
 tags:
   - eks
   - kubernetes
@@ -42,7 +42,7 @@ This document focuses on scheduling patterns at the **Pod level**. For cluster-w
 
 | Scenario | Incorrect Scheduling | Correct Scheduling |
 |---------|----------------|----------------|
-| **Failure isolation** | All replicas on the same node → Complete outage if the node fails | Distribute across nodes with Anti-Affinity → Only partial failures |
+| **Failure isolation** | Co-located replicas share exposure to that node's failure | Anti-affinity reduces direct co-location exposure; dependency failures require separate assessment |
 | **Resource contention** | CPU-intensive Pods concentrated on one node → Performance degradation | Separate workloads with Node Affinity → Stable performance |
 | **Cost optimization** | Pods that do not need GPUs placed on GPU nodes → Wasted cost | Isolate dedicated nodes with Taints/Tolerations → Lower cost |
 | **Upgrade safety** | Unplanned rollout strategy/readiness and no PDB for node drains → Excessive loss of available replicas | Control rolling updates through workload controller settings and constrain Eviction API-based node drains with a PDB |
@@ -321,7 +321,11 @@ spec:
             memory: 2Gi
 ```
 
-**Example 3: Specify an AZ (Database Client)**
+**Example 3: Static AZ Preference (Database Client)**
+
+This example prefers the current RDS writer's AZ when placing new Pods. Replace `us-east-1a` and `DB_ENDPOINT` with the actual AZ and RDS endpoint. The preference does not move existing Pods or follow the writer to another AZ after failover.
+
+A Multi-AZ DB instance failover changes the endpoint's DNS target. Check that the client's DNS caching and reconnection behavior allow it to use the new address. Evaluate same-AZ traffic and cost changes from the actual request path.
 
 ```yaml
 apiVersion: apps/v1
@@ -340,10 +344,11 @@ spec:
     spec:
       affinity:
         nodeAffinity:
-          # Place in the same AZ (us-east-1a) as the RDS instance to reduce Cross-AZ costs
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
+          # Static preference; not a writer-AZ tracking mechanism
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
               - key: topology.kubernetes.io/zone
                 operator: In
                 values:
@@ -353,7 +358,7 @@ spec:
         image: db-client:v1.2
         env:
         - name: DB_ENDPOINT
-          value: "mydb.us-east-1a.rds.amazonaws.com"
+          value: "REPLACE_WITH_RDS_ENDPOINT"
 ```
 
 ### 3.3 Node Anti-Affinity
@@ -407,7 +412,7 @@ Pod Affinity and Anti-Affinity make scheduling decisions based on **relationship
 
 ### 4.1 Pod Affinity
 
-Pod Affinity co-locates other Pods in the topology domain (node, AZ, or region) where a specific Pod resides.
+Pod affinity uses the topology domain of matching Pods as a placement condition or preference. Request-by-request endpoint selection by a Service or proxy follows separate routing configuration.
 
 **Primary Use Cases:**
 - **Cache Locality**: Place the cache server and application on the same node to minimize latency
@@ -473,7 +478,7 @@ spec:
     spec:
       affinity:
         podAffinity:
-          # Soft: Prefer the same AZ as the API server (reduce Cross-AZ costs)
+          # Soft: Prefer the API server's AZ; request routing is configured separately
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
@@ -491,7 +496,7 @@ spec:
 
 ### 4.2 Pod Anti-Affinity
 
-Pod Anti-Affinity **prevents** other Pods from being placed in the topology domain where a specific Pod resides. It is a key pattern for high availability.
+Pod anti-affinity restricts placement or prefers separation so that Pods matching a selector do not gather on the same node or in the same AZ. The diagram shows a possible placement across three domains. Actual placement depends on candidate nodes and other constraints; shared dependencies such as a database can still fail. Hard AZ anti-affinity requires admission settings that permit that topology key.
 
 ```mermaid
 flowchart TB
@@ -562,7 +567,7 @@ spec:
 ```
 
 :::warning Hard Anti-Affinity Considerations
-When Hard Anti-Affinity is applied to `kubernetes.io/hostname`, some Pods remain `Pending` if the replica count exceeds the node count. For example, deploying 5 replicas across 3 nodes leaves 2 unscheduled. Use Soft Anti-Affinity in this case.
+Hard hostname anti-affinity allows at most one matching Pod per eligible hostname. With three otherwise suitable nodes, at least two of five replicas may remain Pending. Check resources, taints, volumes and rollout surge headroom as well. Switching to Soft relaxes this separation condition; other causes of Pending remain.
 :::
 
 #### Soft Anti-Affinity (Recommended Pattern)
@@ -608,23 +613,23 @@ spec:
 
 | Scenario | Recommendation | Reason |
 |---------|------|------|
-| Replica count ≤ Node count | Hard | Exactly 1 replica can be placed on each node |
-| Replica count > Node count | Soft | Allow 2 or more replicas on some nodes |
-| Mission-critical service | Hard (AZ level) | Complete failure domain isolation |
-| General workload | Soft | Ensure scheduling flexibility |
-| Rapid scaling required | Soft | Prevent Pending states |
+| Enough eligible hostnames and capacity | Consider Hard | At most one matching Pod per hostname; rollout surge also needs headroom |
+| More replicas than eligible hostnames | Add capacity or consider Soft | Soft permits co-location and changes failure exposure |
+| Reduce AZ-level failure exposure | Topology Spread or permitted hard AZ anti-affinity | Hard AZ rules allow at most one per eligible AZ; check admission policy |
+| General workloads | Consider Soft | Scores the spreading preference alongside other constraints |
+| Rapid scaling required | Review constraints and capacity together | Soft alone does not guarantee placement or eliminate Pending |
 
 ### 4.3 Affinity/Anti-Affinity vs Topology Spread Comparison
 
 | Comparison | Pod Anti-Affinity | Topology Spread Constraints |
 |----------|-------------------|----------------------------|
-| **Purpose** | Separate Pods | Distribute Pods evenly |
-| **Granularity** | Per-Pod control | Balance across domains |
-| **Complexity** | Low | Medium |
-| **Flexibility** | Choose Hard/Soft | Control the allowed range with maxSkew |
-| **Primary use** | Separate replicas of the same app | Overall balance across multiple apps |
-| **AZ distribution** | Supported | More granular (minDomains) |
-| **Node distribution** | Supported | More granular (maxSkew) |
+| **Purpose** | Separation from selected Pods | Spread the selected Pod set across domains |
+| **Granularity** | Pod selector and topology key | Pod selector and counts per domain |
+| **Complexity** | Depends on rules and selectors | Depends on rules and domains |
+| **Flexibility** | Choose Hard/Soft | Hard skew limit or Soft spreading preference |
+| **Primary use** | Separate matching replicas | Balance Pods matched by labelSelector in the same namespace |
+| **AZ distribution** | Supported; hard rules require admission review | Evaluate eligible domains, maxSkew and minDomains together |
+| **Node distribution** | Supported | Hard hostname constraint or Soft scoring |
 | **Recommended combination** | Topology Spread (AZ) + Anti-Affinity (Node) | |
 
 :::info Topology Spread Constraints Reference
@@ -633,11 +638,13 @@ Topology Spread Constraints provide more granular distribution control than Pod 
 
 #### 4.3.1 Practical Topology Spread Constraints Patterns
 
-Topology Spread Constraints address complex distribution requirements effectively. The following patterns are commonly used in production environments, with YAML examples.
+Topology Spread compares how many Pods match a selector in each domain within the same namespace. A domain is a node or AZ identified by `topologyKey`. Node selector/affinity, topology labels and `nodeAffinityPolicy`/`nodeTaintsPolicy` determine which domains enter the calculation. Counting spare CPU/memory or uncordoned nodes is not a substitute.
+
+The examples use Kubernetes 1.34. `DoNotSchedule` rejects placements that exceed the allowed difference in Pod counts, called skew. `ScheduleAnyway` prefers candidates that improve the spread. Pattern 2 explains how `minDomains` affects the skew calculation. Other scheduling conditions, including resource shortages, can block placement with either setting.
 
 ##### Pattern 1: Even Multi-AZ Distribution (Basic)
 
-This is the most common pattern, distributing all replicas evenly across AZs.
+This Hard pattern constrains the selected replica counts per AZ. Its illustrated placement assumes three eligible AZs and enough capacity.
 
 ```yaml
 apiVersion: apps/v1
@@ -672,18 +679,18 @@ spec:
 ```
 
 **How It Works:**
-- `maxSkew: 1`: Allow a difference of at most 1 Pod between AZs
-- 9 replicas → us-east-1a(3), us-east-1b(3), us-east-1c(3)
-- `whenUnsatisfiable: DoNotSchedule`: Keep Pods Pending if the constraint is violated
+- `maxSkew: 1`: compare the target AZ's matching-Pod count, including the incoming Pod, with the global minimum
+- A 3/3/3 placement of nine replicas is possible with three eligible AZs and all other constraints satisfied
+- `DoNotSchedule`: reject a candidate whose skew exceeds the limit
 
 **Use Cases:**
 - AZ failure resilience for mission-critical services
 - Client traffic arriving evenly from all AZs
 - Failure isolation at the data center level
 
-##### Pattern 2: Using minDomains (Minimum AZ Guarantee)
+##### Pattern 2: Using minDomains (Global Minimum Calculation) {#pattern-2-using-mindomains-minimum-az-guarantee}
 
-`minDomains` guarantees the minimum number of domains (AZs) across which Pods must be distributed. It prevents Pods from concentrating in one location when the number of AZs is reduced.
+`minDomains` does not create a required number of AZs or guarantee availability. When fewer domains are eligible, the Hard skew calculation uses a global minimum of zero. The field is GA from Kubernetes 1.30; earlier releases require checking feature-gate support.
 
 ```yaml
 apiVersion: apps/v1
@@ -705,7 +712,7 @@ spec:
     spec:
       topologySpreadConstraints:
       - maxSkew: 1
-        minDomains: 3  # Must distribute across 3 AZs
+        minDomains: 3  # Fewer than three eligible domains means a global minimum of zero
         topologyKey: topology.kubernetes.io/zone
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
@@ -724,22 +731,21 @@ spec:
 ```
 
 **How It Works:**
-- `minDomains: 3`: Guarantee Pod distribution across at least 3 AZs
-- 6 replicas → Place at least 2 in each AZ
-- Even if a particular AZ lacks resources, Pods do not concentrate only in the other AZs
+- With at least three eligible AZs, the smallest matching-Pod count is the global minimum.
+- Six replicas can reach 2/2/2 when all three AZs have suitable capacity and constraints; this is not a minimum of two per AZ or an SLA.
+- With two eligible AZs containing 2/2 matching Pods, the global minimum is zero. An incoming matching Pod fails in both candidates because `3 - 0 > 1`.
 
 **Use Cases:**
-- Services requiring extremely high availability, such as financial and payment systems
-- Requirements for an SLA of 99.99% or higher
-- Maintain minimum availability even during AZ reduction (Zonal Shift)
+- Intentionally restricting higher-skew placement when fewer than three domains are eligible
+- Deciding in advance whether domain loss should leave Pods Pending or use another placement policy
 
 :::warning Considerations When Configuring minDomains
-When `minDomains` is configured, Pods remain Pending if the specified number of domains does not exist or resources are insufficient. Check the number of AZs actually available in the cluster before configuring it.
+Fewer domains do not always make every Pod Pending. In two empty domains, the first Pod in each can satisfy `1 - 0 <= 1`. Check recovery capacity and other filters during AZ reduction; compare the Soft AZ example in section 10.3 when placement is the priority.
 :::
 
 ##### Pattern 3: Combining Anti-Affinity + Topology Spread
 
-This pattern prevents placing 2 or more replicas on the same node while ensuring even distribution across AZs.
+This combines at-most-one matching replica per hostname with an AZ skew constraint. Candidates and capacity must satisfy both constraints.
 
 ```yaml
 apiVersion: apps/v1
@@ -790,18 +796,17 @@ spec:
 ```
 
 **How It Works:**
-- **Level 1 (AZ)**: 12 replicas → Place 4 evenly in each AZ
-- **Level 2 (Node)**: Place at most 1 Pod on each node
+- A 4/4/4 placement of twelve replicas is possible with four eligible hostnames and sufficient capacity in each of three eligible AZs
+- Hostname anti-affinity and AZ skew must both be satisfied; rollout surge needs additional candidates
 
 **Effects:**
-- A node failure affects at most 1 Pod
-- An AZ failure affects at most 4 Pods
-- 8 of the total 12 Pods (66.7%) are always available
+- If that placement already holds, one node failure directly exposes at most one selected Pod
+- `12 - 4 = 8` replicas lie outside one failed AZ; this is not a measured healthy-endpoint count or load capacity
+- Assess dependencies, storage, networking and remaining-AZ capacity separately to evaluate service availability
 
 **Use Cases:**
-- Complete elimination of single points of failure (Single Point of Failure)
-- Resilience to both hardware and data center failures
-- High-traffic API servers and payment gateways
+- API servers and payment gateways needing lower shared node/AZ failure exposure
+- Evaluating Pending behavior and replacement capacity under Hard constraints before domain loss
 
 ##### Pattern 4: Multiple Topology Spread Constraints (Zone + Node)
 
@@ -851,9 +856,10 @@ spec:
 ```
 
 **How It Works:**
-- **Level 1 (AZ)**: 18 → us-east-1a(6), us-east-1b(6), us-east-1c(6)
-- **Level 2 (Node)**: Within each AZ, the Pod count differs by at most 2 per node
-- Set the Node constraint to Soft (`ScheduleAnyway`) to prevent scheduling failures
+- The Hard AZ constraint and Soft hostname preference are evaluated together, not as an AZ-then-node allocation algorithm
+- A 6/6/6 placement of eighteen replicas is possible with three eligible AZs and other constraints satisfied
+- Hostname `ScheduleAnyway` scores candidates that reduce skew; it does not impose a per-AZ difference of at most two Pods per node
+- The Soft hostname preference itself does not forbid higher skew, but the Hard AZ constraint or other filters can still leave Pods Pending
 
 **Use Cases:**
 - Deployments with a large replica count (10 or more)
@@ -867,16 +873,16 @@ spec:
 | **Pattern 1: Basic Multi-AZ** | 1 | - | DoNotSchedule | None | Low | 3~12 |
 | **Pattern 2: minDomains** | 1 | 3 | DoNotSchedule | None | Medium | 6~20 |
 | **Pattern 3: Anti-Affinity Combination** | 1 | 3 | DoNotSchedule | Hard Anti-Affinity | High | 12~50 |
-| **Pattern 4: Multiple Spread Constraints** | 1, 2 | 3 | Mixed | 2-level Topology | High | 15+ |
+| **Pattern 4: Multiple Spread Constraints** | 1, 2 | 3 | Mixed | Concurrent AZ constraint and hostname preference | High | 15+ |
 
 ##### Troubleshooting: Causes of Topology Spread Failures
 
 | Symptom | Cause | Resolution |
 |------|------|----------|
-| Pod remains Pending | `maxSkew` exceeded or `minDomains` not met | Check Events with `kubectl describe pod`, adjust the replica count, or add nodes |
-| Pods concentrated in a specific AZ | `whenUnsatisfiable: ScheduleAnyway` used | Change to `DoNotSchedule` to enforce a Hard constraint |
-| No redistribution when a new AZ is added | The scheduler does not relocate existing Pods | Use Descheduler or a Rolling Restart |
-| All Pods Pending after configuring `minDomains` | The cluster does not have the specified number of AZs | Adjust `minDomains` to the actual AZ count |
+| Pods remain Pending | No candidate satisfies Hard skew or another filter | Review Events, eligible domains, matching-Pod counts and capacity together |
+| Pods concentrated in one AZ | Soft preference or too few eligible domains, among other causes | Inspect actual candidates and availability needs before accepting the Pending risk of Hard constraints |
+| No redistribution after adding an AZ | The scheduler does not automatically relocate existing Pods | Review targets and disruption effects of a separate rebalance or rollout |
+| More Pending after setting minDomains | Domain loss may have changed the global minimum to zero | Calculate candidate skew instead of diagnosing from AZ count alone |
 
 :::tip Topology Spread Debugging Commands
 Use Pod and Node snapshots from the same cluster and record their capture times. `spec.nodeSelector` is an input constraint; the actual zone is the label on the Node named by `spec.nodeName`. The two lists are not an atomic snapshot.
@@ -1444,7 +1450,7 @@ Karpenter natively supports Topology Spread Constraints, but existing configurat
 | Item | What to Check |
 |------|----------|
 | **maxSkew** | Influences which AZ Karpenter chooses for new nodes |
-| **minDomains** | Verify that it matches the actual number of AZs in the cluster |
+| **minDomains** | Check how fewer eligible domains change the global minimum and Pending behavior |
 | **whenUnsatisfiable** | With `DoNotSchedule`, Pods may remain Pending even after Karpenter creates nodes |
 
 **Example: Debugging Topology Spread Issues**
@@ -4242,57 +4248,47 @@ flowchart TB
     style DONE fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-### 10.3 AZ Evacuation with ARC + Karpenter Integration
+### 10.3 ARC Zonal Shift and Karpenter {#103-az-evacuation-with-arc--karpenter-integration}
 
 **Overview:**
 
-Integration between AWS Application Recovery Controller (ARC) and Karpenter evacuates workloads to healthy AZs through automatic Zonal Shift when an AZ fails.
+EKS ARC zonal shift reduces supported traffic toward an impaired AZ. It cordons nodes there and removes affected Pod endpoints from EndpointSlices; it does not evict existing Pods or automatically recreate Deployment replicas in other AZs.
 
-**Automatic recovery pattern for AZ failures:**
+- Enable zonal shift for the EKS cluster. Self-managed Karpenter requires version 1.12.0 or later and its controller's zonal-shift setting. For the 1.14.1 example, the CLI option is `--enable-zonal-shift=true`; the controller also needs `arc-zonal-shift:GetManagedResource` permission for the target cluster. EKS Auto Mode has a separate enablement path.
+- AWS zonal autoshift uses AWS internal AZ telemetry. A user CloudWatch alarm is input to an operator or separately implemented automation; this document does not implement an alarm-to-shift controller.
+- Before shifting, remaining-AZ replicas, CoreDNS, capacity and dependencies must be able to carry the load. Check the LB resource's ARC settings, target type and endpoint-consumption path as well. The NodePool below assumes an existing `default` EC2NodeClass with the regional networking, image and permissions resolved; a resource name does not enable ARC.
+
+**Supported traffic changes and independent Karpenter behavior:**
 
 ```mermaid
 sequenceDiagram
-    participant AZ1 as AZ us-east-1a<br/>(Failed)
-    participant ARC as AWS ARC<br/>(Zonal Shift)
+    participant Trigger as Operator or enabled AWS autoshift
+    participant ARC as AWS ARC
+    participant EKS as EKS controllers
+    participant Endpoints as EndpointSlices
     participant Karpenter
-    participant AZ2 as AZ us-east-1b<br/>(Healthy)
-    participant AZ3 as AZ us-east-1c<br/>(Healthy)
-    participant PDB as PodDisruptionBudget
-    participant LB as Load Balancer
+    participant Clients as Supported traffic paths
 
-    Note over AZ1: Gray Failure occurs<br/>(high latency, packet loss)
-
-    AZ1->>ARC: Detect CloudWatch metric anomalies
-    ARC->>ARC: Start Zonal Shift<br/>(block us-east-1a traffic)
-    ARC->>LB: Remove us-east-1a traffic
-
-    ARC->>Karpenter: Request evacuation of AZ-1a Pods
-    Karpenter->>PDB: Check minAvailable
-    PDB-->>Karpenter: Allow safe Eviction
-
-    Karpenter->>AZ2: Provision new nodes
-    Karpenter->>AZ3: Provision new nodes
-
-    AZ2-->>Karpenter: Nodes ready
-    AZ3-->>Karpenter: Nodes ready
-
-    Karpenter->>AZ1: AZ-1a Pod Eviction
-    Note over AZ1: Terminate existing Pods
-
-    Karpenter->>AZ2: Reschedule Pods
-    Karpenter->>AZ3: Reschedule Pods
-
-    Note over AZ2,AZ3: Service recovery complete<br/>(takes 2-3 minutes)
-
-    AZ2->>LB: New Pods Ready
-    AZ3->>LB: New Pods Ready
-    LB-->>ARC: Confirm healthy state
+    Trigger->>ARC: Start shift for the selected resource and AZ
+    ARC-->>EKS: Shift state for the AZ
+    EKS->>EKS: Cordon impaired-zone nodes
+    EKS->>Endpoints: Remove affected Pod endpoints
+    Endpoints-->>Clients: Consumers observe the changed endpoint set
+    Karpenter->>ARC: Read cluster managed-resource state
+    ARC-->>Karpenter: Impaired AZ state
+    Karpenter->>Karpenter: Avoid new capacity and voluntary disruption there
+    Note over EKS,Clients: Zonal shift does not evict existing Pods
+    Note over EKS,Clients: Assess remaining endpoints, dependencies and capacity
 ```
 
-**ARC + Karpenter integration configuration example:**
+**Workload constraints for a separately ARC-enabled cluster:**
+
+This example uses Soft AZ spread and omits `minDomains`. Losing an AZ therefore does not make this spread setting block new Pod placement. Node affinity, taints, volumes, capacity and other constraints still apply, so placement may be uneven or remain pending.
+
+Supply the real application image and readiness configuration. If existing Pods stay alive after the shift, the Deployment still has its desired replica count and does not automatically create replacements.
 
 ```yaml
-# Karpenter NodePool: Support AZ evacuation
+# NodePool constraints; ARC enablement is separate
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -4300,6 +4296,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: topology.kubernetes.io/zone
         operator: In
@@ -4309,12 +4309,12 @@ spec:
         - us-east-1c
       - key: karpenter.sh/capacity-type
         operator: In
-        values: ["on-demand"]  # On-Demand is recommended for AZ evacuation
+        values: ["on-demand"]  # Illustrative allowed type, not a capacity reservation
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
     budgets:
-    - nodes: "30%"  # Headroom for rapid rescheduling during AZ evacuation
+    - nodes: "30%"  # Voluntary disruption budget, not spare capacity
 ---
 # Application: Topology Spread + PDB
 apiVersion: apps/v1
@@ -4322,7 +4322,7 @@ kind: Deployment
 metadata:
   name: resilient-app
 spec:
-  replicas: 9  # 3 AZ x 3 replica
+  replicas: 9  # Desired count; inspect actual placement per AZ
   selector:
     matchLabels:
       app: resilient-app
@@ -4334,11 +4334,10 @@ spec:
       topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
-        whenUnsatisfiable: DoNotSchedule
+        whenUnsatisfiable: ScheduleAnyway
         labelSelector:
           matchLabels:
             app: resilient-app
-        minDomains: 3  # Must be distributed across 3 AZs
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -4356,7 +4355,7 @@ spec:
             cpu: "1"
             memory: 2Gi
 ---
-# PDB: Maintain 6 during AZ evacuation (allow eviction of 3 out of 9)
+# PDB: selected-Pod voluntary Eviction API budget; it does not bound an AZ failure
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -4368,12 +4367,14 @@ spec:
       app: resilient-app
 ```
 
-**End-to-end recovery with Istio service mesh integration:**
+**Istio locality-routing example:**
 
-Using Istio with ARC coordinates traffic routing and Pod rescheduling during AZ failures to achieve end-to-end recovery.
+The following assumes an existing `default/resilient-app` Service with the correct HTTP port and healthy endpoints, a sidecar-based mesh, and an Istio installation supporting the shown CRD fields. Istio locality and outlier detection govern mesh endpoint selection. They are separate from EKS's ARC EndpointSlice path; verify the mesh's endpoint discovery and behavior during a shift.
+
+`failover.from/to` take region names, so they are not an AZ rotation list. This example instead compares region and zone metadata using `failoverPriority`, with `consecutive5xxErrors`. That priority is not a fixed AZ ring or a recovery-time guarantee. Specify only one of `distribute`, `failover` or `failoverPriority`; the retained 30-second values are examples to tune and validate.
 
 ```yaml
-# Istio DestinationRule: Subsets by AZ
+# Istio DestinationRule: endpoint-locality priority
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -4384,30 +4385,16 @@ spec:
     loadBalancer:
       localityLbSetting:
         enabled: true
-        failover:
-        - from: us-east-1a
-          to: us-east-1b
-        - from: us-east-1b
-          to: us-east-1c
-        - from: us-east-1c
-          to: us-east-1a
+        failoverPriority:
+        - topology.kubernetes.io/region
+        - topology.kubernetes.io/zone
     outlierDetection:
-      consecutiveErrors: 5
+      consecutive5xxErrors: 5
       interval: 30s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
-  subsets:
-  - name: az-1a
-    labels:
-      topology.kubernetes.io/zone: us-east-1a
-  - name: az-1b
-    labels:
-      topology.kubernetes.io/zone: us-east-1b
-  - name: az-1c
-    labels:
-      topology.kubernetes.io/zone: us-east-1c
 ---
-# Istio VirtualService: Route traffic only to healthy AZs
+# Route to the Service; no static AZ subset exclusion
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -4419,21 +4406,16 @@ spec:
   - route:
     - destination:
         host: resilient-app.default.svc.cluster.local
-        subset: az-1b
-      weight: 50
-    - destination:
-        host: resilient-app.default.svc.cluster.local
-        subset: az-1c
-      weight: 50
-    # az-1a is automatically removed during ARC Zonal Shift
 ```
 
 **Gray Failure detection pattern:**
 
-A Gray Failure is a situation in which degraded performance reduces service quality without a complete failure. ARC detects Gray Failures based on CloudWatch metrics.
+A Gray Failure degrades service quality, for example through slow responses, without causing a complete outage. This ConfigMap stores a latency-alarm definition for one ALB and AZ. Creating the ConfigMap does not create a CloudWatch alarm.
+
+Check the actual account/Region, published `LoadBalancer` suffix, AZ and latency threshold, then create the alarm through separate IaC or API calls. The example disables actions and treats absent samples as `missing`. Connect the response to an operator runbook or separate automation. AWS zonal autoshift uses AWS internal telemetry rather than this alarm.
 
 ```yaml
-# CloudWatch Alarm: Detect Gray Failure
+# Alarm definition data: replace the illustrative ALB identifier
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -4442,30 +4424,36 @@ data:
   alarm.json: |
     {
       "AlarmName": "EKS-AZ-1a-HighLatency",
+      "ActionsEnabled": false,
       "MetricName": "TargetResponseTime",
       "Namespace": "AWS/ApplicationELB",
       "Statistic": "Average",
+      "Unit": "Seconds",
       "Period": 60,
       "EvaluationPeriods": 3,
       "Threshold": 1.0,
       "ComparisonOperator": "GreaterThanThreshold",
       "Dimensions": [
         {
+          "Name": "LoadBalancer",
+          "Value": "app/resilient-app/0123456789abcdef"
+        },
+        {
           "Name": "AvailabilityZone",
           "Value": "us-east-1a"
         }
       ],
-      "TreatMissingData": "notBreaching"
+      "TreatMissingData": "missing"
     }
 ```
 
-**AZ evacuation strategy summary:**
+**Boundaries to verify for AZ impairment:**
 
-| Scenario | PDB Setting | Topology Spread | Karpenter Setting | Recovery Time |
+| Scenario | PDB Role | Topology Spread | Capacity and Control Path | Result to Verify |
 |---------|---------|----------------|---------------|----------|
-| **Complete AZ failure** | `minAvailable: 6` (out of 9) | `minDomains: 3` | Prefer On-Demand | 2-3 minutes |
-| **Gray Failure** | `minAvailable: 6` (out of 9) | Allow `minDomains: 2` | Spot supported | 3-5 minutes |
-| **Planned maintenance** | `maxUnavailable: 3` | Allow `minDomains: 2` | Spot + On-Demand | 5-10 minutes |
+| **Complete AZ failure** | Constrains voluntary Eviction only | Review Soft spread and remaining Hard constraints | Pre-existing replicas/capacity in remaining AZs and enabled ARC paths | Measure endpoint transition and service SLOs |
+| **Gray Failure** | Does not detect impairment or start a shift | Inspect actual eligible domains and load | AWS autoshift or an operator/separate automation decision | Validate alarm quality and impact scope |
+| **Planned maintenance** | Evaluate the selected Pods' Eviction budget | Review placement policy for maintenance | Separate drain/recovery plan; shift itself does not evict Pods | Measure workload-specific preparation and restoration |
 
 ### 10.4 Container Network Observability and Scheduling
 
@@ -4482,10 +4470,12 @@ Container Network Observability provides granular network metrics to analyze the
 | **Cross-AZ** | ~2-5ms | $0.01/GB | Services requiring high availability |
 | **Cross-Region** | ~50-100ms | $0.02/GB | Geographically distributed services |
 
-**Scheduling with Cross-AZ traffic costs in mind:**
+**Evaluate Cross-AZ request paths alongside placement preferences:**
+
+The Pod affinity below affects placement scoring only. When API Gateway Pods already span several AZs, several zones may satisfy that preference. Evaluate Service/mesh endpoint selection and actual byte paths before attributing same-AZ communication or cost changes to placement.
 
 ```yaml
-# Example: Place API Gateway + Backend Service in the same AZ
+# Example: spread API Gateway and express the backend's AZ placement preference
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -4534,7 +4524,7 @@ spec:
         network-locality: same-az
     spec:
       affinity:
-        # Pod Affinity: Prefer the same AZ as API Gateway (reduce Cross-AZ costs)
+        # Pod Affinity: prefer the API Gateway AZ; endpoint routing is separate
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
@@ -4581,10 +4571,10 @@ data:
 
 **Optimization patterns based on network observability:**
 
-1. **Detect high Cross-AZ traffic** → Use Pod Affinity for placement in the same AZ
-2. **Detect network congestion in a specific AZ** → Use Topology Spread to distribute across other AZs
-3. **Analyze inter-Pod communication patterns** → Optimize traffic with a service mesh (Istio)
-4. **Detect network latency spikes** → Evacuate the failed AZ with ARC Zonal Shift
+1. **Detect high Cross-AZ traffic** → inspect actual endpoint/byte paths and locality policy before changing placement preferences
+2. **Detect AZ network congestion** → evaluate eligible domains, capacity and the effect of placement policy together
+3. **Analyze inter-Pod communication** → validate service-mesh routing and health configuration
+4. **Detect latency spikes** → an operator or separate automation evaluates cause and readiness before deciding on an ARC traffic shift for supported resources
 
 ```mermaid
 flowchart TB
@@ -4595,15 +4585,17 @@ flowchart TB
     end
 
     subgraph "Scheduling Optimization"
-        DECISION{Optimization type}
-        AFFINITY[Adjust Pod Affinity]
+        REVIEW[Operator or separate automation review]
+        DECISION{Reviewed change type}
+        AFFINITY[Review placement preferences<br/>and request paths]
         SPREAD[Adjust Topology Spread]
         SHIFT[AZ Shift]
     end
 
     METRICS --> ANALYZE
     ANALYZE --> ALERT
-    ALERT --> DECISION
+    ALERT --> REVIEW
+    REVIEW --> DECISION
 
     DECISION -->|High Cross-AZ traffic| AFFINITY
     DECISION -->|Congestion in a specific AZ| SPREAD
@@ -4642,7 +4634,7 @@ spec:
             app: ml-inference
         minDomains: 3
 
-      # 2. Pod Affinity: Same AZ as API Gateway (low latency)
+      # 2. Pod Affinity: prefer the API Gateway AZ; measure request latency separately
       affinity:
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -4977,7 +4969,7 @@ Use the following checklist to verify scheduling settings before production depl
 | Item | Description | Check |
 |------|------|------|
 | **Replica count ≥ 3** | Minimum replicas for fault domain isolation | [ ] |
-| **Topology Spread Constraints** | Even distribution across AZs (maxSkew: 1) | [ ] |
+| **Topology Spread Constraints** | Verify selected Pods, eligible domains and Hard/Soft skew semantics | [ ] |
 | **Pod Anti-Affinity** | Spread across nodes (Soft or Hard) | [ ] |
 | **Configure PDB** | Specify minAvailable or maxUnavailable | [ ] |
 | **Verify PDB** | Confirm `minAvailable < replicas` | [ ] |
@@ -5069,10 +5061,10 @@ kubectl --context "$CONTEXT" logs -n kube-system -l app=descheduler --tail=100
 - [Karpenter Scheduling](https://karpenter.sh/docs/concepts/scheduling/)
 - [EKS Node Taints](https://docs.aws.amazon.com/eks/latest/userguide/node-taints-managed-node-groups.html)
 
-**AWS re:Invent 2025 resources:**
+**Related AWS architecture and feature resources:**
 - [Amazon EKS introduces Provisioned Control Plane](https://aws.amazon.com/blogs/containers/amazon-eks-introduces-provisioned-control-plane/) — Scheduling performance by XL/2XL/4XL tier
 - [Getting started with Amazon EKS Auto Mode](https://aws.amazon.com/blogs/containers/getting-started-with-amazon-eks-auto-mode) — Automatic node provisioning
-- [Enhance Kubernetes high availability with ARC and Karpenter](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/) — Automatic AZ evacuation patterns
+- [ARC zonal shift support for EKS Auto Mode and Karpenter](https://aws.amazon.com/blogs/containers/arc-zonal-shift-support-for-eks-auto-mode-and-karpenter/) — Traffic shifting, capacity controls and prerequisites published in July 2026
 - [Monitor network performance across EKS clusters](https://aws.amazon.com/blogs/aws/monitor-network-performance-and-traffic-across-your-eks-clusters-with-container-network-observability/) — Container Network Observability
 - [Proactive EKS monitoring with CloudWatch Operator](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/) — Control Plane metrics
 

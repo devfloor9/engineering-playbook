@@ -3,9 +3,9 @@ title: Karpenter 심화 디버깅
 description: Karpenter 오토스케일러 심화 디버깅 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 4
+reading_time: 5
 tags:
   - eks
   - karpenter
@@ -113,6 +113,8 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep 
 
 **해결 방법:**
 
+아래 예시는 [Karpenter v1.14.1 CRD](https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml)를 기준으로 NodePool의 일부 필드를 보여 줍니다. 기존 NodePool에 반영할 때는 `spec.template.spec.nodeClassRef` 등 생략된 설정을 유지합니다. `30s`는 Pod 변경 후 통합을 검토하기까지 기다리는 시간의 예시입니다. 통합이 30초 안에 완료된다는 의미는 아닙니다.
+
 ```yaml
 # NodePool: 다양한 인스턴스 타입 추가 (Spot 용량 확보)
 apiVersion: karpenter.sh/v1
@@ -122,6 +124,7 @@ metadata:
 spec:
   template:
     spec:
+      expireAfter: 720h  # 30일
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
@@ -140,8 +143,8 @@ spec:
             - us-east-1b
             - us-east-1c   # ← 가용 영역 다양화
   disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h  # 30일
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s  # Pod 변경 후 대기 시간 예시
 ```
 
 ### NodePool Requirements 불일치
@@ -325,10 +328,12 @@ kind: NodePool
 metadata:
   name: default
 spec:
+  template:
+    spec:
+      expireAfter: 720h  # 노드 생성 30일 후 만료 처리 시작
   disruption:
-    consolidationPolicy: WhenUnderutilized  # WhenEmpty / WhenUnderutilized
-    consolidateAfter: 30s  # 통합 전 대기 시간 (기본 15s)
-    expireAfter: 720h      # 노드 최대 수명 (30일)
+    consolidationPolicy: WhenEmptyOrUnderutilized  # 빈 노드와 저활용 노드를 통합 대상으로 고려
+    consolidateAfter: 30s  # Pod 추가·제거 후 대기 시간 예시
 
     # 버짓 설정 (동시 중단 제어)
     budgets:
@@ -338,8 +343,8 @@ spec:
 
 | Policy | 동작 | 언제 사용? |
 |--------|------|----------|
-| **WhenEmpty** | 노드가 완전히 비어야 통합 | 비용보다 안정성 우선, stateful 워크로드 |
-| **WhenUnderutilized** | 저활용 노드도 적극 통합 | 비용 최적화 우선, stateless 워크로드 |
+| **WhenEmpty** | workload Pod가 없는 노드를 통합 대상으로 고려 | 비용보다 안정성 우선, stateful 워크로드 |
+| **WhenEmptyOrUnderutilized** | 빈 노드와 저활용 노드를 고려하며 스케줄링·중단 제약을 확인 | 비용 최적화 우선, stateless 워크로드 |
 
 ## Spot 중단 처리
 
@@ -457,6 +462,8 @@ kubectl describe nodeclaim <nodeclaim-name> | grep -A 5 "Drifted"
 
 ### Drift 교체 제어
 
+`consolidationPolicy`는 통합 대상을 정합니다. 아래 `Drifted` budget은 Drift로 인한 교체를 제한하며, `expireAfter`는 노드 만료를 시작하는 기준입니다. 이 세 설정은 서로 다른 교체 사유를 제어합니다.
+
 ```yaml
 # NodePool: Drift 교체 정책
 apiVersion: karpenter.sh/v1
@@ -464,9 +471,12 @@ kind: NodePool
 metadata:
   name: default
 spec:
+  template:
+    spec:
+      expireAfter: 720h
   disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s  # Pod 변경 후 대기 시간 예시
 
     # Drift 교체 제어
     budgets:
@@ -626,7 +636,7 @@ kubectl port-forward -n karpenter svc/karpenter 8080:8080
 
 ### Consolidation이 동작하지 않음
 
-- [ ] `consolidationPolicy`가 `WhenUnderutilized`로 설정되었는가?
+- [ ] 선택한 `consolidationPolicy`가 조사 중인 노드를 통합 대상으로 허용하는가? (예: 저활용 노드에 `WhenEmptyOrUnderutilized`)
 - [ ] PDB가 `minAvailable`을 과도하게 설정하지 않았는가?
 - [ ] Pod에 `do-not-disrupt` annotation이 있는가?
 - [ ] NodeClaim에 `do-not-disrupt` annotation이 있는가?
@@ -710,7 +720,8 @@ metadata:
   name: default
 spec:
   disruption:
-    consolidationPolicy: WhenUnderutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s  # Pod 변경 후 대기 시간 예시
     budgets:
       - nodes: "0%"         # 업무 시간: 통합 금지
         schedule: "0 9-18 * * 1-5"  # 월~금 9-18시

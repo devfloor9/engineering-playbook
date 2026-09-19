@@ -3,9 +3,9 @@ title: Karpenter In-Depth Debugging
 description: In-depth debugging guide for the Karpenter autoscaler
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 7
+reading_time: 8
 tags:
   - eks
   - karpenter
@@ -113,6 +113,8 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep 
 
 **Resolution:**
 
+The examples show selected NodePool fields from the [Karpenter v1.14.1 CRD](https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml). Retain omitted settings such as `spec.template.spec.nodeClassRef` when adapting an existing NodePool. Here, `30s` is an example wait after Pod changes before considering consolidation. Consolidation can take longer to complete.
+
 ```yaml
 # NodePool: add diverse instance types (secure Spot capacity)
 apiVersion: karpenter.sh/v1
@@ -122,6 +124,7 @@ metadata:
 spec:
   template:
     spec:
+      expireAfter: 720h  # 30 days
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
@@ -140,8 +143,8 @@ spec:
             - us-east-1b
             - us-east-1c   # ← diversify availability zones
   disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h  # 30 days
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s  # example wait after Pod changes
 ```
 
 ### NodePool Requirements Mismatch
@@ -325,10 +328,12 @@ kind: NodePool
 metadata:
   name: default
 spec:
+  template:
+    spec:
+      expireAfter: 720h  # begin expiration 30 days after node creation
   disruption:
-    consolidationPolicy: WhenUnderutilized  # WhenEmpty / WhenUnderutilized
-    consolidateAfter: 30s  # wait before consolidation (default 15s)
-    expireAfter: 720h      # max node lifetime (30 days)
+    consolidationPolicy: WhenEmptyOrUnderutilized  # consider empty and underutilized nodes
+    consolidateAfter: 30s  # example wait after Pods are added or removed
 
     # Budgets (concurrent disruption control)
     budgets:
@@ -338,8 +343,8 @@ spec:
 
 | Policy | Behavior | When to Use |
 |--------|------|----------|
-| **WhenEmpty** | Consolidate only when node is fully empty | Stability over cost; stateful workloads |
-| **WhenUnderutilized** | Aggressively consolidate underutilized nodes | Cost optimization first; stateless workloads |
+| **WhenEmpty** | Consider nodes without workload Pods for consolidation | Stability over cost; stateful workloads |
+| **WhenEmptyOrUnderutilized** | Consider empty and underutilized nodes, subject to scheduling and disruption constraints | Cost optimization first; stateless workloads |
 
 ## Spot Interruption Handling
 
@@ -457,6 +462,8 @@ kubectl describe nodeclaim <nodeclaim-name> | grep -A 5 "Drifted"
 
 ### Drift Replacement Control
 
+`consolidationPolicy` selects consolidation candidates; the `Drifted` budget below applies to drift replacement. `expireAfter` separately determines when expiration starts, not the consolidation wait or a drift budget.
+
 ```yaml
 # NodePool: drift replacement policy
 apiVersion: karpenter.sh/v1
@@ -464,9 +471,12 @@ kind: NodePool
 metadata:
   name: default
 spec:
+  template:
+    spec:
+      expireAfter: 720h
   disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s  # example wait after Pod changes
 
     # Drift replacement control
     budgets:
@@ -626,7 +636,7 @@ kubectl port-forward -n karpenter svc/karpenter 8080:8080
 
 ### Consolidation Not Running
 
-- [ ] Is `consolidationPolicy` set to `WhenUnderutilized`?
+- [ ] Does the selected `consolidationPolicy` cover the nodes being investigated (for example, `WhenEmptyOrUnderutilized` for underutilized nodes)?
 - [ ] Is PDB `minAvailable` excessively restrictive?
 - [ ] Do Pods have the `do-not-disrupt` annotation?
 - [ ] Does the NodeClaim have the `do-not-disrupt` annotation?
@@ -710,7 +720,8 @@ metadata:
   name: default
 spec:
   disruption:
-    consolidationPolicy: WhenUnderutilized
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 30s  # example wait after Pod changes
     budgets:
       - nodes: "0%"         # business hours: no consolidation
         schedule: "0 9-18 * * 1-5"  # Mon–Fri 9–18
