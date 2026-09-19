@@ -62,6 +62,9 @@ jobs:
       - name: Verify document revision metadata
         run: npm run test:metadata
 
+      - name: Verify documented examples with offline fixtures
+        run: npm run test:examples
+
       - name: Verify Gateway benchmark evidence and harness
         run: npm run test:gateway-benchmark
 

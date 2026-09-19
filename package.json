@@ -25,6 +25,7 @@
     "validate-metadata": "node scripts/validate-metadata-new.js",
     "update-doc-metadata": "node scripts/update-doc-metadata.js",
     "test:metadata": "node --test scripts/tests/doc-metadata.test.js",
+    "test:examples": "node scripts/test-document-examples.cjs",
     "test:mermaid": "node --test scripts/tests/mermaid-layout.test.cjs",
     "test:gateway-benchmark": "node --test scripts/tests/gateway-conformance.test.cjs && node scripts/benchmarks/gateway-api-benchmark/analyze-conformance.cjs --check && PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/benchmarks/gateway-api-benchmark -p test_harness.py -v",
     "validate-links": "node scripts/validate-links.js",
