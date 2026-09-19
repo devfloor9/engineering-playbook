@@ -62,7 +62,10 @@ config["provenance"].update(
 with (run / "run.json").open("x") as out:
     json.dump(config, out, indent=2)
 config["provenance"]["run_id"] = run.name + "-probe-1"
-config["provenance"]["generator_version"] = "Python 3.13.15 http.client"
+config["provenance"].update(
+    generator_version="Python 3.13.15 http.client",
+    generator_image="python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285",
+)
 with (run / "probe-run.json").open("x") as out:
     json.dump(config, out, indent=2)
 PY
@@ -70,7 +73,7 @@ PY
 
 The template records Docker Desktop arm64 with 8,217,317,376 bytes RAM (approximately 7.653 GiB), shared with three existing containers, backend 1 CPU/256 MiB and generator 1 CPU/512 MiB. Replace these values with the actual environment for another run. This is declared context, not measured resource utilization or isolation. Archive the runner configuration with results. The kit cannot independently attest that declarations or container limits are truthful.
 
-Probe configuration must declare the actual `Python X.Y.Z http.client` generator, including the patch version; the pinned image uses `Python 3.13.15 http.client`. Load configuration retains `k6 v2.2.0`. A probe refuses a different declared version before any request. Validation requires raw/configured versions to match and retains `actual_generator` in every validated run. Do not copy the load generator attribution unchanged into a probe run.
+Probe configuration must declare the actual `Python X.Y.Z http.client` generator, including the patch version; the pinned image uses `Python 3.13.15 http.client`. Load configuration retains `k6 v2.2.0`. A probe refuses a different declared version before any request. Validation requires raw/configured versions to match and retains `actual_generator` in every validated run. Both `generator_version` and `generator_image` must identify the Python probe; do not retain the k6 image digest. These fields record the intended image, not an independent image attestation. The historical published probe contains that attribution error; see its evidence README erratum.
 
 ## Commands inside the prepared containers
 
@@ -151,7 +154,7 @@ This uses a short-lived loopback HTTP server, in-memory HTTP responses and synth
 
 ## Pinned upstream evidence
 
-`results/upstream/sources.json` records exact report URLs, snapshot commit, source hashes, API cohort, and release provenance. The neighboring YAML files are unchanged upstream reports. `analysis.json` is derived output, not a locally executed conformance result. Missing declarations remain unknown, partial results retain skipped tests, and all performance fields remain null.
+`results/upstream/sources.json` records exact report URLs, snapshot commit, source hashes, API cohort, and release provenance. The neighboring YAML files are unchanged upstream reports. `analysis.json` is derived output, not a locally executed conformance result. Missing declarations remain unknown, partial results retain skipped tests, and all performance fields remain null. `source_metadata_issues` exposes malformed source metadata without repairing the frozen bytes. The pinned Cilium file contains `<Right>apiVersion` instead of `apiVersion`; its profile statistics remain reported data, not a schema-validity claim.
 
 ```sh
 node scripts/benchmarks/gateway-api-benchmark/analyze-conformance.cjs --check

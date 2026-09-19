@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 39
+reading_time: 41
 tags:
   - benchmark
   - gateway-api
@@ -191,6 +191,8 @@ The following six members share **Gateway API v1.4.0 / experimental / default**.
 | Istio `1.28` | 33 / 13 / 11 | YAML omits patch; report predates reference `1.28.0` publication |
 | Traefik `v3.6` | 33 / 13 / 11 | YAML omits patch; report predates reference `v3.6.0` publication |
 
+The pinned Cilium source starts with `<Right>apiVersion` rather than `apiVersion`. Frozen bytes and hashes remain unchanged, and `source_metadata_issues` records the defect. The profile statistics remain upstream-reported values; they do not establish valid source metadata.
+
 Common Core success does not imply identical Extended support. NGF declares `HTTPRouteBackendProtocolH2C` unsupported in this cohort despite gRPC Core success. Envoy/Istio declare `HTTPRouteCORS` supported; Cilium/NGF/kgateway/Traefik declare it unsupported. NGF's `BackendTLSPolicy` declaration does not turn its absence in another report into evidence of non-support.
 
 Keep the following supplemental records separate because their path, API version, or mode differs.
@@ -206,7 +208,7 @@ Missing v1.4.0 LBC/KIC reports in the selected tree mean `not_verified`. A `part
 
 ### Locally executed validation
 
-The run took place at **2026-09-19 00:08 UTC**. Pinned Python 3.13.15 and k6 2.2.0 images ran on an arm64 Docker VM with 10 CPUs and 8,217,317,376 bytes RAM, shared with three existing containers. The backend was limited to 1 CPU/256 MiB and the generator to 1 CPU/512 MiB, using an internal network only. These are configured limits, not utilization measurements.
+The prior execution report records the run at **2026-09-19 00:08 UTC**. Pinned Python 3.13.15 and k6 2.2.0 images ran on an arm64 Docker VM with 10 CPUs and 8,217,317,376 bytes RAM, shared with three existing containers. The backend was limited to 1 CPU/256 MiB and the generator to 1 CPU/512 MiB, using an internal network only. These are declared limits, not utilization measurements. The published artifacts omit the original Docker info/inspect and before/after inventories, so actual limit enforcement, isolation and cleanup were not independently reverified.
 
 | Check | Observed result | Outcome |
 | --- | --- | --- |
@@ -215,11 +217,11 @@ The run took place at **2026-09-19 00:08 UTC**. Pinned Python 3.13.15 and k6 2.2
 | Incorrect expected body | 26 failed body checks | k6 exit 99; validator rejected |
 | Delayed fixture with insufficient generator capacity | Four requests; 37 dropped arrivals | k6 exit 99; validator rejected |
 | Redirect override / skipped setup | Zero requests in both cases | Guards rejected execution; exits 107 / 108 |
-| Resource cleanup | Test containers/network removed; three existing containers retained | No cleanup errors |
+| Resource cleanup | The derived report records test-resource removal and retention of three existing containers | Original before/after inventories unavailable |
 
 The first two nominal runs observed 26 requests against 25 planned, or 104%. The validator classifies ±1 and 95–105% delivery as an **explicit boundary-tolerance policy** only when at least 20 arrivals were planned. This is not proof that timer races caused every discrepancy. Dropped arrivals remain unacceptable.
 
-[Raw execution records, exit codes, and the hash manifest](https://github.com/devfloor9/engineering-playbook/tree/main/scripts/benchmarks/gateway-api-benchmark/results/local-20260919) retain per-run timing statistics. Five-second fixture timings are not product performance plots or rankings. These runs did not test a Gateway, TLS, gRPC/SSE, Kubernetes state, or resource utilization.
+[Raw execution records, exit codes, and the hash manifest](https://github.com/devfloor9/engineering-playbook/tree/main/scripts/benchmarks/gateway-api-benchmark/results/local-20260919) retain per-run timing statistics. The historical Python probe incorrectly retains the k6 digest in `generator_image`. New configuration generation sets both the Python version and image digest; the evidence README records the erratum without changing old raw files or hashes. The k6 artifacts are summaries rather than request-level latency data, so their percentiles cannot be independently recomputed. Five-second fixture timings are not product performance plots or rankings. These runs did not test a Gateway, TLS, gRPC/SSE, Kubernetes state, or resource utilization.
 
 ### Installed implementation measurements pending
 

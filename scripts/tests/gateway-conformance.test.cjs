@@ -19,6 +19,13 @@ test('partial reports retain skipped tests and never become performance results'
   assert.equal(aws.profiles[0].core.skipped_tests.length, 10);
   const cilium = output.reports.find(report => report.id === 'cilium');
   assert.equal(cilium.reported_version, '1.19.0-pre.2');
+  assert.deepEqual(cilium.source_metadata_issues, [{
+    field: 'apiVersion', problem: 'missing_or_empty', similar_keys: ['<Right>apiVersion'],
+  }]);
+  assert.ok(output.reports.filter(report => report.id !== 'cilium')
+    .every(report => report.source_metadata_issues.length === 0));
+  // Matching bytes and valid profile arithmetic do not imply valid source metadata.
+  assert.match(fs.readFileSync(path.join(sourceDirectory, 'cilium.yaml'), 'utf8'), /^<Right>apiVersion:/);
 });
 
 test('misattributed source URLs and inconsistent cohort catalogs are rejected', () => {

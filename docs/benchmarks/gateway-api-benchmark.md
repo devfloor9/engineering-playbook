@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 21
 tags:
   - benchmark
   - gateway-api
@@ -191,6 +191,8 @@ CPU·메모리 지표의 의미는 [cAdvisor 정의](https://github.com/google/c
 | Istio `1.28` | 33 / 13 / 11 | YAML에 patch 미기재; 보고 시각이 참조 `1.28.0` 공개보다 빠름 |
 | Traefik `v3.6` | 33 / 13 / 11 | YAML에 patch 미기재; 보고 시각이 참조 `v3.6.0` 공개보다 빠름 |
 
+고정 Cilium 원본의 첫 키는 `apiVersion`이 아니라 `<Right>apiVersion`입니다. 원본 bytes와 해시는 보존하고 분석 결과의 `source_metadata_issues`에 이 이상을 기록합니다. 위 통계는 해당 원본이 보고한 값이며 메타데이터 형식까지 정상이라는 뜻은 아닙니다.
+
 공통 Core 통과가 Extended 기능의 동일성을 뜻하지 않습니다. 예를 들어 이 코호트의 NGF는 gRPC Core를 통과하면서도 `HTTPRouteBackendProtocolH2C`를 unsupported로 선언합니다. `HTTPRouteCORS`는 Envoy/Istio가 supported, Cilium/NGF/kgateway/Traefik이 unsupported로 선언했습니다. NGF의 `BackendTLSPolicy` 선언이 다른 보고서에 없다고 해서 다른 구현체의 미지원으로 바꾸지는 않습니다.
 
 다음 자료는 경로나 API 버전·모드가 달라 별도로 표시합니다.
@@ -206,7 +208,7 @@ CPU·메모리 지표의 의미는 [cAdvisor 정의](https://github.com/google/c
 
 ### 직접 실행한 로컬 검증
 
-실행 시각은 **2026-09-19 00:08 UTC**입니다. Docker arm64 VM(10 CPU, RAM 8,217,317,376 bytes, 기존 컨테이너 3개와 공유)에서 Python 3.13.15와 k6 2.2.0의 고정 이미지를 사용했습니다. 백엔드는 1 CPU/256 MiB, 생성기는 1 CPU/512 MiB로 제한했고 내부 네트워크만 사용했습니다. 이 값들은 자원 사용량 측정치가 아니라 실행 제한입니다.
+기존 실행 보고서에 기록된 시각은 **2026-09-19 00:08 UTC**입니다. Docker arm64 VM(10 CPU, RAM 8,217,317,376 bytes, 기존 컨테이너 3개와 공유)에서 Python 3.13.15와 k6 2.2.0의 고정 이미지를 사용했습니다. 백엔드는 1 CPU/256 MiB, 생성기는 1 CPU/512 MiB로 제한했고 내부 네트워크만 사용했습니다. 이 값들은 선언된 실행 제한이며 사용량 측정치가 아닙니다. 공개 자료에는 당시 Docker info/inspect와 정리 전후 원본 목록이 없어 제한의 실제 적용·격리·정리는 독립적으로 재확인하지 못했습니다.
 
 | 검증 | 관측 결과 | 판정 |
 | --- | --- | --- |
@@ -215,11 +217,11 @@ CPU·메모리 지표의 의미는 [cAdvisor 정의](https://github.com/google/c
 | 잘못된 기대 본문 | 본문 검사 26개 실패 | k6 종료 코드 99, 검증기 거부 |
 | 지연된 fixture와 부족한 생성 용량 | 요청 4개, 누락 37개 | k6 종료 코드 99, 검증기 거부 |
 | redirect 설정 우회 / setup 생략 | 두 경우 모두 요청 0개 | 실행 전후 보호 검사로 차단; 종료 코드 107 / 108 |
-| 실행 자원 정리 | 시험 컨테이너·네트워크 제거, 기존 컨테이너 3개 유지 | 정리 오류 없음 |
+| 실행 자원 정리 | 파생 실행 보고서가 시험 자원 제거와 기존 컨테이너 3개 유지를 기록 | 원본 정리 전후 자료 미제공 |
 
 앞의 두 정상 실행은 예약 25개에 대해 26개(104%)를 관측했습니다. 검증기는 예약 20개 이상에서만 ±1 및 95–105% 범위를 **명시적 경계 허용 정책**으로 분류하며, 이를 모두 타이머 경합 때문이라고 단정하지 않습니다. 누락은 허용하지 않습니다.
 
-[원시 실행 결과·종료 코드·해시 manifest](https://github.com/devfloor9/engineering-playbook/tree/main/scripts/benchmarks/gateway-api-benchmark/results/local-20260919)에 개별 실행의 지연 통계도 보존했습니다. 5초짜리 fixture 응답 시간을 제품 성능 그래프나 순위로 사용하지 않습니다. 이 시험에는 Gateway, TLS, gRPC/SSE, Kubernetes 상태 및 자원 사용량 실측이 포함되지 않았습니다.
+[원시 실행 결과·종료 코드·해시 manifest](https://github.com/devfloor9/engineering-playbook/tree/main/scripts/benchmarks/gateway-api-benchmark/results/local-20260919)에 개별 실행의 지연 통계도 보존했습니다. 기존 Python probe의 `generator_image` 필드에는 k6 digest가 잘못 남아 있습니다. 키트의 새 설정 생성은 Python 버전과 이미지 digest를 함께 기록하도록 수정했고, 과거 원본·해시는 고치지 않고 결과 README에 정오표를 남겼습니다. k6 자료는 요청별 지연 원본이 아닌 summary여서 백분위수를 독립적으로 재산출할 수 없습니다. 5초짜리 fixture 응답 시간을 제품 성능 그래프나 순위로 사용하지 않습니다. 이 시험에는 Gateway, TLS, gRPC/SSE, Kubernetes 상태 및 자원 사용량 실측이 포함되지 않았습니다.
 
 ### 실제 구현체 측정 대기
 
