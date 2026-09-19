@@ -308,7 +308,19 @@ test('existing baseline HTML retains the independently rendered static component
     }
     checked++;
   }
-  assert.ok(checked >= 150);
+  for (const replacement of replacements) {
+    const baseline = baselinePage(replacement.slug).text;
+    for (const [component, values] of Object.entries(replacement.components)) {
+      for (const value of values) {
+        // Markdown table separators have no text node in rendered HTML.
+        const expected = normalize(value).replaceAll('|', '');
+        assert.ok(baseline.includes(expected),
+          `${replacement.slug}: missing rendered replacement for ${component}: ${value}`);
+      }
+    }
+  }
+  assert.ok(checked + retiredReactOccurrences.length >= 150,
+    `Expected rendered corpus coverage; got ${checked} components and ${retiredReactOccurrences.length} reviewed replacements`);
   // Check every navigation destination against the cards in each real page,
   // not just a count of serialized component names.
   const navigationPages = new Map();
