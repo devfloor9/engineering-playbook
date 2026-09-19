@@ -3,9 +3,9 @@ title: Fargate Pod lifecycle
 description: Review startup, health check, and shutdown configuration for Fargate.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
-reading_time: 11
+reading_time: 19
 tags:
   - eks
   - kubernetes
@@ -58,29 +58,27 @@ flowchart TB
         AutoKubelet --> AutoPod3
     end
 
-    style EC2 fill:#ff9900,stroke:#cc7a00
-    style Fargate fill:#9b59b6,stroke:#7d3c98
-    style AutoMode fill:#34a853,stroke:#2a8642
+    style EC2 fill:#334155,stroke:#1e293b,color:#fff
+    style Fargate fill:#2563eb,stroke:#1d4ed8,color:#fff
+    style AutoMode fill:#475569,stroke:#334155,color:#fff
 ```
 
 ### Automatic Fargate Pod eviction for OS patches {#fargate-pod-os-패치-자동-eviction}
 
-Fargate periodically evicts Pods automatically to apply security patches.
+When patching the OS of Fargate nodes, Amazon EKS notifies you of the affected resources and scheduled Pod eviction date. Operators can identify those Pods and roll their Deployments or other controllers before that date to apply the patch.
 
-**How it works:**
+**Patching sequence:**
 
-1. **Detect patch availability**: AWS detects new OS/runtime patches
-2. **Graceful eviction**: Fargate sends SIGTERM to the Pod → waits for termination within `terminationGracePeriodSeconds`
-3. **Forced termination**: Send SIGKILL on timeout
-4. **Rescheduling**: Kubernetes reschedules onto a new Fargate Pod (using the updated runtime)
+1. EKS calls the Eviction API by Availability Zone and checks the application's PodDisruptionBudget (PDB).
+2. Once eviction is admitted, the kubelet starts Pod termination. `preStop` and application shutdown share `terminationGracePeriodSeconds`. When a controller such as a Deployment creates a replacement Pod, the new Pod uses the latest patch.
+3. If eviction fails, an `EKS Fargate Pod Scheduled Termination` event provides the failure reason and `scheduledTerminationTime`. Operators can check application availability and the PDB configuration before that time.
+4. At the scheduled time, EKS retries eviction without sending another failure event. If the retry also fails, EKS periodically deletes the existing Pods so they can be replaced.
 
-**Key characteristics:**
+See the [Fargate OS patching guide](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html) for the procedure and notification setup.
 
-- **Unpredictable timing**: Users cannot control it (managed by AWS)
-- **No advance notification**: No advance warning, unlike EC2 Scheduled Events
-- **Automatic restart**: Respects PodDisruptionBudget (PDB), but security patches have higher priority
+**Configuration example:**
 
-**Response strategy:**
+This example sets a PDB to keep two of three replicas Ready. Choose the replica count and placement across failure domains from required serving capacity, and adapt the image, health endpoints and shutdown timings to the application. Prepare `fargate-namespace` and a matching Fargate profile first.
 
 ```yaml
 apiVersion: apps/v1
@@ -89,7 +87,7 @@ metadata:
   name: fargate-app
   namespace: fargate-namespace
 spec:
-  replicas: 3  # At least 3 recommended (to account for automatic eviction)
+  replicas: 3  # Example: adjust for required Ready capacity and placement
   selector:
     matchLabels:
       app: fargate-app
@@ -127,11 +125,9 @@ spec:
               command:
               - /bin/sh
               - -c
-              - sleep 10  # Wait longer to account for Fargate eviction
-      # Fargate can have longer startup times
-      terminationGracePeriodSeconds: 60
+              - sleep 10  # Example wait included in the total termination grace period
+      terminationGracePeriodSeconds: 60  # Includes preStop and application shutdown
 ---
-# Limit concurrent evictions with a PDB (best effort; may be ignored for security patches)
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -144,42 +140,35 @@ spec:
       app: fargate-app
 ```
 
-:::warning Fargate PDB limitations
-Fargate respects PDBs only on a **best-effort** basis. For critical security patches, it may ignore the PDB and force eviction. Therefore, Fargate environments require **at least 3 replicas** to ensure high availability.
+:::info Where the PDB applies
+A PDB limits disruptions admitted through the Eviction API. Direct Pod deletion bypasses PDB checks; Deployment rolling updates use the Deployment's update strategy. Fargate patching can proceed to deletion after eviction retries fail, so arrange the required Ready capacity before the notified time.
 :::
 
 ### Fargate Pod startup time characteristics {#fargate-pod-시작-시간-특성}
 
-Fargate Pods take longer to start than EC2-based Pods.
+Measure startup in separate stages: scheduling and compute preparation, image pull, and application initialization after the container starts. A startup probe checks application initialization while the container is running, so earlier provisioning and image-pull time are outside its budget.
 
-| Stage | EC2 (Managed Node) | Fargate | Reason |
-|------|-------------------|---------|------|
-| **Node provisioning** | 0 seconds (already running) | 20-40 seconds | MicroVM creation + ENI attachment |
-| **Image pull** | 5-30 seconds | 10-60 seconds | No layer cache (on first run) |
-| **Container startup** | 1-5 seconds | 1-5 seconds | Same |
-| **Total startup time** | 6-35 seconds | 31-105 seconds | Additional Fargate overhead |
+| Stage | What to inspect |
+|------|-----------------|
+| **Scheduling and compute preparation** | Pod events and scheduling time, Fargate profile and subnet configuration |
+| **Image pull** | Image size, registry location, authentication and network path |
+| **Application initialization** | Time from container start until the health endpoint succeeds |
 
-**Startup Probe tuning example:**
+**Startup probe example:**
+
+For both EC2 and Fargate, set `failureThreshold × periodSeconds` from measured application initialization. The example below uses 20 attempts at five-second intervals for an initialization budget of about 100 seconds.
 
 ```yaml
-# EC2 Pod
+# Example configuration for containers[].startupProbe
 startupProbe:
   httpGet:
     path: /healthz
     port: 8080
-  failureThreshold: 6   # 6 × 5 seconds = 30 seconds
-  periodSeconds: 5
-
-# Fargate Pod (allow more time)
-startupProbe:
-  httpGet:
-    path: /healthz
-    port: 8080
-  failureThreshold: 20  # 20 × 5 seconds = 100 seconds
+  failureThreshold: 20
   periodSeconds: 5
 ```
 
-**Image pull optimization (Fargate):**
+**ECR image example:**
 
 ```yaml
 apiVersion: v1
@@ -191,29 +180,56 @@ spec:
   containers:
   - name: app
     image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/myapp:v1
-    imagePullPolicy: IfNotPresent  # IfNotPresent is recommended instead of Always
-  imagePullSecrets:
-  - name: ecr-secret
+    imagePullPolicy: IfNotPresent
 ```
 
-:::tip Fargate image caching
-Fargate caches layers when the same image is reused, but **the cache is lost when the Pod is evicted**. Use ECR Image Scanning and Image Replication to reduce image pull time.
-:::
+[Private ECR image pulls](https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_on_EKS.html) use the Fargate Pod execution role. Replace the registry address with the actual image and check image size and the path to the registry.
+
+[ECR Image Scanning](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html) checks images for vulnerabilities. Measure image-pull performance separately, using the same image and network conditions when comparing platforms.
 
 ### Sidecar patterns for Fargate without DaemonSet support {#fargate-daemonset-미지원으로-인한-사이드카-패턴}
 
-Fargate does not support DaemonSets, so a sidecar pattern is required when node-level agents are needed.
+When an application on Fargate needs an agent, use a supported sidecar or separate collector. EKS provides a Fluent Bit log router for collecting container standard output logs.
 
-**Monitoring pattern comparison: EC2 vs Fargate:**
+| Capability | EC2 | Fargate |
+|------|-----|---------|
+| **Log collection** | Fluent Bit DaemonSet | Built-in Fluent Bit log router and `aws-logging` ConfigMap |
+| **Metric collection** | CloudWatch Agent or another collector | Configure an ADOT collector to send metrics to Container Insights |
+| **Security checks** | Image scanning and host tools such as Falco | Scan application images and configuration; account for host-access restrictions |
+| **Kubernetes NetworkPolicy** | Supported VPC CNI network policies or a Calico/Cilium configuration | Unsupported. Security Groups for Pods provide separate traffic controls |
 
-| Capability | EC2 (DaemonSet) | Fargate (Sidecar) |
-|------|----------------|-------------------|
-| **Log collection** | Fluent Bit DaemonSet | Fluent Bit Sidecar + FireLens |
-| **Metric collection** | CloudWatch Agent DaemonSet | CloudWatch Agent Sidecar |
-| **Security scanning** | Falco DaemonSet | Fargate is managed by AWS (no user control) |
-| **Network policies** | Calico/Cilium DaemonSet | NetworkPolicy unsupported (use Security Groups for Pods) |
+Security Groups for Pods control traffic through VPC security groups. They do not implement the Kubernetes `NetworkPolicy` API, so creating a NetworkPolicy object alone does not enforce it on Fargate Pods. Check the [VPC CNI network policy support boundaries](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html) and [Security Groups for Pods considerations](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html).
 
-**Fargate logging pattern (FireLens):**
+**CloudWatch Logs configuration example:**
+
+Prepare the `aws-observability` namespace and `aws-logging` ConfigMap using the [Fargate logging guide](https://docs.aws.amazon.com/eks/latest/userguide/fargate-logging.html). Replace the Region below with the cluster's Region, grant the Pod execution role permissions for the log destination, and provide network access to it. Apply the ConfigMap before creating new Pods; configuration changes also take effect on new Pods.
+
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: aws-observability
+  labels:
+    aws-observability: enabled
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-logging
+  namespace: aws-observability
+data:
+  flb_log_cw: "false"
+  output.conf: |
+    [OUTPUT]
+        Name cloudwatch_logs
+        Match kube.*
+        region us-east-1
+        log_group_name /eks/fargate/app
+        log_stream_prefix app-
+        auto_create_group true
+```
+
+The application writes logs to standard output and standard error. This Deployment uses a Fargate profile matching `fargate-namespace` and an actual application image.
 
 ```yaml
 apiVersion: apps/v1
@@ -232,7 +248,6 @@ spec:
         app: logging-app
     spec:
       containers:
-      # Main application
       - name: app
         image: myapp:v1
         ports:
@@ -241,50 +256,26 @@ spec:
           requests:
             cpu: 500m
             memory: 512Mi
-      # FireLens log router (sidecar)
-      - name: log-router
-        image: public.ecr.aws/aws-observability/aws-for-fluent-bit:stable
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            cpu: 200m
-            memory: 256Mi
-        env:
-        - name: FLB_LOG_LEVEL
-          value: "info"
-        firelensConfiguration:
-          type: fluentbit
-          options:
-            enable-ecs-log-metadata: "true"
 ```
 
 :::info CloudWatch Container Insights on Fargate
-Fargate **natively supports** CloudWatch Container Insights and automatically collects metrics without a separate sidecar. It is enabled automatically when a Fargate profile is created.
-
-```bash
-aws eks create-fargate-profile \
-  --cluster-name my-cluster \
-  --fargate-profile-name my-profile \
-  --pod-execution-role-arn arn:aws:iam::123456789012:role/FargatePodExecutionRole \
-  --selectors namespace=fargate-namespace \
-  --tags 'EnableContainerInsights=enabled'
-```
+Application system metrics reach Container Insights through an [ADOT collection setup](https://docs.aws.amazon.com/eks/latest/userguide/monitoring-fargate-usage.html). The `AWS/Usage` metrics that Fargate publishes automatically represent account usage against service quotas.
 :::
 
 ### Recommended graceful shutdown timing for Fargate {#fargate-graceful-shutdown-타이밍-권장사항}
 
-Automatic eviction and longer startup times require a different graceful shutdown strategy for Fargate than for EC2.
+Set the termination budget from the time needed to move traffic and finish work already in progress. `preStop` consumes the same grace period, so leave time for the application to handle its stop signal after the wait.
 
-| Scenario | terminationGracePeriodSeconds | preStop sleep | Reason |
-|---------|------------------------------|---------------|------|
-| **EC2 Pod** | 30-60 seconds | 5 seconds | Wait for Endpoints removal |
-| **Fargate Pod (standard)** | 60-90 seconds | 10-15 seconds | Longer network propagation time |
-| **Fargate + ALB** | 90-120 seconds | 15-20 seconds | Account for ALB deregistration delay |
-| **Long-running Fargate tasks** | 120-300 seconds | 10 seconds | Allow time for batch jobs to complete |
+| Item to inspect | Contribution to the termination budget |
+|-----------|-------------------------|
+| **Traffic transition** | Time for EndpointSlice and load-balancer target state to propagate |
+| **Active requests and jobs** | Time for remaining handlers and workers to finish after admission stops |
+| **Resource cleanup** | Time to close connections and flush buffers after work finishes |
+| **preStop** | Hook execution and application shutdown must fit within the total grace period |
 
-**Fargate optimization example:**
+**Termination budget example:**
+
+This example assigns 15 seconds of a total 90-second budget to traffic transition. On receiving its stop signal, the application stops admitting requests and jobs, then finishes remaining work and cleanup. Load-balancer propagation and Pod termination proceed asynchronously; adjust the values and margin using observations from the service.
 
 ```yaml
 apiVersion: apps/v1
@@ -320,80 +311,68 @@ spec:
               command:
               - /bin/sh
               - -c
-              - |
-                # Network propagation can be slower on Fargate
-                echo "PreStop: Waiting for network propagation..."
-                sleep 15
-
-                # Signal readiness failure (optional)
-                # curl -X POST http://localhost:8080/shutdown
-
-                echo "PreStop: Graceful shutdown initiated"
-      terminationGracePeriodSeconds: 90  # 60 seconds for EC2, 90 seconds for Fargate
+              - sleep 15  # Traffic-transition wait to adjust using service measurements
+      terminationGracePeriodSeconds: 90  # Includes the 15-second preStop and application shutdown
 ```
+
+See the [Pod termination sequence](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and [connection and work cleanup examples](./shutdown-draining.md).
 
 ### Comparison of Fargate, EC2, and Auto Mode from a probe perspective {#fargate-vs-ec2-vs-auto-mode-비교표-probe-관점}
 
 | Item | EC2 Managed Node Group | Fargate | EKS Auto Mode |
 |------|------------------------|---------|---------------|
-| **Node management** | User-managed | AWS-managed | AWS-managed |
-| **Pod density** | High (multiple Pods/node) | Low (1 Pod = 1 MicroVM) | Medium (AWS-optimized) |
-| **Startup time** | Fast (5-35 seconds) | Slow (30-105 seconds) | Fast (10-40 seconds) |
-| **Startup Probe failureThreshold** | 6-10 | 15-20 | 8-12 |
-| **terminationGracePeriodSeconds** | 30-60 seconds | 60-120 seconds | 30-60 seconds |
-| **preStop sleep** | 5 seconds | 10-15 seconds | 5-10 seconds |
-| **Automatic OS patching** | Manual (AMI update) | Automatic (unpredictable eviction) | Automatic (planned eviction) |
-| **PDB support** | Full support | Limited (best effort) | Full support |
-| **DaemonSet support** | Full support | Unsupported (sidecar required) | Limited (AWS-managed) |
-| **Cost model** | Per instance (always running) | Per Pod (runtime only) | Per Pod (optimized) |
-| **Spot support** | Full support (Termination Handler) | Limited Fargate Spot support | Automatic optimization |
-| **Network policies** | Calico/Cilium supported | Security Groups for Pods only | AWS-managed network policies |
+| **Node management** | User manages node-group configuration and updates | AWS-managed | AWS-managed |
+| **Pod capacity** | Depends on instance and network configuration | Separate compute boundary for each Pod | Depends on instance and NodePool configuration |
+| **Startup time** | Measure by stage | Measure by stage | Measure by stage |
+| **Startup probe** | Based on application initialization | Based on application initialization | Based on application initialization |
+| **terminationGracePeriodSeconds** | Based on requests, jobs and cleanup | Based on requests, jobs and cleanup | Based on requests, jobs and cleanup |
+| **preStop** | Any required transition wait is part of the total grace period | Any required transition wait is part of the total grace period | Any required transition wait is part of the total grace period |
+| **OS patching** | Manage AMI and node-group updates | Scheduled notification, eviction and retry procedure | AWS manages node replacement |
+| **PDB** | Checked by the Eviction API | Checked by the Eviction API; failed patch retries can lead to deletion | Updates account for PDBs and NodePool disruption budgets |
+| **DaemonSet** | Supported | Unsupported; configure needed agents separately | Custom DaemonSets supported, subject to node security constraints |
+| **Cost model** | EC2 instance and other resource charges | Runtime charges for the provisioned Fargate vCPU/memory configuration and other resources | EC2 charges plus Auto Mode compute-management charges |
+| **Spot** | EC2 Spot available | EKS Fargate Spot unsupported | EC2 Spot available |
+| **Kubernetes NetworkPolicy** | Supported VPC CNI network policies or a Calico/Cilium configuration | Unsupported. Security Groups for Pods are a separate access control | Auto Mode network policies supported; Security Groups for Pods unsupported |
 
-**Selection guide:**
+The [Auto Mode configuration guide](https://docs.aws.amazon.com/eks/latest/userguide/automode.html) describes custom DaemonSets and the scope of node management.
+
+**Conditions to check before choosing:**
+
+A batch job or a burst of traffic alone does not determine the platform. First check support for the required OS, architecture, storage and agents, then measure capacity and cost for compatible candidates using the same workload. The diagram lists conditions to check for each candidate. A per-Pod compute boundary does not establish network isolation or application availability.
 
 ```mermaid
 flowchart TD
-    Start[Analyze workload characteristics]
+    Start[Check required features<br/>and node responsibilities]
+    Start --> EC2[EC2 Managed<br/>Node Group]
+    Start --> Fargate[Fargate]
+    Start --> AutoMode[EKS Auto Mode]
 
-    Start --> Q1{Delegate node management<br/>completely?}
-    Q1 -->|Yes| Q2{Batch or<br/>bursty workload?}
-    Q1 -->|No| EC2[EC2 Managed<br/>Node Group]
-
-    Q2 -->|Yes| Fargate[Fargate]
-    Q2 -->|No| Q3{Need the latest<br/>EKS features?}
-
-    Q3 -->|Yes| AutoMode[EKS Auto Mode]
-    Q3 -->|No| Fargate
-
-    EC2 --> EC2Details[<b>EC2 characteristics</b><br/>✓ Full control<br/>✓ DaemonSet support<br/>✓ Lowest latency<br/>✗ Operational overhead]
-
-    Fargate --> FargateDetails[<b>Fargate characteristics</b><br/>✓ No node management<br/>✓ Isolated security<br/>✗ Long startup time<br/>✗ No DaemonSet support]
-
-    AutoMode --> AutoDetails[<b>Auto Mode characteristics</b><br/>✓ Automatic optimization<br/>✓ EC2 flexibility<br/>✓ Predictable patching<br/>○ Transitioning from beta to GA]
+    EC2 --> EC2Details[Custom AMI and node configuration<br/>DaemonSets and EC2 Spot supported<br/>Manage node-group updates]
+    Fargate --> FargateDetails[Per-Pod compute boundary<br/>Check OS, storage and resource limits<br/>GPU and DaemonSets unsupported<br/>EKS Fargate Spot unsupported]
+    AutoMode --> AutoDetails[Generally available managed EC2<br/>Compatible custom DaemonSets supported<br/>EC2 Spot supported<br/>Custom AMIs and direct access unsupported]
 
     style Start fill:#4286f4,stroke:#2a6acf,color:#fff
-    style EC2 fill:#ff9900,stroke:#cc7a00,color:#fff
-    style Fargate fill:#9b59b6,stroke:#7d3c98,color:#fff
-    style AutoMode fill:#34a853,stroke:#2a8642,color:#fff
+    style EC2 fill:#334155,stroke:#1e293b,color:#fff
+    style Fargate fill:#2563eb,stroke:#1d4ed8,color:#fff
+    style AutoMode fill:#475569,stroke:#334155,color:#fff
 ```
 
 :::tip Fargate production checklist
-- [ ] **Replica count**: At least 3 (to account for automatic eviction)
-- [ ] **Startup Probe**: Set failureThreshold to 15-20 (account for long startup times)
-- [ ] **terminationGracePeriodSeconds**: Set to 60-120 seconds
-- [ ] **preStop sleep**: Set to 10-15 seconds (wait for network propagation)
-- [ ] **PDB**: Set minAvailable (recommended despite best-effort enforcement)
-- [ ] **Image optimization**: Use ECR and minimize layers
-- [ ] **Logging**: FireLens sidecar or CloudWatch Logs integration
-- [ ] **Monitoring**: Enable CloudWatch Container Insights
-- [ ] **Cost optimization**: Consider Fargate Spot (fault-tolerant workloads)
+- [ ] **Patch notifications**: Identify affected Pods and dates, and prepare to handle failed-eviction events
+- [ ] **Replicas and PDB**: Set from required Ready capacity and placement across failure domains
+- [ ] **Startup probe**: Set from application initialization after the container starts
+- [ ] **Termination budget**: Measure traffic transition, remaining work and cleanup; include preStop in the total grace period
+- [ ] **Images**: Check execution-role ECR access, optimize image size and scan for vulnerabilities
+- [ ] **Logging**: Configure `aws-logging`, execution-role permissions and verified log delivery
+- [ ] **Monitoring**: Configure ADOT collection and check Container Insights metrics
+- [ ] **Cost**: Review requested resources and runtime; consider EC2-based options when Spot is required
 :::
 
 :::info References
 - [Official AWS Fargate on EKS documentation](https://docs.aws.amazon.com/eks/latest/userguide/fargate.html)
 - [Fargate Pod patching and security updates](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html)
-- [EKS Auto Mode overview](https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/)
-- [Fargate and EC2 comparison guide](https://aws.amazon.com/blogs/containers/)
+- [EKS Auto Mode launch and charging model](https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/)
+- [AWS Containers blog](https://aws.amazon.com/blogs/containers/)
 :::
 
 ---

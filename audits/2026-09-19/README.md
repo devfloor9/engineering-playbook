@@ -86,7 +86,18 @@ The second follow-up covers 68 items in 10 Korean/English documents: 65 source c
 | Model release and rollout | Require approved immutable artifacts, create separate release resources, and reject missing or stale canary observations. | `b8b7f617` |
 | Trace datasets and reward evaluation | Validate approved snapshots and manifests; preserve per-sample results and recheck authorization on synchronous and asynchronous requests. | `156896e6` |
 
-`AIDLC-C025`, `AIDLC-C026` and `AIDLC-C027` remain partial: four unsupported Bedrock prompt-alias operations, two recovery explanations and two legal-policy explanations occur in other documents. The evaluation changes do not establish production model quality, deployment success or legal compliance.
+At that point, `AIDLC-C025`, `AIDLC-C026` and `AIDLC-C027` remained partial: four unsupported Bedrock prompt-alias operations, two recovery explanations and two legal-policy explanations occurred in other documents. The evaluation changes do not establish production model quality, deployment success or legal compliance.
+
+The third follow-up covers 52 items in 10 Korean/English documents: 51 source corrections accepted and one partial. The three AI-DLC items above now have accepted source corrections across all 14 original locations, retaining both the earlier governance changes and the new registry/index changes. Legal applicability remains unverified.
+
+| Area | Reviewed change | Source commit |
+| --- | --- | --- |
+| Fargate lifecycle | Correct patch notifications, eviction boundaries, probe timing, logging, observability and platform comparisons. | `fb04660b` |
+| Node scheduling and readiness | Correct ownership, resource placement, pressure eviction, migration and external readiness-controller examples. | `6d0642e3` |
+| Distributed serving | Separate prefill/decode serving from coupled TP/PP; wire LWS ranks, rendezvous, GPU allocation, checkpoint mounts and leader health routing. | `76eb06e5` |
+| Prompt versions and recovery | Replace unsupported Bedrock aliases, use returned version ARNs, distinguish registry changes from traffic recovery and qualify retention policies. | `1e9bdc1c` |
+
+`EKSN-POD-020` remains partial because 13 related locations outside the scheduling pair still use obsolete Karpenter fields. The previously recorded Trainium specification conflict and three Gateway cookbook partial corrections also remain open. Other findings in the registry and scheduling guides are separate work; accepting this subset does not certify either whole guide.
 
 Each ledger entry identifies the source commit, reviewed files, checks and remaining limits. Offline examples use fakes or parsers; browser checks establish rendering. Neither establishes successful cloud execution, fault recovery or measured performance. Later entries, if present, are authoritative for subsequent decisions; the original occurrence and classification totals remain unchanged.
 
@@ -103,7 +114,7 @@ The new correction workstreams are:
 - [#99 — AI-DLC](https://github.com/devfloor9/engineering-playbook/issues/99): 404 items covering methodology, executable examples, approvals, evaluation, quantities and legal scope.
 - [#100 — Industry and sales examples](https://github.com/devfloor9/engineering-playbook/issues/100): 283 industry items and 14 sales/event items covering evidence, implementation status and assumptions.
 
-The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 209 accepted source corrections, 1,981 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,981 confirmed errors.
+The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 260 accepted source corrections, 1,930 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,930 confirmed errors.
 
 Follow-up edits must preserve useful detail, routes, anchors, creation dates and author attribution. Content changes update the revision date and reading estimate together; presentation-only changes preserve them.
 

@@ -3,9 +3,9 @@ title: 프롬프트·모델 레지스트리
 description: Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management 비교 및 구축 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 8
 tags:
   - prompt-registry
   - versioning
@@ -21,7 +21,7 @@ sidebar_label: 프롬프트·모델 레지스트리
 
 - **버전 추적**: "어제 잘 됐는데 오늘 이상해요" → 어떤 프롬프트가 변경되었는지 추적
 - **환경별 배포**: staging/canary/production 환경마다 다른 버전 사용
-- **롤백**: 문제 발생 시 이전 버전으로 즉시 복구
+- **롤백**: 승인된 이전 버전으로 라벨이나 환경 설정을 되돌리고, 애플리케이션이 그 버전을 사용하는지와 오류율·지연이 회복됐는지 확인한다.
 - **감사 증빙**: 금융·의료 규제 대응을 위한 변경 이력 보관
 
 ---
@@ -55,6 +55,36 @@ client.create_prompt(
 # 검증 후
 client.update_prompt_label("financial-analysis", version=6, label="production")
 ```
+
+**롤백 확인:** 라벨을 바꿔도 애플리케이션은 잠시 이전 프롬프트를 사용할 수 있다. [Langfuse의 프롬프트 캐시](https://langfuse.com/docs/prompt-management/features/caching)는 기본 TTL이 60초이며, 만료 후에도 백그라운드에서 새 값을 가져오는 동안 기존 값을 반환할 수 있다. 실제 반영 시점은 SDK 버전, TTL 설정, 갱신 실패, 대체 프롬프트(fallback), 이미 처리 중인 요청에 따라 달라진다.
+
+아래 함수는 캐시를 거치지 않고 레지스트리에서 `production` 라벨의 버전을 읽는다. 2026-09-19에 확인한 [`get_prompt` 구현](https://raw.githubusercontent.com/langfuse/langfuse-python/main/langfuse/_client/client.py)을 기준으로 작성했으므로, 사용할 SDK 버전을 고정하고 인자와 반환값을 확인한다. 대상 프로젝트에 인증된 client와 변경 기록에서 승인한 복구 버전을 전달한다.
+
+이 조회는 다른 프로세스의 캐시를 지우지 않는다. 함수가 성공해도 애플리케이션이 복구 버전으로 요청을 처리하는지는 별도로 확인해야 한다.
+
+```python
+# registry_label_check.py
+def confirm_registry_target(client, *, prompt_name, expected_version):
+    """Read registry state only; this does not verify recovered traffic."""
+    if not isinstance(prompt_name, str) or not prompt_name.strip():
+        raise ValueError("prompt_name_required")
+    if type(expected_version) is not int or expected_version < 1:
+        raise ValueError("positive_integer_version_required")
+    prompt = client.get_prompt(
+        prompt_name, label="production", cache_ttl_seconds=0, fallback=None
+    )
+    if (prompt.name != prompt_name or prompt.is_fallback
+            or type(prompt.version) is not int
+            or prompt.version != expected_version):
+        raise ValueError("registry_target_not_confirmed")
+    return {
+        "prompt_name": prompt.name,
+        "registry_version": prompt.version,
+        "traffic_recovery_verified": False,
+    }
+```
+
+레지스트리를 확인한 뒤에는 배포 대상 애플리케이션 그룹별로 실제 사용한 버전과 요청 수·오류율·지연을 확인한다. 처리 중인 작업과 대체 프롬프트의 동작도 살핀다. 관측값이 없거나 오래되었으면 [롤백 계획](./governance-automation.md#롤백-계획-필수)의 종료 기준을 충족할 때까지 장애 대응을 계속한다. 위 함수는 이 과정에서 레지스트리 조회만 담당한다.
 
 **장점**:
 - Self-hosted, RBAC, S3+KMS 백엔드 가능
@@ -108,30 +138,56 @@ client.update_prompt_label("financial-analysis", version=6, label="production")
 
 AWS Bedrock는 [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html) 기능을 제공한다(2024년 11월 GA).
 
-- **Prompt 버전**: `CreatePromptVersion` API로 immutable 버전 생성
-- **Alias**: `PROD`, `STAGING` 같은 alias를 버전에 연결
-- **IAM 통합**: 특정 버전만 사용 가능하도록 정책 설정
-- **CloudTrail**: 누가 언제 어떤 버전을 배포했는지 감사 로그
+- **Prompt 버전**: `CreatePromptVersion`으로 정적 snapshot을 만들고 응답의 버전 ARN을 보존한다.
+- **환경 매핑**: 애플리케이션 설정에 `PROD`나 `STAGING`이 사용할 버전 ARN을 저장한다. 확인한 Bedrock Prompt management API 모델에는 `CreatePromptAlias`와 `UpdatePromptAlias` 작업이 없다.
+- **IAM 통합**: 사용할 프롬프트 API와 리소스에 필요한 권한을 구성하고 검증한다.
+- **CloudTrail**: 지원되는 프롬프트 관리 API의 호출 기록을 남긴다. 애플리케이션이 사용할 버전을 바꾸는 설정 변경은 해당 설정 시스템에서도 기록한다.
+
+아래 함수는 [CreatePromptVersion](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePromptVersion.html)을 호출하고 응답에 담긴 버전 ARN을 반환한다. 대상 계정·리전에 인증된 `bedrock-agent` client와 프롬프트 생성·조회에서 받은 버전 없는 ARN을 전달한다. 사람이 붙인 프롬프트 이름은 ARN의 ID 자리에 사용할 수 없다. 예제는 상용 파티션(`arn:aws`)의 ARN을 검사하며, 자격 증명과 권한 설정은 실행 전에 완료해야 한다.
 
 ```python
-import boto3
+# bedrock_prompt_version.py
+import re
 
-bedrock = boto3.client('bedrock-agent')
 
-# 새 버전 생성
-response = bedrock.create_prompt_version(
-    promptIdentifier='arn:aws:bedrock:us-east-1:123456789012:prompt/fin-analysis',
-    description='보수적 투자 자문 스타일로 변경'
-)
-version_id = response['version']
+def validate_client_token(value):
+    if (not isinstance(value, str) or not 33 <= len(value) <= 256
+            or re.fullmatch(r"[A-Za-z0-9](?:-*[A-Za-z0-9])*", value) is None):
+        raise ValueError("invalid_client_token")
 
-# 프로덕션 alias 업데이트
-bedrock.update_prompt_alias(
-    promptIdentifier='arn:aws:bedrock:us-east-1:123456789012:prompt/fin-analysis',
-    aliasIdentifier='PROD',
-    promptVersion=version_id
-)
+
+def snapshot_prompt(bedrock, prompt_arn, *, description, client_token):
+    """Create a candidate snapshot; do not change application configuration."""
+    match = re.fullmatch(
+        r"arn:aws:bedrock:[a-z0-9-]{1,20}:[0-9]{12}:prompt/([A-Za-z0-9]{10})",
+        prompt_arn if isinstance(prompt_arn, str) else "",
+    )
+    if match is None:
+        raise ValueError("expected_unversioned_prompt_arn")
+    if not isinstance(description, str) or not 1 <= len(description) <= 200:
+        raise ValueError("invalid_description")
+    validate_client_token(client_token)
+    response = bedrock.create_prompt_version(
+        promptIdentifier=prompt_arn,
+        description=description,
+        clientToken=client_token,
+    )
+    version = response.get("version")
+    if (not isinstance(version, str)
+            or re.fullmatch(r"[1-9][0-9]{0,4}", version) is None
+            or response.get("id") != match[1]
+            or response.get("arn") != f"{prompt_arn}:{version}"):
+        raise ValueError("unexpected_prompt_version_response")
+    return {
+        "prompt_id": response["id"],
+        "version": version,
+        "version_arn": response["arn"],
+    }
 ```
+
+`client_token`을 원래 요청과 함께 보관하고, 동일한 작업과 입력을 재시도할 때만 재사용한다. 반환된 `version_arn`은 평가 결과·승인 기록과 함께 보관한다.
+
+평가와 승인을 마치면 애플리케이션 설정의 `PROD`를 해당 ARN에 연결한다. 설정 시스템에서 접근 권한과 동시 변경을 제어하고, 변경을 기록한 뒤 저장된 값을 다시 읽어 확인한다. 위 함수는 후보 버전을 만드는 단계까지만 구현한다. 롤백할 때도 이전에 승인한 ARN을 복원한 뒤 애플리케이션과 트래픽의 상태를 확인해야 한다.
 
 **장점**:
 - AWS 네이티브, IAM/CloudTrail/KMS 통합
@@ -149,7 +205,7 @@ bedrock.update_prompt_alias(
 |------|----------|-------------|------------|------------|
 | **배포 방식** | Self-hosted | SaaS | SaaS | AWS Managed |
 | **버전 관리** | ✅ | ✅ | ✅ | ✅ |
-| **라벨/Alias** | ✅ | ✅ | ❌ | ✅ |
+| **라벨/Alias** | ✅ | ✅ | ❌ | 애플리케이션의 버전 ARN 매핑 |
 | **Visual Diff** | 기본 | ✅ | ✅ | ❌ |
 | **승인 워크플로** | ❌ | ✅ | ❌ | ❌(IAM으로 구현) |
 | **A/B 실험** | 수동 | ✅ | ✅ | 수동 |
@@ -203,40 +259,49 @@ helm install langfuse langfuse/langfuse -f langfuse-values.yaml
 
 ### Bedrock Prompt Management 설정
 
+먼저 [CreatePrompt](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePrompt.html)로 초안을 만들고, 위의 `snapshot_prompt` 함수로 버전을 생성한다. `defaultVariant`는 사용할 variant의 이름이며, 해당 variant에는 프롬프트 템플릿과 `modelId`, 추론 설정이 함께 저장된다.
+
+대상 계정·리전에서 승인된 모델 또는 inference profile ID를 전달한다. 선택한 모델이 `TEXT` 템플릿과 예시의 `temperature=0.2`, `maxTokens=1024`를 지원하는지 확인한다. 프롬프트 생성이 성공해도 모델 호출 권한, 추론 호환성, 응답 품질은 별도로 검증해야 한다.
+
 ```python
-import boto3
+# bedrock_prompt_setup.py
+from bedrock_prompt_version import snapshot_prompt, validate_client_token
 
-bedrock = boto3.client('bedrock-agent', region_name='us-east-1')
 
-# 1. 프롬프트 생성
-prompt_response = bedrock.create_prompt(
-    name='financial-analysis',
-    description='금융 분석 전문가 프롬프트',
-    variants=[{
-        'name': 'default',
-        'templateType': 'TEXT',
-        'templateConfiguration': {
-            'text': {
-                'text': '당신은 금융 분석 전문가입니다...'
-            }
-        }
-    }]
-)
-prompt_arn = prompt_response['arn']
-
-# 2. 버전 생성
-version_response = bedrock.create_prompt_version(
-    promptIdentifier=prompt_arn,
-    description='v1 초기 버전'
-)
-
-# 3. PROD alias 생성
-bedrock.create_prompt_alias(
-    promptIdentifier=prompt_arn,
-    name='PROD',
-    promptVersion='1'
-)
+def create_initial_prompt_version(
+    bedrock, *, model_id, prompt_text, create_token, snapshot_token
+):
+    """Create a model-bound draft and return its candidate version descriptor."""
+    if not isinstance(model_id, str) or not model_id.strip():
+        raise ValueError("model_id_required")
+    if not isinstance(prompt_text, str) or not prompt_text.strip():
+        raise ValueError("prompt_text_required")
+    validate_client_token(create_token)
+    validate_client_token(snapshot_token)
+    draft = bedrock.create_prompt(
+        name="financial-analysis",
+        description="Financial analysis expert prompt",
+        defaultVariant="default",
+        variants=[{
+            "name": "default",
+            "modelId": model_id,
+            "templateType": "TEXT",
+            "templateConfiguration": {"text": {"text": prompt_text}},
+            "inferenceConfiguration": {
+                "text": {"temperature": 0.2, "maxTokens": 1024}
+            },
+        }],
+        clientToken=create_token,
+    )
+    return snapshot_prompt(
+        bedrock, draft["arn"], description="Initial candidate snapshot",
+        client_token=snapshot_token,
+    )
 ```
+
+`prompt_text`에는 “당신은 금융 분석 전문가입니다...”처럼 검토한 금융 분석 지침을 전달한다. 실행 전에 `create_token`과 `snapshot_token`을 각각 원래 요청 입력과 함께 저장한다. 반환값을 `candidate`에 보관했다면 `candidate["version_arn"]`을 `PROD` 설정안에 사용한다. 버전 번호를 `1`로 고정하지 않고, 실제 반환된 버전을 평가·승인한 뒤 배포한다.
+
+버전 생성이 실패해도 초안은 이미 만들어졌을 수 있다. 원래 요청과 토큰을 보관하고 현재 상태를 확인한 후 재시도한다. 두 API 호출 전체가 한 번에 성공하거나 취소되는 것은 아니다.
 
 ---
 

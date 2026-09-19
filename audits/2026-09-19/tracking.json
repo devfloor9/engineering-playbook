@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 209,
-    "open": 1981,
+    "source_correction_accepted": 260,
+    "open": 1930,
     "withdrawn": 1
   },
   "assignment_counts": {
@@ -1188,9 +1188,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1199,9 +1202,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1210,9 +1216,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1221,9 +1230,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1232,9 +1244,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1243,9 +1258,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1254,9 +1272,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1265,9 +1286,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1276,9 +1300,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1287,9 +1314,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1298,9 +1328,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1309,9 +1342,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "76eb06e578cf8314c01690149f564373b0862510",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-disagg-012"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -12883,9 +12919,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-239"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12894,9 +12933,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-240"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12905,9 +12947,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-241"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12916,9 +12961,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-242"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12927,9 +12975,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-243"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12938,9 +12989,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-244"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12949,9 +13003,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-245"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12960,9 +13017,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-246"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12971,9 +13031,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-247"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12982,9 +13045,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-248"
+      ]
     },
     {
       "package": "eks-operations",
@@ -12993,9 +13059,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-249"
+      ]
     },
     {
       "package": "eks-operations",
@@ -13004,9 +13073,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "fb04660bebc5012aa872a5386e503dadcdbae765",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-250"
+      ]
     },
     {
       "package": "eks-operations",
@@ -13323,9 +13395,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-012"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13334,9 +13409,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-013"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13378,9 +13456,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-017"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13400,9 +13481,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-019"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13412,8 +13496,11 @@
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-020"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13422,9 +13509,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-021"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13455,9 +13545,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-024"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13466,9 +13559,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-025"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13477,9 +13573,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-026"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13488,9 +13587,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-027"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13587,9 +13689,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-036"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13598,9 +13703,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-037"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13631,9 +13739,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-040"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13642,9 +13753,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-041"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13796,9 +13910,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-055"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -13994,9 +14111,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-073"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14005,9 +14125,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-074"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14115,9 +14238,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-084"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14126,9 +14252,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-085"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14137,9 +14266,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-086"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14148,9 +14280,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-087"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14159,9 +14294,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-088"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14170,9 +14308,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-089"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14181,9 +14322,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-090"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -14192,9 +14336,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "6d0642e399b1f8bb92fea04135eb4b4f80b5827c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eksn-pod-091"
+      ]
     },
     {
       "package": "eks-scheduling",
@@ -18051,11 +18198,12 @@
       "issue": 99,
       "proposed_issue_key": "aidlc",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/99",
-      "source_correction_status": "open",
-      "commit": "64c24adf974a08ca07fa8e195225130634517ac9",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-aidlc-c025"
+        "2026-09-19-aidlc-c025",
+        "2026-09-19-aidlc-c025-wave3-followup"
       ]
     },
     {
@@ -18065,11 +18213,12 @@
       "issue": 99,
       "proposed_issue_key": "aidlc",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/99",
-      "source_correction_status": "open",
-      "commit": "64c24adf974a08ca07fa8e195225130634517ac9",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-aidlc-c026"
+        "2026-09-19-aidlc-c026",
+        "2026-09-19-aidlc-c026-wave3-followup"
       ]
     },
     {
@@ -18079,11 +18228,12 @@
       "issue": 99,
       "proposed_issue_key": "aidlc",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/99",
-      "source_correction_status": "open",
-      "commit": "64c24adf974a08ca07fa8e195225130634517ac9",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-aidlc-c027"
+        "2026-09-19-aidlc-c027",
+        "2026-09-19-aidlc-c027-wave3-followup"
       ]
     },
     {
