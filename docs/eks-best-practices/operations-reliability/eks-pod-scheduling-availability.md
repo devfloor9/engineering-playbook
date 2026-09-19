@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 88
+reading_time: 96
 tags:
   - eks
   - kubernetes
@@ -42,7 +42,7 @@ Kubernetes의 Pod 스케줄링은 서비스 가용성, 성능, 비용 효율성�
 
 | 시나리오 | 잘못된 스케줄링 | 올바른 스케줄링 |
 |---------|----------------|----------------|
-| **장애 격리** | 모든 replica가 같은 노드 → 노드 장애 시 전체 중단 | Anti-Affinity로 노드 분산 → 부분 장애만 발생 |
+| **장애 격리** | 모든 replica가 같은 노드 → 해당 노드 장애에 함께 노출 | Anti-Affinity로 직접적인 동시 노출을 줄이며, 다른 의존성의 장애는 별도로 평가 |
 | **리소스 경합** | CPU 집약적 Pod들이 한 노드에 집중 → 성능 저하 | Node Affinity로 워크로드 분리 → 안정적 성능 |
 | **비용 최적화** | GPU 필요 없는 Pod가 GPU 노드에 배치 → 비용 낭비 | Taints/Tolerations로 전용 노드 격리 → 비용 절감 |
 | **업그레이드 안전성** | 롤아웃 전략·Readiness 미설계, 노드 Drain 시 PDB 미설정 → 가용 replica 과다 감소 | 롤링 업데이트는 workload controller 설정으로 제어하고, Eviction API 기반 노드 Drain은 PDB로 제한 |
@@ -321,7 +321,11 @@ spec:
             memory: 2Gi
 ```
 
-**예시 3: 특정 AZ 지정 (데이터베이스 클라이언트)**
+**예시 3: 정적 AZ 선호 (데이터베이스 클라이언트)**
+
+이 예시는 현재 RDS writer가 있는 AZ를 새 Pod의 배치 위치로 선호합니다. `us-east-1a`와 `DB_ENDPOINT`를 실제 AZ와 RDS endpoint로 바꿉니다. 이 설정만으로 기존 Pod가 이동하거나 RDS failover 후의 writer AZ를 따라가지는 않습니다.
+
+Multi-AZ DB instance에서 failover가 발생하면 endpoint의 DNS 대상이 바뀝니다. 클라이언트가 변경된 주소를 사용하도록 DNS 캐싱과 재연결 동작을 확인합니다. 같은 AZ 통신 여부와 비용 변화는 실제 요청 경로를 기준으로 평가합니다.
 
 ```yaml
 apiVersion: apps/v1
@@ -340,10 +344,11 @@ spec:
     spec:
       affinity:
         nodeAffinity:
-          # RDS 인스턴스와 같은 AZ (us-east-1a)에 배치하여 Cross-AZ 비용 절감
-          requiredDuringSchedulingIgnoredDuringExecution:
-            nodeSelectorTerms:
-            - matchExpressions:
+          # 정적 선호이며 writer AZ를 자동 추적하지 않음
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
               - key: topology.kubernetes.io/zone
                 operator: In
                 values:
@@ -353,7 +358,7 @@ spec:
         image: db-client:v1.2
         env:
         - name: DB_ENDPOINT
-          value: "mydb.us-east-1a.rds.amazonaws.com"
+          value: "REPLACE_WITH_RDS_ENDPOINT"
 ```
 
 ### 3.3 Node Anti-Affinity
@@ -407,7 +412,7 @@ Pod Affinity와 Anti-Affinity는 **Pod 간의 관계**를 기반으로 스케줄
 
 ### 4.1 Pod Affinity
 
-Pod Affinity는 특정 Pod가 있는 토폴로지 도메인(노드, AZ, 리전)에 다른 Pod를 함께 배치합니다.
+Pod Affinity는 특정 Pod가 있는 토폴로지 도메인(노드, AZ, 리전)을 배치 조건이나 선호로 사용합니다. Service나 프록시가 요청별로 선택하는 endpoint는 별도 라우팅 설정에 따릅니다.
 
 **주요 사용 사례:**
 - **Cache Locality**: 캐시 서버와 애플리케이션을 같은 노드에 배치하여 레이턴시 최소화
@@ -473,7 +478,7 @@ spec:
     spec:
       affinity:
         podAffinity:
-          # Soft: API 서버와 같은 AZ 선호 (Cross-AZ 비용 절감)
+          # Soft: API 서버와 같은 AZ 선호; 요청 라우팅은 별도 설정
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
@@ -491,7 +496,7 @@ spec:
 
 ### 4.2 Pod Anti-Affinity
 
-Pod Anti-Affinity는 특정 Pod가 있는 토폴로지 도메인에 다른 Pod를 배치하지 **않도록** 합니다. 고가용성 확보의 핵심 패턴입니다.
+Pod Anti-Affinity는 selector로 선택한 Pod들이 같은 노드나 AZ에 모이지 않도록 배치를 제한하거나 분산을 선호하게 합니다. 아래 그림은 세 도메인에 분산된 배치 예시입니다. 실제 배치는 후보 노드와 다른 제약에 따라 달라지며, 분산해도 공유 데이터베이스 같은 의존성의 장애는 남습니다. Hard AZ anti-affinity를 쓰려면 admission 설정이 해당 topology key를 허용해야 합니다.
 
 ```mermaid
 flowchart TB
@@ -562,7 +567,7 @@ spec:
 ```
 
 :::warning Hard Anti-Affinity 주의사항
-Hard Anti-Affinity를 `kubernetes.io/hostname`에 적용하면, replica 수가 노드 수보다 많을 때 일부 Pod가 `Pending` 상태로 남습니다. 예를 들어 노드 3개에 replica 5개를 배포하면 2개가 스케줄링되지 않습니다. 이 경우 Soft Anti-Affinity를 사용하세요.
+Hard hostname anti-affinity는 선택한 Pod를 적격 hostname마다 최대 한 개로 제한합니다. 예를 들어 다른 제약을 만족하는 노드가 3개이면 replica 5개 중 최소 2개가 Pending일 수 있습니다. 리소스·taint·볼륨·롤아웃 surge에 필요한 여유도 확인합니다. Soft로 바꾸면 이 분리 조건을 완화하지만 다른 원인의 Pending까지 없애지는 않습니다.
 :::
 
 #### Soft Anti-Affinity (권장 패턴)
@@ -608,23 +613,23 @@ spec:
 
 | 시나리오 | 권장 | 이유 |
 |---------|------|------|
-| replica 수 ≤ 노드 수 | Hard | 각 노드에 정확히 1개씩 배치 가능 |
-| replica 수 > 노드 수 | Soft | 일부 노드에 2개 이상 배치 허용 |
-| 미션 크리티컬 서비스 | Hard (AZ 레벨) | 장애 도메인 완전 격리 |
-| 일반 워크로드 | Soft | 스케줄링 유연성 확보 |
-| 빠른 스케일링 필요 | Soft | Pending 상태 방지 |
+| 적격 hostname·용량이 충분함 | Hard 고려 | 선택한 Pod를 hostname마다 최대 한 개로 제한하며 rollout surge 여유도 필요 |
+| 적격 hostname보다 replica가 많음 | 용량 확장 또는 Soft 검토 | Soft는 같은 노드 배치를 허용하며 장애 노출이 달라짐 |
+| AZ별 장애 노출을 줄여야 함 | Topology Spread 또는 허용된 Hard AZ anti-affinity | Hard AZ 규칙은 적격 AZ마다 최대 한 개이며 admission 허용 여부 확인 |
+| 일반 워크로드 | Soft 고려 | 다른 제약과 함께 분산 선호를 점수화 |
+| 빠른 스케일링 필요 | 제약·용량 함께 검토 | Soft만으로 Pending 해소나 배치 성공을 보장하지 않음 |
 
 ### 4.3 Affinity/Anti-Affinity vs Topology Spread 비교
 
 | 비교 항목 | Pod Anti-Affinity | Topology Spread Constraints |
 |----------|-------------------|----------------------------|
-| **목적** | Pod 간 분리 | Pod 균등 분산 |
-| **세밀함** | Pod 단위 제어 | 도메인 간 균형 제어 |
-| **복잡성** | 낮음 | 중간 |
-| **유연성** | Hard/Soft 선택 | maxSkew로 허용 범위 제어 |
-| **주요 사용** | 같은 앱 replica 분리 | 여러 앱의 전체 균형 |
-| **AZ 분산** | 가능 | 더 정교함 (minDomains) |
-| **노드 분산** | 가능 | 더 정교함 (maxSkew) |
+| **목적** | 선택한 Pod와의 분리 | 선택한 Pod 집합의 도메인별 분산 |
+| **세밀함** | Pod selector와 topology key | Pod selector와 도메인별 수 |
+| **복잡성** | 규칙·selector 구성에 따름 | 규칙·도메인 구성에 따름 |
+| **유연성** | Hard/Soft 선택 | Hard skew 제한 또는 Soft 분산 선호 |
+| **주요 사용** | selector에 일치하는 replica 분리 | 같은 namespace에서 labelSelector에 일치하는 Pod 집합의 균형 |
+| **AZ 분산** | 가능하며 Hard 규칙은 admission 확인 | 적격 도메인·maxSkew·minDomains의 의미를 함께 확인 |
+| **노드 분산** | 가능 | hostname 기준 Hard 제한 또는 Soft 점수화 |
 | **권장 조합** | Topology Spread (AZ) + Anti-Affinity (노드) | |
 
 :::info Topology Spread Constraints 참고
@@ -633,11 +638,13 @@ Topology Spread Constraints는 Pod Anti-Affinity보다 더 정교한 분산 제�
 
 #### 4.3.1 Topology Spread Constraints 실전 패턴
 
-Topology Spread Constraints는 복잡한 분산 요구사항을 우아하게 해결합니다. 실제 프로덕션 환경에서 자주 사용되는 패턴을 YAML과 함께 소개합니다.
+Topology Spread는 같은 namespace에서 selector에 일치하는 Pod가 각 도메인에 몇 개 있는지 비교합니다. 도메인은 `topologyKey`가 가리키는 노드나 AZ이며, 계산에 포함할 도메인은 node selector/affinity, topology label과 `nodeAffinityPolicy`·`nodeTaintsPolicy`에 따라 정해집니다. CPU·메모리 여유나 cordon 여부만 세어서 이 수를 대신할 수는 없습니다.
+
+아래 예시는 Kubernetes 1.34 기준입니다. `DoNotSchedule`은 Pod 수의 차이인 skew가 기준을 넘는 배치를 막고, `ScheduleAnyway`는 더 고르게 분산되는 후보를 선호합니다. `minDomains`가 skew 계산에 미치는 영향은 패턴 2에서 설명합니다. 리소스 부족 등 다른 스케줄링 조건은 두 방식 모두에서 배치를 막을 수 있습니다.
 
 ##### 패턴 1: Multi-AZ 균등 분배 (기본)
 
-가장 일반적인 패턴으로, 모든 replica를 AZ 간에 균등하게 분산시킵니다.
+선택한 replica의 AZ별 수를 제한하는 Hard 패턴입니다. 세 적격 AZ와 충분한 용량을 가정한 배치를 보여줍니다.
 
 ```yaml
 apiVersion: apps/v1
@@ -672,18 +679,18 @@ spec:
 ```
 
 **동작 방식:**
-- `maxSkew: 1`: AZ 간 Pod 수 차이가 최대 1개까지 허용
-- 9개 replica → us-east-1a(3), us-east-1b(3), us-east-1c(3)
-- `whenUnsatisfiable: DoNotSchedule`: 조건 위반 시 Pod를 Pending 상태로 유지
+- `maxSkew: 1`: 새 Pod를 포함한 대상 AZ의 일치 Pod 수와 global minimum의 차이를 검사
+- 세 적격 AZ에서 다른 제약도 만족하면 9개 replica의 3/3/3 배치가 가능
+- `DoNotSchedule`: 해당 후보에서 skew 제한을 넘으면 배치하지 않음
 
 **사용 시나리오:**
 - 미션 크리티컬 서비스의 AZ 장애 대응
 - 클라이언트 트래픽이 모든 AZ에서 균등하게 들어오는 경우
 - 데이터센터 수준의 장애 격리가 필요한 경우
 
-##### 패턴 2: minDomains 활용 (최소 AZ 보장)
+##### 패턴 2: minDomains 활용 (global minimum 계산) {#패턴-2-mindomains-활용-최소-az-보장}
 
-`minDomains`는 Pod가 반드시 분산되어야 하는 최소 도메인(AZ) 수를 보장합니다. AZ 축소 시나리오에서 Pod가 한 곳으로 밀리는 것을 방지합니다.
+`minDomains`는 필요한 AZ 수를 생성하거나 가용성을 보장하지 않습니다. 적격 도메인이 이 값보다 적으면 Hard skew 계산의 global minimum을 0으로 취급합니다. Kubernetes 1.30부터 GA이며, 이전 버전은 feature gate 상태를 확인해야 합니다.
 
 ```yaml
 apiVersion: apps/v1
@@ -705,7 +712,7 @@ spec:
     spec:
       topologySpreadConstraints:
       - maxSkew: 1
-        minDomains: 3  # 반드시 3개 AZ에 분산
+        minDomains: 3  # 적격 도메인이 3개 미만이면 global minimum은 0
         topologyKey: topology.kubernetes.io/zone
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
@@ -724,22 +731,21 @@ spec:
 ```
 
 **동작 방식:**
-- `minDomains: 3`: 최소 3개 AZ에 Pod 분산 보장
-- 6개 replica → 각 AZ에 최소 2개씩 배치
-- 특정 AZ가 리소스 부족이어도, 다른 AZ로만 몰리지 않음
+- 적격 AZ가 세 개 이상이면 가장 작은 일치 Pod 수가 global minimum입니다.
+- 세 AZ의 조건·용량이 맞으면 6개 replica를 2/2/2로 배치할 수 있지만, AZ별 최소 두 개나 SLA를 보장하지 않습니다.
+- 적격 AZ가 두 개이고 현재 수가 2/2이면 global minimum은 0입니다. 새 일치 Pod는 `3 - 0 > 1`이므로 두 후보 모두에서 이 제약을 통과하지 못합니다.
 
 **사용 시나리오:**
-- 금융, 결제 시스템 등 초고가용성 요구 서비스
-- SLA 99.99% 이상 보장 필요 시
-- AZ 축소(Zonal Shift) 중에도 최소 가용성 유지
+- 세 도메인보다 적은 환경에서 skew가 커지는 배치를 의도적으로 제한할 때
+- 도메인 감소 시 Pending을 허용할지, 다른 배치 정책을 택할지 미리 결정할 때
 
 :::warning minDomains 설정 시 주의사항
-`minDomains`를 설정하면 해당 수만큼의 도메인이 존재하지 않거나 리소스가 부족할 경우, Pod가 Pending 상태로 남습니다. 클러스터에 실제로 사용 가능한 AZ 수를 확인 후 설정하세요.
+도메인이 부족하다고 모든 Pod가 항상 Pending인 것은 아닙니다. 두 빈 도메인에서는 각각 첫 Pod가 `1 - 0 <= 1`을 만족할 수 있습니다. AZ 축소 시 복구 용량과 다른 필터를 확인하고, 배치를 우선하는 정책은 10.3절의 Soft AZ 예시와 비교하세요.
 :::
 
 ##### 패턴 3: Anti-Affinity + Topology Spread 조합
 
-같은 노드에 replica를 2개 이상 배치하지 않으면서, 동시에 AZ 간 균등 분배를 보장하는 패턴입니다.
+선택한 replica를 hostname마다 최대 한 개로 제한하면서 AZ skew 조건도 함께 적용합니다. 두 제약을 모두 만족하는 후보와 충분한 용량이 있어야 합니다.
 
 ```yaml
 apiVersion: apps/v1
@@ -790,18 +796,17 @@ spec:
 ```
 
 **동작 방식:**
-- **Level 1 (AZ)**: 12개 replica → 각 AZ에 4개씩 균등 배치
-- **Level 2 (Node)**: 각 노드에 최대 1개 Pod만 배치
+- 세 적격 AZ에 각각 네 개의 적격 hostname과 용량이 있으면 12개 replica의 4/4/4 배치가 가능
+- hostname anti-affinity와 AZ skew 조건을 함께 만족해야 하며, rollout surge에도 추가 후보가 필요
 
 **효과:**
-- 노드 장애 시 최대 1개 Pod만 영향
-- AZ 장애 시 최대 4개 Pod만 영향
-- 총 12개 중 8개(66.7%) 항상 가용
+- 위 배치가 이미 성립했다면 한 노드 장애에 직접 노출되는 선택 Pod는 최대 한 개
+- 한 AZ 장애 바깥에 위치한 replica는 `12 - 4 = 8`개이며, 이는 건강한 endpoint 수나 처리 용량의 측정값이 아님
+- 의존성·스토리지·네트워크와 잔여 AZ 용량을 별도로 확인해야 서비스 가용성을 평가할 수 있음
 
 **사용 시나리오:**
-- 단일 장애점(Single Point of Failure) 완전 제거
-- 하드웨어 장애와 데이터센터 장애 모두 대응
-- 고트래픽 API 서버, 결제 게이트웨이
+- 노드·AZ 공동 장애 노출을 줄여야 하는 API 서버와 결제 게이트웨이
+- AZ 감소 시 Hard 제약으로 생길 수 있는 Pending과 대체 용량을 사전에 평가할 때
 
 ##### 패턴 4: 다중 Topology Spread (Zone + Node)
 
@@ -851,9 +856,10 @@ spec:
 ```
 
 **동작 방식:**
-- **1단계 (AZ)**: 18개 → us-east-1a(6), us-east-1b(6), us-east-1c(6)
-- **2단계 (Node)**: 각 AZ 내에서 노드당 Pod 수 차이 최대 2개
-- Node 제약은 Soft(`ScheduleAnyway`)로 설정하여 스케줄링 실패 방지
+- AZ Hard 제약과 hostname Soft 선호를 함께 평가하며, AZ 배치 후 노드별로 나누는 두 단계 알고리즘이 아님
+- 세 적격 AZ에서 다른 조건도 만족하면 18개 replica의 6/6/6 배치가 가능
+- hostname의 `ScheduleAnyway`는 skew를 줄이는 후보에 점수를 주며, 각 AZ 안의 노드별 Pod 수 차이를 최대 두 개로 제한하지 않음
+- Soft hostname 선호를 만족하지 못해도 이 선호가 배치를 금지하지는 않지만, AZ Hard 제약 등 다른 필터는 Pending을 만들 수 있음
 
 **사용 시나리오:**
 - 대규모 replica(10개 이상) 배포
@@ -867,16 +873,16 @@ spec:
 | **패턴 1: 기본 Multi-AZ** | 1 | - | DoNotSchedule | 없음 | 낮음 | 3~12 |
 | **패턴 2: minDomains** | 1 | 3 | DoNotSchedule | 없음 | 중간 | 6~20 |
 | **패턴 3: Anti-Affinity 조합** | 1 | 3 | DoNotSchedule | Hard Anti-Affinity | 높음 | 12~50 |
-| **패턴 4: 다중 Spread** | 1, 2 | 3 | Mixed | 2단계 Topology | 높음 | 15+ |
+| **패턴 4: 다중 Spread** | 1, 2 | 3 | Mixed | 동시 적용하는 AZ 제약·hostname 선호 | 높음 | 15+ |
 
 ##### 트러블슈팅: Topology Spread 실패 원인
 
 | 증상 | 원인 | 해결 방법 |
 |------|------|----------|
-| Pod가 Pending 상태 | `maxSkew` 초과 또는 `minDomains` 미충족 | `kubectl describe pod`로 Events 확인, replica 수 조정 또는 노드 추가 |
-| 특정 AZ에만 Pod 집중 | `whenUnsatisfiable: ScheduleAnyway` 사용 | `DoNotSchedule`로 변경하여 Hard 제약 적용 |
-| 신규 AZ 추가 시 재배치 안됨 | 스케줄러는 기존 Pod 재배치 안함 | Descheduler 사용 또는 Rolling Restart |
-| `minDomains` 설정 후 모든 Pod Pending | 클러스터에 해당 수의 AZ 없음 | 실제 AZ 수에 맞춰 `minDomains` 조정 |
+| Pod가 Pending 상태 | Hard skew 제한 또는 다른 필터를 만족하는 후보가 없음 | Events와 적격 도메인·일치 Pod 수·용량을 함께 확인 |
+| 특정 AZ에만 Pod 집중 | Soft 선호, 적격 도메인 부족 등 | 실제 후보와 요구 가용성을 확인한 뒤 Hard 전환의 Pending 위험 평가 |
+| 신규 AZ 추가 시 재배치 안됨 | 스케줄러는 기존 Pod를 자동 재배치하지 않음 | 별도 재배치·rollout의 대상과 disruption 영향을 검토 |
+| `minDomains` 설정 후 Pending 증가 | 도메인 감소로 global minimum이 0이 되었을 수 있음 | 후보별 skew를 계산하며 AZ 개수만으로 원인을 단정하지 않음 |
 
 :::tip Topology Spread 디버깅 명령어
 같은 클러스터의 Pod·Node 스냅샷을 사용하고 수집 시각을 기록합니다. `spec.nodeSelector`는 입력 제약이며, 실제 AZ는 `spec.nodeName`으로 연결한 Node의 label에서 확인합니다. 두 목록은 원자적 스냅샷이 아닙니다.
@@ -1442,7 +1448,7 @@ Karpenter는 Topology Spread Constraints를 네이티브 지원하지만, 기존
 | 항목 | 확인 사항 |
 |------|----------|
 | **maxSkew** | Karpenter가 새 노드를 어느 AZ에 생성할지 결정할 때 영향 |
-| **minDomains** | 클러스터의 실제 AZ 수와 일치하는지 확인 |
+| **minDomains** | 적격 도메인 수가 줄 때 global minimum과 Pending이 어떻게 달라지는지 확인 |
 | **whenUnsatisfiable** | `DoNotSchedule` 사용 시 Karpenter가 노드를 생성해도 Pod가 Pending 가능 |
 
 **예시: Topology Spread 문제 디버깅**
@@ -4238,57 +4244,47 @@ flowchart TB
     style DONE fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-### 10.3 ARC + Karpenter 통합 AZ 대피
+### 10.3 ARC Zonal Shift와 Karpenter {#103-arc--karpenter-통합-az-대피}
 
 **개요:**
 
-AWS Application Recovery Controller(ARC)와 Karpenter의 통합은 AZ 장애 시 자동 Zonal Shift를 통해 워크로드를 건강한 AZ로 대피시킵니다.
+EKS의 ARC zonal shift는 손상 AZ로 향하는 지원 대상 트래픽을 줄이는 기능입니다. 해당 AZ의 노드를 cordon하고 Pod endpoint를 EndpointSlice에서 제외하지만, 기존 Pod를 퇴거시키거나 Deployment replica를 자동으로 다른 AZ에 다시 만들지는 않습니다.
 
-**AZ 장애 자동 복구 패턴:**
+- EKS 클러스터의 zonal shift를 활성화해야 합니다. self-managed Karpenter는 1.12.0 이상과 controller의 zonal-shift 설정이 필요합니다. 이 예시의 1.14.1 CLI 옵션은 `--enable-zonal-shift=true`이며, controller에는 대상 클러스터의 `arc-zonal-shift:GetManagedResource` 권한이 필요합니다. EKS Auto Mode의 활성화 경로는 별도입니다.
+- AWS zonal autoshift는 AWS 내부 AZ telemetry를 사용합니다. 사용자 CloudWatch 알람은 운영자나 별도 구현된 자동화의 입력이며, 이 문서는 알람에서 shift를 시작하는 컨트롤러를 구현하지 않습니다.
+- 시작 전에 남은 AZ의 replica·CoreDNS·용량·의존성으로 부하를 감당할 수 있어야 합니다. LB resource의 ARC 설정, target type과 endpoint 소비 경로도 확인합니다. 아래 NodePool은 기존 `default` EC2NodeClass와 해당 Region의 네트워크·이미지·권한을 전제로 하며, 리소스 이름만으로 ARC가 활성화되지 않습니다.
+
+**지원되는 트래픽 전환과 독립적인 Karpenter 동작:**
 
 ```mermaid
 sequenceDiagram
-    participant AZ1 as AZ us-east-1a<br/>(장애)
-    participant ARC as AWS ARC<br/>(Zonal Shift)
+    participant Trigger as 운영자 또는 활성화된 AWS autoshift
+    participant ARC as AWS ARC
+    participant EKS as EKS 컨트롤러
+    participant Endpoints as EndpointSlices
     participant Karpenter
-    participant AZ2 as AZ us-east-1b<br/>(정상)
-    participant AZ3 as AZ us-east-1c<br/>(정상)
-    participant PDB as PodDisruptionBudget
-    participant LB as Load Balancer
+    participant Clients as 지원되는 트래픽 경로
 
-    Note over AZ1: Gray Failure 발생<br/>(높은 지연, 패킷 손실)
-
-    AZ1->>ARC: CloudWatch 메트릭 이상 탐지
-    ARC->>ARC: Zonal Shift 시작<br/>(us-east-1a 트래픽 차단)
-    ARC->>LB: us-east-1a 트래픽 제거
-
-    ARC->>Karpenter: AZ-1a Pod 대피 요청
-    Karpenter->>PDB: minAvailable 확인
-    PDB-->>Karpenter: 안전한 Eviction 허용
-
-    Karpenter->>AZ2: 신규 노드 프로비저닝
-    Karpenter->>AZ3: 신규 노드 프로비저닝
-
-    AZ2-->>Karpenter: 노드 준비 완료
-    AZ3-->>Karpenter: 노드 준비 완료
-
-    Karpenter->>AZ1: AZ-1a Pod Eviction
-    Note over AZ1: 기존 Pod 종료
-
-    Karpenter->>AZ2: Pod 재스케줄링
-    Karpenter->>AZ3: Pod 재스케줄링
-
-    Note over AZ2,AZ3: 서비스 복구 완료<br/>(2-3분 소요)
-
-    AZ2->>LB: 새 Pod Ready
-    AZ3->>LB: 새 Pod Ready
-    LB-->>ARC: 정상 상태 확인
+    Trigger->>ARC: 선택한 리소스와 AZ의 shift 시작
+    ARC-->>EKS: 해당 AZ의 shift 상태
+    EKS->>EKS: 손상 AZ 노드 cordon
+    EKS->>Endpoints: 해당 AZ의 Pod endpoint 제외
+    Endpoints-->>Clients: 이 목록을 소비하는 경로에 변경 반영
+    Karpenter->>ARC: 클러스터 managed-resource 상태 조회
+    ARC-->>Karpenter: 손상 AZ 상태
+    Karpenter->>Karpenter: 해당 AZ 신규 용량과 자발적 disruption 회피
+    Note over EKS,Clients: 기존 Pod는 zonal shift로 퇴거되지 않음
+    Note over EKS,Clients: 잔여 endpoint와 의존성·용량으로 실제 서비스 상태 평가
 ```
 
-**ARC + Karpenter 통합 설정 예시:**
+**ARC를 별도로 활성화한 클러스터의 워크로드 제약 예시:**
+
+이 예시는 AZ spread를 Soft로 두고 `minDomains`를 생략합니다. AZ가 줄어들어도 이 spread 설정 자체가 새 Pod의 배치를 막지는 않습니다. 다만 node affinity·taint·볼륨·용량 등 다른 조건을 만족해야 하므로 균등 배치나 배치 성공을 보장하는 설정은 아닙니다.
+
+실제 애플리케이션 이미지와 readiness 설정을 넣어 사용합니다. shift 후에도 기존 Pod가 살아 있으면 Deployment는 목표 replica 수가 유지된 것으로 판단하므로 자동으로 대체 replica를 만들지 않습니다.
 
 ```yaml
-# Karpenter NodePool: AZ 대피 지원
+# NodePool 제약 예시; ARC 활성화는 별도
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -4296,6 +4292,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: topology.kubernetes.io/zone
         operator: In
@@ -4305,12 +4305,12 @@ spec:
         - us-east-1c
       - key: karpenter.sh/capacity-type
         operator: In
-        values: ["on-demand"]  # AZ 대피 시 On-Demand 권장
+        values: ["on-demand"]  # 허용할 용량 유형의 예시이며 용량 예약이 아님
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
     budgets:
-    - nodes: "30%"  # AZ 대피 시 빠른 재배치를 위한 여유
+    - nodes: "30%"  # 자발적 disruption 예산이며 예비 용량이 아님
 ---
 # 애플리케이션: Topology Spread + PDB
 apiVersion: apps/v1
@@ -4318,7 +4318,7 @@ kind: Deployment
 metadata:
   name: resilient-app
 spec:
-  replicas: 9  # 3 AZ x 3 replica
+  replicas: 9  # 목표 replica 수; 실제 AZ별 배치는 별도 확인
   selector:
     matchLabels:
       app: resilient-app
@@ -4330,11 +4330,10 @@ spec:
       topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
-        whenUnsatisfiable: DoNotSchedule
+        whenUnsatisfiable: ScheduleAnyway
         labelSelector:
           matchLabels:
             app: resilient-app
-        minDomains: 3  # 반드시 3 AZ에 분산
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -4352,7 +4351,7 @@ spec:
             cpu: "1"
             memory: 2Gi
 ---
-# PDB: AZ 대피 중에도 6개 유지 (9개 중 3개 Evict 허용)
+# PDB: 선택한 Pod의 자발적 Eviction API 예산; AZ 장애 자체는 제한하지 않음
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
@@ -4364,12 +4363,14 @@ spec:
       app: resilient-app
 ```
 
-**Istio 서비스 메시 통합 End-to-end 복구:**
+**Istio locality 라우팅 예시:**
 
-Istio와 ARC를 함께 사용하면 AZ 장애 시 트래픽 라우팅과 Pod 재배치를 조율하여 End-to-end 복구를 달성합니다.
+아래는 기존 `default/resilient-app` Service와 HTTP 포트, 정상 endpoint, sidecar 기반 mesh 및 해당 CRD 필드를 지원하는 Istio 설치를 전제로 합니다. Istio의 locality·outlier detection은 mesh endpoint 선택을 제어합니다. ARC의 EKS EndpointSlice 경로와 같은 메커니즘은 아니며, 실제 mesh의 endpoint 발견 방식과 shift 중 동작은 따로 검증해야 합니다.
+
+`failover.from/to`는 region 이름을 받으므로 AZ 순환 목록으로 사용하지 않습니다. 대신 region·zone metadata를 순서대로 비교하는 `failoverPriority`와 `consecutive5xxErrors`를 사용합니다. 이 우선순위는 고정된 AZ 순환이나 복구 시간을 보장하지 않습니다. `distribute`, `failover`, `failoverPriority` 중 하나만 지정하며, 기존 30초 값은 조정·검증할 예시입니다.
 
 ```yaml
-# Istio DestinationRule: AZ별 Subset
+# Istio DestinationRule: endpoint locality 우선순위
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -4380,30 +4381,16 @@ spec:
     loadBalancer:
       localityLbSetting:
         enabled: true
-        failover:
-        - from: us-east-1a
-          to: us-east-1b
-        - from: us-east-1b
-          to: us-east-1c
-        - from: us-east-1c
-          to: us-east-1a
+        failoverPriority:
+        - topology.kubernetes.io/region
+        - topology.kubernetes.io/zone
     outlierDetection:
-      consecutiveErrors: 5
+      consecutive5xxErrors: 5
       interval: 30s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
-  subsets:
-  - name: az-1a
-    labels:
-      topology.kubernetes.io/zone: us-east-1a
-  - name: az-1b
-    labels:
-      topology.kubernetes.io/zone: us-east-1b
-  - name: az-1c
-    labels:
-      topology.kubernetes.io/zone: us-east-1c
 ---
-# Istio VirtualService: 정상 AZ로만 트래픽
+# Service로 라우팅하며 정적 AZ subset 제외를 설정하지 않음
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -4415,21 +4402,16 @@ spec:
   - route:
     - destination:
         host: resilient-app.default.svc.cluster.local
-        subset: az-1b
-      weight: 50
-    - destination:
-        host: resilient-app.default.svc.cluster.local
-        subset: az-1c
-      weight: 50
-    # ARC Zonal Shift 시 az-1a는 자동 제거됨
 ```
 
 **Gray Failure 감지 패턴:**
 
-Gray Failure는 완전한 장애는 아니지만 성능 저하로 서비스 품질이 떨어지는 상황입니다. ARC는 CloudWatch 메트릭 기반으로 Gray Failure를 감지합니다.
+Gray Failure는 완전히 중단되지는 않았지만 응답 지연 등으로 서비스 품질이 떨어진 상태입니다. 아래 ConfigMap은 특정 ALB와 AZ의 지연 알람 정의를 저장합니다. ConfigMap을 만드는 것만으로 CloudWatch 알람이 생기지는 않습니다.
+
+실제 계정·Region에서 `LoadBalancer` suffix, AZ와 지연 기준을 확인하고 별도 IaC/API로 알람을 생성합니다. 예시는 actions를 끄고 결측을 `missing`으로 처리합니다. 알람을 받은 뒤의 조치는 운영자 runbook이나 별도 자동화로 연결해야 합니다. AWS zonal autoshift는 이 알람 대신 AWS 내부 telemetry를 사용합니다.
 
 ```yaml
-# CloudWatch Alarm: Gray Failure 감지
+# 알람 정의 데이터: ALB 식별자는 예시이며 실제 값으로 교체
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -4438,30 +4420,36 @@ data:
   alarm.json: |
     {
       "AlarmName": "EKS-AZ-1a-HighLatency",
+      "ActionsEnabled": false,
       "MetricName": "TargetResponseTime",
       "Namespace": "AWS/ApplicationELB",
       "Statistic": "Average",
+      "Unit": "Seconds",
       "Period": 60,
       "EvaluationPeriods": 3,
       "Threshold": 1.0,
       "ComparisonOperator": "GreaterThanThreshold",
       "Dimensions": [
         {
+          "Name": "LoadBalancer",
+          "Value": "app/resilient-app/0123456789abcdef"
+        },
+        {
           "Name": "AvailabilityZone",
           "Value": "us-east-1a"
         }
       ],
-      "TreatMissingData": "notBreaching"
+      "TreatMissingData": "missing"
     }
 ```
 
-**AZ 대피 전략 요약:**
+**AZ 장애 대응 시 확인할 경계:**
 
-| 시나리오 | PDB 설정 | Topology Spread | Karpenter 설정 | 복구 시간 |
+| 시나리오 | PDB 역할 | Topology Spread | 용량·제어 경로 | 검증할 결과 |
 |---------|---------|----------------|---------------|----------|
-| **완전 AZ 장애** | `minAvailable: 6` (9개 중) | `minDomains: 3` | On-Demand 우선 | 2-3분 |
-| **Gray Failure** | `minAvailable: 6` (9개 중) | `minDomains: 2` 허용 | Spot 가능 | 3-5분 |
-| **계획된 유지보수** | `maxUnavailable: 3` | `minDomains: 2` 허용 | Spot + On-Demand | 5-10분 |
+| **완전 AZ 장애** | 자발적 Eviction만 제한 | Soft 예시와 잔여 Hard 제약 확인 | 잔여 AZ에 사전 확보한 replica·용량, 활성화된 ARC 경로 | endpoint 전환과 서비스 SLO를 실제 측정 |
+| **Gray Failure** | 장애 감지나 shift 시작 기능이 아님 | 실제 적격 도메인과 부하 확인 | AWS autoshift 또는 운영자·별도 자동화의 판단 경로 | 알람 품질과 영향 범위를 검증 |
+| **계획된 유지보수** | 선택 Pod의 Eviction 예산 평가 | 유지보수 중 필요한 배치 정책 검토 | 별도 drain·복구 계획; shift가 Pod를 퇴거시키지는 않음 | workload별 준비·복원 시간을 측정 |
 
 ### 10.4 Container Network Observability와 스케줄링
 
@@ -4478,10 +4466,12 @@ Container Network Observability는 세분화된 네트워크 메트릭을 제공
 | **Cross-AZ** | ~2-5ms | $0.01/GB | 고가용성 필요 서비스 |
 | **Cross-Region** | ~50-100ms | $0.02/GB | 지역별 분산 서비스 |
 
-**Cross-AZ 트래픽 비용을 고려한 스케줄링:**
+**Cross-AZ 트래픽 경로와 배치 선호를 함께 평가하기:**
+
+아래 Pod affinity는 배치 점수에만 영향을 줍니다. 이미 여러 AZ에 API Gateway Pod가 있으면 여러 AZ가 동시에 선호 조건을 만족할 수 있습니다. 요청별 Service·mesh endpoint 선택과 실제 바이트 경로를 확인해야 같은 AZ 통신이나 비용 변화를 평가할 수 있습니다.
 
 ```yaml
-# 예시: API Gateway + Backend Service 같은 AZ 배치
+# 예시: API Gateway 분산과 Backend의 AZ 배치 선호
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -4530,7 +4520,7 @@ spec:
         network-locality: same-az
     spec:
       affinity:
-        # Pod Affinity: API Gateway와 같은 AZ 선호 (Cross-AZ 비용 절감)
+        # Pod Affinity: API Gateway와 같은 AZ 선호; endpoint 라우팅은 별도
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
@@ -4577,10 +4567,10 @@ data:
 
 **네트워크 관찰성 기반 최적화 패턴:**
 
-1. **높은 Cross-AZ 트래픽 감지** → Pod Affinity로 같은 AZ 배치
-2. **특정 AZ 네트워크 혼잡 감지** → Topology Spread로 다른 AZ 분산
-3. **Pod 간 통신 패턴 분석** → Service Mesh(Istio)로 트래픽 최적화
-4. **네트워크 지연 급증 감지** → ARC Zonal Shift로 장애 AZ 대피
+1. **높은 Cross-AZ 트래픽 감지** → 실제 endpoint·바이트 경로와 locality 정책을 확인한 뒤 배치 선호 검토
+2. **특정 AZ 네트워크 혼잡 감지** → 적격 도메인·용량과 배치 정책의 영향을 함께 평가
+3. **Pod 간 통신 패턴 분석** → Service Mesh(Istio)의 라우팅·health 설정 검증
+4. **네트워크 지연 급증 감지** → 운영자 또는 별도 자동화가 원인과 사전 준비를 확인한 뒤 지원 리소스의 ARC 트래픽 shift 판단
 
 ```mermaid
 flowchart TB
@@ -4591,15 +4581,17 @@ flowchart TB
     end
 
     subgraph "스케줄링 최적화"
-        DECISION{최적화 유형}
-        AFFINITY[Pod Affinity 조정]
+        REVIEW[운영자 또는 별도 자동화 검토]
+        DECISION{검토한 변경 유형}
+        AFFINITY[배치 선호와<br/>실제 요청 경로 검토]
         SPREAD[Topology Spread 조정]
         SHIFT[AZ Shift]
     end
 
     METRICS --> ANALYZE
     ANALYZE --> ALERT
-    ALERT --> DECISION
+    ALERT --> REVIEW
+    REVIEW --> DECISION
 
     DECISION -->|높은 Cross-AZ 트래픽| AFFINITY
     DECISION -->|특정 AZ 혼잡| SPREAD
@@ -4638,7 +4630,7 @@ spec:
             app: ml-inference
         minDomains: 3
 
-      # 2. Pod Affinity: API Gateway와 같은 AZ (낮은 지연)
+      # 2. Pod Affinity: API Gateway와 같은 AZ 선호; 요청 지연은 별도 측정
       affinity:
         podAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -4973,7 +4965,7 @@ spec:
 | 항목 | 설명 | 확인 |
 |------|------|------|
 | **Replica 수 ≥ 3** | 장애 도메인 격리를 위한 최소 replica | [ ] |
-| **Topology Spread Constraints** | AZ 간 균등 분산 (maxSkew: 1) | [ ] |
+| **Topology Spread Constraints** | 선택한 Pod·적격 도메인과 Hard/Soft skew 의미 확인 | [ ] |
 | **Pod Anti-Affinity** | 노드 분산 (Soft 또는 Hard) | [ ] |
 | **PDB 설정** | minAvailable 또는 maxUnavailable 명시 | [ ] |
 | **PDB 검증** | `minAvailable < replicas` 확인 | [ ] |
@@ -5063,10 +5055,10 @@ kubectl --context "$CONTEXT" logs -n kube-system -l app=descheduler --tail=100
 - [Karpenter Scheduling](https://karpenter.sh/docs/concepts/scheduling/)
 - [EKS Node Taints](https://docs.aws.amazon.com/eks/latest/userguide/node-taints-managed-node-groups.html)
 
-**AWS re:Invent 2025 관련 자료:**
+**AWS 관련 아키텍처·기능 자료:**
 - [Amazon EKS introduces Provisioned Control Plane](https://aws.amazon.com/blogs/containers/amazon-eks-introduces-provisioned-control-plane/) — XL/2XL/4XL 티어별 스케줄링 성능
 - [Getting started with Amazon EKS Auto Mode](https://aws.amazon.com/blogs/containers/getting-started-with-amazon-eks-auto-mode) — 자동 노드 프로비저닝
-- [Enhance Kubernetes high availability with ARC and Karpenter](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/) — AZ 자동 대피 패턴
+- [ARC zonal shift support for EKS Auto Mode and Karpenter](https://aws.amazon.com/blogs/containers/arc-zonal-shift-support-for-eks-auto-mode-and-karpenter/) — 2026년 7월 공개된 트래픽 shift·용량 제어와 전제조건
 - [Monitor network performance across EKS clusters](https://aws.amazon.com/blogs/aws/monitor-network-performance-and-traffic-across-your-eks-clusters-with-container-network-observability/) — Container Network Observability
 - [Proactive EKS monitoring with CloudWatch Operator](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/) — Control Plane 메트릭
 
