@@ -23,7 +23,7 @@ EKS 환경의 성능 보고서와 측정 계획을 모았습니다. 각 보고�
 
 | # | 보고서 | 상태 |
 |---|--------|------|
-| 1 | [VPC CNI vs Cilium 네트워크 성능 비교](./cni-performance-comparison.md) | ✅ 완성 |
+| 1 | [VPC CNI vs Cilium 네트워크 성능 비교](./cni-performance-comparison.md) | 요약 기록 검토 / 원본 로그·재현 검증 대기 |
 | 2 | [Gateway API 아키텍처·기능 비교 및 시험 보고서](./gateway-api-benchmark.md) | 자료·도구 검증 완료 / EKS 실측 대기 |
 
 ## AI/ML 추론

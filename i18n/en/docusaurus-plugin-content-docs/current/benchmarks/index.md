@@ -25,7 +25,7 @@ Performance reports and measurement plans for EKS. Check each report's evidence 
 
 | # | Report | Status |
 |---|--------|--------|
-| 1 | [VPC CNI vs Cilium Network Performance Comparison](./cni-performance-comparison.md) | ✅ Complete |
+| 1 | [VPC CNI vs Cilium Network Performance Comparison](./cni-performance-comparison.md) | Summaries reviewed; raw logs and reproduction pending |
 | 2 | [Gateway API Architecture, Feature Comparison, and Test Report](./gateway-api-benchmark.md) | Source/kit validation complete; EKS measurements pending |
 
 ## AI/ML Inference

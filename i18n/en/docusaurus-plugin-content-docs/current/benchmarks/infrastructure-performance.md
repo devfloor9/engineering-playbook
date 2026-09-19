@@ -3,7 +3,7 @@ title: Infrastructure Performance Benchmark
 description: EKS cluster infrastructure performance benchmark - Network, DNS, Autoscaling
 created: "2026-02-11"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 3
 tags:
@@ -18,23 +18,23 @@ sidebar_position: 6
 category: benchmarks
 ---
 
-Measure and analyze key performance indicators of EKS cluster infrastructure.
+This is a measurement plan for EKS networking, DNS and autoscaling. The items below define test scope; this document does not present measured results.
 
 ## Network Performance
 
 ### Cilium ENI vs VPC CNI Comparison
 
-A quantitative comparison of VPC CNI and Cilium CNI across multiple modes (kube-proxy, kube-proxy-less, ENI, tuning applied) is covered in detail in a separate document.
+A separate document examines historical summaries for five VPC CNI and Cilium configurations and explains their verification limits.
 
-See [2. CNI Performance Comparison](./cni-performance-comparison.md) for detailed benchmark results.
+See [1. CNI Performance Comparison](./cni-performance-comparison.md) for metric definitions and requirements for a new experiment. Raw logs and effective configuration are missing, so a product performance ranking remains unverified.
 
-**Comparison Scenarios (5):**
+**Configurations requested by the historical runner (5):**
 
 - A: VPC CNI Default (kube-proxy + iptables)
 - B: Cilium + kube-proxy (Overlay)
 - C: Cilium kube-proxy-less (eBPF replacement)
 - D: Cilium ENI Mode (Native Routing)
-- E: Cilium ENI + Full Tuning (DSR, XDP, Socket LB, etc.)
+- E: Cilium ENI with additional options (DSR, native XDP, socket LB, etc.; effective activation unverified)
 
 ### Gateway API Performance
 
