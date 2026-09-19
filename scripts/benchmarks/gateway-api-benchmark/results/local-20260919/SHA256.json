@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "evidence_scope": "local-fixture",
+  "gateway_api_conformance": false,
+  "ranking": null,
+  "files": {
+    "dropped-arrivals.raw.json": "a49dcca5f41cfd8d3783167e7f64c191c1d1000fb930dda745208ff922fded70",
+    "dropped-arrivals.stderr.txt": "698ebd82bfd94b7ce89387017901f3c32cc1cb9f972654ef6fdc83fe616f40ea",
+    "execution-report.json": "8616ad409aeb4f06ad58ba2bc11c640098b93c806d1403b9ef55b8d2f8a123a0",
+    "k6-version.stdout.txt": "6cbee0bc2f09ebba07d048fbaf4d98c7bd14740198aafa04e288ba705be4be91",
+    "load-1.raw.json": "efa85ef457debff3f1502986726e2e73607dbf15718c1ac69061ec33a2b54362",
+    "load-1.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "load-2.raw.json": "7e17a99fbd2089fc317b1b2142af3ba6b8daecfe4c81cf9eff9f6b556432dc68",
+    "load-2.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "load-3.raw.json": "c3edc11ef8f2edff64f34e6e4f3a8b859f3d10fe5a00d8750b4f546ace5ce20e",
+    "load-3.stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "loads-validated.stdout.txt": "335190477028452d1d5de4c9e4c19764b6cbc0ae3bfd00f4f55274d42e3b1ac2",
+    "no-setup.raw.json": "8ad26511a684bbf3c6fc23fd013b0d4f5bda9e1855ae6b2d810d07994fcf2874",
+    "no-setup.stderr.txt": "3584f3b06ea3eedb2a2d7866020866ca84324c5c989dc621ca6b81611e2fcc7a",
+    "override.raw.json": "f99bb81460157c6b974561213fcc7a98d8d1972aea89f0fed5269f7589b4c8f9",
+    "override.stderr.txt": "46ebd35563ad1b07f3e05d87f60e01f05d3e7f5511389a9d107c9c45d66e60a5",
+    "probe-validated.stdout.txt": "86eaf37556692e4be4ddba9514255e6034d7cf970100dec9193e9145f049dd49",
+    "probe.raw.json": "e84028ccad3fa9387815804d5e21fc1eda0dc365d6b676364b0bbf95945ce734",
+    "python-version.stdout.txt": "322f765b04793d55160c8788550761630087e4847a77ed7a1090d79791f73c3b",
+    "sut-config.json": "f239e215917e3b44c3097507924881e394b649a2c776d6a8a7754f3aac0479d9",
+    "wrong-body.raw.json": "0b9771bc14c6e18680b7030334871778b45c80d6c740bd8097ec88ed29744d05",
+    "wrong-body.stderr.txt": "4a1c3712267cf4c6e53e9ec5f2f3182044432064e091bdc035166aa759931578"
+  }
+}

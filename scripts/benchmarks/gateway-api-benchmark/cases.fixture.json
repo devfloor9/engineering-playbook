@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "provenance": {
+    "run_id": "REPLACE",
+    "target": "http://fixture:8080",
+    "implementation": "python-stdlib-fixture",
+    "implementation_version": "Python 3.13",
+    "evidence_scope": "local-fixture",
+    "environment_id": "docker-desktop-arm64-8gb-shared",
+    "environment_notes": "Internal Docker network, no published ports; backend 1 CPU/256 MiB; k6 1 CPU/512 MiB; Docker Desktop 8217317376 bytes RAM (approximately 7.653 GiB), shared with 3 existing containers.",
+    "generator_version": "k6 v2.2.0",
+    "source_revision": "REPLACE",
+    "sut_config_sha256": "REPLACE",
+    "generator_image": "grafana/k6@sha256:9bd01d6941fca969cb61bb57d2da5ee9b385fe2aa8881df3798c196564d6ace6",
+    "backend_image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285"
+  },
+  "probe": {
+    "interval_ms": 100,
+    "timeout_ms": 1000,
+    "cases": [
+      {
+        "name": "fixture-echo",
+        "feature": "echo",
+        "polarity": "observation",
+        "request": {"path": "/echo/item?value=1", "headers": {"Host": "bench.example", "X-Probe": "echo"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"fixture": true, "backend_id": "fixture-a", "path": "/echo/item", "query": "value=1", "headers": {"host": "bench.example", "x-probe": "echo"}}}
+      },
+      {
+        "name": "fixture-controlled-failure",
+        "feature": "controlled-failure",
+        "polarity": "negative",
+        "request": {"path": "/failure", "headers": {"X-Fixture-Status": "503"}},
+        "expected": {"status": 503, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a", "status": 503}}
+      },
+      {
+        "name": "fixture-controlled-delay",
+        "feature": "controlled-delay",
+        "polarity": "observation",
+        "request": {"path": "/delay", "headers": {"X-Fixture-Delay-Ms": "20"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a", "delay_ms": 20}}
+      }
+    ]
+  },
+  "load": {
+    "rate": 5,
+    "duration_seconds": 5,
+    "preallocated_vus": 2,
+    "max_vus": 2,
+    "timeout_ms": 1000,
+    "grace_seconds": 2,
+    "path": "/bench",
+    "headers": {"X-Benchmark": "local-validation"},
+    "expected": {"status": 200, "body_contains": "\"fixture\":true", "backend_ids": ["fixture-a"], "protocol": "HTTP/1.1"}
+  }
+}

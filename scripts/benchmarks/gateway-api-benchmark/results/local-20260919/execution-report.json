@@ -1,0 +1,112 @@
+{
+  "scope": "local-fixture",
+  "gateway_api_conformance": false,
+  "ranking": null,
+  "started_at": "2026-09-19T00:08:07.097434+00:00",
+  "run_label": "engineering-playbook.local-run=gateway-fixture-606bdbd43e3b",
+  "checks": [
+    {
+      "name": "probe",
+      "expected": "valid",
+      "passed": true
+    },
+    {
+      "name": "load-1",
+      "expected": "valid",
+      "execution_exit": 0,
+      "validation_exit": 0,
+      "observed": {
+        "requests": 26,
+        "dropped_arrivals": 0,
+        "body_check_failures": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "load-2",
+      "expected": "valid",
+      "execution_exit": 0,
+      "validation_exit": 0,
+      "observed": {
+        "requests": 26,
+        "dropped_arrivals": 0,
+        "body_check_failures": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "load-3",
+      "expected": "valid",
+      "execution_exit": 0,
+      "validation_exit": 0,
+      "observed": {
+        "requests": 25,
+        "dropped_arrivals": 0,
+        "body_check_failures": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "wrong-body",
+      "expected": "rejected",
+      "execution_exit": 99,
+      "validation_exit": 1,
+      "observed": {
+        "requests": 26,
+        "dropped_arrivals": 0,
+        "body_check_failures": 26
+      },
+      "passed": true
+    },
+    {
+      "name": "dropped-arrivals",
+      "expected": "rejected",
+      "execution_exit": 99,
+      "validation_exit": 1,
+      "observed": {
+        "requests": 4,
+        "dropped_arrivals": 37,
+        "body_check_failures": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "override",
+      "expected": "rejected",
+      "execution_exit": 107,
+      "validation_exit": 1,
+      "observed": {
+        "requests": 0,
+        "dropped_arrivals": 0,
+        "body_check_failures": 0
+      },
+      "passed": true
+    },
+    {
+      "name": "no-setup",
+      "expected": "rejected",
+      "execution_exit": 108,
+      "validation_exit": 1,
+      "observed": {
+        "requests": 0,
+        "dropped_arrivals": 0,
+        "body_check_failures": 0
+      },
+      "passed": true
+    }
+  ],
+  "docker_endpoint_transport": "unix",
+  "docker": {
+    "server_version": "29.2.0",
+    "architecture": "aarch64",
+    "cpus": 10,
+    "memory_bytes": 8217317376
+  },
+  "source_note": "source_revision is the repository baseline; harness_sha256 identifies the executed files.",
+  "completed": true,
+  "preexisting_containers_still_running": true,
+  "cleanup_errors": [],
+  "finished_at": "2026-09-19T00:08:36.872497+00:00",
+  "preexisting_running_container_count": 3,
+  "publication_note": "Derived execution record: unrelated container IDs omitted. Raw benchmark envelopes are unchanged."
+}

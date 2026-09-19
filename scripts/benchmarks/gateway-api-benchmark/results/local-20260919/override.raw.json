@@ -1,0 +1,172 @@
+{
+  "schema_version": 1,
+  "kind": "gateway-api-k6",
+  "summary_format": "k6-2.2-legacy",
+  "config_text": "{\n  \"schema_version\": 1,\n  \"provenance\": {\n    \"run_id\": \"gateway-fixture-606bdbd43e3b-override\",\n    \"target\": \"http://fixture:8080\",\n    \"implementation\": \"python-stdlib-fixture\",\n    \"implementation_version\": \"Python 3.13.15\",\n    \"evidence_scope\": \"local-fixture\",\n    \"environment_id\": \"docker-desktop-arm64-8gb-shared\",\n    \"environment_notes\": \"Internal Docker network, no published ports; backend 1 CPU/256 MiB; generator 1 CPU/512 MiB; Docker VM 10 CPUs, 8217317376 bytes RAM, shared with 3 existing running containers.\",\n    \"generator_version\": \"k6 v2.2.0\",\n    \"source_revision\": \"5a7eb0649b0ec3405ca701d66a11f735605633fc\",\n    \"sut_config_sha256\": \"f239e215917e3b44c3097507924881e394b649a2c776d6a8a7754f3aac0479d9\",\n    \"generator_image\": \"grafana/k6@sha256:9bd01d6941fca969cb61bb57d2da5ee9b385fe2aa8881df3798c196564d6ace6\",\n    \"backend_image\": \"python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285\"\n  },\n  \"probe\": {\n    \"interval_ms\": 100,\n    \"timeout_ms\": 1000,\n    \"cases\": [\n      {\n        \"name\": \"fixture-echo\",\n        \"feature\": \"echo\",\n        \"polarity\": \"observation\",\n        \"request\": {\n          \"path\": \"/echo/item?value=1\",\n          \"headers\": {\n            \"Host\": \"bench.example\",\n            \"X-Probe\": \"echo\"\n          }\n        },\n        \"expected\": {\n          \"status\": 200,\n          \"protocol\": \"HTTP/1.1\",\n          \"json\": {\n            \"fixture\": true,\n            \"backend_id\": \"fixture-a\",\n            \"path\": \"/echo/item\",\n            \"query\": \"value=1\",\n            \"headers\": {\n              \"host\": \"bench.example\",\n              \"x-probe\": \"echo\"\n            }\n          }\n        }\n      },\n      {\n        \"name\": \"fixture-controlled-failure\",\n        \"feature\": \"controlled-failure\",\n        \"polarity\": \"negative\",\n        \"request\": {\n          \"path\": \"/failure\",\n          \"headers\": {\n            \"X-Fixture-Status\": \"503\"\n          }\n        },\n        \"expected\": {\n          \"status\": 503,\n          \"protocol\": \"HTTP/1.1\",\n          \"json\": {\n            \"backend_id\": \"fixture-a\",\n            \"status\": 503\n          }\n        }\n      },\n      {\n        \"name\": \"fixture-controlled-delay\",\n        \"feature\": \"controlled-delay\",\n        \"polarity\": \"observation\",\n        \"request\": {\n          \"path\": \"/delay\",\n          \"headers\": {\n            \"X-Fixture-Delay-Ms\": \"20\"\n          }\n        },\n        \"expected\": {\n          \"status\": 200,\n          \"protocol\": \"HTTP/1.1\",\n          \"json\": {\n            \"backend_id\": \"fixture-a\",\n            \"delay_ms\": 20\n          }\n        }\n      }\n    ]\n  },\n  \"load\": {\n    \"rate\": 5,\n    \"duration_seconds\": 5,\n    \"preallocated_vus\": 2,\n    \"max_vus\": 2,\n    \"timeout_ms\": 1000,\n    \"grace_seconds\": 2,\n    \"path\": \"/bench\",\n    \"headers\": {\n      \"X-Benchmark\": \"local-validation\"\n    },\n    \"expected\": {\n      \"status\": 200,\n      \"body_contains\": \"\\\"fixture\\\":true\",\n      \"backend_ids\": [\n        \"fixture-a\"\n      ],\n      \"protocol\": \"HTTP/1.1\"\n    }\n  }\n}\n",
+  "config_sha256": "ed28b6a668d3c891cc4f39196e6ea33d41ee3831f101a1dbfbb2f4516c2c4487",
+  "harness_sha256": "5d15435859798de45f5b803a70ec3620eb3ed52b51b60f769541f52e1a60b161",
+  "generator": "k6 v2.2.0",
+  "finished_at": "2026-09-19T00:08:35.490Z",
+  "gateway_api_conformance": false,
+  "units": {
+    "latency": "ms",
+    "time": "ms",
+    "rate": "requests/s"
+  },
+  "raw": {
+    "metrics": {
+      "data_sent": {
+        "contains": "data",
+        "values": {
+          "rate": 0,
+          "count": 0
+        },
+        "type": "counter"
+      },
+      "bench_status_ok": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "rate": 0,
+          "passes": 0,
+          "fails": 0
+        },
+        "thresholds": {
+          "rate==1": {
+            "ok": true
+          }
+        }
+      },
+      "data_received": {
+        "type": "counter",
+        "contains": "data",
+        "values": {
+          "count": 0,
+          "rate": 0
+        }
+      },
+      "checks": {
+        "contains": "default",
+        "values": {
+          "rate": 0,
+          "passes": 0,
+          "fails": 0
+        },
+        "thresholds": {
+          "rate==1": {
+            "ok": true
+          }
+        },
+        "type": "rate"
+      },
+      "http_req_failed": {
+        "values": {
+          "fails": 0,
+          "rate": 0,
+          "passes": 0
+        },
+        "thresholds": {
+          "rate==0": {
+            "ok": true
+          }
+        },
+        "type": "rate",
+        "contains": "default"
+      },
+      "bench_backend_ok": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "rate": 0,
+          "passes": 0,
+          "fails": 0
+        },
+        "thresholds": {
+          "rate==1": {
+            "ok": true
+          }
+        }
+      },
+      "bench_protocol_ok": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "passes": 0,
+          "fails": 0,
+          "rate": 0
+        },
+        "thresholds": {
+          "rate==1": {
+            "ok": true
+          }
+        }
+      },
+      "dropped_iterations": {
+        "thresholds": {
+          "count==0": {
+            "ok": true
+          }
+        },
+        "type": "counter",
+        "contains": "default",
+        "values": {
+          "count": 0,
+          "rate": 0
+        }
+      },
+      "bench_body_ok": {
+        "type": "rate",
+        "contains": "default",
+        "values": {
+          "fails": 0,
+          "rate": 0,
+          "passes": 0
+        },
+        "thresholds": {
+          "rate==1": {
+            "ok": true
+          }
+        }
+      },
+      "http_reqs": {
+        "values": {
+          "count": 0,
+          "rate": 0
+        },
+        "thresholds": {
+          "count>0": {
+            "ok": false
+          }
+        },
+        "type": "counter",
+        "contains": "default"
+      }
+    },
+    "root_group": {
+      "name": "",
+      "path": "",
+      "id": "d41d8cd98f00b204e9800998ecf8427e",
+      "groups": [],
+      "checks": []
+    },
+    "options": {
+      "summaryTrendStats": [
+        "min",
+        "med",
+        "p(90)",
+        "p(95)",
+        "p(99)",
+        "max",
+        "avg",
+        "count"
+      ],
+      "summaryTimeUnit": "ms",
+      "noColor": false
+    },
+    "state": {
+      "isStdErrTTY": false,
+      "testRunDurationMs": 2.249208,
+      "isStdOutTTY": false
+    }
+  }
+}

@@ -3,9 +3,9 @@ title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 �
 description: NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획
 created: "2026-02-14"
 last_update:
-  date: "2026-08-29"
+  date: 2026-09-19
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 30
+reading_time: 43
 tags:
   - eks
   - gateway-api
@@ -825,10 +825,10 @@ flowchart TD
 
 ## 5. 벤치마크 비교 계획
 
-6개 Gateway API 구현체의 객관적인 성능 비교를 위한 체계적인 벤치마크를 계획하고 있습니다. 처리량, 레이턴시, TLS 성능, L7 라우팅, 스케일링, 리소스 효율성, 장애 복구, gRPC 등 8개 시나리오를 동일한 EKS 환경에서 측정합니다.
+벤치마크 보고서는 이 가이드의 6개 구현체에 Istio·Traefik을 더하고, VPC Lattice를 별도 경로로 다룹니다. 관리형 edge·클러스터 내 프록시·CNI/mesh 경로를 분리해 처리량, 레이턴시, TLS, L7 라우팅, 스케일링, 리소스 효율성, 장애 복구, gRPC를 비교하도록 설계했습니다. 공개 적합성 자료와 로컬 측정 도구는 검증했으며 실제 EKS 성능 측정은 대기 상태입니다.
 
 :::info 벤치마크 상세 계획
-테스트 환경 설계, 시나리오 상세, 측정 지표 및 실행 계획은 **[Gateway API 구현체 성능 벤치마크 계획](/docs/benchmarks/gateway-api-benchmark)**에서 확인할 수 있습니다.
+아키텍처별 비교, 원시 검증 자료와 실행 계획은 **[Gateway API 기능·성능 비교 보고서](/docs/benchmarks/gateway-api-benchmark)**에서 확인할 수 있습니다.
 :::
 
 ---
@@ -849,7 +849,7 @@ flowchart TD
   </TabItem>
   <TabItem value="cilium" label="고성능 + 관측성">
 
-**Cilium Gateway API** — 초저지연 (P99 10ms 미만), eBPF 기반 네트워킹, Hubble L7 가시성, ENI 모드 VPC 네이티브 통합. 고성능과 서비스 메시 통합이 필요한 환경에 최적.
+**Cilium Gateway API** — eBPF 네트워킹과 Envoy L7 처리, Hubble 가시성, ENI 모드 VPC 통합을 함께 검토할 수 있는 선택지입니다. 지연시간과 효율은 실제 CNI·프록시 구성 및 부하 조건에서 측정해야 합니다.
 
   </TabItem>
   <TabItem value="nginx" label="NGINX 경험 활용">

@@ -144,10 +144,13 @@ npm run test:tags
 npm run test:tools
 npm run test:ssr
 npm run test:metadata
+npm run test:gateway-benchmark
 npm run validate-metadata
 ```
 
-The GitHub Actions workflow checks the exporter, internal links, generated tag routes, document tools, Unicode rendering, and revision metadata. It builds Korean and English pages, generates the LLM artifacts, compares component exports with rendered HTML, and validates internal routes and fragments. Broken internal links fail the build. Pull requests build the site; successful builds on `main` deploy to GitHub Pages.
+The GitHub Actions workflow checks the exporter, internal links, generated tag routes, document tools, Unicode rendering, revision metadata, and Gateway benchmark source/validator regressions. It builds Korean and English pages, generates the LLM artifacts, compares component exports with rendered HTML, and validates internal routes and fragments. Broken internal links fail the build. Pull requests build the site; successful builds on `main` deploy to GitHub Pages.
+
+The [Gateway benchmark kit](scripts/benchmarks/gateway-api-benchmark/README.md) retains pinned upstream conformance reports and local fixture evidence. CI uses source checks and short loopback tests; it does not run Docker load tests or contact an AWS cluster. Implementation performance remains separate from fixture validation.
 
 For changes to component output, run the rendered-HTML parity check locally after building:
 

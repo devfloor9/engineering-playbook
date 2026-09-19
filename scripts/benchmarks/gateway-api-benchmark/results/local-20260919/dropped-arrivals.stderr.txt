@@ -1,0 +1,2 @@
+time="2026-09-19T00:08:32Z" level=warning msg="Insufficient VUs, reached 1 active VUs and cannot initialize more" executor=constant-arrival-rate scenario=benchmark
+time="2026-09-19T00:08:34Z" level=error msg="thresholds on metrics 'dropped_iterations' have been crossed"

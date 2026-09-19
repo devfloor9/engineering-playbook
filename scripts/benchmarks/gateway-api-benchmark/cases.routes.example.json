@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "provenance": {
+    "run_id": "REPLACE",
+    "target": "http://gateway.invalid",
+    "implementation": "REPLACE",
+    "implementation_version": "REPLACE",
+    "evidence_scope": "unmeasured",
+    "environment_id": "REPLACE",
+    "environment_notes": "REPLACE with actual endpoint, deployment configuration, resource limits and competing workloads",
+    "generator_version": "REPLACE",
+    "source_revision": "REPLACE",
+    "sut_config_sha256": "REPLACE"
+  },
+  "probe": {
+    "interval_ms": 100,
+    "timeout_ms": 1000,
+    "cases": [
+      {
+        "name": "exact-path-positive", "feature": "path-match", "polarity": "positive",
+        "request": {"path": "/exact", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a", "path": "/exact"}}
+      },
+      {
+        "name": "exact-path-negative", "feature": "path-match", "polarity": "negative",
+        "request": {"path": "/exact/more", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 404, "protocol": "HTTP/1.1"}
+      },
+      {
+        "name": "hostname-positive", "feature": "hostname-match", "polarity": "positive",
+        "request": {"path": "/host", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a"}}
+      },
+      {
+        "name": "hostname-negative", "feature": "hostname-match", "polarity": "negative",
+        "request": {"path": "/host", "headers": {"Host": "other.example"}},
+        "expected": {"status": 404, "protocol": "HTTP/1.1"}
+      },
+      {
+        "name": "header-positive", "feature": "header-match", "polarity": "positive",
+        "request": {"path": "/header", "headers": {"Host": "bench.example", "X-Tenant": "blue"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a"}}
+      },
+      {
+        "name": "header-wrong-value", "feature": "header-match", "polarity": "negative",
+        "request": {"path": "/header", "headers": {"Host": "bench.example", "X-Tenant": "red"}},
+        "expected": {"status": 404, "protocol": "HTTP/1.1"}
+      },
+      {
+        "name": "header-missing", "feature": "header-match", "polarity": "negative",
+        "request": {"path": "/header", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 404, "protocol": "HTTP/1.1"}
+      },
+      {
+        "name": "prefix-root", "feature": "prefix-boundary", "polarity": "positive",
+        "request": {"path": "/prefix", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a", "path": "/prefix"}}
+      },
+      {
+        "name": "prefix-child", "feature": "prefix-boundary", "polarity": "positive",
+        "request": {"path": "/prefix/child", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a", "path": "/prefix/child"}}
+      },
+      {
+        "name": "prefix-not-a-segment", "feature": "prefix-boundary", "polarity": "negative",
+        "request": {"path": "/prefix-other", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 404, "protocol": "HTTP/1.1"}
+      },
+      {
+        "name": "prefix-rewrite", "feature": "rewrite", "polarity": "positive",
+        "request": {"path": "/rewrite/item?kept=1", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a", "path": "/item", "query": "kept=1"}}
+      },
+      {
+        "name": "request-response-header-mutation", "feature": "header-mutation", "polarity": "positive",
+        "request": {"path": "/headers", "headers": {"Host": "bench.example", "X-Remove": "remove", "X-Set": "old"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"backend_id": "fixture-a", "headers": {"x-added": "gateway", "x-set": "new"}}, "absent_json_paths": [["headers", "x-remove"]], "response_headers": {"x-benchmark-response": "gateway"}}
+      },
+      {
+        "name": "weighted-80-20", "feature": "weighted-backends", "polarity": "observation",
+        "samples": 200,
+        "request": {"path": "/weighted", "headers": {"Host": "bench.example"}},
+        "expected": {"status": 200, "protocol": "HTTP/1.1", "json": {"fixture": true}},
+        "distribution": {"weights": {"fixture-a": 80, "fixture-b": 20}, "confidence": 0.95, "min_samples": 100}
+      }
+    ]
+  }
+}

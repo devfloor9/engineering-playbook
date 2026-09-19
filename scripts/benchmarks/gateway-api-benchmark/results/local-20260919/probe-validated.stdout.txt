@@ -1,0 +1,43 @@
+{
+  "valid": true,
+  "ranking": null,
+  "gateway_api_conformance": false,
+  "runs": [
+    {
+      "provenance": {
+        "run_id": "gateway-fixture-606bdbd43e3b-probe",
+        "target": "http://fixture:8080",
+        "implementation": "python-stdlib-fixture",
+        "implementation_version": "Python 3.13.15",
+        "evidence_scope": "local-fixture",
+        "environment_id": "docker-desktop-arm64-8gb-shared",
+        "environment_notes": "Internal Docker network, no published ports; backend 1 CPU/256 MiB; generator 1 CPU/512 MiB; Docker VM 10 CPUs, 8217317376 bytes RAM, shared with 3 existing running containers.",
+        "generator_version": "Python 3.13.15 http.client",
+        "source_revision": "5a7eb0649b0ec3405ca701d66a11f735605633fc",
+        "sut_config_sha256": "f239e215917e3b44c3097507924881e394b649a2c776d6a8a7754f3aac0479d9",
+        "generator_image": "grafana/k6@sha256:9bd01d6941fca969cb61bb57d2da5ee9b385fe2aa8881df3798c196564d6ace6",
+        "backend_image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285"
+      },
+      "actual_generator": "Python 3.13.15 http.client",
+      "kind": "gateway-api-probe",
+      "cases": [
+        {
+          "name": "fixture-echo",
+          "outcome": "pass",
+          "errors": []
+        },
+        {
+          "name": "fixture-controlled-failure",
+          "outcome": "pass",
+          "errors": []
+        },
+        {
+          "name": "fixture-controlled-delay",
+          "outcome": "pass",
+          "errors": []
+        }
+      ]
+    }
+  ],
+  "interpretation": "Local fixture evidence validates only this harness/fixture contract. No implementation speed ranking or averaged percentiles is produced."
+}

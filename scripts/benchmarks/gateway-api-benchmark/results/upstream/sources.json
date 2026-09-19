@@ -1,0 +1,833 @@
+{
+  "schema_version": 1,
+  "as_of_date": "2026-09-18",
+  "snapshot": {
+    "repository": "kubernetes-sigs/gateway-api",
+    "commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+    "committer_date": "2026-09-18T21:07:56Z",
+    "cutoff_utc": "2026-09-18T23:59:59Z"
+  },
+  "selected_cohort": {
+    "gateway_api_version": "v1.4.0",
+    "gateway_api_channel": "experimental",
+    "mode": "default",
+    "purpose": "Compare versioned upstream-reported conformance evidence, not measured local results, installed-version compatibility, or performance.",
+    "members": [
+      "envoy-gateway",
+      "cilium",
+      "nginx-gateway-fabric",
+      "kgateway",
+      "istio",
+      "traefik"
+    ],
+    "separate_managed_track": [
+      "aws-vpc-lattice"
+    ]
+  },
+  "missing_same_release": [
+    {
+      "implementation": "AWS Load Balancer Controller",
+      "status": "not_verified",
+      "reason": "No v1.4.0 report directory for this implementation in the frozen repository tree; v1.5 example is supplemental, HTTP/ALB only."
+    },
+    {
+      "implementation": "Kong Kubernetes Ingress Controller",
+      "status": "not_verified",
+      "reason": "No standalone KIC v1.4.0 report in the frozen tree; v1.2.1 reports are supplemental. Kong Operator is a different reported implementation."
+    }
+  ],
+  "interpretation": {
+    "missing_report": "not_verified",
+    "absent_feature_or_profile": "not_reported / not_verified, not unsupported or fail",
+    "explicit_unsupported_features": "upstream-declared unsupported for this exact report/profile only",
+    "partial": "retain skipped tests and their reasons; zero Failed does not mean full success",
+    "release_tag": "Source/reference provenance only; does not prove the exact image tested by upstream",
+    "same_release": "Same API version/channel does not equal same data plane, topology, flags, Kubernetes version, or resources",
+    "v1_6": "Not used for the selected cohort; no latest claim."
+  },
+  "reports": [
+    {
+      "id": "envoy-gateway",
+      "cohort": "same-release",
+      "report_path": "conformance/reports/v1.4.0/envoy-gateway/experimental-v1.6.0-default-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/envoy-gateway/experimental-v1.6.0-default-report.yaml",
+      "raw_yaml_sha256": "a25eaef43d9f779a1204e0f5c35da730121b8bc857008809f6cdf9615f407929",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2025-11-19T01:47:59Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/271d5633992357fe554bffa8e65a18ae1f4385a8",
+        "sha": "271d5633992357fe554bffa8e65a18ae1f4385a8"
+      },
+      "report_date": "2025-11-11T06:59:27Z",
+      "gateway_api_version": "v1.4.0",
+      "gateway_api_channel": "experimental",
+      "mode": "default",
+      "implementation": {
+        "organization": "envoyproxy",
+        "project": "envoy-gateway",
+        "reported_version": "v1.6.0",
+        "repository": "envoyproxy/gateway",
+        "reference_release": {
+          "html_url": "https://github.com/envoyproxy/gateway/releases/tag/v1.6.0",
+          "prerelease": false,
+          "published_at": "2025-11-11T07:56:56Z",
+          "tag_name": "v1.6.0"
+        },
+        "reference_commit": {
+          "date": "2025-11-10T20:20:04Z",
+          "html_url": "https://github.com/envoyproxy/gateway/commit/26ebf49e9d21ddb25521b55181b20f24b4cf102a",
+          "sha": "26ebf49e9d21ddb25521b55181b20f24b4cf102a"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 1,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 33,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 26,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 11,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 1,
+            "Skipped": 0
+          }
+        }
+      ],
+      "notes": [
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "local_file": "envoy-gateway.yaml"
+    },
+    {
+      "id": "cilium",
+      "cohort": "same-release",
+      "report_path": "conformance/reports/v1.4.0/cilium/experimental-v1.19.0-pre.2-default-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/cilium/experimental-v1.19.0-pre.2-default-report.yaml",
+      "raw_yaml_sha256": "c7c578d83752da8228e0e67bb87f95a12a24c823dfe4e1ebdf522b2a10508bce",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2025-11-10T22:30:53Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/b4aa664430bc26b8f580e2581fb39b02f7df70d6",
+        "sha": "b4aa664430bc26b8f580e2581fb39b02f7df70d6"
+      },
+      "report_date": "2025-11-07T14:41:20-05:00",
+      "gateway_api_version": "v1.4.0",
+      "gateway_api_channel": "experimental",
+      "mode": "default",
+      "implementation": {
+        "organization": "cilium",
+        "project": "cilium",
+        "reported_version": "1.19.0-pre.2",
+        "repository": "cilium/cilium",
+        "reference_release": {
+          "html_url": "https://github.com/cilium/cilium/releases/tag/v1.19.0-pre.2",
+          "prerelease": true,
+          "published_at": "2025-11-03T10:38:29Z",
+          "tag_name": "v1.19.0-pre.2"
+        },
+        "reference_commit": {
+          "date": "2025-11-03T10:10:27Z",
+          "html_url": "https://github.com/cilium/cilium/commit/ffc86daa5139485001e26bcb2e4dc4126f6dd2b7",
+          "sha": "ffc86daa5139485001e26bcb2e4dc4126f6dd2b7"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 3,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 33,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 25,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 11,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 3,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "MESH-GRPC",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 2,
+            "Skipped": 0
+          },
+          "extended_result": null,
+          "extended_statistics": null
+        },
+        {
+          "name": "MESH-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 7,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 7,
+            "Skipped": 0
+          }
+        }
+      ],
+      "notes": [
+        "Explicit prerelease; not evidence for a later stable build."
+      ],
+      "local_file": "cilium.yaml"
+    },
+    {
+      "id": "nginx-gateway-fabric",
+      "cohort": "same-release",
+      "report_path": "conformance/reports/v1.4.0/nginx-nginx-gateway-fabric/experimental-2.3.0-default-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/nginx-nginx-gateway-fabric/experimental-2.3.0-default-report.yaml",
+      "raw_yaml_sha256": "b07cdbea28ce0c657ea7500ad1f829ef1b1a91bc3d966ae068449e67781bb5cf",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2025-12-22T17:00:32Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/8034ed9fa310d6c23d5bd730e33b5d5a5350fa0b",
+        "sha": "8034ed9fa310d6c23d5bd730e33b5d5a5350fa0b"
+      },
+      "report_date": "2025-12-19T18:03:59Z",
+      "gateway_api_version": "v1.4.0",
+      "gateway_api_channel": "experimental",
+      "mode": "default",
+      "implementation": {
+        "organization": "nginx",
+        "project": "nginx-gateway-fabric",
+        "reported_version": "v2.3.0",
+        "repository": "nginx/nginx-gateway-fabric",
+        "reference_release": {
+          "html_url": "https://github.com/nginx/nginx-gateway-fabric/releases/tag/v2.3.0",
+          "prerelease": false,
+          "published_at": "2025-12-18T15:02:42Z",
+          "tag_name": "v2.3.0"
+        },
+        "reference_commit": {
+          "date": "2025-12-18T13:56:38Z",
+          "html_url": "https://github.com/nginx/nginx-gateway-fabric/commit/bd209359a3910ffe9b19ccc12f849a294f07e427",
+          "sha": "bd209359a3910ffe9b19ccc12f849a294f07e427"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 3,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 33,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 21,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 11,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 3,
+            "Skipped": 0
+          }
+        }
+      ],
+      "notes": [],
+      "local_file": "nginx-gateway-fabric.yaml"
+    },
+    {
+      "id": "kgateway",
+      "cohort": "same-release",
+      "report_path": "conformance/reports/v1.4.0/kgateway/v2.1.0-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/kgateway/v2.1.0-report.yaml",
+      "raw_yaml_sha256": "70b9b254672262f6d44fcb11d279cb9535ff1798698f648ce64cef4b1a364d68",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2025-10-27T17:17:38Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/24704d4dbe686c99051bf6dd130b6b55b41bd496",
+        "sha": "24704d4dbe686c99051bf6dd130b6b55b41bd496"
+      },
+      "report_date": "2025-10-27T12:38:25-04:00",
+      "gateway_api_version": "v1.4.0",
+      "gateway_api_channel": "experimental",
+      "mode": "default",
+      "implementation": {
+        "organization": "kgateway-dev",
+        "project": "kgateway",
+        "reported_version": "v2.1.0",
+        "repository": "kgateway-dev/kgateway",
+        "reference_release": {
+          "html_url": "https://github.com/kgateway-dev/kgateway/releases/tag/v2.1.0",
+          "prerelease": false,
+          "published_at": "2025-10-10T20:12:43Z",
+          "tag_name": "v2.1.0"
+        },
+        "reference_commit": {
+          "date": "2025-10-09T16:55:32Z",
+          "html_url": "https://github.com/kgateway-dev/kgateway/commit/919cae66255332a968f06f810bd2844bb817bbe0",
+          "sha": "919cae66255332a968f06f810bd2844bb817bbe0"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 1,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 33,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 20,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 11,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 1,
+            "Skipped": 0
+          }
+        }
+      ],
+      "notes": [],
+      "local_file": "kgateway.yaml"
+    },
+    {
+      "id": "istio",
+      "cohort": "same-release",
+      "report_path": "conformance/reports/v1.4.0/istio-istio/1.28.0-default-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/istio-istio/1.28.0-default-report.yaml",
+      "raw_yaml_sha256": "807830f8457ba1c6aadb4e0ad43a8dabb1077ed1c5258b0d0e5bfc5f6742cc92",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2025-11-04T02:46:04Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/a12bd6bc143750262ca2d28fa2315cdb7ea7cd9e",
+        "sha": "a12bd6bc143750262ca2d28fa2315cdb7ea7cd9e"
+      },
+      "report_date": "2025-10-27T22:42:18Z",
+      "gateway_api_version": "v1.4.0",
+      "gateway_api_channel": "experimental",
+      "mode": "default",
+      "implementation": {
+        "organization": "istio",
+        "project": "istio",
+        "reported_version": "1.28",
+        "repository": "istio/istio",
+        "reference_release": {
+          "html_url": "https://github.com/istio/istio/releases/tag/1.28.0",
+          "prerelease": false,
+          "published_at": "2025-11-05T17:20:54Z",
+          "tag_name": "1.28.0"
+        },
+        "reference_commit": {
+          "date": "2025-10-30T12:11:05Z",
+          "html_url": "https://github.com/istio/istio/commit/b8d1df54465060428c2a2a38286e360beb85fb31",
+          "sha": "b8d1df54465060428c2a2a38286e360beb85fb31"
+        }
+      },
+      "profiles": [
+        {
+          "name": "MESH-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 7,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 7,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 3,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 33,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 28,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 11,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 3,
+            "Skipped": 0
+          }
+        }
+      ],
+      "notes": [
+        "YAML version omits the patch component; reference tag is identified by the upstream filename/README, not an attested tested binary digest.",
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "local_file": "istio.yaml"
+    },
+    {
+      "id": "traefik",
+      "cohort": "same-release",
+      "report_path": "conformance/reports/v1.4.0/traefik-traefik/experimental-v3.6.0-default-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/traefik-traefik/experimental-v3.6.0-default-report.yaml",
+      "raw_yaml_sha256": "b5139bd77f4d4f738f20b31a1507ec76502b65d857b84fc5ddc37e527249a001",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2025-11-04T07:24:06Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/7589ab2a1732c9cf02251bbbe6fc18fc80c3c60c",
+        "sha": "7589ab2a1732c9cf02251bbbe6fc18fc80c3c60c"
+      },
+      "report_date": "2025-10-31T09:44:43+01:00",
+      "gateway_api_version": "v1.4.0",
+      "gateway_api_channel": "experimental",
+      "mode": "default",
+      "implementation": {
+        "organization": "traefik",
+        "project": "traefik",
+        "reported_version": "v3.6",
+        "repository": "traefik/traefik",
+        "reference_release": {
+          "html_url": "https://github.com/traefik/traefik/releases/tag/v3.6.0",
+          "prerelease": false,
+          "published_at": "2025-11-07T15:34:35Z",
+          "tag_name": "v3.6.0"
+        },
+        "reference_commit": {
+          "date": "2025-11-07T15:16:04Z",
+          "html_url": "https://github.com/traefik/traefik/commit/06db5168c0d936a0716cbede56bc2cd332be0d4f",
+          "sha": "06db5168c0d936a0716cbede56bc2cd332be0d4f"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 0
+          },
+          "extended_result": null,
+          "extended_statistics": null
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 33,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 0
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 11,
+            "Skipped": 0
+          },
+          "extended_result": null,
+          "extended_statistics": null
+        }
+      ],
+      "notes": [
+        "YAML version omits the patch component; reference tag is identified by the upstream filename/README, not an attested tested binary digest.",
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "local_file": "traefik.yaml"
+    },
+    {
+      "id": "aws-vpc-lattice",
+      "cohort": "same-release-separate-managed-track",
+      "report_path": "conformance/reports/v1.4.0/aws-aws-application-networking-k8s/experimental-v2.0.1-default-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/aws-aws-application-networking-k8s/experimental-v2.0.1-default-report.yaml",
+      "raw_yaml_sha256": "a49d92986fa593327de4693e2650fbcea85d64fa398c0573c26c11f654dbe2e9",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2026-03-04T23:40:23Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/91979c8b2d930d561124bd26d76eaa7c459f05df",
+        "sha": "91979c8b2d930d561124bd26d76eaa7c459f05df"
+      },
+      "report_date": "2026-02-27T04:11:24Z",
+      "gateway_api_version": "v1.4.0",
+      "gateway_api_channel": "experimental",
+      "mode": "default",
+      "implementation": {
+        "organization": "aws",
+        "project": "aws-application-networking-k8s",
+        "reported_version": "v2.0.1",
+        "repository": "aws/aws-application-networking-k8s",
+        "reference_release": {
+          "html_url": "https://github.com/aws/aws-application-networking-k8s/releases/tag/v2.0.1",
+          "prerelease": false,
+          "published_at": "2026-02-26T19:43:17Z",
+          "tag_name": "v2.0.1"
+        },
+        "reference_commit": {
+          "date": "2026-02-26T19:35:12Z",
+          "html_url": "https://github.com/aws/aws-application-networking-k8s/commit/5aa1b84459ed1cfda3354607a4788d0111950304",
+          "sha": "5aa1b84459ed1cfda3354607a4788d0111950304"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "partial",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 10,
+            "Skipped": 23
+          },
+          "extended_result": null,
+          "extended_statistics": null
+        }
+      ],
+      "notes": [],
+      "local_file": "aws-vpc-lattice.yaml"
+    },
+    {
+      "id": "aws-lbc",
+      "cohort": "supplemental-not-comparable-release",
+      "report_path": "conformance/reports/v1.5/aws-load-balancer-controller/conformance-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.5/aws-load-balancer-controller/conformance-report.yaml",
+      "raw_yaml_sha256": "7730acebd61f96859ed6841b5ec7d9438b60e849f48adfd3db988dc9274bb285",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2026-04-30T15:39:26Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/50c33a07cdb572072d9a625c14bfa9be3848aced",
+        "sha": "50c33a07cdb572072d9a625c14bfa9be3848aced"
+      },
+      "report_date": "2026-04-01T12:23:28-07:00",
+      "gateway_api_version": "v1.5.0",
+      "gateway_api_channel": "standard",
+      "mode": "default",
+      "implementation": {
+        "organization": "aws",
+        "project": "aws-load-balancer-controller",
+        "reported_version": "v3.2.0",
+        "repository": "kubernetes-sigs/aws-load-balancer-controller",
+        "reference_release": {
+          "html_url": "https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/tag/v3.2.0",
+          "prerelease": false,
+          "published_at": "2026-04-06T16:25:45Z",
+          "tag_name": "v3.2.0"
+        },
+        "reference_commit": {
+          "date": "2026-04-03T19:23:05Z",
+          "html_url": "https://github.com/kubernetes-sigs/aws-load-balancer-controller/commit/0fb5e3b7d70421a9a2a144d78b2c384d1e77600f",
+          "sha": "0fb5e3b7d70421a9a2a144d78b2c384d1e77600f"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "partial",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 23,
+            "Skipped": 10
+          },
+          "extended_result": "partial",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 13,
+            "Skipped": 1
+          }
+        }
+      ],
+      "notes": [
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "local_file": "aws-lbc.yaml"
+    },
+    {
+      "id": "kong-kic-expressions",
+      "cohort": "supplemental-not-comparable-release",
+      "report_path": "conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-expressions-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-expressions-report.yaml",
+      "raw_yaml_sha256": "30fa5407516037addbd096eb1a68a3522aecce72277cbd3ff9127f1ad03c7e60",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2024-12-19T20:18:09Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/bac02aedf7b4cdb52f11b0a3fcdf084c403cadfa",
+        "sha": "bac02aedf7b4cdb52f11b0a3fcdf084c403cadfa"
+      },
+      "report_date": "2024-12-19T16:04:43+01:00",
+      "gateway_api_version": "v1.2.1",
+      "gateway_api_channel": "experimental",
+      "mode": "expressions",
+      "implementation": {
+        "organization": "Kong",
+        "project": "kubernetes-ingress-controller",
+        "reported_version": "v3.4.0",
+        "repository": "Kong/kubernetes-ingress-controller",
+        "reference_release": {
+          "html_url": "https://github.com/Kong/kubernetes-ingress-controller/releases/tag/v3.4.0",
+          "prerelease": false,
+          "published_at": "2024-12-18T15:25:20Z",
+          "tag_name": "v3.4.0"
+        },
+        "reference_commit": {
+          "date": "2024-12-18T14:50:30Z",
+          "html_url": "https://github.com/Kong/kubernetes-ingress-controller/commit/92a6761ac1c94ecd202571cbf84de860336664f3",
+          "sha": "92a6761ac1c94ecd202571cbf84de860336664f3"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "partial",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 11,
+            "Skipped": 1
+          },
+          "extended_result": null,
+          "extended_statistics": null
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "success",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 33,
+            "Skipped": 0
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 5,
+            "Skipped": 0
+          }
+        }
+      ],
+      "notes": [],
+      "local_file": "kong-kic-expressions.yaml"
+    },
+    {
+      "id": "kong-kic-traditional",
+      "cohort": "supplemental-not-comparable-release",
+      "report_path": "conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-traditional_compatible-report.yaml",
+      "raw_yaml_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-traditional_compatible-report.yaml",
+      "raw_yaml_sha256": "067cf9902e0a306f22700241c194f204fe52d8eafe5a652e60182f31934ad187",
+      "report_repository_commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+      "report_repository_commit_date": "2026-09-18T21:07:56Z",
+      "report_last_change": {
+        "date": "2024-12-19T20:18:09Z",
+        "html_url": "https://github.com/kubernetes-sigs/gateway-api/commit/bac02aedf7b4cdb52f11b0a3fcdf084c403cadfa",
+        "sha": "bac02aedf7b4cdb52f11b0a3fcdf084c403cadfa"
+      },
+      "report_date": "2024-12-19T16:42:02+01:00",
+      "gateway_api_version": "v1.2.1",
+      "gateway_api_channel": "experimental",
+      "mode": "traditional_compatible",
+      "implementation": {
+        "organization": "Kong",
+        "project": "kubernetes-ingress-controller",
+        "reported_version": "v3.4.0",
+        "repository": "Kong/kubernetes-ingress-controller",
+        "reference_release": {
+          "html_url": "https://github.com/Kong/kubernetes-ingress-controller/releases/tag/v3.4.0",
+          "prerelease": false,
+          "published_at": "2024-12-18T15:25:20Z",
+          "tag_name": "v3.4.0"
+        },
+        "reference_commit": {
+          "date": "2024-12-18T14:50:30Z",
+          "html_url": "https://github.com/Kong/kubernetes-ingress-controller/commit/92a6761ac1c94ecd202571cbf84de860336664f3",
+          "sha": "92a6761ac1c94ecd202571cbf84de860336664f3"
+        }
+      },
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core_result": "partial",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 10,
+            "Skipped": 2
+          },
+          "extended_result": null,
+          "extended_statistics": null
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core_result": "partial",
+          "core_statistics": {
+            "Failed": 0,
+            "Passed": 32,
+            "Skipped": 1
+          },
+          "extended_result": "success",
+          "extended_statistics": {
+            "Failed": 0,
+            "Passed": 3,
+            "Skipped": 0
+          }
+        }
+      ],
+      "notes": [],
+      "local_file": "kong-kic-traditional.yaml"
+    }
+  ]
+}

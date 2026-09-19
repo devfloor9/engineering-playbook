@@ -1,0 +1,22 @@
+{
+  "backend_image": "python@sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285",
+  "command": [
+    "python3",
+    "/kit/fixture.py",
+    "--bind",
+    "0.0.0.0",
+    "--port",
+    "8080",
+    "--backend-id",
+    "fixture-a"
+  ],
+  "backend_cpus": 1,
+  "backend_memory_bytes": 268435456,
+  "generator_cpus": 1,
+  "generator_memory_bytes": 536870912,
+  "network": "internal",
+  "network_alias": "fixture",
+  "published_ports": [],
+  "proxy": null,
+  "controller": null
+}

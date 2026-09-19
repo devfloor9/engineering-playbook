@@ -59,6 +59,9 @@ jobs:
       - name: Verify document revision metadata
         run: npm run test:metadata
 
+      - name: Verify Gateway benchmark evidence and harness
+        run: npm run test:gateway-benchmark
+
       - name: Build website
         run: npm run build
 

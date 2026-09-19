@@ -3,7 +3,7 @@ title: EKS Performance Benchmark Reports
 description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations
 created: "2026-02-11"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 4
 tags:
@@ -19,14 +19,14 @@ category: benchmarks
 
 # EKS Performance Benchmark Reports
 
-Performance benchmark reports measured based on real workloads in EKS environments. Validate architecture decisions and optimization directions with data.
+Performance reports and measurement plans for EKS. Check each report's evidence boundary and distinguish live measurements, published-source analysis, and local tool validation before using its conclusions.
 
 ## Networking
 
 | # | Report | Status |
 |---|--------|--------|
 | 1 | [VPC CNI vs Cilium Network Performance Comparison](./cni-performance-comparison.md) | ✅ Complete |
-| 2 | [Gateway API Implementation Performance Comparison](./gateway-api-benchmark.md) | 📋 Planned |
+| 2 | [Gateway API Architecture, Feature Comparison, and Test Report](./gateway-api-benchmark.md) | Source/kit validation complete; EKS measurements pending |
 
 ## AI/ML Inference
 

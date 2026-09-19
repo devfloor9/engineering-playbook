@@ -1,0 +1,1 @@
+time="2026-09-19T00:08:35Z" level=error msg="Error: effective maxRedirects override is forbidden\n\tat requireValue (file:///kit/load.js:9:25(6))\n\tat validateEffectiveOptions (file:///kit/load.js:133:17(147))\n\tat setup (file:///kit/load.js:148:48(9))\n" hint="script exception" source=stacktrace

@@ -1,0 +1,2 @@
+time="2026-09-19T00:08:36Z" level=warning msg="`vus=5` overrides scenarios configuration"
+time="2026-09-19T00:08:36Z" level=error msg="test aborted: validated setup data is required; --no-setup is unsupported at default (file:///kit/load.js:158:20(14))"

@@ -3,9 +3,9 @@ title: "Gateway API Adoption Guide: From NGINX Ingress to Next-Generation Traffi
 description: NGINX Ingress Controller EOL response, tiered gateways for agentic workloads, Gateway API architecture, GAMMA Initiative, AWS Native vs open source solution comparison (AWS LBC, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong), Cilium ENI integration, migration strategy and benchmark plans
 created: "2026-02-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 47
+reading_time: 70
 tags:
   - eks
   - gateway-api
@@ -824,10 +824,10 @@ The following are recommended solutions for common organizational scenarios.
 
 ## 5. Benchmark Comparison Plan
 
-A systematic benchmark for objective performance comparison of the 6 Gateway API implementations is planned. Eight scenarios — throughput, latency, TLS performance, L7 routing, scaling, resource efficiency, failure recovery, and gRPC — are measured in the same EKS environment.
+The benchmark report adds Istio and Traefik to this guide's six implementations and treats VPC Lattice as a separate path. It separates managed edge, in-cluster proxies, and CNI/mesh paths when planning throughput, latency, TLS, L7 routing, scaling, resource efficiency, failure recovery, and gRPC tests. Published conformance evidence and the local measurement kit have been validated; actual EKS performance measurements remain pending.
 
 :::info Benchmark Details
-The test environment design, detailed scenarios, metrics, and execution plan are available at **[Gateway API Implementation Performance Benchmark Plan](/docs/benchmarks/gateway-api-benchmark)**.
+Architecture comparisons, raw validation evidence, and the execution plan are available in the **[Gateway API Feature and Performance Comparison Report](/docs/benchmarks/gateway-api-benchmark)**.
 :::
 
 ---
@@ -848,7 +848,7 @@ Select the solution that fits your organizational environment based on the table
   </TabItem>
   <TabItem value="cilium" label="High Performance + Observability">
 
-**Cilium Gateway API** — ultra-low latency (P99 under 10ms), eBPF-based networking, Hubble L7 visibility, ENI mode VPC-native integration. Optimal for environments that need high performance and service mesh integration.
+**Cilium Gateway API** — an option for combining eBPF networking, Envoy L7 processing, Hubble visibility, and ENI-mode VPC integration. Measure latency and efficiency under the actual CNI/proxy configuration and workload.
 
   </TabItem>
   <TabItem value="nginx" label="Leverage NGINX Experience">

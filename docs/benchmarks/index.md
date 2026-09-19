@@ -3,7 +3,7 @@ title: EKS 성능 벤치마크 보고서
 description: EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영
 created: "2026-02-09"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 2
 tags:
@@ -17,14 +17,14 @@ sidebar_position: 7
 category: benchmarks
 ---
 
-EKS 환경에서 실제 워크로드 기반으로 측정한 성능 벤치마크 보고서입니다. 아키텍처 결정과 최적화 방향을 데이터로 검증합니다.
+EKS 환경의 성능 보고서와 측정 계획을 모았습니다. 각 보고서의 검증 범위를 확인하고, 실제 측정·공개 자료 분석·로컬 도구 검증을 구분해 아키텍처 결정에 활용하세요.
 
 ## 네트워킹
 
 | # | 보고서 | 상태 |
 |---|--------|------|
 | 1 | [VPC CNI vs Cilium 네트워크 성능 비교](./cni-performance-comparison.md) | ✅ 완성 |
-| 2 | [Gateway API 구현체 성능 비교](./gateway-api-benchmark.md) | 📋 계획 |
+| 2 | [Gateway API 아키텍처·기능 비교 및 시험 보고서](./gateway-api-benchmark.md) | 자료·도구 검증 완료 / EKS 실측 대기 |
 
 ## AI/ML 추론
 

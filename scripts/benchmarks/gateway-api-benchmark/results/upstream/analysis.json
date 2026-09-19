@@ -1,0 +1,1415 @@
+{
+  "schema_version": 1,
+  "evidence_class": "external_conformance",
+  "snapshot": {
+    "repository": "kubernetes-sigs/gateway-api",
+    "commit": "112584e6624e32a9c9ec6a818a735506fc33eb49",
+    "committer_date": "2026-09-18T21:07:56Z",
+    "cutoff_utc": "2026-09-18T23:59:59Z"
+  },
+  "cohort": {
+    "gateway_api_version": "v1.4.0",
+    "gateway_api_channel": "experimental",
+    "mode": "default",
+    "purpose": "Compare versioned upstream-reported conformance evidence, not measured local results, installed-version compatibility, or performance.",
+    "members": [
+      "envoy-gateway",
+      "cilium",
+      "nginx-gateway-fabric",
+      "kgateway",
+      "istio",
+      "traefik"
+    ],
+    "separate_managed_track": [
+      "aws-vpc-lattice"
+    ]
+  },
+  "interpretation": {
+    "missing_report": "not_verified",
+    "absent_feature_or_profile": "not_reported / not_verified, not unsupported or fail",
+    "explicit_unsupported_features": "upstream-declared unsupported for this exact report/profile only",
+    "partial": "retain skipped tests and their reasons; zero Failed does not mean full success",
+    "release_tag": "Source/reference provenance only; does not prove the exact image tested by upstream",
+    "same_release": "Same API version/channel does not equal same data plane, topology, flags, Kubernetes version, or resources",
+    "v1_6": "Not used for the selected cohort; no latest claim."
+  },
+  "missing_same_release": [
+    {
+      "implementation": "AWS Load Balancer Controller",
+      "status": "not_verified",
+      "reason": "No v1.4.0 report directory for this implementation in the frozen repository tree; v1.5 example is supplemental, HTTP/ALB only."
+    },
+    {
+      "implementation": "Kong Kubernetes Ingress Controller",
+      "status": "not_verified",
+      "reason": "No standalone KIC v1.4.0 report in the frozen tree; v1.2.1 reports are supplemental. Kong Operator is a different reported implementation."
+    }
+  ],
+  "verified_source_files": 10,
+  "profiles_analyzed": 27,
+  "reports": [
+    {
+      "id": "envoy-gateway",
+      "evidence_class": "external_conformance",
+      "cohort": "same-release",
+      "implementation": "envoy-gateway",
+      "reported_version": "v1.6.0",
+      "gateway_api_version": "v1.4.0",
+      "channel": "experimental",
+      "mode": "default",
+      "report_date": "2025-11-11T06:59:27Z",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/envoy-gateway/experimental-v1.6.0-default-report.yaml",
+      "source_sha256": "a25eaef43d9f779a1204e0f5c35da730121b8bc857008809f6cdf9615f407929",
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "success",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayPort8080"
+          ],
+          "declared_unsupported_features": [
+            "GatewayInfrastructurePropagation",
+            "GatewayStaticAddresses"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 33,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 26,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayPort8080",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteCORS",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteHostRewrite",
+            "HTTPRouteMethodMatching",
+            "HTTPRouteNamedRouteRule",
+            "HTTPRouteParentRefPort",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePathRewrite",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestPercentageMirror",
+            "HTTPRouteRequestTimeout",
+            "HTTPRouteResponseHeaderModification",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [
+            "GatewayInfrastructurePropagation",
+            "GatewayStaticAddresses"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_supported",
+            "HTTPRouteRequestTimeout": "declared_supported",
+            "HTTPRouteBackendProtocolH2C": "declared_supported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_supported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core": {
+            "result": "success",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayPort8080"
+          ],
+          "declared_unsupported_features": [
+            "GatewayInfrastructurePropagation",
+            "GatewayStaticAddresses"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        }
+      ],
+      "notes": [
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "cilium",
+      "evidence_class": "external_conformance",
+      "cohort": "same-release",
+      "implementation": "cilium",
+      "reported_version": "1.19.0-pre.2",
+      "gateway_api_version": "v1.4.0",
+      "channel": "experimental",
+      "mode": "default",
+      "report_date": "2025-11-07T14:41:20-05:00",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/cilium/experimental-v1.19.0-pre.2-default-report.yaml",
+      "source_sha256": "c7c578d83752da8228e0e67bb87f95a12a24c823dfe4e1ebdf522b2a10508bce",
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "success",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 33,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 25,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteHostRewrite",
+            "HTTPRouteMethodMatching",
+            "HTTPRouteNamedRouteRule",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePathRewrite",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestPercentageMirror",
+            "HTTPRouteRequestTimeout",
+            "HTTPRouteResponseHeaderModification",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [
+            "HTTPRouteCORS",
+            "HTTPRouteParentRefPort"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_supported",
+            "HTTPRouteRequestTimeout": "declared_supported",
+            "HTTPRouteBackendProtocolH2C": "declared_supported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_supported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core": {
+            "result": "success",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        },
+        {
+          "name": "MESH-GRPC",
+          "core": {
+            "result": "success",
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": null,
+          "declared_supported_features": [],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        },
+        {
+          "name": "MESH-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "MeshClusterIPMatching",
+            "MeshHTTPRouteBackendRequestHeaderModification",
+            "MeshHTTPRouteNamedRouteRule",
+            "MeshHTTPRouteQueryParamMatching",
+            "MeshHTTPRouteRedirectPath",
+            "MeshHTTPRouteRedirectPort",
+            "MeshHTTPRouteRewritePath",
+            "MeshHTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [
+            "MeshConsumerRoute"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        }
+      ],
+      "notes": [
+        "Explicit prerelease; not evidence for a later stable build."
+      ],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "nginx-gateway-fabric",
+      "evidence_class": "external_conformance",
+      "cohort": "same-release",
+      "implementation": "nginx-gateway-fabric",
+      "reported_version": "v2.3.0",
+      "gateway_api_version": "v1.4.0",
+      "channel": "experimental",
+      "mode": "default",
+      "report_date": "2025-12-19T18:03:59Z",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/nginx-nginx-gateway-fabric/experimental-2.3.0-default-report.yaml",
+      "source_sha256": "b07cdbea28ce0c657ea7500ad1f829ef1b1a91bc3d966ae068449e67781bb5cf",
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "success",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 33,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 21,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "BackendTLSPolicy",
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteHostRewrite",
+            "HTTPRouteMethodMatching",
+            "HTTPRouteParentRefPort",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePathRewrite",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestPercentageMirror",
+            "HTTPRouteResponseHeaderModification",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [
+            "BackendTLSPolicySANValidation",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteCORS",
+            "HTTPRouteNamedRouteRule",
+            "HTTPRouteRequestTimeout"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_supported",
+            "HTTPRouteRequestTimeout": "declared_unsupported",
+            "HTTPRouteBackendProtocolH2C": "declared_unsupported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_supported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core": {
+            "result": "success",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        }
+      ],
+      "notes": [],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "kgateway",
+      "evidence_class": "external_conformance",
+      "cohort": "same-release",
+      "implementation": "kgateway",
+      "reported_version": "v2.1.0",
+      "gateway_api_version": "v1.4.0",
+      "channel": "experimental",
+      "mode": "default",
+      "report_date": "2025-10-27T12:38:25-04:00",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/kgateway/v2.1.0-report.yaml",
+      "source_sha256": "70b9b254672262f6d44fcb11d279cb9535ff1798698f648ce64cef4b1a364d68",
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "success",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty"
+          ],
+          "declared_unsupported_features": [
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_unsupported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 33,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 20,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteHostRewrite",
+            "HTTPRouteMethodMatching",
+            "HTTPRouteNamedRouteRule",
+            "HTTPRouteParentRefPort",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePathRewrite",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestTimeout",
+            "HTTPRouteResponseHeaderModification",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses",
+            "HTTPRouteCORS",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestPercentageMirror"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_supported",
+            "HTTPRouteRequestTimeout": "declared_supported",
+            "HTTPRouteBackendProtocolH2C": "declared_supported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_supported",
+            "GatewayHTTPListenerIsolation": "declared_unsupported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core": {
+            "result": "success",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty"
+          ],
+          "declared_unsupported_features": [
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_unsupported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        }
+      ],
+      "notes": [],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "istio",
+      "evidence_class": "external_conformance",
+      "cohort": "same-release",
+      "implementation": "istio",
+      "reported_version": "1.28",
+      "gateway_api_version": "v1.4.0",
+      "channel": "experimental",
+      "mode": "default",
+      "report_date": "2025-10-27T22:42:18Z",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/istio-istio/1.28.0-default-report.yaml",
+      "source_sha256": "807830f8457ba1c6aadb4e0ad43a8dabb1077ed1c5258b0d0e5bfc5f6742cc92",
+      "profiles": [
+        {
+          "name": "MESH-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 7,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "MeshConsumerRoute",
+            "MeshHTTPRouteBackendRequestHeaderModification",
+            "MeshHTTPRouteNamedRouteRule",
+            "MeshHTTPRouteQueryParamMatching",
+            "MeshHTTPRouteRedirectPath",
+            "MeshHTTPRouteRedirectPort",
+            "MeshHTTPRouteRewritePath",
+            "MeshHTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [
+            "MeshClusterIPMatching"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        },
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "success",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 33,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 28,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteCORS",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteHostRewrite",
+            "HTTPRouteMethodMatching",
+            "HTTPRouteNamedRouteRule",
+            "HTTPRouteParentRefPort",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePathRewrite",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestPercentageMirror",
+            "HTTPRouteRequestTimeout",
+            "HTTPRouteResponseHeaderModification",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_supported",
+            "HTTPRouteRequestTimeout": "declared_supported",
+            "HTTPRouteBackendProtocolH2C": "declared_supported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_supported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core": {
+            "result": "success",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses"
+          ],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "declared_supported",
+            "GatewayInfrastructurePropagation": "declared_supported"
+          }
+        }
+      ],
+      "notes": [
+        "YAML version omits the patch component; reference tag is identified by the upstream filename/README, not an attested tested binary digest.",
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "traefik",
+      "evidence_class": "external_conformance",
+      "cohort": "same-release",
+      "implementation": "traefik",
+      "reported_version": "v3.6",
+      "gateway_api_version": "v1.4.0",
+      "channel": "experimental",
+      "mode": "default",
+      "report_date": "2025-10-31T09:44:43+01:00",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/traefik-traefik/experimental-v3.6.0-default-report.yaml",
+      "source_sha256": "b5139bd77f4d4f738f20b31a1507ec76502b65d857b84fc5ddc37e527249a001",
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "success",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": null,
+          "declared_supported_features": [],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 33,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "GatewayPort8080",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteHostRewrite",
+            "HTTPRouteMethodMatching",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePathRewrite",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteResponseHeaderModification",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "declared_unsupported_features": [
+            "GatewayAddressEmpty",
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayStaticAddresses",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteCORS",
+            "HTTPRouteNamedRouteRule",
+            "HTTPRouteParentRefPort",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestPercentageMirror",
+            "HTTPRouteRequestTimeout"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_unsupported",
+            "HTTPRouteRequestTimeout": "declared_unsupported",
+            "HTTPRouteBackendProtocolH2C": "declared_supported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_supported",
+            "GatewayHTTPListenerIsolation": "declared_unsupported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        },
+        {
+          "name": "GATEWAY-TLS",
+          "core": {
+            "result": "success",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": null,
+          "declared_supported_features": [],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        }
+      ],
+      "notes": [
+        "YAML version omits the patch component; reference tag is identified by the upstream filename/README, not an attested tested binary digest.",
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "aws-vpc-lattice",
+      "evidence_class": "external_conformance",
+      "cohort": "same-release-separate-managed-track",
+      "implementation": "aws-application-networking-k8s",
+      "reported_version": "v2.0.1",
+      "gateway_api_version": "v1.4.0",
+      "channel": "experimental",
+      "mode": "default",
+      "report_date": "2026-02-27T04:11:24Z",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/aws-aws-application-networking-k8s/experimental-v2.0.1-default-report.yaml",
+      "source_sha256": "a49d92986fa593327de4693e2650fbcea85d64fa398c0573c26c11f654dbe2e9",
+      "profiles": [
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "partial",
+            "passed": 10,
+            "failed": 0,
+            "skipped": 23,
+            "skipped_tests": [
+              "GatewayInvalidTLSConfiguration",
+              "GatewaySecretInvalidReferenceGrant",
+              "GatewaySecretMissingReferenceGrant",
+              "GatewayWithAttachedRoutes",
+              "HTTPRouteHTTPSListener",
+              "HTTPRouteHeaderMatching",
+              "HTTPRouteHostnameIntersection",
+              "HTTPRouteInvalidBackendRefUnknownKind",
+              "HTTPRouteInvalidCrossNamespaceBackendRef",
+              "HTTPRouteInvalidNonExistentBackendRef",
+              "HTTPRouteInvalidReferenceGrant",
+              "HTTPRouteListenerHostnameMatching",
+              "HTTPRouteMatching",
+              "HTTPRouteMatchingAcrossRoutes",
+              "HTTPRouteObservedGenerationBump",
+              "HTTPRoutePartiallyInvalidViaInvalidReferenceGrant",
+              "HTTPRoutePathMatchOrder",
+              "HTTPRouteRedirectHostAndStatus",
+              "HTTPRouteReferenceGrant",
+              "HTTPRouteRequestHeaderModifier",
+              "HTTPRouteServiceTypes",
+              "HTTPRouteSimpleSameNamespace",
+              "HTTPRouteWeight"
+            ],
+            "failed_tests": []
+          },
+          "extended": null,
+          "declared_supported_features": [],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        }
+      ],
+      "notes": [],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "aws-lbc",
+      "evidence_class": "external_conformance",
+      "cohort": "supplemental-not-comparable-release",
+      "implementation": "aws-load-balancer-controller",
+      "reported_version": "v3.2.0",
+      "gateway_api_version": "v1.5.0",
+      "channel": "standard",
+      "mode": "default",
+      "report_date": "2026-04-01T12:23:28-07:00",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.5/aws-load-balancer-controller/conformance-report.yaml",
+      "source_sha256": "7730acebd61f96859ed6841b5ec7d9438b60e849f48adfd3db988dc9274bb285",
+      "profiles": [
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "partial",
+            "passed": 23,
+            "failed": 0,
+            "skipped": 10,
+            "skipped_tests": [
+              "GatewayInvalidTLSConfiguration",
+              "GatewaySecretInvalidReferenceGrant",
+              "GatewaySecretMissingReferenceGrant",
+              "GatewaySecretReferenceGrantAllInNamespace",
+              "GatewaySecretReferenceGrantSpecific",
+              "GatewayWithAttachedRoutes",
+              "HTTPRouteHTTPSListener",
+              "HTTPRouteHostnameIntersection",
+              "HTTPRouteRequestHeaderModifier",
+              "HTTPRouteServiceTypes"
+            ],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "partial",
+            "passed": 13,
+            "failed": 0,
+            "skipped": 1,
+            "skipped_tests": [
+              "ListenerSetReferenceGrant"
+            ],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteMethodMatching",
+            "HTTPRouteParentRefPort",
+            "HTTPRoutePortRedirect",
+            "ListenerSet"
+          ],
+          "declared_unsupported_features": [
+            "BackendTLSPolicy",
+            "BackendTLSPolicySANValidation",
+            "GatewayAddressEmpty",
+            "GatewayBackendClientCertificate",
+            "GatewayFrontendClientCertificateValidation",
+            "GatewayFrontendClientCertificateValidationInsecureFallback",
+            "GatewayHTTPListenerIsolation",
+            "GatewayHTTPSListenerDetectMisdirectedRequests",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses",
+            "HTTPRoute303RedirectStatusCode",
+            "HTTPRoute307RedirectStatusCode",
+            "HTTPRoute308RedirectStatusCode",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteCORS",
+            "HTTPRouteHostRewrite",
+            "HTTPRouteNamedRouteRule",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePathRewrite",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestPercentageMirror",
+            "HTTPRouteRequestTimeout",
+            "HTTPRouteResponseHeaderModification",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_unsupported",
+            "HTTPRouteResponseHeaderModification": "declared_unsupported",
+            "HTTPRouteRequestMirror": "declared_unsupported",
+            "HTTPRouteRequestTimeout": "declared_unsupported",
+            "HTTPRouteBackendProtocolH2C": "declared_unsupported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_unsupported",
+            "GatewayHTTPListenerIsolation": "declared_unsupported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        }
+      ],
+      "notes": [
+        "Report timestamp precedes publication of the referenced release; do not equate the report with an independently verified final release image."
+      ],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "kong-kic-expressions",
+      "evidence_class": "external_conformance",
+      "cohort": "supplemental-not-comparable-release",
+      "implementation": "kubernetes-ingress-controller",
+      "reported_version": "v3.4.0",
+      "gateway_api_version": "v1.2.1",
+      "channel": "experimental",
+      "mode": "expressions",
+      "report_date": "2024-12-19T16:04:43+01:00",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-expressions-report.yaml",
+      "source_sha256": "30fa5407516037addbd096eb1a68a3522aecce72277cbd3ff9127f1ad03c7e60",
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "partial",
+            "passed": 11,
+            "failed": 0,
+            "skipped": 1,
+            "skipped_tests": [
+              "GRPCRouteListenerHostnameMatching"
+            ],
+            "failed_tests": []
+          },
+          "extended": null,
+          "declared_supported_features": [],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "success",
+            "passed": 33,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 5,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "HTTPRouteHostRewrite",
+            "HTTPRouteMethodMatching",
+            "HTTPRoutePathRewrite",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteResponseHeaderModification"
+          ],
+          "declared_unsupported_features": [
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteParentRefPort",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestTimeout",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_unsupported",
+            "HTTPRouteRequestTimeout": "declared_unsupported",
+            "HTTPRouteBackendProtocolH2C": "declared_unsupported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_unsupported",
+            "GatewayHTTPListenerIsolation": "declared_unsupported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        }
+      ],
+      "notes": [],
+      "performance_measurements": null,
+      "rank_eligible": false
+    },
+    {
+      "id": "kong-kic-traditional",
+      "evidence_class": "external_conformance",
+      "cohort": "supplemental-not-comparable-release",
+      "implementation": "kubernetes-ingress-controller",
+      "reported_version": "v3.4.0",
+      "gateway_api_version": "v1.2.1",
+      "channel": "experimental",
+      "mode": "traditional_compatible",
+      "report_date": "2024-12-19T16:42:02+01:00",
+      "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-traditional_compatible-report.yaml",
+      "source_sha256": "067cf9902e0a306f22700241c194f204fe52d8eafe5a652e60182f31934ad187",
+      "profiles": [
+        {
+          "name": "GATEWAY-GRPC",
+          "core": {
+            "result": "partial",
+            "passed": 10,
+            "failed": 0,
+            "skipped": 2,
+            "skipped_tests": [
+              "GRPCExactMethodMatching",
+              "GRPCRouteHeaderMatching"
+            ],
+            "failed_tests": []
+          },
+          "extended": null,
+          "declared_supported_features": [],
+          "declared_unsupported_features": [],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "not_reported",
+            "HTTPRouteResponseHeaderModification": "not_reported",
+            "HTTPRouteRequestMirror": "not_reported",
+            "HTTPRouteRequestTimeout": "not_reported",
+            "HTTPRouteBackendProtocolH2C": "not_reported",
+            "HTTPRouteBackendProtocolWebSocket": "not_reported",
+            "GatewayHTTPListenerIsolation": "not_reported",
+            "GatewayInfrastructurePropagation": "not_reported"
+          }
+        },
+        {
+          "name": "GATEWAY-HTTP",
+          "core": {
+            "result": "partial",
+            "passed": 32,
+            "failed": 0,
+            "skipped": 1,
+            "skipped_tests": [
+              "HTTPRouteHeaderMatching"
+            ],
+            "failed_tests": []
+          },
+          "extended": {
+            "result": "success",
+            "passed": 3,
+            "failed": 0,
+            "skipped": 0,
+            "skipped_tests": [],
+            "failed_tests": []
+          },
+          "declared_supported_features": [
+            "HTTPRouteHostRewrite",
+            "HTTPRoutePathRewrite",
+            "HTTPRouteResponseHeaderModification"
+          ],
+          "declared_unsupported_features": [
+            "GatewayHTTPListenerIsolation",
+            "GatewayInfrastructurePropagation",
+            "GatewayPort8080",
+            "GatewayStaticAddresses",
+            "HTTPRouteBackendProtocolH2C",
+            "HTTPRouteBackendProtocolWebSocket",
+            "HTTPRouteBackendRequestHeaderModification",
+            "HTTPRouteBackendTimeout",
+            "HTTPRouteDestinationPortMatching",
+            "HTTPRouteMethodMatching",
+            "HTTPRouteParentRefPort",
+            "HTTPRoutePathRedirect",
+            "HTTPRoutePortRedirect",
+            "HTTPRouteQueryParamMatching",
+            "HTTPRouteRequestMirror",
+            "HTTPRouteRequestMultipleMirrors",
+            "HTTPRouteRequestTimeout",
+            "HTTPRouteSchemeRedirect"
+          ],
+          "selected_feature_declarations": {
+            "HTTPRoutePathRewrite": "declared_supported",
+            "HTTPRouteResponseHeaderModification": "declared_supported",
+            "HTTPRouteRequestMirror": "declared_unsupported",
+            "HTTPRouteRequestTimeout": "declared_unsupported",
+            "HTTPRouteBackendProtocolH2C": "declared_unsupported",
+            "HTTPRouteBackendProtocolWebSocket": "declared_unsupported",
+            "GatewayHTTPListenerIsolation": "declared_unsupported",
+            "GatewayInfrastructurePropagation": "declared_unsupported"
+          }
+        }
+      ],
+      "notes": [],
+      "performance_measurements": null,
+      "rank_eligible": false
+    }
+  ]
+}
