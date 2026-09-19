@@ -5,7 +5,7 @@ created: "2026-02-09"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 38
+reading_time: 39
 tags:
   - benchmark
   - cni
@@ -243,7 +243,7 @@ Confirm the experiment account, role, region and cluster context first, and gran
 
 ## Reference: VPC CNI vs Cilium Network Policy Comparison
 
-Current AWS VPC CNI documentation describes Kubernetes NetworkPolicy with Pod/namespace selectors and CIDRs, and documents FQDN policy as a separate capability. A comparison claiming “VPC CNI only filters IPs; only Cilium supports FQDNs” is therefore inaccurate. Do not backdate current capabilities to the February 2026 experiment; record the supported versions and node types.
+[AWS VPC CNI documentation](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html) describes Kubernetes NetworkPolicy with Pod/namespace selectors and CIDRs. Describing it as a policy that can only specify IP addresses is inaccurate. The FQDN example below uses a Cilium extension; this review has not established a VPC CNI FQDN feature, API, or supported release. Check official evidence for the APIs and versions being compared rather than claiming product exclusivity. Do not backdate current capabilities to the February 2026 experiment; record the supported versions and node types.
 
 ### Key Differences
 

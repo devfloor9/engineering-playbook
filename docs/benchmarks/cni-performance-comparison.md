@@ -243,7 +243,7 @@ CNI 변경은 Pod의 네트워크 연결을 바꾸므로 단순한 애플리케�
 
 ## 참고: VPC CNI vs Cilium 네트워크 정책 비교
 
-현재 AWS VPC CNI 문서는 Kubernetes NetworkPolicy의 Pod·namespace selector와 CIDR 기반 제어를 설명하고, FQDN 정책은 별도 기능으로 문서화합니다. 따라서 “VPC CNI는 IP 기반 제어만 가능하고 FQDN은 Cilium만 가능”이라는 비교는 맞지 않습니다. 현재 기능을 2026년 2월 실험에 소급 적용하지 말고, 각 버전·노드 유형의 지원 범위를 기록해야 합니다.
+[AWS VPC CNI 문서](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html)는 Kubernetes NetworkPolicy의 Pod·namespace selector와 CIDR 기반 제어를 설명합니다. 따라서 이를 IP 주소만 지정할 수 있는 정책으로 설명하면 부정확합니다. 아래 FQDN 예시는 Cilium의 확장 정책이며, 이 검토에서 VPC CNI의 FQDN 기능·API·지원 버전을 확인한 것은 아닙니다. 특정 제품만 지원한다고 단정하지 말고 비교할 API와 버전의 공식 근거를 확인합니다. 현재 기능을 2026년 2월 실험에 소급 적용하지 말고, 각 버전·노드 유형의 지원 범위를 기록해야 합니다.
 
 ### 주요 차이점
 
