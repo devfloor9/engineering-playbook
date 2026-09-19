@@ -5,7 +5,7 @@ created: "2026-06-17"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 21
+reading_time: 32
 tags:
   - eks
   - gateway-api
@@ -551,38 +551,77 @@ spec:
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
+This Cilium `v1.19.3` example uses a separately managed `CiliumEnvoyConfig` (CEC) to handle traffic for the existing single-port `production/api-service:8080` Service. Configure it separately from the listeners automatically managed by a Gateway.
+
+Enable kube-proxy replacement and Envoy configuration support, and use the packaged Envoy build containing `local_ratelimit`. Cilium supplies the Service's backend endpoints through EDS. Combine required filters in one configuration instead of applying multiple CECs to the same Service. Leave Gateway-generated CECs under controller ownership, preserve the authentication path and check the identities used by network policy.
+
+The token bucket starts with 200 tokens and refills 100 each second **per Envoy process**. Activation and enforcement are both 100%. Treat these values as process-local limits, not as a quota for the entire cluster or an authenticated user. Enforcement with actual traffic still requires verification.
+
 ```yaml
+# cilium-rate.yaml
+# Cilium v1.19.3 Service interception; one owner per Service/listener.
 apiVersion: cilium.io/v2
 kind: CiliumEnvoyConfig
 metadata:
   name: rate-limit
+  namespace: production
+  annotations:
+    cec.cilium.io/use-original-source-address: "false"
 spec:
   services:
     - name: api-service
       namespace: production
-  backendServices:
-    - name: api-service
-      namespace: production
-      number:
-        - "8080"
+      ports: [8080]
+      listener: rate-limit-listener
   resources:
     - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: envoy-lb-listener
-      filterChains:
+      name: rate-limit-listener
+      filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
-              typedConfig:
+              typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                httpFilters:
+                stat_prefix: rate-limit
+                rds:
+                  route_config_name: rate-limit-routes
+                http_filters:
                   - name: envoy.filters.http.local_ratelimit
-                    typedConfig:
+                    typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
-                      statPrefix: http_local_rate_limiter
-                      tokenBucket:
-                        maxTokens: 200
-                        tokensPerFill: 100
-                        fillInterval: 1s
+                      stat_prefix: api_local_rate
+                      token_bucket:
+                        max_tokens: 200
+                        tokens_per_fill: 100
+                        fill_interval: 1s
+                      filter_enabled:
+                        default_value:
+                          numerator: 100
+                          denominator: HUNDRED
+                      filter_enforced:
+                        default_value:
+                          numerator: 100
+                          denominator: HUNDRED
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - "@type": type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+      name: rate-limit-routes
+      virtual_hosts:
+        - name: api
+          domains: ["*"]
+          routes:
+            - match:
+                prefix: "/"
+              route:
+                cluster: production/api-service
+    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+      name: production/api-service
+      type: EDS
+      connect_timeout: 5s
+      lb_policy: ROUND_ROBIN
 ```
+
+[Cilium 1.19.3 Service/CEC contract](https://github.com/cilium/cilium/blob/v1.19.3/pkg/k8s/apis/cilium.io/v2/cec_types.go) · [Versioned L7 caveats](https://github.com/cilium/cilium/blob/v1.19.3/Documentation/network/servicemesh/l7-traffic-management.rst)
 
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
@@ -630,32 +669,34 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
+For the kgateway `v2.2.0` **Envoy data plane**, use `TrafficPolicy` to add a local request limit to an existing `production/api-route`. The HTTPRoute needs valid Gateway and backend references.
+
+The token bucket allows a burst of 200 and refills 100 each second per Envoy process. The controller enables and enforces the filter by default, but check for runtime overrides. A cluster-wide quota requires a separate rate-limit service/GatewayExtension. Per-user quotas also require verified identity inputs; an arbitrary `x-user-id` header is insufficient.
+
+When combining this with authentication from Section 1 or the body-limit example, put the required settings into the intended effective policy and retain JWT authentication. Do not assume that independent policies targeting the same resource merge automatically.
+
 ```yaml
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
+# kgateway-rate.yaml
+# kgateway v2.2.0 Envoy data plane; existing production/api-route.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
 metadata:
   name: rate-limit
+  namespace: production
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: api-route
-  rateLimitConfigs:
-    - actions:
-        - genericKey:
-            descriptorValue: per-user
-        - requestHeaders:
-            headerName: x-user-id
-            descriptorKey: user_id
-      limit:
-        dynamicMetadata:
-          metadataKey:
-            key: rl
-            path:
-              - key: per-user
-        unit: SECOND
-        requestsPerUnit: 100
+  rateLimit:
+    local:
+      tokenBucket:
+        maxTokens: 200
+        tokensPerFill: 100
+        fillInterval: 1s
 ```
+
+[2.2.0 rate-limit API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Controller activation/enforcement](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/local_rate_limit_plugin.go)
 
 </TabItem>
 </Tabs>
@@ -833,7 +874,7 @@ spec:
 <TabItem value="kgateway" label="kGateway">
 
 :::warning Limitation
-kGateway implements native IP filtering by combining the RouteOption CRD's networkPolicy or a Kubernetes NetworkPolicy.
+The Kubernetes NetworkPolicy below restricts TCP port 8080 access to Pods labeled `app: api-service` in the `production` namespace. It requires a CNI that enforces the policy. A Gateway or NAT can change the source address seen by that policy, so verify the actual network path. This policy does not inspect client addresses carried in HTTP headers.
 :::
 
 ```yaml
@@ -1030,21 +1071,25 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
+NGINX Gateway Fabric `v2.4.0` configures cookie persistence through **HTTPRoute rule `sessionPersistence`**. It requires NGINX Plus, Gateway API `v1.4.1` experimental CRDs and NGF experimental-feature support. Adding an `UpstreamSettingsPolicy.sessionAffinity` field is unsupported.
+
+NGINX OSS can use `UpstreamSettingsPolicy.targetRefs` with `loadBalancingMethod: ip_hash` for IP-based affinity. That approach uses the client IP and differs from cookie-based affinity.
+
+The YAML below contains fields to add to an existing `HTTPRoute.spec.rules[]` entry. Merge them while preserving its matches, authentication filters and backend references. `Permanent` with `absoluteTimeout: 1h` sets the persistence cookie's lifetime. The cookie does not authenticate a user or guarantee the selected backend's availability.
+
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
-kind: UpstreamSettingsPolicy
-metadata:
-  name: session-affinity
-  namespace: production
-spec:
-  targetRef:
-    group: ""
-    kind: Service
-    name: api-service
-  sessionAffinity:
-    cookieName: BACKEND_SESSION
-    cookieExpires: 1h
+# ngf-session-rule.yaml
+# Merge into an existing HTTPRoute.spec.rules[] entry; not a resource.
+# NGF v2.4.0 + NGINX Plus + Gateway API v1.4.1 experimental CRDs.
+sessionPersistence:
+  sessionName: BACKEND_SESSION
+  type: Cookie
+  absoluteTimeout: 1h
+  cookieConfig:
+    lifetimeType: Permanent
 ```
+
+[NGF 2.4.0 Plus/experimental guards](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/internal/controller/state/graph/httproute.go) · [Versioned Plus example](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/tests/suite/manifests/session-persistence/routes-plus.yaml)
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
@@ -1072,24 +1117,25 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
+For kgateway `v2.2.0` with the **Envoy data plane** and Gateway API `v1.4.1` experimental CRDs, use HTTPRoute rule `sessionPersistence`. Check the data plane's feature support separately before adapting this example for agentgateway.
+
+The YAML below is a set of fields to merge into an existing rule of `production/api-route`. Preserve its matches, backend references and the authentication policy attached in Section 1.
+
+A persistence cookie directs requests to the same backend. Give it a name distinct from the application's authentication cookie. The one-hour setting controls this routing cookie's lifetime; it does not define the user's session lifetime or keep a failed backend available.
+
 ```yaml
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
-metadata:
-  name: session-affinity
-  namespace: production
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      name: api-route
-  sessionAffinity:
-    cookieBased:
-      cookie:
-        name: JSESSIONID
-        ttl: 3600s
-        path: /
+# kgateway-session-rule.yaml
+# Merge into an existing HTTPRoute.spec.rules[] entry; not a resource.
+# kgateway v2.2.0 Envoy data plane + Gateway API v1.4.1 experimental CRDs.
+sessionPersistence:
+  sessionName: BACKEND_SESSION
+  type: Cookie
+  absoluteTimeout: 1h
+  cookieConfig:
+    lifetimeType: Permanent
 ```
+
+[kgateway 2.2.0 cookie fixture](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/test/e2e/features/session_persistence/testdata/cookie-session-persistence.yaml)
 
 </TabItem>
 </Tabs>
@@ -1186,35 +1232,65 @@ If you use IP Allowlist, Rate Limiting, and Body Size limits all together, you d
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
-:::warning Limitation
-The Cilium Gateway API does not provide a dedicated request body size limit CRD. You must configure Envoy's buffer filter via CiliumEnvoyConfig, or handle it in the backend application.
-:::
+Cilium `v1.19.3` can limit request-body size with the HTTP **buffer filter** included in its packaged Envoy image. The example below configures a listener, route and EDS cluster for the existing single-port `production/api-service:8080`. It requires kube-proxy replacement and Envoy configuration support.
+
+To use the request limit in Section 2 as well, combine the filters in one configuration instead of applying both CECs unchanged. Leave Gateway-generated CECs under controller ownership, preserve the authentication path and verify network-policy identities.
+
+`max_request_bytes: 10485760` limits the body buffered by this filter to **10 MiB**; larger bodies receive HTTP 413. Connection buffers and header sizes have separate limits. Buffering the complete body affects streaming and memory use. Verify decompressed application-payload sizes and paths that bypass this filter separately.
 
 ```yaml
+# cilium-body.yaml
+# Cilium v1.19.3 Service interception; one owner per Service/listener.
 apiVersion: cilium.io/v2
 kind: CiliumEnvoyConfig
 metadata:
   name: body-size-limit
   namespace: production
+  annotations:
+    cec.cilium.io/use-original-source-address: "false"
 spec:
   services:
     - name: api-service
       namespace: production
+      ports: [8080]
+      listener: body-size-limit-listener
   resources:
     - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: envoy-lb-listener
-      filterChains:
+      name: body-size-limit-listener
+      filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
-              typedConfig:
+              typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                commonHttpProtocolOptions:
-                  maxRequestHeadersKb: 60
-                http2ProtocolOptions:
-                  maxConcurrentStreams: 100
-                # Limit request body size with the Envoy buffer filter
-                perConnectionBufferLimitBytes: 10485760  # 10MB
+                stat_prefix: body-size-limit
+                rds:
+                  route_config_name: body-size-limit-routes
+                http_filters:
+                  - name: envoy.filters.http.buffer
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer
+                      max_request_bytes: 10485760
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - "@type": type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+      name: body-size-limit-routes
+      virtual_hosts:
+        - name: api
+          domains: ["*"]
+          routes:
+            - match:
+                prefix: "/"
+              route:
+                cluster: production/api-service
+    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+      name: production/api-service
+      type: EDS
+      connect_timeout: 5s
+      lb_policy: ROUND_ROBIN
 ```
+
+[Packaged Envoy image](https://github.com/cilium/cilium/blob/v1.19.3/install/kubernetes/cilium/values.yaml) · [Packaged build extensions](https://github.com/cilium/proxy/blob/2437d2edeaf4d9b56ef279bd0d71127440c067aa/envoy_build_config/extensions_build_config.bzl) · [Buffer contract](https://github.com/envoyproxy/envoy/blob/v1.36.0/api/envoy/extensions/filters/http/buffer/v3/buffer.proto)
 
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
@@ -1251,27 +1327,28 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
-:::warning Limitation
-kGateway does not directly support a body size limit in the RouteOption CRD. Implement it via the backend service or an Envoy filter extension.
-:::
+For kgateway `v2.2.0` with the **Envoy data plane**, set `TrafficPolicy.spec.buffer.maxRequestSize` to limit request-body size. `10Mi` is **10 MiB = 10,485,760 bytes**; the HTTP buffer filter rejects larger bodies with HTTP 413. This limit is separate from connection-level buffer sizes.
+
+Prepare `production/api-route` and its Gateway/backend first. When combining request limits and authentication, collect the required settings in the intended effective policy. Verify the effects of full-body buffering on streaming and memory, as well as limits on decompressed payloads and bypass paths.
 
 ```yaml
-# kGateway recommends body size validation in the backend application
-# Or configure a global buffer limit with ListenerOption
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: ListenerOption
+# kgateway-body.yaml
+# kgateway v2.2.0 Envoy data plane; existing production/api-route.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
 metadata:
   name: body-size-limit
   namespace: production
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: production-gateway
-      sectionName: http
-  options:
-    perConnectionBufferLimitBytes: 10485760  # 10MB
+      kind: HTTPRoute
+      name: api-route
+  buffer:
+    maxRequestSize: 10Mi
 ```
+
+[2.2.0 buffer API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Buffer translation](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/buffer.go)
 
 </TabItem>
 </Tabs>
@@ -1487,36 +1564,29 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
+For the kgateway `v2.2.0` **Envoy data plane**, an HTTPRoute `ExtensionRef` can reference `gateway.kgateway.dev/DirectResponse`. The route below returns a fixed 503 HTML page for requests matching the `/maintenance` path prefix.
+
+This route has no backend reference. It adds an explicit maintenance path while preserving existing application and authentication routes; it does not rewrite arbitrary upstream 500/503 responses.
+
+Prepare the `production-gateway` HTTPS listener, certificate/DNS and allowed route attachment first. The inline body must fit the DirectResponse schema's 4,096-character limit.
+
 ```yaml
-# Configure a custom response using RouteOption transformation
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
+# kgateway-maintenance.yaml
+# kgateway v2.2.0 Envoy data plane; explicit maintenance path only.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: DirectResponse
 metadata:
-  name: custom-error
+  name: maintenance-response
   namespace: production
 spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      name: maintenance-route
-  options:
-    transformations:
-      responseTransformation:
-        transformationTemplate:
-          headers:
-            ":status":
-              text: "503"
-            content-type:
-              text: "text/html"
-          body:
-            text: |
-              <html>
-              <body>
-                <h1>Service Under Maintenance</h1>
-                <p>Please try again later.</p>
-              </body>
-              </html>
-
+  status: 503
+  body: |
+    <html>
+    <body>
+      <h1>Service Under Maintenance</h1>
+      <p>Please try again later.</p>
+    </body>
+    </html>
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -1526,15 +1596,28 @@ metadata:
 spec:
   parentRefs:
     - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /maintenance
-      backendRefs:
-        - name: api-service
-          port: 8080
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.kgateway.dev
+            kind: DirectResponse
+            name: maintenance-response
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: content-type
+                value: text/html; charset=utf-8
 ```
+
+[2.2.0 DirectResponse schema](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/direct_response_types.go) · [Versioned route example](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/examples/example-direct-response-route.yaml)
 
 </TabItem>
 </Tabs>

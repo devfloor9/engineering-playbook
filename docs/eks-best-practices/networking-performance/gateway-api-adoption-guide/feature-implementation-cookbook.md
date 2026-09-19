@@ -5,7 +5,7 @@ created: "2026-06-17"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 20
 tags:
   - eks
   - gateway-api
@@ -551,38 +551,77 @@ spec:
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
+Cilium `v1.19.3`에서 기존 `production/api-service:8080` Service의 트래픽을 별도의 `CiliumEnvoyConfig`(CEC)로 처리하는 예시입니다. 단일 포트 Service를 대상으로 하며, Gateway가 자동으로 관리하는 listener의 정책과는 별도로 구성합니다.
+
+kube-proxy replacement와 Envoy 설정 지원을 활성화하고, `local_ratelimit` 필터가 포함된 기본 Envoy 빌드를 사용해야 합니다. Cilium은 EDS로 Service의 백엔드 endpoint를 전달합니다. 같은 Service에 여러 CEC를 적용하지 말고 필요한 필터를 하나의 설정으로 합칩니다. Gateway가 생성한 CEC는 직접 수정하지 않습니다. 구성할 때 기존 인증 경로를 유지하고 네트워크 정책이 실제로 사용하는 identity를 확인합니다.
+
+token bucket은 **Envoy 프로세스마다** 처음에 200개 token을 가지고 시작하며, 매초 100개를 보충합니다. 필터 활성화와 제한 적용 비율은 모두 100%입니다. 이 수치는 프로세스 단위 제한이므로 클러스터 전체나 인증된 사용자별 quota로 사용하면 안 됩니다. 실제 트래픽에서 제한이 적용되는지는 별도 검증이 필요합니다.
+
 ```yaml
+# cilium-rate.yaml
+# Cilium v1.19.3 Service interception; one owner per Service/listener.
 apiVersion: cilium.io/v2
 kind: CiliumEnvoyConfig
 metadata:
   name: rate-limit
+  namespace: production
+  annotations:
+    cec.cilium.io/use-original-source-address: "false"
 spec:
   services:
     - name: api-service
       namespace: production
-  backendServices:
-    - name: api-service
-      namespace: production
-      number:
-        - "8080"
+      ports: [8080]
+      listener: rate-limit-listener
   resources:
     - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: envoy-lb-listener
-      filterChains:
+      name: rate-limit-listener
+      filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
-              typedConfig:
+              typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                httpFilters:
+                stat_prefix: rate-limit
+                rds:
+                  route_config_name: rate-limit-routes
+                http_filters:
                   - name: envoy.filters.http.local_ratelimit
-                    typedConfig:
+                    typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
-                      statPrefix: http_local_rate_limiter
-                      tokenBucket:
-                        maxTokens: 200
-                        tokensPerFill: 100
-                        fillInterval: 1s
+                      stat_prefix: api_local_rate
+                      token_bucket:
+                        max_tokens: 200
+                        tokens_per_fill: 100
+                        fill_interval: 1s
+                      filter_enabled:
+                        default_value:
+                          numerator: 100
+                          denominator: HUNDRED
+                      filter_enforced:
+                        default_value:
+                          numerator: 100
+                          denominator: HUNDRED
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - "@type": type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+      name: rate-limit-routes
+      virtual_hosts:
+        - name: api
+          domains: ["*"]
+          routes:
+            - match:
+                prefix: "/"
+              route:
+                cluster: production/api-service
+    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+      name: production/api-service
+      type: EDS
+      connect_timeout: 5s
+      lb_policy: ROUND_ROBIN
 ```
+
+[Cilium 1.19.3 Service/CEC 계약](https://github.com/cilium/cilium/blob/v1.19.3/pkg/k8s/apis/cilium.io/v2/cec_types.go) · [버전별 L7 주의사항](https://github.com/cilium/cilium/blob/v1.19.3/Documentation/network/servicemesh/l7-traffic-management.rst)
 
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
@@ -630,32 +669,34 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
+kgateway `v2.2.0`의 **Envoy data plane**에서는 `TrafficPolicy`로 기존 `production/api-route`에 로컬 요청 제한을 설정합니다. 해당 HTTPRoute의 Gateway와 backend 참조가 유효해야 합니다.
+
+이 token bucket은 Envoy 프로세스마다 burst 200개, 매초 100개 보충을 설정합니다. controller는 기본적으로 필터를 활성화하고 제한을 적용하지만, runtime override가 있는지도 확인해야 합니다. 클러스터 전체 quota에는 별도의 rate-limit 서비스/GatewayExtension이 필요합니다. 사용자별 quota에는 검증된 사용자 식별값도 필요하며, 임의의 `x-user-id` 헤더를 신뢰해서는 안 됩니다.
+
+1절의 인증이나 본문 제한 예시와 함께 사용할 때는 최종 적용될 정책에 필요한 설정을 모으고 JWT 인증을 유지합니다. 같은 대상을 지정한 정책들이 자동으로 합쳐지는 것으로 가정하지 않습니다.
+
 ```yaml
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
+# kgateway-rate.yaml
+# kgateway v2.2.0 Envoy data plane; existing production/api-route.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
 metadata:
   name: rate-limit
+  namespace: production
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: api-route
-  rateLimitConfigs:
-    - actions:
-        - genericKey:
-            descriptorValue: per-user
-        - requestHeaders:
-            headerName: x-user-id
-            descriptorKey: user_id
-      limit:
-        dynamicMetadata:
-          metadataKey:
-            key: rl
-            path:
-              - key: per-user
-        unit: SECOND
-        requestsPerUnit: 100
+  rateLimit:
+    local:
+      tokenBucket:
+        maxTokens: 200
+        tokensPerFill: 100
+        fillInterval: 1s
 ```
+
+[2.2.0 rate-limit API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Controller 활성화/enforcement](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/local_rate_limit_plugin.go)
 
 </TabItem>
 </Tabs>
@@ -833,7 +874,7 @@ spec:
 <TabItem value="kgateway" label="kGateway">
 
 :::warning 제한 사항
-kGateway는 네이티브 IP 필터링을 RouteOption CRD의 networkPolicy 또는 Kubernetes NetworkPolicy와 조합하여 구현합니다.
+아래 Kubernetes NetworkPolicy는 `production` namespace에서 `app: api-service`인 Pod의 TCP 8080 접근을 제한하는 예시입니다. 정책을 집행하는 CNI가 필요합니다. Gateway나 NAT를 거친 연결에서는 정책이 보는 출발지 주소가 원래 클라이언트 주소와 다를 수 있으므로 실제 통신 경로를 확인해야 합니다. HTTP 헤더의 클라이언트 주소를 검사하는 정책으로 해석하지 않습니다.
 :::
 
 ```yaml
@@ -1030,21 +1071,25 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
+NGINX Gateway Fabric `v2.4.0`의 cookie persistence는 **HTTPRoute rule의 `sessionPersistence`**로 설정합니다. NGINX Plus, Gateway API `v1.4.1` experimental CRD, NGF의 experimental 기능 활성화가 필요합니다. `UpstreamSettingsPolicy.sessionAffinity`라는 필드를 추가하는 방식은 지원되지 않습니다.
+
+NGINX OSS에서는 `UpstreamSettingsPolicy.targetRefs`와 `loadBalancingMethod: ip_hash`로 IP 기반 affinity를 구성할 수 있습니다. 이는 클라이언트 IP를 이용하는 방식으로, cookie 기반 affinity와 구분해야 합니다.
+
+아래 YAML은 기존 `HTTPRoute.spec.rules[]`의 대상 rule에 추가할 필드입니다. 기존 matches, 인증 filter와 backend 참조를 유지한 채 병합합니다. `Permanent`와 `absoluteTimeout: 1h`는 persistence cookie의 수명을 정합니다. 이 cookie가 사용자 인증을 대신하거나 선택한 backend의 가용성을 보장하지는 않습니다.
+
 ```yaml
-apiVersion: gateway.nginx.org/v1alpha1
-kind: UpstreamSettingsPolicy
-metadata:
-  name: session-affinity
-  namespace: production
-spec:
-  targetRef:
-    group: ""
-    kind: Service
-    name: api-service
-  sessionAffinity:
-    cookieName: BACKEND_SESSION
-    cookieExpires: 1h
+# ngf-session-rule.yaml
+# Merge into an existing HTTPRoute.spec.rules[] entry; not a resource.
+# NGF v2.4.0 + NGINX Plus + Gateway API v1.4.1 experimental CRDs.
+sessionPersistence:
+  sessionName: BACKEND_SESSION
+  type: Cookie
+  absoluteTimeout: 1h
+  cookieConfig:
+    lifetimeType: Permanent
 ```
+
+[NGF 2.4.0 Plus/experimental 조건](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/internal/controller/state/graph/httproute.go) · [버전별 Plus 예시](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/tests/suite/manifests/session-persistence/routes-plus.yaml)
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
@@ -1072,24 +1117,25 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
+kgateway `v2.2.0`의 **Envoy data plane**과 Gateway API `v1.4.1` experimental CRD에서는 HTTPRoute rule의 `sessionPersistence`를 사용합니다. agentgateway에서 사용하려면 해당 data plane의 지원 범위를 별도로 확인해야 합니다.
+
+아래 YAML은 독립 리소스가 아니라 기존 `production/api-route`의 rule에 추가할 필드입니다. matches, backend 참조, 1절에서 연결한 인증 정책을 유지한 채 병합합니다.
+
+persistence cookie는 요청을 같은 backend로 보내기 위한 cookie입니다. 애플리케이션의 인증 cookie와 다른 이름을 사용합니다. 여기의 한 시간 설정은 라우팅 cookie의 수명이며, 사용자 세션 수명이나 장애가 난 backend의 가용성을 보장하지 않습니다.
+
 ```yaml
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
-metadata:
-  name: session-affinity
-  namespace: production
-spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      name: api-route
-  sessionAffinity:
-    cookieBased:
-      cookie:
-        name: JSESSIONID
-        ttl: 3600s
-        path: /
+# kgateway-session-rule.yaml
+# Merge into an existing HTTPRoute.spec.rules[] entry; not a resource.
+# kgateway v2.2.0 Envoy data plane + Gateway API v1.4.1 experimental CRDs.
+sessionPersistence:
+  sessionName: BACKEND_SESSION
+  type: Cookie
+  absoluteTimeout: 1h
+  cookieConfig:
+    lifetimeType: Permanent
 ```
+
+[kgateway 2.2.0 cookie fixture](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/test/e2e/features/session_persistence/testdata/cookie-session-persistence.yaml)
 
 </TabItem>
 </Tabs>
@@ -1186,35 +1232,65 @@ IP Allowlist, Rate Limiting, Body Size 제한을 모두 사용한다면, 별도�
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
-:::warning 제한 사항
-Cilium Gateway API는 별도의 요청 본문 크기 제한 CRD를 제공하지 않습니다. CiliumEnvoyConfig로 Envoy의 buffer 필터를 구성하거나, 백엔드 애플리케이션에서 처리해야 합니다.
-:::
+Cilium `v1.19.3`에서는 기본 Envoy 이미지에 포함된 HTTP **buffer 필터**로 요청 본문 크기를 제한할 수 있습니다. 아래 예시는 기존 단일 포트 `production/api-service:8080`의 트래픽을 처리하는 listener, route, EDS cluster를 구성합니다. kube-proxy replacement와 Envoy 설정 지원이 필요합니다.
+
+2절의 요청 제한도 함께 쓰려면 두 CEC를 그대로 적용하지 말고 한 설정에 필터를 합칩니다. Gateway가 생성한 CEC는 직접 수정하지 않습니다. 기존 인증 경로와 네트워크 정책의 identity도 유지·확인해야 합니다.
+
+`max_request_bytes: 10485760`은 이 필터가 버퍼링할 본문의 상한 **10 MiB**입니다. 더 큰 본문은 HTTP 413으로 거부합니다. connection buffer나 헤더 크기와는 다른 제한입니다. 본문 전체를 버퍼링하므로 streaming과 메모리 사용에 영향을 줍니다. 압축을 해제한 뒤의 애플리케이션 payload 크기와 필터를 거치지 않는 경로는 따로 검증해야 합니다.
 
 ```yaml
+# cilium-body.yaml
+# Cilium v1.19.3 Service interception; one owner per Service/listener.
 apiVersion: cilium.io/v2
 kind: CiliumEnvoyConfig
 metadata:
   name: body-size-limit
   namespace: production
+  annotations:
+    cec.cilium.io/use-original-source-address: "false"
 spec:
   services:
     - name: api-service
       namespace: production
+      ports: [8080]
+      listener: body-size-limit-listener
   resources:
     - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: envoy-lb-listener
-      filterChains:
+      name: body-size-limit-listener
+      filter_chains:
         - filters:
             - name: envoy.filters.network.http_connection_manager
-              typedConfig:
+              typed_config:
                 "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                commonHttpProtocolOptions:
-                  maxRequestHeadersKb: 60
-                http2ProtocolOptions:
-                  maxConcurrentStreams: 100
-                # Envoy buffer 필터로 요청 본문 크기 제한
-                perConnectionBufferLimitBytes: 10485760  # 10MB
+                stat_prefix: body-size-limit
+                rds:
+                  route_config_name: body-size-limit-routes
+                http_filters:
+                  - name: envoy.filters.http.buffer
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer
+                      max_request_bytes: 10485760
+                  - name: envoy.filters.http.router
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+    - "@type": type.googleapis.com/envoy.config.route.v3.RouteConfiguration
+      name: body-size-limit-routes
+      virtual_hosts:
+        - name: api
+          domains: ["*"]
+          routes:
+            - match:
+                prefix: "/"
+              route:
+                cluster: production/api-service
+    - "@type": type.googleapis.com/envoy.config.cluster.v3.Cluster
+      name: production/api-service
+      type: EDS
+      connect_timeout: 5s
+      lb_policy: ROUND_ROBIN
 ```
+
+[기본 Envoy 이미지](https://github.com/cilium/cilium/blob/v1.19.3/install/kubernetes/cilium/values.yaml) · [해당 빌드의 extension 목록](https://github.com/cilium/proxy/blob/2437d2edeaf4d9b56ef279bd0d71127440c067aa/envoy_build_config/extensions_build_config.bzl) · [Buffer 계약](https://github.com/envoyproxy/envoy/blob/v1.36.0/api/envoy/extensions/filters/http/buffer/v3/buffer.proto)
 
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
@@ -1251,27 +1327,28 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
-:::warning 제한 사항
-kGateway는 RouteOption CRD에서 body size limit을 직접 지원하지 않습니다. 백엔드 서비스 또는 Envoy 필터 확장을 통해 구현합니다.
-:::
+kgateway `v2.2.0`의 **Envoy data plane**에서는 `TrafficPolicy.spec.buffer.maxRequestSize`로 요청 본문 크기를 제한합니다. `10Mi`는 **10 MiB = 10,485,760 bytes**이며, HTTP buffer 필터가 더 큰 본문을 HTTP 413으로 거부합니다. 연결 단위 버퍼 크기와는 다른 제한입니다.
+
+대상 `production/api-route`와 Gateway/backend를 먼저 준비합니다. 요청 제한·인증 정책과 함께 쓸 때는 최종 적용될 정책에 필요한 설정을 모읍니다. 본문 전체 버퍼링이 streaming과 메모리에 미치는 영향, 압축 해제 후 payload 크기, 우회 경로의 제한은 별도로 검증합니다.
 
 ```yaml
-# kGateway는 백엔드 애플리케이션에서 본문 크기 검증을 권장
-# 또는 ListenerOption으로 전역 버퍼 제한 구성
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: ListenerOption
+# kgateway-body.yaml
+# kgateway v2.2.0 Envoy data plane; existing production/api-route.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
 metadata:
   name: body-size-limit
   namespace: production
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: production-gateway
-      sectionName: http
-  options:
-    perConnectionBufferLimitBytes: 10485760  # 10MB
+      kind: HTTPRoute
+      name: api-route
+  buffer:
+    maxRequestSize: 10Mi
 ```
+
+[2.2.0 buffer API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Buffer 변환](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/buffer.go)
 
 </TabItem>
 </Tabs>
@@ -1487,36 +1564,29 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
+kgateway `v2.2.0`의 **Envoy data plane**에서는 HTTPRoute의 `ExtensionRef`로 `gateway.kgateway.dev/DirectResponse`를 참조할 수 있습니다. 아래 route는 `/maintenance` path prefix로 들어온 요청에 고정 503 HTML 페이지를 반환합니다.
+
+이 route에는 backend 참조가 없습니다. 기존 애플리케이션·인증 route를 유지하면서 명시적인 점검 경로를 추가하는 예시이며, upstream의 임의 500/503 응답을 바꾸는 설정은 아닙니다.
+
+`production-gateway`의 HTTPS listener, 인증서/DNS, route 연결 권한을 먼저 준비합니다. inline body는 DirectResponse 스키마의 4,096자 제한 안에 있어야 합니다.
+
 ```yaml
-# RouteOption의 transformation을 사용하여 커스텀 응답 구성
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
+# kgateway-maintenance.yaml
+# kgateway v2.2.0 Envoy data plane; explicit maintenance path only.
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: DirectResponse
 metadata:
-  name: custom-error
+  name: maintenance-response
   namespace: production
 spec:
-  targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      name: maintenance-route
-  options:
-    transformations:
-      responseTransformation:
-        transformationTemplate:
-          headers:
-            ":status":
-              text: "503"
-            content-type:
-              text: "text/html"
-          body:
-            text: |
-              <html>
-              <body>
-                <h1>Service Under Maintenance</h1>
-                <p>Please try again later.</p>
-              </body>
-              </html>
-
+  status: 503
+  body: |
+    <html>
+    <body>
+      <h1>Service Under Maintenance</h1>
+      <p>Please try again later.</p>
+    </body>
+    </html>
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -1526,15 +1596,28 @@ metadata:
 spec:
   parentRefs:
     - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
   rules:
     - matches:
         - path:
             type: PathPrefix
             value: /maintenance
-      backendRefs:
-        - name: api-service
-          port: 8080
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.kgateway.dev
+            kind: DirectResponse
+            name: maintenance-response
+        - type: ResponseHeaderModifier
+          responseHeaderModifier:
+            set:
+              - name: content-type
+                value: text/html; charset=utf-8
 ```
+
+[2.2.0 DirectResponse 스키마](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/direct_response_types.go) · [버전별 route 예시](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/examples/example-direct-response-route.yaml)
 
 </TabItem>
 </Tabs>
