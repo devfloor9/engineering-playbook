@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 75
+reading_time: 88
 tags:
   - eks
   - kubernetes
@@ -879,14 +879,44 @@ spec:
 | `minDomains` 설정 후 모든 Pod Pending | 클러스터에 해당 수의 AZ 없음 | 실제 AZ 수에 맞춰 `minDomains` 조정 |
 
 :::tip Topology Spread 디버깅 명령어
-```bash
-# Pod가 배치된 AZ 분포 확인
-kubectl get pods -n production -l app=multi-az-app \
-  -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName,ZONE:.spec.nodeSelector.topology\.kubernetes\.io/zone
+같은 클러스터의 Pod·Node 스냅샷을 사용하고 수집 시각을 기록합니다. `spec.nodeSelector`는 입력 제약이며, 실제 AZ는 `spec.nodeName`으로 연결한 Node의 label에서 확인합니다. 두 목록은 원자적 스냅샷이 아닙니다.
 
-# 노드별 Pod 수 확인
-kubectl get pods -A -o wide --no-headers | \
-  awk '{print $8}' | sort | uniq -c | sort -rn
+```bash
+: "${CONTEXT:?대상 Kubernetes context 지정}"
+: "${NAMESPACE:?워크로드 namespace 지정}"
+: "${SELECTOR:?워크로드 label selector 지정}"
+kubectl --context "$CONTEXT" get pods -n "$NAMESPACE" -l "$SELECTOR" -o json > pods.json
+kubectl --context "$CONTEXT" get nodes -o json > nodes.json
+```
+
+다음 오프라인 함수는 전달받은 JSON 객체를 연결합니다. 노드·AZ별 수를 집계할 때 미배치 Pod, 누락된 Node, 알 수 없는 AZ와 `Unknown` readiness를 별도로 유지합니다.
+
+```python
+def placement_report(pod_list, node_list):
+    """Join supplied snapshots only; labels are observations, not ownership proof."""
+    nodes = {n["metadata"]["name"]: n for n in node_list["items"]}
+    result = []
+    for pod in pod_list["items"]:
+        name = pod.get("spec", {}).get("nodeName")
+        node = nodes.get(name)
+        labels = (node or {}).get("metadata", {}).get("labels", {})
+        ready = next((c.get("status", "Unknown")
+                      for c in (node or {}).get("status", {}).get("conditions", [])
+                      if c.get("type") == "Ready"), "Unknown")
+        result.append({
+            "namespace": pod["metadata"].get("namespace", "default"),
+            "pod": pod["metadata"]["name"],
+            "node": name,
+            "placement": ("unscheduled" if not name else
+                          "node_missing" if node is None else "node_found"),
+            "zone": labels.get("topology.kubernetes.io/zone"),
+            "nodeReady": ready,
+            "providerID": (node or {}).get("spec", {}).get("providerID"),
+            "nodepoolLabel": labels.get("karpenter.sh/nodepool"),
+            "nodegroupLabel": labels.get("eks.amazonaws.com/nodegroup"),
+            "owners": pod["metadata"].get("ownerReferences", []),
+        })
+    return result
 ```
 :::
 
@@ -996,8 +1026,10 @@ spec:
 
 #### 패턴 2: 시스템 워크로드 격리
 
+이 독립 실행형 Karpenter 예시는 `v1.14.1`의 NodePool/EC2NodeClass 규약을 기준으로 합니다. 참조하는 `default` EC2NodeClass에는 대상 AMI, 노드 역할, 서브넷, 보안 그룹이 미리 구성되어 있어야 합니다. 설치된 컨트롤러·CRD와 클러스터 버전의 호환성을 확인하며, 참조 자체가 이 의존 리소스를 생성하지는 않습니다.
+
 ```yaml
-# Karpenter로 시스템 전용 NodePool 생성
+# 시스템 전용 NodePool
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -1005,6 +1037,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: node.kubernetes.io/instance-type
         operator: In
@@ -1035,7 +1071,7 @@ spec:
         operator: Equal
         value: system
         effect: NoSchedule
-      # 모든 노드에 배포되어야 하므로 기본 Taints도 Tolerate
+      # 이 DaemonSet 기본 toleration이 모든 사용자 정의 taint 우회를 허용하는 것은 아님
       - key: node.kubernetes.io/not-ready
         operator: Exists
         effect: NoExecute
@@ -1075,13 +1111,16 @@ tolerations:
   value: gpu
   effect: NoSchedule
 
+---
 # Exists: key만 존재하면 됨 (value 무시)
 tolerations:
 - key: workload-type
   operator: Exists
   effect: NoSchedule
 
-# 모든 Taint Tolerate (DaemonSet 등)
+---
+# Wildcard 문법: readiness·격리 guard를 포함한 모든 taint를 tolerate함
+# DaemonSet의 기본 권장값으로 사용하지 않음
 tolerations:
 - operator: Exists
 ```
@@ -1169,7 +1208,11 @@ Karpenter가 프로비저닝하는 모든 노드에 자동으로 Taint가 적용
 
 ### 5.6 Cluster Autoscaler에서 Karpenter로 마이그레이션
 
-Cluster Autoscaler와 Karpenter는 모두 노드 오토스케일링을 제공하지만, 근본적으로 다른 접근 방식을 사용합니다. 이 섹션에서는 마이그레이션 시 스케줄링 동작의 차이와 체크리스트를 제공합니다.
+Cluster Autoscaler는 기존 ASG의 크기를 조정하고, Karpenter는 Pod의 요구 조건에 맞춰 새 노드를 프로비저닝합니다. 마이그레이션할 때는 두 컨트롤러의 관리 범위와 Pod의 실제 배치를 함께 확인해야 합니다.
+
+먼저 대상 AWS 계정, 역할/profile, 리전, Kubernetes context, 워크로드 namespace, ASG/관리형 노드 그룹과 NodePool을 확인합니다. NodePool 필드는 Karpenter `v1.14.1` 기준이며, 참조 EC2NodeClass에는 호환 AMI·IAM·네트워크 설정이 있어야 합니다. Cluster Autoscaler는 Kubernetes minor 버전과 맞춰야 합니다. 아래 설정 조각은 Kubernetes/CA `1.34`를 사용합니다.
+
+롤백할 수 있도록 현재 CA 설치, launch template, 목표 용량과 워크로드 배치 설정을 보관합니다. 주차별 일정은 예시입니다. 실제로 다음 단계로 진행할지는 워크로드 상태, 용량과 데이터 검증 결과로 결정합니다.
 
 #### 5.6.1 스케줄링 동작 차이
 
@@ -1194,23 +1237,23 @@ Cluster Autoscaler와 Karpenter의 핵심 차이는 **노드 프로비저닝 방
 **시나리오: GPU를 요청하는 Pod 3개 생성**
 
 **Cluster Autoscaler 동작:**
-```
-1. Pod 3개 Pending 상태 (GPU 요청)
-2. Cluster Autoscaler가 10초마다 Pending Pod 스캔
-3. GPU ASG를 찾아 확장 요청 (예: g5.2xlarge ASG)
-4. AWS ASG가 노드 프로비저닝 시작 (30~90초)
-5. 노드 Ready 후 kubelet이 Pod 스케줄링
-6. 총 소요 시간: 1~2분
+```text
+1. GPU Pod 3개를 기존 노드에 배치할 수 없다.
+2. CA가 설정된 스캔 주기로 스케줄링 불가 Pod를 평가한다.
+3. 후보 노드 그룹을 시뮬레이션하고 적합한 GPU ASG의 용량 확장을 요청한다.
+4. ASG가 인스턴스를 시작하고 노드가 등록되어 런타임·GPU 리소스를 초기화한다.
+5. 제약을 충족하면 kube-scheduler가 Pod를 바인딩하고 kubelet이 컨테이너를 시작한다.
+6. 트리거부터 용량 확보, 노드 등록, 바인딩, 워크로드 준비까지의 시간을 각각 측정한다.
 ```
 
 **Karpenter 동작:**
-```
-1. Pod 3개 Pending 상태 (GPU 요청)
-2. Karpenter가 즉시 감지 (1~2초)
-3. NodePool 요구사항 기반 최적 인스턴스 선택 (g5.xlarge, g5.2xlarge 중)
-4. 직접 EC2 RunInstances API 호출
-5. 노드 Ready 후 Pod 스케줄링
-6. 총 소요 시간: 30~45초
+```text
+1. GPU Pod 3개를 기존 노드에 배치할 수 없다.
+2. Karpenter가 Pod·NodePool 제약에 따라 프로비저닝 결정을 배치 처리한다.
+3. Karpenter가 제약에 따라 NodeClaim을 생성하고 AWS provider가 적합한 인스턴스 offering을 선택한다.
+4. provider v1.14.1의 인스턴스 생성 경로는 EC2 CreateFleet를 사용한다.
+5. 노드 등록·리소스 초기화 후 kube-scheduler가 배치 가능한 Pod를 바인딩하고 kubelet이 시작한다.
+6. 소요 시간은 용량, AMI, 네트워크, 드라이버, 워크로드 시작에 따라 달라진다. 실측 비교가 아닌 흐름 예시다.
 ```
 
 ##### 비용 최적화 차이
@@ -1221,7 +1264,7 @@ Cluster Autoscaler와 Karpenter의 핵심 차이는 **노드 프로비저닝 방
 - 과도한 프로비저닝(over-provisioning) 발생 가능
 
 **Karpenter:**
-- NodePool에서 Spot/On-Demand 우선순위 선언적 설정
+- NodePool requirements에 허용할 capacity type을 선언하며, 배열 순서가 On-Demand 우선순위를 뜻하지 않습니다.
 - 실시간으로 가장 저렴한 인스턴스 타입 선택
 - Pod 요구사항에 정확히 맞는 노드 프로비저닝
 
@@ -1262,13 +1305,14 @@ metadata:
 spec:
   template:
     spec:
+      expireAfter: 720h  # 노드 수명 30일 예시
       requirements:
       # 인스턴스 타입: ASG LaunchTemplate에서 가져옴
       - key: node.kubernetes.io/instance-type
         operator: In
         values: ["m5.xlarge", "m5.2xlarge", "m5a.xlarge", "m5a.2xlarge"]
 
-      # 용량 타입: On-Demand 우선, Spot 허용
+      # 허용 capacity type 목록이며 배열 순서는 우선순위가 아님
       - key: karpenter.sh/capacity-type
         operator: In
         values: ["on-demand", "spot"]
@@ -1295,8 +1339,8 @@ spec:
 
   # 통합 정책: Consolidation 활성화
   disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h  # 30일
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 1m  # Pod 변경 후 대기 시간 예시
 ```
 
 **변환 가이드:**
@@ -1304,7 +1348,7 @@ spec:
 | ASG 설정 | NodePool 필드 | 비고 |
 |---------|--------------|------|
 | LaunchTemplate 인스턴스 타입 | `requirements[instance-type]` | 더 넓은 범위 권장 (비용 최적화) |
-| Spot/On-Demand | `requirements[capacity-type]` | 우선순위 배열로 변경 |
+| Spot/On-Demand | `requirements[capacity-type]` | 허용 값이며 우선순위 배열이나 목표 비율이 아님 |
 | Subnets (AZ) | `requirements[zone]` | SubnetSelector로도 가능 |
 | Max Size | `limits.cpu`, `limits.memory` | vCPU/메모리 총합으로 환산 |
 | Tags | `EC2NodeClass.tags` | 보안, 비용 추적용 태그 |
@@ -1328,6 +1372,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: karpenter.sh/capacity-type
         operator: In
@@ -1460,45 +1508,42 @@ karpenter_nodepool_usage
 워크로드별로 순차적으로 전환하여 리스크를 최소화합니다.
 
 **Phase 1: 비프로덕션 워크로드 (Week 1-2)**
-```yaml
-# 개발/스테이징 네임스페이스부터 시작
-# 1. Karpenter NodePool 생성 (dev-workload)
-# 2. 기존 ASG 노드에 Taint 추가 (신규 Pod 차단)
-kubectl taint nodes -l eks.amazonaws.com/nodegroup=dev-asg \
-  migration=in-progress:NoSchedule
+선택한 Deployment에 배치 가능한 Karpenter NodePool selector를 지정하고 대체 용량과 rollout 전략을 확인합니다. 아래 재시작은 해당 Deployment만 대상으로 하며, 명령 자체가 Pod를 이동시키거나 PDB가 Deployment rollout을 제한하도록 만들지는 않습니다.
 
-# 3. 개발 워크로드 Rolling Restart
-kubectl rollout restart deployment -n dev --all
-
-# 4. 새 Pod가 Karpenter 노드에 스케줄링 확인
-kubectl get pods -n dev -o wide
-
-# 5. 기존 ASG 스케일 다운
+```bash
+: "${CONTEXT:?대상 Kubernetes context 지정}"
+: "${NAMESPACE:?개발 namespace 지정}"
+: "${DEPLOYMENT:?검토한 Deployment 하나의 이름 지정}"
+kubectl --context "$CONTEXT" -n "$NAMESPACE" rollout restart "deployment/$DEPLOYMENT"
+kubectl --context "$CONTEXT" -n "$NAMESPACE" rollout status "deployment/$DEPLOYMENT" --timeout=5m
 ```
 
+다른 워크로드로 진행하기 전에 앞의 Pod·Node 스냅샷 연결로 실제 배치와 서비스 준비 상태를 확인합니다. 검증 중에는 기존 ASG를 유지합니다.
+
 **Phase 2: 프로덕션 워크로드 (Week 3-4)**
+별도 replica 2개의 canary입니다. 기존 Deployment가 10개라면 합계 목표는 12개이며, 8+2를 목표로 하려면 기존 컨트롤러에 대한 별도 변경과 상태 확인이 필요합니다. Deployment selector가 겹치지 않는지, HPA 동작과 Service/트래픽 경로를 확인합니다. replica 비율이 트래픽 비율을 뜻하지는 않습니다.
+
 ```yaml
-# Canary 배포 방식: 일부 replica만 Karpenter로 이동
+# 별도 canary 컨트롤러이며 트래픽 경로는 명시적으로 구성
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-server-karpenter
   namespace: production
 spec:
-  replicas: 2  # 기존 10개 중 2개만
+  replicas: 2  # 추가 canary replica
   selector:
     matchLabels:
-      app: api-server
+      app: api-server-canary
       migration: karpenter
   template:
     metadata:
       labels:
-        app: api-server
+        app: api-server-canary
         migration: karpenter
     spec:
-      # NodeSelector 제거 (Karpenter가 자동 선택)
-      # nodeSelector:
-      #   eks.amazonaws.com/nodegroup: prod-asg  # 제거
+      nodeSelector:
+        karpenter.sh/nodepool: general-purpose
       containers:
       - name: api
         image: api-server:v3.0
@@ -1511,22 +1556,22 @@ spec:
 - 스케일링 속도 비교
 
 **Phase 4: 완전 전환 (Week 7-8)**
+정리 절차는 노드의 소유 주체에 따라 다릅니다. nodegroup label이나 Pod 이름으로 ASG 소속을 증명할 수 없습니다. 같은 context에서 클러스터 전체 PodList·NodeList를 수집하고 `placement_report`로 각 Pod의 owner, Node 이름, provider ID와 관찰된 pool/group label을 유지합니다.
+
 ```bash
-# 1. 모든 워크로드가 Karpenter 노드에서 실행 확인
-kubectl get pods -A -o wide | grep -v karpenter
-
-# 2. Cluster Autoscaler 비활성화
-kubectl scale deployment cluster-autoscaler \
-  -n kube-system --replicas=0
-
-# 3. 기존 ASG 삭제
-aws autoscaling delete-auto-scaling-group \
-  --auto-scaling-group-name eks-prod-asg \
-  --force-delete
-
-# 4. Cluster Autoscaler Deployment 삭제
-kubectl delete deployment cluster-autoscaler -n kube-system
+: "${CONTEXT:?대상 Kubernetes context 지정}"
+kubectl --context "$CONTEXT" get pods -A -o json > migration-pods.json
+kubectl --context "$CONTEXT" get nodes -o json > migration-nodes.json
 ```
+
+| 정리 기록 | 필요한 내용과 판단 |
+|---|---|
+| 소유 관계 인벤토리 | Node provider ID를 수집 시각이 있는 EC2/ASG·EKS 관리형 노드 그룹 인벤토리와 연결합니다. 정확한 instance ID, ASG 이름, 관리형 노드 그룹 식별자와 남은 Pod owner를 기록하며, 연결이 불명확하면 정리를 진행하지 않습니다. |
+| 워크로드 이전 | 선택한 노드별로 대체 서비스·데이터 상태, PDB eviction 여유, StatefulSet 볼륨, 로컬 저장소, bootstrap/system 에이전트를 확인합니다. 검증이 끝날 때까지 대체 용량과 기존 용량을 유지합니다. |
+| 소유 주체별 정리 | EKS 관리형 노드 그룹은 EKS 관리 수명주기를, 자체 관리 ASG는 검토한 IaC/ASG 수명주기를 따릅니다. CA의 재조정을 고려한 제한된 drain/scale-in 절차를 사용합니다. |
+| CA 정리와 복구 | CA가 계속 담당하는 모든 ASG의 잔여 용량 계획을 확인한 후 비활성화합니다. 설치본, IAM/discovery 설정과 이전 replica 수를 보관하고, 롤백 필요 기간이 지난 후에만 설치본을 삭제합니다. |
+
+노드를 종료하기 전에 위 항목을 확인합니다. 실제 종료 명령과 순서는 수집한 인벤토리와 해당 노드 그룹의 관리 절차에 맞춰 작성해야 합니다. ASG `ForceDelete`는 연결된 인스턴스를 종료하므로, 워크로드 이전이 끝났는지 확인하는 절차를 대신할 수 없습니다.
 
 #### 5.6.3 병행 운영 패턴 (Cluster Autoscaler + Karpenter)
 
@@ -1534,9 +1579,9 @@ kubectl delete deployment cluster-autoscaler -n kube-system
 
 ##### 충돌 방지 설정
 
-**1. NodePool에 노드 그룹 제외 설정**
+**1. NodePool 조건과 ASG 소유권 구분**
 
-Karpenter가 Cluster Autoscaler 관리 노드를 건드리지 않도록 설정합니다.
+NodePool requirements는 새로 프로비저닝할 노드의 제약이며, 기존 ASG 노드에 대한 소유권 필터가 아닙니다. Karpenter는 자신의 NodeClaim·인스턴스를 관리하고 CA는 discovery 대상 ASG에 작용합니다. 두 인벤토리와 IAM 범위를 분리합니다.
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -1546,11 +1591,11 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
-      # Cluster Autoscaler 관리 노드 제외
-      - key: eks.amazonaws.com/nodegroup
-        operator: DoesNotExist  # NodeGroup 레이블이 없는 노드만 관리
-
       - key: karpenter.sh/capacity-type
         operator: In
         values: ["on-demand", "spot"]
@@ -1558,63 +1603,42 @@ spec:
 
 **2. Cluster Autoscaler에 노드 제외 설정**
 
-Cluster Autoscaler가 Karpenter 관리 노드를 스케일 다운하지 않도록 설정합니다.
+CA의 discovery tag와 범위를 제한한 IAM 권한이 변경 가능한 ASG를 정합니다. `skip-nodes-with-system-pods`와 `skip-nodes-with-local-storage`는 scale-down 보호 설정이며 Karpenter 소유권 필터가 아닙니다.
+
+아래는 **Kubernetes 1.34의 기존 CA Deployment용 container 목록 조각**이며 완전한 설치 예제가 아닙니다. 이름이 일치하는 컨테이너에 병합하고 기존 ServiceAccount, RBAC, IAM 연결, 리소스와 스케줄링 설정을 유지합니다. discovery tag는 실제 클러스터에 맞춥니다.
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cluster-autoscaler
-  namespace: kube-system
-spec:
-  template:
-    spec:
-      containers:
-      - name: cluster-autoscaler
-        image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.30.0
-        command:
-        - ./cluster-autoscaler
-        - --v=4
-        - --cloud-provider=aws
-        - --skip-nodes-with-system-pods=false
-        # Karpenter 노드 제외
-        - --skip-nodes-with-local-storage=false
-        - --balance-similar-node-groups
-        - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/my-cluster
+# 기존 Deployment.spec.template.spec.containers 항목
+- name: cluster-autoscaler
+  image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.34.0
+  command:
+  - ./cluster-autoscaler
+  - --v=4
+  - --cloud-provider=aws
+  - --skip-nodes-with-system-pods=true
+  - --skip-nodes-with-local-storage=true
+  - --balance-similar-node-groups
+  - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/my-cluster
 ```
 
 **3. Pod NodeSelector로 명시적 분리**
 
-특정 워크로드를 어느 오토스케일러가 관리하는 노드에 배치할지 명시합니다.
+워크로드별 실제 노드 소유 그룹을 지정합니다. 아래는 서로 다른 Deployment의 `spec.template.spec`에 병합할 조각이며, 기존 컨테이너와 selector/template label을 유지합니다. `prod-managed-nodegroup`은 임의 ASG 이름이 아니라 실제 관찰된 EKS 관리형 노드 그룹 이름이어야 합니다. 자체 관리 ASG는 검증한 사용자 정의 노드 label을 사용하고 CA의 node-template discovery 메타데이터에도 반영합니다.
 
 ```yaml
-# Cluster Autoscaler 노드로 배치
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: legacy-app
-spec:
-  template:
-    spec:
-      nodeSelector:
-        eks.amazonaws.com/nodegroup: prod-asg  # ASG 노드만
+# legacy-app: 기존 Deployment.spec.template.spec 조각
+nodeSelector:
+  eks.amazonaws.com/nodegroup: prod-managed-nodegroup
 ---
-# Karpenter 노드로 배치
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: new-app
-spec:
-  template:
-    spec:
-      nodeSelector:
-        karpenter.sh/nodepool: general-purpose  # Karpenter 노드만
+# new-app: 기존 Deployment.spec.template.spec 조각
+nodeSelector:
+  karpenter.sh/nodepool: general-purpose
 ```
 
 ##### 병행 운영 체크리스트
 
-- [ ] NodePool에 `eks.amazonaws.com/nodegroup: DoesNotExist` 설정
-- [ ] Cluster Autoscaler에 Karpenter 노드 제외 플래그 추가
+- [ ] NodeClaim/provider ID 소유 관계와 ASG·관리형 노드 그룹 소속을 구분해 확인
+- [ ] CA discovery·IAM을 대상 ASG로 제한하고 scale-down 보호 설정 유지
 - [ ] 워크로드별 NodeSelector 또는 NodeAffinity 설정
 - [ ] 두 오토스케일러의 메트릭 동시 모니터링
 - [ ] 비용 비교 대시보드 생성
@@ -1627,8 +1651,8 @@ Cluster Autoscaler와 Karpenter를 동시에 실행하면 다음 문제가 발�
 - 디버깅 복잡성 증가
 
 **권장 접근:**
-- 병행 운영 기간은 최대 2주로 제한
-- 명확한 워크로드 분리 (NodeSelector 필수)
+- 워크로드 검증과 롤백 용량 유지 조건에 따라 병행 기간을 정함
+- 검증한 NodeSelector 또는 NodeAffinity 제약으로 대상 워크로드를 분리
 - 단계별 전환 일정 수립
 :::
 
@@ -2112,17 +2136,17 @@ description: "Batch jobs that wait for available resources"
 
 ### 7.5 Priority + QoS Class 조합 고급 패턴
 
-PriorityClass와 QoS Class는 서로 다른 목적을 가진 메커니즘이지만, 함께 사용하면 리소스 부족 상황에서 더욱 예측 가능한 동작을 보장할 수 있습니다. 이 섹션에서는 두 개념의 상호작용과 프로덕션 환경에서 검증된 조합 패턴을 소개합니다.
+PriorityClass는 스케줄링·선점과 kubelet pressure eviction에 영향을 주며, QoS는 admission 후의 리소스 구성을 나타냅니다. 아래 예시는 Pod 수준 리소스 선언이 아닌 컨테이너별 CPU·메모리 설정을 사용하는 Linux Pod 기준입니다. 기본값과 주입된 컨테이너를 포함한 실제 Pod를 확인합니다. 이 설정만으로 즉시 배치, OOM 생존이나 실측 비용 등급이 보장되지는 않습니다.
 
 #### QoS Class 복습
 
 Kubernetes는 Pod의 리소스 요청(requests)과 제한(limits) 설정에 따라 자동으로 QoS Class를 할당합니다.
 
-| QoS Class | 조건 | CPU 스로틀링 | OOM 시 Eviction 순서 | 일반적 사용 |
+| QoS Class | admission 후 조건 | CPU 동작 | 메모리 pressure 판단 | 일반적 사용 |
 |-----------|------|-------------|-------------------|------------|
-| **Guaranteed** | 모든 컨테이너의 requests = limits | 제한 도달 시만 | 마지막 (가장 안전) | 미션 크리티컬, DB |
-| **Burstable** | 최소 하나의 컨테이너에 requests 설정, requests < limits | 제한 도달 시만 | 중간 | 일반 웹 앱, API |
-| **BestEffort** | requests/limits 모두 미설정 | 제한 없음 | 가장 먼저 (위험) | 배치 작업, 테스트 |
+| **Guaranteed** | 모든 컨테이너에 양수인 CPU·메모리 request와 limit이 있고 리소스별 두 값이 같음 | CPU limit에 도달하면 스로틀링 가능 | request가 순위에 영향을 주며 eviction·OOM은 여전히 가능 | 리소스를 신중히 산정한 중요 워크로드 |
+| **Burstable** | Guaranteed가 아니며 하나 이상의 컨테이너에 양수인 CPU 또는 메모리 request나 limit이 있음 | 컨테이너의 limit과 경합에 따라 달라짐 | request 초과 사용 여부와 priority가 중요 | 일반 웹 앱, API |
+| **BestEffort** | 모든 컨테이너에 양수인 CPU·메모리 request와 limit이 없음 | 이 구성에는 컨테이너 CPU limit이 없지만 경합은 발생 가능 | 메모리를 사용하면 request 0을 초과함 | 리소스 경합을 감수하도록 설계한 워크로드 |
 
 **QoS Class 결정 규칙:**
 
@@ -2136,7 +2160,8 @@ resources:
     cpu: "1"      # requests와 동일
     memory: 2Gi   # requests와 동일
 
-# Burstable: requests < limits
+---
+# Burstable 예시: Guaranteed 조건 미충족
 resources:
   requests:
     cpu: "500m"
@@ -2145,6 +2170,7 @@ resources:
     cpu: "2"      # requests보다 큼
     memory: 4Gi   # requests보다 큼
 
+---
 # BestEffort: 아무것도 설정 안함
 resources: {}
 ```
@@ -2161,25 +2187,25 @@ kubectl get pods -n production \
 
 #### 권장 조합 매트릭스
 
-Priority와 QoS를 어떻게 조합할지에 따라 리소스 보장 수준과 비용이 달라집니다.
+아래 매트릭스는 워크로드 정책 예시입니다. priority 값과 이름은 실제 클러스터의 PriorityClass에 맞춰야 하며, 표는 실측 생존율이나 비용 순위를 나타내지 않습니다.
 
-| 조합 | Priority | QoS | 스케줄링 우선순위 | OOM 시 생존율 | 비용 | 권장 워크로드 | 예시 |
-|------|----------|-----|-----------------|-------------|------|-------------|------|
-| **Tier 1** | critical (10000) | Guaranteed | 최우선 | 최고 | 높음 | 미션 크리티컬 | 결제 시스템, DB |
-| **Tier 2** | high (5000) | Guaranteed | 높음 | 높음 | 중상 | 핵심 서비스 | API 게이트웨이 |
-| **Tier 3** | standard (1000) | Burstable | 보통 | 중간 | 중간 | 일반 웹 앱 | 프론트엔드, 백오피스 |
-| **Tier 4** | low (500) | Burstable | 낮음 | 낮음 | 저렴 | 내부 도구 | 모니터링, 로깅 |
-| **Tier 5** | batch (100) | BestEffort | 최하위 | 매우 낮음 | 매우 저렴 | 배치, CI/CD | 데이터 파이프라인 |
+| 조합 | Priority 정책 | QoS | 스케줄링 판단 | 메모리 pressure 판단 | 워크로드 예시 |
+|------|----------|-----|-----------------|-------------|------|
+| **Tier 1** | critical | Guaranteed | 높은 우선순위지만 배치 가능 조건 필요 | 양수인 request/limit이 일치해도 OOM·eviction 가능 | 결제 시스템, DB |
+| **Tier 2** | high | Guaranteed | critical 정책보다 낮음 | 같은 QoS 분류에 다른 priority 적용 | API 게이트웨이 |
+| **Tier 3** | standard | Burstable | 일반 정책 | 실제 사용량과 request를 비교 | 프론트엔드, 백오피스 |
+| **Tier 4** | low | Burstable | 낮은 우선순위 정책 | 낮은 priority로 eviction·선점 가능성 증가 | 내부 도구 |
+| **Tier 5** | batch | BestEffort | 이 예시에서 가장 낮은 정책 | 메모리 사용량이 request를 초과 | 재시도 가능한 배치, CI/CD |
 
 **조합별 상세 설명:**
 
 ##### Tier 1: Guaranteed + critical-priority (최고 보장)
 
 **특징:**
-- 스케줄링 시 다른 Pod를 Preempt하여 즉시 배치
-- CPU/메모리 보장 (requests = limits)
-- OOM 발생 시 가장 마지막에 종료
-- 노드 리소스 압박 시에도 절대 Evict되지 않음
+- 낮은 priority Pod를 제거해 배치가 가능해지는 경우 높은 priority가 선점에 사용될 수 있음
+- 이 예시의 양수인 CPU·메모리 request/limit 일치로 Guaranteed QoS가 성립
+- request와 priority는 kubelet pressure eviction에 영향을 주며 kernel OOM은 별도 메커니즘
+- 메모리 limit, 노드 pressure와 다른 장애로 Pod가 종료될 수 있음
 
 **실전 YAML:**
 ```yaml
@@ -2246,8 +2272,8 @@ spec:
 
 **특징:**
 - critical 다음 우선순위
-- CPU/메모리 보장
-- OOM 시 BestEffort, Burstable 다음으로 종료
+- 예시 컨테이너의 CPU·메모리 request와 같은 limit으로 Guaranteed QoS 성립
+- pressure eviction과 kernel OOM이 가능하며 QoS만으로 고정된 종료 순서는 없음
 - 일반적인 프로덕션 서비스의 권장 설정
 
 **실전 YAML:**
@@ -2292,7 +2318,7 @@ spec:
 ##### Tier 3: Burstable + standard-priority (일반 웹 앱)
 
 **특징:**
-- 기본 리소스 보장 (requests)
+- request는 스케줄링 용량과 경합 시 CPU 배분에 사용되며 서비스 무중단을 보장하지 않음
 - 유휴 시 추가 리소스 사용 가능 (limits > requests)
 - 비용 효율적이면서 안정적
 - 대부분의 웹 애플리케이션에 적합
@@ -2320,8 +2346,8 @@ spec:
         image: web-frontend:v1.12
         resources:
           requests:
-            cpu: "500m"    # 최소 보장
-            memory: 1Gi    # 최소 보장
+            cpu: "500m"    # 스케줄링·상대적 배분에 사용하는 CPU request
+            memory: 1Gi    # 메모리 request이며 limit이 아님
           limits:
             cpu: "2"       # 최대 4배 버스트 허용
             memory: 4Gi    # 최대 4배 버스트 허용
@@ -2339,7 +2365,7 @@ spec:
 ##### Tier 4: Burstable + low-priority (내부 도구)
 
 **특징:**
-- 최소한의 리소스 보장
+- 작은 리소스 request를 사용하며 실제 사용량을 기준으로 산정
 - 리소스 부족 시 Preempt 대상
 - 비용 최소화
 - 서비스 중단 시 영향 제한적
@@ -2367,7 +2393,7 @@ spec:
         image: monitoring-agent:v2.1
         resources:
           requests:
-            cpu: "100m"    # 최소한의 보장
+            cpu: "100m"    # CPU request
             memory: 256Mi
           limits:
             cpu: "500m"
@@ -2383,8 +2409,8 @@ spec:
 ##### Tier 5: BestEffort + batch-priority (배치 작업)
 
 **특징:**
-- 리소스 보장 없음 (유휴 리소스만 사용)
-- OOM 발생 시 가장 먼저 종료
+- 이 예시에는 CPU·메모리 request/limit이 없으며 리소스 경합이 발생할 수 있음
+- 메모리를 사용하면 request를 초과하지만 pressure eviction 순위에는 priority도 작용
 - 비용 최소화 (Spot 인스턴스 활용 가능)
 - 재시도 가능한 작업에 적합
 
@@ -2428,71 +2454,53 @@ spec:
 
 #### Eviction 순서 (OOM 발생 시)
 
-노드에서 메모리가 부족할 때, Kubelet은 다음 순서로 Pod를 종료합니다:
+아래 다이어그램은 kubelet의 **메모리 pressure eviction**을 설명하며 kernel OOM killer나 컨테이너의 메모리 limit 초과를 나타내지 않습니다. kubelet은 먼저 노드 수준 리소스 회수를 시도하고, Pod eviction이 필요하면 부족한 리소스를 기준으로 후보를 정렬합니다.
 
 ```mermaid
 flowchart TD
-    A[노드 메모리 부족]
-    B[1단계: BestEffort Pod 종료<br/>Priority 낮은 순]
-    C[2단계: Burstable Pod 종료<br/>메모리 사용량 초과 큰 순]
-    D[3단계: Guaranteed Pod 종료<br/>Priority 낮은 순]
-    E[메모리 확보 완료]
-
+    A["메모리 pressure 임계값 충족"]
+    B["노드 수준 리소스 회수 시도"]
+    C["메모리 request를 초과한 Pod 우선"]
+    D["그다음 낮은 Pod priority 순"]
+    E["그다음 request 대비 초과 사용량이 큰 순"]
+    F["후보를 evict하고 pressure 재평가"]
     A --> B
-    B -->|여전히 부족| C
-    C -->|여전히 부족| D
+    B -->|Pod eviction이 계속 필요| C
+    C --> D
     D --> E
-
-    style A fill:#ea4335,stroke:#c5221f,color:#fff
-    style B fill:#fbbc04,stroke:#f9ab00,color:#000
-    style C fill:#ff9800,stroke:#f57c00,color:#fff
-    style D fill:#f44336,stroke:#d32f2f,color:#fff
-    style E fill:#34a853,stroke:#2a8642,color:#fff
+    E --> F
 ```
 
 **Eviction 결정 요소:**
 
-1. **QoS Class** (1차 기준)
-   - BestEffort → Burstable → Guaranteed 순서
+1. 부족한 리소스의 사용량이 request를 초과하는지 여부.
+2. 해당 그룹 안에서 Pod priority.
+3. priority가 같을 때 request 대비 사용량.
 
-2. **Priority** (2차 기준, QoS 동일 시)
-   - 낮은 Priority 먼저 종료
-
-3. **메모리 사용량** (3차 기준, QoS + Priority 동일 시)
-   - requests 대비 초과 사용량이 큰 Pod 먼저 종료
+QoS는 일부 메모리 request 구성과 연관되지만 정렬 알고리즘 자체는 아닙니다. 디스크 pressure는 디스크 관련 신호를 사용하며, kernel OOM killer는 `oom_score_adj`와 프로세스 메모리 사용량을 사용합니다. 어느 쪽도 QoS만으로 무조건적인 생존 순서를 정하지 않습니다.
 
 **예시 시나리오:**
 
-```yaml
-# 노드 상황: 메모리 32GB 중 31GB 사용, OOM 임박
-
-# Pod 1: BestEffort + low-priority (500)
-# - 사용 중: 4GB
-# → Eviction 순서: 1위
-
-# Pod 2: Burstable + standard-priority (1000)
-# - requests: 2GB, limits: 8GB
-# - 사용 중: 6GB (requests 대비 +4GB 초과)
-# → Eviction 순서: 2위
-
-# Pod 3: Burstable + high-priority (5000)
-# - requests: 4GB, limits: 8GB
-# - 사용 중: 5GB (requests 대비 +1GB 초과)
-# → Eviction 순서: 3위
-
-# Pod 4: Guaranteed + critical-priority (10000)
-# - requests = limits: 8GB
-# - 사용 중: 8GB (초과 없음)
-# → Eviction 순서: 4위 (마지막)
+```text
+메모리 pressure 후보 예시(실측 이벤트 아님):
+Pod 1: request 0, 사용량 4 GiB, priority 500       -> request 초과
+Pod 2: request 2 GiB, 사용량 6 GiB, priority 1000 -> request 초과
+Pod 3: request 4 GiB, 사용량 5 GiB, priority 5000 -> request 초과
+Pod 4: request 8 GiB, 사용량 8 GiB, priority 10000 -> request 미초과
+이 후보 사이의 순서는 1, 2, 3, 4다.
+이는 request와 priority에 따른 결과이며 보편적인 QoS 순서가 아니다.
+kubelet은 eviction 후 pressure를 다시 평가하므로 모든 후보를 evict할 필요는 없다.
 ```
 
 #### Kubelet Eviction 설정
 
-Kubelet의 Eviction 임계값은 노드 수준에서 설정됩니다. EKS에서는 User Data 스크립트로 커스터마이징 가능합니다.
+Karpenter `v1.14.1`과 호환 AL2023 EC2NodeClass에서는 지원되는 `spec.kubelet` 필드를 설정합니다. 해당 class의 검증된 AMI, role/instance profile, 서브넷·보안 그룹 selector를 유지합니다. 새로 프로비저닝할 노드의 설정 병합이며, user data로 실행 중인 kubelet 파일을 덮어쓰거나 서비스를 재시작하지 않습니다.
 
-**기본 설정 (EKS):**
-```yaml
-# /etc/kubernetes/kubelet/kubelet-config.json
+**Eviction 임계값 예시:**
+
+실제로 적용되는 기본값은 AMI와 bootstrap 설정에 따라 다릅니다. 아래 JSON은 설정할 수 있는 값의 예시입니다. 해당 클러스터의 EKS 기본값을 측정한 결과는 아닙니다.
+
+```json
 {
   "evictionHard": {
     "memory.available": "100Mi",
@@ -2511,51 +2519,42 @@ Kubelet의 Eviction 임계값은 노드 수준에서 설정됩니다. EKS에서�
 ```
 
 **커스터마이징 예시 (Karpenter EC2NodeClass):**
-```yaml
-apiVersion: karpenter.k8s.aws/v1
-kind: EC2NodeClass
-metadata:
-  name: custom-eviction
-spec:
-  amiFamily: AL2023
-  userData: |
-    #!/bin/bash
-    # Kubelet 설정 수정
-    cat <<EOF > /etc/kubernetes/kubelet/kubelet-config.json
-    {
-      "evictionHard": {
-        "memory.available": "200Mi",  # 더 보수적으로 설정
-        "nodefs.available": "10%"
-      },
-      "evictionSoft": {
-        "memory.available": "1Gi",    # Soft 임계값 상향
-        "nodefs.available": "15%"
-      },
-      "evictionSoftGracePeriod": {
-        "memory.available": "2m",     # 유예 시간 증가
-        "nodefs.available": "3m"
-      }
-    }
-    EOF
 
-    systemctl restart kubelet
+병합 후 적용될 전체 임계값을 검토한 뒤 아래 매핑을 `EC2NodeClass/custom-eviction.spec.kubelet`에 병합합니다. 설정한 모든 soft 신호에는 대응하는 soft grace period가 필요합니다.
+
+```yaml
+# EC2NodeClass.spec.kubelet 조각이며 값은 예시
+evictionHard:
+  memory.available: 200Mi
+  nodefs.available: "10%"
+  imagefs.available: "15%"
+  nodefs.inodesFree: "5%"
+  imagefs.inodesFree: "5%"
+evictionSoft:
+  memory.available: 1Gi
+  nodefs.available: "15%"
+evictionSoftGracePeriod:
+  memory.available: 2m
+  nodefs.available: 3m
+evictionMaxPodGracePeriod: 60
 ```
 
 **Eviction 임계값 설명:**
 
-| 설정 | 의미 | 기본값 | 권장값 (프로덕션) |
-|------|------|--------|-----------------|
-| `evictionHard.memory.available` | 이 수준 이하 시 즉시 Eviction | 100Mi | 200~500Mi |
-| `evictionSoft.memory.available` | 이 수준 이하로 일정 시간 유지 시 Eviction | 500Mi | 1Gi |
-| `evictionSoftGracePeriod.memory.available` | Soft 임계값 유예 시간 | 1m30s | 2~5m |
+| 설정 | 의미 | 병합 예시 값 |
+|------|------|--------|
+| `evictionHard.memory.available` | soft grace period가 없는 hard 임계값 | 200Mi |
+| `evictionSoft.memory.available` | grace period 동안 평가하는 soft 임계값 | 1Gi |
+| `evictionSoftGracePeriod.memory.available` | soft 임계값 충족 상태가 지속되어야 하는 시간 | 2m |
+| `evictionMaxPodGracePeriod` | soft eviction의 최대 종료 유예 시간 | 60초 |
 
 :::warning Eviction 설정 시 주의사항
-`evictionHard` 임계값을 너무 낮게 설정하면 OOM Killer가 먼저 동작하여 Kubelet의 graceful eviction이 무용지물이 됩니다. 반대로 너무 높게 설정하면 노드 리소스 활용률이 낮아져 비용이 증가합니다.
+임계값에는 워크로드와 노드 메모리 근거가 필요합니다. 너무 낮으면 kubelet이 메모리를 회수하기 전에 kernel OOM이 발생할 수 있고, 높으면 가용 여유가 줄어듭니다. hard 임계값에 의한 eviction은 graceful termination을 제공하지 않습니다.
 
 **권장 접근:**
-- 일반 워크로드: `evictionHard: 200Mi`, `evictionSoft: 1Gi`
-- 메모리 집약적: `evictionHard: 500Mi`, `evictionSoft: 2Gi`
-- 모니터링: `kube_node_status_condition{condition="MemoryPressure"}` 메트릭 추적
+- 값을 정하기 전에 노드 예약량, 최대 메모리, 이미지·디스크 사용과 회수 동작을 측정합니다.
+- 기본값을 재정의할 때 필요한 hard 신호를 유지하고 최종 AMI/kubelet 설정을 확인합니다.
+- pressure와 종료 결과를 관찰하며, 예시 값을 프로덕션 용량 산정 결과로 간주하지 않습니다.
 :::
 
 #### 실전 조합 패턴 검증
@@ -3121,7 +3120,7 @@ kubectl get pdb -A
 | **캐시 (Redis)** | Memory 최적화 노드 (r6i) | Hard (노드 분산) | Hard (AZ 분산) | - | `high-priority` | `minAvailable: 2` | Persistence 설정 |
 | **배치 작업** | Spot 노드 허용 | - | - | Spot Tolerate | `low-priority`, `preemptionPolicy: Never` | - | 재시작 가능 설계 |
 | **CI/CD Runner** | Spot 노드 선호 | - | - | Spot Tolerate | `low-priority` | - | Ephemeral 작업 |
-| **로그 수집 (DaemonSet)** | 모든 노드 | - | - | 모든 Taint Tolerate | `system-critical` | - | `hostPath` 사용 |
+| **로그 수집 (DaemonSet)** | 수집 대상 노드 | - | - | 노드·에이전트에 필요한 toleration만 | `system-critical` | - | `hostPath` 사용 |
 | **Ingress Controller** | On-Demand | Hard (노드 분산) | Hard (AZ 분산) | - | `high-priority` | `minAvailable: 2` | NodePort / LB 구성 |
 | **모니터링 (Prometheus)** | 전용 모니터링 노드 | Soft (노드 분산) | Soft (AZ 분산) | 모니터링 Taint Tolerate | `high-priority` | `minAvailable: 1` | 대용량 스토리지 |
 | **웹 프론트엔드** | ARM 노드 가능 | Soft (노드 분산) | Hard (AZ 분산) | - | `standard-priority` | `minAvailable: "50%"` | CDN 통합 |
@@ -3166,6 +3165,7 @@ spec:
 
 **GPU 전용 NodePool + 워크로드 배포:**
 
+이 예시는 Karpenter `v1.14.1`을 기준으로 하며 Kubernetes 버전, 리전, GPU 계열에 맞는 EKS-optimized AL2023 x86_64 NVIDIA AMI를 검증해야 합니다. EKS는 2025년 11월 26일 AL2 optimized/accelerated AMI 게시를 중단했습니다. 아래 AMI ID는 자리표시자이므로 이를 교체하고 역할·네트워크 selector를 확인하기 전에는 구조 예시입니다. AMI의 드라이버·런타임 호환표와 필요한 allocatable GPU를 보고하는 NVIDIA device plugin을 확인하며, `amiFamily`만으로 이 기능의 설치나 동작이 증명되지는 않습니다.
 ```yaml
 # Karpenter NodePool: GPU 전용 노드 그룹
 apiVersion: karpenter.sh/v1
@@ -3206,15 +3206,15 @@ spec:
     consolidationPolicy: WhenEmpty
     consolidateAfter: 10m  # 빈 GPU 노드는 10분 후 제거 (비용 절감)
 ---
-# EC2NodeClass: GPU 노드 구성
+# EC2NodeClass: AL2023 NVIDIA AMI 선택의 구조 예시
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: gpu-nodes
 spec:
-  amiFamily: AL2
+  amiFamily: AL2023
   amiSelectorTerms:
-  - alias: al2@latest  # GPU 드라이버 포함된 EKS-optimized AMI
+  - id: ami-0123456789abcdef0  # 자리표시자: 해당 리전에서 검증한 x86_64 NVIDIA AMI ID 필요
   role: KarpenterNodeRole
   subnetSelectorTerms:
   - tags:
@@ -3222,10 +3222,6 @@ spec:
   securityGroupSelectorTerms:
   - tags:
       karpenter.sh/discovery: my-cluster
-  userData: |
-    #!/bin/bash
-    # NVIDIA 컨테이너 런타임 설정 (이미 AMI에 포함됨)
-    echo "GPU node initialized"
 ---
 # ML 학습 워크로드: GPU 노드에 스케줄링
 apiVersion: batch/v1
@@ -4035,17 +4031,21 @@ sequenceDiagram
 
 **개요:**
 
-EKS Auto Mode는 컴퓨팅, 스토리지, 네트워킹의 프로비저닝부터 지속적 유지보수까지 완전 자동화하여 Kubernetes 운영을 단순화합니다.
+EKS Auto Mode는 노드 프로비저닝과 유지보수를 관리합니다. 아래 코드는 두 구성을 비교하는 예시입니다. 독립 실행형 Karpenter에는 기존 `default` EC2NodeClass가 필요합니다. Auto Mode 구성에는 Auto Mode 활성화, Ready 상태인 NodeClass, 배치 가능한 NodePool, 호환 이미지, IAM과 네트워크 접근이 필요합니다.
+
+기본 `general-purpose`는 On-Demand `amd64` 용량을 사용합니다. Spot에는 적합한 사용자 정의 pool이, ARM에는 배치 가능한 `arm64` pool과 호환 이미지가 필요합니다. 기본 `system` pool도 ARM을 지원하지만 중요 워크로드용 `CriticalAddonsOnly` taint가 있습니다.
+
+독립 실행형 Karpenter는 `karpenter.k8s.aws/EC2NodeClass`, Auto Mode는 `eks.amazonaws.com/NodeClass`를 사용합니다. 예제를 적용할 때 각 NodePool이 올바른 종류의 NodeClass를 참조하는지 확인합니다.
 
 **Auto Mode가 스케줄링에 미치는 영향:**
 
 | 기능 | 기존 방식 (수동) | Auto Mode |
 |------|---------------|----------|
-| **노드 선택** | NodeSelector, Node Affinity 명시 | 자동 인스턴스 타입 선택 |
-| **동적 스케일링** | Cluster Autoscaler 또는 Karpenter 설정 | 자동 스케일링 (설정 불필요) |
-| **비용 최적화** | Spot, Graviton 수동 설정 | 자동 Spot + Graviton 활용 |
-| **AZ 배치** | Topology Spread 수동 설정 | 자동 Multi-AZ 분산 |
-| **노드 업그레이드** | 수동 AMI 업데이트 | 자동 OS 패칭 |
+| **노드 선택** | 호환 NodePool·Pod 제약 구성 | NodePool·Pod 제약 안에서 배치 가능한 offering 선택 |
+| **동적 스케일링** | Cluster Autoscaler 또는 Karpenter 구성 | 설정한 용량·접근 범위 안에서 프로비저닝 관리 |
+| **비용 최적화** | 허용 capacity type·아키텍처 구성 | Spot·Graviton에는 적합한 pool과 호환 워크로드 필요 |
+| **AZ 배치** | 필요한 topology 정책 구성 | 애플리케이션 topology 정책과 적합한 서브넷이 계속 적용 |
+| **노드 업그레이드** | AMI 수명주기 관리 | 지원되는 구성 안에서 노드 OS 수명주기 관리 |
 
 **수동 NodeSelector/Affinity vs Auto Mode 비교:**
 
@@ -4060,6 +4060,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: node.kubernetes.io/instance-type
         operator: In
@@ -4075,7 +4079,13 @@ metadata:
   name: api-server
 spec:
   replicas: 10
+  selector:
+    matchLabels:
+      app: api-server
   template:
+    metadata:
+      labels:
+        app: api-server
     spec:
       nodeSelector:
         karpenter.sh/nodepool: general-pool
@@ -4096,9 +4106,16 @@ metadata:
   name: api-server
 spec:
   replicas: 10
+  selector:
+    matchLabels:
+      app: api-server
   template:
+    metadata:
+      labels:
+        app: api-server
     spec:
-      # NodeSelector, Affinity 불필요 - Auto Mode가 자동 선택
+      nodeSelector:
+        eks.amazonaws.com/compute-type: auto
       containers:
       - name: api
         image: api:v1.0
@@ -4106,11 +4123,7 @@ spec:
           requests:
             cpu: "1"
             memory: 2Gi
-      # Auto Mode가 자동으로:
-      # - 적합한 인스턴스 타입 선택 (c6i, c6a, c7i 등)
-      # - Spot vs On-Demand 최적 조합
-      # - Multi-AZ 분산
-      # - Graviton (ARM) 가능 시 활용
+      # 배치 가능한 NodePool 제약과 애플리케이션 topology 정책은 계속 적용
 ```
 
 **Auto Mode 환경에서 여전히 필요한 스케줄링 설정:**
@@ -4120,7 +4133,7 @@ Auto Mode는 노드 프로비저닝을 자동화하지만, 다음 스케줄링 �
 | 설정 | Auto Mode 자동화 여부 | 설명 |
 |------|---------------------|------|
 | **Resource Requests/Limits** | ❌ 필수 설정 | 워크로드 리소스 요구사항 명시 필요 |
-| **Topology Spread** | ⚠️ 기본 제공 + 세밀한 제어 시 설정 | Auto Mode가 기본 분산 제공, 세밀한 제어 필요 시 명시 |
+| **Topology Spread** | ⚠️ 애플리케이션 요구에 맞는 명시적 정책 | 기본 스케줄러 동작만으로 필요한 AZ 분산이 성립하지 않음 |
 | **Pod Anti-Affinity** | ❌ 필수 설정 | 같은 앱 replica 분산은 명시 필요 |
 | **PDB** | ❌ 필수 설정 | 최소 가용성 보장은 앱 담당 |
 | **PriorityClass** | ❌ 필수 설정 | 우선순위는 앱 담당 |
@@ -4662,57 +4675,57 @@ spec:
 
 **개요:**
 
-Node Readiness Controller(NRC)는 Kubernetes 1.32에서 Alpha로 도입된 기능으로, 노드가 `Ready` 상태라도 실제로 Pod를 안전하게 실행할 수 없는 상황을 방지합니다. CNI 플러그인, CSI 드라이버, GPU 드라이버 등 인프라 구성 요소가 완전히 준비될 때까지 Pod 스케줄링을 차단함으로써 스케줄링 안전성을 크게 향상시킵니다.
+Node Readiness Controller(NRC)는 2026년 2월 3일 Kubernetes 블로그에서 소개한 별도 Kubernetes SIGs 컨트롤러입니다. 사용자 정의 Node Condition에 따라 readiness taint를 조정하며, Kubernetes 1.32 내장 feature gate가 아닙니다.
+
+이 섹션은 NRC `v0.5.0` 컨트롤러·CRD와 Karpenter `v1.14.1` 스키마 기준입니다. 단독 rule과 통합 GPU 패턴은 대안 예시이며, 함께 구성할 때는 selector 중복과 taint 소유권을 확인합니다. 예시의 전제조건은 다음과 같습니다.
+
+- 같은 릴리스의 컨트롤러·CRD를 사용하고, 컨트롤러가 자신의 readiness guard로 차단된 노드 밖에서도 실행될 수 있어야 합니다. admission webhook 패키지와 인증서 전제조건은 선택한 릴리스 설치 방식에 따릅니다.
+- 대상 label과 일치하는 `NoSchedule` taint를 **노드 등록 시점부터** 설정합니다. Karpenter는 `startupTaints`로 초기 taint를 제공할 수 있으며, 나중에 비동기로 추가하면 배치 경합이 남습니다.
+- 아래의 정확한 사용자 정의 condition을 보고할 별도 reporter 구현·권한이 필요합니다. CNI/NVIDIA device plugin이 이를 보고한다고 가정하지 않습니다. 검사 의미, Node status RBAC, 보고 주기, 실패·Unknown 처리와 오래된 신호 처리를 정해야 하며, NRC 자체는 상태 검사기나 freshness timeout이 아닙니다.
+- bootstrap 에이전트에는 필요한 guard와 전용 노드 taint의 toleration만 부여합니다. 일반 워크로드는 readiness guard를 tolerate하지 않습니다. GPU 워크로드에는 9.2절의 호환 accelerated AMI·런타임·device plugin 조건도 필요합니다.
+
+rule 객체는 API 규약을 보여줍니다. reporter와 노드 등록 설정을 제공하기 전에는 완전한 실행용 readiness 배포가 아닙니다.
 
 **스케줄링 관점에서의 문제:**
 
-기존 Kubernetes 스케줄러는 노드의 `Ready` 상태만 확인하여 Pod를 배치합니다. 그러나 다음과 같은 상황에서 Pod 배치가 실패할 수 있습니다:
+스케줄러는 리소스, taint, affinity, topology 등 여러 제약을 평가합니다. `Ready=True`만으로 모든 워크로드 의존 구성 요소의 사용 가능성이 증명되지는 않습니다. 아래는 발생 가능한 초기화 공백의 예시이며 실측 장애 결과가 아닙니다.
 
 | 시나리오 | 노드 상태 | 실제 상황 | 결과 |
 |---------|---------|----------|------|
 | **CNI 플러그인 미준비** | `Ready` | Calico/Cilium Pod 시작 중 | Pod 네트워크 연결 실패 |
 | **CSI 드라이버 미준비** | `Ready` | EBS CSI Driver 초기화 중 | PVC 마운트 실패 |
 | **GPU 드라이버 미준비** | `Ready` | NVIDIA Device Plugin 로딩 중 | GPU 워크로드 시작 실패 |
-| **이미지 프리풀 진행 중** | `Ready` | 대용량 이미지(10GB) 다운로드 중 | Pod 시작 지연 (5분 이상) |
+| **이미지 프리풀 진행 중** | `Ready` | 필요한 이미지 layer 다운로드 중 | 이미지 가용성까지 시작이 지연될 수 있으며 시간은 이미지·캐시·네트워크에 따라 다름 |
 
 **Node Readiness Controller의 동작 원리:**
 
 NRC는 `NodeReadinessRule` CRD(`readiness.node.x-k8s.io/v1alpha1`)를 사용하여 다음과 같이 동작합니다:
 
-1. **조건 기반 Taint 관리**: 특정 Node Condition이 충족될 때까지 taint 적용
-2. **스케줄러 차단**: Taint가 적용된 노드에는 Pod 스케줄링 불가
-3. **자동 Taint 제거**: 조건 충족 시 taint 자동 제거 → Pod 스케줄링 허용
+1. **조건 기반 taint 관리**: rule이 요구하는 Node Condition에 따라 해당 taint를 조정합니다.
+2. **일반 스케줄링 차단**: `NoSchedule` guard는 일치하는 toleration이 없는 신규 Pod를 차단하며 기존 Pod를 evict하지 않습니다.
+3. **조건부 taint 제거**: 해당 rule의 condition이 일치하면 그 taint를 제거합니다. 다른 guard와 스케줄러 제약도 배치를 허용해야 합니다.
 
 ```mermaid
 sequenceDiagram
     participant Karpenter
     participant Node
-    participant InfraAgent as 인프라 에이전트<br/>(CNI/CSI/GPU)
-    participant NRC as Node Readiness<br/>Controller
-    participant Scheduler as Kube Scheduler
+    participant Reporter as Bootstrap 에이전트와 Reporter
+    participant NRC as Node Readiness Controller
+    participant Scheduler
     participant Pod
-
-    Karpenter->>Node: 새 노드 프로비저닝
-    NRC->>Node: Taint 적용<br/>(NoSchedule)
-
-    Note over Node: 노드는 Ready<br/>하지만 스케줄링 차단
-
-    Node->>InfraAgent: 인프라 초기화 시작
-    InfraAgent->>InfraAgent: CNI/CSI/GPU 준비
-
-    InfraAgent->>Node: Condition 업데이트<br/>(NetworkReady=True)
-
-    Node->>NRC: Condition 변경 이벤트
-    NRC->>NRC: Rule 확인<br/>(조건 충족?)
-
-    alt 조건 충족
-        NRC->>Node: Taint 제거
-        Note over Node: 스케줄링 가능 상태
-        Scheduler->>Node: Pod 배치 시작
-        Node->>Pod: 컨테이너 시작
-    else 조건 미충족
-        NRC->>Node: Taint 유지
-        Note over Scheduler: Pod Pending 상태 유지
+    Karpenter->>Node: 대상 label과 startup NoSchedule guard를 포함해 등록
+    Note over Node,Scheduler: 일반 Pod는 readiness guard를 tolerate하지 않음
+    Node->>Reporter: 일치하는 toleration이 있는 bootstrap 에이전트 시작
+    Reporter->>Node: 설정된 Node Condition 보고
+    Node->>NRC: Condition 변경
+    NRC->>NRC: 일치하는 rule별 조건 평가
+    alt 요구 condition 일치
+        NRC->>Node: 해당 rule의 taint 제거
+        Note over Node,Scheduler: 다른 guard와 모든 스케줄링 제약도 확인
+        Scheduler->>Node: 배치 가능한 Pod 바인딩
+        Node->>Pod: Kubelet이 컨테이너 시작
+    else Condition 누락 또는 불일치
+        NRC->>Node: Guard 유지
     end
 ```
 
@@ -4722,8 +4735,8 @@ NRC는 두 가지 모드로 동작하며, 각 모드는 스케줄링 안전성�
 
 | 모드 | 동작 방식 | 스케줄링 영향 | 사용 사례 |
 |------|---------|-------------|----------|
-| **bootstrap-only** | 노드 초기화 시에만 taint 적용<br/>→ 한번 준비되면 해제 후 모니터링 중단 | 초기 스케줄링 안전성 보장<br/>런타임 장애는 미탐지 | CNI 플러그인, 이미지 프리풀<br/>(한번만 확인하면 충분) |
-| **continuous** | 지속적 모니터링<br/>→ 드라이버 크래시 시 즉시 re-taint | 런타임 장애 시에도<br/>새 Pod 스케줄링 차단 | GPU 드라이버, CSI 드라이버<br/>(런타임 장애 가능) |
+| **bootstrap-only** | condition이 처음 일치하면 taint를 제거하고 완료 표시 | 일회성 guard이며 이후 condition 실패로 이 rule을 재적용하지 않음 | 일회성 초기화·프리풀 |
+| **continuous** | 보고된 condition 변경에 따라 taint 조정 | 조정 후 tolerate하지 않는 신규 Pod를 차단하며 기존 Pod를 evict하지 않음 | 지속적인 상태 보고가 필요한 의존 구성 요소 |
 
 **실전 예시 1: CNI 플러그인 준비 확인 (Bootstrap-only)**
 
@@ -4733,9 +4746,9 @@ kind: NodeReadinessRule
 metadata:
   name: network-readiness-rule
 spec:
-  # CNI 플러그인이 NetworkReady Condition을 True로 보고할 때까지 대기
+  # 사용자 정의 network reporter 필요; condition 누락 시 Unknown 유지
   conditions:
-    - type: "cniplugin.example.net/NetworkReady"
+    - type: "example.com/NetworkReady"
       requiredStatus: "True"
 
   # 준비될 때까지 이 taint 적용
@@ -4747,10 +4760,10 @@ spec:
   # Bootstrap-only: 한번 준비되면 모니터링 중단
   enforcementMode: "bootstrap-only"
 
-  # Worker 노드에만 적용
+  # 노드 등록 시 제공한 label로 대상 지정
   nodeSelector:
     matchLabels:
-      node.kubernetes.io/role: worker
+      example.com/readiness-profile: network-bootstrap
 ```
 
 **실전 예시 2: GPU 드라이버 지속 모니터링 (Continuous)**
@@ -4761,11 +4774,11 @@ kind: NodeReadinessRule
 metadata:
   name: gpu-driver-readiness-rule
 spec:
-  # NVIDIA Device Plugin이 GPUReady Condition을 True로 보고할 때까지 대기
+  # 사용자 정의 reporter가 device 등록과 드라이버 상태 검사
   conditions:
-    - type: "nvidia.com/gpu.present"
+    - type: "example.com/GPUDevicePluginReady"
       requiredStatus: "True"
-    - type: "nvidia.com/gpu.driver.ready"
+    - type: "example.com/GPUDriverReady"
       requiredStatus: "True"
 
   # GPU 준비될 때까지 이 taint 적용
@@ -4774,13 +4787,13 @@ spec:
     effect: "NoSchedule"
     value: "pending"
 
-  # Continuous: GPU 드라이버 크래시 시 re-taint로 새 Pod 스케줄링 차단
+  # Continuous: 보고된 condition이 실패하면 guard 재조정
   enforcementMode: "continuous"
 
   # GPU 노드 그룹에만 적용
   nodeSelector:
     matchLabels:
-      node.kubernetes.io/instance-type: "p4d.24xlarge"
+      example.com/readiness-profile: gpu-continuous
 ```
 
 **Pod Scheduling Readiness(schedulingGates)와의 비교:**
@@ -4789,11 +4802,11 @@ Kubernetes는 Pod 수준과 노드 수준 양쪽에서 스케줄링 안전성을
 
 | 비교 항목 | `schedulingGates` (Pod 수준) | `NodeReadinessRule` (노드 수준) |
 |----------|------------------------------|--------------------------------|
-| **제어 대상** | 특정 Pod의 스케줄링 | 특정 노드의 모든 Pod 스케줄링 |
-| **사용 사례** | 외부 조건 충족까지 Pod 보류<br/>(예: 데이터베이스 준비 대기) | 인프라 준비까지 노드 차단<br/>(예: CNI/GPU 드라이버 로딩) |
-| **조건 위치** | Pod Spec에 명시 | Node Condition으로 보고 |
-| **제거 방법** | 외부 컨트롤러가 gate 제거 | NRC가 자동으로 taint 제거 |
-| **영향 범위** | 단일 Pod | 노드의 모든 신규 Pod |
+| **제어 대상** | 특정 Pod의 스케줄링 | guard를 tolerate하지 않는 Pod에 대한 대상 노드의 배치 가능 여부 |
+| **사용 사례** | 외부 조건 충족까지 Pod 보류 | 보고된 인프라 condition이 미충족인 동안 노드 보호 |
+| **조건 위치** | Pod spec의 gate 이름이며 실제 준비 판단은 외부 컨트롤러 담당 | reporter가 제공하는 Node status의 condition |
+| **제거 방법** | 외부 컨트롤러가 gate 제거 | rule이 일치하면 NRC가 해당 taint 제거 |
+| **영향 범위** | 단일 Pod | 일치하는 toleration이 없는 신규 Pod이며 `NoSchedule`은 기존 Pod를 evict하지 않음 |
 
 **조합 패턴:**
 
@@ -4808,10 +4821,9 @@ spec:
   schedulingGates:
     - name: "example.com/dataset-ready"
 
-  # 노드 수준: GPU 드라이버 준비된 노드에만 배치 (NodeReadinessRule이 taint 관리)
-  tolerations:
-    - key: "readiness.k8s.io/gpu-unavailable"
-      operator: "DoesNotExist"  # Taint가 없는 노드(=GPU 준비된 노드)만 허용
+  # 대상 pool은 readiness guard를 포함해 등록하며 이 guard를 tolerate하지 않음
+  nodeSelector:
+    karpenter.sh/nodepool: gpu-pool
 
   containers:
     - name: trainer
@@ -4827,56 +4839,28 @@ Karpenter로 동적 노드 프로비저닝을 사용하는 환경에서 NRC는 �
 
 ```mermaid
 flowchart TB
-    subgraph "1. 노드 프로비저닝"
-        PENDING[Pending Pod 감지]
-        KARP[Karpenter:<br/>새 노드 생성]
-        NODE_UP[노드 Ready 상태]
-    end
-
-    subgraph "2. NRC Taint 적용"
-        NRC_DETECT[NRC: 새 노드 감지]
-        TAINT_APPLY[Taint 적용<br/>NoSchedule]
-        SCHED_BLOCK[스케줄러:<br/>배치 차단]
-    end
-
-    subgraph "3. 인프라 준비"
-        CNI_INIT[CNI 플러그인 초기화]
-        CSI_INIT[CSI 드라이버 초기화]
-        GPU_INIT[GPU 드라이버 로딩]
-        COND_UPDATE[Node Condition 업데이트]
-    end
-
-    subgraph "4. Taint 제거 & 스케줄링"
-        NRC_CHECK[NRC: Condition 확인]
-        TAINT_REMOVE[Taint 제거]
-        POD_SCHED[Pod 스케줄링 시작]
-    end
-
-    PENDING --> KARP
-    KARP --> NODE_UP
-    NODE_UP --> NRC_DETECT
-    NRC_DETECT --> TAINT_APPLY
-    TAINT_APPLY --> SCHED_BLOCK
-
-    SCHED_BLOCK -.대기.-> CNI_INIT
-    CNI_INIT --> CSI_INIT
-    CSI_INIT --> GPU_INIT
-    GPU_INIT --> COND_UPDATE
-
-    COND_UPDATE --> NRC_CHECK
-    NRC_CHECK --> TAINT_REMOVE
-    TAINT_REMOVE --> POD_SCHED
-
-    style PENDING fill:#ff9900,stroke:#cc7a00,color:#fff
-    style TAINT_APPLY fill:#ea4335,stroke:#c53929,color:#fff
-    style SCHED_BLOCK fill:#fbbc04,stroke:#c99603,color:#000
-    style TAINT_REMOVE fill:#34a853,stroke:#2a8642,color:#fff
-    style POD_SCHED fill:#4286f4,stroke:#2a6acf,color:#fff
+    PENDING["스케줄링 불가 GPU Pod"]
+    KARP["Karpenter가 호환 NodePool과 NodeClass 선택"]
+    REGISTER["대상 label과 startup guard를 포함해 노드 등록"]
+    BLOCK["일반 스케줄링 차단 유지"]
+    AGENT["Bootstrap 에이전트는 필요한 guard를 tolerate"]
+    CHECKS["구성한 네트워크·저장소·GPU 검사"]
+    CONDITIONS["Reporter가 Node Condition 갱신"]
+    NRC["NRC가 일치하는 rule 평가"]
+    KEEP["Condition 누락·실패 시 guard 유지"]
+    REMOVE["충족된 rule의 taint 제거"]
+    SCHEDULE["스케줄러가 남은 guard와 제약 확인"]
+    PENDING --> KARP --> REGISTER
+    REGISTER --> BLOCK
+    REGISTER --> AGENT --> CHECKS --> CONDITIONS --> NRC
+    NRC -->|Condition 불일치| KEEP
+    NRC -->|Condition 일치| REMOVE --> SCHEDULE
+    KEEP --> BLOCK
 ```
 
 **GPU 노드 그룹 실전 예시:**
 
-AI/ML 워크로드를 위한 GPU 노드 그룹에서 NRC를 사용하면 NVIDIA 드라이버 로딩이 완료될 때까지 AI 워크로드 스케줄링을 지연시켜 배치 실패를 방지할 수 있습니다:
+이 통합 패턴은 guard가 있는 `gpu-pool`과 사용자 정의 GPU reporter를 사용합니다. `gpu-nodeclass`에는 호환 accelerated AMI, IAM 역할과 네트워크가 미리 구성되어 있어야 합니다. Pod/Job 예시는 이 pool을 대상으로 하며 allocatable GPU 8개가 필요합니다. 앞의 단독 GPU rule과 대안 관계이며, reporter 구현과 실패·Unknown·오래된 신호 처리의 관찰 근거가 필요합니다.
 
 ```yaml
 # Karpenter NodePool: GPU 노드 그룹
@@ -4887,6 +4871,10 @@ metadata:
 spec:
   template:
     spec:
+      startupTaints:
+        - key: readiness.k8s.io/gpu-unavailable
+          value: pending
+          effect: NoSchedule
       requirements:
         - key: node.kubernetes.io/instance-type
           operator: In
@@ -4895,6 +4883,8 @@ spec:
           operator: In
           values: ["on-demand"]
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: gpu-nodeclass
 ---
 # NodeReadinessRule: GPU 드라이버 준비 확인
@@ -4904,7 +4894,9 @@ metadata:
   name: gpu-readiness-rule
 spec:
   conditions:
-    - type: "nvidia.com/gpu.driver.ready"
+    - type: "example.com/GPUDriverReady"
+      requiredStatus: "True"
+    - type: "example.com/GPUDevicePluginReady"
       requiredStatus: "True"
   taint:
     key: "readiness.k8s.io/gpu-unavailable"
@@ -4915,7 +4907,7 @@ spec:
     matchLabels:
       karpenter.sh/nodepool: gpu-pool
 ---
-# AI 워크로드: Toleration으로 준비된 GPU 노드에만 배치
+# AI 워크로드: guard가 있는 pool을 대상으로 하며 readiness guard는 tolerate하지 않음
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -4923,10 +4915,9 @@ metadata:
 spec:
   template:
     spec:
-      # GPU 준비된 노드에만 배치
-      tolerations:
-        - key: "readiness.k8s.io/gpu-unavailable"
-          operator: "DoesNotExist"
+      # Readiness guard를 tolerate하지 않음
+      nodeSelector:
+        karpenter.sh/nodepool: gpu-pool
 
       containers:
         - name: trainer
@@ -4939,20 +4930,19 @@ spec:
 ```
 
 :::tip 스케줄링 안전성 최적화 권장사항
-- **CNI 플러그인**: `bootstrap-only` 모드로 초기 네트워크 준비 확인
-- **GPU 드라이버**: `continuous` 모드로 런타임 장애 시에도 새 Pod 배치 차단
-- **CSI 드라이버**: `continuous` 모드로 스토리지 드라이버 크래시 대응
-- **이미지 프리풀**: `bootstrap-only` 모드로 대용량 이미지 다운로드 완료 대기
-- **Karpenter 연동**: NodePool별 NodeReadinessRule 설정으로 워크로드별 맞춤 준비 조건
+- **CNI 플러그인**: 명시적인 일회성 검사에는 `bootstrap-only`를 사용하며, 지속적인 네트워크 상태에는 continuous rule과 reporter가 필요합니다.
+- **GPU/CSI 드라이버**: `continuous`에서는 보고된 실패에 따라 신규 Pod용 guard를 조정합니다. 기존 워크로드의 복구에는 별도 절차가 필요합니다.
+- **이미지 프리풀**: 사용자 정의 reporter가 필요한 이미지의 존재를 확인한 후 bootstrap rule을 완료할 수 있습니다.
+- **Karpenter 연동**: rule의 selector·taint를 등록 label·startup taint와 맞추고 bootstrap 에이전트가 실행될 수 있는지 확인합니다.
 :::
 
 :::warning Alpha 기능 사용 시 주의사항
-Node Readiness Controller는 Kubernetes 1.32에서 Alpha 기능입니다:
+참조한 외부 NRC 릴리스의 `NodeReadinessRule` API는 `v1alpha1`입니다. 활성화할 Kubernetes control plane의 `NodeReadiness=true` gate는 없습니다.
 
-1. **Feature Gate 활성화 필요**: `--feature-gates=NodeReadiness=true` (kube-apiserver, kube-controller-manager)
-2. **API 변경 가능성**: Beta/GA 전환 시 `NodeReadinessRule` CRD 스키마 변경 가능
-3. **프로덕션 환경**: 철저한 테스트 후 도입 권장
-4. **대체 방법**: Alpha 기능 사용이 부담스럽다면 기존 Node Taint 수동 관리 또는 Init Container 패턴 활용
+1. 컨트롤러·CRD·선택한 admission webhook을 같은 릴리스로 고정합니다. `v0.5.0`의 conditions, nodeSelector, enforcementMode와 taint 필드는 불변이므로 기존 rule에서 이를 바꾸려면 직접 수정 대신 계획한 교체 절차가 필요합니다.
+2. Node status/reporting 권한, selector 중복과 taint 소유권을 검토합니다. 전체 webhook 패키지에는 문서에 명시된 인증서 구성이 필요합니다.
+3. 초기 배치 경합, 누락·실패·오래된 condition, bootstrap 에이전트 배치, 컨트롤러 중단·복구를 별도 시험 계획으로 검증합니다.
+4. init container는 Pod가 노드에 배정된 후 실행하므로 노드 스케줄링 guard를 대신하지 않습니다. guard가 있는 노드의 소유 주체별 복구 절차를 유지합니다.
 :::
 
 **참고 자료:**
@@ -4987,7 +4977,7 @@ Node Readiness Controller는 Kubernetes 1.32에서 Alpha 기능입니다:
 | **Pod Anti-Affinity** | 노드 분산 (Soft 또는 Hard) | [ ] |
 | **PDB 설정** | minAvailable 또는 maxUnavailable 명시 | [ ] |
 | **PDB 검증** | `minAvailable < replicas` 확인 | [ ] |
-| **Multi-AZ 배포 확인** | `kubectl get pods -o wide`로 AZ 분산 검증 | [ ] |
+| **Multi-AZ 배포 확인** | 앞의 스냅샷 방식으로 Pod `spec.nodeName`과 Node AZ label을 연결하며 누락·미배치 결과를 유지 | [ ] |
 
 #### 리소스 최적화
 
@@ -5005,44 +4995,45 @@ Node Readiness Controller는 Kubernetes 1.32에서 Alpha 기능입니다:
 |------|------|------|
 | **GPU 워크로드** | GPU Taint Tolerate + GPU 리소스 요청 | [ ] |
 | **StatefulSet** | WaitForFirstConsumer StorageClass 사용 | [ ] |
-| **DaemonSet** | 모든 Taint Tolerate 설정 | [ ] |
+| **DaemonSet** | 해당 에이전트에 필요한 toleration만 추가하며 bootstrap 에이전트에는 특정 readiness guard가 필요할 수 있음 | [ ] |
 | **배치 작업** | PriorityClass: low-priority, preemptionPolicy: Never | [ ] |
 
 ### Pod 스케줄링 검증 명령어
 
+읽기 전용 명령 예시를 사용하기 전에 context와 개별 조회 대상을 지정합니다. 노드·AZ별 수는 두 스냅샷과 앞의 `placement_report`로 집계합니다. 빈 노드 이름을 조회하지 않고 알 수 없는 결과와 미배치 Pod를 유지합니다.
+
 ```bash
-# 1. Pod 배치 확인 (AZ, 노드 분산)
-kubectl get pods -n <namespace> -o wide
+: "${CONTEXT:?대상 Kubernetes context 지정}"
+: "${NAMESPACE:?워크로드 namespace 지정}"
+: "${POD:?Pod 하나의 이름 지정}"
+: "${PDB:?PDB 하나의 이름 지정}"
+: "${NODE:?Node 하나의 이름 지정}"
 
-# 2. Pod 스케줄링 이벤트 확인 (Pending 원인 파악)
-kubectl describe pod <pod-name> -n <namespace>
+# 1. Pod·노드 배정이며 wide 출력에는 실제 AZ label이 없음
+kubectl --context "$CONTEXT" get pods -n "$NAMESPACE" -o wide
 
-# 3. PDB 상태 확인
-kubectl get pdb -A
-kubectl describe pdb <pdb-name> -n <namespace>
+# 2. 선택한 Pod의 스케줄링 이벤트
+kubectl --context "$CONTEXT" describe pod "$POD" -n "$NAMESPACE"
+
+# 3. 선택한 namespace의 PDB 상태
+kubectl --context "$CONTEXT" get pdb -n "$NAMESPACE"
+kubectl --context "$CONTEXT" describe pdb "$PDB" -n "$NAMESPACE"
 
 # 4. PriorityClass 목록
-kubectl get priorityclass
+kubectl --context "$CONTEXT" get priorityclass
 
-# 5. 노드 Taint 확인
-kubectl describe node <node-name> | grep Taints
+# 5. 선택한 Node의 taint
+kubectl --context "$CONTEXT" get node "$NODE" -o jsonpath='{.spec.taints}'
 
-# 6. 노드별 Pod 분포 확인
-kubectl get pods -A -o wide | awk '{print $8}' | sort | uniq -c
+# 6-7. placement_report의 노드·AZ 집계에 사용할 스냅샷
+kubectl --context "$CONTEXT" get pods -n "$NAMESPACE" -o json > pods.json
+kubectl --context "$CONTEXT" get nodes -o json > nodes.json
 
-# 7. AZ별 Pod 분포 확인
-kubectl get pods -A -o json | \
-  jq -r '.items[] | "\(.metadata.namespace) \(.metadata.name) \(.spec.nodeName)"' | \
-  while read ns pod node; do
-    az=$(kubectl get node $node -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}')
-    echo "$ns $pod $node $az"
-  done | column -t
+# 8. 선택한 namespace의 Warning 이벤트
+kubectl --context "$CONTEXT" get events -n "$NAMESPACE" --field-selector type=Warning --sort-by='.lastTimestamp'
 
-# 8. Pending Pod 원인 분석
-kubectl get events --sort-by='.lastTimestamp' -A | grep -i warning
-
-# 9. Descheduler 로그 확인 (설치된 경우)
-kubectl logs -n kube-system -l app=descheduler --tail=100
+# 9. 해당 namespace·selector를 사용하는 Descheduler가 설치된 경우 로그 조회
+kubectl --context "$CONTEXT" logs -n kube-system -l app=descheduler --tail=100
 ```
 
 ### 11.2 관련 문서

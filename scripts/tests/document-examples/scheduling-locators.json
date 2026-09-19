@@ -1,0 +1,117 @@
+{
+  "documents": {
+    "ko": "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+    "en": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+  },
+  "locators": [
+    {
+      "key": "placement",
+      "headings": {
+        "ko": "##### 트러블슈팅: Topology Spread 실패 원인",
+        "en": "##### Troubleshooting: Causes of Topology Spread Failures"
+      },
+      "ordinal": 2,
+      "language": "python"
+    },
+    {
+      "key": "system_pool",
+      "headings": {
+        "ko": "#### 패턴 2: 시스템 워크로드 격리",
+        "en": "#### Pattern 2: System Workload Isolation"
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "migration_pool",
+      "headings": {
+        "ko": "##### 1단계: NodePool 정의 (ASG → NodePool 매핑)",
+        "en": "##### Step 1: Define a NodePool (ASG → NodePool Mapping)"
+      },
+      "ordinal": 2,
+      "language": "yaml"
+    },
+    {
+      "key": "batch_pool",
+      "headings": {
+        "ko": "##### 2단계: Taints/Tolerations 호환성 확인",
+        "en": "##### Step 2: Check Taints/Tolerations Compatibility"
+      },
+      "ordinal": 2,
+      "language": "yaml"
+    },
+    {
+      "key": "coexist_pool",
+      "headings": {
+        "ko": "##### 충돌 방지 설정",
+        "en": "##### Configuration to Prevent Conflicts"
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "autoscaler",
+      "headings": {
+        "ko": "##### 충돌 방지 설정",
+        "en": "##### Configuration to Prevent Conflicts"
+      },
+      "ordinal": 2,
+      "language": "yaml"
+    },
+    {
+      "key": "accelerated_pool",
+      "headings": {
+        "ko": "#### 9.2.1 GPU 워크로드 스케줄링",
+        "en": "#### 9.2.1 GPU Workload Scheduling"
+      },
+      "ordinal": 2,
+      "language": "yaml"
+    },
+    {
+      "key": "traditional_pool",
+      "headings": {
+        "ko": "### 10.2 EKS Auto Mode 자동 노드 프로비저닝",
+        "en": "### 10.2 Automatic Node Provisioning with EKS Auto Mode"
+      },
+      "ordinal": 1,
+      "language": "yaml"
+    },
+    {
+      "key": "network_rule",
+      "headings": {
+        "ko": "### 10.5 Node Readiness Controller — 스케줄링 안전성 강화",
+        "en": "### 10.5 Node Readiness Controller — Improving Scheduling Safety"
+      },
+      "ordinal": 2,
+      "language": "yaml"
+    },
+    {
+      "key": "gpu_rule",
+      "headings": {
+        "ko": "### 10.5 Node Readiness Controller — 스케줄링 안전성 강화",
+        "en": "### 10.5 Node Readiness Controller — Improving Scheduling Safety"
+      },
+      "ordinal": 3,
+      "language": "yaml"
+    },
+    {
+      "key": "guarded_pod",
+      "headings": {
+        "ko": "### 10.5 Node Readiness Controller — 스케줄링 안전성 강화",
+        "en": "### 10.5 Node Readiness Controller — Improving Scheduling Safety"
+      },
+      "ordinal": 4,
+      "language": "yaml"
+    },
+    {
+      "key": "gpu_bundle",
+      "headings": {
+        "ko": "### 10.5 Node Readiness Controller — 스케줄링 안전성 강화",
+        "en": "### 10.5 Node Readiness Controller — Improving Scheduling Safety"
+      },
+      "ordinal": 6,
+      "language": "yaml"
+    }
+  ],
+  "scope": "Selected node lifecycle examples only. Unlisted scheduling defects and outside POD020 occurrences are not evaluated."
+}

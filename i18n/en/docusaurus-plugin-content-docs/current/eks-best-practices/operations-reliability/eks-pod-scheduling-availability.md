@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 134
+reading_time: 156
 tags:
   - eks
   - kubernetes
@@ -879,14 +879,44 @@ spec:
 | All Pods Pending after configuring `minDomains` | The cluster does not have the specified number of AZs | Adjust `minDomains` to the actual AZ count |
 
 :::tip Topology Spread Debugging Commands
-```bash
-# Check the AZ distribution of Pod placements
-kubectl get pods -n production -l app=multi-az-app \
-  -o custom-columns=NAME:.metadata.name,NODE:.spec.nodeName,ZONE:.spec.nodeSelector.topology\.kubernetes\.io/zone
+Use Pod and Node snapshots from the same cluster and record their capture times. `spec.nodeSelector` is an input constraint; the actual zone is the label on the Node named by `spec.nodeName`. The two lists are not an atomic snapshot.
 
-# Check the Pod count per node
-kubectl get pods -A -o wide --no-headers | \
-  awk '{print $8}' | sort | uniq -c | sort -rn
+```bash
+: "${CONTEXT:?set the selected Kubernetes context}"
+: "${NAMESPACE:?set the workload namespace}"
+: "${SELECTOR:?set the workload label selector}"
+kubectl --context "$CONTEXT" get pods -n "$NAMESPACE" -l "$SELECTOR" -o json > pods.json
+kubectl --context "$CONTEXT" get nodes -o json > nodes.json
+```
+
+The following offline function joins the supplied JSON objects. Keep unscheduled Pods, missing Nodes, unknown zones and `Unknown` readiness visible when aggregating counts by node or zone.
+
+```python
+def placement_report(pod_list, node_list):
+    """Join supplied snapshots only; labels are observations, not ownership proof."""
+    nodes = {n["metadata"]["name"]: n for n in node_list["items"]}
+    result = []
+    for pod in pod_list["items"]:
+        name = pod.get("spec", {}).get("nodeName")
+        node = nodes.get(name)
+        labels = (node or {}).get("metadata", {}).get("labels", {})
+        ready = next((c.get("status", "Unknown")
+                      for c in (node or {}).get("status", {}).get("conditions", [])
+                      if c.get("type") == "Ready"), "Unknown")
+        result.append({
+            "namespace": pod["metadata"].get("namespace", "default"),
+            "pod": pod["metadata"]["name"],
+            "node": name,
+            "placement": ("unscheduled" if not name else
+                          "node_missing" if node is None else "node_found"),
+            "zone": labels.get("topology.kubernetes.io/zone"),
+            "nodeReady": ready,
+            "providerID": (node or {}).get("spec", {}).get("providerID"),
+            "nodepoolLabel": labels.get("karpenter.sh/nodepool"),
+            "nodegroupLabel": labels.get("eks.amazonaws.com/nodegroup"),
+            "owners": pod["metadata"].get("ownerReferences", []),
+        })
+    return result
 ```
 :::
 
@@ -998,8 +1028,10 @@ spec:
 
 #### Pattern 2: System Workload Isolation
 
+These standalone Karpenter examples use the `v1.14.1` NodePool/EC2NodeClass contract. The referenced `default` EC2NodeClass must already select the intended AMI, node role, subnets and security groups. Match the installed controller and CRDs to the cluster version; this reference does not create those dependencies.
+
 ```yaml
-# Create a dedicated system NodePool with Karpenter
+# Dedicated system NodePool
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -1007,6 +1039,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: node.kubernetes.io/instance-type
         operator: In
@@ -1037,7 +1073,7 @@ spec:
         operator: Equal
         value: system
         effect: NoSchedule
-      # Also tolerate default Taints because deployment is required on all nodes
+      # These built-in DaemonSet tolerations do not authorize bypassing every custom taint
       - key: node.kubernetes.io/not-ready
         operator: Exists
         effect: NoExecute
@@ -1077,13 +1113,16 @@ tolerations:
   value: gpu
   effect: NoSchedule
 
+---
 # Exists: Only the key needs to exist (ignore value)
 tolerations:
 - key: workload-type
   operator: Exists
   effect: NoSchedule
 
-# Tolerate all Taints (DaemonSets, for example)
+---
+# Wildcard syntax only: tolerates every taint, including readiness/isolation guards.
+# Do not make this the default for DaemonSets.
 tolerations:
 - operator: Exists
 ```
@@ -1171,7 +1210,11 @@ Taints are applied automatically to all nodes provisioned by Karpenter, so there
 
 ### 5.6 Migrating from Cluster Autoscaler to Karpenter
 
-Cluster Autoscaler and Karpenter both provide node autoscaling but use fundamentally different approaches. This section describes differences in scheduling behavior during migration and provides a checklist.
+Cluster Autoscaler adjusts existing ASG sizes, while Karpenter provisions new nodes for Pod requirements. During migration, check what each controller owns and where the Pods actually run.
+
+First identify the AWS account, role/profile, Region, Kubernetes context, workload namespaces, ASGs/managed node groups and NodePools. The NodePool fields follow Karpenter `v1.14.1`; referenced EC2NodeClasses must already exist with compatible AMIs and IAM/network settings. Cluster Autoscaler must match the Kubernetes minor version. The configuration fragment below uses Kubernetes/CA `1.34`.
+
+Retain the current CA installation, launch templates, desired capacity and workload-placement configuration for rollback. The week labels are an example schedule. Advance based on workload health, capacity and data checks.
 
 #### 5.6.1 Differences in Scheduling Behavior
 
@@ -1196,23 +1239,23 @@ The key differences between Cluster Autoscaler and Karpenter are **how they prov
 **Scenario: Create 3 Pods That Request GPUs**
 
 **Cluster Autoscaler Behavior:**
-```
-1. 3 Pods in Pending state (requesting GPUs)
-2. Cluster Autoscaler scans Pending Pods every 10 seconds
-3. Find a GPU ASG and request scale-out (for example, a g5.2xlarge ASG)
-4. AWS ASG starts provisioning nodes (30~90 seconds)
-5. After nodes are Ready, kubelet schedules Pods
-6. Total time: 1~2 minutes
+```text
+1. Three GPU Pods cannot be scheduled on existing nodes.
+2. CA evaluates unschedulable Pods on its configured scan interval.
+3. CA simulates candidate node groups and requests capacity in a matching GPU ASG.
+4. The ASG launches instances; nodes register and initialize their runtime and GPU resources.
+5. kube-scheduler binds Pods when scheduling constraints permit; kubelet starts containers.
+6. Measure trigger-to-capacity, registration, binding and workload readiness separately.
 ```
 
 **Karpenter Behavior:**
-```
-1. 3 Pods in Pending state (requesting GPUs)
-2. Karpenter detects them immediately (1~2 seconds)
-3. Select the optimal instance based on NodePool requirements (from g5.xlarge, g5.2xlarge)
-4. Call the EC2 RunInstances API directly
-5. Schedule Pods after nodes are Ready
-6. Total time: 30~45 seconds
+```text
+1. Three GPU Pods cannot be scheduled on existing nodes.
+2. Karpenter batches provisioning decisions using Pod and NodePool constraints.
+3. Karpenter creates NodeClaims from the constraints; the AWS provider selects compatible instance offerings.
+4. In provider v1.14.1, the instance creation path uses EC2 CreateFleet.
+5. After registration and resource initialization, kube-scheduler binds eligible Pods and kubelet starts them.
+6. Timing depends on capacity, AMI, network, drivers and workload startup; this is a flow example, not a measured comparison.
 ```
 
 ##### Differences in Cost Optimization
@@ -1223,7 +1266,7 @@ The key differences between Cluster Autoscaler and Karpenter are **how they prov
 - Over-provisioning may occur
 
 **Karpenter:**
-- Declaratively configure Spot/On-Demand priorities in a NodePool
+- Declare allowed capacity types in NodePool requirements; list order is not an On-Demand preference.
 - Select the cheapest instance type in real time
 - Provision nodes that precisely match Pod requirements
 
@@ -1264,13 +1307,14 @@ metadata:
 spec:
   template:
     spec:
+      expireAfter: 720h  # Illustrative 30-day node lifetime
       requirements:
       # Instance types: Taken from the ASG LaunchTemplate
       - key: node.kubernetes.io/instance-type
         operator: In
         values: ["m5.xlarge", "m5.2xlarge", "m5a.xlarge", "m5a.2xlarge"]
 
-      # Capacity type: Prefer On-Demand, allow Spot
+      # Capacity types allowed; array order is not a preference
       - key: karpenter.sh/capacity-type
         operator: In
         values: ["on-demand", "spot"]
@@ -1297,8 +1341,8 @@ spec:
 
   # Consolidation policy: Enable Consolidation
   disruption:
-    consolidationPolicy: WhenUnderutilized
-    expireAfter: 720h  # 30 days
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 1m  # Illustrative wait after Pod changes
 ```
 
 **Conversion Guide:**
@@ -1306,7 +1350,7 @@ spec:
 | ASG Setting | NodePool Field | Notes |
 |---------|--------------|------|
 | LaunchTemplate instance types | `requirements[instance-type]` | A broader range is recommended (cost optimization) |
-| Spot/On-Demand | `requirements[capacity-type]` | Convert to a priority array |
+| Spot/On-Demand | `requirements[capacity-type]` | Allowed values, not a priority array or target ratio |
 | Subnets (AZ) | `requirements[zone]` | SubnetSelector is also possible |
 | Max Size | `limits.cpu`, `limits.memory` | Convert to total vCPU/memory |
 | Tags | `EC2NodeClass.tags` | Tags for security and cost tracking |
@@ -1330,6 +1374,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: karpenter.sh/capacity-type
         operator: In
@@ -1462,45 +1510,42 @@ karpenter_nodepool_usage
 Minimize risk by transitioning workloads sequentially.
 
 **Phase 1: Non-Production Workloads (Week 1-2)**
-```yaml
-# Start with development/staging namespaces
-# 1. Create a Karpenter NodePool (dev-workload)
-# 2. Add a Taint to existing ASG nodes (block new Pods)
-kubectl taint nodes -l eks.amazonaws.com/nodegroup=dev-asg \
-  migration=in-progress:NoSchedule
+First give the selected Deployment an eligible Karpenter NodePool selector and verify replacement capacity and rollout strategy. The restart below affects that Deployment only; it does not move Pods by itself or make PDBs constrain a Deployment rollout.
 
-# 3. Rolling Restart of development workloads
-kubectl rollout restart deployment -n dev --all
-
-# 4. Verify that new Pods are scheduled on Karpenter nodes
-kubectl get pods -n dev -o wide
-
-# 5. Scale down the existing ASG
+```bash
+: "${CONTEXT:?set the selected Kubernetes context}"
+: "${NAMESPACE:?set the development namespace}"
+: "${DEPLOYMENT:?set one reviewed Deployment name}"
+kubectl --context "$CONTEXT" -n "$NAMESPACE" rollout restart "deployment/$DEPLOYMENT"
+kubectl --context "$CONTEXT" -n "$NAMESPACE" rollout status "deployment/$DEPLOYMENT" --timeout=5m
 ```
 
+Use the Pod-to-Node snapshot join above to inspect placement and service readiness before repeating for another workload. Keep the existing ASG available during validation.
+
 **Phase 2: Production Workloads (Week 3-4)**
+This is a separate two-replica canary. With the old Deployment at ten replicas, the combined desired count is twelve; an eight-plus-two target requires a separate, health-gated change to the old controller. Verify non-overlapping Deployment selectors, HPA behavior and explicit Service/traffic routing. Replica share does not establish traffic share.
+
 ```yaml
-# Canary deployment: Move only some replicas to Karpenter
+# Separate canary controller; route traffic explicitly
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-server-karpenter
   namespace: production
 spec:
-  replicas: 2  # Only 2 of the existing 10
+  replicas: 2  # Additional canary replicas
   selector:
     matchLabels:
-      app: api-server
+      app: api-server-canary
       migration: karpenter
   template:
     metadata:
       labels:
-        app: api-server
+        app: api-server-canary
         migration: karpenter
     spec:
-      # Remove NodeSelector (Karpenter selects automatically)
-      # nodeSelector:
-      #   eks.amazonaws.com/nodegroup: prod-asg  # Remove
+      nodeSelector:
+        karpenter.sh/nodepool: general-purpose
       containers:
       - name: api
         image: api-server:v3.0
@@ -1513,22 +1558,22 @@ spec:
 - Compare scaling speeds
 
 **Phase 4: Complete Transition (Week 7-8)**
+Retirement depends on the node owner. A nodegroup label or Pod name is not proof of ASG membership. Export a cluster-wide PodList and NodeList with the same context, then use `placement_report` to retain each Pod's owner, Node name, provider ID and observed pool/group labels.
+
 ```bash
-# 1. Verify that all workloads run on Karpenter nodes
-kubectl get pods -A -o wide | grep -v karpenter
-
-# 2. Disable Cluster Autoscaler
-kubectl scale deployment cluster-autoscaler \
-  -n kube-system --replicas=0
-
-# 3. Delete the existing ASG
-aws autoscaling delete-auto-scaling-group \
-  --auto-scaling-group-name eks-prod-asg \
-  --force-delete
-
-# 4. Delete the Cluster Autoscaler Deployment
-kubectl delete deployment cluster-autoscaler -n kube-system
+: "${CONTEXT:?set the selected Kubernetes context}"
+kubectl --context "$CONTEXT" get pods -A -o json > migration-pods.json
+kubectl --context "$CONTEXT" get nodes -o json > migration-nodes.json
 ```
+
+| Retirement record | Required content and decision |
+|---|---|
+| Ownership inventory | Join Node provider IDs to dated EC2/ASG and EKS managed-node-group inventories. Record explicit instance IDs, ASG names, managed node group identities and remaining Pod owners; unresolved joins block retirement. |
+| Workload transfer | Check replacement service/data health, PDB eviction headroom, StatefulSet volumes, local storage and bootstrap/system agents on each selected node. Retain the replacement and original capacity until these checks pass. |
+| Owner-specific retirement | For EKS managed node groups, retain the EKS-managed lifecycle; for self-managed ASGs, retain their reviewed IaC/ASG lifecycle. Use a bounded drain/scale-in procedure that accounts for CA reconciliation. |
+| CA retirement and recovery | Disable CA only after every ASG it still serves has an explicit remaining-capacity plan. Retain its installation, IAM/discovery configuration and previous replica count; delete the installation only after rollback requirements expire. |
+
+Check these items before retiring nodes. Write the actual commands and sequence from the collected inventory and the node group's management procedure. ASG `ForceDelete` terminates associated instances; it does not establish that the workload migration is complete.
 
 #### 5.6.3 Parallel Operation Pattern (Cluster Autoscaler + Karpenter)
 
@@ -1536,9 +1581,9 @@ The following describes how to safely run both autoscalers in parallel during mi
 
 ##### Configuration to Prevent Conflicts
 
-**1. Configure Node Group Exclusion in the NodePool**
+**1. Separate NodePool requirements from ASG ownership**
 
-Configure Karpenter so that it does not affect nodes managed by Cluster Autoscaler.
+NodePool requirements constrain newly provisioned nodes; they are not an ownership filter over existing ASG nodes. Karpenter owns its NodeClaims and their instances, while CA acts on discovered ASGs. Keep those inventories and IAM scopes separate.
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -1548,11 +1593,11 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
-      # Exclude nodes managed by Cluster Autoscaler
-      - key: eks.amazonaws.com/nodegroup
-        operator: DoesNotExist  # Manage only nodes without a NodeGroup label
-
       - key: karpenter.sh/capacity-type
         operator: In
         values: ["on-demand", "spot"]
@@ -1560,63 +1605,42 @@ spec:
 
 **2. Configure Node Exclusion in Cluster Autoscaler**
 
-Configure Cluster Autoscaler so that it does not scale down nodes managed by Karpenter.
+CA discovery tags and scoped IAM permissions define the ASGs it can change. The `skip-nodes-with-system-pods` and `skip-nodes-with-local-storage` flags are scale-down safeguards, not Karpenter ownership filters.
+
+The following is an illustrative **container-list fragment for an existing CA Deployment on Kubernetes 1.34**, not a complete installation. Merge the named container into the retained Deployment; preserve its ServiceAccount, RBAC, IAM binding, resources and scheduling settings. Set discovery tags to the actual cluster.
 
 ```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: cluster-autoscaler
-  namespace: kube-system
-spec:
-  template:
-    spec:
-      containers:
-      - name: cluster-autoscaler
-        image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.30.0
-        command:
-        - ./cluster-autoscaler
-        - --v=4
-        - --cloud-provider=aws
-        - --skip-nodes-with-system-pods=false
-        # Exclude Karpenter nodes
-        - --skip-nodes-with-local-storage=false
-        - --balance-similar-node-groups
-        - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/my-cluster
+# Existing Deployment.spec.template.spec.containers entry
+- name: cluster-autoscaler
+  image: registry.k8s.io/autoscaling/cluster-autoscaler:v1.34.0
+  command:
+  - ./cluster-autoscaler
+  - --v=4
+  - --cloud-provider=aws
+  - --skip-nodes-with-system-pods=true
+  - --skip-nodes-with-local-storage=true
+  - --balance-similar-node-groups
+  - --node-group-auto-discovery=asg:tag=k8s.io/cluster-autoscaler/enabled,k8s.io/cluster-autoscaler/my-cluster
 ```
 
 **3. Explicit Separation with Pod NodeSelector**
 
-Specify which autoscaler's nodes should host particular workloads.
+Specify the actual node ownership group for each workload. These are two alternative `Deployment.spec.template.spec` merge fragments; retain the existing container and selector/template labels. `prod-managed-nodegroup` must be an observed EKS managed-node-group name, not an arbitrary ASG name. For self-managed ASGs, use a verified custom node label also represented in CA's node-template discovery metadata.
 
 ```yaml
-# Place on Cluster Autoscaler nodes
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: legacy-app
-spec:
-  template:
-    spec:
-      nodeSelector:
-        eks.amazonaws.com/nodegroup: prod-asg  # ASG nodes only
+# legacy-app: existing Deployment.spec.template.spec fragment
+nodeSelector:
+  eks.amazonaws.com/nodegroup: prod-managed-nodegroup
 ---
-# Place on Karpenter nodes
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: new-app
-spec:
-  template:
-    spec:
-      nodeSelector:
-        karpenter.sh/nodepool: general-purpose  # Karpenter nodes only
+# new-app: existing Deployment.spec.template.spec fragment
+nodeSelector:
+  karpenter.sh/nodepool: general-purpose
 ```
 
 ##### Parallel Operation Checklist
 
-- [ ] Configure `eks.amazonaws.com/nodegroup: DoesNotExist` in the NodePool
-- [ ] Add flags to Cluster Autoscaler to exclude Karpenter nodes
+- [ ] Verify NodeClaim/provider-ID ownership separately from ASG and managed-node-group membership
+- [ ] Restrict CA discovery and IAM to its intended ASGs; preserve scale-down safeguards
 - [ ] Configure NodeSelector or NodeAffinity for each workload
 - [ ] Monitor metrics from both autoscalers simultaneously
 - [ ] Create a cost comparison dashboard
@@ -1629,8 +1653,8 @@ Running Cluster Autoscaler and Karpenter simultaneously may cause the following 
 - Increased debugging complexity
 
 **Recommended Approach:**
-- Limit parallel operation to a maximum of 2 weeks
-- Clearly separate workloads (NodeSelector required)
+- Set a bounded overlap period based on workload validation and retained rollback capacity
+- Separate intended workloads with verified NodeSelector or NodeAffinity constraints
 - Establish a phased transition schedule
 :::
 
@@ -2114,17 +2138,17 @@ description: "Batch jobs that wait for available resources"
 
 ### 7.5 Advanced Patterns Combining Priority and QoS Class
 
-PriorityClass and QoS Class serve different purposes, but using them together can ensure more predictable behavior when resources are insufficient. This section introduces the interaction between the two concepts and combined patterns validated in production environments.
+PriorityClass influences scheduling/preemption and kubelet pressure eviction; QoS describes the admitted resource configuration. The examples below use Linux Pods with per-container CPU/memory resources, not Pod-level resource declarations. Check the admitted Pod (including defaults and injected containers). These mechanisms do not guarantee immediate placement, OOM survival or a measured cost tier.
 
 #### Review of QoS Classes
 
 Kubernetes automatically assigns a QoS Class based on a Pod's resource requests and limits.
 
-| QoS Class | Conditions | CPU throttling | Eviction order during OOM | Typical use |
+| QoS Class | Conditions after admission | CPU behavior | Memory-pressure consideration | Typical use |
 |-----------|------|-------------|-------------------|------------|
-| **Guaranteed** | requests = limits for all containers | Only when limits are reached | Last (safest) | Mission-critical workloads, DB |
-| **Burstable** | requests set for at least one container, requests < limits | Only when limits are reached | Middle | General web apps, APIs |
-| **BestEffort** | Neither requests nor limits set | No limits | First (at risk) | Batch jobs, tests |
+| **Guaranteed** | Every container has positive CPU and memory requests and limits, equal for each resource | A CPU limit can throttle usage | Requests affect ranking; eviction and OOM are still possible | Carefully sized critical workloads |
+| **Burstable** | Not Guaranteed, with a positive CPU or memory request or limit in at least one container | Depends on the container's limit and contention | Usage above requests and priority matter | General web apps, APIs |
+| **BestEffort** | No positive CPU or memory requests or limits in any container | No per-container CPU limit in this configuration; contention still matters | Positive memory usage exceeds the zero request | Workloads designed to tolerate resource contention |
 
 **QoS Class assignment rules:**
 
@@ -2138,7 +2162,8 @@ resources:
     cpu: "1"      # Same as requests
     memory: 2Gi   # Same as requests
 
-# Burstable: requests < limits
+---
+# Burstable example: not Guaranteed
 resources:
   requests:
     cpu: "500m"
@@ -2147,6 +2172,7 @@ resources:
     cpu: "2"      # Greater than requests
     memory: 4Gi   # Greater than requests
 
+---
 # BestEffort: nothing configured
 resources: {}
 ```
@@ -2163,25 +2189,25 @@ kubectl get pods -n production \
 
 #### Recommended Combination Matrix
 
-The combination of Priority and QoS determines the level of resource guarantees and cost.
+The following matrix is a workload policy sketch. Priority values and class names must be reconciled with the cluster's actual PriorityClasses; the table does not rank measured survival or cost.
 
-| Combination | Priority | QoS | Scheduling priority | OOM survival rate | Cost | Recommended workloads | Examples |
-|------|----------|-----|-----------------|-------------|------|-------------|------|
-| **Tier 1** | critical (10000) | Guaranteed | Highest | Highest | High | Mission-critical workloads | Payment systems, DB |
-| **Tier 2** | high (5000) | Guaranteed | High | High | Medium-high | Core services | API gateway |
-| **Tier 3** | standard (1000) | Burstable | Normal | Medium | Medium | General web apps | Frontend, back office |
-| **Tier 4** | low (500) | Burstable | Low | Low | Low | Internal tools | Monitoring, logging |
-| **Tier 5** | batch (100) | BestEffort | Lowest | Very low | Very low | Batch, CI/CD | Data pipelines |
+| Combination | Priority policy | QoS | Scheduling consideration | Memory-pressure consideration | Example workloads |
+|------|----------|-----|-----------------|-------------|------|
+| **Tier 1** | critical | Guaranteed | Higher priority, subject to feasibility | Positive matching requests/limits; still subject to OOM/eviction | Payment systems, DB |
+| **Tier 2** | high | Guaranteed | Below critical policy | Same QoS classification, different priority | API gateway |
+| **Tier 3** | standard | Burstable | Normal policy | Compare actual usage with requests | Frontend, back office |
+| **Tier 4** | low | Burstable | Lower-priority policy | Lower priority can increase eviction/preemption exposure | Internal tools |
+| **Tier 5** | batch | BestEffort | Lowest policy in this example | Positive memory usage exceeds requests | Retryable batch, CI/CD |
 
 **Details of each combination:**
 
 ##### Tier 1: Guaranteed + critical-priority (Strongest Guarantees)
 
 **Characteristics:**
-- Preempts other Pods for immediate placement during scheduling
-- Guarantees CPU/memory (requests = limits)
-- Terminates last during OOM
-- Never evicted, even under node resource pressure
+- Higher priority can enable preemption when removing lower-priority Pods makes placement feasible
+- Equal positive CPU/memory requests and limits establish Guaranteed QoS in this example
+- Requests and priority influence kubelet pressure eviction; kernel OOM uses a different mechanism
+- Memory limits, node pressure and other failures can still terminate the Pod
 
 **Practical YAML:**
 ```yaml
@@ -2248,8 +2274,8 @@ spec:
 
 **Characteristics:**
 - Priority immediately below critical
-- Guaranteed CPU/memory
-- Terminates after BestEffort and Burstable during OOM
+- CPU/memory requests and equal limits establish Guaranteed QoS for the shown containers
+- Pressure eviction and kernel OOM are possible; there is no fixed class-only termination order
 - Recommended configuration for typical production services
 
 **Practical YAML:**
@@ -2294,7 +2320,7 @@ spec:
 ##### Tier 3: Burstable + standard-priority (General Web Apps)
 
 **Characteristics:**
-- Guaranteed baseline resources (requests)
+- Requests inform scheduling capacity and CPU allocation under contention; they do not ensure uninterrupted service
 - Can use additional resources when available (limits > requests)
 - Cost-effective and stable
 - Suitable for most web applications
@@ -2322,8 +2348,8 @@ spec:
         image: web-frontend:v1.12
         resources:
           requests:
-            cpu: "500m"    # Minimum guarantee
-            memory: 1Gi    # Minimum guarantee
+            cpu: "500m"    # CPU request for scheduling and relative allocation
+            memory: 1Gi    # Memory request, not a limit
           limits:
             cpu: "2"       # Allow bursts up to 4 times the baseline
             memory: 4Gi    # Allow bursts up to 4 times the baseline
@@ -2341,7 +2367,7 @@ spec:
 ##### Tier 4: Burstable + low-priority (Internal Tools)
 
 **Characteristics:**
-- Minimal resource guarantees
+- Small resource requests; size them from actual usage
 - Subject to preemption when resources are insufficient
 - Minimizes cost
 - Limited impact from service interruptions
@@ -2369,7 +2395,7 @@ spec:
         image: monitoring-agent:v2.1
         resources:
           requests:
-            cpu: "100m"    # Minimal guarantee
+            cpu: "100m"    # CPU request
             memory: 256Mi
           limits:
             cpu: "500m"
@@ -2385,8 +2411,8 @@ spec:
 ##### Tier 5: BestEffort + batch-priority (Batch Jobs)
 
 **Characteristics:**
-- No resource guarantees (uses only idle resources)
-- Terminates first during OOM
+- No CPU/memory requests or limits in this example; resource contention is possible
+- Positive memory usage exceeds requests, but pressure-eviction ranking also depends on priority
 - Minimizes cost (can use Spot Instances)
 - Suitable for retryable tasks
 
@@ -2430,71 +2456,53 @@ spec:
 
 #### Eviction Order (During OOM)
 
-When a node runs low on memory, Kubelet terminates Pods in the following order:
+The diagram describes kubelet **memory-pressure eviction**, not the kernel OOM killer or a container exceeding its memory limit. Kubelet first attempts node-level resource reclamation; if Pod eviction is needed, it ranks candidates using the affected resource.
 
 ```mermaid
 flowchart TD
-    A[Node memory shortage]
-    B[Step 1: Terminate BestEffort Pods<br/>Lowest Priority first]
-    C[Step 2: Terminate Burstable Pods<br/>Largest excess memory usage first]
-    D[Step 3: Terminate Guaranteed Pods<br/>Lowest Priority first]
-    E[Sufficient memory freed]
-
+    A["Memory-pressure threshold met"]
+    B["Attempt node-level resource reclamation"]
+    C["Rank Pods exceeding memory requests first"]
+    D["Then rank by lower Pod priority"]
+    E["Then by greater memory usage relative to requests"]
+    F["Evict a candidate and reassess pressure"]
     A --> B
-    B -->|Still insufficient| C
-    C -->|Still insufficient| D
+    B -->|Pod eviction still needed| C
+    C --> D
     D --> E
-
-    style A fill:#ea4335,stroke:#c5221f,color:#fff
-    style B fill:#fbbc04,stroke:#f9ab00,color:#000
-    style C fill:#ff9800,stroke:#f57c00,color:#fff
-    style D fill:#f44336,stroke:#d32f2f,color:#fff
-    style E fill:#34a853,stroke:#2a8642,color:#fff
+    E --> F
 ```
 
 **Eviction decision factors:**
 
-1. **QoS Class** (primary criterion)
-   - BestEffort → Burstable → Guaranteed order
+1. Whether usage of the starved resource exceeds requests.
+2. Pod priority within that grouping.
+3. Usage relative to requests when priority is equal.
 
-2. **Priority** (secondary criterion, when QoS is the same)
-   - Terminate lower-priority Pods first
-
-3. **Memory usage** (tertiary criterion, when QoS + Priority are the same)
-   - Terminate Pods with greater usage above their requests first
+QoS correlates with some memory-request configurations, but is not the ranking algorithm. Disk pressure uses disk-related signals; the kernel OOM killer uses `oom_score_adj` and process memory usage. Neither mechanism establishes an unconditional class-only survival order.
 
 **Example scenario:**
 
-```yaml
-# Node state: 31GB of 32GB memory in use, OOM imminent
-
-# Pod 1: BestEffort + low-priority (500)
-# - In use: 4GB
-# → Eviction order: 1st
-
-# Pod 2: Burstable + standard-priority (1000)
-# - requests: 2GB, limits: 8GB
-# - In use: 6GB (+4GB above requests)
-# → Eviction order: 2nd
-
-# Pod 3: Burstable + high-priority (5000)
-# - requests: 4GB, limits: 8GB
-# - In use: 5GB (+1GB above requests)
-# → Eviction order: 3rd
-
-# Pod 4: Guaranteed + critical-priority (10000)
-# - requests = limits: 8GB
-# - In use: 8GB (no excess)
-# → Eviction order: 4th (last)
+```text
+Illustrative memory-pressure candidates (not a measured event):
+Pod 1: request 0, usage 4 GiB, priority 500       -> exceeds request
+Pod 2: request 2 GiB, usage 6 GiB, priority 1000 -> exceeds request
+Pod 3: request 4 GiB, usage 5 GiB, priority 5000 -> exceeds request
+Pod 4: request 8 GiB, usage 8 GiB, priority 10000 -> does not exceed request
+Among these candidates: 1, 2, 3, then 4.
+This result follows requests and priority, not a universal QoS-class order.
+Kubelet reassesses pressure after eviction; it need not evict every candidate.
 ```
 
 #### Kubelet Eviction Configuration
 
-Kubelet eviction thresholds are configured at the node level. In EKS, they can be customized through User Data scripts.
+For Karpenter `v1.14.1` with a compatible AL2023 EC2NodeClass, configure the supported `spec.kubelet` fields. Preserve the class's verified AMI, role/instance profile, subnet and security-group selectors. This is a configuration merge for newly provisioned nodes; do not overwrite a live kubelet file or restart the service from user data.
 
-**Default configuration (EKS):**
-```yaml
-# /etc/kubernetes/kubelet/kubelet-config.json
+**Example eviction thresholds:**
+
+The effective defaults depend on the AMI and bootstrap configuration. The following JSON illustrates possible field values. It is not a measurement of the cluster's EKS defaults:
+
+```json
 {
   "evictionHard": {
     "memory.available": "100Mi",
@@ -2513,51 +2521,42 @@ Kubelet eviction thresholds are configured at the node level. In EKS, they can b
 ```
 
 **Customization example (Karpenter EC2NodeClass):**
-```yaml
-apiVersion: karpenter.k8s.aws/v1
-kind: EC2NodeClass
-metadata:
-  name: custom-eviction
-spec:
-  amiFamily: AL2023
-  userData: |
-    #!/bin/bash
-    # Modify the Kubelet configuration
-    cat <<EOF > /etc/kubernetes/kubelet/kubelet-config.json
-    {
-      "evictionHard": {
-        "memory.available": "200Mi",  # Use a more conservative setting
-        "nodefs.available": "10%"
-      },
-      "evictionSoft": {
-        "memory.available": "1Gi",    # Raise the soft threshold
-        "nodefs.available": "15%"
-      },
-      "evictionSoftGracePeriod": {
-        "memory.available": "2m",     # Increase the grace period
-        "nodefs.available": "3m"
-      }
-    }
-    EOF
 
-    systemctl restart kubelet
+Merge this mapping into `EC2NodeClass/custom-eviction.spec.kubelet` after reviewing its complete effective threshold set. Every configured soft signal needs a corresponding soft grace period.
+
+```yaml
+# EC2NodeClass.spec.kubelet fragment; values are illustrative
+evictionHard:
+  memory.available: 200Mi
+  nodefs.available: "10%"
+  imagefs.available: "15%"
+  nodefs.inodesFree: "5%"
+  imagefs.inodesFree: "5%"
+evictionSoft:
+  memory.available: 1Gi
+  nodefs.available: "15%"
+evictionSoftGracePeriod:
+  memory.available: 2m
+  nodefs.available: 3m
+evictionMaxPodGracePeriod: 60
 ```
 
 **Eviction threshold descriptions:**
 
-| Setting | Meaning | Default | Recommended (production) |
-|------|------|--------|-----------------|
-| `evictionHard.memory.available` | Immediate eviction at or below this level | 100Mi | 200~500Mi |
-| `evictionSoft.memory.available` | Eviction after remaining at or below this level for a specified duration | 500Mi | 1Gi |
-| `evictionSoftGracePeriod.memory.available` | Grace period for the soft threshold | 1m30s | 2~5m |
+| Setting | Meaning | Value in the merge example |
+|------|------|--------|
+| `evictionHard.memory.available` | Hard threshold; no soft grace period | 200Mi |
+| `evictionSoft.memory.available` | Soft threshold evaluated over its grace period | 1Gi |
+| `evictionSoftGracePeriod.memory.available` | Duration the soft threshold must remain met | 2m |
+| `evictionMaxPodGracePeriod` | Maximum termination grace for soft eviction | 60 seconds |
 
 :::warning Eviction Configuration Considerations
-If the `evictionHard` threshold is too low, the OOM Killer acts first, making Kubelet's graceful eviction ineffective. Conversely, setting it too high reduces node resource utilization and increases cost.
+Thresholds need workload and node-memory evidence. A low threshold can allow kernel OOM before kubelet reclaims memory; a high one reduces available headroom. Hard-threshold eviction does not provide graceful termination.
 
 **Recommended approach:**
-- General workloads: `evictionHard: 200Mi`, `evictionSoft: 1Gi`
-- Memory-intensive workloads: `evictionHard: 500Mi`, `evictionSoft: 2Gi`
-- Monitoring: Track the `kube_node_status_condition{condition="MemoryPressure"}` metric
+- Measure node reservations, peak memory, image/disk use and reclaim behavior before selecting values.
+- Preserve needed hard signals when overriding defaults; inspect the resulting AMI/kubelet configuration.
+- Monitor pressure and termination outcomes; the example values are not production sizing results.
 :::
 
 #### Validating Practical Combination Patterns
@@ -3123,7 +3122,7 @@ The following table summarizes recommended scheduling settings for various workl
 | **Cache (Redis)** | Memory-optimized nodes (r6i) | Hard (spread across nodes) | Hard (spread across AZs) | - | `high-priority` | `minAvailable: 2` | Configure persistence |
 | **Batch jobs** | Allow Spot nodes | - | - | Spot Tolerate | `low-priority`, `preemptionPolicy: Never` | - | Design for restartability |
 | **CI/CD Runner** | Prefer Spot nodes | - | - | Spot Tolerate | `low-priority` | - | Ephemeral jobs |
-| **Log collection (DaemonSet)** | All nodes | - | - | Tolerate all taints | `system-critical` | - | Use `hostPath` |
+| **Log collection (DaemonSet)** | Intended collection nodes | - | - | Only required node/agent tolerations | `system-critical` | - | Use `hostPath` |
 | **Ingress Controller** | On-Demand | Hard (spread across nodes) | Hard (spread across AZs) | - | `high-priority` | `minAvailable: 2` | Configure NodePort / LB |
 | **Monitoring (Prometheus)** | Dedicated monitoring nodes | Soft (spread across nodes) | Soft (spread across AZs) | Tolerate monitoring taints | `high-priority` | `minAvailable: 1` | Large-capacity storage |
 | **Web frontend** | ARM nodes supported | Soft (spread across nodes) | Hard (spread across AZs) | - | `standard-priority` | `minAvailable: "50%"` | CDN integration |
@@ -3168,6 +3167,7 @@ spec:
 
 **Dedicated GPU NodePool + workload deployment:**
 
+This example follows Karpenter `v1.14.1` and requires a verified EKS-optimized AL2023 x86_64 NVIDIA AMI for the chosen Kubernetes version, Region and GPU family. EKS stopped publishing AL2 optimized/accelerated AMIs on November 26, 2025. The AMI ID below is a placeholder, so the manifest is illustrative until it is replaced and the role/network selectors are resolved. Check the AMI's driver/runtime matrix and a compatible NVIDIA device plugin that advertises the required allocatable GPUs; `amiFamily` alone does not install or prove these capabilities.
 ```yaml
 # Karpenter NodePool: Dedicated GPU node group
 apiVersion: karpenter.sh/v1
@@ -3208,15 +3208,15 @@ spec:
     consolidationPolicy: WhenEmpty
     consolidateAfter: 10m  # Remove empty GPU nodes after 10 minutes (cost savings)
 ---
-# EC2NodeClass: GPU node configuration
+# EC2NodeClass: illustrative AL2023 NVIDIA AMI selection
 apiVersion: karpenter.k8s.aws/v1
 kind: EC2NodeClass
 metadata:
   name: gpu-nodes
 spec:
-  amiFamily: AL2
+  amiFamily: AL2023
   amiSelectorTerms:
-  - alias: al2@latest  # EKS-optimized AMI with GPU drivers
+  - id: ami-0123456789abcdef0  # Placeholder: verified regional x86_64 NVIDIA AMI ID required
   role: KarpenterNodeRole
   subnetSelectorTerms:
   - tags:
@@ -3224,10 +3224,6 @@ spec:
   securityGroupSelectorTerms:
   - tags:
       karpenter.sh/discovery: my-cluster
-  userData: |
-    #!/bin/bash
-    # Configure the NVIDIA container runtime (already included in the AMI)
-    echo "GPU node initialized"
 ---
 # ML training workload: Schedule on GPU nodes
 apiVersion: batch/v1
@@ -4039,17 +4035,21 @@ sequenceDiagram
 
 **Overview:**
 
-EKS Auto Mode simplifies Kubernetes operations by fully automating compute, storage, and networking, from provisioning through ongoing maintenance.
+EKS Auto Mode manages node provisioning and maintenance. The following code compares two configurations. Standalone Karpenter requires an existing `default` EC2NodeClass. The Auto Mode example requires Auto Mode enabled with a Ready NodeClass, an eligible NodePool, compatible images, IAM and network access.
+
+Built-in `general-purpose` uses On-Demand `amd64` capacity. Spot requires a suitable custom pool; ARM requires an eligible `arm64` pool and compatible images. The built-in `system` pool also supports ARM but has the `CriticalAddonsOnly` taint for critical workloads.
+
+Standalone Karpenter uses `karpenter.k8s.aws/EC2NodeClass`, while Auto Mode uses `eks.amazonaws.com/NodeClass`. Check that each NodePool refers to the correct kind of NodeClass when applying the examples.
 
 **How Auto Mode affects scheduling:**
 
 | Feature | Traditional Approach (Manual) | Auto Mode |
 |------|---------------|----------|
-| **Node selection** | Explicit NodeSelector and Node Affinity | Automatic instance type selection |
-| **Dynamic scaling** | Configure Cluster Autoscaler or Karpenter | Automatic scaling (no configuration required) |
-| **Cost optimization** | Manually configure Spot and Graviton | Automatic use of Spot + Graviton |
-| **AZ placement** | Manually configure Topology Spread | Automatic Multi-AZ distribution |
-| **Node upgrades** | Manual AMI updates | Automatic OS patching |
+| **Node selection** | Configure compatible NodePools and Pod constraints | Selects eligible offerings within NodePool and Pod constraints |
+| **Dynamic scaling** | Configure Cluster Autoscaler or Karpenter | Managed provisioning within configured capacity and access boundaries |
+| **Cost optimization** | Configure allowed capacity types/architectures | Spot/Graviton require an eligible pool and compatible workloads |
+| **AZ placement** | Configure required topology policy | Application topology policy and eligible subnets still apply |
+| **Node upgrades** | Manage AMI lifecycle | Managed node OS lifecycle, subject to supported configuration |
 
 **Manual NodeSelector/Affinity vs. Auto Mode comparison:**
 
@@ -4064,6 +4064,10 @@ metadata:
 spec:
   template:
     spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default
       requirements:
       - key: node.kubernetes.io/instance-type
         operator: In
@@ -4079,7 +4083,13 @@ metadata:
   name: api-server
 spec:
   replicas: 10
+  selector:
+    matchLabels:
+      app: api-server
   template:
+    metadata:
+      labels:
+        app: api-server
     spec:
       nodeSelector:
         karpenter.sh/nodepool: general-pool
@@ -4100,9 +4110,16 @@ metadata:
   name: api-server
 spec:
   replicas: 10
+  selector:
+    matchLabels:
+      app: api-server
   template:
+    metadata:
+      labels:
+        app: api-server
     spec:
-      # NodeSelector and Affinity are unnecessary - Auto Mode selects automatically
+      nodeSelector:
+        eks.amazonaws.com/compute-type: auto
       containers:
       - name: api
         image: api:v1.0
@@ -4110,11 +4127,7 @@ spec:
           requests:
             cpu: "1"
             memory: 2Gi
-      # Auto Mode automatically:
-      # - Selects appropriate instance types (c6i, c6a, c7i, etc.)
-      # - Optimizes the mix of Spot vs. On-Demand
-      # - Distributes across multiple AZs
-      # - Uses Graviton (ARM) when possible
+      # Eligible NodePool constraints and application topology policy still apply
 ```
 
 **Scheduling settings still required in Auto Mode:**
@@ -4124,7 +4137,7 @@ Auto Mode automates node provisioning, but the following scheduling settings **m
 | Setting | Automated by Auto Mode? | Description |
 |------|---------------------|------|
 | **Resource Requests/Limits** | ❌ Configuration required | Workload resource requirements must be specified |
-| **Topology Spread** | ⚠️ Provided by default + configure for fine-grained control | Auto Mode provides basic distribution; specify settings for fine-grained control |
+| **Topology Spread** | ⚠️ Explicit policy for application requirements | Default scheduler behavior does not establish the application's required AZ distribution |
 | **Pod Anti-Affinity** | ❌ Configuration required | Distribution of replicas of the same app must be specified |
 | **PDB** | ❌ Configuration required | The app is responsible for ensuring minimum availability |
 | **PriorityClass** | ❌ Configuration required | The app is responsible for priority |
@@ -4666,57 +4679,57 @@ spec:
 
 **Overview:**
 
-Node Readiness Controller (NRC), introduced as an Alpha feature in Kubernetes 1.32, prevents situations where nodes are marked `Ready` but cannot actually run Pods safely. It significantly improves scheduling safety by blocking Pod scheduling until infrastructure components such as CNI plugins, CSI drivers, and GPU drivers are fully ready.
+Node Readiness Controller (NRC) is an external Kubernetes SIGs controller, introduced in the Kubernetes blog on February 3, 2026. It reconciles readiness taints from custom Node Conditions; it is not a built-in Kubernetes 1.32 feature gate.
+
+This section uses NRC `v0.5.0` controller/CRDs and Karpenter `v1.14.1` schemas. Treat the standalone rules and combined GPU pattern as alternatives, and check overlapping selectors/taint ownership before combining them. The examples require:
+
+- The controller and CRDs from the same release, with the controller able to run outside nodes blocked by its own readiness guards. Admission-webhook packaging and certificate prerequisites depend on the chosen release installation.
+- Target labels and matching `NoSchedule` taints present **at node registration**. Karpenter can supply the latter through `startupTaints`; adding them asynchronously leaves a scheduling race.
+- A separately implemented, authorized reporter for the exact custom conditions shown below. CNI/NVIDIA device plugins are not assumed to publish them. Define each check, Node status RBAC, reporting interval, failure/unknown behavior and stale-signal handling; NRC is not itself a health checker or a freshness timeout.
+- A bootstrap agent that can tolerate only its required guards and dedicated-node taints. Ordinary workloads must not tolerate the readiness guard. For GPU workloads, also resolve the compatible accelerated AMI/runtime/device-plugin prerequisites from section 9.2.
+
+The rule objects demonstrate the API contract. They are not a complete runnable readiness deployment until the reporter and registration configuration are supplied.
 
 **The problem from a scheduling perspective:**
 
-The traditional Kubernetes scheduler checks only a node's `Ready` state when placing Pods. However, Pod placement can fail in the following situations:
+The scheduler evaluates resources, taints, affinity, topology and other constraints. `Ready=True` alone does not prove that every workload-specific dependency is usable; the following are possible initialization gaps, not measured failure results.
 
 | Scenario | Node State | Actual Situation | Result |
 |---------|---------|----------|------|
 | **CNI plugin not ready** | `Ready` | Calico/Cilium Pod starting | Pod network connection failure |
 | **CSI driver not ready** | `Ready` | EBS CSI Driver initializing | PVC mount failure |
 | **GPU driver not ready** | `Ready` | NVIDIA Device Plugin loading | GPU workload startup failure |
-| **Image pre-pull in progress** | `Ready` | Large image (10GB) downloading | Pod startup delay (5 minutes or more) |
+| **Image pre-pull in progress** | `Ready` | Required image layers are still downloading | Startup can wait for image availability; duration depends on image, cache and network |
 
 **How Node Readiness Controller works:**
 
 NRC uses the `NodeReadinessRule` CRD (`readiness.node.x-k8s.io/v1alpha1`) as follows:
 
-1. **Condition-based taint management**: Applies a taint until a specific Node Condition is satisfied
-2. **Blocks scheduling**: Pods cannot be scheduled on tainted nodes
-3. **Automatic taint removal**: Automatically removes the taint when the condition is satisfied → allows Pod scheduling
+1. **Condition-based taint management**: Reconcile a rule's taint using its required Node Conditions.
+2. **Blocks ordinary scheduling**: A `NoSchedule` guard blocks new Pods without a matching toleration; it does not evict existing Pods.
+3. **Conditional taint removal**: Remove that rule's taint when its conditions match. Other guards and scheduler constraints must still permit placement.
 
 ```mermaid
 sequenceDiagram
     participant Karpenter
     participant Node
-    participant InfraAgent as Infrastructure Agent<br/>(CNI/CSI/GPU)
-    participant NRC as Node Readiness<br/>Controller
-    participant Scheduler as Kube Scheduler
+    participant Reporter as Bootstrap Agent and Reporter
+    participant NRC as Node Readiness Controller
+    participant Scheduler
     participant Pod
-
-    Karpenter->>Node: Provision a new node
-    NRC->>Node: Apply taint<br/>(NoSchedule)
-
-    Note over Node: Node is Ready<br/>but scheduling is blocked
-
-    Node->>InfraAgent: Start infrastructure initialization
-    InfraAgent->>InfraAgent: Prepare CNI/CSI/GPU
-
-    InfraAgent->>Node: Update Condition<br/>(NetworkReady=True)
-
-    Node->>NRC: Condition change event
-    NRC->>NRC: Check Rule<br/>(conditions satisfied?)
-
-    alt Conditions satisfied
-        NRC->>Node: Remove taint
-        Note over Node: Scheduling allowed
-        Scheduler->>Node: Start placing Pods
-        Node->>Pod: Start containers
-    else Conditions not satisfied
-        NRC->>Node: Keep taint
-        Note over Scheduler: Pods remain Pending
+    Karpenter->>Node: Register with target labels and startup NoSchedule guards
+    Note over Node,Scheduler: Ordinary Pods cannot tolerate the readiness guards
+    Node->>Reporter: Start authorized bootstrap agents with matching tolerations
+    Reporter->>Node: Report configured Node Conditions
+    Node->>NRC: Condition update
+    NRC->>NRC: Evaluate each matching rule
+    alt Required conditions match
+        NRC->>Node: Remove that rule's taint
+        Note over Node,Scheduler: Check other guards and all scheduling constraints
+        Scheduler->>Node: Bind an eligible Pod
+        Node->>Pod: Kubelet starts containers
+    else Conditions missing or not matching
+        NRC->>Node: Retain the guard
     end
 ```
 
@@ -4726,8 +4739,8 @@ NRC operates in two modes, each with a different effect on scheduling safety:
 
 | Mode | Behavior | Scheduling Impact | Use Case |
 |------|---------|-------------|----------|
-| **bootstrap-only** | Applies taint only during node initialization<br/>→ Removes it once ready and stops monitoring | Ensures initial scheduling safety<br/>Does not detect runtime failures | CNI plugins, image pre-pulling<br/>(a one-time check is sufficient) |
-| **continuous** | Continuously monitors<br/>→ Immediately re-taints on driver crashes | Blocks new Pod scheduling<br/>even during runtime failures | GPU drivers, CSI drivers<br/>(runtime failures are possible) |
+| **bootstrap-only** | Removes its taint and marks completion after conditions first match | One-time gate; later condition failures do not reapply this rule | One-time initialization or pre-pulling |
+| **continuous** | Reconciles its taint when reported conditions change | Blocks new non-tolerating Pods after reconciliation; does not evict existing Pods | Dependencies requiring continued health reporting |
 
 **Practical example 1: Check CNI plugin readiness (Bootstrap-only)**
 
@@ -4737,9 +4750,9 @@ kind: NodeReadinessRule
 metadata:
   name: network-readiness-rule
 spec:
-  # Wait until the CNI plugin reports the NetworkReady Condition as True
+  # Requires a custom network reporter; missing condition remains Unknown
   conditions:
-    - type: "cniplugin.example.net/NetworkReady"
+    - type: "example.com/NetworkReady"
       requiredStatus: "True"
 
   # Apply this taint until ready
@@ -4751,10 +4764,10 @@ spec:
   # Bootstrap-only: Stop monitoring once ready
   enforcementMode: "bootstrap-only"
 
-  # Apply only to worker nodes
+  # Apply to a label supplied at node registration
   nodeSelector:
     matchLabels:
-      node.kubernetes.io/role: worker
+      example.com/readiness-profile: network-bootstrap
 ```
 
 **Practical example 2: Continuously monitor GPU drivers (Continuous)**
@@ -4765,11 +4778,11 @@ kind: NodeReadinessRule
 metadata:
   name: gpu-driver-readiness-rule
 spec:
-  # Wait until the NVIDIA Device Plugin reports the GPUReady Condition as True
+  # Custom reporter checks device registration and driver health
   conditions:
-    - type: "nvidia.com/gpu.present"
+    - type: "example.com/GPUDevicePluginReady"
       requiredStatus: "True"
-    - type: "nvidia.com/gpu.driver.ready"
+    - type: "example.com/GPUDriverReady"
       requiredStatus: "True"
 
   # Apply this taint until the GPU is ready
@@ -4778,13 +4791,13 @@ spec:
     effect: "NoSchedule"
     value: "pending"
 
-  # Continuous: Re-taint on GPU driver crashes to block new Pod scheduling
+  # Continuous: reconcile the guard when reported conditions fail
   enforcementMode: "continuous"
 
   # Apply only to the GPU node group
   nodeSelector:
     matchLabels:
-      node.kubernetes.io/instance-type: "p4d.24xlarge"
+      example.com/readiness-profile: gpu-continuous
 ```
 
 **Comparison with Pod Scheduling Readiness (schedulingGates):**
@@ -4793,11 +4806,11 @@ Kubernetes can control scheduling safety at both the Pod and node levels:
 
 | Comparison | `schedulingGates` (Pod Level) | `NodeReadinessRule` (Node Level) |
 |----------|------------------------------|--------------------------------|
-| **Control target** | Scheduling of a specific Pod | Scheduling of all Pods on a specific node |
-| **Use case** | Hold a Pod until external conditions are satisfied<br/>(e.g., wait for database readiness) | Block a node until infrastructure is ready<br/>(e.g., CNI/GPU driver loading) |
-| **Condition location** | Specified in the Pod Spec | Reported as a Node Condition |
-| **Removal method** | An external controller removes the gate | NRC automatically removes the taint |
-| **Scope of impact** | A single Pod | All new Pods on the node |
+| **Control target** | Scheduling of a specific Pod | Scheduling eligibility of matching nodes for Pods that do not tolerate the guard |
+| **Use case** | Hold a Pod until external conditions are satisfied | Guard nodes while reported infrastructure conditions are unmet |
+| **Condition location** | Gate names in Pod spec; external controller owns the readiness decision | Conditions in Node status, supplied by a reporter |
+| **Removal method** | An external controller removes the gate | NRC removes its taint when the rule matches |
+| **Scope of impact** | A single Pod | New Pods without matching tolerations; `NoSchedule` does not evict existing Pods |
 
 **Combined pattern:**
 
@@ -4812,10 +4825,9 @@ spec:
   schedulingGates:
     - name: "example.com/dataset-ready"
 
-  # Node level: Place only on nodes with GPU drivers ready (NodeReadinessRule manages taints)
-  tolerations:
-    - key: "readiness.k8s.io/gpu-unavailable"
-      operator: "DoesNotExist"  # Allow only nodes without the taint (=nodes with GPUs ready)
+  # The target pool registers with its readiness guard; do not tolerate that guard.
+  nodeSelector:
+    karpenter.sh/nodepool: gpu-pool
 
   containers:
     - name: trainer
@@ -4831,56 +4843,28 @@ In environments that use Karpenter for dynamic node provisioning, NRC provides t
 
 ```mermaid
 flowchart TB
-    subgraph "1. Node Provisioning"
-        PENDING[Detect Pending Pods]
-        KARP[Karpenter:<br/>Create a new node]
-        NODE_UP[Node is Ready]
-    end
-
-    subgraph "2. NRC Taint Application"
-        NRC_DETECT[NRC: Detect a new node]
-        TAINT_APPLY[Apply taint<br/>NoSchedule]
-        SCHED_BLOCK[Scheduler:<br/>Block placement]
-    end
-
-    subgraph "3. Infrastructure Readiness"
-        CNI_INIT[Initialize CNI plugin]
-        CSI_INIT[Initialize CSI driver]
-        GPU_INIT[Load GPU driver]
-        COND_UPDATE[Update Node Condition]
-    end
-
-    subgraph "4. Taint Removal & Scheduling"
-        NRC_CHECK[NRC: Check Condition]
-        TAINT_REMOVE[Remove taint]
-        POD_SCHED[Start Pod scheduling]
-    end
-
-    PENDING --> KARP
-    KARP --> NODE_UP
-    NODE_UP --> NRC_DETECT
-    NRC_DETECT --> TAINT_APPLY
-    TAINT_APPLY --> SCHED_BLOCK
-
-    SCHED_BLOCK -.Wait.-> CNI_INIT
-    CNI_INIT --> CSI_INIT
-    CSI_INIT --> GPU_INIT
-    GPU_INIT --> COND_UPDATE
-
-    COND_UPDATE --> NRC_CHECK
-    NRC_CHECK --> TAINT_REMOVE
-    TAINT_REMOVE --> POD_SCHED
-
-    style PENDING fill:#ff9900,stroke:#cc7a00,color:#fff
-    style TAINT_APPLY fill:#ea4335,stroke:#c53929,color:#fff
-    style SCHED_BLOCK fill:#fbbc04,stroke:#c99603,color:#000
-    style TAINT_REMOVE fill:#34a853,stroke:#2a8642,color:#fff
-    style POD_SCHED fill:#4286f4,stroke:#2a6acf,color:#fff
+    PENDING["Unschedulable GPU Pod"]
+    KARP["Karpenter selects a compatible NodePool and NodeClass"]
+    REGISTER["Node registers with target labels and startup guards"]
+    BLOCK["Ordinary scheduling remains blocked"]
+    AGENT["Bootstrap agents tolerate required guards"]
+    CHECKS["Configured network, storage or GPU checks"]
+    CONDITIONS["Reporter updates Node Conditions"]
+    NRC["NRC evaluates matching rules"]
+    KEEP["Retain guard on missing or failing conditions"]
+    REMOVE["Remove satisfied rule's taint"]
+    SCHEDULE["Scheduler checks remaining guards and constraints"]
+    PENDING --> KARP --> REGISTER
+    REGISTER --> BLOCK
+    REGISTER --> AGENT --> CHECKS --> CONDITIONS --> NRC
+    NRC -->|Conditions not matched| KEEP
+    NRC -->|Conditions matched| REMOVE --> SCHEDULE
+    KEEP --> BLOCK
 ```
 
 **Practical GPU node group example:**
 
-Using NRC with a GPU node group for AI/ML workloads delays AI workload scheduling until NVIDIA drivers finish loading, preventing placement failures:
+This combined pattern uses a guarded `gpu-pool` and a custom GPU reporter. `gpu-nodeclass` must already resolve a compatible accelerated AMI, IAM role and network. The Pod/Job examples target this pool and require eight allocatable GPUs. Use this as an alternative to the standalone GPU rule above; a reporter implementation and observed failure/unknown/staleness behavior remain required.
 
 ```yaml
 # Karpenter NodePool: GPU node group
@@ -4891,6 +4875,10 @@ metadata:
 spec:
   template:
     spec:
+      startupTaints:
+        - key: readiness.k8s.io/gpu-unavailable
+          value: pending
+          effect: NoSchedule
       requirements:
         - key: node.kubernetes.io/instance-type
           operator: In
@@ -4899,6 +4887,8 @@ spec:
           operator: In
           values: ["on-demand"]
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: gpu-nodeclass
 ---
 # NodeReadinessRule: Check GPU driver readiness
@@ -4908,7 +4898,9 @@ metadata:
   name: gpu-readiness-rule
 spec:
   conditions:
-    - type: "nvidia.com/gpu.driver.ready"
+    - type: "example.com/GPUDriverReady"
+      requiredStatus: "True"
+    - type: "example.com/GPUDevicePluginReady"
       requiredStatus: "True"
   taint:
     key: "readiness.k8s.io/gpu-unavailable"
@@ -4919,7 +4911,7 @@ spec:
     matchLabels:
       karpenter.sh/nodepool: gpu-pool
 ---
-# AI workload: Use a Toleration to place only on ready GPU nodes
+# AI workload: target the guarded pool without tolerating its readiness guard
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -4927,10 +4919,9 @@ metadata:
 spec:
   template:
     spec:
-      # Place only on nodes with GPUs ready
-      tolerations:
-        - key: "readiness.k8s.io/gpu-unavailable"
-          operator: "DoesNotExist"
+      # Do not tolerate the readiness guard.
+      nodeSelector:
+        karpenter.sh/nodepool: gpu-pool
 
       containers:
         - name: trainer
@@ -4943,20 +4934,19 @@ spec:
 ```
 
 :::tip Recommendations for Optimizing Scheduling Safety
-- **CNI plugins**: Use `bootstrap-only` mode to check initial network readiness
-- **GPU drivers**: Use `continuous` mode to block new Pod placement even during runtime failures
-- **CSI drivers**: Use `continuous` mode to respond to storage driver crashes
-- **Image pre-pulling**: Use `bootstrap-only` mode to wait for large image downloads to complete
-- **Karpenter integration**: Configure a NodeReadinessRule per NodePool for workload-specific readiness conditions
+- **CNI plugins**: Use `bootstrap-only` for explicitly one-time checks; continued network health needs a continuous rule and reporter.
+- **GPU/CSI drivers**: With `continuous`, reported failures cause reconciliation of the guard for new Pods. Existing workload recovery needs its own procedure.
+- **Image pre-pulling**: A custom reporter can confirm the required images are present before a bootstrap rule completes.
+- **Karpenter integration**: Match each rule's selector and taint to registration labels/startup taints and verify that bootstrap agents can run.
 :::
 
 :::warning Considerations for Alpha Features
-Node Readiness Controller is an Alpha feature in Kubernetes 1.32:
+The `NodeReadinessRule` API is `v1alpha1` in the referenced external NRC release. There is no `NodeReadiness=true` Kubernetes control-plane gate to enable.
 
-1. **Feature Gate activation required**: `--feature-gates=NodeReadiness=true` (kube-apiserver, kube-controller-manager)
-2. **Potential API changes**: The `NodeReadinessRule` CRD schema may change during the transition to Beta/GA
-3. **Production environments**: Adoption is recommended only after thorough testing
-4. **Alternatives**: If adopting an Alpha feature is a concern, use existing manual Node Taint management or Init Container patterns
+1. Pin the controller, CRDs and optional admission webhook to the same release. In `v0.5.0`, conditions, nodeSelector, enforcementMode and taint fields are immutable; an existing rule needs a planned replacement rather than an in-place edit of those fields.
+2. Review Node status/reporting permissions, selector overlap and taint ownership. Full webhook packaging requires its documented certificate setup.
+3. Validate startup races, missing/failed/stale conditions, bootstrap-agent placement and controller outage/recovery in a separate test plan.
+4. Init containers run after a Pod is assigned to a node; they do not replace a node scheduling guard. Retain an owner-specific recovery procedure for guarded nodes.
 :::
 
 **References:**
@@ -4991,7 +4981,7 @@ Use the following checklist to verify scheduling settings before production depl
 | **Pod Anti-Affinity** | Spread across nodes (Soft or Hard) | [ ] |
 | **Configure PDB** | Specify minAvailable or maxUnavailable | [ ] |
 | **Verify PDB** | Confirm `minAvailable < replicas` | [ ] |
-| **Verify Multi-AZ deployment** | Verify AZ distribution with `kubectl get pods -o wide` | [ ] |
+| **Verify Multi-AZ deployment** | Join Pod `spec.nodeName` to Node zone labels using the snapshot method above; retain missing/unscheduled results | [ ] |
 
 #### Resource Optimization
 
@@ -5009,44 +4999,45 @@ Use the following checklist to verify scheduling settings before production depl
 |------|------|------|
 | **GPU workloads** | GPU Taint Tolerate + GPU resource requests | [ ] |
 | **StatefulSet** | Use a WaitForFirstConsumer StorageClass | [ ] |
-| **DaemonSet** | Configure tolerations for all taints | [ ] |
+| **DaemonSet** | Add only the tolerations required by that agent; bootstrap agents may need specific readiness guards | [ ] |
 | **Batch jobs** | PriorityClass: low-priority, preemptionPolicy: Never | [ ] |
 
 ### Pod Scheduling Verification Commands
 
+Set the context and individual inspection targets before using these read-only command examples. Node/AZ counts use the two snapshots and `placement_report` above; preserve unknown and unscheduled results instead of querying an empty node name.
+
 ```bash
-# 1. Check Pod placement (distribution across AZs and nodes)
-kubectl get pods -n <namespace> -o wide
+: "${CONTEXT:?set the selected Kubernetes context}"
+: "${NAMESPACE:?set the workload namespace}"
+: "${POD:?set one Pod name}"
+: "${PDB:?set one PDB name}"
+: "${NODE:?set one Node name}"
 
-# 2. Check Pod scheduling events (identify why Pods are Pending)
-kubectl describe pod <pod-name> -n <namespace>
+# 1. Pod-to-node assignment; wide output does not contain actual zone labels
+kubectl --context "$CONTEXT" get pods -n "$NAMESPACE" -o wide
 
-# 3. Check PDB status
-kubectl get pdb -A
-kubectl describe pdb <pdb-name> -n <namespace>
+# 2. Scheduling events for the selected Pod
+kubectl --context "$CONTEXT" describe pod "$POD" -n "$NAMESPACE"
 
-# 4. List PriorityClasses
-kubectl get priorityclass
+# 3. PDB status in the selected namespace
+kubectl --context "$CONTEXT" get pdb -n "$NAMESPACE"
+kubectl --context "$CONTEXT" describe pdb "$PDB" -n "$NAMESPACE"
 
-# 5. Check node taints
-kubectl describe node <node-name> | grep Taints
+# 4. PriorityClasses
+kubectl --context "$CONTEXT" get priorityclass
 
-# 6. Check Pod distribution by node
-kubectl get pods -A -o wide | awk '{print $8}' | sort | uniq -c
+# 5. Taints on the selected Node
+kubectl --context "$CONTEXT" get node "$NODE" -o jsonpath='{.spec.taints}'
 
-# 7. Check Pod distribution by AZ
-kubectl get pods -A -o json | \
-  jq -r '.items[] | "\(.metadata.namespace) \(.metadata.name) \(.spec.nodeName)"' | \
-  while read ns pod node; do
-    az=$(kubectl get node $node -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}')
-    echo "$ns $pod $node $az"
-  done | column -t
+# 6-7. Snapshot input for node/AZ counts via placement_report
+kubectl --context "$CONTEXT" get pods -n "$NAMESPACE" -o json > pods.json
+kubectl --context "$CONTEXT" get nodes -o json > nodes.json
 
-# 8. Analyze why Pods are Pending
-kubectl get events --sort-by='.lastTimestamp' -A | grep -i warning
+# 8. Warning events in the selected namespace
+kubectl --context "$CONTEXT" get events -n "$NAMESPACE" --field-selector type=Warning --sort-by='.lastTimestamp'
 
-# 9. Check Descheduler logs (if installed)
-kubectl logs -n kube-system -l app=descheduler --tail=100
+# 9. Descheduler logs, if that installation uses this namespace and selector
+kubectl --context "$CONTEXT" logs -n kube-system -l app=descheduler --tail=100
 ```
 
 <span id="related-documents" />
