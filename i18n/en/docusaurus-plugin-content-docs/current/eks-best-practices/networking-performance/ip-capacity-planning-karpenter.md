@@ -5,7 +5,7 @@ created: "2026-09-19"
 last_update:
   date: "2026-09-19"
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 24
 tags:
   - eks
   - vpc-cni
@@ -39,6 +39,10 @@ Terms are used with the following meanings.
 - **NAU (Network Address Usage)** — The unit that counts address resources attached to a VPC. IPs, prefixes, and ENIs each count at a fixed rate
 
 The algorithm ipamd uses to fill the warm pool, the mechanics of Prefix Delegation, and the IP cooldown are covered in [How VPC CNI Works](./vpc-cni-deep-dive.md). This guide takes that behavior as given and concentrates on how to calculate consumption and where to leave headroom.
+
+On EKS Auto Mode clusters, AWS manages node networking (including the ENI lifecycle), so there are no VPC CNI environment variables such as `WARM_*` or `MINIMUM_IP_TARGET`. IP allocation is controlled through the NodeClass instead. `advancedNetworking.ipv4PrefixSize` is either `Auto` (the default: Prefix Delegation, one /28 assigned to each node up front and another added when it fills) or `"32"` (secondary IP mode, one IP per Pod, only one spare IP kept warm). `secondaryIPv4Count` and `secondaryIPv4PrefixCount` under `advancedNetworking.networkInterfaces` fix the IP count per ENI at launch, after which no IPs, prefixes, or ENIs are added. Pod subnets are separated from node subnets with `podSubnetSelectorTerms`.
+
+Security Groups for Pods is not supported on Auto Mode; `podSecurityGroupSelectorTerms` on the NodeClass takes its place, and nodes are capped at 110 Pods. The warm-target and NodePool guidance below applies to self-managed nodes where you run Karpenter yourself. On Auto Mode, a large fleet with few Pods per node avoids the 16-IP-per-node reservation of prefix mode by choosing `ipv4PrefixSize: "32"`.
 
 ## Architecture
 
@@ -103,13 +107,13 @@ Example: 100 − 16 = 84
 500 × 4xlarge × 84 ≈ 42,000 → more than one /17 subnet (32,763 usable)
 ```
 
-None of this shows up on a normal day. While large instances are available, the reserved IPs are mostly used by Pods. The waste appears when fallback happens all at once: a DR drill or a large redeploy during a regional capacity shortage brings up hundreds of small nodes together and empties the subnet.
+None of this shows up on a normal day. While large instances are available, the reserved IPs are mostly used by Pods. The waste appears when fallback happens all at once: a DR drill or a large redeploy during a regional capacity shortage brings up hundreds of small nodes together and empties the subnet. IPs released by deleted Pods are reusable only after the default 30-second cooldown (`IP_COOLDOWN_PERIOD`), so in a large redeploy that waiting stock adds to the momentary consumption as well.
 
 Lowering the warm targets alone does not fix it. A value tuned for large nodes slows Pod startup on those nodes if reduced, and wastes addresses on small nodes if left alone. The other half of the fix is to keep fallback from dropping straight from 24xlarge to 4xlarge: split NodePools so it passes through the 8–16xlarge range and the spread of node sizes stays narrow.
 
 ## IP Consumption by Security Groups for Pods
 
-With `ENABLE_POD_ENI=true`, every Pod matched by a `SecurityGroupPolicy` gets a branch ENI, and each branch ENI consumes one primary IP. Branch ENI counts are a separate per-instance-type limit, independent of the secondary IP limit; the values are listed in [limits.go in vpc-resource-controller](https://github.com/aws/amazon-vpc-resource-controller-k8s/blob/master/pkg/aws/vpc/limits.go). A c5.4xlarge, for example, has a default ENI-based `max-pods` of 234 and can attach up to 54 branch ENIs on top.
+With `ENABLE_POD_ENI=true`, every Pod matched by a `SecurityGroupPolicy` gets a branch ENI, and each branch ENI consumes one primary IP. Branch ENI counts are a separate per-instance-type limit, independent of the secondary IP limit; the values are listed in [limits.go in vpc-resource-controller](https://github.com/aws/amazon-vpc-resource-controller-k8s/blob/master/pkg/aws/vpc/limits.go). A c5.4xlarge, for example, can hold up to 234 secondary IPs (or /28 prefixes) on its standard ENIs and attach up to 54 branch ENIs on top; the branch ENI limit is additive to the secondary IP limit.
 
 In clusters where most Pods use SGP, a few properties make IP planning harder.
 
@@ -126,7 +130,9 @@ When a subnet runs short, consider these options in order of how much they chang
 3. **Custom networking** — When Pods must live in a different subnet from the node, use `AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG=true` with `ENIConfig`. The primary ENI can no longer serve Pods, so the maximum Pods per node drops.
 4. **IPv6** — For a new cluster, IPv4 exhaustion goes away entirely. IPv6 requires Prefix Delegation mode and Nitro instances.
 
-Check the VPC quotas as well. A VPC allows 5 IPv4 CIDR blocks by default (up to 50) and 200 subnets by default; request increases where needed. For reference, eksctl creates /19 subnets (8,192 addresses) by default.
+Check the VPC quotas as well. A VPC allows 5 IPv4 CIDR blocks by default (up to 50) and 200 subnets by default; request increases where needed. For reference, eksctl splits its default VPC `192.168.0.0/16` into eight /19 subnets (8,192 addresses each).
+
+Instead of tuning warm targets and guarding add-on configuration against drift indefinitely, moving the workloads that keep running out of IPs to an EKS Auto Mode NodePool is also worth considering as a way to shrink node-networking operations. You pick the per-node reservation unit with `ipv4PrefixSize` and hand the ENI lifecycle and CNI updates to AWS; in exchange you accept no Security Groups for Pods, a 110-Pod cap per node, and no fine-grained warm-target control. Auto Mode nodes and self-managed nodes can share one cluster, with workloads split between them.
 
 ## How Karpenter Picks Subnets
 
@@ -163,7 +169,7 @@ aws eks update-addon --cluster-name my-cluster --addon-name vpc-cni \
   --resolve-conflicts OVERWRITE
 ```
 
-Set `MINIMUM_IP_TARGET` to the Pod count expected on the dominant node size, and set `WARM_IP_TARGET` alongside it to a small value greater than 0. With `MINIMUM_IP_TARGET` alone, `WARM_IP_TARGET` is treated as 0 and no spare IPs are acquired once the minimum is reached.
+Set `MINIMUM_IP_TARGET` to the Pod count expected on the dominant node size, and set `WARM_IP_TARGET` alongside it to a small value greater than 0. With `MINIMUM_IP_TARGET` alone, `WARM_IP_TARGET` is treated as 0 and no spare IPs are acquired once the minimum is reached. A smaller `WARM_IP_TARGET` saves IPs but adds an EC2 API call every time a Pod comes or goes, so on a large cluster or one with high Pod churn it can trigger EC2 API throttling. The VPC CNI README advises against relying on `WARM_IP_TARGET` alone in that situation; covering the base with `MINIMUM_IP_TARGET` and keeping `WARM_IP_TARGET` small is the compromise.
 
 ### Three-tier weighted NodePools
 
@@ -213,7 +219,7 @@ For NodePools that do not use SGP, enable Prefix Delegation to improve ENI slot 
 Options for the case where large instances cannot be obtained.
 
 - Allow several families and sizes in the NodePool requirements rather than pinning one type.
-- Consume On-Demand Capacity Reservations (ODCRs) first through `capacityReservationSelectorTerms` on the EC2NodeClass. This feature is in Beta and requires `karpenter.sh/capacity-type: reserved` and the `ec2:DescribeCapacityReservations` IAM permission.
+- Consume On-Demand Capacity Reservations (ODCRs) first through `capacityReservationSelectorTerms` on the EC2NodeClass. This feature is in Beta as of the karpenter.sh documentation (September 2026) and requires `karpenter.sh/capacity-type: reserved` and the `ec2:DescribeCapacityReservations` IAM permission.
 - Pre-warm nodes with static NodePool `replicas` or overprovisioning ([Karpenter Autoscaling](../resource-cost/karpenter-autoscaling.md)). For the disruption design when those nodes are consumed, see [Pod Scheduling and Availability](../operations-reliability/eks-pod-scheduling-availability.md).
 
 ## Operational Considerations
@@ -252,6 +258,9 @@ In the routable Pod IP model, capacity is set by whichever of subnet free IPs, t
 - [Amazon VPC quotas](https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html) — Default subnet, CIDR, and NAU quotas
 - [Karpenter NodePools](https://karpenter.sh/docs/concepts/nodepools/) — weight, limits, disruption budgets, well-known labels
 - [Karpenter NodeClasses](https://karpenter.sh/docs/concepts/nodeclasses/) — subnetSelectorTerms, capacityReservationSelectorTerms, ipPrefixCount
+- [Learn about VPC Networking and Load Balancing in EKS Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/auto-networking.html) — Managed node networking in Auto Mode and NodeClass subnet selection
+- [Create a Node Class for Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html) — `ipv4PrefixSize`, `networkInterfaces`, separate Pod subnets, the 110-Pod-per-node limit
+- [eksctl VPC Configuration](https://eksctl.io/usage/vpc-configuration/) — Default VPC 192.168.0.0/16 split into eight /19 subnets
 
 ### Technical Blogs
 - [Amazon VPC CNI introduces Enhanced Subnet Discovery](https://aws.amazon.com/blogs/containers/amazon-vpc-cni-introduces-enhanced-subnet-discovery/) — Tag-based, non-disruptive subnet expansion
