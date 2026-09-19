@@ -21,14 +21,14 @@ const CostOptimization = () => {
     color: '#3b82f6'
   }, {
     category: isKo ? '네트워크' : 'Network',
-    sagemaker: isKo ? 'VPC 내 무료' : 'Free Within VPC',
+    sagemaker: isKo ? '경로별 전송·NAT·endpoint 요금 확인' : 'Check transfer, NAT and endpoint charges by path',
     eks: isKo ? '데이터 전송 비용' : 'Data Transfer Costs',
-    strategy: isKo ? 'VPC Endpoint 사용' : 'Use VPC Endpoints',
+    strategy: isKo ? 'S3 gateway endpoint와 유료 경로 비교' : 'Compare S3 gateway endpoints with chargeable paths',
     icon: '🌐',
     color: '#8b5cf6'
   }, {
     category: isKo ? '관리 오버헤드' : 'Management Overhead',
-    sagemaker: isKo ? '없음' : 'None',
+    sagemaker: isKo ? '인프라 관리는 AWS, 데이터·IAM·모델 운영은 고객' : 'AWS manages infrastructure; customers manage data, IAM and model operations',
     eks: isKo ? '운영 인력 필요' : 'Operations Staff Required',
     strategy: isKo ? '자동화로 상쇄' : 'Offset with Automation',
     icon: '👥',

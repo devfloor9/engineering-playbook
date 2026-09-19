@@ -3,9 +3,9 @@ title: AIDLC Evaluation Framework
 description: Evaluation-driven Loop in Agent/LLM Development Process — Comparison of SWE-bench Verified, METR, Ragas, DeepEval, LangSmith, Braintrust, AWS Labs aidlc-evaluator
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 52
+reading_time: 63
 tags:
   - evaluation
   - ragas
@@ -19,7 +19,9 @@ tags:
 sidebar_label: Evaluation Framework
 ---
 
-AIDLC (AI Development Life Cycle) handles **stochastic outputs**, unlike a traditional SDLC. An LLM or agent can produce different responses to the same input, and passing a unit test once does not guarantee consistent correctness. This document explains how to embed evaluation into AIDLC's three loops (Inner, Middle, and Outer) and describes benchmarks, tools, and architectures used in practice as of April 2026.
+AI-DLC (AI-Driven Development Lifecycle) combines software tests with LLM and agent evaluation. Unit, integration and security tests check expected code behavior; repeated evaluations check model responses that can vary for the same input.
+
+This document proposes Inner/Middle/Outer Loops for quick development checks, CI regression tests and production-data evaluation. Benchmark and tool comparisons retain their April 2026 scope. The separately identified v0.1.7 rules and evaluator behavior refer to the version checked on September 19, 2026.
 
 ---
 
@@ -27,20 +29,20 @@ AIDLC (AI Development Life Cycle) handles **stochastic outputs**, unlike a tradi
 
 ### 1.1 SDLC TDD vs AIDLC Evaluation-driven
 
-| Aspect | Traditional SDLC (TDD) | AIDLC (Evaluation-driven) |
-|------|-----------------|--------------------------|
-| Output characteristics | Deterministic (same input → same output) | Stochastic (same input → a distribution) |
-| Definition of correctness | A single expected value | Acceptable ranges + distributions of quality metrics |
-| Failure signal | Assertion failure = bug | Metric decline = potential drift, regression, or quality degradation |
-| Reproducibility | 100% reproducible | Approximately reproducible with fixed seed/temperature |
-| Gate condition | All tests pass | Evaluation metrics meet thresholds (for example, Faithfulness ≥ 0.90) |
-| Evaluation cadence | Per commit | Per commit + dataset changes + production sampling |
+| Aspect | Tests for deterministic components | Evaluation of stochastic components |
+|------|----------------------|-----------------------|
+| Output | Function results under controlled inputs/state | Responses that can vary for the same input |
+| Correctness | Expected values and invariants | References, rubrics, quality distributions and tolerances |
+| Failure signal | Assertion or invariant violation | Possible quality loss, drift or regression requiring case inspection |
+| Reproducibility | Also depends on dependencies, concurrency and environment | Fixed seed/temperature alone does not guarantee identical output |
+| Gate | Relevant tests pass | Metric thresholds plus relevant code/security tests and approval |
+| Cadence | Commits and environment changes | Commits, dataset/model/judge changes and production sampling |
 
-TDD follows a loop of failing test → implementation → refactoring. AIDLC's evaluation-driven loop follows **evaluation dataset → agent/prompt/model change → metric comparison → gate approval**. A single feature addition can degrade two of ten metrics, so a **multidimensional metrics dashboard** is the default instead of a simple pass/fail result.
+Both approaches can be used in SDLC and AI-DLC. Add **evaluation dataset → change → metric comparison → approval review** to TDD's failing-test → implementation → refactoring loop. A multidimensional dashboard complements explicit pass/fail policies and evidence review.
 
 ### 1.2 CI Role in Training → Deployment Flow
 
-In a traditional SDLC, CI consists of builds and unit tests. AIDLC expands its responsibilities:
+CI retains existing build, unit, integration and security tests while adding evaluation responsibilities.
 
 1. Compare committed prompt, agent, or model changes against the evaluation dataset baseline.
 2. Check whether core metrics such as faithfulness, task success rate, and tool-use accuracy remain within acceptable ranges.
@@ -48,11 +50,11 @@ In a traditional SDLC, CI consists of builds and unit tests. AIDLC expands its r
 4. Assess drift against production samples.
 5. Continue the deployment pipeline only after the gate passes.
 
-CI therefore extends from **checking whether code compiles** to **checking whether the agent maintains its expected quality**.
+Code checks and agent-quality evaluation remain complementary; a judge score cannot override failing code tests.
 
 ### 1.3 Relationship with Inner / Middle / Outer Loop
 
-AIDLC divides evaluation into three layers to balance cost, speed, and accuracy.
+These three layers are a **repository design proposal** for balancing cost, speed and coverage, distinct from the official Inception/Construction/Operations phases. Ten–twenty or hundreds of cases are starting examples to adjust for the data distribution, failure cost and statistical objective.
 
 ```mermaid
 flowchart LR
@@ -96,16 +98,16 @@ The original SWE-bench contains 2,294 issues with substantial variation in diffi
 
 1. **Specification clarity**: Issue descriptions and reproduction steps are understandable to human readers.
 2. **Test reliability**: Evaluation tests accurately capture the bug; flaky tests are excluded.
-3. **Environment reproducibility**: Container images can be reproduced deterministically.
+3. **Environment reproducibility**: Pin containers, dependencies and the harness revision to improve repeatability; still check flaky execution and environmental differences.
 4. **Appropriate scope**: Overly broad or infeasible cases are excluded.
 
-From an AIDLC perspective, its importance lies in being the single public reference for whether an agent can complete the specification → design → implementation → verification cycle at the level of a **real pull request**.
+A SWE-bench Verified pass rate measures issue resolution on the selected 500 issues under a particular harness revision, generated patch and test setup. It does not certify specification/design quality or the whole PR lifecycle, and should accompany other public and domain evaluations.
 
 #### Benchmark Usage Precautions
 
 - **Training contamination**: Public benchmarks may be included in pretraining data. Supplement them with benchmarks such as LiveCodeBench that regularly add new problems.
 - **Sample size and significance**: A difference between 68% for Agent A and 70% for Agent B on 500 issues may not be statistically significant. Assess it with bootstrap confidence intervals.
-- **Discriminating power relative to cost**: A full benchmark run can cost thousands of dollars with leading models, making it unsuitable for every CI pull request. Run it weekly or per release.
+- **Discriminating power relative to cost**: A thousands-of-dollars figure is not a general price without a model, retry, harness and token budget. Estimate and measure a bounded run before choosing a CI, weekly or release cadence.
 
 ### 2.2 General LLM/Reasoning Benchmarks (Reference)
 
@@ -113,7 +115,7 @@ These benchmarks are difficult to apply directly to coding agents, but serve as 
 
 | Benchmark | Focus | Considerations |
 |---------|------|---------|
-| **MMLU-Pro** | Expert knowledge across 14 domains with five-option multiple-choice questions; an improved MMLU | Leading models converge above 80% as of April 2026, reducing differentiation |
+| **MMLU-Pro** | Expert knowledge/reasoning across 14 domains with up to ten answer choices | The 80%+ convergence claim needs dated model/prompt/evaluation-revision evidence and is unverified here |
 | **GPQA Diamond** | Graduate-level science questions (198) | Frequently used to evaluate dedicated reasoning models from Google and OpenAI |
 | **MATH** | High-school competition mathematics | Approaching saturation |
 | **HumanEval / HumanEval+** | Python function generation | Nearly saturated; replacement with LiveCodeBench is recommended |
@@ -123,17 +125,11 @@ These benchmarks are difficult to apply directly to coding agents, but serve as 
 
 ### 2.3 METR task-length doubling
 
-The METR (Model Evaluation & Threat Research) study, “Measuring AI Ability to Complete Long Tasks,” reports a significant trend:
+In METR's **March 19, 2025 study**, the approximately seven-month doubling describes the **human-expert duration of tasks completed by an agent with 50% success probability**, not how long the agent runs continuously. It is estimated on the study's task distribution, including HCAST, rather than a universal current doubling rate for all models.
 
-- The **duration of continuous tasks that models can successfully complete doubles approximately every seven months**.
-- The duration increased from seconds in 2019 to tens of minutes in 2024–2025. If the trend continues, it is expected to reach several hours in 2027–2028.
-- Measurement method: Human completion times for tasks such as HCAST (Human-Calibrated Autonomy Software Tasks) are used to estimate the task duration an agent can complete with a 50% success rate.
-
-Implications for enterprises:
-
-1. Even if a task that takes a person one hour is not currently suitable for automation, it is likely to cross that threshold within one to two years.
-2. Evaluation datasets should expand periodically to include **longer-horizon tasks**.
-3. Guardrails, audit, and human-in-the-loop (HITL) systems must strengthen as task duration increases.
+- Historical observations cover tasks taking humans seconds through tens of minutes. Extrapolations to hours or days depend on the trend and task distribution continuing.
+- The study does not establish that an arbitrary enterprise task will become safely automatable within one or two years. A 50% success rate is not an operational reliability target.
+- Add long tasks, retries and failure recovery to domain evaluations; validate guardrails, audit and HITL requirements against the actual risks and required success probability.
 
 URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/)
 
@@ -149,9 +145,9 @@ The following comparison focuses on the AIDLC Middle Loop: CI integration and co
 | **DeepEval** | Apache 2.0 | 30+ metrics, including G-Eval, Toxicity, PII, Hallucination, Bias, and Correctness | PyTest integration (`assert_test()`) | Confident AI integration | Familiar to PyTest users; custom metric DSL | Moderately mature ecosystem; some metrics require validation |
 | **LangSmith** | SaaS + self-host beta | Trace, Dataset, Auto/Custom Evaluator, LLM-as-judge | `langsmith evaluate` CLI, GH Actions | Managed (native to LangChain) | LangChain/LangGraph integration and A/B experiment management | SaaS dependency and data governance concerns |
 | **Braintrust** | SaaS + self-host Enterprise | Dataset, Grading, Replay, Playground | `braintrust eval` CLI | Managed, log SDK | Strong developer experience and Playground UX | Vendor lock-in and on-premises constraints |
-| **AWS Labs aidlc-evaluator** | Apache 2.0 (early, v0.1.6+) | AIDLC phase deliverable compliance, Common Rules compliance, and Stage Transition metrics | Python execution through `scripts/` | - | Evaluates adherence to the AIDLC methodology itself | Lacks general-purpose quality metrics; pair with Ragas/DeepEval |
+| **AWS Labs aidlc-evaluator** | Apache 2.0, snapshot at workflow tag v0.1.7 | Execution, tests, code checks, API contracts, document comparison and reports | `scripts/aidlc-evaluator/run.py` | Separate integration | Compares workflow changes with golden test cases | Validate execution dependencies, judge and optional checks; domain evaluation remains separate |
 | **Promptfoo** | MIT | Assertions, LLM-as-judge, classifiers | YAML configuration + `promptfoo eval` + GH Actions | Partial | Lightweight and declarative; effective for prompt comparison | Limited support for agent evaluation and complex workflows |
-| **Inspect AI (UK AISI)** | Apache 2.0 | Agent safety/capability (solver + scorer) | Python/CLI, GH Actions | - | Government-agency evaluation standards and sandbox execution | Learning curve and a relatively small community |
+| **Inspect AI (UK AISI)** | MIT (inspected project LICENSE) | Agent safety/capability (solver + scorer) | Python/CLI, GH Actions | - | Evaluation library and sandbox integration; not itself a government certification standard | Validate the selected environment, tools and models |
 
 ### 3.1 Tool Selection Guide
 
@@ -159,23 +155,23 @@ The following comparison focuses on the AIDLC Middle Loop: CI integration and co
 - **Python/PyTest-focused teams** → DeepEval
 - **LangChain/LangGraph users** → LangSmith for native integration
 - **Strong developer experience and team experiment management** → Braintrust
-- **Auditing AIDLC methodology compliance** → AWS Labs aidlc-evaluator
+- **Compare AI-DLC workflow changes and golden artifacts** → the pinned AWS Labs evaluator
 - **Simple prompt A/B comparisons** → Promptfoo
 - **Agent safety/capability evaluation** → Inspect AI
 
-> In practice, combinations of two or three tools are common, such as **Ragas (quality) + Inspect AI (safety) + aidlc-evaluator (methodology compliance)** or **Braintrust (experimentation) + Langfuse (observability)**.
+> Example combination: Ragas for domain RAG quality, Inspect AI for selected safety/capability tasks, and aidlc-evaluator for workflow/artifact comparisons. Braintrust and Langfuse can separately support experimentation/observability. A combination is not evidence of validation or a universal adoption pattern.
 
 ### 3.2 Core Ragas v0.2+ Metrics
 
 | Metric | Meaning | Calculation Summary |
 |-------|------|-------------|
 | Faithfulness | Is the response grounded in the retrieved context? | Decompose the response into claims and calculate the proportion supported by the context |
-| Context Precision | What proportion of retrieved documents is relevant to the correct answer? | MAP-style calculation that accounts for top-k ordering |
+| Context Precision | Are relevant chunks ranked above irrelevant ones? | The selected reference-based variant aggregates precision@k at relevant ranks, rather than a simple relevant-document fraction |
 | Context Recall | Was all information needed for the correct answer retrieved? | Decompose ground truth into sentences and calculate the proportion covered by the context |
 | Answer Relevancy | Does the response address the intent of the question? | Embedding similarity between questions generated from the response and the original question |
-| Noise Sensitivity | Does the response change when irrelevant documents are injected? | Measures RAG pipeline robustness |
+| Noise Sensitivity | Fraction of incorrect response claims attributable to relevant/irrelevant context | Uses user_input, reference, response and retrieved_contexts; lower is better on 0–1 |
 
-Retrieval quality and generation quality are intertwined in a RAG pipeline, complicating diagnosis. Ragas metrics help separate these issues. For example, declining Faithfulness with rising Context Precision indicates **generation-stage hallucination**, while declining Context Precision indicates **retrieval-stage failure**.
+Pin the Ragas metric class/library revision and reference requirements. Do not mix the current collections API with the legacy v0.2-style API described in the [Context Precision](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_precision/) and [Noise Sensitivity](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/noise_sensitivity/) documentation. Falling Faithfulness with rising Context Precision motivates investigation of generation; it does not prove one cause. Inspect cases, reference quality, judge consistency and retrieval ordering.
 
 ### 3.3 DeepEval PyTest Integration
 
@@ -199,14 +195,18 @@ These tools support large teams that systematically test 10–20 prompt combinat
 
 ### 3.5 AWS Labs aidlc-evaluator — Methodology Compliance Auditing
 
-This tool audits **whether a project actually follows the AIDLC methodology**, rather than general-purpose quality metrics.
+The [evaluator README at workflow tag v0.1.7](https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/scripts/aidlc-evaluator/README.md) describes six execution stages for comparing workflow changes. The tag identifies a workflow-repository snapshot, not certification of a separately versioned evaluator package.
 
-- Application of Common Rules: Deliverable filenames, structure, and approval checkpoints
-- Stage Transition criteria: Completeness of deliverables before moving from Inception to Construction
-- Compliance with extensions (`opt-in.md`)
-- Detection of violations of organization-specific rules
+1. **Execution**: Generate documents and code through the two-agent workflow.
+2. **Post-Run**: Install dependencies and run the generated project's tests.
+3. **Quantitative**: Run lint, security and duplication checks.
+4. **Contract**: Start the generated app and check API contracts.
+5. **Qualitative**: Compare generated documents with golden references using a Bedrock judge.
+6. **Report**: Produce Markdown and HTML reports.
 
-At the v0.1.x stage, its general applicability and stability are limited. For organizations that standardize on AIDLC, however, it is the only tool that can monitor methodology compliance in CI **alongside Ragas/DeepEval**.
+Pin vision/tech-environment/golden-document/OpenAPI inputs and model/execution settings; retain skipped checks, errors, tokens and timings. Optional tools such as PMD can be absent and their checks skipped. A host-execution path exists without the sandbox, so isolation is not automatic. No app, container or model was executed to validate this document.
+
+The [same tag's core workflow](https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/aidlc-rules/aws-aidlc-rules/core-workflow.md) loads selection prompts from `*.opt-in.md` and uses enabled rules plus Extension Configuration in `aidlc-docs/aidlc-state.md`. Check its defaults for missing configuration and extensions without opt-in files. These workflow instructions do not establish that the evaluator automatically checks every organizational policy; implement and connect those checks explicitly.
 
 ---
 
@@ -271,11 +271,15 @@ jobs:
           python eval/gate.py results.json \
             --faithfulness 0.90 --context-precision 0.85 --answer-relevancy 0.85
       - uses: actions/upload-artifact@v4
-        with: {name: eval-results, path: results.json}
+        if: ${{ always() }}
+        with:
+          name: eval-results
+          path: results.json
+          if-no-files-found: error
 ```
 
 - Implement `gate.py` to return `exit 1` for a failed threshold, missing/nonfinite score, or evaluation error. Ragas returns `NaN` for failed evaluations by default; the gate must not treat it as a pass.
-- The example includes artifact upload only. Sending results to Langfuse/Braintrust dashboards requires a separate adapter.
+- `always()` preserves available results after evaluation/gate failure. A missing file fails upload and never becomes evaluation success. Preserve evaluator diagnostics/partial results through a separate error-artifact contract. Langfuse/Braintrust dashboard delivery needs a separate adapter.
 
 ### 4.3 Outer Loop — Production Sampling
 
@@ -308,7 +312,7 @@ flowchart LR
 ### 5.1 Inception
 
 - **Requirements coverage evaluation**: Measure the percentage of use cases defined in `requirements.md` that the evaluation dataset covers.
-- **AIDLC Common Rules compliance**: Use `aidlc-evaluator` to check deliverable formats and extension compliance.
+- **AIDLC Common Rules compliance**: Review versioned rules, extension state and artifact evidence; identify which checks are actually automated in evaluator reports.
 - **Acceptance criteria specificity**: Convert vague criteria such as “works well” into measurable metrics, for example, “faithfulness ≥ 0.90, p95 response latency ≤ 3 s.”
 
 ### 5.2 Construction
@@ -334,7 +338,7 @@ flowchart LR
 | Construction → Operations | Core regression dataset metrics at or above baseline; p95 latency target met; security scans passed | Ragas/DeepEval + CI gate |
 | Ongoing Operations | No drift in production metrics; guardrails violation rate below threshold | Langfuse + asynchronous evaluator |
 
-The standard AIDLC pattern requires both an **automated gate based on metric thresholds and human checkpoint approval** at each transition. Automated gates alone cannot exclude cases in which metrics pass but practical quality remains inadequate.
+The 95% coverage threshold and other conditions are **organizational policy examples**, not universal AI-DLC numbers. Define coverage against an approved list of in-scope requirements and link each item to evaluation cases/evidence. Specify where automated metrics and human approval are combined, how failures are handled and who authorizes exceptions. Separately retain the checkpoint approvals required by the selected workflow revision.
 
 ---
 
@@ -348,9 +352,9 @@ The standard AIDLC pattern requires both an **automated gate based on metric thr
 
 ### 6.2 Statistical Significance
 
-- For samples of 200 or fewer, **bootstrap confidence intervals** are practical because normality assumptions may be unreliable.
-- Use p-values only as supporting indicators. For small datasets, also consider **effect size (Cohen's d, Δmean/σ)**.
-- Address multiple comparisons with Bonferroni or Benjamini–Hochberg (BH) correction when examining several metrics together.
+- A sample count of 200 is not a validity boundary for choosing a method. Plan sample size from the confidence target, minimum effect and task distribution; specify paired cases versus independent samples. Resample repeated runs or correlated traces at an appropriate cluster unit, such as task family.
+- Report score differences or percentage-point changes in success rate with confidence intervals. For Cohen's d, specify the denominator: pooled SD for independent groups or SD of paired differences. Handle zero variance explicitly. A p-value alone does not approve deployment.
+- Bonferroni controls family-wise error rate; Benjamini–Hochberg controls false discovery rate under its assumptions. Define the comparison family, error objective and dependence assumptions before analysis.
 
 ### 6.3 Example Threshold Gates
 
@@ -398,8 +402,70 @@ Address data drift by expanding coverage, concept drift by rewriting ground trut
 1. **Use a smaller judge model**: Replace GPT-4.1 with GPT-4.1-mini or Claude Haiku 4.5 for the initial assessment, then recheck only borderline cases with a larger model.
 2. **Local evaluator models**: Connect a separately hosted judge to the Inner/Middle Loop and validate both evaluation quality and local inference infrastructure costs.
 3. **Sampling strategy**: Use 100 stratified samples for the Middle Loop instead of 500, with a full 500-case run once a month.
-4. **Caching**: Cache judge results for identical prompt/response pairs and skip reevaluation when the input has not changed.
+4. **Caching**: Use a tenant-scoped key covering prompt/response, ordered context/reference, dataset/pipeline/prompt/model/retriever/judge/metric/rubric/transformation versions and effective settings.
 5. **Asynchronous evaluation**: Make selected metrics advisory rather than blocking PRs.
+
+This key function identifies the effective evaluation. `spec` must record the actual settings, including metric parameters, judge sampling and evaluator-code revision; use explicit `None` for a reference-free metric. If the provider exposes no immutable judge revision, disable shared caching or define a separately validated validity boundary. A cache hit is not a new independent measurement. Hashes are not anonymization; retain access controls for content, keys and results.
+
+```python
+# cache-key.py — all values describe the effective evaluation, not defaults
+import hashlib
+import json
+import math
+
+def evaluation_cache_key(*, tenant_id, trace, spec):
+    if not isinstance(tenant_id, str) or not tenant_id:
+        raise ValueError("A tenant-scoped identity is required")
+    if not isinstance(trace, dict) or not isinstance(spec, dict):
+        raise ValueError("Trace and effective specification must be objects")
+    for field in ("input", "output"):
+        if not isinstance(trace.get(field), str):
+            raise ValueError(f"Invalid {field}")
+    contexts = trace.get("retrieved_docs")
+    if not isinstance(contexts, list) or not all(isinstance(x, str) for x in contexts):
+        raise ValueError("Ordered retrieved documents are required")
+    if "reference" not in trace or trace["reference"] is not None and not isinstance(trace["reference"], str):
+        raise ValueError("Reference must be explicit; use None for reference-free metrics")
+    for field in ("dataset_revision", "pipeline_revision", "prompt_version",
+                  "model_revision", "retriever_revision", "judge_revision",
+                  "rubric_revision", "evaluator_revision", "transformation_revision"):
+        if not isinstance(spec.get(field), str) or not spec[field]:
+            raise ValueError(f"Missing effective version: {field}")
+    for field in ("judge_configuration", "metric_versions", "metric_configuration"):
+        if not isinstance(spec.get(field), dict) or not spec[field]:
+            raise ValueError(f"Missing effective configuration: {field}")
+    if (set(spec["metric_versions"]) != set(spec["metric_configuration"])
+            or not all(isinstance(v, str) and v for v in spec["metric_versions"].values())):
+        raise ValueError("Each configured metric needs an explicit implementation version")
+    judge = spec["judge_configuration"]
+    if (not all(isinstance(judge.get(k), str) and judge[k] for k in ("provider", "model"))
+            or not isinstance(judge.get("parameters"), dict)):
+        raise ValueError("Judge provider, model and effective parameters are required")
+
+    def json_value(value):
+        if value is None or type(value) in (str, bool, int):
+            return
+        if type(value) is float and math.isfinite(value):
+            return
+        if type(value) is list:
+            for item in value:
+                json_value(item)
+            return
+        if type(value) is dict and all(type(key) is str for key in value):
+            for item in value.values():
+                json_value(item)
+            return
+        raise ValueError("Cache identity accepts only finite JSON data")
+
+    payload = {"schema": "evaluation-cache/v1", "tenant_id": tenant_id,
+               "input": trace["input"], "output": trace["output"],
+               "retrieved_docs": contexts, "reference": trace["reference"],
+               "spec": spec}
+    json_value(payload)
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"),
+                         ensure_ascii=False, allow_nan=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+```
 
 ### 7.3 Cost-Effective Tool Combinations
 
@@ -459,61 +525,155 @@ flowchart LR
 
 ### 8.1 Key Design Considerations
 
-- **Stratified sampling**: Combine 5% random sampling with 100% of error/low-rating traces and 100% of high-cost traces to retain important cases.
+- **Stratified sampling**: An example policy selects 5% of ordinary traces and 100% of the union of error, low-rating and high-cost traces. Deduplicate overlapping priority groups; retain stratum, inclusion probability and population counts. Report strata or design-appropriate weighted estimates/uncertainty, not an unweighted mixed-sample mean as the population error rate.
 - **Asynchronous separation**: Use a queue so evaluation calls do not affect production latency.
 - **Data governance**: Filter PII before storing data in S3, encrypt with KMS, and record access logs.
-- **Feedback loop**: Promote failed traces to the **dataset repository**, where they become regression cases in the next CI cycle.
-- **Unified observability**: Use the Langfuse trace ID as a shared key in CI evaluation results to correlate online and offline evaluations.
+- **Feedback loop**: Queue failed traces for privacy/deduplication and expected-outcome review; only approved labels enter the dataset repository. A failed response is not a reference answer.
+- **Unified observability**: Keep the trace ID for origin linkage plus an evaluation-run ID and tenant/dataset/judge/metric/rubric/pipeline revisions to distinguish reevaluations.
 
 ### 8.2 Deployment Options
 
-- **EKS-based**: Langfuse through Helm, evaluator workers scaled out with Karpenter, and Grafana Operator.
+- **EKS-based**: Langfuse through Helm, a worker scaler such as HPA/KEDA that adjusts replica demand from the queue, Karpenter for node provisioning, and Grafana Operator. Bound concurrency, backpressure and maximum replica/node budgets separately.
 - **AWS native**: Bedrock Agent + CloudWatch + SQS + Lambda evaluator for smaller deployments.
 - **Hybrid**: Filters and samplers at the edge, with evaluators and dashboards on a central EKS cluster.
 
 ### 8.3 Sampler and Evaluation Worker Pseudocode
 
-This is a **synchronous worker scaffold invoked by a queue**, using the same DeepEval contract as section 4.1. `fetch_trace` must wrap the tracing SDK and return a normalized trace with `input: str`, `output: str`, and `retrieved_docs: list[str]`. The sampler also requires `error: bool`, `user_rating: number or None`, and `estimated_cost_usd: number`. The project injects storage, dataset promotion, notification functions, and `judge_model`.
+This **synchronous worker scaffold requires project adapters**. An authenticated queue boundary supplies `tenant_id`, `trace_id` and a stable `run_id` for retries. `authorize_trace` and `fetch_trace(tenant_id, trace_id)` enforce server-side tenant access. The trusted `prepare_for_judge` policy adapter must approve transformed input/output/context/reference and return an immutable transformation revision. Masking stored data alone does not protect a later fetch/inference boundary.
 
-The returned/stored schema is `{"faithfulness": float, "answer_relevancy": float}`, with finite scores in the range 0–1. Read `metric.score` after calling `measure(case)` for [Faithfulness](https://deepeval.com/docs/metrics-faithfulness) and [Answer Relevancy](https://deepeval.com/docs/metrics-answer-relevancy). This worker promotes cases and alerts when `faithfulness < 0.85`. Evaluation failures propagate as exceptions, separate from low quality scores. Queue retries, error recording, and duplicate handling still require implementation.
+`spec` is the effective configuration used by section 7.2's key function. `resolve_judge` verifies the actual provider/model revision, settings, permitted endpoint and installed metric versions. Faithfulness on transformed context describes that transformed evidence and must not be mixed with original-context evaluation. This worker fixes faithfulness at 0.85 and answer relevancy at 0.80; different settings require a separate worker revision.
+
+The returned/stored record contains two finite 0–1 scores, tenant/trace/run IDs, cache key, specification and sampling provenance. `authorize_run` checks tenant/trace/run access against the authenticated queue context. After checking current trace access, transformation approval and input identity, use `load_result` before constructing a judge. Validate the stored identity and both scores; reuse the original scores for an identical input. A lookup error or malformed record is not a cache miss.
+
+`store_result` must atomically insert or read on `(tenant_id, run_id)` and return the durable winning record. Reject a different fixed input identity, including cache key, specification and sampling, but do not compare newly stochastic scores with the stored scores as an insert conflict. Completed records are immutable; adapters return this schema's payload without storage-internal metadata. Changed evaluation input requires a new run ID.
+
+`resume_outbox` uses only the validated stored winner to durably create/repair missing events and resume unacknowledged delivery. Create label-review and warning events only when stored faithfulness is below 0.85. Preserve stable event IDs such as `(tenant_id, run_id, effect_kind)` and identical payloads. Recipients must also be idempotent to recover after send but before acknowledgement. A crash after result storage but before outbox creation must remain recoverable on retry. Propagate evaluation, lookup and delivery errors to the queue retry path. Model, storage and outbox adapters and real distributed-concurrency verification remain separate implementation work.
 
 ```python
+# sampling-worker.py — inject project adapters; no tools are replayed here
+from copy import deepcopy
+import json
 import math
 import random
 from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
 from deepeval.test_case import LLMTestCase
+# Import evaluation_cache_key from the project module implementing section 7.2.
 
-# sampler.py — stratified sampling
-def should_sample(trace):
-    if trace.error or trace.user_rating is not None and trace.user_rating <= 2:
-        return True  # Sample 100% of negative signals
-    if trace.estimated_cost_usd > 0.50:
-        return True  # Sample 100% of high-cost traces
-    return random.random() < 0.05  # Randomly sample 5% of the remainder
+def sampling_decision(trace, *, draw=random.random):
+    if type(trace.error) is not bool:
+        raise ValueError("error must be boolean")
+    for value in (trace.user_rating, trace.estimated_cost_usd):
+        if value is not None and (type(value) not in (int, float) or not math.isfinite(value)):
+            raise ValueError("Invalid sampling input")
+    if trace.estimated_cost_usd is None or trace.estimated_cost_usd < 0:
+        raise ValueError("Cost must be finite and nonnegative")
+    priority = (trace.error or trace.user_rating is not None and trace.user_rating <= 2
+                or trace.estimated_cost_usd > 0.50)
+    probability = 1.0 if priority else 0.05
+    if priority:
+        selected = True
+    else:
+        value = draw()
+        if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value < 1:
+            raise ValueError("Random draw must be in [0, 1)")
+        selected = value < probability
+    return {"selected": selected, "inclusion_probability": probability,
+            "stratum": "priority_union" if priority else "ordinary"}
 
-# worker.py — synchronous handler invoked by a queue
-def evaluate_trace(trace_id, *, fetch_trace, judge_model, store_result,
-                   promote_to_dataset, alert_team):
-    trace = fetch_trace(trace_id)
-    case = LLMTestCase(input=trace.input, actual_output=trace.output,
-                       retrieval_context=trace.retrieved_docs)
-    metrics = {
-        "faithfulness": FaithfulnessMetric(threshold=0.85, model=judge_model),
-        "answer_relevancy": AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+def evaluate_trace(trace_id, *, tenant_id, run_id, spec, sampling,
+                   authorize_trace, authorize_run, fetch_trace, prepare_for_judge,
+                   resolve_judge, load_result, store_result, resume_outbox):
+    if (not isinstance(trace_id, str) or not trace_id
+            or not isinstance(tenant_id, str) or not tenant_id
+            or not isinstance(run_id, str) or not run_id):
+        raise ValueError("Tenant, trace and evaluation-run identities are required")
+    if authorize_trace(tenant_id, trace_id) is not True:
+        raise PermissionError("Trace access denied")
+    if authorize_run(tenant_id, trace_id, run_id) is not True:
+        raise PermissionError("Evaluation-run access denied")
+    if (not isinstance(sampling, dict) or sampling.get("selected") is not True
+            or sampling.get("stratum") not in ("priority_union", "ordinary")
+            or type(sampling.get("inclusion_probability")) not in (int, float)
+            or sampling["inclusion_probability"] !=
+               (1.0 if sampling["stratum"] == "priority_union" else 0.05)):
+        raise ValueError("Missing or inconsistent sampling provenance")
+    spec, sampling = deepcopy(spec), deepcopy(sampling)
+    raw = fetch_trace(tenant_id, trace_id)
+    if raw.get("tenant_id") != tenant_id or raw.get("trace_id") != trace_id:
+        raise PermissionError("Trace identity mismatch")
+    prepared = prepare_for_judge(raw, tenant_id=tenant_id, spec=deepcopy(spec))
+    if (not isinstance(prepared, dict) or prepared.get("approved") is not True
+            or prepared.get("tenant_id") != tenant_id
+            or prepared.get("trace_id") != trace_id
+            or prepared.get("transformation_revision") != spec.get("transformation_revision")):
+        raise PermissionError("Judge-bound payload is not approved")
+    trace = deepcopy(prepared["trace"])
+    key = evaluation_cache_key(tenant_id=tenant_id, trace=trace, spec=spec)
+    if spec["metric_configuration"] != {
+            "faithfulness": {"threshold": 0.85},
+            "answer_relevancy": {"threshold": 0.80}}:
+        raise ValueError("This worker's metric configuration is fixed")
+    identity = {
+        "schema_version": 1, "tenant_id": tenant_id, "trace_id": trace_id,
+        "evaluation_run_id": run_id, "cache_key": key,
+        "spec": spec, "sampling": sampling,
     }
-    scores = {}
-    for name, metric in metrics.items():
-        metric.measure(case)
-        score = metric.score
-        if (isinstance(score, bool) or not isinstance(score, (int, float))
-                or not math.isfinite(score) or not 0 <= score <= 1):
-            raise ValueError(f"Invalid {name} score: {score!r}")
-        scores[name] = float(score)
-    store_result(trace_id, scores, target="s3://eval-results/")
-    if scores["faithfulness"] < 0.85:
-        promote_to_dataset(trace, dataset="regression_v2")
-        alert_team(trace_id, severity="warning")
-    return scores
+
+    def canonical_json(value):
+        return json.dumps(value, sort_keys=True, separators=(",", ":"),
+                          ensure_ascii=False, allow_nan=False)
+
+    expected_identity = canonical_json(identity)
+
+    def checked_record(record):
+        if (not isinstance(record, dict)
+                or set(record) != set(identity) | {"scores"}
+                or type(record.get("schema_version")) is not int
+                or canonical_json({field: record[field] for field in identity})
+                   != expected_identity):
+            raise ValueError("Stored run does not match the authenticated input identity")
+        scores = record["scores"]
+        if (not isinstance(scores, dict)
+                or set(scores) != {"faithfulness", "answer_relevancy"}):
+            raise ValueError("A completed run needs exactly both metric scores")
+        validated = {}
+        for name, score in scores.items():
+            if (isinstance(score, bool) or not isinstance(score, (int, float))
+                    or not math.isfinite(score) or not 0 <= score <= 1):
+                raise ValueError(f"Invalid {name} score: {score!r}")
+            validated[name] = float(score)
+        return {**deepcopy(identity), "scores": validated}
+
+    # The adapter must scope access by the authenticated tenant/trace/run.
+    # None means absent. Lookup errors or malformed records are not cache misses.
+    existing = load_result(tenant_id=tenant_id, trace_id=trace_id, run_id=run_id)
+    if existing is not None:
+        record = checked_record(existing)
+    else:
+        # Resolve/construct/invoke a judge only when no completed run exists.
+        judge_model = resolve_judge(tenant_id=tenant_id, spec=deepcopy(spec))
+        case = LLMTestCase(input=trace["input"], actual_output=trace["output"],
+                          retrieval_context=deepcopy(trace["retrieved_docs"]))
+        metrics = {
+            "faithfulness": FaithfulnessMetric(threshold=0.85, model=judge_model),
+            "answer_relevancy": AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+        }
+        scores = {}
+        for name, metric in metrics.items():
+            metric.measure(case)
+            score = metric.score
+            if (isinstance(score, bool) or not isinstance(score, (int, float))
+                    or not math.isfinite(score) or not 0 <= score <= 1):
+                raise ValueError(f"Invalid {name} score: {score!r}")
+            scores[name] = float(score)
+        candidate = checked_record({**identity, "scores": scores})
+        # Atomic insert-or-read on (tenant_id, run_id). Return the durable winner;
+        # reject conflicting INPUT identity, not a loser's stochastic scores.
+        record = checked_record(store_result(deepcopy(candidate)))
+    # Repair/create missing durable events and resume delivery from this record.
+    # Stable event IDs and idempotent recipients cover a crash after send/before ACK.
+    resume_outbox(deepcopy(record))
+    return record
 ```
 
 ### 8.4 Security and Governance
@@ -522,14 +682,14 @@ def evaluate_trace(trace_id, *, fetch_trace, judge_model, store_result,
 - **Encryption**: Encrypt trace payloads server-side with a KMS CMK and use TLS 1.3 in transit.
 - **Access control**: Place evaluation dashboards behind IAM + SSO and enable CloudTrail audit logs.
 - **Retention**: Retain raw traces for 30–90 days and aggregated metrics for longer periods using Parquet partitioning.
-- **Data leakage prevention**: Add preprocessing so external LLM judges receive only summaries with PII removed.
+- **Data leakage prevention**: Enforce approved transformation and endpoint policy before constructing/invoking a judge. Denial or transformation failure prevents the call; link the transformation revision and evaluated payload hash to the run.
 
 ### 8.5 Scaling Patterns
 
-1. **Multi-tenant isolation**: Separate trace namespaces and dashboards by team while sharing common evaluators.
+1. **Multi-tenant isolation**: Carry authenticated tenant identity through queue, fetch, cache, storage, judge credentials and notifications; enforce authorization at each boundary. Dashboard/namespace separation alone does not restrict a shared worker.
 2. **Cost-performance Pareto monitoring**: Track cost and latency alongside quality metrics on the same dashboard as a Pareto front.
 3. **Human-in-the-loop integration**: Queue borderline traces for periodic human labeling and use the labels as retraining or fine-tuning data.
-4. **Shadow traffic**: Run a new model or prompt in parallel on X% of production traffic, compare metrics, and promote it gradually after the gate passes.
+4. **Shadow traffic**: When replaying X% of production requests, do not repeat live write tools, payments or messaging. Replay recorded tool results or use isolated read-only/sandbox adapters; verify blocked external effects before applying quality/cost/safety gates and human-approved promotion.
 
 ---
 

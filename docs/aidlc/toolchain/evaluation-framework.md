@@ -3,9 +3,9 @@ title: AIDLC Evaluation Framework
 description: Agent/LLM 개발 프로세스의 Evaluation-driven Loop — SWE-bench Verified, METR, Ragas, DeepEval, LangSmith, Braintrust, AWS Labs aidlc-evaluator 비교
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 28
+reading_time: 34
 tags:
   - evaluation
   - ragas
@@ -19,7 +19,9 @@ tags:
 sidebar_label: 평가 프레임워크
 ---
 
-AIDLC (AI Development Life Cycle) 는 기존 SDLC 와 달리 **확률적(stochastic) 산출물** 을 다룹니다. 같은 입력에도 LLM/Agent 의 응답이 달라지고, 한 번의 단위 테스트 통과가 "항상 맞다"를 보장하지 않습니다. 본 문서는 AIDLC 의 세 루프(Inner/Middle/Outer) 에 평가(Evaluation) 를 어떻게 심어야 하는지, 2026-04 기준 실전에서 사용되는 벤치마크·도구·아키텍처를 정리합니다.
+AI-DLC(AI-Driven Development Lifecycle)에서는 일반 소프트웨어 테스트와 LLM·에이전트 평가를 함께 사용합니다. 코드의 예상 동작은 단위·통합·보안 테스트로 확인하고, 같은 입력에도 달라질 수 있는 모델 응답은 반복 평가로 확인합니다.
+
+이 문서는 개발 중 빠른 확인, CI 회귀 검사, 운영 데이터 평가를 Inner/Middle/Outer Loop로 나누는 구성을 제안합니다. 벤치마크·도구 비교는 2026년 4월 범위이며, 별도로 표시한 v0.1.7 규칙과 평가기 동작은 2026년 9월 19일에 확인한 버전을 기준으로 합니다.
 
 ---
 
@@ -27,20 +29,20 @@ AIDLC (AI Development Life Cycle) 는 기존 SDLC 와 달리 **확률적(stochas
 
 ### 1.1 SDLC TDD vs AIDLC Evaluation-driven
 
-| 구분 | 기존 SDLC (TDD) | AIDLC (Evaluation-driven) |
-|------|-----------------|--------------------------|
-| 산출물 성격 | Deterministic (동일 입력 → 동일 출력) | Stochastic (동일 입력 → 분포) |
-| 정답 정의 | 단일 expected value | 허용 구간 + 품질 지표 분포 |
-| 실패 신호 | Assertion 실패 = 버그 | 지표 하락 = drift · regression · 품질 저하 후보 |
-| 재현성 | 100% 재현 | seed/temperature 고정 시 근사 재현 |
-| 게이트 조건 | 모든 테스트 green | 평가 지표 임계값 충족 (예: Faithfulness ≥ 0.90) |
-| 반복 주기 | 커밋 단위 | 커밋 + 데이터셋 교체 + 프로덕션 샘플링 |
+| 구분 | 결정적 구성요소 테스트 | 확률적 구성요소 평가 |
+|------|----------------------|-----------------------|
+| 산출물 성격 | 통제된 상태·입력의 함수 결과 | 동일 입력에도 달라질 수 있는 응답 분포 |
+| 정답 정의 | 명시적 expected value·불변식 | 참조 답변·rubric·품질 분포와 허용 범위 |
+| 실패 신호 | assertion·불변식 위반 | 품질 저하·drift·회귀 후보, case 검토 필요 |
+| 재현성 | 의존성·동시성·환경까지 통제해야 함 | seed/temperature 고정만으로 동일 응답 보장 불가 |
+| 게이트 조건 | 관련 테스트 통과 | 평가 임계값과 관련 코드·보안 테스트 및 승인 |
+| 반복 주기 | 커밋·환경 변경 | 커밋·데이터셋·모델·judge 변경과 운영 샘플링 |
 
-TDD 가 "실패하는 테스트 → 구현 → 리팩터" 루프였다면, AIDLC 의 Evaluation-driven Loop 는 "**평가 데이터셋 → 에이전트/프롬프트/모델 변경 → 지표 비교 → 게이트 통과**" 의 루프입니다. 한 번의 기능 추가가 10개 지표 중 2개를 떨어뜨릴 수 있으므로, 단순 pass/fail 이 아닌 **다차원 지표 대시보드** 가 기본이 됩니다.
+두 접근은 SDLC와 AI-DLC 모두에 적용할 수 있습니다. TDD의 실패 테스트 → 구현 → 리팩터 루프에 **평가 데이터셋 → 변경 → 지표 비교 → 승인 검토**를 추가합니다. 여러 지표를 함께 보되 대시보드는 자동 통과·실패 판정과 근거 검토를 보완합니다.
 
 ### 1.2 학습 → 배포 흐름의 CI 역할
 
-전통 SDLC 에서 CI 는 "빌드 + 단위 테스트" 였습니다. AIDLC 에서는 CI 가 수행해야 할 일이 확장됩니다.
+CI는 기존의 빌드·단위·통합·보안 테스트를 유지하면서 평가 책임을 추가합니다.
 
 1. 프롬프트/에이전트/모델 변경이 커밋되면, 평가 데이터셋 기준선과 비교
 2. 핵심 지표(faithfulness, task success rate, tool-use accuracy 등) 가 허용 범위인지 확인
@@ -48,11 +50,11 @@ TDD 가 "실패하는 테스트 → 구현 → 리팩터" 루프였다면, AIDLC
 4. 프로덕션 샘플 대비 drift 여부 판정
 5. 게이트 통과 시에만 배포 파이프라인 진행
 
-즉, CI 는 **"코드가 컴파일되는가"** 에서 **"에이전트가 여전히 제 품질을 내는가"** 로 의미가 바뀝니다.
+코드 검증과 Agent 품질 평가는 함께 필요합니다. 생성한 코드의 실패를 judge 점수로 상쇄하지 않습니다.
 
 ### 1.3 Inner / Middle / Outer Loop 과의 관계
 
-AIDLC 는 평가를 세 계층으로 나눠 비용·속도·정확도를 조합합니다.
+아래 세 계층은 비용·속도·coverage를 조절하는 **저장소의 설계 제안**이며 공식 Inception/Construction/Operations 단계와 다릅니다. 10–20개나 수백 개라는 수치는 출발점 예시이며 데이터 분포·실패 비용·통계적 목표로 조정합니다.
 
 ```mermaid
 flowchart LR
@@ -96,16 +98,16 @@ SWE-bench 원본(2,294개) 은 난이도·재현성 편차가 커서, Verified 5
 
 1. **Specification 명료성**: 이슈 설명·재현 절차가 사람이 읽어 이해 가능
 2. **Test 신뢰성**: 평가 테스트가 해당 버그를 정확히 포착 (flaky 테스트 제외)
-3. **환경 재현성**: 컨테이너 이미지가 결정적으로 재현
+3. **환경 재현성**: 컨테이너·의존성·harness revision을 고정해 재현성을 높이되 flaky 실행과 환경 차이를 별도로 확인
 4. **범위 적절성**: 너무 광범위하거나 실현 불가능한 케이스 제외
 
-AIDLC 관점에서는 Agent 가 "명세 → 설계 → 구현 → 검증" 사이클을 **실제 PR 단위** 로 완결할 수 있는지를 보는 단 하나의 공개 기준점이라는 점에서 중요합니다.
+SWE-bench Verified의 통과율은 선택한 500개 issue, harness revision, 생성 patch와 테스트 조건에서의 issue 해결 성능을 나타냅니다. 명세·설계 품질이나 전체 PR lifecycle을 인증하지 않으며 다른 공개·도메인 평가와 함께 사용합니다.
 
 #### 벤치마크 사용 시 유의점
 
 - **훈련 오염(Training Contamination)**: 공개 벤치마크가 사전학습 데이터에 포함되었을 가능성 → LiveCodeBench 처럼 주기적으로 새 문제를 추가하는 벤치마크를 병행
 - **샘플 수와 유의성**: 500개 이슈에서 Agent A 68%, B 70% 차이가 통계적으로 유의하지 않을 수 있음 → bootstrap CI 로 판단
-- **비용 대비 판별력**: 벤치마크 1회 평가가 상위 모델 기준 수천 달러 규모 — CI 매 PR 에서 돌릴 만한 규모는 아님. 주간/릴리스 단위로 실행
+- **비용 대비 판별력**: 수천 달러는 모델·retry·harness·토큰량이 명시되지 않은 보편적 비용으로 사용할 수 없습니다. 실행별 견적과 소규모 측정을 먼저 확보해 CI·주간·릴리스 실행 주기를 정합니다.
 
 ### 2.2 일반 LLM/추론 벤치마크 (참고용)
 
@@ -113,7 +115,7 @@ AIDLC 관점에서는 Agent 가 "명세 → 설계 → 구현 → 검증" 사이
 
 | 벤치마크 | 초점 | 주의사항 |
 |---------|------|---------|
-| **MMLU-Pro** | 14개 분야 5지선다 전문 지식 (MMLU 개선판) | 2026-04 상위 모델은 80%+ 수렴 — 변별력 감소 |
+| **MMLU-Pro** | 14개 분야, 최대 10개 선택지의 전문 지식·추론 문제 | 80%+ 수렴 주장은 날짜·모델·prompt·평가 revision 증거가 필요하며 여기서는 미검증 |
 | **GPQA Diamond** | 대학원 수준 과학 문제 (198개) | 구글/오픈AI 추론 전용 모델 평가 빈번 |
 | **MATH** | 고등학교 경시 수학 | 포화 임박 |
 | **HumanEval / HumanEval+** | Python 함수 생성 | 거의 포화, LiveCodeBench 로 대체 권장 |
@@ -123,17 +125,11 @@ AIDLC 관점에서는 Agent 가 "명세 → 설계 → 구현 → 검증" 사이
 
 ### 2.3 METR task-length doubling
 
-METR(Model Evaluation & Threat Research) 의 "Measuring AI Ability to Complete Long Tasks" 연구는 중요한 관측을 제시했습니다.
+METR(Model Evaluation & Threat Research)의 **2025-03-19 연구**에서 약 7개월 doubling은 Agent가 연속 실행되는 시간이 아니라 **50% 성공 확률로 완료하는 과제의 인간 전문가 수행 시간** 추세입니다. HCAST 등 해당 과제 분포에서 추정한 값이며 최신 모든 모델의 현재 doubling 주기로 일반화하지 않습니다.
 
-- 모델이 성공적으로 완료할 수 있는 **연속 작업 길이가 약 7개월마다 2배** 로 증가하는 트렌드
-- 2019년 수 초 수준 → 2024-2025년 수십 분 수준 → 추세 유지 시 2027-2028년 수 시간 수준 예상
-- 측정 방법: HCAST (Human-Calibrated Autonomy Software Tasks) 등 사람이 수행한 시간을 기준으로 "이 Agent 가 50% 성공률로 끝낼 수 있는 작업 길이" 를 추정
-
-엔터프라이즈 관점의 함의:
-
-1. 오늘 "사람이 한 시간 걸리는 업무" 가 자동화 대상이 아니더라도, 1-2년 내 임계점을 넘을 가능성이 높음
-2. Evaluation 데이터셋은 **점점 긴 작업(long-horizon task)** 을 포함하도록 주기적으로 확장해야 함
-3. Guardrails · Audit · HITL 체계가 task-length 증가와 함께 강화되어야 함
+- 역사적 관측에서는 인간 수행 시간이 초 단위인 과제에서 수십 분인 과제까지의 변화가 포함됩니다. 장래 수 시간·일 단위 과제에 관한 외삽은 추세와 과제 분포가 유지된다는 가정에 의존합니다.
+- 임의의 기업 업무가 1–2년 안에 안전하게 자동화된다는 결론은 이 연구로 확인할 수 없습니다. 50% 성공률은 운영 신뢰성 기준이 아닙니다.
+- 긴 과제·재시도·실패 복구를 도메인 평가에 추가하고, Guardrails·Audit·HITL 요구는 실제 위험과 필요한 성공률에 맞춰 검증합니다.
 
 URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks/)
 
@@ -149,9 +145,9 @@ URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](http
 | **DeepEval** | Apache 2.0 | 30+ (G-Eval, Toxicity, PII, Hallucination, Bias, Correctness 등) | PyTest 통합 (`assert_test()`) | 자체 Confident AI 연동 | PyTest 사용자에게 가장 친숙, 커스텀 메트릭 DSL | 생태계 성숙도 중간, 일부 메트릭 validation 필요 |
 | **LangSmith** | SaaS + self-host beta | Trace, Dataset, Auto/Custom Evaluator, LLM-as-judge | `langsmith evaluate` CLI, GH Actions | Managed (LangChain 네이티브) | LangChain/LangGraph 통합, A/B 실험 관리 | SaaS 의존, 데이터 거버넌스 이슈 |
 | **Braintrust** | SaaS + self-host Enterprise | Dataset, Grading, Replay, Playground | `braintrust eval` CLI | Managed, log SDK | 개발자 경험 탁월, Playground UX 우수 | 벤더 락인, 온프레미스 제약 |
-| **AWS Labs aidlc-evaluator** | Apache 2.0 (early, v0.1.6+) | AIDLC phase 산출물 준수도 · Common Rules 적합성 · Stage Transition 지표 | `scripts/` 실행 (Python) | - | AIDLC 방법론 적합성 평가 자체를 대상으로 함 | 범용 품질 메트릭 부족 → Ragas/DeepEval 과 병행 |
+| **AWS Labs aidlc-evaluator** | Apache 2.0, workflow tag v0.1.7의 snapshot | 실행·테스트·코드 검사·API 계약·문서 비교·보고 | `scripts/aidlc-evaluator/run.py` | 별도 통합 | workflow 변경을 golden test case와 비교 | 실행 의존성·judge·선택적 검사 조건 확인, 도메인 평가는 별도 |
 | **Promptfoo** | MIT | Assertions, LLM-as-judge, classifiers | YAML 구성 + `promptfoo eval` + GH Actions | 일부 | 경량·선언적, prompt 비교에 강함 | Agent 평가·복잡 워크플로 제약 |
-| **Inspect AI (UK AISI)** | Apache 2.0 | Agent safety/capability (solver + scorer) | Python/CLI, GH Actions | - | 정부기관 기준, sandbox 실행 지원 | 학습곡선 있음, 커뮤니티 크지 않음 |
+| **Inspect AI (UK AISI)** | MIT (조회한 프로젝트 LICENSE 기준) | Agent safety/capability (solver + scorer) | Python/CLI, GH Actions | - | 평가 라이브러리·sandbox 통합, 정부 인증 기준 자체는 아님 | 환경·도구·모델별 검증 필요 |
 
 ### 3.1 도구 선택 가이드
 
@@ -159,23 +155,23 @@ URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](http
 - **Python/PyTest 중심 팀** → DeepEval
 - **LangChain/LangGraph 사용** → LangSmith (네이티브)
 - **최고 수준 DX + 팀 실험 관리** → Braintrust
-- **AIDLC 방법론 준수 자체 감사** → AWS Labs aidlc-evaluator
+- **AI-DLC workflow 변경과 golden 산출물 비교** → 버전을 고정한 AWS Labs evaluator
 - **단순 prompt A/B 비교** → Promptfoo
 - **Agent safety/capability 평가** → Inspect AI
 
-> 실무에서는 **Ragas(품질) + Inspect AI(safety) + aidlc-evaluator(방법론 준수)** 또는 **Braintrust(실험) + Langfuse(관찰)** 처럼 2-3개 조합을 쓰는 사례가 일반적입니다.
+> 조합 예: Ragas(도메인 RAG 품질) + Inspect AI(선택한 safety/capability 과제) + aidlc-evaluator(workflow·산출물 비교). Braintrust와 Langfuse는 별도 실험·관찰 도구 조합으로 검토할 수 있습니다. 조합 자체는 검증이나 보편적 채택률의 증거가 아닙니다.
 
 ### 3.2 Ragas v0.2+ 핵심 메트릭
 
 | 메트릭 | 의미 | 계산 방식 요약 |
 |-------|------|-------------|
 | Faithfulness | 응답이 retrieved context 에 근거하는가 | 응답을 claim 으로 분해 → 각 claim 이 context 에서 지지되는 비율 |
-| Context Precision | 검색된 문서 중 실제 정답 관련 문서 비율 | top-k 순서를 반영한 MAP 스타일 계산 |
+| Context Precision | 관련 chunk가 검색 순위 상단에 배치되는가 | 선택한 reference 기반 변형에서 관련 위치의 precision@k를 집계; 관련 문서의 단순 비율이 아님 |
 | Context Recall | 정답에 필요한 모든 정보가 검색되었는가 | ground truth 를 문장 단위로 분해 → context 가 커버하는 비율 |
 | Answer Relevancy | 응답이 질문 의도에 맞는가 | 응답에서 생성된 역질문과 원 질문의 임베딩 유사도 |
-| Noise Sensitivity | 관련 없는 문서 주입 시 응답이 바뀌는가 | RAG 파이프라인의 robustness 지표 |
+| Noise Sensitivity | 관련/비관련 context에 기인한 잘못된 응답 claim의 비율 | user_input·reference·response·retrieved_contexts 사용, 0–1 중 낮을수록 좋음 |
 
-RAG 파이프라인은 "검색 품질" 과 "생성 품질" 이 얽혀 문제를 진단하기 어려운데, Ragas 의 지표 조합이 문제를 분해해 줍니다. 예: Faithfulness↓ · Context Precision↑ 이면 **생성 단계 환각**, Context Precision↓ 이면 **검색 단계 실패** 로 판정 가능.
+Ragas의 metric class·라이브러리 revision과 reference 유무를 고정합니다. [Context Precision](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/context_precision/)과 [Noise Sensitivity](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/noise_sensitivity/)의 현재 collections API와 legacy v0.2 계열 API를 섞지 않습니다. Faithfulness↓·Context Precision↑는 생성 문제를 조사할 단서이지 환각의 단일 원인을 확정하지 않습니다. 실제 case·reference 품질·judge 일관성·검색 순서를 함께 확인합니다.
 
 ### 3.3 DeepEval 의 PyTest 통합
 
@@ -199,14 +195,18 @@ DeepEval 은 `assert_test()` 헬퍼와 `deepeval test run` 명령으로 PyTest �
 
 ### 3.5 AWS Labs aidlc-evaluator — 방법론 적합성 감사
 
-범용 품질 메트릭이 아닌, **"이 프로젝트가 AIDLC 방법론을 실제로 따르는가"** 를 감사합니다.
+[workflow tag v0.1.7의 evaluator README](https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/scripts/aidlc-evaluator/README.md)는 workflow 변경을 비교하는 여섯 실행 단계를 설명합니다. tag는 workflow 저장소 snapshot이며 별도 evaluator 패키지의 안정성 인증이 아닙니다.
 
-- Common Rules 적용 여부 (산출물 파일명 · 구조 · 승인 체크포인트)
-- Stage Transition 기준 충족 여부 (Inception → Construction 전환 전 산출물 완결성)
-- Extension(opt-in.md) 준수 여부
-- 조직별 커스텀 규정 위반 감지
+1. **Execution**: 두 Agent workflow로 문서와 코드를 생성
+2. **Post-Run**: 생성 프로젝트의 의존성 설치와 테스트 실행
+3. **Quantitative**: lint·보안·중복 코드 검사
+4. **Contract**: 생성 앱을 실행해 API 계약 확인
+5. **Qualitative**: Bedrock judge로 golden 문서와 비교
+6. **Report**: Markdown·HTML 보고서 생성
 
-v0.1.x 단계라 범용성·안정성은 제한적이지만, AIDLC 를 조직 표준으로 채택한 경우 **Ragas/DeepEval 과 병행** 해 방법론 준수도까지 CI 로 감시할 수 있는 유일한 도구입니다.
+vision/tech-env/golden 문서/OpenAPI 입력과 모델·실행 설정을 고정하고, skip된 검사·오류·토큰·시간을 결과에 보존합니다. PMD 같은 선택적 도구 누락 시 일부 검사가 생략될 수 있으며, sandbox를 사용하지 못하면 host 실행 경로가 있으므로 격리가 자동 보장되지 않습니다. 이 문서 검증에서는 앱·컨테이너·모델을 실행하지 않았습니다.
+
+[동일 tag의 core-workflow](https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/aidlc-rules/aws-aidlc-rules/core-workflow.md)는 `*.opt-in.md`에서 선택 질문을 로드하고 활성화된 규칙과 `aidlc-docs/aidlc-state.md`의 Extension Configuration을 사용합니다. 설정이 없는 규칙과 opt-in 없는 extension의 기본 처리도 확인해야 합니다. 이 workflow 규칙이 모든 조직 정책을 evaluator가 자동 검사한다는 뜻은 아니므로, 해당 정책 검사는 명시적으로 구현·연결합니다.
 
 ---
 
@@ -271,11 +271,15 @@ jobs:
           python eval/gate.py results.json \
             --faithfulness 0.90 --context-precision 0.85 --answer-relevancy 0.85
       - uses: actions/upload-artifact@v4
-        with: {name: eval-results, path: results.json}
+        if: ${{ always() }}
+        with:
+          name: eval-results
+          path: results.json
+          if-no-files-found: error
 ```
 
 - `gate.py` 는 임계값 미달, 누락/비유한 점수, 평가 오류 시 `exit 1` 을 반환하도록 구현합니다. Ragas 의 기본 오류 결과인 `NaN` 을 통과로 처리하지 않아야 합니다.
-- 예시는 결과 아티팩트 업로드만 포함합니다. Langfuse/Braintrust 대시보드 전송은 별도 어댑터가 필요합니다.
+- `always()`는 평가나 gate 실패 후에도 남아 있는 결과를 업로드합니다. 파일이 없으면 업로드도 실패하며 평가 성공으로 바꾸지 않습니다. 평가기 자체 실패의 진단 로그·부분 결과는 별도 오류 artifact 계약으로 보존해야 합니다. Langfuse/Braintrust 대시보드 전송은 별도 어댑터가 필요합니다.
 
 ### 4.3 Outer Loop — 프로덕션 샘플링
 
@@ -308,7 +312,7 @@ flowchart LR
 ### 5.1 Inception
 
 - **요구사항 Coverage Evaluation**: `requirements.md` 에 정의된 use-case 를 평가 데이터셋이 몇 % 커버하는지 측정
-- **AIDLC Common Rules 적합성**: `aidlc-evaluator` 로 산출물 포맷·Extension 준수 여부 점검
+- **AIDLC Common Rules 적합성**: 버전별 규칙·extension 상태와 산출물 근거를 사람이 확인하고, 자동화한 검사는 evaluator 결과에 명시
 - **Acceptance Criteria 명세도**: 모호한 "잘 동작한다" 식 기준을 측정 가능한 지표(예: "faithfulness ≥ 0.90, 응답 지연 p95 ≤ 3 s") 로 변환
 
 ### 5.2 Construction
@@ -334,7 +338,7 @@ flowchart LR
 | Construction → Operations | Regression dataset 주요 지표 baseline 이상 · p95 latency 목표 충족 · 보안 스캔 통과 | Ragas/DeepEval + CI gate |
 | Operations 지속 운영 | 프로덕션 지표 drift 없음 · Guardrails violation rate 임계 이하 | Langfuse + 비동기 evaluator |
 
-각 전환 게이트에서 **자동 게이트(지표 임계값) + 사람 승인(Checkpoint Approval)** 을 둘 다 요구하는 것이 AIDLC 기본 패턴입니다. 자동 게이트만으로는 "지표는 통과했지만 실질 품질이 부족한" 경우를 거를 수 없기 때문입니다.
+표의 95% coverage 등은 공식 AI-DLC의 보편적 수치가 아닌 **조직 정책 예시**입니다. Coverage의 분모는 승인된 in-scope 요구사항 목록으로 정의하고, 각 항목에 평가 case와 근거를 연결합니다. 자동 지표와 사람 승인 조합을 적용할 단계·실패 처리·예외 승인자도 조직이 명시합니다. 공식 checkpoint 승인 의무는 해당 workflow revision에 따라 별도로 유지합니다.
 
 ---
 
@@ -348,9 +352,9 @@ flowchart LR
 
 ### 6.2 통계적 유의성
 
-- 200개 이하 샘플에서는 **bootstrap confidence interval** 이 현실적 (정규성 가정 불안)
-- p-value 는 보조 지표로만 사용. 작은 데이터셋에서는 **효과 크기(Cohen's d, Δmean/σ)** 병행
-- Multiple comparisons 문제: 여러 지표를 한꺼번에 볼 때 Bonferroni 또는 BH 보정 적용
+- 200개는 방법 선택의 유효성 경계가 아닙니다. 신뢰수준·검출할 최소 효과·과제 분포로 표본 수를 계획하고, 동일 case를 재평가한 쌍체 설계인지 독립 표본인지 명시합니다. 반복 실행이나 관련 trace는 task-family 등 적절한 cluster 단위로 resampling합니다.
+- 점수 차이·성공률의 %p 차이와 신뢰구간을 보고합니다. Cohen's d를 쓰면 독립 집단의 pooled SD인지 쌍체 차이의 SD인지 분모를 명시하고, 분산이 0인 경우를 별도로 처리합니다. p-value 하나로 배포를 승인하지 않습니다.
+- 다중 비교에서 Bonferroni는 family-wise error rate, Benjamini–Hochberg는 전제 조건하의 false discovery rate를 제어합니다. 비교 family와 오류 목표·의존성 가정을 분석 전에 정합니다.
 
 ### 6.3 임계값 게이트 예시
 
@@ -398,8 +402,70 @@ Data Drift 는 coverage 보강으로, Concept Drift 는 ground truth 재작성�
 1. **Judge 모델 다운그레이드**: GPT-4.1 → GPT-4.1-mini 또는 Claude Haiku 4.5 로 1차 판정 후 경계 케이스만 상위 모델로 재검증
 2. **로컬 Evaluator 모델**: 별도로 호스팅한 judge 를 Inner/Middle Loop 에 연결하고, 모델 품질과 로컬 추론 인프라 비용을 함께 검증
 3. **샘플링 전략**: 500개 대신 계층 샘플링된 100개로 Middle Loop, 월 1회 500개 풀 스윕
-4. **캐시 활용**: 동일 prompt + response 쌍에 대한 judge 결과 캐시 (입력 변동 없으면 재계산 생략)
+4. **캐시 활용**: prompt/response뿐 아니라 ordered context·reference·데이터셋·pipeline·prompt·모델·retriever·judge·metric·rubric·변환 버전 및 유효 설정을 모두 포함한 tenant별 key 사용
 5. **비동기 평가**: PR 블록이 아닌 "Advisory" 평가로 일부 메트릭 전환
+
+다음 key 함수는 동일 평가를 식별하는 예시입니다. `spec`는 실행에 실제 적용한 설정을 기록하며 metric parameter·judge sampling 설정·evaluator 코드 revision도 포함해야 합니다. reference가 필요 없는 metric은 `None`을 명시합니다. 공급자가 불변 judge revision을 제공하지 않으면 공유 캐시를 끄거나 검증된 유효 범위를 별도로 정합니다. 캐시 재사용은 새로운 반복 측정으로 세지 않습니다. Hash는 익명화가 아니므로 원문·key·결과의 접근 통제를 유지합니다.
+
+```python
+# cache-key.py — all values describe the effective evaluation, not defaults
+import hashlib
+import json
+import math
+
+def evaluation_cache_key(*, tenant_id, trace, spec):
+    if not isinstance(tenant_id, str) or not tenant_id:
+        raise ValueError("A tenant-scoped identity is required")
+    if not isinstance(trace, dict) or not isinstance(spec, dict):
+        raise ValueError("Trace and effective specification must be objects")
+    for field in ("input", "output"):
+        if not isinstance(trace.get(field), str):
+            raise ValueError(f"Invalid {field}")
+    contexts = trace.get("retrieved_docs")
+    if not isinstance(contexts, list) or not all(isinstance(x, str) for x in contexts):
+        raise ValueError("Ordered retrieved documents are required")
+    if "reference" not in trace or trace["reference"] is not None and not isinstance(trace["reference"], str):
+        raise ValueError("Reference must be explicit; use None for reference-free metrics")
+    for field in ("dataset_revision", "pipeline_revision", "prompt_version",
+                  "model_revision", "retriever_revision", "judge_revision",
+                  "rubric_revision", "evaluator_revision", "transformation_revision"):
+        if not isinstance(spec.get(field), str) or not spec[field]:
+            raise ValueError(f"Missing effective version: {field}")
+    for field in ("judge_configuration", "metric_versions", "metric_configuration"):
+        if not isinstance(spec.get(field), dict) or not spec[field]:
+            raise ValueError(f"Missing effective configuration: {field}")
+    if (set(spec["metric_versions"]) != set(spec["metric_configuration"])
+            or not all(isinstance(v, str) and v for v in spec["metric_versions"].values())):
+        raise ValueError("Each configured metric needs an explicit implementation version")
+    judge = spec["judge_configuration"]
+    if (not all(isinstance(judge.get(k), str) and judge[k] for k in ("provider", "model"))
+            or not isinstance(judge.get("parameters"), dict)):
+        raise ValueError("Judge provider, model and effective parameters are required")
+
+    def json_value(value):
+        if value is None or type(value) in (str, bool, int):
+            return
+        if type(value) is float and math.isfinite(value):
+            return
+        if type(value) is list:
+            for item in value:
+                json_value(item)
+            return
+        if type(value) is dict and all(type(key) is str for key in value):
+            for item in value.values():
+                json_value(item)
+            return
+        raise ValueError("Cache identity accepts only finite JSON data")
+
+    payload = {"schema": "evaluation-cache/v1", "tenant_id": tenant_id,
+               "input": trace["input"], "output": trace["output"],
+               "retrieved_docs": contexts, "reference": trace["reference"],
+               "spec": spec}
+    json_value(payload)
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"),
+                         ensure_ascii=False, allow_nan=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+```
 
 ### 7.3 Cost-effective 조합 패턴
 
@@ -459,61 +525,155 @@ flowchart LR
 
 ### 8.1 핵심 설계 포인트
 
-- **샘플링 계층화**: 랜덤 5% + 오류/저평점 trace 100% + 고비용 trace 100% 로 구성 — 중요한 trace 는 놓치지 않음
+- **샘플링 계층화**: 일반 trace 5%와 오류/저평점/고비용 trace의 합집합 100%를 표집하는 정책 예시입니다. 우선 집단 내 중복을 제거하고 stratum·포함 확률·전체 모집단 수를 보존합니다. 섞인 표본의 단순 평균을 전체 오류율로 보고하지 말고 층별 결과 또는 설계에 맞는 가중 추정과 불확실성을 사용합니다.
 - **비동기 분리**: 평가 호출이 프로덕션 레이턴시에 영향을 주지 않도록 Queue 로 분리
 - **데이터 거버넌스**: PII 필터링 후 S3 에 저장, KMS 암호화, 접근 로그 기록
-- **피드백 루프**: 실패 trace 를 **Dataset 저장소** 로 승격 → 다음 CI 사이클에 regression case 로 합류
-- **관찰성 일원화**: Langfuse trace ID 를 CI 평가 결과와 공유 키로 사용해 온·오프라인 상관 분석 가능
+- **피드백 루프**: 실패 trace는 검토 큐로 보내고, 개인정보·중복·예상 결과를 검토한 라벨만 Dataset 저장소에 승인 반영합니다. 실패한 응답을 정답으로 사용하지 않습니다.
+- **관찰성 일원화**: trace ID는 원본 연결에 사용하고, 별도 evaluation run ID와 tenant·dataset/judge/metric/rubric/pipeline revision을 함께 저장해 재평가를 구분합니다.
 
 ### 8.2 배포 위치
 
-- **EKS 기반**: Langfuse (Helm), Evaluator Worker (Karpenter 스케일 아웃), Grafana Operator
+- **EKS 기반**: Langfuse(Helm), Queue 수요에 따라 replica 수를 조절하는 HPA/KEDA 등 worker scaler, 필요한 node를 공급하는 Karpenter, Grafana Operator. 동시성·backpressure·최대 replica/node 예산을 별도로 제한합니다.
 - **AWS Native**: Bedrock Agent + CloudWatch + SQS + Lambda Evaluator (소규모)
 - **하이브리드**: Edge 에 filter/sampler, 중앙 EKS 에 Evaluator 와 Dashboard
 
 ### 8.3 샘플링·평가 Worker 의사코드
 
-이 코드는 **Queue 에서 호출할 동기 Worker scaffold** 이며, 4.1 과 같은 DeepEval 계약을 사용합니다. `fetch_trace` 는 SDK 호출을 감싸 `input: str`, `output: str`, `retrieved_docs: list[str]` 를 가진 정규화된 trace 를 반환해야 합니다. 샘플러에는 `error: bool`, `user_rating: 숫자 또는 None`, `estimated_cost_usd: 숫자` 도 필요합니다. 저장·데이터셋 승격·알림 함수와 `judge_model` 은 프로젝트가 주입합니다.
+아래는 **프로젝트 어댑터가 필요한 동기 worker scaffold**입니다. 인증된 Queue 경계가 `tenant_id`, `trace_id`, 재시도에서 유지할 `run_id`를 전달합니다. `authorize_trace`와 `fetch_trace(tenant_id, trace_id)`는 server-side tenant 경계를 강제합니다. `prepare_for_judge`는 신뢰하는 정책 구현으로, judge에 전달할 input/output/context/reference의 변환을 승인하고 불변 transformation revision을 반환해야 합니다. 원본을 마스킹해 저장했다는 사실만으로 재조회·추론 경계가 보호되지는 않습니다.
 
-반환·저장 스키마는 `{"faithfulness": float, "answer_relevancy": float}` 이며 두 점수는 유한한 0–1 값입니다. [Faithfulness](https://deepeval.com/docs/metrics-faithfulness)와 [Answer Relevancy](https://deepeval.com/docs/metrics-answer-relevancy)의 `measure(case)` 실행 후 `metric.score` 를 읽습니다. 이 Worker 의 데이터셋 승격·알림 조건은 `faithfulness < 0.85` 입니다. 평가 실패는 낮은 품질 점수와 구분해 예외로 전파하며, Queue 의 재시도·오류 기록과 중복 처리 방지는 별도로 구현해야 합니다.
+`spec`는 7.2 key 함수의 유효 설정이며 `resolve_judge`는 실제 provider/model revision·설정·허용 endpoint와 설치한 metric 버전을 검증합니다. 변환된 context로 구한 faithfulness는 그 변환된 근거에 관한 점수이므로 원본 평가와 섞지 않습니다. 아래 metric 설정은 faithfulness 0.85, answer_relevancy 0.80으로 고정하며 다른 설정은 별도 worker revision으로 관리합니다.
+
+반환·저장 record에는 두 유한한 0–1 점수, tenant·trace·run ID, cache key, spec, sampling provenance가 포함됩니다. `authorize_run`은 인증된 Queue 문맥에 대해 tenant·trace·run의 접근 권한을 확인합니다. 현재 trace 접근·변환 승인과 입력 identity를 검증한 뒤, judge를 생성하기 전에 `load_result`로 완료된 record를 읽습니다. 저장된 identity와 두 점수를 검증하고 같은 입력이면 원래 점수를 재사용합니다. 조회 실패나 잘못된 record를 cache miss로 취급하지 않습니다.
+
+`store_result`는 `(tenant_id, run_id)`에 대한 원자적 insert-or-read를 구현해 영속 저장된 승자 record를 반환해야 합니다. 기존 record의 cache key·spec·sampling 등 고정 입력 identity가 다르면 거부하되, 경쟁 실행에서 새로 나온 확률적 점수와 저장 점수를 비교해 충돌로 처리하지 않습니다. 완료 record는 불변이며 adapter는 저장소 내부 metadata를 제외한 이 schema의 payload를 반환합니다. 새 평가 입력에는 새 run ID가 필요합니다.
+
+`resume_outbox`는 검증된 저장 승자만 사용해 누락된 durable event를 생성·복구하고 미확인 전달을 재개합니다. 저장된 faithfulness가 0.85 미만일 때만 label-review와 warning 알림을 만들며, `(tenant_id, run_id, effect_kind)` 같은 안정된 event ID와 동일 payload를 유지합니다. 수신 측도 멱등 처리를 해야 전송 후 ACK 전 중단을 복구할 수 있습니다. 저장 직후 outbox 생성 전에 중단된 경우도 다음 재시도에서 복구해야 합니다. 평가·조회·전달 오류는 Queue 재시도 경로로 전파하며 모델·저장소·outbox adapter 구현과 실제 분산 동시성 검증은 별도입니다.
 
 ```python
+# sampling-worker.py — inject project adapters; no tools are replayed here
+from copy import deepcopy
+import json
 import math
 import random
 from deepeval.metrics import FaithfulnessMetric, AnswerRelevancyMetric
 from deepeval.test_case import LLMTestCase
+# Import evaluation_cache_key from the project module implementing section 7.2.
 
-# sampler.py — 계층 샘플링
-def should_sample(trace):
-    if trace.error or trace.user_rating is not None and trace.user_rating <= 2:
-        return True  # 부정적 신호는 100%
-    if trace.estimated_cost_usd > 0.50:
-        return True  # 고비용 trace 100%
-    return random.random() < 0.05  # 나머지 5% 랜덤
+def sampling_decision(trace, *, draw=random.random):
+    if type(trace.error) is not bool:
+        raise ValueError("error must be boolean")
+    for value in (trace.user_rating, trace.estimated_cost_usd):
+        if value is not None and (type(value) not in (int, float) or not math.isfinite(value)):
+            raise ValueError("Invalid sampling input")
+    if trace.estimated_cost_usd is None or trace.estimated_cost_usd < 0:
+        raise ValueError("Cost must be finite and nonnegative")
+    priority = (trace.error or trace.user_rating is not None and trace.user_rating <= 2
+                or trace.estimated_cost_usd > 0.50)
+    probability = 1.0 if priority else 0.05
+    if priority:
+        selected = True
+    else:
+        value = draw()
+        if type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value < 1:
+            raise ValueError("Random draw must be in [0, 1)")
+        selected = value < probability
+    return {"selected": selected, "inclusion_probability": probability,
+            "stratum": "priority_union" if priority else "ordinary"}
 
-# worker.py — Queue 가 호출하는 동기 handler
-def evaluate_trace(trace_id, *, fetch_trace, judge_model, store_result,
-                   promote_to_dataset, alert_team):
-    trace = fetch_trace(trace_id)
-    case = LLMTestCase(input=trace.input, actual_output=trace.output,
-                       retrieval_context=trace.retrieved_docs)
-    metrics = {
-        "faithfulness": FaithfulnessMetric(threshold=0.85, model=judge_model),
-        "answer_relevancy": AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+def evaluate_trace(trace_id, *, tenant_id, run_id, spec, sampling,
+                   authorize_trace, authorize_run, fetch_trace, prepare_for_judge,
+                   resolve_judge, load_result, store_result, resume_outbox):
+    if (not isinstance(trace_id, str) or not trace_id
+            or not isinstance(tenant_id, str) or not tenant_id
+            or not isinstance(run_id, str) or not run_id):
+        raise ValueError("Tenant, trace and evaluation-run identities are required")
+    if authorize_trace(tenant_id, trace_id) is not True:
+        raise PermissionError("Trace access denied")
+    if authorize_run(tenant_id, trace_id, run_id) is not True:
+        raise PermissionError("Evaluation-run access denied")
+    if (not isinstance(sampling, dict) or sampling.get("selected") is not True
+            or sampling.get("stratum") not in ("priority_union", "ordinary")
+            or type(sampling.get("inclusion_probability")) not in (int, float)
+            or sampling["inclusion_probability"] !=
+               (1.0 if sampling["stratum"] == "priority_union" else 0.05)):
+        raise ValueError("Missing or inconsistent sampling provenance")
+    spec, sampling = deepcopy(spec), deepcopy(sampling)
+    raw = fetch_trace(tenant_id, trace_id)
+    if raw.get("tenant_id") != tenant_id or raw.get("trace_id") != trace_id:
+        raise PermissionError("Trace identity mismatch")
+    prepared = prepare_for_judge(raw, tenant_id=tenant_id, spec=deepcopy(spec))
+    if (not isinstance(prepared, dict) or prepared.get("approved") is not True
+            or prepared.get("tenant_id") != tenant_id
+            or prepared.get("trace_id") != trace_id
+            or prepared.get("transformation_revision") != spec.get("transformation_revision")):
+        raise PermissionError("Judge-bound payload is not approved")
+    trace = deepcopy(prepared["trace"])
+    key = evaluation_cache_key(tenant_id=tenant_id, trace=trace, spec=spec)
+    if spec["metric_configuration"] != {
+            "faithfulness": {"threshold": 0.85},
+            "answer_relevancy": {"threshold": 0.80}}:
+        raise ValueError("This worker's metric configuration is fixed")
+    identity = {
+        "schema_version": 1, "tenant_id": tenant_id, "trace_id": trace_id,
+        "evaluation_run_id": run_id, "cache_key": key,
+        "spec": spec, "sampling": sampling,
     }
-    scores = {}
-    for name, metric in metrics.items():
-        metric.measure(case)
-        score = metric.score
-        if (isinstance(score, bool) or not isinstance(score, (int, float))
-                or not math.isfinite(score) or not 0 <= score <= 1):
-            raise ValueError(f"Invalid {name} score: {score!r}")
-        scores[name] = float(score)
-    store_result(trace_id, scores, target="s3://eval-results/")
-    if scores["faithfulness"] < 0.85:
-        promote_to_dataset(trace, dataset="regression_v2")
-        alert_team(trace_id, severity="warning")
-    return scores
+
+    def canonical_json(value):
+        return json.dumps(value, sort_keys=True, separators=(",", ":"),
+                          ensure_ascii=False, allow_nan=False)
+
+    expected_identity = canonical_json(identity)
+
+    def checked_record(record):
+        if (not isinstance(record, dict)
+                or set(record) != set(identity) | {"scores"}
+                or type(record.get("schema_version")) is not int
+                or canonical_json({field: record[field] for field in identity})
+                   != expected_identity):
+            raise ValueError("Stored run does not match the authenticated input identity")
+        scores = record["scores"]
+        if (not isinstance(scores, dict)
+                or set(scores) != {"faithfulness", "answer_relevancy"}):
+            raise ValueError("A completed run needs exactly both metric scores")
+        validated = {}
+        for name, score in scores.items():
+            if (isinstance(score, bool) or not isinstance(score, (int, float))
+                    or not math.isfinite(score) or not 0 <= score <= 1):
+                raise ValueError(f"Invalid {name} score: {score!r}")
+            validated[name] = float(score)
+        return {**deepcopy(identity), "scores": validated}
+
+    # The adapter must scope access by the authenticated tenant/trace/run.
+    # None means absent. Lookup errors or malformed records are not cache misses.
+    existing = load_result(tenant_id=tenant_id, trace_id=trace_id, run_id=run_id)
+    if existing is not None:
+        record = checked_record(existing)
+    else:
+        # Resolve/construct/invoke a judge only when no completed run exists.
+        judge_model = resolve_judge(tenant_id=tenant_id, spec=deepcopy(spec))
+        case = LLMTestCase(input=trace["input"], actual_output=trace["output"],
+                          retrieval_context=deepcopy(trace["retrieved_docs"]))
+        metrics = {
+            "faithfulness": FaithfulnessMetric(threshold=0.85, model=judge_model),
+            "answer_relevancy": AnswerRelevancyMetric(threshold=0.80, model=judge_model),
+        }
+        scores = {}
+        for name, metric in metrics.items():
+            metric.measure(case)
+            score = metric.score
+            if (isinstance(score, bool) or not isinstance(score, (int, float))
+                    or not math.isfinite(score) or not 0 <= score <= 1):
+                raise ValueError(f"Invalid {name} score: {score!r}")
+            scores[name] = float(score)
+        candidate = checked_record({**identity, "scores": scores})
+        # Atomic insert-or-read on (tenant_id, run_id). Return the durable winner;
+        # reject conflicting INPUT identity, not a loser's stochastic scores.
+        record = checked_record(store_result(deepcopy(candidate)))
+    # Repair/create missing durable events and resume delivery from this record.
+    # Stable event IDs and idempotent recipients cover a crash after send/before ACK.
+    resume_outbox(deepcopy(record))
+    return record
 ```
 
 ### 8.4 보안과 거버넌스
@@ -522,14 +682,14 @@ def evaluate_trace(trace_id, *, fetch_trace, judge_model, store_result,
 - **암호화**: trace payload 는 KMS CMK 로 server-side 암호화, 전송은 TLS 1.3
 - **접근 제어**: 평가 결과 대시보드는 IAM + SSO 뒤에 배치, 감사 로그(CloudTrail) 활성화
 - **보존 기간**: 원본 trace 는 30-90일, 집계된 지표는 장기 보존 (Parquet 파티셔닝)
-- **데이터 유출 방지**: 외부 LLM judge 호출 시 PII 제거된 요약본만 전송하도록 전처리 단계 삽입
+- **데이터 유출 방지**: judge 생성·호출 전에 승인된 변환과 endpoint 정책을 강제합니다. 거부·변환 실패 시 호출하지 않고, 변환 revision과 실제 평가한 payload hash를 run에 연결합니다.
 
 ### 8.5 확장 패턴
 
-1. **멀티 테넌트 분리**: 팀별 trace 네임스페이스와 대시보드 분리, 공통 evaluator 공유
+1. **멀티 테넌트 분리**: 인증한 tenant를 Queue·조회·캐시·저장·judge 자격 증명·알림에 끝까지 전달하고 권한을 각각 검사합니다. 대시보드·namespace 분리만으로 공유 worker의 접근이 통제되지는 않습니다.
 2. **비용-성능 Pareto 모니터링**: 지표 품질뿐 아니라 비용·레이턴시를 같은 대시보드에서 Pareto front 로 추적
 3. **Human-in-the-Loop 통합**: 경계선 trace 를 주기적으로 사람이 라벨링하도록 큐에 적재, 라벨 결과를 재훈련/파인튜닝 데이터로 활용
-4. **Shadow Traffic**: 새 모델/프롬프트를 production 트래픽의 X% 에 병행 실행하고 지표 비교, 게이트 통과 시 점진 승격
+4. **Shadow Traffic**: production 요청의 X%를 복제할 때 live write tool·결제·메시지 발송을 다시 실행하지 않습니다. 기록한 tool 결과를 replay하거나 별도 read-only/sandbox adapter를 사용하고, 외부 효과가 차단됨을 검증한 뒤 품질·비용·안전 gate와 사람 승인으로 승격합니다.
 
 ---
 
