@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 130
+reading_time: 134
 tags:
   - eks
   - kubernetes
@@ -132,17 +132,17 @@ If a Pod remains `Pending`, inspect the Events section with `kubectl describe po
 |------|------|-----------|--------|---------------|
 | **Node Selector** | Pod | Filtering | Hard | Specify a particular node type (GPU, ARM) |
 | **Node Affinity** | Pod | Filtering/Scoring | Hard/Soft | Fine-grained node selection conditions |
-| **Pod Affinity** | Pod | Scoring | Hard/Soft | Place related Pods close together |
+| **Pod Affinity** | Pod | Filtering/Scoring | Hard/Soft | Filter on required rules and score preferred rules |
 | **Pod Anti-Affinity** | Pod | Filtering/Scoring | Hard/Soft | Place Pods far apart |
-| **Taints/Tolerations** | Node + Pod | Filtering | Hard | Isolate dedicated nodes |
-| **Topology Spread** | Pod | Scoring | Hard/Soft | Distribute evenly across AZs/nodes |
-| **PriorityClass** | Pod | Preemption | Hard | Preempt resources based on priority |
-| **Resource Requests** | Pod | Filtering | Hard | Guarantee minimum resources |
+| **Taints/Tolerations** | Node + Pod | Filtering/Scoring, NoExecute eviction | Depends on the effect | Separate placement permission, preferences and eviction |
+| **Topology Spread** | Pod | Filtering/Scoring | Hard/Soft | Compare counts of selected Pods across eligible domains |
+| **PriorityClass** | Pod | Queue ordering, permitted preemption | Does not bypass other placement constraints | Consider higher-priority pending Pods first |
+| **Resource Requests** | Pod | Filtering | Hard | Check fit against node allocatable and existing requests |
 | **PDB** | Pod Group | Eviction API | Hard | Constrain eviction requests that exceed the disruption budget |
 
 **Hard vs Soft Constraints:**
 - **Hard (Required)**: Scheduling fails if conditions are not met → `Pending` state
-- **Soft (Preferred)**: Conditions are preferred, but scheduling proceeds even if they are not met → Alternatives allowed
+- **Soft (Preferred)**: A Pod may use another node that satisfies all hard constraints
 
 ---
 
@@ -176,7 +176,11 @@ spec:
         resources:
           requests:
             nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
 ```
+
+The GPU examples require drivers and a device plugin that advertises `nvidia.com/gpu` on the nodes. Image names are placeholders; verify your image and node labels. Under the [GPU resource rules](https://v1-34.docs.kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/), specify a GPU limit alone or equal GPU requests and limits.
 
 **Limitations**: Node Selector supports only `AND` conditions; it does not support `OR`, `NOT`, or comparison operators. Use Node Affinity when complex conditions are required.
 
@@ -192,7 +196,7 @@ Node Affinity extends Node Selector to express complex logical conditions and pr
 | `preferredDuringSchedulingIgnoredDuringExecution` | Conditions are preferred (Soft, weight-based) | When preferred placement allows alternatives |
 
 :::info Meaning of IgnoredDuringExecution
-`IgnoredDuringExecution` means that a Pod **already running** is not evicted when node labels change. If `RequiredDuringExecution` is introduced in the future, Pods will be relocated when conditions are no longer met during execution.
+`IgnoredDuringExecution` means that this affinity rule alone does not evict or relocate a scheduled Pod when node labels change. The [Kubernetes 1.34 Node Affinity API](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity) has no `RequiredDuringExecution` field that re-enforces the condition during execution.
 :::
 
 #### Operator Types
@@ -200,7 +204,7 @@ Node Affinity extends Node Selector to express complex logical conditions and pr
 | Operator | Description | Example |
 |--------|------|------|
 | `In` | Value is included in the list | `values: ["t3.xlarge", "t3.2xlarge"]` |
-| `NotIn` | Value is not included in the list | `values: ["t2.micro", "t2.small"]` |
+| `NotIn` | Value is outside the list, or the label is absent | `values: ["t2.micro", "t2.small"]`; add `Exists` when the label must be present |
 | `Exists` | Key exists (regardless of value) | Check only whether the label exists |
 | `DoesNotExist` | Key does not exist | Select nodes without a specific label |
 | `Gt` | Value is greater (numeric) | `values: ["100"]` (CPU core count, for example) |
@@ -233,9 +237,10 @@ spec:
               - key: node.kubernetes.io/instance-type
                 operator: In
                 values:
-                - g5.xlarge
                 - g5.2xlarge
                 - g5.4xlarge
+              - key: karpenter.sh/capacity-type
+                operator: Exists
               - key: karpenter.sh/capacity-type
                 operator: NotIn
                 values:
@@ -248,7 +253,11 @@ spec:
             nvidia.com/gpu: 1
             cpu: "4"
             memory: 16Gi
+          limits:
+            nvidia.com/gpu: 1
 ```
+
+This example requires a Karpenter capacity-type label whose value is not `spot`. CPU and memory requests must fit the capacity remaining after system reservations and DaemonSet requests.
 
 **Example 2: Instance Family Preferences (Soft, Weighted)**
 
@@ -371,12 +380,16 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              # Avoid Spot nodes
+              # Require the label, then exclude Spot nodes
+              - key: karpenter.sh/capacity-type
+                operator: Exists
               - key: karpenter.sh/capacity-type
                 operator: NotIn
                 values:
                 - spot
-              # Avoid ARM architecture
+              # Require the label, then exclude ARM architecture
+              - key: kubernetes.io/arch
+                operator: Exists
               - key: kubernetes.io/arch
                 operator: NotIn
                 values:
@@ -927,7 +940,7 @@ spec:
 
 ## 5. Taints & Tolerations
 
-Taints and Tolerations are a **node-level repulsion mechanism**. When a Taint is applied to a node, only Pods that tolerate that Taint are scheduled on it.
+Taints belong to nodes and tolerations belong to Pods. The scheduler blocks or discourages placement according to the effects of taints the Pod does not tolerate. A toleration permits consideration of a node; affinity and resource constraints still apply.
 
 **Concepts:**
 - **Taint**: Applied to a node (for example, "This node is dedicated to GPU workloads")
@@ -939,7 +952,7 @@ Taints and Tolerations are a **node-level repulsion mechanism**. When a Taint is
 |--------|------|--------------|----------|
 | `NoSchedule` | Block new Pod scheduling | Keep existing Pods | When creating new dedicated nodes |
 | `PreferNoSchedule` | Avoid scheduling if possible (Soft) | Keep existing Pods | Prefer avoidance (allow alternatives) |
-| `NoExecute` | Block scheduling + Evict existing Pods | Immediately evict existing Pods | Node maintenance, emergency evacuation |
+| `NoExecute` | Block placement without a matching toleration | Evict unmatched Pods; otherwise honor `tolerationSeconds` | Eviction policy for node-state changes |
 
 **Commands to Apply Taints:**
 
@@ -1077,7 +1090,7 @@ tolerations:
 
 #### tolerationSeconds (NoExecute Only)
 
-When a `NoExecute` Taint is applied, eviction is immediate by default, but `tolerationSeconds` can provide a grace period.
+An existing Pod that does not tolerate a `NoExecute` taint is subject to eviction. A matching toleration with `tolerationSeconds` retains it for that duration. Omitting the duration from an explicit matching toleration allows it to remain indefinitely with respect to that taint.
 
 ```yaml
 apiVersion: v1
@@ -1101,22 +1114,22 @@ spec:
     image: app:v1.0
 ```
 
-**Defaults**: Kubernetes uses the following defaults when `tolerationSeconds` is not specified:
-- `node.kubernetes.io/not-ready`: 300 seconds
-- `node.kubernetes.io/unreachable`: 300 seconds
+**An injected toleration differs from an explicit toleration.** Default admission adds 300-second `not-ready` and `unreachable` tolerations to ordinary Pods when those tolerations are absent. An explicit matching `NoExecute` toleration without a duration is indefinite, not 300 seconds. The DaemonSet controller adds indefinite tolerations for both taints. None of these durations guarantees the complete time from failure detection to service recovery.
 
 ### 5.4 Default EKS Taints
 
-EKS automatically applies Taints to certain nodes:
+The following Kubernetes node-condition taints and default tolerations also apply in EKS. The [official taint and toleration guide](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) distinguishes placement restrictions from eviction.
 
 | Taint | Applies To | Effect | Handling |
 |-------|----------|------|----------|
-| `node.kubernetes.io/not-ready` | Nodes that are not ready | NoExecute | Automatic Toleration (kubelet) |
-| `node.kubernetes.io/unreachable` | Unreachable nodes | NoExecute | Automatic Toleration (kubelet) |
-| `node.kubernetes.io/disk-pressure` | Nodes with insufficient disk space | NoSchedule | Only DaemonSets tolerate this |
-| `node.kubernetes.io/memory-pressure` | Nodes with insufficient memory | NoSchedule | Only DaemonSets tolerate this |
-| `node.kubernetes.io/pid-pressure` | Nodes with insufficient PIDs | NoSchedule | Only DaemonSets tolerate this |
-| `node.kubernetes.io/network-unavailable` | Nodes without network configuration | NoSchedule | Removed by the CNI plugin |
+| `node.kubernetes.io/not-ready` | Ready=False | NoExecute | Default admission adds 300 seconds for ordinary Pods; DaemonSet controller adds an indefinite toleration |
+| `node.kubernetes.io/unreachable` | Ready=Unknown | NoExecute | Default admission adds 300 seconds for ordinary Pods; DaemonSet controller adds an indefinite toleration |
+| `node.kubernetes.io/disk-pressure` | Disk pressure | NoSchedule | Automatically tolerated by DaemonSets; other Pods may explicitly tolerate it |
+| `node.kubernetes.io/memory-pressure` | Memory pressure | NoSchedule | Automatically tolerated by non-BestEffort Pods and DaemonSets |
+| `node.kubernetes.io/pid-pressure` | PID pressure | NoSchedule | Automatically tolerated by DaemonSets; other Pods may explicitly tolerate it |
+| `node.kubernetes.io/network-unavailable` | Network not configured | NoSchedule | hostNetwork DaemonSets receive an automatic toleration; verify network readiness for ordinary workloads |
+
+A toleration does not restore resources or connectivity. Even a Pod allowed onto the node can be evicted under resource pressure or fail at the application level.
 
 ### 5.5 Managing Taints in Karpenter
 

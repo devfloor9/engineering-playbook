@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 73
+reading_time: 75
 tags:
   - eks
   - kubernetes
@@ -132,17 +132,17 @@ Pod가 `Pending` 상태로 남아있다면, `kubectl describe pod <pod-name>`으
 |------|------|-----------|--------|---------------|
 | **Node Selector** | Pod | Filtering | Hard | 특정 노드 타입 지정 (GPU, ARM) |
 | **Node Affinity** | Pod | Filtering/Scoring | Hard/Soft | 세밀한 노드 선택 조건 |
-| **Pod Affinity** | Pod | Scoring | Hard/Soft | 관련 Pod를 가까이 배치 |
+| **Pod Affinity** | Pod | Filtering/Scoring | Hard/Soft | 필수 조건으로 후보를 거르고 선호 조건으로 점수 부여 |
 | **Pod Anti-Affinity** | Pod | Filtering/Scoring | Hard/Soft | Pod를 서로 멀리 배치 |
-| **Taints/Tolerations** | Node + Pod | Filtering | Hard | 전용 노드 격리 |
-| **Topology Spread** | Pod | Scoring | Hard/Soft | AZ/노드 간 균등 분산 |
-| **PriorityClass** | Pod | Preemption | Hard | 우선순위 기반 리소스 선점 |
-| **Resource Requests** | Pod | Filtering | Hard | 최소 리소스 보장 |
+| **Taints/Tolerations** | Node + Pod | Filtering/Scoring, NoExecute 퇴거 | Effect에 따라 다름 | 새 배치의 허용·회피와 기존 Pod 퇴거를 구분 |
+| **Topology Spread** | Pod | Filtering/Scoring | Hard/Soft | 선택된 Pod의 도메인별 수를 비교 |
+| **PriorityClass** | Pod | 대기열 순서, 허용된 Preemption | 다른 배치 조건을 우회하지 않음 | 높은 우선순위 Pod를 먼저 검토 |
+| **Resource Requests** | Pod | Filtering | Hard | 노드 allocatable과 기존 요청량을 기준으로 배치 가능 여부 판단 |
 | **PDB** | Pod Group | Eviction API | Hard | 중단 예산을 초과하는 Eviction 요청 제한 |
 
 **Hard vs Soft 제약:**
 - **Hard (Required)**: 조건을 충족하지 못하면 스케줄링 실패 → `Pending` 상태
-- **Soft (Preferred)**: 조건을 선호하지만 충족하지 못해도 스케줄링 진행 → 차선책 허용
+- **Soft (Preferred)**: 조건을 충족하지 못해도 다른 Hard 조건을 만족하는 노드에 배치 가능
 
 ---
 
@@ -176,7 +176,11 @@ spec:
         resources:
           requests:
             nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
 ```
+
+GPU 예제는 드라이버와 device plugin이 `nvidia.com/gpu`를 노드 자원으로 제공하는 환경을 전제로 합니다. 이미지 이름은 예시이므로 사용할 이미지와 node label을 확인해야 합니다. [GPU 자원 규칙](https://v1-34.docs.kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/)에 따라 GPU는 `limits`만 지정하거나, `requests`와 `limits`를 같은 값으로 지정합니다.
 
 **제한사항**: Node Selector는 `AND` 조건만 지원하며, `OR`, `NOT`, 비교 연산자 등을 사용할 수 없습니다. 복잡한 조건이 필요하면 Node Affinity를 사용하세요.
 
@@ -192,7 +196,7 @@ Node Affinity는 Node Selector의 확장 버전으로, 복잡한 논리 조건�
 | `preferredDuringSchedulingIgnoredDuringExecution` | 조건 선호 (Soft, 가중치 기반) | 선호하지만 대안 허용할 때 |
 
 :::info IgnoredDuringExecution의 의미
-`IgnoredDuringExecution`은 Pod가 **이미 실행 중**일 때 노드 레이블이 변경되어도 Pod를 Evict하지 않는다는 의미입니다. 미래에 `RequiredDuringExecution`이 도입되면 실행 중에도 조건 불충족 시 재배치됩니다.
+`IgnoredDuringExecution`은 스케줄링 후 node label이 조건과 달라져도 이 affinity 규칙만으로 Pod를 퇴거하거나 재배치하지 않는다는 의미입니다. [Kubernetes 1.34의 Node Affinity API](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity)에는 실행 중 조건을 다시 강제하는 `RequiredDuringExecution` 필드가 없습니다.
 :::
 
 #### 연산자 종류
@@ -200,7 +204,7 @@ Node Affinity는 Node Selector의 확장 버전으로, 복잡한 논리 조건�
 | 연산자 | 설명 | 예시 |
 |--------|------|------|
 | `In` | 값이 목록에 포함됨 | `values: ["t3.xlarge", "t3.2xlarge"]` |
-| `NotIn` | 값이 목록에 포함되지 않음 | `values: ["t2.micro", "t2.small"]` |
+| `NotIn` | 값이 목록에 없거나 해당 label이 없음 | `values: ["t2.micro", "t2.small"]`; label 존재가 필요하면 `Exists`도 지정 |
 | `Exists` | 키가 존재함 (값 무관) | 레이블 존재 여부만 확인 |
 | `DoesNotExist` | 키가 존재하지 않음 | 특정 레이블이 없는 노드 선택 |
 | `Gt` | 값이 크다 (숫자) | `values: ["100"]` (CPU 코어 수 등) |
@@ -233,9 +237,10 @@ spec:
               - key: node.kubernetes.io/instance-type
                 operator: In
                 values:
-                - g5.xlarge
                 - g5.2xlarge
                 - g5.4xlarge
+              - key: karpenter.sh/capacity-type
+                operator: Exists
               - key: karpenter.sh/capacity-type
                 operator: NotIn
                 values:
@@ -248,7 +253,11 @@ spec:
             nvidia.com/gpu: 1
             cpu: "4"
             memory: 16Gi
+          limits:
+            nvidia.com/gpu: 1
 ```
+
+이 예제는 Karpenter의 capacity-type label이 있고 값이 `spot`이 아닌 노드를 선택합니다. CPU·메모리 요청은 시스템 예약량과 DaemonSet 요청량을 제외한 여유 자원에 들어가야 합니다.
 
 **예시 2: 인스턴스 패밀리 선호 (Soft, 가중치)**
 
@@ -371,12 +380,16 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              # Spot 노드 회피
+              # Label이 있는 노드 중 Spot 노드 회피
+              - key: karpenter.sh/capacity-type
+                operator: Exists
               - key: karpenter.sh/capacity-type
                 operator: NotIn
                 values:
                 - spot
-              # ARM 아키텍처 회피
+              # Label이 있는 노드 중 ARM 아키텍처 회피
+              - key: kubernetes.io/arch
+                operator: Exists
               - key: kubernetes.io/arch
                 operator: NotIn
                 values:
@@ -925,7 +938,7 @@ spec:
 
 ## 5. Taints & Tolerations
 
-Taints와 Tolerations는 **노드 수준의 회피(repel) 메커니즘**입니다. 노드에 Taint를 적용하면, 해당 Taint를 Tolerate하는 Pod만 스케줄링됩니다.
+Taint는 노드에, toleration은 Pod에 지정합니다. 스케줄러는 Pod가 tolerate하지 않는 taint의 effect에 따라 배치를 차단하거나 피합니다. Toleration이 있어도 그 노드로 배치가 보장되지는 않으며 affinity와 자원 조건도 만족해야 합니다.
 
 **개념:**
 - **Taint**: 노드에 적용 (예: "이 노드는 GPU 전용입니다")
@@ -937,7 +950,7 @@ Taints와 Tolerations는 **노드 수준의 회피(repel) 메커니즘**입니�
 |--------|------|--------------|----------|
 | `NoSchedule` | 새 Pod 스케줄링 차단 | 기존 Pod 유지 | 신규 전용 노드 생성 시 |
 | `PreferNoSchedule` | 가능하면 스케줄링 차단 (Soft) | 기존 Pod 유지 | 선호 회피 (대안 허용) |
-| `NoExecute` | 스케줄링 차단 + 기존 Pod Evict | 기존 Pod 즉시 Evict | 노드 유지보수, 긴급 대피 |
+| `NoExecute` | 일치하는 toleration이 없는 Pod의 배치 차단 | Toleration이 없으면 퇴거; 있으면 `tolerationSeconds`에 따라 결정 | 노드 상태 변화에 따른 퇴거 정책 |
 
 **Taint 적용 명령어:**
 
@@ -1075,7 +1088,7 @@ tolerations:
 
 #### tolerationSeconds (NoExecute 전용)
 
-`NoExecute` Taint가 적용되면 기본적으로 즉시 Evict되지만, `tolerationSeconds`로 유예 시간을 부여할 수 있습니다.
+`NoExecute` taint를 tolerate하지 않는 기존 Pod는 퇴거 대상이 됩니다. 일치하는 toleration에 `tolerationSeconds`가 있으면 그 시간 동안 유지하고, 시간을 생략하면 해당 taint로는 시간 제한 없이 유지합니다.
 
 ```yaml
 apiVersion: v1
@@ -1099,22 +1112,22 @@ spec:
     image: app:v1.0
 ```
 
-**기본값**: Kubernetes는 `tolerationSeconds` 미지정 시 다음 기본값을 사용합니다:
-- `node.kubernetes.io/not-ready`: 300초
-- `node.kubernetes.io/unreachable`: 300초
+**자동으로 추가되는 toleration과 명시한 toleration은 다릅니다.** 기본 admission 설정에서는 일반 Pod에 `not-ready`·`unreachable` toleration이 없을 때 각각 300초의 toleration을 추가합니다. 직접 명시한 `NoExecute` toleration에서 시간을 생략하면 300초가 아닌 무기한 허용입니다. DaemonSet controller는 두 taint에 시간 제한이 없는 toleration을 추가합니다. 이 시간은 장애 감지부터 서비스 복구까지 걸리는 전체 시간을 보장하지 않습니다.
 
 ### 5.4 EKS 기본 Taints
 
-EKS는 특정 노드에 자동으로 Taint를 적용합니다:
+아래는 EKS에서도 사용하는 Kubernetes의 노드 상태 taint와 기본 toleration 동작입니다. [공식 taint·toleration 설명](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)에서 스케줄링 차단과 퇴거를 구분해 확인할 수 있습니다.
 
 | Taint | 적용 대상 | 효과 | 대응 방법 |
 |-------|----------|------|----------|
-| `node.kubernetes.io/not-ready` | 준비되지 않은 노드 | NoExecute | 자동 Toleration (kubelet) |
-| `node.kubernetes.io/unreachable` | 연결 불가 노드 | NoExecute | 자동 Toleration (kubelet) |
-| `node.kubernetes.io/disk-pressure` | 디스크 부족 노드 | NoSchedule | DaemonSet만 Tolerate |
-| `node.kubernetes.io/memory-pressure` | 메모리 부족 노드 | NoSchedule | DaemonSet만 Tolerate |
-| `node.kubernetes.io/pid-pressure` | PID 부족 노드 | NoSchedule | DaemonSet만 Tolerate |
-| `node.kubernetes.io/network-unavailable` | 네트워크 미구성 노드 | NoSchedule | CNI 플러그인이 제거 |
+| `node.kubernetes.io/not-ready` | Ready=False | NoExecute | 기본 admission은 일반 Pod에 300초, DaemonSet controller는 무기한 toleration 추가 |
+| `node.kubernetes.io/unreachable` | Ready=Unknown | NoExecute | 기본 admission은 일반 Pod에 300초, DaemonSet controller는 무기한 toleration 추가 |
+| `node.kubernetes.io/disk-pressure` | 디스크 부족 노드 | NoSchedule | DaemonSet에 자동 추가; 다른 Pod도 명시 가능 |
+| `node.kubernetes.io/memory-pressure` | 메모리 부족 노드 | NoSchedule | BestEffort가 아닌 Pod와 DaemonSet에 자동 추가 |
+| `node.kubernetes.io/pid-pressure` | PID 부족 노드 | NoSchedule | DaemonSet에 자동 추가; 다른 Pod도 명시 가능 |
+| `node.kubernetes.io/network-unavailable` | 네트워크 미구성 노드 | NoSchedule | hostNetwork DaemonSet에는 자동 toleration; 일반 워크로드는 네트워크 준비 확인 |
+
+Toleration은 부족한 자원이나 연결을 복구하지 않습니다. 스케줄링이 허용되어도 노드 압박에 따른 퇴거나 애플리케이션 실패가 발생할 수 있습니다.
 
 ### 5.5 Karpenter에서 Taint 관리
 
