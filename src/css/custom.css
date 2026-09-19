@@ -1160,6 +1160,10 @@ div[class*="codeBlockTitle"] {
     transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
+  /* Mermaid measures temporary SVGs before they enter the document figure. */
+  svg, svg * {
+    transition: none !important;
+  }
 }
 
 /* Navigation labels connect the cover and article without shrinking the prose. */

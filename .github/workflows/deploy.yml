@@ -47,6 +47,9 @@ jobs:
       - name: Verify document tools
         run: npm run test:tools
 
+      - name: Verify real Mermaid rendering under motion preferences
+        run: npm run test:mermaid
+
       - name: Verify LLM wiki component exports
         run: npm run test:llm-wiki
 
