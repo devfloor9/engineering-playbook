@@ -3,7 +3,7 @@ title: Agentic AI Platform Architecture
 description: Overall system architecture of a production-grade Agentic AI Platform — 6 runtime layers and 3 cross-cutting planes
 created: "2026-02-05"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 59
 tags:
@@ -22,7 +22,9 @@ import { LayerRoles, TenantIsolation, RequestProcessing } from '@site/src/compon
 
 ## Overview
 
-The Agentic AI Platform is a unified platform that enables autonomous AI agents to perform complex tasks. It is designed to address challenges encountered when building GenAI services: accelerated compute operations, model serving complexity, lack of framework integration, autoscaling difficulties, absence of MLOps automation, and cost optimization. The platform organizes **accelerated compute infrastructure**, **model serving**, **data/knowledge/memory**, **agent orchestration**, **intelligent inference routing**, and **multi-channel exposure** into **6 runtime layers** stacked along the request path, and separates **observability & evaluation**, **governance/safety/sovereignty**, and **model lifecycle (FMOps)** into **3 cross-cutting planes** that span all layers. For detailed analysis of each challenge, see the [Technical Challenges](./agentic-ai-challenges.md) document.
+An Agentic AI platform provides the environment in which agents call models and tools to perform tasks. This architecture separates **functions that process requests** from **operating responsibilities shared across those functions**.
+
+The request-processing functions form **6 runtime layers**: **accelerated compute infrastructure**, **model serving**, **data/knowledge/memory**, **agent orchestration**, **intelligent inference routing**, and **multi-channel exposure**. **Observability & evaluation**, **governance/safety/sovereignty**, and **model lifecycle (FMOps)** apply across those layers, so they form **3 cross-cutting planes**. For a detailed analysis of the challenges, see [Technical Challenges](./agentic-ai-challenges.md).
 
 :::info Target Audience
 This document is intended for solution architects, platform engineers, and DevOps engineers. A basic understanding of Kubernetes and AI/ML workloads is required.
@@ -412,7 +414,7 @@ The top-most layer where users and external systems enter the platform. It expos
 | **Web UI** | Dashboard/chat interface | Direct operator/user interaction |
 | **Channels** | Messenger, contact center (AICC), voice channels | Omni-channel customer touchpoints |
 
-Feedback collection (user ratings, corrections) begins at this layer, but the processing of collected data and its reflection into training is owned by the **model lifecycle plane**.
+Users submit ratings and corrections through this layer. The **model lifecycle plane** owns the work of processing that feedback and turning it into training data.
 
 ---
 

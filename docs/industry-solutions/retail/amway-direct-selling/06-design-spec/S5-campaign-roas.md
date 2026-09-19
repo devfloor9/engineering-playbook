@@ -3,7 +3,7 @@ title: S5. 옴니채널 캠페인 ROAS (AMWAY)
 description: 자사몰·ABO 직판·카탈로그·SNS 채널 Bayesian 어트리뷰션
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -31,10 +31,10 @@ sidebar_label: S5. Campaign ROAS
 | **검색 트렌드** | 다국어 검색 트렌드 |
 
 ## 4. 처리 파이프라인
-1. Snowflake에서 채널·국가 prior 추출
-2. MCMC 1000 샘플 (PyMC) → posterior
-3. 채널 믹스 ROAS 분포
-4. 어트리뷰션 (Last-touch / Linear / Time-decay)
+1. Snowflake의 과거 채널·국가 데이터를 사용해 캠페인 모델의 사전 가정을 정합니다.
+2. PyMC에서 마르코프 연쇄 몬테카를로(MCMC)로 1,000개 표본을 뽑아, 데이터를 반영한 뒤의 사후분포를 근사합니다.
+3. 표본으로 얻은 모델 결과에서 채널 조합별 광고비 대비 매출(ROAS)의 분포를 추정합니다.
+4. 마지막 접점, 선형, 시간 감쇠 방식으로 전환 기여도를 어떻게 배분했는지 보고합니다. 이 배분 방식과 모델의 불확실성은 구분합니다.
 
 ## 5. 출력 UI
 - 추천 채널 믹스 (donut)

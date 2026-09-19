@@ -3,7 +3,7 @@ title: LLMOps Observability 비교 가이드
 description: LLMOps Observability 도구 비교 전용 문서 — Langfuse·LangSmith·Helicone·CloudWatch 선택 기준과 하이브리드 아키텍처 (Langfuse 운영은 Agent 모니터링 문서 참조)
 created: "2026-03-16"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -24,12 +24,12 @@ category: genai-aiml
 
 ### 1.1 전통적 APM이 LLM 워크로드에서 부족한 이유
 
-전통적인 Application Performance Monitoring (APM) 도구들은 LLM 기반 애플리케이션의 특수한 요구사항을 충족하지 못합니다:
+APM으로 HTTP 지연과 오류를 수집하더라도, 그 정보만으로 LLM의 응답 품질과 비용을 판단하기는 어렵습니다. 다음 정보를 함께 수집하고 관리해야 합니다.
 
-- **토큰 비용 추적 불가**: 기존 APM은 CPU/메모리 사용량만 측정하며, LLM API 호출의 실제 비용인 입력/출력 토큰 수와 프로바이더별 가격을 추적하지 못합니다
-- **프롬프트 품질 평가 부재**: HTTP 요청/응답 본문은 기록하지만, 프롬프트 템플릿 버전 관리, A/B 테스트, 품질 평가 메트릭이 없습니다
-- **체인 추적의 한계**: LangChain/LlamaIndex 같은 프레임워크의 복잡한 체인(Chain)과 에이전트 워크플로우는 단순 HTTP trace로는 가시성 확보가 어렵습니다
-- **의미론적 컨텍스트 부족**: 단순 latency/throughput만 측정할 뿐, "답변이 정확한가?", "환각(hallucination)이 발생했는가?"와 같은 의미론적 품질을 평가하지 못합니다
+- **토큰과 비용**: 입력·출력 토큰 수, 호출한 모델과 프로바이더, 적용한 가격을 기록합니다.
+- **프롬프트와 평가**: 어떤 템플릿 버전으로 만든 답변인지 연결하고, A/B 테스트와 품질 평가 결과를 남깁니다.
+- **에이전트 실행 단계**: 검색, 도구 호출, 모델 호출을 하나의 요청 흐름으로 연결합니다.
+- **응답 품질**: 지연·처리량과 별도로 답변의 정확성, 근거와의 일치 여부를 평가합니다.
 
 ### 1.2 LLMOps Observability의 4가지 핵심 영역
 

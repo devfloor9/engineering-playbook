@@ -3,17 +3,17 @@ title: LG H&H Marketing Innovation PoC
 description: LG H&H Beauty + HDB + Refreshment 3-BU integrated marketing innovation PoC — Ontology + Agentic AI based 8-scenario demo
 created: "2026-05-14"
 last_update:
-  date: "2026-07-02"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 10
 tags:
   - scope:nav
 sidebar_label: Overview
 ---
 
-> **"A marketing innovation PoC that ties together first-party member, SKU, campaign, and omnichannel transaction data with external trend, weather, economic, and competitor signals via ontology + Agentic AI."**
+> This proof-of-concept demonstration connects member, product, campaign, and sales-channel transaction data with trend, weather, economic, and competitor information for marketing analysis.
 
-A **working demonstration** that semantically connects scattered data so that 5 departments can use it from their own perspectives. Using only public information, it presents a blueprint for solving the data silo problem at LG H&H's Marketing Innovation Division.
+It shows how five departments in LG H&H's Marketing Innovation Division could use scattered data for their own tasks. An **ontology** defines the relationships between the data, and **agents** help users search and analyze it. The demonstration is based only on public information.
 
 ---
 

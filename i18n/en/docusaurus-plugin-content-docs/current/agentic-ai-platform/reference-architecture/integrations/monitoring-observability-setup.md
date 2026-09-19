@@ -3,9 +3,9 @@ title: Monitoring & Observability Setup Guide
 description: Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel
 created: "2026-04-06"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 14
+reading_time: 15
 tags:
   - monitoring
   - langfuse
@@ -108,7 +108,7 @@ aws eks create-pod-identity-association \
 ```
 
 :::tip Pod Identity vs IRSA
-Pod Identity requires no OIDC Provider configuration and can be set up with a single command. Pod Identity is recommended for EKS 1.28+ clusters.
+The command above registers an association between the prepared IAM role and a cluster, namespace, and ServiceAccount. Pod Identity does not use the OIDC provider configuration required by IRSA, but the role's trust and permission policies still need to be prepared. For a Pod to receive credentials, also check node support for Pod Identity, access to EKS Auth, and an application using a supported SDK and its default credential chain ([setup requirements](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)). EKS 1.33+ is the example environment in this guide; verify the support requirements for the cluster where you apply it.
 :::
 
 ### 2.4 Key Prometheus Helm Values

@@ -1,8 +1,8 @@
 ---
 created: 2025-09-09
 last_update:
-  date: 2026-09-18
-reading_time: 15
+  date: 2026-09-19
+reading_time: 17
 ---
 # Engineering Playbook
 
@@ -163,6 +163,14 @@ LLM_WIKI_BASELINE_HTML="$PWD/build" npm run test:llm-wiki
 Open an issue with the affected page, expected behavior, and supporting evidence. Keep changes focused, preserve public routes and heading anchors, and update the English counterpart when changing Korean technical content. Use English for issue proposals, pull request descriptions, and commit messages.
 
 Use shared components and design tokens for interface changes. Preserve the meaning of table cells, status labels, and diagrams in both the web page and the LLM export. Review technical facts independently from presentation changes.
+
+Write for a reader who understands basic programming but may be new to the service:
+
+- Begin with the problem the reader needs to solve. Name the component doing the work and explain what happens to a request or its data.
+- Define a specialized term when it first matters. For example, explain that a KV cache stores earlier tokens' key and value tensors to avoid recalculating them.
+- State the conditions behind a recommendation. Label proposed designs, estimates, reported measurements, and completed tests accurately; a design goal is not a guaranteed outcome.
+- Keep procedures, tables, and diagrams that help the reader act. Remove repeated conclusions, promotional claims, and analogies that require more explanation than the underlying mechanism.
+- Review Korean and English together for meaning, prerequisites, and limitations. Use natural phrasing in each language while preserving commands, citations, routes, and heading anchors.
 
 `last_update.date` records a content revision, not a deployment or the last Git
 commit. Update it when changing explanations, examples, data, recommendations,

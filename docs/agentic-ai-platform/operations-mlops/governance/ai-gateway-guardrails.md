@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 20
 tags:
@@ -64,7 +64,7 @@ LLM01: Prompt Injection, LLM02: Sensitive Information Disclosure, LLM06: Excessi
 
 ## 2. 방어 레이어 아키텍처
 
-Guardrails는 단일 기능이 아닌 **다층 방어(Defense in Depth)** 입니다. 각 레이어는 독립적으로 동작하며, 하나가 우회되어도 다음 레이어가 차단합니다.
+**다층 방어(Defense in Depth)**는 요청이 지나가는 경로에 여러 검사를 배치하는 방식입니다. 한 검사에서 놓친 위협을 이후 검사에서 탐지하거나 차단할 기회를 추가합니다. 아래 아키텍처는 각 계층이 맡는 검사를 구분합니다.
 
 ```mermaid
 flowchart LR

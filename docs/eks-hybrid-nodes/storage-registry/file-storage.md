@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes 공유 파일 스토리지 솔루션
 description: EKS Hybrid Nodes 환경에서 공유 파일 스토리지 구현을 위한 포괄적 가이드로, AWS 관리형 서비스, 엔터프라이즈 스토리지 통합 및 Amazon Linux 2023 대체 접근법을 다룹니다.
 created: "2025-09-15"
 last_update:
-  date: "2026-08-25"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 11
 tags:
   - eks
   - hybrid-node
@@ -303,7 +303,7 @@ Amazon Linux 2023에서 직접 소스 컴파일을 통한 패키지 설치는 �
 
 ## 결론 및 권장사항
 
-EKS Hybrid Nodes 환경에서 공유 파일 스토리지 구성은 전통적인 클러스터링 방식에서 클라우드 네이티브 접근법으로의 전환을 의미합니다. Amazon Linux 2023에서 pacemaker와 corosync 패키지가 제거된 것은 이러한 변화의 신호이며, 동시에 더 안정적이고 관리하기 쉬운 솔루션으로 나아갈 기회입니다.
+Amazon Linux 2023에서 pacemaker와 corosync가 제거되면서 이 패키지에 의존하는 NFS 구성을 그대로 사용할 수 없게 됐습니다. EKS Hybrid Nodes에서는 이 가이드의 AWS 관리형 파일 서비스, CSI 드라이버를 통한 기존 기업 스토리지, 별도로 운영하는 NFS 서비스를 가용성·연결·운영 요구에 맞춰 비교합니다.
 
 **핵심 권장사항:**
 

@@ -3,7 +3,7 @@ title: EKS API Server 인증/인가 가이드
 description: Non-Standard Caller(CI/CD, 모니터링, 자동화)의 EKS API Server 접근을 위한 인증/인가 Best Practices
 created: "2026-03-24"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -21,14 +21,14 @@ sidebar_label: API Server AuthN/AuthZ
 
 ## 개요
 
-EKS 클러스터의 API Server는 kubectl 사용자뿐 아니라 다양한 **Non-Standard Caller**가 접근합니다:
+사람과 자동화 시스템 모두 EKS 클러스터의 API Server를 호출합니다. 아래 호출자들은 실행 위치와 자격 증명을 얻는 방식이 서로 다릅니다.
 
 - **CI/CD 파이프라인**: GitHub Actions, Jenkins, ArgoCD 등에서 배포 및 리소스 관리
 - **모니터링 시스템**: Prometheus, Datadog, Grafana 등에서 메타데이터 조회
 - **자동화 도구**: Terraform, Ansible, 커스텀 컨트롤러 등에서 리소스 생성/수정
 - **기업 사용자**: 개발자, 운영자의 kubectl 접근
 
-이 문서는 각 시나리오에 맞는 **인증(AuthN)** 방법 선택과 **인가(AuthZ)** 설정 Best Practices를 제공합니다.
+각 호출자에 대해 **인증(AuthN)** 방법으로 신원을 확인하고, **인가(AuthZ)** 설정으로 접근할 수 있는 Kubernetes 리소스와 작업을 제한합니다.
 
 ---
 

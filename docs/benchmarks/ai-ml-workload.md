@@ -3,9 +3,9 @@ title: "Llama 4 FM 서빙 벤치마크: GPU vs AWS Custom Silicon"
 description: vLLM 기반 Llama 4 모델 서빙에서 GPU 인스턴스(p5, p4d, g6e)와 AWS 커스텀 실리콘(Trainium2, Inferentia2)의 성능 및 비용 효율성 비교 벤치마크
 created: "2026-02-09"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 15
 tags:
   - benchmark
   - ai
@@ -38,7 +38,9 @@ import MLRecommendationChart from '@site/src/components/MLRecommendationChart';
 
 AWS EKS 환경에서 vLLM을 이용한 Llama 4 모델 서빙 성능을 5개 시나리오로 비교한 벤치마크 보고서입니다.
 
-**한 줄 요약**: Llama 4 Scout(109B MoE) 추론에서 AWS 커스텀 실리콘이 NVIDIA GPU 대비 **58-67% 낮은 토큰당 비용**($0.28~$0.35/1M tokens vs $0.85)을 달성했으며, p5/H100은 **최저 TTFT(120ms)**와 **최고 처리량(4,200 tokens/sec)**으로 지연 민감 워크로드에 최적입니다. Trainium2는 H100 처리량의 83%를 41% 비용으로 제공하여 **최고의 성능 대비 비용 비율**을 보여줍니다.
+**문서에 제시된 비교 수치**: Llama 4 Scout(109B MoE)의 5개 시나리오에서 AWS 커스텀 실리콘의 토큰당 비용은 NVIDIA GPU 기준보다 **58-67% 낮게** 제시됩니다($0.28~$0.35/1M tokens vs $0.85).
+
+p5/H100에는 **첫 토큰 생성 시간(TTFT) 120ms**, **처리량 4,200 tokens/sec**가, Trainium2에는 H100 처리량의 83%와 비용의 41%가 제시돼 있습니다. 각 수치의 측정 조건과 비용 산정 기준을 확인하고, 적용할 워크로드에서 품질·지연·비용을 다시 비교하세요. 이 비교만으로 모든 지연 민감 워크로드에 가장 적합한 인스턴스를 정할 수는 없습니다.
 
 **5개 시나리오**:
 

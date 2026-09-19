@@ -3,9 +3,9 @@ title: Deployment Strategies — Shadow·Canary·A/B·Blue-Green
 description: Progressive model replacement strategies and Feature Flag-based prompt rollout approaches
 created: "2026-04-19"
 last_update:
-  date: "2026-07-16"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 13
+reading_time: 12
 tags:
   - deployment
   - canary
@@ -41,8 +41,8 @@ sequenceDiagram
 ```
 
 **When to Use**:
-- When you want to validate new model's latency, error rate, and output quality **without risk**
-- When cost burden is acceptable (2x cost per request)
+- To compare the new model's latency, error rate, and output quality on production requests without showing its responses to users
+- When the additional cost is acceptable (the comparison here assumes 2x cost per request)
 
 **Implementation Example (Python, LiteLLM)**: LiteLLM has no native shadow feature, so implement directly:
 
@@ -66,7 +66,7 @@ async def shadow_call(user_request):
 ```
 
 **Advantages**:
-- No impact on user experience
+- Users receive only the old model's response. The example above waits for both calls, so the shadow call can still delay that response.
 - Testing with actual traffic patterns
 
 **Disadvantages**:

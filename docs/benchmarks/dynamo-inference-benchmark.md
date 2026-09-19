@@ -3,9 +3,9 @@ title: NVIDIA Dynamo 추론 벤치마크
 description: NVIDIA Dynamo 기반 Aggregated/Disaggregated LLM 서빙 성능 비교 벤치마크 — EKS 환경 AIPerf 4가지 모드 실행
 created: "2026-03-20"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 7
 tags:
   - benchmark
   - nvidia
@@ -29,7 +29,7 @@ category: benchmark
 
 ## 개요
 
-NVIDIA Dynamo 기반 LLM 서빙에서 **Aggregated** 모드와 **Disaggregated** 모드의 성능을 비교하는 벤치마크입니다. EKS 환경에서 AIPerf 벤치마크 도구의 4가지 측정 모드를 실행하여, Disaggregated Serving의 KV Router + NIXL Transfer가 실제 워크로드에서 어떤 성능 차이를 만드는지 정량적으로 검증합니다.
+이 벤치마크 계획은 한 worker가 Prefill과 Decode를 모두 처리하는 **Aggregated** 구성과, 두 단계를 별도 worker에서 처리하는 **Disaggregated** 구성을 비교합니다. EKS에서 실행할 AIPerf 측정 모드 4가지를 정하고, KV Router와 NIXL Transfer의 영향을 평가합니다. 결과는 계획한 측정을 실행한 뒤 보고합니다.
 
 :::info 배포 가이드
 이 벤치마크의 EKS 배포는 [NVIDIA GPU 스택 가이드](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack)를 참조하세요.

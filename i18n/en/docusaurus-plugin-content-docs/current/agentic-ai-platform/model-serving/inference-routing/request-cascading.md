@@ -3,9 +3,9 @@ title: Request Cascading — Intelligent Model Routing
 description: Complexity-based automatic model routing — comparison of LLM Classifier, LiteLLM, and vLLM Semantic Router approaches, RouteLLM research reference, and cost savings
 created: "2026-07-04"
 last_update:
-  date: "2026-07-04"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 19
 tags:
   - cascade-routing
   - kgateway
@@ -24,7 +24,7 @@ This document covers the implementation approaches (LLM Classifier, LiteLLM, vLL
 
 ### Concept
 
-**Request Cascading** is an intelligent optimization technique that automatically analyzes request complexity and routes to appropriate models. Simple queries go to cheap and fast models, complex reasoning to powerful models, simultaneously improving cost and latency. IDEs use a single endpoint only; model selection is centrally controlled at platform level.
+**Request Cascading** selects a model according to request complexity and predefined quality criteria. It can route simple requests to smaller models and requests requiring more complex reasoning to more capable models. Misclassification can lead to retries that increase cost or latency, so measure per-request quality and total processing cost together. IDEs use a single endpoint, and the platform manages the model-selection rules.
 
 ### Three Cascading Patterns
 

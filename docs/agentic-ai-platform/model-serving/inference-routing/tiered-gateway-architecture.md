@@ -3,9 +3,9 @@ title: 티어드 게이트웨이 아키텍처
 description: "Agentic AI 플랫폼의 게이트웨이 계층 단일 정의: Tier 1 Ingress, Tier 2 추론 라우팅(Inference Extension)과 LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략"
 created: "2026-06-17"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 6
 tags:
   - gateway-api
   - inference-gateway
@@ -46,7 +46,7 @@ Agentic AI 플랫폼의 게이트웨이 계층은 서로 다른 책임을 가진
 - 둘은 **배타적이지 않습니다.** 자체 호스팅 추론은 ①로, 외부 프로바이더 통합은 ②로 처리하는 하이브리드 구성이 일반적입니다.
 :::
 
-`Agent Data Plane`(agentgateway)은 Tier가 아니라 **직교하는 축**입니다. HTTP 트래픽이 아닌 AI 전용 프로토콜(MCP/A2A)과 stateful 세션을 다루므로, Tier 1~2와 같은 선형 계층으로 묶지 않습니다.
+이 문서에서 `Agent Data Plane`(agentgateway)은 도구 호출, 에이전트 간 통신, 상태를 유지하는 세션을 담당하는 기능으로 구분합니다. Tier 1~2가 모델 요청을 어디로 보낼지 정한다면, 이 기능은 MCP/A2A 연결과 세션을 처리합니다. MCP/A2A도 HTTP를 전송 수단으로 사용할 수 있으므로, 이 구분은 전송 프로토콜이 아니라 담당 기능을 기준으로 합니다. 모든 요청이 순서대로 통과하는 또 하나의 Tier로 해석하지 않습니다.
 
 ## 전체 구조
 

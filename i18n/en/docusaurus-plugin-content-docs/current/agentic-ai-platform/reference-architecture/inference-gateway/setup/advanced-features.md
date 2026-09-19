@@ -3,9 +3,9 @@ title: Advanced Features
 description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
 created: "2026-04-06"
 last_update:
-  date: "2026-07-13"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 20
+reading_time: 18
 tags:
   - llm-classifier
   - cloudfront
@@ -814,7 +814,7 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 
 ## Next Steps
 
-Advanced feature configuration is complete. Proceed to the next steps:
+After checking the features you configured, use the guides below to resolve errors, complete monitoring, and establish operational processes.
 
 1. **Troubleshooting**: If errors occurred during deployment, refer to [Troubleshooting Guide](./troubleshooting-guide.md).
 2. **Enhanced Monitoring**: Complete OTel integration and dashboards by referring to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md).

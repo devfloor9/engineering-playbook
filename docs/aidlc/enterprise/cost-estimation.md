@@ -3,9 +3,9 @@ title: 비용 효과 프레임워크
 description: AIDLC 엔터프라이즈 - cost-estimation
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 19
 tags:
   - aidlc
   - enterprise
@@ -16,7 +16,7 @@ sidebar_label: 비용 효과 프레임워크
 
 import { ProductivityMetrics, DetailedMetrics } from '@site/src/components/AidlcTables';
 
-AIDLC 도입은 기술 전환이 아닌 **비용 구조 재설계**입니다. 하지만 실제 데이터 부재로 RFP 산정, ROI 정당화, 예산 확보에 어려움을 겪습니다. 이 문서는 AIDLC 비용 효과를 정량화하고, 프로젝트 제안서에 반영하는 실무 프레임워크를 제공합니다.
+AIDLC를 도입하면 개발 절차와 비용이 함께 바뀝니다. 구현 작업이 줄어드는 효과뿐 아니라 AI 도구, 온톨로지 설계, 하네스 구현, 교육, 산출물 검증에 드는 비용도 계산해야 합니다. 작업 시간과 품질을 측정한 데이터가 없으면 제안요청서(RFP), 투자 대비 효과(ROI), 예산 요청의 근거를 만들기 어렵습니다. 이 장은 이러한 비용을 추정하는 방법을 설명합니다.
 
 ## 1. RFP 비용 산정의 딜레마
 

@@ -3,7 +3,7 @@ title: Knowledge Feature Store Expansion
 description: 3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 27
 tags:
@@ -209,7 +209,9 @@ There is no fixed Batch=100%, Stream=99% accuracy guarantee.
 
 Feast online stores retain the latest features per entity key, not arbitrary historical values. Offline point-in-time joins differ from a common snapshot across three stores. Timestamp filters alone do not guarantee cross-plane point-in-time consistency.
 
-A consistent generation requires immutable versions/history in every plane and queries capable of selecting that version. The coordinator exposes only publication manifests whose required visibility watermarks are met. If a plane serves latest-only values, reject this mode or use a versioned store. Separate event time from ingestion time and define late-event/deletion handling. Promise strong consistency/read-your-writes only within a demonstrated backend/coordinator boundary.
+To read a generation of data published together across the three stores, each store must retain immutable version history and allow queries to select a version. The coordinator checks each store's visibility watermark to confirm that the required version can be queried. Once all required stores are ready, it exposes the publication manifest: the list of versions that a query should read.
+
+If a store keeps only the latest values, reject this query mode or use a versioned store. Distinguish event time from ingestion time, and define how to handle late events and deletions. Promise strong consistency or read-your-writes only within a backend and coordinator boundary where that behavior has been demonstrated.
 
 ### Write Pipeline Example
 

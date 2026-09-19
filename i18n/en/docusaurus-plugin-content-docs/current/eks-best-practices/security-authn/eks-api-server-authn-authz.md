@@ -3,7 +3,7 @@ title: EKS API Server Authentication/Authorization Guide
 description: Authentication/Authorization best practices for Non-Standard Callers (CI/CD, monitoring, automation) accessing the EKS API Server
 created: "2026-03-24"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 23
 tags:
@@ -21,14 +21,14 @@ sidebar_label: API Server AuthN/AuthZ
 
 ## Overview
 
-The EKS cluster API server is accessed by kubectl users and a range of **Non-Standard Callers**:
+People and automated systems both call the EKS cluster API server. The caller types below differ in where they run and how they obtain credentials:
 
 - **CI/CD pipelines**: GitHub Actions, Jenkins, and ArgoCD deploy and manage resources.
 - **Monitoring systems**: Prometheus, Datadog, and Grafana retrieve metadata.
 - **Automation tools**: Terraform, Ansible, and custom controllers create and modify resources.
 - **Enterprise users**: Developers and operators access clusters through kubectl.
 
-This document provides best practices for selecting an **authentication (AuthN)** method and configuring **authorization (AuthZ)** for each scenario.
+For each caller, choose an **authentication (AuthN)** method to establish its identity, then configure **authorization (AuthZ)** to limit which Kubernetes resources and operations it can access.
 
 ---
 

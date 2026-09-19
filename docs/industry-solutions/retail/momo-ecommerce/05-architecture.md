@@ -3,7 +3,7 @@ title: AWS 단일 아키텍처 (Momo)
 description: Bedrock + Neptune + OpenSearch + Kinesis (라이브) + TimeStream (배송 SLA)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 1
 tags:
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> LG H&H 골격 + Momo 특화: **Kinesis Data Streams** (라이브 방송 이벤트), **TimeStream** (배송 SLA 시계열), 다국어, ~800K edges.
+> [LG생활건강 아키텍처](../lg-hnh-marketing-innovation/05-architecture.md)의 Next.js 화면, ECS Fargate의 FastAPI 백엔드, AI 서비스 연동, Neptune, OpenSearch를 재사용합니다. Momo에는 라이브 방송 이벤트를 위한 **Kinesis Data Streams**, 배송 SLA 시계열을 위한 **TimeStream**, 다국어 지원을 추가합니다. 그래프 규모는 약 **80만 개 관계(edge)**로 가정합니다.
 
 ## 1. 아키텍처
 

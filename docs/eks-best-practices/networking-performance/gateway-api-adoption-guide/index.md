@@ -53,18 +53,18 @@ import {
 
 ## 1. 개요
 
-Kubernetes 트래픽 관리는 두 가지 동인으로 Gateway API로 수렴하고 있습니다.
+Gateway API 도입을 검토하는 대표적인 상황은 기존 Ingress 컨트롤러를 교체할 때와 LLM 추론 트래픽의 라우팅을 설계할 때입니다.
 
-**첫째, NGINX Ingress Controller의 은퇴(Retirement)입니다.** 2026년 3월 공식 EOL(End-of-Life)로 보안 패치가 중단되며, Ingress API 자체의 구조적 한계(어노테이션 기반 확장, 역할 분리 부재)가 드러났습니다. 이로써 Gateway API로의 전환은 선택이 아닌 필수가 되었습니다.
+**기존 ingress-nginx를 교체해야 하는 경우.** Kubernetes 커뮤니티의 ingress-nginx 프로젝트는 2026년 3월 유지보수를 종료했습니다. 이후에는 버그 수정과 보안 업데이트가 제공되지 않으므로, 해당 컨트롤러를 사용하는 팀은 Gateway API 구현체나 다른 지원 중인 Ingress 컨트롤러로 이전해야 합니다. Ingress API 자체가 폐기된 것은 아닙니다. 자세한 범위는 [공식 은퇴 안내](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)를 참고하세요.
 
-**둘째, Agentic 워크로드를 위한 티어드 게이트웨이(Tiered Gateway)의 부상입니다.** LLM 추론과 에이전트 트래픽은 일반 웹/API와 요구사항이 다릅니다. 토큰 단위 과금·속도 제한, 모델·프로바이더 라우팅, KV 캐시 인지 라우팅, 프롬프트/응답 가드레일, 추론 Pod에 대한 부하 분산이 필요합니다. 이를 단일 게이트웨이로 처리하기보다, **북-남(North-South) 트래픽을 받는 범용 Gateway API 계층**과 **추론 트래픽을 전담하는 추론 게이트웨이(Inference Gateway) 계층**으로 나누는 2-Tier 구조가 표준으로 자리잡고 있습니다. Gateway API와 그 위의 [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/)이 이 티어드 모델의 공통 기반입니다.
+**LLM 추론 트래픽을 별도로 처리해야 하는 경우.** 일반 웹/API 라우팅 외에 토큰 단위 과금·속도 제한, 모델 선택, KV 캐시를 고려한 분산, 프롬프트/응답 검사 등이 필요할 수 있습니다. 아래에서 다루는 2-Tier 구성은 **클러스터 외부에서 들어오는 트래픽을 받는 범용 게이트웨이**와 **추론 Pod로 요청을 분산하는 추론 게이트웨이**로 역할을 나눕니다. Gateway API는 게이트웨이와 라우트 설정을 표현하고, [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/)은 추론 대상과 라우팅을 위한 기능을 확장합니다. 과금이나 가드레일 지원 범위는 선택한 구현체에서 별도로 확인해야 합니다.
 
 이 가이드는 Gateway API의 아키텍처 이해부터 6개 주요 구현체(AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong) 비교, Cilium ENI 모드 심화 구성, 단계별 마이그레이션 실행 전략, 성능 벤치마크 계획까지 포괄합니다. Agentic 워크로드를 위한 추론 게이트웨이 계층의 상세 구성은 [에이전틱 AI 플랫폼 — 추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)로 연결됩니다.
 
 :::tip 범용 Gateway vs 추론 게이트웨이 — 어디를 읽어야 하나
 - **북-남 트래픽·NGINX Ingress 대체·일반 API 라우팅**을 설계한다면 → 이 문서(범용 Gateway API 계층)
 - **LLM 추론 Pod 라우팅·KV 캐시 인지 분산·모델 엔드포인트 관리**를 설계한다면 → [추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)
-- 대부분의 Agentic 플랫폼은 **두 계층을 함께** 사용합니다. 이 문서의 섹션 4 비교표가 두 계층을 어떤 솔루션 조합으로 채울지 판단하는 출발점입니다.
+- 두 역할을 분리하는 구성이라면 섹션 4 비교표에서 **각 계층을 맡을 솔루션 조합**을 검토하세요.
 :::
 
 ### 1.1 이 문서의 대상
@@ -886,12 +886,12 @@ flowchart TD
 ### 6.3 핵심 메시지
 
 :::info
-**2026년 3월 NGINX Ingress EOL 이전에 마이그레이션을 완료하여 보안 위협을 원천 차단하세요.**
+**커뮤니티 ingress-nginx 컨트롤러의 유지보수는 2026년 3월에 종료됐습니다**([은퇴 공지](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)). 아직 사용 중이라면 지원되는 컨트롤러나 Gateway API 구현으로의 이전을 계획하세요. 이전 과정에서 라우팅 동작과 정책 적용을 검증해야 합니다.
 
-Gateway API는 단순한 Ingress 대체가 아닌, 클라우드 네이티브 트래픽 관리의 미래입니다.
-- **역할 분리**: 플랫폼 팀과 개발 팀의 명확한 책임 분리
-- **표준화**: 벤더 종속성 없는 이식 가능한 구성
-- **확장성**: East-West, 서비스 메시, AI 통합까지 확장
+Gateway API는 트래픽 관리를 위한 공통 리소스 모델을 제공합니다.
+- **역할 분리**: 플랫폼 팀과 애플리케이션 팀이 서로 다른 리소스와 권한을 관리합니다.
+- **표준화**: 공통 API는 구성의 이식성을 높입니다. 컨트롤러별 확장 기능은 별도로 검토해야 합니다.
+- **확장성**: 관련 API와 구현은 East-West 트래픽, 서비스 메시, AI 연동을 다룹니다.
 :::
 
 **지금 시작하세요:**

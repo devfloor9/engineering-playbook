@@ -3,7 +3,7 @@ title: EKS Pod Health Checks & Lifecycle Management
 description: Kubernetes Probe configuration strategies, Graceful Shutdown patterns, and Pod lifecycle management best practices
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 13
 tags:
@@ -29,12 +29,12 @@ import legacySectionTitles from '@site/src/data/pod-lifecycle-legacy-titles.en.j
 
 ## 1. Overview
 
-Pod health checks and lifecycle management are fundamental to service stability and availability. Proper Probe configuration and Graceful Shutdown implementation provide the following guarantees:
+Pod health checks and lifecycle management address different parts of service availability:
 
-- **Zero-downtime deployments**: Prevent traffic loss during rolling updates.
-- **Fast failure detection**: Automatically isolate and restart unhealthy Pods.
-- **Resource optimization**: Prevent premature restarts of applications that start slowly.
-- **Data integrity**: Safely complete in-flight requests during termination.
+- **Rolling updates**: Readiness checks and shutdown coordination help reduce request loss; the outcome depends on application behavior and traffic timing.
+- **Failure detection**: Readiness checks determine whether a Pod should receive traffic, while liveness checks can trigger container restarts.
+- **Startup protection**: Startup probes give slow applications time to initialize before liveness checks begin.
+- **In-flight requests**: Shutdown handlers give existing requests time to finish within the configured termination period.
 
 This guide covers the entire Pod lifecycle, from how Kubernetes Probes work to language-specific Graceful Shutdown implementations, Init Container patterns, and container image optimization.
 

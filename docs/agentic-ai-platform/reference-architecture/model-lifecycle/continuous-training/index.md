@@ -3,9 +3,9 @@ title: Continuous Training Pipeline
 description: Langfuse trace를 자동 학습 데이터로 승격해 GRPO/DPO preference tuning과 Canary 배포까지 연결하는 EKS 기반 5단계 파이프라인 개요.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 8
+reading_time: 6
 tags:
   - continuous-training
   - mlops
@@ -21,11 +21,13 @@ import DocCardList from '@theme/DocCardList';
 
 ## 개요
 
-Continuous Training Pipeline은 프로덕션 추론 트레이스를 자동으로 학습 데이터로 전환하여 모델을 지속적으로 개선하는 **Self-Improving Agent Loop**의 구현 아키텍처입니다. Langfuse OTel 트레이스를 S3 Data Lake로 수집하고, Reward Labeler로 품질을 평가한 뒤, GRPO/DPO로 preference tuning을 수행합니다. 평가 통과 후 Canary 배포로 프로덕션에 점진 롤아웃합니다.
+Continuous Training Pipeline은 운영 중 수집한 추론 기록을 학습 데이터 후보로 만들고, 학습 후 품질을 평가해 모델을 갱신할지 결정하는 **Self-Improving Agent Loop**의 구현 구조입니다. Langfuse의 OTel 트레이스를 S3 Data Lake에 모으고, Reward Labeler가 기록의 품질을 평가합니다. 준비한 데이터는 GRPO/DPO 기반 preference tuning에 사용합니다.
+
+학습과 배포는 담당자의 승인을 거쳐 진행합니다. 평가를 통과한 모델은 Canary 방식으로 일부 트래픽에 먼저 적용하고, 결과를 확인한 뒤 적용 범위를 늘립니다.
 
 ## 왜 Continuous Training인가
 
-기존 학습 방식은 **정적 데이터셋**에 의존합니다. 하지만 프로덕션 사용자 피드백은 끊임없이 발생하며, 이를 반영하지 못하면 모델은 시간이 지날수록 **실제 사용 패턴과 괴리**됩니다.
+프로덕션 피드백에는 정적 학습 데이터셋에 없던 작업, 용어, 실패 유형이 드러날 수 있습니다. 이 중 학습에 적합한 피드백을 골라 새 학습 예제로 사용합니다. 이후 모델을 평가해 해당 작업의 성능이 실제로 나아졌는지 확인해야 합니다.
 
 | 문제 | 기존 방식 | Continuous Training |
 |------|----------|---------------------|

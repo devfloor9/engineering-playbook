@@ -3,9 +3,9 @@ title: AgentCore Hybrid Strategy
 description: Decision framework and pattern catalog for combining Bedrock AgentCore managed service with EKS-based self-hosted agents in hybrid deployment
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 25
+reading_time: 26
 tags:
   - agentcore
   - bedrock
@@ -86,7 +86,7 @@ Design data location, access paths, authorization, and agent placement together.
 
 ### What is Data Gravity?
 
-Runtime VPC connectivity enables access to VPC resources through selected subnets and security groups. Default public network mode does not automatically provide access to arbitrary private endpoints.
+Data gravity describes how the location of data influences where an application should run. Here, the practical question is how AgentCore Runtime reaches data inside a VPC. Runtime VPC connectivity provides access through selected subnets and security groups; the default public network mode does not automatically provide access to arbitrary private endpoints.
 
 ### Reverse Call Pattern
 
@@ -128,7 +128,7 @@ Escalation requires validated quality rules and remaining deadline. An LLM-repor
 
 Langfuse is an observability store, not automatic bidirectional session replication for AgentCore Memory. Writing memory.json to S3 does not import it into AgentCore Memory. Use actual Memory APIs and explicit adapters.
 
-Choose one canonical conversation/event log with event_id, tenant, session owner, sequence, and schema version. Treat Memory and Langfuse as purpose-specific projections and define retries/deduplication, ordering, lag, conflicts, and deletion propagation. Do not read traces as user conversation state without authorization.
+Use one authoritative conversation/event log containing event_id, tenant, session owner, sequence, and schema version. Memory and Langfuse should hold derived views of that log for their respective purposes. Define how each view handles retries, duplicate events, ordering, update delays, conflicting records, and deletion propagation. Do not use traces as user conversation state without authorization.
 
 ### Pattern (d): Cost-arbitrage (High-freq=EKS, Low-freq Complex=AgentCore)
 

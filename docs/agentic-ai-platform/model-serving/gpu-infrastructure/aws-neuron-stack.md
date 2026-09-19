@@ -3,9 +3,9 @@ title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
 description: EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드
 created: "2026-04-17"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 20
 tags:
   - trainium2
   - inferentia2
@@ -179,7 +179,7 @@ Neuron SDK 는 2.x 릴리스 트레인에서 정기적으로 업데이트됩니�
 
 ### 3.3 컴파일 모델과 NEFF
 
-Neuron 은 **사전 컴파일(Ahead-of-Time) 모델** 입니다. PyTorch eager 모드로 바로 실행되지 않으며, `neuronx-cc` 가 연산 그래프를 NeuronCore 하드웨어 명령어(NEFF, Neuron Executable File Format)로 변환해야 실행됩니다.
+Neuron은 **사전 컴파일(Ahead-of-Time, AOT)** 방식을 사용합니다. PyTorch eager 모드처럼 바로 실행하는 대신, 실행 전에 모델을 컴파일합니다. `neuronx-cc`는 모델의 출력을 계산하는 데 필요한 연산들을 나타내는 **연산 그래프**를 NeuronCore 하드웨어 명령어로 변환하고, 실행할 수 있도록 NEFF(Neuron Executable File Format) 파일에 저장합니다.
 
 ```
 PyTorch / JAX 모델

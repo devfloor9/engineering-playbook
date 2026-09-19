@@ -3,9 +3,9 @@ title: 온톨로지 엔지니어링
 description: AIDLC 신뢰성의 첫 번째 축 — Typed World Model로 AI 환각을 방지하고 도메인 정확성을 보장하는 온톨로지 접근법 (engineering-playbook 확장 콘텐츠)
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 13
 tags:
   - aidlc
   - ontology
@@ -20,7 +20,7 @@ sidebar_label: 온톨로지 엔지니어링
 
 > "프롬프트 엔지니어링은 온톨로지 엔지니어링이다" — 2026 AI 커뮤니티 컨센서스
 
-AIDLC 신뢰성의 첫 번째 축인 **온톨로지 엔지니어링**은 DDD의 Ubiquitous Language를 AI가 기계적으로 이해하고 준수할 수 있는 **형식 스키마(typed world model)**로 격상합니다. 이는 AI 에이전트의 환각(hallucination)을 원천 차단하고 도메인 정확성을 보장하는 근본적 접근법입니다.
+**온톨로지 엔지니어링**은 업무 개념과 개념 간 관계, 지켜야 할 규칙을 기계가 읽을 수 있는 스키마로 정리하는 작업입니다. 팀이 함께 쓰는 업무 용어(DDD의 Ubiquitous Language)를 스키마로 옮겨, AI가 생성한 결과가 정해진 규칙을 따르는지 검증하는 데 사용합니다.
 
 ## 1. 온톨로지란 무엇인가
 
@@ -51,7 +51,7 @@ DDD의 Aggregate, Entity, Value Object, Domain Event는 온톨로지의 **기본
 
 ### 2.1 AI 에이전트 실패의 근본 원인
 
-AI 에이전트가 실패하는 근본 원인은 모델의 약함이나 프롬프트의 부정확함이 아니라, **아키텍처에 의미 구조(semantic structure)가 없기 때문**입니다.
+아래 실패 사례에는 업무 개념, 개념 간 관계, 규칙이 에이전트의 문맥 안에서 일관되게 정의되지 않았다는 공통점이 있습니다. 명시적인 스키마는 이 문제를 확인하고 줄이는 데 도움이 됩니다. 모델의 한계와 프롬프트 오류는 별도로 평가해야 합니다.
 
 **전형적인 실패 패턴:**
 

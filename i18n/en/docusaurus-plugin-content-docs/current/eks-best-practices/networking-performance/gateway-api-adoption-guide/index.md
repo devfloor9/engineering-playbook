@@ -5,7 +5,7 @@ created: "2026-02-14"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 70
+reading_time: 71
 tags:
   - eks
   - gateway-api
@@ -53,18 +53,18 @@ import {
 
 ## 1. Overview
 
-Kubernetes traffic management is converging on the Gateway API, driven by two forces.
+Two common reasons to evaluate Gateway API are replacing an existing Ingress controller and designing routing for LLM inference traffic.
 
-**First, the retirement of the NGINX Ingress Controller.** Its official EOL (End-of-Life) in March 2026 ends security patching, and the structural limits of the Ingress API itself (annotation-based extension, no role separation) have become clear. Migrating to the Gateway API is now mandatory rather than optional.
+**Replacing ingress-nginx.** The Kubernetes community's ingress-nginx project ended maintenance in March 2026. It no longer receives bug fixes or security updates, so teams using that controller should migrate to a Gateway API implementation or another supported Ingress controller. The Ingress API itself has not been retired. See the [official retirement notice](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/) for the scope of the change.
 
-**Second, the rise of tiered gateways for agentic workloads.** LLM inference and agent traffic have different requirements than general web/API traffic: token-based metering and rate limiting, model/provider routing, KV-cache-aware routing, prompt/response guardrails, and load balancing across inference pods. Rather than handling all of this in a single gateway, a 2-tier structure is becoming the standard — a **general Gateway API layer that receives North-South traffic** plus a dedicated **Inference Gateway layer for inference traffic**. The Gateway API and the [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) on top of it form the common foundation of this tiered model.
+**Handling LLM inference traffic.** In addition to general web/API routing, an application may need token-based metering and rate limits, model selection, cache-aware load balancing, and prompt/response checks. The two-tier design below separates a **general gateway receiving traffic from outside the cluster** from an **inference gateway distributing requests to inference pods**. Gateway API describes gateway and route configuration; the [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) extends it for inference targets and routing. Check the chosen implementation separately for metering and guardrail support.
 
 This guide covers Gateway API architecture, comparison of 6 major implementations (AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong), Cilium ENI mode deep-dive configuration, step-by-step migration execution strategy, and performance benchmark plans. The detailed design of the inference gateway layer for agentic workloads is covered in the [Agentic AI Platform — Inference Gateway reference](/docs/agentic-ai-platform/reference-architecture/inference-gateway).
 
 :::tip General Gateway vs Inference Gateway — which to read
 - Designing **North-South traffic, NGINX Ingress replacement, general API routing** → this document (general Gateway API layer)
 - Designing **LLM inference pod routing, KV-cache-aware distribution, model endpoint management** → [Inference Gateway reference](/docs/agentic-ai-platform/reference-architecture/inference-gateway)
-- Most agentic platforms use **both layers**. The Section 4 comparison here is the starting point for deciding which combination of solutions fills each layer.
+- If your design separates these roles, use the Section 4 comparison to select **the implementation for each layer**.
 :::
 
 ### 1.1 Target Audience
@@ -885,12 +885,12 @@ Select the solution that fits your organizational environment based on the table
 ### 6.3 Key Message
 
 :::info
-**Complete migration before the March 2026 NGINX Ingress EOL to eliminate security threats at the source.**
+**Maintenance for the community ingress-nginx controller ended in March 2026** ([retirement notice](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)). If you still use it, plan migration to a supported controller or Gateway API implementation. Validate routing behavior and policy enforcement as part of that migration.
 
-The Gateway API is not just an Ingress replacement — it is the future of cloud-native traffic management.
-- **Role separation**: clear separation of responsibility between platform and development teams
-- **Standardization**: portable configuration without vendor lock-in
-- **Extensibility**: scales to East-West, service mesh, and AI integration
+Gateway API provides a common resource model for traffic management:
+- **Role separation**: Platform and application teams manage different resources and permissions.
+- **Standardization**: Shared APIs improve configuration portability; controller-specific extensions still need review.
+- **Extensibility**: Related APIs and implementations address East-West traffic, service meshes, and AI integration.
 :::
 
 **Start now:**

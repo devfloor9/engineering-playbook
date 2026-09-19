@@ -3,9 +3,9 @@ title: EKS Pod 헬스체크 & 라이프사이클 관리
 description: Kubernetes Probe 설정 전략, Graceful Shutdown 패턴, Pod 라이프사이클 관리 모범 사례
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -26,12 +26,12 @@ import legacySections from '@site/src/data/pod-lifecycle-legacy-sections.json';
 
 ## 1. 개요
 
-Pod의 헬스체크와 라이프사이클 관리는 서비스 안정성과 가용성의 핵심입니다. 적절한 Probe 설정과 Graceful Shutdown 구현은 다음을 보장합니다:
+Pod의 헬스체크와 종료 처리는 서비스 가용성의 서로 다른 부분을 담당합니다.
 
-- **무중단 배포**: 롤링 업데이트 시 트래픽 유실 방지
-- **빠른 장애 감지**: 비정상 Pod 자동 격리 및 재시작
-- **리소스 최적화**: 느린 시작 앱의 조기 재시작 방지
-- **데이터 무결성**: 종료 시 진행 중인 요청 안전하게 완료
+- **롤링 업데이트**: Readiness 검사와 종료 처리의 연계는 요청 유실을 줄이는 데 도움이 됩니다. 결과는 애플리케이션의 동작과 트래픽 전환 시점에 따라 달라집니다.
+- **장애 감지**: Readiness 검사는 Pod에 트래픽을 보낼지 결정하고, Liveness 검사는 컨테이너 재시작을 유발할 수 있습니다.
+- **시작 보호**: Startup Probe는 시작이 느린 애플리케이션이 초기화를 마칠 때까지 Liveness 검사가 시작되지 않도록 합니다.
+- **처리 중인 요청**: 종료 핸들러는 설정한 종료 유예 시간 안에서 기존 요청을 마칠 수 있도록 처리합니다.
 
 본 문서는 Kubernetes Probe의 동작 원리부터 언어별 Graceful Shutdown 구현, Init Container 활용, 컨테이너 이미지 최적화까지 Pod 라이프사이클 전체를 다룹니다.
 

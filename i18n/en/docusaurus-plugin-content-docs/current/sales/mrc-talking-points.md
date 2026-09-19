@@ -3,9 +3,9 @@ title: MRC Talking Points - Modern Agentic Applications Day
 description: MRC (Marketing Representative for Customers) sales pitch guide for customer invitations to the 2026-04-09 Modern Agentic Applications Day.
 created: "2026-03-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 17
 tags:
   - sales
   - gtm
@@ -21,7 +21,7 @@ sidebar_label: MRC Talking Points
 
 ## 1. 30-Second Elevator Pitch (for phone)
 
-> AI agents are changing how enterprises work. But AI agents do not fall from the sky — they require robust cloud-native infrastructure as a foundation. **Serving LLMs with GPU Operator and vLLM on EKS and operating agents with Bedrock AgentCore and Hosted MCP** is the practical answer. At Modern Agentic Applications Day on April 9, see everything from cost optimization to AgentOps in a single day. **Limited to 200 attendees.**
+> An agent application needs a way to run or access models, call tools, and observe its behavior. Modern Agentic Applications Day on April 9 covers **LLM serving with GPU Operator and vLLM on EKS**, alongside **managed agent operation with Bedrock AgentCore and Hosted MCP**. The sessions address cost optimization and AgentOps across these approaches. **Limited to 200 attendees.**
 
 ---
 

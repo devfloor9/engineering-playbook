@@ -3,7 +3,7 @@ title: 관찰성 스택
 description: AIDLC Operations의 데이터 기반 — 3-Pillar 관찰성 + AI 분석 레이어 구축
 created: "2026-04-07"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -38,7 +38,7 @@ import { ObservabilityPillars, ArchitectureLayers, StackSelectionPatterns } from
 - **[온톨로지 엔지니어링](../methodology/ontology-engineering.md) Outer Loop**: 운영 데이터를 피드백하여 온톨로지 지속 개선
 
 :::tip AIDLC 신뢰성 듀얼 축
-관찰성 스택은 **AIDLC 신뢰성의 하네스(Harness)** 역할을 한다. 온톨로지가 "무엇이 옳은 행동인가"를 정의한다면, 관찰성은 "실제로 옳게 작동하는가"를 검증한다. 이 둘이 결합되어 신뢰성 듀얼 축(Ontology × Harness)을 형성한다.
+관측 스택은 **AIDLC 하네스**가 판단할 근거를 제공합니다. 온톨로지는 기대하는 업무 동작을 정의하고, 메트릭·로그·트레이스는 실행 중인 시스템이 그 동작을 따르는지 확인하는 데 쓰입니다. 하네스는 검사 결과를 바탕으로 작업을 계속할지, 멈출지, 검토를 요청할지 결정합니다.
 :::
 
 ### 1.2 3-Pillar 관찰성 + AI 분석 레이어

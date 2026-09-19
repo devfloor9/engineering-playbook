@@ -3,9 +3,9 @@ title: 30-Minute Demo Script
 description: 30-minute demo for LG H&H Marketing executive meeting — Top-5 (S1·S2·S3·S5·S7)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 12
 tags:
   - industry-solution
   - retail
@@ -35,7 +35,9 @@ sidebar_label: 99. Demo Storytelling
 
 ## 1. Opening (3 min)
 
-> "Today's demo is a PoC designed to solve the **department data silo and perspective gap** problem at LG H&H's Marketing Innovation Division. It is **not a concept but a working demonstration** — N=500~5,000 LG Members real data + 49.5K synthetic + **4 external signal types live** all functioning."
+> "This PoC demonstrates how LG H&H's Marketing Innovation Division could connect data across departments and view it for different tasks. The design specifies N=500~5,000 LG Members records, 49.5K synthetic members, and 4 external signal types. The real-data cohort is an assumption in the data-source specification."
+
+Before presenting results, identify which demo cohorts are available and which external feeds are live. Label simulated inputs and outputs in the demonstration.
 
 Four key messages:
 1. **Not a concept but a working demo** — chatbot · graph · simulation all functional

@@ -3,9 +3,9 @@ title: 기본 배포
 description: kgateway 설치, HTTPRoute 설정, Bifrost Gateway Mode 구성
 created: "2026-04-18"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 9
 tags:
   - kgateway
   - bifrost
@@ -673,7 +673,7 @@ curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
 
 ## 다음 단계
 
-기본 배포가 완료되었습니다. 다음 단계로 진행하세요:
+위 검증 결과를 바탕으로 다음 단계를 선택하세요. 배포 오류를 해결하거나, 고급 기능을 추가하거나, 모니터링 연동을 진행할 수 있습니다.
 
 1. **문제 해결**: 배포 중 오류가 발생했다면 [트러블슈팅 가이드](./troubleshooting-guide.md)를 참조하세요.
 2. **고급 기능**: 프로덕션 환경을 위한 [LLM Classifier, CloudFront/WAF, Semantic Caching](./advanced-features.md)을 구성하세요.

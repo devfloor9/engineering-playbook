@@ -3,7 +3,7 @@ title: Hybrid GPU Workloads and SR-IOV Networking
 description: A hands-on guide to using on-premises GPU nodes as the primary inference tier on EKS Hybrid Nodes, and resolving DGX H200 SR-IOV VF name inconsistency through driver compatibility, persistent naming, and systemd orchestration
 created: "2025-09-01"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -304,7 +304,7 @@ kubectl get nodes -o json | jq '.items[].status.allocatable' | grep dgx_h200_vfs
 
 Resolving SR-IOV VF naming inconsistency on DGX H200 systems running Amazon EKS Hybrid Nodes required a deep investigation into driver compatibility, systemd networking, and Kubernetes CNI interactions. The key insight was recognizing that seemingly unrelated symptoms (name changes, protocol fallback, PORT_DOWN state) all stemmed from an underlying driver-kernel incompatibility.
 
-The three-layer solution (driver fix, persistent naming, VF creation orchestration) has been validated as stable across multiple DGX H200 deployments. The journey was challenging, but the result is a robust, production-ready configuration for high-performance networking in hybrid cloud environments.
+The configuration combines three actions: correcting the driver, assigning VF names that persist across reboots, and controlling VF creation. After applying it, check that the names remain consistent after a reboot and Pod redeployment, then inspect PORT_DOWN status and GUID assignment with the commands above.
 
 ## References
 

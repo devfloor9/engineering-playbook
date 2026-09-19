@@ -3,9 +3,9 @@ title: ADR — Self-Improving Agent Loop Adoption Decision
 description: Architecture Decision Record documenting principles, scope, responsibilities, and rollback boundaries to be agreed upon before introducing the Self-Improving Agent Loop to production
 created: "2026-04-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 14
+reading_time: 12
 tags:
   - adr
   - self-improving
@@ -29,7 +29,7 @@ sidebar_position: 99
 
 In the Phase 3 documentation reorganization, two documents mapping Andrej Karpathy's autosearch discourse to enterprise environments were added. The design (`self-improving-agent-loop.md`) and implementation (`continuous-training/`) are in draft status, and **operational principle consensus** must precede internal review.
 
-While automated learning loops are technically appealing, in enterprise environments the risk of losses from reward hacking, data leakage, and governance gaps exceeding benefits is significant. This ADR serves as meeting material for agreeing on "what to automate and where to draw boundaries."
+Automated learning loops can improve models, but reward hacking, data leakage, and gaps in governance can outweigh those benefits. This ADR asks teams to agree on what the loop may automate and where human approval is required.
 
 ---
 

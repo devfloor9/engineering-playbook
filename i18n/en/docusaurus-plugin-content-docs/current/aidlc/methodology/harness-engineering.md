@@ -3,9 +3,9 @@ title: Harness Engineering
 description: The second axis of AIDLC reliability — Harness design that architecturally enforces AI execution safety
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 15
+reading_time: 16
 tags:
   - aidlc
   - harness
@@ -27,7 +27,7 @@ import { QualityGates } from '@site/src/components/AidlcTables';
 
 ## Overview
 
-**Harness Engineering** is the second axis of AIDLC's reliability dual axes, a structure that **architecturally validates and enforces** constraints defined by ontology. The key lesson of AI development in 2026 is:
+**Harness engineering** builds the checks and execution limits around agent work. It turns domain constraints from the ontology into validation rules and adds controls such as retry budgets, timeouts, output gates, and circuit breakers. The 2026 example below illustrates the engineering work involved:
 
 > When OpenAI Codex generated 1 million lines of code, human engineers wrote 0 lines. The engineer's role has shifted from **writing code to designing harnesses**.
 
@@ -101,7 +101,7 @@ A fintech startup's AI agent executed **847 API retries in a single loop**, resu
 
 :::
 
-**Lesson:** Most AI system failures stem not from models or prompts but from **absence of architectural design**.
+**Lesson:** The example illustrates why retries, execution time, outputs, and cost need explicit limits. These controls bound the consequences of a failed agent action while the underlying model, prompt, or integration problem is investigated.
 
 ---
 

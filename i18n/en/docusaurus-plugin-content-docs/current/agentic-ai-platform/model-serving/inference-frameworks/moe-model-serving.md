@@ -3,9 +3,9 @@ title: MoE Model Serving Concept Guide
 description: Architecture concepts, distributed deployment strategies, and performance optimization principles for Mixture of Experts models
 created: "2026-02-05"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 21
+reading_time: 26
 tags:
   - eks
   - moe
@@ -27,7 +27,7 @@ import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationSt
 
 ## Overview
 
-Mixture of Experts (MoE) models are an architecture that maximizes the efficiency of large language models. By activating only a subset of Experts from the total parameters, they achieve equivalent quality with less computation compared to Dense models.
+A Mixture of Experts (MoE) model contains multiple expert networks, and a router selects a subset to process each token. Computing only those experts can reduce work per token. Evaluate the resulting quality for the model and task rather than assuming it matches a dense model. Fewer active experts also do not remove the need to account for memory that holds the complete model weights.
 
 This document covers the core concepts of MoE architecture, per-model resource requirements, and distributed deployment strategies.
 

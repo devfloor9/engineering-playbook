@@ -3,9 +3,9 @@ title: AWS Single Architecture
 description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — a single architecture that delivers a working demo in 8 weeks
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 6
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> The first iteration's "3-option comparison" depended on a PPTX deck and was removed. This PoC uses a **single AWS-native stack** that delivers a working demo in 8 weeks.
+> This PoC uses a **single AWS-native stack** with an **8-week implementation target**. The architecture below connects the application, AI services, graph and search stores, and external-data ingestion pipeline.
 
 ---
 

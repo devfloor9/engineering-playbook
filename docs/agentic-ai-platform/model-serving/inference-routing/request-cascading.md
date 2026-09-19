@@ -3,7 +3,7 @@ title: Request Cascading — 지능형 모델 라우팅
 description: 요청 복잡도 기반 모델 자동 라우팅 — LLM Classifier·LiteLLM·vLLM Semantic Router 구현 접근 비교와 RouteLLM 연구 참조, 비용 절감 효과
 created: "2026-07-04"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -24,7 +24,7 @@ sidebar_label: Request Cascading
 
 ### 개념
 
-**Request Cascading**은 요청 복잡도를 자동 분석하여 적절한 모델로 라우팅하는 지능형 최적화 기법입니다. 간단한 질의는 저렴하고 빠른 모델로, 복잡한 reasoning은 강력한 모델로 자동 분배하여 비용과 지연을 동시에 개선합니다. IDE는 단일 엔드포인트만 사용하고, 모델 선택은 플랫폼 레벨에서 중앙 통제합니다.
+**Request Cascading**은 요청의 복잡도와 정해 둔 품질 기준에 따라 처리할 모델을 선택하는 방식입니다. 간단한 요청은 작은 모델로 보내고, 더 복잡한 추론이 필요한 요청은 성능이 높은 모델로 보내도록 구성합니다. 분류가 틀려 재시도가 늘면 비용이나 지연이 오히려 커질 수 있으므로, 요청별 품질과 전체 처리 비용을 함께 측정해야 합니다. IDE는 단일 엔드포인트를 사용하고, 모델 선택 규칙은 플랫폼에서 관리합니다.
 
 ### Cascading 패턴 3가지
 

@@ -3,9 +3,9 @@ title: EKS Debugging Guide
 description: Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments
 created: "2026-02-10"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 16
+reading_time: 17
 tags:
   - eks
   - kubernetes
@@ -28,7 +28,7 @@ import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, C
 
 Issues that occur during EKS operations span multiple layers including the control plane, nodes, network, workloads, storage, and observability. This document is a comprehensive debugging guide for SREs, DevOps engineers, and platform teams to **systematically diagnose and quickly resolve** these issues.
 
-All commands and examples are written to be immediately executable, and decision trees and flowcharts help enable rapid judgment.
+The commands provide diagnostic and remediation examples. Replace cluster, namespace, resource, and account placeholders for the environment under investigation, and distinguish inspection commands from commands that change resources. Use the decision trees to select the next check from the observed symptom.
 
 ### EKS Debugging Layers
 

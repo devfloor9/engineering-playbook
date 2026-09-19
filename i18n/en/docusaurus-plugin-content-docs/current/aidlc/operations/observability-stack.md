@@ -3,7 +3,7 @@ title: Observability Stack
 description: The data foundation of AIDLC Operations — building 3-Pillar observability + AI analysis layer
 created: "2026-04-07"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 28
 tags:
@@ -38,7 +38,7 @@ import { ObservabilityPillars, ArchitectureLayers, StackSelectionPatterns } from
 - **[Ontology Engineering](../methodology/ontology-engineering.md) Outer Loop**: Feeding operational data back for continuous ontology improvement
 
 :::tip AIDLC Reliability Dual Axis
-The observability stack serves as the **Harness of AIDLC reliability**. While ontology defines "what is the right behavior," observability validates "is it actually working correctly." Together they form the reliability dual axis (Ontology × Harness).
+The observability stack supplies evidence for the **AIDLC harness**. The ontology defines expected domain behavior; metrics, logs, and traces help check whether the running system behaves as expected. Harness controls use those checks to decide whether an action may continue, should stop, or needs review.
 :::
 
 ### 1.2 3-Pillar Observability + AI Analysis Layer

@@ -3,9 +3,9 @@ title: "Llama 4 FM Serving Benchmark: GPU vs AWS Custom Silicon"
 description: Benchmark comparing performance and cost efficiency of GPU instances (p5, p4d, g6e) and AWS custom silicon (Trainium2, Inferentia2) for vLLM-based Llama 4 model serving
 created: "2026-02-10"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 18
+reading_time: 24
 tags:
   - benchmark
   - ai
@@ -38,7 +38,9 @@ import MLRecommendationChart from '@site/src/components/MLRecommendationChart';
 
 A benchmark report comparing vLLM-based Llama 4 model serving performance across 5 scenarios in an AWS EKS environment.
 
-**One-line summary**: For Llama 4 Scout (109B MoE) inference, AWS custom silicon achieved **58-67% lower cost per token** ($0.28~$0.35/1M tokens vs $0.85) compared to NVIDIA GPUs, while p5/H100 delivers **the lowest TTFT (120ms)** and **highest throughput (4,200 tokens/sec)**, making it optimal for latency-sensitive workloads. Trainium2 provides 83% of H100 throughput at 41% of the cost, showing the **best performance-to-cost ratio**.
+**Figures presented in this report**: Across the 5 Llama 4 Scout (109B MoE) scenarios, AWS custom silicon is reported to cost **58-67% less per token** than the NVIDIA GPU baseline ($0.28~$0.35/1M tokens versus $0.85/1M tokens).
+
+The p5/H100 scenario lists **time to first token (TTFT) of 120ms** and **throughput of 4,200 tokens/sec**. Trainium2 lists 83% of H100 throughput at 41% of its cost. Check the measurement conditions and cost calculation behind each figure, then compare quality, latency, and cost for the intended workload. This comparison alone does not identify the best instance for every latency-sensitive workload.
 
 **5 Scenarios**:
 

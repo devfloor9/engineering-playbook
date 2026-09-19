@@ -3,9 +3,9 @@ title: Semantic Caching Strategy
 description: LLM Gateway-level semantic caching strategy and implementation options comparison (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
 created: "2026-04-17"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 32
+reading_time: 30
 tags:
   - semantic-caching
   - caching
@@ -213,7 +213,7 @@ For specific gateway integration patterns (kgateway, LiteLLM, Bifrost), configur
 
 ## 6. Observability (Langfuse Integration)
 
-Semantic Cache is a layer that **directly impacts users**, making it unoperational without observability. Collect the following with Langfuse or equivalent observability stack:
+A semantic cache returns a previous answer directly to the user. Monitor whether those reused answers are appropriate, as well as how often the cache is used. Collect the following data with Langfuse or an equivalent observability stack:
 
 ### Langfuse Trace Tags
 

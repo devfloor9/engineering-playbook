@@ -3,9 +3,9 @@ title: Ontology Engineering
 description: The first axis of AIDLC reliability — An ontology approach to prevent AI hallucination and ensure domain accuracy through a Typed World Model
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 28
+reading_time: 25
 tags:
   - aidlc
   - ontology
@@ -16,7 +16,7 @@ sidebar_label: Ontology Engineering
 
 > "Prompt engineering is ontology engineering" — 2026 AI Community Consensus
 
-**Ontology Engineering**, the first axis of AIDLC reliability, elevates DDD's Ubiquitous Language to a **formal schema (typed world model)** that AI can mechanically understand and comply with. This is a fundamental approach to block AI agent hallucination at the source and ensure domain accuracy.
+In this guide, **ontology engineering** expresses domain-driven design (DDD) terminology as a machine-readable schema of entities, relationships, and constraints. The schema gives agents a shared domain reference and gives validation code explicit rules to check. It can expose inconsistent or invalid outputs, but defining the schema alone does not ensure that generated output follows it.
 
 ## 1. What is Ontology
 
@@ -47,7 +47,7 @@ DDD's Aggregate, Entity, Value Object, Domain Event become the **basic building 
 
 ### 2.1 Root Cause of AI Agent Failures
 
-The root cause of AI agent failures is not weak models or inaccurate prompts, but **the absence of semantic structure in the architecture**.
+The failure patterns below share a domain-modeling problem: entities, relationships, and rules are not defined consistently in the agent's context. An explicit schema helps address that problem; model limitations and prompt errors still require separate evaluation.
 
 **Typical Failure Patterns:**
 

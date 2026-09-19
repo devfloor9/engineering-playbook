@@ -3,9 +3,9 @@ title: 8-Scenario Mapping
 description: Eight core scenarios for marketing innovation. Data mix (first-party + 4 external types) is specified for every scenario
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 10
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 03. Scenarios
 ---
 
-> The 8 core scenarios most directly tied to marketing innovation in this data-silo + external-signal fusion PoC. **Every scenario specifies a data mix combining first-party data with the 4 external types (social · weather · economy · competitor).**
+> These eight scenarios connect first-party data with external information where it helps the analysis. External sources cover social, weather, economic, and competitor data; each scenario specifies which sources it uses. **S7 and S8 do not use external data.**
 
 ---
 

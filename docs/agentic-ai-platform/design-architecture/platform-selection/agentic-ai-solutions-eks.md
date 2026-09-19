@@ -3,9 +3,9 @@ title: EKS 기반 Agentic AI 오픈 아키텍처
 description: Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드
 created: "2026-02-05"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 22
+reading_time: 21
 tags:
   - eks
   - aws
@@ -146,7 +146,7 @@ PCP 티어는 **Kubernetes 컨트롤 플레인 메트릭**을 기반으로 선�
 
 ### Amazon EKS와 Karpenter: Kubernetes의 장점 극대화
 
-**Amazon EKS와 Karpenter의 조합**은 Kubernetes의 장점을 극대화하여 완전 자동화된 최적의 인프라를 구현합니다. Karpenter는 AI 워크로드에 최적화된 노드 프로비저닝을 제공하며, 기존 Cluster Autoscaler 대비 빠른 스케일링과 세밀한 인스턴스 선택이 가능합니다.
+Amazon EKS에서 Karpenter는 배치할 노드가 없는 Pod의 자원 요청과 스케줄링 조건을 보고 노드를 프로비저닝합니다. 운영자는 NodePool의 허용 인스턴스·배치 조건과 NodeClass의 노드 구성을 정하고, GPU 워크로드에 필요한 드라이버와 device plugin을 확인합니다. Karpenter가 늘리는 것은 노드 용량이며, 애플리케이션의 복제본 수는 별도로 조정합니다. Cluster Autoscaler와 비교할 때는 같은 워크로드에서 노드 준비 시간, 인스턴스 선택 범위와 비용을 측정하세요.
 
 :::info Karpenter 상세 가이드
 Karpenter v1.10+ (GA since v1.0, 2024-08), NodePool 설정, GPU 인스턴스 비교, 비용 최적화 전략은 [GPU 리소스 관리](../../model-serving/gpu-infrastructure/gpu-resource-management.md)를 참조하세요.

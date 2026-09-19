@@ -3,9 +3,9 @@ title: Disaggregated Serving + LWS Multi-Node
 description: Prefill/Decode separation architecture and NIXL common KV transfer engine, LeaderWorkerSet-based 700B+ large MoE model multi-node deployment guide
 created: "2026-04-03"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 9
+reading_time: 8
 tags:
   - inference
   - optimization
@@ -34,7 +34,7 @@ LLM inference consists of two fundamentally different computational stages.
 | **Prefill** | Process entire input prompt | Compute-bound | High compute capability (TP=4) |
 | **Decode** | Sequential token-by-token generation | Memory-bound | High memory bandwidth (TP=2) |
 
-Processing both stages in the same Pod causes Prefill's compute load to worsen Decode's latency. Separation enables independent scaling of each stage, maximizing GPU utilization.
+When prefill for a long input overlaps another request's decode in the same Pod, processing the input can delay token generation. Separating the stages lets you adjust Pod counts for prefill and decode independently. The stages must then transfer KV-cache data between them, so compare transfer cost and token-generation latency alongside GPU utilization.
 
 ### Separation Architecture
 

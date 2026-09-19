@@ -3,7 +3,7 @@ title: NVIDIA Dynamo Inference Benchmark
 description: Benchmark comparing Aggregated vs Disaggregated LLM serving performance using NVIDIA Dynamo — Running AIPerf 4 modes in an EKS environment
 created: "2026-03-20"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 12
 tags:
@@ -29,7 +29,7 @@ category: benchmark
 
 ## Overview
 
-A benchmark comparing the performance of **Aggregated** and **Disaggregated** modes in NVIDIA Dynamo-based LLM serving. By running 4 measurement modes of the AIPerf benchmark tool in an EKS environment, this quantitatively validates what performance differences the KV Router + NIXL Transfer of Disaggregated Serving make in real workloads.
+This benchmark plan compares **Aggregated** serving, where one worker handles prefill and decode, with **Disaggregated** serving, where separate workers handle the two stages. It defines 4 AIPerf measurement modes for EKS to evaluate the effects of the KV Router and NIXL Transfer. Results will be reported after the planned runs.
 
 :::info Deployment Guide
 For EKS deployment of this benchmark, see the [NVIDIA GPU Stack Guide](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack).

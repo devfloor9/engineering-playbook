@@ -3,9 +3,9 @@ title: LLM FinOps — Chargeback and Cost Allocation
 description: LLM platform FinOps methodology — token metering, showback/chargeback strategies, agentic cost models, budget policies, and gateway integration
 created: 2026-08-11
 last_update:
-  date: 2026-08-11
+  date: 2026-09-19
   author: devfloor9
-reading_time: 21
+reading_time: 26
 tags:
   - finops
   - chargeback
@@ -112,7 +112,7 @@ Where:
 - **Total input tokens: 9,500 (19x single turn)**
 
 :::warning Cost Runaway Risk
-In multi-turn agent loops, context accumulates with each turn, causing token consumption to increase **super-linearly**. When loop depth exceeds 10, single session costs can exceed $1 (Claude Opus 4.8, assumption).
+When an agent resends previous conversation and tool results in the next call, the same content appears in the input tokens of several calls. As the conversation grows, both the number of calls and the input size per call can increase. To calculate cost, sum each call's input/output tokens and account for cache usage. Loop count alone does not determine a session's cost.
 :::
 
 ### 2.3 Cost Mitigation Strategies

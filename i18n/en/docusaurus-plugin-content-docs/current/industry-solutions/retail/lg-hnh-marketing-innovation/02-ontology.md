@@ -3,9 +3,9 @@ title: Knowledge Graph 25 Classes
 description: 3-BU integrated KG with 25 classes — Customer / Product / Transaction / Channel / Operations · External
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 9
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-> A 25-class KG based on Neptune (openCypher). Estimated ~500K edges. Reflects **3-BU (Beauty + HDB + Refreshment) integration** plus 4 types of external signals.
+> This design uses a Neptune knowledge graph (KG), queried with openCypher, to represent 25 data types and their relationships. It assumes approximately 500,000 relationships, called edges. The graph connects data from the three business units—Beauty, HDB, and Refreshment—with four categories of external information.
 
 ---
 

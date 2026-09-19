@@ -3,9 +3,9 @@ title: Model Serving & Inference Infrastructure
 description: A guide to the GPU infrastructure, inference framework, and inference optimization layers, with a single map of the end-to-end LLM inference request path and per-layer tuning levers — inference gateway, prefill/decode disaggregation, KV cache-aware routing, LMCache, and cache-hit strategy.
 created: "2026-03-06"
 last_update:
-  date: "2026-07-15"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 22
 tags:
   - model-serving
   - gpu
@@ -30,9 +30,9 @@ import { TieredGatewayDiagram } from '@site/src/components/GatewayApiTables';
 
 ## Overview
 
-This document is the entry point for the **Model Serving & Inference Infrastructure** category, which covers deploying and serving LLMs on GPUs and accelerators. It explains **how LLM inference operates at the infrastructure level** across the entire request path and organizes what can be tuned at each layer into a single map. The intended audience is platform engineers who design and operate inference platforms on EKS.
+This guide helps platform engineers design and operate LLM inference on EKS GPUs and accelerators. Follow the request path to understand six areas you can tune: GPU node placement, serving-engine memory management, distributed topology, in-cluster routing, gateway policies, and caching.
 
-Inference optimization is achieved not by a single technology but by **a combination of multiple layers**. From GPU node placement to serving engine memory management, distributed topology, in-cluster routing, gateway policies, and cache layers — each stage has its own tuning levers. This document serves as a map that **organizes and connects those levers layer by layer**, with detailed content for each topic linked to dedicated deep-dive documents. The body focuses on concepts and relationships, while implementation and deployment procedures are covered in the linked documents.
+The sections below explain how these areas work together and link to detailed implementation and deployment guides.
 
 ## Category Structure
 

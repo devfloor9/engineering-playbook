@@ -3,9 +3,9 @@ title: AIDLC 10 Principles and Execution Model
 description: Core philosophy of AIDLC and the Intent → Unit → Bolt execution model
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 24
+reading_time: 29
 tags:
   - aidlc
   - principles
@@ -22,11 +22,9 @@ import { AidlcPrinciples, AidlcArtifacts, AidlcPhaseMapping, AidlcPhaseActivitie
 
 ## 1. Why AIDLC
 
-Traditional Software Development Life Cycle (SDLC) was designed around human-centric long iteration cycles (weekly/monthly cadence). Rituals like daily standups, sprint reviews, and retrospectives are optimized for these long cycles. The emergence of AI disrupts this premise.
+This guide contrasts weekly/monthly development iterations with AIDLC's proposed hour/day iterations. In the AIDLC workflow, AI proposes requirements, task decompositions, code, and tests, and people validate the resulting artifacts at defined checkpoints.
 
-AI performs requirements analysis, task decomposition, code generation, and testing at **hour/day cadence**. Retrofitting AI into existing SDLC limits this potential — like building faster carriages in the automobile era.
-
-**AIDLC (AI-Driven Development Lifecycle)** is a methodology proposed by AWS Labs that reconstructs AI from **First Principles** and integrates it as a core collaborator in the development lifecycle.
+**AIDLC (AI-Driven Development Lifecycle)** is a methodology proposed by AWS Labs for organizing that collaboration. Its focus is the development workflow: how work is divided, which artifacts carry context, and where review is required.
 
 ### 1.1 SDLC vs AIDLC Comparison
 
@@ -43,9 +41,9 @@ Sequential handoffs                   Continuous flow + Loss Function validation
 
 ### 1.2 Core Shift: Reversing the Conversation Direction
 
-In traditional development, humans command computers ("implement this feature"). In AIDLC, **AI proposes plans first** and humans validate them. This is not a simple role swap, but a structure that **optimally combines AI's exploration capability and human judgment**.
+In AIDLC, a person states the intended outcome and the AI proposes a plan before implementation. The reviewer checks the proposed scope, architecture, dependencies, and risks against the project's business priorities.
 
-The Google Maps analogy is appropriate. The driver sets the destination (Intent), AI proposes a route, and the driver validates and adjusts the route as needed. AI analyzes real-time traffic conditions (codebase, technical debt, dependencies) to find the optimal route, while the driver applies business context (priorities, risk tolerance) to make final decisions.
+For example, an agent may propose authentication, a user API, and profile storage as separate Units. A reviewer can remove an unnecessary interface or change the storage choice before code is generated.
 
 :::info Reference Source
 Core concepts of AIDLC are defined in AWS Labs' [AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/). This document organizes the philosophy and execution model of that methodology as a conceptual guide.
@@ -97,7 +95,7 @@ These are not choices but **standard workflows for AI code generation**.
 
 Traditional SDLC handoffs (Planning → Design → Development → Testing → Deployment) cause knowledge loss and delays at each stage. AIDLC pursues **Continuous Flow**.
 
-Human validation at each stage acts as a **Loss Function**. Just as Loss Functions in machine learning measure model error and guide learning, human validation in AIDLC catches errors in AI-generated artifacts early to prevent downstream propagation.
+This guide uses **Loss Function** as an analogy for human review. At each checkpoint, the reviewer compares an AI-generated artifact with requirements and acceptance criteria, identifies errors, and requests corrections before downstream work uses it. The term here describes feedback on an artifact, not a model-training operation.
 
 ```
 Intent validation (human) → Unit decomposition validation (human) → Design validation (human) → Code validation (human)
@@ -105,7 +103,7 @@ Intent validation (human) → Unit decomposition validation (human) → Design v
   Loss 1              Loss 2                 Loss 3               Loss 4
 ```
 
-The smaller the Loss, the more we proceed to the next stage; if Loss is large, AI regenerates. This is an **adaptive workflow** that executes only necessary stages based on context.
+Proceed when the artifact meets the checkpoint's acceptance criteria; otherwise, revise it and review it again. The workflow adapts the stages and review depth to the project context.
 
 ---
 

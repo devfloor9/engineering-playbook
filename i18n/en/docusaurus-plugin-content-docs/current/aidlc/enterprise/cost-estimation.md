@@ -3,9 +3,9 @@ title: Cost Effectiveness Framework
 description: Quantifying AIDLC Cost Effectiveness — RFP Estimation Model, Ontology/Harness ROI, Open Weight TCO Comparison
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 38
+reading_time: 39
 tags:
   - aidlc
   - enterprise
@@ -16,7 +16,7 @@ sidebar_label: Cost Effectiveness Framework
 
 import { ProductivityMetrics, DetailedMetrics } from '@site/src/components/AidlcTables';
 
-AIDLC adoption is not a technical transition but **cost structure redesign**. However, lack of actual data creates difficulties in RFP estimation, ROI justification, and budget securing. This document provides a practical framework for quantifying AIDLC cost effectiveness and reflecting it in project proposals.
+Adopting AIDLC changes both the development workflow and its costs. Estimates need to account for AI tools, ontology design, harness engineering, training, and output verification alongside any reduction in implementation effort. Without measured effort and quality data, those changes are difficult to justify in a request for proposal (RFP), a return-on-investment (ROI) calculation, or a budget request. This chapter explains how to build that estimate.
 
 ## 1. RFP Cost Estimation Dilemma
 

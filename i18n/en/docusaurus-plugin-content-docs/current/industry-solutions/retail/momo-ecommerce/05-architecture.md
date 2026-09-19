@@ -3,9 +3,9 @@ title: AWS Single Architecture (Momo)
 description: Bedrock + Neptune + OpenSearch + Kinesis (Live) + TimeStream (Delivery SLA)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 1
+reading_time: 2
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> Reuses the LG H&H backbone with Momo specializations: **Kinesis Data Streams** (live-broadcast events), **TimeStream** (delivery SLA time series), multilingual support, ~800K edges.
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, AI-service integration, Neptune, and OpenSearch. Momo adds **Kinesis Data Streams** for live-broadcast events, **TimeStream** for delivery SLA time series, and multilingual support. The graph is sized at approximately **800K edges**.
 
 ## 1. Architecture
 

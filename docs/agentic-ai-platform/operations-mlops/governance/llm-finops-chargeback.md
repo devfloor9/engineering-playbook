@@ -3,9 +3,9 @@ title: LLM FinOps — Chargeback 및 비용 배부
 description: LLM 플랫폼 FinOps 방법론 — 토큰 메터링, showback/chargeback 전략, 에이전틱 비용 모델, 예산 정책 및 게이트웨이 통합
 created: 2026-08-11
 last_update:
-  date: 2026-08-11
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 14
 tags:
   - finops
   - chargeback
@@ -112,7 +112,7 @@ C_session = Σ (C_input * T_in + C_output * T_out) * (1 - R_cache)
 - **총 입력 토큰: 9,500 (단일 턴 대비 19배)**
 
 :::warning 비용 폭주 리스크
-멀티턴 에이전트 루프에서 컨텍스트는 매 턴마다 누적되어 토큰 소비가 **초선형(super-linear)**으로 증가합니다. 루프 깊이가 10회를 넘으면 단일 세션 비용이 $1 이상으로 증가할 수 있습니다 (Claude Opus 4.8 기준, 가정).
+에이전트가 이전 대화와 도구 결과를 다음 호출에 다시 보내면, 같은 내용이 여러 호출의 입력 토큰에 포함됩니다. 대화가 길어질수록 호출 횟수뿐 아니라 호출당 입력 크기도 커져 총 토큰 사용량이 빠르게 늘 수 있습니다. 비용을 계산할 때는 각 호출의 입력·출력 토큰과 캐시 적용 여부를 합산하세요. 루프 횟수만으로 세션 비용을 정할 수는 없습니다.
 :::
 
 ### 2.3 비용 완화 전략

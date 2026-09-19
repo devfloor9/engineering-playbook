@@ -3,9 +3,9 @@ title: VPC CNI vs Cilium CNI Performance Comparison Benchmark
 description: A benchmark report comparing network and application performance of VPC CNI and Cilium CNI across 5 scenarios (kube-proxy, kube-proxy-less, ENI, tuning) in an EKS environment
 created: "2026-02-09"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 38
+reading_time: 59
 tags:
   - benchmark
   - cni
@@ -313,11 +313,11 @@ The ENA driver on m6i.xlarge does not support `bpf_link` functionality, causing 
 
 ## Key Conclusion: Performance Difference vs Feature Difference
 
-The most important conclusion from this benchmark is that **there is virtually no practical performance difference between VPC CNI and Cilium CNI**.
+The reported TCP throughput is similar across scenarios, ranging from 12.34 to 12.41 Gbps, while latency and UDP packet loss differ by scenario. Interpret each metric under its test conditions: Scenario E applies 8 tuning options together, so this comparison does not isolate any one option's contribution or establish the effect on an application's end-to-end response time.
 
 | Item | Result | Interpretation |
 |------|------|------|
-| TCP Throughput | Same across all scenarios (12.4 Gbps) | Saturated at NIC bandwidth, CNI-independent |
+| TCP Throughput | 12.34–12.41 Gbps (approximately 12.4 Gbps) | Similar throughput across scenarios in this test configuration |
 | HTTP p99 @QPS=1000 | 8.75~10.92ms (varies by scenario) | Within measurement error |
 | UDP Packet Loss | VPC CNI 20% vs Cilium Tuned 0.03% | Bandwidth Manager feature difference (extreme iperf3 conditions) |
 | Service Scaling | iptables +26us/connection @1,000 | Measurable but negligible in practice |

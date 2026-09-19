@@ -3,9 +3,9 @@ title: Kubernetes 이벤트 보존과 AI Agent 조회 아키텍처
 description: EKS Kubernetes 이벤트의 1시간 TTL 제약과 export 파이프라인 설계, EKS·CloudWatch MCP 서버 기반 AI Agent 조회 아키텍처를 다룹니다.
 created: "2026-07-14"
 last_update:
-  date: "2026-07-14"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 14
+reading_time: 12
 tags:
   - eks
   - kubernetes
@@ -21,7 +21,7 @@ sidebar_label: K8s 이벤트 보존과 AI 조회
 
 ## 개요
 
-장애 발생 시 AI Agent가 Kubernetes 이벤트를 자동 분석하는 시스템을 구축하려면, 이벤트 데이터의 구조적 제약을 먼저 이해해야 합니다. Kubernetes 이벤트는 클러스터 내에서 기본 1시간만 보존되는 휘발성 데이터이므로, "이벤트를 조회한다"는 목표는 반드시 외부 저장소로의 export 파이프라인을 전제로 합니다. 이 문서는 EKS 환경에서 이벤트를 수집·저장·조회하는 3계층 아키텍처와, EKS MCP 서버·CloudWatch MCP 서버를 활용해 AI Agent에 이벤트 데이터를 노출하는 방법을 다룹니다.
+장애를 조사하는 AI 에이전트는 클러스터의 보존 기간보다 오래된 이벤트가 필요할 수 있습니다. Kubernetes 이벤트의 기본 보존 기간은 1시간이므로, 과거 장애 이력을 분석하려면 외부 저장소로 내보내야 합니다. 이 가이드는 수집·저장·조회를 3계층으로 나누고, EKS MCP 서버와 CloudWatch MCP 서버로 최근 이벤트와 보관한 이벤트를 에이전트에 제공하는 방법을 설명합니다.
 
 ## 배경: Kubernetes 이벤트의 구조적 제약
 
@@ -215,7 +215,7 @@ fields @timestamp
 
 ## 결론
 
-Kubernetes 이벤트는 etcd TTL(기본 1시간)과 best-effort 특성 때문에 원본 그대로는 조회 대상이 될 수 없습니다. CloudWatch는 유일한 선택지가 아니라 durable 저장소 후보 중 하나이며, 저장소 선택은 조회 패턴(실시간·검색·아카이브)이 기준이 됩니다. AI Agent 연동은 EKS MCP 서버(현재 상태)와 CloudWatch MCP 서버(축적 데이터)의 병행 구성이 표준이고, `get_k8s_events`가 TTL 제약을 우회하지 못한다는 점이 아키텍처 설계의 핵심 전제입니다.
+Kubernetes 이벤트는 클러스터에 남아 있는 동안 조회할 수 있습니다. 다만 기본 1시간의 TTL과 best-effort 전달 특성 때문에 장기 장애 이력으로 쓰기에는 한계가 있습니다. 실시간 조회, 검색, 아카이브 요구에 맞춰 저장소를 선택하며, CloudWatch는 그 후보 중 하나입니다. 이 문서의 구성에서는 EKS MCP 서버가 현재 상태를, CloudWatch MCP 서버가 축적한 데이터를 제공합니다. `get_k8s_events`로 이미 만료된 이벤트를 복구할 수는 없습니다.
 
 ## 참고 자료
 

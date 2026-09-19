@@ -3,9 +3,9 @@ title: EKS-based Agentic AI Open Architecture
 description: Guide to building Agentic AI platform using Amazon EKS and open-source ecosystem
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 33
+reading_time: 36
 tags:
   - eks
   - aws
@@ -146,7 +146,7 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 
 ### Amazon EKS and Karpenter: Maximizing Kubernetes Advantages
 
-**The combination of Amazon EKS and Karpenter** maximizes Kubernetes advantages to implement fully automated optimal infrastructure. Karpenter provides node provisioning optimized for AI workloads, enabling faster scaling and finer-grained instance selection compared to existing Cluster Autoscaler.
+In Amazon EKS, Karpenter provisions nodes for Pods that cannot be scheduled, using their resource requests and scheduling constraints. Operators define the allowed instances and placement conditions in a NodePool, the node configuration in a NodeClass, and the drivers and device plugins needed by GPU workloads. Karpenter adds node capacity; application replica counts are managed separately. Compare node readiness time, instance choices, and cost with Cluster Autoscaler using the same workload.
 
 :::info Karpenter Detailed Guide
 For Karpenter v1.2+ GA features, NodePool configuration, GPU instance comparison, and cost optimization strategies, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md).

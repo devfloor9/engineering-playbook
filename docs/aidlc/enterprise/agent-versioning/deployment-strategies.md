@@ -3,9 +3,9 @@ title: 배포 전략 — Shadow·Canary·A/B·Blue-Green
 description: 점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식
 created: "2026-04-18"
 last_update:
-  date: "2026-07-16"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 6
 tags:
   - deployment
   - canary
@@ -41,8 +41,8 @@ sequenceDiagram
 ```
 
 **언제 사용**:
-- 신모델의 latency, 에러율, 출력 품질을 **리스크 없이** 검증하고 싶을 때
-- 비용 부담 가능(요청당 2배 비용)
+- 신모델의 응답을 사용자에게 보여주지 않으면서, 운영 요청으로 지연·오류율·출력 품질을 비교할 때
+- 추가 비용을 감당할 수 있을 때(이 비교에서는 요청당 비용을 2배로 가정)
 
 **구현 예시(Python, LiteLLM)**: LiteLLM은 native shadow 기능이 없으므로 직접 구현:
 
@@ -66,7 +66,7 @@ async def shadow_call(user_request):
 ```
 
 **장점**:
-- 사용자 경험에 영향 없음
+- 사용자에게는 기존 모델의 응답만 반환합니다. 다만 위 예제는 두 호출이 모두 끝나기를 기다리므로 shadow 호출도 사용자 응답을 늦출 수 있습니다.
 - 실제 트래픽 패턴으로 테스트
 
 **단점**:

@@ -3,9 +3,9 @@ title: Monitoring Strategy for LLM Serving Optimization
 description: Connect cache efficiency, KV capacity, latency, and routing across seven observability layers, with explicit delivery, evaluation coverage, and quality gates.
 created: "2026-09-03"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 48
+reading_time: 49
 tags:
   - vllm
   - prometheus
@@ -21,7 +21,9 @@ category: genai-aiml
 
 ## 1. Overview {#overview}
 
-This guide connects cache, capacity, latency, and routing metrics to narrow the investigation of vLLM inference pools. HTTP success, completed delivery, output contract compliance, and content accuracy are separate outcomes. The intended readers are platform teams operating inference engines, gateways, metrics, and traces. Infrastructure metrics do not replace quality scores, and simultaneous changes do not establish a cause.
+Use cache, capacity, latency, and routing metrics to investigate a vLLM inference pool. Check four outcomes separately: whether the HTTP request succeeded, whether the full response reached the client, whether it met the required output format and constraints, and whether its content was accurate.
+
+This guide is for teams operating inference engines, gateways, metrics, and traces. Infrastructure metrics help locate problems, but content quality requires separate evaluation. Two measurements can change at the same time without one causing the other.
 
 | Document | Scope | Relationship |
 |---|---|---|
@@ -52,7 +54,9 @@ Preemption returns a running request to a waiting state for later resumption. It
 | L5 Output proxies | Is an output contract violation possible? | `finished_reason`, output length, retries, loop steps | Short output and `length` do not always mean failure |
 | L6 Quality evaluation | Did the output satisfy the task? | Contract checks, reference evaluation, human or judge scores, coverage | Depends on rubric, sample, and evaluator |
 
-TTFT means Time to First Token, ITL means Inter-Token Latency, and TPOT means Time per Output Token. An inter-token histogram and a histogram of mean TPOT per request have different weighting. Do not mix them under an identical dashboard label.
+TTFT (Time to First Token) is the time from a request to its first output token. ITL (Inter-Token Latency) is the gap between consecutive output tokens. TPOT (Time per Output Token) is the mean generation time per output token for one request.
+
+An ITL histogram records individual token gaps, so longer responses contribute more observations. A histogram of per-request mean TPOT records one mean for each request. These histograms have different weighting even for the same request set and should not be treated as the same metric.
 
 The arrows below show an analysis sequence, not causal relationships between layers.
 

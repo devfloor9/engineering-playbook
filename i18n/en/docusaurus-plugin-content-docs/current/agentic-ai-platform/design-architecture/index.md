@@ -3,9 +3,9 @@ title: Design & Architecture
 description: Architecture design, technical challenges, and AWS Native and EKS-based implementation approaches for the Agentic AI Platform
 created: "2026-03-06"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 4
+reading_time: 3
 tags:
   - architecture
   - design
@@ -19,7 +19,7 @@ sidebar_position: 0
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-This section guides you through understanding the Agentic AI Platform architecture, identifying its technical challenges, and addressing them progressively through AWS Native managed services and EKS-based open architecture. After understanding **what** the platform is, you'll identify **why** it's challenging, then compare **how** to build it through two approaches. A selection guide comparing the pros and cons of each approach helps you choose the optimal path for your situation.
+Start with the platform architecture and its technical challenges, then compare two implementation approaches: AWS Native managed services and an EKS-based open architecture. Use the selection guide to weigh their trade-offs for your workload.
 
 <DocCardGrid columns={3}>
   <DocCard

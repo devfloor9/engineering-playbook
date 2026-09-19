@@ -3,9 +3,9 @@ title: Semantic Caching 전략
 description: LLM Gateway 레벨 의미 기반 캐싱 전략과 구현 옵션 비교 (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
 created: "2026-04-17"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 16
 tags:
   - semantic-caching
   - caching
@@ -213,7 +213,7 @@ Semantic Cache는 **게이트웨이 앞단** 에 위치하여 LLM 호출 자체�
 
 ## 6. 관측성 (Langfuse 연동)
 
-Semantic Cache는 **사용자에게 직접 영향** 을 주는 레이어이므로 관측성 없이는 운영이 불가능합니다. Langfuse 또는 동급 관측 스택으로 다음을 반드시 수집하세요.
+Semantic Cache는 이전에 생성한 답변을 사용자에게 바로 반환합니다. 따라서 캐시 사용 빈도뿐 아니라 재사용한 답변이 현재 질문에도 적절한지 확인해야 합니다. Langfuse 또는 동급 관측 스택으로 다음 데이터를 수집하세요.
 
 ### Langfuse Trace 태그
 

@@ -3,7 +3,7 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -918,7 +918,7 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 
 ## 다음 단계
 
-고급 기능 구성이 완료되었습니다. 다음 단계로 진행하세요:
+설정한 기능이 의도대로 동작하는지 확인한 뒤, 아래 가이드에서 오류 해결, 모니터링 연동, 운영 절차를 이어서 진행하세요.
 
 1. **문제 해결**: 배포 중 오류가 발생했다면 [트러블슈팅 가이드](./troubleshooting-guide.md)를 참조하세요.
 2. **모니터링 강화**: [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md)를 참조하여 OTel 연동과 대시보드를 완성하세요.

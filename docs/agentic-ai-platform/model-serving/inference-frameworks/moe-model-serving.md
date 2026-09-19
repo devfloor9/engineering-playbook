@@ -3,9 +3,9 @@ title: MoE 모델 서빙 개념 가이드
 description: Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리
 created: "2026-02-05"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 14
 tags:
   - eks
   - moe
@@ -27,7 +27,7 @@ import { RoutingMechanisms, MoeVsDense, GpuMemoryRequirements, ParallelizationSt
 
 ## 개요
 
-Mixture of Experts(MoE) 모델은 대규모 언어 모델의 효율성을 극대화하는 아키텍처입니다. 전체 파라미터 중 일부 Expert만 활성화하여 Dense 모델 대비 적은 연산으로 동등한 품질을 달성합니다.
+Mixture of Experts(MoE) 모델은 여러 Expert 네트워크 가운데 일부를 Router가 골라 토큰을 처리하는 구조입니다. 전체 Expert를 매번 계산하지 않으므로 토큰당 연산량을 줄일 수 있습니다. 다만 적은 연산으로 어느 정도의 품질을 얻는지는 모델과 과제에 따라 평가해야 합니다. 활성 Expert 수가 적어도 전체 가중치를 저장할 메모리는 별도로 계산해야 합니다.
 
 이 문서에서는 MoE 아키텍처의 핵심 개념, 모델별 리소스 요구사항, 분산 배포 전략을 다룹니다.
 

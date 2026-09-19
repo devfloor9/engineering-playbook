@@ -3,9 +3,9 @@ title: 5-Department Personas
 description: 5 personas — Brand Marketer / Insights / D&A · MarTech / CRM · LG Members / MD · Channel Sales
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 12
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 01. Personas
 ---
 
-> Five departments use the same data through their own KPIs, languages, and decision units. The **department persona switcher** changes the sidebar order, card emphasis, and chatbot tone all at once.
+> Five departments use the same data for different work goals and performance measures (KPIs). Selecting a department in the **persona switcher** changes the sidebar order, card emphasis, and chatbot tone to match that department's tasks.
 
 ---
 

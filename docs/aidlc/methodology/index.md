@@ -3,9 +3,9 @@ title: AIDLC 방법론
 description: AIDLC의 핵심 방법론 — 10대 원칙, 온톨로지, 하네스 엔지니어링, DDD 통합, Common Rules, Adaptive Execution
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 3
+reading_time: 2
 tags:
   - aidlc
   - methodology
@@ -19,7 +19,7 @@ sidebar_label: 방법론
 본 섹션은 [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) (v0.1.7, 2026-04-02) 를 기반으로 DDD·Ontology·Harness 확장을 덧붙였습니다. 공식 5대 원칙·11개 Common Rules·7 stage Adaptive Execution 은 그대로 준수하되, engineering-playbook 은 **엔터프라이즈 신뢰성** 을 위한 온톨로지·하네스 축을 독자 확장했습니다.
 :::
 
-AIDLC 방법론은 AI 주도 개발의 **이론적 기반**을 제공합니다. 전통적 SDLC가 사람 중심의 장기 반복 주기를 전제로 설계되었다면, AIDLC는 AI를 첫 원칙(First Principles)에서 재구성하여 개발 라이프사이클의 핵심 협력자로 통합합니다.
+이 트랙은 개발 과정에서 사람과 AI의 협업을 구성하는 방법을 설명합니다. Intent → Unit → Bolt 실행 모델을 먼저 소개하고, 업무 스키마, 검증 제어, 도메인 주도 설계가 이 작업 흐름을 어떻게 뒷받침하는지 다룹니다.
 
 **AIDLC 정의 & SDLC 비교**: [10대 원칙과 실행 모델](./principles-and-model.md#11-sdlc-vs-aidlc-비교) 참조
 

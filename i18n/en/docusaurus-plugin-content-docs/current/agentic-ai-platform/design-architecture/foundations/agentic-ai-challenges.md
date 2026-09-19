@@ -3,7 +3,7 @@ title: Technical Challenges of Agentic AI Workloads
 description: 5 key challenges faced when operating Agentic AI workloads
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 32
 tags:
@@ -21,15 +21,15 @@ import { ChallengeSummary } from '@site/src/components/AgenticChallengesTables';
 
 ## Introduction
 
-When building and operating an Agentic AI platform, platform engineers and architects face technical challenges that are fundamentally different from traditional web applications. This document analyzes the **5 key challenges**.
+An agent may call a model several times and use search or external APIs while handling one user request. Understanding its latency and cost therefore requires following the whole request, as well as each individual call. This guide covers model compute resources, request routing, observability and cost, safe tool execution, and model updates.
 
 :::info Prerequisite
 Before reading this document, review the overall structure of the Agentic AI Platform in [Platform Architecture](./agentic-platform-architecture.md).
 :::
 
-## Why a Single LLM Is Not Enough
+## Choosing a Model for the Task {#why-a-single-llm-is-not-enough}
 
-In the Agentic AI era, the first question organizations face is *"Can't we just use one large, expensive LLM?"* In practice, relying entirely on a single massive LLM in enterprise environments leads to the following practical limitations.
+Using one model for every request keeps deployment and operations simpler. First measure whether that model meets your quality, latency, and cost targets. If short classification tasks and complex reasoning tasks have different requirements, compare assigning them to different models. The following criteria help make that decision.
 
 ### 4 Limitations of a Single LLM in Enterprise Practice
 
@@ -40,13 +40,13 @@ In the Agentic AI era, the first question organizations face is *"Can't we just 
 | **Information Accuracy** | LLM hallucination is a structural characteristic, and it is critical in tasks requiring accuracy such as billing calculations and terms verification. Transformer architecture has inherent limitations in complex arithmetic and logical operations. | **Tool Delegation** — Arithmetic is delegated to rule engines, fact verification to Knowledge Graphs. LLMs focus only on natural language understanding |
 | **Governance · Security** | Risks of sensitive data (PII/PHI) leaking to external LLM APIs, audit trails for autonomous agent actions, team-level access control and budget management are all required. | **NeMo Guardrails** (I/O filtering) + **LangGraph HITL** (human approval gates) + **Langfuse** (audit trails) |
 
-### Infrastructure Optimization: Direction of Superintelligence Research Companies and K8s Ecosystem
+### Operating Functions That Models Can Share {#infrastructure-optimization-direction-of-superintelligence-research-companies-and-k8s-ecosystem}
 
-To efficiently operate such a multi-model ecosystem, **infrastructure platformization** is essential. This is not merely a cost reduction issue — it is an area that leading AI companies universally invest in as a core priority.
+Operating several models requires allocating resources, choosing a destination for each request, and tracking usage by team. Implementing those functions separately for every model repeats the same operating work. A shared platform provides resource allocation, routing, and observability that multiple models can use.
 
-**Meta** invests heavily in optimizing its own AI infrastructure alongside superintelligence (ASI) research. Grand Teton (GPU server architecture), MTIA (custom inference chip), and PyTorch ecosystem inference optimization (torch.compile, ExecuTorch) all stem from the recognition that **infrastructure efficiency is as important as model performance**.
+For example, a cluster running both a model with large GPU memory requirements and a smaller model must allocate resources according to their memory and placement needs. Choosing a server with spare request capacity is also a different decision from choosing the node on which to place a model.
 
-The **CNCF Kubernetes** ecosystem is also rapidly expanding capabilities for AI workloads:
+The following Kubernetes features and projects address these operating responsibilities.
 
 | K8s AI Feature | Version | Role | Significance for Multi-Model Ecosystem |
 |---------------|---------|------|---------------------------------------|
@@ -56,11 +56,11 @@ The **CNCF Kubernetes** ecosystem is also rapidly expanding capabilities for AI 
 | **LeaderWorkerSet** | 1.31 | Distributed inference/training workload pattern | K8s-native management of Tensor Parallel distributed inference for 70B+ models |
 | **KAI Scheduler** | 2025 | GPU-aware Pod scheduling | Optimal placement considering GPU topology (NVLink, NVSwitch) |
 
-As such, Kubernetes is evolving beyond a simple container orchestrator to become **the foundational infrastructure for AI workloads**, and is the most mature platform for operating multi-model ecosystems.
+These features solve different problems. Identify whether you need resource allocation, workload queueing, or inference request routing, then check that the cluster and serving engine support the chosen configuration.
 
-### Conclusion: Multi-Model Ecosystem and Infrastructure Platformization
+### An Example of Dividing Work Between Models {#conclusion-multi-model-ecosystem-and-infrastructure-platformization}
 
-Organizations must move beyond single LLM dependency to build a **heterogeneous multi-model ecosystem**, supported by a robust **infrastructure platform**.
+The following example combines a model for complex reasoning with smaller models for repetitive tasks. Arithmetic and search can be delegated to external tools. Decide whether to use this arrangement by comparing response quality, end-to-end latency, and cost on the same request set.
 
 ```
 Strategic planning · Complex reasoning    Routine tasks · Domain-specific
@@ -80,13 +80,13 @@ Strategic planning · Complex reasoning    Routine tasks · Domain-specific
          └─────────────────────────┘
 ```
 
-Below, we analyze the 5 key challenges that the platform must address to **efficiently operate this ecosystem in a Kubernetes-native environment**.
+Once the roles of models and tools are defined, review the five areas needed to run and operate them.
 
 ---
 
 ## 5 Key Challenges of the Agentic AI Platform
 
-Agentic AI systems leveraging Frontier Models (state-of-the-art large language models) have **fundamentally different infrastructure requirements** compared to traditional web applications.
+The diagram connects the five areas. Consider how a choice in one area affects the others: changing a model can change GPU memory requirements, latency, call cost, and evaluation criteria.
 
 ```mermaid
 flowchart TD
@@ -118,8 +118,8 @@ flowchart TD
 
 <ChallengeSummary />
 
-:::warning Limitations of Traditional Infrastructure Approaches
-Traditional VM-based infrastructure or manual management approaches cannot effectively handle the **dynamic and unpredictable workload patterns** of Agentic AI. The high cost of GPU resources and complex distributed system requirements make **automated infrastructure management** essential.
+:::warning Define the conditions and limits for automation
+Frequent changes in traffic or model configuration make manual resource adjustments harder. When introducing automatic scaling, define resource requests, capacity limits, budgets, and failure handling together. Automation alone does not determine operating cost or reliability.
 :::
 
 ---
@@ -176,7 +176,7 @@ flowchart LR
 
 ## Challenge 3: LLMOps Observability and Cost Governance
 
-LLM-based systems have **fundamentally different observability requirements** compared to traditional applications. Traditional observability tells you **"what happened"** (status codes, latency, throughput), but an agent can **return `200 OK` while giving a wrong answer**. You must measure not "did it run" but **"did it do it correctly"** — which requires token-level cost tracking, multi-step Agent Trace, and output quality evaluation.
+An agent can return `200 OK` with an incorrect answer. In addition to status codes, latency, and throughput, evaluate the answer and trace the model and tool calls that produced it. Recording token usage for each call helps locate the steps responsible for higher latency or cost.
 
 **Why it's difficult:**
 
@@ -187,26 +187,26 @@ LLM-based systems have **fundamentally different observability requirements** co
 - **Prompt quality drift**: Quality that was fine locally slowly degrades in production, and usually users notice first
 - **Per-team budgets**: Need per-team cost allocation and limit management across shared AI infrastructure
 
-### Token Economics — Cost Governance in the Token-Shortage Era
+### Calculating Token Cost per Request {#token-economics--cost-governance-in-the-token-shortage-era}
 
-With GPU supply constraints and surging inference demand, **tokens are becoming an increasingly scarce and expensive resource**. Agents repeat LLM calls even for simple work (tool calls, formatting, retries), so putting them into real traffic without visibility causes **per-request cost to explode**. From a token-economics standpoint, observability is not mere monitoring but the **core control that turns cost into an asset**.
+When one user request leads to several model calls, add up the cost of those calls. Retries and resending conversation history can also increase input tokens. Connect call records with a request ID and record input/output tokens, model pricing, and cache usage. For self-hosted models, measure GPU usage time and throughput alongside token counts to calculate cost.
 
 - **Per-request cost attribution**: Track per-call input/output tokens and model pricing to identify which prompts, tools, and user cohorts dominate cost
 - **Model right-sizing**: Use trace data to judge "is an SLM sufficient for this task" — grounding a 2-tier routing decision (simple calls to self-hosted SLM, complex reasoning to LLM)
 - **Quality-vs-cost optimization**: Verify with data whether a more expensive model or longer prompt actually produces better results (evaluation-based, not gut feel)
 - **Budget guardrails**: Enforce per-model and per-team token budgets and limits at the gateway
 
-> Observability **turns a black-box model into an auditable, optimizable asset**. Only when every prompt, response, cost, and latency is traceable can agents be run at a sustainable unit cost in the token-shortage era.
+> Compare the total cost of completing one user request at the required quality. When collecting call records, also define which sensitive inputs and outputs may be stored and how long to retain them.
 
 ### The Observe → Evaluate → Improve Operating Loop
 
-The key is not a dashboard but a **loop structure**. The deploy → observe → evaluate → improve cycle is applied to agent development.
+Use observed results to guide the next change. Turn failed executions into evaluation cases, then run the same cases after changing a prompt or model to check whether the result improved.
 
 - **Observe**: Complete per-call I/O and lineage, per-step latency and token cost, user/session-level journey tracking
 - **Evaluate**: Build datasets from production traces and score them with LLM-as-judge and human annotation. Combine **offline evaluation** (regression prevention) and **online evaluation** (drift/quality-decay detection)
 - **Improve**: Prompt version management and A/B experiments, with the eval harness wired into CI/CD to **block regression deployments**
 
-This loop becomes progressively automated — online evaluation scores and flags traces and forms a failure queue, while humans define the rules/guardrails and intervene **only at publish time** with approve/reject.
+Evaluation runs and failure collection can be automated. The responsible team defines the criteria, interprets results, and specifies where training, deployment, or exceptions require approval. An improved score alone should not trigger an automatic production deployment.
 
 | Observability Area | Traditional Applications | LLM Applications |
 |-------------------|------------------------|-----------------|
@@ -217,7 +217,7 @@ This loop becomes progressively automated — online evaluation scores and flags
 | Budget management | Resource-based | Per-model/per-team token budgets |
 | Improvement method | Manual hotfix | Observe→Evaluate→Improve loop (evaluation-based) |
 
-**Tool ecosystem**: LLM-specific observability tools that meet these requirements include **Langfuse** (OSS, OpenTelemetry-based, with built-in LLM-as-judge, prompt management, and dataset evaluation), **LangSmith**, and **Helicone**. Traditional APMs (e.g. Datadog) are weak on token/quality evaluation and costly per LLM call. For a detailed tool comparison and hybrid architecture, see [LLMOps Observability Tool Comparison](../../operations-mlops/observability/llmops-observability.md).
+**Tool selection**: Before comparing Langfuse, LangSmith, Helicone, and integration with an existing APM, identify the call records, prompt management, and evaluation features you need. Compare supported features and collection costs for the intended configuration. See [LLMOps Observability Tool Comparison](../../operations-mlops/observability/llmops-observability.md) for the detailed comparison and integration options.
 
 ---
 
@@ -314,7 +314,7 @@ These two approaches are **complementary** and can be combined based on workload
 :::tip Which approach to choose?
 - **Quick start, focus on agent logic**: AWS Native Platform
 - **Open weight models + hybrid + cost optimization**: EKS-based open architecture
-- **Realistic optimum**: Combine both approaches (start with AWS Native, expand to EKS as needed)
+- **Evaluate a mixed deployment**: When combining managed services and EKS, also compare authentication, data transfer, and failure-handling responsibilities between the environments
 :::
 
 ---

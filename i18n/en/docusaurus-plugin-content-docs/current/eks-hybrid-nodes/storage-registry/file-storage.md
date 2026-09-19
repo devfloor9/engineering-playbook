@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes Shared File Storage Solutions
 description: A comprehensive guide to implementing shared file storage in EKS Hybrid Nodes environments, covering AWS managed services, enterprise storage integration, and Amazon Linux 2023 alternative approaches.
 created: "2025-09-15"
 last_update:
-  date: "2026-08-25"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 24
 tags:
   - eks
   - hybrid-node
@@ -303,7 +303,7 @@ Installing packages via direct source compilation on Amazon Linux 2023 is techni
 
 ## Conclusion and Recommendations
 
-Configuring shared file storage in EKS Hybrid Nodes environments represents a transition from traditional clustering approaches to cloud-native ones. The removal of the pacemaker and corosync packages from Amazon Linux 2023 signals this shift, and at the same time offers an opportunity to move toward more stable and easier-to-manage solutions.
+The removal of pacemaker and corosync from Amazon Linux 2023 affects NFS designs that depend on those packages. For EKS Hybrid Nodes, compare the alternatives in this guide—AWS-managed file services, existing enterprise storage through CSI drivers, and a separately managed NFS service—against the workload's availability, connectivity, and operating requirements.
 
 **Key recommendations:**
 

@@ -3,9 +3,9 @@ title: ROSA 데모 설치 가이드
 description: ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, IAM 역할 구성, 오토스케일링 설정 및 관리자 접근 구성 가이드
 created: "2025-02-05"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 2
 tags:
   - rosa
   - openshift
@@ -27,7 +27,7 @@ category: rosa
 
 ### 생성 명령어
 
-아래 명령어를 사용하여 ROSA 클러스터를 생성합니다:
+다음은 이 데모에서 클러스터를 생성한 명령과 출력 기록입니다. `I:`로 시작하는 두 줄은 CLI 출력입니다. 재현할 때는 그다음의 `rosa create cluster` 명령을 사용하고, IAM Role ARN, OIDC 구성 ID와 나머지 값을 자신의 환경에 맞춰 지정하세요.
 
 ```bash
 I: Creating cluster 'rosa-demo-icn'

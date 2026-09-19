@@ -3,9 +3,9 @@ title: AI Gateway Multi-Tenancy Strategy
 description: LLM Gateway-level multi-tenancy strategy — LiteLLM virtual key hierarchical model vs Kong Consumer policy comparison, budget enforcement, 3-tier tenant isolation (gateway, data, observability)
 created: "2026-08-11"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 21
+reading_time: 24
 tags:
   - litellm
   - kong
@@ -16,7 +16,7 @@ tags:
 sidebar_label: AI Gateway Multi-Tenancy
 ---
 
-In enterprise LLM platforms, multi-tenancy is a core architecture that implements isolation and budget control per organization, team, and user. While sharing a single LLM infrastructure, it must ensure **cost accountability separation**, **data isolation**, and **policy differentiation**. This document covers two primary approaches for implementing multi-tenancy at the LLM Gateway level (LiteLLM / Kong) and the 3-tier isolation model.
+Multi-tenancy lets organizations, teams, and users share LLM infrastructure while keeping their data, policies, and costs separate. At the gateway, this means attributing usage to the right tenant and applying that tenant’s budget and access rules. This guide compares LiteLLM and Kong and then explains the three layers of tenant isolation.
 
 :::info Document Location
 - **This Document**: Gateway-level tenancy hierarchical model and isolation strategy
@@ -148,7 +148,7 @@ Since the LLM must generate a response to know the token count, token costs are 
 ## 4. Selection Criteria: LiteLLM vs Kong (Either/Or) {#4-selection-criteria-litellm-vs-kong}
 
 :::danger Kong + LiteLLM Combined Architecture Prohibited
-These two solutions are **either/or choices**. Combined architectures like "Kong in front, LiteLLM in back" have no validated references and are **absolutely prohibited from documentation**. Select one and configure as a single Gateway.
+This guide evaluates LiteLLM and Kong as alternatives for a single gateway. It does not provide a validated reference for combining them, so the selection criteria below compare one gateway at a time.
 :::
 
 ### Selection Decision Tree

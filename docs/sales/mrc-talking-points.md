@@ -3,7 +3,7 @@ title: MRC 토킹포인트 - Modern Agentic Applications Day
 description: 2026.4.9 Modern Agentic Applications Day 고객 초대를 위한 MRC(Marketing Representative for Customers) 세일즈 피치 가이드
 created: "2026-03-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -21,7 +21,7 @@ sidebar_label: MRC 토킹포인트
 
 ## 1. 30초 엘리베이터 피치 (전화용)
 
-> AI 에이전트가 엔터프라이즈의 일하는 방식을 바꾸고 있습니다. 하지만 AI 에이전트는 하늘에서 뚝 떨어지지 않습니다 — 견고한 클라우드 네이티브 인프라가 기반이어야 합니다. **EKS 위에서 GPU Operator, vLLM으로 LLM을 서빙하고, Bedrock AgentCore와 Hosted MCP로 에이전트를 운영하는 것**이 현실적인 답입니다. 4월 9일 Modern Agentic Applications Day에서 비용 최적화부터 AgentOps까지 한 번에 알아보세요. **200명 한정**입니다.
+> AI 에이전트 운영에는 대규모 언어 모델(LLM)을 실행하는 인프라와 에이전트·외부 도구를 연결하는 환경이 필요합니다. **EKS에서 GPU Operator와 vLLM으로 모델을 실행하는 구성**, **Bedrock AgentCore와 Hosted MCP로 에이전트를 운영하는 구성**을 살펴봅니다. 4월 9일 Modern Agentic Applications Day에서 비용 최적화부터 AgentOps(에이전트 운영)까지 알아보세요. **200명 한정**입니다.
 
 ---
 

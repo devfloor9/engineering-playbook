@@ -3,9 +3,9 @@ title: "AWS Native Agentic AI Platform: 매니지드 서비스 기반 Agent 중�
 description: Amazon Bedrock, Strands Agents SDK, AgentCore를 활용하여 인프라 운영 부담을 줄이고 Agent 개발에 집중하는 플랫폼 접근
 created: "2026-03-18"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 17
 tags:
   - agentcore
   - bedrock
@@ -23,7 +23,7 @@ import { EKSMCPFeatures, KagentVsAgentCore, MultiAgentPatterns, MCPServerEcosyst
 
 ## 개요
 
-AWS 매니지드 서비스를 활용하면 **인프라 운영이 아닌 Agent의 비즈니스 로직에 집중**할 수 있습니다. GPU 관리, 스케일링, 가용성, 보안을 AWS가 처리하고, 개발팀은 Agent가 해결할 문제에만 역량을 투입합니다.
+AWS 관리형 서비스를 사용하면 팀이 직접 운영해야 하는 인프라의 범위를 줄일 수 있습니다. 먼저 각 서비스가 맡는 GPU 관리, 확장, 가용성, 보안 기능의 범위를 확인합니다. 개발팀은 에이전트가 해결할 문제와 모델·도구의 연결 방식, 접근 권한, 데이터 처리 정책, 응답 품질 기준을 정하고 검증합니다.
 
 AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
 
@@ -50,7 +50,7 @@ AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
 | 모델 공급망 관리 | Bedrock Model Evaluation + Prompt Management |
 
 :::tip AWS Native의 핵심 가치
-GPU 인프라 관리, 스케일링, 가용성, 보안을 AWS가 처리하므로 팀은 Agent 비즈니스 로직에만 집중할 수 있습니다. 더 세밀한 제어가 필요한 경우 [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)와 조합할 수 있습니다.
+관리형 서비스가 맡는 운영 범위와 팀이 맡을 권한·데이터·애플리케이션 검증을 구분하세요. Strands 같은 SDK를 직접 호스팅한다면 실행 환경의 운영 책임도 남습니다. 책임 범위는 [Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/security.html)과 [AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security.html)의 보안 문서에서 확인할 수 있습니다. 더 세밀한 제어가 필요한 구성은 [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md)와 함께 비교하세요.
 :::
 
 ---

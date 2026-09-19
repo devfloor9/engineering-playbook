@@ -3,9 +3,9 @@ title: S4. Persona Matching + Clustering
 description: Auto-classified lifestyle personas + RFM × Category affinity KMeans integrated
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 4
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: S4. Persona & Cluster
 ---
 
-> Unify persona matching and RFM clustering into a single screen. **Strengthened by combining social personas (Instagram · Olive Young).**
+> This screen supports two analyses. **Persona matching** scores members against predefined lifestyle profiles; **clustering** groups members by similar features. The clustering inputs include **RFM—recency, frequency, and monetary value of purchases**—along with category, channel, and social activity. Instagram and Olive Young keywords provide context for the generated cluster labels.
 
 ## 1. URL Path
 - `/personas`

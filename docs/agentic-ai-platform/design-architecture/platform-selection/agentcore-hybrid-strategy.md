@@ -3,9 +3,9 @@ title: AgentCore 하이브리드 전략
 description: Bedrock AgentCore 매니지드 서비스와 EKS 기반 self-hosted 에이전트를 결합한 하이브리드 전략 의사결정·패턴 카탈로그
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 17
 tags:
   - agentcore
   - bedrock
@@ -86,7 +86,7 @@ flowchart TD
 
 ### 데이터 중력(Data Gravity)이란?
 
-Runtime VPC 연결을 사용하면 지정 subnet·security group을 통해 VPC 리소스에 접근할 수 있습니다. 기본 public 네트워크 모드에서 임의의 private endpoint가 자동으로 접근 가능해지지 않습니다.
+데이터 중력(Data Gravity)은 데이터의 위치가 애플리케이션을 어디에서 실행할지에 영향을 준다는 뜻입니다. 이 구성에서는 AgentCore Runtime이 VPC 내부 데이터에 어떻게 접근할지가 핵심입니다. Runtime VPC 연결을 사용하면 지정한 subnet과 security group을 통해 VPC 리소스에 접근할 수 있습니다. 기본 public 네트워크 모드만으로 임의의 private endpoint에 접근할 수 있는 것은 아닙니다.
 
 ### 역방향 호출 패턴
 
@@ -128,7 +128,9 @@ AgentCore Gateway는 도구를 MCP 인터페이스로 연결합니다. 일반 in
 
 Langfuse는 관측 저장소이며 AgentCore Memory와 자동 양방향 세션 복제를 제공하지 않습니다. S3에 memory.json을 쓰는 것만으로 AgentCore Memory에 import되지 않습니다. 실제 Memory API와 명시적인 adapter가 필요합니다.
 
-하나의 canonical conversation/event log에 event_id·tenant·session owner·sequence·schema version을 기록합니다. Memory와 Langfuse는 목적별 projection으로 다루고 retry/deduplication, 순서, 지연, 충돌·삭제 전파를 정의합니다. Langfuse trace를 권한 검사 없이 사용자 대화 상태로 읽지 않습니다.
+대화와 이벤트의 기준 기록은 하나의 원본 로그(canonical conversation/event log)에 둡니다. 이 로그에는 event_id, tenant, session owner, sequence, schema version을 기록합니다. Memory와 Langfuse에는 각 용도에 필요한 데이터를 원본 로그에서 만들어 저장합니다. 이렇게 원본에서 파생한 데이터를 projection이라고 합니다.
+
+각 projection을 갱신할 때는 재시도와 중복 제거, 이벤트 순서, 반영 지연, 충돌 처리, 삭제 전파 규칙을 정해야 합니다. Langfuse trace를 사용자 대화 상태로 읽을 때도 권한 검사를 거쳐야 합니다.
 
 ### 패턴 (d): Cost-arbitrage (고빈도=EKS, 저빈도 복잡=AgentCore)
 

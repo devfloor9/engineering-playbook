@@ -3,7 +3,7 @@ title: AIDLC Adoption Scenarios and Validation Plans
 description: Illustrative financial, manufacturing, public-sector, and fintech scenarios for planning AIDLC adoption and harness validation
 created: "2026-04-07"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 33
 tags:
@@ -245,7 +245,7 @@ Strategy:
 
 1. **Domain Expert Resistance to Ontology Participation**
    - Problem: "We run factories, not define IT terminology"
-   - Solution: Repositioned ontology as "digital twin backbone," emphasized business value
+   - Solution: Explained the work as recording workplace terminology and operating rules, then showed how those definitions support production, quality, and maintenance tasks
    - Result: Domain experts took ownership of ontology evolution
 
 2. **Real-time Processing vs AI Inference Latency**

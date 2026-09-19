@@ -3,7 +3,7 @@ title: AWS 단일 아키텍처 (AMWAY)
 description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — ABO Tree·구독·다국어 특화
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 3
 tags:
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> LG H&H와 동일 골격 + AMWAY 특화: ABO Tree (Neptune 깊이 쿼리), 정기구독 (state machine), 글로벌 다국어, 직접판매 규제 가드
+> [LG생활건강 아키텍처](../lg-hnh-marketing-innovation/05-architecture.md)의 Next.js 화면, ECS Fargate의 FastAPI 백엔드, Bedrock·AgentCore 연동, Neptune 그래프 저장소, OpenSearch 검색 구성을 재사용합니다. AMWAY에는 ABO 계층의 깊이 조회, 정기구독 상태 관리, 다국어 지원, 직접판매 정책 검사를 추가합니다.
 
 ---
 

@@ -3,9 +3,9 @@ title: 모니터링 & Observability 구성 가이드
 description: Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드
 created: "2026-04-06"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 10
 tags:
   - monitoring
   - langfuse
@@ -108,7 +108,7 @@ aws eks create-pod-identity-association \
 ```
 
 :::tip Pod Identity vs IRSA
-Pod Identity는 OIDC Provider 설정 없이 한 줄 명령으로 완료됩니다. EKS 1.33+ (현재 표준 지원 버전) 클러스터에서는 Pod Identity를 권장합니다.
+위 명령은 앞 단계에서 준비한 IAM Role과 클러스터·namespace·ServiceAccount 사이의 연결을 등록합니다. Pod Identity는 IRSA용 OIDC Provider 설정을 사용하지 않지만, IAM Role의 신뢰 정책과 권한 정책은 준비해야 합니다. 실제 Pod가 자격 증명을 받으려면 노드의 Pod Identity 지원, EKS Auth 접근, 애플리케이션의 지원 SDK와 기본 자격 증명 체인도 확인해야 합니다([설정 조건](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)). 이 문서의 EKS 1.33+는 예시 환경이며, 적용할 클러스터의 지원 조건은 별도로 확인합니다.
 :::
 
 ### 2.4 Prometheus Helm values 핵심 설정

@@ -3,9 +3,9 @@ title: Cross-Cluster Object Replication (HA) 아키텍처 가이드
 description: EKS 멀티 클러스터 환경에서 오브젝트 복제를 통한 고가용성 아키텍처 패턴과 의사결정 가이드
 created: "2026-03-24"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 10
 tags:
   - eks
   - multi-cluster
@@ -24,7 +24,7 @@ category: infrastructure
 
 ## 1. 개요
 
-프로덕션 환경에서 단일 EKS 클러스터에 의존하면, 클러스터 장애 시 전체 서비스가 중단됩니다. **Cross-Cluster Object Replication**은 Kubernetes 오브젝트(ConfigMap, Secret, RBAC, CRD, NetworkPolicy 등)를 여러 클러스터에 일관되게 복제하여 고가용성을 확보하는 전략입니다.
+한 EKS 클러스터에 의존하는 서비스는 그 클러스터에 장애가 나면 사용할 수 없게 될 수 있습니다. **Cross-Cluster Object Replication**은 ConfigMap, Secret, RBAC, CRD, NetworkPolicy 같은 Kubernetes 오브젝트를 여러 클러스터에 일관되게 복제해, 다른 클러스터에도 필요한 설정을 준비하는 방법입니다. 서비스 복구에는 데이터 복제, 트래픽 전환, 애플리케이션 복구도 필요하므로 오브젝트 복제만으로 가용성이 확보되지는 않습니다.
 
 ### 현재 상황
 

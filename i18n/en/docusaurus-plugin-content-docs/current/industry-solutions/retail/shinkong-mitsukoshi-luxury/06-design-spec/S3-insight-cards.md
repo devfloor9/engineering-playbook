@@ -3,9 +3,9 @@ title: S3. Category / BU Insight Cards (Mitsukoshi)
 description: Automated reports combining store, floor, and brand GMV with FX, tourism, and competitor data
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -42,5 +42,5 @@ sidebar_label: S3. Insight Cards
 
 ## 4. Demo Scenarios
 1. "Monthly store GMV" → commentary from 5 personas
-2. "FX vs duty-free GMV" → R² 0.74 (weak yen shifts Japanese to Southeast Asian visitors ↑)
+2. "FX vs duty-free GMV" → example R² of 0.74. Display the association, then investigate the hypothesis that a weak yen coincides with fewer Japanese visitors and more Southeast Asian visitors; the R² value alone does not establish that explanation.
 3. Card → chatbot (S2) natural transition

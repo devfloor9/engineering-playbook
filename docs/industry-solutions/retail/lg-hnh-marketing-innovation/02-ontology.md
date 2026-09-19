@@ -3,9 +3,9 @@ title: Knowledge Graph 25 클래스
 description: 3 BU 통합 KG 25 클래스 — 회원 / 상품 / 거래 / 채널 / 운영·외부
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 7
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-> Neptune (openCypher) 기반 25 클래스 KG. 추정 ~500K edges. **3 BU(Beauty + HDB + Refreshment) 통합** + 외부 4종 시그널 반영.
+> Neptune(openCypher) 기반 지식 그래프(KG) 설계입니다. 데이터를 25개 유형(클래스)으로 나누며, 각 데이터 항목을 잇는 관계(edge)는 약 50만 개로 추정합니다. **3개 사업 부문(BU: Beauty·HDB·Refreshment)**의 데이터와 외부 4종 시그널을 함께 다룹니다.
 
 ---
 

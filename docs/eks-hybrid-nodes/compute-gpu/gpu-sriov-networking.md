@@ -3,7 +3,7 @@ title: 하이브리드 GPU 워크로드와 SR-IOV 네트워킹
 description: EKS Hybrid Nodes에서 온프렘 GPU 노드를 1차 추론 계층으로 활용하고, DGX H200 SR-IOV VF 이름 불일치 문제를 드라이버 호환성·영구 명명·systemd 오케스트레이션으로 해결하는 실전 가이드
 created: "2025-09-01"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 9
 tags:
@@ -304,7 +304,7 @@ kubectl get nodes -o json | jq '.items[].status.allocatable' | grep dgx_h200_vfs
 
 Amazon EKS Hybrid Nodes를 실행하는 DGX H200 시스템에서 SR-IOV VF 명명 불일치를 해결하려면 드라이버 호환성, systemd 네트워킹, Kubernetes CNI 상호 작용에 대한 깊은 조사가 필요했습니다. 핵심 인사이트는 겉보기에 관련 없어 보이는 증상(명명 변경, 프로토콜 폴백, PORT_DOWN 상태)이 모두 근본적인 드라이버-커널 비호환성에서 비롯되었다는 것을 인식하는 것이었습니다.
 
-3계층 솔루션(드라이버 수정, 영구 명명 구현, VF 생성 오케스트레이션)은 여러 DGX H200 배포에서 안정적으로 검증되었습니다. 여정은 어려웠지만, 결과는 하이브리드 클라우드 환경에서 고성능 네트워킹을 위한 견고한 프로덕션 준비 구성입니다.
+이 문서의 대응은 드라이버 수정, 재부팅 후에도 유지되는 VF 이름 설정, VF 생성 과정 제어로 나뉩니다. 구성을 적용한 뒤에는 재부팅과 Pod 재배포 후에도 이름이 유지되는지 확인하고, PORT_DOWN 상태와 GUID 할당 결과를 함께 점검합니다.
 
 ## 참고 자료
 

@@ -3,9 +3,9 @@ title: Automated Deployment and Management Pipeline Architecture for Open-Weight
 description: An architecture that automates open-weight model onboarding through a seven-stage pipeline, from HuggingFace leaderboard scanning and benchmark reproduction to instance performance profiling, deployment guide generation for multiple targets, and global Spot capacity acquisition, with human involvement at approval gates
 created: "2026-07-28"
 last_update:
-  date: "2026-07-28"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 30
+reading_time: 39
 tags:
   - mlops
   - argo-workflows
@@ -30,7 +30,7 @@ sidebar_position: 4
 
 ## 1. Purpose and Conclusions (Executive Summary)
 
-Open-weight model release cycles have shortened to weeks. Manually downloading weights, experimenting with serving configurations, and writing deployment manifests for every new model can no longer keep pace. This document proposes a seven-stage automation pipeline in which **agents execute the work and humans intervene only at approval gates**, covering model detection, validation, deployment, documentation, and capacity acquisition. Argo Events + Argo Workflows on EKS provide orchestration, with established open-source and AWS-native tools mapped to validation, profiling, and capacity acquisition.
+Adopting a new open-weight model involves recurring work: downloading weights, validating serving settings, preparing deployment manifests and documentation, and acquiring GPU capacity. This guide proposes a **seven-stage automation pipeline** that connects those tasks with Argo Events and Argo Workflows on EKS. It assigns open-source and AWS tools to the stages. In the normal path, people approve onboarding, validation results, and production release at three gates. Validation failures and exceptions can require additional specialist intervention.
 
 **Key conclusions:**
 
@@ -334,7 +334,9 @@ The principle that agents validate and humans approve is enforced through three 
 
 ## 7. Conclusions (Summary)
 
-Open-weight model onboarding can be automated through a seven-stage pipeline that uses a model profile stored in Git as its SSOT. Agents perform detection, validation, profiling, and documentation; humans approve through PR reviews at three gates. Separating quality reproduction (±5%) from performance profiling and starting capacity acquisition before validation are central to pipeline reliability. Treat GPU ICE, reproduction failures, and OOM as part of normal operation, and design around isolation, recording, and continuation.
+When adopting this seven-stage pipeline, first check whether reviewers can follow the results through the model profile stored in Git. The profile should connect this guide's ±5% quality-reproduction criterion with performance measurements, required GPU capacity, failure and retry records, and approvals.
+
+At each of the three approval gates, reviewers check that the required evidence is available. Record and handle insufficient GPU capacity (ICE), reproduction failures, and out-of-memory (OOM) errors separately. Continue to the next stage only after the required capacity and validation checks have completed; recording a failure is not evidence that validation passed.
 
 ## References
 

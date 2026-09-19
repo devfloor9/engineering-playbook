@@ -3,9 +3,9 @@ title: S5. Omnichannel Campaign ROAS (AMWAY)
 description: Bayesian attribution across in-house store, ABO direct sale, catalog, and SNS channels
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -31,10 +31,10 @@ sidebar_label: S5. Campaign ROAS
 | **Search trends** | Multilingual search trends |
 
 ## 4. Processing Pipeline
-1. Extract channel · country priors from Snowflake
-2. 1,000 MCMC samples (PyMC) → posterior
-3. ROAS distribution for the channel mix
-4. Attribution (last-touch / linear / time-decay)
+1. Use historical channel and country data from Snowflake to specify prior assumptions for the campaign model.
+2. Use PyMC to draw 1,000 samples with Markov chain Monte Carlo (MCMC), approximating the posterior distribution after incorporating the data.
+3. Use the sampled model outcomes to estimate a distribution of return on ad spend (ROAS) for each channel mix.
+4. Report how conversion credit is assigned under last-touch, linear, and time-decay attribution, separately from the model's uncertainty.
 
 ## 5. Output UI
 - Recommended channel mix (donut)

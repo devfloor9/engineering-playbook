@@ -3,9 +3,9 @@ title: S6. External Signal Fusion (4 Types)
 description: First-party GMV × 4 external types (social · weather · economy · competitor) macro analysis
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 4
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-> Use all 4 external data types — one of the core values of the marketing innovation PoC.
+> This screen compares social, weather, economic, and competitor data with first-party category sales to examine correlations. A correlation alone does not establish that an external factor caused a sales change.
 
 ## 1. URL Path
 - `/signals`

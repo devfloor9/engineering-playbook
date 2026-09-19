@@ -3,7 +3,7 @@ title: Basic Deployment
 description: kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup
 created: "2026-04-18"
 last_update:
-  date: "2026-07-13"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 11
 tags:
@@ -16,7 +16,7 @@ sidebar_label: 1. Basic Deployment
 sidebar_position: 1
 ---
 
-This document covers the procedures for deploying **core components** of the kgateway + Bifrost-based inference gateway. Route multiple services path-based behind a single NLB endpoint and implement multi-provider integration with Bifrost Gateway Mode.
+Deploy the core components of a **kgateway + Bifrost inference gateway** behind a single NLB endpoint. kgateway sends requests to services according to their URL paths, while Bifrost Gateway Mode integrates the configured model providers.
 
 :::tip Time Required
 **Learning**: 30 min | **Deployment**: 45 min
@@ -651,7 +651,7 @@ curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
 
 ## Next Steps
 
-Basic deployment is complete. Proceed to the next steps:
+Use the verification results above to choose the next step: resolve deployment errors, add advanced features, or complete monitoring integration.
 
 1. **Troubleshooting**: If errors occurred during deployment, refer to [Troubleshooting Guide](./troubleshooting-guide.md).
 2. **Advanced Features**: Configure [LLM Classifier, CloudFront/WAF, Semantic Caching](./advanced-features.md) for production environments.

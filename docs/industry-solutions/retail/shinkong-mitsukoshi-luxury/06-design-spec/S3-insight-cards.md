@@ -3,7 +3,7 @@ title: S3. 카테고리·BU 인사이트 카드 (Mitsukoshi)
 description: 점포·층·브랜드 GMV + 환율·관광·경쟁사 결합 자동 보고서
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -42,5 +42,5 @@ sidebar_label: S3. Insight Cards
 
 ## 4. 데모 시나리오
 1. "월별 점포 GMV" → 5 페르소나 코멘트
-2. "환율 vs 면세 GMV" → R² 0.74 (엔저로 일본인 대신 동남아 ↑)
+2. "환율 vs 면세 GMV" → 예시 R² 0.74. 먼저 두 지표의 상관관계를 보여주고, 엔저 시기에 일본인 방문객이 줄고 동남아 방문객이 늘었다는 가설을 별도로 조사합니다. R²만으로 그 원인을 설명할 수는 없습니다.
 3. 카드 → 챗봇 (S2) 자연 전환

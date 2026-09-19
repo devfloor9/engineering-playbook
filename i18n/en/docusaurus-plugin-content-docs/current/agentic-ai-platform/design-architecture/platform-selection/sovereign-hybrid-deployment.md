@@ -3,7 +3,7 @@ title: "Sovereign & Hybrid Deployment: Data Sovereignty and Region Enforcement"
 description: Agentic AI deployment strategies that meet data sovereignty requirements — SCP region enforcement, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting
 created: "2026-06-14"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 19
 tags:
@@ -259,7 +259,7 @@ For EKS Hybrid Nodes configuration, on-premises GPU incorporation, and networkin
 
 ## Compliance Mapping
 
-Data sovereignty means connect directly to regulatory requirements.
+Map each data sovereignty control to the regulatory requirement it is intended to support.
 
 | Regulation | Key Requirement | Corresponding Means |
 |------------|-----------------|---------------------|

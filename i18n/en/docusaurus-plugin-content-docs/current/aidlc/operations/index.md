@@ -3,9 +3,9 @@ title: "AgenticOps: AI Agent-Based Autonomous Operations"
 description: AI agent-based autonomous operations for software developed with AIDLC — observability, prediction, and automated response
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 5
+reading_time: 4
 tags:
   - scope:nav
 sidebar_label: AgenticOps
@@ -13,11 +13,11 @@ sidebar_label: AgenticOps
 
 # AgenticOps: AI Agent-Based Autonomous Operations
 
-AgenticOps is an approach to autonomously build a feedback loop through AI agents for continuous improvement in production environments after developing software with [AIDLC](/docs/aidlc/methodology). While traditional AIOps used AI as a monitoring aid, AgenticOps enables AI agents to autonomously perform **detection → decision → execution** based on observability data.
+AgenticOps uses AI agents to turn production telemetry into operational decisions and actions. In the **detection → decision → execution** loop described here, an agent collects evidence, chooses a response, and executes it within predefined guardrails or escalates it for human review. The results feed back into the software developed through [AIDLC](/docs/aidlc/methodology).
 
 ## Relationship with AIDLC
 
-If AIDLC focuses on **"how to build"** (development methodology), AgenticOps focuses on **"how to operate and improve"** (operational feedback loop). Domain constraints defined by AIDLC's [ontology](/docs/aidlc/methodology/ontology-engineering) are used as criteria for operational decisions by AgenticOps AI agents, and insights discovered during operations are fed back as the Outer Loop for ontology evolution.
+AIDLC describes how software is developed; AgenticOps describes how operational evidence informs its maintenance and improvement. Constraints in the [ontology](/docs/aidlc/methodology/ontology-engineering) guide agent decisions. The **Outer Loop** returns findings from production to the people and processes that revise those constraints.
 
 ```mermaid
 flowchart LR

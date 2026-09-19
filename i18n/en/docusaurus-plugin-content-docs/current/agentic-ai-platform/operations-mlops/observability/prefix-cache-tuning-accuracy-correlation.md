@@ -3,7 +3,7 @@ title: Prefix Cache Tuning and Accuracy Correlation Validation
 description: Define cached-token, turn-gap, and preemption data contracts, correlation limits, and non-inferiority quality gates for prefix cache tuning.
 created: "2026-09-05"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 38
 tags:
@@ -115,7 +115,7 @@ Turn-gap p95 and eviction-idle p50 describe different objects. Comparing them ca
 | Additional waiting and deadlines | Cancellation, stream errors, or incomplete delivery after delay | Request timing, errors, and client records |
 | Execution conditions | Possible batch, kernel, or scheduling effects | Fixed inputs, seeds, revisions, and supported reproducibility settings |
 
-A metrics window attached to a request is a **concurrent interval exposure**, not proof that this request was preempted. Another request in the same window might have caused the event.
+A metrics window attached to a request reports events within that window for the engine or pool. It does not establish that this particular request was preempted: the count may include events from other requests in the same window.
 
 ### 3.4 Outcomes {#outcomes}
 
@@ -144,7 +144,7 @@ Report hit ratio, absolute cached prefill tokens, TTFT, throughput, and resource
 
 ### 5.1 Question, Degradation Margin, and Assignment Unit {#hypothesis}
 
-When quality is the pass rate among evaluated requests, predefine `delta = p_new - p_baseline` and an acceptable degradation `margin`. A **non-inferiority** decision compares the lower confidence bound for delta with `-margin`. For two-sided equivalence, design a separate test comparing both bounds with the predefined equivalence interval ([statistical methods](https://lakens.github.io/statistical_inferences/09-equivalencetest.html)).
+When quality is measured as a pass rate, define `delta = p_new - p_baseline` and the largest acceptable decrease, `margin`, before running the comparison. A **non-inferiority** test asks whether the new configuration is worse by more than that margin: the lower confidence bound for delta must be above `-margin`. Showing equivalence in both directions requires a separate test in which both confidence bounds fall inside a predefined equivalence interval ([statistical methods](https://lakens.github.io/statistical_inferences/09-equivalencetest.html)).
 
 A statistically nonsignificant difference does not establish non-inferiority or independence. A wide confidence interval may still contain harmful degradation. Plan sample size from the baseline pass rate, margin, significance level, power, allocation, and within-session dependence. Evaluating every request with a keyword check still leaves measurement limitations and uncertainty about future traffic.
 

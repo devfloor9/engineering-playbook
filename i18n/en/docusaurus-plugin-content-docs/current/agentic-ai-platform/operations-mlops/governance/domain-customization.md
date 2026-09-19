@@ -3,7 +3,7 @@ title: Domain Specialization (LoRA + RAG)
 description: Guide to improving technical domain coding quality with LoRA Fine-tuning, VectorRAG, and GraphRAG — including FSI SI production scenarios
 created: "2026-04-04"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 15
 tags:
@@ -29,7 +29,7 @@ Provides a 3-stage strategy for **optimizing general-purpose LLMs for specific d
 
 ## 3-Layer Strategy
 
-Domain specialization is applied progressively: **Steering → RAG → LoRA**.
+Apply domain specialization in three stages: **Steering → RAG → LoRA**. Steering supplies explicit coding instructions; RAG retrieves relevant internal documents for the prompt; LoRA adapts the model through training on domain data. The sections below explain what each stage adds.
 
 ```mermaid
 graph TD

@@ -3,7 +3,7 @@ title: Knowledge Feature Store 확장
 description: 전통 Feature Store에 온톨로지·Knowledge Graph를 통합하여 환각 감소·근거 추적·도메인 엔터티 활용을 강화하는 3-plane 설계
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 17
 tags:
@@ -209,7 +209,9 @@ Batch=100%, Stream=99% 정확도라는 고정 보장은 없습니다.
 
 Feast online store는 entity key별 최신 feature만 보관하며 임의 과거 시점 조회를 제공하지 않습니다. Feast offline point-in-time join과 세 저장소 공통 snapshot은 다릅니다. timestamp 필터만 넣어 cross-plane point-in-time consistency를 보장할 수 없습니다.
 
-일관된 generation을 요구한다면 각 plane에 immutable version/history를 보존하고 query가 그 version을 선택할 수 있어야 합니다. coordinator는 모든 plane의 visibility watermark가 충족된 publication manifest만 노출합니다. 일부 plane이 최신 값만 제공하면 이 모드를 거부하거나 별도 versioned store를 사용합니다. event time과 ingestion time을 분리하고 늦은 이벤트·삭제의 처리 규칙을 정의합니다. strong consistency/read-your-writes는 backend와 coordinator가 증명한 범위만 약속합니다.
+한 질의가 세 저장소에서 함께 공개한 데이터 묶음(generation)을 읽어야 한다면, 각 저장소는 이전 버전을 덮어쓰지 않고 보관해야 합니다. 질의에서도 읽을 버전을 지정할 수 있어야 합니다. 조회를 조정하는 coordinator는 각 저장소에서 필요한 버전까지 검색할 수 있는지 visibility watermark로 확인합니다. 조건을 모두 충족하면 조회에 사용할 버전 목록인 publication manifest를 공개합니다.
+
+최신 값만 제공하는 저장소가 있으면 이 조회 모드를 거부하거나, 버전을 보관하는 별도 저장소를 사용합니다. 이벤트가 발생한 시각(event time)과 수집된 시각(ingestion time)을 구분하고, 늦게 도착한 이벤트와 삭제의 처리 규칙도 정해야 합니다. 강한 일관성(strong consistency)이나 자신이 쓴 값을 바로 읽는 동작(read-your-writes)은 backend와 coordinator에서 검증한 범위에 한해 약속합니다.
 
 ### Write 파이프라인 예제
 

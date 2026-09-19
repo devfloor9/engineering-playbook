@@ -3,9 +3,9 @@ title: Tiered Gateway Architecture
 description: "Single definition of the Agentic AI Platform gateway layers: Tier 1 Ingress, Tier 2 Inference Routing (Inference Extension) and LLM API Gateway, and the Agent Data Plane — their role separation and how to fill each layer"
 created: "2026-06-17"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 12
+reading_time: 10
 tags:
   - gateway-api
   - inference-gateway
@@ -46,7 +46,7 @@ The following terms are used across the platform. Instead of the ambiguous "Infe
 - The two are **not mutually exclusive.** A hybrid setup — ① for self-hosted inference, ② for external provider integration — is common.
 :::
 
-The `Agent Data Plane` (agentgateway) is an **orthogonal axis**, not a tier. Because it handles AI-specific protocols (MCP/A2A) and stateful sessions rather than HTTP traffic, it is not grouped into the linear Tier 1–2 layering.
+In this guide, the `Agent Data Plane` (agentgateway) handles tool calls, communication between agents, and stateful sessions. Tier 1–2 determine where model requests go, while this function handles MCP/A2A connections and sessions. MCP/A2A can also use HTTP as a transport, so this is a distinction between responsibilities, not transport protocols. It is not another tier that every request must pass through in sequence.
 
 ## Overall Structure
 

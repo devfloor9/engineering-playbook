@@ -3,9 +3,9 @@ title: Single AWS Architecture (AMWAY)
 description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — specialized for ABO tree, subscriptions, multilingual operations
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 4
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> Same skeleton as LG H&H plus AMWAY specialization: ABO Tree (Neptune depth queries), recurring subscriptions (state machine), global multilingual support, and direct-selling regulatory guards.
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, Bedrock and AgentCore integration, Neptune graph storage, and OpenSearch search. AMWAY adds ABO-tree depth queries, a subscription state machine, multilingual support, and direct-selling policy checks.
 
 ---
 

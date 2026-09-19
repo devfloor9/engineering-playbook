@@ -3,9 +3,9 @@ title: Harbor 2.15와 EKS Hybrid Nodes 통합 가이드
 description: Harbor 2.15 프라이빗 컨테이너 레지스트리를 Amazon EKS Hybrid Nodes (Kubernetes 1.33)와 통합하기 위한 완전한 단계별 가이드로, 설치, SSL/TLS 구성, 인증 및 문제 해결을 다룹니다.
 created: "2025-08-20"
 last_update:
-  date: "2026-08-25"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 4
 tags:
   - eks
   - hybrid-node
@@ -584,7 +584,7 @@ data:
 3. **인증 설정**: Robot Account를 통한 자동화된 인증 구성
 4. **지속적인 검증**: 각 단계별 테스트를 통한 구성 검증
 
-Harbor 2.15의 향상된 기능과 EKS Hybrid Nodes의 유연성을 활용하면, 온프레미스와 클라우드를 아우르는 통합 컨테이너 관리 환경을 구축할 수 있습니다.
+
 
 ## 참고 자료
 

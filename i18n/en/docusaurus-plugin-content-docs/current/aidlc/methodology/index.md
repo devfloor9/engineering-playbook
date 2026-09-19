@@ -3,7 +3,7 @@ title: AIDLC Methodology
 description: Core methodology of AIDLC — 10 Principles, Ontology, Harness Engineering, DDD Integration
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 3
 tags:
@@ -13,7 +13,7 @@ sidebar_label: Methodology
 
 # AIDLC Methodology
 
-The AIDLC methodology provides the **theoretical foundation** for AI-driven development. While traditional SDLC was designed around human-centric long iteration cycles, AIDLC reconstructs AI from **First Principles** and integrates it as a core collaborator in the development lifecycle.
+This track explains how AIDLC organizes collaboration between people and AI during development. It introduces the Intent → Unit → Bolt execution model, then explains how domain schemas, validation controls, and domain-driven design support that workflow.
 
 ## Structure
 

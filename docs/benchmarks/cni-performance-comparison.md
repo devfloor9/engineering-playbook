@@ -3,9 +3,9 @@ title: VPC CNI vs Cilium CNI 성능 비교 벤치마크
 description: EKS 환경에서 VPC CNI와 Cilium CNI의 네트워크 및 애플리케이션 성능을 5개 시나리오(kube-proxy, kube-proxy-less, ENI, 튜닝)로 비교한 벤치마크 보고서
 created: "2026-02-09"
 last_update:
-  date: "2026-08-29"
+  date: 2026-09-19
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 22
+reading_time: 39
 tags:
   - benchmark
   - cni
@@ -313,11 +313,11 @@ m6i.xlarge의 ENA 드라이버는 `bpf_link` 기능을 지원하지 않아 XDP n
 
 ## 핵심 결론: 성능 차이 vs 기능 차이
 
-이번 벤치마크의 가장 중요한 결론은 **VPC CNI와 Cilium CNI 간에 실질적인 성능 차이는 거의 없다**는 점입니다.
+보고된 TCP 처리량은 시나리오별로 12.34~12.41 Gbps로 비슷하지만, 지연과 UDP 패킷 손실은 시나리오에 따라 다릅니다. 지표별로 측정 조건을 확인해야 합니다. 시나리오 E는 8개 튜닝 옵션을 함께 적용했으므로 개별 옵션의 기여도를 분리할 수 없고, 이 비교만으로 애플리케이션의 전체 응답 시간에 미칠 영향을 알 수는 없습니다.
 
 | 항목 | 결과 | 해석 |
 |------|------|------|
-| TCP Throughput | 모든 시나리오 동일 (12.4 Gbps) | NIC 대역폭에 포화, CNI 무관 |
+| TCP Throughput | 12.34~12.41 Gbps (약 12.4 Gbps) | 이 측정 구성에서 시나리오별 처리량이 비슷함 |
 | HTTP p99 @QPS=1000 | 8.75~10.92ms (시나리오별 변동) | 측정 오차 범위 내 |
 | UDP 패킷 손실 | VPC CNI 20% vs Cilium 튜닝 0.03% | Bandwidth Manager 기능 유무 차이 (iperf3 극한 조건) |
 | 서비스 스케일링 | iptables +26µs/연결 @1,000개 | 측정 가능하나 실환경에서 미미 |

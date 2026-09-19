@@ -3,9 +3,9 @@ title: Agentic Playbook
 description: Guide for declaratively defining agent workflows like IaC and automating compliance
 created: "2026-04-04"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 14
+reading_time: 15
 tags:
   - playbook
   - agent
@@ -17,11 +17,11 @@ tags:
 sidebar_label: Agentic Playbook
 ---
 
-A practical guide for declaratively defining AI agent workflows like Infrastructure-as-Code (IaC), automating compliance, and ensuring audit trails.
+This guide explains how to define an agent's workflow, approval conditions, and failure handling as configuration, using an approach similar to Infrastructure-as-Code (IaC). Execution and approval records help trace operating results and collect audit evidence. Assess compliance by reviewing the content and retention of those records together with the organization's control procedures.
 
 ## 1. What Is a Playbook?
 
-**Agentic Playbook** is a framework for **declaratively** defining AI agent behavior, similar to Kubernetes Manifests or Terraform.
+An **Agentic Playbook** describes an agent workflow as configuration: the steps to run, the conditions for approval, and the audit information to record. This is a **declarative** approach, similar to Kubernetes manifests or Terraform configuration: write down the intended behavior so it can be reviewed and versioned.
 
 ### Why Is It Needed?
 

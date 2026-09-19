@@ -3,7 +3,7 @@ title: Harbor 2.15 and EKS Hybrid Nodes Integration Guide
 description: A complete step-by-step guide for integrating the Harbor 2.15 private container registry with Amazon EKS Hybrid Nodes (Kubernetes 1.33), covering installation, SSL/TLS configuration, authentication, and troubleshooting.
 created: "2025-08-20"
 last_update:
-  date: "2026-08-25"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -584,7 +584,7 @@ This guide walked through the integration of Harbor 2.15 with EKS Hybrid Nodes (
 3. **Authentication setup**: Configure automated authentication through Robot Accounts
 4. **Continuous validation**: Verify the configuration through testing at each step
 
-By leveraging the enhanced capabilities of Harbor 2.15 and the flexibility of EKS Hybrid Nodes, a unified container management environment spanning on-premises and the cloud can be built.
+
 
 ## References
 

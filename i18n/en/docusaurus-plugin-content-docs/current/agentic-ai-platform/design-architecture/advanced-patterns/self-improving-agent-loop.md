@@ -3,9 +3,9 @@ title: Self-Improving Agent Loop (Autosearch)
 description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autosearch concept
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 31
+reading_time: 28
 tags:
   - self-improving
   - autosearch
@@ -1009,7 +1009,7 @@ trainer.train()
 
 ### What is Reward Hacking?
 
-Phenomenon where model learns only "responses that get high rewards" rather than "truly good responses".
+Reward hacking occurs when a model learns to increase its evaluation score without improving the quality that score is meant to measure. For example, if longer answers receive higher completeness scores, the model may become more verbose without becoming more useful.
 
 **Examples**:
 - **Excessive verbosity**: Write long to increase completeness score → unnecessarily long answers

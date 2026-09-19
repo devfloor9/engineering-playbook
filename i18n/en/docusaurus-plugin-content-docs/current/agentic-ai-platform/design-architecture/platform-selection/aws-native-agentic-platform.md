@@ -3,9 +3,9 @@ title: "AWS Native Agentic AI Platform: Agent-Centric Approach with Managed Serv
 description: A platform approach that reduces infrastructure operational burden using Amazon Bedrock, Strands Agents SDK, and AgentCore to focus on agent development
 created: "2026-03-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
-reading_time: 33
+reading_time: 34
 tags:
   - agentcore
   - bedrock
@@ -23,7 +23,7 @@ import { EKSMCPFeatures, KagentVsAgentCore, MultiAgentPatterns, MCPServerEcosyst
 
 ## Overview
 
-By leveraging AWS managed services, you can **focus on Agent business logic rather than infrastructure operations**. AWS handles GPU management, scaling, availability, and security, while development teams invest their efforts solely on the problems Agents need to solve.
+AWS managed services can reduce the infrastructure your team operates directly. Check which GPU management, scaling, availability, and security functions each service provides. The development team still defines the agent's task, model and tool connections, permissions, data-handling policies, and response-quality criteria, and verifies that the system meets them.
 
 The AWS Agentic AI stack consists of three pillars.
 
@@ -50,7 +50,7 @@ How the 5 key challenges covered in [Technical Challenges](../foundations/agenti
 | Model supply chain management | Bedrock Model Evaluation + Prompt Management |
 
 :::tip Core Value of AWS Native
-Since AWS handles GPU infrastructure management, scaling, availability, and security, teams can focus solely on Agent business logic. For more fine-grained control, it can be combined with [EKS-based Open Architecture](./agentic-ai-solutions-eks.md).
+Separate the operations a managed service handles from your team's responsibilities for permissions, data, and application validation. If you host an SDK such as Strands yourself, you also operate its runtime environment. See the security documentation for [Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/security.html) and [AgentCore](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/security.html) for those boundaries. Compare configurations needing more control with the [EKS-based Open Architecture](./agentic-ai-solutions-eks.md).
 :::
 
 ---

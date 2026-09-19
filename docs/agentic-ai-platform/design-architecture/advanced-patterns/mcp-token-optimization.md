@@ -3,9 +3,9 @@ title: MCP 툴 토큰 최적화 패턴
 description: MCP 기반 에이전트의 토큰 사용 최적화 패턴. 업프론트 로딩 문제 정량화와 4가지 기법(Progressive Discovery, 툴 압축 프록시, Code Execution, 프롬프트 캐시 정합성)으로 토큰 오버헤드를 70-98% 절감한다.
 created: 2026-08-11
 last_update:
-  date: 2026-08-11
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 10
 tags:
   - mcp
   - agent
@@ -263,7 +263,7 @@ Anthropic Prompt Caching은 캐시 히트 시 입력 토큰 비용을 **90% 절�
 
 ### Agent Data Plane과의 관계
 
-[Tiered Gateway Architecture](../../model-serving/inference-routing/tiered-gateway-architecture.md) 문서는 Agent Data Plane을 **직교하는 축**으로 정의합니다. MCP/A2A 프로토콜과 stateful 세션을 다루는 agentgateway는 Tier 1~2의 HTTP 라우팅과 분리되어 동작합니다.
+[Tiered Gateway Architecture](../../model-serving/inference-routing/tiered-gateway-architecture.md)는 모델 요청을 라우팅하는 Tier 1~2와, 도구 호출·MCP/A2A 연결·상태가 있는 세션을 처리하는 Agent Data Plane을 구분합니다. MCP/A2A도 전송 수단으로 HTTP를 사용할 수 있습니다. 여기서 나누는 기준은 전송 방식이 아니라 각 구성요소가 맡는 역할입니다.
 
 토큰 최적화는 다음 계층에서 적용됩니다.
 
@@ -281,7 +281,9 @@ Tool Allow-list·MCP 서버 Fingerprint·Scoped Token 정책은 [AI Gateway Guar
 
 ## 결론
 
-MCP 기반 에이전트의 토큰 오버헤드는 **4가지 기법으로 70-98% 절감** 가능합니다. Progressive Discovery는 초기 구현 비용이 낮고, 툴 압축 프록시는 기존 MCP 서버를 그대로 활용할 수 있으며, Code Execution은 최대 절감률을 제공하지만 샌드박스 인프라가 필요합니다. 프롬프트 캐시 정합성은 모든 기법과 직교하여 추가 혜택을 제공합니다. 실전 적용 시에는 툴 개수·동적 변경 빈도·비용 민감도에 따라 **기법을 조합**하여 사용합니다.
+먼저 토큰이 어디에 쓰이는지 나누어 측정합니다. 툴 정의가 큰 비중을 차지하면 필요한 정의를 나중에 불러오는 Progressive Discovery나 툴 압축 프록시를 검토합니다. 툴이 반환하는 중간 데이터가 많다면 Code Execution으로 실행 환경에서 데이터를 줄인 뒤 필요한 결과만 모델에 전달할 수 있습니다. 이 방식에는 샌드박스 운영이 필요합니다.
+
+프롬프트 캐시는 반복되는 입력의 과금을 줄이는 수단이므로, 컨텍스트에 전달하는 토큰 수를 줄이는 기법과 효과를 구분해 집계합니다. 앞서 인용한 사례들은 툴 구성과 처리 데이터가 서로 다릅니다. 같은 요청 집합에서 입력 토큰 수, 실제 비용, 툴 호출 정확도를 비교한 뒤 조합을 선택하세요.
 
 ---
 

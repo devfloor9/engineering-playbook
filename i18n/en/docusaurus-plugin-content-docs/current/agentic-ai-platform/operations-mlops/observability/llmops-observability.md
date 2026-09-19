@@ -3,9 +3,9 @@ title: LLMOps Observability Comparison Guide
 description: LLMOps observability tool comparison — Langfuse·LangSmith·Helicone·CloudWatch selection criteria and hybrid architecture (for Langfuse operations, see Agent Monitoring)
 created: "2026-03-16"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 21
+reading_time: 22
 tags:
   - eks
   - observability
@@ -24,12 +24,12 @@ category: genai-aiml
 
 ### 1.1 Why Traditional APM Falls Short for LLM Workloads
 
-Traditional Application Performance Monitoring (APM) tools fail to meet the special requirements of LLM-based applications:
+HTTP latency and error telemetry from an APM is not sufficient on its own to assess LLM response quality and cost. Collect and manage the following information as well.
 
-- **Unable to Track Token Costs**: Existing APM only measures CPU/memory usage and fails to track input/output token counts and provider-specific pricing, which are the actual costs of LLM API calls
-- **Absence of Prompt Quality Assessment**: While HTTP request/response bodies are logged, there is no prompt template version management, A/B testing, or quality evaluation metrics
-- **Chain Tracing Limitations**: Complex chains and agent workflows in frameworks like LangChain/LlamaIndex are difficult to gain visibility into with simple HTTP traces
-- **Lack of Semantic Context**: Only measures simple latency/throughput, unable to evaluate semantic quality such as "Is the answer accurate?" or "Did hallucination occur?"
+- **Tokens and cost**: Record input/output tokens, the model and provider used, and the applied pricing.
+- **Prompts and evaluation**: Connect each answer to its prompt-template version and retain A/B test and quality-evaluation results.
+- **Agent execution steps**: Link retrieval, tool calls, and model calls into one request trace.
+- **Response quality**: Evaluate answer accuracy and support from evidence separately from latency and throughput.
 
 ### 1.2 Four Core Areas of LLMOps Observability
 

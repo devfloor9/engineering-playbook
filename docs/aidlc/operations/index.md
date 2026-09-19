@@ -3,9 +3,9 @@ title: "AgenticOps: AI 에이전트 기반 자율 운영"
 description: AIDLC로 개발한 소프트웨어의 AI 에이전트 기반 자율 운영 — 관찰성, 예측, 자동 대응
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 3
+reading_time: 2
 tags:
   - aidlc
   - operations
@@ -15,11 +15,11 @@ sidebar_label: AgenticOps
 
 # AgenticOps: AI 에이전트 기반 자율 운영
 
-AgenticOps는 [AIDLC](/docs/aidlc/methodology)로 소프트웨어를 개발한 이후, **실제 운영 환경에서의 지속적 개선을 위한 피드백 루프를 AI 에이전트를 통해 자율적으로 구축하는 접근 방법**입니다. 기존 AIOps가 AI를 모니터링 보조 도구로 활용했다면, AgenticOps는 AI 에이전트가 관찰성 데이터를 기반으로 **감지 → 판단 → 실행**까지 자율적으로 수행합니다.
+AgenticOps는 AI 에이전트가 운영 중 수집한 데이터를 바탕으로 조치를 판단하고 실행하는 방식입니다. 이 문서의 **감지 → 판단 → 실행** 흐름에서 에이전트는 근거를 수집하고 대응을 선택한 뒤, 미리 정한 실행 범위 안에서 조치하거나 사람에게 검토를 요청합니다. 그 결과를 [AIDLC](/docs/aidlc/methodology)로 개발한 소프트웨어의 개선에 반영합니다.
 
 ## AIDLC와의 관계
 
-AIDLC가 **"어떻게 만들 것인가"**(개발 방법론)에 집중한다면, AgenticOps는 **"어떻게 운영하고 개선할 것인가"**(운영 피드백 루프)에 집중합니다. AIDLC의 [온톨로지](/docs/aidlc/methodology/ontology-engineering)가 정의한 도메인 제약은 AgenticOps의 AI 에이전트가 운영 판단의 기준으로 활용하며, 운영에서 발견된 인사이트는 온톨로지 진화의 Outer Loop로 피드백됩니다.
+AIDLC는 소프트웨어를 개발하는 과정을, AgenticOps는 운영에서 얻은 근거를 유지보수와 개선에 반영하는 과정을 설명합니다. [온톨로지](/docs/aidlc/methodology/ontology-engineering)의 제약은 에이전트의 판단 기준이 됩니다. **Outer Loop**는 운영에서 발견한 문제를 그 제약을 수정하는 사람과 절차에 전달하는 흐름입니다.
 
 ```mermaid
 flowchart LR

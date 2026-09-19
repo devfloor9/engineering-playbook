@@ -3,9 +3,9 @@ title: Firewall/DNS Pre-Registration and TGW Topology
 description: "Covers a 5-zone pre-registration rule table to submit to firewall and network teams when adopting EKS Hybrid Nodes, handling environments without FQDN wildcard support, Transit Gateway topology, and on-premises LB path design."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 24
 tags:
   - eks
   - hybrid-node
@@ -24,7 +24,7 @@ category: hybrid-multicloud
 
 ## Overview
 
-In organizations where firewall and network operations are handled by separate teams, registration requests must be submitted before deployment begins, and any missing item translates directly into deployment delays. This document covers an application-ready rule table that organizes firewall registration points into 5 zones, handling environments without FQDN wildcard support, and Transit Gateway (TGW) topology together with on-premises LB path design.
+When separate teams own firewalls and network routing, deployment depends on submitting complete rule-change requests to each team in advance. This guide groups the required requests into 5 zones and provides tables for identifying traffic direction, protocol, port, source, destination, and purpose. It also covers environments without FQDN wildcard support, Transit Gateway (TGW) topology, and paths through on-premises load balancers.
 
 ## 5-Zone Firewall Registration Structure
 
@@ -38,7 +38,7 @@ In organizations where firewall and network operations are handled by separate t
 
 ### Zone A: On-Premises Firewall Ongoing Operations Rules
 
-The ongoing operations requirements from the official documentation, organized in application form, are as follows.
+Use the following table to prepare the on-premises firewall request for ongoing cluster operations. Each row identifies the traffic direction and the source, destination, protocol, and port to allow.
 
 | Direction | Protocol/Port | Source | Destination | Reason |
 |------|--------------|--------|--------|------|

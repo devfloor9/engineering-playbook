@@ -3,9 +3,9 @@ title: AWS Single Architecture (Uni-President)
 description: Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (cold chain) + Glue (cross-BU ETL)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> LG H&H skeleton + UPI-specific: **5-BU data integration via Glue ETL**, **TimeStream cold chain**, **Neptune ~900K edges** (BU diversity + OPENPOINT)
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, AI-service integration, Neptune, and OpenSearch. Uni-President adds **Glue ETL to integrate data across 5 BUs**, **TimeStream for cold-chain measurements**, and OPENPOINT member relationships in a Neptune graph estimated at **900K edges**.
 
 ## 1. Architecture
 

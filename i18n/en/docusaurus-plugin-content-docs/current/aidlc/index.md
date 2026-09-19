@@ -3,9 +3,9 @@ title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — Enterprise adoption guide for AI-driven software development methodology
 created: "2026-03-23"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 5
+reading_time: 4
 tags:
   - scope:nav
 sidebar_label: AIDLC
@@ -15,7 +15,7 @@ category: aidlc
 
 # AIDLC: AI-Driven Development Lifecycle
 
-AIDLC (AI-Driven Development Lifecycle) is a new development methodology where AI drives the entire software development process. While traditional SDLC was a human-centric process, AIDLC accelerates the entire development cycle from requirements analysis to design, implementation, and testing through the **Intent → Unit → Bolt** model.
+AIDLC (AI-Driven Development Lifecycle) organizes AI-assisted requirements analysis, design, implementation, and testing around **Intent → Unit → Bolt**. An Intent states a business goal, a Unit divides that goal into a bounded piece of work, and a Bolt is a short iteration for carrying out the work. AI proposes plans and artifacts; people review them against the project's requirements and constraints.
 
 ## 4 Tracks
 
@@ -81,10 +81,10 @@ flowchart TB
 
 ### Dual Axes of Reliability: Ontology × Harness
 
-To systematically ensure the reliability of AI-generated code, AIDLC introduces a framework with two axes:
+This playbook’s optional reliability framework separates domain definitions from the mechanisms that check and enforce them:
 
-- **[Ontology](/docs/aidlc/methodology/ontology-engineering) (WHAT + WHEN)**: A typed world model that formalizes domain knowledge. It continuously evolves through Inner/Middle/Outer feedback loops and prevents AI hallucination.
-- **[Harness Engineering](/docs/aidlc/methodology/harness-engineering) (HOW)**: A structure that architecturally validates and enforces the constraints defined by the ontology. It ensures the safety of AI execution through circuit breakers, retry budgets, output gates, and more.
+- **[Ontology](/docs/aidlc/methodology/ontology-engineering) (WHAT + WHEN)**: Defines entities, relationships, and domain constraints in a typed schema. Inner/Middle/Outer feedback loops provide input for revising those definitions.
+- **[Harness Engineering](/docs/aidlc/methodology/harness-engineering) (HOW)**: Implements checks and execution limits around agent work, including circuit breakers, retry budgets, and output gates. Reliability depends on which constraints are enforced and how the controls are validated.
 
 ## References
 

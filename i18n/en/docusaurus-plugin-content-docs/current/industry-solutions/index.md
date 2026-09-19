@@ -3,15 +3,15 @@ title: Industry Solutions
 description: Industry-validated PoC patterns and working demo assets — Retail, Energy, Financial Services, Manufacturing, and more.
 created: "2026-05-14"
 last_update:
-  date: "2026-07-01"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 5
 tags:
   - scope:nav
 sidebar_label: Industry Solutions
 ---
 
-> Industry-validated PoC patterns and demo assets. While other sections of the Engineering Playbook focus on "how to build it (How)," this section focuses on **"what value to show customers and how (What/Why)."**
+> PoC designs and demo assets organized by industry. These pages connect customer-facing tasks to the data, architecture, and demonstration scenarios needed to evaluate them; the technical guides elsewhere in the Engineering Playbook explain implementation details.
 
 ---
 

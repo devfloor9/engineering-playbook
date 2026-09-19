@@ -3,9 +3,9 @@ title: S8. Marketing Consent · PII · Minor Guardrails
 description: Bedrock Guardrails + marketing consent + PII masking + minor cosmetics guard
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -20,7 +20,7 @@ sidebar_label: S8. Guardrails
 - `/compliance`
 
 ## 2. User Stories
-> P4 (CRM · LG Members) — Visually confirm that sends to non-consenting members are absolutely blocked, that the chatbot does not expose PII, and that cosmetics campaigns to estimated-minor members are automatically blocked.
+> P4 (CRM · LG Members) — Run the specified test cases and inspect the decision logs: campaign sends to non-consenting members must be blocked, chatbot responses must mask PII, and cosmetics campaigns targeting members classified as minors must be blocked. Show the policy and reason for each decision.
 
 ## 3. Input UI
 - Guard topic toggles (4 + consent + PII + minor cosmetics)

@@ -3,9 +3,9 @@ title: Cross-Cluster Object Replication (HA) Architecture Guide
 description: Architecture patterns and decision guide for achieving high availability through object replication in EKS multi-cluster environments
 created: "2026-03-24"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 20
+reading_time: 18
 tags:
   - eks
   - multi-cluster
@@ -24,7 +24,7 @@ category: infrastructure
 
 ## 1. Overview
 
-Relying on a single EKS cluster in production means a cluster failure brings down the entire service. **Cross-Cluster Object Replication** is a strategy that ensures high availability by consistently replicating Kubernetes objects (ConfigMaps, Secrets, RBAC, CRDs, NetworkPolicies, etc.) across multiple clusters.
+A service that depends on one EKS cluster can become unavailable if that cluster fails. **Cross-Cluster Object Replication** keeps Kubernetes objects—such as ConfigMaps, Secrets, RBAC resources, CRDs, and NetworkPolicies—consistent across clusters so another cluster has the required configuration. Service availability also depends on data replication, traffic failover, and application recovery; object replication alone does not provide it.
 
 ### Current State
 

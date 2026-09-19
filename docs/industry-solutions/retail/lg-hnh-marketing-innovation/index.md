@@ -3,17 +3,17 @@ title: LG H&H Marketing Innovation PoC
 description: LG생활건강 Beauty + HDB + Refreshment 3 BU 통합 마케팅 혁신 PoC — Ontology + Agentic AI 기반 8 시나리오 데모
 created: "2026-05-14"
 last_update:
-  date: "2026-07-02"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 5
 tags:
   - scope:nav
 sidebar_label: Overview
 ---
 
-> **"자사 회원·SKU·캠페인·옴니채널 거래 데이터를 외부 트렌드·기상·경제·경쟁사 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 마케팅 혁신 PoC"**
+> **자사 데이터와 외부 데이터를 연결해 5개 부서의 마케팅 분석을 지원하는 개념 검증(PoC) 데모입니다.**
 
-흩어진 데이터를 의미적으로 연결해 5 부서가 각자의 시각으로 활용하는 **동작 시연** 자료. 공개 정보만 활용해 LG생활건강 마케팅 혁신 본부의 데이터 사일로 문제를 푸는 청사진을 제시합니다.
+흩어져 관리되는 회원·상품(SKU)·캠페인·여러 판매 채널의 거래 데이터를 외부 트렌드·기상·경제·경쟁사 정보와 연결합니다. 데이터 간 관계를 정의하는 온톨로지와 정보 검색·분석을 돕는 AI 에이전트(Agentic AI)를 활용합니다. 공개 정보만으로 LG생활건강 마케팅 혁신 본부의 부서별 데이터 활용 방식을 시연합니다.
 
 ---
 

@@ -3,9 +3,9 @@ title: vLLM Model Serving
 description: vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 31
+reading_time: 25
 tags:
   - vllm
   - paged-attention
@@ -31,7 +31,7 @@ vLLM is a high-performance LLM inference engine that reduces KV cache memory was
 
 ### Why vLLM Became the Standard
 
-Traditional LLM serving engines statically allocated KV cache memory, resulting in 60-80% memory waste. Static batching waited until a fixed number of requests accumulated, leading to long GPU idle times. vLLM eliminates these two fundamental bottlenecks, providing up to 24x higher throughput on the same hardware.
+Reserving KV-cache space for every request's maximum length leaves unused memory when a request ends early. With a fixed batch, a request that finishes early can also leave an empty processing slot until the remaining requests finish. vLLM reduces this waste by allocating additional KV blocks as needed and updating the active requests at each generation iteration.
 
 vLLM core innovations:
 - **PagedAttention**: Inspired by OS virtual memory management, manages KV cache as non-contiguous blocks
@@ -42,7 +42,7 @@ vLLM core innovations:
 
 ### PagedAttention and KV Cache Management
 
-Due to the autoregressive nature of Transformer architecture, each request must store key-value pairs from previous tokens. This KV cache grows linearly with input sequence length and concurrent users. Traditional approaches pre-allocate memory for maximum length, wasting space regardless of actual usage.
+Transformer language models generate output one token at a time. To avoid recalculating attention data for earlier tokens, the serving engine stores their key and value tensors in the **KV cache**. Cache memory grows in proportion to sequence length and the number of concurrent requests. Pre-allocating space for every request’s maximum sequence length can leave much of that memory unused.
 
 vLLM's PagedAttention divides KV cache into fixed-size blocks stored non-contiguously. Short requests allocate fewer blocks; longer ones allocate additional blocks as needed. Block tables maintain logical ordering, eliminating memory fragmentation.
 
@@ -54,11 +54,12 @@ vLLM's PagedAttention divides KV cache into fixed-size blocks stored non-contigu
 
 Static batching waits for a fixed number of requests before processing. With irregular request arrivals, GPUs are only partially utilized, reducing throughput. Also, requests that finish early must wait for the entire batch to complete.
 
-vLLM's continuous batching completely removes batch boundaries:
-- Scheduler operates at the iteration level
-- Completed requests are immediately removed and new requests dynamically added
-- GPU always operates at maximum capacity
-- Both average latency and throughput are improved
+vLLM's continuous batching updates the requests in a batch at each generation iteration.
+
+- Remove requests that have completed.
+- Admit waiting requests when processing capacity is available.
+- This reduces idle time associated with fixed batches, but GPU utilization still depends on request arrivals and memory/compute limits.
+- Measure latency and throughput changes separately under the same load.
 
 ### Speculative Decoding
 

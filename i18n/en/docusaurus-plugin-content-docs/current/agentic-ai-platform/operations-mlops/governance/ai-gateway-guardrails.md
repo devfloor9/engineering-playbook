@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 35
 tags:
@@ -64,7 +64,7 @@ All top threats including LLM01: Prompt Injection, LLM02: Sensitive Information 
 
 ## 2. Defense Layer Architecture
 
-Guardrails are not a single feature but **Defense in Depth**. Each layer operates independently, and even if one is bypassed, the next layer blocks the threat.
+**Defense in depth** places several guardrail controls along the request path, with each layer performing its own checks. If a threat passes one control, a later control has another opportunity to detect or block it. The architecture below assigns responsibilities to each layer.
 
 ```mermaid
 flowchart LR

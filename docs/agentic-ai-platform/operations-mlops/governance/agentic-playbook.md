@@ -3,9 +3,9 @@ title: Agentic Playbook
 description: Agent 워크플로우를 IaC처럼 선언적으로 정의하고 컴플라이언스를 자동화하는 Playbook 가이드
 created: "2026-04-04"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 8
 tags:
   - playbook
   - agent
@@ -17,7 +17,7 @@ tags:
 sidebar_label: Agentic Playbook
 ---
 
-Agent 워크플로우를 Infrastructure-as-Code(IaC)처럼 선언적으로 정의하고, 컴플라이언스를 자동화하며, 감사 추적을 보장하는 실전 가이드입니다.
+이 가이드는 에이전트의 작업 순서, 승인 조건, 실패 시 대응을 Infrastructure-as-Code(IaC)처럼 선언적으로 정의하는 방법을 설명합니다. 실행 기록과 승인 내역을 남겨 운영 결과를 추적하고 감사에 필요한 자료를 모읍니다. 규정 준수 여부는 이 기록의 내용·보존 정책과 조직의 통제 절차를 함께 검토해 판단합니다.
 
 ## 1. Playbook이란?
 

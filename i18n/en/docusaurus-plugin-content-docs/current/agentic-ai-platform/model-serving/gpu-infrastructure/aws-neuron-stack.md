@@ -3,9 +3,9 @@ title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
 description: Guide to Neuron SDK, Device Plugin, and NxD Inference for operating AWS custom AI accelerators (Trainium2/Inferentia2) on EKS
 created: "2026-04-17"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 34
+reading_time: 31
 tags:
   - trainium2
   - inferentia2
@@ -176,7 +176,7 @@ For exact minor version, check [AWS Neuron SDK Release Notes](https://awsdocs-ne
 
 ### 3.3 Compilation Model and NEFF
 
-Neuron uses an **Ahead-of-Time (AOT) compilation model**. It does not run directly in PyTorch eager mode; `neuronx-cc` must convert the computation graph into NeuronCore hardware instructions (NEFF, Neuron Executable File Format) for execution.
+Neuron uses **Ahead-of-Time (AOT) compilation**: compile the model before running it, rather than executing it directly in PyTorch eager mode. The `neuronx-cc` compiler converts the model’s computation graph—the operations needed to compute its outputs—into instructions for NeuronCore hardware. It stores the result in NEFF (Neuron Executable File Format) for execution.
 
 ```
 PyTorch / JAX model

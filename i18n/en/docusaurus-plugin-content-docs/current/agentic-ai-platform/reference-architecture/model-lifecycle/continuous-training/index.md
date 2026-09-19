@@ -3,9 +3,9 @@ title: Continuous Training Pipeline
 description: EKS-based 5-stage pipeline that automatically promotes Langfuse traces to training data and connects GRPO/DPO preference tuning with Canary deployment.
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 11
+reading_time: 10
 tags:
   - continuous-training
   - mlops
@@ -21,11 +21,13 @@ import DocCardList from '@theme/DocCardList';
 
 ## Overview
 
-The Continuous Training Pipeline is the implementation architecture of the **Self-Improving Agent Loop** that automatically converts production inference traces into training data for continuous model improvement. It collects Langfuse OTel traces into an S3 Data Lake, evaluates quality with a Reward Labeler, and performs preference tuning with GRPO/DPO. After passing evaluation, it gradually rolls out to production via Canary deployment.
+The Continuous Training Pipeline implements a **Self-Improving Agent Loop** that turns production inference records into candidate training data, evaluates the trained model, and determines whether to update it. It collects Langfuse OTel traces in an S3 Data Lake and uses a Reward Labeler to evaluate their quality. The prepared data is used for GRPO/DPO preference tuning.
+
+Training and deployment require approval from the responsible team. A model that passes evaluation is first applied to a portion of traffic through a canary rollout. Check the results before increasing its traffic share.
 
 ## Why Continuous Training
 
-Traditional training methods rely on **static datasets**. However, production user feedback occurs continuously, and without incorporating it, models increasingly **diverge from actual usage patterns** over time.
+Production feedback can reveal tasks, terminology, and failure patterns that a static training dataset does not cover. Selected feedback can supply new training examples; evaluate the resulting model before deciding whether the update improves performance on those tasks.
 
 | Challenge | Traditional Approach | Continuous Training |
 |-----------|---------------------|---------------------|

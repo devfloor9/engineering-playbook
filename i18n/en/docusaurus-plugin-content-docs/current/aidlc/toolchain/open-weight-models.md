@@ -3,7 +3,7 @@ title: Open-Weight Models
 description: Open-weight model utilization strategies for data residency and cost optimization — on-premises deployment, hybrid configuration, TCO comparison
 created: "2026-04-07"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 16
 tags:
@@ -15,7 +15,7 @@ tags:
 sidebar_label: Open-Weight Models
 ---
 
-When operating AI Development Lifecycle (AIDLC) in enterprise environments, data residency and cost efficiency are critical decision factors. Open-weight models provide three differentiated values compared to cloud APIs (Claude, GPT-4): **securing data sovereignty**, **predictable TCO**, and **domain-specialized customization**.
+Self-hosted open-weight models let a team choose where to run inference and how to customize the model. When comparing them with cloud APIs (Claude, GPT-4) for enterprise AIDLC, evaluate three requirements: **data residency**, **total cost of ownership (TCO)**, and **domain-specific behavior**. Self-hosting changes who operates the infrastructure and how costs accrue; the deployment and operating plan determine whether it meets those requirements.
 
 ## Why Open-Weight Models
 

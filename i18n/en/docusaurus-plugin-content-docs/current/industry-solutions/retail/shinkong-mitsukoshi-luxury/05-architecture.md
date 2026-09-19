@@ -3,9 +3,9 @@ title: AWS Single Architecture (Mitsukoshi)
 description: Bedrock + Neptune + OpenSearch + AgentCore — multilingual + live FX
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> LG H&H skeleton + Mitsukoshi-specific: multilingual (Traditional Chinese, Japanese, English), FX and tourism EventBridge cron, ~550K edges
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, AI-service integration, Neptune, and OpenSearch. Mitsukoshi adds **Traditional Chinese, Japanese, and English** support and scheduled EventBridge ingestion of foreign-exchange (FX) and tourism data. The graph is estimated at **550K edges**.
 
 ## 1. Architecture
 

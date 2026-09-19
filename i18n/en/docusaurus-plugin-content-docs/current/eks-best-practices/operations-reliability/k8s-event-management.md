@@ -3,9 +3,9 @@ title: Kubernetes Event Retention and AI Agent Query Architecture
 description: Covers the 1-hour TTL constraint of EKS Kubernetes events, export pipeline design, and AI Agent query architecture based on the EKS and CloudWatch MCP servers.
 created: "2026-07-14"
 last_update:
-  date: "2026-07-14"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 14
+reading_time: 20
 tags:
   - eks
   - kubernetes
@@ -21,7 +21,7 @@ sidebar_label: K8s Event Retention & AI Query
 
 ## Overview
 
-Building a system where an AI Agent automatically analyzes Kubernetes events during incidents requires understanding the structural constraints of event data first. Kubernetes events are volatile data retained in the cluster for only 1 hour by default, so the goal of "querying events" necessarily presupposes an export pipeline to external storage. This document covers a 3-layer architecture for collecting, storing, and querying events in EKS environments, and how to expose event data to AI Agents using the EKS MCP server and CloudWatch MCP server.
+An AI agent investigating an incident may need Events older than the cluster retains. Kubernetes Events have a default retention period of 1 hour, so historical analysis requires an export pipeline to external storage. This guide separates collection, storage, and querying into a 3-layer architecture and explains how the EKS MCP server and CloudWatch MCP server expose recent and retained event data to agents.
 
 ## Background: Structural Constraints of Kubernetes Events
 
@@ -215,7 +215,7 @@ If events with timestamps older than 1 hour are returned, the export pipeline is
 
 ## Summary
 
-Kubernetes events cannot be a query target in their raw form because of the etcd TTL (1 hour by default) and their best-effort characteristics. CloudWatch is not the only option but one of several durable store candidates, and store selection is driven by query patterns (real-time, search, archive). For AI Agent integration, running the EKS MCP server (current state) and the CloudWatch MCP server (accumulated data) side by side is the standard configuration, and the fact that `get_k8s_events` does not bypass the TTL constraint is the key premise of the architecture design.
+Kubernetes Events can be queried while they remain in the cluster, but their default 1-hour TTL and best-effort delivery limit their use as an incident history. Choose a durable store according to real-time query, search, and archive requirements; CloudWatch is one option. In the architecture described here, the EKS MCP server provides current state and the CloudWatch MCP server provides accumulated data. The `get_k8s_events` tool cannot recover Events that have expired.
 
 ## References
 

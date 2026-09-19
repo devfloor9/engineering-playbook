@@ -3,9 +3,9 @@ title: Custom Model Pipeline Guide
 description: Building a domain-optimized model serving pipeline with LoRA Fine-tuning, Multi-LoRA Hot-swap, and SLM Cascade Routing
 created: "2026-04-06"
 last_update:
-  date: "2026-07-13"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 21
+reading_time: 19
 tags:
   - lora
   - fine-tuning
@@ -63,7 +63,7 @@ graph LR
     end
 ```
 
-The training pipeline trains domain data with QLoRA, and only adapters that pass evaluation are registered in the registry. The serving pipeline loads multiple adapters simultaneously with vLLM Multi-LoRA and performs cost-optimized routing between SLM/LLM through Bifrost Cascade.
+The training pipeline uses QLoRA to train adapters on domain data and registers only adapters that pass evaluation. The serving pipeline loads multiple adapters simultaneously with vLLM Multi-LoRA and uses Bifrost Cascade to route requests between SLM and LLM backends for cost optimization.
 
 :::tip Related Documentation
 - [Operations & MLOps](../../operations-mlops/index.md) - Full operations architecture

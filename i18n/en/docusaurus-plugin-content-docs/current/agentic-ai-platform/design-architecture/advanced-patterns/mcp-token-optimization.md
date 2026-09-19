@@ -3,9 +3,9 @@ title: MCP Tool Token Optimization Patterns
 description: Token optimization patterns for MCP-based agents. Quantifies upfront loading overhead and reduces token costs by 70-98% through four techniques — Progressive Discovery, tool compression proxy, Code Execution, and prompt cache alignment.
 created: 2026-08-11
 last_update:
-  date: 2026-08-11
+  date: 2026-09-19
   author: devfloor9
-reading_time: 15
+reading_time: 18
 tags:
   - mcp
   - agent
@@ -263,7 +263,7 @@ Anthropic Prompt Caching reduces input token cost by **90%** on cache hits (regu
 
 ### Relationship with Agent Data Plane
 
-The [Tiered Gateway Architecture](../../model-serving/inference-routing/tiered-gateway-architecture.md) document defines the Agent Data Plane as an **orthogonal axis**. The agentgateway handling MCP/A2A protocols and stateful sessions operates separately from HTTP routing in Tier 1-2.
+The [Tiered Gateway Architecture](../../model-serving/inference-routing/tiered-gateway-architecture.md) separates model request routing in Tier 1–2 from the Agent Data Plane's handling of tool calls, MCP/A2A connections, and stateful sessions. MCP/A2A can also use HTTP as a transport; the distinction is the responsibility each component owns.
 
 Token optimization applies at the following layers.
 
@@ -281,7 +281,9 @@ Tool Allow-list, MCP server Fingerprint, and Scoped Token policies refer to the 
 
 ## Conclusion
 
-Token overhead in MCP-based agents can be **reduced by 70-98% with four techniques**. Progressive Discovery has low initial implementation cost, tool compression proxy leverages existing MCP servers as-is, and Code Execution provides maximum reduction but requires sandbox infrastructure. Prompt cache alignment provides additional benefits orthogonal to all techniques. In practice, **techniques are combined** based on tool count, dynamic change frequency, and cost sensitivity.
+First measure where tokens are being used. If tool definitions account for a large share, consider Progressive Discovery, which loads definitions when needed, or a tool-compression proxy. If tools return large intermediate results, Code Execution can reduce that data in the execution environment before sending the necessary result to the model. This approach requires operating a sandbox.
+
+Account for prompt-cache billing savings separately from reductions in the number of tokens sent in context. The cited examples use different tools and data. Compare input-token counts, actual cost, and tool-call accuracy on the same request set before choosing a combination.
 
 ---
 

@@ -3,9 +3,9 @@ title: Ragas RAG Evaluation Framework
 description: RAG pipeline quality evaluation and continuous improvement using Ragas
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 8
+reading_time: 23
 tags:
   - ragas
   - rag
@@ -22,7 +22,7 @@ category: genai-aiml
 
 import { RagasVsBedrockComparison, RagasMetrics, CostOptimizationStrategies, CostComparison, ImprovementChecklist } from '@site/src/components/RagasTables';
 
-Ragas (RAG Assessment) is an open-source framework for objectively evaluating the quality of RAG (Retrieval-Augmented Generation) pipelines. It is essential for measuring and continuously improving RAG system performance in Agentic AI platforms.
+Ragas (RAG Assessment) is an open-source framework that evaluates Retrieval-Augmented Generation (RAG) pipelines using several metrics. For example, it can assess whether retrieved documents support the answer's claims and whether the answer is relevant to the question. Scores depend on the evaluation dataset, metrics, and evaluation model, so record those conditions when comparing changes.
 
 ## 1. Overview
 

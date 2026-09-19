@@ -3,9 +3,9 @@ title: Disaggregated Serving + LWS 멀티노드
 description: Prefill/Decode 분리 아키텍처와 NIXL 공통 KV 전송 엔진, LeaderWorkerSet 기반 700B+ 대형 MoE 모델 멀티노드 배포 가이드
 created: "2026-04-03"
 last_update:
-  date: "2026-06-28"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 5
 tags:
   - inference
   - optimization
@@ -34,7 +34,7 @@ LLM 추론은 두 가지 근본적으로 다른 연산 단계로 구성됩니다
 | **Prefill** | 입력 프롬프트 전체 처리 | Compute-bound | 높은 연산 능력 (TP=4) |
 | **Decode** | 토큰 하나씩 순차 생성 | Memory-bound | 높은 메모리 대역폭 (TP=2) |
 
-이 두 단계를 동일 Pod에서 처리하면, Prefill의 compute 부하가 Decode의 latency를 악화시킵니다. 분리하면 각 단계를 독립적으로 스케일링할 수 있어 GPU 활용률이 극대화됩니다.
+같은 Pod에서 긴 입력의 Prefill과 다른 요청의 Decode가 겹치면, 입력을 처리하는 연산 때문에 토큰 생성이 늦어질 수 있습니다. 두 단계를 분리하면 Prefill과 Decode의 부하에 맞춰 Pod 수를 따로 조정할 수 있습니다. 다만 단계 사이에 KV 캐시를 전송해야 하므로, GPU 활용률과 함께 전송 비용과 토큰 생성 지연도 비교해야 합니다.
 
 ### 분리 아키텍처
 

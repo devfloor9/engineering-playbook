@@ -3,9 +3,9 @@ title: Ragas RAG 평가 프레임워크
 description: Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법
 created: "2026-02-05"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 13
 tags:
   - ragas
   - rag
@@ -22,7 +22,7 @@ category: genai-aiml
 
 import { RagasVsBedrockComparison, RagasMetrics, CostOptimizationStrategies, CostComparison, ImprovementChecklist } from '@site/src/components/RagasTables';
 
-Ragas(RAG Assessment)는 RAG(Retrieval-Augmented Generation) 파이프라인의 품질을 객관적으로 평가하기 위한 오픈소스 프레임워크입니다. Agentic AI 플랫폼에서 RAG 시스템의 성능을 측정하고 지속적으로 개선하는 데 필수적입니다.
+Ragas(RAG Assessment)는 RAG(Retrieval-Augmented Generation) 파이프라인을 여러 지표로 평가하는 오픈소스 프레임워크입니다. 검색한 문서가 답변의 주장을 뒷받침하는지, 답변이 질문과 관련이 있는지 등을 나누어 확인할 수 있습니다. 점수는 평가 데이터와 메트릭, 평가에 사용하는 모델에 따라 달라지므로, 개선 전후를 비교할 때 이 조건을 함께 기록합니다.
 
 ## 1. 개요
 

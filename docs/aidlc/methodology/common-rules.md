@@ -3,7 +3,7 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC 공식 11개 공통 규칙 해설 — Question Format부터 Audit Logging까지, 엔터프라이즈 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -70,7 +70,7 @@ graph TB
 | 11 | Reproducible | 품질 | 모델 간 결과 일관성 |
 
 :::info 왜 Common Rules 가 중요한가
-AIDLC 는 **Kiro · Q Developer · Cursor · Cline · Claude Code · GitHub Copilot · AGENTS.md** 7개 플랫폼에서 동일하게 동작해야 합니다. Common Rules 는 이 플랫폼·모델 차이에도 불구하고 **같은 입력에 대해 같은 품질의 산출물**을 보장하는 공통 계약입니다.
+Common Rules는 Kiro, Q Developer, Cursor, Cline, Claude Code, GitHub Copilot 등에서 공통으로 따를 질문·승인·검증·기록 절차를 정의합니다. `AGENTS.md`는 이런 지침을 프로젝트에 전달하는 파일입니다. 공통 절차를 적용하더라도 산출물의 품질은 도구와 모델별로 평가해야 합니다.
 :::
 
 ---

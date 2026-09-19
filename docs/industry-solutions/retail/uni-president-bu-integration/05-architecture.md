@@ -3,7 +3,7 @@ title: AWS 단일 아키텍처 (Uni-President)
 description: Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (콜드체인) + Glue (BU 간 ETL)
 created: "2026-05-14"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -16,7 +16,7 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> LG H&H 골격 + UPI 특화: **5 BU 데이터 통합 Glue ETL**, **TimeStream 콜드체인**, **Neptune ~900K edges** (BU 다양성 + OPENPOINT)
+> [LG생활건강 아키텍처](../lg-hnh-marketing-innovation/05-architecture.md)의 Next.js 화면, ECS Fargate의 FastAPI 백엔드, AI 서비스 연동, Neptune, OpenSearch를 재사용합니다. Uni-President에는 **5개 사업 부문의 데이터를 통합하는 Glue ETL**, **콜드체인 측정을 위한 TimeStream**, OPENPOINT 회원 관계를 추가합니다. Neptune 그래프의 관계 수는 약 **90만 개**로 추정합니다.
 
 ## 1. 아키텍처
 

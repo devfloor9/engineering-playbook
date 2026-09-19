@@ -3,9 +3,9 @@ title: AI Gateway 멀티테넌시 전략
 description: LLM Gateway 레벨 멀티테넌시 전략 — LiteLLM virtual key 계층 모델과 Kong Consumer 정책 비교, 예산 강제, 테넌트 격리 3단 모델(게이트웨이·데이터·관측)
 created: "2026-08-11"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 19
+reading_time: 13
 tags:
   - litellm
   - kong
@@ -148,7 +148,7 @@ LLM이 응답을 생성해야 토큰 수를 알 수 있으므로, 토큰 비용�
 ## 4. 선택 기준: LiteLLM vs Kong (택일)
 
 :::danger Kong + LiteLLM 조합 아키텍처 금지
-이 두 솔루션은 **either/or 선택지**입니다. "Kong을 앞단에 두고 LiteLLM을 후단에" 같은 조합 아키텍처는 검증된 레퍼런스가 없으므로 **절대 서술 금지**입니다. 하나를 선택하여 단일 Gateway로 구성하세요.
+이 가이드는 단일 게이트웨이를 선택하기 위한 대안으로 LiteLLM과 Kong을 비교합니다. 두 제품을 결합한 구성을 검증한 레퍼런스는 이 문서에 포함되어 있지 않으므로, 아래 선택 기준은 각 제품을 개별 게이트웨이로 사용하는 경우를 다룹니다.
 :::
 
 ### 선택 결정 트리

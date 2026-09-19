@@ -3,15 +3,15 @@ title: Industry Solutions
 description: 산업별로 검증된 PoC 패턴과 동작 시연 데모 자산. Retail, Energy, Financial Services, Manufacturing 등.
 created: "2026-05-14"
 last_update:
-  date: "2026-07-01"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 2
 tags:
   - scope:nav
 sidebar_label: Industry Solutions
 ---
 
-> 산업별로 실증된 PoC 패턴과 시연 데모 자산. Engineering Playbook의 다른 섹션이 "어떻게 만드는가(How)"를 다룬다면, 여기는 **"고객에게 어떤 가치를 어떻게 보여주는가(What/Why)"**에 집중합니다.
+> 산업별 PoC 설계와 시연 자료를 모았습니다. 고객의 업무를 데이터, 아키텍처, 시연 시나리오와 연결해 무엇을 평가할지 설명합니다. 구체적인 구현 방법은 Engineering Playbook의 기술 가이드에서 다룹니다.
 
 ---
 

@@ -3,7 +3,7 @@ title: ROSA Demo Installation Guide
 description: ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, autoscaling setup, and admin access configuration guide
 created: "2025-02-05"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 4
 tags:
@@ -27,7 +27,7 @@ This document is a demo guide recording the installation process and results of 
 
 ### Creation Command
 
-Use the following command to create the ROSA cluster:
+The following transcript records the cluster-creation command for this demo. The two `I:` lines are CLI output. To reproduce the installation, use the `rosa create cluster` command that follows and supply the IAM role ARNs, OIDC configuration ID, and other values for your environment.
 
 ```bash
 I: Creating cluster 'rosa-demo-icn'

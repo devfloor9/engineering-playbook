@@ -3,7 +3,7 @@ title: EKS 디버깅 가이드
 description: Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드
 created: "2026-02-10"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 11
 tags:
@@ -26,7 +26,7 @@ import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, C
 
 EKS 운영 중 발생하는 문제는 컨트롤 플레인, 노드, 네트워크, 워크로드, 스토리지, 옵저버빌리티 등 다양한 레이어에 걸쳐 나타납니다. 본 문서는 SRE, DevOps 엔지니어, 플랫폼 팀이 이러한 문제를 **체계적으로 진단하고 신속하게 해결**하기 위한 종합 디버깅 가이드입니다.
 
-모든 명령어와 예제는 즉시 실행 가능하도록 작성되었으며, Decision Tree와 플로우차트를 통해 빠른 판단을 돕습니다.
+명령어는 진단과 조치의 예제입니다. 조사할 환경에 맞게 클러스터, namespace, 리소스, 계정 자리표시자를 바꾸고, 조회 명령과 리소스를 변경하는 명령을 구분하세요. 관찰한 증상을 기준으로 Decision Tree에서 다음 확인 항목을 선택합니다.
 
 ### EKS 디버깅 레이어
 
