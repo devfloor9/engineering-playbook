@@ -44,6 +44,7 @@
 .quickLinks a { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: 1.25rem 1.5rem; font-size: .84rem; font-weight: 500; border-left: 1px solid var(--rule); }
 .quickLinks a:hover { background: var(--wash); color: var(--accent); }
 .arrow { display: inline-block; flex-shrink: 0; color: var(--accent); font-size: 1.15rem; font-weight: 400; }
+.primaryLink .arrow { color: inherit; }
 .contents { padding-top: 4rem; padding-bottom: 4rem; scroll-margin-top: 5rem; }
 .sectionHeading { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 1.75rem; }
 .kicker { display: block; margin-bottom: .65rem; color: var(--accent); font-family: var(--ep-font-mono); font-size: .72rem; font-weight: 500; letter-spacing: .12em; }
@@ -147,6 +148,24 @@
 .coverAnnotation, .coverCaption { font-size: 0.65rem; }
 .coverDiagram { color: var(--accent); }
 .heroCopy h1 { hyphens: none; overflow-wrap: normal; }
+
+/* Brief entrance and interaction cues; reading sections remain stationary. */
+@keyframes settleIn {
+  from { opacity: 0.85; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .heroCopy, .coverScene { animation: settleIn var(--ep-motion-enter) var(--ep-motion-ease); }
+  .home .arrow { transition: transform var(--ep-motion-feedback) var(--ep-motion-ease); }
+  .home a:focus-visible .arrow { transform: translateX(3px); }
+  .home .contentsLink:focus-visible .arrow { transform: translateY(3px); }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .home a:hover .arrow { transform: translateX(3px); }
+  .home .contentsLink:hover .arrow { transform: translateY(3px); }
+  .featuredTopic { transition: border-color var(--ep-motion-feedback) ease, background-color var(--ep-motion-feedback) ease, transform var(--ep-motion-feedback) var(--ep-motion-ease), box-shadow var(--ep-motion-feedback) ease; }
+  .featuredTopic:hover { transform: translateY(-2px); box-shadow: var(--ep-shadow-sm); }
+}
 @media (max-width: 360px) {
   .heroCopy h1 { font-size: 2.1rem; }
 }

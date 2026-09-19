@@ -46,17 +46,18 @@ const LOGO_DATA_URI =
   'data:image/svg+xml;base64,' +
   fs.readFileSync(path.join(ROOT, 'static/img/logo.svg')).toString('base64');
 
-// 카테고리별 라벨 + 액센트 색상 (사이트 톤과 일치)
+// Category labels distinguish sections; the accent stays consistent with the site.
+const BRAND_ACCENT = '#91b6d6';
 const CATEGORY_THEME = {
-  'eks-best-practices': { label: 'EKS BEST PRACTICES', accent: '#38bdf8' },
-  'agentic-ai-platform': { label: 'AGENTIC AI PLATFORM', accent: '#818cf8' },
-  aidlc: { label: 'AIDLC', accent: '#a78bfa' },
-  'hybrid-infrastructure': { label: 'HYBRID INFRASTRUCTURE', accent: '#22d3ee' },
-  rosa: { label: 'ROSA', accent: '#f87171' },
-  benchmarks: { label: 'BENCHMARKS', accent: '#34d399' },
-  'industry-solutions': { label: 'INDUSTRY SOLUTIONS', accent: '#fbbf24' },
-  sales: { label: 'SALES', accent: '#f472b6' },
-  __root__: { label: 'ENGINEERING PLAYBOOK', accent: '#60a5fa' },
+  'eks-best-practices': { label: 'EKS BEST PRACTICES', accent: BRAND_ACCENT },
+  'agentic-ai-platform': { label: 'AGENTIC AI PLATFORM', accent: BRAND_ACCENT },
+  aidlc: { label: 'AIDLC', accent: BRAND_ACCENT },
+  'hybrid-infrastructure': { label: 'HYBRID INFRASTRUCTURE', accent: BRAND_ACCENT },
+  rosa: { label: 'ROSA', accent: BRAND_ACCENT },
+  benchmarks: { label: 'BENCHMARKS', accent: BRAND_ACCENT },
+  'industry-solutions': { label: 'INDUSTRY SOLUTIONS', accent: BRAND_ACCENT },
+  sales: { label: 'SALES', accent: BRAND_ACCENT },
+  __root__: { label: 'ENGINEERING PLAYBOOK', accent: BRAND_ACCENT },
 };
 
 function themeFor(category) {
@@ -117,7 +118,7 @@ function buildTree({ title, category, siteLabel }) {
         height: '100%',
         overflow: 'hidden',
         background:
-          'linear-gradient(135deg, #0a0e1a 0%, #0e1430 55%, #131a3c 100%)',
+          'linear-gradient(135deg, #181c22 0%, #20262e 55%, #29313b 100%)',
         fontFamily: 'Pretendard',
       },
       children: [
@@ -134,7 +135,7 @@ function buildTree({ title, category, siteLabel }) {
               borderRadius: 9999,
               background: `radial-gradient(circle at center, ${hexToRgba(
                 accent,
-                0.32
+                0.18
               )} 0%, ${hexToRgba(accent, 0)} 70%)`,
             },
           },
@@ -223,7 +224,7 @@ function buildTree({ title, category, siteLabel }) {
                               style: {
                                 fontSize: 28,
                                 fontWeight: 700,
-                                color: '#f1f5f9',
+                                color: '#e3e8ee',
                                 lineHeight: 1.1,
                               },
                               children: 'Engineering Playbook',
@@ -235,7 +236,7 @@ function buildTree({ title, category, siteLabel }) {
                               style: {
                                 fontSize: 18,
                                 fontWeight: 400,
-                                color: '#7c89a8',
+                                color: '#acb8c6',
                                 letterSpacing: 1,
                               },
                               children: 'EKS · Agentic AI · MLOps',
@@ -304,7 +305,7 @@ function buildTree({ title, category, siteLabel }) {
                           display: 'flex',
                           fontSize: titleFontSize(title),
                           fontWeight: 700,
-                          color: '#ffffff',
+                          color: '#e3e8ee',
                           lineHeight: 1.22,
                           letterSpacing: -0.5,
                           maxWidth: 880,

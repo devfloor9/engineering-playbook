@@ -198,8 +198,8 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
             <header className="margin-bottom--xl">
               <h1>
                 <span style={{
-                  backgroundColor: 'var(--ifm-color-primary)',
-                  color: 'white',
+                  backgroundColor: 'var(--ep-secondary-container)',
+                  color: 'var(--ep-on-secondary-container)',
                   padding: '0.5rem 1rem',
                   borderRadius: '2rem',
                   fontSize: '1.5rem'
@@ -271,8 +271,8 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
                           </h3>
                           {doc.category && (
                             <span style={{
-                              backgroundColor: getCategoryColor(doc.category),
-                              color: 'white',
+                              backgroundColor: 'var(--ep-secondary-container)',
+                              color: 'var(--ep-on-secondary-container)',
                               padding: '0.25rem 0.5rem',
                               borderRadius: '0.5rem',
                               fontSize: '0.8rem',
@@ -326,17 +326,6 @@ export default function Tag${tag.replace(/[^a-zA-Z0-9]/g, '').charAt(0).toUpperC
 }
 
 // Helper functions
-function getCategoryColor(category) {
-  const colors = {
-    'performance-networking': '#FF6B6B',
-    'observability-monitoring': '#4ECDC4',
-    'genai-aiml': '#45B7D1',
-    'hybrid-multicloud': '#96CEB4',
-    'security-compliance': '#FFEAA7'
-  };
-  return colors[category] || '#DDD';
-}
-
 function getCategoryName(category) {
   const names = {
     'performance-networking': 'Infrastructure Optimization',
@@ -458,16 +447,7 @@ export default function TagsIndexPage() {
                     className="card"
                     style={{
                       textDecoration: 'none',
-                      height: '100%',
-                      transition: 'all 0.2s ease-in-out'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
+                      height: '100%'
                     }}
                   >
                     <div className="card__body">
@@ -485,8 +465,8 @@ export default function TagsIndexPage() {
                         marginBottom: '0.5rem'
                       }}>
                         <span style={{
-                          backgroundColor: 'var(--ifm-color-primary)',
-                          color: 'white',
+                          backgroundColor: 'var(--ep-secondary-container)',
+                          color: 'var(--ep-on-secondary-container)',
                           padding: '0.25rem 0.5rem',
                           borderRadius: '1rem',
                           fontSize: '0.8rem'

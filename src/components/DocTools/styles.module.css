@@ -1,9 +1,4 @@
 .tools {
-  --ep-action-surface: #eef2f5;
-  --ep-action-hover: #e3eaf0;
-  --ep-action-text: #344c60;
-  --ep-action-border: #7a8c9b;
-  --ep-action-focus-ring: 3px solid #47677f;
   --ep-focus-ring: var(--ep-action-focus-ring);
   margin-block: var(--ep-space-4) var(--ep-space-6);
   padding-bottom: var(--ep-space-4);
@@ -11,14 +6,6 @@
   color: var(--ep-on-surface);
   font-size: var(--ep-font-size-caption);
   line-height: 1.5;
-}
-
-[data-theme='dark'] .tools {
-  --ep-action-surface: #283440;
-  --ep-action-hover: #334454;
-  --ep-action-text: #d4e0ea;
-  --ep-action-border: #6e8295;
-  --ep-action-focus-ring: 3px solid #a7c5dc;
 }
 
 .headerRow,

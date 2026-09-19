@@ -28,6 +28,7 @@
   text-decoration: none;
   overflow-wrap: anywhere;
   cursor: pointer;
+  transition: background-color var(--ep-motion-fast) ease, border-color var(--ep-motion-fast) ease;
 }
 
 .button:hover {

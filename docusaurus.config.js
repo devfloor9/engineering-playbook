@@ -4,7 +4,7 @@
 // There are various equivalent ways to declare your Docusaurus config.
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
-import { themes as prismThemes } from 'prism-react-renderer';
+import codeTheme from './src/css/code-theme.js';
 
 const documentationBaseUrl = '/engineering-playbook/';
 
@@ -260,8 +260,7 @@ const config = {
           autoCollapseCategories: true,
         },
       },
-      // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
+      image: 'img/social-card.png',
       navbar: {
         title: 'Engineering Playbook',
         logo: {
@@ -382,8 +381,8 @@ const config = {
         copyright: `Copyright © ${new Date().getFullYear()} Engineering Playbook.`,
       },
       prism: {
-        theme: prismThemes.github,
-        darkTheme: prismThemes.dracula,
+        theme: codeTheme,
+        darkTheme: codeTheme,
         additionalLanguages: ['bash', 'yaml', 'json', 'docker', 'hcl', 'python'],
       },
       metadata: [

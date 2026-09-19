@@ -6,7 +6,6 @@ const slideDecks = [
   {
     category: 'Agentic AI Platform',
     categoryIcon: '🧠',
-    categoryColor: '#a78bfa',
     items: [
       {
         title: '설계 & 아키텍처',
@@ -41,7 +40,6 @@ const slideDecks = [
   {
     category: 'GPU Infrastructure Deep Dive',
     categoryIcon: '🖥️',
-    categoryColor: '#a3e635',
     items: [
       {
         title: 'EKS GPU Operations',
@@ -55,7 +53,6 @@ const slideDecks = [
   {
     category: 'Kernel & Networking Deep Dive',
     categoryIcon: '🐝',
-    categoryColor: '#f59e0b',
     items: [
       {
         title: 'eBPF Deep Dive — Programming the Kernel',
@@ -76,7 +73,6 @@ const slideDecks = [
   {
     category: 'EKS Operations Training',
     categoryIcon: '⚙️',
-    categoryColor: '#60a5fa',
     items: [
       {
         title: 'GitOps 기반 EKS 클러스터 운영',
@@ -125,7 +121,6 @@ const slideDecks = [
   {
     category: 'EKS Best Practices',
     categoryIcon: '🚀',
-    categoryColor: '#34d399',
     items: [
       {
         title: 'EKS Control Plane & CRD Best Practices',
@@ -139,7 +134,6 @@ const slideDecks = [
   {
     category: 'Sales Resources',
     categoryIcon: '📊',
-    categoryColor: '#f472b6',
     items: [
       {
         title: 'MRC Sales Pitch — Modern Agentic Applications Day',
@@ -152,29 +146,17 @@ const slideDecks = [
   },
 ];
 
-function SlideCard({title, description, badge, slides, href, color}) {
+function SlideCard({title, description, badge, slides, href}) {
   return (
     <a
       href={useBaseUrl(href)}
+      className="card"
       style={{
         display: 'block',
-        background: 'var(--ifm-card-background-color, #fff)',
-        border: '1px solid var(--ifm-color-emphasis-200)',
         borderRadius: '12px',
         padding: '1.5rem',
         textDecoration: 'none',
         color: 'inherit',
-        transition: 'all 0.25s ease',
-      }}
-      onMouseEnter={e => {
-        e.currentTarget.style.borderColor = color;
-        e.currentTarget.style.transform = 'translateY(-3px)';
-        e.currentTarget.style.boxShadow = `0 8px 24px ${color}22`;
-      }}
-      onMouseLeave={e => {
-        e.currentTarget.style.borderColor = 'var(--ifm-color-emphasis-200)';
-        e.currentTarget.style.transform = 'none';
-        e.currentTarget.style.boxShadow = 'none';
       }}
     >
       <span
@@ -184,8 +166,8 @@ function SlideCard({title, description, badge, slides, href, color}) {
           borderRadius: '12px',
           fontSize: '0.7rem',
           fontWeight: 700,
-          background: `${color}18`,
-          color: color,
+          background: 'var(--ep-secondary-container)',
+          color: 'var(--ep-on-secondary-container)',
           marginBottom: '0.75rem',
         }}
       >
@@ -196,13 +178,13 @@ function SlideCard({title, description, badge, slides, href, color}) {
       </h3>
       <p style={{
         fontSize: '0.85rem',
-        color: 'var(--ifm-color-emphasis-600)',
+        color: 'var(--ep-on-surface-variant)',
         lineHeight: 1.6,
         marginBottom: '0.75rem',
       }}>
         {description}
       </p>
-      <span style={{fontSize: '0.75rem', color: 'var(--ifm-color-emphasis-500)'}}>
+      <span style={{fontSize: '0.75rem', color: 'var(--ep-on-surface-variant)'}}>
         {slides} slides
       </span>
     </a>
@@ -223,7 +205,7 @@ export default function SlidesPage() {
           </h1>
           <p style={{
             fontSize: '1.1rem',
-            color: 'var(--ifm-color-emphasis-600)',
+            color: 'var(--ep-on-surface-variant)',
           }}>
             React 기반 인터랙티브 교육 슬라이드 모음
           </p>
@@ -244,14 +226,13 @@ export default function SlidesPage() {
             </h2>
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 300px), 1fr))',
               gap: '1rem',
             }}>
               {deck.items.map((item) => (
                 <SlideCard
                   key={item.title}
                   {...item}
-                  color={deck.categoryColor}
                 />
               ))}
             </div>

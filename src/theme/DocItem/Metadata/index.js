@@ -27,7 +27,7 @@ export default function MetadataWrapper(props) {
     'devfloor9';
 
   // 이미지: frontmatter image > 전역 소셜 카드
-  const image = assets.image || frontMatter.image || `${siteUrl}/img/docusaurus-social-card.jpg`;
+  const image = assets.image || frontMatter.image || `${siteUrl}/img/social-card.png`;
 
   const techArticle = {
     '@context': 'https://schema.org',
