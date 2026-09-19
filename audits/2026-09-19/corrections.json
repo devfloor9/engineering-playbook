@@ -3783,7 +3783,7 @@
         "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
       ],
       "verification": [
-        "Current applied ownership/version prose and unchanged fenced examples compared with the individual record and Parfit review.",
+        "Current applied ownership/version prose and unchanged fenced examples compared with the individual record and independent review.",
         "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
       ],
       "primary_urls": [
