@@ -3,9 +3,9 @@ title: EKS High Availability Architecture Guide
 description: Architecture patterns and operational strategies for achieving high availability and fault tolerance in Amazon EKS environments
 created: "2026-02-10"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
-reading_time: 45
+reading_time: 76
 tags:
   - eks
   - kubernetes
@@ -23,9 +23,7 @@ category: observability-monitoring
 
 ## 1. Overview
 
-Resiliency is a system's ability to recover to a normal state when failures occur, or to maintain service while minimizing their impact. The core principle of resiliency in cloud-native environments is straightforward: **Failures will happen — prepare through design.**
-
-Understanding failure domains at every layer, from a single Pod failure to a region-wide outage, and establishing the corresponding defense strategies are central to EKS operations.
+Resiliency is the ability to maintain service and recover when components fail. A single Pod termination and the loss of an entire Availability Zone require different responses. This guide explains how to design EKS placement, traffic handling and data recovery for each failure scope.
 
 ### Failure Domain Hierarchy
 
@@ -102,17 +100,19 @@ Multi-AZ deployment is a foundational and powerful strategy for EKS resiliency. 
 
 ### Pod Topology Spread Constraints
 
-Topology Spread Constraints distribute Pods evenly across AZs, nodes, and custom topology domains. The `minDomains` parameter (K8s 1.24 alpha → 1.30 GA) specifies the minimum number of domains across which Pods are distributed.
+Topology Spread Constraints compare matching Pods in the same namespace across eligible topology domains. `minDomains` (K8s 1.24 alpha → 1.30 GA) controls the global minimum used for a hard constraint: when fewer eligible domains exist, that minimum becomes zero. It does not create capacity or guarantee placement in that many AZs.
 
 | Parameter | Description | Recommended Value |
 |----------|------|--------|
-| `maxSkew` | Maximum difference in Pod counts between domains | AZ: 1, node: 2 |
+| `maxSkew` | Hard: allowed difference from the global minimum; soft: scoring preference | Example: AZ 1, hostname 2 |
 | `topologyKey` | Label used to distribute Pods | `topology.kubernetes.io/zone` |
 | `whenUnsatisfiable` | Behavior when the constraint cannot be satisfied | `DoNotSchedule` (hard) or `ScheduleAnyway` (soft) |
-| `minDomains` | Minimum number of distribution domains | Equal to the AZ count (e.g., 3) |
-| `labelSelector` | Selects the target Pods | Same as the Deployment's matchLabels |
+| `minDomains` | Threshold for the hard constraint's global-minimum calculation | Omit for this reduced-zone example; omission behaves as 1 |
+| `labelSelector` | Counts matching Pods in this Pod's namespace | Match the intended workload labels |
 
 **Combined Hard + Soft Strategy** (recommended):
+
+Illustrative manifest, not ready to deploy: replace the image and supply the application's resources and health checks. The reserved `.invalid` image deliberately prevents treating this as a tested deployment.
 
 ```yaml
 apiVersion: apps/v1
@@ -130,14 +130,13 @@ spec:
         app: critical-app
     spec:
       topologySpreadConstraints:
-      # Hard: Even distribution across AZs (must be guaranteed)
+      # Hard: limit skew among eligible zones
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
         whenUnsatisfiable: DoNotSchedule
         labelSelector:
           matchLabels:
             app: critical-app
-        minDomains: 3
       # Soft: Distribution across nodes (best effort)
       - maxSkew: 2
         topologyKey: kubernetes.io/hostname
@@ -145,15 +144,18 @@ spec:
         labelSelector:
           matchLabels:
             app: critical-app
+      containers:
+      - name: app
+        image: example.invalid/critical-app:replace-me
 ```
 
 :::tip maxSkew Configuration Tip
-`maxSkew: 1` ensures the strictest even distribution. Deploying 6 replicas across 3 AZs places exactly 2 in each AZ. When scaling speed is important, relaxing the setting to `maxSkew: 2` provides scheduling flexibility.
+With six matching Pods and three equally eligible, sufficiently provisioned AZs, a balanced placement can be 2/2/2. This is conditional, not an availability guarantee. Omitting `minDomains: 3` removes that specific reduced-domain blocker, but cordoned or unusable nodes can still affect domain counting through affinity, taints and inclusion policies. Test the intended EKS version, two-zone spare capacity and both hard constraints and soft preferences during recovery.
 :::
 
 ### AZ-Aware Karpenter Configuration
 
-Karpenter v1 GA supports declarative configuration of Multi-AZ distribution, disruption budgets, and mixed Spot + On-Demand strategies at the NodePool level.
+Karpenter's `karpenter.sh/v1` NodePool API declares allowed AZs, capacity types and disruption budgets. Requirements allow offerings; they do not reserve capacity, ensure an AZ distribution or set a Spot/On-Demand ratio. The referenced `EC2NodeClass/multi-az` must already select compatible subnets, security groups, AMIs and node identity.
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -164,21 +166,21 @@ spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
-    # Disruption budget: Prevent simultaneous disruption of 20% or more of nodes
+    # Allowed voluntary disruptions: ceil(nodes * 0.20) - deleting - NotReady
     budgets:
     - nodes: "20%"
-    # Operate more conservatively during business hours (optional)
+    # Optional additional budget: Monday-Friday 09:00-17:00 UTC
     # - nodes: "10%"
-    #   schedule: "0 9 * * MON-FRI"  # Weekdays 09:00-17:00
+    #   schedule: "0 9 * * MON-FRI"
     #   duration: 8h
   template:
     spec:
       requirements:
-      # Provision nodes across 3 AZs
+      # Allowed zones, not a guaranteed distribution
       - key: topology.kubernetes.io/zone
         operator: In
         values: ["us-east-1a", "us-east-1b", "us-east-1c"]
-      # Combine Spot + On-Demand for cost optimization and stability
+      # Allowed capacity types, not a guaranteed mixing ratio
       - key: karpenter.sh/capacity-type
         operator: In
         values: ["on-demand", "spot"]
@@ -203,7 +205,7 @@ spec:
 ```
 
 :::warning Spot Instances and Multi-AZ
-Spot instance capacity pools vary by AZ. Specifying 15 or more diverse instance types can minimize provisioning failures caused by insufficient Spot capacity. Mission-critical workloads must run their base capacity on On-Demand instances.
+Spot pools vary by instance type and AZ; the eight types above are illustrative. Choose compatible diversity and interruption-tolerant workloads, then validate available capacity. An On-Demand baseline needs a separate capacity policy; merely allowing both types does not establish it. For disruption budgets, percentage rounding is upward (19 × 20% permits 4 before subtracting deleting/NotReady nodes), and the most restrictive applicable active budget wins. These budgets constrain supported voluntary disruptions, not every interruption or expiration. The optional schedule above is UTC.
 :::
 
 ### Safe Workload Placement with Node Readiness
@@ -212,39 +214,30 @@ When a new node is provisioned in a Multi-AZ environment, it may not be fully pr
 
 #### Node Readiness Controller (Announced in February 2026)
 
-The [Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller) declaratively manages custom taints during node bootstrapping. It delays workload scheduling until all infrastructure requirements are met, including GPU drivers, CNI plugins, CSI drivers, and security agents.
+[Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller) is a separately installed controller, not an EKS built-in readiness guarantee. Pin its controller and CRD together (this example uses v0.1.1 semantics). Pre-register the matching bootstrap `NoSchedule` taints before ordinary workloads can schedule, and provide trusted reporters for each required Node condition. Installing a GPU/CNI/CSI/security component does not automatically publish those custom conditions. Rules, node selection and required-condition statuses must match the pinned CRD; do not copy newer `main` fields into v0.1.1.
 
 ```mermaid
 flowchart TD
-    subgraph "Node Bootstrap Stages"
-        NP[Node provisioning<br/>Start kubelet] --> NR[Node Ready state]
-        NR --> T1[Taint: node.readiness/gpu=NotReady]
-        NR --> T2[Taint: node.readiness/cni=NotReady]
-        NR --> T3[Taint: node.readiness/security=NotReady]
-    end
-
-    subgraph "Health Signal Collection"
-        T1 --> G[GPU driver loaded]
-        T2 --> C[CNI initialization complete]
-        T3 --> S[Security agent installation complete]
-    end
-
-    subgraph "Taint Removal"
-        G --> R1[GPU taint removed ✅]
-        C --> R2[CNI taint removed ✅]
-        S --> R3[Security taint removed ✅]
-    end
-
-    R1 --> WS[Start workload scheduling]
-    R2 --> WS
-    R3 --> WS
+    NP["Provision node with bootstrap NoSchedule taints"] --> NR["Node Ready: necessary, not sufficient"]
+    NR --> G["Reporter: required GPU condition"]
+    NR --> C["Reporter: required CNI condition"]
+    NR --> S["Reporter: required security condition"]
+    G --> R1["Matching rule clears GPU taint"]
+    C --> R2["Matching rule clears CNI taint"]
+    S --> R3["Matching rule clears security taint"]
+    R1 --> ALL{"All required bootstrap guards cleared?"}
+    R2 --> ALL
+    R3 --> ALL
+    ALL -->|yes| F["Scheduler also checks capacity, affinity and other taints"]
+    ALL -->|no| WAIT["Ordinary workloads remain blocked"]
+    F --> WS["Eligible workload may schedule"]
 ```
 
 **Resiliency Benefits:**
 
-- **AZ failure recovery**: When Karpenter provisions nodes in a new AZ, the nodes accept traffic only after they are fully ready
-- **Scale-out events**: Workloads are not placed on unprepared nodes, even during rapid scaling
-- **GPU/ML workloads**: Prevents `CrashLoopBackOff` by blocking scheduling until drivers finish loading
+- **AZ recovery**: block ordinary workloads while the configured replacement-node prerequisites remain unsatisfied.
+- **Scale-out**: bootstrap taints close the registration race only when installed before scheduling; broad workload tolerations can bypass them.
+- **GPU/ML workloads**: a trustworthy driver-readiness condition reduces driver-startup races. It does not prevent unrelated `CrashLoopBackOff` or prove application readiness.
 
 #### Pod Scheduling Readiness (K8s 1.30 GA)
 
@@ -276,7 +269,7 @@ spec:
 
 #### Pod Readiness Gates (AWS LB Controller)
 
-Pod Readiness Gates in the AWS Load Balancer Controller ensure **zero-downtime deployments** during rolling updates:
+AWS Load Balancer Controller Pod Readiness Gates can reduce the gap between Kubernetes readiness and target-group registration during rolling updates. For the v2.14 controller reference, injection requires IP targets, a matching Service and TargetGroupBinding already present when the Pod is created, namespace opt-in, and a functioning admission webhook:
 
 ```yaml
 apiVersion: v1
@@ -287,117 +280,108 @@ metadata:
     elbv2.k8s.aws/pod-readiness-gate-inject: enabled  # Enable automatic injection
 ```
 
-The old Pod does not terminate until the new Pod is registered as an ALB/NLB target and passes health checks, enabling deployments without traffic loss.
+Check that new Pods actually contain the injected readiness gate and that its target-health condition becomes True. A namespace label alone does not retrofit existing Pods. The following rollout strategy retains available replicas while a surge Pod becomes ready, provided spare capacity exists; application draining and LB deregistration still need validation, so zero downtime is not guaranteed.
+
+```yaml
+# Merge into the existing Deployment.spec; not a standalone object.
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxUnavailable: 0
+    maxSurge: 1
+```
 
 :::tip Readiness Feature Selection Guide
 
 | Requirement | Recommended Feature | Level |
 |----------|-----------|-----------|
-| Ensure node bootstrapping is complete | Node Readiness Controller | Node |
+| Configured node prerequisites before placement | Node Readiness Controller plus reporters/bootstrap taints | Node |
 | External validation before Pod scheduling | Pod Scheduling Readiness | Pod |
-| Receive traffic after LB registration is complete | Pod Readiness Gates | Pod |
-| Ensure GPU/specialized hardware readiness | Node Readiness Controller | Node |
-| Zero-downtime rolling deployments | Pod Readiness Gates | Pod |
+| Include LB target health in Pod readiness | Pod Readiness Gates | Pod |
+| Report GPU/special-hardware readiness | Node Readiness Controller plus component reporter | Node |
+| Reduce rollout target-registration races | Pod Readiness Gates plus rollout/drain settings | Pod |
 :::
 
 ### AZ Avoidance Deployment Strategy (ARC Zonal Shift)
 
-AWS Application Recovery Controller (ARC) Zonal Shift automatically or manually redirects traffic away from a specific AZ when a problem is detected there. EKS has supported ARC Zonal Shift since November 2024.
+AWS Application Recovery Controller (ARC) Zonal Shift supports operator/API-requested traffic and placement changes away from one AZ. EKS has supported the integration since November 2024. Zonal Autoshift is separately enabled AWS-managed automation with practice-run prerequisites; a custom Health/EventBridge/Lambda workflow is another implementation, not an automatically installed EKS feature. EKS Zonal Shift cordons affected nodes and adjusts supported traffic handling; it does not itself evict existing Pods or terminate nodes.
 
 ```mermaid
 flowchart LR
-    subgraph "AZ Failure Detection and Response"
-        HD[AWS Health Dashboard<br/>Detect failure events]
-        EB[EventBridge Rule<br/>Filter events]
-        LM[Lambda Function<br/>Automated response]
-    end
-
-    subgraph "ARC Zonal Shift"
-        ZA[Zonal Autoshift<br/>Automatic traffic shift by AWS]
-        ZS[Manual Zonal Shift<br/>Manual shift by an operator]
-    end
-
-    subgraph "EKS Cluster"
-        AZ1[AZ-1a<br/>Healthy]
-        AZ2[AZ-1b<br/>Failure]
-        AZ3[AZ-1c<br/>Healthy]
-    end
-
-    HD --> EB
-    EB --> LM
-    LM --> ZS
-    ZA --> AZ2
-
-    AZ2 -.->|Traffic blocked| AZ1
-    AZ2 -.->|Traffic blocked| AZ3
-
-    style AZ2 fill:#ff4444,stroke:#cc3636,color:#fff
-    style AZ1 fill:#34a853,stroke:#2a8642,color:#fff
-    style AZ3 fill:#34a853,stroke:#2a8642,color:#fff
-    style ZA fill:#ff9900,stroke:#cc7a00,color:#fff
-    style LM fill:#ff9900,stroke:#cc7a00,color:#fff
+    OP["Operator / reviewed custom API automation"] --> ZS["Manual Zonal Shift"]
+    SIGNAL["AWS impairment signals"] --> AUTO["Separately enabled Zonal Autoshift"]
+    PRACTICE["Practice runs and recovery capacity"] --> AUTO
+    ZS --> EKS["Enabled EKS Zonal Shift integration"]
+    AUTO --> EKS
+    EKS --> PLACE["Cordon affected nodes / placement handling"]
+    EKS --> TRAFFIC["Supported traffic changes away from AZ"]
+    PLACE --> CHECK["Verify capacity, topology, storage and application SLOs"]
+    TRAFFIC --> CHECK
+    CHECK --> NOTE["Existing Pods are not automatically evicted"]
 ```
 
-**Enabling and Using ARC Zonal Shift:**
+**ARC Zonal Shift activation and use:**
+
+Illustrative manual-shift template for an already enabled cluster. Enable EKS zonal shift in a separate reviewed configuration change and wait for completion first. Record the returned shift ID, expiry and cancellation owner; cancelling a shift is not proof that application recovery succeeded.
 
 ```bash
-# Enable Zonal Shift on the EKS cluster
-aws eks update-cluster-config \
-  --name my-cluster \
-  --zonal-shift-config enabled=true
-
-# Start a manual Zonal Shift (redirect traffic away from a specific AZ)
-aws arc-zonal-shift start-zonal-shift \
-  --resource-identifier arn:aws:eks:us-east-1:123456789012:cluster/my-cluster \
-  --away-from us-east-1b \
-  --expires-in 3h \
-  --comment "AZ-b impairment detected via Health Dashboard"
-
-# Check Zonal Shift status
-aws arc-zonal-shift list-zonal-shifts \
-  --resource-identifier arn:aws:eks:us-east-1:123456789012:cluster/my-cluster
+# Required: reviewed account/profile/region, enabled cluster, evacuation capacity.
+set -euo pipefail
+: "${AWS_PROFILE:?}" "${AWS_REGION:?}" "${EXPECTED_ACCOUNT_ID:?}"
+: "${CLUSTER_NAME:?}" "${IMPAIRED_AZ:?}"
+aws_scoped=(aws --profile "$AWS_PROFILE" --region "$AWS_REGION" --no-cli-pager)
+actual_account=$("${aws_scoped[@]}" sts get-caller-identity --query Account --output text)
+[[ "$actual_account" == "$EXPECTED_ACCOUNT_ID" ]] || exit 1
+cluster_arn=$("${aws_scoped[@]}" eks describe-cluster --name "$CLUSTER_NAME" --query cluster.arn --output text)
+enabled=$("${aws_scoped[@]}" eks describe-cluster --name "$CLUSTER_NAME" --query cluster.zonalShiftConfig.enabled --output text)
+[[ "$enabled" == "True" ]] || exit 1
+# Review the AZ against this cluster's subnet inventory before this write.
+# APPROVED_AZ must name the exact AZ approved in the runbook.
+[[ "${APPROVED_AZ:-}" == "$IMPAIRED_AZ" ]] || exit 1
+shift_id=$("${aws_scoped[@]}" arc-zonal-shift start-zonal-shift \
+  --resource-identifier "$cluster_arn" --away-from "$IMPAIRED_AZ" \
+  --expires-in 3h --comment "Approved manual zonal evacuation drill" \
+  --query zonalShiftId --output text)
+printf 'Record zonalShiftId=%s; expiry=3h; verify application recovery separately.\n' "$shift_id"
+"${aws_scoped[@]}" arc-zonal-shift list-zonal-shifts --resource-identifier "$cluster_arn"
+# Authorized early recovery uses cancel-zonal-shift with the recorded shift ID.
 ```
 
 :::info Zonal Shift Limitations
 The maximum duration of a Zonal Shift is **3 days**, and it can be extended if necessary. When Zonal Autoshift is enabled, AWS detects AZ-level failures and automatically shifts traffic.
 :::
 
-**Emergency AZ Evacuation Script:**
+**Emergency AZ evacuation: one-node drain template**
+
+Manual eviction is separate from native Zonal Shift. Before using this template, bind `KUBE_CONTEXT` to the verified cluster endpoint, select an explicit node allowlist, inspect all namespaces on each node and confirm surviving-zone capacity, PDBs, volume constraints and application recovery criteria. Do not expand it into an unchecked loop over an AZ. Bash, jq and compatible kubectl are prerequisites; this example has not been run.
 
 ```bash
-#!/bin/bash
-# az-evacuation.sh - Safely evacuate all workloads from an impaired AZ
-IMPAIRED_AZ=$1
-
-if [ -z "$IMPAIRED_AZ" ]; then
-  echo "Usage: $0 <az-name>"
-  echo "Example: $0 us-east-1b"
-  exit 1
+#!/usr/bin/env bash
+# One explicitly approved node; inspection is the default.
+set -euo pipefail
+: "${KUBE_CONTEXT:?}" "${NODE:?}" "${EXPECTED_AZ:?}"
+k=(kubectl --context "$KUBE_CONTEXT")
+node_json=$("${k[@]}" get node "$NODE" -o json)
+actual_az=$(jq -er '.metadata.labels["topology.kubernetes.io/zone"]' <<<"$node_json")
+[[ "$actual_az" == "$EXPECTED_AZ" ]] || exit 1
+was_cordoned=$(jq -r '.spec.unschedulable // false' <<<"$node_json")
+printf 'Context=%s Node=%s AZ=%s previouslyCordoned=%s\n' \
+  "$KUBE_CONTEXT" "$NODE" "$actual_az" "$was_cordoned"
+# Node drain affects Pods across namespaces. Save this complete inventory.
+"${k[@]}" get pods --all-namespaces --field-selector "spec.nodeName=$NODE" -o json
+"${k[@]}" get pdb --all-namespaces -o json
+if [[ "${DRAIN_APPROVED:-}" != "$NODE" ]]; then
+  printf 'Inspection only. Review owners, PDBs, local data and replacement capacity.\n'
+  exit 0
 fi
-
-echo "=== AZ Evacuation: ${IMPAIRED_AZ} ==="
-
-# 1. Cordon nodes in the affected AZ (block new Pod scheduling)
-echo "[Step 1] Cordoning nodes in ${IMPAIRED_AZ}..."
-kubectl get nodes -l topology.kubernetes.io/zone=${IMPAIRED_AZ} -o name | \
-  xargs -I {} kubectl cordon {}
-
-# 2. Drain nodes in the affected AZ (safely move existing Pods)
-echo "[Step 2] Draining nodes in ${IMPAIRED_AZ}..."
-kubectl get nodes -l topology.kubernetes.io/zone=${IMPAIRED_AZ} -o name | \
-  xargs -I {} kubectl drain {} \
-    --ignore-daemonsets \
-    --delete-emptydir-data \
-    --grace-period=30 \
-    --timeout=120s
-
-# 3. Verify evacuation results
-echo "[Step 3] Verifying evacuation..."
-echo "Remaining pods in ${IMPAIRED_AZ}:"
-kubectl get pods --all-namespaces -o wide | grep ${IMPAIRED_AZ} | grep -v DaemonSet
-
-echo "=== Evacuation complete ==="
+# Uses Eviction API, honors Pod grace periods; refuses emptyDir deletion by default.
+# 15m is an observation limit, not a recovery guarantee. A failure leaves state to inspect.
+"${k[@]}" drain "$NODE" --ignore-daemonsets --timeout=15m
+"${k[@]}" get pods --all-namespaces --field-selector "spec.nodeName=$NODE" -o json
+printf 'Drain command returned. Verify replacement Pods, traffic and data separately.\n'
 ```
+
+On failure, stop and retain the node's previous cordon state and command output. Do not bypass a PDB or discard `emptyDir` data to make the command succeed. Recovery may uncordon only an explicitly identified node that this change cordoned, after health/capacity checks and coordination with other operators; never uncordon a node that was already cordoned. DaemonSet, mirror and completed Pods require owner-aware interpretation of the remaining inventory. A successful drain is not an application availability measurement.
 
 ### Handling EBS AZ-Pinning
 
@@ -418,19 +402,19 @@ volumeBindingMode: WaitForFirstConsumer
 allowVolumeExpansion: true
 ```
 
-`WaitForFirstConsumer` delays volume creation until the Pod is scheduled, ensuring that the volume is created in the same AZ as the Pod.
+`WaitForFirstConsumer` delays binding/provisioning until a consuming Pod's scheduling requirements are available, so initial EBS placement can align with the selected topology. The resulting volume remains confined to its AZ; cross-AZ recovery requires a separate data recovery or replication design.
 
-**EFS as a Cross-AZ Alternative**: Use Amazon EFS for workloads that require storage access even during an AZ failure. EFS supports concurrent access from all AZs and therefore avoids AZ-pinning issues.
+**EFS Cross-AZ alternative**: EFS Regional stores data across multiple AZs; EFS One Zone stores data in one AZ and is exposed to loss of that AZ. For a Regional recovery design, configure reachable mount targets in the surviving AZs, security groups, DNS and client/application retry behavior. Choosing EFS alone does not prove continuous access during a fault.
 
 | Storage | AZ Dependency | Failure Behavior | Suitable Workloads |
 |----------|-----------|-------------|----------------|
 | EBS (gp3) | Pinned to a single AZ | Inaccessible during an AZ failure | Databases, stateful applications |
-| EFS | Cross-AZ | Accessible even during an AZ failure | Shared files, CMS, logs |
+| EFS Regional / One Zone | Multi-AZ storage / single-AZ storage | Regional recovery depends on mount/network/client design; One Zone remains AZ-dependent | Shared files, CMS, logs |
 | Instance Store | Node-dependent | Data lost on node termination | Temporary caches, scratch space |
 
 ### Cross-AZ Cost Optimization
 
-Cross-AZ network traffic is a major cost driver for Multi-AZ deployments. AWS charges $0.01/GB in each direction for data transfer between AZs in the same region.
+Cross-AZ transfer can be a material Multi-AZ cost. Rates depend on the specific AWS service, region, direction and exemptions; a single `$0.01/GB` rule does not apply to every path. Price the actual billed source/destination path using current public service pricing and measured bytes.
 
 **Istio Locality-Aware Routing** can minimize Cross-AZ traffic:
 
@@ -452,7 +436,7 @@ spec:
     loadBalancer:
       localityLbSetting:
         enabled: true
-        # Prefer the same AZ; fail over to another AZ on failure
+        # Illustrative locality weights; health/capacity can change observed routing
         distribute:
         - from: "us-east-1/us-east-1a/*"
           to:
@@ -464,10 +448,15 @@ spec:
             "us-east-1/us-east-1b/*": 80
             "us-east-1/us-east-1a/*": 10
             "us-east-1/us-east-1c/*": 10
+        - from: "us-east-1/us-east-1c/*"
+          to:
+            "us-east-1/us-east-1c/*": 80
+            "us-east-1/us-east-1a/*": 10
+            "us-east-1/us-east-1b/*": 10
 ```
 
 :::tip Cross-AZ Cost Savings
-Locality-Aware routing can keep 80% or more of traffic within the same AZ, significantly reducing Cross-AZ data transfer costs. High-traffic services can save thousands of dollars per month.
+Each of the three source-locality rules totals 100. With populated, healthy localities the example expresses an 80/10/10 preference, not a measured byte split or savings percentage. Verify source locality labels, endpoint health, request/response sizes and actual billed transfer. No monthly savings measurement is supplied here.
 :::
 
 ---
@@ -478,7 +467,7 @@ Cell-Based Architecture is an advanced resiliency pattern recommended by the AWS
 
 ### Cell Concepts and Design Principles
 
-A cell is a self-contained service unit that can operate independently. A failure in one cell does not affect other cells.
+A cell is a service unit designed to operate independently. Limiting cross-cell dependencies reduces fault propagation, but shared routing, identity, networks, deployments or data services can still cause correlated failures. Validate those boundaries rather than assuming every cell failure is isolated.
 
 ```mermaid
 flowchart TB
@@ -538,13 +527,13 @@ flowchart TB
 
 | Implementation Approach | Namespace-Based Cell | Cluster-Based Cell |
 |-----------|-------------------|------------------|
-| **Isolation level** | Logical isolation (soft) | Physical isolation (hard) |
-| **Resource isolation** | ResourceQuota, LimitRange | Complete cluster isolation |
-| **Network isolation** | NetworkPolicy | VPC/Subnet level |
-| **Blast Radius** | Potential impact within the same cluster | Complete isolation between cells |
-| **Operational complexity** | Low (single cluster) | High (multiple clusters) |
-| **Cost** | Low | High (control plane cost × number of cells) |
-| **Suitable environments** | Small to medium scale, internal services | Large scale, regulatory compliance requirements |
+| **Isolation level** | Namespace/API boundary within one cluster | Separate cluster control planes; infrastructure boundaries depend on design |
+| **Resource isolation** | ResourceQuota, LimitRange; shared nodes unless separately placed | Independently provisioned cluster capacity; shared dependencies still matter |
+| **Network isolation** | NetworkPolicy with a supporting/enforcing network implementation | Explicit VPC/subnet/routing/security design |
+| **Blast radius** | Shared control plane and nodes can affect multiple cells | Reduced cluster-level coupling; shared account/region/data risks remain |
+| **Operational complexity** | Lower (single cluster) | Higher (multiple clusters) |
+| **Cost** | Shared cluster resources | Additional control planes and capacity, depending on design |
+| **Suitable environments** | Small/medium or internal services with acceptable shared risks | Workloads requiring stronger verified boundaries; compliance is a separate assessment |
 
 **Namespace-Based Cell Implementation Example:**
 
@@ -626,7 +615,7 @@ Controls cell routing at the DNS level. Configure health checks and routing cont
 
 **2. ALB Target Groups:**
 
-Distributes traffic across cells using ALB weighted target groups. Header-based routing rules map customers to cells.
+ALB weighted target groups distribute traffic among cells, while header rules can implement tenant-to-cell routing. An empty or unhealthy weighted target group does not automatically fail over to another weighted group. The router/control workflow must explicitly handle health, capacity and the tenant's available data.
 
 **3. Service Mesh (Istio):**
 
@@ -645,7 +634,7 @@ Implements cell routing through header-based routing in Istio VirtualService. Th
 
 Shuffle Sharding assigns each customer (or tenant) to a small number of randomly selected cells from the full cell pool. This limits the impact of a single cell failure to a small subset of customers.
 
-**How It Works**: With 8 cells and 2 cells assigned to each customer, there are C(8,2) = 28 possible combinations. If one cell fails, only customers using that cell are affected, and they automatically fail over to their remaining cell.
+**Principle**: assigning two of eight cells gives C(8,2) = 28 possible pairs. The ConfigMap below stores illustrative assignments only; Kubernetes does not interpret it as a failover policy. A router must use a stable tenant mapping, detect unhealthy cells, check alternate capacity and data availability, bound retries and prevent duplicate non-idempotent operations. Failover behavior and the fraction of affected tenants remain unverified without that implementation and a measured fault test.
 
 ```yaml
 # Shuffle Sharding ConfigMap example
@@ -681,16 +670,18 @@ Multi-Cluster and Multi-Region strategies prepare for region-level failures.
 
 ### Architecture Pattern Comparison
 
-| Pattern | Description | RTO | RPO | Cost | Complexity | Suitable Environments |
-|------|------|-----|-----|------|--------|------------|
-| **Active-Active** | All regions process traffic simultaneously | ~0 | ~0 | Very high | Very high | Global services, extremely stringent SLAs |
-| **Active-Passive** | One active region, others on standby | Minutes to hours | Minutes | High | High | Most business applications |
-| **Regional Isolation** | Independent regional operations and data isolation | Independent per region | N/A | Medium | Medium | Regulatory compliance, data sovereignty |
-| **Hub-Spoke** | Central hub for management, spokes for serving | Minutes | Seconds to minutes | Medium to high | Medium | Environments prioritizing management efficiency |
+| Pattern | Description | RTO dependency | RPO dependency | Cost / complexity | Suitable environments |
+|------|------|------|------|------|------|
+| **Active-Active** | Multiple regions serve traffic | Detection, routing and surviving capacity; not inherently zero | Replication lag and conflict/data-loss policy; not inherently zero | Usually more operating components; workload-dependent | Global serving with tested recovery targets |
+| **Active-Passive** | One region serves, another waits | Standby capacity, promotion, restore and routing | Replication/checkpoint lag or backup age | Depends on cold/warm/hot standby | Applications with a defined standby strategy |
+| **Regional Isolation** | Independent regional service/data boundaries | Region-specific recovery design | Region-specific data protection | Depends on duplication and independence | Regional autonomy or data residency requirements |
+| **Hub-Spoke** | Central management of serving clusters | Management topology alone defines no RTO | Management topology alone defines no RPO | Depends on management and data architecture | Central operations with separately designed recovery |
+
+These are design dependencies, not measured recovery values. Set explicit RTO/RPO targets and validate failure detection, application correctness, data loss and sustained recovery under the intended load.
 
 ### Global Accelerator + EKS
 
-AWS Global Accelerator uses the AWS global network to route traffic to the EKS cluster in the region closest to the user.
+AWS Global Accelerator routes new connections using client location, endpoint health and configured endpoint weights/traffic dials. The chosen endpoint need not be in the geographically nearest region. Existing connections and application/data recovery have separate behavior; endpoint health alone does not prove data correctness.
 
 ```mermaid
 flowchart TB
@@ -862,7 +853,7 @@ Karpenter disruption budgets (`budgets: - nodes: "20%"`) and PDBs work together.
 
 ### Graceful Shutdown
 
-The Graceful Shutdown pattern safely completes in-flight requests and stops accepting new requests when a Pod terminates.
+Graceful Shutdown aims to complete in-flight work during termination. The complete Deployment structure below uses matching selector/template labels; an existing Deployment's immutable selector must be preserved when adapting it. The application-specific image must implement `/ready`, handle SIGTERM, and include the shell/sleep used by this illustrative hook.
 
 ```yaml
 apiVersion: apps/v1
@@ -870,7 +861,13 @@ kind: Deployment
 metadata:
   name: web-server
 spec:
+  selector:
+    matchLabels:
+      app: web-server
   template:
+    metadata:
+      labels:
+        app: web-server
     spec:
       terminationGracePeriodSeconds: 60
       containers:
@@ -881,8 +878,8 @@ spec:
         lifecycle:
           preStop:
             exec:
-              # Wait for Endpoint removal with sleep (avoid a race between Kubelet and Endpoint Controller)
-              # kubelet automatically sends SIGTERM after the preStop Hook completes
+              # Illustrative delay, not proof that all traffic has drained.
+              # The Pod grace-period clock includes preStop execution.
               command: ["/bin/sh", "-c", "sleep 5"]
         readinessProbe:
           httpGet:
@@ -897,30 +894,29 @@ spec:
 ```mermaid
 sequenceDiagram
     participant K8s as Kubernetes
-    participant EP as Endpoint Controller
-    participant Pod as Pod
+    participant EP as EndpointSlice / traffic consumers
+    participant Pod as kubelet / container
     participant App as Application
-
-    K8s->>Pod: Request Pod deletion
-    K8s->>EP: Start Endpoint removal
-
-    par Execute preStop Hook
-        Pod->>Pod: sleep 5 (wait for EP removal)
-    and Update Endpoint
-        EP->>EP: Remove Pod IP from Endpoint
+    K8s->>Pod: Deletion observed, grace-period countdown starts
+    par Termination hook
+        Pod->>Pod: preStop sleep 5 (illustrative)
+    and Asynchronous endpoint propagation
+        K8s->>EP: Endpoint terminating / ready=false
+        EP->>EP: Propagate routing and draining changes
     end
-
-    Pod->>App: Send SIGTERM
-    App->>App: Stop accepting new requests
-    App->>App: Complete in-flight requests (up to 55 seconds)
-    App->>K8s: Exit normally
-
-    Note over K8s,App: terminationGracePeriodSeconds: 60
-    Note over Pod,App: preStop(5 seconds) + Shutdown(up to 55 seconds) = within 60 seconds
+    Pod->>App: SIGTERM after hook completes
+    App->>App: Drain in-flight work within remaining budget
+    alt Process exits before deadline
+        App-->>Pod: Exit
+    else Grace period exhausted
+        Pod->>App: Forced termination
+    end
+    Note over K8s,App: 60s includes hook and shutdown, reserve a margin
+    Note over EP,App: A fixed sleep cannot prove traffic propagation completed
 ```
 
 :::tip Why preStop sleep Is Needed
-When Kubernetes deletes a Pod, preStop Hook execution and Endpoint removal occur **asynchronously**. Adding a 5-second sleep to preStop gives the Endpoint Controller time to remove the Pod IP from the service, preventing traffic from reaching the terminating Pod.
+The hook and EndpointSlice/traffic updates are asynchronous. A five-second sleep is only a tunable delay; existing connections and slow propagation can outlast it. Measure deregistration and in-flight request durations, then budget the hook plus application drain and a margin inside the 60-second grace period. Do not promise exactly 55 seconds of application shutdown or zero lost requests.
 :::
 
 ### Circuit Breaker (Istio DestinationRule)
@@ -944,11 +940,12 @@ spec:
         http1MaxPendingRequests: 50
         http2MaxRequests: 100
         maxRequestsPerConnection: 10
+        # Maximum outstanding concurrent retries, not retries per request.
         maxRetries: 3
     outlierDetection:
       # Eject an instance from the pool after 5 consecutive 5xx errors
       consecutive5xxErrors: 5
-      # Check instance health every 30 seconds
+      # Passive outlier-analysis interval, not an active health-check probe
       interval: 30s
       # Minimum isolation time for an ejected instance
       baseEjectionTime: 30s
@@ -980,12 +977,14 @@ spec:
 
 **Retry Best Practices:**
 
-| Setting | Recommended Value | Reason |
-|------|--------|------|
-| `attempts` | 2-3 | Too many retries amplify load |
-| `perTryTimeout` | 1/3 of the overall timeout | Allows 3 retries to complete within the overall timeout |
-| `retryOn` | `5xx,connect-failure` | Retry only transient failures |
-| `retryRemoteLocalities` | `true` | Retry against instances in other AZs as well |
+| Setting | Example / interpretation | Reason |
+|------|------|------|
+| `attempts` | 3 additional retries, up to 4 total attempts | Retry load includes the initial attempt |
+| `perTryTimeout` | 3s inside the 10s overall timeout | Four full 3s attempts plus backoff do not fit; the overall deadline limits execution |
+| `retryOn` | Selected transient failures, with idempotency/duplicate handling | A retriable status alone does not make a business operation safe to repeat |
+| `retryRemoteLocalities` | `true` permits eligible remote localities | Requires discovery, health and data/capacity readiness there |
+
+The example specifies upper bounds, not a promise to execute all three retries. Budget initial work, retry delays and backoff together.
 
 :::warning Rate Limiting Adoption Considerations
 Rate Limiting is a core resiliency measure alongside Circuit Breakers and retries, but incorrect configuration can block legitimate traffic. Implement it using an Istio EnvoyFilter or an external rate limiter, such as one backed by Redis, and **always introduce it gradually**. The recommended progression is monitoring mode → warning mode → blocking mode.
@@ -997,14 +996,14 @@ EKS Auto Mode automates infrastructure management, but its characteristics must 
 
 | Item | Auto Mode Characteristics | Resiliency Impact | Recommended Response |
 |------|---------------|---------------|---------|
-| **Node replacement** | Frequent node replacement for OS patches and optimization | More frequent Pod relocation | PDB required; `terminationGracePeriodSeconds` 90 seconds+ |
-| **Instance diversity** | Automatic mix of Graviton + x86 and Spot + On-Demand | Performance differences between instances | Set a high Startup Probe failureThreshold (30+) |
-| **Spot interruption** | Automatic Spot Fallback handling | Termination after a 2-minute warning | Graceful Shutdown + preStop sleep required |
-| **AZ distribution** | Auto Mode selects instances automatically | AZ distribution is the user's responsibility | Explicit Topology Spread Constraints required |
+| **Node replacement** | Managed updates and node lifecycle | Workloads may move; voluntary disruption controls have limits | PDB plus measured shutdown budget; no universal 90-second minimum |
+| **Instance diversity** | Built-in general-purpose: amd64 On-Demand; system: amd64/arm64 On-Demand | Custom pools and compatible images are needed for other choices | Explicitly configure capacity types/architectures and measure startup time |
+| **Spot interruption** | Spot requires a custom NodePool; replacement capacity is conditional | Notices are best effort, usually two minutes; hibernation is an exception | Design checkpoint/recovery and drain for the actual interruption mode |
+| **AZ distribution** | Provisioning follows requirements and available offerings | AZ allowance alone does not ensure workload distribution | Define topology constraints and validate surviving-zone capacity |
 
 :::tip Auto Mode + Resiliency Checklist
 In Auto Mode environments, distinguish **infrastructure-level automation** from **application-level resiliency**:
-- **Auto Mode responsibilities**: Node provisioning, Spot Fallback, OS patches, instance selection
+- **Auto Mode manages**: node provisioning, managed OS lifecycle and instance selection within configured requirements; it does not promise a Spot/On-Demand ratio or unlimited fallback capacity.
 - **User responsibilities**: PDB, Topology Spread, Graceful Shutdown, Probe configuration, Circuit Breakers
 
 For detailed Probe and resource configuration in Auto Mode environments, refer to [EKS Pod Health Checks & Lifecycle Management](/docs/eks-best-practices/operations-reliability/eks-pod-health-lifecycle) and the [EKS Pod Resource Optimization Guide](/docs/eks-best-practices/resource-cost/eks-resource-optimization).
@@ -1022,25 +1021,33 @@ AWS FIS is a managed Chaos Engineering service that injects failures into AWS se
 
 **Scenario 1: Pod Deletion (Application Resiliency Test)**
 
+These JSON blocks illustrate `CreateExperimentTemplate` request shapes, not deployable experiments. Replace every example account, region, ARN and token; supply an existing action-scoped FIS role and a tested CloudWatch stop alarm. A fresh idempotency token is needed for each distinct create request; an SDK/CLI may generate it when omitted. No template is created or experiment started here.
+
+For Pod deletion, use standard regional EKS 1.30+ and review the current action requirements, namespace RBAC, experiment-role Kubernetes access, injector image access and admission/security settings. The current FIS documentation requires a writable target root filesystem for monitoring; do not relax a production security policy merely to run this example. `chaos-demo/fis-pod-delete` and at least three explicitly approved matching Pods must exist. Pod targets use parameters, not AWS tags/ARNs. Omitting `gracePeriodSeconds` uses the Pod's grace period; deletion does not use PDB admission.
+
 ```json
 {
-  "description": "EKS Pod termination test",
+  "clientToken": "00000000-0000-4000-8000-000000000001",
+  "description": "Illustrative deletion of three selected EKS Pods",
+  "roleArn": "arn:aws:iam::123456789012:role/REPLACE_WITH_REVIEWED_FIS_ROLE",
   "targets": {
     "eks-pods": {
       "resourceType": "aws:eks:pod",
-      "resourceTags": {
-        "app": "critical-api"
-      },
       "selectionMode": "COUNT(3)",
       "parameters": {
-        "clusterIdentifier": "arn:aws:eks:us-east-1:123456789012:cluster/prod-cluster",
-        "namespace": "production"
+        "clusterIdentifier": "arn:aws:eks:us-east-1:123456789012:cluster/REPLACE_WITH_CLUSTER",
+        "namespace": "chaos-demo",
+        "selectorType": "labelSelector",
+        "selectorValue": "chaos-scope=critical-api-approved"
       }
     }
   },
   "actions": {
     "terminate-pods": {
       "actionId": "aws:eks:pod-delete",
+      "parameters": {
+        "kubernetesServiceAccount": "fis-pod-delete"
+      },
       "targets": {
         "Pods": "eks-pods"
       }
@@ -1049,28 +1056,28 @@ AWS FIS is a managed Chaos Engineering service that injects failures into AWS se
   "stopConditions": [
     {
       "source": "aws:cloudwatch:alarm",
-      "value": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:HighErrorRate"
+      "value": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:REPLACE_WITH_TESTED_STOP_ALARM"
     }
   ]
 }
 ```
 
-**Scenario 2: AZ Failure Simulation**
+**Scenario 2: Stop selected workers in one AZ**
+
+This tests the loss of the listed worker capacity, not a complete AZ outage: it does not impair every network/service dependency or prevent replacement launches. Replace the example ARN with a reviewed allowlist after verifying cluster ownership, AZ, supported instance state/type, every hosted namespace and local data. `ALL` refers only to that explicit list. FIS does not allow resource ARNs and resource filters on the same target, so verify AZ membership in the preflight inventory rather than adding an AZ filter here.
+
+The ten-minute restart parameter is a fault duration setting, not a measured service RTO. Record the experiment/instance IDs and a recovery owner; stop conditions do not guarantee that already stopped instances, controllers or application state are restored.
 
 ```json
 {
-  "description": "Simulate AZ failure for EKS",
+  "clientToken": "00000000-0000-4000-8000-000000000002",
+  "description": "Illustrative stop of an explicitly approved EKS worker instance in one AZ",
+  "roleArn": "arn:aws:iam::123456789012:role/REPLACE_WITH_REVIEWED_FIS_ROLE",
   "targets": {
-    "eks-nodes-az1a": {
+    "approved-worker": {
       "resourceType": "aws:ec2:instance",
-      "resourceTags": {
-        "kubernetes.io/cluster/my-cluster": "owned"
-      },
-      "filters": [
-        {
-          "path": "Placement.AvailabilityZone",
-          "values": ["us-east-1a"]
-        }
+      "resourceArns": [
+        "arn:aws:ec2:us-east-1:123456789012:instance/i-0123456789abcdef0"
       ],
       "selectionMode": "ALL"
     }
@@ -1082,14 +1089,14 @@ AWS FIS is a managed Chaos Engineering service that injects failures into AWS se
         "startInstancesAfterDuration": "PT10M"
       },
       "targets": {
-        "Instances": "eks-nodes-az1a"
+        "Instances": "approved-worker"
       }
     }
   },
   "stopConditions": [
     {
       "source": "aws:cloudwatch:alarm",
-      "value": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:CriticalServiceDown"
+      "value": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:REPLACE_WITH_TESTED_STOP_ALARM"
     }
   ]
 }
@@ -1097,17 +1104,22 @@ AWS FIS is a managed Chaos Engineering service that injects failures into AWS se
 
 **Scenario 3: Network Latency Injection**
 
+The target must be an SSM-managed EC2 instance with an appropriate instance profile and a supported OS (the current preconfigured-document support list includes Amazon Linux 2023, Ubuntu, RHEL 8/9 and CentOS 9). Confirm `eth0` is the intended interface and review its full host-level blast radius, including control-plane/SSM connectivity. The network-latency document needs preinstalled `atd`, `dig` and `tc`; `InstallDependencies: "False"` explicitly disables the default dependency installation. Pin and review the SSM document version in the actual experiment.
+
+`DurationSeconds: "300"` controls the injected fault, while `duration: "PT10M"` is an illustrative FIS monitoring window. Setup/cleanup can extend document execution; measure it and choose a suitable window. FIS action completion is not proof of SSM completion or network restoration. Record command IDs, inspect final SSM status and rollback logs, and verify restored connectivity and application SLOs.
+
 ```json
 {
-  "description": "Inject network latency to EKS nodes",
+  "clientToken": "00000000-0000-4000-8000-000000000003",
+  "description": "Illustrative network latency on one approved SSM-managed EKS worker",
+  "roleArn": "arn:aws:iam::123456789012:role/REPLACE_WITH_REVIEWED_FIS_ROLE",
   "targets": {
-    "eks-nodes": {
+    "approved-worker": {
       "resourceType": "aws:ec2:instance",
-      "resourceTags": {
-        "kubernetes.io/cluster/my-cluster": "owned",
-        "app-tier": "backend"
-      },
-      "selectionMode": "PERCENT(50)"
+      "resourceArns": [
+        "arn:aws:ec2:us-east-1:123456789012:instance/i-0123456789abcdef0"
+      ],
+      "selectionMode": "ALL"
     }
   },
   "actions": {
@@ -1115,14 +1127,20 @@ AWS FIS is a managed Chaos Engineering service that injects failures into AWS se
       "actionId": "aws:ssm:send-command",
       "parameters": {
         "documentArn": "arn:aws:ssm:us-east-1::document/AWSFIS-Run-Network-Latency",
-        "documentParameters": "{\"DurationSeconds\":\"300\",\"DelayMilliseconds\":\"200\",\"Interface\":\"eth0\"}",
-        "duration": "PT5M"
+        "documentParameters": "{\"DurationSeconds\":\"300\",\"DelayMilliseconds\":\"200\",\"Interface\":\"eth0\",\"InstallDependencies\":\"False\"}",
+        "duration": "PT10M"
       },
       "targets": {
-        "Instances": "eks-nodes"
+        "Instances": "approved-worker"
       }
     }
-  }
+  },
+  "stopConditions": [
+    {
+      "source": "aws:cloudwatch:alarm",
+      "value": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:REPLACE_WITH_TESTED_STOP_ALARM"
+    }
+  ]
 }
 ```
 
@@ -1142,7 +1160,16 @@ helm install litmus litmuschaos/litmus \
   --set portal.frontend.service.type=LoadBalancer
 ```
 
-**ChaosEngine Example (Pod Delete):**
+**ChaosEngine example (Pod Delete):**
+
+Illustrative and not runnable from the ChaosCenter Helm install alone. Preserve the consistent `litmuschaos` repository alias above. Before activating this engine, pin compatible chart/controller/CRD/experiment image versions and provide all of the following in the reviewed environment:
+
+- A ChaosExperiment named `pod-delete` in `production`, from the pinned upstream experiment definition.
+- A `production/litmus-admin` ServiceAccount and namespace-scoped RBAC for that exact experiment and runner; do not substitute cluster-admin.
+- A connected agent/operator watching `production`, approved target labels, any experiment-required annotations, and a measured abort/restore procedure.
+- A steady-state probe with tested failure handling (including `stopOnFailure` when supported by the pinned probe version).
+
+`engineState: active` requests execution once reconciled. The Pod percentage and timing below are illustrative; they are not authorization to affect production. A complete runnable deployment cannot be supplied without the missing versioned dependencies and permissions evidence.
 
 ```yaml
 apiVersion: litmuschaos.io/v1alpha1
@@ -1189,36 +1216,43 @@ helm install chaos-mesh chaos-mesh/chaos-mesh \
   --set chaosDaemon.socketPath=/run/containerd/containerd.sock
 ```
 
-**NetworkChaos Example (Network Partition):**
+**NetworkChaos example (network partition through Schedule):**
+
+For Chaos Mesh v2.8.4, recurrence belongs in a `Schedule` CR, not `NetworkChaos.spec.scheduler`. This is a recurring destructive test definition, not an apply-ready deployment: the matching controller/CRDs, containerd socket, cross-namespace watch/authorization, explicit target inventory and an approved abort/cleanup procedure must be verified first. `Forbid` prevents overlapping children of this Schedule; it does not prevent unrelated experiments.
 
 ```yaml
 apiVersion: chaos-mesh.org/v1alpha1
-kind: NetworkChaos
+kind: Schedule
 metadata:
   name: network-partition
   namespace: chaos-mesh
 spec:
-  action: partition
-  mode: all
-  selector:
-    namespaces:
-    - production
-    labelSelectors:
-      "app": "frontend"
-  direction: both
-  target:
+  schedule: "@every 24h"
+  historyLimit: 2
+  concurrencyPolicy: Forbid
+  type: NetworkChaos
+  networkChaos:
+    action: partition
+    mode: all
     selector:
       namespaces:
       - production
       labelSelectors:
-        "app": "backend"
-    mode: all
-  duration: "5m"
-  scheduler:
-    cron: "@every 24h"
+        app: frontend
+    direction: both
+    target:
+      selector:
+        namespaces:
+        - production
+        labelSelectors:
+          app: backend
+      mode: all
+    duration: "5m"
 ```
 
-**PodChaos Example (Pod Kill):**
+**PodChaos example (Pod Kill):**
+
+`pod-kill` is a one-shot deletion, not continuous failure for one minute. The example deliberately shows immediate deletion with `gracePeriod: 0`; it can lose in-flight work and bypasses PDB protection. Use it only for an explicitly approved abrupt-loss experiment after target inventory and recovery checks. A graceful-termination test needs a separately chosen, measured grace period. The controller/authorization prerequisites above also apply.
 
 ```yaml
 apiVersion: chaos-mesh.org/v1alpha1
@@ -1235,7 +1269,6 @@ spec:
     - production
     labelSelectors:
       "app": "api-server"
-  duration: "1m"
   gracePeriod: 0
 ```
 
@@ -1244,18 +1277,18 @@ spec:
 | Feature | AWS FIS | Litmus Chaos | Chaos Mesh |
 |------|---------|-------------|------------|
 | **Type** | Managed service | Open source (CNCF) | Open source (CNCF) |
-| **Scope** | AWS infrastructure + K8s | Kubernetes only | Kubernetes only |
-| **Failure types** | EC2, EKS, RDS, network | Pod, Node, network, DNS | Pod, network, I/O, time, JVM |
-| **AZ failure simulation** | Native support | Limited (Pod/Node level) | Limited (Pod/Node level) |
-| **Dashboard** | AWS Console | Litmus Portal (web UI) | Chaos Dashboard (web UI) |
-| **Cost** | Charged per execution | Free (infrastructure costs only) | Free (infrastructure costs only) |
-| **Stop Condition** | CloudWatch Alarm integration | Manual / API | Manual / API |
+| **Scope** | Supported AWS resources and EKS actions | Kubernetes plus supported infrastructure experiments, including AWS | Kubernetes plus supported infrastructure experiments, including AWSChaos |
+| **Fault types** | Action-specific EC2, EKS, RDS and network faults | Version-specific Pod, node, network and infrastructure experiments | Version-specific Pod, network, I/O, time, JVM and infrastructure faults |
+| **AZ scenarios** | Scenario/action set must model the intended dependencies | Depends on selected experiments and topology | Depends on selected experiments and topology |
+| **Dashboard** | AWS Console | Litmus Portal | Chaos Dashboard |
+| **Cost** | Action-minute pricing; additional target-account charges can apply | Open-source software plus infrastructure and operations | Open-source software plus infrastructure and operations |
+| **Stop condition** | CloudWatch alarm stop conditions; action-specific recovery | Probes and supported stopOnFailure, plus workflow/manual controls | Workflow/manual controls and separately validated observation/abort logic |
 | **Operational complexity** | Low | Medium | Medium |
 | **GitOps integration** | CloudFormation / CDK | CRD-based (ArgoCD-compatible) | CRD-based (ArgoCD-compatible) |
 | **Recommended scenarios** | Infrastructure-level failure testing | K8s-native testing | When fine-grained fault injection is required |
 
 :::tip Tool Selection Guide
-A **hybrid approach** is recommended: start with AWS FIS to test infrastructure-level failures such as AZ and network failures, then use Litmus or Chaos Mesh for fine-grained application-level failure tests. AWS FIS stop conditions, based on CloudWatch Alarms, are essential for safe testing in production environments.
+Choose tools from the exact fault model, supported version and observable recovery criteria. Combining FIS with Kubernetes-native experiments is one option. A stop condition requests that an experiment stop; it is not a universal rollback transaction. Check each action's cancellation, cleanup and restoration behavior before relying on it.
 :::
 
 ### Game Day Runbook Template
@@ -1309,99 +1342,82 @@ flowchart LR
     style R1 fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-**Game Day Automation Script:**
+**Game Day evidence collection and action lifecycle:**
+
+This collector binds the AWS account/region/cluster to the selected kubeconfig endpoint and records complete namespace snapshots. It requires read access, Bash, jq, Python 3, AWS CLI and compatible kubectl; it makes no cluster configuration change and injects no fault. Run it only in the reviewed environment, once before and once after the separately authorized experiment, using different new output directories. Snapshot collection is not atomic; retain both timestamps. Do not publish raw Pod specifications or operational identifiers without review.
 
 ```bash
-#!/bin/bash
-# game-day.sh - Automate Game Day execution
+#!/usr/bin/env bash
+# Collect one before/after snapshot. No fault is injected by this script.
 set -euo pipefail
+if [[ $# -ne 8 ]]; then
+  printf 'Usage: %s <context> <cluster> <namespace> <profile> <region> <account-id> <phase> <new-output-dir>\n' "$0" >&2
+  exit 2
+fi
+KUBE_CONTEXT=$1 CLUSTER_NAME=$2 NAMESPACE=$3 AWS_PROFILE=$4
+AWS_REGION=$5 EXPECTED_ACCOUNT_ID=$6 PHASE=$7 OUT_DIR=$8
+for value in "$KUBE_CONTEXT" "$CLUSTER_NAME" "$NAMESPACE" "$AWS_PROFILE" "$AWS_REGION"; do
+  [[ -n "$value" && "$value" != -* ]] || exit 2
+done
+[[ "$EXPECTED_ACCOUNT_ID" =~ ^[0-9]{12}$ ]] || exit 2
+[[ "$PHASE" == before || "$PHASE" == after ]] || exit 2
+[[ -n "$OUT_DIR" && "$OUT_DIR" != -* && ! -e "$OUT_DIR" ]] || exit 2
+command -v jq >/dev/null
+command -v python3 >/dev/null
+a=(aws --profile "$AWS_PROFILE" --region "$AWS_REGION" --no-cli-pager)
+k=(kubectl --context "$KUBE_CONTEXT")
+actual_account=$("${a[@]}" sts get-caller-identity --query Account --output text)
+[[ "$actual_account" == "$EXPECTED_ACCOUNT_ID" ]] || exit 1
+cluster_json=$("${a[@]}" eks describe-cluster --name "$CLUSTER_NAME" --output json)
+cluster_arn=$(jq -er '.cluster.arn' <<<"$cluster_json")
+[[ "$cluster_arn" == arn:*:eks:"$AWS_REGION":"$EXPECTED_ACCOUNT_ID":cluster/"$CLUSTER_NAME" ]] || exit 1
+expected_server=$(jq -er '.cluster.endpoint' <<<"$cluster_json")
+actual_server=$("${k[@]}" config view --minify -o jsonpath='{.clusters[0].cluster.server}')
+[[ "$actual_server" == "$expected_server" ]] || exit 1
+"${k[@]}" get namespace "$NAMESPACE" -o name >/dev/null
+umask 077
+mkdir -- "$OUT_DIR"
+date -u '+%Y-%m-%dT%H:%M:%SZ' > "$OUT_DIR/started-at.txt"
+jq -n --arg context "$KUBE_CONTEXT" --arg cluster "$cluster_arn" \
+  --arg namespace "$NAMESPACE" --arg phase "$PHASE" \
+  '{context:$context,clusterArn:$cluster,namespace:$namespace,phase:$phase}' > "$OUT_DIR/scope.json"
+"${k[@]}" get pods -n "$NAMESPACE" -o json > "$OUT_DIR/pods.json"
+"${k[@]}" get nodes -o json > "$OUT_DIR/nodes.json"
+"${k[@]}" get pdb -n "$NAMESPACE" -o json > "$OUT_DIR/pdb.json"
+"${k[@]}" get endpointslices.discovery.k8s.io -n "$NAMESPACE" -o json > "$OUT_DIR/endpointslices.json"
+python3 - "$OUT_DIR/nodes.json" > "$OUT_DIR/node-summary.json" <<'PY'
+import json
+import sys
 
-CLUSTER_NAME=$1
-SCENARIO=$2
-NAMESPACE=${3:-production}
+def node_summary(node):
+    conditions = node.get("status", {}).get("conditions", [])
+    ready = next((c.get("status", "Missing") for c in conditions
+                  if c.get("type") == "Ready"), "Missing")
+    return {
+        "name": node["metadata"]["name"],
+        "ready": ready,
+        "zone": node["metadata"].get("labels", {}).get("topology.kubernetes.io/zone"),
+        "unschedulable": node.get("spec", {}).get("unschedulable", False),
+    }
 
-echo "============================================"
-echo " Game Day: ${SCENARIO}"
-echo " Cluster: ${CLUSTER_NAME}"
-echo " Namespace: ${NAMESPACE}"
-echo " Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-echo "============================================"
-
-# Phase 1: Record steady state
-echo ""
-echo "[Phase 1] Recording Steady State..."
-echo "--- Pod Status ---"
-kubectl get pods -n ${NAMESPACE} -o wide | head -20
-
-echo "--- Node Status ---"
-kubectl get nodes -o custom-columns=\
-NAME:.metadata.name,\
-STATUS:.status.conditions[-1].type,\
-AZ:.metadata.labels.topology\\.kubernetes\\.io/zone
-
-echo "--- Service Endpoints ---"
-kubectl get endpoints -n ${NAMESPACE}
-
-# Phase 2: Inject failures (by scenario)
-echo ""
-echo "[Phase 2] Injecting failure: ${SCENARIO}..."
-
-case ${SCENARIO} in
-  "az-failure")
-    echo "Simulating AZ failure with ARC Zonal Shift..."
-    # Run ARC Zonal Shift (1 hour)
-    aws arc-zonal-shift start-zonal-shift \
-      --resource-identifier arn:aws:eks:us-east-1:$(aws sts get-caller-identity --query Account --output text):cluster/${CLUSTER_NAME} \
-      --away-from us-east-1a \
-      --expires-in 1h \
-      --comment "Game Day: AZ failure simulation"
-    ;;
-
-  "pod-delete")
-    echo "Deleting 30% of pods in ${NAMESPACE}..."
-    TOTAL=$(kubectl get pods -n ${NAMESPACE} -l app=api-server --no-headers | wc -l)
-    DELETE_COUNT=$(( TOTAL * 30 / 100 ))
-    DELETE_COUNT=$(( DELETE_COUNT < 1 ? 1 : DELETE_COUNT ))
-    kubectl get pods -n ${NAMESPACE} -l app=api-server -o name | \
-      shuf | head -n ${DELETE_COUNT} | \
-      xargs kubectl delete -n ${NAMESPACE}
-    ;;
-
-  "node-drain")
-    echo "Draining a random node..."
-    NODE=$(kubectl get nodes --no-headers | shuf -n 1 | awk '{print $1}')
-    kubectl cordon ${NODE}
-    kubectl drain ${NODE} --ignore-daemonsets --delete-emptydir-data --timeout=120s
-    ;;
-
-  *)
-    echo "Unknown scenario: ${SCENARIO}"
-    echo "Available: az-failure, pod-delete, node-drain"
-    exit 1
-    ;;
-esac
-
-# Phase 3: Observe recovery
-echo ""
-echo "[Phase 3] Observing recovery..."
-echo "Waiting 60 seconds for recovery..."
-sleep 60
-
-echo "--- Post-Failure Pod Status ---"
-kubectl get pods -n ${NAMESPACE} -o wide | head -20
-
-echo "--- Pod Restart Counts ---"
-kubectl get pods -n ${NAMESPACE} -o custom-columns=\
-NAME:.metadata.name,\
-RESTARTS:.status.containerStatuses[0].restartCount,\
-STATUS:.status.phase
-
-echo ""
-echo "============================================"
-echo " Game Day Phase 3 Complete"
-echo " Review results and proceed to analysis"
-echo "============================================"
+with open(sys.argv[1]) as stream:
+    nodes = json.load(stream)["items"]
+print(json.dumps([node_summary(node) for node in nodes], indent=2))
+PY
+date -u '+%Y-%m-%dT%H:%M:%SZ' > "$OUT_DIR/finished-at.txt"
+printf 'Snapshot saved. Application SLO/data evidence and action cleanup are still required.\n'
 ```
+
+The execution runbook must specify an explicit action and its recovery contract before any mutation:
+
+| Action | Approved scope and preflight | Stop / restoration evidence |
+|---|---|---|
+| Zonal evacuation | Exact cluster ARN/AZ, enabled integration, surviving-zone capacity and topology/storage checks | Record zonalShiftId and expiry; cancel only that shift when authorized. This changes traffic/placement, not AZ health, and does not itself evict Pods |
+| Pod deletion | Reviewed namespace, workload and exact Pod name/UID inventory; count zero means no deletion, never force a minimum of one | Direct deletion bypasses PDBs; record requested/completed deletes and controller replacements. Validate endpoint recovery, business operations and data, not just restart counts |
+| Node drain | Explicit node allowlist, all namespaces/owners on each node, preexisting cordon state, PDB/local-storage checks | Use the one-node Eviction API template above. Stop on failure; never discard local data or randomly select a node. Uncordon only a node this change cordoned after independent health/capacity checks |
+| FIS / Chaos experiment | Pinned versioned template, exact target inventory, permissions, tested alarms/probes and action-specific fault budget | Record experiment/SSM command or Chaos resource IDs. Observe terminal state, cleanup and restoration; stopping an orchestrator does not prove the target recovered |
+
+Preserve the steady-state and post-action snapshots together with SLO time series, error/latency/throughput under the same offered load, data consistency checks and action lifecycle timestamps. Define sustained recovery criteria before the test. Sixty seconds of waiting, Pod phase or a restart counter does not establish RTO/RPO. If the action or cleanup fails, mark the run incomplete and keep the recovery owner engaged; do not print a success message. Actual availability, recovery time and data loss remain unverified until this evidence exists.
 
 ---
 
@@ -1419,7 +1435,7 @@ Use the following checklists to assess the current resiliency level and identify
 |------|------|------|
 | Liveness/Readiness Probe configuration | Configure appropriate Probes for every Deployment | [ ] |
 | Resource Requests/Limits configuration | Specify CPU and memory resource limits | [ ] |
-| PodDisruptionBudget configuration | Ensure a minimum number of available Pods | [ ] |
+| PodDisruptionBudget configuration | Check selected-Pod health and disruptionsAllowed for Eviction API requests; not a minimum-availability guarantee | [ ] |
 | Graceful Shutdown implementation | preStop Hook + terminationGracePeriodSeconds | [ ] |
 | Startup Probe configuration | Protect initialization of slow-starting applications | [ ] |
 | Automatic restart policy | Verify restartPolicy: Always | [ ] |
@@ -1428,10 +1444,10 @@ Use the following checklists to assess the current resiliency level and identify
 
 | Item | Description | Check |
 |------|------|------|
-| Topology Spread Constraints | Distribute Pods evenly across AZs | [ ] |
-| Multi-AZ Karpenter NodePool | Provision nodes across 3 or more AZs | [ ] |
-| WaitForFirstConsumer StorageClass | Prevent EBS AZ-pinning | [ ] |
-| ARC Zonal Shift enabled | Automatically shift traffic during AZ failures | [ ] |
+| Topology Spread Constraints | Verify eligible domains and placement during reduced-zone operation | [ ] |
+| Multi-AZ Karpenter NodePool | Allow intended AZs and validate actual capacity/placement | [ ] |
+| WaitForFirstConsumer StorageClass | Align initial volume topology; EBS remains AZ-pinned | [ ] |
+| ARC Zonal Shift enabled | Verify manual/API shift readiness; separately configure autoshift and practice runs | [ ] |
 | Cross-AZ traffic optimization | Configure Locality-Aware routing | [ ] |
 | AZ Evacuation runbook preparation | Document emergency AZ evacuation procedures | [ ] |
 
@@ -1459,17 +1475,17 @@ Use the following checklists to assess the current resiliency level and identify
 
 ### Cost Optimization Tips
 
-| Optimization Area | Strategy | Expected Savings |
+| Optimization Area | Strategy | Measurement needed before claiming savings |
 |-------------|------|-----------|
-| **Cross-AZ traffic** | Keep 80%+ of traffic within the same AZ using Istio Locality-Aware routing | Reduce inter-AZ transfer costs by 60-80% |
-| **Spot instances** | Use Spot for non-critical workloads (mixed Karpenter capacity-type) | Reduce compute costs by 60-90% |
-| **Cell utilization** | Size cells appropriately to minimize wasted resources | Reduce overprovisioning by 20-40% |
-| **Multi-Region** | Run the passive region at minimum capacity in Active-Passive configurations | Reduce passive region costs by 50-70% |
-| **Karpenter consolidation** | Automatically remove unused nodes with the WhenEmptyOrUnderutilized policy | Eliminate idle resource costs |
-| **Selective EFS use** | Use EFS only when Cross-AZ access is required; otherwise use EBS gp3 | Reduce storage costs |
+| **Cross-AZ traffic** | Tune locality routing against capacity and recovery requirements | Billed bytes by path, source locality and request/response size |
+| **Spot instances** | Use interruption-tolerant workloads and compatible offerings | Actual instance-hours/rates, interruption overhead and On-Demand baseline |
+| **Cell utilization** | Size cells against workload and isolation targets | Before/after utilization with the same load and failure headroom |
+| **Multi-Region** | Choose a standby capacity that meets measured recovery targets | Standby services, replication and recovery capacity costs |
+| **Karpenter consolidation** | Consolidate only where scheduling and disruption constraints permit | Residual idle capacity, PDB/budget constraints and actual billing; idle cost is not necessarily eliminated |
+| **Selective EFS use** | Choose storage from sharing, durability and recovery requirements | Storage class, capacity, requests/throughput, backup and transfer charges; compare like-for-like requirements |
 
 :::danger Cost vs. Resiliency Trade-off
-Costs increase with higher resiliency levels. Multi-Region Active-Active requires at least 2 times the infrastructure cost of a single region. Select an appropriate resiliency level by balancing business requirements, including SLAs and regulations, against cost. Not every service needs Level 4.
+Additional regions and redundancy can add cost, but there is no universal two-times multiplier. Estimate each design using dated region/service prices and measured workload units, including replicated storage, transfer, operating overhead and required failure headroom. Report estimates separately from measured bills and validated RTO/RPO. Select the resiliency level from business requirements; no quantified savings or recovery result is established by this article.
 :::
 
 ### Related Documents

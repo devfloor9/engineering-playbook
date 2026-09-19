@@ -64,6 +64,22 @@ The compact navbar and Mermaid geometry and title-layout changes concern present
 
 One scheduling finding, `EKSN-RES-022`, was withdrawn after rechecking the alias. The CNI review also withdrew its initial suggestion to exclude DSR/XDP after inspecting the runner; the accepted correction distinguishes requested settings from observed activation. [editorial-qualifications.json](editorial-qualifications.json) records final assessment wording changes without altering source quotations.
 
+## Subsequent source corrections
+
+[corrections.json](corrections.json) records later decisions without changing the frozen catalogs. The first follow-up covers 62 items in 12 Korean/English documents: 58 source corrections accepted and four still partial. Together with the initial 86 corrections, this gives 144 accepted source corrections.
+
+| Area | Reviewed change | Source commit |
+| --- | --- | --- |
+| Request shutdown | Drain admitted HTTP work and database transactions; preserve failure and timeout outcomes. | `876fde94` |
+| Hybrid private endpoints | Separate the Kubernetes API and service endpoints; correct the on-premises S3 interface path and DNS prerequisites. | `58fbb05c` |
+| MoE serving | Correct routing, memory and hardware comparisons; retire eight faulty shared tables while preserving export checks. | `a9b9c629` |
+| Gateway authentication | Use supported controller-specific APIs and route browser authentication through the proxy. | `0ffe5ec4` |
+| EKS resiliency | Correct scheduling, readiness, storage and fault-action examples; replace unsafe bulk procedures and qualify recovery claims. | `48a061b8` |
+
+The Trainium specification conflict remains open as `ADS-MOE-008`. Gateway items `EPN-CB-003`, `EPN-CB-004` and `EPN-CB-006` remain partial because related rate-limit, session-affinity and legacy API examples occur outside the corrected authentication section. No workstream issue is closed by this subset.
+
+Each ledger entry identifies the source commit, reviewed files, checks and remaining limits. Offline examples use fakes or parsers; browser checks establish rendering. Neither establishes successful cloud execution, fault recovery or measured performance. Later entries, if present, are authoritative for subsequent decisions; the original occurrence and classification totals remain unchanged.
+
 ## Remaining correction work
 
 [tracking.json](tracking.json) assigns every grouped item to a registered GitHub issue. Each workstream requires a disposition for the complete assigned inventory, not only the examples in an issue description.
@@ -77,7 +93,7 @@ The new correction workstreams are:
 - [#99 — AI-DLC](https://github.com/devfloor9/engineering-playbook/issues/99): 404 items covering methodology, executable examples, approvals, evaluation, quantities and legal scope.
 - [#100 — Industry and sales examples](https://github.com/devfloor9/engineering-playbook/issues/100): 283 industry items and 14 sales/event items covering evidence, implementation status and assumptions.
 
-The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file records 86 accepted source corrections, 2,104 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 2,104 confirmed errors.
+The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 144 accepted source corrections, 2,046 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 2,046 confirmed errors.
 
 Follow-up edits must preserve useful detail, routes, anchors, creation dates and author attribution. Content changes update the revision date and reading estimate together; presentation-only changes preserve them.
 

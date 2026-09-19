@@ -73,8 +73,10 @@ test('source-qualified namespace and renamed exports resolve real data without n
   assert.ok(!output.includes('Export note'));
   const collision = stripMdx("import {LayerRoles} from './unrelated';\n<LayerRoles />");
   assert.match(collision, /Export note/);
-  const one = stripMdx("import {MonitoringMetrics} from '@site/src/components/NemoTables';\n<MonitoringMetrics />");
-  const two = stripMdx("import {MonitoringMetrics} from '@site/src/components/MoeModelTables';\n<MonitoringMetrics />");
+  const one = stripMdx("import {MonitoringMetricsTable} from '@site/src/components/MilvusTables';\n<MonitoringMetricsTable />");
+  const two = stripMdx("import {MonitoringMetricsTable} from '@site/src/components/InferenceGatewayTables';\n<MonitoringMetricsTable />");
+  assert.ok(!one.includes('Export note'));
+  assert.ok(!two.includes('Export note'));
   assert.notEqual(one, two);
 });
 

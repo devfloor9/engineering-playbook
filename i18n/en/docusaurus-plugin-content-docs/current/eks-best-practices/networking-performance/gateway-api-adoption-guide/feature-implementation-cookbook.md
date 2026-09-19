@@ -3,9 +3,9 @@ title: "Feature Implementation Cookbook: 6 Gateway API Implementations"
 description: Reference for implementing authentication, rate limiting, IP control, URL rewrite, header manipulation, session affinity, body size limits, and custom error pages as YAML across AWS LBC, Cilium, NGINX GF, Envoy Gateway, and kGateway
 created: "2026-06-17"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 17
+reading_time: 21
 tags:
   - eks
   - gateway-api
@@ -44,11 +44,15 @@ This cookbook covers how to implement the following 8 features for AWS Native (L
 
 ## 1. Authentication (Basic Auth replacement)
 
+The tabs are **alternative configurations for different controllers**. Prepare the corresponding versioned CRDs/controller, the `production` namespace, a `production-gateway` HTTPS listener named `https` in the same namespace, its TLS certificate/DNS and the `api-service:8080` backend. Replace `example.com` IdP/host values and Secret/public-key references with the deployment's configuration. Rendering or parsing a manifest does not establish successful authentication.
+
+The presence or regex match of an `Authorization` header is not authentication. JWT signature, issuer, audience and time checks, or a real authorization service's allow/deny decision, are required. The examples embed no working credentials; no deployment or authentication requests were executed.
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
-
+AWS LBC 3.0.0 exposes `ListenerRuleConfiguration` in `gateway.k8s.aws/v1beta1`. On an HTTPS listener, ALB checks an RS256 JWT's signature, `iss` and `exp`, plus `nbf/iat` when present. This example also requires the string claim `aud=api-gateway-client`; use the matching claim format if the IdP emits an audience array. Verify public JWKS reachability and ALB limits in the [official JWT documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html).
 ```yaml
-# Native JWT verification with AWS LBC v3
+# auth-aws.yaml
+# AWS Load Balancer Controller v3.0.0; existing HTTPS listener named https.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -57,6 +61,9 @@ metadata:
 spec:
   parentRefs:
     - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
   rules:
     - matches:
         - path:
@@ -65,100 +72,122 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: eks.amazonaws.com
-            kind: JWTAuthorizer
-            name: cognito-authorizer
+            group: gateway.k8s.aws
+            kind: ListenerRuleConfiguration
+            name: api-jwt
       backendRefs:
         - name: api-service
           port: 8080
-
 ---
-# JWTAuthorizer CRD (LBC v3 extension)
-apiVersion: eks.amazonaws.com/v1
-kind: JWTAuthorizer
+apiVersion: gateway.k8s.aws/v1beta1
+kind: ListenerRuleConfiguration
 metadata:
-  name: cognito-authorizer
+  name: api-jwt
+  namespace: production
 spec:
-  issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_ABC123
-  audiences:
-    - api-gateway-client
-  claimsToHeaders:
-    - claim: sub
-      header: x-user-id
-    - claim: email
-      header: x-user-email
+  actions:
+    - type: jwt-validation
+      jwtValidationConfig:
+        jwksEndpoint: https://idp.example.com/realms/production/protocol/openid-connect/certs
+        issuer: https://idp.example.com/realms/production
+        additionalClaims:
+          - name: aud
+            format: single-string
+            values:
+              - api-gateway-client
 ```
-
+JWT validation is distinct from a browser OIDC login redirect. A valid token is forwarded as-is; this extension does not configure `claimsToHeaders`. Define a separate trusted identity-header/overwrite contract if the backend requires one. [LBC 3.0.0 LRC contract](https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/v3.0.0/docs/guide/gateway/listenerruleconfig.md)
 </TabItem>
 <TabItem value="cilium" label="Cilium">
-
 :::warning Limitation
 Cilium does not support native JWT/OIDC authentication. You must configure an Envoy ext_authz filter via CiliumEnvoyConfig, or deploy a separate authentication service (such as OAuth2 Proxy).
 :::
 
+Retain that Cilium 1.19.3 boundary. This example selects a separate OAuth2 Proxy for **browser OIDC sessions**. The Gateway sends the host's requests, including `/api` and `/oauth2` callbacks, to the proxy before the proxy forwards authenticated traffic to `api-service`. It adds neither a Bearer-header-only bypass route nor an incomplete CiliumEnvoyConfig.
+
+Prepare an OAuth2 Proxy 7.9.0 OIDC client/redirect URL, permitted email domain and the `client-id`, `client-secret` and `cookie-secret` Secret keys. Generate/store the cookie secret according to the length/encoding rules in the [official configuration](https://oauth2-proxy.github.io/oauth2-proxy/7.9.x/configuration/overview/). The IdP must support PKCE S256 and the required email claim.
 ```yaml
-# L7 HTTP header verification with CiliumNetworkPolicy (basic auth)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
+# auth-cilium.yaml
+# Cilium Gateway API + OAuth2 Proxy 7.9.0: browser OIDC session authentication.
+# Pre-create oauth2-proxy-credentials with client-id, client-secret, cookie-secret.
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: auth-header-check
+  name: oauth2-proxy
   namespace: production
 spec:
-  endpointSelector:
+  replicas: 2
+  selector:
     matchLabels:
-      app: api-service
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: ingress-nginx
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-          rules:
-            http:
-              - method: GET
-                headers:
-                  - "Authorization: Bearer.*"
-
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
+          args:
+            - --provider=oidc
+            - --oidc-issuer-url=https://idp.example.com/realms/production
+            - --redirect-url=https://api.example.com/oauth2/callback
+            - --email-domain=example.com
+            - --upstream=http://api-service.production.svc.cluster.local:8080
+            - --http-address=0.0.0.0:4180
+            - --reverse-proxy=true
+            - --cookie-secure=true
+            - --cookie-samesite=lax
+            - --code-challenge-method=S256
+            - --skip-provider-button=true
+          env:
+            - name: OAUTH2_PROXY_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: oauth2-proxy-credentials
+                  key: client-id
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth2-proxy-credentials
+                  key: client-secret
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth2-proxy-credentials
+                  key: cookie-secret
+          ports:
+            - name: http
+              containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi
 ---
-# Or configure Envoy ext_authz via CiliumEnvoyConfig
-apiVersion: cilium.io/v2
-kind: CiliumEnvoyConfig
+apiVersion: v1
+kind: Service
 metadata:
-  name: ext-authz
+  name: oauth2-proxy
   namespace: production
 spec:
-  services:
-    - name: api-service
-      namespace: production
-  resources:
-    - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: envoy-lb-listener
-      filterChains:
-        - filters:
-            - name: envoy.filters.network.http_connection_manager
-              typedConfig:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                httpFilters:
-                  - name: envoy.filters.http.ext_authz
-                    typedConfig:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                      grpcService:
-                        envoyGrpc:
-                          clusterName: ext-authz-service
-                      includePeerCertificate: true
-```
-
-</TabItem>
-<TabItem value="nginx" label="NGINX Gateway Fabric">
-
-:::warning Limitation
-NGINX Gateway Fabric does not support native JWT verification. You must combine the nginx.org/v1alpha1 UpstreamSettingsPolicy with an external authentication service.
-:::
-
-```yaml
-# Pattern using an external authentication service
+  selector:
+    app: oauth2-proxy
+  ports:
+    - name: http
+      port: 4180
+      targetPort: http
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -167,46 +196,118 @@ metadata:
 spec:
   parentRefs:
     - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
   rules:
-    # Route to /api only when the Authorization header is present
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: oauth2-proxy
+          port: 4180
+---
+# Restrict the application to traffic from the actual authentication proxy Pods.
+# Other policies allowing these Pods remain additive and must also be reviewed.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-from-auth-proxy
+  namespace: production
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api-service
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: production
+            app: oauth2-proxy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+```
+The `endpointSelector` value `app: api-service` must match the actual backend Pod labels. A matching Service name alone does not apply the policy to those Pods. Check network-policy and TLS requirements for both Gateway→proxy and proxy→backend paths.
+
+Keep the backend off other external routes/Services, and review other allow policies that could widen access. Verify that traffic from the authentication proxy succeeds while other Pods and external paths are blocked. This policy selects the authentication-proxy Pods rather than an unrelated `ingress-nginx` namespace. Bearer-token API authentication or gRPC ext_authz needs a separate authorizer with complete listener, route, filter and cluster wiring, plus verified failure behavior.
+</TabItem>
+<TabItem value="nginx" label="NGINX Gateway Fabric">
+:::warning Distinguish authentication mechanisms
+The NGINX Gateway Fabric 2.4.0 `AuthenticationFilter` below implements **Basic authentication**. It configures no JWT/OIDC authentication, and `UpstreamSettingsPolicy` is not an authentication policy. For OIDC, use a verified separate authentication-proxy path or another configuration supported by the selected version.
+:::
+
+Provision htpasswd-format credentials under the `auth` key of Secret `production/api-basic-auth` through the secret-management process. Use a TLS listener and do not reuse example passwords/hashes. [2.4.0 AuthenticationFilter schema](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/apis/v1alpha1/authenticationfilter_types.go)
+```yaml
+# auth-nginx.yaml
+# NGINX Gateway Fabric v2.4.0. This implements Basic authentication, not JWT.
+# Pre-create Secret api-basic-auth in production, with an auth key containing
+# htpasswd-format credentials generated and rotated outside the document.
+apiVersion: gateway.nginx.org/v1alpha1
+kind: AuthenticationFilter
+metadata:
+  name: api-basic-auth
+  namespace: production
+spec:
+  type: Basic
+  basic:
+    secretRef:
+      name: api-basic-auth
+    realm: Protected API
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: auth-protected
+  namespace: production
+spec:
+  parentRefs:
+    - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
+  rules:
     - matches:
         - path:
             type: PathPrefix
             value: /api
-          headers:
-            - name: Authorization
-              type: RegularExpression
-              value: "^Bearer .+"
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.nginx.org
+            kind: AuthenticationFilter
+            name: api-basic-auth
       backendRefs:
         - name: api-service
           port: 8080
-    # Return 401 if no Authorization header (separate error service)
+```
+</TabItem>
+<TabItem value="envoy" label="Envoy Gateway">
+Envoy Gateway 1.7.0 connects an HTTP authorizer through `SecurityPolicy.extAuth.http.backendRefs`. The same-namespace `auth-service:8080` must implement the **HTTP ext_authz contract**: check Authorization at the original request path, return 200 for allow and 401/403 for deny. Do not assume an OAuth2 Proxy browser-proxy port implements this check endpoint.
+```yaml
+# auth-envoy.yaml
+# Envoy Gateway v1.7.0; auth-service implements the HTTP ext_authz contract.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api-route
+  namespace: production
+spec:
+  parentRefs:
+    - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
+  rules:
     - matches:
         - path:
             type: PathPrefix
             value: /api
       backendRefs:
-        - name: auth-error-service
-          port: 80
-
+        - name: api-service
+          port: 8080
 ---
-apiVersion: gateway.nginx.org/v1alpha1
-kind: UpstreamSettingsPolicy
-metadata:
-  name: auth-proxy
-spec:
-  targetRef:
-    group: ""
-    kind: Service
-    name: api-service
-  # In NGINX, use the auth_request module to validate external authentication
-  # Implement by deploying OAuth2 Proxy or a similar auth proxy
-```
-
-</TabItem>
-<TabItem value="envoy" label="Envoy Gateway">
-
-```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -218,24 +319,46 @@ spec:
       kind: HTTPRoute
       name: api-route
   extAuth:
+    failOpen: false
+    timeout: 2s
+    headersToExtAuth:
+      - authorization
     http:
-      service:
-        name: auth-service
-        port: 8080
-      headersToBackend:
-        - x-user-id
-        - x-user-role
       backendRefs:
         - name: auth-service
           port: 8080
 ```
-
+`failOpen: false` blocks backend forwarding on authorizer failure/timeout. If `http.path` is added, it prefixes the original path and must match the authorizer's routing. Only allow verified identity response headers through `headersToBackend` when needed, with a corresponding backend trust policy. [1.7.0 extAuth contract](https://github.com/envoyproxy/gateway/blob/v1.7.0/api/v1alpha1/ext_auth_types.go)
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
-
+The kgateway 2.2.0 Envoy path uses `TrafficPolicy` and a JWT-provider `GatewayExtension` in `gateway.kgateway.dev`. This example supplies trusted public JWKS through the `jwks` key of ConfigMap `production/api-jwks`. Define key rotation/revocation and ConfigMap updates; do not reuse arbitrary or stale keys.
 ```yaml
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
+# auth-kgateway.yaml
+# kgateway v2.2.0 (Envoy data plane), not the legacy Gloo RouteOption API.
+# Pre-create api-jwks ConfigMap in production; its jwks key contains trusted,
+# public signing keys. Define and operate a key-rotation/update procedure.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api-route
+  namespace: production
+spec:
+  parentRefs:
+    - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: api-service
+          port: 8080
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
 metadata:
   name: jwt-auth
   namespace: production
@@ -244,22 +367,37 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: api-route
+  jwtAuth:
+    extensionRef:
+      name: api-jwt
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayExtension
+metadata:
+  name: api-jwt
+  namespace: production
+spec:
+  type: JWT
   jwt:
     providers:
       - name: keycloak
-        issuer: https://keycloak.example.com/auth/realms/production
+        issuer: https://idp.example.com/realms/production
         audiences:
-          - api-gateway
-        jwksUri: https://keycloak.example.com/auth/realms/production/protocol/openid-connect/certs
-        claimsToHeaders:
-          - claim: sub
-            header: x-user-id
-          - claim: groups
-            header: x-user-groups
+          - api-gateway-client
+        tokenSource:
+          header:
+            header: Authorization
+            prefix: "Bearer "
+        forwardToken: false
+        jwks:
+          local:
+            configMapRef:
+              name: api-jwks
 ```
-
+Connect `jwtAuth.extensionRef`, the provider's `jwks.local.configMapRef`, issuer/audience and token source in the same namespace. Token forwarding is explicitly disabled; no claim-to-header trust contract is added here. [2.2.0 JWT schema](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/jwt_types.go) · [Versioned configuration example](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/translator/gateway/testutils/inputs/jwt/gateway-configmap.yaml)
 </TabItem>
 </Tabs>
+For the selected mechanism, verify valid credentials, missing/tampered/expired tokens or incorrect passwords, wrong issuer/audience, authorizer failure, callback routing and direct-backend access. Record applicable `Accepted`/`ResolvedRefs` status and actual backend reachability. Static schema checks do not replace these runtime acceptance results.
 
 ## 2. Rate Limiting
 

@@ -3,9 +3,9 @@ title: 네트워킹
 description: EKS Hybrid Nodes 네트워킹 베스트 프랙티스 — CIDR 설계와 대역 최소화, CNI 구성과 Pod CIDR 라우팅, Hybrid Nodes Gateway 구축·운영, 로드밸런싱과 서비스 노출, 방화벽 사전 등록과 TGW 토폴로지를 다룹니다.
 created: "2026-08-25"
 last_update:
-  date: "2026-08-26"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 1
+reading_time: 2
 tags:
   - eks
   - hybrid-node
@@ -62,7 +62,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     to="/docs/eks-hybrid-nodes/networking/private-vpc-endpoints"
     icon="🔒"
     title="사설 폐쇄망 VPC 엔드포인트 설계"
-    description="Private API 엔드포인트 모드, 인터페이스 엔드포인트 필수 목록(ECR·SSM·STS·EKS Auth), S3 Gateway, 폐쇄망 DNS 해석 설계"
+    description="Private-only Kubernetes API, 기능별 PrivateLink, 온프레미스 ECR·S3 인터페이스 경로, DNS와 왕복 라우팅, 설치 파일 미러"
     color="#6d597a"
   />
 </DocCardGrid>

@@ -3,9 +3,9 @@ title: "기능별 구현 쿡북: 6개 Gateway API 구현체"
 description: 인증·Rate Limiting·IP 제어·URL Rewrite·헤더 조작·세션 어피니티·본문 크기 제한·커스텀 에러 페이지를 AWS LBC·Cilium·NGINX GF·Envoy Gateway·kGateway별 YAML로 구현하는 레퍼런스
 created: "2026-06-17"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 13
 tags:
   - eks
   - gateway-api
@@ -44,11 +44,15 @@ import TabItem from '@theme/TabItem';
 
 ## 1. 인증 (Basic Auth 대체)
 
+아래 탭은 서로 다른 controller의 **대안 구성**입니다. 해당 버전의 CRD/controller, `production` namespace, 같은 namespace의 `production-gateway` HTTPS listener(`https`)와 TLS 인증서, DNS, `api-service:8080` backend가 준비되어야 합니다. `example.com` IdP/host와 Secret/공개 키 참조는 실제 환경에 맞게 바꿉니다. manifest를 렌더링·파싱한 것만으로 인증 성공을 확인할 수는 없습니다.
+
+`Authorization` 헤더의 존재나 정규식 일치는 인증이 아닙니다. JWT 서명·issuer·audience·시간 조건 검증 또는 실제 인증 서비스의 allow/deny 결정이 필요합니다. 아래 예제는 학습용 자격 증명을 내장하지 않으며, 배포·인증 요청은 실행하지 않았습니다.
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
-
+AWS LBC 3.0.0의 확장은 `gateway.k8s.aws/v1beta1`의 `ListenerRuleConfiguration`입니다. HTTPS listener에서 ALB가 RS256 JWT의 서명·`iss`·`exp`를 검증하고, 존재하면 `nbf/iat`도 확인합니다. 여기서는 문자열 `aud=api-gateway-client`를 추가로 요구합니다. IdP가 audience 배열을 내보내면 해당 claim 형식도 맞춰야 합니다. JWKS endpoint의 공개 접근성과 ALB 제한은 [공식 JWT 문서](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html)를 확인합니다.
 ```yaml
-# AWS LBC v3의 네이티브 JWT 검증
+# auth-aws.yaml
+# AWS Load Balancer Controller v3.0.0; existing HTTPS listener named https.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -57,6 +61,9 @@ metadata:
 spec:
   parentRefs:
     - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
   rules:
     - matches:
         - path:
@@ -65,100 +72,122 @@ spec:
       filters:
         - type: ExtensionRef
           extensionRef:
-            group: eks.amazonaws.com
-            kind: JWTAuthorizer
-            name: cognito-authorizer
+            group: gateway.k8s.aws
+            kind: ListenerRuleConfiguration
+            name: api-jwt
       backendRefs:
         - name: api-service
           port: 8080
-
 ---
-# JWTAuthorizer CRD (LBC v3 확장)
-apiVersion: eks.amazonaws.com/v1
-kind: JWTAuthorizer
+apiVersion: gateway.k8s.aws/v1beta1
+kind: ListenerRuleConfiguration
 metadata:
-  name: cognito-authorizer
+  name: api-jwt
+  namespace: production
 spec:
-  issuer: https://cognito-idp.us-west-2.amazonaws.com/us-west-2_ABC123
-  audiences:
-    - api-gateway-client
-  claimsToHeaders:
-    - claim: sub
-      header: x-user-id
-    - claim: email
-      header: x-user-email
+  actions:
+    - type: jwt-validation
+      jwtValidationConfig:
+        jwksEndpoint: https://idp.example.com/realms/production/protocol/openid-connect/certs
+        issuer: https://idp.example.com/realms/production
+        additionalClaims:
+          - name: aud
+            format: single-string
+            values:
+              - api-gateway-client
 ```
-
+JWT 검증은 browser OIDC 로그인 redirect와 다른 기능입니다. 유효한 token은 backend에 그대로 전달되며 위 확장은 `claimsToHeaders`를 구성하지 않습니다. downstream identity header가 필요하면 별도 신뢰·덮어쓰기 계약을 정의합니다. [LBC 3.0.0 LRC 계약](https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/v3.0.0/docs/guide/gateway/listenerruleconfig.md)
 </TabItem>
 <TabItem value="cilium" label="Cilium">
-
 :::warning 제한 사항
 Cilium은 네이티브 JWT/OIDC 인증을 지원하지 않습니다. CiliumEnvoyConfig로 Envoy ext_authz 필터를 구성하거나, 별도 인증 서비스(OAuth2 Proxy 등)를 배포해야 합니다.
 :::
 
+이 경고의 Cilium 1.19.3 경계는 그대로 유지합니다. 아래에서는 별도 OAuth2 Proxy를 사용하는 **browser OIDC 세션** 경로를 선택합니다. Gateway는 `/api`와 `/oauth2` callback을 포함한 해당 host의 요청을 먼저 proxy로 보내고, proxy가 인증 후 `api-service`로 전달합니다. Bearer 헤더 일치만으로 backend에 보내는 route나 불완전한 CiliumEnvoyConfig를 추가하지 않습니다.
+
+OAuth2 Proxy 7.9.0에 맞는 OIDC client/redirect URL, 허용 email domain과 Secret의 `client-id`, `client-secret`, `cookie-secret`을 준비합니다. cookie secret은 [공식 설정](https://oauth2-proxy.github.io/oauth2-proxy/7.9.x/configuration/overview/)의 키 길이·인코딩 조건을 따라 생성·보관합니다. IdP는 PKCE S256 및 필요한 email claim을 지원해야 합니다.
 ```yaml
-# CiliumNetworkPolicy로 L7 HTTP 헤더 검증 (기본 인증)
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
+# auth-cilium.yaml
+# Cilium Gateway API + OAuth2 Proxy 7.9.0: browser OIDC session authentication.
+# Pre-create oauth2-proxy-credentials with client-id, client-secret, cookie-secret.
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: auth-header-check
+  name: oauth2-proxy
   namespace: production
 spec:
-  endpointSelector:
+  replicas: 2
+  selector:
     matchLabels:
-      app: api-service
-  ingress:
-    - fromEndpoints:
-        - matchLabels:
-            io.kubernetes.pod.namespace: ingress-nginx
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-          rules:
-            http:
-              - method: GET
-                headers:
-                  - "Authorization: Bearer.*"
-
+      app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        app: oauth2-proxy
+    spec:
+      containers:
+        - name: oauth2-proxy
+          image: quay.io/oauth2-proxy/oauth2-proxy:v7.9.0
+          args:
+            - --provider=oidc
+            - --oidc-issuer-url=https://idp.example.com/realms/production
+            - --redirect-url=https://api.example.com/oauth2/callback
+            - --email-domain=example.com
+            - --upstream=http://api-service.production.svc.cluster.local:8080
+            - --http-address=0.0.0.0:4180
+            - --reverse-proxy=true
+            - --cookie-secure=true
+            - --cookie-samesite=lax
+            - --code-challenge-method=S256
+            - --skip-provider-button=true
+          env:
+            - name: OAUTH2_PROXY_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: oauth2-proxy-credentials
+                  key: client-id
+            - name: OAUTH2_PROXY_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth2-proxy-credentials
+                  key: client-secret
+            - name: OAUTH2_PROXY_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: oauth2-proxy-credentials
+                  key: cookie-secret
+          ports:
+            - name: http
+              containerPort: 4180
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+          livenessProbe:
+            httpGet:
+              path: /ping
+              port: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: "1"
+              memory: 256Mi
 ---
-# 또는 CiliumEnvoyConfig로 Envoy ext_authz 구성
-apiVersion: cilium.io/v2
-kind: CiliumEnvoyConfig
+apiVersion: v1
+kind: Service
 metadata:
-  name: ext-authz
+  name: oauth2-proxy
   namespace: production
 spec:
-  services:
-    - name: api-service
-      namespace: production
-  resources:
-    - "@type": type.googleapis.com/envoy.config.listener.v3.Listener
-      name: envoy-lb-listener
-      filterChains:
-        - filters:
-            - name: envoy.filters.network.http_connection_manager
-              typedConfig:
-                "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                httpFilters:
-                  - name: envoy.filters.http.ext_authz
-                    typedConfig:
-                      "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
-                      grpcService:
-                        envoyGrpc:
-                          clusterName: ext-authz-service
-                      includePeerCertificate: true
-```
-
-</TabItem>
-<TabItem value="nginx" label="NGINX Gateway Fabric">
-
-:::warning 제한 사항
-NGINX Gateway Fabric은 네이티브 JWT 검증을 지원하지 않습니다. nginx.org/v1alpha1 UpstreamSettingsPolicy와 외부 인증 서비스를 조합해야 합니다.
-:::
-
-```yaml
-# 외부 인증 서비스를 통한 패턴
+  selector:
+    app: oauth2-proxy
+  ports:
+    - name: http
+      port: 4180
+      targetPort: http
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -167,46 +196,118 @@ metadata:
 spec:
   parentRefs:
     - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
   rules:
-    # 인증 없이 /auth 엔드포인트로 먼저 라우팅
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: oauth2-proxy
+          port: 4180
+---
+# Restrict the application to traffic from the actual authentication proxy Pods.
+# Other policies allowing these Pods remain additive and must also be reviewed.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: api-from-auth-proxy
+  namespace: production
+spec:
+  endpointSelector:
+    matchLabels:
+      app: api-service
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            io.kubernetes.pod.namespace: production
+            app: oauth2-proxy
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+```
+`endpointSelector`의 `app: api-service`는 실제 backend Pod의 라벨과 일치해야 합니다. 서비스 이름만 같아서는 해당 Pod에 정책이 적용되지 않습니다. Gateway→proxy와 proxy→backend의 네트워크 정책·TLS 요구도 확인합니다.
+
+Backend를 별도 외부 route/Service로 노출하지 않고, 다른 허용 정책이 접근 범위를 넓히는지도 검토합니다. 인증 proxy에서는 접근되고 다른 Pod나 외부 경로에서는 차단되는지 실제로 확인해야 합니다. 위 정책은 임의의 `ingress-nginx` namespace 대신 인증 proxy Pod를 선택합니다. Bearer-token API 인증이나 gRPC ext_authz가 필요하면 해당 프로토콜의 authorizer와 listener·route·filter·cluster를 연결하고 실패 시 동작을 별도로 검증합니다.
+</TabItem>
+<TabItem value="nginx" label="NGINX Gateway Fabric">
+:::warning 인증 방식 구분
+NGINX Gateway Fabric 2.4.0의 아래 `AuthenticationFilter`는 **Basic 인증**입니다. JWT/OIDC 인증을 구성하지 않으며, `UpstreamSettingsPolicy`도 인증 정책이 아닙니다. OIDC가 필요하면 검증된 별도 인증 proxy 경로 등 해당 버전이 지원하는 구성을 사용합니다.
+:::
+
+`production/api-basic-auth` Secret의 `auth` key에 htpasswd 형식의 자격 증명을 외부 비밀 관리 절차로 준비합니다. TLS listener가 필요하며 비밀번호·hash 예시를 재사용하지 않습니다. [2.4.0 AuthenticationFilter schema](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/apis/v1alpha1/authenticationfilter_types.go)
+```yaml
+# auth-nginx.yaml
+# NGINX Gateway Fabric v2.4.0. This implements Basic authentication, not JWT.
+# Pre-create Secret api-basic-auth in production, with an auth key containing
+# htpasswd-format credentials generated and rotated outside the document.
+apiVersion: gateway.nginx.org/v1alpha1
+kind: AuthenticationFilter
+metadata:
+  name: api-basic-auth
+  namespace: production
+spec:
+  type: Basic
+  basic:
+    secretRef:
+      name: api-basic-auth
+    realm: Protected API
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: auth-protected
+  namespace: production
+spec:
+  parentRefs:
+    - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
+  rules:
     - matches:
         - path:
             type: PathPrefix
             value: /api
-          headers:
-            - name: Authorization
-              type: RegularExpression
-              value: "^Bearer .+"
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.nginx.org
+            kind: AuthenticationFilter
+            name: api-basic-auth
       backendRefs:
         - name: api-service
           port: 8080
-    # Authorization 헤더 없으면 401 반환 (별도 에러 서비스)
+```
+</TabItem>
+<TabItem value="envoy" label="Envoy Gateway">
+Envoy Gateway 1.7.0에서는 `SecurityPolicy.extAuth.http.backendRefs`로 HTTP authorizer를 연결합니다. 같은 namespace의 `auth-service:8080`은 원래 요청 경로에서 Authorization 값을 검증하고 허용 시 200, 거부 시 401/403을 반환하는 **HTTP ext_authz 계약**을 구현해야 합니다. OAuth2 Proxy의 browser proxy port를 검증 없이 이 check endpoint로 지정하지 않습니다.
+```yaml
+# auth-envoy.yaml
+# Envoy Gateway v1.7.0; auth-service implements the HTTP ext_authz contract.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api-route
+  namespace: production
+spec:
+  parentRefs:
+    - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
+  rules:
     - matches:
         - path:
             type: PathPrefix
             value: /api
       backendRefs:
-        - name: auth-error-service
-          port: 80
-
+        - name: api-service
+          port: 8080
 ---
-apiVersion: gateway.nginx.org/v1alpha1
-kind: UpstreamSettingsPolicy
-metadata:
-  name: auth-proxy
-spec:
-  targetRef:
-    group: ""
-    kind: Service
-    name: api-service
-  # NGINX에서는 auth_request 모듈을 사용하여 외부 인증 검증
-  # OAuth2 Proxy 또는 유사한 인증 프록시를 배포하여 구현
-```
-
-</TabItem>
-<TabItem value="envoy" label="Envoy Gateway">
-
-```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: SecurityPolicy
 metadata:
@@ -218,24 +319,46 @@ spec:
       kind: HTTPRoute
       name: api-route
   extAuth:
+    failOpen: false
+    timeout: 2s
+    headersToExtAuth:
+      - authorization
     http:
-      service:
-        name: auth-service
-        port: 8080
-      headersToBackend:
-        - x-user-id
-        - x-user-role
       backendRefs:
         - name: auth-service
           port: 8080
 ```
-
+`failOpen: false`는 authorizer 오류/timeout 시 backend 전달을 차단합니다. `http.path`를 추가하면 원래 경로 앞에 붙으므로 서비스의 routing과 맞춰야 합니다. 필요한 경우에만 검증한 identity response header를 `headersToBackend`로 허용하고 backend가 다른 입력 header를 신뢰하지 않도록 합니다. [1.7.0 extAuth 계약](https://github.com/envoyproxy/gateway/blob/v1.7.0/api/v1alpha1/ext_auth_types.go)
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
-
+kgateway 2.2.0 Envoy 경로는 `gateway.kgateway.dev`의 `TrafficPolicy`와 JWT provider를 정의한 `GatewayExtension`을 사용합니다. 아래 예제는 trusted 공개 JWKS를 `production/api-jwks` ConfigMap의 `jwks` key로 제공합니다. 키 회전·철회와 ConfigMap 갱신 절차가 필요하며 임의 또는 오래된 공개 키를 그대로 사용하면 안 됩니다.
 ```yaml
-apiVersion: gateway.kgateway.io/v1alpha1
-kind: RouteOption
+# auth-kgateway.yaml
+# kgateway v2.2.0 (Envoy data plane), not the legacy Gloo RouteOption API.
+# Pre-create api-jwks ConfigMap in production; its jwks key contains trusted,
+# public signing keys. Define and operate a key-rotation/update procedure.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: api-route
+  namespace: production
+spec:
+  parentRefs:
+    - name: production-gateway
+      sectionName: https
+  hostnames:
+    - api.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: api-service
+          port: 8080
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: TrafficPolicy
 metadata:
   name: jwt-auth
   namespace: production
@@ -244,22 +367,37 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: api-route
+  jwtAuth:
+    extensionRef:
+      name: api-jwt
+---
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayExtension
+metadata:
+  name: api-jwt
+  namespace: production
+spec:
+  type: JWT
   jwt:
     providers:
       - name: keycloak
-        issuer: https://keycloak.example.com/auth/realms/production
+        issuer: https://idp.example.com/realms/production
         audiences:
-          - api-gateway
-        jwksUri: https://keycloak.example.com/auth/realms/production/protocol/openid-connect/certs
-        claimsToHeaders:
-          - claim: sub
-            header: x-user-id
-          - claim: groups
-            header: x-user-groups
+          - api-gateway-client
+        tokenSource:
+          header:
+            header: Authorization
+            prefix: "Bearer "
+        forwardToken: false
+        jwks:
+          local:
+            configMapRef:
+              name: api-jwks
 ```
-
+`jwtAuth.extensionRef`, provider의 `jwks.local.configMapRef`, issuer/audience/token source를 동일 namespace에서 연결합니다. token을 downstream에 전달하지 않도록 명시했으며, 이 예제는 claim-to-header 신뢰 계약을 추가하지 않습니다. [2.2.0 JWT schema](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/jwt_types.go) · [versioned configuration example](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/translator/gateway/testutils/inputs/jwt/gateway-configmap.yaml)
 </TabItem>
 </Tabs>
+인증 적용 전후에는 선택한 메커니즘에 맞춰 정상 자격 증명, 누락·변조·만료된 token 또는 잘못된 비밀번호, 잘못된 issuer/audience, authorizer 장애, callback 경로와 backend 직접 접근을 확인합니다. route/policy 상태의 `Accepted`/`ResolvedRefs`와 실제 backend 요청 도달 여부를 함께 기록해야 합니다. 정적 schema 검사만으로 이 실행 결과를 대신하지 않습니다.
 
 ## 2. Rate Limiting
 
