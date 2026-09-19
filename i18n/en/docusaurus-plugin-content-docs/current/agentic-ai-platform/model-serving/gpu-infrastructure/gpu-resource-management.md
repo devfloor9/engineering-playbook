@@ -3,9 +3,9 @@ title: GPU Resource Management
 description: GPU resource management and cost optimization using Karpenter, KEDA, and DRA on EKS
 created: "2026-02-05"
 last_update:
-  date: "2026-07-19"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 33
+reading_time: 36
 tags:
   - gpu
   - karpenter
