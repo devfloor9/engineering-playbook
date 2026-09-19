@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 12
 tags:
   - prompt-registry
   - versioning
@@ -247,41 +247,93 @@ def snapshot_prompt(bedrock, prompt_arn, *, description, client_token):
 
 ### Langfuse Self-hosted 배포
 
+다음은 [chart 2.1.1](https://github.com/langfuse/langfuse-k8s/releases/tag/langfuse-2.1.1), appVersion `4.35.0`의 [values](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/values.yaml)를 사용한 신규 설치 예시다. 저장소 서비스는 미리 준비한다. chart 1.x에서 업그레이드할 때는 별도의 마이그레이션 절차가 필요하다. `.invalid` 주소와 예시 포트·리전은 배포할 환경의 값으로 바꾼다.
+
+배포 전에 대상 Kubernetes context와 namespace(예: `langfuse`)를 정하고 기록한다. 다음 의존성을 별도로 준비한다.
+
+- PostgreSQL에 `langfuse` 데이터베이스·사용자와 호환 스키마를 준비한다.
+- Redis/Valkey에 사용할 사용자와 TLS endpoint를 준비하고 `noeviction` 정책을 설정한다.
+- 외부 비클러스터 ClickHouse에 데이터베이스·사용자, HTTPS와 native TLS endpoint를 준비한다.
+- S3 호환 버킷에 event·export·media prefix 접근 권한을 부여한다. endpoint·리전·path-style 설정과 media의 브라우저 접근·CORS도 확인한다.
+- release namespace에 `langfuse-runtime` Secret을 만들고 아래 설정에서 참조하는 키 8개를 넣는다. 저장소 자격 증명, 64자리 16진수 encryption key, 안전하게 생성한 salt·NextAuth secret이 필요하다. 애플리케이션 키는 재배포해도 유지한다. Redis 비밀번호는 연결 URL에 들어가므로 특수문자의 인코딩 요구사항을 따른다.
+
+이 예시는 PostgreSQL과 ClickHouse의 자동 마이그레이션을 끈다. 애플리케이션을 시작하기 전에 승인된 스키마 마이그레이션을 완료한다. 각 서비스의 인증서 신뢰 설정도 확인한다. PostgreSQL의 `sslmode=require`는 TLS를 요청하는 설정이며, 서버 인증서 검증 방식은 환경에 맞게 추가로 확인해야 한다.
+
 ```yaml
-# langfuse-values.yaml (Helm)
-replicaCount: 2
+# langfuse-values.yaml
+# Chart: langfuse/langfuse 2.1.1; appVersion: 4.35.0
+langfuse:
+  image:
+    tag: "4.35.0"
+  replicas: 2
+  resources:
+    requests: {cpu: "500m", memory: "1Gi"}
+    limits: {cpu: "2000m", memory: "4Gi"}
+  salt:
+    secretKeyRef: {name: langfuse-runtime, key: salt}
+  encryptionKey:
+    secretKeyRef: {name: langfuse-runtime, key: encryption-key}
+  nextauth:
+    url: "https://langfuse.example.invalid"
+    secret:
+      secretKeyRef: {name: langfuse-runtime, key: nextauth-secret}
 
 postgresql:
-  enabled: true
+  deploy: false
+  host: postgresql.example.invalid
+  port: 5432
+  args: "sslmode=require"
   auth:
-    password: "secure-password"
+    username: langfuse
+    database: langfuse
+    existingSecret: langfuse-runtime
+    secretKeys: {userPasswordKey: postgresql-password}
+  migration: {autoMigrate: false}
 
-env:
-  - name: DATABASE_URL
-    value: "postgresql://user:pass@postgres:5432/langfuse"
-  - name: NEXTAUTH_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: langfuse-secrets
-        key: nextauth-secret
-  - name: S3_BUCKET_NAME
-    value: "langfuse-prompts"
-  - name: S3_ENDPOINT
-    value: "https://s3.us-east-1.amazonaws.com"
+redis:
+  deploy: false
+  host: redis.example.invalid
+  port: 6379
+  tls: {enabled: true}
+  auth:
+    username: "default"
+    existingSecret: langfuse-runtime
+    existingSecretPasswordKey: redis-password
 
-resources:
-  requests:
-    cpu: "500m"
-    memory: "1Gi"
-  limits:
-    cpu: "2000m"
-    memory: "4Gi"
+clickhouse:
+  deploy: false
+  host: "https://clickhouse.example.invalid"
+  httpPort: 8443
+  nativePort: 9440
+  database: langfuse
+  cluster: {enabled: false}
+  auth:
+    username: langfuse
+    existingSecret: langfuse-runtime
+    existingSecretKey: clickhouse-password
+  migration: {ssl: true, autoMigrate: false}
+
+s3:
+  deploy: false
+  storageProvider: s3
+  bucket: langfuse-prompts
+  region: us-east-1
+  endpoint: "https://object-store.example.invalid"
+  forcePathStyle: true
+  accessKeyId:
+    secretKeyRef: {name: langfuse-runtime, key: s3-access-key-id}
+  secretAccessKey:
+    secretKeyRef: {name: langfuse-runtime, key: s3-secret-access-key}
+  eventUpload: {prefix: "events/"}
+  batchExport: {enabled: true, prefix: "exports/"}
+  mediaUpload: {enabled: true, prefix: "media/"}
 ```
 
-```bash
-helm repo add langfuse https://langfuse.github.io/langfuse-k8s
-helm install langfuse langfuse/langfuse -f langfuse-values.yaml
-```
+`deploy: false`로 PostgreSQL·Valkey·SeaweedFS·ClickHouse/Keeper의 chart 내부 배포를 끈다. 외부 데이터베이스·사용자·버킷과 Secret은 앞서 준비한 것을 사용한다.
+
+공통 replica·resource 설정은 web과 worker Deployment 각각에 적용된다. 따라서 이 예시에는 web Pod 2개와 worker Pod 2개가 생기며, 리소스 값은 Pod 하나당 값이다. 이 값은 측정된 권장 사양이 아니므로 부하에 맞게 조정한다. 저장소 용량도 따로 산정한다.
+
+이 release에는 [template 검사](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/validations.yaml)가 있지만 최상위 `values.schema.json`은 없다. 정확히 이 chart를 기준으로 검토하고 배포 구성에서도 chart 버전을 고정한다. Ingress·TLS 종료, 접근 정책, Secret 존재 여부, 연결, 스키마 호환성 및 애플리케이션 상태는 환경에서 추가 검증해야 한다. 이 참조 구성은 오프라인으로만 검사했으며 Helm으로 설치하거나 렌더링하지 않았다.
 
 ### Bedrock Prompt Management 설정
 

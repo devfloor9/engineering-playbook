@@ -5,7 +5,7 @@ created: "2026-04-19"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 18
+reading_time: 23
 tags:
   - prompt-registry
   - versioning
@@ -247,41 +247,93 @@ After evaluation and approval, map `PROD` to that ARN in the application configu
 
 ### Langfuse Self-hosted Deployment
 
+This new-install example uses [chart 2.1.1](https://github.com/langfuse/langfuse-k8s/releases/tag/langfuse-2.1.1), appVersion `4.35.0` and its [versioned values](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/values.yaml). Provision the backing services first. An upgrade from chart 1.x needs a separate migration procedure. Replace the `.invalid` endpoints, example ports and region with settings reviewed for the deployment environment.
+
+Choose and record the target Kubernetes context and namespace (for example, `langfuse`) before deployment. Prepare these dependencies separately:
+
+- Prepare PostgreSQL with the `langfuse` database, user and compatible schema.
+- Prepare a Redis/Valkey user and TLS endpoint, and configure the `noeviction` policy.
+- Prepare an external, non-clustered ClickHouse database and user, with HTTPS and native TLS endpoints.
+- Grant access to the event, export and media prefixes in an S3-compatible bucket. Check endpoint, region and path-style settings, plus browser access and CORS for media.
+- Create the `langfuse-runtime` Secret in the release namespace with all eight keys referenced below. Supply backing-service credentials, a 64-hex-character encryption key, and securely generated salt and NextAuth secret. Preserve application keys across redeployments. The Redis password enters a connection URL, so follow the encoding requirements for special characters.
+
+This example disables automatic PostgreSQL and ClickHouse migrations. Complete the approved schema migrations before starting the application. Check certificate trust for each service as well. PostgreSQL's `sslmode=require` requests TLS; review server-certificate verification separately for the environment.
+
 ```yaml
-# langfuse-values.yaml (Helm)
-replicaCount: 2
+# langfuse-values.yaml
+# Chart: langfuse/langfuse 2.1.1; appVersion: 4.35.0
+langfuse:
+  image:
+    tag: "4.35.0"
+  replicas: 2
+  resources:
+    requests: {cpu: "500m", memory: "1Gi"}
+    limits: {cpu: "2000m", memory: "4Gi"}
+  salt:
+    secretKeyRef: {name: langfuse-runtime, key: salt}
+  encryptionKey:
+    secretKeyRef: {name: langfuse-runtime, key: encryption-key}
+  nextauth:
+    url: "https://langfuse.example.invalid"
+    secret:
+      secretKeyRef: {name: langfuse-runtime, key: nextauth-secret}
 
 postgresql:
-  enabled: true
+  deploy: false
+  host: postgresql.example.invalid
+  port: 5432
+  args: "sslmode=require"
   auth:
-    password: "secure-password"
+    username: langfuse
+    database: langfuse
+    existingSecret: langfuse-runtime
+    secretKeys: {userPasswordKey: postgresql-password}
+  migration: {autoMigrate: false}
 
-env:
-  - name: DATABASE_URL
-    value: "postgresql://user:pass@postgres:5432/langfuse"
-  - name: NEXTAUTH_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: langfuse-secrets
-        key: nextauth-secret
-  - name: S3_BUCKET_NAME
-    value: "langfuse-prompts"
-  - name: S3_ENDPOINT
-    value: "https://s3.us-east-1.amazonaws.com"
+redis:
+  deploy: false
+  host: redis.example.invalid
+  port: 6379
+  tls: {enabled: true}
+  auth:
+    username: "default"
+    existingSecret: langfuse-runtime
+    existingSecretPasswordKey: redis-password
 
-resources:
-  requests:
-    cpu: "500m"
-    memory: "1Gi"
-  limits:
-    cpu: "2000m"
-    memory: "4Gi"
+clickhouse:
+  deploy: false
+  host: "https://clickhouse.example.invalid"
+  httpPort: 8443
+  nativePort: 9440
+  database: langfuse
+  cluster: {enabled: false}
+  auth:
+    username: langfuse
+    existingSecret: langfuse-runtime
+    existingSecretKey: clickhouse-password
+  migration: {ssl: true, autoMigrate: false}
+
+s3:
+  deploy: false
+  storageProvider: s3
+  bucket: langfuse-prompts
+  region: us-east-1
+  endpoint: "https://object-store.example.invalid"
+  forcePathStyle: true
+  accessKeyId:
+    secretKeyRef: {name: langfuse-runtime, key: s3-access-key-id}
+  secretAccessKey:
+    secretKeyRef: {name: langfuse-runtime, key: s3-secret-access-key}
+  eventUpload: {prefix: "events/"}
+  batchExport: {enabled: true, prefix: "exports/"}
+  mediaUpload: {enabled: true, prefix: "media/"}
 ```
 
-```bash
-helm repo add langfuse https://langfuse.github.io/langfuse-k8s
-helm install langfuse langfuse/langfuse -f langfuse-values.yaml
-```
+`deploy: false` disables the chart's bundled PostgreSQL, Valkey, SeaweedFS and ClickHouse/Keeper deployments. The application uses the external databases, users, buckets and Secret prepared earlier.
+
+The shared replica and resource settings apply to both the web and worker Deployments. This gives two web pods and two worker pods, with the listed resources allocated per pod. Adjust these example values for the workload; they are not measured sizing recommendations. Size the backing services separately.
+
+The release has [template checks](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/validations.yaml), but no top-level `values.schema.json`. Review against this exact chart and keep the chart version fixed in the deployment configuration. Ingress/TLS termination, access policy, Secret existence, connectivity, schema compatibility and application health still require environment validation. This reference was checked offline; it has not been installed or rendered with Helm.
 
 ### Bedrock Prompt Management Setup
 
