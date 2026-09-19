@@ -1616,7 +1616,49 @@
         "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
       ],
       "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record.",
-      "remaining": "Four deprecated Langfuse observation aliases remain in other document occurrences outside the evaluation and governance pairs."
+      "remaining": "Four unsupported Bedrock Prompt Management alias-operation occurrences remain in KO/EN prompt-model-registry.md: UpdatePromptAlias/update_prompt_alias at baseline lines 111–133, and CreatePromptAlias/create_prompt_alias at lines 227–238. These are not Langfuse observation aliases.",
+      "remaining_occurrences": [
+        {
+          "locale": "en",
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "baseline_lines": [
+            111,
+            133
+          ],
+          "occurrence_id": "AIDLC-REGISTRY-EN-06",
+          "heading": "Bedrock prompt aliases"
+        },
+        {
+          "locale": "ko",
+          "path": "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "baseline_lines": [
+            111,
+            133
+          ],
+          "occurrence_id": "AIDLC-REGISTRY-KO-06",
+          "heading": "Bedrock prompt aliases"
+        },
+        {
+          "locale": "en",
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "baseline_lines": [
+            227,
+            238
+          ],
+          "occurrence_id": "AIDLC-REGISTRY-EN-09",
+          "heading": "Bedrock setup"
+        },
+        {
+          "locale": "ko",
+          "path": "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "baseline_lines": [
+            227,
+            238
+          ],
+          "occurrence_id": "AIDLC-REGISTRY-KO-09",
+          "heading": "Bedrock setup"
+        }
+      ]
     },
     {
       "record_id": "2026-09-19-aidlc-c026",
@@ -1642,7 +1684,29 @@
         "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
       ],
       "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record.",
-      "remaining": "Two recovery explanations remain in other document occurrences outside the evaluation and governance pairs."
+      "remaining": "Two recovery explanations remain in other document occurrences outside the evaluation and governance pairs.",
+      "remaining_occurrences": [
+        {
+          "locale": "en",
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "baseline_lines": [
+            22,
+            24
+          ],
+          "occurrence_id": "AIDLC-REGISTRY-EN-02",
+          "heading": "Rollback"
+        },
+        {
+          "locale": "ko",
+          "path": "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "baseline_lines": [
+            22,
+            24
+          ],
+          "occurrence_id": "AIDLC-REGISTRY-KO-02",
+          "heading": "Rollback"
+        }
+      ]
     },
     {
       "record_id": "2026-09-19-aidlc-c027",
@@ -1668,7 +1732,29 @@
         "Independent PromQL fixtures check matched cohorts, no-data behavior and exact tolerance boundaries against Prometheus 3.14."
       ],
       "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record.",
-      "remaining": "Two legal-policy explanations remain in other document occurrences outside the evaluation and governance pairs."
+      "remaining": "Two legal-policy explanations remain in other document occurrences outside the evaluation and governance pairs.",
+      "remaining_occurrences": [
+        {
+          "locale": "en",
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md",
+          "baseline_lines": [
+            42,
+            43
+          ],
+          "occurrence_id": "AIDLC-VERSION-INDEX-EN-03",
+          "heading": "Regulatory requirements"
+        },
+        {
+          "locale": "ko",
+          "path": "docs/aidlc/enterprise/agent-versioning/index.md",
+          "baseline_lines": [
+            42,
+            43
+          ],
+          "occurrence_id": "AIDLC-VERSION-INDEX-KO-03",
+          "heading": "Regulatory requirements"
+        }
+      ]
     },
     {
       "record_id": "2026-09-19-aidlc-c028",
@@ -2669,7 +2755,7 @@
       "issue": 96,
       "previous_status": "open",
       "disposition": "addressed",
-      "summary": "Create/update matching ClusterIP Service and Deployment, wait for observed generation/replicas, require identity/smoke callback, and return ready only after verification.",
+      "summary": "Create matching release-derived ClusterIP Service and Deployment candidates only when both names are absent; reject existing resources and create-time conflicts without patching. Wait for observed-generation/replica readiness and required identity/smoke verification before returning ready, while retaining the previous stable backend.",
       "recorded_on": "2026-09-19",
       "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
       "source_commits": [
@@ -3136,7 +3222,7 @@
       "issue": 96,
       "previous_status": "open",
       "disposition": "addressed",
-      "summary": "Use one pinned AsyncOpenAI client contract and an explicitly resolved endpoint/alias; remove legacy ChatCompletion and assumed KServe service port.",
+      "summary": "Use pinned OpenAI/LangChain/Ragas contracts and explicitly resolved endpoint/model aliases with guarded synchronous and asynchronous clients. Authorize HTTP/1.1 header/body dispatch and response-lifetime slots across both paths, including Ragas synchronous embeddings; remove legacy ChatCompletion and assumed KServe service ports.",
       "recorded_on": "2026-09-19",
       "reviewed_revision": "156896e6287d6d37875f7dcc556776b3bec2c0ba",
       "source_commits": [

@@ -86,7 +86,7 @@ The second follow-up covers 68 items in 10 Korean/English documents: 65 source c
 | Model release and rollout | Require approved immutable artifacts, create separate release resources, and reject missing or stale canary observations. | `b8b7f617` |
 | Trace datasets and reward evaluation | Validate approved snapshots and manifests; preserve per-sample results and recheck authorization on synchronous and asynchronous requests. | `156896e6` |
 
-`AIDLC-C025`, `AIDLC-C026` and `AIDLC-C027` remain partial: four deprecated observation aliases, two recovery explanations and two legal-policy explanations occur in other documents. The evaluation changes do not establish production model quality, deployment success or legal compliance.
+`AIDLC-C025`, `AIDLC-C026` and `AIDLC-C027` remain partial: four unsupported Bedrock prompt-alias operations, two recovery explanations and two legal-policy explanations occur in other documents. The evaluation changes do not establish production model quality, deployment success or legal compliance.
 
 Each ledger entry identifies the source commit, reviewed files, checks and remaining limits. Offline examples use fakes or parsers; browser checks establish rendering. Neither establishes successful cloud execution, fault recovery or measured performance. Later entries, if present, are authoritative for subsequent decisions; the original occurrence and classification totals remain unchanged.
 
