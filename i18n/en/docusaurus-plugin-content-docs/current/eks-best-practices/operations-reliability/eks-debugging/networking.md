@@ -3,7 +3,7 @@ title: Networking Debugging
 description: Guide to diagnosing EKS networking issues - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-21"
 last_update:
-  date: "2026-06-30"
+  date: "2026-09-19"
   author: devfloor9
 reading_time: 9
 tags:
@@ -99,6 +99,10 @@ In the default mode, each ENI receives individual secondary IPs. Enabling Prefix
 **Example**: c5.xlarge instance
 - Default mode: up to 58 Pods (4 ENIs × 15 IPs - 1)
 - Prefix Delegation: up to 110 Pods (4 ENIs × 16 prefixes × 16 IPs)
+:::
+
+:::caution Temporary Changes vs. Persistent Configuration
+VPC CNI values changed with `kubectl set env` revert to defaults when the add-on is updated. Settings you want to keep after diagnosis should be moved to `aws eks update-addon --configuration-values`. If you see `NetworkAddressUsageLimitExceeded` (the VPC NAU quota) or `InsufficientFreeAddressesInSubnet` in Karpenter NodeClaim events while the subnet still has free IPs, the problem sits at the capacity planning stage; see [IP Capacity Planning and Karpenter Node Sizing](../../networking-performance/ip-capacity-planning-karpenter.md).
 :::
 
 ### ENI and IP Limits
@@ -523,3 +527,4 @@ aws ec2 describe-security-groups \
 - [Workload Debugging](./workload.md) - Pod state-based troubleshooting
 - [Storage Debugging](./storage.md) - PVC mount failures
 - [Health Check Mismatch](./health-check-mismatch.md) - ALB/NLB Target Group Health Check issues
+- [IP Capacity Planning and Karpenter Node Sizing](../../networking-performance/ip-capacity-planning-karpenter.md) - Subnet and NAU budgets, IP consumption on size fallback

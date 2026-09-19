@@ -3,7 +3,7 @@ title: EKS Pod Resource Optimization Guide
 description: CPU/Memory resource configuration, QoS classes, VPA/HPA autoscaling, and resource right-sizing strategies for Kubernetes Pods
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 89
 tags:
@@ -2160,6 +2160,7 @@ Official documentation and implementation sources:
 Related guides:
 
 - [Karpenter autoscaling](./karpenter-autoscaling.md) — node scaling
+- [CPU Performance Comparability and Pod/Node Sizing Standards](./cpu-sizing-comparability.md) — why CPU% is not comparable across sizes and generations, comparable KPIs, Pod sizing template
 - [EKS cost management](./cost-management.md) — cost strategy
 
 Reviewed: 2026-09-18. Review again on Kubernetes/controller upgrades or material policy changes.

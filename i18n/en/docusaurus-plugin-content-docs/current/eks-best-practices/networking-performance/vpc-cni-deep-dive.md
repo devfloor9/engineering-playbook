@@ -3,7 +3,7 @@ title: "How VPC CNI Works: Datapath, IPAM, and NetworkPolicy"
 description: Dissects the internals of Amazon VPC CNI along three axes. The L3 routed mode datapath (veth, ip rule, 169.254.1.1), ipamd's warm pool, Prefix Delegation, and IP cooldown algorithms, and the eBPF-based NetworkPolicy architecture
 created: "2026-08-04"
 last_update:
-  date: "2026-08-04"
+  date: "2026-09-19"
   author: YoungJoon Jeong · Kyumin Park
 reading_time: 16
 tags:
@@ -177,9 +177,10 @@ For concrete diagnostic procedures for warm pool anomalies (Pods stuck in `Conta
 
 Because VPC CNI consumes Pod IPs directly from VPC subnets, subnet sizing is cluster capacity planning. The typical order of response to exhaustion is as follows.
 
-1. **Enable Prefix Delegation** — Subnet consumption itself is unchanged, but ENI slot efficiency and API load improve
-2. **Custom networking** — Use `AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG=true` plus the `ENIConfig` CRD (`crd.k8s.amazonaws.com/v1alpha1`) to place Pods in a subnet different from the node's (typically the secondary CIDR range 100.64.0.0/10). Note that the primary ENI can no longer be used for Pods, reducing the maximum Pods per node
-3. **IPv6 cluster** — For a new build, the option that structurally eliminates the exhaustion problem
+1. **Enhanced Subnet Discovery** — Attach a CIDR block to the VPC and tag the new subnets with `kubernetes.io/role/cni=1` (`ENABLE_SUBNET_DISCOVERY=true`, the default since v1.18.0); new secondary ENIs are created in the discovered subnets and the IP space grows without disruption. For subnet and NAU budget calculations, see [IP Capacity Planning and Karpenter Node Sizing](./ip-capacity-planning-karpenter.md)
+2. **Enable Prefix Delegation** — Subnet consumption itself is unchanged, but ENI slot efficiency and API load improve
+3. **Custom networking** — Use `AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG=true` plus the `ENIConfig` CRD (`crd.k8s.amazonaws.com/v1alpha1`) to place Pods in a subnet different from the node's (typically the secondary CIDR range 100.64.0.0/10). Note that the primary ENI can no longer be used for Pods, reducing the maximum Pods per node
+4. **IPv6 cluster** — For a new build, the option that structurally eliminates the exhaustion problem
 
 ### Security Groups for Pods (SGP)
 
@@ -206,6 +207,7 @@ VPC CNI is an L3 routed mode CNI that assigns VPC-native IPs directly to Pods wi
 - [aws-network-policy-agent](https://github.com/aws/aws-network-policy-agent) — eBPF-based NetworkPolicy node agent
 
 ### Related Documents (internal)
+- [IP Capacity Planning and Karpenter Node Sizing](./ip-capacity-planning-karpenter.md) — Subnet, NAU, and branch ENI budget model and IP consumption on size fallback
 - [Networking Debugging](../operations-reliability/eks-debugging/networking.md) — VPC CNI, DNS, and Service troubleshooting procedures
 - [How Network Flow Monitor Works](../operations-reliability/network-flow-monitor.md) — eBPF sock_ops-based TCP flow observation
 - [AWS Nitro Architecture and Performance Tuning](./nitro-architecture-performance-tuning.md) — ENA driver and PPS/CPS performance tuning
