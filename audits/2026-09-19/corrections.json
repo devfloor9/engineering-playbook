@@ -3283,6 +3283,2087 @@
         "Independent review checked the pinned Ragas synchronous embedding path. In-memory HTTPX/httpcore probes cover approval checks before headers and body writes without contacting a model endpoint."
       ],
       "evidence_limit": "Source correction and offline verification only. Cloud execution, model quality, runtime compatibility, deployment recovery, measured cost and legal compliance are not established by this record."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-239",
+      "package": "eks-operations",
+      "id": "HYP-OPS-239",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Documented advance patch notifications, AZ-scoped eviction/PDB checks, controller-owned replacement, failed-eviction events and the scheduled retry/deletion path.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Patch flow checked against the retrieved AWS procedure; current bilingual notification, retry and deletion wording retained.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/pod-lifecycle.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-240",
+      "package": "eks-operations",
+      "id": "HYP-OPS-240",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Made replica count, placement and PDB settings workload-dependent. Clarified that PDBs constrain Eviction API admission, while direct deletion and Deployment rollouts have different boundaries.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Offline counterexamples reject mismatched selectors and unattainable PDB capacity; current direct-delete and rolling-update limits read.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/disruptions.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-241",
+      "package": "eks-operations",
+      "id": "HYP-OPS-241",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated compute preparation and image pull from post-start application initialization. Replaced platform timing rankings with measured stages and a correctly scoped startup-probe fragment.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Probe fixtures reject invalid success thresholds, zero periods and simultaneous handlers; the probe starts after container creation.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/kubelet/prober/worker.go",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "retained_unverified_ids": [
+        "HYP-UV-056"
+      ],
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-242",
+      "package": "eks-operations",
+      "id": "HYP-OPS-242",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated ECR vulnerability scanning from image-pull performance, identified the Fargate Pod execution role for private pulls and removed the unsupported cache-lifetime explanation.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Current private-ECR role and scanning paragraphs read; no pull-time or cache-lifetime result inferred from syntax tests.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_on_EKS.html",
+        "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "retained_unverified_ids": [
+        "HYP-UV-057"
+      ],
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-243",
+      "package": "eks-operations",
+      "id": "HYP-OPS-243",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Retained application image/configuration security responsibilities despite host-access restrictions. Distinguished Kubernetes NetworkPolicy support from separate Security Groups for Pods controls.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Both network-policy rows and the SG/NetworkPolicy distinction checked in the final FCR-01 closure.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-244",
+      "package": "eks-operations",
+      "id": "HYP-OPS-244",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced ECS FireLens fields with EKS Fargate's built-in Fluent Bit router and aws-observability/aws-logging resources. Added destination permissions, connectivity and new-Pod configuration requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Logging fixtures reject ECS fields, wrong namespace/label/tag, managed INPUT configuration and malformed FluentConf indentation.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/fargate-logging.html",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "retained_unverified_ids": [
+        "HYP-UV-058"
+      ],
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-245",
+      "package": "eks-operations",
+      "id": "HYP-OPS-245",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the ineffective profile-tag monitoring switch with explicit ADOT collection. Distinguished application/system metrics in Container Insights from automatic AWS/Usage quota metrics.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Current ADOT and AWS/Usage paragraph read; removal of the profile-tag activation claim confirmed.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/APIReference/API_CreateFargateProfile.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/monitoring-fargate-usage.html"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "retained_unverified_ids": [
+        "HYP-UV-058"
+      ],
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-246",
+      "package": "eks-operations",
+      "id": "HYP-OPS-246",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Budgeted preStop, traffic transition, active work and cleanup within one termination grace period. Kept 60/10- and 90/15-second configurations as adjustable examples, with measurement requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Fixtures reject preStop exhausting the grace period; current total-budget and asynchronous propagation explanation retained.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/services-networking/endpoint-slices.md",
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/pods/pod-lifecycle.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "retained_unverified_ids": [
+        "HYP-UV-056",
+        "HYP-UV-058"
+      ],
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-247",
+      "package": "eks-operations",
+      "id": "HYP-OPS-247",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected Auto Mode custom DaemonSet support and node-security constraints in the comparison and selection diagram.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Final bilingual comparison and neutral candidate diagram checked for the custom-DaemonSet/security boundary.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/automode.html"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-248",
+      "package": "eks-operations",
+      "id": "HYP-OPS-248",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected Auto Mode billing to EC2 plus compute-management charges. Described Fargate charges using the provisioned vCPU/memory configuration rather than a per-Pod or requested-resource shortcut.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Final pricing row read in both locales; provisioned Fargate configuration and Auto Mode additional charges retained.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-249",
+      "package": "eks-operations",
+      "id": "HYP-OPS-249",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed EKS Fargate Spot support and recommendations from the table, diagram and checklist; identified compatible EC2-based candidates when Spot is required.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "Current table, diagram and checklist checked for EKS Fargate Spot exclusion.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/automode.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/fargate.html"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-250",
+      "package": "eks-operations",
+      "id": "HYP-OPS-250",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the Auto Mode beta/transition label with general availability. Reworked the selection diagram around platform constraints and same-workload measurements rather than workload-label winners.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "fb04660bebc5012aa872a5386e503dadcdbae765"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md"
+      ],
+      "verification": [
+        "FCR-02 closure checked the neutral three-candidate logic and removal of beta/workload-label selection claims.",
+        "Read final source/metadata and matched the applied-review hashes. Existing evidence: 82 independent assertions, 16 rejected counterexamples and 20/20 current CI tests."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no Fargate scheduling, patching, probe, logging/metric delivery, shutdown, availability or cost measurement. HYP-UV-056 through HYP-UV-059 remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/fargate-lifecycle.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-012",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-012",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced inferred-AZ and positional-column reporting with a Pod-to-Node snapshot join that reports observed zone/readiness and preserves unscheduled, missing-node and unknown values.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Pure snapshot tests cover empty/unscheduled Pods, absent Nodes/zones, false or missing Ready conditions, joins and retained unknowns.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/api/v0.34.0/core/v1/types.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-013",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-013",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed standalone Karpenter NodePool references with group, kind and name, and stated the existing EC2NodeClass, AMI, IAM and network prerequisites.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "YAML checks reject missing reference fields and mixed provider APIs.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-017",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-017",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated node provisioning, scheduler binding and kubelet execution. Removed unsupported provisioning-time/API-attribution claims and stated versioned migration ownership and rollback prerequisites.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Current applied ownership/version prose and unchanged fenced examples compared with the individual record and Parfit review.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://karpenter.sh/v1.14/concepts/nodeclaims/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/providers/instance/instance.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-019",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-019",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected capacity-type arrays to unordered allowed values rather than an On-Demand-first preference, including repeated migration prose and conversion-table claims.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Repeated migration and conversion-table wording checked; allowlist order is not presented as priority.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-020",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-020",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Moved expireAfter into spec.template.spec and used WhenEmptyOrUnderutilized with consolidateAfter in the selected scheduling pair. Thirteen matching defects outside this pair remain open.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "YAML negatives reject the old consolidation enum and misplaced expiration; all 13 outside passages rechecked at exact current lines.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "remaining": "13 outside locations remain open: six in each Karpenter troubleshooting locale and one English conditional component row. The component has two host documents; only its English host displays this enum defect.",
+      "remaining_occurrences": [
+        {
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 143,
+          "end_line": 143,
+          "source_sha256": "9c90802a9115b1de2f19e403ea126d83fa37e61ed7336ac726eebd6584a97d50",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "67199ea8bdd52dd012e93a74f716268766f3707e1f05c726a4fba51cbf1a2c0a"
+        },
+        {
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 329,
+          "end_line": 329,
+          "source_sha256": "9c90802a9115b1de2f19e403ea126d83fa37e61ed7336ac726eebd6584a97d50",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "08efb852ba24c17af46e38b59724b61ba6d39a8d7df8d7f4469d597117d9fccd"
+        },
+        {
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 342,
+          "end_line": 342,
+          "source_sha256": "9c90802a9115b1de2f19e403ea126d83fa37e61ed7336ac726eebd6584a97d50",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "eff558bbae094c669823293c49ef82d090ba29cc5f0e7d64a99dfc2cf730dab6"
+        },
+        {
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 468,
+          "end_line": 468,
+          "source_sha256": "9c90802a9115b1de2f19e403ea126d83fa37e61ed7336ac726eebd6584a97d50",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "67199ea8bdd52dd012e93a74f716268766f3707e1f05c726a4fba51cbf1a2c0a"
+        },
+        {
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 629,
+          "end_line": 629,
+          "source_sha256": "9c90802a9115b1de2f19e403ea126d83fa37e61ed7336ac726eebd6584a97d50",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "da9cef47d8f28a6fd5698a0c809952d7b1290208c9d264a09ce83e14d59a2643"
+        },
+        {
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 713,
+          "end_line": 713,
+          "source_sha256": "9c90802a9115b1de2f19e403ea126d83fa37e61ed7336ac726eebd6584a97d50",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "67199ea8bdd52dd012e93a74f716268766f3707e1f05c726a4fba51cbf1a2c0a"
+        },
+        {
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 143,
+          "end_line": 143,
+          "source_sha256": "58e71b135f113636b69fdfcfb90c0022ef3b7286af53d8449d34bffc0226fc03",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "67199ea8bdd52dd012e93a74f716268766f3707e1f05c726a4fba51cbf1a2c0a"
+        },
+        {
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 329,
+          "end_line": 329,
+          "source_sha256": "58e71b135f113636b69fdfcfb90c0022ef3b7286af53d8449d34bffc0226fc03",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "08efb852ba24c17af46e38b59724b61ba6d39a8d7df8d7f4469d597117d9fccd"
+        },
+        {
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 342,
+          "end_line": 342,
+          "source_sha256": "58e71b135f113636b69fdfcfb90c0022ef3b7286af53d8449d34bffc0226fc03",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "ddfe61a88333fe998edf6f69e3680f897adcd99dbd391a9e622a8e18adcb31b2"
+        },
+        {
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 468,
+          "end_line": 468,
+          "source_sha256": "58e71b135f113636b69fdfcfb90c0022ef3b7286af53d8449d34bffc0226fc03",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "67199ea8bdd52dd012e93a74f716268766f3707e1f05c726a4fba51cbf1a2c0a"
+        },
+        {
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 629,
+          "end_line": 629,
+          "source_sha256": "58e71b135f113636b69fdfcfb90c0022ef3b7286af53d8449d34bffc0226fc03",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "aabb82b44c5c522d71fd5eef307d88d3289fb9213fdd9824b2d8429bee8bb1a2"
+        },
+        {
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "line": 713,
+          "end_line": 713,
+          "source_sha256": "58e71b135f113636b69fdfcfb90c0022ef3b7286af53d8449d34bffc0226fc03",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "67199ea8bdd52dd012e93a74f716268766f3707e1f05c726a4fba51cbf1a2c0a"
+        },
+        {
+          "source_path": "src/components/AgenticSolutionsTables/KarpenterGpuOptimization.js",
+          "line": 10,
+          "end_line": 10,
+          "source_sha256": "66ab65c107f24cb62c231665ed56f06d40292fdc044d07cb0e1e258c138b22e7",
+          "status": "open",
+          "invalid_value": "WhenUnderutilized",
+          "source_line_sha256": "a74b6ab0e29d0a968fd04ac51343aebab13386c4d9b90530bc482e54f525b51c",
+          "locale_branch": "en",
+          "hosts": [
+            {
+              "source_path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+              "import_line": 30,
+              "render_line": 485,
+              "metadata_owner": "main",
+              "locale": "ko",
+              "currently_displays_this_enum_defect": false
+            },
+            {
+              "source_path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+              "import_line": 30,
+              "render_line": 485,
+              "metadata_owner": "main",
+              "locale": "en",
+              "currently_displays_this_enum_defect": true
+            }
+          ]
+        }
+      ],
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-021",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-021",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the batch NodePool's EC2NodeClass reference while retaining its workload taint and explicit provider prerequisites.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Parsed NodePool reference and batch taint checked against the individual record.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-024",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-024",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced invalid wildcard restart syntax with explicit workload resources and bounded migration steps; removed unspecified node-group taint/deletion instructions.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Scoped restart/migration examples retained verbatim from the reviewed proposal; no example command executed.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DeleteAutoScalingGroup.html",
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes/kubectl/v0.34.0/pkg/cmd/rollout/rollout_restart.go"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-025",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-025",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Made canaries additional replicas with disjoint controller/traffic selectors and an actual NodePool placement selector; clarified that creating a canary does not relocate existing replicas.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Canary labels, selectors and NodePool constraint retained in the applied fenced content.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-026",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-026",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced forced ASG deletion with explicit inventory, replacement-capacity/data-health checks and owner-specific node-group retirement. Preserved CA capacity and recovery requirements until migration is complete.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Current owner-specific retirement prose and retained recovery checks read against the applied-review delta.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/autoscaling/ec2/APIReference/API_DeleteAutoScalingGroup.html",
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes/api/v0.34.0/core/v1/types.go",
+        "https://raw.githubusercontent.com/kubernetes/kubectl/v0.34.0/pkg/cmd/rollout/rollout_restart.go"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-027",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-027",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated CA-discovered ASG ownership from Karpenter NodeClaims and new-node constraints. Corrected provider references, bounded discovery/IAM and CA fragments, node-group/ASG identity and parallel-operation guidance.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "CA negative controls reject disabled safeguards and widened discovery; current ownership prose retains the ASG/NodeClaim distinction.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/upgrading/compatibility/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes/autoscaler/cluster-autoscaler-1.34.0/cluster-autoscaler/config/flags/flags.go",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-036",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-036",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected per-container QoS conditions and separated resource mappings. Removed unconditional QoS survival, minimum-resource and cost rankings throughout the tier examples.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "QoS resource examples and repeated tier corrections compared with the per-ID record; all applied fences match the reviewed proposal.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/apis/core/helper/qos/qos.go",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/kubelet/eviction/helpers.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/pod-qos/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-037",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-037",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed immediate-placement, eviction-immunity and minimum-performance guarantees attributed to priority/QoS classes; kept workload resource values as sizing examples.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Priority/QoS tier qualifications compared with the per-ID record; deferred PriorityClass work is not counted as corrected.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/apis/core/helper/qos/qos.go",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/kubelet/eviction/helpers.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/pod-qos/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-040",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-040",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced class-only eviction/OOM ordering with kubelet memory-pressure ranking and the separate kernel-OOM boundary, including repeated diagrams, tier descriptions and examples.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Memory-pressure ordering, OOM distinction and repeated corrections compared with the per-ID record and applied review.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/apis/core/helper/qos/qos.go",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/kubelet/eviction/helpers.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/pod-qos/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-041",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-041",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced live kubelet-file/service changes with supported EC2NodeClass spec.kubelet configuration. Fixed JSON and soft-threshold/grace mappings, and labeled thresholds as examples rather than EKS defaults.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Current threshold prose read; JSON/YAML content matches reviewed examples and preserves the declarative merge boundary.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/v1.14/concepts/nodeclasses/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-055",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-055",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the unqualified retired AL2 latest selection with a supported-family structural example and explicit GPU/AMI prerequisites; left AMI identity as a non-runnable operator-supplied value.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Supported-family structural example and explicit placeholder checked; no AMI lookup or GPU bootstrap test performed.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/eks-ami-deprecation-faqs.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html",
+        "https://karpenter.sh/v1.14/concepts/nodeclasses/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-073",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-073",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected Auto Mode default capacity/architecture and AZ assumptions. Required eligible custom pools for Spot/ARM and completed a Deployment that explicitly targets Auto Mode in mixed clusters.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Current Auto Mode defaults/prerequisites read; parsed provider and Deployment placement contracts retained.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/create-node-pool.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/set-builtin-node-pools.html",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-074",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-074",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Distinguished standalone Karpenter EC2NodeClass from Auto Mode NodeClass references and enablement prerequisites, and completed Deployment selectors/labels and placement constraints.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Provider-reference negatives reject missing or mixed API fields; complete Deployment selectors/labels remain.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/create-node-pool.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/set-builtin-node-pools.html",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-084",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-084",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced Ready-only and instantaneous-health scheduling claims with external readiness-controller, reporter and reconciliation boundaries. Explained NoSchedule guard scope without promising universal schedulability.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Readiness guard semantics and external-controller boundary checked against the individual record and applied review.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/kubernetes-sigs/node-readiness-controller/releases/tags/v0.5.0",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/config/crd/bases/readiness.node.x-k8s.io_nodereadinessrules.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/concepts.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/getting-started.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/installation.md",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-085",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-085",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Registered readiness guards before ordinary workload scheduling and aligned removal rules, node labels and NodePool startup taints. Corrected actor/startup diagrams and made custom network/GPU reporters explicit.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Negatives reject absent/mismatched registration guards and invalid reporter-rule/workload selection.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/kubernetes-sigs/node-readiness-controller/releases/tags/v0.5.0",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/config/crd/bases/readiness.node.x-k8s.io_nodereadinessrules.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/concepts.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/getting-started.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/installation.md",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-086",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-086",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Declared custom network/GPU NodeCondition producers and external controller prerequisites. Scoped rules to matching node labels/pools and distinguished ongoing reconciliation from instantaneous detection.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Scoped custom reporter conditions, labels and NodePool matching retained; no health reporter was run.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/kubernetes-sigs/node-readiness-controller/releases/tags/v0.5.0",
+        "https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/config/crd/bases/readiness.node.x-k8s.io_nodereadinessrules.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/concepts.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/getting-started.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/installation.md",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-087",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-087",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed invalid DoesNotExist tolerations, constrained ordinary workloads to guarded pools and clarified that NoSchedule blocks only non-tolerating placement without evicting existing Pods.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Negatives reject matching, wildcard and invalid guard tolerations on ordinary guarded workloads.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/concepts.md",
+        "https://raw.githubusercontent.com/kubernetes/api/v0.34.0/core/v1/types.go",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/apis/core/validation/validation.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-088",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-088",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the combined guarded-GPU example's NodeClass reference, registration taint, matching readiness rule and workload placement; retained explicit GPU, storage and custom-reporter dependencies.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Parsed guard/rule/workload selection checks and invalid-provider/toleration counterexamples pass.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/kubernetes-sigs/node-readiness-controller/releases/tags/v0.5.0",
+        "https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.k8s.aws_ec2nodeclasses.yaml",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/config/crd/bases/readiness.node.x-k8s.io_nodereadinessrules.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/concepts.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/getting-started.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/installation.md",
+        "https://raw.githubusercontent.com/kubernetes/api/v0.34.0/core/v1/types.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-089",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-089",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the fictional control-plane feature flag with the external Node Readiness Controller release/API, installation and integration prerequisites and stated its validation limits.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "External v0.5.0/API prerequisites and removed fictional flag checked; no controller installation performed.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/kubernetes-sigs/node-readiness-controller/releases/tags/v0.5.0",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/config/crd/bases/readiness.node.x-k8s.io_nodereadinessrules.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/concepts.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/getting-started.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/installation.md"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-090",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-090",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Updated repeated AZ diagnostics and checklists to join Pod placements to observed Node labels/readiness, preserving unknowns and using valid scoped shell arguments.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Eight pure placement tests include wrong joins, readiness identity, empty snapshots and lost-unknown negative controls.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/api/v0.34.0/core/v1/types.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-091",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-091",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced blanket DaemonSet guard bypasses with explicit toleration guidance. Kept wildcard Exists syntax only as a scoped alternative in separate YAML documents and removed all-node placement guarantees.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "6d0642e399b1f8bb92fea04135eb4b4f80b5827c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Applied toleration alternatives and separate YAML documents compared with the record; no universal DaemonSet placement claim accepted.",
+        "Matched current source to the independent applied-review hashes; 120/130 exact edit texts and 10 reviewed prose deltas. Existing current CI: 14/14 YAML tests and 8/8 pure placement tests."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/kubernetes-sigs/node-readiness-controller/releases/tags/v0.5.0",
+        "https://karpenter.sh/v1.14/concepts/nodepools/",
+        "https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/config/crd/bases/readiness.node.x-k8s.io_nodereadinessrules.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/concepts.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/getting-started.md",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/v0.5.0/docs/book/src/user-guide/installation.md",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/apis/core/validation/validation.go",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+      ],
+      "evidence_limit": "Source/offline acceptance for this ID only. Karpenter v1.14.1 and Kubernetes/CA 1.34 examples; NRC sections use external v0.5.0. No admission/controller, migration, node/GPU/AMI, reporter, eviction or workload execution. Other scheduling IDs remain outside this wave.",
+      "verification_files": [
+        "scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "scripts/tests/document-examples/test_scheduling_placement.py"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/scheduling-lifecycle.test.cjs",
+        "python3 scripts/tests/document-examples/test_scheduling_placement.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-001",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-001",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the universal 700B/single-node/mandatory-PP claim with GPU-resident weight, KV-cache and runtime sizing; added host-memory checks for offloading and an explicitly approximate 744B byte calculation.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Current bilingual GPU/host-memory prose and decimal-byte estimate checked; no model-fit result inferred.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/ec2/instance-types/p5/",
+        "https://huggingface.co/zai-org/GLM-5-FP8/raw/4f96cc5eec29dcee5d6ded54f7ffe889438f9516/README.md",
+        "https://huggingface.co/zai-org/GLM-5-FP8/raw/4f96cc5eec29dcee5d6ded54f7ffe889438f9516/config.json",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/docs/serving/parallelism_scaling.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-002",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-002",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Qualified prefill/decode bottlenecks by workload and retained TP=4/TP=2 as an illustrative allocation requiring independent stage fit, with transfer and omitted-path limits.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Illustrative TP4/TP2 diagram and separate coupled TP8/PP2 explanation checked in the current-source spot-check.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/llm-d/llm-d/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/docs/serving/parallelism_scaling.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-003",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-003",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Qualified NIXL backend/topology dependence and removed mandatory node separation from the MIG premise. Explained distinct whole-GPU Pods and optional role-based NodePools.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "NIXL/topology and distinct whole-GPU Pod statements retained from the primary-reviewed proposal.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/auto-accelerated.html",
+        "https://raw.githubusercontent.com/ai-dynamo/nixl/492aca7ce6743570b4cc0857983628ae34ca13c9/README.md",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/manage-gpus/scheduling-gpus.md",
+        "https://raw.githubusercontent.com/llm-d/llm-d/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-004",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-004",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Constrained role pools to eight-GPU p5.48xlarge nodes and added matching stage Pod placement/resource fragments. Labeled packing as a GPU-count upper bound, separate from GLM-5 capacity.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Parsed role-pool GPU capacity, stage requests/limits and placement fragments retained unchanged.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/ec2/instance-types/p5/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/auto-accelerated.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/create-node-pool.html",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/manage-gpus/scheduling-gpus.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-005",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-005",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated LWS controller/Pod lifecycle from runtime TP/PP and explained controller/webhook prerequisites, LWS/Ray composition and infrastructure-specific compatibility requirements.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Current lifecycle/runtime comparison and prerequisite prose checked against the reviewed proposal.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.ray.io/en/latest/cluster/kubernetes/index.html",
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/fc19b9ae9b0113d228ba15f4b62b06bea434b510/api/leaderworkerset/v1/leaderworkerset_types.go",
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/v0.8.0/docs/examples/vllm/GPU/lws.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/v0.8.0/site/content/en/docs/installation/_index.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/docs/serving/parallelism_scaling.md"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-006",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-006",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Configured the leader with mp, two nodes, rank 0, shared rendezvous address/port and LeaderCreated startup. Added HTTP readiness and a separate leader-only API Service.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Counterexamples reject missing nnodes, bad rendezvous, leader-readiness startup cycles and Service readiness bypass.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/create-node-pool.html",
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/fc19b9ae9b0113d228ba15f4b62b06bea434b510/api/leaderworkerset/v1/leaderworkerset_types.go",
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/fc19b9ae9b0113d228ba15f4b62b06bea434b510/pkg/utils/controller/controller_utils.go",
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/fc19b9ae9b0113d228ba15f4b62b06bea434b510/pkg/utils/pod/pod_utils.go",
+        "https://raw.githubusercontent.com/vllm-project/vllm/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665/vllm/entrypoints/openai/cli_args.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665/vllm/entrypoints/serve/instrumentator/health.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/docs/serving/parallelism_scaling.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/engine/arg_utils.py"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-007",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-007",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Configured the worker with unique rank 1, shared model/TP/PP/rendezvous settings and headless execution using LWS-injected variables.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Counterexamples reject duplicate ranks, unresolved variables and an HTTP/API-serving worker.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/fc19b9ae9b0113d228ba15f4b62b06bea434b510/pkg/utils/pod/pod_utils.go",
+        "https://raw.githubusercontent.com/vllm-project/vllm/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665/vllm/v1/executor/multiproc_executor.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/config/parallel.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/entrypoints/cli/serve.py"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-008",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-008",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Set matching GPU requests and limits in both LWS Pods and stage fragments; aligned TP=8, PP=2 and two nodes with eight local GPU processes per Pod.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Counterexamples reject request-only or unequal GPU allocation; local-process arithmetic checked.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/manage-gpus/scheduling-gpus.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665/vllm/v1/executor/multiproc_executor.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/config/parallel.py"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-009",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-009",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Connected the model argument to a prepared read-only multi-node PVC. Documented complete checkpoint contents, access/integrity/capacity checks and the separate lifetime/accounting of temporary shared memory.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Counterexamples reject unwired/hidden/mismatched PVC paths; prepared model mount and memory budget checked.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://huggingface.co/api/models/zai-org/GLM-5-FP8",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/storage/persistent-volumes.md",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/storage/volumes.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/docs/serving/parallelism_scaling.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/config/load.py"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-010",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-010",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Qualified the 3,200-Gbps hardware ceiling and documented Auto Mode EFA device-plugin/DRA, interface and software prerequisites. Removed forced NCCL tuning and environment-only EFA setup assurances.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Current EFA qualifications retain software/interface/provider verification requirements; no transport was executed.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/ec2/instance-types/p5/",
+        "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/auto-change.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html",
+        "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-011",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-011",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Clarified group recreation, reload/readiness and loss of in-flight/KV state, including the outage boundary for one replica. Separated retained checkpoint files from serving-state or availability guarantees.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Current restart/reload prose retains one-replica and in-flight/KV-state loss boundaries.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/fc19b9ae9b0113d228ba15f4b62b06bea434b510/api/leaderworkerset/v1/leaderworkerset_types.go",
+        "https://raw.githubusercontent.com/kubernetes-sigs/lws/fc19b9ae9b0113d228ba15f4b62b06bea434b510/site/content/en/docs/concepts/failure-handling/_index.md",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/storage/volumes.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665/vllm/entrypoints/serve/instrumentator/health.py"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-ads-disagg-012",
+      "package": "agentic-design-serving",
+      "id": "ADS-DISAGG-012",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Aligned both locales and Pods on vLLM v0.23.0, LWS v0.8.0 and a pinned GLM-5 revision. Retained release provenance and required operator image-digest/CUDA/driver checks.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "76eb06e578cf8314c01690149f564373b0862510"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md"
+      ],
+      "verification": [
+        "Current image/flags match the reviewed pinned-version artifacts; no image pull or model runtime import performed.",
+        "Matched current source to the independent applied snapshot: 18/18 focused checks, unchanged YAML and 24/24 current CI tests."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/vllm-project/vllm/git/commits/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665",
+        "https://api.github.com/repos/vllm-project/vllm/git/ref/tags/v0.23.0",
+        "https://api.github.com/repos/vllm-project/vllm/releases/tags/v0.23.0",
+        "https://huggingface.co/api/models/zai-org/GLM-5-FP8",
+        "https://huggingface.co/zai-org/GLM-5-FP8/raw/4f96cc5eec29dcee5d6ded54f7ffe889438f9516/README.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665/vllm/model_executor/models/deepseek_v2.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/0fc695fc6d1d82e9a5ac6835ac8e4e1c83703665/vllm/model_executor/models/registry.py"
+      ],
+      "evidence_limit": "Source/offline acceptance only. vLLM v0.23.0, LWS v0.8.0 and GLM-5 revision 4f96cc5eec29dcee5d6ded54f7ffe889438f9516; image digest/driver compatibility, model fit, storage, EFA, runtime performance and availability remain unverified.",
+      "verification_files": [
+        "scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/disaggregated-serving.test.cjs"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c025-wave3-followup",
+      "package": "aidlc",
+      "id": "AIDLC-C025",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the remaining Bedrock alias corrections with CreatePrompt/CreatePromptVersion and validated returned version identity. Kept PROD/STAGING mapping, approval, concurrency, audit and read-back in application configuration; retained the prior governance correction.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9",
+        "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "All 6 original occurrences checked: 2 retained governance and 4 registry. Mocks reject malformed IDs/tokens and mismatched returned identities; application promotion remains separate.",
+        "Independent current-source hashes match; 71/71 independent checks and 39/39 integration helper/mock tests pass. All selected original occurrences are mapped."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePrompt.html",
+        "https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePromptVersion.html",
+        "https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management-deploy.html",
+        "https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/bedrock-agent/2023-06-05/service-2.json"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no AWS/model calls, configuration rollout, deployed SDK compatibility, distributed-cache convergence or traffic-recovery measurement. C036 and other adjacent findings remain separate.",
+      "followup_of": "2026-09-19-aidlc-c025",
+      "retained_prior_source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md"
+      ],
+      "new_source_files": [
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "evidence_status": "documented_contract_and_offline_checks_only",
+      "verification_files": [
+        "scripts/tests/document-examples/test_aidlc_registry.py"
+      ],
+      "verification_commands": [
+        "python3 scripts/tests/document-examples/test_aidlc_registry.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c026-wave3-followup",
+      "package": "aidlc",
+      "id": "AIDLC-C026",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed instant-recovery claims and added a project-scoped, cache-bypassing registry check that explicitly does not verify traffic recovery. Retained SDK/cache/fallback/in-flight dependencies and prior governance recovery criteria.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9",
+        "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "All 4 original occurrences checked: 2 retained governance and 2 registry. Fixtures cover stale/fallback/mismatched registry state and preserve traffic_recovery_verified=False.",
+        "Independent current-source hashes match; 71/71 independent checks and 39/39 integration helper/mock tests pass. All selected original occurrences are mapped."
+      ],
+      "primary_urls": [
+        "https://langfuse.com/docs/prompt-management/features/caching",
+        "https://raw.githubusercontent.com/langfuse/langfuse-python/main/langfuse/_client/client.py",
+        "https://raw.githubusercontent.com/langfuse/langfuse-python/main/langfuse/model.py"
+      ],
+      "evidence_limit": "Source/offline acceptance only; no AWS/model calls, configuration rollout, deployed SDK compatibility, distributed-cache convergence or traffic-recovery measurement. C036 and other adjacent findings remain separate.",
+      "followup_of": "2026-09-19-aidlc-c026",
+      "retained_prior_source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md"
+      ],
+      "new_source_files": [
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "evidence_status": "documented_contract_and_offline_checks_only",
+      "verification_files": [
+        "scripts/tests/document-examples/test_aidlc_registry.py"
+      ],
+      "verification_commands": [
+        "python3 scripts/tests/document-examples/test_aidlc_registry.py"
+      ]
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c027-wave3-followup",
+      "package": "aidlc",
+      "id": "AIDLC-C027",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Qualified audit requirements by applicable jurisdiction, regulated role/system and record class. Recast seven years as an organizational-policy example and retained prior governance retention/minimization/legal-hold qualifications.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "source_commits": [
+        "64c24adf974a08ca07fa8e195225130634517ac9",
+        "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "docs/aidlc/enterprise/agent-versioning/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md"
+      ],
+      "verification": [
+        "All 4 original occurrences checked: 2 retained governance and 2 index. Current bilingual policy qualifications read; legal applicability/retention evidence remains verification_pending.",
+        "Independent current-source hashes match; 71/71 independent checks and 39/39 integration helper/mock tests pass. All selected original occurrences are mapped."
+      ],
+      "primary_urls": [
+        "https://airc.nist.gov/airmf-resources/playbook/govern/"
+      ],
+      "evidence_limit": "Source clarification accepted; legal evidence remains verification_pending. NIST governance guidance is not jurisdiction-specific legal authority or a universal retention rule. No legal/compliance certification; original classification is unchanged.",
+      "followup_of": "2026-09-19-aidlc-c027",
+      "retained_prior_source_files": [
+        "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md"
+      ],
+      "new_source_files": [
+        "docs/aidlc/enterprise/agent-versioning/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md"
+      ],
+      "evidence_status": "verification_pending",
+      "verification_files": [
+        "scripts/tests/document-examples/test_aidlc_registry.py"
+      ],
+      "verification_commands": [
+        "python3 scripts/tests/document-examples/test_aidlc_registry.py"
+      ]
     }
   ]
 }
