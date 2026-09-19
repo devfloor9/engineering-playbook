@@ -60,6 +60,7 @@
       "report_date": "2025-11-11T06:59:27Z",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/envoy-gateway/experimental-v1.6.0-default-report.yaml",
       "source_sha256": "a25eaef43d9f779a1204e0f5c35da730121b8bc857008809f6cdf9615f407929",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-GRPC",
@@ -214,6 +215,15 @@
       "report_date": "2025-11-07T14:41:20-05:00",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/cilium/experimental-v1.19.0-pre.2-default-report.yaml",
       "source_sha256": "c7c578d83752da8228e0e67bb87f95a12a24c823dfe4e1ebdf522b2a10508bce",
+      "source_metadata_issues": [
+        {
+          "field": "apiVersion",
+          "problem": "missing_or_empty",
+          "similar_keys": [
+            "<Right>apiVersion"
+          ]
+        }
+      ],
       "profiles": [
         {
           "name": "GATEWAY-GRPC",
@@ -432,6 +442,7 @@
       "report_date": "2025-12-19T18:03:59Z",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/nginx-nginx-gateway-fabric/experimental-2.3.0-default-report.yaml",
       "source_sha256": "b07cdbea28ce0c657ea7500ad1f829ef1b1a91bc3d966ae068449e67781bb5cf",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-GRPC",
@@ -584,6 +595,7 @@
       "report_date": "2025-10-27T12:38:25-04:00",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/kgateway/v2.1.0-report.yaml",
       "source_sha256": "70b9b254672262f6d44fcb11d279cb9535ff1798698f648ce64cef4b1a364d68",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-GRPC",
@@ -736,6 +748,7 @@
       "report_date": "2025-10-27T22:42:18Z",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/istio-istio/1.28.0-default-report.yaml",
       "source_sha256": "807830f8457ba1c6aadb4e0ad43a8dabb1077ed1c5258b0d0e5bfc5f6742cc92",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "MESH-HTTP",
@@ -930,6 +943,7 @@
       "report_date": "2025-10-31T09:44:43+01:00",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/traefik-traefik/experimental-v3.6.0-default-report.yaml",
       "source_sha256": "b5139bd77f4d4f738f20b31a1507ec76502b65d857b84fc5ddc37e527249a001",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-GRPC",
@@ -1057,6 +1071,7 @@
       "report_date": "2026-02-27T04:11:24Z",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.4.0/aws-aws-application-networking-k8s/experimental-v2.0.1-default-report.yaml",
       "source_sha256": "a49d92986fa593327de4693e2650fbcea85d64fa398c0573c26c11f654dbe2e9",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-HTTP",
@@ -1123,6 +1138,7 @@
       "report_date": "2026-04-01T12:23:28-07:00",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.5/aws-load-balancer-controller/conformance-report.yaml",
       "source_sha256": "7730acebd61f96859ed6841b5ec7d9438b60e849f48adfd3db988dc9274bb285",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-HTTP",
@@ -1224,6 +1240,7 @@
       "report_date": "2024-12-19T16:04:43+01:00",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-expressions-report.yaml",
       "source_sha256": "30fa5407516037addbd096eb1a68a3522aecce72277cbd3ff9127f1ad03c7e60",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-GRPC",
@@ -1322,6 +1339,7 @@
       "report_date": "2024-12-19T16:42:02+01:00",
       "source_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/112584e6624e32a9c9ec6a818a735506fc33eb49/conformance/reports/v1.2.1/kong-kubernetes-ingress-controller/experimental-v3.4.0-traditional_compatible-report.yaml",
       "source_sha256": "067cf9902e0a306f22700241c194f204fe52d8eafe5a652e60182f31934ad187",
+      "source_metadata_issues": [],
       "profiles": [
         {
           "name": "GATEWAY-GRPC",

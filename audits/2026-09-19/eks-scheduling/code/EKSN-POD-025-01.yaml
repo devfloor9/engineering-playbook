@@ -1,0 +1,2 @@
+nodeSelector:
+  karpenter.sh/nodepool: replace-me-canary-nodepool

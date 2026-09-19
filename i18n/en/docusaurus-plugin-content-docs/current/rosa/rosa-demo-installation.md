@@ -5,7 +5,7 @@ created: "2025-02-05"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 4
+reading_time: 10
 tags:
   - rosa
   - openshift
@@ -19,7 +19,7 @@ sidebar_label: ROSA Demo Installation
 category: rosa
 ---
 
-This document is a demo guide recording the installation process and results of a ROSA (Red Hat OpenShift Service on AWS) cluster. It includes STS-based security-enhanced installation and autoscaling configuration.
+This document explains the historical configuration recorded for a ROSA Classic single-AZ demo. Its control plane and nodes run in the customer's AWS account, with both worker bounds fixed at two. The original execution logs and CLI version are not in the repository, so installation success and reported observations have not been independently reproduced. No cluster was created during this review.
 
 ---
 
@@ -27,9 +27,22 @@ This document is a demo guide recording the installation process and results of 
 
 ### Creation Command
 
-The following transcript records the cluster-creation command for this demo. The two `I:` lines are CLI output. To reproduce the installation, use the `rosa create cluster` command that follows and supply the IAM role ARNs, OIDC configuration ID, and other values for your environment.
+The block below preserves the historical command recorded in the original document. The `I:` lines are output, not commands. Both locales now retain the English original's `4.13.34`. The former Korean `4.21.x` value and comment after a continuation backslash were neither a concrete patch release nor valid continuation syntax. Do not use this transcript as a current installation recommendation.
+
+For a new lab, complete [account setup](https://docs.aws.amazon.com/rosa/latest/userguide/set-up.html) and the [Classic CLI installation procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html). Check ROSA enablement and Marketplace permissions, AWS/ROSA/`oc` CLI login and versions, IAM and SCP permissions, EC2/VPC/EBS/ELB quotas, CIDRs, and internet access. Prepare Classic account roles and cluster-specific Operator roles and OIDC configuration, then verify their ARNs and IDs.
+
+The intended target is a separate lab AWS account, region `ap-northeast-2`, and a new Classic cluster. The public single-AZ design has availability and exposure limits and incurs AWS resource and ROSA charges. Record the account, identity, and versions from these read-only checks, then select one concrete supported patch release in the current installation procedure.
 
 ```bash
+aws sts get-caller-identity
+rosa whoami
+rosa version
+rosa list versions
+```
+
+The historical `optional` setting below allows IMDSv1. For a new IMDSv2-only configuration, confirm workload compatibility and choose `--ec2-metadata-http-tokens required`. This is separate from using STS.
+
+```text
 I: Creating cluster 'rosa-demo-icn'
 I: To create this cluster again in the future, you can run:
 rosa create cluster --cluster-name rosa-demo-icn \
@@ -69,7 +82,7 @@ rosa create cluster --cluster-name rosa-demo-icn \
 
 ## Cluster Information
 
-The detailed information of the created cluster after installation is as follows:
+These are the values recorded in the original document, not a query of a currently running cluster. `Customer Hosted` denotes the Classic account placement; it does not assign control-plane operations to the customer.
 
 | Item | Value |
 |------|-------|
@@ -127,7 +140,7 @@ Operator IAM Roles:
 
 ## Autoscaler Configuration
 
-The cluster autoscaling settings are as follows:
+These autoscaler settings were recorded in the original document. With both `min-replicas` and `max-replicas` set to two, this machine pool cannot scale out or in. The 180-node, CPU, and memory values below are cluster-wide ceilings, including nodes outside autoscaled pools, not quotas or provisioned capacity. Memory is in GiB. A scaling exercise needs distinct pool bounds and suitable Pod requests and placement constraints, followed by separate scale-out and safe scale-in tests.
 
 ```yaml
 autoscaler:
@@ -141,7 +154,7 @@ autoscaler:
     minCores: 0
     maxCores: 11520
     minMemory: 0
-    maxMemory: 230400  # GB
+    maxMemory: 230400  # GiB
   scaleDownUtilizationThreshold: 0.5
 ```
 
@@ -149,27 +162,13 @@ autoscaler:
 
 ## Admin User Setup
 
-Admin account creation after cluster installation:
+The original note records creation of a bootstrap `cluster-admin` account. That account does not replace normal organizational identity setup. Keep its password out of command-line arguments and documentation; enter it at the prompt after checking the cluster API address.
 
 ```bash
-I: Admin account has been added to cluster 'rosa-demo-icn'.
-I: Please securely store this generated password.
-I: If you lose this password you can delete and recreate the cluster admin user.
-
-# Login command
-oc login https://api.rosa-demo-icn.XXXX.p1.openshiftapps.com:6443 \
-  --username cluster-admin \
-  --password <REDACTED>
+oc login 'https://REPLACE_WITH_CLUSTER_API:6443' --username cluster-admin
 ```
 
-:::warning Security Notice
-
-- Store the admin password securely
-- If the password is lost, the admin account must be deleted and recreated
-- It may take a few minutes for access to become active
-:::
-
----
+Verify a separate IdP user, required administrator permissions, and recovery access before deciding whether to retain or retire the bootstrap account. Use the cluster's account-recovery procedure if access is lost. Do not remove the only administrator before replacement access is proven.
 
 ## Post-Installation Steps
 
@@ -177,9 +176,14 @@ After installation, proceed with the following steps:
 
 ### 1. Identity Provider Setup
 
+`--help` only lists options; it does not configure an IdP. Follow the [official IdP procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html), select a supported provider, and configure its client and the cluster callback URL. After verifying the target cluster, use interactive setup:
+
 ```bash
-rosa create idp --help
+rosa create idp --cluster rosa-demo-icn --interactive
+rosa list idps --cluster rosa-demo-icn
 ```
+
+Sign in as an ordinary user and test allowed and denied operations with only the required project roles. Grant cluster management roles separately when needed. Verify that HCC corporate SSO and the cluster IdP are separate integrations.
 
 ### 2. Cluster Status Check
 
@@ -187,13 +191,15 @@ rosa create idp --help
 rosa describe cluster -c rosa-demo-icn
 ```
 
+Check the account, region, cluster ID, state, actual patch release, machine pools, and API and console URLs. `ready` is an installation state, not proof of application availability or access-control effectiveness.
+
 ### 3. Installation Log Monitoring
 
 ```bash
 rosa logs install -c rosa-demo-icn --watch
 ```
 
----
+Retain sanitized CLI versions, applied settings, and installation logs with the lab record. At the end, preserve required data and logs and follow the [official deletion procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html) for the exact lab cluster. Wait for cluster deletion before removing IAM roles or OIDC resources needed for cleanup. Retain account roles, policies, or OIDC configuration shared by other clusters and check for remaining billable resources.
 
 ## Architecture Diagram
 
@@ -210,7 +216,7 @@ graph TB
                 I1[Infra 1]
                 I2[Infra 2]
             end
-            subgraph Workers["Worker Nodes (Autoscaling)"]
+            subgraph Workers["Worker Nodes (min = max = 2)"]
                 W1[Worker 1<br/>m5.xlarge]
                 W2[Worker 2<br/>m5.xlarge]
             end
@@ -228,10 +234,10 @@ graph TB
     IAM --> Workers
     OIDC --> IAM
 
-    style CP fill:#EE0000,stroke:#232f3e
-    style Workers fill:#ff9900,stroke:#232f3e
+    style CP fill:#e8eef5,stroke:#64748b,color:#172033
+    style Workers fill:#e8f1fb,stroke:#4777a8,color:#172033
 ```
 
 :::tip Tip
-Using the `--sts` option when creating a ROSA cluster enhances security by using STS-based temporary credentials.
+STS provides temporary AWS credentials. Verify role permissions, IMDS settings, user identity and RBAC, and log collection separately.
 :::

@@ -1,0 +1,5 @@
+spec:
+  http:
+  - route:
+    - destination:
+        host: resilient-app.default.svc.cluster.local

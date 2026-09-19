@@ -231,6 +231,9 @@ test('native Mermaid dialog opens by keyboard, zooms, fits, closes with Escape a
   assert.equal(await evaluate('document.querySelector("#mermaid dialog").open'), true);
   assert.equal(await evaluate('document.activeElement.textContent'), 'Close');
   assert.equal(await evaluate('document.body.style.overflow'), 'hidden');
+  assert.ok(await evaluate('parseInt(document.querySelector("#mermaid output").textContent) < 100'));
+  await evaluate('[...document.querySelectorAll("#mermaid dialog button")].find(b=>b.textContent==="Actual size").click()'); await delay(60);
+  assert.equal(await evaluate('document.querySelector("#mermaid output").textContent'), '100%');
   await evaluate('[...document.querySelectorAll("#mermaid dialog button")].find(b=>b.textContent==="Zoom in").click()'); await delay(60);
   assert.equal(await evaluate('document.querySelector("#mermaid output").textContent'), '125%');
   await evaluate('[...document.querySelectorAll("#mermaid dialog button")].find(b=>b.textContent==="Fit to screen").click()'); await delay(60);

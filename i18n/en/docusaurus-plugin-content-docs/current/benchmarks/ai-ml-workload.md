@@ -1,11 +1,11 @@
 ---
-title: "Llama 4 FM Serving Benchmark: GPU vs AWS Custom Silicon"
-description: Benchmark comparing performance and cost efficiency of GPU instances (p5, p4d, g6e) and AWS custom silicon (Trainium2, Inferentia2) for vLLM-based Llama 4 model serving
+title: "Llama 4 Serving Comparison: Specifications and Validation Plan"
+description: Official GPU, Trainium2 and Inferentia2 specifications, Llama 4 model requirements, and a plan for measuring performance and cost
 created: "2026-02-10"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 24
+reading_time: 18
 tags:
   - benchmark
   - ai
@@ -23,303 +23,167 @@ sidebar_position: 3
 category: benchmark
 ---
 
-import MLOverviewChart from '@site/src/components/MLOverviewChart';
-import InfraComparisonChart from '@site/src/components/InfraComparisonChart';
-import ModelSpecChart from '@site/src/components/ModelSpecChart';
-import TtftChart from '@site/src/components/TtftChart';
-import ItlChart from '@site/src/components/ItlChart';
-import InferenceThroughputChart from '@site/src/components/InferenceThroughputChart';
-import ConcurrencyChart from '@site/src/components/ConcurrencyChart';
-import CostPerTokenChart from '@site/src/components/CostPerTokenChart';
-import KeyFindingsMLChart from '@site/src/components/KeyFindingsMLChart';
-import MLRecommendationChart from '@site/src/components/MLRecommendationChart';
-
 ## Overview
 
-A benchmark report comparing vLLM-based Llama 4 model serving performance across 5 scenarios in an AWS EKS environment.
+Choosing an instance for Llama 4 serving on EKS starts with checking model fit, then measuring response time and cost under equivalent request and quality conditions. This document records specifications and test conditions for comparing NVIDIA GPUs with AWS Trainium2 and Inferentia2.
 
-**Figures presented in this report**: Across the 5 Llama 4 Scout (109B MoE) scenarios, AWS custom silicon is reported to cost **58-67% less per token** than the NVIDIA GPU baseline ($0.28~$0.35/1M tokens versus $0.85/1M tokens).
-
-The p5/H100 scenario lists **time to first token (TTFT) of 120ms** and **throughput of 4,200 tokens/sec**. Trainium2 lists 83% of H100 throughput at 41% of its cost. Check the measurement conditions and cost calculation behind each figure, then compare quality, latency, and cost for the intended workload. This comparison alone does not identify the best instance for every latency-sensitive workload.
-
-**5 Scenarios**:
-
-- **A** p5.48xlarge — 8x NVIDIA H100 80GB (GPU Baseline)
-- **B** p4d.24xlarge — 8x NVIDIA A100 40GB (Previous-gen GPU)
-- **C** g6e.48xlarge — 8x NVIDIA L40S 48GB (Cost-optimized GPU)
-- **D** trn2.48xlarge — 16x AWS Trainium2 96GB (Custom silicon training/inference)
-- **E** inf2.48xlarge — 12x AWS Inferentia2 32GB (Custom silicon inference-optimized)
-
-**Key Takeaways**:
-
-<MLOverviewChart locale="en" />
-
----
+:::info Measurement status
+The repository does not contain raw requests, repeated-run results or a pinned execution configuration that can validate the previous performance tables. Those tables also included a projection disclaimer, conflicting Korean/English costs and inconsistent arithmetic. Their values and rankings have been removed. The hardware and model specifications below are source-backed facts; TTFT, throughput and cost comparisons remain **pending measurement**.
+:::
 
 ## Test Environment
 
-<InfraComparisonChart locale="en" />
+The candidate specifications are listed below. Aggregate accelerator memory alone does not establish model compatibility or performance.
 
-**Cluster Configuration**:
+| Candidate | Accelerators | Accelerator memory | Network specification |
+| --- | --- | --- | --- |
+| A: p5.48xlarge | Eight H100 GPUs | 8 × 80GB = 640GB | Up to 3,200Gbps |
+| B: p4d.24xlarge | Eight A100 GPUs | 8 × 40GB = 320GB | 400Gbps |
+| C: g6e.48xlarge | Eight L40S GPUs | 8 × 48GB = 384GB | 400Gbps |
+| D: trn2.48xlarge | 16 Trainium2 chips | 96GB per chip; specified as 1.5TB total | 3,200Gbps |
+| E: inf2.48xlarge | 12 Inferentia2 chips | 12 × 32GB = 384GB | 100Gbps |
 
-- **EKS Version**: 1.31
-- **Region**: us-east-1 (Single AZ)
-- **vLLM Version**: v0.8.3+ (Llama 4 Day 0 support, MetaShuffling optimization)
-- **Neuron SDK**: 2.x (Trainium2/Inferentia2 scenarios)
-- **CUDA**: 12.4 (GPU scenarios)
-- **Precision**: BF16 (all scenarios)
-- **Measurement Method**: Median of at least 3 repeated measurements
+Sources: [P5][p5], [P4][p4], [G6e][g6e], [Trn2][trn2] and [Inf2][inf2]. Units follow each product specification. L40S uses [PCIe Gen4 x16][l40s], not Gen5. The network figures are neither token-generation rates nor measurements of communication between GPUs.
 
----
+Before execution, pin account/region/AZ, EKS/OS/driver versions, node count, image digest, model revision, precision, TP/EP placement and maximum context length. Input 512/output 128 tokens is an **initial proposal**; test long inputs and the service's actual request distribution separately. Record weight downloads, compilation and warm-up separately from steady-state inference.
 
 ## Test Model
 
-<ModelSpecChart locale="en" />
+| Item | Llama 4 Scout | Llama 4 Maverick |
+| --- | --- | --- |
+| Official Instruct checkpoint | `meta-llama/Llama-4-Scout-17B-16E-Instruct` | `meta-llama/Llama-4-Maverick-17B-128E-Instruct` |
+| Total parameters | 109B | 400B |
+| Active parameters per token | 17B | 17B |
+| Routed experts | 16 | 128 |
+| Official model context limit | 10M tokens | 1M tokens |
+| BF16 weight arithmetic | Approximately 218GB | Approximately 800GB |
+
+Source: [Meta model card][model-card]. Weight estimates use B = 10⁹ parameters and two bytes per parameter, excluding KV cache, buffers and quantization metadata. A model's context limit does not mean every runtime/hardware configuration can accommodate it.
 
 ### Llama 4 MoE Architecture Characteristics
 
-Llama 4 adopts a **Mixture of Experts (MoE)** architecture for efficient inference:
+MoE selects part of the expert computation for each token. Llama 4 uses a shared expert plus **one routed expert** selected by the router. Describing this as selecting two of the 16 routed experts is incorrect.[^routing]
 
-- **Sparse Activation**: Only 17B of the total 109B parameters are activated per token (Scout)
-- **Expert Routing**: Only 2 out of 16 experts are selectively activated, reducing computation
-- **Memory Trade-off**: All expert weights must be loaded into VRAM, so total memory requirements are similar to dense models
-- **Parallelization Strategies**: Tensor Parallelism (TP), Pipeline Parallelism (PP), Expert Parallelism (EP), Data Parallelism (DP) supported
-- **vLLM MetaShuffling**: Optimized token routing and memory management for MoE inference
+```mermaid
+flowchart LR
+    T["Token entering the MoE layer"] --> S["Shared expert"]
+    T --> R["Router"]
+    R --> E["Select one routed expert"]
+    S --> O["Combine outputs"]
+    E --> O
+```
 
-:::info Scout vs Maverick Deployment Requirements
+Fewer active parameters do not eliminate storage for the other experts' weights. Scout's BF16 weights cannot all reside on one 80GB H100, and Maverick's BF16 weights exceed the 640GB across eight H100 GPUs. Quantization, distributed placement or offload must be included in the configuration and cost comparison.
 
-- **Scout (109B)**: Deployable in BF16 on a single H100 80GB. 1M context supported with 8xH100
-- **Maverick (400B)**: Minimum 8xH100 required. FP8 quantized version available. ~430K context supported with 8xH100
-:::
+The April 2025 [vLLM Llama 4 announcement][vllm-llama4] describes eight-H100 examples with 1M context for Scout BF16 and roughly 430K for Maverick **FP8**. These are historical configuration examples, not universal runtime limits or results reproduced by this repository.
 
----
+## Measurements and Result Status {#benchmark-results}
 
-## Benchmark Results
+| Item | Current status | Evidence needed |
+| --- | --- | --- |
+| TTFT and ITL | Pending | Per-request timestamps, output tokens, errors and timeouts |
+| Throughput and concurrency | Pending | Actual request counts, successful output tokens and measurement windows |
+| Memory and accelerator use | Pending | Worker time series, batch and context settings |
+| Cost | Pending | Cost and successful output tokens over the same period, with a pricing basis |
 
 ### 1. Time to First Token (TTFT)
 
-Time to First Token directly impacts user experience. It reflects the compute performance of the prompt processing (prefill) stage.
-
-<TtftChart locale="en" />
-
-<details>
-<summary>Detailed Data Table</summary>
-
-**Llama 4 Scout (512 input tokens)**
-
-| Scenario | Instance | TTFT (ms) | vs Baseline |
-|---------|---------|-----------|----------|
-| A | p5/H100 | 120 | Baseline |
-| B | p4d/A100 | 280 | +133% |
-| C | g6e/L40S | 350 | +192% |
-| D | trn2 | 150 | +25% |
-| E | inf2 | 200 | +67% |
-
-**Llama 4 Maverick (512 input tokens)**
-
-| Scenario | Instance | TTFT (ms) |
-|---------|---------|-----------|
-| A | p5/H100 | 250 |
-| D | trn2 | 300 |
-
-</details>
+Measure from request start to the first output token. Distinguish client measurements, which include queues and networking, from server processing time. Keep cold starts separate from steady state, and cache hits separate from misses. Retain per-request distributions and sample counts.
 
 ### 2. Inter-Token Latency (ITL)
 
-Inter-Token Latency measures the delay between each token generation during the decoding stage. It determines the smoothness of streaming responses.
-
-<ItlChart locale="en" />
-
-<details>
-<summary>Detailed Data Table</summary>
-
-**Llama 4 Scout**
-
-| Scenario | ITL (ms) | vs Baseline |
-|---------|----------|----------|
-| A | 8 | Baseline |
-| B | 18 | +125% |
-| C | 22 | +175% |
-| D | 10 | +25% |
-| E | 14 | +75% |
-
-**Llama 4 Maverick**
-
-| Scenario | ITL (ms) |
-|---------|----------|
-| A | 12 |
-| D | 15 |
-
-</details>
+Measure intervals between successive output tokens in a streaming response. Calculating only an average after the response completes can hide pauses. Separate first-token time from ITL and document measurement resolution when a streaming chunk contains several tokens.
 
 ### 3. Inference Throughput
 
-Tokens generated per second indicates the system's overall inference capacity. Important for batch processing and multi-user serving scenarios.
-
-<InferenceThroughputChart locale="en" />
-
-<details>
-<summary>Detailed Data Table</summary>
-
-**Llama 4 Scout**
-
-| Scenario | Tokens/sec | vs Baseline |
-|---------|-----------|----------|
-| A | 4,200 | Baseline |
-| B | 1,800 | -57% |
-| C | 1,400 | -67% |
-| D | 3,500 | -17% |
-| E | 2,800 | -33% |
-
-**Llama 4 Maverick**
-
-| Scenario | Tokens/sec |
-|---------|-----------|
-| A | 2,800 |
-| D | 2,200 |
-
-</details>
+Calculate aggregate throughput as **successfully delivered output tokens ÷ measurement seconds**. Report input tokens, per-request generation speed and totals across replicas separately. Hold context, precision and output quality constant. Quickly failing requests must not count as useful throughput.
 
 ### 4. Concurrent Request Scaling
 
-Measures throughput changes as concurrent request count increases. HBM memory bandwidth and accelerator interconnect determine scaling characteristics.
+Starting with 1, 4, 8, 16 and 32 concurrent requests is an initial plan. At each step record actual concurrency, queues, TTFT/ITL, errors and memory use. Include a separate fixed-arrival-rate test to distinguish server behavior from a load generator that submits fewer requests when responses slow down.
 
-<ConcurrencyChart locale="en" />
-
-<details>
-<summary>Detailed Data Table</summary>
-
-| Concurrent Requests | A: p5/H100 | B: p4d/A100 | C: g6e/L40S | D: trn2 | E: inf2 |
-|----------|-----------|-------------|-------------|---------|---------|
-| 1 | 4,200 | 1,800 | 1,400 | 3,500 | 2,800 |
-| 4 | 14,800 | 5,600 | 4,200 | 12,500 | 9,800 |
-| 8 | 24,500 | 8,400 | 6,800 | 21,000 | 16,200 |
-| 16 | 35,200 | 11,200 | 8,500 | 30,800 | 22,400 |
-| 32 | 42,000 | 12,800 | 9,200 | 38,500 | 28,000 |
-
-</details>
+Do not confuse a single output stream with aggregate throughput across requests. For example, a single stream with a constant 8ms ITL produces approximately 125 tokens/s during token generation. Reporting that alongside 4,200 tokens/s for one request requires evidence explaining the different measurement boundaries.
 
 ### 5. Cost Efficiency
 
-Cost per token ($/1M tokens) is calculated by dividing the hourly instance cost by throughput. This is the most important decision metric for production serving.
+Use cost and successful output tokens from the same measurement period.
 
-<CostPerTokenChart locale="en" />
+```text
+Cost per 1M output tokens
+  = period cost / successful output tokens × 1,000,000
 
-<details>
-<summary>Detailed Data Table</summary>
+Using hourly cost and steady-state throughput
+  = hourly cost × 1,000,000 / (output tokens/s × 3,600)
+```
 
-**Llama 4 Scout**
+Record pricing region/date/purchase option and replica count. State whether nodes, EKS, storage, networking, idle time and compilation are included. The billed resource boundary must match the resources producing the throughput. Without those records, no candidate can be declared the cheapest per token.
 
-| Scenario | Hourly Cost | Throughput | $/1M tokens | vs Baseline |
-|---------|-----------|--------|------------|----------|
-| A | $98.32 | 4,200 | $0.85 | Baseline |
-| B | $21.96 | 1,800 | $0.72 | -15% |
-| C | $54.91 | 1,400 | $0.52 | -39% |
-| D | $45.00 | 3,500 | $0.35 | -59% |
-| E | $12.89 | 2,800 | $0.28 | -67% |
-
-</details>
-
----
-
-## Analysis and Key Findings
-
-<KeyFindingsMLChart locale="en" />
+## Conditions for Interpreting Results {#analysis-and-key-findings}
 
 ### GPU vs Custom Silicon Trade-offs
 
-| Aspect | GPU (H100/A100/L40S) | Custom Silicon (trn2/inf2) |
-|------|---------------------|---------------------------|
-| **Performance** | Highest raw performance (H100) | 67-83% of H100 |
-| **Cost** | High ($0.52-$0.85/1M tokens) | Low ($0.28-$0.35/1M tokens) |
-| **Ecosystem** | CUDA, extensive libraries | Neuron SDK, AWS-dependent |
-| **Flexibility** | All frameworks supported | Limited to vLLM/Neuron supported models |
-| **Scaling** | NVSwitch high bandwidth | NeuronLink, large cluster support |
-| **Availability** | Limited (demand > supply) | Relatively easier |
+| Decision | What to verify |
+| --- | --- |
+| Model fit | Checkpoint, operators, precision and multimodal inputs supported by the selected backend |
+| Memory and communication | Full weights and KV cache fit the worker layout; TP/EP communication bottlenecks |
+| Operations | Compilation, startup, upgrades and recovery time/procedures |
+| Service quality | Equivalent evaluation data and TTFT/ITL/error requirements |
+| Cost and capacity | Available regional capacity and actual utilization |
+
+This neither makes a CUDA kernel directly portable to Neuron nor implies that Neuron cannot serve Llama 4. The [NxD Inference model list][neuron-models] includes Scout and Maverick. A listed model architecture does not establish every instance, precision and context combination.
 
 ### MoE Architecture Performance Impact
 
-Llama 4's MoE architecture impacts inference performance as follows:
+Expert selection, weight placement, batch size and memory bandwidth interact. Active parameter count alone does not predict speed or cost relative to a dense model. KV cache size also depends on attention configuration, context and KV precision; MoE by itself does not establish better cache efficiency.
 
-1. **Memory Bandwidth Bottleneck**: Frequent expert weight loading makes HBM bandwidth the key bottleneck
-2. **Dynamic Routing Overhead**: Additional computation required for per-token expert selection
-3. **Unbalanced Expert Activation**: Parallel efficiency may decrease when load concentrates on specific experts
-4. **KV Cache Optimization**: MoE's sparse activation makes KV Cache efficiency favorable compared to dense models
+The [MetaShuffling article][metashuffling] describes a particular MoE kernel implementation and test conditions. It is not evidence that every vLLM deployment automatically uses that optimization. Test its effect only after verifying integration in the selected backend.
 
----
-
-## Recommendations by Workload
-
-<MLRecommendationChart locale="en" />
+## Workload Decision Criteria {#recommendations-by-workload}
 
 ### Scenario Selection Guide
 
-```
-Workload Requirement Check
-├── Lowest latency needed? ──→ A: p5/H100 (120ms TTFT)
-├── Lowest cost priority? ──→ E: inf2 ($0.28/1M tokens)
-├── Performance/cost balance? ──→ D: trn2 (83% performance, 41% cost)
-├── Maverick (400B) serving? ──→ A: p5/H100 or D: trn2
-├── Multi-model serving? ──→ C: g6e/L40S (48GB/GPU)
-└── Existing GPU infrastructure? ──→ B: p4d/A100 (cost-effective GPU)
-```
+| Workload | First requirement to check |
+| --- | --- |
+| Interactive service | TTFT, ITL and errors at the target arrival rate |
+| Long-document processing | Long-input memory, prefill time and concurrent capacity |
+| Batch work | Cost per successful output token within the quality requirement and deadline |
+| Multiple models | Model placement, replacement time and resource isolation |
+| Variable traffic | Startup/compilation, idle cost and quality during scale-out |
 
----
+No candidate is a validated winner in this comparison yet. After measurement, compare cost among candidates that meet the workload's quality and latency requirements.
 
 ## Configuration Notes
 
 ### vLLM Deployment Settings
 
-**Llama 4 Scout (GPU scenario):**
-
-```bash
-vllm serve meta-llama/Llama-4-Scout-17B-16E \
-  --tensor-parallel-size 8 \
-  --max-model-len 1000000 \
-  --dtype bfloat16
-```
-
-**Llama 4 Scout (Neuron/Trainium2):**
-
-```bash
-vllm serve meta-llama/Llama-4-Scout-17B-16E \
-  --device neuron \
-  --tensor-parallel-size 16 \
-  --max-model-len 1000000
-```
+Save the official checkpoint name/revision, container digest, driver/CUDA combination, precision, TP/EP, maximum context and batch settings. Start with short requests to validate loading, output and memory before expanding context and load. This document does not report an executed installation or a successfully started model.
 
 ### Neuron SDK Compatibility Notes
 
-:::warning Neuron SDK Version Management
-
-- Trainium2/Inferentia2 requires AWS Neuron SDK 2.x or higher
-- vLLM's Neuron backend requires separate installation: `pip install vllm[neuron]`
-- Not all Llama 4 models are validated on Neuron — check the official compatibility list
-- FP8 quantization is only supported in GPU scenarios (Maverick)
-:::
+Neuron has different generations of vLLM integration. Do not combine installation commands, settings or feature tables from the [legacy NxD Inference guide][neuron-vllm] and the [vLLM Neuron plugin][neuron-plugin]. Select an SDK/plugin/runtime combination and verify its model and input support. Adding one device option to a GPU `vllm serve` command does not establish an equivalent Neuron deployment.
 
 ### Cost Optimization Strategies
 
-1. **Spot Instance Usage**: 50-70% cost savings for batch inference workloads (when interruption is acceptable)
-2. **EC2 Capacity Blocks**: Reserved allocation for Trainium2 instances for reliable availability
-3. **Autoscaling**: Karpenter + KEDA-based GPU metric scaling (details: [GPU Resource Management](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management))
-4. **Model Quantization**: Reduced memory usage and improved throughput with FP8/INT8 quantization
-
----
+Quantization, larger batches and Spot capacity are separate test conditions. Each can affect output quality, latency, interruption/recovery and idle cost. Use costs from runs that meet the service requirements rather than assuming a fixed savings percentage.
 
 ## References
 
-- [Meta AI — Llama 4 Official Announcement](https://ai.meta.com/blog/llama-4-multimodal-intelligence/)
-- [vLLM — Llama 4 Day 0 Support](https://blog.vllm.ai/2025/04/05/llama4.html)
-- [PyTorch — MetaShuffling MoE Optimization](https://pytorch.org/blog/metashuffling-accelerating-llama-4-moe-inference/)
-- [AWS EC2 P5 Instances](https://aws.amazon.com/ec2/instance-types/p5/)
-- [AWS EC2 Trn2 Instances](https://aws.amazon.com/ec2/instance-types/trn2/)
-- [AWS EC2 Inf2 Instances](https://aws.amazon.com/ec2/instance-types/inf2/)
-- [AWS Neuron SDK Documentation](https://awsdocs-neuron.readthedocs-hosted.com/)
-- [NVIDIA — Llama 4 Inference Acceleration](https://developer.nvidia.com/blog/nvidia-accelerates-inference-on-meta-llama-4-scout-and-maverick/)
-- [vLLM Model Serving Guide](/docs/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving)
-- [GPU Resource Management](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management)
+- [Meta Llama 4 model card][model-card]
+- [vLLM Llama 4 announcement — 2025-04-05][vllm-llama4]
+- [MetaShuffling implementation and test conditions][metashuffling]
+- [AWS Neuron supported models][neuron-models]
+- [NVIDIA L40S specifications][l40s]
 
-:::note Data Reliability Notice
-The figures in this benchmark are **estimates** based on specifications and benchmark data published by Meta, AWS, NVIDIA, and the vLLM project. Actual performance may vary depending on workload characteristics, input length, batch size, and model configuration. We recommend benchmarking in your actual environment before production deployment.
-:::
+[model-card]: https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md
+[vllm-llama4]: https://vllm.ai/blog/2025-04-05-llama4
+[metashuffling]: https://pytorch.org/blog/metashuffling-accelerating-llama-4-moe-inference/
+[p5]: https://aws.amazon.com/ec2/instance-types/p5/
+[p4]: https://aws.amazon.com/ec2/instance-types/p4/
+[g6e]: https://aws.amazon.com/ec2/instance-types/g6e/
+[trn2]: https://aws.amazon.com/ec2/instance-types/trn2/
+[inf2]: https://aws.amazon.com/ec2/instance-types/inf2/
+[l40s]: https://www.nvidia.com/en-us/data-center/l40s/
+[neuron-models]: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html
+[neuron-vllm]: https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/vllm-user-guide.html
+[neuron-plugin]: https://github.com/vllm-project/vllm-neuron
+[^routing]: [MetaShuffling's shared and routed expert description][metashuffling].

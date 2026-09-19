@@ -1,0 +1,4 @@
+tolerations:
+- key: readiness.k8s.io/gpu-unavailable
+  operator: Exists
+  effect: NoSchedule

@@ -1,0 +1,3354 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "aidlc_known_unverified",
+  "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "meaning": "Evidence gaps are unresolved questions, not findings of falsity. Private evidence was neither fetched nor republished.",
+  "pending_canonical_findings": [
+    {
+      "canonical_id": "AIDLC-C007",
+      "title": "Date the LiteLLM shadow-support comparison",
+      "topic_id": "T2",
+      "stable_ids": [
+        "AIDLC-ROLLOUT-EN-01",
+        "AIDLC-ROLLOUT-KO-01"
+      ],
+      "scope": [
+        "Current documentation establishes current mirroring support, not necessarily support at the document's historical evaluation date. Do not publish a historical falsehood verdict without a dated release."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C027",
+      "title": "Verify retention periods against record-specific obligations",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-VERSION-GOV-EN-07",
+        "AIDLC-VERSION-GOV-KO-07",
+        "AIDLC-VERSION-INDEX-EN-03",
+        "AIDLC-VERSION-INDEX-KO-03"
+      ],
+      "scope": [
+        "No jurisdiction or authoritative provisions support the combined retention table. Absence of evidence is not proof that a particular organization's policy is unlawful or false.",
+        "The trace obligation is not tied to a jurisdiction, regulated role or record class. Preserve it only as policy unless authoritative scope is supplied."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C037",
+      "title": "Version the Langfuse language and edition comparison",
+      "topic_id": "T2",
+      "stable_ids": [
+        "AIDLC-REGISTRY-EN-03",
+        "AIDLC-REGISTRY-KO-03"
+      ],
+      "scope": [
+        "Current Python/TypeScript documentation does not by itself establish historical feature parity; trace linking and permissions also depend on setup."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C038",
+      "title": "Date PromptLayer hosting and evaluation capabilities",
+      "topic_id": "T2",
+      "stable_ids": [
+        "AIDLC-REGISTRY-EN-04",
+        "AIDLC-REGISTRY-KO-04"
+      ],
+      "scope": [
+        "Current Enterprise documentation contradicts a current blanket claim but cannot prove availability at an earlier comparison date. No historical falsehood verdict is warranted yet."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C054",
+      "title": "Supply traceable primary evidence for attributed productivity studies",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-COST-EN-07",
+        "AIDLC-COST-KO-07"
+      ],
+      "scope": [
+        "The named studies, book and rates were not located in primary evidence. Do not label inaccessible or private results fabricated."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C056",
+      "title": "Verify the incident's provenance and quantities",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-COST-EN-09",
+        "AIDLC-COST-KO-09"
+      ],
+      "scope": [
+        "The available secondary story supports only different partial quantities. It neither confirms nor disproves the attributed incident."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C062",
+      "title": "Verify industry-specific improvement and payback attributions",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-COST-EN-15",
+        "AIDLC-COST-KO-15"
+      ],
+      "scope": [
+        "No exact primary study pages substantiate the quoted sector ranges and periods; retain forecasts only as explicitly unvalidated scenarios."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C071",
+      "title": "Verify ISMS-P numeric controls against the applicable edition",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-EXT-EN-04",
+        "AIDLC-EXT-KO-04"
+      ],
+      "scope": [
+        "The claimed password, session, encryption and backup thresholds lack retrieved authoritative clauses. An unavailable KISA source does not prove them false."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C072",
+      "title": "Verify architecture mandates and recovery objectives",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-EXT-EN-05",
+        "AIDLC-EXT-KO-05"
+      ],
+      "scope": [
+        "No retrieved provisions establish the blanket network-separation, topology, TLS or RTO/RPO requirements. Separate local policy from regulation."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C074",
+      "title": "Verify organizational ownership and release metadata",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-EXT-EN-07",
+        "AIDLC-EXT-KO-07",
+        "AIDLC-EXT-EN-08",
+        "AIDLC-EXT-KO-08"
+      ],
+      "scope": [
+        "The named organization, contact and internal-standard assertions are unverified. Exclude contact details and internal-looking identifiers from public excerpts; retain hashes and source associations. A neighboring hash alone does not authenticate provenance.",
+        "Do not fetch or publish the internal-looking URL. Claimed pilot, publication and review dates require authorized evidence or explicit illustrative labeling; absence of private evidence is not falsity."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C118",
+      "title": "Verify ISO control identifiers against authorized normative text",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-ISO-EN-01",
+        "AIDLC-ISO-KO-01"
+      ],
+      "scope": [
+        "The retrieved preview ends before the control table. Do not replace one unverified table with another guessed count or publish licensed standard text."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C125",
+      "title": "Verify the claimed seven-day legal deadline and trigger",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-KOREA-EN-04",
+        "AIDLC-KOREA-KO-04"
+      ],
+      "scope": [
+        "The retrieved statutory provisions do not establish this universal deadline; a decree or scoped sector rule could matter. Retain it only as internal policy until verified."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C135",
+      "title": "Verify record-specific legal retention and logging purpose",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-COMPLIANCEIMPL-EN-10",
+        "AIDLC-COMPLIANCEIMPL-KO-10"
+      ],
+      "scope": [
+        "The asserted universal periods lack scoped provisions. Complete input/output logging creates its own data-processing questions; no deployed violation was established."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C139",
+      "title": "Verify certification prerequisites and label planning assumptions",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-COMPLIANCEIMPL-EN-14",
+        "AIDLC-COMPLIANCEIMPL-KO-14"
+      ],
+      "scope": [
+        "The preview does not establish universal 72-control or one-year requirements. Staffing and fee estimates require scope and rate assumptions."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C142",
+      "title": "Verify ISO mappings and restore scoped Korean crosswalk duties",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-REGINDEX-EN-04",
+        "AIDLC-REGINDEX-KO-04"
+      ],
+      "scope": [
+        "Exact ISO mapping remains unverified. Korean Article 34 oversight/documentation omissions are checkable but do not validate the rest of the table."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C144",
+      "title": "Verify the named Artifact reports and their scope",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-REGINDEX-EN-08",
+        "AIDLC-REGINDEX-KO-08"
+      ],
+      "scope": [
+        "The generic Artifact page does not establish the named reports. Absence from that page is not proof a private report is unavailable; do not fetch private reports."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C146",
+      "title": "Verify the attributed million-line case and exact quotation",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-ROLES-EN-02",
+        "AIDLC-ROLES-KO-02"
+      ],
+      "scope": [
+        "The unavailable primary article and secondary account do not verify the quote, team or year. No fabrication verdict is supported."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C150",
+      "title": "Verify the attributed rework reduction study",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-ROLES-EN-06",
+        "AIDLC-ROLES-KO-06"
+      ],
+      "scope": [
+        "SSDF supports risk-based practices, not the quoted universal percentages. Scanner coverage and fix verification must not be represented as guaranteed."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C163",
+      "title": "Verify provider-specific limits and mark conceptual design",
+      "topic_id": "T2",
+      "stable_ids": [
+        "AIDLC-ADAPTIVE-EN-10",
+        "AIDLC-ADAPTIVE-KO-10"
+      ],
+      "scope": [
+        "The retrieved payment page did not expose the API contract. Session limits, amount limits and rotation periods remain assumptions; no execution or idempotency proof exists."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C174",
+      "title": "Verify the attributed three-to-five-year model freeze",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-COMMON-EN-11",
+        "AIDLC-COMMON-KO-11"
+      ],
+      "scope": [
+        "The retrieved sections discuss risk-based versioning and updates, not the claimed duration. Require an exact task reference before attributing a fixed policy to NIST."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C195",
+      "title": "Verify incident details against an original postmortem",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-HARNESS-EN-03",
+        "AIDLC-HARNESS-KO-03"
+      ],
+      "scope": [
+        "The secondary anecdote does not substantiate the added model, billing or outage details. Absence of a public postmortem is not proof the incident is false."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C207",
+      "title": "Verify or remove the claimed community consensus attribution",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-ONTOLOGY-EN-01",
+        "AIDLC-ONTOLOGY-KO-01"
+      ],
+      "scope": [
+        "No primary survey or consensus process is supplied. The slogan can remain as author framing without collective attribution."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C209",
+      "title": "Keep vendor-reported numbers unverified pending measurement artifacts",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-ONTOLOGY-EN-03",
+        "AIDLC-ONTOLOGY-KO-03"
+      ],
+      "scope": [
+        "The vendor article supplies an attribution but not dataset, denominator or causal evidence for this repository's design."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C264",
+      "title": "Verify product internals or label the architecture as proposed",
+      "topic_id": "T2",
+      "stable_ids": [
+        "AIDLC-MULTI-04-en",
+        "AIDLC-MULTI-04-ko"
+      ],
+      "scope": [
+        "No primary source establishes the named internal roles; do not fetch private implementation material. GPT-5 Reasoning is not a pinned endpoint identifier."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C274",
+      "title": "Verify purported production outcomes and denominators",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-MULTI-14-en",
+        "AIDLC-MULTI-14-ko"
+      ],
+      "scope": [
+        "No incident cohort or method supports the reported MTTR, autonomy and false-positive results; missing private evidence does not make them false."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C283",
+      "title": "Verify control-plane collection support and cost assumptions",
+      "topic_id": "T2",
+      "stable_ids": [
+        "AIDLC-OBS-04-en",
+        "AIDLC-OBS-04-ko"
+      ],
+      "scope": [
+        "No feature-version source establishes the combined threshold and metric claims; the fixed monthly estimate lacks volume inputs."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C285",
+      "title": "Verify feature-specific processing location",
+      "topic_id": "T3",
+      "stable_ids": [
+        "AIDLC-OBS-06-en",
+        "AIDLC-OBS-06-ko"
+      ],
+      "scope": [
+        "Availability is not evidence of processing residency. The local-processing and routing claims require dated public regional/data terms."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C318",
+      "title": "Verify dated model, plan and rating claims",
+      "topic_id": "T5",
+      "stable_ids": [
+        "AIDLC-CODING-11-en",
+        "AIDLC-CODING-11-ko"
+      ],
+      "scope": [
+        "The original primary pages were unavailable; the codex-1 and subscription assertions must not be certified from memory or secondary material."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C362",
+      "title": "Resolve weight and code license scope at exact revisions",
+      "topic_id": "T6",
+      "stable_ids": [
+        "AIDLC-OPEN-03-en",
+        "AIDLC-OPEN-03-ko"
+      ],
+      "scope": [
+        "The retrieved model card and code license differ. This does not prove either artifact is wrongly licensed; bind the claim to the actual distributed weights license."
+      ]
+    },
+    {
+      "canonical_id": "AIDLC-C401",
+      "title": "Label the placeholder rationale as interpretation",
+      "topic_id": "T1",
+      "stable_ids": [
+        "AIDLC-PRINCIPLES-KO-10"
+      ],
+      "scope": [
+        "The official placeholder states future expansion but supplies no cited reason for it; do not infer undocumented author intent."
+      ]
+    }
+  ],
+  "source_gap_count": 200,
+  "deduplicated_source_gap_count": 100,
+  "source_gaps": [
+    {
+      "id": "AIDLC-U001",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Planning and performance",
+        "claim": "Phase improvements, timelines, staffing ratios, maturity cutoffs andorganization-wide outcomes",
+        "reason": "No study, dataset ororganization baseline supplied. These have been read comprehensively but are not verified effect sizes.",
+        "needed_evidence": "Explicitly labeled proposal with metric definitions, pilot protocol, baseline/comparison data and uncertainty."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/adoption-strategy.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1310929b181e07e635496a0934ead110266619c1d0b81c9b33b2df6293b40e45",
+          "original_gap_index": 0,
+          "original_gap_sha256": "fdd05d9a8b12565d6a2c7834a6555c73baff65017eaa8eb204c7f2f5f3cd004f"
+        },
+        {
+          "path": "docs/aidlc/enterprise/adoption-strategy.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "4948443f6938f865274c73a6cfe10c425ceddb8b3fda59d4d8a823d1ab448ac8",
+          "original_gap_index": 0,
+          "original_gap_sha256": "fdd05d9a8b12565d6a2c7834a6555c73baff65017eaa8eb204c7f2f5f3cd004f"
+        }
+      ],
+      "reviewed_summary": "Adoption timelines, staffing and improvement targets need a measured organizational baseline.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U002",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "SI constraints",
+        "claim": "ISO9001/CMMI inherently require the described fixed waterfall process",
+        "reason": "No specific edition ornormative clause is cited; source mixes contract/custom practices withcertification.",
+        "needed_evidence": "Applicable process/contract records andactual standard clauses if a normative constraint is claimed."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/adoption-strategy.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1310929b181e07e635496a0934ead110266619c1d0b81c9b33b2df6293b40e45",
+          "original_gap_index": 1,
+          "original_gap_sha256": "28b362cf6a517f79343831e839b67e58edb4eb25332c5908abb94d84fa287c65"
+        },
+        {
+          "path": "docs/aidlc/enterprise/adoption-strategy.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "4948443f6938f865274c73a6cfe10c425ceddb8b3fda59d4d8a823d1ab448ac8",
+          "original_gap_index": 1,
+          "original_gap_sha256": "28b362cf6a517f79343831e839b67e58edb4eb25332c5908abb94d84fa287c65"
+        }
+      ],
+      "reviewed_summary": "The claimed ISO 9001/CMMI requirement for a fixed waterfall process needs exact normative clauses.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U003",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Examples",
+        "claim": "Pinnedmodelavailability, SDK/chart/runtimeversionsandactualdeployment",
+        "reason": "No pinned fullenvironment or execution permitted; oldmodelIDs may require historical provideravailability evidence.",
+        "needed_evidence": "Versioned SDK/provider/runtime support and isolated fixtures, not live production access."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1399b11e4f3c2986d58bc6663855dfaa9ea63a7e4adb351ce025c11b54ac0b09",
+          "original_gap_index": 0,
+          "original_gap_sha256": "293a97321ed8d77e32bfc0979e1cac10e574619806a89dab3e5c51e789dccf19"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d3c58e5599e42f10bf2007b498cd9d74e508ad73ba794a38a25ec6a335a3f2d9",
+          "original_gap_index": 0,
+          "original_gap_sha256": "293a97321ed8d77e32bfc0979e1cac10e574619806a89dab3e5c51e789dccf19"
+        }
+      ],
+      "reviewed_summary": "Historical model availability and SDK, chart and runtime compatibility need pinned evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U004",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Unleash/product comparison",
+        "claim": "RBAC/auditlogdefaultedition and rollbacktimings/costs",
+        "reason": "No editioncontract or measured deployment scenario supplied.",
+        "needed_evidence": "Datededitiondocs and scenario-based cost/latency assumptions."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1399b11e4f3c2986d58bc6663855dfaa9ea63a7e4adb351ce025c11b54ac0b09",
+          "original_gap_index": 1,
+          "original_gap_sha256": "c6cfd3d0af956e86e8761070379fba209238a23769bb8cfbacdeb379b89e7293"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d3c58e5599e42f10bf2007b498cd9d74e508ad73ba794a38a25ec6a335a3f2d9",
+          "original_gap_index": 1,
+          "original_gap_sha256": "c6cfd3d0af956e86e8761070379fba209238a23769bb8cfbacdeb379b89e7293"
+        }
+      ],
+      "reviewed_summary": "Edition-specific access controls and rollback timing/cost claims need dated contracts and measurements.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U005",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "A/Bdesign",
+        "claim": "2348/group",
+        "reason": "Alpha/testdefinition missing; unitsemantics conflict.",
+        "needed_evidence": "Reproducible calculatorinput/permalink or preregistered power calculation."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1399b11e4f3c2986d58bc6663855dfaa9ea63a7e4adb351ce025c11b54ac0b09",
+          "original_gap_index": 2,
+          "original_gap_sha256": "622da57261f8d28b1c6784b20a3317599be59b236594f167e1d0f00f1aac38ba"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d3c58e5599e42f10bf2007b498cd9d74e508ad73ba794a38a25ec6a335a3f2d9",
+          "original_gap_index": 2,
+          "original_gap_sha256": "622da57261f8d28b1c6784b20a3317599be59b236594f167e1d0f00f1aac38ba"
+        }
+      ],
+      "reviewed_summary": "The A/B sample size of 2,348 per group needs an explicit effect unit, hypothesis and power calculation.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U006",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Retentionschedule",
+        "claim": "7/3/1yearregulatoryrequirements",
+        "reason": "Nojurisdiction/recordclass/legalprovisionsretrievedforsuchuniversalrules.",
+        "needed_evidence": "Applicableprimarylegalclauses andapprovedretention/data-minimizationpolicy."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "3e77b72d4b0235faf78291f51a77fdbb1ebbfb04939ff4b55097ea7b401bc9e6",
+          "original_gap_index": 0,
+          "original_gap_sha256": "be86c1982e77d87ce4bef6a1aa7d0606b8198ee1747f39059837497a3703e67b"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "bd9b26772d83913e7004c649b426064ba6a12cfdc85bca94070004c1e19abf25",
+          "original_gap_index": 0,
+          "original_gap_sha256": "be86c1982e77d87ce4bef6a1aa7d0606b8198ee1747f39059837497a3703e67b"
+        }
+      ],
+      "reviewed_summary": "Sector retention periods need a jurisdiction, record category and governing provision.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U007",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Evaluation/monitoring/deployment",
+        "claim": "Observed quality, timings, automatic approval/recovery",
+        "reason": "Samples/pseudocodeareincompleteandnoexecutionauthorized; originaldatasets/logsabsent.",
+        "needed_evidence": "Explicitillustrationlabelsandisolatedschema/query/decisionfixtures plusmeasuredrollback."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "3e77b72d4b0235faf78291f51a77fdbb1ebbfb04939ff4b55097ea7b401bc9e6",
+          "original_gap_index": 1,
+          "original_gap_sha256": "7fa6ac259040b42769fe2eabf625b9ba9037ad055d95005abf2ee7c1b78d27f5"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "bd9b26772d83913e7004c649b426064ba6a12cfdc85bca94070004c1e19abf25",
+          "original_gap_index": 1,
+          "original_gap_sha256": "7fa6ac259040b42769fe2eabf625b9ba9037ad055d95005abf2ee7c1b78d27f5"
+        }
+      ],
+      "reviewed_summary": "Quality, timing and recovery examples do not establish observed results or completed approval.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U008",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "CI/Lambda/metrics",
+        "claim": "Securefunctionalwebhookandapprovalintegration",
+        "reason": "Exporter labels, auth, permissions, stale alert policy and protected approval configuration not provided.",
+        "needed_evidence": "Boundedinterfaceandpolicycontractswithfail-closedtests."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "3e77b72d4b0235faf78291f51a77fdbb1ebbfb04939ff4b55097ea7b401bc9e6",
+          "original_gap_index": 2,
+          "original_gap_sha256": "a8b0cb0c3c7c0a50b97e2ea160cda9613ecde6f0e68f0a9d9b6144ddcfcb4805"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/governance-automation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "bd9b26772d83913e7004c649b426064ba6a12cfdc85bca94070004c1e19abf25",
+          "original_gap_index": 2,
+          "original_gap_sha256": "a8b0cb0c3c7c0a50b97e2ea160cda9613ecde6f0e68f0a9d9b6144ddcfcb4805"
+        }
+      ],
+      "reviewed_summary": "Webhook and approval integration need actual schemas, authentication and fail-closed behavior.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U009",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Regulatory/core principles",
+        "claim": "Sector-wide trace rules, 7 year retention, one-minute recovery",
+        "reason": "No exact legal scope or measured end-to-end recovery provided.",
+        "needed_evidence": "Applicable clauses/record classes and bounded rollout/rollback measurement."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "ebcc488aca965f26f697819e480858b4e538a5d4bbe6814d16199b88515471af",
+          "original_gap_index": 0,
+          "original_gap_sha256": "1523dddf075aa970472bb914c9daafe5b5d0563b886989ca08c3943d4a4a1c35"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/index.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "3571ebbddff5df511ababa33fa8ae465b4c85ab816d3cc87a3ff4d3daa1ac32a",
+          "original_gap_index": 0,
+          "original_gap_sha256": "1523dddf075aa970472bb914c9daafe5b5d0563b886989ca08c3943d4a4a1c35"
+        }
+      ],
+      "reviewed_summary": "Sector-wide trace retention and one-minute recovery need legal and end-to-end evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U010",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Model comparison",
+        "claim": "Claude4.7Sonnet historical designation",
+        "reason": "Locale differs; current overview alone cannot establish a June 2026historical model ID.",
+        "needed_evidence": "Dated official model release/catalog and intended pinned identifier."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "ebcc488aca965f26f697819e480858b4e538a5d4bbe6814d16199b88515471af",
+          "original_gap_index": 1,
+          "original_gap_sha256": "bec1401bc94284ee5c2ac4047615df1e020ee5d81f184a6f5e2543492f55968d"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/index.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "3571ebbddff5df511ababa33fa8ae465b4c85ab816d3cc87a3ff4d3daa1ac32a",
+          "original_gap_index": 1,
+          "original_gap_sha256": "bec1401bc94284ee5c2ac4047615df1e020ee5d81f184a6f5e2543492f55968d"
+        }
+      ],
+      "reviewed_summary": "The disputed historical model designation needs an official dated release and consistent locale identity.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U011",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Product comparisons",
+        "claim": "Historical June 2026 feature matrix, editions, RBAC, KMS, approval support",
+        "reason": "Current primary docs read; historical feature/edition snapshots not provided and some subjective comparisons lack criteria.",
+        "needed_evidence": "Versioned June release/docs and edition-specific feature matrix."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "cd99c1e9f7f6a728add9897aee1c69a4b220e7e856173ef860d99867c5b409e4",
+          "original_gap_index": 0,
+          "original_gap_sha256": "f77b8af2852e06d6da644f372b0307b3c2c604973b33e7eaf70a53977e17038c"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "55aa65d745c9dbf1a1003f7f0a4741e28291c81c92a492a0f38baa208ebacf0f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "f77b8af2852e06d6da644f372b0307b3c2c604973b33e7eaf70a53977e17038c"
+        }
+      ],
+      "reviewed_summary": "The historical prompt-registry feature matrix needs version- and edition-specific evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U012",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "BedrockPM",
+        "claim": "November 2024GAdate",
+        "reason": "Attempted announcementURL404; userguide establishes versioning but not launchdate.",
+        "needed_evidence": "Original AWSGAannouncement."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "cd99c1e9f7f6a728add9897aee1c69a4b220e7e856173ef860d99867c5b409e4",
+          "original_gap_index": 1,
+          "original_gap_sha256": "d9b269acb8ffdb02360290336c32467ddf0066ad016640567fad68bad8c7d254"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "55aa65d745c9dbf1a1003f7f0a4741e28291c81c92a492a0f38baa208ebacf0f",
+          "original_gap_index": 1,
+          "original_gap_sha256": "d9b269acb8ffdb02360290336c32467ddf0066ad016640567fad68bad8c7d254"
+        }
+      ],
+      "reviewed_summary": "The prompt-versioning GA date needs the original announcement rather than a generic user guide.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U013",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Deploymentguide",
+        "claim": "Working self-host installation and instant fleetrollback",
+        "reason": "Unpinned/incomplete chart configuration; no execution authorized.",
+        "needed_evidence": "Pinned schema-validated values and measured isolated deployment/propagation test."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "cd99c1e9f7f6a728add9897aee1c69a4b220e7e856173ef860d99867c5b409e4",
+          "original_gap_index": 2,
+          "original_gap_sha256": "44013f2ac49ea334935500a7549b7c93620dc7dae50f947142db91d243c0dedf"
+        },
+        {
+          "path": "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "55aa65d745c9dbf1a1003f7f0a4741e28291c81c92a492a0f38baa208ebacf0f",
+          "original_gap_index": 2,
+          "original_gap_sha256": "44013f2ac49ea334935500a7549b7c93620dc7dae50f947142db91d243c0dedf"
+        }
+      ],
+      "reviewed_summary": "The self-hosted installation and instant rollback claims need a pinned configuration and propagation test.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U014",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Proposed deployments and evaluation",
+        "claim": "Scenario tool compatibility,500Kevent capacity, maintenance accuracy, cost savings, approval enforcement and organizational effects",
+        "reason": "Fictional design inputs, not measured outcomes; no versions, capacity plan, dataset or runnable integration is supplied.",
+        "needed_evidence": "Before application, define workload, data, hardware, versions, approval authority, measurement periods and isolated positive/negative validation. Do not relabel the scenarios as verified customer evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/case-studies.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f62ff943b16c257304432fd866d1cf7e92e078c8798b383e3ca65d7a5f3110e6",
+          "original_gap_index": 0,
+          "original_gap_sha256": "ad349af5f8320bf9b8251c3594291a7fd0e2cfbbb3612b83bf227fa35dd7c743"
+        },
+        {
+          "path": "docs/aidlc/enterprise/case-studies.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d601adfa9c42914c754f2f70f23db3088c6b84bb0cf96262d12abb39bc2a462f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "ad349af5f8320bf9b8251c3594291a7fd0e2cfbbb3612b83bf227fa35dd7c743"
+        }
+      ],
+      "reviewed_summary": "The fictional case-study capacities and benefits remain design inputs, not customer measurements.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U015",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "External studies / case outcomes",
+        "claim": "McKinsey 87/62 accuracy, industry ROI periods; Hamel/Patil Strawberry Manifesto; fintech after-intervention results; all effect-size forecasts",
+        "reason": "No primary passage or dataset was supplied. Three McKinsey retrieval attempts finished with timeout/network errors; secondary narratives do not substantiate the stated original studies.",
+        "needed_evidence": "Primary publication/passages, measurement protocol, baseline and intervention data, denominators and uncertainty."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/cost-estimation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "72601774e17578f064c9f694708b400b33363ea974fb795ab5efd6cd98e650a1",
+          "original_gap_index": 0,
+          "original_gap_sha256": "bacd7a2e516a2d3107e16ed3c12e00f2abd5bebfb977ada7acb2ae1ecf2d77c2"
+        },
+        {
+          "path": "docs/aidlc/enterprise/cost-estimation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "4175509dca4cca53020635dc3aabeb546f888fa603f3703e000221442d3e9708",
+          "original_gap_index": 0,
+          "original_gap_sha256": "bacd7a2e516a2d3107e16ed3c12e00f2abd5bebfb977ada7acb2ae1ecf2d77c2"
+        }
+      ],
+      "reviewed_summary": "Attributed productivity studies and incident outcomes need original publications and measurement methods.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U016",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Costs / technicalcapacity",
+        "claim": "Spot $20k, 1TB gp3 $100, network $200, labor $5k, 400–800ms latency and comparable model capacity",
+        "reason": "No region, AZ, date, hours, network volume, staff rate, throughput, quantization, model quality or availability target specified. Public spec verified hardware only.",
+        "needed_evidence": "Datedregionalcost inputs andmeasuredquality/latency/throughput underidenticalworkload; includeallcosts andutilization."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/cost-estimation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "72601774e17578f064c9f694708b400b33363ea974fb795ab5efd6cd98e650a1",
+          "original_gap_index": 1,
+          "original_gap_sha256": "232c55f6a2f1464b9a170c4a1910868f594a4579e3b77a3da5f9616f48553b31"
+        },
+        {
+          "path": "docs/aidlc/enterprise/cost-estimation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "4175509dca4cca53020635dc3aabeb546f888fa603f3703e000221442d3e9708",
+          "original_gap_index": 1,
+          "original_gap_sha256": "232c55f6a2f1464b9a170c4a1910868f594a4579e3b77a3da5f9616f48553b31"
+        }
+      ],
+      "reviewed_summary": "Infrastructure, staffing and latency estimates need matched workload and regional cost inputs.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U017",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Generalbusinessclaims",
+        "claim": "SI market dominance, contract risk allocation, universal savings/payback and hybrid optimality",
+        "reason": "No empiricalmarketorcontractbasis; shouldremain explicitassumptions rather than verifiedfacts.",
+        "needed_evidence": "Relevantmarket/contractevidence andboundedscenario model."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/cost-estimation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "72601774e17578f064c9f694708b400b33363ea974fb795ab5efd6cd98e650a1",
+          "original_gap_index": 2,
+          "original_gap_sha256": "2fadbf7f055c68763a71b83b659cb9da448bde270a4851f6ab58084455e7a6e9"
+        },
+        {
+          "path": "docs/aidlc/enterprise/cost-estimation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "4175509dca4cca53020635dc3aabeb546f888fa603f3703e000221442d3e9708",
+          "original_gap_index": 2,
+          "original_gap_sha256": "2fadbf7f055c68763a71b83b659cb9da448bde270a4851f6ab58084455e7a6e9"
+        }
+      ],
+      "reviewed_summary": "Market, contract and hybrid-optimality claims need scoped evidence or explicit assumptions.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U018",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§4",
+        "claim": "All claimed ISMS-P and financial-supervision obligations/control IDs/numeric thresholds",
+        "reason": "No precise primary law/certification clauses; KISA DNS failure, FSS homepage only, law.go.kr bootstrap only.",
+        "needed_evidence": "Current official texts, control editions, applicability and exception analysis; clearly scoped organization policy where law does not prescribe numbers."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e0fef346a25c59c79471eab8e5d2f0ba2751c7a4d93089166fa1de60954b1237",
+          "original_gap_index": 0,
+          "original_gap_sha256": "b6cae73c5bbed227c5c43657d9f5b5520dfb7e20dfeb63517724dbd686db4c0a"
+        },
+        {
+          "path": "docs/aidlc/enterprise/extension-system.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "0ba7dcffe6cd2348a9a6b4e42e4ad015f400f09d6b30514128591387a98e4342",
+          "original_gap_index": 0,
+          "original_gap_sha256": "b6cae73c5bbed227c5c43657d9f5b5520dfb7e20dfeb63517724dbd686db4c0a"
+        }
+      ],
+      "reviewed_summary": "ISMS-P and financial-control identifiers and thresholds need current authoritative provisions.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U019",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§5–6",
+        "claim": "[ORGANIZATION_IDENTIFIER_REMOVED] extension versions, private registry and published/reviewed statuses",
+        "reason": "No public customer evidence; examples resemble actual private artifacts. No private host access attempted.",
+        "needed_evidence": "Authorized public artifact/case study or explicit hypothetical labeling."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e0fef346a25c59c79471eab8e5d2f0ba2751c7a4d93089166fa1de60954b1237",
+          "original_gap_index": 1,
+          "original_gap_sha256": "31515e8569395bba5096042453c0ad737bb96df362434eed3f4d7e93150049e4"
+        },
+        {
+          "path": "docs/aidlc/enterprise/extension-system.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "0ba7dcffe6cd2348a9a6b4e42e4ad015f400f09d6b30514128591387a98e4342",
+          "original_gap_index": 1,
+          "original_gap_sha256": "31515e8569395bba5096042453c0ad737bb96df362434eed3f4d7e93150049e4"
+        }
+      ],
+      "reviewed_summary": "Organizational extension releases and registry approvals need authorized public provenance or illustrative labels.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U020",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§5–6",
+        "claim": "Custom YAML/CLI enforcement and 80/100/15%target feasibility",
+        "reason": "No implementation/tests or measurement data supplied.",
+        "needed_evidence": "Documented custom runner and isolated tests; scoped organization targets/evaluation dataset."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e0fef346a25c59c79471eab8e5d2f0ba2751c7a4d93089166fa1de60954b1237",
+          "original_gap_index": 2,
+          "original_gap_sha256": "5b7d806635cd6571f629f550cc1b954619804ed332d6064bbd8b095e4961ad69"
+        },
+        {
+          "path": "docs/aidlc/enterprise/extension-system.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "0ba7dcffe6cd2348a9a6b4e42e4ad015f400f09d6b30514128591387a98e4342",
+          "original_gap_index": 2,
+          "original_gap_sha256": "5b7d806635cd6571f629f550cc1b954619804ed332d6064bbd8b095e4961ad69"
+        }
+      ],
+      "reviewed_summary": "Custom extension enforcement and target feasibility need an implemented runner and evaluation evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U021",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Policy integration and ORM rule",
+        "claim": "Automatic inherited-policy enforcement, compatible-version-only use, universal fetch-join solution and specified Istio defaults",
+        "reason": "No custom loader/validator/runtime is supplied, and no versioned ORM/mesh reference substantiates the blanket rules.",
+        "needed_evidence": "Implemented schema/loader with conflict and approval semantics; versioned Hibernate/Istio contracts and workload-specific tests."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/governance-framework.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c9c7779fd8b358d735dcc0913460adf2fe9c448784bc257ab12858201684cb4f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "bf76b9a94a4a5e9179c01a598dd040a0e1d36b8c92e7d539ec8bf3644da7964a"
+        },
+        {
+          "path": "docs/aidlc/enterprise/governance-framework.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "fe4ed8a58444fd0e2aed496dd7f6526d33d34e42a7e4dd0d9f272ad92bf5ccb7",
+          "original_gap_index": 0,
+          "original_gap_sha256": "bf76b9a94a4a5e9179c01a598dd040a0e1d36b8c92e7d539ec8bf3644da7964a"
+        }
+      ],
+      "reviewed_summary": "Inherited-policy enforcement and blanket ORM/mesh rules need versioned implementations and applicability.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U022",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Residency and retention",
+        "claim": "Country-wide residency bans, on-premises EKS boundary, all-US APIs unavailable, universal three-year regulatory retention",
+        "reason": "No jurisdiction/service variant/transfer mechanism or governing provision is specified; current regional product contracts were not fully retrieved.",
+        "needed_evidence": "Applicable legal provisions and deployment-specific provider data processing, location, retention and cross-region configuration."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/governance-framework.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c9c7779fd8b358d735dcc0913460adf2fe9c448784bc257ab12858201684cb4f",
+          "original_gap_index": 1,
+          "original_gap_sha256": "fb98405a7243521cff81c5cc52dd151c4b40ebb3a06598d64f55bbee680d1397"
+        },
+        {
+          "path": "docs/aidlc/enterprise/governance-framework.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "fe4ed8a58444fd0e2aed496dd7f6526d33d34e42a7e4dd0d9f272ad92bf5ccb7",
+          "original_gap_index": 1,
+          "original_gap_sha256": "fb98405a7243521cff81c5cc52dd151c4b40ebb3a06598d64f55bbee680d1397"
+        }
+      ],
+      "reviewed_summary": "Residency bans, endpoint exclusions and retention periods need scoped legal and provider contracts.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U023",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Operational results",
+        "claim": "Working dashboards, continuous enforcement, mandatory review and compliant monthly reports",
+        "reason": "Examples are incomplete and were not executed; no deployment or authoritative approval evidence exists in the source.",
+        "needed_evidence": "Isolated implemented integration, negative-case tests, authenticated approvals and scoped compliance review."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/governance-framework.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c9c7779fd8b358d735dcc0913460adf2fe9c448784bc257ab12858201684cb4f",
+          "original_gap_index": 2,
+          "original_gap_sha256": "3b20dd6674d6b36552a0cf127c083936368973ec45f59d14e6c4a42e2f39dfcb"
+        },
+        {
+          "path": "docs/aidlc/enterprise/governance-framework.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "fe4ed8a58444fd0e2aed496dd7f6526d33d34e42a7e4dd0d9f272ad92bf5ccb7",
+          "original_gap_index": 2,
+          "original_gap_sha256": "3b20dd6674d6b36552a0cf127c083936368973ec45f59d14e6c4a42e2f39dfcb"
+        }
+      ],
+      "reviewed_summary": "Dashboards, continuous enforcement and compliant reports need actual implementation and approval evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U024",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "CI/tooling",
+        "claim": "Runnable aidlc-cli validation pipeline",
+        "reason": "CLI distribution/version/schema and result artifacts not provided.",
+        "needed_evidence": "Actual pinned tools and isolated CI fixture checks."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/implementation/harness-checklist.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2fd9317f003283adbbde364428c006ede210592270afe667334f214f16381309",
+          "original_gap_index": 0,
+          "original_gap_sha256": "a0c070b92326de341fe8ee10d0102274630f46a87d96a57161f9df958b3c5f7a"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/implementation/harness-checklist.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d546598bfd85c048637ec17adc5e9e767c70bcd265ab2f6477ea87f3db3d190c",
+          "original_gap_index": 0,
+          "original_gap_sha256": "a0c070b92326de341fe8ee10d0102274630f46a87d96a57161f9df958b3c5f7a"
+        }
+      ],
+      "reviewed_summary": "The proposed MSA validation pipeline needs a distributed CLI contract and transferred result artifacts.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U025",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Harnesses",
+        "claim": "Complete idempotency, compensation and projection verification",
+        "reason": "Incomplete fixtures, one syntax error and narrow happy-path assertions.",
+        "needed_evidence": "Valid scoped tests with explicit fault injection and durable-state assertions."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/implementation/harness-checklist.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2fd9317f003283adbbde364428c006ede210592270afe667334f214f16381309",
+          "original_gap_index": 1,
+          "original_gap_sha256": "0ec512c002d90da2e7e8b770d5b0855214bb321a866768457a2de324068d3974"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/implementation/harness-checklist.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d546598bfd85c048637ec17adc5e9e767c70bcd265ab2f6477ea87f3db3d190c",
+          "original_gap_index": 1,
+          "original_gap_sha256": "0ec512c002d90da2e7e8b770d5b0855214bb321a866768457a2de324068d3974"
+        }
+      ],
+      "reviewed_summary": "Idempotency, compensation and projection claims need complete fault-injected, durable-state tests.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U026",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Custom ontology format",
+        "claim": "These files produce enforceable constraints",
+        "reason": "No interpreter, validation schema or code binding provided.",
+        "needed_evidence": "Explicit illustration label or a versioned executable contract."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/implementation/ontology-guide.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "62bedfa0b15d9515a35d1339e22f4acbd0c0e4b0ad33ac44b7115d953e6aa027",
+          "original_gap_index": 0,
+          "original_gap_sha256": "13a7245559635e2ac16a21a9be535466a4f7194a0c391863bbca7ac9445c00ee"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/implementation/ontology-guide.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2618e07d96f2b796a586887255506c350303c4d172a5ba3f1c72528274409ca3",
+          "original_gap_index": 0,
+          "original_gap_sha256": "13a7245559635e2ac16a21a9be535466a4f7194a0c391863bbca7ac9445c00ee"
+        }
+      ],
+      "reviewed_summary": "Ontology files require an explicit interpreter or validator before they establish enforced constraints.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U027",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Quality gates and automation",
+        "claim": "Thresholds guarantee quality and enforce expert approval",
+        "reason": "Metric denominators, critical-test semantics, CLI and approval integration missing.",
+        "needed_evidence": "Explicit policy and executable fail-closed fixtures with human approval evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/implementation/verification.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "ec1e0e07a50974cf7445cc6ce2b04b92b1a583518ee87e8ebc1eedfd32d1ff8e",
+          "original_gap_index": 0,
+          "original_gap_sha256": "5325d137b852fbe4c2f5c5ce8de9f864c9c91830bc68909ebf02026d25b70df1"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/implementation/verification.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c6e00dba2996137ddf6b2764175a2511a6e80c327bbab9c324ed6f1027b03c34",
+          "original_gap_index": 0,
+          "original_gap_sha256": "5325d137b852fbe4c2f5c5ce8de9f864c9c91830bc68909ebf02026d25b70df1"
+        }
+      ],
+      "reviewed_summary": "Quality and expert-approval thresholds need defined denominators and an authoritative gate.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U028",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Difficulty/risk models",
+        "claim": "Immediate suitability and Go/No-Go thresholds predict outcomes",
+        "reason": "No validation dataset or approved organizational policy supplied.",
+        "needed_evidence": "Explicit heuristic/policy label and consistent decision rules, or calibrated project evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/index.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "5db4cd9a08b3da7652232e18f5109053292c84848af3f776b2a2d174d6aa731a",
+          "original_gap_index": 0,
+          "original_gap_sha256": "a89a38a5ec97bac3244dbf7c0a2fadea0cf380fb0ece23efd895559d7e249085"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/index.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "56c075a5bbaa953fb8f99b3af2f55eff50e8455717586565e050c9309b36c341",
+          "original_gap_index": 0,
+          "original_gap_sha256": "a89a38a5ec97bac3244dbf7c0a2fadea0cf380fb0ece23efd895559d7e249085"
+        }
+      ],
+      "reviewed_summary": "MSA readiness thresholds remain an unvalidated decision aid unless project evidence supports them.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U029",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Ontology/retry examples",
+        "claim": "Executable schema and safe retry behavior",
+        "reason": "No schema interpreter, transactional contract or fixture implementation supplied.",
+        "needed_evidence": "Explicit pseudoconfiguration label plus bounded implementation and partial-failure tests."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/pattern-guides/l1-l2-simple-msa.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "41b6e35a9c14b896cf452aaff54fc3a88829a1bbe87776bf6b38e5d60c117d97",
+          "original_gap_index": 0,
+          "original_gap_sha256": "956ee44e746b3f9525b1eb31d15f009440ddb04e0000ad2bef8907578db1a806"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/pattern-guides/l1-l2-simple-msa.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e779fc4649e0791c9e45da650a22742d493ab3b170d93f6ce84dd4bf286aaf9c",
+          "original_gap_index": 0,
+          "original_gap_sha256": "956ee44e746b3f9525b1eb31d15f009440ddb04e0000ad2bef8907578db1a806"
+        }
+      ],
+      "reviewed_summary": "Simple-MSA schemas and retry safety need an executable and transactional contract.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U030",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Transport/Saga examples",
+        "claim": "Strict ordering, exact deduplication and complete compensation coverage",
+        "reason": "Transport configuration, durable step state and fault-injection fixtures not supplied.",
+        "needed_evidence": "Pinned transport contracts and tests for duplicate, timeout, unknown outcome and compensation failure."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/pattern-guides/l3-l4-async-saga.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "4c874d37e14197a566c9f7eae65522aba8577290ce10bd8d1ad963973e0f3911",
+          "original_gap_index": 0,
+          "original_gap_sha256": "7cdcfe43554224415b7da38b3e64e37d01556640312946ef25a09ae04d3d9845"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/pattern-guides/l3-l4-async-saga.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "ff49923cfeb99458978c5707848d37d8ee7d98fa6f86cdf3cb9940f9a1af3435",
+          "original_gap_index": 0,
+          "original_gap_sha256": "7cdcfe43554224415b7da38b3e64e37d01556640312946ef25a09ae04d3d9845"
+        }
+      ],
+      "reviewed_summary": "Saga ordering, deduplication and compensation require durable state and delivery-failure tests.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U031",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Banking design",
+        "claim": "7year retention,100event snapshot and invariant enforcement are adequate",
+        "reason": "No workload, legal policy, event-store API or complete validator supplied.",
+        "needed_evidence": "Explicit design assumptions and schema/concurrency/replay tests; applicable retention policy if legally required."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/pattern-guides/l5-event-sourcing.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "511346d41b697a420b6af432cd41a5a333fa8c847220e56b569e49d985d1e951",
+          "original_gap_index": 0,
+          "original_gap_sha256": "b178c8e8bd57bdcc605ab2ebdefdcf4752947b992ff752dbae7a5fbb851e3ad5"
+        },
+        {
+          "path": "docs/aidlc/enterprise/msa-complexity/pattern-guides/l5-event-sourcing.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "9c6579b71dcb7c4419c9debf249171338962c5dbca4f08165d5313b581c24291",
+          "original_gap_index": 0,
+          "original_gap_sha256": "b178c8e8bd57bdcc605ab2ebdefdcf4752947b992ff752dbae7a5fbb851e3ad5"
+        }
+      ],
+      "reviewed_summary": "Event retention, snapshot frequency and invariant adequacy require workload and policy evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U032",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Article15 / all obligations",
+        "claim": "The page is sufficient to implement all relevant compliance duties",
+        "reason": "This is a summary; system/role-specific applicability, delegated standards and national enforcement arrangements are not specified. All source text was read but no legal certification or conformity assessment was performed.",
+        "needed_evidence": "Current consolidated provisions, applicable implementing guidance and documented system/provider/deployer scope reviewed by the responsible compliance owner."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/eu-ai-act.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "bd4ab7bfa49c33b2a6f4a6b4f0cdf6bb37a821eb72d5d35360ddb226b0f29ee3",
+          "original_gap_index": 0,
+          "original_gap_sha256": "7df4f933a5c6b82a7e7d9d521a68ce597b46b4d929378f3c8ef50e5514272ebc"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/frameworks/eu-ai-act.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f7cae06cab3503783e08706661cc0baf92578fed05472dbe1201bbfc6e75c31f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "7df4f933a5c6b82a7e7d9d521a68ce597b46b4d929378f3c8ef50e5514272ebc"
+        }
+      ],
+      "reviewed_summary": "The EU summary is not a complete system- and role-specific conformity assessment.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U033",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "AnnexA / all normative mappings",
+        "claim": "72controls and exact A.5–A.13 category/control identities, plus cross-mappings to ISO27001/9001",
+        "reason": "Full normative AnnexA and mapped-standard editions are not present in the retrieved public preview. No assertion of verification is made.",
+        "needed_evidence": "Authorized standard text and edition-specific crosswalk with exact clause names and applicability decisions."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/iso-42001.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "3b3f5d271442d93170b80a4be7bb71f5270c007fda7b58a04b0bf77fc85dd72e",
+          "original_gap_index": 0,
+          "original_gap_sha256": "2edfc5af04f61151316bf0f71ef1bdf50736ed66796cb913b83f4adf00c01311"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/frameworks/iso-42001.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "0806d5a43a01851fd815972e99df11191f9ae4f8ba91085addc4b82b92bff655",
+          "original_gap_index": 0,
+          "original_gap_sha256": "2edfc5af04f61151316bf0f71ef1bdf50736ed66796cb913b83f4adf00c01311"
+        }
+      ],
+      "reviewed_summary": "ISO 42001 Annex A identities and crosswalks require authorized normative text by edition.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U034",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Certification / example targets",
+        "claim": "Three-year validity, annual surveillance, one integrated audit and 80%coverage as conformity evidence",
+        "reason": "The retrieved primary brochure supports certification broadly, not universal terms or project-specific sufficiency.",
+        "needed_evidence": "Applicable accredited certification scheme/contract and assessment of the complete AIMS scope, with thresholds justified as project criteria."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/iso-42001.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "3b3f5d271442d93170b80a4be7bb71f5270c007fda7b58a04b0bf77fc85dd72e",
+          "original_gap_index": 1,
+          "original_gap_sha256": "8ff9dfcd8bcc9698fdd519da1a30f6462fc8e12048792c9c5fa0a6fbfa1cbffc"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/frameworks/iso-42001.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "0806d5a43a01851fd815972e99df11191f9ae4f8ba91085addc4b82b92bff655",
+          "original_gap_index": 1,
+          "original_gap_sha256": "8ff9dfcd8bcc9698fdd519da1a30f6462fc8e12048792c9c5fa0a6fbfa1cbffc"
+        }
+      ],
+      "reviewed_summary": "Certification timing, integrated audits and coverage thresholds need the applicable accredited scheme.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U035",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "ISMS-P integration",
+        "claim": "2.5.1collection,2.6.2storage,3.1.1policy,2.1.2risk,2.5.6rights,3.2.1monitoring and planned AI audit additions",
+        "reason": "No edition or announcement cited; official KISA endpoint could not be resolved. These names/IDs require primary criteria verification before reuse.",
+        "needed_evidence": "Current KISA ISMS-P criteria and dated change announcement."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/korea-ai-law.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "817479af1f1387cacc86dbfb03a1e7c6e6fc0161173bef40341250ba721c0083",
+          "original_gap_index": 0,
+          "original_gap_sha256": "c779b7400ecce5165722218b131aaa0d385c9ae228f22f1fb61081d70675e996"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/frameworks/korea-ai-law.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "eb87ef3669cc7ac69c1f014bd99cf507a9ba0cf2c41d572797f3aab9fd7f1dcf",
+          "original_gap_index": 0,
+          "original_gap_sha256": "c779b7400ecce5165722218b131aaa0d385c9ae228f22f1fb61081d70675e996"
+        }
+      ],
+      "reviewed_summary": "Korean certification control identifiers and planned AI audit changes need dated KISA criteria.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U036",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Labeling / statutory detail",
+        "claim": "Exact allowed marking methods, exceptions and report/correction deadlines",
+        "reason": "Primary statute was read; its delegated decree and detailed ministry notice have not yet been retrieved in this audit. The source supplies no provision for the blanket SLA.",
+        "needed_evidence": "Current implementing decree/notices matched to business role, system scope and specific incident category."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/korea-ai-law.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "817479af1f1387cacc86dbfb03a1e7c6e6fc0161173bef40341250ba721c0083",
+          "original_gap_index": 1,
+          "original_gap_sha256": "54cd97d5f456d345505f625427336c83b99bb0c019fa3c3f320e6f39f7c580e4"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/frameworks/korea-ai-law.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "eb87ef3669cc7ac69c1f014bd99cf507a9ba0cf2c41d572797f3aab9fd7f1dcf",
+          "original_gap_index": 1,
+          "original_gap_sha256": "54cd97d5f456d345505f625427336c83b99bb0c019fa3c3f320e6f39f7c580e4"
+        }
+      ],
+      "reviewed_summary": "Detailed Korean marking methods and reporting deadlines require applicable decrees and notices.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U037",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "ISO mappings and certification",
+        "claim": "Exact Annex A controls, 72 count, 100% applicability, one-year minimum and certification sufficiency",
+        "reason": "Official public preview excludes AnnexA and certification scheme detail; source only links its own summary.",
+        "needed_evidence": "Authorized normative standard and accredited scheme requirements; verified implementation records."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d03a054d2dadb9d2abeabe754e6f61636efa16798b07facf1ff747ed06da7bbf",
+          "original_gap_index": 0,
+          "original_gap_sha256": "9c715e410794422b26b9a19fb59508426f6de4fa1ceba4487f7cf49e6871beb5"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "646373c8887aa1236d8a0239789f92841a6cbc3f3b747575bc595495bdcbbd06",
+          "original_gap_index": 0,
+          "original_gap_sha256": "9c715e410794422b26b9a19fb59508426f6de4fa1ceba4487f7cf49e6871beb5"
+        }
+      ],
+      "reviewed_summary": "ISO control applicability and certification prerequisites require normative and scheme evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U038",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Runtime integrations / metrics",
+        "claim": "Custom YAML, Grafana schema, model API and document paths execute and enforce compliance",
+        "reason": "No consumer/version or deployment evidence supplied; examples not executed by audit mandate.",
+        "needed_evidence": "Pinned schemas/API versions, isolated consumer tests and reviewed operational evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d03a054d2dadb9d2abeabe754e6f61636efa16798b07facf1ff747ed06da7bbf",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2ba92edc6feea9e28ef02c7e224980bb929b6102325f9e98864d73c511d09125"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "646373c8887aa1236d8a0239789f92841a6cbc3f3b747575bc595495bdcbbd06",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2ba92edc6feea9e28ef02c7e224980bb929b6102325f9e98864d73c511d09125"
+        }
+      ],
+      "reviewed_summary": "Compliance configuration files and dashboards need actual consumers, schemas and implementation evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U039",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Roadmap estimates",
+        "claim": "3–6/6–12/12–24months,6/18/30person-months and$50k",
+        "reason": "No workload, staff rate, certification scope or primary cost basis provided.",
+        "needed_evidence": "Explicit planning assumptions and organization-specific sizing; keep estimates hypothetical."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d03a054d2dadb9d2abeabe754e6f61636efa16798b07facf1ff747ed06da7bbf",
+          "original_gap_index": 2,
+          "original_gap_sha256": "62e9f0d2d76b436c21300160514fda0c518cf2a9de8021f088dd9b546af7b939"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "646373c8887aa1236d8a0239789f92841a6cbc3f3b747575bc595495bdcbbd06",
+          "original_gap_index": 2,
+          "original_gap_sha256": "62e9f0d2d76b436c21300160514fda0c518cf2a9de8021f088dd9b546af7b939"
+        }
+      ],
+      "reviewed_summary": "Compliance staffing, duration and fee estimates require workload and assessment-scope assumptions.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U040",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "ISO / AWS references",
+        "claim": "72AnnexA controls, exact crosswalk and availability of specific EU/ISOArtifact reports",
+        "reason": "Accessible official preview stops beforeAnnexA; publicArtifact landing page does not enumerate these reports.",
+        "needed_evidence": "Authorized standard text and exact scopedAWSreportcatalog entries."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/index.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "fa66f56380a9fc44db357217443dc7473227844835aa0ccdf96c96dee7bfd687",
+          "original_gap_index": 0,
+          "original_gap_sha256": "0cd8b116c550bcb336e30687ce4c433f64707c42194501d5b3f69a1ae7d334a4"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/index.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "865b8c4cdd9d75a022f3cdf637c6a77cd808d282db9c8adca5f881ab1be54244",
+          "original_gap_index": 0,
+          "original_gap_sha256": "0cd8b116c550bcb336e30687ce4c433f64707c42194501d5b3f69a1ae7d334a4"
+        }
+      ],
+      "reviewed_summary": "Exact ISO mappings and named Artifact reports are not established by previews or generic service pages.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U041",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Korea regulatory detail",
+        "claim": "All ministry reporting/marking and ISMS-P integration requirements",
+        "reason": "Primary statute was retrieved but exact delegated implementation instruments/ISMScriteria were not.",
+        "needed_evidence": "Current decree, ministry notices and KISAcriteria with application scope."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/index.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "fa66f56380a9fc44db357217443dc7473227844835aa0ccdf96c96dee7bfd687",
+          "original_gap_index": 1,
+          "original_gap_sha256": "e6aa4c6e5eb2db7105b553225454f990cd9a3dc7fc6370dd105a899f3212e69c"
+        },
+        {
+          "path": "docs/aidlc/enterprise/regulatory-compliance/index.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "865b8c4cdd9d75a022f3cdf637c6a77cd808d282db9c8adca5f881ab1be54244",
+          "original_gap_index": 1,
+          "original_gap_sha256": "e6aa4c6e5eb2db7105b553225454f990cd9a3dc7fc6370dd105a899f3212e69c"
+        }
+      ],
+      "reviewed_summary": "Korean delegated reporting, marking and ISMS-P requirements remain unresolved beyond the retrieved statute.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U042",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "OpenAI case / NIST study",
+        "claim": "Exact 2024 OpenAI quotation and million-line quality guarantee; NIST 2023 study 90% rework and 10x late-fix cost",
+        "reason": "No primary citations in source; OpenAIretrieval403; NISToverviewdoesnot substantiate namedstudy orstatistics.",
+        "needed_evidence": "Original dated quotation/study, context, method and measurement limits."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/role-composition.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f070df59e0c0464092942148f9ee6c5a0efdd19db94e9302297c98aa308e94fd",
+          "original_gap_index": 0,
+          "original_gap_sha256": "0fe24626e515abdce5778a1aed0d97f7b35b0750d0692e989b4b8cad1a3c5d68"
+        },
+        {
+          "path": "docs/aidlc/enterprise/role-composition.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "84de3e925cfee5d0c4a6e78ceec48d5b18bb3f2d1ad4e959eb79a37ed88e837d",
+          "original_gap_index": 0,
+          "original_gap_sha256": "0fe24626e515abdce5778a1aed0d97f7b35b0750d0692e989b4b8cad1a3c5d68"
+        }
+      ],
+      "reviewed_summary": "The attributed OpenAI quotation and NIST rework study need original dated sources.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U043",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Tooling andcosts",
+        "claim": "Tool capabilities/integration, staffing productivity, savings and general activity ratios",
+        "reason": "No pinnedtoolversions, implementedconsumer ororganizationmeasurements. Baselinesandtargetsnotverifiedfacts.",
+        "needed_evidence": "Versioned primary tool contracts and measured cost/workload model with rates, duration, denominators and uncertainty."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/role-composition.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f070df59e0c0464092942148f9ee6c5a0efdd19db94e9302297c98aa308e94fd",
+          "original_gap_index": 1,
+          "original_gap_sha256": "9ad384c8d437b644f77f40b63e4cd3f1a368cbf761b4ff38c872ac331c1a8cfd"
+        },
+        {
+          "path": "docs/aidlc/enterprise/role-composition.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "84de3e925cfee5d0c4a6e78ceec48d5b18bb3f2d1ad4e959eb79a37ed88e837d",
+          "original_gap_index": 1,
+          "original_gap_sha256": "9ad384c8d437b644f77f40b63e4cd3f1a368cbf761b4ff38c872ac331c1a8cfd"
+        }
+      ],
+      "reviewed_summary": "Role staffing benefits and tool coverage require versioned contracts and organizational measurements.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U044",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§3.1",
+        "claim": "KakaoPay 15-minute session and amount limits",
+        "reason": "Official page retrieval contained only client-rendered navigation; provider requirement not read.",
+        "needed_evidence": "Exact payment API reference and session-expiration/amount constraints; distinguish local policy."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/adaptive-execution.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c7b8f34f6f4f8fe7539c67d49963092136ba72fd343f01d3a0477275e4d0d28f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "48b7ebf104d81e525d80903c1c75884a0c567b155bcd47858689039c4d0a91ed"
+        },
+        {
+          "path": "docs/aidlc/methodology/adaptive-execution.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "85ddfda1caa578717b5005ef52b860deca20d71f1cfe5154fc04d67904a8e640",
+          "original_gap_index": 0,
+          "original_gap_sha256": "48b7ebf104d81e525d80903c1c75884a0c567b155bcd47858689039c4d0a91ed"
+        }
+      ],
+      "reviewed_summary": "KakaoPay session and amount limits need the actual provider API reference.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U045",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§2–§6",
+        "claim": "Average durations, line-count depth targets, scenario totals and deployment example state",
+        "reason": "Illustrative values have no measured dataset/executed fixture evidence.",
+        "needed_evidence": "Explicit example/assumption labels or original measurement artifacts with methods."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/adaptive-execution.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c7b8f34f6f4f8fe7539c67d49963092136ba72fd343f01d3a0477275e4d0d28f",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2b8cc494672e7fc7f545debf7ee42eac3f24187ad58805de495bbc884f7b98ed"
+        },
+        {
+          "path": "docs/aidlc/methodology/adaptive-execution.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "85ddfda1caa578717b5005ef52b860deca20d71f1cfe5154fc04d67904a8e640",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2b8cc494672e7fc7f545debf7ee42eac3f24187ad58805de495bbc884f7b98ed"
+        }
+      ],
+      "reviewed_summary": "Adaptive-stage durations and document-length targets are illustrations without measured averages.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U046",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§1 official quotation",
+        "claim": "Verbatim attributed adaptive statement",
+        "reason": "Not located in retrieved pinned README/core/common sources.",
+        "needed_evidence": "Exact file/permalink passage, otherwise present as a qualified paraphrase."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/adaptive-execution.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c7b8f34f6f4f8fe7539c67d49963092136ba72fd343f01d3a0477275e4d0d28f",
+          "original_gap_index": 2,
+          "original_gap_sha256": "e757b5194c5c0b1734c358e2a7b5b2cc9dbf43fc004790c38e3c7a35703b75ca"
+        },
+        {
+          "path": "docs/aidlc/methodology/adaptive-execution.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "85ddfda1caa578717b5005ef52b860deca20d71f1cfe5154fc04d67904a8e640",
+          "original_gap_index": 2,
+          "original_gap_sha256": "e757b5194c5c0b1734c358e2a7b5b2cc9dbf43fc004790c38e3c7a35703b75ca"
+        }
+      ],
+      "reviewed_summary": "The attributed adaptive-workflow quotation needs an exact primary passage or paraphrase labeling.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U047",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§9",
+        "claim": "Finance minimum 7 years; healthcare 10 years",
+        "reason": "No jurisdiction, covered record type, statute, or retention trigger supplied.",
+        "needed_evidence": "Applicable primary legal text and record-category mapping."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/common-rules.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c229a8bd58716078554e55128c6f2d804aad5e6d3e28174d7837cf4988807e12",
+          "original_gap_index": 0,
+          "original_gap_sha256": "ae2041efbc08a360a5243440c54928705018d6504a8e99d7497478a1bdcf23cf"
+        },
+        {
+          "path": "docs/aidlc/methodology/common-rules.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "740cb892ddb74e98986bb0fe63c1bdba1bf7f699a222ed4aa98801217df6a9c6",
+          "original_gap_index": 0,
+          "original_gap_sha256": "ae2041efbc08a360a5243440c54928705018d6504a8e99d7497478a1bdcf23cf"
+        }
+      ],
+      "reviewed_summary": "Finance and healthcare retention periods need record-specific legal authority.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U048",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§12",
+        "claim": "NIST recommends freezing model versions for 3–5 years",
+        "reason": "Primary PDF now retrieved; relevant model versioning and vulnerability-response provisions read. No exact source passage supplied or found for fixed3–5years; do not treat that attribution as verified.",
+        "needed_evidence": "Relevant full primary passage and applicability conditions."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/common-rules.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c229a8bd58716078554e55128c6f2d804aad5e6d3e28174d7837cf4988807e12",
+          "original_gap_index": 1,
+          "original_gap_sha256": "625f4e065cce9012989c503681e51a85e2a05a5c1fc27bbb05be09fbf8a99e00"
+        },
+        {
+          "path": "docs/aidlc/methodology/common-rules.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "740cb892ddb74e98986bb0fe63c1bdba1bf7f699a222ed4aa98801217df6a9c6",
+          "original_gap_index": 1,
+          "original_gap_sha256": "625f4e065cce9012989c503681e51a85e2a05a5c1fc27bbb05be09fbf8a99e00"
+        }
+      ],
+      "reviewed_summary": "The NIST model-freeze duration remains unverified despite retrieval of the relevant primary publication.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U049",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§12–13",
+        "claim": "Model identifier, deterministic seed behavior, 90%/20% thresholds and Full/Partial support matrix",
+        "reason": "No primary model/version API evidence or conformance dataset supplied.",
+        "needed_evidence": "Versioned tool/API references and reproducible evaluation artifacts."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/common-rules.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c229a8bd58716078554e55128c6f2d804aad5e6d3e28174d7837cf4988807e12",
+          "original_gap_index": 2,
+          "original_gap_sha256": "d9d86efb44c313d6e9ba7f6fbf7a38bc5135184380ed404cb35b5389119490bb"
+        },
+        {
+          "path": "docs/aidlc/methodology/common-rules.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "740cb892ddb74e98986bb0fe63c1bdba1bf7f699a222ed4aa98801217df6a9c6",
+          "original_gap_index": 2,
+          "original_gap_sha256": "d9d86efb44c313d6e9ba7f6fbf7a38bc5135184380ed404cb35b5389119490bb"
+        }
+      ],
+      "reviewed_summary": "Reproducibility thresholds and tool-support scores require actual API and conformance evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U050",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§13.1",
+        "claim": "ISO27001 A.5.15/A.8.15/A.8.29/A.5.24, SOC2 CC6.2/CC7.2/CC8.1/CC7.3, ISMS-P 2.8.3/2.9.4/2.11.2/2.10.4 labels and mappings",
+        "reason": "Only standard homepages are linked, no edition-specific clauses or mapping rationale retrieved.",
+        "needed_evidence": "Primary control definitions by edition and explicit mapping rationale; qualified compliance assessment."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/common-rules.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c229a8bd58716078554e55128c6f2d804aad5e6d3e28174d7837cf4988807e12",
+          "original_gap_index": 3,
+          "original_gap_sha256": "553fa6eb1d48258611dfbab51ea7a08a19cc529c0495fd6156ead4e5ad9e04ba"
+        },
+        {
+          "path": "docs/aidlc/methodology/common-rules.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "740cb892ddb74e98986bb0fe63c1bdba1bf7f699a222ed4aa98801217df6a9c6",
+          "original_gap_index": 3,
+          "original_gap_sha256": "553fa6eb1d48258611dfbab51ea7a08a19cc529c0495fd6156ead4e5ad9e04ba"
+        }
+      ],
+      "reviewed_summary": "ISO, SOC 2 and ISMS-P control crosswalks require edition-specific normative definitions.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U051",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§4, §7",
+        "claim": "CloudWatch/PagerDuty integration and financial mandatory workflow stages",
+        "reason": "Described implementation/policy has no configuration or jurisdiction binding.",
+        "needed_evidence": "Exact integration implementation/API and organization/regulation-specific stage policy."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/common-rules.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c229a8bd58716078554e55128c6f2d804aad5e6d3e28174d7837cf4988807e12",
+          "original_gap_index": 4,
+          "original_gap_sha256": "a33bb96d76309aae7901666e4245efd09aa38fc9599cb34c338881a08f7579e3"
+        },
+        {
+          "path": "docs/aidlc/methodology/common-rules.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "740cb892ddb74e98986bb0fe63c1bdba1bf7f699a222ed4aa98801217df6a9c6",
+          "original_gap_index": 4,
+          "original_gap_sha256": "a33bb96d76309aae7901666e4245efd09aa38fc9599cb34c338881a08f7579e3"
+        }
+      ],
+      "reviewed_summary": "Notification integrations and financial workflow mandates need implemented and jurisdiction-specific contracts.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U052",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§2,4",
+        "claim": "Weeks/months→hours, 10–50× speed, AI best structured patterns",
+        "reason": "No workload-specific experiment or primary measurement supplied.",
+        "needed_evidence": "Original bounded benchmark with quality/effort/time definitions or explicit estimate labeling."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "5f233d2eb1efc19f42dfba92f4dd4d151fef4d34e4386c0fa7e4a2f6554d73cd",
+          "original_gap_index": 0,
+          "original_gap_sha256": "ff336b4b94397cf0c6db03a90d0d195e86b21c49b6e4fad9a78c1dc79bfa4c06"
+        },
+        {
+          "path": "docs/aidlc/methodology/ddd-integration.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "66a688702e0852f1ac1d875c0ffbb76d463c3c2ce8420c35f1958232ab66a4d2",
+          "original_gap_index": 0,
+          "original_gap_sha256": "ff336b4b94397cf0c6db03a90d0d195e86b21c49b6e4fad9a78c1dc79bfa4c06"
+        }
+      ],
+      "reviewed_summary": "DDD speedup and structured-pattern superiority claims require a bounded quality/effort/time benchmark.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U053",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§8.2",
+        "claim": "Immediate DDD correctness and prevention of downstream errors",
+        "reason": "The announcement date and build/test prerequisites are now verified. No domain-specific oracle or execution evidence establishes the stronger DDD guarantee.",
+        "needed_evidence": "Domain-invariant tests, configured Devfile/build prerequisites and successful/failed run evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "5f233d2eb1efc19f42dfba92f4dd4d151fef4d34e4386c0fa7e4a2f6554d73cd",
+          "original_gap_index": 1,
+          "original_gap_sha256": "3de27285f670781ddb408726a062ac1432c07ed21b3d0ddf5fbfc4de5b53ef83"
+        },
+        {
+          "path": "docs/aidlc/methodology/ddd-integration.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "66a688702e0852f1ac1d875c0ffbb76d463c3c2ce8420c35f1958232ab66a4d2",
+          "original_gap_index": 1,
+          "original_gap_sha256": "3de27285f670781ddb408726a062ac1432c07ed21b3d0ddf5fbfc4de5b53ef83"
+        }
+      ],
+      "reviewed_summary": "Q Developer execution prerequisites are verified; domain correctness and universal error prevention are not.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U054",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§2.3,3.3",
+        "claim": "MCPtools/cost450andADR15%premium",
+        "reason": "No pinned server APIs or usage/pricing assumptions.",
+        "needed_evidence": "Actual schemas and workload estimate; no cloud access needed."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "5f233d2eb1efc19f42dfba92f4dd4d151fef4d34e4386c0fa7e4a2f6554d73cd",
+          "original_gap_index": 2,
+          "original_gap_sha256": "aef73cc31034ccc7f321e6a3f8e3c1b7f07ed5eef4a73808c9b7a90879e4d056"
+        },
+        {
+          "path": "docs/aidlc/methodology/ddd-integration.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "66a688702e0852f1ac1d875c0ffbb76d463c3c2ce8420c35f1958232ab66a4d2",
+          "original_gap_index": 2,
+          "original_gap_sha256": "aef73cc31034ccc7f321e6a3f8e3c1b7f07ed5eef4a73808c9b7a90879e4d056"
+        }
+      ],
+      "reviewed_summary": "The MCP cost examples and DynamoDB premium need actual schemas and workload assumptions.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U055",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§6–9",
+        "claim": "Fully automatic DDD/ontology enforcement and context detection",
+        "reason": "Custom validation engine and correctness tests absent.",
+        "needed_evidence": "Executable scoped validators and domain-authority review."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "5f233d2eb1efc19f42dfba92f4dd4d151fef4d34e4386c0fa7e4a2f6554d73cd",
+          "original_gap_index": 3,
+          "original_gap_sha256": "68cc2863a17f66a15a4edd10a07f1e927f308a5092919629956636d33a75fd72"
+        },
+        {
+          "path": "docs/aidlc/methodology/ddd-integration.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "66a688702e0852f1ac1d875c0ffbb76d463c3c2ce8420c35f1958232ab66a4d2",
+          "original_gap_index": 3,
+          "original_gap_sha256": "68cc2863a17f66a15a4edd10a07f1e927f308a5092919629956636d33a75fd72"
+        }
+      ],
+      "reviewed_summary": "Automatic DDD and ontology enforcement require scoped validators and domain-authority review.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U056",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Opening",
+        "claim": "OpenAI million-line zero-handwritten-code account",
+        "reason": "Primary page retrieval returned403; secondary account is not sufficient for independent verification.",
+        "needed_evidence": "Read the original dated OpenAI experiment report and bound the claim to its project."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/harness-engineering.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d76d842aed42bbc60c6b2b4ef39fae9b6f47e445a274f0d63365b2990d93d71f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "6aeb62f78a4ed380ce9122467e9707829bf1aca21197386e606854abead3f6ad"
+        },
+        {
+          "path": "docs/aidlc/methodology/harness-engineering.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a3343b0f0b262f99d8736cd771d88f2c0c248d25877fe64809216ed4f5968a43",
+          "original_gap_index": 0,
+          "original_gap_sha256": "6aeb62f78a4ed380ce9122467e9707829bf1aca21197386e606854abead3f6ad"
+        }
+      ],
+      "reviewed_summary": "The OpenAI harness project account remains pending retrieval of the original report.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U057",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Fintech / seven patterns",
+        "claim": "847 attempts,$2200,14emails, GPT-4,3h outage and $50 counterfactual",
+        "reason": "Anonymous secondary anecdote and unbound configuration; several added facts absent from cited account.",
+        "needed_evidence": "Original postmortem/billing evidence or explicit illustrative/attributed labeling."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/harness-engineering.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d76d842aed42bbc60c6b2b4ef39fae9b6f47e445a274f0d63365b2990d93d71f",
+          "original_gap_index": 1,
+          "original_gap_sha256": "630b5bc8d2368d4526ed80cbb5348cf66c7813159e56d155b760f11a06b0ac9d"
+        },
+        {
+          "path": "docs/aidlc/methodology/harness-engineering.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a3343b0f0b262f99d8736cd771d88f2c0c248d25877fe64809216ed4f5968a43",
+          "original_gap_index": 1,
+          "original_gap_sha256": "630b5bc8d2368d4526ed80cbb5348cf66c7813159e56d155b760f11a06b0ac9d"
+        }
+      ],
+      "reviewed_summary": "Incident quantities, model attribution, outage duration and counterfactual loss need original evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U058",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "QualityGates",
+        "claim": "Named tools cover all listed checks in the intended configuration",
+        "reason": "No versions, rule sets or executable fixtures provided; product capability combinations not exhaustively validated.",
+        "needed_evidence": "Pinned tool versions/rules, applicability and sample check results."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/harness-engineering.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "d76d842aed42bbc60c6b2b4ef39fae9b6f47e445a274f0d63365b2990d93d71f",
+          "original_gap_index": 2,
+          "original_gap_sha256": "157daf200a37a80375b0c28d3f73bc8977c97c255f0f53afe1db4ae1d47d3ce9"
+        },
+        {
+          "path": "docs/aidlc/methodology/harness-engineering.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a3343b0f0b262f99d8736cd771d88f2c0c248d25877fe64809216ed4f5968a43",
+          "original_gap_index": 2,
+          "original_gap_sha256": "157daf200a37a80375b0c28d3f73bc8977c97c255f0f53afe1db4ae1d47d3ce9"
+        }
+      ],
+      "reviewed_summary": "Named harness tools need pinned rules and test fixtures for their claimed combined coverage.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U059",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§2,4,6,8",
+        "claim": "31% accuracy,67% FP,8.3→1.2,42%P99 and all before/after project metrics",
+        "reason": "Vendor account offers no raw records, population, experimental design or named customer; additional benchmark values not tied to original evidence.",
+        "needed_evidence": "Original measurement artifacts/methods and precise attribution, or explicit illustrative labeling."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ontology-engineering.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f551f2abf82709bfd5ab040722f7af5ed7118a67038d28fdb0689711365a8200",
+          "original_gap_index": 0,
+          "original_gap_sha256": "8502af0cf61a50bf46ee8c13b0a1b71b033c0f2811479aec34383cf3398e1899"
+        },
+        {
+          "path": "docs/aidlc/methodology/ontology-engineering.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "b59ae06f83aec9fc4a1a5bb47461e04f3bd3177cb5b255d916a7b916c3b94953",
+          "original_gap_index": 0,
+          "original_gap_sha256": "8502af0cf61a50bf46ee8c13b0a1b71b033c0f2811479aec34383cf3398e1899"
+        }
+      ],
+      "reviewed_summary": "Ontology outcome figures need original measurements, denominators and precise attribution.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U060",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§1,§3.2",
+        "claim": "Community consensus and 12+document correction episode",
+        "reason": "No named consensus process or audit/commit evidence.",
+        "needed_evidence": "Original survey/statement and bounded artifact history."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ontology-engineering.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f551f2abf82709bfd5ab040722f7af5ed7118a67038d28fdb0689711365a8200",
+          "original_gap_index": 1,
+          "original_gap_sha256": "b7f9cdac042083806f89b7af3ab10498ee7281c4763efbffccd2d3df6edba9f0"
+        },
+        {
+          "path": "docs/aidlc/methodology/ontology-engineering.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "b59ae06f83aec9fc4a1a5bb47461e04f3bd3177cb5b255d916a7b916c3b94953",
+          "original_gap_index": 1,
+          "original_gap_sha256": "b7f9cdac042083806f89b7af3ab10498ee7281c4763efbffccd2d3df6edba9f0"
+        }
+      ],
+      "reviewed_summary": "Community consensus and a document-correction episode need original statements or artifact history.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U061",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "§7 and related frameworks",
+        "claim": "Kiro automatically enforces this ontology schema",
+        "reason": "Official specs docs support structured documents, not this custom enforcement contract.",
+        "needed_evidence": "Pinned feature documentation and runnable validator integration."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ontology-engineering.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f551f2abf82709bfd5ab040722f7af5ed7118a67038d28fdb0689711365a8200",
+          "original_gap_index": 2,
+          "original_gap_sha256": "4ee2aae34ff9cbe820bf09aad90ab11516986d0b027f12f91040a8b7f58fbd5b"
+        },
+        {
+          "path": "docs/aidlc/methodology/ontology-engineering.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "b59ae06f83aec9fc4a1a5bb47461e04f3bd3177cb5b255d916a7b916c3b94953",
+          "original_gap_index": 2,
+          "original_gap_sha256": "4ee2aae34ff9cbe820bf09aad90ab11516986d0b027f12f91040a8b7f58fbd5b"
+        }
+      ],
+      "reviewed_summary": "The custom Kiro ontology needs a documented validator contract before enforcement is established.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U062",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "References",
+        "claim": "Nihal article supports production lessons",
+        "reason": "Medium retrieval403; no primary artifacts retrieved.",
+        "needed_evidence": "Accessible original author/experiment evidence; do not infer content from title."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ontology-engineering.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f551f2abf82709bfd5ab040722f7af5ed7118a67038d28fdb0689711365a8200",
+          "original_gap_index": 3,
+          "original_gap_sha256": "c22f9379bb3528c6898c85375a4a45923d9d618612fc4bd70dd2a05dff7719fc"
+        },
+        {
+          "path": "docs/aidlc/methodology/ontology-engineering.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "b59ae06f83aec9fc4a1a5bb47461e04f3bd3177cb5b255d916a7b916c3b94953",
+          "original_gap_index": 3,
+          "original_gap_sha256": "c22f9379bb3528c6898c85375a4a45923d9d618612fc4bd70dd2a05dff7719fc"
+        }
+      ],
+      "reviewed_summary": "The unavailable author article cannot substantiate production lessons from its title alone.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U063",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "7. Adoption roadmap",
+        "claim": "Planning durations, maturity levels and productivity/incident targets",
+        "reason": "No empirical dataset or organization-specific baseline; retain as examples only.",
+        "needed_evidence": "Named maturity model, baseline populations, evaluation windows, metric definitions and study/report if claimed as achieved or generally expected."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/principles-and-model.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2026cdde5d96c8a718c423f41db9079bdf3c32321f64dbea6144f82aeae251ed",
+          "original_gap_index": 0,
+          "original_gap_sha256": "f6fb843acd347f8c8a9caed8ee956a051e918751aaf3939eea1a00509351e8a6"
+        },
+        {
+          "path": "docs/aidlc/methodology/principles-and-model.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a1399cf311edcc21bf2599c170edb802ac901e0d5ada8b3ef34a3db5cc02332c",
+          "original_gap_index": 0,
+          "original_gap_sha256": "f6fb843acd347f8c8a9caed8ee956a051e918751aaf3939eea1a00509351e8a6"
+        }
+      ],
+      "reviewed_summary": "Maturity durations and improvement targets need a named model and measured baseline.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U064",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "5. Tool tables in imported components",
+        "claim": "Exact capabilities and version support for every named coding agent, MCP integration and operational tool",
+        "reason": "The four full components were read. Workflow repository confirms setup support but does not establish every tool-to-activity mapping. Exact product/API documentation will be checked in assigned toolchain/operations pages; this section remains pending.",
+        "needed_evidence": "Version-scoped primary product/API evidence for each named integration and authenticated approval/control implementation."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/principles-and-model.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2026cdde5d96c8a718c423f41db9079bdf3c32321f64dbea6144f82aeae251ed",
+          "original_gap_index": 1,
+          "original_gap_sha256": "5a5930c3ec87716afc26eddb039035955602c8c319c590b1285002d59e3f8687"
+        },
+        {
+          "path": "docs/aidlc/methodology/principles-and-model.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a1399cf311edcc21bf2599c170edb802ac901e0d5ada8b3ef34a3db5cc02332c",
+          "original_gap_index": 1,
+          "original_gap_sha256": "5a5930c3ec87716afc26eddb039035955602c8c319c590b1285002d59e3f8687"
+        }
+      ],
+      "reviewed_summary": "Toolchain and operations pages are now fully reviewed; remaining per-tool historical mappings still lack complete primary evidence.",
+      "publication_scope": "The original note anticipated later assigned-page review. That reading is complete; this gap now concerns remaining claim-specific historical/API evidence, not unread assigned pages."
+    },
+    {
+      "id": "AIDLC-U065",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "6. Harness quotation",
+        "claim": "“Agents aren’t hard, harnesses are” as a key 2026 lesson",
+        "reason": "No attribution/date/source provided.",
+        "needed_evidence": "Original author/publication or explicit author-opinion labeling."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/principles-and-model.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2026cdde5d96c8a718c423f41db9079bdf3c32321f64dbea6144f82aeae251ed",
+          "original_gap_index": 2,
+          "original_gap_sha256": "c510dee9dfa8b989e2bd45a2b7039b63bb41783355ec0c792b35ef9d1486bb79"
+        },
+        {
+          "path": "docs/aidlc/methodology/principles-and-model.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a1399cf311edcc21bf2599c170edb802ac901e0d5ada8b3ef34a3db5cc02332c",
+          "original_gap_index": 2,
+          "original_gap_sha256": "c510dee9dfa8b989e2bd45a2b7039b63bb41783355ec0c792b35ef9d1486bb79"
+        }
+      ],
+      "reviewed_summary": "The attributed 2026 harness lesson needs an original author/source or opinion labeling.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U066",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Specific product contracts",
+        "claim": "OpenClaw blocked_pii status, native Langfuse Prometheus counter, pytest --ragas option and METR quartile classification",
+        "reason": "No documented implementation/version is linked for these specific contracts; current METR overview defines task interchange only.",
+        "needed_evidence": "Versioned schema/API or repository code plus isolated tests for actual events/results."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/agentic-metrics.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c4129e709f5034a1021673d26afdf446aa4acaf4557d88ddceacd8ee911d1046",
+          "original_gap_index": 0,
+          "original_gap_sha256": "87f79a8c4745beee5ce7efcc5078ace29d0e549e11965346e47cfef248c94e88"
+        },
+        {
+          "path": "docs/aidlc/operations/agentic-metrics.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1051b6f9c890204dcf20e5eba5182e50c26671e08cc5e1e88ea34237480f4b70",
+          "original_gap_index": 0,
+          "original_gap_sha256": "87f79a8c4745beee5ce7efcc5078ace29d0e549e11965346e47cfef248c94e88"
+        }
+      ],
+      "reviewed_summary": "Custom telemetry fields, CLI options and task classifications need documented implementations.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U067",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Evaluation and operations",
+        "claim": "Chosen thresholds, human baseline, dashboard observations, calibrated confidence, telemetry completeness and deployed auto-actions",
+        "reason": "No dataset, annotator agreement, evaluation coverage, exporter/runtime or deployment evidence. Current OTLP authentication can be checked but successful ingestion was not exercised.",
+        "needed_evidence": "Scoped datasets andmetric definitions, versioned integration, privacy/redaction configuration, positive/negative tests andaction authorization."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/agentic-metrics.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c4129e709f5034a1021673d26afdf446aa4acaf4557d88ddceacd8ee911d1046",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2bc66238a421f3a54fa1b00cc7a8235dd5ac25d42ce476a7a794ddecc0740a9b"
+        },
+        {
+          "path": "docs/aidlc/operations/agentic-metrics.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1051b6f9c890204dcf20e5eba5182e50c26671e08cc5e1e88ea34237480f4b70",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2bc66238a421f3a54fa1b00cc7a8235dd5ac25d42ce476a7a794ddecc0740a9b"
+        }
+      ],
+      "reviewed_summary": "Operational thresholds and dashboards need evaluation coverage, calibration and action-authorization evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U068",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "OTel history",
+        "claim": "Exact May 2026repository split date",
+        "reason": "Current moved/deprecated state and pinned attributes were verified; historical split event/date was not retrieved.",
+        "needed_evidence": "Official dated merge/release history if the month is retained."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/agentic-metrics.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "c4129e709f5034a1021673d26afdf446aa4acaf4557d88ddceacd8ee911d1046",
+          "original_gap_index": 2,
+          "original_gap_sha256": "1fbf5687dbb272530958b72354689eafa13ebbfedad04bbb8192599535cfac53"
+        },
+        {
+          "path": "docs/aidlc/operations/agentic-metrics.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1051b6f9c890204dcf20e5eba5182e50c26671e08cc5e1e88ea34237480f4b70",
+          "original_gap_index": 2,
+          "original_gap_sha256": "1fbf5687dbb272530958b72354689eafa13ebbfedad04bbb8192599535cfac53"
+        }
+      ],
+      "reviewed_summary": "The exact repository split month needs release or merge history beyond its current moved status.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U069",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Korean controls / ISO / current legal applicability",
+        "claim": "Exact EFSR 5 year, PIPA 3 year, ISMS-P 3 year requirements, ISMS-P 2.1 control IDs and ISO27001 A8.15 mappings",
+        "reason": "No controlling provisions were supplied; publicregulatoryreferences are homepages andaccessibleISOmaterial didnotprovide theexactnormativecontrol.2025CFRtext doesnotalone establish every2026amendment.",
+        "needed_evidence": "Current primary provisions, record classification, regulated role and legal review."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/audit-governance.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "875a8d53baae45c2b4020d15872e3512ee667081df46b4bb79599ef4be527653",
+          "original_gap_index": 0,
+          "original_gap_sha256": "10465f42ceeb24181be67b947e24d47bdfbfb727683570077b01e55adacbc082"
+        },
+        {
+          "path": "docs/aidlc/operations/audit-governance.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "da86a1b0cea3752d349a14b4d07d49d10e9f96576dc3d6a80549df97b9f08b6e",
+          "original_gap_index": 0,
+          "original_gap_sha256": "10465f42ceeb24181be67b947e24d47bdfbfb727683570077b01e55adacbc082"
+        }
+      ],
+      "reviewed_summary": "Audit retention and control identifiers need current provisions for the specific regulated records.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U070",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Custom infrastructure",
+        "claim": "Automatic gates, all 42 artifact verification, signature quorum, immutable audit store, restoration and compliance reports",
+        "reason": "No implemented consumer, deployment, evidence dataset or isolated tests; command outputs are proposed examples.",
+        "needed_evidence": "Versioned implementation and positive/negative tests for identity, quorum, concurrency, missing events, truncation, rewrites, retention and restore authorization."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/audit-governance.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "875a8d53baae45c2b4020d15872e3512ee667081df46b4bb79599ef4be527653",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2a501e512e50c17d19c25f52da8e3c1bf1e989dfaac985eec3de48057b3e2ee6"
+        },
+        {
+          "path": "docs/aidlc/operations/audit-governance.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "da86a1b0cea3752d349a14b4d07d49d10e9f96576dc3d6a80549df97b9f08b6e",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2a501e512e50c17d19c25f52da8e3c1bf1e989dfaac985eec3de48057b3e2ee6"
+        }
+      ],
+      "reviewed_summary": "Artifact verification, signature quorum and audit-report outcomes need implementation and negative-case evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U071",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Raw-input privacy and model reproducibility",
+        "claim": "All decisions/rawinputs may be preserved indefinitely andexactoutputs regenerated",
+        "reason": "Retention/minimization conflicts andmodel/tool nondeterminism are not resolved byrecording hashes andlabels.",
+        "needed_evidence": "Scoped collection/redaction/legalretention policy andsupportedmodel/runtime snapshot plus repeated-evaluation evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/audit-governance.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "875a8d53baae45c2b4020d15872e3512ee667081df46b4bb79599ef4be527653",
+          "original_gap_index": 2,
+          "original_gap_sha256": "fd3ed0ba4ea8aaabcc221cd8b48ed6a002700c12f43f92fa44ac056e658777dc"
+        },
+        {
+          "path": "docs/aidlc/operations/audit-governance.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "da86a1b0cea3752d349a14b4d07d49d10e9f96576dc3d6a80549df97b9f08b6e",
+          "original_gap_index": 2,
+          "original_gap_sha256": "fd3ed0ba4ea8aaabcc221cd8b48ed6a002700c12f43f92fa44ac056e658777dc"
+        }
+      ],
+      "reviewed_summary": "Indefinite raw-input retention and exact regeneration require scoped data policy and supported runtime evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U072",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Performance andlearning",
+        "claim": "All MTTR/recovery timings, continuous accuracy improvement, unmanned operation and named OOM diagnoses",
+        "reason": "No incident datasets, experiment records, confounder controls or successful runs.",
+        "needed_evidence": "Versioned workload, hardware, controller configuration, metrics, negative cases and human review."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/autonomous-response.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1e8489f291963d045cf64b0d41e29334bc68873c492307f438a8df4a7ceb16bd",
+          "original_gap_index": 0,
+          "original_gap_sha256": "5979b719334146e510697f48f8f37cb06a41ab944f91a9b895ed939ead9108da"
+        },
+        {
+          "path": "docs/aidlc/operations/autonomous-response.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2d8b527dac09b82da22c625be9756e4c7b39eebf686ddb4a863010105c1d03a7",
+          "original_gap_index": 0,
+          "original_gap_sha256": "5979b719334146e510697f48f8f37cb06a41ab944f91a9b895ed939ead9108da"
+        }
+      ],
+      "reviewed_summary": "Autonomous-response timing, accuracy and diagnoses need incident and experiment records.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U073",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Productintegration",
+        "claim": "Exact Q Developer operations behavior, CloudWatch GetInsight action, Kagent triggers/tool allowlists, Strands SOP and Kiro event automation",
+        "reason": "Exampleslackrelease-specificintegrationcontracts; reviewedSDKschemascontradictseveralfields. CurrentreleasebehaviorcannotbeassumedforanunversionedJune2026article.",
+        "needed_evidence": "Pinnedproductversionsandprimaryschemas, runnableisolatedfixtures andexplicitpermissions/approvalintegration."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/autonomous-response.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1e8489f291963d045cf64b0d41e29334bc68873c492307f438a8df4a7ceb16bd",
+          "original_gap_index": 1,
+          "original_gap_sha256": "0865377db41a3ee66aa0fd6f9944b6e2a717414d45f767e451e62cecfec61041"
+        },
+        {
+          "path": "docs/aidlc/operations/autonomous-response.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2d8b527dac09b82da22c625be9756e4c7b39eebf686ddb4a863010105c1d03a7",
+          "original_gap_index": 1,
+          "original_gap_sha256": "0865377db41a3ee66aa0fd6f9944b6e2a717414d45f767e451e62cecfec61041"
+        }
+      ],
+      "reviewed_summary": "Unversioned operational tool examples need dated SDK, event and permission contracts.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U074",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "Controlimplementation",
+        "claim": "Safe automatic rollback/drain, cost limits, knowledge promotion and FIS recovery",
+        "reason": "Onlyprompttext/placeholderconfigurationsaresupplied; noindependentenforcementorcloudoperationswereexecuted.",
+        "needed_evidence": "Authorized isolated tests covering stale state, concurrency, unavailable data, missing approvals, partial failure, recovery and rollback."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/autonomous-response.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1e8489f291963d045cf64b0d41e29334bc68873c492307f438a8df4a7ceb16bd",
+          "original_gap_index": 2,
+          "original_gap_sha256": "fa0c25cc7897c97a2934d045f404af0e1ea45bdc03d107c699848bde83b77b83"
+        },
+        {
+          "path": "docs/aidlc/operations/autonomous-response.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2d8b527dac09b82da22c625be9756e4c7b39eebf686ddb4a863010105c1d03a7",
+          "original_gap_index": 2,
+          "original_gap_sha256": "fa0c25cc7897c97a2934d045f404af0e1ea45bdc03d107c699848bde83b77b83"
+        }
+      ],
+      "reviewed_summary": "Safe automated remediation and knowledge promotion require independently enforced limits and recovery tests.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U075",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "AWS foundation",
+        "claim": "22+managed add-ons / 50+GA AWS MCP servers at the article’s historical scope",
+        "reason": "No pinned catalog, denominator or release-status inventory provided; present-day repository cannot prove historical GA status.",
+        "needed_evidence": "Dated primary catalog and per-product GA/support release references."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/index.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e252fabde55e23bc3676c294361f882887e6b20ba913d252661b45d8b483883f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "c6f17afc3b0ea1ebe0002c9f640a8ddf22587cfc3a0fa049b47a9ac2fe9f1b31"
+        },
+        {
+          "path": "docs/aidlc/operations/index.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "b0062f84c4ad85138479d379ddde4cb1e76d04acebca8d9913f09580d84de948",
+          "original_gap_index": 0,
+          "original_gap_sha256": "c6f17afc3b0ea1ebe0002c9f640a8ddf22587cfc3a0fa049b47a9ac2fe9f1b31"
+        }
+      ],
+      "reviewed_summary": "Historical managed-add-on and GA-server counts require a dated inventory and status definition.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U076",
+      "classification": "verification_pending",
+      "claim_record": {
+        "section": "AWS foundation",
+        "claim": "Autonomous cluster control and cost optimization through Kiro/MCP",
+        "reason": "No particular server versions, IAM/approval configuration or execution evidence specified.",
+        "needed_evidence": "Bounded architecture with exact connectors, permissions, approvals and independently checked outcomes."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/index.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e252fabde55e23bc3676c294361f882887e6b20ba913d252661b45d8b483883f",
+          "original_gap_index": 1,
+          "original_gap_sha256": "f2c22fa79df824aea27861ae512e8ed3f57208e23863dc3fbb751ff4e903c819"
+        },
+        {
+          "path": "docs/aidlc/operations/index.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "b0062f84c4ad85138479d379ddde4cb1e76d04acebca8d9913f09580d84de948",
+          "original_gap_index": 1,
+          "original_gap_sha256": "f2c22fa79df824aea27861ae512e8ed3f57208e23863dc3fbb751ff4e903c819"
+        }
+      ],
+      "reviewed_summary": "Autonomous Kiro/MCP cluster control needs a specified architecture, permissions and verified outcomes.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U077",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Dated model limits, named product internal architectures, framework capability/line-count comparisons, and most-common pattern assertions",
+        "reason": "No complete version-pinned primary evidence for each assertion. Current documentation cannot by itself prove April/June 2026 behavior.",
+        "needed_evidence": "Dated model cards/releases, product architecture references and framework versions."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2c4a0a11be9ddb02ef38b0361ace6e78090c0851375b90f2f0ececb17b4e6a74",
+          "original_gap_index": 0,
+          "original_gap_sha256": "c871966c850850d5b39ea24828cd1b965d66d6f8110c74c66ae11945313fcd56"
+        },
+        {
+          "path": "docs/aidlc/operations/multi-agent-collaboration.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1f520f1d027fd65577cebb645f65b759304cad52bdd0e7db5e80e3f3285eb61b",
+          "original_gap_index": 0,
+          "original_gap_sha256": "c871966c850850d5b39ea24828cd1b965d66d6f8110c74c66ae11945313fcd56"
+        }
+      ],
+      "reviewed_summary": "Product internals, model limits and framework comparisons need dated public primary evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U078",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Case-study results, tool-count accuracy thresholds and monthly costs",
+        "reason": "No original workload data, token counts, incident cohort or controlled benchmark.",
+        "needed_evidence": "Reproducible datasets, measurement definitions, price/date/region assumptions and cost worksheet."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2c4a0a11be9ddb02ef38b0361ace6e78090c0851375b90f2f0ececb17b4e6a74",
+          "original_gap_index": 1,
+          "original_gap_sha256": "13659750795ef34fccf8bd612bef0aedb2ccc1ac9d5f63d53b3e9f6a053afa2d"
+        },
+        {
+          "path": "docs/aidlc/operations/multi-agent-collaboration.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1f520f1d027fd65577cebb645f65b759304cad52bdd0e7db5e80e3f3285eb61b",
+          "original_gap_index": 1,
+          "original_gap_sha256": "13659750795ef34fccf8bd612bef0aedb2ccc1ac9d5f63d53b3e9f6a053afa2d"
+        }
+      ],
+      "reviewed_summary": "Multi-agent production results, tool thresholds and costs need workload datasets and a comparable worksheet.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U079",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Recovery, safety, consistency, privacy and context-preservation guarantees",
+        "reason": "Architecture sketches and static inspection do not establish implementation or execution.",
+        "needed_evidence": "Pinned implementation, authorization/transaction contracts, failure tests and operational evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "2c4a0a11be9ddb02ef38b0361ace6e78090c0851375b90f2f0ececb17b4e6a74",
+          "original_gap_index": 2,
+          "original_gap_sha256": "e1e4daaec4372c5fca870893ec5cbe77afd494531b4fd572b39649134afbbc2a"
+        },
+        {
+          "path": "docs/aidlc/operations/multi-agent-collaboration.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "1f520f1d027fd65577cebb645f65b759304cad52bdd0e7db5e80e3f3285eb61b",
+          "original_gap_index": 2,
+          "original_gap_sha256": "e1e4daaec4372c5fca870893ec5cbe77afd494531b4fd572b39649134afbbc2a"
+        }
+      ],
+      "reviewed_summary": "Multi-agent recovery, consistency and context guarantees need executable contracts and failure tests.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U080",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Control-plane metric/version matrix; Grafana v11 lifecycle; dated regional AI processing; exact prices and MCP release status",
+        "reason": "Available retrieval did not establish the full dated claim. Some guessed documentation paths redirected to a service landing page and are not evidence.",
+        "needed_evidence": "Exact dated feature/support matrix, release notes, data-processing terms and regional pricing items."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/observability-stack.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f05dd3dfb6d677c9869d9e31241ff0a407ccbeebd40a85c9eb3f37f329be3dca",
+          "original_gap_index": 0,
+          "original_gap_sha256": "65f6083312a4e2a4ae156d949c10ffd31399f65d997142d10009cfbccf13b3a5"
+        },
+        {
+          "path": "docs/aidlc/operations/observability-stack.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "9449c98cea07c51e356f07c88861eee7f0319084578b9cb66cf569ed37996411",
+          "original_gap_index": 0,
+          "original_gap_sha256": "65f6083312a4e2a4ae156d949c10ffd31399f65d997142d10009cfbccf13b3a5"
+        }
+      ],
+      "reviewed_summary": "Observability versions, processing regions and pricing require exact dated feature and service evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U081",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "80%, 60%, diagnostic/alert improvements and 50-node cost outcomes",
+        "reason": "No source workload, operator-time study, alert dataset or cost worksheet.",
+        "needed_evidence": "Original measurements with denominators and comparable before/after configurations."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/observability-stack.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f05dd3dfb6d677c9869d9e31241ff0a407ccbeebd40a85c9eb3f37f329be3dca",
+          "original_gap_index": 1,
+          "original_gap_sha256": "1e24344928173e5870c714184fd45656f9bd3a48cde948132caf0e40dab360c8"
+        },
+        {
+          "path": "docs/aidlc/operations/observability-stack.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "9449c98cea07c51e356f07c88861eee7f0319084578b9cb66cf569ed37996411",
+          "original_gap_index": 1,
+          "original_gap_sha256": "1e24344928173e5870c714184fd45656f9bd3a48cde948132caf0e40dab360c8"
+        }
+      ],
+      "reviewed_summary": "Observability effort, alert and cost improvements need matched before/after measurements.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U082",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "All installations, integrations, predictions and remediation results",
+        "reason": "Only static review was authorized. Example manifests omit implementation prerequisites.",
+        "needed_evidence": "Pinned configurations, deployment validation, authorization and failure-path test results."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/observability-stack.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f05dd3dfb6d677c9869d9e31241ff0a407ccbeebd40a85c9eb3f37f329be3dca",
+          "original_gap_index": 2,
+          "original_gap_sha256": "304bd85b49a44de7292aa3d8bde04d98a0e164d9dceb8c83713b0b24f68b12f3"
+        },
+        {
+          "path": "docs/aidlc/operations/observability-stack.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "9449c98cea07c51e356f07c88861eee7f0319084578b9cb66cf569ed37996411",
+          "original_gap_index": 2,
+          "original_gap_sha256": "304bd85b49a44de7292aa3d8bde04d98a0e164d9dceb8c83713b0b24f68b12f3"
+        }
+      ],
+      "reviewed_summary": "Telemetry installations and remediation results require complete configurations and operational validation.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U083",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Startup/forecast timing, accuracy rankings, KPI gains and annual savings",
+        "reason": "No benchmark dataset, model backtest, production telemetry or cost worksheet.",
+        "needed_evidence": "Workload-specific forecasts, calibration, SLO and cost measurements."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a6a51154b586bccd1396706a13e928657c7ce8c3abb6d4eb508bac040b494c26",
+          "original_gap_index": 0,
+          "original_gap_sha256": "a4973c6f7c526be1e97583957c55d06f76aa6bc9d6b4125a152b96674207526e"
+        },
+        {
+          "path": "docs/aidlc/operations/predictive-operations.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "dbdd1829d74d6244701adc67722136a5113d04d378d54e00106412438d5f2fd8",
+          "original_gap_index": 0,
+          "original_gap_sha256": "a4973c6f7c526be1e97583957c55d06f76aa6bc9d6b4125a152b96674207526e"
+        }
+      ],
+      "reviewed_summary": "Forecast timings, comparative accuracy and savings need workload-specific backtests and cost evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U084",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "End-to-end scaling, reservation release and safe autonomous optimization",
+        "reason": "No predictive controller/metric adapter implementation, bounds, approval policy or executed tests supplied.",
+        "needed_evidence": "Versioned implementation, failure/expiry behavior and isolated operational validation."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a6a51154b586bccd1396706a13e928657c7ce8c3abb6d4eb508bac040b494c26",
+          "original_gap_index": 1,
+          "original_gap_sha256": "e3bc6b9e64c09ce1cb511df46407aca155efa7f74f8a906e95985ef86b5b5ce0"
+        },
+        {
+          "path": "docs/aidlc/operations/predictive-operations.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "dbdd1829d74d6244701adc67722136a5113d04d378d54e00106412438d5f2fd8",
+          "original_gap_index": 1,
+          "original_gap_sha256": "e3bc6b9e64c09ce1cb511df46407aca155efa7f74f8a906e95985ef86b5b5ce0"
+        }
+      ],
+      "reviewed_summary": "Predictive scaling and reserve release need implemented adapters, bounds, expiry and approval behavior.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U085",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Full model selection and Container Insights recommendation capability",
+        "reason": "Generic model labels and telemetry do not establish the best model or an automatic sizing recommendation service.",
+        "needed_evidence": "Primary model/service specification and comparative validation."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a6a51154b586bccd1396706a13e928657c7ce8c3abb6d4eb508bac040b494c26",
+          "original_gap_index": 2,
+          "original_gap_sha256": "b8eafd14e3661705adff640efb8467332d7c3b80bc3794e4d1277caa7defaee2"
+        },
+        {
+          "path": "docs/aidlc/operations/predictive-operations.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "dbdd1829d74d6244701adc67722136a5113d04d378d54e00106412438d5f2fd8",
+          "original_gap_index": 2,
+          "original_gap_sha256": "b8eafd14e3661705adff640efb8467332d7c3b80bc3794e4d1277caa7defaee2"
+        }
+      ],
+      "reviewed_summary": "Model selection and sizing recommendations need actual service definitions and comparative validation.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U086",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "All per-tool historical support, prices, model IDs, scan coverage, .NET/Java transform variants and commercial-support claims",
+        "reason": "No complete version/date-specific evidence. Some Amazon Q old paths redirect to a landing page; OpenAI historical article and help pages return 403.",
+        "needed_evidence": "Archived official releases, exact action/plugin versions, supported-language/detector matrices and plan/model documentation."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "ab2327ff2c524d319a6c30673ce5d09205f9d0a459d972079b7ee1a257adb07f",
+          "original_gap_index": 0,
+          "original_gap_sha256": "0188eac0e2a095e2bd9f9aefdca1c5806b261727292b97f8e116f8f3b47d5cbf"
+        },
+        {
+          "path": "docs/aidlc/toolchain/ai-coding-agents.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "744fd72d73efa83948990d6bf70c70574167f02e36307cc8e3af5a9b2f9aecc0",
+          "original_gap_index": 0,
+          "original_gap_sha256": "0188eac0e2a095e2bd9f9aefdca1c5806b261727292b97f8e116f8f3b47d5cbf"
+        }
+      ],
+      "reviewed_summary": "Historical coding-tool support, plans and scan coverage need dated vendor contracts and detector matrices.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U087",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Custom Kiro endpoint/on-premises support, zero egress, cost ratios and self-hosted totals",
+        "reason": "Current hosted-model documentation does not establish these claims; no configuration or cost worksheet is supplied.",
+        "needed_evidence": "Dated supported endpoint contract, data-flow audit and matched cost model."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "ab2327ff2c524d319a6c30673ce5d09205f9d0a459d972079b7ee1a257adb07f",
+          "original_gap_index": 1,
+          "original_gap_sha256": "eda909bfd18c5842270ac79652a73207fb82ddb9e9ce70f6a16519e2ad07c070"
+        },
+        {
+          "path": "docs/aidlc/toolchain/ai-coding-agents.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "744fd72d73efa83948990d6bf70c70574167f02e36307cc8e3af5a9b2f9aecc0",
+          "original_gap_index": 1,
+          "original_gap_sha256": "eda909bfd18c5842270ac79652a73207fb82ddb9e9ce70f6a16519e2ad07c070"
+        }
+      ],
+      "reviewed_summary": "Local Kiro routing, no-egress claims and self-hosted costs need supported endpoints and data-flow evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U088",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Build/test success, security coverage, production promotion, deployment success and productivity gains",
+        "reason": "Examples are partial and no execution was authorized; assertions are not measurements.",
+        "needed_evidence": "Pinned Devfile/action/tooling, required checks, immutable revision promotion, rollout evidence and workload benchmarks."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "ab2327ff2c524d319a6c30673ce5d09205f9d0a459d972079b7ee1a257adb07f",
+          "original_gap_index": 2,
+          "original_gap_sha256": "2057043127da7529ee8fbf76c02e508c3e9e5074ee7a0621d484f7fb60f01332"
+        },
+        {
+          "path": "docs/aidlc/toolchain/ai-coding-agents.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "744fd72d73efa83948990d6bf70c70574167f02e36307cc8e3af5a9b2f9aecc0",
+          "original_gap_index": 2,
+          "original_gap_sha256": "2057043127da7529ee8fbf76c02e508c3e9e5074ee7a0621d484f7fb60f01332"
+        }
+      ],
+      "reviewed_summary": "Coding-agent build, security, promotion and productivity outcomes need executed checks and matched benchmarks.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U089",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Managed kro Preview label, 50+ ACK count and complete versioned Gateway/JWT/SNI matrix",
+        "reason": "The EKS Capabilities launch date is now verified from documentation history. Not every historical managed status/count or feature combination was independently established.",
+        "needed_evidence": "Dated launch notes, per-controller conformance/support tables and managed-service status."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/eks-declarative-automation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "724ae5c4c5c97d285955dc4f25f56c81c2109d63020ad729d3a19620d593668d",
+          "original_gap_index": 0,
+          "original_gap_sha256": "4ad01ab32db429542b9c42335d23858dbd4040c9958a23f3829a09a4f40a7022"
+        },
+        {
+          "path": "docs/aidlc/toolchain/eks-declarative-automation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "99c497d1f32ce892228f4bddfb120c32564c8e4b0eb793464b5c186030bad3f0",
+          "original_gap_index": 0,
+          "original_gap_sha256": "4ad01ab32db429542b9c42335d23858dbd4040c9958a23f3829a09a4f40a7022"
+        }
+      ],
+      "reviewed_summary": "The EKS Capabilities launch date is verified; other historical managed statuses and gateway combinations remain incomplete.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U090",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Atomic rollback, complete single-push pipeline, NRC/Blueprints/Application Signals integration and automatic operational response",
+        "reason": "No implementation, condition reporter, promotion policy or run evidence is supplied. Static documentation does not prove these outcomes.",
+        "needed_evidence": "Pinned schemas/controllers, IAM and target scopes, gate/rollback implementation, failure and recovery tests."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/eks-declarative-automation.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "724ae5c4c5c97d285955dc4f25f56c81c2109d63020ad729d3a19620d593668d",
+          "original_gap_index": 1,
+          "original_gap_sha256": "e5cf045c84742d26b0f20d7eecfec2a7c08d2e13709c238aee694c90107a3f46"
+        },
+        {
+          "path": "docs/aidlc/toolchain/eks-declarative-automation.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "99c497d1f32ce892228f4bddfb120c32564c8e4b0eb793464b5c186030bad3f0",
+          "original_gap_index": 1,
+          "original_gap_sha256": "e5cf045c84742d26b0f20d7eecfec2a7c08d2e13709c238aee694c90107a3f46"
+        }
+      ],
+      "reviewed_summary": "Atomic rollback and single-push delivery claims need actual controllers, promotion gates and recovery evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U091",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "April 2026 benchmark SOTA/saturation, GPQA 198 count, AgentBench eight environments and LiveCodeBench monthly cadence",
+        "reason": "No pinned April leaderboard/harness/budget artifacts or complete original dataset count/cadence evidence were retrieved for each assertion. Current dynamic leaderboards cannot establish a historical score.",
+        "needed_evidence": "Dated benchmark versions, task split, model/agent settings, trial counts and original release/dataset records."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a6a54f5b26e822171cc56a5e5db830273986ac01fc15dad9476037b0c0555d4a",
+          "original_gap_index": 0,
+          "original_gap_sha256": "1d1d458f03204071fc1c6a472fa6b8302997622dbd6f1a19628846464559bb0f"
+        },
+        {
+          "path": "docs/aidlc/toolchain/evaluation-framework.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "7ba072f4d99ebd2dca5559291de261ea79cd841661717e134dc5874284b21971",
+          "original_gap_index": 0,
+          "original_gap_sha256": "1d1d458f03204071fc1c6a472fa6b8302997622dbd6f1a19628846464559bb0f"
+        }
+      ],
+      "reviewed_summary": "Historical benchmark scores, dataset counts and release cadence need the original dated artifacts.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U092",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "All tool matrix support/status, LangSmith CLI/self-host beta, Braintrust deployment limits, popularity and unique/best tool claims",
+        "reason": "Major erroneous license/evaluator scope and core Ragas/DeepEval contracts were checked, but not all vendors and historical feature states; comparative adoption/superlatives lack measurements.",
+        "needed_evidence": "Pinned releases, official CLI/API contracts and hosting/license terms; empirical comparison or qualified design rationale."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a6a54f5b26e822171cc56a5e5db830273986ac01fc15dad9476037b0c0555d4a",
+          "original_gap_index": 1,
+          "original_gap_sha256": "046627eb558e6b72882317dabaf07d849de01155d60a179c9ddfbed237115bda"
+        },
+        {
+          "path": "docs/aidlc/toolchain/evaluation-framework.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "7ba072f4d99ebd2dca5559291de261ea79cd841661717e134dc5874284b21971",
+          "original_gap_index": 1,
+          "original_gap_sha256": "046627eb558e6b72882317dabaf07d849de01155d60a179c9ddfbed237115bda"
+        }
+      ],
+      "reviewed_summary": "Evaluation-tool matrices and superlatives need versioned product evidence and explicit comparison criteria.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U093",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Statistical cutoffs, production sampling/PII/tenant/rollback guarantees and all workflow executions",
+        "reason": "These are proposed policies/scaffolds without sample distributions, configured enforcement, real trace fixtures or execution artifacts. No models, CI, cloud or container examples were run.",
+        "needed_evidence": "Reproducible datasets and statistical plan, approved data contracts, deployment configuration and representative failure-path tests."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a6a54f5b26e822171cc56a5e5db830273986ac01fc15dad9476037b0c0555d4a",
+          "original_gap_index": 2,
+          "original_gap_sha256": "7510da7bd77d4d2b235f11a237b443cf591d349a5af226cd0058c9c71553183a"
+        },
+        {
+          "path": "docs/aidlc/toolchain/evaluation-framework.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "7ba072f4d99ebd2dca5559291de261ea79cd841661717e134dc5874284b21971",
+          "original_gap_index": 2,
+          "original_gap_sha256": "7510da7bd77d4d2b235f11a237b443cf591d349a5af226cd0058c9c71553183a"
+        }
+      ],
+      "reviewed_summary": "Statistical and production-evaluation guarantees need a declared plan, data contracts and failure tests.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U094",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "GDPR/HIPAA/financial-sector location requirements and sufficient compliance",
+        "reason": "GDPR transfer provisions were read, but HHS cloud pages returned403 and no jurisdiction-specific financial rule was established. The combined checklist is not a complete legal applicability assessment.",
+        "needed_evidence": "Applicable statutory/sector provisions, business-associate/data-processing terms, residency policy and implemented data-flow evidence."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/open-weight-models.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f37eebd8ab27ffa59f590215d6a4e86b78a602ccf7e20ef4b09e228deee932f3",
+          "original_gap_index": 0,
+          "original_gap_sha256": "815030a9e81e021b7b959cdabbec48727907eebac02847aba005bf2ecd3729f0"
+        },
+        {
+          "path": "docs/aidlc/toolchain/open-weight-models.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e7a5327c0dca7fb6123b725d0de92f8cdc1857c93fdfc5a439577e322badec77",
+          "original_gap_index": 0,
+          "original_gap_sha256": "815030a9e81e021b7b959cdabbec48727907eebac02847aba005bf2ecd3729f0"
+        }
+      ],
+      "reviewed_summary": "Hosting-related legal claims need applicable transfer, sector and business-associate provisions.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U095",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "April 2026 model superiority, hardware serving performance, latency and all prices",
+        "reason": "Primary identities/specifications were verified but no workload run, historical EC2/Bedrock quote, storage tier, utilization trace or vendor hardware/labor quote was supplied. The current serving recipe is not proof of every older image combination.",
+        "needed_evidence": "Pinned checkpoint/image/CUDA/quantization, benchmark data at stated concurrency/context, dated regional prices and complete TCO assumptions."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/open-weight-models.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f37eebd8ab27ffa59f590215d6a4e86b78a602ccf7e20ef4b09e228deee932f3",
+          "original_gap_index": 1,
+          "original_gap_sha256": "39553f616a59e0e81a11084ef0e04e5a8885d03e4304a7f051fb04c0be77f97c"
+        },
+        {
+          "path": "docs/aidlc/toolchain/open-weight-models.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e7a5327c0dca7fb6123b725d0de92f8cdc1857c93fdfc5a439577e322badec77",
+          "original_gap_index": 1,
+          "original_gap_sha256": "39553f616a59e0e81a11084ef0e04e5a8885d03e4304a7f051fb04c0be77f97c"
+        }
+      ],
+      "reviewed_summary": "Serving performance and historical prices need a pinned checkpoint/runtime and matched workload.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U096",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "GLM-5 weight license",
+        "reason": "The official model card says MIT while current repository LICENSE says Apache 2.0; the model repository LICENSE retrieval returned 404.",
+        "needed_evidence": "License distributed with the specific weights revision and any publisher clarification."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/open-weight-models.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f37eebd8ab27ffa59f590215d6a4e86b78a602ccf7e20ef4b09e228deee932f3",
+          "original_gap_index": 2,
+          "original_gap_sha256": "f385c13d634468fb4e8b8956f55bc8fd1343582d6278460445da024964b8d3df"
+        },
+        {
+          "path": "docs/aidlc/toolchain/open-weight-models.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e7a5327c0dca7fb6123b725d0de92f8cdc1857c93fdfc5a439577e322badec77",
+          "original_gap_index": 2,
+          "original_gap_sha256": "f385c13d634468fb4e8b8956f55bc8fd1343582d6278460445da024964b8d3df"
+        }
+      ],
+      "reviewed_summary": "The GLM-5 weight license remains unresolved between retrieved model-card and code-repository declarations.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U097",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Kiro local-provider routing, secure offline operation, ontology accuracy/compliance and deployment success",
+        "reason": "Examples contain hypothetical/missing configuration and no enforcement or execution artifacts. No document examples were executed.",
+        "needed_evidence": "Supported integration contracts, data-boundary and failure-path tests, complete loader and evaluated model/domain outcomes."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/open-weight-models.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "f37eebd8ab27ffa59f590215d6a4e86b78a602ccf7e20ef4b09e228deee932f3",
+          "original_gap_index": 3,
+          "original_gap_sha256": "efeae9386a5894be0b25c403fc0e0ac5c19a9428d6223e0f53fd105957a46bad"
+        },
+        {
+          "path": "docs/aidlc/toolchain/open-weight-models.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "e7a5327c0dca7fb6123b725d0de92f8cdc1857c93fdfc5a439577e322badec77",
+          "original_gap_index": 3,
+          "original_gap_sha256": "efeae9386a5894be0b25c403fc0e0ac5c19a9428d6223e0f53fd105957a46bad"
+        }
+      ],
+      "reviewed_summary": "Offline routing and domain-context benefits need supported integrations, data controls and evaluation results.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U098",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Complete historical GA/support inventory: AgentCore Preview, ACK50+ GA services, Kubernetes/DRA and PagedAttention naming, Ragas/Langfuse status and every alternative",
+        "reason": "Several core releases and role contracts were verified, but not every component-specific historical support state. AgentCore launch lookups failed404/redirect/network errors. A current overview is not a dated release record.",
+        "needed_evidence": "Dated official release/changelog and feature-level API/support matrix for the stated quarter."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a22942f1568cedf7d803f18073258dd48263d5244b40d1ad199ee7d556e7ec50",
+          "original_gap_index": 0,
+          "original_gap_sha256": "12a5326a972f90e5b30204798424b4c53ce99fbf3833fda94de5dc85031fee0f"
+        },
+        {
+          "path": "docs/aidlc/toolchain/technology-roadmap.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "8d4bf954b2fd04248bbc32e1b5d79dd5b1b916a822d03538543ae6e31eacee71",
+          "original_gap_index": 0,
+          "original_gap_sha256": "12a5326a972f90e5b30204798424b4c53ce99fbf3833fda94de5dc85031fee0f"
+        }
+      ],
+      "reviewed_summary": "The roadmap's complete historical support inventory still needs component-specific releases and feature matrices.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U099",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "Kagent has no enterprise support;20+ MCP servers stable; Q Developer/Copilot and Kiro/Windsurf comparisons; LBC ExtProc",
+        "reason": "No exhaustive vendor-support survey, tested server inventory, comparative dataset or versioned ExtProc implementation evidence was supplied. Current reference-server warnings contradict blanket stability assumptions.",
+        "needed_evidence": "Maintainer/support contracts, assessed server versions, comparative test plan and gateway conformance/feature documentation."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a22942f1568cedf7d803f18073258dd48263d5244b40d1ad199ee7d556e7ec50",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2811c1f97811a7f473e480901da3fc8035a0a5d5864ae75616dbde5589800486"
+        },
+        {
+          "path": "docs/aidlc/toolchain/technology-roadmap.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "8d4bf954b2fd04248bbc32e1b5d79dd5b1b916a822d03538543ae6e31eacee71",
+          "original_gap_index": 1,
+          "original_gap_sha256": "2811c1f97811a7f473e480901da3fc8035a0a5d5864ae75616dbde5589800486"
+        }
+      ],
+      "reviewed_summary": "Support availability, server stability and comparative tool claims need maintained contracts and tested evidence.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    },
+    {
+      "id": "AIDLC-U100",
+      "classification": "verification_pending",
+      "claim_record": {
+        "claim": "All cost/ROI/productivity/automation forecasts, completed Gantt tasks and organization-specific adoption readiness",
+        "reason": "These are unvalidated examples with no identified deployment, workload, executed PoC, cost trace or accountable approval. No document commands or cloud/container operations were executed.",
+        "needed_evidence": "Explicit illustrative labels or measured baselines, dated costs, acceptance outcomes, operational authorization and reproducible calculations."
+      },
+      "sources": [
+        {
+          "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md",
+          "locale": "en",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "a22942f1568cedf7d803f18073258dd48263d5244b40d1ad199ee7d556e7ec50",
+          "original_gap_index": 2,
+          "original_gap_sha256": "ec8d8a5ff4549b1082f6f63ce49a3f43aeca31c901caaac544a1eaca0b7f1693"
+        },
+        {
+          "path": "docs/aidlc/toolchain/technology-roadmap.md",
+          "locale": "ko",
+          "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+          "baseline_source_sha256": "8d4bf954b2fd04248bbc32e1b5d79dd5b1b916a822d03538543ae6e31eacee71",
+          "original_gap_index": 2,
+          "original_gap_sha256": "ec8d8a5ff4549b1082f6f63ce49a3f43aeca31c901caaac544a1eaca0b7f1693"
+        }
+      ],
+      "reviewed_summary": "Roadmap budgets, completed milestones and readiness remain unvalidated without measured and approved outcomes.",
+      "publication_scope": "The original claim record preserves the audit evidence gap; the reviewed summary states its current publication meaning."
+    }
+  ],
+  "residual_uncertainty": "Confirmed or misleading findings can also contain pending subclaims. Their review.scope fields explicitly retain these limits; confirmation never automatically applies to every sentence of a legacy finding."
+}

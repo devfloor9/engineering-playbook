@@ -1,11 +1,11 @@
 ---
 title: Harbor 2.15 and EKS Hybrid Nodes Integration Guide
-description: A complete step-by-step guide for integrating the Harbor 2.15 private container registry with Amazon EKS Hybrid Nodes (Kubernetes 1.33), covering installation, SSL/TLS configuration, authentication, and troubleshooting.
+description: Configuration guidance separating DNS, TLS trust, containerd setup, project credentials and recovery verification for Harbor and EKS Hybrid Nodes
 created: "2025-08-20"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 31
 tags:
   - eks
   - hybrid-node
@@ -21,7 +21,11 @@ category: hybrid-multicloud
 
 ## Overview
 
-This guide provides step-by-step configuration instructions for integrating Harbor 2.15 with EKS Hybrid Nodes (Kubernetes 1.33). EKS Hybrid Nodes, generally available since December 2024, enables unified management of on-premises infrastructure and AWS EKS, while Harbor 2.15 provides enhanced security features and AI model management capabilities.
+A Hybrid Node must resolve the Harbor hostname, trust its server certificate and receive credentials for the required image. This guide checks those three paths separately.
+
+Harbor 2.15.1 and Kubernetes 1.33 are versions from the existing example, not a latest-version recommendation or a record of completed deployment. The 2026-09-19 review compared configuration examples with official documentation; it did not install Harbor, restart nodes, pull images or test recovery. Select a supported Harbor, nodeadm, OS, containerd, EKS and CNI combination before applying it.
+
+The examples prepare a separate Harbor host and a **Hybrid Node that has not yet joined the cluster**. Changes to an existing node's runtime require a separate maintenance procedure. Replace the hostname, account, region, namespace and image with the intended environment's values.
 
 ## Part 1: Harbor Private Repository Installation and Configuration
 
@@ -29,15 +33,14 @@ This guide provides step-by-step configuration instructions for integrating Harb
 
 #### Verify System Requirements
 
-- Docker Engine 20.10.10+
-- Docker Compose 2.0+
-- Minimum hardware: 2 CPU cores, 4GB RAM
-- Supported OS: Ubuntu 22.04/24.04, RHEL 8/9
+Harbor 2.15's Compose prerequisites specify Docker Engine >20.10, Docker Compose >2.3 and at least two CPUs, 4 GB memory and 40 GB disk. These are installation minima; size production capacity for artifact retention, concurrent pulls and scanning.
+
+Harbor host Docker/OS support differs from Hybrid Node OS support. Check the selected releases rather than assuming compatibility from an OS name. Prepare HTTPS 443, DNS, authentication-server access and scanner database updates.
 
 #### Download Harbor 2.15.x
 
 ```bash
-# Download Harbor 2.15.x (current stable version)
+# Pinned example release; verify its release checksum before extraction.
 wget https://github.com/goharbor/harbor/releases/download/v2.15.1/harbor-offline-installer-v2.15.1.tgz
 
 # Extract the archive
@@ -49,7 +52,10 @@ cd harbor
 
 #### Generate Self-Signed Certificates
 
+This private-CA example is for an isolated test environment. Run the generation and signing commands on a protected issuance host separate from Harbor. Match SANs to the actual DNS/IP and keep the CA private key off registry and node hosts. Use the organization’s issuance and renewal process in production. Harbor administration and image-pull clients also need trust in the CA certificate.
+
 ```bash
+umask 077
 # 1. Generate the CA certificate
 openssl genrsa -out ca.key 4096
 openssl req -x509 -new -nodes -sha512 -days 3650 \
@@ -85,10 +91,15 @@ openssl x509 -req -sha512 -days 3650 \
   -in harbor.csr \
   -out harbor.crt
 
-# 5. Create the certificate directory and copy certificates
-mkdir -p /data/cert
-cp harbor.crt /data/cert/
-cp harbor.key /data/cert/
+```
+
+After signing, transfer only `harbor.crt` and `harbor.key` to Harbor over a protected channel. Keep the CA private key on the issuance host and distribute public `ca.crt` separately for client trust. Run the following on the Harbor host to install the server certificate and key.
+
+```bash
+# Install only the server certificate and key on the Harbor host
+sudo install -d -m 0750 /data/cert
+sudo install -m 0644 harbor.crt /data/cert/harbor.crt
+sudo install -m 0600 harbor.key /data/cert/harbor.key
 ```
 
 ### Step 3: Configure the Harbor Configuration File
@@ -113,12 +124,12 @@ https:
   certificate: /data/cert/harbor.crt
   private_key: /data/cert/harbor.key
 
-# Harbor admin password (change immediately after deployment)
-harbor_admin_password: CHANGE_ME_AFTER_INSTALL
+# Set a unique generated secret before the first start.
+harbor_admin_password: REPLACE_WITH_GENERATED_ADMIN_SECRET
 
 # Database configuration (change to a strong password + rotate regularly)
 database:
-  password: CHANGE_DB_PASSWORD
+  password: REPLACE_WITH_GENERATED_DATABASE_SECRET
   max_idle_conns: 100
   max_open_conns: 900
   conn_max_lifetime: 5m
@@ -149,154 +160,103 @@ metric:
   path: /metrics
 ```
 
+Replace every `REPLACE_WITH_...` value with distinct secrets before installation. Restrict `harbor.yml` to its owner and keep it out of Git. `harbor_admin_password` initializes the first startup; changing this file alone does not rotate an existing administrator password.
+
 ### Step 4: Run the Harbor Installation
 
-```bash
-# Run the installation preparation script
-sudo ./prepare
+The offline installer's `install.sh` loads the bundled images before running preparation. Do not invoke `prepare` first on a fresh host.
 
+```bash
 # Install Harbor (with Trivy)
 sudo ./install.sh --with-trivy
 
 # Verify the installation
-docker-compose ps
+docker compose ps
 ```
 
 ### Step 5: Configure Harbor User Authentication
 
 #### LDAP Authentication Setup (Optional)
 
-```bash
-# Configure LDAP via the API
-curl -X PUT "https://harbor.yourdomain.com/api/v2.0/configurations" \
-  -H "Content-Type: application/json" \
-  -u "admin:YOUR_ADMIN_PASSWORD" \
-  -d '{
-    "auth_mode": "ldap_auth",
-    "ldap_url": "ldap://ldap.company.com:389",
-    "ldap_base_dn": "ou=users,dc=company,dc=com",
-    "ldap_filter": "(objectClass=person)",
-    "ldap_uid": "uid",
-    "ldap_scope": 2,
-    "ldap_search_dn": "cn=admin,dc=company,dc=com",
-    "ldap_search_password": "admin_password",
-    "ldap_verify_cert": false
-  }'
-```
+Configure LDAP under Administration → Configuration → Authentication. Use `ldaps://`, a trusted server certificate and certificate verification. Give the search identity only the directory-read permissions it needs; do not reuse an administrator password.
+
+Define Base DN, UID, filters and groups. Use Test LDAP Server, then test allowed/denied logins and project permissions. Switching from database authentication to LDAP is supported only when there are no local users other than `admin`; plan identity migration first for an existing installation.
 
 #### Create a Robot Account (for Kubernetes Integration)
 
-```bash
-# Create in the Harbor UI or use the API
-curl -X POST "https://harbor.yourdomain.com/api/v2.0/robots" \
-  -H "Content-Type: application/json" \
-  -u "admin:YOUR_ADMIN_PASSWORD" \
-  -d '{
-    "name": "k8s-robot",
-    "duration": 365,
-    "description": "Robot account for Kubernetes",
-    "disable": false,
-    "level": "system",
-    "permissions": [
-      {
-        "namespace": "*",
-        "kind": "project",
-        "access": [
-          {
-            "resource": "repository",
-            "action": "pull"
-          }
-        ]
-      }
-    ]
-  }'
-```
+Create the application project and a project-scoped robot account with repository pull permission. Image pulls do not require push, delete or all-project access. Define expiry and a rotation owner.
+
+Store the **full returned account name and secret** in the secret store. The prefix is configurable; do not construct a name such as `robot$k8s-robot` from assumptions. Capture the new secret at creation. For an overlapping rotation, create a new robot account, update the Kubernetes Secret, verify pulls from new Pods, then retire the old account. Do not assume that refreshing one account’s secret leaves both old and new secrets valid.
 
 ## Part 2: EKS Hybrid Nodes Configuration
 
 ### Step 6: Install and Prepare nodeadm
 
-Download the nodeadm binary and install the components that support Kubernetes 1.33. For the credential provider, choose either SSM (Systems Manager) or IAM Roles Anywhere. For the nodeadm installation procedure and credential provider selection criteria, refer to [EKS Hybrid Nodes Concepts and How They Work](../overview-architecture/hybrid-nodes-fundamentals.md) and [Node Authentication Methods](../security-authn/node-authentication.md).
+Install nodeadm, OS and containerd versions supported by the selected EKS release, then check `containerd --version` and installation logs. Kubernetes version alone does not determine the containerd configuration format. SSM or IAM Roles Anywhere node authentication, cluster access, CNI and network prerequisites are separate from Harbor credentials.
+
+Complete preparation for the new node using the [official nodeadm reference](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-nodeadm.html) and [node authentication guide](../security-authn/node-authentication.md).
 
 ### Step 7: Create the NodeConfig File
 
 #### Write a NodeConfig for Harbor Integration
 
+This example preserves nodeadm's containerd defaults. The reviewed [nodeadm template](https://github.com/aws/eks-hybrid/blob/20aace438668970fee38a1b053836c59fd5cfd72/internal/containerd/config.template.toml) already reads `/etc/containerd/certs.d`, so it needs no Harbor runtime override. Confirm that path in the installed nodeadm version and generated configuration. Replace SSM values for the intended node enrollment and restrict file permissions. Pass robot secrets through a namespace-scoped imagePullSecret, not NodeConfig.
+
 ```yaml
-# nodeconfig.yaml
 apiVersion: node.eks.aws/v1alpha1
 kind: NodeConfig
 spec:
   cluster:
     name: my-hybrid-cluster
     region: us-west-2
-
-  # Hybrid node configuration using SSM
   hybrid:
     ssm:
-      activationCode: "YOUR-ACTIVATION-CODE"
-      activationId: "YOUR-ACTIVATION-ID"
-
-  # Containerd configuration (Harbor registry settings)
-  containerd:
-    config: |
-      version = 2
-
-      [plugins."io.containerd.grpc.v1.cri"]
-        [plugins."io.containerd.grpc.v1.cri".registry]
-          config_path = "/etc/containerd/certs.d:/etc/docker/certs.d"
-
-        [plugins."io.containerd.grpc.v1.cri".registry.mirrors]
-          [plugins."io.containerd.grpc.v1.cri".registry.mirrors."harbor.yourdomain.com"]
-            endpoint = ["https://harbor.yourdomain.com"]
-
-        [plugins."io.containerd.grpc.v1.cri".registry.configs]
-          [plugins."io.containerd.grpc.v1.cri".registry.configs."harbor.yourdomain.com"]
-            [plugins."io.containerd.grpc.v1.cri".registry.configs."harbor.yourdomain.com".auth]
-              username = "robot$k8s-robot"
-              password = "YOUR-ROBOT-TOKEN"
-
-            [plugins."io.containerd.grpc.v1.cri".registry.configs."harbor.yourdomain.com".tls]
-              ca_file = "/etc/ssl/certs/harbor-ca.crt"
-              insecure_skip_verify = false
-
-  # Kubelet configuration
+      activationCode: "REPLACE_WITH_ACTIVATION_CODE"
+      activationId: "REPLACE_WITH_ACTIVATION_ID"
   kubelet:
-    config:
-      shutdownGracePeriod: 30s
-      maxPods: 110
     flags:
       - --node-labels=node-type=hybrid,registry=harbor
 ```
+
+Do not choose the TOML format from the containerd binary's major version alone. The reviewed nodeadm generates a **version 2 base file** and places custom TOML in a separate import.
+
+```toml
+# Excerpt from the reviewed nodeadm-generated configuration, not a replacement file.
+version = 2
+[plugins."io.containerd.grpc.v1.cri".registry]
+  config_path = "/etc/containerd/certs.d:/etc/docker/certs.d"
+```
+
+containerd 2.x can migrate this v2 base configuration when reading it. Importing a v3 fragment into that v2 base cannot be assumed to preserve migration of runtime and CNI defaults. The [containerd import rules](https://github.com/containerd/containerd/blob/v2.1.4/docs/man/containerd-config.toml.5.md) require the import version not to exceed the base version. For other defaults, verify the complete base file, imports, versions, plugin paths, and certificate directories together; do not replace the complete file with a short fragment.
 
 ### Step 8: Install Certificates
 
 #### Install the Harbor CA Certificate on Nodes
 
-```bash
-# Add the CA certificate to the system trust store
-sudo cp ca.crt /usr/local/share/ca-certificates/harbor-ca.crt
-sudo update-ca-certificates
+Install the CA certificate at `/etc/containerd/certs.d/harbor.yourdomain.com/ca.crt` on the new node and place this `hosts.toml` beside it. Neither the CA private key nor robot tokens belong in this directory.
 
-# Create the certificate directory for containerd
-sudo mkdir -p /etc/containerd/certs.d/harbor.yourdomain.com
-
-# Copy the certificate
-sudo cp ca.crt /etc/containerd/certs.d/harbor.yourdomain.com/ca.crt
-
-# Restart containerd
-sudo systemctl restart containerd
+```toml
+# /etc/containerd/certs.d/harbor.yourdomain.com/hosts.toml
+server = "https://harbor.yourdomain.com"
+[host."https://harbor.yourdomain.com"]
+  capabilities = ["pull", "resolve"]
+  ca = "/etc/containerd/certs.d/harbor.yourdomain.com/ca.crt"
 ```
+
+Configure trust separately for other clients. Ubuntu-family systems use `/usr/local/share/ca-certificates/` and `update-ca-certificates`; RHEL-family systems use `/etc/pki/ca-trust/source/anchors/` and `update-ca-trust`. Follow the selected OS procedure. Docker registry trust is separate from containerd configuration.
+
+Containerd documents that updates within the hosts directory do not require a daemon restart. Base runtime changes such as `config_path` require separate application. If an existing node needs a restart, first define single-node draining, spare capacity and recovery, and retain its original configuration.
 
 ### Step 9: Initialize the Node
 
-```bash
-# Initialize the node using the NodeConfig
-sudo nodeadm init --config-source file://nodeconfig.yaml
+Validate configuration on the new node before enrollment. Passing `config check` does not establish cluster connectivity or successful image pulls.
 
-# Check node status
-kubectl get nodes
+```bash
+sudo nodeadm config check --config-source file://nodeconfig.yaml
+sudo nodeadm init --config-source file://nodeconfig.yaml
 ```
+
+After enrollment, check that node's readiness, CNI, `node-type=hybrid`/`registry=harbor` labels and effective containerd configuration. Investigate nodeadm, kubelet and containerd logs on failure rather than skipping validation.
 
 ## Part 3: Harbor and EKS Integration
 
@@ -304,200 +264,114 @@ kubectl get nodes
 
 #### Security Group Setup
 
-```bash
-# Allow EKS node access in the Harbor security group
-aws ec2 authorize-security-group-ingress \
-  --group-id sg-harbor-xxxxx \
-  --protocol tcp \
-  --port 443 \
-  --source-group sg-eks-nodes-xxxxx \
-  --region us-west-2
-```
+First identify where Harbor is hosted. For EC2 hosting, permit TCP 443 from the actual observed Hybrid Node source CIDRs in the registry security group, and check VPC/on-premises routes, firewalls and the return path. NAT can change source addresses.
+
+An EC2 source-security-group rule applies to interfaces associated with that group. It does not automatically authorize on-premises nodes outside the group. For on-premises Harbor, define access in the relevant network and host firewalls.
 
 #### DNS Configuration
 
-```yaml
-# Edit the CoreDNS ConfigMap
-kubectl edit configmap coredns -n kube-system
+Containerd pulls images from the node, so first verify **hostname resolution by the node OS**. Configure corporate DNS records and forwarding as needed. Successful lookup inside a Pod does not establish that the host resolver follows the same path.
 
-# Add the following content
-data:
-  Corefile: |
-    .:53 {
-        errors
-        health
-        kubernetes cluster.local in-addr.arpa ip6.arpa {
-          pods insecure
-          fallthrough in-addr.arpa ip6.arpa
-        }
-        # Add Harbor DNS
-        hosts {
-          192.168.1.100 harbor.yourdomain.com
-          fallthrough
-        }
-        prometheus :9153
-        forward . /etc/resolv.conf
-        cache 30
-        loop
-        reload
-        loadbalance
-    }
+Run these checks on the Hybrid Node where the CA was installed.
+
+```bash
+getent hosts harbor.yourdomain.com
+curl --fail --show-error --cacert /etc/containerd/certs.d/harbor.yourdomain.com/ca.crt \
+  https://harbor.yourdomain.com/api/v2.0/health
 ```
+
+Handle CoreDNS separately if Pods need additional name resolution. Do not replace the entire Corefile for this integration; preserve existing plugins, including `ready` required by EKS configurations.
 
 ### Step 11: Create Kubernetes Secrets
 
 #### Create a Secret for Harbor Credentials
 
+This example creates the initial Secret in an existing `app` namespace. First check Python 3 on the administrator client, the cluster context, and permission to create Secrets in that namespace. Run it as a **separate Bash script**: it prompts for the robot name and token, creates an owner-readable temporary Docker-format file, keeps secrets out of arguments and logs, and removes the file on exit.
+
+Docker login can automatically select a credential helper and store credentials in an external keychain. Instead of copying such a `config.json`, this example writes the `auths` entry that Kubernetes needs. It rejects empty inputs and an invalid username; the subsequent image-pull test must establish whether the credentials actually work.
+
 ```bash
-# Test Docker login
-docker login harbor.yourdomain.com
-Username: robot$k8s-robot
-Password: YOUR-ROBOT-TOKEN
-
-# Create the Kubernetes Secret
-kubectl create secret docker-registry harbor-registry \
-  --docker-server=harbor.yourdomain.com \
-  --docker-username='robot$k8s-robot' \
-  --docker-password='YOUR-ROBOT-TOKEN' \
-  --docker-email=admin@yourdomain.com
-
-# Copy the Secret to all namespaces (optional)
-for ns in $(kubectl get ns -o jsonpath='{.items[*].metadata.name}'); do
-  kubectl get secret harbor-registry -o yaml | \
-    sed "s/namespace: default/namespace: $ns/" | \
-    kubectl apply -f -
-done
+#!/usr/bin/env bash
+set +x
+set -euo pipefail
+umask 077
+registry_auth_dir="$(mktemp -d)"
+trap 'rm -rf -- "$registry_auth_dir"' EXIT
+read -r -p "Harbor robot account name: " harbor_robot
+read -r -s -p "Harbor robot token: " harbor_token
+printf '\n'
+printf '%s\0%s' "$harbor_robot" "$harbor_token" | python3 -c '
+import base64, json, sys
+username, token = sys.stdin.buffer.read().split(b"\0", 1)
+if not username or not token or b":" in username:
+    raise SystemExit("A nonempty robot name without a colon and a token are required")
+auth = base64.b64encode(username + b":" + token).decode("ascii")
+json.dump({"auths": {"harbor.yourdomain.com": {"auth": auth}}}, sys.stdout)
+' > "$registry_auth_dir/config.json"
+unset harbor_token
+kubectl -n app create secret generic harbor-registry \
+  --type=kubernetes.io/dockerconfigjson \
+  --from-file=.dockerconfigjson="$registry_auth_dir/config.json"
 ```
+
+If the Secret exists, update that namespace through the organization's secret-management path instead of repeating creation. Do not copy it to every namespace. Kubernetes Secret base64 encoding is not encryption; manage RBAC and encryption at rest separately.
 
 #### Add the ImagePullSecret to a ServiceAccount
 
-```bash
-# Patch the default ServiceAccount
-kubectl patch serviceaccount default -p '{"imagePullSecrets": [{"name": "harbor-registry"}]}'
+Attach the Secret to a dedicated ServiceAccount in the same `app` namespace. This selects image-pull credentials; it does not grant application AWS IAM permissions.
 
-# Or define it in YAML
-cat <<EOF | kubectl apply -f -
+```yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: app-sa
-  namespace: default
+  namespace: app
 imagePullSecrets:
-- name: harbor-registry
-EOF
+  - name: harbor-registry
 ```
 
 ### Step 12: Testing and Validation
 
 #### Connectivity Tests
 
-```bash
-# 1. Verify network connectivity
-curl -k https://harbor.yourdomain.com/api/v2.0/health
+First push or import the test image into the `app` project and record its path, tag, digest and startup command. The sample `smoke:verified` image must actually exist. Pin the verified digest for production. Use the ServiceAccount above and a Hybrid Node carrying the specified labels.
 
-# 2. Test pulling an image directly on the node
-sudo crictl pull harbor.yourdomain.com/library/nginx:latest
-
-# 3. Test deploying a Kubernetes Pod
-cat <<EOF | kubectl apply -f -
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
   name: harbor-test
+  namespace: app
 spec:
+  serviceAccountName: app-sa
+  nodeSelector:
+    node-type: hybrid
+    registry: harbor
+  restartPolicy: Never
   containers:
-  - name: nginx
-    image: harbor.yourdomain.com/library/nginx:latest
-  imagePullSecrets:
-  - name: harbor-registry
-EOF
-
-# 4. Check Pod status
-kubectl get pod harbor-test
-kubectl describe pod harbor-test
+    - name: smoke
+      image: harbor.yourdomain.com/app/smoke:verified
+      imagePullPolicy: Always
 ```
+
+Verify the Pod's nodeName, expected imageID digest and a fresh pull through the authenticated path. A successful pull does not establish application readiness; check container completion and logs as well. Use an approved image that is not already cached, and test expired credentials, another project and an untrusted CA as negative cases.
+
+`curl -k` bypasses CA verification and cannot prove trust. A direct `crictl pull` does not automatically receive a Pod's imagePullSecret, so it tests a different credential path. Assign cleanup of the test Pod and other temporary resources.
 
 ### Step 13: Troubleshooting
 
 #### Common Issues and Solutions
 
-**1. ImagePullBackOff Error**
+| Symptom | First checks |
+| --- | --- |
+| ImagePullBackOff | Separate DNS, TLS, 401/403 and missing-image events; check the same-namespace Secret/ServiceAccount and actual image path |
+| x509 error | Node clock, server SAN/chain and effective containerd config_path/CA path |
+| Name resolution failure | Start with the node OS resolver; diagnose Pod DNS separately |
+| Only some nodes fail | Compare OS/containerd versions, CA/configuration, routing and actual placement |
 
-```bash
-# Diagnose the issue
-kubectl describe pod <pod-name>
-kubectl get events --field-selector involvedObject.name=<pod-name>
+Check Secret type, name, namespace and existence before inspecting credentials; do not decode `.dockerconfigjson` into logs. Distribute CA files through node-management tooling with explicit targets and completion tracking. Do not use a privileged host-root DaemonSet that repeatedly restarts containerd across all nodes.
 
-# Check the Secret
-kubectl get secret harbor-registry -o jsonpath='{.data.\.dockerconfigjson}' | base64 -d
-
-# Solutions
-# - Recreate the Secret
-# - Verify the image name and tag
-# - Verify Harbor project access permissions
-```
-
-**2. Certificate Error (x509: certificate signed by unknown authority)**
-
-```bash
-# Install the CA certificate on all nodes
-cat <<EOF | kubectl apply -f -
-apiVersion: apps/v1
-kind: DaemonSet
-metadata:
-  name: harbor-ca-installer
-  namespace: kube-system
-spec:
-  selector:
-    matchLabels:
-      name: harbor-ca-installer
-  template:
-    metadata:
-      labels:
-        name: harbor-ca-installer
-    spec:
-      hostNetwork: true
-      hostPID: true
-      containers:
-      - name: installer
-        image: busybox
-        command: ['sh', '-c']
-        args:
-        - |
-          echo "Installing Harbor CA certificate..."
-          cp /ca-cert/ca.crt /host/usr/local/share/ca-certificates/harbor-ca.crt
-          chroot /host update-ca-certificates
-          chroot /host systemctl restart containerd
-          sleep 3600
-        volumeMounts:
-        - name: ca-cert
-          mountPath: /ca-cert
-        - name: host
-          mountPath: /host
-        securityContext:
-          privileged: true
-      volumes:
-      - name: ca-cert
-        configMap:
-          name: harbor-ca
-      - name: host
-        hostPath:
-          path: /
-EOF
-```
-
-**3. DNS Resolution Failure**
-
-```bash
-# Test DNS
-kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup harbor.yourdomain.com
-
-# Check CoreDNS logs
-kubectl logs -n kube-system -l k8s-app=kube-dns
-
-# Solution: restart CoreDNS
-kubectl rollout restart deployment coredns -n kube-system
-```
+For a necessary base-runtime change on existing nodes, retain the original files and define a single-node capacity, drain, validation and recovery sequence. Do not restart CoreDNS or runtimes cluster-wide before identifying the cause.
 
 ## Part 4: Operations and Maintenance
 
@@ -505,90 +379,78 @@ kubectl rollout restart deployment coredns -n kube-system
 
 #### Configure Harbor Security Policies
 
-```bash
-# Enable automated vulnerability scanning
-curl -X PUT "https://harbor.yourdomain.com/api/v2.0/projects/1" \
-  -H "Content-Type: application/json" \
-  -u "admin:YOUR_ADMIN_PASSWORD" \
-  -d '{
-    "metadata": {
-      "auto_scan": "true",
-      "prevent_vul": "true",
-      "severity": "high"
-    }
-  }'
+Configure scan-on-push and accepted vulnerability levels for the intended project, and verify scanner database updates and failure behavior. Do not assume project ID `1`. Define behavior for missing or stale scan results.
 
-# Configure image signing policy (Notary)
-export DOCKER_CONTENT_TRUST=1
-export DOCKER_CONTENT_TRUST_SERVER=https://harbor.yourdomain.com:4443
-```
+Notary v1 is no longer the signing path for Harbor releases from 2.9 onward. Check the selected release's Cosign/Notation support and content-trust policy. Signature storage, registry pull policy and Kubernetes admission verification are separate stages. Match signer, artifact digest and trust policy, and test rejection of modified or unsigned images.
 
 ### Step 15: Backup and Recovery
 
 #### Harbor Backup Script
 
-```bash
-#!/bin/bash
-# harbor-backup.sh
+A generic sequence of `cp`, `pg_dump` and `tar` does not establish a recoverable backup. This article's Compose deployment differs from Harbor's Kubernetes/Velero example in storage layout and procedure; do not apply the same script to both.
 
-BACKUP_DIR="/backup/harbor-$(date +%Y%m%d-%H%M%S)"
-mkdir -p $BACKUP_DIR
+Include configuration, certificates and secrets from the actual installation directory, the database, registry blob storage and backend configuration, and required jobservice/other state. Image data is not optional for a full restore. Coordinate recovery points with external databases or object storage where used.
 
-# 1. Back up the Harbor configuration
-cp -r /data/harbor $BACKUP_DIR/
+1. Define treatment of writes, garbage collection, replication and in-flight jobs. Read Only alone does not guarantee application consistency.
+2. Record actual volume/database locations and tool versions, and stop on any failed step. Do not mark empty dumps or partial archives successful.
+3. Record backup hashes, completion time, retention, encryption and access permissions.
+4. Restore in isolation; verify projects, permissions, signatures, digests and real pulls, and measure RPO/RTO.
 
-# 2. Back up the database
-docker exec harbor-db pg_dump -U postgres registry > $BACKUP_DIR/registry.sql
-
-# 3. Back up the registry data (optional - can be large)
-tar -czf $BACKUP_DIR/registry-data.tar.gz /data/registry
-
-echo "Backup completed: $BACKUP_DIR"
-```
+The official Velero procedure itself documents crash-consistency, omitted Redis state and post-restore task limitations. No backup or restore was executed for this guide; environment-specific scripts remain pending until recovery is tested.
 
 ### Step 16: Monitoring
 
 #### Prometheus Metrics Collection
 
+Merge this `scrape_configs` fragment into the running Prometheus configuration. Creating a ConfigMap alone does not connect it to Prometheus; configure the deployment's mount/reload or Operator resources and check target status. Restrict the example HTTP endpoint on 9090 to a private monitoring path.
+
 ```yaml
-# prometheus-scrape-config.yaml
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-config
-data:
-  prometheus.yml: |
-    global:
-      scrape_interval: 15s
-    scrape_configs:
-    - job_name: 'harbor'
-      static_configs:
-      - targets: ['harbor.yourdomain.com:9090']
-      metrics_path: '/metrics'
+scrape_configs:
+  - job_name: harbor-exporter
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["harbor.yourdomain.com:9090"]
+  - job_name: harbor-core
+    metrics_path: /metrics
+    params:
+      comp: [core]
+    static_configs:
+      - targets: ["harbor.yourdomain.com:9090"]
+  - job_name: harbor-registry
+    metrics_path: /metrics
+    params:
+      comp: [registry]
+    static_configs:
+      - targets: ["harbor.yourdomain.com:9090"]
 ```
+
+Exporter data at `/metrics` differs from `comp=core` and `comp=registry`. Add `comp=jobservice` where needed. Inspect the selected version's responses, metric types and labels before defining alerts.
 
 #### Key Monitoring Metrics
 
-- Registry request rate
-- Authentication failure count
-- Storage usage
-- Database connection count
-- API response time
+| Behavior | Evidence |
+| --- | --- |
+| Component health | `harbor_up`, `harbor_health` and scrape-target status |
+| Project capacity | `harbor_project_quota_usage_byte` and actual storage headroom |
+| Core requests | `harbor_core_http_request_total` and its duration summary |
+| Registry requests/latency | `registry_http_requests_total` and duration histogram |
+| Authentication failures/DB connections | Version-specific audit/log and database observations; do not assume undocumented metric names |
+
+Counters, gauges, summaries and histograms need different aggregation. Authentication failures, service availability and successful application pulls are distinct observations.
 
 ## Conclusion
 
-This guide walked through the integration of Harbor 2.15 with EKS Hybrid Nodes (Kubernetes 1.33) step by step. The key success factors are:
-
-1. **Proper certificate management**: When using self-signed certificates, install the CA certificate on all nodes
-2. **Network configuration**: Establish a secure communication path between Harbor and EKS nodes
-3. **Authentication setup**: Configure automated authentication through Robot Accounts
-4. **Continuous validation**: Verify the configuration through testing at each step
-
-
+Integration is established when the intended Hybrid Node pulls the specified image with correct authentication and TLS verification and rejects invalid access. Record node DNS/CA/runtime configuration, project credentials and restore results. These examples prepare that verification; they are not evidence of a successful production run.
 
 ## References
 
 ### Official Documentation
+
+- [Harbor 2.15 prerequisites](https://goharbor.io/docs/2.15.0/install-config/installation-prereqs/)
+- [Containerd 2.1 registry host configuration](https://github.com/containerd/containerd/blob/v2.1.4/docs/hosts.md)
+- [Harbor LDAP authentication](https://goharbor.io/docs/2.15.0/administration/configure-authentication/ldap-auth/)
+- [Harbor backup limitations](https://goharbor.io/docs/2.15.0/administration/backup-restore/)
+- [Harbor component metrics](https://goharbor.io/docs/2.15.0/administration/metrics/)
 - [Harbor Documentation](https://goharbor.io/docs/) — Official documentation for the Harbor private registry
 - [Harbor GitHub Repository](https://github.com/goharbor/harbor) — Harbor open-source project repository
 - [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Official EKS Hybrid Nodes user guide

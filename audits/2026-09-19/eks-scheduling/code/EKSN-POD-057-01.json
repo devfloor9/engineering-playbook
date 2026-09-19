@@ -1,0 +1,30 @@
+[
+  {
+    "profile": "mig-1g.5gb",
+    "gpu": "A100-40GB",
+    "SM_fraction": "1/7",
+    "memory_fraction": "1/8",
+    "memory_GB": 5
+  },
+  {
+    "profile": "mig-2g.10gb",
+    "gpu": "A100-40GB",
+    "SM_fraction": "2/7",
+    "memory_fraction": "2/8",
+    "memory_GB": 10
+  },
+  {
+    "profile": "mig-3g.20gb",
+    "gpu": "A100-40GB",
+    "SM_fraction": "3/7",
+    "memory_fraction": "4/8",
+    "memory_GB": 20
+  },
+  {
+    "profile": "mig-7g.40gb",
+    "gpu": "A100-40GB",
+    "SM_fraction": "7/7",
+    "memory_fraction": "full",
+    "memory_GB": 40
+  }
+]

@@ -1,0 +1,1382 @@
+{
+  "baseline_commit": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "original_inventory_size": 628,
+  "counts": {
+    "baseline_documents": 66,
+    "baseline_lines": 16351,
+    "hybrid_documents": 54,
+    "hybrid_lines": 9873,
+    "eks_documents": 12,
+    "eks_lines": 6478,
+    "baseline_canonical_findings": 200,
+    "hybrid_canonical_findings": 135,
+    "eks_canonical_findings": 65,
+    "baseline_occurrences": 400,
+    "corrected_baseline_findings": 31,
+    "baseline_findings_without_accepted_correction_record": 169,
+    "review_stage_findings": 4,
+    "all_original_defect_ids": 204,
+    "unverified_claim_groups": 57
+  },
+  "documents": [
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "dae43dfd3601631d32072f1056c3aaeeb1bedeaf0f3c76a269c145e65d021d7f",
+      "line_count": 210,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          210
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "2229d897b4167570826d21c80bd7aeb0591f1f2bfcc93cb361adab0511102433",
+      "line_count": 329,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          329
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "c75d4d1f287818b04ed5849241bfa5eb4c5a21882c0cc0f144ae93fa9301e0fb",
+      "line_count": 40,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          40
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "426ab74ea779e359008a86f0ede9c05732da3f54235520aa5d6292359ad7c843",
+      "line_count": 70,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          70
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cidr-network-design.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "5e92851ea0398d05201aa6d26b1cd8398ae64f3e7b7361c7c469b8849e2138b3",
+      "line_count": 111,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          111
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cni-selection-routing.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "3de2c26d3e8f03de4e7cec448f1b66837a66e8b9c35e25d3f95f417d826424bb",
+      "line_count": 187,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          187
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/firewall-connectivity.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "aaf82028a28d52cb387fbb6a8d54fc69c57c23ae7c9e6bbfe6d67230fd26af6e",
+      "line_count": 209,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          209
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "9e31f82a1d8a93ea616cde2ad2def962c066fad34bc0c8e699275fcc687ce48a",
+      "line_count": 334,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          334
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "1248d5eccfec503f2dca6c4fc7bdf7b5857dcae2758aa17a07caa8da227a1642",
+      "line_count": 68,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          68
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/load-balancing.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "41a39888688b0ec2e19926408d1e9bd00e912bef0fd2feecbd7c9aeadf198405",
+      "line_count": 171,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          171
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "8c624d804ba3ed1157d69126bfc5d25690bfed121aaca76830c9a944aecbdad2",
+      "line_count": 172,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          172
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "a0d167290a65279792348d01557c03b2f2e62ae7263d345cf60d5fc5325225fd",
+      "line_count": 47,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          47
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "2f2c3fa726423cff389f8b2481cddb1c8b6020b8acfd1ed29b925020b0d4b1b9",
+      "line_count": 183,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          183
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "161f0b0f1c78da39217050772f4df3716353381d312f4cd7467be22b16af9c67",
+      "line_count": 91,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          91
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "6cbe6cfe6e22a9bcbe23a1a6aad553171ee414fb787aafd5870719c5dfd554d6",
+      "line_count": 179,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          179
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "da60d336bf8699fe8d7ea080c52d84403637aad77289dd6dea028cf1a372c20e",
+      "line_count": 175,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          175
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "886df9694079c43dc9a9e70a78a83ca6538c6a6d15532c039da79d41dd4348e6",
+      "line_count": 333,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          333
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "ff829fa5ef44384020fc2947927b8b00937ed26b71c63a5360c4e471852ab836",
+      "line_count": 40,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          40
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "8d34ce936a15c314d033379560997a2f2f8fd895789067f5c92482f8cdf769ac",
+      "line_count": 33,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          33
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/node-authentication.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "39234d9ff934bc903e36f268e9d0d6fb26d07042e3e4d580b45b5933b5addd9f",
+      "line_count": 185,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          185
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "ddf5de6774f6fd45dfed4834313e7388a5269f0168ccba86a4de51ca2ce45505",
+      "line_count": 331,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          331
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/harbor-registry.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "5fa13bdb2ced7171d7f19be610ea572d62a8e94583ad5b8ab9548ed1516c4517",
+      "line_count": 601,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          601
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "a08aa22c1b4f1210fb114657a967766f1cec7ec719fc02ea57261cf00fe4af87",
+      "line_count": 40,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          40
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/rosa/index.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "d329aaf0857bfdb3c42c4eb8908bb6da9da17a1c97a95daa4ee3d4f13cce1946",
+      "line_count": 241,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          241
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/rosa/rosa-demo-installation.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "3a29efc039ec7e1591183f6ee5aee495d63f96dfe086cc5b3b1b1eed379bca14",
+      "line_count": 237,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          237
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/rosa/rosa-security-compliance.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "32742d00ab3c7e45ecac78ab2dba109ec4ddb3668dd7d8c9db3c31b5186686f8",
+      "line_count": 138,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          138
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md",
+      "locale": "en",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "9a0c721446d91f7750f8f759e36ac98ef764ab1deefdd6dcaf6d23c39f110651",
+      "line_count": 183,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          183
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "132a6d1ed54ae717c7b44f24735923623e943b853f2523b5830ccd2995cd8ef1",
+      "line_count": 210,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          210
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "3c9135bf3dc70bf0a708d1c12b13b49156f8f628001590b286fd7fecec57c69e",
+      "line_count": 329,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          329
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/compute-gpu/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "38b19fadbcb78f517d14e5e37aea3c17f721ea2659ebdb980181959d234f66b6",
+      "line_count": 40,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          40
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "932b7c4174e49cf48cfc7d2e21f3040a3b92be0b04431dc6801f9b4e6136a374",
+      "line_count": 70,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          70
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/networking/cidr-network-design.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "ec9a671bced8fb55fb69da91cd499fde1f3c8144ef6825501da55e9e77347beb",
+      "line_count": 111,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          111
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/networking/cni-selection-routing.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "fb13918eae683f2d6626ba613be08ee45b81d79454121b6c7bc5087ad5f56a87",
+      "line_count": 187,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          187
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/networking/firewall-connectivity.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "be006d9612ab51f1d782e6a5168f174776e2d47fd5f3e5b16b3662c219348d6d",
+      "line_count": 209,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          209
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "12c2acd43d61bfeee7539e057d441cc8432c17a08f7aecb1592622de9aeb5966",
+      "line_count": 334,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          334
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/networking/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "fbaab955b2b88237eada40e4622192b54822061fd0cca1bc613903257817c3df",
+      "line_count": 68,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          68
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/networking/load-balancing.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "f9e415327d6a8a5e4ecd0ef26b53c4e0722b0eb17a9f4e22f70bbeece7c13168",
+      "line_count": 171,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          171
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/networking/private-vpc-endpoints.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "56245b560c1a371ec4cdae8457efcb51b8870e73131800cd84b6f44673dbf671",
+      "line_count": 172,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          172
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/operations-cost/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "3632af8c93283e37b06c506fc2b7bb559563be4d2f5af8d93b61a8685dd378c4",
+      "line_count": 47,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          47
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "6277317fd234457875c6c5054a510a2f2867bc6b4ae4efab2694b0b1cda99da6",
+      "line_count": 183,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          183
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "1055e35ba9a1d27aca59f658534cf216f1c8763ce9629eb175e1fec0dc8b22b1",
+      "line_count": 91,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          91
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "5e521999d3f4e09f4bf8be9049a9d58b114ba94f13ef3b82703ac6468269eb91",
+      "line_count": 179,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          179
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "b5600ceb14d495a57203338dd005780ec1fcc7563f783af0a0f87462501656aa",
+      "line_count": 175,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          175
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "90911a7c085a1a6c13058fc50265a9a20a8141b9d885e5beab9ad7d4a4edd821",
+      "line_count": 333,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          333
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/overview-architecture/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "cf157a34b4072b6652bf29e5c058c3566bd550b7bb7ac40e978b0a14cf9844c1",
+      "line_count": 40,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          40
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/security-authn/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "52847fc89de3dfe6d0badaedf9170344dcf99377ee823838fe44d91cd8f0b8da",
+      "line_count": 33,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          33
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/security-authn/node-authentication.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "fba0469af090a75d4946fdb5ef1097b451a2e5ded46c4cc6bbe9f4630222eadc",
+      "line_count": 184,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          184
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "a381da200956b9ba65f6de25c70ed8a824151a48831b5c43418dee2af34f8669",
+      "line_count": 331,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          331
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/storage-registry/harbor-registry.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "58a875784bef2d5fc09f039994d4cb7a2c217062d61f15bdd75b43d5a2261d94",
+      "line_count": 601,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          601
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-hybrid-nodes/storage-registry/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "93e415020cb182f3e35dc775089ee7f212b92fd934b70183b1e2bf4c3a985a95",
+      "line_count": 40,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          40
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_no_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/rosa/index.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "cd8baa7477c652e74e6b3457b452568af456194a3843d5674fdf8ed3f1e2949a",
+      "line_count": 239,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          239
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/rosa/rosa-demo-installation.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "8954c242468d7e6ad892c8189f4a6eee44e232af27fad2553c8467d254ddfa08",
+      "line_count": 237,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          237
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/rosa/rosa-security-compliance.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "7c75efeb7bda41818d1991da04625f06c5df1bd42ef9e409988d02f90e708623",
+      "line_count": 138,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          138
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/sales/mrc-talking-points.md",
+      "locale": "ko",
+      "group": "hybrid-rosa",
+      "baseline_sha256": "f9301c52e20e494e266eece74fa186880ddda00b4b26c9bc9061293f83463737",
+      "line_count": 183,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          183
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "verification_pending",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/auto-mode.md",
+      "locale": "en",
+      "group": "eks-operations",
+      "baseline_sha256": "8d616610aecf5520dfbeb7b669d5255d1d52b3069662725f6e6f1f3254f1c1b5",
+      "line_count": 512,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          512
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-best-practices/operations-reliability/eks-debugging/auto-mode.md",
+      "locale": "ko",
+      "group": "eks-operations",
+      "baseline_sha256": "c9f62dd148c81bcfb17ed41f3832cd8f4e20d869c9717ff2b4394b6b533f435d",
+      "line_count": 512,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          512
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/gpu-ai-workload.md",
+      "locale": "en",
+      "group": "eks-operations",
+      "baseline_sha256": "ff0401e8d375285c9f1c5efb3681c9767f97260d4d9a1b3bdaac4db3c815087e",
+      "line_count": 396,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          396
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-best-practices/operations-reliability/eks-debugging/gpu-ai-workload.md",
+      "locale": "ko",
+      "group": "eks-operations",
+      "baseline_sha256": "f0309c63a3d536f523939d58c74328abaa2ede3007cad1d0b04c7b8fadc9afa8",
+      "line_count": 396,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          396
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+      "locale": "en",
+      "group": "eks-operations",
+      "baseline_sha256": "58e71b135f113636b69fdfcfb90c0022ef3b7286af53d8449d34bffc0226fc03",
+      "line_count": 727,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          727
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+      "locale": "ko",
+      "group": "eks-operations",
+      "baseline_sha256": "9c90802a9115b1de2f19e403ea126d83fa37e61ed7336ac726eebd6584a97d50",
+      "line_count": 727,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          727
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/networking.md",
+      "locale": "en",
+      "group": "eks-operations",
+      "baseline_sha256": "682d82bab0466805ab869b34a25e98ab672d0d26a1476e338c2b50c29c431622",
+      "line_count": 525,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          525
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-best-practices/operations-reliability/eks-debugging/networking.md",
+      "locale": "ko",
+      "group": "eks-operations",
+      "baseline_sha256": "106172263429c8b934d9ff00e2eac7b74c04b4613698ac8c70fdb89eb04385ba",
+      "line_count": 525,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          525
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/observability.md",
+      "locale": "en",
+      "group": "eks-operations",
+      "baseline_sha256": "2e87b2d664829a5d7d01e37fc9cb0f933784877691752c85d601ad4baf1623d7",
+      "line_count": 646,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          646
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-best-practices/operations-reliability/eks-debugging/observability.md",
+      "locale": "ko",
+      "group": "eks-operations",
+      "baseline_sha256": "ca1f008f7b55e2122fe19ab02b0367e073e517ceb5046b1c36aa0af575078c85",
+      "line_count": 646,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          646
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/storage.md",
+      "locale": "en",
+      "group": "eks-operations",
+      "baseline_sha256": "625a32f9592d8e12728718d15bebc6fda86cb07f9efa81d91953320404c71946",
+      "line_count": 433,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          433
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    },
+    {
+      "path": "docs/eks-best-practices/operations-reliability/eks-debugging/storage.md",
+      "locale": "ko",
+      "group": "eks-operations",
+      "baseline_sha256": "7908e8f86196397c83ad5adcb8a24cbea0d4f6cdfc3a159e224997c32c350d16",
+      "line_count": 433,
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          433
+        ]
+      ],
+      "document_specific_review": true,
+      "original_review_status": "reviewed_with_findings",
+      "evidence_gaps_are_not_verified": true
+    }
+  ],
+  "eks_record_validation": {
+    "source_count": 12,
+    "line_count": 6478,
+    "full_text_read_count": 12,
+    "document_specific_review_count": 12,
+    "section_claim_groups_deduplicated_by_pair": 66,
+    "canonical_finding_count": 65,
+    "finding_occurrences": 130,
+    "canonical_severity_counts": {
+      "P1": 34,
+      "P2": 31
+    },
+    "explicit_unverified_groups_deduplicated_by_pair": 22,
+    "all_source_hashes_and_quotes_match": true,
+    "errors": [],
+    "execution_boundary": "Static audit only; no Git, example, cloud, container or installation execution."
+  },
+  "boundary": "Local validation paths and raw evidence caches intentionally excluded from this public artifact.",
+  "dependencies": {
+    "hybrid": {
+      "count": 4,
+      "lines": 235,
+      "full_text_read": true,
+      "boundary": "Imported visible technical components, already documented in the completed Hybrid review; not additional inventory documents."
+    },
+    "eks": {
+      "local_component_count": 3,
+      "local_component_lines": 76,
+      "invoked_in_article": false,
+      "full_text_read": true,
+      "remote_procedural_artifacts": [
+        {
+          "url": "https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml",
+          "line_count": 211,
+          "full_text_read": true,
+          "boundary": "NodeLocal DNS template referenced by the command; placeholders and mode prerequisites reviewed."
+        }
+      ],
+      "local_component_paths": [
+        "src/components/EksDebugTables/index.js",
+        "src/components/EksDebugTables/IncidentEscalationTable.js",
+        "src/components/EksDebugTables/ZonalShiftImpactTable.js"
+      ]
+    }
+  }
+}

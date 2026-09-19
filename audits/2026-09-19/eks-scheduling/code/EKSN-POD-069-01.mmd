@@ -1,0 +1,11 @@
+flowchart TD
+    A[Describe workload and SLO] --> B[Check CPU memory accelerator and architecture]
+    B --> C[Check eligible NodePools and capacity types]
+    C --> D[Check AZ and hostname placement together]
+    D --> E[Check startup readiness and workload priority]
+    E --> F[Check storage and network dependencies]
+    F --> G[Check voluntary disruption and recovery budgets]
+    G --> H{All requirements compatible?}
+    H -->|Yes| I[Review complete manifest and validation evidence]
+    H -->|No| J[Revise constraints or capacity]
+    J --> B

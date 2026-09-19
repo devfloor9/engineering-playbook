@@ -1,0 +1,12 @@
+{
+  "Dimensions": [
+    {
+      "Name": "LoadBalancer",
+      "Value": "app/replace-me/0123456789abcdef"
+    },
+    {
+      "Name": "AvailabilityZone",
+      "Value": "us-east-1a"
+    }
+  ]
+}

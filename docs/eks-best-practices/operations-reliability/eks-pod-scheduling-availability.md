@@ -3,9 +3,9 @@ title: EKS Pod 스케줄링 & 가용성 패턴
 description: Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 70
+reading_time: 75
 tags:
   - eks
   - kubernetes
@@ -132,17 +132,17 @@ Pod가 `Pending` 상태로 남아있다면, `kubectl describe pod <pod-name>`으
 |------|------|-----------|--------|---------------|
 | **Node Selector** | Pod | Filtering | Hard | 특정 노드 타입 지정 (GPU, ARM) |
 | **Node Affinity** | Pod | Filtering/Scoring | Hard/Soft | 세밀한 노드 선택 조건 |
-| **Pod Affinity** | Pod | Scoring | Hard/Soft | 관련 Pod를 가까이 배치 |
+| **Pod Affinity** | Pod | Filtering/Scoring | Hard/Soft | 필수 조건으로 후보를 거르고 선호 조건으로 점수 부여 |
 | **Pod Anti-Affinity** | Pod | Filtering/Scoring | Hard/Soft | Pod를 서로 멀리 배치 |
-| **Taints/Tolerations** | Node + Pod | Filtering | Hard | 전용 노드 격리 |
-| **Topology Spread** | Pod | Scoring | Hard/Soft | AZ/노드 간 균등 분산 |
-| **PriorityClass** | Pod | Preemption | Hard | 우선순위 기반 리소스 선점 |
-| **Resource Requests** | Pod | Filtering | Hard | 최소 리소스 보장 |
+| **Taints/Tolerations** | Node + Pod | Filtering/Scoring, NoExecute 퇴거 | Effect에 따라 다름 | 새 배치의 허용·회피와 기존 Pod 퇴거를 구분 |
+| **Topology Spread** | Pod | Filtering/Scoring | Hard/Soft | 선택된 Pod의 도메인별 수를 비교 |
+| **PriorityClass** | Pod | 대기열 순서, 허용된 Preemption | 다른 배치 조건을 우회하지 않음 | 높은 우선순위 Pod를 먼저 검토 |
+| **Resource Requests** | Pod | Filtering | Hard | 노드 allocatable과 기존 요청량을 기준으로 배치 가능 여부 판단 |
 | **PDB** | Pod Group | Eviction API | Hard | 중단 예산을 초과하는 Eviction 요청 제한 |
 
 **Hard vs Soft 제약:**
 - **Hard (Required)**: 조건을 충족하지 못하면 스케줄링 실패 → `Pending` 상태
-- **Soft (Preferred)**: 조건을 선호하지만 충족하지 못해도 스케줄링 진행 → 차선책 허용
+- **Soft (Preferred)**: 조건을 충족하지 못해도 다른 Hard 조건을 만족하는 노드에 배치 가능
 
 ---
 
@@ -176,7 +176,11 @@ spec:
         resources:
           requests:
             nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
 ```
+
+GPU 예제는 드라이버와 device plugin이 `nvidia.com/gpu`를 노드 자원으로 제공하는 환경을 전제로 합니다. 이미지 이름은 예시이므로 사용할 이미지와 node label을 확인해야 합니다. [GPU 자원 규칙](https://v1-34.docs.kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/)에 따라 GPU는 `limits`만 지정하거나, `requests`와 `limits`를 같은 값으로 지정합니다.
 
 **제한사항**: Node Selector는 `AND` 조건만 지원하며, `OR`, `NOT`, 비교 연산자 등을 사용할 수 없습니다. 복잡한 조건이 필요하면 Node Affinity를 사용하세요.
 
@@ -192,7 +196,7 @@ Node Affinity는 Node Selector의 확장 버전으로, 복잡한 논리 조건�
 | `preferredDuringSchedulingIgnoredDuringExecution` | 조건 선호 (Soft, 가중치 기반) | 선호하지만 대안 허용할 때 |
 
 :::info IgnoredDuringExecution의 의미
-`IgnoredDuringExecution`은 Pod가 **이미 실행 중**일 때 노드 레이블이 변경되어도 Pod를 Evict하지 않는다는 의미입니다. 미래에 `RequiredDuringExecution`이 도입되면 실행 중에도 조건 불충족 시 재배치됩니다.
+`IgnoredDuringExecution`은 스케줄링 후 node label이 조건과 달라져도 이 affinity 규칙만으로 Pod를 퇴거하거나 재배치하지 않는다는 의미입니다. [Kubernetes 1.34의 Node Affinity API](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity)에는 실행 중 조건을 다시 강제하는 `RequiredDuringExecution` 필드가 없습니다.
 :::
 
 #### 연산자 종류
@@ -200,7 +204,7 @@ Node Affinity는 Node Selector의 확장 버전으로, 복잡한 논리 조건�
 | 연산자 | 설명 | 예시 |
 |--------|------|------|
 | `In` | 값이 목록에 포함됨 | `values: ["t3.xlarge", "t3.2xlarge"]` |
-| `NotIn` | 값이 목록에 포함되지 않음 | `values: ["t2.micro", "t2.small"]` |
+| `NotIn` | 값이 목록에 없거나 해당 label이 없음 | `values: ["t2.micro", "t2.small"]`; label 존재가 필요하면 `Exists`도 지정 |
 | `Exists` | 키가 존재함 (값 무관) | 레이블 존재 여부만 확인 |
 | `DoesNotExist` | 키가 존재하지 않음 | 특정 레이블이 없는 노드 선택 |
 | `Gt` | 값이 크다 (숫자) | `values: ["100"]` (CPU 코어 수 등) |
@@ -233,9 +237,10 @@ spec:
               - key: node.kubernetes.io/instance-type
                 operator: In
                 values:
-                - g5.xlarge
                 - g5.2xlarge
                 - g5.4xlarge
+              - key: karpenter.sh/capacity-type
+                operator: Exists
               - key: karpenter.sh/capacity-type
                 operator: NotIn
                 values:
@@ -248,7 +253,11 @@ spec:
             nvidia.com/gpu: 1
             cpu: "4"
             memory: 16Gi
+          limits:
+            nvidia.com/gpu: 1
 ```
+
+이 예제는 Karpenter의 capacity-type label이 있고 값이 `spot`이 아닌 노드를 선택합니다. CPU·메모리 요청은 시스템 예약량과 DaemonSet 요청량을 제외한 여유 자원에 들어가야 합니다.
 
 **예시 2: 인스턴스 패밀리 선호 (Soft, 가중치)**
 
@@ -371,12 +380,16 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             nodeSelectorTerms:
             - matchExpressions:
-              # Spot 노드 회피
+              # Label이 있는 노드 중 Spot 노드 회피
+              - key: karpenter.sh/capacity-type
+                operator: Exists
               - key: karpenter.sh/capacity-type
                 operator: NotIn
                 values:
                 - spot
-              # ARM 아키텍처 회피
+              # Label이 있는 노드 중 ARM 아키텍처 회피
+              - key: kubernetes.io/arch
+                operator: Exists
               - key: kubernetes.io/arch
                 operator: NotIn
                 values:
@@ -925,7 +938,7 @@ spec:
 
 ## 5. Taints & Tolerations
 
-Taints와 Tolerations는 **노드 수준의 회피(repel) 메커니즘**입니다. 노드에 Taint를 적용하면, 해당 Taint를 Tolerate하는 Pod만 스케줄링됩니다.
+Taint는 노드에, toleration은 Pod에 지정합니다. 스케줄러는 Pod가 tolerate하지 않는 taint의 effect에 따라 배치를 차단하거나 피합니다. Toleration이 있어도 그 노드로 배치가 보장되지는 않으며 affinity와 자원 조건도 만족해야 합니다.
 
 **개념:**
 - **Taint**: 노드에 적용 (예: "이 노드는 GPU 전용입니다")
@@ -937,7 +950,7 @@ Taints와 Tolerations는 **노드 수준의 회피(repel) 메커니즘**입니�
 |--------|------|--------------|----------|
 | `NoSchedule` | 새 Pod 스케줄링 차단 | 기존 Pod 유지 | 신규 전용 노드 생성 시 |
 | `PreferNoSchedule` | 가능하면 스케줄링 차단 (Soft) | 기존 Pod 유지 | 선호 회피 (대안 허용) |
-| `NoExecute` | 스케줄링 차단 + 기존 Pod Evict | 기존 Pod 즉시 Evict | 노드 유지보수, 긴급 대피 |
+| `NoExecute` | 일치하는 toleration이 없는 Pod의 배치 차단 | Toleration이 없으면 퇴거; 있으면 `tolerationSeconds`에 따라 결정 | 노드 상태 변화에 따른 퇴거 정책 |
 
 **Taint 적용 명령어:**
 
@@ -1075,7 +1088,7 @@ tolerations:
 
 #### tolerationSeconds (NoExecute 전용)
 
-`NoExecute` Taint가 적용되면 기본적으로 즉시 Evict되지만, `tolerationSeconds`로 유예 시간을 부여할 수 있습니다.
+`NoExecute` taint를 tolerate하지 않는 기존 Pod는 퇴거 대상이 됩니다. 일치하는 toleration에 `tolerationSeconds`가 있으면 그 시간 동안 유지하고, 시간을 생략하면 해당 taint로는 시간 제한 없이 유지합니다.
 
 ```yaml
 apiVersion: v1
@@ -1099,22 +1112,22 @@ spec:
     image: app:v1.0
 ```
 
-**기본값**: Kubernetes는 `tolerationSeconds` 미지정 시 다음 기본값을 사용합니다:
-- `node.kubernetes.io/not-ready`: 300초
-- `node.kubernetes.io/unreachable`: 300초
+**자동으로 추가되는 toleration과 명시한 toleration은 다릅니다.** 기본 admission 설정에서는 일반 Pod에 `not-ready`·`unreachable` toleration이 없을 때 각각 300초의 toleration을 추가합니다. 직접 명시한 `NoExecute` toleration에서 시간을 생략하면 300초가 아닌 무기한 허용입니다. DaemonSet controller는 두 taint에 시간 제한이 없는 toleration을 추가합니다. 이 시간은 장애 감지부터 서비스 복구까지 걸리는 전체 시간을 보장하지 않습니다.
 
 ### 5.4 EKS 기본 Taints
 
-EKS는 특정 노드에 자동으로 Taint를 적용합니다:
+아래는 EKS에서도 사용하는 Kubernetes의 노드 상태 taint와 기본 toleration 동작입니다. [공식 taint·toleration 설명](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)에서 스케줄링 차단과 퇴거를 구분해 확인할 수 있습니다.
 
 | Taint | 적용 대상 | 효과 | 대응 방법 |
 |-------|----------|------|----------|
-| `node.kubernetes.io/not-ready` | 준비되지 않은 노드 | NoExecute | 자동 Toleration (kubelet) |
-| `node.kubernetes.io/unreachable` | 연결 불가 노드 | NoExecute | 자동 Toleration (kubelet) |
-| `node.kubernetes.io/disk-pressure` | 디스크 부족 노드 | NoSchedule | DaemonSet만 Tolerate |
-| `node.kubernetes.io/memory-pressure` | 메모리 부족 노드 | NoSchedule | DaemonSet만 Tolerate |
-| `node.kubernetes.io/pid-pressure` | PID 부족 노드 | NoSchedule | DaemonSet만 Tolerate |
-| `node.kubernetes.io/network-unavailable` | 네트워크 미구성 노드 | NoSchedule | CNI 플러그인이 제거 |
+| `node.kubernetes.io/not-ready` | Ready=False | NoExecute | 기본 admission은 일반 Pod에 300초, DaemonSet controller는 무기한 toleration 추가 |
+| `node.kubernetes.io/unreachable` | Ready=Unknown | NoExecute | 기본 admission은 일반 Pod에 300초, DaemonSet controller는 무기한 toleration 추가 |
+| `node.kubernetes.io/disk-pressure` | 디스크 부족 노드 | NoSchedule | DaemonSet에 자동 추가; 다른 Pod도 명시 가능 |
+| `node.kubernetes.io/memory-pressure` | 메모리 부족 노드 | NoSchedule | BestEffort가 아닌 Pod와 DaemonSet에 자동 추가 |
+| `node.kubernetes.io/pid-pressure` | PID 부족 노드 | NoSchedule | DaemonSet에 자동 추가; 다른 Pod도 명시 가능 |
+| `node.kubernetes.io/network-unavailable` | 네트워크 미구성 노드 | NoSchedule | hostNetwork DaemonSet에는 자동 toleration; 일반 워크로드는 네트워크 준비 확인 |
+
+Toleration은 부족한 자원이나 연결을 복구하지 않습니다. 스케줄링이 허용되어도 노드 압박에 따른 퇴거나 애플리케이션 실패가 발생할 수 있습니다.
 
 ### 5.5 Karpenter에서 Taint 관리
 
@@ -1621,31 +1634,16 @@ Cluster Autoscaler와 Karpenter를 동시에 실행하면 다음 문제가 발�
 
 ##### 롤백 절차
 
-Karpenter로 전환 후 문제 발생 시 Cluster Autoscaler로 복귀하는 방법입니다.
+Karpenter에서 Cluster Autoscaler와 ASG로 돌아가려면 **대체 용량과 워크로드 동작을 먼저 복구한 뒤** 기존 노드를 종료해야 합니다. [Karpenter의 삭제 동작](https://karpenter.sh/docs/concepts/disruption/#manual-methods)에 따르면 NodePool 삭제는 소유한 NodeClaim과 노드의 연쇄 삭제·인스턴스 종료로 이어집니다. `kubectl delete nodepool --all`을 노드 보존 절차로 사용하지 않습니다.
 
-```bash
-# 1. Karpenter NodePool 삭제 (노드는 유지)
-kubectl delete nodepool --all
+1. 대상 AWS 계정·역할·리전·클러스터, ASG와 NodePool을 식별합니다. 기존 launch template, IAM, 네트워크, CA 설치 및 워크로드 배치 설정을 복구할 수 있어야 합니다. 앞 단계에서 CA Deployment나 ASG를 삭제했다면 `scale` 명령으로 되살릴 수 없으므로 보관한 IaC·설치 설정으로 다시 생성해야 합니다.
+2. 선택한 ASG에 필요한 용량을 준비하고 CA의 권한·노드 그룹 검색·확장 동작을 확인합니다. 새 노드가 Ready인 것뿐 아니라 필요한 AZ, 이미지 pull, 볼륨 연결과 네트워크 접근도 검증합니다.
+3. 해당 워크로드의 nodeSelector·affinity·toleration을 실제 ASG 노드의 label과 맞춥니다. Karpenter 전용 selector가 남아 있으면 대체 용량이 있어도 배치되지 않습니다. 작은 워크로드부터 옮겨 서비스 오류율·지연과 데이터 상태를 확인합니다.
+4. 이전이 확인된 범위에서 기존 노드를 하나씩 cordon하고 PDB를 존중하는 drain 절차를 적용합니다. 대체 Pod가 정상 서비스하지 못하면 추가 종료를 중단하고 아직 유지 중인 용량·배치 설정으로 복귀합니다. 전체 운영 namespace를 한 번에 재시작하지 않습니다.
+5. 워크로드와 데이터 이전을 확인한 뒤 정확히 식별한 NodeClaim·노드만 해당 Karpenter 버전의 종료 절차로 정리합니다. 소유 리소스가 남은 NodePool을 삭제하면 그 리소스도 종료될 수 있습니다. finalizer를 제거하거나 리소스를 orphan 처리해 종료 과정을 우회하지 않습니다.
 
-# 2. Cluster Autoscaler 재활성화
-kubectl scale deployment cluster-autoscaler \
-  -n kube-system --replicas=1
+이 순서는 복구 설계의 조건입니다. 실제 용량과 PDB, 저장소, CA·Karpenter 버전이 정해지기 전에는 그대로 실행할 수 있는 일괄 롤백 스크립트가 아닙니다.
 
-# 3. 기존 ASG 스케일 업
-aws autoscaling set-desired-capacity \
-  --auto-scaling-group-name eks-prod-asg \
-  --desired-capacity 10
-
-# 4. Karpenter 노드에 Taint 추가 (신규 Pod 차단)
-kubectl taint nodes -l karpenter.sh/nodepool \
-  rollback=true:NoSchedule
-
-# 5. 워크로드 Rolling Restart
-kubectl rollout restart deployment -n production --all
-
-# 6. Karpenter 노드 제거
-kubectl delete nodes -l karpenter.sh/nodepool
-```
 
 ---
 
@@ -1742,15 +1740,15 @@ kind: PodDisruptionBudget
 metadata:
   name: cassandra-pdb
 spec:
-  maxUnavailable: 1  # 동시에 최대 1개 노드만 중단 허용 (쿼럼 유지)
+  maxUnavailable: 1  # 선택된 Pod 집합에서 비가용 Pod를 최대 1개로 제한
   selector:
     matchLabels:
       app: cassandra
 ```
 
-**효과:**
-- Cassandra 쿼럼(5개 중 3개 이상)을 유지하면서 안전하게 노드 Drain 가능
-- Karpenter 통합 시 노드가 한 번에 하나씩만 제거됨
+이 예시는 PDB와 StatefulSet의 연결을 보여주며, 완전한 Cassandra 배포 설정이 아닙니다. Cassandra의 quorum은 전체 Pod 수가 아니라 keyspace의 replication factor, 일관성 수준과 데이터 배치에 따라 정해집니다. [Cassandra 복제·일관성 설명](https://cassandra.apache.org/doc/4.1/cassandra/architecture/dynamo.html)을 바탕으로 readiness, 데이터 복제 상태와 장애 영역을 따로 확인합니다.
+
+PDB는 선택된 **Pod 집합**의 자발적 축출 예산을 제한합니다. 모든 Karpenter 노드가 한 번에 하나씩만 제거되도록 만드는 설정은 아닙니다. 자발적 consolidation·drift 등의 노드 중단 동시성은 NodePool disruption budget에서 별도로 다룹니다.
 
 #### 전략 3: 비율 기반 PDB (대규모 Deployment)
 
@@ -1769,8 +1767,10 @@ spec:
 | Replica 수 | maxUnavailable: "25%" | 동시 Evict 가능 수 |
 |-----------|---------------------|------------------|
 | 4 | 1개 | 1 |
-| 10 | 2.5 → 2개 | 2 |
+| 10 | 2.5 → 3개 (올림) | 3 |
 | 100 | 25개 | 25 |
+
+[Kubernetes는 PDB의 백분율을 올림합니다](https://v1-34.docs.kubernetes.io/docs/tasks/run-application/configure-pdb/#rounding-logic-when-specifying-percentages). 위 표는 대상 Pod가 모두 건강하고 다른 중단이 없을 때의 계산입니다. 실제 추가 Eviction 허용량은 이미 비가용하거나 축출 중인 Pod 등을 반영한 `status.disruptionsAllowed`로 확인합니다. 따라서 10개의 25% 설정이 3개의 중단을 허용할 수 있습니다.
 
 **비율 기반의 장점:**
 - 스케일링 시 자동으로 비율 조정
@@ -1825,15 +1825,10 @@ spec:
       app: critical-app
 ```
 
-또는 비율 사용:
-
-```yaml
-spec:
-  minAvailable: "67%"  # 3개 중 2개 (67%)
-```
+`minAvailable: "67%"`로 바꾸면 3 × 0.67 = 2.01을 올림하여 **3개**를 요구합니다. 이 예제처럼 3개 중 2개를 유지하려면 위의 정수 `minAvailable: 2`를 사용합니다. replica 수를 변경할 때는 애플리케이션의 가용성 요구와 예산을 다시 확인합니다.
 
 :::warning PDB 설정 시 주의사항
-`minAvailable: replicas`로 설정하면 **어떤 노드도 Drain할 수 없습니다**. 항상 `minAvailable < replicas` 또는 `maxUnavailable ≥ 1`로 설정하여 최소 1개의 Pod Evict를 허용하세요.
+`minAvailable`을 replica 수와 같게 두는 것은 해당 PDB가 선택한 건강한 Pod의 자발적 축출을 금지하려는 유효한 정책일 수 있습니다. 이 유지보수 예제에서는 축출 여유가 필요하지만, 모든 워크로드의 예산을 일괄 완화해서는 안 됩니다. 애플리케이션 담당자와 필요한 복제본·건강 상태·유지보수 조건을 확인합니다. 해당 Pod가 없는 다른 노드까지 모두 drain 불가라는 뜻은 아닙니다.
 :::
 
 #### 문제 2: PDB가 적용되지 않음

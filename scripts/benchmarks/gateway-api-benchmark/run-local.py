@@ -120,7 +120,8 @@ for attempt in range(10):
                 mutate(data)
             write(name + ".config.json", data)
 
-        config("probe", lambda data: data["provenance"].update(generator_version="Python 3.13.15 http.client"))
+        config("probe", lambda data: data["provenance"].update(
+            generator_version="Python 3.13.15 http.client", generator_image=PYTHON))
         command(docker_run(PYTHON, "probe", "python3", "/kit/probe.py", "--config", "/results/probe.config.json",
                            "--output", "/results/probe.raw.json"), "probe")
         command([sys.executable, str(KIT / "results.py"), str(output / "probe.raw.json")], "probe-validated")

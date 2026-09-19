@@ -1,0 +1,1405 @@
+{
+  "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "gaps": [
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.json",
+      "path": "docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "~10central / hundreds-of-clusters pull capacity, immediate/near-zero failover, most mature/proven design",
+        "reason": "No original scalability benchmark or failover/cost measurements supplied.",
+        "needed_evidence": "Pinned implementations, cluster/object/watch counts, credentials design, measured RTO/RPO/cost and failure tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.json",
+      "path": "docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Baseline EKS1.32+/ArgoCD2.13+/Flux2.4+/Velero1.15+ compatibility and customer adoption",
+        "reason": "Reference environment is not an executed integration test; no original customer population dataset.",
+        "needed_evidence": "Pinned version support matrix and actual integration evidence; original adoption source if number retained."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Exact internal scaling triggers; event sharding exclusively PCP; March2026 8XL/SLA launch date",
+        "reason": "Retrieved current user guide and 2025 launch blog do not substantiate all dated/internal implementation details.",
+        "needed_evidence": "Dated AWS release/design statement."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Raw etcd metrics endpoint/RBAC and Poseidon name",
+        "reason": "Retrieved EKS raw-metrics documentation lists only KCM/KSH; no public supporting contract retrieved for /v1/etcd/container/metrics.",
+        "needed_evidence": "Official endpoint/API permission documentation and public AMP collector naming."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Fixed watch-cache100/list10 seats and load-proportionality formula",
+        "reason": "These need a pinned Kubernetes implementation/configuration, not a universal performance inference.",
+        "needed_evidence": "Pinned server source/config and measured workload if quantitative."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "CloudWatch Logs Insights comment and subresource consolidation example",
+        "reason": "No executable query or concrete CRD schema was provided; SQL-style comment and arbitrary-subresource interpretation remain unvalidated.",
+        "needed_evidence": "Documented query grammar and concrete supported CRD status/scale design."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:5",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "CNS429100k-node and operational improvement examples",
+        "reason": "Original talk/result artifacts not retrieved; no cluster or performance execution in this audit.",
+        "needed_evidence": "Original transcript/data/configuration with dated scope."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.json",
+      "path": "docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.md",
+      "locale": "ko",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "dnsperf command in PerformanceBenchmarks.js:82",
+        "reason": "Originalmanualpathsreturned404; no executabletesting wasauthorized.",
+        "needed_evidence": "Validofficialmanualfor-c/-T/defaultduration/outputlatencystatisticstoqualifyexample."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.json",
+      "path": "docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.md",
+      "locale": "ko",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Terraform automation accelerator in MonitoringArchitecture.js:13;100-node/5kQPS recommendationboundary",
+        "reason": "No specific acceleratororbenchmarkcited; topologydecisionismethodological,notverifiednumericthreshold.",
+        "needed_evidence": "Namedpublicacceleratorandworkload-specificevidence,orlabelthresholdillustrative."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.json",
+      "path": "docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.md",
+      "locale": "ko",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Equivalent p99 monitoring on CWPrometheuslane",
+        "reason": "CWofficialoverviewlistscounter/gauge/summarycollection, not histogram. No completehistogram-toCWpipelineprovided.",
+        "needed_evidence": "SpecifyAMP/Prometheusforthebucket-derivedp99oractualcompatibleaggregation/ingestionconfiguration."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/east-west-traffic-best-practice.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/east-west-traffic-best-practice.json",
+      "path": "docs/eks-best-practices/networking-performance/east-west-traffic-best-practice.md",
+      "locale": "ko",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Historical illustrative latency, throughput and savings figures / scores",
+        "reason": "No original run data or complete configuration supplied; upstream Istio benchmark has a different version and bounded setup.",
+        "needed": "Original versioned workload, raw data, percentile methodology and billable usage assumptions."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/east-west-traffic-best-practice.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/east-west-traffic-best-practice.json",
+      "path": "docs/eks-best-practices/networking-performance/east-west-traffic-best-practice.md",
+      "locale": "ko",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Hubble JSON fields, exact NodePort hop diagnostics, ExternalDNS full installation and region-specific cost usage key",
+        "reason": "Not independently validated against pinned executable schemas; no live environment used.",
+        "needed": "Pinned tool output examples and target topology/IAM/metrics schema."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Unmeasured latency/memory/instance-gain illustrations,10–15minute cluster setup,2–3minute connectivity test,100kRPS/<1ms instance suitability",
+        "reason": "No raw workload/hardware/clock/measurement evidence. The main performance section explicitly calls its numbers illustrative.",
+        "needed_evidence": "Original reproducible results for any promoted measurement; otherwise retain illustration status and remove guarantees."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Hubble flow graph helper provenance, every Cilium CLI verification subcommand, exact exported Envoy/health metric label sets, actual chart/bootstrap/migration behavior",
+        "reason": "Some documented helpers lack an identified installed binary/version; no cluster/container/CLI execution authorized. Pinned source exposes concrete failures already recorded.",
+        "needed_evidence": "Pinned CLI help/source and captured sample metrics/results from an operator-controlled environment."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Graviton4 price/energy percentages, perfect Cilium compatibility and M9g/M9gd June2026 GA date",
+        "reason": "Retrieved product pages support only their explicit up-to performance comparison, not all these unqualified claims or launch date.",
+        "needed_evidence": "Dated primary launch announcement/comparator and workload-specific compatibility evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "All examples are deployment-ready and equivalent across five products; historical release date and every nested ACK/WAF/CRD field",
+        "reason": "No coherent pinned installation/fixture or operator execution evidence. Some official sources were unavailable at guessed paths; successful versioned schemas were used for concrete findings only.",
+        "needed_evidence": "Pinned schema validation and isolated positive/negative feature tests with controller status and backend observations; dated ACK launch source if date retained."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "All numeric latency/throughput/resource/monthly-cost ranks, universal optimum claims, difficulty ratings and production maturity/adoption counts in shared matrices",
+        "reason": "No matched original benchmark or dated inventory and no complete workload/cost model. GitHub API requests for some release inventories hit403 rate limiting.",
+        "needed_evidence": "Pinned implementation/conformance reports, workload/topology/configuration, raw repetitions/resource meters and dated feature/support inventory."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Complete feature parity across six implementations, commercial support/edition availability, version-specific NGF matrix cells and automatic mesh interoperability",
+        "reason": "Only concrete retrieved product subsets validated; current NGF docs use newer Gateway API than the page baseline, and current documentation alone cannot prove historical support.",
+        "needed_evidence": "Each named release schema/report and edition support terms; retain unverified cells rather than assigning unsupported checkmarks."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Snippet-specific older CVEs and the claim that the March2025 incident accelerated the retirement decision",
+        "reason": "Retrieved primary CVE1974 and retirement notices do not substantiate that causal history; attempted older-CVE issue URL identified a different CVE.",
+        "needed_evidence": "Correct historical advisories and project decision records."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.json",
+      "path": "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Complete controller installation/debug commands and5phase operational timing",
+        "reason": "Some historical assets/CLI subcommands have no retrieved executable evidence; no cluster or container run. Proposed dates and output are illustrative.",
+        "needed_evidence": "Pinned full installation matrix and operator-run positive/negative routing/rollback evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "GammaSupportTable: kgateway GAMMA GA, Linkerd beta label, all native retry/fault-injection support and Lattice FIS integration",
+        "reason": "No pinned mesh conformance report or precise product configuration was supplied. Retrieved AWS controller report is a Gateway report with failures, not a mesh certification; FIS action catalog contains no named VPC Lattice action.",
+        "needed_evidence": "Versioned mesh conformance report and exact supported APIs/actions per implementation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Best eBPF performance, ~20 MB Linkerd proxy, zero managed overhead and comparative maturity",
+        "reason": "No matched feature/workload benchmark artifacts or resource measurements were supplied.",
+        "needed_evidence": "Pinned reproducible tests with equivalent security/L7 features and complete resource accounting."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/index.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/index.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "All-feature support rows, Lattice configurable retries/FIS and per-implementation maturity/operations rankings",
+        "reason": "General architecture docs do not verify every combined feature cell. No exact Lattice retry/fault policy or matching conformance report was retrieved.",
+        "needed_evidence": "Version-specific API support matrix and runnable configuration for each capability."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/index.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/index.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "~5 ms additional Istio p99, Linkerd memory comparison and universal lowest-overhead ordering",
+        "reason": "No common original benchmark artifacts supplied; upstream 1.24 resource figures have narrower test conditions.",
+        "needed_evidence": "Original plots/raw data and matched protocol, payload, concurrency, security and L7 configuration."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/index.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/index.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "mTLS automatically satisfies ISMS-P/PCI-DSS and <10-service adoption threshold",
+        "reason": "No specific requirement mapping or decision-cost evidence supplied. Product capabilities alone do not demonstrate compliance.",
+        "needed_evidence": "Applicable control wording and deployment evidence; treat service-count threshold as illustrative guidance."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Every external claim was verified July 16 2026; controller v2.1.2 current on that date",
+        "reason": "The original author's retrieval log/date evidence was not supplied. Current and version-pinned documents were reviewed independently; tag existence is not proof it was current on the claimed date.",
+        "needed_evidence": "Original retrieval log and dated controller release metadata."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Tetrate deployment/operations ownership and highest operational/headcount rankings",
+        "reason": "Specific commercial product deployment contract and measured staffing/cost comparison are absent.",
+        "needed_evidence": "Named product/version architecture and support responsibility model; measured operational assumptions."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "PodCIDR overlap necessarily requires whole-cluster rebuild; exact EKS CNI migration alternatives",
+        "reason": "Current non-overlap requirement is verified, but the absolute no-correction/rebuild claim depends on IPAM mode and migration capabilities.",
+        "needed_evidence": "Applicable CNI/IPAM migration procedure and constraints."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "ko",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Lattice native retry/circuit-breaking/FIS behavior and automatic X-Ray equivalence",
+        "reason": "Retrieved docs support routing, configurable idle timeout and possible X-Ray integration, not every asserted mesh feature.",
+        "needed_evidence": "Exact configurable retry policy, fault-injection workflow and tracing instrumentation requirements."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/networking-performance/vpc-cni-deep-dive.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive.json",
+      "path": "docs/eks-best-practices/networking-performance/vpc-cni-deep-dive.md",
+      "locale": "ko",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Strictly linear versus non-linear policy scaling performance",
+        "reason": "eBPF enforcement does not itself establish a measured complexity or latency guarantee across all policy sizes.",
+        "needed_evidence": "Pinned implementation complexity analysis or representative benchmark if retaining a performance claim."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/cost-management.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/cost-management.json",
+      "path": "docs/eks-best-practices/resource-cost/cost-management.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Live CUR/Athena outputs, telemetry UID pipeline/PromQL runtime, chart/RBAC/account integration and production drain/SLO behavior",
+        "reason": "No original account export/metrics/workload fixture supplied and no cloud/container execution authorized. Article correctly frames these as prerequisites or unexecuted examples.",
+        "needed_evidence": "Operator-owned sanitized export/metric samples, version-pinned schema/PromQL fixtures and positive/negative rollout evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/eks-resource-optimization.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/eks-resource-optimization.json",
+      "path": "docs/eks-best-practices/resource-cost/eks-resource-optimization.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Deployment/controller integration and performance/cost outcomes",
+        "reason": "Read-only audit; live metrics, versioned installed schemas, cluster IAM and before/after billing evidence not supplied.",
+        "needed": "Operator-run admission/scaling/metrics checks and matched SLO/billing observations."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/eks-resource-optimization.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/eks-resource-optimization.json",
+      "path": "docs/eks-best-practices/resource-cost/eks-resource-optimization.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Amazon Q IDE workflow support URL",
+        "reason": "Linked primary page covers console/web; guessed IDE URL returned generic root, not feature evidence.",
+        "needed": "Specific current official IDE chat page for this workflow."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/index.json",
+      "path": "docs/eks-best-practices/resource-cost/index.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "30–90% cost reduction strategies in final card (KO52/EN54)",
+        "reason": "Card gives no workload, baseline, measurement or costing boundary. The detailed assigned cost article must be reviewed before accepting this range.",
+        "needed_evidence": "Original cost calculation or benchmark with workload, region/date and included/excluded costs; otherwise label as illustrative or remove numeric promise."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/karpenter-autoscaling.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/karpenter-autoscaling.json",
+      "path": "docs/eks-best-practices/resource-cost/karpenter-autoscaling.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "End-to-end deployment, failure behavior and performance/cost outcomes",
+        "reason": "No cloud/cluster/container operations authorized; actual operator configuration, image digests and benchmark artifacts absent.",
+        "needed": "Version-pinned admission/controller smoke tests and matched load/failure/billing observations."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/kubernetes-dra.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "docs/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Early DRA timeline including 1.26 origin and 1.32 beta/default-off",
+        "reason": "The early historical transitions were not independently retrieved. Binding conditions was checked against code and is now a concrete finding.",
+        "needed_evidence": "Original early Kubernetes releases/feature gates."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/kubernetes-dra.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "docs/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Managed GKE DRANET, A4X Max/GB300 NVL72 and auto-created mrdma.google.com/netdev.google.com classes",
+        "reason": "The attempted Google setup URL did not return the required primary product documentation.",
+        "needed_evidence": "Accessible GKE primary documentation for exact hardware and managed driver/class support, including July 2026 availability."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/kubernetes-dra.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "docs/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "GPU memory selector and vendor compatibility",
+        "reason": "The example has not been executed; the exact NVIDIA v0.4.x ResourceSlice memory capacity domain/key and class have not been retrieved.",
+        "needed_evidence": "Pinned NVIDIA driver API/example demonstrating the precise capacity key and DeviceClass."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/resource-cost/kubernetes-dra.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "docs/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "ko",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "CDI minimum runtime versions / enablement defaults; AMD/Intel/FPGA ecosystem; blanket MNNVL DRA requirement",
+        "reason": "General DRA docs and NVIDIA README establish the model but not all of these product/version-specific assertions.",
+        "needed_evidence": "Pinned runtime and vendor support documents, with enablement prerequisites and the intended NVIDIA orchestration stack."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/default-namespace-incident.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/default-namespace-incident.json",
+      "path": "docs/eks-best-practices/security-authn/default-namespace-incident.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Incident happened and requires AWS-internal restoration; support/private escalation guarantees (including line315)",
+        "reason": "No original incident timeline, audit deletion event, bypass conditions, ticket, reproduction, or public service statement is provided. Internal specialist escalation behavior is not public evidence.",
+        "needed_evidence": "Sanitized original incident artifacts and exact affected versions/access paths, or reframe as a hypothetical and use documented support procedures."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/default-namespace-incident.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/default-namespace-incident.json",
+      "path": "docs/eks-best-practices/security-authn/default-namespace-incident.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Kyverno DELETE policy evaluation for the document version",
+        "reason": "Example lacks pinned Kyverno version; official sample URL404. No local policy engine execution authorized/available in this audit.",
+        "needed_evidence": "Versioned policy reference or offline admission review proving DELETE object/oldObject and role exclusion semantics."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/default-namespace-incident.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/default-namespace-incident.json",
+      "path": "docs/eks-best-practices/security-authn/default-namespace-incident.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "All kube-public cluster-info/default system components present in every EKS configuration",
+        "reason": "Presence varies with bootstrap/mode; no actual cluster inventory.",
+        "needed_evidence": "Explicit bootstrap assumptions and official EKS component configuration for the intended mode."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/eks-api-server-authn-authz.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/eks-api-server-authn-authz.json",
+      "path": "docs/eks-best-practices/security-authn/eks-api-server-authn-authz.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "IAM condition keys eks:authenticationMode / eks:namespaces and detailed get-token signing explanation",
+        "reason": "Service authorization URL redirected to a generic root; exact key/action scope and signer source not yet retrieved.",
+        "needed_evidence": "Current service authorization reference and official aws-iam-authenticator/aws-cli signer source."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/eks-api-server-authn-authz.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/eks-api-server-authn-authz.json",
+      "path": "docs/eks-best-practices/security-authn/eks-api-server-authn-authz.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Kubernetes1.30+ OIDC issuer must differ from service-account issuer",
+        "reason": "Current OIDC page read; versioned1.30 release detail not yet independently confirmed.",
+        "needed_evidence": "EKS1.30 release notes or Kubernetes validation reference."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/guardduty-extended-threat-detection.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/guardduty-extended-threat-detection.json",
+      "path": "docs/eks-best-practices/security-authn/guardduty-extended-threat-detection.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "MITRE mapping and lifecycle integration reference",
+        "reason": "Placeholder supplies no mapping table, scenario, or result. Linked article is a reference, not imported visible content.",
+        "needed_evidence": "Specific finding tactics/techniques and configured response design when authored."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/identity-first-security.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/identity-first-security.json",
+      "path": "docs/eks-best-practices/security-authn/identity-first-security.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "CNS395 (AWS re:Invent 2025) attribution at line 26",
+        "reason": "No primary session URL or transcript is supplied; not independently retrieved.",
+        "needed_evidence": "Official session listing/video identifying its topic and relevant recommendations."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/index.json",
+      "path": "docs/eks-best-practices/security-authn/index.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Compliance paragraphs lines 25 and 159",
+        "reason": "Blanket applicability of PCI-DSS/SOC2/ISO27001 and HIPAA encryption requirements cannot be inferred from using EKS. HHS primary pages returned 403.",
+        "needed_evidence": "Applicable jurisdiction, data/organization scope and primary standard/regulation sections; distinguish technical support from certification."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/index.json",
+      "path": "docs/eks-best-practices/security-authn/index.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Security tool/service catalogue lines 174–176 and Security Hub Analytics GA/re:Invent2025",
+        "reason": "Individual catalogue descriptions and exact Security Hub product/launch terminology still require primary-source corroboration.",
+        "needed_evidence": "Official project capability descriptions and dated AWS announcement."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/index.json",
+      "path": "docs/eks-best-practices/security-authn/index.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Kyverno v1 GA/production-ready from 1.17 and currently1.18",
+        "reason": "1.17 release and newer1.19.1 retrieved, but full per-kind maturity matrix not yet confirmed.",
+        "needed_evidence": "Versioned API schema/release statement; preserve intended historical version."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:ko:docs/eks-best-practices/security-authn/kyverno-policy-management.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/docs/eks-best-practices/security-authn/kyverno-policy-management.json",
+      "path": "docs/eks-best-practices/security-authn/kyverno-policy-management.md",
+      "locale": "ko",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "All advertised CEL policy kinds are v1 GA and production-ready from 1.17",
+        "reason": "Release existence/v1 references verified; exact per-kind maturity matrix and constraints not established by the release excerpt.",
+        "needed_evidence": "Versioned 1.17 policy API reference and stability/release statement."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "~10central / hundreds-of-clusters pull capacity, immediate/near-zero failover, most mature/proven design",
+        "reason": "No original scalability benchmark or failover/cost measurements supplied.",
+        "needed_evidence": "Pinned implementations, cluster/object/watch counts, credentials design, measured RTO/RPO/cost and failure tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/cross-cluster-object-replication.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Baseline EKS1.32+/ArgoCD2.13+/Flux2.4+/Velero1.15+ compatibility and customer adoption",
+        "reason": "Reference environment is not an executed integration test; no original customer population dataset.",
+        "needed_evidence": "Pinned version support matrix and actual integration evidence; original adoption source if number retained."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Exact internal scaling triggers; event sharding exclusively PCP; March2026 8XL/SLA launch date",
+        "reason": "Retrieved current user guide and 2025 launch blog do not substantiate all dated/internal implementation details.",
+        "needed_evidence": "Dated AWS release/design statement."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Raw etcd metrics endpoint/RBAC and Poseidon name",
+        "reason": "Retrieved EKS raw-metrics documentation lists only KCM/KSH; no public supporting contract retrieved for /v1/etcd/container/metrics.",
+        "needed_evidence": "Official endpoint/API permission documentation and public AMP collector naming."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Fixed watch-cache100/list10 seats and load-proportionality formula",
+        "reason": "These need a pinned Kubernetes implementation/configuration, not a universal performance inference.",
+        "needed_evidence": "Pinned server source/config and measured workload if quantitative."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "CloudWatch Logs Insights comment and subresource consolidation example",
+        "reason": "No executable query or concrete CRD schema was provided; SQL-style comment and arbitrary-subresource interpretation remain unvalidated.",
+        "needed_evidence": "Documented query grammar and concrete supported CRD status/scale design."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md:5",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "CNS429100k-node and operational improvement examples",
+        "reason": "Original talk/result artifacts not retrieved; no cluster or performance execution in this audit.",
+        "needed_evidence": "Original transcript/data/configuration with dated scope."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.md",
+      "locale": "en",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "dnsperf command in PerformanceBenchmarks.js:82",
+        "reason": "Originalmanualpathsreturned404; no executabletesting wasauthorized.",
+        "needed_evidence": "Validofficialmanualfor-c/-T/defaultduration/outputlatencystatisticstoqualifyexample."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.md",
+      "locale": "en",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Terraform automation accelerator in MonitoringArchitecture.js:13;100-node/5kQPS recommendationboundary",
+        "reason": "No specific acceleratororbenchmarkcited; topologydecisionismethodological,notverifiednumericthreshold.",
+        "needed_evidence": "Namedpublicacceleratorandworkload-specificevidence,orlabelthresholdillustrative."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/coredns-monitoring-optimization.md",
+      "locale": "en",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Equivalent p99 monitoring on CWPrometheuslane",
+        "reason": "CWofficialoverviewlistscounter/gauge/summarycollection, not histogram. No completehistogram-toCWpipelineprovided.",
+        "needed_evidence": "SpecifyAMP/Prometheusforthebucket-derivedp99oractualcompatibleaggregation/ingestionconfiguration."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/east-west-traffic-best-practice.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/east-west-traffic-best-practice.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/east-west-traffic-best-practice.md",
+      "locale": "en",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Historical illustrative latency, throughput and savings figures / scores",
+        "reason": "No original run data or complete configuration supplied; upstream Istio benchmark has a different version and bounded setup.",
+        "needed": "Original versioned workload, raw data, percentile methodology and billable usage assumptions."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/east-west-traffic-best-practice.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/east-west-traffic-best-practice.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/east-west-traffic-best-practice.md",
+      "locale": "en",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Hubble JSON fields, exact NodePort hop diagnostics, ExternalDNS full installation and region-specific cost usage key",
+        "reason": "Not independently validated against pinned executable schemas; no live environment used.",
+        "needed": "Pinned tool output examples and target topology/IAM/metrics schema."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Unmeasured latency/memory/instance-gain illustrations,10–15minute cluster setup,2–3minute connectivity test,100kRPS/<1ms instance suitability",
+        "reason": "No raw workload/hardware/clock/measurement evidence. The main performance section explicitly calls its numbers illustrative.",
+        "needed_evidence": "Original reproducible results for any promoted measurement; otherwise retain illustration status and remove guarantees."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Hubble flow graph helper provenance, every Cilium CLI verification subcommand, exact exported Envoy/health metric label sets, actual chart/bootstrap/migration behavior",
+        "reason": "Some documented helpers lack an identified installed binary/version; no cluster/container/CLI execution authorized. Pinned source exposes concrete failures already recorded.",
+        "needed_evidence": "Pinned CLI help/source and captured sample metrics/results from an operator-controlled environment."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/cilium-eni-gateway-api.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Graviton4 price/energy percentages, perfect Cilium compatibility and M9g/M9gd June2026 GA date",
+        "reason": "Retrieved product pages support only their explicit up-to performance comparison, not all these unqualified claims or launch date.",
+        "needed_evidence": "Dated primary launch announcement/comparator and workload-specific compatibility evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "All examples are deployment-ready and equivalent across five products; historical release date and every nested ACK/WAF/CRD field",
+        "reason": "No coherent pinned installation/fixture or operator execution evidence. Some official sources were unavailable at guessed paths; successful versioned schemas were used for concrete findings only.",
+        "needed_evidence": "Pinned schema validation and isolated positive/negative feature tests with controller status and backend observations; dated ACK launch source if date retained."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "All numeric latency/throughput/resource/monthly-cost ranks, universal optimum claims, difficulty ratings and production maturity/adoption counts in shared matrices",
+        "reason": "No matched original benchmark or dated inventory and no complete workload/cost model. GitHub API requests for some release inventories hit403 rate limiting.",
+        "needed_evidence": "Pinned implementation/conformance reports, workload/topology/configuration, raw repetitions/resource meters and dated feature/support inventory."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Complete feature parity across six implementations, commercial support/edition availability, version-specific NGF matrix cells and automatic mesh interoperability",
+        "reason": "Only concrete retrieved product subsets validated; current NGF docs use newer Gateway API than the page baseline, and current documentation alone cannot prove historical support.",
+        "needed_evidence": "Each named release schema/report and edition support terms; retain unverified cells rather than assigning unsupported checkmarks."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Snippet-specific older CVEs and the claim that the March2025 incident accelerated the retirement decision",
+        "reason": "Retrieved primary CVE1974 and retirement notices do not substantiate that causal history; attempted older-CVE issue URL identified a different CVE.",
+        "needed_evidence": "Correct historical advisories and project decision records."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-api-implementation",
+      "original_gap": {
+        "claim": "Complete controller installation/debug commands and5phase operational timing",
+        "reason": "Some historical assets/CLI subcommands have no retrieved executable evidence; no cluster or container run. Proposed dates and output are illustrative.",
+        "needed_evidence": "Pinned full installation matrix and operator-run positive/negative routing/rollback evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/gamma-initiative.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "GammaSupportTable: kgateway GAMMA GA, Linkerd beta label, all native retry/fault-injection support and Lattice FIS integration",
+        "reason": "No pinned mesh conformance report or precise product configuration was supplied. Retrieved AWS controller report is a Gateway report with failures, not a mesh certification; FIS action catalog contains no named VPC Lattice action.",
+        "needed_evidence": "Versioned mesh conformance report and exact supported APIs/actions per implementation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/gamma-initiative.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/gamma-initiative.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Best eBPF performance, ~20 MB Linkerd proxy, zero managed overhead and comparative maturity",
+        "reason": "No matched feature/workload benchmark artifacts or resource measurements were supplied.",
+        "needed_evidence": "Pinned reproducible tests with equivalent security/L7 features and complete resource accounting."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "All-feature support rows, Lattice configurable retries/FIS and per-implementation maturity/operations rankings",
+        "reason": "General architecture docs do not verify every combined feature cell. No exact Lattice retry/fault policy or matching conformance report was retrieved.",
+        "needed_evidence": "Version-specific API support matrix and runnable configuration for each capability."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "~5 ms additional Istio p99, Linkerd memory comparison and universal lowest-overhead ordering",
+        "reason": "No common original benchmark artifacts supplied; upstream 1.24 resource figures have narrower test conditions.",
+        "needed_evidence": "Original plots/raw data and matched protocol, payload, concurrency, security and L7 configuration."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/index.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "mTLS automatically satisfies ISMS-P/PCI-DSS and <10-service adoption threshold",
+        "reason": "No specific requirement mapping or decision-cost evidence supplied. Product capabilities alone do not demonstrate compliance.",
+        "needed_evidence": "Applicable control wording and deployment evidence; treat service-count threshold as illustrative guidance."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Every external claim was verified July 16 2026; controller v2.1.2 current on that date",
+        "reason": "The original author's retrieval log/date evidence was not supplied. Current and version-pinned documents were reviewed independently; tag existence is not proof it was current on the claimed date.",
+        "needed_evidence": "Original retrieval log and dated controller release metadata."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Tetrate deployment/operations ownership and highest operational/headcount rankings",
+        "reason": "Specific commercial product deployment contract and measured staffing/cost comparison are absent.",
+        "needed_evidence": "Named product/version architecture and support responsibility model; measured operational assumptions."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "PodCIDR overlap necessarily requires whole-cluster rebuild; exact EKS CNI migration alternatives",
+        "reason": "Current non-overlap requirement is verified, but the absolute no-correction/rebuild claim depends on IPAM mode and migration capabilities.",
+        "needed_evidence": "Applicable CNI/IPAM migration procedure and constraints."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+      "locale": "en",
+      "draft_issue": "04-mesh-gamma-boundaries",
+      "original_gap": {
+        "claim": "Lattice native retry/circuit-breaking/FIS behavior and automatic X-Ray equivalence",
+        "reason": "Retrieved docs support routing, configurable idle timeout and possible X-Ray integration, not every asserted mesh feature.",
+        "needed_evidence": "Exact configurable retry policy, fault-injection workflow and tracing instrumentation requirements."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/vpc-cni-deep-dive.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/vpc-cni-deep-dive.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/vpc-cni-deep-dive.md",
+      "locale": "en",
+      "draft_issue": "03-networking-metrics-cost",
+      "original_gap": {
+        "claim": "Strictly linear versus non-linear policy scaling performance",
+        "reason": "eBPF enforcement does not itself establish a measured complexity or latency guarantee across all policy sizes.",
+        "needed_evidence": "Pinned implementation complexity analysis or representative benchmark if retaining a performance claim."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/cost-management.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/cost-management.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/cost-management.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Live CUR/Athena outputs, telemetry UID pipeline/PromQL runtime, chart/RBAC/account integration and production drain/SLO behavior",
+        "reason": "No original account export/metrics/workload fixture supplied and no cloud/container execution authorized. Article correctly frames these as prerequisites or unexecuted examples.",
+        "needed_evidence": "Operator-owned sanitized export/metric samples, version-pinned schema/PromQL fixtures and positive/negative rollout evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Deployment/controller integration and performance/cost outcomes",
+        "reason": "Read-only audit; live metrics, versioned installed schemas, cluster IAM and before/after billing evidence not supplied.",
+        "needed": "Operator-run admission/scaling/metrics checks and matched SLO/billing observations."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/eks-resource-optimization.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Amazon Q IDE workflow support URL",
+        "reason": "Linked primary page covers console/web; guessed IDE URL returned generic root, not feature evidence.",
+        "needed": "Specific current official IDE chat page for this workflow."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/index.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "30–90% cost reduction strategies in final card (KO52/EN54)",
+        "reason": "Card gives no workload, baseline, measurement or costing boundary. The detailed assigned cost article must be reviewed before accepting this range.",
+        "needed_evidence": "Original cost calculation or benchmark with workload, region/date and included/excluded costs; otherwise label as illustrative or remove numeric promise."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/karpenter-autoscaling.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/karpenter-autoscaling.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/karpenter-autoscaling.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "End-to-end deployment, failure behavior and performance/cost outcomes",
+        "reason": "No cloud/cluster/container operations authorized; actual operator configuration, image digests and benchmark artifacts absent.",
+        "needed": "Version-pinned admission/controller smoke tests and matched load/failure/billing observations."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Early DRA timeline including 1.26 origin and 1.32 beta/default-off",
+        "reason": "The early historical transitions were not independently retrieved. Binding conditions was checked against code and is now a concrete finding.",
+        "needed_evidence": "Original early Kubernetes releases/feature gates."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "Managed GKE DRANET, A4X Max/GB300 NVL72 and auto-created mrdma.google.com/netdev.google.com classes",
+        "reason": "The attempted Google setup URL did not return the required primary product documentation.",
+        "needed_evidence": "Accessible GKE primary documentation for exact hardware and managed driver/class support, including July 2026 availability."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "GPU memory selector and vendor compatibility",
+        "reason": "The example has not been executed; the exact NVIDIA v0.4.x ResourceSlice memory capacity domain/key and class have not been retrieved.",
+        "needed_evidence": "Pinned NVIDIA driver API/example demonstrating the precise capacity key and DeviceClass."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/resource-cost/kubernetes-dra.md",
+      "locale": "en",
+      "draft_issue": "05-resource-dra-provisioning",
+      "original_gap": {
+        "claim": "CDI minimum runtime versions / enablement defaults; AMD/Intel/FPGA ecosystem; blanket MNNVL DRA requirement",
+        "reason": "General DRA docs and NVIDIA README establish the model but not all of these product/version-specific assertions.",
+        "needed_evidence": "Pinned runtime and vendor support documents, with enablement prerequisites and the intended NVIDIA orchestration stack."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Incident happened and requires AWS-internal restoration; support/private escalation guarantees (including line315)",
+        "reason": "No original incident timeline, audit deletion event, bypass conditions, ticket, reproduction, or public service statement is provided. Internal specialist escalation behavior is not public evidence.",
+        "needed_evidence": "Sanitized original incident artifacts and exact affected versions/access paths, or reframe as a hypothetical and use documented support procedures."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Kyverno DELETE policy evaluation for the document version",
+        "reason": "Example lacks pinned Kyverno version; official sample URL404. No local policy engine execution authorized/available in this audit.",
+        "needed_evidence": "Versioned policy reference or offline admission review proving DELETE object/oldObject and role exclusion semantics."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/default-namespace-incident.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "All kube-public cluster-info/default system components present in every EKS configuration",
+        "reason": "Presence varies with bootstrap/mode; no actual cluster inventory.",
+        "needed_evidence": "Explicit bootstrap assumptions and official EKS component configuration for the intended mode."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/eks-api-server-authn-authz.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/eks-api-server-authn-authz.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/eks-api-server-authn-authz.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "IAM condition keys eks:authenticationMode / eks:namespaces and detailed get-token signing explanation",
+        "reason": "Service authorization URL redirected to a generic root; exact key/action scope and signer source not yet retrieved.",
+        "needed_evidence": "Current service authorization reference and official aws-iam-authenticator/aws-cli signer source."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/eks-api-server-authn-authz.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/eks-api-server-authn-authz.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/eks-api-server-authn-authz.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Kubernetes1.30+ OIDC issuer must differ from service-account issuer",
+        "reason": "Current OIDC page read; versioned1.30 release detail not yet independently confirmed.",
+        "needed_evidence": "EKS1.30 release notes or Kubernetes validation reference."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/guardduty-extended-threat-detection.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/guardduty-extended-threat-detection.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/guardduty-extended-threat-detection.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "MITRE mapping and lifecycle integration reference",
+        "reason": "Placeholder supplies no mapping table, scenario, or result. Linked article is a reference, not imported visible content.",
+        "needed_evidence": "Specific finding tactics/techniques and configured response design when authored."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/identity-first-security.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/identity-first-security.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/identity-first-security.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "CNS395 (AWS re:Invent 2025) attribution at line 26",
+        "reason": "No primary session URL or transcript is supplied; not independently retrieved.",
+        "needed_evidence": "Official session listing/video identifying its topic and relevant recommendations."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Compliance paragraphs lines 25 and 159",
+        "reason": "Blanket applicability of PCI-DSS/SOC2/ISO27001 and HIPAA encryption requirements cannot be inferred from using EKS. HHS primary pages returned 403.",
+        "needed_evidence": "Applicable jurisdiction, data/organization scope and primary standard/regulation sections; distinguish technical support from certification."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Security tool/service catalogue lines 174–176 and Security Hub Analytics GA/re:Invent2025",
+        "reason": "Individual catalogue descriptions and exact Security Hub product/launch terminology still require primary-source corroboration.",
+        "needed_evidence": "Official project capability descriptions and dated AWS announcement."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/index.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "Kyverno v1 GA/production-ready from 1.17 and currently1.18",
+        "reason": "1.17 release and newer1.19.1 retrieved, but full per-kind maturity matrix not yet confirmed.",
+        "needed_evidence": "Versioned API schema/release statement; preserve intended historical version."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "eks-platform-networking:en:i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/kyverno-policy-management.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/eks-platform-networking/records/i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/kyverno-policy-management.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/security-authn/kyverno-policy-management.md",
+      "locale": "en",
+      "draft_issue": "01-control-plane-access-recovery",
+      "original_gap": {
+        "claim": "All advertised CEL policy kinds are v1 GA and production-ready from 1.17",
+        "reason": "Release existence/v1 references verified; exact per-kind maturity matrix and constraints not established by the release excerpt.",
+        "needed_evidence": "Versioned 1.17 policy API reference and stability/release statement."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    }
+  ]
+}

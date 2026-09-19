@@ -1,0 +1,11 @@
+spec:
+  kubelet:
+    evictionHard:
+      memory.available: 200Mi
+      nodefs.available: "10%"
+    evictionSoft:
+      memory.available: 1Gi
+      nodefs.available: "15%"
+    evictionSoftGracePeriod:
+      memory.available: 2m
+      nodefs.available: 3m

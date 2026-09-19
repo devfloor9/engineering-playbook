@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant Q as Kueue admission check
+    participant S as Setu
+    participant K as Karpenter and API server
+    participant W as Kubernetes scheduler
+    Q->>S: Workload awaits admission check
+    S->>K: Create required NodeClaims sequentially
+    K-->>S: Observe NodeClaim readiness
+    alt All required claims ready
+        S-->>Q: Mark admission check ready
+        Q-->>W: Workload becomes eligible to run
+        W->>W: Independently filter, score and bind Pods
+    else Failure or timeout
+        S->>K: Attempt compensating cleanup
+        S-->>Q: Retry or fail under configured policy
+    end

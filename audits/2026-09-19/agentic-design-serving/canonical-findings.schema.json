@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Complete agentic design and serving canonical findings",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "classification_definitions",
+    "defects"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "baseline_git_commit",
+        "audit_date",
+        "source_count",
+        "source_pairs",
+        "source_lines",
+        "statuses",
+        "original_finding_occurrences",
+        "original_finding_families",
+        "canonical_defects",
+        "canonical_classifications",
+        "unverified_occurrences",
+        "deduplicated_pending_claims"
+      ],
+      "properties": {
+        "baseline_git_commit": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "audit_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "source_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "original_finding_occurrences": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "canonical_defects": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "classification_definitions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "confirmed_incorrect",
+        "misleading_or_unsupported",
+        "verification_pending"
+      ],
+      "properties": {
+        "confirmed_incorrect": {
+          "type": "string"
+        },
+        "misleading_or_unsupported": {
+          "type": "string"
+        },
+        "verification_pending": {
+          "type": "string"
+        }
+      }
+    },
+    "defects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/defect"
+      }
+    }
+  },
+  "$defs": {
+    "relativeSourcePath": {
+      "type": "string",
+      "pattern": "^(docs/|i18n/en/|src/)[^\\r\\n]+$"
+    },
+    "classification": {
+      "enum": [
+        "confirmed_incorrect",
+        "misleading_or_unsupported",
+        "verification_pending"
+      ]
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "publicUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https?://"
+    },
+    "finding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "severity",
+        "category",
+        "source_path",
+        "line_start",
+        "line_end",
+        "heading",
+        "before",
+        "problem",
+        "proposed_correction_meaning",
+        "evidence_urls",
+        "confidence",
+        "counterpart_path"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ADS-.+-(ko|en)$"
+        },
+        "severity": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_path": {
+          "$ref": "#/$defs/relativeSourcePath"
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "heading": {
+          "type": "string"
+        },
+        "before": {
+          "type": "string",
+          "minLength": 1
+        },
+        "problem": {
+          "type": "string",
+          "minLength": 1
+        },
+        "proposed_correction_meaning": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_urls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/publicUrl"
+          }
+        },
+        "confidence": {
+          "type": "string"
+        },
+        "counterpart_path": {
+          "$ref": "#/$defs/relativeSourcePath"
+        },
+        "evidence_boundary": {
+          "type": "string"
+        }
+      }
+    },
+    "occurrence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "record_id",
+        "record_sha256",
+        "document_path",
+        "document_locale",
+        "document_sha256",
+        "finding",
+        "evidence_ids"
+      ],
+      "properties": {
+        "record_id": {
+          "type": "string",
+          "pattern": "^[^/]+\\.json$"
+        },
+        "record_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "document_path": {
+          "$ref": "#/$defs/relativeSourcePath"
+        },
+        "document_locale": {
+          "enum": [
+            "ko",
+            "en"
+          ]
+        },
+        "document_sha256": {
+          "$ref": "#/$defs/hash"
+        },
+        "finding": {
+          "$ref": "#/$defs/finding"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^ADS-EV-[0-9]{4}$"
+          }
+        }
+      }
+    },
+    "defect": {
+      "type": "object",
+      "required": [
+        "canonical_id",
+        "title",
+        "classification",
+        "classification_basis",
+        "primary_issue",
+        "original_family_ids",
+        "deduplication_reason",
+        "highest_severity",
+        "verification_boundary",
+        "specific_boundaries",
+        "occurrences",
+        "evidence_urls",
+        "evidence_ids",
+        "public_primary_sources"
+      ],
+      "properties": {
+        "canonical_id": {
+          "type": "string",
+          "pattern": "^ADS-"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "classification": {
+          "$ref": "#/$defs/classification"
+        },
+        "classification_basis": {
+          "type": "string",
+          "minLength": 1
+        },
+        "primary_issue": {
+          "enum": [
+            "I1",
+            "I2",
+            "I3",
+            "I4",
+            "I5"
+          ]
+        },
+        "original_family_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "deduplication_reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "highest_severity": {
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "verification_boundary": {
+          "type": "string",
+          "minLength": 1
+        },
+        "specific_boundaries": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "occurrences": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/occurrence"
+          }
+        },
+        "evidence_urls": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/publicUrl"
+          }
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "public_primary_sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "evidence_id",
+              "url",
+              "retrieved_at_utc",
+              "recorded_raw_content_sha256",
+              "raw_file_present"
+            ],
+            "properties": {
+              "evidence_id": {
+                "type": "string"
+              },
+              "url": {
+                "$ref": "#/$defs/publicUrl"
+              },
+              "retrieved_at_utc": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "recorded_raw_content_sha256": {
+                "$ref": "#/$defs/hash"
+              },
+              "raw_file_present": {
+                "type": "boolean"
+              }
+            }
+          }
+        },
+        "supplemental_primary_evidence": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5 @@
+- from: "us-east-1/us-east-1c/*"
+  to:
+    "us-east-1/us-east-1c/*": 80
+    "us-east-1/us-east-1a/*": 10
+    "us-east-1/us-east-1b/*": 10

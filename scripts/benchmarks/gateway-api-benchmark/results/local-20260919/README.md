@@ -2,7 +2,7 @@
 
 These records validate the HTTP benchmark kit against a Python echo fixture. **No Kubernetes controller, Gateway API resource, proxy implementation, or AWS service was tested.** Timings in the raw summaries are fixture smoke observations and cannot establish Gateway throughput, latency, or efficiency.
 
-The run used k6 2.2.0 and Python 3.13.15 on an arm64 Docker engine, with an internal network and no published ports. The Docker VM had 10 CPUs and 8,217,317,376 bytes RAM, shared with three existing containers. The fixture limit was 1 CPU/256 MiB; each generator was limited to 1 CPU/512 MiB. Limits are configuration, not measured utilization.
+The prior execution report records k6 2.2.0 and Python 3.13.15 on an arm64 Docker engine, with an internal network and no published ports. The Docker VM had 10 CPUs and 8,217,317,376 bytes RAM, shared with three existing containers. The fixture limit was 1 CPU/256 MiB; each generator was limited to 1 CPU/512 MiB. Limits are configuration, not measured utilization.
 
 | Check | Observed result |
 | --- | --- |
@@ -12,7 +12,7 @@ The run used k6 2.2.0 and Python 3.13.15 on an arm64 Docker engine, with an inte
 | Insufficient generator capacity with delayed fixture | Four requests and 37 dropped arrivals; k6 exit 99, validator exit 1 |
 | Redirect-option override | Rejected before requests; k6 exit 107 |
 | Skipped setup with VU override | Rejected before requests; k6 exit 108 |
-| Cleanup | Owned resources removed; three pre-existing containers remained running |
+| Cleanup | The derived execution report records successful removal and preservation of three pre-existing containers; original before/after Docker logs are not included |
 
 The first two nominal runs are explicitly `boundary-tolerated`: 26 observed versus 25 planned arrivals, or 104% delivery. The third is `exact`. The acceptance policy allows ±1 only for at least 20 planned arrivals and 95–105% delivery. This is a disclosed policy, not proof that the discrepancy was exclusively a timer race. Nothing here produces a ranking.
 
@@ -33,3 +33,9 @@ The recorded source revision is the repository baseline before these new scripts
 ```
 
 Use `npm run test:gateway-benchmark` from the repository root to revalidate the frozen evidence and regression cases. It does not rerun Docker or contact the original fixture.
+
+## Audit errata and evidence limits
+
+The full-document audit on 2026-09-19 found that the historical probe's embedded `generator_image` and derived validator output retain the **k6** digest even though the configured/runtime generator is Python `http.client`. The intended Python image is recorded separately in the SUT configuration and version output. New runner and README examples now set both generator fields. The original raw files, configuration hashes and manifest remain unchanged; the error is documented here instead of rewriting historical evidence.
+
+The published directory does not include the original Docker info/inspect, complete command transcript or before/after resource inventories. Resource limits, isolation and cleanup can therefore be checked for consistency with the runner and derived report, but are not independently attested by the published raw artifacts. The k6 files retain summary statistics, not request-level latency samples or histogram buckets; those percentiles cannot be independently recomputed from this directory. Neither limitation changes the recorded request counts or makes them implementation performance measurements.

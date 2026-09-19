@@ -1,0 +1,7 @@
+nodeClassRef:
+  group: karpenter.k8s.aws
+  kind: EC2NodeClass
+  name: gpu-nodeclass
+startupTaints:
+- key: readiness.k8s.io/gpu-unavailable
+  effect: NoSchedule

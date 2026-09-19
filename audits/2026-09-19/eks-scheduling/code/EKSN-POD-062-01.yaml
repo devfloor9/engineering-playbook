@@ -1,0 +1,2 @@
+spec:
+  controllerName: setu.kueue.x-k8s.io/admission-check

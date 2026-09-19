@@ -1,6 +1,6 @@
 .brand { min-width: 0; }
 .title { white-space: nowrap; }
 @media (max-width: 420px), (min-width: 997px) and (max-width: 1199px) {
-  .title { font-size: 0; }
+  .brand .title { font-size: 0; }
   .title::after { content: 'Playbook'; font-size: 1rem; }
 }

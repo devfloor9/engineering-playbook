@@ -1,0 +1,4 @@
+spec:
+  disruption:
+    budgets:
+    - nodes: "0"

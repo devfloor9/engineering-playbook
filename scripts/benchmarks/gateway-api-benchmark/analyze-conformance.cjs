@@ -70,6 +70,15 @@ function readReport(source, snapshot, cohort, baseDirectory) {
     `${source.id}: source hash mismatch`);
   const report = yaml.load(bytes.toString('utf8'));
   assert.equal(report.kind, 'ConformanceReport');
+  // Preserve source defects instead of silently repairing the frozen report.
+  const sourceMetadataIssues = [];
+  if (typeof report.apiVersion !== 'string' || !report.apiVersion.trim()) {
+    sourceMetadataIssues.push({
+      field: 'apiVersion',
+      problem: 'missing_or_empty',
+      similar_keys: Object.keys(report).filter(key => key !== 'apiVersion' && key.endsWith('apiVersion')),
+    });
+  }
   assert.equal(report.implementation.project, source.implementation.project);
   assert.equal(report.implementation.version, source.implementation.reported_version);
   assert.equal(report.gatewayAPIVersion, source.gateway_api_version);
@@ -111,6 +120,7 @@ function readReport(source, snapshot, cohort, baseDirectory) {
     report_date: report.date,
     source_url: source.raw_yaml_url,
     source_sha256: source.raw_yaml_sha256,
+    source_metadata_issues: sourceMetadataIssues,
     profiles,
     notes: source.notes,
     performance_measurements: null,

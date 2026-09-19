@@ -2,7 +2,7 @@
 created: 2025-09-09
 last_update:
   date: 2026-09-19
-reading_time: 17
+reading_time: 19
 ---
 # Engineering Playbook
 
@@ -26,6 +26,8 @@ Practical engineering references for AWS, Kubernetes, and AI platforms: design d
 | [Industry Solutions](docs/industry-solutions/index.md) | Retail scenarios and demonstration patterns |
 
 Examples have different levels of validation. Read each guide's prerequisites, release scope, measurement conditions, and verification status before applying it. Calculated examples and proposed architectures are distinct from measured deployment results. Operator acceptance remains open for the cascade-routing, GPU-migration, and hybrid/KFS work tracked in [#5](https://github.com/devfloor9/engineering-playbook/issues/5), [#7](https://github.com/devfloor9/engineering-playbook/issues/7), and [#4](https://github.com/devfloor9/engineering-playbook/issues/4).
+
+The [19 September 2026 document audit](audits/2026-09-19/README.md) covers all 628 Korean and English sources in its frozen inventory, including examples and visible technical components. It records every finding, primary-source reference, accepted correction and unresolved evidence gap. Full reading is complete; the report and linked issues distinguish that coverage from factual verification and remaining corrections.
 
 ## Read the manual
 
@@ -93,6 +95,7 @@ src/theme/                             # Document layout and metadata wrappers
 slides/                                # Presentation source projects
 static/                                # Published images, drawings, and slide bundles
 scripts/                               # Export, metadata, and validation tools
+audits/                                # Review coverage, evidence and correction records
 sidebars.js                            # Documentation navigation
 ```
 
@@ -144,11 +147,14 @@ npm run test:tags
 npm run test:tools
 npm run test:ssr
 npm run test:metadata
+npm run test:mermaid
 npm run test:gateway-benchmark
 npm run validate-metadata
 ```
 
 The GitHub Actions workflow checks the exporter, internal links, generated tag routes, document tools, Unicode rendering, revision metadata, and Gateway benchmark source/validator regressions. It builds Korean and English pages, generates the LLM artifacts, compares component exports with rendered HTML, and validates internal routes and fragments. Broken internal links fail the build. Pull requests build the site; successful builds on `main` deploy to GitHub Pages.
+
+The Mermaid regression uses the installed renderer, authored Korean/English diagrams and production CSS in an isolated Chrome or Chromium process. It checks labels and geometry in both themes and motion preferences. Chrome/Chromium must be available on `PATH`, in the standard macOS location, or through `CHROME_BIN`; the test does not install a browser.
 
 The [Gateway benchmark kit](scripts/benchmarks/gateway-api-benchmark/README.md) retains pinned upstream conformance reports and local fixture evidence. CI uses source checks and short loopback tests; it does not run Docker load tests or contact an AWS cluster. Implementation performance remains separate from fixture validation.
 

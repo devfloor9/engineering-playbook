@@ -3,9 +3,9 @@ title: ROSA (Red Hat OpenShift on AWS)
 description: Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서
 created: "2025-02-05"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
-reading_time: 7
+reading_time: 10
 tags:
   - scope:nav
 sidebar_label: ROSA
@@ -13,151 +13,98 @@ sidebar_position: 6
 category: rosa
 ---
 
-이 섹션에서는 Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서들을 다룹니다. ROSA는 AWS와 Red Hat이 함께 관리하는 완전 관리형 OpenShift 서비스로, 엔터프라이즈급 Kubernetes 플랫폼을 쉽게 구축할 수 있습니다.
+ROSA는 AWS에서 실행되는 관리형 OpenShift 서비스입니다. AWS는 기반 클라우드 인프라를, Red Hat은 OpenShift 플랫폼과 노드 운영체제의 수명주기를 관리합니다. 고객은 애플리케이션, 데이터, 접근 권한과 워커 용량을 관리합니다. 이 섹션은 Classic 데모 설치 기록과 관리자 접근 제어 설계를 다룹니다.
 
 ## 📚 주요 문서 (구현 순서)
 
 ### 1단계: 클러스터 설치 및 구성
 
-- **[1. ROSA 데모 설치](./rosa-demo-installation.md)**
-  - STS (Security Token Service) 기반 클러스터 생성
-  - ROSA CLI를 이용한 단계별 설치
-  - 자동 스케일링 구성
-  - 네트워크 및 IAM 역할 설정
-  - 초기 클러스터 검증
-  - 실습 환경 구성 및 테스트
+[ROSA 데모 설치](./rosa-demo-installation.md)에서 Classic 단일 AZ 클러스터의 과거 구성, STS 역할, 고정된 워커 수와 확인 절차를 살펴봅니다. 기록된 버전을 그대로 새로 설치하는 절차가 아니므로, 재현 전 현재 지원 버전과 계정 준비 조건을 확인하세요.
 
 ### 2단계: 보안 및 접근 제어
 
-- **[2. ROSA 보안 규정 준수](./rosa-security-compliance.md)**
-  - Red Hat Hybrid Cloud Console 접근 제어 구성
-  - 금융권 보안 요구사항 충족을 위한 접근 제어 전략
-  - IdP (Identity Provider) 통합 및 MFA 구성
-  - 역할 기반 접근 제어 (RBAC) 구성
-  - 감사 및 로깅 설정
+[ROSA 콘솔 접근 제어](./rosa-security-compliance.md)에서 기업 IdP 연동, MFA, 로그인 위치 제한과 권한 검증을 설계합니다. 구현 및 심사 완료 사례가 아니라, 검증할 통제 항목을 정리한 설계 문서입니다.
 
 ## 🎯 학습 목표
 
-이 섹션을 통해 다음을 학습할 수 있습니다:
-
-- ROSA 클러스터 설치 및 초기 구성 방법
-- STS 기반 IAM 역할 구성 및 보안 모범 사례
-- Red Hat Hybrid Cloud Console을 통한 중앙 관리
-- 금융권 보안 요구사항 충족 전략
-- IdP 통합 및 사용자 인증 관리
-- 클러스터 자동 스케일링 및 리소스 관리
-- ROSA 클러스터의 운영 및 모니터링
-- 온프레미스 OpenShift에서 ROSA로의 마이그레이션
+두 문서를 읽으면 관리형 서비스가 담당하는 작업과 고객이 준비해야 할 작업을 구분할 수 있습니다. 설치 문서에서는 계정·네트워크·역할을 확인하고, 접근 제어 문서에서는 AWS, Red Hat 관리 콘솔, OpenShift 클러스터의 인증과 권한을 각각 검증합니다. 마이그레이션 및 다중 리전 복구는 아래의 설계 고려사항이며, 이 섹션에서 실행한 결과는 아닙니다.
 
 ## 🏗️ 아키텍처 패턴
 
+[ROSA 아키텍처 문서](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html)는 HCP와 Classic을 구분합니다. HCP는 Red Hat AWS 계정에 컨트롤 플레인을 두고 고객 VPC의 워커와 PrivateLink로 통신합니다. 전용 인프라 노드 없이 워커에서 플랫폼 구성요소도 실행합니다. Classic은 컨트롤 플레인·인프라·워커 노드를 고객 AWS 계정에 둡니다.
+
 ```mermaid
-graph TB
-    subgraph AWS["AWS Cloud"]
-        subgraph ROSA["ROSA Cluster"]
-            CP["Control Plane<br/>(Red Hat Managed)"]
-            WN["Worker Nodes<br/>(Customer Managed)"]
-            IN["Infrastructure Nodes<br/>(System Components)"]
+flowchart TB
+    subgraph HCP["ROSA with hosted control planes"]
+        subgraph RH["Red Hat AWS account"]
+            HC["Control plane<br/>Red Hat operates the platform"]
         end
-        IAM["IAM Roles<br/>(STS Token Service)"]
-        VPC["VPC & Networking<br/>(Customer VPC)"]
-        KMS["KMS & Secrets<br/>(Encryption)"]
+        subgraph CustomerH["Customer AWS account / VPC"]
+            HW["Worker nodes<br/>Applications and platform components"]
+        end
+        HC <-->|AWS PrivateLink| HW
     end
-
-    subgraph RedHat["Red Hat"]
-        HCC["Hybrid Cloud Console<br/>(Central Management)"]
-        Registry["Quay Registry<br/>(Container Images)"]
-        OIDC["OIDC Provider<br/>(Authentication)"]
+    subgraph Classic["ROSA Classic: customer AWS account / VPC"]
+        CC["Control plane"]
+        CI["Dedicated infrastructure nodes"]
+        CW["Worker nodes"]
+        CC --> CI
+        CC --> CW
     end
-
-    subgraph Customer["Customer Environment"]
-        IdP["Identity Provider<br/>(Okta/Azure AD/etc)"]
-        Admin["Administrators<br/>(Access Management)"]
-        OnPrem["On-Premises Systems<br/>(Hybrid Integration)"]
-    end
-
-    Admin -->|Authentication| IdP
-    IdP -->|OIDC Tokens| OIDC
-    OIDC -->|Identity| HCC
-    HCC -->|Management| CP
-    CP -->|Orchestration| WN
-    CP -->|System| IN
-    WN & IN -->|Compute| AWS
-    IAM <-->|STS| ROSA
-    KMS <-->|Encryption| ROSA
-    VPC <-->|Networking| ROSA
-    HCC -->|Container Images| Registry
-    OnPrem <-->|Hybrid Workloads| ROSA
-
-    style AWS fill:#ff9900
-    style RedHat fill:#c41e3a
-    style Customer fill:#34a853
+    Registry["Image registry"]
+    HW -->|Pull images| Registry
+    CW -->|Pull images| Registry
 ```
+
+두 방식 모두 노드가 어느 계정에 있는지와 누가 노드 운영체제를 관리하는지는 다른 질문입니다. 고객은 ROSA CLI나 OpenShift Cluster Manager의 지원되는 인터페이스로 machine pool의 용량을 조절합니다. 노드 운영체제를 임의로 변경하는 자체 관리 EC2 방식으로 해석하지 마세요.
 
 ## 🔧 주요 기술 및 도구
 
-| 기술 | 설명 | 용도 |
-|------|------|------|
-| **ROSA CLI** | OpenShift 클러스터 관리 명령줄 도구 | 클러스터 생성, 관리, 삭제 |
-| **STS (Security Token Service)** | 임시 보안 자격증명 | 보안이 강화된 IAM 역할 관리 |
-| **OIDC** | OpenID Connect 프로토콜 | 외부 ID 제공자 통합 |
-| **OVNKubernetes** | OpenShift 네트워크 플러그인 | 고성능 네트워킹 |
-| **Cluster Autoscaler** | 자동 스케일링 | 워크로드에 따른 노드 자동 조정 |
-| **Hybrid Cloud Console** | Red Hat 중앙 관리 포털 | 다중 클러스터 중앙 관리 |
-| **Quay Registry** | 컨테이너 이미지 저장소 | 빌드 및 배포 자동화 |
+| 도구 또는 구성요소 | 역할 | 구분할 점 |
+| --- | --- | --- |
+| ROSA CLI | 클러스터와 machine pool 관리 | OpenShift 리소스 관리는 `oc` 사용 |
+| AWS STS와 IAM 역할 | 서비스 구성요소의 AWS API 접근 | 사용자 콘솔 로그인 권한과 별도 |
+| OIDC | 연동 대상에 따라 사용자 또는 워크로드 ID 전달 | 기업 SSO와 Operator용 AWS 연동을 별도로 설정 |
+| OVN-Kubernetes | 클러스터 네트워킹 | 정책 및 네트워크 기능은 선택한 OpenShift 버전에서 확인 |
+| Cluster Autoscaler | 배치할 수 없는 Pod에 맞춰 적격 machine pool 용량 조정 | pool 최소·최대값, Pod requests, 배치 조건의 제약을 받음 |
+| Hybrid Cloud Console / OpenShift Cluster Manager | 조직과 클러스터 관리 | 클러스터 API의 RBAC를 대신하지 않음 |
+| 이미지 레지스트리 | 노드 런타임에 컨테이너 이미지 제공 | Quay는 선택지이며, HCC가 이미지 소비자가 아님 |
 
 ## 💡 핵심 개념
 
 ### ROSA의 특징
 
-- **완전 관리형 서비스**: AWS와 Red Hat이 공동으로 컨트롤 플레인 운영
-- **고가용성**: 자동 패치 및 업데이트
-- **보안**: STS 기반 임시 자격증명, OIDC 프로바이더 통합
-- **유연성**: 고객이 워커 노드 완전 제어
+[공동 책임 문서](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-responsibilities.html)에 따르면 Red Hat은 플랫폼과 노드 버전을 유지하고 업그레이드를 실행합니다. 고객은 유지보수 일정을 선택하고 minor 버전 업그레이드를 승인·예약하며, 애플리케이션 호환성을 시험하고 지원 버전을 유지해야 합니다.
+
+고가용성은 패치 자동화만으로 확보되지 않습니다. AZ 배치, 애플리케이션 복제본, 스토리지와 데이터 복구 방식을 함께 설계해야 합니다.
 
 ### STS 기반 인증의 장점
 
-- **임시 자격증명**: 영구 액세스 키 불필요
-- **자동 토큰 갱신**: 토큰 만료 전 자동 갱신
-- **최소 권한**: 필요한 최소한의 권한만 부여
-- **감사 추적**: 모든 접근 기록 CloudTrail에 저장
+STS는 IAM 역할을 통해 유효기간이 있는 자격증명을 발급합니다. 역할의 trust policy와 권한 policy를 검토하고, 서비스 구성요소가 자격증명을 갱신할 수 있는지 확인해야 합니다. STS를 사용했다는 사실만으로 최소 권한이 입증되지는 않습니다.
+
+AWS API 감사에는 [CloudTrail](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html)을 사용하되, 필요한 데이터 이벤트와 보존 설정을 확인합니다. OpenShift 플랫폼 감사, HCC·IdP 로그인, 애플리케이션 접근은 각각의 로그 수집 경로와 보존·열람 권한을 별도로 관리합니다.
 
 ### Red Hat Hybrid Cloud Console의 역할
 
-- **중앙 집중식 관리**: 여러 클러스터를 한 곳에서 관리
-- **다중 클라우드 지원**: AWS, Azure, GCP, 온프레미스 OpenShift 통합 관리
-- **정책 기반 관리**: 보안 정책 중앙 시행
-- **비용 추적**: 클러스터별 비용 모니터링
+Hybrid Cloud Console의 OpenShift Cluster Manager는 조직의 클러스터 목록과 관리 작업을 제공합니다. HCC 로그인, OCM의 조직·클러스터 관리 권한, OpenShift API 로그인과 RBAC를 별도로 설정합니다. 비용 관리나 다중 클러스터 정책 적용은 해당 서비스·제품의 연결, 구독 및 권한 조건을 확인한 뒤 사용합니다.
 
 ### 네트워크 구성
 
-- **OVNKubernetes**: OpenVSwitch 기반 고성능 네트워킹
-- **Network Policy**: Kubernetes 네트워크 정책 완벽 지원
-- **Ingress Controller**: 기본 제공 인그레스 컨트롤러
-- **Service Mesh Ready**: Istio/Kiali 통합 지원
+애플리케이션의 외부 접근에는 OpenShift Ingress와 Route, Pod 간 접근 제한에는 NetworkPolicy를 검토합니다. 프라이빗 API 접근, 온프레미스 연결, DNS와 egress도 별도로 설계합니다. Service Mesh는 선택적인 추가 구성으로, 설치만으로 인증·암호화 정책이 애플리케이션에 적용되었다고 판단하지 않습니다.
 
 ## 💼 사용 사례
 
 ### 엔터프라이즈 마이그레이션
 
-- **온프레미스 OpenShift → ROSA**: 기존 OpenShift에서 ROSA로 마이그레이션
-- **관리 부담 감소**: 컨트롤 플레인 운영 자동화
-- **비용 절감**: 운영 비용 감소
-- **글로벌 확장**: 멀티 리전 배포
+기존 OpenShift 워크로드를 이전할 때 API·Operator·스토리지 호환성과 데이터 이동을 먼저 검증합니다. 관리 서비스는 플랫폼 운영 작업의 일부를 맡지만, 비용 절감 여부는 서비스 요금, AWS 자원, 이전 비용과 실제 운영 인력을 함께 비교해야 알 수 있습니다.
 
 ### 금융권 컴플라이언스
 
-- **보안 요구사항 충족**: STS, OIDC, MFA 등 고급 보안
-- **접근 제어**: 세밀한 권한 관리
-- **감사 로깅**: 모든 활동 기록 및 추적
-- **데이터 보호**: KMS 기반 암호화
+STS, IdP, MFA, 암호화와 감사 로그를 요구 통제에 연결하고 설정 및 시험 결과를 남깁니다. ROSA를 선택하거나 프라이빗 네트워크를 구성했다는 사실만으로 특정 금융 규정 준수를 판정할 수는 없습니다. 적용 규정, 심사 범위와 고객 책임은 [ROSA 보안 안내](https://docs.aws.amazon.com/rosa/latest/userguide/security.html)를 바탕으로 별도 검토합니다.
 
 ### 하이브리드 클라우드 전략
 
-- **온프레미스 + AWS**: 단일 플랫폼에서 관리
-- **멀티 클라우드**: AWS, Azure, GCP 동시 관리
-- **클라우드 버스팅**: 피크 시 클라우드로 확장
-- **재해 복구**: 다중 리전 재해 복구 전략
+ROSA는 AWS에서 실행됩니다. 온프레미스나 다른 클라우드의 OpenShift와 연결하려면 네트워크·ID·배포·데이터 운영을 함께 설계합니다. 클라우드 버스팅이나 리전 간 복구에는 별도의 용량 확보, 상태 복제와 트래픽 전환이 필요합니다.
 
 ## 📊 ROSA vs EKS vs 온프레미스 OpenShift
 
@@ -178,32 +125,24 @@ graph TB
 
 ### 1. 단일 클러스터 배포
 
-```
-ROSA Cluster
-├── Development 네임스페이스
-├── Staging 네임스페이스
-└── Production 네임스페이스
-```
+하나의 클러스터에서 개발·검증·운영 namespace를 나누는 구성입니다. namespace만으로 장애나 보안 경계가 완성되지는 않으므로 RBAC, NetworkPolicy, ResourceQuota와 공유 컨트롤 플레인의 영향을 검토합니다. 운영 격리 요건이 높다면 별도 클러스터를 선택합니다.
 
 ### 2. 멀티 클러스터 배포
 
-```
-Hybrid Cloud Console (중앙 관리)
-├── AWS Region 1 (ROSA)
-├── AWS Region 2 (ROSA)
-├── On-Premises (OpenShift)
-└── Multi-Cloud (Azure/GCP)
-```
+리전이나 운영 목적별로 클러스터를 나누고 클러스터 목록과 권한을 관리합니다. ROSA 외 OpenShift 클러스터를 등록하거나 일괄 정책을 배포하는 기능은 사용 중인 관리 제품의 지원 범위를 확인합니다. 클러스터 등록은 애플리케이션·데이터의 자동 동기화를 의미하지 않습니다.
 
 ### 3. 고가용성 배포
 
+다음은 고객이 설계할 수 있는 다중 리전 복구 흐름입니다. ROSA가 애플리케이션의 리전 간 자동 장애 조치를 제공한다는 뜻은 아닙니다.
+
+```text
+Primary-region application and data
+    -> Selected replication / backup mechanism
+    -> Secondary-region application and data
+    -> Health decision, traffic switch, and failback procedure
 ```
-Primary Region (ROSA)
-├── Active Cluster
-├── Replication to DR
-└── Auto-failover
-    └── Secondary Region (ROSA)
-```
+
+복제 지연과 일관성, RPO·RTO, 장애 판정, 쓰기 충돌 방지와 되돌리기 절차를 정한 뒤 복구 시험으로 확인합니다. [공동 책임 문서](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-responsibilities.html)는 애플리케이션·데이터 백업과 여러 클러스터의 DNS·로드 밸런싱 관리를 고객 책임으로 설명합니다.
 
 ## 🔗 관련 카테고리
 
@@ -214,7 +153,7 @@ Primary Region (ROSA)
 ---
 
 :::tip 팁
-ROSA는 AWS와 Red Hat이 공동 관리하는 서비스로, 컨트롤 플레인 운영 부담을 크게 줄일 수 있습니다. 특히 금융권이나 엔터프라이즈 환경에서는 ROSA의 보안 및 규정 준수 기능이 매우 유용합니다.
+플랫폼 운영을 맡기는 범위와 고객의 애플리케이션·데이터 책임을 먼저 확인하세요. 접근 제어, 복구와 규정 준수의 검증 결과는 고객 환경에 맞게 확보해야 합니다.
 :::
 
 :::info 추천 학습 경로

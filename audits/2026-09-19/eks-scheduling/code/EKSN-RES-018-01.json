@@ -1,0 +1,34 @@
+{
+  "clientToken": "documentation-only-replace-before-submission",
+  "description": "Illustrative EKS Pod deletion template; not executable without prerequisites",
+  "roleArn": "arn:aws:iam::123456789012:role/REPLACE_ME_FIS_ROLE",
+  "targets": {
+    "eks-pods": {
+      "resourceType": "aws:eks:pod",
+      "selectionMode": "COUNT(3)",
+      "parameters": {
+        "clusterIdentifier": "arn:aws:eks:us-east-1:123456789012:cluster/REPLACE_ME_CLUSTER",
+        "namespace": "replace-me-namespace",
+        "selectorType": "labelSelector",
+        "selectorValue": "app=critical-api"
+      }
+    }
+  },
+  "actions": {
+    "terminate-pods": {
+      "actionId": "aws:eks:pod-delete",
+      "parameters": {
+        "kubernetesServiceAccount": "replace-me-fis-service-account"
+      },
+      "targets": {
+        "Pods": "eks-pods"
+      }
+    }
+  },
+  "stopConditions": [
+    {
+      "source": "aws:cloudwatch:alarm",
+      "value": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:REPLACE_ME_ABORT_ALARM"
+    }
+  ]
+}

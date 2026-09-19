@@ -1,0 +1,7 @@
+flowchart TD
+  REGISTER["Register node with scope labels and all startup taints"] --> AGENTS["Bootstrap agents with scoped tolerations"]
+  AGENTS --> REPORT["Report required NodeConditions"]
+  REPORT --> RULES["NRC evaluates each matching rule"]
+  RULES --> ALL{"All relevant NoSchedule guards removed?"}
+  ALL -->|No| WAIT["Ordinary workload remains unschedulable"]
+  ALL -->|Yes| FILTERS["Scheduler still evaluates resources, affinity and other constraints"]

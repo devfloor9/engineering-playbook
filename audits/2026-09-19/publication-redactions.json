@@ -1,0 +1,365 @@
+{
+  "schema_version": 1,
+  "changes": [
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/0/retrieval_metadata/content_path",
+      "original_value_sha256": "3bd99bed4d4822ca6b7ac8c2d7090699e40c582495800f707f21248494a15379",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/0/retrieval_metadata/text_path",
+      "original_value_sha256": "d4077899a77b59ee05a3910237a0cf32b5e9c97448fcc834bb3f300d76f3e1c6",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/1/retrieval_metadata/content_path",
+      "original_value_sha256": "b42a59c535448704ad3381728f761f30970b2183782e5424e2b341592dff9d35",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/1/retrieval_metadata/text_path",
+      "original_value_sha256": "4f1064d3af4cb1b27a1fb58dbe72d6612b7f4d34f6aaa7bd00672ac5235544ff",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/2/retrieval_metadata/content_path",
+      "original_value_sha256": "963a73598998cdd1672ad7319600032b3aa7ca5de39cc034e29f1933cd213d73",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/2/retrieval_metadata/text_path",
+      "original_value_sha256": "74e26ac8f0f982c284011640005f84c2b22e59ac5add002b7853974316db5a2e",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/3/retrieval_metadata/content_path",
+      "original_value_sha256": "594b33599b7b647af1a684522e52f0566d86b0bddf4b85d3371c00a07b3e4245",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/3/retrieval_metadata/text_path",
+      "original_value_sha256": "93d4da3dcd4520ea32cfa651175ad5a4fa69a53f383fbe92581d9a7aee01a992",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/4/retrieval_metadata/content_path",
+      "original_value_sha256": "ae7045f52ab6ac951d5760c6202eaec8b18d6966df1ef4141554efcdcd09a25d",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/4/retrieval_metadata/text_path",
+      "original_value_sha256": "6388ae43682f1a71b8afcc4e7fd722a8a6e4634460f602bd953d842f35d8c1d1",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/5/retrieval_metadata/content_path",
+      "original_value_sha256": "b1e05fbadc110c578592fd4ec466cc666a1e8214114b68ab30b7870343891081",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/5/retrieval_metadata/text_path",
+      "original_value_sha256": "1b48b4d1095debb4aadeb5b0c044262d6f446d252a95b4fe9f2ffb7d459b4005",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/6/retrieval_metadata/content_path",
+      "original_value_sha256": "3b9b908710cc0ea2f89f1363c6aa81906c190a3dfddd321116a14d5bb111067b",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/6/retrieval_metadata/text_path",
+      "original_value_sha256": "f54a0edf528e97c1e511aa4954080b428ea1bb863d73051a425242b76cf02746",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/7/retrieval_metadata/content_path",
+      "original_value_sha256": "92688f525ee8d04f1cd55ac4a6d404bdc6ce0a3b7aab0b7e2c722e49ff40cb4c",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/7/retrieval_metadata/text_path",
+      "original_value_sha256": "66dbfbab46560fc3b0e4cbc3322d6d7be966f9bb39d1eeaad8870a732897875f",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/8/retrieval_metadata/content_path",
+      "original_value_sha256": "9557e993926f8fd2c9678b1db5d926de2f56b9bc28c2cce52c02dcbe121b7e28",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/8/retrieval_metadata/text_path",
+      "original_value_sha256": "1e837f18d0a864cef2b48a2709b94a5c8054e9e5410c70121ff52d8d329782b4",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/9/retrieval_metadata/content_path",
+      "original_value_sha256": "0770779e5155167ca7845a4ffe1e0eab53027c71809a8cbeecc52399e3bef117",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/9/retrieval_metadata/text_path",
+      "original_value_sha256": "42a9279a9101614fc5418cc55a25174fa254b1758e4c99e02be025d65abdf6c3",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/10/retrieval_metadata/raw_path",
+      "original_value_sha256": "d8d16d3de8cd847f2924bf2d54366587edb05ea0250ce2e78791cecba8ed9959",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/10/retrieval_metadata/text_path",
+      "original_value_sha256": "93542c7028ce77e39c37faa0467cfffbc74fdbc5b2589ac458787834af1dfc81",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/11/retrieval_metadata/raw_path",
+      "original_value_sha256": "754dd68c57e459b9990b317c04ba4075900a2d61be86780e577392a769a603c8",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/11/retrieval_metadata/text_path",
+      "original_value_sha256": "7eecd1466e35bcbbedd2f658af60d3452df144ed0887288d7e447f8c0f44d7b1",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/12/retrieval_metadata/raw_path",
+      "original_value_sha256": "627bdcee0a0cc6f47b709ce80030217c8b01209b4b8f862146da03e63c4ec968",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/12/retrieval_metadata/text_path",
+      "original_value_sha256": "5513321f772986a2394ab6b4bb6afe620bf94356f875d7839fb4d67c92093f98",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/13/retrieval_metadata/raw_path",
+      "original_value_sha256": "532f548e45192b6d474f750c202c9325485687f6794a34c8e20213bec7c7170b",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/13/retrieval_metadata/text_path",
+      "original_value_sha256": "d47e9fb35e4b6b1980b5d19f9c82e29ddbf289bcb0b6b5ef3d4c54a876346142",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/14/retrieval_metadata/raw_path",
+      "original_value_sha256": "4dd47231a89b16c0ff8e9e2441011550b2fcec9e89fcc5b9ebb5971286307a10",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/14/retrieval_metadata/text_path",
+      "original_value_sha256": "73e1d374e964dfbe04acd81f70ba7f6bc5dbf2eab99b898848404a3a4fd0d76c",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/15/retrieval_metadata/raw_path",
+      "original_value_sha256": "e3de87a5be43f5251009ed9a085dd69f0c2291c82883b1ed8f91f89bc64c7c9b",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/15/retrieval_metadata/text_path",
+      "original_value_sha256": "6a06c846ffd5afdb2fd80710fc3cb931fcc1364a86ece3c05d135397264c4237",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/16/retrieval_metadata/raw_path",
+      "original_value_sha256": "97bec1fe122a2f86e99da665c9fdc3413805d9d44ba544d28dc286ce9bd96302",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/16/retrieval_metadata/text_path",
+      "original_value_sha256": "f20240302012621bc89392904e8df9034c4e15e3965e4595487da8cbaf45327b",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/17/retrieval_metadata/raw_path",
+      "original_value_sha256": "94d2ff03399e988372eae71bf88ca5ec879e7454584f2886fc87f9c7615450f9",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/17/retrieval_metadata/text_path",
+      "original_value_sha256": "3d6f290d158f89d68c7ba54af57e6a42e7f9c9c659dd0cd26954bcf7bc2d6982",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/18/retrieval_metadata/raw_path",
+      "original_value_sha256": "0bacccaed07a655f9504875605dae72f099d9d59d517f001cfafb0df980524f9",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/18/retrieval_metadata/text_path",
+      "original_value_sha256": "796168f1bb8cf26a7a2e5d6d24d07163c3ad6dfc913a0b9b5c5268e4bb2b3ec3",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/19/retrieval_metadata/raw_path",
+      "original_value_sha256": "36f4663f675747a184ae33749e12772737c7383ca7eb657fffca208ade64e75c",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/19/retrieval_metadata/text_path",
+      "original_value_sha256": "b67e783cfbc9fd020bcbd68bdd934fa8cd40ace297516be1353965608f1a6bfb",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/20/retrieval_metadata/raw_path",
+      "original_value_sha256": "5b1caf1f7628fa4d212d6fb685cd5d1d46b249d14941d54c1e3cc297fe8f7c8e",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/20/retrieval_metadata/text_path",
+      "original_value_sha256": "b22bedfe9d0df5860a42cf74d780129f71174f0f02dd1473546c64882cee5402",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/21/retrieval_metadata/raw_path",
+      "original_value_sha256": "83529a3f5606bd0a0b571f7ca64a97a15ad03caa32a36acef4abd79db39c5ec0",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/21/retrieval_metadata/text_path",
+      "original_value_sha256": "86fdc301e2bc16beb25466cb17c6aa9917b7a5c384f248412725d82eca35f354",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/22/retrieval_metadata/raw_path",
+      "original_value_sha256": "1c8e36e1ae77efb446d2ca98c2dd5e0ccfd596bccb0470bda597c6d3d4622e26",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/22/retrieval_metadata/text_path",
+      "original_value_sha256": "8624c4dc02bfb5a9ee2c2b7dd6508a881dc00c2a29bdcd29bd8cced27df55ccb",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/23/retrieval_metadata/raw_path",
+      "original_value_sha256": "035bd5d585a0a58532625e8718a26d581c79c78426f986262f903d7c4d0e001b",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/23/retrieval_metadata/text_path",
+      "original_value_sha256": "799d93114362afbe654f98c574fbce6de0930c8a1bb830f50377e57bce825b9c",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/24/retrieval_metadata/raw_path",
+      "original_value_sha256": "e6fc7fd6fee5d7e86f645afd2a8b6f041133af5a4399ccc5015bccf099e97f25",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/24/retrieval_metadata/text_path",
+      "original_value_sha256": "e0dcdf238387e81c61a4f4ef44705466e79d73047c8b9ca522021b1cb3e68691",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/25/retrieval_metadata/raw_path",
+      "original_value_sha256": "c212a9b375bcee7aa13d2567ca68b12be0072c095fa8d23b33d50e008592525b",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/25/retrieval_metadata/text_path",
+      "original_value_sha256": "3260fef6fde2b0f899cafd4c623a755976eecc465cd5aacd0c8d661c788ca30f",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/26/retrieval_metadata/raw_path",
+      "original_value_sha256": "c56b100a553840f7c2c05465ec0e500a553e5b78f4bbbe21d29fe47668972be0",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/26/retrieval_metadata/text_path",
+      "original_value_sha256": "5e4754eeff2300e7b62d9fbfc22051c5eea79b765ce8100a71c118e59d96b7db",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/27/retrieval_metadata/raw_path",
+      "original_value_sha256": "2245ca4fedc85f26f02e1958bdf1ea05357b7ed163e08edd7232ac58af42325c",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/27/retrieval_metadata/text_path",
+      "original_value_sha256": "1c902bdf1b1efa63087ab44da9d0903b5fdcba49638e10d744dd4a5ecc4b61dc",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/28/retrieval_metadata/raw_path",
+      "original_value_sha256": "1a2d52df93889c536ae1c36ec7c31e4442ae9630a9e737fb9be4cd3d3da43225",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/28/retrieval_metadata/text_path",
+      "original_value_sha256": "2a2963f4294b493d2b67872518a4c0af717048a90bd0fc63459fed4d4f3cbd28",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/99/retrieval_metadata/content_path",
+      "original_value_sha256": "72a29a0982cfbba20724170ac198dfbdc82902e4712507f4fb2f7f8bb4142991",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "json_pointer": "/evidence/100/retrieval_metadata/content_path",
+      "original_value_sha256": "4545046c0ceb83671f43cb3e72bc6b599e54c219d361b81ceb1e4957ccf33ea1",
+      "reason": "Exclude the workstation cache location; retain the public URL and captured-content hash."
+    }
+  ]
+}

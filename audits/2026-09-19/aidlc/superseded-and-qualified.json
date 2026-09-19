@@ -1,0 +1,183 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "aidlc_superseded_and_qualified",
+  "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "integration_comparison": {
+    "checked_at": "2026-09-19T10:57:53.360174+00:00",
+    "documents_compared": 90,
+    "changed_documents": 0,
+    "conclusion": "All 90 source hashes match the frozen baseline at this comparison. No post-audit integration fix is claimed. Recheck before applying edits if the coordinator changes sources."
+  },
+  "notes": [
+    {
+      "id": "AIDLC-S01",
+      "status": "already_present_in_baseline",
+      "paths": [
+        "docs/aidlc/enterprise/case-studies.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/case-studies.md"
+      ],
+      "preserve": "Fictional organizations/quantities, corrected payback and explicit unmet-latency caveat.",
+      "related_reviews": [
+        "R048",
+        "R049"
+      ],
+      "canonical_ids": [
+        "AIDLC-C042",
+        "AIDLC-C043"
+      ]
+    },
+    {
+      "id": "AIDLC-S02",
+      "status": "already_present_in_baseline",
+      "paths": [
+        "docs/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/deployment-strategies.md"
+      ],
+      "preserve": "Shadow example already awaits both requests and warns about latency. R008 concerns exception-as-result behavior, not an absent await.",
+      "related_reviews": [
+        "R008"
+      ],
+      "canonical_ids": [
+        "AIDLC-C008"
+      ]
+    },
+    {
+      "id": "AIDLC-S03",
+      "status": "already_present_in_baseline",
+      "paths": [
+        "docs/aidlc/toolchain/evaluation-framework.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/toolchain/evaluation-framework.md"
+      ],
+      "preserve": "Scaffold prerequisites, same-run retrieved contexts, explicit judge models, nonempty datasets, finite numeric score checks with boolean/NaN rejection, deferred queue idempotency/retries, faithfulness-only alerts and explicitly hypothetical corrected cost arithmetic.",
+      "related_reviews": [
+        "R371",
+        "R372",
+        "R373",
+        "R374",
+        "R375",
+        "R376",
+        "R377",
+        "R378",
+        "R379",
+        "R380",
+        "R381",
+        "R382",
+        "R383",
+        "R384",
+        "R385",
+        "R386",
+        "R387"
+      ],
+      "canonical_ids": [
+        "AIDLC-C342",
+        "AIDLC-C343",
+        "AIDLC-C344",
+        "AIDLC-C345",
+        "AIDLC-C346",
+        "AIDLC-C347",
+        "AIDLC-C348",
+        "AIDLC-C349",
+        "AIDLC-C350",
+        "AIDLC-C351",
+        "AIDLC-C352",
+        "AIDLC-C353",
+        "AIDLC-C354",
+        "AIDLC-C355",
+        "AIDLC-C356",
+        "AIDLC-C357",
+        "AIDLC-C358"
+      ]
+    },
+    {
+      "id": "AIDLC-S04",
+      "status": "already_present_in_baseline",
+      "paths": [
+        "docs/aidlc/enterprise/regulatory-compliance/frameworks/nist-ai-rmf.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/nist-ai-rmf.md"
+      ],
+      "preserve": "Voluntary RMF 1.0 scope, revoked EO context, illustrative thresholds/sample count, retained human approval and unavailable-measurement states.",
+      "related_reviews": [
+        "R163"
+      ],
+      "canonical_ids": [
+        "AIDLC-C143"
+      ]
+    },
+    {
+      "id": "AIDLC-S05",
+      "status": "evidence_followup_supersedes_earlier_gap",
+      "paths": [
+        "docs/aidlc/methodology/ddd-integration.md",
+        "docs/aidlc/toolchain/ai-coding-agents.md",
+        "docs/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "preserve": "Q Developer's original announcement was retrieved and dated January 30, 2025, with Devfile and retry/abort conditions. EKS Capabilities history confirms November 30, 2025. These evidence gaps are resolved; source corrections remain outstanding.",
+      "related_reviews": [
+        "R211",
+        "R341",
+        "R342",
+        "R414"
+      ],
+      "canonical_ids": [
+        "AIDLC-C190",
+        "AIDLC-C314",
+        "AIDLC-C384"
+      ]
+    },
+    {
+      "id": "AIDLC-S06",
+      "status": "publication_review_qualification",
+      "paths": [],
+      "preserve": "Current feature documentation does not establish historical support; schedules may overlap; old versions are not intrinsically wrong; missing private studies are not false; a primary preview does not establish unseen normative clauses.",
+      "related_reviews": [
+        "R007",
+        "R041",
+        "R042",
+        "R048",
+        "R058",
+        "R060",
+        "R062",
+        "R080",
+        "R081",
+        "R133",
+        "R171",
+        "R307",
+        "R346",
+        "R410"
+      ],
+      "canonical_ids": [
+        "AIDLC-C007",
+        "AIDLC-C037",
+        "AIDLC-C038",
+        "AIDLC-C042",
+        "AIDLC-C052",
+        "AIDLC-C054",
+        "AIDLC-C056",
+        "AIDLC-C074",
+        "AIDLC-C118",
+        "AIDLC-C151",
+        "AIDLC-C284",
+        "AIDLC-C318",
+        "AIDLC-C380"
+      ]
+    },
+    {
+      "id": "AIDLC-S07",
+      "status": "publication_recheck_resolves_provisional_hold",
+      "paths": [
+        "docs/aidlc/enterprise/regulatory-compliance/frameworks/eu-ai-act.md",
+        "docs/aidlc/enterprise/regulatory-compliance/index.md"
+      ],
+      "preserve": "Provisional publication holds on R125/R130/R157 were resolved by inspecting exact primary provisions and publicly retrieving them again. Use those scoped results, not a remembered penalty percentage.",
+      "related_reviews": [
+        "R125",
+        "R130",
+        "R157"
+      ],
+      "canonical_ids": [
+        "AIDLC-C110",
+        "AIDLC-C115"
+      ]
+    }
+  ]
+}

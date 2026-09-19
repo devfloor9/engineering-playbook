@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-09-19",
+  "state": "reading_complete_with_open_findings",
+  "source_baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "reading_integrity": {
+    "status": "passed",
+    "documents": 628,
+    "source_lines": 192321,
+    "omissions": 0,
+    "duplicate_source_records": 0,
+    "hash_and_range_errors": 0
+  },
+  "finding_preservation": {
+    "status": "passed",
+    "grouped_items": 2191,
+    "original_occurrences": 4366,
+    "missing": 0,
+    "duplicated": 0,
+    "publication_privacy_recheck": "passed: no candidate patterns after review and explicit cache-path redaction",
+    "document_dependency_associations_preserved": 741
+  },
+  "checks": [
+    {
+      "name": "LLM exports against actual built HTML",
+      "status": "passed",
+      "passed": 191,
+      "failed": 0,
+      "skipped": 0,
+      "test_commit": "ec022715",
+      "html_source_commit": "974892d8",
+      "scope": "Active static components, reviewed benchmark replacements and navigation equivalence."
+    },
+    {
+      "name": "Real Mermaid layout regression",
+      "status": "passed",
+      "scenario_count": 8,
+      "test_commit": "9a4862b892121c840679acaa3a29ac04fbf4367f",
+      "scope": "Authored KO/EN ROSA graph, installed renderer and current production CSS, both themes and motion preferences. Checks every node and label, viewBox containment and all 15 direct parent-title/child-shape pairs per case. No mocked SVG.",
+      "css_sha256": "5c615c393e4f12d0692e18448cf97fc83a9e2626760f3d82a261b426c4d9bd79"
+    },
+    {
+      "name": "Mermaid regression negative control",
+      "status": "confirmed",
+      "scope": "The earlier reduced-motion CSS fails all four reduced-motion cases. Removing only the cluster-title CSS fails title/child non-overlap in all eight cases. The same graph, renderer and assertions pass with both fixes. Both positive and negative runs terminate their owned browser without a profile-removal error."
+    },
+    {
+      "name": "Table, figure and dialog interaction tests",
+      "status": "passed",
+      "passed": 13,
+      "failed": 0,
+      "scope": "Keyboard, zoom, fit, focus return, table reflow, status text and detail controls in the local fixture."
+    },
+    {
+      "name": "Gateway benchmark fixture and evidence checks",
+      "status": "passed",
+      "passed": 27,
+      "protected_raw_artifacts_unchanged": 33,
+      "scope": "Static/loopback checks only; no Docker or implementation load test."
+    },
+    {
+      "name": "Full Korean/English build and exports",
+      "status": "passed",
+      "site_source_commit": "974892d8",
+      "scope": "Completed the local production build for both locales, then generated llms.txt and the per-page LLM Wiki."
+    },
+    {
+      "name": "Internal routes and fragments against built HTML",
+      "status": "passed",
+      "site_source_commit": "974892d8",
+      "internal_checked": 3101,
+      "internal_findings": 0,
+      "source_documents": 628,
+      "scope": "Internal links only. The 949 unique external URLs were excluded from this check; the CI external-link workflow is advisory."
+    },
+    {
+      "name": "Actual built article and dialog rendering",
+      "status": "passed",
+      "site_source_commit": "974892d8",
+      "scenario_count": 8,
+      "scope": "KO/EN ROSA article, both themes, 320/1440-pixel viewports and reduced motion. Checked SVG containment, labels, page overflow, fitted/actual-size zoom and keyboard focus return. This build predates the cluster-title fix; that fix is covered separately by the real-renderer regression."
+    },
+    {
+      "name": "Pull-request build and validation before the cluster-title follow-up",
+      "status": "passed",
+      "commit": "d0432b45e9eb8b6a31724f534770a4a0952bc6cc",
+      "ci_url": "https://github.com/devfloor9/engineering-playbook/actions/runs/35440334795",
+      "scope": "Both-locale production build, configured regression suites, generated exports, rendered parity and internal route/fragment validation."
+    },
+    {
+      "name": "Final commit acceptance and Pages deployment",
+      "status": "recorded_on_pull_request",
+      "scope": "The pull request and its check runs are the authoritative final-revision build, rendering and deployment record. Updating this data file cannot attest to its own future CI execution."
+    }
+  ],
+  "reviewed_corrections": {
+    "eks_scheduling": {
+      "commits": [
+        "8a5f693c",
+        "12166b9f"
+      ],
+      "grouped_findings": 12,
+      "scope": "Independent review of the named source corrections; no actionable scoped regression found."
+    },
+    "rendered_parity": {
+      "commit": "ec022715",
+      "scope": "Independent review verified 77 replacement phrases in built article text and retained the active-component checks."
+    },
+    "mermaid_layout": {
+      "commit": "9a4862b892121c840679acaa3a29ac04fbf4367f",
+      "scope": "Independent reviewer confirmed the reduced-motion root cause, the title/child overlap regression and bounded browser cleanup. Source diagram structure, labels and article revision dates are preserved."
+    }
+  },
+  "final_pull_request": "https://github.com/devfloor9/engineering-playbook/pull/93",
+  "limits": [
+    "Full reading is not factual certification.",
+    "Source syntax, fixtures and site rendering do not establish deployment or measured performance.",
+    "No cloud, Kubernetes, container workload, recovery or fault-injection examples were executed.",
+    "Required checks on the pull request provide the final commit-specific CI record."
+  ]
+}

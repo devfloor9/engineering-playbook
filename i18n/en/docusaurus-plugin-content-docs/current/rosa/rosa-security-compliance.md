@@ -1,11 +1,11 @@
 ---
 title: ROSA Security Compliance Console Access Control
-description: Access control strategies for Red Hat Hybrid Cloud Console to meet financial sector security requirements. Secure administrator access control through IdP, MFA, and IP-based access restrictions.
+description: A design for validating identity, permissions, MFA, login restrictions, and session controls across Hybrid Cloud Console, AWS, and OpenShift
 created: "2025-02-05"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 7
+reading_time: 11
 tags:
   - rosa
   - openshift
@@ -21,118 +21,99 @@ category: rosa
 
 ## Overview
 
-When adopting ROSA (Red Hat OpenShift Service on AWS) in the financial sector, access control for the Red Hat Hybrid Cloud Console is a critical security requirement. This guide explains secure administrator access control strategies utilizing IdP (Identity Provider), MFA, and IP-based access restrictions.
+An administrator who signs in through a corporate IdP does not automatically receive every ROSA management permission. AWS IAM, Red Hat Hybrid Cloud Console (HCC) and OpenShift Cluster Manager (OCM) permissions, and OpenShift cluster RBAC have different scopes. This design separates those boundaries and defines tests for MFA and login-location restrictions.
 
-:::warning Notice
-This document addresses security requirements for financial sector customers. Consultation with Red Hat and AWS is required for actual implementation.
-:::
-
----
+This repository contains no implementation logs or compliance assessment for the design. Treat the flow as a proposal to validate, not evidence that a control is effective or that a financial regulation has been satisfied.
 
 ## Customer Situation
 
-A financial institution in Korea raised concerns about access control for the Red Hat Hybrid Cloud Console while adopting ROSA (Red Hat OpenShift Service on AWS). This is a separate issue from the ROSA cluster network architecture, which has already been confirmed to meet the requirements.
+The original note described console-access requirements from a financial institution in Korea. No publishable requirements specification or approval record accompanies it, so the customer-specific account and approval status remain unverified. The design uses only the stated assumption that administrators need corporate identity, MFA, and access from approved locations.
 
 ## Current Understanding
 
-- The private network configuration for ROSA clusters is well understood and implementable.
-- The compliance issue is limited to the Red Hat Hybrid Cloud Console access pattern, not the ROSA cluster itself.
-- When a ROSA cluster is created, administrators access the cluster through the Red Hat Hybrid Cloud Console, which currently does not meet security requirements.
+| Access target | Authentication and authorization | Separate check |
+| --- | --- | --- |
+| AWS console and APIs | AWS federation and IAM | Roles and policies for the AWS resources used by ROSA |
+| HCC and OCM | Red Hat corporate SSO and organization or cluster permissions | Account eligibility, organization membership, and role scope |
+| OpenShift console and API | A supported IdP for cluster OAuth and RBAC | Cluster or project roles, CLI and token access |
+
+The AWS console is not a required hop for HCC or `oc` access. Reusing a corporate IdP still requires separate trust and permission configuration for each service.
 
 ## Current Obstacle
 
-The default public access pattern to the Red Hat Hybrid Cloud Console does not meet financial regulatory requirements. Although the ROSA cluster itself can be adequately protected with private network configuration, console access must be managed separately.
+Determine which access paths enforce each required control. A public console URL alone does not establish a regulatory violation. Test whether a login-time IP rule also covers existing sessions and API tokens, and whether another path bypasses MFA. Specify the applicable controls and acceptance criteria separately, using the [ROSA shared-responsibility guidance](https://docs.aws.amazon.com/rosa/latest/userguide/security.html) to define the assessment scope.
 
 ## Security Requirements
 
 ### Console Access Control Requirements
 
-The customer requires:
-
-1. IdP (Identity Provider) integration for Red Hat Hybrid Cloud Console access
-2. MFA (Multi-Factor Authentication) implementation through IdP
-3. IP-based access control for the console
+1. Configure corporate SSO specifically for HCC and verify account and organization mapping.
+2. Configure the required MFA and login-location policies at the IdP.
+3. Grant OCM roles and cluster RBAC permissions for the intended duties.
+4. Test existing sessions, CLI, API and service tokens, user deactivation, and recovery access.
+5. Verify successful and denied operations and user attribution in each service's audit logs.
 
 ### Important Clarifications
 
-- These requirements apply only to Red Hat Hybrid Cloud Console access.
-- This is completely separate from OIDC/SAML configuration for the ROSA cluster itself.
-- The concern is not about the ROSA cluster's network architecture, which has already been confirmed as compliant when implemented with private network configuration (including Zero Egress configuration).
+The [HCC IdP integration guide](https://docs.redhat.com/en/documentation/red_hat_hybrid_cloud_console/1-latest/html-single/configuring_identity_provider_integration/index) supports SAML 2.0 and OIDC. An organization administrator must confirm account eligibility, test the integration, and enable it. The guide identifies non-web services that do not use corporate SSO and does not support federated logout. Do not assume that IdP logout or blocking a corporate identity ends every Red Hat access path.
+
+The ROSA cluster separately uses a [supported OAuth IdP](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html). OIDC in that list does not imply native SAML support. If the enterprise identity system uses SAML, identify the supported broker and protocol path.
+
+[HCP egress-zero installation](https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws/4/html/install_rosa_with_hcp_clusters/rosa-hcp-egress-zero-install) is a network design option. Check the release-specific VPC endpoints, regional ECR, firewall and administrator access, and feature restrictions. It does not establish a physical air gap or compliance approval and is distinct from this section's public Classic demo.
 
 ## Proposed Access Control Workflow
 
-The secure access workflow proposed by the customer is as follows:
-
-1. Administrator accesses the AWS ROSA Console.
-2. When accessing the Red Hat Hybrid Cloud Console, authentication is handled through an IdP configured in AWS.
-3. The IdP enforces:
-   - Multi-Factor Authentication (MFA)
-   - IP-based access control
-
-This workflow ensures that administrator access is strictly controlled and compliant with security requirements.
+The administrator signs in to HCC through its separately configured corporate IdP. The IdP evaluates configured MFA and login policies and returns an authentication result. OCM then checks permissions for the requested management operation. Direct OpenShift API access follows the cluster's own login and RBAC checks.
 
 ```mermaid
 sequenceDiagram
-    participant Admin as Administrator
-    participant AWS Console as AWS Console
-    participant IdP as IdP
-    participant RH Console as Red Hat Hybrid Cloud Console
-    participant ROSA
-
-    Admin->>AWS Console: 1. Access AWS ROSA Console
-    Admin->>RH Console: 2. Access Red Hat Hybrid Cloud Console
-    RH Console->>IdP: Authentication request
-    IdP->>IdP: 3. MFA and IP-based access control verification
-    IdP-->>RH Console: Authentication response
-    RH Console->>ROSA: Access ROSA cluster (upon authentication)
+    participant A as Administrator
+    participant H as Hybrid Cloud Console
+    participant I as Corporate IdP
+    participant O as OpenShift Cluster Manager
+    participant C as OpenShift API / console
+    A->>H: Open the management console
+    H->>I: Corporate SSO authentication
+    I->>I: Apply configured MFA and login policy
+    I-->>H: Authentication response
+    H->>O: Requested management operation
+    O->>O: Check organization and cluster permissions
+    A->>C: Separate cluster login
+    C->>C: Authenticate with cluster IdP and check RBAC
 ```
 
 ### Overall Architecture
 
 ```mermaid
-graph TB
-    subgraph Customer["Customer Environment"]
-        Admin[Administrator]
-        IdP[Corporate IdP<br/>with MFA and IP control]
-    end
-
-    subgraph AWS["AWS Cloud"]
-        AWSC[AWS Console]
-        subgraph Private["Private Network"]
-            ROSA[ROSA Cluster<br/>Zero Egress Configuration]
-        end
-    end
-
-    subgraph RedHat["Red Hat"]
-        HCC[Hybrid Cloud Console<br/>IdP Integration Required]
-    end
-
-    Admin -->|1. Access| AWSC
-    Admin -->|2. Access| HCC
-    HCC -->|3. Auth request| IdP
-    IdP -->|4. MFA + IP verification| IdP
-    IdP -->|5. Auth response| HCC
-    HCC -->|6. Manage| ROSA
-
-    style IdP fill:#ff9900,stroke:#232f3e,stroke-width:2px
-    style HCC fill:#EE0000,stroke:#232f3e,stroke-width:2px
+flowchart LR
+    A["Administrator"]
+    I["Corporate identity provider"]
+    AWS["AWS console / APIs<br/>AWS IAM permissions"]
+    HCC["Hybrid Cloud Console<br/>HCC / OCM permissions"]
+    API["OpenShift console / API<br/>Cluster identity and RBAC"]
+    A --> AWS
+    A --> HCC
+    A --> API
+    AWS -.->|Separate AWS federation| I
+    HCC -.->|Separate SAML or OIDC integration| I
+    API -.->|Supported cluster IdP integration| I
 ```
 
----
+Dotted lines represent separate identity integrations. Configuring one does not configure access control for the other two paths.
 
 ## Required Responses
 
-1. Information on similar cases in the financial sector
-2. Previous solutions implemented for administrator access control
-3. Best practices from other financial sector implementations
+| Question | Evidence required |
+| --- | --- |
+| Which duties and data are in scope? | Requirements naming the controls, scope, and approving authority |
+| When is IdP policy evaluated? | Allowed and denied results at login, session refresh, and after a location change |
+| Which access ends when an account is blocked? | Tests for HCC sessions, OCM/API tokens, service identities, and cluster tokens |
+| Who can manage which resources? | Positive and negative tests for organization and cluster roles and OpenShift RBAC |
+| How is access recovered after SSO failure or misconfiguration? | Tested recovery identities, owners, and Red Hat support procedures |
+| Who reviews the audit trail? | Collection, retention, and access owners for AWS, Red Hat, IdP, cluster, and application logs |
 
 ## Next Steps
 
-- Confirm the proposed workflow meets Red Hat's technical capabilities
-- Provide IdP integration documentation for the Red Hat Hybrid Cloud Console
-- Share case studies from other financial sector implementations
-- Provide technical guidance for implementation
+Choose a test organization, cluster, and identities, then record the allow and deny conditions in the table. Confirm recovery access before enabling HCC integration. Test unauthorized operations, disallowed locations, deactivated users, and existing tokens as well as successful login. Have the security owner assess the results and remaining exceptions before rollout.
 
-:::tip Note
-Detailed consultation with Red Hat and AWS is required for actual implementation.
-:::
+This document review did not configure federation or execute access tests. Compliance status remains unverified until implementation evidence and approval are available.

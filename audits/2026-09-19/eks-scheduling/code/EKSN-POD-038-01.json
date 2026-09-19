@@ -1,0 +1,7 @@
+{
+  "platform-critical": 999999000,
+  "business-critical": 1000000,
+  "high-priority": 100000,
+  "standard-priority": 10000,
+  "low-priority": 1000
+}

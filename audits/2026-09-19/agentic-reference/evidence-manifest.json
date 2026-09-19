@@ -1,0 +1,1757 @@
+{
+  "evidence": [
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/bifrost-custom-providers.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/bifrost-custom-providers.txt",
+      "exists": true,
+      "sha256": "e083cce84b8b0ab9251fba7128e33eae747feba7d4a5de2a0ef442e4ac82dd17",
+      "retrieval_metadata": {
+        "id": "bifrost-custom-providers",
+        "url": "https://docs.getbifrost.ai/providers/custom-providers",
+        "retrieved_at_utc": "2026-09-19T09:27:08.141002+00:00",
+        "status": 200,
+        "final_url": "https://docs.getbifrost.ai/providers/custom-providers",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "db44d3672b25c1fa73b736a9e670f6a93a9e4f0191f3487cf6bd1eda854fa7f2",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 568
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/gai-epp.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/gai-epp.txt",
+      "exists": true,
+      "sha256": "a775cc9846f248ed02337d9632b6523fc612518098e90de4c9c84b5653407ddd",
+      "retrieval_metadata": {
+        "id": "gai-epp",
+        "url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api-inference-extension/v1.3.0/README.md",
+        "retrieved_at_utc": "2026-09-19T08:45:21.324231+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api-inference-extension/v1.3.0/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "a775cc9846f248ed02337d9632b6523fc612518098e90de4c9c84b5653407ddd",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 123
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/keda-prometheus.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/keda-prometheus.txt",
+      "exists": true,
+      "sha256": "aef348714b147e3a52183adb2037baf6f7619f4b52702c962934f70e921e2d07",
+      "retrieval_metadata": {
+        "id": "keda-prometheus",
+        "url": "https://keda.sh/docs/2.18/scalers/prometheus/",
+        "retrieved_at_utc": "2026-09-19T08:55:14.378301+00:00",
+        "status": 200,
+        "final_url": "https://keda.sh/docs/2.18/scalers/prometheus/",
+        "content_type": "text/html; charset=UTF-8",
+        "sha256": "63d69ba4598f82e39fc9dd77a2f35fe503408ceb310842e892e4c4d2d6c0c765",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 667
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/keda-scaledobject.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/keda-scaledobject.txt",
+      "exists": true,
+      "sha256": "1f109a372e3763ab3a90ec8c2d8f7eab023a2000f2abaa28354717be0cfb35ac",
+      "retrieval_metadata": {
+        "id": "keda-scaledobject",
+        "url": "https://keda.sh/docs/2.18/reference/scaledobject-spec/",
+        "retrieved_at_utc": "2026-09-19T08:57:28.042528+00:00",
+        "status": 200,
+        "final_url": "https://keda.sh/docs/2.18/reference/scaledobject-spec/",
+        "content_type": "text/html; charset=UTF-8",
+        "sha256": "c70a15d0861dd1424742aa0007682c956a0954ed3548a18f6d206d25051395d9",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 379
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/litellm101-complexity.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/litellm101-complexity.txt",
+      "exists": true,
+      "sha256": "a08e9183c532d2e4cb60a0a2da12f5b73866244e616e853d22c8780f8fb6b670",
+      "retrieval_metadata": {
+        "id": "litellm101-complexity",
+        "url": "https://raw.githubusercontent.com/BerriAI/litellm/v1.101.0/litellm/router_strategy/complexity_router/complexity_router.py",
+        "retrieved_at_utc": "2026-09-19T09:29:25.412606+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/BerriAI/litellm/v1.101.0/litellm/router_strategy/complexity_router/complexity_router.py",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "a08e9183c532d2e4cb60a0a2da12f5b73866244e616e853d22c8780f8fb6b670",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 3735
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/llmd081-cachescorer.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/llmd081-cachescorer.txt",
+      "exists": true,
+      "sha256": "a9f3769f1dad02bfde4727f14c937f8533f424f141d14371d6d93fbb9384a2f3",
+      "retrieval_metadata": {
+        "id": "llmd081-cachescorer",
+        "url": "https://raw.githubusercontent.com/llm-d/llm-d-router/v0.9.0/pkg/epp/framework/plugins/scheduling/scorer/prefix/README.md",
+        "retrieved_at_utc": "2026-09-19T09:07:33.022027+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/llm-d/llm-d-router/v0.9.0/pkg/epp/framework/plugins/scheduling/scorer/prefix/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "a9f3769f1dad02bfde4727f14c937f8533f424f141d14371d6d93fbb9384a2f3",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 38
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/lws090-readme.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/lws090-readme.txt",
+      "exists": true,
+      "sha256": "0d788dac9234e8d1d1df979986aac1d614b9b462372543518f451143021de040",
+      "retrieval_metadata": {
+        "id": "lws090-readme",
+        "url": "https://raw.githubusercontent.com/kubernetes-sigs/lws/v0.9.0/README.md",
+        "retrieved_at_utc": "2026-09-19T10:16:15.124208+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/kubernetes-sigs/lws/v0.9.0/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "0d788dac9234e8d1d1df979986aac1d614b9b462372543518f451143021de040",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 71
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/openclaw-security-raw.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/openclaw-security-raw.txt",
+      "exists": true,
+      "sha256": "996758a2b5c89a10fb973327cb4c9b41b9b933ef3cce46ffd2625a69b16e7af3",
+      "retrieval_metadata": {
+        "id": "openclaw-security-raw",
+        "url": "https://raw.githubusercontent.com/openclaw/openclaw/main/docs/gateway/security/index.md",
+        "retrieved_at_utc": "2026-09-19T09:44:28.366426+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/openclaw/openclaw/main/docs/gateway/security/index.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "996758a2b5c89a10fb973327cb4c9b41b9b933ef3cce46ffd2625a69b16e7af3",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 155
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/qwen3-readme.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/qwen3-readme.txt",
+      "exists": true,
+      "sha256": "0b2c2bb11806f7a00c8465f2586e2e99f15de28622fd5c9b70b83ae1ab18c75d",
+      "retrieval_metadata": {
+        "id": "qwen3-readme",
+        "url": "https://raw.githubusercontent.com/QwenLM/Qwen3/main/README.md",
+        "retrieved_at_utc": "2026-09-19T10:12:08.593365+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/QwenLM/Qwen3/main/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "0b2c2bb11806f7a00c8465f2586e2e99f15de28622fd5c9b70b83ae1ab18c75d",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 428
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-design-serving/evidence/vllm-v023-metrics.txt",
+      "resolved_phase_path": "audit/agentic-design-serving/evidence/vllm-v023-metrics.txt",
+      "exists": true,
+      "sha256": "ce2a0535d2b2b69e4368f34b692dac081be764e8d0eadab4f791b1afdcf43df4",
+      "retrieval_metadata": {
+        "id": "vllm-v023-metrics",
+        "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/v1/metrics/loggers.py",
+        "retrieved_at_utc": "2026-09-19T09:06:50.609462+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/v1/metrics/loggers.py",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "ce2a0535d2b2b69e4368f34b692dac081be764e8d0eadab4f791b1afdcf43df4",
+        "content_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "text_lines": 1360
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/amg-cloudwatch-promql.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/amg-cloudwatch-promql.txt",
+      "exists": true,
+      "sha256": "dabcd36c8aae12d25eeb16eba427e9a50893e6f92908ddb3c8b7b1e051d3dfee",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-PromQL-Grafana.html",
+        "resolved_url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-PromQL-Grafana.html",
+        "retrieved_at": "2026-09-19T10:31:11.253072+00:00",
+        "sha256": "c3128df4671b1dcec624f17a66fffb6abd4cdeb78da3a9de034773c81f39b872",
+        "content_type": "text/html",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Only recorded reviewed_text_ranges have been read for this audit.",
+        "reviewed_text_ranges": [
+          [
+            1,
+            89
+          ]
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bedrock-pricing.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bedrock-pricing.txt",
+      "exists": true,
+      "sha256": "67df6387f668aaa88ef21ee234499cb9b4c98e9c251428dce3964925bc73afa7",
+      "retrieval_metadata": {
+        "url": "https://aws.amazon.com/bedrock/pricing/",
+        "resolved_url": "https://aws.amazon.com/bedrock/pricing/",
+        "retrieved_at": "2026-09-19T08:44:45.365828+00:00",
+        "sha256": "365d2c52cc518e889efbc9990fe430717734ad48deaedbaee99b23429698c1db",
+        "content_type": "text/html;charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": [
+          "Custom Model Import lines 1423–1448 and 1516–1519: CMU per-minute price billed in five-minute windows, persistent monthly storage, scale-to-zero after inactivity, cold starts."
+        ],
+        "review_limit": "Relevant sections explicitly read; current retrieved documentation does not establish historical availability."
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-cache.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-cache.txt",
+      "exists": true,
+      "sha256": "2cd7a8343c9c2f0d4a38e20837592db964f6aee3e24301fb252aa1fee6e2e4f7",
+      "retrieval_metadata": {
+        "url": "https://docs.getbifrost.ai/features/semantic-caching.md",
+        "resolved_url": "https://docs.getbifrost.ai/features/semantic-caching.md",
+        "retrieved_at": "2026-09-19T08:49:30.647615+00:00",
+        "sha256": "2cd7a8343c9c2f0d4a38e20837592db964f6aee3e24301fb252aa1fee6e2e4f7",
+        "content_type": "text/markdown; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Pending explicit review; retrieval alone is not verified evidence."
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-complexity.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-complexity.txt",
+      "exists": true,
+      "sha256": "3a7ecd02d319b7e6531ef1233e561468d2f2df3b538a341816547b842b23bae7",
+      "retrieval_metadata": {
+        "url": "https://docs.getbifrost.ai/features/governance/complexity-router",
+        "resolved_url": "https://docs.getbifrost.ai/features/governance/complexity-router",
+        "retrieved_at": "2026-09-19T09:58:21.400739+00:00",
+        "sha256": "bf385ce0f4d14530a72e78819d3684b1fc84ecdecd638fe174194060132e7c43",
+        "content_type": "text/html; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Only recorded reviewed_text_ranges have been read for this audit.",
+        "reviewed_text_ranges": [
+          [
+            130,
+            155
+          ]
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-config-reconcile.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-config-reconcile.txt",
+      "exists": true,
+      "sha256": "a7f340f240cf080b46c17e88636f234fe4eabce768289f10bf7d8670ec11001e",
+      "retrieval_metadata": {
+        "url": "https://docs.getbifrost.ai/deployment-guides/config-json/source-of-truth.md",
+        "resolved_url": "https://docs.getbifrost.ai/deployment-guides/config-json/source-of-truth.md",
+        "retrieved_at": "2026-09-19T08:42:27.240538+00:00",
+        "sha256": "a7f340f240cf080b46c17e88636f234fe4eabce768289f10bf7d8670ec11001e",
+        "content_type": "text/markdown; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": [
+          "All 119 lines: split/file-only modes, startup hashes, pruning conditions."
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-config-schema.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-config-schema.txt",
+      "exists": true,
+      "sha256": "e0d4d88b2d68159c3453b9be43420ae34a7478512a43bc31427fb069fc95ca14",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/maximhq/bifrost/main/transports/config.schema.json",
+        "resolved_url": "https://raw.githubusercontent.com/maximhq/bifrost/main/transports/config.schema.json",
+        "retrieved_at": "2026-09-19T08:45:43.827027+00:00",
+        "sha256": "e0d4d88b2d68159c3453b9be43420ae34a7478512a43bc31427fb069fc95ca14",
+        "content_type": "text/plain; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Pending explicit review; retrieval alone is not verified evidence."
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-cursor.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-cursor.txt",
+      "exists": true,
+      "sha256": "c60657e29f26d042716d439c76d48864758a126d1fd3336dae2319de16b5203d",
+      "retrieval_metadata": {
+        "url": "https://docs.getbifrost.ai/cli-agents/cursor.md",
+        "resolved_url": "https://docs.getbifrost.ai/cli-agents/cursor.md",
+        "retrieved_at": "2026-09-19T08:42:27.548315+00:00",
+        "sha256": "c60657e29f26d042716d439c76d48864758a126d1fd3336dae2319de16b5203d",
+        "content_type": "text/markdown; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": [
+          "All 92 lines read across bounded follow-up excerpts; provider/model-name support."
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-otel-http.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-otel-http.txt",
+      "exists": true,
+      "sha256": "6c4968646d82d6d21e099b762657420dc13380ce4f507422f42d0f61f4f90652",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/maximhq/bifrost/main/plugins/otel/http.go",
+        "resolved_url": "https://raw.githubusercontent.com/maximhq/bifrost/main/plugins/otel/http.go",
+        "retrieved_at": "2026-09-19T08:45:43.826723+00:00",
+        "sha256": "6c4968646d82d6d21e099b762657420dc13380ce4f507422f42d0f61f4f90652",
+        "content_type": "text/plain; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": [
+          "All 89 lines: configured endpoint passed unmodified to http.NewRequestWithContext."
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-otel.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-otel.txt",
+      "exists": true,
+      "sha256": "1eeea39a0533779cdb7f1ac1dc3d935f7ea3a118c77cf383b3ead11ed515e4fa",
+      "retrieval_metadata": {
+        "url": "https://docs.getbifrost.ai/features/observability/otel.md",
+        "resolved_url": "https://docs.getbifrost.ai/features/observability/otel.md",
+        "retrieved_at": "2026-09-19T08:42:27.240689+00:00",
+        "sha256": "1eeea39a0533779cdb7f1ac1dc3d935f7ea3a118c77cf383b3ead11ed515e4fa",
+        "content_type": "text/markdown; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Pending explicit review; retrieval alone is not verified evidence."
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/bifrost-runtime.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/bifrost-runtime.txt",
+      "exists": true,
+      "sha256": "8726ff2e13e992a87f730c38222e5dadb353edcb013f3fe7c1dd190fced8df1f",
+      "retrieval_metadata": {
+        "url": "https://docs.getbifrost.ai/deployment-guides/runtime-contract.md",
+        "resolved_url": "https://docs.getbifrost.ai/deployment-guides/runtime-contract.md",
+        "retrieved_at": "2026-09-19T08:42:27.240363+00:00",
+        "sha256": "8726ff2e13e992a87f730c38222e5dadb353edcb013f3fe7c1dd190fced8df1f",
+        "content_type": "text/markdown; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": [
+          "Runtime image/user/port, SQLite one-process rule and supported replica modes."
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/ec2-accelerated-types.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/ec2-accelerated-types.txt",
+      "exists": true,
+      "sha256": "2e8d1d549db24ef90779e9f586f3615b9108162010041328484c321a3c6315ba",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html",
+        "resolved_url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html",
+        "retrieved_at": "2026-09-19T09:58:45.111941+00:00",
+        "sha256": "f27e7e1ad93ae95ac0bc41531b68cadfba8705fac078356cc688621cceeac892",
+        "content_type": "text/html",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Only recorded reviewed_text_ranges have been read for this audit.",
+        "reviewed_text_ranges": [
+          [
+            374,
+            395
+          ],
+          [
+            588,
+            608
+          ],
+          [
+            985,
+            1006
+          ]
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/ec2-p6.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/ec2-p6.txt",
+      "exists": true,
+      "sha256": "47fee941df9c6c5d5840a0438bbb995521b380b6f26216cdb7fb3a97c64ce454",
+      "retrieval_metadata": {
+        "url": "https://aws.amazon.com/ec2/instance-types/p6/",
+        "resolved_url": "https://aws.amazon.com/ec2/instance-types/p6/",
+        "retrieved_at": "2026-09-19T09:19:49.338937+00:00",
+        "sha256": "b6233527e9d2530231b0b7dafb4c08c4b0d930d4bb4165a9feb2f5bd4b68d8cb",
+        "content_type": "text/html;charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Only recorded reviewed_text_ranges have been read for this audit.",
+        "reviewed_text_ranges": [
+          [
+            219,
+            254
+          ]
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/eks-pod-identity.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/eks-pod-identity.txt",
+      "exists": true,
+      "sha256": "f2282a1deddbaa748ab63d6d1a4523a96e65a90b5abca4752cd3507fd66a5293",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html",
+        "resolved_url": "https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html",
+        "retrieved_at": "2026-09-19T08:56:02.238174+00:00",
+        "sha256": "67ae7ac102238daaa24a93f8b3e296898b86fe69a0dc4aee5544164ce9dd86b3",
+        "content_type": "text/html",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Pending explicit review; retrieval alone is not verified evidence."
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/gateway-referencegrant-schema.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/gateway-referencegrant-schema.txt",
+      "exists": true,
+      "sha256": "c53d5b996dd870528801dd241c0d45864643748b89c203a5b7a4fc34ecddb4ce",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.1/apis/v1beta1/referencegrant_types.go",
+        "resolved_url": "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.1/apis/v1beta1/referencegrant_types.go",
+        "retrieved_at": "2026-09-19T08:45:43.826242+00:00",
+        "sha256": "c53d5b996dd870528801dd241c0d45864643748b89c203a5b7a4fc34ecddb4ce",
+        "content_type": "text/plain; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": [
+          "All 61 lines: cross-namespace reference permission and exception for route attachment."
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/k8s-emptydir.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/k8s-emptydir.txt",
+      "exists": true,
+      "sha256": "b7bf24f05a0b74d33bc8d95940819caf4dff866164bf33c1cf23cbeb098d32a9",
+      "retrieval_metadata": {
+        "url": "https://kubernetes.io/docs/concepts/storage/volumes/#emptydir",
+        "resolved_url": "https://kubernetes.io/docs/concepts/storage/volumes/#emptydir",
+        "retrieved_at": "2026-09-19T09:19:59.692725+00:00",
+        "sha256": "5d31ab42362d49c0d7760b8480027c3f0368bd616555ac592fbde3ef00af9719",
+        "content_type": "text/html; charset=UTF-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Only recorded reviewed_text_ranges have been read for this audit.",
+        "reviewed_text_ranges": [
+          [
+            1058,
+            1082
+          ],
+          [
+            1667,
+            1673
+          ]
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/kgateway-parameters-v235.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/kgateway-parameters-v235.txt",
+      "exists": true,
+      "sha256": "62c170fa85fc1d680f30394d8dc4c4dbe4cf1d892c2238300ea70ed8fcc39505",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.3.5/api/v1alpha1/kgateway/gateway_parameters_types.go",
+        "resolved_url": "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.3.5/api/v1alpha1/kgateway/gateway_parameters_types.go",
+        "retrieved_at": "2026-09-19T08:42:27.239748+00:00",
+        "sha256": "62c170fa85fc1d680f30394d8dc4c4dbe4cf1d892c2238300ea70ed8fcc39505",
+        "content_type": "text/plain; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Pending explicit review; retrieval alone is not verified evidence."
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/kgateway-values-v235.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/kgateway-values-v235.txt",
+      "exists": true,
+      "sha256": "514216c6a21a6200bd458126dce6537ff028abb58fdf7980be8db4b2ca250bd2",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.3.5/install/helm/kgateway/values.yaml",
+        "resolved_url": "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.3.5/install/helm/kgateway/values.yaml",
+        "retrieved_at": "2026-09-19T08:42:27.239875+00:00",
+        "sha256": "514216c6a21a6200bd458126dce6537ff028abb58fdf7980be8db4b2ca250bd2",
+        "content_type": "text/plain; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Pending explicit review; retrieval alone is not verified evidence."
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/langfuse-subpath.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/langfuse-subpath.txt",
+      "exists": true,
+      "sha256": "a85f356aa8356e85392353c2a0e0d1ce01335edc48cc378b410da307db9c94a4",
+      "retrieval_metadata": {
+        "url": "https://langfuse.com/self-hosting/configuration/custom-base-path",
+        "resolved_url": "https://langfuse.com/self-hosting/configuration/custom-base-path",
+        "retrieved_at": "2026-09-19T08:42:06.268024+00:00",
+        "sha256": "7fcaad1139b1a33a4e8668b86bd735ae3c6df29f3ee4236d5d6cb5dd52b8dd5a",
+        "content_type": "text/html; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": [
+          "Build-time base path, auth URL and Kubernetes probe path requirements."
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/evidence/qwen3-4b-card.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/evidence/qwen3-4b-card.txt",
+      "exists": true,
+      "sha256": "71add1cd091c309b1cb1a6b943f2476eb2b004124b3bd1d32dcd0b24cc1abc47",
+      "retrieval_metadata": {
+        "url": "https://huggingface.co/Qwen/Qwen3-4B/raw/main/README.md",
+        "resolved_url": "https://huggingface.co/Qwen/Qwen3-4B/raw/main/README.md",
+        "retrieved_at": "2026-09-19T10:19:56.458464+00:00",
+        "sha256": "71add1cd091c309b1cb1a6b943f2476eb2b004124b3bd1d32dcd0b24cc1abc47",
+        "content_type": "text/plain; charset=utf-8",
+        "raw_path": "[local evidence cache; not published]",
+        "text_path": "[local evidence cache; not published]",
+        "relevant_sections": "Only recorded reviewed_text_ranges have been read for this audit.",
+        "reviewed_text_ranges": [
+          [
+            1,
+            125
+          ]
+        ]
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/cost-offline-checks.json",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/cost-offline-checks.json",
+      "exists": true,
+      "sha256": "68547628221290bbcf7be041a982b59ad1b7f6852869d7f63c54dd2ded815898"
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/deployment-offline-checks.json",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/deployment-offline-checks.json",
+      "exists": true,
+      "sha256": "e768e7f1e9cfb8332c75deee28671da6784c6a52e5fbe911664e350a3917683e"
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/diagram-cells.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/diagram-cells.txt",
+      "exists": true,
+      "sha256": "b21734ad3da00f942555358a33b8382d94e6b4d79c14534361ca0e84f71a4720"
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/agentcore-contract.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/agentcore-contract.txt",
+      "exists": true,
+      "sha256": "7b4d04f91759d0ed46e4f598b986a50218228fd25249640e26b30955482eae31",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-service-contract.html",
+        "retrieved_at": "2026-09-19T10:33:08.213507+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-service-contract.html",
+        "content_type": "text/html",
+        "sha256": "32ef47bb630dacf62b2f7c684566a4281da1961674e69f5aac9cd4f51fa2145d",
+        "text_characters": 2513
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/agentcore-sessions.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/agentcore-sessions.txt",
+      "exists": true,
+      "sha256": "f498c79d95d51c25b7330818caa271656378b2b87d452f47704423e187a89542",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-sessions.html",
+        "retrieved_at": "2026-09-19T10:33:08.211488+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-sessions.html",
+        "content_type": "text/html",
+        "sha256": "97b9cd8dd12ebd037cf8e90939d2088defa25d24e2b681f8af8374f80e06e6a6",
+        "text_characters": 10935
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/aider-openai.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/aider-openai.txt",
+      "exists": true,
+      "sha256": "a507c34855f025c5cc3d77115bc85c89cfaa6da4662268d53c581e3a9a06bf27",
+      "retrieval_metadata": {
+        "url": "https://aider.chat/docs/llms/openai-compat.html",
+        "retrieved_at": "2026-09-19T10:27:32.028400+00:00",
+        "status": 200,
+        "final_url": "https://aider.chat/docs/llms/openai-compat.html",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "351f7e09c6875be8f521ee3a7b329d22609c42703def9703421c46a4c1f323d3",
+        "text_characters": 2844
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/airflow-s3.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/airflow-s3.txt",
+      "exists": true,
+      "sha256": "f9be2f55e7dfdf84d7686852a9cb8286aadc0bd8baaf54221adefe29d760b295",
+      "retrieval_metadata": {
+        "url": "https://airflow.apache.org/docs/apache-airflow-providers-amazon/stable/_api/airflow/providers/amazon/aws/hooks/s3/index.html",
+        "retrieved_at": "2026-09-19T10:25:10.503425+00:00",
+        "status": 200,
+        "final_url": "https://airflow.apache.org/docs/apache-airflow-providers-amazon/stable/_api/airflow/providers/amazon/aws/hooks/s3/index.html",
+        "content_type": "text/html",
+        "sha256": "e2e0d42b3dd8b80ad4622ced9212c1f9304244ea38ad786ec2acb483776e99d9",
+        "text_characters": 26518
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/argo-resubmit.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/argo-resubmit.txt",
+      "exists": true,
+      "sha256": "cbeb817d6998c6df3e30c238638ac7f64fff602d4e99d8fffdd9a98473543436",
+      "retrieval_metadata": {
+        "url": "https://argo-workflows.readthedocs.io/en/latest/cli/argo_resubmit/",
+        "retrieved_at": "2026-09-19T10:29:09.712589+00:00",
+        "status": 200,
+        "final_url": "https://argo-workflows.readthedocs.io/en/latest/cli/argo_resubmit/",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "597d3edd171ed7d2bedda0979e49e6f3d29b557e789f48aab73c5f902a923fad",
+        "text_characters": 10806
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/argo-stop.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/argo-stop.txt",
+      "exists": true,
+      "sha256": "5dd5224fda6688219780ee4dfaa5055ff9982b16e3eff9330caaaf4502c95392",
+      "retrieval_metadata": {
+        "url": "https://argo-workflows.readthedocs.io/en/latest/cli/argo_stop/",
+        "retrieved_at": "2026-09-19T10:29:09.712429+00:00",
+        "status": 200,
+        "final_url": "https://argo-workflows.readthedocs.io/en/latest/cli/argo_stop/",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "95134312fa5dd86da613d268e0630bbc5b1bd257c1ac494d023806dedf7bf84b",
+        "text_characters": 10103
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/argo-suspend.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/argo-suspend.txt",
+      "exists": true,
+      "sha256": "daa48b8843eec48656fc6c3d9150957d084e5431f5e751720ffbb217ba01f158",
+      "retrieval_metadata": {
+        "url": "https://argo-workflows.readthedocs.io/en/latest/walk-through/suspending/",
+        "retrieved_at": "2026-09-19T10:29:09.712313+00:00",
+        "status": 200,
+        "final_url": "https://argo-workflows.readthedocs.io/en/latest/walk-through/suspending/",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "5a3921a34dede4fa5bffcb24c48917d8e1cb654804917c6567f82a9a68e52655",
+        "text_characters": 5775
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/bedrock-cross-region.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/bedrock-cross-region.txt",
+      "exists": true,
+      "sha256": "3fbf0ce99d2783d067bc0c31983637b17b1b5414e40612c46fd2d588906dc57b",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html",
+        "retrieved_at": "2026-09-19T10:34:26.984242+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html",
+        "content_type": "text/html",
+        "sha256": "920fe2c43f75dd6d0526f973f8cb0b4a85390acc400cfa1956d477d9dbf0e750",
+        "text_characters": 4664
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/bedrock-privacy.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/bedrock-privacy.txt",
+      "exists": true,
+      "sha256": "1347ace96bafa693ba08cf890f00b667212885d2094ae91ea1c217b44af20a8c",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html",
+        "retrieved_at": "2026-09-19T10:34:26.984114+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html",
+        "content_type": "text/html",
+        "sha256": "d17c457199655fafefff67dd0fbbf1f679ceec0686d594bff74bfe72559b4d62",
+        "text_characters": 4066
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/bedrock-region-compatibility.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/bedrock-region-compatibility.txt",
+      "exists": true,
+      "sha256": "58b10b89e85832103a7ca372035b2e7e4913eb4b8a8a98e94c785723fe605097",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html",
+        "retrieved_at": "2026-09-19T10:35:32.309369+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html",
+        "content_type": "text/html",
+        "sha256": "52d2441f547fda0298e588100a6e816312862369aeffec14f4dca12f2eba918f",
+        "text_characters": 45655
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/bifrost-alias.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/bifrost-alias.txt",
+      "exists": true,
+      "sha256": "6e654d16b8cef91009686102a7593cf4f27d7b1b243cfbd97cc09f8087cf9200",
+      "retrieval_metadata": {
+        "url": "https://docs.getbifrost.ai/providers/aliasing-models",
+        "retrieved_at": "2026-09-19T10:20:59.360120+00:00",
+        "status": 200,
+        "final_url": "https://docs.getbifrost.ai/providers/aliasing-models",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "bfc27f533d11a8210966ee42e77e27c4846bc1f91f65c8df76f70c991a3ea99d",
+        "text_characters": 16047
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/capacity-blocks.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/capacity-blocks.txt",
+      "exists": true,
+      "sha256": "3b9f5846aa10e0505f28c4f383e9aefdfd45dc6fcb1601c9a78b325de68afcf3",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html",
+        "retrieved_at": "2026-09-19T10:29:09.710927+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html",
+        "content_type": "text/html",
+        "sha256": "a4f5791290d6b962b5fa6ff99108dea5082049ff713d32316de20406ad736db5",
+        "text_characters": 9596
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/cline-openai.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/cline-openai.txt",
+      "exists": true,
+      "sha256": "696d4ea4d1e42ef76594d2341c385c03f9e84db2a000edac4300b9d9b1c562e1",
+      "retrieval_metadata": {
+        "url": "https://docs.cline.bot/provider-config/openai-compatible",
+        "retrieved_at": "2026-09-19T10:27:32.028575+00:00",
+        "status": 200,
+        "final_url": "https://docs.cline.bot/provider-config/openai-compatible",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "b59097bfb73357e6313843d21889cdac4269b8ac95bd7a86256d2feddd62fea9",
+        "text_characters": 5072
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/cursor-api-key.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/cursor-api-key.txt",
+      "exists": true,
+      "sha256": "a282d84acc2f7f243daf3742880d13c87c333fddfe4e72af8af2d4b26ae60cbd",
+      "retrieval_metadata": {
+        "url": "https://cursor.com/docs/settings/api-keys",
+        "retrieved_at": "2026-09-19T10:27:32.028717+00:00",
+        "status": 200,
+        "final_url": "https://cursor.com/help/models-and-usage/api-keys",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "58305532585bfdd80aa58d802aa79c6dbb794c07927fbe9d1b9ccd5079e6a7a9",
+        "text_characters": 7654
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/dra134-blog.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/dra134-blog.txt",
+      "exists": true,
+      "sha256": "5aa219ae77dbc8f4790b29c2f9ac8a702650c751ad75382d131475bf8bbbdbf0",
+      "retrieval_metadata": {
+        "url": "https://kubernetes.io/blog/2025/09/01/kubernetes-v1-34-dra-updates/",
+        "retrieved_at": "2026-09-19T10:37:57.084613+00:00",
+        "status": 200,
+        "final_url": "https://kubernetes.io/blog/2025/09/01/kubernetes-v1-34-dra-updates/",
+        "content_type": "text/html; charset=UTF-8",
+        "sha256": "ad51f8e1433b5c6c7c9643152759c91390c352d56d8e39acd60041ae03f2f5a8",
+        "text_characters": 49105
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/ec2-efa-max.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/ec2-efa-max.txt",
+      "exists": true,
+      "sha256": "4c8ac1d4e2b6a2ca4561fc1eeba7440cb2fc377f042461c4f7a9d12079b181ca",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html",
+        "retrieved_at": "2026-09-19T10:34:26.984012+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html",
+        "content_type": "text/html",
+        "sha256": "08c6d5c10abb49d2d2b9bd0c71dae04cd96556d52f39b68ab0db2d26789af029",
+        "text_characters": 28734
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/ecr-immutable.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/ecr-immutable.txt",
+      "exists": true,
+      "sha256": "c15e82265f6809a2fc6fc6157fc751a4998736343a2f6599a680d4972038fe7f",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html",
+        "retrieved_at": "2026-09-19T10:30:04.255382+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html",
+        "content_type": "text/html",
+        "sha256": "871bf555c739287bbc5ffd798ed889f1a53b01e81012adc86271808e8c1b17c8",
+        "text_characters": 6783
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/eks-efa.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/eks-efa.txt",
+      "exists": true,
+      "sha256": "ada31b3ee9b20fcf1e24f3ae1a38a8ff4e5ceca01328d782514035fd0e664129",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html",
+        "retrieved_at": "2026-09-19T10:34:26.982427+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html",
+        "content_type": "text/html",
+        "sha256": "6633699095027c48c5a0c32016c8d8b51ed9f45b086185c7a0d78a1202424150",
+        "text_characters": 25555
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/eks-hybrid-overview.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/eks-hybrid-overview.txt",
+      "exists": true,
+      "sha256": "de4e848322df51d5a5510df1bd5ce316583fed05ee3c8f59e3a1931d4d1824c3",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html",
+        "retrieved_at": "2026-09-19T10:35:32.313612+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html",
+        "content_type": "text/html",
+        "sha256": "8a5d9434d95c9c3ff59a71abc1c0b6750150da3ae24e6867371c60108ec9d80f",
+        "text_characters": 6579
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/eks-nodeclass-current.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/eks-nodeclass-current.txt",
+      "exists": true,
+      "sha256": "b4bacf09dbe132fb19ba6d1a7e8101f8475901bd82ef41ab1f2abd4f4477166f",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html",
+        "retrieved_at": "2026-09-19T10:34:47.074998+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html",
+        "content_type": "text/html",
+        "sha256": "89bb828629255b8cab487280c4b5fa3988ad4921e152917b9db0468e96ce3e17",
+        "text_characters": 40702
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/envoy-extproc.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/envoy-extproc.txt",
+      "exists": true,
+      "sha256": "4cedbf632afd0867034ced3c0137089dd54d2b14d28ae472f4caf9da3bba3396",
+      "retrieval_metadata": {
+        "url": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter",
+        "retrieved_at": "2026-09-19T10:37:57.087825+00:00",
+        "status": 200,
+        "final_url": "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter",
+        "content_type": "text/html; charset=UTF-8",
+        "sha256": "91759cc6d310dc6cfa132b594a02c6d8eb2748118dd52c067654062d2afab988",
+        "text_characters": 10913
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/gateway-attachment.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/gateway-attachment.txt",
+      "exists": true,
+      "sha256": "d843ab574407cf76d599810dfa0ff279f3efeb6fa15415ec29ab9d3fd26d314b",
+      "retrieval_metadata": {
+        "url": "https://gateway-api.sigs.k8s.io/guides/multiple-ns/",
+        "retrieved_at": "2026-09-19T10:20:59.359626+00:00",
+        "status": 200,
+        "final_url": "https://gateway-api.sigs.k8s.io/guides/user-guides/multiple-ns/",
+        "content_type": "text/html; charset=UTF-8",
+        "sha256": "5786553adb9469e34228c4ac2c37f6ed911db0d64ca2d4a65f3fe8c5d0583630",
+        "text_characters": 9409
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/genai-perf-readme.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/genai-perf-readme.txt",
+      "exists": true,
+      "sha256": "6845766e81a609e5508ed9d8e2974b491c1de1045fc335f43cbccc7b8293dcae",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/triton-inference-server/perf_analyzer/main/genai-perf/README.md",
+        "retrieved_at": "2026-09-19T10:30:03.946230+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/triton-inference-server/perf_analyzer/main/genai-perf/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "6845766e81a609e5508ed9d8e2974b491c1de1045fc335f43cbccc7b8293dcae",
+        "text_characters": 34148
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/github-codeowners.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/github-codeowners.txt",
+      "exists": true,
+      "sha256": "cff9ccd12d802f9ceffaf2d76ce2138ad75e9e54b75342af3356034b208d2d89",
+      "retrieval_metadata": {
+        "url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
+        "retrieved_at": "2026-09-19T10:29:09.934668+00:00",
+        "status": 200,
+        "final_url": "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "2051846eb18d5ba4a959c4ab6a919fc83e9e46190d14145327ab9c812a4184c8",
+        "text_characters": 13851
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/glm52-card.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/glm52-card.txt",
+      "exists": true,
+      "sha256": "7ba22185651d8f69fbf6227ee718eb680fd834ec8e79ba78df6fa54896614b3d",
+      "retrieval_metadata": {
+        "url": "https://huggingface.co/zai-org/GLM-5.2/raw/main/README.md",
+        "retrieved_at": "2026-09-19T10:34:47.072181+00:00",
+        "status": 200,
+        "final_url": "https://huggingface.co/zai-org/GLM-5.2/raw/main/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "7ba22185651d8f69fbf6227ee718eb680fd834ec8e79ba78df6fa54896614b3d",
+        "text_characters": 10908
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/glm52-license.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/glm52-license.txt",
+      "exists": true,
+      "sha256": "f4a18c6ae40b0a8e7d2b7667f52f6e1994e54a46430d2e172b73cb8c9b5eb0d7",
+      "retrieval_metadata": {
+        "url": "https://huggingface.co/zai-org/GLM-5.2/raw/main/LICENSE",
+        "retrieved_at": "2026-09-19T10:34:47.073443+00:00",
+        "status": 200,
+        "final_url": "https://huggingface.co/zai-org/GLM-5.2/raw/main/LICENSE",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "f4a18c6ae40b0a8e7d2b7667f52f6e1994e54a46430d2e172b73cb8c9b5eb0d7",
+        "text_characters": 1065
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/glue-iceberg-write.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/glue-iceberg-write.txt",
+      "exists": true,
+      "sha256": "00dfa458c268d20fbc8ef2087ff45849d79cd0c9d3f72a9b0d79a06870af8403",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-pyiceberg.html",
+        "retrieved_at": "2026-09-19T10:25:10.508825+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-pyiceberg.html",
+        "content_type": "text/html",
+        "sha256": "908b87db87c3786f2473b0029430ae4826625a3a1d9346d7ab4b885f29431710",
+        "text_characters": 8394
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/hf-api-code.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/hf-api-code.txt",
+      "exists": true,
+      "sha256": "fac4acbe555616357fca5d65dff0be25b57e77430d6e064b7f4d28bbd9b49a39",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/huggingface/huggingface_hub/main/src/huggingface_hub/hf_api.py",
+        "retrieved_at": "2026-09-19T10:30:03.946010+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/huggingface/huggingface_hub/main/src/huggingface_hub/hf_api.py",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "fac4acbe555616357fca5d65dff0be25b57e77430d6e064b7f4d28bbd9b49a39",
+        "text_characters": 687116
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/hf-api.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/hf-api.txt",
+      "exists": true,
+      "sha256": "dcdc49c66acde275aed6dd7baebf39d1671650f062256adf125de9541da5e68f",
+      "retrieval_metadata": {
+        "url": "https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api",
+        "retrieved_at": "2026-09-19T10:29:09.935846+00:00",
+        "status": 200,
+        "final_url": "https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "aa71190cc377dac58880d71b0e5589cbae5e7a1548b95610f5c44352f83da67c",
+        "text_characters": 342916
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/hudi-schema.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/hudi-schema.txt",
+      "exists": true,
+      "sha256": "74aaf0415dd4628d5bc16581fd2f67bd48fd4b622f4bcef655ed4ba755ba46ae",
+      "retrieval_metadata": {
+        "url": "https://hudi.apache.org/docs/1.1.1/schema_evolution",
+        "retrieved_at": "2026-09-19T10:25:10.508570+00:00",
+        "status": 200,
+        "final_url": "https://hudi.apache.org/docs/1.1.1/schema_evolution/",
+        "content_type": "text/html",
+        "sha256": "342a343f7e765b8231c8e9c64c5135593a490becf496ad6f4600e1d8e973adae",
+        "text_characters": 14727
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/karpenter-nodeclasses-current.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/karpenter-nodeclasses-current.txt",
+      "exists": true,
+      "sha256": "60826ad0a7dcb4758808c55b65aad1dc1ce6cabd66b4041474bee1522de171dd",
+      "retrieval_metadata": {
+        "url": "https://karpenter.sh/docs/concepts/nodeclasses/",
+        "retrieved_at": "2026-09-19T10:34:26.984366+00:00",
+        "status": 200,
+        "final_url": "https://karpenter.sh/docs/concepts/nodeclasses/",
+        "content_type": "text/html",
+        "sha256": "eb04d3dfe284ab5bc5b8cd6ef00f6e170339f1df9543435f481e0d6a2eed55c6",
+        "text_characters": 66669
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/kiro-billing.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/kiro-billing.txt",
+      "exists": true,
+      "sha256": "fafded5fa63a7b6bd18a2c24b1e13bb9fbc5a4a8f73926631cac4be9506aa8df",
+      "retrieval_metadata": {
+        "url": "https://kiro.dev/docs/billing/",
+        "retrieved_at": "2026-09-19T10:27:32.027021+00:00",
+        "status": 200,
+        "final_url": "https://kiro.dev/docs/billing/",
+        "content_type": "text/html",
+        "sha256": "02ae669f4aa0b7666376d0dc8d219fedbaf8572f8098443fd0d7a99e60db7bde",
+        "text_characters": 5404
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/kiro-glm5.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/kiro-glm5.txt",
+      "exists": true,
+      "sha256": "6e605489485b9a30e3fb4d5e95db54be133e2621b68b6b9d0b9fcc79f1dcc550",
+      "retrieval_metadata": {
+        "url": "https://kiro.dev/changelog/models/glm-5-now-available-in-kiro",
+        "retrieved_at": "2026-09-19T10:27:32.025348+00:00",
+        "status": 200,
+        "final_url": "https://kiro.dev/changelog/models/glm-5-now-available-in-kiro/",
+        "content_type": "text/html",
+        "sha256": "48538f19108f2f243fc3c02b4125d2c68c19d95eadf9087710c3cff087bf51a3",
+        "text_characters": 1388
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/langfuse-v3-clickhouse.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/langfuse-v3-clickhouse.txt",
+      "exists": true,
+      "sha256": "bd5da002f13a4d39acafd6236b3b21899ce246dddfca8989eaa6d57ccd5a9da3",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/langfuse/langfuse/v3.0.0/packages/shared/clickhouse/migrations/unclustered/0001_traces.up.sql",
+        "retrieved_at": "2026-09-19T10:26:01.532610+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/langfuse/langfuse/v3.0.0/packages/shared/clickhouse/migrations/unclustered/0001_traces.up.sql",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "bd5da002f13a4d39acafd6236b3b21899ce246dddfca8989eaa6d57ccd5a9da3",
+        "text_characters": 1040
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/llama-index-base.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/llama-index-base.txt",
+      "exists": true,
+      "sha256": "23f3d622dcb6981d2d42e550ae7cc2a621fe409bf20944b5b8502e07ad5c5b51",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/run-llama/llama_index/main/llama-index-core/llama_index/core/indices/base.py",
+        "retrieved_at": "2026-09-19T10:17:37.463344+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/run-llama/llama_index/main/llama-index-core/llama_index/core/indices/base.py",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "23f3d622dcb6981d2d42e550ae7cc2a621fe409bf20944b5b8502e07ad5c5b51",
+        "text_characters": 22566
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/llama-vector-index.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/llama-vector-index.txt",
+      "exists": true,
+      "sha256": "eed0d3a70a4fe3ca70448b7183d3da6d9a499bf84bf7b3741ab29ad5393d8a1a",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/run-llama/llama_index/main/llama-index-core/llama_index/core/indices/vector_store/base.py",
+        "retrieved_at": "2026-09-19T10:17:37.761377+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/run-llama/llama_index/main/llama-index-core/llama_index/core/indices/vector_store/base.py",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "eed0d3a70a4fe3ca70448b7183d3da6d9a499bf84bf7b3741ab29ad5393d8a1a",
+        "text_characters": 18061
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/llmd-releases.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/llmd-releases.txt",
+      "exists": true,
+      "sha256": "faad94a132dae43c4a5fb7399d9a3f57e5f636acf6a46ed93a0893bff6e5b17c",
+      "retrieval_metadata": {
+        "url": "https://api.github.com/repos/llm-d/llm-d/releases?per_page=50",
+        "retrieved_at": "2026-09-19T10:37:57.086199+00:00",
+        "status": 200,
+        "final_url": "https://api.github.com/repos/llm-d/llm-d/releases?per_page=50",
+        "content_type": "application/json; charset=utf-8",
+        "sha256": "faad94a132dae43c4a5fb7399d9a3f57e5f636acf6a46ed93a0893bff6e5b17c",
+        "text_characters": 232991
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/lm-eval-readme.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/lm-eval-readme.txt",
+      "exists": true,
+      "sha256": "57c5cf1db6edb20393ca70851de820898bd8d10424a5a7574f9f566a6f8d70bd",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/EleutherAI/lm-evaluation-harness/main/README.md",
+        "retrieved_at": "2026-09-19T10:30:03.945802+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/EleutherAI/lm-evaluation-harness/main/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "57c5cf1db6edb20393ca70851de820898bd8d10424a5a7574f9f566a6f8d70bd",
+        "text_characters": 60868
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus-backup-config.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus-backup-config.txt",
+      "exists": true,
+      "sha256": "f25f99b142526b1a3c6837ae37ebca1f218cdbc8ad4f4a8de182093ea75e64b6",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/zilliztech/milvus-backup/v0.5.10/configs/backup.yaml",
+        "retrieved_at": "2026-09-19T10:17:38.538024+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/zilliztech/milvus-backup/v0.5.10/configs/backup.yaml",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "f25f99b142526b1a3c6837ae37ebca1f218cdbc8ad4f4a8de182093ea75e64b6",
+        "text_characters": 4623
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus-chart42.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus-chart42.txt",
+      "exists": true,
+      "sha256": "ec06ec3c8746412a7953bfc0b37773e5b4115c21cb7b4c43958571226424710c",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/zilliztech/milvus-helm/milvus-4.2.0/charts/milvus/Chart.yaml",
+        "retrieved_at": "2026-09-19T10:17:39.804443+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/zilliztech/milvus-helm/milvus-4.2.0/charts/milvus/Chart.yaml",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "ec06ec3c8746412a7953bfc0b37773e5b4115c21cb7b4c43958571226424710c",
+        "text_characters": 529
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus230-release.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus230-release.txt",
+      "exists": true,
+      "sha256": "7a1e911db62405bec983b3e835b89c38708d890d5924d53e5c78ed559a48614a",
+      "retrieval_metadata": {
+        "url": "https://api.github.com/repos/milvus-io/milvus/releases/tags/v2.3.0",
+        "retrieved_at": "2026-09-19T10:18:01.420307+00:00",
+        "status": 200,
+        "final_url": "https://api.github.com/repos/milvus-io/milvus/releases/tags/v2.3.0",
+        "content_type": "application/json; charset=utf-8",
+        "sha256": "7a1e911db62405bec983b3e835b89c38708d890d5924d53e5c78ed559a48614a",
+        "text_characters": 20209
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-architecture.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-architecture.txt",
+      "exists": true,
+      "sha256": "3e239f0fe29e345efbc92f58576385e2b549b605e63fb4f10873466f72fb900e",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/architecture/architecture_overview.md",
+        "retrieved_at": "2026-09-19T10:18:32.996839+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/architecture/architecture_overview.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "3e239f0fe29e345efbc92f58576385e2b549b605e63fb4f10873466f72fb900e",
+        "text_characters": 1913
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-backup-raw.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-backup-raw.txt",
+      "exists": true,
+      "sha256": "751286ea8bcb82cefd8ebca016b54b1c85bb9d5bb45b4ad5eee31cc1430006a6",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/userGuide/tools/milvus_backup_cli.md",
+        "retrieved_at": "2026-09-19T10:18:32.997046+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/userGuide/tools/milvus_backup_cli.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "751286ea8bcb82cefd8ebca016b54b1c85bb9d5bb45b4ad5eee31cc1430006a6",
+        "text_characters": 5048
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-components.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-components.txt",
+      "exists": true,
+      "sha256": "09708b599376d6180b7ad47a8483a753afa6160eb42a5488fba9d28ec0666ef4",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/architecture/main_components.md",
+        "retrieved_at": "2026-09-19T10:18:32.995518+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/architecture/main_components.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "09708b599376d6180b7ad47a8483a753afa6160eb42a5488fba9d28ec0666ef4",
+        "text_characters": 1830
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-gpu-deploy.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-gpu-deploy.txt",
+      "exists": true,
+      "sha256": "08de859c805fc1e078768e2129b7c850ab9a91aea1da17fe39d09b4097e05aa2",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/getstarted/run-milvus-gpu/install_cluster-helm-gpu.md",
+        "retrieved_at": "2026-09-19T10:18:32.997429+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/getstarted/run-milvus-gpu/install_cluster-helm-gpu.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "08de859c805fc1e078768e2129b7c850ab9a91aea1da17fe39d09b4097e05aa2",
+        "text_characters": 12268
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-gpu-raw.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-gpu-raw.txt",
+      "exists": true,
+      "sha256": "2030e5e17e5de48263e16a7d0fdb80a17b8a7f295f3b49b531f25e170ad1d203",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/gpu_index.md",
+        "retrieved_at": "2026-09-19T10:18:32.994215+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/gpu_index.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "2030e5e17e5de48263e16a7d0fdb80a17b8a7f295f3b49b531f25e170ad1d203",
+        "text_characters": 10229
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-proxy-metrics.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-proxy-metrics.txt",
+      "exists": true,
+      "sha256": "2d5455f6679808649d2583b61b99d9fd404f7b6201ac2aee0e7c3d53be122538",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/milvus-io/milvus/v2.4.0/pkg/metrics/proxy_metrics.go",
+        "retrieved_at": "2026-09-19T10:17:38.013204+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/milvus-io/milvus/v2.4.0/pkg/metrics/proxy_metrics.go",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "2d5455f6679808649d2583b61b99d9fd404f7b6201ac2aee0e7c3d53be122538",
+        "text_characters": 18264
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-query-metrics.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus24-query-metrics.txt",
+      "exists": true,
+      "sha256": "eef2345d219d15e703622f16dd2c599781a15e5ed17acf6585d6cf315b819f56",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/milvus-io/milvus/v2.4.0/pkg/metrics/querynode_metrics.go",
+        "retrieved_at": "2026-09-19T10:17:38.280665+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/milvus-io/milvus/v2.4.0/pkg/metrics/querynode_metrics.go",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "eef2345d219d15e703622f16dd2c599781a15e5ed17acf6585d6cf315b819f56",
+        "text_characters": 17645
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus250-release.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/milvus250-release.txt",
+      "exists": true,
+      "sha256": "a876e4cb5376131ed461b0a492f02ea154312ba64903af86207063305847b9f4",
+      "retrieval_metadata": {
+        "url": "https://api.github.com/repos/milvus-io/milvus/releases/tags/v2.5.0",
+        "retrieved_at": "2026-09-19T10:18:01.421709+00:00",
+        "status": 200,
+        "final_url": "https://api.github.com/repos/milvus-io/milvus/releases/tags/v2.5.0",
+        "content_type": "application/json; charset=utf-8",
+        "sha256": "a876e4cb5376131ed461b0a492f02ea154312ba64903af86207063305847b9f4",
+        "text_characters": 14621
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/odcr.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/odcr.txt",
+      "exists": true,
+      "sha256": "76111aa8d7f52fef7b48d6d41e8d0e3468d4d73862f0ee4c6a4d97f1ea14b605",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html",
+        "retrieved_at": "2026-09-19T10:29:09.712182+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html",
+        "content_type": "text/html",
+        "sha256": "ac2a9eecbad28bccc7bd5afc104f1f711bd3163d82ef56f6d3683b6922cb1f75",
+        "text_characters": 10218
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/openai-python-readme.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/openai-python-readme.txt",
+      "exists": true,
+      "sha256": "aa5711850f1498b00e88978e0a54e558e6a061869f104bd0bb65156e87d53659",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/openai/openai-python/main/README.md",
+        "retrieved_at": "2026-09-19T10:26:01.534914+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/openai/openai-python/main/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "aa5711850f1498b00e88978e0a54e558e6a061869f104bd0bb65156e87d53659",
+        "text_characters": 41584
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/openclaw-readme.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/openclaw-readme.txt",
+      "exists": true,
+      "sha256": "c594e29266562db197f8dff4f7cdebc56df08ef4ba8e46bb3130f75457dbe39b",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/openclaw/openclaw/main/README.md",
+        "retrieved_at": "2026-09-19T10:33:08.215011+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/openclaw/openclaw/main/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "c594e29266562db197f8dff4f7cdebc56df08ef4ba8e46bb3130f75457dbe39b",
+        "text_characters": 113168
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/p5en-spec.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/p5en-spec.txt",
+      "exists": true,
+      "sha256": "97f439cf0cc476ca97a028926ebe8b21e100dd0a01fcb7fd982323c7a6270f42",
+      "retrieval_metadata": {
+        "url": "https://aws.amazon.com/ec2/instance-types/p5/",
+        "retrieved_at": "2026-09-19T10:33:08.214760+00:00",
+        "status": 200,
+        "final_url": "https://aws.amazon.com/ec2/instance-types/p5/",
+        "content_type": "text/html;charset=utf-8",
+        "sha256": "133f64a672e7ca395bca9af8c67b4eb322a54467bb1d4c3d48f320f166201dff",
+        "text_characters": 17860
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/qwen3-8b.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/qwen3-8b.txt",
+      "exists": true,
+      "sha256": "0f36caaff9c2516411a7738db384606263ba653c1e63e61d72f511606164d5a6",
+      "retrieval_metadata": {
+        "url": "https://huggingface.co/Qwen/Qwen3-8B/raw/main/README.md",
+        "retrieved_at": "2026-09-19T10:30:03.946112+00:00",
+        "status": 200,
+        "final_url": "https://huggingface.co/Qwen/Qwen3-8B/raw/main/README.md",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "0f36caaff9c2516411a7738db384606263ba653c1e63e61d72f511606164d5a6",
+        "text_characters": 16660
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/ragas-evaluate.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/ragas-evaluate.txt",
+      "exists": true,
+      "sha256": "a875ef563d00a4086d4c7ca6d7503535022a05de67db157b6f350f6756b48aab",
+      "retrieval_metadata": {
+        "url": "https://docs.ragas.io/en/stable/references/evaluate/",
+        "retrieved_at": "2026-09-19T10:25:10.506940+00:00",
+        "status": 200,
+        "final_url": "https://docs.ragas.io/en/stable/references/evaluate/",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "ae636532750ce17843a6c94cdd285a72554112f55fc0eb9301ff505c62a40a0d",
+        "text_characters": 13068
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/s3-express-auth.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/s3-express-auth.txt",
+      "exists": true,
+      "sha256": "1f0d889409ccebfceefedce8ff7467d52901866b17e4580c415853c6852edb99",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-security-iam.html",
+        "retrieved_at": "2026-09-19T10:17:39.840896+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-security-iam.html",
+        "content_type": "text/html",
+        "sha256": "05453f7bcf8a157463227d68b7ed843e3bd8d36669105fb27b74eac2dfe1bb47",
+        "text_characters": 5897
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/s3-express-performance.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/s3-express-performance.txt",
+      "exists": true,
+      "sha256": "399425427220ea0bba80bc05898a31cf046e3f8872a0a906436abba4147c83c6",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-high-performance.html",
+        "retrieved_at": "2026-09-19T10:17:39.827575+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-high-performance.html",
+        "content_type": "text/html",
+        "sha256": "8c9bfa48153e91c8010087168ce61995bb58b6e02a838475ba060118675858cd",
+        "text_characters": 21200
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/spot-placement.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/spot-placement.txt",
+      "exists": true,
+      "sha256": "3f2a6c200c30cab676450f251043433c14f9544186ae3df6aefc958e9930f3b6",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html",
+        "retrieved_at": "2026-09-19T10:29:09.708596+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html",
+        "content_type": "text/html",
+        "sha256": "e5065372e2a3f8f01e82d7cbf97f525da6576b6d1b490b27a6600754b308cada",
+        "text_characters": 3339
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/trl-dpo.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/trl-dpo.txt",
+      "exists": true,
+      "sha256": "cdc3c012c64b2ec5e5a50d18a5c0c19339a54f3c0fb90561ca989cab4fea2df1",
+      "retrieval_metadata": {
+        "url": "https://huggingface.co/docs/trl/dpo_trainer",
+        "retrieved_at": "2026-09-19T10:25:10.509096+00:00",
+        "status": 200,
+        "final_url": "https://huggingface.co/docs/trl/dpo_trainer",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "1dd3696fd0b80929889f82510c38c80ce973e4d807e7ccd86915d60cd4d183b8",
+        "text_characters": 41550
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/trl-grpo.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/trl-grpo.txt",
+      "exists": true,
+      "sha256": "cf9936806eebe9a6aeaa9bc39d3e6752d3e6f7947aeafa07dfcf7a2559c86bf5",
+      "retrieval_metadata": {
+        "url": "https://huggingface.co/docs/trl/grpo_trainer",
+        "retrieved_at": "2026-09-19T10:25:10.509260+00:00",
+        "status": 200,
+        "final_url": "https://huggingface.co/docs/trl/grpo_trainer",
+        "content_type": "text/html; charset=utf-8",
+        "sha256": "bc71effb4f243f70f701be8a2af8a8c50fa61b998c54d17e5767610bf4b2be11",
+        "text_characters": 108322
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/vllm-chat-router.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/vllm-chat-router.txt",
+      "exists": true,
+      "sha256": "118e4e7dfd74d09a296fe4aa8ad094ea829cee5e107c7ac78fed92249db12d1a",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/entrypoints/openai/chat_completion/api_router.py",
+        "retrieved_at": "2026-09-19T10:30:03.939786+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/entrypoints/openai/chat_completion/api_router.py",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "118e4e7dfd74d09a296fe4aa8ad094ea829cee5e107c7ac78fed92249db12d1a",
+        "text_characters": 3632
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/vllm-serve-utils.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/vllm-serve-utils.txt",
+      "exists": true,
+      "sha256": "188370c7229b69f38a2efb2c2b40f5ac69a4b064befe7fd72c686454fe941144",
+      "retrieval_metadata": {
+        "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/entrypoints/serve/utils/api_utils.py",
+        "retrieved_at": "2026-09-19T10:30:03.944183+00:00",
+        "status": 200,
+        "final_url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/entrypoints/serve/utils/api_utils.py",
+        "content_type": "text/plain; charset=utf-8",
+        "sha256": "188370c7229b69f38a2efb2c2b40f5ac69a4b064befe7fd72c686454fe941144",
+        "text_characters": 13270
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/waf-count.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/waf-count.txt",
+      "exists": true,
+      "sha256": "839bc8a930fa1413ef13b717e717874c50c7ec1319c930c44593653880e15dc6",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-rule-group-override-options.html",
+        "retrieved_at": "2026-09-19T10:20:59.359412+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-rule-group-override-options.html",
+        "content_type": "text/html",
+        "sha256": "dbb6f73fbc4c265c11d2604295cdb7439fe60e648dd29ee09f289f8ac1eae882",
+        "text_characters": 9683
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/evidence/waf-update.txt",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/evidence/waf-update.txt",
+      "exists": true,
+      "sha256": "d4f5f33e31c95c03645c7defb99676c1fa0f31c2d893549c91320c84ec174e7d",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_UpdateWebACL.html",
+        "retrieved_at": "2026-09-19T10:20:59.355813+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/waf/latest/APIReference/API_UpdateWebACL.html",
+        "content_type": "text/html",
+        "sha256": "8329af45ee59c9ce3052e9982956f0c7c28227f267607bcbb439faa81a40a6c2",
+        "text_characters": 44451
+      }
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/pipeline-offline-checks.json",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/pipeline-offline-checks.json",
+      "exists": true,
+      "sha256": "4e5e07558794e6c155a84b42b165a4f0d9f5598128220709be60d89982822221"
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/trace-offline-checks.json",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/trace-offline-checks.json",
+      "exists": true,
+      "sha256": "052ff97c2d0783da33a5d8861e0deebdb1fff1b542f0121d0d9372effeb26a56"
+    },
+    {
+      "recorded_path": "audit/agentic-operations-reference/parfit-records/troubleshooting-offline-checks.json",
+      "resolved_phase_path": "audit/agentic-operations-reference/parfit-records/troubleshooting-offline-checks.json",
+      "exists": true,
+      "sha256": "56fe120d010b12d0bb7fb2c171701906511f9a34690c7185becc35ce814625ff"
+    },
+    {
+      "recorded_path": "audit/aidlc/evidence/continue-json.txt",
+      "resolved_phase_path": "audit/aidlc/evidence/continue-json.txt",
+      "exists": true,
+      "sha256": "141654e51b1a0cbe1858298f5fea8c030290e31d6789f378b59cda2f3fa11403",
+      "retrieval_metadata": {
+        "url": "https://docs.continue.dev/reference/json-reference",
+        "retrieved_at": "2026-09-19T09:34:58.760976+00:00",
+        "status": 200,
+        "content_type": "text/html; charset=utf-8",
+        "resolved_url": "https://docs.continue.dev/reference/json-reference",
+        "sha256": "d0dd33a4df6b055259ac5b1c4d3cfb73dfee29c67119c5d9c0b173060591dbfd",
+        "content_path": "[local evidence cache; not published]"
+      }
+    },
+    {
+      "recorded_path": "audit/aidlc/evidence/kiro-custom-models.txt",
+      "resolved_phase_path": "audit/aidlc/evidence/kiro-custom-models.txt",
+      "exists": true,
+      "sha256": "21592483fa995bb92cd2b37d3510fd3ec26afcc21ff542997b98fa9437523f45",
+      "retrieval_metadata": {
+        "url": "https://kiro.dev/docs/cli/chat/model-selection/",
+        "retrieved_at": "2026-09-19T10:00:13.314012+00:00",
+        "status": 200,
+        "content_type": "text/html",
+        "resolved_url": "https://kiro.dev/docs/models/",
+        "sha256": "fa216b346afbfa2748d128440dc0b3d64341771baffa441f083c089cf14d6a78",
+        "content_path": "[local evidence cache; not published]"
+      }
+    },
+    {
+      "recorded_path": "audit/eks-platform-networking/evidence/ecr-scanning.txt",
+      "resolved_phase_path": "audit/eks-platform-networking/evidence/ecr-scanning.txt",
+      "exists": true,
+      "sha256": "2e3ed3c0ba2ed61b189f900128252eedcaee379787e369fcb2ef30be6251b28e",
+      "retrieval_metadata": {
+        "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html",
+        "retrieved_at": "2026-09-19T08:37:01.882031+00:00",
+        "status": 200,
+        "final_url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html",
+        "content_type": "text/html",
+        "sha256": "66d898efba2a10ffffc4ac2c0b5777b74243c8168a577c1caec97c94cbf94c5c",
+        "text_sha256": "2e3ed3c0ba2ed61b189f900128252eedcaee379787e369fcb2ef30be6251b28e",
+        "text_characters": 2692
+      }
+    },
+    {
+      "recorded_path": "audit/hybrid-rosa/evidence/eksa-airgap.txt",
+      "resolved_phase_path": "audit/hybrid-rosa/evidence/eksa-airgap.txt",
+      "exists": true,
+      "sha256": "fb9505dc6aa06805dc0053d7888bfdc53289c7b02982f041a0fd94400d9a7e08",
+      "retrieval_metadata": {
+        "url": "https://anywhere.eks.amazonaws.com/docs/getting-started/airgapped/",
+        "final_url": "https://anywhere.eks.amazonaws.com/docs/getting-started/airgapped/",
+        "retrieved_at": "2026-09-19T08:58:51.470438+00:00",
+        "sha256": "adcb38f156ab18a469bb11359464b087de12733f1d6a76407ed3919486dcdf69",
+        "text_sha256": "fb9505dc6aa06805dc0053d7888bfdc53289c7b02982f041a0fd94400d9a7e08",
+        "content_type": "text/html",
+        "text_lines": 344,
+        "status": "retrieved"
+      }
+    },
+    {
+      "recorded_path": "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "resolved_phase_path": "source/docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "exists": true,
+      "sha256": "dd9f7c7a39f7fd36e8a1f8c6f5ba8f151cbaf89550b20935bb8927c660071d80"
+    },
+    {
+      "recorded_path": "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "resolved_phase_path": "source/docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "exists": true,
+      "sha256": "b10ccedbcbe686b2d9ae53d3fb3f9b2c1fad6b3768c5533144590ecf8d773f72"
+    },
+    {
+      "recorded_path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "resolved_phase_path": "source/i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "exists": true,
+      "sha256": "646a51fbf5e7dc20d8172edace0bca7a781d519f47c3f8fef5b0cb26db4ec94f"
+    },
+    {
+      "recorded_path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "resolved_phase_path": "source/i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "exists": true,
+      "sha256": "669d9382b357a0d09d40ceb4e840cdf3076df10345098ee897b8079ed8ce5fce"
+    },
+    {
+      "recorded_path": "source/docusaurus.config.js",
+      "resolved_phase_path": "source/docusaurus.config.js",
+      "exists": true,
+      "sha256": "77894e77de001652f620a8ed959f05d2405efebed230ffb0bf82c51bfd02e541"
+    },
+    {
+      "recorded_path": "sources/main/agentcore-gateway.txt",
+      "resolved_phase_path": "sources/main/agentcore-gateway.txt",
+      "exists": true,
+      "sha256": "d00c34680fa62b76764cb52da8c02cfb30c0d6e7ee6c791721bfaac3ca77aaf9"
+    },
+    {
+      "recorded_path": "sources/main/agentcore-runtime.txt",
+      "resolved_phase_path": "sources/main/agentcore-runtime.txt",
+      "exists": true,
+      "sha256": "b884ab8a00f40a074dca41e5732a3e99f9c62380bc100dd7359fb42d4d020051"
+    },
+    {
+      "recorded_path": "sources/main/aws-inf2.txt",
+      "resolved_phase_path": "sources/main/aws-inf2.txt",
+      "exists": true,
+      "sha256": "3c5c50cdebafd89b9fa851f8a259402b130d76c89672273c06486c7175c68cfe"
+    }
+  ],
+  "public_urls_recorded": [
+    "https://aider.chat/docs/llms/openai-compat.html",
+    "https://airflow.apache.org/docs/apache-airflow-providers-amazon/stable/_api/airflow/providers/amazon/aws/hooks/s3/index.html",
+    "https://anywhere.eks.amazonaws.com/docs/getting-started/airgapped/",
+    "https://api.github.com/repos/llm-d/llm-d/releases?per_page=50",
+    "https://api.github.com/repos/milvus-io/milvus/releases/tags/v2.3.0",
+    "https://api.github.com/repos/milvus-io/milvus/releases/tags/v2.5.0",
+    "https://argo-workflows.readthedocs.io/en/latest/cli/argo_resubmit/",
+    "https://argo-workflows.readthedocs.io/en/latest/cli/argo_stop/",
+    "https://argo-workflows.readthedocs.io/en/latest/walk-through/suspending/",
+    "https://aws.amazon.com/bedrock/pricing/",
+    "https://aws.amazon.com/ec2/instance-types/p5/",
+    "https://aws.amazon.com/ec2/instance-types/p6/",
+    "https://cursor.com/docs/settings/api-keys",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-reservations.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html",
+    "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html",
+    "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-PromQL-Grafana.html",
+    "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html",
+    "https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-tag-mutability.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/directory-bucket-high-performance.html",
+    "https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-express-security-iam.html",
+    "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway-sessions.html",
+    "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/runtime-service-contract.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/data-protection.html",
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html",
+    "https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html",
+    "https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html",
+    "https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html",
+    "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html",
+    "https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html",
+    "https://docs.aws.amazon.com/prescriptive-guidance/latest/apache-iceberg-on-aws/iceberg-pyiceberg.html",
+    "https://docs.aws.amazon.com/waf/latest/APIReference/API_UpdateWebACL.html",
+    "https://docs.aws.amazon.com/waf/latest/developerguide/web-acl-rule-group-override-options.html",
+    "https://docs.cline.bot/provider-config/openai-compatible",
+    "https://docs.continue.dev/reference/json-reference",
+    "https://docs.getbifrost.ai/cli-agents/cursor.md",
+    "https://docs.getbifrost.ai/deployment-guides/config-json/source-of-truth.md",
+    "https://docs.getbifrost.ai/deployment-guides/runtime-contract.md",
+    "https://docs.getbifrost.ai/features/governance/complexity-router",
+    "https://docs.getbifrost.ai/features/observability/otel.md",
+    "https://docs.getbifrost.ai/features/semantic-caching.md",
+    "https://docs.getbifrost.ai/providers/aliasing-models",
+    "https://docs.getbifrost.ai/providers/custom-providers",
+    "https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners",
+    "https://docs.ragas.io/en/stable/references/evaluate/",
+    "https://gateway-api.sigs.k8s.io/guides/multiple-ns/",
+    "https://hudi.apache.org/docs/1.1.1/schema_evolution",
+    "https://huggingface.co/Qwen/Qwen3-4B/raw/main/README.md",
+    "https://huggingface.co/Qwen/Qwen3-8B/raw/main/README.md",
+    "https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api",
+    "https://huggingface.co/docs/trl/dpo_trainer",
+    "https://huggingface.co/docs/trl/grpo_trainer",
+    "https://huggingface.co/zai-org/GLM-5.2/raw/main/LICENSE",
+    "https://huggingface.co/zai-org/GLM-5.2/raw/main/README.md",
+    "https://karpenter.sh/docs/concepts/nodeclasses/",
+    "https://keda.sh/docs/2.18/reference/scaledobject-spec/",
+    "https://keda.sh/docs/2.18/scalers/prometheus/",
+    "https://kiro.dev/changelog/models/glm-5-now-available-in-kiro",
+    "https://kiro.dev/docs/billing/",
+    "https://kiro.dev/docs/cli/chat/model-selection/",
+    "https://kubernetes.io/blog/2025/09/01/kubernetes-v1-34-dra-updates/",
+    "https://kubernetes.io/docs/concepts/storage/volumes/#emptydir",
+    "https://langfuse.com/self-hosting/configuration/custom-base-path",
+    "https://raw.githubusercontent.com/BerriAI/litellm/v1.101.0/litellm/router_strategy/complexity_router/complexity_router.py",
+    "https://raw.githubusercontent.com/EleutherAI/lm-evaluation-harness/main/README.md",
+    "https://raw.githubusercontent.com/QwenLM/Qwen3/main/README.md",
+    "https://raw.githubusercontent.com/huggingface/huggingface_hub/main/src/huggingface_hub/hf_api.py",
+    "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.3.5/api/v1alpha1/kgateway/gateway_parameters_types.go",
+    "https://raw.githubusercontent.com/kgateway-dev/kgateway/v2.3.5/install/helm/kgateway/values.yaml",
+    "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api-inference-extension/v1.3.0/README.md",
+    "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api/v1.5.1/apis/v1beta1/referencegrant_types.go",
+    "https://raw.githubusercontent.com/kubernetes-sigs/lws/v0.9.0/README.md",
+    "https://raw.githubusercontent.com/langfuse/langfuse/v3.0.0/packages/shared/clickhouse/migrations/unclustered/0001_traces.up.sql",
+    "https://raw.githubusercontent.com/llm-d/llm-d-router/v0.9.0/pkg/epp/framework/plugins/scheduling/scorer/prefix/README.md",
+    "https://raw.githubusercontent.com/maximhq/bifrost/main/plugins/otel/http.go",
+    "https://raw.githubusercontent.com/maximhq/bifrost/main/transports/config.schema.json",
+    "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/getstarted/run-milvus-gpu/install_cluster-helm-gpu.md",
+    "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/architecture/architecture_overview.md",
+    "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/architecture/main_components.md",
+    "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/reference/gpu_index.md",
+    "https://raw.githubusercontent.com/milvus-io/milvus-docs/v2.4.x/site/en/userGuide/tools/milvus_backup_cli.md",
+    "https://raw.githubusercontent.com/milvus-io/milvus/v2.4.0/pkg/metrics/proxy_metrics.go",
+    "https://raw.githubusercontent.com/milvus-io/milvus/v2.4.0/pkg/metrics/querynode_metrics.go",
+    "https://raw.githubusercontent.com/openai/openai-python/main/README.md",
+    "https://raw.githubusercontent.com/openclaw/openclaw/main/README.md",
+    "https://raw.githubusercontent.com/openclaw/openclaw/main/docs/gateway/security/index.md",
+    "https://raw.githubusercontent.com/run-llama/llama_index/main/llama-index-core/llama_index/core/indices/base.py",
+    "https://raw.githubusercontent.com/run-llama/llama_index/main/llama-index-core/llama_index/core/indices/vector_store/base.py",
+    "https://raw.githubusercontent.com/triton-inference-server/perf_analyzer/main/genai-perf/README.md",
+    "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/entrypoints/openai/chat_completion/api_router.py",
+    "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/entrypoints/serve/utils/api_utils.py",
+    "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/v1/metrics/loggers.py",
+    "https://raw.githubusercontent.com/zilliztech/milvus-backup/v0.5.10/configs/backup.yaml",
+    "https://raw.githubusercontent.com/zilliztech/milvus-helm/milvus-4.2.0/charts/milvus/Chart.yaml",
+    "https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/ext_proc_filter"
+  ],
+  "limit": "References preserve the original audit retrieval; this packaging step did not refetch or retest all sources. Source/fixture evidence is identified by path."
+}

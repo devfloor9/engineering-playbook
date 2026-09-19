@@ -20,7 +20,9 @@ for (const locale of ['ko', 'en']) {
       parse(source, {sourceType: 'module', plugins: ['jsx']});
       const before = execFileSync('git', ['show', `${baseline}:${file}`], {cwd: root, encoding: 'utf8'});
       const oldData = authoredData(before, locale), newData = authoredData(source, locale);
-      for (const [name, value] of Object.entries(oldData)) {
+      // Historical CNI captions were corrected in #84; their numbers are checked
+      // against the saved result artifacts below rather than the old prose.
+      for (const [name, value] of Object.entries(file.endsWith('/ThroughputChart.js') ? {} : oldData)) {
         if (name === 'i18n') {
           for (const lang of ['ko', 'en']) for (const [key, label] of Object.entries(value[lang])) assert.equal(newData[name][lang][key], label);
         } else assert.deepEqual(newData[name], value, name);
@@ -60,15 +62,45 @@ test('InferenceThroughputChart retains default and unknown locale fallback', () 
   assert.match(rt.render('src/components/InferenceThroughputChart.js', {locale: 'unknown'}), /Higher is better/);
 });
 
-test('numeric headers, loss meaning, source conditions, and all chart values remain visible', () => {
+test('CNI figures agree with saved summaries and distinguish means from HTTP percentiles', () => {
   const rt = runtime('en');
   const tcp = parse5.parseFragment(rt.render('src/components/ThroughputChart.js'));
   const table = all(tcp, 'table')[0];
   assert.equal(all(table, 'tbody').flatMap(n => all(n, 'tr')).length, 5);
-  assert.match(text(tcp), /20%\+ packet loss/);
-  assert.match(text(tcp), /10s duration.*12.5 Gbps baseline.*Median of 3\+ runs/);
-  assert.match(text(table), /Loss value not supplied/);
+  assert.match(text(tcp), /Raw logs, repeat counts and effective configuration are unverified/);
+  assert.doesNotMatch(text(tcp), /Median of 3|12.5 Gbps baseline|Loss value not supplied/);
+  const summaries = fs.readdirSync(path.join(root, 'scripts/benchmarks/cni-benchmark/results'))
+    .filter(name => /^scenario-.*\.json$/.test(name)).sort()
+    .map(name => JSON.parse(fs.readFileSync(path.join(root, 'scripts/benchmarks/cni-benchmark/results', name), 'utf8')));
+  assert.equal(summaries.length, 5);
+  for (const locale of ['ko', 'en']) {
+    const local = runtime(locale);
+    const checks = [
+      ['ThroughputChart', summary => [summary.network.tcp_throughput_gbps.toFixed(2), summary.network.udp_throughput_gbps.toFixed(2), summary.network.udp_loss_percent.toFixed(2)]],
+      ['LatencyChart', summary => [summary.network.mean_rtt_us.toFixed(0)]],
+      ['HttpPerformanceChart', summary => [summary.http.qps_1000.p99_ms.toFixed(2), summary.http.qps_max.actual_qps.toFixed(1)]],
+    ];
+    for (const [name, values] of checks) {
+      const fragment = parse5.parseFragment(local.render(`src/components/${name}.js`));
+      const rows = all(all(all(fragment, 'table')[0], 'tbody')[0], 'tr');
+      assert.equal(rows.length, 5);
+      rows.forEach((row, index) => {
+        const cells = all(row, 'td').map(cell => text(cell).trim());
+        assert.deepEqual(cells, values(summaries[index]), `${locale} ${name} scenario ${index}`);
+      });
+    }
+  }
+  const rtt = rt.render('src/components/LatencyChart.js');
+  assert.match(rtt, /TCP sender mean RTT/);
+  assert.match(rtt, /does not represent application response time or p50\/p99/);
+  const http = rt.render('src/components/HttpPerformanceChart.js');
+  assert.match(http, /0–5000 QPS/);
+  assert.match(http, /not paired observations at the same load/);
   for (const row of all(all(table, 'tbody')[0], 'tr')) for (const td of all(row, 'td').slice(0, 2)) assert.equal(attr(td, 'data-numeric'), 'true');
+});
+
+test('legacy inference figure retains its numeric table', () => {
+  const rt = runtime('en');
   const inference = parse5.parseFragment(rt.render('src/components/InferenceThroughputChart.js'));
   assert.equal(all(all(inference, 'table')[0], 'tbody').flatMap(n => all(n, 'tr')).length, 7);
   for (const value of ['4,200', '1,800', '1,400', '3,500', '2,800', '2,200', 'tokens/sec']) assert.ok(text(inference).includes(value));
@@ -81,7 +113,7 @@ test('bounded static exporter evaluates every locale with the coordinated founda
     for (const dir of ['ArchitectureTables', 'AgenticChallengesTables', 'AgenticSolutionsTables', 'DecisionFrameworkTables', 'Icon']) {
       fs.cpSync(path.join(root, 'src/components', dir), path.join(temp, 'src/components', dir), {recursive: true, filter: file => !file.includes('__tests__')});
     }
-    for (const file of ['ThroughputChart.js', 'InferenceThroughputChart.js', 'ThroughputChart.module.css']) fs.copyFileSync(path.join(root, 'src/components', file), path.join(temp, 'src/components', file));
+    for (const file of ['ThroughputChart.js', 'CniBenchmarkData.js', 'CniMetricPanel.js', 'InferenceThroughputChart.js', 'ThroughputChart.module.css']) fs.copyFileSync(path.join(root, 'src/components', file), path.join(temp, 'src/components', file));
     for (const dir of ['DataTableFrame', 'Figure']) fs.cpSync(path.join(shared, dir), path.join(temp, 'src/components', dir), {recursive: true});
     // Resolve exporter dependencies from integration without creating node_modules.
     const Module = require('node:module');
@@ -112,7 +144,7 @@ test('bounded static exporter evaluates every locale with the coordinated founda
       if (file.endsWith('InferenceThroughputChart.js')) {
         for (const value of ['4,200', '1,800', '1,400', '3,500', '2,800', '2,200', 'tokens/sec']) assert.ok(output.includes(value), value);
       }
-      if (file.endsWith('/ThroughputChart.js')) for (const value of ['12.41', '12.34', '12.40', '10.00', '7.92', '7.96', '20%', '20%+', '3+ runs']) assert.ok(output.includes(value), value);
+      if (file.endsWith('/ThroughputChart.js')) for (const value of ['12.41', '12.34', '12.40', '10.00', '7.92', '7.96', '20.39', '20.42', '0.03', '2026-02-09']) assert.ok(output.includes(value), value);
     }
   } finally { fs.rmSync(temp, {recursive: true, force: true}); }
 });
