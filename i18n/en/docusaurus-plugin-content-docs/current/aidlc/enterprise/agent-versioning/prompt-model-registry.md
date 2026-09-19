@@ -5,7 +5,7 @@ created: "2026-04-19"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 16
+reading_time: 18
 tags:
   - prompt-registry
   - versioning
@@ -36,6 +36,8 @@ Central repository managing prompt and model versions like code. Solves the foll
 - **Diff View**: Visualize changes between versions
 - **Access Log**: Track which session used which prompt version
 
+The example below uses [Langfuse Python SDK 4.15.3](https://github.com/langfuse/langfuse-python/blob/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/_client/client.py#L4119-L4224). Register a version with a client authenticated to the intended project and save the response in `candidate`. Evaluation and release approval follow registration.
+
 ```python
 from langfuse import Langfuse
 
@@ -46,15 +48,39 @@ prompt = client.get_prompt("financial-analysis", label="production")
 print(prompt.version)  # Example: 5
 print(prompt.prompt)   # Actual text
 
-# Deploy new version
-client.create_prompt(
+# Register a staging candidate
+candidate = client.create_prompt(
     name="financial-analysis",
     prompt="You are a conservative investment advisor...",
-    labels=["staging"]  # Deploy to staging first
+    labels=["staging"]
 )
-# After validation
-client.update_prompt_label("financial-analysis", version=6, label="production")
 ```
+
+Save `candidate.name` and `candidate.version` with the project identity and evaluation record. Another author may create a version in between, so evaluate the returned version instead of assuming that the next version is 6.
+
+Have the release workflow verify evaluation evidence and approval for the exact project, name and version before calling the function below. Pass the name and version from that verified record as `approved_name` and `approved_version`.
+
+```python
+# langfuse_prompt_promotion.py
+def promote_evaluated_prompt(
+    client, *, candidate, approved_name, approved_version
+):
+    """Match a candidate to an externally verified approval record."""
+    if (not isinstance(approved_name, str) or not approved_name.strip()
+            or type(approved_version) is not int or approved_version < 1
+            or candidate.name != approved_name
+            or type(candidate.version) is not int
+            or candidate.version != approved_version
+            or candidate.is_fallback):
+        raise ValueError("candidate_not_approved")
+    return client.update_prompt(
+        name=candidate.name,
+        version=candidate.version,
+        new_labels=["production"],
+    )
+```
+
+This function checks that the candidate's name and version match the approval record. The calling workflow must authenticate the approval, verify the target project and coordinate concurrent label changes. Read back the label afterward and check application propagation as described below. An API error can occur after the server applies a change, so reconcile registry state before retrying.
 
 **Rollback verification:** applications can continue using the previous prompt after a label changes. [Langfuse's prompt cache](https://langfuse.com/docs/prompt-management/features/caching) has a default TTL of 60 seconds and can return an expired entry while fetching a new value in the background. The deployed SDK version, TTL settings, failed refreshes, fallback prompts and requests already in progress affect when the change takes effect.
 
