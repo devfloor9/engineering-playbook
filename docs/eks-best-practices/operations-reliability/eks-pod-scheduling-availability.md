@@ -3,9 +3,9 @@ title: EKS Pod 스케줄링 & 가용성 패턴
 description: Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 70
+reading_time: 73
 tags:
   - eks
   - kubernetes
@@ -1621,31 +1621,16 @@ Cluster Autoscaler와 Karpenter를 동시에 실행하면 다음 문제가 발�
 
 ##### 롤백 절차
 
-Karpenter로 전환 후 문제 발생 시 Cluster Autoscaler로 복귀하는 방법입니다.
+Karpenter에서 Cluster Autoscaler와 ASG로 돌아가려면 **대체 용량과 워크로드 동작을 먼저 복구한 뒤** 기존 노드를 종료해야 합니다. [Karpenter의 삭제 동작](https://karpenter.sh/docs/concepts/disruption/#manual-methods)에 따르면 NodePool 삭제는 소유한 NodeClaim과 노드의 연쇄 삭제·인스턴스 종료로 이어집니다. `kubectl delete nodepool --all`을 노드 보존 절차로 사용하지 않습니다.
 
-```bash
-# 1. Karpenter NodePool 삭제 (노드는 유지)
-kubectl delete nodepool --all
+1. 대상 AWS 계정·역할·리전·클러스터, ASG와 NodePool을 식별합니다. 기존 launch template, IAM, 네트워크, CA 설치 및 워크로드 배치 설정을 복구할 수 있어야 합니다. 앞 단계에서 CA Deployment나 ASG를 삭제했다면 `scale` 명령으로 되살릴 수 없으므로 보관한 IaC·설치 설정으로 다시 생성해야 합니다.
+2. 선택한 ASG에 필요한 용량을 준비하고 CA의 권한·노드 그룹 검색·확장 동작을 확인합니다. 새 노드가 Ready인 것뿐 아니라 필요한 AZ, 이미지 pull, 볼륨 연결과 네트워크 접근도 검증합니다.
+3. 해당 워크로드의 nodeSelector·affinity·toleration을 실제 ASG 노드의 label과 맞춥니다. Karpenter 전용 selector가 남아 있으면 대체 용량이 있어도 배치되지 않습니다. 작은 워크로드부터 옮겨 서비스 오류율·지연과 데이터 상태를 확인합니다.
+4. 이전이 확인된 범위에서 기존 노드를 하나씩 cordon하고 PDB를 존중하는 drain 절차를 적용합니다. 대체 Pod가 정상 서비스하지 못하면 추가 종료를 중단하고 아직 유지 중인 용량·배치 설정으로 복귀합니다. 전체 운영 namespace를 한 번에 재시작하지 않습니다.
+5. 워크로드와 데이터 이전을 확인한 뒤 정확히 식별한 NodeClaim·노드만 해당 Karpenter 버전의 종료 절차로 정리합니다. 소유 리소스가 남은 NodePool을 삭제하면 그 리소스도 종료될 수 있습니다. finalizer를 제거하거나 리소스를 orphan 처리해 종료 과정을 우회하지 않습니다.
 
-# 2. Cluster Autoscaler 재활성화
-kubectl scale deployment cluster-autoscaler \
-  -n kube-system --replicas=1
+이 순서는 복구 설계의 조건입니다. 실제 용량과 PDB, 저장소, CA·Karpenter 버전이 정해지기 전에는 그대로 실행할 수 있는 일괄 롤백 스크립트가 아닙니다.
 
-# 3. 기존 ASG 스케일 업
-aws autoscaling set-desired-capacity \
-  --auto-scaling-group-name eks-prod-asg \
-  --desired-capacity 10
-
-# 4. Karpenter 노드에 Taint 추가 (신규 Pod 차단)
-kubectl taint nodes -l karpenter.sh/nodepool \
-  rollback=true:NoSchedule
-
-# 5. 워크로드 Rolling Restart
-kubectl rollout restart deployment -n production --all
-
-# 6. Karpenter 노드 제거
-kubectl delete nodes -l karpenter.sh/nodepool
-```
 
 ---
 
@@ -1742,15 +1727,15 @@ kind: PodDisruptionBudget
 metadata:
   name: cassandra-pdb
 spec:
-  maxUnavailable: 1  # 동시에 최대 1개 노드만 중단 허용 (쿼럼 유지)
+  maxUnavailable: 1  # 선택된 Pod 집합에서 비가용 Pod를 최대 1개로 제한
   selector:
     matchLabels:
       app: cassandra
 ```
 
-**효과:**
-- Cassandra 쿼럼(5개 중 3개 이상)을 유지하면서 안전하게 노드 Drain 가능
-- Karpenter 통합 시 노드가 한 번에 하나씩만 제거됨
+이 예시는 PDB와 StatefulSet의 연결을 보여주며, 완전한 Cassandra 배포 설정이 아닙니다. Cassandra의 quorum은 전체 Pod 수가 아니라 keyspace의 replication factor, 일관성 수준과 데이터 배치에 따라 정해집니다. [Cassandra 복제·일관성 설명](https://cassandra.apache.org/doc/4.1/cassandra/architecture/dynamo.html)을 바탕으로 readiness, 데이터 복제 상태와 장애 영역을 따로 확인합니다.
+
+PDB는 선택된 **Pod 집합**의 자발적 축출 예산을 제한합니다. 모든 Karpenter 노드가 한 번에 하나씩만 제거되도록 만드는 설정은 아닙니다. 자발적 consolidation·drift 등의 노드 중단 동시성은 NodePool disruption budget에서 별도로 다룹니다.
 
 #### 전략 3: 비율 기반 PDB (대규모 Deployment)
 
@@ -1769,8 +1754,10 @@ spec:
 | Replica 수 | maxUnavailable: "25%" | 동시 Evict 가능 수 |
 |-----------|---------------------|------------------|
 | 4 | 1개 | 1 |
-| 10 | 2.5 → 2개 | 2 |
+| 10 | 2.5 → 3개 (올림) | 3 |
 | 100 | 25개 | 25 |
+
+[Kubernetes는 PDB의 백분율을 올림합니다](https://v1-34.docs.kubernetes.io/docs/tasks/run-application/configure-pdb/#rounding-logic-when-specifying-percentages). 위 표는 대상 Pod가 모두 건강하고 다른 중단이 없을 때의 계산입니다. 실제 추가 Eviction 허용량은 이미 비가용하거나 축출 중인 Pod 등을 반영한 `status.disruptionsAllowed`로 확인합니다. 따라서 10개의 25% 설정이 3개의 중단을 허용할 수 있습니다.
 
 **비율 기반의 장점:**
 - 스케일링 시 자동으로 비율 조정
@@ -1825,15 +1812,10 @@ spec:
       app: critical-app
 ```
 
-또는 비율 사용:
-
-```yaml
-spec:
-  minAvailable: "67%"  # 3개 중 2개 (67%)
-```
+`minAvailable: "67%"`로 바꾸면 3 × 0.67 = 2.01을 올림하여 **3개**를 요구합니다. 이 예제처럼 3개 중 2개를 유지하려면 위의 정수 `minAvailable: 2`를 사용합니다. replica 수를 변경할 때는 애플리케이션의 가용성 요구와 예산을 다시 확인합니다.
 
 :::warning PDB 설정 시 주의사항
-`minAvailable: replicas`로 설정하면 **어떤 노드도 Drain할 수 없습니다**. 항상 `minAvailable < replicas` 또는 `maxUnavailable ≥ 1`로 설정하여 최소 1개의 Pod Evict를 허용하세요.
+`minAvailable`을 replica 수와 같게 두는 것은 해당 PDB가 선택한 건강한 Pod의 자발적 축출을 금지하려는 유효한 정책일 수 있습니다. 이 유지보수 예제에서는 축출 여유가 필요하지만, 모든 워크로드의 예산을 일괄 완화해서는 안 됩니다. 애플리케이션 담당자와 필요한 복제본·건강 상태·유지보수 조건을 확인합니다. 해당 Pod가 없는 다른 노드까지 모두 drain 불가라는 뜻은 아닙니다.
 :::
 
 #### 문제 2: PDB가 적용되지 않음

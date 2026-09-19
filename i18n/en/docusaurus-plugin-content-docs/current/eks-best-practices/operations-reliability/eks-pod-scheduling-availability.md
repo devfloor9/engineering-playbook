@@ -3,9 +3,9 @@ title: EKS Pod Scheduling & Availability Patterns
 description: Kubernetes Pod scheduling strategies, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations best practices
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
-reading_time: 124
+reading_time: 130
 tags:
   - eks
   - kubernetes
@@ -1623,31 +1623,16 @@ Running Cluster Autoscaler and Karpenter simultaneously may cause the following 
 
 ##### Rollback Procedure
 
-The following describes how to return to Cluster Autoscaler if issues arise after transitioning to Karpenter.
+To return from Karpenter to Cluster Autoscaler and ASGs, **restore replacement capacity and workload operation before terminating existing nodes**. Under [Karpenter's deletion behavior](https://karpenter.sh/docs/concepts/disruption/#manual-methods), deleting a NodePool cascades to its NodeClaims and nodes and can terminate instances. `kubectl delete nodepool --all` is not a node-preservation step.
 
-```bash
-# 1. Delete Karpenter NodePools (keep nodes)
-kubectl delete nodepool --all
+1. Identify the AWS account, role, region, cluster, ASGs, and NodePools. Retain recoverable launch-template, IAM, networking, CA installation, and workload-placement configuration. If the earlier migration deleted the CA Deployment or ASG, a scale command cannot recreate it; restore it from the retained IaC or installation configuration.
+2. Prepare the required capacity in the selected ASG and verify CA permissions, node-group discovery, and scaling. Check the required AZs, image pulls, volume attachment, and network access as well as node readiness.
+3. Match workload nodeSelector, affinity, and tolerations to the actual ASG node labels. A remaining Karpenter-only selector prevents placement even when spare capacity exists. Move a small workload first and check service errors, latency, and data health.
+4. Within the verified migration scope, cordon existing nodes individually and use a drain procedure that respects PDBs. If replacement Pods cannot serve correctly, stop further termination and return to the retained capacity and placement settings. Do not restart an entire production namespace at once.
+5. After verifying workload and data migration, retire only explicitly identified NodeClaims and nodes through the selected Karpenter version's termination procedure. Deleting a NodePool with owned resources can terminate those resources too. Do not remove finalizers or orphan resources to bypass termination handling.
 
-# 2. Re-enable Cluster Autoscaler
-kubectl scale deployment cluster-autoscaler \
-  -n kube-system --replicas=1
+These are recovery-design conditions, not a runnable bulk rollback script. The actual capacity, PDBs, storage, and CA/Karpenter versions must be established first.
 
-# 3. Scale up the existing ASG
-aws autoscaling set-desired-capacity \
-  --auto-scaling-group-name eks-prod-asg \
-  --desired-capacity 10
-
-# 4. Add a Taint to Karpenter nodes (block new Pods)
-kubectl taint nodes -l karpenter.sh/nodepool \
-  rollback=true:NoSchedule
-
-# 5. Rolling Restart of workloads
-kubectl rollout restart deployment -n production --all
-
-# 6. Remove Karpenter nodes
-kubectl delete nodes -l karpenter.sh/nodepool
-```
 
 ---
 
@@ -1744,15 +1729,15 @@ kind: PodDisruptionBudget
 metadata:
   name: cassandra-pdb
 spec:
-  maxUnavailable: 1  # Allow disruption of at most 1 node at a time (maintain quorum)
+  maxUnavailable: 1  # Limit unavailable Pods in the selected set to one
   selector:
     matchLabels:
       app: cassandra
 ```
 
-**Effects:**
-- Allows safe node drains while maintaining Cassandra quorum (at least 3 out of 5)
-- Removes nodes one at a time during Karpenter consolidation
+This example connects a PDB to a StatefulSet; it is not a complete Cassandra deployment. Cassandra quorum depends on the keyspace replication factor, consistency level, and data placement, not the total Pod count. Use the [Cassandra replication and consistency model](https://cassandra.apache.org/doc/4.1/cassandra/architecture/dynamo.html) to check readiness, replication health, and failure domains separately.
+
+A PDB limits voluntary eviction for the selected **set of Pods**. It does not make all Karpenter nodes terminate one at a time. Configure node concurrency for voluntary consolidation, drift, and related disruption separately through NodePool disruption budgets.
 
 #### Strategy 3: Percentage-Based PDB (Large Deployments)
 
@@ -1771,8 +1756,10 @@ spec:
 | Replica count | maxUnavailable: "25%" | Concurrent evictions allowed |
 |-----------|---------------------|------------------|
 | 4 | 1 | 1 |
-| 10 | 2.5 → 2 | 2 |
+| 10 | 2.5 → 3 (rounded up) | 3 |
 | 100 | 25 | 25 |
+
+[Kubernetes rounds PDB percentages up](https://v1-34.docs.kubernetes.io/docs/tasks/run-application/configure-pdb/#rounding-logic-when-specifying-percentages). This table assumes all selected Pods are healthy and no other disruptions are in progress. Check `status.disruptionsAllowed` for the actual additional eviction allowance after accounting for unavailable or already disrupted Pods. A 25% setting for ten replicas can therefore allow three disruptions.
 
 **Advantages of percentages:**
 - Automatically adjusts proportionally during scaling
@@ -1827,15 +1814,10 @@ spec:
       app: critical-app
 ```
 
-Alternatively, use a percentage:
-
-```yaml
-spec:
-  minAvailable: "67%"  # 2 out of 3 (67%)
-```
+`minAvailable: "67%"` rounds 3 × 0.67 = 2.01 up to **three**. To retain two of three replicas in this example, use the integer `minAvailable: 2` shown above. Reassess application availability requirements and the budget when the replica count changes.
 
 :::warning PDB Configuration Considerations
-Setting `minAvailable: replicas` means **no node can be drained**. Always set `minAvailable < replicas` or `maxUnavailable ≥ 1` to allow at least 1 Pod eviction.
+Setting `minAvailable` equal to the replica count can be a valid policy to prohibit voluntary eviction of healthy Pods selected by that PDB. This maintenance example needs eviction headroom, but that does not justify relaxing every workload budget. Confirm required replicas, health, and maintenance conditions with the application owner. The policy does not block drains of every other node that has none of the selected Pods.
 :::
 
 #### Issue 2: PDB Is Not Applied
