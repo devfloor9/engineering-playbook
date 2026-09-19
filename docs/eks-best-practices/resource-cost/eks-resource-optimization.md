@@ -3,7 +3,7 @@ title: EKS Pod 리소스 최적화 가이드
 description: Kubernetes Pod의 CPU/Memory 리소스 설정, QoS 클래스, VPA/HPA 오토스케일링, 리소스 Right-Sizing 전략
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 55
 tags:
@@ -2146,6 +2146,7 @@ for name, cost in monthly.items():
 관련 문서:
 
 - [Karpenter 오토스케일링](./karpenter-autoscaling.md) — 노드 스케일링
+- [CPU 성능 비교 가능성과 Pod·노드 사이징 표준](./cpu-sizing-comparability.md) — 크기·세대 간 CPU% 비교 불가 원인, 비교 가능한 KPI, Pod 사이징 템플릿
 - [EKS 비용 관리](./cost-management.md) — 비용 전략
 
 검토일: 2026-09-18. 다음 검토는 Kubernetes/controller 업그레이드 또는 주요 정책 변경 시 수행합니다.

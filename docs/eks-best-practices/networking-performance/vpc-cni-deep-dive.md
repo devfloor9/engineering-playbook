@@ -3,7 +3,7 @@ title: "VPC CNI 동작 원리: 데이터패스·IPAM·NetworkPolicy"
 description: Amazon VPC CNI의 내부 동작을 세 축으로 해부합니다. L3 routed mode 데이터패스(veth·ip rule·169.254.1.1), ipamd의 warm pool·Prefix Delegation·IP 쿨다운 알고리즘, eBPF 기반 NetworkPolicy 아키텍처
 created: "2026-08-04"
 last_update:
-  date: "2026-08-04"
+  date: "2026-09-19"
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -177,9 +177,10 @@ warm pool 관련 이상 징후(Pod가 `ContainerCreating`에서 IP 대기, `ipam
 
 VPC CNI는 Pod IP를 VPC 서브넷에서 직접 소비하므로 서브넷 사이징이 곧 클러스터 용량 계획입니다. 소진 대응 순서는 일반적으로 다음과 같습니다.
 
-1. **Prefix Delegation 활성화** — 서브넷 소비 자체는 같지만 ENI 슬롯 효율과 API 부하가 개선
-2. **커스텀 네트워킹** — `AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG=true` + `ENIConfig` CRD(`crd.k8s.amazonaws.com/v1alpha1`)로 Pod를 노드와 다른 서브넷(보통 세컨더리 CIDR 100.64.0.0/10 대역)에 배치. 단, primary ENI를 Pod에 쓰지 못하게 되어 노드당 최대 Pod 수가 감소
-3. **IPv6 클러스터** — 신규 구축이라면 소진 문제가 구조적으로 사라지는 선택지
+1. **Enhanced Subnet Discovery** — VPC에 CIDR 블록을 추가하고 새 서브넷에 `kubernetes.io/role/cni=1` 태그를 붙이면(`ENABLE_SUBNET_DISCOVERY=true`, v1.18.0+ 기본값) 새 secondary ENI가 발견된 서브넷에 생성되어 무중단으로 IP 공간이 확장. 서브넷·NAU 예산 계산은 [IP 용량 계획과 Karpenter 노드 사이징](./ip-capacity-planning-karpenter.md) 참조
+2. **Prefix Delegation 활성화** — 서브넷 소비 자체는 같지만 ENI 슬롯 효율과 API 부하가 개선
+3. **커스텀 네트워킹** — `AWS_VPC_K8S_CNI_CUSTOM_NETWORK_CFG=true` + `ENIConfig` CRD(`crd.k8s.amazonaws.com/v1alpha1`)로 Pod를 노드와 다른 서브넷(보통 세컨더리 CIDR 100.64.0.0/10 대역)에 배치. 단, primary ENI를 Pod에 쓰지 못하게 되어 노드당 최대 Pod 수가 감소
+4. **IPv6 클러스터** — 신규 구축이라면 소진 문제가 구조적으로 사라지는 선택지
 
 ### Security Groups for Pods (SGP)
 
@@ -206,6 +207,7 @@ VPC CNI는 오버레이 없이 VPC 네이티브 IP를 Pod에 직접 부여하는
 - [aws-network-policy-agent](https://github.com/aws/aws-network-policy-agent) — eBPF 기반 NetworkPolicy 노드 에이전트
 
 ### 관련 문서 (내부)
+- [IP 용량 계획과 Karpenter 노드 사이징](./ip-capacity-planning-karpenter.md) — 서브넷·NAU·branch ENI 예산 모델과 크기 fallback 시 IP 소비
 - [EKS 네트워킹 디버깅](../operations-reliability/eks-debugging/networking.md) — VPC CNI·DNS·Service 트러블슈팅 절차
 - [Network Flow Monitor 동작 원리](../operations-reliability/network-flow-monitor.md) — eBPF sock_ops 기반 TCP flow 관측
 - [Nitro 아키텍처 & 튜닝](./nitro-architecture-performance-tuning.md) — ENA 드라이버·PPS/CPS 성능 튜닝
