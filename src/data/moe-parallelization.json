@@ -2,24 +2,24 @@
   {
     "strategy": "Tensor Parallelism (TP)",
     "description": {"ko": "레이어 내 텐서를 GPU 간 분할", "en": "Split tensors within layers across GPUs"},
-    "advantages": {"ko": "낮은 지연시간", "en": "Low latency"},
-    "disadvantages": {"ko": "높은 통신 오버헤드", "en": "High communication overhead"},
+    "advantages": {"ko": "분할된 텐서의 rank당 저장량 감소", "en": "Less storage per rank for partitioned tensors"},
+    "disadvantages": {"ko": "복제 텐서·GPU 연결·집단 통신 비용 확인 필요", "en": "Account for replicated tensors, GPU connectivity and collective communication"},
     "color": "#3b82f6",
     "icon": "🔷"
   },
   {
     "strategy": "Expert Parallelism (EP)",
     "description": {"ko": "Expert를 GPU 간 분산", "en": "Distribute experts across GPUs"},
-    "advantages": {"ko": "MoE에 최적화", "en": "Optimized for MoE"},
-    "disadvantages": {"ko": "All-to-All 통신 필요", "en": "Requires all-to-all communication"},
+    "advantages": {"ko": "Expert 가중치와 연산 부하를 rank별로 분산", "en": "Distributes expert weights and computation across ranks"},
+    "disadvantages": {"ko": "토큰 이동·Expert 부하 불균형·통신 backend 지원 확인 필요", "en": "Account for token transfers, expert load imbalance and communication backend support"},
     "color": "#8b5cf6",
     "icon": "🎯"
   },
   {
     "strategy": "Pipeline Parallelism (PP)",
     "description": {"ko": "레이어를 GPU 간 순차 분할", "en": "Split layers sequentially across GPUs"},
-    "advantages": {"ko": "메모리 효율적", "en": "Memory efficient"},
-    "disadvantages": {"ko": "파이프라인 버블 발생", "en": "Pipeline bubble overhead"},
+    "advantages": {"ko": "연속된 레이어의 가중치와 연산을 stage별로 배치", "en": "Places consecutive layers and their computation in separate stages"},
+    "disadvantages": {"ko": "Stage 간 전송·처리 시간 불균형·pipeline bubble 확인 필요", "en": "Account for inter-stage transfers, uneven processing time and pipeline bubbles"},
     "color": "#10b981",
     "icon": "📊"
   }
