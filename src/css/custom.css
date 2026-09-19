@@ -1151,6 +1151,18 @@ div[class*="codeBlockTitle"] {
   main[class*='docMainContainer'] > .container { padding-inline: var(--ep-space-4); }
   .theme-doc-markdown h1 { font-size: 1.875rem; }
 }
+/* Mermaid measures temporary SVGs outside the final figure. Keep subgraph
+   titles at their natural width so automatic wrapping cannot cover children.
+   Explicit authored line breaks remain intact. */
+svg .cluster-label foreignObject div {
+  max-width: none !important;
+  width: max-content !important;
+  white-space: nowrap !important;
+}
+svg .cluster-label p {
+  line-height: 1 !important;
+}
+
 /* Include library controls and pseudo-elements in the motion preference. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

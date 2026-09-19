@@ -69,6 +69,9 @@ async function renderFixture(input) {
     });
     const parsed = await mermaid.mermaidAPI.getDiagramFromText(input.graph);
     const groups = parsed.db.getSubGraphs();
+    // Snapshot the parsed hierarchy before mermaid.render parses the graph again.
+    const sourceNodes = parsed.db.getData().nodes.map(({id, parentId, domId, isGroup}) =>
+      ({id, parentId, domId, isGroup}));
     const groupIds = new Set(groups.map(group => group.id));
     const vertices = [...parsed.db.getVertices().values()]
       .filter(vertex => !groupIds.has(vertex.id));
@@ -107,7 +110,38 @@ async function renderFixture(input) {
           getComputedStyle(label).display !== 'none',
       };
     });
+    // SVG containment cannot detect a child rectangle painting over a title.
+    // Direct parentage comes from the parsed graph, not the flattened SVG tree.
+    const byId = new Map(sourceNodes.map(node => [node.id, node]));
+    const renderedNodes = [...svg.querySelectorAll('g.node, g.cluster')];
+    const findRendered = node => {
+      if (!node) throw new Error('Parsed title/child relationship has no node');
+      const id = node.isGroup ? node.id : node.domId;
+      const matches = renderedNodes.filter(element => element.id === id);
+      if (matches.length !== 1) throw new Error(`Expected one rendered node for ${id}; found ${matches.length}`);
+      return matches[0];
+    };
+    const svgRect = element => {
+      if (!element) throw new Error('Expected a cluster title or direct rectangular ROSA child shape');
+      const rect = element.getBoundingClientRect();
+      const p1 = new DOMPoint(rect.left, rect.top).matrixTransform(inverse);
+      const p2 = new DOMPoint(rect.right, rect.bottom).matrixTransform(inverse);
+      return {x: p1.x, y: p1.y, width: p2.x - p1.x, height: p2.y - p1.y};
+    };
+    const directChildren = sourceNodes.filter(node => node.parentId != null);
+    const titleShapePairs = directChildren.map(child => {
+      const parent = byId.get(child.parentId);
+      const title = svgRect(findRendered(parent).querySelector(':scope > .cluster-label'));
+      // All authored ROSA children are rectangles. Fail explicitly if that changes.
+      const shape = svgRect(findRendered(child).querySelector(':scope > rect'));
+      return {
+        parent: parent.id, child: child.id, title, shape,
+        overlapX: Math.min(title.x + title.width, shape.x + shape.width) - Math.max(title.x, shape.x),
+        overlapY: Math.min(title.y + title.height, shape.y + shape.height) - Math.max(title.y, shape.y),
+      };
+    });
     window.__layoutResult = {
+      expectedTitlePairs: directChildren.length, titleShapePairs,
       done: true, caseKey, reduced, theme: document.documentElement.dataset.theme,
       expectedLabels, actualLabels: labels.map(normalize).sort(),
       expectedNodes: vertices.length, actualNodes: svg.querySelectorAll('.node').length,
@@ -128,16 +162,28 @@ async function startHarness() {
   const close = async () => {
     for (const item of pending.values()) { clearTimeout(item.timer); item.reject(new Error('Harness closed')); }
     pending.clear();
-    socket?.close();
-    if (browser && browser.exitCode === null) {
-      browser.kill();
-      await Promise.race([new Promise(resolve => browser.once('exit', resolve)), delay(1500)]);
-      if (browser.exitCode === null && browser.signalCode === null) browser.kill('SIGKILL');
+    const running = () => browser?.pid && browser.exitCode === null && browser.signalCode === null;
+    if (running() && socket?.readyState === 1) {
+      const exited = new Promise(resolve => browser.once('exit', resolve));
+      // Let Chrome stop its renderer/network processes and flush the profile
+      // before deleting it. Killing only the parent can leave active writers.
+      socket.send(JSON.stringify({id: ++serial, method: 'Browser.close'}));
+      await Promise.race([exited, delay(5000)]);
     }
+    if (running()) {
+      const exited = new Promise(resolve => browser.once('exit', resolve));
+      browser.kill();
+      await Promise.race([exited, delay(1500)]);
+      if (running()) {
+        browser.kill('SIGKILL');
+        await Promise.race([exited, delay(1500)]);
+      }
+    }
+    socket?.close();
     socket?.terminate?.();
     server?.closeAllConnections();
     if (server) await new Promise(resolve => server.close(resolve));
-    if (directory) fs.rmSync(directory, {recursive: true, force: true, maxRetries: 3, retryDelay: 100});
+    if (directory) await fs.promises.rm(directory, {recursive: true, force: true, maxRetries: 10, retryDelay: 100});
   };
   try {
     directory = fs.mkdtempSync(path.join(os.tmpdir(), 'ep-mermaid-layout-'));
@@ -241,6 +287,18 @@ function assertGeometry(result, label) {
   for (const rect of result.labelGeometry) {
     assert.ok(rect.visible && rect.width > 0 && rect.height > 0, `${label}: invisible/empty label ${rect.text}`);
     assert.ok(contains(rect), `${label}: clipped label ${rect.text}`);
+  }
+  assert.ok(result.expectedTitlePairs > 0, `${label}: no parsed parent/child title checks`);
+  assert.equal(result.titleShapePairs.length, result.expectedTitlePairs, `${label}: missing title/child checks`);
+  for (const pair of result.titleShapePairs) {
+    const context = `${label}: title ${pair.parent} / child ${pair.child}`;
+    for (const rect of [pair.title, pair.shape]) {
+      assert.ok(Object.values(rect).every(Number.isFinite) && rect.width > 0 && rect.height > 0,
+        `${context}: missing/nonfinite/empty geometry`);
+    }
+    // Same one-unit rounding tolerance as containment; no expected pixel positions.
+    assert.ok(pair.overlapX <= 1 || pair.overlapY <= 1,
+      `${context}: title overlaps child shape: ${JSON.stringify(pair)}`);
   }
 }
 
