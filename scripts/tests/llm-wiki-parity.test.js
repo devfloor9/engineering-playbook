@@ -43,6 +43,13 @@ function visibleText(tree) {
 const corpus = collectDocs(path.join(root, 'docs')).filter(isIncluded).sort();
 const occurrences = corpus.flatMap(blocks);
 const qualified = new Set();
+const replacements = require('./fixtures/llm-wiki-reviewed-replacements.json');
+const replacementBySlug = new Map(replacements.map(replacement => [replacement.slug, replacement]));
+const priorInventory = require('../llm-wiki-issue-52-inventory.json').inventory;
+const retiredReactOccurrences = replacements.flatMap(replacement =>
+  priorInventory.find(page => page.slug === replacement.slug)?.components.filter(component =>
+    replacement.components[component.component] && component.methods.includes('static-source')) || []);
+const retiredSources = new Set(retiredReactOccurrences.flatMap(component => component.sources));
 
 test('committed baseline HTML fixtures retain table values, captions and navigation metadata', () => {
   const fixtures = require('./fixtures/llm-wiki-52-html.json');
@@ -82,24 +89,34 @@ test('baseline omissions are serialized or have explicit reviewed content replac
   const manifest = {docs, doc_count: docs.length, component_coverage: {supported_sources: []}};
   const report = auditCoverage(baseline, manifest);
   assert.equal(report.remaining.length, 0);
-  const replacement = require('./fixtures/llm-wiki-reviewed-replacements.json');
-  const replacementFile = path.join(root, 'docs', `${replacement.slug}.md`);
-  const replacementText = stripMdx(fs.readFileSync(replacementFile, 'utf8'), {filePath: replacementFile});
+  assert.equal(replacementBySlug.size, replacements.length, 'Reviewed replacement pages must be unique');
+  const replacementText = new Map(replacements.map(replacement => {
+    const file = path.join(root, 'docs', `${replacement.slug}.md`);
+    return [replacement.slug, stripMdx(fs.readFileSync(file, 'utf8'), {filePath: file})];
+  }));
   const reviewed = new Set();
   for (const page of report.inventory) for (const component of page.components) {
-    if (page.slug === replacement.slug && replacement.components[component.component]) {
+    const replacement = replacementBySlug.get(page.slug);
+    if (replacement?.components[component.component]) {
       assert.equal(component.status, 'source-changed', 'A reviewed replacement must remain visible in the audit');
+      const prior = priorInventory.find(entry => entry.slug === page.slug)
+        ?.components.find(entry => entry.component === component.component);
+      const source = replacement.source.replace('{component}', component.component);
+      const exported = replacement.export === 'named' ? component.component : 'default';
+      assert.deepEqual(prior?.sources, [`${source}#${exported}`], 'Retirement must identify a previously serialized source');
+      assert.ok(prior?.methods.length, 'A retirement must identify its previous serialization method');
       for (const value of replacement.components[component.component]) {
-        assert.ok(normalize(replacementText).includes(normalize(value)), `Missing reviewed replacement: ${component.component}: ${value}`);
+        assert.ok(normalize(replacementText.get(page.slug)).includes(normalize(value)), `Missing reviewed replacement: ${component.component}: ${value}`);
       }
-      reviewed.add(component.component);
+      reviewed.add(`${page.slug}#${component.component}`);
       continue;
     }
     assert.equal(component.status, 'serialized', `${page.slug}: ${component.component}`);
     assert.ok(component.sources.length, component.component);
     assert.ok(component.methods.length, component.component);
   }
-  assert.deepEqual([...reviewed].sort(), Object.keys(replacement.components).sort());
+  assert.deepEqual([...reviewed].sort(), replacements.flatMap(replacement =>
+    Object.keys(replacement.components).map(component => `${replacement.slug}#${component}`)).sort());
 });
 
 test('every supported corpus component retains independently rendered React text, table cells and links', async t => {
@@ -135,8 +152,13 @@ test('every supported corpus component retains independently rendered React text
     });
     checked++;
   }
-  assert.ok(checked >= 160, `Expected broad corpus parity; got ${checked}`);
-  assert.ok(qualified.size >= 150, `Expected distinct source-qualified components; got ${qualified.size}`);
+  // Keep the original coverage floors. A retirement counts only when the separate
+  // baseline test verifies its source identity and the replacement's exported text.
+  assert.ok(checked + retiredReactOccurrences.length >= 160,
+    `Expected broad corpus coverage; got ${checked} rendered and ${retiredReactOccurrences.length} reviewed replacements`);
+  const accountedSources = new Set([...qualified, ...retiredSources]);
+  assert.ok(accountedSources.size >= 150,
+    `Expected distinct source coverage; got ${accountedSources.size} active or explicitly retired sources`);
 });
 
 test('source adapters preserve every static item, hidden detail, YAML body and rating', () => {

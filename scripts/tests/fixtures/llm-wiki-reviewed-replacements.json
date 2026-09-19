@@ -1,7 +1,10 @@
+[
 {
   "issue": 69,
   "slug": "eks-best-practices/resource-cost/karpenter-autoscaling",
   "reason": "Replace unsupported fixed latency, price, and allocation guarantees with reviewed source Markdown. These are content corrections, not serializer omissions.",
+  "source": "@site/src/components/KarpenterTables",
+  "export": "named",
   "components": {
     "AutoModeComparison": ["EKS Auto Mode vs Self-managed Karpenter", "HPA/VPA", "인스턴스별 요율"],
     "ControlPlaneComparison": ["| 기준 | Standard | Provisioned |", "scaling tier", "API Priority and Fairness"],
@@ -10,4 +13,48 @@
     "ScalingLatencyBreakdown": ["스케일링 지연 시간 분해 분석", "메트릭 반영", "트래픽 처리 시각", "백분위수"],
     "WarmPoolCostAnalysis": ["Warm Pool 크기 계산 방법", "20 CPU·40Gi", "3 × 0.20 × 12 × 22 = $158.40"]
   }
+},
+{
+  "issue": 85,
+  "slug": "benchmarks/ai-ml-workload",
+  "reason": "Remove unmeasured performance and cost rankings. Preserve corrected hardware/model specifications, metric definitions and an explicitly unexecuted measurement plan in source Markdown.",
+  "source": "@site/src/components/{component}",
+  "export": "default",
+  "components": {
+    "ConcurrencyChart": ["동시 요청 1·4·8·16·32개", "실제 동시성, 대기열, TTFT·ITL, 오류와 메모리 사용량"],
+    "CostPerTokenChart": ["시간당 비용 × 1,000,000 / (output tokens/s × 3,600)", "측정 구간의 비용 / 성공한 출력 토큰 수"],
+    "InferenceThroughputChart": ["출력 토큰 수 ÷ 시간(초)", "빠르게 실패한 요청을 높은 처리량으로 채택하지 않습니다"],
+    "InfraComparisonChart": ["| A: p5.48xlarge | H100 × 8 | 80GB × 8 = 640GB |", "| B: p4d.24xlarge | A100 × 8 | 40GB × 8 = 320GB |", "| E: inf2.48xlarge | Inferentia2 × 12 | 32GB × 12 = 384GB | 100Gbps |"],
+    "ItlChart": ["토큰 간 지연 시간 (ITL)", "스트리밍 chunk에 여러 토큰이 묶이는 경우 측정 해상도를 명시합니다"],
+    "KeyFindingsMLChart": ["active parameter 수만으로 dense 모델과의 속도나 비용을 예측하지 않습니다"],
+    "MLOverviewChart": ["해당 수치와 순위를 제거했습니다", "TTFT·처리량·비용 비교는 **측정 대기**입니다"],
+    "MLRecommendationChart": ["현재는 어느 후보도 이 시험에서 검증된 우승 구성이 아닙니다"],
+    "ModelSpecChart": ["| 총 파라미터 | 109B | 400B |", "| 토큰당 활성 파라미터 | 17B | 17B |", "| 공식 모델 최대 문맥 | 10M 토큰 | 1M 토큰 |", "| BF16 가중치 산술 추정 | 약 218GB | 약 800GB |"],
+    "TtftChart": ["첫 토큰 생성 시간 (TTFT)", "요청 시작부터 첫 출력 토큰을 받을 때까지"]
+  }
+},
+{
+  "issue": 84,
+  "slug": "benchmarks/cni-performance-comparison",
+  "reason": "Replace unsupported rankings, scaling curves and feature guarantees with artifact-scoped results, corrected measurement definitions and release-specific prerequisites. Retain the three corrected measured-data figures.",
+  "source": "@site/src/components/{component}",
+  "export": "default",
+  "components": {
+    "AimlRelevanceChart": ["이 RTT를 에이전트의 도구 호출 횟수에 곱해 전체 응답 지연이나 사용자 경험 개선율을 계산하지 않습니다"],
+    "CniConclusionInfographic": ["UDP 손실 차이만으로 제품의 전반적인 성능을 순위화하거나", "정책 표현력이나 서비스 처리 방식은 공식 기능 문서로 비교"],
+    "DnsResourceChart": ["DNS p50/p99(ms)는 A 2/4, B 2/4, C 2/2, D 2/4, E 2/3", "기존 CPU·메모리 비교 수치는 이 보고서에서 제외했습니다"],
+    "KeyFindingsChart": ["측정 지표의 잘못된 이름, D와 E 값의 혼동, 선언된 설정과 본문 설명의 불일치"],
+    "KeyResultsSummaryChart": ["| D | 3,992.6 | 23.01 |", "| E | 4,053.2 | 24.44 |", "성능 수치의 반복성이나 원인은 아직 검증되지 않았습니다"],
+    "KubeproxyScalingChart": ["4·104·1,000개는 과거 설명에서 사용한 실험 지점이며 현재 검증된 결과가 아닙니다"],
+    "NetworkPolicyChart": ["Pod·namespace selector와 CIDR 기반 제어", "암호화된 요청의 경로를 자동으로 검사한다고 가정하지 않습니다"],
+    "OverviewSummaryChart": ["기존 기록의 관측값", "재현이 확인된 제품 순위로 사용할 수 없습니다"],
+    "RecommendationChart": ["서비스 500개나 5,000개 같은 보편적인 전환 기준은 이 자료에서 도출할 수 없습니다"],
+    "ScenarioComparisonChart": ["| A | VPC CNI | kube-proxy |", "| B | Cilium cluster-pool, VXLAN | kube-proxy 유지 |", "| D | Cilium ENI IPAM, native routing |"],
+    "ServiceScalingChart": ["기존 서비스 수 확장 그래프에는 여기서 인용할 수 있는 실행별 원본 자료가 없습니다", "알고리즘이 O(1)이라고 입증할 수 없습니다"],
+    "TestEnvironmentChart": ["EKS 1.31", "m6i.xlarge", "최대 12.5 Gbps", "선언된 값이 당시 실행 환경과 일치하는지는 별도로 확인해야 합니다"],
+    "TuningPointsChart": ["E는 여러 옵션을 동시에 바꾸므로 개별 기여도를 구할 수 없습니다", "BBR은 TCP 부하로 별도 측정합니다"],
+    "UdpLossChart": ["| A | 20.39% |", "| B | 0.94% |", "| C | 0.69% |", "| D | 20.42% |", "| E | 0.03% |", "손실률 차이는 확인되지만 원인은 확인되지 않았습니다"],
+    "XdpCompatibilityChart": ["Native XDP 지원은 드라이버·커널·MTU·장치 설정에 달려 있습니다", "DSR이 항상 XDP를 요구하는 것은 아닙니다"]
+  }
 }
+]
