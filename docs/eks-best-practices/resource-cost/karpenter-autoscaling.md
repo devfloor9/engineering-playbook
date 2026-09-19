@@ -3,7 +3,7 @@ title: "Karpenter 오토스케일링"
 description: "Karpenter v1.13과 EKS Auto Mode의 노드 공급, 확장 신호, 준비 상태 및 비용 검증 가이드"
 created: "2025-02-09"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 46
 tags:
@@ -329,7 +329,7 @@ SLO에서 역산한 지연·오류율·큐 연령 임계값으로 경보를 설�
 
 ## 일반적인 문제 해결
 
-Pending Pod의 Events와 requests, affinity, taints, PVC를 먼저 확인한 뒤 NodePool/EC2NodeClass 조건과 NodeClaim 이벤트를 확인합니다. EC2 capacity 오류는 quotas, 특정 인스턴스/AZ 공급, subnet IP 고갈과 구분합니다. `describe-instance-type-offerings`는 지원 위치를 보여줄 뿐 실시간 여유 용량 확인 API가 아닙니다.
+Pending Pod의 Events와 requests, affinity, taints, PVC를 먼저 확인한 뒤 NodePool/EC2NodeClass 조건과 NodeClaim 이벤트를 확인합니다. EC2 capacity 오류는 quotas, 특정 인스턴스/AZ 공급, subnet IP 고갈과 구분합니다. `describe-instance-type-offerings`는 지원 위치를 보여줄 뿐 실시간 여유 용량 확인 API가 아닙니다. 서브넷·NAU 예산과 인스턴스 크기 fallback 시 IP 소비의 정량 모델은 [IP 용량 계획과 Karpenter 노드 사이징](../networking-performance/ip-capacity-planning-karpenter.md)을 참조합니다.
 
 ```bash
 kubectl get pods -n production --field-selector=status.phase=Pending
