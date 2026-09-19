@@ -1,0 +1,165 @@
+{
+  "policy": "Only illustrative deployment hostnames and host addresses were replaced; standard publicly documented service/cluster DNS names were retained. Original unredacted audit records remain outside the publication packet.",
+  "redactions": [
+    {
+      "context": "EO-AV-NET-08:ko",
+      "kind": "illustrative private host address",
+      "count": 1
+    },
+    {
+      "context": "EO-AV-NET-08:en",
+      "kind": "illustrative private host address",
+      "count": 1
+    },
+    {
+      "context": "HR-FW-03:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-FW-03:ko",
+      "kind": "illustrative private host address",
+      "count": 1
+    },
+    {
+      "context": "HR-FW-03:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-FW-03:en",
+      "kind": "illustrative private host address",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-02:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 5
+    },
+    {
+      "context": "HR-HARBOR-02:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 5
+    },
+    {
+      "context": "HR-HARBOR-04:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-04:ko",
+      "kind": "illustrative private host address",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-04:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-04:en",
+      "kind": "illustrative private host address",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-05:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 2
+    },
+    {
+      "context": "HR-HARBOR-05:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 2
+    },
+    {
+      "context": "HR-HARBOR-06:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-06:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-06:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-06:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-07:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-07:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-08:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 3
+    },
+    {
+      "context": "HR-HARBOR-08:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 3
+    },
+    {
+      "context": "HR-HARBOR-10:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-10:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-12:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-HARBOR-12:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HR-UPGRADE-01:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 5
+    },
+    {
+      "context": "HR-UPGRADE-01:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 5
+    },
+    {
+      "context": "HCR-02:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HCR-02:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 1
+    },
+    {
+      "context": "HCR-04:ko",
+      "kind": "illustrative private deployment hostname",
+      "count": 2
+    },
+    {
+      "context": "HCR-04:en",
+      "kind": "illustrative private deployment hostname",
+      "count": 2
+    }
+  ]
+}

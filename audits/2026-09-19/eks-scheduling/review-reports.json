@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "title": "Coordinator-reported independent review results",
+  "pointer_format": "Relative file reference followed by a JSON Pointer fragment.",
+  "evidence_scope": "These records preserve independent review results relayed by the integration editor. The packet author did not separately inspect the commit or the underlying review artifact.",
+  "reports": {
+    "hypatia-8a5f693c": {
+      "commit": "8a5f693c",
+      "finding_ids": [
+        "EKSN-POD-028",
+        "EKSN-POD-029",
+        "EKSN-POD-030",
+        "EKSN-POD-031",
+        "EKSN-POD-032"
+      ],
+      "locales": [
+        "ko",
+        "en"
+      ],
+      "reported_by": "Integration editor",
+      "independent_reviewer": "Hypatia",
+      "review_status": "independent_review_completed_as_reported",
+      "review_result": "All five corrections confirmed; no regression reported.",
+      "provenance": "Main reported the five corrections integrated in 8a5f693c and Hypatia independently confirmed them; the latest coordinator update reconfirmed all five.",
+      "underlying_review_url": null,
+      "review_url_status": "No separate public review URL was supplied; this portable pointer identifies the coordinator report, not an independently retrieved review artifact.",
+      "direct_commit_or_review_artifact_inspection_by_packet_author": false,
+      "scope": "Reported review of the named bilingual source corrections; no deployment, runtime, cluster or performance result is established."
+    },
+    "hypatia-12166b9f": {
+      "commit": "12166b9f",
+      "finding_ids": [
+        "EKSN-POD-001",
+        "EKSN-POD-002",
+        "EKSN-POD-003",
+        "EKSN-POD-004",
+        "EKSN-POD-006",
+        "EKSN-POD-014",
+        "EKSN-POD-015"
+      ],
+      "locales": [
+        "ko",
+        "en"
+      ],
+      "reported_by": "Integration editor",
+      "independent_reviewer": "Hypatia",
+      "review_status": "independent_review_completed_as_reported",
+      "review_result": "All seven corrections independently reviewed; no actionable regression reported.",
+      "provenance": "The coordinator identified POD-001,002,003,004,006,014,015 as addressed in 12166b9f and reported Hypatia independently reviewed all seven with no actionable regression.",
+      "underlying_review_url": null,
+      "review_url_status": "No separate public review URL was supplied; this portable pointer identifies the coordinator report, not an independently retrieved review artifact.",
+      "direct_commit_or_review_artifact_inspection_by_packet_author": false,
+      "scope": "Reported review of the named bilingual source corrections; no deployment, runtime, cluster or performance result is established."
+    }
+  }
+}

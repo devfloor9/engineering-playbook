@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant A as API server
+    participant S as Scheduler
+    participant K as Karpenter
+    participant E as EC2
+    participant N as Node kubelet
+    S->>A: Observe Pods and report unschedulable status
+    K->>A: Watch unschedulable Pods and constraints
+    K->>E: Provision via CreateFleet in inspected AWS provider
+    E-->>N: Instance boots and initializes
+    N->>A: Register Node and report conditions
+    S->>A: Bind each feasible Pod to a selected Node
+    N->>A: Observe bound Pods
+    N->>N: Start containers and report readiness

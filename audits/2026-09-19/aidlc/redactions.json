@@ -1,0 +1,302 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "aidlc_publication_redactions",
+  "policy": "Only local paths, internal-looking hostnames, unverified organizational identifiers/contact details and credential-like literals are removed. No removed values or private source bodies are published. Original hashes preserve association with the authorized audit record.",
+  "redactions": [
+    {
+      "pointer": "AIDLC-REGISTRY-EN-08/quote",
+      "original_text_sha256": "5dd54baf28e22bb5be87610c3f52a5ffc76ca8df48206e25240108c0fa81449c",
+      "published_text_sha256": "bdbe5b911a5df65b7f44cd48f83bed18e1ab0be12d18abeebf8e92c8294bae63",
+      "redactions": [
+        {
+          "reason": "quoted_credential_literal",
+          "removed_value_sha256": "3885c3c07cfdd4bc7d08ded0f4e39b7300b2ae872d18e3c8c192926c9d6e6636"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-REGISTRY-KO-08/quote",
+      "original_text_sha256": "5dd54baf28e22bb5be87610c3f52a5ffc76ca8df48206e25240108c0fa81449c",
+      "published_text_sha256": "bdbe5b911a5df65b7f44cd48f83bed18e1ab0be12d18abeebf8e92c8294bae63",
+      "redactions": [
+        {
+          "reason": "quoted_credential_literal",
+          "removed_value_sha256": "3885c3c07cfdd4bc7d08ded0f4e39b7300b2ae872d18e3c8c192926c9d6e6636"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-EN-02/quote",
+      "original_text_sha256": "8689c88458178b30796df7ca13f59a6b09ad987d65174389ad0f19c4e4430367",
+      "published_text_sha256": "362a527ba2c1ba36f6a3016ab3131e1ae685791dc0da909ee3adc5fc1560673d",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-KO-02/quote",
+      "original_text_sha256": "181eeec3561eaf3e2884345f8540d135cd6cca5cac3816a1b1f7e951622a825f",
+      "published_text_sha256": "b886474664bd78012a8803996c23974f5e758d0a816ea197b9de5096b79449db",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-EN-06/quote",
+      "original_text_sha256": "505c008c40ea10d04dd5544b50fed6be3c1cd212025fb1ac2325febaa0facc80",
+      "published_text_sha256": "9882fda5938f288628b186c6a80d6ce48c08a25bb58204482f56c25eae141565",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "00e6d8b71f12260b0868711af53703ce297f65282668c5113664451ec479e0e4"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-KO-06/quote",
+      "original_text_sha256": "7544124e9889158060de9852ae2515d3863309f2c22fb52749b8c57d75434786",
+      "published_text_sha256": "969b8ef86e10dc75b555fc3c8440abcb3ec9e95b5bf762faf31954020779fa80",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "00e6d8b71f12260b0868711af53703ce297f65282668c5113664451ec479e0e4"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-EN-07/reported_problem",
+      "original_text_sha256": "ec8d4e0811071c28997e925714d75554b7f4bac1acc50f1a5bc58b575ffaa3e4",
+      "published_text_sha256": "f1ad94d7e4a01e17a0e6d009ddde233d1aae01048cbaa27b63273b613cac026d",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-KO-07/reported_problem",
+      "original_text_sha256": "ec8d4e0811071c28997e925714d75554b7f4bac1acc50f1a5bc58b575ffaa3e4",
+      "published_text_sha256": "f1ad94d7e4a01e17a0e6d009ddde233d1aae01048cbaa27b63273b613cac026d",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-EN-07/quote",
+      "original_text_sha256": "d3a3386298a4613b3dddca08ae995d4d885b48669166407653bc5c594813d6bd",
+      "published_text_sha256": "fb2ca440fc213d556fb5c964bd36da1f3e5ee61c160abf00c97ce687165204f7",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "00e6d8b71f12260b0868711af53703ce297f65282668c5113664451ec479e0e4"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-KO-07/quote",
+      "original_text_sha256": "9f1caf044f624b77ecd3271fa4397c25edc1c01ca85c082043019335854efdc4",
+      "published_text_sha256": "3276879944a6510284bd6537682a874239edc7a2059c1b8b62733f647ed803fe",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "00e6d8b71f12260b0868711af53703ce297f65282668c5113664451ec479e0e4"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-EN-08/quote",
+      "original_text_sha256": "a1bfd23e47c86a98cff25075871d6292cf474fc0e978f12b217bf82f62d8abb1",
+      "published_text_sha256": "7e7c2beb1a8ce76392446b9c21dfafa16410e3535000f4eda269d976a01fb9a8",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "c88f30452089b246b39f453a7a4829b7e664649516318ffdd84f3e2d244ac763"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-EXT-KO-08/quote",
+      "original_text_sha256": "ced582bb9c8a1934b5c0fb27a3e442bfd5d135dd0e6ec77bbec5cd4b1017bf81",
+      "published_text_sha256": "6772c4c43f5a417500d7d7ab9f6cfcfe6458275d1f2c0e2554342ed0ca2fecef",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "c88f30452089b246b39f453a7a4829b7e664649516318ffdd84f3e2d244ac763"
+        },
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "1506fd9fbd1d05d2ba7413f7dc5234d5a14f6d202d9ed0b8b6d6e4c307acf633"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-AUDIT-EN-08/quote",
+      "original_text_sha256": "7f6048a7deeefc12faaac79fd483cda1c53682ef5715ed70ab077389f51f2912",
+      "published_text_sha256": "4213f338d65da0b277a3b53ad401b600052dbc60362daff75bd1ec3f122e2c0c",
+      "redactions": [
+        {
+          "reason": "unverified_contact",
+          "removed_value_sha256": "371d3cfab6c30e556e0c8d70aa9518b30727b5e1750905090f271bf941c21aa6"
+        },
+        {
+          "reason": "unverified_contact",
+          "removed_value_sha256": "371d3cfab6c30e556e0c8d70aa9518b30727b5e1750905090f271bf941c21aa6"
+        },
+        {
+          "reason": "unverified_contact",
+          "removed_value_sha256": "04b6f3e96d36474a859dc37ba26395ea8fa0f0ef40eed5416c4c61030d2867f1"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-AUDIT-KO-08/quote",
+      "original_text_sha256": "9e0abfeb5669cf852d0b474624743074d3aee2a886a376a25dbdc16b0c2f8cd6",
+      "published_text_sha256": "5fa748e70930e965e831d35cf97893b474b48c1d68de534b73c4ee8daa428d93",
+      "redactions": [
+        {
+          "reason": "unverified_contact",
+          "removed_value_sha256": "371d3cfab6c30e556e0c8d70aa9518b30727b5e1750905090f271bf941c21aa6"
+        },
+        {
+          "reason": "unverified_contact",
+          "removed_value_sha256": "371d3cfab6c30e556e0c8d70aa9518b30727b5e1750905090f271bf941c21aa6"
+        },
+        {
+          "reason": "unverified_contact",
+          "removed_value_sha256": "04b6f3e96d36474a859dc37ba26395ea8fa0f0ef40eed5416c4c61030d2867f1"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-CODING-13-en/quote",
+      "original_text_sha256": "d9aa266413b33f58025c68c15efb49f04715200a0656e27d7d226236237984a1",
+      "published_text_sha256": "c9ce414c5b0647046130c77b035c4fa6010d255d016c39d286ce25bd56218596",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "64f4f6d816c13260da6b2e3d05e1cb3ef1257edf00cb321dd9c55d728623ca4b"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-CODING-13-ko/quote",
+      "original_text_sha256": "871e49478cdec596f4ca6aa819b5d32e4a2d317fc7a0c1a58eea21eb4b1f684c",
+      "published_text_sha256": "b6be42aba4fc53118ccbbf91e4822b2199a602328e83e166b9c51f05688f57b2",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "64f4f6d816c13260da6b2e3d05e1cb3ef1257edf00cb321dd9c55d728623ca4b"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-OPEN-11-en/quote",
+      "original_text_sha256": "563066c7fbf86204dd5acdf77078db97798dc6e1071f78da935d3a3e96f58bd3",
+      "published_text_sha256": "5fdea85c4b562327d8ae56c37423ffac72b7cd9356e5df5e3acb4728b4d23e16",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "ea272c55737bfe0ce2b275b4619cf3b15c005fa3c1e20b18e566f5e4324722c5"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-OPEN-11-ko/quote",
+      "original_text_sha256": "78f249095a87a7012fba84c15e5e7dcf073343dfac4d6953e6c9b5c08a7716a9",
+      "published_text_sha256": "ce563c4f5b7a023c3331d4aac99e1b696a2db373843833ef67b0510d027fb19d",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "ea272c55737bfe0ce2b275b4619cf3b15c005fa3c1e20b18e566f5e4324722c5"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-OPEN-14-en/quote",
+      "original_text_sha256": "e50c3a3202de4e7e143578008f87cc27b67a1239671af982afb9df57487779d4",
+      "published_text_sha256": "5381bd04ee712ab4319a2377acec2449578576aeb8b2b1f5cd4b72a3d8befaeb",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "ea272c55737bfe0ce2b275b4619cf3b15c005fa3c1e20b18e566f5e4324722c5"
+        }
+      ]
+    },
+    {
+      "pointer": "AIDLC-OPEN-14-ko/quote",
+      "original_text_sha256": "c5733038b270b4546033a66a22e7aebdb2d3e980bcd9de1262e264aa842e68cc",
+      "published_text_sha256": "f8ef413d0b1527967fb19a3d85f7ef4674a903e6c6b1ad7e68096f6b5221b579",
+      "redactions": [
+        {
+          "reason": "private_hostname",
+          "removed_value_sha256": "ea272c55737bfe0ce2b275b4619cf3b15c005fa3c1e20b18e566f5e4324722c5"
+        }
+      ]
+    },
+    {
+      "pointer": "unverified/19/claim/claim",
+      "original_text_sha256": "449d452ab8a4204452daa58bc0910785a60ff32fcbd1f1d2c411454cfdfcea3a",
+      "published_text_sha256": "974c27621f8eeb5985a666dd59f2d260b651041a7059b86987d462df610f7540",
+      "redactions": [
+        {
+          "reason": "unverified_organization_identifier",
+          "removed_value_sha256": "b2393620a2e851badee811b13663eae00620862a0f4eb469482a6b87f9f39997"
+        }
+      ]
+    }
+  ]
+}

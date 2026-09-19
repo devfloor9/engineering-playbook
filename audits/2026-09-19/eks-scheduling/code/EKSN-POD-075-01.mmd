@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant T as Operator API or AWS zonal autoshift
+    participant A as ARC
+    participant E as EKS
+    participant K as Karpenter integration
+    T->>A: Start eligible zonal shift
+    A-->>E: Shift state for impaired AZ
+    E->>E: Cordon affected nodes and remove affected Pod IPs from relevant endpoints
+    K->>A: Poll zonal shift state
+    K->>K: Avoid new capacity in impaired AZ
+    K->>K: Pause specified voluntary disruptions
+    Note over E,K: Native shift does not evict Pods or terminate nodes

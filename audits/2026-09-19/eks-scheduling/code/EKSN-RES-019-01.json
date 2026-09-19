@@ -1,0 +1,9 @@
+{
+  "roleArn": "arn:aws:iam::123456789012:role/REPLACE_ME_FIS_ROLE",
+  "stopConditions": [
+    {
+      "source": "aws:cloudwatch:alarm",
+      "value": "arn:aws:cloudwatch:us-east-1:123456789012:alarm:REPLACE_ME_ABORT_ALARM"
+    }
+  ]
+}

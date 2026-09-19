@@ -1,0 +1,5 @@
+resources:
+  requests:
+    aws.amazon.com/neuroncore: 1
+  limits:
+    aws.amazon.com/neuroncore: 1

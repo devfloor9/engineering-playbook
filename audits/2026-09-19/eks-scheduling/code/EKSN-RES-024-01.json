@@ -1,0 +1,39 @@
+{
+  "apiVersion": "chaos-mesh.org/v1alpha1",
+  "kind": "Schedule",
+  "metadata": {
+    "name": "network-partition",
+    "namespace": "chaos-mesh"
+  },
+  "spec": {
+    "schedule": "@every 24h",
+    "historyLimit": 2,
+    "concurrencyPolicy": "Forbid",
+    "type": "NetworkChaos",
+    "networkChaos": {
+      "action": "partition",
+      "mode": "all",
+      "selector": {
+        "namespaces": [
+          "production"
+        ],
+        "labelSelectors": {
+          "app": "frontend"
+        }
+      },
+      "direction": "both",
+      "target": {
+        "selector": {
+          "namespaces": [
+            "production"
+          ],
+          "labelSelectors": {
+            "app": "backend"
+          }
+        },
+        "mode": "all"
+      },
+      "duration": "5m"
+    }
+  }
+}

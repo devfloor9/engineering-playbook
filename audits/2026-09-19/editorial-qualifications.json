@@ -1,0 +1,293 @@
+{
+  "schema_version": 1,
+  "source_quotes_unchanged": true,
+  "changes": [
+    {
+      "path": "agentic-design-serving/canonical-findings.json",
+      "json_pointer": "/defects/227/occurrences/0/finding/problem",
+      "original_assessment_sha256": "2d5b4dc5ac1f3b4ace2bc4296bf52f33ee6e1a738ff988acbdf7cfb95895f78b",
+      "assessment": "The checkpoint call and settings do not match the inspected trainer interface. The 400 GB diagram also conflicts with the imported table's 2,300 GB estimate for a 405B model.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "agentic-design-serving/canonical-findings.json",
+      "json_pointer": "/defects/227/occurrences/1/finding/problem",
+      "original_assessment_sha256": "2d5b4dc5ac1f3b4ace2bc4296bf52f33ee6e1a738ff988acbdf7cfb95895f78b",
+      "assessment": "The checkpoint call and settings do not match the inspected trainer interface. The 400 GB diagram also conflicts with the imported table's 2,300 GB estimate for a 405B model.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "agentic-design-serving/canonical-findings.json",
+      "json_pointer": "/defects/389/occurrences/0/finding/proposed_correction_meaning",
+      "original_assessment_sha256": "a393cd972dd0fb34562c93eeab6d64f263909a82e238c94556ee3a16e6888e1d",
+      "assessment": "Require the original results and experiment scope, or explain the mechanism and its conditions without presenting an unmeasured benchmark.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "agentic-design-serving/canonical-findings.json",
+      "json_pointer": "/defects/389/occurrences/1/finding/proposed_correction_meaning",
+      "original_assessment_sha256": "a393cd972dd0fb34562c93eeab6d64f263909a82e238c94556ee3a16e6888e1d",
+      "assessment": "Require the original results and experiment scope, or explain the mechanism and its conditions without presenting an unmeasured benchmark.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "agentic-design-serving/claim-evidence-gaps.json",
+      "json_pointer": "/unresolved_defect_assessments/234/occurrences/0/required_resolution_meaning",
+      "original_assessment_sha256": "a393cd972dd0fb34562c93eeab6d64f263909a82e238c94556ee3a16e6888e1d",
+      "assessment": "Require the original results and experiment scope, or explain the mechanism and its conditions without presenting an unmeasured benchmark.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "agentic-design-serving/claim-evidence-gaps.json",
+      "json_pointer": "/unresolved_defect_assessments/234/occurrences/1/required_resolution_meaning",
+      "original_assessment_sha256": "a393cd972dd0fb34562c93eeab6d64f263909a82e238c94556ee3a16e6888e1d",
+      "assessment": "Require the original results and experiment scope, or explain the mechanism and its conditions without presenting an unmeasured benchmark.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-operations/canonical-findings.json",
+      "json_pointer": "/catalog/canonical_defects/125/components/0/correction_meaning",
+      "original_assessment_sha256": "ed069ee4c3e06d5f8419c06d7ebd67b9ab009b60b1293e52e8da3aee80cf3e96",
+      "assessment": "Distinguish YAML syntax from Kubernetes schema validity. Supply missing required fields or label the example as a fragment. Retain validation output only when it records a check of the shown manifest.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-operations/canonical-findings.json",
+      "json_pointer": "/catalog/canonical_defects/185/components/0/correction_meaning",
+      "original_assessment_sha256": "16a7562a893073fd36cf9e2479d5ee8a7c2e29fa6201e98ae81195caf7e24ef0",
+      "assessment": "Use version-specific capacity definitions and units. Distinguish configured capacity from measured scheduling throughput, and remove or qualify probe percentiles and node limits that lack matching evidence.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-operations/canonical-findings.json",
+      "json_pointer": "/catalog/canonical_defects/192/components/0/problem",
+      "original_assessment_sha256": "f4ed8e77ca15c9119c58add05a998e94ac8a65d136eb6ee872648491d475191b",
+      "assessment": "The cited November 2, 2025 campaign describes compromised IAM credentials and EC2/ECS targets. It does not report the startupProbe/livenessProbe bypass or EKS sequence attributed to it in this document.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-operations/canonical-findings.json",
+      "json_pointer": "/issues/proposals/4/problem",
+      "original_assessment_sha256": "37aa98e1937fe8d632e0c6dc829d597e990c02432010cddd96828f1a88d7a9c5",
+      "assessment": "The examples present unsupported CLI/CRD workflows and unsubstantiated validation or incident details as established behavior. A confidence threshold, stored ConfigMap or unvalidated NetworkPolicy does not establish safe automatic remediation. Correct the product contracts and identify the evidence behind each claimed result.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/0/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/1/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/2/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/3/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/4/issue",
+      "original_assessment_sha256": "b515941a644bb88507b96d8279bdc2c53561519db7ea7566e2a617344015ae1e",
+      "assessment": "Pinning every RDS client to a writer's current Availability Zone does not track writer failover. The example endpoint does not establish a mechanism for updating client placement; using an illustrative hostname is not itself an error.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/5/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/13/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/14/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/27/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/28/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/29/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/30/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "json_pointer": "/canonical_corrections/31/integration_status/reported_by",
+      "original_assessment_sha256": "57a67aab1ccf8e6d82d255d489d6fbe58ace31215ff1a6f6b5deeea4ff6fb270",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/review-reports.json",
+      "json_pointer": "/evidence_scope",
+      "original_assessment_sha256": "b518f80508ce9bf7a8707e46fec76d625d3100f96e5ad9087ed530946a3a2d16",
+      "assessment": "These records preserve independent review results relayed by the integration editor. The packet author did not separately inspect the commit or the underlying review artifact.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/review-reports.json",
+      "json_pointer": "/reports/hypatia-8a5f693c/reported_by",
+      "original_assessment_sha256": "03823f101e101a503e9c7796e91c6ea29033fe28da354da032019948950ee842",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "eks-scheduling/review-reports.json",
+      "json_pointer": "/reports/hypatia-12166b9f/reported_by",
+      "original_assessment_sha256": "03823f101e101a503e9c7796e91c6ea29033fe28da354da032019948950ee842",
+      "assessment": "Integration editor",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/reviews/0/scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/reviews/1/scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/0/evidence_associations/0/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/0/evidence_associations/1/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/1/evidence_associations/0/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/1/evidence_associations/1/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/2/evidence_associations/0/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/2/evidence_associations/1/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/2/evidence_associations/2/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/3/evidence_associations/0/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/3/evidence_associations/1/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/109/occurrences/3/evidence_associations/2/review_scope",
+      "original_assessment_sha256": "64750a3b730e74a2018a784b11364b3bf29ba44c4588989c1152137b0d1a2547",
+      "assessment": "Primary-source reconfirmation on September 19, 2026 retrieved original Article 113 and Regulation (EU) 2026/1744 Article 1(40). Distinguish original GPAI and high-risk application dates from the adopted July amendment, which postdates the document's June update. State each regulated system category, exception and verification date; the amendment does not give every obligation one start date.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/121/reviews/0/scope",
+      "original_assessment_sha256": "5d0af05c116278d22a94dd834f864dd283bdb124ff79fde5ac4647c8ea4491c5",
+      "assessment": "The January 22, 2026 general commencement precedes the document's June 30, 2026 update. The July 21 commencement applies only to listed amendments and follows that update. Correct the stale prospective January timeline separately from the current-law update; do not apply July changes retroactively.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/121/occurrences/0/evidence_associations/0/review_scope",
+      "original_assessment_sha256": "5d0af05c116278d22a94dd834f864dd283bdb124ff79fde5ac4647c8ea4491c5",
+      "assessment": "The January 22, 2026 general commencement precedes the document's June 30, 2026 update. The July 21 commencement applies only to listed amendments and follows that update. Correct the stale prospective January timeline separately from the current-law update; do not apply July changes retroactively.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "json_pointer": "/findings/121/occurrences/1/evidence_associations/0/review_scope",
+      "original_assessment_sha256": "5d0af05c116278d22a94dd834f864dd283bdb124ff79fde5ac4647c8ea4491c5",
+      "assessment": "The January 22, 2026 general commencement precedes the document's June 30, 2026 update. The July 21 commencement applies only to listed amendments and follows that update. Correct the stale prospective January timeline separately from the current-law update; do not apply July changes retroactively.",
+      "reason": "Qualify the evidenced mismatch, including provenance and temporal scope, without changing original source quotations."
+    }
+  ]
+}

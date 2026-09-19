@@ -1,0 +1,681 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-09-19",
+  "baseline_commit": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "scope": "Complete frozen source inventory; package schemas preserve original evidence and classifications.",
+  "counts": {
+    "documents": 628,
+    "grouped_review_items": 2191,
+    "original_finding_occurrences": 4366
+  },
+  "counting_limits": [
+    "Grouped review items include corrected findings, pending assessments and explicit withdrawals.",
+    "Canonicalization is within each review package, not a claim of globally independent defects.",
+    "Evidence gaps overlap findings and must not be added to defect counts.",
+    "The four Harbor revision-review findings are recorded separately from the baseline inventory."
+  ],
+  "packages": [
+    {
+      "path": "benchmarks",
+      "documents": 20,
+      "grouped_review_items": 43,
+      "original_finding_occurrences": 86,
+      "catalog": "benchmarks/canonical-findings.json"
+    },
+    {
+      "path": "agentic-design-serving",
+      "documents": 82,
+      "grouped_review_items": 391,
+      "original_finding_occurrences": 754,
+      "catalog": "agentic-design-serving/canonical-findings.json"
+    },
+    {
+      "path": "agentic-operations",
+      "documents": 58,
+      "grouped_review_items": 214,
+      "original_finding_occurrences": 403,
+      "catalog": "agentic-operations/canonical-findings.json"
+    },
+    {
+      "path": "agentic-reference",
+      "documents": 16,
+      "grouped_review_items": 80,
+      "original_finding_occurrences": 148,
+      "catalog": "agentic-reference/canonical-defects.json"
+    },
+    {
+      "path": "eks-platform-networking",
+      "documents": 58,
+      "grouped_review_items": 201,
+      "original_finding_occurrences": 394,
+      "catalog": "eks-platform-networking/canonical-defects.json"
+    },
+    {
+      "path": "eks-operations",
+      "documents": 56,
+      "grouped_review_items": 251,
+      "original_finding_occurrences": 514,
+      "catalog": "eks-operations/canonical-findings.json"
+    },
+    {
+      "path": "eks-scheduling",
+      "documents": 4,
+      "grouped_review_items": 124,
+      "original_finding_occurrences": 248,
+      "catalog": "eks-scheduling/canonical-corrections.json"
+    },
+    {
+      "path": "industry",
+      "documents": 178,
+      "grouped_review_items": 283,
+      "original_finding_occurrences": 563,
+      "catalog": "industry/canonical-defects.json"
+    },
+    {
+      "path": "aidlc",
+      "documents": 90,
+      "grouped_review_items": 404,
+      "original_finding_occurrences": 856,
+      "catalog": "aidlc/canonical-findings.json"
+    },
+    {
+      "path": "hybrid-rosa-and-operations",
+      "documents": 66,
+      "grouped_review_items": 200,
+      "original_finding_occurrences": 400,
+      "catalog": "hybrid-rosa-and-operations/canonical-findings.json"
+    }
+  ],
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "314bf7f468f80af16bc74ffeac9a1aadf4f6f96405bfd3ae3233603b81ac4e98",
+      "bytes": 10668
+    },
+    {
+      "path": "agentic-design-serving/README.md",
+      "sha256": "106c301cb256db3015a548229d6b8fb7ac330e1e3114601eddbf496d698d1831",
+      "bytes": 179109
+    },
+    {
+      "path": "agentic-design-serving/canonical-findings.json",
+      "sha256": "6ef6a376de7ebca51a7341e761d92cf5ac459395e1582fc595a9a8aac1182123",
+      "bytes": 2645225
+    },
+    {
+      "path": "agentic-design-serving/canonical-findings.schema.json",
+      "sha256": "1c0ac5d8d1e1226f7f34a594bf78087451e743f7de76a1b8d3c1a38bdd929f03",
+      "bytes": 8164
+    },
+    {
+      "path": "agentic-design-serving/claim-evidence-gaps.json",
+      "sha256": "05fafbdaa4627f2e167afbcb2688acba08867da60338f4549899a890f12f60de",
+      "bytes": 773906
+    },
+    {
+      "path": "agentic-design-serving/coverage.json",
+      "sha256": "07c0925f876a6c68d8fe7299ee9edf89a7e632e17485e3936c1d81dfd7364a02",
+      "bytes": 168615
+    },
+    {
+      "path": "agentic-design-serving/curation.json",
+      "sha256": "a7d96c6460f89c48ad65ecdee4ac5c33c194e3b7808c73ab200562390f9dbf44",
+      "bytes": 15046
+    },
+    {
+      "path": "agentic-design-serving/evidence-provenance.json",
+      "sha256": "fc74abcb341cb455cd97219d4fbdb6e388d59ade1e99ddeacfcc0fa88124a656",
+      "bytes": 793850
+    },
+    {
+      "path": "agentic-design-serving/issues.json",
+      "sha256": "04d3df2870419b306c717bd8bfa4359fd3f3972135d150d6d393c3bebc732f6c",
+      "bytes": 18042
+    },
+    {
+      "path": "agentic-design-serving/occurrence-map.csv",
+      "sha256": "b8b3c78deaff6e13b5eeea75e25e083607275c0ac86967ff454ea3627e37299f",
+      "bytes": 196615
+    },
+    {
+      "path": "agentic-operations/README.md",
+      "sha256": "4082e06f2f0aac9643156f658a9cbc0774336ec683f3d7b1b6242007ccd195b7",
+      "bytes": 113305
+    },
+    {
+      "path": "agentic-operations/canonical-findings.json",
+      "sha256": "0c06e2d8bc750ab2467ea3166486a5a2415009d0211462c62ab0ccd8aa14ee10",
+      "bytes": 1535198
+    },
+    {
+      "path": "agentic-reference/README.md",
+      "sha256": "e1032a77f9ff3d2cbf7bc451379c59d56a35f14e90766327e1c9411e5092c283",
+      "bytes": 43148
+    },
+    {
+      "path": "agentic-reference/canonical-defects.json",
+      "sha256": "f5a550f69084b3a5f250119a7ea2791fc7151e88a58438187fdae01660fba661",
+      "bytes": 472304
+    },
+    {
+      "path": "agentic-reference/evidence-manifest.json",
+      "sha256": "f37971ff9040306749b4fb71e5e42031f1fb8ca596a25348916b46f79667446d",
+      "bytes": 97538
+    },
+    {
+      "path": "agentic-reference/issue-map.json",
+      "sha256": "1a66b84c77720fb6c2e5c6e82c608c35165b061a795c7ddf175bbe238a3b3501",
+      "bytes": 5317
+    },
+    {
+      "path": "agentic-reference/remaining-evidence-gaps.json",
+      "sha256": "fdeee466c91dc6727c34a1c1560fc8c2f7747af5976e1cdb384bc82efa50db8e",
+      "bytes": 59569
+    },
+    {
+      "path": "agentic-reference/source-records.json",
+      "sha256": "d96ade790348ab1eeaf41f59fdad181c17c91f163095d33d468b9e2a9fdf0d16",
+      "bytes": 382297
+    },
+    {
+      "path": "aidlc/README.md",
+      "sha256": "aa9d0a288b871d4688aca4d38bcb1a22dc86f97be8fc444a1f17e7199bc54276",
+      "bytes": 136235
+    },
+    {
+      "path": "aidlc/canonical-findings.json",
+      "sha256": "66fec0bc6109af78c5c12db4b26864bc592cd2743d97594e67115d6143299c36",
+      "bytes": 2928538
+    },
+    {
+      "path": "aidlc/canonical-findings.schema.json",
+      "sha256": "8bcf2666dacf5147209350c327275e21b96f7716c2bdb98855f5863ce77bed80",
+      "bytes": 9639
+    },
+    {
+      "path": "aidlc/evidence-index.json",
+      "sha256": "d5f0517d04dff0ade4aa974c972513f51dc940d31eda0bec1fc39a709442dd4b",
+      "bytes": 227403
+    },
+    {
+      "path": "aidlc/finding-index.json",
+      "sha256": "a8705ff2abc7d8d3f9589ed83e2b3e01027854b737daf43941d5efb10335cd00",
+      "bytes": 452578
+    },
+    {
+      "path": "aidlc/known-unverified.json",
+      "sha256": "87d62c0e5579d8fae88abfc54d7d7f89903accad8784b41346e2eb512c28d1a3",
+      "bytes": 184634
+    },
+    {
+      "path": "aidlc/legal-reconfirmation.json",
+      "sha256": "13ea47879e579c6ff99f984368bf1d9105de4802d96aaa5dabe8d6ebddab9e92",
+      "bytes": 8885
+    },
+    {
+      "path": "aidlc/redactions.json",
+      "sha256": "8b840d4e8b71821faf4e05a660fc361ab2b6c263816126bf84598d30d521c86f",
+      "bytes": 12735
+    },
+    {
+      "path": "aidlc/source-coverage.json",
+      "sha256": "7aa1c8ef4eba4a3f183848c9007c8e9497226158e7f38ac112db4631814c7427",
+      "bytes": 627546
+    },
+    {
+      "path": "aidlc/superseded-and-qualified.json",
+      "sha256": "9b013b6e81058474dd36bcb8460832d56b26d96e6277102f98538dac5aca7d5e",
+      "bytes": 5745
+    },
+    {
+      "path": "aidlc/topic-index.json",
+      "sha256": "ab5fbd1d819d25810660862a46eb659769e9ab7646007e10495cbcf3148a6ca5",
+      "bytes": 11372
+    },
+    {
+      "path": "benchmarks/README.md",
+      "sha256": "02362e48693a82823268b22236a0c420f1d530d06b0b6df8a823fcbbfec0f84a",
+      "bytes": 20579
+    },
+    {
+      "path": "benchmarks/canonical-findings.json",
+      "sha256": "08b548e9c2ccfe6528dc56eae1697c36a68b99f2ee384f277036083d096f023a",
+      "bytes": 133160
+    },
+    {
+      "path": "coverage.json",
+      "sha256": "af994bf6cbc5ffbc715a6304ce623aea4da63a3ddff9b377e81dda0ee9794ea8",
+      "bytes": 1850
+    },
+    {
+      "path": "documents.json",
+      "sha256": "4a618b17d57eee327f37bb28d8ca0d0d5e75d96be6880486142f8954bfa8de88",
+      "bytes": 1511445
+    },
+    {
+      "path": "editorial-qualifications.json",
+      "sha256": "aa1b8845dd9cc4350896632964fcea8660f7f3eafbd4f16842b6e28b17f68888",
+      "bytes": 25065
+    },
+    {
+      "path": "eks-operations/README.md",
+      "sha256": "f1cb750b1771e048ee7ae9db22e976f9e8f6f485149ba4ce56bcd525f9be9b91",
+      "bytes": 105832
+    },
+    {
+      "path": "eks-operations/canonical-findings.json",
+      "sha256": "0db56f3b3b21d8dfcc7d7912b0849edd3712893cfc1ccad2a1deffd1be3d039a",
+      "bytes": 2118882
+    },
+    {
+      "path": "eks-platform-networking/README.md",
+      "sha256": "8f059472c37df5a4a1407df148cb7332a923daf46372e8b0dfe2eb1862c87a95",
+      "bytes": 95238
+    },
+    {
+      "path": "eks-platform-networking/canonical-defects.json",
+      "sha256": "642c4f06af63df10e57ce486364c50baed8252e77d42dbfacfc110850745876d",
+      "bytes": 1200398
+    },
+    {
+      "path": "eks-platform-networking/evidence-manifest.json",
+      "sha256": "cc0211b380acb966af414c89b252c1d3466761bad035a5bd6be986059b3e6250",
+      "bytes": 369965
+    },
+    {
+      "path": "eks-platform-networking/issue-map.json",
+      "sha256": "712cd9974b2fc99f6b38732c3b8b2c8a6a6877e00e46af8bd13a2f31bf27284e",
+      "bytes": 11088
+    },
+    {
+      "path": "eks-platform-networking/remaining-evidence-gaps.json",
+      "sha256": "aebd92a32286149598f7c0142d214badb769486360db6cc8e005ca0dfd72ed47",
+      "bytes": 106777
+    },
+    {
+      "path": "eks-platform-networking/source-records.json",
+      "sha256": "39457499e402781678a008ca88fcffe86616942ba515eb51a9363591a0023575",
+      "bytes": 1238753
+    },
+    {
+      "path": "eks-scheduling/README.md",
+      "sha256": "0e3df5acf9679131b50cfcef656743c2e1c935f4eaa9fe71cb54b48e5bbaf4c7",
+      "bytes": 51828
+    },
+    {
+      "path": "eks-scheduling/canonical-corrections.json",
+      "sha256": "048b8ef0b45b2fb90776d8de0d095a9b5472c615a9043b70188587ae40e7120d",
+      "bytes": 517969
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-002-01.yaml",
+      "sha256": "7d214bfb43ee2478d05a14190f8a5c67fbc1417280d8645e6caab97305fb0c51",
+      "bytes": 77
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-004-01.yaml",
+      "sha256": "7d214bfb43ee2478d05a14190f8a5c67fbc1417280d8645e6caab97305fb0c51",
+      "bytes": 77
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-005-01.yaml",
+      "sha256": "36b8b85244478f25deb9ba87420ec4ff317336694fbdacdfa5f4302e2b2406c1",
+      "bytes": 238
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-006-01.yaml",
+      "sha256": "5dc410db30604ae28a5c64149c4529918621bf0a2148a6b0a51cbf982b3cbc58",
+      "bytes": 130
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-012-01.py",
+      "sha256": "8cdac27dfdfbf1ab37c48a4575cd45c8972b4bbdd7ee7611a14b1dcdf7ea0773",
+      "bytes": 1507
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-013-01.yaml",
+      "sha256": "87bc4ba83576cab8e9fc2f7688f2e1e502f46a5e659e351a076f2204efbd1ac3",
+      "bytes": 94
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-014-01.yaml",
+      "sha256": "07751d131ffb69bb8452d4d92d7626582516d919784234c0b7ea537d83371191",
+      "bytes": 215
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-019-01.yaml",
+      "sha256": "8d93885bb1e511a90e7518bbe0205c6a3762c6efd227d64bb47fded668598457",
+      "bytes": 71
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-020-01.yaml",
+      "sha256": "400600d20bd43250e824acdc1bf0099f67f83ca62ca23ad71fd0448361886334",
+      "bytes": 141
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-021-01.yaml",
+      "sha256": "87bc4ba83576cab8e9fc2f7688f2e1e502f46a5e659e351a076f2204efbd1ac3",
+      "bytes": 94
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-024-01.sh",
+      "sha256": "6e5ea90eb306922f53740a028b02ffa0a139c4d66ca1936e25859206aca0fe59",
+      "bytes": 72
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-025-01.yaml",
+      "sha256": "3e32928c62e3107f03d2197dab6a4afb5b8b076d6625ea1c23ed47888a965276",
+      "bytes": 66
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-027-01.yaml",
+      "sha256": "9ba5272b8ba3e98f88727082372515907c97aab38190ce85c3be52d068e276f7",
+      "bytes": 146
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-028-01.yaml",
+      "sha256": "8b8ca0e6c95593f3cc4b92935ddb1ad957f2456f85f1fcb0654398a052ec3356",
+      "bytes": 50
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-031-01.yaml",
+      "sha256": "f6d9f8920bb822abf3c62f57dd94ae2cc871b8a61ffca88572ba7925f99f3c12",
+      "bytes": 24
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-035-01.yaml",
+      "sha256": "3b5442a961d93011fc43187b30234a13c8e76bfb09a709d436bcb5007775b8ce",
+      "bytes": 21
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-038-01.json",
+      "sha256": "29f4e670f5b179c6c2dfdddc095fbdae9912d369034673ac8691dd96c519aaa6",
+      "bytes": 150
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-040-01.mmd",
+      "sha256": "bf0aa0f48b00fb6c2ae7a192942f40ba26dd51bd25d60e8d78532f2e94df3698",
+      "bytes": 267
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-041-01.yaml",
+      "sha256": "8b5ea0c590e7254debf3b62835e5a6ad955f60f6860146242fce08de162fc43a",
+      "bytes": 254
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-042-01.yaml",
+      "sha256": "f45b31ebbd139edef547933d26fb7a16e71c515b8d5e01f890c4b378dfc859f7",
+      "bytes": 117
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-043-01.yaml",
+      "sha256": "882df068978a681db8118b0d2e7fbf7d24bd729e8cf3f89ffb160a42c6d9340e",
+      "bytes": 117
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-043-02.yaml",
+      "sha256": "6f8e975233919cafbcedec050a175d58096128071ac8bc37c635727f6f76abd0",
+      "bytes": 133
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-045-01.yaml",
+      "sha256": "92f89709d26dd717644751a35cd19c3156ff7f257641bd94ecfaf2d23f9c7681",
+      "bytes": 33
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-049-01.yaml",
+      "sha256": "92879a89a1c30fd27787eae94116a5fb57f4ebc97447239f9c597d7b2a6d999a",
+      "bytes": 92
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-049-02.yaml",
+      "sha256": "9ba5272b8ba3e98f88727082372515907c97aab38190ce85c3be52d068e276f7",
+      "bytes": 146
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-051-01.yaml",
+      "sha256": "9e4b75ffb8d4fa05b0854e3a4a777fa360c4b3cdd9a6a540689aaca00369cda4",
+      "bytes": 197
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-057-01.json",
+      "sha256": "2c90bf7829b50d1dbf80b87a1c09e9ebfdf78c79844c80982b4a7959afe70378",
+      "bytes": 558
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-058-01.yaml",
+      "sha256": "a9e0009f4091d0c22754ff508a5f8d5a230179929274fa4f59eb15edbae7e5dd",
+      "bytes": 466
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-061-01.mmd",
+      "sha256": "a3ac6b1a652876479a771d738cfd1af470c122882846b019fe85bafce401e749",
+      "bytes": 624
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-062-01.yaml",
+      "sha256": "e7a748cef47e7f84fead255f1826cfb569c685c439040c85565e7700b582f460",
+      "bytes": 60
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-063-01.yaml",
+      "sha256": "bd7ffeb3cde47bcf75f715e20035b0c3e9513407da01f47cc70be271e823f730",
+      "bytes": 152
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-064-01.yaml",
+      "sha256": "7d214bfb43ee2478d05a14190f8a5c67fbc1417280d8645e6caab97305fb0c51",
+      "bytes": 77
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-068-01.yaml",
+      "sha256": "f5ab4132e51917b0ca0d57235cd48d9199153ec96e5efc774f1de41ff0459de0",
+      "bytes": 99
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-069-01.mmd",
+      "sha256": "0a4c92e2e475c20ae9f0f8b4267c0f95f09ea3ca0f26fc5378a9bacb5fa12dc0",
+      "bytes": 551
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-070-01.json",
+      "sha256": "7072d04abfcd4cb3a74a261790623293cf1da526915f48e1212a3b1080656e88",
+      "bytes": 1379
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-072-01.mmd",
+      "sha256": "9597dd68f69f737b44f38a844aa1cd1c1fc58c14b3912aafe36dd34d0f2f773d",
+      "bytes": 562
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-074-01.yaml",
+      "sha256": "9f9616c63a01650bad7c06fecbbacc6052c7e65e04cbf3410c2b18409ca6797d",
+      "bytes": 107
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-074-02.yaml",
+      "sha256": "9ba5272b8ba3e98f88727082372515907c97aab38190ce85c3be52d068e276f7",
+      "bytes": 146
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-075-01.mmd",
+      "sha256": "83ec1f2eb693dec18e9a62dbf8ea55bed672c9a021a35cb102a33aac3ea7132e",
+      "bytes": 528
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-076-01.yaml",
+      "sha256": "b137441c5b39ce3c5db69748670dc3acd052b1461260a426c7824ec46c06c02c",
+      "bytes": 177
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-077-01.yaml",
+      "sha256": "08a0abd9582e8b0efc54d3499d9ade38bc3370db7932dbd9ab2a14c5ec737c27",
+      "bytes": 252
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-078-01.yaml",
+      "sha256": "04022321d990baa718c80171311c1197b8eea8e7de7242398dc88e94eab6cb5f",
+      "bytes": 98
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-079-01.json",
+      "sha256": "151686a28e6971b69e7fcd159f89a00bad49bcc8648fa9e70b6ed8df0097903e",
+      "bytes": 192
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-082-01.json",
+      "sha256": "c85f258c8e6e80209a035d9137d45db3e7d9539d1f3101bc1d1f6229c31a4302",
+      "bytes": 514
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-085-01.yaml",
+      "sha256": "083d193af9aab2ae39b843575fc22454bb5cf0b4c8d4c910d2a8e4734013ba43",
+      "bytes": 179
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-086-01.yaml",
+      "sha256": "bd9918275269310e724340cae0b69aad06af7889b279508bceff159ed4a84e7f",
+      "bytes": 423
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-088-01.yaml",
+      "sha256": "085e86eedd90e1a44db02c76e24adad831f3562ed9b09bf56942d86a51ac1bf6",
+      "bytes": 160
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-090-01.py",
+      "sha256": "8cdac27dfdfbf1ab37c48a4575cd45c8972b4bbdd7ee7611a14b1dcdf7ea0773",
+      "bytes": 1507
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-POD-091-01.yaml",
+      "sha256": "ee9e2236c7da9d0a43f3b5ccd30f00f1bd5a2e1df6e18e6144a4f7da4a4814dd",
+      "bytes": 93
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-001-01.yaml",
+      "sha256": "4d265409bf76be4659b124b66430684f49f977b8fb08b90c35eada1e435e7c52",
+      "bytes": 176
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-004-01.mmd",
+      "sha256": "2c19d8d5f2f07da91786775131a939c6814c0225390a38140dceb432ca6e3875",
+      "bytes": 461
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-005-01.yaml",
+      "sha256": "62bf1688b47217d3ba3e74e10fb07b3adda98aa733ed0da1e37a2a3e52a92f36",
+      "bytes": 103
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-008-01.yaml",
+      "sha256": "0d1ad4856536f3c8b54a1c3ff9e8251a1579210e867cc0f16e0da9817a381d3e",
+      "bytes": 138
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-013-01.yaml",
+      "sha256": "ccfa3261068afe2aaeb7508db99c5ba85b9cf10b688bb11f1c92f470d6fe589f",
+      "bytes": 121
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-018-01.json",
+      "sha256": "ea366e6d8d67819578cf56c2996ad22a707992f28b1a18ab2a646a6ad2c4afaf",
+      "bytes": 1013
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-019-01.json",
+      "sha256": "b03ebeb571ed59c8a1310ae9cff9b7b3cd0de6ad3a129449f69e6690cf97ffca",
+      "bytes": 237
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-021-01.json",
+      "sha256": "5f9efdd1ea6a10b0ad82635f396d2a9aca5b707e29285862320250c336941d84",
+      "bytes": 147
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-024-01.json",
+      "sha256": "8202106fe98e88d2d07c5e631a6d603829998be683c08b4f36222b06db205309",
+      "bytes": 783
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-026-01.sh",
+      "sha256": "b9bdec9050baa07b2cd54a376d205cf463671f7c52fb6a069f55d4eca6b5df6b",
+      "bytes": 249
+    },
+    {
+      "path": "eks-scheduling/code/EKSN-RES-028-01.py",
+      "sha256": "8cdac27dfdfbf1ab37c48a4575cd45c8972b4bbdd7ee7611a14b1dcdf7ea0773",
+      "bytes": 1507
+    },
+    {
+      "path": "eks-scheduling/review-reports.json",
+      "sha256": "fc437b9ddb3596f3f22c46d75d3e24a1e211eedfd9d7f437f7e1706dadc1f17f",
+      "bytes": 2708
+    },
+    {
+      "path": "hybrid-rosa-and-operations/README.md",
+      "sha256": "b6a169f83465c4899a99002731e794bbb20040e8aaaa8489a6355c7703d9a7c4",
+      "bytes": 105209
+    },
+    {
+      "path": "hybrid-rosa-and-operations/canonical-findings.json",
+      "sha256": "dfbbad469722b101fd3709f9916beb4d146246a68378622d3ecced22f1fad8eb",
+      "bytes": 949850
+    },
+    {
+      "path": "hybrid-rosa-and-operations/coverage.json",
+      "sha256": "078393c95731b2796806538f4bdf21d3c7b2950dd3a007db5b3a27689c42ce0a",
+      "bytes": 39615
+    },
+    {
+      "path": "hybrid-rosa-and-operations/grouped-followups.json",
+      "sha256": "cd2fddabde5ab0214ea220683c5bbd537eac8a86faf0e991295d93ddaab63a8a",
+      "bytes": 23128
+    },
+    {
+      "path": "hybrid-rosa-and-operations/primary-evidence-provenance.json",
+      "sha256": "24ccb3c4159f151ecd63208bd6efd3bbd72a5376c92b8447d5d577ab14af1433",
+      "bytes": 124192
+    },
+    {
+      "path": "hybrid-rosa-and-operations/redactions.json",
+      "sha256": "a12081d8b1d0956e96f7ea35f408b25477736e000b702f1f66b82fa4678748ba",
+      "bytes": 4144
+    },
+    {
+      "path": "industry/README.md",
+      "sha256": "81dc9424e7bbad98aa0d70d653e08c8aab6f5db9c762d6f272f409fab0e4af2f",
+      "bytes": 132536
+    },
+    {
+      "path": "industry/canonical-defects.json",
+      "sha256": "a4c54546a9b025f6b001858452a2c808a3148ed3ea853088c5a43532ca3e8321",
+      "bytes": 1365372
+    },
+    {
+      "path": "industry/issue-groups.json",
+      "sha256": "4c437c396adbdd98ddf7325baef87509aeef9552749cf6bbab40d44c200462e3",
+      "bytes": 232630
+    },
+    {
+      "path": "publication-redactions.json",
+      "sha256": "9aa32518119019a7581bfdbfc297727a8e05124db66a8331f77f93f5ceb891b1",
+      "bytes": 20683
+    },
+    {
+      "path": "publication-validation.json",
+      "sha256": "05bd05e4977657f02f03b1933df4119ca338eb9c135cd979e366a8188fc72bda",
+      "bytes": 5071
+    },
+    {
+      "path": "tracking.json",
+      "sha256": "2f98db20365b8e5ca83c0eb562b7a0d6debd3ae7d8eff6f82400b9980e6e4355",
+      "bytes": 907732
+    },
+    {
+      "path": "verification.json",
+      "sha256": "d54bec532955595b3bfe5f56a9e61c3aab7fe6f7eea88d47c0a79ac9fabcc159",
+      "bytes": 3378
+    }
+  ]
+}

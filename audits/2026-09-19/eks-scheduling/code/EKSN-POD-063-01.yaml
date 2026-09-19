@@ -1,0 +1,7 @@
+resourceGroups:
+- coveredResources: ["nvidia.com/gpu"]
+  flavors:
+  - name: gpu-flavor
+    resources:
+    - name: nvidia.com/gpu
+      nominalQuota: 32

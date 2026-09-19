@@ -1,0 +1,9 @@
+spec:
+  template:
+    metadata:
+      labels:
+        readiness-scope: gpu
+    spec:
+      startupTaints:
+      - key: readiness.k8s.io/gpu-unavailable
+        effect: NoSchedule

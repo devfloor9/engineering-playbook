@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "checked_at_utc": "2026-09-19T11:29:49.474726+00:00",
+  "baseline_commit": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "status": "structural_pass",
+  "structural_only": true,
+  "factual_truth_inferred": false,
+  "inventory_documents": 628,
+  "original_records": 628,
+  "original_finding_occurrences": 4366,
+  "canonical_entries": 2191,
+  "published_occurrences": 4366,
+  "resolved_distinct_original_occurrences": 4366,
+  "missing_from_available_packets": 0,
+  "duplicate_occurrence_keys": 0,
+  "privacy_candidate_count": 0,
+  "quotation_hash_preservation": "Compared each matched occurrence against the prepared public packet; intentional source-quote redactions in that packet remain intact.",
+  "editorial_qualifications": {
+    "declared": 41,
+    "validated": 41,
+    "rule": "Assessment edits allowed only with matching original hash/new value; quotation/ID/hash fields protected."
+  },
+  "messages": [
+    {
+      "severity": "info",
+      "code": "canonical_factual_classification_absent",
+      "package": "newton-eks",
+      "count": 124,
+      "action": "Keep correction disposition separate; do not count these as confirmed/unsupported without an explicit author classification."
+    },
+    {
+      "severity": "info",
+      "code": "canonical_factual_classification_absent",
+      "package": "newton-industry",
+      "count": 283,
+      "action": "Keep correction disposition separate; do not count these as confirmed/unsupported without an explicit author classification."
+    }
+  ],
+  "limits": [
+    "Structural preservation is not factual verification.",
+    "A clean privacy pattern scan does not certify absence of sensitive data.",
+    "Unclassified correction dispositions are not counted as confirmed facts.",
+    "All source, Git, cloud and publication states were read-only; only verifier outputs were written."
+  ],
+  "dependency_coverage": {
+    "original_document_dependency_pairs": 741,
+    "publicly_recorded_document_dependency_pairs": 741,
+    "not_exported_in_scanned_public_coverage": [],
+    "limit": "Separate from finding-source preservation. Missing dependency inventory is not itself a dropped finding or proof that it was not read."
+  },
+  "catalog_fingerprints": [
+    {
+      "file": "integration/audits/2026-09-19/agentic-design-serving/canonical-findings.json",
+      "sha256": "6ef6a376de7ebca51a7341e761d92cf5ac459395e1582fc595a9a8aac1182123",
+      "canonical_count": 391,
+      "occurrences": 754,
+      "resolved_original_occurrences": 754
+    },
+    {
+      "file": "integration/audits/2026-09-19/agentic-operations/canonical-findings.json",
+      "sha256": "0c06e2d8bc750ab2467ea3166486a5a2415009d0211462c62ab0ccd8aa14ee10",
+      "canonical_count": 214,
+      "occurrences": 403,
+      "resolved_original_occurrences": 403
+    },
+    {
+      "file": "integration/audits/2026-09-19/agentic-reference/canonical-defects.json",
+      "sha256": "f5a550f69084b3a5f250119a7ea2791fc7151e88a58438187fdae01660fba661",
+      "canonical_count": 80,
+      "occurrences": 148,
+      "resolved_original_occurrences": 148
+    },
+    {
+      "file": "integration/audits/2026-09-19/aidlc/canonical-findings.json",
+      "sha256": "66fec0bc6109af78c5c12db4b26864bc592cd2743d97594e67115d6143299c36",
+      "canonical_count": 404,
+      "occurrences": 856,
+      "resolved_original_occurrences": 856
+    },
+    {
+      "file": "integration/audits/2026-09-19/benchmarks/canonical-findings.json",
+      "sha256": "08b548e9c2ccfe6528dc56eae1697c36a68b99f2ee384f277036083d096f023a",
+      "canonical_count": 43,
+      "occurrences": 86,
+      "resolved_original_occurrences": 86
+    },
+    {
+      "file": "integration/audits/2026-09-19/eks-operations/canonical-findings.json",
+      "sha256": "0db56f3b3b21d8dfcc7d7912b0849edd3712893cfc1ccad2a1deffd1be3d039a",
+      "canonical_count": 251,
+      "occurrences": 514,
+      "resolved_original_occurrences": 514
+    },
+    {
+      "file": "integration/audits/2026-09-19/eks-platform-networking/canonical-defects.json",
+      "sha256": "642c4f06af63df10e57ce486364c50baed8252e77d42dbfacfc110850745876d",
+      "canonical_count": 201,
+      "occurrences": 394,
+      "resolved_original_occurrences": 394
+    },
+    {
+      "file": "integration/audits/2026-09-19/eks-scheduling/canonical-corrections.json",
+      "sha256": "048b8ef0b45b2fb90776d8de0d095a9b5472c615a9043b70188587ae40e7120d",
+      "canonical_count": 124,
+      "occurrences": 248,
+      "resolved_original_occurrences": 248
+    },
+    {
+      "file": "integration/audits/2026-09-19/hybrid-rosa-and-operations/canonical-findings.json",
+      "sha256": "dfbbad469722b101fd3709f9916beb4d146246a68378622d3ecced22f1fad8eb",
+      "canonical_count": 200,
+      "occurrences": 400,
+      "resolved_original_occurrences": 400
+    },
+    {
+      "file": "integration/audits/2026-09-19/industry/canonical-defects.json",
+      "sha256": "a4c54546a9b025f6b001858452a2c808a3148ed3ea853088c5a43532ca3e8321",
+      "canonical_count": 283,
+      "occurrences": 563,
+      "resolved_original_occurrences": 563
+    }
+  ]
+}

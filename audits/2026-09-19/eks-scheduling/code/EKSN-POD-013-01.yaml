@@ -1,0 +1,4 @@
+nodeClassRef:
+  group: karpenter.k8s.aws
+  kind: EC2NodeClass
+  name: replace-me-ec2nodeclass

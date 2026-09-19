@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "audit_date": "2026-09-19",
+  "baseline_commit": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "document_count": 628,
+  "locale_counts": {
+    "ko": 314,
+    "en": 314
+  },
+  "source_lines_read": 192321,
+  "fully_read_documents": 628,
+  "baseline_review_status_counts": {
+    "verification_pending": 488,
+    "reviewed_no_findings": 49,
+    "reviewed_with_findings": 91
+  },
+  "finding_occurrences": 4366,
+  "section_claim_checks": 3902,
+  "unverified_claim_entries": 1154,
+  "groups": {
+    "agentic-design-serving": {
+      "documents": 82,
+      "source_lines": 29128
+    },
+    "agentic-operations-reference": {
+      "documents": 74,
+      "source_lines": 30017
+    },
+    "aidlc": {
+      "documents": 90,
+      "source_lines": 34974
+    },
+    "eks-operations": {
+      "documents": 72,
+      "source_lines": 39802
+    },
+    "eks-platform-networking": {
+      "documents": 58,
+      "source_lines": 30795
+    },
+    "hybrid-rosa": {
+      "documents": 54,
+      "source_lines": 9873
+    },
+    "industry": {
+      "documents": 178,
+      "source_lines": 13496
+    },
+    "main": {
+      "documents": 20,
+      "source_lines": 4236
+    }
+  },
+  "method": "Consecutive full-source reading in both locales, visible dependency review, section-level primary-source comparison and bilingual meaning checks.",
+  "boundaries": [
+    "Reading coverage is not a guarantee that every claim is true.",
+    "Finding occurrences include locale duplicates; canonical defect counts are reported separately.",
+    "Unverified claims remain explicit when private measurements, historical evidence or runtime validation are unavailable.",
+    "No deployment, cloud workload, container benchmark or fault-injection example was executed.",
+    "This frozen inventory excludes unrelated untracked work and later source additions."
+  ]
+}

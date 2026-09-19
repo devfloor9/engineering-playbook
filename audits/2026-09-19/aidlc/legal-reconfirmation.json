@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "aidlc_legal_reconfirmation",
+  "verification_date": "2026-09-19",
+  "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "scope": "Reconfirmation of the cited EU amendment and Korean commencement dates. This record does not establish every legal claim in the audit or determine applicability to a specific system.",
+  "method": "Fresh HTTPS GETs with default TLS verification and no-cache request headers; inspected substantive official HTML and PDF provisions and compared current responses with the preserved original evidence. No search snippets or fetch attempts without usable results were used.",
+  "responses": [
+    {
+      "id": "EU-HTML",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ:L_202601744",
+      "requested_at_utc": "2026-09-19T11:08:12.342091+00:00",
+      "received_at_utc": "2026-09-19T11:08:14.167877+00:00",
+      "http_status": 200,
+      "response_sha256": "a608e616ec35b2d6c05edd21ad83a295d1d734da94295dad4128fad6d20a45f6",
+      "evidence_id": "AIDLC-E105"
+    },
+    {
+      "id": "EU-ELI",
+      "url": "https://eur-lex.europa.eu/eli/reg/2026/1744/oj",
+      "requested_at_utc": "2026-09-19T11:08:12.343198+00:00",
+      "received_at_utc": "2026-09-19T11:08:14.290946+00:00",
+      "http_status": 200,
+      "response_sha256": "ffbc303acf3ad8bc47c5b61cf558a9cf7a758aec16ed063131eec8004b2a216a"
+    },
+    {
+      "id": "EU-PDF",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202601744",
+      "requested_at_utc": "2026-09-19T11:10:24.094765+00:00",
+      "received_at_utc": "2026-09-19T11:10:26.425971+00:00",
+      "http_status": 200,
+      "response_sha256": "0bea4d808256b08275777949ba9cb3c70b7d02e4ebb3ac9b205671b1f552d386"
+    },
+    {
+      "id": "KO-BODY",
+      "url": "https://www.law.go.kr/LSW/lsInfoR.do?lsiSeq=282791&efYd=20260721&ancYnChk=0",
+      "requested_at_utc": "2026-09-19T11:08:12.343263+00:00",
+      "received_at_utc": "2026-09-19T11:08:12.707718+00:00",
+      "http_status": 200,
+      "response_sha256": "3f7b939448a49d49760cd5c75f6cd4808fde84c5ed0b8e22071087879f9093db",
+      "evidence_id": "AIDLC-E256"
+    },
+    {
+      "id": "KO-PAGE",
+      "url": "https://www.law.go.kr/LSW/lsInfoP.do?lsiSeq=282791&chrClsCd=010202&urlMode=lsInfoP&efYd=20260721&ancYnChk=0",
+      "requested_at_utc": "2026-09-19T11:08:12.717488+00:00",
+      "received_at_utc": "2026-09-19T11:08:12.962839+00:00",
+      "http_status": 200,
+      "response_sha256": "bf8457a8e947cefc63536c9642980d343d318c2488be8d7d0e2ccb9ba0a85cbe",
+      "evidence_id": "AIDLC-E255"
+    },
+    {
+      "id": "EU-ORIGINAL-PDF",
+      "url": "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32024R1689",
+      "requested_at_utc": "2026-09-19T11:08:12.970750+00:00",
+      "received_at_utc": "2026-09-19T11:08:15.170255+00:00",
+      "http_status": 200,
+      "response_sha256": "bba630444b3278e881066774002a1d7824308934f49ccfa203e65be43692f55e",
+      "evidence_id": "AIDLC-E106"
+    }
+  ],
+  "instruments": [
+    {
+      "id": "EU-2026-1744",
+      "title": "Regulation (EU) 2026/1744 of the European Parliament and of the Council of 8 July 2026 amending Regulations (EU) 2024/1689, (EU) 2018/1139 and (EU) 2023/1230 as regards the simplification of the implementation of harmonised rules on artificial intelligence (Digital Omnibus on AI) (Text with EEA relevance)",
+      "status": "confirmed_from_primary",
+      "response_ids": [
+        "EU-HTML",
+        "EU-ELI",
+        "EU-PDF"
+      ],
+      "date_of_act": "2026-07-08",
+      "official_publication_date": "2026-07-24",
+      "official_journal": "OJ L, 2026/1744",
+      "provisions": [
+        {
+          "reference": "Article 4",
+          "pdf_page": 41,
+          "entry_into_force": "2026-07-27",
+          "qualification": "Derived from the third-day-after-publication rule; distinct from provision-specific application dates."
+        },
+        {
+          "reference": "Article 1, point (40)(b), replacing Article 113 third paragraph point (c)",
+          "pdf_page": 35,
+          "application_dates": [
+            {
+              "date": "2027-12-02",
+              "scope": "Chapter III Sections 1–3, except Article 6(5), for Article 6(2)/Annex III high-risk systems."
+            },
+            {
+              "date": "2028-08-02",
+              "scope": "Chapter III Sections 1–3, except Article 6(5), for Article 6(1)/Annex I high-risk systems."
+            }
+          ],
+          "qualification": "These are scoped application dates, not the start of all AI Act obligations."
+        }
+      ]
+    },
+    {
+      "id": "EU-2024-1689",
+      "title": "Regulation (EU) 2024/1689 (Artificial Intelligence Act)",
+      "status": "confirmed_for_retrieved_original_text",
+      "response_ids": [
+        "EU-ORIGINAL-PDF"
+      ],
+      "provisions": [
+        {
+          "reference": "Article 113, third paragraph points (a) and (b)",
+          "pdf_page": 123,
+          "summary": "The original instrument applies Chapters I and II from 2025-02-02, and specified provisions including Chapter V from 2025-08-02, with the Article 101 exception. Transitional provisions require separate treatment."
+        }
+      ],
+      "qualification": "Original instrument used to distinguish the historical schedule from the July 2026 amendment; not represented as a consolidated edition."
+    },
+    {
+      "id": "KO-21311",
+      "title": "인공지능 발전과 신뢰 기반 조성 등에 관한 기본법",
+      "status": "confirmed_with_scope",
+      "response_ids": [
+        "KO-BODY",
+        "KO-PAGE"
+      ],
+      "act_number": "21311",
+      "promulgation_date": "2026-01-20",
+      "database_record_id": "282791",
+      "identifier_qualification": "282791 is the law.go.kr lsiSeq record identifier; the Act number is 21311.",
+      "provisions": [
+        {
+          "reference": "Addenda to Act No. 21311 (2026-01-20), commencement provision",
+          "general_commencement": "2026-01-22",
+          "listed_amendments_commencement": "2026-07-21",
+          "listed_amendments": [
+            "Article 3(5)",
+            "Article 6(2), items 7 and 8",
+            "Article 16(3)–(5), limited to the amendment of paragraph 2 item 2-2",
+            "Article 17-2",
+            "Article 18",
+            "Article 22-3",
+            "Article 35(1), latter sentence"
+          ],
+          "qualification": "The general commencement is January 22. The listed amendments take effect six months after promulgation; the official version heading confirms July 21. July 21 is not the Act-wide first effective date."
+        }
+      ]
+    }
+  ],
+  "evidence_checks": [
+    {
+      "evidence_id": "AIDLC-E105",
+      "result": "Original capture hash matched its record. The substantive law through signatures matched the current HTML and ELI responses after whitespace normalization; the cited amendment and entry provisions also matched the official PDF."
+    },
+    {
+      "evidence_id": "AIDLC-E256",
+      "result": "Current substantive Korean response was byte-identical to the preserved original capture."
+    },
+    {
+      "evidence_id": "AIDLC-E106",
+      "result": "Current original EU Act PDF matched the preserved response hash."
+    }
+  ],
+  "temporal_qualifications": [
+    {
+      "canonical_id": "AIDLC-C122",
+      "review_ids": [
+        "R137"
+      ],
+      "document_last_update": "2026-06-30",
+      "verification_date": "2026-09-19",
+      "qualification": "January 22 precedes the June 30 article update. July 21 follows that update and applies only to the amendments listed in Act No. 21311 addenda. Do not state that both dates preceded the article or that July 21 was the Act-wide commencement."
+    },
+    {
+      "canonical_id": "AIDLC-C110",
+      "review_ids": [
+        "R125",
+        "R157"
+      ],
+      "document_last_update": "2026-06-30",
+      "verification_date": "2026-09-19",
+      "qualification": "The July 2026 EU amendment postdates the June article. Its dates are verified as of September 19; do not retroactively describe the amendment as applicable on June 30. Distinguish errors against the original schedule from updates reflecting later law."
+    }
+  ],
+  "pending": [
+    {
+      "subject": "Korean implementing decrees, notices, detailed assessment methods and application to any specific system",
+      "status": "verification_pending",
+      "reason": "Not retrieved or decided in this bounded reconfirmation; statutory text alone does not establish all implementation conditions."
+    },
+    {
+      "subject": "Exhaustive latest-law consolidation and any other amendments/corrigenda beyond the identified acts",
+      "status": "outside_bounded_reconfirmation",
+      "reason": "Exact cited instruments and relevant provisions were checked. No claim of an exhaustive legislative update search is made."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+apiVersion: readiness.node.x-k8s.io/v1alpha1
+kind: NodeReadinessRule
+metadata:
+  name: illustrative-gpu-readiness
+spec:
+  nodeSelector:
+    matchLabels:
+      readiness-scope: gpu
+  conditions:
+  - type: nvidia.com/gpu.present
+    requiredStatus: "True"
+  - type: nvidia.com/gpu.driver.ready
+    requiredStatus: "True"
+  taint:
+    key: readiness.k8s.io/gpu-unavailable
+    effect: NoSchedule
+  enforcementMode: continuous

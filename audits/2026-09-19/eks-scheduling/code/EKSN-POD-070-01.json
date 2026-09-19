@@ -1,0 +1,58 @@
+[
+  {
+    "version_scope": "EKS 1.30-1.33",
+    "tier": "XL",
+    "API_concurrency_seats": 1700,
+    "pod_scheduling_rate_per_second": 167,
+    "cluster_database_GB": 16
+  },
+  {
+    "version_scope": "EKS 1.30-1.33",
+    "tier": "2XL",
+    "API_concurrency_seats": 3400,
+    "pod_scheduling_rate_per_second": 283,
+    "cluster_database_GB": 16
+  },
+  {
+    "version_scope": "EKS 1.30-1.33",
+    "tier": "4XL",
+    "API_concurrency_seats": 6800,
+    "pod_scheduling_rate_per_second": 400,
+    "cluster_database_GB": 16
+  },
+  {
+    "version_scope": "EKS 1.30-1.33",
+    "tier": "8XL",
+    "API_concurrency_seats": 13600,
+    "pod_scheduling_rate_per_second": 400,
+    "cluster_database_GB": 16
+  },
+  {
+    "version_scope": "EKS 1.34+",
+    "tier": "XL",
+    "API_concurrency_seats": 2000,
+    "pod_scheduling_rate_per_second": 167,
+    "cluster_database_GB": 16
+  },
+  {
+    "version_scope": "EKS 1.34+",
+    "tier": "2XL",
+    "API_concurrency_seats": 4000,
+    "pod_scheduling_rate_per_second": 283,
+    "cluster_database_GB": 16
+  },
+  {
+    "version_scope": "EKS 1.34+",
+    "tier": "4XL",
+    "API_concurrency_seats": 8000,
+    "pod_scheduling_rate_per_second": 400,
+    "cluster_database_GB": 16
+  },
+  {
+    "version_scope": "EKS 1.34+",
+    "tier": "8XL",
+    "API_concurrency_seats": 16000,
+    "pod_scheduling_rate_per_second": 400,
+    "cluster_database_GB": 16
+  }
+]

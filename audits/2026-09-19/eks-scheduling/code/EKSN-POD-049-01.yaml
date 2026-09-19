@@ -1,0 +1,6 @@
+spec:
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never

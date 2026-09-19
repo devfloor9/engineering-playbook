@@ -1,0 +1,845 @@
+{
+  "baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "gaps": [
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "en",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "GPU indexing times and regional instance/storage costs",
+        "reason": "No original runs or dated rate records accompany the tables.",
+        "needed_evidence": "Pinned workload, data dimensions/recall, build logs, pricing region/date/OS/purchase option and cost boundary."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "en",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "Operator zero-downtime/HPA, recommended replica counts, S3 Express client compatibility and recovery objectives",
+        "reason": "Not established by deployment or restore evidence; versioned source alone does not verify an environment.",
+        "needed_evidence": "Exact operator/chart/app/SDK versions, resources, health/failure and restore tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "en",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "KO multipartCopyThresholdMiB and all proposed monitoring gauges",
+        "reason": "Not all named configuration/metrics appear in the inspected v0.5.10/v2.4.0 source; broad2.4.x/0.5.10+ wording spans releases.",
+        "needed_evidence": "Exact installed release definitions and emitted metrics/config validation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "en",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "External embedding/LLM execution and auth/data boundaries",
+        "reason": "Examples omit runtime credentials/connection setup and were not executed.",
+        "needed_evidence": "Pinned SDK environment, allowed document corpus, disposable collection and mocked/offline API contract test."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__index.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Diagram deployment and external main snapshot",
+        "reason": "Baseline local asset was read; iframe loads unpinned mutable remote state and was not rendered.",
+        "needed_evidence": "Pinned exported/embedded diagram and actual deployment mapping."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__index.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Exact AMG datasource authentication setting and all monitoring wiring",
+        "reason": "Available high-level docs establish SigV4/workspace role, not every plugin setting/version.",
+        "needed_evidence": "Pinned AMG/plugin provisioning schema and actual datasource configuration."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__index.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "All deployable examples / product provenance / performance",
+        "reason": "Overview is not a deployment record.",
+        "needed_evidence": "Per-chapter runnable manifests, environment and actual validation records."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__inference-gateway__setup__index.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Deployment time estimates, E2E production badge and87%prefix-hit rate",
+        "reason": "No raw run, environment/model version, workload, denominator or acceptance evidence.",
+        "needed_evidence": "Versioned run artifacts and relevant quality/security/latency tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__inference-gateway__setup__index.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Exact historic kgateway/Bifrost/Langfuse/llm-d combination and cache backend implementation",
+        "reason": "Independent current capabilities do not prove the named historic combined deployment.",
+        "needed_evidence": "Pinned images/component release manifest and configuration with actual integration evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__inference-gateway__setup__index.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Documented production path security",
+        "reason": "Asset omits CloudFront/WAF and shows publicHTTP; actual certificates/origin restrictions/authentication unknown.",
+        "needed_evidence": "Actual deployment diagram and transport/access configuration evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__inference-gateway__setup__troubleshooting-guide.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Pinned v1.5.16 image/plugin behavior and claimed v1.5.0 trace migration",
+        "reason": "Exact attempted source tag returned404; current schema and intra-document contradiction are verified, release history is not.",
+        "needed_evidence": "Verified image digest and corresponding source/plugin schema or release note."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__inference-gateway__setup__troubleshooting-guide.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Classifier proxy, workload quality and double-prefix integration",
+        "reason": "Referenced extproc_http.py is absent from frozen source; no end-to-end outputs provided.",
+        "needed_evidence": "Original classifier source, API/proxy contract, model names and representative request tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__inference-gateway__setup__troubleshooting-guide.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Operational recoveries, latency ranges, trace visibility, PVC and routing deployment",
+        "reason": "No live environment or original logs; static examples do not establish successful remediation.",
+        "needed_evidence": "Pinned deployment, rendered manifests, denied/allowed request cases, queue metrics and controlled rollback evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__coding-tools-cost-analysis.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Classifier routing accuracy, model/IDE interoperability, image sizes ~50MB/~100MB",
+        "reason": "No pinned classifier artifact, image digest/architecture or actual integration run.",
+        "needed_evidence": "Pinned source/images and tests per IDE feature, model and request mode."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__coding-tools-cost-analysis.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Kiro custom endpoint/fine-tuning and broad SaaS capability exclusions",
+        "reason": "Current model selection page does not alone prove absence in every product/edition.",
+        "needed_evidence": "Edition/version-specific official capability or restriction reference."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__coding-tools-cost-analysis.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md",
+      "locale": "en",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Production capacity and economic savings",
+        "reason": "Values are now explicitly hypothetical; no price quote or workload measurement is claimed.",
+        "needed_evidence": "Matched-quality workload, actual usage/billing and operational cost evidence before deployment decision."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "en",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "June2026 GLM-5.2 release timing and claimed frontier parity",
+        "reason": "Current card confirms model/license but does not establish exact original release or independent benchmark equivalence.",
+        "needed_evidence": "Dated release artifact and matched-workload evaluation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "en",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "p5en regional hourly prices and25% premium",
+        "reason": "No dated public price offer identified in cited pages.",
+        "needed_evidence": "Dated regional public price artifact with purchase/OS/tenancy terms."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "en",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "Auto Mode local NVMe CSI restriction and Karpenter1.11 introduction date as ofJune",
+        "reason": "Current NodeClass docs do not establish a universal CSI prohibition; exact historical versions not pinned.",
+        "needed_evidence": "Dated support matrix/release note or reproducible configuration evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "en",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "Korean regulation articles15/17, ISMS-P2.6 and compliance mapping",
+        "reason": "No primary clause assessment was available; technical architecture does not prove legal compliance.",
+        "needed_evidence": "Applicable dated primary clauses and qualified control-to-evidence mapping."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:5",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "en",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "Guaranteed performance improvement, cold start and cost savings",
+        "reason": "No workload or runtime measurements.",
+        "needed_evidence": "Pinned model/engine/hardware and matched-quality results with actual billing."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:6",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "en",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "GPU memory GB/GiB distinction",
+        "reason": "Official marketing/spec sources use different labels for1128.",
+        "needed_evidence": "Authoritative consistent hardware unit statement before a numerical conversion."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "en",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "Spot/On-Demand and Bedrock costs, annual savings",
+        "reason": "No dated region-specific quote, token accounting or equal-quality manual-label baseline.",
+        "needed_evidence": "Dated pricing source plus model token usage, included costs and measured quality/volume."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "en",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "Fleet capacity, HA and labeling quality",
+        "reason": "No deployment artifacts, topology, measured dataset or calibrated judge study.",
+        "needed_evidence": "Pinned deployment and actual validated run/quality evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "en",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "Exact runtime/model release compatibility and KServe service route",
+        "reason": "Locales use different images/model IDs, no lockfile or endpoint discovery.",
+        "needed_evidence": "Pinned verified model/runtime/controller versions and service specification."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "en",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "GDPR/CCPA compliance and consent revocation",
+        "reason": "Only partition labels and a boolean filter are shown.",
+        "needed_evidence": "Applicable policy, provenance/access/retention/deletion controls and verified implementation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "en",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Qwen benchmark published values and ±5% acceptance equivalence",
+        "reason": "No original benchmark run/configuration linked for 58.4/89.1.",
+        "needed_evidence": "Original model revision, harness/task config, score units and uncertainty."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "en",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Pipeline run, budgets, greatest GPU lead time/failure likelihood, migration expense",
+        "reason": "Architecture and example budgets are not observed operation.",
+        "needed_evidence": "Actual versioned workflow, run logs, approved budget/billing and measured stage timings."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "en",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Four-target runtime/support matrix including Neuron and P6 variants",
+        "reason": "No fully instantiated templates, runtime pins, reservations or supported model list.",
+        "needed_evidence": "Selected instance/CPU/accelerator matrix, official framework support and target-specific tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:en:i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/en--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "en",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Approval and failure recovery implementation",
+        "reason": "No protected-branch/RBAC or workflow exit/memoization configuration.",
+        "needed_evidence": "Enforced review/resume association and failure-path test artifacts."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "ko",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "GPU indexing times and regional instance/storage costs",
+        "reason": "No original runs or dated rate records accompany the tables.",
+        "needed_evidence": "Pinned workload, data dimensions/recall, build logs, pricing region/date/OS/purchase option and cost boundary."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "ko",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "Operator zero-downtime/HPA, recommended replica counts, S3 Express client compatibility and recovery objectives",
+        "reason": "Not established by deployment or restore evidence; versioned source alone does not verify an environment.",
+        "needed_evidence": "Exact operator/chart/app/SDK versions, resources, health/failure and restore tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "ko",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "KO multipartCopyThresholdMiB and all proposed monitoring gauges",
+        "reason": "Not all named configuration/metrics appear in the inspected v0.5.10/v2.4.0 source; broad2.4.x/0.5.10+ wording spans releases.",
+        "needed_evidence": "Exact installed release definitions and emitted metrics/config validation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--operations-mlops__data-infrastructure__milvus-vector-database.md.json",
+      "path": "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "locale": "ko",
+      "draft_issue": "01-milvus-contract",
+      "original_gap": {
+        "claim": "External embedding/LLM execution and auth/data boundaries",
+        "reason": "Examples omit runtime credentials/connection setup and were not executed.",
+        "needed_evidence": "Pinned SDK environment, allowed document corpus, disposable collection and mocked/offline API contract test."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__index.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Diagram deployment and external main snapshot",
+        "reason": "Baseline local asset was read; iframe loads unpinned mutable remote state and was not rendered.",
+        "needed_evidence": "Pinned exported/embedded diagram and actual deployment mapping."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__index.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Exact AMG datasource authentication setting and all monitoring wiring",
+        "reason": "Available high-level docs establish SigV4/workspace role, not every plugin setting/version.",
+        "needed_evidence": "Pinned AMG/plugin provisioning schema and actual datasource configuration."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__index.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "All deployable examples / product provenance / performance",
+        "reason": "Overview is not a deployment record.",
+        "needed_evidence": "Per-chapter runnable manifests, environment and actual validation records."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__inference-gateway__setup__index.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Deployment time estimates, E2E production badge and87%prefix-hit rate",
+        "reason": "No raw run, environment/model version, workload, denominator or acceptance evidence.",
+        "needed_evidence": "Versioned run artifacts and relevant quality/security/latency tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__inference-gateway__setup__index.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Exact historic kgateway/Bifrost/Langfuse/llm-d combination and cache backend implementation",
+        "reason": "Independent current capabilities do not prove the named historic combined deployment.",
+        "needed_evidence": "Pinned images/component release manifest and configuration with actual integration evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__inference-gateway__setup__index.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Documented production path security",
+        "reason": "Asset omits CloudFront/WAF and shows publicHTTP; actual certificates/origin restrictions/authentication unknown.",
+        "needed_evidence": "Actual deployment diagram and transport/access configuration evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__inference-gateway__setup__troubleshooting-guide.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Pinned v1.5.16 image/plugin behavior and claimed v1.5.0 trace migration",
+        "reason": "Exact attempted source tag returned404; current schema and intra-document contradiction are verified, release history is not.",
+        "needed_evidence": "Verified image digest and corresponding source/plugin schema or release note."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__inference-gateway__setup__troubleshooting-guide.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Classifier proxy, workload quality and double-prefix integration",
+        "reason": "Referenced extproc_http.py is absent from frozen source; no end-to-end outputs provided.",
+        "needed_evidence": "Original classifier source, API/proxy contract, model names and representative request tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__inference-gateway__setup__troubleshooting-guide.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Operational recoveries, latency ranges, trace visibility, PVC and routing deployment",
+        "reason": "No live environment or original logs; static examples do not establish successful remediation.",
+        "needed_evidence": "Pinned deployment, rendered manifests, denied/allowed request cases, queue metrics and controlled rollback evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__coding-tools-cost-analysis.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Classifier routing accuracy, model/IDE interoperability, image sizes ~50MB/~100MB",
+        "reason": "No pinned classifier artifact, image digest/architecture or actual integration run.",
+        "needed_evidence": "Pinned source/images and tests per IDE feature, model and request mode."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__coding-tools-cost-analysis.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Kiro custom endpoint/fine-tuning and broad SaaS capability exclusions",
+        "reason": "Current model selection page does not alone prove absence in every product/edition.",
+        "needed_evidence": "Edition/version-specific official capability or restriction reference."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__coding-tools-cost-analysis.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md",
+      "locale": "ko",
+      "draft_issue": "02-gateway-tool-integration",
+      "original_gap": {
+        "claim": "Production capacity and economic savings",
+        "reason": "Values are now explicitly hypothetical; no price quote or workload measurement is claimed.",
+        "needed_evidence": "Matched-quality workload, actual usage/billing and operational cost evidence before deployment decision."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "ko",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "June2026 GLM-5.2 release timing and claimed frontier parity",
+        "reason": "Current card confirms model/license but does not establish exact original release or independent benchmark equivalence.",
+        "needed_evidence": "Dated release artifact and matched-workload evaluation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "ko",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "p5en regional hourly prices and25% premium",
+        "reason": "No dated public price offer identified in cited pages.",
+        "needed_evidence": "Dated regional public price artifact with purchase/OS/tenancy terms."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "ko",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "Auto Mode local NVMe CSI restriction and Karpenter1.11 introduction date as ofJune",
+        "reason": "Current NodeClass docs do not establish a universal CSI prohibition; exact historical versions not pinned.",
+        "needed_evidence": "Dated support matrix/release note or reproducible configuration evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "ko",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "Korean regulation articles15/17, ISMS-P2.6 and compliance mapping",
+        "reason": "No primary clause assessment was available; technical architecture does not prove legal compliance.",
+        "needed_evidence": "Applicable dated primary clauses and qualified control-to-evidence mapping."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:5",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "ko",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "Guaranteed performance improvement, cold start and cost savings",
+        "reason": "No workload or runtime measurements.",
+        "needed_evidence": "Pinned model/engine/hardware and matched-quality results with actual billing."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md:6",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__integrations__open-weight-model-deployment.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "locale": "ko",
+      "draft_issue": "05-self-hosting-decision",
+      "original_gap": {
+        "claim": "GPU memory GB/GiB distinction",
+        "reason": "Official marketing/spec sources use different labels for1128.",
+        "needed_evidence": "Authoritative consistent hardware unit statement before a numerical conversion."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "ko",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "Spot/On-Demand and Bedrock costs, annual savings",
+        "reason": "No dated region-specific quote, token accounting or equal-quality manual-label baseline.",
+        "needed_evidence": "Dated pricing source plus model token usage, included costs and measured quality/volume."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "ko",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "Fleet capacity, HA and labeling quality",
+        "reason": "No deployment artifacts, topology, measured dataset or calibrated judge study.",
+        "needed_evidence": "Pinned deployment and actual validated run/quality evidence."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "ko",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "Exact runtime/model release compatibility and KServe service route",
+        "reason": "Locales use different images/model IDs, no lockfile or endpoint discovery.",
+        "needed_evidence": "Pinned verified model/runtime/controller versions and service specification."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__continuous-training__trace-to-dataset.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "locale": "ko",
+      "draft_issue": "03-trace-dataset-contract",
+      "original_gap": {
+        "claim": "GDPR/CCPA compliance and consent revocation",
+        "reason": "Only partition labels and a boolean filter are shown.",
+        "needed_evidence": "Applicable policy, provenance/access/retention/deletion controls and verified implementation."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:1",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "ko",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Qwen benchmark published values and ±5% acceptance equivalence",
+        "reason": "No original benchmark run/configuration linked for 58.4/89.1.",
+        "needed_evidence": "Original model revision, harness/task config, score units and uncertainty."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:2",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "ko",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Pipeline run, budgets, greatest GPU lead time/failure likelihood, migration expense",
+        "reason": "Architecture and example budgets are not observed operation.",
+        "needed_evidence": "Actual versioned workflow, run logs, approved budget/billing and measured stage timings."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:3",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "ko",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Four-target runtime/support matrix including Neuron and P6 variants",
+        "reason": "No fully instantiated templates, runtime pins, reservations or supported model list.",
+        "needed_evidence": "Selected instance/CPU/accelerator matrix, official framework support and target-specific tests."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    },
+    {
+      "gap_id": "agentic-own16:ko:docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md:4",
+      "classification": "remaining_evidence_gap",
+      "record_path": "audit/agentic-operations-reference/parfit-records/ko--reference-architecture__model-lifecycle__open-weight-model-pipeline.md.json",
+      "path": "docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "locale": "ko",
+      "draft_issue": "04-model-onboarding-gates",
+      "original_gap": {
+        "claim": "Approval and failure recovery implementation",
+        "reason": "No protected-branch/RBAC or workflow exit/memoization configuration.",
+        "needed_evidence": "Enforced review/resume association and failure-path test artifacts."
+      },
+      "disposition": "Retain as unverified; not proof of failure or unsupported service capability."
+    }
+  ]
+}

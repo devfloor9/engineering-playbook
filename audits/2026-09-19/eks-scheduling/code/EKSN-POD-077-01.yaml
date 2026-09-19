@@ -1,0 +1,11 @@
+spec:
+  trafficPolicy:
+    loadBalancer:
+      localityLbSetting:
+        enabled: true
+        failoverPriority:
+        - topology.kubernetes.io/zone
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s

@@ -1,0 +1,338 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:aidlc:audit:canonical-findings:1.0.0",
+  "title": "AI-DLC canonical findings publication packet",
+  "description": "Standalone reviewed findings. Original-language quotes are source evidence; reviewed classification and scope supersede stronger reported analysis.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "kind",
+    "audit_date",
+    "baseline",
+    "scope",
+    "completion_meaning",
+    "classification_definitions",
+    "analysis_policy",
+    "counts",
+    "topics",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "kind": {
+      "const": "aidlc_canonical_findings"
+    },
+    "audit_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "baseline": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "scope": {
+      "type": "string"
+    },
+    "completion_meaning": {
+      "type": "string"
+    },
+    "classification_definitions": {
+      "type": "object"
+    },
+    "analysis_policy": {
+      "type": "string"
+    },
+    "counts": {
+      "type": "object"
+    },
+    "topics": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6
+    },
+    "findings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "key",
+          "topic_id",
+          "classification",
+          "severity",
+          "title",
+          "reviews",
+          "occurrences"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^AIDLC-C[0-9]{3}$"
+          },
+          "key": {
+            "type": "string"
+          },
+          "topic_id": {
+            "enum": [
+              "T1",
+              "T2",
+              "T3",
+              "T4",
+              "T5",
+              "T6"
+            ]
+          },
+          "classification": {
+            "enum": [
+              "confirmed_incorrect",
+              "misleading_or_unsupported",
+              "verification_pending"
+            ]
+          },
+          "severity": {
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "reviews": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "review_id",
+                "classification",
+                "scope",
+                "action",
+                "reported_analysis",
+                "analysis_precedence"
+              ],
+              "properties": {
+                "review_id": {
+                  "type": "string",
+                  "pattern": "^R[0-9]{3}$"
+                },
+                "classification": {
+                  "enum": [
+                    "confirmed_incorrect",
+                    "misleading_or_unsupported",
+                    "verification_pending"
+                  ]
+                },
+                "scope": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "analysis_precedence": {
+                  "type": "string"
+                },
+                "reported_analysis": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "locale",
+                      "problem",
+                      "correction_meaning",
+                      "original_problem_sha256",
+                      "original_correction_sha256"
+                    ],
+                    "properties": {
+                      "locale": {
+                        "enum": [
+                          "ko",
+                          "en"
+                        ]
+                      },
+                      "problem": {
+                        "type": "string"
+                      },
+                      "correction_meaning": {
+                        "type": "string"
+                      },
+                      "original_problem_sha256": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      },
+                      "original_correction_sha256": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{64}$"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "occurrences": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "stable_id",
+                "review_id",
+                "locale",
+                "path",
+                "lines",
+                "heading",
+                "baseline",
+                "baseline_source_sha256",
+                "baseline_anchor",
+                "quote",
+                "quote_original_sha256",
+                "quote_published_sha256",
+                "quote_status",
+                "counterpart_path",
+                "recorded_severity",
+                "recorded_confidence",
+                "recorded_category",
+                "original_finding_sha256",
+                "original_source_record_sha256",
+                "evidence_associations"
+              ],
+              "properties": {
+                "stable_id": {
+                  "type": "string"
+                },
+                "review_id": {
+                  "type": "string",
+                  "pattern": "^R[0-9]{3}$"
+                },
+                "locale": {
+                  "enum": [
+                    "ko",
+                    "en"
+                  ]
+                },
+                "path": {
+                  "type": "string",
+                  "pattern": "^(docs/|i18n/en/|src/|static/|sidebars\\.js)"
+                },
+                "lines": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "heading": {
+                  "type": "string"
+                },
+                "baseline": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{40}$"
+                },
+                "baseline_source_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "baseline_anchor": {
+                  "type": "string"
+                },
+                "quote": {
+                  "type": "string"
+                },
+                "quote_original_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "quote_published_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "quote_status": {
+                  "enum": [
+                    "exact_original",
+                    "explicit_privacy_redactions"
+                  ]
+                },
+                "counterpart_path": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^(docs/|i18n/en/|src/|static/|sidebars\\.js)"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "recorded_severity": {
+                  "enum": [
+                    "high",
+                    "medium",
+                    "low"
+                  ]
+                },
+                "recorded_confidence": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "recorded_category": {
+                  "type": "string"
+                },
+                "original_finding_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "original_source_record_sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "evidence_associations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "evidence_id",
+                      "url",
+                      "role",
+                      "scope",
+                      "review_scope"
+                    ],
+                    "properties": {
+                      "evidence_id": {
+                        "type": "string",
+                        "pattern": "^AIDLC-E[0-9]{3}$"
+                      },
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "pattern": "^https://"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "scope": {
+                        "type": "string"
+                      },
+                      "review_scope": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

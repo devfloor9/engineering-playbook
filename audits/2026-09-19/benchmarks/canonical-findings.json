@@ -1,0 +1,2700 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "audit_date": "2026-09-19",
+  "counts": {
+    "source_documents": 20,
+    "source_lines": 4236,
+    "canonical_findings": 43,
+    "original_occurrences": 86,
+    "classifications": {
+      "misleading_or_unsupported": 28,
+      "confirmed_incorrect": 15
+    }
+  },
+  "scope": "All 20 introduction and benchmark source records. The separate Gateway artifact review and implementation changes are described in the report; they do not inflate this baseline finding count.",
+  "reading_and_evidence_boundary": "Full source reading and documented corrections do not verify historical benchmark execution or missing measurements.",
+  "findings": [
+    {
+      "id": "M-AC-CACHE-EQUIVALENCE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "Semantic response caching and model prefix caching are compared as interchangeable speedups. They reuse different artifacts and need different correctness/tenant-isolation criteria.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-CACHE-EQUIVALENCE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 205,
+          "end_line": 205,
+          "before": "- **검증**: Bedrock 프롬프트 캐싱 vs llm-d 프리픽스 캐싱 vs Bifrost 시맨틱 캐싱, TTFT/비용 비교",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-CACHE-EQUIVALENCE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 205,
+          "end_line": 205,
+          "before": "- **Validation**: Bedrock prompt caching vs llm-d prefix caching vs Bifrost semantic caching, TTFT/cost comparison",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-CMI-SCOPE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "Custom Model Import is used to dismiss model-choice constraints, but Bedrock supports specific import architectures, sizes, regions and APIs. Llama4 is not listed in the retrieved import architecture table.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-CMI-SCOPE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 35,
+          "end_line": 35,
+          "before": "**Bedrock AgentCore가 기본 선택이다.** 매니지드 서비스로 구축 시간, 운영 부담, 스케일링을 AWS가 해결한다. 오픈소스/커스텀 모델도 Custom Model Import로 지원하므로, 모델 지원 여부 자체는 자체 구축의 이유가 되지 않는다. 자체 구축은 **추론 엔진 레벨 제어, 대규모 비용 최적화, 캐시 라우팅**이 필요할 때만 정당화된다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html",
+            "https://docs.aws.amazon.com/bedrock/latest/userguide/custom-model-import-prereq.html"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-CMI-SCOPE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 35,
+          "end_line": 35,
+          "before": "**Bedrock AgentCore is the default choice.** As a managed service, AWS handles build time, operational burden, and scaling. Open-source/custom models are also supported via Custom Model Import, so model support alone does not justify self-management. Self-management is only justified when **inference engine-level control, large-scale cost optimization, or cache routing** is required.",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://docs.aws.amazon.com/bedrock/latest/userguide/model-customization-import-model.html",
+            "https://docs.aws.amazon.com/bedrock/latest/userguide/custom-model-import-prereq.html"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-COMPONENT-BOUNDARY",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "The comparison merges AgentCore Runtime, AgentCore Gateway and Bedrock model serving into one feature/cost boundary and compares an agent hosting runtime with an agent framework.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-COMPONENT-BOUNDARY-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 113,
+          "end_line": 113,
+          "before": "| 추론 (기본 모델) | Claude, Llama, Mistral 등 즉시 사용 | vLLM + GPU + 모델 배포 |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html",
+            "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html",
+            "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-COMPONENT-BOUNDARY-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 113,
+          "end_line": 113,
+          "before": "| Inference (Default Models) | Claude, Llama, Mistral, etc. ready to use | vLLM + GPU + model deployment |",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html",
+            "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html",
+            "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/what-is-bedrock-agentcore.html"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-COST-SCOPE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "The cost comparison assumes token-only managed costs and zero operations, with a declining total monthly cost curve despite rising traffic and no calculation. Runtime, Gateway, model, storage/network and observability charges have distinct meters.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-COST-SCOPE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 281,
+          "end_line": 281,
+          "before": "### 고정 비용 (월간)",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://aws.amazon.com/bedrock/agentcore/pricing/"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-COST-SCOPE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 281,
+          "end_line": 281,
+          "before": "### Fixed Costs (Monthly)",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://aws.amazon.com/bedrock/agentcore/pricing/"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-DEPLOYMENT-ASSUMPTIONS",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "Four separate24GB A10G instances do not automatically form a distributed70B model replica; base_url alone omits authentication/protocol/model mapping, and EKS is described as air-gapped without a connectivity architecture.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-DEPLOYMENT-ASSUMPTIONS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 154,
+          "end_line": 154,
+          "before": "  - Llama 4 Maverick 70B 파인튜닝 모델 → Custom Model Import",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-DEPLOYMENT-ASSUMPTIONS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 154,
+          "end_line": 154,
+          "before": "  - Llama 3.1 70B fine-tuned model → Custom Model Import",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-LOCALE-CONFIG",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "Korean and English specify different Claude/Llama versions, EKS/Karpenter/vLLM/llm-d versions. Korean also calls Maverick70B, which is not the official Llama4 Maverick identity, and later switches to Llama3.1.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-LOCALE-CONFIG-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 148,
+          "end_line": 148,
+          "before": "  - Bedrock Claude Sonnet 4.6 (온디맨드 + 프로비저닝)",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama4/MODEL_CARD.md"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-LOCALE-CONFIG-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 148,
+          "end_line": 148,
+          "before": "  - Bedrock Claude 3.5 Sonnet (on-demand + provisioned)",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [
+            "https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama4/MODEL_CARD.md"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-OBSERVABILITY-CHOICE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "Langfuse is presented as required regardless of gateway, rather than one possible trace/evaluation implementation.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-OBSERVABILITY-CHOICE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 401,
+          "end_line": 401,
+          "before": ":::note Langfuse는 게이트웨이와 무관하게 필요",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-OBSERVABILITY-CHOICE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 401,
+          "end_line": 401,
+          "before": ":::note Langfuse is needed regardless of gateway",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-UNFAIR-EXPERIMENT",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "Alternatives change framework/hosting, gateway hops, models and caching at once; the comparison cannot isolate gateway overhead or hosting effects.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-UNFAIR-EXPERIMENT-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 174,
+          "end_line": 174,
+          "before": "  - Bifrost base_url → llm-d 서비스 엔드포인트",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-UNFAIR-EXPERIMENT-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 174,
+          "end_line": 174,
+          "before": "  - Bifrost base_url → llm-d service endpoint",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-AC-VENDOR-RANKING",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "Vendor gateway microsecond/speed/memory claims, popularity counts and recommendations lack pinned versions, configuration and original measurement evidence.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "03b1a24d",
+        "issue": 86,
+        "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-AC-VENDOR-RANKING-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 76,
+          "end_line": 76,
+          "before": "| **게이트웨이 오버헤드** | 수백 us/req | ~11 us/req (40~50x 빠름) |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/agentcore-vs-eks-inference.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        },
+        {
+          "original_id": "M-AC-VENDOR-RANKING-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+          "line": 76,
+          "end_line": 76,
+          "before": "| **Gateway Overhead** | Hundreds of us/req | ~11 us/req (40-50x faster) |",
+          "counterpart_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+            "docs/benchmarks/agentcore-vs-eks-inference.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "03b1a24d",
+            "issue": 86,
+            "limits": "No new deployment or performance/cost measurement; the document explicitly presents a controlled experiment plan."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-BANDWIDTH-CAUSE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "UDP loss is assigned solely to BandwidthManager/BBR despite bundled changes. Charts also attribute B/C loss to BandwidthManager, but the referenced scenario script does not enable it there.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-BANDWIDTH-CAUSE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 322,
+          "end_line": 322,
+          "before": "| UDP 패킷 손실 | VPC CNI 20% vs Cilium 튜닝 0.03% | Bandwidth Manager 기능 유무 차이 (iperf3 극한 조건) |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-BANDWIDTH-CAUSE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 322,
+          "end_line": 322,
+          "before": "| UDP Packet Loss | VPC CNI 20% vs Cilium Tuned 0.03% | Bandwidth Manager feature difference (extreme iperf3 conditions) |",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-CONNTRACK",
+      "classification": "confirmed_incorrect",
+      "severity": "P2",
+      "assessment": "Conntrack is described as caching packets; KUBE-SERVICES matching is confused with randomized backend selection. EverySYN/fullchain and fixed500/5000service thresholds are overgeneralized.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-CONNTRACK-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 265,
+          "end_line": 265,
+          "before": "**keepalive 모드** (기존 연결 재사용): iptables 규칙이 101배 증가해도 HTTP 성능에 영향 없음. 이는 conntrack이 이미 설정된 연결의 패킷을 캐시하여 iptables 체인 순회를 우회하기 때문입니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-CONNTRACK-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 265,
+          "end_line": 265,
+          "before": "**keepalive mode** (reusing existing connections): Even with a 101x increase in iptables rules, there is no impact on HTTP performance. This is because conntrack caches packets from established connections, bypassing the iptables chain traversal.",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-DURATION-DNS",
+      "classification": "confirmed_incorrect",
+      "severity": "P2",
+      "assessment": "Charts describe10s tests and dig100queries; referenced runner performsTCP/UDP30s and getent200queries including process/timer overhead. Error output is discarded and DNS exit status is not validated.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-DURATION-DNS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 168,
+          "end_line": 168,
+          "before": "아래 결과는 2026-02-09 EKS 1.31 환경(m6i.xlarge, Amazon Linux 2023, 단일 AZ)에서 측정되었습니다. 각 메트릭은 최소 3회 반복 측정 후 중앙값을 사용했습니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-DURATION-DNS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 168,
+          "end_line": 168,
+          "before": "The results below were measured on 2026-02-09 in an EKS 1.31 environment (m6i.xlarge, Amazon Linux 2023, single AZ). Each metric is the median of at least 3 repeated measurements.",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-EVIDENCE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "The five stored JSON files are single aggregate summaries without original iperf/Fortio samples, replicate records or median computation. Claims of minimum3runs, measurement error and statistical significance are not reproducible.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-EVIDENCE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 168,
+          "end_line": 168,
+          "before": "아래 결과는 2026-02-09 EKS 1.31 환경(m6i.xlarge, Amazon Linux 2023, 단일 AZ)에서 측정되었습니다. 각 메트릭은 최소 3회 반복 측정 후 중앙값을 사용했습니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-EVIDENCE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 168,
+          "end_line": 168,
+          "before": "The results below were measured on 2026-02-09 in an EKS 1.31 environment (m6i.xlarge, Amazon Linux 2023, single AZ). Each metric is the median of at least 3 repeated measurements.",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-FQDN-POLICY",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "The FQDN example omits a DNS allow/proxy rule and uses broad AWS suffix patterns while claiming onlyspecificservices are allowed. L7 filtering also needs protocol/TLS/proxy scope.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-FQDN-POLICY-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 487,
+          "end_line": 487,
+          "before": "```yaml",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-FQDN-POLICY-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 487,
+          "end_line": 487,
+          "before": "```yaml",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-GENERALIZATION",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "Synthetic CPU-node meanRTT is projected to eachAIpipelinehop; componentmemory differences, VXLAN639us and tuningranks are stated as proven causes. Charts recommendproductionwinners beyond measuredscope.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-GENERALIZATION-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 326,
+          "end_line": 326,
+          "before": "다만, **HTTP/gRPC 기반 실시간 추론 서빙** 환경에서는 RTT 개선(4,894→3,135µs, 약 36%)과 HTTP p99 지연 감소(10.92→8.75ms, 약 20%)가 누적되어 유의미할 수 있습니다. Agentic AI 워크로드처럼 하나의 요청이 **여러 마이크로서비스를 거치는 multi-hop 통신 패턴**(예: Gateway → Router → vLLM → RAG → Vector DB)에서는 hop마다 절감된 지연이 누적되므로, 전체 end-to-end 응답 시간에서 체감 가능한 차이가 발생할 수 있습니다. 초저지연이 요구되는 실시간 추론 서빙에서는 이 점을 고려할 필요가 있습니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-GENERALIZATION-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 326,
+          "end_line": 326,
+          "before": "However, in **HTTP/gRPC-based real-time inference serving** environments, the RTT improvement (4,894→3,135us, ~36%) and HTTP p99 latency reduction (10.92→8.75ms, ~20%) can accumulate to become meaningful. In agentic AI workloads with **multi-hop communication patterns** where a single request traverses multiple microservices (e.g., Gateway → Router → vLLM → RAG → Vector DB), the latency saved at each hop accumulates, potentially creating a perceptible difference in overall end-to-end response time. This should be considered for real-time inference serving requiring ultra-low latency.",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-MIGRATION-SAFETY",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "RollingUpdate is said to always doublePodcount and deleting everyPod inbench is called safe. Capacity depends on maxSurge; deletingallPods may interrupt all replicas and bypass planned availability.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-MIGRATION-SAFETY-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 430,
+          "end_line": 430,
+          "before": "- **Rolling Update 시 CPU 부족**: VPC CNI → Cilium 전환 후 워크로드를 재시작할 때, Rolling Update 전략은 Pod 수를 일시적으로 2배로 늘립니다. 소규모 노드에서 CPU 부족이 발생할 수 있습니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-MIGRATION-SAFETY-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 430,
+          "end_line": 430,
+          "before": "- **CPU shortage during Rolling Update**: When restarting workloads after VPC CNI → Cilium transition, Rolling Update strategy temporarily doubles the Pod count. CPU shortage may occur on small nodes.",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-P99-SCENARIO",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "ScenarioE is credited with20%P99 improvement using8.75ms, but the table and recorded JSON assign8.75ms toD and9.89ms toE. OverviewSummaryChart repeats the wrong attribution.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-P99-SCENARIO-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 301,
+          "end_line": 301,
+          "before": "본 벤치마크는 시나리오 E에서 모든 튜닝을 동시 적용한 **누적 효과**를 측정했습니다. 각 튜닝 옵션을 개별 적용하여 단독 기여도를 측정하는 작업은 수행하지 않았습니다. 시나리오 E의 전체 성능 개선(RTT 36%, p99 20%)은 8개 튜닝의 복합 결과입니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-P99-SCENARIO-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 301,
+          "end_line": 301,
+          "before": "This benchmark measured the **cumulative effect** of applying all tuning simultaneously in Scenario E. The task of applying each tuning option individually to measure its standalone contribution was not performed. The overall performance improvement in Scenario E (RTT 36%, p99 20%) is the combined result of 8 tuning options.",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-RTT-STATISTIC",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "Both p50 and p99 RTT rows repeat the same mean_rtt_us field from each scenario JSON. The runner extracts a TCP sender mean RTT; it does not compute these percentiles or an application request/response latency.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-RTT-STATISTIC-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 203,
+          "end_line": 203,
+          "before": "| Pod-to-Pod RTT p50 (µs) | 4894 | 4955 | 5092 | 4453 | 3135 |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-RTT-STATISTIC-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 203,
+          "end_line": 203,
+          "before": "| Pod-to-Pod RTT p50 (us) | 4894 | 4955 | 5092 | 4453 | 3135 |",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-RUNNER-DRIFT",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "run-all-scenarios enablesDSR/nativeXDP although the report says both were not applied. It disablesHubble already inB/C/D, so Hubbleoff is not a newD-toEchange. Claimed8independenttunings do not match the recorded script.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-RUNNER-DRIFT-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 152,
+          "end_line": 152,
+          "before": "./scripts/benchmarks/cni-benchmark/run-all-scenarios.sh",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-RUNNER-DRIFT-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 152,
+          "end_line": 152,
+          "before": "./scripts/benchmarks/cni-benchmark/run-all-scenarios.sh",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-STATISTICS",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "All changes are claimed within5% even though the table shows roughly8%P99change. Neither5%error bounds nor O(1) complexity are established by two workload sizes.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-STATISTICS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 254,
+          "end_line": 254,
+          "before": "Cilium eBPF 환경에서 서비스 수를 4개에서 104개로 26배 증가시켰음에도 모든 메트릭이 측정 오차 범위(5% 이내)에서 동일했습니다. 이는 eBPF의 해시 맵 기반 O(1) 룩업이 서비스 수에 무관하게 일정한 성능을 유지함을 확인합니다. 다만, 아래 kube-proxy 스케일링 테스트에서 보듯 iptables 방식의 오버헤드도 1,000개 서비스 수준에서는 실질적으로 미미하여, 서비스 수가 수천 개 이상으로 대규모화되지 않는 한 이 차이가 실제 성능에 영향을 미칠 가능성은 낮습니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-STATISTICS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 254,
+          "end_line": 254,
+          "before": "In a Cilium eBPF environment, even after increasing services from 4 to 104 (26x increase), all metrics remained the same within measurement error (within 5%). This confirms that eBPF's hash map-based O(1) lookup maintains consistent performance regardless of service count. However, as shown in the kube-proxy scaling test below, iptables overhead is also practically negligible at the 1,000-service level, so this difference is unlikely to affect real-world performance unless service counts scale to several thousand or more.",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-CNI-XDP-DSR",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "The report and XDP matrix turn one unrecorded ENA failure into blanketvirtualized/Graviton/ENIunsupported claims, requireXDPforDSR, and interpretDisabledasunsupported.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-CNI-XDP-DSR-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/cni-performance-comparison.md",
+          "source_path": "docs/benchmarks/cni-performance-comparison.md",
+          "line": 403,
+          "end_line": 403,
+          "before": "- DSR은 XDP가 정상 동작하는 환경(Bare Metal + mlx5/i40e 등)에서만 안정적",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-CNI-XDP-DSR-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+          "line": 403,
+          "end_line": 403,
+          "before": "- DSR is only stable in environments where XDP works correctly (Bare Metal + mlx5/i40e, etc.)",
+          "counterpart_path": "docs/benchmarks/cni-performance-comparison.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-AUTOMODE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "title": "Respect Auto Mode GPU ownership",
+      "assessment": "The plan combines Auto Mode with GPU Operator installation of managed drivers and device plugins. The correction separates managed-node responsibilities from a self-managed operator setup.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-AUTOMODE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 215,
+          "end_line": 215,
+          "before": "1. 기본 리소스: 네임스페이스, StorageClass, HF Token Secret",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-AUTOMODE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 215,
+          "end_line": 215,
+          "before": "1. Base resources: Namespace, StorageClass, HF Token Secret",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-FAIRNESS",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "title": "Compare disaggregation with controlled resources",
+      "assessment": "The proposed aggregate and disaggregated deployments use different hardware totals. The correction separates equal-resource comparisons from service-level comparisons instead of attributing every difference to disaggregation.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-FAIRNESS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 188,
+          "end_line": 188,
+          "before": "| Aggregated (p4d × 2) | - | - | - |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-FAIRNESS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 188,
+          "end_line": 188,
+          "before": "| Aggregated (p4d x 2) | - | - | - |",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-HARDWARE",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "title": "Correct Dynamo hardware inventory",
+      "assessment": "The two locales describe p4d.24xlarge as eight 80 GB A100 GPUs. The official configuration has eight 40 GB A100 GPUs. They also disagree on the number of GPUs in g6e.12xlarge. The correction aligns both locales with the cited instance specifications.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-HARDWARE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 45,
+          "end_line": 45,
+          "before": "| **GPU 노드 (Prefill)** | p4d.24xlarge × 2 (A100 80GB × 8/노드) |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [
+            "https://aws.amazon.com/ec2/instance-types/p4/",
+            "https://aws.amazon.com/ec2/instance-types/g6e/"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-HARDWARE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 45,
+          "end_line": 45,
+          "before": "| **GPU Nodes (Prefill)** | p4d.24xlarge x 2 (A100 80GB x 8/node) |",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [
+            "https://aws.amazon.com/ec2/instance-types/p4/",
+            "https://aws.amazon.com/ec2/instance-types/g6e/"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-MODES",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "title": "Distinguish workloads from tool measurement modes",
+      "assessment": "Four workload families are presented as built-in tool modes without version-specific evidence. The corrected plan names workloads separately and requires server-side evidence for cache reuse.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-MODES-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 103,
+          "end_line": 103,
+          "before": "AIPerf 벤치마크 도구는 4가지 측정 모드를 제공합니다:",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-MODES-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 103,
+          "end_line": 103,
+          "before": "The AIPerf benchmark tool provides 4 measurement modes:",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-MOE-MEMORY",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "title": "Account for all resident MoE weights",
+      "assessment": "Active parameters per token do not determine the memory required to store all model weights. The corrected plan includes resident weights, KV cache and runtime buffers in placement calculations.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-MOE-MEMORY-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 69,
+          "end_line": 69,
+          "before": "- 활성 파라미터(3B)가 작아 Decode 워커에 L40S 급 GPU 활용 가능",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-MOE-MEMORY-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 69,
+          "end_line": 69,
+          "before": "- Small active parameters (3B) enable use of L40S-class GPUs for Decode workers",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-NIXL",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "title": "Scope NIXL transport and storage claims",
+      "assessment": "The article promises direct GPU transfers and automatic GPU/CPU/SSD tiers without identifying the backend and supported device combination. The correction requires those details and a measured path.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-NIXL-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 96,
+          "end_line": 96,
+          "before": "- **NIXL Transfer**: GPU-to-GPU 직접 전송으로 KV 캐시 이동 지연 최소화",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-NIXL-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 96,
+          "end_line": 96,
+          "before": "- **NIXL Transfer**: GPU-to-GPU direct transfer to minimize KV cache migration latency",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-PREDETERMINED",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "title": "Remove unmeasured Dynamo recommendations",
+      "assessment": "The result section has no data, but the final table recommends modes using unmeasured concurrency and cost thresholds. The correction makes these decisions conditional on later measurements.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-PREDETERMINED-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 253,
+          "end_line": 253,
+          "before": "| 시나리오 | 권장 모드 | 근거 |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-PREDETERMINED-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 253,
+          "end_line": 253,
+          "before": "| Scenario | Recommended Mode | Rationale |",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-DYN-VERSIONS",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "title": "Keep one versioned Dynamo test configuration",
+      "assessment": "The two locales specify different EKS, Dynamo, vLLM, GPU Operator and AIPerf versions without compatibility evidence. The corrected plan requires one recorded stack and a compatibility check before measurement.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "7e2efdab",
+        "issue": 87,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-DYN-VERSIONS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "line": 44,
+          "end_line": 44,
+          "before": "| **EKS 버전** | v1.33+ (Auto Mode) |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/dynamo-inference-benchmark.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-DYN-VERSIONS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+          "line": 44,
+          "end_line": 44,
+          "before": "| **EKS Version** | v1.32 (Auto Mode) |",
+          "counterpart_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+            "docs/benchmarks/dynamo-inference-benchmark.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "7e2efdab",
+            "issue": 87,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-HYBRID-SCOPE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "The EKS Hybrid Nodes section labels cloud/on-premises Pod communication as cross-region. Clarify cross-site versus cross-region and scope the RDMA comparison to supported hardware/fabric; a planned test is not evidence that VPN/Direct Connect provides an RDMA fabric.",
+      "original_category": "clarity",
+      "resolution": {
+        "status": "addressed_in_source",
+        "issue": 88,
+        "commit": "5f7e6b68"
+      },
+      "occurrences": [
+        {
+          "original_id": "M-HYBRID-SCOPE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/hybrid-infrastructure.md",
+          "source_path": "docs/benchmarks/hybrid-infrastructure.md",
+          "line": 35,
+          "end_line": 35,
+          "before": "- Pod 간 통신 성능 (리전 간)",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/hybrid-infrastructure.md",
+          "evidence_urls": [],
+          "repository_evidence": [],
+          "disposition": {
+            "status": "addressed_in_source",
+            "issue": 88,
+            "commit": "5f7e6b68"
+          }
+        },
+        {
+          "original_id": "M-HYBRID-SCOPE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/hybrid-infrastructure.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/hybrid-infrastructure.md",
+          "line": 35,
+          "end_line": 35,
+          "before": "- Pod-to-Pod communication performance (cross-region)",
+          "counterpart_path": "docs/benchmarks/hybrid-infrastructure.md",
+          "evidence_urls": [],
+          "repository_evidence": [],
+          "disposition": {
+            "status": "addressed_in_source",
+            "issue": 88,
+            "commit": "5f7e6b68"
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-INDEX-EVIDENCE-STATUS",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "Llama4 is labeled Complete although its source describes estimates, claims repeated measurement, and contains inconsistent cost tables. Status must reflect absent validated run evidence. Review CNI separately before keeping its completed status.",
+      "original_category": "unsupported",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-INDEX-EVIDENCE-STATUS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/index.md",
+          "source_path": "docs/benchmarks/index.md",
+          "line": 33,
+          "end_line": 33,
+          "before": "| 3 | [Llama 4 FM 서빙: GPU vs Custom Silicon](./ai-ml-workload.md) | ✅ 완성 |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/index.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-INDEX-EVIDENCE-STATUS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/index.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/index.md",
+          "line": 35,
+          "end_line": 35,
+          "before": "| 3 | [Llama 4 FM Serving: GPU vs Custom Silicon](./ai-ml-workload.md) | ✅ Complete |",
+          "counterpart_path": "docs/benchmarks/index.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-INDEX-STATISTICS",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "The methodology is phrased as something all reports already satisfy; sufficient repeats alone do not establish statistical significance. Express it as requirements and report uncertainty, repetitions, and conditions rather than a blanket assurance.",
+      "original_category": "clarity",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-INDEX-STATISTICS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/index.md",
+          "source_path": "docs/benchmarks/index.md",
+          "line": 47,
+          "end_line": 47,
+          "before": "모든 벤치마크는 다음 원칙을 따릅니다:",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/index.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-INDEX-STATISTICS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/index.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/index.md",
+          "line": 49,
+          "end_line": 49,
+          "before": "All benchmarks follow these principles:",
+          "counterpart_path": "docs/benchmarks/index.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-INFRA-CNI-SCOPE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "title": "Reconcile CNI settings with the preserved runner",
+      "assessment": "The infrastructure overview and CNI article disagree about DSR and XDP. Full runner inspection shows that the script requests both. The final correction distinguishes requested settings from activation that cannot be verified from the saved evidence; the initial suggestion to exclude them was withdrawn.",
+      "original_category": "contradiction",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-INFRA-CNI-SCOPE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/infrastructure-performance.md",
+          "source_path": "docs/benchmarks/infrastructure-performance.md",
+          "line": 37,
+          "end_line": 37,
+          "before": "- E: Cilium ENI + 풀 튜닝 (DSR, XDP, Socket LB 등)",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/infrastructure-performance.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-INFRA-CNI-SCOPE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/infrastructure-performance.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/infrastructure-performance.md",
+          "line": 37,
+          "end_line": 37,
+          "before": "- E: Cilium ENI + Full Tuning (DSR, XDP, Socket LB, etc.)",
+          "counterpart_path": "docs/benchmarks/infrastructure-performance.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-INFRA-REPORT-NUMBER",
+      "classification": "confirmed_incorrect",
+      "severity": "P3",
+      "assessment": "The CNI link is labeled Report2, while the benchmark index identifies it as Report1. Remove the stale number or use the current identifier.",
+      "original_category": "navigation",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "3e18dbd3",
+        "issue": 84,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-INFRA-REPORT-NUMBER-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/infrastructure-performance.md",
+          "source_path": "docs/benchmarks/infrastructure-performance.md",
+          "line": 29,
+          "end_line": 29,
+          "before": "상세 벤치마크 결과는 [2. CNI 성능 비교](./cni-performance-comparison.md)를 참조하세요.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/infrastructure-performance.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-INFRA-REPORT-NUMBER-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/infrastructure-performance.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/infrastructure-performance.md",
+          "line": 29,
+          "end_line": 29,
+          "before": "See [2. CNI Performance Comparison](./cni-performance-comparison.md) for detailed benchmark results.",
+          "counterpart_path": "docs/benchmarks/infrastructure-performance.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/cni-performance-comparison.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "3e18dbd3",
+            "issue": 84,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-CONCURRENCY-UNITS",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "ConcurrencyChart claims4200 outputtokens/s at one request while ITL is8ms. A single autoregressive stream at8ms/token is approximately125tokens/s; aggregation/model/measurement boundaries are unexplained.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-CONCURRENCY-UNITS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 195,
+          "end_line": 195,
+          "before": "| 4 | 14,800 | 5,600 | 4,200 | 12,500 | 9,800 |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-CONCURRENCY-UNITS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 195,
+          "end_line": 195,
+          "before": "| 4 | 14,800 | 5,600 | 4,200 | 12,500 | 9,800 |",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-COST",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "Hourly prices and cost-per-million-token values disagree between Korean, English and shared charts. The displayed costs do not follow hourly_cost * 1e6 / (tokens_per_second * 3600).",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-COST-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 213,
+          "end_line": 213,
+          "before": "| 시나리오 | 시간당 비용 | 처리량 | $/1M tokens | 기준 대비 |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-COST-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 213,
+          "end_line": 213,
+          "before": "| Scenario | Hourly Cost | Throughput | $/1M tokens | vs Baseline |",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-EVIDENCE",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "The source frames the comparison as executed benchmarks with repeated-run medians, while its footer and overview chart call the values projections. No run artifacts or calculation model establish the displayed rankings.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-EVIDENCE-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 39,
+          "end_line": 39,
+          "before": "AWS EKS 환경에서 vLLM을 이용한 Llama 4 모델 서빙 성능을 5개 시나리오로 비교한 벤치마크 보고서입니다.",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-EVIDENCE-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 39,
+          "end_line": 39,
+          "before": "A benchmark report comparing vLLM-based Llama 4 model serving performance across 5 scenarios in an AWS EKS environment.",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-EXPERT-ROUTING",
+      "classification": "confirmed_incorrect",
+      "severity": "P2",
+      "assessment": "The prose describes two selected experts from16. Llama4 routes to one of16/128 routed experts plus the shared expert.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-EXPERT-ROUTING-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 93,
+          "end_line": 93,
+          "before": ":::",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://pytorch.org/blog/metashuffling-accelerating-llama-4-moe-inference/",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-EXPERT-ROUTING-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 93,
+          "end_line": 93,
+          "before": ":::",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://pytorch.org/blog/metashuffling-accelerating-llama-4-moe-inference/",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-INF2-NETWORK",
+      "classification": "confirmed_incorrect",
+      "severity": "P2",
+      "assessment": "InfraComparisonChart gives inf2.48xlarge200Gbps, while the EC2 specification lists100Gbps. Price and memory metadata also lack a historical quotation basis.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-INF2-NETWORK-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 58,
+          "end_line": 58,
+          "before": "",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://aws.amazon.com/ec2/instance-types/inf2/"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-INF2-NETWORK-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 58,
+          "end_line": 58,
+          "before": "",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://aws.amazon.com/ec2/instance-types/inf2/"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-MAVERICK-CONTEXT",
+      "classification": "confirmed_incorrect",
+      "severity": "P2",
+      "assessment": "ModelSpecChart gives Maverick a10M-token context; official model card says1M. Scout10M does not establish that every deployment can serve that context.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-MAVERICK-CONTEXT-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 106,
+          "end_line": 106,
+          "before": "<summary>📊 상세 데이터 테이블</summary>",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama4/MODEL_CARD.md",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-MAVERICK-CONTEXT-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 106,
+          "end_line": 106,
+          "before": "<summary>Detailed Data Table</summary>",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama4/MODEL_CARD.md",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-MEMORY",
+      "classification": "confirmed_incorrect",
+      "severity": "P1",
+      "assessment": "Shared ModelSpecChart says Scout109B fits one80GB H100 in BF16 and Maverick400B fits8x80GB inBF16. Weights alone are approximately218GB and800GB; active parameters do not determine total resident weight size.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-MEMORY-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 106,
+          "end_line": 106,
+          "before": "<summary>📊 상세 데이터 테이블</summary>",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama4/MODEL_CARD.md",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-MEMORY-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 106,
+          "end_line": 106,
+          "before": "<summary>Detailed Data Table</summary>",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://raw.githubusercontent.com/meta-llama/llama-models/main/models/llama4/MODEL_CARD.md",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-METASHUFFLING",
+      "classification": "misleading_or_unsupported",
+      "severity": "P2",
+      "assessment": "MetaShuffling implementation results are treated as an automatically enabled vLLM optimization without a pinned integration or configuration.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-METASHUFFLING-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 111,
+          "end_line": 111,
+          "before": "|---------|---------|-----------|----------|",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://pytorch.org/blog/metashuffling-accelerating-llama-4-moe-inference/",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-METASHUFFLING-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 111,
+          "end_line": 111,
+          "before": "|---------|---------|-----------|----------|",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [
+            "https://pytorch.org/blog/metashuffling-accelerating-llama-4-moe-inference/",
+            "https://blog.vllm.ai/2025/04/05/llama4.html"
+          ],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    },
+    {
+      "id": "M-ML-UNSUPPORTED-RECOMMENDATIONS",
+      "classification": "misleading_or_unsupported",
+      "severity": "P1",
+      "assessment": "Charts turn unsupported projections into best-production,58–67%cost-savings and single-GPU recommendations. The Korean table even conflicts with the shared cheapest-instance conclusion.",
+      "original_category": "accuracy",
+      "resolution": {
+        "status": "addressed_in_source",
+        "commit": "e9445c68",
+        "issue": 85,
+        "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+      },
+      "occurrences": [
+        {
+          "original_id": "M-ML-UNSUPPORTED-RECOMMENDATIONS-ko",
+          "locale": "ko",
+          "document_path": "docs/benchmarks/ai-ml-workload.md",
+          "source_path": "docs/benchmarks/ai-ml-workload.md",
+          "line": 231,
+          "end_line": 231,
+          "before": "| 관점 | GPU (H100/A100/L40S) | Custom Silicon (trn2/inf2) |",
+          "counterpart_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "docs/benchmarks/ai-ml-workload.md",
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        },
+        {
+          "original_id": "M-ML-UNSUPPORTED-RECOMMENDATIONS-en",
+          "locale": "en",
+          "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+          "line": 231,
+          "end_line": 231,
+          "before": "| Aspect | GPU (H100/A100/L40S) | Custom Silicon (trn2/inf2) |",
+          "counterpart_path": "docs/benchmarks/ai-ml-workload.md",
+          "evidence_urls": [],
+          "repository_evidence": [
+            "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+            "docs/benchmarks/ai-ml-workload.md"
+          ],
+          "disposition": {
+            "status": "addressed_in_source",
+            "commit": "e9445c68",
+            "issue": 85,
+            "limits": "Historical measurements and examples have not been executed by this audit; absent evidence is stated explicitly."
+          }
+        }
+      ]
+    }
+  ],
+  "verification_pending": [
+    {
+      "document_path": "docs/benchmarks/agentcore-vs-eks-inference.md",
+      "claims": [
+        {
+          "claim": "CMI pricing and prompt-cache support for the selected checkpoint require exact product documentation.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Vendor gateway benchmark results, popularity counts and proposed installed versions have not been independently validated.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Actual workload/quality constraints, GPU topology and cost allocation are not supplied.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "docs/benchmarks/ai-ml-workload.md",
+      "claims": [
+        {
+          "claim": "Raw benchmark runs, configuration digests, request corpus and repeated-run distributions are absent.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Exact Neuron release/checkpoint compatibility and commands require primary verification.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Scout hidden dimensions/layer/head counts in ModelSpecChart are not yet verified from checkpoint configuration.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Historical prices, FP8 backend availability and L40S PCIe details require scoped primary verification.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "docs/benchmarks/cni-performance-comparison.md",
+      "claims": [
+        {
+          "claim": "Originalsamples,replicates,exactHelmvalues,driverstatus,Podplacement andservice-scalinglogs are notavailable in the five aggregateJSONfiles.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Focused primaryverification ofnetworkingcompatibility andpolicy support is inprogress.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "run-benchmark-v2.sh,service-generation scripts andunreferencedrealworldworkloads have notyetbeen read; they cannotbeclaimedasvalidatedreproductionevidence.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "docs/benchmarks/dynamo-inference-benchmark.md",
+      "claims": [
+        {
+          "claim": "PinnedDynamo/vLLM/AIPerfcompatibility andA100FP8checkpointpathneedfocusedprimaryverification.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Noactualcluster,budget,rawruns,transportverification orqualitytestresults.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "docs/benchmarks/gateway-api-benchmark.md",
+      "claims": [
+        {
+          "claim": "Thekit'srawconformanceandlocalexecutionevidencehasnotyetbeenread/recomputedinthisfullauditpass.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "ActualGateway/EKSperformanceisexplicitlynot_run,notaprovenresult.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "docs/benchmarks/hybrid-infrastructure.md",
+      "claims": [
+        {
+          "claim": "Hybrid network and RDMA compatibility implied by test scope",
+          "reason": "Official support/latency/fabric requirements still being checked"
+        }
+      ]
+    },
+    {
+      "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/agentcore-vs-eks-inference.md",
+      "claims": [
+        {
+          "claim": "CMI pricing and prompt-cache support for the selected checkpoint require exact product documentation.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Vendor gateway benchmark results, popularity counts and proposed installed versions have not been independently validated.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Actual workload/quality constraints, GPU topology and cost allocation are not supplied.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/ai-ml-workload.md",
+      "claims": [
+        {
+          "claim": "Raw benchmark runs, configuration digests, request corpus and repeated-run distributions are absent.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Exact Neuron release/checkpoint compatibility and commands require primary verification.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Scout hidden dimensions/layer/head counts in ModelSpecChart are not yet verified from checkpoint configuration.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Historical prices, FP8 backend availability and L40S PCIe details require scoped primary verification.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/cni-performance-comparison.md",
+      "claims": [
+        {
+          "claim": "Originalsamples,replicates,exactHelmvalues,driverstatus,Podplacement andservice-scalinglogs are notavailable in the five aggregateJSONfiles.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Focused primaryverification ofnetworkingcompatibility andpolicy support is inprogress.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "run-benchmark-v2.sh,service-generation scripts andunreferencedrealworldworkloads have notyetbeen read; they cannotbeclaimedasvalidatedreproductionevidence.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/dynamo-inference-benchmark.md",
+      "claims": [
+        {
+          "claim": "PinnedDynamo/vLLM/AIPerfcompatibility andA100FP8checkpointpathneedfocusedprimaryverification.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "Noactualcluster,budget,rawruns,transportverification orqualitytestresults.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/gateway-api-benchmark.md",
+      "claims": [
+        {
+          "claim": "Thekit'srawconformanceandlocalexecutionevidencehasnotyetbeenread/recomputedinthisfullauditpass.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        },
+        {
+          "claim": "ActualGateway/EKSperformanceisexplicitlynot_run,notaprovenresult.",
+          "reason": "Required evidence or focused verification remains unavailable/pending."
+        }
+      ]
+    },
+    {
+      "document_path": "i18n/en/docusaurus-plugin-content-docs/current/benchmarks/hybrid-infrastructure.md",
+      "claims": [
+        {
+          "claim": "Hybrid network and RDMA compatibility implied by test scope",
+          "reason": "Official support/latency/fabric requirements still being checked"
+        }
+      ]
+    }
+  ]
+}

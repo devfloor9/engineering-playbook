@@ -1,0 +1,26 @@
+{
+  "Id": "podrx",
+  "MetricStat": {
+    "Metric": {
+      "Namespace": "ContainerInsights",
+      "MetricName": "pod_network_rx_bytes",
+      "Dimensions": [
+        {
+          "Name": "ClusterName",
+          "Value": "replace-me-cluster"
+        },
+        {
+          "Name": "Namespace",
+          "Value": "default"
+        },
+        {
+          "Name": "PodName",
+          "Value": "replace-me-exact-pod-name"
+        }
+      ]
+    },
+    "Period": 300,
+    "Stat": "Average"
+  },
+  "ReturnData": true
+}

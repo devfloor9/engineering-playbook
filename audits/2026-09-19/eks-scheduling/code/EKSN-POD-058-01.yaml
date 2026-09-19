@@ -1,0 +1,22 @@
+apiVersion: resource.k8s.io/v1
+kind: DeviceClass
+metadata:
+  name: illustrative-gpu-class
+spec:
+  selectors:
+  - cel:
+      expression: 'device.driver == "example.com/replace-with-real-driver"'
+---
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaim
+metadata:
+  name: ml-training-gpu
+  namespace: ml-team
+spec:
+  devices:
+    requests:
+    - name: gpu
+      exactly:
+        deviceClassName: illustrative-gpu-class
+        allocationMode: ExactCount
+        count: 1

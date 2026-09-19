@@ -1,0 +1,2682 @@
+{
+  "scope": "Metadata only for cited public primary sources. No raw third-party page or cached text is exported. Entire assigned documents were read; external evidence reading is limited to the relevant passages recorded in the private audit working set.",
+  "sources": [
+    {
+      "url": "https://api.github.com/repos/aws/karpenter-provider-aws/releases/tags/v1.14.0",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:02.894754+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "255e0f40549d0e5eed481dfaf8886736ccf30575409cfe662e20cb537797dd3f",
+          "retained_text_sha256": "255e0f40549d0e5eed481dfaf8886736ccf30575409cfe662e20cb537797dd3f"
+        }
+      ]
+    },
+    {
+      "url": "https://api.github.com/repos/goharbor/harbor/releases/latest",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:08:13.732453+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "cb16ae6f18d05c4900e68a251998413d7df40e98139323d697564154763df230",
+          "retained_text_sha256": "cb16ae6f18d05c4900e68a251998413d7df40e98139323d697564154763df230"
+        }
+      ]
+    },
+    {
+      "url": "https://api.github.com/repos/goharbor/harbor/releases/tags/v2.15.1",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.040342+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "371db85f28953373e9f6359ff70e51220793703096bc7727bf8454760bdf84bd",
+          "retained_text_sha256": "371db85f28953373e9f6359ff70e51220793703096bc7727bf8454760bdf84bd"
+        }
+      ]
+    },
+    {
+      "url": "https://aws-otel.github.io/docs/getting-started/adot-eks-add-on/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:15.753685+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c3e63e250bed96cc2bc2fdddc9c9f8ac64f8cd701e93620ce2b95cac541b4e5e",
+          "retained_text_sha256": "d8a4dada0ec2dc76401d99d91f045d09d95444e76e6535247f48b920f8d6b92f"
+        }
+      ]
+    },
+    {
+      "url": "https://aws-otel.github.io/docs/getting-started/adot-eks-add-on/requirements/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:52:16.807596+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "70331a7c313fbf49a4d6b051b9ddff09a2542978fd88b24cffbea93d6dbdd4f8",
+          "retained_text_sha256": "dc44b0172a28102ea95520a1977575524e37c20a60fbed353386b82dc3d25aad"
+        }
+      ]
+    },
+    {
+      "url": "https://aws-otel.github.io/docs/getting-started/cloudwatch-metrics/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:52:16.810343+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "9b34cdcf7759fc68d7fdbb137cf8da200988bc3817ac4bfa8b555fa816dd1d40",
+          "retained_text_sha256": "3891f7ce31eafcf2a2ca6b9b7cc9bc01d5a16a0953bcf3e722a396eca39c1770"
+        }
+      ]
+    },
+    {
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/04/amazon-eks-hybrid-nodes-gateway/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:47:46.724601+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8d534b05112d36144af799664db5b7c469b00e58bc480ab9e9aa8dff408924bf",
+          "retained_text_sha256": "3edfc094373ed5defe5bbde36bfc68a83718e55dd038f5e77295bd4cc3d058d6"
+        }
+      ]
+    },
+    {
+      "url": "https://aws.amazon.com/blogs/containers/extending-eks-with-hybrid-nodes-iam-roles-anywhere-and-hashicorp-vault/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:00:18.433092+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "88815fd8b92a940a82d5ce46b5c3b68b30557a943a7146071bc494f24a82c0d6",
+          "retained_text_sha256": "d1ab3ae008137cc10b8ddd74fc7ea80a88b0091d9303f620d78ab0c7537ad423"
+        }
+      ]
+    },
+    {
+      "url": "https://aws.amazon.com/ec2/instance-types/g5/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:28:56.585089+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a15d7f48fc4a6e3c29ebf710796df88661f712fda00983b92c29826b804e78b2",
+          "retained_text_sha256": "06ef144742b0cee0af9bc76d6bfcd8680ac50bdff0e1195936bf6e223af62aab"
+        }
+      ]
+    },
+    {
+      "url": "https://aws.amazon.com/efs/faq/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:02:12.140340+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "347ecc03f51a80dbb9d70544964055fa246537d7f5d7531885936502c837d2c0",
+          "retained_text_sha256": "3dc7bc69ff248285a48f534924cb8c0529a894655e9e0618d9d39d2eb3bd5183"
+        }
+      ]
+    },
+    {
+      "url": "https://aws.amazon.com/eks/pricing/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:53:25.813617+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "ec02c241fb2ff2d9ffb36e82cfb7bfa8109eb416b34c83d884a224f09825feca",
+          "retained_text_sha256": "e945e466f3c897e5b37a0c3d2c6afc9656fdcaaf976e9d70074ba3610bb347e1"
+        }
+      ]
+    },
+    {
+      "url": "https://aws.amazon.com/eks/sla/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:02.428153+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e397497aff6fcc456ce0bbe5f8bf5ff15eec9246135fbf26c4a42e40bc7afb9d",
+          "retained_text_sha256": "11408a1857f115026ce16e74edc0652e5331a544c44b38badf4367359120e783"
+        }
+      ]
+    },
+    {
+      "url": "https://cert-manager.io/docs/releases/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:16.072069+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "fb312edea06af610b0a9ab4ea412d6a341199627d1a4c165a60afaee1e9eb444",
+          "retained_text_sha256": "5b84657ce932b9e251fd2d3a454aabbfe5afb7af4bee5a803486a5ade49c20ba"
+        }
+      ]
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/docs/concepts/cluster-architecture",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:04.090700+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8db454b9a83ec76d99531089c2dad933200a93b5e8d960c7b7cfb67f27bd377b",
+          "retained_text_sha256": "f67b67cef1b8e1c4447c6cc31f2e02257e1b00371f773fa1a4f366b5854fdc2a"
+        }
+      ]
+    },
+    {
+      "url": "https://cloud.google.com/kubernetes-engine/sla",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:03.454218+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "fbf9ad97ef4bef2be093c3a61b5acc96f1530ffc5a8e621e4e7005b78707c81d",
+          "retained_text_sha256": "3c60a3c00ea0705d28424cd25d3183249bbef9b7d71f0f60aea1a533dbdd15f8"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/configuring-instance-metadata-service.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:13:56.786602+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "09dd71ced78c0f12a27a21695c6cfbfc5f380ef85b1b7ef5ec387a92a24b568b",
+          "retained_text_sha256": "4080195c31f1c7d9d276cf514a3703055fbb56b2778d2cb67931600eb2c1b9d1"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start-nccl.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:41:45.633925+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "222b44e35671537513fe0a6f6659c2200c3c6e30629717fa65f9850839669e8f",
+          "retained_text_sha256": "038c153b78cf38c502b1d9b98907b9619eed35a2257ecb71ad78ee78be1bf135"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:20.284050+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "545d26dd98e3fd43e2adc285227bc7af4d09852982460f2ac542f945c7877b2b",
+          "retained_text_sha256": "abe87e56b983312d64d122bfba235063eeb3811df680837929aff67fd188026f"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/volume_limits.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:15.702407+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "83f7f6a1c55f258df460272a3524f36bbf72e2d2f9deddcf175829dcd1d5c2ba",
+          "retained_text_sha256": "a68cf74e41fbdbbee417cb83bccabf4c177b5a771eeff9a1b9b696ec41ba98c7"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_PutMetricAlarm.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:52:16.810506+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "44456a75a3e74d0225b3e385d5b1888229f8a1cdaab2f241e95dd09dad47a97b",
+          "retained_text_sha256": "3284ac8034f18665fed35b812b317a55ee4403d722234bee0d47dbca647b2919"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_AnalyzeLogData-discoverable-fields.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:43:47.976154+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d03afdc1ef782f79f2e6a69aeb7601a57dae3239834838f646f76f898eb20fb1",
+          "retained_text_sha256": "99e132674921f600dcfa302839e31a05954f8754bae10eefadb352b9099260db"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_QuerySyntax-Stats.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:43:47.976260+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "aef92aaf9e6e8cf0f2bd116944929af0f20b012522765b91f2dfb044e8660f43",
+          "retained_text_sha256": "b9dffa62097f3330964756d3bc0c2b00dd66634584fab0c664e4a88f0c36eaf4"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/MonitoringLogData.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:16.051688+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8b8c053cc85b2bd835727262770ba1a79d99e934330eabf0c00e006fefcd3191",
+          "retained_text_sha256": "c6b24d64c678427c5e95aaedb3594fca11d6e98d4a0aeb436908ae7ff8d84e0b"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch_Anomaly_Detection.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:02.383015+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "9604dacafbf674dc73883cbd560b419ce73a01c3e3e1f687152bb7f547d9ff7a",
+          "retained_text_sha256": "ad2521746a551001deb6210e8ff70f3e727725c4b7762ab072679ced26a88fde"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-EKS.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:02.383322+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a732e022c0c6bc1dc7e75abb15362fa2aa65e60395b89ea3e0f400cea8dfbab5",
+          "retained_text_sha256": "01a5fdb5fd2a6e9f1aa3951db2352ed47732348c80ee4ed373c6fbb73860d484"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs-FluentBit.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:03.302939+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2930cc3fde9d15f0701549ce88d9e7ef4b9d02608c1d02e6713fcce2bd761db1",
+          "retained_text_sha256": "61941be5c575c4102b634ef7c01d5dfbf5cce03498955b017a8801b47cdecd60"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Create_Composite_Alarm.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:03.064668+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "29a8677e220b2a7d642e9445aa0415543726e04948a0a22e390674eaff86a5b7",
+          "retained_text_sha256": "c05f4350f18d13d6dabdefa929417323fd9092a53e84561c472a28c93774f153"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch-and-eventbridge.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:16.033142+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2b6630584611bd65f8c3d58bb9ee5a8084323528ff7e8e9829f1fda0661151cc",
+          "retained_text_sha256": "317272d86e27e2e0687d5e235be884a71bcfcd89cddeb9c3c686bde35c26ae1d"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/install-CloudWatch-Observability-EKS-addon.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:02.381215+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d2462be4d4b563d98d33fd8e36ae1ac75769965f81f9a52b4da7abf826b9a85f",
+          "retained_text_sha256": "4d1eb5e01747cd715fa5e924ab3234d7a1cdde5ce39b22c2e382c021b13698cf"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:46:44.927135+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "64e4ad3ac23d104c94e6a09a08b229ff16b8cd15b543cc8442b53d58f3cf375f",
+          "retained_text_sha256": "118078b63ed6a4bdbe0675cf1f6ca412dcab14e52cbf8eb2a47a8db1eb78f592"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/privatelink-interface-endpoints.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:50:39.654971+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a65717eb76145e6cdbe43abebb23794e2ab45027f4a06c475e1b718e6d7dd546",
+          "retained_text_sha256": "49c5900c7ca8f21724373f21f4265cc380625e6d947ee77c2ed7b8d4d3fe6c4f"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_revoke-sessions.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:00:18.304925+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a21fc107ecdb5bee2b62ed347e92d4d3670ba66a46a8a1fe5d84b2fc11d79a53",
+          "retained_text_sha256": "75f15db3ef768bb1fbf16266631ca5b29cc8b4ea184745a3d48665ca35ecf99d"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:46:44.921307+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "cc9eeff85c141b18807ac76ae07c3b29b464b04302c25d3ed2059f68f7bb0f91",
+          "retained_text_sha256": "f0c08c81afbc5129413ff75e8972c7149442e958093768fccbfe947e714f4764"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-concepts.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:11:44.662514+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "10b2628b95d7c811a7627791ac65b52b0d181ae381bb89b6b4cb3b9845461d71",
+          "retained_text_sha256": "5148f1307a5685b6f1e70f4643a754fa826a57abcf5ce09b4209914852a46c5f"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:21:21.493121+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "7d983c9435ef38f503a647c4f74564b67dd339beeaca1b2bc56a26c0036b4076",
+          "retained_text_sha256": "61271348e8bd0c99145e9d63d84c01f9213473c71ce10d0402f85ee64abd1173"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:02.657241+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0c6975c750ba11904e583c6a933bd9ffffea3675e3e77b5dfec695b7c070b983",
+          "retained_text_sha256": "e112c5423b78093aec54f2383bfbd9890e69003c4b4f47364b62153739556deb"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/ec2/describe-instance-types.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:58:14.350701+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "34a13654b5fb7642e09da8085bf7fc749691d3d52375b343a5e8677ecb3e555d",
+          "retained_text_sha256": "ed74a298dd92eff942163a09722e17a82b28a7a36f0c1e94de00c9860191fab3"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/efs/describe-mount-target-security-groups.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.043126+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "20db326cfbcde378bdd9caef0e74225730bfa9eba422d709c01d5079ebe08ed8",
+          "retained_text_sha256": "e9b793ddaa72e0507ccf37ebc8a1b5bc18e4c65efa6ae0db2187a518f88ae71f"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/efs/describe-mount-targets.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.042465+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8cc13a1685fbc3fab96fbab61267e06202101c729e4c80265524ac2e4c5da3c8",
+          "retained_text_sha256": "a3ac1a9ebf6caba83d3566c34577fa577aaa7d6bc40adaddf17ff2a463b7232d"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/eks/create-cluster.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:25:58.986568+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "daf0821cd8c68420076930cc92a74996375b1bcc3b579a31a47a5b886992c1ce",
+          "retained_text_sha256": "b65934d2d418598cc5d425d068725f9de09e6695fea0d517e026fb5c185f225a"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/eks/create-nodegroup.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:25:58.987105+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "55d33442e902c9a8e2c52f59d12ebb4576edf9939a141cc2e3eea662f9f31543",
+          "retained_text_sha256": "562ef52223493888023b6ea70deef4fe903dd0e19061360af42a87de948a4a2c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/eks/describe-cluster.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:55:49.530542+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "04217cf39a5ac222ee254df8969cc8706f9366f95ebdf291a1cc311d2cc25ce9",
+          "retained_text_sha256": "605dae1c87530fe7d65fdf240042b316a020494396ee5f6cf563c537d4520d19"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/eks/start-insights-refresh.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:54:12.200210+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "025b0ef5797c242ec16ecada6d859659df696c424a88e6c84193497f817b920c",
+          "retained_text_sha256": "c92dfc98c9001550779159d0280c3539a67087d943e10a14c3305dee46a26efc"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/cli/latest/reference/events/put-targets.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:15.756306+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "87b4f1e9921cbdc174d2de4ee03504525ca79f07eb17830abd4858f2d3b86851",
+          "retained_text_sha256": "9b560bf578def057afb26a0c5a38e9fa6be4894023de246699ffc35346146644"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/devopsagent/latest/userguide/about-aws-devops-agent.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:21:21.564577+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "ab0b2c03c4e481fb68ef13fc4ff67656f73f229f8481e68b045a11a8e68bda3b",
+          "retained_text_sha256": "15c2144a453140763789d74aa78cf8aa05c3e629203cb5e6f13c0d45c744e6f0"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/dedicated_connection.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:57:22.666635+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a608667ab85d0e11f498408d3cab2f952a62626b7f1ef7ec46b2d4a834d3b0fb",
+          "retained_text_sha256": "e28bd187a8c3fdecd306a4a5ba126b8d2fa72c6f8f88696be518519f48eee1ac"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/hosted_connection.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:57:22.726480+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3020827c81d26d219b13c74e7b6f5e5fd9dc56b034dc8f8341c3a56b3fa5047f",
+          "retained_text_sha256": "753b7a3296cf0c519920d6abeec0abb3e32c31e7a60a3cd09328c0bba60e98c2"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:55:08.214341+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "b1ce3901300a18a64b1b5d2356bd622af8ad145099629d964b4b859b3e42b8df",
+          "retained_text_sha256": "80e34f40299c6d9f40ea20eb5964ce1f0a315ae191361929a7a3cdc87ba74e4c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-describing-volumes.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.603683+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "b3bbb0f1249d87427b63de6435423d80b95302a4ebbbf5bf36374a76179ef19c",
+          "retained_text_sha256": "6e0b0742f33132ee2f1725c2e0c48a1f0b135892c189be7053abe2fc278cb52a"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-detaching-volume.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:15.702874+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "37eda90590f8a8329cc39a2b6d7c0b8d73828408b550b68eeadd6858d1957659",
+          "retained_text_sha256": "314323f4081f336893b45678b7612a0f619d32c5f0e55704870286fcf6e235c1"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-modify-volume.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.647993+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "14ad8cd063860bbecab453421e16d2df2356b2a7a15aa56098d3cbae0a649b8d",
+          "retained_text_sha256": "7d2fd9fd8a85680553760abe409c19a74d4901f8a7975a363593ded68acee083"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/ebs-volumes-multi.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.898901+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "fb18da27f675580c536ae551bc34ba360a4968a9cf78604a38d2041e5c0094e1",
+          "retained_text_sha256": "7c913a7453ce4bcc97a3b38b04285ebf7963265fdd1e34a0b8c5178baa791aca"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/ebs/latest/userguide/general-purpose.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:15.702738+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e3785fd365ff98df00db7e9e662e7164054d002b13027c6ee5e417244a9174bf",
+          "retained_text_sha256": "d003d3751d51b87214cdcaa78172f4d7335e5cd6186c5811f44e09599f16ee03"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/mounting-fs-mount-cmd-dns-name.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:01:42.892443+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e8ab9bdf2fd4bd3b20b156917eb4c5ef0a2628301b24f27c806d0fb71b7acee5",
+          "retained_text_sha256": "c26c4d7e2ba69a474f3d83ea3a0c4e02f9b8bfe0a009cb02c5092f74925392ca"
+        },
+        {
+          "retrieved_at": "2026-09-19T10:55:16.038386+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e8ab9bdf2fd4bd3b20b156917eb4c5ef0a2628301b24f27c806d0fb71b7acee5",
+          "retained_text_sha256": "c26c4d7e2ba69a474f3d83ea3a0c4e02f9b8bfe0a009cb02c5092f74925392ca"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/mounting-one-zone.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:58:14.353348+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "74d6286bef34967f82708ce71c73de7c88d090941e5c48a4bb2902e3c9de2090",
+          "retained_text_sha256": "d108d6fd805866e6766ab7766a3dceafee504f81fa9c44df47e1def38bb4d622"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/efs/latest/ug/network-access.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.042230+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "4c13edbbb1aa9939ee41018889dbad890e0a3a97b2d2f224e55d84ff35dd0738",
+          "retained_text_sha256": "263bc3a7071fcedbaf8d15a842f838da253473a4304622bdfb4ca1711882943a"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/best-practices/prefix-mode-linux.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.678532+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "32d503ef7c3ed7b14f1c1637b125200a5151453729d1f5929fee3104a6df5a4f",
+          "retained_text_sha256": "792e7eada24ea8369741d1275c2d2fc1ee73ae52c148328fa5467c19d8d027d7"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/auto-accelerated.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:21:21.383117+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0e33ea7995dbdd9a9243f0e4baad9d75e48428111fa4f86521209eeb3c874968",
+          "retained_text_sha256": "ba5bf4f41dfd2c69d2cb8603f463667b56e0b8972c64a15fa2d5d6680c503833"
+        },
+        {
+          "retrieved_at": "2026-09-19T10:25:58.744101+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0e33ea7995dbdd9a9243f0e4baad9d75e48428111fa4f86521209eeb3c874968",
+          "retained_text_sha256": "ba5bf4f41dfd2c69d2cb8603f463667b56e0b8972c64a15fa2d5d6680c503833"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/auto-networking.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:25:58.743969+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c88ab82c58090610d4e25c9fab1619884b1570ded4545c95eef3b68d38075f0f",
+          "retained_text_sha256": "87125794c809913666b2503ba9ae86a67eb921fd2507e4a19c0d70813e381b82"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/auto-troubleshoot.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:25:58.743501+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "b60caf3e5b5904cdc57bfab29855eca316e6690f1556ba4d802620856fad99b3",
+          "retained_text_sha256": "670a13fa019ba5de5de3b4296fa9d0eabff184a0a655875daf932fd82e3cd043"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/automode.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:25:58.742126+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0022b28514c53111cb9df7bdbd4c31c428c3e266ff3f7095f4414ac449386caf",
+          "retained_text_sha256": "cb3e7ea41f50b71b9990edb4eaaa8e1112dda2ab63594d42848d638c61b531b5"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:50:39.644787+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "9880b6d90f1c8e2d7313a8ce9ce115d7c647f8e1c0dee735cb31b5978782deb9",
+          "retained_text_sha256": "7993a5bae0f48450ba28f733d8b1e07768c66cd4a9519a4b173154ce1996b0e1"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:53:25.783959+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "aebab3345bcf78dba6d14024affc4d5c908ec5a0100634cbd62ff7ae132c541a",
+          "retained_text_sha256": "48c5d3fec5721898f2e6a3c3c0861c5780b9c1079c7d5163e4bd763bdedcfd07"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/cni-increase-ip-addresses-procedure.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.680060+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2a5fda96bae4e9c779e13db6c5a165129cc2506fa19a236e2f0528a796598397",
+          "retained_text_sha256": "b1c0fce02d659f770838485469f825913d62352b53f22f87d6949849f5c3ba39"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:20.057157+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "4da7c590679f937b2cf4b43b1e0948885c3e1eace14d7b7f7dfed42e9eb210ab",
+          "retained_text_sha256": "b4eef34e08586ea70bb001bd527d1052bcc1ed71c6e4491ba0003e5ea7f38c0e"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:02.382842+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "95bbcc12dd12cee13b8b89faa351ff5d31f8697f90331938a5bb7bd91f7398eb",
+          "retained_text_sha256": "7d83ea3816a107e5228681ae465c37239d8425af601ccbac21d963ddeccfd9bd"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:25:58.986172+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "89bb828629255b8cab487280c4b5fa3988ad4921e152917b9db0468e96ce3e17",
+          "retained_text_sha256": "75eba682ba6793565c50478995512619dc207e625bf4bedf053cba62198a8c91"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/create-node-pool.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:38.783470+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c71d35dfabc8ca3bccedf0e37a0e643ef47cb715525291b973061ca77a5d1a66",
+          "retained_text_sha256": "dba819c4f97670f83b2989f27aecf4b158b0767b8d2c6a0b4756a38d5b112217"
+        },
+        {
+          "retrieved_at": "2026-09-19T10:25:58.743688+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c71d35dfabc8ca3bccedf0e37a0e643ef47cb715525291b973061ca77a5d1a66",
+          "retained_text_sha256": "dba819c4f97670f83b2989f27aecf4b158b0767b8d2c6a0b4756a38d5b112217"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/create-storage-class.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:25:58.743847+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "be608aeb66adf740b3ce245165e9ddf5a28090b6fb46c97812c060c5d8ddc016",
+          "retained_text_sha256": "9530e19d53595a651521db7af5ece0f1fa3852bbb95e09f38fdb74f0da3c7c31"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-dra-device-plugin.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:21:21.573984+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "123856b5b79b05b6398c437a00d5c39ca0e3ab7ca78626b0538a9866c30aec83",
+          "retained_text_sha256": "02c63d89f376f518146269f5b4d6cababc5e92c5ab03ad6469126ed93ce5d1d0"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia-mig.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:21:21.598078+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "cde8640643bd0581ad6f28e3da3cb647be2ea71227500e16e5161d276bda2b93",
+          "retained_text_sha256": "a5a0edf79f1c9b906d0a98ac3c79fa8dc8c2934c48736f5a305a7e5e7bb36843"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/ebs-csi.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.828295+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2d56ee585d488d6be6f994ef26c2dedecad66ce2ee3544eb16b9e9a7535d489b",
+          "retained_text_sha256": "ef1c3fbf909ec655f8741f5a4090d6f818408c67bac271603d73d321e389bd3f"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/efs-csi.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:01:42.921342+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d6e35fb51f5b2e2b3e0dfe4822404095a5e2dff5608b7debf379b7405f931eae",
+          "retained_text_sha256": "2be882118d8419a7bc54e1181d43afaccf84e411f0c2e0b05df4b738a5d33b3a"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:58:14.033592+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d29cc9759c9f6021d8dde17083ecad026b5092cbe7080ea967a579fbd1de4460",
+          "retained_text_sha256": "933ef8b5037e306faec0a619bfc13e2139c4a134467f35f99d07f4a4ebfb3315"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:21:21.577335+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2954f71b41c39813ebed09d5edc24e43a6d2af9e7564674986d9b23f430f0974",
+          "retained_text_sha256": "ba991f5ef4b1a6161e3dad3dc1b86377c3d16d960b7e809b8bcffc3b95e4d80e"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:49:55.605164+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8f509e545c494e3725280d481d66bc59269c804a7bce8438d66d098711fd6109",
+          "retained_text_sha256": "bc1d1ece6b25c472e306cdc7c0028bbd95edcedf31df02d9a8009030652a4899"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cilium-bgp.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:45:47.958222+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0f748b77707f31863f9c2aae60b51c41f6f5cf98dba63c7a9eb4579d5833d1fc",
+          "retained_text_sha256": "9852d39cbbca129d0395b8fdbdd5cd6007b95767b62bbe65d31266ce20173b45"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cluster-create.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:58:14.045205+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "818cb82fff7c2b474978319626df33bc483d6e55cb862c08ae988adac8bf0caf",
+          "retained_text_sha256": "a23f1acf38937835082e87acbb8eb2b04044d8aa8f6c48062a065d162075140e"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cluster-prep.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:00:42.010187+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "9dc159d323cc8d06018a494bc235b76a11dd568b88ea08cdedce747474b7876f",
+          "retained_text_sha256": "64c767c339422364b03e1f3141f805eb93e81cec4f5cc55008a1fe1b8e8267d8"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:11.179481+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0c135684d75e46f3aa5959d7b8a6765a911f993b7ffb5202728f4e72d2223456",
+          "retained_text_sha256": "04d5c69d7d8c235bbc4e42f009eb3a27640d8c47837c806bebde9301d4918145"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:57:09.847726+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c75b48eb8256ce64e9ccd042cf43db4acc41c6191bf9bcd97a764e0c18410d4a",
+          "retained_text_sha256": "bb2dd01713892e8f7c4f07a1430b2c5c09f4cbe94020467ad0d5425ccc0be696"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-creds.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:57:09.875122+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e56261d8314f3bca072ad6b77b23b9e1ab6b67669f3aac9e9605f9339971c90a",
+          "retained_text_sha256": "e8f366c52c8bdd69a4e18c90de60b7c1392aa4eb694bc8ae78d2e29e12ce6382"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-cni.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:47:46.610444+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "24d18e1474156679cda204163f88f26e60f4df2bce385a91074b26133121b00e",
+          "retained_text_sha256": "379a313114134d46b1b5e3bd46ec3eddaf600104ff6a2c76dda3f1350a88bffb"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-configuration.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:45:47.951721+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "9f715cd356106ab9b7a0bf14a952dd93b60475c90cd2677eb464a672b4c4eecc",
+          "retained_text_sha256": "1892b3355e1095cf0be2c4710c028694c825fce195a23f16faaedb77b74bc678"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-getting-started.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:45:47.971362+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d3afecfea2c7d86b8045ab2bd146e4c1a5023cc3c271cd878c7cbdec790731f5",
+          "retained_text_sha256": "0ff9defdecce7214bddbc79b91f85cd0ef287969e1c6e50c4610b6cd7d2c0bcc"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-operations.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:45:47.982365+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "1050e77bc46282670b9b069b45a373368dccd5c3d7dfa946b6245143df55e115",
+          "retained_text_sha256": "8f51aa7c5efc228771180e9fd468de7e81ba7e8645c8961d6a1f72c621748af7"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:44:54.370019+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2500021454e8525c97962f8747ef794aac2a8e16e96a2b863ef4a94e90e84eac",
+          "retained_text_sha256": "eaca9605d4a7e70ef37dba4f7ba8963dd4d022d5a45d29e4f717c4143d2ebeb1"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:49:55.627876+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "ed326cf66f0c34474eeab6de3066faaacf9b95b1b8c110e1877308aa2b4516f3",
+          "retained_text_sha256": "0dc43ccea6c160ee8c04534b4edc111138b227521f08f3264d75f41f6e36f94c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-load-balancing.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:49:55.605139+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0bb035527cd1a62b16746664591e83db3ebe9bc703cbf302fbc92c79fdc7f456",
+          "retained_text_sha256": "1b9a263153123518ffa2c019ea6ec72614f3a427392d83270dd5bced8a59fc0c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:11.200593+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "946b875e4430d665524b742f1a3182abea7a254df5e4e1900dda61842f94a59d",
+          "retained_text_sha256": "3df6eea31c1acf23f0b8722d4007a7fd99c8effd4a7bd61f9be11148dd86ce4c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-nodeadm.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:44:54.384363+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "9313c8bfdbe40e1f594aaf2fba298231af960a2213451d5f1fc1d30cd57e6349",
+          "retained_text_sha256": "36a2dede77eeb3ea146adcf21def587975dd7ff988d06311dc12ec4fa54f3343"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-os.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:11.171265+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a506664da36899fa19241bf476e70c13053c85c5264b5bc969c5b91010be5071",
+          "retained_text_sha256": "b11aec526fb668a9a7f8961bf67590c50fc6e0e808a4de0960f61af1de790621"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:58:14.016635+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8a5d9434d95c9c3ff59a71abc1c0b6750150da3ae24e6867371c60108ec9d80f",
+          "retained_text_sha256": "273ecd8c4aed93f24020eae9dd35dabf76ef12a4abafb29854fdc2a87732e23e"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-prereqs.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:11.167280+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3ebb6add99261589311bec6f91d90f49668ae10ec79e137509faa58c666bb152",
+          "retained_text_sha256": "0d994b72659a94c2ce14c8ccd026536c6934e851a22e31deab4a9ac972536cfd"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-upgrade.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:53:25.795413+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "36ec494e32d45cc34e71318fc02a380a7101ca139af470a5423608e46aef378a",
+          "retained_text_sha256": "f3007181e553a5b1fd5d4d3ccfdf21ad59c0e24f0c648d0b2be817ac5099c554"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-webhooks.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:46:44.926884+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "53a1b34963df86a271f471f2813796c0fbba59855683f64636d4020442cf865a",
+          "retained_text_sha256": "8e3bbccca630476e4fb15b0f0e4ab7cb71061b19f485233f6e17773ffdfb9ac8"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:58:14.036334+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8e6b297b596b91679b7753ecd58b39ed197e780f468310a6739052ec9203a10a",
+          "retained_text_sha256": "8662a52800f72d42177864527699bc94e9e10ea4d40e086b13606f6aef3928a5"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.483664+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d138041657e860500f59deae0e2887d28798d46dd35a5bb62222596ec292c4e7",
+          "retained_text_sha256": "74d822c025431815b1f9aff148314ae55b83633c4d4bced1f95af33f3c1904e7"
+        },
+        {
+          "retrieved_at": "2026-09-19T10:46:20.493134+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d138041657e860500f59deae0e2887d28798d46dd35a5bb62222596ec292c4e7",
+          "retained_text_sha256": "74d822c025431815b1f9aff148314ae55b83633c4d4bced1f95af33f3c1904e7"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:39.013158+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "cae062cd57678a336c46545f550806de3e5e42272cbc796a413a245815155f3a",
+          "retained_text_sha256": "075739a80c7f850984bc9e7ad55f8d16dd1c1fa2c08c82c5fccd1f9f0b2e0ec8"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/network-observability.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:53:50.476219+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "5b1413b17cd8857de5e59e8d7ab6d5a24c703f3af7e8acb5fe6446e094578b90",
+          "retained_text_sha256": "f8bf9b86b43a6283fbe4dbf362abc55c7e5f7fcb89f3b8d426551695d3236216"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/network-reqs.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:44:54.375697+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8043c71249977756dd46af1a86ee4c6a2df78d7a39545a13aedccf90a37a264e",
+          "retained_text_sha256": "63bc82404d48e8b0158362f26f6f5b316fabe2f47efe723a3f412adfd73f3d91"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/node-efa.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:41:45.636348+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "12ecfea7cab4a518369730ce775c4e264fd8be2e3eccb3d4264dba94ff36981a",
+          "retained_text_sha256": "5906a6e745f87825716853176b02ea3666823a49fce4685549365664b6ac7490"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/pod-multus.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:11.159281+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "29a37afb56d48d2f7d1fd6e8fb6113dd5d344578cdfe211af8e33e6a1a0f74e3",
+          "retained_text_sha256": "4da751f76e62869b807846f9dd1ee53381092ee45f93f7e2ef88ef8075a895ef"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:44:54.399398+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "608f31a1bad1c5c3416bd688b77679c119d6860d90390641f919fe6ded11f160",
+          "retained_text_sha256": "1d2857e4d44ee99c2cde596da8e90709a3cc1374f26b8a3a35002c5c8b9c4045"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:20.491723+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "66e1c9569970c1b7acefe267eb209e219d70f40cc27d3cd9bdd169a81db987b1",
+          "retained_text_sha256": "a8f87786dad1ef1cc3f268837c0e609a250dde89136e9d2dc7c3f1ff9d574164"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:02:11.941675+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c66ef7ae6447ecb727a013445ea265b0617f23b4db0e015de83d5a3edefeee41",
+          "retained_text_sha256": "affeba00c78d93986accdbe1bbab60bb91f966b6b9d98cdf0d3ce8a96f503303"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/fsx/latest/OpenZFSGuide/what-is-fsx.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:02:12.213160+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8a2c44e9fae28269e8c02c306cab0d8555b55dfd9beacea5b5655b5a5f751117",
+          "retained_text_sha256": "e42b3f4e62bad9fd040ef2579bf7fd0437f3a0abe783572b81449b3fd959f665"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/linux/al2023/release-notes/new-AL2023.9-AL2023.10.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:03:16.815614+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0230f449ca174d28a2ec9265300d1e97bc349e3b4dfbfc3d9315d4e253bfd092",
+          "retained_text_sha256": "5237f7e205359f0b709209c1025d319281e235c95d08f57ff84862cd6c6d6a93"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/linux/al2023/release-notes/removed-AL2023.12-AL2.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:02:12.140453+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e1d627c37f9705bb145eadfdb22f9012a9fd3993f908a6f1deb25348da1ac812",
+          "retained_text_sha256": "545e5de711b3a17b42ce7fad40ed896981d9409bfee1fba92b62c41ee465892d"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/linux/al2023/ug/managing-repos-os-updates.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:55:49.554567+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "ba7bb8c3a44735a862d68ce395c10bfb229d2688d18b38e40230dabde852d641",
+          "retained_text_sha256": "b291e3bc7833274e47cf5c5767c3b401f27f8d24ea151188c41e715cfe833e22"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:57:22.757387+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "be5b423e6be7e515e4ece5e1fc2b75037a30db204383b7ca0f5e8832e6df8df8",
+          "retained_text_sha256": "e5a1518494c015012ad47609314cfaa3f8876873f912e698706313846da9741c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:11:44.637334+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "050704b60ce276b546e27a7242da34ef60e5201233a7ef8db38e0fea25107d0f",
+          "retained_text_sha256": "4d5d51a4d7053ce75f6462d3503250a036d72c1bed65b169ad393f6faecc8f4e"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rosa/latest/userguide/integration-marketplace.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:10:13.130214+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e8d9ec5252b3e5b7fcad29116ad9aa5045118e6537226c45aecc430eb6812fb2",
+          "retained_text_sha256": "96fc994c17a0e849f451e022b45f560fca1abe447b6fb9e3c55d1f738a4d705e"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:10:13.136062+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "4591a09e8bfb74ca7163dd48baf29bc3eb7b4ef0b37a3cd80ea084272cbc7a9d",
+          "retained_text_sha256": "e699d26cfc407b07ed525559c6967a42e7071d057614890918606deb076723a9"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rosa/latest/userguide/rosa-responsibilities.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:10:32.603279+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "85be052e63537ce5808ca6ef996c3f7a5e8056f800d2c9dccc87a9ea42ce8820",
+          "retained_text_sha256": "e8ae0ed62443e12580d368d8662a8052488b996a7fff15adb6ccd07b1b44a77d"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rosa/latest/userguide/security-iam-id-based-policy-examples.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:10:32.570079+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "431794c5408339bd592e0eb44549ea3ecf573ff0694661421dfea98e9214f1ba",
+          "retained_text_sha256": "1dc3eabcd30c833e865258f1db95680be141acb6998384aa5c83e315e4321be1"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rosa/latest/userguide/security.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:10:13.134262+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a239fceefac31590d232fe2cc7d6fcccf274f1a4287d2c8c787be7ccdb525338",
+          "retained_text_sha256": "1c4ce32ba14c00d24acc0503c67d10cdc09b064bc8035c75ed973f077586576c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/rosa/latest/userguide/set-up.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:13:56.776694+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "01e7624e9964f63be2309805bf7eedec48a429afb86bd42d626e6874d5ff7f60",
+          "retained_text_sha256": "65bfaa804c1edebc930460f7ca2b523f2b744ff44ca80982596bf32311fc8dca"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/savingsplans/latest/userguide/sp-services.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:03:39.359683+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f5354f25943650a177218b1a1cfea83786490fca42fc65b509ba952bf714d742",
+          "retained_text_sha256": "02efe07811780bc95d9858699a531dbb2fc188f15f03bcf287a631521b8a8e4e"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/setup-create-vpc.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:50:39.617868+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "23af1ec5e2a5eff3415d22549fb91591b5752168cdb5382ef3b910f333683834",
+          "retained_text_sha256": "8ba80436f11107538d749c0893e68e29b85748d1cfa910d5d534b712d2edac80"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up-messageAPIs.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:52:53.226928+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "eaf26efe24c119912d4a9ee48d7aadfada4ef501e1f5c03bc5defd6700f284e7",
+          "retained_text_sha256": "3dacac01052ff032fbf8052b9d4eda3ea93ce2da953ffdaf86cccb6480e99442"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints-s3.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:50:39.654800+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "617af77f8fc883059d377890ad2f590b58a8f957c46830f895fa97dcb95cbc2d",
+          "retained_text_sha256": "7cb36e86dc7625a3570664819ed78a56757c9882fd3d504240a539987efc85a7"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:46:44.921523+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2c90fe726409b03eb4d48b283f75319d011fc8ef8bf5b0fd5c690ce3d8e7dbfe",
+          "retained_text_sha256": "51d1febb8654584e6e1afb5db13450407f0c9bb1eacccf5209e54d711a71e38d"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/vpc/latest/userguide/security-group-rules.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:44.031105+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "fcbb2dc1c01d6bb32d5407dc3d93e9f47850effad12839572e47789f549a71a9",
+          "retained_text_sha256": "1f86b3f2649040eb7f56a525d7675e6789684b428d2ddc0f510bd6156e7fb6af"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:57:09.858572+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2bd3ba6212dd9c5b9b4683549f05a8939e2aa893283fc3adff15fc1377a7399a",
+          "retained_text_sha256": "6488618199c4dd9c1893cd62ed1abf0e616d5d72e48385829d9c6008142212bf"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:44:54.201436+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c180cb27dcb994ffd248fdab3490ed976399a4316e164d9e1590479733082bfd",
+          "retained_text_sha256": "cfb3b4059b6c4133622d260230008c6877847905236b4298205ecf814336514c"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.cilium.io/en/stable/observability/hubble/setup/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:54:12.224495+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "73bd8cdd39d6c9218343b38ec62e649a04681e11b0a70d30c1c7d4018895c411",
+          "retained_text_sha256": "ea816a04019069bc435c5b115f7e6db47b0acddf8a629cc205c474f4af43c240"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.cilium.io/en/stable/observability/visibility/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:53:50.210005+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "bb26a1bedba3821e2b1c9a93bc0eb43b3ffb73ed4b0d9d9682f65f390003173d",
+          "retained_text_sha256": "c739ccaa202ca4770c598a3b50a6754e017d751942e46e301f3972faa3ff55aa"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.cloud.google.com/compute/docs/gpus",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:22:10.533389+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d0764492556a6e1851c06eee3b7eb483ee25c2640c7f1aa3b4f96ce48686887c",
+          "retained_text_sha256": "15f9049d864ad29cf6699391ea1caad66b292ccdbc6b26594016dbc2993d7bb1"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.docker.com/reference/cli/docker/login/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:51:11.966617+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "1cea9f4875968cf3fd121cfca2b2d17c2f4340ab64898c73711c30beffd513c0",
+          "retained_text_sha256": "b94cbf86322a480604067eb86331a090c7c16bdde5240125f29559feb5ae49b6"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:38.974926+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8f31f4bdee103b148a547fab7dcea9820f3fbbdefef48785fb622db881ba6b80",
+          "retained_text_sha256": "2104916eceb9ca8a8f05ad159c3f21efeeb848b92519ab89ee776713d21eeb58"
+        },
+        {
+          "retrieved_at": "2026-09-19T10:28:56.584938+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8f31f4bdee103b148a547fab7dcea9820f3fbbdefef48785fb622db881ba6b80",
+          "retained_text_sha256": "2104916eceb9ca8a8f05ad159c3f21efeeb848b92519ab89ee776713d21eeb58"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.nvidia.com/datacenter/tesla/mig-user-guide/introduction.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:02.807487+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3b6b26a92b8181b7e6f2b3b97d036c70dff5aa676c59973e04b8b897eaf1deb7",
+          "retained_text_sha256": "3eac14f1020d83a0d8d5be0b8f899a42b59866fdc39057552c0de4a4d2472f58"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:40:43.468668+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "865953957b418c9df965e1b37a183c0cf0683ac020d029d75c5d78ca2ee86268",
+          "retained_text_sha256": "6a18c79e390f5065f51ca6832a77e46a29fbb921962e033f6948c1d5eac8b417"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.nvidia.com/deploy/xid-errors/analyzing-xid-catalog.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:41:08.854407+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "6d807e595ec012270a80ab19cc4c3f69abc5a462d1452d376cd21c1b0edb0802",
+          "retained_text_sha256": "093434606507dc374535a4bdd2811f0ba09d69598fb608368c1e273c705a1480"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:42:13.945538+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "aa3dd7e72e910b03e697dfe7cfb76efc04bb9382f0c73cf620eba348eea6c945",
+          "retained_text_sha256": "16c8454e80f3c145fa493fc3f5aea0857ae5f6bfb33048176c14f68395ab6491"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.nvidia.com/networking/display/MLNXOFEDv24101140lts/Installing+the+Driver",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:41:40.123498+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "5edb4390a795c59da4f10e1addce0d285f206ba6451969d41e084fad2d5735cd",
+          "retained_text_sha256": "85326fd09b56aa19587a07047b6d046e3c34aa562a5156d6a299ca2ef30c7cce"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.nvidia.com/networking/display/mlnxofedv24100700/general+support",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:41:40.479150+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "fcb8035ca7082cfcdafe3cf5d0272e32cb17255b7807122e40cb8170a3551f56",
+          "retained_text_sha256": "a5a554918e4035eaaf1696ed2b10727d4dca896b1b6438dc2d16985266bd508f"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.openssl.org/3.0/man1/openssl-verify/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:00:18.830670+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "cb146ba353e1c87cd1aa4be58a63bb8d61e7789667cb2f7e44585bfe8bd19d4e",
+          "retained_text_sha256": "930181a458ed648c7dd116e7352249f68c53052c5015df70ee315cf194638457"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.pytorch.org/docs/2.14/distributed.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:41:08.852848+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0f8478eec43f716474141e900446cffa4ab997f9567981765dfbd6f0cabf95f6",
+          "retained_text_sha256": "9b4d1d3c7c9eb941a5504f5ae8f7eda3b8bebe8f1e7252c7a338519aa2089dc5"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.pytorch.org/docs/2.14/elastic/run.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:41:08.854288+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "bca84016d13fe4c0e69cde51b6fecbc1aca3f6598b5824538f452eea8119eefb",
+          "retained_text_sha256": "b09035599e3d64e88fd1d5e4ced6f25407eed15ddcfa13e72f3939d97910ba85"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.redhat.com/en/documentation/openshift_cluster_manager/1-latest/html/managing_clusters/assembly-user-management-ocm_assembly-cluster-subscriptions",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:11:16.336016+00:00",
+          "retained_evidence_kind": "reviewer paraphrase of retrieved primary page; not raw page",
+          "raw_content_sha256": null,
+          "retained_text_sha256": "5a1a6af3e996aac8a41f346502912fd87c3e0debb9796cfe73bd793d6664dba3"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.redhat.com/en/documentation/red_hat_hybrid_cloud_console/1-latest/html-single/configuring_identity_provider_integration/index",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:11:16.333486+00:00",
+          "retained_evidence_kind": "reviewer paraphrase of retrieved primary page; not raw page",
+          "raw_content_sha256": null,
+          "retained_text_sha256": "ef5a8e0d6d1ff58ffd544dbb6501f4090f6841d629927dd1f2713dd18a7d0684"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws/4/html/install_rosa_with_hcp_clusters/rosa-hcp-egress-zero-install",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:16:31.119860+00:00",
+          "retained_evidence_kind": "reviewer paraphrase of relevant retrieved sections",
+          "raw_content_sha256": null,
+          "retained_text_sha256": "c6fb2ed49398f4c515e4060dc6dcd5375cd84682dc098f62f7c510b7aa7129e8"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws_classic_architecture/4/html/cluster_administration/managing-compute-nodes-using-machine-pools",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:14:37.757422+00:00",
+          "retained_evidence_kind": "reviewer paraphrase of relevant retrieved sections",
+          "raw_content_sha256": null,
+          "retained_text_sha256": "fd10f5a79009f8cebf3dc848649d40d5cd270744be3be98202cb6ccd54017049"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.redhat.com/en/documentation/red_hat_openshift_service_on_aws_classic_architecture/4/html/cluster_administration/rosa-cluster-autoscaling",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:14:37.755610+00:00",
+          "retained_evidence_kind": "reviewer paraphrase of relevant retrieved sections",
+          "raw_content_sha256": null,
+          "retained_text_sha256": "5daaa06633a2cd9d4edcdca650aa25aa1daca12bd085b6e26801946eede09f98"
+        }
+      ]
+    },
+    {
+      "url": "https://docs.vllm.ai/en/stable/serving/parallelism_scaling/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:41:45.636508+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "50878fb3674d583a5a1ff956d760f5606d08426fac6b2b9fa357b9f17f78fc0e",
+          "retained_text_sha256": "5d6d4fad906f3ab2b5b75dc16d9cc6737723034ffc6e1b67238fa5f22ef77d68"
+        }
+      ]
+    },
+    {
+      "url": "https://documentation.ubuntu.com/server/how-to/software/package-management/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:55:52.220612+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "ee926ee1dd64b742a27d9a946dddb7b9ccfcb422fd3ccfa0edfd39323ce841f2",
+          "retained_text_sha256": "f79dc6d225e1312e887d3b56b47dd209e402e947630688c4da6cddfaf6fe1ba0"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/administration/backup-restore/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.730172+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "b182728c9b6db5d4dea194acbd114cfefbdde3b2cc5830f693af25b32cf2cc0c",
+          "retained_text_sha256": "fbc061864e842df811b850202cc5e47499e659ed0b6afec4048f129f405d387b"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/administration/configure-authentication/ldap-auth/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.537995+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "fdd88ad4bfa92fc03e841d549257297396159c1b4386b5403b3bb1515b63946d",
+          "retained_text_sha256": "f9b26125d3e25bf8aa3c441be876d7860d1687c3042a71b763dc8fd9a1b57598"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/administration/metrics/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.223528+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f1bcf087c8df7254abf75bd5a712ecfd301ffa92181811b6ecc1b23dff07f19d",
+          "retained_text_sha256": "0a587baec3c9e23c39bf17ba4c9c8cb3fab3d74e1c23db3cb4fb6a283ce2871f"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/administration/robot-accounts/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.302290+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "bd4e658a1b371d76b61c2837457233d512487eb290b893b19c03d1480f791c23",
+          "retained_text_sha256": "585415f866c7843cdefeb2e90f7be9aed98d4c540ce38c597f904d110163e060"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/install-config/configure-https/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.549009+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "bf97b931749646aa678269b76476507c45f69490773113e48466ba92ce4e27e1",
+          "retained_text_sha256": "758b563afa29b87650afc6eccf2dfd8577e47b36c91e5feb18b36eac14d91540"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/install-config/configure-yml-file/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.362084+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f9513e69d78cf2b3d4a7ff2e29a4e08b1099b5dd8e88dcaaf335b8075394725d",
+          "retained_text_sha256": "31af507d81a29be48255987791cb7eb13ba39ae2d3b5ae5d02a14dfb8cefed1c"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/install-config/installation-prereqs/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:31.919453+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0dfaed64bd01ee10f7cd1272944c1fdd3788c09386226cfb5dcad5c8fdb74c44",
+          "retained_text_sha256": "0a7a07bf7a8a6c8d5d3d6d1f3ae88fa41c462a17faae3e0f01e4e67abbcc89ef"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/install-config/run-installer-script/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.361875+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "308f210336f908e044bd29ce7d3001dc4529dbf852101091d71de3ee61b7cd64",
+          "retained_text_sha256": "26f6723457b22cf89b16469c0bba7f8610e8d2624b3da7b89b40c6cb18f23be3"
+        }
+      ]
+    },
+    {
+      "url": "https://goharbor.io/docs/2.15.0/working-with-projects/project-configuration/implementing-content-trust/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:44.406180+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d87e13104c7b2eb3958995dbb582d33e0a0ff2d928395de0065339870dda0745",
+          "retained_text_sha256": "bc00a75fa3a9ad31cf4ebaabb5415bb613cc91e1b08c0e8e1ac3f031995119f4"
+        }
+      ]
+    },
+    {
+      "url": "https://helm.sh/docs/intro/using_helm/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:47:47.161901+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "52291649963bde50d813b3463d96472a560f0d85919e7e170bc2252d3053487c",
+          "retained_text_sha256": "21994687180cabfe0810d458064e528d66d622d457c9882820811285449e3094"
+        }
+      ]
+    },
+    {
+      "url": "https://infohub.delltechnologies.com/en-nz/p/what-if-unleashing-innovation-with-amazon-eks-hybrid-nodes-and-dell-powerflex/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:02:12.226279+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3ac0c223fe144cd66085ba257851812ff23b672e274a4270884716940e70dc89",
+          "retained_text_sha256": "82cf3bb4efda41da85d2b013edf7049408b66563cc7de4727759f528f4b234a2"
+        },
+        {
+          "retrieved_at": "2026-09-19T09:03:17.214226+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": null,
+          "retained_text_sha256": "b5be77606604bd7ca5b566a29d2aed39e4f6f86fcf7ab991e9bbf611fcd246ec"
+        }
+      ]
+    },
+    {
+      "url": "https://jmespath.org/specification.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:58:14.353655+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d3a9a26724e50be4266fa12bcc54e87f3efee897261b486d424007c70d375a84",
+          "retained_text_sha256": "1dd0872117e430f8d5dd7255a590eef7a25e5ab244004cfa86139e3ed2d34420"
+        }
+      ]
+    },
+    {
+      "url": "https://karpenter.sh/docs/concepts/disruption/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:43:47.974252+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "7efa32ed1794ef44a9edf1a51b31539265a35c028d8e4906d40a11dda131af73",
+          "retained_text_sha256": "5d957913d7ab92c801eec8155fb134edd21cb633c2e1b5e3b26e94da8cee3fdc"
+        }
+      ]
+    },
+    {
+      "url": "https://karpenter.sh/docs/concepts/nodeclaims/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:28:56.583345+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "230e8c94a27cab8fb29e122afda636fec0bb564f354cb7d066c07e0099519a32",
+          "retained_text_sha256": "dd5f5b2f7078c68ef584d2c195fd8c72c1b2a490b7baec79205c2f359674faca"
+        }
+      ]
+    },
+    {
+      "url": "https://karpenter.sh/docs/concepts/nodepools/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:38.758571+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "15117bb75f42bea1f1a6ad9ebb0cad75e844b676995a2d652fda1d378c7341db",
+          "retained_text_sha256": "7b3a4adfb196b6a0e9188dfeb31e7c6af3de52898905d9af20057007c0d0b963"
+        },
+        {
+          "retrieved_at": "2026-09-19T10:28:56.584635+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "15117bb75f42bea1f1a6ad9ebb0cad75e844b676995a2d652fda1d378c7341db",
+          "retained_text_sha256": "7b3a4adfb196b6a0e9188dfeb31e7c6af3de52898905d9af20057007c0d0b963"
+        }
+      ]
+    },
+    {
+      "url": "https://karpenter.sh/docs/reference/metrics/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:43:47.975899+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8c84ff572fff9b78220ab93c33260ff1d9621ae3408f697f7cd16e9b8184b687",
+          "retained_text_sha256": "5b9ed44128df7ae65e14d0b9a4bf9cc7fc3910254adda87b04601476cb29ecb7"
+        }
+      ]
+    },
+    {
+      "url": "https://karpenter.sh/v1.14/concepts/scheduling/index.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:22:09.409409+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "7f3d3778d4438bdd3df4af55e19445354a25519bef163cf113ca2fb769c2f223",
+          "retained_text_sha256": "7f3d3778d4438bdd3df4af55e19445354a25519bef163cf113ca2fb769c2f223"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/cluster-administration/node-shutdown/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.449648+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "eeedacf20e9b1b9e0cf3b373da77042290e0a603412fb3c9b52f35625846ff04",
+          "retained_text_sha256": "72fe9f6d47ab7043fae06a62cb07a4c4cf3c093a46babccd0ea54a61c8b4bca6"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/overview/working-with-objects/finalizers/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.371812+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3e23d48b00930856d4ddd4d1b43114c3e2f013669977ccc17873036c6db3febc",
+          "retained_text_sha256": "3763e46f4d64a1f6f0e08711de641d929da2e10cff9530e0371e87382f03f165"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:39.633228+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f3750973edd128346a09320200134f98ede766b0cd40ba8e8aa576568a0bd580",
+          "retained_text_sha256": "789a4ecd1c75bd2c05b79cee57ea8d5e48e7176af6dea9575cb586321da0e283"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:39.666081+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "7ceb4561dbf04288b189e9a282b04ad2e2bb9490b4249387b9af72975b495142",
+          "retained_text_sha256": "d9af4cb7ba16cd5b83768d6798640ed3d540466e4a2c0e59a4a6615e64ebe7ff"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:20.289466+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "863abf1a26b1972f1ed6092b498dff37792d1d3108b5858dfe6076b8942bd5dc",
+          "retained_text_sha256": "5b2d95ff4a0086277b6763f7dc25a1bba3c287433e207b11108bb4d9af6f8319"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/services-networking/network-policies/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.680381+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "2aa3178f3e59a6b612d67fe8a656fddb57184efce1f8095aa98e02816b70c2fd",
+          "retained_text_sha256": "33d02c0597c880d09a478d18e5586d2b47f1ca1a1f7fbe244b9cef89dcbfcc89"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/services-networking/service/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.909318+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "b2ccdc2b9429f518948706c41e74999758a900b81dfacd600ab330c82c0fe342",
+          "retained_text_sha256": "54fe3d2033092e6f505a41c342285652d6a81db2eb9e801c2ef6c71158f3a5cf"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/storage/persistent-volumes/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:15.703019+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "5ecd16b037d72270156ab376004ce580ea4e1478d0274ef2560465cdfaf58dea",
+          "retained_text_sha256": "a0ad023448ea19de82d41dc1b38d1d5aee33d2678d2206ffed80374093b6b7eb"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/storage/storage-classes/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:15.703169+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "4351af9d340ea85ef08e0a02d14226081c5f4eac984f5a3ba6740cf8aaca3461",
+          "retained_text_sha256": "423bc2b16854ece22ff6a656c5769415f8108381e1e6483c5292d87002da186f"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:08:41.262113+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0376aecbab4669a28a3b9f7759f1d887fba90283d39d6eb41574328d73fa29dc",
+          "retained_text_sha256": "91b646e3073a52920ea0cd1015c5b271f5bdc9b527cdb888cd95d82ad8e7476c"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:55:16.373125+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "4fb3db96fb6a721115707f5ff027dea0843cb72ca7c66c0d2de7ee63fcebdbf0",
+          "retained_text_sha256": "ce644f4d3d51646e13bfdb86545f89186ef00b86d117dd24668be12e4fea45f0"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:43:47.976381+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "be7d87c4209a8b24dba17bd829f4e6e3e3bbbb0e94b4185e6587c9bd523dbd7d",
+          "retained_text_sha256": "60b4f861d5b155e10547248f5a0d948ed541d6c525124b159211225137746e85"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/config-api/apiserver-audit.v1/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:15.756433+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "97ddb98fc40a0836733ff70726055e76bb5da9831e3af7ea88bedc9a85eeb56b",
+          "retained_text_sha256": "327b1cb6f9573e753f375fbc6c4d524507b96962ef600b93dd7dfd9beaa0f30e"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_drain/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:56:30.151835+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "32d8c7882ad27fcbc682215abc17f4ef9ac3751dea191da8fa31c73394476dae",
+          "retained_text_sha256": "80ba16fe4269f4bea3634fb953350324d9824f9fdb5b16a6c9d58afb8a4c8050"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_label/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.956185+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "36e115b5ec41a5f5b5622b30dc4f1b0a9b725ef32534bc1b6ad6aea32b886426",
+          "retained_text_sha256": "510e624d5e14f01fba14797b00183a3d49a17c29f2d885b7eb114b44b79d43d9"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_set/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.985202+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e2c9740555bfc9bb1a70918342efd1ebbbe936b5897c85092e9082f297a6c255",
+          "retained_text_sha256": "b7aede1740ca1feb35b33facad49d2d5841e78dbafaf90920f1eff2eebbf3080"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:20.515599+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "1bbe58a87b1bcea942c970985feb7953370d62bdabca96f314cff37db8543510",
+          "retained_text_sha256": "8bb9eb9f19aececdf5df1a7e5a2c35437c3ce6f1da6313f2d6da2f775d7b1321"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.680504+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "532ad21568a3839cdee54544515e1e57c150025f258efc2b466f35bc39f1de0d",
+          "retained_text_sha256": "8ee6eedcb97634acaed8a12ac7b84bc67d0e09e71c5c2ae811a613bd987f77b2"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:39:39.499433+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0246eb3dea7f90cf5a3ae722953d06a075e34d73e468dfc4af333027e6a69451",
+          "retained_text_sha256": "b3c4ef958865296fb7cd7df7152ef8b4453aea5be525a4c210e3a751624859e9"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:45.101224+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "30c2c1d9bd17297c143cca960ee504275d55633bd5009651360f5b777e7b5ae1",
+          "retained_text_sha256": "be536b2d2d0c5ae8775b950e8ffdd51e4be124771ade39e18073ebda91306c7e"
+        },
+        {
+          "retrieved_at": "2026-09-19T09:52:20.625629+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "30c2c1d9bd17297c143cca960ee504275d55633bd5009651360f5b777e7b5ae1",
+          "retained_text_sha256": "be536b2d2d0c5ae8775b950e8ffdd51e4be124771ade39e18073ebda91306c7e"
+        }
+      ]
+    },
+    {
+      "url": "https://kubernetes.io/docs/tasks/debug/debug-cluster/kubectl-node-debug/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:40:43.468874+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "7d1e08b6ab288554f342142e0de0023b9e67f0c5d15615f60f2641ed8e3d0e21",
+          "retained_text_sha256": "1972bb2725ded89dd45536d62ffc3581698ea46f7aa3a4e6aa56aed6cad3b1c3"
+        }
+      ]
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/azure/aks/core-aks-concepts",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:22:09.356201+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "70d9d33aa397b7be36968d0e02693f08660e07767c89b5b54d4212d2d661197a",
+          "retained_text_sha256": "ae92a7d3866d705fbdb42eb9c687c3c591346d1a702363274efbd36a0230e58d"
+        }
+      ]
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/azure/aks/free-standard-pricing-tiers",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:02.458758+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "0b0344e90ff9a03ca779302e207e53058fd2aee9848be4427e66a088528408dc",
+          "retained_text_sha256": "8ff5394a97f6655c9d119a7cdde4ab49c2f291b14c42d17a8eb183ae1b507ff0"
+        }
+      ]
+    },
+    {
+      "url": "https://llm-d.ai/blog/predicted-latency-based-scheduling-for-llms",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:22:09.417983+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "58d5e9c55d2959b4183a0df3c17ebbdf0ce3e5ab517a7aa89f0e482cf50203fa",
+          "retained_text_sha256": "aed100b6c61c1ce9d1b39e2d7e639d1cff19dce61e96b5be2f0ec2b146717257"
+        }
+      ]
+    },
+    {
+      "url": "https://man7.org/linux/man-pages/man5/resolv.conf.5.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:47:38.667903+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "befeb0cf1c7474d0c9c85f52e13a2d71f297533ee215fd5c93582a454ce14c39",
+          "retained_text_sha256": "0182950da63ff1640a3dd8703e9d6278f4e15f074f4afd3c9bc449ea0da171d0"
+        }
+      ]
+    },
+    {
+      "url": "https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts/single-root-io-virtualization-sr-iov",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:41:39.948105+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "b508eb3e9dd819de1ea624a253ed93e88e99cfb13dd802a36c444fc748dbd046",
+          "retained_text_sha256": "782ba46e70f75c7ed1b899cc6ed22215186edd85fea8611bf0afe4a5000e228f"
+        }
+      ]
+    },
+    {
+      "url": "https://prometheus-operator.dev/docs/developer/alerting/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:15.755948+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "8dce3104dc43b31fdadc0f1a181942e8f6480276b7753ff584c28d1605912071",
+          "retained_text_sha256": "ddc58066ee516eb2c3ae425475ae8f6b41404341763c10359114dd616dbe022c"
+        }
+      ]
+    },
+    {
+      "url": "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:03.030349+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "be1d19cc91fadd78dab312443333fe301acd708eea4530ed6162bf1032174c9d",
+          "retained_text_sha256": "a557b1884e3e28d2d6b6fae02cf6bb8a48b28cc02a0069e43298fab7b0876015"
+        }
+      ]
+    },
+    {
+      "url": "https://prometheus.io/docs/prometheus/latest/querying/functions/",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:03.000257+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f8db9ba643cd423f8c95dcbbbb0f257f854cc3263c19237a0116a88718928088",
+          "retained_text_sha256": "649bf0a97209a4c00788f82c82ce540bf56459b1b87d99974287fe20ada19057"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/Mellanox/network-operator/master/deployment/network-operator/values.yaml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:41:38.973757+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "faa38afdc41b60b883ff7db8f97fc4f1fdcfcc1777e4b00c01f22b23a659d2e8",
+          "retained_text_sha256": "faa38afdc41b60b883ff7db8f97fc4f1fdcfcc1777e4b00c01f22b23a659d2e8"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/amazonlinux/amazon-linux-2023/main/README.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:02:12.418656+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "7dd702edd2558066402255aedc34e027ee57a519245fdd85ecae66d5a8ffab5e",
+          "retained_text_sha256": "7dd702edd2558066402255aedc34e027ee57a519245fdd85ecae66d5a8ffab5e"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws-observability/aws-otel-collector/main/config.yaml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:03.044633+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3693a54276bb85ab3ebf951ffa3420f17b6eaee48077086624f5c90ce87878ec",
+          "retained_text_sha256": "3693a54276bb85ab3ebf951ffa3420f17b6eaee48077086624f5c90ce87878ec"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/eks-hybrid-nodes-gateway/main/README.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:47:46.637446+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d062f32f83ca1af01b86fae3e3d19b3d0857108b21c6f3c000ee1ec0d0fdc594",
+          "retained_text_sha256": "d062f32f83ca1af01b86fae3e3d19b3d0857108b21c6f3c000ee1ec0d0fdc594"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/eks-hybrid-nodes-gateway/main/cmd/gateway/main.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:48:17.182897+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "05a0e2aa135fad6e9efd04c1946051ef197051231e4ef91e47c36481d492f4e6",
+          "retained_text_sha256": "05a0e2aa135fad6e9efd04c1946051ef197051231e4ef91e47c36481d492f4e6"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/eks-hybrid-nodes-gateway/main/internal/gateway/setup.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:48:17.182932+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3f765381d7999f546f472c099a191e3c0e4e1ee871523fa110dd1de23f9d4bf2",
+          "retained_text_sha256": "3f765381d7999f546f472c099a191e3c0e4e1ee871523fa110dd1de23f9d4bf2"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/eks-hybrid/20aace438668970fee38a1b053836c59fd5cfd72/doc/api.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:54:04.868163+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "55ffab0a197587d60f19a7dcc6dcdcdf0f4762f93fe9e3db4cd0ec631dd6bca7",
+          "retained_text_sha256": "55ffab0a197587d60f19a7dcc6dcdcdf0f4762f93fe9e3db4cd0ec631dd6bca7"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/eks-hybrid/20aace438668970fee38a1b053836c59fd5cfd72/internal/containerd/config.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:54:04.866206+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "609b1e74746356a331e807cc9c64038eac5fac1db016ad7dae119a1c100024f1",
+          "retained_text_sha256": "609b1e74746356a331e807cc9c64038eac5fac1db016ad7dae119a1c100024f1"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/eks-hybrid/20aace438668970fee38a1b053836c59fd5cfd72/internal/containerd/config.template.toml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:54:04.867920+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f122c4e561d905c0cdb5b2d8b924e87d70424c72ce5b5142943409536d997146",
+          "retained_text_sha256": "f122c4e561d905c0cdb5b2d8b924e87d70424c72ce5b5142943409536d997146"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/eks-hybrid/20aace438668970fee38a1b053836c59fd5cfd72/internal/flows/upgrade.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:56:05.145609+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "44a4075de44dcda8df2a7904e14fcbb5ad849ab601887b8883d9ab255f12a063",
+          "retained_text_sha256": "44a4075de44dcda8df2a7904e14fcbb5ad849ab601887b8883d9ab255f12a063"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/aws/karpenter-provider-aws/main/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:43:47.976013+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "5b2ad889022b9e23f78ba4ff289b06af33b19c33b0e3bfbe2dabeb9b17691c90",
+          "retained_text_sha256": "5b2ad889022b9e23f78ba4ff289b06af33b19c33b0e3bfbe2dabeb9b17691c90"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v1.7.28/pkg/cri/config/config.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:08:13.707813+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e4686530b716961f4e9d50227b80b875b4d89a9ff0ba60adc672e328acc61668",
+          "retained_text_sha256": "e4686530b716961f4e9d50227b80b875b4d89a9ff0ba60adc672e328acc61668"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v2.1.4/cmd/containerd/server/config/config.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:51:11.966509+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "10db443d8f097aa05ed3177b7dc4aceec04932079c6a05edb3bec81c8f293462",
+          "retained_text_sha256": "10db443d8f097aa05ed3177b7dc4aceec04932079c6a05edb3bec81c8f293462"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v2.1.4/cmd/containerd/server/server.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:52:20.622389+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f15907c97281cb1be48edff232df4762f89abb138a2d2dcca6829fc85042408d",
+          "retained_text_sha256": "f15907c97281cb1be48edff232df4762f89abb138a2d2dcca6829fc85042408d"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v2.1.4/docs/cri/config.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:52:20.625380+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "d98bf439e54c91626b8c2ed1c3a84cc73ddb049283cc3ca234a856c061ccefb9",
+          "retained_text_sha256": "d98bf439e54c91626b8c2ed1c3a84cc73ddb049283cc3ca234a856c061ccefb9"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v2.1.4/docs/hosts.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:32.304597+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "291f51bf2badc1485e6b791db0910de1fcdf9a56576872971d799a1167e6c704",
+          "retained_text_sha256": "291f51bf2badc1485e6b791db0910de1fcdf9a56576872971d799a1167e6c704"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v2.1.4/docs/man/containerd-config.toml.5.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:51:11.966412+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "521cdfd74941e1644f8a907ad966dd2f12bbacc714ab226b060fa098da973162",
+          "retained_text_sha256": "521cdfd74941e1644f8a907ad966dd2f12bbacc714ab226b060fa098da973162"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v2.1.4/plugins/cri/images/plugin.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:52:20.625122+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "473c1dbcb3ef76a9cd14e36aac0f8483d8545934c1970ae19690db32274729ce",
+          "retained_text_sha256": "473c1dbcb3ef76a9cd14e36aac0f8483d8545934c1970ae19690db32274729ce"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/containerd/containerd/v2.1.4/plugins/cri/runtime/plugin.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:52:20.624856+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "6019e62a84cfc05596dbf0c37d2119c7809afb3b00919cb0310a2c93dbcb4cba",
+          "retained_text_sha256": "6019e62a84cfc05596dbf0c37d2119c7809afb3b00919cb0310a2c93dbcb4cba"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/docker/cli/v28.5.1/cli/config/config.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:51:12.257454+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "906d6d67782e411bf271b365d084a9b6ba7d44a788afbb7f52a047c69c5161e2",
+          "retained_text_sha256": "906d6d67782e411bf271b365d084a9b6ba7d44a788afbb7f52a047c69c5161e2"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/docker/cli/v28.5.1/cli/config/configfile/file.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:51:12.260235+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "96400edef3cf1bce6ad14bca0d7a2a41274172b5bcdfb4f5ad144e7bc995aee5",
+          "retained_text_sha256": "96400edef3cf1bce6ad14bca0d7a2a41274172b5bcdfb4f5ad144e7bc995aee5"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/docker/cli/v28.5.1/cli/config/credentials/default_store.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:51:12.259602+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "784c107c8eb80f8c68de56445c51c3a3295b59b6e7229c7c98ab047c1ee1412c",
+          "retained_text_sha256": "784c107c8eb80f8c68de56445c51c3a3295b59b6e7229c7c98ab047c1ee1412c"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/docker/cli/v28.5.1/cli/config/credentials/native_store.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:52:20.625528+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "381ed771f084cf6f5f83fe2efe7e85f9bd7dee2ef80d773f1b66d1962f4b0ff6",
+          "retained_text_sha256": "381ed771f084cf6f5f83fe2efe7e85f9bd7dee2ef80d773f1b66d1962f4b0ff6"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/goharbor/harbor/v2.15.1/api/v2.0/swagger.yaml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:08:41.399830+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "9be2b505d4c6baba40e6d646eac2b0aa4ff11f938727ae1eaa491ca01ebf71c7",
+          "retained_text_sha256": "9be2b505d4c6baba40e6d646eac2b0aa4ff11f938727ae1eaa491ca01ebf71c7"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/goharbor/harbor/v2.15.1/make/install.sh",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:56:12.181576+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e9cb425aa63b9c3d8e60ac2398222d8b055d4984b6f249cf3420bd00e50e8110",
+          "retained_text_sha256": "e9cb425aa63b9c3d8e60ac2398222d8b055d4984b6f249cf3420bd00e50e8110"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/goharbor/harbor/v2.15.1/make/prepare",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:56:12.182957+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "b69786057bf925dc306212a5544f5434418b584988b36ae565123eae6133265a",
+          "retained_text_sha256": "b69786057bf925dc306212a5544f5434418b584988b36ae565123eae6133265a"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/google/cadvisor/master/docs/storage/prometheus.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:15.756143+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "51b400bcc26b901c25e9951cbb13fcefa2fd812a7948442db3f9bba20cb8281f",
+          "retained_text_sha256": "51b400bcc26b901c25e9951cbb13fcefa2fd812a7948442db3f9bba20cb8281f"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-network-device-plugin/master/README.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:41:38.966060+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "f50ff4053b4dc53870e87b7e8079026f87f3ab5219d7e08d8c5e7e01d879c35b",
+          "retained_text_sha256": "f50ff4053b4dc53870e87b7e8079026f87f3ab5219d7e08d8c5e7e01d879c35b"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes-sigs/aws-ebs-csi-driver/master/docs/parameters.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:58:14.352975+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "bf871b9a29562c0c33e0d7e9712898bc1f359c2713c7d22704185a80261d0abe",
+          "retained_text_sha256": "bf871b9a29562c0c33e0d7e9712898bc1f359c2713c7d22704185a80261d0abe"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes-sigs/metrics-server/master/README.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:58:51.432142+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "1268edb575b90e533a249611de76ac824582cdbacdfbb0997ff6f51f247949d0",
+          "retained_text_sha256": "1268edb575b90e533a249611de76ac824582cdbacdfbb0997ff6f51f247949d0"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes/community/master/contributors/devel/sig-api-machinery/strategic-merge-patch.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:47:38.666404+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "e799eb81fded1756da879626114d31817e2550c9b661705557146ad056d80bcc",
+          "retained_text_sha256": "e799eb81fded1756da879626114d31817e2550c9b661705557146ad056d80bcc"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes/kube-state-metrics/main/docs/metrics/workload/pod-metrics.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:50:02.993907+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "c6b1bbda544ae6d13a48938b86a3fd7ba85ba3e8b3934586165b63bf126ea007",
+          "retained_text_sha256": "c6b1bbda544ae6d13a48938b86a3fd7ba85ba3e8b3934586165b63bf126ea007"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:46:19.680665+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "4e648f5d7e87dacdb72427ec60fa68461d7ef51debcf0e519146c42ff3afadb8",
+          "retained_text_sha256": "4e648f5d7e87dacdb72427ec60fa68461d7ef51debcf0e519146c42ff3afadb8"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/open-telemetry/opentelemetry-collector-contrib/main/exporter/awsemfexporter/README.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:51:15.755535+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "5bff478d784ceccdcc6135af133c5ae219a7ae4c4ddac39ca92742e5d0338730",
+          "retained_text_sha256": "5bff478d784ceccdcc6135af133c5ae219a7ae4c4ddac39ca92742e5d0338730"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/openshift/rosa/master/cmd/create/cluster/cmd.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:13:56.831865+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "5ebabc73b2a940d7ecddf461d8b26ccb7649cca794aaaad71405ed0ab63dbc2f",
+          "retained_text_sha256": "5ebabc73b2a940d7ecddf461d8b26ccb7649cca794aaaad71405ed0ab63dbc2f"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/robfig/cron/master/parser.go",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:47:38.667606+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "1da6876acb8410f3e4e098f3e503aee2a4b95f2418707463cb12bf6492c32723",
+          "retained_text_sha256": "1da6876acb8410f3e4e098f3e503aee2a4b95f2418707463cb12bf6492c32723"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/systemd/systemd/v255/man/systemd.link.xml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:42:14.056234+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "1545764f3d7ede6db3ed58cd162294053f4bcf856e836895b36db4950d161e9a",
+          "retained_text_sha256": "1545764f3d7ede6db3ed58cd162294053f4bcf856e836895b36db4950d161e9a"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/systemd/systemd/v255/man/systemd.unit.xml",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T08:42:14.039300+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "7a0f5260b0fa196419d51ea390f2ed0516a7c684fc1ef58e4dea64c4b52b1d00",
+          "retained_text_sha256": "7a0f5260b0fa196419d51ea390f2ed0516a7c684fc1ef58e4dea64c4b52b1d00"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/design/metrics.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:40:43.798663+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3803198da34c87733912048e7e4dd445fed0015017f816d764b076cc8dd09bb2",
+          "retained_text_sha256": "3803198da34c87733912048e7e4dd445fed0015017f816d764b076cc8dd09bb2"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/docs/usage/v1_guide.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:40:43.469626+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "55508a30f32adbb59c54a5e7266e605f66650ced6603c421c74f6782577b9ec6",
+          "retained_text_sha256": "55508a30f32adbb59c54a5e7266e605f66650ced6603c421c74f6782577b9ec6"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/vllm/config/model.py",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:40:43.913814+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "cd178d35604416b675ab39dce60fc896d9a7d7f9d181bdc8ed7ad34efaf57b8c",
+          "retained_text_sha256": "cd178d35604416b675ab39dce60fc896d9a7d7f9d181bdc8ed7ad34efaf57b8c"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/main/vllm/v1/worker/gpu_worker.py",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T10:40:43.914247+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "eb76abdc49a4477fe9eab67c3d3bd6e535ebaba4a0e7c3f3c36e34464f9054cc",
+          "retained_text_sha256": "eb76abdc49a4477fe9eab67c3d3bd6e535ebaba4a0e7c3f3c36e34464f9054cc"
+        }
+      ]
+    },
+    {
+      "url": "https://raw.githubusercontent.com/wiki/goharbor/harbor/Harbor-Deprecates-Notary-v1-Support-in-v2.9.0.md",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:07:44.107611+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "a991db6980839d519429ec088c234ea75fd92a2f9975b70a7cf2638c0482c3f4",
+          "retained_text_sha256": "a991db6980839d519429ec088c234ea75fd92a2f9975b70a7cf2638c0482c3f4"
+        }
+      ]
+    },
+    {
+      "url": "https://resources.anthropic.com/hubfs/The%202026%20State%20of%20AI%20Agents%20Report.pdf",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:24:01.394135+00:00",
+          "retained_evidence_kind": "reviewer paraphrase of relevant retrieved original report sections",
+          "raw_content_sha256": null,
+          "retained_text_sha256": "d69897c348fa51b0ff40fb7ff7e3d0814c5d0c2da915c9aaa8a8c351ea89e25c"
+        }
+      ]
+    },
+    {
+      "url": "https://www.gnu.org/software/bash/manual/html_node/Escape-Character.html",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:13:57.434199+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "3ab012d2627118de3a0bbe3c598091edfe2ae44a96ab7902617b69e4cf0cf2e8",
+          "retained_text_sha256": "1637379e88ea6f0c7b900d9cc3acaae833a2bb54599848f2b9b39230f6c8eac2"
+        }
+      ]
+    },
+    {
+      "url": "https://www.lguplus.com/biz/insight/trend/896",
+      "retrievals": [
+        {
+          "retrieved_at": "2026-09-19T09:18:04.189381+00:00",
+          "retained_evidence_kind": "Retrieved public source; relevant passages read",
+          "raw_content_sha256": "5963c26ac5bd83d8d1bf439ce0c50b559210da9d44b33fa81186985b0fc7db95",
+          "retained_text_sha256": "506a7d796e392e1b9eb9d99c6288e69bd5e43c8be748fcf7e5a432baf0230867"
+        }
+      ]
+    }
+  ]
+}

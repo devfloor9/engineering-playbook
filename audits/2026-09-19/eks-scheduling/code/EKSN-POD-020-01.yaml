@@ -1,0 +1,7 @@
+spec:
+  template:
+    spec:
+      expireAfter: 720h
+  disruption:
+    consolidationPolicy: WhenEmptyOrUnderutilized
+    consolidateAfter: 5m

@@ -1,0 +1,5008 @@
+{
+  "schema_version": "1.0",
+  "baseline_git_commit": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "records": [
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__advanced-patterns__adr-self-improving-loop.md.json",
+      "record_sha256": "6851cb586c1715bf5b57535b958cc9ab7936e2ae2616412ff1d2eef126b40005",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/advanced-patterns/adr-self-improving-loop.md",
+      "baseline_sha256": "8b27ee2770d4a8f2944edf027b8ba638433fe52600edbf19b04578dd1c7918d7",
+      "line_count": 140,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          140
+        ]
+      ],
+      "summary": "Proposed ADR defining self-hosted improvement scope, partial automation, reward ownership, four data gates, budget/rollback rules and staged organizational adoption.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 7,
+      "findings_count": 7,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__advanced-patterns__index.md.json",
+      "record_sha256": "b644c7ae7827448237f447399ff56aa3de13ccf20ded8eeda9432d4fed5402e0",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/advanced-patterns/index.md",
+      "baseline_sha256": "4d6d7f35b813c5309533e7f8a38e01b2300a19433a9b2deb131440aa00c63630",
+      "line_count": 26,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          26
+        ]
+      ],
+      "summary": "Category introduction and metadata-driven list for advanced-patterns.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__advanced-patterns__knowledge-feature-store.md.json",
+      "record_sha256": "b4cbdae37928c102b44d239352b0464826dd96c9daa5c9b9cab714d8ee34796f",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/advanced-patterns/knowledge-feature-store.md",
+      "baseline_sha256": "e5369de2c2d528a91ca3a751380b31161e37d33544404220d9630a2a4fd391a2",
+      "line_count": 332,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          332
+        ]
+      ],
+      "summary": "Proposed knowledge-feature architecture integrating feature, graph and retrieval projections with ontology mappings, authorized generation reads, transactional outbox/visibility publication, bounded fixtures and evidence-based quality/governance acceptance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 1,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__advanced-patterns__mcp-token-optimization.md.json",
+      "record_sha256": "79d090f23c227b68fe6249b20a943fe049bf6ca8fdd14ddf665b0eecbfe0de3d",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/advanced-patterns/mcp-token-optimization.md",
+      "baseline_sha256": "fa4e35d42292d69507c50b7b533deec01f4709f568e989bb0ba76479bdd2f41c",
+      "line_count": 308,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          308
+        ]
+      ],
+      "summary": "Four MCP context/billing optimization patterns: progressive discovery, proxy compression, generated-code filtering, and prompt-prefix caching, followed by gateway/governance integration and measurement guidance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 7,
+      "findings_count": 7,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__advanced-patterns__self-improving-agent-loop.md.json",
+      "record_sha256": "51c98e6aad4238330826ba67ee7c963f71e1bec4638d091ff7763eb961710268",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/advanced-patterns/self-improving-agent-loop.md",
+      "baseline_sha256": "ff592ac8f8749cd78565c04f83b819f714fd663dfe56b2a35248f3d91dfbab49",
+      "line_count": 1357,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          800
+        ],
+        [
+          801,
+          1000
+        ],
+        [
+          1001,
+          1200
+        ],
+        [
+          1201,
+          1357
+        ]
+      ],
+      "summary": "A proposed five-stage production-trace self-improvement loop with rollout, multi-signal scoring, privacy curation, GRPO/DPO/RLAIF/RFT training, shadow/canary deployment, reward-hacking monitors, governance, cost/ROI and organizational acceptance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 29,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__foundations__agentic-ai-challenges.md.json",
+      "record_sha256": "c267c87f691afe43a02327d4aff628acc474554848eb5bea568feac9fd25a227",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges.md",
+      "baseline_sha256": "782fcd9342b2b66953dee378997ea326334925c8f0383975c83ff4eaca9c442d",
+      "line_count": 343,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          343
+        ]
+      ],
+      "summary": "Five operating challenges—compute, routing, observability/cost, safe agent execution and model lifecycle—introduced through model-selection tradeoffs and Kubernetes responsibilities, then compared across managed and EKS approaches.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/AgenticChallengesTables/ChallengeSummary.js",
+          "sha256": "97735c4673272d6a30b0d2692283d220dc3d0b9f8595490854579a5760fc8cd4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              38
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticChallengesTables/index.js",
+          "sha256": "ad4cd0fd18bf619eea542d1d0153ff2fe7a4e1531ec4f67d6d555f987dc317a5",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              11
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 7,
+      "findings_count": 8,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__foundations__agentic-platform-architecture.md.json",
+      "record_sha256": "2126637832b71e11e5761107b75ab5254e4c9961ea715fa3cf406ce45204070e",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture.md",
+      "baseline_sha256": "deab2f725065ee95b0b8589258fa10e47f970fe31a28d8c180b52a0f3dd09e93",
+      "line_count": 835,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          800
+        ],
+        [
+          801,
+          835
+        ]
+      ],
+      "summary": "Six runtime layers and three cross-cutting operating planes, including serving/data/agent/routing responsibilities, training-evaluation-rollback flows, namespace/scaling/tenant controls, security, request sequence and monitoring requirements.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/ArchitectureTables/LayerRoles.js",
+          "sha256": "1aab68d616769c1afe48187d7eb871046b29b4917e89b2369f4a04bdced17e98",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              59
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/TenantIsolation.js",
+          "sha256": "8dd6b24680825aed297e7871a6c0b3b88707d9b331085e8279dbc03a3c1780bf",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              35
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/RequestProcessing.js",
+          "sha256": "5584b37da81834ae88af541816d5a1637161dafd6a07bf54c1bc5f088dd14b63",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              43
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/index.js",
+          "sha256": "9919044a149801b06b3ab317bbb02debe7e45c5ffe78e88766a79ab3a2ba66d8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              8
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 11,
+      "findings_count": 14,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__foundations__index.md.json",
+      "record_sha256": "cbbe26b635229839c32e06d3bbd24bdcb4b50075d46b2db354769e8d8275fcda",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/foundations/index.md",
+      "baseline_sha256": "14bcec4e9270f3a33e92249a93603de3abc665011924bdbbbc19c3e5f1684dcc",
+      "line_count": 25,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          25
+        ]
+      ],
+      "summary": "Category introduction and metadata-driven list for foundations.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__index.md.json",
+      "record_sha256": "775f783aabf56def6e43de30209050346caeccb80821ba0690cbcfd0173a2c7e",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/index.md",
+      "baseline_sha256": "b05bcf6809640eb4231e6bc25406c0c181c037ed91591c06f128fba0deaf46fd",
+      "line_count": 50,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          50
+        ]
+      ],
+      "summary": "Navigation through foundations, platform selection and advanced improvement patterns.",
+      "status": "reviewed_with_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 1,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__platform-selection__agentcore-hybrid-strategy.md.json",
+      "record_sha256": "e5d6fc6fe908e2d549f32695b50924f60778fcdae71c7ccc9f07b2a73aeef9c9",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/platform-selection/agentcore-hybrid-strategy.md",
+      "baseline_sha256": "f140aa99e44decc93b3a1ab923795ca7c3c1c5a77eecf2bf640a73d38b6d1fe4",
+      "line_count": 304,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          304
+        ]
+      ],
+      "summary": "Bounded hybrid AgentCore/EKS placement patterns, full-cost evaluation, private MCP connectivity, S3/KMS tenant boundaries, canonical state, cross-account STS invocation, OAuth verification, OTel and phased operator acceptance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 1,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__platform-selection__agentic-ai-solutions-eks.md.json",
+      "record_sha256": "8e3369343f7e9568198116231c6bfefaf3cc8bb1415f829f950b3aaa841c4389",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks.md",
+      "baseline_sha256": "7b82dd2fc0b5701e3914c01ce1080ccd9ce968c60602c3d4aea08a2e206317cd",
+      "line_count": 688,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          688
+        ]
+      ],
+      "summary": "EKS control/data plane selection, PCP metrics, Karpenter/Auto Mode GPU platform, inference/agent/data integrations, managed Capabilities with ACK/kro/Argo, and hybrid deployment recommendations.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/AgenticSolutionsTables/EksKarpenterLayers.js",
+          "sha256": "caa8ecde4e357390c413db7438f5da3f532e884ee5cff27502739343e433a1a4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksAutoModeVsStandard.js",
+          "sha256": "f04621969eeff02059a920a0d330a619ace69f899ae33719a0ac1d87eb8f1f00",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/DeploymentTimeComparison.js",
+          "sha256": "a041d8142e581e5bcedda82a3ef33e1180768b7f959ae9089d428379701affd0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksIntegrationBenefits.js",
+          "sha256": "7488edb7bcf2bc6d1ea103f733e219cc6a4aecc668601fa51b520f6ddca94e61",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksCapabilities.js",
+          "sha256": "af7db451cba4d87e2929a4452a8c25a0d268c68a4d8d4a135dafd8d8ab956dc8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/AckControllers.js",
+          "sha256": "c649186e08a99e901e1942adfee31a3b25509f8db75006b92bb8105c8b75afa9",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/AutomationComponents.js",
+          "sha256": "6d65d2f3bae3685ddb152c398697228a3aa0b1af91ce6820a1b56567a51ac343",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksAutoModeBenefits.js",
+          "sha256": "ffea4689208258bf4c825f3db9a0b08879bcc03a96b6705de5bec7f0f30e0c5f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/ChallengeSolutionsSummary.js",
+          "sha256": "9480de8fc374899f518943471fe84683d075a1bad59b672a5bfb0d2c8d1475d7",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksClusterConfiguration.js",
+          "sha256": "c3a7107b7975703c630a07a128c5d6f049ca41565793146599b22d13a825c6b4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              21
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/index.js",
+          "sha256": "526c5ee19cc1d181dcb7f05feb278d75946015845271892f37a377d8a35439bd",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              25
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/ClusterAutoscalerVsKarpenter.js",
+          "sha256": "4c19efe63a121ec2991f8fd27adbd247b77d5db76e9aaba9d6cc6734257ca41f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/KarpenterKeyFeatures.js",
+          "sha256": "6286fc0171bc5b0635887caeaa65c2be9b79bf013a17f964629ee75db3ee8313",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 10,
+      "findings_count": 23,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__platform-selection__ai-platform-decision-framework.md.json",
+      "record_sha256": "15e3a51e2a4aa32ba1fd05e49f3cce2138a69b332ba12cd9b6f3ebcc48af0ced",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework.md",
+      "baseline_sha256": "22453d3a3101031392d3b94cc42b8d9784e02123923497e50b906ed1ff2de1c1",
+      "line_count": 378,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          378
+        ]
+      ],
+      "summary": "Decision framework comparing managed Bedrock/AgentCore, SageMaker Unified Studio, EKS and hybrid; service grouping, capability/cost matrix, sovereignty, maturity paths, hybrid diagrams, cost inputs and discovery questions.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DecisionFrameworkTables/index.js",
+          "sha256": "2b33278d73e42cc4d9d155890bb35b719807ee86da73e47f7cff2fd494a7b7d6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/PlatformComparisonMatrix.js",
+          "sha256": "4fcd3581399256c479ef0a13d0b31eb3793963c2927f8fe0c30ab7e6f1d2a36b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              42
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/MaturityPathTable.js",
+          "sha256": "49bb2c50d3cc1bd2c859e0abd7ec43965dfec418a9fa232ddeb47e46ff6b6423",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              30
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/HybridPatternSummary.js",
+          "sha256": "8801685ff61245d54a8e32a0cf7c9a9aa861b6105c11b3951ba5170cfc590c95",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 7,
+      "findings_count": 9,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__platform-selection__aws-native-agentic-platform.md.json",
+      "record_sha256": "c11cd3f158ac903c20d7187a3ec5e772e148dda6a44bf321da2ad5a11327574c",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform.md",
+      "baseline_sha256": "d5165623949d95aca5aa38515f9991d3db8d3026a06a844b6096805b24b629ec",
+      "line_count": 696,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          696
+        ]
+      ],
+      "summary": "AWS-native Bedrock/Strands/AgentCore platform, tool identity/policy/evaluation, deploy workflows, enterprise cases, billing, MCP/EKS integration and hybrid multi-agent patterns.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/BedrockMcpTables/index.js",
+          "sha256": "a704c6576173208374b8ce9f25fab9cb4643efe64e3b68d9da5f98bb2a38135e",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/EKSMCPFeatures.js",
+          "sha256": "65dc0b07b013d0e34d87a6e4e78692ba5e04740b0a33e618d70d99254fc841df",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              85
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/KagentVsAgentCore.js",
+          "sha256": "52162970304fc84e531fd1badb182ba808314e70991c5850ea0cc9ed6a76badf",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              121
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/MultiAgentPatterns.js",
+          "sha256": "54d45df32951b5d9c5a0d8b121f9f76a1159bbf7f2582fe98a576070bbfd26b6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              97
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/MCPServerEcosystem.js",
+          "sha256": "dc1a5a40dbd4c927491a0ff5bf5e353e617fe6cef4f0315f5e03395ae083743d",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              85
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 10,
+      "findings_count": 20,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__platform-selection__index.md.json",
+      "record_sha256": "29ac1eae193049731112fddea5aa67a88da78710354bbe759ab037117f3018a9",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/platform-selection/index.md",
+      "baseline_sha256": "4c475a6985c4639a15034aabfe508370b7bd84acb50858e558cd8147298cde8b",
+      "line_count": 26,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          26
+        ]
+      ],
+      "summary": "Category introduction and metadata-driven list for platform-selection.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__design-architecture__platform-selection__sovereign-hybrid-deployment.md.json",
+      "record_sha256": "843620371dd53e5d39857066bc1a2c20af7e9aa58b8945ff7bba8c4c927bb3d3",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/design-architecture/platform-selection/sovereign-hybrid-deployment.md",
+      "baseline_sha256": "4cd4c93662183cb82f122a587c2e19d5e63635682a91ee8ed3dc65e169f55a3b",
+      "line_count": 303,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          303
+        ]
+      ],
+      "summary": "Sovereignty spectrum, SCP Region Deny and exceptions, Bedrock geography/source/destination authorization, connected EKS Hybrid Nodes architecture, disconnected deployment distinction and regulatory mapping.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DecisionFrameworkTables/index.js",
+          "sha256": "2b33278d73e42cc4d9d155890bb35b719807ee86da73e47f7cff2fd494a7b7d6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/SovereigntySpectrum.js",
+          "sha256": "d77e9d9a3fcb97de10ae6aaba5f6b20ecf40c7777b3b5dad1b6263886bbd2a8c",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 8,
+      "findings_count": 11,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__index.md.json",
+      "record_sha256": "52af5c0a13782f3205cb349decd5c6248555f272ad9822c5eb1e0d3276e462d6",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/index.md",
+      "baseline_sha256": "da9c233ab9bc5750c49ab6ff496f59061db78d2620611807c03b060fbe16f730",
+      "line_count": 49,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          49
+        ]
+      ],
+      "summary": "Entry paths for platform design, model serving, operations and implementation; distinguishes runtime responsibility layers from inference tuning layers.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 2,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__gpu-infrastructure__aws-neuron-stack.md.json",
+      "record_sha256": "1509e618c96354ddc0c0b0ce639246a0990f1f7b1bd87542b7277ee205158f42",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/aws-neuron-stack.md",
+      "baseline_sha256": "b63c3050036f7ca5ec718c4f08d6d8129563878317c0cdf61510e82f41da3484",
+      "line_count": 595,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          595
+        ]
+      ],
+      "summary": "Describes AWS Neuron accelerator selection, physical hardware, SDK/AOT compilation, Kubernetes device resources and Karpenter provisioning, framework/model support, observability and operational limits.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 16,
+      "findings_count": 12,
+      "unverified_claims_count": 4
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__gpu-infrastructure__criu-gpu-migration.md.json",
+      "record_sha256": "2930800c2f77ed7acab4df2b530349ad0a3a911a0353262f0a329633a4512828",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/criu-gpu-migration.md",
+      "baseline_sha256": "a131fb4166d66466a062192aa5a1682671decf333811c570172fad78ab89e360",
+      "line_count": 266,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          266
+        ]
+      ],
+      "summary": "Provides a bounded experimental review of GPU checkpoint/restore, hardware/runtime restrictions, graceful drain and warm-start alternatives, with an operator-only acceptance procedure.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 16,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__gpu-infrastructure__eks-gpu-node-strategy.md.json",
+      "record_sha256": "e0c7f975c850680449f8c54763ea8938b39ebf21f485227b8a47159dbb693c88",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy.md",
+      "baseline_sha256": "e025f5799e4737657d97ca8c3eb729e899c47be4aadcd844077de9b2f32148f4",
+      "line_count": 586,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          586
+        ]
+      ],
+      "summary": "Compares EKS Auto Mode, self-managed Karpenter, managed node groups and Hybrid Nodes for GPU serving/training, then proposes operator, DRA, MIG and hardware-selection patterns. The KO edition adds an availability runbook absent in EN.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 16,
+      "findings_count": 21,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__gpu-infrastructure__gpu-resource-management.md.json",
+      "record_sha256": "5a10f0cf578f58828809f66954d2f586c2f3a1e6a96186ad7850fd3f1c6da9c5",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+      "baseline_sha256": "9a2c0af6a5053910fbf55927ea377c0cb9ec9f2fa94856f33f87c5451b673d71",
+      "line_count": 549,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          549
+        ]
+      ],
+      "summary": "Explains GPU node provisioning, device scheduling, DRA compatibility and KEDA autoscaling, followed by cost comparisons and cost-governance guidance. Contains multiple unsafe or nonfunctional example assumptions and important imported-table locale mismatches.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/tables/index.js",
+          "sha256": "18f961ba44131c76abf1bd1ad70aa204aab93b78b3a2308d81ca463be603d331",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              14
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/SpecificationTable.js",
+          "sha256": "9c7a31c51fc40893ead73172afd5e54fb2d248496efcca74dd7d42589e74a5e3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              142
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/ComparisonTable.js",
+          "sha256": "c1d6f20aa32efb6033127fe9f6bb7001b7d86ac176f798229fc3f763501d90f0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/BaseTable.js",
+          "sha256": "9c8e94e46fcf53b2361bbf2b699eb2b706293ccd9fb983e96c9eb5d43a849002",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              111
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/values.js",
+          "sha256": "51da107089d187abba1656468df5c51f38fb9286b51a70d96761706054e35448",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              19
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GpuResourceTables/index.js",
+          "sha256": "1d8a6b36085833544e2a0a09fbe8fe2fb0e10643dbc97cd2c1dca110dc5644f6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GpuResourceTables/DraLimitationsTable.js",
+          "sha256": "c8c1e524804e44ce902ada3491ef4619bbba57c7c0a61714f28d121eed607b23",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              124
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/index.js",
+          "sha256": "526c5ee19cc1d181dcb7f05feb278d75946015845271892f37a377d8a35439bd",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              25
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/SpotInstancePricingInference.js",
+          "sha256": "d4f4e6d29ee5d93755f2edd85914a938a6a8af6c32f5411de9224e101f237edc",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/SavingsPlansPricingTraining.js",
+          "sha256": "91e5670d5ca6a71c08a79cdae631d602da42f6d0e4d425954f2df1a554190cbf",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/CostOptimizationStrategies.js",
+          "sha256": "3490bd065bc59cd13a6bb95c333ba0992155472e0a6a76b72ff03717242e024d",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/KarpenterGpuOptimization.js",
+          "sha256": "66ab65c107f24cb62c231665ed56f06d40292fdc044d07cb0e1e258c138b22e7",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ]
+        },
+        {
+          "path": "src/components/Icon/index.js",
+          "sha256": "87574d9ccbe536838785c18acd61971a30db4617953abb32d9a21f584f79dab3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              73
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 19,
+      "findings_count": 20,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__gpu-infrastructure__index.md.json",
+      "record_sha256": "2189cd9ddfac4a3295b307d5ad98929432210d7c154c5d81327bd44ca7fe734c",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/index.md",
+      "baseline_sha256": "84e4ee880d9d7bac9f6f93edb2c8d54c231791dc72a34041bc92c2d6dee0f045",
+      "line_count": 56,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          56
+        ]
+      ],
+      "summary": "Navigation overview of NVIDIA and AWS accelerator selection, node provisioning, drivers, partitioning, Neuron and checkpoint migration.",
+      "status": "reviewed_with_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 3,
+      "findings_count": 1,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__gpu-infrastructure__nvidia-gpu-stack.md.json",
+      "record_sha256": "def83e8409d4657b175119ddffddeba34fcf62556bd39c0242f49c7e20b36454",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack.md",
+      "baseline_sha256": "edfc1bc0ec66034c31f2d73e610bb094cca7fccd877fd2b2c16712e2e4d0ed6c",
+      "line_count": 543,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          543
+        ]
+      ],
+      "summary": "Explains NVIDIA Operator, EKS placement, DCGM monitoring, MIG/time-slicing, Dynamo orchestration and KAI scheduling, with Helm/configuration examples and bilingual comparison tables.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/tables/index.js",
+          "sha256": "18f961ba44131c76abf1bd1ad70aa204aab93b78b3a2308d81ca463be603d331",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              14
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/ComparisonTable.js",
+          "sha256": "c1d6f20aa32efb6033127fe9f6bb7001b7d86ac176f798229fc3f763501d90f0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/SpecificationTable.js",
+          "sha256": "9c7a31c51fc40893ead73172afd5e54fb2d248496efcca74dd7d42589e74a5e3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              142
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/BaseTable.js",
+          "sha256": "9c8e94e46fcf53b2361bbf2b699eb2b706293ccd9fb983e96c9eb5d43a849002",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              111
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/values.js",
+          "sha256": "51da107089d187abba1656468df5c51f38fb9286b51a70d96761706054e35448",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              19
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ]
+        },
+        {
+          "path": "src/components/Icon/index.js",
+          "sha256": "87574d9ccbe536838785c18acd61971a30db4617953abb32d9a21f584f79dab3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              73
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 15,
+      "findings_count": 11,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__index.md.json",
+      "record_sha256": "d6382a98ef2fceca250fac7c7a72698d77370f9a357efc7671ed8754fadfa7c9",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/index.md",
+      "baseline_sha256": "2f70abcb0b00797b6805098000efeee6558cebad3f8506b134747282f4be4db7",
+      "line_count": 231,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          231
+        ]
+      ],
+      "summary": "End-to-end inference tuning map: GPU and serving engines, distributed topology, two routing responsibilities, gateway limits, prefill/decode, LMCache and cache eligibility.",
+      "status": "reviewed_with_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GatewayApiTables/index.js",
+          "sha256": "1fec4fb05f1a16421b36f7801d3a93eb7e6e2601475d19aa3db66cd7e31404c2",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              28
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GatewayApiTables/TieredGatewayDiagram.js",
+          "sha256": "9e82d3ae72f48de8ca0e901bf91dc8a12292ffb16559e5b090bda02c76f2e6eb",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              118
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 6,
+      "findings_count": 8,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-frameworks__hyperpod-inference-operator.md.json",
+      "record_sha256": "e1d115b07907b33ad95d17b55258e2fa6dcd079c5c5e215ca76e7c1b1efa8dea",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/hyperpod-inference-operator.md",
+      "baseline_sha256": "fef666f33d3f599fdc87aac18961c0bf374999128e18dec884137e011790db83",
+      "line_count": 139,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          139
+        ]
+      ],
+      "summary": "Maps legacy HyperPod intelligent routing, KV tiers and DPD to the site gateway model. Most cache/schema and DPD details match AWS documentation. Version boundaries, concurrency prerequisites and source/locale performance claims need correction.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 8,
+      "findings_count": 6,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-frameworks__index.md.json",
+      "record_sha256": "e9ef6364b195334bd411b528c9f65dbd08a549d353a92d64a289a63c084ee067",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/index.md",
+      "baseline_sha256": "c067a446b81e6d8787e8d597f791619069573ad84cfe8454b55381e511f132cb",
+      "line_count": 58,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          58
+        ]
+      ],
+      "summary": "Navigation overview of vLLM, llm-d, HyperPod inference, MoE and NeMo training.",
+      "status": "reviewed_with_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 2,
+      "findings_count": 1,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-frameworks__llm-d-eks-automode.md.json",
+      "record_sha256": "014a6104d5978f09c2a269957daa302b5679e73e886afff3df47cfe656d9ffcb",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode.md",
+      "baseline_sha256": "f35456100c356df693a496553b870cd6c3e6aaa467b931645f26686e30254d8f",
+      "line_count": 458,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          458
+        ]
+      ],
+      "summary": "Introduces llm-d gateway/EPP routing and resource responsibilities, then discusses Auto Mode, disaggregation, Dynamo comparison, operations and GPU capacity/cost. Recent pinned architecture/API sections are sound; older examples, imported metrics and bilingual platform/cost sections remain inconsistent.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/LlmdTables/index.js",
+          "sha256": "0a5ccdecf907f37c5d3e866c3ce7e30125fb9ba27f82487e5e8713819b0a77e1",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/WellLitPathTable.js",
+          "sha256": "5536cff0d065a54f249c70c27b7c715733e24b63d7b07ccebe05e2d0902ed50a",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              94
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/VllmComparisonTable.js",
+          "sha256": "c1b72ba26d4bf8bb85f4bbae15b93e4733b9fad4b3b8336cd179e9b5108ca80c",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              129
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/Qwen3SpecsTable.js",
+          "sha256": "82390674e3512d0e0fc9bcccb8b408155d7fce95e17f679a696c7ccd0180a93e",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              72
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/P5InstanceTable.js",
+          "sha256": "3680e689c0c7483d5a4829ead4e3c85b37da1ec03b39e6b9228029a43f5b4614",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              76
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/P5eInstanceTable.js",
+          "sha256": "57c782a34fbcde1a4a329b342eef5341f9bdb085f094a62119bf51d977939fd2",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              76
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/GatewayCRDTable.js",
+          "sha256": "61cc2840d2516de0eb7caacadb0ab8532efea01245f688472664d2ed21ffa6b9",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              68
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/KVCacheEffectsTable.js",
+          "sha256": "499b1b0b99dce63191e2cfe6a0c664f615951a4af2e2a55c5fa3f087b3bfde48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              138
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/MonitoringMetricsTable.js",
+          "sha256": "cb6eb9817abfc71f9bd4a08a68a82a36880fc5f1c3736b2d4661661f4c748b1f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              130
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/ModelLoadingTable.js",
+          "sha256": "01beb086057450dcc99b1cb73e3f4142563767b81b2bc033d1a5e9903bed1d73",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              114
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/CostOptimizationTable.js",
+          "sha256": "599734e6d2faad606b62368040dc12f6407dd5551927a4a71f9b25f5c68aa296",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              124
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 15,
+      "findings_count": 17,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-frameworks__moe-model-serving.md.json",
+      "record_sha256": "40ba1807525a27e0be419b9cfd6ea3fb58e8fea7e8384bf33cbf99faaa605bcf",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+      "baseline_sha256": "fa39a0f4ac53a8ef4227b538fd5dd8cd901bf8a66a16d6585dae3b238d40f138",
+      "line_count": 427,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          427
+        ]
+      ],
+      "summary": "Explains sparse expert routing, weight-only memory arithmetic, TP/EP/PP, vLLM features, Trainium2 alternatives, cache/speculative/batch optimization, and monitoring.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/MoeModelTables/BatchOptimization.js",
+          "sha256": "0415ebade8e8613cfd863ccb16d7c70f27bd3a7582d1986bcae02b27764dbee5",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              134
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/GpuMemoryRequirements.js",
+          "sha256": "9e6622eece23dc12bcb0f9d6a4c3160cd01c5d11bce0559a8e2a1ac04dfc9841",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/GpuVsTrainium2.js",
+          "sha256": "a7906f1e9f879bef53a29b50644388f0de1d04c335a03f406d0fc5eed5e71ac0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              200
+            ],
+            [
+              201,
+              249
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/KvCacheConfig.js",
+          "sha256": "61da73061fef1464b00f3dc5116ad28142278d6a9b34f1a29b8aad2070bac4fc",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              141
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/MoeVsDense.js",
+          "sha256": "477bec2e49643c2cce7370486aee069e9c90096672d21a3dfec287710c39ffe4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              117
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/MonitoringMetrics.js",
+          "sha256": "3da53f30118c3ddcf7630eda82c4aee760782718ad89a5db71644ae3a4c812b0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              157
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/ParallelizationStrategies.js",
+          "sha256": "e3a17153ab0f936ad23efab59689b10c53fdefc5e5e5ca25a4994b0f7f1c400f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              136
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/RoutingMechanisms.js",
+          "sha256": "3818b12ec48d7f26e51e12a2e94cd4eb8a28f4beb5b84b42508c5eed26439edc",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              134
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/TensorParallelismConfig.js",
+          "sha256": "550ce2d24281d73b47bd00eaba11a8dbb8cbee948ac91052657aae0a140a364d",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              129
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/VllmVsTgi.js",
+          "sha256": "4e5f79a53cc6194711d2c642437de62b43fedc46483d10006da677193e531190",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              143
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/index.js",
+          "sha256": "73792c4c457e444517d53937e8c4495ed418309f67984fcedd76be130f97f087",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              10
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/data/moe-memory-models.json",
+          "sha256": "e499ed554ec76285c2f450beaf55932e1504483325cdbd2a05f16e96a7e038d0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              10
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        },
+        {
+          "path": "src/data/moe-parallelization.json",
+          "sha256": "7162160ed36cb2da50fd64fb592d215cc86999eb7833ade52d741b86f67fb6b2",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              26
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        }
+      ],
+      "claims_checked_count": 21,
+      "findings_count": 14,
+      "unverified_claims_count": 5
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-frameworks__nemo-framework.md.json",
+      "record_sha256": "b99fbfe2b27536be8491380e32a72321f6cbdaffd6b2d36a76e6d29fc14d622c",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/nemo-framework.md",
+      "baseline_sha256": "a98541abb1e56e0ba466e28d1c7148727d487abedfc9f6bde2ddb6368b9effe1",
+      "line_count": 602,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          602
+        ]
+      ],
+      "summary": "End-to-end NeMo domain fine-tuning on EKS, LoRA, sharded checkpoints, HF export, TensorRT-LLM/Triton inference, NCCL communication, monitoring and troubleshooting.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/NemoTables/index.js",
+          "sha256": "ebfcdba0b7909c80f463cf9e238bcb4e2b550a1892296974ad03137a5be1fe04",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              5
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/NemoComponents.js",
+          "sha256": "747021c613fe8026ede3fd77c786b3cc5cf842b717be6836a082231f63619c29",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/GPURequirements.js",
+          "sha256": "687ea43f9f097cddc61d3d1b4e34a8fbb357cef207a855adf8bb31030bc43b85",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              139
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/CheckpointSharding.js",
+          "sha256": "9315013aafe4bdc49a57535d1ed3fd5203d3f4b29395b2ad1368a615586b341b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              133
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/MonitoringMetrics.js",
+          "sha256": "c7ac000ca74f6ae828f07e1eb2fe2ec9b706406905de22dc1a2079849a95c8ca",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              103
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/NCCLImportance.js",
+          "sha256": "a7bdd6b0743df987b64befd75d39c89f1a0efee633a1b0e5ae36d82e869c0b35",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              100
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 9,
+      "findings_count": 16,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-frameworks__vllm-model-serving.md.json",
+      "record_sha256": "151e9d28ab6d4722934a458446a1ca04b94afcd7c52146f449a43bc90ea3c4ac",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving.md",
+      "baseline_sha256": "034b00bda61fa910ff01f58a08e10f46b829849c2885e2c19be277ae0b1a57e9",
+      "line_count": 435,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          435
+        ]
+      ],
+      "summary": "Teaches vLLM page-based KV allocation, iteration scheduling, speculative/V1 execution, memory sizing, parallel deployment, accelerator selection, LoRA, quantization/cache tuning and Prometheus/preemption operations.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/tables/ComparisonTable.js",
+          "sha256": "c1d6f20aa32efb6033127fe9f6bb7001b7d86ac176f798229fc3f763501d90f0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/SpecificationTable.js",
+          "sha256": "9c7a31c51fc40893ead73172afd5e54fb2d248496efcca74dd7d42589e74a5e3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              142
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/BaseTable.js",
+          "sha256": "9c8e94e46fcf53b2361bbf2b699eb2b706293ccd9fb983e96c9eb5d43a849002",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              111
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/values.js",
+          "sha256": "51da107089d187abba1656468df5c51f38fb9286b51a70d96761706054e35448",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              19
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ]
+        },
+        {
+          "path": "src/components/Icon/index.js",
+          "sha256": "87574d9ccbe536838785c18acd61971a30db4617953abb32d9a21f584f79dab3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              73
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 19,
+      "findings_count": 18,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-optimization__cache-hit-strategy.md.json",
+      "record_sha256": "d72e3ab237f8a2376609441f69189511fe6b905e6bc8a9773a886029d0d98b7c",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/cache-hit-strategy.md",
+      "baseline_sha256": "67a18daf01a2addaae7e0c9bb125860c5b609b72efddd188f91afd355bbb6073",
+      "line_count": 114,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          114
+        ]
+      ],
+      "summary": "Provides a compact map of exact, semantic and prefix reuse, its request flow, tuning levers and hit-rate monitoring. The map is useful, but terminology, lookup precedence and correctness/cost guarantees need qualification.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 6,
+      "findings_count": 6,
+      "unverified_claims_count": 1
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-optimization__disaggregated-serving.md.json",
+      "record_sha256": "cd472224237b8d7b7dc98e4307d900cfd22008315733182416b9b5dd12bfa339",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+      "baseline_sha256": "ddcee258b57092b38fd13335b71a35f9c6159551499f5bc6e87596790cff5272",
+      "line_count": 294,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          294
+        ]
+      ],
+      "summary": "Explains P/D separation tradeoffs and proposes role-specific Auto Mode NodePools plus a two-Pod GLM5 LWS deployment with EFA/NCCL tuning. Core motivation is useful; the deployment lacks required resource and distributed-runtime wiring.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 11,
+      "findings_count": 12,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-optimization__gpu-autoscaling-operations.md.json",
+      "record_sha256": "6e2a4abc5160a5d3cf8c7bad64c607989ab70e6554136ec39d3d87848d053ab0",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+      "baseline_sha256": "f18e6df65c249de9bdefc3d88fbf73035ec098f1744e37333e2e116131ab1320",
+      "line_count": 366,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          366
+        ]
+      ],
+      "summary": "Explains KEDA/Karpenter two-stage scaling and DRA boundaries, then offers model-download, image-cache, multi-node coordination, Auto Mode, model support, storage and quota runbooks. Multiple presented executable examples are invalid or accept incomplete data; bilingual updates are uneven.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 13,
+      "findings_count": 17,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-optimization__index.md.json",
+      "record_sha256": "07aa8602cc987d9b4a8916a61cd72b6164a7ce4f2c748f2ce492528f07bcfa44",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/index.md",
+      "baseline_sha256": "df3314bc4b97a9ef3d0b33e833ded02d2bd5812fc02263bd3c99221e8c86a698",
+      "line_count": 144,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          144
+        ]
+      ],
+      "summary": "Qualified roadmap for measuring inference performance and selecting GPU management, cache, routing, parallelism and recovery approaches.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 4,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-optimization__kv-cache-optimization.md.json",
+      "record_sha256": "ca08457b8a88d2f2542b1dcf3d04eebd4216caf7c150a930ffaa4bb27c9ab93b",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization.md",
+      "baseline_sha256": "4e8ab5ecdee28adb871b481a14d79077b554a9b92c62e4dc5742005cdf14781b",
+      "line_count": 243,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          243
+        ]
+      ],
+      "summary": "Explains vLLM memory management, parallelism/quantization and cache-aware routing, followed by a llm-d/Dynamo comparison and Gateway resource diagram. Gateway API boundaries are carefully qualified, but shell syntax, memory semantics, feature-attributed benchmarks and locale conditions need correction.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 10,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-optimization__lmcache.md.json",
+      "record_sha256": "064df073907f25c1eef5ee63d7c21ccee2f9dd3a98465e2e881d352252f95195",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/lmcache.md",
+      "baseline_sha256": "d943ef8e5c5ce38542d5cfcd773c502f87d47490f2b7faf48c9be31aac3a76bd",
+      "line_count": 100,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          100
+        ]
+      ],
+      "summary": "Explains external KV reuse and its relation to local APC, transfer and routing. KO adds substantial MP configuration and deployment details absent in EN. Core mechanisms are supported, with corrections needed for mode matching, rank constraints and unconditional storage/routing descriptions.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 8,
+      "findings_count": 4,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-optimization__semantic-caching-strategy.md.json",
+      "record_sha256": "6f4dbabf7fa0e61b335b0c20b2b36f5743aaa8eb91432a953d6f7b96305b71fe",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy.md",
+      "baseline_sha256": "cb30da50787c03350d3f84e843e20471071ef731ad4dd5389a185113ba419a86",
+      "line_count": 356,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          356
+        ]
+      ],
+      "summary": "Explains semantic response caching, threshold selection, cache layers, implementation patterns, isolation, observability and operations. The runbook has useful structure, but unsupported numeric bands, score-as-safety claims, personal-response eligibility and provider/API boundaries require correction.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 9,
+      "findings_count": 11,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-routing__cascade-routing-tuning.md.json",
+      "record_sha256": "cd2a98a50ebca51fc0ce11a9ecca48955e507ee951d0b6f07dd2ab3ae849aa57",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-routing/cascade-routing-tuning.md",
+      "baseline_sha256": "5cb025badab7503af22310109ac763521a2534d5ea870f9b9514a2e1035469ee",
+      "line_count": 489,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          489
+        ]
+      ],
+      "summary": "Defines an explicitly unvalidated but well-bounded cascade tuning workflow: labeled quality metrics, normalized SQL, weighted canary gates, policy-safe fallback and ledger-derived cost rules. Synthetic arithmetic/SQL contracts pass; current Langfuse export mode needs explicit version scope.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 9,
+      "findings_count": 1,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-routing__openclaw-example.md.json",
+      "record_sha256": "7da0161aade0c90aecc0266420e851e5355e8e5d3e407b0ff4f6d8371767b60e",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-routing/openclaw-example.md",
+      "baseline_sha256": "72489f2cfc5cc18ff45b7a459ed27c9ecbfdc1caa1f067be7160bea38935d712",
+      "line_count": 486,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          486
+        ]
+      ],
+      "summary": "ProposedOpenClawonEKSarchitecturewithARMSpotnodes,Bifrost/LiteLLMrouting,PodIdentityandnetwork/LLM/systemobservability. Fullreadingfindsmixedproductconfigsandunprovenproductionclaims.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/OpenClawArchitecture.js",
+          "sha256": "e222cf9b36111956dc8a5a1a6fcc753173abd30b18084317b6590ca1f502c351",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              200
+            ],
+            [
+              201,
+              262
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 12,
+      "findings_count": 19,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-routing__request-cascading.md.json",
+      "record_sha256": "8100755ea8d4b0369b346f0fa5add11e09e92f66d2c03d2900a416a620bc98af",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-routing/request-cascading.md",
+      "baseline_sha256": "49a14ea1c53e1d609ceffe596414a30ec944f714ecb1bf0905d62241f150a78c",
+      "line_count": 311,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          311
+        ]
+      ],
+      "summary": "Compares weighted, fallback and heuristic/learned model routing, with Python classification, Bifrost/LiteLLM/Semantic Router examples and API/self-hosted cost scenarios. The opening is usefully qualified, but executable APIs, locale parity and billing assumptions contain substantial errors.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 9,
+      "findings_count": 14,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-routing__routing-strategy.md.json",
+      "record_sha256": "931f24e37813500972d3066b9e3ab225af06a3286ac5dc8797e6c366d1fbba98",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-routing/routing-strategy.md",
+      "baseline_sha256": "24c30923238ee4dd672cad1079a996280e0f9c882ba17bff36a5724be1539517",
+      "line_count": 509,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          509
+        ]
+      ],
+      "summary": "Design of optional ingress/provider/agent gateways, product comparisons, GatewayAPI inference resources, cache routing, agent protocol security and observability. KO has additional L2/multiregion detail absent in EN.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/InferenceGatewayTables/index.js",
+          "sha256": "afa51d94e8769316754b1a50534e7bda997b44b0662198cb938283059410286e",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        {
+          "path": "src/components/InferenceGatewayTables/ComponentStructureTable.js",
+          "sha256": "4df8bb9b4a5f32244cd799d8964fed752b44a16e3232543fe059f0285c9318ac",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              107
+            ]
+          ]
+        },
+        {
+          "path": "src/components/InferenceGatewayTables/TopologyEffectsTable.js",
+          "sha256": "2ec462efec242dee9b836ea5b4ab74bf309bfd6029d7878afeda4dc38b01e377",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              169
+            ]
+          ]
+        },
+        {
+          "path": "src/components/InferenceGatewayTables/MonitoringMetricsTable.js",
+          "sha256": "118b18ff82ac18aaacbfebd9353d8d4889cd5ce69cd45899e8d22c6556ada2c6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              157
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 11,
+      "findings_count": 17,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "en--agentic-ai-platform__model-serving__inference-routing__tiered-gateway-architecture.md.json",
+      "record_sha256": "abe5601141731db93157c11cc1aceaf5c358fda80f51ba007089aebb14fd5d91",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture.md",
+      "baseline_sha256": "3093f02d932909fff19b51eb3e17462df4c50ffb31ebc1cffa5b4decda361f9f",
+      "line_count": 124,
+      "locale": "en",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          124
+        ]
+      ],
+      "summary": "Defines a site-local map of edge ingress, in-cluster inference selection, provider API proxying and agent/tool sessions. The distinction is useful and bilingual meaning is aligned; the diagram needs explicit decision/data paths and product lists need feature boundaries.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 4,
+      "findings_count": 2,
+      "unverified_claims_count": 1
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__advanced-patterns__adr-self-improving-loop.md.json",
+      "record_sha256": "2418b3b9b295146352b98ed807148a9fa7eff8962fffc173ccecdfc107f10173",
+      "path": "docs/agentic-ai-platform/design-architecture/advanced-patterns/adr-self-improving-loop.md",
+      "baseline_sha256": "204146a68b0b0c2c12ce0b57d0da021cd073a4ce0881cb408e9018108167a805",
+      "line_count": 179,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          179
+        ]
+      ],
+      "summary": "Proposed ADR defining self-hosted improvement scope, partial automation, reward ownership, four data gates, budget/rollback rules and staged organizational adoption.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 7,
+      "findings_count": 5,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__advanced-patterns__index.md.json",
+      "record_sha256": "56c32dfe5dbcf94eb8e33c768b555ff397c6a40b87f232499eda92d31142f0e5",
+      "path": "docs/agentic-ai-platform/design-architecture/advanced-patterns/index.md",
+      "baseline_sha256": "2a62485a818b34bbe02b1451b99d17a2e21173f28bc279739a34c62af2d333c6",
+      "line_count": 26,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          26
+        ]
+      ],
+      "summary": "Category introduction and metadata-driven list for advanced-patterns.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__advanced-patterns__knowledge-feature-store.md.json",
+      "record_sha256": "ef3d31ff4f5d00a31e76123da3dd633d59877350657462913e47af6f12caeb94",
+      "path": "docs/agentic-ai-platform/design-architecture/advanced-patterns/knowledge-feature-store.md",
+      "baseline_sha256": "64690096e7702b429a654f174b27baad5f91d2e5f0d95e4706db1b58090c59ae",
+      "line_count": 332,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          332
+        ]
+      ],
+      "summary": "Proposed knowledge-feature architecture integrating feature, graph and retrieval projections with ontology mappings, authorized generation reads, transactional outbox/visibility publication, bounded fixtures and evidence-based quality/governance acceptance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 1,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__advanced-patterns__mcp-token-optimization.md.json",
+      "record_sha256": "9f42102c92c02e8b60860a3507353f694c75656f2d72a7dbc96ec30ffdd11dca",
+      "path": "docs/agentic-ai-platform/design-architecture/advanced-patterns/mcp-token-optimization.md",
+      "baseline_sha256": "8b58772f48cee50d4a679b41f2f316797e7db2aadc9db441b9fac297662470d3",
+      "line_count": 308,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          308
+        ]
+      ],
+      "summary": "Four MCP context/billing optimization patterns: progressive discovery, proxy compression, generated-code filtering, and prompt-prefix caching, followed by gateway/governance integration and measurement guidance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 7,
+      "findings_count": 7,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__advanced-patterns__self-improving-agent-loop.md.json",
+      "record_sha256": "1b807a78a29231e791594bfa9d29776083571c756ffc9253baef84500c0379e2",
+      "path": "docs/agentic-ai-platform/design-architecture/advanced-patterns/self-improving-agent-loop.md",
+      "baseline_sha256": "9703fdf168a004f2bb3f189c09b4730956d681f43f4074ab074b401f6e044170",
+      "line_count": 1394,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          800
+        ],
+        [
+          801,
+          1000
+        ],
+        [
+          1001,
+          1200
+        ],
+        [
+          1201,
+          1394
+        ]
+      ],
+      "summary": "A proposed five-stage production-trace self-improvement loop with rollout, multi-signal scoring, privacy curation, GRPO/DPO/RLAIF/RFT training, shadow/canary deployment, reward-hacking monitors, governance, cost/ROI and organizational acceptance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 27,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__foundations__agentic-ai-challenges.md.json",
+      "record_sha256": "23ce8b29f280ad3dce1950684786891f1c9d1f258059d1fd53f0c249abadbff7",
+      "path": "docs/agentic-ai-platform/design-architecture/foundations/agentic-ai-challenges.md",
+      "baseline_sha256": "b31b85492733987dc0a6c536af00cb0f87f4a3a25c7584e382e1c2ab28852543",
+      "line_count": 343,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          343
+        ]
+      ],
+      "summary": "Five operating challenges—compute, routing, observability/cost, safe agent execution and model lifecycle—introduced through model-selection tradeoffs and Kubernetes responsibilities, then compared across managed and EKS approaches.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/AgenticChallengesTables/ChallengeSummary.js",
+          "sha256": "97735c4673272d6a30b0d2692283d220dc3d0b9f8595490854579a5760fc8cd4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              38
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticChallengesTables/index.js",
+          "sha256": "ad4cd0fd18bf619eea542d1d0153ff2fe7a4e1531ec4f67d6d555f987dc317a5",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              11
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 7,
+      "findings_count": 8,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__foundations__agentic-platform-architecture.md.json",
+      "record_sha256": "67b6a72762dbf9a546231f0bf73871f892d8357ae1658ab8170af7aade6307f5",
+      "path": "docs/agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture.md",
+      "baseline_sha256": "34ce0253d9fc692082ba7401df97f683e9ac33d76a1e9c843176f1a6e2dc788a",
+      "line_count": 844,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          800
+        ],
+        [
+          801,
+          844
+        ]
+      ],
+      "summary": "Six runtime layers and three cross-cutting operating planes, including serving/data/agent/routing responsibilities, training-evaluation-rollback flows, namespace/scaling/tenant controls, security, request sequence and monitoring requirements.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/ArchitectureTables/LayerRoles.js",
+          "sha256": "1aab68d616769c1afe48187d7eb871046b29b4917e89b2369f4a04bdced17e98",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              59
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/TenantIsolation.js",
+          "sha256": "8dd6b24680825aed297e7871a6c0b3b88707d9b331085e8279dbc03a3c1780bf",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              35
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/RequestProcessing.js",
+          "sha256": "5584b37da81834ae88af541816d5a1637161dafd6a07bf54c1bc5f088dd14b63",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              43
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/index.js",
+          "sha256": "9919044a149801b06b3ab317bbb02debe7e45c5ffe78e88766a79ab3a2ba66d8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              8
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 11,
+      "findings_count": 14,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__foundations__index.md.json",
+      "record_sha256": "6d07e282b99fbb5509744a2fbbff4425cb92884b99590847e9e3806fa5a518bc",
+      "path": "docs/agentic-ai-platform/design-architecture/foundations/index.md",
+      "baseline_sha256": "2480d86cce0f1175c7547c49dbfb035a5b79acc6fe7d58f11d96983267e23136",
+      "line_count": 25,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          25
+        ]
+      ],
+      "summary": "Category introduction and metadata-driven list for foundations.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__index.md.json",
+      "record_sha256": "01ecbbf85b9ab43a6e66526333075f8ddabb46d79bcb9d6980393f10545eee8d",
+      "path": "docs/agentic-ai-platform/design-architecture/index.md",
+      "baseline_sha256": "5eaee3948b36810257f631517a96fcbb394d708b280b3f104f2682d01b0cd9c2",
+      "line_count": 50,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          50
+        ]
+      ],
+      "summary": "Navigation through foundations, platform selection and advanced improvement patterns.",
+      "status": "reviewed_with_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 1,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__platform-selection__agentcore-hybrid-strategy.md.json",
+      "record_sha256": "e8e27f55d3ddd0705946e59aef5a45519d987325d776bf9ef9d063db967178f0",
+      "path": "docs/agentic-ai-platform/design-architecture/platform-selection/agentcore-hybrid-strategy.md",
+      "baseline_sha256": "425fd6f1d7c7352d0ce3fdeb6ad323698669a888e2047f4307686bd69a36b7f4",
+      "line_count": 306,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          306
+        ]
+      ],
+      "summary": "Bounded hybrid AgentCore/EKS placement patterns, full-cost evaluation, private MCP connectivity, S3/KMS tenant boundaries, canonical state, cross-account STS invocation, OAuth verification, OTel and phased operator acceptance.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 1,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__platform-selection__agentic-ai-solutions-eks.md.json",
+      "record_sha256": "b7e8638528787379434f034a964c2ea221077e845ee33e22eb4e05be293a5c1d",
+      "path": "docs/agentic-ai-platform/design-architecture/platform-selection/agentic-ai-solutions-eks.md",
+      "baseline_sha256": "ebb1a51e28ec2eb9ec2a06bf356aef0d46dadf18f0a66d5410e9e24a731b31ac",
+      "line_count": 690,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          690
+        ]
+      ],
+      "summary": "EKS control/data plane selection, PCP metrics, Karpenter/Auto Mode GPU platform, inference/agent/data integrations, managed Capabilities with ACK/kro/Argo, and hybrid deployment recommendations.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/AgenticSolutionsTables/EksKarpenterLayers.js",
+          "sha256": "caa8ecde4e357390c413db7438f5da3f532e884ee5cff27502739343e433a1a4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksAutoModeVsStandard.js",
+          "sha256": "f04621969eeff02059a920a0d330a619ace69f899ae33719a0ac1d87eb8f1f00",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/DeploymentTimeComparison.js",
+          "sha256": "a041d8142e581e5bcedda82a3ef33e1180768b7f959ae9089d428379701affd0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksIntegrationBenefits.js",
+          "sha256": "7488edb7bcf2bc6d1ea103f733e219cc6a4aecc668601fa51b520f6ddca94e61",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksCapabilities.js",
+          "sha256": "af7db451cba4d87e2929a4452a8c25a0d268c68a4d8d4a135dafd8d8ab956dc8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/AckControllers.js",
+          "sha256": "c649186e08a99e901e1942adfee31a3b25509f8db75006b92bb8105c8b75afa9",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/AutomationComponents.js",
+          "sha256": "6d65d2f3bae3685ddb152c398697228a3aa0b1af91ce6820a1b56567a51ac343",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksAutoModeBenefits.js",
+          "sha256": "ffea4689208258bf4c825f3db9a0b08879bcc03a96b6705de5bec7f0f30e0c5f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/ChallengeSolutionsSummary.js",
+          "sha256": "9480de8fc374899f518943471fe84683d075a1bad59b672a5bfb0d2c8d1475d7",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/EksClusterConfiguration.js",
+          "sha256": "c3a7107b7975703c630a07a128c5d6f049ca41565793146599b22d13a825c6b4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              21
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/index.js",
+          "sha256": "526c5ee19cc1d181dcb7f05feb278d75946015845271892f37a377d8a35439bd",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              25
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/ClusterAutoscalerVsKarpenter.js",
+          "sha256": "4c19efe63a121ec2991f8fd27adbd247b77d5db76e9aaba9d6cc6734257ca41f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/KarpenterKeyFeatures.js",
+          "sha256": "6286fc0171bc5b0635887caeaa65c2be9b79bf013a17f964629ee75db3ee8313",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 10,
+      "findings_count": 19,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__platform-selection__ai-platform-decision-framework.md.json",
+      "record_sha256": "fbe865b401bcf26fbba5ef0c5ce2758519d71157bc6337b8a21510dbc5cf822d",
+      "path": "docs/agentic-ai-platform/design-architecture/platform-selection/ai-platform-decision-framework.md",
+      "baseline_sha256": "dd30a50181e4582dfa762286308a7a4adb309ca2decba6a784a0e4507870e4dc",
+      "line_count": 378,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          378
+        ]
+      ],
+      "summary": "Decision framework comparing managed Bedrock/AgentCore, SageMaker Unified Studio, EKS and hybrid; service grouping, capability/cost matrix, sovereignty, maturity paths, hybrid diagrams, cost inputs and discovery questions.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DecisionFrameworkTables/index.js",
+          "sha256": "2b33278d73e42cc4d9d155890bb35b719807ee86da73e47f7cff2fd494a7b7d6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/PlatformComparisonMatrix.js",
+          "sha256": "4fcd3581399256c479ef0a13d0b31eb3793963c2927f8fe0c30ab7e6f1d2a36b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              42
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/MaturityPathTable.js",
+          "sha256": "49bb2c50d3cc1bd2c859e0abd7ec43965dfec418a9fa232ddeb47e46ff6b6423",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              30
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/HybridPatternSummary.js",
+          "sha256": "8801685ff61245d54a8e32a0cf7c9a9aa861b6105c11b3951ba5170cfc590c95",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 7,
+      "findings_count": 8,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__platform-selection__aws-native-agentic-platform.md.json",
+      "record_sha256": "8aba319bb4cf6005dceba76fcdfc0171ab560a761f875a7184670a1689073c02",
+      "path": "docs/agentic-ai-platform/design-architecture/platform-selection/aws-native-agentic-platform.md",
+      "baseline_sha256": "fe7d394fd37821a2de60813f86d513159214d03eb48cced61538771364324e16",
+      "line_count": 694,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          694
+        ]
+      ],
+      "summary": "AWS-native Bedrock/Strands/AgentCore platform, tool identity/policy/evaluation, deploy workflows, enterprise cases, billing, MCP/EKS integration and hybrid multi-agent patterns.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/BedrockMcpTables/index.js",
+          "sha256": "a704c6576173208374b8ce9f25fab9cb4643efe64e3b68d9da5f98bb2a38135e",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/EKSMCPFeatures.js",
+          "sha256": "65dc0b07b013d0e34d87a6e4e78692ba5e04740b0a33e618d70d99254fc841df",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              85
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/KagentVsAgentCore.js",
+          "sha256": "52162970304fc84e531fd1badb182ba808314e70991c5850ea0cc9ed6a76badf",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              121
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/MultiAgentPatterns.js",
+          "sha256": "54d45df32951b5d9c5a0d8b121f9f76a1159bbf7f2582fe98a576070bbfd26b6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              97
+            ]
+          ]
+        },
+        {
+          "path": "src/components/BedrockMcpTables/MCPServerEcosystem.js",
+          "sha256": "dc1a5a40dbd4c927491a0ff5bf5e353e617fe6cef4f0315f5e03395ae083743d",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              85
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 10,
+      "findings_count": 19,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__platform-selection__index.md.json",
+      "record_sha256": "29e66aeae4efa4d81de8408bcddeac1922416a4bc0c576372b5b740e1c7bc235",
+      "path": "docs/agentic-ai-platform/design-architecture/platform-selection/index.md",
+      "baseline_sha256": "495bd4ae80af1eefd7759b1f9ba2b631af12f732e4191f17d4e97275b8a3f577",
+      "line_count": 26,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          26
+        ]
+      ],
+      "summary": "Category introduction and metadata-driven list for platform-selection.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 1,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__design-architecture__platform-selection__sovereign-hybrid-deployment.md.json",
+      "record_sha256": "7daf900f0a14b74e0601c56249e58ee8166c7f84a98f204e868ba9ca70c9377f",
+      "path": "docs/agentic-ai-platform/design-architecture/platform-selection/sovereign-hybrid-deployment.md",
+      "baseline_sha256": "52741695a63919f8b0e8d6c1c5e60f94492fefe8b19b082f33b16908008f5e77",
+      "line_count": 308,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          308
+        ]
+      ],
+      "summary": "Sovereignty spectrum, SCP Region Deny and exceptions, Bedrock geography/source/destination authorization, connected EKS Hybrid Nodes architecture, disconnected deployment distinction and regulatory mapping.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DecisionFrameworkTables/index.js",
+          "sha256": "2b33278d73e42cc4d9d155890bb35b719807ee86da73e47f7cff2fd494a7b7d6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              4
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DecisionFrameworkTables/SovereigntySpectrum.js",
+          "sha256": "d77e9d9a3fcb97de10ae6aaba5f6b20ecf40c7777b3b5dad1b6263886bbd2a8c",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              32
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 8,
+      "findings_count": 11,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__index.md.json",
+      "record_sha256": "17b7ff584b66110b27740eceeccbecf3ebe73d0e4f2e13d1d2945f2d583c5dda",
+      "path": "docs/agentic-ai-platform/index.md",
+      "baseline_sha256": "f9c92412ec16bfa127390377b688b30aa28a9edbaecb097d3fcdd856eb9698d5",
+      "line_count": 51,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          51
+        ]
+      ],
+      "summary": "Entry paths for platform design, model serving, operations and implementation; distinguishes runtime responsibility layers from inference tuning layers.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        },
+        {
+          "path": "sidebars.js",
+          "sha256": "8a3719bec39aa336c8adfc56a25125c1c7bc86d730a26799fad53215f3a87a50",
+          "full_text_read": false,
+          "read_ranges": [
+            [
+              160,
+              406
+            ]
+          ],
+          "scope": "Only the complete Agentic AI category subtree needed by these cards; unrelated sidebar sections not claimed read."
+        }
+      ],
+      "claims_checked_count": 2,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__gpu-infrastructure__aws-neuron-stack.md.json",
+      "record_sha256": "d3e0ecbc83ab5ce484c5388e22951d251e0252093e0c1415aed67b00a0410935",
+      "path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/aws-neuron-stack.md",
+      "baseline_sha256": "2293f7791f5c1413219f8c142b28dd12eafa96102d192fade4c1ca0d21eedd12",
+      "line_count": 600,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ]
+      ],
+      "summary": "Describes AWS Neuron accelerator selection, physical hardware, SDK/AOT compilation, Kubernetes device resources and Karpenter provisioning, framework/model support, observability and operational limits.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 16,
+      "findings_count": 10,
+      "unverified_claims_count": 4
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__gpu-infrastructure__criu-gpu-migration.md.json",
+      "record_sha256": "d60b0d89a05db353d8d81d415eddd7ce12e56dc539b5cbc4bc664062c26ad242",
+      "path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/criu-gpu-migration.md",
+      "baseline_sha256": "3a5a718d27d33af5401bb145986441988b63d96aa35e65563568af05918abd5b",
+      "line_count": 266,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          266
+        ]
+      ],
+      "summary": "Provides a bounded experimental review of GPU checkpoint/restore, hardware/runtime restrictions, graceful drain and warm-start alternatives, with an operator-only acceptance procedure.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 16,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__gpu-infrastructure__eks-gpu-node-strategy.md.json",
+      "record_sha256": "4ca8171842b0407c7c017697f8bb0932f4dab2d2e1b0dfb384e65da73d75e0d7",
+      "path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy.md",
+      "baseline_sha256": "a652e2243d8a476738c8ca3810c1f42c22ef81af1c2a424a361cc25c5fe37300",
+      "line_count": 628,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          628
+        ]
+      ],
+      "summary": "Compares EKS Auto Mode, self-managed Karpenter, managed node groups and Hybrid Nodes for GPU serving/training, then proposes operator, DRA, MIG and hardware-selection patterns. The KO edition adds an availability runbook absent in EN.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 16,
+      "findings_count": 22,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__gpu-infrastructure__gpu-resource-management.md.json",
+      "record_sha256": "6485400bfc32bab28ae85d1c4ca039017fb4aa2e35f99846c78ed128dd0c034a",
+      "path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+      "baseline_sha256": "b73af83929194034698c2e591ac2913758032aca893c31634e9fd527f77214a2",
+      "line_count": 549,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          549
+        ]
+      ],
+      "summary": "Explains GPU node provisioning, device scheduling, DRA compatibility and KEDA autoscaling, followed by cost comparisons and cost-governance guidance. Contains multiple unsafe or nonfunctional example assumptions and important imported-table locale mismatches.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/tables/index.js",
+          "sha256": "18f961ba44131c76abf1bd1ad70aa204aab93b78b3a2308d81ca463be603d331",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              14
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/SpecificationTable.js",
+          "sha256": "9c7a31c51fc40893ead73172afd5e54fb2d248496efcca74dd7d42589e74a5e3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              142
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/ComparisonTable.js",
+          "sha256": "c1d6f20aa32efb6033127fe9f6bb7001b7d86ac176f798229fc3f763501d90f0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/BaseTable.js",
+          "sha256": "9c8e94e46fcf53b2361bbf2b699eb2b706293ccd9fb983e96c9eb5d43a849002",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              111
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/values.js",
+          "sha256": "51da107089d187abba1656468df5c51f38fb9286b51a70d96761706054e35448",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              19
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GpuResourceTables/index.js",
+          "sha256": "1d8a6b36085833544e2a0a09fbe8fe2fb0e10643dbc97cd2c1dca110dc5644f6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              2
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GpuResourceTables/DraLimitationsTable.js",
+          "sha256": "c8c1e524804e44ce902ada3491ef4619bbba57c7c0a61714f28d121eed607b23",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              124
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/index.js",
+          "sha256": "526c5ee19cc1d181dcb7f05feb278d75946015845271892f37a377d8a35439bd",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              25
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/SpotInstancePricingInference.js",
+          "sha256": "d4f4e6d29ee5d93755f2edd85914a938a6a8af6c32f5411de9224e101f237edc",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/SavingsPlansPricingTraining.js",
+          "sha256": "91e5670d5ca6a71c08a79cdae631d602da42f6d0e4d425954f2df1a554190cbf",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/CostOptimizationStrategies.js",
+          "sha256": "3490bd065bc59cd13a6bb95c333ba0992155472e0a6a76b72ff03717242e024d",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/AgenticSolutionsTables/KarpenterGpuOptimization.js",
+          "sha256": "66ab65c107f24cb62c231665ed56f06d40292fdc044d07cb0e1e258c138b22e7",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/ArchitectureTables/ManualTable.js",
+          "sha256": "65415c394c7264216d459f23c2c363bb20f1e3efa1a830778bda33a6acd39e48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              51
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ]
+        },
+        {
+          "path": "src/components/Icon/index.js",
+          "sha256": "87574d9ccbe536838785c18acd61971a30db4617953abb32d9a21f584f79dab3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              73
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 19,
+      "findings_count": 20,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__gpu-infrastructure__index.md.json",
+      "record_sha256": "3dd11d4b41d37bcbc5ef3ed2de695c0d5cd92e1a97ad1437ea3ca1e7ae51b4d2",
+      "path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/index.md",
+      "baseline_sha256": "8bf9ebd5ba24a45523e1fbd27c8304d035f6ffecc8ca01beaba107c2b095c943",
+      "line_count": 69,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          69
+        ]
+      ],
+      "summary": "Navigation overview of NVIDIA and AWS accelerator selection, node provisioning, drivers, partitioning, Neuron and checkpoint migration.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 3,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__gpu-infrastructure__nvidia-gpu-stack.md.json",
+      "record_sha256": "5ff8ac03a349bd3fdba5939b5633584c40791c0c26ff4b09f04f47dc8e63dccc",
+      "path": "docs/agentic-ai-platform/model-serving/gpu-infrastructure/nvidia-gpu-stack.md",
+      "baseline_sha256": "72c26df4d3220e0d34799abccb5c5c11907151bfd73b2631dc95a4c11dbaf5fb",
+      "line_count": 549,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          549
+        ]
+      ],
+      "summary": "Explains NVIDIA Operator, EKS placement, DCGM monitoring, MIG/time-slicing, Dynamo orchestration and KAI scheduling, with Helm/configuration examples and bilingual comparison tables.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/tables/index.js",
+          "sha256": "18f961ba44131c76abf1bd1ad70aa204aab93b78b3a2308d81ca463be603d331",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              14
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/ComparisonTable.js",
+          "sha256": "c1d6f20aa32efb6033127fe9f6bb7001b7d86ac176f798229fc3f763501d90f0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/SpecificationTable.js",
+          "sha256": "9c7a31c51fc40893ead73172afd5e54fb2d248496efcca74dd7d42589e74a5e3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              142
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/BaseTable.js",
+          "sha256": "9c8e94e46fcf53b2361bbf2b699eb2b706293ccd9fb983e96c9eb5d43a849002",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              111
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/values.js",
+          "sha256": "51da107089d187abba1656468df5c51f38fb9286b51a70d96761706054e35448",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              19
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ]
+        },
+        {
+          "path": "src/components/Icon/index.js",
+          "sha256": "87574d9ccbe536838785c18acd61971a30db4617953abb32d9a21f584f79dab3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              73
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 15,
+      "findings_count": 9,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__index.md.json",
+      "record_sha256": "26c779aa2345011d5dfd3a5324048af4c968981d37ca26a060ce0c68870de769",
+      "path": "docs/agentic-ai-platform/model-serving/index.md",
+      "baseline_sha256": "b0949d2a574b60b7fcd4d890d1a9b256a9410f55ba73b1d74e6aa847bd3a5b1e",
+      "line_count": 231,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          231
+        ]
+      ],
+      "summary": "End-to-end inference tuning map: GPU and serving engines, distributed topology, two routing responsibilities, gateway limits, prefill/decode, LMCache and cache eligibility.",
+      "status": "reviewed_with_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GatewayApiTables/index.js",
+          "sha256": "1fec4fb05f1a16421b36f7801d3a93eb7e6e2601475d19aa3db66cd7e31404c2",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              28
+            ]
+          ]
+        },
+        {
+          "path": "src/components/GatewayApiTables/TieredGatewayDiagram.js",
+          "sha256": "9e82d3ae72f48de8ca0e901bf91dc8a12292ffb16559e5b090bda02c76f2e6eb",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              118
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 6,
+      "findings_count": 7,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-frameworks__hyperpod-inference-operator.md.json",
+      "record_sha256": "99ab486533f1cddb7b04640f61c06880c916fb8d3ed85ce6e2d5c80b0c9a04dd",
+      "path": "docs/agentic-ai-platform/model-serving/inference-frameworks/hyperpod-inference-operator.md",
+      "baseline_sha256": "0a21e7bb88589ab42188439eaae61fab259eaa7a75aa3bf791cc5648f36f536e",
+      "line_count": 139,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          139
+        ]
+      ],
+      "summary": "Maps legacy HyperPod intelligent routing, KV tiers and DPD to the site gateway model. Most cache/schema and DPD details match AWS documentation. Version boundaries, concurrency prerequisites and source/locale performance claims need correction.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 8,
+      "findings_count": 6,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-frameworks__index.md.json",
+      "record_sha256": "0d5e5c4d959b2b595c840e64dd7ab2ef3df7f45dad8777edf26a182291f972eb",
+      "path": "docs/agentic-ai-platform/model-serving/inference-frameworks/index.md",
+      "baseline_sha256": "9b6db3d80cb4a8339f7125281a2953300e7cc0118bd6819b1c48d366531937ea",
+      "line_count": 65,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          65
+        ]
+      ],
+      "summary": "Navigation overview of vLLM, llm-d, HyperPod inference, MoE and NeMo training.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 2,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-frameworks__llm-d-eks-automode.md.json",
+      "record_sha256": "fd2f6ea86fe42ca319c73724e018698bc3ffdec35c31171dfb103bce39b3af3d",
+      "path": "docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode.md",
+      "baseline_sha256": "16066ff08534cd66fff42d8bf2923e155ea4ad1815f70c0c83881de71b76a8f4",
+      "line_count": 458,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          458
+        ]
+      ],
+      "summary": "Introduces llm-d gateway/EPP routing and resource responsibilities, then discusses Auto Mode, disaggregation, Dynamo comparison, operations and GPU capacity/cost. Recent pinned architecture/API sections are sound; older examples, imported metrics and bilingual platform/cost sections remain inconsistent.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/LlmdTables/index.js",
+          "sha256": "0a5ccdecf907f37c5d3e866c3ce7e30125fb9ba27f82487e5e8713819b0a77e1",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              13
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/WellLitPathTable.js",
+          "sha256": "5536cff0d065a54f249c70c27b7c715733e24b63d7b07ccebe05e2d0902ed50a",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              94
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/VllmComparisonTable.js",
+          "sha256": "c1b72ba26d4bf8bb85f4bbae15b93e4733b9fad4b3b8336cd179e9b5108ca80c",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              129
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/Qwen3SpecsTable.js",
+          "sha256": "82390674e3512d0e0fc9bcccb8b408155d7fce95e17f679a696c7ccd0180a93e",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              72
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/P5InstanceTable.js",
+          "sha256": "3680e689c0c7483d5a4829ead4e3c85b37da1ec03b39e6b9228029a43f5b4614",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              76
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/P5eInstanceTable.js",
+          "sha256": "57c782a34fbcde1a4a329b342eef5341f9bdb085f094a62119bf51d977939fd2",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              76
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/GatewayCRDTable.js",
+          "sha256": "61cc2840d2516de0eb7caacadb0ab8532efea01245f688472664d2ed21ffa6b9",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              68
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/KVCacheEffectsTable.js",
+          "sha256": "499b1b0b99dce63191e2cfe6a0c664f615951a4af2e2a55c5fa3f087b3bfde48",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              138
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/MonitoringMetricsTable.js",
+          "sha256": "cb6eb9817abfc71f9bd4a08a68a82a36880fc5f1c3736b2d4661661f4c748b1f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              130
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/ModelLoadingTable.js",
+          "sha256": "01beb086057450dcc99b1cb73e3f4142563767b81b2bc033d1a5e9903bed1d73",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              114
+            ]
+          ]
+        },
+        {
+          "path": "src/components/LlmdTables/CostOptimizationTable.js",
+          "sha256": "599734e6d2faad606b62368040dc12f6407dd5551927a4a71f9b25f5c68aa296",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              124
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 15,
+      "findings_count": 16,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-frameworks__moe-model-serving.md.json",
+      "record_sha256": "93320cb5e51f7173bc9547de8a1f36eb52766d47a2d489dfec1122b0d95c587d",
+      "path": "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+      "baseline_sha256": "93086e35dd3e360df115c55f40caa33bdff4cbeeb2b3f7644917d6cccdddb27d",
+      "line_count": 427,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          427
+        ]
+      ],
+      "summary": "Explains sparse expert routing, weight-only memory arithmetic, TP/EP/PP, vLLM features, Trainium2 alternatives, cache/speculative/batch optimization, and monitoring.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/MoeModelTables/BatchOptimization.js",
+          "sha256": "0415ebade8e8613cfd863ccb16d7c70f27bd3a7582d1986bcae02b27764dbee5",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              134
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/GpuMemoryRequirements.js",
+          "sha256": "9e6622eece23dc12bcb0f9d6a4c3160cd01c5d11bce0559a8e2a1ac04dfc9841",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/GpuVsTrainium2.js",
+          "sha256": "a7906f1e9f879bef53a29b50644388f0de1d04c335a03f406d0fc5eed5e71ac0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              200
+            ],
+            [
+              201,
+              249
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/KvCacheConfig.js",
+          "sha256": "61da73061fef1464b00f3dc5116ad28142278d6a9b34f1a29b8aad2070bac4fc",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              141
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/MoeVsDense.js",
+          "sha256": "477bec2e49643c2cce7370486aee069e9c90096672d21a3dfec287710c39ffe4",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              117
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/MonitoringMetrics.js",
+          "sha256": "3da53f30118c3ddcf7630eda82c4aee760782718ad89a5db71644ae3a4c812b0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              157
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/ParallelizationStrategies.js",
+          "sha256": "e3a17153ab0f936ad23efab59689b10c53fdefc5e5e5ca25a4994b0f7f1c400f",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              136
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/RoutingMechanisms.js",
+          "sha256": "3818b12ec48d7f26e51e12a2e94cd4eb8a28f4beb5b84b42508c5eed26439edc",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              134
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/TensorParallelismConfig.js",
+          "sha256": "550ce2d24281d73b47bd00eaba11a8dbb8cbee948ac91052657aae0a140a364d",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              129
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/VllmVsTgi.js",
+          "sha256": "4e5f79a53cc6194711d2c642437de62b43fedc46483d10006da677193e531190",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              143
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/components/MoeModelTables/index.js",
+          "sha256": "73792c4c457e444517d53937e8c4495ed418309f67984fcedd76be130f97f087",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              10
+            ]
+          ],
+          "displayed_content_reviewed": "Both locale branches, labels, values and diagram/table data read."
+        },
+        {
+          "path": "src/data/moe-memory-models.json",
+          "sha256": "e499ed554ec76285c2f450beaf55932e1504483325cdbd2a05f16e96a7e038d0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              10
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        },
+        {
+          "path": "src/data/moe-parallelization.json",
+          "sha256": "7162160ed36cb2da50fd64fb592d215cc86999eb7833ade52d741b86f67fb6b2",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              26
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ],
+          "displayed_content_reviewed": "Bilingual technical data or table wrapper reviewed; style-only dependencies do not supply technical facts."
+        }
+      ],
+      "claims_checked_count": 21,
+      "findings_count": 15,
+      "unverified_claims_count": 5
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-frameworks__nemo-framework.md.json",
+      "record_sha256": "838ec4c9eade9961d0e6eb522ce977ebb2aeea8786ddf11db3840a55b193e12d",
+      "path": "docs/agentic-ai-platform/model-serving/inference-frameworks/nemo-framework.md",
+      "baseline_sha256": "daf8a8c031abebbfc97b7993073d88e5728f27bbc3fd6731fed98a4f596e6329",
+      "line_count": 610,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          610
+        ]
+      ],
+      "summary": "End-to-end NeMo domain fine-tuning on EKS, LoRA, sharded checkpoints, HF export, TensorRT-LLM/Triton inference, NCCL communication, monitoring and troubleshooting.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/NemoTables/index.js",
+          "sha256": "ebfcdba0b7909c80f463cf9e238bcb4e2b550a1892296974ad03137a5be1fe04",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              5
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/NemoComponents.js",
+          "sha256": "747021c613fe8026ede3fd77c786b3cc5cf842b717be6836a082231f63619c29",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/GPURequirements.js",
+          "sha256": "687ea43f9f097cddc61d3d1b4e34a8fbb357cef207a855adf8bb31030bc43b85",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              139
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/CheckpointSharding.js",
+          "sha256": "9315013aafe4bdc49a57535d1ed3fd5203d3f4b29395b2ad1368a615586b341b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              133
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/MonitoringMetrics.js",
+          "sha256": "c7ac000ca74f6ae828f07e1eb2fe2ec9b706406905de22dc1a2079849a95c8ca",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              103
+            ]
+          ]
+        },
+        {
+          "path": "src/components/NemoTables/NCCLImportance.js",
+          "sha256": "a7bdd6b0743df987b64befd75d39c89f1a0efee633a1b0e5ae36d82e869c0b35",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              100
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 9,
+      "findings_count": 14,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-frameworks__vllm-model-serving.md.json",
+      "record_sha256": "b821473a670c37e81c5fd5718aeb28a1754506fcd2d787113449442be713517e",
+      "path": "docs/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving.md",
+      "baseline_sha256": "e510866e8b2f3fb270eac7263648ac6d079a2c78b8557954c03d40d5d2879d9a",
+      "line_count": 441,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          441
+        ]
+      ],
+      "summary": "Teaches vLLM page-based KV allocation, iteration scheduling, speculative/V1 execution, memory sizing, parallel deployment, accelerator selection, LoRA, quantization/cache tuning and Prometheus/preemption operations.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/tables/ComparisonTable.js",
+          "sha256": "c1d6f20aa32efb6033127fe9f6bb7001b7d86ac176f798229fc3f763501d90f0",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              91
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/SpecificationTable.js",
+          "sha256": "9c7a31c51fc40893ead73172afd5e54fb2d248496efcca74dd7d42589e74a5e3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              142
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/BaseTable.js",
+          "sha256": "9c8e94e46fcf53b2361bbf2b699eb2b706293ccd9fb983e96c9eb5d43a849002",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              111
+            ]
+          ]
+        },
+        {
+          "path": "src/components/tables/values.js",
+          "sha256": "51da107089d187abba1656468df5c51f38fb9286b51a70d96761706054e35448",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              19
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/index.js",
+          "sha256": "07be3890f4afb84696c326202e84511884e2ed76c1377bc36684cdf19e9e9c44",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              105
+            ]
+          ]
+        },
+        {
+          "path": "src/components/DataTableFrame/accessibility.js",
+          "sha256": "c88bbc29ed190fe205bcac7248ce5cdeaa8143192202b55a844fbbf3f837e70b",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              23
+            ]
+          ]
+        },
+        {
+          "path": "src/components/Icon/index.js",
+          "sha256": "87574d9ccbe536838785c18acd61971a30db4617953abb32d9a21f584f79dab3",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              73
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 19,
+      "findings_count": 13,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-optimization__cache-hit-strategy.md.json",
+      "record_sha256": "0a23cf8912f8c162702f1ceec2e281ea3d8cb77c212d8b08320b924d6c539a29",
+      "path": "docs/agentic-ai-platform/model-serving/inference-optimization/cache-hit-strategy.md",
+      "baseline_sha256": "e50af5b6ba199d15ec64d7f4c69d0629e1d3ef934e5d5626a9f6e3ddfc29e987",
+      "line_count": 114,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          114
+        ]
+      ],
+      "summary": "Provides a compact map of exact, semantic and prefix reuse, its request flow, tuning levers and hit-rate monitoring. The map is useful, but terminology, lookup precedence and correctness/cost guarantees need qualification.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 6,
+      "findings_count": 6,
+      "unverified_claims_count": 1
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-optimization__disaggregated-serving.md.json",
+      "record_sha256": "0dc133d52048b4d08f4bd37a58edb65a6deea10907c7123393c8a139ac8004b5",
+      "path": "docs/agentic-ai-platform/model-serving/inference-optimization/disaggregated-serving.md",
+      "baseline_sha256": "728aee2951f1f79dd22657a964a39a7de4df27824e12d68831f48a5f54d67210",
+      "line_count": 294,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          294
+        ]
+      ],
+      "summary": "Explains P/D separation tradeoffs and proposes role-specific Auto Mode NodePools plus a two-Pod GLM5 LWS deployment with EFA/NCCL tuning. Core motivation is useful; the deployment lacks required resource and distributed-runtime wiring.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 11,
+      "findings_count": 12,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-optimization__gpu-autoscaling-operations.md.json",
+      "record_sha256": "3a159e7c58bc93a3eb992dad896388b4e8e0603b87ecef321fd2007cb4e1a5bb",
+      "path": "docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+      "baseline_sha256": "7e5ddd18abfdd006eabaff3b3f38112ad0014100c21af9e7699f24a163c66ed6",
+      "line_count": 371,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          371
+        ]
+      ],
+      "summary": "Explains KEDA/Karpenter two-stage scaling and DRA boundaries, then offers model-download, image-cache, multi-node coordination, Auto Mode, model support, storage and quota runbooks. Multiple presented executable examples are invalid or accept incomplete data; bilingual updates are uneven.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 13,
+      "findings_count": 16,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-optimization__index.md.json",
+      "record_sha256": "01cf004601cb9e89c0878bd1faf068316d4837c5bda4d8538859e24ffc70d99c",
+      "path": "docs/agentic-ai-platform/model-serving/inference-optimization/index.md",
+      "baseline_sha256": "6b46779d04f0d4c1832a2ac643b792d8cbc2f8fb79aeced09dcc59ea635b0cbb",
+      "line_count": 144,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          144
+        ]
+      ],
+      "summary": "Qualified roadmap for measuring inference performance and selecting GPU management, cache, routing, parallelism and recovery approaches.",
+      "status": "reviewed_no_findings",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/DocCards.js",
+          "sha256": "ea32e051aa2ddcee729b3dd6c58135f0ccaa282226ebb6a35225d41ad277c3e8",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              84
+            ]
+          ]
+        },
+        {
+          "path": "src/theme/DocCard/index.js",
+          "sha256": "d08af7069fb4c8bbf7458389a3956f74909ed91b6fcc8e2f9768f52dc00fe159",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              41
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 4,
+      "findings_count": 0,
+      "unverified_claims_count": 0
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-optimization__kv-cache-optimization.md.json",
+      "record_sha256": "edcc8ce202f2626fcf0913c4e658de2c14bb0cc6e2fc2fb26ef13469791c4cc6",
+      "path": "docs/agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization.md",
+      "baseline_sha256": "6e8b201f401f4aa4e887fe2e1127bc4d2017835d4ab8b67eec87d0e47fd123c4",
+      "line_count": 251,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          251
+        ]
+      ],
+      "summary": "Explains vLLM memory management, parallelism/quantization and cache-aware routing, followed by a llm-d/Dynamo comparison and Gateway resource diagram. Gateway API boundaries are carefully qualified, but shell syntax, memory semantics, feature-attributed benchmarks and locale conditions need correction.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 10,
+      "findings_count": 10,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-optimization__lmcache.md.json",
+      "record_sha256": "6c9b6603673197167faeea0eaf0fc27d776c713b13a097207eb009233295ce98",
+      "path": "docs/agentic-ai-platform/model-serving/inference-optimization/lmcache.md",
+      "baseline_sha256": "7ef9fd48e64a941f53ff15123f71e351a23192f3991f5b7f75d65e1736e7b801",
+      "line_count": 214,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          214
+        ]
+      ],
+      "summary": "Explains external KV reuse and its relation to local APC, transfer and routing. KO adds substantial MP configuration and deployment details absent in EN. Core mechanisms are supported, with corrections needed for mode matching, rank constraints and unconditional storage/routing descriptions.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 8,
+      "findings_count": 5,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-optimization__semantic-caching-strategy.md.json",
+      "record_sha256": "afb2b6110bbf7e615ce6952a22b7841b9fa0e77ea03f2b2ffd08a4c1c30cc3d9",
+      "path": "docs/agentic-ai-platform/model-serving/inference-optimization/semantic-caching-strategy.md",
+      "baseline_sha256": "b4f4d0db799e66ddd3a00e28cb8889cedb5a024403f5f7baa0350c47683acac6",
+      "line_count": 356,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          356
+        ]
+      ],
+      "summary": "Explains semantic response caching, threshold selection, cache layers, implementation patterns, isolation, observability and operations. The runbook has useful structure, but unsupported numeric bands, score-as-safety claims, personal-response eligibility and provider/API boundaries require correction.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 9,
+      "findings_count": 10,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-routing__cascade-routing-tuning.md.json",
+      "record_sha256": "49230bf6b9d6161d09d647a62f1d862dd21d4c0f57e3a57337290fb88ac2f19a",
+      "path": "docs/agentic-ai-platform/model-serving/inference-routing/cascade-routing-tuning.md",
+      "baseline_sha256": "a988a31c39aa4e5dc723f31e805a7aad4f12258f45cfcf1099bab65e122016ca",
+      "line_count": 491,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          491
+        ]
+      ],
+      "summary": "Defines an explicitly unvalidated but well-bounded cascade tuning workflow: labeled quality metrics, normalized SQL, weighted canary gates, policy-safe fallback and ledger-derived cost rules. Synthetic arithmetic/SQL contracts pass; current Langfuse export mode needs explicit version scope.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 9,
+      "findings_count": 1,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-routing__openclaw-example.md.json",
+      "record_sha256": "2f7d9015a3ae64b2faeabfa1ed3e8aee1af01cb760082d523475fae6f3b89782",
+      "path": "docs/agentic-ai-platform/model-serving/inference-routing/openclaw-example.md",
+      "baseline_sha256": "8474c65dab9508869653053743958f36050883c8220b01d0e2b5de8a12c17e5c",
+      "line_count": 515,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          515
+        ]
+      ],
+      "summary": "ProposedOpenClawonEKSarchitecturewithARMSpotnodes,Bifrost/LiteLLMrouting,PodIdentityandnetwork/LLM/systemobservability. Fullreadingfindsmixedproductconfigsandunprovenproductionclaims.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/OpenClawArchitecture.js",
+          "sha256": "e222cf9b36111956dc8a5a1a6fcc753173abd30b18084317b6590ca1f502c351",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              200
+            ],
+            [
+              201,
+              262
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 12,
+      "findings_count": 19,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-routing__request-cascading.md.json",
+      "record_sha256": "f4fd64a74f16c9d29abc95cab81d5d77a5af3760a436fb5a228b2df18a0bd450",
+      "path": "docs/agentic-ai-platform/model-serving/inference-routing/request-cascading.md",
+      "baseline_sha256": "be1d2af8579e15ca3e6e50b6feb5b90fea0789df0e52e2088e73a9c0ce6ff7d8",
+      "line_count": 308,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          308
+        ]
+      ],
+      "summary": "Compares weighted, fallback and heuristic/learned model routing, with Python classification, Bifrost/LiteLLM/Semantic Router examples and API/self-hosted cost scenarios. The opening is usefully qualified, but executable APIs, locale parity and billing assumptions contain substantial errors.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 9,
+      "findings_count": 12,
+      "unverified_claims_count": 2
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-routing__routing-strategy.md.json",
+      "record_sha256": "ca2f22485b3dcc0d2accb5ff644582fbd9e27e967b52a4588ee77e700eb6db2b",
+      "path": "docs/agentic-ai-platform/model-serving/inference-routing/routing-strategy.md",
+      "baseline_sha256": "98cd8d9d4945b79457c01154bca7e056b60ffc070b3be6c412f086bf62bd1308",
+      "line_count": 619,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          200
+        ],
+        [
+          201,
+          400
+        ],
+        [
+          401,
+          600
+        ],
+        [
+          601,
+          619
+        ]
+      ],
+      "summary": "Design of optional ingress/provider/agent gateways, product comparisons, GatewayAPI inference resources, cache routing, agent protocol security and observability. KO has additional L2/multiregion detail absent in EN.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [
+        {
+          "path": "src/components/InferenceGatewayTables/index.js",
+          "sha256": "afa51d94e8769316754b1a50534e7bda997b44b0662198cb938283059410286e",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              3
+            ]
+          ]
+        },
+        {
+          "path": "src/components/InferenceGatewayTables/ComponentStructureTable.js",
+          "sha256": "4df8bb9b4a5f32244cd799d8964fed752b44a16e3232543fe059f0285c9318ac",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              107
+            ]
+          ]
+        },
+        {
+          "path": "src/components/InferenceGatewayTables/TopologyEffectsTable.js",
+          "sha256": "2ec462efec242dee9b836ea5b4ab74bf309bfd6029d7878afeda4dc38b01e377",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              169
+            ]
+          ]
+        },
+        {
+          "path": "src/components/InferenceGatewayTables/MonitoringMetricsTable.js",
+          "sha256": "118b18ff82ac18aaacbfebd9353d8d4889cd5ce69cd45899e8d22c6556ada2c6",
+          "full_text_read": true,
+          "read_ranges": [
+            [
+              1,
+              157
+            ]
+          ]
+        }
+      ],
+      "claims_checked_count": 12,
+      "findings_count": 19,
+      "unverified_claims_count": 3
+    },
+    {
+      "record_id": "ko--agentic-ai-platform__model-serving__inference-routing__tiered-gateway-architecture.md.json",
+      "record_sha256": "872651e6a760f483fc8f6c3bbb85f130f28eecd2d40f4adb57a90e7fe5f93591",
+      "path": "docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture.md",
+      "baseline_sha256": "99fe5d593f7218dbb6c221c0911ae3cc4ff970a2649c25257bb2bc5ddd36758c",
+      "line_count": 124,
+      "locale": "ko",
+      "full_text_read": true,
+      "read_ranges": [
+        [
+          1,
+          124
+        ]
+      ],
+      "summary": "Defines a site-local map of edge ingress, in-cluster inference selection, provider API proxying and agent/tool sessions. The distinction is useful and bilingual meaning is aligned; the diagram needs explicit decision/data paths and product lists need feature boundaries.",
+      "status": "verification_pending",
+      "reviewed_dependencies": [],
+      "claims_checked_count": 4,
+      "findings_count": 2,
+      "unverified_claims_count": 1
+    }
+  ]
+}

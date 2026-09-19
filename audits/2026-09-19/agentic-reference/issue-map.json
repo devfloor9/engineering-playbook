@@ -1,0 +1,138 @@
+[
+  {
+    "key": "01-milvus-contract",
+    "title": "Repair the Milvus ingestion, monitoring and recovery examples",
+    "canonical_ids": [
+      "PARFIT-MILVUS-001",
+      "PARFIT-MILVUS-002",
+      "PARFIT-MILVUS-003",
+      "PARFIT-MILVUS-004",
+      "PARFIT-MILVUS-005",
+      "PARFIT-MILVUS-006",
+      "PARFIT-MILVUS-007",
+      "PARFIT-MILVUS-008",
+      "PARFIT-MILVUS-009",
+      "PARFIT-MILVUS-010",
+      "PARFIT-MILVUS-011",
+      "PARFIT-MILVUS-012",
+      "PARFIT-MILVUS-013"
+    ],
+    "source_paths": [
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+      "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md"
+    ]
+  },
+  {
+    "key": "02-gateway-tool-integration",
+    "title": "Make inference-gateway troubleshooting and coding-tool integration internally consistent",
+    "canonical_ids": [
+      "PARFIT-COST-AUTH-BOUNDARY",
+      "PARFIT-COST-BIFROST-ALIAS",
+      "PARFIT-COST-BIFROST-BACKENDS",
+      "PARFIT-COST-CASCADE-HANDOFF",
+      "PARFIT-COST-CONTINUE",
+      "PARFIT-COST-CURSOR",
+      "PARFIT-COST-PROMPT-PARITY",
+      "PARFIT-INDEX-DIAGRAM-MODEL",
+      "PARFIT-INDEX-DIAGRAM-PROVENANCE",
+      "PARFIT-INDEX-NVME",
+      "PARFIT-INDEX-PROVENANCE-PARITY",
+      "PARFIT-INDEX-TOOL-ROLES",
+      "PARFIT-SETUP-CONFIG-RESET",
+      "PARFIT-SETUP-DIAGRAM-LOCALE",
+      "PARFIT-SETUP-DRA",
+      "PARFIT-SETUP-DUPLICATE-HEADING",
+      "PARFIT-SETUP-E2E",
+      "PARFIT-SETUP-EPP",
+      "PARFIT-SETUP-LAYER-PARITY",
+      "PARFIT-SETUP-METRIC-VERSION",
+      "PARFIT-SETUP-MODEL",
+      "PARFIT-SETUP-TIMES",
+      "PARFIT-TROUBLE-001",
+      "PARFIT-TROUBLE-002",
+      "PARFIT-TROUBLE-003",
+      "PARFIT-TROUBLE-004",
+      "PARFIT-TROUBLE-005",
+      "PARFIT-TROUBLE-006",
+      "PARFIT-TROUBLE-007",
+      "PARFIT-TROUBLE-008",
+      "PARFIT-TROUBLE-009",
+      "PARFIT-TROUBLE-010",
+      "PARFIT-TROUBLE-011",
+      "PARFIT-TROUBLE-012",
+      "PARFIT-TROUBLE-013",
+      "PARFIT-TROUBLE-014",
+      "PARFIT-TROUBLE-015"
+    ],
+    "source_paths": [
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md",
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md",
+      "docs/agentic-ai-platform/reference-architecture/index.md",
+      "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+      "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+      "docs/agentic-ai-platform/reference-architecture/integrations/coding-tools-cost-analysis.md"
+    ]
+  },
+  {
+    "key": "03-trace-dataset-contract",
+    "title": "Define a runnable and validated trace-to-training-dataset contract",
+    "canonical_ids": [
+      "PARFIT-TRACE-AUTOSCALE",
+      "PARFIT-TRACE-COST",
+      "PARFIT-TRACE-HUDI",
+      "PARFIT-TRACE-ICEBERG",
+      "PARFIT-TRACE-MODEL",
+      "PARFIT-TRACE-RAGAS",
+      "PARFIT-TRACE-REWARD",
+      "PARFIT-TRACE-REWARD-VALIDATION",
+      "PARFIT-TRACE-S3",
+      "PARFIT-TRACE-SDK",
+      "PARFIT-TRACE-STORE",
+      "PARFIT-TRACE-TRAINING-CONTRACT"
+    ],
+    "source_paths": [
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md",
+      "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/trace-to-dataset.md"
+    ]
+  },
+  {
+    "key": "04-model-onboarding-gates",
+    "title": "Bind model-onboarding validation to immutable inputs and enforced gates",
+    "canonical_ids": [
+      "PARFIT-PIPE-ACCELERATOR",
+      "PARFIT-PIPE-APPROVAL",
+      "PARFIT-PIPE-CAPACITY",
+      "PARFIT-PIPE-FAILURE-POLICY",
+      "PARFIT-PIPE-INTAKE",
+      "PARFIT-PIPE-PERF-COST",
+      "PARFIT-PIPE-REFERENCE-SCORES",
+      "PARFIT-PIPE-REVISION",
+      "PARFIT-PIPE-SMOKE",
+      "PARFIT-PIPE-STOP-REPORT"
+    ],
+    "source_paths": [
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+      "docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md"
+    ]
+  },
+  {
+    "key": "05-self-hosting-decision",
+    "title": "Qualify self-hosting economics, sovereignty and hardware choices",
+    "canonical_ids": [
+      "PARFIT-DEPLOY-AIRGAP",
+      "PARFIT-DEPLOY-ECONOMIC-GUARANTEE",
+      "PARFIT-DEPLOY-EFA-CURRENT",
+      "PARFIT-DEPLOY-INTERCONNECT",
+      "PARFIT-DEPLOY-MANAGED-EXCLUSION",
+      "PARFIT-DEPLOY-P5EN-CARDS",
+      "PARFIT-DEPLOY-PRICE-PREMIUM",
+      "PARFIT-DEPLOY-SOVEREIGNTY"
+    ],
+    "source_paths": [
+      "i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+      "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md"
+    ]
+  }
+]

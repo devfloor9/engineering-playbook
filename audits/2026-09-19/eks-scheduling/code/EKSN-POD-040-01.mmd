@@ -1,0 +1,5 @@
+flowchart TD
+    A[Memory-pressure eviction needed] --> B[Rank Pods exceeding memory requests first]
+    B --> C[Within ranking groups consider Pod priority]
+    C --> D[Then consider usage relative to requests]
+    D --> E[Evict selected Pods and reassess pressure]
