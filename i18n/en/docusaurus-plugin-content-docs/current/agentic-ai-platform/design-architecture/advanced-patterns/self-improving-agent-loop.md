@@ -3,7 +3,7 @@ title: Self-Improving Agent Loop (Autoresearch)
 description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autoresearch concept
 created: "2026-04-18"
 last_update:
-  date: 2026-09-21
+  date: 2026-09-22
   author: devfloor9
 reading_time: 28
 tags:
@@ -1330,7 +1330,7 @@ WHERE event_type = 'model_deployed'
 ### Papers / Technical Blogs
 
 - [DPO: Direct Preference Optimization (NeurIPS 2023)](https://arxiv.org/abs/2305.18290) — DPO paper
-- [DeepSeek-R1: GRPO for Reasoning (2024)](https://arxiv.org/abs/2401.02954) — GRPO paper
+- [DeepSeekMath: GRPO (2024)](https://arxiv.org/abs/2402.03300) — GRPO paper
 - [Constitutional AI: RLAIF (Anthropic 2022)](https://arxiv.org/abs/2212.08073) — RLAIF paper
 - [Andrej Karpathy on Autoresearch](https://karpathy.github.io/) — Autoresearch concept
 

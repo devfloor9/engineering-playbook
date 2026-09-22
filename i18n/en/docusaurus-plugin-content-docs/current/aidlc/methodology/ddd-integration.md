@@ -3,7 +3,7 @@ title: DDD Integration — Essential Core in AI-Driven Development
 description: Why DDD is an essential core in AIDLC — AI-driven development from domain design to logical design
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 22
 tags:
@@ -389,7 +389,11 @@ Query Side (Read):
 
 #### 3.3.2 Circuit Breaker (External Gateway)
 
-Auto-configures Istio Circuit Breaker for failure isolation when calling payment gateway.
+This is a passive outlier-detection policy for an external payment gateway. `consecutive5xxErrors: 5` sets a consecutive observed HTTP 5xx threshold; it does not establish successful failure isolation.
+
+**Applicability:** This example uses the Istio 1.27.0 `v1beta1` fields. Verify that the installed release serves the required CRD, then register the real gateway host in Istio's service registry, for example with a `ServiceEntry`. Configure the request path through an Envoy sidecar, ports/protocols and TLS handling.
+
+A proxy passing HTTPS through cannot read the encrypted HTTP status. This policy requires Envoy to observe the error responses. The snippet supplies only the outlier-detection portion; prepare host registration and TLS configuration separately.
 
 ```yaml
 apiVersion: networking.istio.io/v1beta1
@@ -400,7 +404,7 @@ spec:
   host: external-payment-gateway.com
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 5
+      consecutive5xxErrors: 5
       interval: 30s
       baseEjectionTime: 60s
 ```

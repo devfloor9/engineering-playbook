@@ -3,7 +3,7 @@ title: EKS-based Agentic AI Open Architecture
 description: Guide to building Agentic AI platform using Amazon EKS and open-source ecosystem
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: devfloor9
 reading_time: 36
 tags:
@@ -123,8 +123,8 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 
 | Metric | Prometheus Query | Judgment Criterion |
 |--------|----------------|----------|
-| **API Inflight Seats** (Most Important) | `apiserver_flowcontrol_current_executing_seats_total` | Sustained exceeds 1,200 seats → XL or higher |
-| **Pod Scheduling Rate** | `scheduler_schedule_attempts_SCHEDULED` | 100/sec or higher → XL, 200/sec or higher → 2XL |
+| **API Inflight Seats** (Most Important) | `apiserver_flowcontrol_current_executing_seats` | Sustained exceeds 1,200 seats → XL or higher |
+| **Pod Scheduling Rate** | `rate(scheduler_schedule_attempts_total{result="scheduled"}[5m])` | 100/sec or higher → XL, 200/sec or higher → 2XL |
 | **etcd DB Size** | `apiserver_storage_size_bytes` | Exceeds 10GB → XL or higher required |
 
 :::info PCP vs Auto Mode — Different Layers

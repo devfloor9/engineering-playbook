@@ -3,7 +3,7 @@ title: Workload Debugging
 description: Guide to diagnosing EKS workload issues - Pod state-based debugging, deployment failure patterns, probe configuration
 created: "2026-04-21"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: devfloor9
 reading_time: 10
 tags:
@@ -184,7 +184,13 @@ kind: Deployment
 metadata:
   name: spring-boot-app
 spec:
+  selector:
+    matchLabels:
+      app: spring-boot-app
   template:
+    metadata:
+      labels:
+        app: spring-boot-app
     spec:
       containers:
       - name: app
@@ -291,6 +297,8 @@ spec:
 kubectl apply -f https://raw.githubusercontent.com/stakater/Reloader/master/deployments/kubernetes/reloader.yaml
 ```
 
+When adding the annotation to an existing Deployment, keep its current `spec.selector` and matching Pod labels. An `apps/v1` selector is immutable after creation; the labels below are for a new example Deployment.
+
 ```yaml
 # Add annotation to the Deployment
 apiVersion: apps/v1
@@ -302,7 +310,13 @@ metadata:
     # or only specific resources:
     # configmap.reloader.stakater.com/reload: "app-config,common-config"
 spec:
+  selector:
+    matchLabels:
+      app: app
   template:
+    metadata:
+      labels:
+        app: app
     spec:
       containers:
       - name: app
@@ -574,7 +588,13 @@ kind: Deployment
 metadata:
   name: web-app
 spec:
+  selector:
+    matchLabels:
+      app: web-app
   template:
+    metadata:
+      labels:
+        app: web-app
     spec:
       containers:
       - name: app

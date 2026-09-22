@@ -6917,6 +6917,748 @@
         "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
         "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9"
       }
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-073-wave5",
+      "package": "eks-operations",
+      "id": "HYP-OPS-073",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the eight remaining selector/Pod-label occurrences across four bilingual pairs (18 Deployment examples), preserving the earlier two init-container occurrences (eight examples). All ten registered occurrences are now source-corrected; existing Service binding and immutable-selector guidance are retained.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2ae18f03e8b3b756c008ced6175f67c403e8c01c",
+      "source_commits": [
+        "d1cf978aee44dd36ffa90b02b468a915ba1907fc",
+        "3054fb460aeaf910b8eb58358f5a33432b4679fe"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/workload.md",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/workload.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md"
+      ],
+      "verification": [
+        "Current-source selector tests passed 42/42; independent review confirmed all 18 newly corrected examples, Service/Pod-label binding, bilingual executable YAML parity and the existing Deployment selector-immutability note.",
+        "Both prior init-container occurrences retain the eight reviewed Deployment definitions from d1cf978a. All ten catalog occurrences and related example ranges are accounted for; no shared-component host is involved.",
+        "Independent current-source Markdown compilation and metadata checks passed 8/8. Baseline negative control: 12 pass / 30 fail, including all 18 individual missing-selector cases."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/release-1.34/content/en/docs/concepts/workloads/controllers/deployment.md",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/pkg/apis/apps/validation/validation.go"
+      ],
+      "evidence_limit": "Selector/source-preservation correction only. No complete Kubernetes admission, controller co-deployment safety, Service endpoint readiness, application/probe/shutdown or live upgrade validation. Prior init runtime limits, including HYP-UV-034/035, remain unchanged; unrelated article findings are not closed.",
+      "verification_files": [
+        "scripts/tests/document-examples/deployment-selectors.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/deployment-selectors.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-WORKLOAD-04-EN",
+        "EKS-OPS-WORKLOAD-04-KO",
+        "EKS-OPS-INIT-CONTAINERS-02-EN",
+        "EKS-OPS-INIT-CONTAINERS-02-KO",
+        "EKS-OPS-NODE-READINESS-12-EN",
+        "EKS-OPS-NODE-READINESS-12-KO",
+        "EKS-OPS-PROBE-LOAD-BALANCERS-04-EN",
+        "EKS-OPS-PROBE-LOAD-BALANCERS-04-KO",
+        "EKS-OPS-SHUTDOWN-LANGUAGES-01-EN",
+        "EKS-OPS-SHUTDOWN-LANGUAGES-01-KO"
+      ],
+      "original_occurrence_count": 10,
+      "occurrence_coverage": [
+        {
+          "original_occurrence_id": "EKS-OPS-WORKLOAD-04-EN",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/workload.md",
+          "baseline_lines": [
+            182,
+            199
+          ],
+          "related_baseline_ranges": [
+            [
+              295,
+              310
+            ],
+            [
+              572,
+              611
+            ]
+          ],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-WORKLOAD-04-KO",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/workload.md",
+          "baseline_lines": [
+            183,
+            200
+          ],
+          "related_baseline_ranges": [
+            [
+              296,
+              311
+            ],
+            [
+              573,
+              612
+            ]
+          ],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-INIT-CONTAINERS-02-EN",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+          "baseline_lines": [
+            55,
+            62
+          ],
+          "related_baseline_ranges": [
+            [
+              103,
+              109
+            ],
+            [
+              156,
+              163
+            ],
+            [
+              204,
+              210
+            ]
+          ],
+          "source_correction": "addressed",
+          "contributing_source_commit": "d1cf978aee44dd36ffa90b02b468a915ba1907fc",
+          "coverage_role": "prior partial correction retained"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-INIT-CONTAINERS-02-KO",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md",
+          "baseline_lines": [
+            55,
+            62
+          ],
+          "related_baseline_ranges": [
+            [
+              103,
+              109
+            ],
+            [
+              156,
+              163
+            ],
+            [
+              204,
+              210
+            ]
+          ],
+          "source_correction": "addressed",
+          "contributing_source_commit": "d1cf978aee44dd36ffa90b02b468a915ba1907fc",
+          "coverage_role": "prior partial correction retained"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-NODE-READINESS-12-EN",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+          "baseline_lines": [
+            397,
+            424
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-NODE-READINESS-12-KO",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+          "baseline_lines": [
+            397,
+            424
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-PROBE-LOAD-BALANCERS-04-EN",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md",
+          "baseline_lines": [
+            87,
+            108
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-PROBE-LOAD-BALANCERS-04-KO",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md",
+          "baseline_lines": [
+            87,
+            108
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-SHUTDOWN-LANGUAGES-01-EN",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md",
+          "baseline_lines": [
+            84,
+            110
+          ],
+          "related_baseline_ranges": [
+            [
+              173,
+              202
+            ],
+            [
+              283,
+              309
+            ],
+            [
+              358,
+              384
+            ]
+          ],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-SHUTDOWN-LANGUAGES-01-KO",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md",
+          "baseline_lines": [
+            84,
+            110
+          ],
+          "related_baseline_ranges": [
+            [
+              173,
+              202
+            ],
+            [
+              283,
+              309
+            ],
+            [
+              358,
+              384
+            ]
+          ],
+          "source_correction": "addressed",
+          "contributing_source_commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        }
+      ],
+      "remaining_occurrences": [],
+      "version_limits": [
+        "Kubernetes apps/v1 selector/template-label and selector-immutability contracts, checked against release-1.34 documentation and v1.34.0 validation source. Existing deployed selectors must be preserved; examples are standalone, not a combined deployment bundle."
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-debugging/workload.md": "19daf92ecc53d141b00f10192925672edf8cecfb528a4b1eeadba6b6f7cf12bf",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "1549f14444fafb6181f1f478a835fa46905ce918cdb62cfbd229c62f4a892395",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md": "322d1e03dd950966f3feb4f58767b50f27ccfea7cb9f02f6a2c75ba2b376328a",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md": "c459d2921028754c9c994e9f110b898557b783d551a4e6337deff84e82e77b29",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md": "ee5f3336557b7305789c3608fb57b1d9b9e71457c998728cea6fdd42cf8dc6fa",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/workload.md": "7df16aeeb52f26cb4122a173df18af6ca44c0083b844c34ce0e4fb2ab4aa4ea9",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md": "cf6b687ccd8ffd577f37f58902bfdb2972b890bc1a388442515d1bdf1c533801",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md": "89dbe6124801655e67c29e18b06136427c5702d0453d91afca54220764b58639",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers.md": "a9c5a74732c9d711b5ef88d5be716ccf99036e4a9448b1af6f72285728d9317c",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages.md": "c4ab38aa8a73630a08b8e4e994924526bf08d870482c0863aaf89b804b05ecc8"
+      },
+      "previous_record_id": "2026-09-19-hyp-ops-073-wave4"
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-077-wave5",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-077",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the four remaining DDD/shutdown modern outlier-policy occurrences and retained the two previously corrected scheduling occurrences, including supported region/zone locality priority. All six tracked occurrences are addressed with an explicit full-5xx policy and preserved numeric thresholds.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2ae18f03e8b3b756c008ced6175f67c403e8c01c",
+      "source_commits": [
+        "2f68ff9b06a72dd4237415814cb029521a0a967a",
+        "7667b7021156917380b8c38ab405e64178a6e3ce"
+      ],
+      "source_files": [
+        "docs/aidlc/methodology/ddd-integration.md",
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md"
+      ],
+      "verification": [
+        "Independent applied-source review and all 30 outlier/routing tests passed. Removing an introduced simple: ROUND_ROBIN override preserves the previous default; a negative control rejects its reintroduction.",
+        "The disclosure guard accepts equivalent partial-example and separate-setup wording in both locales while requiring ServiceEntry, TLS, HTTPS and version prerequisites.",
+        "The two scheduling occurrences retain the prior 2f68ff9b correction; the four formerly outside occurrences are the KO/EN DDD and shutdown-karpenter sources. The DDD threshold remains five and the shutdown threshold remains three.",
+        "The deprecated-field acceptance and modern-field interpretation were independently checked against the pinned Istio 1.27.0 CRDs, protobuf and conversion implementation; all six source locations are covered."
+      ],
+      "primary_urls": [
+        "https://istio.io/latest/docs/reference/config/networking/destination-rule/",
+        "https://istio.io/latest/docs/reference/config/networking/virtual-service/",
+        "https://raw.githubusercontent.com/istio/istio/1.27.0/manifests/charts/base/files/crd-all.gen.yaml",
+        "https://raw.githubusercontent.com/istio/api/1.27.0/networking/v1alpha3/destination_rule.proto",
+        "https://raw.githubusercontent.com/istio/istio/1.27.0/pilot/pkg/networking/core/cluster_traffic_policy.go"
+      ],
+      "evidence_limit": "Authored modern-policy/source correction only. Installed Istio/served CRDs, proxy configuration, service registration and interception, protocols/TLS, endpoint locality, actual HTTP ejection/failover, retries, timing and workload outcomes remain unverified. No historical alias-equivalence or universal old-field admission rejection is claimed. AIDLC-C184's external-host/registry/TLS operational gaps are not globally closed.",
+      "verification_files": [
+        "scripts/tests/document-examples/istio-outlier.test.cjs",
+        "scripts/tests/document-examples/istio-routing.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/istio-outlier.test.cjs scripts/tests/document-examples/istio-routing.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKSN-POD-077-ko",
+        "EKSN-POD-077-en",
+        "EKSN-POD-077-outside-ko-ddd-integration",
+        "EKSN-POD-077-outside-ko-shutdown-karpenter",
+        "EKSN-POD-077-outside-en-shutdown-karpenter",
+        "EKSN-POD-077-outside-en-ddd-integration"
+      ],
+      "original_occurrence_count": 6,
+      "occurrence_coverage": [
+        {
+          "original_occurrence_id": "EKSN-POD-077-ko",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+          "baseline_lines": [
+            4373,
+            4385
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+          "coverage_role": "prior scheduling correction retained"
+        },
+        {
+          "original_occurrence_id": "EKSN-POD-077-en",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+          "baseline_lines": [
+            4377,
+            4389
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+          "coverage_role": "prior scheduling correction retained"
+        },
+        {
+          "original_occurrence_id": "EKSN-POD-077-outside-ko-ddd-integration",
+          "locale": "ko",
+          "source_path": "docs/aidlc/methodology/ddd-integration.md",
+          "baseline_lines": [
+            400,
+            400
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKSN-POD-077-outside-ko-shutdown-karpenter",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+          "baseline_lines": [
+            341,
+            341
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKSN-POD-077-outside-en-shutdown-karpenter",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+          "baseline_lines": [
+            341,
+            341
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        },
+        {
+          "original_occurrence_id": "EKSN-POD-077-outside-en-ddd-integration",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+          "baseline_lines": [
+            403,
+            403
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+          "coverage_role": "previously outside occurrence corrected in this wave"
+        }
+      ],
+      "remaining_occurrences": [],
+      "version_limits": [
+        "The inspected Istio 1.27.0 served v1/v1alpha3/v1beta1 CRDs accept both consecutiveErrors and consecutive5xxErrors. The former is deprecated in the protobuf; the selected policy explicitly uses the documented full HTTP 5xx category. This correction does not claim universal CRD rejection of the old field, historical alias-equivalence, or identical historical error-category semantics. Authored negative tests enforce the chosen modern policy, not generic Istio admission. Frozen quotations and classifications remain unchanged.",
+        "The previously corrected scheduling example retains a supported region/zone locality policy, one locality strategy and its outlier-detection prerequisites; this is not a deterministic AZ ring."
+      ],
+      "source_snapshot_sha256": {
+        "docs/aidlc/methodology/ddd-integration.md": "2ec5698a6de4638091de904eca6c742846215e80bea90ca5b18193d6482c2ca4",
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "7a945358c1eac79ca8a6418a33193a5fe7733dde2eca1baec1e78f214811b984",
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md": "4b7f97c458a0963f792b7aa12f146bef0151e78a19146ff2106bc24f3c483d8b",
+        "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md": "9a11bd02e95735d9b8ee0b01a8e05787ec8ed5289f063da9751938271442d216",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md": "e06c939ea24594c096091bc8a3454a3592295ae3d7f8334172a8b52d1a7efac9",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md": "145ca8448621e12863596abd2286c6fcfc94f720fa6cb78ea857129090208c0e"
+      },
+      "previous_record_id": "2026-09-19-eksn-pod-077-wave4",
+      "assessment_refinement": "The inspected Istio 1.27.0 served v1/v1alpha3/v1beta1 CRDs accept both consecutiveErrors and consecutive5xxErrors. The former is deprecated in the protobuf; the selected policy explicitly uses the documented full HTTP 5xx category. This correction does not claim universal CRD rejection of the old field, historical alias-equivalence, or identical historical error-category semantics. Authored negative tests enforce the chosen modern policy, not generic Istio admission. Frozen quotations and classifications remain unchanged."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-259-wave5",
+      "package": "eks-operations",
+      "id": "HYP-OPS-259",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected both shutdown-karpenter Istio examples: use supported region/zone locality priority and the original Service route, remove undefined AZ subsets and assumed node-zone sourceLabels, make namespace/mesh visibility prerequisites explicit, and use the documented full-5xx policy without introducing a simple load-balancing override.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2ae18f03e8b3b756c008ced6175f67c403e8c01c",
+      "source_commits": [
+        "7667b7021156917380b8c38ab405e64178a6e3ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md"
+      ],
+      "verification": [
+        "Independent applied-source review and all 30 outlier/routing tests passed. Removing an introduced simple: ROUND_ROBIN override preserves the previous default; a negative control rejects its reintroduction.",
+        "The disclosure guard accepts equivalent partial-example and separate-setup wording in both locales while requiring ServiceEntry, TLS, HTTPS and version prerequisites.",
+        "Independent review covered both original HYP-OPS-259 occurrences and all four components: modern outlier policy, supported locality priority, no undefined subsets, and no assumed client-zone labels. Production visibility and mesh applicability are explicit without introducing authorization or TLS policy."
+      ],
+      "primary_urls": [
+        "https://istio.io/latest/docs/reference/config/networking/destination-rule/",
+        "https://istio.io/latest/docs/reference/config/networking/virtual-service/",
+        "https://raw.githubusercontent.com/istio/istio/1.27.0/manifests/charts/base/files/crd-all.gen.yaml",
+        "https://raw.githubusercontent.com/istio/api/1.27.0/networking/v1alpha3/destination_rule.proto",
+        "https://raw.githubusercontent.com/istio/istio/1.27.0/pilot/pkg/networking/core/cluster_traffic_policy.go"
+      ],
+      "evidence_limit": "Source/offline correction only. Actual Service discovery, sidecar interception, populated endpoint locality, healthy alternate capacity, proxy ejection/routing, authorization enforcement, TLS, retry safety, latency and AZ recovery remain unverified. The removed explicit simple property preserves the prior default rather than claiming a measured algorithm benefit; unrelated guide defects remain open.",
+      "verification_files": [
+        "scripts/tests/document-examples/istio-outlier.test.cjs",
+        "scripts/tests/document-examples/istio-routing.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/istio-outlier.test.cjs scripts/tests/document-examples/istio-routing.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EKS-OPS-SHUTDOWN-KARPENTER-09-EN",
+        "EKS-OPS-SHUTDOWN-KARPENTER-09-KO"
+      ],
+      "original_occurrence_count": 2,
+      "occurrence_coverage": [
+        {
+          "original_occurrence_id": "EKS-OPS-SHUTDOWN-KARPENTER-09-EN",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+          "baseline_lines": [
+            311,
+            371
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+          "coverage_role": "modern-policy and routing supplement corrected"
+        },
+        {
+          "original_occurrence_id": "EKS-OPS-SHUTDOWN-KARPENTER-09-KO",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+          "baseline_lines": [
+            311,
+            371
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+          "coverage_role": "modern-policy and routing supplement corrected"
+        }
+      ],
+      "remaining_occurrences": [],
+      "version_limits": [
+        "The inspected Istio 1.27.0 served v1/v1alpha3/v1beta1 CRDs accept both consecutiveErrors and consecutive5xxErrors. The former is deprecated in the protobuf; the selected policy explicitly uses the documented full HTTP 5xx category. This correction does not claim universal CRD rejection of the old field, historical alias-equivalence, or identical historical error-category semantics. Authored negative tests enforce the chosen modern policy, not generic Istio admission. Frozen quotations and classifications remain unchanged.",
+        "Policy visibility/export scope is not authorization. Node AZ labels are not automatically client Pod labels; supported locality selection requires real endpoint metadata."
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md": "4b7f97c458a0963f792b7aa12f146bef0151e78a19146ff2106bc24f3c483d8b",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md": "145ca8448621e12863596abd2286c6fcfc94f720fa6cb78ea857129090208c0e"
+      },
+      "assessment_refinement": "The inspected Istio 1.27.0 served v1/v1alpha3/v1beta1 CRDs accept both consecutiveErrors and consecutive5xxErrors. The former is deprecated in the protobuf; the selected policy explicitly uses the documented full HTTP 5xx category. This correction does not claim universal CRD rejection of the old field, historical alias-equivalence, or identical historical error-category semantics. Authored negative tests enforce the chosen modern policy, not generic Istio admission. Frozen quotations and classifications remain unchanged."
+    },
+    {
+      "record_id": "2026-09-19-eo-av-karp-02-wave5",
+      "package": "hybrid-rosa-and-operations",
+      "id": "EO-AV-KARP-02",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected both lifecycle and related consolidation flows: distinguish a normally initialized-node path from literal status conditions, NodeClaim-age expiration from Pod-change stabilization, actual initialization prerequisites, and delete-only versus lower-priced replacement consolidation. Preserve prior POD020 field corrections.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2ae18f03e8b3b756c008ced6175f67c403e8c01c",
+      "source_commits": [
+        "254ba2efd29d34d38f7d6fcc1d5056e854a522b4"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md"
+      ],
+      "verification": [
+        "All 57 budget/lifecycle tests and independent source review passed. The original source produced 25 passing and 32 failing cases, as expected.",
+        "All four changed Korean/English Mermaid diagrams parsed and rendered in the browser. The Korean article had no document overflow or diagram errors at 1440px and 390px; screenshots were inspected.",
+        "Both locales preserve all prior POD020 values: four policies, four 30s consolidation waits and three correctly nested 720h expiry settings. The final explanatory prose, created/author/anchors and content metadata were independently checked; KO9/EN15."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/go.mod",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/apis/v1/nodepool.go",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go",
+        "https://karpenter.sh/v1.14/concepts/disruption/",
+        "https://karpenter.sh/v1.14/concepts/nodeclaims/",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/nodeclaim/lifecycle/initialization.go",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/nodeclaim/expiration/controller.go"
+      ],
+      "evidence_limit": "Source, authored-fixture and browser-rendering correction only. No native Karpenter/Go cron/controller/CEL/admission or infrastructure execution; no expiry/deletion deadline, drain completion, workload availability or cost outcome is established. Complete NodePool/provider validity and unrelated guide defects remain outside this disposition.",
+      "verification_files": [
+        "scripts/tests/document-examples/karpenter-budgets.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/karpenter-budgets.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EO-AV-KARP-02"
+      ],
+      "original_occurrence_count": 2,
+      "occurrence_coverage": [
+        {
+          "original_occurrence_id": "EO-AV-KARP-02",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "baseline_lines": [
+            33,
+            61
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+          "coverage_role": "budget/lifecycle follow-up corrected; prior POD020 preserved"
+        },
+        {
+          "original_occurrence_id": "EO-AV-KARP-02",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "baseline_lines": [
+            33,
+            61
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+          "coverage_role": "budget/lifecycle follow-up corrected; prior POD020 preserved"
+        }
+      ],
+      "remaining_occurrences": [],
+      "version_limits": [
+        "AWS provider v1.14.1 actually selects core 6e7eab7a0f485d7225eb98995fad9b66c79b322b. Expiration uses NodeClaim creation time and its own expireAfter, without waiting for Ready/empty status, a NodePool budget or a healthy replacement. Drain can still be blocked; terminationGracePeriod has distinct behavior. Conceptual diagrams do not enumerate every native status transition."
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "1e0e00b5785d592ecb2674925aef3e7deef6cc9f76a2cb3077d170881612b884",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "b0ff2363c058ede076bbe23a80abdf428c4afda019e9ed0070cd5e38194fb90a"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eo-av-karp-03-wave5",
+      "package": "hybrid-rosa-and-operations",
+      "id": "EO-AV-KARP-03",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected both earlier scheduled budgets and both time-of-day examples: pair UTC start schedules with duration, replace the descending overnight range with a continuous 50% baseline plus weekday 09:00–18:00 UTC zero-budget window, and explain overlapping applicable budgets and inactive intervals.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2ae18f03e8b3b756c008ced6175f67c403e8c01c",
+      "source_commits": [
+        "254ba2efd29d34d38f7d6fcc1d5056e854a522b4"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md"
+      ],
+      "verification": [
+        "All 57 budget/lifecycle tests and independent source review passed. The original source produced 25 passing and 32 failing cases, as expected.",
+        "All four changed Korean/English Mermaid diagrams parsed and rendered in the browser. The Korean article had no document overflow or diagram errors at 1440px and 390px; screenshots were inspected.",
+        "Both locales preserve all prior POD020 values: four policies, four 30s consolidation waits and three correctly nested 720h expiry settings. The final explanatory prose, created/author/anchors and content metadata were independently checked; KO9/EN15."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/go.mod",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/apis/v1/nodepool.go",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go",
+        "https://karpenter.sh/v1.14/concepts/disruption/",
+        "https://karpenter.sh/v1.14/concepts/nodeclaims/",
+        "https://raw.githubusercontent.com/robfig/cron/v3.0.1/parser.go",
+        "https://raw.githubusercontent.com/robfig/cron/v3.0.1/spec.go"
+      ],
+      "evidence_limit": "Source, authored-fixture and browser-rendering correction only. No native Karpenter/Go cron/controller/CEL/admission or infrastructure execution; no expiry/deletion deadline, drain completion, workload availability or cost outcome is established. Complete NodePool/provider validity and unrelated guide defects remain outside this disposition.",
+      "verification_files": [
+        "scripts/tests/document-examples/karpenter-budgets.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/karpenter-budgets.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EO-AV-KARP-03"
+      ],
+      "original_occurrence_count": 2,
+      "occurrence_coverage": [
+        {
+          "original_occurrence_id": "EO-AV-KARP-03",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "baseline_lines": [
+            703,
+            719
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+          "coverage_role": "budget/lifecycle follow-up corrected; prior POD020 preserved"
+        },
+        {
+          "original_occurrence_id": "EO-AV-KARP-03",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "baseline_lines": [
+            703,
+            719
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+          "coverage_role": "budget/lifecycle follow-up corrected; prior POD020 preserved"
+        }
+      ],
+      "remaining_occurrences": [],
+      "version_limits": [
+        "Provider v1.14.1 / core 6e7eab7a0f485d7225eb98995fad9b66c79b322b / cron v3.0.1. The CRD requires schedule and duration together; the implementation forces UTC. For these selected daily/weekday schedules, strict Next(now-duration) <= now yields an inclusive start and exclusive end. The JS fixture model is not the native cron parser."
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "1e0e00b5785d592ecb2674925aef3e7deef6cc9f76a2cb3077d170881612b884",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "b0ff2363c058ede076bbe23a80abdf428c4afda019e9ed0070cd5e38194fb90a"
+      }
+    },
+    {
+      "record_id": "2026-09-19-eo-av-karp-05-wave5",
+      "package": "hybrid-rosa-and-operations",
+      "id": "EO-AV-KARP-05",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected both budget-default checklists and related percentage comments: an omitted list defaults to 10%, while an explicitly stored empty list or no active matching budget has no finite NodePool budget ceiling. Explain per-NodePool rounding, tightest applicable ceiling and single-count NotReady/deletion deductions.",
+      "recorded_on": "2026-09-19",
+      "reviewed_revision": "2ae18f03e8b3b756c008ced6175f67c403e8c01c",
+      "source_commits": [
+        "254ba2efd29d34d38f7d6fcc1d5056e854a522b4"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md"
+      ],
+      "verification": [
+        "All 57 budget/lifecycle tests and independent source review passed. The original source produced 25 passing and 32 failing cases, as expected.",
+        "All four changed Korean/English Mermaid diagrams parsed and rendered in the browser. The Korean article had no document overflow or diagram errors at 1440px and 390px; screenshots were inspected.",
+        "Both locales preserve all prior POD020 values: four policies, four 30s consolidation waits and three correctly nested 720h expiry settings. The final explanatory prose, created/author/anchors and content metadata were independently checked; KO9/EN15."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/go.mod",
+        "https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/apis/v1/nodepool.go",
+        "https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go",
+        "https://karpenter.sh/v1.14/concepts/disruption/",
+        "https://karpenter.sh/v1.14/concepts/nodeclaims/"
+      ],
+      "evidence_limit": "Source, authored-fixture and browser-rendering correction only. No native Karpenter/Go cron/controller/CEL/admission or infrastructure execution; no expiry/deletion deadline, drain completion, workload availability or cost outcome is established. Complete NodePool/provider validity and unrelated guide defects remain outside this disposition.",
+      "verification_files": [
+        "scripts/tests/document-examples/karpenter-budgets.test.cjs"
+      ],
+      "verification_commands": [
+        "node --test scripts/tests/document-examples/karpenter-budgets.test.cjs"
+      ],
+      "original_occurrence_ids": [
+        "EO-AV-KARP-05"
+      ],
+      "original_occurrence_count": 2,
+      "occurrence_coverage": [
+        {
+          "original_occurrence_id": "EO-AV-KARP-05",
+          "locale": "ko",
+          "source_path": "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "baseline_lines": [
+            642,
+            646
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+          "coverage_role": "budget/lifecycle follow-up corrected; prior POD020 preserved"
+        },
+        {
+          "original_occurrence_id": "EO-AV-KARP-05",
+          "locale": "en",
+          "source_path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+          "baseline_lines": [
+            642,
+            646
+          ],
+          "related_baseline_ranges": [],
+          "source_correction": "addressed",
+          "contributing_source_commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+          "coverage_role": "budget/lifecycle follow-up corrected; prior POD020 preserved"
+        }
+      ],
+      "remaining_occurrences": [],
+      "version_limits": [
+        "Provider v1.14.1 / core 6e7eab7a0f485d7225eb98995fad9b66c79b322b: count initialized managed nodes excluding InstanceTerminating; NotReady OR marked-for-deletion consumes each counted node once, then clamp at zero. Explicitly stored empty budgets differ from omission. PDB/scheduling and other disruption constraints remain applicable; a percentage is not a promise to replace exactly that fraction."
+      ],
+      "source_snapshot_sha256": {
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "1e0e00b5785d592ecb2674925aef3e7deef6cc9f76a2cb3077d170881612b884",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "b0ff2363c058ede076bbe23a80abdf428c4afda019e9ed0070cd5e38194fb90a"
+      }
     }
   ]
 }

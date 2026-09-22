@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 284,
-    "open": 1906,
+    "source_correction_accepted": 290,
+    "open": 1900,
     "withdrawn": 1
   },
   "assignment_counts": {
@@ -11208,11 +11208,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": "d1cf978aee44dd36ffa90b02b468a915ba1907fc",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "3054fb460aeaf910b8eb58358f5a33432b4679fe",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-hyp-ops-073-wave4"
+        "2026-09-19-hyp-ops-073-wave4",
+        "2026-09-19-hyp-ops-073-wave5"
       ]
     },
     {
@@ -13202,9 +13203,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-259-wave5"
+      ]
     },
     {
       "package": "eks-operations",
@@ -14213,11 +14217,12 @@
       "issue": 92,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/92",
-      "source_correction_status": "open",
-      "commit": "2f68ff9b06a72dd4237415814cb029521a0a967a",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-eksn-pod-077-wave4"
+        "2026-09-19-eksn-pod-077-wave4",
+        "2026-09-19-eksn-pod-077-wave5"
       ]
     },
     {
@@ -22757,9 +22762,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eo-av-karp-02-wave5"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -22768,9 +22776,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eo-av-karp-03-wave5"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -22790,9 +22801,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "254ba2efd29d34d38f7d6fcc1d5056e854a522b4",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eo-av-karp-05-wave5"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",

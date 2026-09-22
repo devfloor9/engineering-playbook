@@ -110,7 +110,20 @@ The fourth follow-up adds 26 decisions across 11 document sources and one shared
 | Karpenter fields | Correct the 13 remaining consolidation/expiration locations, including the English GPU table; preserve the Korean component output. | `94a25ba5` |
 | AZ placement and traffic | Correct topology arithmetic, distinguish ARC traffic shifts from Pod replacement, and repair Istio and alarm examples. | `2f68ff9b` |
 
-`HYP-OPS-073` remains partial because eight registered selector defects occur in four other document pairs. `EKSN-POD-077` retains four outside Istio-field occurrences. The Trainium specification conflict, neighboring findings and operational evidence remain separate work. The full offline example suite passed 678 tests. Metadata was checked for all 11 changed sources, and five Korean pages passed desktop/mobile browser checks. These results do not establish runtime behavior.
+At the end of the fourth follow-up, `HYP-OPS-073` remained partial because eight registered selector defects occurred in four other document pairs. `EKSN-POD-077` retained four outside Istio-field occurrences. The full offline example suite passed 678 tests. Metadata was checked for all 11 changed sources, and five Korean pages passed desktop/mobile browser checks.
+
+The fifth follow-up accepts six source corrections, including the two partial items above. Its records cover all 24 original occurrence associations across 18 distinct source files, retaining the earlier init-container and scheduling fixes. The Istio assessment also clarifies that the inspected CRDs accept the deprecated field; the correction selects the documented full-5xx policy without claiming universal schema rejection.
+
+| Area | Reviewed change | Source commit |
+| --- | --- | --- |
+| Deployment selectors | Complete selectors and matching Pod labels in the eight remaining registered occurrences; preserve the earlier init-container fixes. | `3054fb46` |
+| Karpenter budgets | Distinguish node age from consolidation delay; correct schedule durations, defaults, active limits and unavailable-node counting. | `254ba2ef` |
+| Istio outliers and routing | Correct the remaining outlier examples, external-service visibility and failover routing prerequisites. | `7667b702` |
+| IP capacity and CPU sizing | Correct address arithmetic, configuration updates, instance limits, CPU accounting and sizing guidance in the separate PR #104 review. | `d2da2924` |
+
+The [PR #104 follow-up report](pr104-follow-up.md) records 13 supplemental findings separately from the frozen 2,191-item inventory. Across this follow-up, 20 document sources received content corrections and three received reading-time-only corrections with their content dates preserved. All 23 sources passed MDX and metadata checks; 631 heading identities and seven explicit anchors were preserved. The full offline example suite passed 852 checks, and the metadata suite passed 10 tests. Changed Korean article views passed desktop/mobile checks; the changed Karpenter and CPU diagrams were rendered in both languages.
+
+The Trainium specification conflict, neighboring findings and operational evidence remain separate work. These checks do not establish controller admission, live routing, cloud execution, recovery, CPU performance or address usage in an operating cluster.
 
 Each ledger entry identifies the source commit, reviewed files, checks and remaining limits. Offline examples use fakes or parsers; browser checks establish rendering. Neither establishes successful cloud execution, fault recovery or measured performance. Later entries, if present, are authoritative for subsequent decisions; the original occurrence and classification totals remain unchanged.
 
@@ -127,7 +140,7 @@ The new correction workstreams are:
 - [#99 — AI-DLC](https://github.com/devfloor9/engineering-playbook/issues/99): 404 items covering methodology, executable examples, approvals, evaluation, quantities and legal scope.
 - [#100 — Industry and sales examples](https://github.com/devfloor9/engineering-playbook/issues/100): 283 industry items and 14 sales/event items covering evidence, implementation status and assumptions.
 
-The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 284 accepted source corrections, 1,906 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,906 confirmed errors.
+The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 290 accepted source corrections, 1,900 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,900 confirmed errors.
 
 Follow-up edits must preserve useful detail, routes, anchors, creation dates and author attribution. Content changes update the revision date and reading estimate together; presentation-only changes preserve them.
 

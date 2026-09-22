@@ -3,7 +3,7 @@ title: EKS 기반 Agentic AI 오픈 아키텍처
 description: Amazon EKS와 오픈소스 생태계를 활용한 Agentic AI 플랫폼 구축 가이드
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 21
 tags:
@@ -39,8 +39,8 @@ import {
 
 :::info 선행 문서
 이 문서를 읽기 전에 다음 문서를 먼저 참조하세요:
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — Agentic AI Platform의 구조와 핵심 레이어
-- [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 도전과제
+- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — Agentic AI Platform의 구조와 주요 레이어
+- [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 주요 도전과제
 - [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md) — 매니지드 vs 오픈소스 의사결정
 - [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 기반 대안 접근 (비교 참고)
 :::
@@ -61,7 +61,7 @@ import {
 AWS Native, SageMaker Unified Studio, EKS 오픈 아키텍처, 하이브리드의 5축 비교는 [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md#플랫폼-비교-매트릭스)를 참조하세요.
 :::
 
-**핵심 메시지: AWS Native → EKS는 보완 관계입니다.** 현실적인 접근은 **AWS Native로 시작하고, 필요에 따라 EKS로 확장**하는 것입니다. 두 접근은 동일한 VPC 내에서 공존할 수 있습니다.
+**요점: AWS Native → EKS는 보완 관계입니다.** 현실적인 접근은 **AWS Native로 시작하고, 필요에 따라 EKS로 확장**하는 것입니다. 두 접근은 동일한 VPC 내에서 공존할 수 있습니다.
 
 ---
 
@@ -119,7 +119,7 @@ flowchart TD
 PCP 티어는 **Kubernetes 컨트롤 플레인 메트릭**을 기반으로 선택해야 합니다.
 :::
 
-**핵심 모니터링 메트릭:**
+**주요 모니터링 메트릭:**
 
 | 메트릭 | Prometheus 쿼리 | 판단 기준 |
 |--------|----------------|----------|
@@ -154,9 +154,9 @@ Karpenter v1.10+ (GA since v1.0, 2024-08), NodePool 설정, GPU 인스턴스 비
 
 <EksKarpenterLayers />
 
-### EKS Auto Mode: 완전 자동화의 완성
+### EKS Auto Mode: 자동화 범위
 
-**EKS Auto Mode**는 Karpenter를 포함한 핵심 컴포넌트들을 자동으로 구성하고 관리합니다.
+**EKS Auto Mode**는 Karpenter를 포함한 주요 컴포넌트들을 자동으로 구성하고 관리합니다.
 
 ```mermaid
 flowchart TD
@@ -195,7 +195,7 @@ GPU NodePool 구성, Spot/On-Demand 전략, Consolidation 정책 등 상세 설�
 :::
 
 :::info EKS Auto Mode와 GPU 지원
-EKS Auto Mode는 NVIDIA GPU를 포함한 가속 컴퓨팅 인스턴스를 완벽히 지원합니다.
+EKS Auto Mode는 NVIDIA GPU를 포함한 가속 컴퓨팅(accelerated compute) 인스턴스를 지원합니다.
 
 **re:Invent 2024 신규 기능:**
 - **EKS Hybrid Nodes (GA 2024-12)**: 온프레미스 GPU 인프라를 EKS 클러스터에 통합
@@ -210,16 +210,16 @@ EKS Auto Mode는 NVIDIA GPU를 포함한 가속 컴퓨팅 인스턴스를 완벽
 
 ### Auto Mode에서 배포 가능한 Agentic AI 컴포넌트
 
-EKS Auto Mode 위에서 Agentic AI 플랫폼의 모든 핵심 컴포넌트를 배포할 수 있습니다.
+EKS Auto Mode 위에서 Agentic AI 플랫폼의 모든 주요 컴포넌트를 배포할 수 있습니다.
 
 #### 추론: vLLM + llm-d
 
-**vLLM**은 LLM 추론 전용 엔진이며, **llm-d**는 KV Cache 상태를 고려한 지능형 라우팅을 제공합니다.
+**vLLM**은 LLM 추론 전용 엔진이며, **llm-d**는 KV cache 상태를 고려한 지능형 라우팅을 제공합니다.
 
 :::info 모델 서빙 스택 구성
-- **vLLM**: LLM 추론 전용 (GPT, Claude, Llama 등) — PagedAttention 기반 KV Cache 최적화
+- **vLLM**: LLM 추론 전용 (GPT, Claude, Llama 등) — PagedAttention 기반 KV cache 최적화
 - **Triton Inference Server**: 비-LLM 추론 담당 (임베딩, 리랭킹, Whisper STT)
-- **llm-d**: KV Cache-aware 라우팅으로 Prefix cache 히트율 극대화
+- **llm-d**: KV Cache-aware 라우팅으로 prefix cache 히트율 극대화
 
 상세 설정은 [vLLM 모델 서빙](../../model-serving/inference-frameworks/vllm-model-serving.md) 및 [llm-d 분산 추론](../../model-serving/inference-frameworks/llm-d-eks-automode.md)을 참조하세요.
 :::
@@ -340,7 +340,7 @@ graph TB
     style ARGOCD_C fill:#e85a25
 ```
 
-### Agentic AI를 위한 핵심 EKS Capability
+### Agentic AI를 위한 주요 EKS Capability
 
 <EksCapabilities />
 
@@ -521,7 +521,7 @@ graph TB
 
 <AutomationComponents />
 
-:::info 완전 자동화의 이점 — 인프라 운영을 EKS에 위임하고 Agent 개발에 집중
+:::info 자동화의 이점 — 인프라 운영을 EKS에 위임하고 Agent 개발에 집중
 - **개발자**: Git push만으로 모델 배포
 - **플랫폼 팀**: 인프라 관리 부담 최소화
 - **비용 최적화**: 필요한 리소스만 동적 프로비저닝
@@ -599,7 +599,7 @@ spec:
 
 > 2-Tier Gateway 아키텍처의 전체 설계는 [LLM Gateway 2-Tier 아키텍처](../../model-serving/inference-routing/routing-strategy.md)를 참조하세요.
 
-### 핵심 권장사항
+### 주요 권장사항
 
 1. **EKS Auto Mode로 시작**: 새 클러스터는 Auto Mode로 생성하여 Karpenter 자동 구성 활용
 2. **GPU 고급 기능은 Karpenter 노드**: MIG, Run:ai 등 GPU Operator 필요 시 Karpenter NodePool 추가
@@ -685,6 +685,6 @@ spec:
 ### 관련 문서 (내부)
 
 - [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 전체 시스템 설계
-- [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제
+- [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 주요 과제
 - [GPU 리소스 관리](../../model-serving/gpu-infrastructure/gpu-resource-management.md) — Karpenter, KEDA, DRA
 - [vLLM 모델 서빙](../../model-serving/inference-frameworks/vllm-model-serving.md) — vLLM 배포 가이드

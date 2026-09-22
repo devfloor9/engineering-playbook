@@ -3,7 +3,7 @@ title: 워크로드 디버깅
 description: EKS 워크로드 문제 진단 및 해결 가이드 - Pod 상태별 디버깅, 배포 실패 패턴, Probe 설정
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 7
 tags:
@@ -185,7 +185,13 @@ kind: Deployment
 metadata:
   name: spring-boot-app
 spec:
+  selector:
+    matchLabels:
+      app: spring-boot-app
   template:
+    metadata:
+      labels:
+        app: spring-boot-app
     spec:
       containers:
       - name: app
@@ -292,6 +298,8 @@ spec:
 kubectl apply -f https://raw.githubusercontent.com/stakater/Reloader/master/deployments/kubernetes/reloader.yaml
 ```
 
+기존 Deployment에 annotation을 추가할 때는 현재 `spec.selector`와 이에 일치하는 Pod 라벨을 유지합니다. `apps/v1` selector는 생성 후 변경할 수 없으며, 아래 라벨은 새 Deployment 예시용입니다.
+
 ```yaml
 # Deployment에 annotation 추가
 apiVersion: apps/v1
@@ -303,7 +311,13 @@ metadata:
     # 또는 특정 리소스만:
     # configmap.reloader.stakater.com/reload: "app-config,common-config"
 spec:
+  selector:
+    matchLabels:
+      app: app
   template:
+    metadata:
+      labels:
+        app: app
     spec:
       containers:
       - name: app
@@ -575,7 +589,13 @@ kind: Deployment
 metadata:
   name: web-app
 spec:
+  selector:
+    matchLabels:
+      app: web-app
   template:
+    metadata:
+      labels:
+        app: web-app
     spec:
       containers:
       - name: app
