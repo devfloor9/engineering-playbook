@@ -3,7 +3,7 @@ title: Agentic Playbook
 description: Agent 워크플로우를 IaC처럼 선언적으로 정의하고 컴플라이언스를 자동화하는 Playbook 가이드
 created: "2026-04-04"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -36,7 +36,7 @@ sidebar_label: Agentic Playbook
 - **Playbook**: 에이전트 워크플로우를 선언 → `playbook run` → 실제 작업 실행 + 감사 로그
 :::
 
-### 핵심 특징
+### 주요 특징
 
 1. **선언적 정의**: YAML로 워크플로우 표현
 2. **승인 게이트**: auto/manual/conditional 정책
