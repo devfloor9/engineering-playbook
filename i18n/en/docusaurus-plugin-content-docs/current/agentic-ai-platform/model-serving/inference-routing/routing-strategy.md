@@ -3,7 +3,7 @@ title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
 created: "2025-02-05"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 38
 tags:
@@ -202,7 +202,7 @@ For streaming responses, `backendRequest` timeout is for first byte, `request` i
 
 | Solution | Language | Key Features | Cascade Routing | License | Best For |
 |--------|------|-----------|-----------------|----------|-----------|
-| **Bifrost** | Go/Rust | 50x faster, CEL Rules conditional routing, failover | CEL Rules + external classifier | Apache 2.0 | High performance, low cost, self-hosted |
+| **Bifrost** | Go | 50x faster, CEL Rules conditional routing, failover | CEL Rules + external classifier | Apache 2.0 | High performance, low cost, self-hosted |
 | **LiteLLM** | Python | 100+ providers, native complexity-based routing | `routing_strategy: complexity-based` | MIT | Python ecosystem, rapid prototyping |
 | **vLLM Semantic Router** | Python | vLLM-only, lightweight embedding-based routing | Embedding similarity-based | Apache 2.0 | vLLM standalone environment |
 | **Portkey** | TypeScript | SOC2 certified, semantic caching, Virtual Keys | Supported | Proprietary + OSS | Enterprise, compliance |
@@ -224,7 +224,7 @@ In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-
 
 ### Bifrost vs LiteLLM
 
-**Bifrost**: Go/Rust implementation with 50x faster throughput than Python, 1/10 memory usage. CEL Rules enable conditional routing (header-based cascade, failover). Helm Chart deployment, OpenAI-compatible API. Proxy latency < 100us. Intelligent cascade via app-side complexity score calculation → `x-complexity-score` header → CEL rule branching pattern or Go Plugin.
+**Bifrost**: Go implementation with 50x faster throughput than Python, 1/10 memory usage. CEL Rules enable conditional routing (header-based cascade, failover). Helm Chart deployment, OpenAI-compatible API. Proxy latency < 100us. Intelligent cascade via app-side complexity score calculation → `x-complexity-score` header → CEL rule branching pattern or Go Plugin.
 
 **LiteLLM**: 100+ provider support, **native complexity-based routing** (activate with 1-line `routing_strategy: complexity-based` config), one-line Langfuse integration (`success_callback: ["langfuse"]`), direct LangChain/LlamaIndex integration. However, Python-based with lower throughput, higher memory usage.
 
