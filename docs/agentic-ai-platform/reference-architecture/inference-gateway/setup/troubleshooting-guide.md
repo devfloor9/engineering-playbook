@@ -3,9 +3,9 @@ title: 트러블슈팅 가이드
 description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
 created: "2026-04-18"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-21
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 7
 tags:
   - troubleshooting
   - debugging
@@ -273,7 +273,7 @@ kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
 
 | 확인 항목 | 올바른 값 |
 |----------|----------|
-| `trace_type` | `"otel"` (not `"genai_extension"`) |
+| `trace_type` | `"genai_extension"` (not `"otel"`) |
 | `collector_url` | 전체 경로 포함 (`/api/public/otel/v1/traces`) |
 | Authorization | `Basic <BASE64(public_key:secret_key)>` |
 | kgateway URLRewrite | `/api/public/otel` -> `/api/public/otel/v1/traces` (경유 시) |
@@ -516,7 +516,7 @@ kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 
 ### Q4: NLB 직접 접근 vs CloudFront 경유 속도 차이?
 
-**A**: AWS WAF 검사는 통상 한 자릿수 ms 수준이며, CloudFront 엣지 TLS 종단은 오히려 클라이언트-엣지 간 지연을 감소시킬 수 있습니다. 캐시 미스 시 추가 홉으로 인한 지연은 상황에 따라 다르므로, 실제 지연은 워크로드별로 측정이 필요합니다. 프로덕션에서는 보안 트레이드오프를 고려하여 CloudFront + WAF 사용을 권장합니다.
+**A**: AWS WAF 검사는 통상 한 자릿수 ms 수준이며, CloudFront 엣지 TLS 종단은 오히려 클라이언트-엣지 간 지연을 감소시킬 수 있습니다. 캐시 미스 시 추가 홈으로 인한 지연은 상황에 따라 다르므로, 실제 지연은 워크로드별로 측정이 필요합니다. 프로덕션에서는 보안 트레이드오프를 고려하여 CloudFront + WAF 사용을 권장합니다.
 
 ### Q5: Bifrost double-prefix 트릭이 필요한 이유?
 
