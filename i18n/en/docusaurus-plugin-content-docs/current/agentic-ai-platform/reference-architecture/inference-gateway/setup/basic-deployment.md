@@ -3,7 +3,7 @@ title: Basic Deployment
 description: kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: devfloor9
 reading_time: 11
 tags:
@@ -359,7 +359,7 @@ Bifrost Gateway Mode is configured declaratively with config.json. This is a ver
       "name": "otel",
       "config": {
         "service_name": "bifrost",
-        "trace_type": "otel",
+        "trace_type": "genai_extension",
         "protocol": "http",
         "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
         "headers": {
@@ -386,7 +386,7 @@ Writing `"providers": [...]` (array) will make settings invisible in UI. Always 
 
 #### OTel Plugin
 
-- `trace_type` must be `"otel"` (traces won't arrive at Langfuse if using `"genai_extension"`)
+- `trace_type` must be `"genai_extension"` (required as of v1.5.0+; the legacy `"otel"` value was removed from the schema)
 - `collector_url` is the full Langfuse OTLP path: `/api/public/otel/v1/traces`
 - Authorization header: `Basic <BASE64(public_key:secret_key)>` format
 
@@ -431,7 +431,7 @@ data:
         "name": "otel",
         "config": {
           "service_name": "bifrost",
-          "trace_type": "otel",
+          "trace_type": "genai_extension",
           "protocol": "http",
           "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
           "headers": {
