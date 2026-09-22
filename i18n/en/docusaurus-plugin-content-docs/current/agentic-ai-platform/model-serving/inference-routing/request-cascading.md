@@ -3,7 +3,7 @@ title: Request Cascading — Intelligent Model Routing
 description: Complexity-based automatic model routing — comparison of LLM Classifier, LiteLLM, and vLLM Semantic Router approaches, RouteLLM research reference, and cost savings
 created: "2026-07-04"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: YoungJoon Jeong
 reading_time: 19
 tags:
@@ -106,7 +106,7 @@ graph LR
 ```python
 STRONG_KEYWORDS = ["refactor", "architect", "design", "analyze",
                    "optimize", "debug", "migration", "complex"]
-TOKEN_THRESHOLD = 500
+CHAR_THRESHOLD = 500
 
 def classify(messages: list[dict]) -> str:
     content = " ".join(m.get("content", "") for m in messages if m.get("content"))
@@ -114,7 +114,7 @@ def classify(messages: list[dict]) -> str:
     if any(kw in content.lower() for kw in STRONG_KEYWORDS):
         return "strong"
     # Input length
-    if len(content) > TOKEN_THRESHOLD:
+    if len(content) > CHAR_THRESHOLD:
         return "strong"
     # Conversation turns
     if len(messages) > 5:

@@ -1,6 +1,6 @@
 ---
-title: Self-Improving Agent Loop (Autosearch)
-description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autosearch concept
+title: Self-Improving Agent Loop (Autoresearch)
+description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autoresearch concept
 created: "2026-04-18"
 last_update:
   date: 2026-09-22
@@ -8,7 +8,7 @@ last_update:
 reading_time: 28
 tags:
   - self-improving
-  - autosearch
+  - autoresearch
   - rlaif
   - grpo
   - dpo
@@ -25,11 +25,11 @@ This loop is exclusively for self-hosted open-weight models (Qwen3, Llama 4, GLM
 Before production deployment, consensus on scope, automation boundaries, data governance, and rollback criteria is needed. See [ADR — Self-Improving Agent Loop Decision](./adr-self-improving-loop.md) for detailed consensus items.
 :::
 
-## Autosearch Discourse and Enterprise Interpretation
+## Autoresearch Discourse and Enterprise Interpretation
 
 ### Karpathy's Core Argument
 
-Andrej Karpathy argued that LLMs will evolve beyond simple "next token prediction" machines into **autosearch systems**. Core mechanisms:
+Andrej Karpathy argued that LLMs will evolve beyond simple "next token prediction" machines into **autoresearch systems**. Core mechanisms:
 
 1. **Tool-use Rollout**: LLM explores multiple reasoning paths using tools (code execution, web search, calculator, etc.)
 2. **Success as Signal**: Successful paths (reaching correct answer, completing tasks) become signals for next learning
@@ -1332,7 +1332,7 @@ WHERE event_type = 'model_deployed'
 - [DPO: Direct Preference Optimization (NeurIPS 2023)](https://arxiv.org/abs/2305.18290) — DPO paper
 - [DeepSeekMath: GRPO (2024)](https://arxiv.org/abs/2402.03300) — GRPO paper
 - [Constitutional AI: RLAIF (Anthropic 2022)](https://arxiv.org/abs/2212.08073) — RLAIF paper
-- [Andrej Karpathy on Autosearch](https://karpathy.github.io/) — Autosearch concept
+- [Andrej Karpathy on Autoresearch](https://karpathy.github.io/) — Autoresearch concept
 
 ### Related Documents (Internal)
 

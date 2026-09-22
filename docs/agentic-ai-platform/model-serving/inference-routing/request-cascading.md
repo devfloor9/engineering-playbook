@@ -3,7 +3,7 @@ title: Request Cascading — 지능형 모델 라우팅
 description: 요청 복잡도 기반 모델 자동 라우팅 — LLM Classifier·LiteLLM·vLLM Semantic Router 구현 접근 비교와 RouteLLM 연구 참조, 비용 절감 효과
 created: "2026-07-04"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -107,7 +107,7 @@ graph LR
 STRONG_KEYWORDS = ["리팩터", "아키텍처", "설계", "분석", "최적화", "디버그",
                    "마이그레이션", "refactor", "architect", "design", "analyze",
                    "optimize", "debug", "migration", "complex"]
-TOKEN_THRESHOLD = 500
+CHAR_THRESHOLD = 500
 
 def classify(messages: list[dict]) -> str:
     content = " ".join(m.get("content", "") for m in messages if m.get("content"))
@@ -115,7 +115,7 @@ def classify(messages: list[dict]) -> str:
     if any(kw in content.lower() for kw in STRONG_KEYWORDS):
         return "strong"
     # 입력 길이
-    if len(content) > TOKEN_THRESHOLD:
+    if len(content) > CHAR_THRESHOLD:
         return "strong"
     # 대화 턴 수
     if len(messages) > 5:

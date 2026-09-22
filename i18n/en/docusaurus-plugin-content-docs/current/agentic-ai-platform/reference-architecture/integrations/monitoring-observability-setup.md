@@ -3,7 +3,7 @@ title: Monitoring & Observability Setup Guide
 description: Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel
 created: "2026-04-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: devfloor9
 reading_time: 15
 tags:
@@ -434,7 +434,7 @@ OTel plugin configuration in Bifrost's config.json.
     "name": "otel",
     "config": {
       "service_name": "bifrost",
-      "trace_type": "otel",
+      "trace_type": "genai_extension",
       "protocol": "http",
       "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
       "headers": {
@@ -450,7 +450,7 @@ OTel plugin configuration in Bifrost's config.json.
 
 | Setting | Correct Value | Incorrect Value |
 |---------|--------------|----------------|
-| `trace_type` | `"otel"` | `"genai_extension"` |
+| `trace_type` | `"genai_extension"` | `"otel"` |
 | `collector_url` | Full OTLP path included | Base URL only |
 | Authorization | `Basic <BASE64(pk:sk)>` | Bearer token |
 

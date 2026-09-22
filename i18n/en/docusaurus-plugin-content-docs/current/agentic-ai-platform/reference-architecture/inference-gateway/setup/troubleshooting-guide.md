@@ -3,7 +3,7 @@ title: Troubleshooting Guide
 description: Common issues and solutions during Inference Gateway deployment and operations
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-21
   author: devfloor9
 reading_time: 10
 tags:
@@ -94,7 +94,7 @@ spec:
 | `Provider not found: vllm` | Not using built-in provider name | Use built-in names like `openai`, `anthropic` |
 | `Model not found: glm-5` | Missing provider prefix | Send as `openai/glm-5` format in request |
 | Settings not displayed in UI | providers written as array | `"providers": [...]` → `"providers": {...}` (map) |
-| OTel trace not arriving | trace_type error | `"genai_extension"` → `"otel"` |
+| OTel trace not arriving | trace_type error | legacy `"otel"` → `"genai_extension"` (required as of v1.5.0+) |
 | Langfuse 403/401 | Authorization format error | Verify `Basic <BASE64(public_key:secret_key)>` |
 
 **Correct config.json Format**:
@@ -129,7 +129,7 @@ spec:
       "name": "otel",
       "config": {
         "service_name": "bifrost",
-        "trace_type": "otel",  # NOT "genai_extension"
+        "trace_type": "genai_extension",  # required as of v1.5.0+ (legacy "otel" was removed)
         "protocol": "http",
         "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
         "headers": {
@@ -258,7 +258,7 @@ kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
 
 | Check Item | Correct Value |
 |-----------|---------------|
-| `trace_type` | `"otel"` (not `"genai_extension"`) |
+| `trace_type` | `"genai_extension"` (not `"otel"`) |
 | `collector_url` | Include full path (`/api/public/otel/v1/traces`) |
 | Authorization | `Basic <BASE64(public_key:secret_key)>` |
 | kgateway URLRewrite | `/api/public/otel` → `/api/public/otel/v1/traces` (when routing via) |
