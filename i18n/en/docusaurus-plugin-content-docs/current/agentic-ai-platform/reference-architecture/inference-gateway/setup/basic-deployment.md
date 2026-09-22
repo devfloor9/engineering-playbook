@@ -3,7 +3,7 @@ title: Basic Deployment
 description: kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup
 created: "2026-04-18"
 last_update:
-  date: 2026-09-21
+  date: 2026-09-22
   author: devfloor9
 reading_time: 11
 tags:
@@ -337,7 +337,7 @@ Bifrost Gateway Mode is configured declaratively with config.json. This is a ver
 
 ```json
 {
-  "$schema": "https://www.getbifrost.ai/schema",
+  "$schema": "https://docs.getbifrost.ai/schema",
   "providers": {
     "openai": {
       "keys": [
@@ -419,7 +419,7 @@ metadata:
 data:
   config.json: |
     {
-      "$schema": "https://www.getbifrost.ai/schema",
+      "$schema": "https://docs.getbifrost.ai/schema",
       "providers": {
         "openai": {
           "keys": [{"name": "local-vllm", "value": "dummy", "weight": 1.0, "models": ["glm-5"]}],

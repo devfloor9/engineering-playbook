@@ -3,7 +3,7 @@ title: Eval Gate · Registry · KPI
 description: Checkpoint evaluation, approval-gated canary promotion, Registry versioning, verified routing recovery and cost/quality KPI contracts.
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: devfloor9
 reading_time: 28
 tags:
@@ -51,7 +51,7 @@ def score_responses(captured, *, judge_llm, embeddings):
     ]
 ```
 
-Each JSON contains `schema_version: 1`, dataset and evaluation-protocol SHA-256 hashes, pinned `judge_revision`, `embedding_revision` and `model_revision`, `ragas_version: "0.2.15"`, and the adapter output as `samples`. The protocol covers capture timing, judge prompts, sampling settings and evaluation software versions. A trusted evaluation job must bind these files to the model artifacts. The gate requires at least 500 cases, identical sample ID sets, finite scores and positive latencies. It inspects individual scores rather than letting a NaN-skipping mean hide failed evaluations. P99 uses nearest rank; regressions **greater than** 3pp or 10% fail.
+Each JSON contains `schema_version: 1`, dataset and evaluation-protocol SHA-256 hashes, pinned `judge_revision`, `embedding_revision` and `model_revision`, `ragas_version: "0.2.15"`, and the adapter output as `samples`. The protocol covers capture timing, judge prompts, sampling settings and evaluation software versions. A trusted evaluation job must bind these files to the model artifacts. The gate requires at least 500 cases, identical sample ID sets, finite scores and positive latencies. It inspects individual scores rather than letting a NaN-skipping mean hide failed evaluations. p99 uses nearest rank; regressions **greater than** 3pp or 10% fail.
 
 ```python
 # eval_gate.py -- Python 3.11+; local scored JSON only, no model calls.

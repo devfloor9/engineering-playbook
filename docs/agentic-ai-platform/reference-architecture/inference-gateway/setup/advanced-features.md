@@ -3,7 +3,7 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -52,7 +52,7 @@ graph LR
     style LF fill:#9c27b0,stroke:#333,color:#fff
 ```
 
-**핵심 특징:**
+**주요 특징:**
 - 클라이언트는 `model: "auto"` (또는 임의 모델명)로 요청 — 모델 선택을 인식하지 못함
 - 키워드 매칭 + 토큰 길이 + 대화 턴 수 기반 분류
 - Langfuse OTel SDK로 직접 trace 전송

@@ -3,7 +3,7 @@ title: Inference Gateway Deployment Guide
 description: Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: "2026-09-22"
   author: devfloor9
 reading_time: 10
 tags:
@@ -53,8 +53,6 @@ Complete request flow of production inference pipeline based on EKS Auto Mode. C
 <InferencePipelineDiagram />
 
 ---
-
-## Deployment Stages Overview
 
 ## Deployment Stages Overview
 

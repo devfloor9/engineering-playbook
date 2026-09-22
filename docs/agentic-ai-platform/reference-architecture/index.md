@@ -3,7 +3,7 @@ title: Reference Architecture
 description: Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처
 created: "2026-04-06"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-22
   author: devfloor9
 reading_time: 18
 tags:
@@ -186,7 +186,7 @@ Aider, Cline 등 AI 코딩 도구를 자체 호스팅 모델에 연결합니다.
 | 연결 경로 | 코딩 도구 → NLB → kgateway → Bifrost/LiteLLM → vLLM |
 | 모니터링 | Bifrost/LiteLLM OTel → Langfuse (요청별 추적) |
 
-## 핵심 설계 원칙
+## 설계 원칙 {#핵심-설계-원칙}
 
 Reference Architecture는 다음 원칙을 따릅니다.
 

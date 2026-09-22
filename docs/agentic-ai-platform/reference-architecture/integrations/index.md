@@ -3,9 +3,9 @@ title: 통합 & 비용
 description: SageMaker 하이브리드 통합·Observability 스택 배포·코딩 도구 비용 분석
 created: "2026-04-20"
 last_update:
-  date: "2026-07-13"
+  date: 2026-09-22
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - reference-architecture
   - integrations
@@ -18,7 +18,7 @@ sidebar_label: 통합 & 비용
 
 ## 개요
 
-외부 AWS 서비스 통합과 비용 분석을 다룬다. SageMaker-EKS 하이브리드 학습·추론 패턴, Langfuse·Prometheus·AMP/AMG 기반 Observability 스택 배포, 코딩 도구(Aider·Cline·Cursor) 비용 분석 등 플랫폼 외곽 통합을 포함한다.
+외부 AWS 서비스 통합과 비용 분석을 다룹니다. SageMaker-EKS 하이브리드 학습·추론 패턴, Langfuse·Prometheus·AMP/AMG 기반 Observability 스택 배포, 코딩 도구(Aider·Cline·Cursor) 비용 분석 등 플랫폼 외곽 통합을 포함합니다.
 
 ### 다루는 내용
 
