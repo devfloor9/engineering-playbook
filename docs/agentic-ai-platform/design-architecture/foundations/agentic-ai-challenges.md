@@ -1,9 +1,9 @@
 ---
 title: Agentic AI 워크로드의 기술적 도전과제
-description: Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제
+description: Agentic AI 워크로드 운영 시 직면하는 5가지 주요 도전과제
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -51,7 +51,7 @@ Kubernetes 환경에서 이러한 역할을 맡는 기능과 프로젝트는 다
 | K8s AI 기능 | 버전 | 역할 | 다중 모델 생태계에서의 의미 |
 |------------|------|------|------------------------|
 | **DRA** (Dynamic Resource Allocation) | 1.34 GA (1.35+ stable) | GPU를 MIG 단위로 세밀 분할·할당 | SLM은 MIG 파티션, LLM은 전체 GPU — 하나의 클러스터에서 공존 |
-| **Gateway API + Inference Extension** | 2025 | LLM 추론 요청의 표준화된 라우팅 | KV Cache 상태 기반 지능형 라우팅, 모델별 트래픽 분배 |
+| **Gateway API + Inference Extension** | 2025 | LLM 추론 요청의 표준화된 라우팅 | KV cache 상태 기반 지능형 라우팅, 모델별 트래픽 분배 |
 | **Kueue** | v0.18.x (베타 API) | AI 워크로드 큐잉·스케줄링 | 학습/추론 작업의 공정한 GPU 자원 분배, 팀별 쿼터 |
 | **LeaderWorkerSet** | v0.9 (kubernetes-sigs 별도 프로젝트) | 분산 추론·학습 워크로드 패턴 | 70B+ 모델의 Tensor Parallel 분산 추론을 K8s 네이티브로 관리 |
 | **KAI Scheduler** | 2025 | GPU-aware Pod 스케줄링 | GPU 토폴로지(NVLink, NVSwitch)를 고려한 최적 배치 |
@@ -84,13 +84,13 @@ Kubernetes 환경에서 이러한 역할을 맡는 기능과 프로젝트는 다
 
 ---
 
-## Agentic AI 플랫폼의 5가지 핵심 도전과제
+## Agentic AI 플랫폼의 5가지 주요 도전과제
 
 아래 그림은 다섯 영역을 연결합니다. 한 영역의 선택이 다른 영역에 어떤 영향을 주는지도 함께 봐야 합니다. 예를 들어 모델을 바꾸면 필요한 GPU 메모리뿐 아니라 지연, 호출 비용, 평가 기준도 달라질 수 있습니다.
 
 ```mermaid
 flowchart TD
-    subgraph Challenges["5가지 핵심 도전과제"]
+    subgraph Challenges["5가지 주요 도전과제"]
         C1["도전과제 1<br/>GPU 리소스 관리 및<br/>비용 최적화"]
         C2["도전과제 2<br/>지능형 추론 라우팅 및<br/>게이트웨이"]
         C3["도전과제 3<br/>LLMOps 관찰성 및<br/>비용 거버넌스"]
@@ -126,7 +126,7 @@ flowchart TD
 
 ## 도전과제 1: GPU 리소스 관리 및 비용 최적화
 
-GPU는 Agentic AI 플랫폼에서 **가장 비용이 높은 리소스**입니다. 모델 크기와 워크로드 특성에 따라 적절한 GPU 할당 전략이 필요합니다. 이 도전과제는 플랫폼 아키텍처의 **Layer 1: AI Infrastructure**가 책임지는 영역으로, 가속 컴퓨팅·오케스트레이션·모니터링·성능 최적화를 단일 레이어로 통합하여 해결합니다.
+GPU는 Agentic AI 플랫폼에서 **비용 비중이 가장 큰 리소스**입니다. 모델 크기와 워크로드 특성에 따라 적절한 GPU 할당 전략이 필요합니다. 이 도전과제는 플랫폼 아키텍처의 **Layer 1: AI Infrastructure**가 책임지는 영역으로, 가속 컴퓨팅·오케스트레이션·모니터링·성능 최적화를 단일 레이어로 통합하여 해결합니다.
 
 **왜 어려운가:**
 
@@ -151,7 +151,7 @@ Agentic AI 워크로드는 **다양한 모델과 프로바이더**를 동시에 
 **왜 어려운가:**
 
 - **멀티 모델 운영**: 하나의 플랫폼에서 Llama, Qwen, Claude, GPT 등 다양한 모델을 동시 운영
-- **KV Cache 효율성**: LLM의 KV Cache 상태를 고려하지 않은 라우팅은 성능을 크게 저하시킴
+- **KV cache 효율성**: LLM의 KV cache 상태를 고려하지 않은 라우팅은 성능을 크게 저하시킴
 - **비용-성능 트레이드오프**: 작업 복잡도에 따라 저비용 모델과 고성능 모델을 동적으로 선택해야 함
 - **프로바이더 다변화**: Self-hosted 모델과 외부 API (Bedrock, OpenAI) 를 통합 관리해야 함
 - **Canary/A-B 배포**: 새 모델 버전을 안전하게 트래픽 전환해야 함
@@ -331,7 +331,7 @@ flowchart LR
 ### 논문 / 기술 블로그
 
 - [vLLM: Easy, Fast, and Cheap LLM Serving](https://blog.vllm.ai/2023/06/20/vllm.html) — PagedAttention 메커니즘 설명
-- [Efficient Memory Management for LLM Serving (OSDI 2023)](https://arxiv.org/abs/2309.06180) — KV Cache 최적화 연구
+- [Efficient Memory Management for LLM Serving (OSDI 2023)](https://arxiv.org/abs/2309.06180) — KV cache 최적화 연구
 - [Cost-Effective LLM Inference at Scale](https://aws.amazon.com/blogs/machine-learning/) — 프로덕션 비용 최적화 사례
 - [NVIDIA Blog: Optimizing AI Workloads](https://developer.nvidia.com/blog/) — GPU 최적화 기술 블로그
 
