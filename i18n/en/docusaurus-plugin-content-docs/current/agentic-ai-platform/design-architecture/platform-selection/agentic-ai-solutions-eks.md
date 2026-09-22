@@ -123,8 +123,8 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 
 | Metric | Prometheus Query | Judgment Criterion |
 |--------|----------------|----------|
-| **API Inflight Seats** (Most Important) | `apiserver_flowcontrol_current_executing_seats_total` | Sustained exceeds 1,200 seats → XL or higher |
-| **Pod Scheduling Rate** | `scheduler_schedule_attempts_SCHEDULED` | 100/sec or higher → XL, 200/sec or higher → 2XL |
+| **API Inflight Seats** (Most Important) | `apiserver_flowcontrol_current_executing_seats` | Sustained exceeds 1,200 seats → XL or higher |
+| **Pod Scheduling Rate** | `rate(scheduler_schedule_attempts_total{result="scheduled"}[5m])` | 100/sec or higher → XL, 200/sec or higher → 2XL |
 | **etcd DB Size** | `apiserver_storage_size_bytes` | Exceeds 10GB → XL or higher required |
 
 :::info PCP vs Auto Mode — Different Layers
