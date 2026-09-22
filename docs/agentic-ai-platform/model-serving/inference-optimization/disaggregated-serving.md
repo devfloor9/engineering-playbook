@@ -3,7 +3,7 @@ title: Disaggregated Serving + LWS 멀티노드
 description: Prefill/Decode 분리 아키텍처와 NIXL 공통 KV 전송 엔진, LeaderWorkerSet 기반 700B+ 대형 MoE 모델 멀티노드 배포 가이드
 created: "2026-04-03"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -21,7 +21,7 @@ sidebar_position: 3
 
 ## 개요
 
-LLM 추론은 입력을 처리하는 Prefill과 이후 토큰을 생성하는 Decode로 나뉩니다. 각 단계의 자원 요구량은 모델, 요청 길이, 배치 구성에 따라 달라집니다. GPU에 유지하는 가중치와 KV 캐시, 런타임의 GPU 메모리 사용량이 사용 가능한 용량에 들어가는지 확인해야 합니다. 양자화, 오프로딩과 지원되는 병렬화 방식도 이 계산에 영향을 줍니다. 오프로딩을 사용하면 호스트 메모리 용량도 따로 확인합니다.
+LLM 추론은 입력을 처리하는 Prefill과 이후 토큰을 생성하는 Decode로 나뉩니다. 각 단계의 자원 요구량은 모델, 요청 길이, 배치 구성에 따라 달라집니다. GPU에 유지하는 가중치와 KV cache, 런타임의 GPU 메모리 사용량이 사용 가능한 용량에 들어가는지 확인해야 합니다. 양자화, 오프로딩과 지원되는 병렬화 방식도 이 계산에 영향을 줍니다. 오프로딩을 사용하면 호스트 메모리 용량도 따로 확인합니다.
 
 이 문서는 두 구성을 설명합니다. **Disaggregated Serving**은 Prefill과 Decode를 분리해 운영하는 방식입니다. 뒤의 **LeaderWorkerSet(LWS)** 예제는 하나의 모델 복제본을 두 노드에 나눠 실행하는 TP/PP 구성입니다.
 
@@ -38,7 +38,7 @@ LLM 추론은 두 가지 근본적으로 다른 연산 단계로 구성됩니다
 
 이는 워크로드에 따라 달라지는 경향입니다. 그림의 TP=4와 TP=2는 예시이며, 각 단계에 필요한 고정값이 아닙니다. 각 단계가 선택한 병렬화 구성에서 모델과 런타임 상태를 독립적으로 적재할 수 있어야 합니다.
 
-같은 Pod에서 긴 입력의 Prefill과 다른 요청의 Decode가 겹치면, 입력을 처리하는 연산 때문에 토큰 생성이 늦어질 수 있습니다. 두 단계를 분리하면 Prefill과 Decode의 부하에 맞춰 Pod 수를 따로 조정할 수 있습니다. 다만 단계 사이에 KV 캐시를 전송해야 하므로, GPU 활용률과 함께 전송 비용과 토큰 생성 지연도 비교해야 합니다.
+같은 Pod에서 긴 입력의 Prefill과 다른 요청의 Decode가 겹치면, 입력을 처리하는 연산 때문에 토큰 생성이 늦어질 수 있습니다. 두 단계를 분리하면 Prefill과 Decode의 부하에 맞춰 Pod 수를 따로 조정할 수 있습니다. 다만 단계 사이에 KV cache를 전송해야 하므로, GPU 활용률과 함께 전송 비용과 토큰 생성 지연도 비교해야 합니다.
 
 ### 분리 아키텍처
 
@@ -78,7 +78,7 @@ flowchart LR
 
 ### NIXL: 공통 KV Cache 전송 엔진
 
-[NIXL](https://github.com/ai-dynamo/nixl/blob/492aca7ce6743570b4cc0857983628ae34ca13c9/README.md)은 프레임워크가 KV 캐시 이동에 사용할 수 있는 플러그인 기반 데이터 전송 계층입니다. 스케줄러가 아니며, NIXL을 설치하는 것만으로 P/D 분리가 구성되지는 않습니다. [llm-d v0.8.1 P/D 가이드](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md)는 NIXL 연동을 설명하며, TCP 전송도 지원하되 높은 대역폭의 네트워크를 권장합니다. GPU 직접 전송 여부와 실제 대역폭은 선택한 백엔드, 장치 노출, 드라이버, 물리적 토폴로지에 따라 달라집니다. 서로 다른 EC2 노드가 NVLink로 연결된다거나 NIXL 설치만으로 RDMA 경로가 만들어진다고 가정해서는 안 됩니다.
+[NIXL](https://github.com/ai-dynamo/nixl/blob/492aca7ce6743570b4cc0857983628ae34ca13c9/README.md)은 프레임워크가 KV cache 이동에 사용할 수 있는 플러그인 기반 데이터 전송 계층입니다. 스케줄러가 아니며, NIXL을 설치하는 것만으로 P/D 분리가 구성되지는 않습니다. [llm-d v0.8.1 P/D 가이드](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md)는 NIXL 연동을 설명하며, TCP 전송도 지원하되 높은 대역폭의 네트워크를 권장합니다. GPU 직접 전송 여부와 실제 대역폭은 선택한 백엔드, 장치 노출, 드라이버, 물리적 토폴로지에 따라 달라집니다. 서로 다른 EC2 노드가 NVLink로 연결된다거나 NIXL 설치만으로 RDMA 경로가 만들어진다고 가정해서는 안 됩니다.
 
 ### EKS Auto Mode에서의 Disaggregated Serving
 
