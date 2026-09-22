@@ -376,7 +376,7 @@ table.append([
 
 ### Stage 4: Train — Preference Tuning
 
-**목표**: 고품질 trace를 사용해 모델을 강화학습으로 재학습한다.
+**목표**: 고품질 trace를 사용해 모델을 강화학습으로 재학습합니다.
 
 **실행 주기**: 주간(Weekly) 또는 월간(Monthly)
 
