@@ -3,9 +3,9 @@ title: OpenClaw AI Agent Gateway Deployment & Full Observability
 description: Deploy OpenClaw AI Agent Gateway on EKS with cost optimization, and achieve full observability using Bifrost Auto-Router + Cilium Hubble + Langfuse
 created: "2026-03-06"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-22
   author: devfloor9
-reading_time: 23
+reading_time: 27
 tags:
   - eks
   - openclaw
@@ -62,7 +62,7 @@ Each layer of this architecture is based on the following design decisions:
 | Decision Area | Choice | Alternative | Key Rationale |
 |---------------|--------|-------------|---------------|
 | **Hosting Platform** | EKS | EC2 standalone / AgentCore | Karpenter auto-scaling, o11y stack flexibility, Spot/Graviton combination possible. AgentCore is in Experimental stage with no cron support and limited o11y customization |
-| **LLM Gateway** | Bifrost Proxy | LiteLLM / llm-d | Optimized for Bedrock multi-model architecture. Rust-based 50x faster performance, 100+ providers, budget control, one-line `success_callback: ["langfuse"]` integration. Hybrid `Bifrost → llm-d → vLLM` possible when adding self-hosted vLLM. LiteLLM is a viable alternative |
+| **LLM Gateway** | Bifrost Proxy | LiteLLM / llm-d | Optimized for Bedrock multi-model architecture. Go-based 50x faster performance, 100+ providers, budget control, one-line `success_callback: ["langfuse"]` integration. Hybrid `Bifrost → llm-d → vLLM` possible when adding self-hosted vLLM. LiteLLM is a viable alternative |
 | **LLM Observability** | Langfuse (self-hosted) | Tempo / Loki | LLM-native: token usage, cost, tool call chains, prompt/completion content tracking. Tempo/Loki are general-purpose infra o11y tools that cannot track at the prompt level |
 | **Network Observability** | Cilium Hubble (ENI mode) | CW Network Flow Monitor | L3/L4/L7 visibility (HTTP paths, status codes, DNS), interactive service map, $0. CW NFM supports L3/L4 only at $20-45/month |
 | **IAM Authentication** | EKS Pod Identity | IRSA | No OIDC provider required, single command `aws eks create-pod-identity-association` mapping |
@@ -74,7 +74,7 @@ Each layer of this architecture is based on the following design decisions:
 
 ### Compute
 
-OpenClaw (TypeScript/Node.js) and Bifrost (Rust) are fully ARM64 compatible and use multi-arch images.
+OpenClaw (TypeScript/Node.js) and Bifrost (Go) are fully ARM64 compatible and use multi-arch images.
 
 | Item | Configuration | Details |
 |------|---------------|---------|
