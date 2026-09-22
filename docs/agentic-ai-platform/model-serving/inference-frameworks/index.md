@@ -3,9 +3,9 @@ title: 추론 프레임워크
 description: vLLM·llm-d·MoE·NeMo — GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층
 created: "2026-04-17"
 last_update:
-  date: "2026-06-26"
+  date: 2026-09-22
   author: devfloor9
-reading_time: 4
+reading_time: 2
 tags:
   - vllm
   - llm-d
@@ -41,7 +41,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/hyperpod-inference-operator"
     icon="⚙️"
     title="HyperPod Inference Operator"
-    description="SageMaker HyperPod 관리형 KV 캐시·지능형 라우팅(prefixaware/kvaware)·DPD. Tiered Gateway와의 차이와 L2 라우팅 레이어 역할."
+    description="SageMaker HyperPod 관리형 KV cache·지능형 라우팅(prefixaware/kvaware)·DPD. Tiered Gateway와의 차이와 L2 라우팅 레이어 역할."
     color="#f59e0b"
   />
   <DocCard
@@ -63,3 +63,4 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 :::tip 학습 순서
 **vLLM → llm-d → HyperPod Inference Operator → MoE → NeMo** 순으로 읽으면 "단일 노드 최적화 → 분산 추론 → 관리형 추론 라우팅 → 대규모 MoE → 학습 프레임워크" 의 점진적 난이도를 따라갈 수 있습니다.
 :::
+
