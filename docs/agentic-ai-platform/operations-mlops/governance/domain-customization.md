@@ -1,9 +1,9 @@
 ---
 title: 도메인 특화 (LoRA + RAG)
-description: LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코딩 퀄리티를 높이는 가이드 — FSI SI 실전 시나리오 포함
+description: LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코드 품질을 높이는 가이드 — FSI SI 실전 시나리오 포함
 created: "2026-04-04"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 7
 tags:
@@ -18,9 +18,9 @@ tags:
 sidebar_label: 도메인 특화
 ---
 
-범용 LLM을 금융/통신/제조 등 **특정 도메인에 최적화**하여 코딩 퀄리티를 대폭 향상시키는 3단계 전략을 제공합니다.
+범용 LLM을 금융/통신/제조 등 **특정 도메인에 최적화**하여 코드 품질을 높이는 3단계 전략을 제공합니다.
 
-:::tip 핵심 질문
+:::tip 이 문서가 답하는 질문
 "왜 Claude나 GPT로 생성한 코드가 우리 회사 표준을 따르지 않을까?"
 → **모델이 여러분의 도메인 지식을 학습하지 못했기 때문입니다.**
 :::
