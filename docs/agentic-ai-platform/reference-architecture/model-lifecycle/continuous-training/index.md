@@ -3,7 +3,7 @@ title: Continuous Training Pipeline
 description: Langfuse trace를 자동 학습 데이터로 승격해 GRPO/DPO preference tuning과 Canary 배포까지 연결하는 EKS 기반 5단계 파이프라인 개요.
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: devfloor9
 reading_time: 6
 tags:
@@ -95,7 +95,7 @@ flowchart LR
     style Stage5 fill:#9c27b0
 ```
 
-**핵심 개념:**
+**주요 개념:**
 
 1. **Trace → Dataset**: Langfuse 프로덕션 추론 로그를 학습 데이터로 전환
 2. **Reward Labeling**: Ragas + LLM Judge로 trace 품질을 0-1점으로 스코어링
@@ -121,12 +121,12 @@ Continuous Training Pipeline은 5단계 워크플로우로 프로덕션 피드�
 4. **Eval Gate**: Threshold 검증 + Canary 5% → 25% → 100% (kgateway)
 5. **Registry & Rollback**: MLflow + Agent Versioning + 자동 롤백
 
-**핵심 포인트:**
+**요약 포인트:**
 
 - **비용 효율**: Spot 인스턴스 + 격주 iteration → $4K/월 수준
 - **품질 개선**: 월 1% faithfulness 증가 목표
 - **안전성**: Eval Gate + 점진 Canary + 자동 롤백
-- **ROI**: 학습 비용 대비 400% 매출 증대 가능
+- **ROI**: 가상 시나리오 기준, 학습 비용 대비 매출 증대를 목표로 합니다(워크로드·품질 개선폭에 따라 상이).
 
 ## 다음 단계
 
