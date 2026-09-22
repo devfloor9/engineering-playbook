@@ -3,7 +3,7 @@ title: Agentic AI Platform 아키텍처
 description: 프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처 — 6개 런타임 레이어와 3개 횡단 플레인 설계
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 33
 tags:
@@ -130,7 +130,7 @@ flowchart TD
     style L1 fill:#eceff1
 ```
 
-**핵심 설계 원칙:**
+**설계 원칙:**
 
 - **레이어와 플레인의 직교 분리**: "어디서 추론하는가(6 레이어)"와 "어떻게 관측·통제·개선하는가(3 플레인)"를 분리하여 관심사 중복을 제거
 - **AI Infrastructure를 1급 레이어로**: 가속 컴퓨팅(GPU·Trainium·Inferentia)과 그 오케스트레이션·모니터링·성능 최적화를 최하단 독립 레이어(Layer 1)로 명시
@@ -162,7 +162,7 @@ flowchart TD
 
 ---
 
-## 핵심 컴포넌트: 런타임 레이어
+## 주요 컴포넌트: 런타임 레이어
 
 요청 경로의 역순(최하단 인프라 → 최상단 경험)으로 6개 레이어를 설명합니다. 플랫폼은 Layer 1에서 위로 구축됩니다. 요청 흐름은 Layer 6(진입) → Layer 5(게이트웨이) → Layer 4(Agent)로 내려가고, Agent가 추론이 필요하면 다시 Layer 5 게이트웨이를 거쳐 Layer 2(모델 서빙)를 호출하며, 모델 서빙은 Layer 1의 가속 컴퓨팅 위에서 실행됩니다.
 
@@ -200,7 +200,7 @@ flowchart TB
     style Telemetry fill:#e1f5ff
 ```
 
-| 기능 영역 | 책임 | 핵심 컴포넌트 |
+| 기능 영역 | 책임 | 주요 컴포넌트 |
 |----------|------|-------------|
 | **가속 컴퓨팅** | LLM·비-LLM 추론/학습용 가속기 제공 | NVIDIA GPU, AWS Trainium2/Inferentia2 |
 | **노드 오케스트레이션** | 워크로드 기반 동적 노드 프로비저닝, Spot 활용 | Karpenter, Cluster Autoscaler |
@@ -225,7 +225,7 @@ GPU 노드 전략, Karpenter·KEDA·DRA 리소스 관리, NVIDIA GPU 스택(GPU 
 
 #### Self-hosted LLM Serving
 
-PagedAttention, KV Cache 최적화, 분산 추론을 지원하는 고성능 LLM 서빙 엔진을 운영합니다. vLLM, llm-d 등 오픈소스 추론 엔진을 Kubernetes 위에서 자동 확장합니다.
+PagedAttention, KV cache 최적화, 분산 추론을 지원하는 고성능 LLM 서빙 엔진을 운영합니다. vLLM, llm-d 등 오픈소스 추론 엔진을 Kubernetes 위에서 자동 확장합니다.
 
 #### Non-LLM Serving
 
@@ -422,7 +422,7 @@ Layer 5의 운영 상세는 다음 문서에서 다룹니다.
 
 ---
 
-## 핵심 컴포넌트: 횡단 플레인
+## 주요 컴포넌트: 횡단 플레인
 
 다음 3개 플레인은 특정 레이어에 속하지 않고 6개 런타임 레이어를 수직으로 관통합니다.
 
@@ -743,7 +743,7 @@ sequenceDiagram
 
 ## 모니터링 및 관측성
 
-### 핵심 모니터링 영역
+### 주요 모니터링 영역
 
 | 영역 | 대상 메트릭 | 목적 |
 |------|-----------|------|
@@ -769,7 +769,7 @@ sequenceDiagram
 | 영역 | 레이어 / 플레인 | 필요 역량 | 설명 |
 |------|---------------|----------|------|
 | AI 인프라 | Layer 1 | 가속 컴퓨팅 + GPU 오케스트레이션 | GPU/Trainium/Inferentia, Karpenter·Kueue·DRA, DCGM 모니터링 |
-| 모델 서빙 | Layer 2 | LLM 추론 엔진 | PagedAttention, KV Cache 최적화, 분산 추론, Model Registry |
+| 모델 서빙 | Layer 2 | LLM 추론 엔진 | PagedAttention, KV cache 최적화, 분산 추론, Model Registry |
 | 데이터 레이어 | Layer 3 | 벡터 DB + 캐시 + Knowledge Store | RAG 검색, 세션 상태 저장, 장기 메모리, 특성 관리 |
 | Agent 프레임워크 | Layer 4 | 워크플로우 엔진 | 멀티스텝 실행, 상태 관리, MCP/A2A 프로토콜 |
 | 게이트웨이 | Layer 5 | Gateway API + 라우팅 | 지능형 모델 라우팅, mTLS, Rate Limiting, External AI 연동 |
@@ -784,7 +784,7 @@ sequenceDiagram
 
 ## 결론
 
-Agentic AI Platform 아키텍처의 핵심 원칙:
+Agentic AI Platform 아키텍처의 설계 원칙:
 
 1. **레이어와 플레인의 직교 분리**: "어디서 추론하는가(6 런타임 레이어)"와 "어떻게 관측·통제·개선하는가(3 횡단 플레인)"를 분리하여 관심사 중복을 제거
 2. **AI Infrastructure 1급 레이어**: 가속 컴퓨팅과 그 오케스트레이션·모니터링·성능 최적화를 최하단 독립 레이어로 명시
@@ -798,7 +798,7 @@ Agentic AI Platform 아키텍처의 핵심 원칙:
 :::tip 구현 가이드
 이 플랫폼 아키텍처를 구현하는 구체적인 방법은 다음 문서에서 다룹니다:
 
-- [기술적 도전과제](./agentic-ai-challenges.md) — 플랫폼 구축 시 직면하는 핵심 과제
+- [기술적 도전과제](./agentic-ai-challenges.md) — 플랫폼 구축 시 직면하는 주요 과제
 - [AWS Native 플랫폼](../platform-selection/aws-native-agentic-platform.md) — 매니지드 서비스 기반 구현
 - [EKS 기반 오픈 아키텍처](../platform-selection/agentic-ai-solutions-eks.md) — EKS + 오픈소스 기반 구현
 :::
@@ -834,7 +834,7 @@ Agentic AI Platform 아키텍처의 핵심 원칙:
 
 ### 관련 문서 (내부)
 
-- [기술적 도전과제](./agentic-ai-challenges.md) — 플랫폼이 해결하는 5가지 핵심 문제
+- [기술적 도전과제](./agentic-ai-challenges.md) — 플랫폼이 해결하는 5가지 주요 문제
 - [Knowledge Feature Store](../advanced-patterns/knowledge-feature-store.md) — 온톨로지 기반 특성 관리
 - [MCP 툴 토큰 최적화 패턴](../advanced-patterns/mcp-token-optimization.md) — Layer 4 Agent의 MCP 툴 토큰 오버헤드 최적화
 - [AI Gateway 멀티테넌시](../../operations-mlops/governance/ai-gateway-multi-tenancy.md) — Layer 5 테넌트 격리·예산 강제
