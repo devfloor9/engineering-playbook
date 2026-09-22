@@ -3,7 +3,7 @@ title: 모니터링 & Observability 구성 가이드
 description: Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드
 created: "2026-04-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -434,7 +434,7 @@ Bifrost config.json의 OTel 플러그인 설정입니다.
     "name": "otel",
     "config": {
       "service_name": "bifrost",
-      "trace_type": "otel",
+      "trace_type": "genai_extension",
       "protocol": "http",
       "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
       "headers": {
@@ -450,7 +450,7 @@ Bifrost config.json의 OTel 플러그인 설정입니다.
 
 | 설정 항목 | 올바른 값 | 잘못된 값 |
 |----------|----------|----------|
-| `trace_type` | `"otel"` | `"genai_extension"` |
+| `trace_type` | `"genai_extension"` | `"otel"` |
 | `collector_url` | 전체 OTLP 경로 포함 | base URL만 |
 | Authorization | `Basic <BASE64(pk:sk)>` | Bearer 토큰 |
 
