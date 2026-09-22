@@ -3,9 +3,9 @@ title: Networking Debugging
 description: Guide to diagnosing EKS networking issues - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-21"
 last_update:
-  date: "2026-09-19"
+  date: 2026-09-19
   author: devfloor9
-reading_time: 9
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -102,7 +102,7 @@ In the default mode, each ENI receives individual secondary IPs. Enabling Prefix
 :::
 
 :::caution Temporary Changes vs. Persistent Configuration
-VPC CNI values changed with `kubectl set env` revert to defaults when the add-on is updated. Settings you want to keep after diagnosis should be moved to `aws eks update-addon --configuration-values`. If you see `NetworkAddressUsageLimitExceeded` (the VPC NAU quota) or `InsufficientFreeAddressesInSubnet` in Karpenter NodeClaim events while the subnet still has free IPs, the problem sits at the capacity planning stage; see [IP Capacity Planning and Karpenter Node Sizing](../../networking-performance/ip-capacity-planning-karpenter.md).
+Updates to VPC CNI values changed with `kubectl set env` depend on conflict resolution. `PRESERVE` can retain them, while `OVERWRITE` can replace managed fields. When moving settings to the add-on API after diagnosis, merge the changes into the complete current configurationValues object: existing advanced settings omitted from a new `--configuration-values` object can revert to defaults. For `NetworkAddressUsageLimitExceeded`, check VPC NAU; for `InsufficientFreeAddressesInSubnet`, check the actual selected AZ and subnet. Free addresses in another subnet do not establish capacity in the selected subnet. See [IP Capacity Planning and Karpenter Node Sizing](../../networking-performance/ip-capacity-planning-karpenter.md).
 :::
 
 ### ENI and IP Limits

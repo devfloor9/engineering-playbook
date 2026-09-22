@@ -3,9 +3,9 @@ title: 트러블슈팅 가이드
 description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
 created: "2026-04-18"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-21
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 7
 tags:
   - troubleshooting
   - debugging
@@ -273,7 +273,7 @@ kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
 
 | 확인 항목 | 올바른 값 |
 |----------|----------|
-| `trace_type` | `"otel"` (not `"genai_extension"`) |
+| `trace_type` | `"genai_extension"` (not `"otel"`) |
 | `collector_url` | 전체 경로 포함 (`/api/public/otel/v1/traces`) |
 | Authorization | `Basic <BASE64(public_key:secret_key)>` |
 | kgateway URLRewrite | `/api/public/otel` -> `/api/public/otel/v1/traces` (경유 시) |

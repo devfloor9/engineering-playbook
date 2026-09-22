@@ -3,9 +3,9 @@ title: Node Readiness Controller
 description: 노드의 인프라 준비 상태를 관리하는 구성을 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 7
 tags:
   - eks
   - kubernetes
@@ -400,7 +400,13 @@ metadata:
   name: critical-service
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: critical-service
   template:
+    metadata:
+      labels:
+        app: critical-service
     spec:
       # 3계층 Readiness 적용
       containers:

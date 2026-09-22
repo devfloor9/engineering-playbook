@@ -3,9 +3,9 @@ title: CPU Performance Comparability and Pod/Node Sizing Standards
 description: Why the same workload shows different CPU utilization across instance sizes and generations, which KPIs to compare instead, where throttling and scheduling wait are observed, a Pod sizing baseline, and how to decide on mixed node pools.
 created: "2026-09-19"
 last_update:
-  date: "2026-09-19"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 27
+reading_time: 44
 tags:
   - eks
   - cpu
@@ -28,7 +28,9 @@ category: performance-networking
 
 ## Overview
 
-Move the same container image to a node of a different size or generation and its CPU utilization (CPU%) often looks different. Domain teams read this as a regression and platform teams start wondering whether to roll back the node sizing policy, but CPU% is not a number that can be compared as-is across sizes and generations. The sections below cover why CPU% shifts, which metrics to use when comparing sizes and generations and where those metrics come from, a Pod sizing baseline, and how to decide whether several sizes or generations can share one workload. The intended readers are platform teams that set node sizing policy and domain teams that run CPU% alarms.
+Moving the same container image to a different node size or generation can change its CPU utilization (CPU%). Higher utilization alone does not establish a performance regression. First check the denominator, then compare throughput and response time under the same load.
+
+This guide gives platform and application teams a comparison procedure: interpret CPU utilization, observe throttling and scheduling wait, then use those measurements to choose Pod sizes and candidate nodes.
 
 ## Background
 
@@ -36,10 +38,10 @@ What requests and limits mean, how CFS bandwidth throttling works at the cgroup 
 
 Terms are used with the following meanings.
 
-- **SMT (Simultaneous Multithreading)** — One physical core exposing two or more hardware threads (vCPUs). On x86 instances 1 vCPU is one hyperthread; AWS Graviton has no SMT, so 1 vCPU maps to one physical core
+- **SMT (Simultaneous Multithreading)** — One physical core exposes multiple hardware threads. On SMT-enabled EC2 types a vCPU represents a logical CPU thread, while Graviton and x86 types such as C7a map each vCPU to a physical core. Check the instance type and configured CPU topology
 - **run queue** — Threads that are ready to run but have not yet been given a vCPU. The longer it gets, the longer the scheduling wait
-- **LLC (Last-Level Cache)** — The lowest cache level shared by the cores in a socket. Contention with neighboring workloads lowers the hit rate
-- **CFS (Completely Fair Scheduler)** — The default Linux scheduler. CPU limits are enforced as its bandwidth quota
+- **LLC (Last-Level Cache)** — The last level of CPU cache. Which cores share it depends on the hardware topology; do not assume one cache domain spans the whole socket
+- **CFS bandwidth** — Limits the CPU time available to a cgroup in each period. CFS-named quotas and metrics do not establish which task-selection algorithm a kernel uses. Linux began [transitioning to EEVDF](https://docs.kernel.org/scheduler/sched-eevdf.html) in 6.6
 - **PSI (Pressure Stall Information)** — The kernel's accounting of the share of time tasks spent stalled waiting for a resource. On cgroup v2 it is exposed per cgroup in the `cpu.pressure` file
 
 Benchmark harness implementation and load tool deployment are out of scope; for per-generation benchmarking, only the pipeline design is covered.
@@ -50,8 +52,8 @@ CPU utilization changes meaning as it passes from physical hardware up to the Po
 
 ```mermaid
 flowchart TB
-    PC["Physical core<br/>(shared LLC and memory bandwidth, NUMA)"] --> VCPU["vCPU<br/>(x86: SMT sibling / Graviton: 1:1 physical core)"]
-    VCPU --> CG["cgroup CFS quota<br/>(cpu.max = quota / period)"]
+    PC["Physical core<br/>(shared LLC and memory bandwidth, NUMA)"] --> VCPU["vCPU<br/>(logical CPU or physical core by instance type)"]
+    VCPU --> CG["cgroup CPU bandwidth<br/>(cpu.max: MAX PERIOD)"]
     CG --> RQ["Scheduler run queue<br/>(wait time · context switch)"]
     RQ --> OBS["Pod observation<br/>(CPU% · throttled period · latency)"]
     NOISE["Other tenants' Pods<br/>(noisy neighbor)"] -.->|LLC and bandwidth contention| PC
@@ -60,17 +62,19 @@ flowchart TB
     MET -.-> SINK["Prometheus · AMP · CloudWatch"]
 ```
 
+`cpu.max` contains a CPU-time limit and period separated by whitespace. Their ratio describes the average allowed CPU capacity; a division expression is not the file format. `max` removes the local limit, but not an ancestor cgroup's restriction ([cgroup v2 CPU interface](https://docs.kernel.org/admin-guide/cgroup-v2.html#cpu-interface-files)).
+
 ## Why CPU Utilization Is Not Comparable
 
 The reasons the same image shows different CPU% on different instances span everything from the hardware to the scheduler.
 
-- LLC and memory bandwidth are shared by the cores in a socket. The share per core differs by instance size, and depending on neighboring Pods the same code stalls more or less.
-- On x86, 1 vCPU is one hardware thread of a physical core. When the sibling thread uses the same execution units, two vCPUs deliver less than one physical core. Graviton has no SMT, so the same vCPU count on x86 and Graviton cannot be placed side by side.
+- LLC and memory-bandwidth sharing depend on CPU topology. Neighboring Pods using the same hardware resources can affect cache hit rates and stall time. Check the CPUs sharing each cache through [sysfs `shared_cpu_list`](https://docs.kernel.org/admin-guide/abi-testing.html), then measure the workload's performance.
+- On SMT-enabled x86, two sibling vCPUs share one physical core's execution resources. They do not provide the same resources as two independent physical cores; their gain or loss versus one thread is workload-dependent. Some x86 types, including C7a, and Graviton have no SMT, so architecture alone does not determine the mapping.
 - A new generation changes clock, cache sizes, and core microarchitecture, so the time to execute the same number of instructions changes. CPU%, being a time ratio, does not show this. Per-generation core and cache configurations for Graviton are listed in the [AWS Graviton Technical Guide](https://github.com/aws/aws-graviton-getting-started).
 - Low utilization with a long run queue still means higher latency. Utilization and latency have to be read separately.
 - A multithreaded container with a CPU limit can burn through its quota early and get throttled even at low utilization. The mechanism and PromQL are in the [CPU throttling observation section of the Pod Resource Optimization Guide](./eks-resource-optimization.md#633-automatic-cpu-throttling-detection).
 
-A newer generation finishes the same work faster thanks to higher IPC, so at low concurrency its CPU% comes out lower. On a small node, on the other hand, DaemonSets and sidecars take a larger share, so an application Pod's CPU% appears to rise with no change in load. Using absolute CPU% thresholds on a fleet that mixes sizes and generations turns these effects into false alarms.
+Fix the CPU% denominator first: CPU-seconds per elapsed second, utilization relative to Pod requests or limits, and utilization relative to total node CPU are different measures. A newer generation may complete the work using less CPU time, but that is a measurement result. A larger DaemonSet share on a smaller node does not by itself increase the application's CPU consumption or utilization relative to a fixed request. Compare node overhead, contention and application consumption separately.
 
 ## Comparable KPIs
 
@@ -86,7 +90,7 @@ To compare sizes and generations, measure workload outcomes under identical cond
 
 Domain teams' CPU% threshold alarms produce fewer false positives when converted to SLO-based alarms on latency and error rate. The throttled-period ratio shows quota shortage directly and works as a secondary signal in place of CPU%.
 
-cost-per-1K-req is the instance hourly price divided by sustained RPS. Across generations and architectures, price and throughput change together, so normalizing to cost per request is what makes the comparison hold. The figure is only meaningful when the RPS was measured within the same SLO.
+For a single instance with hourly cost `H` and sustained RPS `R` measured within the SLO, `cost-per-1K-req = H × 1000 / (3600 × R)`. For example, $3.60/hour at 100 RPS is $0.01 per 1,000 requests. For multiple nodes, use total cost and throughput for the same measurement scope and state which costs are included or excluded.
 
 ## Observing Throttling and Scheduling Wait
 
@@ -107,26 +111,28 @@ Scheduling wait is a different signal from throttling: time spent in the run que
 
 - PSI reports the share of time tasks spent stalled waiting for CPU, per cgroup. `cpu.pressure` on cgroup v2 (`/proc/pressure/cpu` for the whole node) carries `some` (at least one task stalled) and `full` (all tasks stalled) as avg10/avg60/avg300 plus a cumulative `total`. It does not separate throttling from contention, but a single file answers whether tasks waited at all. The kubelet has collected PSI since Kubernetes 1.33, the feature went GA in 1.36 with the `KubeletPSI` gate locked on, and the values are readable as `container_pressure_cpu_waiting_seconds_total` (some) and `container_pressure_cpu_stalled_seconds_total` (full) on `/metrics/cadvisor` and at node, Pod, and container level in the Summary API. Kernel 4.20 or later, `CONFIG_PSI`, and cgroup v2 are required (the EKS AL2023 and Bottlerocket AMIs default to cgroup v2); a distribution that ships PSI disabled needs the `psi=1` kernel parameter.
 - `/proc/<pid>/schedstat` gives, per thread, the time spent running on a CPU, the time spent waiting in the run queue (nanoseconds), and the number of timeslices. cAdvisor's `container_cpu_schedstat_runqueue_seconds_total` and `container_cpu_schedstat_run_seconds_total` are these values summed per container, but they belong to the `sched` metric group, which is disabled by default and not exposed by the kubelet's embedded endpoint, so a standalone cAdvisor DaemonSet with `-enable_metrics=sched` is needed.
-- When the distribution of wait times (a histogram) is needed, use eBPF `runqlat` or `perf sched latency`. This is the only step where eBPF is required.
+- For a wait-time distribution, eBPF `runqlat` is one option. A non-eBPF path is to record scheduler events with `perf sched record` and inspect per-task statistics with `perf sched latency` or per-event timing with `perf sched timehist`.
 
 ## Pod Sizing Baseline
 
 ### Ratios and minimum size
 
-Aligning a Pod's CPU:memory ratio with an instance family reduces bin-packing waste and narrows the spread of node sizes. The table below is a decision template; validate the values against your workload.
+Plan placement using both the Pod's CPU and memory requests and the node's available capacity. The ratios below are starting examples in vCPU:GiB. Check the actual instance specification, DaemonSet and system reservations, and workload measurements before choosing values. The table does not imply that every service needs a two-vCPU minimum.
 
-| Pod profile | CPU:mem ratio | Aligned family | Recommended minimum vCPU | QoS and policy |
+| Pod profile | CPU:mem ratio | Candidate family | Example CPU request | QoS and policy |
 |---|---|---|---|---|
 | CPU-bound | 1:2 | c (compute) | 2 vCPU or more (higher for thread-pool runtimes) | Burstable, consider omitting the CPU limit |
 | General purpose | 1:4 | m (general) | 2 vCPU | Burstable |
 | Memory-bound | 1:8 | r (memory) | 2 vCPU | Burstable |
 | Latency-sensitive, isolation required | Per workload | c/m | Integer vCPU | Guaranteed + CPU Manager static |
 
-The minimum vCPU floor exists because 1–2 vCPU Pods piling onto a large node such as a 24xlarge consume IPs and scheduling slots while lowering density. The IP side of this is covered in [IP Capacity Planning and Karpenter Node Sizing](../networking-performance/ip-capacity-planning-karpenter.md). Whether to omit the CPU limit on a latency-sensitive service depends on isolation requirements, tenant policy, and conflicts with LimitRange, all weighed together ([CFS Bandwidth Throttling in the Pod Resource Optimization Guide](./eks-resource-optimization.md#cfs-bandwidth-throttling)). A node-level alternative is `spec.kubelet.cpuCFSQuota: false` on the Karpenter EC2NodeClass: the kubelet stops enforcing CFS quota, so throttling disappears, but CPU limits become ineffective for every Pod on that node, which confines this option to a NodePool dedicated to latency-sensitive workloads.
+Check whether Pod count reaches IP or maxPods limits before choosing a sizing policy. Raising requests alone does not reduce a fixed replica count or its Pod IPs and can increase the node count. Moving to larger Pods with fewer replicas is a workload change that requires throughput and SLO validation. See [IP Capacity Planning and Karpenter Node Sizing](../networking-performance/ip-capacity-planning-karpenter.md) for the address budget.
+
+Whether to omit the CPU limit on a latency-sensitive service depends on isolation requirements, tenant policy, and conflicts with LimitRange ([CFS Bandwidth Throttling in the Pod Resource Optimization Guide](./eks-resource-optimization.md#cfs-bandwidth-throttling)). The node-level Karpenter EC2NodeClass setting `spec.kubelet.cpuCFSQuota: false` disables kubelet quota enforcement for containers specifying CPU limits. It does not remove ancestor cgroup quotas or CPU contention, so it does not guarantee that all throttling disappears. Because it affects the entire node, assess the effective cgroup hierarchy and isolation policy in a dedicated NodePool ([kernel bandwidth hierarchy](https://docs.kernel.org/scheduler/sched-bwc.html#hierarchical-considerations)).
 
 ### Guaranteed integer CPU and CPU Manager static
 
-The Kubernetes CPU Manager `static` policy gives exclusive cores (a cpuset) only to containers that are Guaranteed QoS with an integer CPU request. Fractional requests and Burstable or BestEffort Pods run in the shared pool. Enabling `static` requires a non-zero CPU reservation on the kubelet through `--reserved-cpus` or `--kube-reserved`/`--system-reserved`; without it the kubelet refuses to start. Pinning cores improves cache locality, but pinned cores are unavailable to other Pods, so overall node utilization drops.
+CPU Manager `static` assigns an exclusive logical-CPU cpuset to containers in Guaranteed Pods with integer CPU requests. Whole-physical-core isolation on SMT systems additionally requires reviewing policy options such as `full-pcpus-only` for the Kubernetes version and requests aligned to the SMT width. Static policy alone does not guarantee exclusive sibling threads. Fractional requests and Burstable/BestEffort Pods use the shared pool. A non-zero reservation through `--reserved-cpus` or `--kube-reserved`/`--system-reserved` is also required. Measure the resulting cache-locality and utilization trade-offs.
 
 ### Runtime thread counts
 
@@ -179,7 +185,7 @@ spec:
 
 ### A ResourceQuota that allows omitting CPU limits
 
-Leaving `limits.cpu` out of the quota allows Pods without a CPU limit. Memory keeps request=limit so the Guaranteed path stays available.
+Omitting `limits.cpu` from the quota permits Pods without a CPU limit. Equal memory quota values independently cap namespace-wide request and limit totals; they do not enforce request=limit for each container. Guaranteed QoS requires each container's CPU and memory requests and limits to be explicitly equal.
 
 ```yaml
 apiVersion: v1
@@ -197,7 +203,9 @@ spec:
 
 ### A CPU Manager static node pool
 
-Because `static` is a node-level kubelet setting, put it in a separate NodePool and schedule only the workloads that need exclusive cores there. `spec.kubelet` on a Karpenter v1 EC2NodeClass supports a subset of kubelet fields and `cpuManagerPolicy` is not among them. Keep the CPU reservation in `spec.kubelet` and pass the policy through AL2023 `NodeConfig` userData, which is merged with the NodeConfig Karpenter generates. Pin the AMI to a dated version instead of `@latest`: if the AMI changes when a node is replaced, the baseline for the generation and performance comparison moves with it. NodePool syntax and weight are covered in [Karpenter Autoscaling](./karpenter-autoscaling.md).
+Because `static` is a node-level kubelet setting, put it in a separate NodePool and schedule only the workloads that need exclusive logical CPUs there. `spec.kubelet` on a Karpenter v1 EC2NodeClass supports a subset of kubelet fields and `cpuManagerPolicy` is not among them. Keep the CPU reservation in `spec.kubelet` and pass the policy through AL2023 `NodeConfig` userData, which is merged with the NodeConfig Karpenter generates. Pin the AMI to a dated version instead of `@latest`: if the AMI changes when a node is replaced, the baseline for the generation and performance comparison moves with it. NodePool syntax and weight are covered in [Karpenter Autoscaling](./karpenter-autoscaling.md).
+
+The YAML below is a configuration fragment to merge into an existing valid EC2NodeClass, not a standalone manifest. Retain exactly one of `role` or `instanceProfile`, the subnet and security-group selectors, and replace the AMI date placeholder with a reviewed real version.
 
 This approach does not apply to EKS Auto Mode nodes. Auto Mode lets you tune `maxPods` (up to 110), `podPidsLimit`, eviction thresholds, container log rotation, `singleProcessOOMKill`, and `allowedUnsafeSysctls` through the NodeClass `advancedCompute.kubelet` field, and kernel parameters through `advancedCompute.kernel.sysctl`, but it exposes neither the CPU Manager policy, CFS quota, nor reserved CPUs, and it accepts no userData (NodeConfig). Workloads that need exclusive cores go to a self-managed NodePool outside Auto Mode. For general workloads that do not, check first whether Auto Mode's tuning range is sufficient; running both node types in one cluster and splitting workloads between them is also an option worth considering.
 
@@ -265,7 +273,7 @@ For each (instance-size x generation) target NodePool:
 - 60-second averages hide sub-minute throttling spikes; use 15–30 second resolution and histograms. A PSI avg10 clearly above avg300 points to contention that started recently; when avg300 rises as well, the bottleneck is sustained.
 - cAdvisor's CFS, schedstat, and pressure counters are counter-type metrics: apply `rate()` first, then compute ratios. Keep namespace/pod/container identifiers rather than summing replicas into one value, and watch for time-series breaks from Pod recreation and duplicate scrapes.
 - Read throttling-ratio alerts together with p99 and error rate. A high ratio that stays within the SLO is recorded as a candidate for a limit adjustment; act when the SLO is breached.
-- eBPF tools such as `runqlat` and `offcputime` from `bcc`/`bpftrace`, or [Inspektor Gadget](https://www.inspektor-gadget.io/), assume kernel BTF/CO-RE support and a privileged collection path. On custom Linux distributions, check the kernel version and BTF support first and evaluate the collection overhead separately.
+- eBPF requirements depend on the tool and build. CO-RE tools may require BTF, while traditional BCC tools can compile against kernel headers using LLVM/Clang. Check the selected `bcc`/`bpftrace` or [Inspektor Gadget](https://www.inspektor-gadget.io/) version's kernel, permissions and collection overhead.
 
 ## Troubleshooting
 
@@ -274,13 +282,15 @@ For each (instance-size x generation) target NodePool:
 | CPU% alarm on a small node or a different generation | Not comparable across sizes and generations (shared cache and bandwidth, SMT, IPC) | Switch to SLO-based alarms, redefine thresholds from benchmarks | p99 and error rate unchanged |
 | Latency rises at low utilization | CFS global quota throttles a multithreaded process | Consider omitting the CPU limit or align thread counts | nr_throttled/nr_periods in `cpu.stat`, throttling-ratio PromQL |
 | Throttling ratio is 0 but latency rises | Quota remains, but run queue wait (node contention) | Adjust node density, consider Guaranteed integer CPU or CPU Manager static | `cpu.pressure` some ratio, schedstat run queue time |
-| Many 1–2 vCPU Pods on a 24xlarge | No Pod sizing baseline | LimitRange minimums, ratio alignment | Fewer Pods per node, lower IP usage |
+| Pod count approaches IP or maxPods capacity | Replica, placement and address-budget constraints | Check address capacity and placement first; validate vertical sizing with replica changes against the SLO | Actual Pod/node counts, IP consumption, throughput and latency |
 | Performance varies even for Guaranteed integer-CPU Pods | Shared-pool scheduling, noisy neighbor | `cpuManagerPolicy: static` with reserved-cpus (state the lost spare cores) | Check cpuset, run queue latency |
 | JVM/Go spawn threads for every core on the node | Runtime does not see the container CPU | `-XX:ActiveProcessorCount`, Go 1.25+/automaxprocs | Thread count, throttled ratio |
 
 ## Summary
 
-CPU utilization is not a metric that can be compared directly across instance sizes and generations; comparisons use sustained RPS, p99, and cost-per-1K-req measured under identical conditions. CFS throttling is recorded by the kernel in the cgroup's `cpu.stat` and exposed by the kubelet's built-in cAdvisor, so it can be collected through Prometheus, AMP, or CloudWatch alike, and eBPF is only needed to see the distribution of scheduling wait. Pod sizing aligns the CPU:memory ratio to a family and sets a minimum vCPU floor; latency-sensitive workloads weigh the trade-off between Guaranteed integer CPU and CPU Manager static. Per-generation comparison is automated with a benchmark pipeline, and only the sizes and generations that meet the SLO stay in the node pool.
+When comparing instance sizes and generations, use a consistent CPU-utilization denominator and measure sustained RPS, p99, and cost-per-1K-req under the same load. If response time increases, distinguish throttling in `cpu.stat` from scheduling wait to narrow down the cause.
+
+Set Pod requests from measured throughput and memory use. Raising CPU requests alone does not reduce replicas or Pod IP consumption. Workloads that need CPU isolation require a review of Guaranteed QoS and CPU Manager settings. Keep only instance sizes and generations that meet the SLO as node-pool candidates.
 
 ## References
 

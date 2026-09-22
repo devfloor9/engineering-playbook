@@ -3,7 +3,7 @@ title: SIGTERM handling by language
 description: Review application shutdown handling examples.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 1
 tags:
@@ -90,7 +90,13 @@ metadata:
   name: nodejs-app
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: nodejs-app
   template:
+    metadata:
+      labels:
+        app: nodejs-app
     spec:
       containers:
       - name: app
@@ -179,7 +185,13 @@ metadata:
   name: spring-boot-app
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: spring-boot-app
   template:
+    metadata:
+      labels:
+        app: spring-boot-app
     spec:
       containers:
       - name: app
@@ -289,7 +301,13 @@ metadata:
   name: go-app
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: go-app
   template:
+    metadata:
+      labels:
+        app: go-app
     spec:
       containers:
       - name: app
@@ -364,7 +382,13 @@ metadata:
   name: python-app
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: python-app
   template:
+    metadata:
+      labels:
+        app: python-app
     spec:
       containers:
       - name: app

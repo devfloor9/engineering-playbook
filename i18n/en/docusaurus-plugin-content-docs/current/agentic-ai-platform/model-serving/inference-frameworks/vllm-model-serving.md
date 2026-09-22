@@ -3,7 +3,7 @@ title: vLLM Model Serving
 description: vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: devfloor9
 reading_time: 25
 tags:
@@ -27,7 +27,7 @@ import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
 vLLM is a high-performance LLM inference engine that reduces KV cache memory waste by 60-80% through the PagedAttention algorithm and provides 2-24x throughput improvement via Continuous Batching. Major companies including Meta, Mistral AI, Cohere, and IBM use it in production environments, and it provides an OpenAI-compatible API for easy migration of existing applications.
 
-> **📌 Current Version**: vLLM v0.18+ / v0.19.x (as of 2026-04)
+> **📌 Current Version**: vLLM v0.24+ / v0.25.x (as of 2026-07)
 
 ### Why vLLM Became the Standard
 
@@ -77,7 +77,7 @@ llm = LLM(
 
 ### V1 Engine Architecture
 
-vLLM v0.19.x introduces the V1 engine with these improvements:
+The vLLM V1 engine (the default since before v0.19.x) provides these features:
 - **Chunked Prefill**: Mixes prefill (compute-intensive) and decode (memory-intensive) in the same batch
 - **FP8 KV Cache**: Reduces KV cache memory by 2x for longer context support
 - **Improved Prefix Caching**: 400%+ throughput improvement through common prefix reuse
@@ -214,7 +214,7 @@ For details, see [MoE Model Serving](./moe-model-serving.md).
 
 ## Supported Hardware
 
-vLLM v0.19.x supports various hardware accelerators:
+vLLM v0.22+ supports various hardware accelerators:
 
 <ComparisonTable
   headers={['Hardware', 'Support Level', 'Primary Use', 'AWS Instance Type']}

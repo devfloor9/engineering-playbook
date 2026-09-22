@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: devfloor9
 reading_time: 35
 tags:
@@ -31,7 +31,7 @@ In enterprise LLM platforms, Guardrails are **"a technology stack that places sa
 
 ---
 
-## 1. Threat Model: 6 Attacks LLM Services Must Defend Against
+## 1. Threat Model: 7 Attacks LLM Services Must Defend Against
 
 ### 1.1 Threat Types and Enterprise Impact Scenarios
 
@@ -112,7 +112,7 @@ In SSE/chunked streaming, you must **buffer token by token** and validate at eac
 |------|------|------|------|------|----------|
 | **Guardrails AI** | Python library | Input/Output | Validator Hub (50+ validators), RAIL schema | Requires Python runtime, wrapper needed for gateway integration | Apache 2.0 |
 | **NeMo Guardrails** | Python + Colang DSL | Input/Output/Dialog | Dialog flow control with Colang, built-in self-check | Learning curve, single process | Apache 2.0 |
-| **Llama Guard 3** | Classification model (8B) | Input/Output | Model-based 13-category classification, multilingual | Separate GPU required, additional latency | Meta Community License |
+| **Llama Guard 3** | Classification model (8B) | Input/Output | Model-based 14-category classification (S1~S14: MLCommons 13 + S14 Code Interpreter Abuse), multilingual | Separate GPU required, additional latency | Meta Community License |
 | **AWS Bedrock Guardrails** | Managed | Input/Output | Native Bedrock integration, contextual grounding, PII masking, non-Bedrock models usable via ApplyGuardrail API | AWS account/region dependency, custom model constraints | AWS managed |
 | **Portkey Guardrails** | Gateway plugin | Input/Output | Gateway-integrated, 40+ guards, OSS + Cloud | SaaS dependency or self-hosting operational burden | MIT (OSS) + Commercial |
 | **PromptArmor** | Enterprise SaaS | Input | Threat intelligence feed, enterprise SOC integration | Commercial proprietary | Commercial |
@@ -577,7 +577,7 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 - [Guardrails AI Documentation](https://guardrailsai.com/guardrails/docs) — Validator Hub, RAIL schema
 - [NVIDIA NeMo Guardrails](https://docs.nvidia.com/nemo/guardrails/latest/index.html) — Colang DSL, Official user guide
 - [AWS Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) + [ApplyGuardrail API](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use-independent-api.html)
-- [Meta Llama Guard 3 Model Card](https://github.com/meta-llama/PurpleLlama/tree/main/Llama-Guard3) — 13 category classification
+- [Meta Llama Guard 3 Model Card](https://github.com/meta-llama/PurpleLlama/tree/main/Llama-Guard3) — 14 category classification (S1~S14: MLCommons 13 risk categories + Code Interpreter Abuse)
 - [Microsoft Presidio](https://microsoft.github.io/presidio/) — PII analysis·anonymization
 - [Microsoft Prompt Shield (Azure AI Content Safety)](https://learn.microsoft.com/azure/ai-services/content-safety/concepts/jailbreak-detection)
 - [Portkey Guardrails](https://portkey.ai/docs/product/guardrails) — Gateway-integrated

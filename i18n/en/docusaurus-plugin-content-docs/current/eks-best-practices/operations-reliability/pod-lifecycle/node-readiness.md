@@ -3,7 +3,7 @@ title: Node Readiness Controller
 description: Review configuration for managing node infrastructure readiness.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
 reading_time: 12
 tags:
@@ -400,7 +400,13 @@ metadata:
   name: critical-service
 spec:
   replicas: 3
+  selector:
+    matchLabels:
+      app: critical-service
   template:
+    metadata:
+      labels:
+        app: critical-service
     spec:
       # Apply 3-layer readiness
       containers:

@@ -3,9 +3,9 @@ title: Karpenter and node drain
 description: Review Pod termination during node replacement and scale-down.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-19
   author: devfloor9
-reading_time: 8
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -308,62 +308,57 @@ data:
     }
 ```
 
-**End-to-end AZ recovery with an Istio service mesh:**
+**Istio locality priority and direct Service routing:**
 
-Integration with an Istio service mesh enables more granular traffic control during AZ evacuation:
+This policy prioritizes endpoints matching the client's region and zone, followed by other zones in the same region. It works with passive outlier detection; it defines neither a fixed AZ sequence nor automatic ARC-to-VirtualService changes.
+
+**Applicability:** This example uses the Istio 1.27.0 `v1beta1` fields. Verify that the installed release serves the required CRD. It needs an existing `critical-api` Service in `production`, an unambiguous HTTP Service port, healthy endpoints, region/zone metadata and a request path through a sidecar.
+
+Both policies are visible only within `production`, and the VirtualService applies to mesh requests. Clients in other namespaces need an explicit visibility design. Visibility does not grant access: retain existing AuthorizationPolicy, authentication and mTLS controls.
+
+`interval` is a passive analysis period and `baseEjectionTime` is a minimum ejection duration. These values do not define a recovery deadline. Verify replica counts, remaining capacity, retry budgets and behavior during an actual failure.
 
 ```yaml
-# Istio DestinationRule: AZ-based traffic routing
+# Service policy within production; authentication/authorization remain separate
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: critical-api-az-routing
+  namespace: production
 spec:
   host: critical-api.production.svc.cluster.local
+  exportTo:
+  - "."
   trafficPolicy:
     loadBalancer:
       localityLbSetting:
         enabled: true
-        distribute:
-        - from: ap-northeast-2a/*
-          to:
-            "ap-northeast-2b/*": 50
-            "ap-northeast-2c/*": 50
-        - from: ap-northeast-2b/*
-          to:
-            "ap-northeast-2a/*": 50
-            "ap-northeast-2c/*": 50
-        - from: ap-northeast-2c/*
-          to:
-            "ap-northeast-2a/*": 50
-            "ap-northeast-2b/*": 50
+        failoverPriority:
+        - topology.kubernetes.io/region
+        - topology.kubernetes.io/zone
     outlierDetection:
-      consecutiveErrors: 3
+      consecutive5xxErrors: 3
       interval: 10s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
 ---
-# VirtualService: automatic rerouting during AZ failures
+# Direct Service route; no ARC-to-mesh automation or access grant is supplied
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: critical-api-failover
+  namespace: production
 spec:
   hosts:
   - critical-api.production.svc.cluster.local
+  exportTo:
+  - "."
+  gateways:
+  - mesh
   http:
-  - match:
-    - sourceLabels:
-        topology.kubernetes.io/zone: ap-northeast-2a
-    route:
+  - route:
     - destination:
         host: critical-api.production.svc.cluster.local
-        subset: az-b
-      weight: 50
-    - destination:
-        host: critical-api.production.svc.cluster.local
-        subset: az-c
-      weight: 50
     timeout: 3s
     retries:
       attempts: 3

@@ -3,9 +3,9 @@ title: 캐시 히트 전략
 description: KV/Prefix·Prompt·Semantic 3계층 추론 캐시를 하나의 의사결정 프레임으로 통합하고, 계층별 히트율 목표와 측정 지점, 튜닝 레버를 정리
 created: "2026-06-25"
 last_update:
-  date: "2026-07-15"
+  date: 2026-09-22
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 4
 tags:
   - caching
   - kv-cache
@@ -105,10 +105,11 @@ Prefix 캐시는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 
 - [Langfuse Documentation](https://langfuse.com/docs) — 캐시 적중률 추적을 위한 관측성 도구
 
 ### 논문 / 기술 블로그
-- [PagedAttention (SOSP 2023)](https://arxiv.org/abs/2309.06180) — KV 캐시 관리 기반 논문
+- [PagedAttention (SOSP 2023)](https://arxiv.org/abs/2309.06180) — KV cache 관리 기반 논문
 - [GPTCache](https://github.com/zilliztech/GPTCache) — Semantic 캐시 오픈소스 구현
 
 ### 관련 문서 (내부)
 - [KV Cache 최적화](./kv-cache-optimization.md) — Prefix Caching과 KV Cache-Aware Routing
 - [Semantic Caching 전략](./semantic-caching-strategy.md) — 유사도 임계값·캐시 키 설계
-- [LMCache](./lmcache.md) — 공유 KV 캐시 계층
+- [LMCache](./lmcache.md) — 공유 KV cache 계층
+

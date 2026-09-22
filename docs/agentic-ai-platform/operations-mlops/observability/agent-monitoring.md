@@ -3,9 +3,9 @@ title: AI Agent 모니터링 및 운영
 description: Langfuse 기반 Agent 모니터링 운영 전용 문서 — 모니터링 아키텍처·핵심 메트릭·PromQL·알림·비용 추적 (도구 비교는 LLMOps Observability 문서 참조)
 created: "2026-02-05"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-22
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 11
 tags:
   - eks
   - langfuse
@@ -138,7 +138,7 @@ flowchart TB
 | **모델 서버** | vLLM Prometheus | `vllm_*` | 요청 수, 배치 크기, KV cache 사용률, TPS |
 | **GPU** | DCGM Exporter | `DCGM_FI_DEV_*` | GPU 활용도, 온도, 전력, 메모리 사용량 |
 | **인프라** | Node Exporter | `node_*` | CPU, 메모리, 네트워크, 디스크 I/O |
-| **게이트웨이** | kgateway | `envoy_*` | 요청 수, 레이턴시, 에러율, 업스트림 상태 |
+| **게이트웨이** | kgateway | `envoy_*` | 요청 수, 지연 시간, 에러율, 업스트림 상태 |
 
 ---
 
@@ -292,7 +292,7 @@ tenant_monthly_budget_usd
 
 :::tip 모니터링 베스트 프랙티스
 
-1. **계층별 메트릭 연결**: LLM 요청 증가 -> GPU 활용도 상승 -> 인프라 부하 증가 상관관계 분석
+1. **계층별 메트릭 연결**: LLM 요청이 늘면 GPU 활용도가 오르고 인프라 부하가 커지는 상관관계를 분석
 2. **이상 탐지**: P99 지연이 갑자기 증가하면 GPU 온도나 메모리 사용량 동시 확인
 3. **용량 계획**: 평균 GPU 활용도가 70% 이상이면 추가 GPU 노드 프로비저닝 고려
 4. **비용 최적화**: TTFT가 낮은 모델을 우선 사용하여 사용자 경험 개선 + 처리량 증가

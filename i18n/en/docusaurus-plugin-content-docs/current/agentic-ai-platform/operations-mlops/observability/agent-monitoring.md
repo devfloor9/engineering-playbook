@@ -3,7 +3,7 @@ title: AI Agent Monitoring and Operations
 description: Langfuse-based agent monitoring operations — monitoring architecture, key metrics, PromQL, alerting, and cost tracking (for tool comparison, see LLMOps Observability)
 created: "2026-02-05"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-21
   author: devfloor9
 reading_time: 15
 tags:
@@ -316,7 +316,7 @@ Track LLM usage costs by the following criteria:
 
 | Tier | Model | Input ($/1M tok) | Output ($/1M tok) | Features |
 |------|-------|----------------|----------------|----------|
-| **Frontier** | Claude Opus 4.7 | $15 | $75 | Highest quality reasoning |
+| **Frontier** | Claude Opus 4.7 / 4.8 | $5 | $25 | Highest quality reasoning |
 | **Frontier** | GPT-4.1 / o3 | $10 | $30 | Complex reasoning |
 | **Frontier** | Gemini 2.5 Pro | $1.25 | $5 | Enhanced multimodal |
 | **Balanced** | Claude Sonnet 4.6 | $3 | $15 | Quality-cost balance |
