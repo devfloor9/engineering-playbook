@@ -3,9 +3,9 @@ title: EKS 기반 MLOps 파이프라인 구축
 description: Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리
 created: "2026-02-11"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-22
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 6
 tags:
   - mlops
   - kubeflow
@@ -31,7 +31,7 @@ MLOps는 머신러닝 모델의 개발, 배포, 운영을 자동화하고 표준
 
 ### 주요 목표
 
-- **완전 자동화**: 데이터 수집부터 모델 배포까지 자동화된 파이프라인 구축
+- **자동화**: 데이터 수집부터 모델 배포까지 자동화된 파이프라인 구축
 - **실험 추적**: MLflow를 통한 체계적인 실험 관리 및 모델 버전 관리
 - **확장 가능한 서빙**: vLLM 기반 고성능 모델 서빙 + ArgoCD GitOps 배포
 - **GPU 최적화**: Karpenter를 활용한 동적 GPU 리소스 관리
@@ -99,7 +99,7 @@ flowchart LR
     style Monitor fill:#9c27b0
 ```
 
-### 핵심 컴포넌트
+### 주요 컴포넌트 {#핵심-컴포넌트}
 
 <PipelineComponents />
 
@@ -729,9 +729,9 @@ def production_ml_pipeline(
 
 ## 요약
 
-EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, vLLM, ArgoCD를 통합하여 완전 자동화된 ML 라이프사이클을 제공합니다.
+EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, vLLM, ArgoCD를 통합하여 데이터 수집부터 배포까지 자동화된 ML 라이프사이클을 제공합니다.
 
-### 핵심 포인트
+### 요약 포인트 {#핵심-포인트}
 
 1. **Kubeflow Pipelines**: 재사용 가능한 컴포넌트 기반 ML 워크플로우
 2. **MLflow**: 실험 추적 및 모델 레지스트리로 거버넌스 강화
