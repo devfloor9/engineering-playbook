@@ -137,4 +137,3 @@ DPD는 KV cache 전송을 위해 **EFA·GPUDirect RDMA 지원 인스턴스**를 
 - [추론 게이트웨이 라우팅 전략](../../model-serving/inference-routing/routing-strategy.md) — L2 옵션 비교(EPP vs HyperPod vs Dynamo), 멀티리전 주의
 - [KV Cache 최적화](../inference-optimization/kv-cache-optimization.md) — Cache-Aware Routing, 처리량 레버, 라우팅≠추론 구분
 - [Disaggregated Serving](../inference-optimization/disaggregated-serving.md) — Prefill/Decode 분리 아키텍처
-

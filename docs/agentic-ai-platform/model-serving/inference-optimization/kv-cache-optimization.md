@@ -3,9 +3,9 @@ title: KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)
 description: vLLM PagedAttention·Continuous Batching·FP8 KV Cache 등 핵심 기술 정리와 llm-d/NVIDIA Dynamo의 KV Cache-Aware Routing 비교 및 Gateway 구성
 created: "2026-04-03"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-22
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 8
 tags:
   - inference
   - optimization
@@ -20,20 +20,20 @@ sidebar_position: 2
 
 ## 개요
 
-LLM 추론 엔진의 성능은 대부분 KV Cache(Key-Value Cache)를 얼마나 효율적으로 관리하느냐에 달려 있습니다. 본 문서는 vLLM의 핵심 기술 스택과 GPU 메모리 설계 원리, 그리고 여러 Pod 간 KV Cache를 공유·재사용하는 **KV Cache-Aware Routing** 전략(llm-d vs NVIDIA Dynamo)을 다룹니다.
+LLM 추론 엔진의 성능은 대부분 KV cache(Key-Value Cache)를 얼마나 효율적으로 관리하느냐에 달려 있습니다. 본 문서는 vLLM의 기술 스택과 GPU 메모리 설계 원리, 그리고 여러 Pod 간 KV cache를 공유·재사용하는 **KV Cache-Aware Routing** 전략(llm-d vs NVIDIA Dynamo)을 다룹니다.
 
 ## vLLM Deep Dive
 
-### 핵심 기술 스택
+### 기술 스택
 
-vLLM(v0.22+/v0.24.x)은 현재 가장 널리 사용되는 LLM 추론 엔진입니다. 핵심 기술과 성능 영향은 다음과 같습니다.
+vLLM(v0.22+/v0.24.x)은 현재 가장 널리 사용되는 LLM 추론 엔진입니다. 주요 기술과 성능 영향은 다음과 같습니다.
 
 | 기술 | 성능 영향 | 설명 |
 |------|---------|------|
-| **PagedAttention** | KV Cache 메모리 60-80% 절감 (vLLM 벤치마크 기준, 워크로드별 상이) | OS 가상 메모리 기법으로 KV 캐시를 비연속 블록 저장 |
+| **PagedAttention** | KV cache 메모리 60-80% 절감 (vLLM 벤치마크 기준, 워크로드별 상이) | OS 가상 메모리 기법으로 KV cache를 비연속 블록 저장 |
 | **Continuous Batching** | 처리량 2-24x 향상 (vLLM 벤치마크 기준, 워크로드별 상이) | 반복(iteration) 수준에서 요청을 동적 추가/제거 |
-| **FP8 KV Cache** | KV 캐시 메모리 약 2배 절감 | KV 캐시를 FP8 정밀도로 저장 (v0.3.0+) |
-| **Prefix Caching** | 반복 프롬프트 고히트율에서 TTFT 최대 3~4x 개선 (워크로드 의존) | 공통 시스템 프롬프트의 KV 캐시 재사용 |
+| **FP8 KV Cache** | KV cache 메모리 약 2배 절감 | KV cache를 FP8 정밀도로 저장 (v0.3.0+) |
+| **Prefix Caching** | 반복 프롬프트 고히트율에서 TTFT 최대 3~4x 개선 (워크로드 의존) | 공통 시스템 프롬프트의 KV cache 재사용 |
 | **Speculative Decoding** | 속도 2-3x 향상 | 소형 드래프트 모델이 토큰 예측, 메인 모델이 검증 |
 | **Chunked Prefill** | TTFT/처리량 균형 개선 | Prefill과 Decode를 동일 배치에서 혼합 처리 |
 
@@ -42,7 +42,7 @@ vLLM(v0.22+/v0.24.x)은 현재 가장 널리 사용되는 LLM 추론 엔진입�
 모델 배포 전 GPU 메모리를 정확히 계산해야 합니다.
 
 ```
-필요 GPU 메모리 = 모델 가중치 + 비torch 메모리 + PyTorch 활성화 + (KV 캐시 × 배치 크기)
+필요 GPU 메모리 = 모델 가중치 + 비torch 메모리 + PyTorch 활성화 + (KV cache × 배치 크기)
 ```
 
 **정밀도별 메모리 요구사항:**
@@ -83,7 +83,7 @@ flowchart TD
 | Kimi K2.5 | 1T MoE (32B active) | INT4 | 8× H200 141GB (TP=8) | 텐서 병렬 |
 | GLM-5 | 744B MoE (40B active) | FP8 | 16× H100 (PP=2, TP=8) | 파이프라인 + 텐서 병렬 |
 
-### 핵심 성능 파라미터
+### 성능 파라미터
 
 ```bash
 vllm serve Qwen/Qwen3-32B-FP8 \
@@ -110,9 +110,9 @@ vllm serve Qwen/Qwen3-32B-FP8 \
 
 기존 vLLM 배포는 단순 Round-Robin 로드 밸런싱에 의존합니다. 동일한 시스템 프롬프트를 사용하는 요청이 매번 다른 Pod로 분산되면, 각 Pod에서 동일한 프리필 연산을 반복 수행합니다. 이는 GPU 연산 낭비이자 TTFT 증가의 원인입니다.
 
-### 해결: KV Cache 상태 인식 라우팅
+### 해결: KV cache 상태 인식 라우팅
 
-llm-d와 NVIDIA Dynamo는 각 vLLM Pod의 KV Cache 상태를 인식하여, 동일한 prefix를 가진 요청을 이미 해당 KV Cache를 보유한 Pod로 라우팅합니다.
+llm-d와 NVIDIA Dynamo는 각 vLLM Pod의 KV cache 상태를 인식하여, 동일한 prefix를 가진 요청을 이미 해당 KV cache를 보유한 Pod로 라우팅합니다.
 
 다음 흐름은 설정된 EPP 플러그인의 동작을 단순화한 예시입니다. 캐시가 있는 Pod도 부하에 따라 선택되지 않을 수 있습니다.
 
@@ -140,7 +140,7 @@ sequenceDiagram
 ```
 
 :::note 라우팅 결정과 추론(inference)은 별개의 작업
-KV 캐시 인지 라우팅에서 **라우팅 결정 자체는 추론이 아닙니다.** 게이트웨이는 프롬프트를 고정 크기 블록으로 해시한 뒤, 해당 prefix를 이미 캐시한 Pod를 인덱스에서 조회합니다. 모델 forward pass가 없는 **기계적 해시 조회**입니다(Gateway API Inference Extension의 `prefix-cache-scorer`, vLLM Automatic Prefix Caching, llm-d의 KV-event 인덱서가 모두 이 방식입니다).
+KV cache 인지 라우팅에서 **라우팅 결정 자체는 추론이 아닙니다.** 게이트웨이는 프롬프트를 고정 크기 블록으로 해시한 뒤, 해당 prefix를 이미 캐시한 Pod를 인덱스에서 조회합니다. 모델 forward pass가 없는 **기계적 해시 조회**입니다(Gateway API Inference Extension의 `prefix-cache-scorer`, vLLM Automatic Prefix Caching, llm-d의 KV-event 인덱서가 모두 이 방식입니다).
 
 반면 **컨텍스트 인지(시맨틱) 라우팅**은 프롬프트를 인코더·분류 모델(BERT 계열)에 통과시켜 의도를 분류하므로, 라우팅 경로에서 **경량 추론**이 한 번 발생합니다(vLLM Semantic Router).
 
@@ -162,18 +162,18 @@ KV 캐시 인지 라우팅에서 **라우팅 결정 자체는 추론이 아닙�
 | 항목 | llm-d v0.8.1 | NVIDIA Dynamo v1.2.x |
 |------|------------|-------------------|
 | **주도** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
-| **KV Cache 인덱싱** | Prefix-aware 라우팅 | Flash Indexer (radix tree) |
-| **KV Cache 전송** | NIXL (네트워크) | NIXL (NVLink/RDMA 초고속) |
+| **KV cache 인덱싱** | Prefix-aware 라우팅 | Flash Indexer (radix tree) |
+| **KV cache 전송** | NIXL (네트워크) | NIXL (NVLink/RDMA 초고속) |
 | **라우팅** | Gateway API + Envoy EPP | Dynamo Router + 자체 EPP |
 | **Pod 스케줄링** | K8s 기본 스케줄러 | KAI Scheduler (GPU-aware) |
 | **오토스케일링** | HPA/KEDA 연동 | Planner (SLO 기반 profiling) |
-| **KV Cache 계층화** | [HBM → CPU RAM → 파일시스템](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/tiered-prefix-cache.md), connector·스토리지 설정 필요 | 4-tier: G1 GPU / G2 CPU / G3 로컬 SSD / G4 원격 스토리지 |
+| **KV cache 계층화** | [HBM → CPU RAM → 파일시스템](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/tiered-prefix-cache.md), connector·스토리지 설정 필요 | 4-tier: G1 GPU / G2 CPU / G3 로컬 SSD / G4 원격 스토리지 |
 | **복잡도** | 낮음 | 높음 |
 | **벤치마크 성능** | 경량, K8s 네이티브 | 최대 7x (disaggregation + wide EP, GB200 NVL72) |
 
 :::tip 선택 기준
-- **소규모~중규모 (GPU ≤16)**: llm-d — 빠른 도입, K8s Gateway API 네이티브, 다중 계층 KV 캐시 오프로딩 지원
-- **대규모 (GPU 16+), 최대 처리량**: Dynamo — Flash Indexer, SLO 기반 오토스케일링, 4-tier KV Cache
+- **소규모~중규모 (GPU ≤16)**: llm-d — 빠른 도입, K8s Gateway API 네이티브, 다중 계층 KV cache 오프로딩 지원
+- **대규모 (GPU 16+), 최대 처리량**: Dynamo — Flash Indexer, SLO 기반 오토스케일링, 4-tier KV cache
 - **긴 컨텍스트 (128K+)**: 두 프로젝트 모두 CPU/스토리지 계층 오프로딩 지원
 - **점진적 전환**: llm-d로 시작 → 규모 확장 시 Dynamo로 전환 (둘 다 NIXL 사용)
 :::

@@ -229,4 +229,3 @@ KV cache-aware 라우팅은 같은 모델의 여러 Pod 중에서 **요청의 pr
 - [추론 최적화 개요](./inference-optimization/index.md) — TTFT·TPS 등 핵심 지표와 3-Tier 권장 구성
 - [티어드 게이트웨이 아키텍처](./inference-routing/tiered-gateway-architecture.md) — 게이트웨이 계층 단일 정의
 - [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md) — vLLM 심화와 KV Cache-Aware Routing
-

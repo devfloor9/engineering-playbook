@@ -112,4 +112,3 @@ Prefix 캐시는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 
 - [KV Cache 최적화](./kv-cache-optimization.md) — Prefix Caching과 KV Cache-Aware Routing
 - [Semantic Caching 전략](./semantic-caching-strategy.md) — 유사도 임계값·캐시 키 설계
 - [LMCache](./lmcache.md) — 공유 KV cache 계층
-

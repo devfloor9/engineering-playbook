@@ -3,9 +3,9 @@ title: llm-d 기반 EKS 분산 추론 가이드
 description: llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략
 created: "2026-02-10"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-22
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 23
 tags:
   - eks
   - llm-d
@@ -43,7 +43,7 @@ import {
 
 llm-d는 Red Hat이 주도하는 Apache 2.0 라이선스의 Kubernetes 네이티브 분산 추론 스택입니다. vLLM 추론 엔진, 호환 프록시와 EPP를 연결하는 Inference Gateway, 그리고 Kubernetes Gateway API를 결합하여 대규모 언어 모델의 지능적인 추론 라우팅을 제공합니다.
 
-기존 vLLM 배포가 단순한 Round-Robin 로드 밸런싱에 의존하는 반면, llm-d는 KV Cache 상태를 인식하는 지능적 라우팅을 통해 동일한 prefix를 가진 요청을 이미 해당 KV Cache를 보유한 Pod로 전달합니다. 이를 통해 Time To First Token(TTFT)을 크게 단축하고 GPU 연산을 절약할 수 있습니다.
+기존 vLLM 배포가 단순한 Round-Robin 로드 밸런싱에 의존하는 반면, llm-d는 KV cache 상태를 인식하는 지능적 라우팅을 통해 동일한 prefix를 가진 요청을 이미 해당 KV cache를 보유한 Pod로 전달합니다. 이를 통해 반복 prefix 요청의 Time To First Token(TTFT)을 단축하고 GPU 연산을 절약할 수 있습니다.
 
 :::tip 실전 배포 가이드
 llm-d의 EKS 배포 설계와 클러스터 준비는 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md)를 참조하세요.

@@ -3,7 +3,7 @@ title: NeMo 프레임워크
 description: NVIDIA NeMo Framework의 분산 학습, 파인튜닝, TensorRT-LLM 변환 아키텍처
 created: "2026-02-05"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 9
 tags:
@@ -32,7 +32,7 @@ Agentic AI 플랫폼에서 범용 LLM(GPT-4, Claude 등)을 사용할 때 다음
 
 - **도메인 지식 부족**: 특정 산업/기업의 전문 용어와 맥락 이해 부족
 - **비용 문제**: 대규모 호출 시 API 비용 급증 (token-per-request 과금)
-- **레이턴시**: 외부 API 호출로 인한 응답 지연
+- **지연 시간**: 외부 API 호출로 인한 응답 지연
 - **데이터 프라이버시**: 민감한 데이터를 외부 서비스로 전송 불가
 - **온프레미스 요구사항**: 금융/의료 등 규제 산업의 자체 인프라 운영 필요
 
@@ -379,7 +379,7 @@ flowchart TB
 - **동적 배칭**: 여러 요청을 자동으로 묶어 GPU 활용률 최적화
 - **모델 앙상블**: 여러 모델을 파이프라인으로 연결 (예: Tokenizer → LLM → Detokenizer)
 - **백엔드 지원**: TensorRT-LLM, PyTorch, ONNX, TensorFlow 등
-- **메트릭 수집**: Prometheus 호환 메트릭 (처리량, 레이턴시, GPU 사용률)
+- **메트릭 수집**: Prometheus 호환 메트릭 (처리량, 지연 시간, GPU 사용률)
 
 ### 모델 저장소 구조
 

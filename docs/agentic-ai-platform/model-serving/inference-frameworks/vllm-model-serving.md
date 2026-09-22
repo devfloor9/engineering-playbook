@@ -3,7 +3,7 @@ title: vLLM 모델 서빙
 description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 14
 tags:
@@ -25,26 +25,26 @@ import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
 ## 개요
 
-vLLM은 PagedAttention 알고리즘을 통해 KV 캐시 메모리 낭비를 60-80% 줄이고(vLLM 벤치마크 기준, 워크로드별 상이), 연속 배칭(Continuous Batching)으로 기존 대비 2-24배의 처리량 향상을 제공하는(vLLM 벤치마크 기준, 워크로드별 상이) 고성능 LLM 추론 엔진입니다. Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이합니다.
+vLLM은 PagedAttention 알고리즘을 통해 KV cache 메모리 낭비를 60-80% 줄이고(vLLM 벤치마크 기준, 워크로드별 상이), 연속 배칭(Continuous Batching)으로 기존 대비 2-24배의 처리량 향상을 제공하는(vLLM 벤치마크 기준, 워크로드별 상이) 고성능 LLM 추론 엔진입니다. Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이합니다.
 
 > **📌 현재 버전**: vLLM v0.24+ / v0.25.x (2026-07 기준)
 
 ### 왜 vLLM이 표준이 되었나
 
-요청마다 최대 길이의 KV 캐시 공간을 미리 잡아 두면 짧게 끝나는 요청의 메모리가 남습니다. 배치를 고정하면 먼저 끝난 요청이 생겨도 남은 요청의 처리가 끝날 때까지 빈 처리 자리를 활용하기 어렵습니다. vLLM은 필요한 KV 블록을 추가로 할당하고, 생성 반복마다 완료된 요청을 빼고 새 요청을 넣는 방식으로 이 낭비를 줄입니다.
+요청마다 최대 길이의 KV cache 공간을 미리 잡아 두면 짧게 끝나는 요청의 메모리가 남습니다. 배치를 고정하면 먼저 끝난 요청이 생겨도 남은 요청의 처리가 끝날 때까지 빈 처리 자리를 활용하기 어렵습니다. vLLM은 필요한 KV 블록을 추가로 할당하고, 생성 반복마다 완료된 요청을 빼고 새 요청을 넣는 방식으로 이 낭비를 줄입니다.
 
 vLLM의 핵심 혁신:
-- **PagedAttention**: 운영체제의 가상 메모리 관리에서 영감을 받아 KV 캐시를 비연속적 블록으로 관리
+- **PagedAttention**: 운영체제의 가상 메모리 관리에서 영감을 받아 KV cache를 비연속적 블록으로 관리
 - **Continuous Batching**: 배치 경계를 제거하고 반복(iteration) 수준에서 동적으로 요청 추가/제거
 - **OpenAI API 호환**: 기존 애플리케이션 코드 변경 없이 마이그레이션 가능
 
 ## 핵심 아키텍처
 
-### PagedAttention과 KV 캐시 관리
+### PagedAttention과 KV cache 관리
 
-Transformer 언어 모델은 출력 토큰을 하나씩 생성한다. 매번 이전 토큰의 attention 데이터를 다시 계산하지 않도록, 서빙 엔진은 해당 토큰의 key와 value 텐서를 **KV 캐시**에 저장한다. 캐시 메모리는 시퀀스 길이와 동시 요청 수에 비례해 늘어난다. 요청마다 최대 시퀀스 길이에 맞춰 메모리를 미리 할당하면, 실제로 사용하지 않는 공간이 남을 수 있다.
+Transformer 언어 모델은 출력 토큰을 하나씩 생성합니다. 매번 이전 토큰의 attention 데이터를 다시 계산하지 않도록, 서빙 엔진은 해당 토큰의 key와 value 텐서를 **KV cache**에 저장합니다. 캐시 메모리는 시퀀스 길이와 동시 요청 수에 비례해 늘어납니다. 요청마다 최대 시퀀스 길이에 맞춰 메모리를 미리 할당하면, 실제로 사용하지 않는 공간이 남을 수 있습니다.
 
-vLLM의 PagedAttention은 KV 캐시를 고정 크기 블록으로 나누어 비연속적으로 저장한다. 요청이 짧으면 적은 블록만 할당하고, 길어지면 필요할 때 추가 블록을 할당한다. 블록 테이블을 통해 논리적 순서를 유지하며, 메모리 단편화가 사라진다.
+vLLM의 PagedAttention은 KV cache를 고정 크기 블록으로 나누어 비연속적으로 저장합니다. 요청이 짧으면 적은 블록만 할당하고, 길어지면 필요할 때 추가 블록을 할당합니다. 블록 테이블을 통해 논리적 순서를 유지하며, 메모리 단편화가 사라집니다.
 
 **메모리 효율성 개선**:
 - 기존 방식: 최대 시퀀스 길이 × 배치 크기만큼 사전 할당 → 60-80% 낭비(vLLM 벤치마크 기준, 워크로드별 상이)
@@ -52,7 +52,7 @@ vLLM의 PagedAttention은 KV 캐시를 고정 크기 블록으로 나누어 비�
 
 ### Continuous Batching
 
-정적 배칭은 고정된 수의 요청이 모일 때까지 대기한 후 처리한다. 요청이 불규칙하게 도착하면 GPU가 부분적으로만 활용되어 처리량이 저하된다. 또한 배치 내에서 먼저 완료된 요청도 전체 배치가 끝날 때까지 대기해야 한다.
+정적 배칭은 고정된 수의 요청이 모일 때까지 대기한 후 처리합니다. 요청이 불규칙하게 도착하면 GPU가 부분적으로만 활용되어 처리량이 저하됩니다. 또한 배치 내에서 먼저 완료된 요청도 전체 배치가 끝날 때까지 대기해야 합니다.
 
 vLLM의 연속 배칭은 생성 반복(iteration)마다 배치에 참여할 요청을 갱신합니다.
 
@@ -63,7 +63,7 @@ vLLM의 연속 배칭은 생성 반복(iteration)마다 배치에 참여할 요�
 
 ### Speculative Decoding
 
-추측적 디코딩은 작은 드래프트 모델이 토큰을 예측하고, 메인 모델이 병렬로 검증하여 2-3배 속도 향상을 제공한다. 예측 가능한 출력(코드 생성, 정형화된 응답)에서 특히 효과적이다.
+추측적 디코딩은 작은 드래프트 모델이 토큰을 예측하고, 메인 모델이 병렬로 검증하여 2-3배 속도 향상을 제공합니다. 예측 가능한 출력(코드 생성, 정형화된 응답)에서 특히 효과적입니다.
 
 ```python
 from vllm import LLM
@@ -83,20 +83,20 @@ llm = LLM(
 
 vLLM V1 엔진(v0.19.x 이전부터 기본값)은 다음 기능을 제공합니다:
 - **Chunked Prefill**: 프리필(계산 집약적)과 디코드(메모리 집약적)를 동일 배치에서 혼합 처리
-- **FP8 KV Cache**: KV 캐시 메모리를 2배 절감하여 더 긴 컨텍스트 지원
+- **FP8 KV Cache**: KV cache 메모리를 2배 절감하여 더 긴 컨텍스트 지원
 - **Improved Prefix Caching**: 공통 프리픽스 재사용으로 400%+ 처리량 향상(vLLM 벤치마크 기준, 워크로드별 상이)
 
 ## GPU 메모리 요구사항
 
-모델 배포 전 필요한 GPU 메모리를 정확히 계산해야 한다. 메모리 사용량은 다음 구성요소로 나뉜다:
+모델 배포 전 필요한 GPU 메모리를 정확히 계산해야 합니다. 메모리 사용량은 다음 구성요소로 나뉩니다:
 
 ```
-필요 GPU 메모리 = 모델 가중치 + 비torch 메모리 + PyTorch 활성화 피크 메모리 + (배치당 KV 캐시 메모리 × 배치 크기)
+필요 GPU 메모리 = 모델 가중치 + 비torch 메모리 + PyTorch 활성화 피크 메모리 + (배치당 KV cache 메모리 × 배치 크기)
 ```
 
 ### 모델 가중치 메모리
 
-파라미터 수와 정밀도에 따라 결정된다.
+파라미터 수와 정밀도에 따라 결정됩니다.
 
 <SpecificationTable
   headers={['정밀도', '파라미터당 바이트', '70B 모델 메모리']}
@@ -110,23 +110,23 @@ vLLM V1 엔진(v0.19.x 이전부터 기본값)은 다음 기능을 제공합니�
 
 **예시 계산**:
 - Llama-3.3-70B (FP16): 70B × 2 bytes = 140GB (가중치만)
-- KV 캐시 (배치 크기 256, 시퀀스 길이 8192): 약 40GB
+- KV cache (배치 크기 256, 시퀀스 길이 8192): 약 40GB
 - 활성화 및 기타 오버헤드: 약 20GB
 - **총합**: 약 200GB → 단일 H100 80GB로 불가능, TP=4 필요 (GPU당 50GB)
 
-70B 파라미터 모델을 INT4 양자화하면 35GB로 줄어들어 단일 A100 80GB나 H100에서 KV 캐시 여유 공간과 함께 배포 가능하다.
+70B 파라미터 모델을 INT4 양자화하면 35GB로 줄어들어 단일 A100 80GB나 H100에서 KV cache 여유 공간과 함께 배포할 수 있습니다.
 
 ## 병렬화 전략
 
-대규모 모델은 단일 GPU에 맞지 않거나, 처리량을 높이기 위해 여러 GPU를 활용해야 한다. vLLM은 네 가지 병렬화 전략을 지원한다.
+대규모 모델은 단일 GPU에 맞지 않거나, 처리량을 높이기 위해 여러 GPU를 활용해야 합니다. vLLM은 네 가지 병렬화 전략을 지원합니다.
 
 ### 텐서 병렬화 (Tensor Parallelism, TP)
 
-각 모델 레이어 내에서 파라미터를 여러 GPU에 분산한다. 단일 노드 내에서 대규모 모델을 배포할 때 가장 일반적인 전략이다.
+각 모델 레이어 내에서 파라미터를 여러 GPU에 분산합니다. 단일 노드 내에서 대규모 모델을 배포할 때 가장 일반적인 전략입니다.
 
 **적용 시점**:
 - 모델이 단일 GPU에 맞지 않을 때
-- GPU당 메모리 압력을 줄여 KV 캐시 공간을 확보하려 할 때
+- GPU당 메모리 압력을 줄여 KV cache 공간을 확보하려 할 때
 
 ```python
 from vllm import LLM
@@ -138,11 +138,11 @@ llm = LLM(
 )
 ```
 
-**제약사항**: `tensor_parallel_size`는 모델의 어텐션 헤드 수의 약수여야 한다. 예를 들어 70B 모델이 64개 어텐션 헤드를 가지면 TP=2, 4, 8, 16 등이 가능하다.
+**제약사항**: `tensor_parallel_size`는 모델의 어텐션 헤드 수의 약수여야 합니다. 예를 들어 70B 모델이 64개 어텐션 헤드를 가지면 TP=2, 4, 8, 16 등이 가능합니다.
 
 ### 파이프라인 병렬화 (Pipeline Parallelism, PP)
 
-모델 레이어를 여러 GPU에 순차적으로 분산한다. 토큰이 파이프라인을 통해 순차적으로 흐른다.
+모델 레이어를 여러 GPU에 순차적으로 분산합니다. 토큰이 파이프라인을 통해 순차적으로 흐릅니다.
 
 **적용 시점**:
 - 텐서 병렬화를 최대로 활용했지만 추가 GPU가 필요할 때
@@ -182,7 +182,7 @@ vLLM V1 엔진의 multiproc_executor는 NCCL TCPStore를 통해 멀티노드 동
 
 ### 데이터 병렬화 (Data Parallelism, DP)
 
-전체 모델 복제본을 여러 서버에 복제하여 독립적인 요청을 처리한다. Kubernetes의 HPA(Horizontal Pod Autoscaler)와 결합하여 탄력적으로 확장할 수 있다.
+전체 모델 복제본을 여러 서버에 복제하여 독립적인 요청을 처리합니다. Kubernetes의 HPA(Horizontal Pod Autoscaler)와 결합하여 탄력적으로 확장할 수 있습니다.
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -208,7 +208,7 @@ spec:
 
 ### 전문가 병렬화 (Expert Parallelism, EP)
 
-MoE(Mixture-of-Experts) 모델을 위한 특수 전략이다. 토큰이 관련 "전문가"에만 라우팅되어 불필요한 계산을 줄인다.
+MoE(Mixture-of-Experts) 모델을 위한 특수 전략입니다. 토큰이 관련 "전문가"에만 라우팅되어 불필요한 계산을 줄입니다.
 
 ```bash
 vllm serve model-name --enable-expert-parallel
@@ -239,7 +239,7 @@ vLLM v0.22+ 버전은 다양한 하드웨어 가속기를 지원합니다:
 
 ## Multi-LoRA 서빙
 
-vLLM은 단일 기본 모델에서 여러 LoRA 어댑터를 동시에 서빙할 수 있다. 하나의 GPU 세트에서 도메인별 특화 모델을 효율적으로 운영할 수 있어 GPU 리소스를 크게 절약한다.
+vLLM은 단일 기본 모델에서 여러 LoRA 어댑터를 동시에 서빙할 수 있습니다. 하나의 GPU 세트에서 도메인별 특화 모델을 효율적으로 운영할 수 있어 GPU 리소스를 절약합니다.
 
 ### 아키텍처 개념
 
@@ -319,7 +319,7 @@ vllm serve model-name --enable-prefix-caching
 ```
 
 **작동 원리**:
-- 시스템 프롬프트의 KV 캐시가 한 번 계산되어 공유
+- 시스템 프롬프트의 KV cache가 한 번 계산되어 공유
 - 동일한 프리픽스를 가진 요청들은 중복 계산을 피함
 - 적중률은 애플리케이션에 따라 다름 (RAG 시스템에서 특히 효과적)
 
@@ -330,7 +330,7 @@ vllm serve model-name --enable-prefix-caching
 
 ### Chunked Prefill
 
-프리필(계산 집약적)과 디코드(메모리 집약적) 작업을 동일 배치에서 혼합하여 처리량과 지연 시간 모두 개선한다. vLLM V1에서 기본 활성화되어 있다.
+프리필(계산 집약적)과 디코드(메모리 집약적) 작업을 동일 배치에서 혼합하여 처리량과 지연 시간을 함께 개선합니다. vLLM V1에서 기본 활성화되어 있습니다.
 
 ```python
 from vllm import LLM
@@ -357,7 +357,7 @@ CUDA Graph는 대부분의 경우 10-20% 성능 향상을 제공하지만, 동�
 
 ### DeepGEMM (FP8)
 
-NVIDIA Hopper/Blackwell GPU에서 FP8 block-quantized 모델 연산을 가속화하는 커스텀 GEMM 커널이다. vLLM v0.10.2+ 이후 **기본 활성화**되어 있다.
+NVIDIA Hopper/Blackwell GPU에서 FP8 block-quantized 모델 연산을 가속화하는 커스텀 GEMM 커널입니다. vLLM v0.10.2+ 이후 **기본 활성화**되어 있습니다.
 
 ```bash
 # 기본 활성화됨 (v0.10.2+)
@@ -385,7 +385,7 @@ VLLM_USE_DEEP_GEMM=0 vllm serve model-name --kv-cache-dtype=fp8
 
 ## 모니터링 메트릭
 
-vLLM은 Prometheus 형식의 다양한 메트릭을 노출한다.
+vLLM은 Prometheus 형식의 다양한 메트릭을 노출합니다.
 
 ### 주요 메트릭
 
@@ -394,7 +394,7 @@ vLLM은 Prometheus 형식의 다양한 메트릭을 노출한다.
   rows={[
     { id: '1', cells: ['vllm:num_requests_running', '현재 처리 중인 요청 수', '< max_num_seqs'] },
     { id: '2', cells: ['vllm:num_requests_waiting', '대기 중인 요청 수', '< 50 (과부하 방지)'] },
-    { id: '3', cells: ['vllm:kv_cache_usage_perc', 'KV 캐시 사용률 (v0.9.2+)', '70-90% (최적)'] },
+    { id: '3', cells: ['vllm:kv_cache_usage_perc', 'KV cache 사용률 (v0.9.2+)', '70-90% (최적)'] },
     { id: '4', cells: ['vllm:num_preemptions_total', '선점된 요청 수', '< 10/min (낮을수록 좋음)'] },
     { id: '5', cells: ['vllm:prompt_tokens_total', '누적 프롬프트 토큰 수 (counter)', 'rate() 함수로 처리량 계산'] },
     { id: '6', cells: ['vllm:generation_tokens_total', '누적 생성 토큰 수 (counter)', 'rate() 함수로 처리량 계산'] },
@@ -406,7 +406,7 @@ vLLM은 Prometheus 형식의 다양한 메트릭을 노출한다.
 
 ### 선점(Preemption) 처리
 
-KV 캐시 공간이 부족하면 vLLM이 요청을 선점하여 공간을 확보한다. 다음 경고가 자주 발생하면 조치가 필요하다:
+KV cache 공간이 부족하면 vLLM이 요청을 선점하여 공간을 확보합니다. 다음 경고가 자주 발생하면 조치가 필요합니다:
 
 ```
 WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE

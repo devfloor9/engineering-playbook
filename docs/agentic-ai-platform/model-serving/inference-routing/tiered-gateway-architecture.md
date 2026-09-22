@@ -3,7 +3,7 @@ title: 티어드 게이트웨이 아키텍처
 description: "Agentic AI 플랫폼의 게이트웨이 계층 단일 정의: Tier 1 Ingress, Tier 2 추론 라우팅(Inference Extension)과 LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략"
 created: "2026-06-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -36,12 +36,12 @@ Agentic AI 플랫폼의 게이트웨이 계층은 서로 다른 책임을 가진
 | 계층 | 명칭 | 역할 | 대표 구현체 |
 |------|------|------|-------------|
 | **Tier 1** | Ingress / North-South Gateway | 외부 트래픽 수신, TLS 종료, 경로 라우팅, 인증, Rate Limiting | AWS LBC · Cilium · NGINX GF · Envoy Gateway · kGateway · Kong |
-| **Tier 2 ①** | Inference Routing (in-cluster) | 클러스터 내 추론 Pod 그룹으로 라우팅, KV 캐시·부하 인지 엔드포인트 선택 | Gateway API **Inference Extension** (InferencePool · EPP) |
+| **Tier 2 ①** | Inference Routing (in-cluster) | 클러스터 내 추론 Pod 그룹으로 라우팅, KV cache·부하 인지 엔드포인트 선택 | Gateway API **Inference Extension** (InferencePool · EPP) |
 | **Tier 2 ②** | LLM API Gateway (provider proxy) | 외부/내부 모델 추상화, 모델 선택·Cascade, 비용 추적, Semantic Caching | Bifrost · LiteLLM · OpenRouter · Portkey · Helicone · Kong AI Gateway |
 | **직교 축** | Agent Data Plane | MCP/A2A 프로토콜, stateful 세션, 도구 라우팅 | agentgateway |
 
 :::tip 핵심 구분 — Tier 2 ① vs ②
-- **Tier 2 ① Inference Routing**은 **클러스터 내부**에서 동작합니다. HTTPRoute가 InferencePool을 백엔드로 참조하고, EPP(Endpoint Picker)가 KV 캐시·부하를 고려해 vLLM/llm-d Pod 엔드포인트를 고릅니다. 자체 호스팅 모델 인프라를 다룹니다.
+- **Tier 2 ① Inference Routing**은 **클러스터 내부**에서 동작합니다. HTTPRoute가 InferencePool을 백엔드로 참조하고, EPP(Endpoint Picker)가 KV cache·부하를 고려해 vLLM/llm-d Pod 엔드포인트를 고릅니다. 자체 호스팅 모델 인프라를 다룹니다.
 - **Tier 2 ② LLM API Gateway**는 **모델 API를 추상화**합니다. OpenAI 호환 API로 외부 프로바이더(OpenAI·Anthropic·Bedrock)나 자체 모델을 단일 인터페이스로 노출하고, 복잡도 기반 Cascade·비용 추적·캐싱을 수행합니다.
 - 둘은 **배타적이지 않습니다.** 자체 호스팅 추론은 ①로, 외부 프로바이더 통합은 ②로 처리하는 하이브리드 구성이 일반적입니다.
 :::
