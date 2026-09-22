@@ -1,6 +1,6 @@
 ---
 title: Agentic AI 워크로드의 기술적 도전과제
-description: Agentic AI 워크로드 운영 시 직면하는 5가지 주요 도전과제
+description: Agentic AI 워크로드 운영 시 직면하는 5가지 핵심 도전과제
 created: "2026-02-05"
 last_update:
   date: 2026-09-22
