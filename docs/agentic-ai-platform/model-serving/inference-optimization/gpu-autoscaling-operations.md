@@ -3,7 +3,7 @@ title: GPU 오토스케일링과 대형 모델 배포 운영
 description: LLM 서빙을 위한 2-Tier GPU 오토스케일링(KEDA·Karpenter)·DRA 호환성과 대형 MoE 모델(GLM-5·Kimi K2.5) 배포에서 축적된 실전 운영 교훈
 created: "2026-04-03"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 11
 tags:
@@ -21,7 +21,7 @@ sidebar_position: 4
 
 ## 개요
 
-LLM 서빙 운영에서 GPU 가동 시간은 비용과 직결되며, 트래픽 변동에 맞춰 자원을 탄력적으로 확장·축소하는 오토스케일링이 효율성의 핵심입니다. 본 문서는 LLM 서빙에 특화된 2-Tier 스케일링(Pod·노드), DRA(Dynamic Resource Allocation)의 현실적 제약, 그리고 GLM-5(744B), Kimi K2.5(1T) 등 대형 MoE 모델 배포 과정에서 축적된 실전 운영 교훈을 정리합니다.
+LLM 서빙 운영에서 GPU 가동 시간은 비용과 직결되며, 트래픽 변동에 맞춰 자원을 탄력적으로 확장·축소하는 오토스케일링이 비용 효율을 좌우합니다. 본 문서는 LLM 서빙에 특화된 2-Tier 스케일링(Pod·노드), DRA(Dynamic Resource Allocation)의 현실적 제약, 그리고 GLM-5(744B), Kimi K2.5(1T) 등 대형 MoE 모델 배포 과정에서 축적된 실전 운영 교훈을 정리합니다.
 
 :::info 관련 주제
 GPU 비용 최적화(Spot·Consolidation·시간대별 스케줄링)는 [EKS 비용 관리](/docs/eks-best-practices/resource-cost/cost-management), GPU·vLLM 모니터링과 Cascade Fallback은 [Agent 모니터링 & 운영](../../operations-mlops/observability/agent-monitoring.md), 온프레미스 GPU 통합은 [하이브리드 GPU 워크로드와 SR-IOV 네트워킹](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking)를 참조하세요.
@@ -124,7 +124,7 @@ GPU 스케일링·DRA의 기초 개념은 [GPU 리소스 관리](../gpu-infrastr
 
 ### 이미지/모델 다운로드 실패 대응
 
-대형 모델(744GB+)의 가중치 다운로드는 LLM 서빙에서 가장 흔한 Cold Start 병목입니다. HuggingFace Hub에서 수백 GB를 다운로드할 때 네트워크 불안정, 타임아웃, 디스크 부족 등으로 자주 실패합니다.
+대형 모델(744GB+)의 가중치 다운로드는 LLM 서빙에서 빈번한 Cold Start 병목입니다. HuggingFace Hub에서 수백 GB를 다운로드할 때 네트워크 불안정, 타임아웃, 디스크 부족 등으로 자주 실패합니다.
 
 #### 문제 유형과 대응
 
@@ -156,7 +156,7 @@ env:
 
 #### 전략 2: S3 사전 캐싱 + Init Container
 
-가장 안정적인 방법입니다. 모델 가중치를 S3에 미리 업로드하고, init container에서 로컬 NVMe로 복사합니다.
+네트워크 변동의 영향을 줄여 Cold Start 안정성을 높이는 방법입니다. 모델 가중치를 S3에 미리 업로드하고, init container에서 로컬 NVMe로 복사합니다.
 
 ```yaml
 apiVersion: apps/v1
