@@ -3,9 +3,9 @@ title: EKS GPU 노드 전략
 description: EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략
 created: "2026-03-16"
 last_update:
-  date: "2026-07-19"
+  date: 2026-09-22
   author: devfloor9
-reading_time: 23
+reading_time: 20
 tags:
   - eks
   - gpu
@@ -142,9 +142,9 @@ GPU Operator 설치는 가능하지만, NodeClass가 read-only이므로 다음�
 MIG 기반 GPU 분할이 필요하면 Karpenter + GPU Operator로 전환하세요.
 :::
 
-### 대형 GPU 인스턴스 지원 현황 (2026.04 검증 시점 기준, 재검증 필요)
+### 대형 GPU 인스턴스 지원 현황 (2026-04 검증 시점 기준, 재검증 필요)
 
-GLM-5 (744B MoE) 배포 과정에서 확인한 Auto Mode의 대형 GPU 인스턴스 지원 현황입니다. p5.48xlarge는 Spot 프로비저닝이 확인되었으나, p5en/p6는 2026.04 검증 시점에서 제약이 있었습니다 (재검증 필요).
+GLM-5 (744B MoE) 배포 과정에서 확인한 Auto Mode의 대형 GPU 인스턴스 지원 현황입니다. p5.48xlarge는 Spot 프로비저닝이 확인되었으나, p5en/p6는 2026-04 검증 시점에서 제약이 있었습니다 (재검증 필요).
 
 **상세 지원 현황**: [EKS Auto Mode GPU 인스턴스 지원 현황](../inference-frameworks/llm-d-eks-automode.md#eks-auto-mode-gpu-인스턴스-지원-현황-202604-검증) 참조
 
@@ -384,7 +384,7 @@ p5.48xlarge (H100 x8) On-Demand $55.04/hr 기준, 월 비용 약 $40,000 (2025-0
 모델 파라미터 수가 작을수록 Auto Mode에서의 GPU 낭비가 커집니다. 7B 모델을 H100에서 운영하면 GPU 메모리의 80%가 유휴 상태로 남으며, 이는 직접적인 비용 낭비입니다. 중소형 모델에는 MIG 파티셔닝이 필수적입니다.
 :::
 
-### 현시점 최적 구성 (2026.04)
+### 현시점 최적 구성 (2026-04)
 
 대부분의 LLM 서빙 환경에서는 DRA가 아직 필수가 아닙니다. Device Plugin + MIG 조합으로 GPU 분할과 토폴로지 배치를 충분히 커버할 수 있으며, Karpenter의 빠른 스케일아웃이 MNG + Cluster Autoscaler보다 LLM 서빙 SLO에 유리합니다.
 
@@ -626,3 +626,4 @@ GPU 워크로드의 실전 배포 YAML, 보안 정책 (Pod Security Standards, N
 ### 플랫폼 아키텍처
 
 - **[EKS 기반 오픈 아키텍처](../../design-architecture/platform-selection/agentic-ai-solutions-eks.md)** - 전체 Agentic AI 플랫폼 아키텍처
+
