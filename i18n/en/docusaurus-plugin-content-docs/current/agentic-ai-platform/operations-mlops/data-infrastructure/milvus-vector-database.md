@@ -3,7 +3,7 @@ title: Milvus Vector Database Integration
 description: Deploying Milvus vector database on Amazon EKS and integrating with RAG pipelines
 created: "2026-02-05"
 last_update:
-  date: 2026-09-18
+  date: 2026-09-21
   author: devfloor9
 reading_time: 18
 tags:
@@ -145,7 +145,7 @@ Using Amazon S3 directly instead of MinIO reduces operational burden. S3 Express
 
 - **10x faster performance**: 10x faster data access vs standard S3
 - **Consistent millisecond latency**: Single-digit millisecond latency
-- **Cost efficiency**: 50% request cost reduction
+- **Cost efficiency**: up to 80% request cost reduction (reflecting the 2025-04 price cut: PUT -55%, GET -85%, storage -31%)
 - **Single AZ**: Optimal when used with compute resources in the same AZ
 
 :::
@@ -511,10 +511,10 @@ For Milvus Operator installation, CRD schema, GPU configuration examples, see [M
 - Operate at least 3 Query Nodes in production environments
 - Consider DISKANN index for large datasets (100M+ vectors)
 - Using S3 as storage significantly reduces operational complexity
-- S3 Express One Zone provides 10x faster performance and 50% cheaper request costs
+- S3 Express One Zone provides 10x faster performance and up to 80% cheaper request costs (2025-04 price cut)
 - GPU-accelerated indexing can significantly reduce build times (g5.xlarge recommended)
 - Milvus v2.4.x provides advanced features including SCANN index, hybrid search, scalar filtering, and dynamic schema
-- Use Helm chart version 4.1.x to deploy Milvus 2.4.x
+- Use Helm chart version 4.2.x to deploy Milvus 2.4.x (4.1.x supports only 2.4.0–2.4.5; 4.2.0+ drops Milvus 2.3.x support)
 :::
 
 ### Storage Cost Comparison
