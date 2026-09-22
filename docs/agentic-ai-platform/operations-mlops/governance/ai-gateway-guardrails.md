@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: YoungJoon Jeong
 reading_time: 20
 tags:
@@ -31,7 +31,7 @@ sidebar_label: AI Gateway Guardrails
 
 ---
 
-## 1. 위협 모델: LLM 서비스가 방어해야 할 6가지 공격
+## 1. 위협 모델: LLM 서비스가 방어해야 할 7가지 공격
 
 ### 1.1 위협 유형과 엔터프라이즈 피해 시나리오
 
