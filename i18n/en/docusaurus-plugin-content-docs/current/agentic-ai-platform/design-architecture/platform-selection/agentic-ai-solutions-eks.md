@@ -3,7 +3,7 @@ title: EKS-based Agentic AI Open Architecture
 description: Guide to building Agentic AI platform using Amazon EKS and open-source ecosystem
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: devfloor9
 reading_time: 36
 tags:
