@@ -1379,7 +1379,7 @@ WHERE event_type = 'model_deployed'
 - [Cascade Routing 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md) — 라우팅 최적화
 
 :::danger Reward Hacking 디스클레이머
-Self-improving loop는 **"완전 자동화"가 불가능**하다. Reward hacking, mode collapse, policy drift는 언제든 발생할 수 있으며, 휴먼-인-루프 검증과 통계적 모니터링이 **필수**다. 맹목적 자동화는 모델 품질 퇴화로 이어질 수 있다.
+Self-improving loop는 **"완전 자동화"가 불가능**합니다. Reward hacking, mode collapse, policy drift는 언제든 발생할 수 있으며, 휴먼-인-루프 검증과 통계적 모니터링이 **필수**입니다. 맹목적 자동화는 모델 품질 퇴화로 이어질 수 있습니다.
 :::
 
 ---
