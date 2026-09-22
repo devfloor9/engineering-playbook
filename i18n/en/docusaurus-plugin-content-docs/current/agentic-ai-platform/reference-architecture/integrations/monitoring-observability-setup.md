@@ -3,7 +3,7 @@ title: Monitoring & Observability Setup Guide
 description: Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel
 created: "2026-04-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: devfloor9
 reading_time: 15
 tags:
@@ -529,12 +529,12 @@ POST /api/public/otel/v1/traces
 | GPU Memory Usage | `avg(DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 100) by (gpu)` | VRAM usage |
 | GPU Temperature | `DCGM_FI_DEV_GPU_TEMP` | Overheating monitoring |
 | vLLM TPS | `rate(vllm:request_success_total[5m])` | Inference throughput |
-| vLLM TTFT P99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | Time to first token |
-| vLLM E2E P99 | `histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))` | End-to-end request latency |
+| vLLM TTFT p99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | Time to first token |
+| vLLM E2E p99 | `histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))` | End-to-end request latency |
 | vLLM Batch Size | `avg(vllm_num_requests_running)` | Concurrent inference count |
 | kgateway RPS | `sum(rate(envoy_http_downstream_rq_total[5m])) by (route)` | Requests per second |
 | kgateway 5xx Error Rate | `sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_http_downstream_rq_total[5m])) * 100` | Error rate (%) |
-| kgateway P99 Latency | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, route))` | Gateway latency |
+| kgateway p99 Latency | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, route))` | Gateway latency |
 | Bifrost Request Rate | `rate(bifrost_requests_total[5m])` | Gateway request rate |
 | Active Connections | `sum(envoy_cluster_upstream_cx_active) by (upstream_cluster)` | Active connections per backend |
 
