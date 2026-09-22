@@ -3,7 +3,7 @@ title: MoE 모델 서빙 개념 가이드
 description: Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-22
   author: YoungJoon Jeong
 reading_time: 26
 tags:
@@ -155,7 +155,7 @@ MoE는 토큰마다 일부 Expert만 계산해도 전체 가중치를 보관할 
 
 표는 전체 파라미터 수에 2, 1, 0.5 byte를 곱한 **가중치만의 산술 추정**입니다. B는 10억 파라미터, GB는 10⁹ byte이며 GiB와 다릅니다. 8-bit는 INT8/FP8의 저장 폭을, 4-bit는 이상적인 패킹 크기를 나타냅니다. 해당 정밀도의 체크포인트나 서빙 엔진 지원을 보장하지 않습니다.
 
-- **DeepSeek-V3**: 본체 671B를 16-bit로 저장하면 약 1,342GB, 8-bit로 저장하면 약 671GB입니다. [공식 모델 설명](https://github.com/deepseek-ai/DeepSeek-V3#2-model-summary)의 전체 체크포인트는 MTP 모듈 14B를 포함한 685B입니다. MLA는 KV 캐시를 줄이며, 같은 정밀도의 가중치 크기를 줄이지 않습니다.
+- **DeepSeek-V3**: 본체 671B를 16-bit로 저장하면 약 1,342GB, 8-bit로 저장하면 약 671GB입니다. [공식 모델 설명](https://github.com/deepseek-ai/DeepSeek-V3#2-model-summary)의 전체 체크포인트는 MTP 모듈 14B를 포함한 685B입니다. MLA는 KV cache를 줄이며, 같은 정밀도의 가중치 크기를 줄이지 않습니다.
 - **GLM-5**: [모델 카드](https://huggingface.co/zai-org/GLM-5)는 총 744B / 활성 40B를 명시합니다. 744GB는 이상적인 8-bit 가중치 크기로, 전체 VRAM 요구량이 아닙니다.
 - **Kimi K2.5**: [모델 카드](https://huggingface.co/moonshotai/Kimi-K2.5)는 총 1T / 활성 32B와 native INT4를 명시합니다. 약 500GB는 이상적인 4-bit 크기이며, 8-bit 추정치는 약 1,000GB입니다. 실제 체크포인트에는 양자화 메타데이터와 다른 정밀도의 텐서가 포함될 수 있습니다.
 
@@ -163,7 +163,7 @@ MoE는 토큰마다 일부 Expert만 계산해도 전체 가중치를 보관할 
 
 :::warning GPU 수는 가중치 표만으로 결정할 수 없습니다
 
-체크포인트 revision, 가중치·KV 캐시 정밀도, 엔진 버전, 병렬화 방식을 고정한 뒤 최대 컨텍스트와 동시 요청 수로 측정하세요. KV 캐시, 활성화 값, CUDA graph·통신 버퍼, 런타임 메모리, 복제되는 텐서를 포함해야 합니다. 총 HBM뿐 아니라 **가장 메모리를 많이 쓰는 rank**의 여유를 확인하세요. 여기서는 특정 GPU 수나 단일 노드 수용 가능성을 검증된 구성으로 제시하지 않습니다.
+체크포인트 revision, 가중치·KV cache 정밀도, 엔진 버전, 병렬화 방식을 고정한 뒤 최대 컨텍스트와 동시 요청 수로 측정하세요. KV cache, 활성화 값, CUDA graph·통신 버퍼, 런타임 메모리, 복제되는 텐서를 포함해야 합니다. 총 HBM뿐 아니라 **가장 메모리를 많이 쓰는 rank**의 여유를 확인하세요. 여기서는 특정 GPU 수나 단일 노드 수용 가능성을 검증된 구성으로 제시하지 않습니다.
 
 :::
 
@@ -171,7 +171,7 @@ MoE는 토큰마다 일부 Expert만 계산해도 전체 가중치를 보관할 
 
 ## 분산 배포 전략
 
-선택한 정밀도의 가중치와 KV 캐시·런타임 메모리가 한 GPU의 가용 메모리를 넘으면 병렬 분할이나 offload 같은 메모리 전략이 필요합니다. 분산 배포 여부는 활성 파라미터 수가 아니라 이 전체 예산과 목표 부하로 결정합니다.
+선택한 정밀도의 가중치와 KV cache·런타임 메모리가 한 GPU의 가용 메모리를 넘으면 병렬 분할이나 offload 같은 메모리 전략이 필요합니다. 분산 배포 여부는 활성 파라미터 수가 아니라 이 전체 예산과 목표 부하로 결정합니다.
 
 ```mermaid
 flowchart TB
@@ -276,7 +276,7 @@ flowchart TB
 
 ### 700B+ MoE 모델 멀티노드 배포 개념
 
-멀티노드 필요 여부는 파라미터 수만으로 결정되지 않습니다. 체크포인트의 정밀도, 노드당 가용 HBM, KV 캐시 예산, 목표 동시성을 함께 확인해야 합니다. Kimi K2.5의 이상적인 INT4 가중치 크기만으로 단일 노드 수용 가능성이나 멀티노드 필수 여부를 단정할 수 없습니다.
+멀티노드 필요 여부는 파라미터 수만으로 결정되지 않습니다. 체크포인트의 정밀도, 노드당 가용 HBM, KV cache 예산, 목표 동시성을 함께 확인해야 합니다. Kimi K2.5의 이상적인 INT4 가중치 크기만으로 단일 노드 수용 가능성이나 멀티노드 필수 여부를 단정할 수 없습니다.
 
 1. 실제 체크포인트 파일과 엔진의 로드 후 메모리를 확인합니다. 가중치 산술 추정은 위 표를 사용합니다.
 2. 엔진과 모델이 지원하는 TP·PP·EP 조합을 선택하고, 레이어 또는 Expert 분할의 제약을 확인합니다.
@@ -302,7 +302,7 @@ LeaderWorkerSet 같은 배포 도구는 분산 워커의 배치를 관리합니�
 
 - **Expert Parallelism**: 명시적으로 활성화하면 Expert 가중치를 여러 rank로 분산
 - **Tensor Parallelism**: 지원되는 레이어 텐서를 rank별로 분할
-- **PagedAttention**: KV 캐시를 블록 단위로 관리
+- **PagedAttention**: KV cache를 블록 단위로 관리
 - **Continuous Batching**: 완료된 요청을 빼고 대기 요청을 처리 배치에 추가
 - **FP8 KV Cache**: FP16/BF16 KV 원소를 8-bit로 저장하면 해당 데이터의 저장 폭은 절반이 됩니다. 전체 가중치나 전체 VRAM이 절반이 되는 것은 아니며, scale과 정확도·attention backend를 확인해야 합니다. [KV 양자화 문서](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/quantization/quantized_kvcache.md)
 - **Automatic Prefix Caching**: 재사용 가능한 prefix의 KV 블록이 cache에 남아 있을 때 중복 prefill 계산을 줄입니다. Decode를 생략하거나 고정된 처리량 향상을 보장하지 않습니다. [APC 문서](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/automatic_prefix_caching.md)
@@ -447,7 +447,7 @@ sequenceDiagram
 
 - **속도 향상**: 고정 배수를 전제하지 않고 같은 부하에서 TTFT·ITL·처리량과 승인율을 측정합니다. 드래프트 비용이 절약한 target 계산보다 크면 이득이 없을 수 있습니다.
 - **출력 분포**: 올바른 speculative sampling은 target 분포를 보존하도록 설계됩니다. [vLLM의 losslessness 설명](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/speculative_decoding/README.md)은 부동소수점·배치 변화와 logprob 불안정성에 따른 차이를 구분합니다. 실행마다 동일 문자열·logprob를 보장한다는 뜻은 아닙니다.
-- **추가 메모리**: 별도 드래프트 모델을 쓰면 해당 가중치뿐 아니라 KV 캐시·runtime 메모리도 예산에 포함합니다. 선택한 speculation 방식과 모델 지원을 확인합니다.
+- **추가 메모리**: 별도 드래프트 모델을 쓰면 해당 가중치뿐 아니라 KV cache·runtime 메모리도 예산에 포함합니다. 선택한 speculation 방식과 모델 지원을 확인합니다.
 
 :::
 
@@ -504,9 +504,9 @@ and
 
 ## 요약
 
-### 핵심 포인트
+### 요약 포인트
 
-1. 활성 파라미터 수로 GPU 용량을 계산하지 않습니다. 전체 가중치, KV 캐시, 런타임 할당과 offload 구성을 함께 봅니다.
+1. 활성 파라미터 수로 GPU 용량을 계산하지 않습니다. 전체 가중치, KV cache, 런타임 할당과 offload 구성을 함께 봅니다.
 2. TP 크기만 설정하면 EP가 켜지지 않습니다. 선택한 모델과 엔진 버전에서 지원하는 병렬화 조합을 확인합니다.
 3. GPU 수는 전체 HBM의 합계가 아니라 가장 메모리를 많이 쓰는 rank의 최대 부하를 기준으로 정합니다.
 4. 추론 엔진은 모델·정밀도·장치 지원과 API 동작을 확인한 뒤, 같은 요청 분포와 품질·지연 목표로 비교합니다.
