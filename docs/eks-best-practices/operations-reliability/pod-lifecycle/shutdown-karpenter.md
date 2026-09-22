@@ -3,7 +3,7 @@ title: Karpenter와 Node Drain
 description: 노드 교체 및 축소 과정에서 Pod 종료를 점검합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -308,62 +308,57 @@ data:
     }
 ```
 
-**Istio 서비스 메시 기반 End-to-End AZ 복구:**
+**Istio locality 우선순위와 Service 직접 라우팅:**
 
-Istio 서비스 메시와 통합하면 AZ 대피 시 더욱 정교한 트래픽 제어가 가능합니다:
+이 정책은 클라이언트와 같은 region·zone의 endpoint를 먼저 사용하고, 그다음 같은 region의 다른 zone을 사용하도록 우선순위를 정합니다. passive outlier detection과 함께 사용합니다. 특정 AZ로 이동하는 순서를 지정하거나 ARC가 VirtualService를 자동으로 수정하는 구성은 아닙니다.
+
+**적용 전제:** 이 예시는 Istio 1.27.0의 `v1beta1` 필드를 사용합니다. 설치된 버전에서 해당 CRD를 제공하는지 확인합니다. `production`의 기존 `critical-api` Service, 구분 가능한 HTTP Service port, 정상 endpoint, region/zone metadata, sidecar를 거치는 요청 경로가 필요합니다.
+
+두 정책의 공개 범위는 `production`이며, VirtualService는 mesh 내부 요청에 적용됩니다. 다른 namespace의 클라이언트가 필요하면 공개 범위를 별도로 설계합니다. 정책이 보인다고 접근 권한이 생기는 것은 아닙니다. 기존 AuthorizationPolicy·인증·mTLS 제어는 유지합니다.
+
+`interval`은 passive 분석 주기이고 `baseEjectionTime`은 최소 ejection 기간입니다. 이 값으로 복구 완료 시간을 계산할 수는 없습니다. replica 수, 남은 처리 용량, retry budget과 실제 장애 시 동작을 함께 검증합니다.
 
 ```yaml
-# Istio DestinationRule: AZ 기반 트래픽 라우팅
+# production 내부의 Service 정책; 인증/인가 정책은 별도 유지
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: critical-api-az-routing
+  namespace: production
 spec:
   host: critical-api.production.svc.cluster.local
+  exportTo:
+  - "."
   trafficPolicy:
     loadBalancer:
       localityLbSetting:
         enabled: true
-        distribute:
-        - from: ap-northeast-2a/*
-          to:
-            "ap-northeast-2b/*": 50
-            "ap-northeast-2c/*": 50
-        - from: ap-northeast-2b/*
-          to:
-            "ap-northeast-2a/*": 50
-            "ap-northeast-2c/*": 50
-        - from: ap-northeast-2c/*
-          to:
-            "ap-northeast-2a/*": 50
-            "ap-northeast-2b/*": 50
+        failoverPriority:
+        - topology.kubernetes.io/region
+        - topology.kubernetes.io/zone
     outlierDetection:
-      consecutiveErrors: 3
+      consecutive5xxErrors: 3
       interval: 10s
       baseEjectionTime: 30s
       maxEjectionPercent: 50
 ---
-# VirtualService: AZ 장애 시 자동 재라우팅
+# Service 직접 route; ARC-to-mesh 자동화나 접근 권한을 만들지 않음
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: critical-api-failover
+  namespace: production
 spec:
   hosts:
   - critical-api.production.svc.cluster.local
+  exportTo:
+  - "."
+  gateways:
+  - mesh
   http:
-  - match:
-    - sourceLabels:
-        topology.kubernetes.io/zone: ap-northeast-2a
-    route:
+  - route:
     - destination:
         host: critical-api.production.svc.cluster.local
-        subset: az-b
-      weight: 50
-    - destination:
-        host: critical-api.production.svc.cluster.local
-        subset: az-c
-      weight: 50
     timeout: 3s
     retries:
       attempts: 3

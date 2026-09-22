@@ -1,0 +1,49 @@
+{
+  "scope": "Four authored outlier policies; not generic CRD admission validation.",
+  "locators": [
+    {
+      "document": "ddd",
+      "locale": "ko",
+      "path": "docs/aidlc/methodology/ddd-integration.md",
+      "heading": "#### 3.3.2 Circuit Breaker (외부 게이트웨이)",
+      "ordinal": 1,
+      "language": "yaml",
+      "name": "payment-gateway-circuit-breaker",
+      "threshold": 5,
+      "qualification_marker": "**적용 전제:**"
+    },
+    {
+      "document": "shutdown",
+      "locale": "ko",
+      "path": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+      "heading": "### ARC + Karpenter 통합 AZ 대피 패턴 {#343-arc--karpenter-통합-az-대피-패턴}",
+      "ordinal": 6,
+      "language": "yaml",
+      "name": "critical-api-az-routing",
+      "threshold": 3,
+      "qualification_marker": "**적용 전제:**"
+    },
+    {
+      "document": "shutdown",
+      "locale": "en",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+      "heading": "### AZ evacuation pattern with ARC + Karpenter integration {#343-arc--karpenter-통합-az-대피-패턴}",
+      "ordinal": 6,
+      "language": "yaml",
+      "name": "critical-api-az-routing",
+      "threshold": 3,
+      "qualification_marker": "**Applicability:**"
+    },
+    {
+      "document": "ddd",
+      "locale": "en",
+      "path": "i18n/en/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+      "heading": "#### 3.3.2 Circuit Breaker (External Gateway)",
+      "ordinal": 1,
+      "language": "yaml",
+      "name": "payment-gateway-circuit-breaker",
+      "threshold": 5,
+      "qualification_marker": "**Applicability:**"
+    }
+  ]
+}

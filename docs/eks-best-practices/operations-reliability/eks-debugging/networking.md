@@ -3,9 +3,9 @@ title: 네트워킹 디버깅
 description: EKS 네트워킹 문제 진단 및 해결 가이드 - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-07"
 last_update:
-  date: "2026-09-19"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 7
 tags:
   - eks
   - kubernetes
@@ -102,7 +102,7 @@ kubectl get daemonset aws-node -n kube-system -o yaml | grep ENABLE_PREFIX_DELEG
 :::
 
 :::caution 임시 조치와 영구 설정
-`kubectl set env`로 바꾼 VPC CNI 값은 add-on 업데이트 시 기본값으로 되돌아갑니다. 진단 후 유지할 설정은 `aws eks update-addon --configuration-values`로 이관합니다. 서브넷 가용 IP가 남아 있는데도 `NetworkAddressUsageLimitExceeded`(VPC NAU 쿼터)나 Karpenter NodeClaim 이벤트의 `InsufficientFreeAddressesInSubnet`이 보이면 용량 계획 단계의 문제이므로 [IP 용량 계획과 Karpenter 노드 사이징](../../networking-performance/ip-capacity-planning-karpenter.md)을 참조합니다.
+`kubectl set env`로 바꾼 VPC CNI 값의 업데이트 결과는 충돌 처리 방식에 따라 달라집니다. `PRESERVE`로 보존할 수 있지만 `OVERWRITE`는 관리되는 필드를 덮어쓸 수 있습니다. 진단 후 설정을 add-on API로 이관할 때는 현재 configurationValues 전체에 변경을 병합합니다. 새 `--configuration-values`에 빠진 기존 고급 설정은 기본값으로 돌아갈 수 있습니다. `NetworkAddressUsageLimitExceeded`가 보이면 VPC NAU를, `InsufficientFreeAddressesInSubnet`이 보이면 실제 선택된 AZ·서브넷의 여유를 확인합니다. 다른 서브넷의 여유가 선택된 서브넷의 용량을 보장하지는 않습니다. [IP 용량 계획과 Karpenter 노드 사이징](../../networking-performance/ip-capacity-planning-karpenter.md)을 함께 참조합니다.
 :::
 
 ### ENI 제한 및 IP 한도

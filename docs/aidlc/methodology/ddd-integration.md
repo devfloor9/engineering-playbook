@@ -3,7 +3,7 @@ title: DDD 통합 — AI 주도 개발에서의 필수 코어
 description: AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-09-19
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -386,7 +386,11 @@ Query Side (Read):
 
 #### 3.3.2 Circuit Breaker (외부 게이트웨이)
 
-결제 게이트웨이 호출 시 장애 격리를 위해 Istio Circuit Breaker를 자동 설정합니다.
+이 예시는 외부 결제 게이트웨이의 passive outlier detection 정책입니다. `consecutive5xxErrors: 5`는 관측 가능한 HTTP 5xx 오류의 연속 횟수 기준을 지정하며, 장애 격리 성공을 보장하지 않습니다.
+
+**적용 전제:** 이 예시는 Istio 1.27.0의 `v1beta1` 필드를 사용합니다. 설치된 버전에서 해당 CRD를 제공하는지 확인하고, 실제 게이트웨이 host를 Istio service registry에 등록합니다(예: `ServiceEntry`). Envoy sidecar를 거치는 요청 경로, port/protocol, TLS 처리도 구성해야 합니다.
+
+HTTPS를 그대로 통과시키는 프록시는 암호화된 HTTP status를 볼 수 없습니다. 이 정책을 사용하려면 Envoy가 오류 응답을 관측할 수 있어야 합니다. 아래는 outlier detection 부분 예시이므로 host 등록과 TLS 설정을 별도로 준비해야 합니다.
 
 ```yaml
 apiVersion: networking.istio.io/v1beta1
@@ -397,7 +401,7 @@ spec:
   host: external-payment-gateway.com
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 5
+      consecutive5xxErrors: 5
       interval: 30s
       baseEjectionTime: 60s
 ```

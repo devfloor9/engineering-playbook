@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 8
+reading_time: 15
 tags:
   - eks
   - karpenter
@@ -28,38 +28,42 @@ Karpenter is the next-generation autoscaler for EKS, delivering fast and efficie
 
 ## NodeClaim Lifecycle
 
-Karpenter node management flow:
+This conceptual flow shows provisioning and disruption for a node that initializes normally. It is not a literal list of `status.conditions`. [Initialization checks](https://karpenter.sh/v1.14/concepts/nodeclaims/) include Node readiness, startup-taint removal and registration of requested resources. Expiration is calculated independently from the NodeClaim's creation time.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Pending: Pod Unschedulable
     Pending --> Launched: EC2 instance launched
     Launched --> Registered: kubelet registered
-    Registered --> Initialized: Taints/Labels applied
-    Initialized --> Ready: Node Ready
+    Registered --> Initialized: Initialization checks pass
+    Initialized --> Ready: NodeClaim Ready
 
     Ready --> Drifted: AMI/NodePool change
-    Ready --> Expired: TTL reached (ttlSecondsAfterEmpty)
-    Ready --> Consolidation: Underutilized
+    Ready --> Expired: NodeClaim age reaches spec.expireAfter
+    Ready --> Consolidation: Consolidation candidate
 
-    Drifted --> Terminating: Replacement begins
-    Expired --> Terminating
-    Consolidation --> Terminating
+    Drifted --> Terminating: Disruption permitted
+    Expired --> Terminating: Begin expiration and draining
+    Consolidation --> Terminating: Disruption permitted
 
-    Terminating --> [*]: Node deleted
+    Terminating --> [*]: Drain and instance deletion complete
 
     note right of Ready
-        Normal operating state
-        Workloads running
+        Initialized capacity
+        Eligible Pods can be scheduled
     end note
 
     note right of Consolidation
-        Consolidation conditions:
-        - Idle nodes
-        - Underutilized nodes
-        - Consolidation into smaller nodes possible
+        Possible actions:
+        - Delete an empty node
+        - Move Pods to existing capacity
+        - Use a lower-priced replacement
     end note
 ```
+
+In v1.14.1, [expiration](https://karpenter.sh/v1.14/concepts/disruption/#expiration) uses the NodeClaim's creation time and `spec.expireAfter`; it does not depend on the node becoming empty or Ready. The NodePool supplies this value through `spec.template.spec.expireAfter`. Changing the NodePool value does not rewrite existing NodeClaims; it induces drift.
+
+Expiration starts forceful disruption without waiting for a NodePool budget or a healthy replacement. This does **not** mean every Pod is immediately deleted: blocking PDBs or an active `karpenter.sh/do-not-disrupt` annotation can stall draining. `terminationGracePeriod`, when configured, bounds that drain period and can cause Pod deletion despite those protections. Neither `expireAfter` alone nor the diagram guarantees a deletion deadline or that a workload finishes successfully.
 
 ## Scheduling Failure Debugging
 
@@ -195,38 +199,28 @@ spec:
 
 ## Consolidation Debugging
 
-Karpenter Consolidation automatically consolidates nodes to reduce cost.
+Consolidation can remove nodes or replace them with lower-priced capacity. The following conceptual flow separates the stabilization wait from node-age expiration.
 
 ### Consolidation Flow
 
 ```mermaid
 flowchart TD
-    A[Karpenter Consolidation Loop] --> B{Idle node<br/>detected}
-    B -->|Yes| C[Start ttlSecondsAfterEmpty<br/>timer]
-    B -->|No| D{Underutilized<br/>node?}
-
-    C --> E{Timer expired?}
-    E -->|Yes| F[Pod replacement possible?]
-    E -->|No| A
-
-    D -->|Yes| G{Can consolidate into<br/>smaller node?}
-    D -->|No| A
-
-    G -->|Yes| F
-    G -->|No| A
-
-    F --> H{PDB blocks?}
-    H -->|Yes| I[Defer consolidation]
-    H -->|No| J{do-not-disrupt<br/>annotation?}
-
-    J -->|Yes| I
-    J -->|No| K[Launch new node]
-
+    A[Consolidation loop] --> B{Policy permits candidate<br/>and consolidateAfter elapsed?}
+    B -->|No| A
+    B -->|Yes| C{NodePool budget and<br/>Pod disruption constraints allow?}
+    C -->|No| I[Defer consolidation]
+    C -->|Yes| D{Pods fit on<br/>existing capacity?}
+    D -->|Yes| E[Delete-only action<br/>no replacement launch]
+    D -->|No| F{Valid lower-priced<br/>replacement possible?}
+    F -->|No| I
+    F -->|Yes| G[Launch replacement<br/>and wait for readiness]
+    E --> H[Drain and remove old node]
+    G --> H
+    H --> A
     I --> A
-    K --> L[Pod migration]
-    L --> M[Terminate old node]
-    M --> A
 ```
+
+[`consolidateAfter`](https://karpenter.sh/v1.14/concepts/disruption/#consolidation) is a wait after Pods are added or removed, reset by subsequent Pod changes. It applies before considering consolidation, not only after a node becomes empty. PDBs, active `do-not-disrupt` annotations, scheduling constraints and applicable budgets can still prevent the action. The existing `30s` settings below are illustrative waits, not completion deadlines.
 
 ### "Why Isn't Consolidation Happening?" Diagnosis
 
@@ -335,11 +329,18 @@ spec:
     consolidationPolicy: WhenEmptyOrUnderutilized  # consider empty and underutilized nodes
     consolidateAfter: 30s  # example wait after Pods are added or removed
 
-    # Budgets (concurrent disruption control)
+    # Scheduled limit for voluntary disruption in this NodePool
     budgets:
-      - nodes: "10%"       # at most 10% of all nodes at once
-        schedule: "0 9 * * *"  # only at 9am daily (off-hours)
+      - nodes: "10%"       # percentage cap; fractional node counts round up
+        schedule: "0 9 * * *"  # daily start at 09:00 UTC
+        duration: 1h          # active from 09:00 to 10:00 UTC
 ```
+
+Outside this interval the budget is inactive, so this explicit list supplies no active NodePool budget cap. Other disruption constraints still apply. For a continuous 10% cap, omit **both** `schedule` and `duration`.
+
+[Budget limits](https://karpenter.sh/v1.14/concepts/disruption/#nodepool-disruption-budgets) are per NodePool. For each applicable active budget, a percentage is rounded up to a whole-node ceiling; the lowest ceiling wins. A 10% budget is an upper limit, not a promise to replace exactly 10% at once.
+
+The [v1.14.1 implementation](https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go#L262-L301) counts initialized managed nodes, excluding `InstanceTerminating` nodes. It subtracts nodes that are NotReady **or** marked for deletion, counting each once. The remaining allowance cannot be negative.
 
 | Policy | Behavior | When to Use |
 |--------|------|----------|
@@ -480,7 +481,7 @@ spec:
 
     # Drift replacement control
     budgets:
-      - nodes: "10%"  # replace 10% at a time
+      - nodes: "10%"  # percentage ceiling; apply rounding and existing disruptions
         reasons:
           - Drifted  # ← budget also applies to drift replacement
 ```
@@ -652,8 +653,10 @@ kubectl port-forward -n karpenter svc/karpenter 8080:8080
 ### Drift Replacement Too Fast/Slow
 
 - [ ] Are drift replacement budgets configured?
-- [ ] Is the `budgets[].nodes` value appropriate? (no default = unlimited)
+- [ ] Is the per-NodePool allowance appropriate after rounding and existing disruptions? An omitted `budgets` field defaults to `nodes: "10%"`; it is not unlimited.
 - [ ] Is a PDB blocking replacements?
+
+An explicitly stored `budgets: []` has no NodePool budget cap and differs from omitting the field. Likewise, a configured list with no currently active matching budget provides no cap for that reason. Neither case removes PDB, scheduling or other disruption constraints.
 
 ## Advanced Patterns
 
@@ -712,8 +715,10 @@ spec:
 
 ### Time-of-Day Consolidation
 
+This example defines business hours as **Monday–Friday, 09:00–18:00 UTC** (start included, end excluded). A continuous 50% budget covers the remaining hours and weekends; an overlapping 0% budget blocks voluntary disruption during business hours.
+
 ```yaml
-# NodePool: restrict Consolidation during business hours
+# NodePool: example UTC window for voluntary disruption
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -723,11 +728,15 @@ spec:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 30s  # example wait after Pod changes
     budgets:
-      - nodes: "0%"         # business hours: no consolidation
-        schedule: "0 9-18 * * 1-5"  # Mon–Fri 9–18
-      - nodes: "50%"        # off-hours: aggressive consolidation
-        schedule: "0 19-8 * * *"    # 19–8
+      - nodes: "50%"        # continuous baseline ceiling
+      - nodes: "0%"         # overrides the baseline during this window
+        schedule: "0 9 * * 1-5"  # Mon–Fri start at 09:00 UTC
+        duration: 9h            # active until 18:00 UTC
 ```
+
+[Schedules](https://karpenter.sh/v1.14/concepts/disruption/#schedule) specify start times, and `duration` supplies the interval; both must be present or both absent. Karpenter evaluates schedules in UTC, without a per-budget timezone. Convert local operating hours to UTC, including weekday changes and daylight-saving adjustments where relevant. The continuous baseline avoids a separate overnight cron range.
+
+With no `reasons` filter, these budgets apply to voluntary `Drifted`, `Empty` and `Underutilized` disruptions. During the overlap the smaller allowance is zero; outside it the 50% ceiling applies, subject to rounding and deductions described above. The zero budget does not block expiration, guarantee application availability, or replace Pod-level disruption controls.
 
 ## References
 

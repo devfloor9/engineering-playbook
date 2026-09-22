@@ -3,9 +3,9 @@ title: "IP 용량 계획과 Karpenter 노드 사이징: 서브넷·NAU·SGP 예�
 description: EKS에서 Pod IP가 서브넷·NAU·branch ENI 한도를 어떻게 소비하는지 계산하고, Karpenter의 인스턴스 크기 fallback이 IP 고갈로 이어지는 조건을 NodePool과 VPC CNI 설정으로 미리 막는 방법을 정리합니다.
 created: "2026-09-19"
 last_update:
-  date: "2026-09-19"
+  date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 25
 tags:
   - eks
   - vpc-cni
@@ -27,7 +27,7 @@ category: performance-networking
 
 ## 개요
 
-Amazon VPC CNI는 Pod마다 VPC 서브넷의 IP 주소를 하나씩 직접 할당합니다. 그래서 Pod가 늘어나면 서브넷 가용 IP, VPC의 Network Address Usage(NAU) 쿼터, 인스턴스별 branch ENI 한도가 각각 별도의 상한으로 작동하고, 이 중 하나라도 먼저 닿으면 새 Pod와 노드를 만들 수 없습니다. 노드 한 대가 소비하는 IP와 NAU를 계산하는 방법과, Karpenter가 대형 인스턴스를 확보하지 못해 소형 인스턴스로 fallback할 때 warm pool 설정과 맞물려 IP가 급격히 소진되는 조건을 정리합니다. 여러 클러스터가 VPC를 공유하는 환경에서 노드 오토스케일링과 서브넷 설계를 함께 맡고 있는 플랫폼팀을 대상으로 합니다.
+Amazon VPC CNI는 일반 Pod에 VPC 서브넷 주소를 할당하며 hostNetwork Pod는 노드 네트워크를 공유합니다. 서브넷 가용 주소와 VPC NAU는 VPC 자원의 확장을 제약하고, branch ENI 한도는 해당 노드에서 SGP Pod를 더 배치할 수 있는지를 제약합니다. branch 한도에 도달한 노드가 있어도 일반 Pod나 다른 노드의 생성이 일괄 중단되는 것은 아닙니다. 이 문서는 노드의 IP 예산과, Karpenter가 대형 인스턴스를 확보하지 못해 소형으로 fallback할 때 warm pool이 주소 소비를 늘리는 조건을 설명합니다. 여러 클러스터가 VPC를 공유하며 노드 확장과 서브넷 설계를 함께 관리하는 플랫폼팀을 대상으로 합니다.
 
 ## 배경
 
@@ -42,7 +42,7 @@ ipamd가 warm pool을 채우는 알고리즘과 Prefix Delegation, IP 쿨다운�
 
 EKS Auto Mode 클러스터는 노드 네트워킹(ENI 수명주기 포함)을 AWS가 관리하므로 `WARM_*`·`MINIMUM_IP_TARGET` 같은 VPC CNI 환경 변수가 없습니다. 대신 NodeClass가 IP 할당을 조절합니다. `advancedNetworking.ipv4PrefixSize`는 기본값 `Auto`(Prefix Delegation, 노드마다 /28을 먼저 할당하고 부족하면 /28을 추가)와 `"32"`(secondary IP 모드, Pod당 1개, 여유 IP는 1개만 유지) 중 하나입니다. `advancedNetworking.networkInterfaces`의 `secondaryIPv4Count`·`secondaryIPv4PrefixCount`는 런치 시점에 ENI별 IP 수를 고정하며, 이 경우 런치 후에는 IP·prefix·ENI가 추가되지 않습니다. Pod 서브넷은 `podSubnetSelectorTerms`로 노드와 분리합니다.
 
-Security Groups for Pods는 Auto Mode에서 지원되지 않고 NodeClass 단위 `podSecurityGroupSelectorTerms`가 그 역할을 하며, 노드당 Pod 수는 110개로 제한됩니다. 아래의 warm 타깃과 NodePool 처방은 Karpenter를 직접 운영하는 자체 관리 노드에 해당합니다. Auto Mode에서 Pod 밀도가 낮은 대규모 플릿이라면 `ipv4PrefixSize: "32"`가 노드마다 16개씩 예약되는 prefix 모드의 과다 예약을 피하는 수단입니다.
+Security Groups for Pods는 Auto Mode에서 지원되지 않습니다. `podSubnetSelectorTerms`와 `podSecurityGroupSelectorTerms`는 함께 설정하며, 같은 NodeClass를 사용하는 노드의 모든 Pod가 같은 Pod 보안 그룹을 공유합니다. per-Pod SecurityGroupPolicy와는 적용 범위가 다릅니다. 서로 다른 정책이 필요한 워크로드는 별도 NodeClass·NodePool과 배치 조건으로 분리합니다. Pod 수 상한은 설정한 maxPods, 인스턴스 IP 용량, Auto Mode의 110 중 가장 낮은 값입니다. 아래 warm 타깃 설정은 자체 관리 CNI 노드에 해당합니다. Auto Mode의 낮은 Pod 밀도에서는 `ipv4PrefixSize: "32"`로 prefix 최소 예약량을 줄일 수 있습니다.
 
 ## 아키텍처
 
@@ -58,8 +58,8 @@ flowchart TB
         SENI -->|secondary IP / /28 prefix| POOL
         TENI -->|branch ENI 1개당| BR["SGP Pod<br/>(primary IP 1개)"]
     end
-    POOL -->|IP 1개 = 1 NAU<br/>prefix 1개 = 1 NAU| SUBNET["서브넷 가용 IP"]
-    BR -->|IP 1개 = 1 NAU| SUBNET
+    POOL -->|secondary IP 1개 또는 prefix당 16개 주소| SUBNET["서브넷 가용 IP"]
+    BR -->|branch primary IP 1개| SUBNET
     SUBNET --> CIDR["VPC CIDR 블록"]
     CIDR --> NAU["VPC NAU 카운터<br/>(기본 64,000 / VPC)"]
 ```
@@ -70,32 +70,35 @@ secondary ENI가 어느 서브넷에 만들어지는지는 VPC CNI 설정과 Enh
 
 ### 노드 한 대가 잡는 IP
 
-warm pool 때문에 노드가 실제로 확보한 IP는 Pod 수보다 항상 많습니다. `MINIMUM_IP_TARGET`이 Pod 수보다 크면 그 값까지, 작으면 Pod 수에 `WARM_IP_TARGET`을 더한 값까지 채웁니다. SGP Pod는 이 풀과 별개로 branch ENI의 IP를 하나씩 더 씁니다.
+먼저 Pod용 주소 풀과 노드 전체의 주소 소비를 구분합니다. IPv4 ENI의 primary IP는 Pod용 secondary IP 풀과 별도이며, trunk ENI와 branch ENI의 주소도 예산에 넣어야 합니다. 다음 식은 노드에 할당된 private IPv4 주소를 세는 식입니다. 다른 VPC 자원의 주소는 별도로 더합니다.
 
 ```text
-노드당 소비 IP ≈ max(MINIMUM_IP_TARGET, 비-SGP Pod 수 + WARM_IP_TARGET) + SGP Pod 수
-클러스터 소비 IP ≈ 노드별 소비 IP의 합
+노드의 할당 IPv4 = E + A + 16 × F + B
+E = 일반 ENI와 trunk ENI의 primary IPv4 수
+A = 일반 Pod용으로 할당된 개별 secondary IPv4 수
+F = 할당된 IPv4 /28 prefix 수
+B = branch ENI의 primary IPv4 수
 ```
 
-`WARM_IP_TARGET`과 `MINIMUM_IP_TARGET`을 모두 비워 두면 `WARM_ENI_TARGET` 기본값 1이 적용되어 ENI 하나 분량의 IP가 통째로 예약됩니다. 이 경우 실제 소비량은 위 식보다 큽니다.
+일반 Pod 풀의 정상 상태 목표는 `T = max(MINIMUM_IP_TARGET, P + WARM_IP_TARGET)`로 근사할 수 있습니다. `P`는 hostNetwork와 SGP를 제외한 Pod의 사용 주소 수입니다. 개별 IP 모드에서는 `A ≈ T`, prefix 모드에서는 `16 × F ≈ 16 × ceil(T / 16)`로 보되 ENI 한도·할당 지연·쿨다운을 별도로 고려합니다. 이 목표식은 node/trunk/branch 주소를 포함한 총량이 아닙니다. warm IP 타깃이 없으면 모드에 따른 ENI 또는 prefix warm 타깃도 확인합니다.
 
 ### VPC NAU
 
-NAU는 ENI에 할당된 IP 하나, ENI에 할당된 prefix 하나, 추가 ENI 하나를 각각 1로 셉니다. secondary IP 모드에서는 Pod 하나가 1 NAU를 쓰고, Prefix Delegation 모드에서는 prefix 단위로만 집계되어 Pod 16개가 1 NAU를 씁니다. 쿼터는 VPC당 기본 64,000이고 256,000까지 상향할 수 있습니다. 같은 리전 안에서 peering된 VPC 전체에는 합산 쿼터(기본 128,000, 최대 512,000)가 따로 적용되고, 다른 리전과의 peering은 여기에 포함되지 않습니다.
+NAU는 서브넷 주소 수와 별도의 자원 집계입니다. 현재 VPC 문서는 할당 IP·추가 ENI·prefix를 각각 NAU 항목으로 세고 Amazon EKS Pod도 1 NAU 항목으로 나열합니다. 따라서 prefix 하나가 1 NAU라는 사실만으로 클러스터 전체를 'Pod 16개당 1 NAU'로 계산하지 않습니다. 실제 자원 구성을 공식 NAU 표와 대조하고 VPC의 관측 NAU로 확인합니다. 쿼터는 VPC당 기본 64,000이고 256,000까지 상향할 수 있습니다. 같은 리전의 peered VPC 합산 쿼터는 기본 128,000, 최대 512,000이며 cross-Region peering은 합산 대상이 아닙니다.
 
 클러스터 수십 개가 VPC 하나를 나눠 쓰는 환경에서는 서브넷에 IP가 남아 있어도 NAU 쿼터에 먼저 걸릴 수 있습니다. 서브넷 크기와 NAU를 같은 표에 놓고 계산해야 하는 이유입니다.
 
 ### 인스턴스 크기에 따른 차이
 
-같은 Pod 2,000개를 인스턴스 크기만 바꿔 수용하면 소비량이 어떻게 달라지는지 비교합니다. 노드당 Pod 수는 vCPU에 비례한다고 가정하고(24xlarge 100개, 8xlarge 33개, 4xlarge 16개), 모두 비-SGP Pod, secondary IP 모드, `WARM_IP_TARGET=2`, `MINIMUM_IP_TARGET`은 각 크기의 Pod 수에 맞춘 것으로 둡니다. 실제 Pod 수는 kubelet `max-pods`와 워크로드 요청량에 따라 달라집니다.
+다음 표는 일반 Pod 2,000개의 **Pod용 secondary IP 풀만** 비교하는 가정입니다. 모든 Pod가 hostNetwork·SGP를 사용하지 않고 `WARM_IP_TARGET=2`이며, `MINIMUM_IP_TARGET`은 각 행의 최대 Pod 수(100·33·16)에 맞췄습니다. 61대인 행은 48대에 33개, 13대에 32개를 배치합니다. node·추가 ENI의 primary IP는 표의 수치에 더해야 합니다.
 
-| 인스턴스 크기 | 노드당 Pod | 노드 수 | 노드당 소비 IP | 클러스터 소비 IP | warm IP 합계 |
-|---|---|---|---|---|---|
-| 24xlarge | 100 | 20 | 102 | 2,040 | 40 |
-| 8xlarge | 33 | 61 | 35 | 2,135 | 122 |
-| 4xlarge | 16 | 125 | 18 | 2,250 | 250 |
+| 크기 | Pod 배치 | 노드 | 풀 IP | 유휴 IP |
+|---|---|---|---|---|
+| 24xlarge | 20 × 100 = 2,000 | 20 | 2,040 | 40 |
+| 8xlarge | 48 × 33 + 13 × 32 = 2,000 | 61 | 2,122 | 122 |
+| 4xlarge | 125 × 16 = 2,000 | 125 | 2,250 | 250 |
 
-Pod 수가 같아도 노드가 여섯 배로 늘면 warm IP 총량도 여섯 배가 됩니다. 이 표는 `MINIMUM_IP_TARGET`을 크기마다 맞춰 준 낙관적인 경우이고, 실제 운영에서는 이 값이 클러스터 전역에 하나만 존재합니다. 그 영향은 다음 절에서 다룹니다.
+노드 수가 늘면 warm IP와 ENI primary IP의 오버헤드가 함께 늘어납니다. 실제 배치가 다르면 minimum 타깃에 묶이는 유휴량도 달라집니다. 예를 들어 60대에 33개, 마지막 한 대에 20개를 배치하면 마지막 풀은 최소 33개를 유지하므로 Pod 풀 합계는 2,133개입니다. 이 비교는 크기별 타깃을 달리 둔 가정이며, 하나의 aws-node DaemonSet에는 공통 환경 변수가 적용됩니다.
 
 ## 소형 인스턴스 fallback 시 IP 과다 예약
 
@@ -109,11 +112,11 @@ fallback 노드당 유휴 IP ≈ MINIMUM_IP_TARGET − 해당 크기의 노드�
 
 이 낭비는 평시에는 보이지 않습니다. 대형 인스턴스가 정상적으로 확보되는 동안에는 예약한 IP가 대부분 Pod에 쓰이기 때문입니다. 리전 capacity가 부족한 DR 훈련이나 대규모 재배포처럼 fallback이 한꺼번에 일어나는 시점에 소형 노드 수백 대가 동시에 뜨면서 서브넷을 비워 버립니다. 삭제된 Pod의 IP는 기본 30초의 쿨다운(`IP_COOLDOWN_PERIOD`)이 지나야 재사용되므로, 대규모 재배포에서는 이 대기분까지 순간 소비에 더해집니다.
 
-warm 타깃을 낮추는 것만으로는 해결되지 않습니다. 대형 노드 기준으로 맞춘 값을 낮추면 대형 노드에서 Pod 기동 지연이 생기고, 그대로 두면 소형 노드에서 낭비가 납니다. fallback이 24xlarge에서 4xlarge로 한 번에 떨어지지 않고 8~16xlarge 구간을 거치도록 NodePool을 나누어, 노드 크기의 편차 자체를 줄이는 조치가 함께 필요합니다.
+warm 타깃은 예상 Pod 밀도와 생성 속도를 함께 보고 조정합니다. NodePool을 크기별로 나누면 후보와 선호도를 관리하기 쉽지만 weight만으로 24xlarge→8~16xlarge→4xlarge의 엄격한 순서를 보장하지는 않습니다. 반드시 제외할 크기는 requirements로 제한하고, 작은 노드의 증가량과 서브넷 여유를 별도로 관측합니다.
 
 ## Security Groups for Pods의 IP 소비
 
-`ENABLE_POD_ENI=true`로 SGP를 켜면 `SecurityGroupPolicy`에 매칭되는 Pod마다 branch ENI가 하나 붙고, 각 branch ENI는 primary IP를 하나 소비합니다. branch ENI 수는 secondary IP 한도와 별개로 인스턴스 타입마다 정해져 있고, 값은 [vpc-resource-controller의 limits.go](https://github.com/aws/amazon-vpc-resource-controller-k8s/blob/master/pkg/aws/vpc/limits.go)에서 확인할 수 있습니다. c5.4xlarge를 예로 들면 표준 ENI에 secondary IP(또는 /28 prefix)를 최대 234개까지 둘 수 있고, 여기에 branch ENI를 최대 54개까지 추가로 붙일 수 있습니다. branch ENI 한도는 secondary IP 한도에 더해집니다.
+`ENABLE_POD_ENI=true`이면 `SecurityGroupPolicy`에 매칭되는 Pod가 branch ENI의 primary IP를 사용합니다. [vpc-resource-controller 한도](https://github.com/aws/amazon-vpc-resource-controller-k8s/blob/93df905c6fb7bec57d90afd490e926b1ad04a57e/pkg/aws/vpc/limits.go)는 c5.4xlarge에 ENI 8개, ENI당 IPv4 30개, branch ENI 54개를 명시합니다. ENI당 primary IP 한 개를 제외하면 전체 슬롯의 계산상 secondary 주소 상한은 `8 × (30 − 1) = 232`입니다. 현재 CNI README의 '234 secondary IPs' 예시는 이 계산과 충돌하므로 용량 보장값으로 사용하지 않습니다. 실제 Pod 한도는 trunk·custom networking 등 인터페이스 용도와 CNI 버전, kubelet maxPods까지 확인해 산정합니다.
 
 SGP Pod 비중이 높은 클러스터에서는 다음 특성이 IP 계획을 어렵게 만듭니다.
 
@@ -161,19 +164,25 @@ aws ec2 describe-subnets --subnet-ids subnet-0def \
 
 ### warm 타깃은 add-on configuration으로 관리
 
-`kubectl set env`로 바꾼 값은 VPC CNI add-on을 업데이트할 때 기본값으로 돌아갑니다. 튜닝한 값이 어느 날 사라져 IP 고갈이 재발하는 사례가 여기서 나옵니다. add-on configuration으로 관리하면 업데이트 후에도 값이 유지됩니다.
+`kubectl set env`로 변경한 값이 add-on 업데이트 뒤에도 유지되는지는 충돌 처리 방식에 따라 달라집니다. `PRESERVE`는 기존 수정을 보존할 수 있고, `OVERWRITE`는 관리되는 필드를 덮어쓸 수 있습니다. add-on API를 사용하더라도 새 `configuration-values`에서 빠진 기존 고급 설정은 기본값으로 돌아갈 수 있습니다.
+
+먼저 현재 `configurationValues`와 실제 aws-node 설정을 저장하고, 설치된 add-on 버전의 schema를 확인합니다. 기존 설정 전체에 `WARM_ENI_TARGET="0"`, `WARM_IP_TARGET="2"`, `MINIMUM_IP_TARGET="12"`를 병합한 `reviewed-vpc-cni-config.json`을 검토합니다. 아래 값은 예시이므로 클러스터의 Pod 밀도와 확장 속도에 맞춰 조정합니다. 다음 명령은 해당 클러스터와 리전을 선택하고 완전한 설정 파일을 준비한 뒤 사용합니다.
 
 ```bash
 aws eks update-addon --cluster-name my-cluster --addon-name vpc-cni \
-  --configuration-values '{"env":{"WARM_ENI_TARGET":"0","WARM_IP_TARGET":"2","MINIMUM_IP_TARGET":"12"}}' \
-  --resolve-conflicts OVERWRITE
+  --configuration-values file://reviewed-vpc-cni-config.json \
+  --resolve-conflicts PRESERVE
 ```
+
+반환된 업데이트 ID로 `describe-update`의 `Successful` 여부를 확인하고, `describe-addon`에서 add-on 상태, health issues, `configurationValues`를 확인합니다. aws-node DaemonSet과 실행 중인 Pod의 환경 변수도 의도한 값과 비교합니다. `PRESERVE`는 요청한 새 값이 모두 적용됐음을 보장하지 않습니다.
+
+충돌이나 통신 문제가 생기면 추가 반영을 중단하고 영향 범위를 확인한 뒤, 백업한 이전 설정과 비교해 복구합니다. 운영 반영 전 검증 절차는 [EKS add-on 업데이트 안내](https://docs.aws.amazon.com/eks/latest/userguide/updating-an-add-on.html)를 따릅니다.
 
 `MINIMUM_IP_TARGET`은 주력 노드 크기에서 예상되는 Pod 수에 맞추고, `WARM_IP_TARGET`은 0보다 큰 작은 값으로 같이 설정합니다. `MINIMUM_IP_TARGET`만 두면 `WARM_IP_TARGET`은 0으로 처리되어, 최소치를 채운 뒤에는 여유 IP를 더 확보하지 않습니다. `WARM_IP_TARGET`은 값이 작을수록 IP를 아끼지만 Pod가 생기고 사라질 때마다 EC2 API 호출이 늘어나므로, 클러스터가 크거나 Pod churn이 높으면 EC2 API 스로틀링을 부를 수 있습니다. VPC CNI README도 이 경우 `WARM_IP_TARGET` 단독 사용을 피하라고 안내하며, `MINIMUM_IP_TARGET`으로 기본 물량을 확보하고 `WARM_IP_TARGET`은 작은 값으로 보조하는 조합이 그 절충입니다.
 
 ### weighted NodePool 3단계 구성
 
-fallback을 24xlarge에서 4xlarge로 한 번에 떨어뜨리지 않고, 크기와 패밀리를 나눈 NodePool 세 개에 weight를 달아 단계적으로 내려가게 합니다. `weight`, `limits`, disruption `budgets`의 문법은 [Karpenter 오토스케일링](../resource-cost/karpenter-autoscaling.md)을 참조합니다.
+크기와 패밀리를 나눈 NodePool 세 개에 weight를 두어 선호도를 표현합니다. Karpenter의 배치·bin-packing과 기존 노드 사용 때문에 낮은 weight의 풀이 선택될 수 있으므로, 단계별 fallback 보장으로 해석하지 않습니다. `weight`, `limits`, disruption `budgets` 문법은 [Karpenter 오토스케일링](../resource-cost/karpenter-autoscaling.md)을 참조합니다.
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -204,7 +213,7 @@ spec:
     cpu: "20000"
 ```
 
-두 번째 NodePool은 `weight: 50`에 `instance-size In ["8xlarge","12xlarge","16xlarge"]`를 두고, 마지막 4xlarge NodePool은 낮은 weight와 함께 `limits`로 상한을 걸어 소형 노드가 무제한으로 늘지 않게 합니다. 크기는 `karpenter.k8s.aws/instance-size`, 패밀리와 세대는 `instance-family`, `instance-generation` 라벨로 제약합니다.
+두 번째 풀은 `weight: 50`과 `instance-size In ["8xlarge","12xlarge","16xlarge"]`, 마지막 4xlarge 풀은 낮은 weight와 `limits`를 사용할 수 있습니다. `limits` 확인은 eventual consistency이므로 빠른 확장 때 일시 초과할 수 있습니다. 이를 서브넷 IP의 엄격한 안전장치로 사용하지 말고 별도 여유를 둡니다. 크기·패밀리·세대는 각각 해당 Karpenter requirements 라벨로 제한합니다.
 
 ### SGP 대상 축소
 
@@ -224,10 +233,10 @@ SGP가 없는 NodePool에는 Prefix Delegation을 켜서 ENI 슬롯 효율과 EC
 
 ## 운영 고려사항
 
-- 서브넷 가용 IP는 `aws ec2 describe-subnets`의 `AvailableIpAddressCount`로, Karpenter가 고를 수 있는 서브넷의 여유는 EC2NodeClass `status.subnets`로 확인합니다.
+- 서브넷별 실제 여유는 `aws ec2 describe-subnets`의 `AvailableIpAddressCount`로 확인합니다. EC2NodeClass `status.subnets`는 선택된 subnet ID와 AZ를 식별하는 데 쓰며 가용 IP 수 자체를 노출하지는 않습니다.
 - aws-node의 메트릭 노출(`DISABLE_METRICS=false`, 기본값)을 유지하고 CNI Metrics Helper를 배포하면 클러스터가 지원할 수 있는 ENI 수, 할당된 ENI·IP 수, 총·최대 가용 IP가 CloudWatch로 들어옵니다. Prometheus를 쓰면 aws-node의 61678 포트를 직접 스크레이프합니다.
 - VPC NAU는 CloudWatch에서 모니터링하고, 쿼터에 닿기 전에 상향을 요청합니다. 쿼터를 넘으면 `RunInstances`, `AssignPrivateIpAddresses` 같은 호출이 `NetworkAddressUsageLimitExceeded`로 실패합니다.
-- 서브넷 가용 IP와 NAU 사용률 모두 80%에서 경보를 걸어 둡니다. 소진 뒤에 CIDR을 추가하면 새 서브넷에 ENI가 만들어지기까지 시간이 걸립니다.
+- 임계값 예시로 서브넷 사용률 80% 이상(가용 비율 20% 이하) 또는 NAU 사용률 80% 이상에서 경보를 검토합니다. 절대 가용 주소 수도 함께 보고 DR 규모에 맞는 여유를 둡니다. 소진 뒤 CIDR을 추가해도 ENI를 할당하기까지 시간이 걸립니다.
 - IP 고갈 증상을 단계별로 진단하는 절차는 [EKS 네트워킹 디버깅](../operations-reliability/eks-debugging/networking.md)에 있습니다.
 - DR로 소형 노드 수백 대가 한 번에 뜨면 API 서버 부하가 커집니다. 스케일 스텝을 나누고, 필요하면 컨트롤 플레인 용량을 사전에 협의합니다.
 
@@ -241,12 +250,12 @@ SGP가 없는 NodePool에는 Prefix Delegation을 켜서 ENI 슬롯 효율과 EC
 | prefix 모드에서 `InsufficientCidrBlocks` | 서브넷 단편화로 연속 /28 부재 | Subnet CIDR reservation 또는 전용 서브넷 | reservation 소진율 |
 | Prefix Delegation을 켜도 IP 압박 지속 | SGP Pod가 branch ENI IP를 소비(prefix 이점 없음) | SGP 대상 축소, Network Policy로 대체 | SGP Pod 비율, branch ENI 수 |
 | `Insufficient vpc.amazonaws.com/pod-eni`로 Pending | 인스턴스별 branch ENI 한도 도달 | 타입별 한도 반영, SGP 대상 축소 | 노드 allocatable `pod-eni` |
-| add-on 업데이트 후 IP 고갈 재발 | `kubectl set env`로 넣은 값이 기본값으로 리셋 | `update-addon --configuration-values`로 이관, GitOps 관리 | `describe-addon`으로 값 확인 |
+| add-on 업데이트 후 IP 고갈 재발 | 충돌 처리 또는 새 configuration-values에서 기존 설정 누락 | 이전·현재 설정을 비교하고 필요한 값을 모두 병합해 add-on API로 관리 | `describe-addon`의 configurationValues와 실제 DaemonSet 비교 |
 | DR 시 대형 인스턴스 미확보로 소형 노드 급증 | 단일 타입 고정, 리전 capacity 부족 | 다중 크기·패밀리 weighted NodePool, ODCR, pre-warm | 노드 크기 분포, ICE 이벤트 수 |
 
 ## 결론
 
-routable Pod IP 모델의 용량은 서브넷 가용 IP, VPC NAU 쿼터, 인스턴스별 branch ENI 한도 중 가장 먼저 닿는 값이 정합니다. 노드당 소비 IP는 warm 타깃과 Pod 수 중 큰 값에 SGP Pod 수를 더한 것으로 근사되며, warm 타깃이 클러스터 전역 설정이기 때문에 대형에서 소형으로의 fallback이 낭비를 만듭니다. Karpenter는 노드 런치 시점의 서브넷 IP만 보고 CNI 레벨의 고갈은 알지 못하므로, 서브넷 확장과 크기를 나눈 weighted NodePool로 미리 대비해야 합니다. SGP Pod는 Prefix Delegation의 이점을 받지 못하므로 SGP 대상을 줄이는 것이 IP와 ENI 효율에 직접 기여합니다.
+서브넷 주소·VPC NAU와 노드별 branch ENI 한도는 각각 다른 범위에서 적용됩니다. Pod 풀의 warm 타깃만 계산하지 말고 node·trunk·branch 주소와 prefix 할당 단위도 예산에 포함합니다. 공통 warm 타깃은 소형 노드 fallback 때 유휴 주소를 늘릴 수 있습니다. Karpenter의 런치 시점 서브넷 선택만으로 CNI의 Pod IP 고갈을 방지할 수는 없습니다. 서브넷 여유와 NodePool 후보를 함께 설계하고, weight는 선호도로 사용하며, SGP Pod의 branch IP는 prefix 모드와 별도로 계산합니다.
 
 ## 참고 자료
 
