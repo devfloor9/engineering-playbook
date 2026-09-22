@@ -3,13 +3,13 @@ title: ADR — Self-Improving Agent Loop Adoption Decision
 description: Architecture Decision Record documenting principles, scope, responsibilities, and rollback boundaries to be agreed upon before introducing the Self-Improving Agent Loop to production
 created: "2026-04-19"
 last_update:
-  date: 2026-09-19
+  date: 2026-09-21
   author: devfloor9
 reading_time: 12
 tags:
   - adr
   - self-improving
-  - autosearch
+  - autoresearch
   - governance
   - agentic-ai
   - scope:design
@@ -27,7 +27,7 @@ sidebar_position: 99
 
 ## Context
 
-In the Phase 3 documentation reorganization, two documents mapping Andrej Karpathy's autosearch discourse to enterprise environments were added. The design (`self-improving-agent-loop.md`) and implementation (`continuous-training/`) are in draft status, and **operational principle consensus** must precede internal review.
+In the Phase 3 documentation reorganization, two documents mapping Andrej Karpathy's autoresearch discourse to enterprise environments were added. The design (`self-improving-agent-loop.md`) and implementation (`continuous-training/`) are in draft status, and **operational principle consensus** must precede internal review.
 
 Automated learning loops can improve models, but reward hacking, data leakage, and gaps in governance can outweigh those benefits. This ADR asks teams to agree on what the loop may automate and where human approval is required.
 
@@ -109,7 +109,7 @@ Traces promoted to training data must pass the following 4 gates sequentially:
 - 3-stage automation reduces blast radius in incident scenarios.
 
 ### Negative / Trade-offs
-- Manual Train/Deploy approval sacrifices some speed advantages of "fully automated autosearch."
+- Manual Train/Deploy approval sacrifices some speed advantages of "fully automated autoresearch."
 - 4-gate data gates may significantly reduce initial data collection volume, slowing learning pace.
 - Single DRI model risks operational disruption on personnel departure, requiring backup DRI designation.
 
@@ -130,7 +130,7 @@ Traces promoted to training data must pass the following 4 gates sequentially:
 - [MLflow Model Registry](https://mlflow.org/docs/latest/model-registry.html) — Model version management reference
 
 ### Papers / Tech Blogs
-- Andrej Karpathy — "LLMs doing autosearch" (2026 Q1 discourse)
+- Andrej Karpathy — "LLMs doing autoresearch" (2026 Q1 discourse)
 - [LMSYS RouteLLM](https://lmsys.org/blog/2024-07-01-routellm/) — Cascade routing classifier design
 - [Langfuse OTel](https://langfuse.com/docs/opentelemetry) — Production trace standard
 
