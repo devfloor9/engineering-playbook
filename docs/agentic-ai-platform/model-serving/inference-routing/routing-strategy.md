@@ -3,9 +3,9 @@ title: 추론 게이트웨이 & LLM Gateway 라우팅 전략
 description: kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴
 created: "2025-02-05"
 last_update:
-  date: "2026-08-11"
+  date: 2026-09-22
   author: YoungJoon Jeong
-reading_time: 46
+reading_time: 33
 tags:
   - kgateway
   - bifrost
@@ -382,7 +382,7 @@ L1 신호 중 **예산**은 거버넌스 정책과 직결됩니다. 테넌트 �
 :::
 
 :::note 라우팅 "결정"은 추론이 아니다 — KV-aware vs 컨텍스트 인지
-L2의 KV-cache-aware(prefix-aware) 라우팅에서 **라우팅 결정 자체는 추론이 아니다.** prefix 블록 해시 + 인덱스 조회라는 기계적 연산이며 모델 forward pass가 없다. 반면 **컨텍스트 인지(시맨틱) 라우팅**은 인코더·분류 모델을 돌려 의도를 분류하므로 라우팅 경로에서 경량 추론이 발생한다. 어느 경우든 선택된 Pod가 수행하는 **최종 워크로드는 LLM 추론**이다. 상세 구분은 [KV Cache 최적화 — Cache-Aware Routing](../../model-serving/inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing)을 참조.
+L2의 KV-cache-aware(prefix-aware) 라우팅에서 **라우팅 결정 자체는 추론이 아닙니다.** prefix 블록 해시 + 인덱스 조회라는 기계적 연산이며 모델 forward pass가 없습니다. 반면 **컨텍스트 인지(시맨틱) 라우팅**은 인코더·분류 모델을 돌려 의도를 분류하므로 라우팅 경로에서 경량 추론이 발생합니다. 어느 경우든 선택된 Pod가 수행하는 **최종 워크로드는 LLM 추론**입니다. 상세 구분은 [KV Cache 최적화 — Cache-Aware Routing](../../model-serving/inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing)을 참조하세요.
 :::
 
 :::note 용어 매핑 — L1/L2 ↔ Tier 2 ①/②
@@ -409,7 +409,7 @@ L2의 KV-cache-aware(prefix-aware) 라우팅에서 **라우팅 결정 자체는 
 | Flow Control | priority·fairness·queueing (Saturation Detector 과부하 방어) |
 | Scheduling Layer | **scorer + picker** — 실제 Pod 선택 |
 
-- **scorer**: `prefix-cache-scorer`(프롬프트 block 단위 해싱 → indexer로 prefix 보유 Pod 추정) 외에 KV 캐시/부하 인지 scorer(load·queue-depth), LoRA affinity 등
+- **scorer**: `prefix-cache-scorer`(프롬프트 block 단위 해싱 → indexer로 prefix 보유 Pod 추정) 외에 KV cache/부하 인지 scorer(load·queue-depth), LoRA affinity 등
 - **picker**: scorer 점수 종합 → 최종 Pod 선택(picker 미지정 시 기본 `max-score-picker`)
 - 결정 전달: `x-gateway-destination-endpoint` HTTP 헤더 + `dynamic_metadata`(둘 다 일치 필수), fallback 1개 지정 가능
 
@@ -433,9 +433,9 @@ KV-aware routing(L2)을 무엇으로 구현하느냐의 비교다. 세 옵션 �
 > **Kong은 L2(EPP)를 갖지 않는다.** Kong의 LB(consistent-hash·lowest-latency 등)는 **모델/프로바이더 레벨**이지 Pod 레벨 KV-aware 스케줄링이 아니며, Envoy 기반이 아니라 GIE/ext-proc/InferencePool을 구현하지 않는다. KV-aware가 필요하면 Kong은 L1(엣지)로 두고 L2는 EPP/HyperPod/Dynamo를 사용한다. (도입 시점 Kong 릴리스 노트 재확인 권장 — InferencePool은 게이트웨이 중립 표준이라 향후 지원 가능성 있음.)
 
 :::caution Kong의 시맨틱 캐시 ≠ vLLM KV-cache-aware 라우팅
-Kong AI Gateway의 `ai-semantic-cache` 플러그인은 **임베딩 코사인 유사도로 의미가 유사한 요청의 "전체 응답"을 재사용**하는 L1 응답 캐시입니다(중복 LLM 호출 자체를 제거). 이는 vLLM Pod의 prefix KV 캐시 위치를 인지해 Pod를 고르는 **L2 KV-cache-aware 라우팅과 다른 계층**입니다(세 캐시 계층 비교: [Semantic Caching 전략](../inference-optimization/semantic-caching-strategy.md#2-캐시-계층-구분)).
+Kong AI Gateway의 `ai-semantic-cache` 플러그인은 **임베딩 코사인 유사도로 의미가 유사한 요청의 "전체 응답"을 재사용**하는 L1 응답 캐시입니다(중복 LLM 호출 자체를 제거). 이는 vLLM Pod의 prefix KV cache 위치를 인지해 Pod를 고르는 **L2 KV-cache-aware 라우팅과 다른 계층**입니다(세 캐시 계층 비교: [Semantic Caching 전략](../inference-optimization/semantic-caching-strategy.md#2-캐시-계층-구분)).
 
-또한 Kong의 벡터 저장소는 **Kong 내부에 임베딩되는 것이 아니라 외부 Redis/Valkey/PGVector**에 연결하며(AWS에서는 IAM 인증 ElastiCache 등), 임베딩 자체도 외부 임베딩 API(OpenAI·Bedrock 등)를 호출해 생성합니다. AWS 통합은 Bedrock 프로바이더·`ai-aws-guardrails` 플러그인이 문서화되어 있으나, "AWS 관리형 KV 캐시"와의 직접 통합은 별도 개념입니다. (Kong 버전별 차이가 있으므로 적용 시점 [Kong AI Gateway 문서](https://developer.konghq.com/ai-gateway/) 확인 권장.)
+또한 Kong의 벡터 저장소는 **Kong 내부에 임베딩되는 것이 아니라 외부 Redis/Valkey/PGVector**에 연결하며(AWS에서는 IAM 인증 ElastiCache 등), 임베딩 자체도 외부 임베딩 API(OpenAI·Bedrock 등)를 호출해 생성합니다. AWS 통합은 Bedrock 프로바이더·`ai-aws-guardrails` 플러그인이 문서화되어 있으나, "AWS 관리형 KV cache"와의 직접 통합은 별도 개념입니다. (Kong 버전별 차이가 있으므로 적용 시점 [Kong AI Gateway 문서](https://developer.konghq.com/ai-gateway/) 확인 권장.)
 :::
 
 > **HyperPod의 관리형 DPD/KV-aware는 vLLM에 고정**된다. TensorRT-LLM 백엔드의 성능 천장이 필요하면 HyperPod EKS 위에 Dynamo를 직접 배포하고, HyperPod는 노드 복구·governance 레이어로만 활용하는 하이브리드가 가능하다.
@@ -446,7 +446,7 @@ L2(KV-aware)는 vLLM worker의 실시간 메트릭(수백 ms~초 신선도)에 �
 
 - **서울 = L1**(Kong/Bifrost/kgateway): 프로바이더·리전 라우팅, 인증, $예산, PII, failover, **session affinity**(prefix 캐시 보존)
 - **호주 = L2**(EPP/HyperPod router/Dynamo) + vLLM: KV-aware Pod 선택
-- KV 캐시 이득은 **호주 클러스터 내부에서만** 발생(크로스리전 홉은 캐시로 단축 불가). 리전 간 egress 비용·TTFT 가산 유의.
+- KV cache 이득은 **호주 클러스터 내부에서만** 발생(크로스리전 홉은 캐시로 단축 불가). 리전 간 egress 비용·TTFT 가산 유의.
 
 ```mermaid
 flowchart LR
