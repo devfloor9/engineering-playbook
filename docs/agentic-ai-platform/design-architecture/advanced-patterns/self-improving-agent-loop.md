@@ -3,9 +3,9 @@ title: Self-Improving Agent Loop (Autoresearch)
 description: Karpathy의 autoresearch 개념을 기반으로 self-hosted SLM이 프로덕션 trace로부터 스스로 학습·강화하는 5-stage 루프 설계와 안전장치
 created: "2026-04-18"
 last_update:
-  date: "2026-07-17"
+  date: 2026-09-22
   author: YoungJoon Jeong
-reading_time: 19
+reading_time: 16
 tags:
   - self-improving
   - autoresearch
@@ -18,18 +18,18 @@ sidebar_position: 8
 ---
 
 :::warning Self-Hosted SLM 전용
-본 루프는 self-hosted 오픈웨이트 모델(Qwen3, Llama 4, GLM-5 등) 전용이다. AgentCore의 Claude/Nova 등 관리형 폐쇄 모델은 자가 학습 불가이므로 스코프에서 제외한다.
+본 루프는 self-hosted 오픈웨이트 모델(Qwen3, Llama 4, GLM-5 등) 전용입니다. AgentCore의 Claude/Nova 등 관리형 폐쇄 모델은 자가 학습이 불가능하므로 스코프에서 제외합니다.
 :::
 
 :::info ADR 선행 필요
-실 운영 적용 전에 스코프·자동화 경계·데이터 거버넌스·롤백 기준에 대한 합의가 필요하다. 자세한 합의 대상은 [ADR — Self-Improving Agent Loop 도입 의사결정](./adr-self-improving-loop.md)을 참조.
+실 운영 적용 전에 스코프·자동화 경계·데이터 거버넌스·롤백 기준에 대한 합의가 필요합니다. 자세한 합의 대상은 [ADR — Self-Improving Agent Loop 도입 의사결정](./adr-self-improving-loop.md)을 참조합니다.
 :::
 
 ## Autoresearch 담론과 엔터프라이즈 해석
 
 ### Karpathy의 핵심 주장
 
-Andrej Karpathy는 2026년 3월 [autoresearch](https://github.com/karpathy/autoresearch) 프로젝트를 통해 LLM이 단순한 "next token prediction" 기계를 넘어 **자가 탐색(autoresearch)** 시스템으로 진화할 것이라고 주장했다. 핵심 메커니즘:
+Andrej Karpathy는 2026년 3월 [autoresearch](https://github.com/karpathy/autoresearch) 프로젝트를 통해 LLM이 단순한 "next token prediction" 기계를 넘어 **자가 탐색(autoresearch)** 시스템으로 진화할 것이라고 주장했습니다. 핵심 메커니즘:
 
 1. **Tool-use Rollout**: LLM이 도구(코드 실행, 웹 검색, 계산기 등)를 사용하며 여러 추론 경로를 탐색
 2. **Success as Signal**: 성공한 경로(정답 도달, 작업 완료)가 다음 학습의 시그널이 됨
@@ -61,7 +61,7 @@ graph LR
 
 ### 엔터프라이즈 환경의 제약
 
-Karpathy의 이상론을 기업 환경에 적용하려면 다음 제약을 고려해야 한다:
+Karpathy의 이상론을 기업 환경에 적용하려면 다음 제약을 고려해야 합니다:
 
 | 제약 | 설명 | 해결 방향 |
 |------|------|----------|
@@ -72,7 +72,7 @@ Karpathy의 이상론을 기업 환경에 적용하려면 다음 제약을 고�
 | **Regulatory** | 모델 변경마다 감사 로그, 모델 카드 업데이트 필요 | 버전 관리, audit trail, [Agent 버전관리](../../../aidlc/enterprise/agent-versioning/index.md) 연동 |
 
 :::tip 엔터프라이즈 인사이트
-Self-improving loop는 **"완전 자동화"가 아니라 "인간 감독 하의 자동 강화"**로 해석해야 한다. 매 iteration마다 품질 게이트와 휴먼-인-루프 검증이 필수다.
+Self-improving loop는 **"완전 자동화"가 아니라 "인간 감독 하의 자동 강화"**로 해석해야 합니다. 매 iteration마다 품질 게이트와 휴먼-인-루프 검증이 필수입니다.
 :::
 
 ---
@@ -130,7 +130,7 @@ graph TB
 
 ### Stage 1: Rollout — 프로덕션 트래픽 수집
 
-**목표**: 실제 사용자 요청에 대한 Agent 실행 trace를 수집한다.
+**목표**: 실제 사용자 요청에 대한 Agent 실행 trace를 수집합니다.
 
 **실행 주기**: 연속(Real-time)
 
@@ -170,7 +170,7 @@ def execute_agent(user_query: str, context: dict):
 
 ### Stage 2: Score — Reward 계산
 
-**목표**: 각 trace에 0-1 점수를 부여하여 "얼마나 좋은 응답인가"를 정량화한다.
+**목표**: 각 trace에 0-1 점수를 부여하여 "얼마나 좋은 응답인가"를 정량화합니다.
 
 **실행 주기**: 시간별(Hourly) 배치
 
@@ -247,7 +247,7 @@ user_score = 1.0 if feedback.value == "positive" else 0.0 if feedback.value == "
 
 ### Stage 3: Filter — 데이터 큐레이션 & PII 게이트
 
-**목표**: 고품질 trace만 학습 데이터로 선별하고, 민감 정보를 제거한다.
+**목표**: 고품질 trace만 학습 데이터로 선별하고, 민감 정보를 제거합니다.
 
 **실행 주기**: 시간별(Hourly) 배치
 
@@ -385,7 +385,7 @@ table.append([
 
 **Preference Pair 구성**:
 
-Self-improving loop는 "동일 질문에 대한 여러 응답" 중 reward가 높은 것을 preferred, 낮은 것을 rejected로 사용한다.
+Self-improving loop는 "동일 질문에 대한 여러 응답" 중 reward가 높은 것을 preferred, 낮은 것을 rejected로 사용합니다.
 
 ```python
 def build_preference_pairs(traces):
@@ -525,7 +525,7 @@ wandb.init(project="self-improving-agent", name="grpo-2026-04-18")
 
 ### Stage 5: Deploy — 회귀 검증 & 점진 배포
 
-**목표**: 새로 학습된 모델이 기존 대비 퇴화하지 않았는지 검증 후 프로덕션에 배포한다.
+**목표**: 새로 학습된 모델이 기존 대비 퇴화하지 않았는지 검증 후 프로덕션에 배포합니다.
 
 **실행 주기**: 학습 완료 후 1회
 
