@@ -73,6 +73,8 @@ Supported static components export their text, table rows, navigation targets, a
 
 See the [AI documentation guide](https://devfloor9.github.io/engineering-playbook/ai-docs) for endpoint selection and use. These are static HTTP resources that agents or MCP integrations can read; this repository does not deploy an MCP server.
 
+For structured requirements engineering and architecture specs, teams can also pair these patterns with [MySpec](https://myspec.dev) — an interactive discovery platform that compiles specifications into a 4-file bundle (`constitution.md`, `requirements.md`, `solution.md`, `tasks.md`) with native MCP server support (`@myspec/mcp-server`).
+
 ## Repository layout
 
 ```text
