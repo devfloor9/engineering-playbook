@@ -3,7 +3,7 @@ title: KV Cache 최적화 (vLLM Deep Dive + Cache-Aware Routing)
 description: vLLM PagedAttention·Continuous Batching·FP8 KV Cache 등 핵심 기술 정리와 llm-d/NVIDIA Dynamo의 KV Cache-Aware Routing 비교 및 Gateway 구성
 created: "2026-04-03"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -87,10 +87,10 @@ flowchart TD
 
 ```bash
 vllm serve Qwen/Qwen3-32B-FP8 \
-  --gpu-memory-utilization=0.95 \   # KV 캐시에 사전 할당할 VRAM 비율 (기본 0.92, v0.21+)
-  --max-model-len=32768 \           # 최대 시퀀스 길이 (KV 캐시 크기에 직접 영향)
-  --enable-prefix-caching \         # 공통 프리픽스 KV 캐시 재사용
-  --kv-cache-dtype=fp8 \            # FP8 KV 캐시로 메모리 절감
+  --gpu-memory-utilization=0.95 \   # KV cache에 사전 할당할 VRAM 비율 (기본 0.92, v0.21+)
+  --max-model-len=32768 \           # 최대 시퀀스 길이 (KV cache 크기에 직접 영향)
+  --enable-prefix-caching \         # 공통 prefix KV cache 재사용
+  --kv-cache-dtype=fp8 \            # FP8 KV cache로 메모리 절감
   --enable-auto-tool-choice \       # Tool calling 자동 지원
   --tool-call-parser=hermes         # Tool call 파서 선택
 ```

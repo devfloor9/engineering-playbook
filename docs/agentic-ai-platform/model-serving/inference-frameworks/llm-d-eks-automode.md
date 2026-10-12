@@ -3,7 +3,7 @@ title: llm-d 기반 EKS 분산 추론 가이드
 description: llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략
 created: "2026-02-10"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 23
 tags:
@@ -154,7 +154,7 @@ Qwen3-32B는 위 Optimized Baseline 예제의 기본 모델이며, Apache 2.0 �
 
 ## KV Cache-aware 라우팅
 
-llm-d의 핵심 차별점은 KV Cache 상태를 인식하는 지능적 라우팅입니다.
+llm-d의 차별점은 KV cache 상태를 인식하는 지능적 라우팅입니다.
 
 다음 흐름은 설정된 EPP 플러그인의 동작을 단순화한 예시입니다. 캐시가 있는 Pod도 부하에 따라 선택되지 않을 수 있습니다.
 
@@ -194,7 +194,7 @@ sequenceDiagram
 <KVCacheEffectsTable />
 
 :::tip Cache Hit Rate 극대화
-동일한 시스템 프롬프트를 사용하는 애플리케이션에서 KV Cache-aware 라우팅의 효과가 극대화됩니다. 예를 들어 RAG 파이프라인에서 동일한 컨텍스트 문서를 반복 참조하는 경우, 해당 prefix의 KV Cache를 재사용하여 TTFT를 크게 단축할 수 있습니다.
+동일한 시스템 프롬프트를 사용하는 애플리케이션에서 KV Cache-aware 라우팅의 효과가 극대화됩니다. 예를 들어 RAG 파이프라인에서 동일한 컨텍스트 문서를 반복 참조하는 경우, 해당 prefix의 KV cache를 재사용하여 TTFT를 단축할 수 있습니다.
 :::
 
 ---
@@ -313,8 +313,8 @@ llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하�
 |------|-------|---------------|
 | **주도** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
 | **아키텍처** | Aggregated + Disaggregated | Aggregated + Disaggregated (동등 지원) |
-| **KV Cache 전송** | NIXL (네트워크도 지원) | NIXL (NVLink/RDMA 초고속) |
-| **KV Cache 인덱싱** | Prefix-aware 라우팅 | Flash Indexer (radix tree 기반) |
+| **KV cache 전송** | NIXL (네트워크도 지원) | NIXL (NVLink/RDMA 초고속) |
+| **KV cache 인덱싱** | Prefix-aware 라우팅 | Flash Indexer (radix tree 기반) |
 | **라우팅** | Gateway API + Envoy EPP | Dynamo Router + 자체 EPP (Gateway API 통합) |
 | **Pod 스케줄링** | K8s 기본 스케줄러 | KAI Scheduler (GPU-aware Pod 배치) |
 | **오토스케일링** | HPA/KEDA 연동 | Planner (SLO 기반: profiling -> autoscale) + KEDA/HPA |
@@ -326,10 +326,10 @@ llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하�
 - **EKS Auto Mode + 빠른 시작**: llm-d (GPU Operator 선택사항)
 - **소규모~중규모 (GPU 16개 이하)**: llm-d
 - **대규모 (GPU 16개+), 최대 처리량**: Dynamo (Flash Indexer + Planner)
-- **긴 컨텍스트 (128K+)**: Dynamo (3-tier KV Cache: GPU->CPU->SSD)
+- **긴 컨텍스트 (128K+)**: Dynamo (3-tier KV cache: GPU->CPU->SSD)
 - **K8s Gateway API 표준 준수**: llm-d
 
-llm-d와 Dynamo는 상호보완적 관계입니다. 두 프로젝트는 NIXL(KV 전송 라이브러리)과 Gateway API를 공유하는 독립 병렬 스택이며, llm-d는 NIXL을 KV Cache 전송에 활용합니다. llm-d로 시작하여 규모가 커지면 Dynamo로 전환하는 것이 현실적입니다.
+llm-d와 Dynamo는 상호보완적 관계입니다. 두 프로젝트는 NIXL(KV 전송 라이브러리)과 Gateway API를 공유하는 독립 병렬 스택이며, llm-d는 NIXL을 KV cache 전송에 활용합니다. llm-d로 시작하여 규모가 커지면 Dynamo로 전환하는 것이 현실적입니다.
 :::
 
 ### 마이그레이션 경로

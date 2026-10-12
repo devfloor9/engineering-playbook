@@ -3,7 +3,7 @@ title: Self-Improving Agent Loop (Autoresearch)
 description: Karpathy의 autoresearch 개념을 기반으로 self-hosted SLM이 프로덕션 trace로부터 스스로 학습·강화하는 5-stage 루프 설계와 안전장치
 created: "2026-04-18"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -17,7 +17,7 @@ sidebar_label: Self-Improving Loop
 sidebar_position: 8
 ---
 
-:::warning Self-Hosted SLM 전용
+:::warning self-hosted SLM 전용
 본 루프는 self-hosted 오픈웨이트 모델(Qwen3, Llama 4, GLM-5 등) 전용입니다. AgentCore의 Claude/Nova 등 관리형 폐쇄 모델은 자가 학습이 불가능하므로 스코프에서 제외합니다.
 :::
 

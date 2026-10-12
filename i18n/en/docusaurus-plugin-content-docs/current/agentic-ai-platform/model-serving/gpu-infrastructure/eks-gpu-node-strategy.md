@@ -3,9 +3,9 @@ title: EKS GPU Node Strategy
 description: Optimal node strategies for GPU workloads across EKS Auto Mode, Karpenter, MNG, and Hybrid Nodes
 created: "2026-03-16"
 last_update:
-  date: "2026-07-19"
+  date: 2026-10-12
   author: devfloor9
-reading_time: 32
+reading_time: 30
 tags:
   - eks
   - gpu
@@ -37,7 +37,7 @@ AWS EKS provides 4 node types for GPU workloads:
 | **Managed Node Group** | AWS-managed node groups, only option supporting DRA (Dynamic Resource Allocation) |
 | **Hybrid Node** | Connect on-premises GPU servers to the EKS cluster |
 
-:::tip Core Principle
+:::tip Basic Principle
 You can operate multiple node types **simultaneously** in a single EKS cluster. Configure the optimal node combination matching your workload characteristics.
 :::
 
