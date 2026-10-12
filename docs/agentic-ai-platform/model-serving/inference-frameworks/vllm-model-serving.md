@@ -3,7 +3,7 @@ title: vLLM 모델 서빙
 description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
 created: "2026-02-05"
 last_update:
-  date: 2026-09-22
+  date: "2026-10-06"
   author: YoungJoon Jeong
 reading_time: 14
 tags:
@@ -383,6 +383,12 @@ VLLM_USE_DEEP_GEMM=0 vllm serve model-name --kv-cache-dtype=fp8
   ]}
 />
 
+## Reasoning·Tool-call 파서
+
+추론 모델을 서빙할 때 vLLM은 `--reasoning-parser`로 모델 출력의 추론 구간을 `reasoning` 필드로, 나머지를 `content`로 분리합니다. 도구 호출은 `--enable-auto-tool-choice`와 `--tool-call-parser`로 활성화하며, 함수 호출은 `content`에서만 파싱됩니다. 두 파서는 모델 계열과 chat template에 맞춰 함께 지정합니다. tool-call parser만 지정하면 추론 경계가 사라져 추론이 `content`에 합쳐지는 사례가 있습니다.
+
+추론 필드 이름은 `reasoning_content`에서 `reasoning`으로 바뀌었습니다. 예전 이름을 읽는 클라이언트는 오류 없이 빈 값을 받으므로 엔진 업그레이드 시 클라이언트도 함께 확인합니다. 모델별 파서 이름, 스트리밍·stop 조합에서 생기는 누출, structured output과 추론 구간의 상호작용, 출력 검증 계층 설계는 [추론·도구 호출 출력 무결성](./reasoning-tool-output-parsing.md)에서 설명합니다.
+
 ## 모니터링 메트릭
 
 vLLM은 Prometheus 형식의 다양한 메트릭을 노출합니다.
@@ -431,6 +437,7 @@ Prometheus + Grafana 기반 모니터링 스택 구성, 알람 임계값 설정,
 
 ### 관련 기술
 - **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)**: vLLM + llm-d 연동 통한 Disaggregated Serving
+- **[추론·도구 호출 출력 무결성](./reasoning-tool-output-parsing.md)**: reasoning·tool-call 파서 조합, 스트리밍 누출, 출력 검증 계층
 - **[MoE 모델 서빙](./moe-model-serving.md)**: Expert Parallelism, GLM-5/Kimi K2.5 배포 전략
 - **[GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md)**: Karpenter, KEDA, GPU Operator 구성
 

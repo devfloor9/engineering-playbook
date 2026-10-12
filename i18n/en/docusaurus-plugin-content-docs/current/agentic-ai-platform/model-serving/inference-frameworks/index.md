@@ -3,7 +3,7 @@ title: Inference Frameworks
 description: vLLM·llm-d·MoE·NeMo — AI framework layer for actual model serving, distributed inference, and fine-tuning on GPUs
 created: "2026-04-17"
 last_update:
-  date: "2026-06-26"
+  date: "2026-10-06"
   author: devfloor9
 reading_time: 4
 tags:
@@ -20,7 +20,7 @@ sidebar_label: Inference Frameworks
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-infrastructure/index.md) that actually performs **LLM serving, distributed inference, and fine-tuning**. Covers single-node high-performance serving (vLLM), Kubernetes-native distributed inference (llm-d), MoE model processing, and NVIDIA NeMo-based training.
+The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-infrastructure/index.md) that actually performs **LLM serving, distributed inference, and fine-tuning**. Covers single-node high-performance serving (vLLM), Kubernetes-native distributed inference (llm-d), MoE model processing, NVIDIA NeMo-based training, and operating criteria for reasoning and tool-call output boundaries of reasoning models.
 
 <DocCardGrid columns={2}>
   <DocCard
@@ -29,6 +29,13 @@ The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-i
     title="vLLM Model Serving"
     description="High-performance LLM inference with PagedAttention, Continuous Batching, Tensor/Pipeline Parallelism, Multi-LoRA hot-swapping."
     color="#ff6b6b"
+  />
+  <DocCard
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/reasoning-tool-output-parsing"
+    icon="🧹"
+    title="Reasoning & Tool-Call Output Integrity"
+    description="Classifies why reasoning and tool calls leak into answers across the model, template, parser, API, and client layers, and prevents it with engine settings, validation, and a remediation layer."
+    color="#10b981"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode"
@@ -54,5 +61,5 @@ The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-i
 </DocCardGrid>
 
 :::tip Reading Order
-Reading in **vLLM → llm-d → MoE → NeMo** order follows the progressive difficulty of "single-node optimization → distributed inference → large-scale MoE → training framework."
+Reading in **vLLM → Reasoning & Tool-Call Output Integrity → llm-d → MoE → NeMo** order follows the progressive difficulty of "single-node optimization → output boundary operations → distributed inference → large-scale MoE → training framework."
 :::

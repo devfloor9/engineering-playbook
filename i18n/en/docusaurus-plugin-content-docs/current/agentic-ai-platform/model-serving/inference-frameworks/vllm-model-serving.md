@@ -3,7 +3,7 @@ title: vLLM Model Serving
 description: vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture
 created: "2026-02-05"
 last_update:
-  date: 2026-09-21
+  date: "2026-10-06"
   author: devfloor9
 reading_time: 25
 tags:
@@ -377,6 +377,12 @@ Provides 20-30% additional performance improvement when using FP8 models on H100
   ]}
 />
 
+## Reasoning and Tool-Call Parsers
+
+When serving reasoning models, vLLM uses `--reasoning-parser` to split the reasoning span of model output into the `reasoning` field and the rest into `content`. Tool calling is enabled with `--enable-auto-tool-choice` and `--tool-call-parser`, and function calls are parsed only from `content`. Set both parsers together to match the model family and chat template. Setting only a tool-call parser has been reported to erase the reasoning boundary and merge reasoning into `content`.
+
+The reasoning field was renamed from `reasoning_content` to `reasoning`. Clients that read the old name get an empty value without an error, so check clients together with engine upgrades. Per-model parser names, leaks from streaming with `stop`, the interaction between structured output and the reasoning span, and the design of an output validation layer are described in [Reasoning and Tool-Call Output Integrity](./reasoning-tool-output-parsing.md).
+
 ## Monitoring Metrics
 
 vLLM exposes various metrics in Prometheus format.
@@ -425,6 +431,7 @@ For Prometheus + Grafana monitoring stack setup, alert threshold configuration, 
 
 ### Related Technologies
 - **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)**: Disaggregated Serving via vLLM + llm-d integration
+- **[Reasoning and Tool-Call Output Integrity](./reasoning-tool-output-parsing.md)**: reasoning and tool-call parser pairing, streaming leaks, output validation layer
 - **[MoE Model Serving](./moe-model-serving.md)**: Expert Parallelism, GLM-5/Kimi K2.5 deployment strategy
 - **[GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md)**: Karpenter, KEDA, GPU Operator configuration
 

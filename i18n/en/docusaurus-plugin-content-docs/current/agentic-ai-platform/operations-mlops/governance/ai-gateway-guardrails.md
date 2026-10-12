@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: 2026-09-21
+  date: "2026-10-06"
   author: devfloor9
 reading_time: 35
 tags:
@@ -95,7 +95,7 @@ flowchart LR
 | **Gateway Policy** | Gateway core | Authentication/authorization, tenant isolation, rate limit, model routing — for the tenancy hierarchy model and budget enforcement, see [AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) | +5~20ms |
 | **Tool Allow-list** | Agent/MCP layer | MCP server whitelist, scoped token, argument validation | +10~30ms |
 | **Model (LLM Safety)** | Model itself | Safety alignment injected during training | 0ms (Built into model) |
-| **Output Guard** | After response stream | PII scrub, toxicity, hallucination revalidation | +50~200ms |
+| **Output Guard** | After response stream | PII scrub, toxicity, hallucination revalidation. For output-format remediation such as reasoning leaks, boundary tokens, and malformed tool calls, see [Reasoning and Tool-Call Output Integrity](../../model-serving/inference-frameworks/reasoning-tool-output-parsing.md) | +50~200ms |
 | **Audit Log** | Cross-cutting | Record all violation events, SIEM integration | Async |
 
 :::tip Output Guard for Streaming Responses
