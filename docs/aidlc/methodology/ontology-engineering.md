@@ -231,7 +231,7 @@ graph TD
 |------|------|--------|-------------|------|
 | **Inner Loop** | 분 단위 | 테스트 실패, 하네스 위반 | 제약 조건 추가/수정 | 누락된 invariant 발견: "amount > 0" 제약 추가 |
 | **Middle Loop** | 일 단위 | PR 리뷰에서 반복 패턴 | 엔티티/관계 스키마 갱신 | 반복되는 에러 패턴 → 새로운 Value Object 추가 |
-| **Outer Loop** | 주 단위 | 운영 인시던트, SLO 위반 | 도메인 모델 구조 재설계 | P99 레이턴시 증가 → Aggregate 경계 재정의 |
+| **Outer Loop** | 주 단위 | 운영 인시던트, SLO 위반 | 도메인 모델 구조 재설계 | P99 지연 시간 증가 → Aggregate 경계 재정의 |
 
 ### 4.3 Inner Loop: 즉각적 제약 정제
 
@@ -291,7 +291,7 @@ value_objects:
 
 ### 4.5 Outer Loop: 도메인 모델 재설계
 
-**시나리오**: 운영 인시던트 — P99 레이턴시 SLO 위반
+**시나리오**: 운영 인시던트 — P99 지연 시간 SLO 위반
 
 ```markdown
 ## 인시던트 분석
@@ -316,7 +316,7 @@ aggregates:
       - PaymentHistory
 ```
 
-**효과**: Aggregate 경계 재정의를 통해 P99 레이턴시 42% 감소.
+**효과**: Aggregate 경계 재정의를 통해 P99 지연 시간 42% 감소.
 
 ## 5. SemanticForge 패턴: Knowledge Graph 통합
 
@@ -447,7 +447,7 @@ Kiro Spec의 `requirements.md`에 온톨로지를 직접 포함하여 AI 에이�
 - SQS를 통한 비동기 이벤트 처리
 
 ## 비기능 요구사항
-- P99 레이턴시: < 200ms
+- P99 지연 시간: < 200ms
 - 가용성: 99.95%
 - 자동 스케일링: 2-20 Pod
 

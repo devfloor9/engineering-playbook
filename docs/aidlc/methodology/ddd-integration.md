@@ -3,7 +3,7 @@ title: DDD 통합 — AI 주도 개발에서의 필수 코어
 description: AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -122,7 +122,7 @@ graph LR
 - SQS를 통한 비동기 이벤트 처리
 
 ## 비기능 요구사항
-- P99 레이턴시: < 200ms
+- P99 지연 시간: < 200ms
 - 가용성: 99.95%
 - 자동 스케일링: 2-20 Pod
 - EKS 1.35+ 호환
