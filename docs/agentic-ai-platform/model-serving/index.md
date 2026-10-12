@@ -3,7 +3,7 @@ title: 모델 서빙 & 추론 인프라
 description: GPU 인프라·추론 프레임워크·추론 최적화 계층 안내와, LLM 추론 요청 경로 전체의 계층별 튜닝 레버(인퍼런스 게이트웨이·prefill/decode 분리·KV cache-aware 라우팅·LMCache·캐시 히트 전략)를 한 장의 지도로 정리
 created: "2026-03-06"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -141,7 +141,7 @@ flowchart TB
 | **L2** 분산 토폴로지 | Prefill/Decode 분리 · NIXL · LWS 멀티노드 | 대형 모델 처리량 | [Disaggregated Serving](./inference-optimization/disaggregated-serving.md) |
 | **L3** 추론 라우팅 | KV cache-aware · context-aware · prefix-cache scorer | 캐시 적중률 · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
 | **L4** 게이트웨이 | 모델 Cascade · 비용 추적 · Rate Limit · L7 한계 보완 | 비용 · 가용성 | [티어드 게이트웨이](./inference-routing/tiered-gateway-architecture.md) · [라우팅 전략](./inference-routing/routing-strategy.md) |
-| **L5** 캐시 계층 | KV/Prefix 캐시 · Prompt 캐시 · Semantic 캐시 · LMCache | 캐시 적중률 · 비용 | [LMCache](./inference-optimization/lmcache.md) · [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md) |
+| **L5** 캐시 계층 | KV/prefix cache · prompt cache · semantic cache · LMCache | 캐시 적중률 · 비용 | [LMCache](./inference-optimization/lmcache.md) · [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md) |
 
 :::tip 읽는 순서
 하위 계층(L0 GPU)부터 상위 계층(L4 게이트웨이)으로 읽으면 인프라 관점에서, 요청 경로 순서(L4 → L0)로 읽으면 트래픽 관점에서 이해하기 쉽습니다. 성능 지표(TTFT·TPS·캐시 적중률)와 3-Tier 권장 구성은 [추론 최적화 개요](./inference-optimization/index.md)를 참조하세요.
@@ -165,7 +165,7 @@ flowchart TB
 
 범용 L7 게이트웨이(NGINX·기본 Envoy 등)는 HTTP 요청을 stateless로 분배하도록 설계되어, LLM 추론 트래픽의 특성을 인지하지 못합니다. 이로 인해 다음과 같은 한계가 발생합니다.
 
-- **Round-Robin이 Prefix Cache를 무력화**: 동일 시스템 프롬프트를 공유하는 요청이 매번 다른 Pod로 분배되면, 각 Pod가 같은 prefill 연산을 반복합니다. 결과적으로 KV cache 재사용률이 떨어지고 TTFT가 증가합니다.
+- **Round-Robin이 prefix cache를 무력화**: 동일 시스템 프롬프트를 공유하는 요청이 매번 다른 Pod로 분배되면, 각 Pod가 같은 prefill 연산을 반복합니다. 결과적으로 KV cache 재사용률이 떨어지고 TTFT가 증가합니다.
 - **토큰 단위 과금·스트리밍 미인지**: L7 게이트웨이는 요청 수 기준으로만 부하를 판단해, 토큰 길이에 비례하는 실제 연산 비용을 반영하지 못합니다.
 - **모델 서버 메트릭 부재**: KV cache 사용량, 대기 큐 깊이(queue depth) 같은 추론 엔진 내부 상태를 알지 못해, 부하가 몰린 Pod로도 요청을 보냅니다.
 
@@ -209,11 +209,11 @@ KV cache-aware 라우팅은 같은 모델의 여러 Pod 중에서 **요청의 pr
 
 | 캐시 계층 | 적중 조건 | 효과 |
 |----------|----------|------|
-| **KV / Prefix 캐시** | 동일 prefix(시스템 프롬프트 등) | prefill 재연산 회피, TTFT 감소 |
-| **Prompt 캐시** | 완전 동일 요청 | 전체 추론 회피 |
-| **Semantic 캐시** | 의미적으로 유사한 요청(임베딩 유사도) | 유사 질의 추론 회피 |
+| **KV / Prefix Cache** | 동일 prefix(시스템 프롬프트 등) | prefill 재연산 회피, TTFT 감소 |
+| **Prompt Cache** | 완전 동일 요청 | 전체 추론 회피 |
+| **Semantic Cache** | 의미적으로 유사한 요청(임베딩 유사도) | 유사 질의 추론 회피 |
 
-각 계층의 히트율을 어떻게 높이고 어디서 측정하는지를 통합한 의사결정 프레임은 [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md)에서 다룹니다. Semantic 캐시의 임계값 설계는 [Semantic Caching 전략](./inference-optimization/semantic-caching-strategy.md)을, Prefix 캐시 효과는 [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md)를 참조하세요.
+각 계층의 히트율을 어떻게 높이고 어디서 측정하는지를 통합한 의사결정 프레임은 [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md)에서 다룹니다. semantic cache의 임계값 설계는 [Semantic Caching 전략](./inference-optimization/semantic-caching-strategy.md)을, prefix cache 효과는 [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md)를 참조하세요.
 
 ## 참고 자료
 

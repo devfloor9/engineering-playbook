@@ -3,9 +3,9 @@ title: NVIDIA GPU Stack
 description: Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo
 created: "2026-03-20"
 last_update:
-  date: "2026-07-19"
+  date: 2026-10-12
   author: devfloor9
-reading_time: 27
+reading_time: 25
 tags:
   - nvidia
   - gpu-operator
@@ -43,7 +43,7 @@ This document covers the architecture and design decision criteria for each comp
 
 GPU Operator is an orchestration layer that bundles the entire GPU stack under a single **ClusterPolicy CRD**. Each component can be independently enabled/disabled, and GPU environments are automatically configured when nodes are added.
 
-:::info GPU Operator v25.10.1 (as of 2026.03)
+:::info GPU Operator v25.10.1 (as of 2026-03)
 
 | Component | Version | Role |
 |-----------|---------|------|
@@ -403,7 +403,7 @@ Pods request `nvidia.com/gpu: 1` as usual. On Time-Slicing-enabled nodes, a GPU 
 
 **NVIDIA Dynamo** is an open-source framework that optimizes datacenter-scale LLM inference. It supports vLLM, SGLang, and TensorRT-LLM as backends, achieving **up to 7x performance improvement** over baselines.
 
-:::info Dynamo v1.0 GA (2026.03)
+:::info Dynamo v1.0 GA (2026-03)
 - **Serving modes**: Aggregated + Disaggregated equally supported
 - **Core technologies**: Flash Indexer, NIXL, KAI Scheduler, Planner, EPP
 - **Deployment**: Kubernetes Operator + CRD (DGDR)
@@ -458,7 +458,7 @@ flowchart TD
 | **Disaggregated Serving** | Separate Prefill/Decode workers | Independent per-phase scaling, maximize GPU utilization |
 | **Flash Indexer** | Radix tree-based per-worker KV cache indexing | Prefix matching optimization, maximize KV reuse |
 | **KVBM** | GPU → CPU → SSD 3-tier cache | Maximize memory efficiency, support large-scale contexts |
-| **NIXL** | NVIDIA Inference Transfer Library | Ultra-fast GPU-to-GPU KV Cache transfer (NVLink/RDMA). Shared by Dynamo, llm-d, production-stack, aibrix |
+| **NIXL** | NVIDIA Inference Transfer Library | Ultra-fast GPU-to-GPU KV cache transfer (NVLink/RDMA). Shared by Dynamo, llm-d, production-stack, aibrix |
 | **Planner** | SLO-based autoscaling | Profiling → SLO target-based automatic Prefill/Decode scaling |
 | **EPP** | Endpoint Picker Protocol | Native integration with K8s Gateway API |
 | **AIConfigurator** | Auto TP/PP recommendation | Optimal parallelization based on model size, GPU memory, network topology |

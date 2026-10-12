@@ -3,9 +3,9 @@ title: vLLM 모델 서빙
 description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
 created: "2026-02-05"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-12
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 16
 tags:
   - vllm
   - paged-attention
@@ -167,7 +167,7 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
   ]}
 />
 
-### PP 멀티노드 제약 (V1 엔진, 2026.04)
+### PP 멀티노드 제약 (V1 엔진, 2026-04) {#pp-멀티노드-제약-v1-엔진-202604}
 
 vLLM V1 엔진의 multiproc_executor는 NCCL TCPStore를 통해 멀티노드 동기화를 수행하는데, 대형 모델(744B 급) 로딩 시간이 `VLLM_ENGINE_READY_TIMEOUT_S` (기본 600초)를 초과하면 교착 상태가 발생할 수 있다.
 

@@ -3,7 +3,7 @@ title: CRIU GPU Migration Verification (Experimental)
 description: Version-specific GPU checkpoint/restore constraints and an EKS graceful-drain and warm-start evidence procedure (Experimental)
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-12
   author: devfloor9
 reading_time: 29
 tags:
@@ -263,4 +263,4 @@ Check these primary sources together with the deployed versions.
 - [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — Spot/On-Demand strategy, cost optimization
 - [GPU Resource Management](./gpu-resource-management.md) — Karpenter autoscaling
 - [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — Disaggregated Serving + NIXL KV Offload
-- [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — Prefix Cache, KV Cache management
+- [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — prefix cache, KV cache management

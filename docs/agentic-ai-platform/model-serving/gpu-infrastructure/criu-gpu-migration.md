@@ -3,7 +3,7 @@ title: CRIU 기반 GPU 마이그레이션 검증 (Experimental)
 description: GPU checkpoint/restore의 버전별 제약과 EKS graceful drain·warm-start 운영 증거 절차 (Experimental)
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 18
 tags:
@@ -48,7 +48,7 @@ CRIU는 지원되는 Linux 프로세스 상태를 저장합니다. GPU 상태는
 
 ## 기술 스택 검토 (2026-09-18) {#기술-스택-현황-202604}
 
-2026-09-18 공개 자료 기준으로 기존 2026.04 서술을 재검토했습니다. 아래 설명은 버전별 기능 확인이며 해당 workload의 운영 승인 상태는 아닙니다.
+2026-09-18 공개 자료 기준으로 기존 2026-04 서술을 재검토했습니다. 아래 설명은 버전별 기능 확인이며 해당 workload의 운영 승인 상태는 아닙니다.
 
 ### 전체 아키텍처
 
@@ -263,4 +263,4 @@ deadline 초과나 복원 실패 시 검증된 replica로 전환하고 해당 ch
 - [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) — Spot/On-Demand 전략, 비용 최적화
 - [GPU 리소스 관리](./gpu-resource-management.md) — Karpenter 오토스케일링
 - [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — Disaggregated Serving + NIXL KV Offload
-- [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — Prefix Cache, KV Cache 관리
+- [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — prefix cache, KV cache 관리

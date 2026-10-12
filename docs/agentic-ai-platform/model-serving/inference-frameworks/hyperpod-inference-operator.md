@@ -1,9 +1,9 @@
 ---
-title: HyperPod Inference Operator (관리형 KV 캐시·지능형 라우팅)
-description: SageMaker HyperPod Inference Operator의 관리형 KV 캐시·지능형 라우팅·DPD를 Tiered Gateway와 비교하고, L2 추론 라우팅 레이어로서의 역할과 한계를 정리
+title: HyperPod Inference Operator (관리형 KV Cache·지능형 라우팅)
+description: SageMaker HyperPod Inference Operator의 관리형 KV cache·지능형 라우팅·DPD를 Tiered Gateway와 비교하고, L2 추론 라우팅 레이어로서의 역할과 한계를 정리
 created: "2026-06-23"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 9
 tags:
@@ -56,7 +56,7 @@ HyperPod 추론 엔드포인트는 두 개의 라우팅 레이어로 구성됩�
 HyperPod에서는 ALB(L1)와 Intelligent Router(L2)가 함께 배포되어 **아키텍처상 한곳에 모여 보이지만**, Rate Limiting·인증·시맨틱 라우팅 같은 풀스택 게이트웨이 기능은 포함하지 않습니다. 이 기능들이 필요하면 HyperPod 앞단에 별도 L1 게이트웨이(kgateway·Kong 등)를 두어야 합니다. self-managed EKS에서는 게이트웨이와 라우터가 처음부터 분리된 컴포넌트입니다.
 :::
 
-## KV 캐시 구성: L1/L2 캐시와 라우팅 전략
+## KV Cache 구성: L1/L2 캐시와 라우팅 전략 {#kv-캐시-구성-l1l2-캐시와-라우팅-전략}
 
 HyperPod 관리형 KV cache는 추론 엔드포인트 설정에서 **2계층 캐시**로 구성됩니다.
 

@@ -3,9 +3,9 @@ title: NVIDIA GPU 스택
 description: GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합
 created: "2026-03-20"
 last_update:
-  date: "2026-07-19"
+  date: 2026-10-12
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 17
 tags:
   - nvidia
   - gpu-operator
@@ -43,7 +43,7 @@ NVIDIA GPU 소프트웨어 스택은 Kubernetes 환경에서 GPU를 운영하기
 
 GPU Operator는 **ClusterPolicy CRD** 하나로 GPU 스택 전체를 번들링하는 오케스트레이션 레이어입니다. 각 컴포넌트를 독립적으로 enable/disable할 수 있으며, 노드가 추가될 때 자동으로 GPU 환경을 구성합니다.
 
-:::info GPU Operator v26.3.2 (2026.06 기준)
+:::info GPU Operator v26.3.2 (2026-06 기준)
 
 | 컴포넌트 | 버전 | 역할 |
 |----------|------|------|
@@ -407,7 +407,7 @@ Pod에서는 일반 GPU 요청과 동일하게 `nvidia.com/gpu: 1`을 요청합�
 
 **NVIDIA Dynamo**는 데이터센터 규모의 LLM 추론을 최적화하는 오픈소스 프레임워크입니다. vLLM, SGLang, TensorRT-LLM을 백엔드로 지원합니다. 독립 벤치마크(SemiAnalysis InferenceX)에서 DeepSeek R1을 GB200 NVL72 + Dynamo(Disaggregated Serving + wide expert parallelism)로 서빙 시 Dynamo 미적용 B200 시스템 대비 GPU당 처리량 최대 7배를 기록했습니다(하드웨어가 다른 비교). NVIDIA 자체의 Disaggregated vs Aggregated 동일 하드웨어 비교는 1.4x~2.5x 수준입니다. Flash Indexer는 KV cache-aware 라우팅용 글로벌 인덱서(170M ops/s)로 Baseten 사례 기준 TTFT 2배 개선 효과가 보고되었습니다. NVIDIA Run:ai(2024-12-30 인수 완료)는 스케줄러 코어로 KAI Scheduler(Apache 2.0, 2025-04 오픈소스화)를 사용합니다.
 
-:::info Dynamo v1.2.x (2026.06 기준)
+:::info Dynamo v1.2.x (2026-06 기준)
 - **서빙 모드**: Aggregated + Disaggregated 동등 지원
 - **핵심 기술**: Flash Indexer, NIXL, KAI Scheduler, Planner, EPP
 - **배포 방식**: Kubernetes Operator + CRD (DGDR, DGD)
@@ -464,7 +464,7 @@ flowchart TD
 | **Disaggregated Serving** | Prefill/Decode 워커 분리 | 각 단계별 독립 스케일링, GPU 활용 극대화 |
 | **Flash Indexer** | Radix tree 기반 worker별 KV cache 인덱싱 | Prefix 매칭 최적화, KV 재사용률 극대화 |
 | **KVBM** | GPU → CPU → SSD 3-tier 캐시 | 메모리 효율 극대화, 대규모 컨텍스트 지원 |
-| **NIXL** | NVIDIA Inference Transfer Library | GPU 간 KV Cache 초고속 전송 (NVLink/RDMA). Dynamo, llm-d, production-stack, aibrix 등이 공통 사용 |
+| **NIXL** | NVIDIA Inference Transfer Library | GPU 간 KV cache 초고속 전송 (NVLink/RDMA). Dynamo, llm-d, production-stack, aibrix 등이 공통 사용 |
 | **Planner** | SLO 기반 오토스케일링 | Profiling → SLO 목표 기반 자동 Prefill/Decode 스케일링 |
 | **EPP** | Endpoint Picker Protocol | K8s Gateway API와 네이티브 통합 |
 | **AIConfigurator** | 자동 TP/PP 추천 | 모델 크기, GPU 메모리, 네트워크 토폴로지 기반 최적 병렬화 |
@@ -482,8 +482,8 @@ Dynamo:   Client → Dynamo Router → Prefill Workers → (NIXL) → Decode Wor
   headers={['항목', 'llm-d', 'Dynamo']}
   rows={[
     { id: '1', cells: ['아키텍처', 'Aggregated + Disaggregated', 'Aggregated + Disaggregated (동등 지원)'] },
-    { id: '2', cells: ['KV Cache 라우팅', 'Prefix-aware', 'Prefix-aware + Flash Indexer (radix tree)'] },
-    { id: '3', cells: ['KV Cache 전송', 'NIXL', 'NIXL (NVLink/RDMA)'] },
+    { id: '2', cells: ['KV cache 라우팅', 'Prefix-aware', 'Prefix-aware + Flash Indexer (radix tree)'] },
+    { id: '3', cells: ['KV cache 전송', 'NIXL', 'NIXL (NVLink/RDMA)'] },
     { id: '4', cells: ['Pod 스케줄링', 'K8s 기본 스케줄러', 'KAI Scheduler (GPU-aware)'] },
     { id: '5', cells: ['오토스케일링', 'HPA/KEDA 연동', 'Planner (SLO 기반) + KEDA/HPA'] },
     { id: '6', cells: ['백엔드', 'vLLM', 'vLLM, SGLang, TRT-LLM'] },
