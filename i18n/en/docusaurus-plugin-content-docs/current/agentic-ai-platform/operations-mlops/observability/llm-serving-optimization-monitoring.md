@@ -3,7 +3,7 @@ title: Monitoring Strategy for LLM Serving Optimization
 description: Connect cache efficiency, KV capacity, latency, and routing across seven observability layers, with explicit delivery, evaluation coverage, and quality gates.
 created: "2026-09-03"
 last_update:
-  date: 2026-09-19
+  date: "2026-10-06"
   author: YoungJoon Jeong
 reading_time: 49
 tags:
@@ -205,8 +205,12 @@ and on (cluster, namespace, model_name)
 | Backend failures and retries | Attempt counts versus logical requests, retry and fallback traces | Failure rate equals hidden retry rate |
 | Gateway errors without engine errors | Authentication, network, routing, and engine telemetry | Missing or zero engine errors prove engine health |
 | Increasing Agent steps | Repeated tool calls, progress, time and token budgets | Engine `vllm:iteration_tokens_total` measures Agent steps |
+| Reasoning leak rate | Boundary tokens (`</think>` and similar) or progress sentences in `content`; parser, template, and streaming `stop` combinations | Every detected response is a model defect |
+| Tool-call parse failure rate | Responses with tools defined where `tool_calls` is empty and `content` is call-shaped; argument schema violations | Parser failures and the model choosing not to call a tool are the same failure |
 
 Although its name contains `total`, `vllm:iteration_tokens_total` is a **histogram** of tokens per engine step, not an Agent-loop counter. Define whether output token counts include content, reasoning, and tool arguments.
+
+The reasoning leak rate and tool-call parse failure rate are collected from response inspection in the gateway or application, not from engine metrics. Detection rules and cause classification follow the "Measurement and regression" section of [Reasoning and Tool-Call Output Integrity](../../model-serving/inference-frameworks/reasoning-tool-output-parsing.md).
 
 ## 7. Quality Gates {#quality-gates}
 

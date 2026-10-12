@@ -3,7 +3,7 @@ title: 추론 프레임워크
 description: vLLM·llm-d·MoE·NeMo — GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층
 created: "2026-04-17"
 last_update:
-  date: 2026-09-22
+  date: "2026-10-06"
   author: devfloor9
 reading_time: 2
 tags:
@@ -20,7 +20,7 @@ sidebar_label: 추론 프레임워크
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-[가속 컴퓨팅 인프라](../gpu-infrastructure/index.md) 위에서 실제로 **LLM 을 서빙·분산 추론·파인튜닝** 하는 AI 프레임워크 계층입니다. 단일 노드 고성능 서빙(vLLM), Kubernetes 네이티브 분산 추론(llm-d), MoE 모델 처리, NVIDIA NeMo 기반 학습까지 포함합니다.
+[가속 컴퓨팅 인프라](../gpu-infrastructure/index.md) 위에서 실제로 **LLM 을 서빙·분산 추론·파인튜닝** 하는 AI 프레임워크 계층입니다. 단일 노드 고성능 서빙(vLLM), Kubernetes 네이티브 분산 추론(llm-d), MoE 모델 처리, NVIDIA NeMo 기반 학습과 함께 추론 모델의 reasoning·tool call 출력 경계를 운영하는 기준까지 포함합니다.
 
 <DocCardGrid columns={2}>
   <DocCard
@@ -29,6 +29,13 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     title="vLLM 모델 서빙"
     description="PagedAttention 기반 고성능 LLM 추론, Continuous Batching, Tensor/Pipeline Parallelism, Multi-LoRA 핫스왑."
     color="#ff6b6b"
+  />
+  <DocCard
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/reasoning-tool-output-parsing"
+    icon="🧹"
+    title="추론·도구 호출 출력 무결성"
+    description="reasoning·tool call이 답변으로 새는 원인을 모델·템플릿·파서·API·클라이언트 층으로 분류하고 엔진 설정·검증·교정 계층으로 막는 기준."
+    color="#10b981"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode"
@@ -61,5 +68,5 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 </DocCardGrid>
 
 :::tip 학습 순서
-**vLLM → llm-d → HyperPod Inference Operator → MoE → NeMo** 순으로 읽으면 "단일 노드 최적화 → 분산 추론 → 관리형 추론 라우팅 → 대규모 MoE → 학습 프레임워크" 의 점진적 난이도를 따라갈 수 있습니다.
+**vLLM → 추론·도구 호출 출력 무결성 → llm-d → HyperPod Inference Operator → MoE → NeMo** 순으로 읽으면 "단일 노드 최적화 → 출력 경계 운영 → 분산 추론 → 관리형 추론 라우팅 → 대규모 MoE → 학습 프레임워크" 의 점진적 난이도를 따라갈 수 있습니다.
 :::

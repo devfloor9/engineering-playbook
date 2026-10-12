@@ -3,7 +3,7 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: 2026-09-21
+  date: "2026-10-06"
   author: YoungJoon Jeong
 reading_time: 20
 tags:
@@ -95,7 +95,7 @@ flowchart LR
 | **Gateway Policy** | 게이트웨이 코어 | 인증/인가, 테넌트 격리, Rate Limit, 모델 라우팅 — 테넌시 계층 모델·예산 강제는 [AI Gateway 멀티테넌시](./ai-gateway-multi-tenancy.md) 참조 | +5~20ms |
 | **Tool Allow-list** | Agent/MCP 레이어 | MCP 서버 화이트리스트, scoped token, 인자 검증 | +10~30ms |
 | **Model (LLM Safety)** | 모델 자체 | 학습 단계에 주입된 safety alignment | 0ms (모델 내장) |
-| **Output Guard** | 응답 스트림 이후 | PII scrub, toxicity, hallucination 재검증 | +50~200ms |
+| **Output Guard** | 응답 스트림 이후 | PII scrub, toxicity, hallucination 재검증. 추론 누출·경계 토큰·malformed tool call 같은 출력 형식 교정은 [추론·도구 호출 출력 무결성](../../model-serving/inference-frameworks/reasoning-tool-output-parsing.md) 참조 | +50~200ms |
 | **Audit Log** | 횡단 관점 | 모든 위반 이벤트 기록, SIEM 연동 | 비동기 |
 
 :::tip 스트리밍 응답의 Output Guard

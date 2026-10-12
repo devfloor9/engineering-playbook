@@ -3,7 +3,7 @@ title: LLM 서빙 최적화를 위한 모니터링 전략
 description: 캐시 효율·KV 용량·지연·라우팅 지표를 7개 관측 계층으로 연결하고, 스트림 완료·평가 커버리지·품질 점수를 구분하여 서빙 최적화의 효과와 회귀를 검증하는 운영 전략입니다.
 created: "2026-09-03"
 last_update:
-  date: 2026-09-19
+  date: "2026-10-06"
   author: YoungJoon Jeong
 reading_time: 25
 tags:
@@ -203,8 +203,12 @@ and on (cluster, namespace, model_name)
 | backend 실패·재시도 | 시도 횟수와 논리 요청 수, retry·fallback trace | 실패율을 그대로 숨은 재시도율로 사용 |
 | gateway 오류·엔진 오류 부재 | 인증·네트워크·라우팅 및 엔진 수집 상태 | 엔진 시리즈가 없거나 0이면 엔진 정상이라는 판정 |
 | Agent 스텝 증가 | 반복 tool call, 진행 여부, 시간·토큰 예산 | `vllm:iteration_tokens_total`로 Agent 스텝 대체 |
+| 추론 누출률 | `content`의 경계 토큰(`</think>` 등)·진행 안내 문장, 파서·템플릿·스트리밍 stop 조합 | 탐지된 응답 전부를 모델 결함으로 귀속 |
+| tool-call 파싱 실패율 | 도구가 정의된 요청에서 `tool_calls`가 비고 `content`가 호출 형태인 응답, 인자 스키마 위반 | 파서 실패와 모델의 도구 미선택을 같은 실패로 집계 |
 
 `vllm:iteration_tokens_total`은 이름에 `total`이 있지만 엔진 스텝당 토큰 수의 **히스토그램**입니다. Agent 루프 횟수 카운터가 아닙니다. 출력 토큰 수는 본문·reasoning·tool argument의 포함 범위를 먼저 정의합니다.
+
+추론 누출률과 tool-call 파싱 실패율은 엔진 메트릭이 아니라 게이트웨이나 애플리케이션의 응답 검사에서 수집합니다. 탐지 규칙과 원인 분류는 [추론·도구 호출 출력 무결성](../../model-serving/inference-frameworks/reasoning-tool-output-parsing.md)의 "측정과 회귀" 절을 따릅니다.
 
 ## 7. 품질 게이트 {#quality-gates}
 
