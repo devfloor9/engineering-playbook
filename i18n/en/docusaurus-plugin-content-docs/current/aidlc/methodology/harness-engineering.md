@@ -3,7 +3,7 @@ title: Harness Engineering
 description: The second axis of AIDLC reliability — Harness design that architecturally enforces AI execution safety
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: devfloor9
 reading_time: 16
 tags:
@@ -426,7 +426,7 @@ Harness pattern checklist for AIDLC 3 phases:
 - **[MSA Complexity](../enterprise/msa-complexity/index.md)** — Harness patterns by MSA
 
 ### External References
-- [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026.03
-- [Harness Engineering Complete Guide](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026.03
-- [Specwright: Closes the Loop](https://obsidian-owl.github.io/engineering-blog/posts/specwright-spec-driven-development-that-closes-the-loop/) — Obsidian Owl, 2026.02
+- [Harness Engineering: Governing AI Agents through Architectural Rigor](https://harness-engineering.ai/blog/harness-engineering-governing-ai-agents-through-architectural-rigor/) — Kai Renner, 2026-03
+- [Harness Engineering Complete Guide](https://www.nxcode.io/resources/news/harness-engineering-complete-guide-ai-agent-codex-2026) — NxCode, 2026-03
+- [Specwright: Closes the Loop](https://obsidian-owl.github.io/engineering-blog/posts/specwright-spec-driven-development-that-closes-the-loop/) — Obsidian Owl, 2026-02
 - [EleutherAI LM Evaluation Harness](https://github.com/EleutherAI/lm-evaluation-harness) — GitHub 11.7k+ stars

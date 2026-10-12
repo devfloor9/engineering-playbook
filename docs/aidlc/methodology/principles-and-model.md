@@ -3,7 +3,7 @@ title: AIDLC 10대 원칙과 실행 모델
 description: AIDLC의 핵심 철학과 Intent → Unit → Bolt 실행 모델 — AWS Labs 공식 용어 매핑 포함
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 21
 tags:
@@ -576,7 +576,7 @@ AIDLC의 핵심 개념과 실행 모델을 이해했다면, 다음 문서를 참
 - [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions) — Built-in security/testing extensions + opt-in 메커니즘
 - [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC 원문 (Raja SP, AWS)
 - [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
-- [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025.11
+- [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025-11
 
 ### 설계 기법
 - [Domain-Driven Design Reference](https://domainlanguage.com/ddd/reference/) — Eric Evans

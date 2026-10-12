@@ -3,7 +3,7 @@ title: AIDLC 10 Principles and Execution Model
 description: Core philosophy of AIDLC and the Intent → Unit → Bolt execution model
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: devfloor9
 reading_time: 29
 tags:
@@ -536,7 +536,7 @@ Now that you understand AIDLC's core concepts and execution model, refer to the 
 - [AWS AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/) — AIDLC source (Raja SP, AWS)
 - [AWS AI-Driven Development Life Cycle Blog](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
 - [AWS Labs AIDLC Workflows (GitHub)](https://github.com/awslabs/aidlc-workflows)
-- [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025.11
+- [Open-Sourcing Adaptive Workflows for AI-DLC](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — AWS, 2025-11
 
 ### Design Techniques
 - [Domain-Driven Design Reference](https://domainlanguage.com/ddd/reference/) — Eric Evans
