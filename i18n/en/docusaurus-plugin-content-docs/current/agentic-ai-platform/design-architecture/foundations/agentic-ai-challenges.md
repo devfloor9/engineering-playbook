@@ -3,7 +3,7 @@ title: Technical Challenges of Agentic AI Workloads
 description: 5 key challenges faced when operating Agentic AI workloads
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: devfloor9
 reading_time: 32
 tags:
@@ -151,7 +151,7 @@ Agentic AI workloads leverage **multiple models and providers** simultaneously. 
 **Why it's difficult:**
 
 - **Multi-model operations**: Running diverse models like Llama, Qwen, Claude, and GPT simultaneously on a single platform
-- **KV Cache efficiency**: Routing that doesn't consider LLM KV Cache state significantly degrades performance
+- **KV cache efficiency**: Routing that doesn't consider LLM KV cache state significantly degrades performance
 - **Cost-performance tradeoff**: Must dynamically choose between low-cost and high-performance models based on task complexity
 - **Provider diversification**: Must integrate management of self-hosted models and external APIs (Bedrock, OpenAI)
 - **Canary/A-B deployment**: Must safely transition traffic to new model versions
@@ -331,7 +331,7 @@ These two approaches are **complementary** and can be combined based on workload
 ### Papers / Technical Blogs
 
 - [vLLM: Easy, Fast, and Cheap LLM Serving](https://blog.vllm.ai/2023/06/20/vllm.html) — PagedAttention mechanism explanation
-- [Efficient Memory Management for LLM Serving (OSDI 2023)](https://arxiv.org/abs/2309.06180) — KV Cache optimization research
+- [Efficient Memory Management for LLM Serving (OSDI 2023)](https://arxiv.org/abs/2309.06180) — KV cache optimization research
 - [Cost-Effective LLM Inference at Scale](https://aws.amazon.com/blogs/machine-learning/) — Production cost optimization cases
 - [NVIDIA Blog: Optimizing AI Workloads](https://developer.nvidia.com/blog/) — GPU optimization technology blog
 

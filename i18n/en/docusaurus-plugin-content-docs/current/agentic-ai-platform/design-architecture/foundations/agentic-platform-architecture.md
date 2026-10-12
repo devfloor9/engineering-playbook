@@ -3,7 +3,7 @@ title: Agentic AI Platform Architecture
 description: Overall system architecture of a production-grade Agentic AI Platform — 6 runtime layers and 3 cross-cutting planes
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: devfloor9
 reading_time: 59
 tags:
@@ -225,7 +225,7 @@ The layer responsible for inference of self-hosted models and non-LLM models. It
 
 #### Self-hosted LLM Serving
 
-Operates high-performance LLM serving engines supporting PagedAttention, KV Cache optimization, and distributed inference. Open-source inference engines such as vLLM and llm-d are autoscaled on Kubernetes.
+Operates high-performance LLM serving engines supporting PagedAttention, KV cache optimization, and distributed inference. Open-source inference engines such as vLLM and llm-d are autoscaled on Kubernetes.
 
 #### Non-LLM Serving
 

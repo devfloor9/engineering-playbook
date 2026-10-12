@@ -3,7 +3,7 @@ title: EKS-based Agentic AI Open Architecture
 description: Guide to building Agentic AI platform using Amazon EKS and open-source ecosystem
 created: "2026-02-05"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: devfloor9
 reading_time: 36
 tags:
@@ -212,10 +212,10 @@ All core components of the Agentic AI platform can be deployed on EKS Auto Mode.
 
 #### Inference: vLLM + llm-d
 
-**vLLM** is an LLM inference-dedicated engine, and **llm-d** provides intelligent routing considering KV Cache state.
+**vLLM** is an LLM inference-dedicated engine, and **llm-d** provides intelligent routing considering KV cache state.
 
 :::info Model Serving Stack Configuration
-- **vLLM**: LLM inference-dedicated (GPT, Claude, Llama, etc.) — PagedAttention-based KV Cache optimization
+- **vLLM**: LLM inference-dedicated (GPT, Claude, Llama, etc.) — PagedAttention-based KV cache optimization
 - **Triton Inference Server**: Handles non-LLM inference (embedding, reranking, Whisper STT)
 - **llm-d**: Maximizes prefix cache hit rate with KV Cache-aware routing
 
