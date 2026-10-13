@@ -50,7 +50,7 @@ Measurements of AI coding agents run on Amazon Bedrock, not in an EKS environmen
 
 | # | Report | Status |
 |---|--------|--------|
-| 9 | [Coding-Agent Ralph Loop Benchmark: 14 Models Measured on Amazon Bedrock](./ralph-loop-coding-agent-bedrock.md) | Measured; raw data not included |
+| 9 | [Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measured with a Coding-Agent Ralph Loop](./ralph-loop-coding-agent-bedrock.md) | Measured; raw data not included |
 
 ## Benchmark Methodology
 

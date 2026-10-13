@@ -48,7 +48,7 @@ Amazon Bedrock에서 실행한 AI 코딩 에이전트 측정입니다. EKS 환�
 
 | # | 보고서 | 상태 |
 |---|--------|------|
-| 9 | [코딩 에이전트 랄프 루프 벤치마크: Amazon Bedrock 14개 모델 실측](./ralph-loop-coding-agent-bedrock.md) | 실측 완료 / 원 데이터 미포함 |
+| 9 | [Foundation Model별 토큰 비용 비교: 코딩 에이전트 랄프 루프로 실측한 Amazon Bedrock 14개 모델](./ralph-loop-coding-agent-bedrock.md) | 실측 완료 / 원 데이터 미포함 |
 
 ## 벤치마크 방법론
 

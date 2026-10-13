@@ -1,5 +1,5 @@
 ---
-title: "코딩 에이전트 랄프 루프 벤치마크: Amazon Bedrock 14개 모델 실측"
+title: "Foundation Model별 토큰 비용 비교: 코딩 에이전트 랄프 루프로 실측한 Amazon Bedrock 14개 모델"
 description: RealWorld 백엔드 구현 과제를 랄프 루프로 Amazon Bedrock us-east-1의 14개 모델에서 5회씩 실행하고, 완주 여부와 토큰·비용·LLM 요청 수를 비교한 실측 보고서
 created: "2026-10-13"
 last_update:
@@ -15,7 +15,7 @@ tags:
   - cost
   - agentic-ai
   - scope:tech
-sidebar_label: "Report 9. 코딩 에이전트 랄프 루프 [실측]"
+sidebar_label: "Report 9. Foundation Model별 토큰 비용 비교 [실측]"
 sidebar_position: 9
 category: benchmark
 ---

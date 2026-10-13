@@ -1,5 +1,5 @@
 ---
-title: "Coding-Agent Ralph Loop Benchmark: 14 Models Measured on Amazon Bedrock"
+title: "Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measured with a Coding-Agent Ralph Loop"
 description: Measured report that ran a RealWorld backend implementation task in a Ralph loop five times on each of 14 models in Amazon Bedrock us-east-1 and compares completion, tokens, cost and LLM requests
 created: "2026-10-13"
 last_update:
@@ -15,7 +15,7 @@ tags:
   - cost
   - agentic-ai
   - scope:tech
-sidebar_label: "Report 9. Coding-Agent Ralph Loop [Measured]"
+sidebar_label: "Report 9. Foundation Model Token Cost Comparison [Measured]"
 sidebar_position: 9
 category: benchmark
 ---
