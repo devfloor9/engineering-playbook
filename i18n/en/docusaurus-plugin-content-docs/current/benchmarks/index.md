@@ -1,11 +1,11 @@
 ---
 title: EKS Performance Benchmark Reports
-description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations
+description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations, AI Agents
 created: "2026-02-11"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
-reading_time: 4
+reading_time: 5
 tags:
   - benchmark
   - performance
@@ -43,6 +43,14 @@ Performance reports and measurement plans for EKS. Check each report's evidence 
 | 6 | [Infrastructure Performance](./infrastructure-performance.md) | 🔜 Upcoming |
 | 7 | [Hybrid Infrastructure](./hybrid-infrastructure.md) | 🔜 Upcoming |
 | 8 | [Security & Operations](./security-operations.md) | 🔜 Upcoming |
+
+## AI Agents
+
+Measurements of AI coding agents run on Amazon Bedrock, not in an EKS environment.
+
+| # | Report | Status |
+|---|--------|--------|
+| 9 | [Coding-Agent Ralph Loop Benchmark: 14 Models Measured on Amazon Bedrock](./ralph-loop-coding-agent-bedrock.md) | Measured; raw data not included |
 
 ## Benchmark Methodology
 

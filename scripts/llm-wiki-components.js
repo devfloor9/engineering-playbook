@@ -10,10 +10,12 @@ const {sidebarCards} = require('./llm-wiki-navigation');
 const {inlinePipeline, embeddedDiagram} = require('./llm-wiki-diagrams');
 const root = path.resolve(__dirname, '..');
 const staticRenderer = new StaticRenderer({root, adapters, stateProfiles});
+const {ralphRenderers, ralphSources, RALPH_COMPONENTS} = require('./llm-wiki-ralph');
 const sharedSources = {
   CoreDnsMetricsTable: ['src/components/CoreDnsTables/CoreDnsMetricsTable.js', 'src/data/coredns-metrics.json'],
   GpuMemoryRequirements: ['src/components/MoeModelTables/GpuMemoryRequirements.js', 'src/data/moe-memory-models.json'],
   ParallelizationStrategies: ['src/components/MoeModelTables/ParallelizationStrategies.js', 'src/data/moe-parallelization.json'],
+  ...ralphSources,
 };
 
 function cell(value) {
@@ -51,12 +53,14 @@ const renderers = {
       row.strategy, row.description.ko, row.advantages.ko, row.disadvantages.ko,
     ]),
   ),
+  ...ralphRenderers(staticRenderer),
 };
 
 const componentModules = {
   CoreDnsMetricsTable: 'CoreDnsTables',
   GpuMemoryRequirements: 'MoeModelTables',
   ParallelizationStrategies: 'MoeModelTables',
+  ...Object.fromEntries(RALPH_COMPONENTS.map(name => [name, 'RalphLoopBenchmark'])),
 };
 
 // Only the repository's Figure may wrap a repository-owned draw.io resource.

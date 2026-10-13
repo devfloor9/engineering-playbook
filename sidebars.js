@@ -861,6 +861,15 @@ const sidebars = {
         'benchmarks/security-operations',
       ],
     },
+    {
+      type: 'category',
+      label: 'AI 에이전트',
+      collapsible: true,
+      collapsed: false,
+      items: [
+        'benchmarks/ralph-loop-coding-agent-bedrock',
+      ],
+    },
   ],
 };
 

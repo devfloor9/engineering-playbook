@@ -1,0 +1,287 @@
+/* Shared CSS for the RalphLoopBenchmark package (OWNER: agent A).
+ * Only --ep-* design tokens (with var() fallbacks) are used so the components
+ * match the playbook in both light and dark themes. Agents B and C consume
+ * these classes but keep component-specific CSS in their own module files.
+ * Never set a background without also setting its text color. */
+
+/* ---- Frame: mirrors Figure/DataTableFrame (border, radius, caption) ---- */
+.frame {
+  margin: var(--ep-space-5, 1.5rem) 0;
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--ep-space-3, 0.75rem);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-card, 8px);
+  background: var(--ep-surface-container-lowest);
+  color: var(--ep-on-surface);
+}
+
+.caption {
+  display: grid;
+  gap: var(--ep-space-2, 0.5rem);
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  line-height: 1.5;
+  color: var(--ep-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.title {
+  color: var(--ep-on-surface);
+  font-weight: 600;
+}
+
+.source {
+  min-width: 0;
+  color: var(--ep-on-surface-variant);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+}
+
+.source a {
+  color: var(--ifm-color-primary);
+}
+
+/* ---- Chip / badge: compact label pill ---- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ep-space-1, 0.25rem);
+  padding: 0.1rem var(--ep-space-2, 0.5rem);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-control, 6px);
+  background: var(--ep-surface-container-low);
+  color: var(--ep-on-surface-variant);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+/* Vendor-accented chip: --chip-accent is supplied inline via VENDOR_COLOR. */
+.chipAccent {
+  border-color: var(--chip-accent, var(--ep-outline-variant));
+  color: var(--ep-on-surface);
+}
+
+.chipAccent::before {
+  content: '';
+  display: inline-block;
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: var(--chip-accent, var(--ep-on-surface-variant));
+}
+
+/* ---- Legend: series key for charts ---- */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ep-space-2, 0.5rem) var(--ep-space-4, 1rem);
+  margin: var(--ep-space-3, 0.75rem) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface-variant);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.legendSwatch {
+  display: inline-block;
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border-radius: 2px;
+  background: var(--swatch, var(--ep-on-surface-variant));
+}
+
+/* ---- Visually-hidden helper for accessible data fallbacks ---- */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- KPI strip: responsive row of tiles ---- */
+.kpiStrip {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ep-space-3, 0.75rem);
+  margin: var(--ep-space-3, 0.75rem) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 480px) {
+  .kpiStrip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .kpiStrip {
+    grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  }
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ep-space-1, 0.25rem);
+  min-width: 0;
+  padding: var(--ep-space-3, 0.75rem) var(--ep-space-4, 1rem);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-card, 8px);
+  background: var(--ep-surface-container-lowest);
+  color: var(--ep-on-surface);
+}
+
+.kpiLabel {
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface-variant);
+  line-height: 1.4;
+}
+
+.kpiValue {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--ep-on-surface);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.kpiSub {
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface-variant);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* ---- Model cards: responsive grid (1 column at 360px) ---- */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--ep-space-4, 1rem);
+  margin: var(--ep-space-4, 1rem) 0 var(--ep-space-5, 1.5rem);
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 560px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ep-space-2, 0.5rem);
+  min-width: 0;
+  padding: var(--ep-card-padding, 20px);
+  border: 1px solid var(--ep-outline-variant);
+  /* Vendor accent bar; --card-accent supplied inline via VENDOR_COLOR. */
+  border-top: 3px solid var(--card-accent, var(--ep-outline-variant));
+  border-radius: var(--ep-radius-card, 8px);
+  background: var(--ep-surface-container-lowest);
+  color: var(--ep-on-surface);
+}
+
+.cardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ep-space-2, 0.5rem);
+  min-width: 0;
+}
+
+.cardName {
+  margin: 0;
+  font-family: var(--ifm-heading-font-family);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--ep-on-surface);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: var(--ep-font-mono);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.cardStats {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  gap: var(--ep-space-1, 0.25rem) var(--ep-space-3, 0.75rem);
+  margin: 0;
+  font-size: var(--ep-font-size-table, 0.9rem);
+  line-height: var(--ep-line-height-table, 1.6);
+}
+
+.cardStats dt {
+  color: var(--ep-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.cardStats dd {
+  margin: 0;
+  color: var(--ep-on-surface);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.cardStats dd code {
+  font-family: var(--ep-font-mono);
+}
+
+.note {
+  margin: 0;
+  padding-top: var(--ep-space-2, 0.5rem);
+  border-top: 1px solid var(--ep-outline-variant);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  line-height: 1.5;
+  color: var(--ep-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.note code {
+  font-family: var(--ep-font-mono);
+  font-size: 0.85em;
+  padding: 0.05rem 0.3rem;
+  border-radius: var(--ep-radius-control, 6px);
+  background: var(--ep-surface-container-low);
+  color: var(--ep-on-surface);
+}
+
+/* ---- Data fallback table for charts (shared with B/C via <details>) ---- */
+.dataToggle {
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface-variant);
+}
+
+.dataToggle summary {
+  cursor: pointer;
+  color: var(--ifm-color-primary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .kpi,
+  .chip {
+    transition: none;
+  }
+}
