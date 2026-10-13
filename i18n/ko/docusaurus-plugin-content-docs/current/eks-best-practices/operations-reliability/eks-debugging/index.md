@@ -432,7 +432,7 @@ AWS Support case를 제출할 때 이 로그 파일을 첨부하면 지원 엔�
 
 - [EKS 고가용성 아키텍처 가이드](../eks-resiliency-guide.md) - 아키텍처 수준 장애 회복 전략
 - [GitOps 기반 EKS 클러스터 운영](../gitops-cluster-operation.md) - GitOps 배포 및 운영 자동화
-- [Karpenter를 활용한 초고속 오토스케일링](/docs/eks-best-practices/resource-cost/karpenter-autoscaling.md) - Karpenter 기반 노드 프로비저닝 최적화
+- [Karpenter를 활용한 초고속 오토스케일링](/docs/eks-best-practices/resource-cost/karpenter-autoscaling) - Karpenter 기반 노드 프로비저닝 최적화
 - [노드 모니터링 에이전트](../node-monitoring-agent.md) - 노드 수준 모니터링
 
 ### 참고 자료
