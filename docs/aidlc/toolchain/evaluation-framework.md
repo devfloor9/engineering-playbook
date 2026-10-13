@@ -3,7 +3,7 @@ title: AIDLC Evaluation Framework
 description: Agent/LLM 개발 프로세스의 Evaluation-driven Loop — SWE-bench Verified, METR, Ragas, DeepEval, LangSmith, Braintrust, AWS Labs aidlc-evaluator 비교
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 34
 tags:
@@ -46,7 +46,7 @@ CI는 기존의 빌드·단위·통합·보안 테스트를 유지하면서 평�
 
 1. 프롬프트/에이전트/모델 변경이 커밋되면, 평가 데이터셋 기준선과 비교
 2. 핵심 지표(faithfulness, task success rate, tool-use accuracy 등) 가 허용 범위인지 확인
-3. 비용 지표(토큰·레이턴시) 역시 회귀가 없는지 측정
+3. 비용 지표(토큰·지연 시간) 역시 회귀가 없는지 측정
 4. 프로덕션 샘플 대비 drift 여부 판정
 5. 게이트 통과 시에만 배포 파이프라인 진행
 
@@ -320,7 +320,7 @@ flowchart LR
 - **Regression Dataset 유지**: 커밋 단위로 실행되는 200-500개 케이스
 - **Ground-truth 기반 메트릭**: Correctness, Exact-match, Tool-use precision/recall
 - **LLM-as-judge 메트릭**: Faithfulness, Relevancy, Toxicity
-- **Budget/Cost 지표**: 토큰·레이턴시 회귀도 동일 dataset 으로 측정
+- **Budget/Cost 지표**: 토큰·지연 시간 회귀도 동일 dataset 으로 측정
 - **Stage Transition Gate**: Construction → Operations 이동 전 핵심 지표 Green
 
 ### 5.3 Operations
@@ -526,7 +526,7 @@ flowchart LR
 ### 8.1 핵심 설계 포인트
 
 - **샘플링 계층화**: 일반 trace 5%와 오류/저평점/고비용 trace의 합집합 100%를 표집하는 정책 예시입니다. 우선 집단 내 중복을 제거하고 stratum·포함 확률·전체 모집단 수를 보존합니다. 섞인 표본의 단순 평균을 전체 오류율로 보고하지 말고 층별 결과 또는 설계에 맞는 가중 추정과 불확실성을 사용합니다.
-- **비동기 분리**: 평가 호출이 프로덕션 레이턴시에 영향을 주지 않도록 Queue 로 분리
+- **비동기 분리**: 평가 호출이 프로덕션 지연 시간에 영향을 주지 않도록 Queue 로 분리
 - **데이터 거버넌스**: PII 필터링 후 S3 에 저장, KMS 암호화, 접근 로그 기록
 - **피드백 루프**: 실패 trace는 검토 큐로 보내고, 개인정보·중복·예상 결과를 검토한 라벨만 Dataset 저장소에 승인 반영합니다. 실패한 응답을 정답으로 사용하지 않습니다.
 - **관찰성 일원화**: trace ID는 원본 연결에 사용하고, 별도 evaluation run ID와 tenant·dataset/judge/metric/rubric/pipeline revision을 함께 저장해 재평가를 구분합니다.
@@ -687,7 +687,7 @@ def evaluate_trace(trace_id, *, tenant_id, run_id, spec, sampling,
 ### 8.5 확장 패턴
 
 1. **멀티 테넌트 분리**: 인증한 tenant를 Queue·조회·캐시·저장·judge 자격 증명·알림에 끝까지 전달하고 권한을 각각 검사합니다. 대시보드·namespace 분리만으로 공유 worker의 접근이 통제되지는 않습니다.
-2. **비용-성능 Pareto 모니터링**: 지표 품질뿐 아니라 비용·레이턴시를 같은 대시보드에서 Pareto front 로 추적
+2. **비용-성능 Pareto 모니터링**: 지표 품질뿐 아니라 비용·지연 시간를 같은 대시보드에서 Pareto front 로 추적
 3. **Human-in-the-Loop 통합**: 경계선 trace 를 주기적으로 사람이 라벨링하도록 큐에 적재, 라벨 결과를 재훈련/파인튜닝 데이터로 활용
 4. **Shadow Traffic**: production 요청의 X%를 복제할 때 live write tool·결제·메시지 발송을 다시 실행하지 않습니다. 기록한 tool 결과를 replay하거나 별도 read-only/sandbox adapter를 사용하고, 외부 효과가 차단됨을 검증한 뒤 품질·비용·안전 gate와 사람 승인으로 승격합니다.
 

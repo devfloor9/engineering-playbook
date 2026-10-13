@@ -3,9 +3,9 @@ title: Multi-Agent Collaboration Patterns
 description: Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor 패턴과 LangGraph/CrewAI/AutoGen/Strands Agents SDK 구현
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 20
 tags:
   - multi-agent
   - orchestrator
@@ -330,7 +330,7 @@ Trace: user-request-<uuid>
 
 ### 5.3 Langfuse 대시보드 예시
 
-- **에이전트별 레이턴시 p95**: `agent.name` 그룹핑으로 병목 식별
+- **에이전트별 지연 시간 p95**: `agent.name` 그룹핑으로 병목 식별
 - **핸드오프 히트맵**: `handoff.from` × `handoff.to` 매트릭스
 - **라운드별 비용**: Debate/Voting 패턴의 비용 수렴성 검증
 - **실패율**: `status=error` span을 `agent.name`으로 집계
@@ -341,7 +341,7 @@ Langfuse v3.x는 OTel native 수집기로 동작합니다. 앱에서 `traceparen
 
 ---
 
-## 6. 비용·레이턴시 패턴
+## 6. 비용·지연 시간 패턴 {#6-비용레이턴시-패턴}
 
 ### 6.1 비용 증가 요인
 
@@ -357,11 +357,11 @@ Langfuse v3.x는 OTel native 수집기로 동작합니다. 앱에서 `traceparen
 | 모델 티어링 | Planner=Opus, Worker=Sonnet, Summarizer=Haiku |
 | 프롬프트 캐싱 | Claude prompt caching, OpenAI prompt caching으로 시스템 프롬프트 재사용 |
 | 조건부 escalation | 단순 태스크는 Haiku로 시작, confidence 낮으면 상위 모델 호출 |
-| 병렬 실행 | 독립 sub-task는 `asyncio.gather`/`Promise.all`로 레이턴시 단축 |
+| 병렬 실행 | 독립 sub-task는 `asyncio.gather`/`Promise.all`로 지연 시간 단축 |
 | 중간 결과 요약 | 긴 대화 히스토리를 주기적으로 요약해 컨텍스트 압축 |
 | 조기 종료 | Voting에서 과반 확보 시 나머지 취소 |
 
-### 6.3 레이턴시 최적화
+### 6.3 지연 시간 최적화 {#63-레이턴시-최적화}
 
 - **Streaming 핸드오프**: 첫 토큰부터 다음 에이전트가 처리 시작 (speculative execution).
 - **Fan-out 후 first-wins**: N개 에이전트에 동시 요청, 가장 먼저 도착한 신뢰 가능한 응답 사용.
@@ -523,7 +523,7 @@ A → B → A → B → ... 핑퐁. 각 에이전트가 자신의 역할이 아�
 - [ ] **역할 경계 명확**: 각 에이전트의 책임 범위와 "하지 않을 일"을 시스템 프롬프트에 명시.
 - [ ] **Handoff 조건 문서화**: 어떤 상황에서 누구에게 넘기는지 결정 트리로 기록.
 - [ ] **Guardrails 공통 레이어**: PII 마스킹, prompt injection 방어, 출력 스키마 검증을 각 에이전트가 아닌 gateway 레이어에서 수행.
-- [ ] **비용·레이턴시 상한**: 요청당 최대 토큰, 최대 라운드, 최대 실행 시간 하드 리밋.
+- [ ] **비용·지연 시간 상한**: 요청당 최대 토큰, 최대 라운드, 최대 실행 시간 하드 리밋.
 - [ ] **관측성 속성 표준화**: `agent.name`, `agent.role`, `handoff.reason`을 모든 span에 강제.
 - [ ] **실패 경로 정의**: 에이전트 실패 시 사용자에게 무엇을 보여줄지 (부분 결과 / 에러 / 재시도 안내).
 - [ ] **모델 버전 고정**: 모델 업데이트 시 회귀 방지를 위해 pinned version + canary 롤아웃.

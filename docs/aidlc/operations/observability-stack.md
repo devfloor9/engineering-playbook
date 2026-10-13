@@ -3,7 +3,7 @@ title: 관찰성 스택
 description: AIDLC Operations의 데이터 기반 — 3-Pillar 관찰성 + AI 분석 레이어 구축
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -244,8 +244,8 @@ Enhanced Container Insights는 월 $50-200 수준의 추가 비용 발생. 개�
 - **Node.js**: Express, Nest.js (수동 계측)
 
 **자동 생성 항목**:
-- **Service Map**: 서비스 간 호출 관계 시각화 (에러율·레이턴시 표시)
-- **SLI 자동 설정**: 가용성(에러율), 레이턴시(P99), 처리량 자동 측정
+- **Service Map**: 서비스 간 호출 관계 시각화 (에러율·지연 시간 표시)
+- **SLI 자동 설정**: 가용성(에러율), 지연 시간(P99), 처리량 자동 측정
 - **SLO 구성**: SLI 기반 목표 설정 (예: 가용성 99.9%, P99 < 500ms)
 
 **활성화 방법**:
@@ -308,11 +308,11 @@ spec:
 ```
 [CloudWatch Investigation 결과]
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 조사 요약: payment-service 레이턴시 증가
+📋 조사 요약: payment-service 지연 시간 증가
 
 ⏱️ 타임라인:
   14:23 - RDS 연결 풀 사용률 급증 (70% → 95%)
-  14:25 - payment-service P99 레이턴시 500ms → 2.3s
+  14:25 - payment-service P99 지연 시간 500ms → 2.3s
   14:27 - 다운스트림 order-service도 영향 받기 시작
   14:30 - CloudWatch Alarm 트리거
 
