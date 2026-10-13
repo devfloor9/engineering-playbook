@@ -3,9 +3,9 @@ title: AgenticOps 메트릭 — 운영 중 관측할 Agent KPI
 description: task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate 등 Agent 운영 KPI와 Langfuse·OTel 스키마
 created: "2026-04-18"
 last_update:
-  date: "2026-09-13"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 10
 tags:
   - metrics
   - kpi
@@ -16,7 +16,7 @@ tags:
 sidebar_label: Agentic 메트릭
 ---
 
-AI Agent가 프로덕션에 배포되면, **시스템이 정상 응답하는가**만으로는 품질을 판단할 수 없다. "사용자 의도를 정확히 이해했는가?", "올바른 도구를 호출했는가?", "답변이 충실한가?"와 같은 **사용자 지각 품질(Perceived Quality)**을 측정해야 한다. 이 문서는 Agent 운영에 필수적인 **KPI 카테고리**와 **Langfuse·OTel 기반 계측 방법**을 다룬다.
+AI Agent가 프로덕션에 배포되면, **시스템이 정상 응답하는가**만으로는 품질을 판단할 수 없습니다. "사용자 의도를 정확히 이해했는가?", "올바른 도구를 호출했는가?", "답변이 충실한가?"와 같은 **사용자 지각 품질(Perceived Quality)**을 측정해야 합니다. 이 문서는 Agent 운영에 필수적인 **KPI 카테고리**와 **Langfuse·OTel 기반 계측 방법**을 다룹니다.
 
 ---
 
@@ -24,7 +24,7 @@ AI Agent가 프로덕션에 배포되면, **시스템이 정상 응답하는가*
 
 ### 1.1 전통 APM의 한계
 
-기존 APM(Application Performance Monitoring)은 HTTP 성공률, 응답 시간, 에러율 등 **시스템 지표**를 중심으로 설계되었다. 그러나 Agent는 다음과 같은 이유로 추가 메트릭이 필요하다:
+기존 APM(Application Performance Monitoring)은 HTTP 성공률, 응답 시간, 에러율 등 **시스템 지표**를 중심으로 설계되었습니다. 그러나 Agent는 다음과 같은 이유로 추가 메트릭이 필요합니다:
 
 | 전통 APM | Agent 품질 지표 | 격차 |
 |---------|----------------|------|
@@ -59,7 +59,7 @@ flowchart LR
     style USER_FAIL fill:#ea4335,color:#fff
 ```
 
-Agent의 실제 품질은 **사용자가 원하는 작업을 정확히 수행했는가**로 판단되며, 이는 시스템 성공 지표와 독립적이다.
+Agent의 실제 품질은 **사용자가 원하는 작업을 정확히 수행했는가**로 판단되며, 이는 시스템 성공 지표와 독립적입니다.
 
 ---
 
@@ -67,7 +67,7 @@ Agent의 실제 품질은 **사용자가 원하는 작업을 정확히 수행했
 
 ### 2.1 과제 성공 (Task Success)
 
-사용자가 요청한 작업이 완료되었는가를 측정한다.
+사용자가 요청한 작업이 완료되었는가를 측정합니다.
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -98,7 +98,7 @@ trace.score(
 
 ### 2.2 Tool Use 정확성
 
-Agent가 올바른 도구를 정확히 호출하는지 측정한다.
+Agent가 올바른 도구를 정확히 호출하는지 측정합니다.
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -127,7 +127,7 @@ span.score(
 
 ### 2.3 품질·안전
 
-답변 품질과 안전 위반 여부를 측정한다.
+답변 품질과 안전 위반 여부를 측정합니다.
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -170,7 +170,7 @@ if gateway_response.status == "blocked_pii":
 
 ### 2.4 비용·효율
 
-Agent 운영 비용과 리소스 효율을 측정한다.
+Agent 운영 비용과 리소스 효율을 측정합니다.
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -211,7 +211,7 @@ if cache_hit:
 
 ### 2.5 사용자 경험
 
-사용자 체감 품질을 측정한다.
+사용자 체감 품질을 측정합니다.
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -256,7 +256,7 @@ if confidence_score < 0.7:
 
 ### 2.6 시스템 신뢰성
 
-Agent 서비스의 안정성을 측정한다.
+Agent 서비스의 안정성을 측정합니다.
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -278,7 +278,7 @@ Error budget: 5% → 월 36시간 장애 허용
 
 ### 3.1 Span Hierarchy
 
-Agent 실행 흐름을 다음과 같은 계층으로 표현한다:
+Agent 실행 흐름을 다음과 같은 계층으로 표현합니다:
 
 ```mermaid
 flowchart TB
@@ -309,7 +309,7 @@ flowchart TB
 
 ### 3.2 기본 태그 (Tags)
 
-모든 trace/span에 다음 태그를 부여한다:
+모든 trace/span에 다음 태그를 부여합니다:
 
 - `agent_name`: Agent 식별자 (예: `customer-support-agent`)
 - `model`: LLM 모델명 (예: `example-model`)
@@ -319,7 +319,7 @@ flowchart TB
 
 ### 3.3 Score 이벤트
 
-품질 평가는 `score` 이벤트로 기록한다:
+품질 평가는 `score` 이벤트로 기록합니다:
 
 - `task_success`: 0.0~1.0
 - `faithfulness`: 0.0~1.0 (Ragas)
@@ -419,7 +419,7 @@ flowchart TB
 
 OpenTelemetry는 **GenAI Semantic Conventions**를 통해 LLM 계측 표준을 정의한다 ([semconv 1.44.0](https://opentelemetry.io/docs/specs/semconv/gen-ai/), stability: Development).
 
-GenAI 규약의 정본은 2026년 5월 [`semantic-conventions-genai`](https://github.com/open-telemetry/semantic-conventions-genai) 저장소로 분리되었고, 기존 `semantic-conventions` 저장소의 `gen_ai.*` 속성은 모두 Deprecated 처리되었다. 아래 표는 [레지스트리 `0c87594`](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md) 기준이다.
+GenAI 규약의 정본은 2026년 5월 [`semantic-conventions-genai`](https://github.com/open-telemetry/semantic-conventions-genai) 저장소로 분리되었고, 기존 `semantic-conventions` 저장소의 `gen_ai.*` 속성은 모두 Deprecated 처리되었습니다. 아래 표는 [레지스트리 `0c87594`](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md) 기준입니다.
 
 **핵심 attribute**:
 
@@ -660,7 +660,7 @@ Actions:
 
 ### 7.1 Inception: Baseline 정의
 
-프로젝트 초기에 목표 KPI를 정의한다.
+프로젝트 초기에 목표 KPI를 정의합니다.
 
 | KPI | Target (90일 후) | Baseline (현재) |
 |-----|------------------|-----------------|
@@ -672,7 +672,7 @@ Actions:
 
 ### 7.2 Construction: CI 회귀 게이트
 
-각 PR에서 메트릭 회귀를 자동 감지한다.
+각 PR에서 메트릭 회귀를 자동 감지합니다.
 
 ```yaml
 # .github/workflows/agent-quality-gate.yml

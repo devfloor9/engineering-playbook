@@ -29,7 +29,7 @@ import { ObservabilityPillars, ArchitectureLayers, StackSelectionPatterns } from
 
 ### 1.1 관찰성이 AgenticOps의 데이터 기반인 이유
 
-**관찰성(Observability)**은 시스템의 내부 상태를 외부 출력(메트릭·로그·트레이스)을 통해 이해하는 능력이다. EKS 환경에서 수백 개의 Pod, 복잡한 서비스 메시, 동적 스케일링이 결합되면 전통적 모니터링만으로는 근본 원인을 파악하기 어렵다.
+**관찰성(Observability)**은 시스템의 내부 상태를 외부 출력(메트릭·로그·트레이스)을 통해 이해하는 능력입니다. EKS 환경에서 수백 개의 Pod, 복잡한 서비스 메시, 동적 스케일링이 결합되면 전통적 모니터링만으로는 근본 원인을 파악하기 어렵습니다.
 
 **AgenticOps 맥락에서 관찰성의 역할**:
 
@@ -143,7 +143,7 @@ graph TB
 <StackSelectionPatterns />
 
 :::tip ADOT (OpenTelemetry) 수집 레이어
-어떤 백엔드를 선택하든, **ADOT를 수집 레이어로 사용하면 백엔드 교체가 자유롭다**. OpenTelemetry는 CNCF 표준이므로 Prometheus, Datadog, Sumo Logic 등 대부분의 백엔드로 데이터를 내보낼 수 있다. 이것이 AWS가 자체 에이전트 대신 OpenTelemetry를 Managed Add-on(ADOT)으로 제공하는 이유다.
+어떤 백엔드를 선택하든, **ADOT를 수집 레이어로 사용하면 백엔드 교체가 자유롭습니다**. OpenTelemetry는 CNCF 표준이므로 Prometheus, Datadog, Sumo Logic 등 대부분의 백엔드로 데이터를 내보낼 수 있습니다. 이것이 AWS가 자체 에이전트 대신 OpenTelemetry를 Managed Add-on(ADOT)으로 제공하는 이유입니다.
 :::
 
 ---
@@ -152,7 +152,7 @@ graph TB
 
 ### 3.1 Managed Add-ons 기반 구축
 
-**EKS Managed Add-ons**는 AWS가 관찰성 에이전트의 설치·업그레이드·패치를 관리하여 운영 복잡성을 제거한다.
+**EKS Managed Add-ons**는 AWS가 관찰성 에이전트의 설치·업그레이드·패치를 관리하여 운영 복잡성을 제거합니다.
 
 | Add-on | 역할 | 버전 예시 |
 |--------|------|----------|
@@ -218,7 +218,7 @@ AMG ← PromQL 쿼리 ← Grafana 대시보드
 
 ### 4.1 Container Insights Enhanced
 
-**EKS 1.28+**에서 Enhanced Container Insights는 **Control Plane 메트릭**을 포함한 심층 관찰성을 제공한다.
+**EKS 1.28+**에서 Enhanced Container Insights는 **Control Plane 메트릭**을 포함한 심층 관찰성을 제공합니다.
 
 **수집 메트릭 범위**:
 - **Pod 메트릭**: CPU, 메모리, 네트워크, 디스크 I/O
@@ -235,7 +235,7 @@ Enhanced Container Insights는 월 $50-200 수준의 추가 비용 발생. 개�
 
 ### 4.2 Application Signals
 
-**Zero-code 계측**으로 애플리케이션의 서비스 맵, SLI/SLO, 호출 그래프를 자동 생성한다.
+**Zero-code 계측**으로 애플리케이션의 서비스 맵, SLI/SLO, 호출 그래프를 자동 생성합니다.
 
 **지원 언어**:
 - **Java**: Spring Boot, Tomcat, Jetty (자동 계측)
@@ -273,7 +273,7 @@ spec:
 
 ### 5.1 CloudWatch AI 자연어 쿼리
 
-**PromQL이나 Logs Insights 구문 없이 자연어로 분석**할 수 있는 기능이다.
+**PromQL이나 Logs Insights 구문 없이 자연어로 분석**할 수 있는 기능입니다.
 
 **실제 쿼리 예시**:
 
@@ -294,7 +294,7 @@ spec:
 
 ### 5.2 CloudWatch Investigations
 
-**AI 기반 근본 원인 분석 도구**로, 알림 발생 시 자동으로 관련 메트릭·로그·트레이스를 수집하여 분석한다.
+**AI 기반 근본 원인 분석 도구**로, 알림 발생 시 자동으로 관련 메트릭·로그·트레이스를 수집하여 분석합니다.
 
 **분석 프로세스**:
 1. **알림 트리거**: CloudWatch Alarm 또는 DevOps Guru 인사이트 발생
@@ -328,7 +328,7 @@ spec:
 ```
 
 :::tip Investigation + Hosted MCP
-CloudWatch Investigations 결과를 **Hosted MCP 서버**를 통해 Kiro에서 직접 조회할 수 있다. "현재 진행 중인 Investigation이 있어?" → MCP가 Investigation 상태 반환 → Kiro가 자동으로 대응 코드 생성. 이것이 **AI 분석 → 자동 대응**의 완전한 루프다.
+CloudWatch Investigations 결과를 **Hosted MCP 서버**를 통해 Kiro에서 직접 조회할 수 있습니다. "현재 진행 중인 Investigation이 있어?" → MCP가 Investigation 상태 반환 → Kiro가 자동으로 대응 코드 생성. 이것이 **AI 분석 → 자동 대응**의 완전한 루프입니다.
 :::
 
 ---
@@ -337,7 +337,7 @@ CloudWatch Investigations 결과를 **Hosted MCP 서버**를 통해 Kiro에서 �
 
 ### 6.1 MCP가 관찰성에 가져오는 변화
 
-기존에는 CloudWatch 콘솔, Grafana 대시보드, X-Ray 콘솔을 각각 열어 문제를 진단했다. **AWS MCP 서버**(개별 로컬 50+ GA 또는 Fully Managed Preview)를 사용하면 **Kiro/Q Developer에서 모든 관찰성 데이터를 통합 조회**할 수 있다.
+기존에는 CloudWatch 콘솔, Grafana 대시보드, X-Ray 콘솔을 각각 열어 문제를 진단했습니다. **AWS MCP 서버**(개별 로컬 50+ GA 또는 Fully Managed Preview)를 사용하면 **Kiro/Q Developer에서 모든 관찰성 데이터를 통합 조회**할 수 있습니다.
 
 ```mermaid
 graph LR
@@ -382,7 +382,7 @@ graph LR
 
 ### 6.3 통합 분석 시나리오
 
-**시나리오: "payment-service가 느리다"는 보고**
+**시나리오: "payment-service가 느립니다"는 보고**
 
 Kiro에서 MCP를 통해 통합 분석하는 과정:
 
@@ -402,7 +402,7 @@ Kiro에서 MCP를 통해 통합 분석하는 과정:
 ```
 
 :::info 프로그래머틱 관찰성 자동화
-MCP의 핵심 가치는 **여러 데이터 소스를 단일 인터페이스로 통합**하는 것이다. CloudWatch 메트릭, X-Ray 트레이스, EKS API, DevOps Guru 인사이트를 AI Agent가 한 번에 접근하여, 사람이 수동으로 여러 콘솔을 오가며 분석하는 것보다 빠르고 정확한 진단이 가능하다.
+MCP의 핵심 가치는 **여러 데이터 소스를 단일 인터페이스로 통합**하는 것입니다. CloudWatch 메트릭, X-Ray 트레이스, EKS API, DevOps Guru 인사이트를 AI Agent가 한 번에 접근하여, 사람이 수동으로 여러 콘솔을 오가며 분석하는 것보다 빠르고 정확한 진단이 가능합니다.
 :::
 
 ---
@@ -411,7 +411,7 @@ MCP의 핵심 가치는 **여러 데이터 소스를 단일 인터페이스로 �
 
 ### 7.1 Alert Fatigue 문제
 
-EKS 환경에서 알림 피로는 심각한 운영 문제다:
+EKS 환경에서 알림 피로는 심각한 운영 문제입니다:
 
 - **평균적인 EKS 클러스터**: 일 50-200개의 알림 발생
 - **실제 조치 필요한 알림**: 전체의 10-15%
@@ -419,7 +419,7 @@ EKS 환경에서 알림 피로는 심각한 운영 문제다:
 
 ### 7.2 SLO 기반 알림 전략
 
-**SLO(Service Level Objectives)** 기반으로 알림을 구성하면 Alert Fatigue를 크게 줄일 수 있다.
+**SLO(Service Level Objectives)** 기반으로 알림을 구성하면 Alert Fatigue를 크게 줄일 수 있습니다.
 
 **Error Budget 개념**:
 
@@ -463,7 +463,7 @@ spec:
 
 ### 7.3 CloudWatch Composite Alarms
 
-여러 알람을 논리적으로 결합하여 노이즈를 줄인다.
+여러 알람을 논리적으로 결합하여 노이즈를 줄입니다.
 
 ```bash
 # CPU AND Memory 동시 높을 때만 알림

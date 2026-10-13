@@ -3,7 +3,7 @@ title: 배포 전략 — Shadow·Canary·A/B·Blue-Green
 description: 점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -21,7 +21,7 @@ sidebar_label: 배포 전략
 
 ### Shadow Testing
 
-**개념**: 신모델이 실제 프로덕션 트래픽을 받되, 응답은 사용자에게 전달하지 않는다. 구모델의 응답만 반환하고, 신모델 출력은 로그/평가용으로만 수집한다.
+**개념**: 신모델이 실제 프로덕션 트래픽을 받되, 응답은 사용자에게 전달하지 않습니다. 구모델의 응답만 반환하고, 신모델 출력은 로그/평가용으로만 수집합니다.
 
 ```mermaid
 sequenceDiagram
@@ -77,7 +77,7 @@ async def shadow_call(user_request):
 
 ### Canary Rollout
 
-**개념**: 소수 트래픽(5%)부터 시작해 단계적으로 비율을 높여간다.
+**개념**: 소수 트래픽(5%)부터 시작해 단계적으로 비율을 높여갑니다.
 
 ```
 5% → 관찰(24h) → 문제 없으면 25% → 50% → 100%
@@ -137,15 +137,15 @@ def get_model_for_user(user_id: str):
 
 ### A/B Testing
 
-**개념**: 트래픽을 두 그룹(A: 구모델, B: 신모델)으로 **랜덤 분할**하고, 비즈니스 메트릭(conversion rate, 사용자 만족도 등)을 통계적으로 비교한다.
+**개념**: 트래픽을 두 그룹(A: 구모델, B: 신모델)으로 **랜덤 분할**하고, 비즈니스 메트릭(conversion rate, 사용자 만족도 등)을 통계적으로 비교합니다.
 
 **언제 사용**:
 - "신모델이 정말 더 나은가?"를 **통계적 유의성**으로 증명해야 할 때
 - 마케팅, UX 최적화(프롬프트 톤 변경 등)
 
 **실험 설계**:
-1. **귀무가설**: "신모델과 구모델의 성능 차이가 없다"
-2. **대립가설**: "신모델이 conversion rate를 5% 이상 개선한다"
+1. **귀무가설**: "신모델과 구모델의 성능 차이가 없습니다"
+2. **대립가설**: "신모델이 conversion rate를 5% 이상 개선합니다"
 3. **샘플 크기 계산**: [AB Test Calculator](https://www.evanmiller.org/ab-testing/sample-size.html)  
    예: 베이스라인 10%, 5%p 개선 감지, 80% power → 그룹당 2,348명 필요
 4. **실험 기간**: 충분한 샘플 확보될 때까지(보통 1-4주)
@@ -196,7 +196,7 @@ print(f"p-value: {p}")  # p < 0.05 → B가 통계적으로 유의하게 우수
 
 ### Blue-Green Deployment
 
-**개념**: 구환경(Blue)과 신환경(Green)을 동시에 운영하다가, 트래픽을 **한 번에** Green으로 전환. 문제 발생 시 즉시 Blue로 되돌린다.
+**개념**: 구환경(Blue)과 신환경(Green)을 동시에 운영하다가, 트래픽을 **한 번에** Green으로 전환. 문제 발생 시 즉시 Blue로 되돌립니다.
 
 **언제 사용**:
 - 모델 서빙 인프라 자체를 교체할 때(vLLM 0.5 → 0.6)
@@ -282,7 +282,7 @@ spec:
 
 ### LaunchDarkly
 
-[LaunchDarkly](https://launchdarkly.com/)는 엔터프라이즈급 Feature Flag 플랫폼이다.
+[LaunchDarkly](https://launchdarkly.com/)는 엔터프라이즈급 Feature Flag 플랫폼입니다.
 
 **프롬프트 전개 예시**:
 
@@ -319,7 +319,7 @@ def get_prompt_version(user_id: str, org_id: str) -> int:
 
 ### Unleash
 
-[Unleash](https://www.getunleash.io/)는 오픈소스 Feature Flag 플랫폼이다.
+[Unleash](https://www.getunleash.io/)는 오픈소스 Feature Flag 플랫폼입니다.
 
 **장점**:
 - Self-hosted 가능
@@ -348,7 +348,7 @@ function getPromptVariant(userId: string): string {
 
 ### AWS AppConfig
 
-[AWS AppConfig](https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html)는 Feature Flag와 동적 설정을 지원한다.
+[AWS AppConfig](https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html)는 Feature Flag와 동적 설정을 지원합니다.
 
 **장점**:
 - AWS 네이티브, Lambda/ECS/EKS와 통합
