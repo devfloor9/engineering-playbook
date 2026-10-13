@@ -3,7 +3,7 @@ title: GPU Resource Management
 description: GPU resource management and cost optimization using Karpenter, KEDA, and DRA on EKS
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 36
 tags:
@@ -270,7 +270,7 @@ flowchart LR
 
 ### Node Provisioning Compatibility
 
-:::warning DRA node provisioning compatibility (as of 2026.07)
+:::warning DRA node provisioning compatibility (as of 2026-07)
 
 | Node Provisioning | DRA Compatible | Notes |
 |---|---|---|
@@ -394,7 +394,7 @@ flowchart LR
 
 ### LLM Serving Metrics-Based ScaledObject
 
-For LLM serving, **KV Cache saturation**, **TTFT**, and **queue depth** are more sensitive scaling signals than simple GPU utilization.
+For LLM serving, **KV cache saturation**, **TTFT**, and **queue depth** are more sensitive scaling signals than simple GPU utilization.
 
 ```yaml
 apiVersion: keda.sh/v1alpha1

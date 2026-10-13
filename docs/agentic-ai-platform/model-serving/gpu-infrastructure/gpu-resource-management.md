@@ -3,9 +3,9 @@ title: GPU 리소스 관리
 description: EKS에서 Karpenter, KEDA, DRA를 활용한 GPU 리소스 관리 및 비용 최적화
 created: "2026-02-05"
 last_update:
-  date: "2026-07-19"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 21
 tags:
   - gpu
   - karpenter
@@ -270,7 +270,7 @@ flowchart LR
 
 ### 노드 프로비저닝 호환성
 
-:::warning DRA 노드 프로비저닝 호환성 (2026.07 기준)
+:::warning DRA 노드 프로비저닝 호환성 (2026-07 기준)
 
 | 노드 프로비저닝 | DRA 호환 | 비고 |
 |---|---|---|
@@ -394,7 +394,7 @@ flowchart LR
 
 ### LLM 서빙 메트릭 기반 ScaledObject
 
-LLM 서빙에서는 단순 GPU 사용률보다 **KV Cache 포화율**, **TTFT**, **대기 큐 길이**가 더 민감한 스케일링 시그널입니다.
+LLM 서빙에서는 단순 GPU 사용률보다 **KV cache 포화율**, **TTFT**, **대기 큐 길이**가 더 민감한 스케일링 시그널입니다.
 
 ```yaml
 apiVersion: keda.sh/v1alpha1

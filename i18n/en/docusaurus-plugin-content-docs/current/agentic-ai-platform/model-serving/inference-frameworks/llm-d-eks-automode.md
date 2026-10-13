@@ -194,7 +194,7 @@ sequenceDiagram
 <KVCacheEffectsTable />
 
 :::tip Maximizing Cache Hit Rate
-KV Cache-aware routing is most effective in applications using identical system prompts. For example, in RAG pipelines that repeatedly reference the same context documents, reusing the prefix's KV Cache can significantly reduce TTFT.
+KV Cache-aware routing is most effective in applications using identical system prompts. For example, in RAG pipelines that repeatedly reference the same context documents, reusing the prefix's KV cache can significantly reduce TTFT.
 :::
 
 ---
@@ -289,7 +289,7 @@ flowchart LR
 | **Prefill** | Processes entire prompt at once (compute-bound) | GPU computing focused, high TP |
 | **Decode** | Autoregressive token-by-token generation (memory-bound) | GPU memory focused, low TP |
 
-**NIXL (NVIDIA Inference Xfer Library)**: Common KV transfer engine used by most projects including Dynamo, llm-d, production-stack, and aibrix. Transfers KV Cache at ultra-high speed via direct GPU communication (NVLink/RDMA).
+**NIXL (NVIDIA Inference Xfer Library)**: Common KV transfer engine used by most projects including Dynamo, llm-d, production-stack, and aibrix. Transfers KV cache at ultra-high speed via direct GPU communication (NVLink/RDMA).
 
 ### Disaggregated Serving on EKS Auto Mode
 
