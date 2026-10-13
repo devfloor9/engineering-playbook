@@ -5,7 +5,7 @@ created: "2026-04-06"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 24
+reading_time: 18
 tags:
   - reference-architecture
   - deployment
