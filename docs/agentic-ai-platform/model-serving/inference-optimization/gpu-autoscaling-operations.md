@@ -3,7 +3,7 @@ title: GPU 오토스케일링과 대형 모델 배포 운영
 description: LLM 서빙을 위한 2-Tier GPU 오토스케일링(KEDA·Karpenter)·DRA 호환성과 대형 MoE 모델(GLM-5·Kimi K2.5) 배포에서 축적된 실전 운영 교훈
 created: "2026-04-03"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 11
 tags:
@@ -62,7 +62,7 @@ flowchart TB
 
 ### KEDA 스케일링 구성
 
-LLM 서빙의 핵심 스케일링 시그널 3가지:
+LLM 서빙에서 사용하는 스케일링 시그널 3가지:
 
 ```yaml
 apiVersion: keda.sh/v1alpha1
@@ -286,7 +286,7 @@ initContainers:
 
 ### EKS Auto Mode GPU 제약 사항
 
-GLM-5(744B MoE)와 Kimi K2.5(1T MoE) 배포 과정에서 확인된 핵심 제약사항입니다.
+GLM-5(744B MoE)와 Kimi K2.5(1T MoE) 배포 과정에서 확인된 제약사항입니다.
 
 #### p6-b200 지원 추가
 
@@ -325,7 +325,7 @@ GLM-5는 초기 SGLang 전용으로 출시되었으나 이후 vLLM에서도 지�
 
 ### 스토리지 전략
 
-대형 모델(744GB+)의 가중치 로딩은 스토리지 성능이 핵심입니다.
+대형 모델(744GB+)의 가중치 로딩 시간은 스토리지 성능에 좌우됩니다.
 
 | 스토리지 | 순차 읽기 | 멀티노드 공유 | 권장 시나리오 |
 |---------|---------|------------|------------|

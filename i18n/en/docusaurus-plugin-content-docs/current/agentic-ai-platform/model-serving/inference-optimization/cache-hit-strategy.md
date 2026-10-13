@@ -1,11 +1,11 @@
 ---
 title: Cache-Hit Strategy
-description: Unifying the three layers of inference caching (KV/Prefix, Prompt, Semantic) into a single decision framework with hit-rate targets, measurement points, and tuning levers for each layer.
+description: Unifying the three layers of inference caching (KV/prefix, prompt, semantic) into a single decision framework with hit-rate targets, measurement points, and tuning levers for each layer.
 created: "2026-06-25"
 last_update:
-  date: "2026-07-15"
+  date: 2026-10-12
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 9
 tags:
   - caching
   - kv-cache
@@ -23,7 +23,7 @@ sidebar_label: Cache-Hit Strategy
 
 ## Overview
 
-Inference caching is not a single layer but consists of **three layers with different hit conditions**. Each layer avoids a different scope of computation and has different levers to raise its hit rate and different measurement points. This document unifies the KV/Prefix, Prompt, and Semantic caches into a single decision framework and organizes per-layer hit-rate targets and tuning methods.
+Inference caching is not a single layer but consists of **three layers with different hit conditions**. Each layer avoids a different scope of computation and has different levers to raise its hit rate and different measurement points. This document unifies the KV/prefix, prompt, and semantic caches into a single decision framework and organizes per-layer hit-rate targets and tuning methods.
 
 The detailed implementation of each layer is covered in dedicated documents. This document serves as a map for **looking at all three layers together to decide where to tune**. Its position in the overall inference infrastructure corresponds to the L5 cache layer in the [Inference Infrastructure Overview](../index.md).
 
@@ -35,7 +35,7 @@ The detailed implementation of each layer is covered in dedicated documents. Thi
 | **Prompt Cache** | Exact-match request | Entire inference | Gateway / app | [Routing Strategy](../inference-routing/routing-strategy.md) |
 | **Semantic Cache** | Semantically similar request (embedding similarity) | Entire inference | Gateway / app | [Semantic Caching Strategy](./semantic-caching-strategy.md) |
 
-The three layers are not mutually exclusive. It is common to **stack them**: avoid entire inference at the gateway via Semantic and Prompt caches, and on cache miss reduce prefill via KV/Prefix cache at the serving engine.
+The three layers are not mutually exclusive. It is common to **stack them**: avoid entire inference at the gateway via semantic and prompt caches, and on cache miss reduce prefill via KV/prefix cache at the serving engine.
 
 ```mermaid
 flowchart TB
@@ -106,7 +106,7 @@ For observability integration (Langfuse OTel) and dashboard panel composition, s
 
 ### Papers / Tech Blogs
 - [PagedAttention (SOSP 2023)](https://arxiv.org/abs/2309.06180) — Foundational paper on KV cache management
-- [GPTCache](https://github.com/zilliztech/GPTCache) — Open-source implementation of a Semantic cache
+- [GPTCache](https://github.com/zilliztech/GPTCache) — Open-source implementation of a semantic cache
 
 ### Related Documents (Internal)
 - [KV Cache Optimization](./kv-cache-optimization.md) — Prefix Caching and KV Cache-Aware Routing

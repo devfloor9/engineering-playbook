@@ -3,7 +3,7 @@ title: EKS GPU 노드 전략
 description: EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략
 created: "2026-03-16"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: devfloor9
 reading_time: 20
 tags:
@@ -37,7 +37,7 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 | **Managed Node Group** | AWS 관리 노드 그룹, DRA(Dynamic Resource Allocation) 유일 지원 |
 | **Hybrid Node** | 온프레미스 GPU 서버를 EKS 클러스터에 연결 |
 
-:::tip 핵심 원칙
+:::tip 기본 원칙
 하나의 EKS 클러스터에서 여러 노드 타입을 **동시에** 운영할 수 있습니다. 워크로드 특성에 맞는 최적의 노드 조합을 구성하세요.
 :::
 
@@ -117,7 +117,7 @@ spec:
 
 ### Auto Mode에서 GPU Operator 설치 — Device Plugin 비활성화 패턴
 
-GPU Operator는 Auto Mode에서 **설치 가능**합니다. 핵심은 **Device Plugin만 노드 레이블로 비활성화**하고 나머지 컴포넌트(DCGM Exporter, NFD, GFD)는 정상 운영하는 것입니다. 이 패턴은 [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)에서 검증되었습니다.
+GPU Operator는 Auto Mode에서 **설치 가능**합니다. 방법은 **Device Plugin만 노드 레이블로 비활성화**하고 나머지 컴포넌트(DCGM Exporter, NFD, GFD)는 정상 운영하는 것입니다. 이 패턴은 [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)에서 검증되었습니다.
 
 **왜 GPU Operator가 필요한가?** KAI Scheduler, Run:ai 등 여러 프로젝트는 GPU Operator의 **ClusterPolicy CRD**에 의존합니다. ClusterPolicy 없이는 이들 프로젝트가 시작조차 하지 못합니다. Auto Mode에서도 GPU Operator를 설치해야 하는 핵심 이유입니다.
 
@@ -178,7 +178,7 @@ Auto Mode가 관리하는 EC2 인스턴스는 `ec2:TerminateInstances`를 차단
 3. Karpenter가 Empty 노드 감지 후 자동 종료 (5-10분)
 4. 새 NodeClaim 생성으로 정상 노드 시작
 
-### Consolidation과 단일 Replica 서비스 가용성 (2026.07 검증)
+### Consolidation과 단일 Replica 서비스 가용성 (2026-07 검증) {#consolidation과-단일-replica-서비스-가용성-202607-검증}
 
 Auto Mode의 내장 Karpenter는 비용 최적화를 위해 노드 consolidation(통합·회수)을 상시 수행합니다. 이 과정에서 **replica 1개로 운영되는 서비스는 Pod 재배치 동안 ALB 타깃그룹에 healthy 타깃이 없어져 503을 반환**합니다. 응답 헤더가 `server: awselb/2.0`이면 애플리케이션이 아닌 ALB가 직접 생성한 503입니다.
 
