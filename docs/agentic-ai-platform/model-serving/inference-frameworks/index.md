@@ -5,7 +5,7 @@ created: "2026-04-17"
 last_update:
   date: 2026-10-13
   author: devfloor9
-reading_time: 3
+reading_time: 4
 tags:
   - vllm
   - llm-d
@@ -45,6 +45,13 @@ The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-i
     color="#8b5cf6"
   />
   <DocCard
+    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/hyperpod-inference-operator"
+    icon="⚙️"
+    title="HyperPod Inference Operator"
+    description="SageMaker HyperPod managed KV cache, intelligent routing (prefix-aware/kv-aware), and DPD. How it differs from the Tiered Gateway and its role as the L2 routing layer."
+    color="#f59e0b"
+  />
+  <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving"
     icon="🧩"
     title="MoE Model Serving"
@@ -61,5 +68,5 @@ The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-i
 </DocCardGrid>
 
 :::tip Reading Order
-Reading in **vLLM → Reasoning & Tool-Call Output Integrity → llm-d → MoE → NeMo** order follows the progressive difficulty of "single-node optimization → output boundary operations → distributed inference → large-scale MoE → training framework."
+Reading in **vLLM → Reasoning & Tool-Call Output Integrity → llm-d → HyperPod Inference Operator → MoE → NeMo** order follows the progressive difficulty of "single-node optimization → output boundary operations → distributed inference → managed inference routing → large-scale MoE → training framework."
 :::

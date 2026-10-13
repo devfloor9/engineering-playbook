@@ -5,7 +5,7 @@ created: "2026-02-05"
 last_update:
   date: 2026-10-13
   author: devfloor9
-reading_time: 27
+reading_time: 41
 tags:
   - vllm
   - paged-attention
@@ -25,7 +25,7 @@ import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
 ## Overview
 
-vLLM is a high-performance LLM inference engine that reduces KV cache memory waste by 60-80% through the PagedAttention algorithm and provides 2-24x throughput improvement via Continuous Batching. Major companies including Meta, Mistral AI, Cohere, and IBM use it in production environments, and it provides an OpenAI-compatible API for easy migration of existing applications.
+vLLM is a high-performance LLM inference engine. Its PagedAttention algorithm reduces the KV cache over-reservation that the original vLLM authors measured at 60-80% of memory in prior serving systems, and its Continuous Batching reported a 2-24x throughput improvement over the HuggingFace Transformers and TGI baselines in the June 2023 vLLM benchmark (the exact factor depends on model, hardware, and workload). Major companies including Meta, Mistral AI, Cohere, and IBM use it in production environments, and it provides an OpenAI-compatible API for easy migration of existing applications.
 
 > **📌 Current Version**: vLLM v0.24+ / v0.25.x (as of 2026-07)
 
@@ -44,11 +44,11 @@ vLLM core innovations:
 
 Transformer language models generate output one token at a time. To avoid recalculating attention data for earlier tokens, the serving engine stores their key and value tensors in the **KV cache**. Cache memory grows in proportion to sequence length and the number of concurrent requests. Pre-allocating space for every request’s maximum sequence length can leave much of that memory unused.
 
-vLLM's PagedAttention divides KV cache into fixed-size blocks stored non-contiguously. Short requests allocate fewer blocks; longer ones allocate additional blocks as needed. Block tables maintain logical ordering, eliminating memory fragmentation.
+vLLM's PagedAttention divides KV cache into fixed-size blocks stored non-contiguously. Short requests allocate fewer blocks; longer ones allocate additional blocks as needed. Block tables maintain logical ordering, which removes the external fragmentation and over-reservation of the contiguous-allocation approach. Some internal waste remains in the last partially filled block of each sequence; the original vLLM authors measured this residual waste at under 4%.
 
 **Memory efficiency improvement**:
-- Traditional: Pre-allocate max sequence length × batch size → 60-80% waste
-- PagedAttention: Dynamically allocate only actual usage → waste eliminated
+- Traditional: Pre-allocate max sequence length × batch size → 60-80% of memory wasted to over-reservation and fragmentation (June 2023 vLLM measurement of prior serving systems)
+- PagedAttention: Allocate blocks on demand → over-reservation and external fragmentation removed, with residual last-block waste measured at under 4%
 
 ### Continuous Batching
 
@@ -68,19 +68,25 @@ Speculative decoding uses a small draft model to predict tokens, with the main m
 ```python
 from vllm import LLM
 
+# vLLM v0.9+ API (speculative_config); method/model/num_speculative_tokens
+# are fields of SpeculativeConfig. The draft and target models must share a
+# tokenizer/vocabulary.
 llm = LLM(
     model="large-model",
-    speculative_model="small-draft-model",
-    num_speculative_tokens=5
+    speculative_config={
+        "method": "draft_model",
+        "model": "small-draft-model",
+        "num_speculative_tokens": 5
+    }
 )
 ```
 
 ### V1 Engine Architecture
 
-The vLLM V1 engine (the default since before v0.19.x) provides these features:
+The vLLM V1 engine was first released as an alpha on 2025-01-27 (opt-in via `VLLM_USE_V1=1`) and later became the default engine; by the v0.19.x–v0.25.x line documented here it is the default. It provides these features:
 - **Chunked Prefill**: Mixes prefill (compute-intensive) and decode (memory-intensive) in the same batch
-- **FP8 KV cache**: Reduces KV cache memory by 2x for longer context support
-- **Improved Prefix Caching**: 400%+ throughput improvement through common prefix reuse
+- **FP8 KV Cache**: Stores KV cache in FP8 (1 byte/element) instead of FP16 (2 bytes), roughly halving KV cache memory for longer context support
+- **Improved Prefix Caching**: Reuses the KV cache of a shared prefix across requests; V1 made this near-zero-overhead and enabled it by default. Throughput gains depend on the prefix hit rate and are not a fixed figure.
 
 ## GPU Memory Requirements
 
@@ -104,13 +110,28 @@ Determined by parameter count and precision.
   ]}
 />
 
-**Example calculation**:
-- Llama-3.3-70B (FP16): 70B × 2 bytes = 140GB (weights only)
-- KV cache (batch size 256, sequence length 8192): ~40GB
-- Activation and other overhead: ~20GB
-- **Total**: ~200GB → Not possible on single H100 80GB, TP=4 needed (50GB per GPU)
+**Example calculation** (Llama-3.3-70B, FP16 weights and FP16 KV cache):
 
-Quantizing a 70B parameter model to INT4 reduces it to 35GB, making it deployable on a single A100 80GB or H100 with KV cache headroom.
+Weights: 70B × 2 bytes = 140 GB.
+
+KV cache per token uses the model's attention dimensions. Llama-3.3-70B (per the Meta `llama-models` definition, identical to Llama-3/3.1-70B) has `n_layers = 80`, `n_kv_heads = 8` (grouped-query attention), and `head_dim = dim / n_heads = 8192 / 64 = 128`:
+
+```
+KV bytes/token = 2 (key+value) × n_layers × n_kv_heads × head_dim × bytes_per_element
+               = 2 × 80 × 8 × 128 × 2 (FP16)
+               = 327,680 bytes ≈ 320 KiB/token
+```
+
+For batch size 256 and sequence length 8192 the KV cache holds up to 256 × 8192 = 2,097,152 tokens:
+
+```
+KV cache = 2,097,152 tokens × 320 KiB ≈ 640 GiB   (NOT ~40 GB)
+```
+
+- **Total (full occupancy)**: ~140 GB weights + ~640 GiB KV + activation/overhead. This cannot fit on a single H100 80GB.
+- With TP=4 the weights and KV cache are sharded across 4 GPUs, so the KV cache alone is ~160 GiB per rank — still far above an 80GB GPU at full 256×8192 occupancy. Reaching this batch×sequence point therefore requires more GPUs (higher TP and/or more nodes), KV-cache quantization (FP8 halves the figure to ~320 KiB→160 KiB/token), or a smaller `max_num_seqs`/`max_model_len`. In practice vLLM sizes the usable KV cache from `gpu_memory_utilization` and the free HBM after weights, so the real serviceable batch×sequence is whatever fits that budget — not a fixed 256×8192.
+
+Quantizing a 70B parameter model to INT4 reduces the weights to 35GB; the KV cache is sized separately from weights, so the deployable batch×sequence on a single A100 80GB or H100 depends on the remaining HBM after the 35GB of weights.
 
 ## Parallelization Strategies
 
@@ -163,22 +184,31 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
   ]}
 />
 
+The GPU-count column shows the parallelization *topology*, not a verified memory fit; whether a model fits depends on checkpoint precision. The aggregate HBM must exceed the weights plus KV cache and activation overhead. For example, Llama-3.1-405B in BF16 is 405B × 2 bytes ≈ 810 GB, which exceeds 8×H100 (640 GB) before any KV cache — it needs an FP8/INT-quantized checkpoint or more GPUs. A 744B-parameter MoE in BF16 is ≈ 1,488 GB, which exceeds 16×H100 (1,280 GB); as an MoE only a subset of experts is active per token, but the full weights must still be resident, so it likewise requires a quantized checkpoint or more devices. Size each row against the actual checkpoint dtype and per-rank budget before deploying.
+
 ### PP Multi-node Constraints (V1 Engine, 2026-04) {#pp-multi-node-constraints-v1-engine-202604}
 
-vLLM V1 engine's multiproc_executor performs multi-node synchronization via NCCL TCPStore. For large models (744B class), loading time may exceed `VLLM_ENGINE_READY_TIMEOUT_S` (default 600s), causing deadlock.
+vLLM V1 engine's `multiproc_executor` performs multi-node synchronization via NCCL TCPStore. The `VLLM_ENGINE_READY_TIMEOUT_S` environment variable (default 600s, confirmed in the v0.25.0 `envs.py`) bounds how long the engine waits to become ready. In an internally observed incident with a large model (744B class), loading time exceeded this timeout during startup. The following is a single observed case, not a reproduced root-cause analysis: distinguish a **startup readiness timeout** (loading did not finish within 600s) from a true runtime **deadlock** — the available evidence confirms the timeout value but does not isolate the cause or establish a general deadlock.
 
-**Symptoms**: Leader Pod timeout waiting for Worker response → Worker `TCPStore Broken pipe` error → Cyclical restarts
+**Observed symptoms**: Leader Pod timed out waiting for a Worker response → Worker reported `TCPStore Broken pipe` → cyclical restarts.
 
-**Solutions**:
-1. **Use SGLang** (recommended): Stably supports multi-node PP
-2. **Ray-based vLLM**: Ray Cluster configuration (increased operational complexity)
-3. **Single node deployment**: Use H200 (141GB × 8) or B200 (192GB × 8) to eliminate PP
+**Mitigations** (evaluate against your own versions and workload; none is verified here as a universal fix):
+1. **Raise `VLLM_ENGINE_READY_TIMEOUT_S`** so slow loads of very large checkpoints are not cut off during startup.
+2. **Ray-based vLLM**: Ray Cluster configuration (increased operational complexity).
+3. **Single-node deployment**: Use H200 (141GB × 8) or B200 (180GB × 8 on p6-b200.48xlarge) to remove the need for multi-node PP.
+4. **Alternative engines** such as SGLang are reported to support multi-node PP; validate stability for your model and topology before relying on it rather than assuming it.
 
 For details, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md#6-pp-multi-node-deadlock-issue-lessons-learned).
 
 ### Data Parallelism (DP)
 
 Replicates the entire model across multiple servers for independent request processing. Combined with Kubernetes HPA (Horizontal Pod Autoscaler) for elastic scaling.
+
+The `Pods` metric below (`vllm_num_requests_waiting`) is a **custom per-Pod metric**, not a built-in resource metric. vLLM exposes `vllm:num_requests_waiting` on its `/metrics` endpoint in Prometheus text format, but HPA reads custom metrics only through the `custom.metrics.k8s.io` API. The following YAML therefore has prerequisites:
+
+- A metrics pipeline (for example Prometheus) scrapes the vLLM `/metrics` endpoint.
+- A custom metrics adapter (for example [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter)) is installed and configured to expose `vllm_num_requests_waiting` as a per-Pod metric through `custom.metrics.k8s.io`, mapped to the `vllm-deployment` Pods.
+- Without that adapter and mapping, HPA cannot read the metric and does not scale.
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -193,7 +223,7 @@ spec:
   minReplicas: 2
   maxReplicas: 10
   metrics:
-  - type: Pods
+  - type: Pods          # requires a custom.metrics.k8s.io adapter exposing this metric
     pods:
       metric:
         name: vllm_num_requests_waiting
@@ -221,8 +251,8 @@ vLLM v0.22+ supports various hardware accelerators:
   rows={[
     { id: '1', cells: ['NVIDIA H100 (80GB)', 'Full support', 'Production inference', 'p5.48xlarge (H100×8)'], recommended: true },
     { id: '2', cells: ['NVIDIA H200 (141GB)', 'Full support', 'Large model inference', 'p5en.48xlarge (H200×8)'] },
-    { id: '3', cells: ['NVIDIA B200 (192GB)', 'Full support', 'Ultra-large model inference', 'p6-b200.48xlarge (B200×8)'] },
-    { id: '4', cells: ['NVIDIA L4 (24GB)', 'Full support', 'Cost-efficient inference', 'g6e.xlarge~12xlarge (L4×1~8)'] },
+    { id: '3', cells: ['NVIDIA B200 (180GB)', 'Full support', 'Ultra-large model inference', 'p6-b200.48xlarge (B200×8)'] },
+    { id: '4', cells: ['NVIDIA L40S (48GB)', 'Full support', 'Cost-efficient inference', 'g6e.xlarge~48xlarge (L40S×1~8)'] },
     { id: '5', cells: ['AWS Trainium2', 'Supported', 'AWS native acceleration', 'trn2.48xlarge (Trn2×16)'] },
     { id: '6', cells: ['AMD MI300X', 'Supported', 'Alternative GPU infrastructure', '-'] }
   ]}
@@ -231,7 +261,7 @@ vLLM v0.22+ supports various hardware accelerators:
 **AWS EKS Recommended Configuration**:
 - **Production**: p5.48xlarge (H100 × 8, 640GB HBM3) → Deploy 175B models with TP=8
 - **Large models**: p5en.48xlarge (H200 × 8, 1,128GB HBM3e) → Deploy 405B models with TP=8
-- **Cost optimization**: g6e instances (L4) → 7B~13B models, Spot instance utilization
+- **Cost optimization**: g6e instances (NVIDIA L40S, 48GB per GPU) → 7B~13B models, Spot instance utilization
 
 ## Multi-LoRA Serving
 
@@ -240,9 +270,9 @@ vLLM can simultaneously serve multiple LoRA adapters on a single base model. Thi
 ### Architecture Concept
 
 **Base Model + Adapter Hot-swap**:
-- Base Model (70B) is always loaded in GPU memory
-- LoRA adapters (hundreds of MB to several GB) are dynamically loaded/unloaded per request
-- Adapter switching overhead: tens to hundreds of ms (100x faster than full model reloading)
+- The base model (70B) stays resident in GPU memory.
+- LoRA adapters (hundreds of MB to several GB) are activated per request. Adapters that are preloaded (via `--lora-modules`) or already held in the CPU adapter cache are reused without reloading; only an adapter not yet registered has to be fetched and loaded dynamically, which is the slower path.
+- Switching between already-resident adapters avoids reloading the full base model. The actual switching latency depends on adapter size, rank, how many adapters share a batch, and whether the adapter is cache-resident or loaded on demand, so treat any single speed figure as workload-dependent rather than a fixed multiple.
 
 **Memory efficiency**:
 - Traditional: Per-domain full model × N deployments = 140GB × 5 = 700GB
@@ -255,9 +285,9 @@ vLLM can simultaneously serve multiple LoRA adapters on a single base model. Thi
   rows={[
     { id: '1', cells: ['--enable-lora', 'Enable Multi-LoRA serving', 'False'] },
     { id: '2', cells: ['--lora-modules', 'Pre-load LoRA modules (name=path)', 'None'] },
-    { id: '3', cells: ['--max-loras', 'Maximum simultaneous loaded LoRAs', '1'] },
-    { id: '4', cells: ['--max-lora-rank', 'Maximum supported LoRA rank', '16'] },
-    { id: '5', cells: ['--lora-extra-vocab-size', 'LoRA adapter extra vocabulary size', '256'] }
+    { id: '3', cells: ['--max-loras', 'Max number of distinct LoRAs in a single batch (not the total registered count)', '1'] },
+    { id: '4', cells: ['--max-cpu-loras', 'Max LoRAs stored in CPU memory (must be ≥ --max-loras; defaults to --max-loras)', 'None'] },
+    { id: '5', cells: ['--max-lora-rank', 'Maximum supported LoRA rank', '16'] }
   ]}
 />
 
@@ -282,14 +312,16 @@ For Multi-LoRA hot-swap deployment, per-customer adapter routing, A/B testing, a
 Balances model quality and memory efficiency.
 
 <ComparisonTable
-  headers={['Quantization Method', 'Memory Savings', 'Quality Loss', 'Inference Speed', 'Recommended Use']}
+  headers={['Quantization Method', 'Weight Storage Width', 'Weight Memory vs FP16', 'Checkpoint/Backend Support', 'Typical Use']}
   rows={[
-    { id: '1', cells: ['FP8', '50%', 'Minimal (<1%)', 'Fast (H100 optimized)', 'Production inference'], recommended: true },
-    { id: '2', cells: ['AWQ', '75%', 'Low (1-3%)', 'Very fast', 'High-throughput services'] },
-    { id: '3', cells: ['GPTQ', '75%', 'Low (1-3%)', 'Fast', 'GPU memory-constrained environments'] },
-    { id: '4', cells: ['GGUF', '50-75%', 'Low-Medium', 'Fast', 'CPU/edge deployment'] }
+    { id: '1', cells: ['FP8 (W8A8)', '8-bit', '~50% smaller', 'Hopper/Blackwell (and other FP8-capable backends)', 'Production inference'], recommended: true },
+    { id: '2', cells: ['AWQ (INT4)', '4-bit', '~75% smaller', 'GPU; prequantized AWQ checkpoint', 'High-throughput services'] },
+    { id: '3', cells: ['GPTQ (INT4)', '4-bit', '~75% smaller', 'GPU; prequantized GPTQ checkpoint', 'GPU memory-constrained environments'] },
+    { id: '4', cells: ['GGUF', '2–8 bit (per GGUF type)', 'Varies by type', 'Built-in but highly experimental; single-file GGUF', 'Portability / low-memory footprint'] }
   ]}
 />
+
+The "Weight Memory vs FP16" column is a deterministic consequence of the storage width and applies to the model **weights** only; the KV cache and activations are sized separately. Quality loss and inference speed are **not** fixed values — they depend on the model, the quantization method, the calibration data, and the task, so measure them per workload rather than assuming a fixed percentage. GGUF support in vLLM is built in but, per the vLLM docs, highly experimental and under-optimized, and may be incompatible with other features.
 
 **Usage examples**:
 
@@ -300,13 +332,16 @@ vllm serve Qwen/Qwen3-32B-FP8 --quantization fp8
 # AWQ quantization
 vllm serve TheBloke/Llama-2-70B-AWQ --quantization awq
 
-# GGUF quantization (vLLM v0.6+)
-vllm serve --model TheBloke/Llama-2-70B-GGUF \
-  --quantization gguf \
-  --gguf-file llama-2-70b.Q4_K_M.gguf
+# GGUF quantization (built-in, highly experimental; single-file GGUF only)
+# Load directly from a HuggingFace repo with the repo_id:quant_type syntax,
+# and point --tokenizer at the base model to avoid slow GGUF tokenizer conversion.
+vllm serve unsloth/Qwen3-0.6B-GGUF:Q4_K_M --tokenizer Qwen/Qwen3-0.6B
+
+# Or load a local single-file .gguf:
+#   vllm serve ./Qwen3-0.6B-Q4_K_M.gguf --tokenizer Qwen/Qwen3-0.6B
 ```
 
-FP8 reduces memory by half with virtually no quality degradation. INT4 (AWQ, GPTQ) may cause quality degradation in complex reasoning tasks, so per-workload profiling is necessary.
+FP8 roughly halves the weight storage. INT4 (AWQ, GPTQ) can degrade quality on complex reasoning tasks, and GGUF support is experimental, so profile quality and speed per workload rather than assuming a fixed figure.
 
 ### Prefix Caching
 
@@ -339,9 +374,9 @@ llm = LLM(
 )
 ```
 
-Adjust `max_num_batched_tokens` to balance TTFT (Time To First Token) and throughput:
-- Higher value → increased throughput, increased TTFT
-- Lower value → decreased TTFT, decreased throughput
+Tune `max_num_batched_tokens` to trade off inter-token latency (ITL), time to first token (TTFT), and throughput. These are three separate quantities, so measure each under the same load:
+- **Smaller values** (e.g. 2048) → better ITL, because fewer prefill tokens slow down the prioritized decode steps.
+- **Higher values** → better TTFT and throughput, because more prefill tokens are processed per batch (vLLM recommends `> 8192` for throughput, especially for smaller models on large GPUs).
 
 ### CUDA Graph
 
@@ -355,27 +390,34 @@ CUDA Graph provides 10-20% performance improvement in most cases, but may add ov
 
 ### DeepGEMM (FP8)
 
-Custom GEMM kernel that accelerates FP8 operations on NVIDIA H100 GPUs.
+Custom GEMM kernel that accelerates **FP8 block-quantized weight** matrix multiplications on NVIDIA Hopper and Blackwell GPUs (SM90/SM100). It is controlled by `VLLM_USE_DEEP_GEMM`, which defaults to `True` (enabled) in current versions (v0.10.2+), and it engages only when the model's weights use block-FP8 GEMMs and the DeepGEMM backend is available — the `--kv-cache-dtype=fp8` flag sets the KV-cache precision and does **not** by itself cause weight GEMMs to use DeepGEMM.
 
 ```bash
-VLLM_USE_DEEP_GEMM=1 vllm serve model-name --kv-cache-dtype=fp8
+# Enabled by default (v0.10.2+); FP8 block-quantized weights on Hopper/Blackwell
+vllm serve model-name
+
+# Disable when it is not beneficial (e.g. some MoE models):
+VLLM_USE_DEEP_GEMM=0 vllm serve model-name
+# For MoE specifically: VLLM_MOE_USE_DEEP_GEMM=0
 ```
 
-Provides 20-30% additional performance improvement when using FP8 models on H100.
+The gain is workload-dependent and not a fixed figure; on some Blackwell model types DeepGEMM is auto-disabled (E8M0 scale limitation), and for some MoE workloads disabling it can be faster.
 
 ### Optimization Option Comparison
 
 <ComparisonTable
-  headers={['Optimization Technique', 'Throughput Improvement', 'TTFT Improvement', 'GPU Memory Savings', 'Implementation Difficulty']}
+  headers={['Optimization Technique', 'Primary Benefit', 'Mechanism / Conditions', 'Implementation Difficulty']}
   rows={[
-    { id: '1', cells: ['Prefix Caching', '+400%', 'O', 'O', 'Low (single flag)'], recommended: true },
-    { id: '2', cells: ['FP8 Quantization', '+50%', 'O', '50%', 'Low (model selection)'], recommended: true },
-    { id: '3', cells: ['Chunked Prefill', '+30%', '+20%', '-', 'Low (enabled by default)'] },
-    { id: '4', cells: ['Speculative Decoding', '+200%', '+100%', '-', 'Medium (draft model)'] },
-    { id: '5', cells: ['CUDA Graph', '+15%', 'O', '-', 'Low (enabled by default)'] },
-    { id: '6', cells: ['DeepGEMM', '+25%', '-', '-', 'Low (H100 only)'] }
+    { id: '1', cells: ['Prefix Caching', 'Throughput + TTFT on cache hits', 'Reuses the shared-prefix KV cache; benefit grows with the prefix hit rate (near-zero overhead at 0% hit in V1)', 'Low (single flag)'], recommended: true },
+    { id: '2', cells: ['FP8 Quantization', 'Weight memory + throughput', 'Halves weight storage; speedup depends on model and FP8-capable hardware', 'Low (model/checkpoint selection)'], recommended: true },
+    { id: '3', cells: ['Chunked Prefill', 'ITL / TTFT balance', 'Mixes prefill and decode in one batch; tune via max_num_batched_tokens', 'Low (enabled by default)'] },
+    { id: '4', cells: ['Speculative Decoding', 'Lower latency on predictable output', 'Draft model proposes tokens, target verifies; gain depends on draft acceptance rate', 'Medium (draft model)'] },
+    { id: '5', cells: ['CUDA Graph', 'Lower kernel-launch overhead', 'Captures repeated kernels; may add overhead with dynamic shapes', 'Low (enabled by default)'] },
+    { id: '6', cells: ['DeepGEMM', 'Faster FP8 weight GEMMs', 'Block-FP8 weight kernels on Hopper/Blackwell; workload-dependent', 'Low (enabled by default on supported GPUs)'] }
   ]}
 />
+
+The benefit column states the direction and the condition under which each technique helps. The guide does not attach a fixed percentage to any row because the published vLLM sources describe the mechanism rather than a single benchmark number; measure the actual gain on your own model, hardware, and workload.
 
 ## Reasoning and Tool-Call Parsers
 
@@ -394,12 +436,12 @@ vLLM exposes various metrics in Prometheus format.
   rows={[
     { id: '1', cells: ['vllm:num_requests_running', 'Currently processing request count', '< max_num_seqs'] },
     { id: '2', cells: ['vllm:num_requests_waiting', 'Waiting request count', '< 50 (prevent overload)'] },
-    { id: '3', cells: ['vllm:gpu_cache_usage_perc', 'GPU KV cache utilization', '70-90% (optimal)'] },
+    { id: '3', cells: ['vllm:kv_cache_usage_perc', 'KV cache utilization (v0.9.2+)', '70-90% (optimal)'] },
     { id: '4', cells: ['vllm:num_preemptions_total', 'Preempted request count', '< 10/min (lower is better)'] },
-    { id: '5', cells: ['vllm:avg_prompt_throughput_toks_per_s', 'Prompt throughput (tokens/sec)', 'Measure against target'] },
-    { id: '6', cells: ['vllm:avg_generation_throughput_toks_per_s', 'Generation throughput (tokens/sec)', 'Measure against target'] },
+    { id: '5', cells: ['vllm:prompt_tokens_total', 'Cumulative prompt tokens (counter)', 'use rate() for throughput'] },
+    { id: '6', cells: ['vllm:generation_tokens_total', 'Cumulative generation tokens (counter)', 'use rate() for throughput'] },
     { id: '7', cells: ['vllm:time_to_first_token_seconds', 'Time to First Token (TTFT)', '< 1s (conversational services)'] },
-    { id: '8', cells: ['vllm:time_per_output_token_seconds', 'Time Per Output Token (TPOT)', '< 0.1s (real-time streaming)'] },
+    { id: '8', cells: ['vllm:inter_token_latency_seconds', 'Inter-token latency (V1 engine)', '< 0.1s (real-time streaming)'] },
     { id: '9', cells: ['vllm:e2e_request_latency_seconds', 'End-to-end request latency', 'Measure against target SLA'] }
   ]}
 />

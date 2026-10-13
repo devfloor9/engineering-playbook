@@ -3,9 +3,9 @@ title: NVIDIA GPU 스택
 description: GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합
 created: "2026-03-20"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 22
 tags:
   - nvidia
   - gpu-operator
@@ -162,7 +162,7 @@ gfd:
 
 ### Karpenter 노드 전용 GPU Operator 구성
 
-Karpenter(Self-Managed) 노드에서는 MIG Manager까지 포함한 전체 스택을 활성화하되, `nodeSelector`로 Auto Mode 노드를 제외합니다.
+Karpenter(Self-Managed) 노드에서는 MIG Manager까지 포함한 전체 스택을 활성화합니다. GPU Operator의 ClusterPolicy는 컴포넌트별 `nodeSelector`를 받지 않으므로, 특정 노드에서 operand를 선택적으로 비활성화하려면 `nvidia.com/gpu.deploy.<component>: "false"` 노드 레이블을 사용합니다. Auto Mode 노드에는 이미 Device Plugin 비활성화 레이블(`nvidia.com/gpu.deploy.device-plugin: "false"`)이 적용되어 있으므로, Karpenter 노드에만 전체 스택이 배포됩니다. operand의 GPU 노드 taint 허용은 전역 `daemonsets.tolerations`로 지정합니다.
 
 ```yaml
 # helm install gpu-operator nvidia/gpu-operator -f values.yaml
@@ -171,47 +171,33 @@ driver:
 toolkit:
   enabled: false          # AL2023: AMI 사전 설치
 devicePlugin:
-  enabled: true
-  nodeSelector:
-    gpu-operator: enabled
-  tolerations:
-    - key: nvidia.com/gpu
-      operator: Exists
-      effect: NoSchedule
+  enabled: true           # 전역 활성화, 노드 레이블로 선택적 비활성화
 migManager:
   enabled: true
-  nodeSelector:
-    gpu-operator: enabled
   config:
-    name: mig-parted-config
+    name: default-mig-parted-config
     default: "all-balanced"
 dcgmExporter:
   enabled: true
   serviceMonitor:
     enabled: true
     interval: 15s
-  nodeSelector:
-    gpu-operator: enabled
 nfd:
   enabled: true
 gfd:
   enabled: true
-  nodeSelector:
-    gpu-operator: enabled
-operator:
-  nodeSelector:
-    node-type: gpu-inference  # Karpenter NodePool 레이블
+# operand DaemonSet의 toleration은 컴포넌트별이 아닌 전역 설정으로 지정
+daemonsets:
   tolerations:
     - key: nvidia.com/gpu
       operator: Exists
       effect: NoSchedule
-  defaultRuntime: containerd
 ```
 
 **핵심 설정 포인트:**
-- `nodeSelector: gpu-operator: enabled` — Auto Mode 노드 제외
+- operand 배치 제어는 컴포넌트별 `nodeSelector`가 아니라 노드 레이블(`nvidia.com/gpu.deploy.<component>: "false"`)로 수행합니다. ClusterPolicy 템플릿(v25.10.1/v26.3.2 모두)이 컴포넌트 블록의 `nodeSelector` 값을 렌더링하지 않기 때문입니다.
 - `driver/toolkit: false` — AL2023 AMI에 사전 설치
-- `migManager: true` — Karpenter 노드에서 MIG 기능 활용
+- `migManager: true` — Karpenter 노드에서 MIG 기능 활용. MIG 리소스 노출 방식은 아래 "MIG Pod 요청"의 `mig.strategy` 설정에 따릅니다.
 
 ---
 
@@ -254,7 +240,7 @@ K8s 1.33+의 안정화된 Sidecar Containers(`restartPolicy: Always`)를 사용�
   rows={[
     { id: '1', cells: ['DCGM_FI_DEV_GPU_UTIL', 'GPU 코어 사용률 (%)', 'HPA/KEDA 트리거'] },
     { id: '2', cells: ['DCGM_FI_DEV_MEM_COPY_UTIL', '메모리 대역폭 사용률 (%)', '메모리 병목 감지'] },
-    { id: '3', cells: ['DCGM_FI_DEV_FB_USED / FB_FREE', '프레임버퍼 사용량/여유량 (MB)', 'OOM 방지, 용량 계획'] },
+    { id: '3', cells: ['DCGM_FI_DEV_FB_USED / FB_FREE', '프레임버퍼 사용량/여유량 (MiB)', 'OOM 방지, 용량 계획'] },
     { id: '4', cells: ['DCGM_FI_DEV_POWER_USAGE', '전력 사용량 (W)', '비용 및 열 관리'] },
     { id: '5', cells: ['DCGM_FI_DEV_GPU_TEMP', 'GPU 온도 (C)', '열 스로틀링 방지'] },
     { id: '6', cells: ['DCGM_FI_DEV_SM_CLOCK', 'SM 클럭 속도 (MHz)', '성능 모니터링'] }
@@ -286,30 +272,34 @@ MIG는 Ampere/Hopper/Blackwell 아키텍처 GPU(A100, H100, H200, B200)를 최�
 
 **MIG의 핵심 가치:**
 - **하드웨어 격리**: 메모리, SM, L2 캐시가 완전히 분리되어 QoS 보장
-- **동시 실행**: 여러 추론 워크로드가 성능 저하 없이 동시 실행
+- **동시 실행**: 여러 추론 워크로드가 서로 간섭 없이 동시 실행됩니다. 다만 인스턴스별 절대 처리량은 선택한 프로필이 할당하는 SM과 메모리에 의해 제한되므로, 작은 프로필일수록 전체 GPU 대비 처리량이 비례해 낮아집니다
 - **GPU Operator 자동 관리**: MIG Manager가 ConfigMap 기반으로 프로필 자동 적용
 
 **A100 40GB MIG 프로필:**
 
 <SpecificationTable
-  headers={['프로필', '메모리', 'SM 수', '용도', '참고 처리량']}
+  headers={['프로필', '메모리', 'SM 수', '적합 워크로드 (BF16 가중치 기준)']}
   rows={[
-    { id: '1', cells: ['1g.5gb', '5GB', '14', '소형 모델 (3B 이하)', '~20 tok/s'] },
-    { id: '2', cells: ['1g.10gb', '10GB', '14', '소형 모델 (3B-7B)', '~25 tok/s'] },
-    { id: '3', cells: ['2g.10gb', '10GB', '28', '중형 모델 (7B-13B)', '~50 tok/s'] },
-    { id: '4', cells: ['3g.20gb', '20GB', '42', '중대형 모델 (13B-30B)', '~100 tok/s'] },
-    { id: '5', cells: ['4g.20gb', '20GB', '56', '대형 모델 (13B-30B)', '~130 tok/s'] },
-    { id: '6', cells: ['7g.40gb', '40GB', '84', '전체 GPU (70B+)', '~200 tok/s'] }
+    { id: '1', cells: ['1g.5gb', '5GB', '14', '≤2B 가중치 또는 짧은 컨텍스트 소형 모델. 7B급은 INT8/FP8 양자화 필요'] },
+    { id: '2', cells: ['1g.10gb', '10GB', '14', '≤4B BF16, 또는 7B를 INT8/FP8로 양자화'] },
+    { id: '3', cells: ['2g.10gb', '10GB', '28', '≤4B BF16, 또는 7B 양자화. 1g.10gb 대비 SM 2배로 처리량 상향'] },
+    { id: '4', cells: ['3g.20gb', '20GB', '42', '≤7B BF16, 또는 13B 양자화'] },
+    { id: '5', cells: ['4g.20gb', '20GB', '56', '≤7B BF16, 또는 13B 양자화. 3g.20gb와 동일 메모리, SM만 증가'] },
+    { id: '6', cells: ['7g.40gb', '40GB', '98', '≤13B BF16, 또는 30B급 양자화. 전체 A100 자원'] }
   ]}
 />
 
-:::info 참고 처리량 측정 조건
-위 "참고 처리량" 수치는 Llama 2 계열 기준 BF16, Batch=1, Prompt 512 / Output 128 토큰, vLLM v0.22+ 구성에서의 내부 측정 예시값입니다. 실제 처리량은 모델, 양자화(FP8/INT8/AWQ), Batch 크기, 시퀀스 길이, TP/PP 구성에 따라 크게 달라지므로 배포 전 자체 벤치마크로 검증하세요.
+:::info 모델 적합성 산정 근거
+위 "적합 워크로드"는 BF16 가중치가 약 2바이트/파라미터를 차지한다는 전제에서 가중치만의 하한을 보수적으로 추정한 값입니다(KV 캐시·활성값·단편화는 별도). 예를 들어 70B 모델은 BF16 가중치만 약 140GB가 필요하므로 단일 7g.40gb(40GB) 파티션에 들어가지 않으며, 70B를 단일 A100에서 서빙하려면 다중 GPU 텐서 병렬 또는 강한 양자화가 필요합니다. SM 수는 A100-SXM4-40GB의 MIG 프로필 기준(1g=14 … 7g=98, 7개 슬라이스 × 14 SM)입니다. 실제 처리량은 모델, 양자화(FP8/INT8/AWQ), Batch 크기, 시퀀스 길이, TP/PP 구성, 서빙 엔진 버전에 따라 크게 달라지므로 배포 전 대상 구성에서 자체 벤치마크로 검증하세요. 프로필 간 상대 비교는 SM 수와 메모리가 결정합니다.
 :::
 
 **MIG 프로필 관리:**
 
-GPU Operator의 MIG Manager는 노드 레이블(`nvidia.com/mig.config`)을 감시하여 MIG 프로필을 자동 적용합니다. ConfigMap에 프로필을 정의하고, 노드 레이블을 변경하면 MIG Manager가 GPU를 재구성합니다.
+GPU Operator의 MIG Manager는 노드 레이블(`nvidia.com/mig.config`)을 감시하여 MIG 프로필을 자동 적용합니다. ConfigMap에 프로필을 정의하고, 노드 레이블을 변경하면 MIG Manager가 GPU를 재구성합니다. 아래 ConfigMap 이름 `default-mig-parted-config`는 앞선 Helm values의 `migManager.config.name`과 일치시킵니다.
+
+:::warning MIG 재구성은 비파괴적이지 않습니다
+MIG 모드 또는 geometry를 변경하면 MIG Manager가 **해당 GPU의 모든 GPU Pod를 종료한 뒤** 재구성을 진행합니다(NVIDIA GPU Operator MIG 문서). 재구성 중에는 해당 노드의 GPU 워크로드가 중단되며, 일부 환경(특히 일부 CSP)에서는 노드 **재부팅**이 필요하므로 사전에 노드를 cordon/drain해야 합니다. 재구성은 실행 중인 사용자 워크로드가 없어야 성공하며, 전제 조건이 충족되지 않으면 `nvidia.com/mig.config.state` 레이블이 `failed`로 보고됩니다. 따라서 프로덕션에서는 유지보수 창에서 수행하고, PodDisruptionBudget과 드레이닝 절차를 함께 계획하세요.
+:::
 
 ```yaml
 # MIG 프로필 ConfigMap (mig-parted 형식)
@@ -341,9 +331,23 @@ data:
             "7g.40gb": 1
 ```
 
-Pod에서 MIG 디바이스를 사용할 때는 `nvidia.com/mig-<profile>` 리소스를 요청합니다.
+Pod에서 MIG 디바이스를 사용하는 방식은 Device Plugin의 `mig.strategy` 설정에 따라 달라집니다. 이 값은 GPU Operator Helm values에서 `mig.strategy`로 지정하며, 기본값은 `single`입니다.
+
+- **`mig.strategy: single`** (차트 기본값): 노드의 모든 GPU가 동일한 단일 프로필로 분할된 경우에 사용합니다. MIG 디바이스가 일반 `nvidia.com/gpu` 리소스로 노출되므로 Pod는 아래처럼 요청합니다.
 
 ```yaml
+# mig.strategy=single — MIG 슬라이스가 nvidia.com/gpu로 노출됨
+resources:
+  requests:
+    nvidia.com/gpu: 1
+  limits:
+    nvidia.com/gpu: 1
+```
+
+- **`mig.strategy: mixed`**: 한 노드에 서로 다른 프로필이 공존할 때 사용합니다. 이 전략에서만 `nvidia.com/mig-<profile>` 형식의 프로필별 리소스가 노출되므로, 아래 요청이 유효하려면 Helm values에 `mig.strategy=mixed`를 설정해야 합니다(앞선 Karpenter values는 `mig.strategy`를 지정하지 않아 기본값 `single`로 동작합니다).
+
+```yaml
+# mig.strategy=mixed — 프로필별 명명 리소스가 노출됨
 resources:
   requests:
     nvidia.com/mig-1g.5gb: 1
@@ -376,7 +380,7 @@ data:
             replicas: 4    # 각 GPU를 4개 Pod이 공유
 ```
 
-Pod에서는 일반 GPU 요청과 동일하게 `nvidia.com/gpu: 1`을 요청합니다. Time-Slicing이 활성화된 노드에서는 GPU 조각이 할당됩니다.
+Pod에서는 일반 GPU 요청과 동일하게 `nvidia.com/gpu: 1`을 요청합니다. Time-Slicing은 `replicas` 수만큼 GPU를 **오버서브스크립션**하여 광고 리소스 개수를 늘릴 뿐, 각 Pod에 고정된 컴퓨팅 조각이나 메모리 쿼터를 보장하지 않습니다. 공유 Pod들은 동일 GPU에서 시분할로 번갈아 실행되며, 메모리와 연산 자원을 경합합니다.
 
 ### MIG vs Time-Slicing 비교
 
@@ -385,7 +389,7 @@ Pod에서는 일반 GPU 요청과 동일하게 `nvidia.com/gpu: 1`을 요청합�
   rows={[
     { id: '1', cells: ['격리 수준', '하드웨어 격리 (메모리, SM, 캐시)', '소프트웨어 시분할 (격리 없음)'] },
     { id: '2', cells: ['지원 GPU', 'A100, H100, H200, B200', '모든 NVIDIA GPU'] },
-    { id: '3', cells: ['최대 분할', '7개 인스턴스', '제한 없음 (성능 저하 비례)'] },
+    { id: '3', cells: ['최대 분할', '7개 인스턴스', 'replicas 설정값만큼 (하드웨어 분할 아님, 경합 증가)'] },
     { id: '4', cells: ['성능 예측', '보장됨 (QoS)', '동시 워크로드 수에 따라 변동'] },
     { id: '5', cells: ['메모리 안전', 'OOM이 다른 인스턴스에 영향 없음', 'OOM이 다른 워크로드에 영향'] },
     { id: '6', cells: ['적합 환경', '프로덕션 추론, 멀티 테넌트', '개발/테스트, 배치 추론'], recommended: true }
@@ -393,9 +397,9 @@ Pod에서는 일반 GPU 요청과 동일하게 `nvidia.com/gpu: 1`을 요청합�
 />
 
 :::warning Time-Slicing 성능 특성
-- **컨텍스트 스위칭 오버헤드**: 약 1% 수준으로 미미
-- **동시 실행 성능 저하**: GPU 메모리와 컴퓨팅을 공유하므로 동시 워크로드 수에 따라 **50-100% 성능 저하**
-- **메모리 격리 없음**: 한 워크로드의 OOM이 다른 워크로드에 영향
+- **스케줄링 방식**: GPU 컨텍스트를 프로세스 단위로 시분할하여 번갈아 실행합니다. CUDA MPS와 달리 동시 커널 실행이 아니라 시간 분할이므로, 컨텍스트 스위칭 비용과 대기 시간이 추가됩니다.
+- **성능 변동**: 처리량과 지연은 동시 실행 워크로드 수와 각 워크로드의 커널 특성에 따라 달라집니다. 오버헤드와 저하 폭은 구성에 따라 크게 달라지므로, 고정된 비율을 보장할 수 없습니다. 대상 워크로드로 직접 측정하세요.
+- **메모리 격리 없음**: 메모리 쿼터가 강제되지 않아 한 워크로드의 OOM이 다른 워크로드에 영향을 줄 수 있습니다.
 - **적합**: 배치 추론, 개발/테스트 환경 | **부적합**: 실시간 추론(SLA), 고성능 학습
 :::
 
@@ -466,12 +470,12 @@ flowchart TD
 | **KVBM** | GPU → CPU → SSD 3-tier 캐시 | 메모리 효율 극대화, 대규모 컨텍스트 지원 |
 | **NIXL** | NVIDIA Inference Transfer Library | GPU 간 KV cache 초고속 전송 (NVLink/RDMA). Dynamo, llm-d, production-stack, aibrix 등이 공통 사용 |
 | **Planner** | SLO 기반 오토스케일링 | Profiling → SLO 목표 기반 자동 Prefill/Decode 스케일링 |
-| **EPP** | Endpoint Picker Protocol | K8s Gateway API와 네이티브 통합 |
+| **EPP** | Endpoint Picker (Gateway API Inference Extension) | Inference Scheduler 구현체로, 메트릭 기반으로 요청을 보낼 엔드포인트를 선택. K8s Gateway API Inference Extension과 통합 |
 | **AIConfigurator** | 자동 TP/PP 추천 | 모델 크기, GPU 메모리, 네트워크 토폴로지 기반 최적 병렬화 |
 
 ### llm-d와의 선택 가이드
 
-llm-d와 Dynamo는 모두 LLM 추론 라우팅/스케줄링을 담당하며, **라우팅 레이어에서 경쟁**하므로 선택하여 사용합니다.
+llm-d와 Dynamo는 모두 LLM 추론 라우팅/스케줄링을 담당하며 라우팅 레이어에서 기능이 겹칩니다. 다만 서로 완전히 배타적인 선택지는 아닙니다. 둘 다 vLLM 백엔드와 NIXL KV 전송을 공유하며, Dynamo는 llm-d를 내부 컴포넌트로 통합할 수 있어(아래 "마이그레이션 경로" 참조) 상위 집합에 가깝습니다. 아래 표는 각 프로젝트가 강조하는 책임과 성숙도를 비교한 것이며, 선택은 운영 복잡도와 필요한 기능에 따라 결정합니다.
 
 ```
 llm-d:    Client → llm-d Router → vLLM Workers
@@ -492,14 +496,16 @@ Dynamo:   Client → Dynamo Router → Prefill Workers → (NIXL) → Decode Wor
   ]}
 />
 
-| 시나리오 | 추천 |
+| 시나리오 | 추천 (경험적 지침) |
 |----------|------|
 | 기존 vLLM에 라우팅만 추가 | **llm-d** |
-| 소규모~중규모 (GPU 8개 이하) | **llm-d** |
+| 소규모 클러스터, 운영 복잡도 최소화 우선 | **llm-d** |
 | Gateway API 기반 K8s 네이티브 | **llm-d** |
-| 대규모 (GPU 16개+), 처리량 극대화 | **Dynamo** |
+| 대규모 클러스터, 처리량 극대화가 최우선 | **Dynamo** |
 | 긴 컨텍스트 (128K+) 워크로드 | **Dynamo** (3-tier KV cache) |
 | 빠른 도입, 낮은 운영 복잡도 | **llm-d** |
+
+위 "규모" 구분은 고정된 GPU 개수 임계값이 아니라 경험적 지침입니다. 실제 전환 지점은 모델 크기, 트래픽 패턴, 디스어그리게이션 이득, 운영 역량에 따라 달라지므로 대상 환경에서 검증하세요.
 
 :::tip 마이그레이션 경로
 llm-d로 시작해서 규모가 커지면 Dynamo로 전환하는 것이 현실적입니다. 둘 다 vLLM 백엔드와 NIXL KV 전송을 공유합니다. 핵심 차이는 Dynamo의 Flash Indexer, KAI Scheduler, Planner입니다. Dynamo 1.0은 llm-d를 내부 컴포넌트로 통합할 수 있어, 완전한 대안이라기보다 상위 집합으로 볼 수도 있습니다.

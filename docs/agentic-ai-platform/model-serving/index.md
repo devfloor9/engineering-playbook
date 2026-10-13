@@ -3,9 +3,9 @@ title: Model Serving & Inference Infrastructure
 description: A guide to the GPU infrastructure, inference framework, and inference optimization layers, with a single map of the end-to-end LLM inference request path and per-layer tuning levers — inference gateway, prefill/decode disaggregation, KV cache-aware routing, LMCache, and cache-hit strategy.
 created: "2026-03-06"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 22
+reading_time: 29
 tags:
   - model-serving
   - gpu
@@ -82,7 +82,7 @@ flowchart TB
     end
 
     subgraph L3["L3 · Inference Routing Layer"]
-        T2A["Tier 2 ① Inference Routing<br/>(InferencePool · EPP)<br/>KV · Load-aware Pod Selection"]
+        T2A["Tier 2 ① Inference Routing<br/>(InferencePool · EPP)<br/>KV · Load-aware Pod Selection (ext-proc decision)"]
     end
 
     subgraph L2L1["L2·L1 · Serving / Distribution Layer"]
@@ -97,11 +97,12 @@ flowchart TB
 
     CLIENT --> T1
     T1 --> T2B
-    T1 --> T2A
     T1 -.MCP/A2A.-> ADP
-    T2B -.Self-hosted inference.-> T2A
+    T2B -.Self-hosted inference.-> T1
     T2B -->|External providers| EXT["External LLM<br/>(Bedrock · OpenAI)"]
-    T2A --> POD
+    T1 ==Self-hosted request forwarding==> POD
+    T1 -.ext-proc endpoint query.-> T2A
+    T2A -.Selected Pod address.-> T1
     ADP --> POD
     POD --> GPU
 
@@ -117,7 +118,7 @@ flowchart TB
 Each layer's role is as follows.
 
 - **L4 Gateway**: Handles external traffic ingress (Tier 1) and model abstraction, Cascade, and caching (Tier 2 ②).
-- **L3 Inference Routing**: For self-hosted models, decides which Pod to send a request to, considering KV cache and load.
+- **L3 Inference Routing**: For self-hosted models, **decides** which Pod to send a request to, considering KV cache and load. The decision is delegated to the gateway (proxy) via ext-proc; the EPP returns only the selected endpoint address, and the gateway performs the actual request forwarding.
 - **L2·L1 Serving/Distribution**: The layer that actually generates tokens — handles prefill/decode processing and KV cache management.
 - **L0 GPU/Accelerator**: The physical layer where computation runs — covers node selection, partitioning, and the driver stack.
 
@@ -139,8 +140,8 @@ The tuning levers that govern inference performance, organized by layer, are as 
 | **L0** GPU/Accelerator | Instance selection · MIG · Time-Slicing · DRA · Neuron | GPU utilization · cost | [GPU Resource Management](./gpu-infrastructure/gpu-resource-management.md) |
 | **L1** Serving Engine | PagedAttention · Continuous Batching · FP8 KV · Prefix Caching · Chunked Prefill · Speculative Decoding · Quantization · TP/PP/EP | TTFT · TPS · memory | [vLLM Model Serving](./inference-frameworks/vllm-model-serving.md) · [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md) |
 | **L2** Distributed Topology | Prefill/Decode disaggregation · NIXL · LWS multi-node | Large-model throughput | [Disaggregated Serving](./inference-optimization/disaggregated-serving.md) |
-| **L3** Inference Routing | KV cache-aware · context-aware · prefix-cache scorer | Cache hit rate · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
-| **L4** Gateway | Model Cascade · cost tracking · Rate Limit · L7 limitations | Cost · availability | [Tiered Gateway](./inference-routing/tiered-gateway-architecture.md) · [Routing Strategy](./inference-routing/routing-strategy.md) |
+| **L3** Inference Routing | KV cache-aware · prefix-cache scorer (Pod selection within the same model) | Cache hit rate · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
+| **L4** Gateway | Model Cascade · context-aware (model selection) · cost tracking · Rate Limit · L7 limitations | Cost · availability | [Tiered Gateway](./inference-routing/tiered-gateway-architecture.md) · [Routing Strategy](./inference-routing/routing-strategy.md) |
 | **L5** Cache Layer | KV/prefix cache · prompt cache · semantic cache · LMCache | Cache hit rate · cost | [LMCache](./inference-optimization/lmcache.md) · [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md) |
 
 :::tip Reading order
@@ -151,7 +152,7 @@ Reading from lower layers (L0 GPU) upward (L4 Gateway) gives the infrastructure 
 
 The "Inference Gateway" is not a single component but a bundle of multiple layers with different responsibilities. Across the platform, in-cluster inference Pod routing and external LLM provider proxying are explicitly separated.
 
-<TieredGatewayDiagram />
+<TieredGatewayDiagram locale="en" />
 
 | Layer | Role | Representative Implementations |
 |------|------|------------|
@@ -163,19 +164,19 @@ Each layer's role definition and solution selection criteria are covered in [Tie
 
 ## Limitations of Conventional L7 Gateways
 
-General-purpose L7 gateways (NGINX, default Envoy, and others) are designed to distribute HTTP requests in a stateless manner and cannot recognize the characteristics of LLM inference traffic. This results in the following limitations.
+Using a general-purpose L7 gateway **only with its defaults (request-count-based distribution)** does not reflect the characteristics of LLM inference traffic, which produces the following limitations. These are limitations of a configuration not tuned or extended for inference, rather than inherent limitations of L7 gateways themselves.
 
-- **Round-Robin neutralizes prefix cache**: When requests sharing the same system prompt are distributed to different Pods each time, each Pod repeats the same prefill computation. As a result, KV cache reuse drops and TTFT increases.
-- **Unaware of token-based billing and streaming**: L7 gateways judge load only by request count and cannot reflect the actual computational cost, which scales with token length.
-- **No model server metrics**: They lack awareness of inference engine internal state such as KV cache usage and queue depth, so they may forward requests to overloaded Pods.
+- **An unconfigured Round-Robin lowers prefix cache reuse**: When requests sharing the same system prompt are distributed to different Pods each time, each Pod may repeat the same prefill computation. However, if multiple Pods are already warmed with the same prefix, reuse can still occur under round-robin, so the effect depends on the number of replicas and their cache holdings.
+- **Default settings do not reflect token-based cost or streaming**: A default configuration that judges load only by request count cannot reflect the actual computational cost, which scales with token length. Token/streaming awareness is an optional capability that can be added via plugins or an ext-proc extension.
+- **Model server metrics not integrated**: A configuration that does not integrate inference-engine internal state such as KV cache usage and queue depth may forward requests to overloaded Pods.
 
-To overcome these limitations, a separate inference routing layer (Tier 2 ①) that is KV- and load-aware is required. For detailed rationale, see [KV Cache Optimization — Existing Problem: Round-Robin Limitations](./inference-optimization/kv-cache-optimization.md#existing-problem-round-robin-limitations) and [Routing Strategy — Gateway Layer Separation](./inference-routing/routing-strategy.md#gateway-layer-separation).
+These limitations reduce to a **tradeoff between cache locality and load balancing**: chasing locality alone concentrates traffic on specific Pods, while chasing load alone reduces cache reuse. This tradeoff is tuned either by a separate inference routing layer (Tier 2 ①) that considers KV cache and load together, or by adding ext-proc / prefix-scorer plugins to an L7 gateway. For detailed rationale, see [KV Cache Optimization — Existing Problem: Round-Robin Limitations](./inference-optimization/kv-cache-optimization.md#existing-problem-round-robin-limitations) and [Routing Strategy — Gateway Layer Separation](./inference-routing/routing-strategy.md#gateway-layer-separation).
 
 ## Prefill / Decode / Disaggregated Serving
 
-LLM inference is split into a **prefill stage** that processes the input prompt in one shot, and a **decode stage** that generates tokens one at a time. The two stages have different computational characteristics (prefill is compute-bound, decode is memory-bandwidth-bound), and placing them on the same GPU degrades each other's efficiency.
+LLM inference is split into a **prefill stage** that processes the input prompt and a **decode stage** that generates tokens one at a time. The two stages have different computational characteristics: prefill tends to be compute-bound and decode tends to be memory-bandwidth-bound. Co-locating them on the same GPU can cause them to interfere and add latency, but the degree depends on batching, sequence length, and traffic pattern. Long prompts can also be processed over several steps with chunked prefill, reducing interference with decode, so prefill is not necessarily processed "in one shot."
 
-**Disaggregated Serving** is an architecture that separates prefill and decode onto distinct GPU groups and moves the KV cache between them via a transport engine such as NIXL. 700B+ large MoE models combine this with multi-node deployment based on LWS (LeaderWorkerSet). Detailed architecture and a GLM-5 deployment example are covered in [Disaggregated Serving](./inference-optimization/disaggregated-serving.md), and the AWS managed implementation is covered in [HyperPod Inference Operator — Disaggregated Prefill/Decode](./inference-frameworks/hyperpod-inference-operator.md#disaggregated-prefilldecode-dpd).
+**Disaggregated Serving** is an architecture that separates prefill and decode onto distinct GPU groups and moves the KV cache between them via a transport engine such as NIXL. Because the split incurs KV-cache transfer and batching costs, its benefit is an optional design to be judged by measurement on the target workload. Large MoE models that do not fit on a single node can combine this with multi-node deployment based on LWS (LeaderWorkerSet). Detailed architecture and a GLM-5 deployment example are covered in [Disaggregated Serving](./inference-optimization/disaggregated-serving.md), and the AWS managed implementation is covered in [HyperPod Inference Operator — Disaggregated Prefill/Decode](./inference-frameworks/hyperpod-inference-operator.md#disaggregated-prefilldecode-dpd).
 
 ## Context-aware Routing
 
@@ -189,7 +190,7 @@ For detailed implementations and evaluation results, see [Request Cascading — 
 
 ## KV Cache-Aware Routing
 
-KV cache-aware routing is a strategy that, among multiple Pods of the same model, sends a request to **the Pod that already holds a KV cache matching the request's prefix**. By avoiding prefill recomputation, it lowers TTFT and increases throughput.
+KV cache-aware routing is a strategy that, among multiple Pods of the same model, sends a request to **the Pod that already holds a KV cache matching the request's prefix**. Avoiding prefill recomputation can lower TTFT, but it is not always faster: if the Pod holding the cache is already overloaded or that cache has been evicted, the locality benefit disappears, so the actual effect depends on the balance of locality, load, and eviction state.
 
 - **prefix-cache scorer**: Scores each Pod's prefix cache holdings
 - **EPP (Endpoint Picker)**: Delegated via ext-proc to pick the optimal Pod
@@ -199,19 +200,21 @@ For a detailed comparison, see [KV Cache Optimization — KV Cache-Aware Routing
 
 ## LMCache
 
-**LMCache** is a KV cache tier that offloads KV cache beyond GPU memory to CPU and disk layers and shares it across inference instances. Unlike vLLM's in-GPU prefix cache, which is valid only within a single Pod, LMCache enables KV cache reuse across Pods and nodes, extending the effectiveness of `kvaware` routing.
+**LMCache** is a KV cache tier that offloads KV cache beyond GPU memory to CPU and disk layers and shares it across inference instances. vLLM's in-GPU prefix cache is valid only within a single inference engine (a replica that can itself span multiple Pods/nodes via TP/PP), whereas LMCache provides an external sharing tier that reuses KV cache beyond that boundary, across replicas and nodes. This external sharing does not integrate with routing automatically, however; combining it with `kvaware` routing requires separately reconciling memory compatibility and the integration configuration.
 
 The concept, layer structure, and relationships with vLLM/NIXL are covered in [LMCache](./inference-optimization/lmcache.md).
 
 ## Cache-Hit Strategy
 
-Inference caches are split into **three layers**, not a single one, and each has different hit conditions and effects.
+Inference caches are split into **three layers**, not a single one, and each has different hit conditions and effects. The "exact identical request" and "similar request" conditions below are only **necessary** conditions for a hit; safe reuse also requires the tenant, authenticated principal, model, tool definitions, and data freshness to match.
 
 | Cache Layer | Hit Condition | Effect |
 |----------|----------|------|
-| **KV / Prefix Cache** | Same prefix (system prompts, etc.) | Avoids prefill recomputation, reduces TTFT |
-| **Prompt Cache** | Exact identical request | Avoids full inference |
-| **Semantic Cache** | Semantically similar request (embedding similarity) | Avoids inference for similar queries |
+| **KV / Prefix Cache** | Same prefix (system prompts, etc.) — includes provider prompt caching | Avoids prefill recomputation, reduces input-token cost and TTFT (does not skip full inference) |
+| **Response (Exact) Cache** | **Exact identical request** with the same tenant, model, tools, and data | Returns the stored response verbatim, avoiding inference itself |
+| **Semantic Cache** | Semantically similar request (embedding similarity) + a calibrated equivalence threshold | Avoids inference for similar queries (requires threshold and false-positive management) |
+
+Here, the **KV/Prefix Cache** and provider **prompt caching** (OpenAI, Anthropic, etc.) reuse the prompt prefix to reduce input-token cost and TTFT — they do not return a whole response. Returning a whole response is a separate **exact response cache** layer, and a Semantic Cache can return a different answer if it hits on similarity alone, so its threshold must be calibrated and a response-equivalence criterion defined alongside it.
 
 A unified decision framework for how to raise hit rates and where to measure them at each layer is covered in [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md). For threshold design of the semantic cache, see [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md); for prefix cache effects, see [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md).
 

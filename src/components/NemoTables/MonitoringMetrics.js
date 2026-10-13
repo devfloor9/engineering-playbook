@@ -6,36 +6,39 @@ const MonitoringMetrics = () => {
   } = useDocusaurusContext();
   const isKo = i18n.currentLocale === 'ko';
   const metrics = [{
-    metric: 'training_loss',
-    description: isKo ? '학습 손실' : 'Training loss',
-    threshold: isKo ? '지속적 감소' : 'Continuous decrease',
+    metric: 'training_loss (framework log)',
+    description: isKo ? '학습 손실 (프레임워크 로그/텐서보드)' : 'Training loss (framework log/TensorBoard)',
+    threshold: isKo ? '전반적 감소 추세' : 'Overall downward trend',
     color: '#4285f4',
     status: 'good'
   }, {
-    metric: 'validation_loss',
-    description: isKo ? '검증 손실' : 'Validation loss',
-    threshold: isKo ? '학습 손실과 유사' : 'Similar to training loss',
+    metric: 'validation_loss (framework log)',
+    description: isKo ? '검증 손실 (프레임워크 로그)' : 'Validation loss (framework log)',
+    threshold: isKo ? '정체·상승 시 조기 종료 검토' : 'Watch for plateau/rise (early stopping)',
     color: '#34a853',
     status: 'good'
   }, {
-    metric: 'gpu_utilization',
-    description: isKo ? 'GPU 사용률' : 'GPU utilization',
-    threshold: '> 80%',
+    metric: 'DCGM_FI_DEV_GPU_UTIL',
+    description: isKo ? 'GPU 사용률 % (dcgm-exporter, gauge)' : 'GPU utilization % (dcgm-exporter, gauge)',
+    threshold: isKo ? '낮게 지속되면 입력 파이프라인 병목 의심' : 'Low & sustained → input-pipeline bottleneck',
     color: '#fbbc04',
     status: 'warning'
   }, {
-    metric: 'gpu_memory_used',
-    description: isKo ? 'GPU 메모리 사용량' : 'GPU memory usage',
-    threshold: '< 95%',
+    metric: 'DCGM_FI_DEV_FB_USED / FB_FREE',
+    description: isKo ? '프레임버퍼 사용·여유 메모리 MiB (gauge, 비율 아님)' : 'Framebuffer used/free memory in MiB (gauge, not a ratio)',
+    threshold: isKo ? 'FB_USED/(USED+FREE)가 높으면 OOM 위험' : 'High FB_USED/(USED+FREE) → OOM risk',
     color: '#ea4335',
     status: 'critical'
   }, {
-    metric: 'throughput_tokens_per_sec',
-    description: isKo ? '처리량' : 'Throughput',
-    threshold: isKo ? '모니터링' : 'Monitor',
+    metric: 'throughput (tokens/sec)',
+    description: isKo ? '처리량 (학습 로그에서 산출)' : 'Throughput (derived from training logs)',
+    threshold: isKo ? '안정 상태 대비 급락 모니터링' : 'Monitor for drops vs steady state',
     color: '#9c27b0',
     status: 'good'
   }];
+  const note = isKo
+    ? 'GPU 지표는 dcgm-exporter 기본 카운터 이름을 사용합니다. `DCGM_FI_DEV_FB_USED`/`FB_FREE`는 백분율이 아니라 MiB 단위 절대값이므로, 메모리 포화는 `FB_USED/(FB_USED+FB_FREE)` 비율로 판단해야 합니다. 손실 지표는 프레임워크 로그 값이며, 단조 감소나 "검증=학습 손실"을 합격 기준으로 삼지 말고 전반적 추세와 과제별 평가 지표로 판단하세요.'
+    : 'GPU metrics use dcgm-exporter default counter names. `DCGM_FI_DEV_FB_USED`/`FB_FREE` are absolute values in MiB, not percentages, so judge memory saturation by the ratio `FB_USED/(FB_USED+FB_FREE)`. Loss metrics are framework-log values; do not treat monotonic decrease or "validation ≈ training loss" as pass criteria—assess overall trends and task-specific evaluation metrics instead.';
   return <div style={{
     maxWidth: '900px',
     margin: '20px auto',
@@ -97,6 +100,14 @@ const MonitoringMetrics = () => {
               </div>
             </div>)}
         </div>
+      </div>
+      <div style={{
+      fontSize: '13px',
+      color: 'var(--ifm-color-emphasis-700)',
+      marginTop: '10px',
+      lineHeight: '1.5'
+    }}>
+        {note}
       </div>
     </div>;
 };

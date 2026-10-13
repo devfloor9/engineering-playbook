@@ -5,7 +5,7 @@ created: "2026-02-05"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 22
 tags:
   - vllm
   - paged-attention
@@ -25,7 +25,7 @@ import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
 ## 개요
 
-vLLM은 PagedAttention 알고리즘을 통해 KV cache 메모리 낭비를 60-80% 줄이고(vLLM 벤치마크 기준, 워크로드별 상이), 연속 배칭(Continuous Batching)으로 기존 대비 2-24배의 처리량 향상을 제공하는(vLLM 벤치마크 기준, 워크로드별 상이) 고성능 LLM 추론 엔진입니다. Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이합니다.
+vLLM은 PagedAttention 알고리즘으로 KV cache의 과다 예약(over-reservation)을 줄이는 고성능 LLM 추론 엔진입니다. vLLM 저자들은 기존 서빙 시스템에서 메모리의 60-80%가 과다 예약·단편화로 낭비된다고 측정했으며, 연속 배칭(Continuous Batching)은 2023년 6월 vLLM 벤치마크에서 HuggingFace Transformers·TGI 기준 대비 2-24배의 처리량 향상을 보고했습니다(정확한 배수는 모델·하드웨어·워크로드에 따라 다릅니다). Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이합니다.
 
 > **📌 현재 버전**: vLLM v0.24+ / v0.25.x (2026-07 기준)
 
@@ -44,11 +44,11 @@ vLLM의 핵심 혁신:
 
 Transformer 언어 모델은 출력 토큰을 하나씩 생성합니다. 매번 이전 토큰의 attention 데이터를 다시 계산하지 않도록, 서빙 엔진은 해당 토큰의 key와 value 텐서를 **KV cache**에 저장합니다. 캐시 메모리는 시퀀스 길이와 동시 요청 수에 비례해 늘어납니다. 요청마다 최대 시퀀스 길이에 맞춰 메모리를 미리 할당하면, 실제로 사용하지 않는 공간이 남을 수 있습니다.
 
-vLLM의 PagedAttention은 KV cache를 고정 크기 블록으로 나누어 비연속적으로 저장합니다. 요청이 짧으면 적은 블록만 할당하고, 길어지면 필요할 때 추가 블록을 할당합니다. 블록 테이블을 통해 논리적 순서를 유지하며, 메모리 단편화가 사라집니다.
+vLLM의 PagedAttention은 KV cache를 고정 크기 블록으로 나누어 비연속적으로 저장합니다. 요청이 짧으면 적은 블록만 할당하고, 길어지면 필요할 때 추가 블록을 할당합니다. 블록 테이블로 논리적 순서를 유지하여 연속 할당 방식의 외부 단편화와 과다 예약을 제거합니다. 다만 각 시퀀스의 마지막 부분 블록에는 내부 낭비가 남으며, vLLM 저자들은 이 잔여 낭비를 4% 미만으로 측정했습니다.
 
 **메모리 효율성 개선**:
-- 기존 방식: 최대 시퀀스 길이 × 배치 크기만큼 사전 할당 → 60-80% 낭비(vLLM 벤치마크 기준, 워크로드별 상이)
-- PagedAttention: 실제 사용량만큼만 동적 할당 → 낭비 제거
+- 기존 방식: 최대 시퀀스 길이 × 배치 크기만큼 사전 할당 → 과다 예약·단편화로 메모리의 60-80% 낭비(2023년 6월 vLLM이 기존 서빙 시스템을 측정한 값)
+- PagedAttention: 필요할 때 블록을 할당 → 과다 예약·외부 단편화 제거, 마지막 블록의 잔여 낭비는 4% 미만으로 측정됨
 
 ### Continuous Batching
 
@@ -81,10 +81,10 @@ llm = LLM(
 
 ### V1 엔진 아키텍처
 
-vLLM V1 엔진(v0.19.x 이전부터 기본값)은 다음 기능을 제공합니다:
+vLLM V1 엔진은 2025-01-27 알파로 처음 공개되었고(초기에는 `VLLM_USE_V1=1`로 선택 활성화), 이후 기본 엔진이 되었습니다. 이 문서가 다루는 v0.19.x~v0.25.x 계열에서는 기본값입니다. 주요 기능은 다음과 같습니다:
 - **Chunked Prefill**: 프리필(계산 집약적)과 디코드(메모리 집약적)를 동일 배치에서 혼합 처리
-- **FP8 KV cache**: KV cache 메모리를 2배 절감하여 더 긴 컨텍스트 지원
-- **Improved Prefix Caching**: 공통 프리픽스 재사용으로 400%+ 처리량 향상(vLLM 벤치마크 기준, 워크로드별 상이)
+- **FP8 KV cache**: KV cache를 FP16(요소당 2바이트) 대신 FP8(1바이트)로 저장하여 KV cache 메모리를 약 절반으로 줄이고 더 긴 컨텍스트 지원
+- **Improved Prefix Caching**: 요청 간 공통 프리픽스의 KV cache를 재사용하며, V1에서 거의 오버헤드 없이 기본 활성화됨. 처리량 향상 폭은 프리픽스 적중률에 따라 달라지며 고정값이 아닙니다.
 
 ## GPU 메모리 요구사항
 
@@ -108,13 +108,28 @@ vLLM V1 엔진(v0.19.x 이전부터 기본값)은 다음 기능을 제공합니�
   ]}
 />
 
-**예시 계산**:
-- Llama-3.3-70B (FP16): 70B × 2 bytes = 140GB (가중치만)
-- KV cache (배치 크기 256, 시퀀스 길이 8192): 약 40GB
-- 활성화 및 기타 오버헤드: 약 20GB
-- **총합**: 약 200GB → 단일 H100 80GB로 불가능, TP=4 필요 (GPU당 50GB)
+**예시 계산** (Llama-3.3-70B, FP16 가중치 및 FP16 KV cache):
 
-70B 파라미터 모델을 INT4 양자화하면 35GB로 줄어들어 단일 A100 80GB나 H100에서 KV cache 여유 공간과 함께 배포할 수 있습니다.
+가중치: 70B × 2 bytes = 140GB.
+
+토큰당 KV cache는 모델의 어텐션 차원으로 결정됩니다. Llama-3.3-70B은 Meta `llama-models` 정의 기준으로 Llama-3/3.1-70B과 동일하게 `n_layers = 80`, `n_kv_heads = 8`(그룹 쿼리 어텐션), `head_dim = dim / n_heads = 8192 / 64 = 128`입니다:
+
+```
+토큰당 KV 바이트 = 2(key+value) × n_layers × n_kv_heads × head_dim × 요소당 바이트
+                = 2 × 80 × 8 × 128 × 2(FP16)
+                = 327,680 bytes ≈ 320 KiB/token
+```
+
+배치 크기 256, 시퀀스 길이 8192이면 KV cache는 최대 256 × 8192 = 2,097,152 토큰을 담습니다:
+
+```
+KV cache = 2,097,152 토큰 × 320 KiB ≈ 640 GiB   (약 40GB가 아님)
+```
+
+- **총합(최대 점유 기준)**: 약 140GB 가중치 + 약 640GiB KV + 활성화/오버헤드. 단일 H100 80GB로는 불가능합니다.
+- TP=4로 가중치와 KV cache를 4개 GPU에 분할해도, 256×8192 최대 점유에서는 KV cache만 랭크당 약 160GiB로 80GB GPU를 크게 초과합니다. 따라서 이 배치×시퀀스 지점에 도달하려면 더 많은 GPU(더 높은 TP·추가 노드), KV cache 양자화(FP8로 토큰당 320 KiB→160 KiB), 또는 더 작은 `max_num_seqs`/`max_model_len`이 필요합니다. 실제로 vLLM은 `gpu_memory_utilization`과 가중치 적재 후 남은 HBM으로 사용 가능한 KV cache 크기를 정하므로, 실제 서비스 가능한 배치×시퀀스는 고정된 256×8192가 아니라 그 예산에 맞는 값입니다.
+
+70B 파라미터 모델을 INT4 양자화하면 가중치가 35GB로 줄어듭니다. KV cache는 가중치와 별도로 산정되므로, 단일 A100 80GB나 H100에서 배포 가능한 배치×시퀀스는 가중치 35GB를 제외한 잔여 HBM에 따라 달라집니다.
 
 ## 병렬화 전략
 
@@ -167,22 +182,31 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
   ]}
 />
 
+GPU 개수 열은 검증된 메모리 적합성이 아니라 병렬화 *토폴로지*를 나타냅니다. 모델이 실제로 올라가는지는 체크포인트 정밀도에 달려 있으며, 총 HBM이 가중치 + KV cache + 활성화 오버헤드를 초과해야 합니다. 예를 들어 Llama-3.1-405B를 BF16로 올리면 405B × 2 bytes ≈ 810GB로, KV cache 이전에 이미 8×H100(640GB)을 초과하므로 FP8/INT 양자화 체크포인트나 더 많은 GPU가 필요합니다. 744B 파라미터 MoE를 BF16로 올리면 ≈ 1,488GB로 16×H100(1,280GB)을 초과합니다. MoE는 토큰당 일부 전문가만 활성화되지만 전체 가중치는 상주해야 하므로, 마찬가지로 양자화 체크포인트나 추가 장치가 필요합니다. 각 행은 배포 전에 실제 체크포인트 dtype과 랭크당 예산으로 다시 산정해야 합니다.
+
 ### PP 멀티노드 제약 (V1 엔진, 2026-04) {#pp-멀티노드-제약-v1-엔진-202604}
 
-vLLM V1 엔진의 multiproc_executor는 NCCL TCPStore를 통해 멀티노드 동기화를 수행하는데, 대형 모델(744B 급) 로딩 시간이 `VLLM_ENGINE_READY_TIMEOUT_S` (기본 600초)를 초과하면 교착 상태가 발생할 수 있다.
+vLLM V1 엔진의 `multiproc_executor`는 NCCL TCPStore로 멀티노드 동기화를 수행한다. `VLLM_ENGINE_READY_TIMEOUT_S` 환경 변수(기본 600초, v0.25.0 `envs.py`에서 확인)는 엔진이 준비 상태가 될 때까지 기다리는 시간을 제한한다. 내부에서 관찰된 사례에서 대형 모델(744B 급) 로딩 시간이 이 타임아웃을 초과했다. 다음은 재현을 통한 원인 분석이 아니라 단일 관찰 사례이므로, **기동 준비 타임아웃**(600초 안에 로딩이 끝나지 않음)과 실제 런타임 **교착(deadlock)**을 구분해야 한다. 확보된 근거는 타임아웃 값만 확인할 뿐 원인을 분리하거나 일반적 교착을 입증하지 못한다.
 
-**증상**: Leader Pod가 Worker 응답 대기 중 timeout → Worker에서 `TCPStore Broken pipe` 에러 → 순환 재시작
+**관찰된 증상**: Leader Pod가 Worker 응답을 대기하다 timeout → Worker에서 `TCPStore Broken pipe` 에러 → 순환 재시작.
 
-**해결 방안**:
-1. **SGLang 사용** (권장): 멀티노드 PP를 안정적으로 지원
-2. **Ray 기반 vLLM**: Ray Cluster 구성 (운영 복잡도 증가)
-3. **단일 노드 배포**: H200 (141GB × 8) 또는 B200 (180GB × 8) 사용하여 PP 제거
+**완화 방안**(각자의 버전·워크로드로 검증할 것. 어느 것도 범용 해결책으로 검증되지 않았다):
+1. **`VLLM_ENGINE_READY_TIMEOUT_S` 상향**: 매우 큰 체크포인트의 느린 로딩이 기동 중 중단되지 않도록 한다.
+2. **Ray 기반 vLLM**: Ray Cluster 구성(운영 복잡도 증가).
+3. **단일 노드 배포**: H200 (141GB × 8) 또는 B200 (p6-b200.48xlarge, 180GB × 8)으로 멀티노드 PP 필요성을 제거한다.
+4. **대안 엔진**: SGLang은 멀티노드 PP를 지원한다고 알려져 있으나, 의존하기 전에 자신의 모델·토폴로지에서 안정성을 검증해야 한다.
 
 상세 내용은 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md#pp-멀티노드-교착-문제-lessons-learned)를 참조하세요.
 
 ### 데이터 병렬화 (Data Parallelism, DP)
 
 전체 모델 복제본을 여러 서버에 복제하여 독립적인 요청을 처리합니다. Kubernetes의 HPA(Horizontal Pod Autoscaler)와 결합하여 탄력적으로 확장할 수 있습니다.
+
+아래의 `Pods` 메트릭(`vllm_num_requests_waiting`)은 내장 리소스 메트릭이 아니라 **커스텀 Pod 단위 메트릭**입니다. vLLM은 `/metrics` 엔드포인트에 Prometheus 텍스트 형식으로 `vllm:num_requests_waiting`을 노출하지만, HPA는 커스텀 메트릭을 `custom.metrics.k8s.io` API를 통해서만 읽습니다. 따라서 다음 YAML에는 선행 조건이 있습니다:
+
+- Prometheus 등 메트릭 파이프라인이 vLLM `/metrics` 엔드포인트를 스크랩한다.
+- 커스텀 메트릭 어댑터(예: [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter))를 설치·구성하여 `vllm_num_requests_waiting`을 `custom.metrics.k8s.io`를 통해 Pod 단위 메트릭으로 노출하고 `vllm-deployment` Pod에 매핑한다.
+- 어댑터와 매핑이 없으면 HPA가 메트릭을 읽지 못해 확장되지 않는다.
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -197,7 +221,7 @@ spec:
   minReplicas: 2
   maxReplicas: 10
   metrics:
-  - type: Pods
+  - type: Pods          # custom.metrics.k8s.io 어댑터가 이 메트릭을 노출해야 함
     pods:
       metric:
         name: vllm_num_requests_waiting
@@ -226,7 +250,7 @@ vLLM v0.22+ 버전은 다양한 하드웨어 가속기를 지원합니다:
     { id: '1', cells: ['NVIDIA H100 (80GB)', '완전 지원', '프로덕션 추론', 'p5.48xlarge (H100×8)'], recommended: true },
     { id: '2', cells: ['NVIDIA H200 (141GB)', '완전 지원', '대형 모델 추론', 'p5en.48xlarge (H200×8)'] },
     { id: '3', cells: ['NVIDIA B200 (180GB)', '완전 지원', '초대형 모델 추론', 'p6-b200.48xlarge (B200×8)'] },
-    { id: '4', cells: ['NVIDIA L4 (24GB)', '완전 지원', '비용 효율적 추론', 'g6e.xlarge~12xlarge (L4×1~8)'] },
+    { id: '4', cells: ['NVIDIA L40S (48GB)', '완전 지원', '비용 효율적 추론', 'g6e.xlarge~48xlarge (L40S×1~8)'] },
     { id: '5', cells: ['AWS Trainium2', 'vLLM-Neuron 플러그인 경유 지원', 'AWS 네이티브 가속', 'trn2.48xlarge (Trn2×16)'] },
     { id: '6', cells: ['AMD MI300X', '지원', '대안 GPU 인프라', '-'] }
   ]}
@@ -235,7 +259,7 @@ vLLM v0.22+ 버전은 다양한 하드웨어 가속기를 지원합니다:
 **AWS EKS 권장 구성**:
 - **프로덕션**: p5.48xlarge (H100 × 8, 640GB HBM3) → TP=8로 175B 모델 배포 가능
 - **대형 모델**: p5en.48xlarge (H200 × 8, 1,128GB HBM3e) → TP=8로 405B 모델 배포 가능
-- **비용 최적화**: g6e 인스턴스 (L4) → 7B~13B 모델, Spot 인스턴스 활용
+- **비용 최적화**: g6e 인스턴스 (NVIDIA L40S, GPU당 48GB) → 7B~13B 모델, Spot 인스턴스 활용
 
 ## Multi-LoRA 서빙
 
@@ -244,9 +268,9 @@ vLLM은 단일 기본 모델에서 여러 LoRA 어댑터를 동시에 서빙할 
 ### 아키텍처 개념
 
 **기본 모델 + 어댑터 핫스왑**:
-- Base Model (70B)은 GPU 메모리에 항상 로드
-- LoRA 어댑터(수백 MB~수 GB)는 요청마다 동적으로 로드/언로드
-- 어댑터 전환 오버헤드: 수십~수백 ms (모델 전체 재로딩보다 100배 빠름)
+- Base Model (70B)은 GPU 메모리에 상주합니다.
+- LoRA 어댑터(수백 MB~수 GB)는 요청마다 활성화됩니다. `--lora-modules`로 사전 로드했거나 CPU 어댑터 캐시에 이미 있는 어댑터는 재로딩 없이 재사용되며, 아직 등록되지 않은 어댑터만 동적으로 가져와 로드하는 더 느린 경로를 거칩니다.
+- 이미 상주한 어댑터 간 전환은 기본 모델 전체 재로딩을 피합니다. 실제 전환 지연은 어댑터 크기·rank·한 배치에 함께 올라가는 어댑터 수·캐시 상주 여부에 따라 달라지므로, 특정 속도 수치는 고정 배수가 아니라 워크로드에 따른 값으로 보아야 합니다.
 
 **메모리 효율성**:
 - 기존 방식: 도메인별 전체 모델 × N개 배포 = 140GB × 5 = 700GB
@@ -259,8 +283,9 @@ vLLM은 단일 기본 모델에서 여러 LoRA 어댑터를 동시에 서빙할 
   rows={[
     { id: '1', cells: ['--enable-lora', 'Multi-LoRA 서빙 활성화', 'False'] },
     { id: '2', cells: ['--lora-modules', '사전 로드할 LoRA 모듈 (name=path)', 'None'] },
-    { id: '3', cells: ['--max-loras', '동시 로드 가능한 최대 LoRA 수', '1'] },
-    { id: '4', cells: ['--max-lora-rank', '지원할 최대 LoRA rank', '16'] }
+    { id: '3', cells: ['--max-loras', '한 배치에 들어갈 수 있는 서로 다른 LoRA의 최대 수(전체 등록 수가 아님)', '1'] },
+    { id: '4', cells: ['--max-cpu-loras', 'CPU 메모리에 저장할 LoRA 최대 수(--max-loras 이상, 미지정 시 --max-loras와 동일)', 'None'] },
+    { id: '5', cells: ['--max-lora-rank', '지원할 최대 LoRA rank', '16'] }
   ]}
 />
 
@@ -285,12 +310,12 @@ Multi-LoRA 핫스왑 배포, 고객별 어댑터 라우팅, A/B 테스트, S3 �
 모델 품질과 메모리 효율성의 균형을 맞춘다.
 
 <ComparisonTable
-  headers={['양자화 방식', '메모리 절감', '품질 손실', '추론 속도', '권장 용도']}
+  headers={['양자화 방식', '가중치 저장 폭', 'FP16 대비 가중치 메모리', '체크포인트/백엔드 지원', '주요 용도']}
   rows={[
-    { id: '1', cells: ['FP8', '50%', '최소 (1% 미만)', '빠름 (H100 최적화)', '프로덕션 추론'], recommended: true },
-    { id: '2', cells: ['AWQ', '75%', '낮음 (1-3%)', '매우 빠름', '고처리량 서비스'] },
-    { id: '3', cells: ['GPTQ', '75%', '낮음 (1-3%)', '빠름', 'GPU 메모리 제약 환경'] },
-    { id: '4', cells: ['GGUF', '50-75%', '낮음-중간', '빠름', 'CPU/edge 배포'] }
+    { id: '1', cells: ['FP8 (W8A8)', '8비트', '약 50% 감소', 'Hopper/Blackwell(및 기타 FP8 지원 백엔드)', '프로덕션 추론'], recommended: true },
+    { id: '2', cells: ['AWQ (INT4)', '4비트', '약 75% 감소', 'GPU; 사전 양자화된 AWQ 체크포인트', '고처리량 서비스'] },
+    { id: '3', cells: ['GPTQ (INT4)', '4비트', '약 75% 감소', 'GPU; 사전 양자화된 GPTQ 체크포인트', 'GPU 메모리 제약 환경'] },
+    { id: '4', cells: ['GGUF', '2~8비트(GGUF 타입별)', '타입별 상이', '내장 지원이나 매우 실험적; 단일 파일 GGUF', '이식성 / 저메모리 풋프린트'] }
   ]}
 />
 
@@ -303,12 +328,16 @@ vllm serve Qwen/Qwen3-32B-FP8 --quantization fp8
 # AWQ 양자화
 vllm serve TheBloke/Llama-2-70B-AWQ --quantization awq
 
-# GGUF 양자화 (vLLM-GGUF 플러그인 필요, highly experimental)
-# pip install vllm-gguf-plugin
+# GGUF 양자화 (내장 지원이나 매우 실험적, 단일 파일 GGUF만 지원)
+# repo_id:quant_type 형식으로 HuggingFace에서 직접 로드하고,
+# GGUF 토크나이저 변환이 느리므로 --tokenizer는 기본 모델을 가리킨다.
 vllm serve unsloth/Qwen3-0.6B-GGUF:Q4_K_M --tokenizer Qwen/Qwen3-0.6B
+
+# 또는 로컬 단일 .gguf 파일 사용:
+#   vllm serve ./Qwen3-0.6B-Q4_K_M.gguf --tokenizer Qwen/Qwen3-0.6B
 ```
 
-FP8은 품질 저하가 거의 없으면서 메모리를 절반으로 줄인다. INT4(AWQ, GPTQ)는 복잡한 추론 작업에서 품질 저하가 발생할 수 있으므로 워크로드별 프로파일링이 필요하다.
+표의 "FP16 대비 가중치 메모리" 열은 저장 폭에서 결정되는 값으로 모델 **가중치**에만 적용되며, KV cache와 활성화는 별도로 산정됩니다. 품질 손실과 추론 속도는 모델·양자화 방식·보정 데이터·작업에 따라 달라지는 값이므로 고정 비율로 가정하지 말고 워크로드별로 측정해야 합니다. FP8은 가중치 저장을 약 절반으로 줄입니다. INT4(AWQ, GPTQ)는 복잡한 추론 작업에서 품질이 저하될 수 있고 GGUF는 실험적이므로, 고정 수치를 가정하지 말고 품질과 속도를 워크로드별로 프로파일링해야 합니다.
 
 ### Prefix Caching
 
@@ -341,9 +370,9 @@ llm = LLM(
 )
 ```
 
-`max_num_batched_tokens`를 조정하여 TTFT(Time To First Token)와 처리량의 균형을 맞춘다:
-- 값이 크면 → 처리량 증가, TTFT 증가
-- 값이 작으면 → TTFT 감소, 처리량 감소
+`max_num_batched_tokens`를 조정하여 토큰 간 지연(ITL), 첫 토큰까지 시간(TTFT), 처리량을 절충합니다. 셋은 서로 다른 지표이므로 같은 부하 조건에서 각각 측정합니다:
+- **값이 작으면**(예: 2048) → ITL 개선. 우선 처리되는 디코드 단계를 느리게 만드는 프리필 토큰이 줄어들기 때문입니다.
+- **값이 크면** → TTFT와 처리량 개선. 한 배치에서 더 많은 프리필 토큰을 처리하기 때문입니다(처리량 목적이면 vLLM은 특히 큰 GPU의 소형 모델에서 `> 8192`를 권장합니다).
 
 ### CUDA Graph
 
@@ -357,31 +386,34 @@ CUDA Graph는 대부분의 경우 10-20% 성능 향상을 제공하지만, 동�
 
 ### DeepGEMM (FP8)
 
-NVIDIA Hopper/Blackwell GPU에서 FP8 block-quantized 모델 연산을 가속화하는 커스텀 GEMM 커널입니다. vLLM v0.10.2+ 이후 **기본 활성화**되어 있습니다.
+NVIDIA Hopper/Blackwell GPU(SM90/SM100)에서 **FP8 block-quantized 가중치**의 행렬 곱을 가속화하는 커스텀 GEMM 커널입니다. `VLLM_USE_DEEP_GEMM`로 제어되며 현재 버전(v0.10.2+)에서 기본값이 `True`(활성화)입니다. 모델 가중치가 block-FP8 GEMM을 사용하고 DeepGEMM 백엔드가 가용할 때에만 동작하며, `--kv-cache-dtype=fp8` 플래그는 KV cache 정밀도를 설정할 뿐 그 자체로 가중치 GEMM이 DeepGEMM을 쓰게 만들지 않습니다.
 
 ```bash
-# 기본 활성화됨 (v0.10.2+)
-vllm serve model-name --kv-cache-dtype=fp8
+# 기본 활성화됨 (v0.10.2+); Hopper/Blackwell에서 FP8 block-quantized 가중치에 적용
+vllm serve model-name
 
 # 비활성화가 필요한 경우 (워크로드에 따라 오히려 유리할 수 있음)
-VLLM_USE_DEEP_GEMM=0 vllm serve model-name --kv-cache-dtype=fp8
+VLLM_USE_DEEP_GEMM=0 vllm serve model-name
+# MoE 전용: VLLM_MOE_USE_DEEP_GEMM=0
 ```
 
-워크로드에 따라 성능 향상 효과가 다르므로, MoE 모델 등에서는 `VLLM_USE_DEEP_GEMM=0` 또는 `VLLM_MOE_USE_DEEP_GEMM=0`으로 비활성화하는 것이 유리할 수 있다.
+향상 폭은 워크로드에 따라 다르고 고정 수치가 아닙니다. 일부 Blackwell 모델 유형에서는 E8M0 스케일 제약으로 DeepGEMM이 자동 비활성화되며, 일부 MoE 워크로드에서는 `VLLM_USE_DEEP_GEMM=0` 또는 `VLLM_MOE_USE_DEEP_GEMM=0`으로 끄는 것이 더 빠를 수 있습니다.
 
 ### 최적화 옵션 비교
 
 <ComparisonTable
-  headers={['최적화 기법', '처리량 향상', 'TTFT 개선', 'GPU 메모리 절감', '적용 난이도']}
+  headers={['최적화 기법', '주요 이점', '메커니즘 / 조건', '적용 난이도']}
   rows={[
-    { id: '1', cells: ['Prefix Caching', '+400% (vLLM 벤치마크 기준)', '○', '○', '낮음 (플래그 1개)'], recommended: true },
-    { id: '2', cells: ['FP8 양자화', '+50%', '○', '50%', '낮음 (모델 선택)'], recommended: true },
-    { id: '3', cells: ['Chunked Prefill', '+30%', '+20%', '-', '낮음 (기본 활성화)'] },
-    { id: '4', cells: ['Speculative Decoding', '+200%', '+100%', '-', '중간 (드래프트 모델)'] },
-    { id: '5', cells: ['CUDA Graph', '+15%', '○', '-', '낮음 (기본 활성화)'] },
-    { id: '6', cells: ['DeepGEMM', '+25%', '-', '-', '낮음 (H100 전용)'] }
+    { id: '1', cells: ['Prefix Caching', '적중 시 처리량·TTFT', '공통 프리픽스 KV cache 재사용. 프리픽스 적중률이 높을수록 이점 증가(V1에서 0% 적중 시에도 거의 오버헤드 없음)', '낮음 (플래그 1개)'], recommended: true },
+    { id: '2', cells: ['FP8 양자화', '가중치 메모리·처리량', '가중치 저장을 절반으로. 속도 향상은 모델과 FP8 지원 하드웨어에 따라 다름', '낮음 (모델/체크포인트 선택)'], recommended: true },
+    { id: '3', cells: ['Chunked Prefill', 'ITL / TTFT 균형', '프리필과 디코드를 한 배치에 혼합. max_num_batched_tokens로 튜닝', '낮음 (기본 활성화)'] },
+    { id: '4', cells: ['Speculative Decoding', '예측 가능한 출력에서 지연 감소', '드래프트 모델이 토큰을 제안하고 타깃이 검증. 이점은 드래프트 수용률에 따라 다름', '중간 (드래프트 모델)'] },
+    { id: '5', cells: ['CUDA Graph', '커널 실행 오버헤드 감소', '반복 커널을 캡처. 동적 shape에서는 오버헤드가 생길 수 있음', '낮음 (기본 활성화)'] },
+    { id: '6', cells: ['DeepGEMM', 'FP8 가중치 GEMM 가속', 'Hopper/Blackwell에서 block-FP8 가중치 커널. 워크로드에 따라 다름', '낮음 (지원 GPU에서 기본 활성화)'] }
   ]}
 />
+
+이점 열은 각 기법이 어떤 조건에서 어느 방향으로 도움이 되는지를 나타냅니다. 공개된 vLLM 자료가 단일 벤치마크 수치가 아니라 메커니즘을 설명하므로, 이 가이드는 각 행에 고정 비율을 붙이지 않습니다. 실제 향상 폭은 자신의 모델·하드웨어·워크로드에서 측정해야 합니다.
 
 ## Reasoning·Tool-call 파서
 

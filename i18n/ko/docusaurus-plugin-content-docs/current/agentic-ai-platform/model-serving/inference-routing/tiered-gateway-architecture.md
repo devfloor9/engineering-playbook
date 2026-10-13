@@ -3,9 +3,9 @@ title: 티어드 게이트웨이 아키텍처
 description: "Agentic AI 플랫폼의 게이트웨이 계층 단일 정의: Tier 1 Ingress, Tier 2 추론 라우팅(Inference Extension)과 LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략"
 created: "2026-06-17"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 7
 tags:
   - gateway-api
   - inference-gateway
@@ -37,8 +37,12 @@ Agentic AI 플랫폼의 게이트웨이 계층은 서로 다른 책임을 가진
 |------|------|------|-------------|
 | **Tier 1** | Ingress / North-South Gateway | 외부 트래픽 수신, TLS 종료, 경로 라우팅, 인증, Rate Limiting | AWS LBC · Cilium · NGINX GF · Envoy Gateway · kGateway · Kong |
 | **Tier 2 ①** | Inference Routing (in-cluster) | 클러스터 내 추론 Pod 그룹으로 라우팅, KV cache·부하 인지 엔드포인트 선택 | Gateway API **Inference Extension** (InferencePool · EPP) |
-| **Tier 2 ②** | LLM API Gateway (provider proxy) | 외부/내부 모델 추상화, 모델 선택·Cascade, 비용 추적, Semantic Caching | Bifrost · LiteLLM · OpenRouter · Portkey · Helicone · Kong AI Gateway |
+| **Tier 2 ②** | LLM API Gateway (provider proxy) | 외부/내부 모델 추상화, 모델 선택·Cascade, 비용 추적, (제품에 따라) Semantic Caching | Bifrost · LiteLLM · OpenRouter · Portkey · Helicone · Kong AI Gateway |
 | **직교 축** | Agent Data Plane | MCP/A2A 프로토콜, stateful 세션, 도구 라우팅 | agentgateway |
+
+:::caution 대표 구현체는 역할 예시일 뿐 기능 보장이 아닙니다
+위 "대표 구현체" 열은 각 계층의 **역할을 수행하는 제품의 예시**이며, 나열되었다는 사실이 그 제품이 인증·Rate Limiting·Cascade·Semantic Caching을 기본 제공한다는 뜻은 아닙니다. 각 기능은 선택한 제품·버전·연동 구성에 따라 지원 여부가 달라지므로, 채택 전 해당 제품 문서로 확인해야 합니다. 특히 **Semantic Caching**은 임베딩 유사도 기반 캐시를 뜻하는데, 예로 든 제품 중 Helicone의 기본 캐시는 요청을 해싱해 일치시키는 **완전 동일(exact) 응답 캐시**이지 의미 기반 캐시가 아닙니다. Portkey처럼 simple/semantic 캐시를 구분해 제공하는 제품도 있으므로, Semantic Caching 지원은 제품별로 확인하세요.
+:::
 
 :::tip 핵심 구분 — Tier 2 ① vs ②
 - **Tier 2 ① Inference Routing**은 **클러스터 내부**에서 동작합니다. HTTPRoute가 InferencePool을 백엔드로 참조하고, EPP(Endpoint Picker)가 KV cache·부하를 고려해 vLLM/llm-d Pod 엔드포인트를 고릅니다. 자체 호스팅 모델 인프라를 다룹니다.
@@ -73,16 +77,18 @@ flowchart TB
     subgraph BE["백엔드"]
         EXT["외부 LLM 프로바이더<br/>(OpenAI · Anthropic · Bedrock)"]
         PODS["클러스터 내 추론 Pod<br/>(vLLM · llm-d)"]
+        TOOLS["도구 · MCP/A2A 서버<br/>(에이전트 세션 대상)"]
     end
 
     CLIENT --> GW1
     GW1 --> T2A
-    GW1 --> T2B
     GW1 --> AGW
+    GW1 ==자체 호스팅 요청 전달==> PODS
+    GW1 -.ext-proc 엔드포인트 질의.-> T2B
+    T2B -.선택된 Pod 주소.-> GW1
     T2A --> EXT
     T2A -.모델 추상화.-> PODS
-    T2B --> PODS
-    AGW --> PODS
+    AGW --> TOOLS
 
     style GW1 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style T2A fill:#e53935,stroke:#b71c1c,color:#fff
@@ -108,7 +114,7 @@ flowchart TB
 ## 트래픽 플로우 예시
 
 - **외부 LLM 호출**: Client → Tier 1(kgateway) → Tier 2 ②(Bifrost/LiteLLM, Cascade·캐시) → 외부 프로바이더 → 응답 + 비용 기록
-- **자체 호스팅 추론**: Client → Tier 1(kgateway) → Tier 2 ①(InferencePool·EPP) → vLLM/llm-d Pod → 응답
+- **자체 호스팅 추론**: Client → Tier 1(kgateway) → Tier 2 ①(InferencePool·EPP가 ext-proc로 Pod 엔드포인트 선택, 전달은 게이트웨이가 수행) → vLLM/llm-d Pod → 응답
 - **에이전트 도구 호출**: Client → Tier 1(kgateway) → Agent Data Plane(agentgateway, MCP/A2A) → 도구·세션
 
 ## 참고 자료
