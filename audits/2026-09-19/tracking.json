@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 290,
-    "open": 1900,
+    "source_correction_accepted": 372,
+    "open": 1818,
     "withdrawn": 1
   },
   "assignment_counts": {
@@ -23255,9 +23255,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-arch-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23266,9 +23269,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-arch-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23277,9 +23283,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-arch-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23288,9 +23297,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-arch-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23299,9 +23311,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-arch-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23310,9 +23325,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-auth-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23321,9 +23339,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-auth-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23332,9 +23353,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-auth-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23343,9 +23367,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-auth-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23354,9 +23381,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-auth-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23365,9 +23395,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-auth-06"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23376,9 +23409,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cidr-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23387,9 +23423,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cidr-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23398,9 +23437,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cidr-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23409,9 +23451,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cidr-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23420,9 +23465,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cni-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23431,9 +23479,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cni-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23442,9 +23493,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cni-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23453,9 +23507,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cni-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23464,9 +23521,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cni-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23475,9 +23535,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-cni-06"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23486,9 +23549,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fund-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23497,9 +23563,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fund-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23508,9 +23577,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fund-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23519,9 +23591,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fund-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23530,9 +23605,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fund-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23541,9 +23619,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fund-06"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23552,9 +23633,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fund-07"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23563,9 +23647,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fw-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23574,9 +23661,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fw-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23585,9 +23675,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fw-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23596,9 +23689,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fw-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23607,9 +23703,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-fw-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23618,9 +23717,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23629,9 +23731,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23640,9 +23745,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23651,9 +23759,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23662,9 +23773,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23673,9 +23787,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-06"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23684,9 +23801,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-07"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23695,9 +23815,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gpu-sched-08"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23706,9 +23829,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gw-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23717,9 +23843,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gw-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23728,9 +23857,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gw-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23739,9 +23871,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gw-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23750,9 +23885,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gw-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23761,9 +23899,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gw-06"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23772,9 +23913,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-gw-07"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23926,9 +24070,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-lb-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23937,9 +24084,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-lb-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23948,9 +24098,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-lb-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23959,9 +24112,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-net-index-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23970,9 +24126,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-obs-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23981,9 +24140,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-obs-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -23992,9 +24154,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-obs-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24004,8 +24169,11 @@
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-obs-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24014,9 +24182,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-obs-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24025,9 +24196,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-ops-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24036,9 +24210,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-ops-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24047,9 +24224,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-ops-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24058,9 +24238,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-ops-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24505,9 +24688,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24516,9 +24702,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24527,9 +24716,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24538,9 +24730,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24549,9 +24744,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24560,9 +24758,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-06"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24572,8 +24773,11 @@
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-07"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24582,9 +24786,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-08"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24593,9 +24800,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-09"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24604,9 +24814,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sriov-10"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24615,9 +24828,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-storage-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24626,9 +24842,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-storage-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24637,9 +24856,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-storage-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24648,9 +24870,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-storage-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24659,9 +24884,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-storage-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24670,9 +24898,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-storage-06"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24681,9 +24912,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-storage-07"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24692,9 +24926,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-upgrade-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24703,9 +24940,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-upgrade-02"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24714,9 +24954,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-upgrade-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24725,9 +24968,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-upgrade-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24736,9 +24982,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-upgrade-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -24747,9 +24996,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-upgrade-06"
+      ]
     }
   ],
   "correction_ledger": "corrections.json"

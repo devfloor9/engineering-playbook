@@ -7659,6 +7659,2333 @@
         "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "1e0e00b5785d592ecb2674925aef3e7deef6cc9f76a2cb3077d170881612b884",
         "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md": "b0ff2363c058ede076bbe23a80abdf428c4afda019e9ed0070cd5e38194fb90a"
       }
+    },
+    {
+      "record_id": "2026-09-19-hr-arch-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-ARCH-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Updated the Decision 1 bandwidth row in both locales: dedicated Direct Connect now lists 400Gbps, hosted connections now go to 25Gbps (not 10Gbps), and VPN is split into standard tunnels (up to 1.25Gbps) and large-bandwidth tunnels (up to 5Gbps). Dated the comparison as of 2026-10 and noted per-location/partner conditionality.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/directconnect/latest/UserGuide/dedicated_connection.html",
+        "https://docs.aws.amazon.com/directconnect/latest/UserGuide/hosted_connection.html",
+        "https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-arch-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-ARCH-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the hybrid-only data-residency and webhook rows in both locales to state that only worker nodes and worker-hosted system Pods can be on-premises, and that the EKS control plane and cluster metadata always reside in the AWS Region regardless of topology; added a prompt to confirm whether the actual regulatory requirement covers those Region-side components rather than implying full on-premises residency or compliance.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-prereqs.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-arch-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-ARCH-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the Decision 3 NAT paragraph in both locales to specify that CNI NAT only forgoes the inbound direction (VPC/control-plane to hybrid Pod IPs: webhooks, Metrics Server, cloud-pod east-west), while on-premises overlay east-west and pod egress (including AWS service calls) remain available; made mixed mode conditional on having inbound-dependent components such as webhooks rather than a blanket prerequisite.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-arch-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-ARCH-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Scoped the Gateway (option C) 'no routing negotiation' claim and the operating-owner axis row in both locales so the simplification applies only to on-premises Pod CIDR routing; made explicit that VPC node CIDR routes, non-overlapping address allocation, firewalls/security groups, and VPC route-table change permissions still require network/cloud team collaboration.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-prereqs.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-arch-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-ARCH-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Annotated the Decision 3 encryption-requirements axis row in both locales to mark CNI-level WireGuard/IPsec as outside the default configurations of the AWS-supported Cilium builds, requiring upstream or commercial Cilium support plus routing/kernel compatibility validation. Verified against the hybrid-nodes CNI 'Supported capabilities' table, which lists no encryption feature as AWS-supported.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/architecture-decision-guide.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-auth-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-AUTH-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the claim that certificate/CRL revocation immediately blocks node credentials. The comparison table, selection section, and a new two-step 'Credential revocation' explanation now distinguish CRL (optional, checked only on new CreateSession, CDP/OCSP unsupported so the CRL must be imported into IAM Roles Anywhere) from invalidating already-issued temporary credentials, which requires the AWSRevokeOlderSessions / aws:TokenIssueTime deny policy that applies to every node using the shared role. Also removed the unsupported 'up to twelve hours' RA session-duration claim.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/security-authn/node-authentication.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/node-authentication.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html",
+        "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_revoke-sessions.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-auth-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-AUTH-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the false statement that hybrid nodes do not support the aws-auth ConfigMap. The official hybrid-nodes-creds doc states the role is used with an access entry OR an aws-auth ConfigMap entry; both files now say aws-auth mapping is usable under API_AND_CONFIG_MAP, recommend the HYBRID_LINUX access entry without claiming exclusivity, and only exclude CONFIG_MAP-only mode (which lacks access entries).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/security-authn/node-authentication.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/node-authentication.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-creds.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-auth-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-AUTH-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Relabeled the 'openssl verify' comment from a concatenation-order check to path validation. openssl -untrusted supplies candidates for chain building, so OK proves a valid path to the trust store exists, not the physical input order; the comment now states OK does not verify bundle order and that order/intermediate inclusion must be checked separately.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/security-authn/node-authentication.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/node-authentication.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.openssl.org/3.0/man1/openssl-verify/",
+        "https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-auth-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-AUTH-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Hardened the Vault issuance example for secret handling: set umask 077, create a 0700 credential directory, pipe the private-key-bearing JSON through a shell variable instead of writing issued.json to disk, unset it afterward, and chmod 600 node.key / 644 node.crt with a note on chown for the reader. This removes the world-readable private key risk under a default umask.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/security-authn/node-authentication.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/node-authentication.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-auth-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-AUTH-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reframed 'nodeName must match the certificate CN' as a deliberate binding. Per the RA trust model the session Name defaults to the certificate's hex-encoded serial and the Subject CN becomes the source identity; the inline comment, validation-gate item, and summary now state that binding nodeName to the CN requires enabling acceptRoleSessionName on the profile plus an aws:PrincipalTag/x509Subject/CN condition in the role trust policy.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/security-authn/node-authentication.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/node-authentication.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/rolesanywhere/latest/userguide/trust-model.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-creds.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-nodeadm.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-auth-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-AUTH-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Fixed the firewall-targets row to use fully qualified hostnames (ssm.<region>.amazonaws.com, amazon-ssm-<region>.s3.<region>.amazonaws.com, rolesanywhere.<region>.amazonaws.com, rolesanywhere.amazonaws.com) and scoped it to the credential-refresh path. The Session Manager side-benefit now states it additionally requires ssmmessages.<region>.amazonaws.com and, in Regions launched before 2024, ec2messages.<region>.amazonaws.com, matching the SSM messaging-API reference and the EKS hybrid networking ongoing-operations table (which lists only ssm.<region> for credential refresh).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/security-authn/node-authentication.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/security-authn/node-authentication.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html",
+        "https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-setting-up-messageAPIs.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cidr-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CIDR-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Cilium cluster-pool expansion by appending a clusterPoolIPv4PodCIDRList entry is supported; only changing existing entries or the mask size is prohibited. Replace the 'effectively immutable' claim and note synchronized routing/firewall updates.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cidr-network-design.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cidr-network-design.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cidr-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CIDR-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Split ALB and NLB subnet requirements (ALB: at least a /27 per AZ subnet with at least eight free IPs) and added a worked two-AZ subnet-block budget: no ALB = CP /28x2 + nodes /27x2 + endpoints/Resolver /28x2 = 128 (fills /25 with no headroom); dedicated ALB /27x2 brings it to 192, which requires /24. Replaced the unsupported '/25-/24 = consumption plus growth headroom' claim and the summary bullet. Both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cidr-network-design.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cidr-network-design.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked.",
+        "Integration review found that the first edit had not recomputed the example VPC budget; the source commit adds a two-AZ subnet-block calculation (128 addresses without an ALB, 192 with dedicated ALB subnets)."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cidr-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CIDR-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Scope the Gateway reduction to Pod underlay routing; baseline firewall rules (10250, 443, DNS, credential endpoints) still apply.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cidr-network-design.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cidr-network-design.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cidr-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CIDR-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Default to unique, non-overlapping per-environment Pod CIDRs per the AWS prerequisite; label cross-environment reuse as an unvalidated exception.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cidr-network-design.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cidr-network-design.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cni-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CNI-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added operator.affinity (hybrid-label nodeAffinity) to the Cilium values block in both locales and updated the mixed-mode prose to state affinity must be set on both agent and operator, matching the official Hybrid Nodes values which set affinity and operator.affinity separately.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cni-selection-routing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cni-selection-routing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cni-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CNI-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Clarified that /26=64 and /25=128 are total address counts and that Cilium reserves 2 IPs per CIDR block (network+broadcast), so usable Pod IPs are 62 and 126; added guidance to confirm the deployed Cilium version's reservation behavior before aligning kubelet maxPods.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cni-selection-routing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cni-selection-routing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cni-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CNI-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the false 'change during operation is effectively impossible' claim with correct append-only expansion semantics: existing CIDR elements and clusterPoolIPv4MaskSize are immutable, but the pool can be expanded by appending a new CIDR element, which must also be reflected in RemotePodNetwork and on-premises routing.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cni-selection-routing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cni-selection-routing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cni-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CNI-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added the missing CiliumBGPPeerConfig resource (named cilium-peer, with timers/gracefulRestart/families) to the BGP YAML in both locales so all three CRDs are present, and documented the three-step apply order, placeholder substitutions, and how peerConfigRef.name and the advertise label link the resources.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cni-selection-routing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cni-selection-routing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cilium-bgp.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cni-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CNI-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Kept the official feature-enable helm upgrade command verbatim but added a warning that it omits --version and that with --reuse-values the Cilium version can drift; advised pinning the installed supported chart version for feature-only changes and running the documented upgrade preflight for intentional version changes.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cni-selection-routing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cni-selection-routing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cilium-bgp.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-cni-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-CNI-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Narrowed the Gateway table claim from 'eliminates on-premises routing coordination altogether' to removing Pod CIDR underlay routing coordination only, explicitly noting that Node CIDR routing and the gateway's VXLAN/firewall setup remain prerequisites.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/cni-selection-routing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/cni-selection-routing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fund-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FUND-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the wrong cumulative tier boundaries with the official schedule (First 576,000 @ $0.020; next 576,000 to 1,152,000 @ $0.014; next 4,608,000 to 5,760,000 @ $0.010; next 5,760,000 to 11,520,000 @ $0.008; over 11,520,000 @ $0.006), stated the 730-hour and same-Region/same-account (Organizations consolidated) aggregation assumptions, labeled the 224-vCPU figures as a hypothetical estimate (not a bill), added the official requirement to obtain an account-team quote for machines over 32 vCPU, and corrected the 10-node arithmetic to a total of about $24,416 ($2,441.60 per node).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/eks/pricing/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fund-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FUND-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Expanded the OS row to mark AL2023 as on-premises-virtualized-only (not covered by AWS Support Plans outside EC2, so not bare-metal) and to add Bottlerocket v1.37.0+ VMware vSphere variants, added an architecture row (x86_64/ARM with the ARMv8.2+Crypto caveat; Bottlerocket VMware variant x86_64-only), and added a note distinguishing hybrid-nodes integration support from OS-vendor support and documenting the Bottlerocket bootstrap path that does not use nodeadm.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-os.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fund-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FUND-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the shared-responsibility sentence to state that for managed node groups AWS builds patched EKS-optimized AMI versions and provides update/replacement orchestration while the customer initiates deployment of those AMIs, and that hybrid nodes have no AMI-build service so OS patching and nodeadm-based replacement fall entirely on the customer.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/managed-node-groups.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fund-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FUND-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Relabeled the Outposts comparison column as 'local clusters' and added a note separating EKS on Outposts extended clusters (control plane in the AWS Region, nodes on the Outpost) from local clusters (control plane and nodes on the Outpost, supported on racks), noting both are AWS-managed control planes.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/eks-outposts.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fund-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FUND-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Split the inbound Pod-level flow for Metrics Server into (a) control plane to the Metrics Server Pod IP on port 10250 (or node IP and custom port when hostNetwork is enabled) as the API aggregation path that actually needs Pod CIDR routing or the Gateway, and (b) Metrics Server to each kubelet on port 10250 as a separate scraping flow handled over the Node CIDR; preserved the hostNetwork qualification.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/metrics-server/master/README.md",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fund-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FUND-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the private-air-gap paragraph into four distinct private paths: Kubernetes API access via Private cluster endpoint; AWS service APIs (SSM/STS/IAM Roles Anywhere) via interface VPC endpoints; container registry via ECR interface endpoints plus the S3 gateway endpoint for image layers (noting pulls fail at layer download if S3 is omitted); and node bootstrap artifacts (nodeadm binary, OS repositories, dependencies) requiring an internal mirror or a pre-built OS image. This separates the Kubernetes API from PrivateLink service endpoints and adds the previously omitted mirrored-artifact and S3-layer dependencies.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html",
+        "https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-os.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Full versioned DNS/routing design per endpoint is deferred to the linked private-vpc-endpoints chapter, as the audit's 'complete design' scope exceeds this conceptual page."
+    },
+    {
+      "record_id": "2026-09-19-hr-fund-07",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FUND-07",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reworded the Gateway VXLAN description to state precisely that the VXLAN encapsulation removes only the requirement to advertise the Pod CIDR as routable on the on-premises physical network, not concealment or encryption: the official documentation states the VXLAN tunnels do not encrypt traffic (inner Pod IP header and payload remain observable, so encrypted transport such as Direct Connect MACsec or VPN is needed for in-transit encryption), and the Pod CIDRs still appear in VPC route table entries and the CiliumVTEPConfig custom resource. Kept the official ~3-5 second failover as a documented design target to measure in-environment.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/overview-architecture/hybrid-nodes-fundamentals.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fw-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FW-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added a warning admonition before the Zone A table stating the API-server destination (control plane ENI subnet CIDRs) assumes private endpoint access; noted Public-and-Private resolves to public IPs and can block node join, and to confirm the resolved API address / use the public endpoint path otherwise. KO+EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/firewall-connectivity.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/firewall-connectivity.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-prereqs.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fw-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FW-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the overbroad 'port 6443 does not exist in EKS' claim with: the EKS managed API server endpoint uses TCP 443, not 6443; workloads/webhooks may listen on 6443, decide via backend Service targetPort/listener. KO+EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/firewall-connectivity.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/firewall-connectivity.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fw-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FW-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Completed the Route 53 Resolver forwarding example: added create-resolver-endpoint (--direction OUTBOUND) before the rule, and the required associate-resolver-rule step plus a verification query. Official doc: forwarding needs an outbound endpoint and rules must be associated with the VPC. KO+EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/firewall-connectivity.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/firewall-connectivity.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-outbound-queries.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fw-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FW-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added conditional 'EKS Auth (Pod Identity) eks-auth.us-west-2.amazonaws.com' row to the wildcard-free FQDN table (consistent with Zone A), plus a note that rows are feature/auth-dependent and API/registry/S3-layer endpoints are distinct and must not be bundled. KO+EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/firewall-connectivity.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/firewall-connectivity.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html",
+        "https://docs.aws.amazon.com/AmazonECR/latest/userguide/vpc-endpoints.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-fw-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-FW-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected VPC route-table target terminology: VPC route for Node/Pod CIDR targets the TGW ID (tgw-...), not a 'TGW attachment'; attachment is the target inside TGW route tables. Matches official VPC-config example (target tgw-abcdef123456). KO+EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/firewall-connectivity.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/firewall-connectivity.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-prereqs.html",
+        "https://docs.aws.amazon.com/vpc/latest/tgw/tgw-route-tables.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the taint bullet: the NVIDIA Device Plugin only advertises the nvidia.com/gpu extended resource and does not inject tolerations; GPU Pods need an explicit nvidia.com/gpu toleration (key=value:effect must all match), and automatic injection depends on the ExtendedResourceToleration admission controller, which is not guaranteed enabled on EKS Hybrid Nodes clusters.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/",
+        "https://github.com/kubernetes/kubernetes/pull/56589",
+        "https://github.com/Azure/AKS/issues/1449"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the blanket claim that all cloud GPU nodes carry their own Device Plugin stack. Now distinguishes EKS Auto Mode and the Bottlerocket NVIDIA AMI (include and manage the Device Plugin) from the AL2023 NVIDIA AMI, which includes the driver and container toolkit but not the Kubernetes Device Plugin or DRA driver and needs a separate install; the nodeSelector pin applies to nodes that already self-manage a Device Plugin.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the assertion that a single nodeSelector scopes all GPU Operator operands. Now advises pinning the Operator chart version, notes operator-controller placement and each operand DaemonSet are controlled separately (operands selected via node GPU labels and nvidia.com/gpu.deploy.* opt-out labels), that NFD must be scoped independently, and that rendered DaemonSets must be verified (helm template / kubectl get daemonset -o yaml) before applying.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/getting-started.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Exact operand opt-out label keys and nodeSelector field names vary by GPU Operator version; the text directs readers to the version-specific Operator docs rather than pinning one scheme."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Labeled the NodePool example as Karpenter-only, added a prerequisite note that the referenced gpu-fallback EC2NodeClass must already exist (not shown), and corrected the misleading comment implying an Auto Mode switch via a single nodeClassRef.group change; the note states Auto Mode uses a separate eks.amazonaws.com NodeClass and eks.amazonaws.com/* labels instead of the karpenter.k8s.aws/* requirements.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/concepts/nodepools/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/create-node-pool.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the claim that preferred affinity guarantees on-prem-first placement. The summary bullet now describes preferredDuringScheduling as a scheduler scoring preference that does not guarantee placement or steady-state zero cloud nodes, and points to requiredDuringScheduling plus an explicit return policy when on-prem-only placement is required.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Expanded the operating sequence: a NotReady/unreachable node is tainted NoExecute rather than drained immediately, and Pods carry a default tolerationSeconds of 300 (~5 min, tunable, must be in RTO); evicted Pods are replaced by their controller (new Pending Pod), and a disconnected-but-running old node can cause duplicate execution, so single-execution workloads need application fencing or StatefulSet guarantees.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-07",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-07",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the drill: cordon alone only blocks new scheduling and does not evict existing Pods, so it does not trigger fallback provisioning; the drill must use kubectl drain (or node shutdown) to evict/replace Pods into Pending. Added that the connectivity-disconnection scenario takes a different trigger path and should be a separate drill, each with availability-check and return-complete conditions.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gpu-sched-08",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GPU-SCHED-08",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reframed NodePool limits from a cost-runaway-prevention ceiling to a provisioning guardrail, adding the eventual-consistency caveat (Karpenter provisioning is highly parallel and limit checking is eventually consistent, so rapid scale-outs can overrun the ceiling) and recommending EC2 service quotas, AWS Budgets alerts, and fallback-activation alerts as complementary controls.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-scheduling-failover.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/concepts/nodepools/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gw-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GW-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced 'managed gateway' with 'AWS-provided, open-source gateway software' and spelled out the ownership split: AWS supplies the auto route-table logic and the managed control plane (and Auto Mode node provisioning), but the customer deploys the gateway to their own EC2 nodes via Helm and owns its configuration, updates, and capacity. Corrected in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/about-aws/whats-new/2026/04/amazon-eks-hybrid-nodes-gateway/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gw-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GW-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote 'the Pod CIDR is never exposed' to say the underlay needs no Pod CIDR routes (routing exposure removed) but that this is not traffic confidentiality: VXLAN only encapsulates the inner IP header/payload and does not encrypt, so an encrypted transport (DX MACsec or VPN) is needed for confidentiality. Also softened the mermaid Pods label to 'no Pod CIDR routes on the underlay'. KO + EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gw-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GW-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added an explanation that podCIDRs/routeTableIDs are single comma-separated strings and that 'helm --set' treats commas as assignment separators, so substituting multiple values directly fails to parse. Provided two working multi-value approaches (backslash-escaped commas in a quoted --set, or a values.yaml passed with -f, with a route-table example) and kept the official single-value --set form. Updated the caveat table in KO + EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-configuration.html",
+        "https://helm.sh/docs/intro/using_helm/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gw-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GW-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reframed the failover number as a parameter-dependent estimate and corrected the control-plane dependency claim. Both locales now present both conflicting sources with dates (AWS User Guide ~3-5s; GitHub aws/eks-hybrid-nodes-gateway README on main, accessed 2026-10-13, ~15-30s) as something to measure, and state that leader election continuously renews the Lease against the K8s API (renew-deadline 2s) and that failover recovery depends on EC2 route APIs/IAM, so it is not limited to configuration-change moments. Applied across mechanism item 4, failure-domain items 2-3, HA bullet, two mermaid labels, the failure-impact table row, and the references line.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-operations.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-configuration.html",
+        "https://raw.githubusercontent.com/aws/eks-hybrid-nodes-gateway/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Actual failover/interruption time is left as a measured value; no runtime measurement was performed in this session."
+    },
+    {
+      "record_id": "2026-09-19-hr-gw-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GW-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Scoped the failure-impact table to an isolated single-instance fault with healthy shared dependencies, then added a list of shared-dependency failure modes that break VPC-to-hybrid-Pod traffic or delay recovery even with both instances alive: simultaneous dual-instance/AZ failure, loss of Kubernetes API access, revoked/erroring IAM route permissions, incorrect routeTableIDs/podCIDRs configuration, and Cilium VTEP/l7Proxy or tunnel-path failure. KO + EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-operations.html",
+        "https://raw.githubusercontent.com/aws/eks-hybrid-nodes-gateway/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gw-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GW-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the cost statement from 'only EC2 and Auto Mode fees are charged' to 'no separate charge for the gateway software; you pay for the underlying infrastructure — EC2 instances, Auto Mode fees if applicable, and any associated data transfer fees (cross-AZ and the DX/VPN transport path), plus CloudWatch observability costs if used', matching the GA announcement wording. KO + EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/about-aws/whats-new/2026/04/amazon-eks-hybrid-nodes-gateway/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-operations.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-gw-07",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-GW-07",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Turned the bare 'helm uninstall + aws ec2 delete-route' into a gated destructive procedure: (1) secure a cutover/maintenance window or migrate to an alternative path first because removal severs the only documented VPC<->hybrid-Pod path; (2) back up Helm values and inventory every gateway-owned route across all configured routeTableIDs x podCIDRs combinations before deleting, confirming the target is the gateway ENI; (3) keep the backup and inventory for reinstall/rollback and post-restore verification. KO + EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/hybrid-nodes-gateway.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-getting-started.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-configuration.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-lb-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-LB-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the L7 Ingress 'on-premises-originating' bullet (KO+EN) to distinguish Cilium Gateway (the Gateway API L7 feature) from the EKS Hybrid Nodes gateway (VXLAN product), and added two verified compatibility caveats: Cilium Ingress/Gateway needs envoy.enabled=true (the L7 proxy), which conflicts with the Hybrid Nodes gateway CNI requirement l7Proxy=false (needed for VTEP); and Cilium Ingress/Gateway cannot be combined with the AWS Load Balancer Controller + NLB target-type ip on hybrid nodes (targets end up unregistered).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/load-balancing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/load-balancing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-cni.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-lb-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-LB-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the Path 2 feature table row and added a dated blockquote (KO+EN) that pins the AWS-supported Cilium range (v1.17.x/v1.18.x, AWS-maintained ECR builds) and separates the kube-proxy-replacement FEATURE kernel floor (v4.19.57/v5.1.16/v5.2.0, where only RHEL 8.x falls short) from current INSTALL support: Cilium v1.18.3 requires kernel >= 5.10 and is not supported on Ubuntu 20.04 or RHEL 8. Updated the summary bullet accordingly and linked the CNI version-compatibility page and Cilium system requirements.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/load-balancing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/load-balancing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-load-balancing.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-lb-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-LB-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the single YAML block that had two 'metadata:' keys in one document with no separator (a parser would keep only the last mapping and silently drop the NLB Service annotations) with two separate, clearly labeled annotation excerpts (KO+EN) that identify the owning apiVersion/kind, plus a pointer to the full manifests and apply procedure in the official docs.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/load-balancing.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/load-balancing.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-load-balancing.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-net-index-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-NET-INDEX-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replace the fixed '3-5 second failover' card label with an active-standby HA description; failover time depends on leader-election parameters and sources differ (AWS user guide ~3-5 s, gateway README ~15-30 s).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/networking/index.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/networking/index.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-operations.html",
+        "https://raw.githubusercontent.com/aws/eks-hybrid-nodes-gateway/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Failover time must be measured for the chosen parameters."
+    },
+    {
+      "record_id": "2026-09-19-hr-obs-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OBS-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed the claim that DNS observability works independently of the L7 proxy. Cilium's official L7 Protocol Visibility doc classifies DNS visibility as an L7 feature that requires redirecting matching traffic to the proxy, so under the Gateway's l7Proxy=false the proxy-independent Hubble observability is now limited to L3/L4 flow and drop, with CoreDNS logs suggested as an alternate DNS telemetry source.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/observability-monitoring.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.cilium.io/en/stable/observability/visibility/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-obs-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OBS-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Pinned the Cilium chart --version in the helm upgrade (noting that omitting it can upgrade the CNI), and added that Hubble Relay requires TCP 4244 open on all Cilium nodes plus a Hubble client and Relay API access (cilium hubble port-forward / hubble status) before running hubble observe.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/observability-monitoring.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.cilium.io/en/stable/observability/hubble/setup/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. The exact EKS-supported Cilium chart version is left as a placeholder (<currently-running-supported-version>) for the operator to fill from their running cluster."
+    },
+    {
+      "record_id": "2026-09-19-hr-obs-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OBS-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Clarified that list-insights/describe-insight only read cached results from the last refresh, and added an explicit aws eks start-insights-refresh step with a wait for status COMPLETED before re-querying, matching the documented on-demand refresh API.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/observability-monitoring.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/cli/latest/reference/eks/start-insights-refresh.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-obs-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OBS-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Softened the OPEN_METRICS=on claim: the text now states the agent's metrics endpoint must be reachable from the remote Prometheus (bind address, port, and scrape path exposed), that a local-only bind cannot be scraped remotely, and that exposure must match host/pod networking or use a local scraper.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/observability-monitoring.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/network-observability.html",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-inside-network-flow-monitor.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "The official EKS network-observability and NFM 'how it works' pages document scraping metrics from the NFM agent and the outbound Publish API, but do not publish the OPEN_METRICS=on bind-address default (the audit's specific 127.0.0.1 claim). The correction is phrased conditionally rather than asserting a 127.0.0.1 default; confirming the exact default needs the NFM agent add-on configuration reference or runtime evidence."
+    },
+    {
+      "record_id": "2026-09-19-hr-obs-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OBS-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added that the ADOT add-on's operator uses an admission webhook, so even though remote-write is outbound, placing the operator on hybrid nodes can fail webhook admission in a pure unroutable setup; recommended placing the operator on cloud nodes in mixed mode (same constraint the doc already notes for the CloudWatch Observability operator) and distinguished self-managed in-cluster Prometheus as having no such admission dependency.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/observability-monitoring.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-ops-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OPS-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Separated the two component types the original bullet conflated: Metrics Server (control plane reaches its Pod IP, so place on cloud nodes or run hostNetwork unless Pod IPs are routable) versus the AMP managed collector, whose scraper AWS manages outside customer node scheduling and which instead requires VPC-reachable metric endpoints (routes to remote Pod CIDRs, firewall ports) plus private cluster endpoint access. Fixed in both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-ops-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OPS-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reframed selective workload placement: hybrid charges are per vCPU of registered node capacity and registration time (billing starts at join, stops at removal) and are independent of which workloads run, so moving CPU workloads off a still-registered GPU host does not cut hybrid fees and adds EC2/Spot cost. Stated savings require reducing registered nodes/time and made placement a policy choice decided on total cost. Updated the matching summary bullet too, in both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/eks/pricing/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-ops-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OPS-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Changed the cross-network path from an unconditional single point of failure to a critical availability dependency whose redundancy is configurable (single circuit is a SPOF, but Direct Connect Resiliency Toolkit supports multi-circuit/multi-location); choose redundancy against actual shared failure domains. Qualified already-running local workload continuity as conditional on local dependencies and non-expiring credentials/probes. Fixed in both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-ops-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OPS-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the ADOT fallback: the ADOT operator uses admission webhooks to validate/mutate the Collector custom resource, so running it on hybrid nodes requires a routable on-premises Pod CIDR and a configured remote Pod network - ADOT is not a drop-in replacement for the AMP collector in unroutable setups. Specified pinning the ADOT operator to cloud nodes via nodeAffinity so the webhooks are reachable, or using an architecture that avoids the admission dependency. Fixed in both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/operations-cost-optimization.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the DGX H200 network topology in the Architecture Overview, the problem intro, and the Environment hardware bullet (KO+EN): the cluster fabric is 8 single-port ConnectX-7 InfiniBand cards (4 OSFP ports) and the 2 dual-port ConnectX-7 cards are the storage/in-band-management Ethernet adapters, not the fabric; added guidance to verify the actual adapter layout with lspci/ibstat/mlxfwmanager.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added a support-scope warning before the integration section (KO+EN) stating this Cilium+Multus+SR-IOV stack is not AWS-supported: AWS supports Multus only with the Amazon VPC CNI as primary CNI, the VPC CNI is incompatible with Hybrid Nodes (anti-affinity on eks.amazonaws.com/compute-type: hybrid, Cilium is the AWS-supported CNI), and AWS does not publish SR-IOV/DPDK CNI plugins; framed the config as customer/project-owned.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/pod-multus.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the driver-upgrade step (KO+EN) into a controlled maintenance procedure: drain -> secure BMC/IPMI console -> back up driver/opensm/systemd/firmware config -> apply -> verify, with a danger admonition on ofed_uninstall --force, explicit initramfs update + reboot + ofed_info/ibstat verification, example versions flagged as replaceable, and a note to follow Ubuntu DKMS vs --add-kernel-support guidance.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/networking/display/MLNXOFEDv24101140lts/Installing+the+Driver"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Exact supported OFED release/kernel for the target node must be confirmed by the operator against the MLNX_OFED release-notes matrix at execution time."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the invalid systemd.link example (KO+EN) and documented the constraints: interface names are 1-15 chars excluding control chars, ':', '/', '%'; {attr/...} brace substitution is not systemd.link syntax (literal, and the '/' is prohibited); Name= has lower precedence than NamePolicy= so NamePolicy=keep overrides it. New example matches observed udev properties and sets an explicit short Name= with no NamePolicy, plus udevadm verification before/after reboot.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/systemd/systemd/v255/man/systemd.link.xml"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Fixed the VF-creation service (KO+EN): separated the PF set from the VF index (removed the {0..63}/vf=i/8 flattening that only hit mlx5_0..7), wrote GUIDs to per-PF/per-VF .../device/sriov/<vf>/node and .../<vf>/port paths, added set -euo pipefail with an existence check so writes fail loudly, and introduced a HOSTID component plus a note to guarantee fabric-wide GUID uniqueness across hosts.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html",
+        "https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts/single-root-io-virtualization-sr-iov"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Exact sysfs VF GUID file paths and the real PF set depend on the device/driver and must be confirmed on the node before applying; GUID allocation scheme is illustrative and should be replaced by a fabric-wide-unique allocation."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the readiness claim (KO+EN): explained that Before=kubelet.service is ordering-only and does not block kubelet on failure, so the kubelet unit needs After= plus Requires=/BindsTo= on the VF-setup service; added per-write failure handling and clarified that systemctl enable does not initialize the current session (use systemctl start + status + a reboot to verify both paths).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/systemd/systemd/v255/man/systemd.unit.xml",
+        "https://raw.githubusercontent.com/systemd/systemd/v255/man/systemd.link.xml"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-07",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-07",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Annotated the Network Operator values and the SriovNetworkNodePolicy (KO+EN) as a starting point rather than a validated config: instructed to pin the chart/CRD version and validate every key against the official values.yaml and sriov-network-device-plugin docs, flagged deployCR/operand keys as version-dependent, warned against mixing string/numeric deviceIDs/vendors, stated pfNames is an exact selector (not a mlx-* wildcard), called for a single VF-lifecycle owner, and noted a matching NicClusterPolicy/NetworkAttachmentDefinition/workload is still required.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/Mellanox/network-operator/master/deployment/network-operator/values.yaml",
+        "https://raw.githubusercontent.com/k8snetworkplumbingwg/sriov-network-device-plugin/master/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "The historical chart version that these values matched is unknown, so the exact validated key set cannot be pinned here; the author must select and pin a chart/CRD version and reconcile the values and a complete NAD/workload example against it."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-08",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-08",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reworked the firmware section (KO+EN): retitled it to reflect that the commands change mlxconfig/OpenSM settings, not the firmware image; added a danger admonition; added backup of mlxconfig -q output and opensm.conf; made OpenSM virtualization settings an additive drop-in under opensm.conf.d instead of overwriting opensm.conf; adjusted LINK_TYPE for single- vs dual-port adapters; and documented reboot-to-apply, subnet-manager ownership, and rollback.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html",
+        "https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts/single-root-io-virtualization-sr-iov"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Actual per-adapter PCI addresses, port counts, and whether this host owns the subnet manager must be inventoried by the operator before execution."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-09",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-09",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the critical firmware statement (KO+EN): the MLNX_OFED 24.10 General Support page lists adapter firmware as bundled/tested-with versions, not an unconditional minimum, and states BlueField-2 and ConnectX-7 are the last generations supported by MLNX_OFED, so BlueField-3 is outside this generation (separate DOCA/firmware track). Removed the universal-minimum assertion and directed readers to the PSID/driver-release firmware matrix.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/networking/display/mlnxofedv24100700/general+support"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sriov-10",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SRIOV-10",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the invalid GUID validation (KO+EN): explained that ports/1/gids/0 is the PF GID index 0 (not a per-VF GUID) and that an IPv6-format GID legitimately contains a '0000:0000:...' prefix so grep -c on that substring cannot detect a zero GUID; new check reads each configured VF's node/port GUID file, flags zero/empty values, calls for fabric-wide uniqueness (sort | uniq -d), and validates port/link state separately via ibstat.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts/single-root-io-virtualization-sr-iov"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. Exact per-VF GUID sysfs file paths depend on the device/driver and must be confirmed on the node."
+    },
+    {
+      "record_id": "2026-09-19-hr-storage-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-STORAGE-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the blanket 'Kubernetes-native integration via the EFS CSI Driver' claim with the verified fact that AWS's Hybrid Nodes compatible add-on list includes the FSx CSI driver but not the EFS CSI driver (which carries an anti-affinity rule against the eks.amazonaws.com/compute-type: hybrid label), and separated on-prem NFSv4.1 reachability from in-cluster CSI dynamic provisioning with documented alternatives, in both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html",
+        "https://aws.amazon.com/efs/faq/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-storage-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-STORAGE-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Scoped the pacemaker/corosync absence to early AL2023 releases and added the verified fact that AL2023.10 (version 2023.10.20260105) re-added corosync 3.1.9 and pacemaker 3.0.1 to the repository; distinguished package availability from AWS-tested/supported HA topology, and removed the unsupported 'strategic direction' justification and universal-migration conclusion. Updated overview, package section, and conclusion in both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/linux/al2023/release-notes/new-AL2023.9-AL2023.10.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-os.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-storage-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-STORAGE-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the invented AWS Support 'Feature Request' procedure, mandatory evidence list, multi-stage durations (2-4wk/3-6mo/6-12mo/1yr+), approval-probability lists, and attributed AWS 'priorities' with the public AL2023 channels documented in the repo README (GitHub issues/discussions, AWS account team, re:Post, security policy), reframed remaining advice as author guidance, and stated no public standard exists for timelines/probabilities. Both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/amazonlinux/amazon-linux-2023/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-storage-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-STORAGE-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the durability bullet to distinguish EFS Regional (redundant across multiple AZs, designed for 11 nines over a given year) from EFS One Zone (single AZ, possible data loss on AZ fault), labeled 11 nines as a design target not a guarantee, and added the backup/recovery requirement (AWS Backup / EFS Replication). Both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/efs/faq/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-storage-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-STORAGE-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Clarified that Reserved Instances and Savings Plans apply only to compute (EC2, Fargate, Lambda, SageMaker) and not to EFS/FSx storage-capacity or throughput charges, and redirected file-storage cost optimization to each service's storage classes, throughput modes, and lifecycle policies. Both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/savingsplans/latest/userguide/sp-services.html",
+        "https://aws.amazon.com/efs/faq/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-storage-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-STORAGE-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Re-attributed the Dell figures as read IOPS and read latency (not 'average response latency'); replaced the unverified '100% read' wording with the pgbench run conditions published in Dell white paper H04475 (April 2025): pgbench -i -s 20000, then -c 180 -j 80 -T 600 -b select-only; noted the white paper reports the same 238,804 IOPS but gives no latency number; removed the session-scalability bullet (single published configuration); stated that test hardware and network are not disclosed; added direct links to the post and the white paper. Both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked.",
+        "Integration review removed unverified '100% read' and 'average' wording; the pgbench run conditions were read directly from Dell white paper H04475 (April 2025)."
+      ],
+      "primary_urls": [
+        "https://infohub.delltechnologies.com/en-us/l/amazon-eks-hybrid-nodes-on-dell-powerflex/postgresql-deployment-1/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. The original blog post (en-nz/p/what-if-unleashing-innovation...) is behind a bot/JS interstitial from this host; the 0.638ms read-latency attribution relies on the audit's reading of that post. The white paper was read directly from its PDF."
+    },
+    {
+      "record_id": "2026-09-19-hr-storage-07",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-STORAGE-07",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Prefaced the security section with a note that encryption/access/audit features are service-, driver-, and protocol-specific (EFS vs FSx variants vs on-prem NFS), mapped each feature accordingly, and corrected the audit claim to state CloudTrail logs management API calls rather than file-level data access, pointing to service-specific file-access auditing or client/application-side logging instead. Both KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/storage-registry/file-storage.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/storage-registry/file-storage.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/efs/faq/",
+        "https://docs.aws.amazon.com/fsx/latest/ONTAPGuide/what-is-fsx-ontap.html",
+        "https://docs.aws.amazon.com/fsx/latest/OpenZFSGuide/what-is-fsx.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-upgrade-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-UPGRADE-01",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Split the single RHEL9-BaseOS mirror example into distinct RHEL 9 (BaseOS+AppStream), AL2023 (releasever-pinned amazonlinux repo via /etc/dnf/vars/releasever, not a RHEL repo), and Ubuntu blocks; added backup, explicit replace/disable of public sources, GPG keys, and repolist/apt-get update verification. Confirmed AL2023 uses its own version-locked repository and Ubuntu defaults live in ubuntu.sources.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/linux/al2023/ug/managing-repos-os-updates.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-upgrade.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-upgrade-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-UPGRADE-02",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added runbook step 1b to check CNI/add-on compatibility and upgrade an incompatible CNI before upgrading nodes, reframed step 7 from 'align add-on versions' to a final verification, and rewrote the Cilium bullet to state the official prerequisite that the CNI must support the target version and be upgraded first if not.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-upgrade.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-upgrade-03",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-UPGRADE-03",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added inline cautions to the drain block: --delete-emptydir-data deletes emptyDir data (inventory/back up first), --grace-period=300 overrides each Pod's terminationGracePeriodSeconds (omit by default, tune per workload), and a drain timeout must be investigated rather than treated as success.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/reference/kubectl/generated/kubectl_drain/",
+        "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-upgrade-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-UPGRADE-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added the mandatory --name <cluster-name> argument plus --region and optional --profile to the aws eks describe-cluster verification command in both runbook tables; the original command would fail because --name is required.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/cli/latest/reference/eks/describe-cluster.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-upgrade-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-UPGRADE-05",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the 'containerd and running containers are preserved' claim with the verified behavior: nodeadm upgrade upgrades containerd via the OS package manager (possibly a major-version upgrade), containers may restart, the operation is disruptive, and manual drain is required. Verified against the eks-hybrid upgrade.go source which calls containerd.Upgrade and handles the containerd-major-version-upgrade phase.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/aws/eks-hybrid/20aace438668970fee38a1b053836c59fd5cfd72/internal/flows/upgrade.go",
+        "https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-upgrade.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-upgrade-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-UPGRADE-06",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the PDB bullet to state that drain uses the eviction API and that even a single eviction is rejected when minAvailable equals current replicas or availability is already insufficient, so one-node-at-a-time does not inherently prevent a PDB stall; added preflight checks (available replicas, spare capacity, PDB settings) and workload-level remediation when a drain is blocked.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_commits": [
+        "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd"
+      ],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/upgrade-lifecycle.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples and gateway conformance) and 237 Python example and harness tests.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded for this change (pre-rebase revision b4fb9ee2, identical patch). The LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
     }
   ]
 }
