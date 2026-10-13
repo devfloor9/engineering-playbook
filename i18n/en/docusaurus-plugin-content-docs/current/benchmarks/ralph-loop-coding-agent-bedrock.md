@@ -1,5 +1,5 @@
 ---
-title: "Coding-Agent Ralph Loop Benchmark: 14 Models Measured on Amazon Bedrock"
+title: "Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measured with a Coding-Agent Ralph Loop"
 description: Measured report that ran a RealWorld backend implementation task in a Ralph loop five times on each of 14 models in Amazon Bedrock us-east-1 and compares completion, tokens, cost and LLM requests
 created: "2026-10-13"
 last_update:
@@ -15,12 +15,13 @@ tags:
   - cost
   - agentic-ai
   - scope:tech
-sidebar_label: "Report 9. Coding-Agent Ralph Loop [Measured]"
+sidebar_label: "Report 9. Foundation Model Token Cost Comparison [Measured]"
 sidebar_position: 9
 category: benchmark
 ---
 
 import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphSameModelChart, RalphModelCards} from '@site/src/components/RalphLoopBenchmark';
+import DataTableFrame from '@site/src/components/DataTableFrame';
 
 :::info Reference Benchmark
 This benchmark was built with reference to the [Ralph loop completion by model](https://roboco.io/coding-agent-benchmark/) report by Jung Do Hyun (정도현, Roboco) and its
@@ -216,6 +217,8 @@ Bars span the minimum–maximum of completed runs and the vertical tick marks th
 
 <RalphMetricMatrix />
 
+<DataTableFrame minWidth="60rem">
+
 | Group | Model | Completed | Cost per run (USD) | Output tokens | Total tokens | LLM requests | Ralph iterations | Run time (min) |
 |---|---|---|---|---|---|---|---|---|
 | Frontier | Claude Opus 5.5 | 5/5 | $0.907 ($0.861–$1.054) | 20,667 (20,402–23,773) | 796,558 (631,889–1,088,484) | 35 (30–45) | 1 | 6.1 (5.7–8.0) |
@@ -232,6 +235,8 @@ Bars span the minimum–maximum of completed runs and the vertical tick marks th
 | Frontier | GPT-5.6 Sol | 5/5 | $0.755 ($0.667–$0.908) | 12,032 (10,223–12,787) | 584,537 (505,256–775,728) | 31 (27–34) | 1 | 4.1 (3.4–5.8) |
 | Chinese open-weight | Kimi K3 | 5/5 | $1.422 ($1.154–$1.640) | 39,505 (32,640–47,056) | 1,658,186 (1,276,997–1,856,453) | 61 (57–65) | 1 | 10.5 (8.2–12.0) |
 | Chinese open-weight | GLM 5.3 | 4/5 | $1.821 ($1.402–$2.062) | 59,582 (48,793–77,914) | 3,766,802 (2,876,201–4,364,926) | 80 (73–89) | 1 | 10.1 (8.2–15.0) |
+
+</DataTableFrame>
 
 ### Token composition (medians)
 
