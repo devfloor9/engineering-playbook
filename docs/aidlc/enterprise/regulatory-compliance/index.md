@@ -3,7 +3,7 @@ title: AI 규제 컴플라이언스 프레임워크
 description: EU AI Act, NIST AI RMF, ISO/IEC 42001, 한국 AI 기본법 4개 프레임워크의 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-13
   author: devfloor9
 reading_time: 6
 tags:
@@ -92,7 +92,7 @@ graph TB
 **핵심 특징:**
 - 미국 NIST 발표; 법률·기관 정책·계약의 의무와 별도로 적용하는 자발적 프레임워크
 - 4 Functions: GOVERN, MAP, MEASURE, MANAGE
-- Generative AI Profile (NIST AI 600-1, 2024.07)은 AI RMF 1.0의 보조 자료
+- Generative AI Profile (NIST AI 600-1, 2024-07)은 AI RMF 1.0의 보조 자료
 - 국제 호환 (ISO/IEC 42001 상호 매핑 가능)
 
 **AIDLC 적용:**
@@ -212,7 +212,7 @@ import DocCardList from '@theme/DocCardList';
 - [EU AI Act Timeline (European Commission)](https://digital-strategy.ec.europa.eu/en/policies/regulatory-framework-ai)
 
 **NIST AI RMF:**
-- [NIST AI RMF 1.0 (2023.01)](https://www.nist.gov/itl/ai-risk-management-framework)
+- [NIST AI RMF 1.0 (2023-01)](https://www.nist.gov/itl/ai-risk-management-framework)
 - [Executive Order 14110 (Federal Register)](https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence)
 
 **ISO/IEC 42001:**

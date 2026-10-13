@@ -3,7 +3,7 @@ title: 오픈 웨이트 모델
 description: 데이터 레지던시와 비용 최적화를 위한 오픈 웨이트 모델 활용 전략 — 온프레미스 배포, 하이브리드 구성, TCO 비교
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -154,7 +154,7 @@ docker run --gpus all \
 
 **장점**:
 - 절대적 데이터 통제
-- 네트워크 레이턴시 최소화 (사내 10G 네트워크)
+- 네트워크 지연 시간 최소화 (사내 10G 네트워크)
 - 장기적으로 클라우드 비용 절감
 
 **단점**:
