@@ -3,9 +3,9 @@ title: Inference Frameworks
 description: vLLM·llm-d·MoE·NeMo — AI framework layer for actual model serving, distributed inference, and fine-tuning on GPUs
 created: "2026-04-17"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-13
   author: devfloor9
-reading_time: 4
+reading_time: 3
 tags:
   - vllm
   - llm-d
@@ -41,7 +41,7 @@ The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-i
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode"
     icon="🔀"
     title="llm-d Distributed Inference"
-    description="Kubernetes-native distributed inference scheduler, KV Cache-aware routing, Prefix Cache optimization, Disaggregated Serving."
+    description="Kubernetes-native distributed inference scheduler, KV Cache-aware routing, prefix cache optimization, Disaggregated Serving."
     color="#8b5cf6"
   />
   <DocCard

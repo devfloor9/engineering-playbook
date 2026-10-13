@@ -3,7 +3,7 @@ title: vLLM Model Serving
 description: vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture
 created: "2026-02-05"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: devfloor9
 reading_time: 27
 tags:
@@ -79,7 +79,7 @@ llm = LLM(
 
 The vLLM V1 engine (the default since before v0.19.x) provides these features:
 - **Chunked Prefill**: Mixes prefill (compute-intensive) and decode (memory-intensive) in the same batch
-- **FP8 KV Cache**: Reduces KV cache memory by 2x for longer context support
+- **FP8 KV cache**: Reduces KV cache memory by 2x for longer context support
 - **Improved Prefix Caching**: 400%+ throughput improvement through common prefix reuse
 
 ## GPU Memory Requirements
