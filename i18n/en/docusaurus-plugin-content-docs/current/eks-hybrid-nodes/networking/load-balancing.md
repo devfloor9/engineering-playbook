@@ -3,9 +3,9 @@ title: Load Balancing and Service Exposure
 description: "Designing external exposure for EKS Hybrid Nodes workloads — the traffic-origin-based NLB vs Cilium built-in LB decision principle, AWS Load Balancer Controller configuration requirements, Cilium LB IPAM and BGP advertisement, and community options such as MetalLB."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 21
 tags:
   - eks
   - hybrid-node
@@ -43,17 +43,21 @@ Detouring traffic that originates and is consumed on premises through a Regional
 
 For traffic originating in the Region, use the AWS Load Balancer Controller and NLB in **IP target mode**. In IP target mode, the NLB bypasses the Service layer and forwards directly to Pod IPs, so the hybrid Pod CIDR must be routable from AWS — this is a Pod-level inbound requirement, which presupposes full BGP routing or the Hybrid Nodes Gateway ([feature table](../overview-architecture/hybrid-nodes-fundamentals.md#node-cidr-required-pod-cidr-optional-principle)).
 
-```yaml
-# Service type LoadBalancer (NLB)
-metadata:
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "external"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+The annotation excerpts applied to each resource are shown below. Service and Ingress are distinct resources, so author them as separate manifests. For the complete manifests and the apply procedure, see [Configure Services of type LoadBalancer](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-load-balancing.html) and [Configure Kubernetes Ingress](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html).
 
-# Ingress (ALB) — for L7 exposure
-metadata:
-  annotations:
-    alb.ingress.kubernetes.io/target-type: ip
+Service type LoadBalancer (NLB) — excerpt of `metadata.annotations`:
+
+```yaml
+# metadata.annotations of an apiVersion: v1 / kind: Service
+service.beta.kubernetes.io/aws-load-balancer-type: "external"
+service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+```
+
+Ingress (ALB, for L7 exposure) — excerpt of `metadata.annotations`:
+
+```yaml
+# metadata.annotations of an apiVersion: networking.k8s.io/v1 / kind: Ingress
+alb.ingress.kubernetes.io/target-type: "ip"
 ```
 
 Three configuration cautions apply.
@@ -68,11 +72,16 @@ On-premises local traffic can be handled by Cilium's built-in capabilities witho
 
 | Feature | Role | Notes |
 |---------|------|-------|
-| kube-proxy replacement | Distributes Service traffic to backend Pods | Requires kernel v4.19.57 / v5.1.16 / v5.2.0 or later — among supported OSes, only RHEL 8.x falls short |
+| kube-proxy replacement | Distributes Service traffic to backend Pods | The feature itself requires kernel v4.19.57 / v5.1.16 / v5.2.0 or later. Whether a given Cilium release installs at all follows the "Supported versions and OS/kernel" note below |
 | Load Balancer IPAM | Assigns external IPs to Services of type LoadBalancer | IP pools defined with `CiliumLoadBalancerIPPool` |
 | BGP Control Plane | Advertises assigned LB IPs to the on-premises network | Requires [BGP configuration](./cni-selection-routing.md#cilium-bgp-control-plane-configuration) first |
 
 LB IPAM and BGP advertisement can be used without kube-proxy replacement; in that case, backend distribution is handled by kube-proxy (iptables), the EKS default.
+
+> **Supported versions and OS/kernel (verified 2026-10-13)**
+> On EKS Hybrid Nodes, AWS supports the Cilium v1.17.x and v1.18.x series, and you must use the AWS-maintained builds ([Amazon ECR Public: eks/cilium/cilium](https://gallery.ecr.aws/eks/cilium/cilium)) to be eligible for support. The kernel values v4.19.57 / v5.1.16 / v5.2.0 in the table above are the minimum kernel the kube-proxy replacement **feature** requires — a per-feature requirement.
+>
+> Separately, whether a given Cilium patch release installs at all follows a different rule. For example, Cilium v1.18.3 requires Linux kernel 5.10 or later, so it is **not supported on Ubuntu 20.04 or RHEL 8**. In other words, for the kube-proxy replacement feature alone only RHEL 8.x falls short, but the set of excluded OSes can be wider depending on the Cilium patch release you install. Confirm the exact patch version and node OS/kernel combination against the version-compatibility table in [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html) and the [Cilium system requirements](https://docs.cilium.io/en/stable/operations/system_requirements/).
 
 ```yaml
 # Define the LB IP pool
@@ -140,7 +149,12 @@ The selection criteria are the operational skills already present in the on-prem
 ## L7 Ingress
 
 - **Region-originating**: Use ALB + AWS Load Balancer Controller (`target-type: ip`). Prerequisites are the same as Path 1.
-- **On-premises-originating**: Use Cilium Ingress or Cilium Gateway (Gateway API). The LoadBalancer IP the Ingress/Gateway receives is allocated by Cilium LB IPAM, so that IP must be reachable on premises via BGP advertisement or alternative routing. See [Configure Kubernetes Ingress for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html) for the procedure.
+- **On-premises-originating**: Use Cilium Ingress or Cilium Gateway (Kubernetes Gateway API). Here "Cilium Gateway" is Cilium's L7 feature that reconciles Gateway API resources; it is distinct from the **EKS Hybrid Nodes gateway** (a separate product) that provides VXLAN connectivity between the VPC and hybrid nodes. The LoadBalancer IP the Ingress/Gateway receives is allocated by Cilium LB IPAM, so that IP must be reachable on premises via BGP advertisement or alternative routing. See [Configure Kubernetes Ingress for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html) for the procedure.
+
+  When using Cilium L7 Ingress/Gateway, check these two compatibility constraints.
+
+  - **Requires the L7 proxy (Envoy) — conflicts with the Hybrid Nodes gateway CNI settings**: Cilium Ingress/Gateway relies on the per-node Envoy proxy to process L7 traffic, so it requires `envoy.enabled=true`. The EKS Hybrid Nodes gateway, by contrast, requires `l7Proxy=false` to enable VTEP (VXLAN Tunnel Endpoint) ([Configure CNI for the Hybrid Nodes gateway](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-cni.html)). Consequently, applying the Hybrid Nodes gateway CNI configuration (`vtep.enabled=true`, `l7Proxy=false`) and Cilium L7 Ingress/Gateway on the same cluster leaves the L7 proxy disabled, so the Ingress/Gateway does not work. If you have made Pod CIDRs reachable via the Hybrid Nodes gateway and still need L7 routing, consider separating L7 handling onto a different path (for example, use ALB + the AWS Load Balancer Controller for Region-originating traffic).
+  - **Cannot be combined with the AWS Load Balancer Controller + NLB**: The official documentation states that Cilium Ingress/Gateway cannot be used with the AWS Load Balancer Controller and NLBs on EKS Hybrid Nodes. Because the NLB's `target-type: ip` (required when using an NLB with hybrid nodes) makes the NLB connect directly to the Pod IPs backing the Service, the targets end up unregistered ([Configure Services of type LoadBalancer](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html#hybrid-nodes-ingress-cilium-loadbalancer)).
 
 The reverse direction — the on-premises LB → cloud Pod (DR) path — is covered in [Firewall and TGW Topology](./firewall-connectivity.md#on-premises-lb--cloud-pod-dr-path).
 
@@ -150,7 +164,7 @@ The reverse direction — the on-premises LB → cloud Pod (DR) path — is cove
 - Avoid hairpin structures that detour on-premises local traffic through a Regional LB; they incur DX/VPN latency and bandwidth cost.
 - Confirm early in the design that NLB/ALB IP targets presuppose Pod CIDR routing (BGP or Gateway).
 - Place the AWS Load Balancer Controller on cloud nodes in mixed mode.
-- When using the Cilium built-in LB, set `loadBalancerClass: io.cilium/bgp-control-plane` on the Service, and do not use kube-proxy replacement on RHEL 8.x.
+- When using the Cilium built-in LB, set `loadBalancerClass: io.cilium/bgp-control-plane` on the Service. The kube-proxy replacement feature cannot be used on RHEL 8.x, and the set of supported OSes can narrow further depending on the Cilium patch release you install (for example, v1.18.3 does not support Ubuntu 20.04 or RHEL 8), so confirm the node OS/kernel and Cilium version combination before installing.
 - Factor MetalLB L2 mode's single-node ingress per LB IP into capacity planning.
 
 ## References

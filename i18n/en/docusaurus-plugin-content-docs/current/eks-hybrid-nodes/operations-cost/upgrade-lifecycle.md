@@ -3,9 +3,9 @@ title: Upgrades and Lifecycle Management
 description: "Kubernetes version upgrade strategy for EKS Hybrid Nodes — covers how nodeadm upgrade works, the mandatory manual cordon/drain, handling SSM signing key expiration (nodeadm 1.0.19+), private mirror configuration for air-gapped networks, and the upgrade runbook."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-26"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 19
 tags:
   - eks
   - hybrid-node
@@ -55,7 +55,7 @@ flowchart LR
 sudo nodeadm upgrade 1.34 --config-source file://nodeConfig.yaml
 ```
 
-During the upgrade, containerd and running container processes are preserved, but between the kubelet stop and restart the node temporarily becomes `NotReady` and is excluded from health checks and scheduling.
+An in-place upgrade causes node downtime. `nodeadm upgrade` upgrades not only EKS artifacts such as kubelet and kubectl but also **containerd**, via the OS package manager (depending on the target Kubernetes version this can include a containerd major-version upgrade), and running containers may be restarted during this process. Between the kubelet stop and restart the node becomes `NotReady` and is excluded from health checks and scheduling, so you must evacuate workloads with a manual drain before upgrading. Do not assume running containers are preserved as-is — plan the upgrade as a disruptive operation.
 
 ## Mandatory Manual Drain: nodeadm Does Not Evacuate Pods
 
@@ -68,11 +68,19 @@ During the upgrade, containerd and running container processes are preserved, bu
 kubectl cordon mi-0f1c2d3e4a5b6c7d8
 
 # 2. Evacuate workloads (respects PodDisruptionBudgets)
+# Caution: --delete-emptydir-data deletes the emptyDir volume data of Pods on this node.
+#          Confirm there is no unrecoverable buffer/cache/scratch data first, and back up
+#          or move required data to a persistent volume before running.
+# Caution: --grace-period=300 "overrides" each Pod's configured terminationGracePeriodSeconds
+#          with 300s. If you do not know a workload's termination time, omit this flag to use
+#          each Pod's default grace period, and tune the value only for workloads that need it.
 kubectl drain mi-0f1c2d3e4a5b6c7d8 \
   --ignore-daemonsets \
   --delete-emptydir-data \
   --grace-period=300 \
   --timeout=15m
+# If the drain reaches its timeout, do not treat it as success — investigate why Pods are
+# not being evicted (PDB waiting, slow termination, etc.) and then proceed again.
 
 # 3. Run the upgrade (on the node)
 sudo nodeadm upgrade 1.34 --config-source file://nodeConfig.yaml
@@ -83,7 +91,7 @@ kubectl uncordon mi-0f1c2d3e4a5b6c7d8
 ```
 
 - By default, `nodeadm upgrade` pre-validates **that the node is cordoned (node-validation) and that no Pods other than DaemonSets and static Pods remain (pod-validation)**, and refuses to proceed otherwise. These validations are safety checks only — they do not perform the drain for you.
-- For workloads with a **PodDisruptionBudget (PDB)**, drain respects the PDB, so it waits when available replicas are insufficient. To avoid a drain stalling on PDB violations during the upgrade window, proceed one node at a time.
+- For workloads with a **PodDisruptionBudget (PDB)**, drain evicts Pods through the eviction API and respects the PDB, so a drain waits or stalls when an eviction would violate the PDB. Proceeding one node at a time reduces the concurrent disruption scope, but even a single eviction is rejected when `minAvailable` equals the current replica count or available replicas are already insufficient — so sequential processing alone does not prevent a PDB stall. Before draining, preflight each workload's available replica count, spare capacity (whether Pods can reschedule onto other nodes), and PDB settings; if a drain is blocked, remediate at the workload level (scale up replicas, adjust the PDB) before proceeding.
 - For workloads that take time to terminate, such as GPU inference, adjust `--grace-period` to match model unload time.
 - Even after the node returns to Ready, confirm that the CNI (Cilium) DaemonSet Pod has started properly before uncordoning.
 
@@ -119,24 +127,45 @@ For air-gapped deployment systems that require version pinning, use a versioned 
 | OS packages (containerd, ca-certificates, runc, etc.) | Official OS repositories (yum/apt) | Replace repository source paths with a **private mirror server** |
 | Container images (CNI, add-ons) | ECR, `public.ecr.aws` | ECR PrivateLink or Harbor mirror ([registry integration](../storage-registry/harbor-registry)) |
 
+Separate mirrors per OS, version, and architecture (do not mix RHEL and AL2023 packages in one repository), and include every repository and GPG signing key you need. Back up existing public sources, then explicitly replace or disable them, and verify the enabled source list afterward. The following shows the per-distribution approach; replace the mirror paths, release versions, and keys with values for your environment.
+
 ```bash
-# RHEL/AL2023 — example of switching repositories to a private mirror
+# RHEL 9 — replace public BaseOS/AppStream with an internal mirror (RHEL only)
+sudo cp /etc/yum.repos.d/redhat.repo /etc/yum.repos.d/redhat.repo.bak 2>/dev/null || true
 sudo tee /etc/yum.repos.d/internal-mirror.repo << 'EOF'
-[internal-baseos]
-name=Internal Mirror - BaseOS
+[internal-rhel9-baseos]
+name=Internal Mirror - RHEL9 BaseOS
 baseurl=https://mirror.company.local/rhel9/baseos/
 enabled=1
 gpgcheck=1
-gpgkey=https://mirror.company.local/keys/RPM-GPG-KEY
+gpgkey=https://mirror.company.local/keys/RPM-GPG-KEY-redhat-release
+[internal-rhel9-appstream]
+name=Internal Mirror - RHEL9 AppStream
+baseurl=https://mirror.company.local/rhel9/appstream/
+enabled=1
+gpgcheck=1
+gpgkey=https://mirror.company.local/keys/RPM-GPG-KEY-redhat-release
 EOF
+sudo dnf clean all && sudo dnf repolist   # verify enabled sources
 
-# Ubuntu — example of pointing sources.list at the internal mirror
+# AL2023 — Amazon Linux uses version-locked repositories, so do not reuse RHEL repos.
+# Pin the release version via /etc/dnf/vars/releasever and point the mirrorlist at the internal mirror.
+sudo cp /etc/yum.repos.d/amazonlinux.repo /etc/yum.repos.d/amazonlinux.repo.bak
+echo "2023.5.20240708" | sudo tee /etc/dnf/vars/releasever   # pin to a version your org validated
+sudo sed -i 's#^mirrorlist=.*#baseurl=https://mirror.company.local/al2023/$releasever/$basearch/#' \
+  /etc/yum.repos.d/amazonlinux.repo
+sudo dnf clean all && sudo dnf repolist   # confirm the amazonlinux repo points at the internal mirror
+
+# Ubuntu — the default sources live in ubuntu.sources, so adding only an extra file leaves the
+# public repositories in use. For an air-gapped host, back up and disable the defaults, then replace.
+sudo cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bak 2>/dev/null || true
 sudo tee /etc/apt/sources.list.d/internal-mirror.list << 'EOF'
 deb https://mirror.company.local/ubuntu noble main universe
 deb https://mirror.company.local/ubuntu noble-updates main universe
 deb https://mirror.company.local/ubuntu noble-security main universe
 EOF
-sudo apt-get update
+# To avoid using public sources alongside the mirror, disable the defaults (e.g. move ubuntu.sources to .bak).
+sudo apt-get update   # verify all enabled sources resolve to the internal mirror
 ```
 
 The private mirror is not needed only at upgrade time — it is the permanent supply path for OS security patches. Establish mirror sync cadence, GPG key management, and the mirror's own availability as an operational practice before planning the upgrade.
@@ -146,16 +175,17 @@ The private mirror is not needed only at upgrade time — it is the permanent su
 | Step | Task | Verification |
 |------|------|--------------|
 | 0 | Confirm/update `nodeadm` 1.0.19+, check private mirror reachability | `nodeadm version`, `yum repolist`/`apt-get update` succeed |
-| 1 | Confirm the control plane upgrade is complete | `aws eks describe-cluster --query cluster.version` |
+| 1 | Confirm the control plane upgrade is complete | `aws eks describe-cluster --name <cluster-name> --region <region> --query cluster.version` (add `--profile <profile>` if needed) |
+| 1b | Confirm the CNI/add-ons support the target Kubernetes version; if not, upgrade the CNI **before** upgrading nodes | Check the add-on version matrix, CNI supports the target version |
 | 2 | Check Cluster Insights for upgrade-blocking issues | [Configuration validation](./operations-cost-optimization#configuration-validation-automation) |
 | 3 | `kubectl cordon` + `kubectl drain` (one node at a time) | Pod relocation complete, no PDB violations |
 | 4 | `sudo nodeadm upgrade <version> --config-source file://nodeConfig.yaml` | Exit code 0 |
 | 5 | Confirm node Ready, version, and CNI Pod startup | `kubectl get node -o wide`, `kubectl get pods -n kube-system -o wide --field-selector spec.nodeName=<node>` |
 | 6 | `kubectl uncordon`, then proceed to the next node | Workloads placed normally |
-| 7 | After all nodes complete, align add-on versions (CoreDNS, kube-proxy, Cilium) | Check the add-on version matrix |
+| 7 | After all nodes complete, verify add-ons (CoreDNS, kube-proxy, Cilium) are aligned with the target version (compatibility was already checked in step 1b) | Add-on version matrix matches the deployed versions |
 
 - On upgrade failure, `nodeadm` can be retried by re-running the same command. For repeated failures, re-validate networking and credential requirements with `nodeadm debug`, and collect `journalctl -u kubelet` and the nodeadm logs under `/var/log/`.
-- Cilium versions follow the Kubernetes version compatibility matrix, so plan the CNI upgrade together with major cluster upgrades.
+- CNI versions such as Cilium follow the Kubernetes version compatibility matrix. Per the official prerequisites, the CNI **must support the target Kubernetes version, and if it does not you must upgrade the CNI before upgrading the hybrid nodes**. CNI compatibility checking and upgrade is therefore a prerequisite of the node upgrade (runbook step 1b), while the post-completion add-on alignment is a final verification step.
 
 ## Summary of Recommendations
 

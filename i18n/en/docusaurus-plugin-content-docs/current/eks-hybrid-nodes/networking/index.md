@@ -3,7 +3,7 @@ title: Networking
 description: EKS Hybrid Nodes networking best practices — covers CIDR design and address-range minimization, CNI configuration and Pod CIDR routing, building and operating the Hybrid Nodes Gateway, load balancing and service exposure, firewall pre-registration, and TGW topology.
 created: "2026-08-25"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 3
 tags:
@@ -41,7 +41,7 @@ This section covers networking, the biggest hurdle in hybrid cluster adoption. I
     to="/docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway"
     icon="🚇"
     title="Building and Operating the Hybrid Nodes Gateway"
-    description="Cilium VTEP configuration, Helm installation, instance sizing (vertical scaling), 3–5 second failover HA model, monitoring, removal caveats"
+    description="Cilium VTEP configuration, Helm installation, instance sizing (vertical scaling), active-standby HA model (failover time is an estimate that depends on leader-election parameters), monitoring, removal caveats"
     color="#4a90d9"
   />
   <DocCard

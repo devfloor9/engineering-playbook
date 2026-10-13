@@ -3,9 +3,9 @@ title: 로드밸런싱과 서비스 노출
 description: "EKS Hybrid Nodes 워크로드의 외부 노출 설계 — 트래픽 발원지 기준 NLB vs Cilium 내장 LB 결정 원칙, AWS Load Balancer Controller 구성 요건, Cilium LB IPAM·BGP 광고, MetalLB 등 커뮤니티 옵션을 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 13
 tags:
   - eks
   - hybrid-node
@@ -43,17 +43,21 @@ category: hybrid-multicloud
 
 리전에서 발원하는 트래픽은 AWS Load Balancer Controller와 NLB를 **IP 타겟 모드**로 사용합니다. IP 타겟 모드에서 NLB는 Service 계층을 우회해 Pod IP로 직접 포워딩하므로, 하이브리드 Pod CIDR이 AWS에서 라우팅 가능해야 합니다 — 이는 Pod 레벨 inbound 요건이므로 BGP 풀 라우팅 또는 Hybrid Nodes Gateway가 전제입니다 ([기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙)).
 
-```yaml
-# Service type LoadBalancer (NLB)
-metadata:
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "external"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+아래는 각 리소스에 적용하는 어노테이션 발췌입니다. Service와 Ingress는 서로 다른 리소스이므로 별도 매니페스트로 작성합니다. 전체 매니페스트와 적용 절차는 [LoadBalancer 서비스 구성](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-load-balancing.html)과 [Ingress 구성](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html)을 참조합니다.
 
-# Ingress (ALB) — L7 노출 시
-metadata:
-  annotations:
-    alb.ingress.kubernetes.io/target-type: ip
+Service type LoadBalancer(NLB)의 `metadata.annotations` 발췌:
+
+```yaml
+# apiVersion: v1 / kind: Service 의 metadata.annotations
+service.beta.kubernetes.io/aws-load-balancer-type: "external"
+service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+```
+
+Ingress(ALB, L7 노출 시)의 `metadata.annotations` 발췌:
+
+```yaml
+# apiVersion: networking.k8s.io/v1 / kind: Ingress 의 metadata.annotations
+alb.ingress.kubernetes.io/target-type: "ip"
 ```
 
 구성 시 주의 사항은 세 가지입니다.
@@ -68,11 +72,16 @@ metadata:
 
 | 기능 | 역할 | 비고 |
 |------|------|------|
-| kube-proxy replacement | Service 트래픽의 백엔드 Pod 분배 | 커널 v4.19.57 / v5.1.16 / v5.2.0 이상 필요 — 지원 OS 중 RHEL 8.x만 미충족 |
+| kube-proxy replacement | Service 트래픽의 백엔드 Pod 분배 | 이 기능 자체는 커널 v4.19.57 / v5.1.16 / v5.2.0 이상을 요구합니다. 다만 Cilium 설치 가능 여부는 아래 "지원 버전과 OS·커널" 설명을 따릅니다 |
 | Load Balancer IPAM | Service type LoadBalancer에 외부 IP 할당 | `CiliumLoadBalancerIPPool`로 IP 풀 정의 |
 | BGP Control Plane | 할당된 LB IP를 온프렘 네트워크에 광고 | [BGP 구성](./cni-selection-routing.md#cilium-bgp-control-plane-구성) 선행 필요 |
 
 kube-proxy replacement 없이도 LB IPAM과 BGP 광고는 사용할 수 있으며, 이 경우 백엔드 분배는 EKS 기본인 kube-proxy(iptables)가 담당합니다.
+
+> **지원 버전과 OS·커널 (확인 시점: 2026-10-13)**
+> EKS Hybrid Nodes에서 AWS가 지원하는 Cilium은 v1.17.x와 v1.18.x 계열이며, AWS가 유지관리하는 빌드([Amazon ECR Public: eks/cilium/cilium](https://gallery.ecr.aws/eks/cilium/cilium))를 사용해야 지원 대상이 됩니다. 위 표의 커널 v4.19.57 / v5.1.16 / v5.2.0 값은 kube-proxy replacement **기능**이 요구하는 최소 커널로, 기능별 요건입니다.
+>
+> 이와 별개로 Cilium 패치 버전 자체의 설치 가능 여부는 다른 기준을 따릅니다. 예를 들어 Cilium v1.18.3은 Linux 커널 5.10 이상을 요구하므로 **Ubuntu 20.04와 RHEL 8에서는 설치가 지원되지 않습니다**. 즉 kube-proxy replacement 기능만 보면 RHEL 8.x가 미충족이지만, 설치하려는 Cilium 패치 버전에 따라 제외되는 OS 범위가 더 넓어질 수 있습니다. 사용하려는 정확한 패치 버전과 노드 OS·커널 조합은 [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html)의 버전 호환성 표와 [Cilium system requirements](https://docs.cilium.io/en/stable/operations/system_requirements/)로 확인해야 합니다.
 
 ```yaml
 # LB IP 풀 정의
@@ -140,7 +149,12 @@ MetalLB는 두 모드를 제공합니다.
 ## L7 Ingress
 
 - **리전 발원**: ALB + AWS Load Balancer Controller(`target-type: ip`)를 사용합니다. 전제 조건은 경로 1과 동일합니다.
-- **온프렘 발원**: Cilium Ingress 또는 Cilium Gateway(Gateway API)를 사용합니다. Ingress/Gateway가 받는 LoadBalancer IP는 Cilium LB IPAM으로 할당되므로, BGP 광고 또는 대체 라우팅으로 해당 IP가 온프레미스에서 도달 가능해야 합니다. 구성 절차는 [Configure Kubernetes Ingress for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html)를 참조합니다.
+- **온프렘 발원**: Cilium Ingress 또는 Cilium Gateway(Kubernetes Gateway API)를 사용합니다. 여기서 "Cilium Gateway"는 Gateway API 리소스를 처리하는 Cilium의 L7 기능으로, VPC와 하이브리드 노드 간 VXLAN 연결을 담당하는 **EKS Hybrid Nodes Gateway**(별도 제품)와는 다른 것입니다. Ingress/Gateway가 받는 LoadBalancer IP는 Cilium LB IPAM으로 할당되므로, BGP 광고 또는 대체 라우팅으로 해당 IP가 온프레미스에서 도달 가능해야 합니다. 구성 절차는 [Configure Kubernetes Ingress for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html)를 참조합니다.
+
+  Cilium L7 Ingress/Gateway를 사용할 때는 다음 두 가지 호환성 제약을 확인합니다.
+
+  - **L7 프록시(Envoy) 활성화 필요 — Hybrid Nodes Gateway의 CNI 설정과 충돌**: Cilium Ingress/Gateway는 노드의 Envoy 프록시가 L7 트래픽을 처리하므로 `envoy.enabled=true`가 필요합니다. 반면 EKS Hybrid Nodes Gateway는 VTEP(VXLAN Tunnel Endpoint)를 활성화하기 위해 `l7Proxy=false`를 요구합니다([Configure CNI for the Hybrid Nodes gateway](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-cni.html)). 따라서 동일 클러스터에서 Hybrid Nodes Gateway용 CNI 구성(`vtep.enabled=true`, `l7Proxy=false`)과 Cilium L7 Ingress/Gateway를 함께 쓰면 L7 프록시가 꺼져 Ingress/Gateway가 동작하지 않습니다. Pod CIDR 도달성을 Hybrid Nodes Gateway로 확보한 환경에서 L7 라우팅이 필요하면, L7 처리를 별도 경로로 분리하는 것(예: 리전 발원 트래픽은 ALB + AWS Load Balancer Controller 사용)을 검토합니다.
+  - **AWS Load Balancer Controller + NLB와 병용 불가**: 공식 문서는 EKS Hybrid Nodes에서 Cilium Ingress/Gateway를 AWS Load Balancer Controller 및 NLB와 함께 사용할 수 없다고 명시합니다. NLB의 `target-type: ip`(하이브리드 노드에서 NLB 사용 시 필수)가 Service를 받치는 Pod IP로 직접 연결을 시도하므로 타겟이 등록되지 않습니다([LoadBalancer 서비스 구성](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-ingress.html#hybrid-nodes-ingress-cilium-loadbalancer)).
 
 반대 방향인 온프레미스 LB → 클라우드 Pod(DR) 경로 설계는 [방화벽·TGW 토폴로지](./firewall-connectivity.md#온프레미스-lb--클라우드-poddr-경로)에서 다룹니다.
 
@@ -150,7 +164,7 @@ MetalLB는 두 모드를 제공합니다.
 - 온프렘 로컬 트래픽을 리전 LB로 우회시키는 헤어핀 구조는 DX/VPN 지연·대역폭 비용을 유발하므로 피합니다.
 - NLB/ALB IP 타겟은 Pod CIDR 라우팅(BGP 또는 Gateway)이 전제임을 설계 초기에 확정합니다.
 - AWS Load Balancer Controller는 mixed mode에서 클라우드 노드에 배치합니다.
-- Cilium 내장 LB 사용 시 Service에 `loadBalancerClass: io.cilium/bgp-control-plane`을 명시하고, RHEL 8.x에서는 kube-proxy replacement를 사용하지 않습니다.
+- Cilium 내장 LB 사용 시 Service에 `loadBalancerClass: io.cilium/bgp-control-plane`을 명시합니다. kube-proxy replacement 기능은 RHEL 8.x에서 사용할 수 없고, 설치하려는 Cilium 패치 버전에 따라 지원 OS 범위가 더 좁아질 수 있으므로(예: v1.18.3은 Ubuntu 20.04·RHEL 8 미지원), 노드 OS·커널과 Cilium 버전 조합을 설치 전에 확인합니다.
 - MetalLB L2 모드는 LB IP당 단일 노드 인입 특성을 용량 계획에 반영합니다.
 
 ## 참고 자료

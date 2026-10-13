@@ -125,6 +125,22 @@ The [PR #104 follow-up report](pr104-follow-up.md) records 13 supplemental findi
 
 The Trainium specification conflict, neighboring findings and operational evidence remain separate work. These checks do not establish controller admission, live routing, cloud execution, recovery, CPU performance or address usage in an operating cluster.
 
+The sixth follow-up records 84 decisions for the Hybrid Nodes items assigned to [#88](https://github.com/devfloor9/engineering-playbook/issues/88), across 15 Korean/English document pairs: 82 accepted source corrections and two partial corrections. Each finding was re-checked against current primary sources before editing, and both locales were corrected together in source commit `b6699dd7`.
+
+| Area | Items | Reviewed change |
+| --- | --- | --- |
+| Gateway and networking overview | 8 | Separate the AWS-provided gateway software from user-operated EC2 capacity and its cost; distinguish removed Pod CIDR routing from traffic confidentiality; explain comma-separated Helm values; present failover time as a parameter-dependent estimate; scope failure impact; gate the removal procedure. |
+| CIDR planning and CNI | 10 | Allow Cilium pool expansion by appending CIDRs and correct usable Pod IP counts; split ALB and NLB subnet rules and add a two-AZ VPC budget; keep Pod CIDRs unique per environment; complete the BGP resources and operator placement; pin chart versions; limit the gateway's routing reduction to Pod CIDRs. |
+| Firewall and load balancing | 8 | Correct API endpoint ports and access modes, Resolver forwarding, route-table targets and FQDN rows; split a merged YAML example; separate Cilium Gateway from the Hybrid Nodes gateway and state the AWS-supported Cilium range. |
+| Architecture and fundamentals | 12 | Correct pricing tiers, connection bandwidth, OS support scope, shared responsibility, the Outposts comparison, which components can run on premises, inbound Pod paths, NAT, encryption and gateway scope, and private access paths. |
+| GPU scheduling and SR-IOV | 18 | Correct toleration, device-plugin and affinity behavior, NotReady eviction timing, fallback drills and NodePool limits; correct the DGX network topology and mark the SR-IOV stack as outside AWS support; fix link naming, VF and GUID setup, readiness ordering, firmware settings and driver upgrades. |
+| Observability, cost and upgrades | 15 | Correct DNS visibility, Hubble ports, insight refresh, webhook and Metrics Server placement, billing and redundancy statements; add per-OS mirror examples, CNI compatibility checks, drain and PDB cautions and required CLI arguments to the upgrade runbooks. |
+| Node credentials and file storage | 13 | Correct credential revocation timing, aws-auth support, certificate path validation, node-name binding and secret handling; separate EFS and FSx CSI support, AL2023 package availability, durability, savings scope and per-service security features; remove an unsupported package-request procedure; correct the Dell benchmark attribution. |
+
+`HR-SRIOV-07` remains partial because the NVIDIA Network Operator chart and CRD version that the example values were written for is unknown; the author must pin a version and reconcile the values and a complete network attachment and workload example against it. `HR-OBS-04` remains partial because public AWS documentation does not state the Network Flow Monitor agent's default metrics bind address, so the correction states the reachability requirement conditionally.
+
+All 30 changed sources received a new revision date and reading estimate; creation dates, author attribution and routes are unchanged, and the ten renamed headings keep their previous explicit anchors. The offline suite passed 756 Node.js tests and 237 Python tests with no failures. The full Korean and English build, `llms.txt` and LLM wiki exports succeeded, the LLM wiki component test passed 183 tests against the built HTML, and link validation found no issues in 3,195 internal links; external URLs were not checked. These checks do not establish gateway failover times, routing or firewall behavior, GPU or SR-IOV host configuration, credential revocation timing or performance in an operating cluster.
+
 Each ledger entry identifies the source commit, reviewed files, checks and remaining limits. Offline examples use fakes or parsers; browser checks establish rendering. Neither establishes successful cloud execution, fault recovery or measured performance. Later entries, if present, are authoritative for subsequent decisions; the original occurrence and classification totals remain unchanged.
 
 ## Remaining correction work
@@ -140,7 +156,7 @@ The new correction workstreams are:
 - [#99 — AI-DLC](https://github.com/devfloor9/engineering-playbook/issues/99): 404 items covering methodology, executable examples, approvals, evaluation, quantities and legal scope.
 - [#100 — Industry and sales examples](https://github.com/devfloor9/engineering-playbook/issues/100): 283 industry items and 14 sales/event items covering evidence, implementation status and assumptions.
 
-The remaining Hybrid Nodes and scheduling/resiliency corrections continue in [#88](https://github.com/devfloor9/engineering-playbook/issues/88) and [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 290 accepted source corrections, 1,900 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,900 confirmed errors.
+Two partial Hybrid Nodes items (`HR-SRIOV-07`, `HR-OBS-04`) remain open in [#88](https://github.com/devfloor9/engineering-playbook/issues/88), and the scheduling/resiliency corrections continue in [#92](https://github.com/devfloor9/engineering-playbook/issues/92). The tracking file now records 372 accepted source corrections, 1,818 open review items and one withdrawn finding. “Open” includes unresolved evidence and misleading qualifications; it does not mean 1,818 confirmed errors.
 
 Follow-up edits must preserve useful detail, routes, anchors, creation dates and author attribution. Content changes update the revision date and reading estimate together; presentation-only changes preserve them.
 

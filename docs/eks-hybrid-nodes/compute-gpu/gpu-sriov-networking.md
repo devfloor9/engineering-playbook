@@ -3,9 +3,9 @@ title: 하이브리드 GPU 워크로드와 SR-IOV 네트워킹
 description: EKS Hybrid Nodes에서 온프렘 GPU 노드를 1차 추론 계층으로 활용하고, DGX H200 SR-IOV VF 이름 불일치 문제를 드라이버 호환성·영구 명명·systemd 오케스트레이션으로 해결하는 실전 가이드
 created: "2025-09-01"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 18
 tags:
   - eks
   - hybrid-node
@@ -48,15 +48,15 @@ Gateway 레벨 폴백·관측성은 [Agent 모니터링 & 운영](../../agentic-
 
 ## 아키텍처 개요
 
-Amazon EKS 컨트롤 플레인은 Hybrid Nodes 기능을 통해 온프렘 DGX H200 노드를 관리합니다. 각 DGX 노드는 8개의 H200 GPU와 8개의 400G InfiniBand HCA(ConnectX-7)를 포함하며, SR-IOV는 Physical Function당 8개의 VF를 생성하도록 구성됩니다. 문제는 SR-IOV VF와 Kubernetes CNI 스택(Cilium, Multus, SR-IOV CNI 플러그인) 간 상호 작용에서 발생합니다.
+Amazon EKS 컨트롤 플레인은 Hybrid Nodes 기능을 통해 온프렘 DGX H200 노드를 관리합니다. NVIDIA DGX H100/H200 User Guide 기준으로 각 DGX 노드는 8개의 H200 GPU와, 클러스터 패브릭용 **8개의 단일 포트 ConnectX-7 InfiniBand 카드**(4개의 OSFP 포트로 묶임), 그리고 스토리지·인밴드 관리용 **2개의 듀얼 포트 ConnectX-7 이더넷 카드**를 포함합니다. 이 가이드는 클러스터 패브릭의 8개 InfiniBand 포트에서 SR-IOV를 사용하는 사례를 다루며, 각 Physical Function당 8개의 VF를 생성하도록 구성합니다. 실제 어댑터 구성과 PCI 주소는 환경마다 다르므로 `lspci`·`ibstat`·`mlxfwmanager --query`로 반드시 사전 확인해야 합니다. 문제는 SR-IOV VF와 Kubernetes CNI 스택(Cilium, Multus, SR-IOV CNI 플러그인) 간 상호 작용에서 발생합니다.
 
 ## 문제 상황: VF 이름 불일치
 
-DGX H200 클러스터(8x 400G InfiniBand HCA)를 Amazon EKS Hybrid Nodes와 통합하고 ML 워크로드를 실행할 준비를 마쳤을 때, 파드가 배포에 실패하기 시작했습니다. 원인은 SR-IOV VF 인터페이스가 파드 배포 중 예측 불가능하게 이름을 변경하기 때문입니다.
+DGX H200 클러스터(클러스터 패브릭의 8개 단일 포트 ConnectX-7 400G InfiniBand 포트)를 Amazon EKS Hybrid Nodes와 통합하고 ML 워크로드를 실행할 준비를 마쳤을 때, 파드가 배포에 실패하기 시작했습니다. 원인은 SR-IOV VF 인터페이스가 파드 배포 중 예측 불가능하게 이름을 변경하기 때문입니다.
 
 환경 구성:
 
-- **하드웨어**: NVIDIA DGX H200 (8-GPU 시스템), 2x dual-port ConnectX-7 (400G InfiniBand HCA). BlueField-3 DPU는 옵션 구성이며 SuperPOD 환경에서 주로 사용됩니다.
+- **하드웨어**: NVIDIA DGX H200 (8-GPU 시스템). NVIDIA DGX H100/H200 User Guide 기준 네트워크 어댑터는 클러스터 패브릭용 8개의 단일 포트 ConnectX-7 InfiniBand 카드(4개의 OSFP 포트)와 스토리지·인밴드 관리용 2개의 듀얼 포트 ConnectX-7 이더넷 카드로 구성됩니다. 이 사례의 SR-IOV 구성은 InfiniBand 클러스터 패브릭 포트를 대상으로 합니다. BlueField-3 DPU는 이 DGX 기본 구성에 포함되지 않는 별도 옵션으로, 주로 SuperPOD 환경에서 사용되며 별도의 DOCA/펌웨어 요구사항을 가집니다.
 - **소프트웨어 스택**: Ubuntu 24.04, Kernel 6.8.0-55-generic, Amazon EKS Hybrid Nodes
 - **네트워킹**: Cilium v1.17.x (primary CNI), Multus + SR-IOV CNI (secondary networks)
 
@@ -85,95 +85,133 @@ kernel 6.8.0은 MLNX_OFED 25.01이 의존하는 여러 함수(`strlcpy`, `xdp_do
 
 ### 계층 1: 기반 수정 - 드라이버 업그레이드
 
-먼저 드라이버 비호환성을 해결합니다.
+먼저 드라이버 비호환성을 해결합니다. 아래 절차는 활성 InfiniBand 드라이버를 제거하고 교체하므로, 반드시 **노드 드레인 → 콘솔(BMC/IPMI) 접근 확보 → 기존 드라이버·설정 백업 → 적용 → 검증** 순서의 통제된 유지보수 작업으로 수행해야 합니다. 원격 SSH만으로 진행하면 드라이버 제거 시점에 네트워크가 끊겨 노드에 다시 접근하지 못할 수 있습니다. 명령에 사용된 OFED/커널 버전·PCI 주소·파일명은 예시이며, 대상 노드의 실제 값과 지원 조합(MLNX_OFED 릴리스 노트의 OS·커널 매트릭스)으로 반드시 교체해야 합니다.
+
+:::danger 서비스 중단 및 복구 불가 위험
+`ofed_uninstall.sh --force`는 의존성 확인 없이 현재 적재된 네트워크 드라이버를 제거하므로 원격 접근이 끊길 수 있습니다. 실행 전에 (1) `kubectl drain`으로 워크로드를 비우고, (2) BMC/IPMI 등 대역 외(out-of-band) 콘솔 접근을 확보하며, (3) 현재 드라이버 버전·`/etc/opensm`·systemd 설정·펌웨어 설정을 백업하고, (4) 실패 시 복귀할 수 있는 롤백 계획(이전 OFED 패키지 보관, 재설치 절차)을 준비하십시오.
+:::
 
 ```bash
-# 호환되지 않는 드라이버 제거
+# 0) 사전 준비(통제된 유지보수)
+#   - kubectl drain <node> --ignore-daemonsets --delete-emptydir-data
+#   - BMC/IPMI 콘솔 접근 확인
+#   - 현재 상태 백업: ofed_info -s, uname -r, cp -a /etc/opensm /root/opensm.bak 등
+
+# 1) 대상 노드의 OS·커널에 맞는 지원 조합인지 MLNX_OFED 릴리스 노트에서 먼저 확인
+#    (아래 버전·파일명은 예시이며 실제 지원 매트릭스로 교체)
+
+# 2) (파괴적) 호환되지 않는 드라이버 제거 — 콘솔 접근 확보 후에만 실행
 sudo ofed_uninstall.sh --force
 
-# kernel 6.8.0 지원이 포함된 MLNX_OFED 24.10 설치
+# 3) 대상 커널을 지원하는 MLNX_OFED 설치 (예시 버전)
 wget https://content.mellanox.com/ofed/MLNX_OFED-24.10-0.7.0.0/MLNX_OFED_LINUX-24.10-0.7.0.0-ubuntu24.04-x86_64.tgz
 tar -xzf MLNX_OFED_LINUX-24.10-0.7.0.0-ubuntu24.04-x86_64.tgz
 cd MLNX_OFED_LINUX-24.10-0.7.0.0-ubuntu24.04-x86_64
-sudo ./mlnxofedinstall --add-kernel-support --without-fw-update
+sudo ./mlnxofedinstall --without-fw-update
+
+# 4) initramfs 갱신 후 재부팅, 재부팅 뒤 ofed_info -s / ibstat 로 드라이버·링크 상태 검증
+sudo update-initramfs -u
 ```
 
-:::tip Pro tip
-`--add-kernel-support` 플래그는 커스텀 커널에 필수입니다. 특정 커널 버전에 맞게 드라이버 모듈을 재빌드합니다.
+:::tip 커널 지원 빌드 관련 주의
+`--add-kernel-support`는 배포판 기본 커널에 맞는 사전 빌드 패키지가 없을 때 특정 커널에 맞춰 모듈을 재빌드하는 옵션입니다. Ubuntu에서는 DKMS 기반 설치가 권장되는 경우가 있으므로, 플래그를 추가하기 전에 대상 OS에 대한 MLNX_OFED 설치 문서(DKMS vs `--add-kernel-support`)를 확인하고 해당 지침을 따르십시오.
 :::
 
 ### 계층 2: systemd.link로 영구 명명 구현
 
-PCI 주소 기반으로 일관된 VF 이름을 보장하는 systemd.link 파일을 생성합니다.
+PCI 경로 등 안정적인 물리 속성에 기반해 일관된 VF 이름을 보장하는 systemd.link 파일을 생성합니다. 작성 전에 systemd.link의 제약을 반드시 확인해야 합니다. 인터페이스 이름은 **1~15자**이며 제어 문자와 `:`, `/`, `%`를 포함할 수 없습니다. `{attr/...}`와 같은 중괄호 치환은 systemd.link가 지원하는 문법이 아니라 **문자열 그대로** 처리되므로(`/` 때문에 유효하지 않은 이름이 됨), 사용하면 안 됩니다. 또한 `Name=`은 `NamePolicy=`보다 우선순위가 낮아, `NamePolicy=`가 성공하면(예: `keep`은 이미 설정된 사용자 공간 이름을 유지) `Name=`은 적용되지 않습니다.
+
+아래는 환경에서 관찰된 udev 속성으로 매칭한 뒤 명시적 고정 이름을 부여하는 예시입니다. 매칭 속성(`ID_NET_NAME_SLOT` 등)과 이름 접두사·자릿수는 대상 노드에서 `udevadm info /sys/class/net/<iface>`로 실제 속성을 확인해 조정하고, VF 개수를 고려해 15자 제한을 넘지 않도록 설계해야 합니다.
 
 ```bash
-# 메인 VF 명명 정책 생성
-cat > /etc/systemd/network/70-dgx-sriov-vf.link << 'EOF'
+# VF별로 관찰된 udev 속성에 매칭해 고정 이름을 부여 (장치마다 .link 파일 분리 권장)
+# 매칭 조건과 이름은 반드시 'udevadm info'로 실제 속성을 확인한 뒤 작성
+cat > /etc/systemd/network/10-dgx-ib-vf0.link << 'EOF'
 [Match]
+# 예시: 실제 노드의 udevadm info 출력에서 확인한 고유 속성으로 교체
+Path=pci-0000:18:00.0
 Driver=mlx5_core
-Property=DEVTYPE=vf
 
 [Link]
-Name=mlx-{attr/phys_port_name}
-AlternativeName=k8s-vf-{attr/dev_port}
+# 1~15자, '/',':','%' 및 제어문자 불가. NamePolicy를 두지 않아 Name이 적용되도록 함
+Name=ibvf0
+AlternativeName=k8s-ib-vf0
 MACAddressPolicy=persistent
-EOF
-
-# PCI 기반 폴백 명명 추가
-cat > /etc/systemd/network/71-dgx-pci-vf.link << 'EOF'
-[Match]
-Path=pci-0000:*:*.*
-Driver=mlx5_core
-Property=ID_NET_NAME_SLOT=*v*
-
-[Link]
-NamePolicy=keep
-Name=sriov-{phys_port_name}
 EOF
 ```
 
-이 파일들은 VF가 probe 순서가 아닌 물리적 속성에 기반한 예측 가능한 이름을 받도록 보장합니다.
+적용 후에는 `udevadm control --reload`와 `udevadm test-builtin net_setup_link /sys/class/net/<iface>`로 이름 정책이 의도대로 평가되는지 확인하고, **재부팅 전후로 이름이 동일하게 유지되는지** 반드시 검증합니다.
 
 ### 계층 3: systemd로 VF 생성 오케스트레이션
 
-적절한 타이밍과 GUID 할당으로 VF 생성을 처리하는 systemd 서비스를 생성합니다.
+적절한 타이밍과 GUID 할당으로 VF 생성을 처리하는 systemd 서비스를 생성합니다. 아래 유닛은 몇 가지 중요한 설계 원칙을 반영합니다.
+
+- **대상 PF 집합과 VF 인덱스를 분리해 다루어야 합니다.** VF를 생성하는 PF 목록(`PFS`)과, 각 PF 아래 VF를 순회하는 로직을 별도로 정의합니다. 예전 예시처럼 `for i in {0..63}; vf=$((i/8))`로 평탄화하면 `mlx5_0..7`만 참조해 실제 PF 집합과 어긋납니다.
+- **GUID 파일은 PF별·VF별 경로를 사용합니다.** VF GUID는 `/sys/class/infiniband/<PF>/device/sriov/<vf>/node`와 `.../<vf>/port`에 기록합니다(장치/드라이버에 따라 경로가 다를 수 있으므로 적용 전 실제 sysfs 트리를 확인). 포트 인덱스를 VF 인덱스로 혼용하지 않습니다.
+- **모든 쓰기는 실패 시 즉시 중단해야 합니다.** `set -e`와 명시적 오류 검사를 두어, 쓰기 실패가 조용히 무시되지 않도록 합니다.
+- **GUID는 패브릭 전역에서 고유해야 합니다.** 아래의 단순 산술 공식을 여러 DGX 호스트에 그대로 적용하면 호스트 간 GUID가 중복됩니다. 호스트 식별자(예: 섀시 일련번호·노드 인덱스)를 접두에 포함하거나 중앙에서 할당해 **패브릭 전역 고유성**을 보장해야 합니다.
+- **kubelet 의존성은 순서(ordering)만으로 부족합니다.** `Before=kubelet.service`는 순서만 지정하며, 이 서비스가 실패해도 kubelet 시작을 막지 못합니다. kubelet 유닛 쪽에 `After=`와 `Requires=`(또는 `BindsTo=`)를 함께 설정해, VF 준비 실패 시 kubelet이 기동하지 않도록 해야 합니다.
+- **`enable`은 현재 세션을 초기화하지 않습니다.** `systemctl enable`은 부팅 시 활성화만 하므로, 즉시 적용하려면 `systemctl start`로 실행하고 결과(`systemctl status`, 저널)를 확인한 뒤, 재부팅으로 부팅 경로도 검증해야 합니다.
+
+아래 PF 목록·GUID 공식·sysfs 경로는 예시이며, 대상 노드에서 실제 값으로 교체해야 합니다.
 
 ```bash
 cat > /etc/systemd/system/dgx-sriov-setup.service << 'EOF'
 [Unit]
 Description=DGX H200 SR-IOV VF Setup
 After=network-pre.target
-Before=kubelet.service
+# kubelet 유닛에 'After=dgx-sriov-setup.service'와 'Requires=dgx-sriov-setup.service'를
+# 드롭인으로 추가해야 이 서비스 실패 시 kubelet이 기동하지 않습니다(순서 전용 Before= 만으로는 불충분).
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/bash -c 'for i in 0 3 4 5 6 9 10 11; do \
-  echo 8 > /sys/class/infiniband/mlx5_${i}/device/sriov_numvfs; \
-  sleep 0.5; \
-done'
+# 대상 PF 집합은 노드에서 'ibstat'/'ls /sys/class/infiniband'로 확인한 실제 값으로 교체
+Environment=PFS="mlx5_0 mlx5_1 mlx5_2 mlx5_3 mlx5_4 mlx5_5 mlx5_6 mlx5_7"
+Environment=HOSTID=00  # 패브릭 전역 고유성을 위한 호스트 식별자(실제 값으로 교체)
+ExecStart=/bin/bash -euo pipefail -c '\
+  for pf in $PFS; do \
+    echo 8 > /sys/class/infiniband/$pf/device/sriov_numvfs; \
+    sleep 0.5; \
+  done'
 ExecStart=/usr/bin/udevadm settle --timeout=30
-ExecStart=/bin/bash -c 'for i in {0..63}; do \
-  vf=$((i/8)); port=$((i%8)); \
-  echo "00:11:22:33:44:${vf}${vf}:1:${port}" > \
-    /sys/class/infiniband/mlx5_${vf}/device/sriov/${port}/node_guid; \
-  echo "00:11:22:33:44:${vf}${vf}:2:${port}" > \
-    /sys/class/infiniband/mlx5_${vf}/device/sriov/${port}/port_guid; \
-done'
+ExecStart=/bin/bash -euo pipefail -c '\
+  idx=0; \
+  for pf in $PFS; do \
+    for vf in 0 1 2 3 4 5 6 7; do \
+      base=/sys/class/infiniband/$pf/device/sriov/$vf; \
+      [ -e "$base/node" ] || { echo "missing $base/node" >&2; exit 1; }; \
+      printf "00:11:22:%s:%02x:1\n" "$HOSTID" "$idx" > "$base/node"; \
+      printf "00:11:22:%s:%02x:2\n" "$HOSTID" "$idx" > "$base/port"; \
+      idx=$((idx+1)); \
+    done; \
+  done'
 TimeoutSec=60
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl enable dgx-sriov-setup.service
+# 즉시 적용 + 결과 확인(enable만으로는 현재 세션이 설정되지 않음)
+sudo systemctl enable --now dgx-sriov-setup.service
+systemctl status dgx-sriov-setup.service
 ```
 
-이 서비스는 kubelet이 시작되기 전에 VF가 생성되도록 보장하고, `0x000000` GUID 문제를 방지하기 위해 고유 GUID를 할당합니다.
+이 서비스는 VF를 생성하고 고유 GUID를 할당해 `0x000000` GUID 문제를 예방하려는 것입니다. 다만 "kubelet보다 먼저 완료됨"을 실제로 보장하려면 위에서 설명한 kubelet 쪽 `Requires=`/`After=` 의존성과 쓰기 실패 처리를 함께 적용하고, 적용 후 `systemctl start`와 재부팅 양쪽에서 VF 수와 GUID를 검증해야 합니다.
 
 ## Amazon EKS Hybrid Nodes 통합
 
-Amazon EKS Hybrid Nodes는 SR-IOV 워크로드에 대한 특별한 고려가 필요합니다. 작동하는 NVIDIA Network Operator 구성은 다음과 같습니다.
+:::warning 지원 범위 (반드시 확인)
+이 구성은 **AWS가 지원하는 조합이 아닙니다.** AWS 문서에 따르면 Multus는 Amazon VPC CNI를 기본(primary) CNI로 사용할 때만 지원되며([Attach multiple network interfaces to Pods with Multus](https://docs.aws.amazon.com/eks/latest/userguide/pod-multus.html)), VPC CNI는 EKS Hybrid Nodes와 호환되지 않습니다(VPC CNI는 `eks.amazonaws.com/compute-type: hybrid` 레이블에 대한 anti-affinity로 구성되며, Cilium이 Hybrid Nodes의 AWS 지원 CNI입니다 — [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html)). 또한 AWS는 SR-IOV·DPDK CNI 플러그인을 빌드·게시하지 않습니다. 따라서 아래의 Cilium + Multus + SR-IOV 조합은 **고객/프로젝트가 직접 책임지고 검증·운영해야 하는 구성**이며, AWS의 검증된 배포나 지원을 의미하지 않습니다.
+:::
+
+아래는 참고용 NVIDIA Network Operator 구성 예시입니다. 이 값들은 **특정 차트 버전에서 검증된 완성 구성이 아니라 출발점**이므로, 적용 전에 사용한 Network Operator 차트/CRD 버전을 고정하고 각 값을 해당 버전의 공식 `values.yaml`·`sriov-network-device-plugin` 문서와 대조해 검증해야 합니다. 특히 다음을 확인하십시오.
+
+- `deployCR` 등 최상위 키와 피연산자(operand) 설정 키는 차트 버전에 따라 존재 여부·이름이 다릅니다. 사용 중인 버전의 `values.yaml`에 실제로 존재하는 키인지 확인해야 합니다.
+- `deviceIDs`/`vendors`의 문자열·숫자 표기를 혼용하지 말고 플러그인 문서가 요구하는 형식으로 통일합니다.
+- `pfNames`는 와일드카드 패턴이 아니라 **정확한 물리 인터페이스 선택자**입니다. `mlx-*` 같은 임의 와일드카드가 아니라, 노드에서 실제 확인된 PF 이름(및 필요 시 VF 범위 표기)을 사용해야 합니다.
+- VF 수명주기(생성·GUID 할당)의 소유자를 하나로 정해야 합니다. 앞의 systemd 서비스로 VF를 만든다면 Operator가 동일 작업을 중복 수행하지 않도록 구성합니다.
+- 이 예시만으로는 SR-IOV 연결이 완성되지 않습니다. 실제로 파드에 VF를 연결하려면 일치하는 `NicClusterPolicy`/`NetworkAttachmentDefinition`과 워크로드 매니페스트가 추가로 필요합니다.
 
 ```yaml
 # Network Operator Helm 차트용 values.yaml
@@ -217,7 +255,7 @@ sriovDevicePlugin:
     }
 ```
 
-Amazon EKS Hybrid Nodes용으로 특정 NetworkNodePolicy도 생성합니다.
+앞의 지원 범위 경고가 이 매니페스트에도 동일하게 적용됩니다. 아래 `SriovNetworkNodePolicy`는 예시이며, `pfNames`는 와일드카드가 아니라 노드에서 실제 확인된 PF 이름(필요 시 `#`로 VF 범위 지정)으로 교체해야 하고, `instance-type` 레이블 값도 실제 노드 레이블과 일치해야 합니다.
 
 ```yaml
 apiVersion: sriovnetwork.openshift.io/v1
@@ -243,23 +281,34 @@ spec:
 
 특히 당혹스러운 문제는 포트가 무작위로 Ethernet 모드로 폴백되는 것이었습니다. 이는 ConnectX-7 어댑터와 드라이버 기대치 간의 펌웨어 불일치로 인해 발생했습니다.
 
-### 해결 방법: 펌웨어 업데이트 및 구성
+### 해결 방법: 펌웨어·링크 설정 점검 {#해결-방법-펌웨어-업데이트-및-구성}
+
+:::danger 패브릭 영향 및 복구 위험
+아래 명령은 NIC 펌웨어 **설정(mlxconfig)**과 서브넷 매니저(OpenSM) 구성을 변경합니다. 이는 펌웨어 이미지 자체를 갱신하는 작업과 다릅니다. 설정 변경은 대부분 재부팅 또는 전원 재투입 후에만 적용되며, OpenSM 구성을 덮어쓰면 기존 패브릭 관리자 설정이 사라져 패브릭 전체에 영향을 줄 수 있습니다. 실행 전에 (1) 기존 `mlxconfig -d <dev> q` 출력과 `/etc/opensm/opensm.conf`를 백업하고, (2) 패브릭의 서브넷 매니저 소유 주체(이 호스트인지, 외부 관리 노드인지)를 확인하며, (3) 적용/재부팅 시점과 롤백 절차를 사전에 정하십시오. PCI 주소와 포트 수(단일/듀얼)는 어댑터마다 다르므로 `lspci`/`mlxconfig`로 실제 장치를 먼저 인벤토리해야 합니다.
+:::
 
 ```bash
-# 현재 펌웨어 버전 확인
+# 1) 현재 펌웨어 이미지 버전 확인 (이미지 갱신이 필요한지 판단)
 sudo mlxfwmanager --query
 
-# ConnectX-7용 펌웨어 업데이트 (PCI 주소는 환경에 맞게 조정)
+# 2) 변경 전 현재 설정 백업
 for dev in 18:00.0 9a:00.0 ce:00.0 c0:00.0; do
-  # InfiniBand 모드 강제 설정
-  sudo mlxconfig -d $dev set LINK_TYPE_P1=1 LINK_TYPE_P2=1
-  # 8개 VF로 SR-IOV 활성화
+  sudo mlxconfig -d $dev q > /root/mlxconfig-$dev.bak
+done
+sudo cp -a /etc/opensm/opensm.conf /root/opensm.conf.bak 2>/dev/null || true
+
+# 3) (설정 변경, 펌웨어 이미지 갱신 아님) InfiniBand 모드와 SR-IOV 활성화
+#    - 단일 포트 어댑터는 LINK_TYPE_P2가 없을 수 있으므로 포트 수에 맞게 조정
+for dev in 18:00.0 9a:00.0 ce:00.0 c0:00.0; do
+  sudo mlxconfig -d $dev set LINK_TYPE_P1=1
   sudo mlxconfig -d $dev set SRIOV_EN=1 NUM_OF_VFS=8
 done
+# mlxconfig 변경은 재부팅/전원 재투입 후 적용됩니다.
 
-# 가상화 지원을 위한 OpenSM 구성
-cat > /etc/opensm/opensm.conf << 'EOF'
-# 가상화 지원 활성화
+# 4) OpenSM 가상화 지원: 이 호스트가 서브넷 매니저를 소유하는 경우에만, 기존 설정을 보존하며 추가
+#    (아래처럼 통째로 덮어쓰지 말고 백업본을 기준으로 필요한 키만 병합)
+sudo install -m 0644 /dev/stdin /etc/opensm/opensm.conf.d/10-virt.conf << 'EOF'
+# 가상화 지원 (기존 opensm.conf를 덮어쓰지 않고 드롭인으로 추가)
 virt_enabled 2
 virt_max_ports_in_process 256
 virt_default_hop_limit 64
@@ -269,7 +318,7 @@ sudo systemctl restart opensm
 ```
 
 :::warning Critical
-ConnectX-7 어댑터는 안정적인 SR-IOV 작동을 위해 펌웨어 버전 **28.43.1014 이상**이 필요합니다. BlueField-3은 **v32.43.1014**가 필요합니다.
+MLNX_OFED 24.10 릴리스 노트의 "General Support"는 특정 어댑터 펌웨어 버전을 **번들/테스트된(bundled, tested-with) 버전**으로 명시하며, 이는 모든 환경에 적용되는 절대 최소 요구치가 아닙니다. 같은 문서는 **BlueField-2와 ConnectX-7이 MLNX_OFED가 지원하는 마지막 세대**임을 밝히고 있어, BlueField-3은 이 MLNX_OFED 세대의 지원 범위에 포함되지 않습니다(BlueField-3은 별도의 DOCA 릴리스·펌웨어 체계를 따릅니다). 따라서 "ConnectX-7은 28.43.1014 이상, BlueField-3은 32.43.1014 필요"처럼 단정하지 말고, 실제 어댑터의 PSID와 사용 중인 드라이버 릴리스에 대응하는 공식 펌웨어 매트릭스를 확인해 적용하십시오. 예시의 버전 번호는 참고용이며 환경의 실제 지원 조합으로 교체해야 합니다.
 :::
 
 ## 교훈
@@ -292,9 +341,27 @@ ip link show | grep -E "mlx-|sriov-" | wc -l
 ibstat | grep -c "State: Active"
 
 # GUID 할당 검증
-for i in {0..7}; do
-  cat /sys/class/infiniband/mlx5_${i}/ports/1/gids/0
-done | grep -c "0000:0000:0000:0000"  # 0이어야 함
+# 주의: ports/1/gids/0 은 PF의 GID(index 0)이며 VF별 GUID가 아닙니다. 또한 GID는
+# IPv6 형식 128비트 값이라 접두부에 "0000:0000:..."이 정상적으로 포함될 수 있어,
+# 해당 문자열을 grep -c 하는 방식으로는 "0 GUID"를 판별할 수 없습니다.
+# 대신 설정한 각 VF의 node/port GUID 파일을 직접 읽어 (1) 0이 아니고
+# (2) 패브릭 전역에서 중복이 없는지 확인합니다. PFS는 앞의 서비스와 동일하게 지정.
+PFS="mlx5_0 mlx5_1 mlx5_2 mlx5_3 mlx5_4 mlx5_5 mlx5_6 mlx5_7"
+for pf in $PFS; do
+  for vf in 0 1 2 3 4 5 6 7; do
+    base=/sys/class/infiniband/$pf/device/sriov/$vf
+    node=$(cat "$base/node" 2>/dev/null)
+    echo "$pf vf$vf node=$node"
+    case "$node" in ""|00:00:00:00:00:00:00:00)
+      echo "  !! zero/empty GUID on $pf vf$vf" >&2 ;;
+    esac
+  done
+done
+# 전역 중복 검사: 위 출력의 node 값에서 중복이 없어야 함
+# (수집한 모든 호스트의 GUID를 합쳐 'sort | uniq -d' 결과가 비어 있어야 함)
+
+# 포트/링크 상태는 GUID 검증과 분리해 별도로 확인
+ibstat | grep -E "State:|Port GUID:"
 
 # Kubernetes에서 SR-IOV 리소스 할당 모니터링
 kubectl get nodes -o json | jq '.items[].status.allocatable' | grep dgx_h200_vfs

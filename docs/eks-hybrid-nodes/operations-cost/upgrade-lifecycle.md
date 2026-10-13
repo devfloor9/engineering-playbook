@@ -3,9 +3,9 @@ title: 업그레이드와 수명주기 관리
 description: "EKS Hybrid Nodes의 Kubernetes 버전 업그레이드 전략 — nodeadm upgrade 동작 원리, 수동 cordon·drain 의무, SSM 서명 키 만료 대응(nodeadm 1.0.19+), 폐쇄망 사설 미러 구성, 업그레이드 런북을 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-26"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 11
 tags:
   - eks
   - hybrid-node
@@ -55,7 +55,7 @@ flowchart LR
 sudo nodeadm upgrade 1.34 --config-source file://nodeConfig.yaml
 ```
 
-업그레이드 중 containerd와 실행 중인 컨테이너 프로세스는 유지되지만, kubelet 중지·재시작 사이에 노드는 일시적으로 `NotReady`가 되며 헬스 체크·스케줄링 대상에서 제외됩니다.
+in-place 업그레이드는 노드에 다운타임을 유발합니다. `nodeadm upgrade`는 kubelet·kubectl 등 EKS 아티팩트뿐 아니라 OS 패키지 매니저를 통해 **containerd도 함께 업그레이드**하며(대상 Kubernetes 버전에 따라 containerd 메이저 버전 업그레이드가 포함될 수 있습니다), 이 과정에서 실행 중이던 컨테이너는 재시작될 수 있습니다. kubelet 중지·재시작 사이에 노드는 `NotReady`가 되어 헬스 체크·스케줄링 대상에서 제외되므로, 업그레이드 전 반드시 수동 drain으로 워크로드를 대피시켜야 합니다. 따라서 "실행 중인 컨테이너가 그대로 보존된다"고 가정하지 말고, 업그레이드를 중단 가능한(disruptive) 작업으로 계획합니다.
 
 ## 수동 드레인 의무: nodeadm은 Pod를 대피시키지 않습니다
 
@@ -68,11 +68,19 @@ sudo nodeadm upgrade 1.34 --config-source file://nodeConfig.yaml
 kubectl cordon mi-0f1c2d3e4a5b6c7d8
 
 # 2. 워크로드 대피 (PodDisruptionBudget 존중)
+# 주의: --delete-emptydir-data 는 해당 노드 Pod의 emptyDir 볼륨 데이터를 삭제합니다.
+#       버퍼·캐시·스크래치에 복구 불가 데이터가 없는지 먼저 확인하고,
+#       필요한 데이터는 백업하거나 영구 볼륨으로 옮긴 뒤 실행합니다.
+# 주의: --grace-period=300 은 각 Pod에 설정된 terminationGracePeriodSeconds 를
+#       300초로 "덮어씁니다". 워크로드별 종료 시간을 모르면 이 플래그를 생략해
+#       Pod별 기본 grace period 를 사용하고, 필요한 워크로드만 값을 조정합니다.
 kubectl drain mi-0f1c2d3e4a5b6c7d8 \
   --ignore-daemonsets \
   --delete-emptydir-data \
   --grace-period=300 \
   --timeout=15m
+# drain 이 timeout 에 도달하면 성공으로 간주하지 말고, 왜 Pod가 축출되지 않는지
+# (PDB 대기, 종료 지연 등) 조사한 뒤 다시 진행합니다.
 
 # 3. 업그레이드 실행 (노드에서)
 sudo nodeadm upgrade 1.34 --config-source file://nodeConfig.yaml
@@ -83,7 +91,7 @@ kubectl uncordon mi-0f1c2d3e4a5b6c7d8
 ```
 
 - `nodeadm upgrade`는 기본 동작으로 **노드가 cordon 상태인지(node-validation), DaemonSet·static Pod 외의 Pod가 남아 있지 않은지(pod-validation)** 를 사전 검증하고, 충족되지 않으면 진행하지 않습니다. 이 검증은 안전장치일 뿐 drain을 대신 수행하지는 않습니다.
-- **PodDisruptionBudget(PDB)** 이 구성된 워크로드는 drain이 PDB를 존중하므로, 가용 replica가 부족하면 drain이 대기합니다. 업그레이드 창에서 PDB 위반으로 drain이 멈추는 상황을 피하려면 노드를 한 대씩 순차 진행합니다.
+- **PodDisruptionBudget(PDB)** 이 구성된 워크로드는 drain이 축출(eviction) API를 통해 PDB를 존중하므로, 축출로 인해 PDB가 위반되면 drain이 대기하거나 멈춥니다. 노드를 한 대씩 순차 진행하면 동시 중단 범위는 줄지만, 한 대만 축출해도 `minAvailable`이 현재 replica 수와 같거나 이미 가용 replica가 부족하면 그 한 건의 축출마저 거부됩니다. 따라서 순차 진행만으로 PDB stall이 방지되는 것은 아닙니다. drain 전에 각 워크로드의 가용 replica 수, 여유 용량(다른 노드로 재스케줄 가능 여부), PDB 설정을 사전 점검하고, drain이 막히면 replica 증설·PDB 조정 등 워크로드 차원의 조치를 취한 뒤 다시 진행합니다.
 - GPU 추론처럼 종료에 시간이 걸리는 워크로드는 `--grace-period`를 모델 언로드 시간에 맞게 조정합니다.
 - 노드가 다시 Ready가 된 후에도 CNI(Cilium) DaemonSet Pod가 정상 기동했는지 확인한 뒤 uncordon합니다.
 
@@ -119,24 +127,45 @@ chmod +x nodeadm && sudo mv nodeadm /usr/local/bin/nodeadm
 | OS 패키지 (containerd, ca-certificates, runc 등) | OS 공식 저장소 (yum/apt) | **사설 미러 서버**로 저장소 소스 경로 교체 |
 | 컨테이너 이미지 (CNI·애드온) | ECR·`public.ecr.aws` | ECR PrivateLink 또는 Harbor 미러 ([레지스트리 통합](../storage-registry/harbor-registry)) |
 
+OS·버전·아키텍처별로 미러를 분리하고(RHEL과 AL2023 패키지를 한 저장소에 섞지 않음), 필요한 모든 저장소와 GPG 서명 키를 포함시킵니다. 기존 공개 소스는 백업한 뒤 명시적으로 교체 또는 비활성화하고, 작업 후 활성화된 소스 목록을 검증합니다. 아래는 배포판별 접근 방식의 예시이며, 실제 미러 경로·릴리스 버전·키는 환경에 맞게 바꿉니다.
+
 ```bash
-# RHEL/AL2023 — 사설 미러로 저장소 교체 예시
+# RHEL 9 — 공개 BaseOS/AppStream 을 내부 미러로 교체 (RHEL 전용)
+sudo cp /etc/yum.repos.d/redhat.repo /etc/yum.repos.d/redhat.repo.bak 2>/dev/null || true
 sudo tee /etc/yum.repos.d/internal-mirror.repo << 'EOF'
-[internal-baseos]
-name=Internal Mirror - BaseOS
+[internal-rhel9-baseos]
+name=Internal Mirror - RHEL9 BaseOS
 baseurl=https://mirror.company.local/rhel9/baseos/
 enabled=1
 gpgcheck=1
-gpgkey=https://mirror.company.local/keys/RPM-GPG-KEY
+gpgkey=https://mirror.company.local/keys/RPM-GPG-KEY-redhat-release
+[internal-rhel9-appstream]
+name=Internal Mirror - RHEL9 AppStream
+baseurl=https://mirror.company.local/rhel9/appstream/
+enabled=1
+gpgcheck=1
+gpgkey=https://mirror.company.local/keys/RPM-GPG-KEY-redhat-release
 EOF
+sudo dnf clean all && sudo dnf repolist   # 활성화된 소스 검증
 
-# Ubuntu — sources.list를 내부 미러로 지정 예시
+# AL2023 — Amazon Linux 는 버전 고정 저장소를 쓰므로 RHEL 저장소를 재사용하지 않습니다.
+# /etc/dnf/vars/releasever 로 릴리스 버전을 고정하고, mirrorlist 를 내부 미러로 교체합니다.
+sudo cp /etc/yum.repos.d/amazonlinux.repo /etc/yum.repos.d/amazonlinux.repo.bak
+echo "2023.5.20240708" | sudo tee /etc/dnf/vars/releasever   # 조직이 검증한 버전으로 고정
+sudo sed -i 's#^mirrorlist=.*#baseurl=https://mirror.company.local/al2023/$releasever/$basearch/#' \
+  /etc/yum.repos.d/amazonlinux.repo
+sudo dnf clean all && sudo dnf repolist   # amazonlinux 저장소가 내부 미러를 가리키는지 확인
+
+# Ubuntu — 기본 소스는 ubuntu.sources 에 있으므로, 추가 파일만 두면 공개 저장소가 함께 사용됩니다.
+# 폐쇄망이면 기본 소스를 백업·비활성화한 뒤 내부 미러로 대체합니다.
+sudo cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bak 2>/dev/null || true
 sudo tee /etc/apt/sources.list.d/internal-mirror.list << 'EOF'
 deb https://mirror.company.local/ubuntu noble main universe
 deb https://mirror.company.local/ubuntu noble-updates main universe
 deb https://mirror.company.local/ubuntu noble-security main universe
 EOF
-sudo apt-get update
+# 공개 소스를 함께 쓰지 않으려면 기본 소스를 비활성화합니다(예: ubuntu.sources 를 .bak 로 이동).
+sudo apt-get update   # 활성화된 소스가 모두 내부 미러로 해석되는지 확인
 ```
 
 사설 미러는 업그레이드 시점에만 필요한 것이 아니라 OS 보안 패치의 상시 공급 경로입니다. 미러 동기화 주기·GPG 키 관리·미러 자체의 가용성을 업그레이드 계획 이전에 운영 체계로 정착시킵니다.
@@ -146,16 +175,17 @@ sudo apt-get update
 | 단계 | 작업 | 검증 |
 |------|------|------|
 | 0 | `nodeadm` 1.0.19+ 확인·갱신, 사설 미러 도달성 점검 | `nodeadm version`, `yum repolist`/`apt-get update` 성공 |
-| 1 | 컨트롤 플레인 업그레이드 완료 확인 | `aws eks describe-cluster --query cluster.version` |
+| 1 | 컨트롤 플레인 업그레이드 완료 확인 | `aws eks describe-cluster --name <cluster-name> --region <region> --query cluster.version`(필요 시 `--profile <profile>`) |
+| 1b | CNI/애드온이 대상 Kubernetes 버전을 지원하는지 사전 확인하고, 지원하지 않으면 노드 업그레이드 **전에** CNI를 먼저 업그레이드 | 애드온 버전 매트릭스 확인, CNI가 대상 버전 지원 |
 | 2 | Cluster Insights에서 업그레이드 차단 이슈 확인 | [구성 검증](./operations-cost-optimization#구성-검증-자동화) |
 | 3 | `kubectl cordon` + `kubectl drain` (한 대씩) | Pod 재배치 완료, PDB 위반 없음 |
 | 4 | `sudo nodeadm upgrade <version> --config-source file://nodeConfig.yaml` | 종료 코드 0 |
 | 5 | 노드 Ready·버전·CNI Pod 기동 확인 | `kubectl get node -o wide`, `kubectl get pods -n kube-system -o wide --field-selector spec.nodeName=<node>` |
 | 6 | `kubectl uncordon` 후 다음 노드로 진행 | 워크로드 정상 배치 |
-| 7 | 전체 완료 후 애드온(CoreDNS·kube-proxy·Cilium) 호환 버전 정렬 | 애드온 버전 매트릭스 확인 |
+| 7 | 전체 완료 후 애드온(CoreDNS·kube-proxy·Cilium)이 대상 버전과 정렬되었는지 최종 검증 (호환성 선행 점검은 1b 단계에서 이미 수행) | 애드온 버전 매트릭스와 실제 배포 버전 일치 |
 
 - 업그레이드 실패 시 `nodeadm`은 같은 명령의 재실행으로 재시도할 수 있습니다. 반복 실패 시 `nodeadm debug`로 네트워킹·자격 증명 요건을 재검증하고, `journalctl -u kubelet`과 `/var/log/` 하위 nodeadm 로그를 수집합니다.
-- Cilium 버전은 Kubernetes 버전 호환 매트릭스를 따르므로, 클러스터 메이저 업그레이드 시 CNI 업그레이드 계획을 함께 수립합니다.
+- Cilium 등 CNI 버전은 Kubernetes 버전 호환 매트릭스를 따릅니다. 공식 전제 조건상 CNI는 **대상 Kubernetes 버전을 지원해야 하며, 지원하지 않으면 하이브리드 노드 업그레이드 이전에 CNI를 먼저 업그레이드**해야 합니다. 따라서 CNI 호환성 점검·업그레이드는 노드 업그레이드의 선행 조건(런북 1b 단계)이고, 전체 완료 후의 애드온 정렬은 최종 검증 단계입니다.
 
 ## 권장 사항 요약
 

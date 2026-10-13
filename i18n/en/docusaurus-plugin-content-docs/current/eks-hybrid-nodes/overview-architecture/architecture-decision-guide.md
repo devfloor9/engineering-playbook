@@ -3,9 +3,9 @@ title: Architecture Decision Guide
 description: "Covers the six design decisions to finalize when adopting EKS Hybrid Nodes — hybrid connectivity, cluster topology, Pod CIDR exposure, CNI and routing, node authentication, and workload exposure — with decision criteria and inter-decision dependencies."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 25
 tags:
   - eks
   - hybrid-node
@@ -57,7 +57,7 @@ Because the control plane resides in the AWS Region, private connectivity betwee
 
 | Decision Axis | Direct Connect | Site-to-Site VPN |
 |---------------|----------------|------------------|
-| Bandwidth | Dedicated connections at 1, 10, or 100Gbps; hosted connections from 50Mbps to 10Gbps | Up to 1.25Gbps per tunnel (ECMP multi-tunnel scaling requires TGW) |
+| Bandwidth (as of 2026-10) | Dedicated connections at 1, 10, 100, or 400Gbps (per-location caps vary); hosted connections from 50Mbps to 25Gbps (partner- and location-dependent) | Up to 1.25Gbps per standard tunnel, up to 5Gbps per large-bandwidth tunnel; aggregating multiple tunnels via ECMP requires TGW |
 | Latency consistency | Dedicated circuit — consistent latency | Traverses the internet — subject to variability |
 | Encryption | Unencrypted by default — MACsec (limited to supported locations) or VPN over DX | IPsec built in |
 | Adoption lead time | Circuit provisioning takes weeks or more | Can be configured immediately |
@@ -73,8 +73,8 @@ Mixed mode — running cloud nodes (EC2) and hybrid nodes in one cluster — is 
 
 | Decision Axis | Favors Mixed Mode | Favors Hybrid-Only |
 |---------------|-------------------|--------------------|
-| Webhooks & system add-ons | Cloud-node placement enables operation without Pod CIDR routing | All components run on-premises — Pod CIDR routing becomes effectively mandatory |
-| Data residency requirements | Workload data residing on-premises is sufficient | Regulated environments that require even system components to reside on-premises |
+| Webhooks & system add-ons | Cloud-node placement enables operation without Pod CIDR routing | All worker-hosted system Pods run on-premises — Pod CIDR routing becomes effectively mandatory |
+| Data residency requirements | Workload data residing on-premises is sufficient | Worker nodes and the system Pods on them are required to reside on-premises. Note that the EKS control plane and cluster metadata reside in the AWS Region under either topology, so first confirm whether the actual regulatory requirement extends to these Region-side components |
 | Scaling flexibility | Overflow beyond on-premises capacity is absorbed by cloud nodes (with Spot) | Only on-premises expansion is available |
 | Cost | Adds cloud-node EC2 cost | No cloud compute beyond the cluster fee and hybrid vCPU-hour billing |
 
@@ -89,7 +89,7 @@ Mixed mode — running cloud nodes (EC2) and hybrid nodes in one cluster — is 
 |--------|--------|------------------|-----------|------------|
 | A. Full Pod CIDR routing (BGP recommended) | O | O | O | Most complete. Requires network team collaboration and BGP operations |
 | B. CNI NAT (unroutable) | O | X — place webhooks on cloud nodes | X | Simplest. Significant functional constraints |
-| C. Hybrid Nodes Gateway | O | O | O | No routing negotiation required. Cilium only, no built-in encryption, gateway EC2 cost |
+| C. Hybrid Nodes Gateway | O | O | O | No on-premises Pod CIDR routing negotiation required (VPC node CIDR routes, non-overlapping address allocation, and firewalls are still required). Cilium only, no built-in encryption, gateway EC2 cost |
 
 The suitability of each option is evaluated along the following six axes.
 
@@ -98,11 +98,11 @@ The suitability of each option is evaluated along the following six axes.
 | Network team collaboration | BGP peering and routing changes can be negotiated quickly | The network is a "black box" (separate organization, long change lead times) |
 | IPAM headroom | Pod CIDR can be formally allocated from the corporate address space | Corporate address space is saturated — Pod CIDR is consumed internally only |
 | CNI constraints | Calico (community path) must be retained — Gateway is Cilium only | Cilium is in use or migration is feasible |
-| Encryption requirements | Can be combined with CNI-level encryption (WireGuard/IPsec) | Can be addressed at the transport layer (DX MACsec/VPN) |
-| Operating owner | Network team operates routing | Platform team operates everything within the cluster |
+| Encryption requirements | Can be combined with CNI-level encryption (WireGuard/IPsec) — but these features fall outside the default configurations of the AWS-supported Cilium builds, so using them requires upstream or commercial Cilium support plus separate validation of routing and kernel compatibility | Can be addressed at the transport layer (DX MACsec/VPN) |
+| Operating owner | Network team operates routing | Platform team handles on-premises Pod CIDR routing within the cluster. However, VPC node CIDR routes, non-overlapping address design, firewalls and security groups, and VPC route-table change permissions still require collaboration with the network and cloud teams |
 | Additional cost | None beyond router configuration | Ongoing cost of 2 gateway EC2 instances |
 
-B (CNI NAT) is only viable for minimal-functionality setups that can forgo webhooks, east-west traffic, and AWS service integration entirely, and it presumes mixed mode in decision ②. In environments where Calico must be retained, C is ruled out, so the choice is between A and B.
+B (CNI NAT) leaves Pod IPs unroutable from on-premises. What this forgoes is specifically the inbound direction — traffic from the VPC and control plane to hybrid Pod IPs (webhooks, Metrics Server, and east-west from cloud-node pods); pod-to-pod east-west within the on-premises overlay and egress from pods (including calls to AWS services) remain available. B is therefore viable where no inbound-dependent add-ons are used or where those add-ons can be placed on cloud nodes, and when an inbound-dependent component such as a webhook is present it presumes mixed mode in decision ②. In environments where Calico must be retained, C is ruled out, so the choice is between A and B.
 
 ```mermaid
 flowchart TD

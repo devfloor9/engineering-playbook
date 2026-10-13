@@ -3,9 +3,9 @@ title: 운영과 비용 최적화
 description: "EKS Hybrid Nodes의 운영 베스트 프랙티스 — Mixed Mode 워크로드 배치, Cluster Insights·nodeadm debug 구성 검증, 모니터링 체계, vCPU-시간 티어드 과금 기반 비용 최적화를 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-26"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 8
 tags:
   - eks
   - hybrid-node
@@ -32,7 +32,7 @@ category: hybrid-multicloud
 - **웹훅은 클라우드 노드에 배치**: Pod CIDR이 unroutable한 환경에서 AWS Load Balancer Controller, cert-manager 등 웹훅 컴포넌트는 nodeAffinity로 클라우드 노드에 고정합니다. 하이브리드 노드는 `eks.amazonaws.com/compute-type: hybrid` 레이블로 식별하므로, affinity 조건은 이 레이블 기준으로 작성합니다.
 - **CoreDNS는 양쪽에 최소 1 replica**: 하이브리드 노드 측 DNS 조회가 클라우드 왕복 없이 처리되도록 topology 분산을 권장합니다.
 - **Service Traffic Distribution**: 트래픽을 발생 존에 가깝게 유지해 불필요한 크로스 네트워크 홉을 줄입니다.
-- **시스템 애드온 배치 점검**: Metrics Server·AMP collector 등 컨트롤 플레인이 Pod IP로 직접 접근하는 컴포넌트는 Pod 라우팅 구성이 없는 한 클라우드 노드에 배치합니다 ([기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙) 참조).
+- **시스템 애드온 배치 점검**: 컴포넌트마다 요구사항이 다르므로 두 유형을 구분합니다. 컨트롤 플레인이 Pod IP(또는 hostNetwork 사용 시 노드 IP)로 직접 접근하는 컴포넌트인 Metrics Server는, Pod IP 라우팅을 구성하지 않는 한 클라우드 노드에 배치하거나 hostNetwork 모드로 실행합니다. 반면 AMP managed collector의 스크래퍼는 AWS가 관리하며 사용자 노드 스케줄링 대상이 아니므로 "클라우드 노드에 배치"하는 개념이 아닙니다. AMP managed collector는 하이브리드 노드 애플리케이션의 메트릭 엔드포인트가 VPC에서 도달 가능해야 하며(원격 Pod 네트워크 CIDR로의 라우트와 온프레미스 방화벽 포트 개방 포함), 클러스터에 프라이빗 엔드포인트 액세스가 구성되어 있어야 합니다 ([기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙) 참조).
 
 ## 구성 검증 자동화
 
@@ -54,9 +54,9 @@ sudo nodeadm debug --config-source file://nodeconfig.yaml
 | 크로스 네트워크 경로 | DX/VPN 가용성·대역폭, VXLAN 터널 트래픽 | CloudWatch(DX/VPN 메트릭), Gateway 메트릭 |
 | Gateway (사용 시) | leader 상태, 라우트 갱신 오류, 대역폭 사용률 | `hybrid_gateway_*` Prometheus 메트릭 — [상세](../networking/hybrid-nodes-gateway.md#모니터링) |
 
-운영 관점의 핵심은 **크로스 네트워크 경로가 단일 장애 지점**이라는 것입니다. 컨트롤 플레인과 데이터 플레인 사이의 연결(DX/VPN)이 끊기면 이미 실행 중인 워크로드는 계속 동작하지만, 스케줄링·`kubectl` 조작·자격 증명 갱신이 중단됩니다. 연결 계층의 가용성 메트릭과 알림을 클러스터 메트릭과 동급으로 관리합니다.
+운영 관점의 핵심은 **크로스 네트워크 경로가 가용성에 결정적인 종속성**이라는 것입니다. 단일 회선으로 구성하면 그 경로가 단일 장애 지점이 되지만, Direct Connect는 [복원력 토대(Resiliency Toolkit)](https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html)로 다중 회선·다중 로케이션 구성을 지원하므로, 실제 공유 장애 도메인과 필요한 가용성 목표에 맞춰 이중화 수준을 선택합니다. 컨트롤 플레인과 데이터 플레인 사이의 연결(DX/VPN)이 끊기면 스케줄링·`kubectl` 조작·자격 증명 갱신이 중단됩니다. 이미 실행 중인 로컬 워크로드는 자체 의존성이 로컬에 있고 자격 증명·프로브가 만료되지 않는 범위에서 계속 동작하지만, 클라우드 리소스나 갱신이 필요한 구성 요소에 의존하는 워크로드는 영향을 받을 수 있습니다. 연결 계층의 가용성 메트릭과 알림을 클러스터 메트릭과 동급으로 관리합니다.
 
-- Pod 메트릭 수집이 필요한 경우 AMP managed collector는 Pod CIDR 라우팅을 전제하므로, unroutable 구성에서는 ADOT 애드온 기반 수집으로 대체합니다.
+- Pod 메트릭 수집이 필요한 경우 AMP managed collector는 하이브리드 노드 애플리케이션의 메트릭 엔드포인트가 VPC에서 도달 가능할 것(원격 Pod 네트워크 CIDR로의 라우트와 방화벽 포트)과 프라이빗 엔드포인트 액세스를 전제합니다. ADOT 애드온으로 대체할 때도 이 전제가 사라지지 않습니다. ADOT 오퍼레이터는 Collector 커스텀 리소스를 검증·변형하는 admission 웹훅을 사용하므로, 오퍼레이터를 하이브리드 노드에서 실행하려면 온프레미스 Pod CIDR이 라우팅 가능해야 하고 클러스터에 원격 Pod 네트워크가 구성되어 있어야 합니다. 따라서 Pod CIDR이 unroutable한 구성에서는 ADOT 오퍼레이터를 nodeAffinity로 클라우드 노드에 고정해 웹훅이 도달 가능하도록 하거나, admission 종속성을 피하는 다른 수집 아키텍처를 선택합니다.
 - 하이브리드 노드의 시스템 로그·kubelet 로그는 CloudWatch Logs 에이전트 또는 기존 온프레미스 로깅 체계로 수집하되, 클러스터 이벤트와 시간 동기화(NTP)를 보장합니다.
 - 도구별 구현 — Cluster Insights 자가진단, Container Insights 하이브리드 구성(`RUN_WITH_IRSA`), Cilium Hubble eBPF 대시보드, Network Flow Monitor 적용성 — 은 [관측성 통합](./observability-monitoring)에서 다룹니다.
 
@@ -64,7 +64,7 @@ sudo nodeadm debug --config-source file://nodeconfig.yaml
 
 [요금 모델](../overview-architecture/hybrid-nodes-fundamentals.md#요금-모델)의 vCPU-시간 티어드 구조를 전제로 다음 전략이 유효합니다.
 
-1. **선택적 워크로드 배치**: vCPU-시간 과금 대상인 하이브리드 노드에는 GPU 등 온프렘 자산이 필요한 워크로드만 배치하고, 범용 CPU 워크로드는 클라우드 노드(Spot 혼용)로 분리
+1. **선택적 워크로드 배치(정책적 선택)**: 하이브리드 노드 요금은 등록된 노드가 Kubernetes에 보고하는 vCPU 용량과 등록 시간에 따라 부과되며, 노드가 조인하면 과금이 시작되고 노드를 제거하면 중단됩니다. 어떤 워크로드가 그 노드에서 실행되는지는 과금에 영향을 주지 않습니다. 따라서 범용 CPU 워크로드를 클라우드 노드(Spot 혼용)로 옮기더라도 GPU 호스트가 하이브리드 노드로 계속 등록되어 있으면 그 호스트의 vCPU는 그대로 과금되고, 옮긴 워크로드만큼 EC2·Spot 비용이 추가됩니다. 하이브리드 요금 절감은 등록 노드 수나 등록 시간을 실제로 줄일 때만 발생하므로, 이 배치는 하이브리드 요금과 추가 클라우드 비용을 합산해 비교한 뒤 결정하는 정책적 선택으로 다룹니다.
 2. **노드 등록 수명 관리**: 사용하지 않는 시간대의 하이브리드 노드는 클러스터에서 등록 해제해 과금 대상 vCPU-hours 축소
 3. **비용 가시화**: Cost Explorer에서 `Amazon Elastic Kubernetes Service - Hybrid Nodes` 서비스 차원으로 필터링해 환경별 추이 관측
 
@@ -75,7 +75,7 @@ sudo nodeadm debug --config-source file://nodeconfig.yaml
 - 웹훅·Metrics Server 등 컨트롤 플레인 → Pod 직접 통신 컴포넌트는 nodeAffinity로 클라우드 노드에 고정합니다.
 - 구축·변경 직후 Cluster Insights를 확인하고, 노드 조인 실패 시 `nodeadm debug`로 1차 진단합니다.
 - DX/VPN 연결 계층의 가용성 알림을 클러스터 알림과 동급으로 구성합니다.
-- 하이브리드 노드에는 온프렘 자산이 필요한 워크로드만 배치해 vCPU-시간 과금을 최소화합니다.
+- 하이브리드 요금은 등록된 노드의 vCPU 용량·등록 시간에 따라 부과되므로, 사용하지 않는 노드를 등록 해제해 과금 대상 vCPU-시간을 줄이고, 워크로드 배치는 하이브리드 요금과 추가 클라우드 비용을 합산해 비교한 뒤 결정합니다.
 - Cost Explorer의 Hybrid Nodes 서비스 필터로 환경별 비용 추이를 정기 관측합니다.
 
 ## 참고 자료

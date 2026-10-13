@@ -3,9 +3,9 @@ title: CNI 구성과 Pod CIDR 라우팅
 description: "EKS Hybrid Nodes의 CNI 선택 기준과 Cilium 핵심 구성 — 하이브리드 노드 전용 affinity, cluster-pool IPAM, Pod CIDR 라우팅 방식(BGP·정적·Gateway) 선택과 Cilium BGP Control Plane 구성 절차를 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 10
 tags:
   - eks
   - hybrid-node
@@ -39,7 +39,7 @@ category: hybrid-multicloud
 선택 판단에서 고려할 제약은 두 가지입니다.
 
 - **Gateway 의존성**: Hybrid Nodes Gateway는 Cilium VTEP 기능 전용입니다. Calico를 선택하면 Gateway 옵션이 제외되어 Pod CIDR 라우팅 방식이 BGP/정적으로 한정됩니다 ([아키텍처 결정 가이드](../overview-architecture/architecture-decision-guide.md)).
-- **Mixed mode 배치 격리**: Cilium은 하이브리드 노드 전용으로, VPC CNI는 클라우드 노드 전용으로 상호 배타적으로 배치해야 합니다. VPC CNI의 anti-affinity는 기본 제공되지만, Cilium 쪽은 설치 시 hybrid 레이블 affinity를 명시해야 클라우드 노드 침범을 방지할 수 있습니다.
+- **Mixed mode 배치 격리**: Cilium은 하이브리드 노드 전용으로, VPC CNI는 클라우드 노드 전용으로 상호 배타적으로 배치해야 합니다. VPC CNI의 anti-affinity는 기본 제공되지만, Cilium 쪽은 설치 시 agent와 operator 양쪽에 hybrid 레이블 affinity를 명시해야 클라우드 노드 침범을 방지할 수 있습니다. 공식 Hybrid Nodes values는 `affinity`(agent)와 `operator.affinity`를 각각 설정합니다.
 
 ## Cilium 설치 핵심 구성
 
@@ -59,10 +59,19 @@ affinity:
 ipam:
   mode: cluster-pool
   operator:
-    clusterPoolIPv4MaskSize: 26      # 노드당 Pod IP 슬라이스 (/26 = 64개)
+    clusterPoolIPv4MaskSize: 26      # 노드당 Pod IP 슬라이스 (/26 = 64개 중 2개는 예약)
     clusterPoolIPv4PodCIDRList:
       - 10.86.0.0/16                 # RemotePodNetwork와 일치해야 함
 operator:
+  affinity:                          # operator도 하이브리드 노드로 한정 (agent affinity와 별도로 지정)
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: eks.amazonaws.com/compute-type
+                operator: In
+                values:
+                  - hybrid
   unmanagedPodWatcher:
     restart: false                   # 클라우드 노드(VPC CNI 관리) Pod 재시작 방지
 ```
@@ -74,8 +83,8 @@ helm install cilium oci://public.ecr.aws/eks/cilium/cilium \
   --values cilium-values.yaml
 ```
 
-- `clusterPoolIPv4PodCIDRList`는 클러스터 생성 시 지정한 `RemotePodNetwork`와 일치해야 하며, 운영 중 변경이 사실상 불가능하므로 처음부터 넉넉히 배정합니다 ([Pod CIDR 선제 확보](./cidr-network-design.md#pod-cidr-선제-확보)).
-- `clusterPoolIPv4MaskSize`는 노드당 최대 Pod 수와 연동됩니다(/26 = 64 IP, /25 = 128 IP). kubelet `maxPods` 설정과 정합성을 확인합니다.
+- `clusterPoolIPv4PodCIDRList`는 클러스터 생성 시 지정한 `RemotePodNetwork`와 일치해야 합니다. 운영 중에는 기존 CIDR 요소를 변경할 수 없고 `clusterPoolIPv4MaskSize`도 변경할 수 없습니다. 다만 풀이 고갈되면 리스트에 **새 CIDR 요소를 추가**하는 방식으로 확장할 수 있습니다(기존 요소 변경은 불가). 추가한 CIDR은 클러스터의 `RemotePodNetwork`와 온프레미스 라우팅에도 함께 반영해야 하므로, 처음부터 넉넉히 배정하는 편이 운영 부담이 적습니다 ([Pod CIDR 선제 확보](./cidr-network-design.md#pod-cidr-선제-확보), [Cilium Expanding the cluster pool](https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/#expanding-the-cluster-pool)).
+- `clusterPoolIPv4MaskSize`는 노드당 Pod 슬라이스 크기를 결정합니다. 제시한 값은 **전체 주소 수**이며(/26 = 64개, /25 = 128개), Cilium은 각 CIDR 블록에서 네트워크·브로드캐스트 2개를 예약하므로 실제 할당 가능한 Pod IP는 그보다 적습니다(/26 = 62개, /25 = 126개). 배포한 Cilium 버전의 예약 정책을 확인한 뒤 kubelet `maxPods` 설정과 정합성을 맞춥니다.
 - Mixed mode 클러스터에서 `unmanagedPodWatcher.restart: false`는 Cilium operator가 VPC CNI 관리 하의 클라우드 노드 Pod를 재시작하지 않도록 하는 안전장치입니다.
 
 ## Pod CIDR 라우팅 방식 선택
@@ -86,7 +95,7 @@ Pod 레벨 inbound가 필요한 환경([기능표](../overview-architecture/hybr
 |------|----------|------|------|
 | BGP 동적 라우팅 (권장) | 노드 증감이 잦은 중·대규모 | BGP 지원 라우터, ASN·피어링 협의 | 노드별 Pod CIDR 슬라이스를 자동 광고 — 증설 시 라우터 변경 불필요 |
 | 정적 라우팅 | 노드 수가 적고 고정된 소규모, BGP 미지원 장비 | 라우터에 노드별 경로 수동 등록 | 노드 증설·교체 시마다 라우터 경로 갱신 필요 — 운영 부담 누적 |
-| Hybrid Nodes Gateway | 네트워크 조직 분리·IPAM 포화로 라우팅 협의가 곤란한 환경 | Cilium 전용, 게이트웨이 EC2 2대 | 온프레미스 라우팅 협의 자체를 제거 — [구축 절차](./hybrid-nodes-gateway.md) |
+| Hybrid Nodes Gateway | 네트워크 조직 분리·IPAM 포화로 Pod 대역 라우팅 협의가 곤란한 환경 | Cilium 전용, 게이트웨이 EC2 2대 | Pod CIDR 언더레이 라우팅 협의를 제거(Node 대역 라우팅과 게이트웨이 VXLAN·방화벽 설정은 여전히 필요) — [구축 절차](./hybrid-nodes-gateway.md) |
 
 노드별 Pod CIDR 슬라이스는 CNI가 동적으로 할당하므로, 정적 라우팅은 슬라이스 배정을 사전에 파악해 노드 단위로 경로를 등록해야 하고 노드 교체 시 재확인이 필요합니다. 이 관리 부담이 정적 라우팅을 소규모 환경으로 한정하는 이유입니다.
 
@@ -105,6 +114,10 @@ helm upgrade cilium oci://public.ecr.aws/eks/cilium/cilium \
 ```
 
 기존 배포에 BGP를 추가하는 경우 Cilium operator 재시작이 필요하며, `operator.rollOutPods=true`가 이를 Helm 업그레이드 과정에서 수행합니다.
+
+:::warning
+위 명령은 공식 문서의 기능 활성화 예시를 그대로 옮긴 것으로 `--version`을 지정하지 않습니다. `--reuse-values`와 함께 쓰면 로컬 Helm 차트 캐시에 따라 Cilium 버전이 의도치 않게 바뀔 수 있습니다. BGP 활성화처럼 기능만 켜는 변경에서는 현재 설치된 지원 차트 버전을 `--version`으로 고정하십시오. 버전을 올리려는 경우에는 [공식 업그레이드 절차](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html#hybrid-nodes-cilium-upgrade)의 preflight 점검과 OS/커널·버전 호환성 확인을 먼저 수행합니다.
+:::
 
 ### 2. BGP CRD 3종 구성
 
@@ -137,6 +150,24 @@ spec:
             name: "cilium-peer"
 ---
 apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeerConfig
+metadata:
+  name: cilium-peer                  # ClusterConfig의 peerConfigRef.name과 일치해야 함
+spec:
+  timers:
+    holdTimeSeconds: 90
+    keepAliveTimeSeconds: 30
+  gracefulRestart:
+    enabled: true
+    restartTimeSeconds: 120
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: "bgp"           # Advertisement의 labels.advertise와 일치해야 함
+---
+apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPAdvertisement
 metadata:
   name: bgp-advertisement-pods
@@ -146,6 +177,8 @@ spec:
   advertisements:
     - advertisementType: "PodCIDR"
 ```
+
+위 매니페스트는 세 리소스를 포함하며, 공식 절차에서는 각각 별도 파일로 작성해 `CiliumBGPClusterConfig` → `CiliumBGPPeerConfig` → `CiliumBGPAdvertisement` 순으로 `kubectl apply`합니다. `NODES_ASN`·`ONPREM_ROUTER_ASN`·`ONPREM_ROUTER_IP`는 네트워크팀과 협의한 실제 값으로 치환합니다. `peerConfigRef.name`(`cilium-peer`)은 `CiliumBGPPeerConfig`의 이름과, families의 `matchLabels.advertise`(`bgp`)는 `CiliumBGPAdvertisement`의 `labels.advertise`와 각각 일치해야 연결됩니다. 적용 후에는 아래 3단계 검증으로 세션 수립을 확인합니다.
 
 각 하이브리드 노드의 Cilium 에이전트가 온프레미스 라우터와 개별 피어링하고, 자신이 소유한 Pod CIDR 슬라이스만 광고합니다. 온프레미스 라우터를 BGP Route Reflector로 구성하면 라우터가 데이터 경로에 참여하지 않으면서 Pod CIDR을 동적으로 학습합니다.
 

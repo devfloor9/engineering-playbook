@@ -3,7 +3,7 @@ title: 네트워킹
 description: EKS Hybrid Nodes 네트워킹 베스트 프랙티스 — CIDR 설계와 대역 최소화, CNI 구성과 Pod CIDR 라우팅, Hybrid Nodes Gateway 구축·운영, 로드밸런싱과 서비스 노출, 방화벽 사전 등록과 TGW 토폴로지를 다룹니다.
 created: "2026-08-25"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -41,7 +41,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     to="/docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway"
     icon="🚇"
     title="Hybrid Nodes Gateway 구축·운영"
-    description="Cilium VTEP 구성, Helm 설치, 인스턴스 사이징(수직 확장), failover 3~5초 HA 모델, 모니터링, 제거 시 주의사항"
+    description="Cilium VTEP 구성, Helm 설치, 인스턴스 사이징(수직 확장), active-standby HA 모델(failover 소요 시간은 리더 선출 파라미터에 따라 달라지는 추정치), 모니터링, 제거 시 주의사항"
     color="#4a90d9"
   />
   <DocCard

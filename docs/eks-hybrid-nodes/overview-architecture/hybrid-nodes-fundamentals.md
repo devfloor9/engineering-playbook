@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes 개념과 동작 원리
 description: "Amazon EKS Hybrid Nodes의 정의·사용 사례·요금 모델부터 nodeadm 등록 흐름, RemoteNodeNetwork/RemotePodNetwork 네트워킹 구조, 트래픽 흐름, 주요 기술 특징까지 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-26"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 28
 tags:
   - eks
   - hybrid-node
@@ -46,13 +46,17 @@ EKS Hybrid Nodes는 온프레미스·엣지 인프라의 물리 서버 또는 �
 
 ### 배포 옵션 비교
 
-| 항목 | EKS Hybrid Nodes | AWS Outposts | Amazon EKS Anywhere | 자체 구축 K8s |
+| 항목 | EKS Hybrid Nodes | AWS Outposts (로컬 클러스터) | Amazon EKS Anywhere | 자체 구축 K8s |
 |------|-----------------|--------------|---------------------|----------------|
 | 컨트롤 플레인 위치 | AWS 리전 (관리형) | Outposts 랙 (관리형) | 온프레미스 (고객 운영) | 온프레미스 (고객 운영) |
 | 하드웨어 | 고객 보유 장비 | AWS 제공 랙/서버 | 고객 보유 장비 | 고객 보유 장비 |
 | 네트워크 요건 | DX/VPN 상시 연결 | AWS 연결 필수 | 단절 운영 가능 | 제약 없음 |
 | 컨트롤 플레인 운영 부담 | 없음 | 없음 | 있음 (업그레이드·백업) | 전부 |
 | 적합한 경우 | 기존 장비 + 관리형 컨트롤 플레인 | AWS 인프라를 온프렘에 확장 | 에어갭·단절 환경 | 완전한 자체 통제 필요 |
+
+:::note Outposts의 로컬 클러스터 vs 확장 클러스터
+위 표의 "AWS Outposts" 열은 컨트롤 플레인까지 Outposts 랙에서 실행하는 **로컬 클러스터(local clusters)** 기준입니다. EKS on Outposts에는 두 가지 배포 방식이 있습니다. **확장 클러스터(extended clusters)**는 컨트롤 플레인을 **AWS 리전**에서 실행하고 노드만 Outpost에 두어 Outpost 용량을 아끼지만, 리전 연결이 끊기면 애플리케이션 가용성에 영향을 줄 수 있습니다. **로컬 클러스터**는 컨트롤 플레인과 노드를 모두 Outpost에서 실행해 리전 단절 중에도 클러스터 운영을 지속할 수 있어, 데이터 상주 요건이나 단절 내성이 필요한 경우에 적합합니다. 로컬 클러스터는 Outposts 랙에서만 지원되며, 두 방식 모두 컨트롤 플레인은 AWS가 완전 관리합니다.
+:::
 
 EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담은 없애고 싶은" 환경에 적합합니다. 컨트롤 플레인이 AWS 리전에 있으므로 온프레미스와 리전 간 안정적인 사설 연결이 전제 조건입니다.
 
@@ -71,7 +75,14 @@ EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담�
 컨트롤 플레인이 AWS 리전에서 실행되므로, 하이브리드 노드는 리전과의 **상시 신뢰성 있는 연결**을 전제합니다. 통신이 완전히 차단되거나 단속적으로 끊기는 DDIL(Denied, Disrupted, Intermittent, Limited) 환경에서는 노드 자격 증명 갱신·스케줄링·`kubectl` 조작이 모두 불가능해집니다. 이 환경의 정답은 컨트롤 플레인까지 온프레미스에서 실행하는 **Amazon EKS Anywhere**이며, Hybrid Nodes로 우회 구성해서는 안 됩니다.
 :::
 
-반면 **퍼블릭 인터넷만 차단된 사설 폐쇄망**은 완전 지원 대상입니다. EKS 클러스터 API 엔드포인트를 Private 모드로 생성하고, ECR·SSM·STS 등 노드가 필요로 하는 AWS 서비스를 인터페이스 VPC 엔드포인트로 VPC 내부에 개설하면, 모든 통신이 DX/VPN → VPC → PrivateLink의 사설 경로로 완결됩니다. 엔드포인트별 상세 설계는 [사설 폐쇄망 VPC 엔드포인트 설계](../networking/private-vpc-endpoints)에서 다룹니다.
+반면 **퍼블릭 인터넷만 차단된 사설 폐쇄망**은 완전 지원 대상입니다. 다만 이 환경을 설계할 때는 성격이 다른 네 가지 통신 경로를 각각 사설 경로로 확보해야 하며, 하나로 뭉뚱그리면 노드 부트스트랩이 실패할 수 있습니다.
+
+- **Kubernetes API 접근**: EKS 클러스터 API 엔드포인트를 Private 모드로 생성해 kubelet·`kubectl`이 컨트롤 플레인에 도달하도록 합니다. 이는 Kubernetes API 레벨의 사설화이며, 아래 AWS 서비스 API 접근(PrivateLink)과는 별개입니다.
+- **AWS 서비스 API 접근**: SSM·STS·IAM Roles Anywhere 등 노드가 자격 증명·관리를 위해 호출하는 AWS 서비스는 인터페이스 VPC 엔드포인트(PrivateLink)로 VPC 내부에 개설합니다.
+- **컨테이너 레지스트리와 이미지 레이어**: ECR는 인터페이스 엔드포인트(`ecr.api`·`ecr.dkr`)로, 실제 이미지 레이어가 저장되는 **S3는 게이트웨이 엔드포인트(또는 S3 인터페이스 엔드포인트)**로 접근해야 합니다. ECR 엔드포인트만 열고 S3 경로를 빠뜨리면 이미지 Pull이 레이어 다운로드 단계에서 실패합니다.
+- **노드 부트스트랩 아티팩트**: `nodeadm` 바이너리와 OS 패키지 리포지토리, 하이브리드 노드 의존성은 기본적으로 퍼블릭 위치에서 받습니다. 폐쇄망에서는 이들을 사내 미러·아티팩트 저장소로 복제하거나, `nodeadm`을 포함한 OS 이미지를 사전 빌드해 런타임 외부 접근을 제거해야 합니다.
+
+위 네 경로가 모두 확보되면 통신이 DX/VPN → VPC → PrivateLink의 사설 경로로 완결됩니다. 엔드포인트별 상세 설계는 [사설 폐쇄망 VPC 엔드포인트 설계](../networking/private-vpc-endpoints)에서 다룹니다.
 
 ### 공유 책임 모델 (Shared Responsibility Model)
 
@@ -85,31 +96,40 @@ EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담�
 | 보안·인증 | IAM·SSM·IAM Roles Anywhere 서비스 | 자격 증명 인프라(activation·사설 PKI) 운영, 인증서 갱신·폐기, 노드 IAM role 최소 권한 |
 | 관측성 | 컨트롤 플레인 로그·메트릭, Cluster Insights | 노드·워크로드 메트릭 수집, 크로스 네트워크 경로 모니터링 |
 
-클라우드 노드(managed node group)에서 AWS가 담당하던 AMI 패치·노드 교체가 하이브리드 노드에서는 전부 고객 몫이라는 점이 실질적인 차이입니다. 업그레이드 절차와 런북은 [업그레이드와 수명주기 관리](../operations-cost/upgrade-lifecycle)에서 다룹니다.
+클라우드 노드(managed node group)에서는 AWS가 **EKS 최적화 AMI의 패치 버전을 빌드**하고 노드 업데이트·교체 오케스트레이션(드레인·롤링 교체)을 제공하지만, 패치된 AMI를 노드 그룹에 **배포하는 작업은 고객이 개시**합니다(공식 문서가 명시하는 공유 책임). 하이브리드 노드에서는 이 AMI 빌드 제공마저 없어, OS 설치·패치와 `nodeadm upgrade`를 통한 노드 교체가 전부 고객 몫이 되는 점이 실질적인 차이입니다. 업그레이드 절차와 런북은 [업그레이드와 수명주기 관리](../operations-cost/upgrade-lifecycle)에서 다룹니다.
 
 ### 요금 모델
 
-EKS Hybrid Nodes는 하이브리드 노드의 vCPU-시간 기준 티어드 과금을 적용합니다. 월 누적 사용량이 증가할수록 단가가 낮아집니다.
+EKS Hybrid Nodes는 하이브리드 노드의 vCPU-시간 기준 티어드 과금을 적용합니다. 월 누적 사용량이 증가할수록 단가가 낮아집니다. 과금은 노드가 클러스터에 조인한 시점에 시작되어 제거될 때 중단되며, 티어는 **같은 AWS 리전·같은 계정(AWS Organizations 통합 결제 시 조직 내 계정 합산)의 월 누적 vCPU-시간**에 적용됩니다. 아래 단가는 공식 요금 페이지(2026-10-13 확인) 기준이며, 리전·시점에 따라 달라질 수 있으므로 실제 비용은 요금 페이지 또는 AWS 견적으로 확인해야 합니다.
 
-| 월 누적 vCPU-hours | 단가 ($/vCPU-hr) |
+| 월 누적 vCPU-hours (구간) | 단가 ($/vCPU-hr) |
 |-------------------|-----------------|
 | 첫 576,000 | $0.020 |
-| 576,001 ~ 1,728,000 | $0.014 |
-| 1,728,001 ~ 5,184,000 | $0.010 |
-| 5,184,001 ~ 15,552,000 | $0.008 |
-| 15,552,001 이상 | $0.006 |
+| 다음 576,000 (576,001 ~ 1,152,000) | $0.014 |
+| 다음 4,608,000 (1,152,001 ~ 5,760,000) | $0.010 |
+| 다음 5,760,000 (5,760,001 ~ 11,520,000) | $0.008 |
+| 11,520,000 초과 | $0.006 |
 
-예를 들어 224 vCPU 서버(DGX H200급) 1대를 상시 운영하면 월 약 163,520 vCPU-hr, 약 $3,270의 관리 비용이 발생합니다. 10대 운영 시 누적 사용량이 2티어에 진입해 노드당 평균 비용이 약 $2,635로 낮아집니다. 이 금액은 EKS 관리 비용이며 하드웨어 구매·전력·상면 비용은 별도입니다. EKS 클러스터 자체 요금과 클라우드 노드(EC2) 요금은 기존과 동일하게 부과됩니다. 과금 구조를 활용한 비용 최적화 전략은 [운영과 비용 최적화](../operations-cost/operations-cost-optimization.md)에서 다룹니다.
+:::warning 32 vCPU 초과 머신은 별도 견적 대상
+공식 요금 페이지는 **머신당 32 vCPU를 초과하는 하이브리드 노드를 운영할 계획이면 계정 팀에 문의해 별도 가격 정보를 받으라**고 명시합니다. 따라서 아래 224 vCPU 예시는 공개 티어 단가를 그대로 대입한 **가상 산정치**일 뿐 실제 청구액이 아니며, 이런 대형 머신 환경은 반드시 적용 가능한 견적을 받아야 합니다.
+:::
+
+예를 들어 공개 티어 단가를 그대로 적용한다는 전제로 224 vCPU 서버(DGX H200급) 1대를 월 730시간 상시 운영하면 약 163,520 vCPU-hr(224 × 730)이 발생합니다. 전량이 1티어($0.020)에 들어가므로 산정치는 약 $3,270입니다. 10대(월 1,635,200 vCPU-hr) 운영 시 첫 576,000은 $0.020, 다음 576,000은 $0.014, 나머지 483,200은 $0.010이 적용되어 합계 약 $24,416, 노드당 평균 약 $2,441.60으로 산정됩니다. 이 금액은 EKS 관리 비용 산정치이며 하드웨어 구매·전력·상면 비용은 별도입니다. EKS 클러스터 자체 요금과 클라우드 노드(EC2) 요금은 기존과 동일하게 부과됩니다. 과금 구조를 활용한 비용 최적화 전략은 [운영과 비용 최적화](../operations-cost/operations-cost-optimization.md)에서 다룹니다.
 
 ### 시스템 요구 사항
 
 | 항목 | 요구 사항 |
 |------|----------|
-| 운영체제 | Amazon Linux 2023, Ubuntu 20.04/22.04/24.04 LTS, RHEL 8/9 |
+| 운영체제 | Amazon Linux 2023(AL2023, 온프레미스 가상화 환경 전용 — EC2 밖에서 실행하면 AWS Support Plan 미적용), Ubuntu 20.04/22.04/24.04 LTS, RHEL 8/9, Bottlerocket v1.37.0+(VMware vSphere 변형 전용) |
+| 아키텍처 | x86_64 및 ARM(ARM은 ARMv8.2+Crypto 프로세서 필요). 단 Bottlerocket VMware 변형은 x86_64 전용 |
 | 컨테이너 런타임 | containerd (nodeadm이 설치·관리) |
 | 네트워크 연결 | AWS Direct Connect, Site-to-Site VPN, 또는 자체 VPN 기반 사설 연결 |
 | 대역폭·지연시간 | 최소 100Mbps, 왕복 지연(RTT) 200ms 이하 권장 (공식 가이드) |
 | CNI | Cilium — AWS 지원 CNI (VPC CNI는 하이브리드 노드 비호환, Calico는 커뮤니티 지원 경로) |
+
+:::note OS 지원 경계와 Bottlerocket 부트스트랩 경로
+위 표의 OS는 공식 문서가 하이브리드 노드용으로 검증한 목록이며, "AWS가 OS 자체를 지원하는가"와는 구분됩니다. **Ubuntu·RHEL은 AWS가 하이브리드 노드 통합은 지원하지만 OS 자체는 지원하지 않으므로** OS 프로비저닝·관리 책임은 고객에게 있습니다. **AL2023은 온프레미스 가상화 환경에서만 사용 가능**하며 물리(베어메탈) 서버에 직접 설치하는 구성은 대상이 아니므로, 보유 GPU 베어메탈 서버에는 Ubuntu/RHEL 또는 가상화 계층이 필요합니다. **Bottlerocket은 VMware vSphere 환경에서만 지원**되고 `nodeadm`을 사용하지 않습니다 — Bottlerocket은 하이브리드 노드 의존성을 이미 포함하고 있어 호스트 시작 시 자동으로 클러스터에 연결되므로, 등록 절차가 다른 OS와 다릅니다.
+:::
 
 :::note 대역폭 요건의 해석
 100Mbps/200ms는 대부분의 사용 사례를 수용하는 일반 가이드이며 엄격한 요구사항이 아닙니다. 실제 필요 대역폭은 노드 수, 컨테이너 이미지 크기, 모니터링·로깅 구성, AWS 서비스 데이터 접근 패턴에 따라 달라집니다. 대용량 모델 이미지를 사용하는 GPU 추론 환경은 프로덕션 적용 전 자체 워크로드로 검증이 필요합니다.
@@ -208,7 +228,7 @@ EKS 컨트롤 플레인은 이 대역을 기준으로 해당 목적지 트래픽
 
 **② AWS → 온프레미스 노드 (inbound, 노드 레벨)**: 컨트롤 플레인이 kubelet(TCP 10250)으로 연결을 개시합니다. `kubectl logs`/`exec`가 이 경로를 사용하며, Node CIDR 양방향 라우팅이 필수인 이유입니다.
 
-**③ AWS → 온프레미스 Pod (inbound, Pod 레벨)**: 웹훅 호출, Metrics Server 스크래핑, ALB/NLB IP 타겟 트래픽이 Pod IP를 직접 목적지로 사용합니다. SNAT는 외부에서 개시되는 연결의 경로를 만들지 못하므로, Pod CIDR 라우팅 또는 Hybrid Nodes Gateway가 필요합니다.
+**③ AWS → 온프레미스 Pod (inbound, Pod 레벨)**: 웹훅 호출, 컨트롤 플레인의 Metrics Server Pod 접근, ALB/NLB IP 타겟 트래픽이 Pod IP를 직접 목적지로 사용합니다. SNAT는 외부에서 개시되는 연결의 경로를 만들지 못하므로, Pod CIDR 라우팅 또는 Hybrid Nodes Gateway가 필요합니다. Metrics Server의 경우 흐름을 두 가지로 구분해야 합니다. **(a) 컨트롤 플레인 → Metrics Server**: API 집계(aggregation layer)를 위해 kube-apiserver가 Metrics Server의 **Pod IP와 10250 포트**(Metrics Server를 `hostNetwork`로 실행하면 노드 IP와 지정 포트)에 도달해야 하므로, 이 경로가 Pod CIDR 라우팅 또는 Gateway를 요구하는 inbound(③) 흐름입니다. **(b) Metrics Server → kubelet**: Metrics Server가 각 노드의 kubelet(10250 포트)을 스크래핑하는 별도의 흐름으로, 노드 IP·포트를 대상으로 하므로 Node 대역(②)에서 처리됩니다. 즉 "스크래핑"은 Pod 레벨 inbound 요건이 아니며, Pod CIDR 라우팅을 요구하는 쪽은 (a)의 API 집계 경로입니다.
 
 ```text
 [egress — 기본 지원]
@@ -271,7 +291,12 @@ Pod 대역을 라우팅할 수 없는(unroutable) 환경의 공식 가이드는 
 > "The gateway **eliminates the need to make on-premises pod networks routable from the VPC** or coordinate network infrastructure changes."
 > — [Amazon EKS Hybrid Nodes gateway](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html)
 
-Gateway는 Cilium CNI의 VTEP(VXLAN Tunnel Endpoint) 기능을 활용합니다. VPC 안의 EC2 게이트웨이 노드와 온프레미스의 Cilium 노드 사이에 VXLAN 터널(`hybrid_vxlan0` 인터페이스, VNI 2, UDP 8472)을 구성하고 Pod 트래픽을 캡슐화해 전달합니다. 물리 네트워크에는 노드 IP 간 UDP 트래픽만 흐르며 Pod CIDR은 노출되지 않습니다. Leader election 기반 active-standby 모델로 동작하며, 예상 failover 시간은 약 3~5초입니다(공식 문서 명시).
+Gateway는 Cilium CNI의 VTEP(VXLAN Tunnel Endpoint) 기능을 활용합니다. VPC 안의 EC2 게이트웨이 노드와 온프레미스의 Cilium 노드 사이에 VXLAN 터널(`hybrid_vxlan0` 인터페이스, VNI 2, UDP 8472)을 구성하고 Pod 트래픽을 캡슐화해 전달합니다. 물리 네트워크의 외부(outer) 헤더에는 노드 IP 간 UDP 트래픽만 보이므로, Pod CIDR을 온프레미스 물리 네트워크에 **라우팅 가능하게 광고할 필요가 없어집니다**. 다만 이것은 라우팅 요건 제거이지 은닉이나 암호화가 아닙니다. 두 가지를 구분해야 합니다.
+
+- **암호화 경계**: 공식 문서는 Gateway가 만드는 **VXLAN 터널이 트래픽을 암호화하지 않는다**고 명시합니다. 캡슐화된 내부(inner) 패킷에는 Pod IP 헤더와 페이로드가 그대로 들어 있어, 전송 중 암호화가 필요하면 MACsec을 적용한 Direct Connect나 VPN 같은 **암호화된 전송 계층을 별도로 사용**해야 합니다.
+- **Pod CIDR 가시성**: Pod 대역은 Gateway 동작을 위해 리더 게이트웨이가 관리하는 **VPC 라우트 테이블 항목**과 하이브리드 노드에 배포되는 **`CiliumVTEPConfig` 커스텀 리소스**에 그대로 나타납니다. 즉 Pod CIDR이 클러스터·VPC 구성에서 사라지는 것이 아니라, 온프레미스 물리 라우터에 광고해야 하는 요건만 사라집니다.
+
+동작은 Kubernetes Lease 기반 리더 선출(leader election)의 active-standby 모델이며, 두 게이트웨이 Pod가 시작 시 모두 VXLAN 인터페이스를 만들어 두므로 공식 문서가 명시하는 예상 failover 시간은 약 3~5초입니다. 이는 설계 목표치이므로 실제 전환 시간은 환경에서 측정해 확인하는 것이 바람직합니다.
 
 **Gateway가 하지 않는 것**도 명확합니다. Gateway는 NAT가 아니므로 대역 중복을 해소하지 못하며, Node 대역 라우팅과 VPC↔온프레미스 사설 연결 요건은 그대로 유지됩니다. Gateway는 Pod 레이어의 라우팅 문제를 해결하는 것이며 하이브리드 연결 자체를 대체하지 않습니다. 동작 메커니즘·도입 절차·운영 상세는 [Hybrid Nodes Gateway 구축과 운영](../networking/hybrid-nodes-gateway.md)에서 다룹니다.
 

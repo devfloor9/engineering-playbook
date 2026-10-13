@@ -3,9 +3,9 @@ title: Observability Integration — Self-Diagnosis, Container Insights, eBPF
 description: "Observability implementation guide for EKS Hybrid Nodes — covers Cluster Insights configuration self-diagnosis, CloudWatch Container Insights hybrid configuration (RUN_WITH_IRSA), NVIDIA GPU metric integration, a Cilium Hubble-based eBPF dashboard, and Network Flow Monitor applicability analysis."
 created: "2026-08-26"
 last_update:
-  date: "2026-08-26"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 25
 tags:
   - eks
   - hybrid-node
@@ -36,18 +36,23 @@ Among its three insight types (configuration, upgrade, rollback readiness), EKS 
 - **`kubectl exec`/`kubectl logs` failures**: control plane → kubelet (TCP 10250) path problems — a firewall inbound direction mistake is the typical cause ([direction caution](../networking/firewall-connectivity#zone-a-on-premises-firewall-ongoing-operations-rules))
 - Other remote network configuration mismatches
 
-The operational workflow is as follows. Insights refresh automatically on a 24-hour cycle, and a manual refresh after remediation confirms resolution immediately.
+The operational workflow is as follows. Insights refresh automatically on a 24-hour cycle, so `list-insights` and `describe-insight` return the **cached results from the last refresh**. To confirm resolution immediately after remediation, explicitly trigger an on-demand refresh with `start-insights-refresh`, wait for the returned status to complete (`IN_PROGRESS` → `COMPLETED`/`FAILED`), then query again.
 
 ```bash
-# List configuration insights
+# List configuration insights (cached results from the last refresh)
 aws eks list-insights \
   --cluster-name CLUSTER_NAME \
   --filter categories=CONFIGURATION
 
-# View detailed diagnosis and recommendations for an individual insight
+# View detailed diagnosis and recommendations for an individual insight (cached)
 aws eks describe-insight \
   --cluster-name CLUSTER_NAME \
   --id INSIGHT_ID
+
+# After remediation, trigger an on-demand refresh — wait until status is COMPLETED
+aws eks start-insights-refresh \
+  --cluster-name CLUSTER_NAME
+# Once status is COMPLETED, re-run list-insights/describe-insight above to confirm resolution
 ```
 
 Pairing Cluster Insights (the control plane's perspective) with `nodeadm debug` (the node's perspective, see [configuration validation automation](./operations-cost-optimization#configuration-validation-automation)) enables bidirectional cross-diagnosis between "problems seen from the cluster side" and "problems seen from the node side." Fix new deployments, firewall changes, and post-upgrade as mandatory checkpoints in the runbook.
@@ -82,7 +87,7 @@ Log collection (Fluent Bit) is handled by the same add-on, aggregating hybrid no
 Accelerator metrics for on-premises GPUs (DGX and similar) are collected with the DCGM (Data Center GPU Manager) Exporter as the standard. The official AWS reference architecture is DCGM Exporter → Amazon Managed Service for Prometheus (AMP) → Amazon Managed Grafana (AMG).
 
 - **DCGM Exporter**: Exposes GPU utilization, memory, temperature, power, and XID errors in Prometheus format. As with the [hybrid-only Device Plugin](../compute-gpu/gpu-scheduling-failover#hybrid-only-nvidia-device-plugin), restrict the deployment scope with the `eks.amazonaws.com/compute-type: hybrid` nodeSelector.
-- **Choosing the collection path**: The AMP managed collector requires Pod metric endpoints reachable from the VPC, so Pod CIDR routing (BGP/Gateway) is a prerequisite. In unroutable configurations, use the ADOT add-on or an in-cluster Prometheus that scrapes and remote-writes to AMP.
+- **Choosing the collection path**: The AMP managed collector requires Pod metric endpoints reachable from the VPC, so Pod CIDR routing (BGP/Gateway) is a prerequisite. In unroutable configurations, use the ADOT add-on or an in-cluster Prometheus that scrapes and remote-writes to AMP. Note, however, that the ADOT add-on's **operator uses an admission webhook**: even though remote-write itself is outbound, if the operator is placed on hybrid nodes, webhook admission can fail in a pure unroutable setup where the Pod CIDR is not routed (the same constraint as the CloudWatch Observability add-on — see the [Container Insights table above](#cloudwatch-container-insights-integration)). So if you choose ADOT, place the operator on cloud nodes in mixed mode so the control plane can reach the webhook; a self-managed in-cluster Prometheus has no such admission dependency and can run on remote-write alone.
 - **Organizations requiring CloudWatch consolidation**: The CloudWatch agent's Prometheus scrape configuration can ingest DCGM metrics into CloudWatch, providing observation in the same account and console as the Container Insights views.
 - Deploying the Node Monitoring Agent (a hybrid-compatible add-on) alongside strengthens detection of GPU-related node health issues.
 
@@ -111,15 +116,28 @@ hubble:
 ```
 
 ```bash
+# Pin the Cilium chart version to the supported version already installed, so only
+# observability settings are added. --reuse-values preserves your existing values, but
+# omitting --version can upgrade the CNI itself; pin --version to the EKS-supported
+# version you currently run.
 helm upgrade cilium oci://public.ecr.aws/eks/cilium/cilium \
+  --version <currently-running-supported-version> \
   --namespace kube-system --reuse-values --values cilium-values.yaml
+```
+
+For Hubble Relay to aggregate cluster-wide flows, **TCP port 4244 must be open on all nodes running Cilium** (a Cilium requirement). Reflect this port in the hybrid nodes' on-premises firewall and security groups. To use the `hubble observe` CLI, first install the Hubble client and configure Relay API access — typically by port-forwarding Relay to a local port with `cilium hubble port-forward` and validating access with `hubble status` before querying.
+
+```bash
+# Configure Relay API access (local port-forward)
+cilium hubble port-forward &
+hubble status            # validate API access
 
 # Observe flows in real time (diagnose drop causes)
 hubble observe --verdict DROPPED --last 100
 ```
 
 - Hubble metrics are exposed on each Cilium agent's port 9965 (default); Prometheus/AMP scrapes them and visualizes them with the official Hubble Grafana dashboards (L3/L4 flows, DNS, drop-reason distribution).
-- **Beware the conflict with the Hybrid Nodes Gateway**: the Gateway requires `l7Proxy=false` ([pre-adoption checklist](../networking/hybrid-nodes-gateway#pre-adoption-checklist)), so Hubble's L7 protocol visibility (HTTP, etc.) is unavailable in Gateway environments. L3/L4 flow, DNS, and drop observability work independently of the L7 proxy.
+- **Beware the conflict with the Hybrid Nodes Gateway**: the Gateway requires `l7Proxy=false` ([pre-adoption checklist](../networking/hybrid-nodes-gateway#pre-adoption-checklist)), so any Hubble visibility that depends on the L7 proxy is unavailable in Gateway environments. This includes not only L7 protocol visibility (HTTP, etc.) but also **DNS query/response content visibility**. Cilium's official documentation classifies DNS visibility as an L7 feature: DNS traffic matching an L7 CiliumNetworkPolicy is redirected to the proxy so that query/response details appear in `hubble observe`. Therefore, with `l7Proxy=false` under the Gateway, the Hubble observability that works independently of the L7 proxy is limited to **L3/L4 flow and drop observability**. If you need DNS visibility, supplement it with a separate DNS telemetry source such as CoreDNS logs.
 - Placing Hubble Relay and UI on hybrid nodes keeps observability traffic contained on-premises. If queried from cloud-side Grafana (AMG), placement is irrelevant from the data source (AMP) perspective.
 - **Support scope caution**: Hubble is an upstream Cilium feature not included in the Cilium support scope table of the official documentation (network policy, BGP, Ingress, LB IPAM, etc.). It technically works on the EKS distribution of Cilium, but it is outside AWS Support scope — organizations for whom support contracts matter should state this boundary in their operational documentation.
 
@@ -149,7 +167,7 @@ CloudWatch Network Flow Monitor (NFM) is a service built on a lightweight eBPF (
 
 **Conclusion**: Hybrid nodes support for NFM is not documented (there is no explicit prohibition either, but it is absent from the validated list), so in production designs it is safest to position NFM as an observability tool for the **cloud-node segment only** in mixed-mode clusters. The resulting recommended arrangement is a division of roles.
 
-- **Cloud node segment**: the NFM add-on — EKS console service map and flow table, AWS network health indicator (NHI). Scraping the agent's OpenMetrics endpoint (`OPEN_METRICS=on`) with Prometheus folds the cloud segment into the unified Grafana dashboard above as its own panel family.
+- **Cloud node segment**: the NFM add-on — EKS console service map and flow table, AWS network health indicator (NHI). Scraping the OpenMetrics endpoint the agent exposes (`OPEN_METRICS=on`) with Prometheus folds the cloud segment into the unified Grafana dashboard above as its own panel family. Note that the agent's metrics endpoint must be reachable from your remote Prometheus — its bind address, port, and scrape path have to be exposed (if the endpoint binds to local-only it cannot be scraped remotely) — so configure the exposure to match your host/pod networking, or use a scraper local to the same node.
 - **Hybrid node segment**: Cilium Hubble — the same eBPF class of data (flows, drops, DNS) collected on-premises, covering the segment NFM cannot.
 - **The junction between the two (cross-network)**: covered by Gateway metrics and DX/VPN CloudWatch metrics.
 

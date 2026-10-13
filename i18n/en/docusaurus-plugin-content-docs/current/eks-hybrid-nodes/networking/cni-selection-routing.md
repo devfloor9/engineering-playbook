@@ -3,9 +3,9 @@ title: CNI Configuration and Pod CIDR Routing
 description: "CNI selection criteria and core Cilium configuration for EKS Hybrid Nodes — hybrid-node-only affinity, cluster-pool IPAM, choosing a Pod CIDR routing method (BGP, static, Gateway), and the Cilium BGP Control Plane configuration procedure."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 18
 tags:
   - eks
   - hybrid-node
@@ -39,7 +39,7 @@ Hybrid nodes remain in the `NotReady` state until a CNI is running, and the Amaz
 Two constraints matter for this decision.
 
 - **Gateway dependency**: The Hybrid Nodes Gateway is exclusive to Cilium's VTEP feature. Choosing Calico excludes the Gateway option, limiting Pod CIDR routing to BGP or static routing ([Architecture Decision Guide](../overview-architecture/architecture-decision-guide.md)).
-- **Mixed-mode placement isolation**: Cilium must be placed exclusively on hybrid nodes and the VPC CNI exclusively on cloud nodes. The VPC CNI's anti-affinity comes built in, but on the Cilium side you must declare affinity for the hybrid label at install time to prevent it from encroaching on cloud nodes.
+- **Mixed-mode placement isolation**: Cilium must be placed exclusively on hybrid nodes and the VPC CNI exclusively on cloud nodes. The VPC CNI's anti-affinity comes built in, but on the Cilium side you must declare hybrid-label affinity on both the agent and the operator at install time to prevent it from encroaching on cloud nodes. The official Hybrid Nodes values set `affinity` (agent) and `operator.affinity` separately.
 
 ## Core Cilium Installation Settings
 
@@ -59,10 +59,19 @@ affinity:
 ipam:
   mode: cluster-pool
   operator:
-    clusterPoolIPv4MaskSize: 26      # Per-node Pod IP slice (/26 = 64 addresses)
+    clusterPoolIPv4MaskSize: 26      # Per-node Pod IP slice (/26 = 64 addresses, 2 reserved)
     clusterPoolIPv4PodCIDRList:
       - 10.86.0.0/16                 # Must match RemotePodNetwork
 operator:
+  affinity:                          # Confine the operator to hybrid nodes too (set separately from the agent affinity)
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: eks.amazonaws.com/compute-type
+                operator: In
+                values:
+                  - hybrid
   unmanagedPodWatcher:
     restart: false                   # Prevent restarts of cloud-node Pods (managed by the VPC CNI)
 ```
@@ -74,8 +83,8 @@ helm install cilium oci://public.ecr.aws/eks/cilium/cilium \
   --values cilium-values.yaml
 ```
 
-- `clusterPoolIPv4PodCIDRList` must match the `RemotePodNetwork` specified at cluster creation, and since changing it during operation is effectively impossible, allocate generously from the start ([Proactive Pod CIDR Allocation](./cidr-network-design.md#proactive-pod-cidr-allocation)).
-- `clusterPoolIPv4MaskSize` correlates with the maximum Pod count per node (/26 = 64 IPs, /25 = 128 IPs). Verify consistency with the kubelet `maxPods` setting.
+- `clusterPoolIPv4PodCIDRList` must match the `RemotePodNetwork` specified at cluster creation. During operation you cannot change existing CIDR elements, and `clusterPoolIPv4MaskSize` cannot be changed either. However, if the pool is exhausted you can expand it by **appending a new CIDR element** to the list (existing elements must not be modified). Any CIDR you add must also be reflected in the cluster's `RemotePodNetwork` and in on-premises routing, so allocating generously from the start keeps the operational burden lower ([Proactive Pod CIDR Allocation](./cidr-network-design.md#proactive-pod-cidr-allocation), [Cilium Expanding the cluster pool](https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/#expanding-the-cluster-pool)).
+- `clusterPoolIPv4MaskSize` determines the per-node Pod slice size. The figures shown are **total address counts** (/26 = 64, /25 = 128); Cilium reserves 2 addresses per CIDR block for the network and broadcast addresses, so the actually allocatable Pod IPs are fewer (/26 = 62, /25 = 126). Confirm the reservation behavior of your deployed Cilium version, then align it with the kubelet `maxPods` setting.
 - In mixed-mode clusters, `unmanagedPodWatcher.restart: false` is a safeguard that keeps the Cilium operator from restarting cloud-node Pods under VPC CNI management.
 
 ## Choosing a Pod CIDR Routing Method
@@ -86,7 +95,7 @@ In environments that require Pod-level inbound traffic ([feature table](../overv
 |--------|---------------------|--------------|-----------------|
 | BGP dynamic routing (recommended) | Medium-to-large environments with frequent node changes | BGP-capable router, ASN/peering coordination | Automatically advertises each node's Pod CIDR slice — no router changes needed when scaling out |
 | Static routing | Small environments with a fixed node count, or equipment without BGP support | Manually register per-node routes on the router | Router routes must be updated on every node addition or replacement — operational burden accumulates |
-| Hybrid Nodes Gateway | Environments where routing coordination is impractical due to organizational separation or IPAM exhaustion | Cilium only, 2 gateway EC2 instances | Eliminates on-premises routing coordination altogether — [setup procedure](./hybrid-nodes-gateway.md) |
+| Hybrid Nodes Gateway | Environments where Pod CIDR routing coordination is impractical due to organizational separation or IPAM exhaustion | Cilium only, 2 gateway EC2 instances | Removes Pod CIDR underlay routing coordination (Node CIDR routing and the gateway's VXLAN/firewall setup are still required) — [setup procedure](./hybrid-nodes-gateway.md) |
 
 Per-node Pod CIDR slices are assigned dynamically by the CNI, so static routing requires identifying slice assignments in advance, registering routes per node, and re-verifying them when nodes are replaced. This management burden is what confines static routing to small environments.
 
@@ -105,6 +114,10 @@ helm upgrade cilium oci://public.ecr.aws/eks/cilium/cilium \
 ```
 
 Adding BGP to an existing deployment requires restarting the Cilium operator; `operator.rollOutPods=true` performs this as part of the Helm upgrade.
+
+:::warning
+The command above is copied verbatim from the official feature-enable example and does not specify `--version`. Combined with `--reuse-values`, it can unexpectedly change the Cilium version depending on your local Helm chart cache. For feature-only changes such as enabling BGP, pin the currently installed supported chart version with `--version`. When you intend to change the version, first run the [official upgrade procedure](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html#hybrid-nodes-cilium-upgrade), including the preflight check and the OS/kernel and version compatibility verification.
+:::
 
 ### 2. Configure the Three BGP CRDs
 
@@ -137,6 +150,24 @@ spec:
             name: "cilium-peer"
 ---
 apiVersion: cilium.io/v2alpha1
+kind: CiliumBGPPeerConfig
+metadata:
+  name: cilium-peer                  # Must match peerConfigRef.name in the ClusterConfig
+spec:
+  timers:
+    holdTimeSeconds: 90
+    keepAliveTimeSeconds: 30
+  gracefulRestart:
+    enabled: true
+    restartTimeSeconds: 120
+  families:
+    - afi: ipv4
+      safi: unicast
+      advertisements:
+        matchLabels:
+          advertise: "bgp"           # Must match labels.advertise on the Advertisement
+---
+apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPAdvertisement
 metadata:
   name: bgp-advertisement-pods
@@ -146,6 +177,8 @@ spec:
   advertisements:
     - advertisementType: "PodCIDR"
 ```
+
+The manifest above contains three resources; the official procedure writes each to a separate file and applies them with `kubectl apply` in the order `CiliumBGPClusterConfig` → `CiliumBGPPeerConfig` → `CiliumBGPAdvertisement`. Replace `NODES_ASN`, `ONPREM_ROUTER_ASN`, and `ONPREM_ROUTER_IP` with the actual values coordinated with your network team. The link is made by matching `peerConfigRef.name` (`cilium-peer`) to the `CiliumBGPPeerConfig` name, and the families `matchLabels.advertise` (`bgp`) to the `labels.advertise` on the `CiliumBGPAdvertisement`. After applying, confirm the session is established with the three verification steps below.
 
 The Cilium agent on each hybrid node peers individually with the on-premises router and advertises only the Pod CIDR slice it owns. Configuring the on-premises router as a BGP Route Reflector lets the router learn Pod CIDRs dynamically without participating in the data path.
 

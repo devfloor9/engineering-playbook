@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes Shared File Storage Solutions
 description: A comprehensive guide to implementing shared file storage in EKS Hybrid Nodes environments, covering AWS managed services, enterprise storage integration, and Amazon Linux 2023 alternative approaches.
 created: "2025-09-15"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 35
 tags:
   - eks
   - hybrid-node
@@ -21,20 +21,22 @@ category: hybrid-multicloud
 
 ## Overview
 
-In hybrid environments, shared file storage is a core component for sharing data across multiple nodes, operating stateful applications, and maintaining data consistency between the cloud and on-premises. With traditional high-availability clustering packages (pacemaker, corosync) removed from Amazon Linux 2023, the conventional approach to NFS cluster configuration requires change.
+In hybrid environments, shared file storage is a core component for sharing data across multiple nodes, operating stateful applications, and maintaining data consistency between the cloud and on-premises. Early Amazon Linux 2023 releases did not ship the traditional high-availability clustering packages (pacemaker, corosync), which made it hard to carry over an Amazon Linux 2–based NFS cluster configuration unchanged.
 
-This document responds to these changes by presenting effective shared file storage solutions for EKS Hybrid Nodes environments, reflecting the latest information as of 2025.
+This document summarizes the solutions and constraints to consider when choosing shared file storage for EKS Hybrid Nodes environments. The package availability stated below is tied to the specific Amazon Linux 2023 releases named, and you should re-verify it against the actual release of the AMI you use before relying on it.
 
 ## Technical Background and Current State Analysis
 
-### Amazon Linux 2023 Package Policy Changes
+### Amazon Linux 2023 Clustering Package Availability {#amazon-linux-2023-package-policy-changes}
 
-With the transition from Amazon Linux 2 to Amazon Linux 2023, the following clustering-related packages were removed:
+In early releases following the transition from Amazon Linux 2 to Amazon Linux 2023, the following clustering-related packages were not included in the default repository:
 
 - `corosync` and related libraries (`corosynclib`, `corosync-qdevice`, `corosync-qnetd`)
-- The entire `pacemaker` package set (`pacemaker-cli`, `pacemaker-cluster-libs`, `pacemaker-remote`, etc.)
+- The `pacemaker` package set (`pacemaker-cli`, `pacemaker-cluster-libs`, `pacemaker-remote`, etc.)
 
-These changes reflect AWS's strategic direction: providing higher reliability and operational efficiency through proven managed services instead of complex infrastructure-level clustering.
+This state varies by release, however. According to AWS's published release notes, AL2023.10 (version 2023.10.20260105) re-added the `corosync` 3.1.9 and `pacemaker` 3.0.1 packages to the repository. The statement "AL2023 has no pacemaker/corosync" therefore applies only to specific early releases, and you should confirm actual availability in the release of the AMI you use (for example with `dnf list corosync pacemaker`).
+
+Whether a package can be installed is a separate question from whether a pacemaker/corosync-based HA topology on on-premises AL2023 falls within AWS's tested and supported scope. A package being present in the repository does not imply that a particular HA configuration is validated or supported on EKS Hybrid Nodes, so confirm support scope separately in the EKS Hybrid Nodes and Amazon Linux official documentation.
 
 ### Supported Operating Systems
 
@@ -52,14 +54,22 @@ Amazon EFS is the most recommended shared file storage solution for EKS Hybrid N
 
 - NFSv4.1 protocol support, compatible with existing NFS clients
 - Automatic scaling up/down eliminates capacity management
-- Automatic replication across multiple Availability Zones provides 99.999999999% (11 9's) durability
+- EFS Regional file systems store data redundantly across multiple Availability Zones and are designed to provide 99.999999999% (11 9's) durability over a given year. EFS One Zone file systems store data within a single AZ, so data can be lost during a disaster or fault in that AZ. The 11 9's figure is a design target, not a guarantee, so configure backup and recovery separately with AWS Backup or EFS Replication.
 - Encryption in transit and at rest
 
 **Hybrid connectivity methods:**
 
-- Private connectivity via AWS Direct Connect or VPN
-- Optimized mount performance via the EFS Mount Helper
-- Kubernetes-native integration via the EFS CSI Driver
+- Private connectivity via AWS Direct Connect or VPN (required to reach EFS from on-premises)
+- Optimized mount performance and in-transit encryption via the EFS Mount Helper
+
+**Kubernetes integration caveat:**
+
+Reaching an EFS file system over NFSv4.1 from on-premises servers is a separate question from dynamic provisioning with the EFS CSI Driver on EKS Hybrid Nodes. The add-ons AWS has validated for compatibility with EKS Hybrid Nodes include the Amazon FSx CSI Driver but **do not include the Amazon EFS CSI Driver**. Recent EFS CSI Driver versions carry an anti-affinity rule for the `eks.amazonaws.com/compute-type: hybrid` label applied to hybrid nodes, so they are not scheduled onto hybrid nodes. To use EFS from hybrid nodes, follow one of these paths:
+
+- Access the EFS file system from your application using an `nfs` volume or a direct NFSv4.1 mount (no CSI dynamic provisioning)
+- Or choose a different path whose compatibility is validated on hybrid nodes, such as the Amazon FSx CSI Driver
+
+The compatible add-on list can change, so confirm the current state in the [Configure add-ons for hybrid nodes documentation](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-add-ons.html) before relying on it.
 
 **Implementation considerations:**
 
@@ -153,11 +163,16 @@ This is an alternative for cases with special requirements or where existing ope
 
 An official reference implementation by Dell Technologies, operating a PostgreSQL database on EKS Hybrid Nodes integrated with PowerFlex storage.
 
-**Performance results:**
+**Performance results (as reported by Dell):**
 
-- Achieved 238,804 read IOPS
-- Average response latency of 0.638ms
-- Validated scalability of concurrent session counts
+Dell's published test uses pgbench's built-in `select-only` script (read-only transactions that issue only SELECTs). The run conditions published in Dell's white paper are initialization at scale factor 20000 (`pgbench -i -s 20000`) followed by a 600-second run with 180 clients and 80 threads (`-c 180 -j 80 -T 600 -b select-only`). The reported figures are:
+
+- 238,804 read IOPS
+- **Read latency** of 0.638ms
+
+Both figures are as reported in the original blog post. The white paper reports the same 238,804 IOPS but describes latency only as "minimal latency", without a number. The white paper publishes this single run configuration only, so it does not support conclusions about scalability across concurrent session counts.
+
+These figures are read-only results from Dell's specific test environment and configuration. The white paper publishes the pgbench run conditions but not the hardware specifications of the servers and PowerFlex cluster used for the test, nor the network configuration. They do not imply the same performance for write-inclusive mixed workloads or in other environments, so measure directly in your own environment. Source: [What If? Unleashing innovation with Amazon EKS Hybrid Nodes and Dell PowerFlex](https://infohub.delltechnologies.com/en-nz/p/what-if-unleashing-innovation-with-amazon-eks-hybrid-nodes-and-dell-powerflex/); white paper: [Amazon EKS Hybrid Nodes on Dell PowerFlex — PostgreSQL deployment](https://infohub.delltechnologies.com/en-us/l/amazon-eks-hybrid-nodes-on-dell-powerflex/postgresql-deployment-1/) (Dell H04475, April 2025).
 
 **Architecture characteristics:**
 
@@ -185,41 +200,26 @@ A case where Superbet, a gaming and sports betting platform, uses EKS Hybrid Nod
 
 ### Feasibility of Package Addition Requests
 
-Requesting the addition of specific packages (e.g., pacemaker, corosync) to the Amazon Linux 2023 repository is technically possible, but realistically limited.
+If a specific package is not included in the Amazon Linux 2023 release you use, you can request its addition through public channels. Note, as covered above, that `corosync` and `pacemaker` were re-added to the repository in AL2023.10, so before filing a request confirm whether the package is already available in your current release.
 
-### Official Request Procedure
+### Official Request Channels {#official-request-procedure}
 
-**Requesting through AWS Support:**
+The Amazon Linux 2023 project collects feature requests, such as package additions, through public channels. The paths documented in the AL2023 repository README are:
 
-- Create a "Feature Request" or "Technical Support" case in the AWS Support Console
-- A package addition request must include the following information:
-  - A specific business case and use case
-  - Estimated user count and market demand analysis
-  - Review results and limitations of existing alternative solutions
-  - Security impact assessment and vulnerability analysis
-  - Long-term maintenance and support plan
+- Submit feature requests/bug reports as [issues](https://github.com/amazonlinux/amazon-linux-2023/issues) in the GitHub `amazonlinux/amazon-linux-2023` repository (check existing issues first)
+- Use GitHub [Discussions](https://github.com/amazonlinux/amazon-linux-2023/discussions) for questions and discussion
+- Provide feedback through your designated AWS account team or [AWS re:Post](https://repost.aws/)
+- Report security issues to the security team per the [security policy](https://github.com/amazonlinux/amazon-linux-2023/security/policy) rather than opening an issue
 
-### Realistic Expectations and Constraints
+### Information Helpful to Include (author guidance) {#realistic-expectations-and-constraints}
 
-**Review process:**
+The items below are not AWS-published mandatory requirements; they are author guidance to make a request clear to reviewers.
 
-- Initial review: 2-4 weeks (basic feasibility review)
-- Detailed evaluation: 3-6 months (security, compatibility, and dependency analysis)
-- Implementation and testing: 6-12 months (if approved)
-- Overall process: takes at least 1 year or more
+- A specific use case and the problem you are trying to solve
+- Review results and limitations of existing alternatives (supported OSes, managed services, etc.)
+- A reproducible example or references where possible
 
-**Approval likelihood:**
-
-- Must align with AWS's strategic direction
-- Requires proof of substantial customer demand and business value
-- Must meet security and stability standards
-- Must validate the benefit relative to long-term maintenance costs
-
-**AWS's priorities:**
-
-- Recommends solving problems through managed services first
-- Encourages adoption of cloud-native approaches
-- Presents solutions that let teams focus on business logic rather than complex infrastructure management
+There is no published official standard for processing time, approval likelihood, or AWS's internal priorities, so this document does not assert them. Whether a request is accepted and on what schedule is at the Amazon Linux team's discretion.
 
 ### Alternative Approaches
 
@@ -239,21 +239,15 @@ Installing packages via direct source compilation on Amazon Linux 2023 is techni
 2. **Managed services**: Adopt AWS-native solutions such as Amazon EFS and FSx
 3. **Enterprise solutions**: Integrate proven 3rd party storage solutions with CSI Drivers
 
-### Considerations When Requesting Packages
+### Notes to Make a Request Clear {#considerations-when-requesting-packages}
 
-**Factors that increase the probability of success:**
+The following is not a prediction of approval likelihood but general drafting guidance to make a request easier for reviewers to understand.
 
-- The same request from multiple enterprise customers
-- Clear proof of technical necessity and absence of alternatives
-- Alignment with the AWS partner ecosystem
-- Broad support from the open source community
+- If other users or use cases share the same need, present them together
+- Explain concretely why existing alternatives (supported OSes, managed services, etc.) are not sufficient
+- Include information that affects operations, such as the package's maintainer, license, and security-update path
 
-**Factors with a high probability of failure:**
-
-- Requirements from only a single customer or a small number of customers
-- Problems solvable with existing AWS services
-- Packages with security or stability concerns
-- Legacy software with a heavy maintenance burden
+Decisions about actual adoption, security/stability judgments, and the maintenance burden rest with the Amazon Linux team; this document does not prejudge the outcome.
 
 ## Cost Optimization Strategy
 
@@ -267,25 +261,27 @@ Installing packages via direct source compilation on Amazon Linux 2023 is techni
 
 **Long-term strategies:**
 
-- Optimize storage costs through data tiering
-- Use Reserved Instances or Savings Plans
+- Optimize storage costs through data tiering (EFS IA/Archive, etc.)
+- Reserved Instances and Savings Plans apply only to **compute** usage such as Amazon EC2, Fargate, Lambda, and SageMaker. They do not apply to EFS or FSx storage-capacity or throughput charges, so consider them only for the compute your hybrid nodes use (where applicable). Optimize file-storage costs through each service's own pricing options—storage classes, throughput modes, and lifecycle policies.
 - Consider vendor lock-in when establishing a multi-cloud strategy
 
 ## Security and Compliance
 
 ### Data Protection
 
+The security features below differ in support scope and configuration depending on the service, driver, and protocol you choose. Do not assume they apply identically to EFS, FSx (ONTAP/OpenZFS, etc.), and on-premises NFS; confirm support in each service's documentation.
+
 **Encryption:**
 
-- Encryption in transit: Protect NFS traffic with TLS 1.2
-- Encryption at rest: Encrypt data using AWS KMS keys
-- Key management: Regular key rotation and access control
+- Encryption in transit: EFS encrypts NFS traffic with TLS 1.2 via the EFS Mount Helper. FSx variants and on-premises NFS support different encryption methods and settings per service/protocol, so verify each separately.
+- Encryption at rest: EFS and FSx support encryption at rest using AWS KMS keys. On-premises NFS relies on the backend storage's own encryption capability.
+- Key management: KMS key rotation and access-control policies (managed services only)
 
 **Access control:**
 
-- Fine-grained permission management through IAM policies
-- Integration of POSIX permissions with AWS access control
-- Network-level access control (security groups, NACLs)
+- EFS: Combines IAM policies, EFS Access Points, and POSIX permissions to control access.
+- FSx / on-premises NFS: Permission models differ by protocol (NFS/SMB) and directory-service integration.
+- Common: Network-level access control (security groups, NACLs) and on-premises firewall rules
 
 ### Compliance Considerations
 
@@ -297,13 +293,13 @@ Installing packages via direct source compilation on Amazon Linux 2023 is techni
 
 **Audit and logging:**
 
-- API call logging via CloudTrail
+- CloudTrail records EFS/FSx **management API calls** (file system creation, configuration changes, etc.); it does not record the file-level read/write access itself. If you need file data-access auditing, configure service-specific features (for example, file-access auditing in FSx for Windows File Server, or the auditing capability in FSx for NetApp ONTAP) or application/client-side logging separately.
 - Network traffic monitoring via VPC Flow Logs
-- Collection and analysis of file access logs
+- On-premises NFS relies on the audit logs provided by the backend storage.
 
 ## Conclusion and Recommendations
 
-The removal of pacemaker and corosync from Amazon Linux 2023 affects NFS designs that depend on those packages. For EKS Hybrid Nodes, compare the alternatives in this guide—AWS-managed file services, existing enterprise storage through CSI drivers, and a separately managed NFS service—against the workload's availability, connectivity, and operating requirements.
+Early Amazon Linux 2023 releases did not ship pacemaker and corosync, making it hard to carry over NFS designs that depend on those packages. AL2023.10 later re-added both packages to the repository, but package availability must be confirmed in the release you use, and the support scope of any particular HA configuration is a separate matter. For EKS Hybrid Nodes, compare the alternatives in this guide—AWS-managed file services, existing enterprise storage through CSI drivers, and a separately managed NFS service—against the workload's availability, connectivity, and operating requirements.
 
 **Key recommendations:**
 
@@ -323,7 +319,7 @@ Through these approaches, a stable, scalable, and cost-effective shared file sto
 - [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Official EKS Hybrid Nodes user guide
 - [Amazon EFS User Guide](https://docs.aws.amazon.com/efs/latest/ug/) — Amazon Elastic File System user guide
 - [Amazon Linux 2023 Release Notes](https://docs.aws.amazon.com/linux/al2023/release-notes/) — Amazon Linux 2023 release notes and changes
-- Dell PowerFlex EKS Hybrid Nodes reference — PostgreSQL performance validation reference architecture
+- [Amazon EKS Hybrid Nodes on Dell PowerFlex](https://infohub.delltechnologies.com/en-us/l/amazon-eks-hybrid-nodes-on-dell-powerflex/overview-7117/) — Dell white paper (H04475, April 2025): installation and configuration steps, plus the PostgreSQL pgbench test conditions
 - Kubernetes CSI driver development guide — Official Container Storage Interface specification
 
 ### Related Documents (Internal)
