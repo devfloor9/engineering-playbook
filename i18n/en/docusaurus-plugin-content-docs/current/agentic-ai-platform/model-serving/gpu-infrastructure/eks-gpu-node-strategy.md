@@ -3,7 +3,7 @@ title: EKS GPU Node Strategy
 description: Optimal node strategies for GPU workloads across EKS Auto Mode, Karpenter, MNG, and Hybrid Nodes
 created: "2026-03-16"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: devfloor9
 reading_time: 30
 tags:
@@ -142,7 +142,7 @@ While GPU Operator installation is possible, since NodeClass is read-only, the f
 If MIG-based GPU partitioning is needed, switch to Karpenter + GPU Operator.
 :::
 
-### 3.3 Large GPU Instance Support Status (Verified 2026.04)
+### 3.3 Large GPU Instance Support Status (Verified 2026-04)
 
 Auto Mode large GPU instance support status confirmed during GLM-5 (744B MoE) deployment. p5.48xlarge Spot provisioning was successful, but p5en/p6 have current limitations.
 
@@ -342,7 +342,7 @@ Based on p5.48xlarge (H100 x8) On-Demand $55.04/hr, monthly cost is approximatel
 The smaller the model parameters, the greater the GPU waste on Auto Mode. Running a 7B model on H100 leaves 80% of GPU memory idle, which is a direct cost waste. MIG partitioning is essential for small/medium models.
 :::
 
-### 5.6 Optimal Configuration for Current Timeframe (2026.04)
+### 5.6 Optimal Configuration for Current Timeframe (2026-04)
 
 For most LLM serving environments, DRA is not yet essential. Device Plugin + MIG combination can sufficiently cover GPU partitioning and topology placement, and Karpenter's fast scale-out is more favorable for LLM serving SLOs than MNG + Cluster Autoscaler.
 
