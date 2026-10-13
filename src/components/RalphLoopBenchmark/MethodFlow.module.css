@@ -1,0 +1,227 @@
+/* RalphMethodFlow — HTML/CSS diagram; all colors via --ep-* tokens for both themes. */
+
+.diagram {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ep-space-5, 1.25rem);
+  min-width: 0;
+}
+
+.band {
+  background: var(--ep-surface-container-low);
+  color: var(--ep-on-surface);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-card, 12px);
+  padding: var(--ep-space-4, 1rem);
+}
+
+.bandHeading {
+  margin: 0 0 var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-table, 0.95rem);
+  font-weight: 700;
+  color: var(--ep-on-surface);
+}
+
+/* ---- Band a: task + completion ---- */
+.taskCard {
+  background: var(--ep-surface-container);
+  color: var(--ep-on-surface);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-control, 8px);
+  padding: var(--ep-space-3, 0.75rem);
+}
+
+.taskName {
+  font-weight: 700;
+  margin-bottom: var(--ep-space-2, 0.5rem);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+  margin-top: var(--ep-space-2, 0.5rem);
+}
+
+.chipLabel {
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  color: var(--ep-on-surface-variant);
+  font-weight: 600;
+  margin-right: var(--ep-space-1, 0.25rem);
+}
+
+.chip {
+  display: inline-block;
+  background: var(--ep-surface-container-high);
+  color: var(--ep-on-surface);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-control, 8px);
+  padding: 0.15rem var(--ep-space-2, 0.5rem);
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  font-family: var(--ep-font-mono, monospace);
+}
+
+.completion {
+  margin-top: var(--ep-space-4, 1rem);
+}
+
+.completionLabel {
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  color: var(--ep-on-surface-variant);
+  font-weight: 600;
+  margin-bottom: var(--ep-space-2, 0.5rem);
+}
+
+.completionRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.badge {
+  display: inline-block;
+  background: var(--ep-success-surface, var(--ep-surface-container-high));
+  color: var(--ep-on-surface);
+  border: 1px solid var(--ep-success, var(--ep-outline));
+  border-radius: var(--ep-radius-control, 8px);
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.85rem);
+  font-weight: 600;
+  flex: 1 1 220px;
+}
+
+.andText {
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  font-weight: 700;
+  color: var(--ep-on-surface-variant);
+  letter-spacing: 0.03em;
+}
+
+.note {
+  margin: var(--ep-space-3, 0.75rem) 0 0;
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  color: var(--ep-on-surface-variant);
+}
+
+/* ---- Band b: ordered loop flow ---- */
+.flow {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.stepCard {
+  flex: 1 1 auto;
+  background: var(--ep-surface-container);
+  color: var(--ep-on-surface);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-control, 8px);
+  padding: var(--ep-space-3, 0.75rem);
+  height: 100%;
+}
+
+.stepName {
+  font-weight: 700;
+  margin-bottom: var(--ep-space-1, 0.25rem);
+}
+
+.stepSub {
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  color: var(--ep-on-surface-variant);
+  line-height: 1.4;
+}
+
+.arrow {
+  flex: 0 0 auto;
+  font-size: 1.3rem;
+  color: var(--ep-on-surface-variant);
+  font-weight: 700;
+}
+
+.loopBack {
+  display: flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+  margin: var(--ep-space-3, 0.75rem) 0 0;
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  background: var(--ep-info-surface, var(--ep-surface-container-high));
+  color: var(--ep-on-surface);
+  border: 1px dashed var(--ep-info, var(--ep-outline));
+  border-radius: var(--ep-radius-control, 8px);
+  font-size: var(--ep-font-size-caption, 0.85rem);
+}
+
+.loopArrow {
+  flex: 0 0 auto;
+  color: var(--ep-info, var(--ep-on-surface-variant));
+}
+
+.caption {
+  margin: var(--ep-space-2, 0.5rem) 0 0;
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  color: var(--ep-on-surface-variant);
+}
+
+/* ---- Band c: guardrails ---- */
+.guardList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.guardChip {
+  background: var(--ep-surface-container-high);
+  color: var(--ep-on-surface);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-control, 8px);
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  line-height: 1.4;
+  flex: 1 1 240px;
+}
+
+/* Stack the flow vertically with down arrows on narrow screens. */
+@media (max-width: 560px) {
+  .flow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .step {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--ep-space-1, 0.25rem);
+  }
+  .stepCard {
+    width: 100%;
+  }
+  .arrow {
+    align-self: center;
+    transform: rotate(90deg);
+  }
+}
+
+/* Items are <li>: cancel the site's list-item margins (`.markdown li + li` adds a top margin to every item after
+   the first, `.theme-doc-markdown li` a bottom margin), which offset items in this grid/list. The selector outranks
+   both rules. */
+.flow > .step,
+.guardList > .guardChip {
+  margin-top: 0;
+  margin-bottom: 0;
+}

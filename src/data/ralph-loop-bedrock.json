@@ -111,6 +111,131 @@
    }
   }
  },
+ "method": {
+  "task": {
+   "spec": "RealWorld",
+   "stack": [
+    "TypeScript",
+    "Fastify",
+    "Prisma",
+    "SQLite"
+   ],
+   "scope": [
+    "auth",
+    "users",
+    "articles",
+    "comments",
+    "favorites",
+    "tags",
+    "feed"
+   ]
+  },
+  "grader": {
+   "hurl_files": 13,
+   "requests": 154
+  },
+  "harness": {
+   "agent": "pi coding agent",
+   "version": "0.87.1",
+   "api": "Bedrock Converse",
+   "thinking": "medium",
+   "prompt_lang": "en"
+  },
+  "limits": {
+   "iterations_max": 30,
+   "run_cap_sec": 1200,
+   "stall_sec": 300,
+   "runs_per_model": 5,
+   "cost_cap_usd": {
+    "run": 100,
+    "model": 500,
+    "total": 7000
+   },
+   "parallel_models": 7
+  },
+  "container": {
+   "os": "Amazon Linux 2023",
+   "node": "22.23.3",
+   "hurl": "8.0.1",
+   "mem_gb": 8,
+   "cpus": 4,
+   "pids": 4096
+  },
+  "credentials": {
+   "token_ttl_min": 60,
+   "refresh_min": 10
+  }
+ },
+ "reference_report": {
+  "conditions": 28,
+  "models": 19,
+  "runs": 117
+ },
+ "lineup": {
+  "excluded": [
+   {
+    "name": "DeepSeek V4-Pro",
+    "vendor": "DeepSeek",
+    "class": "X",
+    "availability": "no",
+    "use": "skip"
+   },
+   {
+    "name": "DeepSeek V4.1-Flash",
+    "vendor": "DeepSeek",
+    "class": "X",
+    "availability": "no",
+    "use": "skip"
+   },
+   {
+    "name": "qwen3.8-max",
+    "vendor": "Alibaba (Qwen)",
+    "class": "X",
+    "availability": "no",
+    "use": "skip"
+   },
+   {
+    "name": "qwen3.8-27b",
+    "vendor": "Alibaba (Qwen)",
+    "class": "X",
+    "availability": "no",
+    "use": "skip"
+   },
+   {
+    "name": "glm-5.3-flash",
+    "vendor": "Z.AI",
+    "class": "X",
+    "availability": "no_glm",
+    "use": "skip_glm"
+   },
+   {
+    "name": "gemini-3.8-flash",
+    "vendor": "Google",
+    "class": "G",
+    "availability": "no",
+    "use": "skip"
+   }
+  ],
+  "retention_required": [
+   "fable51"
+  ],
+  "not_in_reference": [
+   "glm53"
+  ]
+ },
+ "verdicts": {
+  "gate_pass": 69,
+  "pass": 62,
+  "fail_port": 5,
+  "none": 2,
+  "false_pass": 0,
+  "fail_port_by_model": {
+   "gpt56sol": 2,
+   "gpt6luna": 1,
+   "sonnet55": 2
+  }
+ },
+ "max_request_context_tokens": 94172,
  "models": [
   {
    "key": "opus55",
@@ -209,6 +334,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.1489,
    "cache_read_token_share": 0.907,
+   "cache_read_cost_share": 0.1752,
    "published_pi_run": {
     "experiment": "EXP-030",
     "cost_usd": 0.896,
@@ -316,6 +442,7 @@
    "self_terminated_sessions": 1,
    "verifier_cost_share": 0.1222,
    "cache_read_token_share": 0.8807,
+   "cache_read_cost_share": 0.141,
    "published_pi_run": {
     "experiment": "EXP-032",
     "cost_usd": 0.282,
@@ -423,6 +550,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.0801,
    "cache_read_token_share": 0.9311,
+   "cache_read_cost_share": 0.3404,
    "published_pi_run": {
     "experiment": "EXP-038",
     "cost_usd": 0.067,
@@ -530,6 +658,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.146,
    "cache_read_token_share": 0.9264,
+   "cache_read_cost_share": 0.1175,
    "published_pi_run": null,
    "note": {
     "ko": "계정의 us-east-1 데이터 보존 모드를 `aws_review`로 바꾼 뒤, 다른 13개 모델의 실행이 끝나고 약 4시간 18분 뒤에 단독으로 실행했습니다. 5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
@@ -633,6 +762,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.1014,
    "cache_read_token_share": 0.9435,
+   "cache_read_cost_share": 0.4038,
    "published_pi_run": null,
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다. 3회차 비용이 중앙값의 약 1.9배였습니다(LLM 요청 91회, 반복 1회).",
@@ -736,6 +866,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.0522,
    "cache_read_token_share": 0.9678,
+   "cache_read_cost_share": 0.5525,
    "published_pi_run": null,
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
@@ -839,6 +970,7 @@
    "self_terminated_sessions": 1,
    "verifier_cost_share": 0.0661,
    "cache_read_token_share": 0.954,
+   "cache_read_cost_share": 0.4872,
    "published_pi_run": null,
    "note": {
     "ko": "3회차 검증자 세션이 자기 프로세스까지 종료해(exit 143) 판정이 남지 않았습니다. 공식 채점은 통과했습니다.",
@@ -942,6 +1074,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.1048,
    "cache_read_token_share": 0.9228,
+   "cache_read_cost_share": 0.2244,
    "published_pi_run": {
     "experiment": "EXP-034",
     "cost_usd": 0.332,
@@ -1049,6 +1182,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.0796,
    "cache_read_token_share": 0.9331,
+   "cache_read_cost_share": 0.3893,
    "published_pi_run": null,
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
@@ -1152,6 +1286,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.1604,
    "cache_read_token_share": 0.9323,
+   "cache_read_cost_share": 0.3973,
    "published_pi_run": {
     "experiment": "EXP-030",
     "cost_usd": 0.298,
@@ -1259,6 +1394,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.2463,
    "cache_read_token_share": 0.9289,
+   "cache_read_cost_share": 0.4034,
    "published_pi_run": null,
    "note": {
     "ko": "3회차: 첫 번째 반복에서 빌더가 `npm run dev`를 포그라운드로 실행해 세션이 멈췄고, 300초 멈춤 감지로 종료됐습니다. 두 번째 반복 뒤 채점은 13개 파일 중 5개만 통과했고, 세 번째 반복에서 완주했습니다. 1회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다. 3회차 비용이 중앙값의 약 2.5배였습니다(LLM 요청 113회, 반복 3회).",
@@ -1362,6 +1498,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.2396,
    "cache_read_token_share": 0.9045,
+   "cache_read_cost_share": 0.3081,
    "published_pi_run": null,
    "note": {
     "ko": "2·4회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다.",
@@ -1465,6 +1602,7 @@
    "self_terminated_sessions": 0,
    "verifier_cost_share": 0.0859,
    "cache_read_token_share": 0.9386,
+   "cache_read_cost_share": 0.3612,
    "published_pi_run": {
     "experiment": "EXP-029",
     "cost_usd": 0.749,
@@ -1572,6 +1710,7 @@
    "self_terminated_sessions": 1,
    "verifier_cost_share": 0.0448,
    "cache_read_token_share": 0.9591,
+   "cache_read_cost_share": 0.681,
    "published_pi_run": null,
    "note": {
     "ko": "4회차: 첫 번째 반복에서 빌더가 테스트용 node 서버를 포그라운드로 띄운 채 멈췄고, 300초 멈춤 감지로 종료됐습니다. 두 번째 반복은 20분 상한에 걸려 `.ralph-done`을 만들기 전에 끝났습니다. 상한 직후 채점에서 저장소는 13개 파일을 모두 통과했지만, 완주 규칙(`.ralph-done` + 13개 파일 통과)에 따라 미완주로 집계했습니다. 2회차 검증자 세션이 자기 프로세스까지 종료해(exit 143) 판정이 남지 않았습니다. 공식 채점은 통과했습니다.",

@@ -1,0 +1,264 @@
+/* RalphGroupCompare — all colors via --ep-* tokens; works in both themes. */
+
+.tilesHeading {
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  font-weight: 600;
+  color: var(--ep-on-surface-variant);
+  margin-bottom: var(--ep-space-2, 0.5rem);
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--ep-space-3, 0.75rem);
+  margin: 0 0 var(--ep-space-5, 1.25rem);
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  background: var(--ep-surface-container);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-card, 12px);
+  padding: var(--ep-space-3, 0.75rem);
+  color: var(--ep-on-surface);
+}
+
+.ratio {
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--ep-on-surface);
+}
+
+.tileLabel {
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface-variant);
+  margin-top: 2px;
+}
+
+.tileValues {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: var(--ep-space-2, 0.5rem);
+  font-size: var(--ep-font-size-caption, 0.8125rem);
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--ep-on-surface);
+}
+
+.tileValue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.4em;
+  min-width: 0;
+}
+
+.valueTag {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--ep-on-surface-variant);
+  font-family: var(--ep-font-mono, monospace);
+}
+
+/* Cost strip */
+.stripTitle {
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  font-weight: 600;
+  color: var(--ep-on-surface-variant);
+  margin-bottom: var(--ep-space-2, 0.5rem);
+}
+
+.scrollWrap {
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+  font-family: var(--ep-font-mono, monospace);
+}
+
+.band {
+  fill: var(--ep-chart-1);
+  opacity: 0.16;
+}
+
+.bandSwatch {
+  display: inline-block;
+  width: 1.2rem;
+  height: 0.7rem;
+  border-radius: 3px;
+  background: var(--ep-chart-1);
+  opacity: 0.3;
+  border: 1px solid var(--ep-outline-variant);
+}
+
+.axis {
+  stroke: var(--ep-outline);
+  stroke-width: 1.5;
+}
+
+.tick {
+  stroke: var(--ep-outline);
+  stroke-width: 1;
+}
+
+.tickLabel {
+  fill: var(--ep-on-surface-variant);
+  font-size: 12px;
+}
+
+.dotRank {
+  fill: var(--ep-on-surface-variant);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* Ranked list keyed to dot numbers */
+.rankList {
+  list-style: none;
+  margin: var(--ep-space-3, 0.75rem) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 2px var(--ep-space-4, 1rem);
+  font-size: var(--ep-font-size-caption, 0.8125rem);
+}
+
+.rankItem,
+.rankItemC {
+  display: flex;
+  align-items: baseline;
+  gap: var(--ep-space-2, 0.5rem);
+  color: var(--ep-on-surface);
+}
+
+.rankNum {
+  flex: 0 0 auto;
+  min-width: 1.4em;
+  text-align: right;
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--ep-on-surface-variant);
+}
+
+.rankName {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rankItemC .rankName {
+  font-weight: 700;
+}
+
+.rankCost {
+  flex: 0 0 auto;
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  color: var(--ep-on-surface-variant);
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ep-space-2, 0.5rem) var(--ep-space-4, 1rem);
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+/* Takeaway + caveat */
+.takeaway {
+  margin: var(--ep-space-4, 1rem) 0 0;
+  padding: var(--ep-space-3, 0.75rem);
+  background: var(--ep-info-surface, var(--ep-surface-container-low));
+  border-left: 3px solid var(--ep-info, var(--ep-chart-1));
+  border-radius: var(--ep-radius-control, 8px);
+  color: var(--ep-on-surface);
+  font-size: var(--ep-font-size-table, 0.9rem);
+}
+
+.caveat {
+  margin: var(--ep-space-2, 0.5rem) 0 0;
+  color: var(--ep-on-surface-variant);
+  font-size: var(--ep-font-size-caption, 0.8125rem);
+}
+
+/* Data fallback table */
+.details {
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface);
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--ep-on-surface);
+}
+
+.tableScroll {
+  margin-top: var(--ep-space-2, 0.5rem);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ep-font-size-table, 0.9rem);
+  color: var(--ep-on-surface);
+}
+
+.table th,
+.table td {
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  border-bottom: 1px solid var(--ep-outline-variant);
+  text-align: left;
+}
+
+.table thead th {
+  color: var(--ep-on-surface-variant);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .svg {
+    min-width: 460px;
+  }
+}
+
+/* Items are <li>: cancel the site's list-item margins (`.markdown li + li` adds a top margin to every item after
+   the first, `.theme-doc-markdown li` a bottom margin), which offset items in this grid/list. The selector outranks
+   both rules. */
+.tiles > .tile,
+.rankList.rankList > li {
+  margin-top: 0;
+  margin-bottom: 0;
+}
