@@ -89,8 +89,8 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "9a729f10420f63ddc57af082ba3ac212c2da0a3a80c87ea3aef3e3a06dfd9bdc",
-      "bytes": 23565
+      "sha256": "a4754e9b663100d59d914e1905caa9e68e2e85e379967f90c44c16ac8802247e",
+      "bytes": 27091
     },
     {
       "path": "agentic-design-serving/README.md",
@@ -244,8 +244,8 @@
     },
     {
       "path": "corrections.json",
-      "sha256": "50187d0815fb278165f260ddaefd742dec00f3f80fbad769467cf7fd545a7a0c",
-      "bytes": 652350
+      "sha256": "db8f5290e076442c9311b7be2cd01459b81aadc8bc3427aa4b27149eca3047a5",
+      "bytes": 771234
     },
     {
       "path": "coverage.json",
@@ -679,8 +679,8 @@
     },
     {
       "path": "tracking.json",
-      "sha256": "0b6289aff60bcc206a8b4617a82e6bf07cd32ee48d711c63dde0a7b504f2027a",
-      "bytes": 1051840
+      "sha256": "d818f845c55f5e66d62c190b9d302519759fbde340a3fde22e66aa20c6e655f0",
+      "bytes": 1057404
     },
     {
       "path": "verification.json",
