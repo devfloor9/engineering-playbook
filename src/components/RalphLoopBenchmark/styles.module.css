@@ -287,3 +287,12 @@
     transition: none;
   }
 }
+
+/* Items are <li>: cancel the site's list-item margins (`.markdown li + li` adds a top margin to every item after
+   the first, `.theme-doc-markdown li` a bottom margin), which offset items in this grid/list. The selector outranks
+   both rules. */
+.kpiStrip > .kpi,
+.grid > .card {
+  margin-top: 0;
+  margin-bottom: 0;
+}

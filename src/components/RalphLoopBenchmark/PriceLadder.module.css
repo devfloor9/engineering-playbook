@@ -1,0 +1,206 @@
+/* RalphPriceLadder — all colors via --ep-* tokens; works in both themes. */
+
+.colHeader {
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  font-weight: 600;
+  color: var(--ep-on-surface-variant);
+  margin-bottom: var(--ep-space-2, 0.5rem);
+}
+
+.ladder {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--ep-outline-variant);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-card, 12px);
+}
+
+.ladder .row:first-child {
+  border-top-left-radius: var(--ep-radius-card, 12px);
+  border-top-right-radius: var(--ep-radius-card, 12px);
+}
+
+.ladder .row:last-child {
+  border-bottom-left-radius: var(--ep-radius-card, 12px);
+  border-bottom-right-radius: var(--ep-radius-card, 12px);
+}
+
+/* Rows are <li>; cancel the site's list-item margins (`.markdown li + li` top, `.theme-doc-markdown li` bottom)
+   so the 1px gap is the only separator. */
+.ladder > .row {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 2.1fr) minmax(96px, 1.2fr);
+  align-items: center;
+  gap: var(--ep-space-3, 0.75rem);
+  padding: var(--ep-space-3, 0.75rem);
+  background: var(--ep-surface-container-lowest);
+  color: var(--ep-on-surface);
+}
+
+/* Tied rows (identical four prices) share a subtle background so the tie is
+   visible even without reading the numbers. */
+.rowTied {
+  background: var(--ep-surface-container-high);
+  box-shadow: inset 3px 0 0 var(--ep-chart-5, var(--ep-outline));
+}
+
+.rowTiedAlt {
+  box-shadow: inset 3px 0 0 var(--ep-chart-2, var(--ep-outline));
+}
+
+.nameCell {
+  min-width: 0;
+}
+
+.name {
+  font-weight: 600;
+  color: var(--ep-on-surface);
+  font-size: var(--ep-font-size-table, 0.9rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modelId {
+  font-family: var(--ep-font-mono, monospace);
+  font-size: var(--ep-font-size-caption, 0.75rem);
+  color: var(--ep-on-surface-variant);
+  margin-top: 2px;
+  /* The full Bedrock model ID must stay readable, so it wraps (at dots and hyphens if needed) instead of truncating. */
+  overflow-wrap: anywhere;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35em;
+  padding: 2px var(--ep-space-2, 0.5rem);
+  background: var(--ep-surface-container);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: var(--ep-radius-control, 8px);
+  font-size: var(--ep-font-size-caption, 0.75rem);
+  white-space: nowrap;
+}
+
+.chipLabel {
+  color: var(--ep-on-surface-variant);
+}
+
+.chipValue {
+  color: var(--ep-on-surface);
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.barCell {
+  display: flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+  min-width: 0;
+}
+
+.barTrack {
+  flex: 1 1 auto;
+  min-width: 40px;
+  height: 10px;
+  background: var(--ep-surface-container);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  border-radius: 999px;
+  min-width: 2px;
+}
+
+.barValue {
+  flex: 0 0 auto;
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--ep-font-size-caption, 0.8125rem);
+  color: var(--ep-on-surface);
+  min-width: 3.5em;
+  text-align: right;
+}
+
+/* Data fallback table */
+.details {
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface);
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--ep-on-surface);
+}
+
+.tableScroll {
+  margin-top: var(--ep-space-2, 0.5rem);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ep-font-size-table, 0.9rem);
+  color: var(--ep-on-surface);
+}
+
+.table th,
+.table td {
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  border-bottom: 1px solid var(--ep-outline-variant);
+  text-align: left;
+}
+
+.table thead th {
+  color: var(--ep-on-surface-variant);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.num {
+  text-align: right;
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mono {
+  font-family: var(--ep-font-mono, monospace);
+  font-size: var(--ep-font-size-caption, 0.8125rem);
+  color: var(--ep-on-surface-variant);
+  white-space: nowrap;
+}
+
+/* Narrow screens: stack name, chips, and bar; keep all values. */
+@media (max-width: 540px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: var(--ep-space-2, 0.5rem);
+  }
+
+  .barCell {
+    display: none;
+  }
+}

@@ -1,0 +1,213 @@
+/* RalphTokenMix — all colors via --ep-* tokens; readable in both themes. */
+
+.keyFact {
+  margin: 0 0 var(--ep-space-3, 0.75rem);
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  background: var(--ep-info-surface);
+  color: var(--ep-on-surface);
+  border-radius: var(--ep-radius-control);
+  font-size: var(--ep-font-size-table, 0.9rem);
+  font-weight: 600;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ep-space-2, 0.5rem) var(--ep-space-4, 1rem);
+  margin-bottom: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 3px;
+  border: 1px solid var(--ep-outline-variant);
+}
+
+/* Column headings above the two bar columns (desktop only). */
+.colHead {
+  display: grid;
+  grid-template-columns: var(--label-w, 11rem) 1fr 1fr;
+  gap: var(--ep-space-3, 0.75rem);
+  margin-bottom: var(--ep-space-2, 0.5rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  font-weight: 600;
+  color: var(--ep-on-surface-variant);
+}
+
+.colHeadLabel {
+  min-width: 0;
+}
+
+.colHeadBar {
+  min-width: 0;
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.groupRow {
+  margin-top: var(--ep-space-2, 0.5rem);
+  padding: var(--ep-space-1, 0.25rem) var(--ep-space-2, 0.5rem);
+  background: var(--ep-surface-container-high);
+  color: var(--ep-on-surface);
+  border-radius: var(--ep-radius-control);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  font-weight: 700;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: var(--label-w, 11rem) 1fr 1fr;
+  gap: var(--ep-space-3, 0.75rem);
+  align-items: center;
+}
+
+.rowLabel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.modelName {
+  color: var(--ep-on-surface);
+  font-size: var(--ep-font-size-table, 0.9rem);
+  overflow-wrap: break-word;
+}
+
+.modelTotal {
+  color: var(--ep-on-surface-variant);
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--ep-font-size-caption, 0.875rem);
+}
+
+.barCell {
+  display: flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+  min-width: 0;
+}
+
+.bar {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 1.1rem;
+  border-radius: 3px;
+  overflow: hidden;
+  background: var(--ep-surface-container);
+  border: 1px solid var(--ep-outline-variant);
+}
+
+.seg {
+  display: block;
+  height: 100%;
+}
+
+/* Fixed label width: every 100% bar in a column gets the same length whatever the label says. */
+.barValue {
+  flex: 0 0 8.25rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ep-on-surface-variant);
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  white-space: nowrap;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Narrow screens: stack the two bars under the label. */
+@media (max-width: 560px) {
+  .colHead {
+    display: none;
+  }
+  .row {
+    grid-template-columns: 1fr;
+    gap: var(--ep-space-1, 0.25rem);
+    padding-bottom: var(--ep-space-2, 0.5rem);
+    border-bottom: 1px solid var(--ep-outline-variant);
+  }
+  .rowLabel {
+    flex-direction: row;
+    gap: var(--ep-space-2, 0.5rem);
+    align-items: baseline;
+    flex-wrap: wrap;
+  }
+}
+
+/* Data fallback table */
+.details {
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface);
+}
+
+.details summary {
+  cursor: pointer;
+  color: var(--ep-on-surface);
+}
+
+.tableScroll {
+  margin-top: var(--ep-space-2, 0.5rem);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ep-font-size-table, 0.9rem);
+  color: var(--ep-on-surface);
+}
+
+.table th,
+.table td {
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  border-bottom: 1px solid var(--ep-outline-variant);
+  text-align: left;
+}
+
+.table thead th {
+  color: var(--ep-on-surface-variant);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.groupCell {
+  background: var(--ep-surface-container-high);
+  color: var(--ep-on-surface);
+  font-weight: 700;
+}
+
+.num {
+  text-align: right;
+  font-family: var(--ep-font-mono, monospace);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
