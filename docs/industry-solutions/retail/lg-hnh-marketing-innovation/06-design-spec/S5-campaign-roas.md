@@ -1,6 +1,6 @@
 ---
-title: S5. 옴니채널 캠페인 ROAS 시뮬
-description: 옴니채널(자사몰/마트/H&B/SNS) Bayesian 어트리뷰션 + 검색·SNS 반응 결합
+title: S5. Omnichannel Campaign ROAS Simulation
+description: Omnichannel (Owned mall/Mart/H&B/SNS) Bayesian attribution + search · SNS response combined
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,51 +16,51 @@ tags:
 sidebar_label: S5. Campaign ROAS
 ---
 
-## 1. URL 경로
+## 1. URL Path
 - `/campaign-roas`
 
-## 2. 사용자 스토리
-> P1 (브랜드 마케터) — 다음 주 숨37 신상 런칭 / 예산 1억 / VIP 5만 → 채널 믹스 시뮬.
+## 2. User Stories
+> P1 (Brand Marketer) — Next week Su:m37 new product launch / Budget 100M KRW / VIP 50K → channel mix simulation.
 
-> P5 (MD) — 채널·매대 진열 함께 고려한 옴니채널 ROI.
+> P5 (MD) — Omnichannel ROI considering channel · shelf placement together.
 
-## 3. 입력 UI
-- 캠페인 정의 (대상 세그먼트, 기간, 예산, 타겟 BU/브랜드)
-- 채널 후보 (SMS·푸시·카톡·SNS광고·자사몰배너·마트 매대·H&B 진열·인플루언서)
-- 가설 (예: "SMS:푸시:카톡:SNS:H&B = 20:15:15:30:20")
+## 3. Input UI
+- Campaign definition (target segment, period, budget, target BU/brand)
+- Channel candidates (SMS · Push · KakaoTalk · SNS ad · owned-mall banner · mart shelf · H&B display · influencer)
+- Hypothesis (e.g., "SMS:Push:KakaoTalk:SNS:H&B = 20:15:15:30:20")
 
-## 4. 데이터 믹스
-| 데이터 | 출처 | 활용 |
+## 4. Data Mix
+| Data | Source | Use |
 |---|---|---|
-| 과거 캠페인 | Snowflake CAMPAIGN_MART | Bayesian prior |
-| 채널 sell-through | ChannelSellThrough | 채널별 응답률 |
-| **SNS 반응** | SocialSignal (X·인스타 광고 클릭) | posterior 조정 |
-| **검색 트렌드** | SocialSignal (네이버·구글) | 캠페인 외 영향 분리 |
+| Past campaigns | Snowflake CAMPAIGN_MART | Bayesian prior |
+| Channel sell-through | ChannelSellThrough | Per-channel response rate |
+| **SNS responses** | SocialSignal (X · Instagram ad clicks) | Posterior adjustment |
+| **Search trends** | SocialSignal (Naver · Google) | Separate non-campaign effects |
 
-## 5. 처리 파이프라인
+## 5. Processing Pipeline
 ```
-1. 과거 캠페인에서 채널별 prior 추출
-2. 외부 시그널 (검색·SNS) 결합 → 트렌드 효과 분리
-3. MCMC 1000 샘플 (PyMC) → posterior
-4. 채널 믹스 ROAS 분포
-5. 추천 믹스 (ROAS expected value 최대)
-6. 어트리뷰션 (Last-touch / Linear / Time-decay)
+1. Extract per-channel priors from past campaigns
+2. Combine external signals (search · SNS) → separate trend effects
+3. MCMC 1000 samples (PyMC) → posterior
+4. Channel mix ROAS distribution
+5. Recommended mix (max expected ROAS value)
+6. Attribution (Last-touch / Linear / Time-decay)
 ```
 
-## 6. 출력 UI
-- 추천 채널 믹스 (donut + 표)
-- ROAS 분포 (violin)
-- 채널별 한계 효율 (line)
-- 채널·매장 단위 GMV 영향 (bar)
-- 트렌드·SNS 영향 분리 표시
+## 6. Output UI
+- Recommended channel mix (donut + table)
+- ROAS distribution (violin)
+- Per-channel marginal efficiency (line)
+- Channel · store GMV impact (bar)
+- Separated display of trend · SNS effects
 
-## 7. 가드레일
-- 동의 미수신 회원 자동 제외
-- 채널별 발송 한도 (스팸 가드)
-- 시뮬 결과 신뢰구간 포함 (점추정 X)
-- 미성년 화장품 캠페인 자동 제외
+## 7. Guardrails
+- Automatically exclude non-consenting members
+- Per-channel send limit (spam guard)
+- Include confidence intervals in simulation results (no point estimates)
+- Automatically exclude cosmetics campaigns to minors
 
-## 8. 데모 시나리오
-1. 예산 1억 / 숨37 신상 / VIP 5만 → 추천 믹스 + ROAS 분포
-2. 가설 변경(SNS +20%) → ROAS 변화 즉시
-3. "검색 트렌드 결합 시 트렌드 효과 vs 캠페인 효과" 분리 차트
+## 8. Demo Scenarios
+1. Budget 100M KRW / Su:m37 new product / VIP 50K → recommended mix + ROAS distribution
+2. Change assumption (SNS +20%) → ROAS change immediate
+3. "When combining search trends, trend effect vs. campaign effect" separation chart

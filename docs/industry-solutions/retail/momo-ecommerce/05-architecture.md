@@ -1,11 +1,11 @@
 ---
-title: AWS 단일 아키텍처 (Momo)
-description: Bedrock + Neptune + OpenSearch + Kinesis (라이브) + TimeStream (배송 SLA)
+title: AWS Single Architecture (Momo)
+description: Bedrock + Neptune + OpenSearch + Kinesis (Live) + TimeStream (Delivery SLA)
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 1
+reading_time: 2
 tags:
   - industry-solution
   - retail
@@ -16,9 +16,9 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> [LG생활건강 아키텍처](../lg-hnh-marketing-innovation/05-architecture.md)의 Next.js 화면, ECS Fargate의 FastAPI 백엔드, AI 서비스 연동, Neptune, OpenSearch를 재사용합니다. Momo에는 라이브 방송 이벤트를 위한 **Kinesis Data Streams**, 배송 SLA 시계열을 위한 **TimeStream**, 다국어 지원을 추가합니다. 그래프 규모는 약 **80만 개 관계(edge)**로 가정합니다.
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, AI-service integration, Neptune, and OpenSearch. Momo adds **Kinesis Data Streams** for live-broadcast events, **TimeStream** for delivery SLA time series, and multilingual support. The graph is sized at approximately **800K edges**.
 
-## 1. 아키텍처
+## 1. Architecture
 
 ```mermaid
 graph TB
@@ -39,14 +39,14 @@ graph TB
     subgraph Data
         Neptune[(Neptune ~800K edges)]
         OS[OpenSearch]
-        Kinesis[Kinesis Data Streams<br/>라이브 이벤트]
-        TS[TimeStream<br/>배송 SLA 시계열]
+        Kinesis[Kinesis Data Streams<br/>Live events]
+        TS[TimeStream<br/>Delivery SLA time series]
     end
     subgraph External
-        Soc[Dcard·인스타·小紅書]
-        Wea[中央氣象署 - 폭우/태풍]
+        Soc[Dcard · Instagram · Xiaohongshu]
+        Wea[Central Weather Administration — heavy rain/typhoon]
         Eco[DGBAS]
-        Comp[PChome·Yahoo·Shopee]
+        Comp[PChome · Yahoo · Shopee]
     end
 
     Browser --> CF --> Next <--> FastAPI
@@ -59,20 +59,20 @@ graph TB
     External -->|EventBridge| Glue --> Neptune
 ```
 
-## 2. 특화 컴포넌트
+## 2. Specialized Components
 
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **Kinesis Data Streams** | 라이브 방송 시청·핀 이벤트 실시간 수집 (S9-Mo) |
-| **TimeStream** | 배송 SLA 시계열 (S10-Mo) — fulfillment center별 latency |
-| **OpenSearch + Smartcn** | 번체중 형태소 + KNN |
-| **Cohere multilingual** | 다국어 임베딩 |
+| **Kinesis Data Streams** | Real-time ingestion of live-broadcast viewing and pin events (S9-Mo) |
+| **TimeStream** | Delivery SLA time series (S10-Mo) — per-fulfillment-center latency |
+| **OpenSearch + Smartcn** | Traditional Chinese morphology + KNN |
+| **Cohere multilingual** | Multilingual embeddings |
 
-## 3. 비용 (8주 PoC)
-| 항목 | 추정 |
+## 3. Cost (8-week PoC)
+| Item | Estimate |
 |---|---|
-| Bedrock + Cohere | $1.8K/월 |
-| Neptune + OpenSearch | $1.5K/월 |
-| Kinesis + TimeStream | $0.8K/월 (이벤트량 큼) |
-| ECS + 외부 API | $0.5K/월 |
-| **합계** | **~$4.6K/월** |
+| Bedrock + Cohere | $1.8K/month |
+| Neptune + OpenSearch | $1.5K/month |
+| Kinesis + TimeStream | $0.8K/month (high event volume) |
+| ECS + External APIs | $0.5K/month |
+| **Total** | **~$4.6K/month** |

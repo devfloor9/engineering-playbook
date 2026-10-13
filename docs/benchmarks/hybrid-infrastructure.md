@@ -1,11 +1,11 @@
 ---
-title: 하이브리드 인프라 벤치마크
-description: 하이브리드 클라우드 인프라 네트워크 및 스토리지 성능 벤치마크
-created: "2026-02-09"
+title: Hybrid Infrastructure Benchmark
+description: Hybrid cloud infrastructure network and storage performance benchmark
+created: "2026-02-11"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 2
+  author: devfloor9
+reading_time: 4
 tags:
   - benchmark
   - hybrid
@@ -13,55 +13,55 @@ tags:
   - storage
   - sriov
   - scope:tech
-sidebar_label: Report 7. 하이브리드 인프라 [예정]
+sidebar_label: Report 7. Hybrid Infrastructure [Upcoming]
 sidebar_position: 7
 category: benchmarks
 ---
 
-클라우드와 온프레미스 사이의 네트워크, 파일 스토리지, 이미지 배포 경로를 비교하기 위한 시험 계획입니다. 아직 실행 결과나 성능 우위를 제시하지 않습니다. 각 시험에서 하드웨어·소프트웨어 버전, 경로, 부하, 반복 횟수와 원시 결과를 함께 기록합니다.
+This test plan compares network, file-storage, and image-distribution paths between cloud and on-premises sites. It contains no execution results or performance rankings. Record hardware and software versions, traffic paths, load, repetitions, and raw results for each test.
 
-## 네트워크 성능
+## Network Performance
 
-### EKS Hybrid Nodes 네트워크
+### EKS Hybrid Nodes Network
 
-:::note 테스트 예정
-이 벤치마크는 현재 준비 중입니다.
+:::note Testing Planned
+This benchmark is currently being prepared.
 :::
 
-**측정 항목**
+**Metrics**
 
-- 클라우드와 온프레미스 사이트 사이의 지연 시간과 손실률
-- VPN 또는 Direct Connect 경로에서 관측한 처리량과 사용 가능한 회선 용량
-- AWS의 Pod와 온프레미스 Pod 사이의 통신 성능: 노드·Pod 주소, 라우팅 및 CNI 조건을 고정
+- Latency and packet loss between cloud and on-premises sites
+- Observed throughput and available circuit capacity over the VPN or Direct Connect path
+- Communication between AWS-hosted and on-premises Pods, with node and Pod addresses, routing, and CNI conditions fixed
 
-이 비교의 경계는 **사이트 간**입니다. 두 AWS 리전을 비교하는 시험은 별도 구성과 결과로 분리합니다.
+This is a **cross-site** comparison. A test between two AWS Regions needs a separate configuration and result set.
 
-### SR-IOV 네트워크 가속
+### SR-IOV Network Acceleration
 
-**측정 항목**
+**Metrics**
 
-- 같은 물리 NIC에서 SR-IOV VF를 할당한 경로와 명시한 가상 스위치·가상 NIC 경로의 처리량
-- 지원되는 GPU·NIC·드라이버·패브릭을 갖춘 별도 환경에서 RDMA 및 GPUDirect RDMA의 동작과 성능
-- 동일 부하에서 측정한 지연 시간의 절대값과 차이
+- Throughput on the same physical NIC using an assigned SR-IOV VF versus a specified virtual-switch and virtual-NIC path
+- RDMA and GPUDirect RDMA operation and performance in a separate environment with supported GPUs, NICs, drivers, and fabric
+- Absolute latency and its difference under the same load
 
-SR-IOV 자체도 가상 기능(VF)을 제공하므로 비교 대상을 단순히 '가상 NIC'라고 부르지 않습니다. RDMA 시험은 필요한 하드웨어와 전송 경로를 먼저 확인하며, VPN이나 Direct Connect를 연결했다는 사실만으로 RDMA 사용을 전제하지 않습니다. 개선율은 비교 기준과 실제 측정값이 있을 때만 계산합니다.
+SR-IOV itself exposes virtual functions, so “virtual NIC” alone does not identify the baseline. Establish the required hardware and transport path before an RDMA test; connecting VPN or Direct Connect does not establish RDMA capability. Calculate improvement percentages only when a defined baseline and measurements exist.
 
-## 스토리지 성능
+## Storage Performance
 
-### 하이브리드 파일 스토리지
+### Hybrid File Storage
 
-**측정 항목**
+**Metrics**
 
-- 블록 크기·queue depth·캐시 조건을 고정한 순차/랜덤 읽기·쓰기의 IOPS와 처리량
-- 파일 크기와 전송 경로별 대용량 파일 전송 속도
-- 클라이언트 수와 파일 접근 패턴별 공유 파일시스템 성능
+- Sequential and random read/write IOPS and throughput with fixed block size, queue depth, and cache conditions
+- Large-file transfer speed by file size and path
+- Shared-filesystem performance by client count and access pattern
 
-## 컨테이너 레지스트리
+## Container Registry
 
-### Harbor 레지스트리 성능
+### Harbor Registry Performance
 
-**측정 항목**
+**Metrics**
 
-- 동일 이미지 digest의 사이트 내부·외부 pull 시간: 빈 캐시와 캐시된 레이어를 구분
-- 이미지 push 완료부터 대상 레지스트리에서 같은 digest를 조회·pull할 수 있을 때까지의 복제 지연
-- 동시 pull 수에 따른 처리량과 실패율
+- Pull time for the same image digest within and across sites, separating empty caches from cached layers
+- Replication delay from completed push until the same digest can be resolved and pulled at the destination registry
+- Throughput and failure rate by concurrent pull count

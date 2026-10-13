@@ -1,10 +1,10 @@
 ---
-title: 언어별 SIGTERM 처리
-description: 애플리케이션의 종료 처리 예제를 확인합니다.
+title: SIGTERM handling by language
+description: Review application shutdown handling examples.
 created: "2026-02-12"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
+  author: devfloor9
 reading_time: 1
 tags:
   - eks
@@ -12,13 +12,13 @@ tags:
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: 언어별 SIGTERM 처리
+sidebar_label: SIGTERM handling by language
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## 언어별 SIGTERM 처리 패턴 {#32-언어별-sigterm-처리-패턴}
+## SIGTERM handling patterns by language {#32-언어별-sigterm-처리-패턴}
 
 ### Node.js (Express) {#nodejs-express}
 
@@ -27,10 +27,10 @@ const express = require('express');
 const app = express();
 const server = app.listen(8080);
 
-// 상태 플래그
+// State flag
 let isShuttingDown = false;
 
-// 헬스체크 엔드포인트
+// Health check endpoints
 app.get('/healthz', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
@@ -42,46 +42,46 @@ app.get('/ready', (req, res) => {
   res.status(200).json({ status: 'ready' });
 });
 
-// 비즈니스 로직
+// Business logic
 app.get('/api/data', (req, res) => {
   if (isShuttingDown) {
     return res.status(503).send('Service Unavailable');
   }
-  // 실제 로직
+  // Actual logic
   res.json({ data: 'example' });
 });
 
-// Graceful Shutdown 처리
+// Handle graceful shutdown
 function gracefulShutdown(signal) {
   console.log(`${signal} received, starting graceful shutdown`);
   isShuttingDown = true;
 
-  // 새 연결 거부
+  // Reject new connections
   server.close(() => {
     console.log('HTTP server closed');
 
-    // DB 연결 종료
+    // Close database connections
     // db.close();
 
-    // 프로세스 종료
+    // Exit the process
     process.exit(0);
   });
 
-  // Timeout 설정 (SIGKILL 전에 완료)
+  // Set a timeout (finish before SIGKILL)
   setTimeout(() => {
     console.error('Graceful shutdown timeout, forcing exit');
     process.exit(1);
-  }, 50000); // terminationGracePeriodSeconds - preStop 시간 - 여유 5초
+  }, 50000); // terminationGracePeriodSeconds - preStop duration - 5-second buffer
 }
 
-// SIGTERM, SIGINT 처리
+// Handle SIGTERM and SIGINT
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 console.log('Server started on port 8080');
 ```
 
-**Deployment 설정:**
+**Deployment configuration:**
 
 ```yaml
 apiVersion: apps/v1
@@ -117,17 +117,17 @@ spec:
 
 ### Java/Spring Boot {#javaspring-boot}
 
-Spring Boot 2.3+는 Graceful Shutdown을 네이티브로 지원합니다.
+Spring Boot 2.3+ supports graceful shutdown natively.
 
 **application.yml:**
 
 ```yaml
 server:
-  shutdown: graceful  # Graceful Shutdown 활성화
+  shutdown: graceful  # Enable graceful shutdown
 
 spring:
   lifecycle:
-    timeout-per-shutdown-phase: 50s  # 최대 대기 시간
+    timeout-per-shutdown-phase: 50s  # Maximum wait time
 management:
   endpoints:
     web:
@@ -144,7 +144,7 @@ management:
       enabled: true
 ```
 
-**커스텀 종료 로직 (필요 시):**
+**Custom shutdown logic (if needed):**
 
 ```java
 import org.springframework.context.event.ContextClosedEvent;
@@ -158,10 +158,10 @@ public class GracefulShutdownListener {
     public void onApplicationEvent(ContextClosedEvent event) {
         System.out.println("Graceful shutdown initiated");
 
-        // 커스텀 정리 작업
-        // 예: 메시지 큐 정리, 배치 작업 완료 대기
+        // Custom cleanup tasks
+        // For example: clean up message queues and wait for batch jobs to finish
         try {
-            // 최대 50초 대기
+            // Wait up to 50 seconds
             cleanupResources();
         } catch (Exception e) {
             System.err.println("Cleanup error: " + e.getMessage());
@@ -169,14 +169,14 @@ public class GracefulShutdownListener {
     }
 
     private void cleanupResources() throws InterruptedException {
-        // 리소스 정리 로직
-        Thread.sleep(5000); // 예시: 5초 정리 작업
+        // Resource cleanup logic
+        Thread.sleep(5000); // Example: 5-second cleanup task
         System.out.println("Cleanup completed");
     }
 }
 ```
 
-**Deployment 설정:**
+**Deployment configuration:**
 
 ```yaml
 apiVersion: apps/v1
@@ -232,7 +232,7 @@ import (
 var isShuttingDown = false
 
 func main() {
-    // HTTP 서버 설정
+    // Configure the HTTP server
     mux := http.NewServeMux()
 
     mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
@@ -255,7 +255,7 @@ func main() {
             w.WriteHeader(http.StatusServiceUnavailable)
             return
         }
-        // 비즈니스 로직
+        // Business logic
         fmt.Fprintln(w, `{"data":"example"}`)
     })
 
@@ -264,7 +264,7 @@ func main() {
         Handler: mux,
     }
 
-    // 별도 고루틴에서 서버 시작
+    // Start the server in a separate goroutine
     go func() {
         log.Println("Server starting on :8080")
         if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -272,7 +272,7 @@ func main() {
         }
     }()
 
-    // SIGTERM/SIGINT 대기
+    // Wait for SIGTERM/SIGINT
     quit := make(chan os.Signal, 1)
     signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
     <-quit
@@ -292,7 +292,7 @@ func main() {
 }
 ```
 
-**Deployment 설정:**
+**Deployment configuration:**
 
 ```yaml
 apiVersion: apps/v1
@@ -359,13 +359,13 @@ def graceful_shutdown(signum, frame):
     print(f"Signal {signum} received, starting graceful shutdown")
     is_shutting_down = True
 
-    # 정리 작업 (예: DB 연결 종료)
+    # Cleanup tasks (for example, close database connections)
     # db.close()
 
     print("Graceful shutdown completed")
     sys.exit(0)
 
-# SIGTERM 핸들러 등록
+# Register SIGTERM handlers
 signal.signal(signal.SIGTERM, graceful_shutdown)
 signal.signal(signal.SIGINT, graceful_shutdown)
 
@@ -373,7 +373,7 @@ if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
 ```
 
-**Deployment 설정:**
+**Deployment configuration:**
 
 ```yaml
 apiVersion: apps/v1

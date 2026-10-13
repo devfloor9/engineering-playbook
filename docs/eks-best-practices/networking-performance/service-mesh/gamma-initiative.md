@@ -1,11 +1,11 @@
 ---
-title: GAMMA Initiative — 서비스 메시 통합의 미래
-description: GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합
+title: GAMMA Initiative — The Future of Service Mesh Integration
+description: GAMMA (Gateway API for Mesh Management and Administration) introduction, East-West traffic management, and service mesh integration
 created: "2026-02-14"
 last_update:
-  date: "2026-08-29"
-  author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 2
+  date: "2026-07-15"
+  author: devfloor9
+reading_time: 4
 tags:
   - gateway-api
   - gamma
@@ -20,29 +20,29 @@ import {
   GammaSupportTable,
 } from '@site/src/components/GatewayApiTables';
 
-## GAMMA란?
+## What is GAMMA?
 
-**GAMMA (Gateway API for Mesh Management and Administration)**는 [Gateway API](../gateway-api-adoption-guide/index.md)를 서비스 메시 영역으로 확장한 이니셔티브입니다.
+**GAMMA (Gateway API for Mesh Management and Administration)** is an initiative that extends the [Gateway API](../gateway-api-adoption-guide/index.md) into the service mesh domain.
 
-- **GA 달성**: Gateway API v1.1.0 (2025년 10월)
-- **통합 범위**: North-South (인그레스) + East-West (서비스 메시) 트래픽
-- **핵심 개념**: 기존에는 인그레스 컨트롤러와 서비스 메시가 완전히 별개의 설정 체계였으나, GAMMA는 이를 단일 API로 통합
-- **역할 기반 구성**: Gateway API의 역할 분리 원칙을 메시 트래픽에도 동일하게 적용
+- **GA achieved**: Gateway API v1.1.0 (October 2025)
+- **Unified scope**: North-South (ingress) + East-West (service mesh) traffic
+- **Core concept**: Previously, ingress controllers and service meshes had entirely separate configuration systems — GAMMA unifies them under a single API
+- **Role-based configuration**: Applies Gateway API's role separation principles equally to mesh traffic
 
-GAMMA의 등장으로 클러스터 운영자는 더 이상 두 가지 서로 다른 API를 학습하고 관리할 필요가 없습니다. 인그레스와 메시 모두 동일한 Gateway API 리소스로 관리할 수 있게 되었습니다.
+With GAMMA, cluster operators no longer need to learn and manage two different APIs. Both ingress and mesh can be managed with the same Gateway API resources.
 
 ```mermaid
 flowchart LR
-    subgraph before["기존 방식"]
+    subgraph before["Previous Approach"]
         direction TB
-        ingress["Ingress Controller<br/>(North-South만)"]
-        mesh["Service Mesh<br/>(East-West만)"]
+        ingress["Ingress Controller<br/>(North-South only)"]
+        mesh["Service Mesh<br/>(East-West only)"]
         ingress ~~~ mesh
     end
 
-    subgraph after["GAMMA 방식"]
+    subgraph after["GAMMA Approach"]
         direction TB
-        gw["Gateway API<br/>(통합 API)"]
+        gw["Gateway API<br/>(Unified API)"]
         gw --> ns["North-South<br/>(parentRef: Gateway)"]
         gw --> ew["East-West<br/>(parentRef: Service)"]
     end
@@ -54,59 +54,55 @@ flowchart LR
     style gw fill:#1565c0,color:#fff
 ```
 
-## 핵심 목표 & 메시 구성 패턴
+## Core Goals & Mesh Configuration Patterns
 
 <GammaInfographic />
 
-## GAMMA 지원 현황
+## GAMMA Support Status
 
-다음은 주요 서비스 메시 구현체의 GAMMA 지원 현황입니다. 구현체별 아키텍처·기능·운영 비교는 [서비스 메시 비교 가이드](./index.md)를 참조합니다.
+The following shows GAMMA support status across major service mesh implementations. For a detailed comparison of architecture, features, and operations, see the [Service Mesh Comparison Guide](./index.md).
 
 <GammaSupportTable />
 
-:::tip AWS 환경에서의 GAMMA
-AWS 환경에서는 **VPC Lattice + ACK**로 사이드카 없이 GAMMA 패턴을 구현할 수 있습니다. IAM 기반 mTLS, CloudWatch/X-Ray 관측성, AWS FIS를 통한 장애 주입까지 완전한 서비스 메시 기능을 관리형으로 제공합니다.
+:::tip GAMMA in AWS Environments
+In AWS environments, **VPC Lattice + ACK** can implement GAMMA patterns without sidecars. Provides fully managed service mesh capabilities including IAM-based mTLS, CloudWatch/X-Ray observability, and fault injection through AWS FIS.
 :::
 
-## GAMMA의 장점
+## Advantages of GAMMA
 
-### 1. 학습 곡선 단축
+### 1. Reduced Learning Curve
+Teams only need to learn one API (Gateway API) to manage both ingress and mesh.
 
-팀은 하나의 API(Gateway API)만 학습하면 인그레스와 메시 모두 관리할 수 있습니다.
-
-### 2. 설정 일관성
-
-동일한 YAML 구조와 패턴으로 North-South/East-West 트래픽을 모두 관리합니다.
+### 2. Configuration Consistency
+Manage both North-South/East-West traffic with the same YAML structure and patterns.
 
 ```yaml
-# 인그레스 (North-South)
+# Ingress (North-South)
 spec:
   parentRefs:
     - kind: Gateway
       name: external-gateway
 
-# 메시 (East-West)
+# Mesh (East-West)
 spec:
   parentRefs:
     - kind: Service
       name: backend-service
 ```
 
-### 3. 역할 기반 분리
+### 3. Role-Based Separation
+Clear responsibility separation — infra teams manage Gateways, dev teams manage HTTPRoutes — applies equally to mesh traffic.
 
-인프라 팀은 Gateway를, 개발 팀은 HTTPRoute를 관리하는 명확한 책임 분리가 메시 트래픽에도 동일하게 적용됩니다.
+### 4. Vendor Neutrality
+Multiple mesh implementations can be managed with the same API, preventing vendor lock-in.
 
-### 4. 벤더 중립성
+## References
 
-여러 메시 구현체를 동일한 API로 관리할 수 있어 벤더 종속을 방지합니다.
+### Official Documentation
+- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/docs/mesh/gamma/) — Official Gateway API GAMMA specification, goals, and configuration patterns
+- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/docs/mesh/mesh-overview/) — Official guide for applying Gateway API to mesh traffic
 
-## 참고 자료
-
-### 공식 문서
-- [GAMMA Initiative](https://gateway-api.sigs.k8s.io/docs/mesh/gamma/) — Gateway API 공식 GAMMA 사양·목표·구성 패턴
-- [Gateway API for Service Mesh](https://gateway-api.sigs.k8s.io/docs/mesh/mesh-overview/) — 메시 트래픽에 Gateway API를 적용하는 공식 가이드
-
-### 관련 문서 (내부)
-- [서비스 메시 비교 가이드](./index.md) — Istio·Cilium·Linkerd·VPC Lattice 아키텍처·기능·운영 비교
-- [Gateway API 도입 가이드](../gateway-api-adoption-guide/index.md) — North-South 트래픽 관리, 구현체 비교, 마이그레이션 전략
-- [East-West 트래픽 최적화](../east-west-traffic-best-practice.md) — 도입 후 지연·크로스-AZ 비용 최적화 전략
+### Related Documents (Internal)
+- [Service Mesh Comparison Guide](./index.md) — Architecture, feature, and operations comparison of Istio, Cilium, Linkerd, and VPC Lattice
+- [Gateway API Adoption Guide](../gateway-api-adoption-guide/index.md) — North-South traffic management, implementation comparison, migration strategy
+- [East-West Traffic Optimization](../east-west-traffic-best-practice.md) — Post-adoption latency and cross-AZ cost optimization

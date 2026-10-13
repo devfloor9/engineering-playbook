@@ -1,6 +1,6 @@
 ---
-title: 30분 시연 스크립트 (Momo)
-description: Momo 임원·라이브 운영팀·물류팀 미팅용 30분 시연
+title: 30-Minute Demo Script (Momo)
+description: 30-minute live demo for Momo executives, live-operations teams, and logistics teams
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,51 +16,51 @@ tags:
 sidebar_label: 99. Demo Storytelling
 ---
 
-## 0. 시연 전 준비
-| ✅ | Top-5 응답 1분 내 / 라이브 이벤트 mock 동작 / 배송 SLA 라이브 |
+## 0. Pre-Demo Checklist
+| ✅ | Top-5 responses under 1 minute / Live-event mock operational / Delivery SLA live |
 
-## 1. 오프닝 (3분)
-> "Momo의 **방대 SKU·라이브 커머스·자체 물류·모바일 앱 추천** 4 핵심 자산을 단일 KG로 통합해 5 부서가 시각으로 활용하는 동작 시연. 컨셉이 아닌 실 회원 N=5K + 50K SKU + 라이브 500방송 + 250K 배송 로그 + 외부 4종 라이브."
+## 1. Opening (3 min)
+> "A live walkthrough that consolidates Momo's four core assets — **massive SKU, live commerce, in-house logistics, and mobile-app recommendations** — into a single KG so that five departments can use it visually. Not a concept slide, but a live run with N=5K real members + 50K SKUs + 500 live broadcasts + 250K delivery logs + 4 external feeds."
 
-핵심 메시지 4개:
-1. **라이브 커머스 어트리뷰션** (S9-Mo)
-2. **배송 SLA + 외기온** (S10-Mo)
-3. **추천 다양성·롱테일** (S11-Mo)
-4. **5 부서 페르소나 스위처**
+Four key messages:
+1. **Live-commerce attribution** (S9-Mo)
+2. **Delivery SLA + outdoor weather** (S10-Mo)
+3. **Recommendation diversity · Long-tail** (S11-Mo)
+4. **5-department persona switcher**
 
-## 2. Top-5 시연 (20분)
+## 2. Top-5 Demo (20 min)
 
-### Step 1 — S1 시맨틱 검색 (4분)
-- 입력: "여름 캠핑 텐트 + 24시간 배송 + Dcard 별점 4.5+"
-- 결과: SKU + 회원 + Dcard 후기 + 24시간 배송 가능 표시
+### Step 1 — S1 Semantic Search (4 min)
+- Input: "Summer camping tent + 24-hour delivery + Dcard rating 4.5+"
+- Result: SKU + Member + Dcard reviews + 24-hour delivery availability tag
 
-### Step 2 — S9-Mo 라이브 어트리뷰션 ⭐ (5분)
-- "어제 19시 라이브 방송 funnel"
-- 시청 5만 → 카트 8천 → 구매 3,200 → GMV 1.2억
-- 진행자 A vs B 효과 비교
+### Step 2 — S9-Mo Live Attribution ⭐ (5 min)
+- "Funnel of yesterday's 19:00 live broadcast"
+- 50K viewers → 8K carts → 3,200 purchases → 120M NTD GMV
+- Host A vs B effect comparison
 
-### Step 3 — S10-Mo 배송 SLA ⭐ (4분)
-- "북부 fulfillment 24시간 SLA 위반률 + 폭우 영향"
-- 위반률 32%, 폭우 시차 1일
-- 발주 시뮬 권장
+### Step 3 — S10-Mo Delivery SLA ⭐ (4 min)
+- "Northern fulfillment 24-hour SLA breach rate + heavy-rain impact"
+- Breach rate 32%, 1-day lag after heavy rain
+- Recommended ordering simulation
 
-### Step 4 — S11-Mo 추천 다양성 ⭐ (5분)
-- "추천 다양성 점수 + 롱테일 노출률"
-- "여름텐트" 다양성 0.31 (낮음) → 보정 시뮬 결과
-- A/B: 다양성 ↑ → GMV +6%
+### Step 4 — S11-Mo Recommendation Diversity ⭐ (5 min)
+- "Recommendation diversity score + long-tail exposure rate"
+- "Summer tent" diversity 0.31 (low) → corrected simulation result
+- A/B: diversity ↑ → GMV +6%
 
-### Step 5 — S2 페르소나 챗봇 (4분)
-- P1 vs P5 비교 (캠페인 vs 물류)
+### Step 5 — S2 Persona Chatbot (4 min)
+- P1 vs P5 comparison (campaign vs logistics)
 
-## 3. 거버넌스 (3분)
-- cohort_tag · 라이브 광고 가드 · 배송 정보 보호
+## 3. Governance (3 min)
+- cohort_tag · Live-ad guard · Delivery-information protection
 
-## 4. 클로징 (4분)
-- 정리 + 다음 단계 (Discovery 2주 → PoC 8주 → 운영 12주)
+## 4. Closing (4 min)
+- Summary + next steps (Discovery 2 weeks → PoC 8 weeks → Operations 12 weeks)
 
 ## Q&A
-| 질문 | 답변 |
+| Question | Answer |
 |---|---|
-| 라이브 이벤트량? | Kinesis 샤드 추가 (PoC 1샤드 충분) |
-| 배송 SLA 정확도? | TimeStream + 실측 cross-validation |
-| 비용? | ~$4.6K/월 |
+| Live event volume? | Add Kinesis shards (1 shard sufficient for PoC) |
+| Delivery SLA accuracy? | TimeStream + measured cross-validation |
+| Cost? | ~$4.6K/month |

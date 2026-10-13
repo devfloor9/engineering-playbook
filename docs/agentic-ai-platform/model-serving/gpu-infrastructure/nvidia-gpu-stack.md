@@ -1,11 +1,11 @@
 ---
-title: NVIDIA GPU 스택
-description: GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합
+title: NVIDIA GPU Stack
+description: Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo
 created: "2026-03-20"
 last_update:
   date: 2026-10-12
-  author: YoungJoon Jeong
-reading_time: 17
+  author: devfloor9
+reading_time: 25
 tags:
   - nvidia
   - gpu-operator
@@ -17,61 +17,61 @@ tags:
   - gpu
   - monitoring
   - scope:tech
-sidebar_label: NVIDIA GPU 스택
+sidebar_label: NVIDIA GPU Stack
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import { SpecificationTable, ComparisonTable } from '@site/src/components/tables';
 
-NVIDIA GPU 소프트웨어 스택은 Kubernetes 환경에서 GPU를 운영하기 위한 계층 구조로 구성됩니다.
+The NVIDIA GPU software stack is organized in a layered structure for operating GPUs in Kubernetes environments.
 
-| 계층 | 역할 | 핵심 컴포넌트 |
-|------|------|-------------|
-| **인프라 자동화** | GPU 드라이버, 런타임, 플러그인을 선언적으로 관리 | GPU Operator (ClusterPolicy CRD) |
-| **모니터링** | GPU 상태 수집 및 Prometheus 메트릭 노출 | DCGM, DCGM Exporter |
-| **파티셔닝** | 단일 GPU를 여러 워크로드가 공유 | MIG, Time-Slicing |
-| **추론 최적화** | 데이터센터 규모 LLM 서빙 | Dynamo, KAI Scheduler |
+| Layer | Role | Core Component |
+|-------|------|---------------|
+| **Infrastructure Automation** | Declaratively manage GPU drivers, runtimes, and plugins | GPU Operator (ClusterPolicy CRD) |
+| **Monitoring** | Collect GPU state and expose Prometheus metrics | DCGM, DCGM Exporter |
+| **Partitioning** | Share a single GPU across multiple workloads | MIG, Time-Slicing |
+| **Inference Optimization** | Datacenter-scale LLM serving | Dynamo, KAI Scheduler |
 
-이 문서는 각 컴포넌트의 아키텍처와 설계 판단 기준을 다룹니다. GPU 노드 프로비저닝(Karpenter), 스케일링(KEDA), 비용 최적화는 [GPU 리소스 관리](./gpu-resource-management.md)를 참조하세요.
+This document covers the architecture and design decision criteria for each component. For GPU node provisioning (Karpenter), scaling (KEDA), and cost optimization, see [GPU Resource Management](./gpu-resource-management.md).
 
 ---
 
-## GPU Operator 아키텍처
+## GPU Operator Architecture
 
-### 개념
+### Concept
 
-GPU Operator는 **ClusterPolicy CRD** 하나로 GPU 스택 전체를 번들링하는 오케스트레이션 레이어입니다. 각 컴포넌트를 독립적으로 enable/disable할 수 있으며, 노드가 추가될 때 자동으로 GPU 환경을 구성합니다.
+GPU Operator is an orchestration layer that bundles the entire GPU stack under a single **ClusterPolicy CRD**. Each component can be independently enabled/disabled, and GPU environments are automatically configured when nodes are added.
 
-:::info GPU Operator v26.3.2 (2026-06 기준)
+:::info GPU Operator v25.10.1 (as of 2026-03)
 
-| 컴포넌트 | 버전 | 역할 |
-|----------|------|------|
-| GPU Operator | **v26.3.2** | GPU 스택 라이프사이클 관리 |
-| NVIDIA Driver | **580.126.20** | GPU 커널 드라이버 |
-| DCGM | **v4.5.2-1** | GPU 모니터링 엔진 |
-| DCGM Exporter | **v4.5.3-4.8.2** | Prometheus 메트릭 노출 |
-| Device Plugin | **v0.19.2** | K8s GPU 리소스 등록 |
-| GFD | **v0.19.2** | GPU 노드 레이블링 |
-| MIG Manager | **v0.14.2** | MIG 파티션 자동 관리 |
-| Container Toolkit (CDI) | **v1.19.1** | 컨테이너 GPU 런타임 |
+| Component | Version | Role |
+|-----------|---------|------|
+| GPU Operator | **v25.10.1** | GPU stack lifecycle management |
+| NVIDIA Driver | **580.126.18** | GPU kernel driver |
+| DCGM | **v4.5.2** | GPU monitoring engine |
+| DCGM Exporter | **v4.5.2-4.8.1** | Prometheus metrics exposure |
+| Device Plugin | **v0.19.0** | K8s GPU resource registration |
+| GFD | **v0.19.0** | GPU node labeling |
+| MIG Manager | **v0.13.1** | MIG partition auto-management |
+| Container Toolkit (CDI) | **v1.17.5** | Container GPU runtime |
 
-**v26.3.2 주요 신기능:** Kubernetes 1.36 지원, DCGM Exporter Pod 메타데이터 필드(enablePodLabels/enablePodUID), DCGM Exporter 커스텀 어노테이션, NRI Plugin CRI-O 1.34+ 지원. 참고: Blackwell GB200 NVL4 지원과 CDI-by-default는 v26.3.0에서, HPC Job Mapping은 v25.10.x에서, CDMM은 v25.3.2 시대 드라이버 레벨 기능에서 각각 도입되었습니다.
+**v25.10.1 Key New Features:** Blackwell (B200/GB200) support, HPC Job Mapping, CDMM (Confidential Computing), CDI (Container Device Interface)
 :::
 
-### 컴포넌트 구조
+### Component Structure
 
 ```mermaid
 flowchart TB
     subgraph GPUOperator["GPU Operator"]
         CP["ClusterPolicy CRD"]
-        CP --> DRIVER["Driver DaemonSet<br/>GPU 커널 드라이버"]
-        CP --> TOOLKIT["Container Toolkit<br/>CDI 기반 런타임"]
-        CP --> DP["Device Plugin<br/>nvidia.com/gpu 등록"]
-        CP --> GFD["GFD<br/>GPU 모델/MIG 레이블"]
-        CP --> NFD["NFD<br/>노드 피처 탐지"]
-        CP --> MIG_MGR["MIG Manager<br/>MIG 프로필 자동 적용"]
-        CP --> DCGM_E["DCGM Exporter<br/>Prometheus 메트릭"]
+        CP --> DRIVER["Driver DaemonSet<br/>GPU Kernel Driver"]
+        CP --> TOOLKIT["Container Toolkit<br/>CDI-based Runtime"]
+        CP --> DP["Device Plugin<br/>nvidia.com/gpu Registration"]
+        CP --> GFD["GFD<br/>GPU Model/MIG Labels"]
+        CP --> NFD["NFD<br/>Node Feature Discovery"]
+        CP --> MIG_MGR["MIG Manager<br/>MIG Profile Auto-apply"]
+        CP --> DCGM_E["DCGM Exporter<br/>Prometheus Metrics"]
     end
 
     subgraph K8s["Kubernetes"]
@@ -86,40 +86,40 @@ flowchart TB
     style CP fill:#76b900,color:#fff
 ```
 
-**각 컴포넌트의 역할:**
+**Component Roles:**
 
-- **Driver DaemonSet**: GPU 커널 드라이버를 노드에 설치. AL2023/Bottlerocket에서는 AMI에 사전 설치되어 있으므로 `enabled: false`
-- **Container Toolkit (CDI)**: 컨테이너 런타임에 GPU 디바이스를 주입. CDI(Container Device Interface) 기반으로 런타임 독립적
-- **Device Plugin**: `nvidia.com/gpu` 확장 리소스를 kubelet에 등록. kube-scheduler가 GPU Pod를 배치할 수 있게 함
-- **GFD (GPU Feature Discovery)**: GPU 모델, 드라이버 버전, MIG 프로필 등을 노드 레이블로 노출. nodeSelector/nodeAffinity에 활용
-- **NFD (Node Feature Discovery)**: 하드웨어 피처(CPU, PCIe, NUMA 등)를 노드 레이블로 노출
-- **MIG Manager**: ConfigMap 기반으로 MIG 프로필을 자동 적용. 노드 레이블 변경 시 재구성
-- **DCGM Exporter**: DCGM 메트릭을 Prometheus 형식으로 노출
+- **Driver DaemonSet**: Installs GPU kernel driver on nodes. Set `enabled: false` for AL2023/Bottlerocket as it's pre-installed in the AMI
+- **Container Toolkit (CDI)**: Injects GPU devices into container runtime. CDI (Container Device Interface)-based for runtime independence
+- **Device Plugin**: Registers `nvidia.com/gpu` extended resource with kubelet. Enables kube-scheduler to place GPU Pods
+- **GFD (GPU Feature Discovery)**: Exposes GPU model, driver version, MIG profiles as node labels. Used for nodeSelector/nodeAffinity
+- **NFD (Node Feature Discovery)**: Exposes hardware features (CPU, PCIe, NUMA, etc.) as node labels
+- **MIG Manager**: Auto-applies MIG profiles based on ConfigMap. Reconfigures on node label changes
+- **DCGM Exporter**: Exposes DCGM metrics in Prometheus format
 
-### EKS 환경별 GPU Operator 구성
+### GPU Operator Configuration per EKS Environment
 
-| 환경 | Driver | Toolkit | Device Plugin | MIG | 비고 |
-|------|--------|---------|---------------|-----|------|
-| **EKS Auto Mode** | ❌ (AWS 자동) | ❌ (AWS 자동) | ❌ (레이블로 비활성화) | ❌ | DCGM/NFD/GFD 정상 동작 |
-| **Karpenter (Self-Managed)** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | 완전 지원 |
-| **Managed Node Group** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | 완전 지원 |
-| **Hybrid Node (온프레미스)** | ✅ (필수) | ✅ (필수) | ✅ | ✅ | GPU Operator 필수 |
+| Environment | Driver | Toolkit | Device Plugin | MIG | Notes |
+|-------------|--------|---------|---------------|-----|-------|
+| **EKS Auto Mode** | ❌ (AWS auto) | ❌ (AWS auto) | ❌ (disabled via label) | ❌ | DCGM/NFD/GFD work normally |
+| **Karpenter (Self-Managed)** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | Full support |
+| **Managed Node Group** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | Full support |
+| **Hybrid Node (On-premises)** | ✅ (required) | ✅ (required) | ✅ | ✅ | GPU Operator required |
 
-:::caution AMI별 GPU Driver 제약
-- **AL2023 / Bottlerocket**: GPU 드라이버가 AMI에 사전 설치. `driver`와 `toolkit` 모두 `enabled: false` 필수
-- **EKS Auto Mode**: AWS가 드라이버를 자동 관리. Device Plugin은 노드 레이블 `nvidia.com/gpu.deploy.device-plugin: "false"`로 비활성화
+:::caution AMI-specific GPU Driver Constraints
+- **AL2023 / Bottlerocket**: GPU driver pre-installed in AMI. Both `driver` and `toolkit` must be `enabled: false`
+- **EKS Auto Mode**: AWS auto-manages drivers. Device Plugin disabled via node label `nvidia.com/gpu.deploy.device-plugin: "false"`
 :::
 
-### EKS Auto Mode에서의 GPU Operator
+### GPU Operator on EKS Auto Mode
 
-Auto Mode에서는 AWS가 GPU 드라이버와 Device Plugin을 관리하지만, **GPU Operator 설치가 여전히 유용한 경우**가 있습니다.
+On Auto Mode, AWS manages GPU drivers and Device Plugin, but **GPU Operator installation is still useful when**:
 
-- **DCGM Exporter**: GPU 메트릭 수집 (Auto Mode 자체는 DCGM을 제공하지 않음)
-- **GFD/NFD**: GPU 모델별 노드 레이블링으로 nodeSelector 활용
-- **KAI Scheduler**: ClusterPolicy에 의존하는 프로젝트와의 호환성
+- **DCGM Exporter**: GPU metrics collection (Auto Mode itself does not provide DCGM)
+- **GFD/NFD**: Per-GPU-model node labeling for nodeSelector usage
+- **KAI Scheduler**: Compatibility with projects depending on ClusterPolicy
 
 ```yaml
-# Auto Mode NodePool — Device Plugin만 레이블로 비활성화
+# Auto Mode NodePool — Only Device Plugin disabled via label
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -140,16 +140,16 @@ spec:
         name: default
 ```
 
-Auto Mode용 Helm values는 Device Plugin을 전역 활성화한 채 노드 레이블로 선택 비활성화합니다.
+Auto Mode Helm values keep the Device Plugin globally enabled and selectively disable it via node labels.
 
 ```yaml
-# Auto Mode용 GPU Operator Helm values
+# GPU Operator Helm values for Auto Mode
 driver:
-  enabled: false          # AWS가 AMI에 사전 설치
+  enabled: false          # Pre-installed in the AMI by AWS
 toolkit:
-  enabled: false          # AWS가 AMI에 사전 설치
+  enabled: false          # Pre-installed in the AMI by AWS
 devicePlugin:
-  enabled: true           # 전역 활성화, 노드 레이블로 선택적 비활성화
+  enabled: true           # Globally enabled, selectively disabled via node labels
 dcgmExporter:
   enabled: true
   serviceMonitor:
@@ -160,16 +160,16 @@ gfd:
   enabled: true
 ```
 
-### Karpenter 노드 전용 GPU Operator 구성
+### GPU Operator Configuration for Karpenter Nodes
 
-Karpenter(Self-Managed) 노드에서는 MIG Manager까지 포함한 전체 스택을 활성화하되, `nodeSelector`로 Auto Mode 노드를 제외합니다.
+On Karpenter (self-managed) nodes, enable the full stack including MIG Manager, while excluding Auto Mode nodes via `nodeSelector`.
 
 ```yaml
 # helm install gpu-operator nvidia/gpu-operator -f values.yaml
 driver:
-  enabled: false          # AL2023: AMI 사전 설치
+  enabled: false          # AL2023: Pre-installed in AMI
 toolkit:
-  enabled: false          # AL2023: AMI 사전 설치
+  enabled: false          # AL2023: Pre-installed in AMI
 devicePlugin:
   enabled: true
   nodeSelector:
@@ -200,7 +200,7 @@ gfd:
     gpu-operator: enabled
 operator:
   nodeSelector:
-    node-type: gpu-inference  # Karpenter NodePool 레이블
+    node-type: gpu-inference  # Karpenter NodePool label
   tolerations:
     - key: nvidia.com/gpu
       operator: Exists
@@ -208,111 +208,107 @@ operator:
   defaultRuntime: containerd
 ```
 
-**핵심 설정 포인트:**
-- `nodeSelector: gpu-operator: enabled` — Auto Mode 노드 제외
-- `driver/toolkit: false` — AL2023 AMI에 사전 설치
-- `migManager: true` — Karpenter 노드에서 MIG 기능 활용
+**Key configuration points:**
+- `nodeSelector: gpu-operator: enabled` — Excludes Auto Mode nodes
+- `driver/toolkit: false` — Pre-installed in the AL2023 AMI
+- `migManager: true` — Enables MIG functionality on Karpenter nodes
 
 ---
 
-## DCGM 모니터링
+## DCGM Monitoring
 
-### 개요
+### Overview
 
-NVIDIA DCGM(Data Center GPU Manager)은 GPU 상태를 수집하고 Prometheus로 메트릭을 노출하는 모니터링 엔진입니다. GPU Operator가 DCGM Exporter를 DaemonSet으로 자동 배포합니다.
+NVIDIA DCGM (Data Center GPU Manager) is a monitoring engine that collects GPU state and exposes metrics to Prometheus. GPU Operator automatically deploys DCGM Exporter as a DaemonSet.
 
-### 배포 방식 선택
+### Deployment Method Selection
 
 <Tabs>
-  <TabItem value="daemonset" label="DaemonSet (권장)" default>
+  <TabItem value="daemonset" label="DaemonSet (Recommended)" default>
 
-| 항목 | 내용 |
-|------|------|
-| **리소스 효율** | 노드당 1개 인스턴스 — 오버헤드 최소 |
-| **관리** | GPU Operator가 자동 관리 |
-| **메트릭 범위** | 노드의 모든 GPU 메트릭 수집 |
-| **적합 환경** | 프로덕션 환경 (대부분의 경우) |
+| Item | Details |
+|------|---------|
+| **Resource Efficiency** | 1 instance per node — minimal overhead |
+| **Management** | Auto-managed by GPU Operator |
+| **Metrics Scope** | Collects all GPU metrics on the node |
+| **Suitable Environment** | Production environments (most cases) |
 
   </TabItem>
-  <TabItem value="sidecar" label="Sidecar (특수 용도)">
+  <TabItem value="sidecar" label="Sidecar (Special Use)">
 
-| 항목 | 내용 |
-|------|------|
-| **리소스 효율** | Pod당 1개 인스턴스 — 오버헤드 높음 |
-| **메트릭 범위** | 해당 Pod의 GPU 메트릭만 수집 |
-| **적합 환경** | 멀티 테넌트 과금, Pod별 격리 필요 시 |
+| Item | Details |
+|------|---------|
+| **Resource Efficiency** | 1 instance per Pod — higher overhead |
+| **Metrics Scope** | Collects only the Pod's GPU metrics |
+| **Suitable Environment** | Multi-tenant billing, when per-Pod isolation is needed |
 
-K8s 1.33+의 안정화된 Sidecar Containers(`restartPolicy: Always`)를 사용하여 Pod 라이프사이클과 함께 운영할 수 있습니다.
+K8s 1.33+ stabilized Sidecar Containers (`restartPolicy: Always`) can be used to operate alongside the Pod lifecycle.
 
   </TabItem>
 </Tabs>
 
-### 주요 GPU 메트릭
+### Key GPU Metrics
 
 <SpecificationTable
-  headers={['메트릭', '설명', '활용']}
+  headers={['Metric', 'Description', 'Usage']}
   rows={[
-    { id: '1', cells: ['DCGM_FI_DEV_GPU_UTIL', 'GPU 코어 사용률 (%)', 'HPA/KEDA 트리거'] },
-    { id: '2', cells: ['DCGM_FI_DEV_MEM_COPY_UTIL', '메모리 대역폭 사용률 (%)', '메모리 병목 감지'] },
-    { id: '3', cells: ['DCGM_FI_DEV_FB_USED / FB_FREE', '프레임버퍼 사용량/여유량 (MB)', 'OOM 방지, 용량 계획'] },
-    { id: '4', cells: ['DCGM_FI_DEV_POWER_USAGE', '전력 사용량 (W)', '비용 및 열 관리'] },
-    { id: '5', cells: ['DCGM_FI_DEV_GPU_TEMP', 'GPU 온도 (C)', '열 스로틀링 방지'] },
-    { id: '6', cells: ['DCGM_FI_DEV_SM_CLOCK', 'SM 클럭 속도 (MHz)', '성능 모니터링'] }
+    { id: '1', cells: ['DCGM_FI_DEV_GPU_UTIL', 'GPU core utilization (%)', 'HPA/KEDA trigger'] },
+    { id: '2', cells: ['DCGM_FI_DEV_MEM_COPY_UTIL', 'Memory bandwidth utilization (%)', 'Memory bottleneck detection'] },
+    { id: '3', cells: ['DCGM_FI_DEV_FB_USED / FB_FREE', 'Framebuffer used/free (MB)', 'OOM prevention, capacity planning'] },
+    { id: '4', cells: ['DCGM_FI_DEV_POWER_USAGE', 'Power usage (W)', 'Cost and thermal management'] },
+    { id: '5', cells: ['DCGM_FI_DEV_GPU_TEMP', 'GPU temperature (C)', 'Thermal throttling prevention'] },
+    { id: '6', cells: ['DCGM_FI_DEV_SM_CLOCK', 'SM clock speed (MHz)', 'Performance monitoring'] }
   ]}
 />
 
-### Prometheus 연동 개념
+### Prometheus Integration Concept
 
-DCGM Exporter는 `:9400/metrics` 엔드포인트로 Prometheus 형식의 메트릭을 노출합니다. GPU Operator 설치 시 `dcgmExporter.serviceMonitor.enabled=true`를 설정하면 ServiceMonitor가 자동 생성됩니다.
+DCGM Exporter exposes Prometheus-format metrics at the `:9400/metrics` endpoint. Setting `dcgmExporter.serviceMonitor.enabled=true` during GPU Operator installation auto-creates the ServiceMonitor.
 
-**수집 체인:**
+**Collection chain:**
 
 ```
 GPU Hardware → DCGM Engine → DCGM Exporter (:9400) → Prometheus → Grafana/KEDA
 ```
 
-**핵심 설계 결정:**
-- **수집 주기**: 15초 (기본값). LLM 서빙에서는 10초로 단축 권장
-- **메트릭 필터링**: `/etc/dcgm-exporter/dcp-metrics-included.csv`로 필요한 메트릭만 수집하여 카디널리티 제어
-- **Pod-GPU 매핑**: `DCGM_EXPORTER_KUBERNETES=true` 설정 시 `pod`, `namespace`, `container` 레이블이 메트릭에 추가
+**Key design decisions:**
+- **Collection interval**: 15s (default). For LLM serving, 10s recommended
+- **Metrics filtering**: Control cardinality by collecting only needed metrics via `/etc/dcgm-exporter/dcp-metrics-included.csv`
+- **Pod-GPU mapping**: Setting `DCGM_EXPORTER_KUBERNETES=true` adds `pod`, `namespace`, `container` labels to metrics
 
 ---
 
-## GPU 파티셔닝 전략
+## GPU Partitioning Strategies
 
 ### MIG (Multi-Instance GPU)
 
-MIG는 Ampere/Hopper/Blackwell 아키텍처 GPU(A100, H100, H200, B200)를 최대 7개의 **하드웨어적으로 독립된** GPU 인스턴스로 분할합니다. 각 MIG 인스턴스는 독립된 메모리, 캐시, SM(Streaming Multiprocessor)을 가지므로 워크로드 간 간섭 없이 안정적인 성능을 보장합니다.
+MIG partitions Ampere/Hopper/Blackwell architecture GPUs (A100, H100, H200, B200) into up to 7 **hardware-isolated** GPU instances. Each MIG instance has independent memory, cache, and SM (Streaming Multiprocessor), guaranteeing stable performance without inter-workload interference.
 
-**MIG의 핵심 가치:**
-- **하드웨어 격리**: 메모리, SM, L2 캐시가 완전히 분리되어 QoS 보장
-- **동시 실행**: 여러 추론 워크로드가 성능 저하 없이 동시 실행
-- **GPU Operator 자동 관리**: MIG Manager가 ConfigMap 기반으로 프로필 자동 적용
+**MIG Core Value:**
+- **Hardware isolation**: Memory, SM, L2 cache completely separated for QoS guarantee
+- **Concurrent execution**: Multiple inference workloads run simultaneously without performance degradation
+- **GPU Operator auto-management**: MIG Manager auto-applies profiles based on ConfigMap
 
-**A100 40GB MIG 프로필:**
+**A100 40GB MIG Profiles:**
 
 <SpecificationTable
-  headers={['프로필', '메모리', 'SM 수', '용도', '참고 처리량']}
+  headers={['Profile', 'Memory', 'SM Count', 'Use Case', 'Expected Throughput']}
   rows={[
-    { id: '1', cells: ['1g.5gb', '5GB', '14', '소형 모델 (3B 이하)', '~20 tok/s'] },
-    { id: '2', cells: ['1g.10gb', '10GB', '14', '소형 모델 (3B-7B)', '~25 tok/s'] },
-    { id: '3', cells: ['2g.10gb', '10GB', '28', '중형 모델 (7B-13B)', '~50 tok/s'] },
-    { id: '4', cells: ['3g.20gb', '20GB', '42', '중대형 모델 (13B-30B)', '~100 tok/s'] },
-    { id: '5', cells: ['4g.20gb', '20GB', '56', '대형 모델 (13B-30B)', '~130 tok/s'] },
-    { id: '6', cells: ['7g.40gb', '40GB', '84', '전체 GPU (70B+)', '~200 tok/s'] }
+    { id: '1', cells: ['1g.5gb', '5GB', '14', 'Small models (3B and below)', '~20 tok/s'] },
+    { id: '2', cells: ['1g.10gb', '10GB', '14', 'Small models (3B-7B)', '~25 tok/s'] },
+    { id: '3', cells: ['2g.10gb', '10GB', '28', 'Medium models (7B-13B)', '~50 tok/s'] },
+    { id: '4', cells: ['3g.20gb', '20GB', '42', 'Medium-large models (13B-30B)', '~100 tok/s'] },
+    { id: '5', cells: ['4g.20gb', '20GB', '56', 'Large models (13B-30B)', '~130 tok/s'] },
+    { id: '6', cells: ['7g.40gb', '40GB', '84', 'Full GPU (70B+)', '~200 tok/s'] }
   ]}
 />
 
-:::info 참고 처리량 측정 조건
-위 "참고 처리량" 수치는 Llama 2 계열 기준 BF16, Batch=1, Prompt 512 / Output 128 토큰, vLLM v0.22+ 구성에서의 내부 측정 예시값입니다. 실제 처리량은 모델, 양자화(FP8/INT8/AWQ), Batch 크기, 시퀀스 길이, TP/PP 구성에 따라 크게 달라지므로 배포 전 자체 벤치마크로 검증하세요.
-:::
+**MIG Profile Management:**
 
-**MIG 프로필 관리:**
-
-GPU Operator의 MIG Manager는 노드 레이블(`nvidia.com/mig.config`)을 감시하여 MIG 프로필을 자동 적용합니다. ConfigMap에 프로필을 정의하고, 노드 레이블을 변경하면 MIG Manager가 GPU를 재구성합니다.
+GPU Operator's MIG Manager watches node labels (`nvidia.com/mig.config`) and auto-applies MIG profiles. Define profiles in a ConfigMap, and MIG Manager reconfigures GPUs when node labels change.
 
 ```yaml
-# MIG 프로필 ConfigMap (mig-parted 형식)
+# MIG Profile ConfigMap (mig-parted format)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -322,26 +318,26 @@ data:
   config.yaml: |
     version: v1
     mig-configs:
-      all-1g.5gb:          # 7개 소형 인스턴스
+      all-1g.5gb:          # 7 small instances
         - devices: all
           mig-enabled: true
           mig-devices:
             "1g.5gb": 7
-      mixed-balanced:      # 혼합 구성
+      mixed-balanced:      # Mixed configuration
         - devices: all
           mig-enabled: true
           mig-devices:
             "3g.20gb": 1
             "2g.10gb": 1
             "1g.5gb": 2
-      single-7g:           # 단일 대형
+      single-7g:           # Single large
         - devices: all
           mig-enabled: true
           mig-devices:
             "7g.40gb": 1
 ```
 
-Pod에서 MIG 디바이스를 사용할 때는 `nvidia.com/mig-<profile>` 리소스를 요청합니다.
+Pods request MIG devices using `nvidia.com/mig-<profile>` resources.
 
 ```yaml
 resources:
@@ -353,11 +349,11 @@ resources:
 
 ### Time-Slicing
 
-Time-Slicing은 시간 기반으로 GPU 컴퓨팅 시간을 분할하여 여러 Pod이 동일 GPU를 공유합니다. MIG와 달리 **모든 NVIDIA GPU에서 사용 가능**하지만, 워크로드 간 메모리 격리가 없습니다.
+Time-Slicing shares GPU computing time across multiple Pods based on time division. Unlike MIG, it's **available on all NVIDIA GPUs** but lacks inter-workload memory isolation.
 
-**구성 방법:**
+**Configuration:**
 
-GPU Operator의 ClusterPolicy에서 ConfigMap을 참조하여 Time-Slicing을 활성화합니다.
+GPU Operator's ClusterPolicy references a ConfigMap to enable Time-Slicing.
 
 ```yaml
 # Time-Slicing ConfigMap
@@ -373,56 +369,54 @@ data:
       timeSlicing:
         resources:
           - name: nvidia.com/gpu
-            replicas: 4    # 각 GPU를 4개 Pod이 공유
+            replicas: 4    # Each GPU shared by 4 Pods
 ```
 
-Pod에서는 일반 GPU 요청과 동일하게 `nvidia.com/gpu: 1`을 요청합니다. Time-Slicing이 활성화된 노드에서는 GPU 조각이 할당됩니다.
+Pods request `nvidia.com/gpu: 1` as usual. On Time-Slicing-enabled nodes, a GPU slice is allocated.
 
-### MIG vs Time-Slicing 비교
+### MIG vs Time-Slicing Comparison
 
 <ComparisonTable
-  headers={['항목', 'MIG', 'Time-Slicing']}
+  headers={['Item', 'MIG', 'Time-Slicing']}
   rows={[
-    { id: '1', cells: ['격리 수준', '하드웨어 격리 (메모리, SM, 캐시)', '소프트웨어 시분할 (격리 없음)'] },
-    { id: '2', cells: ['지원 GPU', 'A100, H100, H200, B200', '모든 NVIDIA GPU'] },
-    { id: '3', cells: ['최대 분할', '7개 인스턴스', '제한 없음 (성능 저하 비례)'] },
-    { id: '4', cells: ['성능 예측', '보장됨 (QoS)', '동시 워크로드 수에 따라 변동'] },
-    { id: '5', cells: ['메모리 안전', 'OOM이 다른 인스턴스에 영향 없음', 'OOM이 다른 워크로드에 영향'] },
-    { id: '6', cells: ['적합 환경', '프로덕션 추론, 멀티 테넌트', '개발/테스트, 배치 추론'], recommended: true }
+    { id: '1', cells: ['Isolation level', 'Hardware isolation (memory, SM, cache)', 'Software time-sharing (no isolation)'] },
+    { id: '2', cells: ['Supported GPUs', 'A100, H100, H200, B200', 'All NVIDIA GPUs'] },
+    { id: '3', cells: ['Max partitions', '7 instances', 'Unlimited (performance degrades proportionally)'] },
+    { id: '4', cells: ['Performance predictability', 'Guaranteed (QoS)', 'Varies with concurrent workload count'] },
+    { id: '5', cells: ['Memory safety', 'OOM does not affect other instances', 'OOM affects other workloads'] },
+    { id: '6', cells: ['Suitable environment', 'Production inference, multi-tenant', 'Dev/test, batch inference'], recommended: true }
   ]}
 />
 
-:::warning Time-Slicing 성능 특성
-- **컨텍스트 스위칭 오버헤드**: 약 1% 수준으로 미미
-- **동시 실행 성능 저하**: GPU 메모리와 컴퓨팅을 공유하므로 동시 워크로드 수에 따라 **50-100% 성능 저하**
-- **메모리 격리 없음**: 한 워크로드의 OOM이 다른 워크로드에 영향
-- **적합**: 배치 추론, 개발/테스트 환경 | **부적합**: 실시간 추론(SLA), 고성능 학습
+:::warning Time-Slicing Performance Characteristics
+- **Context switching overhead**: ~1% level, negligible
+- **Concurrent execution degradation**: **50-100% performance drop** as GPU memory and compute are shared
+- **No memory isolation**: One workload's OOM affects others
+- **Suitable**: Batch inference, dev/test environments | **Not suitable**: Real-time inference (SLA), high-performance training
 :::
 
 ---
 
-## Dynamo: 데이터센터 규모 추론 최적화
+## Dynamo: Datacenter-Scale Inference Optimization
 
-### 개요
+### Overview
 
-**NVIDIA Dynamo**는 데이터센터 규모의 LLM 추론을 최적화하는 오픈소스 프레임워크입니다. vLLM, SGLang, TensorRT-LLM을 백엔드로 지원합니다. 독립 벤치마크(SemiAnalysis InferenceX)에서 DeepSeek R1을 GB200 NVL72 + Dynamo(Disaggregated Serving + wide expert parallelism)로 서빙 시 Dynamo 미적용 B200 시스템 대비 GPU당 처리량 최대 7배를 기록했습니다(하드웨어가 다른 비교). NVIDIA 자체의 Disaggregated vs Aggregated 동일 하드웨어 비교는 1.4x~2.5x 수준입니다. Flash Indexer는 KV cache-aware 라우팅용 글로벌 인덱서(170M ops/s)로 Baseten 사례 기준 TTFT 2배 개선 효과가 보고되었습니다. NVIDIA Run:ai(2024-12-30 인수 완료)는 스케줄러 코어로 KAI Scheduler(Apache 2.0, 2025-04 오픈소스화)를 사용합니다.
+**NVIDIA Dynamo** is an open-source framework that optimizes datacenter-scale LLM inference. It supports vLLM, SGLang, and TensorRT-LLM as backends, achieving **up to 7x performance improvement** over baselines.
 
-:::info Dynamo v1.2.x (2026-06 기준)
-- **서빙 모드**: Aggregated + Disaggregated 동등 지원
-- **핵심 기술**: Flash Indexer, NIXL, KAI Scheduler, Planner, EPP
-- **배포 방식**: Kubernetes Operator + CRD (DGDR, DGD)
-- **최신 버전**: v1.2.1 (2026-06-13), multimodal serving, KV routing 개선
-- **라이선스**: Apache 2.0
-- **레포**: ai-dynamo/dynamo
+:::info Dynamo v1.0 GA (2026-03)
+- **Serving modes**: Aggregated + Disaggregated equally supported
+- **Core technologies**: Flash Indexer, NIXL, KAI Scheduler, Planner, EPP
+- **Deployment**: Kubernetes Operator + CRD (DGDR)
+- **License**: Apache 2.0
 :::
 
-### 핵심 아키텍처
+### Core Architecture
 
-Dynamo는 Aggregated Serving과 Disaggregated Serving 모두 지원합니다. Disaggregated 모드에서는 Prefill(프롬프트 처리)과 Decode(토큰 생성)를 분리하여 독립 스케일링합니다.
+Dynamo supports both Aggregated Serving and Disaggregated Serving. In Disaggregated mode, Prefill (prompt processing) and Decode (token generation) are separated for independent scaling.
 
 ```mermaid
 flowchart TD
-    CLIENT["요청"] --> ROUTER["Dynamo Router<br/>KV Cache-aware"]
+    CLIENT["Request"] --> ROUTER["Dynamo Router<br/>KV Cache-aware"]
 
     subgraph Prefill["Prefill Workers"]
         PF1["Prefill-1"]
@@ -435,12 +429,12 @@ flowchart TD
         DC3["Decode-3"]
     end
 
-    ROUTER -->|프롬프트| PF1
-    ROUTER -->|프롬프트| PF2
+    ROUTER -->|Prompt| PF1
+    ROUTER -->|Prompt| PF2
     PF1 -->|NIXL| DC1
     PF2 -->|NIXL| DC2
 
-    subgraph Infra["인프라"]
+    subgraph Infra["Infrastructure"]
         KVBM["KVBM<br/>GPU→CPU→SSD"]
         KAI["KAI Scheduler"]
         PLANNER["Planner"]
@@ -457,21 +451,21 @@ flowchart TD
     style KVBM fill:#ff9900,color:#fff
 ```
 
-### 핵심 컴포넌트
+### Core Components
 
-| 컴포넌트 | 역할 | 이점 |
-|----------|------|------|
-| **Disaggregated Serving** | Prefill/Decode 워커 분리 | 각 단계별 독립 스케일링, GPU 활용 극대화 |
-| **Flash Indexer** | Radix tree 기반 worker별 KV cache 인덱싱 | Prefix 매칭 최적화, KV 재사용률 극대화 |
-| **KVBM** | GPU → CPU → SSD 3-tier 캐시 | 메모리 효율 극대화, 대규모 컨텍스트 지원 |
-| **NIXL** | NVIDIA Inference Transfer Library | GPU 간 KV cache 초고속 전송 (NVLink/RDMA). Dynamo, llm-d, production-stack, aibrix 등이 공통 사용 |
-| **Planner** | SLO 기반 오토스케일링 | Profiling → SLO 목표 기반 자동 Prefill/Decode 스케일링 |
-| **EPP** | Endpoint Picker Protocol | K8s Gateway API와 네이티브 통합 |
-| **AIConfigurator** | 자동 TP/PP 추천 | 모델 크기, GPU 메모리, 네트워크 토폴로지 기반 최적 병렬화 |
+| Component | Role | Benefit |
+|-----------|------|---------|
+| **Disaggregated Serving** | Separate Prefill/Decode workers | Independent per-phase scaling, maximize GPU utilization |
+| **Flash Indexer** | Radix tree-based per-worker KV cache indexing | Prefix matching optimization, maximize KV reuse |
+| **KVBM** | GPU → CPU → SSD 3-tier cache | Maximize memory efficiency, support large-scale contexts |
+| **NIXL** | NVIDIA Inference Transfer Library | Ultra-fast GPU-to-GPU KV cache transfer (NVLink/RDMA). Shared by Dynamo, llm-d, production-stack, aibrix |
+| **Planner** | SLO-based autoscaling | Profiling → SLO target-based automatic Prefill/Decode scaling |
+| **EPP** | Endpoint Picker Protocol | Native integration with K8s Gateway API |
+| **AIConfigurator** | Auto TP/PP recommendation | Optimal parallelization based on model size, GPU memory, network topology |
 
-### llm-d와의 선택 가이드
+### llm-d Selection Guide
 
-llm-d와 Dynamo는 모두 LLM 추론 라우팅/스케줄링을 담당하며, **라우팅 레이어에서 경쟁**하므로 선택하여 사용합니다.
+llm-d and Dynamo both handle LLM inference routing/scheduling and **compete at the routing layer**, so you choose one.
 
 ```
 llm-d:    Client → llm-d Router → vLLM Workers
@@ -479,71 +473,71 @@ Dynamo:   Client → Dynamo Router → Prefill Workers → (NIXL) → Decode Wor
 ```
 
 <ComparisonTable
-  headers={['항목', 'llm-d', 'Dynamo']}
+  headers={['Item', 'llm-d', 'Dynamo']}
   rows={[
-    { id: '1', cells: ['아키텍처', 'Aggregated + Disaggregated', 'Aggregated + Disaggregated (동등 지원)'] },
-    { id: '2', cells: ['KV cache 라우팅', 'Prefix-aware', 'Prefix-aware + Flash Indexer (radix tree)'] },
-    { id: '3', cells: ['KV cache 전송', 'NIXL', 'NIXL (NVLink/RDMA)'] },
-    { id: '4', cells: ['Pod 스케줄링', 'K8s 기본 스케줄러', 'KAI Scheduler (GPU-aware)'] },
-    { id: '5', cells: ['오토스케일링', 'HPA/KEDA 연동', 'Planner (SLO 기반) + KEDA/HPA'] },
-    { id: '6', cells: ['백엔드', 'vLLM', 'vLLM, SGLang, TRT-LLM'] },
-    { id: '7', cells: ['복잡도', '낮음 — 기존 vLLM에 라우터 추가', '높음 — 전체 서빙 스택 교체'] },
-    { id: '8', cells: ['성숙도', 'v0.5+', 'v1.0 GA'] }
+    { id: '1', cells: ['Architecture', 'Aggregated + Disaggregated', 'Aggregated + Disaggregated (equal support)'] },
+    { id: '2', cells: ['KV Cache Routing', 'Prefix-aware', 'Prefix-aware + Flash Indexer (radix tree)'] },
+    { id: '3', cells: ['KV Cache Transfer', 'NIXL', 'NIXL (NVLink/RDMA)'] },
+    { id: '4', cells: ['Pod Scheduling', 'K8s default scheduler', 'KAI Scheduler (GPU-aware)'] },
+    { id: '5', cells: ['Autoscaling', 'HPA/KEDA integration', 'Planner (SLO-based) + KEDA/HPA'] },
+    { id: '6', cells: ['Backend', 'vLLM', 'vLLM, SGLang, TRT-LLM'] },
+    { id: '7', cells: ['Complexity', 'Low — add router to existing vLLM', 'High — replace entire serving stack'] },
+    { id: '8', cells: ['Maturity', 'v0.5+', 'v1.0 GA'] }
   ]}
 />
 
-| 시나리오 | 추천 |
-|----------|------|
-| 기존 vLLM에 라우팅만 추가 | **llm-d** |
-| 소규모~중규모 (GPU 8개 이하) | **llm-d** |
-| Gateway API 기반 K8s 네이티브 | **llm-d** |
-| 대규모 (GPU 16개+), 처리량 극대화 | **Dynamo** |
-| 긴 컨텍스트 (128K+) 워크로드 | **Dynamo** (3-tier KV cache) |
-| 빠른 도입, 낮은 운영 복잡도 | **llm-d** |
+| Scenario | Recommendation |
+|----------|---------------|
+| Add routing to existing vLLM | **llm-d** |
+| Small-medium scale (8 GPUs or less) | **llm-d** |
+| Gateway API-based K8s native | **llm-d** |
+| Large scale (16+ GPUs), maximize throughput | **Dynamo** |
+| Long context (128K+) workloads | **Dynamo** (3-tier KV cache) |
+| Fast adoption, low operational complexity | **llm-d** |
 
-:::tip 마이그레이션 경로
-llm-d로 시작해서 규모가 커지면 Dynamo로 전환하는 것이 현실적입니다. 둘 다 vLLM 백엔드와 NIXL KV 전송을 공유합니다. 핵심 차이는 Dynamo의 Flash Indexer, KAI Scheduler, Planner입니다. Dynamo 1.0은 llm-d를 내부 컴포넌트로 통합할 수 있어, 완전한 대안이라기보다 상위 집합으로 볼 수도 있습니다.
+:::tip Migration Path
+Starting with llm-d and transitioning to Dynamo as scale grows is practical. Both share vLLM backend and NIXL KV transfer. The key differences are Dynamo's Flash Indexer, KAI Scheduler, and Planner. Dynamo 1.0 can integrate llm-d as an internal component, making it viewable as a superset rather than a complete alternative.
 :::
 
 ---
 
 ## KAI Scheduler
 
-KAI Scheduler는 NVIDIA의 **GPU-aware Kubernetes Pod 스케줄러**입니다. 기본 kube-scheduler와 달리 GPU 토폴로지(NVLink, PCIe), MIG 슬라이스, Gang Scheduling을 인식하여 최적의 Pod 배치를 결정합니다.
+KAI Scheduler is NVIDIA's **GPU-aware Kubernetes Pod scheduler**. Unlike the default kube-scheduler, it recognizes GPU topology (NVLink, PCIe), MIG slices, and Gang Scheduling to determine optimal Pod placement.
 
-### 핵심 기능
+### Core Features
 
-| 기능 | 설명 |
-|------|------|
-| **GPU Topology Awareness** | NVLink/PCIe 연결 구조를 인식하여 통신 비용 최소화 |
-| **MIG-aware Scheduling** | MIG 슬라이스를 개별 스케줄링 단위로 인식 |
-| **Gang Scheduling** | 분산 학습에서 모든 Pod가 동시에 배치되도록 보장 |
-| **Fair-share Scheduling** | 네임스페이스/팀별 GPU 할당량 관리 |
-| **Preemption** | 우선순위 기반 Pod 교체 |
+| Feature | Description |
+|---------|-------------|
+| **GPU Topology Awareness** | Minimizes communication cost by recognizing NVLink/PCIe connection structure |
+| **MIG-aware Scheduling** | Recognizes MIG slices as individual scheduling units |
+| **Gang Scheduling** | Guarantees all Pods are placed simultaneously in distributed training |
+| **Fair-share Scheduling** | Per-namespace/team GPU quota management |
+| **Preemption** | Priority-based Pod replacement |
 
-### 설계 고려사항
+### Design Considerations
 
-- **ClusterPolicy 의존**: KAI Scheduler는 GPU Operator의 ClusterPolicy가 설치되어 있어야 동작합니다
-- **EKS Auto Mode**: GPU Operator 설치 후 Device Plugin만 레이블로 비활성화하면 KAI Scheduler 사용 가능
-- **kube-scheduler와의 관계**: KAI Scheduler는 kube-scheduler를 대체하지 않고, GPU 워크로드에 대해서만 스케줄링을 위임받는 Secondary Scheduler로 동작
+- **ClusterPolicy dependency**: KAI Scheduler requires GPU Operator's ClusterPolicy to be installed
+- **EKS Auto Mode**: KAI Scheduler usable after installing GPU Operator with Device Plugin disabled via label
+- **Relationship with kube-scheduler**: KAI Scheduler does not replace kube-scheduler; it operates as a Secondary Scheduler delegated only for GPU workloads
 
-:::info KAI Scheduler ≠ 오토스케일링
-KAI Scheduler는 **Pod를 어떤 노드에 배치할지** 결정하는 스케줄러입니다. Pod 수를 늘리는 오토스케일링(KEDA/HPA)이나 노드를 추가하는 프로비저닝(Karpenter)과는 별개의 역할입니다.
+:::info KAI Scheduler ≠ Autoscaling
+KAI Scheduler is a scheduler that decides **which node to place Pods on**. It is separate from autoscaling (KEDA/HPA) that increases Pod count or provisioning (Karpenter) that adds nodes.
 :::
 
 ---
 
-## 관련 문서
+## Related Documents
 
-- [GPU 리소스 관리](./gpu-resource-management.md) — Karpenter, KEDA, DRA, 비용 최적화
-- [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node 구성
-- [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — vLLM 기반 추론 엔진
-- [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — llm-d 상세 아키텍처
+- [GPU Resource Management](./gpu-resource-management.md) — Karpenter, KEDA, DRA, cost optimization
+- [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — Auto Mode + Karpenter + Hybrid Node configuration
+- [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — vLLM-based inference engine
+- [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — llm-d detailed architecture
 
-## 참고 자료
+## References
 
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
-- [NVIDIA Dynamo GitHub](https://github.com/ai-dynamo/dynamo) — v1.1.x, Apache 2.0
+- [NVIDIA Dynamo GitHub](https://github.com/ai-dynamo/dynamo)
 - [NIXL - NVIDIA Inference Transfer Library](https://github.com/ai-dynamo/nixl)
 - [KAI Scheduler](https://github.com/NVIDIA/KAI-Scheduler)

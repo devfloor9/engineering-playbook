@@ -1,6 +1,6 @@
 ---
-title: 데이터 소스 (Uni-President)
-description: 5 BU 통합 + OPENPOINT + 자사 SKU + 콜드체인 + 외부 4종
+title: Data Sources (Uni-President)
+description: 5-BU integration + OPENPOINT + own SKUs + cold chain + 4 external sources
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,52 +16,52 @@ tags:
 sidebar_label: 04. Data Sources
 ---
 
-## 1. 데이터 규모
+## 1. Data Scale
 
-| 항목 | 규모 |
+| Item | Scale |
 |---|---|
-| OPENPOINT 회원 | N=5,000 (PII 마스킹) |
-| 자사 SKU (統一·OwnBrand) | ~5,000 |
+| OPENPOINT members | N=5,000 (PII masked) |
+| Own SKUs (Uni-President · own brands) | ~5,000 |
 | CVSTransaction (7ELE) | ~300K |
-| HypermarketTransaction (까르푸) | ~80K |
-| CafeTransaction (Starbucks·Donut·KFC) | ~50K |
-| ColdChainSLA 로그 | ~50K |
-| BUTransfer 로그 | ~20K |
-| 합성 회원 | 49.5K |
+| HypermarketTransaction (Carrefour) | ~80K |
+| CafeTransaction (Starbucks · Donut · KFC) | ~50K |
+| ColdChainSLA logs | ~50K |
+| BUTransfer logs | ~20K |
+| Synthetic members | 49.5K |
 
 → ~900K Neptune edges
 
 ## 2. cohort_tag
 
-| 값 | 의미 |
+| Value | Meaning |
 |---|---|
-| `real` | PII 마스킹 자사 (BU별) |
-| `synth` | 합성 |
-| `external` | 소셜·기상·경제·경쟁사 |
+| `real` | PII-masked first-party (per BU) |
+| `synth` | Synthetic |
+| `external` | Social · weather · economic · competitor |
 
-## 3. 외부 데이터 4종
+## 3. External Data — 4 Sources
 
-### 3.1 소셜
-- Dcard · 小紅書 · 인스타 · X (대만)
+### 3.1 Social
+- Dcard · Xiaohongshu (小紅書) · Instagram · X (Taiwan)
 
-### 3.2 기상 (콜드체인 핵심)
-- 中央氣象署 — 폭염·태풍 시 콜드체인 SLA 영향
+### 3.2 Weather (Cold-Chain Critical)
+- Central Weather Administration (中央氣象署) — heatwave and typhoon impact on cold-chain SLA
 
-### 3.3 경제
-- DGBAS · 央行 · 物價 (소비자 카테고리)
+### 3.3 Economic
+- DGBAS · Central Bank of Taiwan (央行) · CPI (物價) for consumer categories
 
-### 3.4 경쟁사
-- 全家 (FamilyMart) · 萊爾富 (Hi-Life) · 大潤發 (RT-Mart)
+### 3.4 Competitor
+- FamilyMart (全家) · Hi-Life (萊爾富) · RT-Mart (大潤發)
 
-## 4. BU 간 회원 이동 합성 전략
+## 4. Synthesis Strategy for Cross-BU Member Migration
 
 ```python
-# 회원이 BU 가로지르는 패턴 합성
+# Synthesize patterns of members crossing BUs
 def gen_bu_crossover_member():
     bu_seq = []
-    home_bu = random.choice(['7-Eleven', 'Carrefour'])  # 거주 BU
+    home_bu = random.choice(['7-Eleven', 'Carrefour'])  # home BU
     bu_seq.append((home_bu, weekday_morning))
-    # 주말 까르푸 + 평일 Starbucks 혼합 패턴
+    # Mixed pattern: weekend Carrefour + weekday Starbucks
     if random.random() < 0.4:
         bu_seq.append(('Starbucks', weekday_afternoon))
     if random.random() < 0.3:
@@ -69,24 +69,24 @@ def gen_bu_crossover_member():
     return bu_seq
 ```
 
-## 5. 콜드체인 SLA 시즌 영향
+## 5. Seasonal Impact on Cold-Chain SLA
 
-| 이벤트 | 영향 |
+| Event | Impact |
 |---|---|
-| 폭염 (35℃+) | 우유·유제품 SLA 위반률 +40% |
-| 태풍 | 모든 SLA 위반 +60%, 일시 출하 중단 |
-| 春節 | 명절 휴무로 콜드체인 -3일 지연 |
+| Heatwave (35℃+) | Dairy SLA breach rate +40% |
+| Typhoon | All SLA breaches +60%; temporary shipment suspension |
+| Lunar New Year (春節) | -3-day cold-chain delay due to holiday closures |
 
-## 6. 적재 파이프라인
+## 6. Ingestion Pipeline
 
 ```mermaid
 graph LR
     BU1[7ELE OMS] --> Glue
-    BU2[까르푸 OMS] --> Glue
+    BU2[Carrefour OMS] --> Glue
     BU3[Starbucks/Donut/KFC] --> Glue
-    BU4[統一食品 ERP] --> Glue
-    BU5[Transnet 콜드체인] --> Glue
+    BU4[Uni-President Food ERP] --> Glue
+    BU5[Transnet Cold Chain] --> Glue
     OPENPOINT[OPENPOINT DW] --> Glue
     Glue --> S3 --> Mask --> SemPipe --> Neptune & OS
-    Ext[소셜·기상·경제·경쟁사] --> Glue
+    Ext[Social·Weather·Economic·Competitor] --> Glue
 ```

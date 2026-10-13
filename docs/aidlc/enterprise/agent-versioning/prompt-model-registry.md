@@ -1,64 +1,64 @@
 ---
-title: 프롬프트·모델 레지스트리
-description: Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management 비교 및 구축 가이드
-created: "2026-04-18"
+title: Prompt & Model Registry
+description: Comparison and implementation guide for Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management
+created: "2026-04-19"
 last_update:
-  date: 2026-10-13
-  author: YoungJoon Jeong
-reading_time: 12
+  date: 2026-09-19
+  author: devfloor9
+reading_time: 23
 tags:
   - prompt-registry
   - versioning
   - langfuse
   - bedrock
   - scope:enterprise
-sidebar_label: 프롬프트·모델 레지스트리
+sidebar_label: Prompt & Model Registry
 ---
 
-## 왜 프롬프트 레지스트리가 필요한가
+## Why Prompt Registry is Needed
 
-프롬프트와 모델 버전을 코드처럼 관리하는 중앙 저장소. 다음 문제를 해결합니다:
+Central repository managing prompt and model versions like code. Solves the following problems:
 
-- **버전 추적**: "어제 잘 됐는데 오늘 이상해요" → 어떤 프롬프트가 변경되었는지 추적
-- **환경별 배포**: staging/canary/production 환경마다 다른 버전 사용
-- **롤백**: 승인된 이전 버전으로 라벨이나 환경 설정을 되돌리고, 애플리케이션이 그 버전을 사용하는지와 오류율·지연이 회복됐는지 확인합니다.
-- **감사 증빙**: 금융·의료 규제 대응을 위한 변경 이력 보관
+- **Version Tracking**: "It worked yesterday but is strange today" → track which prompts changed
+- **Environment-specific Deployment**: Use different versions for staging/canary/production environments
+- **Rollback**: Restore an approved earlier version in the label or application configuration, then check that applications use it and that errors and latency have recovered.
+- **Audit Evidence**: Retain change history for financial/medical regulatory compliance
 
 ---
 
 ## Langfuse Prompt
 
-[Langfuse](https://langfuse.com/)는 self-hosted 가능한 LLMOps 플랫폼입니다. 프롬프트 레지스트리 기능:
+[Langfuse](https://langfuse.com/) is a self-hostable LLMOps platform. Prompt registry features:
 
-- **버전 관리**: 매 변경마다 자동 버전 증가(`v1`, `v2`, ...)
-- **라벨**: `production`, `staging`, `canary`로 환경별 라벨 부여
-- **Rollout 관리**: 특정 라벨을 특정 버전에 붙이면 애플리케이션은 라벨만 참조(`get_prompt("financial-analysis", label="production")`)
-- **Diff 보기**: 버전 간 변경 내용 시각화
-- **Access Log**: 어떤 세션이 어떤 프롬프트 버전을 사용했는지 추적
+- **Version Control**: Automatic version increment with each change (`v1`, `v2`, ...)
+- **Labels**: Apply environment-specific labels like `production`, `staging`, `canary`
+- **Rollout Management**: Applications reference only the label when a specific label is attached to a specific version (`get_prompt("financial-analysis", label="production")`)
+- **Diff View**: Visualize changes between versions
+- **Access Log**: Track which session used which prompt version
 
-아래 예제는 [Langfuse Python SDK 4.15.3](https://github.com/langfuse/langfuse-python/blob/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/_client/client.py#L4119-L4224) 기준입니다. 대상 프로젝트에 인증된 client로 새 버전을 등록하고, 반환값을 `candidate`에 보관합니다. 평가와 배포 승인은 등록 후 별도로 진행합니다.
+The example below uses [Langfuse Python SDK 4.15.3](https://github.com/langfuse/langfuse-python/blob/49b8f9e7f2767295c7b61809e943813d202d10ee/langfuse/_client/client.py#L4119-L4224). Register a version with a client authenticated to the intended project and save the response in `candidate`. Evaluation and release approval follow registration.
 
 ```python
 from langfuse import Langfuse
 
 client = Langfuse()
 
-# 프롬프트 버전 조회
+# Query prompt version
 prompt = client.get_prompt("financial-analysis", label="production")
-print(prompt.version)  # 예: 5
-print(prompt.prompt)   # 실제 텍스트
+print(prompt.version)  # Example: 5
+print(prompt.prompt)   # Actual text
 
-# staging 후보 등록
+# Register a staging candidate
 candidate = client.create_prompt(
     name="financial-analysis",
-    prompt="당신은 보수적 투자 자문가입니다...",
+    prompt="You are a conservative investment advisor...",
     labels=["staging"]
 )
 ```
 
-`candidate.name`과 `candidate.version`을 프로젝트 식별 정보 및 평가 기록과 함께 저장합니다. 다른 작성자가 중간에 새 버전을 만들 수 있으므로 “다음 버전은 6”이라고 가정하지 말고, 실제 반환된 버전을 평가합니다.
+Save `candidate.name` and `candidate.version` with the project identity and evaluation record. Another author may create a version in between, so evaluate the returned version instead of assuming that the next version is 6.
 
-배포 절차에서 평가 증거와 대상 프로젝트·이름·버전의 승인을 확인한 뒤 아래 함수를 호출합니다. `approved_name`과 `approved_version`에는 확인한 승인 기록의 값을 전달합니다.
+Have the release workflow verify evaluation evidence and approval for the exact project, name and version before calling the function below. Pass the name and version from that verified record as `approved_name` and `approved_version`.
 
 ```python
 # langfuse_prompt_promotion.py
@@ -80,13 +80,13 @@ def promote_evaluated_prompt(
     )
 ```
 
-이 함수가 검사하는 것은 후보와 승인 기록의 이름·버전 일치 여부입니다. 승인 기록의 진위, 대상 프로젝트, 동시에 들어오는 라벨 변경은 호출 측 배포 절차에서 확인하고 제어해야 합니다. 변경 후에는 라벨을 다시 읽고 아래 절차로 애플리케이션에 반영됐는지 확인합니다. API 오류가 나도 서버에서 변경이 적용됐을 수 있으므로, 재시도 전에 레지스트리 상태를 확인합니다.
+This function checks that the candidate's name and version match the approval record. The calling workflow must authenticate the approval, verify the target project and coordinate concurrent label changes. Read back the label afterward and check application propagation as described below. An API error can occur after the server applies a change, so reconcile registry state before retrying.
 
-**롤백 확인:** 라벨을 바꿔도 애플리케이션은 잠시 이전 프롬프트를 사용할 수 있습니다. [Langfuse의 프롬프트 캐시](https://langfuse.com/docs/prompt-management/features/caching)는 기본 TTL이 60초이며, 만료 후에도 백그라운드에서 새 값을 가져오는 동안 기존 값을 반환할 수 있습니다. 실제 반영 시점은 SDK 버전, TTL 설정, 갱신 실패, 대체 프롬프트(fallback), 이미 처리 중인 요청에 따라 달라집니다.
+**Rollback verification:** applications can continue using the previous prompt after a label changes. [Langfuse's prompt cache](https://langfuse.com/docs/prompt-management/features/caching) has a default TTL of 60 seconds and can return an expired entry while fetching a new value in the background. The deployed SDK version, TTL settings, failed refreshes, fallback prompts and requests already in progress affect when the change takes effect.
 
-아래 함수는 캐시를 거치지 않고 레지스트리에서 `production` 라벨의 버전을 읽습니다. 2026-09-19에 확인한 [`get_prompt` 구현](https://raw.githubusercontent.com/langfuse/langfuse-python/main/langfuse/_client/client.py)을 기준으로 작성했으므로, 사용할 SDK 버전을 고정하고 인자와 반환값을 확인합니다. 대상 프로젝트에 인증된 client와 변경 기록에서 승인한 복구 버전을 전달합니다.
+The function below reads the version assigned to `production` directly from the registry, bypassing its local cache. It uses the [`get_prompt` implementation](https://raw.githubusercontent.com/langfuse/langfuse-python/main/langfuse/_client/client.py) checked on 2026-09-19; pin your SDK version and verify its arguments and return value. Supply a client authenticated to the intended project and the recovery version from the approved change record.
 
-이 조회는 다른 프로세스의 캐시를 지우지 않습니다. 함수가 성공해도 애플리케이션이 복구 버전으로 요청을 처리하는지는 별도로 확인해야 합니다.
+This read does not clear other processes' caches. A successful result still requires a separate check that applications use the restored version to serve requests.
 
 ```python
 # registry_label_check.py
@@ -110,66 +110,66 @@ def confirm_registry_target(client, *, prompt_name, expected_version):
     }
 ```
 
-레지스트리를 확인한 뒤에는 배포 대상 애플리케이션 그룹별로 실제 사용한 버전과 요청 수·오류율·지연을 확인합니다. 처리 중인 작업과 대체 프롬프트의 동작도 살핍니다. 관측값이 없거나 오래되었으면 [롤백 계획](./governance-automation.md#롤백-계획-필수)의 종료 기준을 충족할 때까지 장애 대응을 계속합니다. 위 함수는 이 과정에서 레지스트리 조회만 담당합니다.
+Next, check the version used by each application group in the rollout, along with request counts, errors and latency. Inspect requests in progress and fallback behavior as well. When observations are missing or stale, continue incident response until the [rollback plan](./governance-automation.md#rollback-plan-required) exit criteria are met. The function above only performs the registry lookup.
 
-**장점**:
-- Self-hosted, RBAC, S3+KMS 백엔드 가능
-- Observability와 통합(trace에서 프롬프트 버전 자동 기록)
+**Advantages**:
+- Self-hosted, RBAC, S3+KMS backend capable
+- Integrated with observability (automatically record prompt version in trace)
 
-**단점**:
-- Python SDK 중심(TypeScript SDK는 있지만 기능 제한적)
-- UI는 단순(diff는 보이지만 승인 워크플로 없음)
+**Disadvantages**:
+- Python SDK-centric (TypeScript SDK exists but with limited features)
+- Simple UI (shows diff but no approval workflow)
 
 ---
 
 ## PromptLayer
 
-[PromptLayer](https://promptlayer.com/)는 SaaS 프롬프트 레지스트리입니다.
+[PromptLayer](https://promptlayer.com/) is a SaaS prompt registry.
 
-- **버전 태깅**: Git 스타일 태그(`v1.0`, `v1.1-alpha`)
-- **Visual Diff**: 두 버전 간 단어 단위 변경 강조
-- **A/B 실험**: 두 버전을 동시 배포하고 성능 비교
-- **Analytics**: 버전별 latency, 토큰 사용, 에러율 대시보드
+- **Version Tagging**: Git-style tags (`v1.0`, `v1.1-alpha`)
+- **Visual Diff**: Highlight word-level changes between versions
+- **A/B Experiments**: Deploy two versions simultaneously and compare performance
+- **Analytics**: Dashboard for latency, token usage, error rate by version
 
-**장점**:
-- 설치 없이 즉시 사용
-- 팀 협업 기능(댓글, 승인 워크플로)
+**Advantages**:
+- Ready to use without installation
+- Team collaboration features (comments, approval workflow)
 
-**단점**:
-- SaaS 전용(온프레미스 불가)
-- 데이터 주권 이슈(프롬프트가 외부 서버에 저장)
+**Disadvantages**:
+- SaaS only (no on-premises)
+- Data sovereignty issues (prompts stored on external servers)
 
 ---
 
 ## Braintrust Prompts
 
-[Braintrust](https://www.braintrust.dev/)는 평가(Evaluation) 플랫폼이지만 프롬프트 관리 기능도 제공합니다.
+[Braintrust](https://www.braintrust.dev/) is an evaluation platform that also provides prompt management features.
 
-- **Playground**: 프롬프트 작성 → 즉시 테스트 세트로 평가
-- **Versioning**: 자동 버전 증가 + commit message
-- **Datasets 연동**: 프롬프트 변경 시 자동으로 evaluation run 트리거
-- **Experimentation**: 두 프롬프트 버전을 side-by-side 비교
+- **Playground**: Write prompt → immediately evaluate with test set
+- **Versioning**: Automatic version increment + commit message
+- **Dataset Integration**: Automatically trigger evaluation run on prompt changes
+- **Experimentation**: Side-by-side comparison of two prompt versions
 
-**장점**:
-- 평가와 프롬프트 관리가 하나의 플랫폼
-- 매 변경마다 자동으로 품질 회귀 체크
+**Advantages**:
+- Evaluation and prompt management in one platform
+- Automatically check quality regression on every change
 
-**단점**:
-- 런타임 배포보다는 개발·테스트 단계에 강점
-- Production rollout 기능은 약함(직접 구현 필요)
+**Disadvantages**:
+- Strong in development/test stages rather than runtime deployment
+- Weak production rollout features (requires direct implementation)
 
 ---
 
 ## AWS Bedrock Prompt Management
 
-AWS Bedrock는 [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html) 기능을 제공합니다(2024년 11월 GA).
+AWS Bedrock provides [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html) features (GA November 2024).
 
-- **Prompt 버전**: `CreatePromptVersion`으로 정적 snapshot을 만들고 응답의 버전 ARN을 보존합니다.
-- **환경 매핑**: 애플리케이션 설정에 `PROD`나 `STAGING`이 사용할 버전 ARN을 저장합니다. 확인한 Bedrock Prompt management API 모델에는 `CreatePromptAlias`와 `UpdatePromptAlias` 작업이 없습니다.
-- **IAM 통합**: 사용할 프롬프트 API와 리소스에 필요한 권한을 구성하고 검증합니다.
-- **CloudTrail**: 지원되는 프롬프트 관리 API의 호출 기록을 남깁니다. 애플리케이션이 사용할 버전을 바꾸는 설정 변경은 해당 설정 시스템에서도 기록합니다.
+- **Prompt Versions**: Create a static snapshot with `CreatePromptVersion` and retain its returned version ARN.
+- **Environment Mapping**: Store `PROD`/`STAGING` → version ARN in the application's actual configuration system. The inspected Bedrock Prompt management API model has no `CreatePromptAlias` or `UpdatePromptAlias` operation.
+- **IAM Integration**: Configure and verify permissions for the actual prompt operations and resources.
+- **CloudTrail**: Audit supported prompt-management operations. Audit the separate configuration change that moves application traffic in that configuration system.
 
-아래 함수는 [CreatePromptVersion](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePromptVersion.html)을 호출하고 응답에 담긴 버전 ARN을 반환합니다. 대상 계정·리전에 인증된 `bedrock-agent` client와 프롬프트 생성·조회에서 받은 버전 없는 ARN을 전달합니다. 사람이 붙인 프롬프트 이름은 ARN의 ID 자리에 사용할 수 없습니다. 예제는 상용 파티션(`arn:aws`)의 ARN을 검사하며, 자격 증명과 권한 설정은 실행 전에 완료해야 합니다.
+The function below calls [CreatePromptVersion](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePromptVersion.html) and returns the version ARN from its response. Supply a `bedrock-agent` client authenticated to the intended account and Region, and the unversioned ARN returned by prompt creation or lookup. A prompt's human-readable name cannot replace the ID in that ARN. The example checks commercial-partition (`arn:aws`) ARNs; configure credentials and permissions before running it.
 
 ```python
 # bedrock_prompt_version.py
@@ -211,53 +211,53 @@ def snapshot_prompt(bedrock, prompt_arn, *, description, client_token):
     }
 ```
 
-`client_token`을 원래 요청과 함께 보관하고, 동일한 작업과 입력을 재시도할 때만 재사용합니다. 반환된 `version_arn`은 평가 결과·승인 기록과 함께 보관합니다.
+Save `client_token` with the original request and reuse it only when retrying the same operation and inputs. Keep the returned `version_arn` with the evaluation results and approval record.
 
-평가와 승인을 마치면 애플리케이션 설정의 `PROD`를 해당 ARN에 연결합니다. 설정 시스템에서 접근 권한과 동시 변경을 제어하고, 변경을 기록한 뒤 저장된 값을 다시 읽어 확인합니다. 위 함수는 후보 버전을 만드는 단계까지만 구현합니다. 롤백할 때도 이전에 승인한 ARN을 복원한 뒤 애플리케이션과 트래픽의 상태를 확인해야 합니다.
+After evaluation and approval, map `PROD` to that ARN in the application configuration. Use the configuration system to control access and concurrent changes, record the change, and read back the saved value. The function above implements candidate creation only. Rollback also requires restoring an approved ARN and checking application behavior and traffic health.
 
-**장점**:
-- AWS 네이티브, IAM/CloudTrail/KMS 통합
-- Lambda, Step Functions에서 직접 참조 가능
+**Advantages**:
+- AWS native, IAM/CloudTrail/KMS integration
+- Directly referenceable from Lambda, Step Functions
 
-**단점**:
-- Bedrock 모델 사용 전제(Claude, Llama 등)
-- self-hosted LLM(vLLM, llm-d)과는 별도 구성 필요
-
----
-
-## 비교표
-
-| 기능 | Langfuse | PromptLayer | Braintrust | Bedrock PM |
-|------|----------|-------------|------------|------------|
-| **배포 방식** | Self-hosted | SaaS | SaaS | AWS Managed |
-| **버전 관리** | ✅ | ✅ | ✅ | ✅ |
-| **라벨/Alias** | ✅ | ✅ | ❌ | 애플리케이션의 버전 ARN 매핑 |
-| **Visual Diff** | 기본 | ✅ | ✅ | ❌ |
-| **승인 워크플로** | ❌ | ✅ | ❌ | ❌(IAM으로 구현) |
-| **A/B 실험** | 수동 | ✅ | ✅ | 수동 |
-| **자동 평가 연동** | 가능(trace 기반) | ❌ | ✅ | 가능(Lambda) |
-| **데이터 주권** | ✅ | ❌ | ❌ | ✅(리전 내) |
-| **AIDLC 적합성** | **⭐ 높음** | 중간(SaaS) | 높음(Eval 중심) | 높음(Bedrock 전용) |
-
-**AIDLC 권장**: **Langfuse**(self-hosted 요구사항) 또는 **AWS Bedrock PM**(Bedrock 사용 시). PromptLayer/Braintrust는 SaaS 허용 시.
+**Disadvantages**:
+- Requires Bedrock model usage (Claude, Llama, etc.)
+- Requires separate configuration from self-hosted LLM (vLLM, llm-d)
 
 ---
 
-## 구축 가이드
+## Comparison Table
 
-### Langfuse Self-hosted 배포
+| Feature | Langfuse | PromptLayer | Braintrust | Bedrock PM |
+|---------|----------|-------------|------------|------------|
+| **Deployment Method** | Self-hosted | SaaS | SaaS | AWS Managed |
+| **Version Control** | ✅ | ✅ | ✅ | ✅ |
+| **Labels/Alias** | ✅ | ✅ | ❌ | Application-owned version-ARN mapping |
+| **Visual Diff** | Basic | ✅ | ✅ | ❌ |
+| **Approval Workflow** | ❌ | ✅ | ❌ | ❌(Implement with IAM) |
+| **A/B Experiments** | Manual | ✅ | ✅ | Manual |
+| **Auto Evaluation Integration** | Possible (trace-based) | ❌ | ✅ | Possible (Lambda) |
+| **Data Sovereignty** | ✅ | ❌ | ❌ | ✅(Within region) |
+| **AIDLC Suitability** | **⭐ High** | Medium (SaaS) | High (Eval-focused) | High (Bedrock only) |
 
-다음은 [chart 2.1.1](https://github.com/langfuse/langfuse-k8s/releases/tag/langfuse-2.1.1), appVersion `4.35.0`의 [values](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/values.yaml)를 사용한 신규 설치 예시입니다. 저장소 서비스는 미리 준비합니다. chart 1.x에서 업그레이드할 때는 별도의 마이그레이션 절차가 필요합니다. `.invalid` 주소와 예시 포트·리전은 배포할 환경의 값으로 바꿉니다.
+**AIDLC Recommendation**: **Langfuse** (self-hosted requirement) or **AWS Bedrock PM** (when using Bedrock). PromptLayer/Braintrust if SaaS is allowed.
 
-배포 전에 대상 Kubernetes context와 namespace(예: `langfuse`)를 정하고 기록합니다. 다음 의존성을 별도로 준비합니다.
+---
 
-- PostgreSQL에 `langfuse` 데이터베이스·사용자와 호환 스키마를 준비합니다.
-- Redis/Valkey에 사용할 사용자와 TLS endpoint를 준비하고 `noeviction` 정책을 설정합니다.
-- 외부 비클러스터 ClickHouse에 데이터베이스·사용자, HTTPS와 native TLS endpoint를 준비합니다.
-- S3 호환 버킷에 event·export·media prefix 접근 권한을 부여합니다. endpoint·리전·path-style 설정과 media의 브라우저 접근·CORS도 확인합니다.
-- release namespace에 `langfuse-runtime` Secret을 만들고 아래 설정에서 참조하는 키 8개를 넣습니다. 저장소 자격 증명, 64자리 16진수 encryption key, 안전하게 생성한 salt·NextAuth secret이 필요합니다. 애플리케이션 키는 재배포해도 유지합니다. Redis 비밀번호는 연결 URL에 들어가므로 특수문자의 인코딩 요구사항을 따릅니다.
+## Implementation Guide
 
-이 예시는 PostgreSQL과 ClickHouse의 자동 마이그레이션을 끕니다. 애플리케이션을 시작하기 전에 승인된 스키마 마이그레이션을 완료합니다. 각 서비스의 인증서 신뢰 설정도 확인합니다. PostgreSQL의 `sslmode=require`는 TLS를 요청하는 설정이며, 서버 인증서 검증 방식은 환경에 맞게 추가로 확인해야 합니다.
+### Langfuse Self-hosted Deployment
+
+This new-install example uses [chart 2.1.1](https://github.com/langfuse/langfuse-k8s/releases/tag/langfuse-2.1.1), appVersion `4.35.0` and its [versioned values](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/values.yaml). Provision the backing services first. An upgrade from chart 1.x needs a separate migration procedure. Replace the `.invalid` endpoints, example ports and region with settings reviewed for the deployment environment.
+
+Choose and record the target Kubernetes context and namespace (for example, `langfuse`) before deployment. Prepare these dependencies separately:
+
+- Prepare PostgreSQL with the `langfuse` database, user and compatible schema.
+- Prepare a Redis/Valkey user and TLS endpoint, and configure the `noeviction` policy.
+- Prepare an external, non-clustered ClickHouse database and user, with HTTPS and native TLS endpoints.
+- Grant access to the event, export and media prefixes in an S3-compatible bucket. Check endpoint, region and path-style settings, plus browser access and CORS for media.
+- Create the `langfuse-runtime` Secret in the release namespace with all eight keys referenced below. Supply backing-service credentials, a 64-hex-character encryption key, and securely generated salt and NextAuth secret. Preserve application keys across redeployments. The Redis password enters a connection URL, so follow the encoding requirements for special characters.
+
+This example disables automatic PostgreSQL and ClickHouse migrations. Complete the approved schema migrations before starting the application. Check certificate trust for each service as well. PostgreSQL's `sslmode=require` requests TLS; review server-certificate verification separately for the environment.
 
 ```yaml
 # langfuse-values.yaml
@@ -329,17 +329,17 @@ s3:
   mediaUpload: {enabled: true, prefix: "media/"}
 ```
 
-`deploy: false`로 PostgreSQL·Valkey·SeaweedFS·ClickHouse/Keeper의 chart 내부 배포를 끕니다. 외부 데이터베이스·사용자·버킷과 Secret은 앞서 준비한 것을 사용합니다.
+`deploy: false` disables the chart's bundled PostgreSQL, Valkey, SeaweedFS and ClickHouse/Keeper deployments. The application uses the external databases, users, buckets and Secret prepared earlier.
 
-공통 replica·resource 설정은 web과 worker Deployment 각각에 적용됩니다. 따라서 이 예시에는 web Pod 2개와 worker Pod 2개가 생기며, 리소스 값은 Pod 하나당 값입니다. 이 값은 측정된 권장 사양이 아니므로 부하에 맞게 조정합니다. 저장소 용량도 따로 산정합니다.
+The shared replica and resource settings apply to both the web and worker Deployments. This gives two web pods and two worker pods, with the listed resources allocated per pod. Adjust these example values for the workload; they are not measured sizing recommendations. Size the backing services separately.
 
-이 release에는 [template 검사](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/validations.yaml)가 있지만 최상위 `values.schema.json`은 없습니다. 정확히 이 chart를 기준으로 검토하고 배포 구성에서도 chart 버전을 고정합니다. Ingress·TLS 종료, 접근 정책, Secret 존재 여부, 연결, 스키마 호환성 및 애플리케이션 상태는 환경에서 추가 검증해야 합니다. 이 참조 구성은 오프라인으로만 검사했으며 Helm으로 설치하거나 렌더링하지 않았습니다.
+The release has [template checks](https://github.com/langfuse/langfuse-k8s/blob/7e60f0985d36f0d4f68c0e09fd5b6da9c362fdd4/charts/langfuse/templates/validations.yaml), but no top-level `values.schema.json`. Review against this exact chart and keep the chart version fixed in the deployment configuration. Ingress/TLS termination, access policy, Secret existence, connectivity, schema compatibility and application health still require environment validation. This reference was checked offline; it has not been installed or rendered with Helm.
 
-### Bedrock Prompt Management 설정
+### Bedrock Prompt Management Setup
 
-먼저 [CreatePrompt](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePrompt.html)로 초안을 만들고, 위의 `snapshot_prompt` 함수로 버전을 생성합니다. `defaultVariant`는 사용할 variant의 이름이며, 해당 variant에는 프롬프트 템플릿과 `modelId`, 추론 설정이 함께 저장됩니다.
+First create a draft with [CreatePrompt](https://docs.aws.amazon.com/bedrock/latest/APIReference/API_agent_CreatePrompt.html), then create a version with `snapshot_prompt` above. `defaultVariant` names the selected variant, which stores the template, `modelId` and inference settings together.
 
-대상 계정·리전에서 승인된 모델 또는 inference profile ID를 전달합니다. 선택한 모델이 `TEXT` 템플릿과 예시의 `temperature=0.2`, `maxTokens=1024`를 지원하는지 확인합니다. 프롬프트 생성이 성공해도 모델 호출 권한, 추론 호환성, 응답 품질은 별도로 검증해야 합니다.
+Supply the model or inference-profile ID approved for the intended account and Region. Confirm that the model supports the `TEXT` template and the example's `temperature=0.2` and `maxTokens=1024` settings. Successful prompt creation still requires separate checks for model access, inference compatibility and response quality.
 
 ```python
 # bedrock_prompt_setup.py
@@ -377,25 +377,25 @@ def create_initial_prompt_version(
     )
 ```
 
-`prompt_text`에는 “당신은 금융 분석 전문가입니다...”처럼 검토한 금융 분석 지침을 전달합니다. 실행 전에 `create_token`과 `snapshot_token`을 각각 원래 요청 입력과 함께 저장합니다. 반환값을 `candidate`에 보관했다면 `candidate["version_arn"]`을 `PROD` 설정안에 사용합니다. 버전 번호를 `1`로 고정하지 않고, 실제 반환된 버전을 평가·승인한 뒤 배포합니다.
+Pass the reviewed financial-analysis instruction as `prompt_text`, for example “You are a financial analysis expert...”. Save separate `create_token` and `snapshot_token` values with their original request inputs before execution. If you store the result in `candidate`, use `candidate["version_arn"]` in the proposed `PROD` configuration. Evaluate and approve the returned version before deployment instead of hardcoding version `1`.
 
-버전 생성이 실패해도 초안은 이미 만들어졌을 수 있습니다. 원래 요청과 토큰을 보관하고 현재 상태를 확인한 후 재시도합니다. 두 API 호출 전체가 한 번에 성공하거나 취소되는 것은 아닙니다.
+If version creation fails, the draft may already exist. Keep the original inputs and tokens, and check the current state before retrying. The two API calls do not succeed or roll back as a single operation.
 
 ---
 
-## 참고 자료
+## References
 
 - **Langfuse Prompts**: [langfuse.com/docs/prompts](https://langfuse.com/docs/prompts)
 - **PromptLayer**: [promptlayer.com](https://promptlayer.com/)
 - **Braintrust Prompts**: [braintrust.dev/docs/guides/prompts](https://www.braintrust.dev/docs/guides/prompts)
-- **AWS Bedrock Prompt Management**: [AWS 문서](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html)
+- **AWS Bedrock Prompt Management**: [AWS Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html)
 
 ---
 
-## 다음 단계
+## Next Steps
 
-프롬프트 레지스트리를 구축했다면:
+Once you've built the prompt registry:
 
-1. **[배포 전략](./deployment-strategies.md)** — Canary/Shadow/A-B 전략 선택 및 구현
-2. **[거버넌스·자동화](./governance-automation.md)** — 자동 회귀 감지 및 롤백 체계 구축
-3. **[Evaluation Framework](../../toolchain/evaluation-framework.md)** — Golden Dataset 기반 평가 연동
+1. **[Deployment Strategies](./deployment-strategies.md)** — Select and implement Canary/Shadow/A-B strategies
+2. **[Governance & Automation](./governance-automation.md)** — Build automatic regression detection and rollback system
+3. **[Evaluation Framework](../../toolchain/evaluation-framework.md)** — Integrate Golden Dataset-based evaluation

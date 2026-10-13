@@ -1,11 +1,11 @@
 ---
-title: EKS 기반 MLOps 파이프라인 구축
-description: Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리
+title: MLOps Pipeline on EKS
+description: End-to-end ML lifecycle management with Kubeflow + MLflow + vLLM + ArgoCD GitOps
 created: "2026-02-11"
 last_update:
-  date: 2026-09-22
-  author: YoungJoon Jeong
-reading_time: 6
+  date: "2026-07-13"
+  author: devfloor9
+reading_time: 8
 tags:
   - mlops
   - kubeflow
@@ -17,7 +17,7 @@ tags:
   - eks
   - ml-pipeline
   - scope:impl
-sidebar_label: MLOps 파이프라인
+sidebar_label: MLOps Pipeline
 sidebar_position: 3
 category: genai-aiml
 ---
@@ -25,72 +25,72 @@ category: genai-aiml
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 import { PipelineComponents, GitOpsDeployment } from '@site/src/components/MlOpsTables';
 
-## 개요
+## Overview
 
-MLOps는 머신러닝 모델의 개발, 배포, 운영을 자동화하고 표준화하는 실천 방법론입니다. 이 문서에서는 Amazon EKS 환경에서 Kubeflow Pipelines, MLflow, vLLM 모델 서빙, ArgoCD GitOps 배포를 활용하여 데이터 준비부터 모델 서빙까지 엔드투엔드 ML 라이프사이클을 구축하는 방법을 다룹니다.
+MLOps is a set of practices that automate and standardize the development, deployment, and operation of machine learning models. This document covers how to build an end-to-end ML lifecycle from data preparation to model serving in an Amazon EKS environment, utilizing Kubeflow Pipelines, MLflow, vLLM model serving, and ArgoCD GitOps deployment.
 
-### 주요 목표
+### Key Objectives
 
-- **자동화**: 데이터 수집부터 모델 배포까지 자동화된 파이프라인 구축
-- **실험 추적**: MLflow를 통한 체계적인 실험 관리 및 모델 버전 관리
-- **확장 가능한 서빙**: vLLM 기반 고성능 모델 서빙 + ArgoCD GitOps 배포
-- **GPU 최적화**: Karpenter를 활용한 동적 GPU 리소스 관리
+- **Full Automation**: Build automated pipelines from data collection to model deployment
+- **Experiment Tracking**: Systematic experiment management and model version control via MLflow
+- **Scalable Serving**: High-performance model serving with vLLM + ArgoCD GitOps deployment
+- **GPU Optimization**: Dynamic GPU resource management using Karpenter
 
 ---
 
-## MLOps 아키텍처 개요
+## MLOps Architecture Overview
 
-### 엔드투엔드 ML 라이프사이클
+### End-to-End ML Lifecycle
 
 ```mermaid
 flowchart LR
-    subgraph Data["데이터 계층"]
+    subgraph Data["Data Layer"]
         S3[S3<br/>Data Lake]
         RDS[(RDS/Aurora<br/>Feature Store)]
     end
 
-    subgraph Dev["개발 환경"]
+    subgraph Dev["Development Environment"]
         NOTEBOOK[Jupyter<br/>Notebooks]
         EXPERIMENT[MLflow<br/>Tracking]
     end
 
-    subgraph Training["학습 파이프라인"]
-        DATA_PREP[데이터<br/>준비]
-        FEATURE_ENG[피처<br/>엔지니어링]
-        TRAIN[모델<br/>학습]
-        EVAL[모델<br/>평가]
-        REGISTER[모델<br/>레지스트리]
+    subgraph Training["Training Pipeline"]
+        DATA_PREP[Data<br/>Preparation]
+        FEATURE_ENG[Feature<br/>Engineering]
+        TRAIN[Model<br/>Training]
+        EVAL[Model<br/>Evaluation]
+        REGISTER[Model<br/>Registry]
     end
 
-    subgraph Serving["서빙 계층"]
+    subgraph Serving["Serving Layer"]
         VLLM[vLLM<br/>Model Server]
         ARGOCD[ArgoCD<br/>GitOps Deploy]
         LB[Load Balancer<br/>Ingress]
     end
 
-    subgraph Monitor["모니터링"]
+    subgraph Monitor["Monitoring"]
         PROMETHEUS[Prometheus]
         GRAFANA[Grafana]
         DRIFT[Drift<br/>Detection]
     end
 
-    S3 -->|원본 데이터| DATA_PREP
-    RDS -->|피처 데이터| FEATURE_ENG
+    S3 -->|Raw data| DATA_PREP
+    RDS -->|Feature data| FEATURE_ENG
     NOTEBOOK --> EXPERIMENT
-    EXPERIMENT -->|실험 추적| TRAIN
+    EXPERIMENT -->|Experiment tracking| TRAIN
 
     DATA_PREP --> FEATURE_ENG
     FEATURE_ENG --> TRAIN
     TRAIN --> EVAL
-    EVAL -->|검증 통과| REGISTER
+    EVAL -->|Validation passed| REGISTER
 
-    REGISTER -->|모델 등록| ARGOCD
-    ARGOCD -->|GitOps 배포| VLLM
+    REGISTER -->|Model registered| ARGOCD
+    ARGOCD -->|GitOps deploy| VLLM
     VLLM --> LB
 
-    VLLM -->|메트릭| PROMETHEUS
+    VLLM -->|Metrics| PROMETHEUS
     PROMETHEUS --> GRAFANA
-    VLLM -->|예측 데이터| DRIFT
+    VLLM -->|Prediction data| DRIFT
 
     style Data fill:#569a31
     style Dev fill:#ffd93d
@@ -99,48 +99,46 @@ flowchart LR
     style Monitor fill:#9c27b0
 ```
 
-### 주요 컴포넌트 {#핵심-컴포넌트}
+### Core Components
 
 <PipelineComponents />
 
 ---
 
-## Kubeflow Pipelines 아키텍처
+## Kubeflow Pipelines Architecture
 
-### Kubeflow 설치
+### Kubeflow Installation (AWS Distribution)
 
-:::caution awslabs/kubeflow-manifests 유지관리 중단
-awslabs/kubeflow-manifests는 2023-09 이후 업데이트가 중단되었습니다 (마지막 릴리스 v1.7.0-aws-b1.0.3, Kubeflow 1.8+ 미지원). 신규 설치는 동작하지 않으며 kubeflow.org 공식 배포판 목록에서도 제외되었습니다. EKS에서 Kubeflow를 사용하려면 upstream [kubeflow/manifests](https://github.com/kubeflow/manifests) (현행 1.11)를 직접 배포하거나 다른 유지관리 배포판을 사용하세요.
-:::
+AWS provides the Kubeflow on AWS distribution, offering an EKS-integrated configuration.
 
-> 배포 가이드는 [Kubeflow 공식 설치 문서](https://www.kubeflow.org/docs/started/installing-kubeflow/)를 참조하세요.
+> Refer to the [Kubeflow on AWS official documentation](https://awslabs.github.io/kubeflow-manifests/) for deployment guides.
 
-### Kubeflow 아키텍처
+### Kubeflow Architecture
 
 ```mermaid
 flowchart TB
     UI[Central Dashboard<br/>Web UI]
 
-    subgraph Pipelines["파이프라인"]
+    subgraph Pipelines["Pipelines"]
         KFP_API[API Server]
         KFP_ENGINE[Argo<br/>Workflows]
         KFP_DB[(MySQL<br/>Metadata)]
     end
 
-    subgraph Notebooks["노트북"]
+    subgraph Notebooks["Notebooks"]
         JUPYTER[Jupyter<br/>Notebooks]
     end
 
-    subgraph Training["학습"]
+    subgraph Training["Training"]
         TRAINING_OP[Training Op<br/>TFJob/PyTorch]
     end
 
-    subgraph Serving["서빙 & 배포"]
+    subgraph Serving["Serving & Deployment"]
         VLLM_SERVE[vLLM]
         ARGOCD_DEPLOY[ArgoCD]
     end
 
-    subgraph Metadata["메타데이터"]
+    subgraph Metadata["Metadata"]
         MLMD[ML Metadata]
     end
 
@@ -160,9 +158,9 @@ flowchart TB
     style Metadata fill:#9c27b0
 ```
 
-### Kubeflow Pipelines 컴포넌트 작성
+### Writing Kubeflow Pipelines Components
 
-Kubeflow Pipelines는 Python SDK를 통해 재사용 가능한 컴포넌트를 정의합니다.
+Kubeflow Pipelines defines reusable components through the Python SDK.
 
 ```python
 # pipeline_components.py
@@ -178,24 +176,24 @@ def data_preparation(
     output_dataset: Output[Dataset],
     train_split: float = 0.8
 ):
-    """데이터 준비 및 전처리 컴포넌트"""
+    """Data preparation and preprocessing component"""
     import pandas as pd
     import boto3
     from sklearn.model_selection import train_test_split
     
-    # S3에서 데이터 로드
+    # Load data from S3
     s3 = boto3.client('s3')
     bucket, key = s3_input_path.replace("s3://", "").split("/", 1)
     obj = s3.get_object(Bucket=bucket, Key=key)
     df = pd.read_csv(obj['Body'])
     
-    # 데이터 전처리
+    # Data preprocessing
     df = df.dropna().drop_duplicates()
     
-    # Train/Test 분할
+    # Train/Test split
     train_df, test_df = train_test_split(df, train_size=train_split, random_state=42)
     
-    # 출력 저장
+    # Save output
     output_path = output_dataset.path
     train_df.to_csv(f"{output_path}/train.csv", index=False)
     test_df.to_csv(f"{output_path}/test.csv", index=False)
@@ -214,7 +212,7 @@ def model_training(
     learning_rate: float = 0.001,
     epochs: int = 10
 ):
-    """모델 학습 컴포넌트 (PyTorch)"""
+    """Model training component (PyTorch)"""
     import pandas as pd
     import torch
     import torch.nn as nn
@@ -224,11 +222,11 @@ def model_training(
     mlflow.set_tracking_uri(mlflow_tracking_uri)
     mlflow.set_experiment(experiment_name)
     
-    # 데이터 로드
+    # Load data
     X_train = pd.read_csv(f"{input_features.path}/X_train.csv").values
     y_train = pd.read_csv(f"{input_features.path}/y_train.csv").values.ravel()
     
-    # 모델 정의 (간단한 예시)
+    # Model definition (simple example)
     class SimpleNN(nn.Module):
         def __init__(self, input_dim):
             super().__init__()
@@ -244,11 +242,11 @@ def model_training(
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
-    # MLflow 실험 시작
+    # Start MLflow experiment
     with mlflow.start_run():
         mlflow.log_params({"learning_rate": learning_rate, "epochs": epochs})
         
-        # 학습 루프
+        # Training loop
         for epoch in range(epochs):
             optimizer.zero_grad()
             outputs = model(torch.FloatTensor(X_train))
@@ -257,12 +255,12 @@ def model_training(
             optimizer.step()
             mlflow.log_metric("train_loss", loss.item(), step=epoch)
         
-        # 모델 저장
+        # Save model
         torch.save(model.state_dict(), f"{output_model.path}/model.pth")
         mlflow.pytorch.log_model(model, "model")
 ```
 
-### 파이프라인 정의
+### Pipeline Definition
 
 ```python
 # ml_pipeline.py
@@ -277,10 +275,10 @@ def ml_pipeline(
     mlflow_tracking_uri: str = "http://mlflow-server.mlflow.svc.cluster.local:5000",
     experiment_name: str = "eks-ml-experiment"
 ):
-    # 1. 데이터 준비
+    # 1. Data preparation
     data_prep_task = data_preparation(s3_input_path=s3_input_path)
     
-    # 2. 모델 학습 (GPU 노드에서 실행)
+    # 2. Model training (run on GPU node)
     train_task = model_training(
         input_features=data_prep_task.outputs["output_dataset"],
         mlflow_tracking_uri=mlflow_tracking_uri,
@@ -294,39 +292,39 @@ def ml_pipeline(
 
 ---
 
-## MLflow 통합
+## MLflow Integration
 
-### MLflow 아키텍처
+### MLflow Architecture
 
-MLflow는 ML 실험 추적, 모델 레지스트리, 모델 배포를 위한 오픈소스 플랫폼입니다.
+MLflow is an open-source platform for ML experiment tracking, model registry, and model deployment.
 
 ```mermaid
 flowchart TB
-    subgraph Clients["클라이언트"]
+    subgraph Clients["Clients"]
         NOTEBOOK[Jupyter<br/>Notebooks]
         PIPELINE[Kubeflow<br/>Pipelines]
         CICD[CI/CD<br/>Workflows]
     end
 
-    subgraph MLflow["MLflow 플랫폼"]
-        UI[MLflow UI<br/>웹 인터페이스]
+    subgraph MLflow["MLflow Platform"]
+        UI[MLflow UI<br/>Web Interface]
         API[REST API<br/>Tracking]
-        BACKEND[(PostgreSQL<br/>메타데이터)]
-        S3[S3 Bucket<br/>모델 아티팩트]
-        REGISTRY[Model Registry<br/>버전 관리]
+        BACKEND[(PostgreSQL<br/>Metadata)]
+        S3[S3 Bucket<br/>Model Artifacts]
+        REGISTRY[Model Registry<br/>Versioning]
     end
 
-    NOTEBOOK & PIPELINE & CICD -->|실험 로깅| API
+    NOTEBOOK & PIPELINE & CICD -->|Experiment logging| API
     API --> BACKEND
     API --> S3
     API --> REGISTRY
-    UI -->|조회| API
+    UI -->|Query| API
 
     style Clients fill:#ffd93d
     style MLflow fill:#ff9900
 ```
 
-### MLflow 배포 YAML
+### MLflow Deployment YAML
 
 ```yaml
 apiVersion: apps/v1
@@ -347,7 +345,7 @@ spec:
       serviceAccountName: mlflow-sa
       containers:
         - name: mlflow
-          image: ghcr.io/mlflow/mlflow:v3.14.0  # 2026-06-17 릴리스, 최신 안정 버전
+          image: ghcr.io/mlflow/mlflow:v2.10.2
           ports:
             - name: http
               containerPort: 5000
@@ -397,27 +395,27 @@ spec:
 
 ---
 
-## GitOps 배포 패턴 비교
+## GitOps Deployment Pattern Comparison
 
-### ArgoCD vs Flux vs 수동 배포 비교
+### ArgoCD vs Flux vs Manual Deployment
 
 <GitOpsDeployment />
 
-### ArgoCD GitOps 배포 아키텍처
+### ArgoCD GitOps Deployment Architecture
 
 ```mermaid
 flowchart LR
-    GIT[Git Repository<br/>매니페스트 저장소]
+    GIT[Git Repository<br/>Manifest Store]
 
-    subgraph ArgoCD["ArgoCD 컨트롤 플레인"]
-        REPO_SERVER[Repo Server<br/>매니페스트 렌더링]
+    subgraph ArgoCD["ArgoCD Control Plane"]
+        REPO_SERVER[Repo Server<br/>Manifest Rendering]
         APP_CONTROLLER[Application<br/>Controller]
         API_SERVER[API Server<br/>+ Web UI]
     end
 
-    subgraph Target["EKS 클러스터"]
+    subgraph Target["EKS Cluster"]
         VLLM_DEPLOY[vLLM<br/>Deployment]
-        HPA[HPA<br/>오토스케일링]
+        HPA[HPA<br/>Autoscaling]
         SVC[Service<br/>Ingress]
     end
 
@@ -426,18 +424,18 @@ flowchart LR
     APP_CONTROLLER -->|Sync| VLLM_DEPLOY
     APP_CONTROLLER -->|Sync| HPA
     APP_CONTROLLER -->|Sync| SVC
-    API_SERVER -->|관리| APP_CONTROLLER
+    API_SERVER -->|Manage| APP_CONTROLLER
 
     style ArgoCD fill:#326ce5
     style Target fill:#9c27b0
     style GIT fill:#ff9900
 ```
 
-### ArgoCD 설치 및 설정
+### ArgoCD Installation and Configuration
 
-> 배포 가이드는 [ArgoCD 공식 문서](https://argo-cd.readthedocs.io/en/stable/getting_started/)를 참조하세요.
+> Refer to the [ArgoCD official documentation](https://argo-cd.readthedocs.io/en/stable/getting_started/) for deployment guides.
 
-### ArgoCD Application 예제 (vLLM 모델 서빙 배포)
+### ArgoCD Application Example (vLLM Model Serving Deployment)
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -492,7 +490,7 @@ spec:
           selfHeal: true
 ```
 
-### vLLM 모델 서빙 Deployment 예제
+### vLLM Model Serving Deployment Example
 
 ```yaml
 apiVersion: apps/v1
@@ -514,13 +512,13 @@ spec:
     spec:
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.23.0
+          image: vllm/vllm-openai:v0.18.2
           ports:
             - name: http
               containerPort: 8000
           args:
             - --model
-            - meta-llama/Meta-Llama-3-70B-Instruct  # 실제 HuggingFace 리포지토리 ID (Llama-3-70B-Instruct는 존재하지 않음)
+            - meta-llama/Llama-3-70B-Instruct
             - --tensor-parallel-size
             - "4"
             - --max-model-len
@@ -560,35 +558,35 @@ spec:
 
 ---
 
-## Argo Workflows CI/CD 통합
+## Argo Workflows CI/CD Integration
 
-### Argo Workflows 아키텍처
+### Argo Workflows Architecture
 
 ```mermaid
 flowchart LR
-    GIT[Git Repository<br/>모델 코드]
+    GIT[Git Repository<br/>Model Code]
     TRIGGER[Webhook<br/>Trigger]
 
     subgraph Argo["Argo Workflows"]
         WORKFLOW[Workflow<br/>Controller]
-        BUILD[빌드<br/>컨테이너]
-        TRAIN[모델<br/>학습]
-        VALIDATE[모델<br/>검증]
-        DEPLOY[ArgoCD<br/>GitOps 배포]
+        BUILD[Build<br/>Container]
+        TRAIN[Model<br/>Training]
+        VALIDATE[Model<br/>Validation]
+        DEPLOY[ArgoCD<br/>GitOps Deploy]
     end
 
     VLLM_PROD[vLLM<br/>Production]
 
-    GIT -->|코드 푸시| TRIGGER
+    GIT -->|Code push| TRIGGER
     TRIGGER --> WORKFLOW
     WORKFLOW --> BUILD --> TRAIN --> VALIDATE --> DEPLOY
-    DEPLOY -->|서빙 시작| VLLM_PROD
+    DEPLOY -->|Start serving| VLLM_PROD
 
     style Argo fill:#4285f4
     style VLLM_PROD fill:#326ce5
 ```
 
-### Argo Workflow 예제
+### Argo Workflow Example
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -664,13 +662,13 @@ spec:
         image: python:3.10
         command: [python]
         source: |
-          # 검증 로직 (간소화)
+          # Validation logic (simplified)
           accuracy = 0.95
           print("passed" if accuracy >= 0.90 else "failed")
     
     - name: argocd-deployment
       script:
-        image: quay.io/argoproj/argocd:v3.4.4  # 2026-06-18 릴리스 (공식 레지스트리, 패치 단위 태그 필수)
+        image: argoproj/argocd:v2.13
         command: [sh]
         source: |
           argocd app sync vllm-{{workflow.parameters.model-name}} --force
@@ -679,19 +677,19 @@ spec:
 
 ---
 
-## GPU 리소스 스케줄링 (Karpenter)
+## GPU Resource Scheduling (Karpenter)
 
-Karpenter는 GPU 워크로드를 위한 동적 노드 프로비저닝을 제공합니다. Pending Pod를 감지하면 적합한 GPU 인스턴스를 자동으로 선택하고 프로비저닝합니다.
+Karpenter provides dynamic node provisioning for GPU workloads. When it detects Pending Pods, it automatically selects and provisions appropriate GPU instances.
 
-:::info Karpenter 상세 설정
-NodePool 구성, Spot 전략, Consolidation 정책, GPU 인스턴스 비교는 [GPU 리소스 관리](../../model-serving/gpu-infrastructure/gpu-resource-management.md)를 참조하세요.
+:::info Detailed Karpenter Configuration
+For NodePool configuration, Spot strategies, Consolidation policies, and GPU instance comparisons, refer to [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md).
 :::
 
 ---
 
-## 엔드투엔드 파이프라인 예제
+## End-to-End Pipeline Example
 
-### 전체 워크플로우
+### Complete Workflow
 
 ```python
 # complete_ml_workflow.py
@@ -706,10 +704,10 @@ def production_ml_pipeline(
     model_name: str = "fraud-detection",
     experiment_name: str = "fraud-detection-prod"
 ):
-    # 1. 데이터 준비
+    # 1. Data preparation
     data_prep = data_preparation(s3_input_path=data_source)
     
-    # 2. 모델 학습 (GPU)
+    # 2. Model training (GPU)
     training = model_training(
         input_features=data_prep.outputs["output_dataset"],
         mlflow_tracking_uri="http://mlflow-server.mlflow.svc.cluster.local:5000",
@@ -718,7 +716,7 @@ def production_ml_pipeline(
     training.set_gpu_limit(1)
     training.add_node_selector_constraint("karpenter.sh/capacity-type", "spot")
     
-    # 3. ArgoCD GitOps 배포
+    # 3. ArgoCD GitOps deployment
     deployment = deploy_via_argocd(
         model_name=model_name,
         model_uri=training.outputs["output_model"].uri
@@ -727,35 +725,35 @@ def production_ml_pipeline(
 
 ---
 
-## 요약
+## Summary
 
-EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, vLLM, ArgoCD를 통합하여 데이터 수집부터 배포까지 자동화된 ML 라이프사이클을 제공합니다.
+The EKS-based MLOps pipeline integrates Kubeflow, MLflow, vLLM, and ArgoCD to provide a fully automated ML lifecycle.
 
-### 요약 포인트 {#핵심-포인트}
+### Key Points
 
-1. **Kubeflow Pipelines**: 재사용 가능한 컴포넌트 기반 ML 워크플로우
-2. **MLflow**: 실험 추적 및 모델 레지스트리로 거버넌스 강화
-3. **vLLM**: 고성능 LLM 서빙 (PagedAttention, Prefix Caching)
-4. **ArgoCD GitOps**: 선언적 배포, 자동 동기화, 원클릭 롤백
-5. **Karpenter**: GPU 리소스 동적 프로비저닝으로 비용 최적화
-6. **Argo Workflows**: CI/CD 자동화로 배포 주기 단축
+1. **Kubeflow Pipelines**: Reusable component-based ML workflows
+2. **MLflow**: Strengthened governance through experiment tracking and model registry
+3. **vLLM**: High-performance LLM serving (PagedAttention, Prefix Caching)
+4. **ArgoCD GitOps**: Declarative deployment, auto-sync, one-click rollback
+5. **Karpenter**: Cost optimization through dynamic GPU resource provisioning
+6. **Argo Workflows**: Shortened deployment cycles through CI/CD automation
 
-### 다음 단계
+### Next Steps
 
-- [커스텀 모델 파이프라인](./custom-model-pipeline.md) - LoRA Fine-tuning 학습 파이프라인 (본 문서의 학습 단계 상세)
-- [커스텀 모델 배포](./custom-model-deployment.md) - GLM-5 등 대형 모델 EKS 배포 실전 가이드
-- [Continuous Training Pipeline](./continuous-training/index.md) - 트레이스 기반 재학습·Canary 롤아웃 자동화
-- [SageMaker-EKS 통합](../integrations/sagemaker-eks-integration.md) - 하이브리드 ML 아키텍처
-- [GPU 리소스 관리](../../model-serving/gpu-infrastructure/gpu-resource-management.md) - GPU 클러스터 최적화
-- [모델 모니터링](../../operations-mlops/observability/agent-monitoring.md) - 프로덕션 모델 관찰성
+- [Custom Model Pipeline](./custom-model-pipeline.md) - LoRA fine-tuning training pipeline (details of the training stage in this document)
+- [Custom Model Deployment](./custom-model-deployment.md) - Hands-on EKS deployment guide for large models such as GLM-5
+- [Continuous Training Pipeline](./continuous-training/index.md) - Trace-based retraining and automated Canary rollout
+- [SageMaker-EKS Integration](../integrations/sagemaker-eks-integration.md) - Hybrid ML architecture
+- [GPU Resource Management](../../model-serving/gpu-infrastructure/gpu-resource-management.md) - GPU cluster optimization
+- [Model Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Production model observability
 
 ---
 
-## 참고 자료
+## References
 
-- [Kubeflow 공식 문서](https://www.kubeflow.org/docs/)
-- [MLflow 공식 문서](https://mlflow.org/docs/latest/index.html)
-- [vLLM 공식 문서](https://docs.vllm.ai/)
-- [ArgoCD 공식 문서](https://argo-cd.readthedocs.io/)
-- [Karpenter 공식 문서](https://karpenter.sh/)
-- [Argo Workflows 공식 문서](https://argoproj.github.io/workflows/)
+- [Kubeflow Official Documentation](https://www.kubeflow.org/docs/)
+- [MLflow Official Documentation](https://mlflow.org/docs/latest/index.html)
+- [vLLM Official Documentation](https://docs.vllm.ai/)
+- [ArgoCD Official Documentation](https://argo-cd.readthedocs.io/)
+- [Karpenter Official Documentation](https://karpenter.sh/)
+- [Argo Workflows Official Documentation](https://argoproj.github.io/workflows/)

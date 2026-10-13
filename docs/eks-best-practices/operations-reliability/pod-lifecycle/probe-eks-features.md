@@ -1,48 +1,48 @@
 ---
-title: EKS 기능과 Probe 통합
-description: EKS 기능별 Probe 통합 예제를 확인합니다.
+title: EKS features and probes
+description: Explore examples of integrating probes with EKS features.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
-  author: YoungJoon Jeong
-reading_time: 9
+  date: 2026-09-18
+  author: devfloor9
+reading_time: 12
 tags:
   - eks
   - kubernetes
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: EKS 기능과 Probe 통합
+sidebar_label: EKS features and probes
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## 2025-2026 EKS 신규 기능과 Probe 통합 {#27-2025-2026-eks-신규-기능과-probe-통합}
+## Integrating Probes with New EKS Features in 2025-2026 {#27-2025-2026-eks-신규-기능과-probe-통합}
 
-AWS re:Invent 2025에서 발표된 EKS의 새로운 관찰성 및 제어 기능은 Probe 기반 헬스체크를 더욱 강화합니다. 이 섹션에서는 최신 EKS 기능과 Probe를 통합하여 더 정확하고 선제적인 헬스 모니터링을 구현하는 방법을 다룹니다.
+The new EKS observability and control features announced at AWS re:Invent 2025 further enhance probe-based health checks. This section covers how to integrate probes with the latest EKS features for more accurate and proactive health monitoring.
 
-### Container Network Observability로 Probe 연결성 검증 {#271-container-network-observability로-probe-연결성-검증}
+### Validating Probe Connectivity with Container Network Observability {#271-container-network-observability로-probe-연결성-검증}
 
-**개요:**
+**Overview:**
 
-Container Network Observability(2025년 11월 발표)는 Pod 간 네트워크 통신 패턴, 지연 시간, 패킷 손실 등 세밀한 네트워크 메트릭을 제공합니다. Probe 실패가 네트워크 문제로 인한 것인지, 애플리케이션 자체 문제인지 명확히 구분할 수 있습니다.
+Container Network Observability (announced in November 2025) provides detailed network metrics, including communication patterns between Pods, latency, and packet loss. These metrics help clearly distinguish probe failures caused by network issues from those caused by the application itself.
 
-**주요 기능:**
-- Pod-to-Pod 통신 경로 시각화
-- 네트워크 지연(latency), 패킷 손실(packet loss), 재전송률 모니터링
-- 실시간 네트워크 트래픽 이상 탐지
-- CloudWatch Container Insights와의 통합
+**Key features:**
+- Visualization of Pod-to-Pod communication paths
+- Monitoring of network latency, packet loss, and retransmission rates
+- Real-time detection of network traffic anomalies
+- Integration with CloudWatch Container Insights
 
-**활성화 방법:**
+**Enabling the feature:**
 
 ```bash
-# VPC CNI에서 네트워크 관찰성 활성화
+# Enable network observability in VPC CNI
 kubectl set env daemonset aws-node \
   -n kube-system \
   ENABLE_NETWORK_OBSERVABILITY=true
 
-# 또는 ConfigMap으로 설정
+# Alternatively, configure through a ConfigMap
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -54,7 +54,7 @@ data:
 EOF
 ```
 
-**Probe 연결성 검증 예시:**
+**Probe connectivity validation example:**
 
 ```yaml
 apiVersion: apps/v1
@@ -62,7 +62,7 @@ kind: Deployment
 metadata:
   name: api-gateway
   annotations:
-    # 네트워크 관찰성 메트릭 수집 활성화
+    # Enable collection of network observability metrics
     network-observability.amazonaws.com/enabled: "true"
 spec:
   selector:
@@ -79,7 +79,7 @@ spec:
         image: myapp/gateway:v2
         ports:
         - containerPort: 8080
-        # Readiness Probe: 외부 DB 연결 확인
+        # Readiness Probe: check external DB connectivity
         readinessProbe:
           httpGet:
             path: /ready
@@ -95,10 +95,10 @@ spec:
           failureThreshold: 3
 ```
 
-**CloudWatch Insights 쿼리 - Probe 실패와 네트워크 지연 상관 분석:**
+**CloudWatch Insights query - correlate probe failures with network latency:**
 
 ```sql
--- Probe 실패 시점의 네트워크 지연 확인
+-- Check network latency at the time of probe failures
 fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 | filter namespace = "production"
 | filter probe_result = "failed"
@@ -107,10 +107,10 @@ fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 | limit 100
 ```
 
-**알림 설정 예시:**
+**Alert configuration example:**
 
 ```yaml
-# CloudWatch Alarm: Probe 실패와 네트워크 이상 동시 발생
+# CloudWatch Alarm: concurrent probe failures and network anomalies
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -131,52 +131,52 @@ data:
         {"Name": "ClusterName", "Value": "production-eks"},
         {"Name": "Namespace", "Value": "production"}
       ],
-      "AlarmDescription": "Readiness Probe 실패 시 네트워크 지연 확인 필요"
+      "AlarmDescription": "Check network latency when Readiness Probes fail"
     }
 ```
 
-**진단 워크플로우:**
+**Diagnostic workflow:**
 
 ```mermaid
 flowchart TD
-    PROBE_FAIL[Readiness Probe 실패 감지]
-    PROBE_FAIL --> CHECK_NET[네트워크 관찰성 메트릭 확인]
-    CHECK_NET --> NET_OK{네트워크<br/>정상?}
+    PROBE_FAIL[Readiness Probe failure detected]
+    PROBE_FAIL --> CHECK_NET[Check network observability metrics]
+    CHECK_NET --> NET_OK{Network<br/>healthy?}
 
-    NET_OK -->|지연/손실 높음| NET_ISSUE[네트워크 문제]
-    NET_ISSUE --> CHECK_CNI[CNI 플러그인 상태 확인]
-    NET_ISSUE --> CHECK_SG[보안 그룹 규칙 검증]
-    NET_ISSUE --> CHECK_AZ[AZ 간 트래픽 패턴 분석]
+    NET_OK -->|High latency/loss| NET_ISSUE[Network issue]
+    NET_ISSUE --> CHECK_CNI[Check CNI plugin status]
+    NET_ISSUE --> CHECK_SG[Validate security group rules]
+    NET_ISSUE --> CHECK_AZ[Analyze cross-AZ traffic patterns]
 
-    NET_OK -->|정상| APP_ISSUE[애플리케이션 문제]
-    APP_ISSUE --> CHECK_LOGS[Pod 로그 분석]
-    APP_ISSUE --> CHECK_METRICS[CPU/메모리 사용률 확인]
-    APP_ISSUE --> CHECK_DEPS[외부 의존성 상태 검증]
+    NET_OK -->|Healthy| APP_ISSUE[Application issue]
+    APP_ISSUE --> CHECK_LOGS[Analyze Pod logs]
+    APP_ISSUE --> CHECK_METRICS[Check CPU/memory utilization]
+    APP_ISSUE --> CHECK_DEPS[Validate external dependency health]
 
     style PROBE_FAIL fill:#ff4444,stroke:#cc3636,color:#fff
     style NET_ISSUE fill:#fbbc04,stroke:#c99603,color:#000
     style APP_ISSUE fill:#fbbc04,stroke:#c99603,color:#000
 ```
 
-:::tip Pod-to-Pod 경로 시각화
-Container Network Observability는 CloudWatch Logs Insights와 통합되어 Probe 요청의 전체 네트워크 경로를 추적할 수 있습니다. Readiness Probe가 외부 데이터베이스를 확인하는 경우, Pod → Service → Endpoint → DB Pod의 전체 경로에서 병목 구간을 식별할 수 있습니다.
+:::tip Pod-to-Pod Path Visualization
+Container Network Observability integrates with CloudWatch Logs Insights to trace the entire network path of probe requests. When a Readiness Probe checks an external database, bottlenecks can be identified along the full Pod → Service → Endpoint → DB Pod path.
 :::
 
 ---
 
-### CloudWatch Observability Operator + Control Plane 메트릭 {#272-cloudwatch-observability-operator--control-plane-메트릭}
+### CloudWatch Observability Operator + Control Plane Metrics {#272-cloudwatch-observability-operator--control-plane-메트릭}
 
-**개요:**
+**Overview:**
 
-CloudWatch Observability Operator(2025년 12월 발표)는 EKS Control Plane 메트릭을 자동으로 수집하여, API Server 성능 저하가 Probe 응답에 미치는 영향을 사전에 감지합니다.
+CloudWatch Observability Operator (announced in December 2025) automatically collects EKS Control Plane metrics to proactively detect how API Server performance degradation affects probe responses.
 
-**설치:**
+**Installation:**
 
 ```bash
-# CloudWatch Observability Operator 설치
+# Install CloudWatch Observability Operator
 kubectl apply -f https://raw.githubusercontent.com/aws-observability/aws-cloudwatch-observability-operator/main/bundle.yaml
 
-# EKS Control Plane 메트릭 수집 활성화
+# Enable EKS Control Plane metrics collection
 kubectl apply -f - <<EOF
 apiVersion: cloudwatch.aws.amazon.com/v1alpha1
 kind: EKSControlPlaneMetrics
@@ -196,17 +196,17 @@ spec:
 EOF
 ```
 
-**주요 Control Plane 메트릭:**
+**Key Control Plane metrics:**
 
-| 메트릭 | 설명 | Probe 연관성 | 임계값 예시 |
+| Metric | Description | Relationship to Probes | Example Threshold |
 |--------|------|-------------|------------|
-| `apiserver_request_duration_seconds` | API Server 요청 지연 시간 | Probe 요청 처리 속도 | p99 < 1초 |
-| `apiserver_request_total` (code=5xx) | API Server 5xx 에러 수 | Probe 실패율 상승 | < 1% |
-| `apiserver_storage_objects` | etcd 저장 오브젝트 수 | 클러스터 규모 한계 | < 150,000 |
-| `etcd_request_duration_seconds` | etcd 읽기/쓰기 지연 | Pod 상태 업데이트 지연 | p99 < 100ms |
-| `rest_client_requests_total` (code=429) | API Rate Limiting 발생 | kubelet-apiserver 통신 제한 | < 10/min |
+| `apiserver_request_duration_seconds` | API Server request latency | Probe request processing speed | p99 < 1 second |
+| `apiserver_request_total` (code=5xx) | API Server 5xx error count | Increased probe failure rate | < 1% |
+| `apiserver_storage_objects` | Number of objects stored in etcd | Cluster scale limits | < 150,000 |
+| `etcd_request_duration_seconds` | etcd read/write latency | Delayed Pod status updates | p99 < 100ms |
+| `rest_client_requests_total` (code=429) | API rate limiting events | Restricted kubelet-apiserver communication | < 10/min |
 
-**Probe 타임아웃 예측 알림:**
+**Predictive probe timeout alerts:**
 
 ```yaml
 apiVersion: cloudwatch.amazonaws.com/v1alpha1
@@ -230,19 +230,19 @@ spec:
         stat: p99
     - id: e1
       expression: "IF(m1 > 0.5, 1, 0)"
-      label: "API Server 응답 지연 > 500ms"
+      label: "API Server response latency > 500ms"
   evaluationPeriods: 2
   threshold: 1
   comparisonOperator: GreaterThanOrEqualToThreshold
-  alarmDescription: "API Server 성능 저하로 인한 Probe 타임아웃 위험"
+  alarmDescription: "Risk of probe timeouts due to API Server performance degradation"
   alarmActions:
     - arn:aws:sns:ap-northeast-2:123456789012:eks-ops-alerts
 ```
 
-**대규모 클러스터에서의 Probe 성능 보장:**
+**Ensuring probe performance in large clusters:**
 
 ```yaml
-# 1000+ 노드 클러스터의 Probe 설정 최적화
+# Optimize probe settings for a cluster with 1000+ nodes
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -260,18 +260,18 @@ spec:
       containers:
       - name: api
         image: myapp/api:v1
-        # Probe 타이밍 조정: API Server 부하 고려
+        # Adjust probe timing to account for API Server load
         startupProbe:
           httpGet:
             path: /healthz
             port: 8080
           failureThreshold: 30
-          periodSeconds: 5  # 초기 시작 시간 여유
+          periodSeconds: 5  # Allow time for initial startup
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
-          periodSeconds: 15  # 대규모에서는 간격 증가
+          periodSeconds: 15  # Increase the interval at large scale
           failureThreshold: 3
           timeoutSeconds: 5
         readinessProbe:
@@ -283,7 +283,7 @@ spec:
           timeoutSeconds: 3
 ```
 
-**CloudWatch Dashboard - Control Plane & Probe 상관 분석:**
+**CloudWatch Dashboard - correlate Control Plane and probe metrics:**
 
 ```json
 {
@@ -291,16 +291,16 @@ spec:
     {
       "type": "metric",
       "properties": {
-        "title": "API Server 지연 vs Probe 실패율",
+        "title": "API Server Latency vs. Probe Failure Rate",
         "metrics": [
-          ["AWS/EKS", "apiserver_request_duration_seconds", {"stat": "p99", "label": "API Server p99 지연"}],
+          ["AWS/EKS", "apiserver_request_duration_seconds", {"stat": "p99", "label": "API Server p99 Latency"}],
           ["ContainerInsights", "ReadinessProbeFailure", {"stat": "Sum", "yAxis": "right"}]
         ],
         "period": 60,
         "region": "ap-northeast-2",
         "yAxis": {
-          "left": {"label": "지연 시간 (초)", "min": 0},
-          "right": {"label": "Probe 실패 수", "min": 0}
+          "left": {"label": "Latency (seconds)", "min": 0},
+          "right": {"label": "Probe Failure Count", "min": 0}
         }
       }
     }
@@ -308,52 +308,52 @@ spec:
 }
 ```
 
-:::warning 대규모 클러스터의 API Server 부하
-1000개 이상의 노드를 가진 클러스터에서는 모든 kubelet의 Probe 요청이 API Server에 집중될 수 있습니다. `periodSeconds`를 10~15초로 늘리고, `timeoutSeconds`를 5초 이상으로 설정하여 API Server 부하를 분산시키세요. Provisioned Control Plane(Section 2.7.3)을 사용하면 이 문제를 근본적으로 해결할 수 있습니다.
+:::warning API Server Load in Large Clusters
+In clusters with 1000 or more nodes, probe requests from all kubelets can concentrate on the API Server. Increase `periodSeconds` to 10~15 seconds and set `timeoutSeconds` to at least 5 seconds to distribute API Server load. Provisioned Control Plane (Section 2.7.3) can fundamentally address this issue.
 :::
 
 ---
 
-### Provisioned Control Plane에서 Probe 성능 보장 {#273-provisioned-control-plane에서-probe-성능-보장}
+### Ensuring Probe Performance with Provisioned Control Plane {#273-provisioned-control-plane에서-probe-성능-보장}
 
-**개요:**
+**Overview:**
 
-Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플레인 용량으로 예측 가능한 고성능 Kubernetes 운영을 보장합니다. 대규모 클러스터에서 Probe 요청이 API Server 성능 저하의 영향을 받지 않도록 합니다.
+Provisioned Control Plane (announced in November 2025) ensures predictable, high-performance Kubernetes operations with preallocated control plane capacity. It prevents probe requests in large clusters from being affected by API Server performance degradation.
 
-**티어별 성능 특성:**
+**Performance characteristics by tier:**
 
-| 티어 | API 동시성 | Pod 스케줄링 속도 | 최대 노드 수 | Probe 처리 보장 | 적합 워크로드 |
+| Tier | API Concurrency | Pod Scheduling Rate | Maximum Nodes | Probe Processing Guarantee | Suitable Workloads |
 |------|----------|---------------|------------|--------------|-------------|
-| **XL** | 높음 | ~500 Pods/min | 1,000 | 99.9% < 100ms | AI Training, HPC |
-| **2XL** | 매우 높음 | ~1,000 Pods/min | 2,500 | 99.9% < 80ms | 대규모 배치 |
-| **4XL** | 초고속 | ~2,000 Pods/min | 5,000 | 99.9% < 50ms | 초대규모 ML |
+| **XL** | High | ~500 Pods/min | 1,000 | 99.9% < 100ms | AI Training, HPC |
+| **2XL** | Very high | ~1,000 Pods/min | 2,500 | 99.9% < 80ms | Large-scale batch processing |
+| **4XL** | Ultra-fast | ~2,000 Pods/min | 5,000 | 99.9% < 50ms | Massive-scale ML |
 
 **Standard vs Provisioned Control Plane:**
 
 ```mermaid
 graph LR
     subgraph "Standard Control Plane"
-        STD_LOAD[트래픽 증가]
-        STD_LOAD --> STD_SCALE[동적 스케일링]
-        STD_SCALE --> STD_DELAY[일시적 지연 발생]
-        STD_DELAY -.-> STD_PROBE_FAIL[Probe 타임아웃 가능]
+        STD_LOAD[Increased traffic]
+        STD_LOAD --> STD_SCALE[Dynamic scaling]
+        STD_SCALE --> STD_DELAY[Temporary delays]
+        STD_DELAY -.-> STD_PROBE_FAIL[Possible probe timeouts]
     end
 
     subgraph "Provisioned Control Plane"
-        PROV_LOAD[트래픽 증가]
-        PROV_LOAD --> PROV_READY[사전 할당된 용량]
-        PROV_READY --> PROV_FAST[즉시 처리]
-        PROV_FAST --> PROV_PROBE_OK[Probe 성능 보장]
+        PROV_LOAD[Increased traffic]
+        PROV_LOAD --> PROV_READY[Preallocated capacity]
+        PROV_READY --> PROV_FAST[Immediate processing]
+        PROV_FAST --> PROV_PROBE_OK[Guaranteed probe performance]
     end
 
     style STD_PROBE_FAIL fill:#ff4444,stroke:#cc3636,color:#fff
     style PROV_PROBE_OK fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-**Provisioned Control Plane 생성:**
+**Creating a Provisioned Control Plane:**
 
 ```bash
-# Provisioned Control Plane 클러스터 생성 (AWS CLI)
+# Create a Provisioned Control Plane cluster (AWS CLI)
 aws eks create-cluster \
   --name production-provisioned \
   --region ap-northeast-2 \
@@ -364,16 +364,16 @@ aws eks create-cluster \
   --control-plane-tier XL
 ```
 
-**대규모 Probe 최적화 예시:**
+**Large-scale probe optimization example:**
 
 ```yaml
-# AI/ML Training 클러스터 (1000+ GPU 노드)
+# AI/ML Training cluster (1000+ GPU nodes)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: training-coordinator
   annotations:
-    # Provisioned Control Plane에서 최적화된 Probe 설정
+    # Optimized probe settings for Provisioned Control Plane
     eks.amazonaws.com/control-plane-tier: "XL"
 spec:
   selector:
@@ -392,18 +392,18 @@ spec:
           requests:
             cpu: 4
             memory: 16Gi
-        # Provisioned Control Plane에서는 짧은 간격 설정 가능
+        # Short intervals can be configured with Provisioned Control Plane
         startupProbe:
           httpGet:
             path: /healthz
             port: 9090
           failureThreshold: 30
-          periodSeconds: 3  # 빠른 감지
+          periodSeconds: 3  # Fast detection
         livenessProbe:
           httpGet:
             path: /healthz
             port: 9090
-          periodSeconds: 5  # Standard보다 짧게
+          periodSeconds: 5  # Shorter than Standard
           failureThreshold: 2
           timeoutSeconds: 2
         readinessProbe:
@@ -415,46 +415,46 @@ spec:
           timeoutSeconds: 2
 ```
 
-**사용 사례: AI/ML Training 클러스터**
+**Use case: AI/ML Training cluster**
 
-- **문제**: 1,000개의 GPU 노드에서 동시에 수백 개의 Training Pod 시작 시, Standard Control Plane에서 API Server 응답 지연 발생
-- **해결**: Provisioned Control Plane XL 티어 사용
-- **결과**:
-  - Pod 스케줄링 시간 70% 단축 (평균 45초 → 13초)
-  - Readiness Probe 타임아웃 99.8% 감소
-  - Training Job 시작 안정성 향상
+- **Problem**: When hundreds of Training Pods start simultaneously across 1,000 GPU nodes, API Server responses are delayed on the Standard Control Plane
+- **Solution**: Use the Provisioned Control Plane XL tier
+- **Results**:
+  - 70% reduction in Pod scheduling time (average 45 seconds → 13 seconds)
+  - 99.8% reduction in Readiness Probe timeouts
+  - Improved Training Job startup reliability
 
-**Cost vs Performance 고려사항:**
+**Cost vs. performance considerations:**
 
 ```yaml
-# Provisioned Control Plane 비용 최적화 전략
-# 1. 평상시: Standard Control Plane
-# 2. Training 기간: Provisioned Control Plane XL로 업그레이드
-# (현재는 클러스터 생성 시 선택, 향후 동적 변경 지원 예정)
+# Provisioned Control Plane cost optimization strategy
+# 1. Normal operation: Standard Control Plane
+# 2. During training: upgrade to Provisioned Control Plane XL
+# (Currently selected at cluster creation; dynamic changes are planned for the future)
 ```
 
-:::tip HPC 및 대규모 배치 워크로드
-Provisioned Control Plane은 짧은 시간 내에 수천 개의 Pod을 동시에 시작하는 워크로드에 최적화되어 있습니다. AI/ML Training, 과학 시뮬레이션, 대규모 데이터 처리 등에서 Probe 성능을 보장하여 Job 시작 시간을 단축할 수 있습니다.
+:::tip HPC and Large-Scale Batch Workloads
+Provisioned Control Plane is optimized for workloads that start thousands of Pods simultaneously within a short period. By ensuring probe performance, it can reduce Job startup time for AI/ML training, scientific simulations, and large-scale data processing.
 :::
 
 ---
 
-### GuardDuty Extended Threat Detection 연계 {#274-guardduty-extended-threat-detection-연계}
+### Integration with GuardDuty Extended Threat Detection {#274-guardduty-extended-threat-detection-연계}
 
-**개요:**
+**Overview:**
 
-GuardDuty Extended Threat Detection(EKS 지원: 2025년 6월)은 Probe 엔드포인트의 비정상 접근 패턴을 탐지하여, 악의적인 워크로드가 헬스체크를 우회하거나 조작하는 공격을 식별합니다.
+GuardDuty Extended Threat Detection (EKS support: June 2025) detects anomalous access patterns at probe endpoints to identify attacks in which malicious workloads bypass or manipulate health checks.
 
-**주요 기능:**
-- EKS 감사 로그 + 런타임 행동 + 맬웨어 실행 + AWS API 활동 상관 분석
-- AI/ML 기반 다단계 공격 시퀀스 탐지
-- Probe 엔드포인트 비정상 접근 패턴 식별
-- 크립토마이닝 등 악의적 워크로드 자동 탐지
+**Key features:**
+- Correlation of EKS audit logs + runtime behavior + malware execution + AWS API activity
+- AI/ML-based detection of multi-stage attack sequences
+- Identification of anomalous access patterns at probe endpoints
+- Automatic detection of malicious workloads such as cryptomining
 
-**활성화:**
+**Enabling the feature:**
 
 ```bash
-# GuardDuty Extended Threat Detection for EKS 활성화 (AWS CLI)
+# Enable GuardDuty Extended Threat Detection for EKS (AWS CLI)
 aws guardduty update-detector \
   --detector-id <detector-id> \
   --features '[
@@ -475,7 +475,7 @@ aws guardduty update-detector \
   ]'
 ```
 
-**Probe 엔드포인트 보안 패턴:**
+**Probe endpoint security pattern:**
 
 ```yaml
 apiVersion: apps/v1
@@ -497,7 +497,7 @@ spec:
         image: myapp/secure-api:v2
         ports:
         - containerPort: 8080
-        # 헬스체크 엔드포인트
+        # Health check endpoints
         livenessProbe:
           httpGet:
             path: /healthz
@@ -522,28 +522,28 @@ spec:
               key: health-token
 ```
 
-**GuardDuty 탐지 시나리오:**
+**GuardDuty detection scenario:**
 
 ```mermaid
 flowchart TD
-    MALICIOUS[악의적 Pod 배포]
-    MALICIOUS --> PROBE_FAKE[헬스체크 위조 시도]
-    PROBE_FAKE --> GUARDDUTY[GuardDuty 탐지]
+    MALICIOUS[Malicious Pod deployed]
+    MALICIOUS --> PROBE_FAKE[Attempt to forge health checks]
+    PROBE_FAKE --> GUARDDUTY[GuardDuty detection]
 
-    GUARDDUTY --> AUDIT[EKS 감사 로그 분석]
-    GUARDDUTY --> RUNTIME[런타임 행동 분석]
-    GUARDDUTY --> API[AWS API 활동 분석]
+    GUARDDUTY --> AUDIT[Analyze EKS audit logs]
+    GUARDDUTY --> RUNTIME[Analyze runtime behavior]
+    GUARDDUTY --> API[Analyze AWS API activity]
 
-    AUDIT --> FINDING[복합 탐지 결과 생성]
+    AUDIT --> FINDING[Generate correlated findings]
     RUNTIME --> FINDING
     API --> FINDING
 
-    FINDING --> ALERT[CloudWatch 알림]
-    FINDING --> RESPONSE[자동 대응]
+    FINDING --> ALERT[CloudWatch alert]
+    FINDING --> RESPONSE[Automated response]
 
-    RESPONSE --> ISOLATE[Pod 격리]
-    RESPONSE --> TERMINATE[Pod 종료]
-    RESPONSE --> NOTIFY[보안팀 알림]
+    RESPONSE --> ISOLATE[Isolate Pod]
+    RESPONSE --> TERMINATE[Terminate Pod]
+    RESPONSE --> NOTIFY[Notify security team]
 
     style MALICIOUS fill:#ff4444,stroke:#cc3636,color:#fff
     style GUARDDUTY fill:#fbbc04,stroke:#c99603,color:#000
@@ -551,19 +551,19 @@ flowchart TD
     style RESPONSE fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-**실제 탐지 사례 - Cryptomining Campaign:**
+**Real-world detection case - Cryptomining Campaign:**
 
-2025년 11월 2일부터 GuardDuty가 탐지한 크립토마이닝 캠페인에서는 공격자가 다음과 같이 헬스체크를 우회했습니다:
+In a cryptomining campaign detected by GuardDuty starting on November 2, 2025, attackers bypassed health checks as follows:
 
-1. 정상 컨테이너 이미지로 위장
-2. startupProbe 성공 후 악성 바이너리 다운로드
-3. livenessProbe는 정상 응답, 백그라운드에서 마이닝 실행
-4. GuardDuty가 비정상적인 네트워크 트래픽 + CPU 사용 패턴 탐지
+1. Disguised the workload as a legitimate container image
+2. Downloaded a malicious binary after startupProbe succeeded
+3. Returned healthy livenessProbe responses while running mining in the background
+4. GuardDuty detected abnormal network traffic + CPU usage patterns
 
-**탐지 후 자동 대응:**
+**Automated response after detection:**
 
 ```yaml
-# EventBridge Rule: GuardDuty Finding → Lambda → Pod 격리
+# EventBridge Rule: GuardDuty Finding → Lambda → Pod isolation
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -586,7 +586,7 @@ data:
     eks = boto3.client('eks')
 
     def isolate_pod(cluster_name, namespace, pod_name):
-        # NetworkPolicy로 Pod 격리
+        # Isolate the Pod with a NetworkPolicy
         kubectl_command = f"""
         kubectl apply -f - <<EOF
         apiVersion: networking.k8s.io/v1
@@ -603,13 +603,13 @@ data:
           - Egress
         EOF
         """
-        # 실행 로직...
+        # Execution logic...
 ```
 
-**보안 모니터링 대시보드:**
+**Security monitoring dashboard:**
 
 ```yaml
-# CloudWatch Dashboard: GuardDuty + Probe 상태
+# CloudWatch Dashboard: GuardDuty + Probe status
 apiVersion: cloudwatch.amazonaws.com/v1alpha1
 kind: Dashboard
 metadata:
@@ -617,7 +617,7 @@ metadata:
 spec:
   widgets:
     - type: metric
-      title: "GuardDuty 탐지 vs Probe 실패"
+      title: "GuardDuty Findings vs. Probe Failures"
       metrics:
         - namespace: AWS/GuardDuty
           metricName: FindingCount
@@ -631,13 +631,13 @@ spec:
               value: production
 ```
 
-:::warning 헬스체크 엔드포인트 보안
-Probe 엔드포인트(`/healthz`, `/ready`)는 인증 없이 공개되는 경우가 많아 공격 표면이 될 수 있습니다. GuardDuty Extended Threat Detection을 활성화하고, 가능하면 헬스체크 요청에 간단한 토큰 헤더를 추가하여 무단 접근을 제한하세요.
+:::warning Health Check Endpoint Security
+Probe endpoints (`/healthz`, `/ready`) are often exposed without authentication and can become an attack surface. Enable GuardDuty Extended Threat Detection and, where possible, add a simple token header to health check requests to restrict unauthorized access.
 :::
 
-**관련 문서:**
+**Related documentation:**
 - [AWS Blog: GuardDuty Extended Threat Detection for EKS](https://aws.amazon.com/blogs/aws/amazon-guardduty-expands-extended-threat-detection-coverage-to-amazon-eks-clusters/)
 - [AWS Blog: Cryptomining Campaign Detection](https://aws.amazon.com/blogs/security/cryptomining-campaign-targeting-amazon-ec2-and-amazon-ecs/)
-- [EKS 보안 Best Practices](https://docs.aws.amazon.com/eks/latest/best-practices/security.html)
+- [EKS Security Best Practices](https://docs.aws.amazon.com/eks/latest/best-practices/security.html)
 
 ---

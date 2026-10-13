@@ -1,11 +1,11 @@
 ---
-title: AI 코딩 에이전트
-description: AIDLC Construction 단계의 AI 코딩 에이전트 — 공식 지원 7개 플랫폼, Kiro Spec-Driven 개발, Q Developer, 에이전트 비교
+title: AI Coding Agents
+description: AI Coding Agents for AIDLC Construction Phase — Kiro Spec-Driven Development, Q Developer, Agent Comparison
 created: "2026-04-07"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 17
+  author: devfloor9
+reading_time: 21
 tags:
   - aidlc
   - ai-coding-agents
@@ -17,276 +17,200 @@ tags:
   - claude-code
   - copilot
   - scope:toolchain
-sidebar_label: AI 코딩 에이전트
+sidebar_label: AI Coding Agents
 ---
 
 import { AiCodingAgentComparison } from '@site/src/components/AidlcTables';
 
-AIDLC Construction 단계에서 설계를 코드로 구현하는 AI 코딩 에이전트 전략을 다룹니다. 본 문서는 먼저 **AWS Labs AIDLC 공식 지원 7개 플랫폼**을 요약한 뒤, Kiro의 Spec-Driven 접근과 Amazon Q Developer의 실시간 빌드·테스트를 심화합니다. 그리고 MCP 기반 컨텍스트 수집, CI/CD 통합 패턴, 에이전트 선택 가이드로 마무리합니다.
+This document covers AI coding agent strategies for implementing design as code in the AIDLC Construction phase. It focuses on Kiro's Spec-Driven approach, Amazon Q Developer's real-time build and test capabilities, MCP-based context collection, and CI/CD integration patterns.
 
-## 0. 공식 AIDLC 지원 플랫폼 7종
+## 1. AI Coding Agents Overview
 
-AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 AIDLC 방법론이 동작하는 **7개 공식 지원 플랫폼** 을 정의합니다. 각 플랫폼은 Common Rules 와 Inception/Construction 워크플로를 구현해야 하며, 산출물 포맷은 공통 규약을 따릅니다.
+The AIDLC Construction phase transforms Inception phase outputs (requirements, design, ontology) into **executable code and infrastructure**. AI coding agents automate this transformation and perform the following roles:
 
-```mermaid
-graph TB
-    AIDLC[AIDLC 방법론<br/>Common Rules + Stages]
-    AIDLC --> P1[Kiro]
-    AIDLC --> P2[Amazon Q Developer]
-    AIDLC --> P3[Cursor]
-    AIDLC --> P4[Cline]
-    AIDLC --> P5[Claude Code]
-    AIDLC --> P6[GitHub Copilot]
-    AIDLC --> P7[AGENTS.md]
+1. **Requirements → Code Transformation** — Convert natural language requirements into structured specifications (Spec), then generate code
+2. **Real-time Build & Test** — Immediately build and test generated code to detect errors early (Loss Function)
+3. **Security Scanning** — Automatically detect and suggest fixes for security vulnerabilities in Kubernetes manifests and application code
+4. **CI/CD Integration** — Automatically integrate with GitOps pipelines like GitHub Actions and Argo CD
+5. **Real-time Context Collection** — Reflect current infrastructure state, costs, and workload information via MCP servers
 
-    style AIDLC fill:#326ce5,color:#fff
-    style P1 fill:#ff9900,color:#fff
-    style P2 fill:#ff9900,color:#fff
-    style P3 fill:#2ecc71,color:#fff
-    style P4 fill:#2ecc71,color:#fff
-    style P5 fill:#9b59b6,color:#fff
-    style P6 fill:#24292e,color:#fff
-    style P7 fill:#95a5a6,color:#fff
-```
+Amazon Q Developer and Kiro use **Anthropic Claude** models by default, and Kiro also supports [open-weight models](./open-weight-models.md) for cost optimization and specialized domain extensions.
 
-### 0.1 Kiro
-- **AIDLC 적용**: Spec-Driven 기본 탑재. `requirements.md → design.md → tasks.md` 파일 구조가 Inception 산출물과 거의 1:1 매핑. MCP 네이티브로 AWS Hosted MCP 서버와 즉시 연동
-- **강점**: Common Rules 11개 모두 Full 지원. 조직 Extension(opt-in.md) 인식. AWS 서비스(EKS, DynamoDB 등)와의 밀착 통합
-- **한계**: AWS 생태계 중심이라 멀티클라우드 팀에는 제약. IDE 선택지 제한적
-
-### 0.2 Amazon Q Developer
-- **AIDLC 적용**: Construction 단계의 실시간 빌드·테스트·보안 스캔 중심. Inception 은 별도 Kiro/Claude Code 등과 조합
-- **강점**: 빌드·테스트 자동 실행으로 Loss Function 즉시 작동. CodeCatalyst·GitHub Actions 통합 우수. `/transform` 으로 레거시 마이그레이션(Java, .NET) 지원
-- **한계**: Inception(요구사항·설계) 단계는 다른 도구 병행 필요. 자유도 높은 실험·프로토타이핑은 Cursor 등이 더 유연
-
-### 0.3 Cursor
-- **AIDLC 적용**: 코드 컨텍스트 기반 Spec-Driven. `.cursor/rules/` 디렉터리로 Common Rules 일부 표현 가능. Composer 기능으로 multi-file 편집
-- **강점**: 대규모 리팩터링·코드 이해에 강함. Apply 기능으로 제안 코드 검증 후 병합. 에디터 UX 완성도 높음
-- **한계**: AIDLC Extension System 미지원 → 조직 규정은 수동 프롬프트로 보완. Audit Log 자동 생성 제한
-
-### 0.4 Cline
-- **AIDLC 적용**: VS Code Extension 기반 Autonomous Agent. CLI 중심 워크플로에 적합. Plan Mode / Act Mode 분리가 Adaptive Execution 과 잘 맞음
-- **강점**: 완전 오픈소스, Bring Your Own Key(BYOK). 로컬 파일시스템·터미널 제어 자유로움. AIDLC 산출물 파일 생성·수정이 자연스러움
-- **한계**: IDE 통합 UX 가 Cursor 대비 낮음. 상용 지원 부재 (커뮤니티 의존)
-
-### 0.5 Claude Code
-- **AIDLC 적용**: CLI + IDE 통합 양쪽 지원. Sub-agent 기반 복잡 태스크 분해. AGENTS.md / CLAUDE.md 로 Common Rules 표현
-- **강점**: Anthropic Claude 모델 기본값. Sub-agent 로 Inception(planner) + Construction(executor) 분리 가능. MCP 생태계와 매끄러운 연동
-- **한계**: Opus 모델 사용 시 비용 부담. 팀 전체 도입 시 라이선스·레이트리밋 관리 필요
-
-### 0.6 GitHub Copilot
-- **AIDLC 적용**: 코드 자동완성 중심. Copilot Chat + Workspace 로 Spec-Driven 일부 지원. Copilot Enterprise 에서 AGENTS.md 인식 확장 중
-- **강점**: 가장 광범위한 IDE 지원(VS Code · JetBrains · Neovim). 대부분 개발자에게 이미 익숙. GitHub 네이티브 통합
-- **한계**: AIDLC Stage Transition 이나 Checkpoint Approval 개념은 Copilot 기본 기능에 없음 — 수동 운영 필요. 프롬프트 커스터마이징 제약
-
-### 0.7 AGENTS.md
-- **AIDLC 적용**: 플랫폼이라기보다 **도구 독립 문서 규격**. `AGENTS.md` 파일로 Common Rules·Extension·Stage 규약을 평문으로 서술
-- **강점**: 어떤 AI 에이전트라도 `AGENTS.md` 를 읽으면 AIDLC 규칙을 따르게 할 수 있음 (Claude Code, Cursor, Cline 모두 지원). Git 추적·Review 용이
-- **한계**: 자동 실행·강제가 불가능 → 에이전트가 파일을 무시할 여지 존재. Audit/Checkpoint 는 별도 도구 필요
-
-### 0.8 플랫폼 선택 요약표
-
-| 플랫폼 | AIDLC Common Rules | Inception | Construction | Audit | 라이선스 | 추천 케이스 |
-|--------|-------------------|-----------|--------------|-------|---------|-----------|
-| Kiro | Full | Full | Full | Full | Commercial (AWS) | AWS 엔터프라이즈, 보안 민감 |
-| Amazon Q Developer | Full | Partial | Full | Full | Commercial (AWS) | AWS + CI/CD 실시간 검증 |
-| Cursor | Partial | Partial | Full | Manual | Commercial | 대규모 리팩터링·탐색적 개발 |
-| Cline | Partial | Partial | Full | Manual | OSS (BYOK) | 비용 절감·커스터마이징 |
-| Claude Code | Full | Full | Full | Partial | Commercial (Anthropic) | Sub-agent 기반 복잡 태스크 |
-| GitHub Copilot | Partial | Limited | Full | Limited | Commercial (GitHub) | 폭넓은 IDE 지원·낮은 학습곡선 |
-| AGENTS.md | Full (문서) | Full (문서) | Full (문서) | Manual | OSS | 도구 독립 규약 관리 |
-
-:::tip 하이브리드 전략 권장
-단일 플랫폼만 쓰는 대신, **Kiro (Inception) + Q Developer (Construction) + GitHub Copilot (개별 자동완성)** 처럼 stage 별로 최적 도구를 조합하는 **하이브리드** 가 실전에서 가장 효율적입니다. 산출물이 Markdown + YAML 로 표준화되어 있어 플랫폼 간 이동 비용이 낮습니다.
-:::
-
-## 1. AI 코딩 에이전트 개관
-
-AIDLC Construction 단계는 Inception 단계의 산출물(요구사항, 설계, 온톨로지)을 **실행 가능한 코드와 인프라**로 변환하는 과정입니다. AI 코딩 에이전트는 이 변환을 자동화하며, 다음 역할을 수행합니다:
-
-1. **요구사항 → 코드 변환** — 자연어 요구사항을 구조화된 명세(Spec)로 전환 후 코드 생성
-2. **실시간 빌드·테스트** — 코드 생성 즉시 자동 빌드 및 테스트로 오류 조기 발견 (Loss Function)
-3. **보안 스캔** — Kubernetes manifest, 애플리케이션 코드의 보안 취약점 자동 탐지 및 수정 제안
-4. **CI/CD 통합** — GitHub Actions, Argo CD 등 GitOps 파이프라인과 자동 연동
-5. **실시간 컨텍스트 수집** — MCP 서버를 통해 현재 인프라 상태·비용·워크로드 정보 반영
-
-Amazon Q Developer와 Kiro는 **Anthropic Claude** 모델을 기본으로 사용하며, Kiro는 [오픈 웨이트 모델](./open-weight-models.md)도 지원하여 비용 최적화와 특수 도메인 확장이 가능합니다.
-
-## 2. Kiro — Spec-Driven 개발
+## 2. Kiro — Spec-Driven Development
 
 ### 2.1 Spec-Driven Inception
 
-Kiro는 Inception 단계의 산출물을 **Spec 파일**로 체계화하여, 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다.
+Kiro systematizes Inception phase outputs into **Spec files**, structuring the entire process from natural language requirements to code.
 
 ```
-requirements.md → design.md → tasks.md → 코드 생성 → 검증
+requirements.md → design.md → tasks.md → code generation → validation
 ```
 
-#### EKS 예시: Payment Service 배포
+#### EKS Example: Payment Service Deployment
 
 **requirements.md**
 
 ```markdown
-# Payment Service 배포 요구사항
+# Payment Service Deployment Requirements
 
-## 기능 요구사항
-- REST API 엔드포인트: /api/v1/payments
-- DynamoDB 테이블과 연동
-- SQS를 통한 비동기 이벤트 처리
+## Functional Requirements
+- REST API endpoint: /api/v1/payments
+- Integration with DynamoDB table
+- Asynchronous event processing via SQS
 
-## 비기능 요구사항
-- P99 레이턴시: < 200ms
-- 가용성: 99.95%
-- 자동 스케일링: 2-20 Pod
-- EKS 1.35+ 호환
+## Non-Functional Requirements
+- P99 latency: < 200ms
+- Availability: 99.95%
+- Auto-scaling: 2-20 Pods
+- EKS 1.35+ compatible
 ```
 
 **design.md**
 
 ```markdown
-# Payment Service 아키텍처
+# Payment Service Architecture
 
-## 인프라 구성
+## Infrastructure Configuration
 - EKS Deployment (3 replicas min)
 - ACK DynamoDB Table (on-demand)
 - ACK SQS Queue (FIFO)
 - HPA (CPU 70%, Memory 80%)
 - Karpenter NodePool (graviton, spot)
 
-## 관찰성
+## Observability
 - ADOT sidecar (traces → X-Ray)
-- Application Signals (SLI/SLO 자동)
+- Application Signals (automatic SLI/SLO)
 - CloudWatch Logs (/eks/payment-service)
 
-## 보안
-- Pod Identity (IRSA 대체)
-- NetworkPolicy (namespace 격리)
+## Security
+- Pod Identity (replaces IRSA)
+- NetworkPolicy (namespace isolation)
 - Secrets Manager CSI Driver
 ```
 
 **tasks.md**
 
 ```markdown
-# 구현 태스크
+# Implementation Tasks
 
-## Bolt 1: 인프라
-- [ ] ACK DynamoDB Table CRD 작성
-- [ ] ACK SQS Queue CRD 작성
-- [ ] KRO ResourceGroup 정의 (DynamoDB + SQS 통합)
-- [ ] Karpenter NodePool 설정 (graviton, spot)
+## Bolt 1: Infrastructure
+- [ ] Write ACK DynamoDB Table CRD
+- [ ] Write ACK SQS Queue CRD
+- [ ] Define KRO ResourceGroup (integrate DynamoDB + SQS)
+- [ ] Configure Karpenter NodePool (graviton, spot)
 
-## Bolt 2: 애플리케이션
-- [ ] Go REST API 구현
-- [ ] DynamoDB SDK 연동
-- [ ] SQS consumer 구현
+## Bolt 2: Application
+- [ ] Implement Go REST API
+- [ ] Integrate DynamoDB SDK
+- [ ] Implement SQS consumer
 - [ ] Dockerfile + multi-stage build
 
-## Bolt 3: 배포
-- [ ] Helm chart 작성
-- [ ] Argo CD Application 정의
-- [ ] HPA manifest 작성
-- [ ] NetworkPolicy 작성
+## Bolt 3: Deployment
+- [ ] Write Helm chart
+- [ ] Define Argo CD Application
+- [ ] Write HPA manifest
+- [ ] Write NetworkPolicy
 
-## Bolt 4: 관찰성
-- [ ] ADOT sidecar 설정
-- [ ] Application Signals annotation
-- [ ] CloudWatch 대시보드
-- [ ] SLO 알림 설정
+## Bolt 4: Observability
+- [ ] Configure ADOT sidecar
+- [ ] Add Application Signals annotation
+- [ ] Create CloudWatch dashboard
+- [ ] Set up SLO alerts
 ```
 
-### 2.2 Spec-Driven vs. 디렉팅 방식
+### 2.2 Spec-Driven vs. Directive Approach
 
-:::tip Spec-Driven의 핵심 가치
-**디렉팅 방식**: "DynamoDB 만들어줘" → "SQS도 필요해" → "이제 배포해줘" → 매번 수동 지시, 맥락 유실 위험
+:::tip Core Value of Spec-Driven
+**Directive Approach**: "Create DynamoDB" → "Need SQS too" → "Now deploy" → Manual instructions each time, risk of context loss
 
-**Spec-Driven**: Kiro가 `requirements.md`를 분석 → `design.md` 생성 → `tasks.md` 분해 → 코드 자동 생성 → 검증까지 일관된 Context Memory로 연결
+**Spec-Driven**: Kiro analyzes `requirements.md` → generates `design.md` → breaks down `tasks.md` → auto-generates code → connects to validation with consistent Context Memory
 :::
 
-Spec-Driven 방식은 전체 맥락을 유지하며 요구사항 변경 시 영향 범위를 자동으로 추적할 수 있습니다. DDD(Domain-Driven Design) 통합 패턴은 [DDD 통합](../methodology/ddd-integration.md)을 참조하세요.
+The Spec-Driven approach maintains the full context and can automatically track the scope of impact when requirements change. For DDD (Domain-Driven Design) integration patterns, see [DDD Integration](../methodology/ddd-integration.md).
 
-### 2.3 MCP 네이티브 아키텍처
+### 2.3 MCP Native Architecture
 
-Kiro는 MCP(Model Context Protocol) 네이티브로 설계되어, Inception 단계에서 AWS Hosted MCP 서버를 통해 **실시간 인프라 상태를 수집**합니다.
+Kiro is designed MCP (Model Context Protocol) native, collecting **real-time infrastructure state** via AWS Hosted MCP servers during the Inception phase.
 
 ```
-[Kiro + MCP 상호작용]
+[Kiro + MCP Interaction]
 
-Kiro: "EKS 클러스터 상태 확인"
+Kiro: "Check EKS cluster status"
   → EKS MCP Server: get_cluster_status()
-  → 응답: { version: "1.35", nodes: 5, status: "ACTIVE" }
+  → Response: { version: "1.35", nodes: 5, status: "ACTIVE" }
 
-Kiro: "비용 분석"
+Kiro: "Analyze costs"
   → Cost Analysis MCP Server: analyze_cost(service="EKS")
-  → 응답: { monthly: "$450", recommendations: [...] }
+  → Response: { monthly: "$450", recommendations: [...] }
 
-Kiro: "현재 워크로드 분석"
+Kiro: "Analyze current workload"
   → EKS MCP Server: list_deployments(namespace="payment")
-  → 응답: { deployments: [...], resource_usage: {...} }
+  → Response: { deployments: [...], resource_usage: {...} }
 ```
 
-이를 통해 `design.md` 생성 시 **현재 클러스터 상태와 비용을 반영한 설계**가 가능합니다. MCP 통합 아키텍처의 상세는 AIDLC MCP 전략 문서를 참조하세요.
+This enables **realistic designs reflecting current infrastructure state and costs** when generating `design.md`. For details on MCP integration architecture, refer to the AIDLC MCP strategy document.
 
-### 2.4 오픈 웨이트 모델 지원
+### 2.4 Open-Weight Model Support
 
-Kiro는 Claude 외에 오픈 웨이트 모델(Llama 4 Behemoth, Mixtral 8x22B, DeepSeek R1 등)을 지원하여 다음 이점을 제공합니다:
+Kiro supports open-weight models (Llama 3.1 405B, Mixtral 8x22B, DeepSeek R1, etc.) in addition to Claude, providing the following benefits:
 
-- **비용 최적화** — 단순 코드 생성 태스크는 소형 모델로 처리 (토큰 비용 1/10)
-- **특수 도메인 확장** — 금융, 의료 등 도메인별 파인튜닝 모델 활용
-- **온프레미스 배포** — 민감 데이터를 외부로 전송하지 않고 EKS 클러스터 내에서 추론
+- **Cost Optimization** — Process simple code generation tasks with smaller models (1/10 token cost)
+- **Specialized Domain Extension** — Utilize domain-specific fine-tuned models for finance, healthcare, etc.
+- **On-Premises Deployment** — Perform inference within EKS clusters without sending sensitive data externally
 
-오픈 웨이트 모델 배포 전략은 [오픈 웨이트 모델](./open-weight-models.md)을 참조하세요.
+For open-weight model deployment strategies, see [Open-Weight Models](./open-weight-models.md).
 
-## 3. Amazon Q Developer — 실시간 빌드 및 테스트
+## 3. Amazon Q Developer — Real-time Build and Test
 
-AWS는 2025년 1월 31일 **Amazon Q Developer의 실시간 코드 실행 기능**을 발표했습니다. 이는 AI가 코드를 생성한 후 **자동으로 빌드하고 테스트를 실행하여 결과를 검증**한 뒤 개발자에게 제시하는 혁신적 접근입니다.
+AWS announced **Amazon Q Developer's real-time code execution capability** in February 2025. This is an innovative approach where AI generates code, then **automatically builds and runs tests to validate results** before presenting to developers.
 
-AIDLC Construction 단계에서 **Loss Function을 조기에 작동**시켜 오류를 하류로 전파하지 않는 핵심 메커니즘입니다.
+It's a core mechanism in the AIDLC Construction phase for **activating the Loss Function early** to prevent errors from propagating downstream.
 
-### 3.1 실시간 코드 실행 메커니즘
+### 3.1 Real-time Code Execution Mechanism
 
-전통적인 AI 코딩 도구는 코드를 생성한 후 개발자가 수동으로 빌드·테스트해야 했습니다. Q Developer는 이 과정을 자동화합니다.
+Traditional AI coding tools required developers to manually build and test after code generation. Q Developer automates this process.
 
 ```
-기존 방식:
-  AI 코드 생성 → 개발자 수동 빌드 → 개발자 수동 테스트 → 오류 발견 → AI에게 피드백 → 재생성
-  (반복 주기: 5-10분)
+Traditional Approach:
+  AI code generation → developer manual build → developer manual test → error discovery → feedback to AI → regeneration
+  (iteration cycle: 5-10 minutes)
 
-Q Developer 실시간 실행:
-  AI 코드 생성 → 자동 빌드 → 자동 테스트 → 결과 검증 → (오류 시 자동 수정 재시도) → 개발자 리뷰
-  (반복 주기: 1-2분, 개발자 개입 최소화)
+Q Developer Real-time Execution:
+  AI code generation → automatic build → automatic test → result validation → (auto-retry on error) → developer review
+  (iteration cycle: 1-2 minutes, minimal developer intervention)
 ```
 
-**핵심 메커니즘**
+**Core Mechanisms**
 
-1. **자동 빌드 파이프라인**
-   - 프로젝트의 빌드 도구(Maven, Gradle, npm, pip 등)를 자동 실행
-   - 컴파일 오류, 의존성 충돌을 즉시 감지
-   - 빌드 실패 시 오류 메시지를 분석하여 자동으로 코드 수정 재시도
+1. **Automatic Build Pipeline**
+   - Automatically execute project build tools (Maven, Gradle, npm, pip, etc.)
+   - Immediately detect compilation errors and dependency conflicts
+   - On build failure, analyze error messages and automatically retry code fixes
 
-2. **테스트 자동 실행**
-   - 유닛 테스트, 통합 테스트를 자동으로 실행
-   - 테스트 실패 시 실패 원인을 분석하여 코드 또는 테스트를 수정
-   - 기존 테스트 커버리지를 유지하며 새 코드 추가
+2. **Automatic Test Execution**
+   - Automatically run unit tests and integration tests
+   - On test failure, analyze failure causes and fix code or tests
+   - Maintain existing test coverage while adding new code
 
-3. **개발자 리뷰 전 검증**
-   - 개발자가 코드를 받을 때 **이미 빌드와 테스트가 통과한 상태**
-   - 개발자는 비즈니스 로직과 설계 검토에 집중 (Loss Function 역할)
-   - "코드가 작동하는가?"가 아닌 "올바른 코드인가?"를 검증
+3. **Validation Before Developer Review**
+   - Developer receives code that has **already passed build and tests**
+   - Developer focuses on business logic and design review (Loss Function role)
+   - Validates "Is this the right code?" not "Does the code work?"
 
-### 3.2 보안 스캔 자동 수정
+### 3.2 Automatic Security Scan Fixes
 
-Q Developer는 Kubernetes YAML 및 애플리케이션 코드의 보안 취약점을 자동으로 스캔하고 수정 제안을 제공합니다.
+Q Developer automatically scans Kubernetes YAML and application code for security vulnerabilities and provides fix suggestions.
 
-**Kubernetes YAML 보안 스캔**
+**Kubernetes YAML Security Scan**
 
-1. **Root 권한 감지** — `runAsUser: 0` 또는 `runAsNonRoot: false` 탐지, `runAsUser: 1000`, `runAsNonRoot: true` 제안
-2. **Privileged 컨테이너 감지** — `securityContext.privileged: true` 탐지, 필요한 capabilities만 명시적으로 추가 제안
-3. **미설정 securityContext 감지** — Pod/Container에 `securityContext`가 없는 경우 최소 권한 원칙에 따른 설정 제안
+1. **Root Privilege Detection** — Detects `runAsUser: 0` or `runAsNonRoot: false`, suggests `runAsUser: 1000`, `runAsNonRoot: true`
+2. **Privileged Container Detection** — Detects `securityContext.privileged: true`, suggests explicitly adding only necessary capabilities
+3. **Missing securityContext Detection** — When Pod/Container lacks `securityContext`, suggests settings following least privilege principle
 
-**자동 수정 제안 예시**
+**Automatic Fix Suggestion Example**
 
 ```yaml
-# Q Developer가 감지한 문제
+# Problem detected by Q Developer
 apiVersion: v1
 kind: Pod
 metadata:
@@ -296,10 +220,10 @@ spec:
     - name: payment
       image: payment:v1
       securityContext:
-        runAsUser: 0  # ⚠️ Root 권한 사용
-        privileged: true  # ⚠️ Privileged 모드
+        runAsUser: 0  # ⚠️ Using root privileges
+        privileged: true  # ⚠️ Privileged mode
 
-# Q Developer가 제안하는 수정
+# Fix suggested by Q Developer
 apiVersion: v1
 kind: Pod
 metadata:
@@ -321,93 +245,93 @@ spec:
           drop:
             - ALL
           add:
-            - NET_BIND_SERVICE  # 필요한 capabilities만 추가
+            - NET_BIND_SERVICE  # Add only necessary capabilities
 ```
 
-### 3.3 피드백 루프 단축 효과
+### 3.3 Feedback Loop Reduction Effect
 
 ```
-전통적 Construction 단계:
-  [개발자] 코드 작성 (30분)
-    → [개발자] 수동 빌드 (2분)
-    → [개발자] 수동 테스트 (5분)
-    → [개발자] 오류 발견 (10분 디버깅)
-    → [개발자] 코드 수정 (20분)
-    → 반복...
-  총 소요 시간: 2-3시간
+Traditional Construction Phase:
+  [Developer] Write code (30 min)
+    → [Developer] Manual build (2 min)
+    → [Developer] Manual test (5 min)
+    → [Developer] Discover errors (10 min debugging)
+    → [Developer] Fix code (20 min)
+    → Repeat...
+  Total time: 2-3 hours
 
-Q Developer 실시간 실행:
-  [AI] 코드 생성 (1분)
-    → [AI] 자동 빌드·테스트 (30초)
-    → [AI] 오류 감지 및 자동 수정 (1분)
-    → [개발자] Loss Function 검증 (10분)
-    → [Argo CD] 자동 배포
-  총 소요 시간: 15-20분
+Q Developer Real-time Execution:
+  [AI] Code generation (1 min)
+    → [AI] Automatic build & test (30 sec)
+    → [AI] Error detection and automatic fix (1 min)
+    → [Developer] Loss Function validation (10 min)
+    → [Argo CD] Automatic deployment
+  Total time: 15-20 minutes
 ```
 
-:::tip AIDLC에서 Q Developer의 가치
-Q Developer의 실시간 실행은 AIDLC의 핵심 원칙인 **"Minimize Stages, Maximize Flow"**를 구현합니다. 코드 생성 → 빌드 → 테스트 → 검증의 각 단계를 자동화하여 핸드오프를 제거하고, 개발자는 **의사결정(Loss Function)**에만 집중합니다. 이것이 기존 SDLC의 주/월 단위 주기를 AIDLC의 시간/일 단위 주기로 단축하는 핵심 메커니즘입니다.
+:::tip Q Developer's Value in AIDLC
+Q Developer's real-time execution implements AIDLC's core principle of **"Minimize Stages, Maximize Flow"**. By automating each stage of code generation → build → test → validation, it eliminates handoffs, allowing developers to focus only on **decision-making (Loss Function)**. This is the core mechanism that reduces traditional SDLC's week/month cycles to AIDLC's hour/day cycles.
 :::
 
-## 4. AI 코딩 에이전트 비교
+## 4. AI Coding Agent Comparison
 
 <AiCodingAgentComparison />
 
-## 5. MCP 기반 실시간 컨텍스트 수집
+## 5. MCP-Based Real-time Context Collection
 
-Kiro는 MCP 네이티브 아키텍처로, Construction 단계에서 AWS Hosted MCP 서버를 통해 **실시간 인프라 상태를 수집**하여 설계에 반영합니다.
+Kiro's MCP native architecture collects **real-time infrastructure state** via AWS Hosted MCP servers during the Construction phase to reflect in design.
 
-### 5.1 AWS Hosted MCP 서버 활용
+### 5.1 AWS Hosted MCP Server Utilization
 
 **EKS MCP Server**
 
 ```typescript
-// Kiro가 EKS 클러스터 상태를 실시간 조회
+// Kiro queries EKS cluster status in real-time
 const cluster = await mcp.call('eks-mcp-server', 'get_cluster_status', {
   clusterName: 'prod-eks'
 });
 
-// 응답: { version: "1.35", nodes: 5, status: "ACTIVE", capacityType: "SPOT" }
-// → design.md 생성 시 현재 클러스터 버전 반영
+// Response: { version: "1.35", nodes: 5, status: "ACTIVE", capacityType: "SPOT" }
+// → Reflects current cluster version when generating design.md
 ```
 
 **Cost Analysis MCP Server**
 
 ```typescript
-// 비용 분석으로 설계 최적화
+// Optimize design with cost analysis
 const cost = await mcp.call('cost-analysis-mcp', 'analyze_cost', {
   service: 'EKS',
   timeRange: 'last_30_days'
 });
 
-// 응답: { monthly: "$450", recommendations: ["Use Spot for dev clusters", "Enable Karpenter consolidation"] }
-// → design.md에 비용 최적화 전략 반영
+// Response: { monthly: "$450", recommendations: ["Use Spot for dev clusters", "Enable Karpenter consolidation"] }
+// → Reflects cost optimization strategies in design.md
 ```
 
 **Workload MCP Server**
 
 ```typescript
-// 현재 워크로드 분석으로 리소스 할당 결정
+// Determine resource allocation with current workload analysis
 const workload = await mcp.call('eks-mcp-server', 'list_deployments', {
   namespace: 'payment'
 });
 
-// 응답: { deployments: [...], resource_usage: { cpu: "60%", memory: "75%" } }
-// → HPA 임계값과 NodePool 설정 결정에 활용
+// Response: { deployments: [...], resource_usage: { cpu: "60%", memory: "75%" } }
+// → Used to determine HPA thresholds and NodePool settings
 ```
 
-### 5.2 MCP 통합 이점
+### 5.2 MCP Integration Benefits
 
-1. **맥락 기반 설계** — 현재 인프라 상태를 반영한 현실적인 설계 생성
-2. **비용 최적화** — 실제 사용 패턴을 분석하여 Spot, Graviton 등 비용 절감 전략 자동 제안
-3. **리소스 효율** — 현재 워크로드 상태를 기반으로 HPA, Karpenter 설정 최적화
-4. **일관성 보장** — 실시간 데이터로 설계와 현실 간 괴리 최소화
+1. **Context-Based Design** — Generate realistic designs reflecting current infrastructure state
+2. **Cost Optimization** — Automatically suggest cost reduction strategies like Spot and Graviton based on actual usage patterns
+3. **Resource Efficiency** — Optimize HPA and Karpenter settings based on current workload state
+4. **Consistency Assurance** — Minimize gap between design and reality with real-time data
 
-## 6. CI/CD 통합
+## 6. CI/CD Integration
 
-AI 코딩 에이전트를 CI/CD 파이프라인에 통합하여 **Quality Gate 자동화**를 구현합니다.
+Integrate AI coding agents into CI/CD pipelines to implement **Quality Gate automation**.
 
-### 6.1 GitHub Actions 통합
+### 6.1 GitHub Actions Integration
 
 ```yaml
 # .github/workflows/aidlc-construction.yml
@@ -422,33 +346,33 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Q Developer 보안 스캔
+      # 1. Q Developer Security Scan
       - name: Q Developer Security Scan
         uses: aws/amazon-q-developer-action@v1
         with:
           scan-type: security
           source-path: .
-          auto-fix: true  # 자동 수정 제안 적용
+          auto-fix: true  # Apply automatic fix suggestions
 
-      # 2. 실시간 빌드 및 테스트
+      # 2. Real-time Build and Test
       - name: Q Developer Build & Test
         uses: aws/amazon-q-developer-action@v1
         with:
           action: build-and-test
           test-coverage-threshold: 80
 
-      # 3. Kubernetes manifest 검증
+      # 3. Kubernetes Manifest Validation
       - name: K8s Manifest Security Check
         run: |
           kube-linter lint deploy/ --config .kube-linter.yaml
 
-      # 4. 통과 시에만 Argo CD 동기화 허용
+      # 4. Allow Argo CD Sync Only on Pass
       - name: Approve for GitOps
         if: success()
         run: echo "Quality Gate passed. Ready for Argo CD sync."
 ```
 
-### 6.2 Argo CD 통합
+### 6.2 Argo CD Integration
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -471,7 +395,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-    # Quality Gate 통과 시에만 동기화
+    # Sync only when Quality Gate passes
     retry:
       limit: 3
       backoff:
@@ -480,98 +404,98 @@ spec:
         maxDuration: 3m
 ```
 
-### 6.3 Quality Gate 워크플로우
+### 6.3 Quality Gate Workflow
 
-1. **PR 생성** — 개발자가 Kiro 생성 코드를 PR로 제출
-2. **보안 스캔** — Q Developer가 Kubernetes manifest, 애플리케이션 코드 스캔
-3. **빌드·테스트** — Q Developer가 자동 빌드 및 테스트 실행
-4. **검증 통과** — 모든 검사 통과 시 Argo CD가 자동 동기화
-5. **배포 완료** — EKS 클러스터에 배포, Application Signals 자동 활성화
+1. **PR Creation** — Developer submits Kiro-generated code as PR
+2. **Security Scan** — Q Developer scans Kubernetes manifests and application code
+3. **Build & Test** — Q Developer automatically builds and runs tests
+4. **Validation Pass** — Argo CD automatically syncs when all checks pass
+5. **Deployment Complete** — Deploys to EKS cluster, Application Signals automatically enabled
 
-이 워크플로우는 [하네스 엔지니어링](../methodology/harness-engineering.md)의 핵심 구현 패턴입니다.
+This workflow is a core implementation pattern of [Harness Engineering](../methodology/harness-engineering.md).
 
-## 7. 에이전트 선택 가이드
+## 7. Agent Selection Guide
 
-프로젝트 특성별 AI 코딩 에이전트 선택 기준입니다.
+AI coding agent selection criteria by project characteristics.
 
-### 7.1 프로젝트 규모별
+### 7.1 By Project Scale
 
-| 프로젝트 규모 | 권장 에이전트 | 이유 |
-|--------------|--------------|------|
-| 소규모 (1-5 마이크로서비스) | Amazon Q Developer | IDE 통합, 빠른 피드백, 보안 스캔 |
-| 중규모 (5-20 마이크로서비스) | Kiro + Q Developer | Spec-Driven 일관성, Q Developer 실시간 검증 |
-| 대규모 (20+ 마이크로서비스) | Kiro + 오픈 웨이트 모델 | 비용 최적화, 도메인 특화 모델 활용 |
+| Project Scale | Recommended Agent | Reason |
+|--------------|------------------|--------|
+| Small (1-5 microservices) | Amazon Q Developer | IDE integration, fast feedback, security scan |
+| Medium (5-20 microservices) | Kiro + Q Developer | Spec-Driven consistency, Q Developer real-time validation |
+| Large (20+ microservices) | Kiro + Open-Weight Models | Cost optimization, domain-specialized model utilization |
 
-### 7.2 도메인별
+### 7.2 By Domain
 
-| 도메인 | 권장 에이전트 | 이유 |
-|--------|--------------|------|
-| 일반 웹 애플리케이션 | Amazon Q Developer | 범용 언어·프레임워크 지원, 빠른 프로토타이핑 |
-| EKS 인프라 자동화 | Kiro + MCP | 실시간 클러스터 상태 반영, ACK/KRO 통합 |
-| 금융·의료 특수 도메인 | Kiro + 파인튜닝 오픈 모델 | 도메인 규제 준수, 온프레미스 배포 |
-| 레거시 마이그레이션 | Amazon Q Developer `/transform` | Java 8→17, .NET Framework→Core 자동 변환 |
+| Domain | Recommended Agent | Reason |
+|--------|------------------|--------|
+| General Web Applications | Amazon Q Developer | General language/framework support, rapid prototyping |
+| EKS Infrastructure Automation | Kiro + MCP | Reflect real-time cluster state, ACK/KRO integration |
+| Finance/Healthcare Specialized Domains | Kiro + Fine-tuned Open Models | Regulatory compliance, on-premises deployment |
+| Legacy Migration | Amazon Q Developer `/transform` | Automatic Java 8→17, .NET Framework→Core conversion |
 
-### 7.3 팀 성숙도별
+### 7.3 By Team Maturity
 
-| 팀 성숙도 | 권장 에이전트 | 이유 |
-|----------|--------------|------|
-| AI 도구 첫 도입 | Amazon Q Developer | IDE 통합, 낮은 학습 곡선, AWS 공식 지원 |
-| DevOps 숙련 팀 | Kiro + Q Developer | Spec-Driven 구조화, CI/CD 자동화, MCP 활용 |
-| AI 플랫폼 운영 팀 | Kiro + 오픈 웨이트 모델 | 맞춤형 모델 배포, 비용 최적화, 특수 요구사항 대응 |
+| Team Maturity | Recommended Agent | Reason |
+|--------------|------------------|--------|
+| First AI Tool Adoption | Amazon Q Developer | IDE integration, low learning curve, AWS official support |
+| DevOps Skilled Team | Kiro + Q Developer | Spec-Driven structure, CI/CD automation, MCP utilization |
+| AI Platform Operations Team | Kiro + Open-Weight Models | Custom model deployment, cost optimization, special requirements |
 
-### 7.4 비용 고려사항
+### 7.4 Cost Considerations
 
-| 월 요청량 | 권장 전략 | 예상 비용 |
-|----------|----------|----------|
-| < 10,000 요청 | Amazon Q Developer 단독 | ~$50-100 |
-| 10,000 - 100,000 요청 | Kiro + Claude (단순 태스크는 소형 모델) | ~$200-500 |
-| > 100,000 요청 | Kiro + 오픈 웨이트 모델 (EKS 자체 호스팅) | ~$100-300 (인프라 비용) |
+| Monthly Request Volume | Recommended Strategy | Estimated Cost |
+|----------------------|---------------------|----------------|
+| < 10,000 requests | Amazon Q Developer only | ~$50-100 |
+| 10,000 - 100,000 requests | Kiro + Claude (simple tasks use smaller models) | ~$200-500 |
+| > 100,000 requests | Kiro + Open-Weight Models (EKS self-hosting) | ~$100-300 (infrastructure cost) |
 
-## 8. 실전 적용 패턴
+## 8. Practical Application Patterns
 
-### 8.1 하이브리드 전략
+### 8.1 Hybrid Strategy
 
-대부분의 팀은 **Amazon Q Developer + Kiro 하이브리드**가 최적입니다:
+For most teams, **Amazon Q Developer + Kiro hybrid** is optimal:
 
-1. **개발 초기** — Q Developer로 빠른 프로토타이핑, 실시간 피드백
-2. **설계 확정 후** — Kiro Spec-Driven으로 일관성 있는 구현
-3. **보안 검증** — Q Developer 자동 스캔으로 취약점 조기 발견
-4. **배포 자동화** — Kiro MCP로 현재 클러스터 상태 반영한 배포 설정
+1. **Early Development** — Rapid prototyping with Q Developer, real-time feedback
+2. **After Design Confirmation** — Consistent implementation with Kiro Spec-Driven
+3. **Security Validation** — Early vulnerability detection with Q Developer automatic scan
+4. **Deployment Automation** — Deployment configuration reflecting current cluster state with Kiro MCP
 
-### 8.2 온톨로지 기반 코드 생성
+### 8.2 Ontology-Based Code Generation
 
-Inception 단계에서 구축한 온톨로지를 Kiro에게 제공하면, **도메인 용어와 관계를 반영한 코드**를 생성합니다:
+When providing Kiro with ontology built during the Inception phase, it generates **code reflecting domain terms and relationships**:
 
 ```markdown
-# ontology.md (Kiro에게 제공)
+# ontology.md (provided to Kiro)
 
-## 도메인 모델
-- Payment (결제) → Order (주문) → Customer (고객)
+## Domain Model
+- Payment → Order → Customer
 - Payment.status: [pending, completed, failed]
 - Payment.method: [card, bank_transfer, wallet]
 
-## 비즈니스 규칙
-- Payment 생성 시 Order.status가 "confirmed"여야 함
-- Payment.amount는 Order.total_amount와 일치해야 함
-- Payment 실패 시 SQS 재시도 큐로 전송 (max 3회)
+## Business Rules
+- When creating Payment, Order.status must be "confirmed"
+- Payment.amount must match Order.total_amount
+- On Payment failure, send to SQS retry queue (max 3 times)
 ```
 
-Kiro는 이 온톨로지를 기반으로 `design.md`와 코드를 생성하며, 도메인 용어의 일관성을 보장합니다.
+Kiro generates `design.md` and code based on this ontology, ensuring domain term consistency.
 
-### 8.3 지속적 학습
+### 8.3 Continuous Learning
 
-AI 코딩 에이전트는 팀의 코드 리뷰 피드백을 학습하여 점진적으로 개선됩니다:
+AI coding agents progressively improve by learning from team code review feedback:
 
-1. **코드 리뷰 피드백** — PR 코멘트를 통해 팀의 코딩 컨벤션 학습
-2. **온톨로지 업데이트** — 새로운 도메인 개념이 추가되면 `ontology.md` 갱신
-3. **MCP 서버 확장** — 새로운 인프라 서비스가 추가되면 MCP 서버 통합
-4. **파인튜닝** — 팀 코드베이스로 오픈 웨이트 모델 파인튜닝 (선택적)
+1. **Code Review Feedback** — Learn team coding conventions through PR comments
+2. **Ontology Updates** — Update `ontology.md` when new domain concepts are added
+3. **MCP Server Extension** — Integrate MCP servers when new infrastructure services are added
+4. **Fine-tuning** — Fine-tune open-weight models with team codebase (optional)
 
-## 참고 자료
+## References
 
 - [AWS DevOps Blog: Enhancing Code Generation with Real-Time Execution in Amazon Q Developer](https://aws.amazon.com/blogs/devops/enhancing-code-generation-with-real-time-execution-in-amazon-q-developer/) (2025-02-06)
-- [Amazon Q Developer 공식 문서](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/)
-- [Model Context Protocol (MCP) 명세](https://modelcontextprotocol.io/)
-- [오픈 웨이트 모델 배포 가이드](./open-weight-models.md)
-- [DDD 통합](../methodology/ddd-integration.md)
-- [하네스 엔지니어링](../methodology/harness-engineering.md)
+- [Amazon Q Developer Official Documentation](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/)
+- [Model Context Protocol (MCP) Specification](https://modelcontextprotocol.io/)
+- [Open-Weight Model Deployment Guide](./open-weight-models.md)
+- [DDD Integration](../methodology/ddd-integration.md)
+- [Harness Engineering](../methodology/harness-engineering.md)

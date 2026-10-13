@@ -1,6 +1,6 @@
 ---
-title: Knowledge Graph 25 클래스 (Uni-President)
-description: BU 5종 통합 + OPENPOINT + 자사 제조 SKU + 콜드체인 (~900K edges)
+title: Knowledge Graph — 25 Classes (Uni-President)
+description: Integration of 5 BUs + OPENPOINT + own-manufactured SKUs + cold chain (~900K edges)
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,37 +16,37 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
-| 그룹 | 클래스 |
+| Group | Classes |
 |---|---|
-| **고객/회원** | Customer · **OPENPOINTMembership** · Household · Persona · Segment |
-| **상품** | Product · Category · Brand · **BU** (統一食品/7ELE/까르푸/Starbucks/Donut/KFC) · **OwnSKU** (자사 제조) |
-| **거래/행동** | **CVSTransaction** (7-Eleven) · **HypermarketTransaction** (까르푸) · **CafeTransaction** (Starbucks/Donut/KFC) · CartEvent · ReviewRating |
-| **채널/캠페인** | Store (매장) · Campaign · Promotion · Touchpoint · Coupon |
-| **운영/외부** | **ColdChainSLA** · **BUTransfer** (BU 간 회원 이동 로그) · WeatherSignal · EconomicSignal · CompetitorSignal · Compliance |
+| **Customer / Member** | Customer · **OPENPOINTMembership** · Household · Persona · Segment |
+| **Product** | Product · Category · Brand · **BU** (Uni-President Food / 7ELE / Carrefour / Starbucks / Donut / KFC) · **OwnSKU** (own-manufactured) |
+| **Transaction / Behavior** | **CVSTransaction** (7-Eleven) · **HypermarketTransaction** (Carrefour) · **CafeTransaction** (Starbucks/Donut/KFC) · CartEvent · ReviewRating |
+| **Channel / Campaign** | Store · Campaign · Promotion · Touchpoint · Coupon |
+| **Operations / External** | **ColdChainSLA** · **BUTransfer** (cross-BU member-migration log) · WeatherSignal · EconomicSignal · CompetitorSignal · Compliance |
 
-## Uni-President 특화 클래스
+## Uni-President-Specific Classes
 
 ### OPENPOINTMembership
-| 속성 |
+| Attributes |
 |---|
-| member_id · grade · joined_at · 자사 BU 교차 사용 횟수 |
+| member_id · grade · joined_at · cross-BU usage count |
 
-### OwnSKU (자사 제조)
-| 속성 |
+### OwnSKU (Own-Manufactured)
+| Attributes |
 |---|
-| sku · 제조 BU · 출하 채널 (7ELE/까르푸/외부) · 콜드체인 여부 |
+| sku · manufacturing BU · shipment channels (7ELE / Carrefour / external) · cold-chain flag |
 
-### BUTransfer (BU 간 행동)
-| 속성 |
+### BUTransfer (Cross-BU Behavior)
+| Attributes |
 |---|
 | transfer_id · member_id · from_BU · to_BU · within_days · category |
 
 ### ColdChainSLA
-| 속성 |
+| Attributes |
 |---|
-| shipment_id · sku · 출하 BU · 도착 매장 · target_temp · actual_temp · breach |
+| shipment_id · sku · origin BU · destination store · target_temp · actual_temp · breach |
 
-## 핵심 관계 (BU 가로지르기 강조)
+## Key Relationships (Cross-BU Emphasized)
 
 ```mermaid
 graph LR
@@ -66,11 +66,11 @@ graph LR
     ColdChainSLA -->|TO_STORE| Store
 ```
 
-엣지 추정 ~900K (5 BU × 거래 × OPENPOINT × 콜드체인 로그).
+Estimated edges ~900K (5 BUs × transactions × OPENPOINT × cold-chain logs).
 
-## openCypher 예시
+## openCypher Examples
 
-### S9-U: BU 가로지르는 OPENPOINT 회원 여정
+### S9-U: Cross-BU OPENPOINT Member Journey
 ```cypher
 MATCH (c:Customer)-[:HAS_OPENPOINT]->(:OPENPOINTMembership)
 MATCH (c)-[:MADE]->(t1:CVSTransaction)
@@ -82,7 +82,7 @@ RETURN c.customer_id, count(*) AS cross_bu_days
 ORDER BY cross_bu_days DESC LIMIT 100
 ```
 
-### S10-U: 統一 麥香 음료 sell-through 비교
+### S10-U: Uni-President Mai-Hsiang (麥香) Beverage Sell-Through Comparison
 ```cypher
 MATCH (s:OwnSKU {brand: '麥香', mfg_bu: '統一食品'})
 OPTIONAL MATCH (s)-[:DISTRIBUTED_TO]->(:Store {bu: '7-Eleven'})
@@ -92,7 +92,7 @@ OPTIONAL MATCH (s)-[:DISTRIBUTED_TO]->(:Store {bu: 'Carrefour'})
 RETURN sum(t1.units) AS cvs_units, sum(t2.units) AS hyper_units
 ```
 
-### S11-U: 콜드체인 SLA 위반 (외기온 결합)
+### S11-U: Cold-Chain SLA Breach (Joined with Outdoor Temperature)
 ```cypher
 MATCH (sla:ColdChainSLA)
 WHERE sla.actual_temp > sla.target_temp + 2.0
@@ -104,10 +104,10 @@ RETURN s.store_id, sla.sku, w.temp_c AS outside_temp,
 ORDER BY breach DESC
 ```
 
-## 인덱스
-| 인덱스 | 분석기 |
+## Indexes
+| Index | Analyzer |
 |---|---|
 | `idx_product` | Smartcn |
 | `idx_customer` | Smartcn |
-| `idx_review` | Smartcn (Dcard·小紅書·Yelp Tw) |
+| `idx_review` | Smartcn (Dcard · Xiaohongshu (小紅書) · Yelp Tw) |
 | `idx_social_trend` | Smartcn + Standard |

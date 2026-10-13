@@ -1,11 +1,11 @@
 ---
 title: EKS Node Monitoring Agent
-description: AWS EKS 클러스터의 노드 상태를 자동으로 감지하고 보고하는 Node Monitoring Agent의 아키텍처, 배포 전략, 제한사항, 모범 사례를 다룹니다.
+description: Architecture, deployment strategies, limitations, and best practices for the AWS EKS Node Monitoring Agent that automatically detects and reports node health issues
 created: "2025-08-26"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 18
+  author: devfloor9
+reading_time: 26
 tags:
   - eks
   - monitoring
@@ -14,71 +14,69 @@ tags:
   - observability
   - cloudwatch
   - scope:ops
-sidebar_label: 노드 모니터링 에이전트
+sidebar_label: Node Monitoring Agent
 category: observability-monitoring
 ---
 
-## 개요
+## Overview
 
-EKS Node Monitoring Agent(NMA)는 AWS가 제공하는 노드 상태 모니터링 도구입니다. EKS 클러스터의 노드에서 발생하는 하드웨어 및 시스템 레벨 문제를 자동으로 감지하고 보고합니다. 2024년에 정식 출시된 이 서비스는 노드 자동 복구(Node Auto Repair) 기능과 함께 작동하여 클러스터의 안정성을 향상시킵니다.
+The EKS Node Monitoring Agent (NMA) is an AWS-provided node health monitoring tool. It automatically detects and reports hardware and system-level issues that occur on EKS cluster nodes. Generally available since 2024, it works alongside Node Auto Repair to improve cluster stability.
 
-### 문제 해결
+### Problems Addressed
 
-전통적인 EKS 클러스터 운영에서는 다음의 문제들이 있었습니다:
+Traditional EKS cluster operations faced the following problems:
 
-- 하드웨어 장애의 조기 감지 부족
-- 시스템 레벨 문제의 수동 모니터링 필요
-- 노드 상태 변화에 대한 지연된 대응
-- 문제 감지와 자동 복구의 통합 부재
+- Insufficient early detection of hardware failures
+- Manual monitoring required for system-level issues
+- Delayed response to node state changes
+- Lack of integration between problem detection and automatic recovery
 
-NMA는 이러한 문제들을 해결하기 위해 설계되었습니다.
+NMA was designed to address these problems.
 
-### EKS Node Monitoring Agent란?
+### Key Features
 
-### 주요 특징
+- **Log-based problem detection**: Real-time analysis of system logs with pattern matching
+- **Automatic event generation**: Creates Kubernetes Events and Node Conditions upon detection
+- **CloudWatch integration**: Sends detected issues to CloudWatch for centralized monitoring
+- **EKS Add-on support**: Simple installation and management
 
-- **로그 기반 문제 감지**: 시스템 로그를 실시간으로 분석하여 패턴 매칭
-- **자동 이벤트 생성**: 문제 감지 시 Kubernetes Events 및 Node Conditions 자동 생성
-- **CloudWatch 통합**: 감지된 문제를 CloudWatch로 전송하여 중앙 집중식 모니터링
-- **EKS Add-on 지원**: 간편한 설치 및 관리
+:::warning Important
 
-:::warning 중요
-
-NMA는 노드 상태 문제를 자동으로 감지하는 유용한 도구이지만, 단독으로는 완전한 모니터링 솔루션이 될 수 없습니다. 다음의 제한 사항을 고려한 적절한 기대치 설정과 보완 도구 활용이 필요합니다.
+NMA is a useful tool for automatically detecting node health issues, but on its own it cannot serve as a complete monitoring solution. It requires appropriate expectation-setting that accounts for the limitations below, along with complementary tooling.
 
 :::
 
-:::tip 핵심 권장사항
+:::tip Key Recommendations
 
-**✅ 권장하는 사용법**
+**✅ Recommended usage**
 
-- NMA를 노드 상태 감지 레이어로 활용
-- Container Insights나 Prometheus로 메트릭 수집 보완
-- Node Auto Repair와 함께 사용하여 자동 복구 구현
-- 환경별 특성에 맞게 임계값 조정
+- Use NMA as a node-state detection layer
+- Complement with Container Insights or Prometheus for metric collection
+- Use together with Node Auto Repair to implement automatic recovery
+- Tune thresholds to each environment's characteristics
 
-**❌ 피해야 할 사용법**
+**❌ Usage to avoid**
 
-- NMA만으로 전체 모니터링 의존 불가
-- 급격한 하드웨어 장애 대응 불가
+- Relying on NMA alone for full monitoring
+- Expecting it to handle sudden hardware failures
 
 :::
 
-## 1. 설계 목표
+## 1. Design Goals
 
-### 1.1 포괄적인 노드 상태 모니터링
+### 1.1 Comprehensive Node Health Monitoring
 
-NMA는 EKS 노드의 다양한 시스템 컴포넌트를 모니터링합니다:
+NMA monitors various system components on EKS nodes:
 
-- **Container Runtime**: Docker/containerd의 상태 확인
-- **Storage System**: 디스크 공간 및 I/O 성능 모니터링
-- **Networking**: 네트워크 연결성 및 구성 검증
-- **Kernel**: 커널 모듈 및 시스템 상태 점검
-- **Accelerated Hardware**: GPU(NVIDIA) 및 Neuron 칩 상태 (하드웨어 감지 시)
+- **Container Runtime**: Health of Docker/containerd
+- **Storage System**: Disk space and I/O performance monitoring
+- **Networking**: Network connectivity and configuration validation
+- **Kernel**: Kernel modules and system state checks
+- **Accelerated Hardware**: GPU (NVIDIA) and Neuron chip health (when such hardware is detected)
 
-### 1.2 Kubernetes 네이티브 통합
+### 1.2 Kubernetes-Native Integration
 
-NMA는 controller-runtime을 사용하여 Kubernetes와 긴밀하게 통합됩니다:
+NMA integrates tightly with Kubernetes using controller-runtime:
 
 ```go
 mgr, err := controllerruntime.NewManager(controllerruntime.GetConfigOrDie(), controllerruntime.Options{
@@ -90,19 +88,19 @@ mgr, err := controllerruntime.NewManager(controllerruntime.GetConfigOrDie(), con
 })
 ```
 
-### 1.3 다양한 EKS 환경 지원
+### 1.3 Support for Diverse EKS Environments
 
-REST 설정 로직에서 확인할 수 있듯이, NMA는 다양한 EKS 환경을 지원합니다:
+As seen in the REST configuration logic, NMA supports diverse EKS environments:
 
-- **EKS Auto**: 특별한 사용자 impersonation 플로우 사용
-- **Legacy RBAC**: 기존 권한 모델 지원
-- **Standard**: 표준 Pod 기반 인증
+- **EKS Auto**: Uses a special user impersonation flow
+- **Legacy RBAC**: Supports the legacy permission model
+- **Standard**: Standard Pod-based authentication
 
-## 2. 아키텍처 및 동작 원리
+## 2. Architecture and Operating Principles
 
-### 2.1 Agent Startup 및 초기화 흐름
+### 2.1 Agent Startup and Initialization Flow
 
-다음 다이어그램은 NMA의 시작 과정과 모니터링 루프의 전체 흐름을 보여줍니다.
+The following diagram shows NMA's startup process and the overall flow of its monitoring loop.
 
 ```mermaid
 graph TD
@@ -194,9 +192,9 @@ graph TD
     style QQ fill:#fce4ec
 ```
 
-### 2.2 모니터 등록 및 관리
+### 2.2 Monitor Registration and Management
 
-NMA는 모니터 구성을 통해 각 서브시스템을 관리합니다. 다음은 모니터 등록의 구조를 보여줍니다.
+NMA manages each subsystem through monitor configuration. The following shows the structure of monitor registration.
 
 ```go
 var monitorConfigs = []monitorConfig{
@@ -208,43 +206,43 @@ var monitorConfigs = []monitorConfig{
         Monitor:       storage.NewStorageMonitor(),
         ConditionType: rules.StorageReady,
     },
-    // ... 추가 모니터들
+    // ... additional monitors
 }
 ```
 
-각 모니터는 해당하는 Node Condition과 연결되어 상태를 보고합니다.
+Each monitor is linked to a corresponding Node Condition and reports its status.
 
-### 2.3 Node Condition 기반 상태 보고
+### 2.3 Node Condition-Based Status Reporting
 
-NMA는 Kubernetes의 Node Condition 메커니즘을 활용하여 각 서브시스템의 상태를 보고합니다:
+NMA leverages the Kubernetes Node Condition mechanism to report the status of each subsystem:
 
-- `ContainerRuntimeReady`: 컨테이너 런타임 상태
-- `StorageReady`: 스토리지 시스템 상태
-- `NetworkingReady`: 네트워킹 상태
-- `KernelReady`: 커널 상태
-- `AcceleratedHardwareReady`: GPU/Neuron 하드웨어 상태 (조건부)
+- `ContainerRuntimeReady`: container runtime status
+- `StorageReady`: storage subsystem status
+- `NetworkingReady`: networking status
+- `KernelReady`: kernel status
+- `AcceleratedHardwareReady`: GPU/Neuron hardware status (conditional)
 
-### 2.4 실시간 진단 기능
+### 2.4 Real-Time Diagnostics
 
-NodeDiagnostic CRD를 통한 온디맨드 진단 실행:
+On-demand diagnostics execution via the NodeDiagnostic CRD:
 
 ```go
 diagnosticController := controllers.NewNodeDiagnosticController(mgr.GetClient(), hostname, runtimeContext)
 ```
 
-이를 통해 운영자는 특정 노드에서 실시간으로 진단 명령을 실행할 수 있습니다.
+This lets operators run diagnostic commands in real time on a specific node.
 
-### 2.5 관찰 가능성 (Observability)
+### 2.5 Observability
 
-NMA는 다양한 엔드포인트를 통해 관찰 가능성을 제공합니다:
+NMA provides observability through various endpoints:
 
-- **Health Probe** (`:8081`): Kubernetes 헬스 체크
-- **Metrics** (`:8080`): Prometheus 메트릭 노출
-- **PProf** (`:8082`): Go 프로파일링 (선택적)
+- **Health Probe** (`:8081`): Kubernetes health checks
+- **Metrics** (`:8080`): Prometheus metrics exposure
+- **PProf** (`:8082`): Go profiling (optional)
 
-### 2.6 콘솔 진단 로깅
+### 2.6 Console Diagnostic Logging
 
-`-console-diagnostics` 플래그 활성화 시, 시스템 정보를 `/dev/console`에 주기적으로 기록:
+When the `-console-diagnostics` flag is enabled, system information is periodically written to `/dev/console`:
 
 ```go
 if enableConsoleDiagnostics {
@@ -252,13 +250,13 @@ if enableConsoleDiagnostics {
 }
 ```
 
-이는 인스턴스 레벨에서의 가시성을 제공합니다.
+This provides instance-level visibility.
 
-### 2.7 배포 및 운영 특징
+### 2.7 Deployment and Operational Characteristics
 
-#### 2.7.1 DaemonSet 기반 배포
+#### 2.7.1 DaemonSet-Based Deployment
 
-`agent.tpl.yaml`에서 확인할 수 있듯이, NMA는 DaemonSet으로 배포되어 모든 워커 노드에서 실행됩니다:
+As seen in `agent.tpl.yaml`, NMA is deployed as a DaemonSet and runs on all worker nodes:
 
 ```yaml
 kind: DaemonSet
@@ -268,18 +266,18 @@ metadata:
   namespace: kube-system
 ```
 
-#### 2.7.2 노드 선택 및 제약사항
+#### 2.7.2 Node Selection and Constraints
 
-`values.yaml`의 affinity 설정을 통해 특정 노드 타입에서만 실행되도록 제한:
+The affinity settings in `values.yaml` restrict execution to specific node types:
 
-- Fargate 노드 제외
-- EKS Auto 컴퓨트 타입 제외
-- HyperPod 노드 제외
-- AMD64/ARM64 아키텍처만 지원
+- Excludes Fargate nodes
+- Excludes EKS Auto compute types
+- Excludes HyperPod nodes
+- Supports AMD64/ARM64 architectures only
 
-#### 2.7.3 권한 관리
+#### 2.7.3 Permission Management
 
-`agent.tpl.yaml`의 RBAC 설정을 통한 최소 권한 원칙 적용:
+The RBAC settings in `agent.tpl.yaml` apply the principle of least privilege:
 
 ```yaml
 rules:
@@ -293,9 +291,9 @@ rules:
     verbs: ["get", "watch", "list"]
 ```
 
-#### 2.7.4 리소스 효율성
+#### 2.7.4 Resource Efficiency
 
-`values.yaml`에 정의된 리소스 제한으로 경량 운영:
+The resource limits defined in `values.yaml` keep operation lightweight:
 
 ```yaml
 resources:
@@ -307,182 +305,182 @@ resources:
     memory: 100Mi
 ```
 
-### 2.8 감지 가능한 문제 유형
+### 2.8 Types of Detectable Issues
 
-NMA가 감지하는 노드 헬스 이슈는 **심각도(Severity)** 에 따라 두 종류로 구분됩니다. 이 구분은 Node Auto Repair의 동작 여부를 결정하므로 정확히 이해해야 합니다.
+The node health issues that NMA detects are divided into two categories by **severity**. This distinction must be understood precisely because it determines whether Node Auto Repair acts.
 
-- **Condition**: 노드 교체(Replace) 또는 재부팅(Reboot)이 필요한 종료성(terminal) 이슈. Auto Repair가 활성화된 경우 복구 액션을 수행합니다.
-- **Event**: 일시적이거나 비치명적인 이슈, 또는 차선의 노드 구성. **Auto Repair 액션을 트리거하지 않으며** 조사·알림 용도로만 기록됩니다.
+- **Condition**: a terminal issue warranting node Replace or Reboot. When Auto Repair is enabled, a repair action is taken.
+- **Event**: a temporary or non-critical issue, or a sub-optimal node configuration. It **does not trigger an Auto Repair action** and is recorded for investigation/alerting only.
 
-각 모니터링 컨디션 타입(`ContainerRuntimeReady`, `KernelReady`, `NetworkingReady`, `StorageReady`, `AcceleratedHardwareReady`) 아래에 다수의 세부 이슈가 매핑됩니다. 동일 컨디션 타입이라도 세부 이슈별로 Severity가 Condition인지 Event인지가 다릅니다.
+Multiple detailed issues are mapped under each monitoring condition type (`ContainerRuntimeReady`, `KernelReady`, `NetworkingReady`, `StorageReady`, `AcceleratedHardwareReady`). Even within the same condition type, the severity (Condition vs. Event) differs per detailed issue.
 
-#### 2.8.1 Container Runtime 이슈 (`ContainerRuntimeReady`)
+#### 2.8.1 Container Runtime Issues (`ContainerRuntimeReady`)
 
-containerd 부하·장애로 노드 문제가 발생하는 시나리오와 직접 관련됩니다.
+Directly relevant to scenarios where containerd load/failure causes node problems.
 
-| 이름 | 심각도 | 설명 | 복구 액션 |
-|------|--------|------|-----------|
-| `PodStuckTerminating` | **Condition** | CRI 오류 등으로 Pod가 과도하게 종료 지연되어 상태 진행 불가 | **Replace** |
-| `ContainerRuntimeFailed` | Event | 런타임이 컨테이너 생성에 실패(반복 시 장애 신호) | None |
-| `KubeletFailed` | Event | kubelet이 failed 상태로 진입 | None |
-| `DeprecatedContainerdConfiguration` | Event | deprecated 이미지 매니페스트(v2 schema 1) 풀 발생 | None |
-| `Liveness/ReadinessProbeFailures` | Event | Probe 실패 감지(앱 코드 문제 또는 타임아웃 부족 가능성) | None |
-| `[Name]RepeatedRestart` / `ServiceFailedToStart` | Event | systemd 유닛의 잦은 재시작 / 시작 실패 | None |
+| Name | Severity | Description | Repair Action |
+|------|----------|-------------|---------------|
+| `PodStuckTerminating` | **Condition** | A pod is excessively delayed in terminating (e.g., due to CRI errors), unable to progress state | **Replace** |
+| `ContainerRuntimeFailed` | Event | The runtime failed to create a container (a failure signal if recurring) | None |
+| `KubeletFailed` | Event | The kubelet entered a failed state | None |
+| `DeprecatedContainerdConfiguration` | Event | A deprecated image manifest (v2 schema 1) pull occurred | None |
+| `Liveness/ReadinessProbeFailures` | Event | Probe failure detected (possible app code issue or insufficient timeout) | None |
+| `[Name]RepeatedRestart` / `ServiceFailedToStart` | Event | Frequent restarts / startup failure of a systemd unit | None |
 
-→ **핵심**: containerd가 완전히 망가져 Pod가 종료되지 못하는 수준(`PodStuckTerminating`)만 Condition으로 분류되어 노드 교체로 이어집니다. 단순 컨테이너 생성 실패(`ContainerRuntimeFailed`)는 Event로만 기록되며 자동 복구되지 않습니다.
+→ **Key point**: Only the level where containerd is fully broken and pods cannot terminate (`PodStuckTerminating`) is classified as a Condition and leads to node replacement. A plain container-create failure (`ContainerRuntimeFailed`) is recorded as an Event only and is not auto-remediated.
 
-#### 2.8.2 Kernel / Networking / Storage 주요 이슈
+#### 2.8.2 Major Kernel / Networking / Storage Issues
 
-Condition(자동 복구 대상)으로 분류되는 대표 항목만 정리합니다. 그 외 다수 항목은 Event입니다.
+Only the representative items classified as Condition (auto-repair targets) are listed. Most other items are Events.
 
-| 컨디션 타입 | Condition 이슈(Replace) | 대표 Event 이슈 |
+| Condition type | Condition issues (Replace) | Representative Event issues |
 |------|------|------|
-| `KernelReady` | `ForkFailedOutOfPIDs` (PID/메모리 고갈) | `SoftLockup`, `KernelBug`, `ApproachingKernelPidMax`, `ConntrackExceededKernel` |
+| `KernelReady` | `ForkFailedOutOfPIDs` (PID/memory exhaustion) | `SoftLockup`, `KernelBug`, `ApproachingKernelPidMax`, `ConntrackExceededKernel` |
 | `NetworkingReady` | `IPAMDNotRunning`, `IPAMDNotReady`, `InterfaceNotUp/Running`, `MissingLoopbackInterface` | `ConntrackExceeded`, `BandwidthIn/OutExceeded`, `PPSExceeded`, `NetworkSysctl` |
-| `StorageReady` | (해당 표의 항목은 모두 Event) | `EBSVolumeIOPS/ThroughputExceeded`, `IODelays`, `KubeletDiskUsageSlow` |
+| `StorageReady` | (all items in that table are Events) | `EBSVolumeIOPS/ThroughputExceeded`, `IODelays`, `KubeletDiskUsageSlow` |
 
-:::warning DiskPressure / MemoryPressure / PIDPressure 는 자동 복구 대상이 아님
+:::warning DiskPressure / MemoryPressure / PIDPressure are NOT auto-repair targets
 
-`DiskPressure`, `MemoryPressure`, `PIDPressure`는 표준 Kubernetes 컨디션이며, **Node Auto Repair가 의도적으로 반응하지 않습니다.** 이들은 노드 자체 결함보다 애플리케이션 동작·워크로드 구성·리소스 한계 문제일 가능성이 높아, 적절한 기본 복구 액션을 정의하기 어렵기 때문입니다. 이 경우 Kubernetes의 [node-pressure eviction](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/) 동작에 위임됩니다.
+`DiskPressure`, `MemoryPressure`, and `PIDPressure` are standard Kubernetes conditions, and **Node Auto Repair intentionally does not react to them.** These are more likely to indicate application behavior, workload configuration, or resource-limit issues than node-level faults, making it hard to define an appropriate default repair action. In these cases, handling is delegated to the Kubernetes [node-pressure eviction](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/) behavior.
 
-→ containerd 부하가 **메모리/디스크 압박이나 PID 고갈 형태로 표출되면 노드는 자동 교체되지 않습니다.** 부하가 런타임 자체 실패(`PodStuckTerminating` 등 Condition)로 잡혀야 Auto Repair가 동작합니다.
+→ If containerd load **manifests as memory/disk pressure or PID exhaustion, the node is not automatically replaced.** The load must be caught as a runtime failure itself (a Condition such as `PodStuckTerminating`) for Auto Repair to act.
 
 :::
 
-#### 2.8.3 Accelerated Hardware 이슈 (`AcceleratedHardwareReady`)
+#### 2.8.3 Accelerated Hardware Issues (`AcceleratedHardwareReady`)
 
-NVIDIA GPU·AWS Neuron 가속기 헬스를 감지합니다. NVIDIA XID 에러는 well-known 코드만 Condition(`NvidiaXID[Code]Error`)으로 분류되어 복구를 트리거하며, 미등록 코드는 Event(`NvidiaXID[Code]Warning`)로만 기록됩니다. 세부 XID 코드별 복구 액션(Reboot/Replace)은 AWS 공식 문서를 참조합니다.
+Detects NVIDIA GPU and AWS Neuron accelerator health. For NVIDIA XID errors, only well-known codes are classified as Conditions (`NvidiaXID[Code]Error`) and trigger repair; unregistered codes are recorded as Events only (`NvidiaXID[Code]Warning`). Refer to AWS official documentation for per-XID-code repair actions (Reboot/Replace).
 
-| 대표 이슈 | 심각도 | 복구 액션 |
+| Representative issue | Severity | Repair Action |
 |------|------|------|
-| `NvidiaXID[Code]Error` (well-known) | Condition | Replace 또는 Reboot (코드별 상이) |
+| `NvidiaXID[Code]Error` (well-known) | Condition | Replace or Reboot (varies by code) |
 | `NvidiaNVLinkError`, `NvidiaDoubleBitError` | Condition | Replace |
 | `NeuronDMAError`, `NeuronHBMUncorrectableError` | Condition | Replace |
 | `DCGMError`, `DCGMDiagnosticFailure` | Condition | None |
 | `NvidiaThermalError`, `NvidiaPowerError`, `NvidiaPageRetirement` | Event | None |
 
-## 3. Node Auto Repair 연동
+## 3. Node Auto Repair Integration
 
-NMA는 단독으로는 가시성(NodeCondition·이벤트 노출)만 제공합니다. Node Auto Repair와 함께 사용해야 감지된 Condition에 대한 자동 교체·재부팅이 이루어집니다.
+On its own, NMA only provides visibility (exposing NodeConditions and events). Automatic replacement/reboot for detected Conditions happens only when used together with Node Auto Repair.
 
-### 3.1 NMA 유무에 따른 Auto Repair 반응 대상
+### 3.1 Auto Repair Reaction Targets With/Without NMA
 
-| 구성 | Auto Repair가 반응하는 대상 |
+| Configuration | What Auto Repair reacts to |
 |------|------|
-| Auto Repair 단독 (NMA 없음) | kubelet의 `Ready` 컨디션, 수동 삭제된 node object, 클러스터 조인 실패한 관리형 노드그룹 인스턴스 |
-| Auto Repair + NMA | 위 항목 **추가로** `AcceleratedHardwareReady`, `ContainerRuntimeReady`, `KernelReady`, `NetworkingReady`, `StorageReady` |
+| Auto Repair alone (no NMA) | kubelet's `Ready` condition, manually deleted node objects, managed node group instances that fail to join the cluster |
+| Auto Repair + NMA | The above, **plus** `AcceleratedHardwareReady`, `ContainerRuntimeReady`, `KernelReady`, `NetworkingReady`, `StorageReady` |
 
-### 3.2 컨디션별 복구 대기 시간 및 액션
+### 3.2 Per-Condition Repair Wait Time and Action
 
-기본 동작이며 EKS Auto Mode·관리형 노드그룹·Karpenter에 공통 적용됩니다. `Reboot`은 관리형 노드그룹에서만 지원되며, Auto Mode·Karpenter는 모두 `Replace`로 동작합니다.
+These are default behaviors, applied commonly across EKS Auto Mode, managed node groups, and Karpenter. `Reboot` is supported only on managed node groups; Auto Mode and Karpenter both act with `Replace`.
 
-| 컨디션 | 복구 대기 | 액션 |
+| Condition | Repair after | Action |
 |------|------|------|
-| `AcceleratedHardwareReady` | 10분 | Replace 또는 Reboot |
-| `ContainerRuntimeReady` | 30분 | Replace |
-| `KernelReady` | 30분 | Replace |
-| `NetworkingReady` | 30분 | Replace |
-| `StorageReady` | 30분 | Replace |
-| `Ready` | 30분 | Replace |
+| `AcceleratedHardwareReady` | 10 min | Replace or Reboot |
+| `ContainerRuntimeReady` | 30 min | Replace |
+| `KernelReady` | 30 min | Replace |
+| `NetworkingReady` | 30 min | Replace |
+| `StorageReady` | 30 min | Replace |
+| `Ready` | 30 min | Replace |
 | `DiskPressure` / `MemoryPressure` | N/A | None |
 
-### 3.3 폭주 방지 안전장치
+### 3.3 Runaway-Prevention Guardrails
 
-대량 장애 시 노드가 연쇄 교체되는 것을 막기 위해 기본적으로 다음 상황에서 신규 복구 액션이 중단됩니다(진행 중인 복구는 계속).
+To prevent cascading node replacement during mass failures, new repair actions are halted by default in the following situations (in-progress repairs continue).
 
-- **관리형 노드그룹**: 노드가 5개 초과이고 그룹의 20%를 초과하는 노드가 unhealthy인 경우, 또는 ARC(Application Recovery Controller) zonal shift 발생 시
-- **Auto Mode / Karpenter**: NodePool의 20%를 초과하는 노드가 unhealthy인 경우(독립 NodeClaim은 클러스터의 20%)
+- **Managed node groups**: When there are more than 5 nodes and more than 20% of the group's nodes are unhealthy, or when an ARC (Application Recovery Controller) zonal shift occurs
+- **Auto Mode / Karpenter**: When more than 20% of the NodePool's nodes are unhealthy (for standalone NodeClaims, 20% of the cluster)
 
-### 3.4 활성화 방법
+### 3.4 Enablement
 
-- **EKS Auto Mode**: 항상 활성(설정 변경 불가)
-- **Karpenter**: feature gate `NodeRepair=true` 설정
-- **관리형 노드그룹**: 콘솔 "Enable node auto repair" 체크박스 / CLI `--node-repair-config enabled=true` / eksctl `nodeRepairConfig.enabled: true`
+- **EKS Auto Mode**: Always enabled (not configurable)
+- **Karpenter**: Set feature gate `NodeRepair=true`
+- **Managed node groups**: Console "Enable node auto repair" checkbox / CLI `--node-repair-config enabled=true` / eksctl `nodeRepairConfig.enabled: true`
 
-관리형 노드그룹은 `maxUnhealthyNodeThresholdCount/Percentage`, `maxParallelNodesRepairedCount/Percentage`, 그리고 컨디션·사유별 `nodeRepairConfigOverrides`(예: 특정 NVIDIA XID 에러는 즉시 Replace, 다른 코드는 NoAction)로 세부 동작을 커스터마이징할 수 있습니다.
+Managed node groups can customize detailed behavior with `maxUnhealthyNodeThresholdCount/Percentage`, `maxParallelNodesRepairedCount/Percentage`, and per-condition/reason `nodeRepairConfigOverrides` (e.g., immediate Replace for a specific NVIDIA XID error, NoAction for others).
 
-## 4. 배포 방식별 차이점
+## 4. Differences by Deployment Method
 
 ### 4.1 Manual Mode (DaemonSet)
 
-**장점:**
+**Pros:**
 
-- 유연한 버전 관리
-- ConfigMap 기반 설정 변경
-- 커스텀 설정 가능
+- Flexible version management
+- ConfigMap-based configuration changes
+- Custom configuration possible
 
-**단점:**
+**Cons:**
 
-- kubelet 의존성 높음
-- 노드 부트스트랩 시 지연
-- kubelet 장애 시 영향 받음
+- High kubelet dependency
+- Delay during node bootstrap
+- Affected by kubelet failures
 
 ### 4.2 EKS Auto Mode
 
-**장점:**
+**Pros:**
 
-- AMI에 직접 내장
-- kubelet과 독립적 실행
-- 더 높은 가용성
-- 빠른 문제 감지
+- Built directly into the AMI
+- Runs independently of kubelet
+- Higher availability
+- Faster problem detection
 
-**단점:**
+**Cons:**
 
-- 업데이트 시 AMI 교체 필요
-- 커스터마이징 제한적
+- AMI replacement required for updates
+- Limited customization
 
-## 5. 기술적 제한사항
+## 5. Technical Limitations
 
-### 5.1 메트릭 수집 한계
+### 5.1 Metric Collection Limits
 
-- **NMA는 메트릭 수집 도구가 아님**: 성능 메트릭(CPU, 메모리 사용률 등) 수집 불가
-- **로그 파싱 방식**: cAdvisor를 사용하지 않으며, 순수 로그 분석 기반
-- **Prometheus 엔드포인트**: 제한적인 건강 상태 메트릭만 노출 (포트 8080)
+- **NMA is not a metric collection tool**: Cannot collect performance metrics (CPU, memory utilization, etc.)
+- **Log-parsing approach**: Does not use cAdvisor; purely log-analysis based
+- **Prometheus endpoint**: Exposes only limited health-status metrics (port 8080)
 
-### 5.2 대체 백엔드 사용 시 제약
+### 5.2 Constraints When Using Alternative Backends
 
-:::warning CloudWatch 외 백엔드 사용 시
+:::warning When using a backend other than CloudWatch
 
-- 네이티브 ADOT 통합 없음
-- Prometheus 메트릭 범위 매우 제한적
-- 설정 변경 옵션 부재
-- 공식 문서 및 지원 부족
+- No native ADOT integration
+- Very limited Prometheus metric coverage
+- No configuration-change options
+- Limited official documentation and support
 
 :::
 
-### 5.3 하드웨어 장애 감지 한계
+### 5.3 Hardware Failure Detection Limits
 
-**감지 가능:**
+**Detectable:**
 
-- ✅ 점진적 성능 저하
-- ✅ I/O 에러 증가
-- ✅ 메모리 ECC 에러
+- ✅ Gradual performance degradation
+- ✅ Increasing I/O errors
+- ✅ Memory ECC errors
 
-**감지 불가능:**
+**Not detectable:**
 
-- ❌ 급작스런 전원 차단
-- ❌ 즉각적인 하드웨어 고장
-- ❌ 네트워크 완전 단절
+- ❌ Sudden power loss
+- ❌ Instantaneous hardware failure
+- ❌ Complete network disconnection
 
-## 6. 권장 구현 전략
+## 6. Recommended Implementation Strategy
 
-### 6.1 다층 모니터링 아키텍처
+### 6.1 Multi-Layer Monitoring Architecture
 
 ```
-통합 모니터링 스택:
-├── L1: 상태 감지 (NMA)
-│   └── 노드 문제 조기 감지
-├── L2: 메트릭 수집 (Container Insights/Prometheus)
-│   └── 상세 성능 데이터
-├── L3: 자동 대응 (Node Auto Repair)
-│   └── 문제 노드 자동 교체
-└── L4: 통합 대시보드 (CloudWatch/Grafana)
-    └── 종합 모니터링 뷰
+Integrated monitoring stack:
+├── L1: State detection (NMA)
+│   └── Early detection of node problems
+├── L2: Metric collection (Container Insights/Prometheus)
+│   └── Detailed performance data
+├── L3: Automatic response (Node Auto Repair)
+│   └── Automatic replacement of problem nodes
+└── L4: Unified dashboard (CloudWatch/Grafana)
+    └── Comprehensive monitoring view
 ```
 
-### 6.2 Prometheus 사용 시 권장 구성
+### 6.2 Recommended Configuration When Using Prometheus
 
-NMA와 Node Exporter를 함께 사용할 때는 다음 구성을 권장합니다.
+When using NMA together with Node Exporter, the following configuration is recommended.
 
 ```yaml
 apiVersion: v1
@@ -492,66 +490,66 @@ metadata:
 spec:
   components:
     - name: nma
-      purpose: "노드 상태 이벤트"
+      purpose: "node state events"
       port: 8080
     - name: node-exporter
-      purpose: "상세 시스템 메트릭"
+      purpose: "detailed system metrics"
       port: 9100
     - name: kube-state-metrics
-      purpose: "클러스터 상태 메트릭"
+      purpose: "cluster state metrics"
       port: 8080
 ```
 
-## 7. 비용 및 성능 고려사항
+## 7. Cost and Performance Considerations
 
-### 7.1 리소스 사용량
+### 7.1 Resource Usage
 
-NMA는 매우 가벼운 구성 요소입니다. EKS 애드온/Helm 차트 기본값 기준 리소스 요청·제한은 다음과 같습니다.
+NMA is a very lightweight component. Based on EKS add-on / Helm chart defaults, the resource requests and limits are as follows.
 
-| 리소스 | requests | limits |
-|--------|---------|--------|
+| Resource | requests | limits |
+|----------|----------|--------|
 | CPU | 10m | 250m |
 | Memory | 30Mi | 100Mi |
 
-NVIDIA GPU 인스턴스에서는 DCGM 서버 컴포넌트(`nv-hostengine`)가 추가로 기동되며, `dcgmAgent.resources.*` 값으로 별도 조정할 수 있습니다. 리소스 요청·제한은 애드온 구성값(`monitoringAgent.resources.*`)으로 환경에 맞게 조정합니다.
+On NVIDIA GPU instances, a DCGM server component (`nv-hostengine`) also starts and can be tuned separately via `dcgmAgent.resources.*` values. Adjust resource requests/limits for your environment via the add-on configuration values (`monitoringAgent.resources.*`).
 
-### 7.2 CloudWatch 비용
+### 7.2 CloudWatch Cost
 
-| 항목 | 비용 |
+| Item | Cost |
 |------|------|
-| 커스텀 메트릭 | $0.30/metric/month |
-| 이벤트 | $1.00/million events |
-| 로그 | $0.50/GB ingested |
+| Custom metrics | $0.30/metric/month |
+| Events | $1.00/million events |
+| Logs | $0.50/GB ingested |
 
-## 8. 모범 사례
+## 8. Best Practices
 
-### 8.1 프로덕션 배포
+### 8.1 Production Deployment
 
-1. **단계적 롤아웃**: Dev → Staging → Production
-2. **알림 임계값 조정**: 환경별 특성 고려
-3. **자동 복구 신중히 활성화**: 초기에는 모니터링만
-4. **정기적인 테스트**: 월별 장애 시뮬레이션
+1. **Phased rollout**: Dev → Staging → Production
+2. **Alert threshold tuning**: Account for each environment's characteristics
+3. **Enable auto repair cautiously**: Start with monitoring only
+4. **Regular testing**: Monthly failure simulations
 
-### 8.2 다른 도구와의 통합
+### 8.2 Integration With Other Tools
 
-| 조합 | 설명 |
+| Combination | Description |
 |------|------|
-| NMA + Container Insights | 완전한 AWS 네이티브 가시성 |
-| NMA + Prometheus + Grafana | 오픈소스 기반 모니터링 스택 |
-| NMA + Datadog/New Relic | 엔터프라이즈급 모니터링 솔루션 |
+| NMA + Container Insights | Fully AWS-native visibility |
+| NMA + Prometheus + Grafana | Open-source monitoring stack |
+| NMA + Datadog/New Relic | Enterprise-grade monitoring solution |
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Detect node health issues and enable automatic node repair](https://docs.aws.amazon.com/eks/latest/userguide/node-health.html) — NMA·Auto Repair 개요 및 NodeCondition 목록
-- [Detect node health issues with the EKS node monitoring agent](https://docs.aws.amazon.com/eks/latest/userguide/node-health-nma.html) — 감지 이슈 전체 표(Condition/Event), XID 코드, 애드온 구성값
-- [Automatically repair nodes in EKS clusters](https://docs.aws.amazon.com/eks/latest/userguide/node-repair.html) — 컨디션별 복구 액션·타임아웃, 안전장치, 커스터마이징
-- [aws/eks-node-monitoring-agent](https://github.com/aws/eks-node-monitoring-agent) — NMA 소스 코드 및 Helm 차트
+### Official Documentation
+- [Detect node health issues and enable automatic node repair](https://docs.aws.amazon.com/eks/latest/userguide/node-health.html) — NMA/Auto Repair overview and NodeCondition list
+- [Detect node health issues with the EKS node monitoring agent](https://docs.aws.amazon.com/eks/latest/userguide/node-health-nma.html) — Full detected-issue tables (Condition/Event), XID codes, add-on config values
+- [Automatically repair nodes in EKS clusters](https://docs.aws.amazon.com/eks/latest/userguide/node-repair.html) — Per-condition repair actions/timeouts, guardrails, customization
+- [aws/eks-node-monitoring-agent](https://github.com/aws/eks-node-monitoring-agent) — NMA source code and Helm chart
 
-### 기술 블로그
-- [Amazon EKS introduces node monitoring and auto repair capabilities](https://aws.amazon.com/blogs/containers/amazon-eks-introduces-node-monitoring-and-auto-repair-capabilities/) — 출시 발표 및 아키텍처 설명
+### Technical Blogs
+- [Amazon EKS introduces node monitoring and auto repair capabilities](https://aws.amazon.com/blogs/containers/amazon-eks-introduces-node-monitoring-and-auto-repair-capabilities/) — Launch announcement and architecture overview
 
-### 관련 문서 (내부)
-- [EKS 장애 진단 및 대응](./eks-debugging/index.md) — 노드·워크로드 문제의 체계적 진단
-- [Pod 헬스체크 & 라이프사이클](./eks-pod-health-lifecycle.md) — Probe 설정 및 Graceful Shutdown
-- [AWS Nitro 아키텍처와 성능 튜닝](../networking-performance/nitro-architecture-performance-tuning.md) — 노드 하드웨어 계층의 세대별 특성과 커널 튜닝
+### Related Documents (internal)
+- [EKS Troubleshooting and Response](./eks-debugging/index.md) — Systematic diagnosis of node/workload issues
+- [Pod Health Checks & Lifecycle](./eks-pod-health-lifecycle.md) — Probe configuration and graceful shutdown
+- [AWS Nitro Architecture and Performance Tuning](../networking-performance/nitro-architecture-performance-tuning.md) — Per-generation node-hardware characteristics and kernel tuning

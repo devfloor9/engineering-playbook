@@ -1,11 +1,11 @@
 ---
-title: AgenticOps 메트릭 — 운영 중 관측할 Agent KPI
-description: task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate 등 Agent 운영 KPI와 Langfuse·OTel 스키마
+title: AgenticOps Metrics — Agent KPIs for Operations Monitoring
+description: Agent operations KPIs including task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate, and Langfuse·OTel schema
 created: "2026-04-18"
 last_update:
-  date: 2026-10-13
+  date: "2026-09-13"
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 16
 tags:
   - metrics
   - kpi
@@ -13,72 +13,74 @@ tags:
   - otel
   - observability
   - scope:ops
-sidebar_label: Agentic 메트릭
+sidebar_label: Agentic Metrics
 ---
 
-AI Agent가 프로덕션에 배포되면, **시스템이 정상 응답하는가**만으로는 품질을 판단할 수 없습니다. "사용자 의도를 정확히 이해했는가?", "올바른 도구를 호출했는가?", "답변이 충실한가?"와 같은 **사용자 지각 품질(Perceived Quality)**을 측정해야 합니다. 이 문서는 Agent 운영에 필수적인 **KPI 카테고리**와 **Langfuse·OTel 기반 계측 방법**을 다룹니다.
+> **Reading Time**: ~5 minutes
+
+When AI Agents are deployed to production, **system health alone cannot determine quality**. We must measure **Perceived Quality** metrics such as "Did it understand user intent correctly?", "Did it call the right tools?", and "Is the answer faithful?". This document covers essential **KPI categories** and **Langfuse·OTel-based instrumentation methods** for Agent operations.
 
 ---
 
-## 1. 왜 Agent 전용 메트릭이 필요한가
+## 1. Why Agent-Specific Metrics are Necessary
 
-### 1.1 전통 APM의 한계
+### 1.1 Limitations of Traditional APM
 
-기존 APM(Application Performance Monitoring)은 HTTP 성공률, 응답 시간, 에러율 등 **시스템 지표**를 중심으로 설계되었습니다. 그러나 Agent는 다음과 같은 이유로 추가 메트릭이 필요합니다:
+Traditional APM (Application Performance Monitoring) is designed around **system metrics** such as HTTP success rate, response time, and error rate. However, Agents require additional metrics for the following reasons:
 
-| 전통 APM | Agent 품질 지표 | 격차 |
-|---------|----------------|------|
-| HTTP 200 OK | 올바른 답변 여부 | 요청 성공 ≠ 결과 품질 |
-| 응답 시간 (전체) | Time to First Token | streaming에서 사용자 체감 속도 다름 |
-| 에러율 | Hallucination rate | LLM 오류는 HTTP 500이 아닌 정상 응답 |
-| CPU/Memory | Token cost | 클라우드 LLM은 토큰 단위 과금 |
-| N/A | Tool-call accuracy | 잘못된 도구 호출은 시스템 에러가 아님 |
+| Traditional APM | Agent Quality Metric | Gap |
+|----------------|---------------------|-----|
+| HTTP 200 OK | Correct answer | Request success ≠ Result quality |
+| Response time (total) | Time to First Token | User-perceived speed differs in streaming |
+| Error rate | Hallucination rate | LLM errors return HTTP 200, not 500 |
+| CPU/Memory | Token cost | Cloud LLMs charge per token |
+| N/A | Tool-call accuracy | Wrong tool call is not a system error |
 
-### 1.2 사용자 지각 품질 vs 시스템 지표
+### 1.2 Perceived Quality vs System Metrics
 
 ```mermaid
 flowchart LR
-    USER[사용자 질문]
+    USER[User Question]
     AGENT[AI Agent]
-    TOOLS[도구 호출]
-    LLM[LLM 추론]
-    RESPONSE[응답]
+    TOOLS[Tool Call]
+    LLM[LLM Inference]
+    RESPONSE[Response]
 
-    SYSTEM_OK[시스템 정상<br/>HTTP 200<br/>latency 500ms]
-    USER_FAIL[사용자 불만족<br/>환각 답변<br/>불필요한 도구 3회 호출<br/>비용 $2.5]
+    SYSTEM_OK[System OK<br/>HTTP 200<br/>latency 500ms]
+    USER_FAIL[User Unsatisfied<br/>Hallucinated Answer<br/>3 Unnecessary Tool Calls<br/>Cost $2.5]
 
     USER --> AGENT
     AGENT --> TOOLS
     AGENT --> LLM
     LLM --> RESPONSE
 
-    RESPONSE -.->|시스템 관점| SYSTEM_OK
-    RESPONSE -.->|사용자 관점| USER_FAIL
+    RESPONSE -.->|System View| SYSTEM_OK
+    RESPONSE -.->|User View| USER_FAIL
 
     style SYSTEM_OK fill:#76b900,color:#fff
     style USER_FAIL fill:#ea4335,color:#fff
 ```
 
-Agent의 실제 품질은 **사용자가 원하는 작업을 정확히 수행했는가**로 판단되며, 이는 시스템 성공 지표와 독립적입니다.
+Agent quality is ultimately judged by **whether it accurately performed the user's desired task**, which is independent of system success metrics.
 
 ---
 
-## 2. 핵심 KPI 카테고리
+## 2. Core KPI Categories
 
-### 2.1 과제 성공 (Task Success)
+### 2.1 Task Success
 
-사용자가 요청한 작업이 완료되었는가를 측정합니다.
+Measures whether the user's requested task was completed.
 
-| 메트릭 | 정의 | 측정 방법 |
-|--------|------|----------|
-| **Task success rate** | 성공한 대화 세션 비율 | 자동 평가(goal attainment) + HITL 샘플링(10%) |
-| **Completion time (p50/p95)** | 작업 완료까지 소요 시간 | Session duration (초) |
-| **Goal attainment scale** | 사용자 목표 달성도 (1-5) | 명시적 피드백(thumbs up/down) 또는 LLM-as-Judge |
+| Metric | Definition | Measurement Method |
+|--------|-----------|-------------------|
+| **Task success rate** | Percentage of successful conversation sessions | Automated eval (goal attainment) + HITL sampling (10%) |
+| **Completion time (p50/p95)** | Time to task completion | Session duration (seconds) |
+| **Goal attainment scale** | User goal achievement (1-5) | Explicit feedback (thumbs up/down) or LLM-as-Judge |
 
-**예시 (고객 지원 Agent)**:
+**Example (Customer Support Agent)**:
 
 ```python
-# Langfuse 자동 평가 예시
+# Langfuse automated evaluation example
 from langfuse import Langfuse
 langfuse = Langfuse()
 
@@ -88,67 +90,67 @@ trace = langfuse.trace(
     metadata={"intent": "refund_request", "channel": "web"}
 )
 
-# 세션 종료 시 평가
+# Evaluate at session end
 trace.score(
     name="task_success",
-    value=1.0,  # 0.0 = 실패, 1.0 = 성공
+    value=1.0,  # 0.0 = failure, 1.0 = success
     comment="Refund processed and confirmation sent"
 )
 ```
 
-### 2.2 Tool Use 정확성
+### 2.2 Tool Use Accuracy
 
-Agent가 올바른 도구를 정확히 호출하는지 측정합니다.
+Measures whether the Agent correctly calls the right tools.
 
-| 메트릭 | 정의 | 측정 방법 |
-|--------|------|----------|
-| **Tool-call accuracy** | 올바른 도구를 호출한 비율 | (정확한 도구 호출 수) / (전체 도구 호출 수) |
-| **Tool invocation rate** | 평균 도구 호출 수 / 세션 | span hierarchy 분석 |
-| **Tool failure rate** | 도구 호출 실패 비율 | HTTP 5xx, Timeout, JSON parsing error |
+| Metric | Definition | Measurement Method |
+|--------|-----------|-------------------|
+| **Tool-call accuracy** | Percentage of correct tool calls | (Correct tool calls) / (Total tool calls) |
+| **Tool invocation rate** | Average tool calls per session | Span hierarchy analysis |
+| **Tool failure rate** | Tool call failure percentage | HTTP 5xx, Timeout, JSON parsing error |
 
-**예시**:
+**Example**:
 
 ```python
-# Tool call span 기록
+# Record tool call span
 span = trace.span(
     name="tool_call",
     input={"tool": "get_weather", "args": {"location": "Seoul"}},
     metadata={"tool_name": "get_weather", "tool_version": "v1.2"}
 )
 
-# 평가 기준: 의도="날씨 질문" → 올바른 도구="get_weather"
-# 잘못된 예: "get_weather" 대신 "search_web" 호출 → accuracy 0.0
+# Evaluation criteria: intent="weather question" → correct tool="get_weather"
+# Wrong example: calling "search_web" instead of "get_weather" → accuracy 0.0
 span.score(
     name="tool_call_accuracy",
-    value=1.0,  # 올바른 도구 선택
+    value=1.0,  # Correct tool selected
     comment="Correct tool selected for weather intent"
 )
 ```
 
-### 2.3 품질·안전
+### 2.3 Quality & Safety
 
-답변 품질과 안전 위반 여부를 측정합니다.
+Measures answer quality and safety violations.
 
-| 메트릭 | 정의 | 측정 방법 |
-|--------|------|----------|
-| **Hallucination rate** | 근거 없는 정보 생성 비율 | Ragas Faithfulness / SelfCheckGPT |
-| **Guardrails violation rate** | 입출력 차단 발생 비율 | input/output filter block count |
-| **Toxicity incidence** | 유해 콘텐츠 생성 비율 | Perspective API / OpenAI Moderation |
+| Metric | Definition | Measurement Method |
+|--------|-----------|-------------------|
+| **Hallucination rate** | Percentage of unfounded information | Ragas Faithfulness / SelfCheckGPT |
+| **Guardrails violation rate** | Input/output filter block rate | input/output filter block count |
+| **Toxicity incidence** | Harmful content generation rate | Perspective API / OpenAI Moderation |
 
-**Hallucination 측정 예시 (Ragas Faithfulness)**:
+**Hallucination Measurement Example (Ragas Faithfulness)**:
 
 ```python
 from ragas.metrics import faithfulness
 from ragas import evaluate
 
-# RAG Agent 평가
+# RAG Agent evaluation
 result = evaluate(
     dataset=test_dataset,
     metrics=[faithfulness],
     llm=ChatOpenAI(model="gpt-4o-mini")
 )
 
-# Faithfulness 점수 → Langfuse에 기록
+# Record Faithfulness score to Langfuse
 trace.score(
     name="faithfulness",
     value=result["faithfulness"],  # 0.0~1.0
@@ -156,32 +158,32 @@ trace.score(
 )
 ```
 
-**Guardrails violation 측정**:
+**Guardrails Violation Measurement**:
 
 ```python
-# OpenClaw AI Gateway의 PII redaction 차단
+# OpenClaw AI Gateway PII redaction block
 if gateway_response.status == "blocked_pii":
     trace.score(
         name="guardrails_violation",
-        value=1.0,  # 차단됨
+        value=1.0,  # Blocked
         comment="PII detected: email, phone"
     )
 ```
 
-### 2.4 비용·효율
+### 2.4 Cost & Efficiency
 
-Agent 운영 비용과 리소스 효율을 측정합니다.
+Measures Agent operational cost and resource efficiency.
 
-| 메트릭 | 정의 | 측정 방법 |
-|--------|------|----------|
-| **Cost per interaction** | 세션당 평균 비용 (USD) | Σ(input_tokens × price_in + output_tokens × price_out) |
-| **Token efficiency** | 유효 토큰 비율 | (응답 토큰) / (총 소비 토큰) |
-| **Cache hit rate** | Semantic cache 적중률 | (cache hits) / (total queries) |
+| Metric | Definition | Measurement Method |
+|--------|-----------|-------------------|
+| **Cost per interaction** | Average cost per session (USD) | Σ(input_tokens × price_in + output_tokens × price_out) |
+| **Token efficiency** | Effective token ratio | (Response tokens) / (Total consumed tokens) |
+| **Cache hit rate** | Semantic cache hit rate | (cache hits) / (total queries) |
 
-**비용 추적 예시**:
+**Cost Tracking Example**:
 
 ```python
-# Generation span에 토큰 및 비용 기록
+# Record tokens and cost in generation span
 generation = trace.generation(
     name="llm_call",
     model="example-model",
@@ -198,10 +200,10 @@ generation = trace.generation(
 )
 ```
 
-**Cache hit rate 측정**:
+**Cache Hit Rate Measurement**:
 
 ```python
-# Semantic cache 적중 시
+# When semantic cache hit occurs
 if cache_hit:
     trace.event(
         name="cache_hit",
@@ -209,23 +211,23 @@ if cache_hit:
     )
 ```
 
-### 2.5 사용자 경험
+### 2.5 User Experience
 
-사용자 체감 품질을 측정합니다.
+Measures user-perceived quality.
 
-| 메트릭 | 정의 | 측정 방법 |
-|--------|------|----------|
-| **Time to First Token (TTFT)** | 첫 응답까지 소요 시간 | streaming 시작 시각 - 요청 시각 |
-| **Task-length quartiles** | 작업 복잡도 분포 | METR Task Standard 기반 분류 |
-| **Escalation rate** | 인간 핸드오프 비율 | (human handoff count) / (total sessions) |
+| Metric | Definition | Measurement Method |
+|--------|-----------|-------------------|
+| **Time to First Token (TTFT)** | Time to first response | streaming start time - request time |
+| **Task-length quartiles** | Task complexity distribution | METR Task Standard-based classification |
+| **Escalation rate** | Human handoff ratio | (human handoff count) / (total sessions) |
 
-**TTFT 측정 예시**:
+**TTFT Measurement Example**:
 
 ```python
 import time
 
 request_time = time.time()
-# LLM 호출 (streaming)
+# LLM call (streaming)
 first_token_time = None
 
 async for chunk in llm_stream():
@@ -239,10 +241,10 @@ async for chunk in llm_stream():
         )
 ```
 
-**Escalation rate 측정**:
+**Escalation Rate Measurement**:
 
 ```python
-# Agent가 불확실성 감지 시 인간 핸드오프
+# Human handoff when Agent detects uncertainty
 if confidence_score < 0.7:
     trace.event(
         name="escalation",
@@ -254,39 +256,39 @@ if confidence_score < 0.7:
     )
 ```
 
-### 2.6 시스템 신뢰성
+### 2.6 System Reliability
 
-Agent 서비스의 안정성을 측정합니다.
+Measures Agent service stability.
 
-| 메트릭 | 정의 | 측정 방법 |
-|--------|------|----------|
-| **Availability** | 서비스 가용 시간 비율 | (uptime) / (total time) |
-| **Error budget** | SLO 위반 허용치 소진률 | 1 - (actual SLI / SLO target) |
-| **Session continuity rate** | 세션 중단 없이 완료된 비율 | (완료된 세션) / (시작된 세션) |
-| **Retry exhaustion rate** | 재시도 한도 초과 비율 | (max retries exceeded) / (total requests) |
+| Metric | Definition | Measurement Method |
+|--------|-----------|-------------------|
+| **Availability** | Service uptime ratio | (uptime) / (total time) |
+| **Error budget** | SLO violation allowance consumption | 1 - (actual SLI / SLO target) |
+| **Session continuity rate** | Uninterrupted session completion ratio | (Completed sessions) / (Started sessions) |
+| **Retry exhaustion rate** | Retry limit exceeded ratio | (max retries exceeded) / (total requests) |
 
-**SLO 예시 (Task success rate)**:
+**SLO Example (Task success rate)**:
 
 ```
-Target SLO: Task success rate ≥ 95% (30일 기준)
-Error budget: 5% → 월 36시간 장애 허용
+Target SLO: Task success rate ≥ 95% (30-day window)
+Error budget: 5% → 36 hours outage allowed per month
 ```
 
 ---
 
-## 3. Langfuse Trace 스키마 제안
+## 3. Langfuse Trace Schema Proposal
 
 ### 3.1 Span Hierarchy
 
-Agent 실행 흐름을 다음과 같은 계층으로 표현합니다:
+Agent execution flow is represented with the following hierarchy:
 
 ```mermaid
 flowchart TB
-    SESSION[Session<br/>multi-turn 대화]
+    SESSION[Session<br/>multi-turn conversation]
     CONV1[Conversation 1<br/>user turn + agent turn]
     CONV2[Conversation 2]
 
-    AGENT_RUN[Agent Run<br/>추론 사이클]
+    AGENT_RUN[Agent Run<br/>inference cycle]
     TOOL1[Tool Call 1<br/>get_weather]
     TOOL2[Tool Call 2<br/>search_web]
     LLM1[LLM Generation 1<br/>gpt-4o]
@@ -307,19 +309,19 @@ flowchart TB
     style LLM1 fill:#ea4335,color:#fff
 ```
 
-### 3.2 기본 태그 (Tags)
+### 3.2 Standard Tags
 
-모든 trace/span에 다음 태그를 부여합니다:
+Apply the following tags to all traces/spans:
 
-- `agent_name`: Agent 식별자 (예: `customer-support-agent`)
-- `model`: LLM 모델명 (예: `example-model`)
-- `prompt_version`: 프롬프트 템플릿 버전 (예: `v1.2.3`)
-- `tool`: 호출된 도구명 (예: `get_weather`)
-- `guardrails`: 적용된 guardrails (예: `pii_redaction,prompt_injection`)
+- `agent_name`: Agent identifier (e.g., `customer-support-agent`)
+- `model`: LLM model name (e.g., `example-model`)
+- `prompt_version`: Prompt template version (e.g., `v1.2.3`)
+- `tool`: Tool name called (e.g., `get_weather`)
+- `guardrails`: Applied guardrails (e.g., `pii_redaction,prompt_injection`)
 
-### 3.3 Score 이벤트
+### 3.3 Score Events
 
-품질 평가는 `score` 이벤트로 기록합니다:
+Quality evaluation is recorded as `score` events:
 
 - `task_success`: 0.0~1.0
 - `faithfulness`: 0.0~1.0 (Ragas)
@@ -327,7 +329,7 @@ flowchart TB
 - `tool_call_accuracy`: 0.0~1.0
 - `guardrails_violation`: 0.0 (pass) / 1.0 (block)
 
-### 3.4 JSON 예시
+### 3.4 JSON Example
 
 ```json
 {
@@ -415,33 +417,33 @@ flowchart TB
 
 ## 4. OpenTelemetry Semantic Conventions
 
-### 4.1 GenAI Semantic Conventions (2026-09 기준)
+### 4.1 GenAI Semantic Conventions (As of 2026-09)
 
-OpenTelemetry는 **GenAI Semantic Conventions**를 통해 LLM 계측 표준을 정의한다 ([semconv 1.44.0](https://opentelemetry.io/docs/specs/semconv/gen-ai/), stability: Development).
+OpenTelemetry defines LLM instrumentation standards through **GenAI Semantic Conventions** ([semconv 1.44.0](https://opentelemetry.io/docs/specs/semconv/gen-ai/), stability: Development).
 
-GenAI 규약의 정본은 2026년 5월 [`semantic-conventions-genai`](https://github.com/open-telemetry/semantic-conventions-genai) 저장소로 분리되었고, 기존 `semantic-conventions` 저장소의 `gen_ai.*` 속성은 모두 Deprecated 처리되었습니다. 아래 표는 [레지스트리 `0c87594`](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md) 기준입니다.
+The GenAI conventions were split into the [`semantic-conventions-genai`](https://github.com/open-telemetry/semantic-conventions-genai) repository in May 2026, and all `gen_ai.*` attributes in the original `semantic-conventions` repository are now deprecated. The table below follows [registry `0c87594`](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md).
 
-**핵심 attribute**:
+**Core attributes**:
 
-| Attribute | 예시 | 설명 |
-|-----------|------|------|
-| `gen_ai.provider.name` | `openai` | GenAI 제공자 (`gcp.gen_ai`, `gcp.vertex_ai` 등) |
-| `gen_ai.request.model` | `example-model` | 모델명 |
-| `gen_ai.request.temperature` | `0.7` | 샘플링 온도 |
-| `gen_ai.request.max_tokens` | `2048` | 최대 출력 토큰 |
-| `gen_ai.usage.input_tokens` | `1200` | 입력 토큰 수 |
-| `gen_ai.usage.output_tokens` | `80` | 출력 토큰 수 |
-| `gen_ai.response.finish_reasons` | `["stop"]` | 종료 이유 배열(`string[]`) — stop, length, tool_calls |
+| Attribute | Example | Description |
+|-----------|---------|-------------|
+| `gen_ai.provider.name` | `openai` | GenAI provider (`gcp.gen_ai`, `gcp.vertex_ai`, etc.) |
+| `gen_ai.request.model` | `example-model` | Model name |
+| `gen_ai.request.temperature` | `0.7` | Sampling temperature |
+| `gen_ai.request.max_tokens` | `2048` | Max output tokens |
+| `gen_ai.usage.input_tokens` | `1200` | Input token count |
+| `gen_ai.usage.output_tokens` | `80` | Output token count |
+| `gen_ai.response.finish_reasons` | `["stop"]` | Array of termination reasons (`string[]`) — stop, length, tool_calls |
 
 ### 4.2 Span Kind
 
-- **client**: Agent → LLM API 호출
-- **internal**: Agent 내부 추론 로직
+- **client**: Agent → LLM API call
+- **internal**: Agent internal reasoning logic
 
-### 4.3 OTel → Langfuse 브리지
+### 4.3 OTel → Langfuse Bridge
 
 ```python
-# OpenTelemetry instrumentation → Langfuse 자동 전송
+# OpenTelemetry instrumentation → Automatic Langfuse transmission
 import base64
 
 from opentelemetry import trace
@@ -449,10 +451,10 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-# Langfuse는 Basic 인증을 사용한다 (public_key:secret_key 를 base64 인코딩)
+# Langfuse uses Basic auth (base64-encoded public_key:secret_key)
 AUTH = base64.b64encode(b"pk-lf-...:sk-lf-...").decode()
 
-# Langfuse OTLP는 HTTP 엔드포인트다 (트레이스 경로: /api/public/otel/v1/traces)
+# Langfuse OTLP is an HTTP endpoint (traces path: /api/public/otel/v1/traces)
 exporter = OTLPSpanExporter(
     endpoint="https://cloud.langfuse.com/api/public/otel/v1/traces",
     headers={"Authorization": f"Basic {AUTH}"},
@@ -462,42 +464,42 @@ provider = TracerProvider()
 provider.add_span_processor(BatchSpanProcessor(exporter))
 trace.set_tracer_provider(provider)
 
-# 이제 모든 OTel trace가 Langfuse로 전송됨
+# Now all OTel traces are sent to Langfuse
 tracer = trace.get_tracer(__name__)
 
 with tracer.start_as_current_span("agent_run") as span:
     span.set_attribute("gen_ai.provider.name", "openai")
     span.set_attribute("gen_ai.request.model", "gpt-4o")
-    # ... Agent 실행
+    # ... Agent execution
 ```
 
 ---
 
-## 5. Grafana/CloudWatch 대시보드 예시
+## 5. Grafana/CloudWatch Dashboard Examples
 
-### 5.1 Top-line 메트릭 (경영진용)
+### 5.1 Top-line Metrics (Executive Level)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Task Success Rate (30일)           │ 96.2% (↑ 1.2% WoW)    │
+│ Task Success Rate (30d)            │ 96.2% (↑ 1.2% WoW)    │
 │ Avg Cost per Interaction           │ $0.12 (↓ $0.03 WoW)  │
 │ Hallucination Rate                 │ 2.1% (↑ 0.3% WoW)    │
 │ Escalation Rate                    │ 3.5% (→ 0.0% WoW)    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Grafana Panel 설정**:
+**Grafana Panel Configuration**:
 
 ```promql
-# Task success rate (30일 평균)
+# Task success rate (30-day average)
 sum(rate(langfuse_trace_score_total{name="task_success", value="1"}[30d]))
 /
 sum(rate(langfuse_trace_score_total{name="task_success"}[30d]))
 ```
 
-### 5.2 Drill-down 대시보드 (운영팀용)
+### 5.2 Drill-down Dashboard (Operations Team)
 
-**Tool Call 분석**:
+**Tool Call Analysis**:
 
 ```
 Tool Call Success Rate by Tool
@@ -511,10 +513,10 @@ Tool Call Success Rate by Tool
 └──────────────┴──────────┴──────────┘
 ```
 
-**Guardrails Violation 추이**:
+**Guardrails Violation Trend**:
 
 ```
-Guardrails Violation Rate (7일)
+Guardrails Violation Rate (7d)
 ┌─────────────────────────────────────────┐
 │  5% ┤                                    │
 │  4% ┤    ╭╮                              │
@@ -526,7 +528,7 @@ Guardrails Violation Rate (7일)
      Mon  Tue Wed Thu Fri Sat Sun
 ```
 
-### 5.3 SLO 대시보드
+### 5.3 SLO Dashboard
 
 ```
 Error Budget Burn Rate (Task Success SLO: 95%)
@@ -545,31 +547,31 @@ Error Budget Burn Rate (Task Success SLO: 95%)
 
 ---
 
-## 6. 경보·이상 탐지
+## 6. Alerting & Anomaly Detection
 
-### 6.1 이상 패턴 예시
+### 6.1 Anomaly Pattern Examples
 
-| 이상 유형 | 탐지 규칙 | 대응 액션 |
-|----------|----------|-----------|
-| **Guardrails rate 급증** | 3σ 초과 (rolling 1시간) | PagerDuty P2, 프롬프트 검토 |
-| **Cost spike** | 시간당 비용 > $100 (baseline $20) | Slack 알림, rate limit 활성화 |
-| **Escalation rate 증가** | 10% 초과 (baseline 3%) | 온콜 엔지니어 알림, Agent 로직 검토 |
-| **Tool failure rate** | 특정 도구 > 20% 실패 | 자동 circuit breaker, fallback 활성화 |
+| Anomaly Type | Detection Rule | Response Action |
+|--------------|----------------|-----------------|
+| **Guardrails rate spike** | Exceeds 3σ (rolling 1 hour) | PagerDuty P2, prompt review |
+| **Cost spike** | Hourly cost > $100 (baseline $20) | Slack alert, activate rate limit |
+| **Escalation rate increase** | Exceeds 10% (baseline 3%) | On-call engineer alert, Agent logic review |
+| **Tool failure rate** | Specific tool > 20% failure | Auto circuit breaker, activate fallback |
 
-### 6.2 Baseline 설정과 탐지 알고리즘
+### 6.2 Baseline Setting and Detection Algorithm
 
-**Rolling window 평균 기반 이상 탐지**:
+**Rolling window average-based anomaly detection**:
 
 ```python
-# 예시: Guardrails violation rate 이상 탐지
+# Example: Guardrails violation rate anomaly detection
 import numpy as np
 
 def detect_anomaly(current_rate, historical_rates, threshold_sigma=3):
     """
     Args:
-        current_rate: 현재 시간대 violation rate
-        historical_rates: 과거 7일 동일 시간대 rates
-        threshold_sigma: 표준편차 배수 임계값
+        current_rate: Current time period violation rate
+        historical_rates: Past 7 days same time period rates
+        threshold_sigma: Standard deviation multiple threshold
     """
     baseline_mean = np.mean(historical_rates)
     baseline_std = np.std(historical_rates)
@@ -586,17 +588,17 @@ def detect_anomaly(current_rate, historical_rates, threshold_sigma=3):
         }
     return {"anomaly": False}
 
-# 실시간 모니터링 예시
+# Real-time monitoring example
 current_rate = 0.08  # 8% violation rate
-historical = [0.02, 0.021, 0.019, 0.022, 0.018, 0.023, 0.020]  # 과거 7일
+historical = [0.02, 0.021, 0.019, 0.022, 0.018, 0.023, 0.020]  # Past 7 days
 
 result = detect_anomaly(current_rate, historical)
 if result["anomaly"]:
     print(f"🚨 Anomaly detected: {result['current']:.1%} (baseline {result['baseline']:.1%})")
-    # PagerDuty 알림 전송
+    # Send PagerDuty alert
 ```
 
-### 6.3 PagerDuty/Slack 연동
+### 6.3 PagerDuty/Slack Integration
 
 **CloudWatch Alarm → SNS → Lambda → PagerDuty**:
 
@@ -633,7 +635,7 @@ def lambda_handler(event, context):
     return {"statusCode": 200, "body": "Alert sent"}
 ```
 
-**Slack 알림 예시**:
+**Slack Alert Example**:
 
 ```
 🚨 Agent Metrics Alert
@@ -656,23 +658,23 @@ Actions:
 
 ---
 
-## 7. AIDLC 단계별 활용
+## 7. AIDLC Stage-by-Stage Application
 
-### 7.1 Inception: Baseline 정의
+### 7.1 Inception: Define Baseline
 
-프로젝트 초기에 목표 KPI를 정의합니다.
+Define target KPIs at project initiation.
 
-| KPI | Target (90일 후) | Baseline (현재) |
-|-----|------------------|-----------------|
-| Task success rate | ≥ 95% | 88% (사람 기준선) |
-| Tool-call accuracy | ≥ 90% | N/A (신규) |
-| Hallucination rate | ≤ 3% | 12% (초기 프로토타입) |
+| KPI | Target (after 90d) | Baseline (Current) |
+|-----|-------------------|-------------------|
+| Task success rate | ≥ 95% | 88% (human baseline) |
+| Tool-call accuracy | ≥ 90% | N/A (new) |
+| Hallucination rate | ≤ 3% | 12% (initial prototype) |
 | Cost per interaction | ≤ $0.15 | $0.32 |
 | Escalation rate | ≤ 5% | 18% |
 
-### 7.2 Construction: CI 회귀 게이트
+### 7.2 Construction: CI Regression Gate
 
-각 PR에서 메트릭 회귀를 자동 감지합니다.
+Automatically detect metric regressions in each PR.
 
 ```yaml
 # .github/workflows/agent-quality-gate.yml
@@ -694,15 +696,15 @@ jobs:
           python scripts/check_regression.py \
             --baseline metrics/baseline.json \
             --current metrics/current.json \
-            --threshold 0.05  # 5% 이상 하락 시 fail
+            --threshold 0.05  # Fail if decline > 5%
 ```
 
-### 7.3 Operations: 실시간 경보
+### 7.3 Operations: Real-time Alerting
 
-프로덕션 배포 후 실시간 모니터링.
+Real-time monitoring after production deployment.
 
 ```
-Agent KPI SLO (프로덕션)
+Agent KPI SLO (Production)
 ┌──────────────────────┬──────────┬──────────┬──────────┐
 │ Metric               │ SLO      │ Current  │ Status   │
 ├──────────────────────┼──────────┼──────────┼──────────┤
@@ -717,29 +719,29 @@ Agent KPI SLO (프로덕션)
 
 ---
 
-## 8. 참고 자료
+## 8. References
 
-### 8.1 Langfuse 문서
+### 8.1 Langfuse Documentation
 
-- [Langfuse Scoring](https://langfuse.com/docs/scores): Trace/span에 품질 점수 부여
-- [Langfuse Prompt Management](https://langfuse.com/docs/prompts): 프롬프트 버전 관리 및 A/B 테스트
-- [Langfuse OTLP Integration](https://langfuse.com/docs/integrations/opentelemetry): OpenTelemetry 브리지
+- [Langfuse Scoring](https://langfuse.com/docs/scores): Trace/spanAttach quality scores to
+- [Langfuse Prompt Management](https://langfuse.com/docs/prompts): Prompt version management and A/B testing
+- [Langfuse OTLP Integration](https://langfuse.com/docs/integrations/opentelemetry): OpenTelemetry bridge
 
 ### 8.2 OpenTelemetry
 
-- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/): LLM 계측 표준 (semconv 1.44.0)
-- [semantic-conventions-genai](https://github.com/open-telemetry/semantic-conventions-genai): GenAI 규약 정본 저장소 (2026-05 분리)
+- [GenAI Semantic Conventions](https://opentelemetry.io/docs/specs/semconv/gen-ai/): LLM instrumentation standard (semconv 1.44.0)
+- [semantic-conventions-genai](https://github.com/open-telemetry/semantic-conventions-genai): Canonical repository for GenAI conventions (split off 2026-05)
 - [OTel Python SDK](https://opentelemetry.io/docs/languages/python/): Python instrumentation
 
-### 8.3 평가 프레임워크
+### 8.3 Evaluation Frameworks
 
-- [Ragas](https://docs.ragas.io/): RAG 평가 (faithfulness, answer relevancy, context precision)
+- [Ragas](https://docs.ragas.io/): RAG evaluation (faithfulness, answer relevancy, context precision)
 - [SelfCheckGPT](https://github.com/potsawee/selfcheckgpt): Zero-resource hallucination detection
-- [METR Task Standard](https://metr.org/): Agent task 벤치마크
+- [METR Task Standard](https://metr.org/): Agent task benchmark
 
-### 8.4 관련 문서
+### 8.4 Related Documentation
 
-- [LLMOps Observability 비교 가이드](../../agentic-ai-platform/operations-mlops/observability/llmops-observability.md): Langfuse vs LangSmith vs Helicone
-- [Ragas RAG 평가 프레임워크](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md): Ragas 메트릭 상세
-- [관찰성 스택](./observability-stack.md): AIDLC Operations의 텔레메트리 기반
-- [예측 운영](./predictive-operations.md): 메트릭 기반 장애 예측
+- [LLMOps Observability Comparison Guide](../../agentic-ai-platform/operations-mlops/observability/llmops-observability.md): Langfuse vs LangSmith vs Helicone
+- [Ragas RAG Evaluation Frameworks](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md): Ragas Metrics Details
+- [Observability Stack](./observability-stack.md): AIDLC Operationstelemetry foundation
+- [Predictive Operations](./predictive-operations.md): Metric-based failure prediction

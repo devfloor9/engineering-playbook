@@ -1,6 +1,6 @@
 ---
-title: S9-A. ABO 조직 시각화 + 성과 트래킹 (AMWAY 특화)
-description: AMWAY 다단계 ABO Tree 5단 깊이 시각화 + PV/BV·등급 성과 + Sponsor 분석
+title: S9-A. ABO Organization Visualization + Performance Tracking (AMWAY-specific)
+description: Visualize AMWAY's multi-level ABO tree to a depth of 5 + PV/BV and level performance + Sponsor analysis
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,53 +16,53 @@ tags:
 sidebar_label: S9-A. ABO Tree
 ---
 
-> **AMWAY 차별 포인트** ⭐ — 다단계 직접판매의 핵심 자산인 ABO 조직 트리를 단일 화면에서 깊이 5단까지 탐색·성과 분석.
+> **AMWAY differentiator** ⭐ — Explore and analyze performance for the ABO organization tree, the core asset of multi-level direct selling, up to a depth of 5 levels on a single screen.
 
-## 1. URL · 페르소나
+## 1. URL & Personas
 - `/abo-tree` · P1 (ABO Field), P4 (CX)
 
-## 2. 사용자 스토리
-> P1 (ABO Field) — Diamond 등급 ABO 1명을 클릭하면 그 아래 5단 Downline 트리가 자동 펼쳐지고, 각 ABO의 PV/BV·등급·Sponsor 성과를 한 화면에서.
+## 2. User Stories
+> P1 (ABO Field) — Click a single Diamond-level ABO to auto-expand a 5-level Downline tree and review each ABO's PV/BV, level, and Sponsor performance on one screen.
 
-> P4 (CX) — Sponsor 트리 안에서 활성도 떨어진 ABO를 자동 색상 표시 → CRM 캠페인 트리거.
+> P4 (CX) — Within a Sponsor's tree, automatically color-code low-activity ABOs as CRM-campaign triggers.
 
-## 3. 입력 UI
-- 루트 ABO 검색 (마스킹 ID 또는 자연어 "Diamond 등급 + 미국")
-- 깊이 슬라이더 (1~5단)
-- 등급 필터 (Founders Platinum / Diamond / Founders Diamond / EDC / EC)
-- 표시 토글: PV(Personal Volume) / BV(Business Volume) / 활성도
+## 3. Input UI
+- Root ABO search (masked ID or natural language: "Diamond level + United States")
+- Depth slider (1–5 levels)
+- Level filters (Founders Platinum / Diamond / Founders Diamond / EDC / EC)
+- Display toggles: PV (Personal Volume) / BV (Business Volume) / activity
 
-## 4. 데이터 믹스
-| 데이터 | 출처 |
+## 4. Data Mix
+| Data | Source |
 |---|---|
-| ABO 노드 | Neptune (~50K) |
-| DownlineLink 엣지 | Neptune (~250K) |
-| ABO 등급·PV/BV | ABO 노드 속성 |
-| 90일 활성도 | OrderTransaction + ABODirectSale 빈도 |
-| Sponsor 성과 | upline_chain × Downline GMV |
+| ABO nodes | Neptune (~50K) |
+| DownlineLink edges | Neptune (~250K) |
+| ABO level, PV/BV | ABO node attributes |
+| 90-day activity | OrderTransaction + ABODirectSale frequency |
+| Sponsor performance | upline_chain × Downline GMV |
 
-## 5. 처리 파이프라인
+## 5. Processing Pipeline
 ```
-1. 루트 ABO 검색 → Neptune
+1. Root ABO search → Neptune
 2. openCypher MATCH (root)-[:HAS_DOWNLINE*1..5]->(d)
-3. 각 노드에 PV/BV/활성도 enrichment
-4. 노드 색상: 등급 매핑 (Diamond=노랑/Platinum=실버/EDC=연파랑)
-5. 노드 크기: PV에 비례
-6. 활성도 < 30일 → 빨강 외곽선
-7. cytoscape.js 트리 레이아웃
+3. Enrich each node with PV/BV and activity
+4. Node color: level mapping (Diamond = yellow / Platinum = silver / EDC = light blue)
+5. Node size: proportional to PV
+6. Activity < 30 days → red outline
+7. cytoscape.js tree layout
 ```
 
-## 6. 출력 UI
-- 좌: 트리 시각화 (cytoscape.js dagre/concentric layout)
-- 우: 선택 ABO 상세 카드 (PV/BV/등급/Downline 인원/Sponsor 점수)
-- 하단: Sponsor 성과 매트릭스 (등급 × Downline 생산성)
+## 6. Output UI
+- Left: Tree visualization (cytoscape.js dagre / concentric layout)
+- Right: Selected ABO detail card (PV/BV/level/Downline count/Sponsor score)
+- Bottom: Sponsor performance matrix (level × Downline productivity)
 
-## 7. 가드레일
-- ABO 마스킹 ID만 노출 (실명·연락처 비공개)
-- Downline 5단 초과 시 권한 검증 (P5 Compliance만)
-- 미성년 ABO 0건 (S11-A 가드)
+## 7. Guardrails
+- Expose only masked ABO IDs (real names and contacts are hidden)
+- Verify authorization when Downline exceeds 5 levels (P5 Compliance only)
+- Zero minor ABOs (S11-A guard)
 
-## 8. 데모 시나리오
-1. **루트 = Diamond ABO 1명** → 5단 트리 자동 펼침 (~120 노드)
-2. **활성도 < 30일 ABO 자동 강조** (빨강 외곽) → CRM 캠페인 후보
-3. **Sponsor 성과 매트릭스** → 어떤 등급의 Sponsor가 가장 활성 Downline 보유하는지
+## 8. Demo Scenarios
+1. **Root = one Diamond-level ABO** → 5-level tree auto-expands (~120 nodes)
+2. **ABOs with activity below 30 days are auto-highlighted** (red outline) → CRM campaign candidates
+3. **Sponsor performance matrix** → which Sponsor levels have the most active Downline

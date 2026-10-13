@@ -1,6 +1,6 @@
 ---
-title: S6. 외부 시그널 융합 (Uni-President)
-description: 소셜·기상·경제·경쟁사 4종 융합
+title: S6. External Signal Fusion (Uni-President)
+description: Fusion of 4 external sources — social · weather · economic · competitor
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,21 +16,21 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-## 외부 4종
+## 4 External Sources
 
-| 종류 | 출처 |
+| Type | Source |
 |---|---|
-| 소셜 | Dcard · 小紅書 · 인스타 · X |
-| 기상 | 中央氣象署 (콜드체인 핵심) |
-| 경제 | DGBAS · 央行 |
-| 경쟁사 | FamilyMart · Hi-Life · RT-Mart |
+| Social | Dcard · Xiaohongshu (小紅書) · Instagram · X |
+| Weather | Central Weather Administration (中央氣象署) — cold-chain critical |
+| Economic | DGBAS · Central Bank (央行) |
+| Competitor | FamilyMart · Hi-Life · RT-Mart |
 
-## 처리
-- 일별 자사 GMV (BU별) × 외부 4종 조인
-- 상관·시차 분석
-- 시각화: 시계열 + 히트맵 + 경쟁사 annotation
+## Processing
+- Daily own GMV (per BU) × 4 external sources, joined
+- Correlation and lag analysis
+- Visualization: time series + heatmap + competitor annotations
 
-## 데모 시나리오
-1. 폭염 35℃+ → 7ELE 음료 +35% / 콜드체인 SLA -15%
-2. "고급 도시락" 키워드 vs 7ELE 도시락 매출
-3. FamilyMart 광棍節 캠페인 후 자사 7ELE GMV -3% (시차 7일)
+## Demo Scenarios
+1. Heatwave 35℃+ → 7ELE beverages +35% / cold-chain SLA -15%
+2. "Premium bento" keyword vs 7ELE bento sales
+3. After FamilyMart Singles' Day (光棍節) campaign, own 7ELE GMV -3% (7-day lag)

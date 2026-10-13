@@ -1,11 +1,11 @@
 ---
-title: CNI 구성과 Pod CIDR 라우팅
-description: "EKS Hybrid Nodes의 CNI 선택 기준과 Cilium 핵심 구성 — 하이브리드 노드 전용 affinity, cluster-pool IPAM, Pod CIDR 라우팅 방식(BGP·정적·Gateway) 선택과 Cilium BGP Control Plane 구성 절차를 다룹니다."
+title: CNI Configuration and Pod CIDR Routing
+description: "CNI selection criteria and core Cilium configuration for EKS Hybrid Nodes — hybrid-node-only affinity, cluster-pool IPAM, choosing a Pod CIDR routing method (BGP, static, Gateway), and the Cilium BGP Control Plane configuration procedure."
 created: "2026-08-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 18
 tags:
   - eks
   - hybrid-node
@@ -17,33 +17,33 @@ keywords:
   - bgpControlPlane
   - CiliumBGPClusterConfig
   - clusterPoolIPv4PodCIDRList
-sidebar_label: CNI & Pod CIDR 라우팅
+sidebar_label: CNI & Pod CIDR Routing
 category: hybrid-multicloud
 ---
 
-## 개요
+## Overview
 
-하이브리드 노드는 CNI가 실행되기 전까지 `NotReady` 상태를 유지하며, Amazon VPC CNI는 하이브리드 노드와 호환되지 않습니다. 따라서 CNI 선택과 Pod CIDR 라우팅 방식 결정은 클러스터가 워크로드를 수용하기 위한 선결 과제입니다. 본 문서는 CNI 선택 기준, Cilium 설치의 핵심 구성(affinity·IPAM), 그리고 Pod CIDR 라우팅 3가지 방식 중 BGP·정적 라우팅의 구성 절차를 다룹니다. 세 번째 방식인 Hybrid Nodes Gateway는 [별도 챕터](./hybrid-nodes-gateway.md)에서 다룹니다.
+Hybrid nodes remain in the `NotReady` state until a CNI is running, and the Amazon VPC CNI is incompatible with hybrid nodes. Selecting a CNI and deciding on a Pod CIDR routing method are therefore prerequisites for the cluster to serve workloads. This document covers CNI selection criteria, the core Cilium installation settings (affinity and IPAM), and the configuration procedures for BGP and static routing — two of the three Pod CIDR routing methods. The third method, the Hybrid Nodes Gateway, is covered in a [separate chapter](./hybrid-nodes-gateway.md).
 
-## CNI 선택 기준
+## CNI Selection Criteria
 
 > "Cilium is the AWS-supported Container Networking Interface (CNI) for Amazon EKS Hybrid Nodes. You must install a CNI for hybrid nodes to become ready to serve workloads. Hybrid nodes appear with status `Not Ready` until a CNI is running."
 > — [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html)
 
-| CNI | 하이브리드 노드 지원 | 비고 |
-|-----|--------------------|------|
-| Amazon VPC CNI | **비호환** | `eks.amazonaws.com/compute-type: hybrid` 레이블에 anti-affinity가 기본 구성되어 하이브리드 노드에 스케줄되지 않음 |
-| Cilium | **AWS 지원 CNI** | EKS 배포판(`public.ecr.aws/eks`)을 Helm으로 수명주기 관리. 단 클라우드 노드에서 실행되는 Cilium은 AWS 지원 대상이 아님 |
-| Calico | 커뮤니티 경로 | 공식 User Guide의 Calico 가이드는 [EKS Hybrid Examples 리포지토리](https://github.com/aws-samples/eks-hybrid-examples)로 이관됨 |
+| CNI | Hybrid node support | Notes |
+|-----|--------------------|-------|
+| Amazon VPC CNI | **Incompatible** | Configured by default with anti-affinity for the `eks.amazonaws.com/compute-type: hybrid` label, so it is never scheduled on hybrid nodes |
+| Cilium | **AWS-supported CNI** | Lifecycle-managed with Helm using the EKS distribution (`public.ecr.aws/eks`). Note that Cilium running on cloud nodes is not covered by AWS support |
+| Calico | Community path | The Calico guidance in the official User Guide has been moved to the [EKS Hybrid Examples repository](https://github.com/aws-samples/eks-hybrid-examples) |
 
-선택 판단에서 고려할 제약은 두 가지입니다.
+Two constraints matter for this decision.
 
-- **Gateway 의존성**: Hybrid Nodes Gateway는 Cilium VTEP 기능 전용입니다. Calico를 선택하면 Gateway 옵션이 제외되어 Pod CIDR 라우팅 방식이 BGP/정적으로 한정됩니다 ([아키텍처 결정 가이드](../overview-architecture/architecture-decision-guide.md)).
-- **Mixed mode 배치 격리**: Cilium은 하이브리드 노드 전용으로, VPC CNI는 클라우드 노드 전용으로 상호 배타적으로 배치해야 합니다. VPC CNI의 anti-affinity는 기본 제공되지만, Cilium 쪽은 설치 시 agent와 operator 양쪽에 hybrid 레이블 affinity를 명시해야 클라우드 노드 침범을 방지할 수 있습니다. 공식 Hybrid Nodes values는 `affinity`(agent)와 `operator.affinity`를 각각 설정합니다.
+- **Gateway dependency**: The Hybrid Nodes Gateway is exclusive to Cilium's VTEP feature. Choosing Calico excludes the Gateway option, limiting Pod CIDR routing to BGP or static routing ([Architecture Decision Guide](../overview-architecture/architecture-decision-guide.md)).
+- **Mixed-mode placement isolation**: Cilium must be placed exclusively on hybrid nodes and the VPC CNI exclusively on cloud nodes. The VPC CNI's anti-affinity comes built in, but on the Cilium side you must declare hybrid-label affinity on both the agent and the operator at install time to prevent it from encroaching on cloud nodes. The official Hybrid Nodes values set `affinity` (agent) and `operator.affinity` separately.
 
-## Cilium 설치 핵심 구성
+## Core Cilium Installation Settings
 
-Cilium Helm values에서 하이브리드 환경에 특화된 설정은 affinity와 IPAM 두 가지입니다.
+In the Cilium Helm values, the two settings specific to hybrid environments are affinity and IPAM.
 
 ```yaml
 # cilium-values.yaml
@@ -55,15 +55,15 @@ affinity:
             - key: eks.amazonaws.com/compute-type
               operator: In
               values:
-                - hybrid            # 하이브리드 노드에만 스케줄
+                - hybrid            # Schedule only on hybrid nodes
 ipam:
   mode: cluster-pool
   operator:
-    clusterPoolIPv4MaskSize: 26      # 노드당 Pod IP 슬라이스 (/26 = 64개 중 2개는 예약)
+    clusterPoolIPv4MaskSize: 26      # Per-node Pod IP slice (/26 = 64 addresses, 2 reserved)
     clusterPoolIPv4PodCIDRList:
-      - 10.86.0.0/16                 # RemotePodNetwork와 일치해야 함
+      - 10.86.0.0/16                 # Must match RemotePodNetwork
 operator:
-  affinity:                          # operator도 하이브리드 노드로 한정 (agent affinity와 별도로 지정)
+  affinity:                          # Confine the operator to hybrid nodes too (set separately from the agent affinity)
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
@@ -73,7 +73,7 @@ operator:
                 values:
                   - hybrid
   unmanagedPodWatcher:
-    restart: false                   # 클라우드 노드(VPC CNI 관리) Pod 재시작 방지
+    restart: false                   # Prevent restarts of cloud-node Pods (managed by the VPC CNI)
 ```
 
 ```bash
@@ -83,27 +83,27 @@ helm install cilium oci://public.ecr.aws/eks/cilium/cilium \
   --values cilium-values.yaml
 ```
 
-- `clusterPoolIPv4PodCIDRList`는 클러스터 생성 시 지정한 `RemotePodNetwork`와 일치해야 합니다. 운영 중에는 기존 CIDR 요소를 변경할 수 없고 `clusterPoolIPv4MaskSize`도 변경할 수 없습니다. 다만 풀이 고갈되면 리스트에 **새 CIDR 요소를 추가**하는 방식으로 확장할 수 있습니다(기존 요소 변경은 불가). 추가한 CIDR은 클러스터의 `RemotePodNetwork`와 온프레미스 라우팅에도 함께 반영해야 하므로, 처음부터 넉넉히 배정하는 편이 운영 부담이 적습니다 ([Pod CIDR 선제 확보](./cidr-network-design.md#pod-cidr-선제-확보), [Cilium Expanding the cluster pool](https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/#expanding-the-cluster-pool)).
-- `clusterPoolIPv4MaskSize`는 노드당 Pod 슬라이스 크기를 결정합니다. 제시한 값은 **전체 주소 수**이며(/26 = 64개, /25 = 128개), Cilium은 각 CIDR 블록에서 네트워크·브로드캐스트 2개를 예약하므로 실제 할당 가능한 Pod IP는 그보다 적습니다(/26 = 62개, /25 = 126개). 배포한 Cilium 버전의 예약 정책을 확인한 뒤 kubelet `maxPods` 설정과 정합성을 맞춥니다.
-- Mixed mode 클러스터에서 `unmanagedPodWatcher.restart: false`는 Cilium operator가 VPC CNI 관리 하의 클라우드 노드 Pod를 재시작하지 않도록 하는 안전장치입니다.
+- `clusterPoolIPv4PodCIDRList` must match the `RemotePodNetwork` specified at cluster creation. During operation you cannot change existing CIDR elements, and `clusterPoolIPv4MaskSize` cannot be changed either. However, if the pool is exhausted you can expand it by **appending a new CIDR element** to the list (existing elements must not be modified). Any CIDR you add must also be reflected in the cluster's `RemotePodNetwork` and in on-premises routing, so allocating generously from the start keeps the operational burden lower ([Proactive Pod CIDR Allocation](./cidr-network-design.md#proactive-pod-cidr-allocation), [Cilium Expanding the cluster pool](https://docs.cilium.io/en/stable/network/concepts/ipam/cluster-pool/#expanding-the-cluster-pool)).
+- `clusterPoolIPv4MaskSize` determines the per-node Pod slice size. The figures shown are **total address counts** (/26 = 64, /25 = 128); Cilium reserves 2 addresses per CIDR block for the network and broadcast addresses, so the actually allocatable Pod IPs are fewer (/26 = 62, /25 = 126). Confirm the reservation behavior of your deployed Cilium version, then align it with the kubelet `maxPods` setting.
+- In mixed-mode clusters, `unmanagedPodWatcher.restart: false` is a safeguard that keeps the Cilium operator from restarting cloud-node Pods under VPC CNI management.
 
-## Pod CIDR 라우팅 방식 선택
+## Choosing a Pod CIDR Routing Method
 
-Pod 레벨 inbound가 필요한 환경([기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙))에서 Pod CIDR을 도달 가능하게 만드는 방식은 세 가지입니다.
+In environments that require Pod-level inbound traffic ([feature table](../overview-architecture/hybrid-nodes-fundamentals.md#node-cidr-required-pod-cidr-optional-principle)), there are three ways to make the Pod CIDR reachable.
 
-| 방식 | 적합 환경 | 요건 | 특징 |
-|------|----------|------|------|
-| BGP 동적 라우팅 (권장) | 노드 증감이 잦은 중·대규모 | BGP 지원 라우터, ASN·피어링 협의 | 노드별 Pod CIDR 슬라이스를 자동 광고 — 증설 시 라우터 변경 불필요 |
-| 정적 라우팅 | 노드 수가 적고 고정된 소규모, BGP 미지원 장비 | 라우터에 노드별 경로 수동 등록 | 노드 증설·교체 시마다 라우터 경로 갱신 필요 — 운영 부담 누적 |
-| Hybrid Nodes Gateway | 네트워크 조직 분리·IPAM 포화로 Pod 대역 라우팅 협의가 곤란한 환경 | Cilium 전용, 게이트웨이 EC2 2대 | Pod CIDR 언더레이 라우팅 협의를 제거(Node 대역 라우팅과 게이트웨이 VXLAN·방화벽 설정은 여전히 필요) — [구축 절차](./hybrid-nodes-gateway.md) |
+| Method | Suitable environment | Requirements | Characteristics |
+|--------|---------------------|--------------|-----------------|
+| BGP dynamic routing (recommended) | Medium-to-large environments with frequent node changes | BGP-capable router, ASN/peering coordination | Automatically advertises each node's Pod CIDR slice — no router changes needed when scaling out |
+| Static routing | Small environments with a fixed node count, or equipment without BGP support | Manually register per-node routes on the router | Router routes must be updated on every node addition or replacement — operational burden accumulates |
+| Hybrid Nodes Gateway | Environments where Pod CIDR routing coordination is impractical due to organizational separation or IPAM exhaustion | Cilium only, 2 gateway EC2 instances | Removes Pod CIDR underlay routing coordination (Node CIDR routing and the gateway's VXLAN/firewall setup are still required) — [setup procedure](./hybrid-nodes-gateway.md) |
 
-노드별 Pod CIDR 슬라이스는 CNI가 동적으로 할당하므로, 정적 라우팅은 슬라이스 배정을 사전에 파악해 노드 단위로 경로를 등록해야 하고 노드 교체 시 재확인이 필요합니다. 이 관리 부담이 정적 라우팅을 소규모 환경으로 한정하는 이유입니다.
+Per-node Pod CIDR slices are assigned dynamically by the CNI, so static routing requires identifying slice assignments in advance, registering routes per node, and re-verifying them when nodes are replaced. This management burden is what confines static routing to small environments.
 
-## Cilium BGP Control Plane 구성
+## Cilium BGP Control Plane Configuration
 
-Cilium의 BGP 기능(BGP Control Plane)은 Pod CIDR과 Service 주소를 온프레미스 네트워크에 광고합니다. 구성은 ① Helm 활성화 → ② CRD 3종 적용 → ③ 피어링 검증 순서입니다.
+Cilium's BGP capability (BGP Control Plane) advertises Pod CIDRs and Service addresses to the on-premises network. Configuration proceeds in three steps: ① enable via Helm → ② apply the three CRDs → ③ verify peering.
 
-### 1. BGP Control Plane 활성화
+### 1. Enable the BGP Control Plane
 
 ```bash
 helm upgrade cilium oci://public.ecr.aws/eks/cilium/cilium \
@@ -113,19 +113,19 @@ helm upgrade cilium oci://public.ecr.aws/eks/cilium/cilium \
   --set bgpControlPlane.enabled=true
 ```
 
-기존 배포에 BGP를 추가하는 경우 Cilium operator 재시작이 필요하며, `operator.rollOutPods=true`가 이를 Helm 업그레이드 과정에서 수행합니다.
+Adding BGP to an existing deployment requires restarting the Cilium operator; `operator.rollOutPods=true` performs this as part of the Helm upgrade.
 
 :::warning
-위 명령은 공식 문서의 기능 활성화 예시를 그대로 옮긴 것으로 `--version`을 지정하지 않습니다. `--reuse-values`와 함께 쓰면 로컬 Helm 차트 캐시에 따라 Cilium 버전이 의도치 않게 바뀔 수 있습니다. BGP 활성화처럼 기능만 켜는 변경에서는 현재 설치된 지원 차트 버전을 `--version`으로 고정하십시오. 버전을 올리려는 경우에는 [공식 업그레이드 절차](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html#hybrid-nodes-cilium-upgrade)의 preflight 점검과 OS/커널·버전 호환성 확인을 먼저 수행합니다.
+The command above is copied verbatim from the official feature-enable example and does not specify `--version`. Combined with `--reuse-values`, it can unexpectedly change the Cilium version depending on your local Helm chart cache. For feature-only changes such as enabling BGP, pin the currently installed supported chart version with `--version`. When you intend to change the version, first run the [official upgrade procedure](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html#hybrid-nodes-cilium-upgrade), including the preflight check and the OS/kernel and version compatibility verification.
 :::
 
-### 2. BGP CRD 3종 구성
+### 2. Configure the Three BGP CRDs
 
-| CRD | 역할 | 핵심 필드 |
-|-----|------|----------|
-| `CiliumBGPClusterConfig` | 노드 그룹의 BGP 인스턴스·피어 정의 | `localASN`(노드 측), `peerASN`·`peerAddress`(온프렘 라우터) |
-| `CiliumBGPPeerConfig` | 피어 세션 파라미터 | `holdTimeSeconds`(기본 90s), `keepAliveTimeSeconds`(기본 30s), graceful restart(기본 120s) — 라우터 측 설정과 일치 필요 |
-| `CiliumBGPAdvertisement` | 광고 대상 선언 | `advertisementType: PodCIDR`(Pod 대역) 또는 `Service`(LB 주소) |
+| CRD | Role | Key fields |
+|-----|------|-----------|
+| `CiliumBGPClusterConfig` | Defines BGP instances and peers for a node group | `localASN` (node side), `peerASN` / `peerAddress` (on-premises router) |
+| `CiliumBGPPeerConfig` | Peer session parameters | `holdTimeSeconds` (default 90s), `keepAliveTimeSeconds` (default 30s), graceful restart (default 120s) — must match the router-side settings |
+| `CiliumBGPAdvertisement` | Declares what to advertise | `advertisementType: PodCIDR` (Pod ranges) or `Service` (LB addresses) |
 
 ```yaml
 apiVersion: cilium.io/v2alpha1
@@ -152,7 +152,7 @@ spec:
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPPeerConfig
 metadata:
-  name: cilium-peer                  # ClusterConfig의 peerConfigRef.name과 일치해야 함
+  name: cilium-peer                  # Must match peerConfigRef.name in the ClusterConfig
 spec:
   timers:
     holdTimeSeconds: 90
@@ -165,7 +165,7 @@ spec:
       safi: unicast
       advertisements:
         matchLabels:
-          advertise: "bgp"           # Advertisement의 labels.advertise와 일치해야 함
+          advertise: "bgp"           # Must match labels.advertise on the Advertisement
 ---
 apiVersion: cilium.io/v2alpha1
 kind: CiliumBGPAdvertisement
@@ -178,43 +178,43 @@ spec:
     - advertisementType: "PodCIDR"
 ```
 
-위 매니페스트는 세 리소스를 포함하며, 공식 절차에서는 각각 별도 파일로 작성해 `CiliumBGPClusterConfig` → `CiliumBGPPeerConfig` → `CiliumBGPAdvertisement` 순으로 `kubectl apply`합니다. `NODES_ASN`·`ONPREM_ROUTER_ASN`·`ONPREM_ROUTER_IP`는 네트워크팀과 협의한 실제 값으로 치환합니다. `peerConfigRef.name`(`cilium-peer`)은 `CiliumBGPPeerConfig`의 이름과, families의 `matchLabels.advertise`(`bgp`)는 `CiliumBGPAdvertisement`의 `labels.advertise`와 각각 일치해야 연결됩니다. 적용 후에는 아래 3단계 검증으로 세션 수립을 확인합니다.
+The manifest above contains three resources; the official procedure writes each to a separate file and applies them with `kubectl apply` in the order `CiliumBGPClusterConfig` → `CiliumBGPPeerConfig` → `CiliumBGPAdvertisement`. Replace `NODES_ASN`, `ONPREM_ROUTER_ASN`, and `ONPREM_ROUTER_IP` with the actual values coordinated with your network team. The link is made by matching `peerConfigRef.name` (`cilium-peer`) to the `CiliumBGPPeerConfig` name, and the families `matchLabels.advertise` (`bgp`) to the `labels.advertise` on the `CiliumBGPAdvertisement`. After applying, confirm the session is established with the three verification steps below.
 
-각 하이브리드 노드의 Cilium 에이전트가 온프레미스 라우터와 개별 피어링하고, 자신이 소유한 Pod CIDR 슬라이스만 광고합니다. 온프레미스 라우터를 BGP Route Reflector로 구성하면 라우터가 데이터 경로에 참여하지 않으면서 Pod CIDR을 동적으로 학습합니다.
+The Cilium agent on each hybrid node peers individually with the on-premises router and advertises only the Pod CIDR slice it owns. Configuring the on-premises router as a BGP Route Reflector lets the router learn Pod CIDRs dynamically without participating in the data path.
 
-### 3. 피어링 검증
+### 3. Verify Peering
 
 ```bash
-# Session State가 established인지 확인
+# Confirm the Session State is established
 cilium bgp peers
 
-# 노드별 광고 경로 확인 (노드당 자기 슬라이스 1개)
+# Check the routes advertised per node (one slice per node)
 cilium bgp routes
 ```
 
-세션이 수립되지 않으면 ASN·피어 IP·타이머 값의 라우터 측 정합성과 함께 방화벽의 TCP 179 허용 여부를 점검합니다. Cilium 자체 포트(BGP TCP 179, VXLAN UDP 8472, health TCP 4240)는 [방화벽 사전 등록](./firewall-connectivity.md)의 Zone E 룰에 포함해 신청합니다.
+If the session does not establish, check the router-side consistency of ASN, peer IP, and timer values, along with whether the firewall allows TCP 179. Include Cilium's own ports (BGP TCP 179, VXLAN UDP 8472, health TCP 4240) in the Zone E rules of the [firewall pre-registration request](./firewall-connectivity.md).
 
-## 권장 사항 요약
+## Summary of Recommendations
 
-- 신규 구축은 EKS 배포판 Cilium을 기준으로 설계합니다. Calico는 커뮤니티 경로이며 Gateway 옵션이 제외됩니다.
-- Mixed mode에서는 Cilium values에 hybrid 레이블 affinity를 반드시 명시해 클라우드 노드 침범을 차단합니다.
-- `clusterPoolIPv4PodCIDRList`는 `RemotePodNetwork`와 일치시키고, 불변 제약을 감안해 처음부터 넉넉히 배정합니다.
-- Pod CIDR 라우팅은 BGP를 우선 검토하고, 라우팅 협의가 곤란하면 Gateway, 소규모 고정 환경만 정적 라우팅을 사용합니다.
-- BGP 타이머·ASN은 네트워크팀과 사전 협의하고, TCP 179를 방화벽 신청서에 포함합니다.
+- Design new deployments around the EKS distribution of Cilium. Calico is a community path and excludes the Gateway option.
+- In mixed mode, always declare hybrid-label affinity in the Cilium values to keep it off cloud nodes.
+- Match `clusterPoolIPv4PodCIDRList` to `RemotePodNetwork`, and allocate generously from the start given its immutability constraint.
+- For Pod CIDR routing, evaluate BGP first; use the Gateway when routing coordination is impractical, and reserve static routing for small, fixed environments.
+- Coordinate BGP timers and ASNs with the network team in advance, and include TCP 179 in the firewall request.
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html) — Cilium 설치·업그레이드·삭제, VPC CNI 비호환 명시
-- [Configure Cilium BGP for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cilium-bgp.html) — BGP Control Plane 활성화와 CRD 구성
-- [Networking concepts for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html) — fully routed 제약과 Pod CIDR 라우팅 옵션
+### Official Documentation
+- [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html) — Cilium install/upgrade/delete; VPC CNI incompatibility stated
+- [Configure Cilium BGP for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cilium-bgp.html) — Enabling the BGP Control Plane and CRD configuration
+- [Networking concepts for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html) — Fully routed constraint and Pod CIDR routing options
 
-### 기술 블로그
-- [Deep dive into cluster networking for Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/deep-dive-into-cluster-networking-for-amazon-eks-hybrid-nodes/) — BGP Route Reflector·정적 라우팅 구성 예시
-- [A deep dive into Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/a-deep-dive-into-amazon-eks-hybrid-nodes/) — CNI affinity·cluster-pool IPAM 구성 배경
+### Technical Blogs
+- [Deep dive into cluster networking for Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/deep-dive-into-cluster-networking-for-amazon-eks-hybrid-nodes/) — BGP Route Reflector and static routing configuration examples
+- [A deep dive into Amazon EKS Hybrid Nodes — AWS Containers Blog](https://aws.amazon.com/blogs/containers/a-deep-dive-into-amazon-eks-hybrid-nodes/) — Background on CNI affinity and cluster-pool IPAM configuration
 
-### 관련 문서 (내부)
-- [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md) — Pod CIDR 라우팅이 필요한 기능표
-- [아키텍처 결정 가이드](../overview-architecture/architecture-decision-guide.md) — 풀 라우팅 vs Gateway 판정 플로우
-- [CIDR 설계와 대역 최소화](./cidr-network-design.md) — Pod CIDR 선제 확보와 슬라이스 산정
-- [Hybrid Nodes Gateway 구축과 운영](./hybrid-nodes-gateway.md) — 라우팅 협의 없는 세 번째 옵션
+### Related Documents (Internal)
+- [EKS Hybrid Nodes Concepts and How It Works](../overview-architecture/hybrid-nodes-fundamentals.md) — Table of features requiring Pod CIDR routing
+- [Architecture Decision Guide](../overview-architecture/architecture-decision-guide.md) — Full routing vs Gateway decision flow
+- [CIDR Design and Range Minimization](./cidr-network-design.md) — Proactive Pod CIDR allocation and slice sizing
+- [Hybrid Nodes Gateway Setup and Operations](./hybrid-nodes-gateway.md) — The third option without routing coordination

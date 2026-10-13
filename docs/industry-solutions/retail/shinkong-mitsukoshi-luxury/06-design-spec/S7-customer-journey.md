@@ -1,6 +1,6 @@
 ---
-title: S7. 옴니채널 회원 여정 (Mitsukoshi)
-description: 자사몰 → 매장 → 면세 → 재방문 단일 타임라인
+title: S7. Omnichannel Member Journey (Mitsukoshi)
+description: Single timeline of online → store → duty-free → repeat visit
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,18 +16,18 @@ tags:
 sidebar_label: S7. Customer Journey
 ---
 
-## 1. URL · 페르소나
+## 1. URL · Personas
 - `/journey` · P4
 
-## 2. 데이터 믹스
+## 2. Data Mix
 - SearchEvent · CartEvent · OrderTransaction · POSTransaction · TaxRefundTransaction · Touchpoint · Coupon · ReviewRating
 
-## 3. 출력 UI
-- Swimlane (자사몰·점포·면세·DM·SNS)
-- 점포·층 색상 코딩
-- VIP 등급 변화 표시
+## 3. Output UI
+- Swimlane (online, store, duty-free, DM, SNS)
+- Store and floor color coding
+- VIP tier change indicators
 
-## 4. 데모 시나리오
-1. Black 회원 90일 여정 → 자사몰→信義 1F→면세→일본 추천
-2. 외국인 단발 여정 → 입국→면세→재방문 시도
-3. VIP 진입 트리거 시점
+## 4. Demo Scenarios
+1. Black member 90-day journey → online → Xinyi 1F → duty-free → Japan recommendation
+2. Foreign tourist single-visit journey → entry → duty-free → repeat-visit attempt
+3. VIP entry trigger point

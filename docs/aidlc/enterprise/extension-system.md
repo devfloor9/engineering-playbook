@@ -1,11 +1,11 @@
 ---
 title: Extension System
-description: AWS Labs AIDLC Extension System — opt-in 메커니즘으로 조직별 보안·컴플라이언스·도메인 규칙을 AIDLC 워크플로에 통합
+description: AWS Labs AIDLC Extension System — integrate organization-specific security, compliance, and domain rules into AIDLC workflows via opt-in mechanism
 created: "2026-04-18"
 last_update:
   date: 2026-09-18
-  author: YoungJoon Jeong
-reading_time: 5
+  author: devfloor9
+reading_time: 9
 tags:
   - aidlc
   - extension
@@ -18,15 +18,15 @@ sidebar_position: 7
 category: aidlc
 ---
 
-AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 공식 5대 원칙과 11개 Common Rules 외에, **조직별 규제·도메인 특화 규칙을 추가**할 수 있는 **Extension System** 을 제공합니다. 본 문서는 Extension 아키텍처, Built-in 확장, opt-in 작동 메커니즘, 그리고 한국 엔터프라이즈(ISMS-P · 금융감독규정) 적용 예시를 다룹니다.
+AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) provides an **Extension System** that allows organizations to add **regulatory and domain-specific rules** beyond the official 5 principles and 11 Common Rules. This document covers Extension architecture, Built-in extensions, opt-in activation mechanism, and Korean enterprise (ISMS-P · financial regulations) application examples.
 
 ---
 
-## 1. 개요: 왜 Extension 인가
+## 1. Overview: Why Extensions?
 
-### 1.1 Core vs Extension 분리 원칙
+### 1.1 Core vs Extension Separation
 
-AIDLC 는 **방법론 코어(stable)** 와 **조직 규칙(variable)** 을 명확히 분리합니다.
+AIDLC clearly separates the **stable methodology core** from **variable organizational rules**.
 
 ```mermaid
 graph TB
@@ -38,42 +38,42 @@ graph TB
 
     subgraph Extensions["Extension System (variable)"]
         BUILTIN[Built-in Extensions<br/>security/ · testing/]
-        ORG[Organization Extensions<br/>조직별 규정]
-        DOMAIN[Domain Extensions<br/>금융 · 의료 · 공공]
+        ORG[Organization Extensions<br/>Org-specific regulations]
+        DOMAIN[Domain Extensions<br/>Finance · Healthcare · Public]
     end
 
     Core -->|opt-in.md| Extensions
-    Extensions -->|활성화된 규칙만| Core
+    Extensions -->|Activated rules only| Core
 
     style Core fill:#326ce5,color:#fff
     style Extensions fill:#ff9900,color:#fff
 ```
 
-**핵심 원칙:**
-- Core 는 **모든 조직·산업에 공통** 으로 적용되는 최소 규칙
-- Extension 은 **조직·산업·프로젝트별로 선택적 적용**
-- **`opt-in.md` 파일의 존재·내용이 활성화 여부를 결정**
+**Core Principles:**
+- Core contains **minimum rules common to all organizations and industries**
+- Extensions are **selectively applied by organization, industry, or project**
+- **Presence and content of `opt-in.md` file determines activation**
 
-### 1.2 Extension 도입 효과
+### 1.2 Extension Benefits
 
-| 효과 | 설명 | 예시 |
-|------|------|------|
-| **규제 대응** | 산업별 법·규제를 AIDLC 워크플로에 내장 | 금융권 전자금융감독규정 반영 |
-| **조직 표준화** | 팀별 표준 템플릿·체크리스트를 재사용 가능한 모듈로 분리 | 아키텍처 결정 기록(ADR) 템플릿 |
-| **점진적 도입** | 코어 방법론 먼저 도입, 조직 특화는 나중에 확장 | MVP 출시 후 Compliance 추가 |
-| **도구 독립성** | Extension 은 Markdown + YAML 로 표현되어 모든 AIDLC 플랫폼에서 동작 | Kiro · Claude Code · Cursor |
+| Benefit | Description | Example |
+|---------|-------------|---------|
+| **Regulatory Compliance** | Embed industry-specific laws/regulations into AIDLC workflows | Financial sector electronic financial supervision regulations |
+| **Organization Standardization** | Separate team standards, templates, checklists into reusable modules | Architecture Decision Records (ADR) templates |
+| **Gradual Adoption** | Adopt core methodology first, extend with organization-specific features later | Add compliance after MVP launch |
+| **Tool Independence** | Extensions expressed in Markdown + YAML work across all AIDLC platforms | Kiro · Claude Code · Cursor |
 
 ---
 
 ## 2. Built-in Extensions
 
-AWS Labs 저장소는 2개의 **Built-in Extension** 을 기본 제공합니다: `security/` 와 `testing/`.
+AWS Labs repository provides two **Built-in Extensions** by default: `security/` and `testing/`.
 
-### 2.1 security/ 확장
+### 2.1 security/ Extension
 
-**목적**: 보안 관련 요구사항 추출·검증·강제를 AIDLC 워크플로에 통합.
+**Purpose**: Integrate security requirement extraction, verification, and enforcement into AIDLC workflows.
 
-**주요 규칙:**
+**Key Rules:**
 ```yaml
 # extensions/security/rules.yaml
 security_extension:
@@ -88,34 +88,34 @@ security_extension:
     - id: SEC-001
       name: "Threat Modeling Required"
       stage: application_design
-      action: "STRIDE 기반 위협 모델링 문서 생성 필수"
+      action: "STRIDE-based threat modeling document mandatory"
 
     - id: SEC-002
       name: "Secrets Scanning"
       stage: construction.build_and_test
-      action: "git-secrets + truffleHog 자동 실행, 하드코딩 크레덴셜 차단"
+      action: "Automatically run git-secrets + truffleHog, block hardcoded credentials"
 
     - id: SEC-003
       name: "SAST Integration"
       stage: construction.build_and_test
-      action: "Semgrep / Snyk / Checkov 중 하나 이상 실행"
+      action: "Run at least one of Semgrep / Snyk / Checkov"
 
     - id: SEC-004
       name: "Dependency Vulnerability Check"
       stage: construction.build_and_test
-      action: "OSV-Scanner or Trivy 실행, Critical 취약점은 병합 차단"
+      action: "Run OSV-Scanner or Trivy, block merge for Critical vulnerabilities"
 
     - id: SEC-005
       name: "Least Privilege IAM"
       stage: construction.infrastructure_design
-      action: "IAM Policy 는 wildcard Resource 사용 금지 (특수 케이스 정당화 필요)"
+      action: "IAM Policy must not use wildcard Resource (justification required for special cases)"
 ```
 
-### 2.2 testing/ 확장
+### 2.2 testing/ Extension
 
-**목적**: 테스트 자동 생성·커버리지 관리·품질 게이트 강제.
+**Purpose**: Automatic test generation, coverage management, quality gate enforcement.
 
-**주요 규칙:**
+**Key Rules:**
 ```yaml
 # extensions/testing/rules.yaml
 testing_extension:
@@ -129,35 +129,35 @@ testing_extension:
     - id: TEST-001
       name: "TDD First"
       stage: construction.code_generation
-      action: "테스트 코드를 프로덕션 코드보다 먼저 생성"
+      action: "Generate test code before production code"
 
     - id: TEST-002
       name: "Minimum Coverage"
       stage: construction.build_and_test
-      action: "단위 테스트 커버리지 ≥ 80%, 실패 시 Checkpoint Approval 차단"
+      action: "Unit test coverage ≥ 80%, block Checkpoint Approval on failure"
 
     - id: TEST-003
       name: "Integration Test Required"
       stage: construction.build_and_test
-      action: "외부 의존성(DB, API)에 대한 통합 테스트 필수"
+      action: "Integration tests mandatory for external dependencies (DB, API)"
 
     - id: TEST-004
       name: "Acceptance Test Linkage"
       stage: construction.functional_design
-      action: "각 Functional Requirement 에 대응하는 Acceptance Test 매핑"
+      action: "Map Acceptance Tests to each Functional Requirement"
 ```
 
 ---
 
-## 3. Opt-in 메커니즘
+## 3. Opt-in Mechanism
 
-### 3.1 opt-in.md 파일 구조
+### 3.1 opt-in.md File Structure
 
-Extension 활성화는 프로젝트 루트의 **`opt-in.md`** 파일로 제어합니다.
+Extension activation is controlled by the **`opt-in.md`** file at the project root.
 
-**위치**: `<project-root>/.aidlc/opt-in.md`
+**Location**: `<project-root>/.aidlc/opt-in.md`
 
-**파일 구조:**
+**File Structure:**
 ```markdown
 # AIDLC Opt-in Extensions
 
@@ -171,271 +171,271 @@ Extension 활성화는 프로젝트 루트의 **`opt-in.md`** 파일로 제어�
 - [x] testing (version 0.1.0)
 
 ### Organization
-- [x] org-lg-security (version 1.2.0) — LG CNS 내부 보안 표준
-- [x] org-compliance-ismsp (version 2.1.0) — ISMS-P 인증기준
+- [x] org-lg-security (version 1.2.0) — LG CNS internal security standards
+- [x] org-compliance-ismsp (version 2.1.0) — ISMS-P (Korean Personal Information & Information Security Management System) certification standards
 
 ### Domain
-- [x] finance-korea (version 1.0.0) — 전자금융감독규정
+- [x] finance-korea (version 1.0.0) — Korean Electronic Financial Supervision Regulations
 
-## Disabled Extensions (명시적 거부)
+## Disabled Extensions (explicit rejection)
 
-- [ ] healthcare-hipaa — 해당 없음 (금융 서비스)
-- [ ] public-sector-korea — 해당 없음
+- [ ] healthcare-hipaa — N/A (financial service)
+- [ ] public-sector-korea — N/A
 ```
 
-### 3.2 Requirements Analysis 단계의 opt-in 질문
+### 3.2 Requirements Analysis Stage opt-in Questions
 
-AIDLC 의 Requirements Analysis stage 는 `opt-in.md` 파일을 읽어 활성화된 확장을 확인합니다. **파일이 없거나 확장이 지정되지 않은 경우**, Common Rules 규칙 1 (Question Format) 에 따라 사용자에게 질문합니다:
+The AIDLC Requirements Analysis stage reads the `opt-in.md` file to check activated extensions. **If the file doesn't exist or no extensions are specified**, Common Rules rule 1 (Question Format) asks the user:
 
 ```markdown
-Q. 본 프로젝트에 적용할 Extension 을 선택하세요 (복수 선택 가능):
+Q. Select Extensions to apply to this project (multiple choice):
 
-A. security 만 (기본값, 모든 프로젝트 권장)
-B. security + testing (표준, 일반 프로덕션 프로젝트)
-C. security + testing + 조직 규정 (엔터프라이즈)
-D. C + 산업 규제 (금융/의료/공공)
-E. None (데모·PoC 용, 프로덕션 금지)
+A. security only (default, recommended for all projects)
+B. security + testing (standard, general production projects)
+C. security + testing + organization regulations (enterprise)
+D. C + industry regulations (finance/healthcare/public)
+E. None (demo/PoC only, prohibited for production)
 
 [Answer]:
 ```
 
-**응답 후 자동 생성:**
-- `[Answer]: C` → AIDLC 가 `opt-in.md` 에 security, testing, 조직 확장 추가
+**Auto-generation after response:**
+- `[Answer]: C` → AIDLC adds security, testing, and organization extensions to `opt-in.md`
 
-### 3.3 Extension 우선순위
+### 3.3 Extension Priority
 
-여러 확장에서 **충돌하는 규칙** 이 있을 경우 우선순위:
+When **conflicting rules** exist across multiple extensions, priority order:
 
 ```
-1. Common Rules (최우선, 공식 규격)
-2. Domain Extensions (산업 규제)
-3. Organization Extensions (조직 표준)
+1. Common Rules (highest priority, official specification)
+2. Domain Extensions (industry regulations)
+3. Organization Extensions (organization standards)
 4. Built-in Extensions (security, testing)
-5. Project-local overrides (최하위)
+5. Project-local overrides (lowest priority)
 ```
 
-**예시 충돌 해결:**
+**Conflict Resolution Example:**
 ```
-Common Rules 11: Reproducible — Temperature = 0 권장
-Organization Extension (금융): Temperature = 0.1 허용 (창의성 일부 허용)
+Common Rules 11: Reproducible — Recommends Temperature = 0
+Organization Extension (finance): Allows Temperature = 0.1 (some creativity allowed)
 
-→ Common Rules 우선 → Temperature = 0 강제
-→ 조직이 정말 필요하면 Common Rules 의 waiver 프로세스 실행 필요
+→ Common Rules take priority → Force Temperature = 0
+→ If organization truly needs this, must execute Common Rules waiver process
 ```
 
 ---
 
-## 4. 조직 컴플라이언스 확장 예시
+## 4. Organization Compliance Extension Examples
 
-### 4.1 한국 ISMS-P 확장
+### 4.1 Korea ISMS-P Extension
 
-**배경**: ISMS-P (정보보호 및 개인정보보호 관리체계) 는 한국 정보보호 관련 법규 준수를 요구하는 민간 인증. 공공 계약·금융 서비스 진출 시 사실상 필수.
+**Background**: ISMS-P (Korean Personal Information & Information Security Management System) is a private certification requiring compliance with Korea information security laws. Virtually mandatory for public contracts and financial services entry.
 
-**확장 디렉터리 구조:**
+**Extension Directory Structure:**
 ```
 extensions/org-compliance-ismsp/
   rules.yaml
   templates/
-    pia-template.md           # 개인정보 영향평가(PIA)
+    pia-template.md           # Privacy Impact Assessment (PIA)
     access-control-matrix.md
     incident-response-plan.md
   audit-mappings/
-    ismsp-2.1.yaml           # ISMS-P 2.1 관리적 조치
-    ismsp-2.8.yaml           # 개인정보 처리단계별 요구사항
+    ismsp-2.1.yaml           # ISMS-P 2.1 administrative controls
+    ismsp-2.8.yaml           # Personal information processing stage requirements
 ```
 
-**rules.yaml 예시:**
+**rules.yaml Example:**
 ```yaml
 extension:
   name: org-compliance-ismsp
   version: 2.1.0
-  description: ISMS-P 2.1 인증기준 AIDLC 통합
+  description: ISMS-P 2.1 certification standards AIDLC integration
   applies_to:
     industries: [finance, public, healthcare]
     regions: [KR]
 
   rules:
     - id: ISMSP-2.5.1
-      name: "사용자 계정 관리"
+      name: "User Account Management"
       stage: application_design
       common_rules_mapping: [checkpoint_approval, audit_logging]
       action: |
-        사용자 인증·인가 설계 시 다음 의무:
-        - 패스워드 정책 (9자 이상, 3종 이상 조합)
-        - 세션 타임아웃 (10분 이상 비활성 시 자동 로그아웃)
-        - 로그인 실패 5회 연속 시 계정 잠금
+        Authentication/authorization design obligations:
+        - Password policy (9+ characters, 3+ types)
+        - Session timeout (auto logout after 10+ min inactivity)
+        - Account lockout after 5 consecutive failed login attempts
 
     - id: ISMSP-2.8.2
-      name: "개인정보 처리단계별 요구사항"
+      name: "Personal Information Processing Stage Requirements"
       stage: requirements_analysis
       action: |
-        개인정보 수집·이용·제공·파기 전 단계에 대해 요구사항 명시:
-        - 수집 항목 최소화 원칙
-        - 목적 외 이용 금지
-        - 암호화 저장 (AES-256 이상)
-        - 보관기간 초과 시 자동 파기
+        Specify requirements for all stages of personal information collection/use/provision/disposal:
+        - Minimize collection items
+        - Prohibit use beyond purpose
+        - Encrypted storage (AES-256 or higher)
+        - Automatic disposal after retention period
 
     - id: ISMSP-2.9.1
-      name: "침해사고 대응"
+      name: "Incident Response"
       stage: operations.observability
       action: |
-        침해사고 감지 시 24시간 이내 신고 체계 구축:
-        - KISA 신고 연동
-        - 관련자 통지
-        - 포렌식 증거 보존
+        Establish reporting system within 24 hours of security incident detection:
+        - KISA reporting integration
+        - Stakeholder notification
+        - Forensic evidence preservation
 ```
 
-### 4.2 한국 금융감독규정 확장
+### 4.2 Korea Financial Supervision Extension
 
-**배경**: 전자금융감독규정 (금융감독원) 및 망분리·ISMS-P 의무화.
+**Background**: Electronic Financial Supervision Regulations (Financial Supervisory Service) and mandatory network separation/ISMS-P.
 
-**rules.yaml 일부:**
+**rules.yaml Excerpt:**
 ```yaml
 extension:
   name: finance-korea
   version: 1.0.0
-  description: 한국 전자금융감독규정 AIDLC 통합
+  description: Korean Electronic Financial Supervision Regulations AIDLC integration
   applies_to:
     industries: [finance]
     regions: [KR]
 
   rules:
     - id: EFSR-8
-      name: "망분리 의무"
+      name: "Network Separation Obligation"
       stage: application_design
       action: |
-        개발망·업무망·운영망 논리적·물리적 분리 설계 필수:
-        - EKS 클러스터 별도 VPC
-        - 인터넷 직접 접근 금지 (Egress 프록시 경유)
-        - Bastion Host 경유 접근만 허용
+        Development/business/operation network logical/physical separation design mandatory:
+        - Separate VPC per EKS cluster
+        - Prohibit direct internet access (via Egress proxy)
+        - Allow access only via Bastion Host
 
     - id: EFSR-13
-      name: "민감 정보 암호화"
+      name: "Sensitive Information Encryption"
       stage: construction.infrastructure_design
       action: |
-        카드정보·주민번호·계좌번호는 다음 기준 준수:
-        - 저장 시: AES-256 + KMS 키 분리
-        - 전송 시: TLS 1.3 이상
-        - 로그: 마스킹 필수 (6자리 이상)
+        Card info/resident registration number/account number compliance standards:
+        - Storage: AES-256 + KMS key separation
+        - Transmission: TLS 1.3 or higher
+        - Logs: Masking mandatory (6+ digits)
 
     - id: EFSR-DR
-      name: "재해복구 의무"
+      name: "Disaster Recovery Obligation"
       stage: application_design
       action: |
-        재해복구 센터 구축 필수 (RTO ≤ 3시간, RPO ≤ 24시간):
-        - Multi-AZ 배포
-        - Cross-Region 백업
-        - 연 1회 이상 DR 훈련
+        Disaster recovery center establishment mandatory (RTO ≤ 3 hours, RPO ≤ 24 hours):
+        - Multi-AZ deployment
+        - Cross-Region backup
+        - DR drill at least once annually
 ```
 
 ---
 
-## 5. 커스텀 Extension 작성 가이드
+## 5. Custom Extension Creation Guide
 
-### 5.1 디렉터리 구조
+### 5.1 Directory Structure
 
 ```
 extensions/<extension-name>/
-  metadata.yaml          # 확장 메타데이터 (필수)
-  rules.yaml             # 적용할 규칙 (필수)
-  templates/             # 산출물 템플릿 (선택)
+  metadata.yaml          # Extension metadata (required)
+  rules.yaml             # Rules to apply (required)
+  templates/             # Artifact templates (optional)
     <template-name>.md
-  audit-mappings/        # 감사·규제 매핑 (선택)
+  audit-mappings/        # Audit/regulation mapping (optional)
     <regulation>.yaml
-  scripts/               # 자동화 스크립트 (선택)
+  scripts/               # Automation scripts (optional)
     validate.sh
-  README.md              # 사용 가이드 (필수)
+  README.md              # Usage guide (required)
 ```
 
-### 5.2 metadata.yaml 규격
+### 5.2 metadata.yaml Specification
 
 ```yaml
 extension:
   name: org-lg-security
   version: 1.2.0
-  description: "LG CNS 내부 보안 표준 AIDLC 통합"
+  description: "LG CNS internal security standards AIDLC integration"
   author: security-team@lgcns.com
   license: Proprietary
   created: 2026-02-15
   updated: 2026-04-10
 
   dependencies:
-    - name: security        # Built-in security 확장에 의존
+    - name: security        # Depends on Built-in security extension
       version: ">=0.1.0"
 
-  conflicts: []             # 충돌하는 확장 목록
+  conflicts: []             # List of conflicting extensions
 
   applies_to:
     stages: [requirements_analysis, application_design, construction, operations]
-    industries: []          # 빈 배열 = 모든 산업
+    industries: []          # Empty array = all industries
     regions: [KR]
 
-  checksum: sha256:abc123... # 변조 방지
+  checksum: sha256:abc123... # Tampering prevention
 ```
 
-### 5.3 rules.yaml 규격
+### 5.3 rules.yaml Specification
 
 ```yaml
 rules:
   - id: <UNIQUE-ID>
-    name: "<사람이 읽을 수 있는 이름>"
-    description: "<규칙 상세 설명>"
+    name: "<Human-readable name>"
+    description: "<Detailed rule description>"
     severity: [low | medium | high | critical]
     stage: <target stage>
     common_rules_mapping:
-      - <common rule name>  # 예: checkpoint_approval
+      - <common rule name>  # e.g.: checkpoint_approval
     action: |
-      <구체적 실행 지침, 여러 줄 가능>
+      <Specific execution instructions, multi-line allowed>
     validation:
-      command: <자동 검증 명령어>
+      command: <Automatic verification command>
       expected_exit_code: 0
     references:
       - url: https://example.com/regulation
-        title: "관련 규제 문서"
+        title: "Related regulation document"
 ```
 
-### 5.4 Extension 테스트
+### 5.4 Extension Testing
 
-새 Extension 을 배포하기 전 다음 테스트 필수:
+The following tests are mandatory before deploying new Extensions:
 
 ```bash
-# 1. 문법 검증
+# 1. Syntax validation
 aidlc extension validate extensions/<extension-name>/
 
-# 2. 충돌 검사
+# 2. Conflict checking
 aidlc extension check-conflicts --existing opt-in.md --new <extension-name>
 
-# 3. 파일럿 실행
+# 3. Pilot execution
 aidlc run --pilot --extensions <extension-name> --input sample-request.md
 
-# 4. 결과 비교 (확장 없이 실행한 결과와 diff)
+# 4. Result comparison (diff against execution without extension)
 diff .aidlc/baseline/ .aidlc/pilot/
 ```
 
 ---
 
-## 6. Extension 거버넌스
+## 6. Extension Governance
 
 ### 6.1 Extension Lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Proposed: 팀 제안
-    Proposed --> Review: 거버넌스 리뷰
-    Review --> Rejected: 충돌·중복
-    Review --> Approved: 승인
-    Approved --> Piloted: 1-3 팀 파일럿
-    Piloted --> Revised: 피드백 반영
+    [*] --> Proposed: Team proposal
+    Proposed --> Review: Governance review
+    Review --> Rejected: Conflict/duplication
+    Review --> Approved: Approved
+    Approved --> Piloted: 1-3 team pilot
+    Piloted --> Revised: Feedback incorporation
     Revised --> Piloted
-    Piloted --> Published: 전사 배포
-    Published --> Deprecated: 대체 확장 등장
+    Piloted --> Published: Enterprise-wide deployment
+    Published --> Deprecated: Replacement extension emerges
     Deprecated --> [*]
     Rejected --> [*]
 ```
 
-### 6.2 Extension 레지스트리
+### 6.2 Extension Registry
 
-조직은 내부 Extension Registry 를 운영하여 확장을 관리합니다:
+Organizations operate internal Extension Registry to manage extensions:
 
 ```yaml
 # internal-registry.yaml
@@ -461,32 +461,32 @@ registry:
       reviewed_at: 2026-04-05
 ```
 
-### 6.3 Extension 모니터링 지표
+### 6.3 Extension Monitoring Metrics
 
-Extension 이 실제로 가치를 제공하는지 측정:
+Measure whether Extensions actually provide value:
 
-| 지표 | 측정 방법 | 목표 |
-|------|----------|------|
-| 적용률 | Extension 활성화된 프로젝트 수 / 전체 프로젝트 | >80% |
-| 규칙 발동 빈도 | 월별 규칙별 warning·error 발생 수 | 팀별 vs 조직 평균 비교 |
-| 규제 대응 성공률 | Extension 적용 프로젝트의 감사 통과율 | 100% |
-| 개발 속도 영향 | Extension 적용 전후 리드타임 | ≤ 15% 저하 허용 |
+| Metric | Measurement Method | Target |
+|--------|-------------------|---------|
+| Adoption Rate | Projects with Extension enabled / Total projects | >80% |
+| Rule Trigger Frequency | Monthly warning/error count per rule | Team vs organization average comparison |
+| Regulatory Success Rate | Audit pass rate of Extension-applied projects | 100% |
+| Development Speed Impact | Lead time before/after Extension application | ≤ 15% degradation allowed |
 
 ---
 
-## 7. 참고 자료
+## 7. References
 
-### 공식 저장소
-- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions) — Built-in extension 원문
-- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — Extension 과 상호작용하는 공통 규칙
+### Official Repositories
+- [AWS Labs AIDLC Extensions](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions) — Built-in extension sources
+- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — Common rules interacting with Extensions
 
-### 관련 문서
-- [Common Rules](../methodology/common-rules.md) — Extension 과 함께 적용되는 11개 공통 규칙
-- [거버넌스 프레임워크](./governance-framework.md) — 조직 확장의 거버넌스 통합
-- [도입 전략](./adoption-strategy.md) — 확장 도입 순서 (Phase 1-4)
-- [Audit & Governance Logging](../operations/audit-governance.md) — Extension 규칙 발동 이력 감사
+### Related Documents
+- [Common Rules](../methodology/common-rules.md) — 11 common rules applied with Extensions
+- [Governance Framework](./governance-framework.md) — Governance integration of organization extensions
+- [Adoption Strategy](./adoption-strategy.md) — Extension adoption sequence (Phase 1-4)
+- [Audit & Governance Logging](../operations/audit-governance.md) — Extension rule trigger history auditing
 
-### 규제 참고 자료
-- [KISA ISMS-P 인증기준](https://isms.kisa.or.kr/) — ISMS-P 2.1/2.8/2.9 관리적 조치
-- [전자금융감독규정 (금융감독원)](https://fss.or.kr/) — 망분리·암호화·재해복구 의무
-- [개인정보 보호법 시행령](https://law.go.kr/) — 개인정보 처리 의무 조항
+### Regulatory References
+- [KISA ISMS-P Certification Standards](https://isms.kisa.or.kr/) — ISMS-P 2.1/2.8/2.9 administrative controls
+- [Electronic Financial Supervision Regulations (Financial Supervisory Service)](https://fss.or.kr/) — Network separation/encryption/disaster recovery obligations
+- [Personal Information Protection Act Enforcement Decree](https://law.go.kr/) — Personal information processing obligations

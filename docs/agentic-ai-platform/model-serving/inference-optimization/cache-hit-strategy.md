@@ -1,11 +1,11 @@
 ---
-title: 캐시 히트 전략
-description: KV/prefix·prompt·semantic 3계층 추론 캐시를 하나의 의사결정 프레임으로 통합하고, 계층별 히트율 목표와 측정 지점, 튜닝 레버를 정리
+title: Cache-Hit Strategy
+description: Unifying the three layers of inference caching (KV/prefix, prompt, semantic) into a single decision framework with hit-rate targets, measurement points, and tuning levers for each layer.
 created: "2026-06-25"
 last_update:
   date: 2026-10-12
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 9
 tags:
   - caching
   - kv-cache
@@ -18,36 +18,36 @@ keywords:
   - Prefix Cache
   - Semantic Cache
   - KV Cache
-sidebar_label: 캐시 히트 전략
+sidebar_label: Cache-Hit Strategy
 ---
 
-## 개요
+## Overview
 
-추론 캐시는 단일 계층이 아니라 **서로 다른 적중 조건을 가진 세 계층**으로 구성됩니다. 각 계층은 회피하는 연산의 범위가 다르고, 히트율을 높이는 레버와 측정 지점도 다릅니다. 이 문서는 KV/prefix·prompt·semantic cache를 하나의 의사결정 프레임으로 통합하고, 계층별 히트율 목표와 튜닝 방법을 정리합니다.
+Inference caching is not a single layer but consists of **three layers with different hit conditions**. Each layer avoids a different scope of computation and has different levers to raise its hit rate and different measurement points. This document unifies the KV/prefix, prompt, and semantic caches into a single decision framework and organizes per-layer hit-rate targets and tuning methods.
 
-각 계층의 상세 구현은 전용 문서에서 다룹니다. 이 문서는 **세 계층을 함께 보고 어디를 튜닝할지 판단**하는 지도 역할을 합니다. 추론 인프라 전체에서의 위치는 [추론 인프라 개요](../index.md)의 L5 캐시 계층에 해당합니다.
+The detailed implementation of each layer is covered in dedicated documents. This document serves as a map for **looking at all three layers together to decide where to tune**. Its position in the overall inference infrastructure corresponds to the L5 cache layer in the [Inference Infrastructure Overview](../index.md).
 
-## 3계층 캐시 비교
+## 3-Layer Cache Comparison
 
-| 계층 | 적중 조건 | 회피하는 연산 | 적중 단위 | 상세 문서 |
+| Layer | Hit Condition | Computation Avoided | Hit Unit | Detailed Document |
 |------|----------|-------------|----------|----------|
-| **KV / Prefix Cache** | 동일 prefix(시스템 프롬프트·공통 컨텍스트) | prefill 일부 | Pod 또는 공유 KV 계층 | [KV Cache 최적화](./kv-cache-optimization.md) |
-| **Prompt Cache** | 완전 동일 요청(정확 매칭) | 전체 추론 | 게이트웨이/앱 | [라우팅 전략](../inference-routing/routing-strategy.md) |
-| **Semantic Cache** | 의미적으로 유사한 요청(임베딩 유사도) | 전체 추론 | 게이트웨이/앱 | [Semantic Caching 전략](./semantic-caching-strategy.md) |
+| **KV / Prefix Cache** | Same prefix (system prompts, common context) | Part of prefill | Pod or shared KV layer | [KV Cache Optimization](./kv-cache-optimization.md) |
+| **Prompt Cache** | Exact-match request | Entire inference | Gateway / app | [Routing Strategy](../inference-routing/routing-strategy.md) |
+| **Semantic Cache** | Semantically similar request (embedding similarity) | Entire inference | Gateway / app | [Semantic Caching Strategy](./semantic-caching-strategy.md) |
 
-세 계층은 배타적이지 않습니다. 게이트웨이 레벨에서 semantic·prompt cache로 전체 추론을 회피하고, 캐시 미스 시 서빙 엔진 레벨에서 KV/prefix cache로 prefill을 줄이는 식으로 **중첩 적용**하는 것이 일반적입니다.
+The three layers are not mutually exclusive. It is common to **stack them**: avoid entire inference at the gateway via semantic and prompt caches, and on cache miss reduce prefill via KV/prefix cache at the serving engine.
 
 ```mermaid
 flowchart TB
-    REQ["요청"] --> SEM{"Semantic 캐시<br/>유사 요청?"}
-    SEM -->|히트| RESP["캐시 응답 반환<br/>(추론 전체 회피)"]
-    SEM -->|미스| PROMPT{"Prompt 캐시<br/>동일 요청?"}
-    PROMPT -->|히트| RESP
-    PROMPT -->|미스| ROUTE["KV-aware 라우팅"]
-    ROUTE --> KV{"Prefix 캐시<br/>보유 Pod?"}
-    KV -->|히트| PARTIAL["prefill 일부 재사용<br/>(TTFT 감소)"]
-    KV -->|미스| FULL["전체 prefill 수행"]
-    PARTIAL --> DECODE["decode → 응답"]
+    REQ["Request"] --> SEM{"Semantic cache<br/>similar request?"}
+    SEM -->|Hit| RESP["Return cached response<br/>(skip entire inference)"]
+    SEM -->|Miss| PROMPT{"Prompt cache<br/>exact match?"}
+    PROMPT -->|Hit| RESP
+    PROMPT -->|Miss| ROUTE["KV-aware routing"]
+    ROUTE --> KV{"Prefix cache<br/>holding Pod?"}
+    KV -->|Hit| PARTIAL["Reuse part of prefill<br/>(reduce TTFT)"]
+    KV -->|Miss| FULL["Full prefill"]
+    PARTIAL --> DECODE["decode → response"]
     FULL --> DECODE
 
     style SEM fill:#e53935,stroke:#b71c1c,color:#fff
@@ -57,58 +57,58 @@ flowchart TB
     style DECODE fill:#326ce5,stroke:#1a3f87,color:#fff
 ```
 
-## 계층별 히트율 전략
+## Hit-Rate Strategy by Layer
 
-### KV / Prefix Cache {#kv--prefix-캐시}
+### KV / Prefix Cache
 
-Prefix cache는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 요청의 prefill을 재사용합니다. 히트율을 높이는 레버는 다음과 같습니다.
+Prefix cache reuses prefill for requests that share the same system prompt or common context. The levers that raise the hit rate are as follows.
 
-- **프롬프트 구조 정렬**: 변하지 않는 부분(시스템 프롬프트·few-shot 예시)을 요청 앞쪽에 고정하면 prefix 일치 구간이 길어집니다.
-- **KV cache-aware 라우팅**: 같은 prefix를 가진 요청을 캐시 보유 Pod로 보냅니다. Round-Robin은 이 캐시를 무력화합니다([기존 L7 게이트웨이의 한계](../index.md#기존-l7-게이트웨이의-한계)).
-- **공유 KV 계층(LMCache)**: GPU 밖으로 캐시를 확장해 Pod·노드를 넘어 재사용합니다([LMCache](./lmcache.md)).
+- **Prompt structure alignment**: Fixing the invariant part (system prompts and few-shot examples) at the front of the request lengthens the prefix-match segment.
+- **KV cache-aware routing**: Sends requests sharing the same prefix to the Pod holding the cache. Round-Robin neutralizes this cache (see [Limitations of Conventional L7 Gateways](../index.md#limitations-of-conventional-l7-gateways)).
+- **Shared KV layer (LMCache)**: Extends the cache outside the GPU, allowing reuse across Pods and nodes (see [LMCache](./lmcache.md)).
 
-상세 동작은 [KV Cache 최적화](./kv-cache-optimization.md)를 참조하세요.
+For detailed behavior, see [KV Cache Optimization](./kv-cache-optimization.md).
 
-### Prompt Cache (정확 매칭) {#prompt-캐시-정확-매칭}
+### Prompt Cache (Exact Match)
 
-완전히 동일한 요청에 대해 저장된 응답을 반환합니다. 구현이 단순하고 오탐 위험이 없지만, 요청 텍스트가 한 글자라도 다르면 미스가 됩니다. 정형화된 요청(고정 템플릿·배치 작업)에서 효과가 큽니다.
+Returns a stored response for a completely identical request. The implementation is simple and free of false-hit risk, but a single-character difference produces a miss. It is effective for formalized requests (fixed templates, batch jobs).
 
-### Semantic Cache (유사도 매칭) {#semantic-캐시-유사도-매칭}
+### Semantic Cache (Similarity Match)
 
-요청을 임베딩으로 변환해 **의미적으로 유사한** 과거 요청의 응답을 반환합니다. 히트율과 정확도는 유사도 임계값에 좌우됩니다.
+Converts requests to embeddings and returns the response of a **semantically similar** past request. Hit rate and accuracy depend on the similarity threshold.
 
-- **임계값이 높으면**: 정확하지만 히트율이 낮습니다.
-- **임계값이 낮으면**: 히트율은 높지만 부정확한 응답(오탐)을 반환할 위험이 커집니다.
+- **High threshold**: Accurate but low hit rate.
+- **Low threshold**: High hit rate but increased risk of returning inaccurate responses (false hits).
 
-임계값 설계, 캐시 키 구성, 멀티테넌시 처리는 [Semantic Caching 전략](./semantic-caching-strategy.md)에서 상세히 다룹니다.
+Threshold design, cache key composition, and multi-tenancy handling are covered in detail in [Semantic Caching Strategy](./semantic-caching-strategy.md).
 
-## 히트율 목표와 측정
+## Hit-Rate Targets and Measurement
 
-캐시 효과는 측정 없이는 관리할 수 없습니다. 계층별로 적중률을 분리해 측정하고, 게이트웨이·서빙 엔진의 메트릭을 함께 봐야 합니다.
+Cache effectiveness cannot be managed without measurement. Hit rates must be measured separately per layer, looking at both gateway and serving-engine metrics.
 
-| 지표 | 측정 지점 | 참고 목표 |
+| Metric | Measurement Point | Reference Target |
 |------|----------|----------|
-| **KV Cache Hit Rate** | 서빙 엔진(vLLM 메트릭) | 공유 프롬프트 워크로드에서 60% 이상 |
-| **Semantic Cache Hit Rate** | LLM API Gateway | 워크로드 특성에 따라 상이, 30% 이상이면 비용 효과 뚜렷 |
-| **오탐율(False Hit)** | Semantic cache 품질 검증 | 임계값 튜닝으로 최소화 |
+| **KV Cache Hit Rate** | Serving engine (vLLM metrics) | 60%+ in shared-prompt workloads |
+| **Semantic Cache Hit Rate** | LLM API Gateway | Workload-dependent; 30%+ produces a clear cost effect |
+| **False Hit Rate** | Semantic cache quality verification | Minimize via threshold tuning |
 
-:::warning 캐시 적중률은 워크로드에 종속적입니다
-위 목표값은 공유 프롬프트·반복 질의가 많은 워크로드 기준의 참고치입니다. 다양성이 높은 요청에서는 동일 목표가 비현실적일 수 있으므로, 실제 트래픽으로 측정한 baseline에서 출발해야 합니다.
+:::warning Cache hit rates are workload-dependent
+The targets above are reference values for workloads with many shared prompts and repeated queries. For high-diversity requests, the same targets may be unrealistic, so start from a baseline measured on actual traffic.
 :::
 
-관측 도구 연동(Langfuse OTel)과 대시보드 패널 구성은 [Semantic Caching 전략 — 관측성](./semantic-caching-strategy.md#6-관측성-langfuse-연동)과 [라우팅 전략 — 모니터링 & Observability](../inference-routing/routing-strategy.md#모니터링--observability)를 참조하세요.
+For observability integration (Langfuse OTel) and dashboard panel composition, see [Semantic Caching Strategy — Observability](./semantic-caching-strategy.md#6-observability-langfuse-integration) and [Routing Strategy — Monitoring & Observability](../inference-routing/routing-strategy.md#monitoring--observability).
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [vLLM Automatic Prefix Caching](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching.html) — vLLM Prefix Caching 공식 문서
-- [Langfuse Documentation](https://langfuse.com/docs) — 캐시 적중률 추적을 위한 관측성 도구
+### Official Documentation
+- [vLLM Automatic Prefix Caching](https://docs.vllm.ai/en/latest/features/automatic_prefix_caching.html) — Official vLLM Prefix Caching documentation
+- [Langfuse Documentation](https://langfuse.com/docs) — Observability tool for tracking cache hit rates
 
-### 논문 / 기술 블로그
-- [PagedAttention (SOSP 2023)](https://arxiv.org/abs/2309.06180) — KV cache 관리 기반 논문
-- [GPTCache](https://github.com/zilliztech/GPTCache) — semantic cache 오픈소스 구현
+### Papers / Tech Blogs
+- [PagedAttention (SOSP 2023)](https://arxiv.org/abs/2309.06180) — Foundational paper on KV cache management
+- [GPTCache](https://github.com/zilliztech/GPTCache) — Open-source implementation of a semantic cache
 
-### 관련 문서 (내부)
-- [KV Cache 최적화](./kv-cache-optimization.md) — Prefix Caching과 KV Cache-Aware Routing
-- [Semantic Caching 전략](./semantic-caching-strategy.md) — 유사도 임계값·캐시 키 설계
-- [LMCache](./lmcache.md) — 공유 KV cache 계층
+### Related Documents (Internal)
+- [KV Cache Optimization](./kv-cache-optimization.md) — Prefix Caching and KV Cache-Aware Routing
+- [Semantic Caching Strategy](./semantic-caching-strategy.md) — Similarity threshold and cache-key design
+- [LMCache](./lmcache.md) — Shared KV cache layer

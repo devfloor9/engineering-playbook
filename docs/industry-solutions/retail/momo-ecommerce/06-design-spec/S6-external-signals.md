@@ -1,6 +1,6 @@
 ---
-title: S6. 외부 시그널 융합 (Momo)
-description: 소셜·기상·경제·경쟁사 4종 융합
+title: S6. External Signal Fusion (Momo)
+description: 4-source fusion — Social · Weather · Economy · Competitor
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,21 +16,21 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-## 1. 외부 4종
+## 1. 4 External Sources
 
-| 종류 | 출처 |
+| Type | Source |
 |---|---|
-| 소셜 | Dcard · 小紅書 · 인스타 · X |
-| 기상 | 中央氣象署 (배송 SLA 영향) |
-| 경제 | DGBAS · 央行 |
-| 경쟁사 | PChome · Yahoo奇摩 · Shopee TW 공개 |
+| Social | Dcard · Xiaohongshu · Instagram · X |
+| Weather | Central Weather Administration (delivery SLA impact) |
+| Economy | DGBAS · Central Bank |
+| Competitors | PChome · Yahoo奇摩 · Shopee TW public |
 
-## 2. 처리
-- 일별 자사 GMV × 외부 4종 조인
-- 상관·시차 분석
-- 시각화: 시계열 + 히트맵 + 경쟁사 annotation
+## 2. Processing
+- Daily in-house GMV × 4 external sources join
+- Correlation · Lag analysis
+- Visualization: time series + heatmap + competitor annotation
 
-## 3. 데모 시나리오
-1. 폭우 -50mm → 24시간 배송 SLA 위반 +60%, 일부 카테고리 GMV +20%
-2. "여름텐트" 검색 +35% → 자사 GMV (시차 5일)
-3. 경쟁사 광棍節 캠페인 후 자사 GMV 변화
+## 3. Demo Scenarios
+1. Heavy rain -50mm → 24-hour delivery SLA breach +60%, some categories GMV +20%
+2. "Summer tent" search +35% → in-house GMV (5-day lag)
+3. Competitor Double 11 campaign → in-house GMV change

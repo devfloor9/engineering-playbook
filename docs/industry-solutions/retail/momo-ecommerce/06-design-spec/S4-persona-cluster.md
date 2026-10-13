@@ -1,6 +1,6 @@
 ---
-title: S4. 페르소나 매칭 + 클러스터링 (Momo)
-description: 라이프스타일 페르소나 5종 + RFM × 라이브 시청 친화도
+title: S4. Persona Matching + Clustering (Momo)
+description: 5 lifestyle personas + RFM × Live-viewing affinity
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,28 +16,28 @@ tags:
 sidebar_label: S4. Persona & Cluster
 ---
 
-## 1. 라이프스타일 5종
+## 1. Five Lifestyle Personas
 
-| 페르소나 | 시그널 |
+| Persona | Signals |
 |---|---|
-| 라이브 즉흥 구매 | LiveStreamPurchase 비중 高 · 시청 시간 高 |
-| 검색 익스플로러 | SearchEvent 다수 · 카트 abandon 高 |
-| 24시간 배송 의존 | OrderTransaction 즉시 결제 · SLA 민감 |
-| 가족 쇼핑객 | 다수 가구 SKU · 주말 |
-| TV 홈쇼핑 충성 | TVPurchase 비중 高 · 50대+ |
+| Live impulse buyer | High LiveStreamPurchase share · High viewing time |
+| Search explorer | Many SearchEvents · High cart abandonment |
+| 24-hour delivery dependent | Immediate OrderTransaction checkout · SLA-sensitive |
+| Family shopper | Many household SKUs · Weekend purchases |
+| TV home-shopping loyalist | High TVPurchase share · 50+ age group |
 
-## 2. 데이터 믹스
+## 2. Data Mix
 - RFM (Customer)
-- 라이브 시청 친화도 (LiveStream × Viewer)
-- 채널 비중 (앱/웹/TV/라이브)
-- 소셜 페르소나 (Dcard·인스타 키워드)
+- Live-viewing affinity (LiveStream × Viewer)
+- Channel share (App / Web / TV / Live)
+- Social personas (Dcard · Instagram keywords)
 
-## 3. 출력 UI
-- 페르소나 카드 5종 분포
-- KMeans 6 클러스터 (LLM 라벨)
-- PCA 산점도
+## 3. Output UI
+- 5-persona card distribution
+- KMeans 6-cluster (LLM labels)
+- PCA scatter plot
 
-## 4. 데모 시나리오
-1. 단건 매칭 → "라이브 즉흥 구매 0.58"
-2. 5K 일괄 → 6 클러스터
-3. 클러스터 → 라이브 캠페인 (S5)
+## 4. Demo Scenarios
+1. Single match → "Live impulse buyer 0.58"
+2. 5K batch → 6 clusters
+3. Cluster → live campaign (S5)

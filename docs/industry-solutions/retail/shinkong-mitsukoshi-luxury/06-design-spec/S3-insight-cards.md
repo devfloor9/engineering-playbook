@@ -1,11 +1,11 @@
 ---
-title: S3. 카테고리·BU 인사이트 카드 (Mitsukoshi)
-description: 점포·층·브랜드 GMV + 환율·관광·경쟁사 결합 자동 보고서
+title: S3. Category / BU Insight Cards (Mitsukoshi)
+description: Automated reports combining store, floor, and brand GMV with FX, tourism, and competitor data
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -16,31 +16,31 @@ tags:
 sidebar_label: S3. Insight Cards
 ---
 
-## 1. URL · 페르소나
+## 1. URL · Personas
 - `/insights` · P3
 
-## 2. 카드 프리셋
+## 2. Card Presets
 
-| 카드 | 데이터 |
+| Card | Data |
 |---|---|
-| 월별 점포 GMV | POSTransaction × Store |
-| 층별 카테고리 매출 (1F=럭셔리/B1=식품 등) | POSTransaction × Boutique |
-| **외국인 점유율 시계열** | TaxRefundTransaction × Foreigner.country |
-| **환율(JPY/USD/HKD) vs 면세 GMV** | EconomicSignal + TaxRefundTransaction |
-| **대만 입국 외국인 vs Mitsukoshi 외국인 매출** | TourismSignal annotation |
-| 週年慶 캠페인 효과 | Campaign × Touchpoint × Order |
+| Monthly store GMV | POSTransaction × Store |
+| Category revenue by floor (1F = luxury, B1 = food, etc.) | POSTransaction × Boutique |
+| **Foreigner share time series** | TaxRefundTransaction × Foreigner.country |
+| **FX (JPY/USD/HKD) vs duty-free GMV** | EconomicSignal + TaxRefundTransaction |
+| **Taiwan foreign arrivals vs Mitsukoshi foreigner revenue** | TourismSignal annotation |
+| Anniversary Sale campaign impact | Campaign × Touchpoint × Order |
 
-## 3. 페르소나별 코멘트
+## 3. Persona Commentary
 
-| P | 동일 카드 (점포 GMV) |
+| P | Same card (store GMV) |
 |---|---|
-| P1 | "信義점 +12%, 週年慶 효과. 다음 캠페인은 외국인 유치" |
-| P2 | "외국인 비중 28% 상승, 일본 관광객 회복" |
-| P3 | "분포 +1.5σ, 환율 변수 결합 분석 필요" |
-| P4 | "VIP Black 적립 +3pt, 라운지 활용 증가" |
-| P5 | "1F LV·Hermes 회전 +0.3, 매대 확장 제안" |
+| P1 | "Xinyi store +12%, Anniversary Sale effect. Next campaign should target foreigner acquisition" |
+| P2 | "Foreigner share up 28%, Japanese tourist recovery" |
+| P3 | "Distribution +1.5σ, FX variable correlation analysis needed" |
+| P4 | "VIP Black point accrual +3pt, lounge utilization increasing" |
+| P5 | "1F LV/Hermes turnover +0.3, propose counter expansion" |
 
-## 4. 데모 시나리오
-1. "월별 점포 GMV" → 5 페르소나 코멘트
-2. "환율 vs 면세 GMV" → 예시 R² 0.74. 먼저 두 지표의 상관관계를 보여주고, 엔저 시기에 일본인 방문객이 줄고 동남아 방문객이 늘었다는 가설을 별도로 조사합니다. R²만으로 그 원인을 설명할 수는 없습니다.
-3. 카드 → 챗봇 (S2) 자연 전환
+## 4. Demo Scenarios
+1. "Monthly store GMV" → commentary from 5 personas
+2. "FX vs duty-free GMV" → example R² of 0.74. Display the association, then investigate the hypothesis that a weak yen coincides with fewer Japanese visitors and more Southeast Asian visitors; the R² value alone does not establish that explanation.
+3. Card → chatbot (S2) natural transition

@@ -1,11 +1,11 @@
 ---
-title: S8. 마케팅 동의·PII·미성년 가드레일
-description: Bedrock Guardrails + 마케팅 동의 + PII 마스킹 + 미성년 화장품 가드
+title: S8. Marketing Consent · PII · Minor Guardrails
+description: Bedrock Guardrails + marketing consent + PII masking + minor cosmetics guard
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -16,52 +16,52 @@ tags:
 sidebar_label: S8. Guardrails
 ---
 
-## 1. URL 경로
+## 1. URL Path
 - `/compliance`
 
-## 2. 사용자 스토리
-> P4(CRM·LG 멤버스) — 정해진 테스트 사례를 실행하고 판단 로그를 확인합니다. 마케팅에 동의하지 않은 회원에게는 캠페인 발송이 차단돼야 하고, 챗봇 응답에서는 개인식별정보(PII)가 마스킹돼야 합니다. 미성년자로 분류된 회원을 대상으로 한 화장품 캠페인도 차단돼야 합니다. 각 결과에 적용한 정책과 판단 이유를 표시합니다.
+## 2. User Stories
+> P4 (CRM · LG Members) — Run the specified test cases and inspect the decision logs: campaign sends to non-consenting members must be blocked, chatbot responses must mask PII, and cosmetics campaigns targeting members classified as minors must be blocked. Show the policy and reason for each decision.
 
-## 3. 입력 UI
-- 가드 토픽 토글 (4 + 동의 + PII + 미성년 화장품)
-- 테스트 입력 (질의/캠페인 발송 시뮬)
-- 결과 로그 (Block/Allow/Mask 카운트)
+## 3. Input UI
+- Guard topic toggles (4 + consent + PII + minor cosmetics)
+- Test input (query / campaign send simulation)
+- Result log (Block/Allow/Mask counts)
 
-## 4. 데이터 믹스
-| 데이터 | 출처 |
+## 4. Data Mix
+| Data | Source |
 |---|---|
 | Bedrock Guardrails | AWS |
-| 회원 동의 | Compliance · Membership.opted_in_marketing |
-| 미성년 추정 | Customer.age_band |
+| Member consent | Compliance · Membership.opted_in_marketing |
+| Estimated minor | Customer.age_band |
 | AuditLog | DynamoDB |
 
-## 5. 처리 파이프라인
+## 5. Processing Pipeline
 ```
-1. 챗봇 입출력 → Guardrails 호출
-2. 차단 시 사유 + 정책 ID
-3. PII 자동 마스킹 (이름→***, 연락처→010-****-****)
-4. 마케팅 동의 미수신 → 캠페인 도구 차단
-5. 미성년 추정 회원 → 화장품 컨텍스트 차단
-6. 모든 차단·마스킹 → CloudWatch + Audit
+1. Chatbot I/O → Guardrails invocation
+2. On block: reason + policy ID
+3. PII auto-masking (name → ***, contact → 010-****-****)
+4. Marketing non-consent → campaign tool blocked
+5. Estimated-minor member → cosmetics context blocked
+6. All blocks · masks → CloudWatch + Audit
 ```
 
-## 6. 정책 카드
-| 토픽 | 액션 |
+## 6. Policy Cards
+| Topic | Action |
 |---|---|
-| 폭력·혐오·성·오정보 | Block |
-| 의료·법률 자문 추정 | Block + 안내 |
-| 마케팅 동의 미수신 | 캠페인 발송 도구 차단 |
-| PII (이름·연락처·주소) | 자동 마스킹 |
-| 미성년 추정 + 화장품 마케팅 | 컨텍스트 차단 |
-| 임신·질병 추정 | LLM 라벨 금지 |
+| Violence · Hate · Sex · Misinformation | Block |
+| Estimated medical · legal advice | Block + guidance |
+| Marketing non-consent | Campaign send tools blocked |
+| PII (name · contact · address) | Auto-masked |
+| Estimated minor + cosmetics marketing | Context blocked |
+| Estimated pregnancy · illness | LLM labeling forbidden |
 
-## 7. 출력 UI
-- 정책 카드 (4 + 추가 토픽)
-- 실시간 트레이스 (입력 → 가드 → 출력)
-- 일별 블록 카운트 차트
+## 7. Output UI
+- Policy cards (4 + additional topics)
+- Real-time trace (input → guard → output)
+- Daily block count chart
 
-## 8. 데모 시나리오
-1. "회원 cust_001234 연락처 알려줘" → PII 마스킹 시연
-2. "동의 미수신 5만명 SMS 발송 시뮬" → 도구 차단 + 사유
-3. "미성년 추정 회원에게 화장품 캠페인" → 자동 차단
-4. 일간 블록 카운트 시각화
+## 8. Demo Scenarios
+1. "Tell me member cust_001234's contact info" → demo PII masking
+2. "Simulate SMS to 50K non-consenting members" → tool blocked + reason
+3. "Cosmetics campaign to estimated-minor members" → auto-blocked
+4. Daily block count visualization

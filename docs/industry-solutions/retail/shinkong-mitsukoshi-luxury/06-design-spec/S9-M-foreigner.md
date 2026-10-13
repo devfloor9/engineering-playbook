@@ -1,6 +1,6 @@
 ---
-title: S9-M. 외국인 관광객 행동 분석 + 면세 추천 (Mitsukoshi 특화)
-description: 여권·국적·환율·관광 결합 외국인 면세 추천 시스템
+title: S9-M. Foreign Tourist Behavior Analysis + Duty-Free Recommendation (Mitsukoshi-specific)
+description: Duty-free recommendation system for foreigners combining passport, nationality, FX, and tourism data
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,46 +16,46 @@ tags:
 sidebar_label: S9-M. Foreigner Tax Refund
 ---
 
-> **Mitsukoshi 차별 포인트** ⭐ — 백화점 매출의 큰 비중을 차지하는 외국인 관광객(특히 일본)을 국적·환율·관광 데이터로 분석.
+> **Mitsukoshi differentiation point** ⭐ — Analyze foreign tourists (especially Japanese) who account for a major share of department store revenue, using nationality, FX, and tourism data.
 
-## 1. URL · 페르소나
-- `/foreigner` · P2 (인사이트), P1 (마케팅)
+## 1. URL · Personas
+- `/foreigner` · P2 (insights), P1 (marketing)
 
-## 2. 사용자 스토리
-> P2 — 일본인 30대 여성의 평균 객단가·선호 카테고리·재방문률을 한 화면에서.
+## 2. User Stories
+> P2 — See average basket size, preferred categories, and repeat-visit rate of Japanese women in their 30s on a single screen.
 
-> P1 — 환율 변동에 따라 어느 국적 관광객을 타겟할지 자동 추천.
+> P1 — Automatically recommend which nationality of tourist to target based on FX fluctuations.
 
-## 3. 데이터 믹스
-| 데이터 | 출처 |
+## 3. Data Mix
+| Data | Source |
 |---|---|
-| Foreigner | Neptune (~500 real + 합성) |
+| Foreigner | Neptune (~500 real + synthetic) |
 | TaxRefundTransaction | Neptune (~80K) |
-| 환율 | EconomicSignal (JPY/USD/HKD/SGD ↔ TWD) |
-| 관광 | TourismSignal (대만 관광청) |
-| 외국인 후기 | OpenSearch `idx_social_trend` (일본 트위터·홍콩 페북) |
+| FX | EconomicSignal (JPY/USD/HKD/SGD ↔ TWD) |
+| Tourism | TourismSignal (Taiwan Tourism Bureau) |
+| Foreigner reviews | OpenSearch `idx_social_trend` (Japanese Twitter, Hong Kong Facebook) |
 
-## 4. 처리 파이프라인
+## 4. Processing Pipeline
 ```
-1. Foreigner × TaxRefundTransaction × Brand 집계
-2. 국적별 카테고리 선호 (히트맵)
-3. 환율 변동 vs 국적별 매출 (상관)
-4. 관광 입국 +자사 매출 시차 분석
-5. 추천: 환율 ↑인 국가 → 캠페인 노출 +
+1. Aggregate Foreigner × TaxRefundTransaction × Brand
+2. Category preference by nationality (heatmap)
+3. FX fluctuation vs revenue by nationality (correlation)
+4. Tourism arrivals + first-party revenue lag analysis
+5. Recommendation: countries with rising FX → increase campaign exposure
 ```
 
-## 5. 출력 UI
-- 좌: 국적별 외국인 분포 도넛 (JP/HK/SG/MY/...)
-- 중앙: 국적 × 카테고리 선호 히트맵
-- 우: 환율 결합 추천 (JP 엔저 → 동남아 관광객 타겟)
-- 하단: TaxRefund 활용률 + 면세 SKU TOP 10
+## 5. Output UI
+- Left: nationality distribution donut (JP/HK/SG/MY/...)
+- Center: nationality × category preference heatmap
+- Right: FX-aware recommendation (JP weak yen → target Southeast Asian tourists)
+- Bottom: TaxRefund utilization rate + duty-free SKU TOP 10
 
-## 6. 가드레일
-- 여권 hash만 노출 (실명·번호 비공개)
-- 면세 자격 검증
-- 국적별 차별 표현 금지
+## 6. Guardrails
+- Only passport hash exposed (real name and number kept private)
+- Duty-free eligibility verification
+- No discriminatory expressions by nationality
 
-## 7. 데모 시나리오
-1. **일본 30대 여성** → 평균 객단가 NTD 25K · LV/Hermes 선호 · 환율 민감
-2. **엔저 효과** → 일본인 면세 -25% (시차 7일), 동남아 +15% 자동 추천
-3. **단발 외국인 → VIP 회원 전환 추천** (재방문 시 멤버십 가입 유도)
+## 7. Demo Scenarios
+1. **Japanese woman in her 30s** → avg basket size NTD 25K · prefers LV/Hermes · FX-sensitive
+2. **Weak yen effect** → Japanese duty-free -25% (lag 7 days), Southeast Asia +15% auto-recommended
+3. **Single-visit foreigner → VIP member conversion recommendation** (encourage membership signup on repeat visit)

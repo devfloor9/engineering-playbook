@@ -1,11 +1,11 @@
 ---
-title: 컨트롤 플레인 디버깅
-description: EKS 컨트롤 플레인 문제 진단 및 해결 가이드
-created: "2026-04-07"
+title: Control Plane Debugging
+description: Guide to diagnosing and resolving EKS control plane issues
+created: "2026-04-21"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 7
+  author: devfloor9
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -13,34 +13,34 @@ tags:
   - debugging
   - troubleshooting
   - scope:ops
-sidebar_label: 컨트롤 플레인
+sidebar_label: Control Plane
 ---
 
 import { ControlPlaneLogTable, ClusterHealthTable } from '@site/src/components/EksDebugTables';
 
-## 컨트롤 플레인 로그 타입
+## Control Plane Log Types
 
-EKS 컨트롤 플레인은 5가지 로그 타입을 CloudWatch Logs에 전송할 수 있습니다.
+The EKS control plane can send five log types to CloudWatch Logs.
 
 <ControlPlaneLogTable />
 
-## 로그 활성화
+## Enabling Logs
 
 ```bash
-# 모든 컨트롤 플레인 로그 활성화
+# Enable all control plane logs
 aws eks update-cluster-config \
   --region <region> \
   --name <cluster-name> \
   --logging '{"clusterLogging":[{"types":["api","audit","authenticator","controllerManager","scheduler"],"enabled":true}]}'
 ```
 
-:::tip 비용 최적화
-모든 로그 타입을 활성화하면 CloudWatch Logs 비용이 증가합니다. 프로덕션에서는 `audit`과 `authenticator`를 필수로 활성화하고, 디버깅이 필요할 때 나머지를 추가 활성화하는 전략을 권장합니다.
+:::tip Cost Optimization
+Enabling all log types increases CloudWatch Logs cost. For production, enabling `audit` and `authenticator` as a baseline and only turning on the rest during debugging is recommended.
 :::
 
-## CloudWatch Logs Insights 쿼리
+## CloudWatch Logs Insights Queries
 
-### API 서버 에러 (400+) 분석
+### API Server Error (400+) Analysis
 
 ```sql
 fields @timestamp, @message
@@ -50,7 +50,7 @@ fields @timestamp, @message
 | sort count desc
 ```
 
-### 인증 실패 추적
+### Authentication Failure Tracking
 
 ```sql
 fields @timestamp, @message
@@ -59,7 +59,7 @@ fields @timestamp, @message
 | sort @timestamp desc
 ```
 
-### aws-auth ConfigMap 변경 감지
+### Detecting Changes to aws-auth ConfigMap
 
 ```sql
 fields @timestamp, @message
@@ -69,7 +69,7 @@ fields @timestamp, @message
 | sort @timestamp desc
 ```
 
-### API Throttling 탐지
+### API Throttling Detection
 
 ```sql
 fields @timestamp, @message
@@ -78,7 +78,7 @@ fields @timestamp, @message
 | stats count() by bin(5m)
 ```
 
-### 비인가 접근 시도 (보안 이벤트)
+### Unauthorized Access Attempts (Security Events)
 
 ```sql
 fields @timestamp, @message
@@ -88,195 +88,195 @@ fields @timestamp, @message
 | sort count desc
 ```
 
-## 인증/인가 디버깅
+## AuthN/AuthZ Debugging
 
-### IAM 인증 확인
+### IAM Authentication Check
 
 ```bash
-# 현재 IAM 자격증명 확인
+# Check current IAM credentials
 aws sts get-caller-identity
 
-# 클러스터 인증 모드 확인
+# Check cluster authentication mode
 aws eks describe-cluster --name <cluster-name> \
   --query 'cluster.accessConfig.authenticationMode' --output text
 ```
 
-### aws-auth ConfigMap (CONFIG_MAP 모드)
+### aws-auth ConfigMap (CONFIG_MAP Mode)
 
 ```bash
-# aws-auth ConfigMap 확인
+# View aws-auth ConfigMap
 kubectl describe configmap aws-auth -n kube-system
 ```
 
-### EKS Access Entries (API / API_AND_CONFIG_MAP 모드)
+### EKS Access Entries (API / API_AND_CONFIG_MAP Mode)
 
 ```bash
-# Access Entry 생성
+# Create an Access Entry
 aws eks create-access-entry \
   --cluster-name <cluster-name> \
   --principal-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME \
   --type STANDARD
 
-# Access Entry 목록 확인
+# List Access Entries
 aws eks list-access-entries --cluster-name <cluster-name>
 ```
 
-### IRSA (IAM Roles for Service Accounts) 디버깅 체크리스트
+### IRSA (IAM Roles for Service Accounts) Debugging Checklist
 
 ```bash
-# 1. ServiceAccount에 annotation 확인
+# 1. Check ServiceAccount annotations
 kubectl get sa <sa-name> -n <namespace> -o yaml
 
-# 2. Pod 내 AWS 환경변수 확인
+# 2. Check AWS environment variables inside the Pod
 kubectl exec -it <pod-name> -- env | grep AWS
 
-# 3. OIDC Provider 확인
+# 3. Check the OIDC Provider
 aws eks describe-cluster --name <cluster-name> \
   --query 'cluster.identity.oidc.issuer' --output text
 
-# 4. IAM Role의 Trust Policy에서 OIDC Provider ARN 및 조건 확인
+# 4. Check the IAM Role Trust Policy for OIDC Provider ARN and conditions
 aws iam get-role --role-name <role-name> \
   --query 'Role.AssumeRolePolicyDocument'
 ```
 
-:::warning IRSA 일반적인 실수
+:::warning Common IRSA Mistakes
 
-- ServiceAccount annotation의 role ARN 오타
-- IAM Role Trust Policy에서 namespace/sa 이름 불일치
-- OIDC Provider가 클러스터와 연결되지 않음
-- Pod가 ServiceAccount를 사용하도록 `spec.serviceAccountName` 미지정
+- Typo in the role ARN on the ServiceAccount annotation
+- Mismatch of namespace/sa names in the IAM Role Trust Policy
+- OIDC Provider not linked with the cluster
+- Pod not configured to use the ServiceAccount (missing `spec.serviceAccountName`)
 :::
 
-## 서비스 어카운트 토큰 만료 (HTTP 401 Unauthorized)
+## Service Account Token Expiration (HTTP 401 Unauthorized)
 
-Kubernetes 1.21+에서 서비스 어카운트 토큰은 **기본 1시간 유효**하며, kubelet에 의해 자동 갱신됩니다. 그러나 레거시 SDK를 사용하는 경우 토큰 갱신 로직이 없어 장기 실행 워크로드에서 `401 Unauthorized` 에러가 발생할 수 있습니다.
+In Kubernetes 1.21+, service account tokens are **valid for 1 hour by default** and are automatically rotated by kubelet. However, applications using legacy SDKs lack token refresh logic, which can cause `401 Unauthorized` errors in long-running workloads.
 
-**증상:**
+**Symptoms:**
 
-- Pod이 일정 시간(보통 1시간) 후 갑자기 `HTTP 401 Unauthorized` 에러를 반환
-- 재시작 후 일시적으로 정상 동작하다가 다시 401 발생
+- After a certain period (typically 1 hour), Pods suddenly return `HTTP 401 Unauthorized` errors
+- After restart, operations work briefly and then 401 errors recur
 
-**원인:**
+**Cause:**
 
-- 프로젝티드 서비스 어카운트 토큰(Projected Service Account Token)은 기본 1시간 만료
-- kubelet이 토큰을 자동 갱신하지만, 애플리케이션이 파일에서 토큰을 한 번만 읽고 캐싱하면 만료된 토큰을 계속 사용
+- Projected Service Account Tokens expire after 1 hour by default
+- kubelet rotates tokens automatically, but applications that read the token file once and cache it will keep using the expired token
 
-**필요한 최소 SDK 버전:**
+**Minimum Required SDK Versions:**
 
-| 언어 | SDK | 최소 버전 |
+| Language | SDK | Minimum Version |
 |------|-----|----------|
 | Go | client-go | v0.15.7+ |
 | Python | kubernetes | 12.0.0+ |
 | Java | fabric8 | 5.0.0+ |
 
-:::tip 토큰 갱신 확인
-SDK가 토큰 자동 갱신을 지원하는지 확인하세요. 지원하지 않는 경우 애플리케이션에서 주기적으로 `/var/run/secrets/kubernetes.io/serviceaccount/token` 파일을 다시 읽도록 구현해야 합니다.
+:::tip Token Refresh Verification
+Verify that the SDK supports automatic token refresh. If not, the application must periodically re-read `/var/run/secrets/kubernetes.io/serviceaccount/token`.
 :::
 
-## EKS Pod Identity 디버깅
+## EKS Pod Identity Debugging
 
-EKS Pod Identity는 IRSA의 대안으로, 보다 간단한 설정으로 Pod에 AWS IAM 권한을 부여합니다.
+EKS Pod Identity is an alternative to IRSA that grants AWS IAM permissions to Pods with simpler configuration.
 
 ```bash
-# Pod Identity Association 확인
+# Check Pod Identity Associations
 aws eks list-pod-identity-associations --cluster-name $CLUSTER
 aws eks describe-pod-identity-association --cluster-name $CLUSTER \
   --association-id $ASSOC_ID
 
-# Pod Identity Agent 상태 확인
+# Check Pod Identity Agent status
 kubectl get pods -n kube-system -l app.kubernetes.io/name=eks-pod-identity-agent
 kubectl logs -n kube-system -l app.kubernetes.io/name=eks-pod-identity-agent --tail=50
 ```
 
-**Pod Identity 디버깅 체크리스트:**
+**Pod Identity debugging checklist:**
 
-- eks-pod-identity-agent Add-on이 설치되어 있는지
-- Pod의 ServiceAccount에 올바른 association이 연결되어 있는지
-- IAM Role trust policy에 `pods.eks.amazonaws.com` 서비스 프린시펄이 있는지
+- Is the eks-pod-identity-agent Add-on installed?
+- Is the Pod's ServiceAccount linked to the correct association?
+- Does the IAM Role trust policy include the `pods.eks.amazonaws.com` service principal?
 
 :::info Pod Identity vs IRSA
-Pod Identity는 IRSA보다 설정이 간단하며, cross-account 접근이 더 용이합니다. 신규 워크로드에서는 Pod Identity 사용을 권장합니다.
+Pod Identity is simpler to configure than IRSA and makes cross-account access easier. For new workloads, Pod Identity is recommended.
 :::
 
-## EKS Add-on 트러블슈팅
+## EKS Add-on Troubleshooting
 
 ```bash
-# Add-on 목록 확인
+# List Add-ons
 aws eks list-addons --cluster-name <cluster-name>
 
-# Add-on 상태 상세 확인
+# Detailed Add-on status
 aws eks describe-addon --cluster-name <cluster-name> --addon-name <addon-name>
 
-# Add-on 업데이트 (충돌 해결: PRESERVE로 기존 설정 유지)
+# Update Add-on (resolve conflicts: PRESERVE keeps existing configuration)
 aws eks update-addon --cluster-name <cluster-name> --addon-name <addon-name> \
   --addon-version <version> --resolve-conflicts PRESERVE
 ```
 
-| Add-on | 일반적인 에러 패턴 | 진단 방법 | 해결 방법 |
+| Add-on | Common Error Patterns | Diagnosis | Resolution |
 |--------|-------------------|----------|----------|
-| **CoreDNS** | Pod CrashLoopBackOff, DNS 타임아웃 | `kubectl logs -n kube-system -l k8s-app=kube-dns` | ConfigMap 점검, `kubectl rollout restart deployment coredns -n kube-system` |
-| **kube-proxy** | Service 통신 불가, iptables 에러 | `kubectl logs -n kube-system -l k8s-app=kube-proxy` | DaemonSet 이미지 버전 확인, `kubectl rollout restart daemonset kube-proxy -n kube-system` |
-| **VPC CNI** | Pod IP 할당 실패, ENI 에러 | `kubectl logs -n kube-system -l k8s-app=aws-node` | IPAMD 로그 확인, ENI/IP 한도 점검 ([네트워킹 문서](./networking.md) 참조) |
-| **EBS CSI** | PVC Pending, 볼륨 attach 실패 | `kubectl logs -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver` | IRSA 권한, AZ 매칭 확인 ([스토리지 문서](./storage.md) 참조) |
+| **CoreDNS** | Pod CrashLoopBackOff, DNS timeout | `kubectl logs -n kube-system -l k8s-app=kube-dns` | Inspect ConfigMap; `kubectl rollout restart deployment coredns -n kube-system` |
+| **kube-proxy** | Service unreachable, iptables errors | `kubectl logs -n kube-system -l k8s-app=kube-proxy` | Check DaemonSet image version; `kubectl rollout restart daemonset kube-proxy -n kube-system` |
+| **VPC CNI** | Pod IP allocation failures, ENI errors | `kubectl logs -n kube-system -l k8s-app=aws-node` | Check IPAMD logs, ENI/IP limits (see [Networking doc](./networking.md)) |
+| **EBS CSI** | PVC Pending, volume attach failures | `kubectl logs -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver` | Check IRSA permissions, AZ alignment (see [Storage doc](./storage.md)) |
 
-## 클러스터 헬스 이슈 코드
+## Cluster Health Issue Codes
 
-EKS 클러스터 자체의 인프라 수준 문제를 진단할 때는 클러스터 헬스 상태를 확인합니다.
+When diagnosing infrastructure-level problems with the EKS cluster itself, check cluster health.
 
 ```bash
-# 클러스터 헬스 이슈 확인
+# Check cluster health issues
 aws eks describe-cluster --name $CLUSTER \
   --query 'cluster.health' --output json
 ```
 
 <ClusterHealthTable />
 
-:::danger 복구 불가 이슈
-`VPC_NOT_FOUND`와 `KMS_KEY_NOT_FOUND`는 복구가 불가능합니다. 클러스터를 새로 생성해야 합니다.
+:::danger Unrecoverable Issues
+`VPC_NOT_FOUND` and `KMS_KEY_NOT_FOUND` are unrecoverable. The cluster must be recreated.
 :::
 
-## RBAC / Pod Identity 디버깅
+## RBAC / Pod Identity Debugging
 
-### ServiceAccount → IAM Role 매핑 실패
+### ServiceAccount → IAM Role Mapping Failure
 
-**증상:**
-- Pod에서 AWS API 호출 시 `AccessDenied` 또는 `UnauthorizedOperation` 에러 발생
-- IRSA 또는 Pod Identity를 사용했지만 권한이 적용되지 않음
+**Symptoms:**
+- Pods receive `AccessDenied` or `UnauthorizedOperation` errors when calling AWS APIs
+- IRSA or Pod Identity is used but permissions are not applied
 
-**진단:**
+**Diagnosis:**
 
 ```bash
-# 1. ServiceAccount annotation 확인 (IRSA)
+# 1. Check ServiceAccount annotation (IRSA)
 kubectl get sa <service-account> -n <namespace> -o jsonpath='{.metadata.annotations.eks\.amazonaws\.com/role-arn}'
 
-# 2. Pod Identity Association 확인
+# 2. Check Pod Identity Association
 aws eks list-pod-identity-associations --cluster-name $CLUSTER \
   | jq '.associations[] | select(.serviceAccount=="<service-account>")'
 
-# 3. Pod에 환경변수가 주입되었는지 확인
+# 3. Check whether environment variables are injected into the Pod
 kubectl get pod <pod-name> -n <namespace> -o jsonpath='{.spec.serviceAccountName}'
 kubectl exec <pod-name> -n <namespace> -- env | grep AWS
 
-# 4. IAM Role Trust Policy 확인
+# 4. Check IAM Role Trust Policy
 aws iam get-role --role-name <role-name> \
   --query 'Role.AssumeRolePolicyDocument' --output json
 ```
 
-**해결 방법:**
+**Resolution:**
 
-IRSA의 경우:
+For IRSA:
 ```bash
-# ServiceAccount에 annotation 추가
+# Add annotation to ServiceAccount
 kubectl annotate serviceaccount <sa-name> -n <namespace> \
   eks.amazonaws.com/role-arn=arn:aws:iam::ACCOUNT:role/ROLE-NAME
 
-# Pod 재시작 필요 (annotation은 Pod 생성 시점에 적용됨)
+# Pod restart required (annotations apply at Pod creation time)
 kubectl rollout restart deployment/<deployment-name> -n <namespace>
 ```
 
-Pod Identity의 경우:
+For Pod Identity:
 ```bash
-# Pod Identity Association 생성
+# Create Pod Identity Association
 aws eks create-pod-identity-association \
   --cluster-name $CLUSTER \
   --namespace <namespace> \
@@ -284,118 +284,118 @@ aws eks create-pod-identity-association \
   --role-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME
 ```
 
-### aws-auth ConfigMap vs EKS Access Entries 혼용 이슈
+### Mixing aws-auth ConfigMap with EKS Access Entries
 
-**문제:**
-- EKS Access Entries API가 도입되어 aws-auth ConfigMap 대체 가능
-- 두 방식을 혼용하면 인증 규칙이 예상과 다르게 동작할 수 있음
+**Problem:**
+- EKS 1.23+ introduces the Access Entries API which can replace aws-auth ConfigMap
+- Using both mechanisms together can produce unexpected authentication behavior
 
-**인증 모드 확인:**
+**Check authentication mode:**
 
 ```bash
-# 클러스터 인증 모드 확인
+# Check cluster authentication mode
 aws eks describe-cluster --name <cluster-name> \
   --query 'cluster.accessConfig.authenticationMode' --output text
 ```
 
-**인증 모드 종류:**
+**Authentication mode options:**
 
-| 모드 | 설명 | 권장 사용 사례 |
+| Mode | Description | Recommended Use |
 |------|------|--------------|
-| `CONFIG_MAP` | aws-auth ConfigMap만 사용 (레거시) | 레거시 클러스터 |
-| `API` | Access Entries API만 사용 | 신규 클러스터 권장 |
-| `API_AND_CONFIG_MAP` | 두 방식 모두 허용 (기본값) | 마이그레이션 중 |
+| `CONFIG_MAP` | Uses only aws-auth ConfigMap (legacy) | EKS 1.22 and earlier |
+| `API` | Uses only Access Entries API | New clusters (EKS 1.23+) |
+| `API_AND_CONFIG_MAP` | Both mechanisms allowed (default) | During migration |
 
-**마이그레이션 가이드:**
+**Migration guide:**
 
 ```bash
-# 1. 현재 aws-auth ConfigMap 내용 확인
+# 1. Back up current aws-auth ConfigMap contents
 kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth-backup.yaml
 
-# 2. ConfigMap 내용을 Access Entry로 변환
+# 2. Convert ConfigMap entries to Access Entries
 aws eks create-access-entry \
   --cluster-name <cluster-name> \
   --principal-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME \
   --type STANDARD
 
-# 3. Kubernetes RBAC 매핑 (필요 시)
+# 3. Kubernetes RBAC mapping (as needed)
 aws eks associate-access-policy \
   --cluster-name <cluster-name> \
   --principal-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME \
   --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy \
   --access-scope type=cluster
 
-# 4. 검증 후 인증 모드를 API로 전환
+# 4. After validation, switch authentication mode to API
 aws eks update-cluster-config \
   --name <cluster-name> \
   --access-config authenticationMode=API
 ```
 
-:::warning 인증 모드 변경 시 주의사항
-`CONFIG_MAP` → `API`로 전환하면 aws-auth ConfigMap이 무시됩니다. 반드시 모든 IAM Principal을 Access Entry로 마이그레이션한 후 전환하세요.
+:::warning Caveats When Changing Authentication Mode
+Switching from `CONFIG_MAP` to `API` causes aws-auth ConfigMap to be ignored. Migrate every IAM Principal to Access Entries before switching.
 :::
 
-### kubectl auth can-i를 활용한 권한 검증
+### Permission Validation via kubectl auth can-i
 
 ```bash
-# 현재 사용자가 특정 리소스에 대한 권한이 있는지 확인
+# Check whether the current user has permission on a specific resource
 kubectl auth can-i create deployments --namespace=production
 kubectl auth can-i delete pods --namespace=kube-system
 
-# 특정 ServiceAccount의 권한 확인
+# Check permissions for a specific ServiceAccount
 kubectl auth can-i list secrets --as=system:serviceaccount:default:my-sa
 
-# 모든 권한 확인 (현재 사용자)
+# List all permissions (current user)
 kubectl auth can-i --list
 
-# 특정 네임스페이스에서 모든 권한 확인
+# List all permissions in a specific namespace
 kubectl auth can-i --list --namespace=production
 ```
 
-### Pod Identity Association 미설정 진단
+### Diagnosing Missing Pod Identity Association
 
-**증상:**
-- Pod Identity Agent가 정상 실행 중이지만 Pod에서 AWS 권한이 없음
-- Pod 환경변수에 `AWS_CONTAINER_CREDENTIALS_FULL_URI`가 없음
+**Symptoms:**
+- Pod Identity Agent is running normally but Pods lack AWS permissions
+- Pod environment variables do not include `AWS_CONTAINER_CREDENTIALS_FULL_URI`
 
-**진단:**
+**Diagnosis:**
 
 ```bash
-# 1. Pod Identity Agent 상태 확인
+# 1. Check Pod Identity Agent status
 kubectl get daemonset eks-pod-identity-agent -n kube-system
 kubectl get pods -n kube-system -l app.kubernetes.io/name=eks-pod-identity-agent
 
-# 2. Association 확인
+# 2. Check Associations
 aws eks list-pod-identity-associations --cluster-name $CLUSTER
 
-# 3. 특정 ServiceAccount에 대한 Association 확인
+# 3. Check Association for a specific ServiceAccount
 aws eks list-pod-identity-associations --cluster-name $CLUSTER \
   | jq --arg ns "default" --arg sa "my-service-account" \
     '.associations[] | select(.namespace==$ns and .serviceAccount==$sa)'
 
-# 4. Association 세부 정보 확인
+# 4. Check Association details
 aws eks describe-pod-identity-association \
   --cluster-name $CLUSTER \
   --association-id <assoc-id>
 ```
 
-**해결 방법:**
+**Resolution:**
 
 ```bash
-# Pod Identity Association 생성
+# Create Pod Identity Association
 aws eks create-pod-identity-association \
   --cluster-name $CLUSTER \
   --namespace <namespace> \
   --service-account <service-account> \
   --role-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME
 
-# Pod 재시작 (Association은 Pod 생성 시점에 적용됨)
+# Restart Pod (Association applies at Pod creation time)
 kubectl delete pod <pod-name> -n <namespace>
 ```
 
-## 관련 문서
+## Related Documents
 
-- [EKS 디버깅 가이드 (메인)](./index.md) - 전체 디버깅 가이드
-- [노드 디버깅](./node.md) - 노드 레벨 문제 진단
-- [워크로드 디버깅](./workload.md) - Pod 및 워크로드 문제 진단
-- [네트워킹 디버깅](./networking.md) - 네트워크 문제 진단
+- [EKS Debugging Guide (Main)](./index.md) - Full debugging guide
+- [Node Debugging](./node.md) - Node-level issue diagnosis
+- [Workload Debugging](./workload.md) - Pod and workload issue diagnosis
+- [Networking Debugging](./networking.md) - Network issue diagnosis

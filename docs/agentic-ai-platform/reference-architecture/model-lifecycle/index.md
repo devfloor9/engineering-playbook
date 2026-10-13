@@ -1,11 +1,11 @@
 ---
-title: 모델 수명주기
-description: 커스텀 모델 배포·파인튜닝 파이프라인·MLOps 오케스트레이션·지속 학습 파이프라인
+title: Model Lifecycle
+description: Custom model deployment, fine-tuning pipelines, MLOps orchestration, continuous training pipelines
 created: "2026-04-20"
 last_update:
-  date: 2026-09-22
+  date: "2026-06-26"
   author: devfloor9
-reading_time: 2
+reading_time: 1
 tags:
   - reference-architecture
   - mlops
@@ -13,14 +13,14 @@ tags:
   - fine-tuning
   - continuous-training
   - scope:nav
-sidebar_label: 모델 수명주기
+sidebar_label: Model Lifecycle
 ---
 
-## 개요
+## Overview
 
-프로덕션 모델은 한 번 배포로 끝나지 않습니다. 본 섹션은 커스텀 모델 배포, LoRA 파인튜닝 파이프라인, MLOps 오케스트레이션(Kubeflow·Argo), Continuous Training(GRPO·DPO·Canary 롤아웃)까지 모델 수명주기 전 단계를 다룹니다.
+Production models do not end with a single deployment. This section covers all stages of the model lifecycle, from custom model deployment and LoRA fine-tuning pipelines to MLOps orchestration (Kubeflow/Argo) and Continuous Training (GRPO/DPO/Canary rollout).
 
-## 문서 목록
+## Documents
 
 import DocCardList from '@theme/DocCardList';
 import { useCurrentSidebarCategory } from '@docusaurus/theme-common';

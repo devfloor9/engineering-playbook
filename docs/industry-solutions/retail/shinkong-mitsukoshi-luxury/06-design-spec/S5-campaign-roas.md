@@ -1,6 +1,6 @@
 ---
-title: S5. 옴니채널 캠페인 ROAS (Mitsukoshi)
-description: 週年慶 등 점포·DM·소셜 채널 Bayesian 어트리뷰션
+title: S5. Omnichannel Campaign ROAS (Mitsukoshi)
+description: Bayesian attribution across store, DM, and social channels for events such as the Anniversary Sale
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,26 +16,26 @@ tags:
 sidebar_label: S5. Campaign ROAS
 ---
 
-## 1. URL · 페르소나
+## 1. URL · Personas
 - `/campaign-roas` · P1
 
-## 2. 채널 후보
-- DM 카탈로그 · SMS · 카톡/Line · 소홍서 · 인스타 · 일본 트위터 · 점포 디스플레이 · 인플루언서
+## 2. Candidate Channels
+- DM catalog · SMS · KakaoTalk / Line · Xiaohongshu · Instagram · Japanese Twitter · in-store display · influencers
 
-## 3. 데이터 믹스
-| 데이터 | 출처 |
+## 3. Data Mix
+| Data | Source |
 |---|---|
-| 과거 캠페인 (週年慶/SS/FW) | CAMPAIGN_MART |
-| 채널 sell-through | OrderTransaction + POSTransaction |
-| 검색·SNS 반응 | SocialSignal (다국어) |
-| 외국인 유치 효과 | TourismSignal × TaxRefundTransaction |
+| Past campaigns (Anniversary Sale / SS / FW) | CAMPAIGN_MART |
+| Channel sell-through | OrderTransaction + POSTransaction |
+| Search / SNS response | SocialSignal (multilingual) |
+| Foreigner acquisition impact | TourismSignal × TaxRefundTransaction |
 
 ## 4. UI
-- 추천 채널 믹스 (donut)
-- ROAS 분포 (violin)
-- 점포·국적별 효과
+- Recommended channel mix (donut)
+- ROAS distribution (violin)
+- Effects by store and nationality
 
-## 5. 데모 시나리오
-1. 週年慶 예산 5억 NTD → 추천 믹스
-2. 외국인 유치 캠페인 시뮬 → 일본 트위터 비중 +30% 시 ROAS 변화
-3. 점포·국적별 GMV 영향
+## 5. Demo Scenarios
+1. Anniversary Sale budget NTD 500M → recommended mix
+2. Foreigner acquisition campaign simulation → ROAS change when Japanese Twitter share is +30%
+3. GMV impact by store and nationality

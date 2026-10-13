@@ -1,11 +1,11 @@
 ---
-title: 30분 시연 스크립트
-description: LG생활건강 마케팅 본부 임원 미팅용 30분 시연 — Top-5(S1·S2·S3·S5·S7)
+title: 30-Minute Demo Script
+description: 30-minute demo for LG H&H Marketing executive meeting — Top-5 (S1·S2·S3·S5·S7)
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 12
 tags:
   - industry-solution
   - retail
@@ -16,150 +16,150 @@ tags:
 sidebar_label: 99. Demo Storytelling
 ---
 
-> **목표**: 30분 안에 PoC가 "컨셉이 아닌 동작"임을 입증 + **5 부서 시각·3 BU 통합·외부 4종 시그널 결합·거버넌스** 4가지 가치 전달.
+> **Goal**: Prove within 30 minutes that the PoC is "not a concept but works in action" while conveying four values — **5-department perspectives, 3-BU integration, 4-type external signal fusion, governance**.
 
 ---
 
-## 0. 시연 전 준비 (5분, 시연 시간 외)
+## 0. Pre-Demo Preparation (5 min, outside demo time)
 
-| 체크 | 내용 |
+| Check | Item |
 |---|---|
-| ✅ | Top-5 (S1·S2·S3·S5·S7) 모두 1분 내 응답 |
-| ✅ | 페르소나 5개 모두 사이드바 정렬 확인 |
-| ✅ | cohort_tag 배지 (🟢/🟡/🔵) |
-| ✅ | 챗봇 SSE 트레이스 패널 정상 |
-| ✅ | 백업 시나리오 (S4·S6·S8) 1회 사전 검증 |
-| ✅ | 외부 데이터 라이브 (소셜·기상·경제·경쟁사) |
+| OK | Top-5 (S1·S2·S3·S5·S7) all respond within 1 min |
+| OK | All 5 personas confirmed in sidebar order |
+| OK | cohort_tag badges (green/yellow/blue) |
+| OK | Chatbot SSE trace panel functional |
+| OK | Backup scenarios (S4·S6·S8) validated once in advance |
+| OK | External data live (social · weather · economy · competitor) |
 
 ---
 
-## 1. 오프닝 (3분)
+## 1. Opening (3 min)
 
-> "이 PoC는 LG생활건강 마케팅 혁신 본부가 부서별 데이터를 연결하고, 각 업무에 맞게 활용하는 방식을 시연합니다. 설계에는 LG 멤버스 N=500~5,000건, 합성 회원 49.5K, 외부 시그널 4종이 포함됩니다. 실데이터 코호트는 데이터 소스 명세에서 설정한 가정입니다."
+> "This PoC demonstrates how LG H&H's Marketing Innovation Division could connect data across departments and view it for different tasks. The design specifies N=500~5,000 LG Members records, 49.5K synthetic members, and 4 external signal types. The real-data cohort is an assumption in the data-source specification."
 
-결과를 발표하기 전에 실제 사용할 수 있는 데모 코호트와 실시간 외부 연동을 확인하세요. 시뮬레이션한 입력과 출력은 시연 화면에 표시합니다.
+Before presenting results, identify which demo cohorts are available and which external feeds are live. Label simulated inputs and outputs in the demonstration.
 
-핵심 메시지 4개:
-1. **컨셉이 아닌 동작 시연** — 챗봇·그래프·시뮬 모두 작동
-2. **5 부서 페르소나 스위처** — 브랜드 마케터 / 인사이트 / D&A / CRM·LG 멤버스 / MD
-3. **3 BU 통합** — Beauty + HDB + Refreshment를 단일 KG로 — 회원이 BU·채널 가로지르는 행동 시각화
-4. **외부 4종 시그널 결합** — 소셜·기상·경제·경쟁사 — 자사 데이터만으로 보이지 않던 신호
-
----
-
-## 2. Top-5 시연 (20분)
-
-### Step 1 ─ S1. 자연어 시맨틱 검색 (4분)
-> "먼저 자연어 검색입니다. 브랜드 마케터로 들어가보겠습니다."
-
-- 페르소나: P1 (브랜드 마케터)
-- 입력: **"30대 여성 민감성 두피, 오가닉 선호, 최근 90일 미구매 + 올영 별점 4.5↑"**
-- 결과: SKU 카드 + 회원 카드 + **자사·올영 리뷰 통합 카드**
-- 강조: "BM25 + 임베딩 KNN + Reranker가 RRF로 융합되고, **자사 리뷰뿐 아니라 올영·X 외부 리뷰까지 함께** 보여줍니다. Neptune 1-hop 그래프로 의미 + 관계도 동시에."
-
-### Step 2 ─ S2. 페르소나 챗봇 (5분, 시연 하이라이트)
-> "이번엔 챗봇입니다. **MD 페르소나**로 시작."
-
-- 페르소나: P5 (MD·채널 영업)
-- 입력: **"이번 달 페리오 매출 떨어진 채널 TOP 5와 원인은?"**
-- 우측 트레이스: "channel_metrics_push → weather_join → social_trend_join 자율 호출"
-- 답변 후 **페르소나 스위처 P1 (브랜드 마케터)로**
-- 동일 질의 재입력
-- "같은 데이터인데 답변 톤·KPI(채널→캠페인)·다음 액션 모두 변경. **이게 부서 페르소나 차별점입니다.**"
-
-### Step 3 ─ S3. 인사이트 카드 (4분)
-> "보고서 자동화 + 외부 시그널 결합."
-
-- 페르소나: P3 (D&A)
-- 카드: **"Beauty BU 월별 GMV + 검색 트렌드 + 기상"**
-- 클릭 → AgentCore Code Interpreter가 matplotlib PNG + LLM 코멘트
-- 페르소나 P5(MD)로 스위치 → 같은 카드, 다른 코멘트 (GMV·재고)
-- 강조: "**외부 4종 시그널을 이미 결합한 자동 카드** — 매주 만들던 보고서를 한 클릭으로."
-
-### Step 4 ─ S5. 캠페인 ROAS 시뮬 (4분)
-> "마케팅 ROI 시뮬도 동작합니다."
-
-- 페르소나: P1 (브랜드 마케터)
-- 입력: 예산 1억 / 숨37 신상 / VIP 5만
-- 결과: 추천 채널 믹스 donut + ROAS 분포 violin
-- 가설 변경(SNS +20%) → ROAS 즉시 변화
-- 강조: "**검색 트렌드·SNS 반응 결합으로 캠페인 효과 vs 트렌드 효과 분리** — 점추정이 아닌 신뢰구간 분포."
-
-### Step 5 ─ S7. 옴니채널 회원 여정 (3분)
-> "마지막은 3 BU 통합."
-
-- 페르소나: P4 (CRM·LG 멤버스)
-- 입력: 고가치 회원 ID 1명 / 90일
-- 결과: **자사몰(Beauty) → SNS 광고(HDB) → 올영(Beauty) → CU(Refreshment) → VIP 진입** Swimlane 타임라인
-- 강조: "Beauty·HDB·Refreshment가 분리된 데이터를 **하나의 KG**로 연결 — 회원이 BU·채널 가로지르는 행동을 단일 타임라인."
+Four key messages:
+1. **Not a concept but a working demo** — chatbot · graph · simulation all functional
+2. **5-department persona switcher** — Brand Marketer / Insights / D&A / CRM · LG Members / MD
+3. **3-BU integration** — Beauty + HDB + Refreshment unified into a single KG, visualizing member behavior crossing BUs · channels
+4. **4-type external signal fusion** — social · weather · economy · competitor — signals invisible to first-party data alone
 
 ---
 
-## 3. 거버넌스·데이터 신뢰성 (3분)
+## 2. Top-5 Demo (20 min)
 
-### 3.1 cohort_tag 분리 (30초)
-- 결과 카드 🟢🟡🔵 배지 시연
-- "실데이터 / 합성 / 외부 4종이 모든 카드에 명시"
+### Step 1 — S1. Natural-Language Semantic Search (4 min)
+> "First, natural-language search. Let's enter as the Brand Marketer."
 
-### 3.2 가드레일 (S8) (1분)
-- "동의 미수신 5만명 SMS 시뮬" → 도구 차단 + 사유
-- "회원 cust_001234 연락처" → PII 마스킹
-- **"미성년 추정 회원에게 화장품 캠페인"** → 자동 차단
+- Persona: P1 (Brand Marketer)
+- Input: **"Women in 30s, sensitive scalp, prefers organic, unpurchased in the last 90 days + Olive Young rating 4.5+"**
+- Result: SKU card + Member card + **first-party · Olive Young review combined card**
+- Emphasis: "BM25 + embedding KNN + Reranker fused via RRF, showing **not only first-party reviews but Olive Young · X external reviews as well**. Simultaneous semantic + relational view via Neptune 1-hop graph."
 
-### 3.3 AWS Stack 1장 (1분 30초)
-- 단일 아키텍처 다이어그램
-- "Bedrock + Neptune + OpenSearch + AgentCore + Cohere — 8주 PoC 가능"
+### Step 2 — S2. Persona Chatbot (5 min, demo highlight)
+> "Now the chatbot. Starting with the **MD persona**."
+
+- Persona: P5 (MD · Channel Sales)
+- Input: **"Top 5 channels where Perioe sales dropped this month and the cause?"**
+- Right-side trace: "Autonomous invocations of channel_metrics_push → weather_join → social_trend_join"
+- After answer, **switch persona to P1 (Brand Marketer)**
+- Re-enter the same query
+- "Same data, but the answer tone, KPIs (channel→campaign), and next actions all change. **This is the differentiator of department personas.**"
+
+### Step 3 — S3. Insight Cards (4 min)
+> "Report automation + external signal fusion."
+
+- Persona: P3 (D&A)
+- Card: **"Beauty BU monthly GMV + search trends + weather"**
+- Click → AgentCore Code Interpreter generates matplotlib PNG + LLM comments
+- Switch persona to P5 (MD) → same card, different comments (GMV · inventory)
+- Emphasis: "**Automated cards already combining the 4 external signal types** — turn weekly reports into a one-click action."
+
+### Step 4 — S5. Campaign ROAS Simulation (4 min)
+> "Marketing ROI simulation also works."
+
+- Persona: P1 (Brand Marketer)
+- Input: Budget 100M KRW / Su:m37 new product / VIP 50K
+- Result: Recommended channel mix donut + ROAS distribution violin
+- Change assumption (SNS +20%) → ROAS shifts immediately
+- Emphasis: "**Separating campaign effect vs. trend effect by combining search trends · SNS responses** — confidence-interval distribution rather than point estimates."
+
+### Step 5 — S7. Omnichannel Member Journey (3 min)
+> "Finally, 3-BU integration."
+
+- Persona: P4 (CRM · LG Members)
+- Input: 1 high-value member ID / 90 days
+- Result: **Owned mall (Beauty) → SNS ad (HDB) → Olive Young (Beauty) → CU (Refreshment) → VIP entry** Swimlane timeline
+- Emphasis: "Beauty · HDB · Refreshment data once separated are now connected into **a single KG** — member behavior crossing BUs · channels on a single timeline."
 
 ---
 
-## 4. 클로징 (4분)
+## 3. Governance · Data Trust (3 min)
 
-### 4.1 정리 (2분)
-> "오늘 보신 5개는 8개 시나리오 중 일부입니다. S4(페르소나 매칭+클러스터링), S6(외부 시그널 융합), S8(가드레일)도 동일 패턴으로 동작합니다."
+### 3.1 cohort_tag Separation (30 sec)
+- Demo result cards with green/yellow/blue badges
+- "Real / Synthetic / 4 external types specified on every card"
 
-### 4.2 다음 단계 (2분)
+### 3.2 Guardrails (S8) (1 min)
+- "Simulate SMS to 50K non-consenting members" → tool blocked + reason
+- "Member cust_001234 contact info" → PII masked
+- **"Cosmetics campaign to an estimated-minor member"** → automatically blocked
 
-| 단계 | 기간 | 산출물 |
+### 3.3 AWS Stack 1-pager (1 min 30 sec)
+- Single architecture diagram
+- "Bedrock + Neptune + OpenSearch + AgentCore + Cohere — 8-week PoC feasible"
+
+---
+
+## 4. Closing (4 min)
+
+### 4.1 Summary (2 min)
+> "What you've seen today is 5 of the 8 scenarios. S4 (persona matching + clustering), S6 (external signal fusion), and S8 (guardrails) operate on the same pattern."
+
+### 4.2 Next Steps (2 min)
+
+| Stage | Duration | Deliverables |
 |---|---|---|
-| Discovery | 2주 | 자사 데이터 인벤토리 + 외부 4종 접근성 검토 |
-| PoC 8주 | 8주 | Top-5 (실데이터 N=500~5K) |
-| 확장 | +4주 | 8 시나리오 풀세트 + 가드레일·감사 |
-| 운영 전환 | +8주 | LLMOps + ECS 안정화 |
+| Discovery | 2 weeks | First-party data inventory + accessibility review of 4 external types |
+| PoC 8 weeks | 8 weeks | Top-5 (real data N=500~5K) |
+| Expansion | +4 weeks | Full 8-scenario set + guardrails · audit |
+| Production transition | +8 weeks | LLMOps + ECS stabilization |
 
-> "**8주 안에 LG생활건강 실데이터로 오늘과 같은 시연이 가능합니다.**"
+> "**In 8 weeks, the same demo as today is feasible with LG H&H real data.**"
 
 ---
 
-## 5. Q&A 자주 나오는 질문
+## 5. Frequently Asked Questions
 
-| 질문 | 답변 핵심 |
+| Question | Answer Highlight |
 |---|---|
-| 왜 RAG가 아니고 KG? | 단순 RAG는 의미만, KG RAG는 의미+관계. S5(어트리뷰션), S7(여정)은 KG 없이 불가 |
-| 한국어 형태소? | OpenSearch Nori + Cohere embed-v4 |
-| 비용은? | PoC 8주 약 $4K~$6K/월 |
-| 자사가 Snowflake 보유 시? | Glue로 Snowflake → S3 동기. 본 아키텍처 그대로 적용 |
-| 외부 데이터 라이선스? | 공개 API 위주 + PDPA·약관 준수 검토 필요 |
-| BU 일부만 PoC 가능? | 가능. Beauty 단독으로 시작해도 동일 패턴 |
-| 운영 전환 시 차이? | 인프라 동일 + 모니터링·LLMOps·가드 강화 |
+| Why KG instead of plain RAG? | Plain RAG gives only semantics; KG RAG gives semantics + relations. S5 (attribution) and S7 (journey) are infeasible without KG |
+| Korean morphology? | OpenSearch Nori + Cohere embed-v4 |
+| Cost? | ~$4K~$6K/month for an 8-week PoC |
+| What if first-party has Snowflake? | Use Glue for Snowflake → S3 sync; same architecture applies |
+| External data licensing? | Public APIs primarily + PDPA · terms compliance review needed |
+| Can PoC start with only some BUs? | Yes. Beauty alone follows the same pattern |
+| Difference at production transition? | Same infrastructure + reinforced monitoring · LLMOps · guards |
 
 ---
 
-## 6. 시연 실패 시 백업
+## 6. Demo Failure Fallbacks
 
-| 실패 | 대응 |
+| Failure | Response |
 |---|---|
-| 챗봇(S2) 응답 지연 | 캡쳐 스크린샷 → 다음 시나리오 |
-| Neptune 쿼리 실패 | S1·S3·S5로 우회 |
-| 외부 API(KMA·소셜) 끊김 | 사전 캐시 fallback |
-| 페르소나 스위처 버그 | URL 직접 (`?persona=p1`) |
+| Chatbot (S2) response delay | Captured screenshot → move to next scenario |
+| Neptune query failure | Bypass via S1·S3·S5 |
+| External API (KMA · social) outage | Pre-cached fallback |
+| Persona switcher bug | URL direct (`?persona=p1`) |
 
 ---
 
-## 7. 시연 후 자료 패키지
+## 7. Post-Demo Deliverable Package
 
-1. 시연 녹화 (15분 편집본)
-2. 8 시나리오 디자인 명세 (`06-design-spec/`)
-3. AWS 단일 아키텍처 다이어그램
-4. 8주 PoC 마일스톤 + 비용 추정
-5. KG 25 클래스 모델 (`02-ontology.md`)
-6. 데이터 적재 가이드 (`04-data-sources.md`)
+1. Demo recording (15-min edit)
+2. 8-scenario design specs (`06-design-spec/`)
+3. AWS single architecture diagram
+4. 8-week PoC milestones + cost estimate
+5. KG 25-class model (`02-ontology.md`)
+6. Data ingestion guide (`04-data-sources.md`)

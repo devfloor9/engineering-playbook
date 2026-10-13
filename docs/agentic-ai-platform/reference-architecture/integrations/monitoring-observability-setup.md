@@ -1,11 +1,11 @@
 ---
-title: 모니터링 & Observability 구성 가이드
-description: Prometheus→AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링 실전 구성 가이드
+title: Monitoring & Observability Setup Guide
+description: Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel
 created: "2026-04-06"
 last_update:
   date: 2026-09-22
-  author: YoungJoon Jeong
-reading_time: 10
+  author: devfloor9
+reading_time: 15
 tags:
   - monitoring
   - langfuse
@@ -15,14 +15,14 @@ tags:
   - otel
   - deployment
   - scope:impl
-sidebar_label: 모니터링
+sidebar_label: Monitoring
 ---
 
-이 문서는 Prometheus → AMP, AMG, Langfuse, Bifrost OTel 통합 모니터링의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 설계 원칙은 [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) 및 [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md)를 참조하세요.
+This document covers the **hands-on deployment procedures** for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel. For architecture concepts and design principles, see [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) and [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md).
 
 ---
 
-## 모니터링 아키텍처 개요
+## Monitoring Architecture Overview
 
 ```mermaid
 graph LR
@@ -47,27 +47,27 @@ graph LR
     style BF fill:#2ecc71
 ```
 
-**데이터 흐름 요약**:
+**Data Flow Summary**:
 
-| 데이터 | 경로 | 용도 |
-|--------|------|------|
-| 인프라 메트릭 | vLLM/DCGM/kgateway → Prometheus → AMP → AMG | GPU 활용도, TPS, 지연시간, 에러율 |
-| LLM Trace | Bifrost → OTel → Langfuse | 토큰 사용량, 비용, 프롬프트 품질 |
-| 게이트웨이 메트릭 | kgateway → Prometheus → AMP | 요청 수, 5xx 에러, 업스트림 상태 |
+| Data | Path | Purpose |
+|------|------|---------|
+| Infrastructure Metrics | vLLM/DCGM/kgateway → Prometheus → AMP → AMG | GPU utilization, TPS, latency, error rate |
+| LLM Traces | Bifrost → OTel → Langfuse | Token usage, cost, prompt quality |
+| Gateway Metrics | kgateway → Prometheus → AMP | Request count, 5xx errors, upstream status |
 
 ---
 
-## Prometheus + AMP 구성
+## Prometheus + AMP Setup
 
-### 2.1 AMP 워크스페이스 생성
+### 2.1 Create AMP Workspace
 
 ```bash
-# AMP 워크스페이스 생성
+# Create AMP workspace
 aws amp create-workspace \
   --alias "vllm-inference-metrics" \
   --region ap-northeast-2
 
-# 워크스페이스 ID 확인
+# Get workspace ID
 export AMP_WORKSPACE_ID=$(aws amp list-workspaces \
   --region ap-northeast-2 \
   --query 'workspaces[?alias==`vllm-inference-metrics`].workspaceId' \
@@ -76,10 +76,10 @@ export AMP_WORKSPACE_ID=$(aws amp list-workspaces \
 echo "AMP Workspace ID: $AMP_WORKSPACE_ID"
 ```
 
-### 2.2 IAM Role 생성 (Pod Identity용)
+### 2.2 Create IAM Role (for Pod Identity)
 
 ```bash
-# IAM Role 생성
+# Create IAM Role
 aws iam create-role \
   --role-name prometheus-amp-remote-write \
   --assume-role-policy-document '{
@@ -91,13 +91,13 @@ aws iam create-role \
     }]
   }'
 
-# AMP RemoteWrite 권한 부여
+# Attach AMP RemoteWrite permissions
 aws iam attach-role-policy \
   --role-name prometheus-amp-remote-write \
   --policy-arn arn:aws:iam::aws:policy/AmazonPrometheusRemoteWriteAccess
 ```
 
-### 2.3 Pod Identity Association 생성
+### 2.3 Create Pod Identity Association
 
 ```bash
 aws eks create-pod-identity-association \
@@ -108,10 +108,10 @@ aws eks create-pod-identity-association \
 ```
 
 :::tip Pod Identity vs IRSA
-위 명령은 앞 단계에서 준비한 IAM Role과 클러스터·namespace·ServiceAccount 사이의 연결을 등록합니다. Pod Identity는 IRSA용 OIDC Provider 설정을 사용하지 않지만, IAM Role의 신뢰 정책과 권한 정책은 준비해야 합니다. 실제 Pod가 자격 증명을 받으려면 노드의 Pod Identity 지원, EKS Auth 접근, 애플리케이션의 지원 SDK와 기본 자격 증명 체인도 확인해야 합니다([설정 조건](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)). 이 문서의 EKS 1.33+는 예시 환경이며, 적용할 클러스터의 지원 조건은 별도로 확인합니다.
+The command above registers an association between the prepared IAM role and a cluster, namespace, and ServiceAccount. Pod Identity does not use the OIDC provider configuration required by IRSA, but the role's trust and permission policies still need to be prepared. For a Pod to receive credentials, also check node support for Pod Identity, access to EKS Auth, and an application using a supported SDK and its default credential chain ([setup requirements](https://docs.aws.amazon.com/eks/latest/userguide/pod-identities.html)). EKS 1.33+ is the example environment in this guide; verify the support requirements for the cluster where you apply it.
 :::
 
-### 2.4 Prometheus Helm values 핵심 설정
+### 2.4 Key Prometheus Helm Values
 
 ```yaml
 # values-eks.yaml
@@ -131,11 +131,11 @@ prometheus:
 
   serviceAccount:
     name: prometheus-kube-prometheus-prometheus
-    # Pod Identity 사용 시 annotations 불필요 (IRSA와 달리)
+    # No annotations needed when using Pod Identity (unlike IRSA)
 
-# scrape 대상
+# Scrape targets
 additionalScrapeConfigs:
-  # vLLM 메트릭
+  # vLLM metrics
   - job_name: 'vllm'
     kubernetes_sd_configs:
       - role: pod
@@ -147,7 +147,7 @@ additionalScrapeConfigs:
         action: keep
     metrics_path: /metrics
 
-  # DCGM Exporter (GPU 메트릭)
+  # DCGM Exporter (GPU metrics)
   - job_name: 'dcgm-exporter'
     kubernetes_sd_configs:
       - role: pod
@@ -158,7 +158,7 @@ additionalScrapeConfigs:
         regex: dcgm-exporter
         action: keep
 
-  # kgateway 메트릭
+  # kgateway metrics
   - job_name: 'kgateway'
     kubernetes_sd_configs:
       - role: pod
@@ -171,7 +171,7 @@ additionalScrapeConfigs:
     metrics_path: /metrics
 ```
 
-### 2.5 Prometheus Helm 설치
+### 2.5 Install Prometheus via Helm
 
 ```bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
@@ -185,9 +185,9 @@ helm install prometheus prometheus-community/kube-prometheus-stack \
 
 ---
 
-## AMG (Grafana) 구성
+## AMG (Grafana) Setup
 
-### 3.1 AMG 워크스페이스 생성
+### 3.1 Create AMG Workspace
 
 ```bash
 aws grafana create-workspace \
@@ -203,21 +203,21 @@ export AMG_WORKSPACE_ID=$(aws grafana list-workspaces \
   --output text)
 ```
 
-### 3.2 Service Account + Token 생성
+### 3.2 Create Service Account + Token
 
-AMG API를 통해 데이터 소스를 추가하려면 Service Account Token이 필요합니다.
+A Service Account Token is required to add data sources via the AMG API.
 
 ```bash
-# Grafana Service Account 생성 (AMG 콘솔 또는 API)
-# AMG 웹 콘솔 → Configuration → Service Accounts → Add Service Account
+# Create Grafana Service Account (via AMG Console or API)
+# AMG Web Console -> Configuration -> Service Accounts -> Add Service Account
 # Role: Admin
-# Token 생성 후 저장
+# Save the generated token
 
-export GRAFANA_TOKEN="<생성된 Token>"
-export GRAFANA_ENDPOINT="<AMG 워크스페이스 URL>"
+export GRAFANA_TOKEN="<generated-token>"
+export GRAFANA_ENDPOINT="<AMG-workspace-URL>"
 ```
 
-### 3.3 AMP 데이터 소스 추가
+### 3.3 Add AMP Data Source
 
 ```bash
 curl -X POST "https://${GRAFANA_ENDPOINT}/api/datasources" \
@@ -238,11 +238,11 @@ curl -X POST "https://${GRAFANA_ENDPOINT}/api/datasources" \
   }'
 ```
 
-:::danger workspace-iam-role 금지
-`sigV4AuthType`을 반드시 **`ec2_iam_role`**로 설정하세요. `workspace-iam-role`은 유효하지 않은 값으로 **502 에러**를 반환합니다. AMG workspace IAM Role에 `AmazonPrometheusQueryAccess` 정책이 연결되어 있어야 합니다.
+:::danger Do NOT use workspace-iam-role
+Make sure to set `sigV4AuthType` to **`ec2_iam_role`**. The value `workspace-iam-role` is invalid and will return a **502 error**. The AMG workspace IAM Role must have the `AmazonPrometheusQueryAccess` policy attached.
 :::
 
-### 3.4 IAM Identity Center 사용자 권한 부여
+### 3.4 Grant IAM Identity Center User Permissions
 
 ```bash
 aws grafana update-permissions \
@@ -255,19 +255,19 @@ aws grafana update-permissions \
 
 ---
 
-## Langfuse EKS 배포
+## Langfuse Deployment on EKS
 
-### 4.1 Helm 설치
+### 4.1 Helm Installation
 
 ```bash
-# Langfuse Helm 저장소 추가
+# Add Langfuse Helm repository
 helm repo add langfuse https://langfuse.github.io/langfuse-helm
 helm repo update
 
-# 네임스페이스 생성
+# Create namespace
 kubectl create namespace langfuse
 
-# Langfuse Helm 설치 (PostgreSQL + ClickHouse + Redis 포함)
+# Install Langfuse via Helm (includes PostgreSQL + ClickHouse + Redis)
 helm install langfuse langfuse/langfuse \
   --namespace langfuse \
   --set postgresql.enabled=true \
@@ -278,63 +278,63 @@ helm install langfuse langfuse/langfuse \
   --set replicaCount=2
 ```
 
-:::info EBS CSI Driver 필수
-Langfuse의 PostgreSQL과 ClickHouse는 영구 스토리지가 필요합니다.
+:::info EBS CSI Driver Required
+Langfuse's PostgreSQL and ClickHouse require persistent storage.
 
 ```bash
-# EBS CSI Driver 설치 확인
+# Verify EBS CSI Driver installation
 kubectl get csidriver ebs.csi.aws.com
 
-# default StorageClass 확인
+# Check default StorageClass
 kubectl get storageclass
 ```
 :::
 
-### 4.2 Redis 패스워드 주입 (Worker CrashLoopBackOff 방지)
+### 4.2 Inject Redis Password (Prevent Worker CrashLoopBackOff)
 
-Bitnami Valkey 차트는 Secret key를 `valkey-password`로 생성하지만, Langfuse Helm 차트가 Worker의 `REDIS_CONNECTION_STRING`에 패스워드를 자동 포함하지 않습니다.
+The Bitnami Valkey chart creates the Secret key as `valkey-password`, but the Langfuse Helm chart does not automatically include the password in the Worker's `REDIS_CONNECTION_STRING`.
 
 ```bash
-# Redis 패스워드 확인
+# Retrieve Redis password
 REDIS_PW=$(kubectl get secret langfuse-redis -n langfuse \
   -o jsonpath='{.data.valkey-password}' | base64 -d)
 
-# Web + Worker 모두 주입
+# Inject into both Web and Worker
 kubectl set env deploy/langfuse-worker deploy/langfuse-web -n langfuse \
   REDIS_CONNECTION_STRING="redis://default:${REDIS_PW}@langfuse-redis-primary:6379/0"
 ```
 
-:::warning Worker CrashLoopBackOff 원인
-`langfuse-worker` Pod가 CrashLoopBackOff 상태라면 **Redis 패스워드 누락**이 가장 흔한 원인입니다. 위 명령으로 수동 주입하세요.
+:::warning Worker CrashLoopBackOff Root Cause
+If the `langfuse-worker` Pod is in CrashLoopBackOff, a **missing Redis password** is the most common cause. Manually inject it using the command above.
 :::
 
-### 4.3 MinIO → S3 + KMS 전환 가이드 (권장)
+### 4.3 Migrating from MinIO to S3 + KMS (Recommended)
 
-Langfuse Helm 차트는 기본적으로 MinIO를 내장 S3로 설치하지만, 프로덕션에서는 AWS S3 + KMS를 권장합니다.
+The Langfuse Helm chart installs MinIO as built-in S3 storage by default, but AWS S3 + KMS is recommended for production.
 
-| | MinIO (기본) | AWS S3 + KMS (권장) |
+| | MinIO (Default) | AWS S3 + KMS (Recommended) |
 |---|---|---|
-| **가용성** | 단일 Pod | 99.999999999% (11 nines) |
-| **암호화** | 없음 | SSE-KMS (자동 암호화) |
-| **인증** | Access Key (환경변수) | Pod Identity (키 불필요) |
-| **백업** | 수동 | S3 버전 관리 + Lifecycle |
+| **Availability** | Single Pod | 99.999999999% (11 nines) |
+| **Encryption** | None | SSE-KMS (automatic encryption) |
+| **Authentication** | Access Key (environment variable) | Pod Identity (no keys required) |
+| **Backup** | Manual | S3 versioning + Lifecycle |
 
-#### S3 + KMS 구성 절차
+#### S3 + KMS Configuration Steps
 
 ```bash
-# 1. S3 버킷 + KMS 키 생성
+# 1. Create S3 bucket + KMS key
 aws s3api create-bucket --bucket langfuse-traces-<ACCOUNT_ID> --region <REGION> \
   --create-bucket-configuration LocationConstraint=<REGION>
 
 KMS_KEY=$(aws kms create-key --description "Langfuse trace encryption" \
   --query 'KeyMetadata.KeyId' --output text)
 
-# 2. S3 기본 암호화 (KMS)
+# 2. Enable S3 default encryption (KMS)
 aws s3api put-bucket-encryption --bucket langfuse-traces-<ACCOUNT_ID> \
   --server-side-encryption-configuration \
   '{"Rules": [{"ApplyServerSideEncryptionByDefault": {"SSEAlgorithm": "aws:kms", "KMSMasterKeyID": "'$KMS_KEY'"}, "BucketKeyEnabled": true}]}'
 
-# 3. IAM Role + Pod Identity (Access Key 불필요)
+# 3. IAM Role + Pod Identity (no Access Key required)
 aws iam create-role --role-name langfuse-s3-access \
   --assume-role-policy-document '{
     "Version": "2012-10-17",
@@ -370,7 +370,7 @@ aws eks create-pod-identity-association \
   --service-account langfuse \
   --role-arn arn:aws:iam::<ACCOUNT_ID>:role/langfuse-s3-access
 
-# 4. Langfuse 환경변수 변경 (MinIO 제거 → S3)
+# 4. Update Langfuse environment variables (remove MinIO, switch to S3)
 kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
   LANGFUSE_S3_EVENT_UPLOAD_BUCKET="langfuse-traces-<ACCOUNT_ID>" \
   LANGFUSE_S3_EVENT_UPLOAD_REGION="<REGION>" \
@@ -380,8 +380,8 @@ kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
   LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE-
 ```
 
-:::tip MinIO를 유지하는 경우
-MinIO를 사용할 경우, Helm 차트가 S3 Secret Key를 환경변수에 자동 주입하지 않습니다. 누락 시 OTel trace 수신에서 500 에러가 발생합니다.
+:::tip If You Keep MinIO
+When using MinIO, the Helm chart does not automatically inject the S3 Secret Key into environment variables. If missing, OTel trace ingestion will return 500 errors.
 
 ```bash
 MINIO_PW=$(kubectl get secret langfuse-s3 -n langfuse \
@@ -394,38 +394,38 @@ kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
 ```
 :::
 
-### 4.4 NEXTAUTH_URL 설정
+### 4.4 NEXTAUTH_URL Configuration
 
-`NEXTAUTH_URL`을 실제 접근 가능한 URL로 설정해야 합니다. `localhost:3000` (기본값)으로 두면 로그인 시 무한 리다이렉트가 발생합니다.
+`NEXTAUTH_URL` must be set to the actual accessible URL. Leaving it as the default `localhost:3000` will cause an infinite redirect loop during login.
 
 ```bash
-# kgateway sub-path로 접근하는 경우
+# When accessing via kgateway sub-path
 kubectl set env deploy/langfuse-web -n langfuse \
   NEXTAUTH_URL="http://<NLB_ENDPOINT>/langfuse"
 
-# 별도 도메인으로 접근하는 경우
+# When accessing via a separate domain
 kubectl set env deploy/langfuse-web -n langfuse \
   NEXTAUTH_URL="https://langfuse.example.com"
 ```
 
-### 4.5 kgateway Sub-path 라우팅
+### 4.5 kgateway Sub-path Routing
 
-Langfuse를 kgateway 통합 NLB의 `/langfuse` 경로로 서빙하는 설정입니다. 상세한 HTTPRoute YAML은 [추론 게이트웨이 배포: 기본 배포](../inference-gateway/setup/basic-deployment#langfuse-sub-path-라우팅-urlrewrite)를 참조하세요.
+This configures Langfuse to be served at the `/langfuse` path through the kgateway unified NLB. For detailed HTTPRoute YAML, see [Inference Gateway Setup: Basic Deployment](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
 
-필요한 라우팅 규칙:
+Required routing rules:
 
-1. `/langfuse/*` → URLRewrite `/` + Langfuse 백엔드
-2. `/_next/*` → Langfuse (Next.js Static Assets)
-3. `/api/auth/*` → Langfuse (인증 API)
-4. `/api/public/*` → Langfuse (Public API + OTel)
+1. `/langfuse/*` -> URLRewrite `/` + Langfuse backend
+2. `/_next/*` -> Langfuse (Next.js Static Assets)
+3. `/api/auth/*` -> Langfuse (Authentication API)
+4. `/api/public/*` -> Langfuse (Public API + OTel)
 
 ---
 
-## 5. Bifrost OTel → Langfuse 연동
+## 5. Bifrost OTel to Langfuse Integration
 
-### 5.1 Bifrost OTel 플러그인 설정
+### 5.1 Bifrost OTel Plugin Configuration
 
-Bifrost config.json의 OTel 플러그인 설정입니다.
+OTel plugin configuration in Bifrost's config.json.
 
 ```json
 {
@@ -446,17 +446,17 @@ Bifrost config.json의 OTel 플러그인 설정입니다.
 }
 ```
 
-**핵심 주의사항**:
+**Key Considerations**:
 
-| 설정 항목 | 올바른 값 | 잘못된 값 |
-|----------|----------|----------|
+| Setting | Correct Value | Incorrect Value |
+|---------|--------------|----------------|
 | `trace_type` | `"genai_extension"` | `"otel"` |
-| `collector_url` | 전체 OTLP 경로 포함 | base URL만 |
-| Authorization | `Basic <BASE64(pk:sk)>` | Bearer 토큰 |
+| `collector_url` | Full OTLP path included | Base URL only |
+| Authorization | `Basic <BASE64(pk:sk)>` | Bearer token |
 
-### 5.2 kgateway URLRewrite (외부 경유 시)
+### 5.2 kgateway URLRewrite (When Routing Externally)
 
-Bifrost가 kgateway를 경유하여 Langfuse에 OTel trace를 전송하는 경우, URLRewrite가 필요합니다.
+When Bifrost sends OTel traces to Langfuse through kgateway, URLRewrite is required.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -486,59 +486,59 @@ spec:
           port: 3000
 ```
 
-이 경우 Bifrost config의 `collector_url`은 kgateway 엔드포인트를 사용합니다:
+In this case, the `collector_url` in Bifrost config uses the kgateway endpoint:
 
 ```json
 "collector_url": "http://api.example.com/api/public/otel"
 ```
 
-kgateway가 `/api/public/otel` → `/api/public/otel/v1/traces`로 리라이트합니다.
+kgateway rewrites `/api/public/otel` to `/api/public/otel/v1/traces`.
 
-:::tip 클러스터 내부 직접 전송 vs kgateway 경유
+:::tip Direct In-Cluster vs Through kgateway
 
-| 방식 | collector_url | URLRewrite 필요 |
-|------|---------------|----------------|
-| 내부 직접 | `http://langfuse-web.langfuse.svc:3000/api/public/otel/v1/traces` | 불필요 |
-| kgateway 경유 | `http://api.example.com/api/public/otel` | 필요 |
+| Method | collector_url | URLRewrite Required |
+|--------|---------------|---------------------|
+| Direct in-cluster | `http://langfuse-web.langfuse.svc:3000/api/public/otel/v1/traces` | No |
+| Through kgateway | `http://api.example.com/api/public/otel` | Yes |
 
-클러스터 내부 직접 전송이 더 단순하고 지연이 적습니다. kgateway 경유는 외부 네트워크에서 OTel을 전송하는 경우에 사용합니다.
+Direct in-cluster delivery is simpler and has lower latency. Routing through kgateway is used when sending OTel from external networks.
 :::
 
-### 5.3 OTLP 엔드포인트 정확한 경로
+### 5.3 Exact OTLP Endpoint Path
 
-Langfuse의 OTLP 수신 엔드포인트는 다음과 같습니다:
+The Langfuse OTLP ingestion endpoint is:
 
 ```
 POST /api/public/otel/v1/traces
 ```
 
-**잘못된 경로** (동작하지 않음):
+**Incorrect paths** (will not work):
 ```
-/api/public/otel              (suffix 누락)
-/v1/traces                    (prefix 누락)
-/api/public/otel/traces       (v1 누락)
+/api/public/otel              (missing suffix)
+/v1/traces                    (missing prefix)
+/api/public/otel/traces       (missing v1)
 ```
 
 ---
 
-## 6. 추천 PromQL 쿼리 테이블
+## 6. Recommended PromQL Query Reference
 
-| 메트릭 | PromQL | 용도 |
-|--------|--------|------|
-| GPU 사용률 | `avg(DCGM_FI_DEV_GPU_UTIL)` | GPU 활성도 |
-| GPU 메모리 사용률 | `avg(DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 100) by (gpu)` | VRAM 사용률 |
-| GPU 온도 | `DCGM_FI_DEV_GPU_TEMP` | 과열 모니터링 |
-| vLLM TPS | `rate(vllm:request_success_total[5m])` | 추론 처리량 |
-| vLLM TTFT p99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | 첫 토큰 지연 |
-| vLLM E2E p99 | `histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))` | 전체 요청 지연 |
-| vLLM 배치 크기 | `avg(vllm_num_requests_running)` | 동시 추론 수 |
-| kgateway RPS | `sum(rate(envoy_http_downstream_rq_total[5m])) by (route)` | 초당 요청 수 |
-| kgateway 5xx 에러율 | `sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_http_downstream_rq_total[5m])) * 100` | 에러율 (%) |
-| kgateway p99 지연 | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, route))` | 게이트웨이 지연 |
-| Bifrost 요청률 | `rate(bifrost_requests_total[5m])` | 게이트웨이 요청률 |
-| 활성 연결 수 | `sum(envoy_cluster_upstream_cx_active) by (upstream_cluster)` | 백엔드별 활성 연결 |
+| Metric | PromQL | Purpose |
+|--------|--------|---------|
+| GPU Utilization | `avg(DCGM_FI_DEV_GPU_UTIL)` | GPU activity |
+| GPU Memory Usage | `avg(DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 100) by (gpu)` | VRAM usage |
+| GPU Temperature | `DCGM_FI_DEV_GPU_TEMP` | Overheating monitoring |
+| vLLM TPS | `rate(vllm:request_success_total[5m])` | Inference throughput |
+| vLLM TTFT p99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | Time to first token |
+| vLLM E2E p99 | `histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))` | End-to-end request latency |
+| vLLM Batch Size | `avg(vllm_num_requests_running)` | Concurrent inference count |
+| kgateway RPS | `sum(rate(envoy_http_downstream_rq_total[5m])) by (route)` | Requests per second |
+| kgateway 5xx Error Rate | `sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_http_downstream_rq_total[5m])) * 100` | Error rate (%) |
+| kgateway p99 Latency | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, route))` | Gateway latency |
+| Bifrost Request Rate | `rate(bifrost_requests_total[5m])` | Gateway request rate |
+| Active Connections | `sum(envoy_cluster_upstream_cx_active) by (upstream_cluster)` | Active connections per backend |
 
-### 알림 규칙 예시
+### Alert Rule Examples
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -584,53 +584,53 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "Inference Gateway 오류율 5% 초과"
+            summary: "Inference Gateway error rate exceeds 5%"
 ```
 
 ---
 
-## 7. 트러블슈팅
+## 7. Troubleshooting
 
-### 7.1 AMP 403 (Pod Identity 누락)
+### 7.1 AMP 403 (Missing Pod Identity)
 
-**증상**: Prometheus 로그에 `403 Forbidden` remote write 에러
+**Symptom**: `403 Forbidden` remote write error in Prometheus logs
 
-**진단**:
+**Diagnosis**:
 ```bash
-# Pod Identity Association 확인
+# Check Pod Identity Association
 aws eks list-pod-identity-associations \
   --cluster-name <CLUSTER_NAME> \
   --namespace monitoring
 
-# Prometheus ServiceAccount 확인
+# Verify Prometheus ServiceAccount
 kubectl get sa prometheus-kube-prometheus-prometheus -n monitoring -o yaml
 ```
 
-**해결**:
+**Resolution**:
 ```bash
-# Pod Identity Association 생성
+# Create Pod Identity Association
 aws eks create-pod-identity-association \
   --cluster-name <CLUSTER_NAME> \
   --namespace monitoring \
   --service-account prometheus-kube-prometheus-prometheus \
   --role-arn arn:aws:iam::<ACCOUNT_ID>:role/prometheus-amp-remote-write
 
-# Prometheus Pod 재시작 (Pod Identity 적용)
+# Restart Prometheus Pod (to apply Pod Identity)
 kubectl rollout restart statefulset prometheus-kube-prometheus-prometheus -n monitoring
 ```
 
-### 7.2 AMG 502 (SigV4 auth type 오류)
+### 7.2 AMG 502 (SigV4 Auth Type Error)
 
-**증상**: AMG에서 AMP 데이터 소스 Test 시 502 Bad Gateway
+**Symptom**: 502 Bad Gateway when testing AMP data source in AMG
 
-**원인**: `sigV4AuthType`이 `workspace-iam-role`로 설정됨
+**Cause**: `sigV4AuthType` is set to `workspace-iam-role`
 
-**해결**:
-1. AMG 콘솔 → Data Sources → AMP 데이터 소스 편집
-2. SigV4 Auth Details → Auth Type을 **`ec2_iam_role`**로 변경
+**Resolution**:
+1. AMG Console -> Data Sources -> Edit AMP data source
+2. SigV4 Auth Details -> Change Auth Type to **`ec2_iam_role`**
 3. Save & Test
 
-또는 API로 수정:
+Or fix via API:
 ```bash
 curl -X PUT "https://${GRAFANA_ENDPOINT}/api/datasources/<DS_ID>" \
   -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
@@ -646,19 +646,19 @@ curl -X PUT "https://${GRAFANA_ENDPOINT}/api/datasources/<DS_ID>" \
 
 ### 7.3 Langfuse Worker CrashLoopBackOff (Redis)
 
-**증상**: `langfuse-worker` Pod가 CrashLoopBackOff 상태
+**Symptom**: `langfuse-worker` Pod is in CrashLoopBackOff
 
-**진단**:
+**Diagnosis**:
 ```bash
-# Worker 로그 확인
+# Check Worker logs
 kubectl logs -n langfuse -l app.kubernetes.io/component=worker --tail=30
 
-# Redis 연결 테스트
+# Test Redis connectivity
 kubectl run -it --rm redis-test --image=redis:7 --restart=Never -n langfuse -- \
   redis-cli -h langfuse-redis-primary -a $(kubectl get secret langfuse-redis -n langfuse -o jsonpath='{.data.valkey-password}' | base64 -d) ping
 ```
 
-**해결**:
+**Resolution**:
 ```bash
 REDIS_PW=$(kubectl get secret langfuse-redis -n langfuse \
   -o jsonpath='{.data.valkey-password}' | base64 -d)
@@ -667,13 +667,13 @@ kubectl set env deploy/langfuse-worker deploy/langfuse-web -n langfuse \
   REDIS_CONNECTION_STRING="redis://default:${REDIS_PW}@langfuse-redis-primary:6379/0"
 ```
 
-### 7.4 Langfuse S3 500 (MinIO Secret 누락)
+### 7.4 Langfuse S3 500 (Missing MinIO Secret)
 
-**증상**: OTel trace 수신 시 Langfuse가 500 에러 반환, 로그에 S3 관련 오류
+**Symptom**: Langfuse returns 500 error on OTel trace ingestion, S3-related errors in logs
 
-**원인**: Langfuse Helm 차트가 MinIO S3 secret key를 환경변수에 자동 주입하지 않음
+**Cause**: The Langfuse Helm chart does not automatically inject the MinIO S3 secret key into environment variables
 
-**해결**:
+**Resolution**:
 ```bash
 MINIO_PW=$(kubectl get secret langfuse-s3 -n langfuse \
   -o jsonpath='{.data.root-password}' | base64 -d)
@@ -684,35 +684,35 @@ kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
   LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY="$MINIO_PW"
 ```
 
-:::tip 근본 해결: S3 + KMS 전환
-MinIO 관련 이슈를 근본적으로 해결하려면 섹션 4.3의 S3 + KMS 전환을 권장합니다. Pod Identity 기반이므로 Access Key 관리가 불필요하고, 가용성과 암호화가 보장됩니다.
+:::tip Permanent Fix: Migrate to S3 + KMS
+To fundamentally resolve MinIO-related issues, we recommend migrating to S3 + KMS as described in Section 4.3. Pod Identity-based authentication eliminates Access Key management, and availability and encryption are guaranteed.
 :::
 
 ### 7.5 Langfuse 404 (Sub-path Routing)
 
-**증상**: `/langfuse/` 접속 시 페이지는 로드되지만 CSS/JS가 깨지거나 404
+**Symptom**: Page loads at `/langfuse/` but CSS/JS is broken or returns 404
 
-**원인**: Next.js 정적 자산 경로(`/_next/*`)와 인증 API(`/api/auth/*`)가 Langfuse로 라우팅되지 않음
+**Cause**: Next.js static asset paths (`/_next/*`) and authentication API (`/api/auth/*`) are not routed to Langfuse
 
-**해결**: kgateway HTTPRoute에 추가 경로 규칙 필요:
+**Resolution**: Additional path rules are needed in the kgateway HTTPRoute:
 
 ```yaml
-# 추가 필요한 경로들
-/_next/*        → langfuse-web:3000  (Static Assets)
-/api/auth/*     → langfuse-web:3000  (NextAuth)
-/api/public/*   → langfuse-web:3000  (Public API + OTel)
-/icon.svg       → langfuse-web:3000  (Favicon)
+# Additional paths required
+/_next/*        -> langfuse-web:3000  (Static Assets)
+/api/auth/*     -> langfuse-web:3000  (NextAuth)
+/api/public/*   -> langfuse-web:3000  (Public API + OTel)
+/icon.svg       -> langfuse-web:3000  (Favicon)
 ```
 
-상세 HTTPRoute YAML은 [추론 게이트웨이 배포: 기본 배포](../inference-gateway/setup/basic-deployment#langfuse-sub-path-라우팅-urlrewrite)를 참조하세요.
+For detailed HTTPRoute YAML, see [Inference Gateway Setup: Basic Deployment](../inference-gateway/setup/basic-deployment#langfuse-sub-path-routing-urlrewrite).
 
-### 7.6 Langfuse 무한 리다이렉트 (NEXTAUTH_URL)
+### 7.6 Langfuse Infinite Redirect (NEXTAUTH_URL)
 
-**증상**: Langfuse UI 로그인 시 무한 리다이렉트 루프
+**Symptom**: Infinite redirect loop when logging into Langfuse UI
 
-**원인**: `NEXTAUTH_URL`이 기본값 `localhost:3000`으로 설정됨
+**Cause**: `NEXTAUTH_URL` is set to the default `localhost:3000`
 
-**해결**:
+**Resolution**:
 ```bash
 kubectl set env deploy/langfuse-web -n langfuse \
   NEXTAUTH_URL="http://<NLB_ENDPOINT>/langfuse"
@@ -720,10 +720,10 @@ kubectl set env deploy/langfuse-web -n langfuse \
 
 ---
 
-## 참고 자료
+## References
 
-- [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) - 모니터링 아키텍처 및 메트릭 설계 상세
-- [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith/Helicone 비교 및 평가 파이프라인
+- [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) - Detailed monitoring architecture and metric design
+- [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md) - Langfuse/LangSmith/Helicone comparison and evaluation pipelines
 - [Amazon Managed Prometheus](https://docs.aws.amazon.com/prometheus/)
 - [Amazon Managed Grafana](https://docs.aws.amazon.com/grafana/)
 - [Langfuse Helm Chart](https://github.com/langfuse/langfuse-k8s)

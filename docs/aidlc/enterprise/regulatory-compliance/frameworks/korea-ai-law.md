@@ -1,11 +1,11 @@
 ---
-title: 한국 AI 기본법 — 고영향 AI 규제와 생성형 AI 표시 의무
-description: 한국 AI 기본법의 고영향 AI 시스템 영향 평가, 생성형 AI 표시 의무, PIPA/ISMS-P 교차 준수 및 AIDLC 통합 가이드
-created: "2026-04-18"
+title: Korea AI Basic Act — High-Impact AI Regulation and Generative AI Labeling
+description: Korea AI Basic Act's high-impact AI impact assessment, generative AI labeling obligations, PIPA/ISMS-P cross-compliance, and AIDLC integration guide
+created: "2026-04-19"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 4
+  author: devfloor9
+reading_time: 8
 tags:
   - korea
   - ai-law
@@ -13,71 +13,71 @@ tags:
   - isms-p
   - compliance
   - scope:enterprise
-sidebar_label: 한국 AI 기본법
+sidebar_label: Korea AI Basic Act
 ---
 
-## 개요
+## Overview
 
-**인공지능 기본법**은 한국 최초의 포괄적 AI 규제법으로, **2026년 상반기 시행 예정**입니다.
+**Korea AI Framework Act (AI 기본법, Artificial Intelligence Framework Act)** is Korea's first comprehensive AI regulation law, **expected to be enforced in H1 2026**.
 
-**입법 배경:**
-- 과학기술정보통신부 주도
-- 2025년 국회 통과 (예정)
-- EU AI Act를 참고하되 한국 실정에 맞게 조정
-
----
-
-## 핵심 조항
-
-### 1. 고영향 AI 시스템 지정
-
-**정의**: 사람의 생명·안전·권리에 중대한 영향을 미치는 AI
-
-**예시:**
-- 채용·승진 결정 지원 시스템
-- 신용 평가·대출 심사
-- 의료 진단 보조
-- 범죄 예측·양형 지원
-
-**의무사항:**
-- 사전 영향 평가 실시
-- 사용자에게 AI 사용 사실 고지
-- 의사결정 과정 설명 의무
+**Legislative Background:**
+- Led by Ministry of Science and ICT
+- Expected to pass National Assembly in 2025
+- References EU AI Act while adapting to Korean circumstances
 
 ---
 
-### 2. 생성형 AI 표시 의무
+## Core Provisions
 
-**대상**: 텍스트·이미지·동영상·코드 생성 AI
+### 1. High-Impact AI System Designation
 
-**의무 내용:**
-- AI가 생성한 콘텐츠임을 **명확히 표시**
-- 워터마크 또는 메타데이터 삽입 권장
+**Definition**: AI that significantly impacts human life, safety, and rights
 
-**AIDLC 대응:**
+**Examples:**
+- Recruitment and promotion decision support systems
+- Credit scoring and loan review
+- Medical diagnosis assistance
+- Crime prediction and sentencing support
+
+**Obligations:**
+- Conduct pre-deployment impact assessment
+- Inform users of AI usage
+- Explain decision-making process
+
+---
+
+### 2. Generative AI Labeling Obligation
+
+**Target**: Text, image, video, code generation AI
+
+**Obligation Content:**
+- **Clearly label** AI-generated content
+- Watermark or metadata insertion recommended
+
+**AIDLC Response:**
 ```python
 # AI-GENERATED: Claude 3.7 Sonnet (2026-04-18)
-# PROMPT: "사용자 인증 API 엔드포인트 구현"
+# PROMPT: "Implement user authentication API endpoint"
 # REVIEW: @senior-developer (2026-04-18)
 
 @app.post("/auth/login")
 def login(credentials: LoginRequest):
-    # 생성된 코드...
+    # Generated code...
 ```
 
 ---
 
-### 3. 영향 평가
+### 3. Impact Assessment
 
-**대상**: 고영향 AI 시스템 도입 전
+**Target**: Before deploying high-impact AI systems
 
-**평가 항목:**
-- 위험 요인 (편향, 프라이버시 침해)
-- 완화 조치
-- 대체 수단 검토
-- 사후 모니터링 계획
+**Assessment Items:**
+- Risk factors (bias, privacy violations)
+- Mitigation measures
+- Alternative approaches review
+- Post-deployment monitoring plan
 
-**AIDLC 매핑**: Inception → Requirements Analysis (NFR 충족 여부)
+**AIDLC Mapping**: Inception → Requirements Analysis (NFR fulfillment check)
 
 ```yaml
 # .aidlc/compliance/korea-impact-assessment.yaml
@@ -85,45 +85,45 @@ impact_assessment:
   project: payment-service-v2
   assessment_date: 2026-04-18
 
-  # 고영향 AI 판정
+  # High-impact AI determination
   high_impact: false
-  rationale: "개발 도구로 사용, 최종 결정은 개발자"
+  rationale: "Used as development tool, final decisions by developers"
 
-  # 위험 요인
+  # Risk factors
   risk_factors:
-    - factor: "생성 코드 보안 취약점"
+    - factor: "Security vulnerabilities in generated code"
       severity: medium
-      mitigation: "SAST 자동 스캔 + 독립 리뷰"
+      mitigation: "Automated SAST scanning + independent review"
 
-    - factor: "PII 노출"
+    - factor: "PII exposure"
       severity: high
-      mitigation: "Guardrails 필터 + 로그 마스킹"
+      mitigation: "Guardrails filtering + log masking"
 
-  # 사후 모니터링
+  # Post-deployment monitoring
   post_monitoring:
     frequency: daily
     metrics:
-      - "보안 취약점 탐지율"
-      - "코드 품질 메트릭"
+      - "Security vulnerability detection rate"
+      - "Code quality metrics"
 ```
 
 ---
 
-### 4. 사후 관리
+### 4. Post-Deployment Management
 
-**의무 내용:**
-- 배포 후 **지속적 모니터링**
-- 오작동·편향 발견 시 **즉시 시정**
-- 중대 사고 발생 시 **과기정통부에 보고**
+**Obligations:**
+- **Continuous monitoring** after deployment
+- **Immediate correction** when malfunction or bias detected
+- **Report to Ministry of Science and ICT** for major incidents
 
-**AIDLC 매핑**: Operations → Post-market monitoring
+**AIDLC Mapping**: Operations → Post-market monitoring
 
 ```yaml
 # .aidlc/monitoring/korea-post-market.yaml
 post_market_monitoring:
   responsible_party: "AI Governance Team"
 
-  # 지속적 모니터링
+  # Continuous monitoring
   monitoring:
     frequency: daily
     metrics:
@@ -132,102 +132,102 @@ post_market_monitoring:
       - name: "security_vulnerabilities"
         target: "0 critical"
 
-  # 시정 조치
+  # Corrective action
   corrective_action:
-    sla: 7d  # 오작동 발견 시 7일 이내 시정
-    escalation: "중대 사고 시 과기정통부 보고"
+    sla: 7d  # Correct within 7 days of malfunction detection
+    escalation: "Report to Ministry of Science and ICT for major incidents"
 ```
 
 ---
 
-## 개인정보보호법(PIPA)과의 교차
+## Cross-Compliance with PIPA (Personal Information Protection Act)
 
-**PIPA (Personal Information Protection Act)**와 AI 기본법은 **상호 보완**:
+**PIPA** and **Korea AI Basic Act** are **mutually complementary**:
 
-| 항목 | PIPA | AI 기본법 |
+| Item | PIPA | Korea AI Basic Act |
 |------|------|-----------|
-| **적용 대상** | 개인정보 처리 전반 | AI 시스템 특화 |
-| **프로파일링** | 동의 필요 (Art. 15) | 고영향 AI 시 영향 평가 추가 |
-| **자동화 결정** | 거부권 보장 (Art. 37-2) | 설명 의무 (AI 기본법) |
-| **책임** | 정보 주체 권리 중심 | AI 시스템 안전성 중심 |
+| **Scope** | Overall personal information processing | AI system-specific |
+| **Profiling** | Consent required (Art. 15) | Additional impact assessment for high-impact AI |
+| **Automated Decisions** | Right to refuse guaranteed (Art. 37-2) | Explanation obligation (AI Basic Act) |
+| **Accountability** | Data subject rights-centered | AI system safety-centered |
 
-**AIDLC 대응**: 개인정보 처리 시 PIPA + AI 기본법 **동시 준수** 필요
+**AIDLC Response**: **Simultaneous compliance** with PIPA + Korea AI Basic Act required when processing personal information
 
 ```yaml
 # .aidlc/compliance/korea-privacy.yaml
 privacy_compliance:
-  # PIPA 준수
+  # PIPA compliance
   pipa:
-    consent: "명시적 동의 획득"
-    data_minimization: "최소한의 개인정보만 수집"
-    purpose_limitation: "수집 목적 외 사용 금지"
+    consent: "Obtain explicit consent"
+    data_minimization: "Collect minimal personal information only"
+    purpose_limitation: "Prohibit use beyond collection purpose"
 
-  # AI 기본법 준수
+  # Korea AI Basic Act compliance
   ai_law:
-    transparency: "AI 사용 사실 고지"
-    explainability: "의사결정 과정 설명"
-    human_oversight: "중요 결정 인간 승인"
+    transparency: "Inform AI usage"
+    explainability: "Explain decision-making process"
+    human_oversight: "Human approval for critical decisions"
 ```
 
 ---
 
-## ISMS-P와의 연계
+## Integration with ISMS-P
 
-**ISMS-P (정보보호 및 개인정보보호 관리체계)** 인증 보유 조직:
-- AI 기본법 요구사항을 **ISMS-P 관리체계에 통합** 가능
-- 인증 심사 시 AI 시스템 관리 항목 추가 예정 (2026년 이후)
+**ISMS-P (Korea ISMS-Personal Information)** certified organizations:
+- Can **integrate Korea AI Basic Act requirements into ISMS-P management system**
+- AI system management items to be added during certification audit (after 2026)
 
-**통합 운영:**
+**Integrated Operations:**
 ```yaml
 # .aidlc/compliance/korea-isms-p-integration.yaml
 isms_p_integration:
-  # ISMS-P 기존 통제
+  # Existing ISMS-P controls
   existing_controls:
-    - "2.5.1 개인정보 수집·이용"
-    - "2.6.2 개인정보 저장·보관"
-    - "3.1.1 정보보호 정책"
+    - "2.5.1 Personal information collection & use"
+    - "2.6.2 Personal information storage & retention"
+    - "3.1.1 Information security policy"
 
-  # AI 기본법 추가 통제
+  # Korea AI Basic Act additional controls
   ai_controls:
-    - control: "고영향 AI 영향 평가"
-      mapping: "ISMS-P 2.1.2 위험 관리"
+    - control: "High-impact AI impact assessment"
+      mapping: "ISMS-P 2.1.2 Risk management"
 
-    - control: "생성형 AI 표시 의무"
-      mapping: "ISMS-P 2.5.6 정보 주체 권리"
+    - control: "Generative AI labeling obligation"
+      mapping: "ISMS-P 2.5.6 Data subject rights"
 
-    - control: "AI 시스템 사후 관리"
-      mapping: "ISMS-P 3.2.1 모니터링"
+    - control: "AI system post-deployment management"
+      mapping: "ISMS-P 3.2.1 Monitoring"
 ```
 
 ---
 
-## AIDLC 통합 체크리스트
+## AIDLC Integration Checklist
 
-### Inception 단계
-- [ ] 고영향 AI 시스템 판정
-- [ ] 영향 평가 실시 (위험 식별·완화 전략)
-- [ ] PIPA 개인정보 영향 평가 (해당 시)
+### Inception Stage
+- [ ] High-impact AI system determination
+- [ ] Impact assessment (risk identification & mitigation strategy)
+- [ ] PIPA personal information impact assessment (when applicable)
 
-### Construction 단계
-- [ ] AI 생성 코드에 투명성 표시 (`# AI-GENERATED: ...`)
-- [ ] 독립 리뷰 프로세스 구현
-- [ ] 보안 취약점 자동 스캔 (SAST)
+### Construction Stage
+- [ ] Transparency labeling on AI-generated code (`# AI-GENERATED: ...`)
+- [ ] Independent review process implementation
+- [ ] Automated security vulnerability scanning (SAST)
 
-### Operations 단계
-- [ ] 지속적 모니터링 대시보드 운영
-- [ ] 오작동 발견 시 7일 이내 시정
-- [ ] 중대 사고 발생 시 과기정통부 보고
+### Operations Stage
+- [ ] Continuous monitoring dashboard operation
+- [ ] Correct within 7 days of malfunction detection
+- [ ] Report to Ministry of Science and ICT for major incidents
 
 ---
 
-## 참고 자료
+## References
 
-**공식 문서:**
-- [과학기술정보통신부 AI 정책](https://www.msit.go.kr/bbs/list.do?sCode=user&mId=113&mPid=112) (공식 발표 시 업데이트 필요)
-- [개인정보보호법 (PIPA)](https://www.pipc.go.kr/np/default/page.do?mCode=D030010000)
-- [ISMS-P 인증 기준](https://isms.kisa.or.kr/)
+**Official Documents:**
+- [Ministry of Science and ICT AI Policy](https://www.msit.go.kr/bbs/list.do?sCode=user&mId=113&mPid=112) (update needed upon official release)
+- [Personal Information Protection Act (PIPA)](https://www.pipc.go.kr/np/default/page.do?mCode=D030010000)
+- [ISMS-P Certification Standards](https://isms.kisa.or.kr/)
 
-**관련 문서:**
-- [규제 컴플라이언스 개요](../index.md)
-- [거버넌스 프레임워크](../../governance-framework.md)
-- [하네스 엔지니어링](../../../methodology/harness-engineering.md)
+**Related Documentation:**
+- [Regulatory Compliance Overview](../index.md)
+- [Governance Framework](../../governance-framework.md)
+- [Harness Engineering](../../../methodology/harness-engineering.md)

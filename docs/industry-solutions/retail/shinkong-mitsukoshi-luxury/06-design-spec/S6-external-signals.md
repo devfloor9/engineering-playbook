@@ -1,6 +1,6 @@
 ---
-title: S6. 외부 시그널 융합 (Mitsukoshi)
-description: 소셜·기상·환율(JPY/USD/HKD)·관광 4종 융합
+title: S6. External Signal Fusion (Mitsukoshi)
+description: Fusion of 4 external signals — social, weather, FX (JPY/USD/HKD), and tourism
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,31 +16,31 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-## 1. URL · 페르소나
+## 1. URL · Personas
 - `/signals` · P2, P3
 
-## 2. 외부 시그널 4종 (Mitsukoshi 특화)
+## 2. 4 External Signals (Mitsukoshi-specific)
 
-| 종류 | 출처 |
+| Type | Source |
 |---|---|
-| 소셜 | 소홍서·Dcard·인스타·일본 트위터·홍콩 페북 |
-| 기상 | 中央氣象署 (대만) |
-| **환율** (다국가) | JPY/USD/HKD/SGD ↔ TWD 일별 |
-| **관광** | 대만 관광청 입국 외국인 (국적별) |
+| Social | Xiaohongshu · Dcard · Instagram · Japanese Twitter · Hong Kong Facebook |
+| Weather | Central Weather Administration of Taiwan (中央氣象署) |
+| **FX** (multi-country) | JPY/USD/HKD/SGD ↔ TWD daily |
+| **Tourism** | Taiwan Tourism Bureau foreign arrivals (by nationality) |
 
-## 3. 처리 파이프라인
-1. 일별 자사 GMV (점포·BU) 집계
-2. 외부 4종 조인
-3. 상관·시차 분석
-4. 시각화: 시계열 + 히트맵 + 관광 annotation
+## 3. Processing Pipeline
+1. Aggregate first-party GMV by day (store, BU)
+2. Join with 4 external types
+3. Correlation and lag analysis
+4. Visualization: time series + heatmap + tourism annotation
 
-## 4. 출력 UI
-- 시계열 듀얼 축 (외부 + 자사)
-- 카테고리×외부 상관 히트맵
-- 시차 분석 (lag 0~14일)
-- 환율 변동 annotation
+## 4. Output UI
+- Dual-axis time series (external + first-party)
+- Category × external correlation heatmap
+- Lag analysis (lag 0–14 days)
+- FX fluctuation annotation
 
-## 5. 데모 시나리오
-1. 엔저 -10% → 일본인 면세 -25% (시차 7일)
-2. "라이프스타일" 키워드 vs 자사 SKU
-3. 대만 입국 외국인 +20% → Mitsukoshi 외국인 매출 +15%
+## 5. Demo Scenarios
+1. Weak yen -10% → Japanese duty-free -25% (lag 7 days)
+2. "Lifestyle" keyword vs first-party SKU
+3. Taiwan foreign arrivals +20% → Mitsukoshi foreigner revenue +15%

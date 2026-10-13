@@ -1,11 +1,11 @@
 ---
-title: 방화벽·DNS 사전 등록과 TGW 토폴로지
-description: "EKS Hybrid Nodes 도입 시 방화벽·네트워크 조직에 제출할 5존 사전 등록 룰 표, FQDN 와일드카드 미지원 환경 대응, Transit Gateway 토폴로지와 온프레미스 LB 경로 설계를 다룹니다."
+title: Firewall/DNS Pre-Registration and TGW Topology
+description: "Covers a 5-zone pre-registration rule table to submit to firewall and network teams when adopting EKS Hybrid Nodes, handling environments without FQDN wildcard support, Transit Gateway topology, and on-premises LB path design."
 created: "2026-08-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 27
 tags:
   - eks
   - hybrid-node
@@ -18,93 +18,93 @@ keywords:
   - Route 53 Resolver
   - FQDN
   - "602401143452"
-sidebar_label: 방화벽 & TGW 토폴로지
+sidebar_label: Firewall & TGW Topology
 category: hybrid-multicloud
 ---
 
-## 개요
+## Overview
 
-방화벽·네트워크 조직이 분리된 환경에서는 구축 전에 등록 요청서를 제출해야 하며, 누락 항목은 곧 구축 지연입니다. 본 문서는 방화벽 등록 지점을 5개 존으로 구분한 신청서 수준의 룰 표, FQDN 와일드카드 미지원 환경 대응, 그리고 Transit Gateway(TGW) 토폴로지와 온프레미스 LB 경로 설계를 다룹니다.
+When separate teams own firewalls and network routing, deployment depends on submitting complete rule-change requests to each team in advance. This guide groups the required requests into 5 zones and provides tables for identifying traffic direction, protocol, port, source, destination, and purpose. It also covers environments without FQDN wildcard support, Transit Gateway (TGW) topology, and paths through on-premises load balancers.
 
-## 방화벽 등록 5존 구조
+## 5-Zone Firewall Registration Structure
 
-| Zone | 등록 지점 | 관리 주체 (통상) |
+| Zone | Registration point | Owning team (typical) |
 |----|-----------|------------------|
-| A | 온프레미스 방화벽 (상시 운영 룰) | 네트워크·보안팀 |
-| B | AWS 보안 그룹 | 클라우드 플랫폼팀 |
-| C | 온프레미스 → AWS 서비스 엔드포인트 (outbound 도메인) | 네트워크·보안팀 |
-| D | 컨트롤 플레인 ENI 대역·DNS | 양쪽 협의 |
-| E | 권장 추가 룰 (CNI·ICMP) | 네트워크·보안팀 |
+| A | On-premises firewall (ongoing operations rules) | Network/Security team |
+| B | AWS security groups | Cloud platform team |
+| C | On-premises → AWS service endpoints (outbound domains) | Network/Security team |
+| D | Control plane ENI ranges and DNS | Joint agreement |
+| E | Recommended additional rules (CNI, ICMP) | Network/Security team |
 
-### Zone A: 온프레미스 방화벽 상시 운영 룰
+### Zone A: On-Premises Firewall Ongoing Operations Rules
 
-공식 문서의 상시 운영(ongoing operations) 요건을 신청서 형식으로 정리하면 다음과 같습니다.
+Use the following table to prepare the on-premises firewall request for ongoing cluster operations. Each row identifies the traffic direction and the source, destination, protocol, and port to allow.
 
-:::warning API 서버 엔드포인트 모드 전제
-아래 표의 Kubernetes API 서버 목적지(컨트롤 플레인 ENI 서브넷 CIDR)는 **클러스터가 프라이빗 엔드포인트 접근(private endpoint access)으로 구성되어 API 서버가 프라이빗 IP로 해석되는 경우**를 전제로 합니다. 공식 문서는 하이브리드 노드에 프라이빗 또는 퍼블릭 중 하나만 사용할 것을 권장하며, "Public and Private"로 구성하면 VPC 외부의 하이브리드 노드에서는 API 엔드포인트가 **항상 퍼블릭 IP로 해석되어 노드 조인이 실패할 수 있다**고 명시합니다. 퍼블릭 엔드포인트 접근을 사용하는 경우 목적지는 ENI 서브넷 CIDR이 아니라 리전의 퍼블릭 API 엔드포인트가 되므로, 신청 전에 하이브리드 노드에서 실제로 해석되는 API 서버 주소(`nslookup`/`dig`로 확인)에 맞춰 목적지를 결정해야 합니다.
+:::warning API server endpoint mode assumption
+The Kubernetes API server destination in the table below (the control plane ENI subnet CIDRs) assumes the cluster is configured for **private endpoint access, so that the API server resolves to private IPs**. The official documentation recommends using either private *or* public endpoint access for hybrid nodes, and notes that with "Public and Private" the API endpoint **always resolves to public IPs for hybrid nodes outside the VPC, which can prevent nodes from joining**. If you use public endpoint access, the destination is the Region's public API endpoint rather than the ENI subnet CIDRs, so before submitting the request, confirm the API server address the hybrid nodes actually resolve (via `nslookup`/`dig`) and set the destination accordingly.
 :::
 
-| 방향 | 프로토콜/포트 | 출발지 | 목적지 | 사유 |
+| Direction | Protocol/Port | Source | Destination | Reason |
 |------|--------------|--------|--------|------|
-| Outbound | TCP 443 | Node CIDR | EKS 컨트롤 플레인 ENI 서브넷 CIDR | kubelet → Kubernetes API server |
-| Outbound | TCP 443 | Pod CIDR | EKS 컨트롤 플레인 ENI 서브넷 CIDR | Pod → Kubernetes API server |
-| Outbound | TCP 443 | Node CIDR | SSM 서비스 엔드포인트 | SSM 자격 증명 갱신 + 5분 주기 heartbeat (SSM 사용 시) |
-| Outbound | TCP 443 | Node CIDR | IAM Roles Anywhere 엔드포인트 | 자격 증명 갱신 (IAM RA 사용 시) |
-| Outbound | TCP 443 | Pod CIDR | STS 리전 엔드포인트 | IRSA 사용 Pod 한정 |
-| Outbound | TCP 443 | Node CIDR | EKS Auth 엔드포인트 | EKS Pod Identity 사용 시 |
-| **Inbound** | TCP 10250 | EKS 컨트롤 플레인 ENI 서브넷 CIDR | Node CIDR | **Kubernetes API server → kubelet** (`kubectl logs`/`exec`) |
-| **Inbound** | TCP 웹훅 포트 | EKS 컨트롤 플레인 ENI 서브넷 CIDR | Pod CIDR | API server → 웹훅 (하이브리드 노드에서 웹훅 실행 시) |
-| In/Out | TCP·UDP 53 | Pod CIDR | Pod CIDR (+ 클라우드 CoreDNS 배치 시 VPC CIDR) | Pod → CoreDNS |
-| In/Out | 앱 포트 | Pod CIDR | Pod CIDR | Pod 간 통신 |
+| Outbound | TCP 443 | Node CIDR | EKS control plane ENI subnet CIDRs | kubelet → Kubernetes API server |
+| Outbound | TCP 443 | Pod CIDR | EKS control plane ENI subnet CIDRs | Pod → Kubernetes API server |
+| Outbound | TCP 443 | Node CIDR | SSM service endpoints | SSM credential refresh + 5-minute heartbeat (when using SSM) |
+| Outbound | TCP 443 | Node CIDR | IAM Roles Anywhere endpoints | Credential refresh (when using IAM RA) |
+| Outbound | TCP 443 | Pod CIDR | STS regional endpoint | Only for Pods using IRSA |
+| Outbound | TCP 443 | Node CIDR | EKS Auth endpoint | When using EKS Pod Identity |
+| **Inbound** | TCP 10250 | EKS control plane ENI subnet CIDRs | Node CIDR | **Kubernetes API server → kubelet** (`kubectl logs`/`exec`) |
+| **Inbound** | TCP webhook ports | EKS control plane ENI subnet CIDRs | Pod CIDR | API server → webhooks (when running webhooks on hybrid nodes) |
+| In/Out | TCP/UDP 53 | Pod CIDR | Pod CIDR (+ VPC CIDR if CoreDNS runs in the cloud) | Pod → CoreDNS |
+| In/Out | App ports | Pod CIDR | Pod CIDR | Pod-to-Pod communication |
 
-:::warning 방향에 주의
-TCP 10250은 **AWS(컨트롤 플레인)에서 온프레미스로 들어오는 inbound**입니다. "쿠버네티스 포트니까 나가는 방향"으로 신청하는 실수가 잦으며, 이 경우 노드 등록은 성공하지만 `kubectl logs`/`exec`가 timeout으로 실패합니다. 또한 TCP 443은 온프레미스에서 나가는 outbound이며 "양방향"이 아닙니다. EKS 관리형 Kubernetes API 서버 엔드포인트는 6443이 아니라 **TCP 443**을 사용하므로, API 서버 접근 목적으로 6443을 신청할 필요는 없습니다. 다만 워크로드나 어드미션 웹훅이 자체적으로 6443을 수신 포트로 사용할 수 있으므로, 6443이 필요한지는 해당 백엔드 Service의 `targetPort`/리스너를 확인해 판단합니다.
+:::warning Watch the direction
+TCP 10250 is **inbound from AWS (control plane) into on-premises**. A common mistake is to request it as outbound "because it is a Kubernetes port"; in that case node registration succeeds but `kubectl logs`/`exec` fails with a timeout. Also, TCP 443 is outbound from on-premises and is not "bidirectional". The EKS managed Kubernetes API server endpoint uses **TCP 443**, not 6443, so you do not need to request 6443 for API server access. Workloads or admission webhooks may, however, listen on 6443 themselves, so decide whether 6443 is needed by checking the backend Service's `targetPort`/listener.
 :::
 
-웹훅 포트는 애드온마다 다릅니다(예: 443, 8443, 9443). 배포 예정 애드온의 웹훅 Service 정의를 확인해 목록을 확정합니다. Hybrid Nodes Gateway를 사용하면 웹훅 inbound 룰과 Pod CIDR 관련 온프렘 룰이 불필요해지는 대신 **UDP 8472(게이트웨이 노드 IP ↔ 하이브리드 노드 IP, 양방향)** 룰이 추가됩니다.
+Webhook ports vary by add-on (e.g., 443, 8443, 9443). Check the webhook Service definitions of the add-ons you plan to deploy to finalize the list. When using the Hybrid Nodes Gateway, the webhook inbound rules and the on-premises rules related to the Pod CIDR become unnecessary; instead, a **UDP 8472 rule (gateway node IPs ↔ hybrid node IPs, bidirectional)** is added.
 
-방화벽이 stateful(연결 추적 기반)이라는 전제로 응답 패킷 룰은 생략했습니다. stateless ACL 장비가 경로에 있다면 역방향 ephemeral 포트 룰이 별도로 필요합니다.
+Response-packet rules are omitted under the assumption that the firewall is stateful (connection-tracking based). If a stateless ACL device is on the path, separate reverse-direction ephemeral port rules are required.
 
-### Zone B: AWS 보안 그룹
+### Zone B: AWS Security Groups
 
-EKS는 원격 네트워크가 구성된 클러스터의 **inbound 규칙을 자동 생성**합니다. outbound는 SG 기본값(전체 허용)에 의존하므로, outbound를 제한 운영하는 조직은 아래 규칙을 명시적으로 등록해야 합니다.
+EKS **automatically creates the inbound rules** for clusters with remote networks configured. Outbound relies on the SG default (allow all), so organizations that restrict outbound must register the rules below explicitly.
 
-| 방향 | 프로토콜/포트 | 대상 | 사유 | 생성 주체 |
+| Direction | Protocol/Port | Target | Reason | Created by |
 |------|--------------|------|------|-----------|
-| Inbound | TCP 443 | Node CIDR | kubelet → API server | EKS 자동 생성 |
-| Inbound | TCP 443 | Pod CIDR | Pod → API server (CNI NAT 미사용 시) | EKS 자동 생성 |
-| Outbound | TCP 10250 | Node CIDR | API server → kubelet | **수동 등록** (제한 운영 시) |
-| Outbound | TCP 웹훅 포트 | Pod CIDR | API server → 웹훅 | **수동 등록** (제한 운영 시) |
-| In+Out | UDP 8472 | 게이트웨이 노드 ↔ 하이브리드 노드 | VXLAN (Gateway 사용 시, 게이트웨이 SG) | 수동 등록 |
+| Inbound | TCP 443 | Node CIDR | kubelet → API server | Auto-created by EKS |
+| Inbound | TCP 443 | Pod CIDR | Pod → API server (when CNI NAT is not used) | Auto-created by EKS |
+| Outbound | TCP 10250 | Node CIDR | API server → kubelet | **Manual registration** (if outbound is restricted) |
+| Outbound | TCP webhook ports | Pod CIDR | API server → webhooks | **Manual registration** (if outbound is restricted) |
+| In+Out | UDP 8472 | Gateway nodes ↔ hybrid nodes | VXLAN (when using the Gateway, on the gateway SG) | Manual registration |
 
-운영상 주의 두 가지입니다. ① SG inbound 규칙 기본 한도는 60개로, 한도 근접 시 자동 생성 규칙이 적용되지 않을 수 있어 수동 보완이 필요합니다. ② 클러스터에서 원격 네트워크를 제거해도 EKS는 대응 SG 규칙을 자동 삭제하지 않으므로 정리는 운영자 책임입니다.
+Two operational cautions. (1) The default SG inbound rule quota is 60; when approaching the quota, auto-created rules may fail to apply and manual supplementation is required. (2) When a remote network is removed from the cluster, EKS does not automatically delete the corresponding SG rules — cleanup is the operator's responsibility.
 
-### Zone C: AWS 서비스 엔드포인트 (outbound 도메인)
+### Zone C: AWS Service Endpoints (Outbound Domains)
 
-**설치·업그레이드 시** 필요한 도메인입니다(OS 이미지 빌드 시점에 반영하거나 호스트별 런타임 허용).
+Domains required **during installation and upgrades** (bake them into the OS image at build time or allow at runtime per host).
 
-| 컴포넌트 | URL | 포트 |
+| Component | URL | Port |
 |----------|-----|------|
-| EKS 노드 아티팩트 (S3) | `hybrid-assets.eks.amazonaws.com` | TCP 443 |
-| EKS 서비스 | `eks.<region>.amazonaws.com` | TCP 443 |
+| EKS node artifacts (S3) | `hybrid-assets.eks.amazonaws.com` | TCP 443 |
+| EKS service | `eks.<region>.amazonaws.com` | TCP 443 |
 | ECR API | `api.ecr.<region>.amazonaws.com` | TCP 443 |
-| EKS 애드온 이미지 레지스트리 | 리전별 상이 — 아래 [와일드카드 미지원 대응](#fqdn-와일드카드-미지원-환경-대응) 참조 | TCP 443 |
-| SSM 바이너리 | `amazon-ssm-<region>.s3.<region>.amazonaws.com` (SSM 사용 시) | TCP 443 |
-| SSM 서비스 | `ssm.<region>.amazonaws.com` (SSM 사용 시) | TCP 443 |
-| IAM Roles Anywhere 바이너리 | `rolesanywhere.amazonaws.com` (IAM RA 사용 시) | TCP 443 |
-| IAM Roles Anywhere 서비스 | `rolesanywhere.<region>.amazonaws.com` (IAM RA 사용 시) | TCP 443 |
-| OS 패키지 저장소 | OS·지역별 상이 (yum/apt/snap 저장소) | TCP 443 |
+| EKS add-on image registry | Varies by region — see [Handling missing wildcard support](#handling-environments-without-fqdn-wildcard-support) below | TCP 443 |
+| SSM binaries | `amazon-ssm-<region>.s3.<region>.amazonaws.com` (when using SSM) | TCP 443 |
+| SSM service | `ssm.<region>.amazonaws.com` (when using SSM) | TCP 443 |
+| IAM Roles Anywhere binaries | `rolesanywhere.amazonaws.com` (when using IAM RA) | TCP 443 |
+| IAM Roles Anywhere service | `rolesanywhere.<region>.amazonaws.com` (when using IAM RA) | TCP 443 |
+| OS package repositories | Varies by OS and region (yum/apt/snap repositories) | TCP 443 |
 
-**상시 운영 시**에는 Zone A 표의 자격 증명 엔드포인트(ssm/rolesanywhere/sts/eks-auth)와 `eks.<region>` 접근이 유지되어야 합니다. Cilium·Gateway 차트를 사용하는 경우 `public.ecr.aws`(Amazon ECR Public)도 허용 대상입니다.
+**For ongoing operations**, access to the credential endpoints in the Zone A table (ssm/rolesanywhere/sts/eks-auth) and `eks.<region>` must be maintained. When using the Cilium and Gateway charts, `public.ecr.aws` (Amazon ECR Public) must also be allowed.
 
-### Zone D: 컨트롤 플레인 ENI 대역과 DNS
+### Zone D: Control Plane ENI Ranges and DNS
 
-**ENI IP는 고정이 아닙니다.** 클러스터 업그레이드 등 변경 시 기존 ENI가 삭제·재생성되므로 개별 IP 단위 방화벽 등록은 반드시 깨집니다. [CIDR 설계의 전용 서브넷 전략](./cidr-network-design.md#컨트롤-플레인-eni-전용-서브넷-전략)대로 /28 전용 서브넷 2개를 클러스터에 전달하고, 방화벽에는 **서브넷 CIDR 2개를 등록**합니다.
+**ENI IPs are not fixed.** During cluster upgrades and similar changes, existing ENIs are deleted and recreated, so firewall registration at the individual IP level will inevitably break. Following the [dedicated subnet strategy in the CIDR design document](./cidr-network-design.md#dedicated-control-plane-eni-subnet-strategy), pass two dedicated /28 subnets to the cluster and register **the two subnet CIDRs** in the firewall.
 
-**DNS**: 온프레미스 노드가 AWS 내부 도메인(프라이빗 엔드포인트 등)을 조회해야 하면 Route 53 Resolver inbound endpoint를 VPC에 배치하고 온프레미스 DNS가 해당 존을 포워딩하도록 구성합니다. 반대로 클라우드 Pod가 온프레미스 도메인(사내 레지스트리 등)을 조회해야 하면 outbound endpoint + forward rule을 구성합니다.
+**DNS**: If on-premises nodes need to resolve AWS internal domains (private endpoints, etc.), place a Route 53 Resolver inbound endpoint in the VPC and configure the on-premises DNS to forward those zones. Conversely, if cloud Pods need to resolve on-premises domains (internal registries, etc.), configure an outbound endpoint plus a forward rule.
 
 ```bash
-# inbound endpoint (온프렘 → AWS 조회)
+# inbound endpoint (on-prem → AWS resolution)
 aws route53resolver create-resolver-endpoint \
   --creator-request-id hybrid-inbound-001 \
   --name hybrid-inbound-endpoint \
@@ -112,8 +112,8 @@ aws route53resolver create-resolver-endpoint \
   --direction INBOUND \
   --ip-addresses SubnetId=subnet-xxxxx SubnetId=subnet-yyyyy
 
-# outbound endpoint 생성 (AWS → 온프렘 조회를 내보내는 출발지 IP)
-# 포워딩 룰은 outbound endpoint가 먼저 존재해야 하며, 생성된 endpoint ID를 아래 룰의 --resolver-endpoint-id에 사용합니다.
+# outbound endpoint (the source IPs that send AWS → on-prem queries)
+# A forwarding rule requires an outbound endpoint to exist first; use the created endpoint ID in the rule's --resolver-endpoint-id below.
 aws route53resolver create-resolver-endpoint \
   --creator-request-id hybrid-outbound-001 \
   --name hybrid-outbound-endpoint \
@@ -121,7 +121,7 @@ aws route53resolver create-resolver-endpoint \
   --direction OUTBOUND \
   --ip-addresses SubnetId=subnet-xxxxx SubnetId=subnet-yyyyy
 
-# 사내 도메인 포워딩 룰 생성 (위에서 만든 outbound endpoint ID 지정)
+# internal domain forwarding rule (reference the outbound endpoint ID created above)
 aws route53resolver create-resolver-rule \
   --creator-request-id hybrid-fwd-001 \
   --name on-prem-dns-rule \
@@ -130,102 +130,102 @@ aws route53resolver create-resolver-rule \
   --target-ips Ip=192.168.1.53,Port=53 \
   --resolver-endpoint-id rslvr-out-xxxxx
 
-# 룰을 VPC에 연결해야 비로소 포워딩이 적용됩니다 (이 단계가 빠지면 룰은 생성되어도 동작하지 않습니다).
+# The rule only takes effect once associated with the VPC (skip this and the rule exists but does nothing).
 aws route53resolver associate-resolver-rule \
   --resolver-rule-id rslvr-rr-xxxxx \
   --vpc-id vpc-xxxxx
 
-# 적용 후 VPC 내부에서 대상 도메인 조회가 온프렘 리졸버로 포워딩되는지 확인합니다.
-# (예: VPC 내 인스턴스에서 `dig company.local` 결과가 온프렘 응답과 일치하는지 점검)
+# After applying, verify from inside the VPC that queries for the target domain are forwarded to the on-prem resolver
+# (e.g., check that `dig company.local` from a VPC instance matches the on-prem answer).
 ```
 
-Resolver endpoint IP도 방화벽 대상(TCP·UDP 53)이므로 Zone A 신청서에 포함합니다.
+Resolver endpoint IPs are also firewall targets (TCP/UDP 53), so include them in the Zone A application.
 
-### Zone E: 권장 추가 룰
+### Zone E: Recommended Additional Rules
 
-| 항목 | 룰 | 사유 |
+| Item | Rule | Reason |
 |------|-----|------|
-| CNI 자체 포트 | Cilium: 노드 간 UDP 8472(VXLAN)·TCP 4240(health)·ICMP echo / Calico: TCP 179(BGP) 등 | 공식 문서가 CNI별 포트의 별도 허용을 요구 — 각 CNI 문서 기준으로 확정 |
-| PMTUD | ICMP Type 3 Code 4 (Fragmentation Needed) 허용 | 오버레이 캡슐화로 유효 MTU가 줄어드는 환경에서 경로 MTU 탐색 실패 시 대용량 응답이 조용히 유실됨 |
-| 모니터링 | 관측 스택의 스크래핑 경로 (예: AMP·Prometheus → Pod CIDR) | 관측 대상·도구별로 확정 |
+| CNI-specific ports | Cilium: node-to-node UDP 8472 (VXLAN), TCP 4240 (health), ICMP echo / Calico: TCP 179 (BGP), etc. | The official documentation requires separately allowing CNI-specific ports — finalize based on each CNI's documentation |
+| PMTUD | Allow ICMP Type 3 Code 4 (Fragmentation Needed) | In environments where overlay encapsulation reduces the effective MTU, large responses are silently dropped if path MTU discovery fails |
+| Monitoring | Scraping paths of the observability stack (e.g., AMP/Prometheus → Pod CIDR) | Finalize per observability target and tool |
 
-## FQDN 와일드카드 미지원 환경 대응
+## Handling Environments Without FQDN Wildcard Support
 
-FQDN 방화벽이 와일드카드(`*.amazonaws.com`)를 지원하지 않는 환경에서는 도메인을 개별 열거해야 합니다. 아래 표는 us-west-2 리전 기준 구체 값이며, 각 행은 **사용하는 기능·인증 방식에 따라 조건부**입니다. 예를 들어 STS 행은 IRSA, EKS Auth 행은 EKS Pod Identity를 사용할 때만 필요합니다. 또한 API 계층(`eks`/`api.ecr`), 이미지 레지스트리 계층(`*.dkr.ecr`·`public.ecr.aws`), S3 레이어 다운로드(아티팩트·SSM 바이너리)는 서로 다른 엔드포인트이므로 하나로 묶어 신청하지 않습니다.
+In environments where the FQDN firewall does not support wildcards (`*.amazonaws.com`), domains must be enumerated individually. The table below shows concrete values for the us-west-2 region, and each row is **conditional on the features and authentication method you use**. For example, the STS row is only needed with IRSA and the EKS Auth row only with EKS Pod Identity. The API layer (`eks`/`api.ecr`), the image registry layer (`*.dkr.ecr`, `public.ecr.aws`), and S3 layer downloads (artifacts, SSM binaries) are distinct endpoints, so do not request them as a single bundle.
 
-| 용도 | 도메인 (us-west-2) |
+| Purpose | Domain (us-west-2) |
 |------|------------------------|
-| EKS 노드 아티팩트 | `hybrid-assets.eks.amazonaws.com` |
+| EKS node artifacts | `hybrid-assets.eks.amazonaws.com` |
 | EKS API | `eks.us-west-2.amazonaws.com` |
 | ECR API | `api.ecr.us-west-2.amazonaws.com` |
-| **EKS 애드온 이미지 레지스트리** | `602401143452.dkr.ecr.us-west-2.amazonaws.com` |
-| ECR Public (Cilium·Gateway 차트) | `public.ecr.aws` |
+| **EKS add-on image registry** | `602401143452.dkr.ecr.us-west-2.amazonaws.com` |
+| ECR Public (Cilium/Gateway charts) | `public.ecr.aws` |
 | SSM | `ssm.us-west-2.amazonaws.com`, `amazon-ssm-us-west-2.s3.us-west-2.amazonaws.com` |
 | IAM Roles Anywhere | `rolesanywhere.us-west-2.amazonaws.com`, `rolesanywhere.amazonaws.com` |
-| STS (IRSA 시) | `sts.us-west-2.amazonaws.com` |
-| EKS Auth (Pod Identity 사용 시) | `eks-auth.us-west-2.amazonaws.com` |
+| STS (for IRSA) | `sts.us-west-2.amazonaws.com` |
+| EKS Auth (when using Pod Identity) | `eks-auth.us-west-2.amazonaws.com` |
 
-애드온 레지스트리 계정 ID `602401143452`는 주요 리전 공통이나 **리전별로 다른 계정을 쓰는 리전이 있으므로**(예: ap-southeast-5는 `151610086707`) 대상 리전을 [공식 레지스트리 목록](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html)에서 확인합니다. ECR pull은 이미지 레이어를 S3에서 받는 경우가 있어, FQDN 제어가 엄격한 환경에서는 프라이빗 레지스트리(Harbor) 미러링 또는 ECR PrivateLink(VPC 엔드포인트) 경유가 현실적인 대안입니다. Harbor 구성은 [Harbor 레지스트리 통합](../storage-registry/harbor-registry.md)을 참조합니다.
+The add-on registry account ID `602401143452` is common across major regions, but **some regions use a different account** (e.g., ap-southeast-5 uses `151610086707`), so verify your target region in the [official registry list](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html). ECR pulls may fetch image layers from S3, so in environments with strict FQDN control, mirroring through a private registry (Harbor) or going through ECR PrivateLink (VPC endpoints) is a practical alternative. For Harbor configuration, see [Harbor Registry Integration](../storage-registry/harbor-registry.md).
 
-## 환경별 등록 요청 체크리스트
+## Registration Request Checklist per Environment
 
-dev/stg/prd 환경마다 아래 값을 채워 신청서를 작성합니다.
+Fill in the values below for each dev/stg/prd environment to prepare the application.
 
-- [ ] Node CIDR (환경별 온프레미스 대역)
-- [ ] Pod CIDR (Gateway 미사용 시에만 온프렘 등록 필요)
-- [ ] EKS 컨트롤 플레인 ENI 전용 서브넷 CIDR ×2
-- [ ] Zone A 상시 룰 표 (방향 검증 완료본)
-- [ ] Zone C 도메인 목록 (인증 방식에 따라 SSM 또는 IAM RA 행 선택)
-- [ ] Gateway 사용 시: UDP 8472 룰 (게이트웨이 노드 IP 또는 게이트웨이 서브넷 CIDR ↔ Node CIDR)
-- [ ] Route 53 Resolver endpoint IP (DNS 연동 시)
-- [ ] 웹훅 포트 목록 (하이브리드 노드에서 웹훅 실행 시)
+- [ ] Node CIDR (per-environment on-premises range)
+- [ ] Pod CIDR (on-premises registration required only when the Gateway is not used)
+- [ ] EKS control plane ENI dedicated subnet CIDRs ×2
+- [ ] Zone A ongoing rule table (direction-verified version)
+- [ ] Zone C domain list (select SSM or IAM RA rows depending on the authentication method)
+- [ ] When using the Gateway: UDP 8472 rule (gateway node IPs or gateway subnet CIDR ↔ Node CIDR)
+- [ ] Route 53 Resolver endpoint IPs (when integrating DNS)
+- [ ] Webhook port list (when running webhooks on hybrid nodes)
 
-## TGW 토폴로지
+## TGW Topology
 
-### TGW 기반 하이브리드 연결 구조
+### TGW-Based Hybrid Connectivity Structure
 
-공식 네트워킹 가이드는 VGW와 함께 TGW를 표준 연결 옵션으로 다룹니다. TGW 토폴로지에서 점검할 항목은 세 가지입니다.
+The official networking guide covers TGW alongside VGW as a standard connectivity option. Three items must be checked in a TGW topology.
 
-1. **VPC 라우트 테이블**: Node CIDR(및 풀 라우팅 시 Pod CIDR) 목적지 경로의 타겟은 **TGW ID(`tgw-...`)**여야 합니다. 공식 예시도 VPC 라우트의 타겟을 TGW ID로 지정합니다. "attachment"는 TGW 라우트 테이블 내부에서 사용하는 타겟(TGW VPC attachment)이며, VPC 라우트 테이블의 타겟과 혼동하지 않습니다.
-2. **TGW 라우트 테이블**: 온프레미스 방향 attachment(DX Gateway 또는 VPN)로 Node/Pod CIDR가 전파(propagation) 또는 정적 등록되어야 하고, 역방향으로 VPC CIDR가 온프레미스 측에 광고되어야 합니다.
-3. **멀티 계정**: 환경별 계정 분리 구조에서는 TGW를 Resource Access Manager(RAM)로 공유하고, TGW 라우트 테이블 격리 정책(환경 간 라우팅 차단 여부)을 명시적으로 설계합니다.
+1. **VPC route tables**: Routes destined for the Node CIDR (and the Pod CIDR when using full routing) must target the **TGW ID (`tgw-...`)**. The official example also sets the VPC route target to the TGW ID. "Attachment" is the target used *inside* the TGW route tables (the TGW VPC attachment) — do not confuse it with the VPC route table target.
+2. **TGW route tables**: The Node/Pod CIDRs must be propagated or statically registered toward the on-premises-facing attachment (DX Gateway or VPN), and in the reverse direction the VPC CIDR must be advertised to the on-premises side.
+3. **Multi-account**: In structures with per-environment account separation, share the TGW via Resource Access Manager (RAM) and explicitly design the TGW route table isolation policy (whether routing between environments is blocked).
 
-### Gateway와 TGW의 상호작용
+### Interaction Between the Gateway and TGW
 
-Hybrid Nodes Gateway는 TGW 환경에서 문제없이 동작하며, 오히려 TGW 측 관리 항목을 줄입니다.
+The Hybrid Nodes Gateway works without issues in a TGW environment and in fact reduces the items to manage on the TGW side.
 
-- **Pod CIDR은 TGW 라우트에서 제외됩니다.** Gateway가 VPC 라우트 테이블에 "Pod CIDR → leader ENI" 경로를 관리하므로, TGW·온프레미스 라우터는 Pod CIDR을 알 필요가 없습니다.
-- **VXLAN 트래픽은 노드 IP 간 UDP 8472**로 TGW를 통과합니다. TGW에는 Node CIDR ↔ VPC CIDR 경로만 있으면 됩니다.
-- Gateway의 `routeTableIDs`에는 TGW attachment 서브넷을 포함해 **하이브리드 Pod와 통신하는 모든 서브넷의 라우트 테이블**을 열거해야 합니다.
+- **The Pod CIDR is excluded from TGW routes.** The Gateway manages the "Pod CIDR → leader ENI" routes in the VPC route tables, so the TGW and on-premises routers do not need to know about the Pod CIDR.
+- **VXLAN traffic traverses the TGW as UDP 8472 between node IPs.** The TGW only needs Node CIDR ↔ VPC CIDR routes.
+- The Gateway's `routeTableIDs` must enumerate **the route tables of all subnets that communicate with hybrid Pods**, including the TGW attachment subnets.
 
-### 온프레미스 LB → 클라우드 Pod(DR) 경로
+### On-Premises LB → Cloud Pod (DR) Path
 
-온프레미스 로드밸런서가 AWS에서 실행 중인 DR Pod로 트래픽을 보내는 구성은 가능합니다. 핵심은 클라우드 Pod의 IP 특성입니다.
+A configuration where an on-premises load balancer sends traffic to DR Pods running in AWS is possible. The key is the IP characteristics of cloud Pods.
 
-- 클라우드 노드의 Pod는 VPC CNI가 **VPC 대역의 IP를 직접 할당**하므로, 온프레미스에서 VPC CIDR로의 라우팅(TGW 경유)만 확보되면 Pod IP가 직접 도달 가능합니다.
-- 단 Pod IP는 재스케줄링 시 변경되므로 LB 타겟으로 Pod IP를 정적 등록하는 방식은 취약합니다. **NLB/ALB(내부형)를 AWS 측에 두고 온프레미스 LB는 NLB/ALB의 안정적 엔드포인트를 타겟**으로 하는 계층 구성이 권장됩니다.
-- 보안 그룹에서 온프레미스 LB 대역(또는 Node CIDR)의 inbound를 해당 포트로 허용해야 하며, 헬스 체크 경로·포트도 동일하게 허용 대상입니다.
+- Pods on cloud nodes are **directly assigned IPs from the VPC range** by the VPC CNI, so as long as routing from on-premises to the VPC CIDR (via TGW) is in place, Pod IPs are directly reachable.
+- However, Pod IPs change on rescheduling, so statically registering Pod IPs as LB targets is fragile. A layered configuration is recommended: **place an internal NLB/ALB on the AWS side and have the on-premises LB target the NLB/ALB's stable endpoint**.
+- The security group must allow inbound from the on-premises LB range (or the Node CIDR) on the relevant ports, and the health check path and port must be allowed the same way.
 
-반대 방향(AWS LB → 온프레미스 하이브리드 Pod IP 타겟)은 Pod CIDR 라우팅 또는 Gateway가 전제 조건입니다([기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙) 참조).
+The reverse direction (AWS LB → on-premises hybrid Pod IP targets) requires Pod CIDR routing or the Gateway as a prerequisite (see the [feature table](../overview-architecture/hybrid-nodes-fundamentals.md#node-cidr-required-pod-cidr-optional-principle)).
 
-## 권장 사항 요약
+## Summary of Recommendations
 
-- 방화벽 신청은 5존(온프렘 룰·SG·엔드포인트·ENI 대역·권장 룰)으로 구조화해 관리 주체별로 분리 제출합니다.
-- TCP 10250의 방향(AWS → 온프렘 inbound)을 신청서에서 반드시 재검증합니다 — 가장 잦은 실수 지점입니다.
-- 컨트롤 플레인 ENI는 개별 IP가 아닌 전용 /28 서브넷 CIDR 2개 단위로 등록합니다.
-- FQDN 와일드카드 미지원 환경은 리전별 애드온 레지스트리 계정 ID를 공식 목록에서 확인해 개별 등록하고, 장기적으로 Harbor 미러링 또는 ECR PrivateLink를 검토합니다.
-- TGW 멀티 계정 구조에서는 RAM 공유와 라우트 테이블 격리 정책을 설계 단계에서 확정합니다.
-- 온프렘 LB → 클라우드 워크로드 경로는 Pod IP 직접 타겟 대신 내부형 NLB/ALB를 경유시킵니다.
+- Structure firewall applications into 5 zones (on-prem rules, SG, endpoints, ENI ranges, recommended rules) and submit them separately per owning team.
+- Always re-verify the direction of TCP 10250 (AWS → on-prem inbound) in the application — it is the most frequent mistake.
+- Register control plane ENIs as two dedicated /28 subnet CIDRs, not as individual IPs.
+- In environments without FQDN wildcard support, verify the per-region add-on registry account ID in the official list and register domains individually; consider Harbor mirroring or ECR PrivateLink in the long term.
+- In multi-account TGW structures, finalize RAM sharing and the route table isolation policy at the design stage.
+- For on-prem LB → cloud workload paths, route through an internal NLB/ALB instead of targeting Pod IPs directly.
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html) — 방화벽·SG 규칙, 엔드포인트 목록
-- [View Amazon container image registries for Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html) — 리전별 애드온 레지스트리 계정 ID
-- [Configure webhooks for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-webhooks.html) — 웹훅 포트와 배치 전략
+### Official Documentation
+- [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html) — Firewall/SG rules and endpoint list
+- [View Amazon container image registries for Amazon EKS add-ons](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html) — Per-region add-on registry account IDs
+- [Configure webhooks for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-webhooks.html) — Webhook ports and placement strategy
 
-### 관련 문서 (내부)
-- [CIDR 설계와 대역 최소화](./cidr-network-design.md) — ENI 전용 서브넷 전략과 신청 대역 산정
-- [Hybrid Nodes Gateway 구축과 운영](./hybrid-nodes-gateway.md) — UDP 8472 룰이 필요한 Gateway 구성
-- [노드 인증 방식](../security-authn/node-authentication.md) — 인증 방식별 방화벽 대상 엔드포인트 차이
-- [Harbor 레지스트리 통합](../storage-registry/harbor-registry.md) — FQDN 제한 환경의 프라이빗 레지스트리 대안
+### Related Documents (Internal)
+- [CIDR Design and Range Minimization](./cidr-network-design.md) — Dedicated ENI subnet strategy and sizing of ranges to request
+- [Hybrid Nodes Gateway Deployment and Operations](./hybrid-nodes-gateway.md) — Gateway configuration requiring the UDP 8472 rule
+- [Node Authentication Methods](../security-authn/node-authentication.md) — Firewall endpoint differences per authentication method
+- [Harbor Registry Integration](../storage-registry/harbor-registry.md) — Private registry alternative for FQDN-restricted environments

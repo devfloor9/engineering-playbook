@@ -1,11 +1,11 @@
 ---
-title: 인프라 성능 벤치마크
-description: EKS 클러스터 인프라 성능 벤치마크 - 네트워크, DNS, 오토스케일링
-created: "2026-02-09"
+title: Infrastructure Performance Benchmark
+description: EKS cluster infrastructure performance benchmark - Network, DNS, Autoscaling
+created: "2026-02-11"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 2
+  author: devfloor9
+reading_time: 3
 tags:
   - benchmark
   - infrastructure
@@ -13,64 +13,64 @@ tags:
   - network
   - dns
   - scope:tech
-sidebar_label: Report 6. 인프라 성능 [예정]
+sidebar_label: Report 6. Infrastructure Performance [Upcoming]
 sidebar_position: 6
 category: benchmarks
 ---
 
-EKS 클러스터 인프라의 네트워크, DNS, 오토스케일링을 비교하기 위한 측정 계획입니다. 아래 항목은 시험 범위이며 이 문서에 실측 결과가 제시된 것은 아닙니다.
+This is a measurement plan for EKS networking, DNS and autoscaling. The items below define test scope; this document does not present measured results.
 
-## 네트워크 성능
+## Network Performance
 
-### Cilium ENI vs VPC CNI 비교
+### Cilium ENI vs VPC CNI Comparison
 
-VPC CNI와 Cilium의 다섯 가지 구성에 대한 과거 요약 기록과 검증 한계는 별도 문서에서 다룹니다.
+A separate document examines historical summaries for five VPC CNI and Cilium configurations and explains their verification limits.
 
-저장된 수치의 의미와 재실험 조건은 [1. CNI 성능 비교](./cni-performance-comparison.md)를 참조하세요. 원본 로그와 적용된 설정이 없어 제품별 성능 순위는 아직 검증되지 않았습니다.
+See [1. CNI Performance Comparison](./cni-performance-comparison.md) for metric definitions and requirements for a new experiment. Raw logs and effective configuration are missing, so a product performance ranking remains unverified.
 
-**기존 스크립트가 요청하는 구성 (5개):**
+**Configurations requested by the historical runner (5):**
 
-- A: VPC CNI 기본 (kube-proxy + iptables)
+- A: VPC CNI Default (kube-proxy + iptables)
 - B: Cilium + kube-proxy (Overlay)
-- C: Cilium kube-proxy-less (eBPF 대체)
-- D: Cilium ENI 모드 (Native Routing)
-- E: Cilium ENI + 추가 옵션 (DSR, native XDP, socket LB 등; 실제 활성화 여부 미검증)
+- C: Cilium kube-proxy-less (eBPF replacement)
+- D: Cilium ENI Mode (Native Routing)
+- E: Cilium ENI with additional options (DSR, native XDP, socket LB, etc.; effective activation unverified)
 
-### Gateway API 성능
+### Gateway API Performance
 
-**측정 항목**
+**Metrics**
 
-- 요청 처리 지연 시간 (P50, P95, P99)
-- 초당 요청 처리량 (RPS)
-- TLS 핸드셰이크 오버헤드
+- Request processing latency (P50, P95, P99)
+- Requests per second (RPS)
+- TLS handshake overhead
 
-## DNS 성능
+## DNS Performance
 
-### CoreDNS 최적화 전후 비교
+### CoreDNS Optimization Before/After Comparison
 
-**측정 항목**
+**Metrics**
 
-- DNS 해석 지연 시간
-- 캐시 히트율
-- 초당 쿼리 처리량
-- NodeLocal DNSCache 효과
+- DNS resolution latency
+- Cache hit rate
+- Queries per second throughput
+- NodeLocal DNSCache effect
 
-## 오토스케일링 반응 속도
+## Autoscaling Response Speed
 
 ### Karpenter vs Cluster Autoscaler
 
-**측정 항목**
+**Metrics**
 
-- 스케일 아웃 반응 시간
-- 노드 프로비저닝 시간
-- Pod 스케줄링 지연
+- Scale-out response time
+- Node provisioning time
+- Pod scheduling delay
 
-## 비용 효율성
+## Cost Efficiency
 
-### 인스턴스 타입별 비용 대비 성능
+### Cost-to-Performance Ratio by Instance Type
 
-**측정 항목**
+**Metrics**
 
-- vCPU당 처리량
-- 메모리당 비용
-- Spot vs On-Demand 안정성 비교
+- Throughput per vCPU
+- Cost per memory
+- Spot vs On-Demand stability comparison

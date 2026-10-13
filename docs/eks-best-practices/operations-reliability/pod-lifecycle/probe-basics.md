@@ -1,102 +1,102 @@
 ---
-title: Probe 유형과 설정 기초
-description: Probe 유형, 메커니즘, 타이밍을 함께 확인합니다.
+title: Probe types and configuration
+description: Review probe types, mechanisms, and timing together.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
-  author: YoungJoon Jeong
-reading_time: 7
+  date: 2026-09-18
+  author: devfloor9
+reading_time: 10
 tags:
   - eks
   - kubernetes
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: Probe 유형과 설정 기초
+sidebar_label: Probe types and configuration
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## Kubernetes Probe 심층 가이드 {#2-kubernetes-probe-심층-가이드}
+## Kubernetes Probe Deep Dive {#2-kubernetes-probe-심층-가이드}
 
-### 세 가지 Probe 유형과 동작 원리 {#21-세-가지-probe-유형과-동작-원리}
+### Three Probe Types and How They Work {#21-세-가지-probe-유형과-동작-원리}
 
-Kubernetes는 세 가지 유형의 Probe를 제공하여 Pod의 상태를 모니터링합니다.
+Kubernetes provides three types of probes to monitor Pod health.
 
-| Probe 유형 | 목적 | 실패 시 동작 | 활성화 타이밍 |
+| Probe type | Purpose | Action on failure | Activation timing |
 |-----------|------|-------------|-------------|
-| **Startup Probe** | 애플리케이션 초기화 완료 확인 | 컨테이너 종료 및 restartPolicy에 따른 재시작 (failureThreshold 도달 시) | Pod 시작 직후 |
-| **Liveness Probe** | 애플리케이션 데드락/교착 상태 감지 | 컨테이너 재시작 | Startup Probe 성공 후 |
-| **Readiness Probe** | 트래픽 수신 준비 상태 확인 | Service Endpoint에서 제거 (재시작 없음) | Startup Probe 성공 후 |
+| **Startup Probe** | Verify that application initialization is complete | Terminate the container and restart according to restartPolicy (when failureThreshold is reached) | Immediately after Pod startup |
+| **Liveness Probe** | Detect application deadlocks | Restart the container | After the Startup Probe succeeds |
+| **Readiness Probe** | Verify readiness to receive traffic | Remove from Service Endpoints (no restart) | After the Startup Probe succeeds |
 
-#### Startup Probe: 느린 시작 앱 보호 {#startup-probe-느린-시작-앱-보호}
+#### Startup Probe: Protecting Applications with Slow Startup {#startup-probe-느린-시작-앱-보호}
 
-Startup Probe는 애플리케이션이 완전히 시작될 때까지 Liveness/Readiness Probe의 실행을 지연시킵니다. Spring Boot, JVM 애플리케이션, ML 모델 로딩 등 시작이 느린 앱에 필수입니다.
+A Startup Probe delays Liveness and Readiness Probes until the application has fully started. It is essential for applications with slow startup, such as Spring Boot applications, JVM applications, and applications that load ML models.
 
-**동작 원리:**
-- Startup Probe가 실행 중일 때는 Liveness/Readiness Probe가 비활성화됨
-- Startup Probe 성공 시 → Liveness/Readiness Probe 활성화
-- Startup Probe 실패 (failureThreshold 도달) → 컨테이너 재시작
+**How it works:**
+- Liveness and Readiness Probes remain disabled while the Startup Probe is running.
+- Startup Probe succeeds → Liveness and Readiness Probes are enabled.
+- Startup Probe fails (failureThreshold is reached) → the container restarts.
 
-#### Liveness Probe: 데드락 감지 {#liveness-probe-데드락-감지}
+#### Liveness Probe: Detecting Deadlocks {#liveness-probe-데드락-감지}
 
-Liveness Probe는 애플리케이션이 살아있는지 확인합니다. 실패 시 kubelet이 컨테이너를 재시작합니다.
+A Liveness Probe checks whether the application is alive. If it fails, kubelet restarts the container.
 
-**사용 사례:**
-- 무한 루프, 데드락 상태 감지
-- 복구 불가능한 애플리케이션 에러
-- 메모리 누수로 인한 응답 불가 상태
+**Use cases:**
+- Detecting infinite loops and deadlocks
+- Unrecoverable application errors
+- Unresponsiveness caused by memory leaks
 
-**주의사항:**
-- Liveness Probe에 **외부 의존성을 포함하지 마세요** (DB, Redis 등)
-- 외부 서비스 장애 시 전체 Pod이 재시작되는 cascading failure 발생
+**Cautions:**
+- **Do not include external dependencies** (such as a database or Redis) in a Liveness Probe.
+- An external service failure can cause a cascading failure in which all Pods restart.
 
-#### Readiness Probe: 트래픽 수신 제어 {#readiness-probe-트래픽-수신-제어}
+#### Readiness Probe: Controlling Incoming Traffic {#readiness-probe-트래픽-수신-제어}
 
-Readiness Probe는 Pod이 트래픽을 받을 준비가 되었는지 확인합니다. 실패 시 Service의 Endpoints에서 Pod이 제거되지만, 컨테이너는 재시작되지 않습니다.
+A Readiness Probe checks whether a Pod is ready to receive traffic. If it fails, the Pod is removed from the Service's Endpoints, but the container does not restart.
 
-**사용 사례:**
-- 의존 서비스 연결 확인 (DB, 캐시)
-- 초기 데이터 로딩 완료 확인
-- 배포 중 단계적 트래픽 수신
+**Use cases:**
+- Checking connections to dependent services (databases and caches)
+- Verifying that initial data loading is complete
+- Gradually receiving traffic during deployment
 
-**흐름 요약**
+**Flow summary**
 
-1. Init Container와 메인 컨테이너가 시작된 뒤 Startup Probe가 초기화 완료를 확인합니다.
-2. Liveness Probe는 재시작 여부를, Readiness Probe는 Service Endpoint 참여 여부를 판단합니다.
-3. 종료 요청 후 preStop과 SIGTERM 처리, Graceful Shutdown을 거쳐 컨테이너가 종료됩니다.
+1. After the Init Container and main container start, the Startup Probe verifies that initialization is complete.
+2. The Liveness Probe determines whether to restart the container, and the Readiness Probe determines whether the Pod participates in Service Endpoints.
+3. Following a termination request, the container terminates after preStop execution, SIGTERM handling, and graceful shutdown.
 
 ```mermaid
 flowchart TB
-    subgraph "Pod 라이프사이클 & Probe 동작"
-        START[Pod 생성] --> INIT[Init Container 실행]
-        INIT --> MAIN[메인 컨테이너 시작]
-        MAIN --> STARTUP{Startup Probe<br/>실행 중}
+    subgraph "Pod Lifecycle & Probe Behavior"
+        START[Pod created] --> INIT[Init Container runs]
+        INIT --> MAIN[Main container starts]
+        MAIN --> STARTUP{Startup Probe<br/>running}
 
-        STARTUP -->|실패| STARTUP_FAIL[failureThreshold 도달]
-        STARTUP_FAIL --> RESTART[컨테이너 재시작]
+        STARTUP -->|Failure| STARTUP_FAIL[failureThreshold reached]
+        STARTUP_FAIL --> RESTART[Container restarts]
         RESTART --> MAIN
 
-        STARTUP -->|성공| PROBES_ACTIVE[Liveness/Readiness<br/>Probe 활성화]
+        STARTUP -->|Success| PROBES_ACTIVE[Liveness/Readiness<br/>Probes enabled]
 
         PROBES_ACTIVE --> LIVENESS{Liveness Probe}
         PROBES_ACTIVE --> READINESS{Readiness Probe}
 
-        LIVENESS -->|실패| LIVENESS_FAIL[컨테이너 재시작]
+        LIVENESS -->|Failure| LIVENESS_FAIL[Container restarts]
         LIVENESS_FAIL --> MAIN
-        LIVENESS -->|성공| RUNNING[정상 동작]
+        LIVENESS -->|Success| RUNNING[Normal operation]
 
-        READINESS -->|실패| EP_REMOVE[Service Endpoint<br/>제거]
-        READINESS -->|성공| EP_ADD[Service Endpoint<br/>추가]
+        READINESS -->|Failure| EP_REMOVE[Service Endpoint<br/>removed]
+        READINESS -->|Success| EP_ADD[Service Endpoint<br/>added]
         EP_REMOVE -.-> READINESS
         EP_ADD --> RUNNING
 
-        RUNNING --> TERM[Pod 종료 요청]
+        RUNNING --> TERM[Pod termination requested]
         TERM --> PRESTOP[preStop Hook]
-        PRESTOP --> SIGTERM[SIGTERM 전송]
+        PRESTOP --> SIGTERM[SIGTERM sent]
         SIGTERM --> GRACE[Graceful Shutdown]
-        GRACE --> STOPPED[컨테이너 종료]
+        GRACE --> STOPPED[Container terminated]
     end
 
     style START fill:#4286f4,stroke:#2a6acf,color:#fff
@@ -107,18 +107,18 @@ flowchart TB
     style TERM fill:#ff9900,stroke:#cc7a00,color:#fff
 ```
 
-### Probe 메커니즘 {#22-probe-메커니즘}
+### Probe Mechanisms {#22-probe-메커니즘}
 
-Kubernetes는 네 가지 Probe 메커니즘을 지원합니다.
+Kubernetes supports four probe mechanisms.
 
-| 메커니즘 | 설명 | 장점 | 단점 | 적합한 상황 |
+| Mechanism | Description | Advantages | Disadvantages | Suitable use cases |
 |----------|------|------|------|------------|
-| **httpGet** | HTTP GET 요청, 200-399 응답 코드 확인 | 표준적, 구현 간단 | HTTP 서버 필요 | REST API, 웹 서비스 |
-| **tcpSocket** | TCP 포트 연결 가능 여부 확인 | 가볍고 빠름 | 애플리케이션 로직 검증 불가 | gRPC, 데이터베이스 |
-| **exec** | 컨테이너 내 명령 실행, exit code 0 확인 | 유연함, 커스텀 로직 가능 | 오버헤드 높음 | 배치 워커, 파일 기반 확인 |
-| **grpc** | gRPC Health Check Protocol 사용 (K8s 1.27+ GA) | 네이티브 gRPC 지원 | gRPC 앱만 사용 가능 | gRPC 마이크로서비스 |
+| **httpGet** | Send an HTTP GET request and check for a 200-399 response code | Standard approach, straightforward implementation | Requires an HTTP server | REST APIs, web services |
+| **tcpSocket** | Check whether a connection to a TCP port can be established | Lightweight and fast | Cannot validate application logic | gRPC, databases |
+| **exec** | Run a command inside the container and check for exit code 0 | Flexible, supports custom logic | High overhead | Batch workers, file-based checks |
+| **grpc** | Use the gRPC Health Check Protocol (GA in K8s 1.27+) | Native gRPC support | Limited to gRPC applications | gRPC microservices |
 
-#### httpGet 예시 {#httpget-예시}
+#### httpGet Example {#httpget-예시}
 
 ```yaml
 livenessProbe:
@@ -128,12 +128,12 @@ livenessProbe:
     httpHeaders:
     - name: X-Custom-Header
       value: HealthCheck
-    scheme: HTTP  # 또는 HTTPS
+    scheme: HTTP  # Or HTTPS
   initialDelaySeconds: 30
   periodSeconds: 10
 ```
 
-#### tcpSocket 예시 {#tcpsocket-예시}
+#### tcpSocket Example {#tcpsocket-예시}
 
 ```yaml
 livenessProbe:
@@ -143,7 +143,7 @@ livenessProbe:
   periodSeconds: 10
 ```
 
-#### exec 예시 {#exec-예시}
+#### exec Example {#exec-예시}
 
 ```yaml
 livenessProbe:
@@ -156,50 +156,50 @@ livenessProbe:
   periodSeconds: 5
 ```
 
-#### grpc 예시 (Kubernetes 1.27+) {#grpc-예시-kubernetes-127}
+#### grpc Example (Kubernetes 1.27+) {#grpc-예시-kubernetes-127}
 
 ```yaml
 livenessProbe:
   grpc:
     port: 9090
-    service: myservice  # 선택 사항
+    service: myservice  # Optional
   initialDelaySeconds: 10
   periodSeconds: 5
 ```
 
 :::tip gRPC Health Check Protocol
-gRPC 서비스는 [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)을 구현해야 합니다. Go는 `google.golang.org/grpc/health`, Java는 `grpc-health-check` 라이브러리를 사용하세요.
+gRPC services must implement the [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md). Use `google.golang.org/grpc/health` for Go and the `grpc-health-check` library for Java.
 :::
 
-### Probe 타이밍 설계 {#23-probe-타이밍-설계}
+### Probe Timing Design {#23-probe-타이밍-설계}
 
-Probe의 타이밍 파라미터는 장애 감지 속도와 안정성 간의 균형을 결정합니다.
+Probe timing parameters determine the balance between failure detection speed and stability.
 
-| 파라미터 | 설명 | 기본값 | 권장 범위 |
+| Parameter | Description | Default | Recommended range |
 |----------|------|--------|----------|
-| `initialDelaySeconds` | 컨테이너 시작 후 첫 Probe까지 대기 시간 | 0 | 10-30s (Startup Probe 사용 시 0 가능) |
-| `periodSeconds` | Probe 실행 간격 | 10 | 5-15s |
-| `timeoutSeconds` | Probe 응답 대기 시간 | 1 | 3-10s |
-| `failureThreshold` | 실패 판정까지 연속 실패 횟수 | 3 | Liveness: 3, Readiness: 1-3, Startup: 30+ |
-| `successThreshold` | 성공 판정까지 연속 성공 횟수 (Readiness만 1 이상 가능) | 1 | 1-2 |
+| `initialDelaySeconds` | Wait time between container startup and the first probe | 0 | 10-30s (can be 0 when using a Startup Probe) |
+| `periodSeconds` | Interval between probe executions | 10 | 5-15s |
+| `timeoutSeconds` | Wait time for a probe response | 1 | 3-10s |
+| `failureThreshold` | Number of consecutive failures required to declare failure | 3 | Liveness: 3, Readiness: 1-3, Startup: 30+ |
+| `successThreshold` | Number of consecutive successes required to declare success (only Readiness can use a value of 1 or higher) | 1 | 1-2 |
 
-#### 타이밍 설계 공식 {#타이밍-설계-공식}
+#### Timing Design Formulas {#타이밍-설계-공식}
 
 ```
-연속 실패 감지 예산의 근사값 = failureThreshold × periodSeconds
-최소 복구 시간 = successThreshold × periodSeconds
+Approximate consecutive failure detection budget = failureThreshold × periodSeconds
+Minimum recovery time = successThreshold × periodSeconds
 ```
 
-**예시:**
-- `failureThreshold: 3, periodSeconds: 10` → 약 30초의 연속 실패 감지 예산
-- `successThreshold: 2, periodSeconds: 5` → 최소 10초 후 복구 판정 (Readiness만)
+**Examples:**
+- `failureThreshold: 3, periodSeconds: 10` → a consecutive failure detection budget of approximately 30 seconds
+- `successThreshold: 2, periodSeconds: 5` → recovery is declared after at least 10 seconds (Readiness only)
 
-#### 워크로드별 권장 타이밍 {#워크로드별-권장-타이밍}
+#### Recommended Timing by Workload {#워크로드별-권장-타이밍}
 
-| 워크로드 유형 | initialDelaySeconds | periodSeconds | failureThreshold | 이유 |
+| Workload type | initialDelaySeconds | periodSeconds | failureThreshold | Rationale |
 |--------------|-------------------|---------------|-----------------|------|
-| 웹 서비스 (Node.js, Python) | 10 | 5 | 3 | 빠른 시작, 빠른 감지 필요 |
-| JVM 앱 (Spring Boot) | 0 (Startup Probe 사용) | 10 | 3 | 시작 느림, Startup으로 보호 |
-| 데이터베이스 (PostgreSQL) | 30 | 10 | 5 | 초기화 시간 길음 |
-| 배치 워커 | 5 | 15 | 2 | 주기적 작업, 느슨한 감지 |
-| ML 추론 서비스 | 0 (Startup: 60) | 10 | 3 | 모델 로딩 시간 긺 |
+| Web services (Node.js, Python) | 10 | 5 | 3 | Fast startup, requires rapid detection |
+| JVM applications (Spring Boot) | 0 (with a Startup Probe) | 10 | 3 | Slow startup, protected by a Startup Probe |
+| Databases (PostgreSQL) | 30 | 10 | 5 | Long initialization time |
+| Batch workers | 5 | 15 | 2 | Periodic tasks, less aggressive detection |
+| ML inference services | 0 (Startup: 60) | 10 | 3 | Long model loading time |

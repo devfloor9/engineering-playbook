@@ -1,28 +1,28 @@
 ---
-title: 워크로드별 Probe 패턴
-description: REST, gRPC, 배치, JVM, AI 워크로드별 예제를 확인합니다.
+title: Probe patterns by workload
+description: Review examples for REST, gRPC, batch, JVM, and AI workloads.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
-  author: YoungJoon Jeong
-reading_time: 7
+  date: 2026-09-18
+  author: devfloor9
+reading_time: 12
 tags:
   - eks
   - kubernetes
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: 워크로드별 Probe 패턴
+sidebar_label: Probe patterns by workload
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## 워크로드별 Probe 패턴 {#24-워크로드별-probe-패턴}
+## Probe Patterns by Workload {#24-워크로드별-probe-패턴}
 
-이미지 이름과 헬스 엔드포인트는 예시입니다. 조직에서 검증한 이미지·설정으로 교체하고, Probe와 종료 시간을 실제 워크로드에서 측정하세요.
+Image names and health endpoints are examples. Replace them with images and configurations validated by the organization, and measure probe and shutdown timing on actual workloads.
 
-### 패턴 1: 웹 서비스 (REST API) {#패턴-1-웹-서비스-rest-api}
+### Pattern 1: Web Service (REST API) {#패턴-1-웹-서비스-rest-api}
 
 ```yaml
 apiVersion: apps/v1
@@ -52,23 +52,23 @@ spec:
           limits:
             cpu: 500m
             memory: 512Mi
-        # Startup Probe: 30초 이내 시작 완료 확인
+        # Startup Probe: Verify startup completes within 30 seconds
         startupProbe:
           httpGet:
             path: /healthz
             port: 8080
           failureThreshold: 6
           periodSeconds: 5
-        # Liveness Probe: 내부 헬스체크만 (외부 의존성 제외)
+        # Liveness Probe: Internal health checks only (exclude external dependencies)
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
-          initialDelaySeconds: 0  # Startup Probe 사용 시 0으로 설정
+          initialDelaySeconds: 0  # Set to 0 when using a Startup Probe
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: 외부 의존성 포함 가능
+        # Readiness Probe: Can include external dependencies
         readinessProbe:
           httpGet:
             path: /ready
@@ -88,28 +88,28 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-:::tip preStop에서 kill -TERM 1이 불필요한 이유
-Kubernetes는 preStop Hook 완료 후 자동으로 컨테이너의 PID 1에 SIGTERM을 전송합니다. preStop에서 별도로 `kill -TERM 1`을 실행하면 SIGTERM이 중복 전송되며, PID 1이 init 프로세스(tini, dumb-init)인 경우 예상과 다르게 동작할 수 있습니다. SIGTERM 전송은 kubelet에 맡깁니다. 위 `sleep 5`는 트래픽 전파 지연을 가정한 예시이며, 실제 EndpointSlice·로드 밸런서 전파 시간을 측정해 필요 여부와 길이를 정하세요. preStop 실행 시간도 전체 종료 유예 시간에 포함됩니다.
+:::tip Why kill -TERM 1 Is Unnecessary in preStop
+Kubernetes automatically sends SIGTERM to PID 1 in the container after the preStop hook completes. Running `kill -TERM 1` separately in preStop sends a duplicate SIGTERM and can produce unexpected behavior when PID 1 is an init process (tini or dumb-init). Leave SIGTERM delivery to kubelet. The `sleep 5` above is an example that assumes traffic propagation delay; measure actual EndpointSlice and load balancer propagation times to determine whether a delay is needed and how long it should be. The preStop execution time is also included in the total termination grace period.
 :::
 
-**헬스체크 엔드포인트 구현 (Node.js/Express):**
+**Health check endpoint implementation (Node.js/Express):**
 
-기존 Express 앱에 추가하는 부분 예제입니다. `app`, `db`, `redis`의 초기화와 의존성 호출의 타임아웃은 앱에서 구성해야 합니다. DB와 Redis가 요청 처리에 필수인지, 공통 장애가 모든 복제본을 동시에 제외시키는지 확인한 뒤 readiness에 포함하세요.
+This partial example is intended to be added to an existing Express application. The application must configure initialization of `app`, `db`, and `redis`, along with timeouts for dependency calls. Before including the database and Redis in readiness checks, determine whether they are essential for request processing and whether a shared failure would remove all replicas from service simultaneously.
 
 ```javascript
-// /healthz - Liveness: 애플리케이션 자체 상태만 확인
+// /healthz - Liveness: Check only the application's own health
 app.get('/healthz', (req, res) => {
-  // 이벤트 루프가 응답하는지 확인하는 최소 예제입니다.
-  // 순간 메모리 사용률이나 외부 서비스 장애를 재시작 조건으로 쓰지 않습니다.
+  // This minimal example checks whether the event loop responds.
+  // Do not use momentary memory utilization or external service failures as restart conditions.
   res.status(200).json({ status: 'ok' });
 });
 
-// /ready - Readiness: 외부 의존성 포함 확인
+// /ready - Readiness: Include external dependency checks
 app.get('/ready', async (req, res) => {
   try {
-    // DB 연결 확인
+    // Check the database connection
     await db.ping();
-    // Redis 연결 확인
+    // Check the Redis connection
     await redis.ping();
     res.status(200).json({ status: 'ready' });
   } catch (err) {
@@ -118,7 +118,7 @@ app.get('/ready', async (req, res) => {
 });
 ```
 
-### 패턴 2: gRPC 서비스 {#패턴-2-grpc-서비스}
+### Pattern 2: gRPC Service {#패턴-2-grpc-서비스}
 
 ```yaml
 apiVersion: apps/v1
@@ -152,7 +152,7 @@ spec:
         startupProbe:
           grpc:
             port: 9090
-            service: myapp.HealthService  # 선택 사항
+            service: myapp.HealthService  # Optional
           failureThreshold: 30
           periodSeconds: 10
         livenessProbe:
@@ -170,7 +170,7 @@ spec:
       terminationGracePeriodSeconds: 45
 ```
 
-**gRPC Health Check 구현 (Go):**
+**gRPC health check implementation (Go):**
 
 ```go
 package main
@@ -186,17 +186,17 @@ import (
 func main() {
     server := grpc.NewServer()
 
-    // Health 서비스 등록
+    // Register the health service
     healthServer := health.NewServer()
     grpc_health_v1.RegisterHealthServer(server, healthServer)
 
-    // 서비스를 SERVING 상태로 설정
+    // Set the service status to SERVING
     healthServer.SetServingStatus("myapp.HealthService", grpc_health_v1.HealthCheckResponse_SERVING)
 
-    // 의존성 체크 후 NOT_SERVING으로 변경 가능
+    // The status can be changed to NOT_SERVING after checking dependencies
     // healthServer.SetServingStatus("myapp.HealthService", grpc_health_v1.HealthCheckResponse_NOT_SERVING)
 
-    // gRPC 서버 시작
+    // Start the gRPC server
     lis, err := net.Listen("tcp", ":9090")
     if err != nil {
         log.Fatal(err)
@@ -207,9 +207,9 @@ func main() {
 }
 ```
 
-### 패턴 3: 워커/배치 처리 {#패턴-3-워커배치-처리}
+### Pattern 3: Worker/Batch Processing {#패턴-3-워커배치-처리}
 
-배치 워커는 HTTP 서버가 없으므로 `exec` Probe를 사용합니다.
+Batch workers use an `exec` probe because they do not have an HTTP server.
 
 ```yaml
 apiVersion: apps/v1
@@ -236,7 +236,7 @@ spec:
           limits:
             cpu: 2
             memory: 4Gi
-        # Startup Probe: 워커 초기화 확인
+        # Startup Probe: Verify worker initialization
         startupProbe:
           exec:
             command:
@@ -245,7 +245,7 @@ spec:
             - test -f /tmp/worker-ready
           failureThreshold: 12
           periodSeconds: 5
-        # Liveness Probe: 하트비트 파일 확인
+        # Liveness Probe: Check the heartbeat file
         livenessProbe:
           exec:
             command:
@@ -255,7 +255,7 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 30
           failureThreshold: 3
-        # Readiness Probe: 작업 큐 연결 확인
+        # Readiness Probe: Check the job queue connection
         readinessProbe:
           exec:
             command:
@@ -265,7 +265,7 @@ spec:
       terminationGracePeriodSeconds: 120
 ```
 
-**워커 애플리케이션 (Python):**
+**Worker application (Python):**
 
 ```python
 import os
@@ -276,28 +276,28 @@ HEARTBEAT_FILE = Path("/tmp/heartbeat")
 READY_FILE = Path("/tmp/worker-ready")
 
 def worker_loop():
-    # 초기화 완료 시그널
+    # Signal that initialization is complete
     READY_FILE.touch()
 
     while True:
-        # 주기적으로 하트비트 업데이트
+        # Update the heartbeat periodically
         HEARTBEAT_FILE.touch()
 
-        # 작업 처리
+        # Process jobs
         process_jobs()
         time.sleep(5)
 
 def process_jobs():
-    # 실제 작업 로직
+    # Actual job logic
     pass
 
 if __name__ == "__main__":
     worker_loop()
 ```
 
-### 패턴 4: 느린 시작 앱 (Spring Boot, JVM) {#패턴-4-느린-시작-앱-spring-boot-jvm}
+### Pattern 4: Applications with Slow Startup (Spring Boot, JVM) {#패턴-4-느린-시작-앱-spring-boot-jvm}
 
-JVM 애플리케이션은 시작 시간이 30초 이상 소요될 수 있습니다. Startup Probe로 보호합니다.
+JVM applications can take 30 seconds or longer to start. Protect startup with a Startup Probe.
 
 ```yaml
 apiVersion: apps/v1
@@ -329,14 +329,14 @@ spec:
         env:
         - name: JAVA_OPTS
           value: "-Xms1g -Xmx3g"
-        # Startup Probe: 최대 5분(30 x 10s) 대기
+        # Startup Probe: Wait up to 5 minutes (30 x 10s)
         startupProbe:
           httpGet:
             path: /actuator/health/liveness
             port: 8080
           failureThreshold: 30
           periodSeconds: 10
-        # Liveness Probe: Startup 성공 후 활성화
+        # Liveness Probe: Activate after Startup succeeds
         livenessProbe:
           httpGet:
             path: /actuator/health/liveness
@@ -344,7 +344,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: 외부 의존성 포함
+        # Readiness Probe: Include external dependencies
         readinessProbe:
           httpGet:
             path: /actuator/health/readiness
@@ -355,7 +355,7 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-**Spring Boot Actuator 설정:**
+**Spring Boot Actuator configuration:**
 
 ```yaml
 # application.yml
@@ -376,9 +376,9 @@ management:
       show-details: when-authorized
 ```
 
-### 패턴 5: 사이드카 패턴 (Istio Proxy + 앱) {#패턴-5-사이드카-패턴-istio-proxy--앱}
+### Pattern 5: Sidecar Pattern (Istio Proxy + Application) {#패턴-5-사이드카-패턴-istio-proxy--앱}
 
-사이드카 패턴에서는 메인 컨테이너와 사이드카 모두에 Probe를 설정합니다.
+In the sidecar pattern, configure probes for both the main container and the sidecar.
 
 ```yaml
 apiVersion: apps/v1
@@ -396,7 +396,7 @@ spec:
         app: myapp
     spec:
       containers:
-      # 메인 애플리케이션 컨테이너
+      # Main application container
       - name: app
         image: myapp/app:v1.0.0
         ports:
@@ -417,8 +417,8 @@ spec:
             path: /ready
             port: 8080
           periodSeconds: 5
-      # Istio 사이드카 (자동 주입 시 Istio가 Probe 추가)
-      # 수동 설정 예시:
+      # Istio sidecar (Istio adds probes during automatic injection)
+      # Manual configuration example:
       - name: istio-proxy
         image: istio/proxyv2:1.22.0
         ports:
@@ -444,16 +444,16 @@ spec:
 ```
 
 :::tip Istio Sidecar Injection
-Istio가 자동 주입을 사용하는 경우 (`istio-injection=enabled` 레이블), Istio가 사이드카에 적절한 Probe를 자동으로 추가합니다. 수동 설정은 불필요합니다.
+When Istio uses automatic injection (the `istio-injection=enabled` label), it automatically adds appropriate probes to the sidecar. Manual configuration is unnecessary.
 :::
 
 ### Native Sidecar Containers (K8s 1.33 Stable) {#native-sidecar-containers-k8s-128-ga}
 
-[Native Sidecar Container](https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/)는 Kubernetes 1.28에서 처음 도입되었고, 1.29부터 기본 활성화되었으며, 1.33에서 Stable이 되었습니다. 이 기능은 Init Container에 `restartPolicy: Always`를 설정하여 사이드카로 동작시키는 공식 기능입니다. 이를 통해 기존 사이드카 패턴의 **종료 순서 문제**를 해결합니다.
+[Native Sidecar Containers](https://kubernetes.io/docs/concepts/workloads/pods/sidecar-containers/) were first introduced in Kubernetes 1.28, enabled by default in 1.29, and became Stable in 1.33. This official feature allows an Init Container to operate as a sidecar by setting `restartPolicy: Always`. It resolves the **termination ordering issue** in the conventional sidecar pattern.
 
-**기존 문제**: 일반 사이드카는 메인 컨테이너와 동시에 SIGTERM을 수신하므로, Istio proxy가 먼저 종료되면 메인 앱의 네트워크가 끊기는 문제가 발생합니다.
+**Conventional issue**: A regular sidecar receives SIGTERM at the same time as the main container. If the Istio proxy terminates first, the main application loses network connectivity.
 
-**Native Sidecar 해결**: Init Container로 정의된 사이드카는 모든 일반 컨테이너가 종료된 **후에** 종료됩니다.
+**Native Sidecar solution**: A sidecar defined as an Init Container terminates **after** all regular containers have terminated.
 
 ```yaml
 apiVersion: apps/v1
@@ -470,10 +470,10 @@ spec:
         app: "app-with-native-sidecar"
     spec:
       initContainers:
-      # Native Sidecar: 메인 컨테이너보다 먼저 시작, 나중에 종료
+      # Native Sidecar: Start before the main container and terminate after it
       - name: log-collector
         image: ghcr.io/your-org/log-collector:replace-with-tested-tag
-        restartPolicy: Always  # 이 설정이 Native Sidecar로 동작하게 함
+        restartPolicy: Always  # This setting enables Native Sidecar behavior
         ports:
         - containerPort: 2020
         resources:
@@ -487,33 +487,33 @@ spec:
         - containerPort: 8080
 ```
 
-**종료 순서 보장:**
-1. 일반 컨테이너(app)에 SIGTERM 전송
-2. 일반 컨테이너 종료 완료 대기
-3. Native Sidecar(log-collector)에 SIGTERM 전송
-4. Native Sidecar 종료
+**Guaranteed termination order:**
+1. Send SIGTERM to the regular container (app).
+2. Wait for the regular container to finish terminating.
+3. Send SIGTERM to the Native Sidecar (log-collector).
+4. Terminate the Native Sidecar.
 
-이 패턴은 Istio 사이드카, 로그 수집기, 모니터링 에이전트 등 메인 앱보다 오래 살아있어야 하는 보조 컨테이너에 적합합니다.
+This pattern is suitable for supporting containers that must outlive the main application, such as Istio sidecars, log collectors, and monitoring agents.
 
-### Windows 컨테이너 Probe 고려사항 {#246-windows-컨테이너-probe-고려사항}
+### Probe Considerations for Windows Containers {#246-windows-컨테이너-probe-고려사항}
 
-EKS는 Windows Server 2019/2022 기반 Windows 노드를 지원하며, Windows 컨테이너는 Linux 컨테이너와 다른 Probe 동작 특성을 가집니다.
+EKS supports Windows nodes based on Windows Server 2019/2022. Probes behave differently in Windows containers than in Linux containers.
 
-#### Windows vs Linux Probe 동작 차이 {#windows-vs-linux-probe-동작-차이}
+#### Differences in Probe Behavior Between Windows and Linux {#windows-vs-linux-probe-동작-차이}
 
-| 항목 | Linux 컨테이너 | Windows 컨테이너 | 영향 |
+| Item | Linux containers | Windows containers | Impact |
 |------|---------------|-----------------|------|
-| **컨테이너 런타임** | containerd | containerd (1.6+) | 동일한 런타임, 다른 OS 레이어 |
-| **exec Probe 실행** | `/bin/sh -c` | `cmd.exe /c` 또는 `powershell.exe` | 스크립트 문법 차이 |
-| **httpGet Probe** | 동일 | 동일 | 차이 없음 |
-| **tcpSocket Probe** | 동일 | 동일 | 차이 없음 |
-| **콜드 스타트 시간** | 빠름 (수초) | 느림 (10-30초) | Startup Probe failureThreshold 증가 필요 |
-| **메모리 오버헤드** | 낮음 (50-100MB) | 높음 (200-500MB) | 리소스 요청 증가 필요 |
-| **Probe 타임아웃** | 일반적으로 1-5초 | 3-10초 권장 | Windows I/O 지연 고려 |
+| **Container runtime** | containerd | containerd (1.6+) | Same runtime, different OS layer |
+| **exec probe execution** | `/bin/sh -c` | `cmd.exe /c` or `powershell.exe` | Different script syntax |
+| **httpGet probe** | Same | Same | No difference |
+| **tcpSocket probe** | Same | Same | No difference |
+| **Cold start time** | Fast (a few seconds) | Slow (10-30 seconds) | Requires a higher Startup Probe failureThreshold |
+| **Memory overhead** | Low (50-100MB) | High (200-500MB) | Requires increased resource requests |
+| **Probe timeout** | Typically 1-5 seconds | 3-10 seconds recommended | Account for Windows I/O latency |
 
-#### Windows 워크로드 Probe 설정 예시 {#windows-워크로드-probe-설정-예시}
+#### Probe Configuration Example for Windows Workloads {#windows-워크로드-probe-설정-예시}
 
-**IIS/.NET Framework 앱:**
+**IIS/.NET Framework application:**
 
 ```yaml
 apiVersion: apps/v1
@@ -546,7 +546,7 @@ spec:
           limits:
             cpu: 2000m
             memory: 2Gi
-        # Startup Probe: Windows 콜드 스타트 고려
+        # Startup Probe: Account for Windows cold starts
         startupProbe:
           httpGet:
             path: /
@@ -555,9 +555,9 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 5
-          failureThreshold: 12  # Linux 대비 2배 (최대 60초)
+          failureThreshold: 12  # 2 times the Linux value (up to 60 seconds)
           successThreshold: 1
-        # Liveness Probe: IIS 프로세스 상태
+        # Liveness Probe: IIS process health
         livenessProbe:
           httpGet:
             path: /healthz
@@ -566,7 +566,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: ASP.NET 앱 준비 상태
+        # Readiness Probe: ASP.NET application readiness
         readinessProbe:
           httpGet:
             path: /ready
@@ -579,7 +579,7 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-**ASP.NET Core 헬스체크 엔드포인트 구현:**
+**ASP.NET Core health check endpoint implementation:**
 
 ```csharp
 // Program.cs (ASP.NET Core 6+)
@@ -588,7 +588,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 헬스체크 추가
+// Add health checks
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())
     .AddSqlServer(
@@ -599,33 +599,33 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-// /healthz - Liveness: 애플리케이션 자체만
+// /healthz - Liveness: Application only
 app.MapHealthChecks("/healthz", new HealthCheckOptions
 {
     Predicate = check => check.Tags.Contains("self") || check.Tags.Count == 0
 });
 
-// /ready - Readiness: 외부 의존성 포함
+// /ready - Readiness: Include external dependencies
 app.MapHealthChecks("/ready", new HealthCheckOptions
 {
-    Predicate = _ => true  // 모든 헬스체크
+    Predicate = _ => true  // All health checks
 });
 
 app.Run();
 ```
 
-#### Windows 워크로드 Probe 타임아웃 주의사항 {#windows-워크로드-probe-타임아웃-주의사항}
+#### Probe Timeout Considerations for Windows Workloads {#windows-워크로드-probe-타임아웃-주의사항}
 
-Windows 컨테이너는 다음 이유로 Probe 타임아웃이 길어질 수 있습니다:
+Windows containers can require longer probe timeouts for the following reasons:
 
-1. **Windows 커널 오버헤드**: Windows의 무거운 OS 레이어로 인한 시스템 콜 지연
-2. **디스크 I/O 성능**: NTFS 파일시스템의 메타데이터 오버헤드
-3. **.NET Framework 워밍업**: CLR JIT 컴파일 및 어셈블리 로딩 시간
-4. **Windows Defender**: 실시간 스캔으로 인한 프로세스 시작 지연
+1. **Windows kernel overhead**: System call latency caused by the heavy Windows OS layer
+2. **Disk I/O performance**: Metadata overhead in the NTFS filesystem
+3. **.NET Framework warmup**: CLR JIT compilation and assembly loading time
+4. **Windows Defender**: Process startup delays caused by real-time scanning
 
-**Probe 타이밍 예시 (Windows):**
+**Probe timing example (Windows):**
 
-아래는 컨테이너 설정에 합치는 부분 예제입니다. 숫자는 측정 후 조정해야 하며, `5-10` 같은 범위 문자열은 Kubernetes 정수 필드에 사용할 수 없습니다. 헬스 엔드포인트도 앱에 맞게 변경하세요.
+The following partial example is intended to be merged into a container configuration. Adjust the numbers after measurement; range strings such as `5-10` cannot be used in Kubernetes integer fields. Also update the health endpoints to match the application.
 
 ```yaml
 startupProbe:
@@ -655,9 +655,9 @@ readinessProbe:
 
 #### CloudWatch Container Insights for Windows (2025-08) {#cloudwatch-container-insights-for-windows-2025-08}
 
-AWS는 2025년 8월에 Windows 워크로드용 CloudWatch Container Insights 지원을 발표했습니다.
+AWS announced CloudWatch Container Insights support for Windows workloads in August 2025.
 
-**Windows 노드에 Container Insights 설치:**
+**Installing Container Insights on Windows nodes:**
 
 ```bash
 # CloudWatch Agent ConfigMap (Windows)
@@ -689,14 +689,14 @@ data:
     }
 EOF
 
-# Windows DaemonSet 배포
+# Deploy the Windows DaemonSet
 kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/cwagent/cwagent-daemonset-windows.yaml
 ```
 
-**Container Insights 메트릭 확인:**
+**Checking Container Insights metrics:**
 
 ```bash
-# Windows 노드 메트릭
+# Windows node metrics
 aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name node_memory_utilization \
@@ -706,7 +706,7 @@ aws cloudwatch get-metric-statistics \
   --period 300 \
   --statistics Average
 
-# Windows Pod 메트릭
+# Windows Pod metrics
 aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name pod_cpu_utilization \
@@ -717,9 +717,9 @@ aws cloudwatch get-metric-statistics \
   --statistics Average
 ```
 
-#### 혼합 클러스터 (Linux + Windows) 통합 모니터링 전략 {#혼합-클러스터-linux--windows-통합-모니터링-전략}
+#### Unified Monitoring Strategy for Mixed Clusters (Linux + Windows) {#혼합-클러스터-linux--windows-통합-모니터링-전략}
 
-**1. 노드 셀렉터 기반 분리:**
+**1. Separation by node selector:**
 
 ```yaml
 apiVersion: v1
@@ -728,7 +728,7 @@ metadata:
   name: unified-app
 spec:
   selector:
-    app: unified-app  # OS 무관
+    app: unified-app  # OS-independent
   ports:
   - port: 80
     targetPort: 8080
@@ -788,41 +788,41 @@ spec:
           httpGet:
             path: /ready
             port: 8080
-          periodSeconds: 10      # Windows: 더 긴 간격
-          timeoutSeconds: 10     # Windows: 더 긴 타임아웃
+          periodSeconds: 10      # Windows: Longer interval
+          timeoutSeconds: 10     # Windows: Longer timeout
 ```
 
-**2. CloudWatch Logs Insights 통합 쿼리:**
+**2. Unified CloudWatch Logs Insights query:**
 
 ```sql
--- Linux와 Windows Pod 로그를 동시에 검색
+-- Search Linux and Windows Pod logs together
 fields @timestamp, kubernetes.namespace_name, kubernetes.pod_name, kubernetes.host, @message
 | filter kubernetes.labels.app = "unified-app"
 | sort @timestamp desc
 | limit 100
 ```
 
-**3. Grafana 대시보드 통합:**
+**3. Grafana dashboard integration:**
 
 ```promql
-# Prometheus Query (혼합 클러스터)
-# Linux + Windows Pod CPU 사용률
+# Prometheus Query (mixed cluster)
+# Linux + Windows Pod CPU utilization
 sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-app-.*"}[5m])) by (pod, node, os)
 
-# OS별 집계
+# Aggregate by OS
 sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-app-.*"}[5m])) by (os)
 ```
 
-:::warning Windows 컨테이너 제약사항
-- **이미지 크기**: Windows 이미지는 수 GB (Linux는 수십 MB)
-- **라이선스 비용**: Windows Server 라이선스 비용 발생 (EC2 인스턴스 비용에 포함)
-- **노드 부팅 시간**: Windows 노드는 부팅이 느림 (5-10분)
-- **특권 컨테이너**: Windows는 Linux의 `privileged` 모드 미지원
-- **HostProcess 컨테이너**: Windows Server 2022 (1.22+)부터 지원
+:::warning Windows Container Limitations
+- **Image size**: Windows images are several GB (Linux images are tens of MB).
+- **Licensing costs**: Windows Server licensing costs apply (included in EC2 instance costs).
+- **Node boot time**: Windows nodes boot slowly (5-10 minutes).
+- **Privileged containers**: Windows does not support Linux's `privileged` mode.
+- **HostProcess containers**: Supported starting with Windows Server 2022 (1.22+).
 :::
 
-:::info 참고 자료
+:::info References
 - [AWS Blog: CloudWatch Container Insights for Windows](https://aws.amazon.com/blogs/mt/announcing-amazon-cloudwatch-container-insights-for-amazon-eks-windows-workloads-monitoring)
-- [EKS Windows 컨테이너 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html)
-- [Kubernetes Windows 컨테이너 가이드](https://kubernetes.io/docs/concepts/windows/)
+- [EKS Windows Container Documentation](https://docs.aws.amazon.com/eks/latest/userguide/windows-support.html)
+- [Kubernetes Windows Container Guide](https://kubernetes.io/docs/concepts/windows/)
 :::

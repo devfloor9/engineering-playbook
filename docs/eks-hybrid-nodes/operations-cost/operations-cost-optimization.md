@@ -1,11 +1,11 @@
 ---
-title: 운영과 비용 최적화
-description: "EKS Hybrid Nodes의 운영 베스트 프랙티스 — Mixed Mode 워크로드 배치, Cluster Insights·nodeadm debug 구성 검증, 모니터링 체계, vCPU-시간 티어드 과금 기반 비용 최적화를 다룹니다."
+title: Operations and Cost Optimization
+description: "Operational best practices for EKS Hybrid Nodes — mixed mode workload placement, configuration validation with Cluster Insights and nodeadm debug, monitoring architecture, and cost optimization based on tiered vCPU-hour billing."
 created: "2026-08-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 16
 tags:
   - eks
   - hybrid-node
@@ -17,75 +17,75 @@ keywords:
   - Cluster Insights
   - nodeadm debug
   - mixed mode
-sidebar_label: 운영과 비용 최적화
+sidebar_label: Operations and Cost Optimization
 category: hybrid-multicloud
 ---
 
-## 개요
+## Overview
 
-하이브리드 클러스터는 클라우드 노드와 온프레미스 노드가 공존하는 구조 특성상, 워크로드 배치·구성 검증·관측·비용의 네 영역에서 클라우드 전용 클러스터와 다른 운영 판단이 필요합니다. 본 문서는 mixed mode 배치 전략, 구성 검증 자동화 도구, 모니터링 체계, 그리고 vCPU-시간 과금 구조를 활용한 비용 최적화를 다룹니다.
+Because a hybrid cluster combines cloud nodes and on-premises nodes in a single structure, it requires operational decisions different from cloud-only clusters in four areas: workload placement, configuration validation, observability, and cost. This document covers mixed mode placement strategy, configuration validation automation tools, the monitoring architecture, and cost optimization that leverages the vCPU-hour billing structure.
 
-## Mixed Mode 워크로드 배치 전략
+## Mixed Mode Workload Placement Strategy
 
-클라우드 노드와 하이브리드 노드를 하나의 클러스터에 공존시키는 mixed mode는 Pod 라우팅 제약을 우회하는 공식 운영 패턴이자, 하이브리드 운영의 기본 형상입니다.
+Mixed mode, which co-locates cloud nodes and hybrid nodes in a single cluster, is the official operational pattern for working around Pod routing constraints and the default topology for hybrid operations.
 
-- **웹훅은 클라우드 노드에 배치**: Pod CIDR이 unroutable한 환경에서 AWS Load Balancer Controller, cert-manager 등 웹훅 컴포넌트는 nodeAffinity로 클라우드 노드에 고정합니다. 하이브리드 노드는 `eks.amazonaws.com/compute-type: hybrid` 레이블로 식별하므로, affinity 조건은 이 레이블 기준으로 작성합니다.
-- **CoreDNS는 양쪽에 최소 1 replica**: 하이브리드 노드 측 DNS 조회가 클라우드 왕복 없이 처리되도록 topology 분산을 권장합니다.
-- **Service Traffic Distribution**: 트래픽을 발생 존에 가깝게 유지해 불필요한 크로스 네트워크 홉을 줄입니다.
-- **시스템 애드온 배치 점검**: 컴포넌트마다 요구사항이 다르므로 두 유형을 구분합니다. 컨트롤 플레인이 Pod IP(또는 hostNetwork 사용 시 노드 IP)로 직접 접근하는 컴포넌트인 Metrics Server는, Pod IP 라우팅을 구성하지 않는 한 클라우드 노드에 배치하거나 hostNetwork 모드로 실행합니다. 반면 AMP managed collector의 스크래퍼는 AWS가 관리하며 사용자 노드 스케줄링 대상이 아니므로 "클라우드 노드에 배치"하는 개념이 아닙니다. AMP managed collector는 하이브리드 노드 애플리케이션의 메트릭 엔드포인트가 VPC에서 도달 가능해야 하며(원격 Pod 네트워크 CIDR로의 라우트와 온프레미스 방화벽 포트 개방 포함), 클러스터에 프라이빗 엔드포인트 액세스가 구성되어 있어야 합니다 ([기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙) 참조).
+- **Place webhooks on cloud nodes**: In environments where the Pod CIDR is unroutable, pin webhook components such as the AWS Load Balancer Controller and cert-manager to cloud nodes using nodeAffinity. Hybrid nodes are identified by the `eks.amazonaws.com/compute-type: hybrid` label, so write affinity conditions against this label.
+- **At least 1 CoreDNS replica on each side**: Topology spreading is recommended so that DNS lookups on the hybrid node side are handled without a round trip to the cloud.
+- **Service Traffic Distribution**: Keep traffic close to the zone where it originates to reduce unnecessary cross-network hops.
+- **Review system add-on placement**: Requirements differ by component, so distinguish two types. Metrics Server is a component the control plane accesses directly via the Pod IP (or the node IP when hostNetwork is enabled); unless you configure routable Pod IPs, place it on cloud nodes or run it in hostNetwork mode. The AMP managed collector's scraper, by contrast, is managed by AWS and is not subject to your node scheduling, so there is no concept of "placing it on cloud nodes." The AMP managed collector requires that the metric endpoints of your hybrid-node applications be reachable from the VPC (including routes to remote Pod network CIDRs and open ports in your on-premises firewall) and that the cluster has private cluster endpoint access configured (see the [capability table](../overview-architecture/hybrid-nodes-fundamentals.md#node-cidr-required-pod-cidr-optional-principle)).
 
-## 구성 검증 자동화
+## Configuration Validation Automation
 
-- **EKS Cluster Insights**: 하이브리드 노드가 있는 클러스터를 자동 스캔해 컨트롤 플레인↔웹훅 통신, `kubectl exec`/`logs` 경로 등 구성 문제를 탐지하고 시정 권고를 제공합니다. 콘솔·CLI·SDK에서 결과를 확인할 수 있습니다. 신규 구축·구성 변경 후 첫 점검 도구로 활용합니다.
-- **`nodeadm debug`**: 하이브리드 노드에서 직접 실행해 네트워킹·자격 증명 요건 충족 여부를 검증합니다. 노드 조인 실패 시 1차 진단 도구입니다.
+- **EKS Cluster Insights**: Automatically scans clusters with hybrid nodes to detect configuration issues such as control plane↔webhook communication and `kubectl exec`/`logs` paths, and provides remediation recommendations. Results are available in the console, CLI, and SDK. Use it as the first inspection tool after new builds or configuration changes.
+- **`nodeadm debug`**: Run directly on a hybrid node to validate whether networking and credential requirements are met. It is the first-line diagnostic tool when node join fails.
 
 ```bash
-# 하이브리드 노드에서 실행 — 네트워킹·자격 증명 요건 검증
+# Run on the hybrid node — validates networking and credential requirements
 sudo nodeadm debug --config-source file://nodeconfig.yaml
 ```
 
-## 모니터링 체계
+## Monitoring Architecture
 
-하이브리드 클러스터의 관측 대상은 세 계층입니다.
+A hybrid cluster has three observation layers.
 
-| 계층 | 관측 대상 | 도구 |
+| Layer | Observation Targets | Tools |
 |------|----------|------|
-| 노드·워크로드 | 하이브리드 노드 상태, Pod 메트릭 | Prometheus/AMP(ADOT), CloudWatch Observability 애드온 |
-| 크로스 네트워크 경로 | DX/VPN 가용성·대역폭, VXLAN 터널 트래픽 | CloudWatch(DX/VPN 메트릭), Gateway 메트릭 |
-| Gateway (사용 시) | leader 상태, 라우트 갱신 오류, 대역폭 사용률 | `hybrid_gateway_*` Prometheus 메트릭 — [상세](../networking/hybrid-nodes-gateway.md#모니터링) |
+| Nodes and workloads | Hybrid node status, Pod metrics | Prometheus/AMP (ADOT), CloudWatch Observability add-on |
+| Cross-network path | DX/VPN availability and bandwidth, VXLAN tunnel traffic | CloudWatch (DX/VPN metrics), Gateway metrics |
+| Gateway (if used) | Leader status, route update errors, bandwidth utilization | `hybrid_gateway_*` Prometheus metrics — [details](../networking/hybrid-nodes-gateway.md#monitoring) |
 
-운영 관점의 핵심은 **크로스 네트워크 경로가 가용성에 결정적인 종속성**이라는 것입니다. 단일 회선으로 구성하면 그 경로가 단일 장애 지점이 되지만, Direct Connect는 [복원력 토대(Resiliency Toolkit)](https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html)로 다중 회선·다중 로케이션 구성을 지원하므로, 실제 공유 장애 도메인과 필요한 가용성 목표에 맞춰 이중화 수준을 선택합니다. 컨트롤 플레인과 데이터 플레인 사이의 연결(DX/VPN)이 끊기면 스케줄링·`kubectl` 조작·자격 증명 갱신이 중단됩니다. 이미 실행 중인 로컬 워크로드는 자체 의존성이 로컬에 있고 자격 증명·프로브가 만료되지 않는 범위에서 계속 동작하지만, 클라우드 리소스나 갱신이 필요한 구성 요소에 의존하는 워크로드는 영향을 받을 수 있습니다. 연결 계층의 가용성 메트릭과 알림을 클러스터 메트릭과 동급으로 관리합니다.
+The operational key point is that **the cross-network path is a critical availability dependency**. With a single circuit that path is a single point of failure, but Direct Connect supports multi-circuit, multi-location configurations through the [Resiliency Toolkit](https://docs.aws.amazon.com/directconnect/latest/UserGuide/resiliency_toolkit.html), so choose a level of redundancy that matches your actual shared failure domains and availability target. If the connection between the control plane and the data plane (DX/VPN) is severed, scheduling, `kubectl` operations, and credential renewal stop. Workloads already running locally continue to operate to the extent that their dependencies are local and their credentials and probes do not expire, but workloads that depend on cloud resources or on components that require renewal can be affected. Manage availability metrics and alerts for the connectivity layer at the same level as cluster metrics.
 
-- Pod 메트릭 수집이 필요한 경우 AMP managed collector는 하이브리드 노드 애플리케이션의 메트릭 엔드포인트가 VPC에서 도달 가능할 것(원격 Pod 네트워크 CIDR로의 라우트와 방화벽 포트)과 프라이빗 엔드포인트 액세스를 전제합니다. ADOT 애드온으로 대체할 때도 이 전제가 사라지지 않습니다. ADOT 오퍼레이터는 Collector 커스텀 리소스를 검증·변형하는 admission 웹훅을 사용하므로, 오퍼레이터를 하이브리드 노드에서 실행하려면 온프레미스 Pod CIDR이 라우팅 가능해야 하고 클러스터에 원격 Pod 네트워크가 구성되어 있어야 합니다. 따라서 Pod CIDR이 unroutable한 구성에서는 ADOT 오퍼레이터를 nodeAffinity로 클라우드 노드에 고정해 웹훅이 도달 가능하도록 하거나, admission 종속성을 피하는 다른 수집 아키텍처를 선택합니다.
-- 하이브리드 노드의 시스템 로그·kubelet 로그는 CloudWatch Logs 에이전트 또는 기존 온프레미스 로깅 체계로 수집하되, 클러스터 이벤트와 시간 동기화(NTP)를 보장합니다.
-- 도구별 구현 — Cluster Insights 자가진단, Container Insights 하이브리드 구성(`RUN_WITH_IRSA`), Cilium Hubble eBPF 대시보드, Network Flow Monitor 적용성 — 은 [관측성 통합](./observability-monitoring)에서 다룹니다.
+- If Pod metric collection is required, the AMP managed collector assumes that the metric endpoints of your hybrid-node applications are reachable from the VPC (routes to remote Pod network CIDRs and firewall ports) and that private cluster endpoint access is configured. Replacing it with the ADOT add-on does not remove that assumption: the ADOT operator uses admission webhooks to mutate and validate the Collector custom resource, so running the operator on hybrid nodes requires that your on-premises Pod CIDR be routable and that the cluster be configured with your remote Pod network. Therefore, in configurations where the Pod CIDR is unroutable, pin the ADOT operator to cloud nodes with nodeAffinity so the webhooks are reachable, or choose a different collection architecture that avoids the admission dependency.
+- Collect system logs and kubelet logs from hybrid nodes via the CloudWatch Logs agent or the existing on-premises logging stack, and ensure time synchronization (NTP) with cluster events.
+- Per-tool implementation — Cluster Insights self-diagnosis, the Container Insights hybrid configuration (`RUN_WITH_IRSA`), the Cilium Hubble eBPF dashboard, and Network Flow Monitor applicability — is covered in [Observability Integration](./observability-monitoring).
 
-## 비용 최적화
+## Cost Optimization
 
-[요금 모델](../overview-architecture/hybrid-nodes-fundamentals.md#요금-모델)의 vCPU-시간 티어드 구조를 전제로 다음 전략이 유효합니다.
+Based on the tiered vCPU-hour structure of the [pricing model](../overview-architecture/hybrid-nodes-fundamentals.md#pricing-model), the following strategies are effective.
 
-1. **선택적 워크로드 배치(정책적 선택)**: 하이브리드 노드 요금은 등록된 노드가 Kubernetes에 보고하는 vCPU 용량과 등록 시간에 따라 부과되며, 노드가 조인하면 과금이 시작되고 노드를 제거하면 중단됩니다. 어떤 워크로드가 그 노드에서 실행되는지는 과금에 영향을 주지 않습니다. 따라서 범용 CPU 워크로드를 클라우드 노드(Spot 혼용)로 옮기더라도 GPU 호스트가 하이브리드 노드로 계속 등록되어 있으면 그 호스트의 vCPU는 그대로 과금되고, 옮긴 워크로드만큼 EC2·Spot 비용이 추가됩니다. 하이브리드 요금 절감은 등록 노드 수나 등록 시간을 실제로 줄일 때만 발생하므로, 이 배치는 하이브리드 요금과 추가 클라우드 비용을 합산해 비교한 뒤 결정하는 정책적 선택으로 다룹니다.
-2. **노드 등록 수명 관리**: 사용하지 않는 시간대의 하이브리드 노드는 클러스터에서 등록 해제해 과금 대상 vCPU-hours 축소
-3. **비용 가시화**: Cost Explorer에서 `Amazon Elastic Kubernetes Service - Hybrid Nodes` 서비스 차원으로 필터링해 환경별 추이 관측
+1. **Selective workload placement (a policy choice)**: Hybrid node charges are based on the vCPU capacity that registered nodes report to Kubernetes and on how long they stay registered; billing starts when a node joins and stops when it is removed. Which workloads run on a node does not affect the charge. Consequently, moving general-purpose CPU workloads to cloud nodes (mixed with Spot) does not reduce hybrid fees if the GPU hosts remain registered as hybrid nodes — those hosts' vCPUs are still billed — and it adds EC2/Spot cost for the moved workloads. Hybrid fee savings occur only when you actually reduce the number of registered nodes or their registration time, so treat this placement as a policy choice made after comparing total cost (hybrid fees plus the added cloud cost).
+2. **Node registration lifecycle management**: Deregister hybrid nodes from the cluster during unused periods to reduce billable vCPU-hours
+3. **Cost visibility**: Filter by the `Amazon Elastic Kubernetes Service - Hybrid Nodes` service dimension in Cost Explorer to observe trends per environment
 
-하이브리드 고유 고정 비용도 계획에 포함합니다. Gateway 사용 시 클러스터당 게이트웨이 EC2 2대(dev/stg/prd 3개 환경이면 6대)가 상시 과금되며, 게이트웨이-VPC 리소스 간 크로스 AZ 트래픽에는 표준 크로스 AZ 데이터 전송 요금이 부과됩니다.
+Include hybrid-specific fixed costs in the plan as well. When using the Gateway, 2 gateway EC2 instances per cluster (6 for three environments — dev/stg/prd) are billed continuously, and standard cross-AZ data transfer charges apply to cross-AZ traffic between the gateway and VPC resources.
 
-## 권장 사항 요약
+## Summary of Recommendations
 
-- 웹훅·Metrics Server 등 컨트롤 플레인 → Pod 직접 통신 컴포넌트는 nodeAffinity로 클라우드 노드에 고정합니다.
-- 구축·변경 직후 Cluster Insights를 확인하고, 노드 조인 실패 시 `nodeadm debug`로 1차 진단합니다.
-- DX/VPN 연결 계층의 가용성 알림을 클러스터 알림과 동급으로 구성합니다.
-- 하이브리드 요금은 등록된 노드의 vCPU 용량·등록 시간에 따라 부과되므로, 사용하지 않는 노드를 등록 해제해 과금 대상 vCPU-시간을 줄이고, 워크로드 배치는 하이브리드 요금과 추가 클라우드 비용을 합산해 비교한 뒤 결정합니다.
-- Cost Explorer의 Hybrid Nodes 서비스 필터로 환경별 비용 추이를 정기 관측합니다.
+- Pin components with direct control plane → Pod communication, such as webhooks and Metrics Server, to cloud nodes using nodeAffinity.
+- Check Cluster Insights immediately after builds and changes, and use `nodeadm debug` for first-line diagnosis when node join fails.
+- Configure availability alerts for the DX/VPN connectivity layer at the same level as cluster alerts.
+- Hybrid fees are charged on the vCPU capacity and registration time of registered nodes, so deregister unused nodes to reduce billable vCPU-hours, and decide workload placement after comparing total cost (hybrid fees plus added cloud cost).
+- Regularly observe per-environment cost trends with the Hybrid Nodes service filter in Cost Explorer.
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Cluster insights](https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html) — 하이브리드 노드 구성 자동 점검
-- [Configure webhooks for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-webhooks.html) — mixed mode 권고, 애드온별 affinity 설정
-- [EKS Hybrid Nodes 가격](https://aws.amazon.com/eks/pricing/) — 티어드 vCPU-시간 요금
+### Official Documentation
+- [Cluster insights](https://docs.aws.amazon.com/eks/latest/userguide/cluster-insights.html) — Automated configuration checks for hybrid nodes
+- [Configure webhooks for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-webhooks.html) — Mixed mode recommendation, per-add-on affinity configuration
+- [EKS Hybrid Nodes pricing](https://aws.amazon.com/eks/pricing/) — Tiered vCPU-hour pricing
 
-### 관련 문서 (내부)
-- [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md) — 요금 모델과 mixed mode 기본 구조
-- [Hybrid Nodes Gateway 구축과 운영](../networking/hybrid-nodes-gateway.md) — Gateway 메트릭과 사이징
-- [GPU 워크로드와 SR-IOV 네트워킹](../compute-gpu/gpu-sriov-networking.md) — 온프렘 GPU 자산 활용 아키텍처
+### Related Documents (Internal)
+- [EKS Hybrid Nodes Concepts and How It Works](../overview-architecture/hybrid-nodes-fundamentals.md) — Pricing model and basic mixed mode structure
+- [Building and Operating the Hybrid Nodes Gateway](../networking/hybrid-nodes-gateway.md) — Gateway metrics and sizing
+- [GPU Workloads and SR-IOV Networking](../compute-gpu/gpu-sriov-networking.md) — Architecture for leveraging on-premises GPU assets

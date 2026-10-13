@@ -1,6 +1,6 @@
 ---
-title: S8. 가드레일 (Momo)
-description: Bedrock Guardrails + 라이브 광고 표현 + 미성년 + 환불 규정
+title: S8. Guardrails (Momo)
+description: Bedrock Guardrails + Live-broadcast ad language + Minors + Refund regulations
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,18 +16,18 @@ tags:
 sidebar_label: S8. Guardrails
 ---
 
-## 활성 정책
-| 정책 | 액션 |
+## Active Policies
+| Policy | Action |
 |---|---|
-| 폭력·혐오·성·오정보 | Block |
-| 의료·법률 추정 | Block + 안내 |
-| 마케팅 동의 미수신 | 도구 차단 |
-| PII | 자동 마스킹 |
-| **라이브 방송 광고 표현** | LLM 가드 (효능·과장 검수) |
-| 미성년 + 18+ SKU | 컨텍스트 차단 |
-| 환불 7일 내 (대만 소비자보호법) | 표시 의무 |
+| Violence · Hate · Sexual · Misinformation | Block |
+| Suspected medical · legal advice | Block + guidance |
+| Marketing-consent not collected | Block tool |
+| PII | Auto-masking |
+| **Live-broadcast ad language** | LLM guard (efficacy · exaggeration review) |
+| Minors + 18+ SKU | Context block |
+| 7-day refund (Taiwan Consumer Protection Act) | Disclosure obligation |
 
-## 데모 시나리오
-1. PII 마스킹
-2. "라이브 진행자가 '이 화장품 효능 100%'" → 가드 자동 수정
-3. 미성년 + 알코올 SKU → 차단
+## Demo Scenarios
+1. PII masking
+2. "Live host says 'this cosmetic is 100% effective'" → guard auto-corrects
+3. Minor + alcohol SKU → blocked

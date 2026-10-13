@@ -1,28 +1,28 @@
 ---
-title: Karpenter와 Node Drain
-description: 노드 교체 및 축소 과정에서 Pod 종료를 점검합니다.
+title: Karpenter and node drain
+description: Review Pod termination during node replacement and scale-down.
 created: "2026-02-12"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 6
+  author: devfloor9
+reading_time: 10
 tags:
   - eks
   - kubernetes
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: Karpenter와 Node Drain
+sidebar_label: Karpenter and node drain
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## Karpenter/Node Drain과의 상호작용 {#34-karpenternode-drain과의-상호작용}
+## Interaction with Karpenter and node drain {#34-karpenternode-drain과의-상호작용}
 
-Karpenter가 노드를 통합(consolidation)하거나 Spot 인스턴스가 종료될 때, 노드의 모든 Pod이 안전하게 이동해야 합니다.
+When Karpenter consolidates nodes or a Spot instance terminates, all Pods on the node must move safely.
 
-### Karpenter Disruption과 Graceful Shutdown {#karpenter-disruption과-graceful-shutdown}
+### Karpenter disruption and graceful shutdown {#karpenter-disruption과-graceful-shutdown}
 
 ```mermaid
 sequenceDiagram
@@ -31,30 +31,30 @@ sequenceDiagram
     participant Kubelet as kubelet
     participant Pod as Pod
 
-    Karpenter->>Karpenter: 노드 통합 필요 감지<br/>(미사용 또는 저사용)
+    Karpenter->>Karpenter: Detect need for node consolidation<br/>(empty or underutilized)
     Karpenter->>Node: Node Cordon
-    Karpenter->>Node: Node Drain 시작
-    Node->>Kubelet: Pod 종료 요청
+    Karpenter->>Node: Start node drain
+    Node->>Kubelet: Request Pod termination
 
-    Kubelet->>Pod: preStop Hook 실행
+    Kubelet->>Pod: Execute preStop hook
     Note over Pod: sleep 5
 
-    Kubelet->>Pod: SIGTERM 전송
-    Pod->>Pod: Graceful Shutdown<br/>(최대 terminationGracePeriodSeconds)
+    Kubelet->>Pod: Send SIGTERM
+    Pod->>Pod: Graceful Shutdown<br/>(up to terminationGracePeriodSeconds)
 
-    alt Graceful 종료 성공
+    alt Graceful termination succeeds
         Pod->>Kubelet: exit 0
-        Kubelet->>Karpenter: Pod 종료 완료
+        Kubelet->>Karpenter: Pod termination complete
     else Timeout
         Kubelet->>Pod: SIGKILL
-        Pod->>Kubelet: 강제 종료
+        Pod->>Kubelet: Forced termination
     end
 
-    Karpenter->>Karpenter: 모든 Pod 이동 완료
-    Karpenter->>Node: 노드 종료
+    Karpenter->>Karpenter: All Pods have moved
+    Karpenter->>Node: Terminate node
 ```
 
-**Karpenter NodePool 설정:**
+**Karpenter NodePool configuration:**
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -65,95 +65,95 @@ spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
-    # Disruption budget: 동시 중단 노드 제한
+    # Disruption budget: limit concurrent node disruptions
     budgets:
     - nodes: "20%"
-      schedule: "0 9-17 * * MON-FRI"  # 업무 시간 20%
+      schedule: "0 9-17 * * MON-FRI"  # 20% during business hours
     - nodes: "50%"
-      schedule: "0 0-8,18-23 * * *"   # 비업무 시간 50%
+      schedule: "0 0-8,18-23 * * *"   # 50% outside business hours
 ```
 
-:::warning PDB와 Karpenter 상호작용
-PodDisruptionBudget이 너무 엄격하면 (예: `minAvailable`이 replica 수와 같음) Karpenter가 노드를 drain할 수 없습니다. PDB는 `minAvailable: replica - 1` 또는 `maxUnavailable: 1`로 설정하여 최소 1개 Pod은 이동 가능하도록 하세요.
+:::warning Interaction between PDB and Karpenter
+If a PodDisruptionBudget is too strict (for example, `minAvailable` equals the replica count), Karpenter cannot drain nodes. Set the PDB to `minAvailable: replica - 1` or `maxUnavailable: 1` so that at least 1 Pod can move.
 :::
 
-### ARC + Karpenter 통합 AZ 대피 패턴 {#343-arc--karpenter-통합-az-대피-패턴}
+### AZ evacuation pattern with ARC + Karpenter integration {#343-arc--karpenter-통합-az-대피-패턴}
 
-**개요:**
+**Overview:**
 
-AWS Application Recovery Controller(ARC)와 Karpenter의 통합(2025년 발표)은 Availability Zone(AZ) 장애 시 자동으로 워크로드를 다른 AZ로 이동시키는 고가용성 패턴을 제공합니다. 이를 통해 AZ 장애 또는 Gray Failure 상황에서도 Graceful Shutdown을 보장하며 서비스 중단을 최소화할 수 있습니다.
+The integration of AWS Application Recovery Controller (ARC) and Karpenter, announced in 2025, provides a high-availability pattern that automatically moves workloads to other Availability Zones (AZs) when an AZ fails. This ensures graceful shutdown and minimizes service disruption during AZ failures or gray failures.
 
-**ARC Zonal Shift란:**
+**About ARC Zonal Shift:**
 
-Zonal Shift는 특정 AZ에서 발생한 장애나 성능 저하를 감지했을 때, 해당 AZ의 트래픽을 자동으로 다른 정상 AZ로 전환하는 기능입니다. EKS와 통합 시 Pod의 안전한 이동까지 자동화됩니다.
+Zonal Shift automatically shifts traffic from an AZ to other healthy AZs when a failure or performance degradation is detected in that AZ. Integration with EKS also automates safe Pod relocation.
 
-**아키텍처 구성 요소:**
+**Architecture components:**
 
-| 컴포넌트 | 역할 | 동작 |
+| Component | Role | Behavior |
 |----------|------|------|
-| **ARC Zonal Autoshift** | AZ 장애 자동 감지 및 트래픽 전환 결정 | CloudWatch Alarms 기반 자동 Shift |
-| **Karpenter** | 새 AZ에 노드 프로비저닝 | NodePool 설정에 따라 정상 AZ에 노드 생성 |
-| **AWS Load Balancer** | 트래픽 라우팅 제어 | 장애 AZ의 Target 제거 |
-| **PodDisruptionBudget** | Pod 이동 시 가용성 보장 | 최소 가용 Pod 수 유지 |
+| **ARC Zonal Autoshift** | Automatically detect AZ failures and decide when to shift traffic | Automatic shift based on CloudWatch Alarms |
+| **Karpenter** | Provision nodes in a new AZ | Create nodes in healthy AZs according to NodePool configuration |
+| **AWS Load Balancer** | Control traffic routing | Remove targets in the affected AZ |
+| **PodDisruptionBudget** | Ensure availability during Pod relocation | Maintain the minimum number of available Pods |
 
-**AZ 대피 시퀀스:**
+**AZ evacuation sequence:**
 
 ```mermaid
 sequenceDiagram
-    participant AZ_A as AZ-A (장애)
+    participant AZ_A as AZ-A (affected)
     participant ARC as ARC Zonal Autoshift
     participant Karpenter
-    participant AZ_B as AZ-B (정상)
+    participant AZ_B as AZ-B (healthy)
     participant LB as ALB/NLB
     participant Pod_Old as Pod (AZ-A)
     participant Pod_New as Pod (AZ-B)
 
-    Note over AZ_A: AZ 성능 저하 감지<br/>(네트워크 지연, 패킷 손실)
+    Note over AZ_A: Detect AZ performance degradation<br/>(network latency, packet loss)
 
-    AZ_A->>ARC: CloudWatch Alarm 트리거
-    ARC->>ARC: Zonal Shift 결정
-    ARC->>LB: AZ-A Target 제거 시작
+    AZ_A->>ARC: Trigger CloudWatch Alarm
+    ARC->>ARC: Decide to perform Zonal Shift
+    ARC->>LB: Start removing AZ-A targets
 
-    par Karpenter 노드 프로비저닝
-        ARC->>Karpenter: AZ-A 노드 Cordon
-        Karpenter->>AZ_B: 새 노드 프로비저닝
-        AZ_B->>Karpenter: 노드 Ready
-    and Pod 재스케줄링
+    par Karpenter node provisioning
+        ARC->>Karpenter: Cordon AZ-A nodes
+        Karpenter->>AZ_B: Provision new nodes
+        AZ_B->>Karpenter: Node Ready
+    and Pod rescheduling
         Karpenter->>Pod_Old: Pod Eviction (Graceful)
-        Pod_Old->>Pod_Old: preStop Hook 실행
-        Pod_Old->>Pod_Old: SIGTERM 수신
+        Pod_Old->>Pod_Old: Execute preStop hook
+        Pod_Old->>Pod_Old: Receive SIGTERM
         Pod_Old->>Pod_Old: Graceful Shutdown
-        Note over Pod_Old: 진행 중인 요청 완료<br/>(terminationGracePeriodSeconds)
+        Note over Pod_Old: Complete in-flight requests<br/>(terminationGracePeriodSeconds)
     end
 
-    Pod_New->>AZ_B: Pod 시작
-    Pod_New->>Pod_New: startupProbe 성공
-    Pod_New->>Pod_New: readinessProbe 성공
-    LB->>Pod_New: Health Check 통과
-    LB->>Pod_New: 트래픽 전송 시작
+    Pod_New->>AZ_B: Start Pod
+    Pod_New->>Pod_New: startupProbe succeeds
+    Pod_New->>Pod_New: readinessProbe succeeds
+    LB->>Pod_New: Pass health check
+    LB->>Pod_New: Start sending traffic
 
-    Pod_Old->>AZ_A: 안전 종료
-    Karpenter->>AZ_A: 빈 노드 종료
+    Pod_Old->>AZ_A: Shut down safely
+    Karpenter->>AZ_A: Terminate empty nodes
 
-    Note over AZ_B: 모든 워크로드 AZ-B로 이동 완료
+    Note over AZ_B: All workloads have moved to AZ-B
 ```
 
-**설정 예시:**
+**Configuration examples:**
 
-**1. ARC Zonal Autoshift 활성화:**
+**1. Enable ARC Zonal Autoshift:**
 
 ```bash
-# Load Balancer에 Zonal Autoshift 활성화
+# Enable Zonal Autoshift on the load balancer
 aws arc-zonal-shift create-autoshift-observer-notification-configuration \
   --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef
 
-# Zonal Autoshift 설정
+# Configure Zonal Autoshift
 aws arc-zonal-shift update-zonal-autoshift-configuration \
   --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef \
   --zonal-autoshift-status ENABLED
 ```
 
-**2. Karpenter NodePool - AZ 인식 설정:**
+**2. Karpenter NodePool - AZ-aware configuration:**
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -164,11 +164,11 @@ spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 30s
-    # AZ 장애 시 빠른 대응
+    # Respond quickly to AZ failures
     budgets:
     - nodes: "100%"
       reasons:
-      - "Drifted"  # AZ Cordon 시 즉시 교체
+      - "Drifted"  # Replace immediately when an AZ is cordoned
   template:
     spec:
       requirements:
@@ -181,7 +181,7 @@ spec:
       - key: karpenter.sh/capacity-type
         operator: In
         values:
-        - on-demand  # AZ 장애 대응은 On-Demand 권장
+        - on-demand  # On-Demand is recommended for AZ failure recovery
       nodeClassRef:
         name: default
 ---
@@ -198,13 +198,13 @@ spec:
   securityGroupSelectorTerms:
   - tags:
       karpenter.sh/discovery: "production-eks"
-  # AZ 장애 시 자동 감지
+  # Automatically detect AZ failures
   metadataOptions:
     httpTokens: required
     httpPutResponseHopLimit: 2
 ```
 
-**3. Deployment with PDB - AZ 분산:**
+**3. Deployment with PDB - distribute across AZs:**
 
 ```yaml
 apiVersion: apps/v1
@@ -221,7 +221,7 @@ spec:
       labels:
         app: critical-api
     spec:
-      # AZ 분산 보장
+      # Ensure distribution across AZs
       topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
@@ -229,7 +229,7 @@ spec:
         labelSelector:
           matchLabels:
             app: critical-api
-      # 동일 노드 배치 방지
+      # Avoid placement on the same node
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -273,13 +273,13 @@ kind: PodDisruptionBudget
 metadata:
   name: critical-api-pdb
 spec:
-  minAvailable: 4  # 6개 중 최소 4개 유지 (AZ 장애 시 2개 AZ에서 운영)
+  minAvailable: 4  # Maintain at least 4 of 6 (operate in 2 AZs during an AZ failure)
   selector:
     matchLabels:
       app: critical-api
 ```
 
-**4. CloudWatch Alarm - AZ 성능 저하 감지:**
+**4. CloudWatch Alarm - detect AZ performance degradation:**
 
 ```yaml
 apiVersion: v1
@@ -301,25 +301,25 @@ data:
       "Dimensions": [
         {"Name": "AvailabilityZone", "Value": "ap-northeast-2a"}
       ],
-      "AlarmDescription": "AZ-A 네트워크 지연 증가 - Zonal Shift 트리거",
+      "AlarmDescription": "Increased AZ-A network latency - trigger Zonal Shift",
       "AlarmActions": [
         "arn:aws:arc-zonal-shift:ap-northeast-2:123456789012:autoshift-observer-notification"
       ]
     }
 ```
 
-**Istio locality 우선순위와 Service 직접 라우팅:**
+**Istio locality priority and direct Service routing:**
 
-이 정책은 클라이언트와 같은 region·zone의 endpoint를 먼저 사용하고, 그다음 같은 region의 다른 zone을 사용하도록 우선순위를 정합니다. passive outlier detection과 함께 사용합니다. 특정 AZ로 이동하는 순서를 지정하거나 ARC가 VirtualService를 자동으로 수정하는 구성은 아닙니다.
+This policy prioritizes endpoints matching the client's region and zone, followed by other zones in the same region. It works with passive outlier detection; it defines neither a fixed AZ sequence nor automatic ARC-to-VirtualService changes.
 
-**적용 전제:** 이 예시는 Istio 1.27.0의 `v1beta1` 필드를 사용합니다. 설치된 버전에서 해당 CRD를 제공하는지 확인합니다. `production`의 기존 `critical-api` Service, 구분 가능한 HTTP Service port, 정상 endpoint, region/zone metadata, sidecar를 거치는 요청 경로가 필요합니다.
+**Applicability:** This example uses the Istio 1.27.0 `v1beta1` fields. Verify that the installed release serves the required CRD. It needs an existing `critical-api` Service in `production`, an unambiguous HTTP Service port, healthy endpoints, region/zone metadata and a request path through a sidecar.
 
-두 정책의 공개 범위는 `production`이며, VirtualService는 mesh 내부 요청에 적용됩니다. 다른 namespace의 클라이언트가 필요하면 공개 범위를 별도로 설계합니다. 정책이 보인다고 접근 권한이 생기는 것은 아닙니다. 기존 AuthorizationPolicy·인증·mTLS 제어는 유지합니다.
+Both policies are visible only within `production`, and the VirtualService applies to mesh requests. Clients in other namespaces need an explicit visibility design. Visibility does not grant access: retain existing AuthorizationPolicy, authentication and mTLS controls.
 
-`interval`은 passive 분석 주기이고 `baseEjectionTime`은 최소 ejection 기간입니다. 이 값으로 복구 완료 시간을 계산할 수는 없습니다. replica 수, 남은 처리 용량, retry budget과 실제 장애 시 동작을 함께 검증합니다.
+`interval` is a passive analysis period and `baseEjectionTime` is a minimum ejection duration. These values do not define a recovery deadline. Verify replica counts, remaining capacity, retry budgets and behavior during an actual failure.
 
 ```yaml
-# production 내부의 Service 정책; 인증/인가 정책은 별도 유지
+# Service policy within production; authentication/authorization remain separate
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -342,7 +342,7 @@ spec:
       baseEjectionTime: 30s
       maxEjectionPercent: 50
 ---
-# Service 직접 route; ARC-to-mesh 자동화나 접근 권한을 만들지 않음
+# Direct Service route; no ARC-to-mesh automation or access grant is supplied
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -365,21 +365,21 @@ spec:
       perTryTimeout: 1s
 ```
 
-**Gray Failure 처리 전략:**
+**Gray failure handling strategies:**
 
-Gray Failure는 완전한 장애가 아닌 성능 저하 상태로, 감지가 어렵습니다. ARC + Karpenter + Istio 조합으로 대응:
+A gray failure is a state of degraded performance rather than a complete failure, making it difficult to detect. Use ARC + Karpenter + Istio together to respond:
 
-| Gray Failure 증상 | 감지 방법 | 자동 대응 |
+| Gray failure symptom | Detection method | Automated response |
 |------------------|----------|----------|
-| 네트워크 지연 증가 (50-200ms) | Container Network Observability | Istio Outlier Detection → 트래픽 우회 |
-| 간헐적 패킷 손실 (1-5%) | CloudWatch Network Metrics | ARC Zonal Shift 트리거 |
-| 디스크 I/O 저하 | EBS CloudWatch Metrics | Karpenter 노드 교체 |
-| API Server 응답 지연 | Control Plane Metrics | Provisioned Control Plane 자동 스케일링 |
+| Increased network latency (50-200ms) | Container Network Observability | Istio Outlier Detection → reroute traffic |
+| Intermittent packet loss (1-5%) | CloudWatch Network Metrics | Trigger ARC Zonal Shift |
+| Degraded disk I/O | EBS CloudWatch Metrics | Karpenter node replacement |
+| API Server response latency | Control Plane Metrics | Automatic scaling of the Provisioned Control Plane |
 
-**테스트 및 검증:**
+**Testing and validation:**
 
 ```bash
-# AZ 장애 시뮬레이션 (Chaos Engineering)
+# Simulate an AZ failure (Chaos Engineering)
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -388,32 +388,32 @@ metadata:
   namespace: chaos
 data:
   experiment: |
-    # 1. AZ-A의 모든 노드에 Taint 추가 (AZ 장애 시뮬레이션)
+    # 1. Add a taint to all nodes in AZ-A (simulate an AZ failure)
     kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
       az-failure=true:NoSchedule
 
-    # 2. Karpenter가 AZ-B, AZ-C에 새 노드 생성 확인
+    # 2. Verify that Karpenter creates new nodes in AZ-B and AZ-C
     kubectl get nodes -l topology.kubernetes.io/zone=ap-northeast-2b,ap-northeast-2c
 
-    # 3. Pod 이동 모니터링
+    # 3. Monitor Pod relocation
     kubectl get pods -o wide --watch
 
-    # 4. PDB 준수 확인 (minAvailable 유지)
+    # 4. Verify PDB compliance (maintain minAvailable)
     kubectl get pdb critical-api-pdb
 
-    # 5. Graceful Shutdown 로그 확인
+    # 5. Check graceful shutdown logs
     kubectl logs <pod-name> --previous
 
-    # 6. 복구 (Taint 제거)
+    # 6. Recover (remove the taint)
     kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
       az-failure-
 EOF
 ```
 
-**모니터링 대시보드:**
+**Monitoring dashboard:**
 
 ```yaml
-# Grafana Dashboard: AZ 헬스 및 대피 상태
+# Grafana Dashboard: AZ health and evacuation status
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -424,7 +424,7 @@ data:
     {
       "panels": [
         {
-          "title": "AZ별 Pod 분포",
+          "title": "Pod distribution by AZ",
           "targets": [
             {
               "expr": "count(kube_pod_info) by (node, zone)"
@@ -432,7 +432,7 @@ data:
           ]
         },
         {
-          "title": "AZ별 네트워크 지연",
+          "title": "Network latency by AZ",
           "targets": [
             {
               "expr": "avg(container_network_latency_ms) by (availability_zone)"
@@ -440,7 +440,7 @@ data:
           ]
         },
         {
-          "title": "Karpenter 노드 프로비저닝 속도",
+          "title": "Karpenter node provisioning rate",
           "targets": [
             {
               "expr": "rate(karpenter_nodes_created_total[5m])"
@@ -448,7 +448,7 @@ data:
           ]
         },
         {
-          "title": "Graceful Shutdown 성공률",
+          "title": "Graceful shutdown success rate",
           "targets": [
             {
               "expr": "rate(pod_termination_graceful_total[5m]) / rate(pod_termination_total[5m])"
@@ -459,20 +459,20 @@ data:
     }
 ```
 
-**관련 자료:**
-- [AWS Blog: ARC + Karpenter 고가용성 통합](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/)
-- [AWS Blog: Istio 기반 End-to-end AZ 복구](https://aws.amazon.com/blogs/containers/)
+**Related resources:**
+- [AWS Blog: ARC + Karpenter high-availability integration](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/)
+- [AWS Blog: Istio-based end-to-end AZ recovery](https://aws.amazon.com/blogs/containers/)
 - [AWS re:Invent 2025: Supercharge your Karpenter](https://www.youtube.com/watch?v=kUQ4Q11F4iQ)
 
-:::tip 운영 Best Practice
-AZ 대피는 자동화되지만, 정기적인 Chaos Engineering 테스트로 검증하세요. 매 분기 1회 이상 AZ 장애 시뮬레이션을 수행하여 PDB, Karpenter, Graceful Shutdown이 예상대로 동작하는지 확인합니다. 특히 `terminationGracePeriodSeconds`가 실제 Shutdown 시간보다 충분히 긴지 프로덕션 환경에서 측정하세요.
+:::tip Operational best practices
+Although AZ evacuation is automated, validate it through regular Chaos Engineering tests. Run at least 1 AZ failure simulation per quarter to verify that PDB, Karpenter, and graceful shutdown behave as expected. In particular, measure actual shutdown time in production to ensure that `terminationGracePeriodSeconds` provides sufficient time.
 :::
 
-### Spot 인스턴스 2분 경고 처리 {#spot-인스턴스-2분-경고-처리}
+### Handling the 2-minute Spot instance warning {#spot-인스턴스-2분-경고-처리}
 
-AWS Spot 인스턴스는 종료 2분 전에 경고를 보냅니다. 이를 처리하여 Graceful Shutdown을 보장합니다.
+AWS Spot instances send a warning 2 minutes before termination. Handle this warning to ensure graceful shutdown.
 
-**AWS Node Termination Handler 설치:**
+**Install AWS Node Termination Handler:**
 
 ```bash
 helm repo add eks https://aws.github.io/eks-charts
@@ -485,15 +485,15 @@ helm install aws-node-termination-handler \
   --set enableScheduledEventDraining=true
 ```
 
-**동작 방식:**
-1. Spot 종료 2분 경고 감지
-2. 노드를 즉시 Cordon (새 Pod 스케줄링 차단)
-3. 노드의 모든 Pod을 Drain
-4. Pod의 `terminationGracePeriodSeconds` 내에 Graceful Shutdown 완료
+**How it works:**
+1. Detect the 2-minute Spot termination warning
+2. Immediately cordon the node (block scheduling of new Pods)
+3. Drain all Pods on the node
+4. Complete graceful shutdown within the Pod's `terminationGracePeriodSeconds`
 
-**권장 terminationGracePeriodSeconds:**
-- 일반 웹 서비스: 30-60초
-- 장기 실행 작업 (배치, ML 추론): 90-120초
-- 최대 2분 이내로 설정 (Spot 경고 시간 고려)
+**Recommended terminationGracePeriodSeconds:**
+- Standard web services: 30-60 seconds
+- Long-running tasks (batch jobs, ML inference): 90-120 seconds
+- Set to no more than 2 minutes (accounting for the Spot warning period)
 
 ---

@@ -1,11 +1,11 @@
 ---
-title: "East-West 트래픽 최적화: 성능과 비용의 균형"
-description: EKS에서 서비스 간 통신(East-West)의 지연시간을 최소화하고 크로스-AZ 비용을 절감하는 심층 최적화 전략. Topology Aware Routing, InternalTrafficPolicy부터 Cilium ClusterMesh, AWS VPC Lattice, Istio 멀티클러스터까지
+title: "East-West Traffic Optimization: Balancing Performance and Cost"
+description: Deep optimization strategies for minimizing inter-service communication latency and reducing cross-AZ costs in EKS. Covers Topology Aware Routing, InternalTrafficPolicy, Cilium ClusterMesh, AWS VPC Lattice, and Istio multi-cluster
 created: "2026-02-04"
 last_update:
   date: 2026-09-18
-  author: YoungJoon Jeong
-reading_time: 26
+  author: devfloor9
+reading_time: 46
 tags:
   - eks
   - networking
@@ -14,86 +14,86 @@ tags:
   - service-mesh
   - topology-aware-routing
   - scope:tech
-sidebar_label: East-West 트래픽 최적화
+sidebar_label: East-West Traffic Optimization
 category: performance-networking
 ---
 
 import { ServiceTypeComparison, LatencyCostComparison, CostSimulation, ScenarioMatrix } from '@site/src/components/EastWestTrafficTables';
 
-## 개요
+## Overview
 
-아래 지연과 절감률 수치는 이 문서에서 측정한 결과가 아닌 설명용 계획 가정입니다. 비용은 리전·과금 방향·단위·사용량에 따라 달라지므로 예산 산정 전에 현재 요금을 확인하세요.
+Latency and reduction percentages shown below are illustrative planning assumptions, not measurements from this document. Cost estimates depend on region, charged traffic direction, billing units, and usage; verify current rates before budgeting.
 
-Amazon EKS 기반의 내부 서비스 간 통신(East-West 트래픽)을 **지연(latency) 최소화**와 **비용 효율화** 관점에서 최적화하는 방안을 정리합니다. 단일 클러스터에서 시작하여 멀티 AZ(Availability Zone) 구성, 나아가 멀티 클러스터/멀티 계정 환경으로 확장되는 시나리오를 단계적으로 다룹니다.
+This guide describes how to optimize internal service-to-service communication (East-West traffic) on Amazon EKS for **minimum latency** and **cost efficiency**. It progresses from a single cluster to multiple Availability Zones (AZs), then to multi-cluster and multi-account environments.
 
-East-West(서비스↔서비스) 경로의 추가 홉과 AZ 간 전송은 지연과 비용에 영향을 줄 수 있습니다. 실제 영향은 경로·부하·서비스별 과금 방식에 따라 측정합니다. 이 가이드는 **Kubernetes 네이티브 기능(Topology Aware Routing·InternalTrafficPolicy)부터 Cilium ClusterMesh, AWS VPC Lattice, Istio 서비스 메쉬**까지 레이어별 옵션과 비교에 필요한 조건을 설명합니다.
+Additional hops and cross-AZ transfers can affect East-West latency and cost. Measure the effect for the actual path, load, and service billing model. This guide explains options from **Kubernetes-native features (Topology Aware Routing and InternalTrafficPolicy) to Cilium ClusterMesh, AWS VPC Lattice, and the Istio service mesh**, along with the conditions needed to compare them.
 
-### 배경 및 문제점
+### Background and Challenges
 
-기본 Kubernetes 네트워킹에서 East-West 트래픽이 직면하는 문제점은 다음과 같습니다:
+East-West traffic faces the following challenges with default Kubernetes networking:
 
-- **AZ 인식 부재**: 기본 ClusterIP 서비스는 클러스터 전체 Pod에 트래픽을 랜덤(iptables) 또는 라운드로빈(IPVS) 분산시키며 AZ를 고려하지 않습니다
-- **불필요한 Cross-AZ 트래픽**: Pod가 여러 AZ에 분산되면 트래픽이 무작위로 타 AZ로 전달되어 지연 증가 및 비용 발생
-- **Cross-AZ 데이터 전송 비용**: 동일 리전 내 AZ 간 GB당 약 $0.01이 양방향으로 부과
-- **DNS 조회 지연**: 중앙화된 CoreDNS로의 교차 AZ DNS 조회 및 QPS 한도 초과 이슈
-- **LB 경유 시 추가 홉**: Internal ALB/NLB를 East-West에 사용하면 불필요한 네트워크 홉과 고정비용 발생
+- **No AZ awareness**: Default ClusterIP Services distribute traffic across Pods throughout the cluster randomly (iptables) or in round-robin order (IPVS), without considering AZs
+- **Unnecessary cross-AZ traffic**: When Pods span multiple AZs, traffic can be sent randomly to another AZ, increasing latency and cost
+- **Cross-AZ data transfer charges**: Approximately $0.01/GB is charged in each direction between AZs in the same Region
+- **DNS lookup latency**: Cross-AZ DNS queries to centralized CoreDNS and issues caused by exceeding QPS limits
+- **Additional hops through load balancers**: Using internal ALBs/NLBs for East-West traffic adds unnecessary network hops and fixed costs
 
-### 핵심 이점
+### Key Benefits
 
-이 가이드의 최적화 전략을 적용하면 다음과 같은 개선을 기대할 수 있습니다:
+The optimization strategies in this guide are expected to provide the following improvements:
 
-| 항목 | 개선 효과 |
+| Item | Improvement |
 |------|----------|
-| 네트워크 지연 | Topology Aware Routing으로 동일 AZ 라우팅, p99 sub-ms 달성 |
-| 비용 절감 | Cross-AZ 트래픽 제거 시 10 TB/월 기준 약 $100 절감 |
-| 운영 단순화 | ClusterIP 기반으로 LB 없이 서비스 간 통신 최적화 |
-| DNS 성능 | NodeLocal DNSCache로 DNS 조회 지연 수ms → sub-ms |
-| 확장성 | 멀티 클러스터/계정 환경으로의 일관된 확장 경로 제공 |
+| Network latency | Same-AZ routing with Topology Aware Routing, achieving sub-ms p99 latency |
+| Cost savings | Approximately $100 saved at 10 TB/month by eliminating cross-AZ traffic |
+| Operational simplicity | Optimize service-to-service communication with ClusterIP, without load balancers |
+| DNS performance | NodeLocal DNSCache reduces DNS lookup latency from several milliseconds to sub-ms |
+| Scalability | A consistent path to multi-cluster and multi-account environments |
 
-### L4 vs L7 트래픽별 최적화 전략
+### Optimization Strategies for L4 and L7 Traffic
 
-East-West 트래픽 최적화는 전송 계층(L4)과 애플리케이션 계층(L7)에서 다르게 접근합니다:
+East-West traffic requires different optimization approaches at the transport layer (L4) and the application layer (L7):
 
-- **L4 트래픽(TCP/UDP)**: 추가적인 프로토콜 처리 없이 직접적인 연결 경로를 확보하는 것이 핵심입니다. 불필요한 프록시나 로드밸런서를 경유하지 않고 Pod 간 1-hop 통신이 이루어지도록 설계하면 지연을 최소화할 수 있습니다. 데이터베이스와 같은 StatefulSet 서비스에는 Headless Service를 통해 클라이언트가 DNS 라운드로빈으로 직접 대상 Pod에 연결하는 패턴이 적합합니다.
+- **L4 traffic (TCP/UDP)**: The priority is a direct connection path without additional protocol processing. Designing for 1-hop Pod-to-Pod communication without unnecessary proxies or load balancers minimizes latency. For StatefulSet services such as databases, a Headless Service allows clients to connect directly to target Pods through DNS round-robin.
 
-- **L7 트래픽(HTTP/gRPC)**: 내용 기반 라우팅, 리트라이 등의 고급 트래픽 제어가 필요하면 애플리케이션 계층 프록시를 활용합니다. ALB나 Istio 사이드카를 이용하면 경로 기반 라우팅, gRPC 메서드별 라우팅, 서킷 브레이커 등 L7 기능을 적용할 수 있습니다. 다만 L7 프록시는 패킷 검사와 처리로 부하와 지연이 증가하므로, 단순 트래픽에는 과도한 요소가 될 수 있습니다.
+- **L7 traffic (HTTP/gRPC)**: Application-layer proxies provide advanced traffic control, such as content-based routing and retries. An ALB or Istio sidecar enables L7 features including path-based routing, gRPC method routing, and circuit breakers. However, packet inspection and processing in L7 proxies increase load and latency, which can be excessive for simple traffic patterns.
 
 ---
 
-## 사전 요구사항
+## Prerequisites
 
-### 필수 지식
+### Required Knowledge
 
-- Kubernetes 네트워킹 기본 개념 (Service, Endpoint, kube-proxy)
-- AWS VPC 네트워킹 (Subnet, AZ, ENI)
-- DNS 해석 메커니즘 (CoreDNS, /etc/resolv.conf)
+- Kubernetes networking fundamentals (Service, Endpoint, kube-proxy)
+- AWS VPC networking (subnets, AZs, ENIs)
+- DNS resolution mechanisms (CoreDNS, /etc/resolv.conf)
 
-### 필요한 도구
+### Required Tools
 
-| 도구 | 버전 | 용도 |
+| Tool | Version | Purpose |
 |------|------|------|
-| kubectl | 1.27+ | 클러스터 리소스 관리 |
-| eksctl | 0.170+ | EKS 클러스터 생성 및 관리 |
-| AWS CLI | 2.x | AWS 리소스 확인 |
-| Helm | 3.12+ | 차트 배포 (NodeLocal DNSCache 등) |
-| AWS Load Balancer Controller | 2.6+ | ALB/NLB 연동 (필요 시) |
+| kubectl | 1.27+ | Manage cluster resources |
+| eksctl | 0.170+ | Create and manage EKS clusters |
+| AWS CLI | 2.x | Inspect AWS resources |
+| Helm | 3.12+ | Deploy charts, such as NodeLocal DNSCache |
+| AWS Load Balancer Controller | 2.6+ | Integrate ALBs/NLBs when required |
 
-### 환경 요구사항
+### Environment Requirements
 
-| 항목 | 요구사항 |
+| Item | Requirement |
 |------|----------|
-| EKS 버전 | 1.27+ (Topology Aware Routing 지원) |
-| VPC CNI | v1.12+ 또는 Cilium (ClusterMesh 시나리오) |
-| AZ 구성 | 동일 리전 내 최소 2개 AZ |
-| IAM 권한 | EKS 클러스터 관리자, ELB 생성/관리 권한 |
+| EKS version | 1.27+ (Topology Aware Routing support) |
+| VPC CNI | v1.12+ or Cilium (for ClusterMesh scenarios) |
+| AZ configuration | At least 2 AZs in the same Region |
+| IAM permissions | EKS cluster administration and ELB creation/management permissions |
 
 ---
 
-## 아키텍처
+## Architecture
 
-### 아키텍처 개요: 단일 클러스터 트래픽 경로 비교
+### Architecture Overview: Single-Cluster Traffic Paths
 
-아래 다이어그램은 ClusterIP와 Internal ALB 경로의 차이를 보여줍니다:
+The following diagram compares the ClusterIP and internal ALB paths:
 
 ```mermaid
 graph TB
@@ -110,11 +110,11 @@ graph TB
     end
 
     PodA1 -->|"① ClusterIP<br/>kube-proxy NAT<br/>1 hop, sub-ms"| PodB1
-    PodA1 -.->|"② ALB 경로<br/>2 hops, +2-3ms"| ALB_ENI_A
-    ALB_ENI_A -.->|"LB 분산"| PodB1
-    ALB_ENI_A -.->|"cross-AZ 가능<br/>+$0.01/GB"| PodB2
+    PodA1 -.->|"② ALB path<br/>2 hops, +2-3ms"| ALB_ENI_A
+    ALB_ENI_A -.->|"LB distribution"| PodB1
+    ALB_ENI_A -.->|"May cross AZs<br/>+$0.01/GB"| PodB2
 
-    PodA2 -->|"① ClusterIP<br/>+ Topology Hints<br/>Zone 지역성 선호"| PodB2
+    PodA2 -->|"① ClusterIP<br/>+ Topology Hints<br/>Prefers zone locality"| PodB2
 
     style PodA1 fill:#4A90D9,color:#fff
     style PodA2 fill:#4A90D9,color:#fff
@@ -124,14 +124,14 @@ graph TB
     style ALB_ENI_B fill:#FF6B6B,color:#fff
 ```
 
-:::info 핵심 차이점
+:::info Key Differences
 
-- **ClusterIP 경로**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod (1 hop)
-- **Internal ALB 경로**: Pod → AZ-local ALB ENI → target Pod (2 hops)
-- Topology Aware Routing은 Zone 지역성을 개선할 수 있지만 hints와 폴백 동작 때문에 동일 AZ 라우팅을 보장하지 않습니다
+- **ClusterIP path**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod (1 hop)
+- **Internal ALB path**: Pod → AZ-local ALB ENI → target Pod (2 hops)
+- Topology Aware Routing can improve zone locality; hints and fallback behavior do not guarantee same-AZ routing
 :::
 
-### 멀티 클러스터 연결 옵션 비교
+### Multi-Cluster Connectivity Options
 
 ```mermaid
 graph LR
@@ -145,11 +145,11 @@ graph LR
         EB["Envoy Sidecar"]
     end
 
-    subgraph Options["연결 옵션"]
-        CM["Cilium ClusterMesh<br/>Pod→Pod 직접<br/>VXLAN 터널"]
-        VL["VPC Lattice<br/>Managed Proxy<br/>IAM 인증"]
-        IM["Istio 멀티클러스터<br/>East-West Gateway<br/>mTLS"]
-        DNS["Route53 + NLB<br/>DNS 기반<br/>ExternalDNS"]
+    subgraph Options["Connectivity options"]
+        CM["Cilium ClusterMesh<br/>Direct Pod→Pod<br/>VXLAN tunnel"]
+        VL["VPC Lattice<br/>Managed Proxy<br/>IAM authentication"]
+        IM["Istio multi-cluster<br/>East-West Gateway<br/>mTLS"]
+        DNS["Route53 + NLB<br/>DNS-based<br/>ExternalDNS"]
     end
 
     PA --> CM --> PB
@@ -163,56 +163,56 @@ graph LR
     style DNS fill:#3498DB,color:#fff
 ```
 
-### Kubernetes 서비스 유형별 비교
+### Kubernetes Service Type Comparison
 
-서비스 간 통신을 어떻게 연결하느냐에 따라 성능과 비용에 차이가 있습니다:
+Performance and cost vary with the connectivity method used between services:
 
 <ServiceTypeComparison />
 
-:::tip 서비스 유형 선택 지침
+:::tip Service Type Selection
 
-- **기본 선택**: ClusterIP + Topology Aware Routing
-- **StatefulSet**: Headless 서비스
-- **L7 기능 필요 시**: Internal ALB (IP 모드)
-- **L4 외부 노출 필요 시**: Internal NLB (IP 모드)
+- **Default**: ClusterIP + Topology Aware Routing
+- **StatefulSet**: Headless Service
+- **When L7 features are required**: Internal ALB (IP mode)
+- **When external L4 exposure is required**: Internal NLB (IP mode)
 :::
 
-### Instance 모드 vs IP 모드
+### Instance Mode vs IP Mode
 
-Internal LB 사용 시 Instance 모드와 IP 모드의 차이를 이해하는 것이 중요합니다:
+When using an internal load balancer, the differences between instance mode and IP mode affect traffic paths:
 
-- **Instance 모드**: LB → NodePort → kube-proxy → Pod. NodePort를 받은 노드의 kube-proxy가 대상 Pod이 위치한 다른 AZ의 노드로 패킷을 전달하면서 **교차 AZ 통신이 발생**합니다
-- **IP 모드**: 중간 Node를 거치지 않고 LB → Pod IP로 직접 연결합니다. IP target만으로 동일 AZ 라우팅을 보장하지 않으며, LB의 cross-zone 설정과 대상 가용성이 AZ 선택에 영향을 줍니다.
+- **Instance mode**: LB → NodePort → kube-proxy → Pod. The kube-proxy on the node receiving the NodePort traffic forwards packets to a node in another AZ that hosts the target Pod, **creating cross-AZ communication**
+- **IP mode**: LB → Pod IP directly, bypassing an intermediate node. IP targeting alone does not guarantee same-AZ routing; load balancer cross-zone configuration and target availability still determine AZ selection.
 
-:::warning Instance 모드 주의
-Instance 모드에서는 NodePort 경유로 cross-AZ 트래픽이 증가합니다. AWS 모범사례는 내부 LB 사용 시 가능하면 **IP 모드**로 설정하여 불필요한 AZ 간 트래픽을 줄일 것을 권장합니다. IP 모드를 사용하려면 AWS Load Balancer Controller가 필요합니다.
+:::warning Instance Mode Considerations
+Instance mode increases cross-AZ traffic through NodePort. AWS best practices recommend **IP mode** where possible for internal load balancers to reduce unnecessary inter-AZ traffic. IP mode requires the AWS Load Balancer Controller.
 :::
 
-### 아키텍처 의사결정
+### Architecture Decisions
 
-:::info 기술 선택 기준
+:::info Technology Selection Criteria
 
-**왜 ClusterIP를 기본으로 선택하는가?**
+**Why choose ClusterIP as the default?**
 
-- 네이티브 Kubernetes 기능으로 추가 비용 없음
-- 1-hop 통신으로 최저 지연
-- Topology Aware Routing과 결합하여 AZ 인식 가능
-- 서비스 메쉬, Gateway API와의 통합 용이
+- A native Kubernetes feature with no additional cost
+- The lowest latency through 1-hop communication
+- AZ awareness when combined with Topology Aware Routing
+- Straightforward integration with service meshes and Gateway API
 
-**왜 Internal ALB는 선택적으로 사용하는가?**
+**Why use internal ALBs selectively?**
 
-- 시간당 비용($0.0225/h) + LCU 과금이 지속 발생
-- 추가 네트워크 홉으로 2-3ms RTT 오버헤드
-- EC2→EKS 마이그레이션 등 과도기적 사용에 적합
+- Ongoing hourly charges ($0.0225/h) plus LCU charges
+- An additional network hop adds 2-3ms of RTT overhead
+- Suitable for transitional use, such as EC2→EKS migration
 :::
 
 ---
 
-## 구현
+## Implementation
 
-### 단계 1: Topology Aware Routing 활성화
+### Step 1: Enable Topology Aware Routing
 
-멀티 AZ 환경에서는 가능한 한 동일 AZ에서 요청을 처리해 지연과 전송 비용을 줄일 수 있습니다. Topology Aware Routing은 EndpointSlice의 hints로 Zone별 엔드포인트 집합을 할당합니다. 이는 엔드포인트의 실제 위치와 항상 같지는 않으며, kube-proxy는 안전 조건을 충족하지 못하면 전체 엔드포인트로 폴백합니다. 따라서 Cross-AZ 트래픽 제거를 보장하지 않습니다. [공식 동작 조건](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)을 함께 확인하세요.
+In a multi-AZ environment, processing requests within the same AZ can reduce latency and transfer charges. Topology Aware Routing allocates endpoint sets to zones through EndpointSlice hints. An assigned zone is not necessarily the endpoint’s physical zone, and kube-proxy falls back to all endpoints when safeguards are not satisfied. It therefore does not guarantee elimination of cross-AZ traffic. See the [official routing conditions](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/).
 
 ```yaml
 apiVersion: v1
@@ -221,7 +221,7 @@ metadata:
   name: my-service
   namespace: production
   annotations:
-    # Topology Aware Routing 활성화
+    # Enable Topology Aware Routing
     service.kubernetes.io/topology-mode: Auto
 spec:
   selector:
@@ -234,28 +234,28 @@ spec:
   type: ClusterIP
 ```
 
-**검증:**
+**Verification:**
 
 ```bash
-# EndpointSlice에 topology hints가 설정되었는지 확인
+# Check whether topology hints are set on EndpointSlices
 kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service -o yaml
 
-# 출력에서 hints 필드 확인
+# Inspect the hints field in the output
 # hints:
 #   forZones:
 #     - name: ap-northeast-2a
 ```
 
-:::warning Topology Aware Routing 동작 조건
+:::warning Topology Aware Routing Requirements
 
-- Zone별 **3개 이상의 엔드포인트**가 있을 때 가장 잘 동작합니다. 이는 보장 조건이 아닌 권장 기준입니다.
-- 할당 휴리스틱은 Zone별 **노드의 allocatable CPU 비율**을 고려하며, Pod 수의 균등 분포만 검사하지 않습니다.
-- 엔드포인트 부족, 과부하 임계값 초과 예상, 누락된 노드 Zone/CPU 정보 등의 안전 조건에 따라 hints를 사용하지 않을 수 있습니다.
+- Routing works best with **at least three endpoints per zone**; this is guidance, not a guarantee.
+- The allocation heuristic considers each zone’s share of **node allocatable CPU**, not just equal Pod counts.
+- Safeguards can disable hints because of insufficient endpoints, projected overload, or missing node zone/CPU information.
 :::
 
-### 단계 2: InternalTrafficPolicy Local 설정
+### Step 2: Configure InternalTrafficPolicy Local
 
-Topology Aware Routing보다 범위를 더 좁힌 기능으로, 동일 노드(Local Node)에 구동 중인 엔드포인트에만 트래픽을 전달합니다. 노드 간(당연히 AZ 간) 네트워크 홉이 완전히 제거되어 지연이 최소화되고 Cross-AZ 비용도 0에 수렴합니다.
+This feature narrows the scope further than Topology Aware Routing, forwarding traffic only to endpoints running on the same local node. It eliminates network hops between nodes, and therefore between AZs, minimizing latency and bringing cross-AZ costs close to zero.
 
 ```yaml
 apiVersion: v1
@@ -271,24 +271,24 @@ spec:
       port: 80
       targetPort: 8080
   type: ClusterIP
-  # 동일 노드의 엔드포인트로만 트래픽 전달
+  # Forward traffic only to endpoints on the same node
   internalTrafficPolicy: Local
 ```
 
-:::danger InternalTrafficPolicy: Local 주의사항
-로컬 노드에 준비된 대상 엔드포인트가 없으면 **해당 노드의 요청이 실패**합니다. 호출이 발생하는 모든 노드에 준비된 대상 Pod가 있어야 합니다. AZ 단위 Spread Constraints나 preferred PodAffinity만으로는 동일 노드 공배치를 보장하지 않습니다.
+:::danger InternalTrafficPolicy: Local Considerations
+If a node has no ready local target endpoint, **requests from that node fail**. Every node that originates calls needs a ready target Pod. Zone-level spread constraints and preferred PodAffinity do not guarantee placement on the same node.
 :::
 
 :::info Topology Aware Routing vs InternalTrafficPolicy
-두 필드는 함께 설정할 수 있지만, `internalTrafficPolicy: Local`이면 kube-proxy는 topology hints를 사용하지 않습니다.
+The fields can coexist, but kube-proxy does not use topology hints when `internalTrafficPolicy: Local` is set.
 
-- **멀티 AZ 환경**: AZ 지역성을 개선하려면 Topology Aware Routing을 고려합니다.
-- **같은 노드 내 빈번한 호출**: 노드 공배치와 준비된 로컬 엔드포인트를 보장할 수 있을 때 InternalTrafficPolicy(Local)를 사용합니다.
+- **Multi-AZ environments**: Consider Topology Aware Routing to improve zone locality.
+- **Frequent same-node calls**: Use InternalTrafficPolicy(Local) when node co-location and ready local endpoints can be assured.
 :::
 
-### 단계 3: Pod Topology Spread Constraints
+### Step 3: Pod Topology Spread Constraints
 
-Topology Aware Routing에는 Zone별 충분한 준비된 엔드포인트가 필요합니다. 아래 9개 복제본 예시는 스케줄 가능한 Zone이 3개이고 용량이 충분하다는 가정입니다. `maxSkew`만으로 Zone 수나 Ready 엔드포인트 수가 보장되지는 않습니다.
+Topology Aware Routing needs enough ready endpoints per zone. The nine-replica example assumes three eligible zones with sufficient capacity. `maxSkew` alone guarantees neither the number of zones nor the number of ready endpoints.
 
 ```yaml
 apiVersion: apps/v1
@@ -306,7 +306,7 @@ spec:
       labels:
         app: my-app
     spec:
-      # AZ별 균등 분산
+      # Distribute evenly across AZs
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone
@@ -314,7 +314,7 @@ spec:
           labelSelector:
             matchLabels:
               app: my-app
-        # 노드별 분산 (선택사항)
+        # Distribute across nodes (optional)
         - maxSkew: 1
           topologyKey: kubernetes.io/hostname
           whenUnsatisfiable: ScheduleAnyway
@@ -332,15 +332,15 @@ spec:
               memory: 128Mi
 ```
 
-**Pod Affinity를 이용한 공동 배치(co-location):**
+**Co-location with Pod Affinity:**
 
-다음 Pod spec 조각은 서비스 B와 동일 노드에 배치되도록 선호합니다. preferred 규칙은 공배치를 강제하지 않으므로 InternalTrafficPolicy(Local)의 가용성 조건을 충족시키는 보장으로 사용하지 마세요.
+This Pod spec fragment prefers the same node as service B. A preferred rule does not enforce co-location and cannot guarantee availability with InternalTrafficPolicy(Local).
 
 ```yaml
 spec:
   affinity:
     podAffinity:
-      # 서비스 B가 있는 노드에 우선 배치
+      # Prefer nodes that host service B
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 100
           podAffinityTerm:
@@ -350,22 +350,22 @@ spec:
             topologyKey: kubernetes.io/hostname
 ```
 
-:::tip 오토스케일링 주의사항
-HPA로 스케일 아웃할 때는 Spread Constraints에 따라 새 파드를 퍼뜨릴 수 있지만, **스케일 인 시에는 컨트롤러가 AZ 균형을 고려하지 않고 임의의 파드를 제거**하기 때문에 균형이 무너질 수 있습니다. Descheduler를 사용해 불균형 발생 시 재조정하는 것을 권장합니다.
+:::tip Autoscaling Considerations
+During HPA scale-out, Spread Constraints can distribute new Pods. During **scale-in, however, the controller removes arbitrary Pods without considering AZ balance**, which can disrupt the distribution. Use the Descheduler to rebalance Pods when this occurs.
 :::
 
-### 단계 4: NodeLocal DNSCache 배포
+### Step 4: Deploy NodeLocal DNSCache
 
-DNS 조회 지연과 실패는 마이크로서비스 환경에서 예상 외로 지연을 증가시키는 요소가 될 수 있습니다. NodeLocal DNSCache는 각 노드에 DNS 캐시 에이전트를 DaemonSet으로 구동하여 DNS 응답시간을 크게 단축합니다.
+DNS lookup delays and failures can unexpectedly increase latency in microservice environments. NodeLocal DNSCache runs a DNS cache agent on each node as a DaemonSet, substantially reducing DNS response times.
 
-아래 다운로드는 **템플릿**이며 바로 배포할 완성 매니페스트가 아닙니다. [공식 NodeLocal DNSCache 설정](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/)에 따라 DNS IP·도메인을 치환하고 kube-proxy iptables/IPVS 구성에 맞춘 뒤 적용하세요. IPVS에서는 문서에 설명된 kubelet clusterDNS 변경도 필요합니다.
+The download below is a **template**, not an immediately deployable manifest. Follow the [official NodeLocal DNSCache setup](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/) to substitute the DNS IP/domain and select the kube-proxy iptables/IPVS configuration before applying it. IPVS also requires the kubelet clusterDNS change described there.
 
 ```bash
-# NodeLocal DNSCache 매니페스트 다운로드 및 배포
+# Download and deploy the NodeLocal DNSCache manifest
 curl -fsSLo nodelocaldns.yaml https://raw.githubusercontent.com/kubernetes/kubernetes/v1.32.0/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
 ```
 
-또는 Helm 차트를 사용합니다:
+Alternatively, use a Helm chart:
 
 ```bash
 helm repo add deliveryhero https://charts.deliveryhero.io/
@@ -374,30 +374,30 @@ helm install node-local-dns deliveryhero/node-local-dns \
   --set config.localDnsIp=169.254.20.10
 ```
 
-**NodeLocal DNSCache 동작 원리:**
+**How NodeLocal DNSCache works:**
 
 ```yaml
-# 각 Pod의 /etc/resolv.conf가 로컬 캐시로 향하게 설정
+# Configure each Pod's /etc/resolv.conf to point to the local cache
 # nameserver 169.254.20.10 (NodeLocal DNS IP)
-# 자주 조회되는 DNS 질의를 노드 내부에서 캐싱
+# Cache frequently queried DNS records within the node
 ```
 
-**효과:**
+**Benefits:**
 
-- p99 DNS lookup 지연: 수ms → sub-ms
-- CoreDNS QPS 부하 완화
-- 1만 개 이상 Pod 환경에서 DNS 대기시간 수십ms 절약
-- 교차 AZ DNS 요금 감소
+- p99 DNS lookup latency: several milliseconds → sub-ms
+- Reduced CoreDNS QPS load
+- Tens of milliseconds saved in DNS wait time in environments with more than 10,000 Pods
+- Lower cross-AZ DNS charges
 
-:::tip NodeLocal DNSCache 적용 기준
-AWS 공식 블로그에서는 **노드 수가 많은 클러스터**에서 NodeLocal DNSCache 사용을 권장하며 CoreDNS 스케일아웃과 함께 활용하라고 조언합니다. 워크로드 규모에 따라 노드당 추가 데몬의 리소스 소모(CPU/메모리)를 고려하여 적용하세요.
+:::tip When to Use NodeLocal DNSCache
+The official AWS blog recommends NodeLocal DNSCache for **clusters with many nodes**, together with CoreDNS scale-out. Account for the CPU and memory consumed by an additional daemon on each node when evaluating it for the workload size.
 :::
 
-### 단계 5: Internal LB IP 모드 구성 (필요 시)
+### Step 5: Configure Internal Load Balancers in IP Mode (When Required)
 
-L7 기능이 필요하거나 EC2→EKS 마이그레이션 과도기에는 Internal ALB를 IP 모드로 구성합니다:
+Configure an internal ALB in IP mode when L7 features are required or during the transition from EC2 to EKS:
 
-**Internal NLB (IP 모드):**
+**Internal NLB (IP mode):**
 
 ```yaml
 apiVersion: v1
@@ -406,11 +406,11 @@ metadata:
   name: my-service-nlb
   namespace: production
   annotations:
-    # AWS Load Balancer Controller 사용
+    # Use the AWS Load Balancer Controller
     service.beta.kubernetes.io/aws-load-balancer-type: external
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
     service.beta.kubernetes.io/aws-load-balancer-scheme: internal
-    # Cross-Zone LB 비활성화 (AZ 로컬 트래픽 유지)
+    # Disable cross-zone load balancing to keep traffic AZ-local
     service.beta.kubernetes.io/aws-load-balancer-attributes: load_balancing.cross_zone.enabled=false
 spec:
   type: LoadBalancer
@@ -423,7 +423,7 @@ spec:
       protocol: TCP
 ```
 
-**Internal ALB (Ingress 리소스):**
+**Internal ALB (Ingress resource):**
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -450,40 +450,40 @@ spec:
                   number: 80
 ```
 
-### 단계 6: Istio 서비스 메쉬 (선택적)
+### Step 6: Istio Service Mesh (Optional)
 
-보안 요구사항(mTLS, Zero-Trust)이 있거나 고급 트래픽 관리가 필요한 경우 Istio를 선택적으로 도입합니다.
+Introduce Istio selectively when security requirements such as mTLS or Zero Trust, or advanced traffic management requirements, apply.
 
-:::tip 메시 솔루션 선택
-어떤 서비스 메시를 선택할지(Istio·Cilium·Linkerd·VPC Lattice)는 [서비스 메시 비교 가이드](./service-mesh/index.md)에서 다룹니다. 본 문서는 도입 후 지연·비용 최적화 관점에 집중합니다.
+:::tip Selecting a Service Mesh
+The [Service Mesh Comparison Guide](./service-mesh/index.md) covers the choice among Istio, Cilium, Linkerd, and VPC Lattice. This document focuses on latency and cost optimization after adoption.
 :::
 
-**Istio의 주요 이점:**
+**Key benefits of Istio:**
 
-- **Locality 기반 라우팅**: Envoy 사이드카 간 로컬리티 정보를 활용하여 동일 AZ 또는 동일 지역의 인스턴스로 라우팅
-- **투명한 mTLS**: 애플리케이션 코드 수정 없이 Mutual TLS 암호화
-- **고급 트래픽 관리**: 리트라이, 타임아웃, 서킷브레이커, 카나리 배포
+- **Locality-based routing**: Use locality information between Envoy sidecars to route to instances in the same AZ or geographic location
+- **Transparent mTLS**: Mutual TLS encryption without application code changes
+- **Advanced traffic management**: Retries, timeouts, circuit breakers, and canary deployments
 
-**성능 오버헤드 (Istio 1.30 기준):**
+**Performance overhead (Istio 1.30):**
 
-| 메트릭 | 수치 |
+| Metric | Value |
 |--------|------|
-| 사이드카당 CPU | ~0.2 vCPU (1000 rps 기준) |
-| 사이드카당 메모리 | ~60 MB (1000 rps 기준) |
-| 추가 지연 (p99) | ~5ms (클라이언트+서버 2회 프록시 경유) |
-| 성능 영향 | 평균 5~10% 처리량 감소 |
+| CPU per sidecar | ~0.2 vCPU (at 1000 rps) |
+| Memory per sidecar | ~60 MB (at 1000 rps) |
+| Additional latency (p99) | ~5ms (two proxy traversals: client + server) |
+| Performance impact | Average throughput reduction of 5–10% |
 
-:::warning Istio 도입 시 고려사항
+:::warning Istio Adoption Considerations
 
-- 사이드카 리소스 소모로 EC2 비용 상승 가능
-- mTLS 활성화 시 CPU 사용량 추가 증가
-- 컨트롤 플레인(Istiod) 관리, CRD(VirtualService, DestinationRule) 학습 필요
-- 디버깅 난이도 상승 (사이드카, 컨트롤 플레인까지 추적)
-- **지연 민감도가 매우 높은 서비스**에는 메쉬 적용을 신중히 결정
+- Sidecar resource consumption can increase EC2 costs
+- Enabling mTLS further increases CPU usage
+- Requires control plane (Istiod) management and familiarity with CRDs (VirtualService, DestinationRule)
+- More complex debugging, including sidecars and the control plane
+- Evaluate mesh adoption carefully for **highly latency-sensitive services**
 :::
 
 ```yaml
-# Istio Locality Load Balancing 설정 예시
+# Example Istio Locality Load Balancing configuration
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -503,35 +503,35 @@ spec:
         maxRequestsPerConnection: 10
 ```
 
-### 멀티 클러스터 연결 전략
+### Multi-Cluster Connection Strategies
 
-서비스가 여러 클러스터 또는 여러 AWS 계정에 분산될 경우, 클러스터 간 연결 전략이 필요합니다.
+Services distributed across multiple clusters or AWS accounts require a cross-cluster connectivity strategy.
 
 #### Cilium ClusterMesh
 
-Cilium ClusterMesh는 CNI인 Cilium이 제공하는 멀티 클러스터 네트워킹 기능으로, 여러 클러스터를 하나의 네트워크처럼 묶어줍니다. 별도의 게이트웨이나 프록시를 경유하지 않고 eBPF 기반으로 Pod-to-Pod 직접 통신이 가능합니다.
+Cilium ClusterMesh is a multi-cluster networking capability of the Cilium CNI that connects multiple clusters as one network. It enables direct Pod-to-Pod communication through eBPF without a separate gateway or proxy.
 
 ```bash
-# ClusterMesh 활성화 (Cilium CLI)
+# Enable ClusterMesh (Cilium CLI)
 cilium clustermesh enable --context cluster1
 cilium clustermesh enable --context cluster2
 
-# 클러스터 연결
+# Connect the clusters
 cilium clustermesh connect --context cluster1 --destination-context cluster2
 
-# 상태 확인
+# Check status
 cilium clustermesh status --context cluster1
 ```
 
-**장점:** 가장 낮은 지연, 추가 요청당 비용 없음, 투명한 서비스 발견
-**단점:** 모든 클러스터가 Cilium CNI 필수, Cilium 운영 지식 필요
+**Advantages:** Lowest latency, no additional per-request charges, and transparent service discovery
+**Disadvantages:** Requires Cilium CNI in every cluster and Cilium operational expertise
 
 #### AWS VPC Lattice
 
-Amazon VPC Lattice는 완전관리형 애플리케이션 네트워킹 서비스로, 여러 VPC와 계정에 걸쳐 일관된 서비스 연결, IAM 기반 인증, 모니터링을 제공합니다.
+Amazon VPC Lattice is a fully managed application networking service that provides consistent service connectivity, IAM-based authentication, and monitoring across multiple VPCs and accounts.
 
 ```yaml
-# Kubernetes Gateway API를 통한 Lattice 연동
+# Integrate with Lattice through Kubernetes Gateway API
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
@@ -546,21 +546,21 @@ spec:
       port: 80
 ```
 
-**비용 구조:** 서비스당 $0.025/시간 + $0.025/GB + 100만 요청당 $0.10
-**적합한 경우:** 수십 개 이상의 마이크로서비스가 여러 계정에 분산, 중앙 보안 통제 필요
+**Pricing model:** $0.025/hour per service + $0.025/GB + $0.10 per million requests
+**Suitable for:** Dozens or more microservices distributed across multiple accounts with centralized security controls
 
-#### Istio 멀티클러스터 메쉬
+#### Istio Multi-Cluster Mesh
 
-이미 Istio를 사용하고 있다면 멀티클러스터 서비스 메쉬로 확장할 수 있습니다. Flat network 환경에서는 Envoy-to-Envoy 직통 통신이 가능하고, 분리된 네트워크에서는 East-West Gateway를 경유합니다.
+An existing Istio deployment can be extended into a multi-cluster service mesh. Flat networks allow direct Envoy-to-Envoy communication; separate networks communicate through an East-West Gateway.
 
-**장점:** 서비스 메쉬 전 기능을 클러스터 경계 넘어 활용, 글로벌 mTLS, 클러스터 간 페일오버
-**단점:** 4가지 옵션 중 운영 복잡도 최고, 인증서 관리/사이드카 동기화 등 과제
+**Advantages:** Full service mesh capabilities across cluster boundaries, global mTLS, and cross-cluster failover
+**Disadvantages:** The highest operational complexity of the four options, including certificate management and sidecar synchronization
 
 #### Route53 + ExternalDNS
 
-가장 단순한 멀티클러스터 연결 방법으로, 각 클러스터의 서비스를 Route53 Private Hosted Zone에 등록하고 DNS로 접근합니다.
+The simplest multi-cluster connectivity approach registers each cluster's services in a Route53 Private Hosted Zone and accesses them through DNS.
 
-ExternalDNS의 IAM 권한, Private Hosted Zone 필터와 VPC 연결, AWS Load Balancer Controller가 이미 구성되어 있어야 합니다. selector와 포트는 실제 워크로드에 맞게 바꾸세요.
+ExternalDNS IAM permissions, private hosted zone filtering and VPC associations, and AWS Load Balancer Controller must already be configured. Adapt the selector and ports to the actual workload.
 
 ```yaml
 apiVersion: v1
@@ -583,85 +583,85 @@ spec:
       targetPort: 8080
 ```
 
-**적합한 경우:** 클러스터 2-3개, 서비스 호출이 빈번하지 않은 경우, DR 구성
+**Suitable for:** 2-3 clusters, infrequent service calls, or disaster recovery configurations
 
 ---
 
-## 주요 옵션 지연 및 비용 비교
+## Latency and Cost Comparison of Key Options
 
-### 옵션별 성능·비용 비교표
+### Performance and Cost Comparison by Option
 
 <LatencyCostComparison />
 
-### 10 TB/월 East-West 트래픽 비용 시뮬레이션
+### Cost Simulation for 10 TB/Month of East-West Traffic
 
-가정: 동일 리전 3-AZ EKS 클러스터, 설명용 계산에 서비스 간 트래픽 10,240 GB 사용 (약 10 TB)
+Assumptions: An EKS cluster spanning 3 AZs in the same Region, using 10,240 GB of total service-to-service traffic for the illustrative calculation (approximately 10 TB)
 
 <CostSimulation />
 
-:::tip 비용 최적화 핵심 인사이트
+:::tip Key Cost Optimization Insights
 
-- **InternalTrafficPolicy Local**로 노드-로컬을 보장하면 비용 $0에 가장 낮은 지연 달성. 단, Pod Affinity 및 근접 배치가 필수
-- **서비스 20개 이상, 다계정이면** Lattice가 운영 편의성 제공 (추가 비용 감수)
-- **하이브리드 전략**이 대부분의 워크로드에 가장 경제적: ALB는 L7·WAF 필요한 특정 경로에만 스팟 투입하고, 나머지는 ClusterIP 경로 유지
+- **InternalTrafficPolicy Local** ensures node-local traffic for the lowest latency at $0 cost. Pod Affinity and co-location are required
+- **For 20 or more services across multiple accounts**, Lattice simplifies operations at an additional cost
+- A **hybrid strategy** is the most economical option for most workloads: deploy ALBs only on specific paths requiring L7 features or WAF, and retain ClusterIP paths elsewhere
 :::
 
 ---
 
-## 검증 및 모니터링
+## Verification and Monitoring
 
-### Topology Aware Routing 검증
+### Verify Topology Aware Routing
 
 ```bash
-# EndpointSlice의 hints 확인
+# Check EndpointSlice hints
 kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service \
   -o jsonpath='{range .items[*].endpoints[*]}{.addresses}{"\t"}{.zone}{"\t"}{.hints.forZones[*].name}{"\n"}{end}'
 
-# 출력 예상:
+# Expected output:
 # ["10.0.1.15"]    ap-northeast-2a    ap-northeast-2a
 # ["10.0.2.23"]    ap-northeast-2b    ap-northeast-2b
 # ["10.0.3.41"]    ap-northeast-2c    ap-northeast-2c
 ```
 
 ```bash
-# Pod가 AZ별로 균등 분산되었는지 확인
+# Check whether Pods are evenly distributed across AZs
 kubectl get pods -l app=my-app -o wide | awk '{print $7}' | sort | uniq -c
 
-# 출력 예상:
+# Expected output:
 # 2 ip-10-0-1-xxx.ap-northeast-2.compute.internal  (AZ-a)
 # 2 ip-10-0-2-xxx.ap-northeast-2.compute.internal  (AZ-b)
 # 2 ip-10-0-3-xxx.ap-northeast-2.compute.internal  (AZ-c)
 ```
 
-### 모니터링: Internal ALB
+### Monitoring: Internal ALB
 
-ALB를 사용하는 서비스의 경우 CloudWatch 메트릭으로 모니터링합니다:
+Monitor services that use ALBs with CloudWatch metrics:
 
-| 메트릭 | 목표 | 경고 | 임계 |
+| Metric | Target | Warning | Critical |
 |--------|------|------|------|
-| `TargetResponseTime` | 100ms 미만 | 100-300ms | 300ms 초과 |
-| `HTTPCode_ELB_5XX_Count` | 0 | 1-10/분 | 10/분 초과 |
-| `HTTPCode_Target_5XX_Count` | 0 | 1-5/분 | 5/분 초과 |
-| `ActiveConnectionCount` | 정상 범위 | 80% 용량 | 90% 용량 |
+| `TargetResponseTime` | Below 100ms | 100-300ms | Above 300ms |
+| `HTTPCode_ELB_5XX_Count` | 0 | 1-10/min | Above 10/min |
+| `HTTPCode_Target_5XX_Count` | 0 | 1-5/min | Above 5/min |
+| `ActiveConnectionCount` | Normal range | 80% of capacity | 90% of capacity |
 
 ```bash
-# ALB access log에서 5xx 에러 원인 분석
-# error_reason 필드로 502/504 root cause 식별
+# Analyze the causes of 5xx errors in ALB access logs
+# Use the error_reason field to identify 502/504 root causes
 aws logs filter-log-events \
   --log-group-name /aws/alb/my-internal-alb \
   --filter-pattern "elb_status_code=5*"
 ```
 
-### 모니터링: ClusterIP (LB 없는 경우)
+### Monitoring: ClusterIP (Without a Load Balancer)
 
-ClusterIP 서비스에는 ELB 메트릭이 없으므로 별도 계측이 필요합니다:
+ClusterIP Services do not have ELB metrics, so separate instrumentation is required:
 
-- **서비스 메쉬**: Istio/Linkerd 또는 Envoy 사이드카를 통한 L7 메트릭
-- **eBPF 기반 도구**: Hubble, Cilium, Pixie를 통한 TCP reset 및 5xx 통계
-- **애플리케이션 레벨**: Prometheus/OpenTelemetry를 통한 5xx 카운트
+- **Service mesh**: L7 metrics through Istio/Linkerd or Envoy sidecars
+- **eBPF-based tools**: TCP reset and 5xx statistics through Hubble, Cilium, or Pixie
+- **Application level**: 5xx counts through Prometheus/OpenTelemetry
 
 ```yaml
-# Prometheus ServiceMonitor 예시
+# Example Prometheus ServiceMonitor
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
@@ -676,10 +676,10 @@ spec:
       path: /metrics
 ```
 
-### Cross-AZ 비용 모니터링
+### Cross-AZ Cost Monitoring
 
 ```bash
-# AWS Cost and Usage Report에서 Regional Data Transfer 비용 확인
+# Check Regional Data Transfer costs in the AWS Cost and Usage Report
 aws ce get-cost-and-usage \
   --time-period Start=2026-02-01,End=2026-02-28 \
   --granularity MONTHLY \
@@ -687,48 +687,48 @@ aws ce get-cost-and-usage \
   --filter '{"Dimensions":{"Key":"USAGE_TYPE","Values":["APN2-DataTransfer-Regional-Bytes"]}}'
 ```
 
-:::tip Kubecost 활용
-Kubecost를 설치하면 네임스페이스별 cross-AZ 트래픽 비용을 시각화할 수 있습니다. `RegionalDataTransferCost` 메트릭을 통해 어떤 서비스 간 통신이 가장 많은 cross-AZ 비용을 유발하는지 파악할 수 있습니다.
+:::tip Using Kubecost
+Kubecost can visualize cross-AZ traffic costs by namespace. The `RegionalDataTransferCost` metric identifies which service-to-service interactions generate the highest cross-AZ costs.
 :::
 
 ---
 
-## 시나리오별 추천 매트릭스
+## Scenario Recommendation Matrix
 
-서비스 특성, 보안 요구사항, 운영 복잡도에 따른 권장 솔루션 조합입니다:
+The following combinations are recommended based on service characteristics, security requirements, and operational complexity:
 
 <ScenarioMatrix />
 
-:::info 하이브리드 전략
-현실적인 환경에서는 한 가지 전략만 사용하기보다 **혼합하여 사용**하는 경우가 많습니다. 예를 들어:
+:::info Hybrid Strategy
+Real environments often **combine strategies**. For example:
 
-- 클러스터 내부: ClusterIP + Topology Hints
-- 메쉬 미포함 서비스: InternalTrafficPolicy로 최적화
-- 멀티클러스터 간: Lattice로 연결
-- 특정 L7 경로: ALB를 스팟으로 투입
+- Within a cluster: ClusterIP + Topology Hints
+- Services outside the mesh: Optimize with InternalTrafficPolicy
+- Between clusters: Connect through Lattice
+- Specific L7 paths: Deploy ALBs selectively
 :::
 
 ---
 
-## EC2→EKS 마이그레이션 가이드
+## EC2→EKS Migration Guide
 
-### 마이그레이션 단계별 전략
+### Migration Strategy by Stage
 
-EC2에서 EKS로 서비스를 마이그레이션하는 과도기에는 Internal ALB를 활용한 점진적 전환이 권장됩니다:
+During the transition from EC2 to EKS, a gradual cutover using an internal ALB is recommended:
 
-**1단계: EKS 내부에서 ClusterIP 시작**
+**Stage 1: Start with ClusterIP inside EKS**
 
 ```bash
-# EKS 서비스 간 통신은 DNS http://service.namespace.svc.cluster.local 사용
-# 코드 포터빌리티 유지
+# Use the DNS name http://service.namespace.svc.cluster.local for EKS service-to-service communication
+# Preserve code portability
 ```
 
-**2단계: EC2와 EKS를 동시에 서비스**
+**Stage 2: Serve traffic from EC2 and EKS simultaneously**
 
 ```yaml
-# Internal ALB에 두 개의 Target Group 설정
+# Configure two target groups on the internal ALB
 # EC2 Instance TG + EKS Pod TG (AWS LB Controller)
-# 가중 리스너 규칙으로 점진적 전환 (예: 90/10)
+# Use weighted listener rules for gradual cutover (for example, 90/10)
 apiVersion: elbv2.k8s.aws/v1beta1
 kind: TargetGroupBinding
 metadata:
@@ -741,37 +741,37 @@ spec:
   targetType: ip
 ```
 
-**3단계: 100% EKS 전환 후 ALB 제거**
+**Stage 3: Remove the ALB after moving 100% to EKS**
 
-EKS로 완전 전환된 후에는 ALB를 제거하고 ClusterIP로 돌아가 지속적인 ALB 비용을 제거합니다.
+After the service has fully migrated to EKS, remove the ALB and return to ClusterIP to eliminate ongoing ALB charges.
 
-:::tip 마이그레이션 핵심 원칙
+:::tip Core Migration Principles
 
-- **정상 상태(steady-state)**: ClusterIP로 최저 비용·최저 지연 유지
-- **과도기**: Internal ALB로 EC2/EKS 듀얼 라우팅 (weighted target groups)
-- **전환 완료 후**: ALB 제거하여 비용 라인 아이템 자체를 삭제
+- **Steady state**: Use ClusterIP for the lowest cost and latency
+- **Transition**: Use an internal ALB for dual EC2/EKS routing with weighted target groups
+- **After cutover**: Remove the ALB to eliminate the cost line item entirely
 :::
 
 ---
 
-## 트러블슈팅
+## Troubleshooting
 
-### 문제: Topology Aware Routing이 동작하지 않음
+### Issue: Topology Aware Routing Does Not Work
 
-**증상:**
+**Symptoms:**
 
 ```
-EndpointSlice에 hints 필드가 비어있음
-트래픽이 여전히 cross-AZ로 분산됨
+The hints field in EndpointSlices is empty
+Traffic is still distributed across AZs
 ```
 
-**원인 분석:**
+**Diagnosis:**
 
 ```bash
-# EndpointSlice 상태 확인
+# Check EndpointSlice status
 kubectl get endpointslices -n production -l kubernetes.io/service-name=my-service -o yaml
 
-# AZ별 Pod 분포 확인
+# Check Pod distribution across AZs
 kubectl get pods -l app=my-app -o json | \
   jq -r '.items[] | "\(.spec.nodeName) \(.status.podIP)"' | \
   while read node ip; do
@@ -780,41 +780,41 @@ kubectl get pods -l app=my-app -o json | \
   done | sort | uniq -c
 ```
 
-**해결 방법:**
+**Resolution:**
 
-1. Zone별 준비된 엔드포인트 수와 노드의 allocatable CPU 비율을 확인합니다. 일반적으로 Zone별 3개 이상일 때 가장 잘 동작합니다.
-2. `topologySpreadConstraints`를 추가하고 스케줄 가능한 Zone과 용량을 확인합니다.
-3. EndpointSlice 컨트롤러의 안전 조건을 확인합니다.
-   - Zone별 엔드포인트 할당은 allocatable CPU 비율과 과부하 임계값을 고려합니다.
-   - “한 AZ에 50% 이상이면 hints 비활성화”라는 규칙은 없습니다. 공식 문서의 약 50%는 Zone별 엔드포인트가 3개 미만일 때 hints 할당에 실패할 가능성을 설명하는 수치입니다.
+1. Check ready endpoints per zone and each zone’s share of node allocatable CPU. Routing generally works best with at least three endpoints per zone.
+2. Add `topologySpreadConstraints` and check eligible zones and capacity.
+3. Check the EndpointSlice controller safeguards.
+   - Allocation considers allocatable CPU proportions and overload thresholds.
+   - There is no rule that disables hints when one AZ holds 50% of endpoints. The approximately 50% figure in the official documentation describes the chance of failing to allocate hints when there are fewer than three endpoints per zone.
 
-### 문제: InternalTrafficPolicy Local에서 트래픽 드롭
+### Issue: Traffic Drops with InternalTrafficPolicy Local
 
-**증상:**
+**Symptoms:**
 
 ```
-특정 노드에서 서비스 호출 시 connection refused 또는 timeout
-kubectl logs에 "no endpoints available" 메시지
+Service calls from certain nodes fail with connection refused or timeout
+kubectl logs shows "no endpoints available"
 ```
 
-**원인 분석:**
+**Diagnosis:**
 
 ```bash
-# 로컬 노드에 대상 Pod이 있는지 확인
+# Check whether the local node has a target Pod
 kubectl get pods -l app=target-service -o wide
 
-# 특정 노드에서의 엔드포인트 확인
+# Inspect endpoints for the specific node
 kubectl get endpoints my-local-service -o yaml
 ```
 
-**해결 방법:**
+**Resolution:**
 
-1. DaemonSet으로 대상 서비스를 모든 노드에 배포
-2. PodAffinity로 호출자와 대상이 같은 노드에 위치하도록 강제
-3. 또는 InternalTrafficPolicy를 제거하고 Topology Aware Routing으로 전환 (AZ 단위)
+1. Deploy the target service to every node with a DaemonSet
+2. Use PodAffinity to require callers and targets to run on the same node
+3. Alternatively, remove InternalTrafficPolicy and switch to Topology Aware Routing at the AZ level
 
 ```yaml
-# 대안: Topology Aware Routing으로 전환
+# Alternative: Switch to Topology Aware Routing
 apiVersion: v1
 kind: Service
 metadata:
@@ -822,7 +822,7 @@ metadata:
   annotations:
     service.kubernetes.io/topology-mode: Auto
 spec:
-  # internalTrafficPolicy: Local 제거
+  # Remove internalTrafficPolicy: Local
   selector:
     app: my-app
   ports:
@@ -831,116 +831,116 @@ spec:
       targetPort: 8080
 ```
 
-### 문제: Cross-AZ 비용이 줄지 않음
+### Issue: Cross-AZ Costs Do Not Decrease
 
-**증상:**
+**Symptoms:**
 
 ```
-Topology Aware Routing 적용 후에도 AWS Cost Explorer에서 Regional Data Transfer 비용이 감소하지 않음
+Regional Data Transfer costs in AWS Cost Explorer do not decrease after enabling Topology Aware Routing
 ```
 
-**원인 분석:**
+**Diagnosis:**
 
 ```bash
-# 실제 트래픽 경로 확인 (Cilium Hubble 사용 시)
+# Inspect the actual traffic path (when using Cilium Hubble)
 hubble observe --namespace production --protocol TCP \
   --to-label app=target-service --output json | \
   jq '.source.labels, .destination.labels'
 
-# NAT Gateway 경유 여부 확인
+# Check whether traffic traverses a NAT Gateway
 kubectl exec -it test-pod -- traceroute target-service.production.svc.cluster.local
 ```
 
-**해결 방법:**
+**Resolution:**
 
-1. **NAT Gateway를 AZ별로 분리 배치** (외부 통신 시 cross-AZ 방지)
-2. NLB/ALB가 **IP 모드**로 설정되었는지 확인
-3. CoreDNS가 cross-AZ에서 실행되고 있는지 확인 → NodeLocal DNSCache 적용
-4. Kubecost로 네임스페이스별 cross-AZ 트래픽 원인 식별
+1. **Deploy a separate NAT Gateway in each AZ** to avoid cross-AZ traffic for external communication
+2. Verify that the NLB/ALB uses **IP mode**
+3. Check whether CoreDNS runs in another AZ → deploy NodeLocal DNSCache
+4. Use Kubecost to identify the sources of cross-AZ traffic by namespace
 
-### 문제: NodeLocal DNSCache 관련 이슈
+### Issue: NodeLocal DNSCache Problems
 
-**증상:**
+**Symptoms:**
 
 ```
-NodeLocal DNSCache 배포 후 DNS 해석 실패
-Pod에서 외부 도메인 조회 불가
+DNS resolution fails after deploying NodeLocal DNSCache
+Pods cannot resolve external domains
 ```
 
-**해결 방법:**
+**Resolution:**
 
 ```bash
-# NodeLocal DNS Pod 상태 확인
+# Check NodeLocal DNS Pod status
 kubectl get pods -n kube-system -l k8s-app=node-local-dns
 
-# DNS 해석 테스트
+# Test DNS resolution
 kubectl exec -it test-pod -- nslookup kubernetes.default.svc.cluster.local
 kubectl exec -it test-pod -- nslookup google.com
 
-# resolv.conf 확인
+# Inspect resolv.conf
 kubectl exec -it test-pod -- cat /etc/resolv.conf
-# nameserver가 169.254.20.10 (NodeLocal IP)인지 확인
+# Verify that the nameserver is 169.254.20.10 (the NodeLocal IP)
 ```
 
-:::danger 프로덕션 환경 주의
-프로덕션 환경에서 네트워크 설정을 변경할 때는 반드시 **카나리 배포** 방식으로 소규모 서비스부터 적용하고, 변경 전후 성능 메트릭을 비교하세요. Topology Aware Routing이나 InternalTrafficPolicy 변경은 트래픽 경로를 즉시 바꾸므로, 모니터링을 강화한 상태에서 진행해야 합니다.
+:::danger Production Considerations
+When changing network settings in production, use a **canary deployment**, starting with a small set of services, and compare performance metrics before and after the change. Topology Aware Routing and InternalTrafficPolicy changes immediately alter traffic paths, so maintain heightened monitoring during the change.
 :::
 
 ---
 
-## 결론
+## Conclusion
 
-### 핵심 요점 정리
+### Key Takeaways
 
-:::tip 아키텍처 선택 가이드
+:::tip Architecture Selection Guide
 
-**1. 저비용 + 초저지연**
+**1. Low cost and ultra-low latency**
 
 - ClusterIP + Topology Aware Routing + NodeLocal DNSCache
-- 필요 시 InternalTrafficPolicy(Local) 추가
-- 10 TB/월 기준 ALB 대비 약 $98, VPC Lattice 대비 $400+ 절감
+- Add InternalTrafficPolicy(Local) when required
+- At 10 TB/month, save approximately $98 compared with ALB and $400+ compared with VPC Lattice
 
-**2. L4 안정성과 고정 IP 필요**
+**2. L4 reliability and static IP requirements**
 
-- Internal NLB (IP 모드)
-- 트래픽 > 5 TB/월이면 비용 면밀히 검토
+- Internal NLB (IP mode)
+- Review costs closely when traffic exceeds 5 TB/month
 
-**3. L7 라우팅·WAF·gRPC 메서드별 제어**
+**3. L7 routing, WAF, and per-method gRPC control**
 
 - Internal ALB + K8s Gateway API
-- 필요한 경로에만 배치하여 LCU 증가 방지
+- Deploy only on required paths to avoid increasing LCU consumption
 
-**4. 전사 Zero-Trust, 멀티클러스터**
+**4. Enterprise-wide Zero Trust and multi-cluster environments**
 
-- Istio Ambient → Sidecar 전환은 필요한 워크로드에만 스코프 다운
-- 사이드카 → 노드 프록시(Ambient) → Sidecar-less(eBPF) 순으로 오버헤드 감소
+- Limit transitions from Istio Ambient to sidecars to workloads that require them
+- Overhead decreases in the order: sidecars → node proxies (Ambient) → sidecarless (eBPF)
 
-**5. 다계정·서비스 > 50개**
+**5. Multiple accounts and more than 50 services**
 
-- 관리형 VPC Lattice + IAM 정책으로 복잡도 낮춤
+- Reduce complexity with managed VPC Lattice and IAM policies
 
 :::
 
-### 다음 단계
+### Next Steps
 
-구현 완료 후 다음 사항을 검토하세요:
+Review the following after implementation:
 
-- [ ] Topology Aware Routing 활성화 및 EndpointSlice hints 확인
-- [ ] Pod Topology Spread Constraints로 AZ 균등 분산 보장
-- [ ] NodeLocal DNSCache 배포 및 DNS 응답시간 개선 확인
-- [ ] Cross-AZ 비용 모니터링 대시보드 설정 (Kubecost 또는 CUR)
-- [ ] 불필요한 Internal LB 식별 및 ClusterIP 전환 검토
-- [ ] 마이그레이션 완료 서비스의 ALB 제거 계획 수립
+- [ ] Enable Topology Aware Routing and verify EndpointSlice hints
+- [ ] Ensure even AZ distribution with Pod Topology Spread Constraints
+- [ ] Deploy NodeLocal DNSCache and verify improved DNS response times
+- [ ] Set up a cross-AZ cost monitoring dashboard with Kubecost or CUR
+- [ ] Identify unnecessary internal load balancers and evaluate a switch to ClusterIP
+- [ ] Plan ALB removal for services that have completed migration
 
 ---
 
-## 참고 자료
+## References
 
-1. [AWS Elastic Load Balancing 요금 - LCU/NLCU 가격](https://aws.amazon.com/elasticloadbalancing/pricing/)
-2. [AWS 데이터 전송 요금 - Cross-AZ $0.01/GB](https://aws.amazon.com/ec2/pricing/on-demand/#Data_Transfer)
-3. [AWS ELB Best Practices - 지연 최적화](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html)
+1. [AWS Elastic Load Balancing Pricing - LCU/NLCU Rates](https://aws.amazon.com/elasticloadbalancing/pricing/)
+2. [AWS Data Transfer Pricing - Cross-AZ $0.01/GB](https://aws.amazon.com/ec2/pricing/on-demand/#Data_Transfer)
+3. [AWS ELB Best Practices - Latency Optimization](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html)
 4. [AWS Network Load Balancer](https://aws.amazon.com/elasticloadbalancing/network-load-balancer/)
-5. [AWS VPC Lattice 요금](https://aws.amazon.com/vpc/lattice/pricing/)
+5. [AWS VPC Lattice Pricing](https://aws.amazon.com/vpc/lattice/pricing/)
 6. [Istio 1.30 Performance and Scalability](https://istio.io/latest/docs/ops/deployment/performance-and-scalability/)
 7. [Kubernetes NodeLocal DNSCache](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/)
 8. [Kubernetes Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)
@@ -948,6 +948,6 @@ kubectl exec -it test-pod -- cat /etc/resolv.conf
 10. [AWS EKS Best Practices - Cost Optimization](https://docs.aws.amazon.com/eks/latest/best-practices/cost-opt.html)
 11. [Kubernetes Pod Topology Spread Constraints](https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/)
 
-### 관련 문서 (내부)
-- [서비스 메시 비교 가이드](./service-mesh/index.md) — Istio·Cilium·Linkerd·VPC Lattice 선택 기준
-- [GAMMA Initiative](./service-mesh/gamma-initiative.md) — Gateway API 기반 East-West 트래픽 표준화
+### Related Documents (Internal)
+- [Service Mesh Comparison Guide](./service-mesh/index.md) — Selection criteria for Istio, Cilium, Linkerd, and VPC Lattice
+- [GAMMA Initiative](./service-mesh/gamma-initiative.md) — Standardizing East-West traffic with Gateway API

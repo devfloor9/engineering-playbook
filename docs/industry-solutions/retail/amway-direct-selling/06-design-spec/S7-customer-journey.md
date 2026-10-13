@@ -1,6 +1,6 @@
 ---
-title: S7. ABO·Customer 옴니채널 여정 (AMWAY)
-description: 자사몰 → ABO 직판 → 정기구독 → 재가입 단일 타임라인
+title: S7. ABO & Customer Omnichannel Journey (AMWAY)
+description: A single timeline of in-house store → ABO direct sale → subscription → resignup
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,33 +16,33 @@ tags:
 sidebar_label: S7. Customer Journey
 ---
 
-## 1. URL · 페르소나
+## 1. URL & Personas
 - `/journey` · P4 (CX)
 
-## 2. 사용자 스토리
-> P4 — 한 ABO/Customer의 12개월 모든 터치포인트(자사몰 검색 · ABO 직판 · 정기구독 가입·갱신·해지 · 캠페인 응답)를 단일 타임라인으로.
+## 2. User Story
+> P4 — Render every touchpoint over 12 months for a single ABO or customer (in-house search · ABO direct sale · subscription signup / renewal / cancellation · campaign response) on a single timeline.
 
-## 3. 데이터 믹스
+## 3. Data Mix
 - SearchEvent · CartEvent · OrderTransaction · ABODirectSale · SubscriptionEvent · Touchpoint · Coupon · ReviewRating
 
-## 4. 처리 파이프라인
-1. ABO/Customer ID → 모든 이벤트 1-hop UNION
-2. BU(Nutrition/Beauty/Home) 매핑
-3. 시간순 정렬 + 색상 코딩
-4. Swimlane 타임라인 (자사몰·ABO 직판·구독·캠페인·소셜)
-5. 핵심 전환 (첫 정기구독·등급 진입·해지 위험·BU 교차)
+## 4. Processing Pipeline
+1. ABO / Customer ID → UNION of every event 1-hop away
+2. Map to BUs (Nutrition / Beauty / Home)
+3. Chronological sort + color coding
+4. Swimlane timeline (store · ABO direct · subscription · campaign · social)
+5. Key conversions (first subscription · level entry · churn risk · BU crossover)
 
-## 5. 출력 UI
-- Swimlane (5 채널)
-- BU 색상 (Nutrition·Beauty·Home)
-- 이벤트 카드 클릭 → 상세
-- 우측 요약: 12개월 LTV·등급 변화·페르소나·구독 상태
+## 5. Output UI
+- Swimlane (5 channels)
+- BU colors (Nutrition · Beauty · Home)
+- Click an event card → detail
+- Right-side summary: 12-month LTV · level changes · persona · subscription status
 
-## 6. 가드레일
-- PII 마스킹
-- 민감 추정 금지
+## 6. Guardrails
+- PII masking
+- Prohibit sensitive inferences
 
-## 7. 데모 시나리오
-1. 신규 ABO 12개월 → 자사몰 검색 → ABO 직판 → 첫 구독 → 등급 진입
-2. 해지 위험 ABO → 활동 급감 + 구독 일시정지
-3. BU 비중 변화 (1년 전 N 90%/B 5%/H 5% → 현재 N 50%/B 30%/H 20%)
+## 7. Demo Scenarios
+1. A new ABO over 12 months → in-house search → ABO direct sale → first subscription → level entry
+2. Churn-risk ABO → sharp activity drop + subscription on pause
+3. BU mix shift (one year ago N 90% / B 5% / H 5% → now N 50% / B 30% / H 20%)

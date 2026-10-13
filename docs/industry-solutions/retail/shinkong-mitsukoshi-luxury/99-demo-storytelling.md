@@ -1,6 +1,6 @@
 ---
-title: 30분 시연 스크립트 (Mitsukoshi)
-description: Mitsukoshi 임원·MD·VIP팀 미팅용 30분 시연
+title: 30-Minute Demo Script (Mitsukoshi)
+description: 30-minute demo for Mitsukoshi executives, MD, and VIP team meetings
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,50 +16,50 @@ tags:
 sidebar_label: 99. Demo Storytelling
 ---
 
-## 0. 시연 전 준비
-| ✅ | Top-5 응답 1분 내 / 다국어 / 환율 라이브 / 관광지표 |
+## 0. Pre-Demo Checklist
+| ✅ | Top-5 responses within 1 minute / multilingual / live FX / tourism metrics |
 
-## 1. 오프닝 (3분)
-> "오늘 보여드릴 데모는 Mitsukoshi의 **VIP 멤버십·외국인 면세·입점 700+ 럭셔리 브랜드**를 단일 KG로 통합해 5 부서 시각으로 활용하는 동작 시연입니다. **컨셉이 아닌** 실 회원 N=2K + Foreigner N=500 + 합성 49.5K + 외부 4종 시그널 라이브."
+## 1. Opening (3 min)
+> "Today's demo unifies Mitsukoshi's **VIP membership, foreign duty-free, and 700+ luxury tenant brands** into a single KG and operationalizes it from the perspective of 5 departments. **This is not a concept** — it runs on N=2K real members + N=500 Foreigners + 49.5K synthetic + live 4 external signals."
 
-핵심 메시지 4개:
-1. **외국인 면세 분석** (S9-M) — 국적·환율·관광 결합
-2. **럭셔리 SOV·매대 점유** (S10-M) — 700+ 브랜드 × 19 점포
-3. **VIP 컨시어지** (S11-M) — Black/Platinum/Gold 1:1 자동화
-4. **부서 페르소나 스위처** — 5 부서 시각
+4 core messages:
+1. **Foreigner duty-free analysis** (S9-M) — combining nationality, FX, and tourism
+2. **Luxury SOV and counter occupancy** (S10-M) — 700+ brands × 19 stores
+3. **VIP concierge** (S11-M) — Black/Platinum/Gold 1:1 automation
+4. **Department persona switcher** — perspective of 5 departments
 
-## 2. Top-5 시연 (20분)
+## 2. Top-5 Demo (20 min)
 
-### Step 1 — S1 시맨틱 검색 (4분)
-- P1 → "30대 여성 + LV·Chanel + 週年慶 50% 할인"
-- 결과: SKU + 회원 + 외부 후기
+### Step 1 — S1 Semantic Search (4 min)
+- P1 → "Female in her 30s + LV/Chanel + Anniversary Sale 50% off"
+- Result: SKU + members + external reviews
 
-### Step 2 — S9-M 외국인 면세 ⭐ (5분)
-- P2 → "일본인 30대 여성 행동 + 환율 결합"
-- 결과: Foreigner profile + 추천 + 환율 변동
-- 강조: "엔저 효과 자동 시뮬"
+### Step 2 — S9-M Foreigner Duty-Free ⭐ (5 min)
+- P2 → "Japanese female in her 30s behavior + FX-aware"
+- Result: Foreigner profile + recommendations + FX fluctuations
+- Highlight: "Automatic simulation of weak-yen impact"
 
-### Step 3 — S10-M 럭셔리 SOV ⭐ (4분)
-- P5 → "信義점 1F LV vs Hermes 매대 점유"
-- 결과: GMV 비교 + 회전 + 매대 재배치 추천
+### Step 3 — S10-M Luxury SOV ⭐ (4 min)
+- P5 → "Xinyi store 1F LV vs Hermes counter occupancy"
+- Result: GMV comparison + turnover + counter re-layout recommendation
 
-### Step 4 — S11-M VIP 컨시어지 ⭐ (5분)
-- P4 → "Black 회원 1명 + 프리세일 추천"
-- 결과: 회원 프로필 + 컨시어지 챗봇
-- 강조: "1:1 컨시어지 자동화 — 다른 회사 못함"
+### Step 4 — S11-M VIP Concierge ⭐ (5 min)
+- P4 → "One Black member + pre-sale recommendation"
+- Result: Member profile + concierge chatbot
+- Highlight: "1:1 concierge automation — no other company offers this"
 
-### Step 5 — S2 페르소나 챗봇 (4분)
-- "週年慶 ROAS" P1 vs P5 비교
+### Step 5 — S2 Persona Chatbot (4 min)
+- "Anniversary Sale ROAS" P1 vs P5 comparison
 
-## 3. 거버넌스 (3분)
-- cohort_tag · 가드레일 (면세·미성년·PII) · AWS Stack 1장
+## 3. Governance (3 min)
+- cohort_tag · Guardrails (duty-free, minors, PII) · AWS Stack on a single page
 
-## 4. 클로징 (4분)
-- 정리 + 다음 단계 (Discovery 2주 → PoC 8주 → 운영 12주)
+## 4. Closing (4 min)
+- Wrap-up + next steps (Discovery 2 weeks → PoC 8 weeks → Operations 12 weeks)
 
 ## 5. Q&A
-| 질문 | 답변 |
+| Question | Answer |
 |---|---|
-| 입점 브랜드 데이터 협의? | 매대 GMV는 자사, 브랜드 메타는 공개 + 입점사 동의 분리 |
-| 다국어 정확도? | Cohere multilingual-v3 검증 |
-| 비용? | ~$3.5K/월 |
+| Tenant brand data agreements? | Counter GMV is first-party; brand metadata is public and separated by tenant consent |
+| Multilingual accuracy? | Validated with Cohere multilingual-v3 |
+| Cost? | ~$3.5K/month |

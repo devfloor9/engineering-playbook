@@ -1,11 +1,11 @@
 ---
 title: EKS Best Practices
-description: Amazon EKS 프로덕션 운영을 위한 네트워크, Control Plane, 보안, 비용 최적화 종합 가이드
+description: Comprehensive guide for Amazon EKS production operations covering networking, Control Plane, security, cost optimization, and more
 created: "2026-03-24"
 last_update:
-  date: "2026-06-30"
+  date: "2026-06-26"
   author: devfloor9
-reading_time: 3
+reading_time: 4
 tags:
   - eks
   - kubernetes
@@ -15,53 +15,55 @@ tags:
   - security
   - cost
   - scope:nav
-sidebar_label: EKS 베스트 프랙티스
+sidebar_label: EKS Best Practices
 sidebar_position: 1
 category: infrastructure
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-Amazon EKS를 프로덕션 환경에서 운영할 때 직면하는 심화 주제를 다룹니다. 네트워크 성능 최적화부터 Control Plane 확장, 보안, 비용 관리, 운영 안정성까지 5개 영역의 베스트 프랙티스를 제공합니다.
+# EKS Best Practices
+
+This section covers advanced topics encountered when operating Amazon EKS in production environments. It provides best practices across five key areas: network performance optimization, Control Plane scaling, security, cost management, and operational reliability.
 
 ---
 
-## 문서 구성
+## Documentation Structure
 
 <DocCardGrid columns={2}>
   <DocCard
     to="/docs/eks-best-practices/networking-performance"
     icon="🌐"
-    title="네트워크 & 성능 최적화"
-    description="Gateway API 도입, CoreDNS 튜닝, East-West 트래픽 최적화 등 EKS 네트워크 성능 극대화 전략"
+    title="Networking & Performance Optimization"
+    description="Strategies for maximizing EKS network performance including Gateway API adoption, CoreDNS tuning, and East-West traffic optimization"
     color="#667eea"
   />
   <DocCard
     to="/docs/eks-best-practices/control-plane-scaling"
     icon="🎛️"
-    title="Control Plane & 확장"
-    description="EKS Control Plane 동작 원리, CRD at Scale, Provisioned Control Plane, 멀티 클러스터 고가용성"
+    title="Control Plane & Scaling"
+    description="EKS Control Plane internals, CRD at Scale, Provisioned Control Plane, and multi-cluster high availability"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/security-authn"
     icon="🔐"
-    title="보안 & 거버넌스"
-    description="EKS API Server 인증/인가, Identity-First 보안, Kyverno 정책 관리, 공급망 보안, 위협 탐지·컴플라이언스"
+    title="Security & Governance"
+    description="EKS API Server authentication/authorization, Identity-First security, Kyverno policy management, supply chain security, threat detection and compliance"
     color="#e63946"
   />
   <DocCard
     to="/docs/eks-best-practices/resource-cost"
     icon="💰"
-    title="리소스 & 비용 최적화"
-    description="Karpenter 오토스케일링, Pod 리소스 Rightsizing, FinOps 기반 비용 절감 전략"
+    title="Resource & Cost Optimization"
+    description="Karpenter autoscaling, Pod resource rightsizing, and FinOps-based cost reduction strategies"
     color="#34a853"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability"
     icon="🛡️"
-    title="운영 & 안정성"
-    description="GitOps 기반 운영, 장애 진단, 고가용성 아키텍처, Pod 헬스체크 & 스케줄링 패턴"
+    title="Operations & Reliability"
+    description="GitOps-based operations, troubleshooting, high availability architecture, Pod health checks & scheduling patterns"
     color="#9b59b6"
   />
 </DocCardGrid>

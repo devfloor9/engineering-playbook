@@ -1,11 +1,11 @@
 ---
-title: S6. 외부 시그널 융합 (4종)
-description: 자사 GMV × 외부 4종(소셜·기상·경제·경쟁사) 융합 매크로 분석
+title: S6. External Signal Fusion (4 Types)
+description: First-party GMV × 4 external types (social · weather · economy · competitor) macro analysis
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 4
 tags:
   - industry-solution
   - retail
@@ -16,52 +16,52 @@ tags:
 sidebar_label: S6. External Signals
 ---
 
-> 소셜·기상·경제·경쟁사 데이터와 자사 카테고리 매출의 상관관계를 한 화면에서 비교하는 시나리오입니다.
+> This screen compares social, weather, economic, and competitor data with first-party category sales to examine correlations. A correlation alone does not establish that an external factor caused a sales change.
 
-## 1. URL 경로
+## 1. URL Path
 - `/signals`
 
-## 2. 사용자 스토리
-> P2 (인사이트) — 외부 환경(트렌드·기상·환율·경쟁사)과 자사 카테고리 매출 상관을 한 화면에서 보고 싶다.
+## 2. User Stories
+> P2 (Insights) — Wants to see, on one screen, the correlation between the external environment (trends · weather · FX · competitors) and first-party category sales.
 
-> P3 (D&A) — 카테고리×외부 변수 상관계수 통계 검증.
+> P3 (D&A) — Statistical validation of category × external variable correlation coefficients.
 
-## 3. 입력 UI
-- 외부 시그널 4종 토글: 소셜·기상·경제·경쟁사
-- 자사 데이터: BU/카테고리/세그먼트/채널
-- 기간 슬라이더
+## 3. Input UI
+- 4 external signal toggles: social · weather · economy · competitor
+- First-party data: BU/Category/Segment/Channel
+- Period slider
 
-## 4. 데이터 믹스
-| 외부 시그널 | 자사 매핑 | 활용 |
+## 4. Data Mix
+| External Signal | First-Party Mapping | Use |
 |---|---|---|
-| **소셜 트렌드** (네이버·구글·X·인스타·올영) | 카테고리·키워드 매핑 | 시계열 + SOV |
-| **기상** (KMA·대기질) | 지역·일자 키 | 산점도 + 상관 |
-| **경제** (환율·물가·고용) | 월·자사 GMV | 시계열 + 시차 |
-| **경쟁사** (아모레·아이모·유한킴벌리) | 카테고리 매핑 + 이벤트 일자 | annotation + 비교 |
+| **Social trends** (Naver · Google · X · Instagram · Olive Young) | Category · keyword mapping | Time series + SOV |
+| **Weather** (KMA · Air quality) | Region · date key | Scatter + correlation |
+| **Economy** (FX · CPI · Employment) | Month · first-party GMV | Time series + lag |
+| **Competitor** (Amorepacific · Aimo · Yuhan-Kimberly) | Category mapping + event dates | annotation + comparison |
 
-## 5. 처리 파이프라인
+## 5. Processing Pipeline
 ```
-1. 일별 (지역, 카테고리) 자사 GMV 집계
-2. 외부 4종 시그널 시계열 로드
-3. 일자/지역/카테고리 키로 조인
-4. 상관계수·시차 분석 (cross-correlation)
-5. 시각화: 시계열 + 산점도 + 상관 히트맵 + 경쟁사 annotation
-6. LLM 코멘트 (페르소나별)
+1. Daily (region, category) first-party GMV aggregation
+2. Load 4-type external signal time series
+3. Join by date/region/category key
+4. Correlation · lag analysis (cross-correlation)
+5. Visualization: time series + scatter + correlation heatmap + competitor annotation
+6. LLM comments (per persona)
 ```
 
-## 6. 출력 UI
-- 시계열 듀얼 축 (외부 + 자사)
-- 카테고리 × 외부 시그널 상관 히트맵
-- 시차 분석 라인 (lag 0~14일)
-- 경쟁사 이벤트 annotation (출시·캠페인·논란)
+## 6. Output UI
+- Dual-axis time series (external + first-party)
+- Category × external signal correlation heatmap
+- Lag analysis line (lag 0~14 days)
+- Competitor event annotation (launch · campaign · controversy)
 
-## 7. 가드레일
-- 출처 표기 의무 (소셜·기상·경제·경쟁사 모두)
-- 인과 추정 금지 ("상관"만 표현)
-- 경쟁사 정보는 공개 출처만 활용
+## 7. Guardrails
+- Mandatory source attribution (social · weather · economy · competitor — all)
+- No causal inference (express "correlation" only)
+- Competitor information only from public sources
 
-## 8. 데모 시나리오
-1. 기온 -5℃ vs 핫팩·핸드크림 → R² 0.78
-2. 인스타 "비건뷰티" 키워드 vs 자사 비건 SKU 매출
-3. 환율 vs 수입 카테고리 GMV (시차 7일)
-4. 경쟁사 신상 출시 후 4주 자사 카테고리 매출 변화
+## 8. Demo Scenarios
+1. Temperature -5°C vs. hot pack · hand cream → R² 0.78
+2. Instagram "vegan beauty" keyword vs. first-party vegan SKU sales
+3. FX vs. imported category GMV (7-day lag)
+4. Change in first-party category sales 4 weeks after competitor new product launch

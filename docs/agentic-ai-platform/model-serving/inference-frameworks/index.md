@@ -1,11 +1,11 @@
 ---
-title: 추론 프레임워크
-description: vLLM·llm-d·MoE·NeMo — GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층
+title: Inference Frameworks
+description: vLLM·llm-d·MoE·NeMo — AI framework layer for actual model serving, distributed inference, and fine-tuning on GPUs
 created: "2026-04-17"
 last_update:
   date: 2026-10-13
   author: devfloor9
-reading_time: 2
+reading_time: 3
 tags:
   - vllm
   - llm-d
@@ -15,58 +15,51 @@ tags:
   - fine-tuning
   - serving
   - scope:tech
-sidebar_label: 추론 프레임워크
+sidebar_label: Inference Frameworks
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-[가속 컴퓨팅 인프라](../gpu-infrastructure/index.md) 위에서 실제로 **LLM 을 서빙·분산 추론·파인튜닝** 하는 AI 프레임워크 계층입니다. 단일 노드 고성능 서빙(vLLM), Kubernetes 네이티브 분산 추론(llm-d), MoE 모델 처리, NVIDIA NeMo 기반 학습과 함께 추론 모델의 reasoning·tool call 출력 경계를 운영하는 기준까지 포함합니다.
+The AI framework layer on top of [Accelerated Computing Infrastructure](../gpu-infrastructure/index.md) that actually performs **LLM serving, distributed inference, and fine-tuning**. Covers single-node high-performance serving (vLLM), Kubernetes-native distributed inference (llm-d), MoE model processing, NVIDIA NeMo-based training, and operating criteria for reasoning and tool-call output boundaries of reasoning models.
 
 <DocCardGrid columns={2}>
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/vllm-model-serving"
     icon="🚀"
-    title="vLLM 모델 서빙"
-    description="PagedAttention 기반 고성능 LLM 추론, Continuous Batching, Tensor/Pipeline Parallelism, Multi-LoRA 핫스왑."
+    title="vLLM Model Serving"
+    description="High-performance LLM inference with PagedAttention, Continuous Batching, Tensor/Pipeline Parallelism, Multi-LoRA hot-swapping."
     color="#ff6b6b"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/reasoning-tool-output-parsing"
     icon="🧹"
-    title="추론·도구 호출 출력 무결성"
-    description="reasoning·tool call이 답변으로 새는 원인을 모델·템플릿·파서·API·클라이언트 층으로 분류하고 엔진 설정·검증·교정 계층으로 막는 기준."
+    title="Reasoning & Tool-Call Output Integrity"
+    description="Classifies why reasoning and tool calls leak into answers across the model, template, parser, API, and client layers, and prevents it with engine settings, validation, and a remediation layer."
     color="#10b981"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode"
     icon="🔀"
-    title="llm-d 분산 추론"
-    description="Kubernetes 네이티브 분산 추론 스케줄러, KV Cache-aware 라우팅, prefix cache 최적화, Disaggregated Serving."
+    title="llm-d Distributed Inference"
+    description="Kubernetes-native distributed inference scheduler, KV Cache-aware routing, prefix cache optimization, Disaggregated Serving."
     color="#8b5cf6"
-  />
-  <DocCard
-    to="/docs/agentic-ai-platform/model-serving/inference-frameworks/hyperpod-inference-operator"
-    icon="⚙️"
-    title="HyperPod Inference Operator"
-    description="SageMaker HyperPod 관리형 KV cache·지능형 라우팅(prefixaware/kvaware)·DPD. Tiered Gateway와의 차이와 L2 라우팅 레이어 역할."
-    color="#f59e0b"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving"
     icon="🧩"
-    title="MoE 모델 서빙"
-    description="Mixture of Experts 모델 효율 서빙 — Expert Parallelism, 동적 라우팅, 메모리 최적화."
+    title="MoE Model Serving"
+    description="Efficient serving of Mixture of Experts models — Expert Parallelism, dynamic routing, memory optimization."
     color="#06b6d4"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/nemo-framework"
     icon="🧠"
-    title="NeMo 프레임워크"
-    description="NVIDIA NeMo 기반 대규모 학습·파인튜닝, 분산 학습, EFA 고속 네트워크, 체크포인팅."
+    title="NeMo Framework"
+    description="Large-scale training and fine-tuning with NVIDIA NeMo, distributed training, EFA high-speed networking, checkpointing."
     color="#9c27b0"
   />
 </DocCardGrid>
 
-:::tip 학습 순서
-**vLLM → 추론·도구 호출 출력 무결성 → llm-d → HyperPod Inference Operator → MoE → NeMo** 순으로 읽으면 "단일 노드 최적화 → 출력 경계 운영 → 분산 추론 → 관리형 추론 라우팅 → 대규모 MoE → 학습 프레임워크" 의 점진적 난이도를 따라갈 수 있습니다.
+:::tip Reading Order
+Reading in **vLLM → Reasoning & Tool-Call Output Integrity → llm-d → MoE → NeMo** order follows the progressive difficulty of "single-node optimization → output boundary operations → distributed inference → large-scale MoE → training framework."
 :::

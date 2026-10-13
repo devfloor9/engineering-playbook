@@ -1,6 +1,6 @@
 ---
-title: 관측성 & 모니터링
-description: Agent 실행 추적·LLM 서빙 최적화 모니터링·캐시 튜닝 품질 검증·에이전트 수명주기 관측성을 다루는 문서 모음
+title: Observability & Monitoring
+description: Agent execution tracing, LLM serving optimization monitoring, cache tuning quality validation, and agent lifecycle observability
 created: "2026-04-20"
 last_update:
   date: 2026-09-18
@@ -12,14 +12,14 @@ tags:
   - monitoring
   - langfuse
   - scope:nav
-sidebar_label: 관측성
+sidebar_label: Observability
 ---
 
-## 개요
+## Overview
 
-Agent 실행 추적, LLM 서빙 최적화 모니터링, 캐시 튜닝의 품질 검증을 다룹니다. Langfuse·LangSmith·Helicone의 관측성 도구 비교와 Kagent CRD를 이용한 Agent 배포·수명주기 관리도 함께 설명합니다.
+This section covers agent execution tracing, serving optimization monitoring, and quality validation for cache tuning. It also compares observability tools such as Langfuse, LangSmith, and Helicone, and explains agent deployment and lifecycle management with Kagent CRDs.
 
-## 문서 목록
+## Document List
 
 import DocCardList from '@theme/DocCardList';
 import { useCurrentSidebarCategory } from '@docusaurus/theme-common';

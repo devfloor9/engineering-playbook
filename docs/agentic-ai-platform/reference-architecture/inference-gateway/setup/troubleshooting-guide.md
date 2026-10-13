@@ -1,103 +1,103 @@
 ---
-title: 트러블슈팅 가이드
-description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
+title: Troubleshooting Guide
+description: Common issues and solutions during Inference Gateway deployment and operations
 created: "2026-04-18"
 last_update:
   date: 2026-09-21
-  author: YoungJoon Jeong
-reading_time: 7
+  author: devfloor9
+reading_time: 10
 tags:
   - troubleshooting
   - debugging
   - kgateway
   - bifrost
   - scope:impl
-sidebar_label: 3. 트러블슈팅
+sidebar_label: 3. Troubleshooting
 sidebar_position: 3
 ---
 
-이 문서는 Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법을 다룹니다. 문제 발생 시 해당 섹션을 참조하여 빠르게 해결하세요.
+This document covers common issues and solutions during Inference Gateway deployment and operations. Refer to the relevant section to quickly resolve issues when they occur.
 
 ---
 
 ## 1. 404 Not Found
 
-**증상**: `http://<NLB_ENDPOINT>/v1/chat/completions` 요청 시 404
+**Symptom**: 404 when requesting `http://<NLB_ENDPOINT>/v1/chat/completions`
 
-**진단**:
+**Diagnosis**:
 ```bash
-# HTTPRoute 상태 확인
+# Check HTTPRoute status
 kubectl get httproute -A
 
-# Gateway 상태 확인
+# Check Gateway status
 kubectl get gateway -n ai-gateway -o yaml
 
-# kgateway 로그 확인
+# Check kgateway logs
 kubectl logs -n kgateway-system -l app=kgateway --tail=50
 ```
 
-**일반적 원인**:
-- HTTPRoute의 `parentRefs.namespace`가 Gateway 네임스페이스와 불일치
-- ReferenceGrant가 누락되어 크로스 네임스페이스 접근 불가
-- `hostnames` 필드가 요청의 Host 헤더와 불일치
+**Common Causes**:
+- HTTPRoute's `parentRefs.namespace` doesn't match Gateway namespace
+- ReferenceGrant missing, preventing cross-namespace access
+- `hostnames` field doesn't match request's Host header
 
-**해결 방법**:
+**Solutions**:
 
-1. **parentRefs 확인**:
+1. **Verify parentRefs**:
 ```yaml
-# HTTPRoute에서 Gateway 네임스페이스 명시
+# Specify Gateway namespace in HTTPRoute
 spec:
   parentRefs:
     - name: unified-gateway
-      namespace: ai-gateway  # Gateway가 있는 네임스페이스
+      namespace: ai-gateway  # Namespace where Gateway resides
 ```
 
-2. **ReferenceGrant 생성**:
+2. **Create ReferenceGrant**:
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
   name: allow-gateway-to-services
-  namespace: ai-inference  # Service가 있는 네임스페이스
+  namespace: ai-inference  # Namespace where Service resides
 spec:
   from:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
-      namespace: ai-gateway  # HTTPRoute가 있는 네임스페이스
+      namespace: ai-gateway  # Namespace where HTTPRoute resides
   to:
     - group: ""
       kind: Service
 ```
 
-3. **hostnames 검증**:
+3. **Validate hostnames**:
 ```bash
-# 요청 시 Host 헤더 확인
+# Check Host header in request
 curl -v http://<NLB_ENDPOINT>/v1/models
 
-# HTTPRoute에 일치하는 hostname 추가
+# Add matching hostname in HTTPRoute
 spec:
   hostnames:
     - "api.example.com"
-    - "<NLB_ENDPOINT>"  # NLB DNS 이름도 추가
+    - "<NLB_ENDPOINT>"  # Also add NLB DNS name
 ```
 
 ---
 
-## 2. Bifrost provider/model 에러
+## 2. Bifrost provider/model Errors
 
-**증상**: `Provider not found` 또는 `Model not found` 에러
+**Symptom**: `Provider not found` or `Model not found` errors
 
-**원인과 해결**:
+**Causes and Solutions**:
 
-| 에러 메시지 | 원인 | 해결 |
-|------------|------|------|
-| `Provider not found: vllm` | config.json에 provider 미등록 | `vllm` provider 추가 또는 `custom_provider_config`로 임의 이름 등록 |
-| `Model not found: glm-5` | provider prefix 누락 | 요청 시 `openai/glm-5` 형태로 전송 |
-| UI에서 설정 미표시 | providers가 배열로 작성됨 | `"providers": [...]` -> `"providers": {...}` (map) |
-| OTel trace 미도착 | trace_type 오류 | 레거시 `"otel"` -> `"genai_extension"` (v1.5.0+ 필수) |
-| Langfuse 403/401 | Authorization 포맷 오류 | `Basic <BASE64(public_key:secret_key)>` 확인 |
+| Error Message | Cause | Solution |
+|--------------|-------|----------|
+| `Provider not found: vllm` | Not using built-in provider name | Use built-in names like `openai`, `anthropic` |
+| `Model not found: glm-5` | Missing provider prefix | Send as `openai/glm-5` format in request |
+| Settings not displayed in UI | providers written as array | `"providers": [...]` → `"providers": {...}` (map) |
+| OTel trace not arriving | trace_type error | legacy `"otel"` → `"genai_extension"` (required as of v1.5.0+) |
+| Langfuse 403/401 | Authorization format error | Verify `Basic <BASE64(public_key:secret_key)>` |
 
-**올바른 config.json 포맷**:
+**Correct config.json Format**:
 
 ```json
 {
@@ -119,7 +119,7 @@ spec:
 }
 ```
 
-**OTel 플러그인 올바른 설정**:
+**Correct OTel Plugin Configuration**:
 
 ```json
 {
@@ -129,7 +129,7 @@ spec:
       "name": "otel",
       "config": {
         "service_name": "bifrost",
-        "trace_type": "genai_extension",  # v1.5.0+ 필수 (레거시 "otel"은 제거됨)
+        "trace_type": "genai_extension",  # required as of v1.5.0+ (legacy "otel" was removed)
         "protocol": "http",
         "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
         "headers": {
@@ -144,62 +144,47 @@ spec:
 
 ---
 
-## 3. Bifrost 모델명 매핑 문제
+## 3. Bifrost Model Name Normalization Issue
 
-**증상**: `openai/glm-5`로 요청했지만 vLLM에서 `model not found`
+**Symptom**: Requested with `openai/glm-5` but vLLM returns `model not found`
 
-**원인**: Bifrost는 요청 시 provider prefix만 제거하고 모델명은 그대로 전달합니다 (`openai/glm-5` → vLLM에 `glm-5` 전달). vLLM의 `--served-model-name`이 일치하지 않으면 에러가 발생합니다.
+**Cause**: Bifrost normalizes model names by removing hyphens (`glm-5` → `glm5`).
 
-**해결**: vLLM의 `--served-model-name`을 요청 모델명과 일치시킵니다.
+**Solution**: Match vLLM's `--served-model-name` to the normalized name.
 
 ```bash
-# vLLM 서버 시작 시
+# When starting vLLM server
 vllm serve zai-org/GLM-5-FP8 \
-  --served-model-name=glm-5 \  # 하이픈 포함, Bifrost 전달 이름과 일치
+  --served-model-name=glm5 \  # Name without hyphens
   --tensor-parallel-size=8
 ```
 
-**클라이언트 요청**:
+**Client Request**:
 ```python
 from openai import OpenAI
 
 client = OpenAI(base_url="http://<NLB_ENDPOINT>/v1", api_key="dummy")
 
-# openai/ prefix는 Bifrost가 제거 → vLLM에 glm-5 전달
+# Bifrost normalizes glm-5 → glm5, so vLLM must serve as glm5
 response = client.chat.completions.create(
-    model="openai/glm-5",
+    model="openai/glm-5",  # Use original name in request
     messages=[{"role": "user", "content": "Hello"}]
 )
 ```
 
-**커스텀 이름 매핑이 필요한 경우**, Bifrost v1.5.0+의 모델 alias 기능을 사용하세요:
-
-```json
-{
-  "providers": {
-    "openai": {
-      "keys": [{
-        "name": "local-vllm",
-        "aliases": {
-          "glm-5": "glm5-prod"  # glm-5 요청 → vLLM의 glm5-prod로 매핑
-        }
-      }]
-    }
-  }
-}
-```
-
-상세는 [Bifrost Aliasing Models 문서](https://docs.getbifrost.ai/providers/aliasing-models)를 참조하세요.
+:::info Bifrost Model Alias Feature
+Bifrost model alias feature has been requested in [#1058](https://github.com/maximhq/bifrost/issues/1058), but remains unimplemented as of 2026.04.
+:::
 
 ---
 
 ## 4. Langfuse Sub-path 404
 
-**증상**: `/langfuse/` 접속 시 페이지는 로드되지만 CSS/JS 등 정적 자산이 404
+**Symptom**: Page loads when accessing `/langfuse/` but CSS/JS static assets return 404
 
-**원인**: Next.js 정적 자산 경로 (`/_next/*`)가 Langfuse로 라우팅되지 않음
+**Cause**: Next.js static asset paths (`/_next/*`) not routed to Langfuse
 
-**해결**: [기본 배포 섹션 2.3](./basic-deployment.md#langfuse-sub-path-라우팅-urlrewrite)의 HTTPRoute에서 `/_next`, `/api/auth`, `/api/public`, `/icon.svg` 경로도 Langfuse로 라우팅 추가
+**Solution**: In the HTTPRoute from [Basic Deployment Section 2.3](./basic-deployment.md#langfuse-sub-path-routing-urlrewrite), add routing for `/_next`, `/api/auth`, `/api/public`, `/icon.svg` paths to Langfuse
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -212,7 +197,7 @@ spec:
     - name: unified-gateway
       namespace: ai-gateway
   rules:
-    # /langfuse → / prefix 제거
+    # /langfuse → / prefix removal
     - matches:
         - path:
             type: PathPrefix
@@ -226,7 +211,7 @@ spec:
       backendRefs:
         - name: langfuse-web
           port: 3000
-    # Next.js static assets (필수!)
+    # Next.js static assets (required!)
     - matches:
         - path:
             type: PathPrefix
@@ -234,7 +219,7 @@ spec:
       backendRefs:
         - name: langfuse-web
           port: 3000
-    # Langfuse auth API (필수!)
+    # Langfuse auth API (required!)
     - matches:
         - path:
             type: PathPrefix
@@ -242,7 +227,7 @@ spec:
       backendRefs:
         - name: langfuse-web
           port: 3000
-    # Langfuse public API (필수!)
+    # Langfuse public API (required!)
     - matches:
         - path:
             type: PathPrefix
@@ -254,101 +239,101 @@ spec:
 
 ---
 
-## 5. OTel Trace가 Langfuse에 도착하지 않음
+## 5. OTel Trace Not Arriving at Langfuse
 
-**진단 순서**:
+**Diagnosis Sequence**:
 
 ```bash
-# 1. Bifrost 로그에서 OTel 전송 확인
+# 1. Check OTel transmission in Bifrost logs
 kubectl logs -l app=bifrost -n ai-external --tail=30 | grep -i otel
 
-# 2. Langfuse 로그에서 OTLP 수신 확인 (네임스페이스는 환경에 따라 조정)
+# 2. Check OTLP reception in Langfuse logs (adjust namespace per environment)
 kubectl logs -l app=langfuse-web -n observability --tail=30 | grep -i otlp
 
-# 3. kgateway URLRewrite 동작 확인
+# 3. Verify kgateway URLRewrite operation
 kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
 ```
 
-**체크리스트**:
+**Checklist**:
 
-| 확인 항목 | 올바른 값 |
-|----------|----------|
+| Check Item | Correct Value |
+|-----------|---------------|
 | `trace_type` | `"genai_extension"` (not `"otel"`) |
-| `collector_url` | 전체 경로 포함 (`/api/public/otel/v1/traces`) |
+| `collector_url` | Include full path (`/api/public/otel/v1/traces`) |
 | Authorization | `Basic <BASE64(public_key:secret_key)>` |
-| kgateway URLRewrite | `/api/public/otel` -> `/api/public/otel/v1/traces` (경유 시) |
-| ReferenceGrant | observability 네임스페이스에 생성됨 |
+| kgateway URLRewrite | `/api/public/otel` → `/api/public/otel/v1/traces` (when routing via) |
+| ReferenceGrant | Created in observability namespace |
 
-**Bifrost OTel 플러그인 검증**:
+**Verify Bifrost OTel Plugin**:
 
 ```bash
-# Bifrost config.json 확인
+# Check Bifrost config.json
 kubectl get configmap bifrost-gateway-config -n ai-external -o yaml
 
-# Authorization 헤더 BASE64 디코딩 검증
+# Verify Authorization header BASE64 decoding
 echo "<BASE64_STRING>" | base64 -d
-# 예상 출력: pk-xxx:sk-xxx
+# Expected output: pk-xxx:sk-xxx
 ```
 
-**Langfuse 엔드포인트 직접 테스트**:
+**Test Langfuse Endpoint Directly**:
 
 ```bash
-# Langfuse Pod 내부에서 직접 OTLP 전송 테스트
+# Test direct OTLP transmission from inside Langfuse Pod
 kubectl exec -it -n observability <langfuse-web-pod> -- curl -v \
   -H "Authorization: Basic <BASE64(pk:sk)>" \
   -H "x-langfuse-ingestion-version: 4" \
   -H "Content-Type: application/json" \
   -d '{"resourceSpans":[]}' \
   http://localhost:3000/api/public/otel/v1/traces
-# 예상: 200 OK
+# Expected: 200 OK
 ```
 
-상세 설정은 [Langfuse OTel 연동](../../integrations/monitoring-observability-setup.md)을 참조하세요.
+For detailed configuration, refer to [Langfuse OTel Integration](../../integrations/monitoring-observability-setup.md).
 
 ---
 
 ## 6. kgateway Pod CrashLoopBackOff
 
-**증상**: kgateway 컨트롤러 또는 프록시 Pod가 반복적으로 재시작
+**Symptom**: kgateway controller or proxy Pods repeatedly restarting
 
-**진단**:
+**Diagnosis**:
 ```bash
-# Pod 상태 확인
+# Check Pod status
 kubectl get pods -n kgateway-system
 
-# Pod 이벤트 확인
+# Check Pod events
 kubectl describe pod -n kgateway-system <pod-name>
 
-# 로그 확인
+# Check logs
 kubectl logs -n kgateway-system <pod-name> --previous
 ```
 
-**일반적 원인**:
-- Gateway API CRD 또는 kgateway CRD(`kgateway-crds` 차트) 미설치, 버전 불일치
-- Gateway의 `spec.infrastructure.parametersRef`가 존재하지 않는 `GatewayParameters` 참조
-- 리소스 부족 (CPU/Memory)
+**Common Causes**:
+- Gateway API CRDs not installed or version mismatch
+- GatewayClass's `parametersRef` references non-existent GatewayClassConfig
+- Resource shortage (CPU/Memory)
 
-**해결 방법**:
+**Solutions**:
 
-1. **CRD 설치 확인**:
+1. **Verify CRD Installation**:
 ```bash
 kubectl get crd | grep gateway
-# 예상: gatewayclasses.gateway.networking.k8s.io, gateways.gateway.networking.k8s.io, httproutes.gateway.networking.k8s.io
+# Expected: gatewayclasses.gateway.networking.k8s.io, gateways.gateway.networking.k8s.io, httproutes.gateway.networking.k8s.io
 ```
 
-2. **GatewayParameters 존재 확인** (참조하는 경우):
+2. **Verify GatewayClassConfig Exists**:
 ```bash
-kubectl get gatewayparameters -A
+kubectl get gatewayclassconfig -A
 ```
 
-3. **리소스 증설**:
+3. **Increase Resources**:
 ```yaml
 # kgateway Helm values
 controller:
   resources:
     requests:
-      cpu: 500m      # 증설
-      memory: 1Gi    # 증설
+      cpu: 500m      # Increase
+      memory: 1Gi    # Increase
     limits:
       cpu: 2000m
       memory: 2Gi
@@ -356,13 +341,13 @@ controller:
 
 ---
 
-## 7. Bifrost SQLite 초기화 실패
+## 7. Bifrost SQLite Initialization Failure
 
-**증상**: Bifrost Pod 로그에 `failed to initialize database` 또는 `permission denied`
+**Symptom**: Bifrost Pod logs show `failed to initialize database` or `permission denied`
 
-**원인**: PVC 쓰기 권한 오류 (fsGroup 미설정)
+**Cause**: PVC write permission error (fsGroup not set)
 
-**해결**:
+**Solution**:
 
 ```yaml
 apiVersion: apps/v1
@@ -373,52 +358,52 @@ spec:
   template:
     spec:
       securityContext:
-        fsGroup: 1000  # 필수!
+        fsGroup: 1000  # Required!
       containers:
       - name: bifrost
-        image: maximhq/bifrost:v1.5.16  # 최신 태그는 hub.docker.com/r/maximhq/bifrost 확인
+        image: bifrost/bifrost:v2.0.0
         args: ["-app-dir", "/app/data"]
         volumeMounts:
         - name: bifrost-data
           mountPath: /app/data
 ```
 
-**검증**:
+**Verification**:
 ```bash
-# Bifrost Pod 내부에서 권한 확인
+# Check permissions inside Bifrost Pod
 kubectl exec -it -n ai-external <bifrost-pod> -- ls -la /app/data
-# 예상: drwxrwsr-x 2 1000 1000
+# Expected: drwxrwsr-x 2 1000 1000
 ```
 
 ---
 
 ## 8. CloudFront 403 Forbidden
 
-**증상**: CloudFront를 통한 요청이 403 에러 반환
+**Symptom**: Requests via CloudFront return 403 error
 
-**원인**:
-- WAF 규칙이 정상 트래픽을 차단
-- NLB Security Group이 CloudFront Prefix List를 허용하지 않음
-- CloudFront Origin 설정 오류
+**Causes**:
+- WAF rules blocking legitimate traffic
+- NLB Security Group not allowing CloudFront Prefix List
+- CloudFront Origin configuration error
 
-**진단**:
+**Diagnosis**:
 
 ```bash
-# 1. WAF 로그 확인 (CloudWatch Logs)
+# 1. Check WAF logs (CloudWatch Logs)
 aws logs tail /aws-wafv2/cloudfront/inference-gateway-waf --follow
 
-# 2. NLB SG 확인
+# 2. Check NLB SG
 aws ec2 describe-security-groups --group-ids ${CF_RESTRICTED_SG_ID}
 
-# 3. CloudFront → NLB 직접 테스트 (Pod 내부에서)
+# 3. Test CloudFront → NLB directly (from inside Pod)
 kubectl exec -it -n kgateway-system <kgateway-pod> -- curl -v \
   -H "Host: <CF_DOMAIN>" \
   https://<NLB_DNS>/v1/models
 ```
 
-**해결**:
+**Solutions**:
 
-1. **WAF 규칙 조정** (일시적으로 Count 모드로 전환하여 트래픽 분석):
+1. **Adjust WAF Rules** (temporarily switch to Count mode to analyze traffic):
 ```bash
 aws wafv2 update-web-acl \
   --scope CLOUDFRONT \
@@ -428,7 +413,7 @@ aws wafv2 update-web-acl \
   --default-action '{"Allow":{}}'
 ```
 
-2. **NLB SG에 CloudFront Prefix List 추가**:
+2. **Add CloudFront Prefix List to NLB SG**:
 ```bash
 export CF_PREFIX_LIST_ID=$(aws ec2 describe-managed-prefix-lists \
   --filters "Name=prefix-list-name,Values=com.amazonaws.global.cloudfront.origin-facing" \
@@ -441,38 +426,37 @@ aws ec2 authorize-security-group-ingress \
 
 ---
 
-## 9. LLM Classifier 분류 오류
+## 9. LLM Classifier Classification Errors
 
-**증상**: 단순한 요청이 GLM-5로 라우팅되거나, 복잡한 요청이 Qwen3-4B로 라우팅됨
+**Symptom**: Simple requests routed to GLM-5, or complex requests routed to Qwen3-4B
 
-**원인**: 분류 키워드 또는 임계값 튜닝 필요
+**Cause**: Classification keywords or thresholds need tuning
 
-**진단**:
+**Diagnosis**:
 ```bash
-# LLM Classifier 로그 확인
+# Check LLM Classifier logs
 kubectl logs -l app=llm-classifier -n ai-inference --tail=50
 ```
 
-**해결**: `extproc_http.py` 분류 로직 조정
+**Solution**: Adjust classification logic in `extproc_http.py`
 
 ```python
-# 키워드 추가/제거
+# Add/remove keywords
 STRONG_KEYWORDS = [
-    "리팩터", "아키텍처", "설계", "분석", "최적화", "디버그", "마이그레이션",
     "refactor", "architect", "design", "analyze", "optimize", "debug",
     "migration", "complex", "performance", "security", "review",
-    "구현",  # 추가 예시
+    "implement",  # Example addition
 ]
 
-# 임계값 조정
-TOKEN_THRESHOLD = 500  # 300-700 범위 실험
-TURN_THRESHOLD = 5     # 3-10 범위 실험
+# Adjust thresholds
+TOKEN_THRESHOLD = 500  # Experiment within 300-700 range
+TURN_THRESHOLD = 5     # Experiment within 3-10 range
 ```
 
-**A/B 테스트 구성** (점진적 롤아웃):
+**A/B Test Configuration** (gradual rollout):
 
 ```yaml
-# 트래픽 분할: 50% LLM Classifier, 50% 직접 라우팅
+# Split traffic: 50% LLM Classifier, 50% direct routing
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -494,41 +478,41 @@ spec:
 
 ---
 
-## 10. 자주 묻는 질문 (FAQ)
+## 10. Frequently Asked Questions (FAQ)
 
-### Q1: kgateway vs Bifrost 차이?
+### Q1: Difference between kgateway and Bifrost?
 
-**A**: kgateway는 Kubernetes Gateway API 표준 구현체로 진입(L1) 트래픽 라우팅을 담당하고, Bifrost는 멀티 프로바이더 통합 + Cascade Routing + 거버넌스(L1, across-model)를 제공합니다. 일반적으로 `kgateway → Bifrost → vLLM` 순서로 연결합니다. KV-aware(L2, within-model) Pod 선택이 필요하면 Bifrost 대신/함께 [Inference Extension(InferencePool + EPP)](./advanced-features.md#inference-extension)을 구성합니다. 레이어 구분은 [라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분) 참조.
+**A**: kgateway is a Kubernetes Gateway API standard implementation handling path-based routing, while Bifrost provides multi-provider integration + Cascade Routing + governance. Typically connect in order: kgateway → Bifrost → vLLM.
 
-### Q2: config.json 변경 후 즉시 반영 안 됨
+### Q2: config.json Changes Not Reflected Immediately
 
-**A**: Bifrost는 시작 시 config.json을 SQLite에 저장합니다. 변경 시 Pod 재시작 필요:
+**A**: Bifrost stores config.json to SQLite at startup. Pod restart required when changed:
 ```bash
 kubectl delete pod -l app=bifrost -n ai-external
 ```
 
-### Q3: Langfuse 트레이스가 느리게 도착함
+### Q3: Langfuse Traces Arriving Slowly
 
-**A**: Langfuse는 비동기 배치 처리를 사용합니다. 트레이스 도착까지 10-30초 소요 정상. 실시간 확인이 필요하면 Langfuse 로그를 직접 확인하세요:
+**A**: Langfuse uses asynchronous batch processing. 10-30 seconds delay for trace arrival is normal. If real-time verification needed, check Langfuse logs directly:
 ```bash
 kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 ```
 
-### Q4: NLB 직접 접근 vs CloudFront 경유 속도 차이?
+### Q4: Speed Difference Between Direct NLB Access vs CloudFront Routing?
 
-**A**: AWS WAF 검사는 통상 한 자릿수 ms 수준이며, CloudFront 엣지 TLS 종단은 오히려 클라이언트-엣지 간 지연을 감소시킬 수 있습니다. 캐시 미스 시 추가 홉으로 인한 지연은 상황에 따라 다르므로, 실제 지연은 워크로드별로 측정이 필요합니다. 프로덕션에서는 보안 트레이드오프를 고려하여 CloudFront + WAF 사용을 권장합니다.
+**A**: CloudFront routing adds approximately 10-50ms additional latency due to TLS termination + WAF inspection. Recommended to accept as security tradeoff in production.
 
-### Q5: Bifrost double-prefix 트릭이 필요한 이유?
+### Q5: Why Is Bifrost double-prefix Trick Necessary?
 
-**A**: Aider가 내부적으로 LiteLLM을 사용하며, LiteLLM은 `openai/` prefix를 제거합니다. `openai/openai/glm-5` → LiteLLM 제거 → `openai/glm-5` → Bifrost 도착. LLM Classifier를 사용하면 이 트릭이 불필요합니다.
+**A**: Aider internally uses LiteLLM, and LiteLLM removes the `openai/` prefix. `openai/openai/glm-5` → LiteLLM removes → `openai/glm-5` → arrives at Bifrost. This trick becomes unnecessary when using LLM Classifier.
 
 ---
 
-## 참고 자료
+## References
 
-- [기본 배포](./basic-deployment.md) - kgateway, HTTPRoute, Bifrost 기본 구성
-- [고급 기능](./advanced-features.md) - LLM Classifier, CloudFront/WAF, Semantic Caching
-- [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - OTel 연동 및 트러블슈팅
-- [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
-- [kgateway 공식 문서](https://kgateway.dev/docs/)
-- [Bifrost 공식 문서](https://docs.getbifrost.ai/)
+- [Basic Deployment](./basic-deployment.md) - kgateway, HTTPRoute, Bifrost basic configuration
+- [Advanced Features](./advanced-features.md) - LLM Classifier, CloudFront/WAF, Semantic Caching
+- [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - OTel integration and troubleshooting
+- [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
+- [kgateway Official Documentation](https://kgateway.dev/docs/)
+- [Bifrost Official Documentation](https://docs.getbifrost.ai/overview)

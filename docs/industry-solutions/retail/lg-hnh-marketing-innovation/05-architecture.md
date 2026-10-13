@@ -1,11 +1,11 @@
 ---
-title: AWS 단일 아키텍처
-description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — 8주 PoC 가능한 단일 안
+title: AWS Single Architecture
+description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — a single architecture that delivers a working demo in 8 weeks
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 4
+reading_time: 6
 tags:
   - industry-solution
   - retail
@@ -16,11 +16,11 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> 이 PoC는 **8주 구현 목표**를 둔 **단일 AWS Native 스택**을 사용합니다. 아래 아키텍처는 애플리케이션, AI 서비스, 그래프·검색 저장소, 외부 데이터 수집 파이프라인을 연결합니다.
+> This PoC uses a **single AWS-native stack** with an **8-week implementation target**. The architecture below connects the application, AI services, graph and search stores, and external-data ingestion pipeline.
 
 ---
 
-## 1. 아키텍처 개요
+## 1. Architecture Overview
 
 ```mermaid
 graph TB
@@ -43,27 +43,27 @@ graph TB
         Bedrock[Bedrock<br/>Sonnet 4.6]
         Cohere[Cohere<br/>embed-v4 / rerank-v3.5]
         AC[AgentCore<br/>Memory + Code Interpreter]
-        GR[Bedrock Guardrails<br/>4 토픽 + 동의 + 미성년]
+        GR[Bedrock Guardrails<br/>4 topics + consent + minor]
     end
 
     subgraph Data["Data Layer"]
         Neptune[(Amazon Neptune<br/>openCypher<br/>~500K edges)]
         OS[OpenSearch Serverless<br/>Nori + KNN + RRF]
         S3[(S3<br/>real / synth / external)]
-        DDB[(DynamoDB<br/>세션·캐시)]
+        DDB[(DynamoDB<br/>Sessions·Cache)]
     end
 
     subgraph Ingest["Data Ingest"]
-        Glue[AWS Glue<br/>외부 ETL]
-        Lam[Lambda<br/>PII 마스킹]
+        Glue[AWS Glue<br/>External ETL]
+        Lam[Lambda<br/>PII Masking]
         EB[EventBridge<br/>cron]
     end
 
-    subgraph External["외부 데이터 4종"]
-        Soc[소셜<br/>네이버·구글·X·인스타·올영]
-        Wea[기상<br/>KMA·대기질]
-        Eco[경제<br/>통계청·한국은행]
-        Comp[경쟁사<br/>아모레·아이모·유한킴벌리]
+    subgraph External["4 External Data Types"]
+        Soc[Social<br/>Naver·Google·X·Instagram·Olive Young]
+        Wea[Weather<br/>KMA·Air quality]
+        Eco[Economy<br/>KOSIS·Bank of Korea]
+        Comp[Competitor<br/>Amorepacific·Aimo·Yuhan-Kimberly]
     end
 
     Browser --> CF --> LE --> Cog
@@ -88,123 +88,123 @@ graph TB
 
 ---
 
-## 2. 레이어별 컴포넌트
+## 2. Components by Layer
 
 ### 2.1 Edge / Auth
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **CloudFront** | 정적 자산·SSR 캐시·WAF (한국 PoP) |
-| **Lambda@Edge** | JWT 검증·페르소나 헤더 라우팅 |
-| **Cognito User Pool** | 인증 + 부서·페르소나 그룹 매핑 |
+| **CloudFront** | Static assets · SSR cache · WAF (Korean PoP) |
+| **Lambda@Edge** | JWT verification · Persona header routing |
+| **Cognito User Pool** | Authentication + department · persona group mapping |
 
 ### 2.2 Frontend
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **Next.js 14 (App Router)** | SSR + Client Components + 페르소나 스위처 |
-| **Cytoscape.js** | KG 1-hop 시각화 (S1, S7) |
-| **Plotly / D3** | 차트·산점도·choropleth (S3, S5, S6) |
+| **Next.js 14 (App Router)** | SSR + Client Components + persona switcher |
+| **Cytoscape.js** | KG 1-hop visualization (S1, S7) |
+| **Plotly / D3** | Charts · scatter · choropleth (S3, S5, S6) |
 
 ### 2.3 Backend
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **FastAPI (Python 3.12)** | API + SSE 스트리밍 |
-| **ECS Fargate ARM64** | 컨테이너 런타임 (Graviton) |
-| **OpenTelemetry** | 트레이싱 → CloudWatch + Langfuse |
+| **FastAPI (Python 3.12)** | API + SSE streaming |
+| **ECS Fargate ARM64** | Container runtime (Graviton) |
+| **OpenTelemetry** | Tracing → CloudWatch + Langfuse |
 
 ### 2.4 AI / Agent
-| 컴포넌트 | 역할 | 시나리오 |
+| Component | Role | Scenarios |
 |---|---|---|
-| **Bedrock Sonnet 4.6** | 챗봇·라벨링·코멘트 | S2, S3, S4, S6 |
-| **Cohere embed-v4** | 임베딩 (1024d) | S1, S4 |
-| **Cohere rerank-v3.5** | 재순위화 | S1 |
+| **Bedrock Sonnet 4.6** | Chatbot · Labeling · Comments | S2, S3, S4, S6 |
+| **Cohere embed-v4** | Embedding (1024d) | S1, S4 |
+| **Cohere rerank-v3.5** | Reranking | S1 |
 | **AgentCore Memory** | short/long-term | S2 |
-| **AgentCore Code Interpreter** | Firecracker microVM (matplotlib·sklearn·PyMC) | S3, S4, S5, S6 |
-| **Bedrock Guardrails** | 4 토픽 + 마케팅 동의 + PII + 미성년 화장품 | S8 |
+| **AgentCore Code Interpreter** | Firecracker microVM (matplotlib · sklearn · PyMC) | S3, S4, S5, S6 |
+| **Bedrock Guardrails** | 4 topics + marketing consent + PII + minor cosmetics | S8 |
 
 ### 2.5 Data Layer
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **Amazon Neptune** | KG 25 클래스, ~500K edges, openCypher |
-| **OpenSearch Serverless** | 6 인덱스 (product/customer/review/campaign/social_trend/competitor) |
-| **S3** | Raw·Synth·External 데이터 + 임베딩 캐시 |
-| **DynamoDB** | 세션·페르소나·rate limit (TTL 활용) |
+| **Amazon Neptune** | KG 25 classes, ~500K edges, openCypher |
+| **OpenSearch Serverless** | 6 indexes (product/customer/review/campaign/social_trend/competitor) |
+| **S3** | Raw · Synth · External data + embedding cache |
+| **DynamoDB** | Sessions · personas · rate limit (TTL) |
 
 ### 2.6 Data Ingest
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **AWS Glue** | 외부 4종 데이터 ETL (소셜·기상·경제·경쟁사) |
-| **Lambda** | PII 마스킹 + Semantic Pipeline (S3 → Neptune·OpenSearch) |
-| **EventBridge** | 일/주/월별 외부 데이터 수집 cron |
+| **AWS Glue** | ETL for 4 external types (social · weather · economy · competitor) |
+| **Lambda** | PII masking + Semantic Pipeline (S3 → Neptune · OpenSearch) |
+| **EventBridge** | Daily/weekly/monthly external data collection cron |
 
 ---
 
-## 3. 트래픽 흐름 (S2 챗봇 예시)
+## 3. Traffic Flow (S2 Chatbot Example)
 
 ```
 1. Browser → CloudFront (HTTPS, WAF)
-2. CloudFront → Lambda@Edge (JWT 검증, x-persona 헤더 주입)
-3. CloudFront → Next.js — /chat 페이지 SSR
+2. CloudFront → Lambda@Edge (JWT verification, x-persona header injection)
+3. CloudFront → Next.js — /chat page SSR
 4. Client → FastAPI /api/chat (SSE)
-5. FastAPI → Bedrock Guardrails (입력 가드)
-6. FastAPI → Bedrock Sonnet 4.6 (페르소나 system prompt + 도구 정의)
-7. Sonnet tool_use → FastAPI 도구 호출
+5. FastAPI → Bedrock Guardrails (input guard)
+6. FastAPI → Bedrock Sonnet 4.6 (persona system prompt + tool definitions)
+7. Sonnet tool_use → FastAPI tool invocations
    - semantic_search → OpenSearch
    - neptune_query → Neptune
    - trend_join → SocialSignal/WeatherSignal
    - campaign_simulator → AgentCore Code Interpreter
-8. 도구 결과 → Sonnet 재호출 (multi-turn)
-9. 최종 응답 → Bedrock Guardrails (출력 가드)
-10. SSE 토큰 스트리밍 → Browser
-11. 트레이스 → CloudWatch + Langfuse
+8. Tool results → Sonnet re-invocation (multi-turn)
+9. Final response → Bedrock Guardrails (output guard)
+10. SSE token streaming → Browser
+11. Traces → CloudWatch + Langfuse
 ```
 
 ---
 
-## 4. 보안·거버넌스
+## 4. Security · Governance
 
-| 항목 | 구현 |
+| Item | Implementation |
 |---|---|
-| 인증 | Cognito (RS256 JWT) + Lambda@Edge 검증 |
-| 권한 | 페르소나 그룹별 도구·KG 쿼리 화이트리스트 |
-| PII | S3 적재 시점 Lambda 마스킹 |
-| 가드레일 | Bedrock Guardrails (입력+출력) |
-| 감사 | CloudTrail + CloudWatch Logs + Audit DynamoDB |
-| Cohort 격리 | 모든 노드/도큐먼트 `cohort_tag` 필수 |
+| Authentication | Cognito (RS256 JWT) + Lambda@Edge verification |
+| Authorization | Per-persona group tool · KG query whitelists |
+| PII | Lambda masking at S3 ingestion |
+| Guardrails | Bedrock Guardrails (input + output) |
+| Audit | CloudTrail + CloudWatch Logs + Audit DynamoDB |
+| Cohort isolation | All nodes/documents require `cohort_tag` |
 
 ---
 
-## 5. 비용 (8주 PoC)
+## 5. Cost (8-Week PoC)
 
-| 항목 | 추정 |
+| Item | Estimate |
 |---|---|
-| Bedrock Sonnet 4.6 | 챗봇 1만 호출/월 |
-| Cohere embed/rerank | 5만/월 |
-| Neptune | r6g.large 1노드, 64GB EBS |
+| Bedrock Sonnet 4.6 | 10K chatbot calls/month |
+| Cohere embed/rerank | 50K/month |
+| Neptune | r6g.large 1 node, 64 GB EBS |
 | OpenSearch Serverless | 2 OCU |
-| ECS Fargate ARM64 | 2 vCPU × 4GB × 2 task |
-| Glue ETL | 일 1회 (외부 4종) |
-| S3 + DynamoDB + EventBridge | 소량 |
-| **월 비용 추정** | **약 $4K~$6K USD** |
+| ECS Fargate ARM64 | 2 vCPU × 4 GB × 2 tasks |
+| Glue ETL | Daily (4 external types) |
+| S3 + DynamoDB + EventBridge | Light usage |
+| **Monthly cost estimate** | **About $4K~$6K USD** |
 
 ---
 
-## 6. 8주 PoC 마일스톤
+## 6. 8-Week PoC Milestones
 
-| 주차 | 작업 |
+| Week | Work |
 |---|---|
-| 1-2 | VPC·Cognito·CloudFront·ECS 인프라 + Neptune 25 클래스 적재 + 외부 4종 ETL |
-| 3-4 | S1·S2·S3 (검색·챗봇·인사이트) |
-| 5-6 | S5·S7 + 페르소나 스위처 |
-| 7 | S4·S6·S8 (페르소나·외부신호·가드레일) |
-| 8 | 시연 리허설 + 백업 |
+| 1-2 | VPC · Cognito · CloudFront · ECS infrastructure + Neptune 25-class ingest + 4-type external ETL |
+| 3-4 | S1 · S2 · S3 (search · chatbot · insights) |
+| 5-6 | S5 · S7 + persona switcher |
+| 7 | S4 · S6 · S8 (personas · external signals · guardrails) |
+| 8 | Demo rehearsal + backup |
 
 ---
 
-## 7. 옵션 확장
+## 7. Optional Extensions
 
-| 옵션 | 설명 |
+| Option | Description |
 |---|---|
-| **Snowflake 연계** | 자사가 Snowflake 보유 시 Glue로 Snowflake → S3 | 동기 |
-| **Hybrid Nodes** | EKS Hybrid Nodes로 온프렘 GPU 결합 (vLLM 자체 LLM) |
-| **Step Functions** | 야간 배치 (KG 갱신, 합성 데이터 재생성) |
-| **Bifrost** | Bedrock + 자체 LLM 라우팅 |
+| **Snowflake integration** | If first-party has Snowflake, use Glue for Snowflake → S3 sync |
+| **Hybrid Nodes** | Combine on-prem GPUs with EKS Hybrid Nodes (self-hosted vLLM) |
+| **Step Functions** | Nightly batch (KG refresh, synthetic data regeneration) |
+| **Bifrost** | Bedrock + self-hosted LLM routing |

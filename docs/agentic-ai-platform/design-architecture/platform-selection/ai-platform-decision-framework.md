@@ -1,11 +1,11 @@
 ---
-title: "AI 플랫폼 선택 가이드: 매니지드 vs 오픈소스 vs 하이브리드"
-description: SageMaker Unified Studio, Bedrock AgentCore, EKS 오픈 아키텍처 중 고객 상황에 맞는 최적 접근 선택을 위한 의사결정 프레임워크
+title: "AI Platform Selection Guide: Managed vs Open Source vs Hybrid"
+description: Decision framework for selecting the optimal approach between SageMaker Unified Studio, Bedrock AgentCore, and EKS open architecture based on customer needs
 created: "2026-04-17"
 last_update:
   date: 2026-09-18
-  author: YoungJoon Jeong
-reading_time: 12
+  author: devfloor9
+reading_time: 23
 tags:
   - decision-framework
   - sagemaker
@@ -15,69 +15,69 @@ tags:
   - cost
   - hybrid
   - scope:design
-sidebar_label: AI 플랫폼 선택 가이드
+sidebar_label: AI Platform Selection Guide
 sidebar_position: 3
 category: genai-aiml
 faq:
-  - q: AWS에서 AI 플랫폼을 구축하는 경로는 무엇이 있나요?
-    a: 크게 세 가지입니다. (A) AWS 매니지드 — Bedrock과 Strands SDK, AgentCore로 인프라 운영 없이 시작합니다. (B) EKS와 오픈소스 — vLLM, llm-d, Langfuse 등을 자체 호스팅하여 최대 제어권을 확보합니다. (C) 하이브리드 — Bedrock과 EKS를 조합해 비용, 통제, 속도의 균형을 맞춥니다.
-  - q: 매니지드 서비스와 오픈소스 자체 구축 중 무엇을 선택해야 하나요?
-    a: 빠른 출시와 운영 부담 최소화가 중요하면 Bedrock AgentCore 기반 매니지드 접근이 적합합니다. 모델 선택의 자유도, 데이터 주권, 비용의 장기 최적화가 중요하면 EKS 기반 오픈 아키텍처가 적합합니다. 대부분의 엔터프라이즈는 두 가지를 조합한 하이브리드로 수렴합니다.
-  - q: Bedrock AgentCore는 언제 선택하나요?
-    a: 서버리스 Agent 런타임으로 인프라 관리 없이 프로덕션 Agent를 운영하려는 경우 선택합니다. GPU 노드 운영, 스케일링, 모델 서빙 스택을 직접 관리하지 않아도 되며, 트래픽이 가변적이거나 초기 PoC 단계에서 운영 오버헤드를 줄이는 데 유리합니다.
+  - q: What are the paths for building an AI platform on AWS?
+    a: There are three main paths. (A) AWS managed — start without infrastructure operations using Bedrock, the Strands SDK, and AgentCore. (B) EKS and open source — self-host vLLM, llm-d, Langfuse, and similar tools for maximum control. (C) Hybrid — combine Bedrock and EKS to balance cost, control, and speed.
+  - q: Should I choose managed services or build with open source?
+    a: If fast time-to-market and minimal operational overhead matter most, a Bedrock AgentCore managed approach fits. If model choice, data sovereignty, and long-term cost optimization matter most, an EKS-based open architecture fits. Most enterprises converge on a hybrid that combines both.
+  - q: When should I choose Bedrock AgentCore?
+    a: Choose it when you want to run production agents without managing infrastructure, using a serverless agent runtime. You avoid operating GPU nodes, scaling, and the model-serving stack directly, which helps when traffic is variable or during early PoC stages where reducing operational overhead is valuable.
 ---
 
 import { PlatformComparisonMatrix, MaturityPathTable, HybridPatternSummary } from '@site/src/components/DecisionFrameworkTables';
 
-고객이 AI를 직접 개발하려 할 때 가장 먼저 직면하는 질문은 "매니지드 서비스를 쓸 것인가, 오픈소스로 직접 구축할 것인가?"입니다. 이 문서는 **SageMaker Unified Studio**, **Bedrock AgentCore**, **EKS 기반 오픈 아키텍처** 중 고객 상황에 맞는 최적 접근을 선택할 수 있도록 의사결정 프레임워크를 제공합니다.
+When customers start developing AI directly, the first question they face is "Should we use managed services or build with open source?" This document provides a decision framework to select the optimal approach among **SageMaker Unified Studio**, **Bedrock AgentCore**, and **EKS-based open architecture** based on customer circumstances.
 
-AI 플랫폼 구축 경로는 크게 3가지로 나뉩니다:
+AI platform construction paths are broadly divided into three categories:
 
-- **(A) AWS 매니지드**: Bedrock + Strands SDK + AgentCore로 인프라 운영 없이 시작
-- **(B) EKS + 오픈소스**: vLLM, llm-d, Langfuse 등 자체 호스팅으로 최대 제어권 확보
-- **(C) 하이브리드**: Bedrock과 EKS를 조합하여 비용·통제·속도의 균형 달성
+- **(A) AWS Managed**: Start with no infrastructure operations using Bedrock + Strands SDK + AgentCore
+- **(B) EKS + Open Source**: Secure maximum control with self-hosting using vLLM, llm-d, Langfuse, etc.
+- **(C) Hybrid**: Achieve balance of cost, control, and speed by combining Bedrock and EKS
 
-:::info 선행 문서
-이 문서를 읽기 전에 다음 문서를 먼저 참조하세요:
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6 레이어 + 3 플레인 설계 청사진
-- [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제 분석
+:::info Prerequisites
+Before reading this document, refer to the following:
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 layers + 3 planes design blueprint
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenge analysis
 :::
 
 ---
 
-## AWS AI 플랫폼 서비스 랜드스케이프
+## AWS AI Platform Service Landscape
 
-AWS AI 서비스는 4개의 Tier로 계층화됩니다. 고객은 하위 Tier에서 시작하여 필요에 따라 상위 Tier로 이동합니다.
+AWS AI services are structured into 4 tiers. Customers start at lower tiers and move to higher tiers as needed.
 
 ```mermaid
 graph TB
-    subgraph Tier1["Tier 1: 소비 — 모델 액세스"]
-        T1A["Amazon Bedrock<br/>100+ 모델 API 액세스"]
-        T1B["SageMaker JumpStart<br/>Foundation Model 배포"]
+    subgraph Tier1["Tier 1: Consumption — Model Access"]
+        T1A["Amazon Bedrock<br/>100+ Model API Access"]
+        T1B["SageMaker JumpStart<br/>Foundation Model Deployment"]
     end
     
-    subgraph Tier2["Tier 2: 개발 — AI 개발 환경"]
-        T2A["SageMaker Unified Studio<br/>통합 ML/데이터/분석 IDE"]
-        T2B["Strands Agents SDK<br/>Agent 프레임워크"]
-        T2C["Bedrock Prompt Management<br/>프롬프트 엔지니어링"]
+    subgraph Tier2["Tier 2: Development — AI Development Environment"]
+        T2A["SageMaker Unified Studio<br/>Integrated ML/Data/Analytics IDE"]
+        T2B["Strands Agents SDK<br/>Agent Framework"]
+        T2C["Bedrock Prompt Management<br/>Prompt Engineering"]
     end
     
-    subgraph Tier3["Tier 3: 운영 — 프로덕션 관리"]
-        T3A["Bedrock AgentCore<br/>서버리스 Agent 런타임"]
-        T3B["SageMaker Pipelines<br/>ML 학습 파이프라인"]
-        T3C["Built-in MLflow<br/>실험 추적 & 모델 레지스트리"]
+    subgraph Tier3["Tier 3: Operations — Production Management"]
+        T3A["Bedrock AgentCore<br/>Serverless Agent Runtime"]
+        T3B["SageMaker Pipelines<br/>ML Training Pipeline"]
+        T3C["Built-in MLflow<br/>Experiment Tracking & Model Registry"]
     end
     
-    subgraph Tier4["Tier 4: 인프라 — 자체 구축"]
-        T4A["EKS + vLLM/llm-d<br/>자체 호스팅 추론"]
-        T4B["Karpenter<br/>GPU 오토 프로비저닝"]
-        T4C["kgateway + Bifrost<br/>2-Tier 추론 게이트웨이"]
+    subgraph Tier4["Tier 4: Infrastructure — Self-Built"]
+        T4A["EKS + vLLM/llm-d<br/>Self-Hosted Inference"]
+        T4B["Karpenter<br/>GPU Auto-Provisioning"]
+        T4C["kgateway + Bifrost<br/>2-Tier Inference Gateway"]
         T4D["Langfuse<br/>LLMOps Observability"]
     end
     
     Tier1 --> Tier2
     Tier2 --> Tier3
-    Tier3 -.->|"세밀한 제어 필요 시"| Tier4
+    Tier3 -.->|"When fine-grained control needed"| Tier4
     
     style Tier1 fill:#e1f5ff
     style Tier2 fill:#fff4e1
@@ -85,76 +85,76 @@ graph TB
     style Tier4 fill:#fce4ec
 ```
 
-**Tier 구분의 핵심**:
-- **Tier 1-3**: AWS 매니지드 서비스로 인프라 운영 없이 시작할 수 있습니다.
-- **Tier 4**: 세밀한 제어, 비용 최적화, 데이터 주권이 필요할 때 선택합니다.
-- **대부분의 고객은 Tier 1에서 시작하여 점진적으로 확장**하며, 엔터프라이즈는 Tier 3과 Tier 4를 하이브리드로 조합하는 경향이 있습니다.
+**Key Tier Distinctions**:
+- **Tier 1-3**: AWS managed services allow you to start without infrastructure operations.
+- **Tier 4**: Choose when fine-grained control, cost optimization, or data sovereignty is required.
+- **Most customers start at Tier 1 and expand incrementally**, while enterprises tend to combine Tier 3 and Tier 4 in hybrid configurations.
 
 ---
 
 ## SageMaker Unified Studio
 
-### 통합 AI 개발 환경
+### Integrated AI Development Environment
 
-**SageMaker Unified Studio**는 2024년 12월 re:Invent에서 프리뷰로 공개되고 2025년 3월 정식 출시(GA)된 통합 AI 개발 환경으로, ML/데이터/분석 작업을 하나의 IDE에서 수행할 수 있도록 설계되었습니다. 기존에는 SageMaker Studio Classic, Athena, Glue Studio 등 분산된 도구를 개별적으로 사용해야 했지만, Unified Studio는 이를 하나로 통합합니다.
+**SageMaker Unified Studio** is an integrated AI development environment released in H2 2024, designed to perform ML/data/analytics tasks in a single IDE. Previously, teams had to use fragmented tools like SageMaker Studio Classic, Athena, and Glue Studio separately, but Unified Studio consolidates them into one.
 
-### 핵심 차별점
+### Key Differentiators
 
-| 기능 | 설명 | 기존 대비 개선 |
-|------|------|--------------|
-| **통합 IDE** | JupyterLab + SQL 편집기 + 노코드 인터페이스 | SageMaker Studio Classic 대비 데이터+ML 통합 |
-| **Built-in MLflow** | 실험 추적, 모델 레지스트리, 모델 비교 | 별도 MLflow 서버 운영 불필요 |
-| **Lakehouse 통합** | Apache Iceberg 테이블, Glue Catalog 네이티브 연동 | 데이터 엔지니어링 → ML 파이프라인 원스톱 |
-| **거버넌스 협업** | Amazon DataZone 기반 IAM 공유, 데이터 계보 추적 | 팀 간 안전한 데이터/모델 공유 |
-| **통합 컴퓨팅** | 학습, 노트북, 파이프라인을 단일 환경에서 관리 | 리소스 파편화 방지 |
+| Feature | Description | Improvement vs Previous |
+|---------|-------------|------------------------|
+| **Unified IDE** | JupyterLab + SQL Editor + No-code Interface | Data+ML integration vs SageMaker Studio Classic |
+| **Built-in MLflow** | Experiment tracking, model registry, model comparison | No need to operate separate MLflow server |
+| **Lakehouse Integration** | Apache Iceberg tables, Glue Catalog native integration | One-stop data engineering → ML pipeline |
+| **Governance Collaboration** | Amazon DataZone-based IAM sharing, data lineage tracking | Secure data/model sharing between teams |
+| **Unified Compute** | Manage training, notebooks, pipelines in single environment | Prevent resource fragmentation |
 
-### 포지셔닝: 언제 선택하는가?
+### Positioning: When to Choose?
 
 ```mermaid
 flowchart LR
-    Q1{"데이터 엔지니어링 +<br/>ML을 동시에?"}
+    Q1{"Data Engineering +<br/>ML simultaneously?"}
     Q1 -->|Yes| US["✅ SageMaker<br/>Unified Studio"]
-    Q1 -->|No| Q2{"추론만<br/>필요?"}
+    Q1 -->|No| Q2{"Inference<br/>only?"}
     Q2 -->|Yes| BR["Bedrock API"]
-    Q2 -->|No| Q3{"커스텀 모델<br/>자체 호스팅?"}
+    Q2 -->|No| Q3{"Custom model<br/>self-hosting?"}
     Q3 -->|Yes| EKS["EKS + vLLM"]
     Q3 -->|No| US
 ```
 
-:::tip 핵심 메시지
-SageMaker Unified Studio는 **개발 환경(Tier 2)**입니다. Bedrock(추론)이나 EKS(서빙)와 **보완 관계**이며, 특히 데이터 팀과 ML 팀이 하나의 플랫폼에서 협업해야 할 때 가장 큰 가치를 제공합니다.
+:::tip Key Message
+SageMaker Unified Studio is a **development environment (Tier 2)**. It has a **complementary relationship** with Bedrock (inference) or EKS (serving), and provides the greatest value when data teams and ML teams need to collaborate on a single platform.
 :::
 
 ---
 
-## 플랫폼 비교 매트릭스
+## Platform Comparison Matrix
 
-고객의 상황에 따라 최적 접근이 다릅니다. 5가지 핵심 평가축으로 각 플랫폼 옵션을 비교합니다.
+The optimal approach varies based on customer circumstances. Compare each platform option across 5 key evaluation dimensions.
 
 <PlatformComparisonMatrix />
 
-:::info 비용 상세 분석
-자체 호스팅과 Bedrock의 상세 비용 비교(손익분기점, Cascade Routing 절감 효과)는 [코딩 도구 비용 분석](../../reference-architecture/integrations/coding-tools-cost-analysis.md)을 참고하세요.
+:::info Detailed Cost Analysis
+For detailed cost comparison between self-hosting and Bedrock (break-even points, Cascade Routing savings), refer to [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md).
 :::
 
 ---
 
-## 의사결정 플로우차트
+## Decision Flowchart
 
-고객 미팅에서 활용할 수 있는 의사결정 흐름입니다. 핵심 질문에 답하면서 최적 접근을 찾아갑니다.
+A decision flow you can use in customer meetings. Find the optimal approach by answering key questions.
 
 ```mermaid
 flowchart TD
-    START["🚀 AI 플랫폼 구축 시작"]
+    START["🚀 Start AI Platform Build"]
     
-    Q1{"Open Weight 모델<br/>자체 호스팅 필요?<br/>(Llama, Qwen, DeepSeek 등)"}
-    Q2{"데이터 주권이<br/>하드 요구사항?<br/>(VPC 내 모델+데이터 격리)"}
-    Q3{"같은 품질·지연 조건에서<br/>하이브리드의 전체 비용<br/>이점을 검증했는가?"}
-    Q4{"ML 학습 +<br/>데이터 엔지니어링<br/>통합 필요?"}
-    Q5{"AI/ML 워크로드를<br/>처음 시작?"}
+    Q1{"Need to self-host<br/>Open Weight models?<br/>(Llama, Qwen, DeepSeek, etc.)"}
+    Q2{"Data sovereignty<br/>hard requirement?<br/>(Model+Data isolation in VPC)"}
+    Q3{"Hybrid total-cost advantage<br/>validated at matched<br/>quality and latency?"}
+    Q4{"Need integrated<br/>ML training +<br/>data engineering?"}
+    Q5{"Starting AI/ML<br/>workloads for<br/>the first time?"}
     
-    PATH_EKS["🔧 EKS 기반 오픈 아키텍처"]
-    PATH_HYBRID["🔄 하이브리드"]
+    PATH_EKS["🔧 EKS-based Open Architecture"]
+    PATH_HYBRID["🔄 Hybrid"]
     PATH_SM["📊 SageMaker Unified Studio<br/>+ Bedrock"]
     PATH_NATIVE["☁️ AWS Native<br/>(Bedrock + AgentCore)"]
     
@@ -170,10 +170,10 @@ flowchart TD
     Q5 -->|"Yes"| PATH_NATIVE
     Q5 -->|"No"| PATH_HYBRID
     
-    PATH_EKS -.->|"상세"| LINK_EKS["EKS 기반 오픈 아키텍처 →"]
-    PATH_HYBRID -.->|"상세"| LINK_HYB["하이브리드 조합 패턴 →"]
-    PATH_SM -.->|"상세"| LINK_SM["SageMaker-EKS 통합 →"]
-    PATH_NATIVE -.->|"상세"| LINK_NAT["AWS Native 플랫폼 →"]
+    PATH_EKS -.->|"Details"| LINK_EKS["EKS-based Open Architecture →"]
+    PATH_HYBRID -.->|"Details"| LINK_HYB["Hybrid Combination Patterns →"]
+    PATH_SM -.->|"Details"| LINK_SM["SageMaker-EKS Integration →"]
+    PATH_NATIVE -.->|"Details"| LINK_NAT["AWS Native Platform →"]
     
     style PATH_EKS fill:#10b981,color:#fff
     style PATH_HYBRID fill:#8b5cf6,color:#fff
@@ -181,198 +181,198 @@ flowchart TD
     style PATH_NATIVE fill:#ff9900,color:#fff
 ```
 
-:::warning 플로우차트는 출발점입니다
-이 플로우차트는 대화의 시작점이지, 최종 결론이 아닙니다. 실제 고객 상황은 복합적이며, 대부분의 엔터프라이즈는 **하이브리드 접근**으로 수렴합니다.
+:::warning The Flowchart is a Starting Point
+This flowchart is the starting point for conversation, not the final conclusion. Actual customer situations are complex, and most enterprises converge on a **hybrid approach**.
 :::
 
 ---
 
-## 네 번째 결정축: 데이터 주권
+## The Fourth Decision Axis: Data Sovereignty
 
-앞의 플로우차트는 워크로드·볼륨·역량을 기준으로 했지만, 규제 산업에서는 **데이터 주권(Sovereignty)**이 다른 모든 기준에 우선하는 하드 제약으로 작용합니다. 주권 요구는 Public → In-country → Hybrid → Air-gapped 스펙트럼으로 나타나며, 요구 강도가 높을수록 매니지드 의존도는 낮아지고 자체 호스팅·온프레미스 비중이 커집니다.
+The flowchart above used workload, volume, and capability as criteria, but in regulated industries **data sovereignty** acts as a hard constraint that takes precedence over all other criteria. Sovereignty requirements appear on a Public → In-country → Hybrid → Air-gapped spectrum; the stronger the requirement, the lower the managed-service dependency and the larger the share of self-hosting/on-premises.
 
-| 주권 수준 | 추론 위치 | 권장 접근 |
-|----------|----------|----------|
-| **Public** | 리전 제약 없음 | AWS Native |
-| **In-country** | 국내 리전 고정 | Bedrock Geographic CRIS + SCP 리전 강제 |
-| **Hybrid** | 온프레미스 + in-country | EKS Hybrid Nodes + 자체 호스팅 |
-| **Air-gapped** | 완전 격리 | 온프레미스 EKS 전용 |
+| Sovereignty Level | Inference Location | Recommended Approach |
+|-------------------|--------------------|--------------------|
+| **Public** | No region constraint | AWS Native |
+| **In-country** | Fixed to in-country region | Bedrock Geographic CRIS + SCP region enforcement |
+| **Hybrid** | On-premises + in-country | EKS Hybrid Nodes + self-hosting |
+| **Air-gapped** | Fully isolated | On-premises EKS only |
 
-데이터 주권은 의사결정의 **첫 번째 필터**로 두는 것이 안전합니다. 주권 제약이 EKS 자체 호스팅 또는 하이브리드를 강제하면, 비용·볼륨 기준의 결론보다 우선합니다.
+It is safest to treat data sovereignty as the **first filter** of the decision. When a sovereignty constraint forces EKS self-hosting or hybrid, it takes precedence over conclusions based on cost or volume.
 
-:::info 소버린 & 하이브리드 상세
-SCP 리전 강제 정책, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 기반 하이브리드·in-country 자체 호스팅 구현은 [소버린 & 하이브리드 배포](./sovereign-hybrid-deployment.md)를 참조하세요.
+:::info Sovereign & Hybrid Details
+For SCP region enforcement policies, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting implementation, see [Sovereign & Hybrid Deployment](./sovereign-hybrid-deployment.md).
 :::
 
 ---
 
-## 고객 성숙도별 권장 경로
+## Recommended Path by Customer Maturity
 
-고객의 현재 AI/ML 성숙도에 따라 시작점과 확장 경로가 달라집니다.
+Starting points and expansion paths vary based on the customer's current AI/ML maturity level.
 
-아래 기간은 단계별 작업 범위를 논의하기 위한 초기 계획값입니다. API 연결, 시범 운영, 운영 승인처럼 완료 기준을 먼저 정하고 팀의 준비 상태에 따라 다시 산정합니다.
+The durations below are initial planning inputs for stage-specific work. Define milestones such as API integration, pilot operation, and production acceptance before estimating a schedule from team readiness.
 
 <MaturityPathTable />
 
 ```mermaid
 journey
-    title AI 플랫폼 성숙도 여정
-    section Level 1 탐색
-      Bedrock API로 PoC: 5: 고객
-      Strands SDK로 Agent 개발: 4: 고객
-      AgentCore로 프로덕션 배포: 3: 고객
-    section Level 2 구축
-      SageMaker Unified Studio 도입: 4: 고객
-      커스텀 모델 Fine-tuning: 3: 고객
-      ML 파이프라인 자동화: 3: 고객
-    section Level 3 최적화
-      EKS vLLM 자체 호스팅: 3: 고객
-      Cascade Routing 비용 최적화: 4: 고객
-      llm-d 분산 추론: 2: 고객
+    title AI Platform Maturity Journey
+    section Level 1 Exploration
+      PoC with Bedrock API: 5: Customer
+      Agent development with Strands SDK: 4: Customer
+      Production deployment with AgentCore: 3: Customer
+    section Level 2 Build
+      Adopt SageMaker Unified Studio: 4: Customer
+      Custom model fine-tuning: 3: Customer
+      ML pipeline automation: 3: Customer
+    section Level 3 Optimization
+      EKS vLLM self-hosting: 3: Customer
+      Cascade Routing cost optimization: 4: Customer
+      llm-d distributed inference: 2: Customer
 ```
 
-**각 레벨별 상세 가이드**:
-- **Level 1 (탐색)**: → [AWS Native 플랫폼](./aws-native-agentic-platform.md)
-- **Level 2 (구축)**: → [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md)
-- **Level 3 (최적화)**: → [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md), [추론 게이트웨이](../../model-serving/inference-routing/routing-strategy.md)
+**Detailed Guide by Level**:
+- **Level 1 (Exploration)**: → [AWS Native Platform](./aws-native-agentic-platform.md)
+- **Level 2 (Build)**: → [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md)
+- **Level 3 (Optimization)**: → [EKS-based Open Architecture](./agentic-ai-solutions-eks.md), [Inference Gateway](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 
-## 하이브리드 조합 패턴
+## Hybrid Combination Patterns
 
-다음은 서비스 책임을 나누는 4가지 조합 예제입니다. 실제 적합성은 데이터 경계, 운영 역량, 품질·지연·비용 평가로 확인합니다.
+The following four examples separate service responsibilities. Validate fit against data boundaries, operating capability, and quality, latency, and cost requirements.
 
 <HybridPatternSummary />
 
-### 패턴 1: Bedrock + EKS SLM (Cascade Routing)
+### Pattern 1: Bedrock + EKS SLM (Cascade Routing)
 
 ```mermaid
 flowchart LR
     Client --> GW["kgateway"]
     GW --> Classifier["LLM Classifier"]
-    Classifier -->|"복잡한 요청"| Bedrock["Bedrock<br/>Claude/Nova"]
-    Classifier -->|"저비용 경로 적격 요청"| SLM["EKS<br/>Qwen3-4B"]
+    Classifier -->|"Complex requests"| Bedrock["Bedrock<br/>Claude/Nova"]
+    Classifier -->|"Requests eligible for lower-cost path"| SLM["EKS<br/>Qwen3-4B"]
     
     style Bedrock fill:#ff9900,color:#fff
     style SLM fill:#10b981,color:#fff
 ```
 
-**사용 시점**: 자체 SLM으로 품질 기준을 충족하는 요청 집합이 있고, 해당 비중과 두 경로의 전체 운영 비용을 측정할 수 있는 경우
+**When to use**: A request subset meets quality requirements on a self-hosted SLM, and its share and the total operating cost of both paths can be measured.
 
-**검증할 가치**: 품질·지연 기준을 유지하면서 실제 총비용을 줄이는지 확인합니다. 요청 비율만으로 GPU 고정비 감소나 품질 보존을 가정하지 않습니다.
+**Value to validate**: Reduce actual total cost while meeting quality and latency requirements. Request share alone does not establish lower GPU fixed costs or preserved quality.
 
-**참고**: [추론 게이트웨이 & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md)
+**Reference**: [Inference Gateway & Cascade Routing](../../model-serving/inference-routing/routing-strategy.md)
 
 ---
 
-### 패턴 2: SageMaker 학습 + EKS 서빙
+### Pattern 2: SageMaker Training + EKS Serving
 
 ```mermaid
 flowchart LR
-    Dev["SageMaker<br/>Unified Studio"] -->|"학습 완료"| S3["S3<br/>모델 아티팩트"]
-    S3 -->|"배포"| EKS["EKS + vLLM<br/>모델 서빙"]
-    EKS --> Client["클라이언트"]
+    Dev["SageMaker<br/>Unified Studio"] -->|"Training complete"| S3["S3<br/>Model artifacts"]
+    S3 -->|"Deploy"| EKS["EKS + vLLM<br/>Model serving"]
+    EKS --> Client["Client"]
     
     style Dev fill:#f59e0b,color:#fff
     style EKS fill:#10b981,color:#fff
 ```
 
-**사용 시점**: 커스텀 모델을 학습하고, 추론 비용을 최소화하려는 경우
+**When to use**: When training custom models and minimizing inference costs
 
-**핵심 가치**: SageMaker의 관리형 학습 환경 + EKS의 비용 효율적 서빙
+**Core value**: SageMaker's managed training environment + EKS cost-efficient serving
 
-**참고**: [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md)
+**Reference**: [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md)
 
 ---
 
-### 패턴 3: AgentCore + 자체 모델
+### Pattern 3: AgentCore + Self-Hosted Models
 
 ```mermaid
 flowchart LR
-    Agent["AgentCore<br/>Agent 런타임"] -->|"외부 모델"| Bedrock["Bedrock API"]
-    Agent -->|"자체 모델"| EKS["EKS + vLLM<br/>커스텀 모델"]
-    Agent -->|"도구"| MCP["MCP 서버"]
+    Agent["AgentCore<br/>Agent runtime"] -->|"External models"| Bedrock["Bedrock API"]
+    Agent -->|"Self-hosted models"| EKS["EKS + vLLM<br/>Custom models"]
+    Agent -->|"Tools"| MCP["MCP servers"]
     
     style Agent fill:#ff9900,color:#fff
     style EKS fill:#10b981,color:#fff
 ```
 
-**사용 시점**: Agent 런타임은 서버리스로 운영하되, 특정 도메인 모델은 자체 호스팅하려는 경우
+**When to use**: When operating Agent runtime serverlessly but self-hosting specific domain models
 
-**핵심 가치**: AgentCore의 서버리스 운영성 + 커스텀 모델의 도메인 정확도
+**Core value**: AgentCore's serverless operability + custom model domain accuracy
 
-**참고**: [AWS Native 플랫폼](./aws-native-agentic-platform.md)
-
----
-
-### 패턴 4: Full Stack (SageMaker + Bedrock + EKS)
-
-가장 복잡하지만 최대 유연성을 제공하는 패턴입니다:
-- **데이터 & 학습**: SageMaker Unified Studio + Pipelines
-- **프로덕션 추론**: Bedrock API (고신뢰 작업) + EKS vLLM (고볼륨 작업)
-- **Agent 런타임**: AgentCore (서버리스) + Kagent (Kubernetes 네이티브)
-- **Observability**: CloudWatch (매니지드) + Langfuse (자체 호스팅)
-
-이 패턴은 대규모 엔터프라이즈에서 팀별로 다른 요구사항을 충족하기 위해 선택합니다. 아키텍처 복잡도가 높으므로, 명확한 운영 책임 경계와 서비스 카탈로그가 필수입니다.
-
-**참고**: 하이브리드 아키텍처의 기술적 구현은 [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md)을 참고하세요.
+**Reference**: [AWS Native Platform](./aws-native-agentic-platform.md)
 
 ---
 
-## 비용 시뮬레이션 요약
+### Pattern 4: Full Stack (SageMaker + Bedrock + EKS)
 
-월 요청량만으로 최적 옵션이나 비용을 결정할 수 없습니다. 다음 입력을 같은 작업 집합과 서비스 수준에서 수집해 비교합니다.
+The most complex but most flexible pattern:
+- **Data & Training**: SageMaker Unified Studio + Pipelines
+- **Production Inference**: Bedrock API (high-reliability tasks) + EKS vLLM (high-volume tasks)
+- **Agent Runtime**: AgentCore (serverless) + Kagent (Kubernetes-native)
+- **Observability**: CloudWatch (managed) + Langfuse (self-hosted)
 
-| 비교 대상 | 수집할 입력 | 확인할 조건 |
-|-----------|-------------|-------------|
-| Bedrock API | 모델·리전·추론 방식, 입력/출력·캐시 토큰 | 품질·지연과 실제 청구량 |
-| Bedrock + EKS SLM | 라우팅 비중, API 청구량, SLM 고정비 | 분류 오류·fallback·유휴 용량 |
-| EKS 자체 호스팅 | 노드시간, 처리 용량, 전체 인프라·운영 비용 | 피크 부하·가용성·확장 구간 |
-| IDE 구독 도구 | 실제 작업별 크레딧과 구독 총액 | 동일 작업 완료율과 기능 범위 |
+This pattern is chosen by large enterprises to meet different requirements across teams. Due to high architectural complexity, clear operational responsibility boundaries and a service catalog are essential.
 
-:::info 상세 비용 분석
-과금 단위, 가상의 손익분기 계산과 Cascade 고정비 경계는 [코딩 도구 비용 분석](../../reference-architecture/integrations/coding-tools-cost-analysis.md)을 참고하세요.
+**Reference**: For technical implementation of hybrid architecture, refer to [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md).
+
+---
+
+## Cost Simulation Summary
+
+Monthly request count alone does not determine the best option or its cost. Collect the following inputs for the same task set and service requirements.
+
+| Option | Inputs to collect | Conditions to verify |
+|--------|-------------------|----------------------|
+| Bedrock API | Model, region, inference mode, input/output/cache tokens | Quality, latency, and actual billing |
+| Bedrock + EKS SLM | Routing share, API billing, SLM fixed costs | Classification errors, fallback, and idle capacity |
+| EKS self-hosting | Node hours, capacity, total infrastructure/operating cost | Peak load, availability, and capacity ranges |
+| IDE subscription tools | Actual task credits and subscription spend | Matched task completion and feature scope |
+
+:::info Detailed Cost Analysis
+For billing units, hypothetical break-even arithmetic, and fixed-cost boundaries for cascade routing, see [Coding Tools Cost Analysis](../../reference-architecture/integrations/coding-tools-cost-analysis.md).
 :::
 
 ---
 
-## 고객 Discovery 체크리스트
+## Customer Discovery Checklist
 
-고객 미팅에서 최적 접근을 파악하기 위한 10가지 핵심 질문입니다.
+10 key questions to identify the optimal approach in customer meetings.
 
-1. **현재 AI/ML 워크로드를 운영하고 있습니까?** *→ 성숙도 레벨 판단*
-2. **월간 추론 요청 규모는 어느 정도입니까?** *→ 비용 최적화 경로*
-3. **Open Weight 모델 자체 호스팅이 필요합니까?** *→ EKS 필요성*
-4. **데이터 주권 또는 VPC 격리 요구사항이 있습니까?** *→ 자체 호스팅/하이브리드*
-5. **팀 내 Kubernetes 운영 경험이 있습니까?** *→ 운영 부담 평가*
-6. **ML 학습과 데이터 엔지니어링을 함께 수행합니까?** *→ SageMaker Unified Studio*
-7. **월 예산 범위는 어느 정도입니까?** *→ 비용 구조 매칭*
-8. **프로덕션 배포 목표 시점은 언제입니까?** *→ Time-to-Value 경로*
-9. **멀티클라우드 또는 온프레미스 하이브리드 요구가 있습니까?** *→ EKS Hybrid Nodes*
-10. **현재 사용 중인 AWS 서비스는 무엇입니까?** *→ 기존 투자 활용*
+1. **Are you currently operating AI/ML workloads?** *→ Determine maturity level*
+2. **What is your monthly inference request volume?** *→ Cost optimization path*
+3. **Do you need to self-host Open Weight models?** *→ EKS necessity*
+4. **Do you have data sovereignty or VPC isolation requirements?** *→ Self-hosting/hybrid*
+5. **Does your team have Kubernetes operations experience?** *→ Assess operational burden*
+6. **Do you perform ML training and data engineering together?** *→ SageMaker Unified Studio*
+7. **What is your monthly budget range?** *→ Cost structure matching*
+8. **When is your target production deployment date?** *→ Time-to-value path*
+9. **Do you have multi-cloud or on-premises hybrid requirements?** *→ EKS Hybrid Nodes*
+10. **What AWS services are you currently using?** *→ Leverage existing investments*
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
-- [Amazon SageMaker Unified Studio](https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/what-is-sagemaker-unified-studio.html) — 통합 AI 개발 환경
-- [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) — Bedrock 공식 문서
-- [Amazon EKS Best Practices](https://aws.github.io/aws-eks-best-practices/) — EKS 권장사항
-- [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/) — 아키텍처 프레임워크
+- [Amazon SageMaker Unified Studio](https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/what-is-sagemaker-unified-studio.html) — Integrated AI development environment
+- [Amazon Bedrock Documentation](https://docs.aws.amazon.com/bedrock/) — Bedrock official documentation
+- [Amazon EKS Best Practices](https://aws.github.io/aws-eks-best-practices/) — EKS recommendations
+- [AWS Well-Architected Framework](https://aws.amazon.com/architecture/well-architected/) — Architecture framework
 
-### 논문 / 기술 블로그
+### Papers / Technical Blogs
 
-- [Choosing the Right AI Platform](https://aws.amazon.com/blogs/machine-learning/) — 플랫폼 선택 가이드
-- [Cost Optimization for LLM Inference](https://huyenchip.com/2023/04/11/llm-engineering.html) — 비용 최적화 전략
-- [Hybrid AI Architecture Patterns](https://aws.amazon.com/architecture/) — 하이브리드 패턴
-- [Building Production ML Systems](https://developers.google.com/machine-learning/guides/rules-of-ml) — 프로덕션 ML 가이드
+- [Choosing the Right AI Platform](https://aws.amazon.com/blogs/machine-learning/) — Platform selection guide
+- [Cost Optimization for LLM Inference](https://huyenchip.com/2023/04/11/llm-engineering.html) — Cost optimization strategies
+- [Hybrid AI Architecture Patterns](https://aws.amazon.com/architecture/) — Hybrid patterns
+- [Building Production ML Systems](https://developers.google.com/machine-learning/guides/rules-of-ml) — Production ML guide
 
-### 관련 문서 (내부)
+### Related Documents (Internal)
 
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 6 레이어 + 3 플레인
-- [기술적 도전과제](../foundations/agentic-ai-challenges.md) — 5가지 핵심 과제
-- [AWS Native 플랫폼](./aws-native-agentic-platform.md) — 매니지드 서비스 상세
-- [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — 자체 호스팅 상세
-- [소버린 & 하이브리드 배포](./sovereign-hybrid-deployment.md) — 데이터 주권, SCP 리전 강제, EKS Hybrid Nodes
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — 6 layers + 3 planes
+- [Technical Challenges](../foundations/agentic-ai-challenges.md) — 5 core challenges
+- [AWS Native Platform](./aws-native-agentic-platform.md) — Managed service details
+- [EKS-based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosting details
+- [Sovereign & Hybrid Deployment](./sovereign-hybrid-deployment.md) — Data sovereignty, SCP region enforcement, EKS Hybrid Nodes

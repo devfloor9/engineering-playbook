@@ -1,11 +1,11 @@
 ---
 title: Agent Versioning & Change Management
-description: 엔터프라이즈 Agent의 프롬프트·모델·배포 전략·거버넌스를 통합하는 Change Management 체계
-created: "2026-04-18"
+description: Integrated change management system for enterprise agent prompts, models, deployment strategies, and governance
+created: "2026-04-19"
 last_update:
-  date: 2026-10-13
+  date: 2026-09-19
   author: devfloor9
-reading_time: 4
+reading_time: 9
 tags:
   - agent-versioning
   - prompt-registry
@@ -15,70 +15,70 @@ tags:
 sidebar_label: Agent Versioning
 ---
 
-## 왜 Agent Change Management가 필요한가
+## Why Agent Change Management is Needed
 
-### 전통적 소프트웨어 변경과의 차이
+### Differences from Traditional Software Changes
 
-전통적 소프트웨어에서 변경 관리는 코드, 설정, 인프라 변경을 대상으로 삼습니다. Agent 시스템은 여기에 **확률적 구성요소**가 추가됩니다:
+In traditional software, change management targets code, configuration, and infrastructure changes. Agent systems add **probabilistic components**:
 
-| 변경 유형 | 전통적 시스템 | Agentic 시스템 |
-|-----------|--------------|---------------|
-| **출력 결정성** | 동일 입력 → 동일 출력 | 동일 입력 → 확률 분포 |
-| **회귀 감지** | 단위 테스트, 통합 테스트 | 통계적 평가(BLEU, Exact Match, LLM-as-Judge) |
-| **롤백 기준** | 기능 장애, 성능 저하 | 정확도 하락, 환각 증가, latency P99 |
-| **변경 단위** | 코드 커밋, 바이너리 | 프롬프트 버전, 모델 교체, 파라미터 조정 |
+| Change Type | Traditional System | Agentic System |
+|-------------|-------------------|----------------|
+| **Output Determinism** | Same input → Same output | Same input → Probability distribution |
+| **Regression Detection** | Unit tests, integration tests | Statistical evaluation (BLEU, Exact Match, LLM-as-Judge) |
+| **Rollback Criteria** | Feature failures, performance degradation | Accuracy decline, increased hallucination, latency P99 |
+| **Change Unit** | Code commits, binaries | Prompt versions, model replacement, parameter tuning |
 
-### Prompt와 Model을 코드처럼 관리해야 하는 이유
+### Why Prompts and Models Should Be Managed Like Code
 
-1. **Prompt는 로직의 핵심**  
-   "당신은 금융 분석 전문가입니다" → "당신은 보수적 투자 자문가입니다"로 한 줄 변경하면 출력 패턴 전체가 변합니다.
+1. **Prompts Are Core Logic**  
+   Changing one line from "You are a financial analysis expert" → "You are a conservative investment advisor" transforms the entire output pattern.
 
-2. **모델 교체는 런타임 교체**  
-   GPT-4 → Claude Sonnet 4.6 전환 시 동일 프롬프트도 응답 스타일, 토큰 사용량, latency가 달라집니다.
+2. **Model Replacement Is Runtime Replacement**  
+   When switching GPT-4 → Claude 4.7 Sonnet, even the same prompt produces different response styles, token usage, and latency.
 
-3. **변경 추적 없이는 롤백 불가**  
-   "어제까지 잘 됐는데 오늘 이상해요"라는 신고를 받았을 때, 누가 어떤 프롬프트를 언제 바꿨는지 모르면 복구할 수 없습니다.
+3. **No Tracking Means No Rollback**  
+   When receiving reports like "it worked yesterday but is strange today," recovery is impossible without knowing who changed which prompt and when.
 
-4. **규제 요구사항**  
-   응답에 사용한 구성을 추적하려면 프롬프트·모델 버전과 변경 기록을 연결해 두는 방법이 유용합니다. 조직의 감사 정책에 이를 반영하되, 수집할 내용과 보존 기간은 관할 지역, 규제 대상 역할·시스템, 기록 유형에 적용되는 의무를 확인한 뒤 정합니다. [NIST AI RMF GOVERN 1.1](https://airc.nist.gov/airmf-resources/playbook/govern/)도 적용되는 요구사항을 파악하고 문서화하도록 안내합니다. 이 가이드가 모든 금융·의료·공공 시스템의 법적 의무나 보존 기간을 정하는 것은 아닙니다.
-
----
-
-## 3계층 Change Management 체계
-
-Agent 변경 관리는 세 가지 계층으로 구성됩니다:
-
-### 1. 프롬프트·모델 레지스트리
-
-프롬프트와 모델 버전을 코드처럼 관리하는 중앙 저장소. Langfuse, Bedrock Prompt Management, PromptLayer 등을 사용해 버전 관리, 라벨링, 변경 이력 추적을 수행합니다.
-
-**[프롬프트·모델 레지스트리 상세 보기 →](./prompt-model-registry.md)**
-
-### 2. 배포 전략
-
-Shadow Testing, Canary Rollout, A/B Testing, Blue-Green Deployment 등 점진적 배포 전략과 Feature Flag 기반 전개 방식.
-
-**[배포 전략 상세 보기 →](./deployment-strategies.md)**
-
-### 3. 거버넌스·자동화
-
-회귀 감지, 자동 롤백, 승인 워크플로, 감사 증빙, AIDLC 단계별 적용 방안.
-
-**[거버넌스·자동화 상세 보기 →](./governance-automation.md)**
+4. **Regulatory Requirements**  
+   Linking prompt and model versions to change records helps explain which configuration produced a response. Include this in the organization's audit-policy proposal, then determine what to collect and how long to retain it from the duties that apply to the jurisdiction, regulated role or system, and record type. [NIST AI RMF GOVERN 1.1](https://airc.nist.gov/airmf-resources/playbook/govern/) also recommends identifying and documenting applicable requirements. This guide does not set legal duties or retention periods for every financial, medical or public-sector system.
 
 ---
 
-## 핵심 원칙
+## 3-Tier Change Management System
 
-1. **모든 변경은 버전 관리**: 프롬프트, 모델, 파라미터 변경은 Git 커밋처럼 추적 가능해야 합니다.
-2. **점진적 배포**: 전체 트래픽을 한 번에 바꾸지 않습니다. Canary → 단계적 확대.
-3. **자동 회귀 감지**: Golden Dataset 평가 + 실시간 메트릭 모니터링으로 성능 저하를 즉시 탐지.
-4. **빠른 롤백**: 예를 들어 “1분 이내 복구”라는 목표를 정하고 실제로 시험합니다. 라벨·설정 변경부터 애플리케이션과 트래픽의 정상화까지 측정하며, 처리 중인 작업과 대체 프롬프트도 확인합니다. 1분은 이 문서의 예시 목표입니다.
-5. **감사 증빙**: 7년은 조직 보존 정책을 검토하기 위한 예시입니다. 공통 법정 기간으로 사용하지 않습니다. [감사 증빙 정책](./governance-automation.md#감사-증빙)에서 기록별 보존 근거, 최소 수집 범위, 접근·삭제 정책과 법적 보존 의무(legal hold)를 확정합니다.
+Agent change management consists of three layers:
+
+### 1. Prompt & Model Registry
+
+Central repository managing prompt and model versions like code. Uses Langfuse, Bedrock Prompt Management, PromptLayer, etc. for version control, labeling, and change history tracking.
+
+**[View Prompt & Model Registry Details →](./prompt-model-registry.md)**
+
+### 2. Deployment Strategies
+
+Progressive deployment strategies including Shadow Testing, Canary Rollout, A/B Testing, Blue-Green Deployment, and Feature Flag-based rollout approaches.
+
+**[View Deployment Strategies Details →](./deployment-strategies.md)**
+
+### 3. Governance & Automation
+
+Regression detection, automatic rollback, approval workflows, audit trails, and AIDLC stage-specific application approaches.
+
+**[View Governance & Automation Details →](./governance-automation.md)**
 
 ---
 
-## 관련 문서
+## Core Principles
+
+1. **All Changes Are Version Controlled**: Prompt, model, and parameter changes must be traceable like Git commits.
+2. **Progressive Deployment**: Don't change all traffic at once. Canary → gradual expansion.
+3. **Automatic Regression Detection**: Immediately detect performance degradation through Golden Dataset evaluation + real-time metric monitoring.
+4. **Fast Rollback**: Set a recovery objective, such as “within 1 minute,” and test it. Measure from the label or configuration change through application and traffic recovery, including requests in progress and fallback behavior. One minute is an example target in this guide.
+5. **Audit Evidence**: Use 7 years as an example to review when setting an organizational retention policy. Do not apply it as a universal statutory period. Define the authority for each record's retention, minimum collection, access, deletion and legal-hold requirements in the [audit-evidence policy](./governance-automation.md#audit-evidence).
+
+---
+
+## Related Documents
 
 import DocCardList from '@theme/DocCardList';
 
@@ -86,17 +86,17 @@ import DocCardList from '@theme/DocCardList';
 
 ---
 
-## AIDLC 연관 문서
+## AIDLC Related Documents
 
-- [Evaluation Framework](../../toolchain/evaluation-framework.md) — Golden Dataset 기반 회귀 감지
-- [Agent 모니터링](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md) — 실시간 observability
+- [Evaluation Framework](../../toolchain/evaluation-framework.md) — Golden Dataset-based regression detection
+- [Agent Monitoring](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md) — Real-time observability
 
 ---
 
-## 다음 단계
+## Next Steps
 
-변경 관리 프로세스를 수립했다면:
+Once you've established the change management process:
 
-1. **[프롬프트·모델 레지스트리](./prompt-model-registry.md)** — Langfuse/Bedrock PM 선택 및 구축
-2. **[배포 전략](./deployment-strategies.md)** — Canary/Shadow/A-B 중 적합한 전략 선택
-3. **[거버넌스·자동화](./governance-automation.md)** — 자동 회귀 감지 및 롤백 체계 구축
+1. **[Prompt & Model Registry](./prompt-model-registry.md)** — Select and build Langfuse/Bedrock PM
+2. **[Deployment Strategies](./deployment-strategies.md)** — Choose appropriate strategy among Canary/Shadow/A-B
+3. **[Governance & Automation](./governance-automation.md)** — Build automatic regression detection and rollback system

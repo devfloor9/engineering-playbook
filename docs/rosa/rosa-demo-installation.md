@@ -1,11 +1,11 @@
 ---
-title: ROSA 데모 설치 가이드
-description: ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, IAM 역할 구성, 오토스케일링 설정 및 관리자 접근 구성 가이드
+title: ROSA Demo Installation Guide
+description: ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, autoscaling setup, and admin access configuration guide
 created: "2025-02-05"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 5
+  author: devfloor9
+reading_time: 10
 tags:
   - rosa
   - openshift
@@ -15,23 +15,23 @@ tags:
   - autoscaling
   - iam
   - scope:ops
-sidebar_label: ROSA 데모 설치
+sidebar_label: ROSA Demo Installation
 category: rosa
 ---
 
-이 문서는 ROSA Classic 단일 AZ 데모의 과거 설정 기록을 설명합니다. 컨트롤 플레인과 노드가 고객 AWS 계정에 있으며, 워커는 최소·최대 모두 2대로 고정된 구성입니다. 원래 실행 로그나 당시 CLI 버전은 저장소에 없으므로 설치 성공과 관측값을 독립적으로 재검증하지 못했습니다. 이번 문서 검토에서도 클러스터를 생성하지 않았습니다.
+This document explains the historical configuration recorded for a ROSA Classic single-AZ demo. Its control plane and nodes run in the customer's AWS account, with both worker bounds fixed at two. The original execution logs and CLI version are not in the repository, so installation success and reported observations have not been independently reproduced. No cluster was created during this review.
 
 ---
 
-## 클러스터 생성
+## Cluster Creation
 
-### 생성 명령어
+### Creation Command
 
-아래는 원문에 남아 있는 과거 명령 기록입니다. `I:` 줄은 출력이며 실행할 명령이 아닙니다. 영어 원문에 기록된 `4.13.34`를 양쪽 언어에 동일하게 보존했습니다. 이전 한국어판의 `4.21.x`와 줄 끝 주석은 실제 패치 버전도 올바른 연속행도 아니었습니다. 이 기록은 현재 설치 권장 명령으로 사용하지 마세요.
+The block below preserves the historical command recorded in the original document. The `I:` lines are output, not commands. Both locales now retain the English original's `4.13.34`. The former Korean `4.21.x` value and comment after a continuation backslash were neither a concrete patch release nor valid continuation syntax. Do not use this transcript as a current installation recommendation.
 
-새 실습은 [계정 준비](https://docs.aws.amazon.com/rosa/latest/userguide/set-up.html)와 [Classic CLI 설치 절차](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html)를 먼저 완료합니다. ROSA 활성화·Marketplace 권한, AWS/ROSA/`oc` CLI 로그인과 버전, IAM 및 SCP 권한, EC2·VPC·EBS·ELB 할당량, 사용할 CIDR와 인터넷 접근을 확인합니다. Classic 계정 역할과 클러스터별 Operator 역할·OIDC 구성을 준비하고 각 ARN과 ID를 확인해야 합니다.
+For a new lab, complete [account setup](https://docs.aws.amazon.com/rosa/latest/userguide/set-up.html) and the [Classic CLI installation procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html). Check ROSA enablement and Marketplace permissions, AWS/ROSA/`oc` CLI login and versions, IAM and SCP permissions, EC2/VPC/EBS/ELB quotas, CIDRs, and internet access. Prepare Classic account roles and cluster-specific Operator roles and OIDC configuration, then verify their ARNs and IDs.
 
-대상은 운영과 분리된 실습 AWS 계정, `ap-northeast-2`, 새 Classic 클러스터입니다. 공개·단일 AZ 구성에는 가용성과 노출 범위의 제약이 있으며 AWS 자원 및 ROSA 요금이 발생합니다. 아래 확인 명령에서 나온 계정·사용자·지원 버전을 기록한 후 현재 설치 절차에서 하나의 구체적인 지원 패치 버전을 선택합니다.
+The intended target is a separate lab AWS account, region `ap-northeast-2`, and a new Classic cluster. The public single-AZ design has availability and exposure limits and incurs AWS resource and ROSA charges. Record the account, identity, and versions from these read-only checks, then select one concrete supported patch release in the current installation procedure.
 
 ```bash
 aws sts get-caller-identity
@@ -40,7 +40,7 @@ rosa version
 rosa list versions
 ```
 
-다음 과거 기록의 `optional`은 IMDSv1을 허용합니다. 새로운 IMDSv2 전용 구성은 워크로드 호환성을 확인한 후 `--ec2-metadata-http-tokens required`를 선택합니다. STS 사용 여부와 별도 설정입니다.
+The historical `optional` setting below allows IMDSv1. For a new IMDSv2-only configuration, confirm workload compatibility and choose `--ec2-metadata-http-tokens required`. This is separate from using STS.
 
 ```text
 I: Creating cluster 'rosa-demo-icn'
@@ -80,45 +80,45 @@ rosa create cluster --cluster-name rosa-demo-icn \
 
 ---
 
-## 클러스터 정보
+## Cluster Information
 
-아래 값은 원문에 기록된 구성입니다. 현재 실행 중인 클러스터를 조회한 결과가 아닙니다. `Customer Hosted`는 Classic의 계정 배치를 뜻하며, 고객이 컨트롤 플레인 운영을 맡는다는 의미가 아닙니다.
+These are the values recorded in the original document, not a query of a currently running cluster. `Customer Hosted` denotes the Classic account placement; it does not assign control-plane operations to the customer.
 
-| 항목 | 값 |
-|------|-----|
+| Item | Value |
+|------|-------|
 | **Name** | rosa-demo-icn |
 | **Control Plane** | Customer Hosted |
 | **Channel Group** | stable |
 | **Region** | ap-northeast-2 |
 | **Multi-AZ** | false |
 
-### 노드 구성
+### Node Configuration
 
-| 노드 타입 | 수량 |
-|----------|------|
+| Node Type | Count |
+|-----------|-------|
 | Control Plane | 3 |
 | Infra | 2 |
 | Compute | 2 |
 
-### 네트워크 구성
+### Network Configuration
 
-| 설정 | 값 |
-|------|-----|
+| Setting | Value |
+|---------|-------|
 | **Type** | OVNKubernetes |
 | **Service CIDR** | 172.30.0.0/16 |
 | **Machine CIDR** | 10.0.0.0/16 |
 | **Pod CIDR** | 10.128.0.0/14 |
 | **Host Prefix** | /23 |
 
-### IAM 역할 (STS)
+### IAM Roles (STS)
 
 ```yaml
 STS Role ARN: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-Installer-Role
 Support Role ARN: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-Support-Role
-인스턴스 IAM 역할:
+Instance IAM Roles:
   - Control Plane: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-ControlPlane-Role
   - Worker: arn:aws:iam::XXXXXXXXXXXX:role/ManagedOpenShift-Worker-Role
-Operator IAM 역할:
+Operator IAM Roles:
   - rosa-oidc-openshift-cluster-csi-drivers-ebs-cloud-credentials
   - rosa-oidc-openshift-cloud-network-config-controller-cloud-credentials
   - rosa-oidc-openshift-machine-api-aws-cloud-credentials
@@ -127,10 +127,10 @@ Operator IAM 역할:
   - rosa-oidc-openshift-ingress-operator-cloud-credentials
 ```
 
-### 추가 설정
+### Additional Settings
 
-| 설정 | 값 |
-|------|-----|
+| Setting | Value |
+|---------|-------|
 | **EC2 Metadata Http Tokens** | optional |
 | **Managed Policies** | No |
 | **Private** | No |
@@ -138,9 +138,9 @@ Operator IAM 역할:
 
 ---
 
-## 오토스케일러 구성
+## Autoscaler Configuration
 
-원문에 기록된 autoscaler 설정입니다. machine pool의 `min-replicas`와 `max-replicas`가 모두 2이므로 이 pool은 확장·축소하지 않습니다. 아래 180노드·CPU·메모리 값은 비자동 확장 노드도 포함하는 클러스터 전체 상한이며, 할당량이나 실제로 확보된 용량이 아닙니다. 메모리 단위는 GiB입니다. 실제 확장 실습에는 서로 다른 최소·최대값과 적절한 Pod requests·배치 조건을 정하고, Pending Pod에 대한 확장 및 안전한 축소를 별도로 시험해야 합니다.
+These autoscaler settings were recorded in the original document. With both `min-replicas` and `max-replicas` set to two, this machine pool cannot scale out or in. The 180-node, CPU, and memory values below are cluster-wide ceilings, including nodes outside autoscaled pools, not quotas or provisioned capacity. Memory is in GiB. A scaling exercise needs distinct pool bounds and suitable Pod requests and placement constraints, followed by separate scale-out and safe scale-in tests.
 
 ```yaml
 autoscaler:
@@ -160,48 +160,48 @@ autoscaler:
 
 ---
 
-## 관리자 사용자 설정
+## Admin User Setup
 
-원문에는 bootstrap `cluster-admin` 계정 생성 메시지가 기록되어 있습니다. 이 계정은 정상적인 조직 사용자 접근 설정을 대신하지 않습니다. 비밀번호를 명령행 인수나 문서에 남기지 말고, 확인한 클러스터 API 주소로 로그인할 때 프롬프트에서 입력합니다.
+The original note records creation of a bootstrap `cluster-admin` account. That account does not replace normal organizational identity setup. Keep its password out of command-line arguments and documentation; enter it at the prompt after checking the cluster API address.
 
 ```bash
 oc login 'https://REPLACE_WITH_CLUSTER_API:6443' --username cluster-admin
 ```
 
-별도 IdP 사용자와 필요한 관리자·복구 접근을 검증한 뒤 bootstrap 계정의 유지·제거를 결정합니다. 접근을 잃었을 때는 해당 클러스터의 계정 복구 절차를 사용하며, 대체 접근을 확인하기 전에 유일한 관리자 계정을 삭제하지 않습니다.
+Verify a separate IdP user, required administrator permissions, and recovery access before deciding whether to retain or retire the bootstrap account. Use the cluster's account-recovery procedure if access is lost. Do not remove the only administrator before replacement access is proven.
 
-## 설치 후 단계
+## Post-Installation Steps
 
-설치 완료 후 다음 단계를 진행하세요:
+After installation, proceed with the following steps:
 
-### 1. Identity Provider 설정
+### 1. Identity Provider Setup
 
-`--help`는 옵션을 보여줄 뿐 IdP를 구성하지 않습니다. [공식 IdP 설정 절차](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html)에 따라 지원되는 제공자를 선택하고, 클러스터의 callback URL과 client 설정을 맞춥니다. 다음은 대상 클러스터를 확인한 후 실행하는 대화형 설정입니다.
+`--help` only lists options; it does not configure an IdP. Follow the [official IdP procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html), select a supported provider, and configure its client and the cluster callback URL. After verifying the target cluster, use interactive setup:
 
 ```bash
 rosa create idp --cluster rosa-demo-icn --interactive
 rosa list idps --cluster rosa-demo-icn
 ```
 
-일반 사용자로 로그인하고 필요한 project 역할만 부여한 상태에서 허용·거부 작업을 시험합니다. 관리자는 필요한 경우에만 별도의 cluster 관리 역할을 받습니다. HCC 기업 SSO와 클러스터 IdP가 별도임을 확인합니다.
+Sign in as an ordinary user and test allowed and denied operations with only the required project roles. Grant cluster management roles separately when needed. Verify that HCC corporate SSO and the cluster IdP are separate integrations.
 
-### 2. 클러스터 상태 확인
+### 2. Cluster Status Check
 
 ```bash
 rosa describe cluster -c rosa-demo-icn
 ```
 
-계정·리전·클러스터 ID, 상태, 실제 패치 버전, machine pool과 API·console 주소를 확인합니다. `ready`는 설치 상태이며, 애플리케이션 가용성이나 접근 제어 검증 결과가 아닙니다.
+Check the account, region, cluster ID, state, actual patch release, machine pools, and API and console URLs. `ready` is an installation state, not proof of application availability or access-control effectiveness.
 
-### 3. 설치 로그 모니터링
+### 3. Installation Log Monitoring
 
 ```bash
 rosa logs install -c rosa-demo-icn --watch
 ```
 
-실습 기록에는 CLI 버전, 적용한 설정과 설치 로그를 비밀값을 제거해 보관합니다. 종료 시 데이터와 필요한 로그를 먼저 보존하고, [공식 삭제 절차](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html)에 따라 정확한 실습 클러스터를 삭제합니다. 클러스터 삭제 완료 전에는 정리에 필요한 IAM 역할·OIDC를 제거하지 않습니다. 다른 클러스터가 공유하는 계정 역할·정책·OIDC 구성은 남겨야 하며, 남은 과금 자원도 확인합니다.
+Retain sanitized CLI versions, applied settings, and installation logs with the lab record. At the end, preserve required data and logs and follow the [official deletion procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html) for the exact lab cluster. Wait for cluster deletion before removing IAM roles or OIDC resources needed for cleanup. Retain account roles, policies, or OIDC configuration shared by other clusters and check for remaining billable resources.
 
-## 아키텍처 다이어그램
+## Architecture Diagram
 
 ```mermaid
 graph TB
@@ -212,20 +212,20 @@ graph TB
                 M2[Master 2]
                 M3[Master 3]
             end
-            subgraph Infra["Infra 노드"]
+            subgraph Infra["Infra Nodes"]
                 I1[Infra 1]
                 I2[Infra 2]
             end
-            subgraph Workers["Worker 노드 (min = max = 2)"]
+            subgraph Workers["Worker Nodes (min = max = 2)"]
                 W1[Worker 1<br/>m5.xlarge]
                 W2[Worker 2<br/>m5.xlarge]
             end
         end
-        IAM[IAM 역할<br/>STS 기반]
+        IAM[IAM Roles<br/>STS-based]
         OIDC[OIDC Provider]
     end
 
-    subgraph Network["네트워크 CIDR"]
+    subgraph Network["Network CIDRs"]
         SC["Service: 172.30.0.0/16"]
         PC["Pod: 10.128.0.0/14"]
     end
@@ -238,6 +238,6 @@ graph TB
     style Workers fill:#e8f1fb,stroke:#4777a8,color:#172033
 ```
 
-:::tip 팁
-STS는 임시 AWS 자격증명을 사용하게 합니다. 역할 권한, IMDS 설정, 사용자 IdP와 RBAC, 로그 수집은 각각 검증해야 합니다.
+:::tip Tip
+STS provides temporary AWS credentials. Verify role permissions, IMDS settings, user identity and RBAC, and log collection separately.
 :::

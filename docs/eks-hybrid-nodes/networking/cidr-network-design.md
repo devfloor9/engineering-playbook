@@ -1,11 +1,11 @@
 ---
-title: CIDR 설계와 대역 최소화
-description: "EKS Hybrid Nodes의 IP 대역 설계 베스트 프랙티스 — 라우팅 요건 판정 절차, VPC 최소 사이징 산정 근거, 컨트롤 플레인 ENI 전용 서브넷 전략, Pod CIDR 선제 확보, 멀티 환경 주소 계획을 다룹니다."
+title: CIDR Design and Range Minimization
+description: "IP range design best practices for EKS Hybrid Nodes — routing requirement assessment procedure, VPC minimum sizing rationale, dedicated control plane ENI subnet strategy, proactive Pod CIDR allocation, and multi-environment address planning."
 created: "2026-08-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 21
 tags:
   - eks
   - hybrid-node
@@ -16,112 +16,112 @@ keywords:
   - RemotePodNetwork
   - clusterPoolIPv4PodCIDRList
   - VPC CIDR
-sidebar_label: CIDR 설계와 대역 최소화
+sidebar_label: CIDR Design and Range Minimization
 category: hybrid-multicloud
 ---
 
-## 개요
+## Overview
 
-사내 IPAM 대역이 부족한 조직에서 가장 먼저 부딪히는 질문은 "어느 대역을, 얼마나, 어디까지 라우팅 가능하게 확보해야 하는가"입니다. 본 문서는 라우팅 요건 판정 절차, Gateway 도입 시 축소되는 등록 범위, AWS VPC 최소 사이징의 산정 근거, 그리고 멀티 환경(dev/stg/prd) 주소 계획을 다룹니다.
+For organizations with scarce internal IPAM address space, the first question is "which ranges, how large, and to what extent must they be made routable". This document covers the routing requirement assessment procedure, the reduced registration scope when adopting the Gateway, the rationale behind AWS VPC minimum sizing, and multi-environment (dev/stg/prd) address planning.
 
-## 라우팅 요건 판정 절차
+## Routing Requirement Assessment Procedure
 
-1. **Node CIDR**: 항상 양방향 라우팅 필수. 협상 불가 요건입니다.
-2. **Pod CIDR**: [기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙)의 5개 항목 중 필요한 것이 있는지 판정합니다.
-   - 하나도 없으면 → CNI egress NAT로 충분 (Pod CIDR 라우팅·등록 불필요)
-   - 있으면 → BGP 풀 라우팅 또는 Hybrid Nodes Gateway 중 선택 ([아키텍처 결정 가이드](../overview-architecture/architecture-decision-guide.md))
+1. **Node CIDR**: Bidirectional routing is always required. This is a non-negotiable requirement.
+2. **Pod CIDR**: Determine whether any of the 5 items in the [feature table](../overview-architecture/hybrid-nodes-fundamentals.md#node-cidr-required-pod-cidr-optional-principle) apply.
+   - If none apply → CNI egress NAT is sufficient (no Pod CIDR routing or registration needed)
+   - If any apply → choose between BGP full routing and the Hybrid Nodes Gateway ([Architecture Decision Guide](../overview-architecture/architecture-decision-guide.md))
 
-## Gateway 도입 시 축소 범위
+## Reduced Scope When Adopting the Gateway
 
-Gateway를 도입하면 온프레미스 네트워크에 등록·라우팅해야 하는 대역이 다음과 같이 줄어듭니다.
+Adopting the Gateway reduces the ranges that must be registered and routed in the on-premises network as follows.
 
-| 항목 | Gateway 없음 (풀 라우팅) | Gateway 도입 |
+| Item | Without Gateway (full routing) | With Gateway |
 |------|--------------------------|--------------|
-| Node CIDR 온프렘 라우팅 | 필요 | **필요 (변화 없음)** |
-| Pod CIDR 온프렘 라우팅 | 필요 (BGP/정적) | **불필요** |
-| Pod CIDR VPC 라우트 테이블 | 수동 구성 | Gateway가 자동 관리 |
-| 온프렘 방화벽의 Pod CIDR 인지 | 필요 | 불필요 (UDP 8472만 추가) |
+| Node CIDR on-prem routing | Required | **Required (unchanged)** |
+| Pod CIDR on-prem routing | Required (BGP/static) | **Not required** |
+| Pod CIDR VPC route tables | Manual configuration | Managed automatically by the Gateway |
+| On-prem firewall awareness of the Pod CIDR | Required | Not required (only UDP 8472 added) |
 
-즉 온프레미스 네트워크팀과의 협의 대상 중 **Pod 언더레이 라우팅 부분**이 "Node CIDR 라우팅 + UDP 8472(VXLAN) 허용"으로 축소됩니다. 이는 Pod CIDR 자체의 온프레미스 라우팅·방화벽 등록이 사라진다는 의미이며, 하이브리드 노드 운영에 필요한 **나머지 네트워크 요건은 그대로 유지**됩니다. 즉 컨트롤 플레인↔kubelet(TCP 10250), 노드→EKS/S3/ECR/STS/SSM 엔드포인트(HTTPS 443), DNS, 자격 증명 트래픽 등 기본 방화벽 규칙은 Gateway 도입 여부와 무관하게 여전히 필요합니다(상세 포트는 [방화벽·DNS 사전 등록 가이드](./firewall-connectivity.md) 참조). Pod CIDR은 클러스터 내부(EKS 설정·Cilium·Gateway)에서만 관리됩니다.
+In other words, within the negotiation scope with the on-premises network team, the **Pod underlay routing portion** shrinks to "Node CIDR routing + allowing UDP 8472 (VXLAN)". This means on-premises routing and firewall registration of the Pod CIDR itself go away, while the **remaining network requirements for operating hybrid nodes stay in place**. That is, baseline firewall rules such as control plane ↔ kubelet (TCP 10250), node → EKS/S3/ECR/STS/SSM endpoints (HTTPS 443), DNS, and credential traffic are still required regardless of whether the Gateway is adopted (for the detailed port list, see the [Firewall/DNS Pre-Registration Guide](./firewall-connectivity.md)). The Pod CIDR is managed only inside the cluster (EKS configuration, Cilium, Gateway).
 
-## AWS VPC 최소 사이징
+## AWS VPC Minimum Sizing
 
-VPC CIDR은 생성 후 축소·변경이 불가능하므로(secondary CIDR 추가만 가능) 초기 산정이 중요합니다.
+A VPC CIDR cannot be shrunk or changed after creation (only secondary CIDRs can be added), so initial sizing matters.
 
-**이론적 최소**: EKS는 서로 다른 AZ의 서브넷 2개를 요구하고, 각 서브넷은 EKS용 가용 IP 6개 이상이면 됩니다. /28 서브넷(가용 11 IP) 2개 — 즉 VPC /27 수준이 이론적 하한입니다.
+**Theoretical minimum**: EKS requires two subnets in different AZs, and each subnet needs at least 6 available IPs for EKS. Two /28 subnets (11 usable IPs each) — roughly a /27 VPC — is the theoretical floor.
 
-**실무 권장(/25~/24)의 산정 근거**: 컨트롤 플레인 ENI만으로는 클러스터가 완성되지 않기 때문입니다.
+**Rationale for the practical recommendation (/25 to /24)**: control plane ENIs alone do not make a complete cluster.
 
-| 소비 항목 | 필요 IP (개략) | 비고 |
-|-----------|---------------|------|
-| 컨트롤 플레인 ENI 서브넷 ×2 | /28 ×2 (32) | 업그레이드 시 신규 ENI 생성·교체 여유 포함 |
-| Gateway 노드 ×2 (도입 시) | 2~4 | 서로 다른 AZ |
-| 클라우드 노드 (웹훅·CoreDNS·시스템 애드온) | 서브넷 규모에 따라 수 개~수십 개 | mixed mode 필수 구성분. VPC CNI는 Pod에도 VPC IP를 할당하므로 Pod 수만큼 소비 |
-| VPC 엔드포인트 (ECR·SSM·STS 등 PrivateLink) | 엔드포인트당 AZ별 1 | 인터넷 미경유 구성 시 |
-| Route 53 Resolver inbound endpoint | AZ별 1 | 온프렘→AWS DNS 조회 시 |
-| ALB 서브넷 | AZ별 최소 /27 (서브넷 블록) + 가용 IP 8개 이상 | ALB 노출 구성 시. ALB는 AZ별 서브넷에 최소 `/27` 비트마스크를 요구하며, 확장용으로 서브넷당 가용 IP 8개 이상을 추가로 확보해야 합니다 |
-| NLB 서브넷 | AZ별 서브넷 1개 + 여유 IP | NLB 노출 구성 시. ALB와 달리 명시적 `/27` 최소 요건은 없으나 노드·확장용 여유 IP 확보 권장 |
+| Consumer | Required IPs (approx.) | Notes |
+|-----------|---------------------|------|
+| Control plane ENI subnets ×2 | /28 ×2 (32) | Includes headroom for new ENI creation and replacement during upgrades |
+| Gateway nodes ×2 (if adopted) | 2–4 | In different AZs |
+| Cloud nodes (webhooks, CoreDNS, system add-ons) | A few to dozens depending on subnet size | Mandatory portion of mixed mode. VPC CNI assigns VPC IPs to Pods too, so consumption scales with Pod count |
+| VPC endpoints (PrivateLink for ECR, SSM, STS, etc.) | 1 per AZ per endpoint | When avoiding the internet path |
+| Route 53 Resolver inbound endpoint | 1 per AZ | For on-prem → AWS DNS resolution |
+| ALB subnets | At least a /27 (subnet block) + 8 free IPs per AZ | When exposing via ALB. Each AZ subnet must have at least a `/27` bitmask, plus at least 8 free IP addresses per subnet reserved for scale-out |
+| NLB subnets | One subnet per AZ + spare IPs | When exposing via NLB. Unlike ALB there is no explicit `/27` minimum, but keep spare IPs for nodes and scaling |
 
-클라우드 노드에서 VPC CNI가 Pod당 VPC IP를 소비한다는 점이 결정적입니다. 웹훅·CoreDNS·모니터링 에이전트 몇 개만 운영해도 노드당 수십 IP가 필요할 수 있습니다.
+The decisive factor is that on cloud nodes the VPC CNI consumes a VPC IP per Pod. Running just a few webhooks, CoreDNS, and monitoring agents can require dozens of IPs per node.
 
-**계산 예시 (AZ 2개, 서브넷 블록 단위)**: VPC 크기는 위 소비 항목을 실제 서브넷 블록으로 배치해 봐야 정해집니다. 아래 예시는 컨트롤 플레인 ENI, 클라우드 노드, 엔드포인트를 각각 전용 서브넷에 두는 토폴로지를 가정합니다. AWS는 서브넷마다 주소 5개를 예약하므로 /28의 가용 IP는 11개, /27은 27개입니다.
+**Worked example (two AZs, in subnet blocks)**: the VPC size is only settled once the consumers above are laid out as actual subnet blocks. The example below assumes a topology with dedicated subnets for the control plane ENIs, the cloud nodes, and the endpoints. AWS reserves five addresses in every subnet, so a /28 has 11 usable IPs and a /27 has 27.
 
-| 서브넷 (AZ별 1개 × 2) | AZ당 블록 | 2 AZ 주소 합계 | 수용 대상 |
+| Subnet (one per AZ × 2) | Block per AZ | Addresses across 2 AZs | Holds |
 |-----------|-----------|---------------|------|
-| 컨트롤 플레인 ENI 전용 | /28 (가용 11) | 32 | EKS가 생성하는 ENI와 업그레이드 시 교체 여유 |
-| 클라우드 노드 | /27 (가용 27) | 64 | 시스템 애드온 노드와 그 Pod(VPC CNI), Gateway 인스턴스(도입 시) |
-| VPC 엔드포인트·Resolver inbound | /28 (가용 11) | 32 | 인터페이스 엔드포인트와 Resolver inbound endpoint. 각각 AZ별 IP 1개를 쓰며, 합쳐서 AZ당 11개까지 수용 |
-| **소계 (ALB 미사용)** | | **128** | **/25에 빈 블록 없이 정확히 들어감** |
-| ALB 전용 (ALB 노출 시) | /27 (가용 27, 그중 8개 이상은 비어 있어야 함) | 64 | ALB 노드 |
-| **합계 (ALB 사용)** | | **192** | **/24 필요. 남는 /26 블록(주소 64개)이 성장 여유** |
+| Dedicated control plane ENI | /28 (11 usable) | 32 | ENIs created by EKS, plus replacement headroom during upgrades |
+| Cloud nodes | /27 (27 usable) | 64 | System add-on nodes and their Pods (VPC CNI), Gateway instances (if adopted) |
+| VPC endpoints and Resolver inbound | /28 (11 usable) | 32 | Interface endpoints and the Resolver inbound endpoint. Each uses one IP per AZ; together they fit up to 11 per AZ |
+| **Subtotal (no ALB)** | | **128** | **Fills a /25 exactly, with no free block** |
+| Dedicated ALB (when exposing via ALB) | /27 (27 usable, at least 8 of which must stay free) | 64 | ALB nodes |
+| **Total (with ALB)** | | **192** | **Requires a /24. The leftover /26 block (64 addresses) is the growth headroom** |
 
-이 계산에서 두 가지를 확인할 수 있습니다. 첫째, ALB를 쓰지 않는 구성에서 /25는 현재 소비량을 정확히 채우는 크기이며 성장 여유가 없습니다. 클라우드 노드와 그 Pod가 AZ당 가용 IP 27개를 넘게 쓸 것으로 예상되면 처음부터 /24로 잡아야 합니다. 둘째, ALB 전용 서브넷을 더하면 합계가 192개가 되는데, VPC CIDR 블록의 크기는 2의 거듭제곱이므로 /24(256개)가 필요합니다. ALB를 노드 서브넷에 함께 둘 수도 있지만, VPC CNI가 노드 서브넷의 IP를 계속 소비하므로 ALB의 "서브넷당 가용 IP 8개 이상" 요건을 유지하기 어렵습니다. NLB는 이 예시에 포함하지 않았습니다. NLB가 필요하면 /24 구성에서 남는 /26 블록에 NLB용 서브넷을 만들 수 있습니다.
+Two conclusions follow. First, without an ALB a /25 exactly matches current consumption and leaves no growth headroom. If the cloud nodes and their Pods are expected to need more than 27 usable IPs per AZ, start with a /24. Second, adding dedicated ALB subnets brings the total to 192, and because a VPC CIDR block size is a power of two, a /24 (256) is required. The ALB could share the node subnets instead, but the VPC CNI keeps consuming node-subnet IPs, which makes the ALB's "at least eight free IP addresses per subnet" requirement hard to maintain. NLB is not included in this example. If you need one, you can carve NLB subnets out of the leftover /26 block in the /24 layout.
 
-정리하면 환경(dev/stg/prd)별 VPC는 ALB를 쓰지 않고 클라우드 노드가 AZ당 /27 안에 들어가는 최소 구성에서 /25(여유 없음), ALB를 쓰거나 성장 여유가 필요하면 /24입니다. 반대로 클라우드 노드를 최소화하고 Gateway·엔드포인트도 쓰지 않는 극단적 구성이라면 /26까지 압축할 수 있으나 확장 시 secondary CIDR 관리 부담이 발생합니다.
+In short, per environment (dev/stg/prd) the VPC is a /25 (no headroom) for the minimal layout without an ALB where the cloud nodes fit within a /27 per AZ, and a /24 when you use an ALB or need growth headroom. Conversely, in an extreme configuration that minimizes cloud nodes and uses neither the Gateway nor endpoints, the VPC can be compressed to /26, but expansion then incurs the management burden of secondary CIDRs.
 
-## 컨트롤 플레인 ENI 전용 서브넷 전략
+## Dedicated Control Plane ENI Subnet Strategy
 
-EKS가 생성하는 컨트롤 플레인 ENI의 IP는 고정이 아니며, 클러스터 업그레이드 등 변경 시 기존 ENI가 삭제되고 새 ENI가 생성됩니다. 공식 문서는 이 특성에 대한 대응으로 **작은 전용 서브넷으로 IP 범위를 제약**하는 방법을 안내합니다.
+The IPs of the control plane ENIs that EKS creates are not fixed; during cluster upgrades and similar changes, existing ENIs are deleted and new ENIs are created. The official documentation addresses this characteristic by recommending **constraining the IP range with small dedicated subnets**.
 
 > "You can restrict the IP range for the Amazon EKS network interfaces by using constrained subnet sizes for the subnets you pass during cluster creation, which makes it easier to configure your on-premises firewall."
 > — [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html)
 
-클러스터 생성 시 컨트롤 플레인용으로 /28 전용 서브넷 2개만 전달하면, 방화벽에는 개별 IP가 아닌 **이 서브넷 CIDR 2개**를 등록하면 됩니다. ENI IP가 바뀌어도 방화벽 재신청이 불필요합니다. 현재 ENI IP 확인은 다음 명령을 사용합니다.
+If only two dedicated /28 subnets are passed for the control plane at cluster creation, the firewall registration can use **these two subnet CIDRs** instead of individual IPs. Even when ENI IPs change, no firewall re-application is needed. Use the following command to check the current ENI IPs.
 
 ```bash
 aws ec2 describe-network-interfaces \
   --query 'NetworkInterfaces[?(VpcId == `VPC_ID` && contains(Description, `Amazon EKS`))].PrivateIpAddress'
 ```
 
-## Pod CIDR 선제 확보
+## Proactive Pod CIDR Allocation
 
-`RemotePodNetwork`는 클러스터 생성 후에도 갱신할 수 있으나 전체 목록 교체 방식이며, 더 중요한 제약은 CNI 측에 있습니다. Cilium 공식 문서는 풀 확장과 기존 범위 변경을 명확히 구분합니다. 풀이 고갈되면 `clusterPoolIPv4PodCIDRList`에 **새 요소를 추가(append)해 확장**할 수 있습니다. 반면 **이미 할당된 기존 요소를 변경하거나 `clusterPoolIPv4MaskSize`(노드당 슬라이스 크기)를 바꾸는 것은 지원되지 않습니다**(기존 요소 변경은 예기치 않은 동작을 유발하며, mask size 변경은 불가). 즉 재할당은 막혀 있으나 추가는 가능하므로, 운영 중 풀 고갈 시의 1차 대응은 재설치가 아니라 신규 CIDR 요소 추가입니다. 다만 풀을 추가하면 EKS `RemotePodNetwork`, VPC·온프레미스 라우팅, 방화벽 등록을 **새 CIDR에 맞춰 함께 갱신**해야 하므로, 운영 중 변경 비용을 피하려면 노드당 Pod CIDR 슬라이스(`clusterPoolIPv4MaskSize`, 통상 /25~/26)에 목표 노드 수와 성장분을 곱해 **처음부터 넉넉한 Pod CIDR을 배정**하는 편이 바람직합니다. Pod CIDR은 Gateway 도입 시 온프레미스에 노출되지 않으므로, 크게 잡아도 사내 IPAM과 충돌하지 않습니다(겹침 금지 3원칙만 준수).
+`RemotePodNetwork` can be updated after cluster creation, but only by replacing the entire list, and the more important constraint lies on the CNI side. The Cilium documentation clearly distinguishes expanding the pool from changing existing ranges. When the pool is exhausted, you **expand it by appending a new element** to `clusterPoolIPv4PodCIDRList`. By contrast, **changing an already-allocated existing element, or changing `clusterPoolIPv4MaskSize` (the per-node slice size), is not supported** (changing existing elements causes unexpected behavior, and the mask size cannot be changed). In other words, re-allocation is blocked but appending is allowed, so the first response to pool exhaustion during operation is adding a new CIDR element, not a reinstall. However, adding a pool means you must **update the EKS `RemotePodNetwork`, VPC and on-premises routing, and firewall registrations together to match the new CIDR**, so to avoid this operational change cost it is preferable to multiply the per-node Pod CIDR slice (`clusterPoolIPv4MaskSize`, typically /25 to /26) by the target node count plus growth and **allocate a generous Pod CIDR from the start**. With the Gateway, the Pod CIDR is not exposed to on-premises, so allocating it large does not conflict with internal IPAM (as long as the three non-overlap rules are followed).
 
-## 멀티 환경(dev/stg/prd) 주소 계획
+## Multi-Environment (dev/stg/prd) Address Planning
 
-환경별 별도 계정 + VPC 1개 구조에서는 다음 원칙이 유효합니다.
+In a structure with separate accounts per environment plus one VPC each, the following principles hold.
 
-- **Node CIDR**: 환경별로 분리된 온프레미스 대역 할당 (라우팅·방화벽 신청 단위가 됨)
-- **Pod CIDR**: 환경별로 **고유한 범위를 기본값**으로 사용하는 것을 권장합니다 (예: dev `10.85.0.0/16`, stg `10.86.0.0/16`, prd `10.87.0.0/16`). AWS 하이브리드 노드 네트워킹 요건은 Pod CIDR이 서로, VPC CIDR, Service CIDR과 겹치지 않을 것을 전제하며, 장애 분석·감사 로그 판독성에서도 고유 범위가 유리합니다. Gateway는 클러스터당 1세트이므로 환경 간 Pod CIDR 재사용이 이론적으로 가능하다고 볼 수 있으나, 이는 각 환경의 라우팅이 완전히 격리되고 목적지 중첩이 발생하지 않음을 전제로 하는 **검증되지 않은 예외 구성**입니다. 재사용을 고려한다면 환경별 라우팅 격리와 목적지 중첩 가능성을 명시적으로 분석·검증한 뒤에만 적용해야 합니다.
-- **VPC CIDR**: 환경 간 겹침 금지 (TGW로 상호 연결될 가능성 대비)
-- Gateway는 클러스터당 1세트이므로 3개 환경 = Gateway EC2 6대(환경당 2대)의 고정 비용을 계획에 포함
+- **Node CIDR**: Assign separate on-premises ranges per environment (this becomes the unit of routing and firewall applications)
+- **Pod CIDR**: Use **unique ranges per environment as the default** (e.g., dev `10.85.0.0/16`, stg `10.86.0.0/16`, prd `10.87.0.0/16`). The AWS hybrid nodes networking requirements assume Pod CIDRs do not overlap with each other, the VPC CIDR, or the Service CIDR, and unique ranges are also preferable for incident analysis and audit log readability. Because the Gateway is one set per cluster, reuse of Pod CIDRs across environments may seem theoretically possible, but that is an **unvalidated exception configuration** that assumes each environment's routing is fully isolated and no destination overlap occurs. If you consider reuse, apply it only after explicitly analyzing and validating per-environment routing isolation and the possibility of destination overlap.
+- **VPC CIDR**: No overlap between environments (in case they are later interconnected via TGW)
+- The Gateway is one set per cluster, so 3 environments = 6 Gateway EC2 instances (2 per environment) as a fixed cost to include in the plan
 
-## 권장 사항 요약
+## Summary of Recommendations
 
-- Node CIDR 양방향 라우팅은 협상 불가 — 가장 먼저 온프레미스 대역을 확보하고 신청합니다.
-- 컨트롤 플레인 ENI는 /28 전용 서브넷 2개로 대역을 고정해 방화벽 신청을 서브넷 CIDR 단위로 수행합니다.
-- VPC는 환경별로 계산 예시처럼 서브넷 블록 단위로 산정합니다. ALB를 쓰지 않는 최소 구성은 /25(성장 여유 없음), ALB를 쓰거나 성장 여유가 필요하면 /24이며, 소비 항목 표와 계산 예시를 근거 자료로 첨부해 네트워크팀과 협의합니다.
-- Pod CIDR은 Cilium `clusterPoolIPv4PodCIDRList`의 기존 요소 변경·mask size 변경이 불가능한 제약을 감안해 처음부터 넉넉히 배정하고, 부족 시에는 새 CIDR 요소 추가로 확장합니다(라우팅·방화벽 동반 갱신 필요).
-- Service CIDR을 명시적으로 지정해 방화벽·라우팅 설계의 예측 가능성을 확보합니다.
+- Node CIDR bidirectional routing is non-negotiable — secure and request the on-premises range first.
+- Pin the control plane ENI range with two dedicated /28 subnets so firewall applications are done at subnet CIDR granularity.
+- Size the VPC per environment in subnet blocks, as in the worked example: a /25 (no growth headroom) for the minimal layout without an ALB, and a /24 when you use an ALB or need headroom. Attach the consumption table and the worked example as supporting evidence when agreeing the range with the network team.
+- Allocate the Pod CIDR generously from the start, accounting for Cilium's constraint that existing `clusterPoolIPv4PodCIDRList` elements and `clusterPoolIPv4MaskSize` cannot be changed; when more space is needed, expand by appending a new CIDR element (which also requires updating routing and firewall rules).
+- Specify the Service CIDR explicitly to keep firewall and routing design predictable.
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html) — CIDR 요건과 ENI 서브넷 제약 방법
-- [Networking concepts for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html) — fully routed 제약과 Pod CIDR 선택 사항
-- [Amazon EKS Hybrid Nodes gateway](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html) — Gateway 도입 시 라우팅 요건 변화
+### Official Documentation
+- [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html) — CIDR requirements and the ENI subnet constraint method
+- [Networking concepts for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-concepts-networking.html) — Fully routed constraint and the optional nature of the Pod CIDR
+- [Amazon EKS Hybrid Nodes gateway](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html) — Routing requirement changes when adopting the Gateway
 
-### 관련 문서 (내부)
-- [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md) — Pod CIDR 라우팅 필요 기능표, CGNAT 대역 지원
-- [아키텍처 결정 가이드](../overview-architecture/architecture-decision-guide.md) — 풀 라우팅 vs Gateway 선택 기준
-- [방화벽·DNS 사전 등록 가이드](./firewall-connectivity.md) — 확보한 대역의 방화벽 신청 절차
+### Related Documents (Internal)
+- [EKS Hybrid Nodes Concepts and Fundamentals](../overview-architecture/hybrid-nodes-fundamentals.md) — Feature table for Pod CIDR routing needs, CGNAT range support
+- [Architecture Decision Guide](../overview-architecture/architecture-decision-guide.md) — Full routing vs Gateway selection criteria
+- [Firewall/DNS Pre-Registration Guide](./firewall-connectivity.md) — Firewall application procedure for the secured ranges

@@ -1,6 +1,6 @@
 ---
 title: Shinkong Mitsukoshi Luxury Retail PoC
-description: 新光三越 대만 럭셔리 백화점·면세 — VIP 멤버십 + 외국인 관광객 + 입점 브랜드 700+를 Ontology + Agentic AI로
+description: Shinkong Mitsukoshi (新光三越) Taiwan luxury department store and duty-free — VIP membership, foreign tourists, and 700+ tenant brands unified through Ontology + Agentic AI
 created: "2026-05-14"
 last_update:
   date: "2026-07-02"
@@ -11,95 +11,95 @@ tags:
 sidebar_label: Overview
 ---
 
-> **"VIP·외국인 회원·럭셔리 입점 브랜드·면세·매장 데이터를 외부 트렌드·환율·관광 시그널과 묶어 온톨로지 + Agentic AI로 풀어내는 백화점 혁신 PoC"**
+> **"A department store innovation PoC that ties together VIP members, foreign members, luxury tenant brands, duty-free, and store data with external trend, FX, and tourism signals through Ontology + Agentic AI"**
 
-新光三越 19개 점포의 VIP 멤버십, 입점 럭셔리 브랜드 700+, 외국인 관광객(일본·홍콩·동남아) 행동, 면세점 데이터를 단일 KG로 통합. 공개 정보만 활용.
-
----
-
-## 🚀 인터랙티브 데모
-
-> <strong><a href="/engineering-playbook/demo/mitsukoshi/" target="_blank" rel="noopener noreferrer">👉 데모 페이지 열기 (새 창)</a></strong>
-
-11 시나리오를 사이드바에서 전환하며 페르소나 스위처·외국인 관광객 분석·럭셔리 SOV·VIP 컨시어지 등 핵심 UI를 직접 체험.
+VIP membership across 19 Shinkong Mitsukoshi stores, 700+ luxury tenant brands, foreign tourist behavior (Japan, Hong Kong, Southeast Asia), and duty-free data integrated into a single KG. Uses public information only.
 
 ---
 
-## 1. PoC 한 줄 요약
+## 🚀 Interactive Demo
 
-| 축 | 내용 |
+> <strong><a href="/engineering-playbook/demo/mitsukoshi/" target="_blank" rel="noopener noreferrer">👉 Open demo page (new window)</a></strong>
+
+Switch between 11 scenarios from the sidebar to experience the persona switcher, foreign tourist analysis, luxury SOV, and VIP concierge UIs hands-on.
+
+---
+
+## 1. PoC One-Line Summary
+
+| Axis | Description |
 |---|---|
-| **누구를 위해** | 마케팅·고객인사이트·디지털·VIP멤버십·MD 5 부서 |
-| **무엇을** | VIP 회원·외국인·입점 700+ 브랜드·면세·매장 + 외부 4종 시그널 |
-| **어떻게** | Ontology(KG 25 클래스) + Agentic AI(Bedrock + AgentCore) |
-| **무엇으로 보여주나** | 11 시나리오 동작 시연 + 5 부서 페르소나 스위처 |
-| **차별점** | **외국인 면세 추천 + 럭셔리 SOV + VIP 컨시어지** 3종 특화 |
+| **Target audience** | 5 departments: Marketing, Customer Insights, Digital, VIP Membership, MD |
+| **Subject** | VIP members, foreigners, 700+ tenant brands, duty-free, stores + 4 external signal types |
+| **Method** | Ontology (KG with 25 classes) + Agentic AI (Bedrock + AgentCore) |
+| **Demonstration** | Live execution of 11 scenarios + 5-department persona switcher |
+| **Differentiation** | **Foreign duty-free recommendation + luxury SOV + VIP concierge** — 3 specialized capabilities |
 
 ---
 
-## 2. 사업 구조 (공개 정보)
+## 2. Business Structure (Public Information)
 
-| 축 | 내용 |
+| Axis | Description |
 |---|---|
-| 점포 | 19개 (台北信義/A11/A8/A9/A4 + 台中/台南/高雄/桃園/嘉義) |
-| 입점 브랜드 | 700+ (LV·Hermes·Chanel·Gucci·Dior·Prada·Tiffany 등) |
-| 멤버십 | skm-member (VIP/Black/Platinum/Gold/일반) |
-| 면세 | 외국인 TaxRefund + 면세점 운영 |
-| 핵심 시즌 | 週年慶 (가을 대규모 세일), 春節, SS/FW |
+| Stores | 19 (Taipei Xinyi/A11/A8/A9/A4 + Taichung/Tainan/Kaohsiung/Taoyuan/Chiayi) |
+| Tenant brands | 700+ (LV, Hermes, Chanel, Gucci, Dior, Prada, Tiffany, etc.) |
+| Membership | skm-member (VIP/Black/Platinum/Gold/Standard) |
+| Duty-free | Foreigner TaxRefund + duty-free shop operations |
+| Key seasons | Anniversary Sale (週年慶, major fall sale), Chinese New Year (春節), SS/FW |
 
 ---
 
-## 3. 5 부서 페르소나
+## 3. 5-Department Personas
 
-| 코드 | 부서 | KPI |
+| Code | Department | KPI |
 |---|---|---|
-| **P1** | 마케팅·캠페인 | 週年慶 ROAS · 외국인 유치 · 신상 런칭 |
-| **P2** | 고객 인사이트 | VIP LTV · 외국인 비중 · SOV |
-| **P3** | 데이터·디지털 | 모델 정확도 · 면세 데이터 품질 · 모바일 SLA |
-| **P4** | VIP·멤버십 | 등급 전환 · 라운지 활용 · 컨시어지 NPS |
-| **P5** | MD·매장 운영 | 매장·층별 매출 · 입점 브랜드 회전 · 매대 점유 |
+| **P1** | Marketing & Campaigns | Anniversary Sale ROAS · Foreigner acquisition · New product launches |
+| **P2** | Customer Insights | VIP LTV · Foreigner share · SOV |
+| **P3** | Data & Digital | Model accuracy · Duty-free data quality · Mobile SLA |
+| **P4** | VIP & Membership | Tier upgrades · Lounge utilization · Concierge NPS |
+| **P5** | MD & Store Operations | Store and floor revenue · Tenant brand turnover · Counter occupancy |
 
 ---
 
-## 4. 11 시나리오 (한 줄 요약)
+## 4. 11 Scenarios (One-Line Summary)
 
-| # | 시나리오 | 데이터 믹스 |
+| # | Scenario | Data Mix |
 |---|---|---|
-| **S1** | 자연어 시맨틱 검색 | 입점 브랜드 SKU + 회원 + 외부 후기 (소홍서·Dcard) |
-| **S2** | 5 부서 페르소나 챗봇 | 모든 도구 자율 호출 |
-| **S3** | 카테고리·BU 인사이트 카드 | 자사 GMV + 환율 + 관광 + 경쟁사 |
-| **S4** | 라이프스타일 페르소나 매칭 + 클러스터링 | RFM + 럭셔리 친화도 + 소셜 |
-| **S5** | 옴니채널 캠페인 ROAS 시뮬 | 週年慶·DM·SNS·인플루언서 채널 믹스 |
-| **S6** | 외부 시그널 융합 (4종) | 자사 GMV × 외부 4종 (관광지표 포함) |
-| **S7** | 옴니채널 회원 여정 | 자사몰→매장→면세→재방문 |
-| **S8** | 마케팅 동의·PII 가드레일 | Bedrock Guardrails + 면세 규정 |
-| **S9-M** ⭐ | **외국인 관광객 행동 분석 + 면세 추천** | 여권·국적·환율·관광 |
-| **S10-M** ⭐ | **럭셔리 브랜드 SOV + 매대 점유** | 입점 브랜드 700+ × 점포 × 시즌 |
-| **S11-M** ⭐ | **VIP 등급 라운지 컨시어지** | Black/Platinum/Gold 추천·프리세일 |
+| **S1** | Natural-language semantic search | Tenant brand SKU + members + external reviews (Xiaohongshu, Dcard) |
+| **S2** | 5-department persona chatbot | Autonomous invocation of all tools |
+| **S3** | Category / BU insight cards | First-party GMV + FX + tourism + competitors |
+| **S4** | Lifestyle persona matching + clustering | RFM + luxury affinity + social |
+| **S5** | Omnichannel campaign ROAS simulator | Anniversary Sale, DM, SNS, influencer channel mix |
+| **S6** | External signal fusion (4 types) | First-party GMV × 4 external signals (including tourism metrics) |
+| **S7** | Omnichannel member journey | First-party online → store → duty-free → repeat visit |
+| **S8** | Marketing consent / PII guardrails | Bedrock Guardrails + duty-free regulations |
+| **S9-M** ⭐ | **Foreign tourist behavior analysis + duty-free recommendation** | Passport, nationality, FX, tourism |
+| **S10-M** ⭐ | **Luxury brand SOV + counter occupancy** | 700+ tenant brands × stores × seasons |
+| **S11-M** ⭐ | **VIP tier lounge concierge** | Black/Platinum/Gold recommendations and pre-sale |
 
 ---
 
-## 5. AWS Stack (공통)
+## 5. AWS Stack (Common)
 
-LG H&H 동일 + 다국어 (번체중·일본어·영어), 환율 라이브 추가, ~550K edges (입점 브랜드 카탈로그 풍부).
+Same as LG H&H + multilingual (Traditional Chinese, Japanese, English), live FX added, ~550K edges (enriched tenant brand catalog).
 
 ---
 
-## 6. Top-5 시연 흐름 (30분)
+## 6. Top-5 Demo Flow (30 minutes)
 
-| 순서 | 시나리오 | 시연 포인트 | 시간 |
+| Order | Scenario | Demo Highlight | Time |
 |---|---|---|---|
-| 1 | **S1** 시맨틱 검색 | "30대 여성 + LV·Chanel + 週年慶 50% 할인" | 4분 |
-| 2 | **S9-M** ⭐ 외국인 면세 | "일본인 관광객 30대 → 면세 추천 + 환율 결합" | 5분 |
-| 3 | **S10-M** ⭐ 럭셔리 SOV | "Hermes vs Chanel 점포별 매대 점유" | 4분 |
-| 4 | **S11-M** ⭐ VIP 컨시어지 | "Black 등급 회원 프리세일 추천" | 5분 |
-| 5 | **S2** 페르소나 챗봇 | "週年慶 ROAS" P1 vs P5 비교 | 4분 |
+| 1 | **S1** Semantic search | "Female in her 30s + LV/Chanel + Anniversary Sale 50% off" | 4 min |
+| 2 | **S9-M** ⭐ Foreigner duty-free | "Japanese tourist in her 30s → duty-free recommendation + FX-aware" | 5 min |
+| 3 | **S10-M** ⭐ Luxury SOV | "Hermes vs Chanel counter occupancy by store" | 4 min |
+| 4 | **S11-M** ⭐ VIP concierge | "Pre-sale recommendation for a Black-tier member" | 5 min |
+| 5 | **S2** Persona chatbot | "Anniversary Sale ROAS" P1 vs P5 comparison | 4 min |
 
-상세: [99. Demo Storytelling](./99-demo-storytelling.md)
+Details: [99. Demo Storytelling](./99-demo-storytelling.md)
 
 ---
 
-## 7. 산출물 인덱스
+## 7. Deliverable Index
 
 - [01. Personas](./01-personas.md) · [02. Ontology](./02-ontology.md) · [03. Scenarios](./03-scenarios.md) · [04. Data Sources](./04-data-sources.md) · [05. Architecture](./05-architecture.md)
 - [06. Design Specs](./06-design-spec/S1-semantic-search.md) (11)

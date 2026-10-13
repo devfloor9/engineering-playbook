@@ -1,11 +1,11 @@
 ---
-title: 리소스 & 비용 최적화
-description: Karpenter 오토스케일링, Pod 리소스 최적화, EKS 비용 관리 전략
+title: Resource & Cost Optimization
+description: Karpenter autoscaling, Pod resource optimization, and EKS cost management strategies
 created: "2026-03-24"
 last_update:
   date: "2026-07-19"
   author: devfloor9
-reading_time: 2
+reading_time: 3
 tags:
   - eks
   - karpenter
@@ -13,13 +13,15 @@ tags:
   - resource-optimization
   - finops
   - scope:nav
-sidebar_label: 리소스 & 비용
+sidebar_label: Resource & Cost
 sidebar_position: 4
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-EKS 클러스터의 리소스 효율화와 비용 절감을 위한 실전 전략을 다룹니다. Karpenter 기반 지능형 노드 프로비저닝, Pod 리소스 Rightsizing, FinOps 기반 비용 관리를 포함합니다.
+# Resource & Cost Optimization
+
+Practical strategies for resource efficiency and cost reduction in EKS clusters. Covers Karpenter-based intelligent node provisioning, Pod resource rightsizing, and FinOps-based cost management.
 
 ---
 
@@ -27,29 +29,29 @@ EKS 클러스터의 리소스 효율화와 비용 절감을 위한 실전 전략
   <DocCard
     to="/docs/eks-best-practices/resource-cost/karpenter-autoscaling"
     icon="⚡"
-    title="Karpenter 오토스케일링"
-    description="Karpenter 기반 지능형 노드 프로비저닝, Spot 인스턴스 활용, 비용 최적화 전략"
+    title="Karpenter Autoscaling"
+    description="Intelligent node provisioning with Karpenter, Spot instance utilization, and cost optimization strategies"
     color="#ff6b35"
   />
   <DocCard
     to="/docs/eks-best-practices/resource-cost/kubernetes-dra"
     icon="🎛️"
     title="Kubernetes DRA"
-    description="동적 리소스 할당 범용 프레임워크 — DeviceClass·ResourceClaim 핵심 모델, GPU 외 리소스 유형(NIC·인터커넥트·FPGA), 도입 판단 기준"
+    description="Dynamic Resource Allocation as a general-purpose framework — DeviceClass/ResourceClaim core model, non-GPU resource types (NIC, interconnect, FPGA), adoption criteria"
     color="#4a90e2"
   />
   <DocCard
     to="/docs/eks-best-practices/resource-cost/eks-resource-optimization"
     icon="📊"
-    title="EKS 리소스 최적화"
-    description="Pod 리소스 Rightsizing, Request/Limit 튜닝, VPA/HPA 활용 전략"
+    title="EKS Resource Optimization"
+    description="Pod resource rightsizing, Request/Limit tuning, and VPA/HPA utilization strategies"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/resource-cost/cost-management"
     icon="💰"
-    title="대규모 EKS 비용 관리"
-    description="FinOps 기반 비용 구조 분석, Kubecost 활용, 30-90% 비용 절감 전략"
+    title="Large-Scale EKS Cost Management"
+    description="FinOps-based cost structure analysis, Kubecost usage, and 30-90% cost reduction strategies"
     color="#34a853"
   />
 </DocCardGrid>

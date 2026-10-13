@@ -1,17 +1,17 @@
 ---
-title: Inference Gateway 배포 가이드
-description: kgateway 기반 Inference Gateway의 단계별 배포 가이드 (기본/고급/트러블슈팅)
+title: Inference Gateway Deployment Guide
+description: Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
-  author: YoungJoon Jeong
-reading_time: 9
+  date: "2026-09-22"
+  author: devfloor9
+reading_time: 10
 tags:
   - inference-gateway
   - kgateway
   - deployment
   - scope:impl
-sidebar_label: Inference Gateway 배포
+sidebar_label: Inference Gateway Deployment
 sidebar_position: 4
 ---
 
@@ -34,151 +34,141 @@ export const InferencePipelineDiagram = () => {
       ref={iframeRef}
       src={`/engineering-playbook/agentic-platform-architecture.html?theme=${colorMode}`}
       style={{width: '100%', height: '1600px', border: 'none', borderRadius: '12px'}}
-      title="프로덕션 추론 파이프라인 아키텍처"
+      title="Production Inference Pipeline Architecture"
       loading="lazy"
     />
   );
 };
 
-이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 라우팅 전략(Cascade, Semantic Router, 2-Tier 구조)은 [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md)을 참조하세요.
+This document covers **production deployment procedures** for kgateway + Bifrost-based inference gateway. For architecture concepts and routing strategies (Cascade, Semantic Router, 2-Tier structure), refer to [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md).
 
-:::info 가이드 구성
-이 가이드는 3개 문서로 구성됩니다. 순차적으로 학습하거나, 필요한 섹션만 선택하여 참조하세요.
+:::info Guide Structure
+This guide consists of 3 documents. Learn sequentially or reference specific sections as needed.
 :::
 
-## 프로덕션 추론 파이프라인 참조 아키텍처
+## Production Inference Pipeline Reference Architecture
 
-EKS 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다. CloudFront(WAF/Shield) → NLB → kgateway가 진입 트래픽을 받고, 이후 두 가지 라우팅 경로를 **목적에 따라 선택**해 구성합니다.
-
-- **L1 — across-model 프록시 / 거버넌스**: Bifrost(또는 LLM Classifier)로 외부/내부 모델 추상화, cascade, 비용 추적, semantic cache. "어느 *모델*인가"를 결정합니다. → [기본 배포](./basic-deployment.md) · [고급 기능](./advanced-features.md)
-- **L2 — within-model KV-aware 라우팅**: Gateway API Inference Extension(InferencePool + EPP)으로 vLLM 메트릭(KV cache·부하) 기반 Pod 선택. "어느 *Pod*인가"를 결정합니다. → [고급 기능: Inference Extension](./advanced-features.md#inference-extension)
-
-두 레이어는 배타적이지 않으며 함께 쓸 수 있습니다(L1 → L2 → vLLM). 레이어 정의와 선택 기준은 [라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)을 참조하세요.
-
-:::note 참조 아키텍처 다이어그램 안내
-아래 다이어그램은 L1(Bifrost)·L2(llm-d EPP)·관측성을 모두 포함한 **목표(reference) 아키텍처**입니다. 실제 배포는 위 두 경로를 선택·조합하며, KV-aware(L2)가 필요한 경우 [Inference Extension 섹션](./advanced-features.md#inference-extension)의 InferencePool + EPP 절차를 따릅니다.
-:::
+Complete request flow of production inference pipeline based on EKS Auto Mode. CloudFront (WAF/Shield) → NLB → kgateway ExtProc analyzes prompts to determine LLM routing, passes through Bifrost governance layer and llm-d KV Cache-aware routing to deliver requests to optimal models.
 
 <InferencePipelineDiagram />
 
 ---
 
-## 배포 단계 개요
+## Deployment Stages Overview
 
-### [기본 배포](./basic-deployment.md) (필수)
+### [Basic Deployment](./basic-deployment.md) (Required)
 
-단일 NLB 엔드포인트 뒤에서 kgateway + HTTPRoute + Bifrost를 구성하여 기본 추론 파이프라인을 완성합니다.
+Configure kgateway + HTTPRoute + Bifrost behind a single NLB endpoint to complete basic inference pipeline.
 
-**포함 내용:**
-- kgateway 설치 및 Gateway API CRD 구성
-- GatewayClass, Gateway, HTTPRoute 리소스 정의
-- ReferenceGrant를 통한 크로스 네임스페이스 접근
-- Bifrost Gateway Mode 구성 (config.json + PVC)
-- provider/model 포맷 및 IDE 호환성 (Aider, Cline, Continue.dev)
-- SQLite 초기화 절차 (config.json 변경 시)
+**Includes:**
+- kgateway installation and Gateway API CRD configuration
+- GatewayClass, Gateway, HTTPRoute resource definitions
+- Cross-namespace access via ReferenceGrant
+- Bifrost Gateway Mode configuration (config.json + PVC)
+- provider/model format and IDE compatibility (Aider, Cline, Continue.dev)
+- SQLite initialization procedure (when config.json changes)
 
-**학습 시간:** 30분 | **배포 시간:** 45분
-
----
-
-### [고급 기능](./advanced-features.md) (선택)
-
-프롬프트 기반 자동 라우팅, 프로덕션 보안 레이어, Semantic Caching을 추가하여 비용 최적화와 보안을 강화합니다.
-
-**포함 내용:**
-- LLM Classifier 배포 (프롬프트 기반 SLM/LLM 자동 분기)
-- **Gateway API Inference Extension (InferencePool + EPP)** — KV-aware(L2) 라우팅
-- CloudFront + WAF/Shield 보안 레이어
-- Semantic Caching 구현 옵션 (GPTCache, RedisVL, Portkey, Helicone)
-
-**학습 시간:** 45분 | **배포 시간:** 60-90분
+**Learning Time:** 30 min | **Deployment Time:** 45 min
 
 ---
 
-### [트러블슈팅](./troubleshooting-guide.md) (참조)
+### [Advanced Features](./advanced-features.md) (Optional)
 
-배포 및 운영 중 발생하는 일반적인 문제와 해결 방법을 다룹니다.
+Add prompt-based automatic routing, production security layer, and Semantic Caching to enhance cost optimization and security.
 
-**포함 내용:**
-- 404 Not Found (HTTPRoute/Gateway 설정 오류)
-- Bifrost provider/model 에러
-- Bifrost 모델명 정규화 문제
+**Includes:**
+- LLM Classifier deployment (prompt-based SLM/LLM automatic branching)
+- CloudFront + WAF/Shield security layer
+- Semantic Caching implementation options (GPTCache, RedisVL, Portkey, Helicone)
+
+**Learning Time:** 45 min | **Deployment Time:** 60-90 min
+
+---
+
+### [Troubleshooting](./troubleshooting-guide.md) (Reference)
+
+Common issues and solutions during deployment and operations.
+
+**Includes:**
+- 404 Not Found (HTTPRoute/Gateway configuration errors)
+- Bifrost provider/model errors
+- Bifrost model name normalization issues
 - Langfuse Sub-path 404
-- OTel Trace 미도착
+- OTel Trace not arriving
 
-**참조 빈도:** 배포 시 또는 문제 발생 시
+**Reference Frequency:** During deployment or when issues occur
 
 ---
 
-## 학습 경로
+## Learning Paths
 
-### 빠른 시작 (개발/테스트 환경)
+### Quick Start (Development/Test Environment)
 
 ```mermaid
 graph LR
-    A[기본 배포] --> B[트러블슈팅]
+    A[Basic Deployment] --> B[Troubleshooting]
     style A fill:#326ce5,stroke:#333,color:#fff
     style B fill:#ffd93d,stroke:#333,color:#000
 ```
 
-1. [기본 배포](./basic-deployment.md)로 kgateway + Bifrost 구성
-2. 문제 발생 시 [트러블슈팅](./troubleshooting-guide.md) 참조
+1. Configure kgateway + Bifrost with [Basic Deployment](./basic-deployment.md)
+2. Refer to [Troubleshooting](./troubleshooting-guide.md) when issues occur
 
-**소요 시간:** 1-2시간
+**Time Required:** 1-2 hours
 
 ---
 
-### 프로덕션 구성 (완전한 파이프라인)
+### Production Configuration (Complete Pipeline)
 
 ```mermaid
 graph LR
-    A[기본 배포] --> B[고급 기능]
-    B --> C[트러블슈팅]
+    A[Basic Deployment] --> B[Advanced Features]
+    B --> C[Troubleshooting]
     style A fill:#326ce5,stroke:#333,color:#fff
     style B fill:#76b900,stroke:#333,color:#000
     style C fill:#ffd93d,stroke:#333,color:#000
 ```
 
-1. [기본 배포](./basic-deployment.md)로 기본 인프라 구성
-2. [고급 기능](./advanced-features.md)에서 LLM Classifier + CloudFront/WAF + Semantic Caching 추가
-3. 운영 중 [트러블슈팅](./troubleshooting-guide.md) 참조
+1. Configure basic infrastructure with [Basic Deployment](./basic-deployment.md)
+2. Add LLM Classifier + CloudFront/WAF + Semantic Caching in [Advanced Features](./advanced-features.md)
+3. Refer to [Troubleshooting](./troubleshooting-guide.md) during operations
 
-**소요 시간:** 3-4시간
-
----
-
-## 사전 준비 사항
-
-모든 배포 단계를 진행하기 전에 다음을 확인하세요.
-
-### 필수 요구 사항
-
-- [x] EKS 클러스터 (K8s 1.33+ 권장. DRA(Dynamic Resource Allocation)는 K8s 1.34에서 GA)
-- [x] kubectl 설치 및 클러스터 접근 권한
-- [x] Helm 3.x 설치
-- [x] vLLM 또는 llm-d 기반 모델 서빙 Pod 배포 완료
-
-### 권장 사항
-
-- AWS Load Balancer Controller 설치 (NLB 자동 생성)
-- Langfuse 배포 완료 ([Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) 참조)
-- 프로덕션 환경: ACM 인증서 발급 (CloudFront + TLS용)
+**Time Required:** 3-4 hours
 
 ---
 
-## 다음 단계
+## Prerequisites
 
-- **시작하기**: [기본 배포](./basic-deployment.md)로 이동하여 kgateway 설치를 시작하세요.
-- **아키텍처 이해**: 배포 전 [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md)을 읽고 전체 구조를 파악하세요.
-- **모니터링 준비**: [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md)를 참조하여 관측성 스택을 구성하세요.
+Verify the following before proceeding with all deployment stages.
+
+### Required
+
+- [x] EKS cluster (K8s 1.32+, DRA 1.35 GA)
+- [x] kubectl installed with cluster access
+- [x] Helm 3.x installed
+- [x] vLLM or llm-d based model serving Pods deployed
+
+### Recommended
+
+- AWS Load Balancer Controller installed (for automatic NLB creation)
+- Langfuse deployed (refer to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md))
+- Production environment: ACM certificate issued (for CloudFront + TLS)
 
 ---
 
-## 참고 자료
+## Next Steps
 
-- [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md) - kgateway 아키텍처 및 라우팅 전략 상세
-- [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md) - Helm 설치, OTel 연동, Redis/ClickHouse 구성
-- [Agent 모니터링](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse 아키텍처 및 컴포넌트
-- [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/)
-- [kgateway 공식 문서](https://kgateway.dev/docs/)
-- [Bifrost 공식 문서](https://docs.getbifrost.ai/overview)
+- **Get Started**: Navigate to [Basic Deployment](./basic-deployment.md) to begin kgateway installation.
+- **Understand Architecture**: Read [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md) before deployment to grasp the overall structure.
+- **Prepare Monitoring**: Configure observability stack by referring to [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md).
+
+---
+
+## References
+
+- [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md) - kgateway architecture and routing strategy details
+- [Langfuse Deployment Guide](../../integrations/monitoring-observability-setup.md) - Helm installation, OTel integration, Redis/ClickHouse configuration
+- [Agent Monitoring](../../../operations-mlops/observability/agent-monitoring.md) - Langfuse architecture and components
+- [Kubernetes Gateway API Official Documentation](https://gateway-api.sigs.k8s.io/)
+- [kgateway Official Documentation](https://kgateway.dev/docs/)
+- [Bifrost Official Documentation](https://docs.getbifrost.ai/overview)

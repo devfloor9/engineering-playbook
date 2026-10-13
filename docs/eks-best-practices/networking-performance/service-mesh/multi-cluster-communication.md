@@ -1,10 +1,10 @@
 ---
-title: EKS 멀티클러스터 East-West 통신 — Istio는 여전히 유효한가
-description: EKS 멀티클러스터 환경의 East-West(서비스 간) 통신을 위해 Istio 멀티클러스터, Cilium ClusterMesh, Amazon VPC Lattice 아키텍처를 기능·안정성·운영편의성·비용 4개 축으로 비교하고, 각 아키텍처가 적합한 환경과 Istio 마이그레이션 경로를 제시합니다
+title: EKS Multi-Cluster East-West Communication — Is Istio Still the Right Choice?
+description: Compares Istio multi-cluster, Cilium ClusterMesh, and Amazon VPC Lattice architectures for East-West (service-to-service) communication across EKS clusters along four axes — functionality, stability, operability, and cost — with guidance on which environment suits each and a migration path from Istio
 created: "2026-07-16"
 last_update:
   date: "2026-07-16"
-  author: YoungJoon Jeong
+  author: devfloor9
 reading_time: 28
 tags:
   - service-mesh
@@ -23,336 +23,336 @@ keywords:
   - ServiceExport
   - east-west gateway
   - sidecarless
-sidebar_label: 멀티클러스터 East-West 통신
+sidebar_label: Multi-Cluster East-West Communication
 sidebar_position: 2
 ---
 
-## 1. 문서 목적과 결론 (Executive Summary)
+## 1. Purpose and Conclusions (Executive Summary)
 
-이 문서는 EKS **멀티클러스터**를 운영하는 관점에서, East-West(서비스 간) 트래픽의 효과적인 운영을 위해 Istio가 여전히 유효한 선택인지 검증합니다. 주요 대안 — Amazon VPC Lattice + AWS Gateway API Controller, Cilium ClusterMesh, Istio multi-primary(+상용 관리 플레인) — 를 사용한 아키텍처의 특장점을 **기능 / 안정성 / 운영편의성 / 비용** 4개 축으로 비교하고, 각 아키텍처가 적합한 환경을 제시합니다. 본문에 인용한 모든 외부 근거는 **2026-07-16 기준** 원문 문서로 확인했으며, 확인하지 못한 항목은 "확인 필요"로 명시합니다.
+This document examines, from the perspective of operating **multiple EKS clusters**, whether Istio remains a valid choice for effectively operating East-West (service-to-service) traffic. It compares architectures built on the main alternatives — Amazon VPC Lattice + AWS Gateway API Controller, Cilium ClusterMesh, and Istio multi-primary (optionally with a commercial management plane) — along four fixed axes: **functionality / stability / operability / cost**, and identifies the environment each architecture suits. Every external claim in this document was verified against the source documentation **as of 2026-07-16**; items that could not be verified are explicitly marked "needs verification."
 
-**결론 요약:**
+**Conclusions:**
 
-1. 클러스터 간 통신이 **HTTP/gRPC 중심이라면 VPC Lattice + AWS Gateway API Controller가 운영 부담 대비 가장 유리**합니다. 클러스터·VPC·계정 경계를 L3 연결(VPC peering, Transit Gateway) 없이 넘고, 컨트롤 플레인과 데이터 플레인을 AWS가 관리합니다.
-2. **Istio multi-primary는 여전히 유효하지만 조건부**입니다. 멀티클라우드·하이브리드를 포함한 full mesh, 전 구간 SPIFFE 기반 mTLS, 세밀한 L7 정책이 1순위 요구라면 Istio가 유일하게 모든 요건을 충족합니다. 대신 클러스터 수에 비례해 커지는 운영 복잡도를 감수해야 합니다.
-3. 메시 운영 부담을 낮추는 레버는 두 가지뿐입니다 — **(a) 운영 주체를 바꾸거나**(관리형·상용 지원), **(b) 아키텍처를 단순화하거나**(사이드카 제거, 메시 자체 제거). 상용 관리 플레인(예: Tetrate)은 (a)에 해당하지만 컨트롤 플레인(istiod)은 여전히 고객 클러스터 안에 남습니다. **컨트롤 플레인 자체를 고객 클러스터에서 제거하는 선택지는 AWS 관리형(VPC Lattice)뿐**입니다.
-4. AWS App Mesh는 **2026년 9월 30일 지원 종료**로 신규 도입 대상이 아니며, 이 문서에서는 마이그레이션 출발점으로만 다룹니다.
+1. If cross-cluster traffic is **HTTP/gRPC-centric, VPC Lattice + AWS Gateway API Controller offers the best outcome relative to operational burden**. It crosses cluster, VPC, and account boundaries without L3 connectivity (VPC peering, Transit Gateway), and AWS manages both the control plane and the data plane.
+2. **Istio multi-primary remains valid, but conditionally**. If a full mesh spanning multi-cloud or hybrid environments, end-to-end SPIFFE-based mTLS, or fine-grained L7 policy is the top requirement, Istio is the only candidate that satisfies all of them — at the price of operational complexity that grows with cluster count.
+3. There are only two levers that reduce mesh operational burden — **(a) change who operates it** (managed service or commercial support), or **(b) simplify the architecture** (remove sidecars, or remove the mesh itself). A commercial management plane (e.g., Tetrate) is lever (a), but the control plane (istiod) still runs inside customer clusters. **The only option that removes the control plane from customer clusters entirely is the AWS-managed one (VPC Lattice).**
+4. AWS App Mesh reaches **end of support on September 30, 2026** and is not a candidate for new adoption; this document treats it only as a migration starting point.
 
-단일 클러스터 안에서의 메시 솔루션 선택은 [서비스 메시 비교 가이드](./index.md)를, 도입 후 지연·비용 최적화는 [East-West 트래픽 최적화](../east-west-traffic-best-practice.md)를 참조합니다.
+For single-cluster mesh selection, see the [Service Mesh Comparison Guide](./index.md); for post-adoption latency and cost optimization, see [East-West Traffic Optimization](../east-west-traffic-best-practice.md).
 
-## 2. 요건 정의와 가정
+## 2. Requirements and Assumptions
 
-### 스코프
+### Scope
 
-이 문서는 **클러스터 경계를 넘는 East-West(서비스 간) 통신**만 다룹니다. North-South(외부→클러스터 인그레스) 트래픽을 담당하는 API Gateway·인그레스 컨트롤러(예: ALB + AWS Load Balancer Controller, Kong, NGINX 계열, kgateway)는 East-West 통신의 **대체재가 아니라 보완재**입니다. 인그레스를 통해 클러스터 간 호출을 우회시키는 설계는 외부 노출 면적 증가, 홉 추가, 내부 신원 소실이라는 비용을 수반하므로 이 문서의 후보에서 제외합니다. North-South 선택은 [Gateway API 도입 가이드](../gateway-api-adoption-guide/index.md)를 참조합니다.
+This document covers **East-West (service-to-service) communication across cluster boundaries only**. API gateways and ingress controllers that handle North-South (external-to-cluster) traffic — ALB + AWS Load Balancer Controller, Kong, NGINX-family, kgateway — are **complements, not substitutes**, for East-West communication. Routing inter-cluster calls through ingress increases external exposure, adds hops, and loses internal identity, so those options are excluded from the candidate list. For North-South selection, see the [Gateway API Adoption Guide](../gateway-api-adoption-guide/index.md).
 
-### 아키텍처 선택을 좌우하는 5가지 질문
+### Five Questions That Decide the Architecture
 
-멀티클러스터 East-West 아키텍처는 아래 5가지 요건에 대한 답으로 대부분 결정됩니다. 상세 질문 목록은 [부록 A](#부록-a-요건-확인-질문-목록)에 정리했습니다.
+Most of the multi-cluster East-West architecture decision follows from the answers to five requirements. The full question list is in [Appendix A](#appendix-a-requirement-confirmation-questions).
 
-| # | 판별 질문 | 갈림길 |
-|---|-----------|--------|
-| 1 | **프로토콜** — 클러스터 간 트래픽이 HTTP/gRPC인가, 순수 TCP/UDP(DB 프로토콜, 메시지 브로커, 커스텀 바이너리)인가? | 순수 TCP/UDP 비중이 크면 L7 중심인 Lattice는 재검토 대상. Lattice는 HTTP/HTTPS·gRPC·TCP(TLS passthrough)를 지원하지만 TCP 경로에 제약이 있음([6장](#6-트레이드오프와-주의사항) 참조). UDP는 미지원 |
-| 2 | **경계** — 클러스터들이 단일 VPC인가, 멀티 VPC·멀티 계정인가? CIDR 중복이 있는가? | 멀티 계정·CIDR 중복 환경이면 L3 연결이 필요 없는 Lattice가 구조적으로 유리. 메시 계열은 L3 도달성(peering/TGW)과 비중복 CIDR이 전제 |
-| 3 | **신원·암호화 컴플라이언스** — "전 구간 워크로드 단위 mTLS(SPIFFE)"가 감사 요건인가, "전송 암호화 + 요청 단위 인가"로 충족되는가? | 전자라면 Istio가 정공법. Lattice는 TLS + IAM(SigV4) 모델, Cilium은 전송 암호화(WireGuard/IPsec)와 인증을 분리한 모델 |
-| 4 | **관측성** — Kiali 수준의 메시 토폴로지 시각화가 필수인가, 메트릭·로그·트레이스로 충분한가? | 전자라면 Istio 생태계 유지. Lattice는 CloudWatch/X-Ray, Cilium은 Hubble로 대체 |
-| 5 | **규모와 변화율** — 클러스터 수, 서비스 수, Pod churn(배포 빈도·오토스케일 진폭)이 어느 수준인가? | 클러스터 수가 늘수록 메시 계열은 컨트롤 플레인 간 동기화 부담이 비례 증가. 관리형은 quota 관리 문제로 치환됨 |
+| # | Deciding question | Fork in the road |
+|---|-------------------|------------------|
+| 1 | **Protocol** — Is cross-cluster traffic HTTP/gRPC, or raw TCP/UDP (database protocols, message brokers, custom binary)? | A large raw TCP/UDP share makes the L7-centric Lattice a candidate for reconsideration. Lattice supports HTTP/HTTPS, gRPC, and TCP (TLS passthrough) but with TCP-path constraints (see [Section 6](#6-trade-offs-and-cautions)). UDP is not supported |
+| 2 | **Boundaries** — Do the clusters share a single VPC, or span multiple VPCs and accounts? Are there overlapping CIDRs? | Multi-account or overlapping-CIDR environments structurally favor Lattice, which needs no L3 connectivity. Mesh options presuppose L3 reachability (peering/TGW) and non-overlapping CIDRs |
+| 3 | **Identity/encryption compliance** — Does the audit requirement literally demand "end-to-end workload-level mTLS (SPIFFE)," or is "transport encryption + per-request authorization" sufficient? | The former makes Istio the direct answer. Lattice uses a TLS + IAM (SigV4) model; Cilium separates transport encryption (WireGuard/IPsec) from authentication |
+| 4 | **Observability** — Is Kiali-grade mesh topology visualization mandatory, or are metrics, logs, and traces sufficient? | The former argues for keeping the Istio ecosystem. Lattice substitutes CloudWatch/X-Ray; Cilium substitutes Hubble |
+| 5 | **Scale and churn** — How many clusters and services, and how high is pod churn (deployment frequency, autoscaling amplitude)? | As cluster count grows, mesh options pay proportionally more for control-plane synchronization; managed options convert this into a quota-management problem |
 
-### 기본 가정
+### Baseline Assumptions
 
-- 대상은 EKS(EC2 노드 기반)이며, 이미 Istio(사이드카 모드) 멀티클러스터를 운영 중이거나 도입을 검토하는 조직입니다.
-- "운영 부담 축소"와 "통신 요건 유지"가 동시 목표이며, 서비스 메시 유지 자체는 목표가 아닙니다.
-- 리전은 단일 리전을 기본으로 하되, 크로스 리전 고려사항은 해당 절에서 별도 표기합니다.
+- The target is EKS (EC2 nodes), in an organization already operating or evaluating Istio (sidecar mode) multi-cluster.
+- The joint goal is "reduce operational burden while preserving communication requirements"; keeping a service mesh is not itself a goal.
+- A single region is assumed by default; cross-region considerations are called out where relevant.
 
-## 3. Istio 기능 → 대안 매핑
+## 3. Mapping Istio Features to Alternatives
 
-현재 Istio 멀티클러스터에서 사용 중인 기능이 각 대안에서 무엇으로 치환되는지 정리합니다.
+What each Istio multi-cluster feature becomes in each alternative:
 
-| Istio 기능 | VPC Lattice + Gateway API Controller | Cilium ClusterMesh | Istio multi-primary (유지) | 참고: Linkerd / Consul |
-|------------|--------------------------------------|--------------------|---------------------------|------------------------|
-| **클러스터 간 서비스 디스커버리** (remote secrets 기반 엔드포인트 동기화) | `ServiceExport`/`ServiceImport` CRD + Lattice 서비스 네트워크. DNS는 Lattice가 관리형으로 제공 | 동일 이름 Service에 `service.cilium.io/global: "true"` 어노테이션 → 클러스터 간 로드밸런싱 | istiod가 remote secret으로 상대 클러스터 API 서버를 watch | Linkerd: service mirroring(원격 서비스 복제). Consul: cluster peering + `exported-services` |
-| **mTLS / 워크로드 신원** (SPIFFE X.509, 공통 root CA) | TLS(ACM 인증서) + **IAM 인증**(SigV4 서명) + EKS Pod Identity 세션 태그 기반 ABAC(클러스터·네임스페이스·Pod 단위) | 전송 암호화는 WireGuard/IPsec. SPIFFE 상호 인증은 Beta이며 **ClusterMesh와 호환되지 않음**(2026-07-16 기준 upstream 문서 명시) | 공통 root CA(cacerts) 기반 전 구간 SPIFFE mTLS | Linkerd: 통합 trust domain mTLS. Consul: mesh gateway 간 mTLS |
-| **트래픽 관리** (카나리, 가중치 라우팅, 재시도) | `HTTPRoute` 가중치 규칙(Lattice 리스너 규칙으로 구현). 재시도·타임아웃 지원, 서킷 브레이커는 제한적 | L7 기능은 노드당 Envoy 경유(CiliumEnvoyConfig). 클러스터 간 가중치 라우팅 표현력은 Istio 대비 제한적 | VirtualService/DestinationRule 또는 Gateway API — 표현력 최고 | Linkerd: HTTPRoute 기반. Consul: service resolver/splitter |
-| **커스텀 도메인** | Lattice 커스텀 도메인 + ACM 인증서(BYOC) | Kubernetes DNS 체계(`<svc>.<ns>.svc.cluster.local`) 그대로, 커스텀 도메인은 별도 구성 | ServiceEntry + 자체 DNS | 각자 별도 구성 |
-| **관측성** (Kiali, 분산 트레이싱) | CloudWatch 메트릭·액세스 로그, X-Ray. **메시 토폴로지 그래프(Kiali급)는 없음** | Hubble(Service Map, flow 로그) | Kiali·Jaeger·Prometheus 생태계 그대로 | Linkerd Viz / Consul UI |
-| **컨트롤 플레인 운영 주체** | **AWS** (클러스터에는 경량 컨트롤러만 상주) | 고객 (cilium-agent, cilium-operator, clustermesh-apiserver) | 고객 (클러스터별 istiod). Tetrate 등 상용은 운영 "지원" 주체가 바뀔 뿐 istiod는 클러스터 내 잔존 | 고객 (또는 Buoyant/HashiCorp 상용 지원) |
-| **L3 연결 전제** (peering/TGW) | **불필요** — CIDR 중복도 허용 | **필요** — 노드 간 직접 IP 도달성 + 비중복 PodCIDR | 멀티 네트워크 모드는 east-west gateway(NLB) 경유로 L3 직결 불필요, 단일 네트워크 모드는 필요 | Linkerd flat 모드는 필요, gateway 모드는 불필요. Consul은 mesh gateway 경유 |
+| Istio feature | VPC Lattice + Gateway API Controller | Cilium ClusterMesh | Istio multi-primary (keep) | Reference: Linkerd / Consul |
+|---------------|--------------------------------------|--------------------|----------------------------|------------------------------|
+| **Cross-cluster service discovery** (remote-secret endpoint sync) | `ServiceExport`/`ServiceImport` CRDs + Lattice service network. DNS is provided managed by Lattice | `service.cilium.io/global: "true"` annotation on identically named Services → cross-cluster load balancing | istiod watches the peer cluster's API server via remote secrets | Linkerd: service mirroring (replicates remote services). Consul: cluster peering + `exported-services` |
+| **mTLS / workload identity** (SPIFFE X.509, common root CA) | TLS (ACM certificates) + **IAM authentication** (SigV4 signing) + EKS Pod Identity session-tag ABAC (cluster / namespace / pod granularity) | Transport encryption via WireGuard/IPsec. SPIFFE mutual authentication is Beta and **incompatible with ClusterMesh** (stated in upstream docs, verified 2026-07-16) | End-to-end SPIFFE mTLS on a common root CA (cacerts) | Linkerd: unified trust-domain mTLS. Consul: mTLS between mesh gateways |
+| **Traffic management** (canary, weighted routing, retries) | `HTTPRoute` weighted rules (implemented as Lattice listener rules). Retries and timeouts supported; circuit breaking limited | L7 via per-node Envoy (CiliumEnvoyConfig). Cross-cluster weighted-routing expressiveness limited vs Istio | VirtualService/DestinationRule or Gateway API — highest expressiveness | Linkerd: HTTPRoute-based. Consul: service resolver/splitter |
+| **Custom domains** | Lattice custom domain + ACM certificate (BYOC) | Kubernetes DNS scheme as-is; custom domains configured separately | ServiceEntry + own DNS | Configured separately in each |
+| **Observability** (Kiali, distributed tracing) | CloudWatch metrics/access logs, X-Ray. **No Kiali-grade mesh topology graph** | Hubble (Service Map, flow logs) | Kiali, Jaeger, Prometheus ecosystem unchanged | Linkerd Viz / Consul UI |
+| **Control-plane operator** | **AWS** (only a lightweight controller lives in the cluster) | Customer (cilium-agent, cilium-operator, clustermesh-apiserver) | Customer (istiod per cluster). Commercial offerings like Tetrate change the support provider, but istiod stays in-cluster | Customer (or Buoyant/HashiCorp commercial support) |
+| **L3 connectivity prerequisite** (peering/TGW) | **Not required** — overlapping CIDRs allowed | **Required** — direct node IP reachability + non-overlapping PodCIDRs | Multi-network mode relays via east-west gateway (NLB), so no direct L3; single-network mode requires it | Linkerd flat mode requires it; gateway mode does not. Consul relays via mesh gateways |
 
-매핑에서 드러나는 핵심 차이는 두 가지입니다. 첫째, **신원 모델**이 다릅니다 — Istio의 "인증서 기반 워크로드 신원"을 Lattice는 "IAM 기반 요청 인가"로, Cilium은 "네트워크 계층 암호화 + 별도 인증"으로 치환합니다. 컴플라이언스 문구가 어느 모델을 요구하는지가 선택을 좌우합니다. 둘째, **컨트롤 플레인 위치**가 다릅니다 — 운영 부담의 총량은 컨트롤 플레인이 누구의 것인지에 수렴합니다.
+Two differences dominate this mapping. First, the **identity model** differs — Istio's "certificate-based workload identity" becomes "IAM-based request authorization" in Lattice, and "network-layer encryption + separate authentication" in Cilium. Which model your compliance language requires drives the choice. Second, the **control-plane location** differs — total operational burden converges on whose control plane it is.
 
-## 4. 후보 아키텍처 상세 비교
+## 4. Candidate Architectures in Detail
 
-각 후보를 동작 방식 → 4축 평가(기능/안정성/운영편의성/비용) → 적합한 환경 순으로 정리합니다.
+Each candidate is presented as: how it works → four-axis assessment (functionality/stability/operability/cost) → the environment it suits.
 
-### 4.1 VPC Lattice + AWS Gateway API Controller — 관리형 · 사이드카리스
+### 4.1 VPC Lattice + AWS Gateway API Controller — Managed, Sidecarless
 
-**동작 방식.** VPC Lattice는 AWS 네트워크 패브릭에 내장된 관리형 애플리케이션 네트워킹 서비스입니다. EKS에서는 [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/)(2026-07-16 기준 v2.1.2)가 Kubernetes Gateway API 리소스를 Lattice 리소스로 변환합니다 — `Gateway` → 서비스 네트워크, `HTTPRoute`/`GRPCRoute`/`TLSRoute` → Lattice 서비스, Kubernetes `Service` → 타깃 그룹. 클러스터 간 공유는 `ServiceExport`(제공 측)/`ServiceImport`(소비 측) CRD로 선언합니다.
+**How it works.** VPC Lattice is a managed application networking service built into the AWS network fabric. On EKS, the [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/) (v2.1.2 as of 2026-07-16) translates Kubernetes Gateway API resources into Lattice resources — `Gateway` → service network, `HTTPRoute`/`GRPCRoute`/`TLSRoute` → Lattice service, Kubernetes `Service` → target group. Cross-cluster sharing is declared with `ServiceExport` (provider side) / `ServiceImport` (consumer side) CRDs.
 
 ```
-  Cluster A (VPC-A, 계정 1)                    Cluster B (VPC-B, 계정 2)
+  Cluster A (VPC-A, Account 1)                 Cluster B (VPC-B, Account 2)
   ┌──────────────────────────┐                ┌──────────────────────────┐
   │  Pod A ──► link-local    │                │      Target Group ◄──┐   │
-  │          169.254.171.x   │                │        (Pod B들)     │   │
+  │          169.254.171.x   │                │        (Pod B's)     │   │
   └────────────┼─────────────┘                └──────────────────────┼───┘
                │                                                     │
                ▼                                                     │
-  ═══════════ VPC Lattice 서비스 네트워크 (AWS 관리형 데이터 플레인) ══╪════
-       · L3 연결(peering/TGW) 불필요, CIDR 중복 허용                  │
-       · IAM auth policy 평가(SigV4) + TLS ──────────────────────────┘
-       · Gateway API Controller가 K8s 리소스 ↔ Lattice 리소스 동기화
+  ═══════════ VPC Lattice service network (AWS-managed data plane) ══╪════
+       · No L3 connectivity (peering/TGW) needed, overlapping CIDRs OK
+       · IAM auth policy evaluation (SigV4) + TLS ───────────────────┘
+       · Gateway API Controller syncs K8s resources ↔ Lattice resources
 ```
 
-Pod는 link-local 대역(`169.254.171.0/24`)의 Lattice 데이터 플레인으로 트래픽을 보내며, 클러스터 보안 그룹에 Lattice 관리형 prefix list 인바운드 허용만 추가하면 됩니다. 두 VPC가 **동일한 CIDR을 사용해도 통신이 성립**하며, 이는 AWS 공식 블로그의 데모로 검증된 동작입니다([참고 자료](#8-참고-자료) 2번, 확인 2026-07-16).
+Pods send traffic to the Lattice data plane on the link-local range (`169.254.171.0/24`); the only cluster change is allowing the Lattice managed prefix list inbound on the cluster security group. Two VPCs **communicate even with identical CIDRs** — a behavior demonstrated in the official AWS blog ([References](#8-references) item 2, verified 2026-07-16).
 
-인증·인가는 IAM auth policy로 처리합니다. EKS Pod Identity가 발급하는 세션 태그(`eks-cluster-name`, `kubernetes-namespace`, `kubernetes-pod-name`)를 조건으로 사용하면 **클러스터·네임스페이스·Pod 단위 ABAC 인가**가 가능합니다. IAM 인증을 켜면 요청은 SigV4 서명이 필요하며, SDK 서명 또는 서명 프록시(예: Envoy 사이드카를 서명 전용으로 주입) 중 하나를 선택합니다.
+Authentication and authorization use IAM auth policies. Using the session tags issued by EKS Pod Identity (`eks-cluster-name`, `kubernetes-namespace`, `kubernetes-pod-name`) as conditions enables **ABAC authorization at cluster, namespace, or pod granularity**. With IAM auth enabled, requests must be SigV4-signed — either natively in the SDK or via a signing proxy (e.g., an Envoy sidecar injected solely for signing).
 
-**4축 평가.**
+**Four-axis assessment.**
 
-| 축 | 평가 | 근거 (확인 2026-07-16) |
-|----|------|------------------------|
-| 기능 | HTTP/HTTPS·gRPC 라우팅, 가중치 트래픽 분할, 커스텀 도메인, IAM 기반 세밀 인가. TCP는 TLS passthrough로 지원하되 제약 있음(6장). UDP 미지원. Kiali급 메시 관측성 없음 | Lattice FAQ·TLS 리스너 문서 |
-| 안정성 | 데이터 플레인이 AWS 인프라 내장 — 고객이 패치·장애 대응할 컴포넌트가 컨트롤러뿐. AZ당 서비스별 10 Gbps·10,000 RPS 기본 한도(상향 가능), 연결 수명 10분 상한 | Lattice quotas 문서 |
-| 운영편의성 | **4개 후보 중 유일하게 컨트롤 플레인이 클러스터 밖**. 사이드카 없음, 인증서 수명주기 관리 없음(ACM 위임), 업그레이드 대상은 경량 컨트롤러 1개. 대신 AWS quota·기능 릴리스 속도에 종속 | Gateway API Controller 배포 가이드 |
-| 비용 | 종량제: 서비스당 $0.025/시간 + 처리량 $0.025/GB + 요청 요금(시간당 30만 건 초과분 $0.10/100만 건, us-east-1 기준). 크로스 AZ 추가 요금 없음. **트래픽이 클수록 비용이 비례 증가** — 대용량 환경은 사전 시뮬레이션 필수. 리전별 단가 상이(확인 필요) | Lattice 요금 페이지 |
+| Axis | Assessment | Evidence (verified 2026-07-16) |
+|------|------------|-------------------------------|
+| Functionality | HTTP/HTTPS and gRPC routing, weighted traffic splitting, custom domains, fine-grained IAM authorization. TCP supported via TLS passthrough with constraints (Section 6). No UDP. No Kiali-grade mesh observability | Lattice FAQ, TLS listeners docs |
+| Stability | Data plane is built into AWS infrastructure — the only customer-patched component is the controller. Default per-service per-AZ limits of 10 Gbps / 10,000 RPS (raiseable); 10-minute connection lifetime cap | Lattice quotas docs |
+| Operability | **The only candidate whose control plane lives outside the cluster.** No sidecars, no certificate lifecycle (delegated to ACM); the upgrade surface is one lightweight controller. In exchange, you depend on AWS quotas and feature release cadence | Gateway API Controller deploy guide |
+| Cost | Pay-as-you-go: $0.025 per service-hour + $0.025/GB processed + request charges ($0.10 per million requests/hour beyond the free 300,000/hour, us-east-1). No cross-AZ surcharge. **Cost scales with traffic** — simulate before committing at high volume. Per-region pricing varies (needs verification) | Lattice pricing page |
 
-**적합한 환경.** 클러스터 간 트래픽이 HTTP/gRPC 중심이고, 멀티 VPC·멀티 계정 경계를 넘어야 하며, 메시 컨트롤 플레인 운영 인력을 확보하기 어려운 조직. App Mesh 이탈 조직 중 관리형 모델을 유지하려는 경우의 AWS 공식 경로이기도 합니다.
+**Environment it suits.** Organizations whose cross-cluster traffic is HTTP/gRPC-centric, that must cross multi-VPC/multi-account boundaries, and that cannot staff a dedicated mesh control-plane team. It is also the official AWS path for App Mesh leavers who want to stay on a managed model.
 
-### 4.2 Cilium ClusterMesh — eBPF · 사이드카리스 · 자체 운영
+### 4.2 Cilium ClusterMesh — eBPF, Sidecarless, Self-Managed
 
-**동작 방식.** Cilium(2026-07-16 기준 안정 버전 1.19)의 ClusterMesh는 CNI 계층에서 멀티클러스터를 해결합니다. 클러스터마다 `clustermesh-apiserver`(내장 etcd 포함)가 상태를 노출하고, 각 클러스터의 cilium-agent가 이를 구독해(v1.16부터 KVStoreMesh 캐시 경유가 기본) 원격 엔드포인트를 로컬 eBPF 맵에 반영합니다. 동일한 이름의 Service에 `service.cilium.io/global: "true"`를 붙이면 클러스터 간 로드밸런싱이 활성화됩니다.
+**How it works.** Cilium's ClusterMesh (stable version 1.19 as of 2026-07-16) solves multi-cluster at the CNI layer. Each cluster runs a `clustermesh-apiserver` (with embedded etcd) exposing cluster state; each cluster's cilium-agent subscribes (via the KVStoreMesh cache by default since v1.16) and reflects remote endpoints into local eBPF maps. Annotating identically named Services with `service.cilium.io/global: "true"` enables cross-cluster load balancing.
 
 ```
   Cluster A (PodCIDR 10.1.0.0/16)             Cluster B (PodCIDR 10.2.0.0/16)
   ┌──────────────────────────────┐            ┌──────────────────────────────┐
-  │ Pod A ─► eBPF (커널)          │            │           eBPF ─► Pod B      │
-  │   ▲   clustermesh-apiserver ◄─┼── 상태 ────┼─► clustermesh-apiserver  ▲   │
-  │   └── cilium-agent (구독/캐시) │   동기화    │   cilium-agent ──────────┘   │
+  │ Pod A ─► eBPF (kernel)        │            │           eBPF ─► Pod B      │
+  │   ▲   clustermesh-apiserver ◄─┼── state ───┼─► clustermesh-apiserver  ▲   │
+  │   └── cilium-agent (subscribe)│    sync    │   cilium-agent ──────────┘   │
   └───────────────┼──────────────┘            └────────────────┼─────────────┘
-                  └────────── Pod-to-Pod 직통 (VPC peering/TGW) ┘
-        전제: 비중복 PodCIDR + 노드 간 직접 IP 도달성 + 동일 datapath 모드
+                  └────── direct pod-to-pod (VPC peering/TGW) ──┘
+     Prereqs: non-overlapping PodCIDRs + direct node IP reachability + same datapath mode
 ```
 
-프록시 홉 없이 **Pod-to-Pod 직통**이므로 데이터 플레인 오버헤드와 지연이 후보 중 가장 낮습니다. 다만 전제 조건이 엄격합니다 — 전 클러스터 비중복 PodCIDR, 노드 간 직접 IP 도달성(VPC peering 또는 TGW), 전 클러스터 동일 datapath 모드, 클러스터 ID(1–255)·이름 사전 설계(사후 변경 시 전체 워크로드 재시작 필요). 모두 upstream 공식 문서 기준입니다(확인 2026-07-16).
+With no proxy hop, traffic is **direct pod-to-pod**, giving the lowest data-plane overhead and latency of any candidate. The prerequisites are strict, however — non-overlapping PodCIDRs across all clusters, direct node IP reachability (VPC peering or TGW), the same datapath mode everywhere, and upfront cluster ID (1–255)/name design (changing them later requires restarting all workloads). All per upstream documentation (verified 2026-07-16).
 
-**4축 평가.**
+**Four-axis assessment.**
 
-| 축 | 평가 | 근거 (확인 2026-07-16) |
-|----|------|------------------------|
-| 기능 | L3/L4 완전 지원(TCP/UDP 포함 — 프로토콜 제약 없음), global service 기반 디스커버리·failover. L7은 노드당 Envoy 경유로 지원하나 클러스터 간 L7 표현력은 Istio 대비 제한적. **SPIFFE 상호 인증은 Beta이며 ClusterMesh와 호환 불가** — 전 구간 워크로드 신원 요건에는 부적합 | Cilium ClusterMesh·mutual auth 문서 |
-| 안정성 | 데이터 플레인은 커널 eBPF로 성숙. 단 CNI 자체가 메시를 겸하므로 **Cilium 장애 = 클러스터 네트워킹 장애**로 반경이 가장 큼. `cacheTTL` 기본값 0(원격 클러스터 단절 시 stale 엔드포인트 무기한 유지)은 운영 시 조정 필요 | Cilium global services 문서 |
-| 운영편의성 | 클러스터마다 cilium-agent·operator·clustermesh-apiserver를 고객이 운영. **EKS에서 Cilium CNI는 AWS 공식 지원 대상이 아님** — AWS 문서는 "EC2 노드에서 지원되는 CNI는 VPC CNI뿐"이며 대체 CNI는 벤더(Isovalent) 상용 지원 확보를 권고. EKS Auto Mode는 대체 CNI 미지원. VPC CNI chaining 모드는 L7 정책·IPsec 미지원이라 full 교체가 사실상 전제 | EKS alternate CNI 문서, Cilium chaining 문서 |
-| 비용 | 라이선스 비용 없음(OSS), AWS 추가 서비스 요금 없음. 대신 L3 연결 비용(peering 또는 TGW $0.05/시간/연결 + $0.02/GB)과 **CNI 교체·운영을 감당할 전담 인력 비용**이 실질 원가. 상용 지원(Isovalent) 계약 시 라이선스 비용 발생 | TGW 요금 페이지 |
+| Axis | Assessment | Evidence (verified 2026-07-16) |
+|------|------------|-------------------------------|
+| Functionality | Full L3/L4 (TCP/UDP included — no protocol restrictions), global-service discovery and failover. L7 via per-node Envoy, but cross-cluster L7 expressiveness is limited vs Istio. **SPIFFE mutual auth is Beta and incompatible with ClusterMesh** — unsuitable for end-to-end workload-identity requirements | Cilium ClusterMesh and mutual-auth docs |
+| Stability | Kernel eBPF data plane is mature. But the CNI doubles as the mesh, so **a Cilium failure is a cluster networking failure** — the largest blast radius here. The `cacheTTL` default of 0 (stale remote endpoints kept indefinitely when a peer cluster is unreachable) needs tuning in production | Cilium global services docs |
+| Operability | Customers operate cilium-agent, operator, and clustermesh-apiserver per cluster. **Cilium CNI on EKS is not officially supported by AWS** — AWS documentation states the VPC CNI is the only CNI supported on EC2 nodes and recommends vendor (Isovalent) commercial support for alternates. EKS Auto Mode does not support alternate CNIs. VPC CNI chaining mode lacks L7 policy and IPsec, so a full CNI replacement is effectively a prerequisite | EKS alternate CNI docs, Cilium chaining docs |
+| Cost | No license cost (OSS), no extra AWS service charges. The real costs are L3 connectivity (peering, or TGW at $0.05/attachment-hour + $0.02/GB) and **the dedicated headcount to own a CNI replacement**. Commercial support (Isovalent) adds license cost | TGW pricing page |
 
-**적합한 환경.** 이미 Cilium CNI를 표준으로 운영 중이고(또는 전환을 확정했고), 클러스터 간 트래픽에 순수 TCP/UDP 비중이 크며, 최저 지연이 요구되고, CNI 수준 장애를 감당할 네트워킹 전담 역량이 있는 조직. **Cilium을 쓰지 않는 조직이 멀티클러스터 통신만을 위해 CNI를 교체하는 것은 권장하지 않습니다.**
+**Environment it suits.** Organizations already standardized on Cilium CNI (or firmly committed to switching), with substantial raw TCP/UDP cross-cluster traffic, hard low-latency requirements, and a dedicated networking team able to own CNI-level failures. **Replacing the CNI solely to obtain multi-cluster communication is not recommended.**
 
-### 4.3 Istio Multi-Primary — full mesh 유지 · 자체 운영 (+상용 관리 플레인)
+### 4.3 Istio Multi-Primary — Keep the Full Mesh, Self-Managed (+ Commercial Management Plane)
 
-**동작 방식.** 각 클러스터가 자체 istiod를 운영하는 multi-primary 토폴로지(2026-07-16 기준 안정 버전 1.30)가 프로덕션 표준입니다. 클러스터 간에는 공통 root CA(cacerts)로 신뢰를 구성하고, remote secret으로 상대 클러스터 API 서버를 watch해 엔드포인트를 동기화하며, 네트워크가 분리된 경우 east-west gateway(NLB)로 트래픽을 중계합니다.
+**How it works.** The production standard is the multi-primary topology (stable version 1.30 as of 2026-07-16), where each cluster runs its own istiod. Clusters share trust via a common root CA (cacerts), sync endpoints by watching each other's API servers through remote secrets, and — when networks are separate — relay traffic through east-west gateways (NLB).
 
 ```
   Cluster A (VPC-A)                            Cluster B (VPC-B)
   ┌────────────────────────────┐              ┌────────────────────────────┐
   │ istiod-A ◄── remote secret ┼──── watch ───┼► API Server                │
-  │    │            (상호)      │              │              istiod-B      │
+  │    │          (mutual)     │              │              istiod-B      │
   │ Pod A + Envoy ─► east-west ┼── mTLS ──────┼► east-west ─► Pod B + Envoy│
   │                 gateway    │  (SPIFFE)    │   gateway                  │
   └────────────────────────────┘              └────────────────────────────┘
-        공통 root CA(cacerts) · 클러스터별 istiod 운영 · API 서버 상호 도달성 필요
+   Common root CA (cacerts) · istiod per cluster · mutual API-server reachability
 ```
 
-**Ambient 모드(사이드카리스)의 멀티클러스터 성숙도**는 주의가 필요합니다. 단일 클러스터 Ambient는 GA지만, **멀티클러스터 Ambient는 Istio 1.30 기준 Beta**이며 multi-primary + multi-network 조합만 지원합니다(primary-remote·단일 네트워크 미지원). waypoint를 클러스터 간 수동 동기화해야 하고, 원격 네트워크로의 failover 트래픽이 HTTP/2 커넥션 재사용 때문에 고르지 않은 이슈가 공식 문서에 명시되어 있습니다(확인 2026-07-16). 신규 멀티클러스터를 Ambient로 시작하는 것은 PoC 검증을 전제해야 합니다.
+**Ambient (sidecarless) multi-cluster maturity** deserves caution. Single-cluster ambient is GA, but **multi-cluster ambient is Beta as of Istio 1.30** and supports only the multi-primary + multi-network combination (primary-remote and single-network are unsupported). Waypoints must be synchronized manually across clusters, and failover traffic to a remote network is uneven due to HTTP/2 connection reuse — both stated in the official docs (verified 2026-07-16). Starting a new multi-cluster deployment on ambient should be gated on a PoC.
 
-**상용 관리 플레인(Tetrate Service Bridge 등)**은 멀티클러스터 Istio에 중앙 거버넌스·멀티테넌시·지원 SLA를 더합니다. 이는 운영 부담 레버 (a) "운영 주체 변경"에 해당하지만, **istiod는 여전히 각 클러스터 안에서 실행**됩니다 — 컨트롤 플레인 장애 도메인과 업그레이드 부담이 고객 클러스터에 남는다는 점에서 관리형(Lattice)과 구조적으로 다릅니다(Tetrate 제품 문서 기준, 세부 아키텍처 문구는 확인 필요).
+**Commercial management planes (e.g., Tetrate Service Bridge)** add central governance, multi-tenancy, and support SLAs to multi-cluster Istio. That is lever (a), "change the operator" — but **istiod still runs inside each cluster**. The control-plane failure domain and upgrade burden remain in customer clusters, which is structurally different from a managed service like Lattice (per Tetrate product documentation; exact architectural wording needs verification).
 
-**4축 평가.**
+**Four-axis assessment.**
 
-| 축 | 평가 | 근거 (확인 2026-07-16) |
-|----|------|------------------------|
-| 기능 | **표현력 최고** — 전 구간 SPIFFE mTLS, 클러스터 간 카나리·가중치·장애 주입, locality failover, ServiceEntry 기반 메시 확장(VM·타 클라우드). 멀티클라우드 full mesh가 가능한 유일한 후보 | Istio multicluster 설치 문서 |
-| 안정성 | 성숙한 프로덕션 이력. 단 안정성의 전제가 많음 — 공통 CA 순환, 클러스터 간 API 서버 도달성 유지, east-west gateway 가용성, 버전 skew 관리가 모두 고객 책임. Ambient 멀티클러스터는 Beta | Istio before-you-begin 문서 |
-| 운영편의성 | **후보 중 가장 무거움**. 클러스터 수 N에 대해 istiod N개 + remote secret N×(N−1) + east-west gateway N개를 운영. 사이드카 모드는 전 Pod 재시작을 수반하는 데이터 플레인 업그레이드가 주기 이벤트. 상용 지원으로 완화 가능하나 구조는 불변 | 동일 |
-| 비용 | 라이선스 비용 없음(OSS). 실질 원가는 사이드카 리소스(Pod당 CPU/메모리 — 정량 수치는 [East-West 트래픽 최적화](../east-west-traffic-best-practice.md) 참조), east-west gateway NLB 비용, 크로스 클러스터 트래픽의 크로스 AZ/peering 요금, 그리고 **전담 운영 인력**. 상용 관리 플레인 채택 시 구독 비용 추가 | — |
+| Axis | Assessment | Evidence (verified 2026-07-16) |
+|------|------------|-------------------------------|
+| Functionality | **Highest expressiveness** — end-to-end SPIFFE mTLS, cross-cluster canary/weighting/fault injection, locality failover, mesh expansion via ServiceEntry (VMs, other clouds). The only candidate capable of a multi-cloud full mesh | Istio multicluster install docs |
+| Stability | Longest production track record. But stability rests on many customer-kept preconditions — common CA rotation, sustained cross-cluster API-server reachability, east-west gateway availability, version-skew management. Ambient multi-cluster is Beta | Istio before-you-begin docs |
+| Operability | **Heaviest of the candidates.** For N clusters: N istiods + N×(N−1) remote secrets + N east-west gateways. In sidecar mode, data-plane upgrades that restart every pod are a recurring event. Commercial support mitigates but does not change the structure | Same |
+| Cost | No license cost (OSS). Real costs: sidecar resources (per-pod CPU/memory — quantified in [East-West Traffic Optimization](../east-west-traffic-best-practice.md)), east-west gateway NLBs, cross-AZ/peering charges on inter-cluster traffic, and **the largest headcount requirement**. A commercial management plane adds subscription cost | — |
 
-**적합한 환경.** 전 구간 워크로드 단위 mTLS(SPIFFE)가 감사 요건으로 명문화되어 있거나, EKS 외부(온프레미스·타 클라우드)를 포함한 full mesh가 필요하거나, 클러스터 간 트래픽 제어의 표현력(장애 주입, 세밀한 재시도 정책)이 사업 요구인 조직. 그리고 이를 감당할 전담 플랫폼 팀이 있는 경우.
+**Environment it suits.** Organizations where end-to-end workload-level mTLS (SPIFFE) is codified as an audit requirement, where a full mesh must extend beyond EKS (on-premises, other clouds), or where cross-cluster traffic-control expressiveness (fault injection, fine-grained retry policy) is a business requirement — and that have a dedicated platform team to carry it.
 
-### 4.4 참고 후보 — Linkerd Multi-Cluster, Consul Cluster Peering
+### 4.4 Reference Candidates — Linkerd Multi-Cluster, Consul Cluster Peering
 
-- **Linkerd multi-cluster**(안정 버전 2.20): service mirroring으로 원격 서비스를 로컬에 복제하며, gateway 모드(게이트웨이 IP만 도달 가능하면 됨)·flat network 모드(Pod 직통)·federated service 모드를 서비스별로 혼용할 수 있습니다. 통합 trust domain으로 전 홉 mTLS를 제공합니다. 다만 2024년 2월부터 오픈소스 프로젝트가 stable 아티팩트 배포를 중단해 **프로덕션 안정판은 Buoyant Enterprise for Linkerd(BEL) 의존**이며, 라이선스 조건 검토가 선행되어야 합니다(세부 조건 확인 필요, 배포 정책은 upstream 릴리스 페이지 확인 2026-07-16).
-- **Consul cluster peering**: 독립 Consul 클러스터를 peering token + mesh gateway로 연결하며 Enterprise 라이선스 없이 사용 가능합니다. EKS 지원 문서와 튜토리얼이 존재합니다. Consul을 이미 서비스 디스커버리 표준으로 쓰는 조직 외에는 신규 도입 근거가 약합니다.
+- **Linkerd multi-cluster** (stable version 2.20): service mirroring replicates remote services locally, with three modes mixable per service — gateway mode (only the target gateway IP must be reachable), flat-network mode (direct pod-to-pod), and federated services. A unified trust domain provides mTLS on every hop. However, the open-source project stopped shipping stable artifacts in February 2024, so **production stable builds depend on Buoyant Enterprise for Linkerd (BEL)** — review license terms first (details need verification; distribution policy confirmed on the upstream releases page, 2026-07-16).
+- **Consul cluster peering**: connects independent Consul clusters via peering tokens + mesh gateways, usable without an Enterprise license, with EKS documentation and tutorials. Weak adoption case unless Consul is already the organization's service-discovery standard.
 
-두 후보 모두 "고객 운영 컨트롤 플레인 + 사이드카(Linkerd) 또는 에이전트(Consul)" 구조라서, 이 문서의 핵심 질문인 "운영 부담 축소"에 대해 Istio 대비 구조적 우위가 제한적입니다. 이하 비교에서는 참고로만 다룹니다.
+Both retain a "customer-operated control plane + sidecar (Linkerd) or agent (Consul)" structure, so their structural advantage over Istio on this document's core question — reducing operational burden — is limited. They appear below only as references.
 
-### 4.5 밑단 L3 연결 — VPC Peering vs Transit Gateway
+### 4.5 The L3 Underlay — VPC Peering vs Transit Gateway
 
-메시 계열(Istio 단일 네트워크, Cilium ClusterMesh, Linkerd flat 모드)은 클러스터 간 **L3 도달성이 전제 조건**입니다.
+Mesh options (Istio single-network, Cilium ClusterMesh, Linkerd flat mode) **presuppose L3 reachability** between clusters.
 
-| 항목 | VPC Peering | Transit Gateway |
+| Item | VPC Peering | Transit Gateway |
 |------|-------------|-----------------|
-| 토폴로지 | 1:1 (전이 라우팅 불가) | 허브-스포크 (N개 VPC 집선) |
-| CIDR 중복 | 불가 | 불가 |
-| 요금 | 연결 자체 무료, 데이터 전송 요금(단가 확인 필요) | 연결당 $0.05/시간 + 처리량 $0.02/GB (us-east-2 기준, 확인 2026-07-16) |
-| 적합 규모 | VPC 2~3개 | VPC 4개 이상, 멀티 계정 |
+| Topology | 1:1 (no transitive routing) | Hub-and-spoke (aggregates N VPCs) |
+| Overlapping CIDRs | Not allowed | Not allowed |
+| Pricing | Connection free; data-transfer charges (rate needs verification) | $0.05/attachment-hour + $0.02/GB processed (us-east-2, verified 2026-07-16) |
+| Suitable scale | 2–3 VPCs | 4+ VPCs, multi-account |
 
-클러스터가 늘수록 peering은 N² 관리 문제가 되고, TGW는 처리량 요금이 트래픽에 비례합니다. **VPC Lattice는 이 계층 자체가 필요 없다**는 점이 4축 중 운영편의성·비용 평가에 반영되어야 합니다 — 메시를 유지하는 비용에는 메시 자체뿐 아니라 밑단 L3의 구축·요금·CIDR 거버넌스가 포함됩니다.
+As clusters multiply, peering becomes an N² management problem and TGW charges scale with traffic. **VPC Lattice does not need this layer at all** — a fact that belongs in the operability and cost axes: the cost of keeping a mesh includes not just the mesh, but the underlay's construction, charges, and CIDR governance.
 
-### 4.6 AWS App Mesh — 신규 도입 금지
+### 4.6 AWS App Mesh — Do Not Adopt
 
-:::warning AWS App Mesh EOL — 2026년 9월 30일
+:::warning AWS App Mesh EOL — September 30, 2026
 
-AWS App Mesh는 2026년 9월 30일 지원이 종료되며, 2024년 9월 24일부터 신규 온보딩이 차단되어 있습니다(확인 2026-07-16). 이 문서에서 App Mesh는 **마이그레이션 출발점으로만** 등장합니다. EKS 기준 AWS 공식 이전 경로는 VPC Lattice이며, Envoy 기반 L7 기능 호환성이 우선이면 Istio도 일반적인 선택지입니다 — [서비스 메시 비교 가이드](./index.md)의 EOL 안내를 참조합니다.
+AWS App Mesh support ends on September 30, 2026, and new onboarding has been blocked since September 24, 2024 (verified 2026-07-16). In this document App Mesh appears **only as a migration starting point**. For EKS, the official AWS migration path is VPC Lattice; where Envoy-based L7 feature compatibility matters most, Istio is also a common choice — see the EOL notice in the [Service Mesh Comparison Guide](./index.md).
 
 :::
 
-### 4.7 4축 종합 비교
+### 4.7 Four-Axis Summary
 
-| 축 | VPC Lattice + GW API Controller | Cilium ClusterMesh | Istio multi-primary |
-|----|--------------------------------|--------------------|--------------------|
-| **기능** | ◎ HTTP/gRPC·IAM 인가·계정 경계 / △ 순수 TCP 제약·UDP 불가·메시 관측성 없음 | ◎ 전 프로토콜·최저 지연 / △ 클러스터 간 L7 표현력·SPIFFE 상호 인증 불가 | ◎ 전 항목 최고 표현력·멀티클라우드 / △ 없음 (기능만 보면 최강) |
-| **안정성** | AWS 관리형 데이터 플레인, 고객 관리 컴포넌트 최소. quota 상한이 실질 리스크 | 커널 datapath 성숙. 단 CNI=메시라 장애 반경 최대 | 프로덕션 이력 최장. 단 안정성 전제(CA·게이트웨이·skew)를 전부 고객이 유지 |
-| **운영편의성** | ◎ **컨트롤 플레인이 클러스터 밖에 있는 유일한 후보** | △ CNI 교체 + 3종 컴포넌트 자체 운영, AWS 공식 지원 아님 | ✕ N개 istiod + N×(N−1) remote secret + 게이트웨이. 상용 지원으로 완화만 가능 |
-| **비용** | 종량제(시간+GB+요청). 소~중 트래픽에 유리, 대용량은 시뮬레이션 필수. L3 연결 비용 없음 | SW 무료 + L3 연결 요금 + 전담 인력. 대용량 트래픽에 유리 | SW 무료 + 사이드카 리소스 + 게이트웨이·L3 요금 + **최대 인력 비용** |
-| **적합한 환경** | HTTP/gRPC 중심, 멀티 계정/VPC, 운영 인력 최소화 | Cilium 기보유, TCP/UDP 필수, 최저 지연, 전담 네트워킹 팀 | 전 구간 SPIFFE mTLS 감사 요건, 멀티클라우드 full mesh, 전담 플랫폼 팀 |
+| Axis | VPC Lattice + GW API Controller | Cilium ClusterMesh | Istio multi-primary |
+|------|--------------------------------|--------------------|--------------------|
+| **Functionality** | ◎ HTTP/gRPC, IAM authorization, account boundaries / △ TCP constraints, no UDP, no mesh observability | ◎ All protocols, lowest latency / △ Cross-cluster L7 expressiveness, no SPIFFE mutual auth | ◎ Highest expressiveness everywhere, multi-cloud / △ None (on features alone, the strongest) |
+| **Stability** | AWS-managed data plane, minimal customer components. Quota ceilings are the practical risk | Mature kernel datapath. But CNI = mesh, so the largest blast radius | Longest production record. But every stability precondition (CA, gateways, skew) is customer-kept |
+| **Operability** | ◎ **The only candidate with the control plane outside the cluster** | △ CNI replacement + three self-operated components; not AWS-supported | ✕ N istiods + N×(N−1) remote secrets + gateways. Commercial support only mitigates |
+| **Cost** | Pay-as-you-go (hourly + GB + requests). Favorable at small-to-medium traffic; simulate at high volume. No L3 cost | Free software + L3 charges + dedicated headcount. Favorable at high traffic | Free software + sidecar resources + gateway/L3 charges + **highest headcount** |
+| **Environment it suits** | HTTP/gRPC-centric, multi-account/VPC, minimal ops staffing | Cilium already in place, TCP/UDP required, lowest latency, dedicated networking team | SPIFFE mTLS audit requirement, multi-cloud full mesh, dedicated platform team |
 
-## 5. 의사결정 트리
+## 5. Decision Tree
 
 ```mermaid
 flowchart TD
-    start["EKS 멀티클러스터<br/>East-West 통신 필요"] --> q0{"App Mesh 사용 중?"}
-    q0 -->|예| eol["2026-09-30 EOL —<br/>아래 기준으로 이전 대상 선정"]
-    q0 -->|아니오| q1
-    eol --> q1{"클러스터 간 트래픽에<br/>순수 TCP/UDP 비중이 큰가?"}
-    q1 -->|"예 (DB·브로커·커스텀 프로토콜)"| q2{"CNI가 이미 Cilium<br/>(또는 전환 확정)?"}
-    q1 -->|"아니오 (HTTP/gRPC 중심)"| q4
-    q2 -->|예| cilium["Cilium ClusterMesh<br/>+ L3 연결 (peering/TGW)"]
-    q2 -->|아니오| q3{"전 구간 SPIFFE mTLS<br/>또는 멀티클라우드 요건?"}
-    q3 -->|예| istio["Istio multi-primary 유지<br/>(운영 부담 크면 상용 지원 검토)"]
-    q3 -->|아니오| tcp_lattice["TCP는 Lattice TLS passthrough로<br/>수용 가능한지 PoC 검증<br/>(불가 시 Istio 유지)"]
-    q4{"전 구간 SPIFFE mTLS가<br/>감사 요건으로 명문화?"} -->|예| istio
-    q4 -->|아니오| q5{"멀티클라우드·온프레미스<br/>포함 full mesh 필요?"}
-    q5 -->|예| istio
-    q5 -->|아니오| lattice["VPC Lattice +<br/>AWS Gateway API Controller"]
+    start["EKS multi-cluster<br/>East-West communication needed"] --> q0{"Using App Mesh?"}
+    q0 -->|Yes| eol["EOL 2026-09-30 —<br/>pick a target below"]
+    q0 -->|No| q1
+    eol --> q1{"Large share of raw TCP/UDP<br/>across clusters?"}
+    q1 -->|"Yes (DBs, brokers, custom protocols)"| q2{"CNI already Cilium<br/>(or switch committed)?"}
+    q1 -->|"No (HTTP/gRPC-centric)"| q4
+    q2 -->|Yes| cilium["Cilium ClusterMesh<br/>+ L3 underlay (peering/TGW)"]
+    q2 -->|No| q3{"End-to-end SPIFFE mTLS<br/>or multi-cloud requirement?"}
+    q3 -->|Yes| istio["Keep Istio multi-primary<br/>(consider commercial support)"]
+    q3 -->|No| tcp_lattice["PoC whether TCP fits<br/>Lattice TLS passthrough<br/>(else keep Istio)"]
+    q4{"End-to-end SPIFFE mTLS<br/>codified as audit requirement?"} -->|Yes| istio
+    q4 -->|No| q5{"Full mesh including<br/>multi-cloud / on-prem?"}
+    q5 -->|Yes| istio
+    q5 -->|No| lattice["VPC Lattice +<br/>AWS Gateway API Controller"]
 
     style lattice fill:#fff3e0,stroke:#e65100
     style cilium fill:#e8f5e9,stroke:#2e7d32
     style istio fill:#e3f2fd,stroke:#1565c0
 ```
 
-**권장안 요약:**
+**Recommendations:**
 
-- **기본 권장**: HTTP/gRPC 중심 멀티클러스터라면 VPC Lattice + Gateway API Controller로 메시 없이 통신 요건을 충족하고, 컨트롤 플레인 운영을 제거합니다.
-- **Istio 유지가 정답인 경우**: 전 구간 SPIFFE mTLS 감사 요건, 멀티클라우드 full mesh, 고급 L7 제어가 사업 요구일 때. 이때 운영 부담은 상용 지원(레버 a)과 Ambient 전환(레버 b, 단 멀티클러스터 Ambient는 Beta — PoC 전제)으로 완화합니다.
-- **Cilium ClusterMesh는 조건부**: Cilium CNI 기보유 + TCP/UDP + 전담 역량이 모두 갖춰진 경우에만.
+- **Default recommendation**: For HTTP/gRPC-centric multi-cluster, meet the communication requirements without a mesh via VPC Lattice + Gateway API Controller, and eliminate control-plane operations.
+- **When keeping Istio is the right answer**: end-to-end SPIFFE mTLS audit requirements, multi-cloud full mesh, or advanced L7 control as a business requirement. Mitigate the burden with commercial support (lever a) and an ambient transition (lever b — noting multi-cluster ambient is Beta, so PoC first).
+- **Cilium ClusterMesh is conditional**: only when Cilium CNI is already in place, TCP/UDP is required, and dedicated capability exists — all three.
 
-단일 클러스터 내 메시 선택 기준은 [서비스 메시 비교 가이드](./index.md)로 위임합니다.
+Single-cluster mesh selection is delegated to the [Service Mesh Comparison Guide](./index.md).
 
-## 6. 트레이드오프와 주의사항
+## 6. Trade-offs and Cautions
 
-**VPC Lattice를 선택하기 전에 반드시 확인할 것:**
+**Before choosing VPC Lattice, verify:**
 
-- **L7 중심 서비스라는 점.** Lattice는 HTTP/HTTPS·gRPC와 TCP(TLS passthrough)를 지원하지만, TLS passthrough에는 제약이 있습니다 — 커스텀 도메인(SNI 매칭) 필수, 기본 규칙만 허용(경로·헤더 라우팅 불가), TCP 타깃 그룹으로만 포워딩, **연결 수명 10분 상한**, auth policy는 익명 주체만 지원(확인 2026-07-16). 장수명 TCP 연결(DB 커넥션 풀, 스트리밍)이 있다면 이 상한이 실질적 차단 요인일 수 있으므로 PoC에서 반드시 검증합니다. UDP는 미지원입니다.
-- **전 구간 SPIFFE mTLS 요건이면 재검토.** Lattice의 보안 모델은 "TLS 종단 + IAM 요청 인가"입니다. 감사 요건이 "워크로드 간 X.509 상호 인증 증적"을 문자 그대로 요구하면 Lattice 단독으로는 충족이 어렵습니다. 컴플라이언스 담당과 요건 문구의 해석을 먼저 합의해야 합니다.
-- **메시급 관측성 부재.** Kiali 수준의 실시간 토폴로지 그래프·서비스 간 골든 시그널 자동 수집은 없습니다. CloudWatch 메트릭·액세스 로그와 X-Ray 조합으로 대체 가능한지 관측성 요건을 먼저 정의합니다.
-- **quota 설계.** 서비스 네트워크는 VPC당 1개만 연결 가능(조정 불가), auth policy 10 KB 상한, 리스너당 규칙 10개(조정 가능) 등 아키텍처에 영향을 주는 한도가 있습니다. 서비스 수·규칙 수 전망을 quota와 대조한 뒤 설계를 확정합니다.
-- **요금 시뮬레이션.** 처리량 $0.025/GB는 크로스 AZ 요금($0.01/GB×양방향)보다 높습니다. 트래픽이 매우 큰 소수 경로는 Lattice를 우회(동일 클러스터 배치, 직접 연결)하는 하이브리드 설계가 비용 효율적일 수 있습니다.
+- **It is L7-centric.** Lattice supports HTTP/HTTPS, gRPC, and TCP via TLS passthrough — but passthrough carries constraints: a custom domain (SNI match) is mandatory, only the default rule is allowed (no path/header routing), forwarding must target a TCP target group, **connection lifetime is capped at 10 minutes**, and auth policies support anonymous principals only (verified 2026-07-16). Long-lived TCP connections (database connection pools, streaming) can make this cap a hard blocker — test it in the PoC. UDP is not supported.
+- **Reconsider if end-to-end SPIFFE mTLS is required.** Lattice's security model is "TLS termination + IAM request authorization." If the audit requirement literally demands "X.509 mutual authentication evidence between workloads," Lattice alone will struggle to satisfy it. Agree on the interpretation of the compliance wording with your compliance owner first.
+- **No mesh-grade observability.** There is no Kiali-level real-time topology graph or automatic golden-signal collection between services. Define your observability requirements first and check whether CloudWatch metrics/access logs plus X-Ray can substitute.
+- **Design against quotas.** Architecture-shaping limits exist: one service network per VPC (non-adjustable), a 10 KB auth-policy cap, 10 rules per listener (adjustable), and others. Check projected service and rule counts against quotas before finalizing the design.
+- **Simulate pricing.** The $0.025/GB processing charge exceeds cross-AZ charges ($0.01/GB × both directions). For a few very-high-volume paths, a hybrid design that bypasses Lattice (same-cluster placement, direct connectivity) can be more cost-efficient.
 
-**Cilium ClusterMesh를 선택하기 전에:**
+**Before choosing Cilium ClusterMesh:**
 
-- EKS에서 Cilium CNI 자체가 AWS 공식 지원 대상이 아니라는 점을 조직 리스크로 승인받아야 합니다(벤더 상용 지원 계약 권고).
-- PodCIDR 비중복은 **사후 교정이 불가능한 설계 결정**입니다. 기존 클러스터의 CIDR이 겹치면 클러스터 재구축이 전제됩니다.
-- SPIFFE 상호 인증(Beta)이 ClusterMesh와 호환되지 않으므로, "메시급 워크로드 신원"을 기대하고 도입하면 안 됩니다.
+- Cilium CNI on EKS is outside official AWS support — get this accepted as an organizational risk (vendor commercial support recommended).
+- Non-overlapping PodCIDRs are a **design decision that cannot be corrected later**. Overlapping CIDRs in existing clusters imply cluster rebuilds.
+- SPIFFE mutual authentication (Beta) is incompatible with ClusterMesh — do not adopt it expecting mesh-grade workload identity.
 
-**Istio를 유지하기로 했다면:**
+**If you decide to keep Istio:**
 
-- 운영 부담의 근본 원인(사이드카 수명주기, CA 순환, 버전 skew)은 유지 결정으로 사라지지 않습니다. Ambient 전환(단일 클러스터부터), revision 기반 canary 업그레이드, 상용 지원 계약 중 최소 하나의 완화책을 함께 결정해야 합니다.
-- 멀티클러스터 Ambient는 Beta(1.30 기준)이므로 프로덕션 전환 전 PoC로 waypoint 동기화·failover 동작을 검증합니다.
+- The root causes of the burden (sidecar lifecycle, CA rotation, version skew) do not disappear with the decision to stay. Pair it with at least one mitigation: ambient migration (starting single-cluster), revision-based canary upgrades, or a commercial support contract.
+- Multi-cluster ambient is Beta (as of 1.30) — validate waypoint synchronization and failover behavior in a PoC before production.
 
-## 7. Istio에서 VPC Lattice로의 마이그레이션 단계
+## 7. Migration Steps from Istio to VPC Lattice
 
-선택안이 Lattice인 경우의 전환 경로입니다. 핵심 원칙은 **빅뱅 전환 금지, 서비스 단위 병행 운영**입니다.
+The transition path when Lattice is the chosen target. The governing principle: **no big-bang cutover — run both paths, migrate service by service**.
 
-1. **준비 (병행 기반 구축)**: Gateway API Controller 설치, 서비스 네트워크 생성·VPC 연결, 클러스터 보안 그룹에 Lattice prefix list 허용. 기존 Istio 트래픽에는 영향이 없습니다.
-2. **파일럿 서비스 선정**: HTTP/gRPC이고, 다운스트림이 적고, SLO 여유가 있는 서비스 1~2개. `ServiceExport`/`ServiceImport`와 `HTTPRoute`를 구성하고 IAM auth policy(Pod Identity 세션 태그 조건)를 적용합니다.
-3. **이중 경로 검증**: 파일럿 서비스를 Istio 경로와 Lattice 경로 양쪽으로 노출하고, 클라이언트 일부만 Lattice DNS로 전환해 지연·에러율·인가 동작을 비교합니다([부록 B](#부록-b-poc-체크리스트) 체크리스트 사용).
-4. **서비스 단위 점진 전환**: 검증된 패턴을 서비스 그룹별로 반복합니다. 호출 관계 그래프에서 리프(다운스트림 없는 서비스)부터 전환하면 롤백 반경이 최소화됩니다.
-5. **Istio 축소**: 클러스터 간 호출이 모두 Lattice로 이전되면 east-west gateway·remote secret을 제거합니다. 클러스터 내부 mTLS·L7 정책이 여전히 필요하면 단일 클러스터 메시(Ambient 등)로 축소 운영하고, 불필요하면 메시를 완전히 제거합니다 — 이 단계에서 운영 부담 레버 (b) "아키텍처 단순화"가 실현됩니다.
-6. **롤백 계획 상시 유지**: 전환 단계마다 DNS 전환만으로 Istio 경로로 복귀할 수 있도록, Istio 리소스는 해당 서비스 그룹의 전환 안정화(권장 2주) 전까지 삭제하지 않습니다.
+1. **Prepare (build the parallel foundation)**: Install the Gateway API Controller, create the service network and associate VPCs, allow the Lattice prefix list on cluster security groups. Existing Istio traffic is unaffected.
+2. **Select pilot services**: one or two services that are HTTP/gRPC, have few downstreams, and have SLO headroom. Configure `ServiceExport`/`ServiceImport` and `HTTPRoute`, and apply an IAM auth policy (Pod Identity session-tag conditions).
+3. **Validate dual paths**: expose the pilot service on both the Istio path and the Lattice path, shift a fraction of clients to the Lattice DNS name, and compare latency, error rate, and authorization behavior (use the [Appendix B](#appendix-b-poc-checklist) checklist).
+4. **Migrate incrementally, service by service**: repeat the validated pattern per service group. Starting from leaves of the call graph (services with no downstreams) minimizes rollback blast radius.
+5. **Shrink Istio**: once all cross-cluster calls run on Lattice, remove east-west gateways and remote secrets. If in-cluster mTLS/L7 policy is still needed, shrink to a single-cluster mesh (e.g., ambient); if not, remove the mesh entirely — this step realizes lever (b), architecture simplification.
+6. **Keep a standing rollback plan**: at every stage, a DNS switch alone must restore the Istio path. Do not delete Istio resources for a service group until it has been stable post-migration (2 weeks recommended).
 
-## 8. 참고 자료
+## 8. References
 
-아래 링크는 모두 2026-07-16에 원문을 확인했습니다.
+All links verified against the source on 2026-07-16.
 
-### AWS 공식 문서
-- [Amazon EKS와 VPC Lattice 통합](https://docs.aws.amazon.com/eks/latest/userguide/integration-vpc-lattice.html) — EKS 사용자 가이드의 Lattice 통합 개요
-- [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/) — 배포 가이드, ServiceExport/ServiceImport·IAMAuthPolicy CRD 레퍼런스 (v2.1.2)
-- [Application networking with Amazon VPC Lattice and Amazon EKS](https://aws.amazon.com/blogs/containers/application-networking-with-amazon-vpc-lattice-and-amazon-eks/) — 멀티 VPC·CIDR 중복 환경 데모, link-local 데이터 패스
-- [Secure cross-cluster communication with VPC Lattice and Pod Identity IAM session tags](https://aws.amazon.com/blogs/containers/secure-cross-cluster-communication-in-eks-with-vpc-lattice-and-pod-identity-iam-session-tags/) — 세션 태그 기반 ABAC 인가, SigV4 서명 옵션
-- [VPC Lattice FAQ](https://aws.amazon.com/vpc/lattice/faqs/) · [TLS listeners](https://docs.aws.amazon.com/vpc-lattice/latest/ug/tls-listeners.html) · [Quotas](https://docs.aws.amazon.com/vpc-lattice/latest/ug/quotas.html) · [요금](https://aws.amazon.com/vpc/lattice/pricing/)
-- [Migrating from AWS App Mesh to Amazon VPC Lattice](https://aws.amazon.com/blogs/containers/migrating-from-aws-app-mesh-to-amazon-vpc-lattice/) — App Mesh EOL·신규 온보딩 차단 일정, 공식 이전 경로
-- [Alternate CNI plugins for EKS](https://docs.aws.amazon.com/eks/latest/userguide/alternate-cni-plugins.html) — 대체 CNI 지원 정책
-- [VPC Peering basics](https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html) · [Transit Gateway 요금](https://aws.amazon.com/transit-gateway/pricing/)
+### AWS official documentation
+- [Amazon EKS integration with VPC Lattice](https://docs.aws.amazon.com/eks/latest/userguide/integration-vpc-lattice.html) — EKS User Guide overview of the Lattice integration
+- [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/) — deploy guide; ServiceExport/ServiceImport and IAMAuthPolicy CRD reference (v2.1.2)
+- [Application networking with Amazon VPC Lattice and Amazon EKS](https://aws.amazon.com/blogs/containers/application-networking-with-amazon-vpc-lattice-and-amazon-eks/) — multi-VPC demo with overlapping CIDRs; link-local data path
+- [Secure cross-cluster communication with VPC Lattice and Pod Identity IAM session tags](https://aws.amazon.com/blogs/containers/secure-cross-cluster-communication-in-eks-with-vpc-lattice-and-pod-identity-iam-session-tags/) — session-tag ABAC authorization, SigV4 signing options
+- [VPC Lattice FAQ](https://aws.amazon.com/vpc/lattice/faqs/) · [TLS listeners](https://docs.aws.amazon.com/vpc-lattice/latest/ug/tls-listeners.html) · [Quotas](https://docs.aws.amazon.com/vpc-lattice/latest/ug/quotas.html) · [Pricing](https://aws.amazon.com/vpc/lattice/pricing/)
+- [Migrating from AWS App Mesh to Amazon VPC Lattice](https://aws.amazon.com/blogs/containers/migrating-from-aws-app-mesh-to-amazon-vpc-lattice/) — App Mesh EOL and onboarding-block timeline; official migration path
+- [Alternate CNI plugins for EKS](https://docs.aws.amazon.com/eks/latest/userguide/alternate-cni-plugins.html) — alternate CNI support policy
+- [VPC Peering basics](https://docs.aws.amazon.com/vpc/latest/peering/vpc-peering-basics.html) · [Transit Gateway pricing](https://aws.amazon.com/transit-gateway/pricing/)
 
-### Upstream 공식 문서
-- [Istio Multicluster Installation](https://istio.io/latest/docs/setup/install/multicluster/) · [Before you begin](https://istio.io/latest/docs/setup/install/multicluster/before-you-begin/) — multi-primary/primary-remote 토폴로지, 공통 CA·east-west gateway 요건
-- [Istio Ambient Multicluster](https://istio.io/latest/docs/ambient/install/multicluster/) — Beta 상태, 지원 토폴로지와 제약 (1.30 기준)
-- [Cilium ClusterMesh](https://docs.cilium.io/en/stable/network/clustermesh/clustermesh/) · [Global Services](https://docs.cilium.io/en/stable/network/clustermesh/services/) — 전제 조건, 클러스터 한도, global service 어노테이션
-- [Cilium Mutual Authentication](https://docs.cilium.io/en/stable/network/servicemesh/mutual-authentication/mutual-authentication/) — Beta 상태, ClusterMesh 비호환 명시
-- [Cilium AWS VPC CNI chaining](https://docs.cilium.io/en/stable/installation/cni-chaining-aws-cni/) — chaining 모드 제약
-- [Linkerd Multi-cluster](https://linkerd.io/2-edge/features/multicluster/) · [Releases](https://linkerd.io/releases/) — 3가지 연결 모드, 배포 정책
+### Upstream documentation
+- [Istio Multicluster Installation](https://istio.io/latest/docs/setup/install/multicluster/) · [Before you begin](https://istio.io/latest/docs/setup/install/multicluster/before-you-begin/) — multi-primary/primary-remote topologies; common CA and east-west gateway requirements
+- [Istio Ambient Multicluster](https://istio.io/latest/docs/ambient/install/multicluster/) — Beta status; supported topologies and limitations (as of 1.30)
+- [Cilium ClusterMesh](https://docs.cilium.io/en/stable/network/clustermesh/clustermesh/) · [Global Services](https://docs.cilium.io/en/stable/network/clustermesh/services/) — prerequisites, cluster limits, global-service annotations
+- [Cilium Mutual Authentication](https://docs.cilium.io/en/stable/network/servicemesh/mutual-authentication/mutual-authentication/) — Beta status; ClusterMesh incompatibility stated
+- [Cilium AWS VPC CNI chaining](https://docs.cilium.io/en/stable/installation/cni-chaining-aws-cni/) — chaining-mode limitations
+- [Linkerd Multi-cluster](https://linkerd.io/2-edge/features/multicluster/) · [Releases](https://linkerd.io/releases/) — three connection modes; distribution policy
 - [Consul Cluster Peering](https://developer.hashicorp.com/consul/docs/east-west/cluster-peering)
-- [Gateway API GAMMA](https://gateway-api.sigs.k8s.io/concepts/gamma/) · [Implementations](https://gateway-api.sigs.k8s.io/implementations/) — 메시 프로파일 GA 및 구현체 준수 현황
+- [Gateway API GAMMA](https://gateway-api.sigs.k8s.io/concepts/gamma/) · [Implementations](https://gateway-api.sigs.k8s.io/implementations/) — mesh-profile GA and implementation conformance
 
-### 관련 문서 (내부)
-- [서비스 메시 비교 가이드](./index.md) — 단일 클러스터 관점의 메시 솔루션 선택
-- [GAMMA Initiative](./gamma-initiative.md) — Gateway API 기반 메시 표준화
-- [East-West 트래픽 최적화](../east-west-traffic-best-practice.md) — 도입 후 지연·크로스 AZ 비용 최적화, Istio 사이드카 오버헤드 정량 수치
-- [Gateway API 도입 가이드](../gateway-api-adoption-guide/index.md) — North-South 트래픽 관리
+### Related documents (internal)
+- [Service Mesh Comparison Guide](./index.md) — single-cluster mesh selection
+- [GAMMA Initiative](./gamma-initiative.md) — Gateway API-based mesh standardization
+- [East-West Traffic Optimization](../east-west-traffic-best-practice.md) — post-adoption latency and cross-AZ cost optimization; quantified Istio sidecar overhead
+- [Gateway API Adoption Guide](../gateway-api-adoption-guide/index.md) — North-South traffic management
 
-## 부록 A. 요건 확인 질문 목록
+## Appendix A. Requirement Confirmation Questions
 
-아키텍처 확정 전에 답해야 하는 질문입니다. 워크숍 1회(2시간)로 확인하는 것을 권장합니다.
+Questions to answer before finalizing the architecture. A single two-hour workshop is recommended.
 
-**프로토콜·트래픽**
-1. 클러스터 경계를 넘는 호출 경로를 전수 나열했는가? 각 경로의 프로토콜(HTTP/1.1, HTTP/2, gRPC, TCP, UDP)은?
-2. 장수명 TCP 연결(DB, 메시지 브로커, WebSocket/스트리밍)이 클러스터 경계를 넘는가? 연결 수명 분포는?
-3. 경로별 트래픽 볼륨(GB/월, RPS 피크)은? 상위 3개 경로가 전체의 몇 %인가?
+**Protocol and traffic**
+1. Have all cross-cluster call paths been enumerated? What is each path's protocol (HTTP/1.1, HTTP/2, gRPC, TCP, UDP)?
+2. Do long-lived TCP connections (databases, message brokers, WebSocket/streaming) cross cluster boundaries? What is the connection-lifetime distribution?
+3. What is the traffic volume per path (GB/month, peak RPS)? What share do the top three paths represent?
 
-**경계·토폴로지**
-4. 클러스터들이 속한 VPC·계정 수는? CIDR 중복이 있는가?
-5. 향후 24개월 내 클러스터 추가 계획(수, 리전, 클라우드)은? 온프레미스·타 클라우드 연결 요구가 있는가?
+**Boundaries and topology**
+4. How many VPCs and accounts do the clusters span? Are there overlapping CIDRs?
+5. What cluster growth is planned in the next 24 months (count, regions, clouds)? Any on-premises or other-cloud connectivity requirements?
 
-**보안·컴플라이언스**
-6. 적용 규제(ISMS-P, PCI-DSS 등)의 암호화·상호 인증 요구 문구는 정확히 무엇인가? "워크로드 간 X.509 mTLS"를 문자 그대로 요구하는가, "전송 암호화 + 접근 통제"로 충족되는가?
-7. 서비스 간 인가의 최소 단위는? (클러스터 / 네임스페이스 / 서비스 / Pod)
-8. 인증서·키 관리 주체에 대한 정책 제약이 있는가? (자체 CA 필수 여부, ACM 사용 가능 여부)
+**Security and compliance**
+6. What is the exact encryption/mutual-authentication wording of the applicable regulations (ISMS-P, PCI-DSS, etc.)? Does it literally require "X.509 mTLS between workloads," or is "transport encryption + access control" sufficient?
+7. What is the smallest unit of service-to-service authorization? (cluster / namespace / service / pod)
+8. Are there policy constraints on certificate/key ownership? (own-CA mandate, ACM permissibility)
 
-**관측성·운영**
-9. 현재 Kiali·Jaeger에서 실제로 사용 중인 화면·알람은 무엇인가? (전환 후 동등물이 필요한 범위 확정)
-10. 메시/네트워킹 전담 인력은 몇 명이며, Istio 업그레이드 1회에 현재 몇 인일이 드는가?
-11. 현재 Istio에서 실제 사용 중인 기능 목록은? (mTLS만? VirtualService 라우팅? 장애 주입? — 미사용 기능은 대체 불요)
+**Observability and operations**
+9. Which Kiali/Jaeger views and alerts are actually in use today? (fixes the scope of required equivalents after migration)
+10. How many dedicated mesh/networking engineers are there, and how many person-days does one Istio upgrade currently take?
+11. Which Istio features are actually in use? (mTLS only? VirtualService routing? fault injection? — unused features need no replacement)
 
-## 부록 B. PoC 체크리스트
+## Appendix B. PoC Checklist
 
-파일럿 서비스 전환([7장](#7-istio에서-vpc-lattice로의-마이그레이션-단계) 2~3단계)에서 검증할 항목입니다. Lattice 기준으로 작성했으며, 다른 후보도 동일 골격을 사용합니다.
+Items to validate during pilot-service migration (steps 2–3 of [Section 7](#7-migration-steps-from-istio-to-vpc-lattice)). Written for Lattice; the same skeleton applies to other candidates.
 
-**기능 검증**
-- [ ] 클러스터 A → B HTTP/gRPC 호출 성공 (ServiceExport/Import 경유)
-- [ ] 가중치 라우팅(카나리 10/90) 동작 및 전환 시간 측정
-- [ ] 커스텀 도메인 + ACM 인증서로 TLS 호출 성공
-- [ ] IAM auth policy로 네임스페이스 단위 차단/허용 동작 (Pod Identity 세션 태그 조건)
-- [ ] 비인가 클러스터/네임스페이스에서의 호출이 거부되는지 확인
-- [ ] (해당 시) TCP 워크로드: TLS passthrough 경유 연결 + 10분 수명 상한에서의 재연결 동작
+**Functionality**
+- [ ] Cluster A → B HTTP/gRPC call succeeds (via ServiceExport/Import)
+- [ ] Weighted routing (10/90 canary) works; measure shift latency
+- [ ] TLS call succeeds with custom domain + ACM certificate
+- [ ] IAM auth policy allows/denies at namespace granularity (Pod Identity session-tag conditions)
+- [ ] Calls from unauthorized clusters/namespaces are rejected
+- [ ] (If applicable) TCP workload: connection via TLS passthrough + reconnection behavior at the 10-minute lifetime cap
 
-**안정성 검증**
-- [ ] 타깃 Pod 전체 롤링 재시작 중 호출 성공률 (Pod churn 내성)
-- [ ] 한쪽 클러스터의 컨트롤러 중단 시 기존 데이터 플레인 트래픽 지속 여부
-- [ ] AZ 장애 시뮬레이션(한 AZ 타깃 제거) 시 라우팅 동작
+**Stability**
+- [ ] Call success rate during a full rolling restart of target pods (pod-churn tolerance)
+- [ ] Existing data-plane traffic continues when one cluster's controller is down
+- [ ] Routing behavior under AZ-failure simulation (remove one AZ's targets)
 
-**성능 검증**
-- [ ] p50/p99 지연: 기존 Istio 경로 vs 신규 경로 동일 조건 비교
-- [ ] 피크 RPS에서 quota(AZ당 10,000 RPS 기본) 여유 확인
-- [ ] SigV4 서명 방식(SDK vs 서명 프록시)별 오버헤드 비교
+**Performance**
+- [ ] p50/p99 latency: existing Istio path vs new path under identical conditions
+- [ ] Headroom against quota at peak RPS (default 10,000 RPS per AZ)
+- [ ] Overhead comparison between SigV4 signing options (SDK vs signing proxy)
 
-**운영·비용 검증**
-- [ ] CloudWatch 메트릭·액세스 로그로 기존 대시보드·알람 동등물 구성 가능 여부
-- [ ] 파일럿 1개월 실측 트래픽 기준 요금 추정 → 전체 전환 시 월 비용 외삽
-- [ ] 롤백 리허설: DNS 전환만으로 Istio 경로 복귀 소요 시간 측정
+**Operations and cost**
+- [ ] Existing dashboards/alerts reproducible from CloudWatch metrics/access logs
+- [ ] Cost projection: extrapolate monthly cost for full migration from one month of measured pilot traffic
+- [ ] Rollback rehearsal: measure time to restore the Istio path via DNS switch alone

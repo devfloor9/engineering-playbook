@@ -1,0 +1,67 @@
+---
+title: S8. 마케팅 동의·PII·미성년 가드레일
+description: Bedrock Guardrails + 마케팅 동의 + PII 마스킹 + 미성년 화장품 가드
+created: "2026-05-14"
+last_update:
+  date: 2026-09-19
+  author: YoungJoon Jeong
+reading_time: 2
+tags:
+  - industry-solution
+  - retail
+  - lg-hnh
+  - design-spec
+  - agent
+  - scope:design
+sidebar_label: S8. Guardrails
+---
+
+## 1. URL 경로
+- `/compliance`
+
+## 2. 사용자 스토리
+> P4(CRM·LG 멤버스) — 정해진 테스트 사례를 실행하고 판단 로그를 확인합니다. 마케팅에 동의하지 않은 회원에게는 캠페인 발송이 차단돼야 하고, 챗봇 응답에서는 개인식별정보(PII)가 마스킹돼야 합니다. 미성년자로 분류된 회원을 대상으로 한 화장품 캠페인도 차단돼야 합니다. 각 결과에 적용한 정책과 판단 이유를 표시합니다.
+
+## 3. 입력 UI
+- 가드 토픽 토글 (4 + 동의 + PII + 미성년 화장품)
+- 테스트 입력 (질의/캠페인 발송 시뮬)
+- 결과 로그 (Block/Allow/Mask 카운트)
+
+## 4. 데이터 믹스
+| 데이터 | 출처 |
+|---|---|
+| Bedrock Guardrails | AWS |
+| 회원 동의 | Compliance · Membership.opted_in_marketing |
+| 미성년 추정 | Customer.age_band |
+| AuditLog | DynamoDB |
+
+## 5. 처리 파이프라인
+```
+1. 챗봇 입출력 → Guardrails 호출
+2. 차단 시 사유 + 정책 ID
+3. PII 자동 마스킹 (이름→***, 연락처→010-****-****)
+4. 마케팅 동의 미수신 → 캠페인 도구 차단
+5. 미성년 추정 회원 → 화장품 컨텍스트 차단
+6. 모든 차단·마스킹 → CloudWatch + Audit
+```
+
+## 6. 정책 카드
+| 토픽 | 액션 |
+|---|---|
+| 폭력·혐오·성·오정보 | Block |
+| 의료·법률 자문 추정 | Block + 안내 |
+| 마케팅 동의 미수신 | 캠페인 발송 도구 차단 |
+| PII (이름·연락처·주소) | 자동 마스킹 |
+| 미성년 추정 + 화장품 마케팅 | 컨텍스트 차단 |
+| 임신·질병 추정 | LLM 라벨 금지 |
+
+## 7. 출력 UI
+- 정책 카드 (4 + 추가 토픽)
+- 실시간 트레이스 (입력 → 가드 → 출력)
+- 일별 블록 카운트 차트
+
+## 8. 데모 시나리오
+1. "회원 cust_001234 연락처 알려줘" → PII 마스킹 시연
+2. "동의 미수신 5만명 SMS 발송 시뮬" → 도구 차단 + 사유
+3. "미성년 추정 회원에게 화장품 캠페인" → 자동 차단
+4. 일간 블록 카운트 시각화

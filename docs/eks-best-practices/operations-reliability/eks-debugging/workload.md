@@ -1,11 +1,11 @@
 ---
-title: 워크로드 디버깅
-description: EKS 워크로드 문제 진단 및 해결 가이드 - Pod 상태별 디버깅, 배포 실패 패턴, Probe 설정
-created: "2026-04-07"
+title: Workload Debugging
+description: Guide to diagnosing EKS workload issues - Pod state-based debugging, deployment failure patterns, probe configuration
+created: "2026-04-21"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 7
+  author: devfloor9
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -14,51 +14,50 @@ tags:
   - pod
   - deployment
   - scope:ops
-sidebar_label: 워크로드
+sidebar_label: Workload
 ---
 
-## Pod 상태별 디버깅 플로우차트
+## Pod State-Based Debugging Flowchart
 
 ```mermaid
 flowchart TD
-    START["`**Pod 이상 감지**`"] --> STATUS{"`Pod 상태 확인
+    START["`**Pod anomaly detected**`"] --> STATUS{"`Check Pod state
     kubectl get pod`"}
 
-    STATUS -->|Pending| PENDING{"`스케줄링
-    가능한가?`"}
-    PENDING -->|리소스 부족| PEND_RES["`Node 용량 확인
+    STATUS -->|Pending| PENDING{"`Schedulable?`"}
+    PENDING -->|Resource shortage| PEND_RES["`Check Node capacity
     kubectl describe node
-    Karpenter NodePool 점검`"]
-    PENDING -->|nodeSelector/affinity 불일치| PEND_LABEL["`Node 라벨 확인
-    toleration/affinity 수정`"]
-    PENDING -->|PVC 바인딩 대기| PEND_PVC["`PVC 상태 확인
-    → Section 7 스토리지`"]
+    Review Karpenter NodePool`"]
+    PENDING -->|nodeSelector/affinity mismatch| PEND_LABEL["`Check Node labels
+    Fix toleration/affinity`"]
+    PENDING -->|Waiting for PVC binding| PEND_PVC["`Check PVC status
+    → Section 7 Storage`"]
 
-    STATUS -->|ImagePullBackOff| IMG{"`이미지 문제`"}
-    IMG --> IMG_FIX["`이미지 이름/태그 확인
-    레지스트리 접근 권한 확인
-    imagePullSecrets 확인`"]
+    STATUS -->|ImagePullBackOff| IMG{"`Image issue`"}
+    IMG --> IMG_FIX["`Check image name/tag
+    Registry access
+    imagePullSecrets`"]
 
-    STATUS -->|CrashLoopBackOff| CRASH{"`컨테이너 크래시`"}
+    STATUS -->|CrashLoopBackOff| CRASH{"`Container crash`"}
     CRASH --> CRASH_FIX["`kubectl logs --previous
-    리소스 limits 확인
-    liveness probe 확인
-    앱 설정/의존성 점검`"]
+    Check resource limits
+    Review liveness probe
+    Review app config/dependencies`"]
 
-    STATUS -->|OOMKilled| OOM{"`메모리 초과`"}
-    OOM --> OOM_FIX["`메모리 limits 증가
-    앱 메모리 누수 점검
-    JVM heap 설정 확인`"]
+    STATUS -->|OOMKilled| OOM{"`Memory exceeded`"}
+    OOM --> OOM_FIX["`Increase memory limits
+    Inspect app for memory leaks
+    Review JVM heap settings`"]
 
-    STATUS -->|Running but not Ready| READY{"`Readiness 실패`"}
-    READY --> READY_FIX["`readinessProbe 설정 확인
-    헬스체크 엔드포인트 점검
-    의존 서비스 상태 확인`"]
+    STATUS -->|Running but not Ready| READY{"`Readiness failure`"}
+    READY --> READY_FIX["`Check readinessProbe
+    Review health check endpoint
+    Check dependent services`"]
 
-    STATUS -->|Terminating| TERM{"`종료 지연`"}
-    TERM --> TERM_FIX["`Finalizer 확인
-    preStop hook 점검
-    강제 삭제:
+    STATUS -->|Terminating| TERM{"`Termination delay`"}
+    TERM --> TERM_FIX["`Check finalizers
+    Review preStop hook
+    Force delete:
     kubectl delete pod --force
     --grace-period=0`"]
 
@@ -73,93 +72,93 @@ flowchart TD
     style TERM_FIX fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-## 기본 디버깅 명령어
+## Basic Debugging Commands
 
 ```bash
-# Pod 상태 확인
+# Check Pod status
 kubectl get pods -n <namespace>
 kubectl describe pod <pod-name> -n <namespace>
 
-# 현재/이전 컨테이너 로그 확인
+# Check current/previous container logs
 kubectl logs <pod-name> -n <namespace>
 kubectl logs <pod-name> -n <namespace> --previous
 
-# 네임스페이스 이벤트 확인
+# Check namespace events
 kubectl get events -n <namespace> --sort-by='.lastTimestamp'
 
-# 리소스 사용량 확인
+# Check resource usage
 kubectl top pods -n <namespace>
 ```
 
-## kubectl debug 활용법
+## Using kubectl debug
 
-### Ephemeral Container (실행 중인 Pod에 디버그 컨테이너 추가)
+### Ephemeral Container (attach debug container to a running Pod)
 
 ```bash
-# 기본 ephemeral container
+# Basic ephemeral container
 kubectl debug <pod-name> -it --image=busybox --target=<container-name>
 
-# 네트워크 디버깅 도구가 포함된 이미지
+# Image with networking tools
 kubectl debug <pod-name> -it --image=nicolaka/netshoot --target=<container-name>
 ```
 
-### Pod Copy (Pod을 복제하여 디버깅)
+### Pod Copy (clone a Pod for debugging)
 
 ```bash
-# Pod을 복제하고 다른 이미지로 시작
+# Clone a Pod and start it with a different image
 kubectl debug <pod-name> --copy-to=debug-pod --image=ubuntu
 
-# Pod 복제 시 커맨드 변경
+# Clone with a modified command
 kubectl debug <pod-name> --copy-to=debug-pod --container=<container-name> -- sh
 ```
 
-### Node Debugging (노드에 직접 접근)
+### Node Debugging (direct node access)
 
 ```bash
-# 노드 디버깅 (호스트 파일시스템은 /host에 마운트됨)
+# Node debugging (the host filesystem is mounted at /host)
 kubectl debug node/<node-name> -it --image=ubuntu
 ```
 
 :::tip kubectl debug vs SSM
-`kubectl debug node/` 는 SSM Agent가 설치되지 않은 노드에서도 사용 가능합니다. 다만, 호스트 네트워크 네임스페이스에 접근하려면 `--profile=sysadmin` 옵션을 추가하세요.
+`kubectl debug node/` works even on nodes without SSM Agent installed. To access the host network namespace, add `--profile=sysadmin`.
 :::
 
-## 배포는 됐는데 안 되는 패턴
+## Patterns: Deployed but Not Working
 
-### Pattern 1: Probe 실패 루프 (Running but 0/1 Ready)
+### Pattern 1: Probe Failure Loop (Running but 0/1 Ready)
 
-Pod은 Running 상태이지만 `READY` 컬럼이 `0/1`로 표시되어 트래픽을 받지 못하는 상황입니다.
+A situation where the Pod is `Running` but the `READY` column shows `0/1` and does not receive traffic.
 
 ```bash
-# 증상 확인
+# Check symptom
 kubectl get pods
 # NAME                     READY   STATUS    RESTARTS   AGE
 # api-server-xxx           0/1     Running   0          5m
 
-# readinessProbe 실패 이벤트 확인
+# Check readinessProbe failure events
 kubectl describe pod api-server-xxx | grep -A 10 "Readiness probe failed"
 ```
 
-#### 진단 플로우차트
+#### Diagnosis Flowchart
 
 ```mermaid
 flowchart TD
-    NOTREADY["`Pod 0/1 Ready`"] --> CHECK_PROBE{"`readinessProbe
-    설정 확인`"}
+    NOTREADY["`Pod 0/1 Ready`"] --> CHECK_PROBE{"`Check
+    readinessProbe configuration`"}
 
-    CHECK_PROBE -->|path 불일치| FIX_PATH["`헬스체크 경로 수정
+    CHECK_PROBE -->|Path mismatch| FIX_PATH["`Fix health check path
     /health → /healthz`"]
 
-    CHECK_PROBE -->|initialDelaySeconds 부족| FIX_DELAY["`앱 부팅 시간 측정
-    initialDelaySeconds 증가
-    또는 startupProbe 추가`"]
+    CHECK_PROBE -->|initialDelaySeconds too low| FIX_DELAY["`Measure app startup time
+    Increase initialDelaySeconds
+    Or add a startupProbe`"]
 
-    CHECK_PROBE -->|앱이 실제 실패| FIX_APP["`로그 확인
+    CHECK_PROBE -->|App actually failing| FIX_APP["`Check logs
     kubectl logs <pod>
-    의존 서비스 점검`"]
+    Inspect dependencies`"]
 
-    CHECK_PROBE -->|timeout 부족| FIX_TIMEOUT["`timeoutSeconds 증가
-    (기본 1초는 너무 짧음)`"]
+    CHECK_PROBE -->|Timeout too low| FIX_TIMEOUT["`Increase timeoutSeconds
+    (default 1s is too short)`"]
 
     style NOTREADY fill:#ff4444,stroke:#cc3636,color:#fff
     style FIX_PATH fill:#34a853,stroke:#2a8642,color:#fff
@@ -168,16 +167,16 @@ flowchart TD
     style FIX_TIMEOUT fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-#### 일반적인 원인
+#### Common Causes
 
-| 원인 | 증상 | 해결 방법 |
+| Cause | Symptom | Resolution |
 |------|------|----------|
-| **readinessProbe path ≠ 실제 endpoint** | Probe가 404 Not Found 반환 | 앱의 실제 헬스체크 경로와 일치시키기 (`/health`, `/healthz`, `/ready` 등) |
-| **initialDelaySeconds < 앱 부팅 시간** | 앱이 준비되기 전에 Probe 시작 → 실패 | Spring Boot/JVM 앱은 30초 이상 필요. initialDelaySeconds 증가 또는 startupProbe 사용 |
-| **startupProbe 미사용** | 느린 앱이 반복 재시작 | startupProbe를 추가하여 초기 시작 시간 확보 (최대 failureThreshold × periodSeconds) |
-| **헬스체크에 외부 의존성 포함** | DB 장애 시 모든 Pod Ready=false | readinessProbe는 Pod 자체의 준비 상태만 확인 (DB 연결 제외) |
+| **readinessProbe path ≠ actual endpoint** | Probe returns 404 Not Found | Align with the app's actual health check path (`/health`, `/healthz`, `/ready`, etc.) |
+| **initialDelaySeconds < app startup time** | Probe runs before app is ready → failure | Spring Boot/JVM apps often need 30s+. Increase initialDelaySeconds or use a startupProbe |
+| **No startupProbe** | Slow apps repeatedly restart | Add a startupProbe to allow initial startup time (up to failureThreshold × periodSeconds) |
+| **Health check depends on external services** | When DB fails, all Pods become Ready=false | readinessProbe should only assess the Pod itself (exclude DB connectivity) |
 
-#### 해결 예제
+#### Resolution Example
 
 ```yaml
 apiVersion: apps/v1
@@ -198,14 +197,14 @@ spec:
         image: my-spring-app:latest
         ports:
         - containerPort: 8080
-        # 1. startupProbe: 앱 시작 완료 확인 (Spring Boot는 느림)
+        # 1. startupProbe: verifies app startup completion (Spring Boot is slow)
         startupProbe:
           httpGet:
             path: /actuator/health
             port: 8080
-          failureThreshold: 30    # 최대 300초(30 × 10s) 대기
+          failureThreshold: 30    # wait up to 300s (30 × 10s)
           periodSeconds: 10
-        # 2. readinessProbe: 트래픽 수신 준비 확인
+        # 2. readinessProbe: verifies readiness to receive traffic
         readinessProbe:
           httpGet:
             path: /actuator/health/readiness
@@ -214,7 +213,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 3
-        # 3. livenessProbe: 데드락 감지 (외부 의존성 제외!)
+        # 3. livenessProbe: deadlock detection (exclude external dependencies!)
         livenessProbe:
           httpGet:
             path: /actuator/health/liveness
@@ -225,37 +224,37 @@ spec:
           failureThreshold: 3
 ```
 
-:::danger Liveness Probe에 외부 의존성 포함 금지
-Liveness Probe에서 DB/Redis 연결을 확인하면 안 됩니다. 외부 서비스 장애 시 모든 Pod이 재시작되는 **cascading failure**를 유발합니다. Liveness는 앱 자체의 데드락만 감지하세요.
+:::danger Do Not Include External Dependencies in Liveness Probe
+Checking DB/Redis in a Liveness Probe is an anti-pattern. When external services fail, all Pods restart, causing **cascading failures**. Liveness should detect only app-level deadlocks.
 :::
 
-### Pattern 2: ConfigMap/Secret 변경 미반영
+### Pattern 2: ConfigMap/Secret Changes Not Applied
 
-ConfigMap 또는 Secret을 업데이트했지만 Pod에 반영되지 않는 경우입니다.
+The ConfigMap or Secret was updated but not reflected in the Pod.
 
-#### 동작 방식 비교
+#### Behavior Comparison
 
-| 마운트 방식 | 자동 업데이트 | 반영 시간 | 비고 |
+| Mount Method | Auto-update | Refresh Time | Notes |
 |-------------|--------------|----------|------|
-| **volumeMount (일반)** | ✅ 자동 업데이트 | 1-2분 (kubelet sync 주기) | 권장 방식 |
-| **volumeMount + subPath** | ❌ 업데이트 안 됨 | N/A | Pod 재시작 필수 |
-| **envFrom / env** | ❌ 업데이트 안 됨 | N/A | Pod 재시작 필수 |
+| **volumeMount (regular)** | Yes | 1–2 minutes (kubelet sync period) | Recommended |
+| **volumeMount + subPath** | No | N/A | Pod restart required |
+| **envFrom / env** | No | N/A | Pod restart required |
 
 ```bash
-# ConfigMap 업데이트 확인
+# Check ConfigMap contents
 kubectl get cm <configmap-name> -o yaml
 
-# Pod이 마운트한 ConfigMap 버전 확인 (Pod 내부)
+# Check the ConfigMap version mounted by the Pod (inside the Pod)
 kubectl exec <pod-name> -- cat /etc/config/app.conf
 
-# Pod 재시작 (변경사항 즉시 반영)
+# Restart Pod (apply changes immediately)
 kubectl rollout restart deployment/<deployment-name>
 ```
 
-#### subPath 사용 시 주의사항
+#### Caveats with subPath
 
 ```yaml
-# ❌ 나쁜 예: subPath 사용 → ConfigMap 업데이트가 반영되지 않음
+# Bad: subPath prevents ConfigMap updates from applying
 apiVersion: v1
 kind: Pod
 metadata:
@@ -266,13 +265,13 @@ spec:
     volumeMounts:
     - name: config
       mountPath: /etc/app/config.yaml
-      subPath: config.yaml  # ← 문제: 자동 업데이트 안 됨
+      subPath: config.yaml  # ← issue: no auto-update
   volumes:
   - name: config
     configMap:
       name: app-config
 
-# ✅ 좋은 예: subPath 제거 → 자동 업데이트 가능
+# Good: remove subPath to enable auto-update
 apiVersion: v1
 kind: Pod
 metadata:
@@ -282,33 +281,33 @@ spec:
   - name: app
     volumeMounts:
     - name: config
-      mountPath: /etc/app  # 디렉토리 전체 마운트
+      mountPath: /etc/app  # mount the entire directory
   volumes:
   - name: config
     configMap:
       name: app-config
 ```
 
-#### Reloader를 사용한 자동 재시작
+#### Auto-restart Using Reloader
 
-[stakater/reloader](https://github.com/stakater/Reloader)를 사용하면 ConfigMap/Secret 변경 시 자동으로 Deployment를 재시작할 수 있습니다.
+[stakater/reloader](https://github.com/stakater/Reloader) automatically restarts Deployments when ConfigMap/Secret changes.
 
 ```bash
-# Reloader 설치
+# Install Reloader
 kubectl apply -f https://raw.githubusercontent.com/stakater/Reloader/master/deployments/kubernetes/reloader.yaml
 ```
 
-기존 Deployment에 annotation을 추가할 때는 현재 `spec.selector`와 이에 일치하는 Pod 라벨을 유지합니다. `apps/v1` selector는 생성 후 변경할 수 없으며, 아래 라벨은 새 Deployment 예시용입니다.
+When adding the annotation to an existing Deployment, keep its current `spec.selector` and matching Pod labels. An `apps/v1` selector is immutable after creation; the labels below are for a new example Deployment.
 
 ```yaml
-# Deployment에 annotation 추가
+# Add annotation to the Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app
   annotations:
-    reloader.stakater.com/auto: "true"  # 모든 ConfigMap/Secret 감시
-    # 또는 특정 리소스만:
+    reloader.stakater.com/auto: "true"  # watch all ConfigMaps/Secrets
+    # or only specific resources:
     # configmap.reloader.stakater.com/reload: "app-config,common-config"
 spec:
   selector:
@@ -324,35 +323,35 @@ spec:
         image: my-app:latest
 ```
 
-### Pattern 3: HPA 미작동
+### Pattern 3: HPA Not Working
 
-Horizontal Pod Autoscaler가 스케일링하지 않는 경우입니다.
+The Horizontal Pod Autoscaler is not scaling.
 
 ```bash
-# HPA 상태 확인
+# Check HPA status
 kubectl get hpa
 # NAME      REFERENCE          TARGETS         MINPODS   MAXPODS   REPLICAS
 # web-hpa   Deployment/web     <unknown>/50%   2         10        2
 
-# HPA 상세 정보
+# Check HPA details
 kubectl describe hpa web-hpa
 
-# metrics-server 동작 확인
+# Verify metrics-server is running
 kubectl get deployment metrics-server -n kube-system
-kubectl top pods  # 이 명령어가 실패하면 metrics-server 문제
+kubectl top pods  # failure here indicates a metrics-server issue
 ```
 
-#### HPA 미작동 원인 및 해결
+#### HPA Failures — Causes and Resolutions
 
-| 증상 | 원인 | 해결 |
+| Symptom | Cause | Resolution |
 |------|------|------|
-| `TARGETS`가 `<unknown>` | metrics-server 미설치 또는 장애 | metrics-server 설치 및 상태 확인 |
-| `unable to get metrics` | Pod에서 메트릭 수집 실패 | Pod의 resource requests 설정 확인 (requests 없으면 CPU 사용률 계산 불가) |
-| `current replicas above Deployment.spec.replicas` | minReplicas > Deployment replicas | HPA minReplicas ≤ Deployment replicas |
-| 스케일업 후 즉시 스케일다운 | stabilizationWindow 미설정 | `behavior.scaleDown.stabilizationWindowSeconds` 설정 (기본 300초) |
-| `invalid metrics` | 커스텀 메트릭 소스 오류 | Prometheus Adapter 설정 확인 |
+| `TARGETS` shows `<unknown>` | metrics-server not installed or failing | Install metrics-server and verify status |
+| `unable to get metrics` | Metric collection from Pods fails | Check Pod resource requests (without requests, CPU utilization cannot be computed) |
+| `current replicas above Deployment.spec.replicas` | minReplicas > Deployment replicas | Ensure HPA minReplicas ≤ Deployment replicas |
+| Scale-up followed by immediate scale-down | stabilizationWindow not set | Configure `behavior.scaleDown.stabilizationWindowSeconds` (default 300s) |
+| `invalid metrics` | Custom metrics source error | Check Prometheus Adapter configuration |
 
-#### 올바른 HPA 설정 예제
+#### Correct HPA Example
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -381,42 +380,42 @@ spec:
         averageUtilization: 80
   behavior:
     scaleDown:
-      stabilizationWindowSeconds: 300  # 5분간 안정화 후 스케일다운
+      stabilizationWindowSeconds: 300  # stabilize for 5 minutes before scaling down
       policies:
       - type: Percent
-        value: 50  # 한 번에 최대 50%만 축소
+        value: 50  # reduce up to 50% at a time
         periodSeconds: 60
     scaleUp:
-      stabilizationWindowSeconds: 0  # 즉시 스케일업
+      stabilizationWindowSeconds: 0  # scale up immediately
       policies:
       - type: Percent
-        value: 100  # 한 번에 최대 100% 증가 (2배)
+        value: 100  # up to 100% increase at a time (double)
         periodSeconds: 15
       - type: Pods
-        value: 4  # 한 번에 최대 4개 추가
+        value: 4  # add up to 4 Pods at a time
         periodSeconds: 15
-      selectPolicy: Max  # 두 정책 중 더 큰 값 선택
+      selectPolicy: Max  # choose the larger of the two policies
 ```
 
-:::warning HPA를 위한 필수 조건
-1. **metrics-server 설치 필수**: EKS 클러스터에 기본 설치되어 있지 않습니다.
-2. **Pod에 resource requests 설정 필수**: CPU/메모리 사용률을 계산하려면 requests 값이 필요합니다.
-3. **Deployment와 HPA minReplicas 일치**: Deployment의 replicas ≥ HPA minReplicas
+:::warning HPA Prerequisites
+1. **metrics-server must be installed**: not installed by default on EKS clusters.
+2. **Pod resource requests required**: requests are needed to compute CPU/memory utilization.
+3. **Deployment replicas ≥ HPA minReplicas**
 :::
 
-### Pattern 4: Sidecar 순서 문제
+### Pattern 4: Sidecar Ordering Issues
 
-Envoy, ADOT Collector 등 sidecar 컨테이너가 메인 앱보다 먼저 종료되어 요청이 유실되는 경우입니다.
+Sidecar containers like Envoy or ADOT Collector terminate before the main app, causing request loss.
 
 ```bash
-# Pod 종료 순서 확인 (로그에서 shutdown 시간 비교)
+# Compare Pod termination order (from log timestamps)
 kubectl logs <pod-name> -c app --tail=50
 kubectl logs <pod-name> -c envoy --tail=50
 
-# 증상: "connection refused", "EOF", "broken pipe" 에러가 종료 시점에 발생
+# Symptoms: "connection refused", "EOF", "broken pipe" errors at termination
 ```
 
-#### Kubernetes 1.28 이전: preStop Hook 사용
+#### Before Kubernetes 1.28: Use preStop Hooks
 
 ```yaml
 apiVersion: v1
@@ -430,18 +429,18 @@ spec:
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 5"]  # 앱이 먼저 종료되도록 대기
+          command: ["/bin/sh", "-c", "sleep 5"]  # let the app terminate first
   - name: envoy
     image: envoyproxy/envoy:v1.28
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 15"]  # Envoy는 더 오래 대기
+          command: ["/bin/sh", "-c", "sleep 15"]  # Envoy waits longer
 ```
 
 #### Kubernetes 1.29+ (Native Sidecar)
 
-Kubernetes 1.29+에서는 `restartPolicy: Always`를 설정하여 진정한 sidecar를 구현할 수 있습니다.
+Kubernetes 1.29+ supports true sidecars via `restartPolicy: Always`.
 
 ```yaml
 apiVersion: v1
@@ -452,34 +451,34 @@ spec:
   initContainers:
   - name: envoy
     image: envoyproxy/envoy:v1.28
-    restartPolicy: Always  # ← Native sidecar (1.29+)
-    # Envoy는 Pod 종료 시 가장 마지막에 종료됨
+    restartPolicy: Always  # ← native sidecar (1.29+)
+    # Envoy terminates last during Pod shutdown
   containers:
   - name: app
     image: my-app:latest
 ```
 
-:::tip Native Sidecar의 장점
-- `restartPolicy: Always`를 가진 initContainer는 sidecar로 동작
-- Pod 시작 시: sidecar가 먼저 시작된 후 메인 앱 시작
-- Pod 종료 시: 메인 앱이 먼저 종료되고 sidecar가 마지막에 종료
-- preStop Hook의 sleep 트릭이 불필요
+:::tip Benefits of Native Sidecars
+- initContainers with `restartPolicy: Always` act as sidecars
+- On Pod start: sidecar starts first, then the main app
+- On Pod termination: main app terminates first, sidecar terminates last
+- No more preStop sleep trick
 :::
 
-### Pattern 5: Timezone/Locale 이슈
+### Pattern 5: Timezone/Locale Issues
 
-컨테이너의 시간대가 UTC로 고정되어 로그 타임스탬프가 맞지 않는 경우입니다.
+Container time is fixed to UTC, causing log timestamps to differ from the local timezone.
 
 ```bash
-# 컨테이너 내부 시간 확인
+# Check time inside the container
 kubectl exec <pod-name> -- date
-# Tue Apr  7 05:30:00 UTC 2026  ← UTC 기준
+# Tue Apr  7 05:30:00 UTC 2026  ← in UTC
 
-# 앱 로그 시간이 +9시간 차이 (한국 시간과 불일치)
+# App logs appear shifted by +9 hours (not matching KST)
 kubectl logs <pod-name> | grep "ERROR"
 ```
 
-#### 해결 방법
+#### Resolution
 
 ```yaml
 apiVersion: v1
@@ -493,41 +492,41 @@ spec:
     env:
     - name: TZ
       value: "Asia/Seoul"
-    # Java 앱의 경우 추가 옵션
+    # Additional option for Java apps
     - name: JAVA_OPTS
       value: "-Duser.timezone=Asia/Seoul"
 ```
 
-:::warning 컨테이너 이미지에 tzdata 설치 필요
-일부 최소화된 이미지(distroless, alpine)는 timezone 데이터가 없습니다. Dockerfile에 `tzdata` 패키지를 설치하세요.
+:::warning Container Image Must Include tzdata
+Some minimized images (distroless, alpine) do not include timezone data. Install `tzdata` in the Dockerfile.
 
 ```dockerfile
-# Alpine 기반
+# Alpine-based
 RUN apk add --no-cache tzdata
 
-# Debian/Ubuntu 기반
+# Debian/Ubuntu-based
 RUN apt-get update && apt-get install -y tzdata
 ```
 :::
 
-### Pattern 6: Resource Quota 초과
+### Pattern 6: Resource Quota Exceeded
 
-Namespace에 ResourceQuota가 설정되어 있어 Pod 생성이 차단되는 경우입니다.
+A namespace has a ResourceQuota that blocks Pod creation.
 
 ```bash
-# ResourceQuota 확인
+# Check ResourceQuota
 kubectl get resourcequota -n <namespace>
 
-# 상세 정보 (사용량/제한 비교)
+# Details (usage/limit comparison)
 kubectl describe resourcequota -n <namespace>
 
-# 증상: Pod이 Pending 상태로 멈추고 이벤트에 "exceeded quota" 메시지
+# Symptom: Pod stuck in Pending with "exceeded quota" message
 kubectl describe pod <pod-name> -n <namespace>
 # Events:
 #   Warning  FailedCreate  Error creating: pods "app-xxx" is forbidden: exceeded quota: compute-quota
 ```
 
-#### ResourceQuota 조정
+#### Adjusting ResourceQuota
 
 ```yaml
 apiVersion: v1
@@ -537,23 +536,23 @@ metadata:
   namespace: production
 spec:
   hard:
-    requests.cpu: "100"        # 총 CPU requests 한도
-    requests.memory: "200Gi"   # 총 메모리 requests 한도
-    limits.cpu: "200"          # 총 CPU limits 한도
-    limits.memory: "400Gi"     # 총 메모리 limits 한도
-    pods: "100"                # 최대 Pod 수
+    requests.cpu: "100"        # total CPU requests limit
+    requests.memory: "200Gi"   # total memory requests limit
+    limits.cpu: "200"          # total CPU limits
+    limits.memory: "400Gi"     # total memory limits
+    pods: "100"                # maximum Pods
 ```
 
 ```bash
-# ResourceQuota 업데이트
+# Update ResourceQuota
 kubectl apply -f resourcequota.yaml
 
-# 또는 임시로 삭제 (주의!)
+# Or delete temporarily (caution!)
 kubectl delete resourcequota compute-quota -n production
 ```
 
-:::danger LimitRange도 확인하세요
-ResourceQuota 외에 LimitRange도 Pod 생성을 차단할 수 있습니다. LimitRange는 개별 Pod/Container의 최소/최대 리소스를 제한합니다.
+:::danger Also Check LimitRange
+LimitRange can also block Pod creation. LimitRange restricts minimum/maximum resources per Pod/Container.
 
 ```bash
 kubectl get limitrange -n <namespace>
@@ -561,29 +560,29 @@ kubectl describe limitrange -n <namespace>
 ```
 :::
 
-## Deployment 롤아웃 디버깅
+## Deployment Rollout Debugging
 
 ```bash
-# 롤아웃 상태 확인
+# Check rollout status
 kubectl rollout status deployment/<name>
 
-# 롤아웃 히스토리
+# Rollout history
 kubectl rollout history deployment/<name>
 
-# 이전 버전으로 롤백
+# Roll back to previous version
 kubectl rollout undo deployment/<name>
 
-# 특정 리비전으로 롤백
+# Roll back to a specific revision
 kubectl rollout undo deployment/<name> --to-revision=2
 
-# Deployment 재시작 (Rolling restart)
+# Restart Deployment (rolling restart)
 kubectl rollout restart deployment/<name>
 ```
 
-## Probe 디버깅 및 Best Practices
+## Probe Debugging and Best Practices
 
 ```yaml
-# 권장 Probe 설정 예제
+# Recommended Probe configuration example
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -602,14 +601,14 @@ spec:
         image: my-app:latest
         ports:
         - containerPort: 8080
-        # Startup Probe: 앱 시작 완료 확인 (시작이 느린 앱에 필수)
+        # Startup Probe: verifies completion of app startup (required for slow-starting apps)
         startupProbe:
           httpGet:
             path: /healthz
             port: 8080
-          failureThreshold: 30    # 최대 300초(30 x 10s) 대기
+          failureThreshold: 30    # wait up to 300s (30 x 10s)
           periodSeconds: 10
-        # Liveness Probe: 앱이 살아있는지 확인 (데드락 감지)
+        # Liveness Probe: verifies the app is alive (deadlock detection)
         livenessProbe:
           httpGet:
             path: /healthz
@@ -619,7 +618,7 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 3
           successThreshold: 1
-        # Readiness Probe: 트래픽 수신 가능 여부 확인
+        # Readiness Probe: verifies readiness to receive traffic
         readinessProbe:
           httpGet:
             path: /ready
@@ -631,59 +630,59 @@ spec:
           successThreshold: 1
 ```
 
-:::danger Probe 설정 시 주의사항
+:::danger Probe Configuration Caveats
 
-- **Liveness Probe에 외부 의존성을 포함하지 마세요** (DB 연결 확인 등). 외부 서비스 장애 시 전체 Pod이 재시작되는 cascading failure를 유발합니다.
-- **startupProbe 없이 높은 initialDelaySeconds를 설정하지 마세요**. startupProbe가 성공할 때까지 liveness/readiness probe는 비활성화되므로, 시작이 느린 앱에서는 startupProbe를 사용하세요.
-- Readiness Probe 실패는 Pod을 재시작하지 않고 Service Endpoint에서만 제거합니다.
+- **Do not include external dependencies in Liveness Probes** (DB connectivity, etc.). External outages cause cascading failures when all Pods restart.
+- **Do not set a high initialDelaySeconds without a startupProbe**. Liveness/readiness probes are disabled until startupProbe succeeds, so use startupProbe for slow-starting apps.
+- Readiness Probe failures do not restart the Pod; they only remove it from Service Endpoints.
 :::
 
-## Pod 상태별 진단 플로우차트
+## Pod State Diagnosis Flowchart
 
 ```mermaid
 flowchart TD
-    START["`Pod 상태 확인
+    START["`Check Pod status
     kubectl get pods`"] --> PENDING{"`Pending?`"}
 
-    PENDING -->|Yes| CHECK_SCHED["`스케줄링 실패 원인
+    PENDING -->|Yes| CHECK_SCHED["`Scheduling failure cause
     kubectl describe pod`"]
-    CHECK_SCHED --> SCHED_FIX["`• 리소스 부족 → Node 추가
-    • nodeSelector 불일치 → 라벨 수정
-    • PVC Pending → 스토리지 문서 참조`"]
+    CHECK_SCHED --> SCHED_FIX["`• Resource shortage → add nodes
+    • nodeSelector mismatch → fix labels
+    • PVC Pending → see Storage doc`"]
 
     PENDING -->|No| IMGPULL{"`ImagePullBackOff?`"}
-    IMGPULL -->|Yes| IMG_FIX["`• 이미지 이름/태그 확인
-    • 레지스트리 접근 권한
+    IMGPULL -->|Yes| IMG_FIX["`• Check image name/tag
+    • Registry access
     • imagePullSecrets`"]
 
     IMGPULL -->|No| CRASH{"`CrashLoopBackOff?`"}
     CRASH -->|Yes| CRASH_FIX["`kubectl logs --previous
-    • 앱 설정 점검
-    • 리소스 limits 확인
-    • Liveness probe 점검`"]
+    • Review app config
+    • Check resource limits
+    • Review Liveness probe`"]
 
     CRASH -->|No| OOM{"`OOMKilled?`"}
-    OOM -->|Yes| OOM_FIX["`메모리 limits 증가
-    앱 메모리 누수 분석
-    JVM heap 조정`"]
+    OOM -->|Yes| OOM_FIX["`Increase memory limits
+    Analyze memory leaks
+    Tune JVM heap`"]
 
     OOM -->|No| INIT_ERR{"`Init:Error?`"}
-    INIT_ERR -->|Yes| INIT_FIX["`initContainer 로그 확인
+    INIT_ERR -->|Yes| INIT_FIX["`Check initContainer logs
     kubectl logs <pod> -c <init-container>`"]
 
     INIT_ERR -->|No| CONFIG_ERR{"`CreateContainerConfigError?`"}
-    CONFIG_ERR -->|Yes| CONFIG_FIX["`ConfigMap/Secret 존재 확인
-    volumeMount 경로 검증`"]
+    CONFIG_ERR -->|Yes| CONFIG_FIX["`Check ConfigMap/Secret existence
+    Verify volumeMount paths`"]
 
     CONFIG_ERR -->|No| RUNNING{"`Running but 0/1 Ready?`"}
-    RUNNING -->|Yes| READY_FIX["`readinessProbe 설정 확인
-    initialDelaySeconds 조정
-    헬스체크 경로 검증`"]
+    RUNNING -->|Yes| READY_FIX["`Check readinessProbe
+    Adjust initialDelaySeconds
+    Validate health check path`"]
 
     RUNNING -->|No| TERMINATING{"`Terminating?`"}
-    TERMINATING -->|Yes| TERM_FIX["`Finalizer 확인
-    preStop hook 점검
-    강제 삭제 (최후 수단)`"]
+    TERMINATING -->|Yes| TERM_FIX["`Check finalizers
+    Review preStop hook
+    Force delete (last resort)`"]
 
     style START fill:#4286f4,stroke:#2a6acf,color:#fff
     style SCHED_FIX fill:#34a853,stroke:#2a8642,color:#fff
@@ -698,8 +697,8 @@ flowchart TD
 
 ---
 
-## 관련 문서
+## Related Documents
 
-- [네트워킹 디버깅](./networking.md) - Service, DNS, NetworkPolicy 문제 해결
-- [스토리지 디버깅](./storage.md) - PVC, EBS/EFS 마운트 실패
-- [옵저버빌리티](./observability.md) - 메트릭/로그 기반 모니터링
+- [Networking Debugging](./networking.md) - Service, DNS, NetworkPolicy issues
+- [Storage Debugging](./storage.md) - PVC, EBS/EFS mount failures
+- [Observability](./observability.md) - Metric/log-based monitoring

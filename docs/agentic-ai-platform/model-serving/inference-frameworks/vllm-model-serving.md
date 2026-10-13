@@ -1,11 +1,11 @@
 ---
-title: vLLM 모델 서빙
-description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
+title: vLLM Model Serving
+description: vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture
 created: "2026-02-05"
 last_update:
   date: 2026-10-13
-  author: YoungJoon Jeong
-reading_time: 16
+  author: devfloor9
+reading_time: 27
 tags:
   - vllm
   - paged-attention
@@ -17,89 +17,85 @@ tags:
   - gpu
   - optimization
   - scope:tech
-sidebar_label: vLLM 모델 서빙
+sidebar_label: vLLM Model Serving
 ---
 
 import ComparisonTable from '@site/src/components/tables/ComparisonTable';
 import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
-## 개요
+## Overview
 
-vLLM은 PagedAttention 알고리즘을 통해 KV cache 메모리 낭비를 60-80% 줄이고(vLLM 벤치마크 기준, 워크로드별 상이), 연속 배칭(Continuous Batching)으로 기존 대비 2-24배의 처리량 향상을 제공하는(vLLM 벤치마크 기준, 워크로드별 상이) 고성능 LLM 추론 엔진입니다. Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이합니다.
+vLLM is a high-performance LLM inference engine that reduces KV cache memory waste by 60-80% through the PagedAttention algorithm and provides 2-24x throughput improvement via Continuous Batching. Major companies including Meta, Mistral AI, Cohere, and IBM use it in production environments, and it provides an OpenAI-compatible API for easy migration of existing applications.
 
-> **📌 현재 버전**: vLLM v0.24+ / v0.25.x (2026-07 기준)
+> **📌 Current Version**: vLLM v0.24+ / v0.25.x (as of 2026-07)
 
-### 왜 vLLM이 표준이 되었나
+### Why vLLM Became the Standard
 
-요청마다 최대 길이의 KV cache 공간을 미리 잡아 두면 짧게 끝나는 요청의 메모리가 남습니다. 배치를 고정하면 먼저 끝난 요청이 생겨도 남은 요청의 처리가 끝날 때까지 빈 처리 자리를 활용하기 어렵습니다. vLLM은 필요한 KV 블록을 추가로 할당하고, 생성 반복마다 완료된 요청을 빼고 새 요청을 넣는 방식으로 이 낭비를 줄입니다.
+Reserving KV-cache space for every request's maximum length leaves unused memory when a request ends early. With a fixed batch, a request that finishes early can also leave an empty processing slot until the remaining requests finish. vLLM reduces this waste by allocating additional KV blocks as needed and updating the active requests at each generation iteration.
 
-vLLM의 핵심 혁신:
-- **PagedAttention**: 운영체제의 가상 메모리 관리에서 영감을 받아 KV cache를 비연속적 블록으로 관리
-- **Continuous Batching**: 배치 경계를 제거하고 반복(iteration) 수준에서 동적으로 요청 추가/제거
-- **OpenAI API 호환**: 기존 애플리케이션 코드 변경 없이 마이그레이션 가능
+vLLM core innovations:
+- **PagedAttention**: Inspired by OS virtual memory management, manages KV cache as non-contiguous blocks
+- **Continuous Batching**: Removes batch boundaries and dynamically adds/removes requests at the iteration level
+- **OpenAI API Compatible**: Migration possible without changing existing application code
 
-## 핵심 아키텍처
+## Core Architecture
 
-### PagedAttention과 KV cache 관리
+### PagedAttention and KV Cache Management
 
-Transformer 언어 모델은 출력 토큰을 하나씩 생성합니다. 매번 이전 토큰의 attention 데이터를 다시 계산하지 않도록, 서빙 엔진은 해당 토큰의 key와 value 텐서를 **KV cache**에 저장합니다. 캐시 메모리는 시퀀스 길이와 동시 요청 수에 비례해 늘어납니다. 요청마다 최대 시퀀스 길이에 맞춰 메모리를 미리 할당하면, 실제로 사용하지 않는 공간이 남을 수 있습니다.
+Transformer language models generate output one token at a time. To avoid recalculating attention data for earlier tokens, the serving engine stores their key and value tensors in the **KV cache**. Cache memory grows in proportion to sequence length and the number of concurrent requests. Pre-allocating space for every request’s maximum sequence length can leave much of that memory unused.
 
-vLLM의 PagedAttention은 KV cache를 고정 크기 블록으로 나누어 비연속적으로 저장합니다. 요청이 짧으면 적은 블록만 할당하고, 길어지면 필요할 때 추가 블록을 할당합니다. 블록 테이블을 통해 논리적 순서를 유지하며, 메모리 단편화가 사라집니다.
+vLLM's PagedAttention divides KV cache into fixed-size blocks stored non-contiguously. Short requests allocate fewer blocks; longer ones allocate additional blocks as needed. Block tables maintain logical ordering, eliminating memory fragmentation.
 
-**메모리 효율성 개선**:
-- 기존 방식: 최대 시퀀스 길이 × 배치 크기만큼 사전 할당 → 60-80% 낭비(vLLM 벤치마크 기준, 워크로드별 상이)
-- PagedAttention: 실제 사용량만큼만 동적 할당 → 낭비 제거
+**Memory efficiency improvement**:
+- Traditional: Pre-allocate max sequence length × batch size → 60-80% waste
+- PagedAttention: Dynamically allocate only actual usage → waste eliminated
 
 ### Continuous Batching
 
-정적 배칭은 고정된 수의 요청이 모일 때까지 대기한 후 처리합니다. 요청이 불규칙하게 도착하면 GPU가 부분적으로만 활용되어 처리량이 저하됩니다. 또한 배치 내에서 먼저 완료된 요청도 전체 배치가 끝날 때까지 대기해야 합니다.
+Static batching waits for a fixed number of requests before processing. With irregular request arrivals, GPUs are only partially utilized, reducing throughput. Also, requests that finish early must wait for the entire batch to complete.
 
-vLLM의 연속 배칭은 생성 반복(iteration)마다 배치에 참여할 요청을 갱신합니다.
+vLLM's continuous batching updates the requests in a batch at each generation iteration.
 
-- 완료된 요청을 배치에서 제거합니다.
-- 처리 여유가 생기면 대기 중인 새 요청을 추가합니다.
-- 이 방식은 고정 배치에서 생기는 유휴 시간을 줄이지만, GPU 사용률은 요청 도착 빈도와 메모리·연산 한계에 따라 달라집니다.
-- 지연 시간과 처리량의 변화는 같은 부하 조건에서 각각 측정합니다.
+- Remove requests that have completed.
+- Admit waiting requests when processing capacity is available.
+- This reduces idle time associated with fixed batches, but GPU utilization still depends on request arrivals and memory/compute limits.
+- Measure latency and throughput changes separately under the same load.
 
 ### Speculative Decoding
 
-추측적 디코딩은 작은 드래프트 모델이 토큰을 예측하고, 메인 모델이 병렬로 검증하여 2-3배 속도 향상을 제공합니다. 예측 가능한 출력(코드 생성, 정형화된 응답)에서 특히 효과적입니다.
+Speculative decoding uses a small draft model to predict tokens, with the main model verifying in parallel, providing 2-3x speed improvement. Especially effective for predictable outputs (code generation, structured responses).
 
 ```python
 from vllm import LLM
 
-# vLLM v0.9+ 권장 API (speculative_config)
 llm = LLM(
     model="large-model",
-    speculative_config={
-        "method": "draft_model",
-        "model": "small-draft-model",
-        "num_speculative_tokens": 5
-    }
+    speculative_model="small-draft-model",
+    num_speculative_tokens=5
 )
 ```
 
-### V1 엔진 아키텍처
+### V1 Engine Architecture
 
-vLLM V1 엔진(v0.19.x 이전부터 기본값)은 다음 기능을 제공합니다:
-- **Chunked Prefill**: 프리필(계산 집약적)과 디코드(메모리 집약적)를 동일 배치에서 혼합 처리
-- **FP8 KV cache**: KV cache 메모리를 2배 절감하여 더 긴 컨텍스트 지원
-- **Improved Prefix Caching**: 공통 프리픽스 재사용으로 400%+ 처리량 향상(vLLM 벤치마크 기준, 워크로드별 상이)
+The vLLM V1 engine (the default since before v0.19.x) provides these features:
+- **Chunked Prefill**: Mixes prefill (compute-intensive) and decode (memory-intensive) in the same batch
+- **FP8 KV cache**: Reduces KV cache memory by 2x for longer context support
+- **Improved Prefix Caching**: 400%+ throughput improvement through common prefix reuse
 
-## GPU 메모리 요구사항
+## GPU Memory Requirements
 
-모델 배포 전 필요한 GPU 메모리를 정확히 계산해야 합니다. 메모리 사용량은 다음 구성요소로 나뉩니다:
+Accurately calculate required GPU memory before model deployment. Memory usage breaks down as:
 
 ```
-필요 GPU 메모리 = 모델 가중치 + 비torch 메모리 + PyTorch 활성화 피크 메모리 + (배치당 KV cache 메모리 × 배치 크기)
+Required GPU Memory = Model Weights + Non-torch Memory + PyTorch Activation Peak Memory + (Per-batch KV Cache Memory × Batch Size)
 ```
 
-### 모델 가중치 메모리
+### Model Weight Memory
 
-파라미터 수와 정밀도에 따라 결정됩니다.
+Determined by parameter count and precision.
 
 <SpecificationTable
-  headers={['정밀도', '파라미터당 바이트', '70B 모델 메모리']}
+  headers={['Precision', 'Bytes per Parameter', '70B Model Memory']}
   rows={[
     { id: '1', cells: ['FP32', '4', '280GB'] },
     { id: '2', cells: ['FP16/BF16', '2', '140GB'] },
@@ -108,81 +104,81 @@ vLLM V1 엔진(v0.19.x 이전부터 기본값)은 다음 기능을 제공합니�
   ]}
 />
 
-**예시 계산**:
-- Llama-3.3-70B (FP16): 70B × 2 bytes = 140GB (가중치만)
-- KV cache (배치 크기 256, 시퀀스 길이 8192): 약 40GB
-- 활성화 및 기타 오버헤드: 약 20GB
-- **총합**: 약 200GB → 단일 H100 80GB로 불가능, TP=4 필요 (GPU당 50GB)
+**Example calculation**:
+- Llama-3.3-70B (FP16): 70B × 2 bytes = 140GB (weights only)
+- KV cache (batch size 256, sequence length 8192): ~40GB
+- Activation and other overhead: ~20GB
+- **Total**: ~200GB → Not possible on single H100 80GB, TP=4 needed (50GB per GPU)
 
-70B 파라미터 모델을 INT4 양자화하면 35GB로 줄어들어 단일 A100 80GB나 H100에서 KV cache 여유 공간과 함께 배포할 수 있습니다.
+Quantizing a 70B parameter model to INT4 reduces it to 35GB, making it deployable on a single A100 80GB or H100 with KV cache headroom.
 
-## 병렬화 전략
+## Parallelization Strategies
 
-대규모 모델은 단일 GPU에 맞지 않거나, 처리량을 높이기 위해 여러 GPU를 활용해야 합니다. vLLM은 네 가지 병렬화 전략을 지원합니다.
+Large models may not fit on a single GPU or may need multiple GPUs for higher throughput. vLLM supports four parallelization strategies.
 
-### 텐서 병렬화 (Tensor Parallelism, TP)
+### Tensor Parallelism (TP)
 
-각 모델 레이어 내에서 파라미터를 여러 GPU에 분산합니다. 단일 노드 내에서 대규모 모델을 배포할 때 가장 일반적인 전략입니다.
+Distributes parameters within each model layer across multiple GPUs. The most common strategy for deploying large models within a single node.
 
-**적용 시점**:
-- 모델이 단일 GPU에 맞지 않을 때
-- GPU당 메모리 압력을 줄여 KV cache 공간을 확보하려 할 때
+**When to use**:
+- When the model doesn't fit on a single GPU
+- When reducing per-GPU memory pressure to free KV cache space
 
 ```python
 from vllm import LLM
 
-# 4개 GPU에 모델 분산
+# Distribute model across 4 GPUs
 llm = LLM(
     model="meta-llama/Llama-3.3-70B-Instruct",
     tensor_parallel_size=4
 )
 ```
 
-**제약사항**: `tensor_parallel_size`는 모델의 어텐션 헤드 수의 약수여야 합니다. 예를 들어 70B 모델이 64개 어텐션 헤드를 가지면 TP=2, 4, 8, 16 등이 가능합니다.
+**Constraint**: `tensor_parallel_size` must be a divisor of the model's attention head count. For example, a 70B model with 64 attention heads supports TP=2, 4, 8, 16, etc.
 
-### 파이프라인 병렬화 (Pipeline Parallelism, PP)
+### Pipeline Parallelism (PP)
 
-모델 레이어를 여러 GPU에 순차적으로 분산합니다. 토큰이 파이프라인을 통해 순차적으로 흐릅니다.
+Distributes model layers sequentially across multiple GPUs. Tokens flow through the pipeline sequentially.
 
-**적용 시점**:
-- 텐서 병렬화를 최대로 활용했지만 추가 GPU가 필요할 때
-- 다중 노드 배포가 필요할 때
+**When to use**:
+- When tensor parallelism is maxed out but more GPUs are needed
+- When multi-node deployment is required
 
 ```bash
-# 4개 GPU를 텐서 병렬로, 2개 노드를 파이프라인 병렬로
+# 4 GPUs tensor parallel, 2 nodes pipeline parallel
 vllm serve meta-llama/Llama-3.3-70B-Instruct \
   --tensor-parallel-size 4 \
   --pipeline-parallel-size 2
 ```
 
-### 병렬화 전략 조합 매트릭스
+### Parallelization Strategy Combination Matrix
 
 <ComparisonTable
-  headers={['시나리오', '모델 크기', 'GPU 구성', '병렬화 전략', 'TP × PP']}
+  headers={['Scenario', 'Model Size', 'GPU Configuration', 'Parallelization Strategy', 'TP × PP']}
   rows={[
-    { id: '1', cells: ['소형 모델', '7B-13B', '1×H100 80GB', 'None', '1 × 1'], recommended: true },
-    { id: '2', cells: ['중형 모델', '32B-70B', '4×H100 80GB (단일 노드)', 'TP=4', '4 × 1'], recommended: true },
-    { id: '3', cells: ['대형 모델', '175B-405B', '8×H100 (2 노드)', 'TP=4, PP=2', '4 × 2'] },
-    { id: '4', cells: ['초대형 모델', '744B MoE', '16×H100 (2 노드)', 'TP=8, PP=2', '8 × 2'] }
+    { id: '1', cells: ['Small model', '7B-13B', '1×H100 80GB', 'None', '1 × 1'], recommended: true },
+    { id: '2', cells: ['Medium model', '32B-70B', '4×H100 80GB (single node)', 'TP=4', '4 × 1'], recommended: true },
+    { id: '3', cells: ['Large model', '175B-405B', '8×H100 (2 nodes)', 'TP=4, PP=2', '4 × 2'] },
+    { id: '4', cells: ['Ultra-large model', '744B MoE', '16×H100 (2 nodes)', 'TP=8, PP=2', '8 × 2'] }
   ]}
 />
 
-### PP 멀티노드 제약 (V1 엔진, 2026-04) {#pp-멀티노드-제약-v1-엔진-202604}
+### PP Multi-node Constraints (V1 Engine, 2026-04) {#pp-multi-node-constraints-v1-engine-202604}
 
-vLLM V1 엔진의 multiproc_executor는 NCCL TCPStore를 통해 멀티노드 동기화를 수행하는데, 대형 모델(744B 급) 로딩 시간이 `VLLM_ENGINE_READY_TIMEOUT_S` (기본 600초)를 초과하면 교착 상태가 발생할 수 있다.
+vLLM V1 engine's multiproc_executor performs multi-node synchronization via NCCL TCPStore. For large models (744B class), loading time may exceed `VLLM_ENGINE_READY_TIMEOUT_S` (default 600s), causing deadlock.
 
-**증상**: Leader Pod가 Worker 응답 대기 중 timeout → Worker에서 `TCPStore Broken pipe` 에러 → 순환 재시작
+**Symptoms**: Leader Pod timeout waiting for Worker response → Worker `TCPStore Broken pipe` error → Cyclical restarts
 
-**해결 방안**:
-1. **SGLang 사용** (권장): 멀티노드 PP를 안정적으로 지원
-2. **Ray 기반 vLLM**: Ray Cluster 구성 (운영 복잡도 증가)
-3. **단일 노드 배포**: H200 (141GB × 8) 또는 B200 (180GB × 8) 사용하여 PP 제거
+**Solutions**:
+1. **Use SGLang** (recommended): Stably supports multi-node PP
+2. **Ray-based vLLM**: Ray Cluster configuration (increased operational complexity)
+3. **Single node deployment**: Use H200 (141GB × 8) or B200 (192GB × 8) to eliminate PP
 
-상세 내용은 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md#pp-멀티노드-교착-문제-lessons-learned)를 참조하세요.
+For details, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md#6-pp-multi-node-deadlock-issue-lessons-learned).
 
-### 데이터 병렬화 (Data Parallelism, DP)
+### Data Parallelism (DP)
 
-전체 모델 복제본을 여러 서버에 복제하여 독립적인 요청을 처리합니다. Kubernetes의 HPA(Horizontal Pod Autoscaler)와 결합하여 탄력적으로 확장할 수 있습니다.
+Replicates the entire model across multiple servers for independent request processing. Combined with Kubernetes HPA (Horizontal Pod Autoscaler) for elastic scaling.
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -206,65 +202,66 @@ spec:
         averageValue: "10"
 ```
 
-### 전문가 병렬화 (Expert Parallelism, EP)
+### Expert Parallelism (EP)
 
-MoE(Mixture-of-Experts) 모델을 위한 특수 전략입니다. 토큰이 관련 "전문가"에만 라우팅되어 불필요한 계산을 줄입니다.
+A specialized strategy for MoE (Mixture-of-Experts) models. Tokens are routed only to relevant "experts," reducing unnecessary computation.
 
 ```bash
 vllm serve model-name --enable-expert-parallel
 ```
 
-상세 내용은 [MoE 모델 서빙](./moe-model-serving.md)을 참조하세요.
+For details, see [MoE Model Serving](./moe-model-serving.md).
 
-## 지원 하드웨어
+## Supported Hardware
 
-vLLM v0.22+ 버전은 다양한 하드웨어 가속기를 지원합니다:
+vLLM v0.22+ supports various hardware accelerators:
 
 <ComparisonTable
-  headers={['하드웨어', '지원 수준', '주요 용도', 'AWS 인스턴스 타입']}
+  headers={['Hardware', 'Support Level', 'Primary Use', 'AWS Instance Type']}
   rows={[
-    { id: '1', cells: ['NVIDIA H100 (80GB)', '완전 지원', '프로덕션 추론', 'p5.48xlarge (H100×8)'], recommended: true },
-    { id: '2', cells: ['NVIDIA H200 (141GB)', '완전 지원', '대형 모델 추론', 'p5en.48xlarge (H200×8)'] },
-    { id: '3', cells: ['NVIDIA B200 (180GB)', '완전 지원', '초대형 모델 추론', 'p6-b200.48xlarge (B200×8)'] },
-    { id: '4', cells: ['NVIDIA L4 (24GB)', '완전 지원', '비용 효율적 추론', 'g6e.xlarge~12xlarge (L4×1~8)'] },
-    { id: '5', cells: ['AWS Trainium2', 'vLLM-Neuron 플러그인 경유 지원', 'AWS 네이티브 가속', 'trn2.48xlarge (Trn2×16)'] },
-    { id: '6', cells: ['AMD MI300X', '지원', '대안 GPU 인프라', '-'] }
+    { id: '1', cells: ['NVIDIA H100 (80GB)', 'Full support', 'Production inference', 'p5.48xlarge (H100×8)'], recommended: true },
+    { id: '2', cells: ['NVIDIA H200 (141GB)', 'Full support', 'Large model inference', 'p5en.48xlarge (H200×8)'] },
+    { id: '3', cells: ['NVIDIA B200 (192GB)', 'Full support', 'Ultra-large model inference', 'p6-b200.48xlarge (B200×8)'] },
+    { id: '4', cells: ['NVIDIA L4 (24GB)', 'Full support', 'Cost-efficient inference', 'g6e.xlarge~12xlarge (L4×1~8)'] },
+    { id: '5', cells: ['AWS Trainium2', 'Supported', 'AWS native acceleration', 'trn2.48xlarge (Trn2×16)'] },
+    { id: '6', cells: ['AMD MI300X', 'Supported', 'Alternative GPU infrastructure', '-'] }
   ]}
 />
 
-**AWS EKS 권장 구성**:
-- **프로덕션**: p5.48xlarge (H100 × 8, 640GB HBM3) → TP=8로 175B 모델 배포 가능
-- **대형 모델**: p5en.48xlarge (H200 × 8, 1,128GB HBM3e) → TP=8로 405B 모델 배포 가능
-- **비용 최적화**: g6e 인스턴스 (L4) → 7B~13B 모델, Spot 인스턴스 활용
+**AWS EKS Recommended Configuration**:
+- **Production**: p5.48xlarge (H100 × 8, 640GB HBM3) → Deploy 175B models with TP=8
+- **Large models**: p5en.48xlarge (H200 × 8, 1,128GB HBM3e) → Deploy 405B models with TP=8
+- **Cost optimization**: g6e instances (L4) → 7B~13B models, Spot instance utilization
 
-## Multi-LoRA 서빙
+## Multi-LoRA Serving
 
-vLLM은 단일 기본 모델에서 여러 LoRA 어댑터를 동시에 서빙할 수 있습니다. 하나의 GPU 세트에서 도메인별 특화 모델을 효율적으로 운영할 수 있어 GPU 리소스를 절약합니다.
+vLLM can simultaneously serve multiple LoRA adapters on a single base model. This enables efficient operation of domain-specific models on a single GPU set, significantly saving GPU resources.
 
-### 아키텍처 개념
+### Architecture Concept
 
-**기본 모델 + 어댑터 핫스왑**:
-- Base Model (70B)은 GPU 메모리에 항상 로드
-- LoRA 어댑터(수백 MB~수 GB)는 요청마다 동적으로 로드/언로드
-- 어댑터 전환 오버헤드: 수십~수백 ms (모델 전체 재로딩보다 100배 빠름)
+**Base Model + Adapter Hot-swap**:
+- Base Model (70B) is always loaded in GPU memory
+- LoRA adapters (hundreds of MB to several GB) are dynamically loaded/unloaded per request
+- Adapter switching overhead: tens to hundreds of ms (100x faster than full model reloading)
 
-**메모리 효율성**:
-- 기존 방식: 도메인별 전체 모델 × N개 배포 = 140GB × 5 = 700GB
-- Multi-LoRA: Base Model (140GB) + 어댑터 캐시 (10GB) = 150GB
+**Memory efficiency**:
+- Traditional: Per-domain full model × N deployments = 140GB × 5 = 700GB
+- Multi-LoRA: Base Model (140GB) + Adapter cache (10GB) = 150GB
 
-### 주요 설정 옵션
+### Key Configuration Options
 
 <SpecificationTable
-  headers={['옵션', '설명', '기본값']}
+  headers={['Option', 'Description', 'Default']}
   rows={[
-    { id: '1', cells: ['--enable-lora', 'Multi-LoRA 서빙 활성화', 'False'] },
-    { id: '2', cells: ['--lora-modules', '사전 로드할 LoRA 모듈 (name=path)', 'None'] },
-    { id: '3', cells: ['--max-loras', '동시 로드 가능한 최대 LoRA 수', '1'] },
-    { id: '4', cells: ['--max-lora-rank', '지원할 최대 LoRA rank', '16'] }
+    { id: '1', cells: ['--enable-lora', 'Enable Multi-LoRA serving', 'False'] },
+    { id: '2', cells: ['--lora-modules', 'Pre-load LoRA modules (name=path)', 'None'] },
+    { id: '3', cells: ['--max-loras', 'Maximum simultaneous loaded LoRAs', '1'] },
+    { id: '4', cells: ['--max-lora-rank', 'Maximum supported LoRA rank', '16'] },
+    { id: '5', cells: ['--lora-extra-vocab-size', 'LoRA adapter extra vocabulary size', '256'] }
   ]}
 />
 
-**기본 사용 예제**:
+**Basic usage example**:
 
 ```bash
 vllm serve meta-llama/Llama-3.3-70B-Instruct \
@@ -274,175 +271,172 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
   --max-lora-rank 64
 ```
 
-:::info 상세 가이드
-Multi-LoRA 핫스왑 배포, 고객별 어댑터 라우팅, A/B 테스트, S3 동적 로딩 등 상세 구현은 [커스텀 모델 파이프라인 가이드](../../reference-architecture/model-lifecycle/custom-model-pipeline.md#multi-lora-핫스왑-배포)를 참조하세요.
+:::info Detailed Guide
+For Multi-LoRA hot-swap deployment, per-customer adapter routing, A/B testing, and S3 dynamic loading, see the [Custom Model Pipeline Guide](../../reference-architecture/model-lifecycle/custom-model-pipeline.md#multi-lora-hot-swap-deployment).
 :::
 
-## 성능 최적화
+## Performance Optimization
 
-### 양자화 (Quantization)
+### Quantization
 
-모델 품질과 메모리 효율성의 균형을 맞춘다.
+Balances model quality and memory efficiency.
 
 <ComparisonTable
-  headers={['양자화 방식', '메모리 절감', '품질 손실', '추론 속도', '권장 용도']}
+  headers={['Quantization Method', 'Memory Savings', 'Quality Loss', 'Inference Speed', 'Recommended Use']}
   rows={[
-    { id: '1', cells: ['FP8', '50%', '최소 (1% 미만)', '빠름 (H100 최적화)', '프로덕션 추론'], recommended: true },
-    { id: '2', cells: ['AWQ', '75%', '낮음 (1-3%)', '매우 빠름', '고처리량 서비스'] },
-    { id: '3', cells: ['GPTQ', '75%', '낮음 (1-3%)', '빠름', 'GPU 메모리 제약 환경'] },
-    { id: '4', cells: ['GGUF', '50-75%', '낮음-중간', '빠름', 'CPU/edge 배포'] }
+    { id: '1', cells: ['FP8', '50%', 'Minimal (<1%)', 'Fast (H100 optimized)', 'Production inference'], recommended: true },
+    { id: '2', cells: ['AWQ', '75%', 'Low (1-3%)', 'Very fast', 'High-throughput services'] },
+    { id: '3', cells: ['GPTQ', '75%', 'Low (1-3%)', 'Fast', 'GPU memory-constrained environments'] },
+    { id: '4', cells: ['GGUF', '50-75%', 'Low-Medium', 'Fast', 'CPU/edge deployment'] }
   ]}
 />
 
-**사용 예제**:
+**Usage examples**:
 
 ```bash
-# FP8 양자화 (권장)
+# FP8 quantization (recommended)
 vllm serve Qwen/Qwen3-32B-FP8 --quantization fp8
 
-# AWQ 양자화
+# AWQ quantization
 vllm serve TheBloke/Llama-2-70B-AWQ --quantization awq
 
-# GGUF 양자화 (vLLM-GGUF 플러그인 필요, highly experimental)
-# pip install vllm-gguf-plugin
-vllm serve unsloth/Qwen3-0.6B-GGUF:Q4_K_M --tokenizer Qwen/Qwen3-0.6B
+# GGUF quantization (vLLM v0.6+)
+vllm serve --model TheBloke/Llama-2-70B-GGUF \
+  --quantization gguf \
+  --gguf-file llama-2-70b.Q4_K_M.gguf
 ```
 
-FP8은 품질 저하가 거의 없으면서 메모리를 절반으로 줄인다. INT4(AWQ, GPTQ)는 복잡한 추론 작업에서 품질 저하가 발생할 수 있으므로 워크로드별 프로파일링이 필요하다.
+FP8 reduces memory by half with virtually no quality degradation. INT4 (AWQ, GPTQ) may cause quality degradation in complex reasoning tasks, so per-workload profiling is necessary.
 
 ### Prefix Caching
 
-표준화된 시스템 프롬프트나 반복되는 컨텍스트에서 400% 이상의 활용률 향상을 제공합니다(vLLM 벤치마크 기준, 워크로드별 상이).
+Provides 400%+ utilization improvement with standardized system prompts or repeated contexts.
 
 ```bash
 vllm serve model-name --enable-prefix-caching
 ```
 
-**작동 원리**:
-- 시스템 프롬프트의 KV cache가 한 번 계산되어 공유
-- 동일한 프리픽스를 가진 요청들은 중복 계산을 피함
-- 적중률은 애플리케이션에 따라 다름 (RAG 시스템에서 특히 효과적)
+**How it works**:
+- System prompt KV cache is computed once and shared
+- Requests with identical prefixes avoid redundant computation
+- Hit rate varies by application (especially effective in RAG systems)
 
-**적용 시나리오**:
-- RAG 시스템 (공통 컨텍스트 재사용)
-- 고정된 시스템 프롬프트 사용
-- Few-shot learning (동일한 예제 반복 사용)
+**Applicable scenarios**:
+- RAG systems (common context reuse)
+- Fixed system prompt usage
+- Few-shot learning (same examples repeated)
 
 ### Chunked Prefill
 
-프리필(계산 집약적)과 디코드(메모리 집약적) 작업을 동일 배치에서 혼합하여 처리량과 지연 시간을 함께 개선합니다. vLLM V1에서 기본 활성화되어 있습니다.
+Mixes prefill (compute-intensive) and decode (memory-intensive) operations in the same batch, improving both throughput and latency. Enabled by default in vLLM V1.
 
 ```python
 from vllm import LLM
 
 llm = LLM(
     model="model-name",
-    max_num_batched_tokens=2048  # 튜닝 가능
+    max_num_batched_tokens=2048  # Tunable
 )
 ```
 
-`max_num_batched_tokens`를 조정하여 TTFT(Time To First Token)와 처리량의 균형을 맞춘다:
-- 값이 크면 → 처리량 증가, TTFT 증가
-- 값이 작으면 → TTFT 감소, 처리량 감소
+Adjust `max_num_batched_tokens` to balance TTFT (Time To First Token) and throughput:
+- Higher value → increased throughput, increased TTFT
+- Lower value → decreased TTFT, decreased throughput
 
 ### CUDA Graph
 
-반복적인 연산 패턴을 그래프로 캡처하여 GPU 커널 실행 오버헤드를 줄인다. vLLM V1에서 기본 활성화되어 있다.
+Captures repetitive computation patterns as graphs to reduce GPU kernel execution overhead. Enabled by default in vLLM V1.
 
 ```bash
-vllm serve model-name --enforce-eager  # CUDA Graph 비활성화 (디버깅용)
+vllm serve model-name --enforce-eager  # Disable CUDA Graph (for debugging)
 ```
 
-CUDA Graph는 대부분의 경우 10-20% 성능 향상을 제공하지만, 동적인 시퀀스 길이 패턴에서는 오버헤드가 발생할 수 있다.
+CUDA Graph provides 10-20% performance improvement in most cases, but may add overhead with dynamic sequence length patterns.
 
 ### DeepGEMM (FP8)
 
-NVIDIA Hopper/Blackwell GPU에서 FP8 block-quantized 모델 연산을 가속화하는 커스텀 GEMM 커널입니다. vLLM v0.10.2+ 이후 **기본 활성화**되어 있습니다.
+Custom GEMM kernel that accelerates FP8 operations on NVIDIA H100 GPUs.
 
 ```bash
-# 기본 활성화됨 (v0.10.2+)
-vllm serve model-name --kv-cache-dtype=fp8
-
-# 비활성화가 필요한 경우 (워크로드에 따라 오히려 유리할 수 있음)
-VLLM_USE_DEEP_GEMM=0 vllm serve model-name --kv-cache-dtype=fp8
+VLLM_USE_DEEP_GEMM=1 vllm serve model-name --kv-cache-dtype=fp8
 ```
 
-워크로드에 따라 성능 향상 효과가 다르므로, MoE 모델 등에서는 `VLLM_USE_DEEP_GEMM=0` 또는 `VLLM_MOE_USE_DEEP_GEMM=0`으로 비활성화하는 것이 유리할 수 있다.
+Provides 20-30% additional performance improvement when using FP8 models on H100.
 
-### 최적화 옵션 비교
+### Optimization Option Comparison
 
 <ComparisonTable
-  headers={['최적화 기법', '처리량 향상', 'TTFT 개선', 'GPU 메모리 절감', '적용 난이도']}
+  headers={['Optimization Technique', 'Throughput Improvement', 'TTFT Improvement', 'GPU Memory Savings', 'Implementation Difficulty']}
   rows={[
-    { id: '1', cells: ['Prefix Caching', '+400% (vLLM 벤치마크 기준)', '○', '○', '낮음 (플래그 1개)'], recommended: true },
-    { id: '2', cells: ['FP8 양자화', '+50%', '○', '50%', '낮음 (모델 선택)'], recommended: true },
-    { id: '3', cells: ['Chunked Prefill', '+30%', '+20%', '-', '낮음 (기본 활성화)'] },
-    { id: '4', cells: ['Speculative Decoding', '+200%', '+100%', '-', '중간 (드래프트 모델)'] },
-    { id: '5', cells: ['CUDA Graph', '+15%', '○', '-', '낮음 (기본 활성화)'] },
-    { id: '6', cells: ['DeepGEMM', '+25%', '-', '-', '낮음 (H100 전용)'] }
+    { id: '1', cells: ['Prefix Caching', '+400%', 'O', 'O', 'Low (single flag)'], recommended: true },
+    { id: '2', cells: ['FP8 Quantization', '+50%', 'O', '50%', 'Low (model selection)'], recommended: true },
+    { id: '3', cells: ['Chunked Prefill', '+30%', '+20%', '-', 'Low (enabled by default)'] },
+    { id: '4', cells: ['Speculative Decoding', '+200%', '+100%', '-', 'Medium (draft model)'] },
+    { id: '5', cells: ['CUDA Graph', '+15%', 'O', '-', 'Low (enabled by default)'] },
+    { id: '6', cells: ['DeepGEMM', '+25%', '-', '-', 'Low (H100 only)'] }
   ]}
 />
 
-## Reasoning·Tool-call 파서
+## Reasoning and Tool-Call Parsers
 
-추론 모델을 서빙할 때 vLLM은 `--reasoning-parser`로 모델 출력의 추론 구간을 `reasoning` 필드로, 나머지를 `content`로 분리합니다. 도구 호출은 `--enable-auto-tool-choice`와 `--tool-call-parser`로 활성화하며, 함수 호출은 `content`에서만 파싱됩니다. 두 파서는 모델 계열과 chat template에 맞춰 함께 지정합니다. tool-call parser만 지정하면 추론 경계가 사라져 추론이 `content`에 합쳐지는 사례가 있습니다.
+When serving reasoning models, vLLM uses `--reasoning-parser` to split the reasoning span of model output into the `reasoning` field and the rest into `content`. Tool calling is enabled with `--enable-auto-tool-choice` and `--tool-call-parser`, and function calls are parsed only from `content`. Set both parsers together to match the model family and chat template. Setting only a tool-call parser has been reported to erase the reasoning boundary and merge reasoning into `content`.
 
-추론 필드 이름은 `reasoning_content`에서 `reasoning`으로 바뀌었습니다. 예전 이름을 읽는 클라이언트는 오류 없이 빈 값을 받으므로 엔진 업그레이드 시 클라이언트도 함께 확인합니다. 모델별 파서 이름, 스트리밍·stop 조합에서 생기는 누출, structured output과 추론 구간의 상호작용, 출력 검증 계층 설계는 [추론·도구 호출 출력 무결성](./reasoning-tool-output-parsing.md)에서 설명합니다.
+The reasoning field was renamed from `reasoning_content` to `reasoning`. Clients that read the old name get an empty value without an error, so check clients together with engine upgrades. Per-model parser names, leaks from streaming with `stop`, the interaction between structured output and the reasoning span, and the design of an output validation layer are described in [Reasoning and Tool-Call Output Integrity](./reasoning-tool-output-parsing.md).
 
-## 모니터링 메트릭
+## Monitoring Metrics
 
-vLLM은 Prometheus 형식의 다양한 메트릭을 노출합니다.
+vLLM exposes various metrics in Prometheus format.
 
-### 주요 메트릭
+### Key Metrics
 
 <SpecificationTable
-  headers={['메트릭', '설명', '임계값 예시']}
+  headers={['Metric', 'Description', 'Threshold Example']}
   rows={[
-    { id: '1', cells: ['vllm:num_requests_running', '현재 처리 중인 요청 수', '< max_num_seqs'] },
-    { id: '2', cells: ['vllm:num_requests_waiting', '대기 중인 요청 수', '< 50 (과부하 방지)'] },
-    { id: '3', cells: ['vllm:kv_cache_usage_perc', 'KV cache 사용률 (v0.9.2+)', '70-90% (최적)'] },
-    { id: '4', cells: ['vllm:num_preemptions_total', '선점된 요청 수', '< 10/min (낮을수록 좋음)'] },
-    { id: '5', cells: ['vllm:prompt_tokens_total', '누적 프롬프트 토큰 수 (counter)', 'rate() 함수로 처리량 계산'] },
-    { id: '6', cells: ['vllm:generation_tokens_total', '누적 생성 토큰 수 (counter)', 'rate() 함수로 처리량 계산'] },
-    { id: '7', cells: ['vllm:time_to_first_token_seconds', '첫 토큰까지 시간 (TTFT)', '< 1초 (대화형 서비스)'] },
-    { id: '8', cells: ['vllm:inter_token_latency_seconds', '토큰 간 지연 시간 (V1 엔진)', '< 0.1초 (실시간 스트리밍)'] },
-    { id: '9', cells: ['vllm:e2e_request_latency_seconds', '엔드투엔드 요청 지연 시간', '목표 SLA 대비 측정'] }
+    { id: '1', cells: ['vllm:num_requests_running', 'Currently processing request count', '< max_num_seqs'] },
+    { id: '2', cells: ['vllm:num_requests_waiting', 'Waiting request count', '< 50 (prevent overload)'] },
+    { id: '3', cells: ['vllm:gpu_cache_usage_perc', 'GPU KV cache utilization', '70-90% (optimal)'] },
+    { id: '4', cells: ['vllm:num_preemptions_total', 'Preempted request count', '< 10/min (lower is better)'] },
+    { id: '5', cells: ['vllm:avg_prompt_throughput_toks_per_s', 'Prompt throughput (tokens/sec)', 'Measure against target'] },
+    { id: '6', cells: ['vllm:avg_generation_throughput_toks_per_s', 'Generation throughput (tokens/sec)', 'Measure against target'] },
+    { id: '7', cells: ['vllm:time_to_first_token_seconds', 'Time to First Token (TTFT)', '< 1s (conversational services)'] },
+    { id: '8', cells: ['vllm:time_per_output_token_seconds', 'Time Per Output Token (TPOT)', '< 0.1s (real-time streaming)'] },
+    { id: '9', cells: ['vllm:e2e_request_latency_seconds', 'End-to-end request latency', 'Measure against target SLA'] }
   ]}
 />
 
-### 선점(Preemption) 처리
+### Preemption Handling
 
-KV cache 공간이 부족하면 vLLM이 요청을 선점하여 공간을 확보합니다. 다음 경고가 자주 발생하면 조치가 필요합니다:
+When KV cache space is insufficient, vLLM preempts requests to free space. If the following warning occurs frequently, action is needed:
 
 ```
 WARNING Sequence group 0 is preempted by PreemptionMode.RECOMPUTE
 ```
 
-**대응 방안**:
-1. `gpu_memory_utilization` 증가 (0.9 → 0.95)
-2. `max_num_seqs` 또는 `max_num_batched_tokens` 감소
-3. `tensor_parallel_size` 증가로 GPU당 메모리 확보
-4. `max_model_len` 감소 (실제 워크로드에 맞게)
+**Remediation**:
+1. Increase `gpu_memory_utilization` (0.9 → 0.95)
+2. Decrease `max_num_seqs` or `max_num_batched_tokens`
+3. Increase `tensor_parallel_size` to secure per-GPU memory
+4. Decrease `max_model_len` (match actual workload)
 
-:::info 상세 가이드
-Prometheus + Grafana 기반 모니터링 스택 구성, 알람 임계값 설정, 대시보드 템플릿은 [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
+:::info Detailed Guide
+For Prometheus + Grafana monitoring stack setup, alert threshold configuration, and dashboard templates, see the [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md).
 :::
 
-## 관련 문서
+## Related Documents
 
-### 실전 배포
-- **[커스텀 모델 배포](../../reference-architecture/model-lifecycle/custom-model-deployment.md)**: Kubernetes 배포 YAML, LWS 멀티노드, S3 모델 캐시, vLLM PP 멀티노드 제약 상세, 코딩 특화 모델 배포 가이드
-- **[커스텀 모델 파이프라인](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Multi-LoRA 핫스왑, 고객별 어댑터 라우팅, A/B 테스트, S3 동적 로딩
-- **[모니터링 스택 구성](../../reference-architecture/integrations/monitoring-observability-setup.md)**: Prometheus + Grafana 설정, 알람 임계값, 대시보드 템플릿
+### Production Deployment
+- **[Custom Model Deployment](../../reference-architecture/model-lifecycle/custom-model-deployment.md)**: Kubernetes deployment YAML, LWS multi-node, S3 model cache, vLLM PP multi-node constraint details, coding-specialized model deployment guide
+- **[Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)**: Multi-LoRA hot-swap, per-customer adapter routing, A/B testing, S3 dynamic loading
+- **[Monitoring Stack Setup](../../reference-architecture/integrations/monitoring-observability-setup.md)**: Prometheus + Grafana setup, alert thresholds, dashboard templates
 
-### 관련 기술
-- **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)**: vLLM + llm-d 연동 통한 Disaggregated Serving
-- **[추론·도구 호출 출력 무결성](./reasoning-tool-output-parsing.md)**: reasoning·tool-call 파서 조합, 스트리밍 누출, 출력 검증 계층
-- **[MoE 모델 서빙](./moe-model-serving.md)**: Expert Parallelism, GLM-5/Kimi K2.5 배포 전략
-- **[GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md)**: Karpenter, KEDA, GPU Operator 구성
+### Related Technologies
+- **[llm-d EKS Auto Mode](./llm-d-eks-automode.md)**: Disaggregated Serving via vLLM + llm-d integration
+- **[Reasoning and Tool-Call Output Integrity](./reasoning-tool-output-parsing.md)**: reasoning and tool-call parser pairing, streaming leaks, output validation layer
+- **[MoE Model Serving](./moe-model-serving.md)**: Expert Parallelism, GLM-5/Kimi K2.5 deployment strategy
+- **[GPU Resource Management](../gpu-infrastructure/gpu-resource-management.md)**: Karpenter, KEDA, GPU Operator configuration
 
-### 참고 자료
-- [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit): Bifrost, vLLM, Langfuse, Milvus 등 GenAI 컴포넌트 배포 자동화
-- [Scalable Model Inference and Agentic AI on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks): llm-d, Karpenter, RAG 워크플로우 포함 종합 아키텍처
-- [vLLM 공식 문서](https://docs.vllm.ai): 최적화 및 튜닝 가이드
-- [vLLM Kubernetes 배포 가이드](https://docs.vllm.ai/en/stable/deployment/k8s.html)
+### References
+- [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit): Bifrost, vLLM, Langfuse, Milvus and other GenAI component deployment automation
+- [Scalable Model Inference and Agentic AI on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks): Comprehensive architecture including llm-d, Karpenter, RAG workflows
+- [vLLM Official Documentation](https://docs.vllm.ai): Optimization and tuning guide
+- [vLLM Kubernetes Deployment Guide](https://docs.vllm.ai/en/stable/deployment/k8s.html)
