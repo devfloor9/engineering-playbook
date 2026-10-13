@@ -132,6 +132,10 @@ const config = {
       '@docusaurus/plugin-client-redirects',
       {
         // 추론 게이트웨이 개념 문서 4종을 model-serving/inference-routing 으로 이동(2026-06-25)
+        // 기본 로케일 en 전환(docs/=EN) 이후: plugin-client-redirects 는 로케일별 빌드에서
+        // baseUrl 로 로케일 접두사를 제거한 상대 경로(/docs/*)로 리다이렉트를 검증·생성하므로,
+        // 아래 /docs/* 리다이렉트는 기본(en)·한국어(ko) 빌드 양쪽에 그대로 적용된다.
+        // 또한 과거 EN URL(/en/docs/*)은 createRedirects 로 새 기본 로케일 URL(/docs/*)로 보낸다.
         redirects: [
           // security-governance 카테고리를 eks-best-practices/security-authn 챕터로 통합 (2026-08-25)
           {
@@ -216,6 +220,13 @@ const config = {
             to: '/docs/agentic-ai-platform/model-serving',
           },
         ],
+        // 기본 로케일 전환 이전의 EN URL(/en/docs/*)로 들어온 요청을 새 기본 로케일 URL(/docs/*)로 보낸다.
+        createRedirects(existingPath) {
+          if (existingPath.startsWith('/docs/')) {
+            return [`/en${existingPath}`];
+          }
+          return undefined;
+        },
       },
     ],
     // PWA plugin disabled — causes @theme/PwaReloadPopup resolution error
