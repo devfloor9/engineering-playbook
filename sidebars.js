@@ -15,7 +15,7 @@ const sidebars = {
       items: [
         {
           type: 'category',
-          label: '네트워크 & 성능',
+          label: 'Networking & Performance',
           link: {
             type: 'doc',
             id: 'eks-best-practices/networking-performance/index',
@@ -36,7 +36,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '서비스 메시',
+              label: 'Service Mesh',
               link: {
                 type: 'doc',
                 id: 'eks-best-practices/networking-performance/service-mesh/index',
@@ -55,7 +55,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: 'Control Plane & 확장',
+          label: 'Control Plane & Scaling',
           link: {
             type: 'doc',
             id: 'eks-best-practices/control-plane-scaling/index',
@@ -68,7 +68,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '보안 & 거버넌스',
+          label: 'Security & Governance',
           link: {
             type: 'doc',
             id: 'eks-best-practices/security-authn/index',
@@ -84,7 +84,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '리소스 & 비용',
+          label: 'Resources & Cost',
           link: {
             type: 'doc',
             id: 'eks-best-practices/resource-cost/index',
@@ -99,7 +99,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '운영 & 안정성',
+          label: 'Operations & Reliability',
           link: {
             type: 'doc',
             id: 'eks-best-practices/operations-reliability/index',
@@ -111,7 +111,7 @@ const sidebars = {
             'eks-best-practices/operations-reliability/k8s-event-management',
             {
               type: 'category',
-              label: 'EKS 디버깅',
+              label: 'EKS Debugging',
               link: {
                 type: 'doc',
                 id: 'eks-best-practices/operations-reliability/eks-debugging/index',
@@ -132,7 +132,7 @@ const sidebars = {
             'eks-best-practices/operations-reliability/eks-resiliency-guide',
             {
               type: 'category',
-              label: 'Pod 헬스체크 & 라이프사이클',
+              label: 'Pod Health Checks & Lifecycle',
               link: {type: 'doc', id: 'eks-best-practices/operations-reliability/eks-pod-health-lifecycle'},
               items: [
                 {type: 'category', label: 'Probe', items: [
@@ -142,7 +142,7 @@ const sidebars = {
                   'eks-best-practices/operations-reliability/pod-lifecycle/probe-load-balancers',
                   'eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features',
                 ]},
-                {type: 'category', label: '종료와 노드 수명 주기', items: [
+                {type: 'category', label: 'Shutdown and node lifecycle', items: [
                   'eks-best-practices/operations-reliability/pod-lifecycle/shutdown-basics',
                   'eks-best-practices/operations-reliability/pod-lifecycle/shutdown-languages',
                   'eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining',
@@ -150,7 +150,7 @@ const sidebars = {
                   'eks-best-practices/operations-reliability/pod-lifecycle/node-readiness',
                   'eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate',
                 ]},
-                {type: 'category', label: '시작·배포·최적화', items: [
+                {type: 'category', label: 'Startup, deployment, and optimization', items: [
                   'eks-best-practices/operations-reliability/pod-lifecycle/init-containers',
                   'eks-best-practices/operations-reliability/pod-lifecycle/lifecycle-hooks',
                   'eks-best-practices/operations-reliability/pod-lifecycle/container-images',
@@ -176,7 +176,7 @@ const sidebars = {
       items: [
         {
           type: 'category',
-          label: '설계 & 아키텍처',
+          label: 'Design & Architecture',
           link: {
             type: 'doc',
             id: 'agentic-ai-platform/design-architecture/index',
@@ -184,7 +184,7 @@ const sidebars = {
           items: [
             {
               type: 'category',
-              label: '플랫폼 기초',
+              label: 'Platform Foundations',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/design-architecture/foundations/index',
@@ -196,7 +196,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '플랫폼 선택',
+              label: 'Platform Selection',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/design-architecture/platform-selection/index',
@@ -211,7 +211,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '고급 패턴',
+              label: 'Advanced Patterns',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/design-architecture/advanced-patterns/index',
@@ -227,7 +227,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '모델 서빙 & 추론 인프라',
+          label: 'Model Serving & Inference Infrastructure',
           link: {
             type: 'doc',
             id: 'agentic-ai-platform/model-serving/index',
@@ -235,7 +235,7 @@ const sidebars = {
           items: [
             {
               type: 'category',
-              label: '가속 컴퓨팅 인프라',
+              label: 'Accelerated Computing Infrastructure',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/model-serving/gpu-infrastructure/index',
@@ -250,7 +250,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '추론 프레임워크',
+              label: 'Inference Frameworks',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/model-serving/inference-frameworks/index',
@@ -266,7 +266,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '추론 최적화 & 라우팅',
+              label: 'Inference Optimization & Routing',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/model-serving/inference-optimization/index',
@@ -289,7 +289,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '운영 & 거버넌스',
+          label: 'Operations & Governance',
           link: {
             type: 'doc',
             id: 'agentic-ai-platform/operations-mlops/index',
@@ -297,7 +297,7 @@ const sidebars = {
           items: [
             {
               type: 'category',
-              label: '관측성',
+              label: 'Observability',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/operations-mlops/observability/index',
@@ -312,7 +312,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '거버넌스',
+              label: 'Governance',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/operations-mlops/governance/index',
@@ -329,7 +329,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '데이터 인프라',
+              label: 'Data Infrastructure',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/operations-mlops/data-infrastructure/index',
@@ -351,7 +351,7 @@ const sidebars = {
           items: [
             {
               type: 'category',
-              label: '추론 게이트웨이 배포',
+              label: 'Inference Gateway Deployment',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/reference-architecture/inference-gateway/index',
@@ -365,7 +365,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '모델 수명주기',
+              label: 'Model Lifecycle',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/reference-architecture/model-lifecycle/index',
@@ -392,7 +392,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: '통합 & 비용',
+              label: 'Integrations & Cost',
               link: {
                 type: 'doc',
                 id: 'agentic-ai-platform/reference-architecture/integrations/index',
@@ -419,7 +419,7 @@ const sidebars = {
       items: [
         {
           type: 'category',
-          label: '방법론',
+          label: 'Methodology',
           link: {
             type: 'doc',
             id: 'aidlc/methodology/index',
@@ -435,7 +435,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '엔터프라이즈 도입',
+          label: 'Enterprise Adoption',
           link: {
             type: 'doc',
             id: 'aidlc/enterprise/index',
@@ -476,7 +476,7 @@ const sidebars = {
             },
             {
               type: 'category',
-              label: 'MSA 복잡도',
+              label: 'MSA Complexity',
               link: {
                 type: 'doc',
                 id: 'aidlc/enterprise/msa-complexity/index',
@@ -495,7 +495,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '도구 & 구현',
+          label: 'Tools & Implementation',
           link: {
             type: 'doc',
             id: 'aidlc/toolchain/index',
@@ -537,7 +537,7 @@ const sidebars = {
       items: [
         {
           type: 'category',
-          label: '개요 & 아키텍처',
+          label: 'Overview & Architecture',
           link: {
             type: 'doc',
             id: 'eks-hybrid-nodes/overview-architecture/index',
@@ -550,7 +550,7 @@ const sidebars = {
         {
           type: 'category',
           key: 'eks-hybrid-nodes-networking',
-          label: '네트워킹',
+          label: 'Networking',
           link: {
             type: 'doc',
             id: 'eks-hybrid-nodes/networking/index',
@@ -567,7 +567,7 @@ const sidebars = {
         {
           type: 'category',
           key: 'eks-hybrid-nodes-security-authn',
-          label: '보안 & 인증',
+          label: 'Security & Authentication',
           link: {
             type: 'doc',
             id: 'eks-hybrid-nodes/security-authn/index',
@@ -578,7 +578,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '스토리지 & 레지스트리',
+          label: 'Storage & Registry',
           link: {
             type: 'doc',
             id: 'eks-hybrid-nodes/storage-registry/index',
@@ -590,7 +590,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '컴퓨트 & GPU',
+          label: 'Compute & GPU',
           link: {
             type: 'doc',
             id: 'eks-hybrid-nodes/compute-gpu/index',
@@ -602,7 +602,7 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: '운영 & 비용',
+          label: 'Operations & Cost',
           link: {
             type: 'doc',
             id: 'eks-hybrid-nodes/operations-cost/index',
@@ -827,11 +827,11 @@ const sidebars = {
     {
       type: 'doc',
       id: 'benchmarks/index',
-      label: '개요',
+      label: 'Overview',
     },
     {
       type: 'category',
-      label: '네트워킹',
+      label: 'Networking',
       collapsible: true,
       collapsed: false,
       items: [
@@ -841,7 +841,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'AI/ML 추론',
+      label: 'AI/ML Inference',
       collapsible: true,
       collapsed: false,
       items: [
@@ -852,7 +852,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '인프라 & 운영',
+      label: 'Infrastructure & Operations',
       collapsible: true,
       collapsed: false,
       items: [
@@ -863,7 +863,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'AI 에이전트',
+      label: 'AI Agents',
       collapsible: true,
       collapsed: false,
       items: [

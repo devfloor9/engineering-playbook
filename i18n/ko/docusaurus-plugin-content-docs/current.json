@@ -1,0 +1,214 @@
+{
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.docs.category.EKS Best Practices": {
+    "message": "EKS Best Practices",
+    "description": "The label for category 'EKS Best Practices' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Networking & Performance": {
+    "message": "네트워크 & 성능",
+    "description": "The label for category 'Networking & Performance' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Service Mesh": {
+    "message": "서비스 메시",
+    "description": "The label for category 'Service Mesh' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Control Plane & Scaling": {
+    "message": "Control Plane & 확장",
+    "description": "The label for category 'Control Plane & Scaling' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Security & Governance": {
+    "message": "보안 & 거버넌스",
+    "description": "The label for category 'Security & Governance' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Resources & Cost": {
+    "message": "리소스 & 비용",
+    "description": "The label for category 'Resources & Cost' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Operations & Reliability": {
+    "message": "운영 & 안정성",
+    "description": "The label for category 'Operations & Reliability' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Agentic AI Platform": {
+    "message": "Agentic AI Platform",
+    "description": "The label for category 'Agentic AI Platform' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Design & Architecture": {
+    "message": "설계 & 아키텍처",
+    "description": "The label for category 'Design & Architecture' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Model Serving & Inference Infrastructure": {
+    "message": "모델 서빙 & 추론 인프라",
+    "description": "The label for category 'Model Serving & Inference Infrastructure' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Accelerated Computing Infrastructure": {
+    "message": "가속 컴퓨팅 인프라",
+    "description": "The label for category 'Accelerated Computing Infrastructure' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Inference Frameworks": {
+    "message": "추론 프레임워크",
+    "description": "The label for category 'Inference Frameworks' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Inference Optimization & Routing": {
+    "message": "추론 최적화 & 라우팅",
+    "description": "The label for category 'Inference Optimization & Routing' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Platform Foundations": {
+    "message": "플랫폼 기초",
+    "description": "The label for category 'Platform Foundations' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Platform Selection": {
+    "message": "플랫폼 선택",
+    "description": "The label for category 'Platform Selection' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Advanced Patterns": {
+    "message": "고급 패턴",
+    "description": "The label for category 'Advanced Patterns' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Operations & Governance": {
+    "message": "운영 & 거버넌스",
+    "description": "The label for category 'Operations & Governance' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Observability": {
+    "message": "관측성",
+    "description": "The label for category 'Observability' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Governance": {
+    "message": "거버넌스",
+    "description": "The label for category 'Governance' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Data Infrastructure": {
+    "message": "데이터 인프라",
+    "description": "The label for category 'Data Infrastructure' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Reference Architecture": {
+    "message": "Reference Architecture",
+    "description": "The label for category 'Reference Architecture' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Inference Gateway Deployment": {
+    "message": "추론 게이트웨이 배포",
+    "description": "The label for category 'Inference Gateway Deployment' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Setup Guide": {
+    "message": "배포 가이드",
+    "description": "The label for category 'Setup Guide' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Model Lifecycle": {
+    "message": "모델 수명주기",
+    "description": "The label for category 'Model Lifecycle' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Continuous Training": {
+    "message": "Continuous Training",
+    "description": "The label for category 'Continuous Training' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Integrations & Cost": {
+    "message": "통합 & 비용",
+    "description": "The label for category 'Integrations & Cost' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.AIDLC": {
+    "message": "AIDLC",
+    "description": "The label for category 'AIDLC' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Methodology": {
+    "message": "방법론",
+    "description": "The label for category 'Methodology' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Enterprise Adoption": {
+    "message": "엔터프라이즈 도입",
+    "description": "The label for category 'Enterprise Adoption' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Tools & Implementation": {
+    "message": "도구 & 구현",
+    "description": "The label for category 'Tools & Implementation' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.AgenticOps": {
+    "message": "AgenticOps",
+    "description": "The label for category 'AgenticOps' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.EKS Hybrid Nodes": {
+    "message": "EKS Hybrid Nodes",
+    "description": "The label for category 'EKS Hybrid Nodes' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Overview & Architecture": {
+    "message": "개요 & 아키텍처",
+    "description": "The label for category 'Overview & Architecture' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Networking": {
+    "message": "네트워킹",
+    "description": "The label for category 'Networking' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.eks-hybrid-nodes-networking": {
+    "message": "네트워킹",
+    "description": "The label for category '네트워킹' (EKS Hybrid Nodes) in sidebar 'docs'"
+  },
+  "sidebar.docs.category.eks-hybrid-nodes-security-authn": {
+    "message": "보안 & 인증",
+    "description": "The label for category '보안 & 인증' (EKS Hybrid Nodes) in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Storage & Registry": {
+    "message": "스토리지 & 레지스트리",
+    "description": "The label for category 'Storage & Registry' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Compute & GPU": {
+    "message": "컴퓨트 & GPU",
+    "description": "The label for category 'Compute & GPU' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Operations & Cost": {
+    "message": "운영 & 비용",
+    "description": "The label for category 'Operations & Cost' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.ROSA (OpenShift on AWS)": {
+    "message": "ROSA (OpenShift on AWS)",
+    "description": "The label for category 'ROSA (OpenShift on AWS)' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Gateway API Adoption Guide": {
+    "message": "Gateway API Adoption Guide",
+    "description": "The label for category 'Gateway API Adoption Guide' in sidebar 'docs'"
+  },
+  "sidebar.benchmarks.doc.Overview": {
+    "message": "개요",
+    "description": "The label for doc 'Overview' in sidebar 'benchmarks'"
+  },
+  "sidebar.benchmarks.category.Networking": {
+    "message": "네트워킹",
+    "description": "The label for category 'Networking' in sidebar 'benchmarks'"
+  },
+  "sidebar.benchmarks.category.AI/ML Inference": {
+    "message": "AI/ML 추론",
+    "description": "The label for category 'AI/ML Inference' in sidebar 'benchmarks'"
+  },
+  "sidebar.benchmarks.category.Infrastructure & Operations": {
+    "message": "인프라 & 운영",
+    "description": "The label for category 'Infrastructure & Operations' in sidebar 'benchmarks'"
+  },
+  "sidebar.benchmarks.category.AI Agents": {
+    "message": "AI 에이전트",
+    "description": "The label for category 'AI Agents' in sidebar 'benchmarks'"
+  },
+  "sidebar.docs.category.Pod Health Checks & Lifecycle": {
+    "message": "Pod 헬스체크 & 라이프사이클",
+    "description": "The label for category 'Pod Health Checks & Lifecycle' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Probes": {
+    "message": "Probe",
+    "description": "The label for category 'Probes' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Shutdown and node lifecycle": {
+    "message": "종료와 노드 수명 주기",
+    "description": "The label for category 'Shutdown and node lifecycle' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.Startup, deployment, and optimization": {
+    "message": "시작·배포·최적화",
+    "description": "The label for category 'Startup, deployment, and optimization' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.EKS Debugging": {
+    "message": "EKS 디버깅",
+    "description": "The label for category 'EKS Debugging' in sidebar 'docs'"
+  },
+  "sidebar.docs.category.MSA Complexity": {
+    "message": "MSA 복잡도",
+    "description": "The label for category 'MSA Complexity' in sidebar 'docs'"
+  }
+}
