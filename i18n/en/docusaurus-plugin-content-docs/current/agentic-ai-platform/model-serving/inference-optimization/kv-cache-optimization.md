@@ -3,9 +3,9 @@ title: KV Cache Optimization (vLLM Deep Dive + Cache-Aware Routing)
 description: Summary of core technologies like vLLM PagedAttention, Continuous Batching, FP8 KV Cache, and comparison of llm-d/NVIDIA Dynamo KV Cache-Aware Routing and Gateway configuration
 created: "2026-04-03"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-13
   author: devfloor9
-reading_time: 11
+reading_time: 12
 tags:
   - inference
   - optimization
@@ -20,7 +20,7 @@ sidebar_position: 2
 
 ## Overview
 
-LLM inference engine performance largely depends on how efficiently KV Cache (Key-Value Cache) is managed. This document covers vLLM's core technology stack and GPU memory design principles, as well as **KV Cache-Aware Routing** strategies (llm-d vs NVIDIA Dynamo) for sharing and reusing KV Cache across multiple Pods.
+LLM inference engine performance largely depends on how efficiently KV cache (Key-Value Cache) is managed. This document covers vLLM's core technology stack and GPU memory design principles, as well as **KV Cache-Aware Routing** strategies (llm-d vs NVIDIA Dynamo) for sharing and reusing KV cache across multiple Pods.
 
 ## vLLM Deep Dive
 
@@ -42,7 +42,7 @@ vLLM (v0.19.x) is currently the most widely used LLM inference engine. Core tech
 Accurate GPU memory calculation is required before model deployment.
 
 ```
-Required GPU Memory = Model Weights + Non-torch Memory + PyTorch Activation + (KV Cache × Batch Size)
+Required GPU Memory = Model Weights + Non-torch Memory + PyTorch Activation + (KV cache × Batch Size)
 ```
 
 **Memory Requirements by Precision:**
@@ -112,7 +112,7 @@ Existing vLLM deployments rely on simple Round-Robin load balancing. When reques
 
 ### Solution: KV Cache State-Aware Routing
 
-llm-d and NVIDIA Dynamo recognize the KV Cache state of each vLLM Pod and route requests with identical prefixes to Pods that already hold the corresponding KV Cache.
+llm-d and NVIDIA Dynamo recognize the KV cache state of each vLLM Pod and route requests with identical prefixes to Pods that already hold the corresponding KV cache.
 
 This flow is a simplified example of configured EPP plugins. A Pod with cached prefixes may still lose selection because of load.
 
