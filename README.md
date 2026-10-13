@@ -38,7 +38,7 @@ The homepage introduces the topics and offers search, direct entry points, and r
 - Document titles are followed by creation and content-revision dates, reading estimates, and document tools.
 - Tools provide **Copy link** and the **AI documentation guide** in muted blue-gray buttons. The guide explains the Markdown exports and discovery endpoints.
 - Tables keep captions, column associations, and horizontal scrolling on narrow screens. Supported figures include source captions and data equivalents; Mermaid diagrams provide a keyboard-accessible zoom dialog.
-- Korean is the source language. English counterparts live under `i18n/en/` and are available through the language selector. Translation coverage does not certify every example's operational behavior.
+- Korean is the authoring language. Documents are authored in Korean under `i18n/ko/docusaurus-plugin-content-docs/current/`; the default-locale English tree lives under `docs/` and is served at the site root, with Korean available through the language selector. Translation coverage does not certify every example's operational behavior.
 
 ### Agentic AI Platform
 
@@ -67,7 +67,7 @@ For implementation code, see [AI on EKS](https://github.com/devfloor9/ai-on-eks)
 | [llm-wiki/manifest.json](https://devfloor9.github.io/engineering-playbook/llm-wiki/manifest.json) | Per-page metadata, Markdown URLs, source provenance, and content-coverage information |
 | [llm-wiki/index.md](https://devfloor9.github.io/engineering-playbook/llm-wiki/index.md) | Links to component-aware Markdown pages grouped by domain |
 
-The LLM Wiki exports Korean pages from six technical domains plus the root introduction. English pages, Industry Solutions, and sales material are excluded. Articles in either language provide link copying and access to the AI guide.
+The LLM Wiki exports English pages from six technical domains plus the root introduction. Industry Solutions and sales material are excluded. Articles in either language provide link copying and access to the AI guide.
 
 Supported static components export their text, table rows, navigation targets, and diagram equivalents from repository sources. Unknown runtime content is identified by an export note and a link to the web page. Inspect `content_coverage`, `rendered_sources`, and `omission_details` in the manifest; a clean snapshot does not imply support for arbitrary MDX. Interactive controls and animations are not reproduced.
 
@@ -76,7 +76,7 @@ See the [AI documentation guide](https://devfloor9.github.io/engineering-playboo
 ## Repository layout
 
 ```text
-docs/                                  # Korean source documents
+docs/                                  # Default-locale (English) documents, served at the site root
 ├── intro.md                           # Reading paths and entry points
 ├── agentic-ai-platform/
 │   ├── design-architecture/
@@ -90,8 +90,8 @@ docs/                                  # Korean source documents
 ├── benchmarks/
 ├── industry-solutions/
 └── sales/                             # Separate from the technical LLM exports
-i18n/en/docusaurus-plugin-content-docs/current/
-                                       # English document counterparts
+i18n/ko/docusaurus-plugin-content-docs/current/
+                                       # Korean authoring source (served under /ko/)
 src/components/                        # Shared icons, tables, figures, and tools
 src/theme/                             # Document layout and metadata wrappers
 slides/                                # Presentation source projects
@@ -121,10 +121,10 @@ npm ci
 npm start
 ```
 
-The site is served under `/engineering-playbook/`. For the English development site:
+The site is served under `/engineering-playbook/`. The default development site is English; for the Korean development site:
 
 ```sh
-npm start -- --locale en
+npm start -- --locale ko
 ```
 
 Generate and inspect the deployable site, including the Markdown exports:
@@ -192,10 +192,10 @@ and author attribution unchanged.
 After reviewing a content edit, update its date and reading estimate together:
 
 ```sh
-npm run update-doc-metadata -- --kind content --date YYYY-MM-DD --apply docs/path/to/article.md
+npm run update-doc-metadata -- --kind content --date YYYY-MM-DD --apply i18n/ko/docusaurus-plugin-content-docs/current/path/to/article.md
 ```
 
-Apply the same process to an edited English counterpart. The estimate uses
+Apply the same process to the edited English counterpart under `docs/`. The estimate uses
 visible prose and table text, including supported static components; code blocks,
 markup, link destinations, and decorative icons do not add reading time. The existing rate is
 424 characters per minute, rounded up, so a small edit can leave the displayed
