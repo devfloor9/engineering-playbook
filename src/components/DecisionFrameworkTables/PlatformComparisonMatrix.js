@@ -20,15 +20,15 @@ const PlatformComparisonMatrix = () => {
     hybrid: isKo ? '중간 — 두 환경 모두 이해 필요' : 'Medium — understanding of both environments required'
   }, {
     axis: isKo ? '데이터 주권' : 'Data Sovereignty',
-    bedrock: isKo ? 'AWS 리전 내 처리' : 'Processed within AWS region',
-    sagemaker: isKo ? 'VPC 격리, 학습 데이터 S3 내 유지' : 'VPC isolation, training data stays in S3',
+    bedrock: isKo ? '선택한 리전 또는 추론 프로필의 지리 범위에서 처리 (Geo CRIS는 여러 국가 리전을 포함할 수 있음)' : 'Processed in the chosen Region or inference-profile geography (a Geo CRIS profile can span Regions in several countries)',
+    sagemaker: isKo ? 'VPC 격리. 학습 데이터는 S3 외에 인스턴스 메모리·로컬/EBS 캐시·CloudWatch 로그에도 남을 수 있음' : 'VPC isolation; training data can also reside in instance memory, local/EBS caches and CloudWatch logs, not only S3',
     eks: isKo ? '완전 제어 — VPC 내 모델+데이터 격리' : 'Full control — model+data isolation within VPC',
     hybrid: isKo ? '워크로드별 선택적 격리' : 'Selective isolation per workload'
   }, {
     axis: isKo ? '커스터마이징' : 'Customization',
-    bedrock: isKo ? '제한적 — Bedrock 지원 모델, Guardrails 범위 내' : 'Limited — Bedrock-supported models, within Guardrails scope',
+    bedrock: isKo ? 'Bedrock 모델과 Guardrails 중심. AgentCore Runtime의 에이전트는 외부·자체 호스팅 모델도 호출 가능' : 'Centered on Bedrock models and Guardrails; agents on AgentCore Runtime can also call external or self-hosted models',
     sagemaker: isKo ? 'MLflow, 커스텀 파이프라인, Fine-tuning 지원' : 'MLflow, custom pipelines, fine-tuning support',
-    eks: isKo ? '완전 유연 — 모든 오픈 모델, LoRA, 커스텀 게이트웨이' : 'Fully flexible — all open models, LoRA, custom gateway',
+    eks: isKo ? '높은 유연성 — 선택한 서빙 백엔드가 지원하는 오픈 모델(예: vLLM 지원 아키텍처), LoRA, 커스텀 게이트웨이' : 'High flexibility — open models supported by the chosen serving backend (e.g. vLLM-supported architectures), LoRA, custom gateway',
     hybrid: isKo ? '필요에 따라 선택적 확장' : 'Selective expansion as needed'
   }, {
     axis: isKo ? 'Time-to-Value' : 'Time-to-Value',

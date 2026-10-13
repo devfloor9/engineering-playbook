@@ -3,9 +3,9 @@ title: Self-Improving Agent Loop (Autoresearch)
 description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autoresearch concept
 created: "2026-04-18"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-13
   author: devfloor9
-reading_time: 28
+reading_time: 54
 tags:
   - self-improving
   - autoresearch
@@ -17,8 +17,8 @@ sidebar_label: Self-Improving Loop
 sidebar_position: 8
 ---
 
-:::warning Self-Hosted SLM Only
-This loop is exclusively for self-hosted open-weight models (Qwen3, Llama 4, GLM-5, etc.). AgentCore's managed closed models like Claude/Nova cannot self-learn and are excluded from scope.
+:::warning Self-Hosted Open-Weight Models Only
+This loop applies only to models whose weights you are licensed to modify and host yourself (for example Qwen3, Llama 4, or GLM-5 under their respective licenses — review each model's license for fine-tuning and redistribution terms before use). It does not apply to models consumed as a managed service through Amazon Bedrock (such as Anthropic Claude or Amazon Nova): you cannot retrain weights you do not host. Amazon Bedrock AgentCore is the agent **runtime** (sessions, memory, tools, identity); the model behind an AgentCore agent is a separate choice, so "runs on AgentCore" and "self-hosted open-weight" are independent decisions. Also account for resident GPU memory: a large open-weight model such as Llama 4 or GLM-5 must still fit the training and serving hardware you provision.
 :::
 
 :::info ADR Required
@@ -29,12 +29,12 @@ Before production deployment, consensus on scope, automation boundaries, data go
 
 ### Karpathy's Core Argument
 
-Andrej Karpathy argued that LLMs will evolve beyond simple "next token prediction" machines into **autoresearch systems**. Core mechanisms:
+In March 2026 Andrej Karpathy published [autoresearch](https://github.com/karpathy/autoresearch), a project in which an AI agent is given a small but real single-GPU LLM training setup (a simplified [nanochat](https://github.com/karpathy/nanochat)) and left to experiment autonomously: it edits the training file `train.py`, trains for a fixed **5-minute budget**, checks whether validation bits-per-byte (`val_bpb`) improved, keeps or discards the change, and repeats. The project itself is a research-training loop over a toy model, not a production serving system. We take it only as a conceptual starting point and adapt it, with substantial additional controls, to the enterprise setting described below. The ideas we borrow:
 
-1. **Tool-use Rollout**: LLM explores multiple reasoning paths using tools (code execution, web search, calculator, etc.)
-2. **Success as Signal**: Successful paths (reaching correct answer, completing tasks) become signals for next learning
-3. **Self-Supervised Loop**: Accumulate own success/failure data without human labeling and retrain with reinforcement learning
-4. **Compound Growth**: Stronger models generate more success traces → stronger models (virtuous cycle)
+1. **Tool-use Rollout**: an agent explores multiple candidate paths (here, candidate responses using tools such as code execution, web search, or a calculator)
+2. **Success as Signal**: paths judged successful become a signal for the next round of learning
+3. **Self-Supervised Loop**: accumulate the agent's own success/failure data and retrain, reducing reliance on fresh human labels
+4. **Compound Growth (aspiration, not a guarantee)**: the hope is that a stronger model generates more useful traces that train a still-stronger model; whether this compounds in a given deployment is an empirical question, not an assumption
 
 ```mermaid
 graph LR
@@ -85,7 +85,7 @@ Self-improving loop should be interpreted as **"automated reinforcement under hu
 graph TB
     subgraph Stage1["1. Rollout"]
         A[Production Traffic] --> B[Agent Engine]
-        B --> C[Multi-Path Execution]
+        B --> C[Multi-Path Exploration<br/>read-only / replay]
         C --> D[Trace Logger<br/>Langfuse]
     end
 
@@ -128,7 +128,12 @@ graph TB
     style Stage5 fill:#fce4ec
 ```
 
+:::danger Side effects during multi-path exploration
+Generating several candidate responses to the *same* live request is safe only if the extra paths are **read-only**. A tool call that mutates state (sends an email, places an order, writes to a system of record) must execute **at most once per request**, on the single authorized path whose answer is returned to the user. Returning only the baseline answer does **not** by itself prevent a candidate path from performing a write. Before running any exploration against production traffic, require the candidate paths to use read-only tool stubs or idempotency keys, or replay from logged traces offline, and prove zero side effects. The `shadow=True` flag used later in this document is an application-level marker; it is not an automatic tool side-effect sandbox.
+:::
+
 ### Stage 1: Rollout — Production Traffic Collection
+
 
 **Goal**: Collect Agent execution traces for actual user requests.
 
@@ -137,34 +142,34 @@ graph TB
 **Input**: User request, context, Agent state  
 **Output**: Trace (prompt, tool calls, intermediate reasoning, final response, latency, token count)
 
-**Collection Mechanism**:
+**Collection Mechanism** (illustrative — pin your Langfuse SDK):
+
+The Langfuse SDK API differs across major versions (the v2 `langfuse.trace()`/`span()` client-object API was superseded by the v3+ OpenTelemetry-based observe/context API). Pin the SDK version you deploy and use its documented decorator/context manager; `@trace_agent_call` below is an **application-defined helper**, not an SDK symbol. Trace export must never take down the request: isolate it so a tracing failure is logged but the user still gets a response, and do not let it swallow genuine agent errors.
 
 ```python
-from langfuse import Langfuse
+# Illustrative. Replace with your pinned Langfuse SDK's decorator/context API (v2 vs v3+ differ).
+from langfuse import Langfuse  # pin e.g. langfuse==2.x or 3.x explicitly
 
 langfuse = Langfuse()
 
-@trace_agent_call  # Automatic trace with decorator
 def execute_agent(user_query: str, context: dict):
-    trace = langfuse.trace(name="agent-execution", metadata={"user_id": context["user_id"]})
+    # Real agent work runs regardless of tracing outcome.
+    docs = vector_db.search(user_query)
+    response = llm.generate(prompt=build_prompt(user_query, docs))
+    if response.requires_tool:
+        response.tool_result = execute_tool(response.tool_name, response.tool_args)
 
-    with trace.span(name="retrieval"):
-        docs = vector_db.search(user_query)
-
-    with trace.span(name="reasoning"):
-        response = llm.generate(prompt=build_prompt(user_query, docs))
-
-    with trace.span(name="tool-execution"):
-        if response.requires_tool:
-            tool_result = execute_tool(response.tool_name, response.tool_args)
-
-    trace.event(name="completion", metadata={"tokens": response.token_count})
+    try:
+        # Record a trace/span tree using your SDK's documented API.
+        _record_trace(langfuse, user_query, context, response)
+    except Exception:  # Tracing failure must not break the user response.
+        logger.exception("trace export failed")  # isolated; agent errors are NOT caught here
     return response
 ```
 
-**Diversity Assurance**: Generate 3 responses with temperature variations (0.7/0.9/1.1) for same request to increase diversity
+**Diversity Assurance**: Generating multiple responses per request with temperature variation (e.g. 0.7/0.9/1.1) can increase candidate diversity; whether it improves the trained model is an empirical question to measure, not a guarantee.
 
-**Failure Recovery**: User response returned normally even if trace collection fails (async logging)
+**Failure Isolation**: As shown above, trace export runs in a guarded block so the user response is returned even if collection fails. Export asynchronously where possible.
 
 ---
 
@@ -180,16 +185,18 @@ def execute_agent(user_query: str, context: dict):
 **Composite Reward Formula**:
 
 ```python
-reward_score = (
+# Positive quality signals are a convex combination (weights sum to 1.0),
+# producing a base score in [0, 1]. Latency is applied afterwards as a
+# separate bounded penalty (see compute_reward below), not as a weighted term.
+base_score = (
     w1 * llm_judge_score +      # LLM-as-Judge (0-1)
     w2 * ragas_faithfulness +   # Ragas faithfulness (0-1)
-    w3 * ragas_context_recall + # Ragas context recall (0-1)
-    w4 * user_feedback_score +  # Thumbs up=1, down=0, neutral=0.5
-    w5 * latency_penalty        # Penalty if P99 exceeds
+    w3 * ragas_context_recall + # Ragas context recall (0-1, omitted/renormalized if no reference)
+    w4 * user_feedback_score    # Thumbs up=1, down=0, neutral=0.5
 )
 
-# Default weights (adjust with experiments)
-w1, w2, w3, w4, w5 = 0.3, 0.25, 0.2, 0.2, 0.05
+# Default weights (hypotheses to tune); must sum to 1.0
+w1, w2, w3, w4 = 0.35, 0.25, 0.20, 0.20
 ```
 
 **LLM-as-Judge Prompt**:
@@ -212,36 +219,45 @@ Return score between 0-1 and reasoning in JSON.
 {{"score": 0.85, "reasoning": "Accurate and complete but slightly verbose"}}
 """
 
-judge_response = cheap_llm.generate(judge_prompt)  # Use Qwen3-7B (cost reduction)
+judge_response = cheap_llm.generate(judge_prompt)  # Use low-cost model e.g. Qwen3-8B (cost reduction)
 ```
 
 **Ragas Evaluation**:
 
+`context_recall` always requires a `reference` (ground truth) to compare against, so it cannot be computed when ground truth is absent — skip it and renormalize the remaining weights rather than passing `None`. Build the dataset with real lists (one entry per column) and only include metrics whose inputs are present.
+
 ```python
-from ragas.metrics import faithfulness, context_recall
+from ragas import evaluate
+from ragas.metrics import Faithfulness, LLMContextRecall
+from datasets import Dataset
 
-eval_data = {
-    "question": [question],
-    "answer": [answer],
-    "contexts": [contexts],
-    "ground_truth": [ground_truth] if available else None
-}
+columns = {"question": [question], "answer": [answer], "contexts": [contexts]}
+metrics = [Faithfulness()]
+if ground_truth is not None:  # context_recall needs a reference; omit it otherwise
+    columns["ground_truth"] = [ground_truth]
+    metrics.append(LLMContextRecall())
 
-ragas_result = evaluate(Dataset.from_dict(eval_data), metrics=[faithfulness, context_recall])
+ragas_result = evaluate(Dataset.from_dict(columns), metrics=metrics)
 ```
 
 **User Feedback Integration**:
 
 ```python
-# Query user feedback from Langfuse
-feedback = langfuse.get_scores(trace_id=trace_id, name="user-feedback")
-user_score = 1.0 if feedback.value == "positive" else 0.0 if feedback.value == "negative" else 0.5
+# Fetch user feedback scores via your pinned Langfuse SDK's documented scores API
+# (method name/shape differs across SDK versions — verify against the version you deploy).
+scores = get_feedback_scores(trace_id=trace_id, name="user-feedback")  # app-level adapter
+# Define behavior when zero or multiple scores exist (here: neutral 0.5 when missing).
+if not scores:
+    user_score = 0.5
+else:
+    latest = scores[-1].value  # or aggregate per your policy
+    user_score = 1.0 if latest == "positive" else 0.0 if latest == "negative" else 0.5
 ```
 
 **Cost Optimization**:
-- LLM-as-Judge uses low-cost model (Qwen3-7B, Llama 4 Scout)
-- Ragas with caching (reuse same question+context combinations)
-- Prioritize user feedback — skip LLM-as-Judge if feedback exists
+- LLM-as-Judge uses a low-cost model (e.g. Qwen3-8B, Llama 4 Scout)
+- Cache Ragas results keyed on **all** scoring inputs and versions (question + contexts + answer + metric version), not question+context alone — otherwise a different answer could reuse another response's score
+- Prioritize user feedback — skip LLM-as-Judge when a feedback score already exists
 
 ---
 
@@ -256,93 +272,118 @@ user_score = 1.0 if feedback.value == "positive" else 0.0 if feedback.value == "
 
 **Quality Gates**:
 
+This stage performs two **separate** jobs that should not be conflated. (a) A **safety/consent filter** removes traces that must never be used — PII that cannot be anonymized, missing training consent, or policy violations — regardless of quality. (b) **Preference-pair eligibility** then decides how a trace is used: a low-score or failed answer is not necessarily discarded, because it is exactly the `rejected` side of a preference pair. Do not throw away eligible low-quality answers before pairing (see Stage 4).
+
 ```python
-def filter_traces(scored_traces):
-    filtered = []
+def partition_traces(scored_traces):
+    """Safety filter first; keep quality signal for later pairing."""
+    eligible = []
     for trace in scored_traces:
-        # 1. Minimum score threshold
-        if trace.reward_score < 0.7:
+        # Safety/consent gate — hard exclusions only.
+        if not trace.training_consent or trace.unresolvable_pii:
             continue
 
-        # 2. Remove latency outliers (P99 > 30 seconds)
-        if trace.latency > 30:
+        # Per-request latency outlier (seconds) — this is a single request's
+        # latency, NOT a P99 percentile over a population.
+        if trace.latency_seconds > 30:
             continue
 
-        # 3. Exclude traces with errors
-        if trace.error_count > 0:
-            continue
-
-        # 4. Remove duplicates (same question+answer combination)
+        # Deduplicate identical (question, answer) pairs.
         if is_duplicate(trace):
             continue
 
-        filtered.append(trace)
+        eligible.append(trace)  # low reward_score / errors are kept as candidate negatives
 
-    return filtered
+    return eligible
 ```
 
-**PII Scanning (Presidio)**:
+**PII Scanning (Presidio)** (pin presidio-analyzer, e.g. 2.2.360):
+
+The default `AnalyzerEngine()` loads an **English** spaCy pipeline, so calling `analyze(language='ko')` on it is misconfigured. Build one Korean engine (and reuse the same configured instance everywhere, including the ETL job below). Presidio ships no Korea-specific recognizers, so add custom pattern recognizers for RRN and account numbers. Treat empty results as "nothing matched by the configured recognizers", **not** proof the text is PII-free: pattern/NLP recognizers have false negatives, and this scans only the fields you pass (here `question` and `answer`) — context, tool arguments, and logs are not covered unless you scan them too.
 
 ```python
-from presidio_analyzer import AnalyzerEngine
+from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
+from presidio_analyzer.nlp_engine import NlpEngineProvider
 from presidio_anonymizer import AnonymizerEngine
 
-analyzer = AnalyzerEngine()
+# Korean NLP engine (default AnalyzerEngine supports English only).
+nlp_config = {
+    "nlp_engine_name": "spacy",
+    "models": [{"lang_code": "ko", "model_name": "ko_core_news_lg"}],
+}
+nlp_engine = NlpEngineProvider(nlp_configuration=nlp_config).create_engine()
+analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["ko"])
+
+# Korea-specific custom recognizers (Presidio provides none).
+analyzer.registry.add_recognizer(PatternRecognizer(
+    supported_entity="KR_RRN", supported_language="ko",
+    patterns=[Pattern("rrn", r"\d{6}-\d{7}", 0.85)]))
+analyzer.registry.add_recognizer(PatternRecognizer(
+    supported_entity="KR_ACCOUNT", supported_language="ko",
+    patterns=[Pattern("account", r"\d{3}-\d{2,6}-\d{2,7}", 0.8)]))
+
 anonymizer = AnonymizerEngine()
 
 def scan_and_anonymize(text: str) -> tuple[str, bool]:
-    """Detect PII then anonymize. Returns (anonymized text, PII found)."""
-    results = analyzer.analyze(text=text, language='ko')
-
+    """Detect PII then anonymize. Returns (anonymized text, PII matched)."""
+    results = analyzer.analyze(text=text, language="ko")
     if not results:
-        return text, False  # No PII
-
-    # PII found → anonymize
+        return text, False  # No recognizer matched — not a guarantee of PII-free
     anonymized = anonymizer.anonymize(text=text, analyzer_results=results)
     return anonymized.text, True
 
-# Process trace
-for trace in filtered_traces:
+# Process trace (only question and answer are scanned here)
+for trace in eligible_traces:
     trace.question, q_has_pii = scan_and_anonymize(trace.question)
     trace.answer, a_has_pii = scan_and_anonymize(trace.answer)
-
     if q_has_pii or a_has_pii:
         trace.metadata["pii_detected"] = True
 ```
 
-**k-Anonymity Check** (Must have k+ people with same query pattern to use as training data):
+**Query-frequency filter** (drop rare query patterns; this is **not** a k-anonymity guarantee):
+
+The check below counts **records** sharing a normalized query pattern, not **distinct people**, and only over the query pattern — not over all released quasi-identifiers. Five queries from one person pass it. True k-anonymity requires each released record to be indistinguishable from at least k−1 *other individuals* across every quasi-identifier. Use this only as a coarse rare-pattern filter, and never describe its output as anonymized.
 
 ```python
-def check_k_anonymity(traces, k=5):
-    """Remove if same pattern has less than k instances"""
-    query_counts = defaultdict(int)
+def filter_rare_query_patterns(traces, min_count=5):
+    """Drop traces whose normalized query pattern appears fewer than min_count times.
+    NOTE: counts records, not distinct subjects — not a k-anonymity guarantee."""
+    pattern_counts = defaultdict(int)
     for trace in traces:
-        query_pattern = extract_pattern(trace.question)  # Extract pattern after entity removal
-        query_counts[query_pattern] += 1
+        pattern_counts[extract_pattern(trace.question)] += 1  # pattern after entity removal
 
-    return [t for t in traces if query_counts[extract_pattern(t.question)] >= k]
+    return [t for t in traces if pattern_counts[extract_pattern(t.question)] >= min_count]
 ```
 
-**Storage — S3 + Iceberg**:
+**Storage — S3 + Iceberg** (adapter boundary — convert to Arrow before append):
+
+PyIceberg's `table.append()` expects a **PyArrow `Table`** whose schema matches the Iceberg table, not a plain list of dicts. Load a **configured** catalog (name + properties), reference the table by its **namespace-qualified** identifier, and build an Arrow table with validated types (including timezone-aware timestamps). Treat the dict-to-Arrow mapping as an explicit adapter.
 
 ```python
-import pyiceberg
+import pyarrow as pa
+from pyiceberg.catalog import load_catalog
 
-catalog = pyiceberg.catalog.load_catalog("training_data")
-table = catalog.load_table("agent_traces")
+# Configured catalog (name + connection properties), namespace-qualified table id.
+catalog = load_catalog("training_data")  # resolves properties from config/env
+table = catalog.load_table("agent.training_traces")  # namespace.table
 
-# Append to Iceberg table
-table.append([
-    {"trace_id": t.id, "question": t.question, "answer": t.answer, 
-     "reward": t.reward_score, "timestamp": t.timestamp}
-    for t in filtered_traces
-])
+# Adapter: dicts → Arrow table with an explicit schema matching the Iceberg table.
+arrow = pa.Table.from_pylist(
+    [{"trace_id": t.id, "question": t.question, "answer": t.answer,
+      "reward": float(t.reward_score), "ts": t.timestamp}  # tz-aware timestamp
+     for t in eligible_traces],
+    schema=pa.schema([
+        ("trace_id", pa.string()), ("question", pa.string()), ("answer", pa.string()),
+        ("reward", pa.float64()), ("ts", pa.timestamp("us", tz="UTC")),
+    ]),
+)
+table.append(arrow)
 ```
 
-**Regulatory Compliance**:
-- **GDPR/PIPA**: Opt-out mechanism required when using training data without user consent
-- **Data Retention Period**: Delete within 90 days after training (policy setting)
-- **Audit Log**: Record all PII detection/anonymization events in CloudTrail/Audit DB
+**Regulatory Compliance** (design policy — confirm with counsel):
+- **GDPR/PIPA**: this design uses **opt-in consent** before using a trace for training (consistent with the consent check below); do not use traces without a confirmed lawful basis
+- **Data Retention**: delete source traces after a retention window you set (e.g. 90 days) as a chosen policy
+- **Audit Log**: record all PII detection/anonymization events in CloudTrail/Audit DB
 
 ---
 
@@ -357,36 +398,39 @@ table.append([
 
 **Preference Pair Construction**:
 
-Self-improving loop uses high-reward as preferred, low-reward as rejected among multiple responses to same question.
+Self-improving loop uses the higher-reward answer as `preferred` and the lower-reward answer as `rejected` **among responses to the identical request**. Grouping by the question text alone is wrong: two responses to the same words but under a different tenant, system prompt, retrieved context, tool state, or model version are **not comparable**, and pairing them produces invalid preferences and can leak one tenant's content into another's training signal. Group by a composite identity key, preserve the full serialized prompt, and keep privacy/consent eligibility separate from reward ranking.
 
 ```python
+def identity_key(trace):
+    # Everything that must match for two answers to be comparable.
+    return (trace.tenant_id, trace.model_version, trace.system_prompt_hash,
+            trace.question, trace.context_hash, trace.tool_state_hash)
+
 def build_preference_pairs(traces):
-    """Group traces for same question to generate pairs"""
+    """Group only identical-context responses to generate valid pairs."""
     grouped = defaultdict(list)
     for trace in traces:
-        grouped[trace.question].append(trace)
+        if not trace.training_consent:   # eligibility is separate from ranking
+            continue
+        grouped[identity_key(trace)].append(trace)
 
     pairs = []
-    for question, trace_list in grouped.items():
+    for key, trace_list in grouped.items():
         if len(trace_list) < 2:
             continue  # Cannot pair
 
-        # Sort by reward
         sorted_traces = sorted(trace_list, key=lambda t: t.reward_score, reverse=True)
+        preferred, rejected = sorted_traces[0], sorted_traces[-1]
 
-        # Top 1 vs Bottom 1 pair
-        preferred = sorted_traces[0]
-        rejected = sorted_traces[-1]
-
-        # Reward difference must be large enough for meaningful pair
+        # Reward difference must be large enough for a meaningful pair
         if preferred.reward_score - rejected.reward_score < 0.2:
             continue
 
         pairs.append({
-            "prompt": question,
+            "prompt": preferred.serialized_prompt,  # full prompt, not just question text
             "chosen": preferred.answer,
             "rejected": rejected.answer,
-            "reward_diff": preferred.reward_score - rejected.reward_score
+            "reward_diff": preferred.reward_score - rejected.reward_score,
         })
 
     return pairs
@@ -394,55 +438,51 @@ def build_preference_pairs(traces):
 
 **Training Method Selection Guide**:
 
-| Method | Data Requirement | GPU-hours (7B model) | Convergence Stability | Suitable Scenario |
+| Method | Data Requirement | GPU-hours (hypothetical, 7B–8B) | Convergence Stability | Suitable Scenario |
 |------|-------------|---------------------|------------|-------------|
-| **GRPO** | 1k+ pairs | ~50 (4×H100) | ⭐⭐⭐ | Initial self-improvement, fast iteration |
-| **DPO** | 5k+ pairs | ~200 (8×H100) | ⭐⭐⭐⭐ | Stable learning after sufficient data |
-| **RLAIF** | 10k+ pairs + reward model | ~500 (8×H100) | ⭐⭐ | When complex reward modeling needed |
-| **RFT** | 10k+ high-quality traces | ~300 (8×H100) | ⭐⭐⭐⭐⭐ | When golden dataset for supervised learning available |
+| **GRPO** | 1k+ pairs | tens of GPU-hours | ⭐⭐⭐ | Initial self-improvement, fast iteration |
+| **DPO** | 5k+ pairs | tens of GPU-hours | ⭐⭐⭐⭐ | Stable learning after sufficient data |
+| **RLAIF** | 10k+ pairs + reward model | tens–hundreds of GPU-hours | ⭐⭐ | When complex reward modeling needed |
+| **RFT** | 10k+ high-quality traces | lowest (SFT level) | ⭐⭐⭐⭐⭐ | When golden dataset for supervised learning available |
 
-:::tip Selection Guide
-- **Initial (data &lt;2k pairs)**: GRPO — Fastest and effective with minimal data
-- **Mid-stage (data 5k-10k pairs)**: DPO — Balance of stability and effectiveness
-- **Maturity (data &gt;10k)**: RLAIF or RFT — Complex reward modeling
+:::note GPU-hours are environment-dependent
+The ranges above are rough estimates for 7B–8B models, not measurements from this design. Actual time depends heavily on model size, dataset size, hardware, and hyperparameters. As one published data point, full DPO fine-tuning of a 7B model took 2–4 hours on 16×A100 (Zephyr-7B), i.e. roughly 32–64 GPU-hours.
 :::
 
-**GRPO Training Example (NeMo-RL)**:
+:::tip Selection Guide
+These stage thresholds are proposed planning assumptions, not validated optima.
+- **Initial (data &lt;2k pairs)**: GRPO — fast to start with little data
+- **Mid-stage (data 5k-10k pairs)**: DPO — balance of stability and effectiveness
+- **Maturity (data &gt;10k)**: RLAIF or RFT — complex reward modeling
+:::
+
+**GRPO Training Example (NeMo-RL, conceptual)**:
+
+NeMo-Aligner was archived on 2025-11-19; GRPO now lives in NeMo-RL. The real NeMo-RL `grpo` module exposes a `setup(master_config, tokenizer, dataset, val_dataset, processor=None)` entry point whose `master_config` is a `MasterConfig` combining `policy`, `loss_fn`, `env`, `data`, `grpo`, `logger`, `cluster`, and `checkpointing` sections, and GRPO is on-policy — it generates fresh groups of responses from prompts during training rather than consuming pre-built preference pairs. The snippet below is **conceptual pseudocode** that names the knobs; it is not a runnable call. Build the full `MasterConfig` and a Ray cluster from the NeMo-RL examples before running.
 
 ```python
-from nemo.collections.nlp.models.language_modeling import MegatronGPTSFTModel
-from nemo_aligner.algorithms.grpo import GRPOTrainer
-
-# Load base model
-model = MegatronGPTSFTModel.restore_from("qwen3-7b-base.nemo")
-
-# GRPO configuration
-grpo_config = {
-    "num_rollouts": 4,  # Generate 4 responses per question
-    "kl_coef": 0.05,    # KL divergence penalty (prevent policy drift)
-    "clip_range": 0.2,
-    "learning_rate": 1e-6,
-    "batch_size": 16,
-    "gradient_accumulation": 4,
+# Conceptual — see NeMo-RL v0.4.0 nemo_rl/algorithms/grpo.py for the real MasterConfig/setup contract.
+grpo_section = {
+    "num_prompts_per_step": 64,       # prompts sampled per step
+    "num_generations_per_prompt": 4,  # on-policy rollouts generated per prompt
+    "normalize_rewards": True,
+    # kl_coef / clipping live in the loss_fn (ClippedPGLoss) section, not here.
 }
-
-trainer = GRPOTrainer(model=model, config=grpo_config)
-
-# Execute training
-trainer.fit(train_dataset=preference_pairs, val_dataset=golden_dataset)
-
-# Save checkpoint
-model.save_to("qwen3-7b-grpo-2026-04-18.nemo")
+# master_config = {"policy": ..., "loss_fn": ..., "env": ..., "data": ...,
+#                  "grpo": grpo_section, "logger": ..., "cluster": ..., "checkpointing": ...}
+# policy, generation, clusters, dataloaders, loss_fn, logger, ckpt, state, cfg = setup(
+#     master_config, tokenizer, dataset, val_dataset)
+# grpo_train(policy, generation, dataloaders, ..., master_config)
 ```
 
 **DPO Training Example (TRL)**:
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from trl import DPOTrainer, DPOConfig
+from trl import DPOTrainer, DPOConfig  # TRL v0.19.1
 
-model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-7B-Instruct")
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-7B-Instruct")
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-8B")
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-8B")
 
 dpo_config = DPOConfig(
     beta=0.1,  # Temperature for DPO loss
@@ -456,12 +496,12 @@ dpo_config = DPOConfig(
 trainer = DPOTrainer(
     model=model,
     args=dpo_config,
-    train_dataset=preference_dataset,
-    tokenizer=tokenizer,
+    train_dataset=preference_dataset,  # {"prompt", "chosen", "rejected"} format
+    processing_class=tokenizer,  # TRL >=0.13 renamed the tokenizer argument to processing_class
 )
 
 trainer.train()
-model.save_pretrained("qwen3-7b-dpo-2026-04-18")
+model.save_pretrained("qwen3-8b-dpo-2026-04-18")
 ```
 
 **Training Monitoring**:
@@ -471,19 +511,21 @@ model.save_pretrained("qwen3-7b-dpo-2026-04-18")
 import wandb
 
 wandb.init(project="self-improving-agent", name="grpo-2026-04-18")
+# ... log metrics inside the training loop, e.g. wandb.log({"reward_mean": r, "kl": kl, ...})
+```
 
-# Tracked Metrics
+Metrics to track (prose, not code):
 - Reward mean/std (per batch)
 - KL divergence (policy drift vs base model)
 - Loss curve
 - Validation accuracy (golden dataset)
 - Training time per epoch
-```
 
-**Cost Estimate (Qwen3-7B, 5k pairs, DPO)**:
-- GPU: 8× H100 × 25 hours = 200 GPU-hours
-- Cloud cost (p5.48xlarge, $98.32/hr): ~$2,458
-- Comparison: Weekly training $10k/month, Monthly training $2.5k/month
+**Cost Estimate (hypothetical: Qwen3-8B, 5k pairs, DPO)**:
+- GPU: 8× H100 (one p5.48xlarge) × 25 hours = 25 instance-hours = 200 GPU-hours
+- Cloud cost: 25 instance-hours × $55.04/hr (p5.48xlarge on-demand, reflecting the ≈44% reduction effective 2025-06-01; confirm the current rate for your Region and term) ≈ $1,376 per run
+- At this per-run figure: weekly training ≈ $1,376 × 4 ≈ $5.5k/month; monthly training ≈ $1.4k/month
+- These are planning estimates for one run, not a measured benchmark; the broad GPU-hour table above and the Zephyr-7B timing are not measurements of this specific experiment.
 
 ---
 
@@ -530,64 +572,87 @@ else:
 **Shadow Test (5% Traffic)**:
 
 ```python
-# Inference Gateway configuration (LiteLLM + Feature Flag)
-from ldclient import LDClient, Context
+# Inference Gateway configuration (LiteLLM + LaunchDarkly feature flag)
+import asyncio
+from ldclient import LDClient, Config, Context
 
-ld_client = LDClient(sdk_key="sdk-key")
+ld_client = LDClient(Config(sdk_key="sdk-key"))  # LDClient takes a Config, not sdk_key= directly
 
 def select_model(user_id: str) -> str:
     context = Context.builder(user_id).kind("user").build()
-    variant = ld_client.get_variant("agent-model-shadow-test", context)
+    # variation(flag_key, context, default) — there is no get_variant in the SDK.
+    # The flag's targeting rules do the 5% sampling; the default is the safe fallback.
+    variant = ld_client.variation("agent-model-shadow-test", context, "control")
+    return "qwen3-8b-baseline" if variant == "control" else "qwen3-8b-candidate"
 
-    # 95% baseline, 5% candidate (shadow)
-    return "qwen3-7b-baseline" if variant.name == "control" else "qwen3-7b-candidate"
-
-# Shadow response logged only, baseline returned to user
+# Only the eligible 5% run the candidate at all; baseline is always authoritative.
 async def execute_with_shadow(query: str, user_id: str):
-    baseline_task = agent_call(model="qwen3-7b-baseline", query=query)
-    candidate_task = agent_call(model="qwen3-7b-candidate", query=query, shadow=True)
+    baseline_resp = await agent_call(model="qwen3-8b-baseline", query=query)
 
-    baseline_resp, candidate_resp = await asyncio.gather(baseline_task, candidate_task)
+    if select_model(user_id) == "qwen3-8b-candidate":
+        # Shadow path is read-only and must not affect the user response.
+        try:
+            candidate_resp = await asyncio.wait_for(
+                agent_call(model="qwen3-8b-candidate", query=query, shadow=True),
+                timeout=SHADOW_TIMEOUT_SECONDS,
+            )
+            log_shadow_comparison(query, baseline_resp, candidate_resp)
+        except Exception:
+            logger.exception("shadow candidate failed")  # bounded; does not touch baseline_resp
 
-    # Comparison logging
-    log_shadow_comparison(query, baseline_resp, candidate_resp)
-
-    return baseline_resp  # Only baseline to user
+    return baseline_resp  # Baseline is what the user gets, regardless of shadow outcome
 ```
 
 **Regression Monitoring (24 hours)**:
 
+Run these as **separate** queries and compare the results in your dashboard or alerting layer — `vs` is not PromQL. Aggregate away per-pod/instance labels with `sum by (model)` so the candidate and baseline series are comparable, and decide behaviour when a denominator is zero (no traffic yet).
+
 ```promql
-# Prometheus query: Candidate vs Baseline error rate
-rate(agent_errors_total{model="candidate"}[1h]) / rate(agent_requests_total{model="candidate"}[1h])
-vs
-rate(agent_errors_total{model="baseline"}[1h]) / rate(agent_requests_total{model="baseline"}[1h])
+# Candidate error rate (aggregate over pods; guard against divide-by-zero in the alert layer)
+sum by (model) (rate(agent_errors_total{model="candidate"}[1h]))
+  / sum by (model) (rate(agent_requests_total{model="candidate"}[1h]))
 
-# Latency P99
-histogram_quantile(0.99, rate(agent_latency_bucket{model="candidate"}[1h]))
-vs
-histogram_quantile(0.99, rate(agent_latency_bucket{model="baseline"}[1h]))
+# Baseline error rate (same shape, different label value)
+sum by (model) (rate(agent_errors_total{model="baseline"}[1h]))
+  / sum by (model) (rate(agent_requests_total{model="baseline"}[1h]))
 
-# User Feedback ratio
-sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedback_total{model="candidate"}[1h]))
+# Latency P99 per model
+histogram_quantile(0.99, sum by (model, le) (rate(agent_latency_bucket{model="candidate"}[1h])))
+histogram_quantile(0.99, sum by (model, le) (rate(agent_latency_bucket{model="baseline"}[1h])))
+
+# User feedback positive ratio (candidate)
+sum(rate(user_feedback_positive{model="candidate"}[1h]))
+  / sum(rate(user_feedback_total{model="candidate"}[1h]))
 ```
 
-**Auto-rollback Triggers**:
+**Auto-rollback trigger** (a valid Prometheus recording/alerting rule file; the rollback itself is an external adapter):
 
 ```yaml
-# Prometheus AlertManager
-- alert: CandidateModelRegression
-  expr: |
-    (rate(agent_errors_total{model="candidate"}[30m]) 
-     / rate(agent_requests_total{model="candidate"}[30m]))
-    > 1.5 * 
-    (rate(agent_errors_total{model="baseline"}[30m]) 
-     / rate(agent_requests_total{model="baseline"}[30m]))
-  for: 30m
-  annotations:
-    summary: "Candidate model error rate 1.5x increase → automatic rollback"
-  # Webhook → Lambda → LaunchDarkly API (change variant weight to 0%)
+# prometheus-rules.yaml — a Prometheus rule group, not Alertmanager config.
+groups:
+  - name: self-improving-agent
+    rules:
+      - alert: CandidateModelRegression
+        # Require a minimum request floor so a tiny denominator cannot trip the alert.
+        expr: |
+          (
+            sum(rate(agent_errors_total{model="candidate"}[30m]))
+              / sum(rate(agent_requests_total{model="candidate"}[30m]))
+          )
+          > 1.5 *
+          (
+            sum(rate(agent_errors_total{model="baseline"}[30m]))
+              / sum(rate(agent_requests_total{model="baseline"}[30m]))
+          )
+          and sum(rate(agent_requests_total{model="candidate"}[30m])) > 0.1
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Candidate error rate >1.5x baseline → trigger rollback"
 ```
+
+The rollback is **not** performed by Prometheus. Route the alert through Alertmanager to a webhook that calls an authenticated, idempotent rollback adapter (for example a Lambda that sets the LaunchDarkly flag's candidate rollout to 0%). Implement that adapter explicitly; the YAML above only detects the condition.
 
 **Canary Deployment (on Shadow success)**:
 
@@ -607,16 +672,18 @@ sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedbac
 
 ### LLM-as-Judge + Ragas + User Feedback Weights
 
-**Default weights (adjust with experiments)**:
+**Default weights (hypotheses to tune, not validated optima)**:
 
 ```python
+# Positive weights form a convex combination (sum to 1.0). Latency is a
+# separate bounded penalty applied after, so it is NOT a weight here.
 REWARD_WEIGHTS = {
-    "llm_judge": 0.30,        # LLM-as-Judge evaluation
+    "llm_judge": 0.35,        # LLM-as-Judge evaluation
     "faithfulness": 0.25,     # Ragas faithfulness (prevent hallucination)
     "context_recall": 0.20,   # Ragas context recall (retrieval quality)
     "user_feedback": 0.20,    # Thumbs up/down
-    "latency_penalty": 0.05,  # Penalty if P99 exceeds
 }
+LATENCY_PENALTY_MAX = 0.05    # separate cap, subtracted after the base score
 
 def compute_reward(trace):
     score = 0.0
@@ -626,21 +693,25 @@ def compute_reward(trace):
     score += REWARD_WEIGHTS["llm_judge"] * judge_score
 
     # 2. Ragas faithfulness
-    faith_score = ragas.faithfulness.score(trace.answer, trace.context)
+    faith_score = ragas_faithfulness_score(trace.answer, trace.context)
     score += REWARD_WEIGHTS["faithfulness"] * faith_score
 
-    # 3. Ragas context recall
-    recall_score = ragas.context_recall.score(trace.context, trace.ground_truth)
-    score += REWARD_WEIGHTS["context_recall"] * recall_score
+    # 3. Ragas context recall — requires a reference; renormalize if absent
+    if trace.ground_truth is not None:
+        recall_score = ragas_context_recall_score(trace.context, trace.ground_truth)
+        score += REWARD_WEIGHTS["context_recall"] * recall_score
+    else:
+        # Redistribute the recall weight across the other positive signals
+        score /= (1.0 - REWARD_WEIGHTS["context_recall"])
 
-    # 4. User feedback
+    # 4. User feedback (missing-signal policy: neutral 0.5)
     feedback_score = 1.0 if trace.user_feedback == "positive" else \
                      0.0 if trace.user_feedback == "negative" else 0.5
     score += REWARD_WEIGHTS["user_feedback"] * feedback_score
 
-    # 5. Latency penalty (deduct if P99 > 10 seconds)
-    if trace.latency > 10:
-        penalty = min(0.05, (trace.latency - 10) / 100)  # Maximum 5% penalty
+    # 5. Latency penalty — per-request latency in seconds (NOT a P99 percentile)
+    if trace.latency_seconds > 10:
+        penalty = min(LATENCY_PENALTY_MAX, (trace.latency_seconds - 10) / 100)
         score -= penalty
 
     return max(0.0, min(1.0, score))  # Clamp to 0-1 range
@@ -651,11 +722,14 @@ def compute_reward(trace):
 **Optimal Weight Search with A/B Test**:
 
 ```python
-# Define experiment groups
+# Define experiment groups (weights shown in full; each dict must sum to 1.0)
 experiments = [
-    {"name": "baseline", "weights": {"llm_judge": 0.3, "faithfulness": 0.25, ...}},
-    {"name": "user-first", "weights": {"llm_judge": 0.2, "user_feedback": 0.4, ...}},
-    {"name": "quality-first", "weights": {"faithfulness": 0.4, "context_recall": 0.3, ...}},
+    {"name": "baseline",
+     "weights": {"llm_judge": 0.35, "faithfulness": 0.25, "context_recall": 0.20, "user_feedback": 0.20}},
+    {"name": "user-first",
+     "weights": {"llm_judge": 0.20, "faithfulness": 0.20, "context_recall": 0.20, "user_feedback": 0.40}},
+    {"name": "quality-first",
+     "weights": {"llm_judge": 0.10, "faithfulness": 0.40, "context_recall": 0.30, "user_feedback": 0.20}},
 ]
 
 # Run separate training pipeline for each experiment group
@@ -699,48 +773,54 @@ graph LR
     style D fill:#34a853
 ```
 
-**Lambda ETL Job**:
+**Lambda ETL Job** (adapter sketch — verify against your Langfuse version and schema):
+
+Several contracts matter here. (1) psycopg2 executes through a **cursor** (`cur = conn.cursor(); cur.execute(...)`), and default rows are **tuples**, not dicts — use a `RealDictCursor` or index by position. (2) Modern Langfuse (v3+) does not expose this exact Postgres `traces` table; prefer the versioned export API or a schema adapter you own. (3) Use the **configured Korean** Presidio engine from the Filter stage, not a default `AnalyzerEngine()`. (4) PyIceberg needs an Arrow table, not a list. (5) A "last hour" query with no durable watermark can drop or duplicate rows across runs — track a persisted high-water mark and dedupe by trace id. Until an offline/adapter test covers this path, treat the result as unverified.
 
 ```python
-import boto3
+import os
 import psycopg2
-from presidio_analyzer import AnalyzerEngine
+from psycopg2.extras import RealDictCursor
+import pyarrow as pa
 from pyiceberg.catalog import load_catalog
+# analyzer is the SAME configured Korean engine built in the Filter stage.
 
 def lambda_handler(event, context):
-    # 1. Query traces from last hour in Langfuse DB
+    # 1. Durable watermark bounds the window; half-open [since, until) avoids gaps/overlap.
+    since, until = load_watermark(), now_utc()
     conn = psycopg2.connect(os.environ["LANGFUSE_DB_URL"])
-    cursor = conn.execute("""
-        SELECT id, input, output, metadata, score
-        FROM traces
-        WHERE created_at > NOW() - INTERVAL '1 hour'
-          AND score > 0.7
-    """)
-    traces = cursor.fetchall()
+    with conn.cursor(cursor_factory=RealDictCursor) as cur:  # rows as dicts
+        cur.execute(
+            """
+            SELECT id, input, output, metadata, score
+            FROM traces
+            WHERE created_at >= %(since)s AND created_at < %(until)s
+              AND score > 0.7
+            """,
+            {"since": since, "until": until},
+        )
+        rows = cur.fetchall()
 
-    # 2. PII scanning
-    analyzer = AnalyzerEngine()
-    clean_traces = []
-
-    for trace in traces:
-        input_results = analyzer.analyze(text=trace["input"], language="ko")
-        output_results = analyzer.analyze(text=trace["output"], language="ko")
-
-        if input_results or output_results:
-            # PII found → anonymize or discard
-            if should_anonymize(trace):
-                trace = anonymize_trace(trace, input_results, output_results)
+    # 2. PII scanning with the configured Korean engine
+    clean = []
+    for row in rows:
+        hits = analyzer.analyze(text=row["input"], language="ko") \
+             + analyzer.analyze(text=row["output"], language="ko")
+        if hits:
+            if should_anonymize(row):
+                row = anonymize_row(row, hits)
             else:
-                continue  # Discard
+                continue  # discard
+        clean.append(row)
 
-        clean_traces.append(trace)
+    # 3. Dedupe by trace id, then write an Arrow table to Iceberg
+    clean = dedupe_by_id(clean)
+    arrow = pa.Table.from_pylist(clean, schema=TRACES_SCHEMA)
+    catalog = load_catalog("glue")
+    catalog.load_table("training_data.agent_traces").append(arrow)
 
-    # 3. Save to Iceberg table
-    catalog = load_catalog("glue", **{"s3.endpoint": "https://s3.amazonaws.com"})
-    table = catalog.load_table("training_data.agent_traces")
-    table.append(clean_traces)
-
-    return {"status": "success", "traces_processed": len(clean_traces)}
+    commit_watermark(until)  # advance only after a successful write
+    return {"status": "success", "traces_processed": len(clean)}
 ```
 
 ### Presidio PII Scanner
@@ -753,26 +833,28 @@ def lambda_handler(event, context):
 ```python
 from presidio_analyzer import Pattern, PatternRecognizer
 
-# Korean account number pattern
+# Korean account number pattern (set the language so it binds to the Korean engine)
 account_number_recognizer = PatternRecognizer(
     supported_entity="KR_ACCOUNT_NUMBER",
     patterns=[Pattern("account", r"\d{3}-\d{2}-\d{6}", 0.8)],
+    supported_language="ko",
 )
 
 analyzer.registry.add_recognizer(account_number_recognizer)
 ```
 
-### k-Anonymity
+### Query-frequency filter (not k-anonymity) {#k-anonymity}
 
-**Concept**: Same pattern query must exist for at least k people to be considered low risk for individual identification.
+**Concept**: Drop query patterns seen fewer than `min_count` times. This is a coarse rare-pattern filter, **not** a k-anonymity guarantee: it counts records (not distinct people) over the query pattern alone, so it does not establish indistinguishability across quasi-identifiers. Do not label its output as anonymized.
 
 **Implementation**:
 
 ```python
 from collections import defaultdict
 
-def apply_k_anonymity(traces, k=5):
-    """Remove traces failing k-anonymity criteria"""
+def filter_rare_query_patterns(traces, min_count=5):
+    """Remove traces whose normalized query pattern is below min_count.
+    Counts records, not distinct subjects — not a k-anonymity guarantee."""
 
     # 1. Extract query pattern (remove named entities)
     pattern_groups = defaultdict(list)
@@ -780,13 +862,13 @@ def apply_k_anonymity(traces, k=5):
         pattern = extract_pattern(trace.question)  # "John Doe" → "[NAME]", "2026-04-18" → "[DATE]"
         pattern_groups[pattern].append(trace)
 
-    # 2. Remove groups with less than k
+    # 2. Remove groups below min_count
     filtered = []
     for pattern, group in pattern_groups.items():
-        if len(group) >= k:
+        if len(group) >= min_count:
             filtered.extend(group)
         else:
-            print(f"⚠️ Pattern '{pattern}' removed (k={len(group)} < {k})")
+            print(f"⚠️ Pattern '{pattern}' removed (count={len(group)} < {min_count})")
 
     return filtered
 
@@ -801,15 +883,19 @@ def extract_pattern(text: str) -> str:
 
 ### Terms & Regional Storage Requirements
 
-**Korean PIPA (Personal Information Protection Act, 개인정보보호법)**:
-- Prohibits automated profile-based decisions without user consent → **opt-in consent required**
-- Separate consent required for overseas transfer → **storage in domestic region (ap-northeast-2)**
+:::warning These are design choices requiring legal review, not legal advice
+The items below mix (a) **policies this design proposes** (e.g. SLAs, retention windows, a chosen storage Region) with (b) **obligations that depend on applicable law and your specific processing**. Do not treat the specific day counts or the opt-in/opt-out choice as established legal requirements — the lawful basis, consent model, retention period, and transfer mechanism must be confirmed by qualified counsel for your jurisdiction, data categories, and purpose.
+:::
 
-**GDPR**:
-- Right to be forgotten → **Delete within 7 days upon user request**
-- Data minimization → **Delete original traces within 90 days after training**
+**Korean PIPA (Personal Information Protection Act, 개인정보보호법)** — considerations to confirm with counsel:
+- Automated decisions and profiling may require a lawful basis and user rights handling; this design **chooses opt-in consent for training use** as its policy (and the same choice is applied in the collection check below, so the two are consistent).
+- Cross-border transfer has its own conditions; this design **chooses to store in a domestic Region (ap-northeast-2)** to avoid relying on a transfer mechanism, which is a design decision, not the only lawful option.
 
-**Consent Tracking**:
+**GDPR** — considerations to confirm with counsel:
+- Data-subject rights (including erasure) must be honored; this design **targets erasure within an SLA you set** (e.g. 7 days) — an operational SLA, not a fixed statutory deadline.
+- Data minimization motivates deleting source traces after training; this design **chooses a 90-day retention window** as its policy. Propagate withdrawal/erasure to every copy (raw traces, contexts, logs, derived datasets), not just the question/answer fields scanned earlier.
+
+**Consent Tracking** (policy chosen above: opt-in before training use):
 
 ```python
 # User consent table
@@ -820,7 +906,7 @@ consent_table = {
     "withdraw_date": None,
 }
 
-# Verify consent when collecting trace
+# Verify consent when collecting trace (opt-in: absence of consent means do NOT use)
 if not user_consents[trace.user_id].consent_to_training:
     continue  # Cannot use as training data
 ```
@@ -831,32 +917,29 @@ if not user_consents[trace.user_id].consent_to_training:
 
 ### GRPO (Group Relative Policy Optimization)
 
-**Principle**: Update policy based on relative rewards of multiple responses (rollouts) to same prompt. Variant of PPO but no reference model required.
+**Principle**: Update policy based on relative rewards of multiple responses (rollouts) to the same prompt. GRPO is a variant of PPO that removes the critic (value) model and estimates the baseline from group scores, which saves memory. It still uses a reference model to compute the KL-divergence penalty (DeepSeekMath original paper, β=0.04).
 
 **Advantages**:
-- Effective even with small data (starting from 1k pairs)
-- Fast convergence (50 GPU-hours)
-- No reference model required → save memory
+- Effective even with small data (starting from ~1k pairs, workload-dependent)
+- Fast convergence relative to critic-based PPO in many setups
+- No critic (value) model required → saves memory
 
 **Disadvantages**:
-- Unstable convergence (sensitive to learning rate adjustment)
-- Difficult to handle complex reward functions
+- Convergence can be unstable (sensitive to learning-rate tuning)
+- Harder to express complex reward functions
 
-**Usage Example**:
+**Usage Example** (conceptual):
 
 ```python
-# NeMo-Aligner GRPO
-from nemo_aligner.algorithms.grpo import GRPOTrainer
-
-trainer = GRPOTrainer(
-    model=base_model,
-    num_rollouts=4,           # Generate 4 responses per question
-    kl_coef=0.05,             # KL penalty
-    learning_rate=1e-6,
-    batch_size=16,
-)
-
-trainer.fit(train_dataset)
+# Conceptual — see NeMo-RL v0.4.0 nemo_rl/algorithms/grpo.py.
+# GRPO is on-policy: it generates fresh response groups from prompts during training.
+grpo_section = {
+    "num_prompts_per_step": 64,
+    "num_generations_per_prompt": 4,  # rollouts per prompt
+    "normalize_rewards": True,
+    # kl_coef lives in the loss_fn (ClippedPGLoss) section.
+}
+# setup(master_config, tokenizer, dataset, val_dataset) → grpo_train(...)
 ```
 
 **Suitable Scenario**: Initial self-improvement when fast iteration required
@@ -879,7 +962,7 @@ trainer.fit(train_dataset)
 **Usage Example**:
 
 ```python
-from trl import DPOTrainer, DPOConfig
+from trl import DPOTrainer, DPOConfig  # TRL v0.19.1
 
 config = DPOConfig(
     beta=0.1,                 # DPO temperature
@@ -892,7 +975,7 @@ trainer = DPOTrainer(
     model=base_model,
     args=config,
     train_dataset=preference_dataset,  # {"prompt", "chosen", "rejected"} format
-    tokenizer=tokenizer,
+    processing_class=tokenizer,  # TRL >=0.13 renamed the tokenizer argument to processing_class
 )
 
 trainer.train()
@@ -915,31 +998,28 @@ trainer.train()
 - Unstable convergence (sensitive to hyperparameters)
 - High implementation complexity
 
-**Usage Example**:
+**Usage Example** (conceptual — not runnable as written):
+
+A reward model is trained on *pairwise* comparisons with a ranking loss, so use TRL's `RewardTrainer` with a `RewardConfig` rather than the plain `transformers.Trainer` (which has no pairwise reward objective). TRL v0.19.1's `PPOTrainer` requires `args` (a `PPOConfig`), a `processing_class`, a `value_model`, a `reward_model`, a `train_dataset`, and reference/policy models — a bare `config=` keyword is not its signature. Treat the snippet below as pseudocode naming the pieces.
 
 ```python
-# 1. Train reward model
-from transformers import AutoModelForSequenceClassification
+# Conceptual — see TRL v0.19.1 trl/trainer/reward_trainer.py and ppo_trainer.py for exact signatures.
+# 1. Reward model (pairwise ranking objective)
+from trl import RewardTrainer, RewardConfig
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
-reward_model = AutoModelForSequenceClassification.from_pretrained("Qwen/Qwen3-7B", num_labels=1)
+reward_model = AutoModelForSequenceClassification.from_pretrained("Qwen/Qwen3-8B", num_labels=1)
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-8B")
+# RewardTrainer expects {"chosen", "rejected"} pairs, not a 4-tuple comparison record.
+# reward_trainer = RewardTrainer(model=reward_model, args=RewardConfig(...),
+#                                train_dataset=paired_comparisons, processing_class=tokenizer)
 
-reward_trainer = Trainer(
-    model=reward_model,
-    train_dataset=labeled_comparisons,  # (prompt, response_a, response_b, preference)
-)
-reward_trainer.train()
-
-# 2. Optimize policy with PPO
-from trl import PPOTrainer
-
-ppo_trainer = PPOTrainer(
-    model=base_model,
-    ref_model=reference_model,
-    reward_model=reward_model,
-    config=ppo_config,
-)
-
-ppo_trainer.train()
+# 2. PPO policy optimization
+from trl import PPOTrainer, PPOConfig
+# ppo_trainer = PPOTrainer(args=PPOConfig(...), processing_class=tokenizer,
+#                          model=policy_model, ref_model=reference_model,
+#                          value_model=value_model, reward_model=reward_model,
+#                          train_dataset=prompt_dataset)
 ```
 
 **Suitable Scenario**: When complex reward modeling needed (e.g., multi-step reasoning, creativity evaluation)
@@ -959,49 +1039,45 @@ ppo_trainer.train()
 - Requires golden dataset (10k+ high-quality traces)
 - Lack of exploration (only selected responses learned)
 
-**Usage Example**:
+**Usage Example** (conceptual — not runnable as written):
+
+Raw `{"prompt", "completion"}` dicts are not training-ready: a causal-LM SFT run needs tokenization, label construction (typically masking the prompt tokens so loss is computed on the completion), and a data collator. Use TRL's `SFTTrainer` (which applies a chat template / tokenization) or tokenize explicitly before `transformers.Trainer`. Also keep the golden evaluation set separate from the SFT training set — do not train on the data you use to measure regression.
 
 ```python
-# 1. Select high-reward traces
-high_quality_traces = [t for t in traces if t.reward_score > 0.9]
+# Conceptual — tokenization/labels/collator omitted for brevity.
+# 1. Select high-reward traces for training (not the golden eval set)
+high_quality_traces = [t for t in training_traces if t.reward_score > 0.9]
 
-# 2. Construct SFT dataset
-sft_dataset = [
-    {"prompt": t.question, "completion": t.answer}
-    for t in high_quality_traces
-]
+# 2. Build an SFT dataset, then tokenize with the model's chat template
+sft_records = [{"prompt": t.question, "completion": t.answer} for t in high_quality_traces]
 
-# 3. SFT training
-from transformers import Trainer
-
-trainer = Trainer(
-    model=base_model,
-    train_dataset=sft_dataset,
-    args=TrainingArguments(learning_rate=2e-5, num_train_epochs=3),
-)
-
-trainer.train()
+# 3. SFT via TRL's SFTTrainer (handles templating/tokenization/labels)
+from trl import SFTTrainer, SFTConfig
+# trainer = SFTTrainer(model=base_model, args=SFTConfig(learning_rate=2e-5, num_train_epochs=3),
+#                      train_dataset=sft_records, processing_class=tokenizer)
+# trainer.train()
 ```
 
 **Suitable Scenario**: When golden dataset validated by domain experts available
 
 ---
 
-### Practical Comparison (Qwen3-7B, 5k pairs baseline)
+### Practical Comparison — dimensions, not a benchmark {#practical-comparison-qwen3-7b-5k-pairs-baseline}
 
-| Metric | GRPO | DPO | RLAIF | RFT |
+The table below lists the **dimensions** to compare and their qualitative tendencies; it is not a measured result. The GPU-hour and cost figures that earlier drafts placed here were unsourced and internally inconsistent (e.g. a "5k pairs baseline" alongside 10k-pair minimums for RLAIF/RFT, and RFT shown as both "lowest" and costlier than DPO). Before publishing any quantitative ranking, run the methods on your own data and hardware and report the runs, configs, dataset, and hardware.
+
+| Dimension | GRPO | DPO | RLAIF | RFT |
 |--------|------|-----|-------|-----|
-| **GPU-hours** | 50 | 200 | 500 | 300 |
-| **Minimum Data** | 1k | 5k | 10k | 10k |
-| **Convergence Stability** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Implementation Complexity** | Medium | Low | High | Low |
-| **Reward Flexibility** | Low | Medium | High | Low |
-| **Cloud Cost** | $500 | $2,000 | $5,000 | $3,000 |
+| **Minimum data (planning assumption)** | ~1k pairs | ~5k pairs | ~10k pairs + reward model | ~10k high-quality traces |
+| **Convergence stability (tendency)** | medium | high | lower | high |
+| **Implementation complexity** | medium | low | high | low |
+| **Reward flexibility** | low | medium | high | low |
+| **Relative compute (tendency, not a measurement)** | lower | medium | highest | SFT-level |
 
-**Recommended Roadmap**:
-1. **Phase 1 (1-2 months)**: Fast proof-of-concept with GRPO
-2. **Phase 2 (3-6 months)**: Switch to DPO after data accumulation
-3. **Phase 3 (6+ months)**: Introduce RLAIF when complex reward needed, or parallel RFT when golden dataset available
+**Recommended Roadmap** (proposed sequence, validate at each step):
+1. **Phase 1 (1-2 months)**: fast proof-of-concept with GRPO
+2. **Phase 2 (3-6 months)**: switch to DPO after data accumulation
+3. **Phase 3 (6+ months)**: introduce RLAIF when complex reward is needed, or run RFT in parallel when a golden dataset is available
 
 ---
 
@@ -1072,20 +1148,31 @@ if measure_diversity(batch_responses) < 0.3:
 import torch
 import torch.nn.functional as F
 
-def entropy_regularized_loss(logits, labels, entropy_coef=0.01):
-    """Cross-entropy loss + entropy regularization"""
+def entropy_regularized_loss(logits, labels, attention_mask, entropy_coef=0.01):
+    """Cross-entropy + entropy regularization for causal LM training.
 
-    # 1. Base loss
-    ce_loss = F.cross_entropy(logits, labels)
+    Shapes: logits [B, T, V], labels [B, T]. For a causal LM, shift so position t
+    predicts token t+1, flatten to 2D for F.cross_entropy (which expects the class
+    axis at dim 1), and mask padding so it is excluded from both terms.
+    """
+    # Causal shift
+    shift_logits = logits[:, :-1, :].contiguous()  # [B, T-1, V]
+    shift_labels = labels[:, 1:].contiguous()      # [B, T-1]
+    shift_mask = attention_mask[:, 1:].contiguous().bool()
 
-    # 2. Calculate entropy of output distribution
-    probs = F.softmax(logits, dim=-1)
-    entropy = -torch.sum(probs * torch.log(probs + 1e-10), dim=-1).mean()
+    # Flatten for cross_entropy: [N, V] vs [N]; ignore padded positions
+    flat_logits = shift_logits.view(-1, shift_logits.size(-1))
+    flat_labels = shift_labels.view(-1).masked_fill(~shift_mask.view(-1), -100)
+    ce_loss = F.cross_entropy(flat_logits, flat_labels, ignore_index=-100)
 
-    # 3. Subtract entropy from loss to prefer high-entropy
-    total_loss = ce_loss - entropy_coef * entropy
+    # Entropy over the vocab at each non-padding position, averaged over real tokens
+    log_probs = F.log_softmax(shift_logits, dim=-1)
+    per_pos_entropy = -(log_probs.exp() * log_probs).sum(dim=-1)  # [B, T-1]
+    entropy = per_pos_entropy[shift_mask].mean()
 
-    return total_loss
+    # Subtract to encourage higher entropy; entropy_coef needs calibration and does
+    # NOT by itself prevent mode collapse.
+    return ce_loss - entropy_coef * entropy
 ```
 
 **Entropy Monitoring**:
@@ -1104,31 +1191,37 @@ if entropy < 2.0:  # Adjust threshold based on vocab size
 **Purpose**: Track KL divergence to prevent model from drifting too far from base model after retraining.
 
 ```python
+import torch
 import torch.nn.functional as F
 
-def compute_kl_divergence(base_model, new_model, test_prompts):
-    """Calculate KL divergence between base model and new model"""
+def compute_kl_divergence(base_model, new_model, tokenizer, test_prompts, device):
+    """Mean KL(new || base) over non-padding token positions.
 
-    kl_divs = []
-    for prompt in test_prompts:
-        # Base model logits
-        with torch.no_grad():
-            base_logits = base_model(prompt).logits
-            base_probs = F.softmax(base_logits, dim=-1)
+    Both models must use the SAME tokenizer, run in eval() under no_grad, and read
+    tokenized tensors (not raw strings). F.kl_div(input, target) computes
+    sum(target * (log target - input)) = KL(target || input), so to get KL(new||base)
+    pass input=base_log_probs and target=new_probs.
+    """
+    base_model.eval(); new_model.eval()
+    kl_values = []
+    with torch.no_grad():
+        for prompt in test_prompts:
+            enc = tokenizer(prompt, return_tensors="pt", padding=True).to(device)
+            mask = enc["attention_mask"].bool()  # [B, T]
 
-        # New model logits
-        new_logits = new_model(prompt).logits
-        new_probs = F.softmax(new_logits, dim=-1)
+            base_logp = F.log_softmax(base_model(**enc).logits, dim=-1)  # [B, T, V]
+            new_logp = F.log_softmax(new_model(**enc).logits, dim=-1)
+            new_p = new_logp.exp()
 
-        # KL(new || base)
-        kl = F.kl_div(new_probs.log(), base_probs, reduction='batchmean')
-        kl_divs.append(kl.item())
+            # Per-position KL(new || base) = sum_v new_p * (log new_p - log base_p)
+            per_pos_kl = (new_p * (new_logp - base_logp)).sum(dim=-1)  # [B, T]
+            kl_values.append(per_pos_kl[mask].mean().item())  # mask excludes padding
 
-    return sum(kl_divs) / len(kl_divs)
+    return sum(kl_values) / len(kl_values)
 
-# Pre-deployment check
-kl_threshold = 0.5  # Empirically adjust
-avg_kl = compute_kl_divergence(base_model, candidate_model, golden_prompts)
+# Pre-deployment check (threshold must be calibrated, not assumed)
+kl_threshold = 0.5
+avg_kl = compute_kl_divergence(base_model, candidate_model, tokenizer, golden_prompts, device)
 
 if avg_kl > kl_threshold:
     alert(f"⚠️ KL divergence {avg_kl:.3f} > {kl_threshold} → excessive policy drift")
@@ -1140,25 +1233,30 @@ if avg_kl > kl_threshold:
 **Strategy**: Verify quality with weekly human review of 1-2% of total training data.
 
 ```python
-def sample_for_human_review(traces, sample_rate=0.02):
-    """Random sampling + prioritize edge cases"""
+import math
+import random
 
-    # 1. Random sample
-    random_sample = random.sample(traces, int(len(traces) * sample_rate * 0.5))
+def sample_for_human_review(traces, sample_rate=0.02, min_sample=20):
+    """Random + edge-case sample, deduplicated, with a minimum floor."""
+    if not traces:
+        return []
+    target = max(min_sample, int(len(traces) * sample_rate))
 
-    # 2. Edge case priority sample (high reward + low user feedback)
-    edge_cases = sorted(
-        traces,
-        key=lambda t: abs(t.reward_score - t.user_feedback_score),
-        reverse=True
-    )[:int(len(traces) * sample_rate * 0.5)]
+    # Edge cases first: large gap between reward and user feedback.
+    ranked = sorted(traces, key=lambda t: abs(t.reward_score - t.user_feedback_score),
+                    reverse=True)
+    selected = {t.id: t for t in ranked[: target // 2]}
 
-    return random_sample + edge_cases
+    # Fill the rest with a random sample from traces NOT already selected (no duplicates).
+    remaining = [t for t in traces if t.id not in selected]
+    k = min(target - len(selected), len(remaining))
+    for t in random.sample(remaining, k):
+        selected[t.id] = t
+
+    return list(selected.values())
 
 # Weekly review
 review_batch = sample_for_human_review(last_week_traces)
-
-# Send to labeling UI
 for trace in review_batch:
     send_to_labeling_ui(trace, reviewer="domain_expert")
 ```
@@ -1166,20 +1264,28 @@ for trace in review_batch:
 **Review Result Feedback**:
 
 ```python
-# Human review results
-human_labels = load_human_reviews("s3://reviews/week-2026-04-18.json")
-
-# Calculate correlation coefficient between reward function and human evaluation
+import math
 from scipy.stats import spearmanr
 
-corr, p_value = spearmanr(
-    [h.reward_score for h in human_labels],
-    [h.human_score for h in human_labels]
-)
+human_labels = load_human_reviews("s3://reviews/week-2026-04-18.json")
+reward = [h.reward_score for h in human_labels]
+human = [h.human_score for h in human_labels]
 
-if corr < 0.7:
-    alert(f"⚠️ Reward-human correlation {corr:.2f} < 0.7 → need reward function readjustment")
+# Spearman is undefined when either series is constant or too small, and returns NaN.
+# Treat a NaN/undersized result as "cannot conclude", not as passing the gate.
+if len(human_labels) < 30 or len(set(reward)) < 2 or len(set(human)) < 2:
+    alert("⚠️ Correlation not computable (too few or constant samples) → inconclusive")
+else:
+    corr, p_value = spearmanr(reward, human)
+    if math.isnan(corr):
+        alert("⚠️ Correlation is NaN → inconclusive")
+    elif corr < 0.7:
+        alert(f"⚠️ Reward-human correlation {corr:.2f} < 0.7 → readjust reward function")
 ```
+
+:::note Holdout and multiple comparisons
+Reusing the same golden set to tune the reward function and then to report its correlation inflates significance. Reserve a holdout the tuning loop never sees, and apply a multiple-comparison / clustered-dependence correction before reading the p-value. The 0.7 threshold is a proposed gate, not a validated cutoff.
+:::
 
 ---
 
@@ -1187,41 +1293,41 @@ if corr < 0.7:
 
 ### Cost-Benefit Analysis
 
-**Investment Cost (Monthly)**:
+**Investment Cost (monthly, hypothetical — all figures are planning estimates to validate)**:
 
 | Item | Cost (USD) | Note |
 |------|-----------|------|
-| **GPU Training** | $2,500 | Weekly DPO training, 8×H100 × 25h |
+| **GPU Training** | $5,500 | Weekly DPO training ≈ $1,376/run × 4 (see Cost Estimate above) |
 | **Trace Storage** | $300 | S3 + Iceberg (1TB) |
-| **LLM-as-Judge Inference** | $500 | Qwen3-7B, 10k evaluations per hour |
+| **LLM-as-Judge Inference** | $500 | Qwen3-8B, ~10k evaluations/hour |
 | **Ragas Evaluation** | $200 | With caching |
 | **Infrastructure Operations** | $500 | Lambda, Glue, Athena |
-| **Total** | **$4,000** | Monthly operational cost |
+| **Total** | **$7,000** | Monthly operational cost (sum of the rows above) |
 
-**Expected Effect (3 months baseline)**:
+**Expected Effect (illustrative targets, not measured results)**:
 
-| Metric | Before | After | Improvement |
+| Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| **Exact Match** | 0.78 | 0.85 | +9%p |
-| **User Satisfaction** | 3.5/5 | 4.2/5 | +20% |
+| **Exact Match** | 0.78 | 0.85 | +7%p |
+| **User Satisfaction** | 3.5/5 | 4.2/5 | +0.7 (≈+20%) |
 | **Task Completion** | 72% | 83% | +11%p |
-| **Escalation Rate** | 15% | 9% | -40% |
+| **Escalation Rate** | 15% | 9% | −6%p (≈−40% relative) |
 
-**ROI Calculation**:
-- Monthly cost: $4,000
-- Save 1 human agent (annual salary $60k) → monthly $5,000 savings
-- **Payback Period**: 0.8 months
+**ROI Calculation (illustrative)**:
+- Monthly operating cost: $7,000
+- Assumed monthly gross saving if the loop lets you avoid one agent hire ($60k/yr): ≈ $5,000/month
+- At these assumptions the recurring cost ($7,000) exceeds the recurring saving ($5,000), so there is **no positive recurring ROI** from labor substitution alone — the case must rest on quality/throughput gains you measure. "Payback period" applies to a one-time investment recovered by a positive recurring net benefit; it is not the ratio of a recurring cost to a recurring saving.
 
 ### Governance
 
-**Model Card Update**:
+**Model Card Update** (illustrative — the names, dates, metrics, and approver below are placeholder example values, not a real model record):
 
 ```yaml
-# model-card.yaml
-model_name: "qwen3-7b-agent-v2"
+# model-card.yaml (example values)
+model_name: "qwen3-8b-agent-v2"
 version: "2.0"
 training_date: "2026-04-18"
-base_model: "Qwen/Qwen3-7B-Instruct"
+base_model: "Qwen/Qwen3-8B"
 
 training_data:
   source: "Production traces (2026-01 ~ 2026-03)"
@@ -1267,9 +1373,13 @@ CREATE TABLE training_audit_log (
 );
 
 -- Example query: "Who deployed models in April 2026?"
+-- Use a half-open range [start, next-month-start) so the whole last day is included.
+-- BETWEEN '2026-04-01' AND '2026-04-30' would stop at 2026-04-30 00:00:00 and miss most of Apr 30.
+-- Interpret the bounds in the audit log's stored timezone (store timestamps as UTC / timestamptz).
 SELECT * FROM training_audit_log
 WHERE event_type = 'model_deployed'
-  AND timestamp BETWEEN '2026-04-01' AND '2026-04-30';
+  AND timestamp >= TIMESTAMPTZ '2026-04-01 00:00:00+00'
+  AND timestamp <  TIMESTAMPTZ '2026-05-01 00:00:00+00';
 ```
 
 ### Team Capability Check
@@ -1323,16 +1433,17 @@ WHERE event_type = 'model_deployed'
 ### Official Documentation
 
 - [TRL (Transformer Reinforcement Learning)](https://github.com/huggingface/trl) — HuggingFace RL library
-- [NeMo-Aligner](https://github.com/NVIDIA/NeMo-Aligner) — NVIDIA reinforcement learning toolkit
+- [NeMo-RL](https://github.com/NVIDIA/NeMo-RL) — NVIDIA reinforcement learning toolkit (successor to the archived NeMo-Aligner)
 - [Presidio PII Scanner](https://microsoft.github.io/presidio/) — Microsoft PII detection
 - [Ragas Documentation](https://docs.ragas.io/) — RAG evaluation framework
 
 ### Papers / Technical Blogs
 
 - [DPO: Direct Preference Optimization (NeurIPS 2023)](https://arxiv.org/abs/2305.18290) — DPO paper
-- [DeepSeekMath: GRPO (2024)](https://arxiv.org/abs/2402.03300) — GRPO paper
+- [DeepSeekMath: GRPO (2024)](https://arxiv.org/abs/2402.03300) — GRPO original paper
+- [DeepSeek-R1: Incentivizing Reasoning Capability in LLMs (2025)](https://arxiv.org/abs/2501.12948) — RL-based reasoning improvement
 - [Constitutional AI: RLAIF (Anthropic 2022)](https://arxiv.org/abs/2212.08073) — RLAIF paper
-- [Andrej Karpathy on Autoresearch](https://karpathy.github.io/) — Autoresearch concept
+- [Andrej Karpathy — autoresearch (March 2026)](https://github.com/karpathy/autoresearch) — autonomous ML research-loop project
 
 ### Related Documents (Internal)
 

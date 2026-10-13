@@ -3,9 +3,9 @@ title: ADR — Self-Improving Agent Loop 도입 의사결정
 description: Self-Improving Agent Loop(자가학습 강화 파이프라인)를 실 운영에 도입하기 전 합의해야 할 원칙·스코프·책임·롤백 경계를 정리한 Architecture Decision Record
 created: "2026-04-19"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 14
 tags:
   - adr
   - self-improving
@@ -70,13 +70,13 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autoresearch 담론을 엔터프�
 
 ## Decision Points (합의 대상)
 
-### 1. 스코프 고정 — self-hosted SLM 전용
+### 1. 스코프 고정 — self-hosted 오픈웨이트 모델 전용 (초기 소형 모델 파일럿) {#1-스코프-고정--self-hosted-slm-전용}
 
-- 본 루프는 **Qwen3 / Llama 4 / GLM-5** 등 self-hosted 오픈웨이트 모델 전용입니다.
-- Bedrock AgentCore Claude/Nova 등 관리형 폐쇄 모델, OpenAI GPT-4.1, Gemini 2.5는 스코프에서 제외합니다.
-- Ragas/LLM-judge 평가는 공유 자원을 사용하더라도, **weight 업데이트가 일어나는 대상 모델**은 self-hosted로 한정합니다.
+- 본 루프는 **Qwen3 / Llama 4 / GLM-5** 등 self-hosted 오픈웨이트 모델 전용입니다. 이들은 "소형 모델(SLM)"이 아닙니다. 예를 들어 Llama 4 Scout는 활성 17B·전체 109B, Maverick는 활성 17B·전체 400B 파라미터의 MoE 모델입니다([Llama 4 model card](https://github.com/meta-llama/llama-models/blob/main/models/llama4/MODEL_CARD.md), 2026-10-13 확인). 따라서 본 루프의 적용 **대상**은 오픈웨이트 전반이지만, 운영 **초기 파일럿**은 Qwen3-4B 같은 소형 모델부터 시작합니다(Decision Point 7 참조).
+- 관리형 폐쇄 모델(OpenAI GPT-4.1, Google Gemini 2.5, Anthropic Claude 등)은 스코프에서 제외합니다. 다만 **Amazon Bedrock AgentCore는 모델이 아니라 모델에 무관한 에이전트 런타임(호스팅 환경)**이므로([Bedrock AgentCore Runtime 문서](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html), 2026-10-13 확인), "AgentCore Claude/Nova"처럼 런타임과 모델 엔드포인트를 하나로 묶어 부르지 않습니다. 제외 기준은 "weight에 접근할 수 없는 관리형 모델 공급자"입니다.
+- Ragas/LLM-judge 평가는 공유 자원을 사용하더라도, **weight 업데이트가 일어나는 대상 모델**은 self-hosted 오픈웨이트 모델로 한정합니다.
 
-**근거**: 폐쇄 모델은 weight 접근이 불가능하고 공급자 ToS 위반 가능성이 있습니다. 루프 적용이 아니라 프롬프트/라우팅 튜닝으로 대체합니다.
+**근거**: 폐쇄 모델은 weight 접근이 불가능하고 공급자 ToS 위반 가능성이 있습니다. 따라서 루프를 적용하지 않고 프롬프트/라우팅 튜닝으로 대체합니다. 반대로 오픈웨이트 모델은 weight에 접근할 수 있으나, 뒤의 Decision Point 5·6에서 서술하듯 모델 라이선스·데이터 권리 검토 의무는 그대로 남습니다.
 
 ### 2. 루프 자동화 경계 — 5 stage 중 3 stage만 자동화
 
@@ -102,27 +102,30 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autoresearch 담론을 엔터프�
 
 학습 데이터로 승격되는 trace는 다음 4개 게이트를 순서대로 통과해야 합니다.
 
-1. **PII 게이트** — Presidio/Comprehend로 개인정보 마스킹. 실패 trace는 폐기합니다.
-2. **Consent 게이트** — 수집 동의 없는 trace는 학습 데이터에서 제외합니다 (`consent=true` 태그 필수).
-3. **지역 게이트** — 규제 지역(EU GDPR, KR PIPA) trace는 해당 지역 데이터 경계 내 학습 Job만 사용합니다.
+1. **PII 게이트** — Presidio/Comprehend로 개인정보를 탐지·마스킹하고, 탐지에 실패한 trace는 폐기합니다. 단, 스캐너 통과는 "탐지 재현율이 검증된 범위 안에서만" 비식별화 근거가 됩니다. **Amazon Comprehend의 PII 탐지는 영어·스페인어 텍스트만 지원하므로**([Comprehend PII 문서](https://docs.aws.amazon.com/comprehend/latest/dg/how-pii.html), 2026-10-13 확인), 한국어 등 그 외 언어의 PII 탐지를 Comprehend만으로 보장한다고 간주하지 않습니다. 대상 언어·엔터티별 탐지 재현율을 별도로 측정한 뒤 적용 범위를 명시합니다.
+2. **Consent 게이트** — 수집 동의 없는 trace는 학습 데이터에서 제외합니다 (`consent=true` 태그 필수). 다만 수집 동의 태그만으로는 **학습(2차 이용) 권한**이 자동으로 성립하지 않습니다. 각 trace에는 "어떤 목적으로 어떤 처리에 사용할 수 있는지"를 나타내는 목적 한정 권한 출처(provenance)를 함께 기록하고, 학습 이용이 그 범위에 포함되는지 확인합니다.
+3. **지역 게이트** — 본 게이트는 "규제 지역(EU GDPR, KR PIPA 등)에서 수집한 trace는 해당 지역 데이터 경계 내 학습 Job만 사용한다"는 **본 조직이 제안하는 데이터 레지던시 정책**입니다. GDPR·PIPA가 모든 학습을 지역 내에 가둘 것을 그 자체로 요구하는 것은 아닙니다. 역외 이전이 필요한 경우 적정성 결정·표준계약조항(SCC) 등 적용 가능한 적법 이전 근거를 법무 검토로 확인한 뒤 예외를 허용합니다([EDPB 국제 데이터 이전 가이드](https://www.edpb.europa.eu/sme-data-protection-guide/international-data-transfers_en), 2026-10-13 확인).
 4. **기밀 분류 게이트** — 고객 기밀/내부 전용 trace는 사내 전용 모델에만 반영합니다.
 
 **근거**: 컴플라이언스 팀 사전 검토 없이 trace를 학습에 사용하면 재학습 레벨의 데이터 삭제 요청 시 비용이 폭증합니다.
 
 ### 5. 비용 가드레일
 
-- **월간 GPU-hour 상한**: 환경별로 사전 지정합니다 (기본 제안: 1,000 GPU-hour/월 on p5en Spot, 약 $2~4K 상한. p5en.48xlarge Spot 가격은 리전별 약 $1.2~3.7/GPU-hour이며, 최악 Spot 가격에서도 $9.9K 미만).
+- **월간 GPU-hour 상한**: 환경별로 사전 승인한 **예산 상한(approved budget)**으로 지정합니다. 이는 미래 가격을 보장하는 수치가 아니라 "이 한도를 넘기면 자동 승인 없이 Train Job을 띄우지 못한다"는 운영 한도입니다. 기본 제안값은 **1,000 GPU-hour/월**이며, 금액 환산은 다음 전제에서만 유효합니다.
+  - 단위 환산: 1,000 GPU-hour × (해당 리전·시점의 p5en.48xlarge Spot GPU당 단가). p5en.48xlarge는 1 인스턴스에 GPU 8개이므로 인스턴스-시간 단가를 쓸 경우 8로 나누어 GPU-hour 단가로 환산합니다.
+  - Spot 가격은 리전·날짜·수요에 따라 변동하므로, 금액 상한을 명시할 때는 **조회 리전·조회 날짜·구매 옵션(Spot/On-Demand)·인스턴스 타입**을 반드시 함께 기록합니다. 조직은 배포 리전의 현재 [EC2 Spot 가격](https://aws.amazon.com/ec2/spot/pricing/)을 조회해 상한 금액을 확정합니다.
+  - 위 수치와 영어 문서의 금액 상한(≈$15K)은 산출 전제가 달라 서로 다릅니다. 금액 상한은 **각 조직이 자신의 리전·시점 가격으로 재계산해 확정**해야 하며, 본 문서는 특정 달러 금액을 보장하지 않습니다. (KO/EN 금액 불일치는 작성자가 확정 가격을 결정한 뒤 양쪽 문서를 함께 갱신해야 하는 미해결 항목입니다.)
 - **품질 하락 시 자동 중단**: Canary 배포 후 Ragas faithfulness 5%p 하락 또는 misroute rate 10%p 상승 시 자동 롤백합니다.
 - 상한 초과 예정 시 FinOps 리뷰 없이 Train Job 스케줄링이 불가능합니다.
 
-**근거**: GRPO 한 iteration이 수 시간 단위 GPU를 요구합니다. 무제한 자동화는 예산 관리가 불가능합니다.
+**근거**: GRPO 한 iteration의 소요 시간은 모델 크기·batch size·generation 수·시퀀스 길이에 따라 달라집니다([TRL GRPOTrainer 문서](https://huggingface.co/docs/trl/grpo_trainer), 2026-10-13 확인). "수 시간"이라는 수치는 특정 모델·배치 설정을 명시한 측정값이 아니라 운영 가정이므로, 실제 상한은 대상 모델에서 측정한 iteration 소요 시간으로 재조정합니다. 상한을 두는 취지는 무제한 자동화 시 예산 통제가 불가능해지는 것을 막는 것입니다.
 
 ### 6. 롤백 경계 — 어느 버전까지 즉시 복귀 가능해야 하는가
 
-- **모델 버전**: 최근 3세대 weight을 registry에 보관합니다 (삭제 금지).
-- **Reward 모델 버전**: 최근 5회분을 유지합니다.
-- **라우터 classifier 버전**: 최근 10회분을 유지합니다.
-- Canary 실패 시 이전 세대로 **5분 내 자동 복귀** 검증을 Game day로 주기적으로 실시합니다.
+- **모델 버전**: 롤백을 위해 최근 3세대 weight을 registry에 보관하는 것을 **기본 롤백 정책으로 제안**합니다. 다만 "삭제 금지"는 무조건이 아닙니다. 모델이 침해(compromise)되었거나, 라이선스가 해지·변경되었거나(예: [Llama 4 Community License](https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE)의 이용 조건·Acceptable Use Policy 위반 소지), 보안상 폐기(revocation)가 필요한 경우에는 **승인된 대체 버전을 확보한 뒤** 해당 weight을 삭제·격리할 수 있습니다.
+- **Reward 모델 버전**: 최근 5회분을 유지하는 것을 제안합니다.
+- **라우터 classifier 버전**: 최근 10회분을 유지하는 것을 제안합니다.
+- Canary 실패 시 이전 세대로의 복귀 시간을 Game day로 주기적으로 측정합니다. 복귀 시간은 registry에 버전이 존재한다는 사실만으로 보장되지 않으며, **weight 로드·워밍업(모델 적재, KV 캐시·컴파일 워밍업)까지 포함한 실제 서비스 복구 시점**으로 측정합니다. **5분 내 자동 복귀**는 측정으로 검증·조정해야 할 목표값이며, 측정 전까지는 확정 보장값으로 서술하지 않습니다.
 
 **근거**: 자가 학습 루프에서 가장 흔한 실패 모드는 "어제는 좋았는데 오늘은 나빠졌다" 패턴입니다. 빠른 복귀 경로가 없으면 운영 리스크가 과도합니다.
 
@@ -140,7 +143,7 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autoresearch 담론을 엔터프�
 
 ### 긍정적
 - 루프 도입 범위·속도·책임이 명시되어 예측 가능성이 올라갑니다.
-- 폐쇄 모델은 제외하므로 공급자 계약 리스크를 회피합니다.
+- 폐쇄 모델을 제외하므로 weight에 접근할 수 없는 공급자 API 의존에서 벗어납니다. 다만 이것이 공급자 계약 리스크를 전부 없앤다는 뜻은 아닙니다. 오픈웨이트 모델도 모델 라이선스(예: Llama 4 Community License의 이용 조건·Acceptable Use Policy)와 학습 데이터 권리 검토 의무는 그대로 남으므로, 이 검토는 계속 수행합니다.
 - 3-stage 자동화로 돌발 사고 시 피해 반경이 축소됩니다.
 
 ### 부정적 / Trade-off

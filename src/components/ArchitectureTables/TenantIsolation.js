@@ -18,10 +18,10 @@ const TenantIsolation = () => {
   }, {
     level: isKo ? '노드' : 'Node',
     method: isKo ? '테넌트별 노드 풀' : 'Tenant per node pool',
-    advantages: isKo ? '완전한 격리' : 'Complete isolation',
-    disadvantages: isKo ? '비용 증가' : 'Cost increase',
+    advantages: isKo ? '데이터 플레인(워커 컴퓨팅) 격리 강화' : 'Stronger data-plane (worker) isolation',
+    disadvantages: isKo ? '비용 증가, 컨트롤 플레인·API는 여전히 공유' : 'Cost increase; control plane/API still shared',
     icon: "server",
-    recommendedFor: isKo ? '규제 준수가 필요한 환경' : 'Compliance-required environments'
+    recommendedFor: isKo ? 'RBAC·네트워크·스토리지 분리와 병행 시 규제 요건 일부 충족' : 'Partial compliance when combined with RBAC/network/storage separation'
   }, {
     level: isKo ? '클러스터' : 'Cluster',
     method: isKo ? '테넌트별 클러스터' : 'Tenant per cluster',

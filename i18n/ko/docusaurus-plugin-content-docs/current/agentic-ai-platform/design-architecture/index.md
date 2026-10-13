@@ -3,9 +3,9 @@ title: 설계 & 아키텍처
 description: Agentic AI 플랫폼의 아키텍처 설계, 기술적 도전과제, AWS Native 및 EKS 기반 구현 접근
 created: "2026-03-06"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-13
   author: devfloor9
-reading_time: 2
+reading_time: 1
 tags:
   - architecture
   - design
@@ -26,7 +26,7 @@ Agentic AI 플랫폼의 아키텍처를 이해하고, 기술적 도전과제를 
     to="/docs/agentic-ai-platform/design-architecture/foundations"
     icon="🏗️"
     title="플랫폼 기초"
-    description="6 런타임 레이어 + 3 횡단 플레인 플랫폼 블루프린트, 5가지 주요 도전과제, Knowledge Feature Store 개념을 통해 Agentic AI 플랫폼의 기초를 이해합니다."
+    description="6 런타임 레이어 + 3 횡단 플레인 플랫폼 블루프린트와 5가지 주요 도전과제를 통해 Agentic AI 플랫폼의 기초를 이해합니다."
     color="#667eea"
   />
   <DocCard

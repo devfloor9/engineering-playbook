@@ -3,9 +3,9 @@ title: "AWS Native Agentic AI Platform: Agent-Centric Approach with Managed Serv
 description: A platform approach that reduces infrastructure operational burden using Amazon Bedrock, Strands Agents SDK, and AgentCore to focus on agent development
 created: "2026-03-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
-reading_time: 34
+reading_time: 51
 tags:
   - agentcore
   - bedrock
@@ -65,7 +65,7 @@ graph TB
         B1["100+ Model Access<br/>Claude · Nova · Llama"]
         B2["Knowledge Bases<br/>Managed RAG"]
         B3["Guardrails<br/>PII · Prompt Injection Defense"]
-        B4["Prompt Caching<br/>Cost 90%↓ · Latency 85%↓"]
+        B4["Prompt Caching<br/>Cost up to 90%↓ · Latency up to 85%↓"]
         B5["Cross-Region Inference<br/>Auto Regional Distribution"]
     end
 
@@ -103,18 +103,18 @@ Amazon Bedrock provides the **foundational infrastructure** for the Agentic AI P
 
 ### Key Features
 
-| Feature | Description | Core Value |
+| Feature | Description | Scope and prerequisites |
 |---------|-------------|-----------|
-| **Model Access** | 100+ models: Claude, Nova, Llama, Mistral, etc. | Single API, no code changes for model switching |
-| **Knowledge Bases** | Document parsing → chunking → embedding → indexing → search | One-click RAG pipeline, completed with just S3 upload |
-| **Guardrails** | PII filtering, prompt injection defense, topic restrictions | Policy configuration in console, no code changes |
-| **Prompt Caching** | Caching of repeated contexts | Up to 90% cost reduction, up to 85% latency reduction |
-| **Cross-Region Inference** | Automatic cross-region traffic distribution | Auto-fallback on capacity limits, improved availability |
+| **Model Access** | 100+ models: Claude, Nova, Llama, Mistral, etc. | A single Converse/Invoke API switches models by model ID, but each model differs in context length, modalities, tool-use support, and region/quota, so switching may still require prompt and parameter changes. Access must be enabled per model. |
+| **Knowledge Bases** | Document parsing → chunking → embedding → indexing → search | You configure a data source (e.g. an S3 bucket), an embedding model, and a vector store, then run ingestion; the IAM role needs read access to the source and write access to the vector store. "One-click" refers to the managed pipeline, not zero configuration. |
+| **Guardrails** | PII filtering, prompt injection defense, topic restrictions | Policies are defined in the console or API and then attached to each model invocation (`guardrailIdentifier`); they apply only where that configuration is wired in. |
+| **Prompt Caching** | Caching of repeated contexts | Vendor-reported upper bounds for Claude on Bedrock are **up to ~90% input-token cost** and **up to ~85% latency** reduction on cache hits; actual savings depend on cache-hit rate, prompt structure, and model, and only cached input tokens are discounted. See the [Anthropic prompt caching guide](https://platform.claude.com/docs/en/build-with-claude/prompt-caching). |
+| **Cross-Region Inference** | Automatic cross-region traffic distribution | Routes a request to another region in a predefined profile when the source region is capacity-constrained; it is not a disaster-recovery or availability guarantee. |
 | **Prompt Management** | Prompt version control, A/B testing | Prompt history tracking, rollback support |
 | **Model Evaluation** | Automated model evaluation, batch processing | LLM-as-a-judge, human evaluation workflows |
 
 :::tip Prompt Caching Usage
-Agents with long system prompts or repetitive tool definitions can significantly reduce cost and latency by enabling Prompt Caching. It is especially effective for patterns where RAG context is frequently repeated.
+Agents with long system prompts or repetitive tool definitions can reduce cost and latency by enabling Prompt Caching, with the per-model limits noted above. The benefit scales with the cache-hit rate, so it is most effective when a large context prefix (such as a reused RAG context or tool definitions) repeats across requests.
 :::
 
 ---
@@ -125,32 +125,41 @@ Agents with long system prompts or repetitive tool definitions can significantly
 
 ### Minimal Code Agent Implementation
 
+The examples below are written against **Strands Agents SDK (`strands-agents`) 1.x**. `calculator` and `web_search` are placeholders for tools you provide — either functions decorated with `@tool` (see [Custom Tool Definition](#custom-tool-definition)) or tools imported from a package such as `strands-agents-tools`. They are not built-in strings resolved from bare names.
+
 ```python
 from strands import Agent
 from strands.models import BedrockModel
+from strands_tools import calculator  # provided by the strands-agents-tools package
 
-# Basic Agent — completed in 3 lines
+# Minimal Agent — model plus the tools you supply
 agent = Agent(
-    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
-    tools=["calculator", "web_search"],
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514-v1:0"),
+    tools=[calculator],
 )
 result = agent("Convert the current temperature in Seoul to Celsius and Fahrenheit")
 ```
 
 ### MCP Native Support
 
+`MCPClient` takes a transport callable (or a `url=` for streamable HTTP); there is no `server_url` parameter. It is a context manager, so the Agent must be used while the connection is open.
+
 ```python
 from strands import Agent
+from strands.models import BedrockModel
 from strands.tools.mcp import MCPClient
+from mcp.client.streamable_http import streamablehttp_client
 
-# MCP server connection — auto-discovers external tools and integrates with Agent
-mcp_client = MCPClient(server_url="http://mcp-server:8080")
+# MCP server connection over streamable HTTP; tools are discovered from the server
+mcp_client = MCPClient(lambda: streamablehttp_client("http://mcp-server:8080/mcp"))
 
-agent = Agent(
-    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
-    tools=[mcp_client],  # Automatic MCP tool discovery and registration
-)
-result = agent("Look up recent order history and check delivery status")
+with mcp_client:
+    tools = mcp_client.list_tools_sync()  # discover the server's tools
+    agent = Agent(
+        model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514-v1:0"),
+        tools=tools,
+    )
+    result = agent("Look up recent order history and check delivery status")
 ```
 
 ### Custom Tool Definition
@@ -170,7 +179,7 @@ def create_ticket(title: str, priority: str, description: str) -> dict:
     return {"ticket_id": "TK-2026-0042", "status": "OPEN"}
 
 agent = Agent(
-    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514-v1:0"),
     tools=[lookup_customer, create_ticket],
     system_prompt="You are a customer service Agent. Look up customer information and create tickets when needed.",
 )
@@ -184,37 +193,36 @@ agent = Agent(
 | **Model-agnostic** | Supports various backends: Bedrock, OpenAI, Anthropic API, Ollama, etc. |
 | **Framework-agnostic** | Runs on any runtime: FastAPI, Flask, Lambda, etc. |
 | **MCP Native** | Built-in Model Context Protocol support, no separate adapter needed |
-| **AgentCore Integration** | Production deployment with single `agentcore deploy` command |
+| **AgentCore Integration** | Packages into an AgentCore Runtime via the `agentcore` CLI (`configure` then `deploy`); related resources are attached separately |
 | **Streaming Responses** | Per-token streaming, real-time UX support |
 
 ---
 
 ## Amazon Bedrock AgentCore: Operations Platform
 
-AgentCore is a platform that provides **everything needed for production Agent operations** as a managed service. Released as GA in 2025, it consists of 7 core services.
+AgentCore is a platform that provides **capabilities for production Agent operations** as a managed service. It reached **General Availability on October 13, 2025** with a modular set of services. The services available at GA were Runtime, Memory, Gateway, Identity, and Observability (plus the built-in Code Interpreter and Browser tools); **Policy and Evaluations were added later as previews at re:Invent in December 2025**. Confirm the current status and region availability of each service against the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html) before you depend on it.
 
-### 7 Core Services
+### Core Services {#7-core-services}
 
 #### 1. Runtime — Serverless Agent Deployment
 
-AgentCore Runtime provides an isolated execution environment based on **Firecracker MicroVM**.
+AgentCore Runtime provides an isolated execution environment. On the default serverless compute type it runs each session in a **Firecracker MicroVM**; it can also run on the **Instances** compute type (managed EC2 capacity provisioned in your account via a capacity provider), which has a different isolation and billing model.
 
 | Item | Specification |
 |------|--------------|
-| Isolation Level | Firecracker MicroVM (hardware-level isolation) |
-| Session Duration | Up to 8 hours continuous session |
-| Scaling | Auto-scale from 0, scale to 0 when idle |
-| Deployment | `agentcore deploy` CLI or CloudFormation |
-| Cold Start | Within seconds |
+| Isolation Level | Firecracker MicroVM on the serverless compute type (hardware-level isolation); the Instances compute type runs on provisioned EC2 capacity |
+| Session Duration | Up to 8 hours per session on the serverless compute type |
+| Scaling | Serverless compute type auto-scales from 0 and scales to 0 when idle; the Instances compute type keeps provisioned capacity |
+| Deployment | `agentcore` CLI (`configure` then `deploy`) or CloudFormation |
+| Cold Start | Typically within seconds on the serverless compute type; this is observed behavior, not a published SLA |
 
 ```bash
 # Deploy a Strands Agent to AgentCore
-agentcore deploy \
-  --agent-name "customer-service" \
-  --entry-point "agent.py" \
-  --runtime python3.12 \
-  --memory 512 \
-  --timeout 3600
+# 1. Create the agent (name, entrypoint, memory)
+agentcore add agent --name customer-service --entrypoint agent.py --memory longAndShortTerm
+
+# 2. Deploy
+agentcore deploy --target default -y
 ```
 
 #### 2. Memory — Short/Long-term Memory Management
@@ -254,21 +262,27 @@ Even with 300 tools registered, the Gateway analyzes the user request and delive
 
 #### 5. Policy — Natural Language Policy Definition
 
-Policies defined in natural language are **compiled into deterministic runtimes** to ensure consistent policy enforcement.
+AgentCore Policy lets you express **authorization** rules that the runtime compiles and evaluates deterministically to permit or forbid an action. An authorization decision returns allow/deny; it does not itself rewrite or redact payloads.
 
 ```text
-# Natural language policy examples
+# Authorization policy example (permit/forbid)
 Policy: "Only allow refund processing for Gold tier and above customers"
-→ Compiled → Executed by deterministic rule engine (no LLM calls)
+→ Compiled → Deterministic allow/deny decision at request time (no LLM call)
+```
 
-Policy: "PII must be masked when calling external APIs"
-→ Compiled → Automatically applied at Gateway level
+Masking or redacting PII is a **payload transformation**, which is a separate concern. It is enforced by a configured Guardrail (sensitive-information filters) attached to the model invocation, or by an interceptor on the data path (for example at the Gateway). Policy can require that such a control be present, but the transformation itself is done by the Guardrail or interceptor — and only on paths where it is wired in, so direct calls that bypass that path are not covered. See [AgentCore Policy](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/policy.html) and [Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails-use.html).
+
+```text
+# PII handling (not an authorization rule)
+Requirement: "Mask PII before calling external APIs"
+→ Configure a Guardrail / Gateway interceptor on the egress path to redact PII
+→ Verify the redaction with tests, including paths that do not pass through the Gateway
 ```
 
 | Characteristic | Description |
 |---------------|-------------|
-| **Natural Language Input** | Non-developers can define policies |
-| **Deterministic Execution** | Compiled policies are applied deterministically without LLM |
+| **Natural Language Input** | Non-developers can draft authorization rules |
+| **Deterministic Execution** | Compiled authorization policies produce allow/deny without an LLM |
 | **Real-time Enforcement** | Policy verification on every request at runtime |
 | **Audit Trail** | Complete history of policy application/rejection |
 
@@ -276,20 +290,20 @@ Policy: "PII must be masked when calling external APIs"
 
 | Feature | Description |
 |---------|-------------|
-| **CloudWatch Integration** | Automatic collection of metrics, logs, and alarms |
-| **OpenTelemetry** | Standard instrumentation compatible with existing monitoring tools |
-| **Per-step Traces** | Full tracking from Agent reasoning → tool calls → responses |
-| **Cost Dashboard** | Per-model, per-Agent, per-session cost visualization |
+| **CloudWatch Integration** | AgentCore emits default service metrics to CloudWatch; full agent/tool/token traces require enabling CloudWatch Transaction Search and emitting spans (for example via the ADOT instrumentation). Alarms are configured per metric. |
+| **OpenTelemetry** | OTel-compatible instrumentation; you add the instrumentation to your agent to produce spans |
+| **Per-step Traces** | Agent reasoning → tool calls → responses, once tracing is enabled and the spans are instrumented |
+| **Cost Dashboard** | Per-model, per-Agent, per-session cost views built from the emitted telemetry |
 
 #### 7. Evaluation — Continuous Quality Monitoring
 
 | Feature | Description |
 |---------|-------------|
-| **LLM-as-judge** | LLM automatically evaluates Agent response quality |
-| **13 Evaluation Criteria** | Accuracy, relevance, harmfulness, consistency, etc. |
-| **A/B Testing** | Quantitative measurement of quality impact from prompt/model changes |
-| **Continuous Monitoring** | Real-time quality tracking on production traffic |
-| **Human Evaluation Workflows** | Parallel automated and expert evaluation |
+| **LLM-as-judge** | LLM evaluates Agent response quality against the configured evaluators |
+| **Built-in Evaluators** | The managed set of built-in evaluators (such as accuracy, relevance, harmfulness, and consistency); confirm the current list and count in the [AgentCore developer guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html) |
+| **A/B Testing** | Quantitative measurement of quality impact from prompt/model changes, using evaluation datasets you supply |
+| **Continuous Monitoring** | Quality tracking on production traffic once evaluation is configured |
+| **Human Evaluation Workflows** | Automated evaluation paired with expert review, when you set up the review workflow |
 
 ---
 
@@ -369,38 +383,40 @@ graph TD
 
 ### Multi-Agent Pattern
 
-Independent Agents collaborate to handle complex business processes.
+Independent Agents collaborate to handle complex business processes. Strands provides a `GraphBuilder` that builds a directed graph of agent nodes; there is no `MultiAgentOrchestrator` class. Build the graph with `add_node(executor, node_id)` and `add_edge(from_id, to_id)`, call `build()`, then invoke the resulting `Graph` by calling it (or `await graph.invoke_async(task)`), which returns a `GraphResult`. The snippet below is written against **Strands Agents SDK 1.x**; the tool names are placeholders you supply.
 
 ```python
 from strands import Agent
 from strands.models import BedrockModel
-from strands.multiagent import MultiAgentOrchestrator
+from strands.multiagent import GraphBuilder
 
-# Define specialist Agents
+# Define specialist Agents (tools shown are placeholders you provide)
 research_agent = Agent(
-    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514-v1:0"),
     system_prompt="You are a research specialist.",
-    tools=["web_search", "document_reader"],
 )
 
 analysis_agent = Agent(
-    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514-v1:0"),
     system_prompt="You are a data analysis specialist.",
-    tools=["calculator", "chart_generator"],
 )
 
 writer_agent = Agent(
-    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514-v1:0"),
     system_prompt="You are a report writing specialist.",
-    tools=["document_writer"],
 )
 
-# Multi-Agent Orchestration
-orchestrator = MultiAgentOrchestrator(
-    agents=[research_agent, analysis_agent, writer_agent],
-    strategy="sequential",  # Sequential execution: Research → Analysis → Writing
-)
-result = orchestrator("Write a Q1 2026 market trends report")
+# Build the graph — sequential execution: research → analysis → writer
+builder = GraphBuilder()
+builder.add_node(research_agent, "research")
+builder.add_node(analysis_agent, "analysis")
+builder.add_node(writer_agent, "writer")
+builder.add_edge("research", "analysis")
+builder.add_edge("analysis", "writer")
+builder.set_entry_point("research")
+graph = builder.build()
+
+result = graph("Write a Q1 2026 market trends report")  # returns a GraphResult
 ```
 
 ---
@@ -419,53 +435,70 @@ The practical deployment methods for the AWS Native Agentic AI Platform consist 
 
 ### Strands + AgentCore Concept
 
-**Strands Agent Structure:**
+**Strands Agent Structure (conceptual):**
+
+The snippet below shows the agent object only. A Lambda `handler` that returns the agent's result is **not** the AgentCore Runtime application contract: a Runtime entrypoint is defined with the AgentCore runtime adapter (for example the `BedrockAgentCoreApp` wrapper that exposes the HTTP contract the Runtime invokes), not an arbitrary Lambda handler.
+
 ```python
 from strands import Agent
 from strands.models import BedrockModel
+from strands_tools import calculator  # placeholder tool you provide
 
-# Define Agent with minimal code
+# Agent definition (packaging into a Runtime entrypoint is shown by the adapter, not this handler)
 agent = Agent(
-    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514"),
-    tools=["calculator", "web_search"],
+    model=BedrockModel(model_id="anthropic.claude-sonnet-4-20250514-v1:0"),
+    tools=[calculator],
     system_prompt="You are a math assistant.",
 )
-
-# Wrap as Lambda handler
-def handler(event, context):
-    return agent(event["prompt"])
 ```
 
 **AgentCore Deployment Workflow:**
-1. Write Agent code (Python)
-2. Execute `agentcore deploy` → Automatically deploy to Firecracker MicroVM
-3. Endpoint created → Agent callable via REST API
-4. Memory/Gateway/Policy automatically connected
+1. Write Agent code (Python) and wrap it in a Runtime entrypoint with the AgentCore runtime adapter
+2. `agentcore configure` then `agentcore deploy` → builds the artifact and creates the Runtime
+3. Endpoint created → Agent callable via the Runtime's HTTP/invoke contract
+4. Memory, Gateway, and Policy are **separate resources you create and attach explicitly** (with their own IAM permissions); `deploy` does not auto-connect them
 
 ### CloudFormation IaC Pattern
 
-Using AWS CloudFormation allows declarative management of Agents and related resources (Knowledge Base, Guardrails, etc.):
+Using AWS CloudFormation allows declarative management of Agents and related resources (Knowledge Base, Guardrails, etc.). The template below is **deliberately partial**: the required fields are shown, and the configuration blocks marked `# supply ...` must be filled in from the current schema before deploying. Field names and the ARN attribute are taken from the [AWS::BedrockAgentCore::Runtime reference](https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-bedrockagentcore-runtime.html).
 
 ```yaml
 Resources:
-  CustomerServiceAgent:
-    Type: AWS::Bedrock::AgentCoreEndpoint
+  CustomerServiceRuntime:
+    Type: AWS::BedrockAgentCore::Runtime
     Properties:
-      AgentName: customer-service
-      Runtime: python3.12
-      EntryPoint: agent.py:handler
-      Environment:
-        Variables:
-          MODEL_ID: anthropic.claude-sonnet-4-20250514
-          KNOWLEDGE_BASE_ID: !Ref KnowledgeBase
+      AgentRuntimeName: customer_service_runtime   # Required; pattern [a-zA-Z][a-zA-Z0-9_]{0,47} (no hyphens)
+      AgentRuntimeArtifact:                        # Required
+        # supply ContainerConfiguration (e.g. the ECR image URI of the packaged agent)
+        {}
+      RoleArn: !GetAtt AgentRuntimeRole.Arn        # Required; execution role for the runtime
+      NetworkConfiguration:
+        # supply NetworkMode and, for VPC access, the VPC configuration
+        {}
+      ProtocolConfiguration: HTTP                  # One of MCP | HTTP | A2A | AGUI
+
+  CustomerServiceEndpoint:
+    Type: AWS::BedrockAgentCore::RuntimeEndpoint
+    Properties:
+      Name: default
+      AgentRuntimeArn: !GetAtt CustomerServiceRuntime.AgentRuntimeArn  # GetAtt attribute is AgentRuntimeArn, not Arn
 
   KnowledgeBase:
     Type: AWS::Bedrock::KnowledgeBase
     Properties:
       Name: customer-faq
+      RoleArn: !GetAtt KnowledgeBaseRole.Arn       # Required; role with access to the data source and vector store
+      KnowledgeBaseConfiguration:                  # Required; e.g. VECTOR with an embedding model ARN
+        # supply Type and the embedding/model configuration
+        {}
       StorageConfiguration:
-        Type: OPENSEARCH_SERVERLESS
+        Type: OPENSEARCH_SERVERLESS                # One supported backend; others are available
+        # supply the backend-specific configuration (e.g. OpenSearchServerlessConfiguration)
 ```
+
+:::note Omitted prerequisites
+`AgentRuntimeRole` and `KnowledgeBaseRole` IAM roles, the container image for `AgentRuntimeArtifact`, the embedding model and vector-store configuration, and (if used) VPC networking are not shown. Create them before deploying; this template is for structure, not a complete stack.
+:::
 
 :::info Production Deployment Guide
 For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 deployment scripts, refer to the [Reference Architecture](../../reference-architecture/) section. This document focuses on **concepts and patterns** of the AWS Native approach.
@@ -475,32 +508,26 @@ For detailed kubectl/helm commands, complete YAML manifests, and Python boto3 de
 
 ## Enterprise Use Cases
 
-### Baemin (Woowa Brothers): RAG-based Knowledge Agent
+The results below are only cited where a public primary source is available. Figures without a citation are illustrative of the architecture, not verified outcomes.
+
+### Yanolja: AIOps Automation
 
 | Item | Details |
 |------|---------|
-| **Challenge** | Reducing internal policy search time for customer service agents |
-| **Architecture** | Strands Agent + Bedrock Knowledge Bases + Claude |
-| **Results** | **30% improvement** in consultation efficiency, 90% reduction in policy search time |
-| **Core Value** | Completed knowledge Agent with just S3 document upload, without building a RAG pipeline |
+| **Challenge** | Automatically analyze and resolve infrastructure operations issues |
+| **Architecture** | Strands + AgentCore + Bedrock Knowledge Bases |
+| **Results** | **~50% reduction** in manual work and shorter incident response time, as described in the cited case |
+| **Core Value** | A log/metric analysis Agent triages issues and recommends responses |
+| **Reference** | [AWS Technology Blog](https://aws.amazon.com/ko/blogs/tech/yanolja-aiops-strands-agent-on-agentcore/) |
 
-### CJ OnStyle: Multi-Agent Live Commerce
-
-| Item | Details |
-|------|---------|
-| **Challenge** | Automating real-time customer Q&A during live broadcasts |
-| **Architecture** | Multi-agent (Product Info Agent + Order Agent + Recommendation Agent) |
-| **Results** | **3x improvement** in customer response rate, real-time processing latency under 2 seconds |
-| **Core Value** | AgentCore Runtime auto-scaling handled live broadcast traffic surges |
-
-### Amazon Devices: Manufacturing Agent
+### Amazon Devices: Manufacturing Agent (illustrative) {#amazon-devices-manufacturing-agent}
 
 | Item | Details |
 |------|---------|
 | **Challenge** | Automating quality inspection model fine-tuning for manufacturing lines |
 | **Architecture** | Strands Agent + Bedrock Fine-tuning + AgentCore |
-| **Results** | Fine-tuning time reduced from **days to 1 hour** |
-| **Core Value** | Agent auto-orchestrated data preprocessing → fine-tuning → evaluation |
+| **Results** | Not independently cited here; treat any specific time reduction as a target to validate, not a measured result |
+| **Core Value** | Agent orchestrates data preprocessing → fine-tuning → evaluation |
 
 ---
 
@@ -513,10 +540,10 @@ The cost of an AgentCore-based platform follows a **pay-as-you-go** serverless m
 | Service | Billing Basis | Characteristics |
 |---------|--------------|----------------|
 | **Bedrock Inference** | Input/output token count | On-demand or provisioned throughput options |
-| **AgentCore Runtime** | Session time + memory usage | $0 when idle, up to 8-hour sessions |
-| **Knowledge Bases** | Storage + query count | OpenSearch Serverless based |
+| **AgentCore Runtime** | Serverless compute type: CPU and memory consumed while a session is active, so idle sessions holding memory still incur memory charges until released; the Instances compute type bills for the provisioned EC2 capacity | Session length is capped (up to 8 hours on the serverless compute type); "$0 when idle" applies only after capacity is released on the serverless compute type |
+| **Knowledge Bases** | Storage + query count | OpenSearch Serverless is one supported vector store; other backends are available and priced separately |
 | **Guardrails** | Processed text units | Billed separately for input/output |
-| **Prompt Caching** | 90% discount on cache hits | Greater savings with more repeated patterns |
+| **Prompt Caching** | Cache reads are discounted; cache writes may be charged | For Claude on Bedrock the cache-read discount reaches **up to ~90%** on cached input tokens; the exact rate depends on the model and only applies to cache hits, not to every request |
 
 ### Operational Cost Savings
 
@@ -524,15 +551,15 @@ The cost of an AgentCore-based platform follows a **pay-as-you-go** serverless m
 |------|---------------|
 | **GPU Management** | No need for GPU instance provisioning, patching, scaling operations personnel |
 | **Infrastructure Operations** | Serverless architecture eliminates cluster management burden |
-| **Security Compliance** | Leverage AWS SOC 2, HIPAA, ISO 27001 certifications |
-| **Availability Management** | Multi-AZ automatic placement, DR built-in with Cross-Region Inference |
-| **Monitoring Setup** | Native CloudWatch integration eliminates need for separate monitoring stack |
+| **Security Compliance** | AWS holds SOC 2, HIPAA, and ISO 27001 certifications for its services under the shared responsibility model; your application still needs its own controls and attestation |
+| **Availability Management** | Multi-AZ placement within a region; Cross-Region Inference reroutes model calls when a region is capacity-constrained but is not whole-system disaster recovery for your agent, data, and dependencies |
+| **Monitoring Setup** | Native CloudWatch integration provides a baseline; full tracing still requires the configuration described in Observability above |
 
 :::info Cost Optimization Tips
-- **Prompt Caching**: Must enable for Agents with long system prompts
-- **Provisioned Throughput**: Up to 50% savings vs on-demand for stable traffic
-- **Cross-Region Inference**: Prevents throttling with auto-fallback when regional capacity is limited
-- **Batch Inference**: Use batch mode for evaluation/analysis tasks that don't require real-time processing to save costs
+- **Prompt Caching**: Consider enabling it for Agents with long, repeated prompt prefixes; the benefit depends on the cache-hit rate, so measure before assuming it helps
+- **Provisioned Throughput**: Can be cheaper than on-demand for sustained, predictable traffic; whether it saves money (and by how much) depends on utilization and the committed term, so compare against your measured usage rather than assuming a fixed percentage
+- **Cross-Region Inference**: Reroutes to another region in the profile when the source region is capacity-constrained; it reduces throttling but does not guarantee it is eliminated, and remains subject to per-region quotas
+- **Batch Inference**: Use batch mode for evaluation/analysis tasks that do not require real-time processing to save cost
 :::
 
 ---
@@ -541,12 +568,13 @@ The cost of an AgentCore-based platform follows a **pay-as-you-go** serverless m
 
 ### MCP (Model Context Protocol) Overview
 
-MCP is a **standard communication protocol** between AI Agents and tools:
+MCP is a **standard protocol between an AI agent (client) and tools/resources (server)**:
 
-- **Tool Discovery**: Agents dynamically discover available tools
-- **Context Passing**: Execution context and state passed in standardized format
-- **Result Return**: Tool execution results returned in structured format
-- **Inter-Agent Communication**: Multi-agent collaboration via A2A protocol
+- **Tool Discovery**: Agents dynamically discover the tools a server exposes
+- **Context Passing**: Execution context and state passed in a standardized format
+- **Result Return**: Tool execution results returned in a structured format
+
+Agent-to-agent collaboration is **not** part of MCP; it is handled by the separate **A2A protocol**. MCP connects an agent to tools and resources, while A2A connects agents to each other. See the [MCP tools specification](https://modelcontextprotocol.io/specification/2025-06-18/server/tools) and the [A2A project](https://github.com/a2aproject/A2A).
 
 :::info MCP Token Cost Perspective
 As the number of connected MCP servers grows, upfront loading of tool definitions erodes the context window and input token cost. For token optimization techniques such as Progressive Discovery, tool compression proxies, and Code Execution, see [MCP Tool Token Optimization Patterns](../advanced-patterns/mcp-token-optimization.md). This document focuses on integration methods.
@@ -554,57 +582,76 @@ As the number of connected MCP servers grows, upfront loading of tool definition
 
 ### EKS MCP Server Integration
 
-AWS provides EKS-dedicated hosted MCP servers to support integration between Kubernetes clusters and AI Agents:
+AWS Labs publishes an EKS-focused MCP server (run locally by the agent) to integrate Kubernetes clusters with AI Agents:
 
 <EKSMCPFeatures />
 
-**EKS MCP Server Deployment Concept:**
+**EKS MCP Server Setup:**
 
-MCP servers run within the Kubernetes cluster, enabling Agents to query cluster status and perform operations without executing kubectl commands.
+The EKS MCP server is published by AWS Labs as the `awslabs.eks-mcp-server` package in the [awslabs/mcp](https://github.com/awslabs/mcp) repository (under `src/eks-mcp-server`). It is a **locally run MCP server** that an agent launches as a stdio/subprocess MCP tool provider — it is not a hosted AWS endpoint and is not deployed as an in-cluster workload by this repository. Register it in your MCP client configuration:
 
-```bash
-# Clone AWS MCP server repository
-git clone https://github.com/awslabs/mcp.git
-cd mcp/servers/eks
-
-# Build Docker image and deploy to EKS
-docker build -t eks-mcp-server:latest .
-kubectl apply -f k8s/deployment.yaml
+```json
+{
+  "mcpServers": {
+    "awslabs.eks-mcp-server": {
+      "command": "uvx",
+      "args": ["awslabs.eks-mcp-server@latest", "--allow-write"],
+      "env": { "AWS_PROFILE": "your-profile", "AWS_REGION": "us-east-1" }
+    }
+  }
+}
 ```
+
+Permission scope and prerequisites:
+- The server uses your AWS credentials (`AWS_PROFILE`/role) and the target cluster's Kubernetes RBAC; the agent can only do what those identities allow.
+- Read-only is the default. `--allow-write` (and `--allow-sensitive-data-access`) enable mutating/sensitive operations — grant them only when required and scope the IAM role and RBAC accordingly.
+- Confirm the exact package name, flags, and required permissions in the [eks-mcp-server README](https://github.com/awslabs/mcp/blob/main/src/eks-mcp-server/README.md).
 
 **AgentCore + MCP Integration Pattern:**
 
-Bedrock AgentCore registers MCP servers as Action Groups, enabling Agents to use Kubernetes tools:
+To let an AgentCore agent use an MCP server, you register the server as an **MCP target on an AgentCore Gateway** — the Gateway exposes the MCP tools to the agent. This is a different service from Amazon Bedrock Agents: the `bedrock-agent` `create_agent` / `create_agent_action_group` APIs belong to Bedrock Agents (Action Groups) and do **not** attach an MCP server to AgentCore. Configure the Gateway and its MCP target per the [AgentCore Gateway guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html):
+
+```text
+# AgentCore Gateway with an MCP target (conceptual; use the AgentCore control-plane API/CLI)
+1. Create a Gateway (with an authorizer / IAM configuration)
+2. Add an MCP target pointing at the EKS MCP server
+3. Point the agent at the Gateway endpoint; the agent discovers the MCP tools through it
+```
+
+If instead you use **Amazon Bedrock Agents** (not AgentCore), tools are integrated as Action Groups. In that model `apiSchema.payload` must be a **serialized OpenAPI string** (not a Python dict), each operation needs defined `responses`, and `actionGroupExecutor={'customControl': 'RETURN_CONTROL'}` means your application receives the invocation and must dispatch it and return the result — the service does not call the tool for you. Verify shapes against the [bedrock-agent API model](https://raw.githubusercontent.com/boto/botocore/develop/botocore/data/bedrock-agent/2023-06-05/service-2.json).
 
 ```python
+import json
 import boto3
 
-bedrock_agent = boto3.client('bedrock-agent')
+bedrock_agent = boto3.client("bedrock-agent")  # Bedrock Agents, not AgentCore
 
-# Create Agent
 response = bedrock_agent.create_agent(
-    agentName='sre-agent',
-    foundationModel='anthropic.claude-sonnet-4-20250514',
-    instruction='You are an SRE agent for Kubernetes troubleshooting.',
-    agentResourceRoleArn='arn:aws:iam::ACCOUNT:role/BedrockAgentRole',
+    agentName="sre-agent",
+    foundationModel="anthropic.claude-sonnet-4-20250514-v1:0",
+    instruction="You are an SRE agent for Kubernetes troubleshooting.",
+    agentResourceRoleArn="arn:aws:iam::ACCOUNT:role/BedrockAgentRole",
 )
 
-# Connect MCP tools (Action Group)
-bedrock_agent.create_agent_action_group(
-    agentId=response['agent']['agentId'],
-    agentVersion='DRAFT',
-    actionGroupName='eks-mcp-tools',
-    actionGroupExecutor={'customControl': 'RETURN_CONTROL'},
-    apiSchema={
-        'payload': {
-            'openapi': '3.0.0',
-            'info': {'title': 'EKS MCP Tools', 'version': '1.0'},
-            'paths': {
-                '/pod-logs': {'post': {'description': 'Get pod logs'}},
-                '/k8s-events': {'post': {'description': 'Get K8s events'}},
+openapi_schema = {
+    "openapi": "3.0.0",
+    "info": {"title": "EKS MCP Tools", "version": "1.0"},
+    "paths": {
+        "/pod-logs": {
+            "post": {
+                "description": "Get pod logs",
+                "responses": {"200": {"description": "Pod logs"}},
             }
-        }
-    }
+        },
+    },
+}
+
+bedrock_agent.create_agent_action_group(
+    agentId=response["agent"]["agentId"],
+    agentVersion="DRAFT",
+    actionGroupName="eks-tools",
+    actionGroupExecutor={"customControl": "RETURN_CONTROL"},  # your app must dispatch and return results
+    apiSchema={"payload": json.dumps(openapi_schema)},        # serialized OpenAPI string, not a dict
 )
 ```
 
@@ -618,7 +665,7 @@ EKS-based self-hosted Agents and Bedrock AgentCore can be used together:
 
 <KagentVsAgentCore />
 
-**Hybrid Approach**: Route high-frequency, cost-sensitive calls to EKS self-hosted Agents, and low-frequency calls requiring complex reasoning to Bedrock AgentCore for effective strategy.
+**Hybrid Approach**: Choosing where an agent runs (EKS self-hosted versus Bedrock AgentCore) is a decision about hosting, operational responsibility, and compute billing — it is not the same as choosing a model's capability. Both runtimes can call the same model provider (including Bedrock models), so "AgentCore for complex reasoning, EKS for cheap frequent calls" conflates runtime location with model choice. Decide runtime placement from operational and total-cost requirements measured under your workload, and decide model and routing separately.
 
 ### Multi-Agent Orchestration
 
@@ -655,13 +702,13 @@ AWS provides official MCP servers as open source ([github.com/awslabs/mcp](https
 ### CloudWatch Gen AI Observability Integration
 
 :::tip CloudWatch Gen AI Observability GA
-CloudWatch Generative AI Observability became **GA in October 2025**. Natively integrated with AgentCore, Agent invocations, tool executions, and token usage are automatically recorded in CloudWatch without additional configuration.
+CloudWatch Generative AI Observability became **generally available on October 13, 2025** and integrates natively with AgentCore across Runtime, Built-in Tools, Gateway, Memory, and Identity. Capturing agent, tool, and token telemetry is **not zero-configuration**: you enable CloudWatch Transaction Search, emit spans (for example via the ADOT instrumentation), and grant the required permissions. It is compatible with frameworks such as Strands Agents, LangChain, and LangGraph, and is available in a specific set of regions. There is no additional charge for the feature beyond standard CloudWatch telemetry pricing. See the [GA announcement](https://aws.amazon.com/about-aws/whats-new/2025/10/generative-ai-observability-amazon-cloudwatch/) and the [configuration guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/observability-configure.html).
 :::
 
-- **Agent Execution Tracing**: End-to-end tracing for full inference flow visibility
+- **Agent Execution Tracing**: End-to-end tracing for full inference flow visibility, once tracing is enabled
 - **Tool Call Monitoring**: Per-MCP-server call count, latency, and error rate tracking
 - **Token Consumption Analysis**: Per-model input/output token usage and cost tracking
-- **Anomaly Detection**: Automatic detection of abnormal patterns via CloudWatch Anomaly Detection
+- **Anomaly Detection**: Abnormal patterns surfaced via CloudWatch, integrating with Application Signals and Alarms
 
 ---
 
@@ -675,15 +722,15 @@ CloudWatch Generative AI Observability became **GA in October 2025**. Natively i
 
 ### Official Documentation
 
-- [Amazon Bedrock AgentCore Documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html) — AgentCore official guide
+- [Amazon Bedrock AgentCore Developer Guide](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html) — AgentCore Runtime and services guide
 - [Strands Agents SDK repository](https://github.com/strands-agents/harness-sdk) — Open-source Agent framework
 - [Model Context Protocol Specification](https://modelcontextprotocol.io/) — MCP protocol specification
 - [AWS MCP Servers (GitHub)](https://github.com/awslabs/mcp) — AWS official MCP servers
 
 ### Papers / Technical Blogs
 
-- [CloudWatch Generative AI Observability](https://aws.amazon.com/blogs/mt/launching-amazon-cloudwatch-generative-ai-observability-preview/) — Observability GA announcement
-- [Building Production Agent Systems](https://aws.amazon.com/blogs/machine-learning/) — Production Agent construction
+- [CloudWatch Generative AI Observability — GA announcement (Oct 13, 2025)](https://aws.amazon.com/about-aws/whats-new/2025/10/generative-ai-observability-amazon-cloudwatch/) — Observability general availability
+- [Yanolja AIOps with Strands Agents on AgentCore](https://aws.amazon.com/ko/blogs/tech/yanolja-aiops-strands-agent-on-agentcore/) — Production agent case study
 - [CNS421: Streamline EKS Operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE) — re:Invent 2025 session
 - [Agent-to-Agent Protocol Deep Dive](https://a2a-protocol.org/latest/) — Multi-agent communication
 

@@ -3,9 +3,9 @@ title: "AI 플랫폼 선택 가이드: 매니지드 vs 오픈소스 vs 하이브
 description: SageMaker Unified Studio, Bedrock AgentCore, EKS 오픈 아키텍처 중 고객 상황에 맞는 최적 접근 선택을 위한 의사결정 프레임워크
 created: "2026-04-17"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 15
 tags:
   - decision-framework
   - sagemaker
@@ -22,9 +22,9 @@ faq:
   - q: AWS에서 AI 플랫폼을 구축하는 경로는 무엇이 있나요?
     a: 크게 세 가지입니다. (A) AWS 매니지드 — Bedrock과 Strands SDK, AgentCore로 인프라 운영 없이 시작합니다. (B) EKS와 오픈소스 — vLLM, llm-d, Langfuse 등을 자체 호스팅하여 최대 제어권을 확보합니다. (C) 하이브리드 — Bedrock과 EKS를 조합해 비용, 통제, 속도의 균형을 맞춥니다.
   - q: 매니지드 서비스와 오픈소스 자체 구축 중 무엇을 선택해야 하나요?
-    a: 빠른 출시와 운영 부담 최소화가 중요하면 Bedrock AgentCore 기반 매니지드 접근이 적합합니다. 모델 선택의 자유도, 데이터 주권, 비용의 장기 최적화가 중요하면 EKS 기반 오픈 아키텍처가 적합합니다. 대부분의 엔터프라이즈는 두 가지를 조합한 하이브리드로 수렴합니다.
+    a: 빠른 출시와 운영 부담 최소화가 중요하면 Bedrock AgentCore 기반 매니지드 접근이 적합합니다. 지원 모델 범위 밖의 가중치를 자체 호스팅해야 하거나, 특정 리전·VPC 내 처리 같은 데이터 주권 요건, 모델 서빙 계층의 세밀한 제어가 중요하면 EKS 기반 오픈 아키텍처가 적합합니다. 두 접근을 조합한 하이브리드는 요건에 따라 선택할 수 있는 설계이며, 모든 조직이 하이브리드로 수렴한다는 근거는 없습니다.
   - q: Bedrock AgentCore는 언제 선택하나요?
-    a: 서버리스 Agent 런타임으로 인프라 관리 없이 프로덕션 Agent를 운영하려는 경우 선택합니다. GPU 노드 운영, 스케일링, 모델 서빙 스택을 직접 관리하지 않아도 되며, 트래픽이 가변적이거나 초기 PoC 단계에서 운영 오버헤드를 줄이는 데 유리합니다.
+    a: Agent 코드(런타임)를 서버리스로 호스팅하여 인프라 관리 없이 프로덕션 Agent를 운영하려는 경우 선택합니다. AgentCore Runtime은 프레임워크에 무관하며 Bedrock·Anthropic·Google·OpenAI 등 임의의 LLM을 호출할 수 있으므로, Agent 런타임 선택과 모델 호스팅 위치는 별개의 결정입니다. microVM 세션 격리 기반의 서버리스 compute를 쓰면 GPU 노드 운영·스케일링을 직접 관리하지 않아도 되어 트래픽이 가변적이거나 초기 PoC 단계에서 운영 오버헤드를 줄이는 데 유리합니다. 반면 자체 가중치 서빙이나 GPU 상주 워크로드는 EKS 자체 호스팅 또는 AgentCore의 Instances compute로 별도 설계합니다.
 ---
 
 import { PlatformComparisonMatrix, MaturityPathTable, HybridPatternSummary } from '@site/src/components/DecisionFrameworkTables';
@@ -47,7 +47,7 @@ AI 플랫폼 구축 경로는 크게 3가지로 나뉩니다:
 
 ## AWS AI 플랫폼 서비스 랜드스케이프
 
-AWS AI 서비스는 4개의 Tier로 계층화됩니다. 고객은 하위 Tier에서 시작하여 필요에 따라 상위 Tier로 이동합니다.
+이 문서는 AWS AI 서비스를 역할에 따라 4개의 Tier로 묶어 설명합니다. 이는 AWS가 규정한 제품 계층이 아니라 이 가이드의 분류이며, 각 Tier는 보완적 책임(모델 액세스·개발 환경·운영·인프라)을 나타냅니다. Tier는 반드시 순서대로 거쳐야 하는 성숙도 단계가 아니라 요건에 따라 조합하는 구성 요소로, 예를 들어 Tier 1 Bedrock 추론과 Tier 4 EKS 자체 호스팅을 성숙도 진행 없이 함께 쓸 수 있습니다.
 
 ```mermaid
 graph TB
@@ -86,9 +86,9 @@ graph TB
 ```
 
 **Tier 구분의 핵심**:
-- **Tier 1-3**: AWS 매니지드 서비스로 인프라 운영 없이 시작할 수 있습니다.
-- **Tier 4**: 세밀한 제어, 비용 최적화, 데이터 주권이 필요할 때 선택합니다.
-- **대부분의 고객은 Tier 1에서 시작하여 점진적으로 확장**하며, 엔터프라이즈는 Tier 3과 Tier 4를 하이브리드로 조합하는 경향이 있습니다.
+- **Tier 1-3**: AWS 매니지드 서비스로 서버·GPU 인프라 운영 없이 시작할 수 있습니다. 다만 매니지드 서비스에서도 IAM·네트워크 경계·비용·프롬프트/모델 평가·관측성 같은 운영 책임은 사용자에게 남습니다.
+- **Tier 4**: 모델 서빙 계층의 세밀한 제어, 지원 모델 범위 밖 가중치의 자체 호스팅, 또는 VPC 내 처리 같은 데이터 주권 요건이 있을 때 선택하며, Kubernetes·GPU 운영 부담을 수반합니다.
+- 각 Tier는 보완 관계이므로 **고정된 진행 순서 없이 요건에 따라 조합**합니다. 처음부터 Tier 1과 Tier 4를 함께 쓰거나, 특정 Tier만 사용할 수도 있습니다.
 
 ---
 
@@ -182,7 +182,13 @@ flowchart TD
 ```
 
 :::warning 플로우차트는 출발점입니다
-이 플로우차트는 대화의 시작점이지, 최종 결론이 아닙니다. 실제 고객 상황은 복합적이며, 대부분의 엔터프라이즈는 **하이브리드 접근**으로 수렴합니다.
+이 플로우차트는 대화의 시작점이지, 최종 결론이 아닙니다. 각 분기는 단일 기술로 자동 매핑되지 않으므로 다음 조건을 함께 확인하세요.
+
+- **Q1(Open Weight 자체 호스팅)**: "Yes"가 곧 EKS를 뜻하지는 않습니다. 해당 가중치가 Bedrock Marketplace, Bedrock Custom Model Import, SageMaker AI 엔드포인트 등 매니지드 호스팅으로 지원되는지 먼저 확인하고, 지원되지 않거나 서빙 스택 제어가 필요한 경우에 EKS 자체 호스팅을 선택합니다.
+- **Q2(데이터 주권)**: VPC·리전 격리 요건이 반드시 하이브리드를 의미하지는 않습니다. 처리·저장이 허용되는 **구체적 국가/리전 범위**를 먼저 정의한 뒤, 해당 범위를 리전 고정(SCP)과 Bedrock 추론 프로파일로 충족할 수 있는지, 아니면 자체 호스팅이 필요한지 판단합니다.
+- **Q3 이후 기본값**: 신규가 아닌 모든 워크로드가 하이브리드로 수렴하는 것은 아닙니다. 팀의 Kubernetes·GPU 운영 역량과 실제 운영 용량을 확인하고, 역량이 없으면 매니지드 경로를 유지하는 편이 낫습니다.
+
+실제 고객 상황은 복합적이며, 하이브리드는 요건에 따라 선택하는 설계 중 하나입니다.
 :::
 
 ---
@@ -194,11 +200,11 @@ flowchart TD
 | 주권 수준 | 추론 위치 | 권장 접근 |
 |----------|----------|----------|
 | **Public** | 리전 제약 없음 | AWS Native |
-| **In-country** | 국내 리전 고정 | Bedrock Geographic CRIS + SCP 리전 강제 |
-| **Hybrid** | 온프레미스 + in-country | EKS Hybrid Nodes + 자체 호스팅 |
-| **Air-gapped** | 완전 격리 | 온프레미스 EKS 전용 |
+| **In-country** | 특정 국가 리전 고정 | 대상 국가가 요구하는 처리 범위를 먼저 확인합니다. Bedrock 추론 프로파일(CRIS)의 지리적 범위는 여러 국가에 걸칠 수 있으므로, 단일 국가 거주가 요건이면 해당 국가 리전만 포함하는 프로파일 또는 단일 리전 호출을 선택하고 SCP로 리전을 강제합니다. |
+| **Hybrid** | 온프레미스 + in-country | EKS Hybrid Nodes + 자체 호스팅. Hybrid Nodes는 온프레미스·엣지 노드와 AWS 관리형 컨트롤 플레인 간 **안정적 연결이 필요**합니다. |
+| **Air-gapped** | 완전 격리 | 온프레미스 EKS(연결 차단 환경은 EKS Anywhere의 에어갭 설치). EKS Hybrid Nodes는 연결을 끊는다고 에어갭이 되지 않으며 DDIL 환경에 적합하지 않으므로, 완전 격리에는 Hybrid Nodes가 아니라 EKS Anywhere 디스커넥티드 라이프사이클을 사용합니다. |
 
-데이터 주권은 의사결정의 **첫 번째 필터**로 두는 것이 안전합니다. 주권 제약이 EKS 자체 호스팅 또는 하이브리드를 강제하면, 비용·볼륨 기준의 결론보다 우선합니다.
+데이터 주권은 의사결정의 **첫 번째 필터**로 두는 것이 안전합니다. 주권 제약이 EKS 자체 호스팅 또는 하이브리드를 강제하면, 비용·볼륨 기준의 결론보다 우선합니다. 단, "In-country"는 대상 국가의 처리 범위를 확인한 뒤 그에 맞는 리전/프로파일을 선택해야 하며, "Air-gapped"에서 연결형 Hybrid Nodes와 디스커넥티드 EKS Anywhere는 서로 다른 제품·운영 모델이라는 점에 유의하세요.
 
 :::info 소버린 & 하이브리드 상세
 SCP 리전 강제 정책, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 기반 하이브리드·in-country 자체 호스팅 구현은 [소버린 & 하이브리드 배포](./sovereign-hybrid-deployment.md)를 참조하세요.
@@ -277,9 +283,9 @@ flowchart LR
     style EKS fill:#10b981,color:#fff
 ```
 
-**사용 시점**: 커스텀 모델을 학습하고, 추론 비용을 최소화하려는 경우
+**사용 시점**: 커스텀 모델을 학습하고, 추론 비용을 낮추려는 경우
 
-**핵심 가치**: SageMaker의 관리형 학습 환경 + EKS의 비용 효율적 서빙
+**검증할 가치**: SageMaker 관리형 학습으로 모델을 만들고 EKS에서 서빙할 때, 같은 품질·지연 조건에서 Bedrock 등 대안 대비 실제 총비용(GPU 고정비·활용률·운영 포함)이 낮아지는지 측정합니다. 서빙 위치가 EKS라는 사실만으로 비용 효율이 보장되지는 않습니다.
 
 **참고**: [SageMaker-EKS 통합](../../reference-architecture/integrations/sagemaker-eks-integration.md)
 
@@ -299,7 +305,7 @@ flowchart LR
 
 **사용 시점**: Agent 런타임은 서버리스로 운영하되, 특정 도메인 모델은 자체 호스팅하려는 경우
 
-**핵심 가치**: AgentCore의 서버리스 운영성 + 커스텀 모델의 도메인 정확도
+**검증할 가치**: 자체 호스팅한 도메인 모델이 같은 작업에서 Bedrock 등 매니지드 모델 대비 품질(정확도)이 실제로 더 높은지 평가 데이터로 확인하고, 그 이점이 추가 운영 비용·지연을 상쇄하는지 함께 측정합니다. 커스터마이징·자체 호스팅 자체가 도메인 정확도를 보장하지는 않습니다.
 
 **참고**: [AWS Native 플랫폼](./aws-native-agentic-platform.md)
 
@@ -338,7 +344,7 @@ flowchart LR
 
 ## 고객 Discovery 체크리스트
 
-고객 미팅에서 최적 접근을 파악하기 위한 10가지 핵심 질문입니다.
+고객 미팅에서 최적 접근을 파악하기 위한 11가지 핵심 질문입니다.
 
 1. **현재 AI/ML 워크로드를 운영하고 있습니까?** *→ 성숙도 레벨 판단*
 2. **월간 추론 요청 규모는 어느 정도입니까?** *→ 비용 최적화 경로*
@@ -348,8 +354,9 @@ flowchart LR
 6. **ML 학습과 데이터 엔지니어링을 함께 수행합니까?** *→ SageMaker Unified Studio*
 7. **월 예산 범위는 어느 정도입니까?** *→ 비용 구조 매칭*
 8. **프로덕션 배포 목표 시점은 언제입니까?** *→ Time-to-Value 경로*
-9. **멀티클라우드 또는 온프레미스 하이브리드 요구가 있습니까?** *→ EKS Hybrid Nodes*
-10. **현재 사용 중인 AWS 서비스는 무엇입니까?** *→ 기존 투자 활용*
+9. **온프레미스·엣지에서 AWS와 안정적으로 연결해 운영해야 합니까?** *→ EKS Hybrid Nodes (안정적 연결 필요, 다른 클라우드·AWS 리전/Local Zones/Outposts에서는 미지원)*
+10. **다른 클라우드에서도 워크로드를 운영해야 합니까(멀티클라우드)?** *→ EKS Hybrid Nodes는 해당하지 않음. 각 클라우드의 매니지드 Kubernetes 또는 EKS Anywhere 등 지원되는 Kubernetes 관리 옵션을 별도로 선택*
+11. **현재 사용 중인 AWS 서비스는 무엇입니까?** *→ 기존 투자 활용*
 
 ---
 
@@ -364,9 +371,9 @@ flowchart LR
 
 ### 논문 / 기술 블로그
 
-- [Choosing the Right AI Platform](https://aws.amazon.com/blogs/machine-learning/) — 플랫폼 선택 가이드
+- [AWS Machine Learning 블로그 (색인)](https://aws.amazon.com/blogs/machine-learning/) — 플랫폼 선택 관련 글을 찾는 블로그 색인 페이지(특정 비교를 입증하는 단일 글 아님)
 - [Cost Optimization for LLM Inference](https://huyenchip.com/2023/04/11/llm-engineering.html) — 비용 최적화 전략
-- [Hybrid AI Architecture Patterns](https://aws.amazon.com/architecture/) — 하이브리드 패턴
+- [AWS Architecture Center (색인)](https://aws.amazon.com/architecture/) — 하이브리드 패턴 등 아키텍처 자료를 찾는 색인 페이지(특정 패턴을 입증하는 단일 글 아님)
 - [Building Production ML Systems](https://developers.google.com/machine-learning/guides/rules-of-ml) — 프로덕션 ML 가이드
 
 ### 관련 문서 (내부)

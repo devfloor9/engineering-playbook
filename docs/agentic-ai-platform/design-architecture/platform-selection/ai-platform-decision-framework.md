@@ -3,9 +3,9 @@ title: "AI Platform Selection Guide: Managed vs Open Source vs Hybrid"
 description: Decision framework for selecting the optimal approach between SageMaker Unified Studio, Bedrock AgentCore, and EKS open architecture based on customer needs
 created: "2026-04-17"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-13
   author: devfloor9
-reading_time: 23
+reading_time: 31
 tags:
   - decision-framework
   - sagemaker
@@ -22,9 +22,9 @@ faq:
   - q: What are the paths for building an AI platform on AWS?
     a: There are three main paths. (A) AWS managed — start without infrastructure operations using Bedrock, the Strands SDK, and AgentCore. (B) EKS and open source — self-host vLLM, llm-d, Langfuse, and similar tools for maximum control. (C) Hybrid — combine Bedrock and EKS to balance cost, control, and speed.
   - q: Should I choose managed services or build with open source?
-    a: If fast time-to-market and minimal operational overhead matter most, a Bedrock AgentCore managed approach fits. If model choice, data sovereignty, and long-term cost optimization matter most, an EKS-based open architecture fits. Most enterprises converge on a hybrid that combines both.
+    a: If fast time-to-market and minimal operational overhead matter most, a Bedrock AgentCore managed approach fits. If you must self-host weights outside the supported model set, have data sovereignty requirements such as processing within a specific region or VPC, or need fine-grained control over the model-serving layer, an EKS-based open architecture fits. A hybrid that combines both is a design you can choose based on requirements; there is no evidence that every organization converges on hybrid.
   - q: When should I choose Bedrock AgentCore?
-    a: Choose it when you want to run production agents without managing infrastructure, using a serverless agent runtime. You avoid operating GPU nodes, scaling, and the model-serving stack directly, which helps when traffic is variable or during early PoC stages where reducing operational overhead is valuable.
+    a: Choose it when you want to host your agent code (the runtime) serverlessly and run production agents without managing infrastructure. AgentCore Runtime is framework-agnostic and can call any LLM — including models from Amazon Bedrock, Anthropic, Google, and OpenAI — so choosing the agent runtime is a separate decision from where models are hosted. Its microVM session-isolated serverless compute means you do not operate GPU nodes or scaling directly, which helps when traffic is variable or during early PoC stages where reducing operational overhead is valuable. Self-hosted weight serving or resident-GPU workloads are designed separately, on EKS self-hosting or on AgentCore's Instances compute.
 ---
 
 import { PlatformComparisonMatrix, MaturityPathTable, HybridPatternSummary } from '@site/src/components/DecisionFrameworkTables';
@@ -47,7 +47,7 @@ Before reading this document, refer to the following:
 
 ## AWS AI Platform Service Landscape
 
-AWS AI services are structured into 4 tiers. Customers start at lower tiers and move to higher tiers as needed.
+This document groups AWS AI services into 4 tiers by role. This is this guide's classification, not an AWS-defined product hierarchy; each tier represents a complementary responsibility (model access, development environment, operations, infrastructure). The tiers are not maturity stages you must pass through in order — they are building blocks you combine based on requirements. For example, you can use Tier 1 Bedrock inference together with Tier 4 EKS self-hosting without any maturity progression.
 
 ```mermaid
 graph TB
@@ -86,9 +86,9 @@ graph TB
 ```
 
 **Key Tier Distinctions**:
-- **Tier 1-3**: AWS managed services allow you to start without infrastructure operations.
-- **Tier 4**: Choose when fine-grained control, cost optimization, or data sovereignty is required.
-- **Most customers start at Tier 1 and expand incrementally**, while enterprises tend to combine Tier 3 and Tier 4 in hybrid configurations.
+- **Tier 1-3**: AWS managed services let you start without operating server/GPU infrastructure. Even so, operational responsibilities such as IAM, network boundaries, cost, prompt/model evaluation, and observability remain with you.
+- **Tier 4**: Choose it when you need fine-grained control over the model-serving layer, must self-host weights outside the supported model set, or have data sovereignty requirements such as processing within a VPC; it carries Kubernetes/GPU operational burden.
+- The tiers are complementary, so you **combine them by requirement with no fixed progression order**. You can use Tier 1 and Tier 4 together from the start, or use only specific tiers.
 
 ---
 
@@ -96,7 +96,7 @@ graph TB
 
 ### Integrated AI Development Environment
 
-**SageMaker Unified Studio** is an integrated AI development environment released in H2 2024, designed to perform ML/data/analytics tasks in a single IDE. Previously, teams had to use fragmented tools like SageMaker Studio Classic, Athena, and Glue Studio separately, but Unified Studio consolidates them into one.
+**SageMaker Unified Studio** is an integrated AI development environment first shown in preview at re:Invent in December 2024 and made generally available (GA) in March 2025, designed to perform ML/data/analytics tasks in a single IDE. Previously, teams had to use fragmented tools like SageMaker Studio Classic, Athena, and Glue Studio separately, but Unified Studio consolidates them into one.
 
 ### Key Differentiators
 
@@ -182,7 +182,13 @@ flowchart TD
 ```
 
 :::warning The Flowchart is a Starting Point
-This flowchart is the starting point for conversation, not the final conclusion. Actual customer situations are complex, and most enterprises converge on a **hybrid approach**.
+This flowchart is the starting point for conversation, not the final conclusion. Each branch does not map automatically to a single technology, so check the following conditions as well.
+
+- **Q1 (self-host Open Weight)**: "Yes" does not immediately mean EKS. First check whether the weights are supported by managed hosting such as Bedrock Marketplace, Bedrock Custom Model Import, or SageMaker AI endpoints; choose EKS self-hosting when they are not, or when you need control over the serving stack.
+- **Q2 (data sovereignty)**: A VPC/region isolation requirement does not necessarily mean hybrid. First define the **concrete country/region scope** where processing and storage are allowed, then decide whether that scope can be met with region pinning (SCP) plus a Bedrock inference profile, or whether self-hosting is required.
+- **Default after Q3**: Not every non-new workload converges on hybrid. Check the team's Kubernetes/GPU operating capability and actual operating capacity; without that capability, staying on a managed path is usually better.
+
+Actual customer situations are complex, and hybrid is one design you choose based on requirements.
 :::
 
 ---
@@ -194,11 +200,11 @@ The flowchart above used workload, volume, and capability as criteria, but in re
 | Sovereignty Level | Inference Location | Recommended Approach |
 |-------------------|--------------------|--------------------|
 | **Public** | No region constraint | AWS Native |
-| **In-country** | Fixed to in-country region | Bedrock Geographic CRIS + SCP region enforcement |
-| **Hybrid** | On-premises + in-country | EKS Hybrid Nodes + self-hosting |
-| **Air-gapped** | Fully isolated | On-premises EKS only |
+| **In-country** | Fixed to a specific country region | First confirm the processing scope the target country requires. A Bedrock inference profile (CRIS) can span a geography that covers multiple countries, so if single-country residency is the requirement, choose a profile that includes only that country's region (or a single-Region call) and enforce the region with an SCP. |
+| **Hybrid** | On-premises + in-country | EKS Hybrid Nodes + self-hosting. Hybrid Nodes **require a reliable connection** between on-premises/edge nodes and the AWS-managed control plane. |
+| **Air-gapped** | Fully isolated | On-premises EKS (use EKS Anywhere's airgapped installation for disconnected environments). EKS Hybrid Nodes do not become air-gapped by cutting the link and are not a fit for DDIL environments, so for full isolation use the EKS Anywhere disconnected lifecycle, not Hybrid Nodes. |
 
-It is safest to treat data sovereignty as the **first filter** of the decision. When a sovereignty constraint forces EKS self-hosting or hybrid, it takes precedence over conclusions based on cost or volume.
+It is safest to treat data sovereignty as the **first filter** of the decision. When a sovereignty constraint forces EKS self-hosting or hybrid, it takes precedence over conclusions based on cost or volume. Note, however, that "In-country" requires confirming the target country's processing scope and then selecting the matching region/profile, and that in "Air-gapped" the connected Hybrid Nodes and the disconnected EKS Anywhere are different products with different operating models.
 
 :::info Sovereign & Hybrid Details
 For SCP region enforcement policies, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting implementation, see [Sovereign & Hybrid Deployment](./sovereign-hybrid-deployment.md).
@@ -277,9 +283,9 @@ flowchart LR
     style EKS fill:#10b981,color:#fff
 ```
 
-**When to use**: When training custom models and minimizing inference costs
+**When to use**: When training custom models and lowering inference costs
 
-**Core value**: SageMaker's managed training environment + EKS cost-efficient serving
+**Value to validate**: When you build a model with SageMaker managed training and serve it on EKS, measure whether the actual total cost (including GPU fixed cost, utilization, and operations) is lower than alternatives such as Bedrock at matched quality and latency. Serving on EKS does not by itself guarantee cost efficiency.
 
 **Reference**: [SageMaker-EKS Integration](../../reference-architecture/integrations/sagemaker-eks-integration.md)
 
@@ -299,7 +305,7 @@ flowchart LR
 
 **When to use**: When operating Agent runtime serverlessly but self-hosting specific domain models
 
-**Core value**: AgentCore's serverless operability + custom model domain accuracy
+**Value to validate**: Confirm with evaluation data whether the self-hosted domain model is actually higher quality (accuracy) than managed models such as Bedrock on the same tasks, and measure whether that benefit offsets the added operating cost and latency. Customization and self-hosting do not by themselves guarantee domain accuracy.
 
 **Reference**: [AWS Native Platform](./aws-native-agentic-platform.md)
 
@@ -338,7 +344,7 @@ For billing units, hypothetical break-even arithmetic, and fixed-cost boundaries
 
 ## Customer Discovery Checklist
 
-10 key questions to identify the optimal approach in customer meetings.
+11 key questions to identify the optimal approach in customer meetings.
 
 1. **Are you currently operating AI/ML workloads?** *→ Determine maturity level*
 2. **What is your monthly inference request volume?** *→ Cost optimization path*
@@ -348,8 +354,9 @@ For billing units, hypothetical break-even arithmetic, and fixed-cost boundaries
 6. **Do you perform ML training and data engineering together?** *→ SageMaker Unified Studio*
 7. **What is your monthly budget range?** *→ Cost structure matching*
 8. **When is your target production deployment date?** *→ Time-to-value path*
-9. **Do you have multi-cloud or on-premises hybrid requirements?** *→ EKS Hybrid Nodes*
-10. **What AWS services are you currently using?** *→ Leverage existing investments*
+9. **Do you need to operate on-premises/edge nodes with a reliable connection back to AWS?** *→ EKS Hybrid Nodes (requires a reliable connection; not supported on other clouds or on AWS Regions/Local Zones/Outposts)*
+10. **Do you also need to run workloads on other clouds (multi-cloud)?** *→ EKS Hybrid Nodes do not apply; select a supported Kubernetes management option separately, such as each cloud's managed Kubernetes or EKS Anywhere*
+11. **What AWS services are you currently using?** *→ Leverage existing investments*
 
 ---
 
@@ -364,9 +371,9 @@ For billing units, hypothetical break-even arithmetic, and fixed-cost boundaries
 
 ### Papers / Technical Blogs
 
-- [Choosing the Right AI Platform](https://aws.amazon.com/blogs/machine-learning/) — Platform selection guide
+- [AWS Machine Learning Blog (index)](https://aws.amazon.com/blogs/machine-learning/) — Blog index page for finding platform-selection posts (not a single article that substantiates a specific comparison)
 - [Cost Optimization for LLM Inference](https://huyenchip.com/2023/04/11/llm-engineering.html) — Cost optimization strategies
-- [Hybrid AI Architecture Patterns](https://aws.amazon.com/architecture/) — Hybrid patterns
+- [AWS Architecture Center (index)](https://aws.amazon.com/architecture/) — Index page for finding architecture material such as hybrid patterns (not a single article that substantiates a specific pattern)
 - [Building Production ML Systems](https://developers.google.com/machine-learning/guides/rules-of-ml) — Production ML guide
 
 ### Related Documents (Internal)
