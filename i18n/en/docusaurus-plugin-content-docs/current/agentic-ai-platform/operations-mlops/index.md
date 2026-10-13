@@ -5,7 +5,7 @@ created: "2026-03-06"
 last_update:
   date: 2026-09-18
   author: devfloor9
-reading_time: 3
+reading_time: 2
 tags:
   - operations
   - monitoring
