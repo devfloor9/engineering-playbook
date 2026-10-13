@@ -3,7 +3,7 @@ title: Cilium ENI 모드 + Gateway API 심화 구성
 description: Cilium ENI 모드 아키텍처, Gateway API 리소스 구성, 성능 최적화, Hubble 관측성, BGP Control Plane v2 심화 가이드
 created: "2026-02-14"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-13
   author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 27
 tags:
@@ -139,7 +139,7 @@ graph LR
 
 **1. Network Load Balancer (NLB)**
 - AWS의 관리형 L4 로드밸런서
-- 극히 낮은 레이턴시 (마이크로초 단위)
+- 극히 낮은 지연 시간 (마이크로초 단위)
 - Cross-Zone Load Balancing 지원
 - Static IP 또는 Elastic IP 할당 가능
 - TLS 패스스루 모드 지원
@@ -1096,7 +1096,7 @@ graph TB
     style LATENCY1 fill:#FFC107
 ```
 
-**레이턴시 비교:**
+**지연 시간 비교:**
 
 <LatencyComparisonTable />
 
@@ -1142,7 +1142,7 @@ aws ec2 describe-instance-types \
 ### BPF 튜닝
 
 **맵 사전 할당 활성화**<br/>
-eBPF 맵을 동적 할당 대신 시작 시 사전 할당하여 레이턴시 지터를 제거합니다.
+eBPF 맵을 동적 할당 대신 시작 시 사전 할당하여 지연 시간 지터를 제거합니다.
 
 ```yaml
 # cilium-values.yaml
@@ -1232,7 +1232,7 @@ ip link show eth0 | grep xdp
 **Network Optimized (n 시리즈) 선택 기준:**
 - Gateway 노드 전용으로 사용
 - 초당 10만 RPS 이상 트래픽
-- 레이턴시 1ms 미만 요구사항
+- 지연 시간 1ms 미만 요구사항
 
 :::tip
 Gateway 전용 노드 그룹을 별도로 구성하여 `c7gn` 시리즈를 사용하고, 일반 워크로드는 `m7g` 시리즈를 사용하는 하이브리드 구성을 권장합니다.
