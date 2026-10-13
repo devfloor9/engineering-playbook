@@ -8,7 +8,6 @@ import styles from './MetricMatrix.module.css';
 const LOCAL = {
   en: {
     matrix_title: 'Results by model',
-    matrix_desc: 'One row per model. Pick a metric to compare the spread of its five runs; expand a row for the per-run detail.',
     metric_label: 'Metric',
     col_model: 'Model',
     col_range: 'Completed-run range',
@@ -41,7 +40,6 @@ const LOCAL = {
   },
   ko: {
     matrix_title: '모델별 결과',
-    matrix_desc: '모델마다 한 행입니다. 지표를 선택해 5회 실행의 분포를 비교하고, 행을 펼치면 실행별 상세를 볼 수 있습니다.',
     metric_label: '지표',
     col_model: '모델',
     col_range: '완주 실행 범위',
@@ -120,6 +118,14 @@ function toFraction(value, domain, scale) {
   return (value - min) / (max - min);
 }
 
+// Horizontal anchor for a value label at `frac` (0..1): centred, but pinned to the
+// left or right edge near the ends so the label never spills out of the bar cell.
+function labelShift(frac) {
+  if (frac < 0.12) return 'translateX(0)';
+  if (frac > 0.88) return 'translateX(-100%)';
+  return 'translateX(-50%)';
+}
+
 // Build 4 "nice-ish" tick values spanning the domain for the header axis.
 function buildTicks(domain, scale) {
   const {min, max} = domain;
@@ -193,12 +199,9 @@ export default function RalphMetricMatrix() {
   const axisLabelId = `${uid}-axis`;
 
   return (
-    <section className={styles.wrap} aria-labelledby={`${uid}-title`}>
-      <div className={styles.header}>
-        <h3 id={`${uid}-title`} className={styles.title}>{tr(lang, 'matrix_title')}</h3>
-        <p className={styles.desc}>{tr(lang, 'matrix_desc')}</p>
-      </div>
-
+    // The document's own section heading and paragraph introduce this chart, so the
+    // component carries no visible title of its own, only an accessible name.
+    <section className={styles.wrap} aria-label={tr(lang, 'matrix_title')}>
       <div className={styles.controls} role="group" aria-label={tr(lang, 'metric_label')}>
         <span className={styles.controlLabel}>{tr(lang, 'metric_label')}</span>
         <div className={styles.segmented}>
@@ -260,6 +263,8 @@ export default function RalphMetricMatrix() {
                   })}
                 </div>
               </div>
+              {/* Matches the rows' expand-arrow column so both grids share column widths. */}
+              <div className={styles.axisPad} aria-hidden="true" />
             </div>
 
             {grouped.map(({group, rows}) => (
@@ -360,9 +365,11 @@ function ModelRow({model, modelRuns, metric, domain, lang, axisLabelId}) {
                 />
                 <span
                   className={styles.medianValue}
-                  style={{left: `${(medFrac * 100).toFixed(2)}%`}}
+                  style={{left: `${(medFrac * 100).toFixed(2)}%`, transform: labelShift(medFrac)}}
                 >
-                  {tr(lang, 'median')} {metric.fmtVal(rowMed, lang)}
+                  {/* The legend explains the tick visually; screen readers still hear "median". */}
+                  <span className={styles.srOnly}>{tr(lang, 'median')} </span>
+                  {metric.fmtVal(rowMed, lang)}
                 </span>
               </span>
             ) : (

@@ -204,7 +204,9 @@
   min-width: 0;
 }
 
-.cardName {
+/* `.card .cardName` outranks the site's `.theme-doc-markdown h3` rule, which
+   would otherwise add a 2.5rem top margin and a larger size to each card title. */
+.card .cardName {
   margin: 0;
   font-family: var(--ifm-heading-font-family);
   font-size: 1.05rem;

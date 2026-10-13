@@ -21,6 +21,7 @@ category: benchmark
 ---
 
 import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphSameModelChart, RalphModelCards} from '@site/src/components/RalphLoopBenchmark';
+import DataTableFrame from '@site/src/components/DataTableFrame';
 
 :::info 참고한 벤치마크
 이 벤치마크는 로보코(Roboco) 정도현님의 [랄프 루프 모델별 완주 비교](https://roboco.io/coding-agent-benchmark/) 리포트와 [공개 저장소](https://github.com/roboco-io/coding-agent-benchmark)를 참고해 만들었습니다.
@@ -215,6 +216,8 @@ Claude Fable 5.1은 처음 확인할 때 Bedrock이 `data retention mode 'defaul
 
 <RalphMetricMatrix />
 
+<DataTableFrame minWidth="60rem">
+
 | 그룹 | 모델 | 완주 | run당 비용(USD) | 출력 토큰 | 전체 토큰 | LLM 요청 | 랄프 반복 | run 시간(분) |
 |---|---|---|---|---|---|---|---|---|
 | 프론티어 | Claude Opus 5.5 | 5/5 | $0.907 ($0.861–$1.054) | 20,667 (20,402–23,773) | 796,558 (631,889–1,088,484) | 35 (30–45) | 1 | 6.1 (5.7–8.0) |
@@ -231,6 +234,8 @@ Claude Fable 5.1은 처음 확인할 때 Bedrock이 `data retention mode 'defaul
 | 프론티어 | GPT-5.6 Sol | 5/5 | $0.755 ($0.667–$0.908) | 12,032 (10,223–12,787) | 584,537 (505,256–775,728) | 31 (27–34) | 1 | 4.1 (3.4–5.8) |
 | 중국 오픈웨이트 | Kimi K3 | 5/5 | $1.422 ($1.154–$1.640) | 39,505 (32,640–47,056) | 1,658,186 (1,276,997–1,856,453) | 61 (57–65) | 1 | 10.5 (8.2–12.0) |
 | 중국 오픈웨이트 | GLM 5.3 | 4/5 | $1.821 ($1.402–$2.062) | 59,582 (48,793–77,914) | 3,766,802 (2,876,201–4,364,926) | 80 (73–89) | 1 | 10.1 (8.2–15.0) |
+
+</DataTableFrame>
 
 ### 토큰 구성 (중앙값)
 
