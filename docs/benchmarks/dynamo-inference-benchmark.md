@@ -3,9 +3,9 @@ title: NVIDIA Dynamo Inference Benchmark
 description: Hardware requirements, four workload families, and a measurement plan for comparing aggregated and disaggregated NVIDIA Dynamo serving on EKS
 created: "2026-03-20"
 last_update:
-  date: 2026-10-13
-  author: YoungJoon Jeong
-reading_time: 12
+  date: 2026-09-19
+  author: devfloor9
+reading_time: 22
 tags:
   - benchmark
   - nvidia

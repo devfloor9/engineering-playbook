@@ -3,9 +3,9 @@ title: GPU/AI 워크로드 디버깅
 description: EKS에서 GPU/AI 워크로드 디버깅 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 6
 tags:
   - eks
   - gpu
@@ -167,8 +167,8 @@ vLLM에서 메모리 부족은 두 가지 원인이 있습니다:
 | 증상 | 원인 | 조치 |
 |------|------|------|
 | 모델 로드 시 OOM | 모델이 GPU 메모리보다 큼 | 더 큰 GPU 사용, Quantization (AWQ, GPTQ) |
-| 추론 중 "No available blocks" | KV Cache 공간 부족 | `gpu_memory_utilization` 증가 (0.9→0.95) |
-| 짧은 요청만 성공, 긴 요청 실패 | KV Cache 부족 | `max_model_len` 감소, `max_num_batched_tokens` 감소 |
+| 추론 중 "No available blocks" | KV cache 공간 부족 | `gpu_memory_utilization` 증가 (0.9→0.95) |
+| 짧은 요청만 성공, 긴 요청 실패 | KV cache 부족 | `max_model_len` 감소, `max_num_batched_tokens` 감소 |
 | 랜덤 OOM, 재현 어려움 | Fragmentation | 서버 재시작, `swap_space` 증가 |
 
 ### vLLM 파라미터 튜닝
@@ -178,7 +178,7 @@ args:
   - --model=/models/llama-3.1-70b
   - --tensor-parallel-size=4        # GPU 수와 일치
   - --gpu-memory-utilization=0.85   # 기본값 0.9, OOM 시 감소, 낭비 시 증가
-  - --max-model-len=8192           # 최대 컨텍스트 길이, KV Cache 크기 결정
+  - --max-model-len=8192           # 최대 컨텍스트 길이, KV cache 크기 결정
   - --max-num-batched-tokens=8192  # 배치 처리 토큰 수, 처리량/지연 균형
   - --max-num-seqs=256            # 동시 처리 시퀀스 수
   - --swap-space=4                # CPU 메모리 스왑 공간 (GiB)
@@ -193,7 +193,7 @@ args:
 
 2. **성능 최적화:**
    - GPU 활용률 낮으면 `max_num_batched_tokens` 증가
-   - 긴 컨텍스트 필요 시 `max_model_len` 증가 (KV Cache 충분한지 확인)
+   - 긴 컨텍스트 필요 시 `max_model_len` 증가 (KV cache 충분한지 확인)
 
 3. **Tensor Parallel 설정:**
    - H100 80GB × 8: `--tensor-parallel-size=8` (70B 모델)

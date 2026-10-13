@@ -3,7 +3,7 @@ title: GPU/AI Workload Debugging
 description: Debugging guide for GPU/AI workloads on EKS
 created: "2026-04-21"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-13
   author: devfloor9
 reading_time: 9
 tags:
@@ -167,8 +167,8 @@ Memory shortage in vLLM has two root causes:
 | Symptom | Cause | Action |
 |------|------|------|
 | OOM during model load | Model is larger than GPU memory | Use larger GPU, apply quantization (AWQ, GPTQ) |
-| "No available blocks" during inference | KV Cache capacity shortage | Increase `gpu_memory_utilization` (0.9→0.95) |
-| Short requests succeed, long requests fail | KV Cache shortage | Reduce `max_model_len`, reduce `max_num_batched_tokens` |
+| "No available blocks" during inference | KV cache capacity shortage | Increase `gpu_memory_utilization` (0.9→0.95) |
+| Short requests succeed, long requests fail | KV cache shortage | Reduce `max_model_len`, reduce `max_num_batched_tokens` |
 | Random OOM, hard to reproduce | Fragmentation | Restart server, increase `swap_space` |
 
 ### vLLM Parameter Tuning
@@ -178,7 +178,7 @@ args:
   - --model=/models/llama-3.1-70b
   - --tensor-parallel-size=4        # must match GPU count
   - --gpu-memory-utilization=0.85   # default 0.9; decrease on OOM, increase if wasted
-  - --max-model-len=8192           # max context length; determines KV Cache size
+  - --max-model-len=8192           # max context length; determines KV cache size
   - --max-num-batched-tokens=8192  # batched tokens; balances throughput/latency
   - --max-num-seqs=256            # concurrent sequences
   - --swap-space=4                # CPU memory swap (GiB)
@@ -193,7 +193,7 @@ args:
 
 2. **Performance optimization:**
    - If GPU utilization is low, increase `max_num_batched_tokens`
-   - For long-context needs, increase `max_model_len` (ensure sufficient KV Cache)
+   - For long-context needs, increase `max_model_len` (ensure sufficient KV cache)
 
 3. **Tensor Parallel configuration:**
    - H100 80GB × 8: `--tensor-parallel-size=8` (70B model)

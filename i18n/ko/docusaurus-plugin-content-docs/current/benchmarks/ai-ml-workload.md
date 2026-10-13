@@ -3,7 +3,7 @@ title: "Llama 4 서빙 비교: 사양과 검증 계획"
 description: GPU·Trainium2·Inferentia2의 공식 사양과 Llama 4 모델 조건, 성능·비용 비교에 필요한 측정 계획
 created: "2026-02-09"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 9
 tags:
@@ -58,7 +58,7 @@ Llama 4를 EKS에서 서빙할 때 어떤 인스턴스가 적합한지 판단하
 | 공식 모델 최대 문맥 | 10M 토큰 | 1M 토큰 |
 | BF16 가중치 산술 추정 | 약 218GB | 약 800GB |
 
-출처: [Meta 모델 카드][model-card]. 가중치 추정은 B = 10⁹ 파라미터, 파라미터당 2 bytes로 계산한 값이며 KV 캐시·버퍼·양자화 메타데이터는 포함하지 않습니다. 모델 최대 문맥도 모든 runtime·하드웨어 구성에서 수용할 수 있다는 뜻은 아닙니다.
+출처: [Meta 모델 카드][model-card]. 가중치 추정은 B = 10⁹ 파라미터, 파라미터당 2 bytes로 계산한 값이며 KV cache·버퍼·양자화 메타데이터는 포함하지 않습니다. 모델 최대 문맥도 모든 runtime·하드웨어 구성에서 수용할 수 있다는 뜻은 아닙니다.
 
 ### Llama 4 MoE 아키텍처 특징
 
@@ -125,7 +125,7 @@ flowchart LR
 | 판단할 항목 | 확인할 내용 |
 | --- | --- |
 | 모델 적합성 | checkpoint·연산자·정밀도·멀티모달 입력이 선택한 backend에서 지원되는지 |
-| 메모리·통신 | 전체 가중치와 KV 캐시가 worker 배치에 맞는지, TP/EP 통신이 병목인지 |
+| 메모리·통신 | 전체 가중치와 KV cache가 worker 배치에 맞는지, TP/EP 통신이 병목인지 |
 | 운영 | 컴파일·시작·업그레이드·장애 복구에 필요한 시간과 절차 |
 | 서비스 품질 | 동일한 평가 데이터와 TTFT·ITL·오류 기준을 만족하는지 |
 | 비용·용량 | 해당 리전에서 확보 가능한 용량과 실제 이용률을 반영했는지 |
@@ -134,7 +134,7 @@ CUDA용 kernel을 Neuron에서 그대로 사용할 수 있다는 뜻도, Neuron�
 
 ### MoE 아키텍처 성능 영향
 
-Expert 선택, 가중치 배치, batch 크기와 메모리 대역폭은 함께 작용합니다. active parameter 수만으로 dense 모델과의 속도나 비용을 예측하지 않습니다. KV 캐시 크기도 attention 구성·문맥 길이·KV 정밀도에 따라 달라지므로, MoE라는 이유만으로 캐시 효율이 좋아진다고 결론 내리지 않습니다.
+Expert 선택, 가중치 배치, batch 크기와 메모리 대역폭은 함께 작용합니다. active parameter 수만으로 dense 모델과의 속도나 비용을 예측하지 않습니다. KV cache 크기도 attention 구성·문맥 길이·KV 정밀도에 따라 달라지므로, MoE라는 이유만으로 캐시 효율이 좋아진다고 결론 내리지 않습니다.
 
 [MetaShuffling 설명][metashuffling]은 특정 MoE kernel 구현과 시험 조건을 다룹니다. 이를 vLLM의 모든 배포에 자동 적용되는 최적화로 설명하지 않습니다. 사용한 backend가 해당 구현을 포함하는지 확인한 경우에만 그 효과를 시험합니다.
 

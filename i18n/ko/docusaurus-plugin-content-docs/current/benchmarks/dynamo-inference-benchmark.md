@@ -3,7 +3,7 @@ title: NVIDIA Dynamo 추론 벤치마크
 description: EKS에서 NVIDIA Dynamo의 통합·분리 서빙을 비교하기 위한 하드웨어 조건, 네 가지 워크로드와 측정 계획
 created: "2026-03-20"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -70,7 +70,7 @@ Auto Mode는 NVIDIA 드라이버와 device plugin을 관리하므로 같은 노�
 | **Qwen/Qwen3-30B-A3B** | 30.5B | 3.3B | BF16 기준선 | MoE |
 | **Qwen/Qwen3-30B-A3B-FP8** | 30.5B | 3.3B | 별도 양자화 시험 후보 | MoE |
 
-[공식 모델 카드][qwen]의 3.3B는 토큰당 활성 파라미터 수이며, GPU에 올릴 전체 가중치 크기가 아닙니다. 30.5B 파라미터의 BF16 가중치만 단순 계산해도 약 61GB이고, KV 캐시와 실행 버퍼가 추가됩니다. worker별 GPU 수·TP 설정·문맥 길이로 메모리 적합성을 확인해야 합니다.
+[공식 모델 카드][qwen]의 3.3B는 토큰당 활성 파라미터 수이며, GPU에 올릴 전체 가중치 크기가 아닙니다. 30.5B 파라미터의 BF16 가중치만 단순 계산해도 약 61GB이고, KV cache와 실행 버퍼가 추가됩니다. worker별 GPU 수·TP 설정·문맥 길이로 메모리 적합성을 확인해야 합니다.
 
 FP8 checkpoint의 양자화 형식과 지원 kernel은 GPU·backend에 따라 다릅니다. A100과 L40S에서 같은 FP8 경로가 동작한다고 가정하지 않습니다. 양자화 시험은 지원 여부, 실제 연산 정밀도와 출력 품질을 확인한 뒤 BF16 결과와 구분해 보고합니다.
 
@@ -85,7 +85,7 @@ Client → Router → [Worker (Prefill + Decode)]
                    └── GPU: A100 × 4 (TP=4)
 ```
 
-단일 worker가 두 단계를 처리합니다. 입력 길이와 동시성에 따라 한 단계가 다른 단계의 자원을 점유할 수 있는지 측정합니다. KV 캐시 재사용은 이 구성에서도 가능하므로, 단계 분리의 고유한 이점으로 간주하지 않습니다.
+단일 worker가 두 단계를 처리합니다. 입력 길이와 동시성에 따라 한 단계가 다른 단계의 자원을 점유할 수 있는지 측정합니다. KV cache 재사용은 이 구성에서도 가능하므로, 단계 분리의 고유한 이점으로 간주하지 않습니다.
 
 ### Disaggregated Serving
 
@@ -124,7 +124,7 @@ Client → Router → Prefill Worker (A100 × 4, TP=4)
 
 ### 2. Multi-turn Conversation
 
-멀티턴 대화 시나리오에서 KV 캐시 재사용 효과를 측정합니다.
+멀티턴 대화 시나리오에서 KV cache 재사용 효과를 측정합니다.
 
 | 파라미터 | 값 |
 |---------|---|
@@ -206,7 +206,7 @@ TTFT는 요청 시작부터 첫 출력 토큰까지, ITL은 연속 출력 토큰
 
 - **Pareto Dashboard**: TTFT vs Throughput Pareto 분석
 - **DCGM Metrics**: GPU 활용률, 메모리, 온도, 전력
-- **Dynamo Platform**: 워커 상태, 요청률, KV 캐시 히트율
+- **Dynamo Platform**: 워커 상태, 요청률, KV cache 히트율
 - **KV Block Manager**: 블록 할당, Eviction, Offload 현황
 
 대시보드 구성은 [Agent 모니터링 가이드](/docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring)를 참조하세요.
