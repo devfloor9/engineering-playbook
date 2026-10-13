@@ -1,11 +1,11 @@
 ---
-title: 보안 및 운영 벤치마크
-description: 보안 정책 적용 및 운영 도구 성능 벤치마크
-created: "2026-02-09"
+title: Security & Operations Benchmark
+description: Security policy enforcement and operations tool performance benchmark
+created: "2026-02-11"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 1
+  author: devfloor9
+reading_time: 2
 tags:
   - benchmark
   - security
@@ -13,43 +13,43 @@ tags:
   - monitoring
   - gitops
   - scope:tech
-sidebar_label: Report 8. 보안 및 운영 [예정]
+sidebar_label: Report 8. Security & Operations [Upcoming]
 sidebar_position: 8
 category: benchmarks
 ---
 
-보안 정책, 모니터링, GitOps 도구의 성능 오버헤드와 효율성을 측정합니다.
+Measure the performance overhead and efficiency of security policies, monitoring, and GitOps tools.
 
-## 보안 정책 오버헤드
+## Security Policy Overhead
 
-### Network Policy 성능 영향
+### Network Policy Performance Impact
 
-:::note 테스트 예정
-이 벤치마크는 현재 준비 중입니다.
+:::note Testing Planned
+This benchmark is currently being prepared.
 :::
 
-**측정 항목**
+**Metrics**
 
-- Network Policy 적용 시 지연 시간 변화
-- 정책 규칙 수에 따른 성능 스케일
-- Cilium vs Calico 정책 엔진 비교
+- Latency changes when Network Policy is applied
+- Performance scaling with number of policy rules
+- Cilium vs Calico policy engine comparison
 
-## 모니터링 리소스 사용
+## Monitoring Resource Usage
 
-### 모니터링 에이전트 오버헤드
+### Monitoring Agent Overhead
 
-**측정 항목**
+**Metrics**
 
-- Prometheus 메모리/CPU 사용량
-- 노드 모니터링 에이전트 리소스 사용
-- 메트릭 수집 주기별 영향
+- Prometheus memory/CPU usage
+- Node monitoring agent resource usage
+- Impact by metric collection interval
 
-## GitOps 동기화
+## GitOps Synchronization
 
-### Flux CD / ArgoCD 성능
+### Flux CD / ArgoCD Performance
 
-**측정 항목**
+**Metrics**
 
-- Git 동기화 지연 시간
-- 대규모 매니페스트 처리 속도
-- 동시 배포 처리량
+- Git synchronization latency
+- Large manifest processing speed
+- Concurrent deployment throughput

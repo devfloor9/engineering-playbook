@@ -1,6 +1,6 @@
 ---
-title: S8. 가드레일 (Uni-President)
-description: Bedrock Guardrails + PDPA + BU 영업 정보 분리
+title: S8. Guardrails (Uni-President)
+description: Bedrock Guardrails + PDPA + BU commercial-information segregation
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,19 +16,19 @@ tags:
 sidebar_label: S8. Guardrails
 ---
 
-## 활성 정책
+## Active Policies
 
-| 정책 | 액션 |
+| Policy | Action |
 |---|---|
-| 폭력·혐오·성·오정보 | Block |
-| 의료·법률 추정 | Block + 안내 |
-| 마케팅 동의 미수신 | 도구 차단 |
-| **PDPA (대만 個資法)** | PII 자동 마스킹 + 국외 이전 동의 검증 |
-| 미성년 + 알코올/담배 SKU | 컨텍스트 차단 |
-| **BU 영업 정보 분리** | 7ELE 가격을 까르푸 페르소나에 노출 금지 |
-| 콜드체인 단가 | 외부 노출 차단 |
+| Violence · hate · sexual · misinformation | Block |
+| Suspected medical · legal | Block + notice |
+| Marketing-consent missing | Block tool use |
+| **PDPA (Taiwan Personal Data Protection Act, 個資法)** | Auto-mask PII + verify cross-border-transfer consent |
+| Minors + alcohol/tobacco SKUs | Block context |
+| **BU commercial-information segregation** | Prohibit exposing 7ELE pricing to a Carrefour persona |
+| Cold-chain unit pricing | Block external exposure |
 
-## 데모 시나리오
-1. PII 마스킹
-2. 미성년 + 알코올 SKU 차단
-3. BU 분리 — P5(7ELE)가 까르푸 매장 단가 조회 시도 → 차단
+## Demo Scenarios
+1. PII masking
+2. Minors + alcohol SKU blocked
+3. BU segregation — P5 (7ELE) attempting to view Carrefour store unit pricing → blocked

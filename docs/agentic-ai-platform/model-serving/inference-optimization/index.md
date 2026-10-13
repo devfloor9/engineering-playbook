@@ -1,11 +1,11 @@
 ---
 title: Inference Optimization on EKS
-description: LLM inference 성능을 극대화하는 EKS 아키텍처 개요 — vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS 멀티노드, GPU 오토스케일링의 시작점
+description: EKS architecture overview for maximizing LLM Inference performance — starting point for vLLM, KV Cache-Aware Routing, Disaggregated Serving, LWS multi-node, and GPU autoscaling
 created: "2026-04-03"
 last_update:
-  date: 2026-09-22
+  date: 2026-09-18
   author: devfloor9
-reading_time: 8
+reading_time: 15
 tags:
   - inference
   - optimization
@@ -14,131 +14,131 @@ tags:
   - vllm
   - architecture
   - scope:tech
-sidebar_label: 추론 최적화
+sidebar_label: Inference Optimization
 sidebar_position: 1
 ---
 
 import DocCardList from '@theme/DocCardList';
 
-## 개요
+## Overview
 
-추론 지연, 처리량, GPU 메모리, 비용을 함께 측정하고 병목에 맞는 최적화 기법을 선택하는 문서 모음입니다. 먼저 [추론 인프라 개요](../index.md)에서 L0–L5 튜닝 계층을 확인한 뒤, 아래 문서에서 구현 조건과 검증 절차를 살펴보세요. 이 계층은 플랫폼 전체의 6개 런타임 레이어와 별도의 분석 관점입니다.
+Guides for measuring inference latency, throughput, GPU memory, and cost, then choosing an optimization that addresses the observed bottleneck. Start with the L0–L5 tuning view in the [inference infrastructure overview](../index.md). These tuning layers are separate from the platform's six runtime layers.
 
-최적화 결과는 모델, 입력·출력 길이, 동시 요청 수, 하드웨어, 라우팅 정책에 따라 달라집니다. 이 페이지는 운영 환경의 성능이나 절감률을 보장하는 구성표가 아니라 상세 문서의 선택 기준을 제공합니다.
+Results depend on the model, input and output lengths, concurrency, hardware, and routing policy. This page helps select detailed guides; it does not prescribe a configuration that guarantees production performance or savings.
 
-## 다루는 내용
+## Covered Content
 
-이 카테고리의 전체 문서입니다. 게이트웨이 구성과 모델 선택 정책은 별도의 [추론 라우팅](../inference-routing/routing-strategy.md) 카테고리에서 다룹니다.
+All documents in this category are listed below. Gateway configuration and model selection policies belong to the separate [inference routing](../inference-routing/routing-strategy.md) category.
 
 <DocCardList />
 
-### 문서별 핵심 주제
+### Key Topics by Document
 
-- **캐시 재사용**: [KV Cache 최적화](./kv-cache-optimization.md) → [LMCache](./lmcache.md) → [캐시 히트 전략](./cache-hit-strategy.md)
-- **지연과 처리량 분리**: [Disaggregated Serving](./disaggregated-serving.md)에서 Prefill/Decode 분리의 이점과 전송 비용을 비교합니다.
-- **응답 재사용의 품질**: [Semantic Caching](./semantic-caching-strategy.md)에서 캐시 키, 테넌트 경계, 오응답 평가를 확인합니다.
-- **용량과 복구**: [GPU 오토스케일링](./gpu-autoscaling-operations.md)에서 대기열, 콜드 스타트, 배포 실패 대응을 확인합니다.
+- **Cache reuse**: [KV cache optimization](./kv-cache-optimization.md) → [LMCache](./lmcache.md) → [cache-hit strategy](./cache-hit-strategy.md)
+- **Latency and throughput isolation**: compare the benefits and transfer costs of prefill/decode separation in [disaggregated serving](./disaggregated-serving.md).
+- **Response-reuse quality**: review cache keys, tenant boundaries, and incorrect-hit evaluation in [semantic caching](./semantic-caching-strategy.md).
+- **Capacity and recovery**: review queues, cold starts, and deployment failures in [GPU autoscaling](./gpu-autoscaling-operations.md).
 
-## 핵심 성능 지표
+## Key Performance Metrics
 
-서비스별 SLO와 동일한 요청 집합을 기준으로 전후를 비교합니다. 아래 지표에 공통으로 적용되는 보편적 목표값은 없습니다.
+Compare before and after against the service SLO and the same request set. There is no universal target for the metrics below.
 
-| 지표 | 확인할 내용 | 함께 기록할 조건 |
-|------|-----------|----------------|
-| **TTFT** | 요청 시작부터 첫 토큰까지의 지연 분포 | 대기 시간 포함 여부, 입력 길이, 동시성 |
-| **출력 토큰 처리량** | 완료된 요청의 생성 토큰 수 / 측정 시간 | 클라이언트별 속도와 서버 전체 처리량 구분 |
-| **GPU 메모리·사용률** | 메모리 여유, 연산·메모리 병목 | GPU 종류, 정밀도, 배치 설정 |
-| **캐시 히트율** | 재사용 단위별 적중 수와 조회 수 | 토큰·요청 분모, 캐시 종류, cold/warm 구간 |
-| **꼬리 지연·오류율** | p95/p99 응답 지연과 완료율 | 타임아웃·재시도·실패 요청 포함 |
-| **품질·비용** | 평가 통과율과 성공 요청당 총비용 | 평가셋, GPU 대기 비용, 게이트웨이·저장소 비용 |
+| Metric | What to inspect | Conditions to record |
+|--------|-----------------|----------------------|
+| **TTFT** | Request-start to first-token latency distribution | Queue-time inclusion, input length, concurrency |
+| **Output-token throughput** | Generated tokens in completed requests / measurement duration | Per-client rate versus aggregate server throughput |
+| **GPU memory and utilization** | Memory headroom, compute and memory bottlenecks | GPU type, precision, batch settings |
+| **Cache-hit ratio** | Hits and lookups for each reuse unit | Token or request denominator, cache type, cold/warm interval |
+| **Tail latency and errors** | p95/p99 response latency and completion rate | Timeouts, retries, and failed requests |
+| **Quality and cost** | Evaluation pass rate and total cost per successful request | Evaluation set, idle GPU cost, gateway and storage costs |
 
-## EKS GPU 인프라 전략
+## EKS GPU Infrastructure Strategy
 
-### 3가지 배포 모델 비교
+### Three Deployment Model Comparison
 
-노드 관리 방식과 GPU 소프트웨어의 관리 주체를 먼저 구분합니다. GPU 개수나 모델 크기로 노드 관리 방식을 자동 결정하지 않습니다.
+Separate node management from ownership of GPU software. GPU count or model size alone does not determine the node-management approach.
 
-| 방식 | 관리 경계 | 상세 확인 |
-|------|----------|----------|
-| EKS Auto Mode | EKS가 GPU 드라이버와 Device Plugin을 관리 | 제공 기능과 사용자 설치 구성요소의 지원 범위 |
-| Karpenter | NodePool 정책에 따라 노드를 프로비저닝 | 선택한 AMI, GPU 구성요소, 정적·동적 용량 구분 |
-| Managed Node Group | 노드 그룹과 AMI를 기준으로 용량 관리 | AMI 사전 설치 구성요소와 별도 설치할 드라이버/플러그인 |
+| Approach | Management boundary | Detailed checks |
+|----------|---------------------|-----------------|
+| EKS Auto Mode | EKS manages the GPU driver and device plugin | Available features and support for user-installed components |
+| Karpenter | Provisions nodes according to NodePool policy | Selected AMI, GPU components, static versus dynamic capacity |
+| Managed node group | Manages capacity through a node group and AMI | Pre-installed components versus separately installed drivers/plugins |
 
-DRA 지원 여부는 Kubernetes 버전과 용량 프로비저닝 방식에 따라 확인합니다. 현재 [EKS NVIDIA 장치 관리 안내](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)는 Auto Mode를 제외하고 Karpenter 정적 용량, MNG, 자체 관리 노드를 구분합니다. 세부 선택 기준은 [GPU 노드 전략](../gpu-infrastructure/eks-gpu-node-strategy.md)을 참고하세요.
+Check DRA support against both Kubernetes version and capacity provisioning. The current [EKS NVIDIA device guide](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html) distinguishes Karpenter static capacity, managed node groups, and self-managed nodes while excluding Auto Mode. See [GPU node strategy](../gpu-infrastructure/eks-gpu-node-strategy.md) for selection criteria.
 
-### GPU 인스턴스 선택 매트릭스
+### GPU Instance Selection Matrix
 
-| 결정 항목 | 검토 기준 |
-|----------|----------|
-| 메모리 | 가중치 정밀도, KV Cache, 동시성, 런타임 여유분 |
-| 통신 | 단일 GPU·노드 내·노드 간 병렬화에 필요한 대역폭 |
-| 가용성 | 목표 리전·AZ의 용량, 할당량, 대체 인스턴스 |
-| 비용 | 조회 날짜·리전·구매 옵션을 명시한 견적과 실측 처리량 |
+| Decision | Evaluation criteria |
+|----------|---------------------|
+| Memory | Weight precision, KV cache, concurrency, runtime headroom |
+| Communication | Bandwidth for single-GPU, within-node, or cross-node parallelism |
+| Availability | Capacity, quotas, and alternatives in the target Region and AZs |
+| Cost | Quote date, Region, purchase option, and measured throughput |
 
-모델 파라미터 수만으로 GPU 수를 정하지 않습니다. [vLLM 서빙](../inference-frameworks/vllm-model-serving.md)에서 메모리 설정을, [GPU 리소스 관리](../gpu-infrastructure/gpu-resource-management.md)에서 할당 정책을 확인합니다.
+Do not derive GPU count from parameter count alone. Review memory settings in [vLLM serving](../inference-frameworks/vllm-model-serving.md) and allocation policies in [GPU resource management](../gpu-infrastructure/gpu-resource-management.md).
 
-### Auto Mode GPU Operator 하이브리드 구성
+### Auto Mode GPU Operator Hybrid Configuration
 
-Auto Mode가 관리하는 구성요소를 별도 GPU Operator가 중복 관리하지 않도록 해야 합니다. AL2023 또는 Bottlerocket용 GPU Operator 설치 옵션을 Auto Mode에 그대로 적용하는 일반 설치 절차는 제공하지 않습니다.
+A separate GPU Operator must not take duplicate ownership of components managed by Auto Mode. This overview does not provide a generic installation procedure that applies AL2023 or Bottlerocket GPU Operator options to Auto Mode.
 
-[가속 AMI 안내](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html)의 GPU Operator 설정은 AMI별 사전 설치 구성요소에 따라 다릅니다. 관측성만 필요한 경우에도 대상 노드의 지원 범위를 확인하고 [NVIDIA GPU 스택](../gpu-infrastructure/nvidia-gpu-stack.md)의 구성요소별 설명을 참고하세요.
+The [accelerated AMI guide](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html) describes options according to each AMI's pre-installed components. Even when only observability is needed, verify support on the target nodes and consult the component descriptions in the [NVIDIA GPU stack](../gpu-infrastructure/nvidia-gpu-stack.md).
 
-## 모델 규모별 권장 아키텍처
+## Recommended Architecture by Model Scale
 
-### 의사결정 플로우
+### Decision Flow
 
 ```mermaid
 flowchart TD
-    accTitle: 추론 배포 방식 선택
-    accDescr: 먼저 단일 GPU에서 메모리와 SLO를 확인하고, 필요할 때 노드 내 병렬화와 멀티노드를 검토한다.
-    A[모델·요청 분포·SLO 정의] --> B{단일 GPU로 충족?}
-    B -->|예| C[단일 GPU 기준선 측정]
-    B -->|아니오| D{노드 내 병렬화로 충족?}
-    D -->|예| E[통신 비용과 처리량 측정]
-    D -->|아니오| F[멀티노드·분리 서빙 검토]
-    C --> G[장애·확장·품질 검증]
+    accTitle: Choosing an inference deployment
+    accDescr: Test memory and SLOs on one GPU first, then evaluate within-node parallelism and multiple nodes when needed.
+    A[Define model, request distribution, and SLO] --> B{One GPU meets requirements?}
+    B -->|Yes| C[Measure single-GPU baseline]
+    B -->|No| D{Within-node parallelism meets requirements?}
+    D -->|Yes| E[Measure communication cost and throughput]
+    D -->|No| F[Evaluate multi-node or disaggregated serving]
+    C --> G[Validate recovery, scaling, and quality]
     E --> G
     F --> G
 ```
 
-### 3-Tier 권장 구성
+### 3-Tier Recommended Configuration
 
-다음은 검토 순서입니다. 특정 파라미터 수에 대응하는 고정 사양이 아닙니다.
+These are evaluation stages, not fixed specifications tied to parameter counts.
 
-| 단계 | 적용 조건 | 다음 문서 |
-|------|----------|----------|
-| 단일 GPU | 메모리와 SLO를 모두 충족 | [vLLM 서빙](../inference-frameworks/vllm-model-serving.md) |
-| 노드 내 병렬화 | 단일 GPU의 메모리 또는 성능 한계 | [MoE 서빙](../inference-frameworks/moe-model-serving.md) |
-| 멀티노드·분리 서빙 | 측정 결과 노드 내 구성이 부족 | [Disaggregated Serving](./disaggregated-serving.md) |
+| Stage | Condition | Next guide |
+|-------|-----------|------------|
+| Single GPU | Meets both memory and SLO requirements | [vLLM serving](../inference-frameworks/vllm-model-serving.md) |
+| Within-node parallelism | A single GPU reaches a memory or performance limit | [MoE serving](../inference-frameworks/moe-model-serving.md) |
+| Multi-node or disaggregated serving | Measurements show within-node capacity is insufficient | [Disaggregated serving](./disaggregated-serving.md) |
 
-### 하이브리드 아키텍처: 전체 그림
+### Hybrid Architecture: Complete Picture
 
-EKS, 온프레미스, 관리형 모델 API를 함께 사용하는 경우 [티어드 게이트웨이](../inference-routing/tiered-gateway-architecture.md)에서 각 계층의 책임을 확인합니다. 폴백 대상의 API·도구 호출 호환성, 데이터 전송 정책, 할당량, 응답 품질을 검증해야 합니다. 라우팅 경로가 있다는 사실만으로 중단 없는 서비스를 보장하지 않습니다.
+When combining EKS, on-premises infrastructure, and managed model APIs, use the [tiered gateway](../inference-routing/tiered-gateway-architecture.md) guide to identify each layer's responsibilities. Validate fallback API and tool-call compatibility, data-transfer policy, quotas, and response quality. A routing path alone does not guarantee uninterrupted service.
 
-### 마이그레이션 경로
+### Migration Path
 
-1. 단일 경로에서 성능·품질·비용 기준선을 기록합니다.
-2. 확인된 병목에 맞춰 캐시, 라우팅, 배치 설정 중 하나를 변경합니다.
-3. 동일한 평가셋과 부하 조건으로 회귀를 확인합니다.
-4. 제한된 트래픽에서 검증한 뒤 확대하고, 기존 경로로 복구할 조건을 정합니다.
+1. Record performance, quality, and cost on a single baseline path.
+2. Change one cache, routing, or batching setting for an observed bottleneck.
+3. Check regressions with the same evaluation set and load conditions.
+4. Validate limited traffic before expansion and define when to restore the original path.
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
-- [EKS NVIDIA 장치 관리](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)
-- [EKS 가속 AMI](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html)
+- [EKS NVIDIA device management](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)
+- [EKS accelerated AMIs](https://docs.aws.amazon.com/eks/latest/userguide/ml-eks-optimized-ami.html)
 - [EKS Compute and Autoscaling](https://docs.aws.amazon.com/eks/latest/best-practices/aiml-compute.html)
 
-### 논문·기술 블로그
+### Papers & Technical Blogs
 
-구현 프로젝트의 구성은 선택한 릴리스와 문서의 예제를 함께 확인합니다.
+Check implementation projects against the selected release and its documented examples.
 
 - [GenAI on EKS Starter Kit](https://github.com/aws-samples/sample-genai-on-eks-starter-kit)
 - [Scalable Model Inference on Amazon EKS](https://github.com/aws-solutions-library-samples/guidance-for-scalable-model-inference-and-agentic-ai-on-amazon-eks)
 
-### 관련 문서
+### Related Documentation
 
-- [서빙 최적화 모니터링](../../operations-mlops/observability/llm-serving-optimization-monitoring.md) — 측정 단위와 쿼리 검증
-- [Prefix Cache 튜닝과 정확도](../../operations-mlops/observability/prefix-cache-tuning-accuracy-correlation.md) — 실험 설계와 품질 판정
-- [라우팅 전략](../inference-routing/routing-strategy.md) — 모델 선택과 폴백 경계
+- [Serving optimization monitoring](../../operations-mlops/observability/llm-serving-optimization-monitoring.md) — measurement units and query validation
+- [Prefix-cache tuning and accuracy](../../operations-mlops/observability/prefix-cache-tuning-accuracy-correlation.md) — experiment design and quality criteria
+- [Routing strategy](../inference-routing/routing-strategy.md) — model selection and fallback boundaries

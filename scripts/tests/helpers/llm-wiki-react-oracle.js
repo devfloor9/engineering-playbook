@@ -13,7 +13,7 @@ function reactOracle(root) {
   const compiled = new Map();
   let serial = 0;
   const context = path.join(directory, 'context.cjs');
-  fs.writeFileSync(context, `exports.default = () => ({i18n: {currentLocale: 'ko'}});
+  fs.writeFileSync(context, `exports.default = () => ({i18n: {currentLocale: 'en'}});
 exports.__esModule = true;
 exports.useColorMode = () => ({colorMode: 'light'});
 exports.useHistory = () => ({replace() {}});

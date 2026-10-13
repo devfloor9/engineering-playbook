@@ -31,8 +31,8 @@ RELATIVE_PATH = (
     "continuous-training/trace-to-dataset.md"
 )
 DOCUMENTS = {
-    "ko": Path("docs") / RELATIVE_PATH,
-    "en": Path("i18n/en/docusaurus-plugin-content-docs/current") / RELATIVE_PATH,
+    "ko": Path("i18n/ko/docusaurus-plugin-content-docs/current") / RELATIVE_PATH,
+    "en": Path("docs") / RELATIVE_PATH,
 }
 MODULE_NAMES = (
     "trace_contract", "materialize", "register_parquet", "reward_contract",

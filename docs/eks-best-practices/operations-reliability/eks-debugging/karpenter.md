@@ -1,11 +1,11 @@
 ---
-title: Karpenter 심화 디버깅
-description: Karpenter 오토스케일러 심화 디버깅 가이드
+title: Karpenter In-Depth Debugging
+description: In-depth debugging guide for the Karpenter autoscaler
 created: "2026-04-07"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 9
+  author: devfloor9
+reading_time: 15
 tags:
   - eks
   - karpenter
@@ -20,107 +20,107 @@ keywords:
   - NodeClaim
   - Consolidation
   - Spot
-  - 디버깅
+  - Debugging
 sidebar_label: Karpenter
 ---
 
-Karpenter는 EKS의 차세대 오토스케일러로, NodePool/NodeClaim 기반으로 빠르고 효율적인 노드 프로비저닝을 제공합니다. 이 문서는 Karpenter 특유의 디버깅 패턴을 다룹니다.
+Karpenter is the next-generation autoscaler for EKS, delivering fast and efficient node provisioning based on NodePool/NodeClaim. This document covers Karpenter-specific debugging patterns.
 
-## NodeClaim 라이프사이클
+## NodeClaim Lifecycle
 
-아래 개념도는 정상적으로 초기화된 노드의 프로비저닝과 중단 경로를 보여 줍니다. `status.conditions`의 항목을 그대로 나열한 상태도는 아닙니다. [초기화 검사](https://karpenter.sh/v1.14/concepts/nodeclaims/)에는 Node Ready 상태, startup taint 제거, 요청한 리소스 등록 여부 등이 포함됩니다. 만료 시간은 이 경로와 별개로 NodeClaim 생성 시점부터 계산합니다.
+This conceptual flow shows provisioning and disruption for a node that initializes normally. It is not a literal list of `status.conditions`. [Initialization checks](https://karpenter.sh/v1.14/concepts/nodeclaims/) include Node readiness, startup-taint removal and registration of requested resources. Expiration is calculated independently from the NodeClaim's creation time.
 
 ```mermaid
 stateDiagram-v2
     [*] --> Pending: Pod Unschedulable
-    Pending --> Launched: EC2 인스턴스 시작
-    Launched --> Registered: kubelet 등록
-    Registered --> Initialized: 초기화 검사 통과
+    Pending --> Launched: EC2 instance launched
+    Launched --> Registered: kubelet registered
+    Registered --> Initialized: Initialization checks pass
     Initialized --> Ready: NodeClaim Ready
 
-    Ready --> Drifted: AMI/NodePool 변경
-    Ready --> Expired: NodeClaim 생성 후 spec.expireAfter 경과
-    Ready --> Consolidation: 통합 대상 후보
+    Ready --> Drifted: AMI/NodePool change
+    Ready --> Expired: NodeClaim age reaches spec.expireAfter
+    Ready --> Consolidation: Consolidation candidate
 
-    Drifted --> Terminating: 중단 조건 충족
-    Expired --> Terminating: 만료 처리와 drain 시작
-    Consolidation --> Terminating: 중단 조건 충족
+    Drifted --> Terminating: Disruption permitted
+    Expired --> Terminating: Begin expiration and draining
+    Consolidation --> Terminating: Disruption permitted
 
-    Terminating --> [*]: drain과 인스턴스 삭제 완료
+    Terminating --> [*]: Drain and instance deletion complete
 
     note right of Ready
-        초기화된 용량
-        조건에 맞는 Pod 스케줄링 가능
+        Initialized capacity
+        Eligible Pods can be scheduled
     end note
 
     note right of Consolidation
-        가능한 처리:
-        - 빈 노드 삭제
-        - 기존 용량으로 Pod 이동
-        - 더 저렴한 노드로 교체
+        Possible actions:
+        - Delete an empty node
+        - Move Pods to existing capacity
+        - Use a lower-priced replacement
     end note
 ```
 
-v1.14.1의 [만료 처리](https://karpenter.sh/v1.14/concepts/disruption/#expiration)는 NodeClaim 생성 시각과 `spec.expireAfter`를 기준으로 하며, 노드가 비거나 Ready가 될 때까지 기다리지 않습니다. NodePool은 `spec.template.spec.expireAfter`로 이 값을 제공합니다. NodePool의 값을 바꿔도 기존 NodeClaim의 값이 변경되지는 않으며, drift를 유발합니다.
+In v1.14.1, [expiration](https://karpenter.sh/v1.14/concepts/disruption/#expiration) uses the NodeClaim's creation time and `spec.expireAfter`; it does not depend on the node becoming empty or Ready. The NodePool supplies this value through `spec.template.spec.expireAfter`. Changing the NodePool value does not rewrite existing NodeClaims; it induces drift.
 
-만료는 NodePool budget이나 준비된 대체 노드를 기다리지 않고 강제 중단을 시작합니다. 그렇다고 모든 Pod를 즉시 삭제하는 것은 아닙니다. 차단하는 PDB나 활성 상태의 `karpenter.sh/do-not-disrupt` annotation은 drain을 지연시킬 수 있습니다. `terminationGracePeriod`를 설정하면 drain 기간에 상한을 두며, 해당 보호 조건이 있어도 Pod가 삭제될 수 있습니다. `expireAfter`만으로 삭제 완료 시각이나 워크로드의 정상 완료를 보장하지 않습니다.
+Expiration starts forceful disruption without waiting for a NodePool budget or a healthy replacement. This does **not** mean every Pod is immediately deleted: blocking PDBs or an active `karpenter.sh/do-not-disrupt` annotation can stall draining. `terminationGracePeriod`, when configured, bounds that drain period and can cause Pod deletion despite those protections. Neither `expireAfter` alone nor the diagram guarantees a deletion deadline or that a workload finishes successfully.
 
-## 스케줄링 실패 디버깅
+## Scheduling Failure Debugging
 
-### Pod가 Pending 상태로 멈춤
+### Pod Stuck in Pending
 
 ```bash
-# Pod 이벤트 확인
+# Check Pod events
 kubectl describe pod <pod-name>
 
-# 일반적인 에러 메시지:
+# Common error messages:
 # 1. "no matching nodeclaim"
 # 2. "insufficient capacity"
 # 3. "instance type not available"
 ```
 
-#### 진단 플로우차트
+#### Diagnosis Flowchart
 
 ```mermaid
 flowchart TD
-    A[Pod Pending] --> B{Karpenter 로그에<br/>'incompatible' 메시지?}
-    B -->|Yes| C[NodePool requirements<br/>vs Pod requirements]
-    B -->|No| D{provisioned but<br/>instance launch failed?}
+    A[Pod Pending] --> B{Karpenter logs show<br/>'incompatible'?}
+    B -->|Yes| C[Compare NodePool requirements<br/>vs Pod requirements]
+    B -->|No| D{Provisioned but<br/>instance launch failed?}
 
-    C --> E{레이블/테인트<br/>불일치?}
-    E -->|Yes| F[NodePool selector 수정]
-    E -->|No| G{인스턴스 타입<br/>제약?}
+    C --> E{Label/taint<br/>mismatch?}
+    E -->|Yes| F[Fix NodePool selector]
+    E -->|No| G{Instance type<br/>constraints?}
 
-    G -->|Yes| H[Pod 리소스 요청과<br/>인스턴스 타입 매칭]
-    G -->|No| I[가용 영역 제약 확인]
+    G -->|Yes| H[Match Pod resource requests<br/>with instance types]
+    G -->|No| I[Check availability zone constraints]
 
-    D -->|Yes| J{Spot 용량 부족?}
-    J -->|Yes| K[On-Demand 폴백 추가]
-    J -->|No| L{IAM 권한 오류?}
+    D -->|Yes| J{Spot capacity shortage?}
+    J -->|Yes| K[Add On-Demand fallback]
+    J -->|No| L{IAM permission error?}
 
-    L -->|Yes| M[Karpenter IAM Role 확인]
-    L -->|No| N{서브넷/SG 문제?}
-    N -->|Yes| O[서브넷 태그 확인<br/>karpenter.sh/discovery]
+    L -->|Yes| M[Check Karpenter IAM Role]
+    L -->|No| N{Subnet/SG issues?}
+    N -->|Yes| O[Check subnet tags<br/>karpenter.sh/discovery]
 ```
 
-### 인스턴스 타입 가용성 부족
+### Insufficient Instance Type Availability
 
-**증상:** Karpenter 로그에 "instance type unavailable" 반복
+**Symptom:** Repeated "instance type unavailable" in Karpenter logs
 
 ```bash
-# Karpenter 로그 확인
+# Check Karpenter logs
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep "launch instances"
 
-# 에러 예시:
+# Example error:
 # "could not launch instance" err="InsufficientInstanceCapacity: We currently do not have sufficient g5.2xlarge capacity"
 ```
 
-**해결 방법:**
+**Resolution:**
 
-아래 예시는 [Karpenter v1.14.1 CRD](https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml)를 기준으로 NodePool의 일부 필드를 보여 줍니다. 기존 NodePool에 반영할 때는 `spec.template.spec.nodeClassRef` 등 생략된 설정을 유지합니다. `30s`는 Pod 변경 후 통합을 검토하기까지 기다리는 시간의 예시입니다. 통합이 30초 안에 완료된다는 의미는 아닙니다.
+The examples show selected NodePool fields from the [Karpenter v1.14.1 CRD](https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml). Retain omitted settings such as `spec.template.spec.nodeClassRef` when adapting an existing NodePool. Here, `30s` is an example wait after Pod changes before considering consolidation. Consolidation can take longer to complete.
 
 ```yaml
-# NodePool: 다양한 인스턴스 타입 추가 (Spot 용량 확보)
+# NodePool: add diverse instance types (secure Spot capacity)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -128,49 +128,49 @@ metadata:
 spec:
   template:
     spec:
-      expireAfter: 720h  # 30일
+      expireAfter: 720h  # 30 days
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot", "on-demand"]  # Spot 실패 시 On-Demand 폴백
+          values: ["spot", "on-demand"]  # On-Demand fallback on Spot failure
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
             - c6i.2xlarge
             - c6i.4xlarge
-            - c6a.2xlarge   # ← AMD 인스턴스도 포함
-            - c7i.2xlarge   # ← 최신 세대 추가
+            - c6a.2xlarge   # ← include AMD instances
+            - c7i.2xlarge   # ← add latest generation
         - key: topology.kubernetes.io/zone
           operator: In
           values:
             - us-east-1a
             - us-east-1b
-            - us-east-1c   # ← 가용 영역 다양화
+            - us-east-1c   # ← diversify availability zones
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 30s  # Pod 변경 후 대기 시간 예시
+    consolidateAfter: 30s  # example wait after Pod changes
 ```
 
-### NodePool Requirements 불일치
+### NodePool Requirements Mismatch
 
-**증상:** Pod가 Pending, Karpenter는 "incompatible requirements" 로그
+**Symptom:** Pod Pending, Karpenter logs "incompatible requirements"
 
 ```bash
-# Pod spec 확인
+# Check Pod spec
 kubectl get pod <pod-name> -o yaml | grep -A 10 "nodeSelector\|affinity"
 
-# NodePool requirements 확인
+# Check NodePool requirements
 kubectl get nodepool <nodepool-name> -o yaml | grep -A 20 "requirements"
 ```
 
-**예시 문제:**
+**Example issue:**
 
 ```yaml
-# Pod가 요구하는 것
+# Pod requires
 nodeSelector:
   workload: gpu
 
-# NodePool이 제공하는 것 (레이블 없음)
+# NodePool provides (no label)
 spec:
   template:
     spec:
@@ -178,13 +178,13 @@ spec:
         - key: node.kubernetes.io/instance-type
           operator: In
           values: ["g5.2xlarge"]
-      # ← workload=gpu 레이블이 없음!
+      # ← no workload=gpu label!
 ```
 
-**해결:**
+**Resolution:**
 
 ```yaml
-# NodePool에 레이블 추가
+# Add label to NodePool
 spec:
   template:
     metadata:
@@ -197,91 +197,91 @@ spec:
           values: ["g5.2xlarge", "g5.4xlarge"]
 ```
 
-## Consolidation 디버깅
+## Consolidation Debugging
 
-Consolidation은 노드를 제거하거나 더 저렴한 용량으로 교체할 수 있습니다. 아래 개념도는 Pod 변경 후 안정화를 기다리는 시간과 노드 수명에 따른 만료를 구분합니다.
+Consolidation can remove nodes or replace them with lower-priced capacity. The following conceptual flow separates the stabilization wait from node-age expiration.
 
-### Consolidation 동작 흐름
+### Consolidation Flow
 
 ```mermaid
 flowchart TD
-    A[Consolidation 루프] --> B{정책상 통합 대상이며<br/>consolidateAfter가 경과했는가?}
+    A[Consolidation loop] --> B{Policy permits candidate<br/>and consolidateAfter elapsed?}
     B -->|No| A
-    B -->|Yes| C{NodePool budget과<br/>Pod 중단 제약을 충족하는가?}
-    C -->|No| I[통합 연기]
-    C -->|Yes| D{기존 용량으로<br/>Pod를 수용할 수 있는가?}
-    D -->|Yes| E[노드 삭제만 수행<br/>대체 노드 시작 없음]
-    D -->|No| F{더 저렴한 노드로<br/>교체할 수 있는가?}
+    B -->|Yes| C{NodePool budget and<br/>Pod disruption constraints allow?}
+    C -->|No| I[Defer consolidation]
+    C -->|Yes| D{Pods fit on<br/>existing capacity?}
+    D -->|Yes| E[Delete-only action<br/>no replacement launch]
+    D -->|No| F{Valid lower-priced<br/>replacement possible?}
     F -->|No| I
-    F -->|Yes| G[대체 노드 시작 후<br/>준비 상태 대기]
-    E --> H[기존 노드 drain 후 제거]
+    F -->|Yes| G[Launch replacement<br/>and wait for readiness]
+    E --> H[Drain and remove old node]
     G --> H
     H --> A
     I --> A
 ```
 
-[`consolidateAfter`](https://karpenter.sh/v1.14/concepts/disruption/#consolidation)는 Pod가 추가되거나 제거된 뒤 기다리는 시간이며, 이후 Pod 변경이 있으면 다시 계산합니다. 빈 노드에만 적용하는 타이머가 아니라 통합 검토 전 대기 시간입니다. 이 시간이 지나도 PDB, 활성 `do-not-disrupt` annotation, 스케줄링 제약, 적용되는 budget이 통합을 막을 수 있습니다. 아래의 기존 `30s` 설정은 대기 시간 예시이며 완료 기한이 아닙니다.
+[`consolidateAfter`](https://karpenter.sh/v1.14/concepts/disruption/#consolidation) is a wait after Pods are added or removed, reset by subsequent Pod changes. It applies before considering consolidation, not only after a node becomes empty. PDBs, active `do-not-disrupt` annotations, scheduling constraints and applicable budgets can still prevent the action. The existing `30s` settings below are illustrative waits, not completion deadlines.
 
-### "왜 통합이 안되는가?" 진단
+### "Why Isn't Consolidation Happening?" Diagnosis
 
 ```bash
-# NodeClaim 상태 확인
+# Check NodeClaim status
 kubectl get nodeclaims -o wide
 
-# 출력 예시:
+# Example output:
 # NAME           TYPE         ZONE         CAPACITY   AGE    READY
-# default-abc    c6i.2xlarge  us-east-1a   8          30m    True   # ← 통합 대상 후보
-# default-def    c6i.xlarge   us-east-1b   4          5m     True   # ← 새로 생성됨
+# default-abc    c6i.2xlarge  us-east-1a   8          30m    True   # ← consolidation candidate
+# default-def    c6i.xlarge   us-east-1b   4          5m     True   # ← newly created
 ```
 
 ```bash
-# Consolidation 차단 이유 확인
+# Check blocking reasons for consolidation
 kubectl describe nodeclaim <nodeclaim-name> | grep -A 5 "Conditions"
 
-# 일반적인 차단 이유:
+# Common blocking reasons:
 # 1. "cannot disrupt: pod has do-not-disrupt annotation"
 # 2. "cannot disrupt: pdb blocks eviction"
 # 3. "cannot disrupt: node is not empty and no replacement found"
 ```
 
-### PodDisruptionBudget (PDB) 차단
+### PodDisruptionBudget (PDB) Blocking
 
 ```yaml
-# PDB 예시 (과도하게 제약적)
+# PDB example (too restrictive)
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: my-app-pdb
 spec:
-  minAvailable: 3  # ← 3개 유지 필수
+  minAvailable: 3  # ← requires 3 to remain
   selector:
     matchLabels:
       app: my-app
 ```
 
 ```bash
-# PDB 상태 확인
+# Check PDB status
 kubectl get pdb -A
 
-# 출력 예시 (차단 발생):
+# Example output (blocked):
 # NAME         MIN AVAILABLE   MAX UNAVAILABLE   ALLOWED DISRUPTIONS   AGE
 # my-app-pdb   3               N/A               0                     7d
-#                                                ↑ 0이면 통합 불가
+#                                                ↑ 0 means consolidation is not possible
 
-# PDB가 차단하는 Pod 확인
+# Check Pods blocked by PDB
 kubectl get pods -l app=my-app -o wide
 ```
 
-**해결 방법:**
+**Resolution:**
 
 ```yaml
-# PDB를 maxUnavailable로 변경 (유연성 확보)
+# Switch PDB to maxUnavailable (more flexible)
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: my-app-pdb
 spec:
-  maxUnavailable: 1  # ← 1개까지 중단 허용
+  maxUnavailable: 1  # ← allow 1 disruption
   selector:
     matchLabels:
       app: my-app
@@ -290,33 +290,33 @@ spec:
 ### do-not-disrupt Annotation
 
 ```bash
-# do-not-disrupt annotation 확인
+# Find Pods with do-not-disrupt annotation
 kubectl get pods -A -o json | jq -r '.items[] | select(.metadata.annotations."karpenter.sh/do-not-disrupt" == "true") | "\(.metadata.namespace)/\(.metadata.name)"'
 
-# NodeClaim에도 적용 가능
+# Can be applied to NodeClaims as well
 kubectl get nodeclaims -o json | jq -r '.items[] | select(.metadata.annotations."karpenter.sh/do-not-disrupt" == "true") | .metadata.name'
 ```
 
-**사용 시나리오:**
+**Use case:**
 
 ```yaml
-# 장시간 실행 배치 작업 (중단 방지)
+# Long-running batch job (prevent interruption)
 apiVersion: v1
 kind: Pod
 metadata:
   name: long-running-job
   annotations:
-    karpenter.sh/do-not-disrupt: "true"  # ← 통합 제외
+    karpenter.sh/do-not-disrupt: "true"  # ← exclude from consolidation
 spec:
   containers:
     - name: job
       image: my-batch-job:latest
 ```
 
-### Consolidation Policy 설정
+### Consolidation Policy Configuration
 
 ```yaml
-# NodePool Consolidation 정책
+# NodePool consolidation policy
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -324,32 +324,32 @@ metadata:
 spec:
   template:
     spec:
-      expireAfter: 720h  # 노드 생성 30일 후 만료 처리 시작
+      expireAfter: 720h  # begin expiration 30 days after node creation
   disruption:
-    consolidationPolicy: WhenEmptyOrUnderutilized  # 빈 노드와 저활용 노드를 통합 대상으로 고려
-    consolidateAfter: 30s  # Pod 추가·제거 후 대기 시간 예시
+    consolidationPolicy: WhenEmptyOrUnderutilized  # consider empty and underutilized nodes
+    consolidateAfter: 30s  # example wait after Pods are added or removed
 
-    # 이 NodePool의 자발적 중단에 적용하는 예약 상한
+    # Scheduled limit for voluntary disruption in this NodePool
     budgets:
-      - nodes: "10%"       # 비율 상한; 소수점 노드 수는 올림
-        schedule: "0 9 * * *"  # 매일 09:00 UTC에 시작
-        duration: 1h          # 09:00부터 10:00 UTC까지 적용
+      - nodes: "10%"       # percentage cap; fractional node counts round up
+        schedule: "0 9 * * *"  # daily start at 09:00 UTC
+        duration: 1h          # active from 09:00 to 10:00 UTC
 ```
 
-이 구간 밖에서는 budget이 비활성이므로, 이 명시적 목록에는 적용 중인 NodePool budget 상한이 없습니다. 다른 중단 제약은 계속 적용됩니다. 10% 상한을 계속 적용하려면 `schedule`과 `duration`을 **둘 다** 생략합니다.
+Outside this interval the budget is inactive, so this explicit list supplies no active NodePool budget cap. Other disruption constraints still apply. For a continuous 10% cap, omit **both** `schedule` and `duration`.
 
-[Budget 상한](https://karpenter.sh/v1.14/concepts/disruption/#nodepool-disruption-budgets)은 NodePool별로 계산합니다. 해당 사유에 적용되는 활성 budget마다 비율을 노드 수로 환산해 올림한 뒤 가장 작은 상한을 사용합니다. 10%는 중단할 노드 수의 상한이며, 매번 정확히 10%를 교체한다는 의미가 아닙니다.
+[Budget limits](https://karpenter.sh/v1.14/concepts/disruption/#nodepool-disruption-budgets) are per NodePool. For each applicable active budget, a percentage is rounded up to a whole-node ceiling; the lowest ceiling wins. A 10% budget is an upper limit, not a promise to replace exactly 10% at once.
 
-[v1.14.1 구현](https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go#L262-L301)은 초기화된 관리 대상 노드 중 `InstanceTerminating` 노드를 제외하고 계산합니다. NotReady이거나 삭제 표시가 있는 노드는 한 번씩 차감하며, 남은 허용 수는 0보다 작아지지 않습니다.
+The [v1.14.1 implementation](https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go#L262-L301) counts initialized managed nodes, excluding `InstanceTerminating` nodes. It subtracts nodes that are NotReady **or** marked for deletion, counting each once. The remaining allowance cannot be negative.
 
-| Policy | 동작 | 언제 사용? |
+| Policy | Behavior | When to Use |
 |--------|------|----------|
-| **WhenEmpty** | workload Pod가 없는 노드를 통합 대상으로 고려 | 비용보다 안정성 우선, stateful 워크로드 |
-| **WhenEmptyOrUnderutilized** | 빈 노드와 저활용 노드를 고려하며 스케줄링·중단 제약을 확인 | 비용 최적화 우선, stateless 워크로드 |
+| **WhenEmpty** | Consider nodes without workload Pods for consolidation | Stability over cost; stateful workloads |
+| **WhenEmptyOrUnderutilized** | Consider empty and underutilized nodes, subject to scheduling and disruption constraints | Cost optimization first; stateless workloads |
 
-## Spot 중단 처리
+## Spot Interruption Handling
 
-### Spot 중단 흐름
+### Spot Interruption Flow
 
 ```mermaid
 sequenceDiagram
@@ -358,34 +358,34 @@ sequenceDiagram
     participant Node
     participant Pod
 
-    EC2->>Node: Spot Interruption Notice (2분 경고)
-    Node->>Karpenter: Interruption 이벤트
-    Karpenter->>Karpenter: 대체 노드 시작 (즉시)
-    Karpenter->>Node: Cordon (새 Pod 차단)
-    Karpenter->>Pod: Graceful Shutdown 시작
-    Pod->>Pod: preStop hook 실행
-    Pod->>Pod: SIGTERM 처리 (30초)
-    Pod-->>Node: 종료 완료
+    EC2->>Node: Spot Interruption Notice (2-minute warning)
+    Node->>Karpenter: Interruption event
+    Karpenter->>Karpenter: Launch replacement node (immediate)
+    Karpenter->>Node: Cordon (block new Pods)
+    Karpenter->>Pod: Begin graceful shutdown
+    Pod->>Pod: Run preStop hook
+    Pod->>Pod: Handle SIGTERM (30s)
+    Pod-->>Node: Termination complete
 
-    Note over EC2,Node: 2분 경과
-    EC2->>Node: 인스턴스 종료
+    Note over EC2,Node: After 2 minutes
+    EC2->>Node: Instance terminated
 
-    Karpenter->>Pod: 새 노드에 재스케줄
+    Karpenter->>Pod: Reschedule on new node
 ```
 
-### Spot 중단 확인
+### Checking Spot Interruptions
 
 ```bash
-# Spot Interruption 로그
+# Spot Interruption logs
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep interruption
 
-# 출력 예시:
+# Example output:
 # "received spot interruption warning" node="default-abc123" time-until-interruption="2m"
 # "cordoned node" node="default-abc123"
 # "launched replacement node" node="default-def456"
 ```
 
-### Spot 중단 대응 전략
+### Spot Interruption Response Strategy
 
 ```yaml
 # NodePool: Spot Interruption Budget
@@ -399,27 +399,27 @@ spec:
       requirements:
         - key: karpenter.sh/capacity-type
           operator: In
-          values: ["spot", "on-demand"]  # ← Spot 부족 시 On-Demand 폴백
+          values: ["spot", "on-demand"]  # ← On-Demand fallback on Spot shortage
   disruption:
-    # Spot 중단 시 동시 교체 제한
+    # Limit concurrent replacements on Spot interruption
     budgets:
-      - nodes: "20%"  # 전체 노드의 20%까지만 동시 중단
+      - nodes: "20%"  # at most 20% of all nodes at once
         reasons:
           - Drifted
           - Underutilized
           - Empty
 ```
 
-**Pod 수준 대응:**
+**Pod-level response:**
 
 ```yaml
-# preStop hook으로 graceful shutdown
+# preStop hook for graceful shutdown
 apiVersion: v1
 kind: Pod
 metadata:
   name: web-server
 spec:
-  terminationGracePeriodSeconds: 60  # ← 2분 안에 충분히 종료
+  terminationGracePeriodSeconds: 60  # ← terminate within 2 minutes
   containers:
     - name: nginx
       image: nginx
@@ -430,43 +430,43 @@ spec:
               - /bin/sh
               - -c
               - |
-                # 헬스체크 제거 (새 요청 차단)
+                # Remove from health check (block new requests)
                 nginx -s quit
-                # 기존 연결 처리 대기
+                # Wait for existing connections
                 sleep 10
 ```
 
-## Drift 감지 및 자동 교체
+## Drift Detection and Automatic Replacement
 
-### Drift란?
+### What Is Drift?
 
-노드가 NodePool 정의와 일치하지 않게 되는 상태:
+A state where a node no longer matches the NodePool definition:
 
-- AMI 업데이트
-- NodePool requirements 변경
-- UserData 변경
-- SecurityGroup/Subnet 변경
+- AMI updates
+- NodePool requirement changes
+- UserData changes
+- SecurityGroup/Subnet changes
 
 ```bash
-# Drift 상태 확인
+# Check drift status
 kubectl get nodeclaims -o json | jq -r '.items[] | select(.status.conditions[] | select(.type=="Drifted" and .status=="True")) | .metadata.name'
 
-# Drift 이유 확인
+# Check drift reason
 kubectl describe nodeclaim <nodeclaim-name> | grep -A 5 "Drifted"
 
-# 출력 예시:
+# Example output:
 #   Type:   Drifted
 #   Status: True
 #   Reason: AMI
 #   Message: AMI ami-old123 != ami-new456
 ```
 
-### Drift 교체 제어
+### Drift Replacement Control
 
-`consolidationPolicy`는 통합 대상을 정합니다. 아래 `Drifted` budget은 Drift로 인한 교체를 제한하며, `expireAfter`는 노드 만료를 시작하는 기준입니다. 이 세 설정은 서로 다른 교체 사유를 제어합니다.
+`consolidationPolicy` selects consolidation candidates; the `Drifted` budget below applies to drift replacement. `expireAfter` separately determines when expiration starts, not the consolidation wait or a drift budget.
 
 ```yaml
-# NodePool: Drift 교체 정책
+# NodePool: drift replacement policy
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -477,147 +477,147 @@ spec:
       expireAfter: 720h
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 30s  # Pod 변경 후 대기 시간 예시
+    consolidateAfter: 30s  # example wait after Pod changes
 
-    # Drift 교체 제어
+    # Drift replacement control
     budgets:
-      - nodes: "10%"  # 비율 상한; 올림과 진행 중인 중단을 반영
+      - nodes: "10%"  # percentage ceiling; apply rounding and existing disruptions
         reasons:
-          - Drifted  # ← Drift 교체도 버짓 적용
+          - Drifted  # ← budget also applies to drift replacement
 ```
 
-**교체 순서:**
+**Replacement order:**
 
-1. Karpenter가 Drift 감지
-2. 새 NodeClaim 생성 (새 AMI)
-3. Pod를 새 노드로 마이그레이션
-4. 기존 노드 종료
+1. Karpenter detects drift
+2. Creates a new NodeClaim (with new AMI)
+3. Migrates Pods to the new node
+4. Terminates the old node
 
 ```bash
-# 교체 진행 상황 모니터링
+# Monitor replacement progress
 watch -n 5 'kubectl get nodeclaims -o wide'
 
-# AMI 버전 확인
+# Check AMI version
 kubectl get nodeclaims -o json | jq -r '.items[] | "\(.metadata.name): \(.status.imageID)"'
 ```
 
-## Karpenter 로그 분석
+## Analyzing Karpenter Logs
 
-### 핵심 로그 패턴
+### Key Log Patterns
 
 ```bash
-# 프로비저닝 성공
+# Provisioning success
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep "launched"
 # "launched nodeclaim" nodeclaim="default-abc123" instance-type="c6i.2xlarge" zone="us-east-1a" capacity-type="spot"
 
-# 프로비저닝 실패
+# Provisioning failure
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep "could not launch"
 # "could not launch nodeclaim" err="InsufficientInstanceCapacity: ..."
 
-# Consolidation 실행
+# Consolidation execution
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep "deprovisioning"
 # "deprovisioning nodeclaim via consolidation" nodeclaim="default-abc123" reason="underutilized"
 
-# Spot 중단
+# Spot interruption
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep "interruption"
 # "received spot interruption warning" node="default-abc123" time-until-interruption="2m"
 ```
 
-### CloudWatch Logs Insights 쿼리
+### CloudWatch Logs Insights Queries
 
 ```sql
-# Karpenter 로그를 CloudWatch에 전송한 경우
+# If Karpenter logs are shipped to CloudWatch
 
-# 1. 인스턴스 타입별 프로비저닝 실패율
+# 1. Provisioning failure rate by instance type
 fields @timestamp, instanceType, err
 | filter @message like /could not launch/
 | stats count() by instanceType
 | sort count desc
 
-# 2. Consolidation으로 절감된 노드 수
+# 2. Nodes saved by consolidation
 fields @timestamp, nodeclaim, reason
 | filter @message like /deprovisioning/
 | stats count() by bin(1h)
 
-# 3. Spot 중단 빈도
+# 3. Spot interruption frequency
 fields @timestamp, node
 | filter @message like /spot interruption/
 | stats count() by bin(1h)
 
-# 4. 노드 시작 시간 (프로비저닝 성능)
+# 4. Node launch time (provisioning performance)
 fields @timestamp, nodeclaim, instance-type
 | filter @message like /launched nodeclaim/
 | stats avg(@duration) by instance-type
 ```
 
-## 진단 명령어 모음
+## Diagnostic Command Collection
 
 ```bash
 # === NodePool / NodeClaim ===
-# NodePool 목록 및 상태
+# NodePool list and status
 kubectl get nodepools -o wide
 
-# NodeClaim 목록 및 상태
+# NodeClaim list and status
 kubectl get nodeclaims -o wide
 
-# NodeClaim 상세 정보 (Conditions 확인)
+# NodeClaim details (check Conditions)
 kubectl describe nodeclaim <nodeclaim-name>
 
-# NodeClaim과 Node 매핑
+# NodeClaim to Node mapping
 kubectl get nodeclaims -o json | jq -r '.items[] | "\(.metadata.name) → \(.status.nodeName)"'
 
-# Drift 상태 확인
+# Drift status
 kubectl get nodeclaims -o json | jq -r '.items[] | select(.status.conditions[] | select(.type=="Drifted" and .status=="True")) | .metadata.name'
 
 # === Karpenter Controller ===
-# Karpenter Pod 상태
+# Karpenter Pod status
 kubectl get pods -n karpenter
 
-# Karpenter 로그 (실시간)
+# Live Karpenter logs
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter -f
 
-# 최근 프로비저닝 로그
+# Recent provisioning logs
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep "launched\|could not launch"
 
-# Consolidation 로그
+# Consolidation logs
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep "deprovisioning"
 
-# Spot 중단 로그
+# Spot interruption logs
 kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep "interruption"
 
 # === PodDisruptionBudget ===
-# PDB 상태 확인
+# PDB status
 kubectl get pdb -A
 
-# PDB가 차단하는 Pod 확인
+# Pods blocked by a specific PDB
 kubectl get pdb <pdb-name> -o json | jq -r '.spec.selector'
 
 # === do-not-disrupt ===
-# do-not-disrupt annotation이 있는 Pod
+# Pods with do-not-disrupt annotation
 kubectl get pods -A -o json | jq -r '.items[] | select(.metadata.annotations."karpenter.sh/do-not-disrupt" == "true") | "\(.metadata.namespace)/\(.metadata.name)"'
 
-# do-not-disrupt annotation이 있는 NodeClaim
+# NodeClaims with do-not-disrupt annotation
 kubectl get nodeclaims -o json | jq -r '.items[] | select(.metadata.annotations."karpenter.sh/do-not-disrupt" == "true") | .metadata.name'
 
-# === EC2 인스턴스 ===
-# Karpenter가 관리하는 인스턴스 확인
+# === EC2 instances ===
+# Instances managed by Karpenter
 aws ec2 describe-instances \
   --filters "Name=tag:karpenter.sh/nodepool,Values=*" \
   --query 'Reservations[*].Instances[*].[InstanceId,InstanceType,State.Name,SpotInstanceRequestId]' \
   --output table
 
-# Spot Fleet 요청 상태
+# Spot Fleet request status
 aws ec2 describe-spot-instance-requests \
   --filters "Name=tag:karpenter.sh/nodepool,Values=*" \
   --query 'SpotInstanceRequests[*].[SpotInstanceRequestId,State,Status.Message]' \
   --output table
 
 # === Metrics ===
-# Karpenter 메트릭 확인 (Prometheus)
+# Karpenter metrics (Prometheus)
 kubectl port-forward -n karpenter svc/karpenter 8080:8080
-# 브라우저에서 http://localhost:8080/metrics
+# Open http://localhost:8080/metrics in a browser
 
-# 주요 메트릭:
+# Key metrics:
 # - karpenter_nodeclaims_created_total
 # - karpenter_nodeclaims_terminated_total
 # - karpenter_nodeclaims_disrupted_total
@@ -625,51 +625,51 @@ kubectl port-forward -n karpenter svc/karpenter 8080:8080
 # - karpenter_nodes_allocatable{resource="memory"}
 ```
 
-## 문제별 체크리스트
+## Checklist by Problem
 
-### Pod가 Pending 상태 (NodeClaim 생성 안 됨)
+### Pod Stuck in Pending (NodeClaim Not Created)
 
-- [ ] Karpenter 로그에 "incompatible requirements" 있는가?
-- [ ] NodePool requirements와 Pod requirements가 매칭되는가?
-- [ ] 인스턴스 타입이 Pod 리소스 요청을 만족하는가?
-- [ ] 가용 영역에 인스턴스 용량이 충분한가?
-- [ ] Spot 용량 부족 시 On-Demand 폴백이 설정되었는가?
+- [ ] Do Karpenter logs show "incompatible requirements"?
+- [ ] Do NodePool and Pod requirements match?
+- [ ] Does an instance type satisfy the Pod's resource request?
+- [ ] Is there sufficient instance capacity in the availability zones?
+- [ ] Is an On-Demand fallback configured for Spot shortages?
 
-### Consolidation이 동작하지 않음
+### Consolidation Not Running
 
-- [ ] 선택한 `consolidationPolicy`가 조사 중인 노드를 통합 대상으로 허용하는가? (예: 저활용 노드에 `WhenEmptyOrUnderutilized`)
-- [ ] PDB가 `minAvailable`을 과도하게 설정하지 않았는가?
-- [ ] Pod에 `do-not-disrupt` annotation이 있는가?
-- [ ] NodeClaim에 `do-not-disrupt` annotation이 있는가?
-- [ ] `consolidateAfter` 대기 시간이 충분히 경과했는가?
+- [ ] Does the selected `consolidationPolicy` cover the nodes being investigated (for example, `WhenEmptyOrUnderutilized` for underutilized nodes)?
+- [ ] Is PDB `minAvailable` excessively restrictive?
+- [ ] Do Pods have the `do-not-disrupt` annotation?
+- [ ] Does the NodeClaim have the `do-not-disrupt` annotation?
+- [ ] Has `consolidateAfter` elapsed sufficiently?
 
-### Spot 중단 후 Pod 재시작 실패
+### Pod Fails to Restart After Spot Interruption
 
-- [ ] PDB가 과도하게 제약적인가?
-- [ ] Pod의 `terminationGracePeriodSeconds`가 충분한가? (2분 이내)
-- [ ] On-Demand 폴백이 설정되어 있는가?
-- [ ] 새 노드가 시작되기 전에 기존 노드가 종료되었는가? (버짓 설정 확인)
+- [ ] Is the PDB too restrictive?
+- [ ] Is the Pod's `terminationGracePeriodSeconds` sufficient? (within 2 minutes)
+- [ ] Is an On-Demand fallback configured?
+- [ ] Was the old node terminated before the new one was launched? (check budgets)
 
-### Drift 교체가 너무 빠름/느림
+### Drift Replacement Too Fast/Slow
 
-- [ ] Drift 교체 버짓이 설정되었는가?
-- [ ] 올림과 진행 중인 중단을 반영한 NodePool별 허용 수가 적절한가? `budgets` 필드를 생략하면 기본값은 `nodes: "10%"`이며 무제한이 아닙니다.
-- [ ] PDB가 교체를 차단하고 있는가?
+- [ ] Are drift replacement budgets configured?
+- [ ] Is the per-NodePool allowance appropriate after rounding and existing disruptions? An omitted `budgets` field defaults to `nodes: "10%"`; it is not unlimited.
+- [ ] Is a PDB blocking replacements?
 
-명시적으로 저장된 `budgets: []`는 NodePool budget 상한이 없으며, 필드 생략과 다릅니다. 설정된 목록에서 현재 활성 상태이면서 해당 사유에 적용되는 budget이 없는 경우도 그 사유에 대한 상한이 없습니다. 어느 경우든 PDB, 스케줄링 제약 등 다른 중단 조건이 사라지지는 않습니다.
+An explicitly stored `budgets: []` has no NodePool budget cap and differs from omitting the field. Likewise, a configured list with no currently active matching budget provides no cap for that reason. Neither case removes PDB, scheduling or other disruption constraints.
 
-## 고급 패턴
+## Advanced Patterns
 
-### 다중 NodePool 전략
+### Multi-NodePool Strategy
 
 ```yaml
-# 1. 일반 워크로드 (Spot 우선)
+# 1. General workloads (Spot preferred)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: general-spot
 spec:
-  weight: 10  # ← 우선순위 낮음 (Spot 우선 사용)
+  weight: 10  # ← lower priority (Spot preferred)
   template:
     spec:
       requirements:
@@ -677,13 +677,13 @@ spec:
           operator: In
           values: ["spot"]
 ---
-# 2. 일반 워크로드 (On-Demand 폴백)
+# 2. General workloads (On-Demand fallback)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: general-on-demand
 spec:
-  weight: 50  # ← 우선순위 높음 (Spot 부족 시)
+  weight: 50  # ← higher priority (when Spot is scarce)
   template:
     spec:
       requirements:
@@ -691,13 +691,13 @@ spec:
           operator: In
           values: ["on-demand"]
 ---
-# 3. GPU 워크로드 (전용 NodePool)
+# 3. GPU workloads (dedicated NodePool)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: gpu
 spec:
-  weight: 100  # ← 최우선
+  weight: 100  # ← highest priority
   template:
     metadata:
       labels:
@@ -713,12 +713,12 @@ spec:
           effect: NoSchedule
 ```
 
-### 시간대별 Consolidation
+### Time-of-Day Consolidation
 
-이 예시의 업무 시간은 **월요일부터 금요일 09:00–18:00 UTC**이며, 시작 시각은 포함하고 종료 시각은 포함하지 않습니다. 항상 활성 상태인 50% budget이 나머지 시간과 주말의 상한을 정하고, 업무 시간에는 겹쳐 적용되는 0% budget이 자발적 중단을 막습니다.
+This example defines business hours as **Monday–Friday, 09:00–18:00 UTC** (start included, end excluded). A continuous 50% budget covers the remaining hours and weekends; an overlapping 0% budget blocks voluntary disruption during business hours.
 
 ```yaml
-# NodePool: 자발적 중단에 적용하는 UTC 시간창 예시
+# NodePool: example UTC window for voluntary disruption
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -726,22 +726,22 @@ metadata:
 spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 30s  # Pod 변경 후 대기 시간 예시
+    consolidateAfter: 30s  # example wait after Pod changes
     budgets:
-      - nodes: "50%"        # 항상 적용하는 기본 상한
-      - nodes: "0%"         # 이 시간창에서는 기본 상한보다 우선
-        schedule: "0 9 * * 1-5"  # 월–금 09:00 UTC에 시작
-        duration: 9h            # 18:00 UTC까지 적용
+      - nodes: "50%"        # continuous baseline ceiling
+      - nodes: "0%"         # overrides the baseline during this window
+        schedule: "0 9 * * 1-5"  # Mon–Fri start at 09:00 UTC
+        duration: 9h            # active until 18:00 UTC
 ```
 
-[Schedule](https://karpenter.sh/v1.14/concepts/disruption/#schedule)은 시작 시각을, `duration`은 적용 구간을 정합니다. 두 필드는 함께 설정하거나 함께 생략해야 합니다. Karpenter는 budget별 시간대 설정 없이 UTC로 계산합니다. 현지 운영 시간을 사용할 때는 요일 변경과 해당 지역의 서머타임 조정을 포함해 UTC로 변환합니다. 항상 활성 상태인 기본 상한을 두면 별도의 야간 cron 범위가 필요하지 않습니다.
+[Schedules](https://karpenter.sh/v1.14/concepts/disruption/#schedule) specify start times, and `duration` supplies the interval; both must be present or both absent. Karpenter evaluates schedules in UTC, without a per-budget timezone. Convert local operating hours to UTC, including weekday changes and daylight-saving adjustments where relevant. The continuous baseline avoids a separate overnight cron range.
 
-`reasons`를 지정하지 않았으므로 이 budget은 자발적 `Drifted`, `Empty`, `Underutilized` 중단에 적용됩니다. 두 budget이 겹치는 동안에는 작은 허용 수인 0을 사용하고, 그 밖에는 앞에서 설명한 올림과 차감을 반영한 50% 상한을 사용합니다. 0% budget도 만료를 차단하거나 애플리케이션 가용성을 보장하지 않으며, Pod 수준의 중단 제어를 대신하지 않습니다.
+With no `reasons` filter, these budgets apply to voluntary `Drifted`, `Empty` and `Underutilized` disruptions. During the overlap the smaller allowance is zero; outside it the 50% ceiling applies, subject to rounding and deductions described above. The zero budget does not block expiration, guarantee application availability, or replace Pod-level disruption controls.
 
-## 참고 자료
+## References
 
-- [Auto Mode 디버깅](./auto-mode.md) - NodePool/NodeClaim 개념 유사
-- [노드 디버깅](./node.md) - 노드 수준 진단
-- [워크로드 디버깅](./workload.md) - Pod 스케줄링 문제
-- [Karpenter 공식 문서](https://karpenter.sh/)
+- [Auto Mode Debugging](./auto-mode.md) - Similar NodePool/NodeClaim concepts
+- [Node Debugging](./node.md) - Node-level diagnosis
+- [Workload Debugging](./workload.md) - Pod scheduling issues
+- [Karpenter Official Documentation](https://karpenter.sh/)
 - [Karpenter Best Practices](https://aws.github.io/aws-eks-best-practices/karpenter/)

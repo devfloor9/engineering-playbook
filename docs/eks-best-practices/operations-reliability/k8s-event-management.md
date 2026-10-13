@@ -1,11 +1,11 @@
 ---
-title: Kubernetes 이벤트 보존과 AI Agent 조회 아키텍처
-description: EKS Kubernetes 이벤트의 1시간 TTL 제약과 export 파이프라인 설계, EKS·CloudWatch MCP 서버 기반 AI Agent 조회 아키텍처를 다룹니다.
+title: Kubernetes Event Retention and AI Agent Query Architecture
+description: Covers the 1-hour TTL constraint of EKS Kubernetes events, export pipeline design, and AI Agent query architecture based on the EKS and CloudWatch MCP servers.
 created: "2026-07-14"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 12
+reading_time: 20
 tags:
   - eks
   - kubernetes
@@ -16,155 +16,155 @@ tags:
   - agentic-ai
   - troubleshooting
   - scope:ops
-sidebar_label: K8s 이벤트 보존과 AI 조회
+sidebar_label: K8s Event Retention & AI Query
 ---
 
-## 개요
+## Overview
 
-장애를 조사하는 AI 에이전트는 클러스터의 보존 기간보다 오래된 이벤트가 필요할 수 있습니다. Kubernetes 이벤트의 기본 보존 기간은 1시간이므로, 과거 장애 이력을 분석하려면 외부 저장소로 내보내야 합니다. 이 가이드는 수집·저장·조회를 3계층으로 나누고, EKS MCP 서버와 CloudWatch MCP 서버로 최근 이벤트와 보관한 이벤트를 에이전트에 제공하는 방법을 설명합니다.
+An AI agent investigating an incident may need Events older than the cluster retains. Kubernetes Events have a default retention period of 1 hour, so historical analysis requires an export pipeline to external storage. This guide separates collection, storage, and querying into a 3-layer architecture and explains how the EKS MCP server and CloudWatch MCP server expose recent and retained event data to agents.
 
-## 배경: Kubernetes 이벤트의 구조적 제약
+## Background: Structural Constraints of Kubernetes Events
 
-### 1시간 TTL
+### 1-Hour TTL
 
-Kubernetes Event 객체는 etcd에 저장되며, `kube-apiserver`의 `--event-ttl` 플래그 기본값은 `1h0m0s`입니다. EKS는 업스트림 기본값인 60분을 유지해 왔으며, 이벤트가 etcd를 채우면 API 서버 성능이 저하되기 때문에 오랫동안 이 설정의 변경을 허용하지 않았습니다([containers-roadmap #785](https://github.com/aws/containers-roadmap/issues/785)). 60분이 지나면 etcd가 이벤트를 삭제하므로 `kubectl get events`로는 최근 1시간의 이벤트만 조회할 수 있습니다.
+Kubernetes Event objects are stored in etcd, and the default value of the `kube-apiserver` `--event-ttl` flag is `1h0m0s`. EKS has maintained the upstream default of 60 minutes, and because events filling up etcd degrades API server performance, EKS did not allow changing this setting for a long time ([containers-roadmap #785](https://github.com/aws/containers-roadmap/issues/785)). After 60 minutes, etcd deletes the events, so `kubectl get events` can only retrieve the most recent hour of events.
 
-:::info EKS Control Plane Customization (신규)
-EKS는 최근 Kubernetes control plane customization 기능을 통해 scheduler, controller manager, API server 설정 일부를 노출하기 시작했으며, 여기에 event time-to-live 설정이 포함됩니다([EKS 콘솔 도움말](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html)). 다만 TTL을 늘리면 etcd 저장 객체가 증가해 컨트롤 플레인 성능에 영향을 줄 수 있고, 아래의 best-effort 특성은 그대로 유지되므로, TTL 연장은 export 파이프라인의 대체재가 아니라 보완재로 취급해야 합니다. 지원 버전·API 세부 사항은 적용 전 최신 문서에서 확인이 필요합니다.
+:::info EKS Control Plane Customization (New)
+EKS has recently started exposing some scheduler, controller manager, and API server settings through the Kubernetes control plane customization feature, which includes the event time-to-live setting ([EKS console help](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html)). However, increasing the TTL increases the number of objects stored in etcd, which can affect control plane performance, and the best-effort characteristics below still apply. TTL extension should therefore be treated as a complement to an export pipeline, not a replacement. Supported versions and API details should be verified in the latest documentation before adoption.
 :::
 
-### Best-effort 데이터
+### Best-Effort Data
 
-Kubernetes Event v1 API 문서는 이벤트를 다음과 같이 정의합니다: *"Events have a limited retention time... should be treated as informative, best-effort, supplemental data."* 이벤트는 보존과 전달이 보장되지 않는 보조 신호이며, 장애 분석의 유일한 근거로 삼을 수 없습니다.
+The Kubernetes Event v1 API documentation defines events as follows: *"Events have a limited retention time... should be treated as informative, best-effort, supplemental data."* Events are supplemental signals with no guarantee of retention or delivery, and cannot serve as the sole basis for incident analysis.
 
-### Audit 로그로 대체 불가
+### Audit Logs Are Not a Substitute
 
-EKS 컨트롤 플레인 audit 로그를 활성화해도 Event 객체는 수집되지 않습니다. EKS 감사 정책에 `Do not log events resources`(`level: None`)가 명시되어 있기 때문입니다([EKS Best Practices: Auditing and logging](https://docs.aws.amazon.com/eks/latest/best-practices/auditing-and-logging.html)). Audit 로그는 "누가 어떤 API를 호출했는가"를 기록하므로 원인 추적에 유용하지만, Event 리소스 자체의 보존 수단이 될 수 없습니다.
+Enabling EKS control plane audit logs does not capture Event objects, because the EKS audit policy explicitly specifies `Do not log events resources` (`level: None`) ([EKS Best Practices: Auditing and logging](https://docs.aws.amazon.com/eks/latest/best-practices/auditing-and-logging.html)). Audit logs record "who called which API" and are useful for root cause tracing, but they cannot serve as a retention mechanism for Event resources themselves.
 
-:::caution EventBridge에 대한 흔한 오해
-Amazon EventBridge의 `aws.eks` 소스 이벤트는 EKS 서비스 이벤트(add-on 생성/삭제/헬스 등)만 전달합니다. Pod 스케줄링 실패, OOMKilled 같은 Kubernetes 클러스터 이벤트는 EventBridge로 전달되지 않습니다.
+:::caution A Common Misconception About EventBridge
+Amazon EventBridge `aws.eks` source events only deliver EKS service events (add-on creation/deletion, health, etc.). Kubernetes cluster events such as Pod scheduling failures and OOMKilled are not delivered to EventBridge.
 :::
 
-## 아키텍처: 수집 → 저장 → 조회 3계층
+## Architecture: Collect → Store → Query in 3 Layers
 
-이벤트를 AI Agent가 조회할 수 있게 만들려면 수집(export), 저장(durable store), 조회(query interface)를 분리해 설계합니다.
+To make events queryable by an AI Agent, design collection (export), storage (durable store), and query (query interface) as separate layers.
 
 ```mermaid
 flowchart LR
-    subgraph K8S["EKS 클러스터"]
+    subgraph K8S["EKS Cluster"]
         API["kube-apiserver<br/>(etcd, TTL 1h)"]
         EXP["kubernetes-event-exporter<br/>/ Fluent Bit / ADOT"]
         API -- watch --> EXP
     end
 
-    subgraph STORE["저장 계층 (Durable)"]
+    subgraph STORE["Storage Layer (Durable)"]
         CW["CloudWatch Logs"]
         OS["OpenSearch / Loki"]
         S3["S3 + Athena"]
     end
 
-    subgraph QUERY["조회 계층 (AI Agent)"]
-        EKSMCP["EKS MCP 서버<br/>(라이브 상태)"]
-        CWMCP["CloudWatch MCP 서버<br/>(축적 데이터)"]
-        AGENT["AI Agent<br/>(Strands SDK 등)"]
+    subgraph QUERY["Query Layer (AI Agent)"]
+        EKSMCP["EKS MCP Server<br/>(live state)"]
+        CWMCP["CloudWatch MCP Server<br/>(accumulated data)"]
+        AGENT["AI Agent<br/>(Strands SDK, etc.)"]
     end
 
     EXP --> CW
     EXP --> OS
     EXP --> S3
-    API -. "get_k8s_events (1h 제약)" .-> EKSMCP
+    API -. "get_k8s_events (1h limit)" .-> EKSMCP
     CW --> CWMCP
     CW -. get_cloudwatch_logs .-> EKSMCP
     EKSMCP --> AGENT
     CWMCP --> AGENT
-    OS -. "커스텀 툴 (LogQL/DSL)" .-> AGENT
+    OS -. "custom tools (LogQL/DSL)" .-> AGENT
 ```
 
-## 수집 계층: Export 방식 비교
+## Collection Layer: Export Options Compared
 
-| 방식 | 수집 대상 | 특징 | 적합한 경우 |
+| Method | Collection Target | Characteristics | Best Fit |
 |------|----------|------|------------|
-| **CloudWatch Observability add-on (Container Insights)** | 컨테이너/호스트/데이터플레인 로그 | 관리형 add-on, Fluent Bit 기반 | CloudWatch 중심 스택 |
-| **kubernetes-event-exporter** | Event 객체 전체 | 속성 기반 필터·라우팅, leader election HA, 20개 이상 sink | 이벤트 전용 파이프라인 |
-| **ADOT / OTel Collector (`k8sobjects` receiver)** | Event 포함 K8s 객체 | 기존 OTel 파이프라인에 통합 | OTel 표준화 환경 |
-| **자체 watcher (aws-samples/eks-event-watcher)** | 선택한 이벤트 | Kubernetes API watch 기반 커스텀 | 특수 필터링 요구 |
+| **CloudWatch Observability add-on (Container Insights)** | Container/host/dataplane logs | Managed add-on, Fluent Bit based | CloudWatch-centric stack |
+| **kubernetes-event-exporter** | All Event objects | Attribute-based filtering/routing, leader election HA, 20+ sinks | Dedicated event pipeline |
+| **ADOT / OTel Collector (`k8sobjects` receiver)** | K8s objects including Events | Integrates into existing OTel pipelines | OTel-standardized environments |
+| **Custom watcher (aws-samples/eks-event-watcher)** | Selected events | Custom, based on Kubernetes API watch | Special filtering requirements |
 
-:::caution Container Insights의 기본 수집 범위
-표준 Container Insights의 Fluent Bit DaemonSet이 기본 수집하는 것은 `/aws/containerinsights/{cluster}/application`(컨테이너 로그), `/host`(호스트 로그), `/dataplane`(kubelet 등 데이터플레인 로그)입니다. **Event 객체(`kubectl get events`)는 기본 수집 대상이 아닙니다.** "Container Insights로 이벤트를 저장 중"이라면 별도의 이벤트 수집 설정이 실제로 존재하는지, 어느 로그 그룹에 쌓이는지 먼저 확인해야 합니다.
+:::caution Default Collection Scope of Container Insights
+What the standard Container Insights Fluent Bit DaemonSet collects by default is `/aws/containerinsights/{cluster}/application` (container logs), `/host` (host logs), and `/dataplane` (dataplane logs such as kubelet). **Event objects (`kubectl get events`) are not collected by default.** If the claim is "events are being stored via Container Insights," first verify that a separate event collection setup actually exists and which log group it writes to.
 :::
 
-kubernetes-event-exporter는 이벤트 파이프라인의 사실상 커뮤니티 표준입니다. [EKS Workshop](https://www.eksworkshop.com/docs/observability/opensearch/events)에서도 OpenSearch로의 이벤트 export에 이 도구를 사용합니다. 프로덕션 구성 시 다음을 적용합니다:
+kubernetes-event-exporter is the de facto community standard for event pipelines. The [EKS Workshop](https://www.eksworkshop.com/docs/observability/opensearch/events) also uses this tool to export events to OpenSearch. Apply the following for production configurations:
 
 ```yaml
-# kubernetes-event-exporter 구성 예시 (Loki sink)
+# kubernetes-event-exporter configuration example (Loki sink)
 logLevel: info
-kubeQPS: 100          # 대규모 클러스터에서 이벤트 유실 방지
+kubeQPS: 100          # prevents event loss in large clusters
 kubeBurst: 500
 maxEventAgeSeconds: 60
 leaderElection:
-  enabled: true        # HA 배포 시 중복 전송 방지
+  enabled: true        # prevents duplicate delivery in HA deployments
 receivers:
   - name: "loki"
     loki:
       url: http://loki.monitoring:3100/loki/api/v1/push
-      streamLabels:          # 정적 라벨만 지원 (템플릿은 layout/headers에서만 동작)
+      streamLabels:          # static labels only (templates work only in layout/headers)
         app: kube-events
 route:
   routes:
     - match:
         - receiver: "loki"
       drop:
-        - type: "Normal"   # Warning만 저장 — Normal이 대부분이므로 수집량 대폭 절감
+        - type: "Normal"   # store only Warnings — Normal is the majority, so this greatly reduces ingestion volume
 ```
 
-## 저장 계층: 조회 패턴 기준 선택
+## Storage Layer: Choose by Query Pattern
 
-저장소는 이벤트를 "어떻게 조회할 것인가"를 기준으로 선택합니다.
+Choose the store based on "how the events will be queried."
 
-| 저장소 | 조회 패턴 | 보존 비용 | MCP 연동 |
+| Store | Query Pattern | Retention Cost | MCP Integration |
 |--------|----------|----------|---------|
-| **CloudWatch Logs** | Logs Insights 쿼리, 패턴 분석 | 중간 (S3 export로 절감) | CloudWatch MCP, EKS MCP 직접 지원 |
-| **OpenSearch** | 필드 기반 정밀 검색, 대시보드 | 중간~높음 | 커스텀 툴 필요 |
-| **Loki** | LogQL, 저비용 장기 보관 | 낮음 | 커스텀 툴 필요 |
-| **S3 + Athena** | SQL 사후 분석, 아카이브 | 매우 낮음 | 커스텀 툴 필요 |
-| **Kinesis / Firehose** | 실시간 스트림 처리 | 전송량 기반 | 커스텀 툴 필요 |
+| **CloudWatch Logs** | Logs Insights queries, pattern analysis | Medium (reduce via S3 export) | Directly supported by CloudWatch MCP and EKS MCP |
+| **OpenSearch** | Precise field-based search, dashboards | Medium–high | Custom tool required |
+| **Loki** | LogQL, low-cost long-term retention | Low | Custom tool required |
+| **S3 + Athena** | SQL post-hoc analysis, archive | Very low | Custom tool required |
+| **Kinesis / Firehose** | Real-time stream processing | Volume-based | Custom tool required |
 
-CloudWatch에 이미 이벤트가 쌓이고 있다면 Loki로 재전송(CloudWatch → Loki)하는 구성은 홉이 하나 낭비됩니다. Loki를 목적지로 쓰려면 kubernetes-event-exporter에서 Loki로 직접 전송하는 것이 CloudWatch 수집 비용도 절감합니다.
+If events are already accumulating in CloudWatch, re-shipping them to Loki (CloudWatch → Loki) wastes a hop. To use Loki as the destination, sending directly from kubernetes-event-exporter to Loki also reduces CloudWatch ingestion costs.
 
-## 조회 계층: MCP 서버 기반 AI Agent 연동
+## Query Layer: AI Agent Integration via MCP Servers
 
-### EKS MCP 서버와 CloudWatch MCP 서버의 역할 분담
+### Division of Roles Between the EKS MCP Server and the CloudWatch MCP Server
 
-AWS는 fully managed EKS MCP 서버(2025년 11월 발표, preview)와 CloudWatch MCP 서버를 제공합니다. 두 서버는 조회 대상이 다르므로 장애 분석 Agent에는 함께 연결하는 것이 표준 구성입니다.
+AWS provides a fully managed EKS MCP server (announced November 2025, preview) and a CloudWatch MCP server. The two servers query different targets, so connecting both is the standard configuration for an incident analysis Agent.
 
-| 구분 | EKS MCP 서버 | CloudWatch MCP 서버 |
+| Aspect | EKS MCP Server | CloudWatch MCP Server |
 |------|-------------|-------------------|
-| 관점 | 클러스터·K8s 리소스의 **현재 상태** | 축적된 로그·메트릭·알람 **히스토리** |
-| 핵심 도구 | `get_k8s_events`, `get_pod_logs`, `list_k8s_resources`, `get_cloudwatch_logs`, `get_eks_insights` | Alarm 기반 트러블슈팅, Log Analyzer(이상·에러 패턴), Metric Definition Analyzer, Alarm Recommendations |
-| 인증 | AWS IAM (SigV4), CloudTrail 감사 | AWS IAM (SigV4) |
-| 접근 제어 | IAM 권한 단위 분리(`eks-mcp:CallReadOnlyTool` / `CallPrivilegedTool`), `AmazonEKSMCPReadOnlyAccess` 관리형 정책 | 읽기 중심 도구 구성 |
+| Perspective | **Current state** of cluster and K8s resources | **History** of accumulated logs, metrics, alarms |
+| Key tools | `get_k8s_events`, `get_pod_logs`, `list_k8s_resources`, `get_cloudwatch_logs`, `get_eks_insights` | Alarm Based Troubleshooting, Log Analyzer (anomaly/error patterns), Metric Definition Analyzer, Alarm Recommendations |
+| Authentication | AWS IAM (SigV4), CloudTrail auditing | AWS IAM (SigV4) |
+| Access control | IAM permission separation (`eks-mcp:CallReadOnlyTool` / `CallPrivilegedTool`), `AmazonEKSMCPReadOnlyAccess` managed policy | Read-oriented tool composition |
 
-:::warning EKS MCP 서버의 `get_k8s_events`는 보존 솔루션이 아님
-`get_k8s_events`는 라이브 Kubernetes API를 조회해 특정 리소스(kind/name/namespace)의 이벤트를 반환합니다. 별도 저장 계층 없이 API 서버를 조회하는 구조이므로 **etcd TTL 제약이 그대로 적용됩니다.** 1시간 이전의 이벤트가 필요하면 export 파이프라인으로 저장한 로그 그룹을 `get_cloudwatch_logs` 또는 CloudWatch MCP 서버로 조회해야 합니다. EKS MCP 서버는 현재 preview 상태이므로 프로덕션 채택 전 GA 여부와 도구 변경 사항을 재확인해야 합니다.
+:::warning `get_k8s_events` on the EKS MCP Server Is Not a Retention Solution
+`get_k8s_events` queries the live Kubernetes API and returns events for a specific resource (kind/name/namespace). Because it queries the API server without a separate storage layer, **the etcd TTL constraint applies as-is.** Events older than 1 hour require querying the log group populated by the export pipeline via `get_cloudwatch_logs` or the CloudWatch MCP server. The EKS MCP server is currently in preview, so GA status and tool changes should be re-verified before production adoption.
 :::
 
-### MCP가 없는 저장소의 연동
+### Integrating Stores Without an MCP Server
 
-OpenSearch, Loki 등 MCP 서버가 제공되지 않는 저장소는 Strands Agents SDK 등으로 쿼리 API(LogQL, OpenSearch DSL)를 감싼 커스텀 툴을 구현해 Agent에 노출합니다. 저장소가 무엇이든 MCP 또는 툴 인터페이스로 표준화하면 저장소 교체 시 Agent 코드 변경을 최소화할 수 있습니다.
+For stores without a provided MCP server, such as OpenSearch and Loki, implement custom tools that wrap the query API (LogQL, OpenSearch DSL) using the Strands Agents SDK or similar, and expose them to the Agent. Whatever the store, standardizing on an MCP or tool interface minimizes Agent code changes when the store is replaced.
 
-## 권장 아키텍처 패턴
+## Recommended Architecture Patterns
 
-### 패턴 A: 최소 변경 (CloudWatch 중심)
+### Pattern A: Minimal Change (CloudWatch-Centric)
 
-Container Insights를 이미 사용 중인 환경에서 파이프라인 추가 없이 시작하는 구성입니다.
+A configuration for starting without adding a pipeline in environments already using Container Insights.
 
 ```
-이벤트 수집기 → CloudWatch Logs → CloudWatch MCP + EKS MCP → AI Agent
-                                   (+ 컨트롤 플레인 api/audit 로그 활성화)
+Event collector → CloudWatch Logs → CloudWatch MCP + EKS MCP → AI Agent
+                                    (+ enable control plane api/audit logs)
 ```
 
-1. 이벤트가 실제로 저장되는 로그 그룹을 확인합니다(아래 검증 섹션).
-2. 컨트롤 플레인 로그(api, audit)를 활성화합니다. 이벤트(best-effort)의 공백을 durable한 API 호출 이력이 보완합니다.
+1. Verify the log group where events are actually stored (see the verification section below).
+2. Enable control plane logs (api, audit). Durable API call history compensates for the gaps in (best-effort) events.
 
 ```bash
 aws eks update-cluster-config \
@@ -172,27 +172,27 @@ aws eks update-cluster-config \
   --logging '{"clusterLogging":[{"types":["api","audit"],"enabled":true}]}'
 ```
 
-3. AI Agent에 CloudWatch MCP 서버(히스토리 분석)와 EKS MCP 서버(현재 상태 조회)를 함께 연결합니다.
+3. Connect both the CloudWatch MCP server (history analysis) and the EKS MCP server (current state queries) to the AI Agent.
 
-### 패턴 B: 정밀 검색 강화 (이벤트 전용 파이프라인)
+### Pattern B: Enhanced Search (Dedicated Event Pipeline)
 
-이벤트 필드(reason, involvedObject, message) 기반 정밀 검색과 장기 보존이 중요한 경우의 구성입니다.
+A configuration for cases where precise search on event fields (reason, involvedObject, message) and long-term retention matter.
 
 ```
-kubernetes-event-exporter ─┬→ OpenSearch/Loki (검색·대시보드 → 커스텀 툴)
-                           └→ S3 (장기 아카이브 → Athena SQL 사후 분석)
+kubernetes-event-exporter ─┬→ OpenSearch/Loki (search & dashboards → custom tools)
+                           └→ S3 (long-term archive → Athena SQL post-hoc analysis)
 ```
 
-### 운영 원칙
+### Operating Principles
 
-1. **이벤트를 유일 근거로 삼지 않습니다** — best-effort 데이터이므로 audit 로그, 메트릭, 애플리케이션 로그와 교차 검증합니다.
-2. **수집기를 명시적으로 운영합니다** — "누가 이벤트를 watch해서 어디로 보내는가"를 파이프라인으로 관리하고 유실 지표(watch lag)를 모니터링합니다.
-3. **저장소는 조회 패턴으로 선택합니다** — 실시간(Kinesis), 검색(OpenSearch·Loki), 아카이브(S3+Athena)를 요구사항에 맞게 조합합니다.
-4. **AI Agent에는 표준 인터페이스로 노출합니다** — MCP 서버 또는 SDK 커스텀 툴로 감싸 저장소 교체와 확장에 대비합니다. MCP preview 단계의 리스크는 자체 구현으로 헤지합니다.
+1. **Never treat events as the sole evidence** — they are best-effort data; cross-verify with audit logs, metrics, and application logs.
+2. **Operate the collector explicitly** — manage "who watches events and where they are sent" as a pipeline, and monitor loss indicators (watch lag).
+3. **Choose the store by query pattern** — combine real-time (Kinesis), search (OpenSearch/Loki), and archive (S3+Athena) to match requirements.
+4. **Expose to AI Agents through standard interfaces** — wrap with MCP servers or SDK custom tools to prepare for store replacement and expansion. Hedge MCP preview-stage risk with your own implementation.
 
-## 검증: 이벤트 저장 여부 확인
+## Verification: Confirming Events Are Being Stored
 
-이벤트가 CloudWatch에 실제로 쌓이는지 확인하는 CloudWatch Logs Insights 쿼리입니다. 이벤트 수집기가 기록하는 로그 그룹을 대상으로 실행합니다.
+CloudWatch Logs Insights queries to confirm events are actually accumulating in CloudWatch. Run them against the log group your event collector writes to.
 
 ```sql
 fields @timestamp, @message
@@ -201,7 +201,7 @@ fields @timestamp, @message
 | limit 50
 ```
 
-Warning 유형별 발생 빈도 집계:
+Aggregating occurrence counts by Warning type:
 
 ```sql
 fields @timestamp
@@ -211,29 +211,29 @@ fields @timestamp
 | sort cnt desc
 ```
 
-1시간 이전 타임스탬프의 이벤트가 조회되면 export 파이프라인이 정상 동작하는 것입니다. 최근 1시간 데이터만 존재한다면 라이브 API 조회 결과이거나 파이프라인이 최근에 시작된 것이므로 수집기 설정을 점검합니다.
+If events with timestamps older than 1 hour are returned, the export pipeline is working correctly. If only the last hour of data exists, the result is either a live API query or the pipeline started recently, so inspect the collector configuration.
 
-## 결론
+## Summary
 
-Kubernetes 이벤트는 클러스터에 남아 있는 동안 조회할 수 있습니다. 다만 기본 1시간의 TTL과 best-effort 전달 특성 때문에 장기 장애 이력으로 쓰기에는 한계가 있습니다. 실시간 조회, 검색, 아카이브 요구에 맞춰 저장소를 선택하며, CloudWatch는 그 후보 중 하나입니다. 이 문서의 구성에서는 EKS MCP 서버가 현재 상태를, CloudWatch MCP 서버가 축적한 데이터를 제공합니다. `get_k8s_events`로 이미 만료된 이벤트를 복구할 수는 없습니다.
+Kubernetes Events can be queried while they remain in the cluster, but their default 1-hour TTL and best-effort delivery limit their use as an incident history. Choose a durable store according to real-time query, search, and archive requirements; CloudWatch is one option. In the architecture described here, the EKS MCP server provides current state and the CloudWatch MCP server provides accumulated data. The `get_k8s_events` tool cannot recover Events that have expired.
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [kube-apiserver 레퍼런스](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) — `--event-ttl` 기본값 1h0m0s
-- [Kubernetes Event v1 API](https://kubernetes.io/docs/reference/kubernetes-api/cluster-resources/event-v1/) — best-effort, supplemental data 정의
-- [EKS 컨트롤 플레인 로그](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html) — api/audit 로그 타입과 활성화 방법
-- [EKS Best Practices: Auditing and logging](https://docs.aws.amazon.com/eks/latest/best-practices/auditing-and-logging.html) — 감사 정책의 이벤트 제외(`level: None`)
-- [Amazon EKS MCP Server](https://docs.aws.amazon.com/eks/latest/userguide/eks-mcp-introduction.html) — fully managed MCP 서버(preview)와 [Tools Reference](https://docs.aws.amazon.com/eks/latest/userguide/eks-mcp-tools.html)
-- [EKS Event time-to-live 설정](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html) — control plane customization의 event TTL 항목
+### Official Documentation
+- [kube-apiserver Reference](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/) — `--event-ttl` default 1h0m0s
+- [Kubernetes Event v1 API](https://kubernetes.io/docs/reference/kubernetes-api/cluster-resources/event-v1/) — best-effort, supplemental data definition
+- [EKS Control Plane Logs](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html) — api/audit log types and how to enable them
+- [EKS Best Practices: Auditing and logging](https://docs.aws.amazon.com/eks/latest/best-practices/auditing-and-logging.html) — event exclusion in the audit policy (`level: None`)
+- [Amazon EKS MCP Server](https://docs.aws.amazon.com/eks/latest/userguide/eks-mcp-introduction.html) — fully managed MCP server (preview) and [Tools Reference](https://docs.aws.amazon.com/eks/latest/userguide/eks-mcp-tools.html)
+- [EKS Event time-to-live Setting](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html) — event TTL item in control plane customization
 
-### 블로그 / 워크샵
-- [Managing Kubernetes control plane events in Amazon EKS](https://aws.amazon.com/blogs/containers/managing-kubernetes-control-plane-events-in-amazon-eks/) — 이벤트 TTL 제약과 CloudWatch export 솔루션
-- [Enhance your AIOps: CloudWatch & Application Signals MCP servers](https://aws.amazon.com/blogs/mt/enhance-your-aiops-introducing-amazon-cloudwatch-and-application-signals-mcp-servers/) — CloudWatch MCP 서버 도구 구성
-- [EKS Workshop: Kubernetes events](https://www.eksworkshop.com/docs/observability/opensearch/events) — kubernetes-event-exporter로 OpenSearch export
-- [kubernetes-event-exporter](https://github.com/resmoio/kubernetes-event-exporter) — 이벤트 export 커뮤니티 표준 도구
+### Blogs / Workshops
+- [Managing Kubernetes control plane events in Amazon EKS](https://aws.amazon.com/blogs/containers/managing-kubernetes-control-plane-events-in-amazon-eks/) — event TTL constraint and a CloudWatch export solution
+- [Enhance your AIOps: CloudWatch & Application Signals MCP servers](https://aws.amazon.com/blogs/mt/enhance-your-aiops-introducing-amazon-cloudwatch-and-application-signals-mcp-servers/) — CloudWatch MCP server tool composition
+- [EKS Workshop: Kubernetes events](https://www.eksworkshop.com/docs/observability/opensearch/events) — exporting events to OpenSearch with kubernetes-event-exporter
+- [kubernetes-event-exporter](https://github.com/resmoio/kubernetes-event-exporter) — community-standard event export tool
 
-### 관련 문서 (내부)
-- [옵저버빌리티 및 모니터링](./eks-debugging/observability.md) — Container Insights 설정과 Logs Insights 쿼리
-- [EKS Node Monitoring Agent](./node-monitoring-agent.md) — 노드 상태 이벤트 자동 감지
-- [AgenticOps Observability Stack](../../aidlc/operations/observability-stack.md) — AI Agent 운영 관측성 스택
+### Related Documents (internal)
+- [Observability and Monitoring](./eks-debugging/observability.md) — Container Insights setup and Logs Insights queries
+- [EKS Node Monitoring Agent](./node-monitoring-agent.md) — automatic detection of node health events
+- [AgenticOps Observability Stack](../../aidlc/operations/observability-stack.md) — observability stack for AI Agent operations

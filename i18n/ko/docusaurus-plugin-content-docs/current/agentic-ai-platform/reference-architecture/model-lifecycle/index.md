@@ -1,0 +1,28 @@
+---
+title: 모델 수명주기
+description: 커스텀 모델 배포·파인튜닝 파이프라인·MLOps 오케스트레이션·지속 학습 파이프라인
+created: "2026-04-20"
+last_update:
+  date: 2026-09-22
+  author: devfloor9
+reading_time: 2
+tags:
+  - reference-architecture
+  - mlops
+  - model-serving
+  - fine-tuning
+  - continuous-training
+  - scope:nav
+sidebar_label: 모델 수명주기
+---
+
+## 개요
+
+프로덕션 모델은 한 번 배포로 끝나지 않습니다. 본 섹션은 커스텀 모델 배포, LoRA 파인튜닝 파이프라인, MLOps 오케스트레이션(Kubeflow·Argo), Continuous Training(GRPO·DPO·Canary 롤아웃)까지 모델 수명주기 전 단계를 다룹니다.
+
+## 문서 목록
+
+import DocCardList from '@theme/DocCardList';
+import { useCurrentSidebarCategory } from '@docusaurus/theme-common';
+
+<DocCardList items={useCurrentSidebarCategory().items} />

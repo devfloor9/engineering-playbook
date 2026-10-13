@@ -318,7 +318,7 @@ async function main() {
     site: SITE,
     format: 'llm-wiki/v1',
     generated_at: new Date().toISOString().slice(0, 10),
-    language: 'ko',
+    language: 'en',
     doc_count: docs.length,
     component_coverage: {
       supported_components: [...new Set(docs.flatMap(doc => doc.content_coverage.serialized_components.filter(name => !doc.content_coverage.serialized_navigation_components.includes(name))))].sort(),

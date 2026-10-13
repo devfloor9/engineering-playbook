@@ -1,11 +1,11 @@
 ---
-title: Probe vs Health Check 불일치 디버깅
-description: K8s Probe와 ALB/NLB/Ingress Controller Health Check의 메커니즘 차이 및 timeout 불일치로 인한 장애 진단 가이드
+title: Probe vs Health Check Mismatch Debugging
+description: Guide to diagnosing outages caused by mechanism differences and timeout mismatches between K8s Probes and ALB/NLB/Ingress Controller Health Checks
 created: "2026-04-07"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 15
+  author: devfloor9
+reading_time: 18
 tags:
   - eks
   - debugging
@@ -15,142 +15,142 @@ tags:
   - nlb
   - ingress
   - scope:ops
-sidebar_label: Health Check 불일치
+sidebar_label: Health Check Mismatch
 ---
 
-> **📌 기준 환경**: EKS 1.33+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
+> **Baseline environment**: EKS 1.32+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
 
-## 1. 개요
+## 1. Overview
 
-Kubernetes Probe와 Load Balancer/Ingress Controller의 Health Check는 **독립적으로 실행**되며, **서로 다른 메커니즘과 타이밍**을 가집니다. 이로 인한 불일치는 다음과 같은 장애를 유발합니다:
+Kubernetes Probes and Load Balancer/Ingress Controller Health Checks run **independently** and use **different mechanisms and timings**. Mismatches can cause the following outages:
 
-- **503 Service Unavailable**: Probe는 성공하지만 ALB Health Check 실패
-- **502 Bad Gateway**: Graceful Shutdown 시퀀스 불일치로 종료 중인 Pod로 트래픽 전송
-- **일시적 장애**: Rolling Update 중 새 Pod가 준비되기 전에 트래픽 수신
-- **504 Gateway Timeout**: Ingress 타임아웃과 백엔드 응답 시간 불일치
+- **503 Service Unavailable**: Probe succeeds but ALB Health Check fails
+- **502 Bad Gateway**: Graceful shutdown sequence mismatch sends traffic to a terminating Pod
+- **Transient outages**: New Pods receive traffic before being fully ready during rolling updates
+- **504 Gateway Timeout**: Ingress timeout mismatch with backend response time
 
-본 문서는 K8s Probe와 ALB/NLB/Ingress Health Check의 메커니즘 차이를 명확히 하고, 빈발하는 불일치 패턴별 진단 방법과 권장 설정을 제공합니다.
+This document clarifies the mechanism differences between K8s Probes and ALB/NLB/Ingress Health Checks, and provides diagnosis methods and recommended settings for frequent mismatch patterns.
 
-:::tip 관련 문서 참조
-- **Probe 기초**: [Pod 헬스체크 & 라이프사이클](../eks-pod-health-lifecycle.md) — Probe 설정 상세
-- **네트워킹 디버깅**: [네트워킹 문제 해결](./networking.md) — Service/DNS 이슈
-- **고가용성**: [EKS 고가용성 아키텍처 가이드](../eks-resiliency-guide.md) — PDB, Graceful Shutdown
+:::tip Related Documents
+- **Probe basics**: [Pod Health & Lifecycle](../eks-pod-health-lifecycle.md) — Detailed Probe configuration
+- **Networking debugging**: [Networking Troubleshooting](./networking.md) — Service/DNS issues
+- **High availability**: [EKS Resiliency Guide](../eks-resiliency-guide.md) — PDB, Graceful Shutdown
 :::
 
 ---
 
-## 2. 메커니즘 비교: Probe vs Health Check
+## 2. Mechanism Comparison: Probe vs Health Check
 
-### 2.1 Kubernetes Probe (kubelet 실행)
+### 2.1 Kubernetes Probes (Executed by kubelet)
 
-Kubernetes Probe는 **kubelet**이 각 노드에서 독립적으로 실행하는 헬스 체크입니다.
+Kubernetes Probes are health checks executed independently by **kubelet** on each node.
 
-| Probe 유형 | 실행 주체 | 체크 대상 | 실패 시 동작 |
+| Probe Type | Executor | Target | Behavior on Failure |
 |-----------|----------|----------|-------------|
-| **readinessProbe** | kubelet | 컨테이너 | Service Endpoints에서 **제거** (Pod는 살아있음) |
-| **livenessProbe** | kubelet | 컨테이너 | 컨테이너 **재시작** (SIGTERM → SIGKILL) |
-| **startupProbe** | kubelet | 컨테이너 | 초기화 완료 전 다른 Probe 비활성화, 실패 시 재시작 |
+| **readinessProbe** | kubelet | Container | **Removed** from Service Endpoints (Pod still alive) |
+| **livenessProbe** | kubelet | Container | Container is **restarted** (SIGTERM → SIGKILL) |
+| **startupProbe** | kubelet | Container | Disables other probes until initialization completes; restart on failure |
 
-**핵심 특징:**
-- **Pod 내부에서 실행**: kubelet이 컨테이너에 직접 접근
-- **Service Endpoint 제어**: readinessProbe 실패 → `kubectl get endpoints` 목록에서 제거
-- **빠른 체크**: 기본 1초 timeout, 10초 간격
+**Key characteristics:**
+- **Runs inside the Pod**: kubelet has direct access to the container
+- **Service Endpoint control**: readinessProbe failure → removed from `kubectl get endpoints`
+- **Fast checks**: default 1s timeout, 10s interval
 
-### 2.2 AWS Load Balancer Health Check
+### 2.2 AWS Load Balancer Health Checks
 
-AWS Load Balancer Controller(LBC)가 관리하는 ALB/NLB Health Check는 **AWS 인프라 레벨**에서 독립적으로 실행됩니다.
+ALB/NLB Health Checks managed by AWS Load Balancer Controller (LBC) run independently at the **AWS infrastructure level**.
 
-| Health Check 유형 | 실행 주체 | 체크 대상 | 실패 시 동작 |
+| Health Check Type | Executor | Target | Behavior on Failure |
 |------------------|----------|----------|-------------|
-| **ALB Target Group HC** | ALB | HTTP(S) endpoint | Target Group에서 **deregister** (Pod 상태와 무관) |
-| **NLB Target Group HC** | NLB | TCP or HTTP | Target Group에서 **deregister** |
+| **ALB Target Group HC** | ALB | HTTP(S) endpoint | **Deregistered** from Target Group (independent of Pod state) |
+| **NLB Target Group HC** | NLB | TCP or HTTP | **Deregistered** from Target Group |
 
-**핵심 특징:**
-- **외부에서 실행**: ALB/NLB가 Pod IP로 HTTP/TCP 요청
-- **독립적 설정**: K8s Probe와 별도로 interval, timeout, threshold 설정
-- **느린 체크**: 기본 5초 timeout, 15-30초 간격
+**Key characteristics:**
+- **External execution**: ALB/NLB sends HTTP/TCP requests to the Pod IP
+- **Independent configuration**: interval, timeout, threshold configured separately from K8s probes
+- **Slower checks**: default 5s timeout, 15–30s interval
 
-### 2.3 Ingress-NGINX Health Check
+### 2.3 Ingress-NGINX Health Checks
 
-Ingress-NGINX Controller는 **nginx upstream** 레벨에서 헬스 체크를 수행합니다.
+The Ingress-NGINX Controller performs health checks at the **nginx upstream** level.
 
-| Health Check 유형 | 실행 주체 | 체크 대상 | 실패 시 동작 |
+| Health Check Type | Executor | Target | Behavior on Failure |
 |------------------|----------|----------|-------------|
-| **upstream health** | nginx process | HTTP backend | `proxy_next_upstream` 동작 (다른 upstream으로 재시도) |
+| **upstream health** | nginx process | HTTP backend | `proxy_next_upstream` behavior (retry another upstream) |
 
-**핵심 특징:**
-- **nginx process 내부**: L7 프록시 레벨 체크
-- **timeout 설정**: `proxy-read-timeout`, `proxy-send-timeout` (기본 60초)
-- **암묵적 체크**: 별도 health check endpoint 없이 실제 요청 결과로 판단
+**Key characteristics:**
+- **Inside the nginx process**: L7 proxy-level check
+- **Timeout configuration**: `proxy-read-timeout`, `proxy-send-timeout` (default 60s)
+- **Implicit checks**: no dedicated health endpoint; assessed from actual request outcomes
 
 ---
 
-## 3. 타이밍 비교표
+## 3. Timing Comparison Table
 
-다음 표는 각 Health Check의 기본 타이밍과 체크 주체, 실패 시 동작을 비교합니다.
+The following table compares default timings, executors, and failure behavior for each Health Check.
 
-| 설정 | K8s Probe | ALB Health Check | NLB Health Check | Ingress-NGINX |
+| Setting | K8s Probe | ALB Health Check | NLB Health Check | Ingress-NGINX |
 |------|----------|-----------------|-----------------|---------------|
-| **기본 interval** | 10s | 15s | 30s | - (실제 트래픽) |
-| **기본 timeout** | 1s | 5s | 6s | 60s (proxy_read_timeout) |
-| **실패 threshold** | 3 | 2 (unhealthy) | 3 | - |
-| **체크 주체** | kubelet | ALB | NLB | nginx process |
-| **실패 시 동작** | Endpoints 제거 | TG deregister | TG deregister | upstream 제거 후 재시도 |
-| **체크 경로** | `/healthz` 등 | `/` 또는 커스텀 | TCP 또는 HTTP | 실제 요청 경로 |
-| **설정 위치** | Pod spec | Service annotation | Service annotation | Ingress annotation |
+| **Default interval** | 10s | 15s | 30s | - (actual traffic) |
+| **Default timeout** | 1s | 5s | 6s | 60s (proxy_read_timeout) |
+| **Failure threshold** | 3 | 2 (unhealthy) | 3 | - |
+| **Executor** | kubelet | ALB | NLB | nginx process |
+| **Behavior on failure** | Remove from Endpoints | TG deregister | TG deregister | Remove from upstream and retry |
+| **Check path** | `/healthz` etc. | `/` or custom | TCP or HTTP | Actual request path |
+| **Configured in** | Pod spec | Service annotation | Service annotation | Ingress annotation |
 
-**타이밍 불일치의 핵심:**
-- **ALB는 K8s보다 느리게 체크**: 15초 간격 vs 10초 간격
-- **ALB timeout이 더 김**: 5초 vs 1초 → Probe는 통과하지만 ALB는 실패 가능
-- **체크 경로 불일치**: readinessProbe `/healthz` ≠ ALB Health Check `/`
+**Key timing mismatches:**
+- **ALB checks more slowly than K8s**: 15s interval vs 10s interval
+- **ALB timeout is longer**: 5s vs 1s → Probe may pass while ALB fails
+- **Path mismatch**: readinessProbe `/healthz` ≠ ALB Health Check `/`
 
 ---
 
-## 4. 빈발 불일치 패턴
+## 4. Frequent Mismatch Patterns
 
-### 패턴 1: Probe 성공 + ALB Health Check 실패 → 503
+### Pattern 1: Probe Success + ALB Health Check Failure → 503
 
-**증상:**
-- `kubectl get pods` → Pod는 `Running`, `Ready 1/1`
-- `kubectl get endpoints` → Endpoints에 Pod IP 존재
-- 실제 요청 → `503 Service Unavailable`
+**Symptoms:**
+- `kubectl get pods` → Pod is `Running`, `Ready 1/1`
+- `kubectl get endpoints` → Pod IP exists in Endpoints
+- Actual requests → `503 Service Unavailable`
 
-**근본 원인:**
-1. **Health Check 경로 불일치** (가장 흔함)
+**Root causes:**
+1. **Health Check path mismatch** (most common)
    - readinessProbe: `GET /healthz` → 200 OK
    - ALB Target Group HC: `GET /` → 404 Not Found
-   - **결과**: K8s는 Ready 판정, ALB는 Unhealthy 판정
+   - **Result**: K8s marks as Ready, ALB marks as Unhealthy
 
-2. **타임아웃 불일치**
-   - readinessProbe timeout 1초 → 앱이 800ms에 응답
-   - ALB HC timeout 5초 내에 앱이 응답 못함 (예: DB 쿼리 지연)
+2. **Timeout mismatch**
+   - readinessProbe timeout 1s → app responds in 800ms
+   - App cannot respond within ALB HC timeout of 5s (e.g., DB query delay)
 
-3. **Security Group 설정 오류**
-   - ALB → Pod CIDR 트래픽 차단
-   - kubelet은 노드 내부에서 체크 (통과), ALB는 외부에서 체크 (실패)
+3. **Security Group misconfiguration**
+   - ALB → Pod CIDR traffic is blocked
+   - kubelet checks from inside the node (passes), ALB checks externally (fails)
 
-**진단 플로우:**
+**Diagnosis flow:**
 
 ```mermaid
 flowchart TD
-    START[503 Service Unavailable 발생] --> CHECK_POD{kubectl get pods<br/>Pod Ready?}
-    CHECK_POD -->|Ready 1/1| CHECK_EP{kubectl get endpoints<br/>Pod IP 존재?}
-    CHECK_POD -->|Not Ready| FIX_PROBE[Probe 설정 수정]
+    START[503 Service Unavailable occurs] --> CHECK_POD{kubectl get pods<br/>Pod Ready?}
+    CHECK_POD -->|Ready 1/1| CHECK_EP{kubectl get endpoints<br/>Pod IP present?}
+    CHECK_POD -->|Not Ready| FIX_PROBE[Fix Probe configuration]
 
-    CHECK_EP -->|존재함| CHECK_TG{aws elbv2<br/>describe-target-health<br/>Target Healthy?}
-    CHECK_EP -->|없음| FIX_PROBE
+    CHECK_EP -->|Present| CHECK_TG{aws elbv2<br/>describe-target-health<br/>Target Healthy?}
+    CHECK_EP -->|Absent| FIX_PROBE
 
-    CHECK_TG -->|healthy| CHECK_SG[Security Group 확인]
-    CHECK_TG -->|unhealthy| PATH_MISMATCH{HC Path 일치?}
+    CHECK_TG -->|healthy| CHECK_SG[Check Security Group]
+    CHECK_TG -->|unhealthy| PATH_MISMATCH{HC Path matches?}
 
-    PATH_MISMATCH -->|불일치| FIX_PATH[Service annotation<br/>health-check-path 수정]
-    PATH_MISMATCH -->|일치| TIMEOUT{Timeout 설정?}
+    PATH_MISMATCH -->|mismatch| FIX_PATH[Fix Service annotation<br/>health-check-path]
+    PATH_MISMATCH -->|match| TIMEOUT{Timeout setting?}
 
-    TIMEOUT -->|ALB timeout 짧음| FIX_TIMEOUT[health-check-timeout<br/>증가]
-    TIMEOUT -->|정상| CHECK_SG
+    TIMEOUT -->|ALB timeout too short| FIX_TIMEOUT[Increase<br/>health-check-timeout]
+    TIMEOUT -->|normal| CHECK_SG
 
-    CHECK_SG --> CHECK_APP[애플리케이션 로그 확인]
-    FIX_PATH --> VERIFY[검증]
+    CHECK_SG --> CHECK_APP[Inspect application logs]
+    FIX_PATH --> VERIFY[Verify]
     FIX_TIMEOUT --> VERIFY
     CHECK_APP --> VERIFY
 
@@ -160,7 +160,7 @@ flowchart TD
     style VERIFY fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-**해결책:**
+**Resolution:**
 
 ```yaml
 apiVersion: v1
@@ -168,7 +168,7 @@ kind: Service
 metadata:
   name: my-service
   annotations:
-    # ALB Health Check 경로를 readinessProbe와 통일
+    # Align ALB Health Check path with readinessProbe
     alb.ingress.kubernetes.io/healthcheck-path: /healthz
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
     alb.ingress.kubernetes.io/healthcheck-timeout-seconds: "5"
@@ -194,7 +194,7 @@ spec:
         - containerPort: 8080
         readinessProbe:
           httpGet:
-            path: /healthz  # ALB HC 경로와 일치
+            path: /healthz  # Match ALB HC path
             port: 8080
           initialDelaySeconds: 10
           periodSeconds: 10
@@ -202,71 +202,71 @@ spec:
           failureThreshold: 3
 ```
 
-### 패턴 2: Graceful Shutdown 시 502 Bad Gateway
+### Pattern 2: 502 Bad Gateway During Graceful Shutdown
 
-**증상:**
-- Pod 종료 중에 `502 Bad Gateway` 발생
-- 일부 요청만 실패 (간헐적)
+**Symptoms:**
+- `502 Bad Gateway` during Pod termination
+- Only some requests fail (intermittent)
 
-**근본 원인:**
-Pod 종료 시퀀스와 ALB deregistration 타이밍 불일치로 **종료 중인 Pod로 트래픽 전송**
+**Root cause:**
+A mismatch between the Pod termination sequence and ALB deregistration timing sends **traffic to a terminating Pod**.
 
-**Pod 종료 시퀀스:**
-1. `kubectl delete pod` 또는 Rolling Update 시작
+**Pod termination sequence:**
+1. `kubectl delete pod` or Rolling Update begins
 2. Pod status → `Terminating`
-3. **동시에 두 가지 동작:**
-   - kubelet: `preStop` hook 실행 → `SIGTERM` 전송
-   - kube-proxy: Endpoints에서 Pod 제거 (iptables 규칙 업데이트)
-4. `terminationGracePeriodSeconds` (기본 30초) 대기
-5. `SIGKILL`로 강제 종료
+3. **Two actions happen simultaneously:**
+   - kubelet: run `preStop` hook → send `SIGTERM`
+   - kube-proxy: remove Pod from Endpoints (update iptables rules)
+4. Wait for `terminationGracePeriodSeconds` (default 30s)
+5. Force termination with `SIGKILL`
 
-**ALB deregistration 시퀀스:**
-1. ALB가 Target Group에서 Pod 제거 요청 수신
-2. `deregistration_delay` (기본 300초) 동안 대기
-3. 대기 중에도 기존 연결은 유지 (connection draining)
-4. 300초 후 Target 완전 제거
+**ALB deregistration sequence:**
+1. ALB receives the deregister Pod request from the Target Group
+2. Wait for `deregistration_delay` (default 300s)
+3. Existing connections are preserved during the wait (connection draining)
+4. Target fully removed after 300s
 
-**문제 상황:**
+**Problem scenario:**
 
 ```
-시간축:
-T+0s   Pod Terminating, preStop 실행 (없으면 즉시 SIGTERM)
-T+0s   ALB deregistration 시작 (하지만 300초 대기)
-T+0s   SIGTERM 전송 → 앱이 즉시 종료 시작
-T+1s   앱 프로세스 종료
-T+1s~  ALB가 아직 connection draining 중 → 502 발생
-T+30s  terminationGracePeriodSeconds 도달 → SIGKILL
-T+300s ALB deregistration 완료
+Timeline:
+T+0s   Pod Terminating, preStop runs (SIGTERM immediately if absent)
+T+0s   ALB deregistration begins (but waits 300s)
+T+0s   SIGTERM sent → app starts terminating immediately
+T+1s   App process terminated
+T+1s~  ALB still in connection draining → 502 occurs
+T+30s  terminationGracePeriodSeconds reached → SIGKILL
+T+300s ALB deregistration completes
 ```
 
-**권장 설정 공식:**
+**Recommended formula:**
 
 ```
 terminationGracePeriodSeconds > deregistration_delay + preStop_duration + app_shutdown_time
 ```
 
-예시: `deregistration_delay=15s`, `preStop=10s`, `app_shutdown=5s`
-→ `terminationGracePeriodSeconds=40s` 이상
+Example: `deregistration_delay=15s`, `preStop=10s`, `app_shutdown=5s`
+→ `terminationGracePeriodSeconds=40s` or more
 
-**진단 플로우:**
+**Diagnosis flow:**
 
 ```mermaid
 flowchart TD
-    START[502 Bad Gateway<br/>Pod 종료 중] --> CHECK_TIMING{preStop hook 존재?}
+    START[502 Bad Gateway<br/>during Pod termination] --> CHECK_TIMING{preStop hook present?}
 
-    CHECK_TIMING -->|없음| ADD_PRESTOP[preStop sleep 15 추가]
-    CHECK_TIMING -->|있음| CHECK_GRACE{terminationGracePeriodSeconds<br/>충분?}
+    CHECK_TIMING -->|No| ADD_PRESTOP[Add preStop sleep 15]
+    CHECK_TIMING -->|Yes| CHECK_GRACE{terminationGracePeriodSeconds<br/>sufficient?}
 
-    CHECK_GRACE -->|짧음| INCREASE_GRACE[terminationGracePeriodSeconds<br/>증가]
-    CHECK_GRACE -->|충분| CHECK_DEREG{ALB deregistration_delay<br/>설정?}
+    CHECK_GRACE -->|Too short| INCREASE_GRACE[Increase<br/>terminationGracePeriodSeconds]
+    CHECK_GRACE -->|Sufficient| CHECK_DEREG{ALB deregistration_delay<br/>configured?}
 
-    CHECK_DEREG -->|300s 기본값| DECREASE_DEREG[deregistration_delay<br/>감소 15-30s]
-    CHECK_DEREG -->|이미 짧음| CHECK_SIGTERM{SIGTERM 핸들러<br/>구현?}
+    CHECK_DEREG -->|Default 300s| DECREASE_DEREG[Reduce<br/>deregistration_delay to 15–30s]
+    CHECK_DEREG -->|Already short| CHECK_SIGTERM{SIGTERM handler<br/>implemented?}
 
-    ADD_PRESTOP --> VERIFY[검증:<br/>kubectl delete pod 테스트]
+    ADD_PRESTOP --> VERIFY[Verify:<br/>kubectl delete pod test]
     INCREASE_GRACE --> VERIFY
     DECREASE_DEREG --> VERIFY
-    CHECK_SIGTERM --> IMPLEMENT_SIGTERM[언어별 Graceful Shutdown<br/>구현]
+    CHECK_SIGTERM --> IMPLEMENT_SIGTERM[Implement language-specific<br/>Graceful Shutdown]
     IMPLEMENT_SIGTERM --> VERIFY
 
     style START fill:#ff4444,stroke:#cc3636,color:#fff
@@ -274,7 +274,7 @@ flowchart TD
     style VERIFY fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-**해결책:**
+**Resolution:**
 
 ```yaml
 apiVersion: v1
@@ -282,7 +282,7 @@ kind: Service
 metadata:
   name: my-service
   annotations:
-    # ALB deregistration delay 단축 (기본 300초 → 15초)
+    # Reduce ALB deregistration delay (default 300s → 15s)
     alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=15
 ---
 apiVersion: apps/v1
@@ -303,14 +303,14 @@ spec:
               - /bin/sh
               - -c
               - |
-                # 1. ALB가 deregistration을 감지할 시간 확보
+                # 1. Allow time for ALB to detect deregistration
                 sleep 15
-                # 2. 애플리케이션에 종료 신호 (선택)
+                # 2. Send shutdown signal to the application (optional)
                 # curl -X POST localhost:8080/shutdown
-        # 애플리케이션은 SIGTERM을 받아 graceful shutdown 수행
+        # The application receives SIGTERM and performs graceful shutdown
 ```
 
-**언어별 SIGTERM 핸들러 예시 (Node.js):**
+**Example SIGTERM handler (Node.js):**
 
 ```javascript
 // server.js
@@ -318,7 +318,7 @@ const express = require('express');
 const app = express();
 const server = app.listen(8080);
 
-// 진행 중인 요청 추적
+// Track in-flight requests
 let isShuttingDown = false;
 
 app.use((req, res, next) => {
@@ -329,7 +329,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// SIGTERM 핸들러
+// SIGTERM handler
 process.on('SIGTERM', () => {
   console.log('SIGTERM received, starting graceful shutdown');
   isShuttingDown = true;
@@ -339,7 +339,7 @@ process.on('SIGTERM', () => {
     process.exit(0);
   });
 
-  // 강제 종료 타임아웃 (25초 후)
+  // Force shutdown after 25s
   setTimeout(() => {
     console.error('Forced shutdown after timeout');
     process.exit(1);
@@ -347,48 +347,48 @@ process.on('SIGTERM', () => {
 });
 ```
 
-### 패턴 3: Rolling Update 시 일시적 503
+### Pattern 3: Transient 503 During Rolling Update
 
-**증상:**
-- `kubectl rollout status` 중 간헐적 503
-- 새 Pod는 `Running`, `Ready`, 하지만 일부 요청 실패
+**Symptoms:**
+- Intermittent 503 during `kubectl rollout status`
+- New Pod is `Running`, `Ready`, but some requests still fail
 
-**근본 원인:**
-ALB Health Check가 **통과하기 전에** K8s가 Pod를 "Ready" 상태로 판정하여 트래픽 전송
+**Root cause:**
+K8s marks the Pod as "Ready" and begins routing traffic **before** the ALB Health Check passes.
 
-**타이밍 불일치:**
+**Timing mismatch:**
 
 ```
-T+0s   새 Pod 시작
-T+10s  readinessProbe 성공 (첫 체크 10초 후)
-T+10s  K8s Endpoints에 Pod 추가 → ALB에 Target 등록 요청
-T+10s  K8s가 구 Pod로 트래픽 전송 중지
-T+15s  ALB 첫 Health Check 실행
-T+30s  ALB Health Check 2회 성공 (healthy threshold=2)
-T+30s  ALB가 새 Pod로 트래픽 전송 시작
+T+0s   New Pod starts
+T+10s  readinessProbe succeeds (first check after 10s)
+T+10s  K8s adds Pod to Endpoints → ALB receives Target registration request
+T+10s  K8s stops routing traffic to the old Pod
+T+15s  ALB runs first Health Check
+T+30s  ALB Health Check succeeds twice (healthy threshold=2)
+T+30s  ALB starts sending traffic to the new Pod
 
-문제: T+10s ~ T+30s 구간에서 새 Pod 준비 전 트래픽 → 503
+Issue: during T+10s ~ T+30s, traffic reaches the new Pod before it is ready → 503
 ```
 
-**진단 플로우:**
+**Diagnosis flow:**
 
 ```mermaid
 flowchart TD
-    START[Rolling Update 중<br/>일시적 503] --> CHECK_MINREADY{minReadySeconds<br/>설정?}
+    START[Transient 503<br/>during rolling update] --> CHECK_MINREADY{minReadySeconds<br/>set?}
 
-    CHECK_MINREADY -->|0 (기본)| SET_MINREADY[minReadySeconds ≥<br/>ALB HC interval × threshold<br/>예: 15s × 2 = 30s]
-    CHECK_MINREADY -->|설정됨| CHECK_READINESS{readinessProbe<br/>충분히 엄격?}
+    CHECK_MINREADY -->|0 default| SET_MINREADY[minReadySeconds ≥<br/>ALB HC interval × threshold<br/>e.g. 15s × 2 = 30s]
+    CHECK_MINREADY -->|Set| CHECK_READINESS{readinessProbe<br/>strict enough?}
 
-    CHECK_READINESS -->|너무 관대| STRICT_PROBE[failureThreshold 감소<br/>1-2로 설정]
-    CHECK_READINESS -->|엄격함| CHECK_MAXUNAVAIL{maxUnavailable<br/>설정?}
+    CHECK_READINESS -->|Too lenient| STRICT_PROBE[Reduce failureThreshold<br/>to 1-2]
+    CHECK_READINESS -->|Strict| CHECK_MAXUNAVAIL{maxUnavailable<br/>set?}
 
-    CHECK_MAXUNAVAIL -->|너무 큼| ADJUST_MAXUNAVAIL[maxUnavailable 감소<br/>25% 또는 1]
-    CHECK_MAXUNAVAIL -->|적절| CHECK_PDB{PodDisruptionBudget<br/>설정?}
+    CHECK_MAXUNAVAIL -->|Too large| ADJUST_MAXUNAVAIL[Reduce maxUnavailable<br/>to 25% or 1]
+    CHECK_MAXUNAVAIL -->|Adequate| CHECK_PDB{PodDisruptionBudget<br/>set?}
 
-    SET_MINREADY --> VERIFY[검증:<br/>kubectl rollout restart]
+    SET_MINREADY --> VERIFY[Verify:<br/>kubectl rollout restart]
     STRICT_PROBE --> VERIFY
     ADJUST_MAXUNAVAIL --> VERIFY
-    CHECK_PDB --> ADD_PDB[PDB 추가<br/>minAvailable: 50%]
+    CHECK_PDB --> ADD_PDB[Add PDB<br/>minAvailable: 50%]
     ADD_PDB --> VERIFY
 
     style START fill:#ff4444,stroke:#cc3636,color:#fff
@@ -396,7 +396,7 @@ flowchart TD
     style VERIFY fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-**해결책:**
+**Resolution:**
 
 ```yaml
 apiVersion: apps/v1
@@ -408,9 +408,9 @@ spec:
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1  # 한 번에 1개씩만 종료
-      maxSurge: 1        # 한 번에 1개씩만 추가
-  # 핵심: ALB Health Check 통과 대기
+      maxUnavailable: 1  # Terminate only one at a time
+      maxSurge: 1        # Add only one at a time
+  # Key: wait for ALB Health Check to pass
   minReadySeconds: 30  # ALB HC interval(15s) × threshold(2) = 30s
   template:
     spec:
@@ -424,7 +424,7 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 5
           timeoutSeconds: 1
-          failureThreshold: 2  # 엄격하게 체크
+          failureThreshold: 2  # Strict
           successThreshold: 1
 ---
 apiVersion: policy/v1
@@ -432,39 +432,39 @@ kind: PodDisruptionBudget
 metadata:
   name: my-app-pdb
 spec:
-  minAvailable: 2  # 최소 50% 유지
+  minAvailable: 2  # Maintain at least 50%
   selector:
     matchLabels:
       app: my-app
 ```
 
-### 패턴 4: NLB + externalTrafficPolicy: Local
+### Pattern 4: NLB + externalTrafficPolicy: Local
 
-**증상:**
-- NLB 사용 시 일부 요청 타임아웃
-- `externalTrafficPolicy: Local` 설정 시 Health Check 실패
+**Symptoms:**
+- Some requests time out when using NLB
+- Health Check failures with `externalTrafficPolicy: Local`
 
-**근본 원인:**
-NLB는 **모든 노드**에 트래픽 전송하지만, `externalTrafficPolicy: Local`은 **Pod가 있는 노드**만 응답
+**Root cause:**
+NLB sends traffic to **all nodes**, but `externalTrafficPolicy: Local` has **only nodes with matching Pods** respond.
 
-**동작 방식:**
+**Behavior:**
 
-| externalTrafficPolicy | Client IP 보존 | Health Check | 트래픽 분배 |
+| externalTrafficPolicy | Client IP preserved | Health Check | Traffic distribution |
 |----------------------|---------------|-------------|-----------|
-| **Cluster (기본)** | ❌ (SNAT) | 모든 노드 healthy | 균등 분배 → 노드 간 hop 발생 |
-| **Local** | ✅ | Pod 있는 노드만 healthy | 불균등 분배 (Pod 수에 비례) |
+| **Cluster (default)** | No (SNAT) | All nodes healthy | Even distribution → inter-node hops |
+| **Local** | Yes | Only nodes with Pods healthy | Uneven distribution (proportional to Pod count) |
 
-**문제 상황:**
+**Problem scenario:**
 
 ```
-노드 1: Pod A, Pod B → NLB HC 성공 → 트래픽 수신
-노드 2: Pod 없음 → NLB HC 실패 → TG에서 제거
-노드 3: Pod C → NLB HC 성공 → 트래픽 수신
+Node 1: Pod A, Pod B → NLB HC success → receives traffic
+Node 2: No Pod → NLB HC failure → removed from TG
+Node 3: Pod C → NLB HC success → receives traffic
 
-문제: 노드 1이 2배 트래픽 수신 (불균등)
+Issue: Node 1 receives 2x the traffic (uneven)
 ```
 
-**진단 및 해결:**
+**Diagnosis and resolution:**
 
 ```yaml
 apiVersion: v1
@@ -473,7 +473,7 @@ metadata:
   name: my-service
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    # NLB Health Check 설정
+    # NLB Health Check configuration
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-protocol: "http"
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-path: "/healthz"
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-interval: "10"
@@ -482,29 +482,29 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-healthcheck-unhealthy-threshold: "2"
 spec:
   type: LoadBalancer
-  # Client IP 보존 vs 균등 분배 선택
-  externalTrafficPolicy: Local  # Client IP 필요 시
-  # externalTrafficPolicy: Cluster  # 균등 분배 필요 시
+  # Choose Client IP preservation vs even distribution
+  externalTrafficPolicy: Local  # When Client IP is required
+  # externalTrafficPolicy: Cluster  # When even distribution is required
   ports:
   - port: 80
     targetPort: 8080
 ```
 
-**권장 사항:**
-- **Client IP 필요**: `Local` + 충분한 Pod 수 (노드당 최소 1개)
-- **균등 분배 우선**: `Cluster` + X-Forwarded-For 헤더로 Client IP 추출
+**Recommendations:**
+- **Client IP required**: `Local` + sufficient Pod count (at least one per node)
+- **Even distribution preferred**: `Cluster` + extract Client IP from the X-Forwarded-For header
 
-### 패턴 5: Ingress-NGINX upstream timeout
+### Pattern 5: Ingress-NGINX Upstream Timeout
 
-**증상:**
-- `504 Gateway Timeout` 발생
-- 파일 업로드, 배치 API 실패
-- `413 Request Entity Too Large` (파일 크기 초과)
+**Symptoms:**
+- `504 Gateway Timeout`
+- File upload and batch API failures
+- `413 Request Entity Too Large` (file size exceeded)
 
-**근본 원인:**
-Ingress-NGINX의 `proxy-read-timeout` (기본 60초)가 백엔드 처리 시간보다 짧음
+**Root cause:**
+Ingress-NGINX `proxy-read-timeout` (default 60s) is shorter than the backend processing time.
 
-**진단 및 해결:**
+**Diagnosis and resolution:**
 
 ```yaml
 apiVersion: networking.k8s.io/v1
@@ -512,15 +512,15 @@ kind: Ingress
 metadata:
   name: my-ingress
   annotations:
-    # Timeout 설정 (초 단위)
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"    # 백엔드 응답 대기
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"    # 백엔드로 전송 대기
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"  # 백엔드 연결 대기
+    # Timeout settings (seconds)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"    # Wait for backend response
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"    # Wait while sending to backend
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "10"  # Wait for backend connection
 
-    # 파일 업로드 크기 제한 (기본 1m)
+    # File upload size limit (default 1m)
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
 
-    # 버퍼 설정 (대용량 응답)
+    # Buffer settings (large responses)
     nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
     nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
 spec:
@@ -538,10 +538,10 @@ spec:
               number: 80
 ```
 
-**배치 API 전용 Ingress 분리:**
+**Separate Ingress for batch APIs:**
 
 ```yaml
-# 일반 API (짧은 timeout)
+# General API (short timeout)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -561,13 +561,13 @@ spec:
             port:
               number: 80
 ---
-# 배치 API (긴 timeout)
+# Batch API (long timeout)
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: batch-ingress
   annotations:
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"  # 30분
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"  # 30 minutes
     nginx.ingress.kubernetes.io/proxy-body-size: "1g"
 spec:
   rules:
@@ -585,16 +585,16 @@ spec:
 
 ---
 
-## 5. 권장 설정 가이드
+## 5. Recommended Configuration Guide
 
-### 5.1 통일 원칙: 경로와 포트 일치
+### 5.1 Unification Principle: Match Paths and Ports
 
-**원칙:**
-- ALB/NLB Health Check 경로 = readinessProbe 경로
-- Health Check 포트 = Service targetPort
-- Probe timeout < ALB HC timeout (Probe가 더 빠르게 감지)
+**Principles:**
+- ALB/NLB Health Check path = readinessProbe path
+- Health Check port = Service targetPort
+- Probe timeout < ALB HC timeout (Probe detects faster)
 
-**템플릿:**
+**Template:**
 
 ```yaml
 apiVersion: v1
@@ -602,7 +602,7 @@ kind: Service
 metadata:
   name: my-service
   annotations:
-    # ALB Health Check 설정
+    # ALB Health Check configuration
     alb.ingress.kubernetes.io/healthcheck-path: /healthz
     alb.ingress.kubernetes.io/healthcheck-port: traffic-port
     alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
@@ -611,7 +611,7 @@ metadata:
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
 
-    # Graceful Shutdown 설정
+    # Graceful Shutdown settings
     alb.ingress.kubernetes.io/target-group-attributes: deregistration_delay.timeout_seconds=15
 spec:
   type: LoadBalancer
@@ -631,7 +631,7 @@ spec:
     rollingUpdate:
       maxUnavailable: 1
       maxSurge: 1
-  minReadySeconds: 30  # ALB HC 통과 대기
+  minReadySeconds: 30  # Wait for ALB HC to pass
   template:
     spec:
       terminationGracePeriodSeconds: 40
@@ -643,7 +643,7 @@ spec:
           name: http
           protocol: TCP
 
-        # Startup Probe (느린 시작 앱)
+        # Startup Probe (for slow-starting apps)
         startupProbe:
           httpGet:
             path: /healthz
@@ -651,22 +651,22 @@ spec:
           initialDelaySeconds: 0
           periodSeconds: 5
           timeoutSeconds: 3
-          failureThreshold: 30  # 최대 150초 대기
+          failureThreshold: 30  # Wait up to 150s
 
-        # Liveness Probe (데드락 감지)
+        # Liveness Probe (deadlock detection)
         livenessProbe:
           httpGet:
             path: /healthz
             port: 8080
-          initialDelaySeconds: 0  # startupProbe 성공 후 활성화
+          initialDelaySeconds: 0  # Activated after startupProbe succeeds
           periodSeconds: 10
           timeoutSeconds: 1
           failureThreshold: 3
 
-        # Readiness Probe (트래픽 수신 제어)
+        # Readiness Probe (traffic gating)
         readinessProbe:
           httpGet:
-            path: /healthz  # ALB HC와 동일
+            path: /healthz  # Same as ALB HC
             port: 8080
           initialDelaySeconds: 0
           periodSeconds: 5
@@ -681,7 +681,7 @@ spec:
               command:
               - /bin/sh
               - -c
-              - sleep 15  # ALB deregistration 대기
+              - sleep 15  # Wait for ALB deregistration
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -694,138 +694,138 @@ spec:
       app: my-app
 ```
 
-### 5.2 종료 시퀀스 공식
+### 5.2 Termination Sequence Formula
 
 ```
 terminationGracePeriodSeconds = deregistration_delay + preStop_sleep + app_shutdown_buffer
 
-예시:
+Example:
   deregistration_delay = 15s
   preStop_sleep = 15s
-  app_shutdown_buffer = 10s (SIGTERM 처리 + 진행 중 요청 완료)
+  app_shutdown_buffer = 10s (SIGTERM handling + in-flight request completion)
   -------------------
   terminationGracePeriodSeconds = 40s
 ```
 
-### 5.3 타이밍 최적화 매트릭스
+### 5.3 Timing Optimization Matrix
 
-| 워크로드 유형 | readinessProbe period | ALB HC interval | minReadySeconds | terminationGracePeriodSeconds |
+| Workload Type | readinessProbe period | ALB HC interval | minReadySeconds | terminationGracePeriodSeconds |
 |-------------|----------------------|----------------|-----------------|------------------------------|
 | **Stateless API** | 5s | 15s | 30s | 40s |
-| **웹 프론트엔드** | 5s | 15s | 30s | 40s |
-| **배치 워커** | 10s | 30s | 60s | 120s |
-| **Long-lived 연결** | 10s | 30s | 60s | 300s |
-| **gRPC 서비스** | 5s (grpc probe) | 15s (HTTP) | 30s | 40s |
+| **Web frontend** | 5s | 15s | 30s | 40s |
+| **Batch worker** | 10s | 30s | 60s | 120s |
+| **Long-lived connections** | 10s | 30s | 60s | 300s |
+| **gRPC service** | 5s (grpc probe) | 15s (HTTP) | 30s | 40s |
 
 ---
 
-## 6. 진단 명령어 모음
+## 6. Diagnostic Commands
 
-### 6.1 K8s Endpoints 확인
+### 6.1 Checking K8s Endpoints
 
 ```bash
-# Service Endpoints 목록
+# List Service Endpoints
 kubectl get endpoints my-service -o wide
 
-# Endpoints 상세 (NotReadyAddresses 확인)
+# Endpoint details (check NotReadyAddresses)
 kubectl get endpoints my-service -o yaml
 
-# 특정 Pod가 Endpoints에 있는지 확인
+# Check whether a specific Pod is in Endpoints
 kubectl get endpoints my-service -o json | jq '.subsets[].addresses[] | select(.ip=="10.0.1.100")'
 ```
 
-### 6.2 ALB Target Group 상태 확인
+### 6.2 Checking ALB Target Group Status
 
 ```bash
-# Target Group ARN 확인
+# Get Target Group ARN
 kubectl get targetgroupbindings -A
 
-# Target Health 확인
+# Check Target Health
 aws elbv2 describe-target-health \
   --target-group-arn arn:aws:elasticloadbalancing:... \
   --query 'TargetHealthDescriptions[*].[Target.Id,TargetHealth.State,TargetHealth.Reason]' \
   --output table
 
-# 특정 Target 상세 (Reason 확인)
+# Details for a specific target (check Reason)
 aws elbv2 describe-target-health \
   --target-group-arn arn:aws:elasticloadbalancing:... \
   --targets Id=10.0.1.100,Port=8080
 ```
 
-**주요 Reason 코드:**
-- `Target.FailedHealthChecks`: Health Check 실패
-- `Elb.RegistrationInProgress`: 등록 중
-- `Target.DeregistrationInProgress`: 해제 중
-- `Target.InvalidState`: Pod IP 도달 불가 (SG 문제)
+**Key Reason codes:**
+- `Target.FailedHealthChecks`: Health Check failure
+- `Elb.RegistrationInProgress`: registration in progress
+- `Target.DeregistrationInProgress`: deregistration in progress
+- `Target.InvalidState`: Pod IP unreachable (SG issue)
 
-### 6.3 AWS Load Balancer Controller 로그
+### 6.3 AWS Load Balancer Controller Logs
 
 ```bash
-# LBC 로그 (Health Check 관련)
+# LBC logs (Health Check related)
 kubectl logs -n kube-system deploy/aws-load-balancer-controller --tail=100 | grep -i health
 
-# TargetGroupBinding 이벤트
+# TargetGroupBinding events
 kubectl describe targetgroupbindings -A
 
-# Service 이벤트 (LoadBalancer 생성 과정)
+# Service events (LoadBalancer creation flow)
 kubectl describe svc my-service
 ```
 
-### 6.4 Ingress-NGINX 디버깅
+### 6.4 Ingress-NGINX Debugging
 
 ```bash
-# Ingress 상태 확인
+# Check Ingress status
 kubectl describe ingress my-ingress
 
-# nginx-ingress-controller 로그
+# nginx-ingress-controller logs
 kubectl logs -n ingress-nginx deploy/ingress-nginx-controller --tail=100
 
-# upstream 설정 확인 (특정 Pod에서)
+# Check upstream configuration (in a controller Pod)
 kubectl exec -n ingress-nginx deploy/ingress-nginx-controller -- cat /etc/nginx/nginx.conf | grep -A 20 "upstream"
 
-# 실시간 액세스 로그
+# Live access logs
 kubectl logs -n ingress-nginx deploy/ingress-nginx-controller --tail=1 -f
 ```
 
-### 6.5 Pod 상태 및 Probe 결과
+### 6.5 Pod Status and Probe Results
 
 ```bash
-# Pod 상태 및 Ready 조건 확인
+# Pod status and Ready conditions
 kubectl get pods -o wide
 kubectl describe pod my-app-7d8f9c-abcde
 
-# Probe 실패 이벤트
+# Probe failure events
 kubectl get events --field-selector involvedObject.name=my-app-7d8f9c-abcde
 
-# Pod IP 및 Container 상태
+# Pod IP and container state
 kubectl get pod my-app-7d8f9c-abcde -o json | jq '.status.podIP, .status.containerStatuses[]'
 ```
 
-### 6.6 Security Group 검증
+### 6.6 Security Group Verification
 
 ```bash
-# Pod에서 ALB Health Check 시뮬레이션
+# Simulate ALB Health Check from inside the Pod
 kubectl exec my-app-7d8f9c-abcde -- curl -v http://localhost:8080/healthz
 
-# 노드에서 Pod로 Health Check
+# Health Check from node to Pod
 NODE_IP=$(kubectl get node <node-name> -o json | jq -r '.status.addresses[] | select(.type=="InternalIP") | .address')
 POD_IP=$(kubectl get pod my-app-7d8f9c-abcde -o json | jq -r '.status.podIP')
 ssh ec2-user@$NODE_IP "curl -v http://$POD_IP:8080/healthz"
 
-# Security Group 규칙 확인
+# Check Security Group rules
 aws ec2 describe-security-groups --group-ids sg-xxxxxxxx
 ```
 
 ---
 
-## 7. 크로스 레퍼런스
+## 7. Cross References
 
-### 관련 문서
-- **[Pod 헬스체크 & 라이프사이클](../eks-pod-health-lifecycle.md)** — Probe 설정 상세, 언어별 Graceful Shutdown
-- **[EKS 고가용성 아키텍처 가이드](../eks-resiliency-guide.md)** — PDB, Pod Readiness Gates, Zone-aware routing
-- **[EKS 디버깅 가이드](./index.md)** — 전체 디버깅 워크플로우
+### Related Documents
+- **[Pod Health & Lifecycle](../eks-pod-health-lifecycle.md)** — Probe configuration details, language-specific Graceful Shutdown
+- **[EKS Resiliency Guide](../eks-resiliency-guide.md)** — PDB, Pod Readiness Gates, Zone-aware routing
+- **[EKS Debugging Guide](./index.md)** — Full debugging workflow
 
-### 외부 참고 자료
+### External References
 - [Kubernetes Probes](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/)
 - [AWS Load Balancer Controller Annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.9/guide/service/annotations/)
 - [Ingress-NGINX Configuration](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
@@ -833,28 +833,28 @@ aws ec2 describe-security-groups --group-ids sg-xxxxxxxx
 
 ---
 
-## 8. 요약 체크리스트
+## 8. Summary Checklist
 
-배포 전 Health Check 설정 점검:
+Pre-deployment Health Check configuration review:
 
-- [ ] **경로 통일**: ALB/NLB Health Check 경로 = readinessProbe 경로
-- [ ] **타이밍 설계**: Probe timeout < ALB HC timeout
-- [ ] **Graceful Shutdown**: `preStop` hook + SIGTERM 핸들러 구현
-- [ ] **종료 시퀀스**: `terminationGracePeriodSeconds > deregistration_delay + preStop_duration`
+- [ ] **Path alignment**: ALB/NLB Health Check path = readinessProbe path
+- [ ] **Timing design**: Probe timeout < ALB HC timeout
+- [ ] **Graceful Shutdown**: `preStop` hook + SIGTERM handler implemented
+- [ ] **Termination sequence**: `terminationGracePeriodSeconds > deregistration_delay + preStop_duration`
 - [ ] **Rolling Update**: `minReadySeconds ≥ ALB HC interval × threshold`
-- [ ] **고가용성**: PodDisruptionBudget 설정 (`minAvailable: 50%`)
-- [ ] **Security Group**: ALB → Pod CIDR 트래픽 허용
-- [ ] **Ingress Timeout**: 배치 API는 별도 Ingress로 분리
+- [ ] **High availability**: PodDisruptionBudget configured (`minAvailable: 50%`)
+- [ ] **Security Group**: ALB → Pod CIDR traffic allowed
+- [ ] **Ingress timeout**: Separate Ingress for batch APIs
 
-장애 발생 시 진단 순서:
+Diagnosis order during an outage:
 
-1. `kubectl get pods` → Pod Ready 상태 확인
-2. `kubectl get endpoints` → Service Endpoints 존재 여부
-3. `aws elbv2 describe-target-health` → Target Group 상태 (ALB)
-4. `kubectl logs -n kube-system deploy/aws-load-balancer-controller` → LBC 로그
-5. `kubectl describe ingress` → Ingress 이벤트 (Ingress-NGINX)
-6. Security Group 규칙 검증 → Pod CIDR 도달 가능 여부
+1. `kubectl get pods` → check Pod Ready status
+2. `kubectl get endpoints` → whether Service Endpoints exist
+3. `aws elbv2 describe-target-health` → Target Group state (ALB)
+4. `kubectl logs -n kube-system deploy/aws-load-balancer-controller` → LBC logs
+5. `kubectl describe ingress` → Ingress events (Ingress-NGINX)
+6. Verify Security Group rules → Pod CIDR reachability
 
 ---
 
-**다음 단계**: [네트워킹 문제 해결](./networking.md) — Service Discovery, DNS, CNI 디버깅
+**Next**: [Networking Troubleshooting](./networking.md) — Service Discovery, DNS, CNI debugging

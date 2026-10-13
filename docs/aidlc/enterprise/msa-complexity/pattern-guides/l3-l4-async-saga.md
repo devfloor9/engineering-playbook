@@ -1,11 +1,11 @@
 ---
-title: "Level 3-4: 비동기 이벤트 & Saga"
-description: Level 3 비동기 이벤트 기반 MSA와 Level 4 Saga + 보상 트랜잭션 패턴 적용 가이드
-created: "2026-04-18"
+title: "Level 3-4: Async Events & Saga"
+description: Application guide for Level 3 async event-driven MSA and Level 4 Saga + compensating transaction patterns
+created: "2026-04-19"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 3
+  author: devfloor9
+reading_time: 5
 tags:
   - msa
   - aidlc
@@ -13,43 +13,43 @@ tags:
   - saga
   - event-driven
   - scope:enterprise
-sidebar_label: "L3-L4: 비동기 & Saga"
+sidebar_label: "L3-L4: Async & Saga"
 sidebar_position: 2
 ---
 
-이벤트 기반 아키텍처와 분산 트랜잭션을 다루는 중급~고급 복잡도 패턴입니다.
+Intermediate to advanced complexity patterns covering event-driven architecture and distributed transactions.
 
-## Level 3: 비동기 이벤트 기반 MSA
+## Level 3: Async Event-Driven MSA
 
-**특징:**
-- 이벤트 버스 (Kafka, RabbitMQ, EventBridge)
-- Eventually Consistent 데이터 모델
-- 도메인 이벤트 발행/구독
-- 비동기 통신, 느슨한 결합
+**Characteristics:**
+- Event bus (Kafka, RabbitMQ, EventBridge)
+- Eventually Consistent data model
+- Domain event publish/subscribe
+- Asynchronous communication, loose coupling
 
-**AIDLC 적용 방법:**
+**AIDLC Application:**
 
 ```mermaid
 graph LR
-    A[요구사항] --> B[이벤트 스토밍]
-    B --> C[이벤트 스키마 온톨로지]
-    C --> D[멱등성 하네스]
-    D --> E[이벤트 스키마 검증]
-    E --> F[Eventually Consistent 테스트]
-    F --> G[배포]
+    A[Requirements] --> B[Event Storming]
+    B --> C[Event Schema Ontology]
+    C --> D[Idempotency Harness]
+    D --> E[Event Schema Verification]
+    E --> F[Eventually Consistent Tests]
+    F --> G[Deploy]
 
     style B fill:#FFF9C4
     style C fill:#E8F5E9
     style D fill:#E3F2FD
 ```
 
-### 온톨로지 수준
+### Ontology Level
 
-**풀 온톨로지:** 엔티티 + 관계 + 이벤트 스키마 + 불변조건
-- 이벤트 계약 명시 (스키마 레지스트리)
-- 이벤트 순서/의존성 정의
+**Full Ontology:** Entities + relationships + event schemas + invariants
+- Explicit event contracts (schema registry)
+- Define event ordering/dependencies
 
-**예시 온톨로지 (이벤트 스키마):**
+**Example Ontology (Event Schema):**
 
 ```yaml
 # ontology/order-events.yaml
@@ -63,10 +63,10 @@ events:
     producers:
       - OrderService
     consumers:
-      - InventoryService (재고 차감)
-      - NotificationService (알림 발송)
+      - InventoryService (deduct stock)
+      - NotificationService (send notification)
     idempotencyKey: orderId
-    ordering: strict (orderId 기준)
+    ordering: strict (by orderId)
 
   OrderConfirmed:
     schema:
@@ -83,41 +83,41 @@ invariants:
   - OrderCancelled cannot follow OrderShipped
 ```
 
-### 하네스 체크리스트
+### Harness Checklist
 
-- ✅ 이벤트 스키마 검증 (Avro, Protobuf)
-- ✅ 멱등성 하네스 (중복 이벤트 처리)
-- ✅ 이벤트 순서 검증
-- ✅ Eventually Consistent 테스트 (Eventual 상태 검증)
-- ✅ Dead Letter Queue 처리
+- ✅ Event schema verification (Avro, Protobuf)
+- ✅ Idempotency harness (duplicate event handling)
+- ✅ Event ordering verification
+- ✅ Eventually Consistent tests (eventual state verification)
+- ✅ Dead Letter Queue handling
 
-### 적용 전략
+### Application Strategy
 
-- 이벤트 스토밍으로 이벤트 정의
-- 이벤트 스키마 온톨로지 필수
-- 멱등성 하네스 (중복 이벤트 대응)
-- 이벤트 스키마 레지스트리 (Schema Registry) 연동
-- Eventual Consistency 테스트 자동화
+- Define events through Event Storming
+- Event schema ontology required
+- Idempotency harness (handle duplicate events)
+- Integrate with Schema Registry
+- Automate Eventually Consistency testing
 
-## Level 4: Saga + 보상 트랜잭션
+## Level 4: Saga + Compensating Transactions
 
-**특징:**
-- 분산 트랜잭션 (Saga 패턴)
-- 보상 트랜잭션 (Compensating Transaction)
-- 오케스트레이션 Saga 또는 코레오그래피 Saga
-- 복잡한 실패 시나리오
+**Characteristics:**
+- Distributed transactions (Saga pattern)
+- Compensating transactions
+- Orchestration Saga or Choreography Saga
+- Complex failure scenarios
 
-**AIDLC 적용 방법:**
+**AIDLC Application:**
 
 ```mermaid
 graph TB
-    A[요구사항] --> B[Saga 설계]
-    B --> C[풀 온톨로지 + 보상 로직]
-    C --> D[Saga 하네스]
-    D --> E[보상 트랜잭션 검증]
-    E --> F[실패 시나리오 테스트]
-    F --> G{모든 시나리오 통과?}
-    G -->|Yes| H[배포]
+    A[Requirements] --> B[Saga Design]
+    B --> C[Full Ontology + Compensation Logic]
+    C --> D[Saga Harness]
+    D --> E[Compensating Tx Verification]
+    E --> F[Failure Scenario Tests]
+    F --> G{All Scenarios Pass?}
+    G -->|Yes| H[Deploy]
     G -->|No| C
 
     style B fill:#FFF9C4
@@ -126,13 +126,13 @@ graph TB
     style E fill:#FFCCBC
 ```
 
-### 온톨로지 수준
+### Ontology Level
 
-**풀 온톨로지 + Saga 명세:** 엔티티 + 이벤트 + Saga 단계 + 보상 로직
-- Saga 단계별 상태 전이 정의
-- 보상 로직 명시 (롤백 시나리오)
+**Full Ontology + Saga Spec:** Entities + events + Saga steps + compensation logic
+- Define Saga state transitions per step
+- Explicit compensation logic (rollback scenarios)
 
-**예시 온톨로지 (Saga):**
+**Example Ontology (Saga):**
 
 ```yaml
 # ontology/travel-booking-saga.yaml
@@ -166,7 +166,7 @@ saga:
   failureScenarios:
     - scenario: FlightReservationFailed
       compensations:
-        - (none, 첫 단계 실패)
+        - (none, first step failure)
 
     - scenario: HotelReservationFailed
       compensations:
@@ -183,55 +183,55 @@ saga:
     - Saga timeout = sum of step timeouts + buffer
 ```
 
-### 하네스 체크리스트
+### Harness Checklist
 
-- ✅ Saga 단계별 검증
-- ✅ 보상 트랜잭션 검증 (롤백 시나리오)
-- ✅ 타임아웃 하네스 (무한 대기 방지)
-- ✅ 재시도 정책 검증
-- ✅ 서킷 브레이커
-- ✅ 분산 추적 (OpenTelemetry)
+- ✅ Saga step-by-step verification
+- ✅ Compensating transaction verification (rollback scenarios)
+- ✅ Timeout harness (prevent infinite wait)
+- ✅ Retry policy verification
+- ✅ Circuit breaker
+- ✅ Distributed tracing (OpenTelemetry)
 
-### 하네스 구현 예시
+### Harness Implementation Example
 
-#### 보상 트랜잭션 하네스
+#### Compensating Transaction Harness
 
 ```python
 # harness/saga_compensation_test.py
 def test_saga_compensation():
-    """Saga 실패 시 보상 로직이 정확히 동작하는지 검증"""
+    """Verify that compensation logic works correctly on Saga failure"""
     saga = TravelBookingSaga()
 
-    # 1. Flight 예약 성공
+    # 1. Flight reservation success
     saga.execute_step("ReserveFlight")
     assert flight_service.is_reserved("flight123")
 
-    # 2. Hotel 예약 성공
+    # 2. Hotel reservation success
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
 
-    # 3. Payment 실패 시뮬레이션
+    # 3. Payment failure simulation
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
 
-    # 4. 보상 트랜잭션 검증
+    # 4. Compensating transaction verification
     saga.compensate()
-    assert not hotel_service.is_reserved("hotel456")  # 취소됨
-    assert not flight_service.is_reserved("flight123")  # 취소됨
+    assert not hotel_service.is_reserved("hotel456")  # cancelled
+    assert not flight_service.is_reserved("flight123")  # cancelled
 ```
 
-### 적용 전략
+### Application Strategy
 
-- Saga 설계 필수 (오케스트레이션 vs 코레오그래피)
-- 보상 로직 온톨로지 명시
-- 하네스에 보상 트랜잭션 검증 추가
-- 실패 시나리오 전체 테스트 (Chaos Engineering)
-- 전문가 리뷰 필수
+- Saga design required (orchestration vs choreography)
+- Explicit compensation logic in ontology
+- Add compensating transaction verification to harness
+- Test all failure scenarios (Chaos Engineering)
+- Expert review required
 
-## 다음 단계
+## Next Steps
 
-최고 복잡도의 Event Sourcing 패턴:
+Highest complexity Event Sourcing pattern:
 
 - [Level 5: Event Sourcing](./l5-event-sourcing.md)
-- [온톨로지 작성 가이드](../implementation/ontology-guide.md)
-- [하네스 체크리스트](../implementation/harness-checklist.md)
+- [Ontology Writing Guide](../implementation/ontology-guide.md)
+- [Harness Checklist](../implementation/harness-checklist.md)

@@ -1,9 +1,9 @@
 ---
-title: 네트워크 & 성능 최적화
-description: EKS 환경에서의 DNS 최적화, East-West 트래픽, Gateway API 도입 등 네트워크 및 성능 관련 베스트 프랙티스
+title: Networking & Performance Optimization
+description: Best practices for DNS optimization, East-West traffic, and Gateway API adoption in EKS environments
 created: "2026-03-24"
 last_update:
-  date: "2026-06-30"
+  date: "2026-06-26"
   author: devfloor9
 reading_time: 3
 tags:
@@ -13,57 +13,45 @@ tags:
   - dns
   - gateway-api
   - scope:nav
-sidebar_label: 네트워크 & 성능
+sidebar_label: Networking & Performance
 sidebar_position: 1
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-EKS 클러스터의 네트워크 성능을 극대화하기 위한 실전 가이드입니다. DNS 튜닝, 서비스 간 트래픽 최적화, 그리고 차세대 트래픽 라우팅인 Gateway API 도입 전략을 다룹니다.
+# Networking & Performance Optimization
+
+A practical guide to maximizing network performance in EKS clusters. Covers DNS tuning, inter-service traffic optimization, and adoption strategies for Gateway API — the next-generation traffic routing standard.
 
 ---
 
 <DocCardGrid columns={2}>
   <DocCard
-    to="/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive"
-    icon="🔌"
-    title="VPC CNI 동작 원리"
-    description="L3 routed mode 데이터패스, ipamd warm pool·Prefix Delegation·IP 쿨다운, eBPF NetworkPolicy 아키텍처"
-    color="#2a9d8f"
-  />
-  <DocCard
     to="/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide"
     icon="🌐"
-    title="Gateway API 도입 가이드"
-    description="NGINX Ingress Controller EOL 대응, Gateway API 아키텍처 및 GAMMA Initiative, Cilium ENI + Gateway API 심화, 마이그레이션 전략"
+    title="Gateway API Adoption Guide"
+    description="NGINX Ingress Controller EOL response, Gateway API architecture, GAMMA Initiative, Cilium ENI + Gateway API deep dive, and migration strategy"
     color="#667eea"
   />
   <DocCard
     to="/docs/eks-best-practices/networking-performance/service-mesh"
     icon="🕸️"
-    title="서비스 메시 비교"
-    description="Istio·Cilium·Linkerd·VPC Lattice 아키텍처와 기능 비교, App Mesh EOL 마이그레이션, GAMMA Initiative"
+    title="Service Mesh Comparison"
+    description="Data plane architecture, feature matrix, performance overhead, and selection guide for Istio, Cilium, Linkerd, and VPC Lattice — plus GAMMA Initiative"
     color="#8e44ad"
   />
   <DocCard
     to="/docs/eks-best-practices/networking-performance/coredns-monitoring-optimization"
     icon="🔍"
-    title="CoreDNS 모니터링과 성능 최적화"
-    description="DNS 쿼리 성능 분석, CoreDNS 캐싱 전략, NodeLocal DNSCache 활용, 모니터링 체계 구축"
+    title="CoreDNS Monitoring & Performance Optimization"
+    description="DNS query performance analysis, CoreDNS caching strategies, NodeLocal DNSCache usage, and monitoring architecture"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-best-practices/networking-performance/east-west-traffic-best-practice"
     icon="↔️"
-    title="East-West 트래픽 최적화"
-    description="서비스 간 통신 최적화, Topology Aware Routing, 멀티 클러스터 트래픽 관리"
+    title="East-West Traffic Optimization"
+    description="Inter-service communication optimization, Topology Aware Routing, and multi-cluster traffic management"
     color="#34a853"
-  />
-  <DocCard
-    to="/docs/eks-best-practices/networking-performance/nitro-architecture-performance-tuning"
-    icon="⚙️"
-    title="Nitro 아키텍처 & 튜닝"
-    description="Nitro v2~v6 세대별 네트워크 변경, ENA 드라이버·커널 요구사항, PPS/CPS 성능 튜닝"
-    color="#ff6b35"
   />
 </DocCardGrid>

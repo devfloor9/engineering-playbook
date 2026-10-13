@@ -1,11 +1,11 @@
 ---
-title: Request Cascading — 지능형 모델 라우팅
-description: 요청 복잡도 기반 모델 자동 라우팅 — LLM Classifier·LiteLLM·vLLM Semantic Router 구현 접근 비교와 RouteLLM 연구 참조, 비용 절감 효과
+title: Request Cascading — Intelligent Model Routing
+description: Complexity-based automatic model routing — comparison of LLM Classifier, LiteLLM, and vLLM Semantic Router approaches, RouteLLM research reference, and cost savings
 created: "2026-07-04"
 last_update:
   date: 2026-09-21
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 19
 tags:
   - cascade-routing
   - kgateway
@@ -18,40 +18,40 @@ tags:
 sidebar_label: Request Cascading
 ---
 
-이 문서는 요청 복잡도를 분석해 적절한 모델로 자동 분배하는 **Request Cascading**의 구현 접근(LLM Classifier·LiteLLM·vLLM Semantic Router)과 선택 기준을 다룹니다. 2-Tier 게이트웨이 아키텍처와 전체 라우팅 전략은 [게이트웨이 라우팅 전략](./routing-strategy.md)을 참조하세요.
+This document covers the implementation approaches (LLM Classifier, LiteLLM, vLLM Semantic Router) and selection criteria for **Request Cascading**, which analyzes request complexity and automatically distributes requests to the appropriate model. For the 2-Tier gateway architecture and overall routing strategy, see [Gateway Routing Strategy](./routing-strategy.md).
 
-## Request Cascading: 지능형 모델 라우팅
+## Request Cascading: Intelligent Model Routing
 
-### 개념
+### Concept
 
-**Request Cascading**은 요청의 복잡도와 정해 둔 품질 기준에 따라 처리할 모델을 선택하는 방식입니다. 간단한 요청은 작은 모델로 보내고, 더 복잡한 추론이 필요한 요청은 성능이 높은 모델로 보내도록 구성합니다. 분류가 틀려 재시도가 늘면 비용이나 지연이 오히려 커질 수 있으므로, 요청별 품질과 전체 처리 비용을 함께 측정해야 합니다. IDE는 단일 엔드포인트를 사용하고, 모델 선택 규칙은 플랫폼에서 관리합니다.
+**Request Cascading** selects a model according to request complexity and predefined quality criteria. It can route simple requests to smaller models and requests requiring more complex reasoning to more capable models. Misclassification can lead to retries that increase cost or latency, so measure per-request quality and total processing cost together. IDEs use a single endpoint, and the platform manages the model-selection rules.
 
-### Cascading 패턴 3가지
+### Three Cascading Patterns
 
-| 패턴 | 설명 | 구현 | 사용 사례 |
+| Pattern | Description | Implementation | Use Case |
 |------|------|------|----------|
-| **1. Weight 기반** | 고정 비율로 트래픽 분배 | kgateway `backendRef weight` | A/B 테스트, 점진적 모델 마이그레이션 |
-| **2. Fallback 기반** | 오류 시 다른 모델로 자동 전환 | kgateway retry + 다중 backendRef | 가용성 향상, rate limit 회피 |
-| **3. 지능형 라우팅** | 요청 분석 후 자동 모델 선택 | **LLM Classifier** / LiteLLM 커스텀 전략 / vLLM Semantic Router | 비용 최적화, 품질 유지 |
+| **1. Weight-based** | Distribute traffic by fixed ratio | kgateway `backendRef weight` | A/B testing, gradual model migration |
+| **2. Fallback-based** | Auto-switch to another model on error | kgateway retry + multiple backendRef | Availability improvement, rate limit avoidance |
+| **3. Intelligent routing** | Auto-select model after request analysis | **LLM Classifier** / LiteLLM / vLLM Semantic Router | Cost optimization, quality maintenance |
 
 ```mermaid
 flowchart TB
     Q[User Query]
 
-    subgraph P1["패턴 1: Weight 기반"]
+    subgraph P1["Pattern 1: Weight-based"]
         W1[70% → Cheap]
         W2[30% → Premium]
     end
 
-    subgraph P2["패턴 2: Fallback 기반"]
+    subgraph P2["Pattern 2: Fallback-based"]
         F1[Primary Model]
         F2{5xx/Timeout?}
         F3[Fallback Model]
     end
 
-    subgraph P3["패턴 3: 지능형 라우팅"]
+    subgraph P3["Pattern 3: Intelligent Routing"]
         R1[LLM Classifier]
-        R2{프롬프트 분석}
+        R2{Prompt Analysis}
         R3[Strong Model]
         R4[Weak Model]
     end
@@ -62,28 +62,28 @@ flowchart TB
     F2 -->|Yes| F3
 
     R1 --> R2
-    R2 -->|복잡| R3
-    R2 -->|단순| R4
+    R2 -->|Complex| R3
+    R2 -->|Simple| R4
 
     style P1 fill:#ffd93d,stroke:#333
     style P2 fill:#ff9900,stroke:#333
     style P3 fill:#e53935,stroke:#333,color:#fff
 ```
 
-### Request Cascading 실전 구현
+### Practical Request Cascading Implementation
 
-지능형 cascade routing은 요청 복잡도를 분석하여 적절한 모델로 자동 라우팅합니다. 자체 호스팅 환경에서 실제 검증된 접근 방법을 중심으로 설명합니다.
+Intelligent cascade routing analyzes request complexity and auto-routes to appropriate models. This section focuses on verified approaches in self-hosted environments.
 
-#### 접근 A: LLM Classifier (권장 — 실전 검증)
+#### Approach A: LLM Classifier (Recommended — Field-Validated)
 
-**LLM Classifier**는 Python FastAPI 기반의 경량 라우터로, 프롬프트 내용을 직접 분석하여 SLM/LLM을 자동 선택합니다. kgateway 뒤에서 ExtProc(External Processing) 또는 독립 서비스로 동작하며, 클라이언트는 단일 엔드포인트(`/v1`)만 사용합니다.
+**LLM Classifier** is a Python FastAPI-based lightweight router that directly analyzes prompt content to auto-select SLM/LLM. It operates as ExtProc (External Processing) or independent service behind kgateway, with clients using only a single endpoint (`/v1`).
 
 ```mermaid
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
     KGW -->|/v1/*| CLS[LLM Classifier<br/>FastAPI]
-    CLS -->|weak: 키워드없음, 500자미만| SLM[Qwen3-4B<br/>L4 ~$0.80/hr]
-    CLS -->|strong: 리팩터,설계,분석| LLM[GLM-5 744B<br/>8xH200 ~$63/hr]
+    CLS -->|weak: no keywords, <500 chars| SLM[Qwen3-4B<br/>L4 ~$0.80/hr]
+    CLS -->|strong: refactor, design, analysis| LLM[GLM-5 744B<br/>8xH200 ~$63/hr]
     CLS -->|OTel| LF[Langfuse]
 
     style KGW fill:#326ce5,stroke:#333,color:#fff
@@ -93,74 +93,73 @@ graph LR
     style LF fill:#9c27b0,stroke:#333,color:#fff
 ```
 
-**분류 기준:**
+**Classification Criteria:**
 
-| 기준 | weak (SLM) | strong (LLM) |
+| Criteria | weak (SLM) | strong (LLM) |
 |------|-----------|-------------|
-| **키워드** | 없음 | 리팩터, 아키텍처, 설계, 분석, 디버그, 최적화, 마이그레이션 등 |
-| **입력 길이** | 500자 미만 | 500자 이상 |
-| **대화 턴 수** | 5턴 이하 | 5턴 초과 |
+| **Keywords** | None | Refactor, architecture, design, analysis, debug, optimization, migration, etc. |
+| **Input length** | < 500 chars | ≥ 500 chars |
+| **Conversation turns** | ≤ 5 turns | > 5 turns |
 
-**핵심 분류 로직:**
+**Core Classification Logic:**
 
 ```python
-STRONG_KEYWORDS = ["리팩터", "아키텍처", "설계", "분석", "최적화", "디버그",
-                   "마이그레이션", "refactor", "architect", "design", "analyze",
+STRONG_KEYWORDS = ["refactor", "architect", "design", "analyze",
                    "optimize", "debug", "migration", "complex"]
 CHAR_THRESHOLD = 500
 
 def classify(messages: list[dict]) -> str:
     content = " ".join(m.get("content", "") for m in messages if m.get("content"))
-    # 키워드 매칭
+    # Keyword matching
     if any(kw in content.lower() for kw in STRONG_KEYWORDS):
         return "strong"
-    # 입력 길이
+    # Input length
     if len(content) > CHAR_THRESHOLD:
         return "strong"
-    # 대화 턴 수
+    # Conversation turns
     if len(messages) > 5:
         return "strong"
     return "weak"
 ```
 
-**장점**: 클라이언트 수정 불필요, 프롬프트 내용 직접 분석, Langfuse OTel 직접 전송, 배포 간단 (단일 Pod)
-**단점**: 분류 정확도가 휴리스틱에 의존 (ML classifier로 점진적 개선 가능)
+**Pros**: No client modification needed, direct prompt analysis, direct Langfuse OTel transmission, simple deployment (single Pod)
+**Cons**: Classification accuracy depends on heuristics (can be gradually improved with ML classifier)
 
-:::tip LLM Classifier가 최적인 이유
-표준 OpenAI 호환 클라이언트(Aider, Cline 등)는 **단일 `base_url`만 설정**합니다. LLM Classifier는 이 단일 엔드포인트 뒤에서 프롬프트를 분석하고, 백엔드 vLLM 인스턴스로 직접 프록시합니다. 클라이언트는 모델 선택을 전혀 인식하지 못합니다.
+:::tip Why LLM Classifier is Optimal
+Standard OpenAI-compatible clients (Aider, Cline, etc.) only configure **a single `base_url`**. LLM Classifier analyzes prompts behind this single endpoint and proxies directly to backend vLLM instances. Clients are completely unaware of model selection.
 :::
 
-#### Bifrost 자체 호스팅 Cascade 한계
+#### Bifrost Self-hosted Cascade Limitations
 
-Bifrost를 자체 호스팅 vLLM cascade에 사용하려 했으나, 다음 한계로 인해 **LLM Classifier로 전환**했습니다:
+We attempted to use Bifrost for self-hosted vLLM cascade but switched to **LLM Classifier** due to the following limitations:
 
-| 한계 | 설명 |
+| Limitation | Description |
 |------|------|
-| **provider/model 포맷 강제** | 요청 시 `openai/glm-5` 형태 필수. 표준 OpenAI 클라이언트(Aider 등)는 `model: "auto"` 같은 단일 모델명을 기대 |
-| **provider당 단일 base_url** | 하나의 provider(예: `openai`)에 하나의 `network_config.base_url`만 설정 가능. SLM과 LLM이 다른 Service에 있으면 동일 provider로 라우팅 불가 |
-| **프롬프트 내용 직접 매칭 제약** | 라우팅 룰은 프롬프트에서 파생된 `complexity_tier`(SIMPLE/MEDIUM/COMPLEX/REASONING)에는 접근하지만, 키워드·정규식 등 **원시 프롬프트 텍스트를 직접 매칭하는 세밀한 분기**는 어려움(자체 휴리스틱이 필요하면 별도 classifier가 더 유연) |
-| **모델명 정규화 이슈** | 하이픈 제거 등 예측 불가능한 정규화로 vLLM `served-model-name`과 불일치 |
+| **provider/model format enforcement** | Requires `openai/glm-5` format. Standard OpenAI clients (Aider, etc.) expect single model names like `model: "auto"` |
+| **Single base_url per provider** | Only one `network_config.base_url` per provider (e.g., `openai`). Cannot route to same provider if SLM and LLM are on different Services |
+| **No prompt access in CEL** | CEL Rules only access `request.headers`. Cannot analyze request body (prompt content) for routing |
+| **Model name normalization issues** | Unpredictable normalization like hyphen removal causes mismatch with vLLM `served-model-name` |
 
-:::warning Bifrost는 외부 LLM 프로바이더 통합에 적합
-Bifrost는 OpenAI/Anthropic/Bedrock 등 **외부 프로바이더 통합**과 **failover**에 최적화되어 있습니다. 자체 호스팅 vLLM 간의 지능형 cascade routing에는 LLM Classifier가 더 적합합니다.
+:::warning Bifrost is Best for External LLM Provider Integration
+Bifrost is optimized for **external provider integration** (OpenAI/Anthropic/Bedrock) and **failover**. LLM Classifier is better suited for intelligent cascade routing between self-hosted vLLM instances.
 :::
 
-#### RouteLLM 평가 결과
+#### RouteLLM Evaluation Results
 
-[RouteLLM](https://github.com/lm-sys/RouteLLM)은 LMSYS가 개발한 오픈소스 라우팅 프레임워크로, Matrix Factorization 라우터가 Chatbot Arena 선호 데이터로 학습되었으며, MT Bench에서 GPT-4 호출 26%만으로 GPT-4 성능의 95%를 유지함이 논문(arXiv:2406.18665)으로 검증되었습니다.
+[RouteLLM](https://github.com/lm-sys/RouteLLM) is an open-source routing framework developed by LMSYS, with academically validated Matrix Factorization-based classification models (90%+ accuracy on LMSYS Chatbot Arena data).
 
-그러나 K8s 배포 시 다음 이슈가 확인되었습니다:
+However, the following issues were confirmed during K8s deployment:
 
-- **의존성 충돌**: `torch`, `transformers`, `sentence-transformers` 등 대형 의존성 트리가 vLLM 환경과 충돌
-- **컨테이너 크기**: 분류 모델 포함 시 이미지 크기 10GB+ (경량 라우터에 부적합)
-- **배포 불안정**: pip dependency resolution 실패 빈도 높음
-- **유지보수**: 연구 프로젝트 성격으로 프로덕션 지원 부재
+- **Dependency conflicts**: Large dependency trees like `torch`, `transformers`, `sentence-transformers` conflict with vLLM environments
+- **Container size**: Image size 10GB+ with classification model (unsuitable for lightweight router)
+- **Deployment instability**: High frequency of pip dependency resolution failures
+- **Maintenance**: Research project nature with no production support
 
-**결론**: RouteLLM의 MF classifier **개념**은 유효하지만, 프로덕션 배포에는 **LLM Classifier**(경량 휴리스틱) 또는 **LiteLLM complexity routing**(외부 프로바이더 환경)을 권장합니다.
+**Conclusion**: RouteLLM's MF classifier **concept** is valid, but for production deployment we recommend **LLM Classifier** (lightweight heuristics) or **LiteLLM complexity routing** (external provider environments).
 
-#### 접근 B: LiteLLM 다전략 / 커스텀 라우팅 (외부 프로바이더 환경)
+#### Approach B: LiteLLM Native (External Provider Environment)
 
-LiteLLM은 **여러 내장 라우팅 전략**(`simple-shuffle`·`latency-based-routing`·`usage-based-routing-v2`·`least-busy`·`cost-based-routing`)을 제공합니다. "복잡도 기반"은 내장 전략이 아니므로, 복잡도 라우팅이 필요하면 앞단의 classifier로 모델을 선택하거나 `CustomRoutingStrategyBase`로 커스텀 전략을 구현합니다.
+LiteLLM natively supports **complexity-based routing**. Adding just 1 line to the config file enables automatic request complexity analysis and model selection.
 
 ```yaml
 model_list:
@@ -174,103 +173,107 @@ model_list:
       api_key: os.environ/OPENAI_API_KEY
 
 router_settings:
-  routing_strategy: cost-based-routing  # 내장 전략 (가장 저렴한 가용 모델 선택)
-  # 복잡도 기반 분기가 필요하면 앞단 classifier가 model_name을 선택하거나
-  # CustomRoutingStrategyBase 로 커스텀 전략을 등록
+  routing_strategy: complexity-based  # Enable with this 1 line
+  complexity_threshold: 0.7           # ≥ 0.7 → stronger model
 ```
 
-**장점**: 100+ 프로바이더, latency/usage/cost 기반 내장 전략, Langfuse 한 줄 연동, LangChain/LlamaIndex 통합
-**단점**: 복잡도 라우팅은 직접 구현(앞단 classifier/커스텀 전략), Python 기반 낮은 throughput, 자체 호스팅 vLLM에서는 오버헤드
-([LiteLLM routing 문서](https://docs.litellm.ai/docs/routing))
+**Pros**: Activate with 1-line config, auto-analyzes prompt length·code inclusion·reasoning keywords, 100+ provider support
+**Cons**: Python-based low throughput, complexity algorithm not customizable, overhead for self-hosted vLLM
 
-#### 접근 C: vLLM Semantic Router (vLLM 프로젝트)
+#### Approach C: vLLM Semantic Router (vLLM-only)
 
-[vLLM Semantic Router](https://github.com/vllm-project/semantic-router)는 `vllm`에서 import 하는 Python 클래스가 **아니라**, 게이트웨이 앞단(Envoy `ext-proc`)에 배치하는 **독립 실행형 라우팅 서비스**입니다. Rust/Candle 기반 경량 BERT 분류기가 프롬프트를 카테고리로 분류해 적절한 백엔드 모델을 선택합니다. 구성은 코드가 아니라 카테고리·모델 매핑을 담은 **설정 파일(YAML)** 로 합니다.
+In vLLM environments, **vLLM Semantic Router** can be used for lightweight embedding-based routing. It matches embeddings to pre-defined "categories" to select models.
 
-```yaml
-# vLLM Semantic Router config (개념 예시 — 실제 스키마는 프로젝트 문서 참조)
-categories:
-  simple:
-    description: "basic question, quick answer, definition"
-    model: qwen3-4b
-  complex:
-    description: "explain in detail, analyze, step by step"
-    model: glm-5-744b
-similarity_threshold: 0.85
+```python
+# vLLM Semantic Router configuration
+from vllm import SemanticRouter
+
+router = SemanticRouter(
+    categories={
+        "simple": ["basic question", "quick answer", "definition"],
+        "complex": ["explain in detail", "analyze", "step by step"]
+    },
+    models={
+        "simple": "qwen3-4b",
+        "complex": "glm-5-744b"
+    },
+    threshold=0.85
+)
+
+# Auto-routing
+response = router.route(prompt="Explain the architecture...")  # → glm-5-744b
 ```
 
-서비스는 OpenAI 호환 요청을 받아 분류 결과에 따라 백엔드로 프록시합니다(별도 Pod/서비스로 배포, ext-proc로 Envoy 계열 게이트웨이와 연동).
+**Pros**: vLLM native, lightweight embedding usage (inference latency < 5ms), simple configuration
+**Cons**: vLLM-only, requires pre-defined categories
 
-**장점**: vLLM 프로젝트 산하, 경량 분류(저지연), 게이트웨이 앞단 통합
-**단점**: 독립 서비스 배포 필요, 카테고리 사전 정의 필요
+### Cascade Routing Implementation Selection Guide
 
-### Cascade Routing 구현 방법 선택 가이드
-
-| 환경 | 권장 접근 | 이유 |
+| Environment | Recommended Approach | Reason |
 |------|----------|------|
-| **자체 호스팅 vLLM (Aider/Cline)** | **LLM Classifier** | 프롬프트 직접 분석, 단일 엔드포인트, 클라이언트 수정 불필요 |
-| **외부 프로바이더 (OpenAI/Anthropic)** | **LiteLLM** | 100+ 프로바이더, latency/usage/cost 내장 전략 + 커스텀 전략 |
-| **vLLM 단독 + 분류 서비스 가용** | **vLLM Semantic Router** | vLLM 프로젝트 라우터(독립 ext-proc 서비스), 경량 |
-| **하이브리드 (외부 + 자체)** | **LLM Classifier + LiteLLM** | 자체는 Classifier, 외부는 LiteLLM |
+| **Self-hosted vLLM (Aider/Cline)** | **LLM Classifier** | Direct prompt analysis, single endpoint, no client modification |
+| **External providers (OpenAI/Anthropic)** | **LiteLLM** | 100+ providers native, complexity routing 1-line |
+| **vLLM standalone + embeddings available** | **vLLM Semantic Router** | vLLM native, lightweight |
+| **Hybrid (external + self-hosted)** | **LLM Classifier + LiteLLM** | Self-hosted via Classifier, external via LiteLLM |
 
-### Cascade Routing 전략 (Fallback 기반)
+### Cascade Routing Strategy (Fallback-based)
 
-복잡도에 따라 **cheap -> balanced -> frontier** 모델을 단계적으로 시도합니다.
+Try **cheap -> balanced -> frontier** models progressively based on complexity.
 
-**복잡도 분류 기준 (2026-04 기준):**
+**Complexity Classification Criteria (as of 2026-04):**
 
-| 복잡도 | 조건 | 권장 모델 | 입력 토큰 비용 ($/1M) |
+| Complexity | Conditions | Recommended Model | Cost per Token |
 |--------|------|----------|-----------|
-| **Simple** | 토큰 < 200, 키워드 없음 | Haiku 4.5 / GPT-4.1 nano | $1.00 / $0.10 |
-| **Medium** | 토큰 200-1000, 코드 포함 | Sonnet 4.6 / Gemini 2.5 Flash | $3.00 / $0.30 |
-| **Complex** | 토큰 1000+, reasoning 키워드 | Opus 4.7 / GPT-4.1 | $5.00 / $2.00 |
+| **Simple** | Tokens < 200, no keywords | Haiku 4.5 / GPT-4.1 nano | $0.80-$0.15/M |
+| **Medium** | Tokens 200-1000, code included | Sonnet 4.6 / Gemini 2.5 Flash | $3-$0.10/M |
+| **Complex** | Tokens 1000+, reasoning keywords | Opus 4.7 / GPT-4.1 | $15-$10/M |
 
-**Fallback 조건**: HTTP 5xx, Rate Limit 초과, Timeout, Quality Score < 0.7 (옵션)
+**Fallback Conditions**: HTTP 5xx, Rate Limit exceeded, Timeout, Quality Score < 0.7 (optional)
 
-### 비용 절감 효과 (2026-07 기준)
+### Cost Savings Effect (as of 2026-04)
 
-일 10,000 요청 시나리오 (Haiku 4.5 $1.00/$5.00, Sonnet 4.6 $3.00/$15.00, Opus 4.7 $5.00/$25.00 per 1M tokens):
-- Simple (50%): Haiku 4.5 — 50 tok in, 100 tok out → $2.75/일
-- Medium (30%): Sonnet 4.6 — 500 tok in, 500 tok out → $27.00/일
-- Complex (15%): Opus 4.7 — 1500 tok in, 1000 tok out → $48.75/일
-- Very Complex (5%): Opus 4.7 — 3000 tok in, 2000 tok out → $32.50/일
+10,000 requests/day scenario:
+- Simple (50%): Haiku 4.5 — 50 tok in, 100 tok out → $0.50/day
+- Medium (30%): Sonnet 4.6 — 500 tok in, 500 tok out → $2.70/day
+- Complex (15%): Opus 4.7 — 1500 tok in, 1000 tok out → $3.38/day
+- Very Complex (5%): Opus 4.7 — 3000 tok in, 2000 tok out → $3.00/day
 
-**총 비용: $111.00/일 ($3,330/월)**
+**Total cost: $9.58/day ($287/month)**
 
-모든 요청을 Opus 4.7로 처리 시 (평균 1K tok in/out): $300/일 ($9,000/월) 대비 **63% 절감**
+Processing all requests with Opus 4.7: $45/day ($1,350/month) → **79% savings**
 
-**자체 호스팅 LLM Classifier 시나리오** (Spot 가격 기준, 2026-07):
-- Qwen3-4B (70% weak, g6.xlarge L4 Spot ~$0.31/hr × 24hr × 30d) = 약 $223/월
-- GLM-5 744B (30% strong, p5en.48xlarge 8xH200 Spot ~$16/hr × 24hr × 30d × 0.3) = 약 $3,456/월
-- Langfuse + AMP/AMG = $200/월
+**Self-hosted LLM Classifier Scenario** (as of 2026-04):
+- Qwen3-4B (70% weak, L4 ~$0.80/hr × 24hr × 30d) = $216/month
+- GLM-5 744B (30% strong, H200 $12/hr × 24hr × 30d × 0.3) = $2,592/month
+- Langfuse + AMP/AMG = $200/month
 
-**총 비용: 약 $3,879/월** (GLM-5 단독 상시 운영 약 $11,520/월 대비 **66% 절감**)
+**Total cost: $3,008/month** (vs GLM-5 alone $8,900/month → **66% savings**)
 
-### 엔터프라이즈 모델 라우팅 패턴
+### Enterprise Model Routing Patterns
 
-**구현 위치 우선순위**: Gateway > IDE > 클라이언트
+**Implementation Location Priority**: Gateway > IDE > Client
 
-| 위치 | 장점 | 적합 환경 |
+| Location | Advantages | Suitable Environment |
 |------|------|----------|
-| **Gateway (LLM Classifier)** | 프롬프트 분석, 중앙 통제, 클라이언트 무수정 | 자체 호스팅 **(권장)** |
-| **Gateway (LiteLLM/Bifrost)** | 멀티 프로바이더, 정책 일관성 | 외부 프로바이더 |
-| **IDE (Claude Code)** | 컨텍스트 인식 | 개발 도구 벤더 |
-| **클라이언트 (SDK)** | 유연성 높음 | 프로토타입 |
+| **Gateway (LLM Classifier)** | Prompt analysis, central control, no client modification | Self-hosted **(Recommended)** |
+| **Gateway (LiteLLM/Bifrost)** | Multi-provider, policy consistency | External providers |
+| **IDE (Claude Code)** | Context awareness | Dev tool vendors |
+| **Client (SDK)** | High flexibility | Prototype |
 
-**실전 권장**: 자체 호스팅 환경에서는 **kgateway → LLM Classifier → vLLM** 구조로 배포하여 중앙에서 라우팅. 개발자는 단일 엔드포인트(`/v1`)만 사용하고, 플랫폼 팀이 분류 정책을 관리합니다. 상세 배포 가이드는 [추론 게이트웨이 배포: LLM Classifier](../../reference-architecture/inference-gateway/setup/advanced-features#llm-classifier-배포)를 참조하세요.
+**Field Recommendation**: In self-hosted environments, deploy with **kgateway → LLM Classifier → vLLM** structure for centralized routing. Developers use only a single endpoint (`/v1`), and platform teams manage classification policies. For detailed deployment guide, refer to [Inference Gateway Deployment: LLM Classifier](../../reference-architecture/inference-gateway/setup/advanced-features.md#llm-classifier-deployment).
 
 ---
 
-## 연구 참조: RouteLLM
+## Research Reference: RouteLLM
 
-**RouteLLM**은 LMSYS가 개발한 오픈소스 LLM 라우팅 프레임워크입니다. 경량 분류 모델(Matrix Factorization)이 요청을 분석하여 strong/weak 모델을 자동으로 선택합니다.
+**RouteLLM** is an open-source LLM routing framework developed by LMSYS. A lightweight classification model (Matrix Factorization) analyzes requests to automatically select strong/weak models.
 
 ```mermaid
 graph TD
-    Req[요청] --> Router[LLM Classifier<br/>프롬프트 분석]
-    Router -->|strong: 리팩터,설계,분석<br/>500자이상, 5턴초과| LLM[Strong Model<br/>GLM-5 744B<br/>8xH200 ~$63/hr]
-    Router -->|weak: 단순 질의<br/>500자미만, 5턴이하| SLM[Weak Model<br/>Qwen3-4B<br/>L4 ~$0.80/hr]
-    LLM --> Resp[응답]
+    Req[Request] --> Router[LLM Classifier<br/>Prompt Analysis]
+    Router -->|strong: refactor, design, analysis<br/>≥500 chars, >5 turns| LLM[Strong Model<br/>GLM-5 744B<br/>8xH200 ~$63/hr]
+    Router -->|weak: simple query<br/><500 chars, ≤5 turns| SLM[Weak Model<br/>Qwen3-4B<br/>L4 ~$0.80/hr]
+    LLM --> Resp[Response]
     SLM --> Resp
 
     style Router fill:#326ce5,stroke:#333,color:#fff
@@ -278,31 +281,31 @@ graph TD
     style SLM fill:#76b900,stroke:#333,color:#000
 ```
 
-| 항목 | RouteLLM (연구) | LLM Classifier (실전) |
+| Item | RouteLLM (Research) | LLM Classifier (Production) |
 |------|----------------|---------------------|
-| **분류 방식** | Matrix Factorization 임베딩 | 키워드 + 토큰 길이 + 대화 턴 수 |
-| **입력** | 사용자 프롬프트 + 대화 히스토리 | 동일 |
-| **출력** | Strong/Weak + 신뢰도 점수 | Strong/Weak |
-| **추가 지연** | < 10ms (MF 추론) | < 1ms (규칙 기반) |
-| **의존성** | torch, transformers, sentence-transformers | FastAPI, httpx (경량) |
-| **K8s 배포** | 불안정 (의존성 충돌) | 안정 (50MB 이미지) |
+| **Classification method** | Matrix Factorization embedding | Keywords + token length + conversation turns |
+| **Input** | User prompt + conversation history | Same |
+| **Output** | Strong/Weak + confidence score | Strong/Weak |
+| **Added latency** | < 10ms (MF inference) | < 1ms (rule-based) |
+| **Dependencies** | torch, transformers, sentence-transformers | FastAPI, httpx (lightweight) |
+| **K8s deployment** | Unstable (dependency conflicts) | Stable (50MB image) |
 
-:::warning RouteLLM 프로덕션 배포 주의
-RouteLLM은 연구 프로젝트로, K8s 프로덕션 배포는 권장하지 않습니다. 의존성 충돌과 대형 이미지 크기(10GB+)가 문제입니다. MF classifier **개념**은 유용하지만, 실전에서는 **LLM Classifier**(자체 호스팅) 또는 **LiteLLM complexity routing**(외부 프로바이더)을 권장합니다.
+:::warning RouteLLM Production Deployment Caution
+RouteLLM is a research project; K8s production deployment is not recommended. Dependency conflicts and large image size (10GB+) are problematic. The MF classifier **concept** is useful, but for production we recommend **LLM Classifier** (self-hosted) or **LiteLLM complexity routing** (external provider environments).
 :::
 
-상세 배포 코드는 [추론 게이트웨이 배포: LLM Classifier](../../reference-architecture/inference-gateway/setup/advanced-features#llm-classifier-배포)를 참조하세요.
+For detailed deployment code, refer to [Inference Gateway Deployment Guide: LLM Classifier](../../reference-architecture/inference-gateway/setup/advanced-features.md#llm-classifier-deployment).
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [LiteLLM Routing](https://docs.litellm.ai/docs/routing) — LiteLLM 내장 라우팅 전략과 커스텀 전략
-- [vLLM Semantic Router](https://github.com/vllm-project/semantic-router) — vLLM 프로젝트 독립 실행형 라우팅 서비스
-- [RouteLLM](https://github.com/lm-sys/RouteLLM) — LMSYS 오픈소스 LLM 라우팅 프레임워크
+### Official Documentation
+- [LiteLLM Routing](https://docs.litellm.ai/docs/routing) — LiteLLM built-in routing strategies and custom strategies
+- [vLLM Semantic Router](https://github.com/vllm-project/semantic-router) — Standalone routing service under the vLLM project
+- [RouteLLM](https://github.com/lm-sys/RouteLLM) — LMSYS open-source LLM routing framework
 
-### 관련 문서 (내부)
-- [게이트웨이 라우팅 전략](./routing-strategy.md) — 2-Tier 아키텍처, Gateway API Inference Extension, 솔루션 비교
-- [Cascade Routing 튜닝](./cascade-routing-tuning.md) — 분류 임계값·키워드 튜닝, misroute 탐지, 비용 드리프트 경보
-- [추론 게이트웨이 배포: 고급 기능](../../reference-architecture/inference-gateway/setup/advanced-features.md) — LLM Classifier 배포 코드
+### Related Documents (Internal)
+- [Gateway Routing Strategy](./routing-strategy.md) — 2-Tier architecture, Gateway API Inference Extension, solution comparison
+- [Cascade Routing Tuning](./cascade-routing-tuning.md) — Classification threshold/keyword tuning, misroute detection, cost drift alerting
+- [Inference Gateway Deployment: Advanced Features](../../reference-architecture/inference-gateway/setup/advanced-features.md) — LLM Classifier deployment code

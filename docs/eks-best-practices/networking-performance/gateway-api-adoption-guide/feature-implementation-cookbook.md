@@ -1,11 +1,11 @@
 ---
-title: "기능별 구현 쿡북: 6개 Gateway API 구현체"
-description: 인증·Rate Limiting·IP 제어·URL Rewrite·헤더 조작·세션 어피니티·본문 크기 제한·커스텀 에러 페이지를 AWS LBC·Cilium·NGINX GF·Envoy Gateway·kGateway별 YAML로 구현하는 레퍼런스
+title: "Feature Implementation Cookbook: 6 Gateway API Implementations"
+description: Reference for implementing authentication, rate limiting, IP control, URL rewrite, header manipulation, session affinity, body size limits, and custom error pages as YAML across AWS LBC, Cilium, NGINX GF, Envoy Gateway, and kGateway
 created: "2026-06-17"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 20
+  author: devfloor9
+reading_time: 32
 tags:
   - eks
   - gateway-api
@@ -14,7 +14,7 @@ tags:
   - kong
   - networking
   - scope:tech
-sidebar_label: 기능별 구현 쿡북
+sidebar_label: Feature Implementation Cookbook
 category: performance-networking
 ---
 
@@ -22,34 +22,34 @@ import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 :::info
-이 문서는 [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide)의 심화 가이드입니다. NGINX Ingress에서 사용하던 8가지 주요 기능을 각 Gateway API 구현체에서 어떻게 구현하는지 YAML 예제로 비교합니다. 솔루션 선정·비교표·의사결정 트리는 본 가이드의 [섹션 4](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide#4-gateway-api-구현체-비교---aws-native-vs-open-source)를 참조하세요.
+This document is a deep-dive guide for the [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide). It compares, with YAML examples, how the 8 major features used in NGINX Ingress are implemented in each Gateway API implementation. For solution selection, comparison matrices, and the decision tree, see [Section 4](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide#4-gateway-api-implementation-comparison--aws-native-vs-open-source) of the main guide.
 :::
 
-## 개요
+## Overview
 
-이 쿡북은 다음 8가지 기능을 AWS Native(LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway별로 구현하는 방법을 다룹니다. URL Rewrite와 헤더 조작은 Gateway API v1 표준 기능으로 모든 구현체에서 동일하게 작동합니다.
+This cookbook covers how to implement the following 8 features for AWS Native (LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, and kGateway. URL Rewrite and header manipulation are Gateway API v1 standard features that work identically across all implementations.
 
-| # | 기능 | 표준 여부 |
-|---|------|----------|
-| 1 | 인증 (Basic Auth 대체) | 구현체별 상이 |
-| 2 | Rate Limiting | 구현체별 상이 |
-| 3 | IP 제어 (IP Allowlist) | 구현체별 상이 |
-| 4 | URL Rewrite | Gateway API v1 표준 |
-| 5 | Header 조작 | Gateway API v1 표준 |
-| 6 | 세션 어피니티 (Cookie-based) | 구현체별 상이 |
-| 7 | 요청 본문 크기 제한 | 구현체별 상이 |
-| 8 | 커스텀 에러 페이지 | 구현체별 상이 |
+| # | Feature | Standard? |
+|---|---------|-----------|
+| 1 | Authentication (Basic Auth replacement) | Per-implementation |
+| 2 | Rate Limiting | Per-implementation |
+| 3 | IP Control (IP Allowlist) | Per-implementation |
+| 4 | URL Rewrite | Gateway API v1 standard |
+| 5 | Header Manipulation | Gateway API v1 standard |
+| 6 | Session Affinity (cookie-based) | Per-implementation |
+| 7 | Request Body Size Limit | Per-implementation |
+| 8 | Custom Error Pages | Per-implementation |
 
 ---
 
-## 1. 인증 (Basic Auth 대체)
+## 1. Authentication (Basic Auth replacement)
 
-아래 탭은 서로 다른 controller의 **대안 구성**입니다. 해당 버전의 CRD/controller, `production` namespace, 같은 namespace의 `production-gateway` HTTPS listener(`https`)와 TLS 인증서, DNS, `api-service:8080` backend가 준비되어야 합니다. `example.com` IdP/host와 Secret/공개 키 참조는 실제 환경에 맞게 바꿉니다. manifest를 렌더링·파싱한 것만으로 인증 성공을 확인할 수는 없습니다.
+The tabs are **alternative configurations for different controllers**. Prepare the corresponding versioned CRDs/controller, the `production` namespace, a `production-gateway` HTTPS listener named `https` in the same namespace, its TLS certificate/DNS and the `api-service:8080` backend. Replace `example.com` IdP/host values and Secret/public-key references with the deployment's configuration. Rendering or parsing a manifest does not establish successful authentication.
 
-`Authorization` 헤더의 존재나 정규식 일치는 인증이 아닙니다. JWT 서명·issuer·audience·시간 조건 검증 또는 실제 인증 서비스의 allow/deny 결정이 필요합니다. 아래 예제는 학습용 자격 증명을 내장하지 않으며, 배포·인증 요청은 실행하지 않았습니다.
+The presence or regex match of an `Authorization` header is not authentication. JWT signature, issuer, audience and time checks, or a real authorization service's allow/deny decision, are required. The examples embed no working credentials; no deployment or authentication requests were executed.
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
-AWS LBC 3.0.0의 확장은 `gateway.k8s.aws/v1beta1`의 `ListenerRuleConfiguration`입니다. HTTPS listener에서 ALB가 RS256 JWT의 서명·`iss`·`exp`를 검증하고, 존재하면 `nbf/iat`도 확인합니다. 여기서는 문자열 `aud=api-gateway-client`를 추가로 요구합니다. IdP가 audience 배열을 내보내면 해당 claim 형식도 맞춰야 합니다. JWKS endpoint의 공개 접근성과 ALB 제한은 [공식 JWT 문서](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html)를 확인합니다.
+AWS LBC 3.0.0 exposes `ListenerRuleConfiguration` in `gateway.k8s.aws/v1beta1`. On an HTTPS listener, ALB checks an RS256 JWT's signature, `iss` and `exp`, plus `nbf/iat` when present. This example also requires the string claim `aud=api-gateway-client`; use the matching claim format if the IdP emits an audience array. Verify public JWKS reachability and ALB limits in the [official JWT documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-verify-jwt.html).
 ```yaml
 # auth-aws.yaml
 # AWS Load Balancer Controller v3.0.0; existing HTTPS listener named https.
@@ -96,16 +96,16 @@ spec:
             values:
               - api-gateway-client
 ```
-JWT 검증은 browser OIDC 로그인 redirect와 다른 기능입니다. 유효한 token은 backend에 그대로 전달되며 위 확장은 `claimsToHeaders`를 구성하지 않습니다. downstream identity header가 필요하면 별도 신뢰·덮어쓰기 계약을 정의합니다. [LBC 3.0.0 LRC 계약](https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/v3.0.0/docs/guide/gateway/listenerruleconfig.md)
+JWT validation is distinct from a browser OIDC login redirect. A valid token is forwarded as-is; this extension does not configure `claimsToHeaders`. Define a separate trusted identity-header/overwrite contract if the backend requires one. [LBC 3.0.0 LRC contract](https://github.com/kubernetes-sigs/aws-load-balancer-controller/blob/v3.0.0/docs/guide/gateway/listenerruleconfig.md)
 </TabItem>
 <TabItem value="cilium" label="Cilium">
-:::warning 제한 사항
-Cilium은 네이티브 JWT/OIDC 인증을 지원하지 않습니다. CiliumEnvoyConfig로 Envoy ext_authz 필터를 구성하거나, 별도 인증 서비스(OAuth2 Proxy 등)를 배포해야 합니다.
+:::warning Limitation
+Cilium does not support native JWT/OIDC authentication. You must configure an Envoy ext_authz filter via CiliumEnvoyConfig, or deploy a separate authentication service (such as OAuth2 Proxy).
 :::
 
-이 경고의 Cilium 1.19.3 경계는 그대로 유지합니다. 아래에서는 별도 OAuth2 Proxy를 사용하는 **browser OIDC 세션** 경로를 선택합니다. Gateway는 `/api`와 `/oauth2` callback을 포함한 해당 host의 요청을 먼저 proxy로 보내고, proxy가 인증 후 `api-service`로 전달합니다. Bearer 헤더 일치만으로 backend에 보내는 route나 불완전한 CiliumEnvoyConfig를 추가하지 않습니다.
+Retain that Cilium 1.19.3 boundary. This example selects a separate OAuth2 Proxy for **browser OIDC sessions**. The Gateway sends the host's requests, including `/api` and `/oauth2` callbacks, to the proxy before the proxy forwards authenticated traffic to `api-service`. It adds neither a Bearer-header-only bypass route nor an incomplete CiliumEnvoyConfig.
 
-OAuth2 Proxy 7.9.0에 맞는 OIDC client/redirect URL, 허용 email domain과 Secret의 `client-id`, `client-secret`, `cookie-secret`을 준비합니다. cookie secret은 [공식 설정](https://oauth2-proxy.github.io/oauth2-proxy/7.9.x/configuration/overview/)의 키 길이·인코딩 조건을 따라 생성·보관합니다. IdP는 PKCE S256 및 필요한 email claim을 지원해야 합니다.
+Prepare an OAuth2 Proxy 7.9.0 OIDC client/redirect URL, permitted email domain and the `client-id`, `client-secret` and `cookie-secret` Secret keys. Generate/store the cookie secret according to the length/encoding rules in the [official configuration](https://oauth2-proxy.github.io/oauth2-proxy/7.9.x/configuration/overview/). The IdP must support PKCE S256 and the required email claim.
 ```yaml
 # auth-cilium.yaml
 # Cilium Gateway API + OAuth2 Proxy 7.9.0: browser OIDC session authentication.
@@ -229,16 +229,16 @@ spec:
             - port: "8080"
               protocol: TCP
 ```
-`endpointSelector`의 `app: api-service`는 실제 backend Pod의 라벨과 일치해야 합니다. 서비스 이름만 같아서는 해당 Pod에 정책이 적용되지 않습니다. Gateway→proxy와 proxy→backend의 네트워크 정책·TLS 요구도 확인합니다.
+The `endpointSelector` value `app: api-service` must match the actual backend Pod labels. A matching Service name alone does not apply the policy to those Pods. Check network-policy and TLS requirements for both Gateway→proxy and proxy→backend paths.
 
-Backend를 별도 외부 route/Service로 노출하지 않고, 다른 허용 정책이 접근 범위를 넓히는지도 검토합니다. 인증 proxy에서는 접근되고 다른 Pod나 외부 경로에서는 차단되는지 실제로 확인해야 합니다. 위 정책은 임의의 `ingress-nginx` namespace 대신 인증 proxy Pod를 선택합니다. Bearer-token API 인증이나 gRPC ext_authz가 필요하면 해당 프로토콜의 authorizer와 listener·route·filter·cluster를 연결하고 실패 시 동작을 별도로 검증합니다.
+Keep the backend off other external routes/Services, and review other allow policies that could widen access. Verify that traffic from the authentication proxy succeeds while other Pods and external paths are blocked. This policy selects the authentication-proxy Pods rather than an unrelated `ingress-nginx` namespace. Bearer-token API authentication or gRPC ext_authz needs a separate authorizer with complete listener, route, filter and cluster wiring, plus verified failure behavior.
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
-:::warning 인증 방식 구분
-NGINX Gateway Fabric 2.4.0의 아래 `AuthenticationFilter`는 **Basic 인증**입니다. JWT/OIDC 인증을 구성하지 않으며, `UpstreamSettingsPolicy`도 인증 정책이 아닙니다. OIDC가 필요하면 검증된 별도 인증 proxy 경로 등 해당 버전이 지원하는 구성을 사용합니다.
+:::warning Distinguish authentication mechanisms
+The NGINX Gateway Fabric 2.4.0 `AuthenticationFilter` below implements **Basic authentication**. It configures no JWT/OIDC authentication, and `UpstreamSettingsPolicy` is not an authentication policy. For OIDC, use a verified separate authentication-proxy path or another configuration supported by the selected version.
 :::
 
-`production/api-basic-auth` Secret의 `auth` key에 htpasswd 형식의 자격 증명을 외부 비밀 관리 절차로 준비합니다. TLS listener가 필요하며 비밀번호·hash 예시를 재사용하지 않습니다. [2.4.0 AuthenticationFilter schema](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/apis/v1alpha1/authenticationfilter_types.go)
+Provision htpasswd-format credentials under the `auth` key of Secret `production/api-basic-auth` through the secret-management process. Use a TLS listener and do not reuse example passwords/hashes. [2.4.0 AuthenticationFilter schema](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/apis/v1alpha1/authenticationfilter_types.go)
 ```yaml
 # auth-nginx.yaml
 # NGINX Gateway Fabric v2.4.0. This implements Basic authentication, not JWT.
@@ -284,7 +284,7 @@ spec:
 ```
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
-Envoy Gateway 1.7.0에서는 `SecurityPolicy.extAuth.http.backendRefs`로 HTTP authorizer를 연결합니다. 같은 namespace의 `auth-service:8080`은 원래 요청 경로에서 Authorization 값을 검증하고 허용 시 200, 거부 시 401/403을 반환하는 **HTTP ext_authz 계약**을 구현해야 합니다. OAuth2 Proxy의 browser proxy port를 검증 없이 이 check endpoint로 지정하지 않습니다.
+Envoy Gateway 1.7.0 connects an HTTP authorizer through `SecurityPolicy.extAuth.http.backendRefs`. The same-namespace `auth-service:8080` must implement the **HTTP ext_authz contract**: check Authorization at the original request path, return 200 for allow and 401/403 for deny. Do not assume an OAuth2 Proxy browser-proxy port implements this check endpoint.
 ```yaml
 # auth-envoy.yaml
 # Envoy Gateway v1.7.0; auth-service implements the HTTP ext_authz contract.
@@ -328,10 +328,10 @@ spec:
         - name: auth-service
           port: 8080
 ```
-`failOpen: false`는 authorizer 오류/timeout 시 backend 전달을 차단합니다. `http.path`를 추가하면 원래 경로 앞에 붙으므로 서비스의 routing과 맞춰야 합니다. 필요한 경우에만 검증한 identity response header를 `headersToBackend`로 허용하고 backend가 다른 입력 header를 신뢰하지 않도록 합니다. [1.7.0 extAuth 계약](https://github.com/envoyproxy/gateway/blob/v1.7.0/api/v1alpha1/ext_auth_types.go)
+`failOpen: false` blocks backend forwarding on authorizer failure/timeout. If `http.path` is added, it prefixes the original path and must match the authorizer's routing. Only allow verified identity response headers through `headersToBackend` when needed, with a corresponding backend trust policy. [1.7.0 extAuth contract](https://github.com/envoyproxy/gateway/blob/v1.7.0/api/v1alpha1/ext_auth_types.go)
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
-kgateway 2.2.0 Envoy 경로는 `gateway.kgateway.dev`의 `TrafficPolicy`와 JWT provider를 정의한 `GatewayExtension`을 사용합니다. 아래 예제는 trusted 공개 JWKS를 `production/api-jwks` ConfigMap의 `jwks` key로 제공합니다. 키 회전·철회와 ConfigMap 갱신 절차가 필요하며 임의 또는 오래된 공개 키를 그대로 사용하면 안 됩니다.
+The kgateway 2.2.0 Envoy path uses `TrafficPolicy` and a JWT-provider `GatewayExtension` in `gateway.kgateway.dev`. This example supplies trusted public JWKS through the `jwks` key of ConfigMap `production/api-jwks`. Define key rotation/revocation and ConfigMap updates; do not reuse arbitrary or stale keys.
 ```yaml
 # auth-kgateway.yaml
 # kgateway v2.2.0 (Envoy data plane), not the legacy Gloo RouteOption API.
@@ -394,22 +394,22 @@ spec:
             configMapRef:
               name: api-jwks
 ```
-`jwtAuth.extensionRef`, provider의 `jwks.local.configMapRef`, issuer/audience/token source를 동일 namespace에서 연결합니다. token을 downstream에 전달하지 않도록 명시했으며, 이 예제는 claim-to-header 신뢰 계약을 추가하지 않습니다. [2.2.0 JWT schema](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/jwt_types.go) · [versioned configuration example](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/translator/gateway/testutils/inputs/jwt/gateway-configmap.yaml)
+Connect `jwtAuth.extensionRef`, the provider's `jwks.local.configMapRef`, issuer/audience and token source in the same namespace. Token forwarding is explicitly disabled; no claim-to-header trust contract is added here. [2.2.0 JWT schema](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/jwt_types.go) · [Versioned configuration example](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/translator/gateway/testutils/inputs/jwt/gateway-configmap.yaml)
 </TabItem>
 </Tabs>
-인증 적용 전후에는 선택한 메커니즘에 맞춰 정상 자격 증명, 누락·변조·만료된 token 또는 잘못된 비밀번호, 잘못된 issuer/audience, authorizer 장애, callback 경로와 backend 직접 접근을 확인합니다. route/policy 상태의 `Accepted`/`ResolvedRefs`와 실제 backend 요청 도달 여부를 함께 기록해야 합니다. 정적 schema 검사만으로 이 실행 결과를 대신하지 않습니다.
+For the selected mechanism, verify valid credentials, missing/tampered/expired tokens or incorrect passwords, wrong issuer/audience, authorizer failure, callback routing and direct-backend access. Record applicable `Accepted`/`ResolvedRefs` status and actual backend reachability. Static schema checks do not replace these runtime acceptance results.
 
 ## 2. Rate Limiting
 
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
 
-:::warning 제한 사항
-AWS Native(LBC v3)는 게이트웨이 레벨의 네이티브 Rate Limiting을 지원하지 않습니다. AWS WAF Rate-based Rule을 사용하여 IP 기반 요청 제한을 구현합니다.
+:::warning Limitation
+AWS Native (LBC v3) does not support gateway-level native rate limiting. IP-based request limiting is implemented using AWS WAF Rate-based Rules.
 :::
 
 ```yaml
-# ALB에 WAF Rate-based Rule 연결
+# Attach a WAF Rate-based Rule to the ALB
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -425,16 +425,16 @@ spec:
       protocol: HTTP
 ```
 
-**ACK(AWS Controllers for Kubernetes)로 WAF Rate-based Rule 생성:**
+**Create a WAF Rate-based Rule with ACK (AWS Controllers for Kubernetes):**
 
-ACK WAFv2 컨트롤러를 사용하면 WAF 리소스를 Kubernetes 매니페스트로 선언적 관리할 수 있습니다.
+Using the ACK WAFv2 controller, WAF resources can be managed declaratively as Kubernetes manifests.
 
-**EKS Capabilities로 ACK 활성화 (권장):**
+**Enable ACK with EKS Capabilities (recommended):**
 
-EKS Capabilities(2025년 11월 GA)를 사용하면 ACK 컨트롤러를 AWS 완전 관리형으로 운영할 수 있습니다. 컨트롤러가 AWS 관리 인프라에서 실행되므로 워커 노드에 별도 Pod가 배포되지 않습니다.
+Using EKS Capabilities (GA in November 2025), the ACK controller can run as a fully AWS-managed component. Because the controller runs on AWS-managed infrastructure, no separate pod is deployed on the worker nodes.
 
 ```bash
-# 1. IAM Capability Role 생성
+# 1. Create the IAM Capability Role
 aws iam create-role \
   --role-name EKS-ACK-Capability-Role \
   --assume-role-policy-document '{
@@ -449,7 +449,7 @@ aws iam create-role \
     }]
   }'
 
-# WAFv2 권한 정책 연결
+# Attach the WAFv2 permission policy
 aws iam put-role-policy \
   --role-name EKS-ACK-Capability-Role \
   --policy-name ACK-WAFv2-Policy \
@@ -462,7 +462,7 @@ aws iam put-role-policy \
     }]
   }'
 
-# 2. EKS 클러스터에 ACK Capability 생성
+# 2. Create the ACK Capability on the EKS cluster
 aws eks create-capability \
   --cluster-name my-eks-cluster \
   --capability-type ACK \
@@ -470,14 +470,14 @@ aws eks create-capability \
     "capabilityRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role"
   }'
 
-# 3. CRD 등록 확인
+# 3. Verify CRD registration
 kubectl get crds | grep wafv2
 ```
 
 <details>
-<summary>대안: Helm으로 직접 설치 (비 EKS 환경)</summary>
+<summary>Alternative: install directly with Helm (non-EKS environments)</summary>
 
-EKS가 아닌 환경이나 컨트롤러를 직접 관리해야 하는 경우 Helm으로 설치할 수 있습니다.
+For non-EKS environments or when the controller must be self-managed, it can be installed with Helm.
 
 ```bash
 helm install ack-wafv2-controller \
@@ -487,12 +487,12 @@ helm install ack-wafv2-controller \
   --set aws.region=ap-northeast-2
 ```
 
-이 방식은 컨트롤러가 워커 노드에 Pod로 배포되며, IRSA(IAM Roles for Service Accounts)로 권한을 관리합니다.
+With this approach the controller is deployed as a pod on the worker nodes, and permissions are managed via IRSA (IAM Roles for Service Accounts).
 
 </details>
 
 ```yaml
-# ACK WAFv2 WebACL - Rate-based Rule 정의
+# ACK WAFv2 WebACL - Rate-based Rule definition
 apiVersion: wafv2.services.k8s.aws/v1alpha1
 kind: WebACL
 metadata:
@@ -510,8 +510,8 @@ spec:
         block: {}
       statement:
         rateBasedStatement:
-          limit: 500            # 5분간 최대 요청 수 (100~2,000,000,000)
-          aggregateKeyType: IP  # IP 기반 집계
+          limit: 500            # max requests per 5 minutes (100~2,000,000,000)
+          aggregateKeyType: IP  # aggregate by IP
       visibilityConfig:
         sampledRequestsEnabled: true
         cloudWatchMetricsEnabled: true
@@ -523,8 +523,8 @@ spec:
 ```
 
 ```yaml
-# 생성된 WebACL ARN을 Gateway에 연결
-# WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+# Attach the created WebACL ARN to the Gateway
+# After WebACL creation, find the ARN in status.ackResourceMetadata.arn:
 #   kubectl get webacl rate-limit-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
 apiVersion: gateway.networking.k8s.io/v1
@@ -541,21 +541,21 @@ spec:
       protocol: HTTP
 ```
 
-:::note ACK WAFv2 컨트롤러 요구사항
-- ACK WAFv2 컨트롤러에 `wafv2:CreateWebACL`, `wafv2:UpdateWebACL`, `wafv2:DeleteWebACL`, `wafv2:GetWebACL` 등의 IAM 권한이 필요합니다
-- **EKS Capabilities** 사용 시: IAM Capability Role에 WAFv2 권한을 연결합니다. 컨트롤러는 AWS 관리 인프라에서 실행됩니다
-- **Helm 설치** 사용 시: IRSA(IAM Roles for Service Accounts) 또는 EKS Pod Identity를 통해 최소 권한을 부여하세요
-- WebACL과 ALB는 동일 리전에 있어야 합니다
+:::note ACK WAFv2 Controller Requirements
+- The ACK WAFv2 controller requires IAM permissions such as `wafv2:CreateWebACL`, `wafv2:UpdateWebACL`, `wafv2:DeleteWebACL`, and `wafv2:GetWebACL`
+- When using **EKS Capabilities**: attach the WAFv2 permissions to the IAM Capability Role. The controller runs on AWS-managed infrastructure
+- When using **Helm install**: grant least privilege via IRSA (IAM Roles for Service Accounts) or EKS Pod Identity
+- The WebACL and the ALB must be in the same region
 :::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
-Cilium `v1.19.3`에서 기존 `production/api-service:8080` Service의 트래픽을 별도의 `CiliumEnvoyConfig`(CEC)로 처리하는 예시입니다. 단일 포트 Service를 대상으로 하며, Gateway가 자동으로 관리하는 listener의 정책과는 별도로 구성합니다.
+This Cilium `v1.19.3` example uses a separately managed `CiliumEnvoyConfig` (CEC) to handle traffic for the existing single-port `production/api-service:8080` Service. Configure it separately from the listeners automatically managed by a Gateway.
 
-kube-proxy replacement와 Envoy 설정 지원을 활성화하고, `local_ratelimit` 필터가 포함된 기본 Envoy 빌드를 사용해야 합니다. Cilium은 EDS로 Service의 백엔드 endpoint를 전달합니다. 같은 Service에 여러 CEC를 적용하지 말고 필요한 필터를 하나의 설정으로 합칩니다. Gateway가 생성한 CEC는 직접 수정하지 않습니다. 구성할 때 기존 인증 경로를 유지하고 네트워크 정책이 실제로 사용하는 identity를 확인합니다.
+Enable kube-proxy replacement and Envoy configuration support, and use the packaged Envoy build containing `local_ratelimit`. Cilium supplies the Service's backend endpoints through EDS. Combine required filters in one configuration instead of applying multiple CECs to the same Service. Leave Gateway-generated CECs under controller ownership, preserve the authentication path and check the identities used by network policy.
 
-token bucket은 **Envoy 프로세스마다** 처음에 200개 token을 가지고 시작하며, 매초 100개를 보충합니다. 필터 활성화와 제한 적용 비율은 모두 100%입니다. 이 수치는 프로세스 단위 제한이므로 클러스터 전체나 인증된 사용자별 quota로 사용하면 안 됩니다. 실제 트래픽에서 제한이 적용되는지는 별도 검증이 필요합니다.
+The token bucket starts with 200 tokens and refills 100 each second **per Envoy process**. Activation and enforcement are both 100%. Treat these values as process-local limits, not as a quota for the entire cluster or an authenticated user. Enforcement with actual traffic still requires verification.
 
 ```yaml
 # cilium-rate.yaml
@@ -621,7 +621,7 @@ spec:
       lb_policy: ROUND_ROBIN
 ```
 
-[Cilium 1.19.3 Service/CEC 계약](https://github.com/cilium/cilium/blob/v1.19.3/pkg/k8s/apis/cilium.io/v2/cec_types.go) · [버전별 L7 주의사항](https://github.com/cilium/cilium/blob/v1.19.3/Documentation/network/servicemesh/l7-traffic-management.rst)
+[Cilium 1.19.3 Service/CEC contract](https://github.com/cilium/cilium/blob/v1.19.3/pkg/k8s/apis/cilium.io/v2/cec_types.go) · [Versioned L7 caveats](https://github.com/cilium/cilium/blob/v1.19.3/Documentation/network/servicemesh/l7-traffic-management.rst)
 
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
@@ -633,10 +633,10 @@ metadata:
   name: rate-limit
 spec:
   rateLimiting:
-    rate: 100r/s  # 초당 100 요청
-    burst: 200    # 버스트 200 요청
-    noDelay: true # 즉시 제한 적용
-    zoneSize: 10m # 메모리 존 크기
+    rate: 100r/s  # 100 requests per second
+    burst: 200    # burst of 200 requests
+    noDelay: true # apply limit immediately
+    zoneSize: 10m # memory zone size
 ```
 
 </TabItem>
@@ -663,17 +663,17 @@ spec:
           clientSelectors:
             - headers:
                 - name: x-user-id
-                  type: Distinct  # 사용자별 제한
+                  type: Distinct  # per-user limit
 ```
 
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
-kgateway `v2.2.0`의 **Envoy data plane**에서는 `TrafficPolicy`로 기존 `production/api-route`에 로컬 요청 제한을 설정합니다. 해당 HTTPRoute의 Gateway와 backend 참조가 유효해야 합니다.
+For the kgateway `v2.2.0` **Envoy data plane**, use `TrafficPolicy` to add a local request limit to an existing `production/api-route`. The HTTPRoute needs valid Gateway and backend references.
 
-이 token bucket은 Envoy 프로세스마다 burst 200개, 매초 100개 보충을 설정합니다. controller는 기본적으로 필터를 활성화하고 제한을 적용하지만, runtime override가 있는지도 확인해야 합니다. 클러스터 전체 quota에는 별도의 rate-limit 서비스/GatewayExtension이 필요합니다. 사용자별 quota에는 검증된 사용자 식별값도 필요하며, 임의의 `x-user-id` 헤더를 신뢰해서는 안 됩니다.
+The token bucket allows a burst of 200 and refills 100 each second per Envoy process. The controller enables and enforces the filter by default, but check for runtime overrides. A cluster-wide quota requires a separate rate-limit service/GatewayExtension. Per-user quotas also require verified identity inputs; an arbitrary `x-user-id` header is insufficient.
 
-1절의 인증이나 본문 제한 예시와 함께 사용할 때는 최종 적용될 정책에 필요한 설정을 모으고 JWT 인증을 유지합니다. 같은 대상을 지정한 정책들이 자동으로 합쳐지는 것으로 가정하지 않습니다.
+When combining this with authentication from Section 1 or the body-limit example, put the required settings into the intended effective policy and retain JWT authentication. Do not assume that independent policies targeting the same resource merge automatically.
 
 ```yaml
 # kgateway-rate.yaml
@@ -696,18 +696,18 @@ spec:
         fillInterval: 1s
 ```
 
-[2.2.0 rate-limit API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Controller 활성화/enforcement](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/local_rate_limit_plugin.go)
+[2.2.0 rate-limit API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Controller activation/enforcement](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/local_rate_limit_plugin.go)
 
 </TabItem>
 </Tabs>
 
-## 3. IP 제어 (IP Allowlist)
+## 3. IP Control (IP Allowlist)
 
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
 
 ```yaml
-# ALB Ingress에 WAF 연결 (LBC v3)
+# Attach WAF to ALB Ingress (LBC v3)
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -722,12 +722,12 @@ spec:
       protocol: HTTP
 ```
 
-**ACK(AWS Controllers for Kubernetes)로 WAF IP Allowlist 생성:**
+**Create a WAF IP Allowlist with ACK (AWS Controllers for Kubernetes):**
 
-ACK WAFv2 컨트롤러를 사용하면 IPSet과 WebACL을 Kubernetes 매니페스트로 선언적 관리할 수 있습니다.
+Using the ACK WAFv2 controller, IPSet and WebACL can be managed declaratively as Kubernetes manifests.
 
 ```yaml
-# 1. ACK WAFv2 IPSet - 허용할 IP 목록 정의
+# 1. ACK WAFv2 IPSet - define the list of allowed IPs
 apiVersion: wafv2.services.k8s.aws/v1alpha1
 kind: IPSet
 metadata:
@@ -738,14 +738,14 @@ spec:
   scope: REGIONAL
   ipAddressVersion: IPV4
   addresses:
-    - "10.0.0.0/8"        # VPC 내부
-    - "192.168.1.0/24"    # 사무실 네트워크
-    - "203.0.113.100/32"  # 특정 허용 IP
+    - "10.0.0.0/8"        # internal VPC
+    - "192.168.1.0/24"    # office network
+    - "203.0.113.100/32"  # specific allowed IP
 ```
 
 ```yaml
-# 2. ACK WAFv2 WebACL - IPSet 기반 Allowlist 규칙
-# IPSet 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+# 2. ACK WAFv2 WebACL - IPSet-based allowlist rule
+# After IPSet creation, find the ARN in status.ackResourceMetadata.arn:
 #   kubectl get ipset allowed-ips -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
 apiVersion: wafv2.services.k8s.aws/v1alpha1
@@ -757,7 +757,7 @@ spec:
   name: ip-allowlist-acl
   scope: REGIONAL
   defaultAction:
-    block: {}  # 기본 차단, 허용 목록만 통과
+    block: {}  # block by default, only the allowlist passes
   rules:
     - name: allow-trusted-ips
       priority: 1
@@ -765,7 +765,7 @@ spec:
         allow: {}
       statement:
         ipSetReferenceStatement:
-          arn: <IPSet ARN>  # allowed-ips IPSet의 ARN
+          arn: <IPSet ARN>  # ARN of the allowed-ips IPSet
       visibilityConfig:
         sampledRequestsEnabled: true
         cloudWatchMetricsEnabled: true
@@ -777,8 +777,8 @@ spec:
 ```
 
 ```yaml
-# 3. 생성된 WebACL ARN을 Gateway에 연결
-# WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+# 3. Attach the created WebACL ARN to the Gateway
+# After WebACL creation, find the ARN in status.ackResourceMetadata.arn:
 #   kubectl get webacl ip-allowlist-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
 apiVersion: gateway.networking.k8s.io/v1
@@ -795,10 +795,10 @@ spec:
       protocol: HTTP
 ```
 
-:::note ACK WAFv2 IPSet 관리 팁
-- IPSet의 `addresses` 필드를 업데이트하면 ACK 컨트롤러가 자동으로 AWS WAF IPSet을 동기화합니다
-- GitOps(ArgoCD/Flux)와 결합하면 IP 변경을 PR 기반으로 관리할 수 있습니다
-- IPSet과 WebACL은 동일 리전에 있어야 하며, `wafv2:*IPSet*`, `wafv2:*WebACL*` 권한이 필요합니다 (EKS Capabilities: IAM Capability Role / Helm: IRSA)
+:::note ACK WAFv2 IPSet Management Tips
+- Updating the `addresses` field of the IPSet causes the ACK controller to automatically sync the AWS WAF IPSet
+- Combined with GitOps (ArgoCD/Flux), IP changes can be managed via PRs
+- The IPSet and WebACL must be in the same region, and `wafv2:*IPSet*` and `wafv2:*WebACL*` permissions are required (EKS Capabilities: IAM Capability Role / Helm: IRSA)
 :::
 
 </TabItem>
@@ -816,9 +816,9 @@ spec:
       app: api-service
   ingress:
     - fromCIDR:
-        - "10.0.0.0/8"        # VPC 내부
-        - "192.168.1.0/24"    # 사무실
-        - "203.0.113.100/32"  # 특정 IP
+        - "10.0.0.0/8"        # internal VPC
+        - "192.168.1.0/24"    # office
+        - "203.0.113.100/32"  # specific IP
       toPorts:
         - ports:
             - port: "8080"
@@ -839,7 +839,7 @@ spec:
       - "10.0.0.0/8"
       - "192.168.1.0/24"
     deny:
-      - "203.0.113.0/24"  # 차단할 IP 대역
+      - "203.0.113.0/24"  # IP range to block
 ```
 
 </TabItem>
@@ -873,12 +873,12 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
-:::warning 제한 사항
-아래 Kubernetes NetworkPolicy는 `production` namespace에서 `app: api-service`인 Pod의 TCP 8080 접근을 제한하는 예시입니다. 정책을 집행하는 CNI가 필요합니다. Gateway나 NAT를 거친 연결에서는 정책이 보는 출발지 주소가 원래 클라이언트 주소와 다를 수 있으므로 실제 통신 경로를 확인해야 합니다. HTTP 헤더의 클라이언트 주소를 검사하는 정책으로 해석하지 않습니다.
+:::warning Limitation
+The Kubernetes NetworkPolicy below restricts TCP port 8080 access to Pods labeled `app: api-service` in the `production` namespace. It requires a CNI that enforces the policy. A Gateway or NAT can change the source address seen by that policy, so verify the actual network path. This policy does not inspect client addresses carried in HTTP headers.
 :::
 
 ```yaml
-# Kubernetes NetworkPolicy를 사용한 IP 제어
+# IP control using a Kubernetes NetworkPolicy
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -908,8 +908,8 @@ spec:
 
 ## 4. URL Rewrite
 
-:::note Gateway API 표준
-URL Rewrite는 Gateway API v1 표준 기능으로, 모든 구현체에서 동일하게 작동합니다.
+:::note Gateway API Standard
+URL Rewrite is a Gateway API v1 standard feature that works identically across all implementations.
 :::
 
 ```yaml
@@ -953,10 +953,10 @@ spec:
           port: 8080
 ```
 
-## 5. Header 조작
+## 5. Header Manipulation
 
-:::note Gateway API 표준
-Header 조작은 Gateway API v1 표준 기능으로, 모든 구현체에서 동일하게 작동합니다.
+:::note Gateway API Standard
+Header manipulation is a Gateway API v1 standard feature that works identically across all implementations.
 :::
 
 ```yaml
@@ -972,7 +972,7 @@ spec:
         - path:
             value: /api
       filters:
-        # 요청 헤더 추가
+        # Add request headers
         - type: RequestHeaderModifier
           requestHeaderModifier:
             add:
@@ -981,8 +981,8 @@ spec:
               - name: X-Forwarded-Proto
                 value: "https"
             remove:
-              - Authorization  # 기존 Authorization 제거
-        # 응답 헤더 추가
+              - Authorization  # remove existing Authorization
+        # Add response headers
         - type: ResponseHeaderModifier
           responseHeaderModifier:
             add:
@@ -995,7 +995,7 @@ spec:
           port: 8080
 ```
 
-## 6. 세션 어피니티 (Cookie-based)
+## 6. Session Affinity (cookie-based)
 
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
@@ -1021,8 +1021,8 @@ spec:
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
-:::warning 제한 사항
-Cilium은 네이티브 쿠키 기반 세션 어피니티를 지원하지 않습니다. CiliumEnvoyConfig로 Envoy의 consistent hashing 또는 ring hash를 구성할 수 있습니다.
+:::warning Limitation
+Cilium does not support native cookie-based session affinity. You can configure Envoy's consistent hashing or ring hash via CiliumEnvoyConfig.
 :::
 
 ```yaml
@@ -1071,11 +1071,11 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
-NGINX Gateway Fabric `v2.4.0`의 cookie persistence는 **HTTPRoute rule의 `sessionPersistence`**로 설정합니다. NGINX Plus, Gateway API `v1.4.1` experimental CRD, NGF의 experimental 기능 활성화가 필요합니다. `UpstreamSettingsPolicy.sessionAffinity`라는 필드를 추가하는 방식은 지원되지 않습니다.
+NGINX Gateway Fabric `v2.4.0` configures cookie persistence through **HTTPRoute rule `sessionPersistence`**. It requires NGINX Plus, Gateway API `v1.4.1` experimental CRDs and NGF experimental-feature support. Adding an `UpstreamSettingsPolicy.sessionAffinity` field is unsupported.
 
-NGINX OSS에서는 `UpstreamSettingsPolicy.targetRefs`와 `loadBalancingMethod: ip_hash`로 IP 기반 affinity를 구성할 수 있습니다. 이는 클라이언트 IP를 이용하는 방식으로, cookie 기반 affinity와 구분해야 합니다.
+NGINX OSS can use `UpstreamSettingsPolicy.targetRefs` with `loadBalancingMethod: ip_hash` for IP-based affinity. That approach uses the client IP and differs from cookie-based affinity.
 
-아래 YAML은 기존 `HTTPRoute.spec.rules[]`의 대상 rule에 추가할 필드입니다. 기존 matches, 인증 filter와 backend 참조를 유지한 채 병합합니다. `Permanent`와 `absoluteTimeout: 1h`는 persistence cookie의 수명을 정합니다. 이 cookie가 사용자 인증을 대신하거나 선택한 backend의 가용성을 보장하지는 않습니다.
+The YAML below contains fields to add to an existing `HTTPRoute.spec.rules[]` entry. Merge them while preserving its matches, authentication filters and backend references. `Permanent` with `absoluteTimeout: 1h` sets the persistence cookie's lifetime. The cookie does not authenticate a user or guarantee the selected backend's availability.
 
 ```yaml
 # ngf-session-rule.yaml
@@ -1089,7 +1089,7 @@ sessionPersistence:
     lifetimeType: Permanent
 ```
 
-[NGF 2.4.0 Plus/experimental 조건](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/internal/controller/state/graph/httproute.go) · [버전별 Plus 예시](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/tests/suite/manifests/session-persistence/routes-plus.yaml)
+[NGF 2.4.0 Plus/experimental guards](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/internal/controller/state/graph/httproute.go) · [Versioned Plus example](https://github.com/nginx/nginx-gateway-fabric/blob/v2.4.0/tests/suite/manifests/session-persistence/routes-plus.yaml)
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
@@ -1117,11 +1117,11 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
-kgateway `v2.2.0`의 **Envoy data plane**과 Gateway API `v1.4.1` experimental CRD에서는 HTTPRoute rule의 `sessionPersistence`를 사용합니다. agentgateway에서 사용하려면 해당 data plane의 지원 범위를 별도로 확인해야 합니다.
+For kgateway `v2.2.0` with the **Envoy data plane** and Gateway API `v1.4.1` experimental CRDs, use HTTPRoute rule `sessionPersistence`. Check the data plane's feature support separately before adapting this example for agentgateway.
 
-아래 YAML은 독립 리소스가 아니라 기존 `production/api-route`의 rule에 추가할 필드입니다. matches, backend 참조, 1절에서 연결한 인증 정책을 유지한 채 병합합니다.
+The YAML below is a set of fields to merge into an existing rule of `production/api-route`. Preserve its matches, backend references and the authentication policy attached in Section 1.
 
-persistence cookie는 요청을 같은 backend로 보내기 위한 cookie입니다. 애플리케이션의 인증 cookie와 다른 이름을 사용합니다. 여기의 한 시간 설정은 라우팅 cookie의 수명이며, 사용자 세션 수명이나 장애가 난 backend의 가용성을 보장하지 않습니다.
+A persistence cookie directs requests to the same backend. Give it a name distinct from the application's authentication cookie. The one-hour setting controls this routing cookie's lifetime; it does not define the user's session lifetime or keep a failed backend available.
 
 ```yaml
 # kgateway-session-rule.yaml
@@ -1140,17 +1140,17 @@ sessionPersistence:
 </TabItem>
 </Tabs>
 
-## 7. 요청 본문 크기 제한
+## 7. Request Body Size Limit
 
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
 
-:::warning 제한 사항
-AWS WAF Rule을 사용하여 요청 본문 크기를 제한합니다 (Console/CloudFormation 설정).
+:::warning Limitation
+Use an AWS WAF Rule to limit request body size (Console/CloudFormation configuration).
 :::
 
 ```yaml
-# ALB에 WAF Body Size Limit Rule 연결
+# Attach a WAF Body Size Limit Rule to the ALB
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -1165,12 +1165,12 @@ spec:
       protocol: HTTP
 ```
 
-**ACK(AWS Controllers for Kubernetes)로 WAF Body Size Rule 생성:**
+**Create a WAF Body Size Rule with ACK (AWS Controllers for Kubernetes):**
 
-ACK WAFv2 컨트롤러를 사용하면 Body Size 제한 규칙을 Kubernetes 매니페스트로 선언적 관리할 수 있습니다.
+Using the ACK WAFv2 controller, body size limit rules can be managed declaratively as Kubernetes manifests.
 
 ```yaml
-# ACK WAFv2 WebACL - Body Size Limit Rule 정의
+# ACK WAFv2 WebACL - Body Size Limit Rule definition
 apiVersion: wafv2.services.k8s.aws/v1alpha1
 kind: WebACL
 metadata:
@@ -1190,9 +1190,9 @@ spec:
         sizeConstraintStatement:
           fieldToMatch:
             body:
-              oversizeHandling: MATCH  # 오버사이즈 본문도 매칭
+              oversizeHandling: MATCH  # also match oversized bodies
           comparisonOperator: GT
-          size: 10485760              # 10MB (바이트 단위)
+          size: 10485760              # 10MB (in bytes)
           textTransformations:
             - priority: 0
               type: NONE
@@ -1207,8 +1207,8 @@ spec:
 ```
 
 ```yaml
-# 생성된 WebACL ARN을 Gateway에 연결
-# WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
+# Attach the created WebACL ARN to the Gateway
+# After WebACL creation, find the ARN in status.ackResourceMetadata.arn:
 #   kubectl get webacl body-size-limit-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
 apiVersion: gateway.networking.k8s.io/v1
@@ -1225,18 +1225,18 @@ spec:
       protocol: HTTP
 ```
 
-:::note 단일 WebACL로 규칙 통합
-IP Allowlist, Rate Limiting, Body Size 제한을 모두 사용한다면, 별도의 WebACL을 각각 만들 필요 없이 **하나의 WebACL에 여러 규칙을 `priority`로 구분하여 통합**할 수 있습니다. ALB당 WebACL은 하나만 연결 가능하므로 통합 관리가 필수입니다.
+:::note Consolidate Rules into a Single WebACL
+If you use IP Allowlist, Rate Limiting, and Body Size limits all together, you do not need to create separate WebACLs for each — you can **consolidate multiple rules into a single WebACL, distinguished by `priority`**. Since only one WebACL can be attached per ALB, consolidated management is essential.
 :::
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
-Cilium `v1.19.3`에서는 기본 Envoy 이미지에 포함된 HTTP **buffer 필터**로 요청 본문 크기를 제한할 수 있습니다. 아래 예시는 기존 단일 포트 `production/api-service:8080`의 트래픽을 처리하는 listener, route, EDS cluster를 구성합니다. kube-proxy replacement와 Envoy 설정 지원이 필요합니다.
+Cilium `v1.19.3` can limit request-body size with the HTTP **buffer filter** included in its packaged Envoy image. The example below configures a listener, route and EDS cluster for the existing single-port `production/api-service:8080`. It requires kube-proxy replacement and Envoy configuration support.
 
-2절의 요청 제한도 함께 쓰려면 두 CEC를 그대로 적용하지 말고 한 설정에 필터를 합칩니다. Gateway가 생성한 CEC는 직접 수정하지 않습니다. 기존 인증 경로와 네트워크 정책의 identity도 유지·확인해야 합니다.
+To use the request limit in Section 2 as well, combine the filters in one configuration instead of applying both CECs unchanged. Leave Gateway-generated CECs under controller ownership, preserve the authentication path and verify network-policy identities.
 
-`max_request_bytes: 10485760`은 이 필터가 버퍼링할 본문의 상한 **10 MiB**입니다. 더 큰 본문은 HTTP 413으로 거부합니다. connection buffer나 헤더 크기와는 다른 제한입니다. 본문 전체를 버퍼링하므로 streaming과 메모리 사용에 영향을 줍니다. 압축을 해제한 뒤의 애플리케이션 payload 크기와 필터를 거치지 않는 경로는 따로 검증해야 합니다.
+`max_request_bytes: 10485760` limits the body buffered by this filter to **10 MiB**; larger bodies receive HTTP 413. Connection buffers and header sizes have separate limits. Buffering the complete body affects streaming and memory use. Verify decompressed application-payload sizes and paths that bypass this filter separately.
 
 ```yaml
 # cilium-body.yaml
@@ -1290,7 +1290,7 @@ spec:
       lb_policy: ROUND_ROBIN
 ```
 
-[기본 Envoy 이미지](https://github.com/cilium/cilium/blob/v1.19.3/install/kubernetes/cilium/values.yaml) · [해당 빌드의 extension 목록](https://github.com/cilium/proxy/blob/2437d2edeaf4d9b56ef279bd0d71127440c067aa/envoy_build_config/extensions_build_config.bzl) · [Buffer 계약](https://github.com/envoyproxy/envoy/blob/v1.36.0/api/envoy/extensions/filters/http/buffer/v3/buffer.proto)
+[Packaged Envoy image](https://github.com/cilium/cilium/blob/v1.19.3/install/kubernetes/cilium/values.yaml) · [Packaged build extensions](https://github.com/cilium/proxy/blob/2437d2edeaf4d9b56ef279bd0d71127440c067aa/envoy_build_config/extensions_build_config.bzl) · [Buffer contract](https://github.com/envoyproxy/envoy/blob/v1.36.0/api/envoy/extensions/filters/http/buffer/v3/buffer.proto)
 
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
@@ -1301,7 +1301,7 @@ kind: NginxProxy
 metadata:
   name: body-size-limit
 spec:
-  clientMaxBodySize: 10m  # 최대 10MB
+  clientMaxBodySize: 10m  # max 10MB
 ```
 
 </TabItem>
@@ -1327,9 +1327,9 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
-kgateway `v2.2.0`의 **Envoy data plane**에서는 `TrafficPolicy.spec.buffer.maxRequestSize`로 요청 본문 크기를 제한합니다. `10Mi`는 **10 MiB = 10,485,760 bytes**이며, HTTP buffer 필터가 더 큰 본문을 HTTP 413으로 거부합니다. 연결 단위 버퍼 크기와는 다른 제한입니다.
+For kgateway `v2.2.0` with the **Envoy data plane**, set `TrafficPolicy.spec.buffer.maxRequestSize` to limit request-body size. `10Mi` is **10 MiB = 10,485,760 bytes**; the HTTP buffer filter rejects larger bodies with HTTP 413. This limit is separate from connection-level buffer sizes.
 
-대상 `production/api-route`와 Gateway/backend를 먼저 준비합니다. 요청 제한·인증 정책과 함께 쓸 때는 최종 적용될 정책에 필요한 설정을 모읍니다. 본문 전체 버퍼링이 streaming과 메모리에 미치는 영향, 압축 해제 후 payload 크기, 우회 경로의 제한은 별도로 검증합니다.
+Prepare `production/api-route` and its Gateway/backend first. When combining request limits and authentication, collect the required settings in the intended effective policy. Verify the effects of full-body buffering on streaming and memory, as well as limits on decompressed payloads and bypass paths.
 
 ```yaml
 # kgateway-body.yaml
@@ -1348,25 +1348,25 @@ spec:
     maxRequestSize: 10Mi
 ```
 
-[2.2.0 buffer API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Buffer 변환](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/buffer.go)
+[2.2.0 buffer API](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/traffic_policy_types.go) · [Buffer translation](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/pkg/kgateway/extensions2/plugins/trafficpolicy/buffer.go)
 
 </TabItem>
 </Tabs>
 
-## 8. 커스텀 에러 페이지
+## 8. Custom Error Pages
 
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
 
 ```yaml
-# ALB의 Fixed Response 액션 사용
+# Use the ALB Fixed Response action
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: error-response
   namespace: production
   annotations:
-    # ALB action annotation으로 고정 응답 구성
+    # Configure a fixed response with an ALB action annotation
     alb.ingress.kubernetes.io/actions.error-503: |
       {
         "type": "fixed-response",
@@ -1385,7 +1385,7 @@ spec:
             type: PathPrefix
             value: /maintenance
       backendRefs:
-        - name: error-503  # annotation에 정의된 액션 이름
+        - name: error-503  # action name defined in the annotation
           kind: Service
           port: 503
 ```
@@ -1393,12 +1393,12 @@ spec:
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
-:::warning 제한 사항
-Cilium Gateway API는 네이티브 커스텀 에러 페이지를 지원하지 않습니다. 별도 에러 페이지 서비스를 배포하고 HTTPRoute에서 라우팅합니다.
+:::warning Limitation
+The Cilium Gateway API does not support native custom error pages. Deploy a separate error page service and route to it from the HTTPRoute.
 :::
 
 ```yaml
-# 에러 페이지를 제공하는 백엔드 서비스
+# Backend service that serves the error page
 apiVersion: v1
 kind: Service
 metadata:
@@ -1411,7 +1411,7 @@ spec:
     - port: 80
 
 ---
-# 에러 발생 시 error-page-service로 라우팅
+# Route to error-page-service when an error occurs
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1440,12 +1440,12 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
-:::warning 제한 사항
-NGINX Gateway Fabric은 SnippetsPolicy 또는 별도 에러 서비스 라우팅으로 커스텀 에러 페이지를 구현합니다.
+:::warning Limitation
+NGINX Gateway Fabric implements custom error pages via a SnippetsPolicy or by routing to a separate error service.
 :::
 
 ```yaml
-# 별도 에러 페이지 서비스를 통한 패턴
+# Pattern using a separate error page service
 apiVersion: v1
 kind: Service
 metadata:
@@ -1467,7 +1467,7 @@ spec:
   parentRefs:
     - name: production-gateway
   rules:
-    # 메인 애플리케이션 라우트
+    # Main application route
     - matches:
         - path:
             type: PathPrefix
@@ -1475,7 +1475,7 @@ spec:
       backendRefs:
         - name: api-service
           port: 8080
-    # 에러 페이지 라우트
+    # Error page route
     - matches:
         - path:
             type: PathPrefix
@@ -1485,7 +1485,7 @@ spec:
           port: 80
 
 ---
-# NginxProxy로 에러 페이지 지시문 구성 (선택적)
+# Configure error page directives with NginxProxy (optional)
 apiVersion: gateway.nginx.org/v1alpha1
 kind: NginxProxy
 metadata:
@@ -1521,7 +1521,7 @@ spec:
         percentage: 100
 
 ---
-# HTTPRoute에서 Fixed Response
+# Fixed Response in the HTTPRoute
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1564,11 +1564,11 @@ spec:
 </TabItem>
 <TabItem value="kgateway" label="kGateway">
 
-kgateway `v2.2.0`의 **Envoy data plane**에서는 HTTPRoute의 `ExtensionRef`로 `gateway.kgateway.dev/DirectResponse`를 참조할 수 있습니다. 아래 route는 `/maintenance` path prefix로 들어온 요청에 고정 503 HTML 페이지를 반환합니다.
+For the kgateway `v2.2.0` **Envoy data plane**, an HTTPRoute `ExtensionRef` can reference `gateway.kgateway.dev/DirectResponse`. The route below returns a fixed 503 HTML page for requests matching the `/maintenance` path prefix.
 
-이 route에는 backend 참조가 없습니다. 기존 애플리케이션·인증 route를 유지하면서 명시적인 점검 경로를 추가하는 예시이며, upstream의 임의 500/503 응답을 바꾸는 설정은 아닙니다.
+This route has no backend reference. It adds an explicit maintenance path while preserving existing application and authentication routes; it does not rewrite arbitrary upstream 500/503 responses.
 
-`production-gateway`의 HTTPS listener, 인증서/DNS, route 연결 권한을 먼저 준비합니다. inline body는 DirectResponse 스키마의 4,096자 제한 안에 있어야 합니다.
+Prepare the `production-gateway` HTTPS listener, certificate/DNS and allowed route attachment first. The inline body must fit the DirectResponse schema's 4,096-character limit.
 
 ```yaml
 # kgateway-maintenance.yaml
@@ -1617,19 +1617,19 @@ spec:
                 value: text/html; charset=utf-8
 ```
 
-[2.2.0 DirectResponse 스키마](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/direct_response_types.go) · [버전별 route 예시](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/examples/example-direct-response-route.yaml)
+[2.2.0 DirectResponse schema](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/api/v1alpha1/kgateway/direct_response_types.go) · [Versioned route example](https://github.com/kgateway-dev/kgateway/blob/v2.2.0/examples/example-direct-response-route.yaml)
 
 </TabItem>
 </Tabs>
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/) — HTTPRoute·필터·표준 채널 스펙
-- [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/) — LBC v3 Gateway API 지원
+### Official Documentation
+- [Kubernetes Gateway API official documentation](https://gateway-api.sigs.k8s.io/) — HTTPRoute, filters, and Standard channel spec
+- [AWS Load Balancer Controller](https://kubernetes-sigs.github.io/aws-load-balancer-controller/) — LBC v3 Gateway API support
 
-### 관련 문서 (내부)
-- [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — 솔루션 비교·의사결정 트리·결론
-- [마이그레이션 실행 전략](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy) — 5-Phase 마이그레이션 프로세스
+### Related Documents (internal)
+- [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — solution comparison, decision tree, conclusion
+- [Migration Execution Strategy](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy) — 5-phase migration process

@@ -1,6 +1,6 @@
 ---
-title: S11-U. 콜드체인·물류 SLA + 매장 발주 (UPI 특화)
-description: President Transnet 콜드체인 SLA + 외기온 + 매장 발주 최적화
+title: S11-U. Cold-Chain · Logistics SLA + Store Ordering (UPI-Specific)
+description: President Transnet cold-chain SLA + outdoor temperature + store-order optimization
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,43 +16,43 @@ tags:
 sidebar_label: S11-U. Cold Chain
 ---
 
-> **Uni-President 차별 포인트** ⭐ — 자체 물류 (President Transnet) 콜드체인은 우유·아이스크림·도시락 등 핵심 SKU의 품질 직결. 외기온 결합 + 매장 발주 최적화.
+> **Uni-President differentiator** ⭐ — the in-house logistics arm (President Transnet) runs the cold chain that directly determines quality for core SKUs (dairy, ice cream, bento). Combines outdoor temperature + store-order optimization.
 
-## 1. URL · 페르소나
-- `/cold-chain` · P5 (제조·물류·점포)
+## 1. URL · Persona
+- `/cold-chain` · P5 (Manufacturing · Logistics · Stores)
 
-## 2. 사용자 스토리
-> P5 — 남부 폭염 35℃+ 시 우유·유제품 콜드체인 SLA 위반률 + 매장 발주 보정 권고.
+## 2. User Story
+> P5 — At southern heatwaves of 35℃+, derive the dairy cold-chain SLA breach rate + store-order correction recommendations.
 
-## 3. 데이터 믹스
-| 데이터 | 출처 |
+## 3. Data Mix
+| Data | Source |
 |---|---|
-| ColdChainSLA 로그 | TimeStream (~50K) |
-| OwnSKU (콜드체인 대상) | Neptune |
-| Store (7ELE/까르푸 매장) | Neptune |
-| 외기온 | WeatherSignal |
-| 매장 재고 | Inventory |
+| ColdChainSLA logs | TimeStream (~50K) |
+| OwnSKU (cold-chain scope) | Neptune |
+| Store (7ELE / Carrefour stores) | Neptune |
+| Outdoor temperature | WeatherSignal |
+| Store inventory | Inventory |
 
-## 4. 처리 파이프라인
+## 4. Processing Pipeline
 ```
-1. 일별 (출하 BU, 도착 매장) 콜드체인 SLA 집계
-2. 외기온 조인 (中央氣象署)
-3. 위반 (target_temp + 2.0℃ 초과) 카운트
-4. 매장 재고 잔량 + 위반 영향 계산
-5. 다음날 발주 보정 시뮬 (Sonnet)
+1. Aggregate daily cold-chain SLA per (origin BU, destination store)
+2. Join outdoor temperature (Central Weather Administration, 中央氣象署)
+3. Count breaches (actual exceeds target_temp + 2.0℃)
+4. Compute store-inventory remainder + breach impact
+5. Simulate next-day ordering correction (Sonnet)
 ```
 
-## 5. 출력 UI
-- 좌: 권역별 SLA 위반률 시계열 (북·중·남)
-- 중앙: 외기온 vs 위반률 산점도
-- 우: 매장별 SLA 영향 히트맵
-- 하단: 다음날 발주 보정 시뮬 (재고·예상 주문·콜드체인 회복)
+## 5. Output UI
+- Left: SLA breach-rate time series per region (north / central / south)
+- Center: Outdoor temperature vs breach-rate scatter plot
+- Right: Per-store SLA-impact heatmap
+- Bottom: Next-day ordering-correction simulation (inventory · forecast orders · cold-chain recovery)
 
-## 6. 가드레일
-- 매장 단가·재고 외부 노출 차단
-- 외부 기상 출처 표기
+## 6. Guardrails
+- Block external exposure of store unit pricing and inventory
+- Cite external weather sources
 
-## 7. 데모 시나리오
-1. **남부 폭염 35℃+** → 우유 콜드체인 위반률 28% (평소 8%)
-2. **다음날 발주 보정** → 위반 매장 발주 -20%, 안정 매장 +10%
-3. **주간 발주 시뮬** → 권역·SKU별 회복 비용
+## 7. Demo Scenarios
+1. **Southern heatwave 35℃+** → dairy cold-chain breach rate 28% (vs. 8% baseline)
+2. **Next-day ordering correction** → -20% orders to breaching stores, +10% to stable stores
+3. **Weekly ordering simulation** → recovery cost per region · SKU

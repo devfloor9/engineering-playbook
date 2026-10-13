@@ -1,11 +1,11 @@
 ---
-title: Cross-Cluster Object Replication (HA) 아키텍처 가이드
-description: EKS 멀티 클러스터 환경에서 오브젝트 복제를 통한 고가용성 아키텍처 패턴과 의사결정 가이드
+title: Cross-Cluster Object Replication (HA) Architecture Guide
+description: Architecture patterns and decision guide for achieving high availability through object replication in EKS multi-cluster environments
 created: "2026-03-24"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 10
+  author: devfloor9
+reading_time: 18
 tags:
   - eks
   - multi-cluster
@@ -20,53 +20,53 @@ sidebar_position: 3
 category: infrastructure
 ---
 
-> **📌 기준 환경**: EKS 1.32+, ArgoCD 2.13+, Flux v2.4+, Velero 1.15+
+> **Reference Environment**: EKS 1.32+, ArgoCD 2.13+, Flux v2.4+, Velero 1.15+
 
-## 1. 개요
+## 1. Overview
 
-한 EKS 클러스터에 의존하는 서비스는 그 클러스터에 장애가 나면 사용할 수 없게 될 수 있습니다. **Cross-Cluster Object Replication**은 ConfigMap, Secret, RBAC, CRD, NetworkPolicy 같은 Kubernetes 오브젝트를 여러 클러스터에 일관되게 복제해, 다른 클러스터에도 필요한 설정을 준비하는 방법입니다. 서비스 복구에는 데이터 복제, 트래픽 전환, 애플리케이션 복구도 필요하므로 오브젝트 복제만으로 가용성이 확보되지는 않습니다.
+A service that depends on one EKS cluster can become unavailable if that cluster fails. **Cross-Cluster Object Replication** keeps Kubernetes objects—such as ConfigMaps, Secrets, RBAC resources, CRDs, and NetworkPolicies—consistent across clusters so another cluster has the required configuration. Service availability also depends on data replication, traffic failover, and application recovery; object replication alone does not provide it.
 
-### 현재 상황
+### Current State
 
-EKS는 관리형 Cross-Cluster Object Replication 기능을 제공하지 않습니다. 따라서 **오픈소스 도구와 아키텍처 패턴을 조합**하여 직접 구현해야 합니다. 이 가이드는 패턴별 장단점을 비교하고, 워크로드 유형에 따른 선택 기준을 제시합니다.
+EKS does not provide managed Cross-Cluster Object Replication. Therefore, you must implement it yourself by **combining open-source tools and architecture patterns**. This guide compares the pros and cons of each pattern and provides selection criteria based on workload types.
 
-### 이 가이드의 범위
+### Scope of This Guide
 
-| 포함 | 미포함 |
-|------|--------|
-| K8s 오브젝트 복제 (ConfigMap, Secret, CRD, RBAC 등) | 애플리케이션 데이터 복제 (DB 레플리카) |
-| GitOps 기반 선언적 동기화 | 서비스 메시 기반 트래픽 라우팅 |
-| 상태 저장 오브젝트 백업/복원 (Velero) | 스토리지 레이어 복제 (EBS, EFS) |
-| DNS 페일오버 전략 | 애플리케이션 레벨 HA 패턴 |
+| Included | Not Included |
+|----------|-------------|
+| K8s object replication (ConfigMap, Secret, CRD, RBAC, etc.) | Application data replication (DB replicas) |
+| GitOps-based declarative synchronization | Service mesh-based traffic routing |
+| Stateful object backup/restore (Velero) | Storage layer replication (EBS, EFS) |
+| DNS failover strategies | Application-level HA patterns |
 
 ---
 
-## 2. 멀티 클러스터 아키텍처 패턴 비교
+## 2. Multi-Cluster Architecture Pattern Comparison
 
-Cross-Cluster Object Replication을 구현하는 세 가지 핵심 패턴이 있습니다.
+There are three core patterns for implementing Cross-Cluster Object Replication.
 
-### Pattern 1: API Proxy (Push 모델)
+### Pattern 1: API Proxy (Push Model)
 
-중앙 라우팅 레이어가 각 클러스터의 API Server로 CRUD 요청을 직접 프록시합니다.
+A central routing layer directly proxies CRUD requests to each cluster's API Server.
 
 ```mermaid
 graph LR
-    CLIENT[관리자/CI] --> PROXY[API Proxy Layer]
-    PROXY --> |CRUD 프록시| C1[Cluster A<br/>API Server]
-    PROXY --> |CRUD 프록시| C2[Cluster B<br/>API Server]
+    CLIENT[Admin/CI] --> PROXY[API Proxy Layer]
+    PROXY --> |CRUD Proxy| C1[Cluster A<br/>API Server]
+    PROXY --> |CRUD Proxy| C2[Cluster B<br/>API Server]
 
     style PROXY fill:#ff9900,stroke:#cc7a00,color:#fff
     style C1 fill:#4286f4,stroke:#2a6acf,color:#fff
     style C2 fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-- **동작**: 중앙에서 각 클러스터로 직접 API 호출
-- **장점**: 가볍고 직관적
-- **한계**: 자격 증명 보안 취약, 멀티 클러스터 Watch 불가, 연결 복잡도 증가
+- **How it works**: Direct API calls from a central point to each cluster
+- **Pros**: Lightweight and intuitive
+- **Cons**: Credential security vulnerabilities, no multi-cluster Watch support, increasing connection complexity
 
-### Pattern 2: Multi-cluster Controller (Kubefed 계열)
+### Pattern 2: Multi-cluster Controller (Kubefed-style)
 
-중앙 컨트롤러가 Informer 기반 List-Watch로 각 클러스터의 상태를 감시하고 CRD를 통해 동기화합니다.
+A central controller monitors each cluster's state via Informer-based List-Watch and synchronizes through CRDs.
 
 ```mermaid
 graph TB
@@ -82,17 +82,17 @@ graph TB
     style C3 fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-- **동작**: 중앙 컨트롤러가 각 클러스터 상태를 감시하고 동기화
-- **장점**: 동적 클러스터 디스커버리, Federation 정책 적용 가능
-- **한계**: ~10개 이상 클러스터에서 Watch 이벤트 오버플로, Informer 캐시 크기 제한, 자격 증명 평문 저장 위험
+- **How it works**: Central controller monitors and synchronizes each cluster's state
+- **Pros**: Dynamic cluster discovery, federation policies
+- **Cons**: Watch event overflow at ~10+ clusters, Informer cache size limits, plaintext credential storage risk
 
-:::warning Kubefed 프로젝트 상태
-Kubernetes SIG에서 Kubefed(v2)는 사실상 유지보수 모드입니다. 신규 프로젝트에서는 권장하지 않습니다.
+:::warning Kubefed Project Status
+Kubefed (v2) is effectively in maintenance mode by the Kubernetes SIG. It is not recommended for new projects.
 :::
 
-### Pattern 3: Agent-based Pull 모델 (권장)
+### Pattern 3: Agent-based Pull Model (Recommended)
 
-각 클러스터의 에이전트가 중앙 소스(Git 또는 허브 클러스터)에서 원하는 상태를 Pull하여 로컬에서 Reconcile합니다. kubelet이 Pod 스펙을 받아 로컬에서 실행하는 것과 동일한 원리입니다.
+Agents in each cluster pull the desired state from a central source (Git or hub cluster) and reconcile locally. This follows the same principle as kubelet receiving Pod specs and running them locally.
 
 ```mermaid
 graph TB
@@ -116,40 +116,40 @@ graph TB
     style B_AGENT fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-- **동작**: 각 클러스터 에이전트가 독립적으로 원하는 상태를 Pull하여 로컬 Reconcile
-- **장점**: 높은 확장성, Eventual Consistency, 중앙 장애에도 로컬 동작 유지
-- **한계**: 모든 클러스터에 에이전트 배포 필요
+- **How it works**: Each cluster agent independently pulls the desired state and reconciles locally
+- **Pros**: High scalability, eventual consistency, local operation continues even during central failures
+- **Cons**: Requires agent deployment on all clusters
 
-### 패턴 비교 종합
+### Pattern Comparison Summary
 
-| 관점 | API Proxy | Multi-cluster Controller | Agent-based Pull |
-|------|-----------|--------------------------|-------------------|
-| **동작 방식** | 중앙 → 클러스터 Push | 중앙 Watch + CRD 동기화 | 클러스터 → 중앙 Pull |
-| **확장성** | 낮음 (연결 수 비례) | 중간 (~10 클러스터) | 높음 (수백 클러스터) |
-| **복잡도** | 낮음 | 높음 | 중간 |
-| **보안** | 취약 (다수 자격 증명) | 취약 (평문 저장) | 강함 (에이전트 로컬 권한) |
-| **장애 격리** | 낮음 | 중간 | 높음 |
-| **Drift Detection** | 없음 | 부분적 | 내장 |
-| **권장 시나리오** | PoC, 소규모 | 레거시 환경 | **프로덕션 (권장)** |
+| Aspect | API Proxy | Multi-cluster Controller | Agent-based Pull |
+|--------|-----------|--------------------------|-------------------|
+| **Operation** | Central → Cluster Push | Central Watch + CRD Sync | Cluster → Central Pull |
+| **Scalability** | Low (proportional to connections) | Medium (~10 clusters) | High (hundreds of clusters) |
+| **Complexity** | Low | High | Medium |
+| **Security** | Weak (many credentials) | Weak (plaintext storage) | Strong (agent local permissions) |
+| **Fault Isolation** | Low | Medium | High |
+| **Drift Detection** | None | Partial | Built-in |
+| **Recommended For** | PoC, small scale | Legacy environments | **Production (recommended)** |
 
-### 의사결정 플로우차트
+### Decision Flowchart
 
 ```mermaid
 flowchart TD
-    START[Cross-Cluster<br/>Object Replication 필요] --> Q1{클러스터 수?}
+    START[Cross-Cluster<br/>Object Replication Needed] --> Q1{Number of clusters?}
 
-    Q1 --> |2-3개| Q2{선언적 관리<br/>필요?}
-    Q1 --> |4개 이상| PULL[Agent-based Pull<br/>GitOps 권장]
+    Q1 --> |2-3| Q2{Declarative<br/>management needed?}
+    Q1 --> |4 or more| PULL[Agent-based Pull<br/>GitOps recommended]
 
     Q2 --> |Yes| PULL
-    Q2 --> |No, 단순 복제| Q3{오브젝트<br/>세밀한 제어?}
+    Q2 --> |No, simple replication| Q3{Fine-grained<br/>object control?}
 
     Q3 --> |Yes| MIRROR[Custom Controller<br/>MirrorController]
-    Q3 --> |No| PROXY[API Proxy<br/>경량 솔루션]
+    Q3 --> |No| PROXY[API Proxy<br/>Lightweight solution]
 
-    PULL --> GITOPS{GitOps 도구 선택}
-    GITOPS --> |Hub-Spoke 중앙 관리| ARGO[ArgoCD<br/>Hub-and-Spoke]
-    GITOPS --> |분산 자율 운영| FLUX[Flux<br/>클러스터별 독립]
+    PULL --> GITOPS{GitOps tool selection}
+    GITOPS --> |Hub-Spoke centralized| ARGO[ArgoCD<br/>Hub-and-Spoke]
+    GITOPS --> |Distributed autonomous| FLUX[Flux<br/>Per-cluster independent]
 
     style START fill:#232f3e,stroke:#1a2332,color:#fff
     style PULL fill:#34a853,stroke:#2a8642,color:#fff
@@ -161,11 +161,11 @@ flowchart TD
 
 ---
 
-## 3. 권장 접근법별 아키텍처
+## 3. Recommended Approach Architectures
 
-### Option A: GitOps (Flux / ArgoCD) — 대부분의 유스케이스에 권장
+### Option A: GitOps (Flux / ArgoCD) — Recommended for Most Use Cases
 
-Git 레포지토리를 Single Source of Truth로 사용하고, 각 클러스터의 GitOps 에이전트가 독립적으로 Pull & Reconcile합니다.
+Uses a Git repository as the Single Source of Truth, with GitOps agents in each cluster independently pulling and reconciling.
 
 ```mermaid
 graph TB
@@ -193,24 +193,24 @@ graph TB
     style B_FLUX fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-**핵심 이점:**
+**Key Benefits:**
 
-- **Drift Detection**: 클러스터 상태가 Git과 다르면 자동 감지 및 복구
-- **감사 추적**: 모든 변경 이력이 Git 커밋으로 남음
-- **선언적 관리**: 원하는 상태를 정의하면 에이전트가 Reconcile
-- **장애 격리**: 한 클러스터 에이전트 장애가 다른 클러스터에 영향 없음
+- **Drift Detection**: Automatically detects and recovers when cluster state differs from Git
+- **Audit Trail**: All change history is recorded as Git commits
+- **Declarative Management**: Define the desired state and let agents reconcile
+- **Fault Isolation**: An agent failure in one cluster does not affect others
 
-**Active-Active 구성:**
+**Active-Active Configuration:**
 
-두 클러스터 모두 동일한 Git 레포에서 독립적으로 Pull합니다. DNS(Route 53)로 트래픽을 분산하며, 한 클러스터 장애 시 나머지 클러스터가 즉시 전체 트래픽을 처리합니다.
+Both clusters independently pull from the same Git repo. DNS (Route 53) distributes traffic, and if one cluster fails, the remaining cluster immediately handles all traffic.
 
-**Active-Passive 구성:**
+**Active-Passive Configuration:**
 
-Active 클러스터만 GitOps 에이전트를 활성화합니다. Passive 클러스터는 에이전트를 Suspended 상태로 유지하다가 페일오버 시 활성화합니다.
+Only the Active cluster has its GitOps agent enabled. The Passive cluster keeps its agent in Suspended state, activating it during failover.
 
-### Option B: ArgoCD Hub-and-Spoke 모델
+### Option B: ArgoCD Hub-and-Spoke Model
 
-Management Cluster에 ArgoCD를 설치하고, ApplicationSets를 통해 여러 워크로드 클러스터에 배포합니다.
+Install ArgoCD on a Management Cluster and deploy to multiple workload clusters via ApplicationSets.
 
 ```mermaid
 graph TB
@@ -237,65 +237,65 @@ graph TB
     style WB fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-**HA 구성 전략:**
+**HA Strategies:**
 
-| 전략 | 설명 | 적합 시나리오 |
-|------|------|---------------|
-| **Active-Passive 미러링** | 두 리전에 ArgoCD를 배포하되, Passive는 컨트롤러를 비활성화. 페일오버 시 수동 Scale-Up | DR 요건이 낮은 환경 |
-| **Active-Active Sync Windows** | 두 ArgoCD 인스턴스가 겹치지 않는 시간대에 Sync 수행 (Sync Windows 기능) | 충돌 방지가 필요한 Active-Active |
+| Strategy | Description | Suitable Scenario |
+|----------|-------------|-------------------|
+| **Active-Passive Mirroring** | Deploy ArgoCD in two regions; Passive keeps controllers disabled. Manual Scale-Up during failover | Environments with low DR requirements |
+| **Active-Active Sync Windows** | Two ArgoCD instances sync during non-overlapping time windows (Sync Windows feature) | Active-Active requiring conflict prevention |
 
 :::info ApplicationSets Generator
-ArgoCD ApplicationSets의 `Cluster Generator`를 사용하면 ArgoCD에 등록된 모든 클러스터에 자동으로 애플리케이션을 배포할 수 있습니다. 새 클러스터 추가 시 별도 설정 없이 즉시 복제가 시작됩니다.
+Using ArgoCD ApplicationSets' `Cluster Generator`, applications can be automatically deployed to all clusters registered with ArgoCD. When a new cluster is added, replication starts immediately without additional configuration.
 :::
 
-### Option C: Custom Controller (MirrorController 패턴)
+### Option C: Custom Controller (MirrorController Pattern)
 
-오브젝트 복제에 대한 세밀한 제어가 필요할 때, 전용 컨트롤러를 개발하여 소스 클러스터와 타겟 클러스터 간 동기화를 관리합니다.
+When fine-grained control over object replication is needed, develop a dedicated controller to manage synchronization between source and target clusters.
 
-**적용 시나리오:**
+**Use Cases:**
 
-- 특정 Label/Annotation이 있는 오브젝트만 선택적 복제
-- 복제 시 오브젝트 변환(Transform) 필요 (예: Namespace 변경, 필드 수정)
-- 충돌 해결 로직을 커스텀으로 구현해야 하는 경우
+- Selective replication of only objects with specific Labels/Annotations
+- Object transformation during replication (e.g., Namespace changes, field modifications)
+- Custom conflict resolution logic
 
-**장단점:**
+**Pros and Cons:**
 
-| 장점 | 단점 |
+| Pros | Cons |
 |------|------|
-| 관심사 분리가 명확 | 추가 운영 오버헤드 |
-| 핵심 로직 복잡도 감소 | 동기화 지연 가능성 |
-| 복제 정책 세밀 제어 | 디버깅 복잡도 증가 |
-| 충돌 해결 커스터마이징 | 직접 개발/유지보수 필요 |
+| Clear separation of concerns | Additional operational overhead |
+| Reduced core logic complexity | Potential synchronization delays |
+| Fine-grained replication policy control | Increased debugging complexity |
+| Custom conflict resolution | Requires in-house development/maintenance |
 
 ---
 
-## 4. Active-Active vs Active-Passive 의사결정
+## 4. Active-Active vs Active-Passive Decision
 
-### 비교 테이블
+### Comparison Table
 
-| 관점 | Active-Active | Active-Passive |
-|------|---------------|----------------|
-| **오브젝트 동기화** | 양쪽 클러스터가 동일 Git 소스에서 독립 Pull | Active만 Reconcile, Passive는 대기 |
-| **페일오버 시간** | 거의 0 (양쪽 이미 서빙 중) | 수 분 (Passive 활성화 필요) |
-| **충돌 해결** | Write 충돌 가능 — Sync Windows 등으로 방지 필요 | 충돌 없음 — Writer가 하나 |
-| **운영 복잡도** | 높음 (오브젝트 ID, DNS, 상태 동기화) | 낮음 (표준 페일오버 모델) |
-| **비용** | 높음 (양쪽 풀 용량 운영) | 낮음 (Passive 축소 운영 가능) |
-| **적합 시나리오** | 멀티 리전 HA, 글로벌 로드밸런싱 | DR, 비용 민감 HA |
+| Aspect | Active-Active | Active-Passive |
+|--------|---------------|----------------|
+| **Object Sync** | Both clusters independently pull from same Git source | Only Active reconciles; Passive stands by |
+| **Failover Time** | Near-zero (both already serving) | Minutes (Passive activation required) |
+| **Conflict Resolution** | Write conflicts possible — prevention via Sync Windows needed | No conflicts — single writer |
+| **Operational Complexity** | High (object IDs, DNS, state synchronization) | Low (standard failover model) |
+| **Cost** | High (full capacity on both sides) | Low (Passive can run at reduced capacity) |
+| **Suitable Scenario** | Multi-region HA, global load balancing | DR, cost-sensitive HA |
 
-### 워크로드 유형별 권장 모드
+### Recommended Mode by Workload Type
 
 ```mermaid
 graph LR
-    subgraph "워크로드 유형"
+    subgraph "Workload Types"
         SL[Stateless<br/>API, Web]
         SF[Stateful<br/>DB, Cache]
-        AI[AI/ML 추론<br/>vLLM, TGI]
+        AI[AI/ML Inference<br/>vLLM, TGI]
     end
 
-    subgraph "권장 모드"
+    subgraph "Recommended Modes"
         AA[Active-Active<br/>GitOps + Route 53]
         AP[Active-Passive<br/>GitOps + Velero]
-        AAM[Active-Active<br/>GitOps + S3 모델 동기화]
+        AAM[Active-Active<br/>GitOps + S3 Model Sync]
     end
 
     SL --> AA
@@ -312,20 +312,20 @@ graph LR
 
 ---
 
-## 5. 보조 도구 스택
+## 5. Supporting Tool Stack
 
-오브젝트 복제만으로는 완전한 Cross-Cluster HA를 달성할 수 없습니다. 다음 도구를 조합하여 전체 스택을 구성합니다.
+Object replication alone cannot achieve complete Cross-Cluster HA. Combine the following tools to build the full stack.
 
-| 도구 | 역할 | 비고 |
-|------|------|------|
-| **Flux / ArgoCD** | K8s 오브젝트 복제 (GitOps) | 핵심 복제 메커니즘 |
-| **Route 53** | DNS 기반 페일오버/로드밸런싱 | Health Check + Failover Routing |
-| **Global Accelerator** | Anycast IP 기반 글로벌 라우팅 | 멀티 리전 Active-Active 시 |
-| **Velero** | Stateful 오브젝트 백업/복원 (PV, etcd) | S3 Cross-Region Replication 연계 |
-| **External Secrets Operator** | Secret 동기화 | AWS Secrets Manager → 양쪽 클러스터 |
-| **Crossplane / ACK** | AWS 리소스 정의 동기화 | IaC를 K8s 오브젝트로 관리 |
+| Tool | Role | Notes |
+|------|------|-------|
+| **Flux / ArgoCD** | K8s object replication (GitOps) | Core replication mechanism |
+| **Route 53** | DNS-based failover/load balancing | Health Check + Failover Routing |
+| **Global Accelerator** | Anycast IP-based global routing | For multi-region Active-Active |
+| **Velero** | Stateful object backup/restore (PV, etcd) | Combined with S3 Cross-Region Replication |
+| **External Secrets Operator** | Secret synchronization | AWS Secrets Manager → both clusters |
+| **Crossplane / ACK** | AWS resource definition sync | Manage IaC as K8s objects |
 
-### 도구 조합 아키텍처
+### Tool Combination Architecture
 
 ```mermaid
 graph TB
@@ -365,58 +365,58 @@ graph TB
 
 ---
 
-## 6. 현재 한계와 향후 전망
+## 6. Current Limitations and Future Outlook
 
-EKS 멀티 클러스터 관리 영역에서 아직 관리형 서비스로 제공되지 않는 기능들이 있습니다.
+There are features in the EKS multi-cluster management space that are not yet available as managed services.
 
-| 영역 | 현재 상태 | 대안 |
-|------|-----------|------|
-| **관리형 ClusterSets** | 미출시 | RAM(Resource Access Manager)으로 Cross-Account 그룹핑 |
-| **Built-in Cross-Cluster Replication** | 미출시 | GitOps (Flux/ArgoCD) |
-| **Multi-Region EKS 클러스터** | 미출시 | 리전별 독립 클러스터 + GitOps 동기화 |
-| **관리형 ArgoCD** | 개발 중 | 자체 ArgoCD 설치/운영 |
+| Area | Current State | Alternative |
+|------|---------------|-------------|
+| **Managed ClusterSets** | Not released | RAM (Resource Access Manager) for Cross-Account grouping |
+| **Built-in Cross-Cluster Replication** | Not released | GitOps (Flux/ArgoCD) |
+| **Multi-Region EKS Cluster** | Not released | Independent clusters per region + GitOps sync |
+| **Managed ArgoCD** | In development | Self-managed ArgoCD installation |
 
-:::tip 현실적 접근
-위 기능들이 출시될 때까지, GitOps + 보조 도구 스택 조합이 가장 성숙하고 검증된 접근법입니다. 많은 EKS 고객이 Flux/ArgoCD 기반 GitOps를 채택하고 있습니다.
+:::tip Practical Approach
+Until these features are released, the GitOps + supporting tool stack combination is the most mature and proven approach. Already about 10% of EKS customers have adopted GitOps based on Flux/ArgoCD.
 :::
 
 ---
 
-## 7. 실전 권장 조합
+## 7. Recommended Production Combinations
 
-단일 클러스터 의존성을 제거하기 위한 최종 권장 도구 조합입니다.
+Final recommended tool combinations for eliminating single-cluster dependency.
 
-| 목적 | 권장 도구 | 구성 방식 |
-|------|-----------|-----------|
-| **K8s 오브젝트 복제** | GitOps (Flux 또는 ArgoCD) | 동일 Git 레포에서 양쪽 클러스터가 Pull |
-| **Stateful 데이터 보호** | Velero + S3 Cross-Region Replication | 정기 백업 + 리전 간 복제 |
-| **Secret 동기화** | External Secrets Operator | AWS Secrets Manager를 공유 소스로 |
-| **DNS 페일오버** | Route 53 Health Checks | Active-Active 또는 Failover Routing |
-| **CRD/Custom Resource** | GitOps 레포에 포함 | 표준 K8s 오브젝트와 동일하게 관리 |
-| **AWS 리소스 정의** | Crossplane 또는 ACK | IaC를 K8s 네이티브로 동기화 |
+| Purpose | Recommended Tool | Configuration |
+|---------|------------------|---------------|
+| **K8s Object Replication** | GitOps (Flux or ArgoCD) | Both clusters pull from the same Git repo |
+| **Stateful Data Protection** | Velero + S3 Cross-Region Replication | Scheduled backup + cross-region replication |
+| **Secret Synchronization** | External Secrets Operator | AWS Secrets Manager as shared source |
+| **DNS Failover** | Route 53 Health Checks | Active-Active or Failover Routing |
+| **CRD/Custom Resources** | Include in GitOps repo | Managed identically to standard K8s objects |
+| **AWS Resource Definitions** | Crossplane or ACK | Sync IaC natively in K8s |
 
-### 구현 우선순위
+### Implementation Priority
 
-1. **P0**: GitOps 에이전트 배포 + Git 레포 구조 설계
-2. **P1**: External Secrets Operator + Route 53 Health Check 구성
-3. **P2**: Velero 백업 정책 수립 + S3 Cross-Region Replication
-4. **P3**: Crossplane/ACK으로 AWS 리소스 동기화 (필요 시)
-
----
-
-## 8. 관련 문서
-
-- [EKS 고가용성 아키텍처 가이드](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide) — Failure Domain 계층별 대응 전략
-- [GitOps 기반 클러스터 운영](/docs/eks-best-practices/operations-reliability/gitops-cluster-operation) — Flux/ArgoCD 운영 가이드
+1. **P0**: Deploy GitOps agents + design Git repo structure
+2. **P1**: Configure External Secrets Operator + Route 53 Health Checks
+3. **P2**: Establish Velero backup policies + S3 Cross-Region Replication
+4. **P3**: AWS resource sync with Crossplane/ACK (as needed)
 
 ---
 
-## 9. 참고 자료
+## 8. Related Documents
 
-- [ArgoCD ApplicationSets](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/) — 멀티 클러스터 자동 배포
-- [ArgoCD Sync Windows](https://argo-cd.readthedocs.io/en/stable/user-guide/sync_windows/) — Active-Active 충돌 방지
-- [Flux Multi-Tenancy](https://fluxcd.io/flux/guides/repository-structure/) — 멀티 클러스터 레포 구조
-- [Velero Documentation](https://velero.io/docs/) — 클러스터 백업/복원
-- [External Secrets Operator](https://external-secrets.io/) — 외부 Secret 동기화
-- [Crossplane](https://www.crossplane.io/) — K8s 네이티브 IaC
-- [AWS Route 53 Health Checks](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-creating.html) — DNS 페일오버
+- [EKS High Availability Architecture Guide](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide) — Failure Domain response strategies by layer
+- [GitOps-based Cluster Operations](/docs/eks-best-practices/operations-reliability/gitops-cluster-operation) — Flux/ArgoCD operations guide
+
+---
+
+## 9. References
+
+- [ArgoCD ApplicationSets](https://argo-cd.readthedocs.io/en/stable/operator-manual/applicationset/) — Multi-cluster automatic deployment
+- [ArgoCD Sync Windows](https://argo-cd.readthedocs.io/en/stable/user-guide/sync_windows/) — Active-Active conflict prevention
+- [Flux Multi-Tenancy](https://fluxcd.io/flux/guides/repository-structure/) — Multi-cluster repo structure
+- [Velero Documentation](https://velero.io/docs/) — Cluster backup/restore
+- [External Secrets Operator](https://external-secrets.io/) — External secret synchronization
+- [Crossplane](https://www.crossplane.io/) — K8s native IaC
+- [AWS Route 53 Health Checks](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/health-checks-creating.html) — DNS failover

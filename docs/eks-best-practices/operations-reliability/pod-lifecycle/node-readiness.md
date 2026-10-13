@@ -1,11 +1,11 @@
 ---
 title: Node Readiness Controller
-description: 노드의 인프라 준비 상태를 관리하는 구성을 확인합니다.
+description: Review configuration for managing node infrastructure readiness.
 created: "2026-02-12"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 7
+  author: devfloor9
+reading_time: 12
 tags:
   - eks
   - kubernetes
@@ -16,63 +16,63 @@ sidebar_label: Node Readiness Controller
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## Node Readiness Controller — 노드 수준 Readiness 관리 {#344-node-readiness-controller--노드-수준-readiness-관리}
+## Node Readiness Controller — managing node-level readiness {#344-node-readiness-controller--노드-수준-readiness-관리}
 
-### 개요 {#개요}
+### Overview {#개요}
 
-Node Readiness Controller(NRC)는 2026년 2월 Kubernetes 공식 블로그에서 발표된 알파 기능(v0.1.1)으로, 노드 수준의 인프라 준비 상태를 선언적으로 관리하는 새로운 메커니즘입니다.
+Node Readiness Controller (NRC) is an alpha feature (v0.1.1) announced on the official Kubernetes blog in February 2026. It introduces a mechanism for declaratively managing infrastructure readiness at the node level.
 
-기존 Kubernetes의 노드 `Ready` 조건은 단순한 바이너리 상태(Ready/NotReady)만 제공하여, CNI 플러그인 초기화, GPU 드라이버 로딩, 스토리지 드라이버 준비 등 복잡한 인프라 의존성을 정확히 반영하지 못했습니다. NRC는 이러한 한계를 해결하기 위해 커스텀 readiness gate를 선언적으로 정의할 수 있는 `NodeReadinessRule` CRD를 제공합니다.
+The existing Kubernetes node `Ready` condition provides only a simple binary state (Ready/NotReady). It cannot accurately reflect complex infrastructure dependencies such as CNI plugin initialization, GPU driver loading, and storage driver readiness. To address this limitation, NRC provides a `NodeReadinessRule` CRD for declaratively defining custom readiness gates.
 
-**핵심 가치:**
-- **세밀한 노드 상태 제어**: 인프라 컴포넌트별 준비 상태를 독립적으로 관리
-- **자동화된 Taint 관리**: 조건이 충족되지 않으면 자동으로 NoSchedule Taint 적용
-- **유연한 모니터링 모드**: 부트스트랩 전용, 지속 모니터링, Dry-run 모드 지원
-- **선택적 적용**: nodeSelector로 특정 노드 그룹에만 규칙 적용
+**Key benefits:**
+- **Granular node status control**: Manage the readiness of each infrastructure component independently
+- **Automated taint management**: Automatically apply a NoSchedule taint when conditions are not met
+- **Flexible monitoring modes**: Support for bootstrap-only, continuous monitoring, and dry-run modes
+- **Selective enforcement**: Use nodeSelector to apply rules only to specific node groups
 
-**API 정보:**
+**API information:**
 - API Group: `readiness.node.x-k8s.io/v1alpha1`
 - Kind: `NodeReadinessRule`
-- 공식 문서: https://node-readiness-controller.sigs.k8s.io/
+- Official documentation: https://node-readiness-controller.sigs.k8s.io/
 
-### 핵심 기능 {#핵심-기능}
+### Core features {#핵심-기능}
 
-#### Continuous 모드 - 지속 모니터링 {#1-continuous-모드---지속-모니터링}
+#### Continuous mode - ongoing monitoring {#1-continuous-모드---지속-모니터링}
 
-노드 라이프사이클 전체에서 지정된 조건을 지속적으로 모니터링합니다. 인프라 컴포넌트가 런타임 중 실패할 경우 (예: GPU 드라이버 크래시) 즉시 Taint를 적용하여 새로운 Pod 스케줄링을 차단합니다.
+Continuously monitors the specified conditions throughout the node lifecycle. If an infrastructure component fails at runtime (for example, a GPU driver crashes), it immediately applies a taint to block scheduling of new Pods.
 
-**사용 사례:**
-- GPU 드라이버 상태 모니터링
-- 네트워크 플러그인 지속 헬스체크
-- 스토리지 드라이버 가용성 확인
+**Use cases:**
+- Monitor GPU driver health
+- Continuously check network plugin health
+- Check storage driver availability
 
-#### Bootstrap-only 모드 - 초기화 전용 {#2-bootstrap-only-모드---초기화-전용}
+#### Bootstrap-only mode - initialization only {#2-bootstrap-only-모드---초기화-전용}
 
-노드 초기화 단계에서만 조건을 확인하고, 조건이 충족되면 모니터링을 중단합니다. 부트스트랩 이후에는 조건 변경에 반응하지 않습니다.
+Checks conditions only during node initialization and stops monitoring once they are met. It does not respond to condition changes after bootstrap.
 
-**사용 사례:**
-- CNI 플러그인 초기 부트스트랩
-- 컨테이너 이미지 프리풀 완료 확인
-- 초기 보안 스캔 완료 대기
+**Use cases:**
+- Initial CNI plugin bootstrap
+- Verify container image pre-pull completion
+- Wait for the initial security scan to complete
 
-#### Dry-run 모드 - 안전한 검증 {#3-dry-run-모드---안전한-검증}
+#### Dry-run mode - safe validation {#3-dry-run-모드---안전한-검증}
 
-실제 Taint 적용 없이 규칙 동작을 시뮬레이션합니다. 프로덕션 배포 전 규칙 검증에 유용합니다.
+Simulates rule behavior without applying actual taints. This is useful for validating rules before production deployment.
 
-**사용 사례:**
-- 새로운 NodeReadinessRule 테스트
-- 조건 변경 영향 분석
-- 디버깅 및 문제 진단
+**Use cases:**
+- Test new NodeReadinessRules
+- Analyze the impact of condition changes
+- Debug and diagnose issues
 
-#### nodeSelector - 타겟 노드 선택 {#4-nodeselector---타겟-노드-선택}
+#### nodeSelector - selecting target nodes {#4-nodeselector---타겟-노드-선택}
 
-라벨 기반으로 특정 노드 그룹에만 규칙을 적용합니다. GPU 노드와 범용 노드에 서로 다른 readiness 규칙을 적용할 수 있습니다.
+Applies rules only to specific node groups based on labels. Different readiness rules can be applied to GPU nodes and general-purpose nodes.
 
-### YAML 예시 {#yaml-예시}
+### YAML examples {#yaml-예시}
 
-#### CNI 부트스트랩 - Bootstrap-only 모드 {#cni-부트스트랩---bootstrap-only-모드}
+#### CNI bootstrap - bootstrap-only mode {#cni-부트스트랩---bootstrap-only-모드}
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -81,33 +81,33 @@ metadata:
   name: network-readiness-rule
   namespace: kube-system
 spec:
-  # 확인할 노드 조건
+  # Node conditions to check
   conditions:
     - type: "cniplugin.example.net/NetworkReady"
       requiredStatus: "True"
 
-  # 조건 미충족 시 적용할 Taint
+  # Taint to apply when conditions are not met
   taint:
     key: "readiness.k8s.io/acme.com/network-unavailable"
     effect: "NoSchedule"
     value: "pending"
 
-  # 부트스트랩 완료 후 모니터링 중단
+  # Stop monitoring after bootstrap completes
   enforcementMode: "bootstrap-only"
 
-  # 워커 노드에만 적용
+  # Apply only to worker nodes
   nodeSelector:
     matchLabels:
       node-role.kubernetes.io/worker: ""
 ```
 
-**동작 흐름:**
-1. 새 노드가 클러스터에 조인하면 NRC가 자동으로 Taint 적용
-2. CNI 플러그인이 초기화 완료 후 `NetworkReady=True` 조건 설정
-3. NRC가 조건 확인 후 Taint 제거
-4. Pod 스케줄링 가능 (이후 CNI 상태 변경 무시)
+**Workflow:**
+1. NRC automatically applies a taint when a new node joins the cluster
+2. The CNI plugin sets the `NetworkReady=True` condition after initialization completes
+3. NRC checks the condition and removes the taint
+4. Pod scheduling is enabled (subsequent CNI status changes are ignored)
 
-#### GPU 노드 Continuous 모니터링 {#gpu-노드-continuous-모니터링}
+#### Continuous monitoring of GPU nodes {#gpu-노드-continuous-모니터링}
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -125,25 +125,25 @@ spec:
     effect: "NoSchedule"
     value: "driver-not-ready"
 
-  # 런타임 중에도 지속 모니터링
+  # Continue monitoring at runtime
   enforcementMode: "continuous"
 
-  # GPU 노드에만 적용
+  # Apply only to GPU nodes
   nodeSelector:
     matchLabels:
       nvidia.com/gpu.present: "true"
 ```
 
-**동작 흐름:**
-1. GPU 노드 시작 시 Taint 자동 적용
-2. NVIDIA 드라이버 데몬이 GPU 초기화 완료 후 조건 설정
-3. NRC가 Taint 제거, AI 워크로드 스케줄링 가능
-4. **런타임 중 드라이버 크래시 발생 시:**
-   - 조건이 `False`로 변경
-   - NRC가 즉시 Taint 재적용
-   - 기존 Pod는 유지, 신규 Pod 스케줄링 차단
+**Workflow:**
+1. Automatically apply a taint when a GPU node starts
+2. The NVIDIA driver daemon sets the condition after GPU initialization completes
+3. NRC removes the taint, enabling AI workload scheduling
+4. **If the driver crashes at runtime:**
+   - The condition changes to `False`
+   - NRC immediately reapplies the taint
+   - Existing Pods remain; scheduling of new Pods is blocked
 
-#### EBS CSI 드라이버 준비 확인 {#ebs-csi-드라이버-준비-확인}
+#### Checking EBS CSI driver readiness {#ebs-csi-드라이버-준비-확인}
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -163,13 +163,13 @@ spec:
 
   enforcementMode: "bootstrap-only"
 
-  # 스토리지 워크로드 전용 노드에만 적용
+  # Apply only to nodes dedicated to storage workloads
   nodeSelector:
     matchLabels:
       workload-type: "stateful"
 ```
 
-#### Dry-run 모드 - 테스트 규칙 {#dry-run-모드---테스트-규칙}
+#### Dry-run mode - test rule {#dry-run-모드---테스트-규칙}
 
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
@@ -187,7 +187,7 @@ spec:
     effect: "NoSchedule"
     value: "testing"
 
-  # Taint 적용 없이 동작만 로깅
+  # Log actions without applying taints
   enforcementMode: "dry-run"
 
   nodeSelector:
@@ -195,14 +195,14 @@ spec:
       environment: "staging"
 ```
 
-### EKS 적용 시나리오 {#eks-적용-시나리오}
+### EKS usage scenarios {#eks-적용-시나리오}
 
-#### VPC CNI 초기화 대기 {#1-vpc-cni-초기화-대기}
+#### Waiting for VPC CNI initialization {#1-vpc-cni-초기화-대기}
 
-**문제:**
-노드가 클러스터에 조인한 직후 VPC CNI 플러그인이 완전히 초기화되기 전에 Pod이 스케줄링되면 네트워크 연결 실패가 발생합니다.
+**Problem:**
+Network connectivity fails if Pods are scheduled immediately after a node joins the cluster, before the VPC CNI plugin is fully initialized.
 
-**해결:**
+**Solution:**
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
@@ -220,9 +220,9 @@ spec:
   enforcementMode: "bootstrap-only"
 ```
 
-**VPC CNI 데몬셋에서 조건 설정:**
+**Set the condition in the VPC CNI DaemonSet:**
 ```yaml
-# aws-node DaemonSet의 init container
+# Init container in the aws-node DaemonSet
 initContainers:
 - name: set-node-condition
   image: bitnami/kubectl:latest
@@ -230,13 +230,13 @@ initContainers:
   - /bin/sh
   - -c
   - |
-    # CNI 초기화 대기
+    # Wait for CNI initialization
     until [ -f /host/etc/cni/net.d/10-aws.conflist ]; do
       echo "Waiting for CNI config..."
       sleep 2
     done
 
-    # Node Condition 설정
+    # Set the Node Condition
     kubectl patch node $NODE_NAME --type=json -p='[
       {
         "op": "add",
@@ -257,12 +257,12 @@ initContainers:
         fieldPath: spec.nodeName
 ```
 
-#### GPU 노드 NVIDIA 드라이버 준비 {#2-gpu-노드-nvidia-드라이버-준비}
+#### NVIDIA driver readiness on GPU nodes {#2-gpu-노드-nvidia-드라이버-준비}
 
-**문제:**
-GPU 워크로드가 NVIDIA 드라이버 로딩 완료 전에 스케줄링되면 CUDA 초기화 실패로 Pod이 CrashLoopBackOff 상태에 빠집니다.
+**Problem:**
+If a GPU workload is scheduled before the NVIDIA driver finishes loading, CUDA initialization fails and the Pod enters CrashLoopBackOff.
 
-**해결:**
+**Solution:**
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
@@ -285,35 +285,35 @@ spec:
       node.kubernetes.io/instance-type: "g5.xlarge"
 ```
 
-**NVIDIA Device Plugin에서 조건 설정:**
+**Set conditions in the NVIDIA Device Plugin:**
 ```go
-// NVIDIA Device Plugin의 헬스체크 로직
+// Health check logic in the NVIDIA Device Plugin
 func updateNodeCondition(nodeName string) error {
-    // GPU 드라이버 상태 확인
+    // Check GPU driver status
     version, err := nvml.SystemGetDriverVersion()
     if err != nil {
         return setCondition(nodeName, "nvidia.com/gpu-driver-ready", "False")
     }
 
-    // Device Plugin 상태 확인
+    // Check Device Plugin status
     devices, err := nvml.DeviceGetCount()
     if err != nil || devices == 0 {
         return setCondition(nodeName, "nvidia.com/gpu-device-plugin-ready", "False")
     }
 
-    // 모두 정상이면 True로 설정
+    // Set to True if both are healthy
     setCondition(nodeName, "nvidia.com/gpu-driver-ready", "True")
     setCondition(nodeName, "nvidia.com/gpu-device-plugin-ready", "True")
     return nil
 }
 ```
 
-#### Node Problem Detector 통합 {#3-node-problem-detector-통합}
+#### Node Problem Detector integration {#3-node-problem-detector-통합}
 
-**문제:**
-노드에서 하드웨어 오류, 커널 데드락, 네트워크 문제 등이 발생해도 Kubernetes가 자동으로 Pod 스케줄링을 차단하지 않습니다.
+**Problem:**
+Kubernetes does not automatically block Pod scheduling when a node experiences hardware errors, kernel deadlocks, or network issues.
 
-**해결:**
+**Solution:**
 ```yaml
 apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
@@ -323,7 +323,7 @@ metadata:
 spec:
   conditions:
     - type: "KernelDeadlock"
-      requiredStatus: "False"  # False이어야 정상
+      requiredStatus: "False"  # False indicates healthy status
     - type: "DiskPressure"
       requiredStatus: "False"
     - type: "NetworkUnavailable"
@@ -335,63 +335,63 @@ spec:
   enforcementMode: "continuous"
 ```
 
-### 워크플로우 다이어그램 {#워크플로우-다이어그램}
+### Workflow diagram {#워크플로우-다이어그램}
 
 ```mermaid
 sequenceDiagram
-    participant Node as 새 노드
+    participant Node as New node
     participant NRC as Node Readiness<br/>Controller
     participant CNI as CNI Plugin
     participant Scheduler as kube-scheduler
     participant Pod as Pod
 
-    Note over Node: 노드 클러스터 조인
+    Note over Node: Node joins the cluster
 
-    Node->>NRC: 노드 등록 이벤트
-    NRC->>NRC: NodeReadinessRule 확인
-    NRC->>Node: Taint 자동 적용<br/>(network-unavailable=pending:NoSchedule)
+    Node->>NRC: Node registration event
+    NRC->>NRC: Check NodeReadinessRule
+    NRC->>Node: Automatically apply taint<br/>(network-unavailable=pending:NoSchedule)
 
-    Note over Node,CNI: 인프라 컴포넌트 초기화 중
+    Note over Node,CNI: Infrastructure components initializing
 
-    CNI->>CNI: VPC CNI 초기화 시작
-    CNI->>CNI: ENI 할당 완료
-    CNI->>CNI: IP 주소 풀 준비
-    CNI->>Node: Node Condition 업데이트<br/>(CNIReady=True)
+    CNI->>CNI: Start VPC CNI initialization
+    CNI->>CNI: ENI allocation complete
+    CNI->>CNI: Prepare IP address pool
+    CNI->>Node: Update Node Condition<br/>(CNIReady=True)
 
-    NRC->>Node: Condition 변경 감지
-    NRC->>NRC: requiredStatus 확인 (True == True)
-    NRC->>Node: Taint 제거
+    NRC->>Node: Detect condition change
+    NRC->>NRC: Check requiredStatus (True == True)
+    NRC->>Node: Remove taint
 
-    Note over Node: Pod 스케줄링 가능 상태
+    Note over Node: Ready for Pod scheduling
 
-    Scheduler->>Node: Pod 스케줄링 가능 확인
-    Scheduler->>Pod: Pod를 노드에 할당
-    Pod->>Node: Pod 시작 및 네트워크 연결 성공
+    Scheduler->>Node: Verify Pod scheduling is allowed
+    Scheduler->>Pod: Assign Pod to node
+    Pod->>Node: Pod starts and connects to the network
 
-    Note over Node,Pod: 정상 운영 중
+    Note over Node,Pod: Operating normally
 
-    alt Continuous 모드인 경우
-        CNI->>CNI: 런타임 중 드라이버 크래시
-        CNI->>Node: Condition 변경<br/>(CNIReady=False)
-        NRC->>Node: Condition 변경 감지
-        NRC->>Node: Taint 재적용
-        Note over Scheduler: 신규 Pod 스케줄링 차단<br/>(기존 Pod는 유지)
-    else Bootstrap-only 모드인 경우
-        Note over NRC: Condition 변경 무시<br/>(모니터링 중단됨)
+    alt In continuous mode
+        CNI->>CNI: Driver crashes at runtime
+        CNI->>Node: Condition changes<br/>(CNIReady=False)
+        NRC->>Node: Detect condition change
+        NRC->>Node: Reapply taint
+        Note over Scheduler: Block scheduling of new Pods<br/>(existing Pods remain)
+    else In bootstrap-only mode
+        Note over NRC: Ignore condition changes<br/>(monitoring has stopped)
     end
 ```
 
-### Pod Readiness와의 관계 {#pod-readiness와의-관계}
+### Relationship to Pod readiness {#pod-readiness와의-관계}
 
-Kubernetes의 Readiness 메커니즘은 이제 3계층 구조로 완성됩니다:
+The Kubernetes readiness mechanism now forms a complete 3-layer structure:
 
-| 계층 | 메커니즘 | 범위 | 실패 시 동작 | 사용 사례 |
+| Layer | Mechanism | Scope | Action on failure | Use case |
 |------|---------|------|-------------|----------|
-| **1. 컨테이너** | Readiness Probe | 컨테이너 내부 헬스체크 | Service Endpoint 제거 | 애플리케이션 준비 상태 확인 |
-| **2. Pod** | Readiness Gate | Pod 수준 외부 조건 | Service Endpoint 제거 | ALB/NLB 헬스체크 통합 |
-| **3. 노드** | Node Readiness Controller | 노드 인프라 조건 | Pod 스케줄링 차단 (Taint) | CNI, GPU, 스토리지 준비 확인 |
+| **1. Container** | Readiness Probe | Health checks inside the container | Remove Service Endpoint | Check application readiness |
+| **2. Pod** | Readiness Gate | External conditions at the Pod level | Remove Service Endpoint | Integrate ALB/NLB health checks |
+| **3. Node** | Node Readiness Controller | Node infrastructure conditions | Block Pod scheduling (taint) | Check CNI, GPU, and storage readiness |
 
-**통합 시나리오 - 완전한 트래픽 안전성:**
+**Integrated scenario - complete traffic safety:**
 
 ```yaml
 apiVersion: apps/v1
@@ -408,11 +408,11 @@ spec:
       labels:
         app: critical-service
     spec:
-      # 3계층 Readiness 적용
+      # Apply 3-layer readiness
       containers:
       - name: app
         image: myapp:v2
-        # 1계층: 컨테이너 Readiness Probe
+        # Layer 1: container Readiness Probe
         readinessProbe:
           httpGet:
             path: /ready
@@ -420,37 +420,37 @@ spec:
           periodSeconds: 5
           failureThreshold: 2
 
-      # 2계층: Pod Readiness Gate
+      # Layer 2: Pod Readiness Gate
       readinessGates:
       - conditionType: "target-health.alb.ingress.k8s.aws/production-alb"
 
-      # 3계층: Node Readiness (NodeReadinessRule로 자동 처리)
-      # - 노드의 CNI, GPU, 스토리지 준비 상태 확인
-      # - Taint가 없는 노드에만 스케줄링됨
+      # Layer 3: Node Readiness (handled automatically by NodeReadinessRule)
+      # - Check node CNI, GPU, and storage readiness
+      # - Scheduled only on nodes without taints
 ```
 
-**트래픽 수신 체크리스트:**
+**Traffic acceptance checklist:**
 
 ```mermaid
 flowchart TD
-    START[Pod 생성]
+    START[Create Pod]
 
-    START --> NODE_CHECK{노드 준비 완료?<br/>Node Readiness}
-    NODE_CHECK -->|Taint 있음| WAIT_NODE[스케줄링 대기]
+    START --> NODE_CHECK{Node ready?<br/>Node Readiness}
+    NODE_CHECK -->|Taint present| WAIT_NODE[Wait for scheduling]
     WAIT_NODE --> NODE_CHECK
-    NODE_CHECK -->|Taint 없음| SCHEDULE[Pod 스케줄링]
+    NODE_CHECK -->|No taint| SCHEDULE[Schedule Pod]
 
-    SCHEDULE --> POD_START[Pod 시작]
-    POD_START --> CONTAINER_CHECK{컨테이너 준비?<br/>Readiness Probe}
-    CONTAINER_CHECK -->|실패| WAIT_CONTAINER[Endpoint 미등록]
+    SCHEDULE --> POD_START[Start Pod]
+    POD_START --> CONTAINER_CHECK{Container ready?<br/>Readiness Probe}
+    CONTAINER_CHECK -->|Failure| WAIT_CONTAINER[Endpoint not registered]
     WAIT_CONTAINER --> CONTAINER_CHECK
-    CONTAINER_CHECK -->|성공| GATE_CHECK{Pod Gate 통과?<br/>Readiness Gate}
+    CONTAINER_CHECK -->|Success| GATE_CHECK{Pod gate passed?<br/>Readiness Gate}
 
-    GATE_CHECK -->|실패| WAIT_GATE[Endpoint 미등록]
+    GATE_CHECK -->|Failure| WAIT_GATE[Endpoint not registered]
     WAIT_GATE --> GATE_CHECK
-    GATE_CHECK -->|성공| READY[Service Endpoint 등록]
+    GATE_CHECK -->|Success| READY[Register Service Endpoint]
 
-    READY --> TRAFFIC[트래픽 수신 시작]
+    READY --> TRAFFIC[Start receiving traffic]
 
     style NODE_CHECK fill:#fbbc04,stroke:#c99603,color:#000
     style CONTAINER_CHECK fill:#fbbc04,stroke:#c99603,color:#000
@@ -459,12 +459,12 @@ flowchart TD
     style TRAFFIC fill:#4286f4,stroke:#2a6acf,color:#fff
 ```
 
-### 설치 및 설정 {#설치-및-설정}
+### Installation and configuration {#설치-및-설정}
 
-#### Node Readiness Controller 설치 {#1-node-readiness-controller-설치}
+#### Install Node Readiness Controller {#1-node-readiness-controller-설치}
 
 ```bash
-# Helm으로 설치
+# Install with Helm
 helm repo add node-readiness-controller https://node-readiness-controller.sigs.k8s.io
 helm repo update
 
@@ -473,54 +473,54 @@ helm install node-readiness-controller \
   --namespace kube-system \
   --create-namespace
 
-# 또는 Kustomize로 설치
+# Or install with Kustomize
 kubectl apply -k https://github.com/kubernetes-sigs/node-readiness-controller/config/default
 ```
 
-#### 설치 확인 {#2-설치-확인}
+#### Verify installation {#2-설치-확인}
 
 ```bash
-# Controller Pod 상태 확인
+# Check controller Pod status
 kubectl get pods -n kube-system -l app=node-readiness-controller
 
-# CRD 확인
+# Check the CRD
 kubectl get crd nodereadinessrules.readiness.node.x-k8s.io
 
-# 샘플 규칙 적용
+# Apply a sample rule
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/main/examples/basic-rule.yaml
 
-# 규칙 목록 확인
+# List rules
 kubectl get nodereadinessrules -A
 ```
 
-#### 노드 상태 확인 {#3-노드-상태-확인}
+#### Check node status {#3-노드-상태-확인}
 
 ```bash
-# 특정 노드의 Condition 확인
+# Check conditions on a specific node
 kubectl get node <node-name> -o jsonpath='{.status.conditions}' | jq
 
-# 특정 Condition만 필터링
+# Filter for a specific condition
 kubectl get node <node-name> -o jsonpath='{.status.conditions[?(@.type=="CNIReady")]}' | jq
 
-# 모든 노드의 Taint 확인
+# Check taints on all nodes
 kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
 ```
 
-### 디버깅 및 트러블슈팅 {#디버깅-및-트러블슈팅}
+### Debugging and troubleshooting {#디버깅-및-트러블슈팅}
 
-#### Taint가 제거되지 않는 경우 {#taint가-제거되지-않는-경우}
+#### When a taint is not removed {#taint가-제거되지-않는-경우}
 
 ```bash
-# 1. NodeReadinessRule 이벤트 확인
+# 1. Check NodeReadinessRule events
 kubectl describe nodereadinessrule <rule-name> -n kube-system
 
-# 2. 노드 Condition 상태 확인
+# 2. Check node condition status
 kubectl get node <node-name> -o yaml | grep -A 10 conditions
 
-# 3. Controller 로그 확인
+# 3. Check controller logs
 kubectl logs -n kube-system -l app=node-readiness-controller --tail=100
 
-# 4. 수동으로 Condition 설정 (테스트용)
+# 4. Set a condition manually (for testing)
 kubectl patch node <node-name> --type=json -p='[
   {
     "op": "add",
@@ -536,45 +536,45 @@ kubectl patch node <node-name> --type=json -p='[
 ]'
 ```
 
-#### Dry-run 모드로 규칙 테스트 {#dry-run-모드로-규칙-테스트}
+#### Test rules in dry-run mode {#dry-run-모드로-규칙-테스트}
 
 ```bash
-# 기존 규칙을 dry-run으로 변경
+# Change an existing rule to dry-run
 kubectl patch nodereadinessrule <rule-name> -n kube-system \
   --type=merge \
   -p '{"spec":{"enforcementMode":"dry-run"}}'
 
-# Controller 로그에서 동작 확인
+# Check behavior in controller logs
 kubectl logs -n kube-system -l app=node-readiness-controller -f | grep "dry-run"
 
-# 테스트 완료 후 원래 모드로 복구
+# Restore the original mode after testing
 kubectl patch nodereadinessrule <rule-name> -n kube-system \
   --type=merge \
   -p '{"spec":{"enforcementMode":"continuous"}}'
 ```
 
-:::info 알파 기능 주의사항
-Node Readiness Controller는 현재 v0.1.1 알파 버전입니다. 프로덕션 환경에 적용하기 전에:
-- 스테이징 환경에서 충분한 테스트 수행
-- Dry-run 모드로 규칙 동작 검증
-- Controller 로그 모니터링 설정
-- 문제 발생 시 수동으로 Taint 제거할 수 있는 절차 준비
+:::info Alpha feature considerations
+Node Readiness Controller is currently at alpha version v0.1.1. Before applying it to production:
+- Perform thorough testing in a staging environment
+- Validate rule behavior in dry-run mode
+- Set up controller log monitoring
+- Prepare a procedure for manually removing taints if issues occur
 :::
 
-:::tip 운영 Best Practice
-1. **Bootstrap-only 우선 사용**: 대부분의 경우 부트스트랩 전용 모드로 충분합니다. Continuous 모드는 런타임 중 장애가 빈번한 컴포넌트(GPU 드라이버 등)에만 사용하세요.
-2. **nodeSelector 적극 활용**: 모든 노드에 동일한 규칙을 적용하지 말고, 워크로드 유형별로 세분화하세요.
-3. **Node Problem Detector 통합**: NRC와 NPD를 함께 사용하면 하드웨어/OS 수준 문제까지 자동 대응할 수 있습니다.
-4. **모니터링 및 알림**: Taint 적용/제거 이벤트를 CloudWatch나 Prometheus로 수집하고, 장시간 Taint가 유지되면 알림을 받도록 설정하세요.
+:::tip Operational best practices
+1. **Prefer bootstrap-only**: Bootstrap-only mode is sufficient in most cases. Use continuous mode only for components that frequently fail at runtime, such as GPU drivers.
+2. **Make effective use of nodeSelector**: Define rules by workload type instead of applying the same rule to all nodes.
+3. **Integrate Node Problem Detector**: Using NRC and NPD together enables automated responses to hardware/OS-level issues as well.
+4. **Monitoring and alerts**: Collect taint application/removal events in CloudWatch or Prometheus, and configure alerts for taints that remain in place for a long time.
 :::
 
-:::warning PDB와의 충돌 주의
-Node Readiness Controller가 Taint를 적용하면 해당 노드의 Pod이 새로 생성되지 않습니다. 만약 여러 노드에서 동시에 Taint가 적용되고 PodDisruptionBudget이 엄격하게 설정되어 있으면, 클러스터 전체의 워크로드 배치가 블로킹될 수 있습니다. 규칙 설계 시 PDB 정책을 함께 검토하세요.
+:::warning Potential conflicts with PDBs
+When Node Readiness Controller applies a taint, new Pods are not created on that node. If taints are applied to multiple nodes simultaneously and the PodDisruptionBudget is strict, workload placement across the entire cluster may be blocked. Review PDB policies when designing rules.
 :::
 
-### 참조 자료 {#참조-자료}
+### References {#참조-자료}
 
-- **공식 문서**: [Node Readiness Controller](https://node-readiness-controller.sigs.k8s.io/)
+- **Official documentation**: [Node Readiness Controller](https://node-readiness-controller.sigs.k8s.io/)
 - **Kubernetes Blog**: [Introducing Node Readiness Controller](https://kubernetes.io/blog/2026/02/03/introducing-node-readiness-controller/)
 - **GitHub Repository**: [kubernetes-sigs/node-readiness-controller](https://github.com/kubernetes-sigs/node-readiness-controller)
 

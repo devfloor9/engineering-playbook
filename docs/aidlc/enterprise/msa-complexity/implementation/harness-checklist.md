@@ -1,125 +1,125 @@
 ---
-title: 하네스 체크리스트
-description: MSA 패턴별 필수 하네스와 구현 가이드
-created: "2026-04-18"
+title: Harness Checklist
+description: Required harnesses and implementation guide by MSA pattern
+created: "2026-04-19"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 2
+  author: devfloor9
+reading_time: 4
 tags:
   - harness
   - testing
   - aidlc
   - enterprise
   - scope:enterprise
-sidebar_label: 하네스 체크리스트
+sidebar_label: Harness Checklist
 sidebar_position: 2
 ---
 
-패턴별 필수 하네스와 선택 하네스를 정리합니다.
+Required and optional harnesses organized by pattern.
 
-## 패턴별 필수 하네스
+## Required Harnesses by Pattern
 
-| 패턴 | 필수 하네스 | 선택 하네스 | 우선순위 |
+| Pattern | Required Harnesses | Optional Harnesses | Priority |
 |------|-----------|-----------|---------|
-| **L1: CRUD** | - API 계약 검증<br/>- 기본 단위 테스트<br/>- 통합 테스트 | - 성능 테스트<br/>- 보안 스캔 | P0 |
-| **L2: 동기 MSA** | - 서비스 계약 검증<br/>- 타임아웃/재시도<br/>- 서킷 브레이커<br/>- Contract Testing | - 카오스 엔지니어링<br/>- 부하 테스트 | P1 |
-| **L3: 비동기 이벤트** | - 이벤트 스키마 검증<br/>- 멱등성 하네스<br/>- 이벤트 순서 검증<br/>- Eventually Consistent 테스트 | - 이벤트 리플레이<br/>- Dead Letter Queue | P1 |
-| **L4: Saga** | - Saga 단계 검증<br/>- 보상 트랜잭션 검증<br/>- 실패 시나리오 테스트<br/>- 타임아웃 하네스 | - 분산 추적<br/>- 카오스 엔지니어링 | P0 |
-| **L5: Event Sourcing** | - 이벤트 스키마 검증<br/>- 프로젝션 검증<br/>- 이벤트 리플레이<br/>- 이벤트 마이그레이션 | - Snapshot 전략<br/>- 성능 테스트 | P0 |
+| **L1: CRUD** | - API contract verification<br/>- Basic unit tests<br/>- Integration tests | - Performance tests<br/>- Security scans | P0 |
+| **L2: Sync MSA** | - Service contract verification<br/>- Timeout/retry<br/>- Circuit breaker<br/>- Contract Testing | - Chaos engineering<br/>- Load tests | P1 |
+| **L3: Async Events** | - Event schema verification<br/>- Idempotency harness<br/>- Event ordering verification<br/>- Eventually Consistent tests | - Event replay<br/>- Dead Letter Queue | P1 |
+| **L4: Saga** | - Saga step verification<br/>- Compensating transaction verification<br/>- Failure scenario tests<br/>- Timeout harness | - Distributed tracing<br/>- Chaos engineering | P0 |
+| **L5: Event Sourcing** | - Event schema verification<br/>- Projection verification<br/>- Event replay<br/>- Event migration | - Snapshot strategy<br/>- Performance tests | P0 |
 
-## 하네스 구현 예시
+## Harness Implementation Examples
 
-### 멱등성 하네스 (L3+)
+### Idempotency Harness (L3+)
 
 ```python
 # harness/idempotency_test.py
 def test_duplicate_event_handling():
-    """동일 이벤트를 여러 번 받아도 결과가 동일한지 검증"""
+    """Verify identical results when receiving same event multiple times"""
     event = OrderCreatedEvent(orderId="123", ...)
 
-    # 첫 번째 처리
+    # First processing
     result1 = event_handler.handle(event)
     state1 = get_order_state("123")
 
-    # 두 번째 처리 (중복)
+    # Second processing (duplicate)
     result2 = event_handler.handle(event)
     state2 = get_order_state("123")
 
-    # 결과가 동일해야 함
+    # Results must be identical
     assert result1 == result2
     assert state1 == state2
 ```
 
-### 보상 트랜잭션 하네스 (L4+)
+### Compensating Transaction Harness (L4+)
 
 ```python
 # harness/saga_compensation_test.py
 def test_saga_compensation():
-    """Saga 실패 시 보상 로직이 정확히 동작하는지 검증"""
+    """Verify that compensation logic works correctly on Saga failure"""
     saga = TravelBookingSaga()
 
-    # 1. Flight 예약 성공
+    # 1. Flight reservation success
     saga.execute_step("ReserveFlight")
     assert flight_service.is_reserved("flight123")
 
-    # 2. Hotel 예약 성공
+    # 2. Hotel reservation success
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
 
-    # 3. Payment 실패 시뮬레이션
+    # 3. Payment failure simulation
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
 
-    # 4. 보상 트랜잭션 검증
+    # 4. Compensating transaction verification
     saga.compensate()
-    assert not hotel_service.is_reserved("hotel456")  # 취소됨
-    assert not flight_service.is_reserved("flight123")  # 취소됨
+    assert not hotel_service.is_reserved("hotel456")  # cancelled
+    assert not flight_service.is_reserved("flight123")  # cancelled
 ```
 
-### 프로젝션 검증 하네스 (L5)
+### Projection Verification Harness (L5)
 
 ```python
 # harness/projection_test.py
 def test_projection_consistency():
-    """이벤트 소싱 프로젝션이 정확한지 검증"""
-    # 1. 이벤트 생성
+    """Verify event sourcing projection accuracy"""
+    # 1. Create events
     events = [
         AccountOpenedEvent(accountId="A1", balance=1000),
         MoneyDepositedEvent(accountId="A1", amount=500),
         MoneyWithdrawnEvent(accountId="A1", amount=200),
     ]
 
-    # 2. 이벤트 저장
+    # 2. Store events
     for event in events:
         event_store.append(event)
 
-    # 3. 프로젝션 업데이트
+    # 3. Update projection
     projection_service.rebuild("AccountBalanceView")
 
-    # 4. Read Model 검증
+    # 4. Verify Read Model
     balance_view = read_db.get_account_balance("A1")
     assert balance_view.balance == 1300  # 1000 + 500 - 200
     assert balance_view.version == 3
 ```
 
-## 하네스 우선순위 가이드
+## Harness Priority Guide
 
-### P0 (필수)
-프로젝트 실패 시 데이터 손실 또는 심각한 비즈니스 영향
-- 예: 보상 트랜잭션 검증, 이벤트 스키마 검증
+### P0 (Required)
+Project failure results in data loss or serious business impact
+- Example: Compensating transaction verification, event schema verification
 
-### P1 (강력 권장)
-프로젝트 실패 시 서비스 장애 또는 사용자 경험 저하
-- 예: 타임아웃/재시도, 멱등성 검증
+### P1 (Strongly Recommended)
+Project failure results in service outage or user experience degradation
+- Example: Timeout/retry, idempotency verification
 
-### P2 (선택)
-품질 향상 또는 운영 편의성
-- 예: 성능 테스트, 카오스 엔지니어링
+### P2 (Optional)
+Quality improvement or operational convenience
+- Example: Performance tests, chaos engineering
 
-## CI/CD 통합
+## CI/CD Integration
 
-### 자동화 파이프라인
+### Automation Pipeline
 
 ```yaml
 # .github/workflows/aidlc-validation.yml
@@ -154,7 +154,7 @@ jobs:
           aidlc-cli quality-gate --threshold 80
 ```
 
-## 다음 단계
+## Next Steps
 
-- [검증 방법론](./verification.md): 하네스 검증 및 품질 보증
-- [온톨로지 가이드](./ontology-guide.md): 온톨로지 작성 방법
+- [Verification Methodology](./verification.md): Harness verification and quality assurance
+- [Ontology Guide](./ontology-guide.md): Ontology writing methods

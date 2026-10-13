@@ -1,11 +1,11 @@
 ---
-title: 옵저버빌리티 및 모니터링
-description: EKS 옵저버빌리티 스택 구성 및 인시던트 디텍팅 전략 - Container Insights, Prometheus, ADOT
+title: Observability and Monitoring
+description: EKS observability stack configuration and incident detection strategies - Container Insights, Prometheus, ADOT
 created: "2026-04-07"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 9
+  author: devfloor9
+reading_time: 16
 tags:
   - eks
   - kubernetes
@@ -14,25 +14,25 @@ tags:
   - prometheus
   - adot
   - scope:ops
-sidebar_label: 옵저버빌리티
+sidebar_label: Observability
 ---
 
 import { IncidentEscalationTable, ZonalShiftImpactTable } from '@site/src/components/EksDebugTables';
 
-## 옵저버빌리티 스택 아키텍처
+## Observability Stack Architecture
 
 ```mermaid
 flowchart TB
-    subgraph "데이터 소스"
+    subgraph "Data Sources"
         APPS["`Applications
-        (메트릭 / 로그 / 트레이스)`"]
+        (metrics / logs / traces)`"]
         K8S["`Kubernetes
-        (이벤트 / 메트릭)`"]
+        (events / metrics)`"]
         NODES["`Nodes
-        (시스템 메트릭)`"]
+        (system metrics)`"]
     end
 
-    subgraph "수집 레이어"
+    subgraph "Collection Layer"
         ADOT["`ADOT Collector
         (OpenTelemetry)`"]
         CWA["`CloudWatch Agent
@@ -41,16 +41,16 @@ flowchart TB
         (kube-state-metrics)`"]
     end
 
-    subgraph "저장 및 분석"
+    subgraph "Storage and Analysis"
         CW["`CloudWatch
         Logs & Metrics`"]
         AMP["`Amazon Managed
         Prometheus`"]
         GRAF["`Grafana
-        (대시보드)`"]
+        (dashboards)`"]
     end
 
-    subgraph "알림"
+    subgraph "Alerting"
         ALARM["`CloudWatch Alarms`"]
         AM["`Alertmanager`"]
         SNS["`SNS / PagerDuty
@@ -82,58 +82,58 @@ flowchart TB
     style GRAF fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-## Container Insights 설정
+## Container Insights Setup
 
 ```bash
-# Container Insights Add-on 설치
+# Install Container Insights Add-on
 aws eks create-addon \
   --cluster-name <cluster-name> \
   --addon-name amazon-cloudwatch-observability
 
-# 설치 확인
+# Verify installation
 kubectl get pods -n amazon-cloudwatch
 ```
 
-## 메트릭 디버깅: PromQL 쿼리
+## Metric Debugging: PromQL Queries
 
-### CPU Throttling 감지
+### CPU Throttling Detection
 
 ```promql
 sum(rate(container_cpu_cfs_throttled_periods_total{namespace="production"}[5m]))
 / sum(rate(container_cpu_cfs_periods_total{namespace="production"}[5m])) > 0.25
 ```
 
-:::info CPU Throttling 임계값
-25% 이상의 throttling은 성능 저하를 유발합니다. CPU limits를 제거하거나 증가시키는 것을 고려하세요. 많은 조직이 CPU limits를 설정하지 않고 requests만 설정하는 전략을 채택하고 있습니다.
+:::info CPU Throttling Threshold
+Throttling above 25% causes performance degradation. Consider removing or increasing CPU limits. Many organizations adopt a strategy of setting only CPU requests without limits.
 :::
 
-### OOMKilled 감지
+### OOMKilled Detection
 
 ```promql
 kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} > 0
 ```
 
-### Pod 재시작률
+### Pod Restart Rate
 
 ```promql
 sum(rate(kube_pod_container_status_restarts_total[15m])) by (namespace, pod) > 0
 ```
 
-### Node CPU 사용률 (80% 초과 경고)
+### Node CPU Utilization (Warn Above 80%)
 
 ```promql
 100 - (avg by(instance)(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
 ```
 
-### Node 메모리 사용률 (85% 초과 경고)
+### Node Memory Utilization (Warn Above 85%)
 
 ```promql
 (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 > 85
 ```
 
-## 로그 디버깅: CloudWatch Logs Insights
+## Log Debugging: CloudWatch Logs Insights
 
-### 에러 로그 분석
+### Error Log Analysis
 
 ```sql
 fields @timestamp, @message, kubernetes.container_name, kubernetes.pod_name
@@ -142,7 +142,7 @@ fields @timestamp, @message, kubernetes.container_name, kubernetes.pod_name
 | limit 50
 ```
 
-### 레이턴시 분석
+### Latency Analysis
 
 ```sql
 fields @timestamp, @message
@@ -151,7 +151,7 @@ fields @timestamp, @message
 | stats avg(latency_ms), max(latency_ms), p99(latency_ms) by bin(5m)
 ```
 
-### 특정 Pod의 에러 패턴 분석
+### Error Pattern Analysis for a Specific Pod
 
 ```sql
 fields @timestamp, @message
@@ -161,7 +161,7 @@ fields @timestamp, @message
 | sort bin asc
 ```
 
-### OOMKilled 이벤트 추적
+### OOMKilled Event Tracking
 
 ```sql
 fields @timestamp, @message
@@ -170,7 +170,7 @@ fields @timestamp, @message
 | limit 20
 ```
 
-### 컨테이너 재시작 이벤트
+### Container Restart Events
 
 ```sql
 fields @timestamp, @message, kubernetes.pod_name
@@ -179,7 +179,7 @@ fields @timestamp, @message, kubernetes.pod_name
 | sort count desc
 ```
 
-## 알림 규칙: PrometheusRule 예제
+## Alert Rules: PrometheusRule Example
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -197,7 +197,7 @@ spec:
         severity: warning
       annotations:
         summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
-        description: "Pod {{ $labels.pod }}이 15분간 재시작이 감지되었습니다."
+        description: "Pod {{ $labels.pod }} has been restarting over the last 15 minutes."
 
     - alert: PodOOMKilled
       expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} > 0
@@ -206,7 +206,7 @@ spec:
         severity: critical
       annotations:
         summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} OOMKilled"
-        description: "Pod {{ $labels.pod }}이 메모리 부족으로 종료되었습니다. 메모리 limits 조정이 필요합니다."
+        description: "Pod {{ $labels.pod }} was terminated due to memory exhaustion. Adjust memory limits."
 
   - name: kubernetes-nodes
     rules:
@@ -235,49 +235,49 @@ spec:
         summary: "Node {{ $labels.instance }} memory usage above 85%"
 ```
 
-## ADOT (AWS Distro for OpenTelemetry) 디버깅
+## ADOT (AWS Distro for OpenTelemetry) Debugging
 
-ADOT는 AWS에서 관리하는 OpenTelemetry 배포판으로, 트레이스, 메트릭, 로그를 수집하여 다양한 AWS 서비스(X-Ray, CloudWatch, AMP 등)로 전송합니다.
+ADOT is the AWS-managed distribution of OpenTelemetry that collects traces, metrics, and logs and forwards them to various AWS services (X-Ray, CloudWatch, AMP, etc.).
 
 ```bash
-# ADOT Add-on 상태 확인
+# Check ADOT Add-on status
 aws eks describe-addon --cluster-name $CLUSTER \
   --addon-name adot --query 'addon.{status:status,version:addonVersion}'
 
-# ADOT Collector Pod 확인
+# Check ADOT Collector Pods
 kubectl get pods -n opentelemetry-operator-system
 kubectl logs -n opentelemetry-operator-system -l app.kubernetes.io/name=opentelemetry-operator --tail=50
 
-# OpenTelemetryCollector CR 확인
+# Check OpenTelemetryCollector CR
 kubectl get otelcol -A
 kubectl describe otelcol -n $NAMESPACE $COLLECTOR_NAME
 ```
 
-### ADOT 일반적인 문제
+### Common ADOT Issues
 
-| 증상 | 원인 | 해결 방법 |
+| Symptom | Cause | Resolution |
 |------|------|----------|
-| Operator Pod `CrashLoopBackOff` | CertManager 미설치 | ADOT operator의 webhook 인증서 관리에 CertManager가 필요. `kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml` |
-| Collector에서 AMP로 전송 실패 | IAM 권한 부족 | IRSA/Pod Identity에 `aps:RemoteWrite` 권한 추가 |
-| X-Ray 트레이스 미수신 | IAM 권한 부족 | IRSA/Pod Identity에 `xray:PutTraceSegments`, `xray:PutTelemetryRecords` 권한 추가 |
-| CloudWatch 메트릭 미수신 | IAM 권한 부족 | IRSA/Pod Identity에 `cloudwatch:PutMetricData` 권한 추가 |
-| Collector Pod `OOMKilled` | 리소스 부족 | 대량 트레이스/메트릭 수집 시 Collector의 resources.limits.memory 증가 |
+| Operator Pod `CrashLoopBackOff` | CertManager not installed | ADOT operator requires CertManager for webhook certificates. `kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml` |
+| Collector fails to send to AMP | Insufficient IAM permissions | Add `aps:RemoteWrite` to IRSA/Pod Identity |
+| X-Ray traces not received | Insufficient IAM permissions | Add `xray:PutTraceSegments`, `xray:PutTelemetryRecords` to IRSA/Pod Identity |
+| CloudWatch metrics not received | Insufficient IAM permissions | Add `cloudwatch:PutMetricData` to IRSA/Pod Identity |
+| Collector Pod `OOMKilled` | Insufficient resources | Increase Collector `resources.limits.memory` when collecting high volumes of traces/metrics |
 
-:::warning ADOT 권한 분리
-AMP remote write, X-Ray, CloudWatch에 각각 다른 IAM 권한이 필요합니다. Collector가 여러 백엔드로 데이터를 전송하는 경우 모든 필요 권한이 IAM Role에 포함되어 있는지 확인하세요.
+:::warning ADOT Permission Separation
+AMP remote write, X-Ray, and CloudWatch each require different IAM permissions. When the Collector sends data to multiple backends, ensure the IAM Role includes every required permission.
 :::
 
 ---
 
-## 인시던트 디텍팅 메커니즘 및 로깅 아키텍처
+## Incident Detection Mechanisms and Logging Architecture
 
-### 인시던트 디텍팅 전략 개요
+### Incident Detection Strategy Overview
 
-EKS 환경에서 인시던트를 신속하게 감지하려면 **데이터 소스 → 수집 → 분석 & 탐지 → 알림 & 대응**의 4계층 파이프라인을 체계적으로 구성해야 합니다. 각 계층이 유기적으로 연결되어야 MTTD(Mean Time To Detect)를 최소화할 수 있습니다.
+To detect incidents quickly in EKS environments, a 4-layer pipeline of **data source → collection → analysis & detection → alerting & response** must be systematically configured. The layers must connect cohesively to minimize MTTD (Mean Time To Detect).
 
 ```mermaid
 flowchart TB
-    subgraph Sources["데이터 소스"]
+    subgraph Sources["Data Sources"]
         CP["`**Control Plane Logs**
         API Server, Audit,
         Authenticator`"]
@@ -292,7 +292,7 @@ flowchart TB
         Jaeger`"]
     end
 
-    subgraph Collection["수집 계층"]
+    subgraph Collection["Collection Layer"]
         FB["`**Fluent Bit**
         DaemonSet`"]
         CWA["`**CloudWatch Agent**
@@ -301,7 +301,7 @@ flowchart TB
         OpenTelemetry`"]
     end
 
-    subgraph Analysis["분석 & 탐지"]
+    subgraph Analysis["Analysis & Detection"]
         CWL["`**CloudWatch Logs**
         Logs Insights`"]
         AMP["`**Amazon Managed
@@ -312,7 +312,7 @@ flowchart TB
         Anomaly Detection**`"]
     end
 
-    subgraph Alert["알림 & 대응"]
+    subgraph Alert["Alerting & Response"]
         CWA2["`**CloudWatch Alarms**
         Composite Alarms`"]
         AM["`**Alertmanager**
@@ -357,30 +357,30 @@ flowchart TB
     style PD fill:#ff4444,stroke:#cc3636,color:#fff
 ```
 
-#### 4계층 아키텍처 설명
+#### Four-Layer Architecture
 
-| 계층 | 역할 | 핵심 구성 요소 |
+| Layer | Role | Core Components |
 |---|---|---|
-| **데이터 소스** | 클러스터의 모든 관찰 가능한 신호를 생성 | Control Plane Logs, Data Plane Logs, Metrics, Traces |
-| **수집 계층** | 다양한 소스의 데이터를 표준화하여 중앙으로 전달 | Fluent Bit, CloudWatch Agent, ADOT Collector |
-| **분석 & 탐지** | 수집된 데이터를 분석하고 이상을 탐지 | CloudWatch Logs Insights, AMP, OpenSearch, Anomaly Detection |
-| **알림 & 대응** | 탐지된 인시던트를 적절한 채널로 통보하고 자동 복구 실행 | CloudWatch Alarms, Alertmanager, SNS → Lambda, PagerDuty/Slack |
+| **Data Sources** | Generate all observable signals in the cluster | Control Plane Logs, Data Plane Logs, Metrics, Traces |
+| **Collection Layer** | Standardize data from various sources and ship centrally | Fluent Bit, CloudWatch Agent, ADOT Collector |
+| **Analysis & Detection** | Analyze collected data and detect anomalies | CloudWatch Logs Insights, AMP, OpenSearch, Anomaly Detection |
+| **Alerting & Response** | Notify appropriate channels about detected incidents and run auto-remediation | CloudWatch Alarms, Alertmanager, SNS → Lambda, PagerDuty/Slack |
 
-### 추천 로깅 아키텍처
+### Recommended Logging Architectures
 
-#### Option A: AWS 네이티브 스택 (소규모~중규모 클러스터)
+#### Option A: AWS-Native Stack (Small to Medium Clusters)
 
-AWS 관리형 서비스를 중심으로 구성하여 운영 부담을 최소화하는 아키텍처입니다.
+An architecture centered on AWS managed services to minimize operational overhead.
 
-| 계층 | 구성 요소 | 용도 |
+| Layer | Component | Purpose |
 |---|---|---|
-| 수집 | Fluent Bit (DaemonSet) | 노드/컨테이너 로그 수집 |
-| 전송 | CloudWatch Logs | 중앙 로그 저장소 |
-| 분석 | CloudWatch Logs Insights | 쿼리 기반 분석 |
-| 탐지 | CloudWatch Anomaly Detection | ML 기반 이상 탐지 |
-| 알림 | CloudWatch Alarms → SNS | 임계값/이상 기반 알림 |
+| Collection | Fluent Bit (DaemonSet) | Node/container log collection |
+| Transport | CloudWatch Logs | Central log store |
+| Analysis | CloudWatch Logs Insights | Query-based analysis |
+| Detection | CloudWatch Anomaly Detection | ML-based anomaly detection |
+| Alerting | CloudWatch Alarms → SNS | Threshold/anomaly-based alerts |
 
-**Fluent Bit DaemonSet 배포 예제:**
+**Fluent Bit DaemonSet deployment example:**
 
 ```yaml
 apiVersion: apps/v1
@@ -431,34 +431,34 @@ spec:
 ```
 
 :::tip Fluent Bit vs Fluentd
-Fluent Bit은 Fluentd보다 메모리 사용량이 10배 이상 적습니다 (~10MB vs ~100MB). EKS 환경에서는 Fluent Bit을 DaemonSet으로 배포하는 것이 표준 패턴입니다. `amazon-cloudwatch-observability` Add-on을 사용하면 Fluent Bit이 자동으로 설치됩니다.
+Fluent Bit uses more than 10× less memory than Fluentd (~10MB vs ~100MB). Deploying Fluent Bit as a DaemonSet is the standard pattern in EKS. The `amazon-cloudwatch-observability` Add-on installs Fluent Bit automatically.
 :::
 
-#### Option B: 오픈소스 기반 스택 (대규모 클러스터 / 멀티 클러스터)
+#### Option B: Open-Source-Based Stack (Large / Multi-Cluster)
 
-오픈소스 도구와 AWS 관리형 서비스를 조합하여 대규모 환경에서의 확장성과 유연성을 확보하는 아키텍처입니다.
+An architecture combining open-source tools with AWS managed services for scalability and flexibility at scale.
 
-| 계층 | 구성 요소 | 용도 |
+| Layer | Component | Purpose |
 |---|---|---|
-| 수집 | Fluent Bit + ADOT Collector | 로그/메트릭/트레이스 통합 수집 |
-| 메트릭 | Amazon Managed Prometheus (AMP) | 시계열 메트릭 저장 |
-| 로그 | Amazon OpenSearch Service | 대규모 로그 분석 |
-| 트레이스 | AWS X-Ray / Jaeger | 분산 추적 |
-| 시각화 | Amazon Managed Grafana | 통합 대시보드 |
-| 알림 | Alertmanager + PagerDuty/Slack | 고급 라우팅, 그룹핑, 사일런싱 |
+| Collection | Fluent Bit + ADOT Collector | Unified collection of logs/metrics/traces |
+| Metrics | Amazon Managed Prometheus (AMP) | Time-series metrics store |
+| Logs | Amazon OpenSearch Service | Large-scale log analysis |
+| Traces | AWS X-Ray / Jaeger | Distributed tracing |
+| Visualization | Amazon Managed Grafana | Unified dashboards |
+| Alerting | Alertmanager + PagerDuty/Slack | Advanced routing, grouping, silencing |
 
-:::info 멀티 클러스터 아키텍처
-멀티 클러스터 환경에서는 각 클러스터의 ADOT Collector가 중앙 AMP 워크스페이스로 메트릭을 전송하는 허브-스포크 구조를 권장합니다. Grafana에서 단일 대시보드로 모든 클러스터를 모니터링할 수 있습니다.
+:::info Multi-Cluster Architecture
+In multi-cluster environments, a hub-and-spoke pattern where each cluster's ADOT Collector sends metrics to a central AMP workspace is recommended. Grafana can then monitor all clusters from a single dashboard.
 :::
 
-### 인시던트 디텍팅 패턴
+### Incident Detection Patterns
 
-#### Pattern 1: 임계값 기반 탐지 (Threshold-based)
+#### Pattern 1: Threshold-Based Detection
 
-가장 기본적인 탐지 방식입니다. 미리 정의한 임계값을 초과하면 알림을 발생시킵니다.
+The simplest detection method. Alerts fire when a predefined threshold is exceeded.
 
 ```yaml
-# PrometheusRule - 임계값 기반 알림 예제
+# PrometheusRule - threshold-based alert example
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -474,8 +474,8 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} 재시작 횟수 증가"
-            description: "1시간 내 {{ $value }}회 재시작 발생"
+            summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} restart count increasing"
+            description: "{{ $value }} restarts occurred within the last hour"
 
         - alert: NodeMemoryPressure
           expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.85
@@ -483,7 +483,7 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "노드 {{ $labels.instance }} 메모리 사용률 85% 초과"
+            summary: "Node {{ $labels.instance }} memory utilization above 85%"
 
         - alert: PVCNearlyFull
           expr: kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes > 0.9
@@ -491,15 +491,15 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "PVC {{ $labels.persistentvolumeclaim }} 용량 90% 초과"
+            summary: "PVC {{ $labels.persistentvolumeclaim }} utilization above 90%"
 ```
 
-#### Pattern 2: 이상 탐지 (Anomaly Detection)
+#### Pattern 2: Anomaly Detection
 
-ML 기반으로 정상 패턴을 학습하고 편차를 감지합니다. 임계값을 미리 정의하기 어려운 경우에 유용합니다.
+ML-based approaches learn normal patterns and detect deviations. Useful when thresholds are hard to define in advance.
 
 ```bash
-# CloudWatch Anomaly Detection 설정
+# Configure CloudWatch Anomaly Detection
 aws cloudwatch put-anomaly-detector \
   --single-metric-anomaly-detector '{
     "Namespace": "ContainerInsights",
@@ -511,10 +511,10 @@ aws cloudwatch put-anomaly-detector \
     "Stat": "Average"
   }'
 
-# Anomaly Detection 기반 알람 생성
+# Create alarm based on Anomaly Detection
 aws cloudwatch put-metric-alarm \
   --alarm-name "eks-cpu-anomaly" \
-  --alarm-description "EKS CPU 사용률 이상 감지" \
+  --alarm-description "Detect EKS CPU utilization anomalies" \
   --evaluation-periods 3 \
   --comparison-operator LessThanLowerOrGreaterThanUpperThreshold \
   --threshold-metric-id ad1 \
@@ -541,33 +541,33 @@ aws cloudwatch put-metric-alarm \
   --alarm-actions $SNS_TOPIC_ARN
 ```
 
-:::warning Anomaly Detection 학습 기간
-Anomaly Detection은 최소 2주간의 학습 기간이 필요합니다. 새 서비스 배포 직후에는 임계값 기반 알림을 병행하세요.
+:::warning Anomaly Detection Training Period
+Anomaly Detection requires at least 2 weeks of training data. Use threshold-based alerts alongside it immediately after deploying new services.
 :::
 
-#### Pattern 3: 복합 알람 (Composite Alarms)
+#### Pattern 3: Composite Alarms
 
-여러 개별 알람을 논리적으로 조합하여 노이즈를 줄이고 정확한 인시던트를 감지합니다.
+Combine multiple individual alarms logically to reduce noise and detect real incidents accurately.
 
 ```bash
-# 개별 알람들을 AND/OR로 조합
+# Combine individual alarms with AND/OR
 aws cloudwatch put-composite-alarm \
   --alarm-name "eks-service-degradation" \
   --alarm-rule 'ALARM("high-error-rate") AND (ALARM("high-latency") OR ALARM("pod-restart-spike"))' \
   --alarm-actions $SNS_TOPIC_ARN \
-  --alarm-description "서비스 성능 저하 감지: 에러율 증가 + 지연시간 증가 또는 Pod 재시작 급증"
+  --alarm-description "Service degradation: error rate increase + latency increase or Pod restart spike"
 ```
 
-:::tip Composite Alarm 활용 팁
-개별 알람만으로는 False Positive가 많이 발생합니다. Composite Alarm으로 여러 시그널을 조합하면 실제 인시던트만 정확하게 감지할 수 있습니다. 예: "에러율 증가 AND 지연시간 증가"는 서비스 장애, "에러율 증가 AND Pod 재시작"은 애플리케이션 크래시를 의미합니다.
+:::tip Composite Alarm Tips
+Individual alarms generate many false positives. Composite alarms that combine multiple signals can reliably detect real incidents. Example: "error rate increase AND latency increase" indicates a service outage; "error rate increase AND Pod restarts" indicates an application crash.
 :::
 
-#### Pattern 4: 로그 기반 메트릭 필터 (Log-based Metric Filters)
+#### Pattern 4: Log-Based Metric Filters
 
-CloudWatch Logs에서 특정 패턴을 감지하여 메트릭으로 변환하고 알림을 설정합니다.
+Detect specific patterns in CloudWatch Logs, convert them to metrics, and set alerts.
 
 ```bash
-# OOMKilled 이벤트를 메트릭으로 변환
+# Convert OOMKilled events into metrics
 aws logs put-metric-filter \
   --log-group-name "/aws/eks/$CLUSTER/cluster" \
   --filter-name "OOMKilledEvents" \
@@ -575,7 +575,7 @@ aws logs put-metric-filter \
   --metric-transformations \
     metricName=OOMKilledCount,metricNamespace=EKS/Custom,metricValue=1,defaultValue=0
 
-# 403 Forbidden 이벤트 감지 (보안 위협)
+# Detect 403 Forbidden events (security threat)
 aws logs put-metric-filter \
   --log-group-name "/aws/eks/$CLUSTER/cluster" \
   --filter-name "UnauthorizedAccess" \
@@ -584,27 +584,27 @@ aws logs put-metric-filter \
     metricName=ForbiddenAccessCount,metricNamespace=EKS/Security,metricValue=1,defaultValue=0
 ```
 
-### 인시던트 디텍팅 성숙도 모델
+### Incident Detection Maturity Model
 
-조직의 인시던트 탐지 역량을 4단계로 구분하여, 현재 수준을 진단하고 다음 단계로 성장하기 위한 로드맵을 제시합니다.
+Classify organizational detection capability into four levels to diagnose the current level and define a roadmap to the next.
 
-| 레벨 | 단계 | 탐지 방식 | 도구 | 목표 MTTD |
+| Level | Stage | Detection Method | Tools | Target MTTD |
 |---|---|---|---|---|
-| Level 1 | 기본 | 수동 모니터링 + 기본 알람 | CloudWatch Alarms | < 30분 |
-| Level 2 | 표준 | 임계값 + 로그 메트릭 필터 | CloudWatch + Prometheus | < 10분 |
-| Level 3 | 고급 | 이상 탐지 + Composite Alarms | Anomaly Detection + AMP | < 5분 |
-| Level 4 | 자동화 | 자동 감지 + 자동 복구 | Lambda + EventBridge + FIS | < 1분 |
+| Level 1 | Basic | Manual monitoring + basic alarms | CloudWatch Alarms | < 30 min |
+| Level 2 | Standard | Thresholds + log metric filters | CloudWatch + Prometheus | < 10 min |
+| Level 3 | Advanced | Anomaly detection + Composite Alarms | Anomaly Detection + AMP | < 5 min |
+| Level 4 | Automated | Auto-detection + auto-remediation | Lambda + EventBridge + FIS | < 1 min |
 
 :::info MTTD (Mean Time To Detect)
-인시던트 발생부터 탐지까지의 평균 시간입니다. Level 1에서 Level 4로 성장하면서 MTTD를 지속적으로 단축하는 것이 목표입니다. 조직의 SLO에 맞는 적절한 레벨을 선택하세요.
+Average time from incident occurrence to detection. The goal is to continuously reduce MTTD as an organization matures from Level 1 to Level 4. Choose the appropriate level based on the organization's SLOs.
 :::
 
-### 자동 복구 (Auto-Remediation) 패턴
+### Auto-Remediation Pattern
 
-EventBridge와 Lambda를 연계하여 특정 인시던트가 감지되면 자동으로 복구 작업을 실행하는 패턴입니다.
+A pattern where EventBridge and Lambda run automatic remediation actions when a specific incident is detected.
 
 ```bash
-# EventBridge 규칙: Pod OOMKilled 감지 → Lambda 트리거
+# EventBridge rule: trigger Lambda on Pod OOMKilled detection
 aws events put-rule \
   --name "eks-oom-auto-remediation" \
   --event-pattern '{
@@ -617,30 +617,30 @@ aws events put-rule \
   }'
 ```
 
-:::danger 자동 복구 주의사항
-자동 복구는 충분한 테스트 후에 프로덕션에 적용하세요. 잘못된 자동 복구 로직은 인시던트를 악화시킬 수 있습니다. 먼저 `DRY_RUN` 모드로 알림만 받으면서 복구 로직을 검증한 후, 단계적으로 자동화 범위를 확장하세요.
+:::danger Auto-Remediation Caution
+Apply auto-remediation to production only after thorough testing. Incorrect auto-remediation logic can worsen an incident. Start by running in `DRY_RUN` mode to validate logic by receiving alerts only, then expand the automation scope gradually.
 :::
 
-### 권장 알림 채널 매트릭스
+### Recommended Alert Channel Matrix
 
-인시던트 심각도에 따라 적절한 알림 채널과 응답 SLA를 설정하여 Alert Fatigue를 방지하고 중요한 인시던트에 집중할 수 있도록 합니다.
+Set appropriate alert channels and response SLAs by severity to prevent alert fatigue and focus on important incidents.
 
-| 심각도 | 알림 채널 | 응답 SLA | 예시 |
+| Severity | Alert Channels | Response SLA | Examples |
 |---|---|---|---|
-| P1 (Critical) | PagerDuty + Phone Call | 15분 이내 | 서비스 전체 다운, 데이터 손실 위험 |
-| P2 (High) | Slack DM + PagerDuty | 30분 이내 | 부분 서비스 장애, 성능 심각 저하 |
-| P3 (Medium) | Slack 채널 | 4시간 이내 | Pod 재시작 증가, 리소스 사용률 경고 |
-| P4 (Low) | Email / Jira 티켓 | 다음 영업일 | 디스크 사용량 증가, 인증서 만료 임박 |
+| P1 (Critical) | PagerDuty + Phone Call | Within 15 min | Full service outage, risk of data loss |
+| P2 (High) | Slack DM + PagerDuty | Within 30 min | Partial outage, severe performance degradation |
+| P3 (Medium) | Slack channel | Within 4 hours | Increased Pod restarts, resource utilization warnings |
+| P4 (Low) | Email / Jira ticket | Next business day | Disk usage increase, certificate nearing expiration |
 
-:::warning Alert Fatigue 주의
-알림이 너무 많으면 운영팀이 알림을 무시하게 됩니다 (Alert Fatigue). P3/P4 알림은 Slack 채널에만 전달하고, 진정한 인시던트(P1/P2)만 PagerDuty로 전송하세요. 주기적으로 알림 규칙을 리뷰하여 False Positive를 제거하는 것이 중요합니다.
+:::warning Alert Fatigue
+Too many alerts lead ops teams to ignore them (alert fatigue). Route P3/P4 alerts only to Slack channels and send only genuine incidents (P1/P2) to PagerDuty. Review alert rules periodically and remove false positives.
 :::
 
 ---
 
-## 관련 문서
+## Related Documents
 
-- [워크로드 디버깅](./workload.md) - Pod 상태별 문제 해결
-- [네트워킹 디버깅](./networking.md) - Service, DNS 문제 해결
-- [스토리지 디버깅](./storage.md) - PVC 마운트 실패
-- [Kubernetes 이벤트 보존과 AI Agent 조회 아키텍처](../k8s-event-management.md) - 이벤트 export 파이프라인과 MCP 조회
+- [Workload Debugging](./workload.md) - Pod state-based troubleshooting
+- [Networking Debugging](./networking.md) - Service and DNS issues
+- [Storage Debugging](./storage.md) - PVC mount failures
+- [Kubernetes Event Retention and AI Agent Query Architecture](../k8s-event-management.md) - Event export pipelines and MCP-based queries

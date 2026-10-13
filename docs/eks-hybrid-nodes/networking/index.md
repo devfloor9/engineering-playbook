@@ -1,24 +1,24 @@
 ---
-title: 네트워킹
-description: EKS Hybrid Nodes 네트워킹 베스트 프랙티스 — CIDR 설계와 대역 최소화, CNI 구성과 Pod CIDR 라우팅, Hybrid Nodes Gateway 구축·운영, 로드밸런싱과 서비스 노출, 방화벽 사전 등록과 TGW 토폴로지를 다룹니다.
+title: Networking
+description: EKS Hybrid Nodes networking best practices — covers CIDR design and address-range minimization, CNI configuration and Pod CIDR routing, building and operating the Hybrid Nodes Gateway, load balancing and service exposure, firewall pre-registration, and TGW topology.
 created: "2026-08-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - eks
   - hybrid-node
   - networking
   - scope:nav
-sidebar_label: 네트워킹
+sidebar_label: Networking
 sidebar_position: 2
 category: hybrid-multicloud
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 
-하이브리드 클러스터 도입의 최대 난관인 네트워킹을 다룹니다. IP 대역 설계부터 Hybrid Nodes Gateway 구축·운영, 방화벽·네트워크 조직에 제출할 사전 등록 요청서 작성까지 실무 순서대로 구성했습니다.
+This section covers networking, the biggest hurdle in hybrid cluster adoption. It is organized in practical order, from IP address range design to building and operating the Hybrid Nodes Gateway, and writing pre-registration requests to submit to firewall and network teams.
 
 ---
 
@@ -26,43 +26,43 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
   <DocCard
     to="/docs/eks-hybrid-nodes/networking/cidr-network-design"
     icon="🗺️"
-    title="CIDR 설계와 대역 최소화"
-    description="라우팅 요건 판정, VPC 최소 사이징 근거, 컨트롤 플레인 ENI 전용 서브넷, Pod CIDR 선제 확보, dev/stg/prd 주소 계획"
+    title="CIDR Design and Address-Range Minimization"
+    description="Determining routing requirements, rationale for minimal VPC sizing, dedicated subnets for control plane ENIs, proactively reserving Pod CIDRs, dev/stg/prd address planning"
     color="#667eea"
   />
   <DocCard
     to="/docs/eks-hybrid-nodes/networking/cni-selection-routing"
     icon="🔀"
-    title="CNI 구성과 Pod CIDR 라우팅"
-    description="Cilium(AWS 지원 CNI) 선택 기준, 하이브리드 affinity·cluster-pool IPAM, BGP Control Plane vs 정적 라우팅 구성"
+    title="CNI Configuration and Pod CIDR Routing"
+    description="Cilium (AWS-supported CNI) selection criteria, hybrid affinity and cluster-pool IPAM, BGP Control Plane vs static routing configuration"
     color="#34a853"
   />
   <DocCard
     to="/docs/eks-hybrid-nodes/networking/hybrid-nodes-gateway"
     icon="🚇"
-    title="Hybrid Nodes Gateway 구축·운영"
-    description="Cilium VTEP 구성, Helm 설치, 인스턴스 사이징(수직 확장), active-standby HA 모델(failover 소요 시간은 리더 선출 파라미터에 따라 달라지는 추정치), 모니터링, 제거 시 주의사항"
+    title="Building and Operating the Hybrid Nodes Gateway"
+    description="Cilium VTEP configuration, Helm installation, instance sizing (vertical scaling), active-standby HA model (failover time is an estimate that depends on leader-election parameters), monitoring, removal caveats"
     color="#4a90d9"
   />
   <DocCard
     to="/docs/eks-hybrid-nodes/networking/load-balancing"
     icon="⚖️"
-    title="로드밸런싱과 서비스 노출"
-    description="트래픽 발원지 기준 NLB vs Cilium 내장 LB 결정 원칙, AWS Load Balancer Controller IP 타겟, LB IPAM·BGP 광고, MetalLB"
+    title="Load Balancing and Service Exposure"
+    description="Traffic-origin-based NLB vs Cilium built-in LB decision principle, AWS Load Balancer Controller IP targets, LB IPAM and BGP advertisement, MetalLB"
     color="#f4a261"
   />
   <DocCard
     to="/docs/eks-hybrid-nodes/networking/firewall-connectivity"
     icon="🧱"
-    title="방화벽 사전 등록 & TGW 토폴로지"
-    description="5존 방화벽 룰 표(신청서 수준), FQDN 와일드카드 미지원 대응, TGW 라우트 설계, 온프렘 LB → 클라우드 Pod 경로"
+    title="Firewall Pre-Registration & TGW Topology"
+    description="5-zone firewall rule table (request-form level), handling lack of FQDN wildcard support, TGW route design, on-premises LB → cloud Pod path"
     color="#e63946"
   />
   <DocCard
     to="/docs/eks-hybrid-nodes/networking/private-vpc-endpoints"
     icon="🔒"
-    title="사설 폐쇄망 VPC 엔드포인트 설계"
-    description="Private-only Kubernetes API, 기능별 PrivateLink, 온프레미스 ECR·S3 인터페이스 경로, DNS와 왕복 라우팅, 설치 파일 미러"
+    title="Private Air-gapped VPC Endpoint Design"
+    description="Private-only Kubernetes API, feature-specific PrivateLink, on-premises ECR and S3 interface paths, DNS, return routing, and installation mirrors"
     color="#6d597a"
   />
 </DocCardGrid>

@@ -10,8 +10,8 @@ const {EventEmitter} = require('node:events');
 const {test} = require('node:test');
 
 const DOCS = {
-  ko: 'docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md',
-  en: 'i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md',
+  ko: 'i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md',
+  en: 'docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md',
 };
 function argumentsFrom(argv) {
   const options = {root: process.env.SHUTDOWN_DOC_ROOT || process.cwd(), mutation: '', case: ''};

@@ -1,33 +1,33 @@
 ---
-title: Fargate Pod 라이프사이클
-description: Fargate 환경의 시작, 헬스체크, 종료 구성을 확인합니다.
+title: Fargate Pod lifecycle
+description: Review startup, health check, and shutdown configuration for Fargate.
 created: "2026-02-12"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 10
+  author: devfloor9
+reading_time: 19
 tags:
   - eks
   - kubernetes
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: Fargate Pod 라이프사이클
+sidebar_label: Fargate Pod lifecycle
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## Fargate Pod 라이프사이클 특수 고려사항 {#35-fargate-pod-라이프사이클-특수-고려사항}
+## Special considerations for the Fargate Pod lifecycle {#35-fargate-pod-라이프사이클-특수-고려사항}
 
-AWS Fargate는 서버리스 컴퓨팅 엔진으로, 노드 관리 없이 Pod을 실행합니다. Fargate Pod은 EC2 기반 Pod과 다른 라이프사이클 특성을 가집니다.
+AWS Fargate is a serverless compute engine that runs Pods without node management. Fargate Pods have different lifecycle characteristics from EC2-based Pods.
 
-### Fargate vs EC2 vs Auto Mode 아키텍처 비교 {#fargate-vs-ec2-vs-auto-mode-아키텍처-비교}
+### Architecture comparison: Fargate vs EC2 vs Auto Mode {#fargate-vs-ec2-vs-auto-mode-아키텍처-비교}
 
 ```mermaid
 flowchart TB
     subgraph EC2["EC2 Managed Node Group"]
-        EC2Node[EC2 인스턴스]
+        EC2Node[EC2 instance]
         EC2Kubelet[kubelet]
         EC2Pod1[Pod 1]
         EC2Pod2[Pod 2]
@@ -40,19 +40,19 @@ flowchart TB
     end
 
     subgraph Fargate["Fargate"]
-        FGPod1[Pod 1<br/>전용 MicroVM]
-        FGPod2[Pod 2<br/>전용 MicroVM]
-        FGPod3[Pod 3<br/>전용 MicroVM]
+        FGPod1[Pod 1<br/>Dedicated MicroVM]
+        FGPod2[Pod 2<br/>Dedicated MicroVM]
+        FGPod3[Pod 3<br/>Dedicated MicroVM]
     end
 
     subgraph AutoMode["EKS Auto Mode"]
-        AutoNode[AWS 관리형 인스턴스]
-        AutoKubelet[kubelet<br/>자동 관리]
+        AutoNode[AWS-managed instance]
+        AutoKubelet[kubelet<br/>Automatically managed]
         AutoPod1[Pod 1]
         AutoPod2[Pod 2]
         AutoPod3[Pod 3]
 
-        AutoNode -.->|AWS 소유| AutoKubelet
+        AutoNode -.->|AWS-owned| AutoKubelet
         AutoKubelet --> AutoPod1
         AutoKubelet --> AutoPod2
         AutoKubelet --> AutoPod3
@@ -63,22 +63,22 @@ flowchart TB
     style AutoMode fill:#475569,stroke:#334155,color:#fff
 ```
 
-### Fargate Pod OS 패치 자동 Eviction {#fargate-pod-os-패치-자동-eviction}
+### Automatic Fargate Pod eviction for OS patches {#fargate-pod-os-패치-자동-eviction}
 
-Amazon EKS는 Fargate 노드의 OS를 패치할 때 영향받는 리소스와 예정된 Pod eviction 날짜를 알립니다. 운영자는 알림에 포함된 Pod을 확인하고, 그 날짜 전에 Deployment 등을 순차 재시작해 패치를 적용할 수 있습니다.
+When patching the OS of Fargate nodes, Amazon EKS notifies you of the affected resources and scheduled Pod eviction date. Operators can identify those Pods and roll their Deployments or other controllers before that date to apply the patch.
 
-**패치 절차:**
+**Patching sequence:**
 
-1. EKS가 Availability Zone별로 Eviction API를 호출하며 애플리케이션의 PodDisruptionBudget(PDB)을 확인합니다.
-2. Eviction이 승인되면 kubelet이 Pod 종료 절차를 시작합니다. `preStop`과 애플리케이션 종료는 `terminationGracePeriodSeconds`를 함께 사용합니다. Deployment 같은 컨트롤러가 대체 Pod을 생성하면 새 Pod은 최신 패치를 사용합니다.
-3. Eviction에 실패하면 `EKS Fargate Pod Scheduled Termination` 이벤트에 실패 이유와 `scheduledTerminationTime`이 전달됩니다. 운영자는 이 시각 전에 애플리케이션 가용성과 PDB 설정을 확인할 수 있습니다.
-4. 예정 시각에 EKS가 다시 eviction을 시도합니다. 이때 실패 이벤트는 다시 보내지 않으며, 재시도도 실패하면 기존 Pod을 주기적으로 삭제해 교체합니다.
+1. EKS calls the Eviction API by Availability Zone and checks the application's PodDisruptionBudget (PDB).
+2. Once eviction is admitted, the kubelet starts Pod termination. `preStop` and application shutdown share `terminationGracePeriodSeconds`. When a controller such as a Deployment creates a replacement Pod, the new Pod uses the latest patch.
+3. If eviction fails, an `EKS Fargate Pod Scheduled Termination` event provides the failure reason and `scheduledTerminationTime`. Operators can check application availability and the PDB configuration before that time.
+4. At the scheduled time, EKS retries eviction without sending another failure event. If the retry also fails, EKS periodically deletes the existing Pods so they can be replaced.
 
-절차와 알림 설정은 [Fargate OS 패치 문서](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html)를 참고하세요.
+See the [Fargate OS patching guide](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html) for the procedure and notification setup.
 
-**구성 예시:**
+**Configuration example:**
 
-다음 예시는 replica 3개 중 2개를 Ready 상태로 유지하도록 PDB를 설정합니다. 필요한 처리 용량과 장애 영역 배치를 기준으로 replica 수를 정하고, 이미지·헬스 엔드포인트·종료 시간을 애플리케이션에 맞춥니다. `fargate-namespace`와 이에 맞는 Fargate 프로파일을 미리 준비합니다.
+This example sets a PDB to keep two of three replicas Ready. Choose the replica count and placement across failure domains from required serving capacity, and adapt the image, health endpoints and shutdown timings to the application. Prepare `fargate-namespace` and a matching Fargate profile first.
 
 ```yaml
 apiVersion: apps/v1
@@ -87,7 +87,7 @@ metadata:
   name: fargate-app
   namespace: fargate-namespace
 spec:
-  replicas: 3  # 예시: 필요한 Ready 용량과 배치에 맞게 조정
+  replicas: 3  # Example: adjust for required Ready capacity and placement
   selector:
     matchLabels:
       app: fargate-app
@@ -125,8 +125,8 @@ spec:
               command:
               - /bin/sh
               - -c
-              - sleep 10  # 전체 종료 유예 시간에 포함되는 대기 예시
-      terminationGracePeriodSeconds: 60  # preStop과 애플리케이션 종료를 포함
+              - sleep 10  # Example wait included in the total termination grace period
+      terminationGracePeriodSeconds: 60  # Includes preStop and application shutdown
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -140,26 +140,26 @@ spec:
       app: fargate-app
 ```
 
-:::info PDB가 적용되는 범위
-PDB는 Eviction API가 허용할 중단 수를 제한합니다. 직접적인 Pod 삭제는 PDB 검사를 거치지 않으며, Deployment 롤링 업데이트는 Deployment의 업데이트 전략으로 가용성을 조절합니다. Fargate 패치 중 eviction 재시도가 실패하면 삭제가 진행될 수 있으므로, 알림의 예정 시각까지 필요한 Ready 용량을 확보합니다.
+:::info Where the PDB applies
+A PDB limits disruptions admitted through the Eviction API. Direct Pod deletion bypasses PDB checks; Deployment rolling updates use the Deployment's update strategy. Fargate patching can proceed to deletion after eviction retries fail, so arrange the required Ready capacity before the notified time.
 :::
 
-### Fargate Pod 시작 시간 특성 {#fargate-pod-시작-시간-특성}
+### Fargate Pod startup time characteristics {#fargate-pod-시작-시간-특성}
 
-시작 지연은 스케줄링·컴퓨팅 준비, 이미지 풀, 컨테이너 실행 후 애플리케이션 초기화로 나눠 측정합니다. Startup Probe는 컨테이너가 실행 중일 때 애플리케이션 초기화를 확인하므로, 앞선 프로비저닝이나 이미지 풀 시간을 Probe 예산에 더하지 않습니다.
+Measure startup in separate stages: scheduling and compute preparation, image pull, and application initialization after the container starts. A startup probe checks application initialization while the container is running, so earlier provisioning and image-pull time are outside its budget.
 
-| 단계 | 확인할 항목 |
-|------|-------------|
-| **스케줄링·컴퓨팅 준비** | Pod 이벤트와 스케줄링 시각, Fargate 프로파일·서브넷 설정 |
-| **이미지 풀** | 이미지 크기, 레지스트리 위치, 인증과 네트워크 경로 |
-| **애플리케이션 초기화** | 컨테이너 시작 시각부터 헬스 엔드포인트가 성공할 때까지의 시간 |
+| Stage | What to inspect |
+|------|-----------------|
+| **Scheduling and compute preparation** | Pod events and scheduling time, Fargate profile and subnet configuration |
+| **Image pull** | Image size, registry location, authentication and network path |
+| **Application initialization** | Time from container start until the health endpoint succeeds |
 
-**Startup Probe 예시:**
+**Startup probe example:**
 
-EC2와 Fargate 모두 애플리케이션 초기화 측정값을 기준으로 `failureThreshold × periodSeconds`를 설정합니다. 아래 20회·5초 설정은 약 100초의 초기화 예산을 잡는 예시입니다.
+For both EC2 and Fargate, set `failureThreshold × periodSeconds` from measured application initialization. The example below uses 20 attempts at five-second intervals for an initialization budget of about 100 seconds.
 
 ```yaml
-# containers[].startupProbe에 넣을 설정 예시
+# Example configuration for containers[].startupProbe
 startupProbe:
   httpGet:
     path: /healthz
@@ -168,7 +168,7 @@ startupProbe:
   periodSeconds: 5
 ```
 
-**ECR 이미지 사용 예시:**
+**ECR image example:**
 
 ```yaml
 apiVersion: v1
@@ -183,26 +183,26 @@ spec:
     imagePullPolicy: IfNotPresent
 ```
 
-[프라이빗 ECR 이미지 풀](https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_on_EKS.html)은 Fargate Pod 실행 역할의 권한을 사용합니다. 위 레지스트리 주소를 실제 이미지로 바꾸고, 이미지 크기와 레지스트리까지의 경로를 확인합니다.
+[Private ECR image pulls](https://docs.aws.amazon.com/AmazonECR/latest/userguide/ECR_on_EKS.html) use the Fargate Pod execution role. Replace the registry address with the actual image and check image size and the path to the registry.
 
-[ECR Image Scanning](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html)은 이미지의 취약점을 검사합니다. 이미지 풀 성능은 별도로 측정하며, 플랫폼 간 비교에는 같은 이미지와 네트워크 조건을 사용합니다.
+[ECR Image Scanning](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html) checks images for vulnerabilities. Measure image-pull performance separately, using the same image and network conditions when comparing platforms.
 
-### Fargate DaemonSet 미지원으로 인한 사이드카 패턴 {#fargate-daemonset-미지원으로-인한-사이드카-패턴}
+### Sidecar patterns for Fargate without DaemonSet support {#fargate-daemonset-미지원으로-인한-사이드카-패턴}
 
-Fargate에서 애플리케이션별 에이전트가 필요하면 지원되는 사이드카나 별도 수집기를 사용합니다. 컨테이너 표준 출력 로그는 EKS가 제공하는 Fluent Bit 로그 라우터로 수집할 수 있습니다.
+When an application on Fargate needs an agent, use a supported sidecar or separate collector. EKS provides a Fluent Bit log router for collecting container standard output logs.
 
-| 기능 | EC2 | Fargate |
+| Capability | EC2 | Fargate |
 |------|-----|---------|
-| **로그 수집** | Fluent Bit DaemonSet | 내장 Fluent Bit 로그 라우터와 `aws-logging` ConfigMap |
-| **메트릭 수집** | CloudWatch Agent 등 | ADOT 수집기 구성 후 Container Insights로 전송 |
-| **보안 점검** | 이미지 검사와 Falco 같은 호스트 도구 | 애플리케이션 이미지·설정 검사, 호스트 접근 제약 고려 |
-| **Kubernetes NetworkPolicy** | 지원되는 VPC CNI 네트워크 정책 또는 Calico/Cilium 구성 | 미지원. Pod 트래픽은 별도의 Security Groups for Pods로 제어 |
+| **Log collection** | Fluent Bit DaemonSet | Built-in Fluent Bit log router and `aws-logging` ConfigMap |
+| **Metric collection** | CloudWatch Agent or another collector | Configure an ADOT collector to send metrics to Container Insights |
+| **Security checks** | Image scanning and host tools such as Falco | Scan application images and configuration; account for host-access restrictions |
+| **Kubernetes NetworkPolicy** | Supported VPC CNI network policies or a Calico/Cilium configuration | Unsupported. Security Groups for Pods provide separate traffic controls |
 
-Security Groups for Pods는 VPC 보안 그룹으로 트래픽을 제어합니다. Kubernetes `NetworkPolicy` API를 구현하는 기능은 아니므로, Fargate Pod에 NetworkPolicy 객체를 생성하는 것만으로 해당 정책이 적용되지는 않습니다. [VPC CNI 네트워크 정책의 지원 범위](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html)와 [Security Groups for Pods의 제약](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html)을 확인합니다.
+Security Groups for Pods control traffic through VPC security groups. They do not implement the Kubernetes `NetworkPolicy` API, so creating a NetworkPolicy object alone does not enforce it on Fargate Pods. Check the [VPC CNI network policy support boundaries](https://docs.aws.amazon.com/eks/latest/userguide/cni-network-policy.html) and [Security Groups for Pods considerations](https://docs.aws.amazon.com/eks/latest/userguide/security-groups-for-pods.html).
 
-**CloudWatch Logs 구성 예시:**
+**CloudWatch Logs configuration example:**
 
-[Fargate 로깅 문서](https://docs.aws.amazon.com/eks/latest/userguide/fargate-logging.html)에 따라 `aws-observability` 네임스페이스와 `aws-logging` ConfigMap을 준비합니다. 아래 Region을 클러스터의 Region으로 바꾸고, Pod 실행 역할에 로그 대상 권한을 부여하며 대상까지의 네트워크 경로를 확보합니다. ConfigMap은 새 Pod을 만들기 전에 적용하며, 설정 변경도 새 Pod부터 반영됩니다.
+Prepare the `aws-observability` namespace and `aws-logging` ConfigMap using the [Fargate logging guide](https://docs.aws.amazon.com/eks/latest/userguide/fargate-logging.html). Replace the Region below with the cluster's Region, grant the Pod execution role permissions for the log destination, and provide network access to it. Apply the ConfigMap before creating new Pods; configuration changes also take effect on new Pods.
 
 ```yaml
 apiVersion: v1
@@ -229,7 +229,7 @@ data:
         auto_create_group true
 ```
 
-애플리케이션은 표준 출력·표준 오류로 로그를 기록합니다. 아래 Deployment는 `fargate-namespace`에 맞는 Fargate 프로파일과 실제 애플리케이션 이미지를 사용합니다.
+The application writes logs to standard output and standard error. This Deployment uses a Fargate profile matching `fargate-namespace` and an actual application image.
 
 ```yaml
 apiVersion: apps/v1
@@ -259,23 +259,23 @@ spec:
 ```
 
 :::info CloudWatch Container Insights on Fargate
-Fargate 애플리케이션의 시스템 메트릭은 [ADOT 수집 설정](https://docs.aws.amazon.com/eks/latest/userguide/monitoring-fargate-usage.html)을 거쳐 Container Insights로 전송합니다. Fargate가 자동 게시하는 `AWS/Usage` 메트릭은 계정의 서비스 할당량 사용량을 나타냅니다.
+Application system metrics reach Container Insights through an [ADOT collection setup](https://docs.aws.amazon.com/eks/latest/userguide/monitoring-fargate-usage.html). The `AWS/Usage` metrics that Fargate publishes automatically represent account usage against service quotas.
 :::
 
-### Fargate Graceful Shutdown 타이밍 권장사항 {#fargate-graceful-shutdown-타이밍-권장사항}
+### Recommended graceful shutdown timing for Fargate {#fargate-graceful-shutdown-타이밍-권장사항}
 
-종료 예산은 서비스의 트래픽 전환과 진행 중인 작업이 끝나는 시간을 기준으로 정합니다. `preStop`도 전체 유예 시간을 사용하므로, 대기 후 애플리케이션이 종료 신호를 처리할 시간을 남깁니다.
+Set the termination budget from the time needed to move traffic and finish work already in progress. `preStop` consumes the same grace period, so leave time for the application to handle its stop signal after the wait.
 
-| 확인 항목 | 종료 예산에 반영할 내용 |
+| Item to inspect | Contribution to the termination budget |
 |-----------|-------------------------|
-| **트래픽 전환** | EndpointSlice 상태와 로드 밸런서 대상 상태가 반영되는 시간 |
-| **진행 중인 요청·작업** | 새 작업 수락 중단 후 남은 핸들러·워커가 완료되는 시간 |
-| **리소스 정리** | 작업 완료 후 연결·버퍼를 정리하는 시간 |
-| **preStop** | 훅 실행 시간과 애플리케이션 종료 시간을 합친 전체 유예 시간 |
+| **Traffic transition** | Time for EndpointSlice and load-balancer target state to propagate |
+| **Active requests and jobs** | Time for remaining handlers and workers to finish after admission stops |
+| **Resource cleanup** | Time to close connections and flush buffers after work finishes |
+| **preStop** | Hook execution and application shutdown must fit within the total grace period |
 
-**종료 예산 예시:**
+**Termination budget example:**
 
-아래 예시는 전체 90초 중 15초를 트래픽 전환 대기로 배정합니다. 애플리케이션은 종료 신호를 받으면 새 요청·작업 수락을 중단하고 남은 작업과 정리를 마칩니다. 로드 밸런서 전파와 Pod 종료는 비동기로 진행되므로, 서비스에서 관측한 시간에 맞게 값과 여유 시간을 조정합니다.
+This example assigns 15 seconds of a total 90-second budget to traffic transition. On receiving its stop signal, the application stops admitting requests and jobs, then finishes remaining work and cleanup. Load-balancer propagation and Pod termination proceed asynchronously; adjust the values and margin using observations from the service.
 
 ```yaml
 apiVersion: apps/v1
@@ -311,45 +311,45 @@ spec:
               command:
               - /bin/sh
               - -c
-              - sleep 15  # 서비스에서 측정해 조정할 트래픽 전환 대기
-      terminationGracePeriodSeconds: 90  # 15초 preStop과 애플리케이션 종료를 포함
+              - sleep 15  # Traffic-transition wait to adjust using service measurements
+      terminationGracePeriodSeconds: 90  # Includes the 15-second preStop and application shutdown
 ```
 
-[Pod 종료 절차](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination)와 [연결·작업 정리 예제](./shutdown-draining.md)를 함께 확인하세요.
+See the [Pod termination sequence](https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#pod-termination) and [connection and work cleanup examples](./shutdown-draining.md).
 
-### Fargate vs EC2 vs Auto Mode 비교표: Probe 관점 {#fargate-vs-ec2-vs-auto-mode-비교표-probe-관점}
+### Comparison of Fargate, EC2, and Auto Mode from a probe perspective {#fargate-vs-ec2-vs-auto-mode-비교표-probe-관점}
 
-| 항목 | EC2 Managed Node Group | Fargate | EKS Auto Mode |
+| Item | EC2 Managed Node Group | Fargate | EKS Auto Mode |
 |------|------------------------|---------|---------------|
-| **노드 관리** | 사용자가 노드 그룹 구성·업데이트 관리 | AWS 관리 | AWS 관리 |
-| **Pod 배치 용량** | 인스턴스·네트워크 설정에 따라 결정 | Pod마다 별도 컴퓨팅 경계 | 인스턴스·NodePool 설정에 따라 결정 |
-| **시작 시간** | 단계별 측정 | 단계별 측정 | 단계별 측정 |
-| **Startup Probe** | 애플리케이션 초기화 시간 기준 | 애플리케이션 초기화 시간 기준 | 애플리케이션 초기화 시간 기준 |
-| **terminationGracePeriodSeconds** | 요청·작업·정리 시간 기준 | 요청·작업·정리 시간 기준 | 요청·작업·정리 시간 기준 |
-| **preStop** | 필요한 전환 대기, 전체 유예 시간에 포함 | 필요한 전환 대기, 전체 유예 시간에 포함 | 필요한 전환 대기, 전체 유예 시간에 포함 |
-| **OS 패치** | AMI·노드 그룹 업데이트 관리 | 예정일 알림과 eviction·재시도 절차 | AWS가 노드 교체 관리 |
-| **PDB** | Eviction API가 확인 | Eviction API가 확인, 패치 재시도 실패 시 삭제 가능 | 업데이트 중 PDB와 NodePool 중단 예산 반영 |
-| **DaemonSet** | 지원 | 미지원, 필요한 에이전트는 별도 구성 | 사용자 DaemonSet 지원, 노드 보안 제약 적용 |
-| **비용 모델** | EC2 인스턴스 등 리소스 요금 | 할당된 Fargate vCPU·메모리 구성과 실행 시간 등 리소스 요금 | EC2 요금과 Auto Mode 컴퓨팅 관리 요금 |
-| **Spot** | EC2 Spot 사용 가능 | EKS Fargate Spot 미지원 | EC2 Spot 사용 가능 |
-| **Kubernetes NetworkPolicy** | 지원되는 VPC CNI 네트워크 정책 또는 Calico/Cilium 구성 | 미지원. Security Groups for Pods는 별도 접근 제어 기능 | Auto Mode 네트워크 정책 지원. Security Groups for Pods는 미지원 |
+| **Node management** | User manages node-group configuration and updates | AWS-managed | AWS-managed |
+| **Pod capacity** | Depends on instance and network configuration | Separate compute boundary for each Pod | Depends on instance and NodePool configuration |
+| **Startup time** | Measure by stage | Measure by stage | Measure by stage |
+| **Startup probe** | Based on application initialization | Based on application initialization | Based on application initialization |
+| **terminationGracePeriodSeconds** | Based on requests, jobs and cleanup | Based on requests, jobs and cleanup | Based on requests, jobs and cleanup |
+| **preStop** | Any required transition wait is part of the total grace period | Any required transition wait is part of the total grace period | Any required transition wait is part of the total grace period |
+| **OS patching** | Manage AMI and node-group updates | Scheduled notification, eviction and retry procedure | AWS manages node replacement |
+| **PDB** | Checked by the Eviction API | Checked by the Eviction API; failed patch retries can lead to deletion | Updates account for PDBs and NodePool disruption budgets |
+| **DaemonSet** | Supported | Unsupported; configure needed agents separately | Custom DaemonSets supported, subject to node security constraints |
+| **Cost model** | EC2 instance and other resource charges | Runtime charges for the provisioned Fargate vCPU/memory configuration and other resources | EC2 charges plus Auto Mode compute-management charges |
+| **Spot** | EC2 Spot available | EKS Fargate Spot unsupported | EC2 Spot available |
+| **Kubernetes NetworkPolicy** | Supported VPC CNI network policies or a Calico/Cilium configuration | Unsupported. Security Groups for Pods are a separate access control | Auto Mode network policies supported; Security Groups for Pods unsupported |
 
-[Auto Mode 구성 문서](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)에서 사용자 DaemonSet과 노드 관리 범위를 확인할 수 있습니다.
+The [Auto Mode configuration guide](https://docs.aws.amazon.com/eks/latest/userguide/automode.html) describes custom DaemonSets and the scope of node management.
 
-**선택 전에 확인할 조건:**
+**Conditions to check before choosing:**
 
-배치 작업이나 순간적인 트래픽 증가만으로 플랫폼을 결정하지 않습니다. 필요한 OS·아키텍처·스토리지·에이전트 기능이 지원되는지 먼저 확인하고, 호환되는 후보의 처리 용량과 비용을 같은 워크로드로 측정합니다. 아래 도표는 각 후보에서 확인할 조건입니다. Pod별 컴퓨팅 경계가 네트워크 격리나 애플리케이션 가용성까지 보장하지는 않습니다.
+A batch job or a burst of traffic alone does not determine the platform. First check support for the required OS, architecture, storage and agents, then measure capacity and cost for compatible candidates using the same workload. The diagram lists conditions to check for each candidate. A per-Pod compute boundary does not establish network isolation or application availability.
 
 ```mermaid
 flowchart TD
-    Start[필수 기능과<br/>노드 운영 범위 확인]
+    Start[Check required features<br/>and node responsibilities]
     Start --> EC2[EC2 Managed<br/>Node Group]
     Start --> Fargate[Fargate]
     Start --> AutoMode[EKS Auto Mode]
 
-    EC2 --> EC2Details[사용자 AMI·노드 구성 제어<br/>DaemonSet·EC2 Spot 지원<br/>노드 그룹 업데이트 관리]
-    Fargate --> FargateDetails[Pod별 컴퓨팅 경계<br/>OS·스토리지·리소스 제약 확인<br/>GPU·DaemonSet 미지원<br/>EKS Fargate Spot 미지원]
-    AutoMode --> AutoDetails[정식 출시된 관리형 EC2<br/>호환되는 DaemonSet 지원<br/>EC2 Spot 지원<br/>사용자 AMI·직접 접속 미지원]
+    EC2 --> EC2Details[Custom AMI and node configuration<br/>DaemonSets and EC2 Spot supported<br/>Manage node-group updates]
+    Fargate --> FargateDetails[Per-Pod compute boundary<br/>Check OS, storage and resource limits<br/>GPU and DaemonSets unsupported<br/>EKS Fargate Spot unsupported]
+    AutoMode --> AutoDetails[Generally available managed EC2<br/>Compatible custom DaemonSets supported<br/>EC2 Spot supported<br/>Custom AMIs and direct access unsupported]
 
     style Start fill:#4286f4,stroke:#2a6acf,color:#fff
     style EC2 fill:#334155,stroke:#1e293b,color:#fff
@@ -357,22 +357,22 @@ flowchart TD
     style AutoMode fill:#475569,stroke:#334155,color:#fff
 ```
 
-:::tip Fargate 프로덕션 체크리스트
-- [ ] **패치 알림**: 영향받는 Pod과 예정일 확인, eviction 실패 이벤트 대응 준비
-- [ ] **Replica와 PDB**: 필요한 Ready 용량과 장애 영역 배치를 기준으로 설정
-- [ ] **Startup Probe**: 컨테이너 실행 후 애플리케이션 초기화 시간으로 설정
-- [ ] **종료 예산**: 트래픽 전환, 남은 작업, 정리 시간을 측정하고 preStop을 전체 유예 시간에 포함
-- [ ] **이미지**: 실행 역할의 ECR 접근 권한 확인, 이미지 크기 최적화와 취약점 검사
-- [ ] **로깅**: `aws-logging` 구성, 실행 역할 권한과 로그 전송 확인
-- [ ] **모니터링**: ADOT 수집 설정과 Container Insights 메트릭 확인
-- [ ] **비용**: 요청 리소스와 실행 시간 검토; Spot이 필요하면 EC2 기반 선택지 검토
+:::tip Fargate production checklist
+- [ ] **Patch notifications**: Identify affected Pods and dates, and prepare to handle failed-eviction events
+- [ ] **Replicas and PDB**: Set from required Ready capacity and placement across failure domains
+- [ ] **Startup probe**: Set from application initialization after the container starts
+- [ ] **Termination budget**: Measure traffic transition, remaining work and cleanup; include preStop in the total grace period
+- [ ] **Images**: Check execution-role ECR access, optimize image size and scan for vulnerabilities
+- [ ] **Logging**: Configure `aws-logging`, execution-role permissions and verified log delivery
+- [ ] **Monitoring**: Configure ADOT collection and check Container Insights metrics
+- [ ] **Cost**: Review requested resources and runtime; consider EC2-based options when Spot is required
 :::
 
-:::info 참고 자료
-- [AWS Fargate on EKS 공식 문서](https://docs.aws.amazon.com/eks/latest/userguide/fargate.html)
-- [Fargate Pod 패칭 및 보안 업데이트](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html)
-- [EKS Auto Mode 출시와 요금 모델](https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/)
-- [AWS Containers 블로그](https://aws.amazon.com/blogs/containers/)
+:::info References
+- [Official AWS Fargate on EKS documentation](https://docs.aws.amazon.com/eks/latest/userguide/fargate.html)
+- [Fargate Pod patching and security updates](https://docs.aws.amazon.com/eks/latest/userguide/fargate-pod-patching.html)
+- [EKS Auto Mode launch and charging model](https://aws.amazon.com/blogs/aws/streamline-kubernetes-cluster-management-with-new-amazon-eks-auto-mode/)
+- [AWS Containers blog](https://aws.amazon.com/blogs/containers/)
 :::
 
 ---

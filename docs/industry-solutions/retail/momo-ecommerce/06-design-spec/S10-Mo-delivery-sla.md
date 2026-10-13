@@ -1,6 +1,6 @@
 ---
-title: S10-Mo. 자체 물류 배송 SLA + 발주 최적화 (Momo 특화)
-description: 24시간 배송 약속 vs 실측 + 권역별 fulfillment center 부하 + 외기온 결합
+title: S10-Mo. In-House Logistics Delivery SLA + Order Optimization (Momo-Specific)
+description: 24-hour delivery promise vs measured + per-region fulfillment-center load + outdoor weather integration
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,43 +16,43 @@ tags:
 sidebar_label: S10-Mo. Delivery SLA
 ---
 
-> **Momo 차별 포인트** ⭐ — 자체 물류(momo Fast)의 24시간 배송 약속 위반률을 권역·시간대·외기온 결합 분석.
+> **Momo differentiation point** ⭐ — Analyzes in-house logistics (momo Fast) 24-hour delivery promise breach rate combined with region, time slot, and outdoor weather.
 
-## 1. URL · 페르소나
-- `/delivery-sla` · P5 (물류·MD)
+## 1. URL · Persona
+- `/delivery-sla` · P5 (Logistics · MD)
 
-## 2. 사용자 스토리
-> P5 — 북부 fulfillment center 24시간 약속 위반률 + 폭우 영향 + 다음 날 발주 가이드를 한 화면에.
+## 2. User Story
+> P5 — Northern fulfillment-center 24-hour promise breach rate + heavy-rain impact + next-day ordering guidance on a single screen.
 
-## 3. 데이터 믹스
-| 데이터 | 출처 |
+## 3. Data Mix
+| Data | Source |
 |---|---|
-| DeliverySLA 로그 | TimeStream (~250K) |
-| Fulfillment center | Neptune (Channel 노드) |
-| 권역 (북·중·남) | DeliverySLA 속성 |
-| 외부 기상 | WeatherSignal (中央氣象署) |
-| 주문 폭증 (광棍節 등) | Campaign + OrderTransaction |
+| DeliverySLA logs | TimeStream (~250K) |
+| Fulfillment centers | Neptune (Channel nodes) |
+| Region (North · Central · South) | DeliverySLA attribute |
+| External weather | WeatherSignal (Central Weather Administration) |
+| Order surge (Double 11, etc.) | Campaign + OrderTransaction |
 
-## 4. 처리 파이프라인
+## 4. Processing Pipeline
 ```
-1. 일별 (권역, fulfillment_center) 24h SLA 위반률 계산
-2. WeatherSignal 조인 (폭우·태풍)
-3. 광棍節 등 캠페인 annotation
-4. 다음날 발주 시뮬 (현 재고·예상 주문·SLA 회복 비용)
-5. 권장: fulfillment 부하 + 외기온 결합 발주 가이드
+1. Compute daily (region, fulfillment_center) 24h SLA breach rate
+2. Join with WeatherSignal (heavy rain · typhoon)
+3. Annotate Double 11 and other campaigns
+4. Simulate next-day ordering (current stock · expected orders · SLA recovery cost)
+5. Recommendation: ordering guidance combining fulfillment load + outdoor weather
 ```
 
-## 5. 출력 UI
-- 좌: 권역별 SLA 위반률 시계열
-- 중앙: fulfillment center 부하 히트맵 (시간대 × 권역)
-- 우: 외기온 vs SLA 위반 산점도
-- 하단: 다음날 발주 시뮬 (재고·예상·권장)
+## 5. Output UI
+- Left: Per-region SLA breach-rate time series
+- Center: Fulfillment-center load heatmap (time slot × region)
+- Right: Outdoor weather vs SLA breach scatter plot
+- Bottom: Next-day ordering simulation (stock · forecast · recommendation)
 
-## 6. 가드레일
-- 영업 정보 (재고·물류 단가) 외부 노출 차단
-- 외부 기상 출처 표기
+## 6. Guardrails
+- Block external exposure of business information (stock · logistics unit cost)
+- Cite external weather source
 
-## 7. 데모 시나리오
-1. **북부 24시간 위반률 32%** → 폭우 -50mm 영향 (시차 1일)
-2. **광棍節 다음날** → 일반 대비 위반 +25%, 발주 +30% 권장
-3. **다음 7일 시뮬** → 권역별 SLA 회복 비용
+## 7. Demo Scenarios
+1. **Northern 24-hour breach rate 32%** → impacted by -50mm heavy rain (1-day lag)
+2. **Day after Double 11** → breaches +25% vs normal, recommend ordering +30%
+3. **Next 7-day simulation** → per-region SLA recovery cost

@@ -122,7 +122,7 @@ test('current document source titles are unique and precede visible introductory
   const matter = dependency('gray-matter');
   const parser = unified().use(parse);
   let titles = 0;
-  for (const directory of ['docs', 'i18n/en/docusaurus-plugin-content-docs/current']) {
+  for (const directory of ['docs', 'i18n/ko/docusaurus-plugin-content-docs/current']) {
     for (const file of fs.readdirSync(path.join(root, directory), {recursive: true}).filter(name => /\.mdx?$/.test(name))) {
       const source = matter(fs.readFileSync(path.join(root, directory, file), 'utf8')).content;
       const tree = parser.parse(source);

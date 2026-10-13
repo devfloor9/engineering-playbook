@@ -1,6 +1,6 @@
 ---
-title: 데이터 소스 (Momo)
-description: 방대 SKU + 라이브 + 배송 SLA + 외부 4종
+title: Data Sources (Momo)
+description: Massive SKU + Live + Delivery SLA + 4 external sources
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,46 +16,46 @@ tags:
 sidebar_label: 04. Data Sources
 ---
 
-## 1. 데이터 규모
+## 1. Data Scale
 
-| 항목 | 규모 |
+| Item | Scale |
 |---|---|
-| 자사 회원 | N=5,000 (PII 마스킹) |
-| SKU | ~50K (실 PoC), 합성 ~100K |
+| In-house members | N=5,000 (PII masked) |
+| SKUs | ~50K (actual PoC), ~100K synthetic |
 | OrderTransaction | ~250K |
 | TVPurchase | ~30K |
 | LiveStreamPurchase | ~50K |
-| LiveStream 방송 | ~500 (1년치) |
-| DeliverySLA 로그 | ~250K |
+| LiveStream broadcasts | ~500 (1 year) |
+| DeliverySLA logs | ~250K |
 
 → ~800K Neptune edges
 
 ## 2. cohort_tag
 
-| 값 | 의미 |
+| Value | Meaning |
 |---|---|
-| `real` | PII 마스킹 자사 |
-| `synth` | 합성 49.5K |
-| `external` | 소셜·기상·경제·경쟁사 |
+| `real` | PII-masked in-house |
+| `synth` | 49.5K synthetic |
+| `external` | Social · Weather · Economy · Competitor |
 
-## 3. 외부 데이터 4종
+## 3. Four External Data Sources
 
-### 3.1 소셜
-- Dcard · 인스타 · X · 小紅書 (라이브 후기·SKU 트렌드)
+### 3.1 Social
+- Dcard · Instagram · X · Xiaohongshu (live-broadcast reviews · SKU trends)
 
-### 3.2 기상 (배송에 중요)
-- 中央氣象署 (대만) — 폭우·태풍 시 배송 SLA 영향
+### 3.2 Weather (Critical for Delivery)
+- Central Weather Administration (Taiwan) — heavy rain and typhoons impact delivery SLA
 
-### 3.3 경제
-- DGBAS 행정원 통계 (소비)
+### 3.3 Economy
+- DGBAS (Directorate-General of Budget, Accounting and Statistics) consumption indicators
 
-### 3.4 경쟁사
-- PChome · Yahoo奇摩 · Shopee TW 공개 캠페인
+### 3.4 Competitors
+- PChome · Yahoo奇摩 · Shopee TW public campaigns
 
-## 4. 라이브 방송 합성 전략
+## 4. Live-Broadcast Synthesis Strategy
 
 ```python
-# 라이브 방송 시뮬 (1시간 평균, 진행자 5명, SKU 30개 핀)
+# Live-broadcast simulation (1-hour average, 5 hosts, 30 SKU pins)
 def gen_live_session():
     duration_min = 60
     viewer_curve = poisson_growth(start=1000, peak=5000, decay=2000)
@@ -64,19 +64,19 @@ def gen_live_session():
     return {viewer_curve, pin_events, purchases}
 ```
 
-## 5. 배송 SLA 시즌·기상 영향
+## 5. Delivery-SLA Seasonal and Weather Impact
 
-| 이벤트 | 영향 |
+| Event | Impact |
 |---|---|
-| 태풍 (폭우) | 24시간 SLA 위반률 +60% |
-| 더블11 (光棍節) | 일별 주문 +500%, SLA 위반 +25% |
-| 春節 | 배송 -3일 (전체 휴무) |
+| Typhoon (heavy rain) | 24-hour SLA breach rate +60% |
+| Double 11 (光棍節) | Daily orders +500%, SLA breach +25% |
+| Lunar New Year (春節) | Delivery -3 days (full shutdown) |
 
-## 6. 적재 파이프라인
+## 6. Ingestion Pipeline
 
 ```mermaid
 graph LR
-    Src[자사 OMS·라이브·물류] --> Mask --> S3R
+    Src[In-house OMS · Live · Logistics] --> Mask --> S3R
     Synth --> S3S
     Ext --> Glue --> S3E
     S3R & S3S & S3E --> SemPipe --> Neptune & OS

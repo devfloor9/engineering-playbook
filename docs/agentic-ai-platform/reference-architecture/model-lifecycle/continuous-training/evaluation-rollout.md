@@ -1,11 +1,11 @@
 ---
 title: Eval Gate · Registry · KPI
-description: 학습 체크포인트 평가, 승인 기반 Canary 승격, Registry 버전 관리, 검증된 라우팅 복구와 비용·품질 KPI 계약.
+description: Checkpoint evaluation, approval-gated canary promotion, Registry versioning, verified routing recovery and cost/quality KPI contracts.
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 16
+  date: 2026-09-22
+  author: devfloor9
+reading_time: 28
 tags:
   - continuous-training
   - canary
@@ -19,9 +19,9 @@ sidebar_position: 4
 
 ## Eval Gate
 
-### Threshold 검증
+### Threshold Verification
 
-후보 모델과 기준 모델에 동일한 고정 평가 입력을 보내고 응답·완료 상태·클라이언트 관측 지연을 먼저 저장합니다. 모델 호출 구간은 입력 전송부터 전체 응답 수신까지로 통일하고, 동일한 동시성·타임아웃·재시도 정책을 사용합니다. Ragas는 저장한 응답을 평가하며 후보 모델을 실행하거나 지연을 측정하지 않습니다. 아래 어댑터는 `ragas==0.2.15`의 `EvaluationDataset`과 명시적으로 전달한 judge/embedding을 사용합니다. 어댑터 실행은 유료 모델 호출을 발생시킬 수 있으며 여기서는 실행하지 않았습니다.
+First run the candidate and baseline against identical frozen inputs and capture each response, completion status and client-observed latency. Measure from request submission through the complete response, using the same concurrency, timeout and retry policy. Ragas scores those captured responses; it neither runs the candidate model nor measures its latency. This adapter uses `ragas==0.2.15`, `EvaluationDataset` and explicitly supplied judge/embedding clients. Running it may invoke paid models; it has not been executed here.
 
 ```python
 # score_responses.py -- ragas==0.2.15; executing this function calls the supplied judge.
@@ -51,7 +51,7 @@ def score_responses(captured, *, judge_llm, embeddings):
     ]
 ```
 
-각 JSON에는 `schema_version: 1`, 데이터셋·평가 프로토콜의 SHA-256, 고정된 `judge_revision`·`embedding_revision`·`model_revision`, `ragas_version: "0.2.15"`, 그리고 위 어댑터가 반환한 `samples`를 저장합니다. 프로토콜에는 캡처 방법, judge 프롬프트, 샘플링 설정과 평가 소프트웨어 버전을 포함합니다. 신뢰할 수 있는 평가 작업이 파일과 모델 아티팩트의 연결을 검증해야 합니다. 아래 게이트는 최소 500개, 동일한 sample ID 집합, 유한한 점수와 양의 지연을 요구합니다. 원시 샘플을 검사하므로 NaN을 제외한 평균이 실패를 숨기지 않습니다. P99는 nearest-rank이며 3pp/10%를 **초과**한 회귀를 실패 처리합니다.
+Each JSON contains `schema_version: 1`, dataset and evaluation-protocol SHA-256 hashes, pinned `judge_revision`, `embedding_revision` and `model_revision`, `ragas_version: "0.2.15"`, and the adapter output as `samples`. The protocol covers capture timing, judge prompts, sampling settings and evaluation software versions. A trusted evaluation job must bind these files to the model artifacts. The gate requires at least 500 cases, identical sample ID sets, finite scores and positive latencies. It inspects individual scores rather than letting a NaN-skipping mean hide failed evaluations. p99 uses nearest rank; regressions **greater than** 3pp or 10% fail.
 
 ```python
 # eval_gate.py -- Python 3.11+; local scored JSON only, no model calls.
@@ -166,11 +166,11 @@ if __name__ == '__main__':
 python eval_gate.py candidate.json baseline.json > evaluation-report.json
 ```
 
-실패나 잘못된 입력은 종료 코드 1을 반환합니다. 보고서의 문자열을 비교하는 대신 종료 코드를 다음 배포 단계의 조건으로 사용합니다. [Ragas 0.2.15 평가 계약](https://github.com/explodinggradients/ragas/blob/v0.2.15/src/ragas/evaluation.py)을 기준으로 작성했으며 모델 기반 점수의 재현성은 별도 검증 대상입니다.
+A failed gate or invalid input exits with code 1. Use the process exit code to gate deployment, rather than comparing a printed status string. The adapter follows the [Ragas 0.2.15 evaluation contract](https://github.com/explodinggradients/ragas/blob/v0.2.15/src/ragas/evaluation.py); reproducibility of model-generated scores still requires separate evaluation.
 
 ### Canary Deployment (kgateway)
 
-[Gateway API](https://gateway-api.sigs.k8s.io/)의 HTTPRoute를 사용하여 트래픽을 점진적으로 전환합니다. Shadow·Canary·A/B·Blue-Green 각 전략의 일반론과 선택 기준은 [배포 전략](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md)에서 다루며, 이 문서는 학습 파이프라인의 **Eval Gate와 연계된 kgateway 기반 Canary 구현**에 집중합니다.
+Use [Gateway API](https://gateway-api.sigs.k8s.io/) HTTPRoute to gradually shift traffic. The general principles and selection criteria of the Shadow, Canary, A/B, and Blue-Green strategies are covered in [Deployment Strategies](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md); this document focuses on the **kgateway-based Canary implementation integrated with the training pipeline's Eval Gate**.
 
 #### Stage 1: 5% Canary
 
@@ -196,20 +196,20 @@ spec:
         value: /v1/chat/completions
     
     backendRefs:
-    # 기존 stable 버전 (95%)
+    # Existing stable version (95%)
     - name: vllm-glm5-stable
       port: 8000
       weight: 95
     
-    # 신규 canary 버전 (5%)
+    # New canary version (5%)
     - name: vllm-glm5-canary
       port: 8000
       weight: 5
 ```
 
-#### Stage 2: 25% (24시간 후 문제 없으면)
+#### Stage 2: 25% (after 24 hours if no issues)
 
-아래는 동일한 HTTPRoute의 `spec.rules[0].backendRefs` 전체를 교체할 값입니다. 독립 리소스가 아닙니다.
+Replace the complete `spec.rules[0].backendRefs` list on the same HTTPRoute with this fragment. It is not a standalone resource.
 
 ```yaml
 # canary-25-percent.yaml
@@ -222,9 +222,9 @@ backendRefs:
   weight: 25
 ```
 
-#### Stage 3: 100% (7일 후 최종 승격)
+#### Stage 3: 100% (final promotion after 7 days)
 
-25% 단계에서 추가 7일의 관측과 승인을 마친 뒤 같은 목록을 교체합니다. 최초 5% 배포부터는 최소 8일이며, 승인 대기 시간은 별도입니다.
+Replace the same list after an additional seven-day observation at 25% and approval. This is at least eight days after the first 5% deployment, plus approval delays.
 
 ```yaml
 # canary-100-percent.yaml
@@ -234,19 +234,19 @@ backendRefs:
   weight: 100
 ```
 
-### Canary 모니터링
+### Canary Monitoring
 
-다음은 이 문서에서 정의하는 **커스텀 exporter 계약**입니다. `model_eval_faithfulness_sum/count`는 완료된 평가의 점수 합과 건수를 누적하고, `model_requests_total`은 동일 요청 집합을 `outcome="success|error"`로 누적합니다. 오류가 없어도 error 시계열을 0으로 내보냅니다. `model_request_duration_seconds_bucket`은 같은 요청의 classic histogram이며 `le`와 +Inf 버킷을 포함합니다. 모두 `namespace`, `rollout`, `track="stable|canary"`를 사용합니다. Pod별 서로 다른 요청은 합산하되 HA scrape/remote-write 복제본은 수집 단계에서 중복 제거해야 합니다. 이 이름과 레이블은 vLLM이나 Langfuse의 기본 메트릭이 아닙니다.
+The following is a **custom exporter contract** for this document. `model_eval_faithfulness_sum/count` accumulate completed evaluation scores and counts; `model_requests_total` counts the same request population by `outcome="success|error"`. Emit a zero-valued error series when there are no errors. `model_request_duration_seconds_bucket` is a classic histogram for those requests, including `le` and +Inf buckets. All metrics carry `namespace`, `rollout` and `track="stable|canary"`. Sum distinct Pod request streams, but deduplicate HA scrape/remote-write replicas during ingestion. These names and labels are not default vLLM or Langfuse metrics.
 
-승격용 신선도에는 다음 gauge도 필요합니다. 신뢰할 수 있는 exporter/reconciler가 **예상 producer 목록 전체**와 수집 상태를 확인한 뒤, 각 `namespace`, `rollout`, `track`에 대해 하나의 권위 있는 시계열 집합을 내보냅니다.
+Promotion freshness also requires these gauges. A trusted exporter/reconciler checks the **entire expected producer inventory** and collection health, then emits one authoritative series set for each `namespace`, `rollout` and `track`.
 
-| 커스텀 gauge | 값의 의미 |
+| Custom gauge | Meaning of the value |
 |---|---|
-| `model_last_request_observation_timestamp_seconds` | 필요한 각 producer의 마지막 유효 요청 관측 시각 중 가장 오래된 Unix 시각(초) |
-| `model_last_evaluation_observation_timestamp_seconds` | 필요한 각 producer의 마지막 완료 평가 관측 시각 중 가장 오래된 Unix 시각(초) |
-| `model_collection_complete` | 예상 producer가 모두 존재하고 해당 관측 구간의 수집 상태가 정상임을 확인했을 때만 `1`; 누락·불완전·확인 불가는 `0` |
+| `model_last_request_observation_timestamp_seconds` | Oldest Unix timestamp, in seconds, among the last valid request observations of all required producers |
+| `model_last_evaluation_observation_timestamp_seconds` | Oldest Unix timestamp, in seconds, among the last completed evaluation observations of all required producers |
+| `model_collection_complete` | `1` only when every expected producer is present and collection health for the observation window is confirmed; `0` for missing, incomplete or unverified collection |
 
-producer 하나가 사라지면 남은 producer의 `min`만 계산해 정상으로 보이게 해서는 안 됩니다. reconciler는 예상 목록을 기준으로 누락을 확인하고 `model_collection_complete=0`을 내보내야 합니다. 관측 timestamp **값**은 scrape나 rule 재평가 시각으로 갱신하지 않습니다. 아래 rule은 이 gauge를 전달할 뿐, producer 목록이나 수집 상태를 검증하지 않습니다. exporter/reconciler와 clock 동기화는 별도 필수 구현이며 이 문서에 포함되어 있지 않습니다.
+If a producer disappears, taking `min` over only the remaining producers must not make the collection appear healthy. The reconciler must detect the missing producer against the expected inventory and emit `model_collection_complete=0`. Do not refresh observation timestamp **values** at scrape or rule-evaluation time. The rules below only pass these gauges through; they do not verify producer inventory or collection health. The exporter/reconciler and synchronized clocks remain required external implementations, not components supplied by this document.
 
 ```yaml
 # Custom exporter metrics; load as a Prometheus rule file, not an unconsumed ConfigMap.
@@ -283,15 +283,15 @@ groups:
     for: 5m
 ```
 
-관측기는 30초마다 다음 조건을 확인합니다.
+Every 30 seconds, the monitor checks these conditions:
 
-- 두 track에 각각 8개 시계열이 모두 있고, 중복 없이 유한한 값을 제공해야 합니다.
-- 각 track에 최소 100개 요청과 20개 평가가 있어야 합니다.
-- 마지막 요청·평가를 관측한 뒤 지난 시간이 0~90초이고, `collection_complete`가 `1`이어야 합니다.
+- Each track has all eight required series, with unique identities and finite values.
+- Each track has at least 100 requests and 20 evaluations.
+- The last request and evaluation observations are zero to 90 seconds old, and `collection_complete` equals `1`.
 
-방금 조회한 결과라도 오래된 관측에서 계산됐을 수 있습니다. 그래서 쿼리 응답 시각과 **메트릭 값으로 전달한 관측 시각**을 따로 검사합니다. 누락, 오래되거나 미래인 관측, 불완전한 수집, 조회 실패가 있으면 승격을 중단합니다. 알림이 없다는 이유만으로 승격하지 않습니다.
+A newly queried result can still be calculated from old observations. The monitor therefore checks query response time separately from the **observation timestamps supplied as metric values**. Missing data, stale or future observations, incomplete collection and query failures block promotion. The absence of an alert does not authorize it.
 
-오류율의 허용 상한은 알람과 parser 모두 `min(1%, max(0.1%, 2 × stable 오류율))`입니다. 최소 표본과 90초는 이 예제의 정책입니다. 실제 트래픽과 평가 주기에 맞춰 정해야 하며, 이 조건을 통과했다고 두 모델의 품질이 통계적으로 같아지는 것은 아닙니다.
+Both the alert and parser cap the error fraction at `min(1%, max(0.1%, 2 × stable error fraction))`. The sample minima and 90-second limit are example policy. Set them for the actual traffic and evaluation cadence; passing these checks does not establish statistical equivalence between the models.
 
 ```python
 # monitor_canary.py -- Python 3.11+; custom recording-rule contract below.
@@ -392,11 +392,11 @@ if __name__ == '__main__':
     print(json.dumps({'healthy': True, 'observed_seconds': a.seconds}))
 ```
 
-### CI 통합 (Argo Workflows)
+### CI Integration (Argo Workflows)
 
-이 예제는 Argo Workflows **v3.7.0**의 DAG 계약을 사용합니다. `canary-gate-programs` ConfigMap에는 위의 두 Python 프로그램을, 읽기 전용 `reviewed-evaluation-inputs` PVC에는 승인된 입력 파일을 준비해야 합니다. 두 Service, 준비된 모델 Pod, Gateway 및 해당 namespace를 허용하는 listener가 선행 조건입니다. `canary-deployer`에는 필요한 HTTPRoute의 get/create/patch/update와 Argo 작업 결과 기록 권한만 부여합니다. Python 이미지도 운영 전에 digest로 고정합니다.
+This example follows the Argo Workflows **v3.7.0** DAG contract. Prepare `canary-gate-programs` with the two Python programs above and the read-only `reviewed-evaluation-inputs` PVC with reviewed inputs. Both Services, ready model Pods, the Gateway and a listener allowing this namespace must already exist. Give `canary-deployer` only the necessary HTTPRoute get/create/patch/update permissions and Argo task-result permissions. Pin the Python image by digest before operational use.
 
-`approval`은 시간이 지나면 자동 해제되는 pause가 아니라 승인자가 재개해야 하는 suspend입니다. 시작/승격 승인은 평가·릴리스 증거를 확인합니다. 각 `verify-*`에서는 해당 parent/controller의 최신 generation에 대해 `Accepted=True`, `ResolvedRefs=True`와 실제 데이터 경로를 확인합니다. 최초 관측 전에 exporter에 충분한 샘플이 쌓여야 합니다. 재개 권한은 승인자에게만 부여하고, 게이트 파일 변경·직접 리소스 수정 권한을 분리합니다. 관측 실패 시 후속 승격은 차단되지만 기존 트래픽이 자동 복구되지는 않으므로 아래 롤백 절차를 실행합니다.
+`approval` is a suspend that requires an authorized reviewer to resume it, rather than a timed pause. Start/promotion approvals inspect evaluation and release evidence. Each `verify-*` checks `Accepted=True` and `ResolvedRefs=True` for the relevant parent/controller and current generation, plus the actual data path. Allow enough exporter samples to accumulate before monitoring starts. Restrict resume permissions to reviewers and separate them from gate-file changes or direct resource edits. A monitoring failure blocks later promotions but does not restore existing traffic automatically; execute the rollback procedure below.
 
 ```yaml
 # Argo Workflows v3.7.0 reference. Install prerequisites separately; do not apply blindly.
@@ -520,7 +520,7 @@ spec:
 
 ### MLflow Model Registry
 
-MLflow Registry는 아티팩트 위치와 버전을 기록합니다. 등록과 alias 변경은 EKS 배포를 실행하지 않습니다. 기존 모델 이름을 사용하고, 평가 보고서와 아티팩트 digest의 연결을 검증한 릴리스 작업에서 아래 함수를 호출합니다. 서버가 지원하는 아티팩트 URI와 형식을 확인해야 하며 임의 체크포인트 디렉터리가 자동으로 MLflow flavor 모델이 되지는 않습니다. 버전 번호는 생성 결과를 사용하고, 완료된 Canary의 승인 이후에만 production alias를 바꿉니다.
+MLflow Registry records artifact locations and versions. Registration and alias updates do not deploy to EKS. Use an existing registered model and call these functions from a release job that verifies the binding between evaluation evidence and artifact digest. Check the artifact URI and format supported by the registry backend; an arbitrary checkpoint directory does not automatically become an MLflow flavor model. Use the returned version number and update the production alias only after the canary rollout is approved and verified.
 
 ```python
 # mlflow_registry.py -- MLflow 3.14 API contract; functions are not executed here.
@@ -548,9 +548,9 @@ def record_completed_promotion(client, name, approved_version):
     client.set_registered_model_alias(name, 'production', str(approved_version))
 ```
 
-### Agent Versioning 연계
+### Agent Versioning Integration
 
-[Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md)은 코드·도구·프롬프트와 **해결된 불변 모델 버전**을 함께 기록하는 애플리케이션 계약입니다. ConfigMap을 만드는 것만으로 에이전트나 Bedrock이 동기화되지는 않습니다. 아래 1/2는 예시 버전이며 실제 Registry 응답으로 대체합니다. 롤백은 manifest와 라우팅 변경을 함께 검증합니다.
+[Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) is an application contract that records code, tools and prompts alongside the **resolved immutable model version**. Creating this ConfigMap does not synchronize agents or Bedrock. Versions 1/2 below are illustrative and must be replaced with actual Registry versions. Verify both the manifest and routing during rollback.
 
 ```yaml
 # agent-version-manifest.yaml
@@ -578,14 +578,14 @@ data:
         version: v1.5.0
         model:
           name: glm-5-grpo
-          version: 1  # 아직 이전 버전 사용
+          version: 1  # Still using previous version
           registry: mlflow
           registry_alias_at_resolution: production
 ```
 
-### Bedrock Agents 하이브리드 동기
+### Bedrock Agents Hybrid Sync
 
-Bedrock Agents의 `foundationModel`은 오케스트레이션 모델입니다. instruction에 EKS URL을 넣어도 도구 호출·클러스터 DNS 접근·fallback이 구현되지는 않습니다. 아래는 [return control](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-returncontrol.html)을 사용하는 함수 action group 예제입니다. 애플리케이션이 고정된 승인 모델 endpoint에 접근할 수 있는 네트워크와 인증을 갖추고 호출을 수행합니다. `eks_generate`와 `fallback_generate`는 제한 시간과 출력 검증을 구현한 필수 어댑터이며 이 문서에 구현되어 있지 않습니다. DRAFT 변경 후에는 agent 준비와 alias 승격도 별도로 수행해야 합니다.
+A Bedrock Agent’s `foundationModel` is its orchestration model. Putting an EKS URL in an instruction does not implement tool invocation, cluster DNS access or fallback. This example defines a function action group using [return control](https://docs.aws.amazon.com/bedrock/latest/userguide/agents-returncontrol.html). The application performs the call through authenticated network access to a fixed approved-model endpoint. `eks_generate` and `fallback_generate` are required adapters with timeouts and output validation; they are not implemented in this document. A DRAFT change also requires separate agent preparation and alias promotion.
 
 ```python
 # Bedrock Agents action group definition; a DRAFT change needs preparation and alias promotion.
@@ -636,7 +636,7 @@ def execute_returned_function(function_input, *, eks_generate, fallback_generate
 
 ### Rollback YAML
 
-새 이름의 HTTPRoute를 만들지 말고 트래픽에 연결된 `model-serving/model-serving-canary`를 stable 100%로 되돌립니다. stable Pod가 준비되어 있어야 합니다. 리소스 적용 성공과 데이터 경로 반영은 다르므로, 해당 parent/controller의 최신 generation에서 `Accepted=True`, `ResolvedRefs=True`를 확인한 뒤 실제 요청으로 stable 모델을 확인합니다. 진행 중인 요청·스트림이 drain되고 canary 유입이 중단된 것을 확인하기 전에는 canary를 0으로 축소하지 않습니다. 복구 소요 시간은 controller 반영과 연결 수명에 따라 달라집니다.
+Restore stable traffic on the attached `model-serving/model-serving-canary` HTTPRoute rather than creating a new route name. Stable Pods must be ready. A successful API write does not prove data-plane convergence: check `Accepted=True` and `ResolvedRefs=True` for the relevant parent/controller and current generation, then verify the stable model with real requests. Do not scale canary to zero until in-flight requests/streams have drained and new canary traffic has stopped. Recovery time depends on controller convergence and connection lifetimes.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -658,9 +658,9 @@ spec:
       weight: 100
 ```
 
-**Rollback 자동화 (Argo Rollouts):**
+**Rollback Automation (Argo Rollouts):**
 
-아래는 Argo Rollouts로 옮길 때의 **정책 발췌**이며 실행 가능한 Rollout이 아닙니다. 실제 적용에는 selector와 Pod template 또는 workloadRef, stable/canary Service, 설치한 버전과 맞는 Gateway API traffic-router plugin 및 `trafficRouting` 설정, 유효한 `canary-quality-check` AnalysisTemplate이 필요합니다. pause는 관측이나 승인을 대신하지 않으며 누락·오류 결과 처리와 rollback 동작을 별도 검증해야 합니다. 위 Workflows와 Rollouts가 같은 HTTPRoute를 동시에 관리하게 하지 마십시오.
+This is a **policy excerpt** for a possible Argo Rollouts integration, not an executable Rollout. A complete integration needs a selector and Pod template or workloadRef, stable/canary Services, a version-compatible Gateway API traffic-router plugin with `trafficRouting`, and a valid `canary-quality-check` AnalysisTemplate. A pause does not perform monitoring or approval; validate missing/error result handling and rollback behavior separately. Do not let Workflows and Rollouts concurrently manage the same HTTPRoute.
 
 ```yaml
 # Policy excerpt only: NOT a complete or applyable Rollout.
@@ -681,9 +681,9 @@ strategy:
 revisionHistoryLimit: 5
 ```
 
-### Checkpoint 보존 정책
+### Checkpoint Retention Policy
 
-실험 체크포인트와 운영 체크포인트를 서로 겹치지 않는 prefix에 저장합니다. 아래 규칙은 `training-checkpoints/experimental/`만 만료시키며 `training-checkpoints/production/`에는 매칭되지 않습니다. 기존의 상위 prefix 규칙도 함께 검토해야 합니다. 더 구체적인 no-action 규칙은 넓은 만료 규칙의 예외가 되지 않습니다.
+Store experimental and production checkpoints under disjoint prefixes. This rule expires only `training-checkpoints/experimental/`; it does not match `training-checkpoints/production/`. Review other existing rules too: a narrower no-action rule does not override a broader expiration rule.
 
 ```json
 {
@@ -712,41 +712,41 @@ revisionHistoryLimit: 5
 }
 ```
 
-**보존 전략:**
+**Retention strategy:**
 
-- 실험 객체: 0–30일 Standard, 30–120일 Glacier Instant Retrieval, 120–365일 Deep Archive, 365일 만료.
-- Glacier Instant Retrieval의 최소 90일 보관 후 전환합니다. 작은 객체 전환 제한·요청 비용·최소 보관 요금도 확인합니다.
-- 운영 객체: 이 규칙으로 만료되지 않습니다. 영구 보존 보장은 아니며 버전 관리, 다른 lifecycle 규칙, 삭제 권한과 필요시 Object Lock 정책을 따로 설계합니다.
+- Experimental objects: Standard for days 0–30, Glacier Instant Retrieval for days 30–120, Deep Archive for days 120–365, expiration at day 365.
+- Transition out of Glacier Instant Retrieval only after its 90-day minimum. Check small-object transition limits, request costs and minimum storage charges.
+- Production objects: not expired by this rule. This is not a guarantee of permanent retention; separately design versioning, other lifecycle rules, delete permissions and Object Lock where required.
 
-[S3 전환 제한](https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html)을 따릅니다. 기존 운영 객체는 검증된 복사본과 복구 절차 없이 이동하거나 삭제하지 않습니다.
+Follow the [S3 transition constraints](https://docs.aws.amazon.com/AmazonS3/latest/userguide/lifecycle-transition-general-considerations.html). Do not move or delete existing production objects without a verified copy and recovery procedure.
 
-## 관측·비용 KPI
+## Observability & Cost KPIs
 
 ### GPU-hours per Quality Improvement
 
-**KPI 정의**: Faithfulness 0.01 상승당 소요된 GPU 시간과 비용
+**KPI Definition**: GPU time and cost required per 0.01 faithfulness increase
 
-다음 수치와 표는 계산을 설명하기 위한 가상 학습 이력이며 측정 결과가 아닙니다. 실제 입력에서는 GPU 시간·비용이 유한한 비음수이고 `faithfulness_delta > 0`인지 검증합니다. 개선이 0 이하인 실행은 이 비율을 계산하지 말고 별도로 표시합니다.
+The following values and table are synthetic training history for explaining the calculation, not measurements. For real inputs, require finite nonnegative GPU hours/costs and `faithfulness_delta > 0`. Report runs with zero or negative improvement separately instead of dividing by that value.
 
 ```python
 # kpi_calculation.py
 import pandas as pd
 
-# 학습 이력
+# Training history
 training_runs = pd.DataFrame([
     {'iteration': 1, 'gpu_hours': 96, 'cost_usd': 1200, 'faithfulness_delta': 0.02},
     {'iteration': 2, 'gpu_hours': 120, 'cost_usd': 1500, 'faithfulness_delta': 0.015},
     {'iteration': 3, 'gpu_hours': 144, 'cost_usd': 1800, 'faithfulness_delta': 0.01},
 ])
 
-# KPI 계산
+# Calculate KPI
 training_runs['gpu_hours_per_0.01_improvement'] = training_runs['gpu_hours'] / (training_runs['faithfulness_delta'] * 100)
 training_runs['cost_per_0.01_improvement'] = training_runs['cost_usd'] / (training_runs['faithfulness_delta'] * 100)
 
 print(training_runs)
 ```
 
-**결과 예시:**
+**Example Results:**
 
 | iteration | gpu_hours | cost_usd | faithfulness_delta | gpu_hours_per_0.01 | cost_per_0.01 |
 |-----------|-----------|----------|-------------------|-------------------|--------------|
@@ -754,11 +754,11 @@ print(training_runs)
 | 2 | 120 | $1,500 | 0.015 | 80 | $1,000 |
 | 3 | 144 | $1,800 | 0.010 | 144 | $1,800 |
 
-**해석**: 이 가상 이력에서는 개선당 비용이 증가합니다. 실제 중단 결정은 동일한 평가 프로토콜의 반복 측정, 오차 범위와 사업 목표를 함께 검토해야 합니다.
+**Interpretation**: Cost per improvement increases in this synthetic history. A real stop/continue decision needs repeated measurements under the same evaluation protocol, uncertainty estimates and business objectives.
 
 ### AMP Recording Rule
 
-`training_gpu_seconds_total{model_family,job}`은 작업별 실제 할당 GPU 수 × 경과 초를 누적하는 커스텀 counter입니다. GPU allocation gauge에 `rate()`를 적용하지 않습니다. `model_release_faithfulness{model_family}`는 동일한 고정 평가 집합·프로토콜로 얻은 현재 승인 릴리스 점수이며 안정된 레이블로 export합니다. 7일 전 값이 없으면 delta는 데이터 없음입니다. 릴리스 점수 차이는 gauge끼리 빼며 `increase()`를 사용하지 않습니다. $12.5/GPU-hour는 계산용 가정으로, 실제 인스턴스 단가나 청구 총액이 아닙니다.
+`training_gpu_seconds_total{model_family,job}` is a custom counter accumulating allocated GPU count × elapsed seconds per job. Do not apply `rate()` to a GPU-allocation gauge. `model_release_faithfulness{model_family}` exports the current approved release’s score on the same frozen evaluation set/protocol, with stable labels. If the seven-day-old score is absent, the delta is missing. Subtract these gauge values; do not apply `increase()` to quality scores. $12.5/GPU-hour is an illustrative rate, not an actual instance price or billing total.
 
 ```yaml
 # Custom exporter: training_gpu_seconds_total is a cumulative counter, not a gauge.
@@ -776,11 +776,11 @@ groups:
     expr: (model:faithfulness:delta7d > 0) / on(model_family) (training:cost_usd:7d_estimate > 0)
 ```
 
-이 YAML은 Prometheus 규칙 파일입니다. ConfigMap만 생성해도 AMP에 업로드되지 않습니다. AMP에서는 권한 있는 운영자가 [규칙 파일 업로드](https://docs.aws.amazon.com/prometheus/latest/userguide/AMP-ruler-rulesfile.html) 절차로 rules namespace를 생성/수정하고 상태를 확인해야 합니다. 데이터 수집·규칙 업로드는 이 문서에서 실행하지 않았습니다.
+This YAML is a Prometheus rule file. Creating a ConfigMap does not upload it to AMP. An authorized operator must create/update the AMP rules namespace through the [rules-file upload procedure](https://docs.aws.amazon.com/prometheus/latest/userguide/AMP-ruler-rulesfile.html) and verify its status. Neither ingestion nor rule upload has been executed here.
 
-### Grafana 대시보드
+### Grafana Dashboard
 
-아래는 위 규칙을 사용하는 패널 쿼리 명세이며 Grafana import용 dashboard JSON은 아닙니다. 사용하는 Grafana 버전에서 datasource UID, 패널 schema와 필드 단위(초/달러/비율)를 설정합니다. 7일 window 결과에 다시 `increase()`를 적용하지 않습니다. 요청 점유율은 실제 관측값이며 HTTPRoute weight와 정확히 같다고 가정하지 않습니다. 변경 시각은 배포 이벤트에서 가져오며 가상 날짜를 실제 주석으로 표시하지 않습니다.
+This is a panel-query specification for the rules above, not an importable Grafana dashboard JSON. Configure datasource UID, panel schema and field units (seconds/dollars/fractions) for your Grafana version. Do not apply `increase()` again to a trailing seven-day result. Request share is observed traffic and need not exactly equal the HTTPRoute weight. Obtain rollout annotations from deployment events rather than displaying synthetic dates as actual events.
 
 ```json
 {
@@ -806,22 +806,22 @@ groups:
 }
 ```
 
-### 주간/월간 Cadence 권장
+### Recommended Weekly/Monthly Cadence
 
-| 주기 | 액션 | 목표 |
-|------|------|------|
-| **주간** | Trace 수집 → Reward Labeling | 승인·중복 제거·검토를 통과한 샘플과 부족한 사례 확인 |
-| **격주** | GRPO/DPO 학습 여부 검토 | 데이터가 충분할 때만 학습하고 고정 평가셋으로 변화 측정 |
-| **월간** | 전체 평가 + Canary 검토 | 품질·지연·오류 기준을 통과한 후보만 승격 |
-| **분기** | 비용 대비 ROI 분석 | 학습 중단/지속 의사결정 |
+| Cycle | Action | Goal |
+|-------|--------|------|
+| **Weekly** | Trace collection → Reward Labeling | Review approved, deduplicated samples and gaps in case coverage |
+| **Bi-weekly** | Review whether to run GRPO/DPO training | Train when enough data is available; measure changes on the frozen evaluation set |
+| **Monthly** | Full evaluation + Canary review | Promote only candidates that pass quality, latency and error criteria |
+| **Quarterly** | Cost vs ROI analysis | Training stop/continue decision |
 
-**권장 시작 주기:**
+**Recommended Starting Cycle:**
 
-이 일정은 검토 주기의 예시입니다. 데이터 확보 속도, 평가 비용, 한 차례 배포에 필요한 관측 기간에 맞춰 조정하세요. 정해진 주기마다 학습하거나 배포한다고 품질이 일정 비율로 좋아지지는 않습니다.
+This is an example review schedule. Adjust it to data availability, evaluation cost and the observation period needed for each rollout. A fixed training or release schedule does not imply a fixed rate of quality improvement.
 
-### 손익 분기 분석
+### Break-even Analysis
 
-품질 점수의 변화가 이탈률을 얼마나 바꾸는지는 실험으로 확인해야 합니다. 아래는 활성 사용자 수와 월별 매출을 기준으로 한 첫 달 시나리오입니다. 이탈률 10%의 **상대 2% 감소**는 9.8%이며 2pp 감소가 아닙니다. LTV를 월별 사용자당 매출로 대체해 단위를 맞춥니다. 장기 LTV 편익, 공헌이익률, 할인율과 서빙 비용은 포함하지 않았습니다.
+The relationship between quality scores and churn needs experimental evidence. This scenario estimates first-month effects from active users and monthly revenue. A **2% relative reduction** in 10% churn yields 9.8%, not a two-percentage-point reduction. Use monthly revenue per user for a monthly calculation rather than dividing monthly revenue by lifetime value. Long-term LTV benefits, contribution margin, discounting and serving costs are excluded.
 
 ```python
 # roi_analysis.py
@@ -844,7 +844,7 @@ print(f'Net first-month contribution before other costs: ${net_first_month:,.0f}
 print(f'First-month ROI: {roi:.1f}%')
 ```
 
-**출력 예시:**
+**Example output:**
 
 ```text
 Monthly training cost: $4,000
@@ -854,29 +854,29 @@ Net first-month contribution before other costs: $-3,800
 First-month ROI: -95.0%
 ```
 
-## 다음 단계
+## Next Steps
 
-- [Trace → Dataset Materializer](./trace-to-dataset.md) — 배포 후 다음 iteration 데이터 수집
-- [GRPO/DPO 학습 Job](./grpo-dpo-training.md) — 회귀 발생 시 재학습 실행
-- [Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) — 에이전트 레벨 롤아웃 전략
+- [Trace → Dataset Materializer](./trace-to-dataset.md) — Collect data for next iteration after deployment
+- [GRPO/DPO Training Job](./grpo-dpo-training.md) — Re-run training when regression occurs
+- [Agent Versioning](../../../../aidlc/enterprise/agent-versioning/index.md) — Agent-level rollout strategy
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
-- [MLflow](https://mlflow.org/) — Model Registry·Tracking
-- [Gateway API](https://gateway-api.sigs.k8s.io/) — HTTPRoute 기반 Canary
-- [Argo Rollouts](https://argoproj.github.io/argo-rollouts/) — 선언적 Canary/Blue-Green 자동화
+- [MLflow](https://mlflow.org/) — Model Registry and Tracking
+- [Gateway API](https://gateway-api.sigs.k8s.io/) — HTTPRoute-based Canary
+- [Argo Rollouts](https://argoproj.github.io/argo-rollouts/) — Declarative Canary/Blue-Green automation
 - [Prometheus Recording Rules](https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/)
 
-### 논문 · 기술 블로그
+### Papers & Technical Blogs
 
 - [Canary Analysis: Netflix Tech Blog](https://netflixtechblog.com/automated-canary-analysis-at-netflix-with-kayenta-3260bc7acc69)
 - [Ragas: Automated Evaluation of RAG (arxiv 2309.15217)](https://arxiv.org/abs/2309.15217)
 
-### 관련 문서
+### Related Documents
 
-- [배포 전략 — Shadow·Canary·A/B·Blue-Green](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md) — 배포 전략 일반론·선택 기준·Feature Flag 전개 (일반론 canonical)
+- [Deployment Strategies — Shadow·Canary·A/B·Blue-Green](../../../../aidlc/enterprise/agent-versioning/deployment-strategies.md) — General deployment strategy principles, selection criteria, and Feature Flag rollout (canonical for general strategy)
 - [Ragas Evaluation](../../../operations-mlops/governance/ragas-evaluation.md)
-- [Inference Gateway 라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md)
-- [모니터링 · Observability 셋업](../../integrations/monitoring-observability-setup.md)
+- [Inference Gateway Routing Strategy](../../../model-serving/inference-routing/routing-strategy.md)
+- [Monitoring & Observability Setup](../../integrations/monitoring-observability-setup.md)

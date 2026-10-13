@@ -18,7 +18,7 @@ test('captioned draw.io figure keeps every graph node, edge, and source caption'
   const graph = renderedSources.find(s => s.component === 'Figure');
   assert.deepEqual(graph.graph_counts, {vertices: 118, edges: 34});
   assert.ok(graph.source_files.includes('src/components/Figure/index.js'));
-  for (const text of ['플랫폼 전체 구조', '원본 그림 열기', 'Source ID', 'Target ID']) assert.ok(output.includes(text), text);
+  for (const text of ['Platform architecture', 'Source drawing', 'Source ID', 'Target ID']) assert.ok(output.includes(text), text);
   assert.ok(output.includes('fine%2520tunning%2520feature%29.drawio'));
 });
 

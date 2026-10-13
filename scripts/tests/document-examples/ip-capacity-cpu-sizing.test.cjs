@@ -20,7 +20,7 @@ const {createRequire} = require('node:module');
 const {test} = require('node:test');
 const yaml = createRequire(path.join(process.cwd(), 'package.json'))('js-yaml');
 const root = path.resolve(process.env.PR104_DOC_ROOT || process.cwd());
-const prefixes = {ko: 'docs/', en: 'i18n/en/docusaurus-plugin-content-docs/current/'};
+const prefixes = {ko: 'i18n/ko/docusaurus-plugin-content-docs/current/', en: 'docs/'};
 const suffixes = {
   ip: 'eks-best-practices/networking-performance/ip-capacity-planning-karpenter.md',
   cpu: 'eks-best-practices/resource-cost/cpu-sizing-comparability.md',

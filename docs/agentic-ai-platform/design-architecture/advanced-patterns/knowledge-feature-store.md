@@ -1,11 +1,11 @@
 ---
-title: Knowledge Feature Store 확장
-description: 전통 Feature Store에 온톨로지·Knowledge Graph를 통합하여 환각 감소·근거 추적·도메인 엔터티 활용을 강화하는 3-plane 설계
+title: Knowledge Feature Store Expansion
+description: 3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization
 created: "2026-04-18"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 17
+  author: devfloor9
+reading_time: 27
 tags:
   - feature-store
   - knowledge-graph
@@ -17,26 +17,26 @@ sidebar_position: 7
 ---
 
 :::caution Forward-looking design / Verification pending
-KFS는 이 문서의 합성 아키텍처 제안이며 표준 제품이나 Feast/SageMaker의 상위 호환 API가 아닙니다. 2026-Q2 세션의 완료·승인 증거는 확인되지 않았습니다. 운영자/도메인 소유자의 승인 전까지 개념·스키마·일관성 계약은 제안 상태를 유지합니다. 이 검토에서는 데이터 저장소 변경이나 모델 평가를 수행하지 않았습니다. [Issue #4](https://github.com/devfloor9/engineering-playbook/issues/4)
+KFS is the composed architecture proposed in this document, not a standard product or a drop-in superset of Feast/SageMaker APIs. Completion/acceptance evidence for the planned 2026-Q2 session was not established. The concept, schema, and consistency contract remain proposals pending operator/domain-owner approval. This review performed no data-store mutations or model evaluation. [Issue #4](https://github.com/devfloor9/engineering-playbook/issues/4)
 :::
 
-## 문제 정의: Feature Store만으로 부족한 이유
+## Problem Definition: Why Feature Store Alone Is Insufficient
 
-Feature Store와 Knowledge Graph는 다른 역할을 수행합니다. Feature Store가 provenance·시간 정합성을 전혀 제공하지 않는다는 기존 설명은 부정확합니다. Feast의 historical point-in-time join과 online serving을 구분합니다. KFS는 관계 검색과 feature 조회를 한 애플리케이션 계약으로 조합하는 제안입니다.
+Feature stores and knowledge graphs serve different roles. The earlier claim that feature stores provide no provenance or temporal correctness was inaccurate. Distinguish Feast historical point-in-time joins from online serving. KFS proposes an application contract combining relationship retrieval and feature access.
 
-### 전통 Feature Store의 한계
+### Traditional Feature Store Limitations
 
-Feature Store는 entity key별 feature serving에 초점을 둡니다. 관계 traversal·용어 체계·검색 결과 통합은 별도 설계가 필요할 수 있습니다. 이것이 Feature Store 사용만으로 환각이나 규제 준수 실패가 발생한다는 뜻은 아닙니다.
+Feature stores focus on feature serving by entity key. Relationship traversal, terminology, and result fusion may need additional design. Using a feature store alone does not inherently cause hallucinations or compliance failure.
 
-아래 Customer→Contract→Device→Usage 모델은 **합성 예시**입니다. Premium과 VIP의 의미, 계약 종료 후 관계, device 공유와 temporal 유효성은 도메인 소유자가 결정해야 합니다.
+Customer → Contract → Device → Usage is a **synthetic example**. Domain owners must decide Premium/VIP meanings, post-termination relationships, shared devices, and temporal validity.
 
-## Knowledge Feature Store 개념 모델
+## Knowledge Feature Store Conceptual Model
 
-3-plane 모델은 책임 분리입니다. 통합 읽기·인가·write publication은 별도 coordinator와 adapter가 구현해야 하며 backend들의 일관성 보장을 자동으로 합치지 않습니다.
+The three planes divide responsibilities. A coordinator and adapters must implement unified reads, authorization, and write publication; the backends’ consistency guarantees do not automatically compose.
 
-### 3-Plane 아키텍처
+### 3-Plane Architecture
 
-아래 구조는 논리적 데이터 흐름입니다. 각 저장소는 독립 commit 경계를 갖습니다.
+This is a logical data flow. Each store has its own commit boundary.
 
 ```mermaid
 flowchart TB
@@ -52,18 +52,18 @@ flowchart TB
     READ --> ANSWER[Contexts entities features provenance]
 ```
 
-### 각 Plane의 역할
+### Role of Each Plane
 
-| Plane | 책임 | 별도 검증 조건 |
+| Plane | Responsibility | Separate verification |
 |---|---|---|
-| Feature | entity key별 feature 값/feature definition | online 최신 값과 offline history·timestamp 의미 |
-| Knowledge | 관계·용어·entity resolution | ontology version·RDF/property graph mapping |
-| Retrieval | embedding·문서 검색·rerank | model/chunk/index version·검색 visibility |
-| Coordinator | 인가·publication·provenance 조합 | cross-plane generation 선택·부분 실패 처리 |
+| Feature | Feature values/definitions by entity key | Online latest values versus offline history and timestamp semantics |
+| Knowledge | Relations, terminology, entity resolution | Ontology version and RDF/property-graph mapping |
+| Retrieval | Embeddings, document retrieval, reranking | Model/chunk/index versions and search visibility |
+| Coordinator | Authorization, publication, provenance composition | Cross-plane generation selection and partial failure |
 
-### 통합 읽기 API
+### Unified Read API
 
-`kfs.retrieve`는 구현할 facade 계약의 이름입니다. 설치 가능한 `kfs` SDK 또는 `feast://`, `neptune://` 통합 protocol을 가정하지 않습니다. 인증된 principal을 서버가 전달하고 caller가 임의로 role을 고르지 못하게 합니다.
+kfs.retrieve names a facade contract to implement. It does not imply an installable kfs SDK or unified feast:// and neptune:// protocols. The server supplies the authenticated principal; callers cannot choose their own role.
 
 ```text
 retrieve(query, authenticated_principal, requested_generation):
@@ -76,13 +76,13 @@ retrieve(query, authenticated_principal, requested_generation):
   if the contract cannot be met: fail explicitly or apply approved stale policy
 ```
 
-## 온톨로지 스키마와 엔터티 해석
+## Ontology Schema and Entity Interpretation
 
-스키마 의미·entity resolution·저장소 mapping은 서로 다른 계약입니다. 문법적으로 유효한 Turtle만으로 도메인 적합성이 증명되지는 않습니다.
+Schema semantics, entity resolution, and store mapping are distinct contracts. Syntactically valid Turtle does not establish domain suitability.
 
-### 도메인 온톨로지 정의
+### Domain Ontology Definition
 
-예시는 RDF/OWL class/property와 SKOS concept를 구분합니다. `rdfs`·`xsd` prefix 누락을 수정하고 customerGrade를 문자열이 아닌 concept 관계로 정의합니다. SKOS broader는 OWL subClassOf가 아니며 exactMatch는 고객 동일인 판정이나 VIP/Premium 동등성의 증거가 아닙니다. domain/range는 추론 의미이며 폐쇄형 입력 검증은 별도 SHACL/애플리케이션 규칙이 필요합니다.
+The example separates RDF/OWL classes/properties from SKOS concepts. It fixes missing rdfs/xsd prefixes and defines customerGrade as a relation to a concept rather than a string. SKOS broader is not OWL subClassOf; exactMatch is not identity-resolution evidence or proof that VIP equals Premium. Domain/range have inference semantics; closed-world input validation needs SHACL/application rules.
 
 ```turtle
 @prefix kfs: <https://example.org/kfs/> .
@@ -118,25 +118,25 @@ kfs:VIP a skos:Concept ;
 # No equivalence is asserted between VIP and Premium.
 ```
 
-property graph adapter는 HAS_CONTRACT→kfs:hasContract, USES_DEVICE→kfs:usesDevice, RECORDED_USAGE→kfs:recordedUsage 및 grade_id→concept IRI mapping을 버전 관리합니다. entity key는 tenant·source namespace를 포함하고 동명이인·공유 device·계약 갱신·alias 충돌은 별도 resolution 결과와 근거를 남깁니다.
+Version the property-graph mapping: HAS_CONTRACT → kfs:hasContract, USES_DEVICE → kfs:usesDevice, RECORDED_USAGE → kfs:recordedUsage, and grade_id → concept IRI. Scope entity keys by tenant/source namespace. Preserve separate resolution decisions and evidence for namesakes, shared devices, contract renewal, and alias conflicts.
 
-### 관리형 vs 오픈소스 옵션
+### Managed vs Open Source Options
 
-| 역할 | 옵션 | 구분 |
+| Role | Options | Distinction |
 |---|---|---|
-| Transactional graph/RDF | Neptune Database, 적합한 자체 호스팅 저장소 | Neptune Database의 RDF/SPARQL과 property graph API를 구분 |
-| Graph analytics | Neptune Analytics | graph memory를 m-NCU로 선택하는 관리형 분석; openCypher 기반 |
-| Vector retrieval | Milvus 등 | 자체 consistency/visibility 및 index lifecycle |
+| Transactional graph/RDF | Neptune Database or suitable self-hosted store | Distinguish Neptune Database RDF/SPARQL from property-graph APIs |
+| Graph analytics | Neptune Analytics | Managed analytics with selected graph memory in m-NCUs and openCypher |
+| Vector retrieval | Milvus and alternatives | Independent consistency/visibility and index lifecycle |
 
-Neptune Analytics를 “용량 프로비저닝 없는 RDF store”로 설명하지 않습니다. Neptune Database Serverless와도 구분합니다. 지연과 가격은 데이터·query·용량·리전에 의존하므로 고정 밀리초나 시간당 가격을 이 설계의 성능으로 제시하지 않습니다.
+Neptune Analytics is not a capacity-free RDF store and is distinct from Neptune Database Serverless. Latency/pricing depend on data, query, capacity, and region; do not present fixed milliseconds or hourly prices as measured design performance.
 
-## KG-aware RAG 패턴
+## KG-aware RAG Pattern
 
-그래프 확장으로 recall이 늘 수 있지만 오류 관계·과도한 context가 품질을 낮출 수도 있습니다. 품질 향상은 평가할 가설입니다.
+Graph expansion may improve recall, but incorrect edges and excessive context can reduce quality. Improvement is a hypothesis to evaluate.
 
-### 벡터 검색 + 그래프 확장
+### Vector Search + Graph Expansion
 
-검색·entity resolution·권한 필터·graph expansion·문서 합성·rerank를 모두 적용해야 합니다. 확장한 entity를 최종 context에 넣지 않으면 graph expansion을 수행했다는 것만으로 답변 근거가 늘지 않습니다.
+Apply retrieval, entity resolution, authorization filters, graph expansion, evidence-document fusion, and reranking. Expanding entities alone does not add answer evidence unless their authorized supporting context reaches the final result.
 
 ```mermaid
 flowchart TB
@@ -151,9 +151,9 @@ flowchart TB
     R --> C[Context with provenance]
 ```
 
-### 구현 예제
+### Implementation Example
 
-다음은 adapter 인터페이스를 정의하는 의사 코드입니다. SDK API나 실행 가능한 평가 script로 제시하지 않습니다. cosine score와 graph distance를 보정 없이 0.7/0.3으로 더하지 않습니다.
+This pseudocode defines adapter interfaces; it is not an SDK API or executable evaluation script. Do not add cosine scores and graph distances with uncalibrated 0.7/0.3 weights.
 
 ```text
 query_entities = resolve_entities(query, ontology_version, principal)
@@ -168,19 +168,19 @@ contexts = select_with_token_budget(ranked)
 return contexts, source_ids, document_versions, retrieval_generation
 ```
 
-### 품질 개선 가설과 평가 계약 {#기대-개선치-외부-공개-연구-기반-추정}
+### Quality Hypothesis and Evaluation Contract {#expected-improvements}
 
-이 플랫폼에 대해 승인된 개선 수치는 없습니다. 기존 Faithfulness 0.72→0.89, Recall 0.68→0.85 등은 연결된 실측이 없어 삭제했습니다. GraphRAG 논문과 survey는 이 특정 수치를 검증하지 않습니다. 다른 논문의 다른 dataset·metric 수치를 평균내어 목표 개선율로 쓰지 않습니다.
+No improvements are accepted for this platform. The former faithfulness 0.72→0.89 and recall 0.68→0.85 numbers lacked linked measurements and have been removed. The GraphRAG paper and survey do not validate those specific figures. Do not average different papers’ datasets/metrics into a target improvement.
 
-동일 corpus snapshot·QA split·generator·embedding·token budget·judge/version으로 vector-only와 graph-augmented를 비교합니다. Faithfulness·context recall·answer relevance·인간 판정·지연·비용을 정의하고 표본 수·paired confidence interval·entity-linking 오류·접근 거부 사례를 보고합니다. 평가 실행 전에는 baseline/candidate/result를 pending으로 둡니다.
+Compare vector-only and graph-augmented retrieval with the same corpus snapshot, QA split, generator, embedding, token budget, and judge/version. Define faithfulness, context recall, answer relevance, human judgments, latency, and cost; report sample counts, paired confidence intervals, entity-linking failures, and denied-access cases. Keep baseline/candidate/results pending before evaluation.
 
-## Write 경로와 일관성 모델
+## Write Path and Consistency Model
 
-이 제안은 비동기 projection의 eventual consistency를 기본으로 합니다. 단일 이벤트를 세 저장소에 순차 기록해도 원자적 commit이나 strong consistency가 생기지 않습니다.
+This proposal defaults to eventual consistency across asynchronous projections. Sequentially writing one event to three stores does not create an atomic commit or strong consistency.
 
-### CDC 기반 이벤트 흐름
+### CDC-based Event Flow
 
-원천 DB transaction과 outbox를 함께 commit하고 CDC가 versioned event를 전달하도록 설계합니다. source DB의 commit/partition 순서를 기록하고 multi-source 전역 순서를 가정하지 않습니다. 각 writer의 저장 성공과 검색 가능 상태를 분리해 확인합니다.
+Design the source transaction and outbox to commit together, then deliver versioned events through CDC. Preserve source commit/partition ordering without assuming a global order across sources. Distinguish successful persistence from searchable visibility in each writer.
 
 ```mermaid
 flowchart TB
@@ -197,25 +197,25 @@ flowchart TB
 
 ### Offline Batch vs Online Stream
 
-| 방식 | 장점 | 검증할 위험 |
+| Mode | Benefit | Risk to verify |
 |---|---|---|
-| Batch | snapshot 재처리와 정합성 점검 | snapshot 경계·늦은 데이터·재계산 비용 |
-| Stream | 짧은 전파 지연 | 중복·역순·부분 실패·DLQ |
-| 결합 | stream+정기 reconciliation | batch가 최신 stream을 덮어쓰지 않도록 version 검사 |
+| Batch | Snapshot replay and reconciliation | Snapshot boundaries, late data, recomputation cost |
+| Stream | Lower propagation delay | Duplicates, reordering, partial failure, DLQ |
+| Combined | Stream plus periodic reconciliation | Version checks prevent batch overwriting newer stream data |
 
-Batch=100%, Stream=99% 정확도라는 고정 보장은 없습니다.
+There is no fixed Batch=100%, Stream=99% accuracy guarantee.
 
-### Eventual Consistency 모델
+### Eventual Consistency Model
 
-Feast online store는 entity key별 최신 feature만 보관하며 임의 과거 시점 조회를 제공하지 않습니다. Feast offline point-in-time join과 세 저장소 공통 snapshot은 다릅니다. timestamp 필터만 넣어 cross-plane point-in-time consistency를 보장할 수 없습니다.
+Feast online stores retain the latest features per entity key, not arbitrary historical values. Offline point-in-time joins differ from a common snapshot across three stores. Timestamp filters alone do not guarantee cross-plane point-in-time consistency.
 
-한 질의가 세 저장소에서 함께 공개한 데이터 묶음(generation)을 읽어야 한다면, 각 저장소는 이전 버전을 덮어쓰지 않고 보관해야 합니다. 질의에서도 읽을 버전을 지정할 수 있어야 합니다. 조회를 조정하는 coordinator는 각 저장소에서 필요한 버전까지 검색할 수 있는지 visibility watermark로 확인합니다. 조건을 모두 충족하면 조회에 사용할 버전 목록인 publication manifest를 공개합니다.
+To read a generation of data published together across the three stores, each store must retain immutable version history and allow queries to select a version. The coordinator checks each store's visibility watermark to confirm that the required version can be queried. Once all required stores are ready, it exposes the publication manifest: the list of versions that a query should read.
 
-최신 값만 제공하는 저장소가 있으면 이 조회 모드를 거부하거나, 버전을 보관하는 별도 저장소를 사용합니다. 이벤트가 발생한 시각(event time)과 수집된 시각(ingestion time)을 구분하고, 늦게 도착한 이벤트와 삭제의 처리 규칙도 정해야 합니다. 강한 일관성(strong consistency)이나 자신이 쓴 값을 바로 읽는 동작(read-your-writes)은 backend와 coordinator에서 검증한 범위에 한해 약속합니다.
+If a store keeps only the latest values, reject this query mode or use a versioned store. Distinguish event time from ingestion time, and define how to handle late events and deletions. Promise strong consistency or read-your-writes only within a backend and coordinator boundary where that behavior has been demonstrated.
 
-### Write 파이프라인 예제
+### Write Pipeline Example
 
-아래 의사 코드는 저장소별 adapter가 구현해야 할 계약입니다. backend transaction 안에서 event version 검사·mutation·deduplication marker를 함께 적용해야 하며 Kafka offset을 commit한 사실만으로 세 저장소의 완료를 보장할 수 없습니다.
+The following pseudocode defines the contract each storage adapter must implement. Within each backend transaction, combine event-version checks, mutation, and deduplication markers. A committed Kafka offset alone does not establish completion in all three stores.
 
 ```text
 event = {tenant, source, entity_id, event_id, source_version,
@@ -242,38 +242,38 @@ commit/advance source progress only under the durable replay contract
 on failure: retry idempotently; quarantine poison events; reconcile gaps
 ```
 
-graph adapter는 parameter binding과 unique entity/edge key를 사용합니다. vector adapter는 동일 document/version을 중복 insert하지 않도록 upsert/delete를 구현합니다. 중간 실패 후 재처리해도 이미 완료된 plane을 손상시키지 않아야 합니다. 삭제 tombstone은 모든 plane에 전파되고 오래된 retry가 데이터를 되살리지 못해야 합니다. 서로 다른 원천 source의 version은 직접 비교하지 말고 conflict policy를 적용합니다.
+Graph adapters use bound parameters and unique entity/edge keys. Vector adapters implement upsert/delete without duplicate document versions. Replay after partial failure must preserve completed planes. Propagate deletion tombstones across every plane and prevent old retries from resurrecting data. Do not directly compare version numbers from different sources; apply an explicit conflict policy.
 
-이 fixture는 합성 tenant `test-a`, entity `customer-001` 하나로 실행합니다. 각 행은 독립 초기 상태에서 시작합니다. v1은 Premium upsert, v2는 VIP upsert, v3은 delete입니다. 세 plane은 version history를 보존하는 시험 구성을 가정하며 이를 지원하지 않는 adapter는 일관된 generation 모드를 거부해야 합니다. 이는 기대 결과이며 실행 결과는 아닙니다.
+Run these fixtures for synthetic tenant test-a and entity customer-001. Each row starts from an independent initial state. v1 upserts Premium, v2 upserts VIP, and v3 deletes the entity. The test assumes version history in all three planes; adapters without it must reject consistent-generation mode. These are expected outcomes, not observed results.
 
-| Fixture | 입력·장애 순서 | 기대 결과 |
+| Fixture | Input/failure sequence | Expected result |
 |---|---|---|
-| 중복 | v1, 같은 event_id의 v1 재전달 | entity/edge/document 중복 없음, publication v1 한 개 |
-| 역순 | v2 후 v1 | v2 유지, v1로 퇴행하지 않음 |
-| 부분 실패 | v1 공개 후 v2의 vector writer 실패 | publication은 v1, v2 혼합 읽기 금지; retry 완료 후 v2 |
-| acknowledgment 저장 전 장애 | v2 mutation·marker 저장 후 프로세스 중단 | retry가 marker로 쓰기 중복을 방지하고 visibility·acknowledgment 확인을 재개한 뒤 남은 plane 처리 |
-| 검색 지연 | v2 저장 성공, vector visibility 지연 | 검색 가능 확인 전 v2 공개 금지 |
-| 삭제 후 replay | v3 공개 후 v2 재전달 | tombstone v3 유지, entity/document 재등장 금지 |
-| 늦은 데이터 | v3 이후 도착한 과거 event_time의 v2 | source version으로 stale 판정, 삭제 상태 유지 |
-| Poison event | 유효하지 않은 schema의 새 이벤트 | 격리·감사, 공개 generation은 이전 상태 유지 |
+| Duplicate | v1, redelivery of v1 with the same event_id | No duplicate entity/edge/document; one v1 publication |
+| Out of order | v2 followed by v1 | Retain v2; no regression to v1 |
+| Partial failure | Publish v1, fail the vector writer for v2 | Keep v1 published; no mixed-v2 read; publish v2 after successful replay |
+| Crash before acknowledgment | Persist v2 mutation and marker, then stop the process | Replay reuses the marker, rechecks visibility, records the acknowledgment, and continues through remaining planes |
+| Visibility delay | Persist v2 but delay vector search visibility | Do not publish v2 before visibility is established |
+| Replay after deletion | Publish v3, then redeliver v2 | Retain tombstone v3; no resurrected entity/document |
+| Late data | Deliver old-event-time v2 after v3 | Reject stale source version; retain deletion |
+| Poison event | New event with invalid schema | Quarantine/audit; retain previous published generation |
 
-각 단계에서 event_id/source_version, plane별 저장·검색 가능 version, manifest generation, read 결과를 기록합니다. retry 후 수렴만 확인하지 말고 실패 중의 읽기 결과도 검사합니다.
+At each step, record event_id/source_version, persisted and visible versions per plane, manifest generation, and read output. Check reads during failure, not only eventual convergence after replay.
 
-## 거버넌스·보안·로드맵
+## Governance, Security, and Roadmap
 
-인가·민감 정보·lineage·감사는 read/write 경계 모두에 적용할 구현 요건입니다. 예시 config를 선언하는 것만으로 활성화되지 않습니다.
+Authorization, sensitive-data handling, lineage, and audit are implementation requirements at both read and write boundaries. Declaring an example configuration does not enable them.
 
-### Row/Attribute-level 인가
+### Row/Attribute-level Authorization
 
-인증된 principal의 tenant·scope·purpose를 서버에서 계산합니다. vector search의 후보, graph traversal의 node/edge, feature field와 최종 context 모두에 정책을 적용합니다. caller가 `role="external_analyst"`를 넘기는 방식으로 권한을 부여하지 않습니다. 계정 간 ID 충돌·unauthorized graph expansion·cache reuse를 검증합니다.
+Derive tenant, scope, and purpose from the authenticated principal on the server. Enforce policy on vector candidates, graph nodes/edges, feature fields, and final context. A caller-supplied role="external_analyst" is not authorization. Test cross-tenant ID collisions, unauthorized graph expansion, and cache reuse.
 
-### PII 마스킹 On-Read
+### PII Masking On-Read
 
-표시용 문자열 마스킹은 검색·embedding·로그·그래프 관계의 노출을 제거하지 않습니다. 수집 최소화, 필요 시 tokenization/redaction, 저장소 인가, 출력 검토를 함께 적용합니다. 파생 요약·cache·index의 삭제 전파와 실패 시 deny 정책을 검증합니다.
+Display-string masking does not remove exposure in retrieval, embeddings, logs, or graph relationships. Combine minimization, appropriate tokenization/redaction, store authorization, and output review. Verify deletion propagation to summaries, caches, and indexes, plus deny behavior on policy failure.
 
 ### Lineage (OpenLineage)
 
-OpenLineage는 job/run/dataset 계보 표준입니다. row-level provenance나 분산 transaction 완료를 자동으로 증명하지 않습니다. 아래 합성 RunEvent는 UUID·producer·schemaURL을 포함합니다. 실제 통합은 고정한 schema 및 dataset/custom facet 정의로 검증하고 COMPLETE는 정의한 job 완료 의미에 맞게 기록합니다.
+OpenLineage describes job/run/dataset lineage; it does not automatically prove row-level provenance or a distributed transaction. The synthetic RunEvent below includes UUID, producer, and schemaURL. Validate the integration against a pinned schema and dataset/custom facets; emit COMPLETE according to the defined job completion semantics.
 
 ```json
 {
@@ -290,26 +290,26 @@ OpenLineage는 job/run/dataset 계보 표준입니다. row-level provenance나 �
 
 ### Audit Log
 
-request/event ID, principal의 가명 식별자, tenant scope, policy version, 접근한 generation, allow/deny, provenance 참조와 결과를 기록합니다. query 전문·PII·token·secret은 기본 감사 필드로 저장하지 않습니다. 읽기 성공뿐 아니라 접근 거부·부분 실패·삭제·재처리도 coverage에 포함합니다.
+Record request/event IDs, pseudonymous principal, tenant scope, policy version, accessed generation, allow/deny, provenance references, and outcome. Do not store full queries, PII, tokens, or secrets as default audit fields. Include denials, partial failures, deletion, and replay in coverage.
 
-### 파일럿 로드맵
+### Pilot Roadmap
 
-2026-Q2 계획의 완료 여부는 증거 대기입니다. 다음 순서로 새 승인 기록을 남깁니다.
+Completion of the planned 2026-Q2 work remains unverified. Record new acceptance in this order.
 
-1. **개념/도메인 승인**: 3-plane이 기존 FS를 대체하는지 조합하는지, 소유권·API compatibility 범위를 ADR에 명시합니다. 합성 Customer/Contract/Device/Usage와 Premium/VIP·동명이인·공유 device·유효 기간 사례를 domain owner가 판정합니다.
-2. **스키마/매핑 승인**: Turtle parse, SHACL/앱 제약, namespace·entity key·RDF/property graph mapping·migration version을 확인합니다.
-3. **Write 장애 fixture**: duplicate, out-of-order, late event, 한 plane 실패, visibility 지연, delete 후 stale replay, DLQ 복구를 재현합니다. 각 경우의 event log·plane version·ack·공개 manifest를 대조합니다. unpublished/권한 밖 generation이 조회되지 않아야 합니다.
-4. **읽기 정합성 승인**: 최신 읽기 freshness bound와 stale/partial 처리, history 모드 가능 여부, event-time/ingestion-time 경계를 확정합니다. 허용 지연과 최소 표본 수를 사전에 정합니다.
-5. **품질/보안 승인**: 동일 QA/corpus 버전에서 baseline/candidate 평가 및 tenant 간 접근 거부·PII·삭제 전파를 검증합니다.
-6. **증거 기록**: configuration/source/data hash, UTC 시각, 기대/실제 결과, 담당자·승인자·잔여 항목을 보존합니다. 수치·도메인·일관성 승인 전에는 검증 대기 배너를 유지합니다.
+1. **Concept/domain acceptance:** State in an ADR whether the three planes replace or compose with existing feature stores, including ownership and API compatibility. Domain owners adjudicate synthetic Customer/Contract/Device/Usage, Premium/VIP, namesakes, shared devices, and validity periods.
+2. **Schema/mapping acceptance:** Check Turtle parsing, SHACL/application constraints, namespaces, entity keys, RDF/property-graph mappings, and migration versions.
+3. **Write-failure fixtures:** Reproduce duplicates, out-of-order/late events, one-plane failure, visibility lag, deletion followed by stale replay, and DLQ recovery. Reconcile event logs, plane versions, acknowledgments, and publication manifests. Unpublished or unauthorized generations must not be returned.
+4. **Read consistency:** Approve latest-read freshness bounds, stale/partial behavior, availability of historical reads, and event-time versus ingestion-time boundaries. Preregister lag limits and sample sizes.
+5. **Quality/security:** Evaluate baseline/candidate on the same QA/corpus versions and verify cross-tenant denials, PII handling, and deletion propagation.
+6. **Evidence:** Preserve configuration/source/data hashes, UTC timestamps, expected/observed results, owner/approver, and residual items. Keep verification pending until measurements, domain semantics, and consistency are accepted.
 
-## 결론
+## Conclusion
 
-KFS는 feature·관계·검색을 결합하는 설계 제안입니다. ontology mapping, 인가, 비동기 write, publication과 평가 계약을 구현해야 합니다. graph 추가만으로 환각 감소·규제 준수·strong consistency를 보장하지 않습니다. 도메인/운영 승인과 실제 측정은 남은 작업입니다.
+KFS proposes composing feature, graph, and retrieval capabilities. It requires implemented ontology mappings, authorization, asynchronous writes, publication, and evaluation contracts. Adding a graph alone guarantees neither hallucination reduction, compliance, nor strong consistency. Domain/operator acceptance and measurements remain outstanding.
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
 - [Feast online store](https://docs.feast.dev/getting-started/components/online-store) — latest-value serving
 - [Feast point-in-time joins](https://docs.feast.dev/getting-started/concepts/point-in-time-joins) — historical feature retrieval
@@ -319,12 +319,12 @@ KFS는 feature·관계·검색을 결합하는 설계 제안입니다. ontology 
 - [SHACL](https://www.w3.org/TR/shacl/) — RDF graph validation
 - [OpenLineage object model](https://openlineage.io/docs/spec/object-model/) — run/job/dataset contracts
 
-### 논문 / 기술 블로그
+### Papers / Technical Blogs
 
 - [From Local to Global: A Graph RAG Approach to Query-Focused Summarization](https://arxiv.org/abs/2404.16130) — task-specific graph retrieval evaluation
 - [Graph Retrieval-Augmented Generation: A Survey](https://arxiv.org/abs/2408.08921) — research overview, not platform measurements
 
-### 관련 문서 (내부)
+### Related Documents (Internal)
 
 - [Platform architecture](../foundations/agentic-platform-architecture.md) — data layer
 - [Milvus vector database](../../operations-mlops/data-infrastructure/milvus-vector-database.md) — vector retrieval

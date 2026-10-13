@@ -1,52 +1,50 @@
 ---
-title: "AgenticOps: AI 에이전트 기반 자율 운영"
-description: AIDLC로 개발한 소프트웨어의 AI 에이전트 기반 자율 운영 — 관찰성, 예측, 자동 대응
+title: "AgenticOps: AI Agent-Based Autonomous Operations"
+description: AI agent-based autonomous operations for software developed with AIDLC — observability, prediction, and automated response
 created: "2026-04-07"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 2
+reading_time: 4
 tags:
-  - aidlc
-  - operations
   - scope:nav
 sidebar_label: AgenticOps
 ---
 
-# AgenticOps: AI 에이전트 기반 자율 운영
+# AgenticOps: AI Agent-Based Autonomous Operations
 
-AgenticOps는 AI 에이전트가 운영 중 수집한 데이터를 바탕으로 조치를 판단하고 실행하는 방식입니다. 이 문서의 **감지 → 판단 → 실행** 흐름에서 에이전트는 근거를 수집하고 대응을 선택한 뒤, 미리 정한 실행 범위 안에서 조치하거나 사람에게 검토를 요청합니다. 그 결과를 [AIDLC](/docs/aidlc/methodology)로 개발한 소프트웨어의 개선에 반영합니다.
+AgenticOps uses AI agents to turn production telemetry into operational decisions and actions. In the **detection → decision → execution** loop described here, an agent collects evidence, chooses a response, and executes it within predefined guardrails or escalates it for human review. The results feed back into the software developed through [AIDLC](/docs/aidlc/methodology).
 
-## AIDLC와의 관계
+## Relationship with AIDLC
 
-AIDLC는 소프트웨어를 개발하는 과정을, AgenticOps는 운영에서 얻은 근거를 유지보수와 개선에 반영하는 과정을 설명합니다. [온톨로지](/docs/aidlc/methodology/ontology-engineering)의 제약은 에이전트의 판단 기준이 됩니다. **Outer Loop**는 운영에서 발견한 문제를 그 제약을 수정하는 사람과 절차에 전달하는 흐름입니다.
+AIDLC describes how software is developed; AgenticOps describes how operational evidence informs its maintenance and improvement. Constraints in the [ontology](/docs/aidlc/methodology/ontology-engineering) guide agent decisions. The **Outer Loop** returns findings from production to the people and processes that revise those constraints.
 
 ```mermaid
 flowchart LR
-    DEV["AIDLC<br/>개발"] -->|배포| PROD["프로덕션<br/>운영"]
-    PROD -->|관찰성 데이터| AGOPS["AgenticOps<br/>AI 에이전트 자율 운영"]
-    AGOPS -->|온톨로지 진화 피드백| DEV
+    DEV["AIDLC<br/>Development"] -->|Deploy| PROD["Production<br/>Operations"]
+    PROD -->|Observability Data| AGOPS["AgenticOps<br/>AI Agent Autonomous Operations"]
+    AGOPS -->|Ontology Evolution Feedback| DEV
 
     style DEV fill:#326ce5,color:#fff
     style PROD fill:#76b900,color:#fff
     style AGOPS fill:#ff9900,color:#fff
 ```
 
-## 구성
+## Structure
 
-**1 → 2 → 3** 순서로 읽으면 데이터 기반 구축부터 자율 운영 실현까지의 전체 여정을 따라갈 수 있습니다.
+Reading in the order **1 → 2 → 3** allows you to follow the entire journey from data-based construction to autonomous operations realization.
 
-| 순서 | 문서 | 핵심 질문 |
+| Order | Document | Core Question |
 |------|------|----------|
-| 1 | [관찰성 스택](./observability-stack.md) | 운영 데이터를 어떻게 수집·분석하는가? |
-| 2 | [예측 운영](./predictive-operations.md) | 장애를 어떻게 사전에 예측하고 예방하는가? |
-| 3 | [자율 대응](./autonomous-response.md) | AI 에이전트가 어떻게 자율적으로 대응하는가? |
+| 1 | [Observability Stack](./observability-stack.md) | How do we collect and analyze operational data? |
+| 2 | [Predictive Operations](./predictive-operations.md) | How do we predict and prevent failures in advance? |
+| 3 | [Autonomous Response](./autonomous-response.md) | How do AI agents respond autonomously? |
 
-## 핵심 기반: AWS 오픈소스 전략
+## Core Foundation: AWS Open Source Strategy
 
-AWS는 Kubernetes 생태계의 핵심 도구들을 Managed Add-on(22+), 관리형 오픈소스 서비스(AMP, AMG, ADOT)로 제공합니다. 이 기반 위에서 **Kiro + MCP(Model Context Protocol)**가 AgenticOps의 핵심 도구로 동작하며, AWS MCP 서버(50+ GA)를 통해 EKS 클러스터 제어, CloudWatch 메트릭 분석, 비용 최적화를 자율적으로 수행합니다.
+AWS provides core Kubernetes ecosystem tools as Managed Add-ons (22+) and managed open source services (AMP, AMG, ADOT). On this foundation, **Kiro + MCP (Model Context Protocol)** operates as the core tool for AgenticOps, autonomously controlling EKS clusters, analyzing CloudWatch metrics, and optimizing costs through AWS MCP servers (50+ GA).
 
-## 참고 자료
+## References
 
 - [Proactive EKS Monitoring with CloudWatch](https://aws.amazon.com/blogs/containers/proactive-amazon-eks-monitoring-with-amazon-cloudwatch-operator-and-aws-control-plane-metrics/)
 - [AWS MCP Servers (50+ GA)](https://github.com/awslabs/mcp)

@@ -1,11 +1,11 @@
 ---
-title: AWS 단일 아키텍처 (Uni-President)
-description: Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (콜드체인) + Glue (BU 간 ETL)
+title: AWS Single Architecture (Uni-President)
+description: Bedrock + Neptune + OpenSearch + AgentCore + TimeStream (cold chain) + Glue (cross-BU ETL)
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -16,9 +16,9 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> [LG생활건강 아키텍처](../lg-hnh-marketing-innovation/05-architecture.md)의 Next.js 화면, ECS Fargate의 FastAPI 백엔드, AI 서비스 연동, Neptune, OpenSearch를 재사용합니다. Uni-President에는 **5개 사업 부문의 데이터를 통합하는 Glue ETL**, **콜드체인 측정을 위한 TimeStream**, OPENPOINT 회원 관계를 추가합니다. Neptune 그래프의 관계 수는 약 **90만 개**로 추정합니다.
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, AI-service integration, Neptune, and OpenSearch. Uni-President adds **Glue ETL to integrate data across 5 BUs**, **TimeStream for cold-chain measurements**, and OPENPOINT member relationships in a Neptune graph estimated at **900K edges**.
 
-## 1. 아키텍처
+## 1. Architecture
 
 ```mermaid
 graph TB
@@ -39,20 +39,20 @@ graph TB
     subgraph Data
         Neptune[(Neptune ~900K edges)]
         OS[OpenSearch]
-        TS[TimeStream<br/>콜드체인 SLA]
+        TS[TimeStream<br/>Cold-chain SLA]
     end
     subgraph BUSilos
         7ELE[7-Eleven OMS]
         Carr[Carrefour OMS]
         SB[Starbucks/Donut/KFC]
-        UPF[統一食품 ERP]
-        Trans[Transnet 콜드체인]
+        UPF[Uni-President Food ERP]
+        Trans[Transnet Cold Chain]
         OP[OPENPOINT DW]
     end
     subgraph External
-        Soc[Dcard·小紅書·인스타]
-        Wea[中央氣象署 - 폭염]
-        Eco[DGBAS·央行]
+        Soc[Dcard·Xiaohongshu·Instagram]
+        Wea[Central Weather Admin - heatwave]
+        Eco[DGBAS·Central Bank]
         Comp[FamilyMart·Hi-Life·RT-Mart]
     end
 
@@ -66,29 +66,29 @@ graph TB
     External -->|EventBridge| Glue --> Neptune
 ```
 
-## 2. UPI 특화 컴포넌트
+## 2. UPI-Specific Components
 
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **Glue (BU 간 ETL)** | 5 BU의 별도 OMS·ERP를 매일 통합 → Neptune (S9-U 핵심) |
-| **TimeStream** | 콜드체인 SLA 시계열 (S11-U) |
-| **OPENPOINT 통합 ID 매핑** | BU별 회원 ID → OPENPOINT 통합 ID 매핑 (Step Functions) |
-| **Cohere multilingual** | 번체중·영어 |
+| **Glue (cross-BU ETL)** | Daily integration of separate OMS · ERP systems across 5 BUs → Neptune (core of S9-U) |
+| **TimeStream** | Cold-chain SLA time series (S11-U) |
+| **OPENPOINT unified ID mapping** | Per-BU member ID → OPENPOINT unified ID mapping (Step Functions) |
+| **Cohere multilingual** | Traditional Chinese · English |
 
-## 3. 보안·거버넌스
+## 3. Security · Governance
 
-| 항목 | 구현 |
+| Item | Implementation |
 |---|---|
-| 인증 | Cognito + Lambda@Edge |
-| 권한 | 페르소나 그룹 × BU 화이트리스트 (P5만 콜드체인 쓰기) |
-| PII | OPENPOINT 통합 ID hash 마스킹 |
-| 가드레일 | 4 토픽 + 미성년 + PDPA + BU 영업 정보 분리 |
+| Authentication | Cognito + Lambda@Edge |
+| Authorization | Persona groups × BU allowlist (only P5 may write cold-chain) |
+| PII | OPENPOINT unified ID hash masking |
+| Guardrails | 4 topics + minors + PDPA + BU commercial-information segregation |
 
-## 4. 비용 (8주 PoC)
-| 항목 | 추정 |
+## 4. Cost (8-Week PoC)
+| Item | Estimate |
 |---|---|
-| Bedrock + Cohere | $1.8K/월 |
-| Neptune (900K) + OpenSearch | $1.8K/월 |
-| TimeStream + Glue | $1K/월 (BU 5종 ETL) |
-| ECS + 외부 API | $0.5K/월 |
-| **합계** | **~$5.1K/월** |
+| Bedrock + Cohere | $1.8K/month |
+| Neptune (900K) + OpenSearch | $1.8K/month |
+| TimeStream + Glue | $1K/month (5-BU ETL) |
+| ECS + external APIs | $0.5K/month |
+| **Total** | **~$5.1K/month** |

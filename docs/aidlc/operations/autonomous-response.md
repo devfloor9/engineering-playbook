@@ -1,127 +1,127 @@
 ---
-title: 자율 대응
-description: AI Agent 기반 자율 인시던트 대응 — Strands/Kagent 통합, Chaos Engineering + AI, 온톨로지 피드백 루프
+title: Autonomous Response
+description: AI Agent-based autonomous incident response — Strands/Kagent integration, Chaos Engineering + AI, ontology feedback loop
 created: "2026-04-07"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 8
+  author: devfloor9
+reading_time: 16
 tags:
   - aidlc
   - operations
   - agentops
   - agentic-ai
   - scope:ops
-sidebar_label: 자율 대응
+sidebar_label: Autonomous Response
 ---
 
 import { ResponsePatterns, ChaosExperiments } from '@site/src/components/PredictiveOpsTables';
 import { OperationPatternsComparison, AiopsMaturityModel } from '@site/src/components/AiopsIntroTables';
 
-## 1. 개요
+## 1. Overview
 
-**자율 대응(Autonomous Response)**은 AI Agent가 인시던트를 감지하고, 컨텍스트를 수집·분석하여, 사전 정의된 가드레일 내에서 자율적으로 복구를 실행하는 운영 패러다임입니다.
+**Autonomous Response** is an operational paradigm where AI Agents detect incidents, collect and analyze context, and autonomously execute recovery within predefined guardrails.
 
-### 자율 대응의 3단계
+### Three Stages of Autonomous Response
 
 ```
-[감지 (Detection)]
+[Detection]
   CloudWatch Alarm · DevOps Guru · K8s Event
          ↓
-[판단 (Decision)]
-  MCP로 컨텍스트 수집 → AI 근본 원인 분석 → 대응 방안 결정
+[Decision]
+  Collect context with MCP → AI root cause analysis → Determine response
          ↓
-[실행 (Execution)]
-  안전한 범위 내 자동 복구 OR 에스컬레이션
+[Execution]
+  Automatic recovery within safe bounds OR escalation
 ```
 
-### 왜 자율 대응이 필요한가
+### Why Autonomous Response is Needed
 
-- **MTTR 단축**: 수동 대응 평균 2시간 → AI 자율 대응 평균 5분
-- **24/7 무인 운영**: 야간/주말 알림 부담 대폭 감소
-- **일관성**: 사람의 판단 편차 제거, 표준화된 대응
-- **학습 효과**: 대응 패턴을 지속적으로 학습하여 정확도 향상
+- **MTTR Reduction**: Manual response average 2 hours → AI autonomous response average 5 minutes
+- **24/7 Unmanned Operations**: Significantly reduced burden of nighttime/weekend alerts
+- **Consistency**: Eliminate human judgment variance, standardized response
+- **Learning Effect**: Continuously improve accuracy by learning response patterns
 
 ---
 
-## 2. 운영 자동화 패턴: Human-Directed, Programmatically-Executed
+## 2. Operations Automation Patterns: Human-Directed, Programmatically-Executed
 
-AIOps의 핵심은 **사람이 의도(Intent)와 가드레일을 정의하고, 시스템이 프로그래머틱하게 실행**하는 모델입니다.
+The core of AIOps is a model where **humans define Intent and guardrails, and the system executes programmatically**.
 
-### 2.1 세 가지 패턴 스펙트럼
+### 2.1 Three Pattern Spectrum
 
 **Prompt-Driven (Interactive)**
-- 각 단계를 사람이 자연어로 지시
-- AI가 단일 작업 수행
-- 적합: 탐색적 디버깅, 새로운 유형의 장애
-- 한계: Human-in-the-Loop, 반복 시나리오에서 비효율적
+- Humans direct each step in natural language
+- AI performs single tasks
+- Suitable for: Exploratory debugging, new types of failures
+- Limitation: Human-in-the-Loop, inefficient for repetitive scenarios
 
 **Spec-Driven (Codified)**
-- 운영 시나리오를 Spec으로 선언적 정의
-- 시스템이 프로그래머틱하게 실행
-- 적합: 반복적 배포, 정형화된 운영 절차
-- 핵심: Spec 한 번 정의 → 반복 실행 무비용
+- Declaratively define operational scenarios as Specs
+- System executes programmatically
+- Suitable for: Repetitive deployments, standardized operational procedures
+- Core: Define Spec once → unlimited repeated execution
 
 **Agent-Driven (Autonomous)**
-- AI Agent가 이벤트 감지 → 컨텍스트 수집 → 자율 대응
-- Human-on-the-Loop (사람은 가드레일 설정)
-- 적합: 인시던트 자동 대응, 비용 최적화, 예측 스케일링
-- 핵심: 초 단위 대응, 컨텍스트 기반 지능형 판단
+- AI Agent detects events → collects context → autonomous response
+- Human-on-the-Loop (humans set guardrails)
+- Suitable for: Automatic incident response, cost optimization, predictive scaling
+- Core: Second-level response, intelligent context-based judgment
 
-### 2.2 패턴 비교: EKS Pod CrashLoopBackOff 대응
+### 2.2 Pattern Comparison: EKS Pod CrashLoopBackOff Response
 
 <OperationPatternsComparison />
 
-:::tip 실전에서의 패턴 조합
-세 패턴은 배타적이 아니라 **상호 보완적**입니다. 새로운 장애 유형을 **Prompt-Driven**으로 탐색·분석한 뒤, 반복 가능한 패턴을 **Spec-Driven**으로 코드화하고, 최종적으로 **Agent-Driven**으로 자율화하는 점진적 성숙 과정을 거칩니다.
+:::tip Combining Patterns in Practice
+The three patterns are not mutually exclusive but **complementary**. Explore and analyze new failure types with **Prompt-Driven**, codify repeatable patterns as **Spec-Driven**, and finally automate as **Agent-Driven** in a progressive maturity process.
 :::
 
 ---
 
-## 3. AI Agent 인시던트 대응
+## 3. AI Agent Incident Response
 
-### 3.1 기존 자동화의 한계
+### 3.1 Limitations of Traditional Automation
 
-EventBridge + Lambda 기반 자동화는 **규칙 기반**이므로 한계가 있습니다:
+EventBridge + Lambda-based automation is **rule-based** and has limitations:
 
 ```
-[기존 방식: 규칙 기반 자동화]
-CloudWatch Alarm → EventBridge Rule → Lambda → 고정된 조치
+[Traditional Method: Rule-Based Automation]
+CloudWatch Alarm → EventBridge Rule → Lambda → Fixed Action
 
-문제점:
-  ✗ "CPU > 80%이면 스케일아웃" — 원인이 메모리 누수일 수도 있음
-  ✗ "Pod 재시작 > 5이면 알림" — 원인별 대응이 다름
-  ✗ 복합 장애 대응 불가
-  ✗ 새로운 패턴에 적응 불가
+Problems:
+  ✗ "Scale out if CPU > 80%" — cause could be memory leak
+  ✗ "Alert if Pod restarts > 5" — response differs by cause
+  ✗ Cannot handle complex failures
+  ✗ Cannot adapt to new patterns
 ```
 
-### 3.2 AI Agent 기반 자율 대응
+### 3.2 AI Agent-Based Autonomous Response
 
 <ResponsePatterns />
 
-AI Agent는 **컨텍스트 기반 판단**으로 자율적으로 대응합니다.
+AI Agents respond autonomously with **context-based judgment**.
 
 ```mermaid
 graph TD
-    subgraph Trigger["🔔 트리거"]
+    subgraph Trigger["🔔 Trigger"]
         CWA["CloudWatch<br/>Alarm"]
         DGA["DevOps Guru<br/>Insight"]
         K8SE["K8s<br/>Event"]
     end
 
     subgraph Agent["🤖 AI Agent"]
-        COLLECT["데이터 수집<br/>(MCP 통합)"]
-        ANALYZE["AI 분석<br/>(근본 원인)"]
-        DECIDE["판단<br/>(자동/수동)"]
-        ACT["실행<br/>(안전한 조치)"]
-        REPORT["보고<br/>(Slack/Jira)"]
+        COLLECT["Data Collection<br/>(MCP Integration)"]
+        ANALYZE["AI Analysis<br/>(Root Cause)"]
+        DECIDE["Decision<br/>(Auto/Manual)"]
+        ACT["Execution<br/>(Safe Actions)"]
+        REPORT["Reporting<br/>(Slack/Jira)"]
     end
 
-    subgraph Actions["⚡ 대응 조치"]
-        SCALE["스케일링<br/>조정"]
-        RESTART["Pod<br/>재시작"]
-        ROLLBACK["배포<br/>롤백"]
-        ESCALATE["사람에게<br/>에스컬레이션"]
+    subgraph Actions["⚡ Response Actions"]
+        SCALE["Scaling<br/>Adjustment"]
+        RESTART["Pod<br/>Restart"]
+        ROLLBACK["Deployment<br/>Rollback"]
+        ESCALATE["Escalate to<br/>Human"]
     end
 
     CWA --> COLLECT
@@ -135,43 +135,43 @@ graph TD
     ACT --> ESCALATE
 ```
 
-### 3.3 Kagent 자동 인시던트 대응
+### 3.3 Kagent Automatic Incident Response
 
-**Kagent**는 Kubernetes Native AI Agent로, CRD를 통해 자동 대응을 정의합니다.
+**Kagent** is a Kubernetes Native AI Agent that defines automatic responses through CRDs.
 
 ```yaml
-# Kagent: 자동 인시던트 대응 에이전트
+# Kagent: Automatic incident response agent
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
   name: incident-responder
   namespace: kagent-system
 spec:
-  description: "EKS 인시던트 자동 대응 에이전트"
+  description: "EKS incident automatic response agent"
   modelConfig:
     provider: bedrock
     model: anthropic.claude-sonnet
     region: ap-northeast-2
   systemPrompt: |
-    당신은 EKS 인시던트 대응 에이전트입니다.
+    You are an EKS incident response agent.
 
-    ## 대응 원칙
-    1. 안전 우선: 위험한 변경은 사람에게 에스컬레이션
-    2. 근본 원인 우선: 증상이 아닌 원인에 대응
-    3. 최소 개입: 필요한 최소한의 조치만 수행
-    4. 모든 조치 기록: Slack과 JIRA에 자동 보고
+    ## Response Principles
+    1. Safety first: Escalate risky changes to humans
+    2. Root cause priority: Respond to causes, not symptoms
+    3. Minimal intervention: Perform only necessary minimum actions
+    4. Record all actions: Automatically report to Slack and JIRA
 
-    ## 자동 조치 허용 범위
-    - Pod 재시작 (CrashLoopBackOff, 5회 이상)
-    - HPA min/max 조정 (현재값의 ±50% 범위)
-    - Deployment rollback (이전 버전으로)
-    - 노드 drain (MemoryPressure/DiskPressure)
+    ## Allowed Automatic Actions
+    - Pod restart (CrashLoopBackOff, 5+ times)
+    - HPA min/max adjustment (within ±50% of current value)
+    - Deployment rollback (to previous version)
+    - Node drain (MemoryPressure/DiskPressure)
 
-    ## 에스컬레이션 대상
-    - 데이터 손실 가능성이 있는 조치
-    - 50% 이상의 replicas 영향
-    - StatefulSet 관련 변경
-    - 네트워크 정책 변경
+    ## Escalation Targets
+    - Actions with potential data loss
+    - Impact to 50%+ of replicas
+    - StatefulSet related changes
+    - Network policy changes
 
   tools:
     - name: kubectl
@@ -198,12 +198,12 @@ spec:
         reason: ["CrashLoopBackOff", "OOMKilled", "FailedScheduling"]
 ```
 
-### 3.4 Strands Agent SOP: 복합 장애 대응
+### 3.4 Strands Agent SOP: Complex Failure Response
 
-**Strands**는 Python 기반 OSS Agent 프레임워크로, SOP(Standard Operating Procedure)를 코드로 정의합니다.
+**Strands** is a Python-based OSS Agent framework that defines SOPs (Standard Operating Procedures) as code.
 
 ```python
-# Strands Agent: 복합 장애 자동 대응
+# Strands Agent: Automatic complex failure response
 from strands import Agent
 from strands.tools import eks_tool, cloudwatch_tool, slack_tool, jira_tool
 
@@ -212,128 +212,128 @@ incident_agent = Agent(
     model="bedrock/anthropic.claude-sonnet",
     tools=[eks_tool, cloudwatch_tool, slack_tool, jira_tool],
     sop="""
-    ## 복합 장애 대응 SOP
+    ## Complex Failure Response SOP
 
-    ### Phase 1: 상황 파악 (30초 이내)
-    1. CloudWatch 알람 및 DevOps Guru 인사이트 조회
-    2. 관련 서비스의 Pod 상태 확인
-    3. 노드 상태 및 리소스 사용률 확인
-    4. 최근 배포 이력 확인 (10분 이내 변경 사항)
+    ### Phase 1: Situation Assessment (within 30 seconds)
+    1. Query CloudWatch alarms and DevOps Guru insights
+    2. Check related service Pod status
+    3. Check node status and resource utilization
+    4. Check recent deployment history (changes within 10 minutes)
 
-    ### Phase 2: 근본 원인 분석 (2분 이내)
-    1. 로그에서 에러 패턴 추출
-    2. 메트릭 상관 분석 (CPU, Memory, Network, Disk)
-    3. 배포 변경과의 시간적 상관관계 분석
-    4. 의존 서비스 상태 확인
+    ### Phase 2: Root Cause Analysis (within 2 minutes)
+    1. Extract error patterns from logs
+    2. Metric correlation analysis (CPU, Memory, Network, Disk)
+    3. Analyze temporal correlation with deployment changes
+    4. Check dependent service status
 
-    ### Phase 3: 자동 대응
-    원인별 자동 조치:
+    ### Phase 3: Automatic Response
+    Automatic actions by cause:
 
-    **배포 관련 장애:**
-    - 최근 10분 이내 배포 존재 → 자동 롤백
-    - 롤백 후 상태 확인 → 정상화되면 완료
+    **Deployment-Related Failures:**
+    - If deployment exists within last 10 minutes → automatic rollback
+    - Check status after rollback → complete if normalized
 
-    **리소스 부족:**
-    - CPU/Memory > 90% → HPA 조정 또는 Karpenter 노드 추가
-    - Disk > 85% → 불필요 로그/이미지 정리
+    **Resource Shortage:**
+    - If CPU/Memory > 90% → adjust HPA or add Karpenter nodes
+    - If Disk > 85% → clean unnecessary logs/images
 
-    **의존 서비스 장애:**
-    - RDS 연결 실패 → 연결 풀 설정 확인, 필요시 재시작
-    - SQS 지연 → DLQ 확인, 소비자 스케일아웃
+    **Dependent Service Failures:**
+    - RDS connection failure → check connection pool settings, restart if needed
+    - SQS delays → check DLQ, scale out consumers
 
-    **원인 불명:**
-    - 사람에게 에스컬레이션
-    - 수집된 모든 데이터를 Slack에 공유
+    **Unknown Cause:**
+    - Escalate to human
+    - Share all collected data on Slack
 
-    ### Phase 4: 사후 처리
-    1. 인시던트 타임라인 생성
-    2. JIRA 인시던트 티켓 생성
-    3. Slack #incidents 채널에 보고서 게시
-    4. 학습 데이터로 저장 (피드백 루프)
+    ### Phase 4: Post-Processing
+    1. Create incident timeline
+    2. Create JIRA incident ticket
+    3. Post report to Slack #incidents channel
+    4. Save as learning data (feedback loop)
     """
 )
 ```
 
-:::info AI Agent의 핵심 가치
-EventBridge+Lambda를 넘어 AI 컨텍스트 기반 자율 대응이 가능합니다. **다양한 데이터 소스**(CloudWatch, EKS API, X-Ray, 배포 이력)를 **MCP로 통합 조회**하여, 규칙으로는 대응할 수 없는 복합 장애도 근본 원인을 분석하고 적절한 조치를 자동으로 수행합니다.
+:::info Core Value of AI Agents
+Beyond EventBridge+Lambda, context-based autonomous response is possible. By **unifying multiple data sources** (CloudWatch, EKS API, X-Ray, deployment history) through **MCP integration queries**, even complex failures that cannot be handled by rules can be analyzed for root causes and appropriate actions automatically performed.
 :::
 
-### 3.5 Amazon Q Developer 통합
+### 3.5 Amazon Q Developer Integration
 
-Amazon Q Developer는 자연어 인터페이스로 운영을 단순화합니다:
+Amazon Q Developer simplifies operations with a natural language interface:
 
 ```
-[사용자 질문]
-"이 클러스터에서 OOM이 발생하는 Pod를 찾아줘"
+[User Question]
+"Find Pods experiencing OOM in this cluster"
 
-[Amazon Q Developer 응답]
-발견된 OOM 이벤트:
+[Amazon Q Developer Response]
+OOM events found:
 - payment-service-7d8f9c4b-xyz (namespace: payment)
-  └─ 최근 3회 OOMKilled (지난 1시간)
-  └─ 메모리 limits: 512Mi, 실제 사용: 520Mi
-  └─ 권장: memory limits를 1Gi로 증가
+  └─ 3 recent OOMKilled (last hour)
+  └─ Memory limits: 512Mi, actual usage: 520Mi
+  └─ Recommendation: increase memory limits to 1Gi
 
-실행된 명령:
+Commands executed:
 $ kubectl get events --all-namespaces --field-selector reason=OOMKilled
 $ kubectl top pod -n payment payment-service-7d8f9c4b-xyz
 
-다음 조치를 원하시나요?
-1. memory limits 자동 조정 (VPA 적용)
-2. 상세 메모리 프로파일링 시작
-3. 관련 로그 전체 분석
+Which action would you like?
+1. Automatically adjust memory limits (apply VPA)
+2. Start detailed memory profiling
+3. Analyze all related logs
 ```
 
 ---
 
-## 4. Tribal Knowledge 활용
+## 4. Tribal Knowledge Utilization
 
-AI Agent는 팀의 **운영 히스토리(Tribal Knowledge)**를 학습하여 복구를 자동화합니다.
+AI Agents learn the team's **operational history (Tribal Knowledge)** to automate recovery.
 
-### 4.1 과거 인시던트 학습
+### 4.1 Learning Past Incidents
 
 ```python
-# 과거 인시던트 대응 패턴 학습
+# Learning past incident response patterns
 from strands import Agent
 
 knowledge_base = {
     "incident_patterns": [
         {
-            "symptom": "payment-service 500 에러 급증",
-            "root_cause": "RDS 연결 풀 고갈",
-            "solution": "maxPoolSize 증가 또는 연결 누수 수정",
+            "symptom": "payment-service 500 error surge",
+            "root_cause": "RDS connection pool exhaustion",
+            "solution": "Increase maxPoolSize or fix connection leak",
             "frequency": 5,
             "last_occurrence": "2026-03-15"
         },
         {
-            "symptom": "API Gateway 504 타임아웃",
-            "root_cause": "Lambda cold start + VPC ENI 할당 지연",
-            "solution": "Provisioned Concurrency 활성화",
+            "symptom": "API Gateway 504 timeout",
+            "root_cause": "Lambda cold start + VPC ENI allocation delay",
+            "solution": "Enable Provisioned Concurrency",
             "frequency": 3,
             "last_occurrence": "2026-02-20"
         }
     ]
 }
 
-# AI Agent가 과거 패턴 참조
+# AI Agent references past patterns
 tribal_agent = Agent(
     name="tribal-knowledge-responder",
     model="bedrock/anthropic.claude-sonnet",
     tools=[eks_tool, knowledge_base_tool],
     sop="""
-    ## Tribal Knowledge 기반 대응
+    ## Tribal Knowledge-Based Response
 
-    1. 현재 증상 분석
-    2. 과거 유사 패턴 검색
-    3. 검증된 해결책 우선 적용
-    4. 새로운 패턴이면 탐색 후 Knowledge Base 업데이트
+    1. Analyze current symptoms
+    2. Search for similar past patterns
+    3. Apply validated solutions first
+    4. If new pattern, explore then update Knowledge Base
     """
 )
 ```
 
-### 4.2 지식 베이스 자동 업데이트
+### 4.2 Automatic Knowledge Base Updates
 
 ```yaml
-# 인시던트 대응 후 자동 학습
+# Automatic learning after incident response
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -353,156 +353,156 @@ spec:
 
 ---
 
-## 5. Kiro 프로그래머틱 디버깅
+## 5. Kiro Programmatic Debugging
 
-### 5.1 디렉팅 vs 프로그래머틱 대응 비교
+### 5.1 Directive vs Programmatic Response Comparison
 
 ```
-[디렉팅 기반 대응] — 수동, 반복적, 비용 높음
+[Directive-Based Response] — Manual, repetitive, high cost
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  운영자: "payment-service 500 에러 발생"
-  AI:     "어떤 Pod에서 발생하나요?"
-  운영자: "payment-xxx Pod"
-  AI:     "로그를 보여주세요"
-  운영자: (kubectl logs 실행 후 복사-붙여넣기)
-  AI:     "DB 연결 오류 같습니다. RDS 상태를 확인해주세요"
-  ...반복...
+  Operator: "payment-service 500 error occurring"
+  AI:       "Which Pod is it occurring in?"
+  Operator: "payment-xxx Pod"
+  AI:       "Show me the logs"
+  Operator: (execute kubectl logs and copy-paste)
+  AI:       "Looks like DB connection error. Check RDS status"
+  ...repeat...
 
-  총 소요: 15-30분, 수동 작업 다수
+  Total time: 15-30 minutes, many manual tasks
 
-[프로그래머틱 대응] — 자동, 체계적, 비용 효율적
+[Programmatic Response] — Automatic, systematic, cost-efficient
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  알림: "payment-service 500 에러 발생"
+  Alert: "payment-service 500 error occurring"
 
   Kiro Spec:
-    1. EKS MCP로 Pod 상태 조회
-    2. 에러 로그 수집 및 분석
-    3. 관련 AWS 서비스 (RDS, SQS) 상태 확인
-    4. 근본 원인 진단
-    5. 자동 수정 코드 생성
-    6. PR 생성 및 검증
+    1. Query Pod status with EKS MCP
+    2. Collect and analyze error logs
+    3. Check related AWS services (RDS, SQS) status
+    4. Diagnose root cause
+    5. Generate automatic fix code
+    6. Create PR and verify
 
-  총 소요: 2-5분, 자동화
+  Total time: 2-5 minutes, automated
 ```
 
-### 5.2 Kiro + MCP 디버깅 워크플로우
+### 5.2 Kiro + MCP Debugging Workflow
 
 ```mermaid
 graph TD
-    subgraph Trigger2["🔔 이슈 감지"]
+    subgraph Trigger2["🔔 Issue Detection"]
         ALERT["CloudWatch<br/>Alarm"]
         GURU["DevOps Guru<br/>Insight"]
     end
 
-    subgraph Kiro2["🤖 Kiro (프로그래머틱)"]
-        SPEC["Spec 기반<br/>진단 계획"]
-        MCP_Q["MCP 통합<br/>데이터 수집"]
-        ANALYZE2["AI 분석<br/>근본 원인"]
-        FIX["수정 코드<br/>자동 생성"]
-        PR["PR 생성<br/>+ 검증"]
+    subgraph Kiro2["🤖 Kiro (Programmatic)"]
+        SPEC["Spec-based<br/>Diagnosis Plan"]
+        MCP_Q["MCP Integration<br/>Data Collection"]
+        ANALYZE2["AI Analysis<br/>Root Cause"]
+        FIX["Fix Code<br/>Auto-generation"]
+        PR["PR Creation<br/>+ Verification"]
     end
 
-    subgraph Deploy2["🚀 배포"]
-        REVIEW["AI 리뷰<br/>+ 승인"]
-        ARGO2["Argo CD<br/>자동 배포"]
-        VERIFY["배포 후<br/>검증"]
+    subgraph Deploy2["🚀 Deployment"]
+        REVIEW["AI Review<br/>+ Approval"]
+        ARGO2["Argo CD<br/>Auto-deploy"]
+        VERIFY["Post-deployment<br/>Verification"]
     end
 
     ALERT --> SPEC
     GURU --> SPEC
     SPEC --> MCP_Q --> ANALYZE2 --> FIX --> PR
     PR --> REVIEW --> ARGO2 --> VERIFY
-    VERIFY -.->|문제 지속| SPEC
+    VERIFY -.->|Issue persists| SPEC
 
     style Kiro2 fill:#e3f2fd,stroke:#2196f3
 ```
 
-### 5.3 구체적 시나리오: OOMKilled 자동 대응
+### 5.3 Specific Scenario: OOMKilled Automatic Response
 
 ```
-[Kiro 프로그래머틱 디버깅: OOMKilled]
+[Kiro Programmatic Debugging: OOMKilled]
 
-1. 감지: payment-service Pod OOMKilled 이벤트
+1. Detection: payment-service Pod OOMKilled event
 
-2. Kiro Spec 실행:
+2. Kiro Spec execution:
    → EKS MCP: get_events(namespace="payment", reason="OOMKilled")
    → EKS MCP: get_pod_logs(pod="payment-xxx", previous=true)
    → CloudWatch MCP: query_metrics("pod_memory_utilization", last="1h")
 
-3. AI 분석:
-   "payment-service의 메모리 사용량이 시작 후 2시간마다
-    256Mi씩 증가하는 메모리 누수 패턴 감지.
-    로그에서 Redis 연결이 제대로 종료되지 않는 것 확인."
+3. AI Analysis:
+   "Detected memory leak pattern where payment-service memory usage
+    increases by 256Mi every 2 hours after startup.
+    Confirmed Redis connections not properly closed in logs."
 
-4. 자동 수정:
-   - memory limits 256Mi → 512Mi (임시 조치)
-   - Redis 연결 풀 정리 코드 패치 생성
-   - 메모리 프로파일링 설정 추가
+4. Automatic Fix:
+   - memory limits 256Mi → 512Mi (temporary measure)
+   - Generate Redis connection pool cleanup code patch
+   - Add memory profiling configuration
 
-5. PR 생성:
+5. PR Creation:
    Title: "fix: payment-service Redis connection leak"
-   - deployment.yaml: memory limits 조정
-   - redis_client.go: defer conn.Close() 추가
-   - monitoring: 메모리 사용량 대시보드 추가
+   - deployment.yaml: adjust memory limits
+   - redis_client.go: add defer conn.Close()
+   - monitoring: add memory usage dashboard
 ```
 
-:::tip 프로그래머틱 디버깅의 핵심
-Kiro + EKS MCP를 통해 이슈를 **프로그래머틱하게 분석·해결**합니다. 디렉팅 방식의 수동 대응 대비 **비용 효율적이고 빠른 자동화**가 가능하며, 동일한 이슈가 반복될 때 학습된 Spec을 재사용할 수 있습니다.
+:::tip Core of Programmatic Debugging
+**Programmatically analyze and resolve issues** through Kiro + EKS MCP. Compared to directive-style manual response, this enables **cost-efficient and faster automation**, and learned Specs can be reused when the same issue repeats.
 :::
 
 ---
 
 ## 6. Chaos Engineering + AI
 
-### 6.1 AWS FIS EKS 액션 타입
+### 6.1 AWS FIS EKS Action Types
 
-AWS Fault Injection Service(FIS)는 EKS 전용 장애 주입 액션을 제공합니다:
+AWS Fault Injection Service (FIS) provides EKS-specific fault injection actions:
 
 <ChaosExperiments />
 
-### 6.2 AI 기반 장애 패턴 학습
+### 6.2 AI-Based Failure Pattern Learning
 
-Chaos Engineering 실험 결과를 AI가 학습하여 대응 능력을 향상시킵니다.
+AI learns Chaos Engineering experiment results to improve response capabilities.
 
 ```python
-# FIS 실험 후 AI 학습 데이터 수집
+# AI learning data collection after FIS experiments
 from strands import Agent
 
 chaos_analyzer = Agent(
     name="chaos-pattern-analyzer",
     model="bedrock/anthropic.claude-sonnet",
     sop="""
-    ## Chaos Engineering 결과 분석
+    ## Chaos Engineering Result Analysis
 
-    1. FIS 실험 결과 수집
-       - 주입된 장애 유형
-       - 시스템 반응 시간
-       - 복구 시간
-       - 영향 범위
+    1. Collect FIS experiment results
+       - Injected failure type
+       - System reaction time
+       - Recovery time
+       - Impact scope
 
-    2. 패턴 분석
-       - 장애 전파 경로 맵핑
-       - 취약 지점 식별
-       - 복구 병목 지점 파악
+    2. Pattern analysis
+       - Map failure propagation paths
+       - Identify vulnerable points
+       - Identify recovery bottlenecks
 
-    3. 대응 규칙 업데이트
-       - 기존 SOP에 학습 내용 추가
-       - 새로운 패턴에 대한 대응 규칙 생성
-       - 에스컬레이션 임계값 조정
+    3. Update response rules
+       - Add learning content to existing SOP
+       - Create response rules for new patterns
+       - Adjust escalation thresholds
 
-    4. 보고서 생성
-       - 실험 요약
-       - 발견된 취약점
-       - 권장 개선 사항
+    4. Generate report
+       - Experiment summary
+       - Discovered vulnerabilities
+       - Recommended improvements
     """
 )
 ```
 
-### 6.3 FIS 실험 예시: Pod 삭제 with SLO 보호
+### 6.3 FIS Experiment Example: Pod Deletion with SLO Protection
 
 ```json
 {
-  "description": "EKS Pod 장애 주입 with SLO 보호",
+  "description": "EKS Pod fault injection with SLO protection",
   "targets": {
     "eks-payment-pods": {
       "resourceType": "aws:eks:pod",
@@ -542,64 +542,64 @@ chaos_analyzer = Agent(
 }
 ```
 
-**안전 장치**:
-- **PodDisruptionBudget** 준수: 최소 가용성 보장
-- **stopConditions**: SLO 위반 시 자동 중단
-- **점진적 확장**: 1개 → 10% → 25% 단계별 확장
+**Safety Measures**:
+- **PodDisruptionBudget** compliance: Guarantee minimum availability
+- **stopConditions**: Automatic stop on SLO violations
+- **Progressive expansion**: Gradual expansion from 1 → 10% → 25%
 
-:::tip Chaos Engineering + AI 피드백 루프
-FIS로 장애를 주입하고, AI가 시스템 반응 패턴을 학습하면, AI Agent의 자동 대응 능력이 지속적으로 향상됩니다. "장애 주입 → 관찰 → 학습 → 대응 개선"의 피드백 루프가 자율 운영의 핵심입니다.
+:::tip Chaos Engineering + AI Feedback Loop
+When failures are injected with FIS and AI learns system reaction patterns, AI Agent's automatic response capabilities continuously improve. The feedback loop of "Failure injection → Observation → Learning → Response improvement" is the core of autonomous operations.
 :::
 
 ---
 
-## 7. 피드백 루프 — 운영에서 온톨로지로
+## 7. Feedback Loop — Operations to Ontology
 
-### 7.1 Outer Loop: 운영 → 온톨로지
+### 7.1 Outer Loop: Operations → Ontology
 
-자율 대응 과정에서 학습한 패턴을 **온톨로지**로 피드백하여 지속적으로 개선합니다.
+Patterns learned during autonomous response are fed back to **ontology** for continuous improvement.
 
 ```
-[Inner Loop: 실시간 인시던트 대응]
-  감지 → 분석 → 복구 (초~분 단위)
+[Inner Loop: Real-time Incident Response]
+  Detection → Analysis → Recovery (seconds to minutes)
 
-[Outer Loop: 온톨로지 피드백]
-  운영 패턴 → 온톨로지 업데이트 → 하네스 개선 (일~주 단위)
+[Outer Loop: Ontology Feedback]
+  Operational patterns → Ontology update → Harness improvement (days to weeks)
 ```
 
-**피드백 항목**:
+**Feedback Items**:
 
-| 항목 | 수집 데이터 | 온톨로지 반영 |
+| Item | Collected Data | Ontology Reflection |
 |------|-----------|-------------|
-| **장애 패턴** | 근본 원인, 증상, 복구 방법 | 새로운 대응 규칙 추가 |
-| **복구 시간** | MTTR, 자동/수동 대응 비율 | 자동화 우선순위 조정 |
-| **취약 지점** | 반복 장애 서비스/컴포넌트 | 아키텍처 개선 권고 |
-| **대응 정확도** | AI 판단 정확도, 에스컬레이션율 | 모델 재학습, 임계값 조정 |
+| **Failure Patterns** | Root cause, symptoms, recovery method | Add new response rules |
+| **Recovery Time** | MTTR, auto/manual response ratio | Adjust automation priorities |
+| **Vulnerable Points** | Repeatedly failing services/components | Architecture improvement recommendations |
+| **Response Accuracy** | AI judgment accuracy, escalation rate | Model retraining, threshold adjustment |
 
-### 7.2 AgenticOps → AIDLC 순환
+### 7.2 AgenticOps → AIDLC Cycle
 
 ```mermaid
 graph LR
-    A[AgenticOps<br/>자율 대응] --> B[패턴 수집]
-    B --> C[온톨로지<br/>업데이트]
-    C --> D[하네스<br/>개선]
-    D --> E[배포]
+    A[AgenticOps<br/>Autonomous Response] --> B[Pattern Collection]
+    B --> C[Ontology<br/>Update]
+    C --> D[Harness<br/>Improvement]
+    D --> E[Deployment]
     E --> A
 
     style C fill:#fff4e6,stroke:#f57c00
     style D fill:#e8f5e9,stroke:#388e3c
 ```
 
-**실전 예시**:
+**Practical Example**:
 
 ```yaml
-# 온톨로지 피드백 자동화
+# Ontology feedback automation
 apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: ontology-feedback
 spec:
-  schedule: "0 2 * * 0"  # 매주 일요일 02:00
+  schedule: "0 2 * * 0"  # Every Sunday 02:00
   jobTemplate:
     spec:
       template:
@@ -613,55 +613,55 @@ spec:
                 - name: ONTOLOGY_REPO
                   value: "git://ontology-repo.git"
                 - name: FEEDBACK_THRESHOLD
-                  value: "5"  # 5회 이상 반복 시 온톨로지 추가
+                  value: "5"  # Add to ontology after 5+ occurrences
 ```
 
-**자세한 내용**: [온톨로지 엔지니어링](../methodology/ontology-engineering.md), [하네스 엔지니어링](../methodology/harness-engineering.md)
+**Details**: [Ontology Engineering](../methodology/ontology-engineering.md), [Harness Engineering](../methodology/harness-engineering.md)
 
 ---
 
-## 8. AIOps 성숙도 모델
+## 8. AIOps Maturity Model
 
 <AiopsMaturityModel />
 
-### 성숙도 레벨과 자율 대응
+### Maturity Levels and Autonomous Response
 
-| 레벨 | 자율 대응 수준 | 구현 방법 |
+| Level | Autonomous Response Level | Implementation Method |
 |------|-------------|----------|
-| **Level 0** | 수동 대응 | 사람이 직접 kubectl 실행 |
-| **Level 1** | 알림 기반 | CloudWatch Alarm → 사람 호출 |
-| **Level 2** | 반응형 자동화 | EventBridge → Lambda → 고정 스크립트 |
-| **Level 3** | 예측형 자동화 | ML 예측 + 선제 조치 |
-| **Level 4** | 자율 운영 | AI Agent 컨텍스트 기반 자율 대응 |
+| **Level 0** | Manual response | Humans directly execute kubectl |
+| **Level 1** | Alert-based | CloudWatch Alarm → Call human |
+| **Level 2** | Reactive automation | EventBridge → Lambda → Fixed scripts |
+| **Level 3** | Predictive automation | ML prediction + preemptive actions |
+| **Level 4** | Autonomous operations | AI Agent context-based autonomous response |
 
-:::warning 점진적 도입 권장
-Level 0에서 Level 4로 한 번에 도약하려 하지 마세요. 각 레벨에서 충분한 운영 경험과 데이터를 축적한 후 다음 레벨로 전환하는 것이 성공 확률이 높습니다. 특히 Level 3 → Level 4 전환은 **AI 자율 복구의 안전성 검증**이 핵심입니다.
+:::warning Gradual Adoption Recommended
+Don't try to leap from Level 0 to Level 4 at once. Transitioning to the next level after accumulating sufficient operational experience and data at each level has higher success probability. Especially for Level 3 → Level 4 transition, **validating AI autonomous recovery safety** is key.
 :::
 
 ---
 
-## 9. 마무리
+## 9. Conclusion
 
-### 핵심 요약
+### Core Summary
 
-1. **운영 자동화 패턴**: Prompt-Driven → Spec-Driven → Agent-Driven 점진적 전환
-2. **AI Agent 프레임워크**: Kagent (K8s Native), Strands (Python OSS), Q Developer (AWS 관리형)
-3. **Tribal Knowledge**: 과거 인시던트 학습으로 대응 자동화
-4. **Kiro 프로그래머틱 디버깅**: MCP 기반 자동 진단·수정·PR 생성
-5. **Chaos Engineering + AI**: FIS 실험 → AI 학습 → 대응 능력 향상
-6. **Outer Loop 피드백**: 운영 패턴 → 온톨로지 업데이트 → 하네스 개선
+1. **Operations Automation Patterns**: Progressive transition from Prompt-Driven → Spec-Driven → Agent-Driven
+2. **AI Agent Frameworks**: Kagent (K8s Native), Strands (Python OSS), Q Developer (AWS Managed)
+3. **Tribal Knowledge**: Response automation through past incident learning
+4. **Kiro Programmatic Debugging**: MCP-based automatic diagnosis, fix, PR generation
+5. **Chaos Engineering + AI**: FIS experiments → AI learning → Response capability improvement
+6. **Outer Loop Feedback**: Operational patterns → Ontology update → Harness improvement
 
-### 다음 단계
+### Next Steps
 
-| 단계 | 액션 | 참고 문서 |
+| Step | Action | Reference Documentation |
 |------|------|----------|
-| 1 | 관찰성 스택 구축 | [관찰성 스택](./observability-stack.md) |
-| 2 | ML 예측 스케일링 도입 | [예측 운영](./predictive-operations.md) |
-| 3 | Kagent/Strands Agent 배포 | 본 문서 섹션 3 |
-| 4 | Chaos Engineering 실험 | 본 문서 섹션 6 |
-| 5 | 온톨로지 피드백 루프 구축 | [온톨로지 엔지니어링](../methodology/ontology-engineering.md) |
+| 1 | Build observability stack | [Observability Stack](./observability-stack.md) |
+| 2 | Adopt ML predictive scaling | [Predictive Operations](./predictive-operations.md) |
+| 3 | Deploy Kagent/Strands Agent | This document Section 3 |
+| 4 | Chaos Engineering experiments | This document Section 6 |
+| 5 | Build ontology feedback loop | [Ontology Engineering](../methodology/ontology-engineering.md) |
 
-### 참고 자료
+### References
 
 - [Kagent - Kubernetes AI Agent](https://github.com/kagent-dev/kagent)
 - [Strands Agents SDK](https://github.com/strands-agents/sdk-python)

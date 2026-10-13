@@ -1,98 +1,98 @@
 ---
-title: 오픈 웨이트 모델
-description: 데이터 레지던시와 비용 최적화를 위한 오픈 웨이트 모델 활용 전략 — 온프레미스 배포, 하이브리드 구성, TCO 비교
+title: Open-Weight Models
+description: Open-weight model utilization strategies for data residency and cost optimization — on-premises deployment, hybrid configuration, TCO comparison
 created: "2026-04-07"
 last_update:
-  date: 2026-10-13
-  author: YoungJoon Jeong
-reading_time: 8
+  date: 2026-09-19
+  author: devfloor9
+reading_time: 16
 tags:
   - aidlc
   - toolchain
   - tooling
   - agentic-ai
   - scope:toolchain
-sidebar_label: 오픈 웨이트 모델
+sidebar_label: Open-Weight Models
 ---
 
-오픈 웨이트 모델을 직접 호스팅하면 추론을 실행할 위치와 모델을 조정하는 방식을 선택할 수 있습니다. 엔터프라이즈 AIDLC에서 클라우드 API(Claude, GPT-4)와 비교할 때는 **데이터가 저장·처리되는 위치**, **총소유비용(TCO)**, **업무에 필요한 모델 동작**을 평가하세요. 직접 호스팅은 인프라 운영 주체와 비용이 발생하는 방식을 바꾸며, 요구 충족 여부는 실제 배포·운영 계획에 따라 결정됩니다.
+Self-hosted open-weight models let a team choose where to run inference and how to customize the model. When comparing them with cloud APIs (Claude, GPT-4) for enterprise AIDLC, evaluate three requirements: **data residency**, **total cost of ownership (TCO)**, and **domain-specific behavior**. Self-hosting changes who operates the infrastructure and how costs accrue; the deployment and operating plan determine whether it meets those requirements.
 
-## 왜 오픈 웨이트 모델인가
+## Why Open-Weight Models
 
-### 세 가지 핵심 동인
+### Three Core Drivers
 
-#### 1. 데이터 레지던시 요구사항
+#### 1. Data Residency Requirements
 
-금융, 의료, 공공 부문에서는 민감 데이터의 외부 전송이 규제로 제한됩니다.
+In finance, healthcare, and public sectors, external transmission of sensitive data is restricted by regulations.
 
-- **컴플라이언스 의무**: GDPR, HIPAA, 금융권 개인정보보호법은 데이터 처리 위치를 엄격히 제한
-- **내부 코드베이스 보호**: 소스 코드를 외부 API로 전송하지 않고 온프레미스에서 처리
-- **주권 AI(Sovereign AI)**: 국가/기업이 AI 추론 인프라를 직접 통제
+- **Compliance Obligations**: GDPR, HIPAA, and financial privacy laws strictly limit data processing locations
+- **Internal Codebase Protection**: Process source code on-premises without sending to external APIs
+- **Sovereign AI**: Nations/enterprises directly control AI inference infrastructure
 
 ```mermaid
 graph TD
-    A[민감 데이터<br/>코드, 고객정보, 의료기록] --> B{규제 검토}
-    B -->|외부 전송 금지| C[온프레미스<br/>오픈 웨이트 모델]
-    B -->|외부 전송 허용| D[클라우드 API<br/>Claude, GPT-4]
-    C --> E[데이터 레지던시 준수]
-    D --> F[편의성 우선]
+    A[Sensitive Data<br/>Code, Customer Info, Medical Records] --> B{Regulatory Review}
+    B -->|External Transmission Prohibited| C[On-Premises<br/>Open-Weight Models]
+    B -->|External Transmission Allowed| D[Cloud API<br/>Claude, GPT-4]
+    C --> E[Data Residency Compliance]
+    D --> F[Convenience First]
 ```
 
-#### 2. 비용 최적화
+#### 2. Cost Optimization
 
-월 수백만 토큰 이상 처리 시, 자체 호스팅 오픈 모델이 클라우드 API보다 저렴할 수 있습니다.
+When processing millions of tokens per month, self-hosted open models can be cheaper than cloud APIs.
 
-- **종량제 탈피**: API 호출당 과금 없이 고정 인프라 비용으로 전환
-- **GPU 활용도 극대화**: 24시간 운영 환경에서 유휴 시간 최소화
-- **손익 분기점**: 월 1억 토큰 이상 처리 시 자체 호스팅이 유리(GPU 타입에 따라 변동)
+- **Exit Pay-Per-Use**: Shift from per-API-call charges to fixed infrastructure costs
+- **Maximize GPU Utilization**: Minimize idle time in 24-hour operations
+- **Break-Even Point**: Self-hosting becomes advantageous when processing over 100M tokens/month (varies by GPU type)
 
-#### 3. 도메인 커스터마이징
+#### 3. Domain Customization
 
-오픈 웨이트 모델은 파인튜닝, 프롬프트 엔지니어링, 온톨로지 주입을 통해 특정 도메인에 최적화할 수 있습니다.
+Open-weight models can be optimized for specific domains through fine-tuning, prompt engineering, and ontology injection.
 
-- **전문 용어 정확도 향상**: 의료, 법률, 금융 용어 처리 강화
-- **출력 형식 제어**: JSON 스키마, 코드 스타일 가이드 준수
-- **온톨로지 통합**: [온톨로지 엔지니어링](../methodology/ontology-engineering.md)과 결합하여 도메인 지식 주입
+- **Improve Technical Terminology Accuracy**: Enhance medical, legal, financial term processing
+- **Control Output Format**: Enforce JSON schema and code style guide compliance
+- **Ontology Integration**: Inject domain knowledge combined with [Ontology Engineering](../methodology/ontology-engineering.md)
 
-## 모델 랜드스케이프 (2026년 4월 기준)
+## Model Landscape (April 2026)
 
-| 모델 | 제공사 | 파라미터 | 주요 특징 | 라이선스 | 권장 배포 |
-|------|--------|---------|----------|---------|----------|
-| **GLM-5** | THUDM | 405B | 다국어(한/중/영) 강점, 수학/추론 성능 우수 | Apache 2.0 | p5en.48xlarge (H200×8) |
-| **Qwen3-Coder** | Alibaba | 4B-32B | 코딩 특화, 빠른 추론 속도 | Apache 2.0 | g6.xlarge (L4×1) |
-| **Qwen3-235B** | Alibaba | 235B | MoE 아키텍처, 멀티모달 | Apache 2.0 | p5.48xlarge (H100×8) |
-| **DeepSeek-R1** | DeepSeek | 671B | CoT 추론 특화, RL 기반 학습 | MIT | p5en.48xlarge (H200×8) |
-| **Llama 4** | Meta | 70B-405B | 넓은 생태계, 안정적 성능 | Llama 4 License | p4d.24xlarge (A100×8) |
-| **Mistral Large 2** | Mistral | 123B | 유럽 데이터 주권 고려 설계 | Mistral License | p4d.24xlarge (A100×8) |
+| Model | Provider | Parameters | Key Features | License | Recommended Deployment |
+|-------|----------|-----------|--------------|---------|----------------------|
+| **GLM-5** | THUDM | 405B | Multilingual (KO/ZH/EN) strength, excellent math/reasoning | Apache 2.0 | p5en.48xlarge (H200×8) |
+| **Qwen3-Coder** | Alibaba | 4B-32B | Coding specialized, fast inference speed | Apache 2.0 | g6.xlarge (L4×1) |
+| **Qwen3-235B** | Alibaba | 235B | MoE architecture, multimodal | Apache 2.0 | p5.48xlarge (H100×8) |
+| **DeepSeek-R1** | DeepSeek | 671B | CoT reasoning specialized, RL-based training | MIT | p5en.48xlarge (H200×8) |
+| **Llama 4** | Meta | 70B-405B | Broad ecosystem, stable performance | Llama 4 License | p4d.24xlarge (A100×8) |
+| **Mistral Large 2** | Mistral | 123B | European data sovereignty considered design | Mistral License | p4d.24xlarge (A100×8) |
 
-### 선택 기준
+### Selection Criteria
 
 ```mermaid
 graph TD
-    A[요구사항 정의] --> B{주 사용 언어?}
-    B -->|한국어/중국어| C[GLM-5, Qwen3]
-    B -->|영어 중심| D[Llama 4, DeepSeek-R1]
-    C --> E{작업 유형?}
+    A[Define Requirements] --> B{Primary Language?}
+    B -->|Korean/Chinese| C[GLM-5, Qwen3]
+    B -->|English-centric| D[Llama 4, DeepSeek-R1]
+    C --> E{Task Type?}
     D --> E
-    E -->|코드 생성| F[Qwen3-Coder 4B/32B]
-    E -->|복잡한 추론| G[GLM-5 405B, DeepSeek-R1]
-    E -->|범용| H[Llama 4 70B, Mistral Large 2]
-    F --> I{인프라?}
+    E -->|Code Generation| F[Qwen3-Coder 4B/32B]
+    E -->|Complex Reasoning| G[GLM-5 405B, DeepSeek-R1]
+    E -->|General Purpose| H[Llama 4 70B, Mistral Large 2]
+    F --> I{Infrastructure?}
     G --> I
     H --> I
-    I -->|클라우드| J[EKS + vLLM]
-    I -->|온프레미스| K[베어메탈 + vLLM]
-    I -->|하이브리드| L[민감 작업→온프레미스<br/>일반 작업→클라우드]
+    I -->|Cloud| J[EKS + vLLM]
+    I -->|On-Premises| K[Bare Metal + vLLM]
+    I -->|Hybrid| L[Sensitive Tasks→On-Premises<br/>General Tasks→Cloud]
 ```
 
-## 배포 패턴
+## Deployment Patterns
 
-### 패턴 1: EKS + vLLM 서빙 (클라우드)
+### Pattern 1: EKS + vLLM Serving (Cloud)
 
-클라우드 환경에서 오픈 모델을 서빙하여 데이터 레지던시는 유지하되 인프라 관리는 AWS에 위임합니다.
+Serve open models in cloud environments to maintain data residency while delegating infrastructure management to AWS.
 
 ```yaml
-# GLM-5 405B 배포 예시 (EKS Standard Mode)
+# GLM-5 405B deployment example (EKS Standard Mode)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -105,7 +105,7 @@ spec:
         node.kubernetes.io/instance-type: p5en.48xlarge
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.23.0
+        image: vllm/vllm-openai:v0.18.2
         args:
         - --model
         - THUDM/glm-5-405b
@@ -121,25 +121,25 @@ spec:
             nvidia.com/gpu: "8"
 ```
 
-**장점**:
-- Auto Scaling, Spot 인스턴스 활용으로 비용 절감
-- Karpenter를 통한 동적 노드 프로비저닝
-- CloudWatch, Prometheus 통합 모니터링
+**Advantages**:
+- Cost savings with Auto Scaling and Spot instances
+- Dynamic node provisioning via Karpenter
+- CloudWatch and Prometheus integrated monitoring
 
-**단점**:
-- GPU 인스턴스 시간당 비용 발생 (p5en.48xlarge: ~$98/h)
-- 데이터는 VPC 내부에 머물지만 인프라는 클라우드 의존
+**Disadvantages**:
+- Hourly GPU instance costs (p5en.48xlarge: ~$98/h)
+- Data stays within VPC but infrastructure depends on cloud
 
-### 패턴 2: 온프레미스 베어메탈 + vLLM
+### Pattern 2: On-Premises Bare Metal + vLLM
 
-완전한 데이터 주권이 필요하거나 클라우드 송신이 금지된 환경에서 사용합니다.
+Used when complete data sovereignty is required or cloud transmission is prohibited.
 
 ```bash
-# NVIDIA H100×8 서버에 vLLM 배포
+# Deploy vLLM on NVIDIA H100×8 server
 docker run --gpus all \
   -p 8000:8000 \
   -v /data/models:/models \
-  vllm/vllm-openai:v0.23.0 \
+  vllm/vllm-openai:v0.18.2 \
   --model /models/glm-5-405b \
   --served-model-name glm5 \
   --tensor-parallel-size 8 \
@@ -147,37 +147,37 @@ docker run --gpus all \
   --trust-remote-code
 ```
 
-**인프라 요구사항**:
-- GLM-5 405B: H100 8장 or H200 8장 (FP16 ~810GB VRAM)
-- Qwen3-Coder 4B: L4 1장 (FP16 ~8GB VRAM)
-- 네트워크: 내부망 전용 엔드포인트, 외부 인터넷 불필요
+**Infrastructure Requirements**:
+- GLM-5 405B: H100 8 cards or H200 8 cards (FP16 ~810GB VRAM)
+- Qwen3-Coder 4B: L4 1 card (FP16 ~8GB VRAM)
+- Network: Internal network-only endpoints, no external internet required
 
-**장점**:
-- 절대적 데이터 통제
-- 네트워크 지연 시간 최소화 (사내 10G 네트워크)
-- 장기적으로 클라우드 비용 절감
+**Advantages**:
+- Absolute data control
+- Minimize network latency (on-premises 10G network)
+- Long-term cloud cost savings
 
-**단점**:
-- CapEx 부담 (H100 서버 ~$300K)
-- 운영 인력 필요 (GPU 관리, 모델 업데이트)
-- 유휴 시간에도 전력 소비
+**Disadvantages**:
+- CapEx burden (H100 server ~$300K)
+- Operational personnel required (GPU management, model updates)
+- Power consumption even during idle time
 
-### 패턴 3: 하이브리드 구성
+### Pattern 3: Hybrid Configuration
 
-작업 민감도에 따라 온프레미스와 클라우드 API를 혼용합니다.
+Mix on-premises and cloud APIs based on task sensitivity.
 
 ```mermaid
 graph LR
-    A[Kiro Agent] --> B{작업 분류}
-    B -->|민감<br/>코드 리뷰, 버그 수정| C[온프레미스<br/>GLM-5]
-    B -->|일반<br/>문서 생성, 번역| D[Claude API<br/>Bedrock]
-    C --> E[로컬 추론]
-    D --> F[클라우드 추론]
-    E --> G[결과 통합]
+    A[Kiro Agent] --> B{Task Classification}
+    B -->|Sensitive<br/>Code Review, Bug Fix| C[On-Premises<br/>GLM-5]
+    B -->|General<br/>Doc Generation, Translation| D[Claude API<br/>Bedrock]
+    C --> E[Local Inference]
+    D --> F[Cloud Inference]
+    E --> G[Result Integration]
     F --> G
 ```
 
-**구현 예시 (LiteLLM 라우팅)**:
+**Implementation Example (LiteLLM Routing)**:
 
 ```yaml
 # litellm-config.yaml
@@ -195,76 +195,76 @@ model_list:
 router_settings:
   routing_strategy: simple-shuffle
   fallbacks:
-    - sensitive-tasks: []  # 폴백 없음 (외부 전송 금지)
+    - sensitive-tasks: []  # No fallback (external transmission prohibited)
     - general-tasks: [openai/gpt-4o]
 ```
 
-## TCO 비교 프레임워크
+## TCO Comparison Framework
 
-### 비용 항목
+### Cost Items
 
-#### 클라우드 API (Claude, GPT-4)
+#### Cloud API (Claude, GPT-4)
 
-| 항목 | Claude Sonnet 4.6 | 비고 |
-|------|-------------------|------|
-| 입력 토큰 | $3/1M tokens | Bedrock 기준 |
-| 출력 토큰 | $15/1M tokens | 출력이 입력보다 5배 비쌈 |
-| 운영 인력 | $0 | 관리 불필요 |
-| 초기 투자 | $0 | 종량제 |
+| Item | Claude Sonnet 4.5 | Notes |
+|------|-------------------|-------|
+| Input Tokens | $3/1M tokens | Bedrock pricing |
+| Output Tokens | $15/1M tokens | Output is 5x more expensive than input |
+| Operations Staff | $0 | No management required |
+| Initial Investment | $0 | Pay-as-you-go |
 
-**월 비용 계산 예시**:
-- 월 5천만 입력 토큰, 1천만 출력 토큰 처리
-- 입력: 50M × $3/1M = $150
-- 출력: 10M × $15/1M = $150
-- 합계: **$300/월**
+**Monthly Cost Calculation Example**:
+- Process 50M input tokens, 10M output tokens per month
+- Input: 50M × $3/1M = $150
+- Output: 10M × $15/1M = $150
+- Total: **$300/month**
 
-#### 자체 호스팅 오픈 모델 (EKS + vLLM)
+#### Self-Hosted Open Model (EKS + vLLM)
 
-| 항목 | Qwen3-Coder 4B (g6.xlarge) | GLM-5 405B (p5en.48xlarge) |
+| Item | Qwen3-Coder 4B (g6.xlarge) | GLM-5 405B (p5en.48xlarge) |
 |------|---------------------------|----------------------------|
-| GPU 인스턴스 | $1.01/h × 730h = $737/월 | $98/h × 730h = $71,540/월 |
-| 스토리지 (모델) | ~$5/월 (8GB) | ~$400/월 (810GB) |
-| 네트워크 송신 | 내부 트래픽 무료 | 내부 트래픽 무료 |
-| 운영 인력 | 0.2 FTE (~$2,000/월) | 0.5 FTE (~$5,000/월) |
-| 합계 | **~$2,742/월** | **~$76,940/월** |
+| GPU Instance | $1.01/h × 730h = $737/month | $98/h × 730h = $71,540/month |
+| Storage (Model) | ~$5/month (8GB) | ~$400/month (810GB) |
+| Network Egress | Internal traffic free | Internal traffic free |
+| Operations Staff | 0.2 FTE (~$2,000/month) | 0.5 FTE (~$5,000/month) |
+| Total | **~$2,742/month** | **~$76,940/month** |
 
-**온프레미스 베어메탈 (3년 상각)**:
+**On-Premises Bare Metal (3-year amortization)**:
 
-| 항목 | H100×8 서버 | 비고 |
-|------|------------|------|
-| 하드웨어 | $300,000 / 36개월 = $8,333/월 | 초기 CapEx |
-| 전력 | 10.2kW × $0.12/kWh × 730h = $893/월 | 지역별 전기료 변동 |
-| 데이터센터 | ~$1,000/월 | 냉각, 공간 |
-| 운영 인력 | 1 FTE (~$10,000/월) | 24/7 대응 |
-| 합계 | **~$20,226/월** | 3년 후 하드웨어 비용 제외 시 ~$11,893/월 |
+| Item | H100×8 Server | Notes |
+|------|--------------|-------|
+| Hardware | $300,000 / 36 months = $8,333/month | Initial CapEx |
+| Power | 10.2kW × $0.12/kWh × 730h = $893/month | Regional electricity rate variation |
+| Data Center | ~$1,000/month | Cooling, space |
+| Operations Staff | 1 FTE (~$10,000/month) | 24/7 support |
+| Total | **~$20,226/month** | ~$11,893/month after 3 years (hardware cost excluded) |
 
-### 손익 분기점 가이드
+### Break-Even Point Guide
 
 ```mermaid
 graph TD
-    A[월 요청량 분석] --> B{월 토큰 처리량?}
-    B -->|< 1천만 토큰| C[Claude API<br/>$30-300/월]
-    B -->|1천만-1억 토큰| D{작업 유형?}
-    B -->|> 1억 토큰| E[자체 호스팅 유리]
-    D -->|코드 생성, 빠른 응답| F[Qwen3-Coder 4B<br/>EKS g6.xlarge<br/>$2,742/월]
-    D -->|복잡한 추론| G[하이브리드<br/>민감→온프레미스<br/>일반→Claude API]
-    E --> H{인프라 선택?}
-    H -->|클라우드 유연성| I[EKS p5en.48xlarge<br/>$76,940/월]
-    H -->|장기 TCO 최적화| J[온프레미스 H100×8<br/>$20,226/월<br/>3년 후 $11,893/월]
+    A[Analyze Monthly Request Volume] --> B{Monthly Token Processing?}
+    B -->|< 10M tokens| C[Claude API<br/>$30-300/month]
+    B -->|10M-100M tokens| D{Task Type?}
+    B -->|> 100M tokens| E[Self-Hosting Advantageous]
+    D -->|Code Generation, Fast Response| F[Qwen3-Coder 4B<br/>EKS g6.xlarge<br/>$2,742/month]
+    D -->|Complex Reasoning| G[Hybrid<br/>Sensitive→On-Premises<br/>General→Claude API]
+    E --> H{Infrastructure Choice?}
+    H -->|Cloud Flexibility| I[EKS p5en.48xlarge<br/>$76,940/month]
+    H -->|Long-term TCO Optimization| J[On-Premises H100×8<br/>$20,226/month<br/>$11,893/month after 3 years]
 ```
 
-**의사결정 기준**:
+**Decision Criteria**:
 
-1. **월 1천만 토큰 미만**: Claude API 또는 GPT-4 사용 (관리 오버헤드 없음)
-2. **월 1천만-1억 토큰**: 작업 유형과 민감도에 따라 하이브리드 구성
-3. **월 1억 토큰 이상**: 자체 호스팅 검토 (EKS 또는 온프레미스)
-4. **CapEx 투자 가능 + 3년 이상 운영 예정**: 온프레미스 베어메탈이 가장 저렴
+1. **Less than 10M tokens/month**: Use Claude API or GPT-4 (no management overhead)
+2. **10M-100M tokens/month**: Hybrid configuration based on task type and sensitivity
+3. **Over 100M tokens/month**: Consider self-hosting (EKS or on-premises)
+4. **CapEx investment possible + 3+ year operation planned**: On-premises bare metal is cheapest
 
-## AIDLC 통합
+## AIDLC Integration
 
-### Kiro + 오픈 웨이트 모델
+### Kiro + Open-Weight Models
 
-[AI 코딩 에이전트 Kiro](./ai-coding-agents.md)는 오픈 웨이트 모델을 백엔드로 사용하여 Spec-Driven 개발을 수행할 수 있습니다.
+[AI Coding Agent Kiro](./ai-coding-agents.md) can use open-weight models as backend to perform Spec-Driven development.
 
 ```typescript
 // kiro-config.ts
@@ -293,11 +293,11 @@ export const kiroConfig = {
 };
 ```
 
-### 스티어링 파일: 모델별 프롬프트 최적화
+### Steering Files: Model-Specific Prompt Optimization
 
-오픈 웨이트 모델은 훈련 데이터와 아키텍처가 다르므로, 동일한 프롬프트에도 다른 반응을 보일 수 있습니다.
+Open-weight models have different training data and architectures, so they may respond differently to the same prompts.
 
-**GLM-5용 스티어링 파일**:
+**GLM-5 Steering File**:
 
 ```yaml
 # .aider.glm5.yml
@@ -307,15 +307,15 @@ use_git: true
 auto_commits: false
 stream: true
 
-# GLM-5는 중국어/한국어 혼용 시 더 나은 성능
+# GLM-5 performs better with Chinese/Korean mixed use
 prompts:
   system: |
-    당신은 전문 소프트웨어 엔지니어입니다.
-    코드 수정 시 반드시 unified diff 형식으로 응답하세요.
-    변경 사항에 대한 설명은 한국어로 작성하되, 기술 용어는 영문 유지.
+    You are a professional software engineer.
+    When modifying code, always respond in unified diff format.
+    Write explanations of changes in Korean, but keep technical terms in English.
 ```
 
-**Qwen3-Coder용 스티어링 파일**:
+**Qwen3-Coder Steering File**:
 
 ```yaml
 # .aider.qwen3.yml
@@ -323,7 +323,7 @@ model: qwen3-coder
 edit_format: whole
 use_git: true
 
-# Qwen3-Coder는 전체 파일 교체 방식이 더 안정적
+# Qwen3-Coder is more stable with complete file replacement approach
 prompts:
   system: |
     You are a coding assistant specialized in Python and TypeScript.
@@ -331,9 +331,9 @@ prompts:
     Use type hints and follow PEP 8 style guide.
 ```
 
-### 온톨로지 주입
+### Ontology Injection
 
-[온톨로지 엔지니어링](../methodology/ontology-engineering.md)에서 구축한 도메인 온톨로지를 오픈 모델의 컨텍스트에 주입하여 정확도를 높입니다.
+Inject domain ontology built in [Ontology Engineering](../methodology/ontology-engineering.md) into open model context to improve accuracy.
 
 ```python
 # ontology_injection.py
@@ -344,7 +344,7 @@ class OntologyInjector:
         self.ontology = self.load_ontology(ontology_path)
 
     def inject_context(self, prompt: str, domain: str) -> str:
-        """도메인 온톨로지를 프롬프트에 추가"""
+        """Add domain ontology to prompt"""
         domain_terms = self.ontology.get(domain, {})
 
         context = "# Domain Knowledge\n"
@@ -354,43 +354,43 @@ class OntologyInjector:
         return f"{context}\n# Task\n{prompt}"
 
     def load_ontology(self, path: str) -> Dict[str, Dict[str, str]]:
-        # JSON/YAML 형식의 온톨로지 파일 로드
+        # Load ontology file in JSON/YAML format
         pass
 
-# 사용 예시
+# Usage example
 injector = OntologyInjector("/data/ontology/finance.yaml")
 prompt = injector.inject_context(
-    "다음 거래 기록을 분석하여 이상 패턴을 찾아주세요.",
+    "Analyze the following transaction records to find anomaly patterns.",
     domain="finance"
 )
 ```
 
-**효과**:
-- 금융 용어(예: 차익거래, 공매도) 해석 정확도 향상
-- 도메인 특화 규칙(예: KYC, AML) 준수 강화
-- Few-shot 예시 대신 온톨로지로 대체하여 토큰 절약
+**Effects**:
+- Improve financial terminology (e.g., arbitrage, short selling) interpretation accuracy
+- Strengthen domain-specific rule (e.g., KYC, AML) compliance
+- Save tokens by replacing few-shot examples with ontology
 
-## 보안 및 컴플라이언스
+## Security and Compliance
 
-### 모델 라이선스 검토
+### Model License Review
 
-오픈 웨이트 모델이라도 라이선스에 따라 상업적 사용이 제한될 수 있습니다.
+Even open-weight models may have commercial use restrictions depending on license.
 
-| 라이선스 | 상업적 사용 | 파생 모델 배포 | 주의사항 |
-|---------|-----------|--------------|---------|
-| **Apache 2.0** | ✅ 허용 | ✅ 허용 | 특허 보호 조항 포함 |
-| **MIT** | ✅ 허용 | ✅ 허용 | 면책 고지 필수 |
-| **Llama 4 License** | ✅ 허용 (MAU < 700M) | ⚠️ 제한적 | 대규모 서비스는 별도 협의 |
-| **Mistral License** | ✅ 허용 | ⚠️ 제한적 | 파인튜닝 모델 배포 시 고지 |
+| License | Commercial Use | Derivative Model Distribution | Notes |
+|---------|---------------|------------------------------|-------|
+| **Apache 2.0** | ✅ Allowed | ✅ Allowed | Includes patent protection clause |
+| **MIT** | ✅ Allowed | ✅ Allowed | Disclaimer required |
+| **Llama 4 License** | ✅ Allowed (MAU < 700M) | ⚠️ Limited | Large-scale services require separate agreement |
+| **Mistral License** | ✅ Allowed | ⚠️ Limited | Notify when distributing fine-tuned models |
 
-**권장 프로세스**:
-1. 법무팀과 라이선스 리뷰 (특히 Llama, Mistral)
-2. 모델 출처 추적 (Hugging Face Model Card 확인)
-3. 파인튜닝 시 데이터셋 라이선스도 함께 검토
+**Recommended Process**:
+1. Review license with legal team (especially Llama, Mistral)
+2. Track model provenance (check Hugging Face Model Card)
+3. Review dataset licenses when fine-tuning
 
-### 출력 감사
+### Output Auditing
 
-오픈 모델은 훈련 데이터에 민감 정보가 포함되었을 가능성이 있으므로 출력 필터링이 필요합니다.
+Open models may have sensitive information in training data, so output filtering is necessary.
 
 ```python
 # output_filter.py
@@ -400,59 +400,59 @@ from typing import List
 class OutputFilter:
     def __init__(self):
         self.patterns = [
-            (r'\b\d{3}-\d{2}-\d{4}\b', '[SSN-REDACTED]'),  # 주민번호
-            (r'\b[\w\.-]+@[\w\.-]+\.\w+\b', '[EMAIL-REDACTED]'),  # 이메일
-            (r'\b\d{4}-\d{4}-\d{4}-\d{4}\b', '[CARD-REDACTED]')  # 카드번호
+            (r'\b\d{3}-\d{2}-\d{4}\b', '[SSN-REDACTED]'),  # SSN
+            (r'\b[\w\.-]+@[\w\.-]+\.\w+\b', '[EMAIL-REDACTED]'),  # Email
+            (r'\b\d{4}-\d{4}-\d{4}-\d{4}\b', '[CARD-REDACTED]')  # Card number
         ]
 
     def filter(self, text: str) -> str:
-        """민감 정보 자동 제거"""
+        """Automatically remove sensitive information"""
         for pattern, replacement in self.patterns:
             text = re.sub(pattern, replacement, text)
         return text
 
     def audit_log(self, text: str, redacted_count: int) -> None:
-        """필터링 이력 기록"""
-        # CloudWatch Logs 또는 S3로 전송
+        """Record filtering history"""
+        # Send to CloudWatch Logs or S3
         pass
 ```
 
-### AI 기본법 대응
+### AI Act Compliance
 
-유럽 AI Act, 한국 AI 기본법 등 규제에서는 고위험 AI 시스템(의료, 금융, 채용)의 경우 다음을 요구합니다:
+European AI Act, Korean AI Basic Act, and other regulations require the following for high-risk AI systems (healthcare, finance, recruitment):
 
-1. **설명 가능성**: 모델 결정 근거 제공 (attention weights, RAG 출처)
-2. **인간 감독**: 최종 의사결정은 사람이 수행
-3. **편향 모니터링**: 인종, 성별, 연령별 출력 공정성 측정
-4. **사고 대응 절차**: 모델 오작동 시 롤백 프로세스
+1. **Explainability**: Provide model decision basis (attention weights, RAG sources)
+2. **Human Oversight**: Humans perform final decision-making
+3. **Bias Monitoring**: Measure output fairness by race, gender, age
+4. **Incident Response Procedures**: Model malfunction rollback process
 
-**AIDLC 적용**:
-- [거버넌스 프레임워크](../enterprise/governance-framework.md)에서 모델 거버넌스 정책 수립
-- Langfuse를 통해 모든 추론 요청/응답 로깅
-- 매 분기 편향 감사 수행 (예: [RAGAS](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md) 평가)
+**AIDLC Application**:
+- Establish model governance policies in [Governance Framework](../enterprise/governance-framework.md)
+- Log all inference requests/responses via Langfuse
+- Perform bias audits quarterly (e.g., [RAGAS](../../agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md) evaluation)
 
-## 참고 자료
+## References
 
-### 내부 문서
-- [거버넌스 프레임워크](../enterprise/governance-framework.md) — 데이터 주권 정책
-- [비용 효과](../enterprise/cost-estimation.md) — TCO 계산 상세
-- [AI 코딩 에이전트](./ai-coding-agents.md) — Kiro 통합 가이드
-- [온톨로지 엔지니어링](../methodology/ontology-engineering.md) — 온톨로지 주입 패턴
+### Internal Documentation
+- [Governance Framework](../enterprise/governance-framework.md) — Data sovereignty policies
+- [Cost Effectiveness](../enterprise/cost-estimation.md) — Detailed TCO calculations
+- [AI Coding Agents](./ai-coding-agents.md) — Kiro integration guide
+- [Ontology Engineering](../methodology/ontology-engineering.md) — Ontology injection patterns
 
-### 모델 공식 문서
-- [GLM-5 GitHub](https://github.com/zai-org/GLM-5) — Apache 2.0 라이선스
-- [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B-A22B) — MoE 아키텍처 상세
-- [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL 훈련 방법론
-- [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — 서빙 최적화
+### Official Model Documentation
+- [GLM-5 GitHub](https://github.com/zai-org/GLM-5) — Apache 2.0 license
+- [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B-A22B) — MoE architecture details
+- [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL training methodology
+- [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — Serving optimization
 
-### 비용 분석 도구
-- [AWS Pricing Calculator](https://calculator.aws/) — EKS GPU 인스턴스 비용
-- [Hugging Face LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) — 모델 성능 비교
+### Cost Analysis Tools
+- [AWS Pricing Calculator](https://calculator.aws/) — EKS GPU instance costs
+- [Hugging Face LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard) — Model performance comparison
 
-## 다음 단계
+## Next Steps
 
-1. **Pilot 프로젝트**: 소규모 프로젝트에 Qwen3-Coder 4B 배포 (g6.xlarge 1대)
-2. **비용 추적**: 2개월간 클라우드 API vs 자체 호스팅 TCO 비교
-3. **민감도 분류**: 코드베이스를 민감/일반으로 분류하여 하이브리드 구성 설계
-4. **거버넌스 정책**: [거버넌스 프레임워크](../enterprise/governance-framework.md)에 오픈 모델 사용 규칙 명시
-5. **스케일 업**: Pilot 성공 시 GLM-5 405B 또는 DeepSeek-R1로 확장
+1. **Pilot Project**: Deploy Qwen3-Coder 4B to small project (1 g6.xlarge)
+2. **Cost Tracking**: Compare cloud API vs self-hosting TCO over 2 months
+3. **Sensitivity Classification**: Classify codebase as sensitive/general to design hybrid configuration
+4. **Governance Policy**: Specify open model usage rules in [Governance Framework](../enterprise/governance-framework.md)
+5. **Scale Up**: Expand to GLM-5 405B or DeepSeek-R1 after pilot success

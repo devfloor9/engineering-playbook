@@ -1,11 +1,11 @@
 ---
-title: 5 부서 페르소나
-description: 브랜드 마케터 / 인사이트 / D&A·MarTech / CRM·LG 멤버스 / MD·채널 영업 5 페르소나
+title: 5-Department Personas
+description: 5 personas — Brand Marketer / Insights / D&A · MarTech / CRM · LG Members / MD · Channel Sales
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 12
 tags:
   - industry-solution
   - retail
@@ -16,167 +16,167 @@ tags:
 sidebar_label: 01. Personas
 ---
 
-> 이 데모는 같은 데이터를 5개 부서의 업무 목표와 성과 지표(KPI)에 맞춰 보여줍니다. **부서 선택 기능(페르소나 스위처)**에서 담당 부서를 바꾸면 사이드바 순서, 강조되는 카드, 챗봇의 표현 방식이 달라집니다.
+> Five departments use the same data for different work goals and performance measures (KPIs). Selecting a department in the **persona switcher** changes the sidebar order, card emphasis, and chatbot tone to match that department's tasks.
 
 ---
 
-## 한눈에 보기
+## At a Glance
 
-| 코드 | 부서 | 미션 | 핵심 KPI | 주 활용 시나리오 |
+| Code | Department | Mission | Core KPIs | Primary Scenarios |
 |---|---|---|---|---|
-| **P1** | 브랜드 마케터 | 자사 브랜드 캠페인 ROAS·신제품 런칭 | ROAS / CTR / 신상 도입 성공률 | S1 · S2 · S5 |
-| **P2** | 소비자·트렌드 인사이트 | 페르소나·트렌드·경쟁사 분석 | LTV / 페르소나 점유 / SOV | S2 · S4 · S6 |
-| **P3** | D&A·MarTech | 데이터·모델 품질·MarTech 운영 | 모델 정확도 / Drift / 파이프라인 SLA | S2 · S3 · S6 |
-| **P4** | CRM·LG 멤버스 | 회원 등급·여정·로열티 | 등급 전환 / 활성회원 / NPS | S2 · S7 · S8 |
-| **P5** | MD·채널 영업 | SKU·채널 sell-through·재고 | 채널 GMV / 재고 회전 / 신상 도입 | S1 · S2 · S5 |
+| **P1** | Brand Marketer | Own-brand campaign ROAS · New product launch | ROAS / CTR / New product adoption rate | S1 · S2 · S5 |
+| **P2** | Consumer & Trend Insights | Persona · Trend · Competitor analysis | LTV / Persona share / SOV | S2 · S4 · S6 |
+| **P3** | D&A · MarTech | Data · model quality · MarTech operations | Model accuracy / Drift / Pipeline SLA | S2 · S3 · S6 |
+| **P4** | CRM · LG Members | Member tier · Journey · Loyalty | Tier conversion / Active members / NPS | S2 · S7 · S8 |
+| **P5** | MD · Channel Sales | SKU · Channel sell-through · Inventory | Channel GMV / Inventory turn / New product adoption | S1 · S2 · S5 |
 
 ---
 
-## P1. 브랜드 마케터
+## P1. Brand Marketer
 
 ### Profile
-- **포지션**: 브랜드 마케팅 (BU별 — Beauty 후·숨37·오휘 / HDB 엘라스틴·페리오 / Refreshment 코카콜라·환타)
-- **언어 톤**: 캠페인 / ROAS / 전환 / 응답률 / 리타게팅 / 신상 런칭
-- **의사결정 단위**: 주간 캠페인 운영, 월간 예산 재배분, 분기 신상 런칭
-- **데이터 시각**: 채널 × 캠페인 × 세그먼트 × 브랜드
+- **Position**: Brand Marketing (by BU — Beauty: The History of Whoo · Su:m37 · OHUI / HDB: Elastine · Perioe / Refreshment: Coca-Cola · Fanta)
+- **Language tone**: Campaign / ROAS / Conversion / Response rate / Retargeting / New product launch
+- **Decision unit**: Weekly campaign operations, monthly budget reallocation, quarterly new product launches
+- **Data perspective**: Channel × Campaign × Segment × Brand
 
-### KPI
-| 지표 | 정의 |
+### KPIs
+| Metric | Definition |
 |---|---|
-| ROAS | 캠페인 매출 ÷ 캠페인 비용 |
-| CTR / 응답률 | 노출·발송 대비 액션 |
-| 신제품 도입 성공률 | 출시 30일 매출 목표 달성 |
-| 재방문율 | 30/60/90일 |
+| ROAS | Campaign revenue ÷ Campaign cost |
+| CTR / Response rate | Actions vs. impressions/sends |
+| New product adoption rate | 30-day post-launch sales target achievement |
+| Revisit rate | 30/60/90 days |
 
-### 챗봇 어조 예시
-- "이번 달 후 신상 런칭 캠페인 응답률을 채널별로 분해해줘"
-- "다음 주 코카콜라 제로 캠페인의 SNS 반응 예측"
+### Chatbot Tone Examples
+- "Break down this month's The History of Whoo new product launch campaign response rate by channel"
+- "Predict SNS reaction for next week's Coca-Cola Zero campaign"
 
-### 주 시나리오
-- **S1** 자연어 검색 — "30대 여성 미구매 90일 + 오가닉 선호" → 즉시 타겟
-- **S2** 챗봇 — `campaign_simulator`, `attribution_calc` 호출
-- **S5** 캠페인 ROAS — Bayesian 채널 믹스
+### Primary Scenarios
+- **S1** Natural language search — "Women in their 30s, unpurchased for 90 days + organic preference" → instant targeting
+- **S2** Chatbot — invokes `campaign_simulator`, `attribution_calc`
+- **S5** Campaign ROAS — Bayesian channel mix
 
 ---
 
-## P2. 소비자·트렌드 인사이트
+## P2. Consumer & Trend Insights
 
 ### Profile
-- **포지션**: Consumer & Market Insights / Trend Lab
-- **언어 톤**: 코호트 / LTV / 페르소나 / SOV / 트렌드 / Churn
-- **의사결정 단위**: 분기 세그먼트 정의, 월간 트렌드 보고
-- **데이터 시각**: 코호트 × 행동 × 외부 시그널 (소셜·트렌드·경쟁사)
+- **Position**: Consumer & Market Insights / Trend Lab
+- **Language tone**: Cohort / LTV / Persona / SOV / Trend / Churn
+- **Decision unit**: Quarterly segment definitions, monthly trend reports
+- **Data perspective**: Cohort × Behavior × External signals (social · trends · competitors)
 
-### KPI
-| 지표 | 정의 |
+### KPIs
+| Metric | Definition |
 |---|---|
-| LTV | 12/24개월 누적 구매액 |
-| 이탈률 | 90/180일 미구매 비율 |
-| 페르소나 점유율 | 라이프스타일 페르소나별 비중 |
-| SOV | 카테고리·브랜드의 SNS·검색 점유 |
+| LTV | Cumulative purchase amount over 12/24 months |
+| Churn rate | Ratio of members with no purchase in 90/180 days |
+| Persona share | Distribution across lifestyle personas |
+| SOV | Share of voice in SNS · search for a category/brand |
 
-### 챗봇 어조 예시
-- "최근 3개월 LTV 상위 10% 진입 회원 공통 패턴"
-- "올리브영 리뷰에서 새롭게 떠오른 키워드 + 그 키워드와 연결된 자사 SKU"
+### Chatbot Tone Examples
+- "Common patterns among members entering top 10% LTV in the last 3 months"
+- "Newly emerging keywords in Olive Young reviews + connected first-party SKUs"
 
-### 주 시나리오
-- **S4** 페르소나 매칭 + 클러스터링 — 키즈맘·골드미스·1인가구·시니어·트렌드세터
-- **S6** 외부 시그널 융합 — 4종 융합
+### Primary Scenarios
+- **S4** Persona matching + clustering — Kids mom · Gold miss · Single household · Senior · Trendsetter
+- **S6** External signal fusion — All 4 types combined
 
 ---
 
-## P3. D&A·MarTech
+## P3. D&A · MarTech
 
 ### Profile
-- **포지션**: AI/ML / Data Platform / MarTech 운영
-- **언어 톤**: 정확도 / Drift / Pipeline / RMSE / AUC
-- **의사결정 단위**: 모델 배포 주기, 데이터 품질 SLA
-- **데이터 시각**: 모델 성능 × 데이터 품질 × 파이프라인 헬스
+- **Position**: AI/ML / Data Platform / MarTech operations
+- **Language tone**: Accuracy / Drift / Pipeline / RMSE / AUC
+- **Decision unit**: Model deployment cycle, data quality SLA
+- **Data perspective**: Model performance × Data quality × Pipeline health
 
-### KPI
-| 지표 | 정의 |
+### KPIs
+| Metric | Definition |
 |---|---|
-| 모델 정확도 | 추천/예측/분류 모델별 |
-| 데이터 품질 점수 | 결측·중복·이상치 |
-| 파이프라인 SLA | 일/시간 단위 처리 성공률 |
-| 모델 Drift | 입력 분포 변화 |
+| Model accuracy | Per recommendation/prediction/classification model |
+| Data quality score | Missing · duplicate · outliers |
+| Pipeline SLA | Daily/hourly processing success rate |
+| Model drift | Input distribution change |
 
-### 챗봇 어조 예시
-- "지난 30일 추천 모델 CTR 떨어진 코호트 + drift"
-- "이상 거래 시그너처 통계 검출"
+### Chatbot Tone Examples
+- "Cohorts where recommendation-model CTR dropped in the last 30 days + drift"
+- "Statistical detection of anomalous transaction signatures"
 
-### 주 시나리오
-- **S3** 인사이트 카드 — Code Interpreter + matplotlib
-- **S6** 외부 시그널 융합 — 상관·시차 분석
+### Primary Scenarios
+- **S3** Insight cards — Code Interpreter + matplotlib
+- **S6** External signal fusion — correlation · lag analysis
 
 ---
 
-## P4. CRM · LG 멤버스
+## P4. CRM · LG Members
 
 ### Profile
-- **포지션**: 멤버십 운영 / 로열티 / CS
-- **언어 톤**: 등급 / 포인트 / 혜택 / 리텐션 / 동의 / NPS
-- **의사결정 단위**: 월간 등급 전환 캠페인, 분기 혜택 개편
-- **데이터 시각**: 등급 × 결제 × 채널 × 시간
+- **Position**: Membership operations / Loyalty / CS
+- **Language tone**: Tier / Points / Benefits / Retention / Consent / NPS
+- **Decision unit**: Monthly tier-conversion campaigns, quarterly benefit revamps
+- **Data perspective**: Tier × Payment × Channel × Time
 
-### KPI
-| 지표 | 정의 |
+### KPIs
+| Metric | Definition |
 |---|---|
-| 등급 전환율 | 일반 → 실버 → 골드 → VIP |
-| 활성 회원 | 30/90일 활동 회원 |
-| 포인트 사용률 | 적립 대비 사용 |
-| NPS | 멤버십 만족도 |
+| Tier conversion rate | Regular → Silver → Gold → VIP |
+| Active members | Active members over 30/90 days |
+| Point usage rate | Used vs. accrued |
+| NPS | Membership satisfaction |
 
-### 챗봇 어조 예시
-- "VIP 진입 후 6개월 활성도 떨어진 회원 공통 패턴"
-- "동의 미수신 회원에게 절대 발송 금지 가드"
+### Chatbot Tone Examples
+- "Common patterns of members whose activity dropped 6 months after entering VIP"
+- "Absolute send-block guard for non-consenting members"
 
-### 주 시나리오
-- **S7** 옴니채널 여정 — 자사몰→SNS→올영→마트→재구매
-- **S8** 가드레일 — Bedrock Guardrails + 동의 + 미성년 화장품
+### Primary Scenarios
+- **S7** Omnichannel journey — Owned mall → SNS → Olive Young → Mart → Repurchase
+- **S8** Guardrails — Bedrock Guardrails + consent + minor cosmetics
 
 ---
 
-## P5. MD · 채널 영업
+## P5. MD · Channel Sales
 
 ### Profile
-- **포지션**: 상품기획(MD) / 채널 영업 (자사몰·마트·H&B·편의점·QSR)
-- **언어 톤**: GMV / 재고 / 매대 / 발주 / 회전율 / Sell-through / PB / 신상
-- **의사결정 단위**: 주간 발주, 월간 카테고리 리뷰, 분기 채널 평가
-- **데이터 시각**: 브랜드 × 카테고리 × 채널 × 시간
+- **Position**: Merchandising (MD) / Channel sales (owned mall · marts · H&B · convenience stores · QSR)
+- **Language tone**: GMV / Inventory / Shelf / Order / Turn / Sell-through / PB / New product
+- **Decision unit**: Weekly orders, monthly category reviews, quarterly channel evaluations
+- **Data perspective**: Brand × Category × Channel × Time
 
-### KPI
-| 지표 | 정의 |
+### KPIs
+| Metric | Definition |
 |---|---|
-| 채널 GMV | 채널별 매출 |
-| 재고 회전율 | 매출 ÷ 평균 재고 |
-| 신상 도입 성공률 | 출시 30일 매출 |
-| 채널 비중 | 자사몰 vs 마트 vs H&B vs 편의점 |
+| Channel GMV | Per-channel revenue |
+| Inventory turn | Revenue ÷ average inventory |
+| New product adoption rate | 30-day post-launch revenue |
+| Channel share | Owned mall vs. Mart vs. H&B vs. Convenience store |
 
-### 챗봇 어조 예시
-- "지난주 페리오 매출 떨어진 채널·매장 TOP 5와 원인"
-- "기온 -5℃ 예보 시 핫팩·핸드크림·코코아 발주 가이드"
+### Chatbot Tone Examples
+- "Top 5 channels/stores where Perioe sales dropped last week and the causes"
+- "Order guide for hot packs, hand creams, and cocoa when -5°C is forecast"
 
-### 주 시나리오
-- **S5** 캠페인 ROAS — 채널·매장 단위
-- **S1** 자연어 검색 — SKU 회전·신상 매대
+### Primary Scenarios
+- **S5** Campaign ROAS — channel · store unit
+- **S1** Natural language search — SKU turn · new product shelves
 
 ---
 
-## 페르소나 스위처가 UI에 미치는 영향
+## How the Persona Switcher Affects the UI
 
-| UI 요소 | P1 | P2 | P3 | P4 | P5 |
+| UI Element | P1 | P2 | P3 | P4 | P5 |
 |---|---|---|---|---|---|
-| 사이드바 강조 | S1·S2·S5 | S4·S6 | S3·S6 | S7·S8 | S1·S5 |
-| 인사이트 카드 정렬 | 캠페인/ROAS | LTV/SOV | Drift/품질 | 등급/NPS | GMV/재고 |
-| 챗봇 system prompt | 마케터 | 분석가 | 데이터 사이언티스트 | 운영 매니저 | MD/점장 |
-| 추천 질의 | "이번 주 캠페인 ROI?" | "고가치 코호트?" | "이상 거래?" | "VIP 이탈 위험?" | "페리오 매출 떨어진 채널?" |
-| 가드레일 강도 | 마케팅 동의 필수 | PII 마스킹 | 답변 신뢰도 | 동의·등급 | 매장 영업 정보 보호 |
+| Sidebar emphasis | S1·S2·S5 | S4·S6 | S3·S6 | S7·S8 | S1·S5 |
+| Insight card order | Campaign/ROAS | LTV/SOV | Drift/Quality | Tier/NPS | GMV/Inventory |
+| Chatbot system prompt | Marketer | Analyst | Data scientist | Operations manager | MD/store manager |
+| Recommended queries | "This week's campaign ROI?" | "High-value cohort?" | "Anomalous transactions?" | "VIP churn risk?" | "Channels where Perioe sales dropped?" |
+| Guardrail strength | Marketing consent required | PII masking | Answer confidence | Consent · tier | Protect store sales info |
 
 ---
 
-## 데모 시연 시 활용 팁
+## Demo Usage Tips
 
-1. **S2 챗봇 단계**에서 페르소나 스위처를 시연 — 동일 질의 "이번 달 페리오 매출 떨어진 채널 원인은?"을 P1·P3·P5에서 차례로 던져 답변 톤·KPI·도구 호출 차이 강조
-2. **S8 가드레일** 단계는 P4 페르소나에서 시연 — 동의·미성년 화장품 가드 자동 작동
-3. **S7 옴니채널 여정**은 P4 페르소나에서 단일 회원 90일 타임라인 — BU 가로지르는 회원 행동 강조
+1. **During S2 chatbot stage**, demonstrate the persona switcher — issue the same query "What caused Perioe's sales drop this month?" in P1·P3·P5 sequentially to emphasize differences in answer tone, KPIs, and tool calls
+2. **S8 Guardrails** stage should be demoed in the P4 persona — consent · minor cosmetics guards activate automatically
+3. **S7 Omnichannel journey** should be demoed in the P4 persona — a 90-day timeline of a single member, emphasizing member behavior crossing BUs

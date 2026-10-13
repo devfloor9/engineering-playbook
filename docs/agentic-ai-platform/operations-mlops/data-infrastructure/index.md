@@ -1,9 +1,9 @@
 ---
-title: 데이터 인프라
-description: Agentic AI 플랫폼의 벡터 데이터베이스·임베딩 스토어 등 데이터 계층 운영
+title: Data Infrastructure
+description: Operating vector databases, embedding stores, and data layer infrastructure for Agentic AI platforms
 created: "2026-04-20"
 last_update:
-  date: 2026-09-22
+  date: "2026-07-13"
   author: devfloor9
 reading_time: 1
 tags:
@@ -12,24 +12,24 @@ tags:
   - vector-database
   - milvus
   - scope:nav
-sidebar_label: 데이터 인프라
+sidebar_label: Data Infrastructure
 ---
 
-## 개요
+## Overview
 
-RAG 파이프라인과 장기 메모리가 정상 동작하려면 벡터 검색 인프라가 안정적으로 운영되어야 합니다. 본 섹션은 Milvus 기반 벡터 데이터베이스 운영을 다룹니다. 향후 Feature Store 운영, Knowledge Graph 인프라 등 데이터 계층 문서가 추가될 예정입니다.
+For RAG pipelines and long-term memory to function properly, vector search infrastructure must be operated reliably. This section covers Milvus-based vector database operations. Future documents on Feature Store operations, Knowledge Graph infrastructure, and other data layer components will be added.
 
-### 다루는 내용
+### What This Section Covers
 
-- [Milvus 벡터 데이터베이스](./milvus-vector-database.md) — EKS 기반 Milvus 클러스터 아키텍처, 인덱스 선택(HNSW·IVF·DiskANN), 샤딩·복제 운영 전략
+- [Milvus Vector Database](./milvus-vector-database.md) -- EKS-based Milvus cluster architecture, index selection (HNSW, IVF, DiskANN), and sharding/replication operations
 
-### 관련 문서
+### Related Documents
 
-- [도메인 특화 (LoRA + RAG)](../governance/domain-customization.md) — RAG 파이프라인에서 벡터 검색이 담당하는 역할과 선택 기준
-- [Ragas 평가 프레임워크](../governance/ragas-evaluation.md) — 벡터 검색 품질(Context Precision·Recall) 평가
-- [모니터링 스택 구성](../../reference-architecture/integrations/monitoring-observability-setup.md) — 데이터 계층 포함 플랫폼 관측성 구성
+- [Domain Customization (LoRA + RAG)](../governance/domain-customization.md) -- The role of vector search in RAG pipelines and selection criteria
+- [Ragas Evaluation Framework](../governance/ragas-evaluation.md) -- Evaluating vector search quality (Context Precision, Recall)
+- [Monitoring Stack Setup](../../reference-architecture/integrations/monitoring-observability-setup.md) -- Platform observability including the data layer
 
-## 문서 목록
+## Document List
 
 import DocCardList from '@theme/DocCardList';
 import { useCurrentSidebarCategory } from '@docusaurus/theme-common';

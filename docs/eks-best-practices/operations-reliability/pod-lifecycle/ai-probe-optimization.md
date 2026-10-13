@@ -1,101 +1,101 @@
 ---
-title: AI 기반 Probe 최적화
-description: 관측 데이터와 AI를 활용하는 Probe 최적화 예제를 확인합니다.
+title: AI-assisted probe optimization
+description: Review probe optimization examples that use observability data and AI.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
-  author: YoungJoon Jeong
-reading_time: 5
+  date: 2026-09-18
+  author: devfloor9
+reading_time: 6
 tags:
   - eks
   - kubernetes
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: AI 기반 Probe 최적화
+sidebar_label: AI-assisted probe optimization
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## AI/Agentic 기반 Probe 최적화 {#75-aiagentic-기반-probe-최적화}
+## AI/Agentic Probe Optimization {#75-aiagentic-기반-probe-최적화}
 
-AWS re:Invent 2025 CNS421 세션에서 소개된 Agentic AI 기반 EKS 운영 패턴을 활용하여 Probe 설정을 자동으로 최적화하고 실패를 자동 진단하는 방법을 다룹니다.
+This chapter covers automatically optimizing Probe settings and diagnosing failures using the Agentic AI patterns for EKS operations introduced in the AWS re:Invent 2025 CNS421 session.
 
-### CNS421 세션 핵심 - Agentic AI for EKS Operations {#cns421-세션-핵심---agentic-ai-for-eks-operations}
+### CNS421 Session Highlights - Agentic AI for EKS Operations {#cns421-세션-핵심---agentic-ai-for-eks-operations}
 
-**세션 개요:**
+**Session overview:**
 
-"Streamline Amazon EKS Operations with Agentic AI" 세션에서는 Model Context Protocol(MCP)과 AI 에이전트를 활용하여 EKS 클러스터 관리를 자동화하는 방법을 코드 시연과 함께 소개했습니다.
+The "Streamline Amazon EKS Operations with Agentic AI" session presented code demonstrations of automating EKS cluster management with the Model Context Protocol (MCP) and AI agents.
 
-**주요 기능:**
-- 실시간 이슈 진단 (Probe 실패 원인 자동 분석)
-- Guided Remediation (단계별 해결 가이드)
-- Tribal Knowledge 활용 (과거 이슈 패턴 학습)
-- Auto-Remediation (단순 이슈 자동 해결)
+**Key capabilities:**
+- Real-time issue diagnosis (automatic analysis of Probe failure causes)
+- Guided Remediation (step-by-step resolution guidance)
+- Use of Tribal Knowledge (learning from past issue patterns)
+- Auto-Remediation (automatic resolution of straightforward issues)
 
-**아키텍처:**
+**Architecture:**
 
 ```mermaid
 flowchart LR
-    PROBE_FAIL[Probe 실패 감지]
+    PROBE_FAIL[Probe failure detected]
     PROBE_FAIL --> MCP[EKS MCP Server]
 
-    MCP --> CONTEXT[컨텍스트 수집]
+    MCP --> CONTEXT[Collect context]
     CONTEXT --> LOGS[Pod Logs]
     CONTEXT --> METRICS[CloudWatch Metrics]
     CONTEXT --> EVENTS[Kubernetes Events]
     CONTEXT --> NETWORK[Network Observability]
 
     CONTEXT --> AI[Agentic AI<br/>Amazon Bedrock]
-    AI --> ANALYZE[근본 원인 분석]
+    AI --> ANALYZE[Root cause analysis]
 
-    ANALYZE --> DECISION{자동 해결<br/>가능?}
+    ANALYZE --> DECISION{Automatic resolution<br/>possible?}
 
-    DECISION -->|Yes| AUTO[자동 Remediation]
-    AUTO --> FIX_PROBE[Probe 설정 조정]
-    AUTO --> FIX_APP[애플리케이션 재시작]
-    AUTO --> FIX_NETWORK[네트워크 정책 수정]
+    DECISION -->|Yes| AUTO[Automatic Remediation]
+    AUTO --> FIX_PROBE[Adjust Probe settings]
+    AUTO --> FIX_APP[Restart application]
+    AUTO --> FIX_NETWORK[Update network policy]
 
-    DECISION -->|No| GUIDE[해결 가이드 제공]
-    GUIDE --> HUMAN[운영자 개입]
+    DECISION -->|No| GUIDE[Provide resolution guidance]
+    GUIDE --> HUMAN[Operator intervention]
 
-    HUMAN --> LEARN[해결 패턴 학습]
-    LEARN --> TRIBAL[Tribal Knowledge<br/>업데이트]
+    HUMAN --> LEARN[Learn resolution patterns]
+    LEARN --> TRIBAL[Update<br/>Tribal Knowledge]
 
     style PROBE_FAIL fill:#ff4444,stroke:#cc3636,color:#fff
     style AI fill:#4286f4,stroke:#2a6acf,color:#fff
     style AUTO fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-### Kiro + EKS MCP를 활용한 Probe 자동 최적화 {#kiro--eks-mcp를-활용한-probe-자동-최적화}
+### Automatic Probe Optimization with Kiro + EKS MCP {#kiro--eks-mcp를-활용한-probe-자동-최적화}
 
-**Kiro란:**
+**About Kiro:**
 
-Kiro는 AWS의 AI 기반 운영 도구로, MCP(Model Context Protocol) 서버를 통해 AWS 리소스와 상호작용합니다.
+Kiro is an AI-powered operations tool from AWS that interacts with AWS resources through Model Context Protocol (MCP) servers.
 
-**설치 및 설정:**
+**Installation and configuration:**
 
 ```bash
-# Kiro CLI 설치 (macOS)
+# Install the Kiro CLI (macOS)
 brew install aws/tap/kiro
 
-# EKS MCP Server 설정
+# Configure the EKS MCP Server
 kiro mcp add eks \
   --server-type eks \
   --cluster-name production-eks \
   --region ap-northeast-2
 
-# Probe 최적화 에이전트 활성화
+# Enable the Probe optimization agent
 kiro agent create probe-optimizer \
   --type eks-health-check \
   --auto-remediate true
 ```
 
-**Probe 실패 자동 진단 워크플로우:**
+**Automatic Probe failure diagnosis workflow:**
 
 ```yaml
-# Kiro Agent 설정 - Probe 실패 자동 대응
+# Kiro Agent configuration - automatic response to Probe failures
 apiVersion: kiro.aws/v1alpha1
 kind: Agent
 metadata:
@@ -214,10 +214,10 @@ spec:
               Context: ${context}
 ```
 
-**실제 사용 예시 - Probe 타임아웃 자동 최적화:**
+**Usage example - automatic Probe timeout optimization:**
 
 ```bash
-# Kiro를 통한 대화형 Probe 최적화
+# Interactive Probe optimization with Kiro
 $ kiro chat --agent probe-optimizer
 
 User: My readiness probe is failing intermittently on pod api-gateway-xyz.
@@ -258,14 +258,14 @@ Kiro: ✅ Applied Probe Optimization
           to reduce network latency permanently.
 ```
 
-### Amazon Q Developer를 활용한 Probe 이슈 디버깅 {#amazon-q-developer를-활용한-probe-이슈-디버깅}
+### Debugging Probe Issues with Amazon Q Developer {#amazon-q-developer를-활용한-probe-이슈-디버깅}
 
-Amazon Q Developer는 IDE 통합 AI 어시스턴트로, Probe 설정 코드 리뷰와 실시간 디버깅을 지원합니다.
+Amazon Q Developer is an AI assistant integrated into the IDE that supports code review of Probe configurations and real-time debugging.
 
-**VS Code 통합 예시:**
+**VS Code integration example:**
 
 ```yaml
-# 개발자가 작성 중인 Deployment YAML
+# Deployment YAML being written by a developer
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -278,39 +278,39 @@ spec:
         image: myapp:v1
         readinessProbe:
           httpGet:
-            path: /health  # ⚠️ Q Developer 경고
+            path: /health  # ⚠️ Q Developer warning
             port: 8080
           periodSeconds: 10
-          timeoutSeconds: 1  # ⚠️ Q Developer 경고
+          timeoutSeconds: 1  # ⚠️ Q Developer warning
 ```
 
-**Q Developer 제안:**
+**Q Developer suggestions:**
 
 ```
 💡 Amazon Q Developer Suggestion
 
-Issue 1: Liveness와 Readiness가 같은 엔드포인트를 사용합니다.
+Issue 1: Liveness and Readiness use the same endpoint.
 Recommendation:
-- Liveness Probe: /healthz (내부 상태만)
-- Readiness Probe: /ready (외부 의존성 포함)
+- Liveness Probe: /healthz (internal state only)
+- Readiness Probe: /ready (including external dependencies)
 
-Issue 2: timeoutSeconds가 너무 짧습니다.
+Issue 2: timeoutSeconds is too short.
 Recommendation:
-- timeoutSeconds를 3-5초로 증가
-- EKS 환경에서 1초는 네트워크 지연 시 타임아웃 위험
+- Increase timeoutSeconds to 3-5 seconds
+- In EKS environments, a 1-second timeout risks failures during network latency spikes
 
-Issue 3: Startup Probe가 없습니다.
+Issue 3: No Startup Probe is configured.
 Recommendation:
-- 앱 시작 시간이 30초 이상이면 Startup Probe 추가
+- Add a Startup Probe if application startup takes 30 seconds or longer
 - failureThreshold: 30, periodSeconds: 10
 
 Apply Suggestions? [Yes] [No] [Explain More]
 ```
 
-**실시간 코드 실행 검증 (Amazon Q Developer):**
+**Real-time code execution validation (Amazon Q Developer):**
 
 ```bash
-# Q Developer가 로컬에서 Probe 설정 검증
+# Q Developer validates the Probe configuration locally
 $ q-dev validate deployment.yaml --cluster production-eks
 
 ✅ Syntax Valid
@@ -328,14 +328,14 @@ $ q-dev validate deployment.yaml --cluster production-eks
     Apply Q Developer's suggested configuration? (Y/n)
 ```
 
-### Tribal Knowledge 기반 Probe 패턴 학습 {#tribal-knowledge-기반-probe-패턴-학습}
+### Learning Probe Patterns from Tribal Knowledge {#tribal-knowledge-기반-probe-패턴-학습}
 
-Agentic AI는 과거 Probe 이슈 해결 패턴을 학습하여 유사 상황에서 즉시 대응합니다.
+Agentic AI learns from previous Probe issue resolutions to respond immediately to similar situations.
 
-**Tribal Knowledge 예시:**
+**Tribal Knowledge example:**
 
 ```yaml
-# 조직의 Probe 해결 패턴 라이브러리
+# Organization's library of Probe resolution patterns
 apiVersion: kiro.aws/v1alpha1
 kind: TribalKnowledge
 metadata:
@@ -393,10 +393,10 @@ spec:
       lastSeen: "2026-02-08"
 ```
 
-**자동 패턴 매칭:**
+**Automatic pattern matching:**
 
 ```bash
-# 새로운 Probe 실패 발생 시 자동 매칭
+# Automatically match patterns when a new Probe failure occurs
 $ kiro diagnose probe-failure \
   --pod api-backend-abc \
   --namespace production
@@ -415,10 +415,10 @@ $ kiro diagnose probe-failure \
 🤖 Auto-Apply? (yes/no)
 ```
 
-### Probe 최적화 통합 대시보드 {#probe-최적화-통합-대시보드}
+### Integrated Probe Optimization Dashboard {#probe-최적화-통합-대시보드}
 
 ```yaml
-# Grafana Dashboard - AI 기반 Probe 최적화 현황
+# Grafana Dashboard - AI-assisted Probe optimization status
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -430,26 +430,26 @@ data:
       "title": "AI-Driven Probe Optimization",
       "panels": [
         {
-          "title": "Auto-Remediation 성공률",
+          "title": "Auto-Remediation Success Rate",
           "targets": [{
             "expr": "rate(kiro_auto_remediation_success[1h]) / rate(kiro_auto_remediation_total[1h])"
           }]
         },
         {
-          "title": "Tribal Knowledge 패턴 매칭",
+          "title": "Tribal Knowledge Pattern Matching",
           "targets": [{
             "expr": "kiro_pattern_match_count"
           }]
         },
         {
-          "title": "Probe 실패율 트렌드 (AI 도입 전후)",
+          "title": "Probe Failure Rate Trends (Before and After AI Adoption)",
           "targets": [
             {"expr": "rate(probe_failures_total[1h])", "legendFormat": "Before AI"},
             {"expr": "rate(probe_failures_ai_optimized_total[1h])", "legendFormat": "After AI"}
           ]
         },
         {
-          "title": "평균 문제 해결 시간 (MTTR)",
+          "title": "Mean Time to Resolution (MTTR)",
           "targets": [{
             "expr": "avg(kiro_remediation_duration_seconds)"
           }]
@@ -458,20 +458,20 @@ data:
     }
 ```
 
-**ROI 측정 예시:**
+**ROI measurement example:**
 
-| 지표 | AI 도입 전 | AI 도입 후 | 개선율 |
+| Metric | Before AI adoption | After AI adoption | Improvement |
 |------|----------|-----------|--------|
-| Probe 실패 건수 | 120건/주 | 12건/주 | 90% 감소 |
-| 평균 해결 시간 (MTTR) | 45분 | 3분 | 93% 단축 |
-| 운영자 개입 필요 건수 | 120건/주 | 12건/주 | 90% 감소 |
-| Probe 설정 최적화 소요 시간 | 2시간/건 | 5분/건 | 96% 단축 |
+| Probe failures | 120/week | 12/week | 90% reduction |
+| Mean time to resolution (MTTR) | 45 minutes | 3 minutes | 93% reduction |
+| Cases requiring operator intervention | 120/week | 12/week | 90% reduction |
+| Time spent optimizing Probe settings | 2 hours/case | 5 minutes/case | 96% reduction |
 
-:::tip Agentic AI 도입 Best Practice
-Agentic AI는 즉시 100% 자동화를 목표로 하지 마세요. 처음 3개월은 "Suggest Mode"로 운영하여 AI 제안을 운영자가 검토하고 승인하는 방식으로 시작하세요. Tribal Knowledge가 충분히 쌓이고 신뢰도가 90% 이상이 되면 "Auto-Remediation Mode"로 전환합니다.
+:::tip Best Practice for Adopting Agentic AI
+Do not aim for 100% automation immediately when adopting Agentic AI. Start with "Suggest Mode" for the first 3 months, with operators reviewing and approving AI suggestions. Transition to "Auto-Remediation Mode" once sufficient Tribal Knowledge has accumulated and confidence reaches 90% or higher.
 :::
 
-**관련 자료:**
+**Related resources:**
 - [YouTube: CNS421 - Streamline Amazon EKS operations with Agentic AI](https://www.youtube.com/watch?v=4s-a0jY4kSE)
 - [AWS Blog: Agentic Cloud Modernization with Kiro](https://aws.amazon.com/blogs/migration-and-modernization/agentic-cloud-modernization-accelerating-modernization-with-aws-mcps-and-kiro/)
 - [AWS Blog: AWS IaC MCP Server](https://aws.amazon.com/blogs/devops/introducing-the-aws-infrastructure-as-code-mcp-server-ai-powered-cdk-and-cloudformation-assistance/)
@@ -479,4 +479,4 @@ Agentic AI는 즉시 100% 자동화를 목표로 하지 마세요. 처음 3개�
 
 ---
 
-**문서 기여**: 이 문서에 대한 피드백, 오류 신고, 개선 제안은 GitHub Issues를 통해 제출해 주세요.
+**Contributing**: Submit feedback, error reports, and improvement suggestions for this document through GitHub Issues.

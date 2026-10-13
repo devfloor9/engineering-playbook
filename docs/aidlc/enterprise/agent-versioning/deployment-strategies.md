@@ -1,11 +1,11 @@
 ---
-title: 배포 전략 — Shadow·Canary·A/B·Blue-Green
-description: 점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식
-created: "2026-04-18"
+title: Deployment Strategies — Shadow·Canary·A/B·Blue-Green
+description: Progressive model replacement strategies and Feature Flag-based prompt rollout approaches
+created: "2026-04-19"
 last_update:
-  date: 2026-10-13
-  author: YoungJoon Jeong
-reading_time: 6
+  date: 2026-09-19
+  author: devfloor9
+reading_time: 12
 tags:
   - deployment
   - canary
@@ -14,14 +14,14 @@ tags:
   - blue-green
   - feature-flag
   - scope:enterprise
-sidebar_label: 배포 전략
+sidebar_label: Deployment Strategies
 ---
 
-## 모델 교체 전략
+## Model Replacement Strategies
 
 ### Shadow Testing
 
-**개념**: 신모델이 실제 프로덕션 트래픽을 받되, 응답은 사용자에게 전달하지 않습니다. 구모델의 응답만 반환하고, 신모델 출력은 로그/평가용으로만 수집합니다.
+**Concept**: The new model receives actual production traffic, but responses are not delivered to users. Only the old model's responses are returned, and new model outputs are collected only for logging/evaluation.
 
 ```mermaid
 sequenceDiagram
@@ -31,63 +31,63 @@ sequenceDiagram
     participant NewModel
     participant Logger
 
-    User->>Gateway: 요청
+    User->>Gateway: Request
     Gateway->>OldModel: forward(async)
     Gateway->>NewModel: forward(async, shadow=true)
-    OldModel-->>Gateway: 응답 A
-    NewModel-->>Logger: 응답 B (폐기, 로깅만)
-    Gateway-->>User: 응답 A (구모델)
-    Logger->>Logger: 비교: A vs B
+    OldModel-->>Gateway: Response A
+    NewModel-->>Logger: Response B (discarded, logging only)
+    Gateway-->>User: Response A (old model)
+    Logger->>Logger: Compare: A vs B
 ```
 
-**언제 사용**:
-- 신모델의 응답을 사용자에게 보여주지 않으면서, 운영 요청으로 지연·오류율·출력 품질을 비교할 때
-- 추가 비용을 감당할 수 있을 때(이 비교에서는 요청당 비용을 2배로 가정)
+**When to Use**:
+- To compare the new model's latency, error rate, and output quality on production requests without showing its responses to users
+- When the additional cost is acceptable (the comparison here assumes 2x cost per request)
 
-**구현 예시(Python, LiteLLM)**: LiteLLM은 native shadow 기능이 없으므로 직접 구현:
+**Implementation Example (Python, LiteLLM)**: LiteLLM has no native shadow feature, so implement directly:
 
 ```python
 import asyncio
 from litellm import acompletion
 
 async def shadow_call(user_request):
-    # 구모델(production)
+    # Old model (production)
     old_task = acompletion(model="gpt-4", messages=user_request)
-    # 신모델(shadow)
+    # New model (shadow)
     new_task = acompletion(model="claude-3-5-sonnet-20241022", messages=user_request)
 
     old_resp, new_resp = await asyncio.gather(old_task, new_task, return_exceptions=True)
 
-    # 로깅: 두 응답 비교
+    # Logging: compare both responses
     log_to_langfuse(user_request, old_resp, new_resp, shadow=True)
 
-    # 사용자에게는 구모델 응답만 반환
+    # Return only old model response to user
     return old_resp
 ```
 
-**장점**:
-- 사용자에게는 기존 모델의 응답만 반환합니다. 다만 위 예제는 두 호출이 모두 끝나기를 기다리므로 shadow 호출도 사용자 응답을 늦출 수 있습니다.
-- 실제 트래픽 패턴으로 테스트
+**Advantages**:
+- Users receive only the old model's response. The example above waits for both calls, so the shadow call can still delay that response.
+- Testing with actual traffic patterns
 
-**단점**:
-- 비용 2배
-- 사용자 피드백 수집 불가(shadow 응답은 사용자가 보지 못함)
+**Disadvantages**:
+- 2x cost
+- Cannot collect user feedback (users don't see shadow responses)
 
 ---
 
 ### Canary Rollout
 
-**개념**: 소수 트래픽(5%)부터 시작해 단계적으로 비율을 높여갑니다.
+**Concept**: Start with a small percentage of traffic (5%) and gradually increase the ratio.
 
 ```
-5% → 관찰(24h) → 문제 없으면 25% → 50% → 100%
+5% → Observe (24h) → If no issues 25% → 50% → 100%
 ```
 
-**언제 사용**:
-- 신모델이 충분히 검증되었지만, 프로덕션 전체 교체는 리스크가 클 때
-- 회귀 감지 시 빠른 롤백 필요
+**When to Use**:
+- When the new model is sufficiently validated, but full production replacement is high risk
+- When fast rollback is needed upon regression detection
 
-**구현 예시(LaunchDarkly)**: Feature Flag로 모델 선택 제어
+**Implementation Example (LaunchDarkly)**: Control model selection with Feature Flag
 
 ```python
 from ldclient import LDClient, Context
@@ -99,18 +99,18 @@ def get_model_for_user(user_id: str):
     model = ld_client.variation("llm-model-selection", context, default="gpt-4")
     return model
 
-# LaunchDarkly 콘솔에서 "llm-model-selection" flag를 5% claude-3-5-sonnet, 95% gpt-4로 설정
+# Set "llm-model-selection" flag in LaunchDarkly console to 5% claude-3-5-sonnet, 95% gpt-4
 ```
 
-**모니터링 기준**:
-- Canary 그룹 vs Control 그룹의 **성공률**(200 응답 비율)
-- **Latency P50/P99** 차이
-- **사용자 피드백**(thumbs up/down) 비율
-- **비용**(토큰 사용량)
+**Monitoring Criteria**:
+- Canary group vs Control group **success rate** (200 response ratio)
+- **Latency P50/P99** difference
+- **User feedback** (thumbs up/down) ratio
+- **Cost** (token usage)
 
-**자동 롤백 트리거**:
+**Automatic Rollback Trigger**:
 ```yaml
-# 예시: Prometheus AlertManager 규칙
+# Example: Prometheus AlertManager rule
 - alert: CanaryRegressionDetected
   expr: |
     (rate(llm_success_total{model="claude-3-5-sonnet"}[5m]) 
@@ -118,39 +118,39 @@ def get_model_for_user(user_id: str):
     < 0.95
   for: 10m
   annotations:
-    summary: "Canary 성공률 95% 미만, 롤백 필요"
+    summary: "Canary success rate below 95%, rollback needed"
 ```
 
-**장점**:
-- 점진적 리스크 분산
-- 실제 사용자 피드백 수집 가능
+**Advantages**:
+- Progressive risk distribution
+- Can collect real user feedback
 
-**단점**:
-- 배포 기간 길어짐(수일~수주)
-- 모니터링 인프라 필수
+**Disadvantages**:
+- Longer deployment period (days to weeks)
+- Monitoring infrastructure required
 
-:::info EKS 모델 서빙에서의 Canary 구현
-이 문서는 배포 전략의 **일반론과 선택 기준**을 다룹니다. EKS 모델 서빙 환경에서 kgateway HTTPRoute weight 기반 Canary 구현, Eval Gate 연계, Argo Workflows 자동화, MLflow Registry 롤백은 [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md)에서 다룹니다.
+:::info Canary Implementation for EKS Model Serving
+This document covers the **general principles and selection criteria** of deployment strategies. For kgateway HTTPRoute weight-based Canary implementation in EKS model serving, Eval Gate integration, Argo Workflows automation, and MLflow Registry rollback, see [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md).
 :::
 
 ---
 
 ### A/B Testing
 
-**개념**: 트래픽을 두 그룹(A: 구모델, B: 신모델)으로 **랜덤 분할**하고, 비즈니스 메트릭(conversion rate, 사용자 만족도 등)을 통계적으로 비교합니다.
+**Concept**: **Randomly split** traffic into two groups (A: old model, B: new model) and statistically compare business metrics (conversion rate, user satisfaction, etc.).
 
-**언제 사용**:
-- "신모델이 정말 더 나은가?"를 **통계적 유의성**으로 증명해야 할 때
-- 마케팅, UX 최적화(프롬프트 톤 변경 등)
+**When to Use**:
+- When you need to prove "Is the new model really better?" with **statistical significance**
+- Marketing, UX optimization (prompt tone changes, etc.)
 
-**실험 설계**:
-1. **귀무가설**: "신모델과 구모델의 성능 차이가 없습니다"
-2. **대립가설**: "신모델이 conversion rate를 5% 이상 개선합니다"
-3. **샘플 크기 계산**: [AB Test Calculator](https://www.evanmiller.org/ab-testing/sample-size.html)  
-   예: 베이스라인 10%, 5%p 개선 감지, 80% power → 그룹당 2,348명 필요
-4. **실험 기간**: 충분한 샘플 확보될 때까지(보통 1-4주)
+**Experiment Design**:
+1. **Null Hypothesis**: "No performance difference between new and old models"
+2. **Alternative Hypothesis**: "New model improves conversion rate by 5% or more"
+3. **Sample Size Calculation**: [AB Test Calculator](https://www.evanmiller.org/ab-testing/sample-size.html)  
+   Example: Baseline 10%, detect 5%p improvement, 80% power → 2,348 per group needed
+4. **Experiment Duration**: Until sufficient samples are collected (typically 1-4 weeks)
 
-**구현 예시(Unleash)**:
+**Implementation Example (Unleash)**:
 
 ```typescript
 import { UnleashClient } from 'unleash-client';
@@ -169,40 +169,40 @@ function selectModel(userId: string): string {
 }
 ```
 
-**분석**: 실험 종료 후 chi-square test로 유의성 검증
+**Analysis**: Validate significance with chi-square test after experiment completion
 
 ```python
 from scipy.stats import chi2_contingency
 
 # A: gpt-4, B: claude-3-5-sonnet
-# 성공/실패 contingency table
-obs = [[2100, 300],   # A: 2100 성공, 300 실패
-       [2200, 200]]   # B: 2200 성공, 200 실패
+# Success/failure contingency table
+obs = [[2100, 300],   # A: 2100 success, 300 failure
+       [2200, 200]]   # B: 2200 success, 200 failure
 
 chi2, p, dof, ex = chi2_contingency(obs)
-print(f"p-value: {p}")  # p < 0.05 → B가 통계적으로 유의하게 우수
+print(f"p-value: {p}")  # p < 0.05 → B is statistically significantly superior
 ```
 
-**장점**:
-- 비즈니스 임팩트를 수치로 증명
-- 마케팅, 경영진 설득에 유리
+**Advantages**:
+- Prove business impact with numbers
+- Favorable for marketing, executive persuasion
 
-**단점**:
-- 긴 실험 기간
-- 통계 전문성 필요
-- 트래픽 충분해야 유의성 확보 가능
+**Disadvantages**:
+- Long experiment period
+- Statistical expertise required
+- Sufficient traffic needed to ensure significance
 
 ---
 
 ### Blue-Green Deployment
 
-**개념**: 구환경(Blue)과 신환경(Green)을 동시에 운영하다가, 트래픽을 **한 번에** Green으로 전환. 문제 발생 시 즉시 Blue로 되돌립니다.
+**Concept**: Operate old environment (Blue) and new environment (Green) simultaneously, then switch traffic to Green **all at once**. Immediately revert to Blue if issues occur.
 
-**언제 사용**:
-- 모델 서빙 인프라 자체를 교체할 때(vLLM 0.5 → 0.6)
-- 프롬프트 변경보다는 런타임 변경
+**When to Use**:
+- When replacing the model serving infrastructure itself (vLLM 0.5 → 0.6)
+- Runtime changes rather than prompt changes
 
-**구현 예시(Kubernetes Service + Ingress)**:
+**Implementation Example (Kubernetes Service + Ingress)**:
 
 ```yaml
 # blue-deployment.yaml
@@ -224,10 +224,10 @@ spec:
     spec:
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.23.0
+        image: vllm/vllm-openai:v0.5.4
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
 ---
-# green-deployment.yaml (신버전)
+# green-deployment.yaml (new version)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -246,10 +246,10 @@ spec:
     spec:
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.23.0
+        image: vllm/vllm-openai:v0.6.3
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
 ---
-# service.yaml (처음엔 blue 가리킴)
+# service.yaml (initially points to blue)
 apiVersion: v1
 kind: Service
 metadata:
@@ -257,34 +257,34 @@ metadata:
 spec:
   selector:
     app: llm
-    version: blue  # ← 여기를 'green'으로 바꾸면 전환
+    version: blue  # ← Change this to 'green' to switch
   ports:
   - port: 8000
 ```
 
-**전환 절차**:
-1. Green 배포 완료 → Health check 확인
+**Switch Procedure**:
+1. Complete Green deployment → Check health check
 2. `kubectl patch svc llm-service -p '{"spec":{"selector":{"version":"green"}}}'`
-3. 5분 모니터링 → 문제 없으면 Blue 삭제
-4. 문제 발생 시 `version: blue`로 즉시 롤백
+3. Monitor for 5 minutes → Delete Blue if no issues
+4. If issues occur, immediately rollback with `version: blue`
 
-**장점**:
-- 롤백 속도 가장 빠름(초 단위)
-- 전환 과정 단순
+**Advantages**:
+- Fastest rollback speed (seconds)
+- Simple switch process
 
-**단점**:
-- 2배 인프라 비용(전환 기간 중)
-- 점진적 검증 없음(all-or-nothing)
+**Disadvantages**:
+- 2x infrastructure cost (during switch period)
+- No progressive validation (all-or-nothing)
 
 ---
 
-## Feature Flag 기반 프롬프트 전개
+## Feature Flag-Based Prompt Rollout
 
 ### LaunchDarkly
 
-[LaunchDarkly](https://launchdarkly.com/)는 엔터프라이즈급 Feature Flag 플랫폼입니다.
+[LaunchDarkly](https://launchdarkly.com/) is an enterprise-grade Feature Flag platform.
 
-**프롬프트 전개 예시**:
+**Prompt Rollout Example**:
 
 ```python
 from ldclient import LDClient, Context
@@ -297,35 +297,35 @@ def get_prompt_version(user_id: str, org_id: str) -> int:
         .set("org_id", org_id) \
         .build()
 
-    # flag 'prompt-version-financial': 조직별 타게팅 가능
-    # 예: org_id='acme-corp' → version=5, 나머지 → version=4
+    # flag 'prompt-version-financial': organization-level targeting
+    # Example: org_id='acme-corp' → version=5, others → version=4
     version = ld_client.variation("prompt-version-financial", context, default=4)
     return version
 ```
 
-**Kill Switch**: 긴급 상황 시 모든 사용자를 안전한 버전으로 되돌리기
+**Kill Switch**: Revert all users to safe version in emergency situations
 
 ```python
-# LaunchDarkly 콘솔에서 'prompt-version-financial' flag를 강제로 4로 설정
-# 코드 변경 없이 즉시 모든 사용자에게 적용됨
+# Force 'prompt-version-financial' flag to 4 in LaunchDarkly console
+# Applied immediately to all users without code changes
 ```
 
-**타게팅 규칙 예시**:
-- **베타 사용자**: `user.beta == true` → 신버전
-- **특정 리전**: `user.region == "us-east-1"` → 카나리 버전
-- **조직 티어**: `user.tier == "enterprise"` → 최신 버전 우선 제공
+**Targeting Rule Examples**:
+- **Beta users**: `user.beta == true` → new version
+- **Specific region**: `user.region == "us-east-1"` → canary version
+- **Organization tier**: `user.tier == "enterprise"` → latest version priority
 
 ---
 
 ### Unleash
 
-[Unleash](https://www.getunleash.io/)는 오픈소스 Feature Flag 플랫폼입니다.
+[Unleash](https://www.getunleash.io/) is an open-source Feature Flag platform.
 
-**장점**:
-- Self-hosted 가능
-- Postgres 백엔드, RBAC, audit log 기본 제공
+**Advantages**:
+- Self-hosted capable
+- Postgres backend, RBAC, audit log provided by default
 
-**프롬프트 전개**:
+**Prompt Rollout**:
 
 ```typescript
 import { Unleash } from 'unleash-client';
@@ -340,7 +340,7 @@ function getPromptVariant(userId: string): string {
   const context = { userId, properties: { region: 'us-west-2' } };
   const variant = unleash.getVariant('prompt-experiment-2026-04', context);
   // variant.name: 'control', 'treatment-A', 'treatment-B'
-  return variant.payload.value;  // 실제 프롬프트 텍스트 or 버전 번호
+  return variant.payload.value;  // Actual prompt text or version number
 }
 ```
 
@@ -348,14 +348,14 @@ function getPromptVariant(userId: string): string {
 
 ### AWS AppConfig
 
-[AWS AppConfig](https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html)는 Feature Flag와 동적 설정을 지원합니다.
+[AWS AppConfig](https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html) supports Feature Flags and dynamic configuration.
 
-**장점**:
-- AWS 네이티브, Lambda/ECS/EKS와 통합
+**Advantages**:
+- AWS native, integrates with Lambda/ECS/EKS
 - Deployment strategy: Linear, Canary, All-at-once
-- CloudWatch 알람 기반 자동 롤백
+- CloudWatch alarm-based automatic rollback
 
-**예시**:
+**Example**:
 
 ```python
 import boto3
@@ -373,66 +373,66 @@ session_token = session['InitialConfigurationToken']
 config = appconfig.get_latest_configuration(ConfigurationToken=session_token)
 prompt_config = json.loads(config['Configuration'].read())
 
-print(prompt_config['version'])  # 예: 5
+print(prompt_config['version'])  # Example: 5
 print(prompt_config['text'])
 ```
 
-**배포 전략**:
+**Deployment Strategy**:
 ```json
 {
   "DeploymentStrategyId": "AppConfig.Canary10Percent20Minutes",
-  "Description": "10% 사용자에게 20분간 배포 후 확대"
+  "Description": "Deploy to 10% users for 20 minutes then expand"
 }
 ```
 
-CloudWatch 알람(`LLMErrorRate > threshold`) 발생 시 자동 롤백.
+Automatic rollback when CloudWatch alarm (`LLMErrorRate > threshold`) fires.
 
 ---
 
-## 배포 전략 비교
+## Deployment Strategy Comparison
 
-| 전략 | 리스크 | 검증 속도 | 비용 | 사용자 피드백 | 롤백 속도 |
-|------|-------|----------|------|-------------|----------|
-| **Shadow** | 없음 | 빠름 | 2배 | 불가 | N/A |
-| **Canary** | 낮음 | 중간 | 1x | 가능 | 빠름(분) |
-| **A/B** | 중간 | 느림 | 1x | 가능 | 중간(시간) |
-| **Blue-Green** | 높음 | 빠름 | 2배(전환 중) | 가능 | 매우 빠름(초) |
+| Strategy | Risk | Validation Speed | Cost | User Feedback | Rollback Speed |
+|----------|------|------------------|------|---------------|----------------|
+| **Shadow** | None | Fast | 2x | Not possible | N/A |
+| **Canary** | Low | Medium | 1x | Possible | Fast (minutes) |
+| **A/B** | Medium | Slow | 1x | Possible | Medium (hours) |
+| **Blue-Green** | High | Fast | 2x (during switch) | Possible | Very fast (seconds) |
 
-**선택 가이드**:
-- **초기 검증**: Shadow → Canary 5%
-- **비즈니스 임팩트 측정**: A/B Testing
-- **인프라 교체**: Blue-Green
-- **긴급 롤백 필요**: Blue-Green + Canary 조합
+**Selection Guide**:
+- **Initial validation**: Shadow → Canary 5%
+- **Business impact measurement**: A/B Testing
+- **Infrastructure replacement**: Blue-Green
+- **Emergency rollback needed**: Blue-Green + Canary combination
 
 ---
 
-## 참고 자료
+## References
 
-### Feature Flag 플랫폼
+### Feature Flag Platforms
 - **LaunchDarkly**: [launchdarkly.com](https://launchdarkly.com/)
-  - [AI/ML 관련 게시물](https://launchdarkly.com/blog/category/ai/)
+  - [AI/ML related posts](https://launchdarkly.com/blog/category/ai/)
 - **Unleash**: [getunleash.io](https://www.getunleash.io/)
-- **AWS AppConfig**: [AWS 문서](https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html)
+- **AWS AppConfig**: [AWS Documentation](https://docs.aws.amazon.com/appconfig/latest/userguide/what-is-appconfig.html)
 
-### 배포 전략
-- **Canary Deployment 패턴**: [martinfowler.com/bliki/CanaryRelease.html](https://martinfowler.com/bliki/CanaryRelease.html)
+### Deployment Strategies
+- **Canary Deployment Pattern**: [martinfowler.com/bliki/CanaryRelease.html](https://martinfowler.com/bliki/CanaryRelease.html)
 - **Blue-Green Deployment**: [martinfowler.com/bliki/BlueGreenDeployment.html](https://martinfowler.com/bliki/BlueGreenDeployment.html)
 - **Shadow Testing**: [Google SRE Workbook - Canarying Releases](https://sre.google/workbook/canarying-releases/)
 
-### 통계 검정
+### Statistical Testing
 - **A/B Test Calculator**: [evanmiller.org/ab-testing](https://www.evanmiller.org/ab-testing/sample-size.html)
 - **scipy.stats**: [docs.scipy.org/doc/scipy/reference/stats.html](https://docs.scipy.org/doc/scipy/reference/stats.html)
 
-### 관련 문서 (내부)
-- [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md) — kgateway HTTPRoute 기반 Canary 구현·Eval Gate·MLflow 롤백 (모델 평가 게이트 특화 canonical)
-- [거버넌스·자동화](./governance-automation.md) — 자동 회귀 감지·롤백 체계
+### Related Documents (Internal)
+- [Eval Gate · Registry · KPI](../../../agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md) — kgateway HTTPRoute-based Canary implementation, Eval Gate, and MLflow rollback (canonical for model evaluation gates)
+- [Governance & Automation](./governance-automation.md) — Automatic regression detection and rollback system
 
 ---
 
-## 다음 단계
+## Next Steps
 
-배포 전략을 선택했다면:
+Once you've selected a deployment strategy:
 
-1. **[거버넌스·자동화](./governance-automation.md)** — 자동 회귀 감지 및 롤백 체계 구축
-2. **[프롬프트·모델 레지스트리](./prompt-model-registry.md)** — 버전 관리 체계 구축
-3. **[Agent 모니터링](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — 실시간 observability 구축
+1. **[Governance & Automation](./governance-automation.md)** — Build automatic regression detection and rollback system
+2. **[Prompt & Model Registry](./prompt-model-registry.md)** — Build version control system
+3. **[Agent Monitoring](../../../agentic-ai-platform/operations-mlops/observability/agent-monitoring.md)** — Build real-time observability

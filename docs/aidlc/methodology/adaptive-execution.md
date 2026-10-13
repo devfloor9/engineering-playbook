@@ -1,11 +1,11 @@
 ---
 title: AIDLC Adaptive Execution
-description: AIDLC 공식 Adaptive Workflows — 조건부 stage 실행 decision tree, Inception 7단계와 Construction per-unit 루프 해설
+description: AIDLC official Adaptive Workflows — conditional stage execution decision tree, Inception 7-stage and Construction per-unit loop explained
 created: "2026-04-18"
 last_update:
   date: 2026-09-18
-  author: YoungJoon Jeong
-reading_time: 10
+  author: devfloor9
+reading_time: 16
 tags:
   - aidlc
   - adaptive-execution
@@ -19,9 +19,9 @@ sidebar_position: 7
 category: aidlc
 ---
 
-## 1. 개요: 왜 Adaptive 인가
+## 1. Overview: Why Adaptive?
 
-AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 **고정 워크플로가 아닌 조건부(adaptive) 실행**을 기본으로 합니다. 전통적 SDLC 의 단계가 "항상 순차 실행" 이었다면, AIDLC 는 프로젝트 특성·코드베이스 상태·요구사항 복잡도에 따라 **필요한 stage 만 선택·재정렬**합니다.
+AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) defaults to **conditional (adaptive) execution rather than fixed workflows**. Where traditional SDLC stages were "always sequential," AIDLC **selects and reorders only necessary stages** based on project characteristics, codebase state, and requirement complexity.
 
 ```mermaid
 graph TB
@@ -31,12 +31,12 @@ graph TB
     DECISION1 -->|No Greenfield| RA[Requirements Analysis]
     RE --> RA
 
-    RA --> DECISION2{User Impact /<br/>Collaboration /<br/>Business Context 있음?}
+    RA --> DECISION2{User Impact /<br/>Collaboration /<br/>Business Context present?}
     DECISION2 -->|Yes| US[User Stories]
     DECISION2 -->|No| WP[Workflow Planning]
     US --> WP
 
-    WP --> DECISION3{새 컴포넌트 /<br/>서비스 계층 필요?}
+    WP --> DECISION3{New component /<br/>service layer needed?}
     DECISION3 -->|Yes| AD[Application Design]
     DECISION3 -->|No| UG[Units Generation]
     AD --> UG
@@ -54,12 +54,12 @@ graph TB
     style CONSTRUCTION fill:#e74c3c,color:#fff
 ```
 
-**핵심 메시지:**
-- **Workspace Detection** 과 **Workflow Planning** 은 **필수** (항상 실행)
-- **Reverse Engineering · User Stories · Application Design** 은 **조건부** (프로젝트 특성에 따라 실행/스킵)
-- **Requirements Analysis** 와 **Units Generation** 은 거의 항상 실행되나 **깊이(Minimal/Standard/Comprehensive)** 가 조정됨
+**Key Messages:**
+- **Workspace Detection** and **Workflow Planning** are **mandatory** (always executed)
+- **Reverse Engineering · User Stories · Application Design** are **conditional** (executed/skipped based on project characteristics)
+- **Requirements Analysis** and **Units Generation** nearly always execute but **depth (Minimal/Standard/Comprehensive) adjusts**
 
-:::info AWS Labs 공식 설명
+:::info AWS Labs Official Statement
 > "AIDLC is adaptive rather than prescriptive. Each stage's execution is conditional on the workspace state and user needs, allowing teams to skip stages that aren't relevant to their specific project."
 >
 > — [AWS Labs AIDLC Workflows, v0.1.7](https://github.com/awslabs/aidlc-workflows)
@@ -67,28 +67,28 @@ graph TB
 
 ---
 
-## 2. Inception Phase: 7개 Stage Decision Tree
+## 2. Inception Phase: 7-Stage Decision Tree
 
-### 2.1 Stage 1: Workspace Detection (필수)
+### 2.1 Stage 1: Workspace Detection (Mandatory)
 
-**목적**: 현재 워크스페이스가 **Greenfield**(신규) 인지 **Brownfield**(기존 코드베이스 존재) 인지 판별.
+**Purpose**: Determine whether the current workspace is **Greenfield** (new) or **Brownfield** (existing codebase).
 
 ```mermaid
 flowchart LR
-    WD[Workspace Detection] --> CHECK1{코드베이스<br/>존재?}
+    WD[Workspace Detection] --> CHECK1{Codebase<br/>exists?}
     CHECK1 -->|Empty or<br/>README only| GREEN[Greenfield]
     CHECK1 -->|Source code<br/>found| CHECK2{Git history?}
     CHECK2 -->|Yes| BROWN[Brownfield]
-    CHECK2 -->|No| HYBRID[Hybrid<br/>외부 코드 임포트]
+    CHECK2 -->|No| HYBRID[Hybrid<br/>external code import]
 
     style GREEN fill:#2ecc71,color:#fff
     style BROWN fill:#ff9900,color:#fff
     style HYBRID fill:#9b59b6,color:#fff
 ```
 
-**실행 조건**: 항상 실행 (모든 AIDLC 세션의 시작점)
+**Execution Condition**: Always executed (starting point of all AIDLC sessions)
 
-**산출물**: `.aidlc/workspace.md`
+**Artifact**: `.aidlc/workspace.md`
 ```markdown
 ## Workspace Detection Result
 
@@ -97,112 +97,112 @@ flowchart LR
 **Framework**: Next.js 14 (detected from package.json)
 **Infrastructure**: EKS 1.35 (detected from k8s/ directory)
 **Git**: main branch, 847 commits
-**Test Coverage**: 68% (jest coverage report 발견)
+**Test Coverage**: 68% (jest coverage report found)
 ```
 
-### 2.2 Stage 2: Reverse Engineering (Brownfield 조건)
+### 2.2 Stage 2: Reverse Engineering (Brownfield Condition)
 
-**목적**: 기존 코드베이스에서 **암묵적 요구사항·도메인 모델·아키텍처 제약**을 역공학으로 추출.
+**Purpose**: Extract **implicit requirements, domain models, and architectural constraints** from existing codebase through reverse engineering.
 
-**실행 조건**:
-- Workspace Detection 이 **Brownfield** 또는 **Hybrid** 인 경우
-- 사용자가 "기존 시스템 확장" 을 명시한 경우
+**Execution Conditions**:
+- Workspace Detection resulted in **Brownfield** or **Hybrid**
+- User explicitly stated "extending existing system"
 
-**스킵 조건**:
-- Greenfield (코드 없음)
-- 사용자가 "새로 작성, 기존 무시" 를 명시한 경우
+**Skip Conditions**:
+- Greenfield (no code)
+- User explicitly stated "rewrite from scratch, ignore existing"
 
 ```mermaid
 flowchart TB
-    RE[Reverse Engineering Start] --> RE1[코드 구조 분석<br/>엔트리포인트·모듈]
-    RE1 --> RE2[도메인 모델 추출<br/>Entity·Aggregate·VO]
-    RE2 --> RE3[외부 의존성 매핑<br/>DB·API·Queue]
-    RE3 --> RE4[암묵적 비즈니스 규칙<br/>추출·문서화]
-    RE4 --> REO[출력:<br/>reverse-engineering-report.md]
+    RE[Reverse Engineering Start] --> RE1[Code structure analysis<br/>entry points & modules]
+    RE1 --> RE2[Domain model extraction<br/>Entity·Aggregate·VO]
+    RE2 --> RE3[External dependency mapping<br/>DB·API·Queue]
+    RE3 --> RE4[Implicit business rules<br/>extraction & documentation]
+    RE4 --> REO[Output:<br/>reverse-engineering-report.md]
 
     style RE fill:#ff9900,color:#fff
     style REO fill:#2ecc71,color:#fff
 ```
 
-**산출물**: `.aidlc/reverse-engineering-report.md`
+**Artifact**: `.aidlc/reverse-engineering-report.md`
 
-### 2.3 Stage 3: Requirements Analysis (거의 항상 실행, 깊이 조정)
+### 2.3 Stage 3: Requirements Analysis (Nearly Always Executed, Depth Adjusted)
 
-**목적**: User Request 를 **구조화된 Requirements Document** 로 정제.
+**Purpose**: Refine User Request into **structured Requirements Document**.
 
-**실행 깊이 3가지 레벨:**
+**Three Execution Depth Levels:**
 
-| 레벨 | 적용 조건 | 포함 요소 | 예상 소요 |
-|------|----------|----------|----------|
-| **Minimal** | 버그 수정 · 단순 리팩터링 | FR 목록, 영향 범위 | 10-20분 |
-| **Standard** | 신규 기능 · 기존 기능 확장 | FR, NFR, Acceptance Criteria, 의존성 | 1-3시간 |
-| **Comprehensive** | 신규 서비스 · 아키텍처 변경 | Standard + Risk Analysis, Compliance, Performance Model | 반나절-1일 |
+| Level | Application Criteria | Included Elements | Estimated Duration |
+|-------|---------------------|-------------------|-------------------|
+| **Minimal** | Bug fixes · Simple refactoring | FR list, impact scope | 10-20 minutes |
+| **Standard** | New features · Feature extensions | FR, NFR, Acceptance Criteria, dependencies | 1-3 hours |
+| **Comprehensive** | New services · Architecture changes | Standard + Risk Analysis, Compliance, Performance Model | Half day-1 day |
 
 ```mermaid
 flowchart LR
-    USER[User Request] --> RA{복잡도 평가}
-    RA -->|Simple| MIN[Minimal<br/>FR만]
+    USER[User Request] --> RA{Complexity<br/>assessment}
+    RA -->|Simple| MIN[Minimal<br/>FR only]
     RA -->|Medium| STD[Standard<br/>FR + NFR + AC]
     RA -->|Complex| COMP[Comprehensive<br/>+ Risk + Compliance]
 
-    MIN --> OUT1[requirements.md<br/>~50줄]
-    STD --> OUT2[requirements.md<br/>~300줄]
-    COMP --> OUT3[requirements.md<br/>~800줄]
+    MIN --> OUT1[requirements.md<br/>~50 lines]
+    STD --> OUT2[requirements.md<br/>~300 lines]
+    COMP --> OUT3[requirements.md<br/>~800 lines]
 
     style MIN fill:#2ecc71,color:#fff
     style STD fill:#326ce5,color:#fff
     style COMP fill:#e74c3c,color:#fff
 ```
 
-**스킵 조건**:
-- User Request 가 이미 FR/NFR 구조로 제공된 경우 (Content Validation 만 실행)
+**Skip Condition**:
+- User Request already provided in FR/NFR structure (only Content Validation executed)
 
-### 2.4 Stage 4: User Stories (조건부)
+### 2.4 Stage 4: User Stories (Conditional)
 
-**목적**: Requirements 를 **사용자 관점의 시나리오 (As a X, I want Y, so that Z)** 로 변환.
+**Purpose**: Transform Requirements into **user-perspective scenarios (As a X, I want Y, so that Z)**.
 
-**실행 조건**:
-- 요구사항에 **사용자 임팩트** 가 명시된 경우 (UX 변화, 워크플로 변화)
-- **협업 컨텍스트** 가 중요한 경우 (여러 팀·역할이 관여)
-- **비즈니스 맥락** 을 명확히 해야 하는 경우 (이해관계자 설명 필요)
+**Execution Conditions**:
+- Requirements specify **user impact** (UX changes, workflow changes)
+- **Collaboration context** is important (multiple teams/roles involved)
+- **Business context** needs clarification (stakeholder explanation required)
 
-**스킵 조건**:
-- 순수 인프라·백엔드 변경 (사용자가 직접 인지하지 않음)
-- DevOps 자동화 (CI/CD 파이프라인 개선 등)
-- 데이터 마이그레이션
+**Skip Conditions**:
+- Pure infrastructure/backend changes (users don't directly perceive)
+- DevOps automation (CI/CD pipeline improvements, etc.)
+- Data migration
 
 ```mermaid
 flowchart TB
-    REQ[Requirements Document] --> CHECK{사용자 임팩트<br/>· 협업<br/>· 비즈니스 컨텍스트<br/>있음?}
-    CHECK -->|Yes| US[User Stories 생성]
+    REQ[Requirements Document] --> CHECK{User impact<br/>· Collaboration<br/>· Business context<br/>present?}
+    CHECK -->|Yes| US[Generate User Stories]
     CHECK -->|No| SKIP[Skip to<br/>Workflow Planning]
 
     US --> US1[As a Customer<br/>I want to pay with credit card<br/>so that I can complete checkout quickly]
-    US --> US2[As a Admin<br/>I want to see refund history<br/>so that I can audit disputes]
+    US --> US2[As an Admin<br/>I want to see refund history<br/>so that I can audit disputes]
 
     style US fill:#2ecc71,color:#fff
     style SKIP fill:#95a5a6,color:#fff
 ```
 
-### 2.5 Stage 5: Workflow Planning (필수)
+### 2.5 Stage 5: Workflow Planning (Mandatory)
 
-**목적**: **이번 세션에서 실행할 stage 목록** 과 **Unit of Work 목록 초안** 을 결정.
+**Purpose**: Decide **list of stages to execute in this session** and **draft Unit of Work list**.
 
-**실행 조건**: 항상 실행 (Adaptive 의 핵심)
+**Execution Condition**: Always executed (core of Adaptive)
 
-**산출물**: `.aidlc/workflow-plan.md`
+**Artifact**: `.aidlc/workflow-plan.md`
 ```markdown
 ## Workflow Plan
 
-**Scope**: Payment Service 결제 수단 확장 (신용카드 → + 간편결제)
+**Scope**: Payment Service payment method expansion (credit card → + quick pay)
 
 **Stages to Execute**:
-- [x] workspace_detection (완료)
-- [x] reverse_engineering (완료, brownfield)
-- [x] requirements_analysis (Standard 레벨)
-- [x] user_stories (완료, 4개 스토리)
-- [ ] **workflow_planning** (현재)
-- [ ] application_design (새 결제 어댑터 서비스 계층 필요 → 실행)
+- [x] workspace_detection (completed)
+- [x] reverse_engineering (completed, brownfield)
+- [x] requirements_analysis (Standard level)
+- [x] user_stories (completed, 4 stories)
+- [ ] **workflow_planning** (current)
+- [ ] application_design (new payment adapter service layer needed → execute)
 - [ ] units_generation
 - [ ] construction (per-unit loop)
 
@@ -211,49 +211,49 @@ flowchart TB
 2. KakaoPay Integration
 3. TossPayments Integration
 
-**Estimated Duration**: 3-5 day
+**Estimated Duration**: 3-5 days
 ```
 
-### 2.6 Stage 6: Application Design (조건부)
+### 2.6 Stage 6: Application Design (Conditional)
 
-**목적**: **새 컴포넌트·서비스 계층·아키텍처 패턴** 이 필요한 경우 설계 문서 생성.
+**Purpose**: Generate design documents when **new components, service layers, or architectural patterns** are needed.
 
-**실행 조건**:
-- 새 마이크로서비스 · 새 Bounded Context 필요
-- 기존 아키텍처의 계층 변경 (예: 모놀리식 → 모듈러 모놀리식 → MSA)
-- 크로스커팅 관심사 추가 (예: 인증 계층, Audit 계층)
+**Execution Conditions**:
+- New microservice · new Bounded Context required
+- Architectural layer changes (e.g., monolith → modular monolith → MSA)
+- Adding cross-cutting concerns (e.g., authentication layer, audit layer)
 
-**스킵 조건**:
-- 기존 서비스 내 기능 추가 (Workflow Planning 에서 기존 Bounded Context 확장 확인)
-- UI 변경만
-- 설정 변경
+**Skip Conditions**:
+- Adding features within existing service (Workflow Planning confirms extending existing Bounded Context)
+- UI changes only
+- Configuration changes
 
 ```mermaid
 flowchart TB
-    WP[Workflow Plan] --> CHECK{새 컴포넌트<br/>서비스 계층<br/>필요?}
+    WP[Workflow Plan] --> CHECK{New component<br/>service layer<br/>needed?}
     CHECK -->|Yes| AD[Application Design]
     CHECK -->|No| SKIP[Skip to<br/>Units Generation]
 
     AD --> AD1[Component Diagram<br/>C4 Level 2-3]
-    AD --> AD2[Sequence Diagram<br/>주요 플로우]
+    AD --> AD2[Sequence Diagram<br/>key flows]
     AD --> AD3[Data Model<br/>Aggregate·Entity·VO]
-    AD --> AD4[NFR Mapping<br/>성능·보안·가용성]
+    AD --> AD4[NFR Mapping<br/>performance·security·availability]
 
     style AD fill:#9b59b6,color:#fff
     style SKIP fill:#95a5a6,color:#fff
 ```
 
-### 2.7 Stage 7: Units Generation (조건부)
+### 2.7 Stage 7: Units Generation (Conditional)
 
-**목적**: Application Design 또는 Requirements 를 **여러 Unit of Work (독립 작업 단위)** 로 분해.
+**Purpose**: Decompose Application Design or Requirements into **multiple Units of Work (independent work units)**.
 
-**실행 조건**:
-- Scope 가 1개의 원자적 변경(< 100줄) 이상인 경우
-- 여러 서비스·여러 파일에 걸친 변경
-- 병렬 실행 가능한 작업이 존재
+**Execution Conditions**:
+- Scope exceeds a single atomic change (< 100 lines)
+- Changes span multiple services or files
+- Parallelizable work exists
 
-**스킵 조건**:
-- 단일 함수 · 단일 파일 수정 → 즉시 Construction 진입 (1개 Unit 자동 생성)
+**Skip Condition**:
+- Single function · single file modification → enter Construction immediately (1 Unit auto-generated)
 
 ```mermaid
 flowchart LR
@@ -271,20 +271,20 @@ flowchart LR
     style UNITS fill:#2ecc71,color:#fff
 ```
 
-**산출물**: `.aidlc/units/` 디렉터리
+**Artifact**: `.aidlc/units/` directory
 ```
 .aidlc/units/
   unit-001-payment-adapter-interface.md
   unit-002-kakaopay-integration.md
   unit-003-tosspayments-integration.md
-  dependencies.md  ← Unit 간 의존 그래프
+  dependencies.md  ← Inter-unit dependency graph
 ```
 
 ---
 
 ## 3. Construction Phase: Per-Unit Loop
 
-각 Unit of Work 는 **5 sub-stage 를 순차 실행**하는 내부 루프를 가집니다.
+Each Unit of Work has an internal loop that **executes 5 sub-stages sequentially**.
 
 ```mermaid
 flowchart LR
@@ -303,9 +303,9 @@ flowchart LR
 
 ### 3.1 Sub-stage 1: Functional Design
 
-**목적**: Unit 의 **입력·출력·비즈니스 규칙** 을 명세.
+**Purpose**: Specify the Unit's **inputs, outputs, and business rules**.
 
-**산출물 예시:**
+**Artifact Example:**
 ```markdown
 ## Unit-002: KakaoPay Integration — Functional Design
 
@@ -319,32 +319,32 @@ flowchart LR
 - Failure: ErrorCode (enum), ErrorMessage (string)
 
 ### Business Rules
-- KakaoPay 세션은 15분 내 완료 필요
-- 중복 결제 방지: OrderID 기반 idempotency key 사용
-- 금액은 KRW 원 단위 정수
+- KakaoPay session must complete within 15 minutes
+- Duplicate payment prevention: idempotency key based on OrderID
+- Amount in KRW integer units
 ```
 
 ### 3.2 Sub-stage 2: NFR Specification
 
-**목적**: 해당 Unit 의 **비기능 요구사항** 을 측정 가능한 형태로 정의.
+**Purpose**: Define the Unit's **non-functional requirements** in measurable form.
 
-**산출물 예시:**
+**Artifact Example:**
 ```markdown
 ## Unit-002 NFR
 
-| ID | NFR | 지표 | 타겟 |
-|----|-----|------|------|
-| KP-NFR-001 | 성능 | API latency P99 | < 500ms |
-| KP-NFR-002 | 가용성 | 월 가용성 | 99.9% |
-| KP-NFR-003 | 보안 | 카드 정보 로깅 | 절대 금지 |
-| KP-NFR-004 | 관찰성 | 결제 실패율 대시보드 | Grafana 실시간 |
+| ID | NFR | Metric | Target |
+|----|-----|--------|--------|
+| KP-NFR-001 | Performance | API latency P99 | < 500ms |
+| KP-NFR-002 | Availability | Monthly availability | 99.9% |
+| KP-NFR-003 | Security | Card info logging | Strictly prohibited |
+| KP-NFR-004 | Observability | Payment failure rate dashboard | Grafana real-time |
 ```
 
 ### 3.3 Sub-stage 3: Infrastructure Design
 
-**목적**: Unit 실행에 필요한 **인프라 리소스** (EKS Deployment, SQS Queue, Secret 등) 설계.
+**Purpose**: Design **infrastructure resources** (EKS Deployment, SQS Queue, Secret, etc.) needed for Unit execution.
 
-**산출물 예시:**
+**Artifact Example:**
 ```yaml
 ## Unit-002 Infrastructure
 
@@ -366,51 +366,51 @@ resources:
 
 ### 3.4 Sub-stage 4: Code Generation
 
-**목적**: 위 3 sub-stage 산출물을 입력으로 **실제 코드** 생성.
+**Purpose**: Generate **actual code** using the above 3 sub-stage artifacts as input.
 
-- TDD 원칙 적용: 테스트 먼저, 구현 나중
-- Harness Engineering 제약 준수
-- Onthology 용어 일관성 검증
+- Apply TDD principles: tests first, implementation later
+- Comply with Harness Engineering constraints
+- Verify Ontology terminology consistency
 
 ### 3.5 Sub-stage 5: Build & Test
 
-**목적**: 생성된 코드를 **자동 빌드 + 단위 테스트 + 통합 테스트** 실행.
+**Purpose**: **Auto-build + unit test + integration test** the generated code.
 
-**Loss Function 역할:**
-- Build 실패 → Sub-stage 4 재시도
-- Unit Test 실패 → 코드 수정 or 테스트 수정
-- Integration Test 실패 → Infrastructure Design 재검토
-
----
-
-## 4. Stage 별 실행 조건·스킵 조건 요약표
-
-| Stage | 필수 여부 | 실행 조건 | 스킵 조건 | 평균 소요 |
-|-------|----------|----------|----------|----------|
-| **Workspace Detection** | 필수 | 모든 세션 | - | 1-2분 |
-| **Reverse Engineering** | 조건부 | Brownfield | Greenfield | 30분-2시간 |
-| **Requirements Analysis** | 거의 필수 | 항상 (깊이 조정) | User Request 가 이미 FR/NFR 구조 | 10분-1일 |
-| **User Stories** | 조건부 | 사용자 임팩트·협업·비즈니스 맥락 | 순수 인프라·DevOps 변경 | 30분-3시간 |
-| **Workflow Planning** | 필수 | 모든 세션 | - | 15-30분 |
-| **Application Design** | 조건부 | 새 컴포넌트·서비스 계층 | 기존 서비스 내 변경 | 1시간-1일 |
-| **Units Generation** | 조건부 | Multi-file · Multi-service | 단일 원자 변경 | 15분-2시간 |
-| **Construction (per Unit)** | 필수 | 모든 Unit | - | Unit 당 1시간-1일 |
+**Loss Function Role:**
+- Build failure → Retry Sub-stage 4
+- Unit Test failure → Fix code or fix test
+- Integration Test failure → Review Infrastructure Design
 
 ---
 
-## 5. engineering-playbook Intent/Unit/Bolt 와의 매핑
+## 4. Summary Table: Execution and Skip Conditions by Stage
 
-| engineering-playbook 용어 | 공식 AIDLC 상 위치 | 매핑 설명 |
-|---------------------------|---------------------|----------|
-| **Intent** | Stage 1-3 (Workspace Detection → Requirements Analysis) 의 입력 + 산출물 | Intent 는 User Request + Requirements Document 의 종합 |
-| **Unit** | Stage 7 (Units Generation) 의 산출물 | Unit of Work 와 1:1 대응 |
-| **Bolt** | Construction Phase 전체 (5 sub-stage) 1회 실행 | Sprint 를 대체하는 짧은 반복 |
+| Stage | Mandatory? | Execution Condition | Skip Condition | Avg Duration |
+|-------|-----------|---------------------|----------------|--------------|
+| **Workspace Detection** | Mandatory | Every session | - | 1-2 min |
+| **Reverse Engineering** | Conditional | Brownfield | Greenfield | 30 min-2 hrs |
+| **Requirements Analysis** | Nearly mandatory | Always (depth adjusted) | User Request already in FR/NFR structure | 10 min-1 day |
+| **User Stories** | Conditional | User impact·collaboration·business context | Pure infra·DevOps changes | 30 min-3 hrs |
+| **Workflow Planning** | Mandatory | Every session | - | 15-30 min |
+| **Application Design** | Conditional | New component·service layer | Changes within existing service | 1 hr-1 day |
+| **Units Generation** | Conditional | Multi-file · Multi-service | Single atomic change | 15 min-2 hrs |
+| **Construction (per Unit)** | Mandatory | Every Unit | - | 1 hr-1 day per Unit |
 
-**시각적 매핑:**
+---
+
+## 5. Mapping to engineering-playbook Intent/Unit/Bolt
+
+| engineering-playbook Term | Position in Official AIDLC | Mapping Description |
+|--------------------------|----------------------------|---------------------|
+| **Intent** | Input + artifacts of Stage 1-3 (Workspace Detection → Requirements Analysis) | Intent is synthesis of User Request + Requirements Document |
+| **Unit** | Artifacts of Stage 7 (Units Generation) | 1:1 correspondence with Unit of Work |
+| **Bolt** | Full Construction Phase (5 sub-stages) single execution | Short iteration replacing Sprint |
+
+**Visual Mapping:**
 
 ```mermaid
 flowchart TB
-    subgraph Official["AWS Labs 공식 AIDLC"]
+    subgraph Official["AWS Labs Official AIDLC"]
         direction TB
         I1[1. Workspace Detection]
         I2[2. Reverse Engineering]
@@ -422,18 +422,18 @@ flowchart TB
         C[Construction<br/>per-Unit Loop]
     end
 
-    subgraph Playbook["engineering-playbook 용어"]
+    subgraph Playbook["engineering-playbook Terms"]
         direction TB
-        INTENT[Intent<br/>비즈니스 목적]
+        INTENT[Intent<br/>Business Purpose]
         UNIT[Unit<br/>DDD Subdomain]
-        BOLT[Bolt<br/>시간/일 단위 반복]
+        BOLT[Bolt<br/>Hour/Day Iteration]
     end
 
-    I1 -.매핑.-> INTENT
-    I2 -.매핑.-> INTENT
-    I3 -.매핑.-> INTENT
-    I7 -.매핑.-> UNIT
-    C -.매핑.-> BOLT
+    I1 -.maps to.-> INTENT
+    I2 -.maps to.-> INTENT
+    I3 -.maps to.-> INTENT
+    I7 -.maps to.-> UNIT
+    C -.maps to.-> BOLT
 
     style Official fill:#326ce5,color:#fff
     style Playbook fill:#ff9900,color:#fff
@@ -441,93 +441,93 @@ flowchart TB
 
 ---
 
-## 6. 실전 시나리오별 워크플로 예시
+## 6. Real-World Workflow Examples by Scenario
 
-### 6.1 시나리오 A: 신규 마이크로서비스 (Greenfield)
+### 6.1 Scenario A: New Microservice (Greenfield)
 
 ```
 workspace_detection (1min) → [SKIP reverse_engineering]
-  → requirements_analysis (Comprehensive, 반나절)
-  → user_stories (2시간)
+  → requirements_analysis (Comprehensive, half day)
+  → user_stories (2 hrs)
   → workflow_planning (30min)
-  → application_design (1일)
-  → units_generation (1시간) → 5 Units
-  → construction x 5 (Units 병렬 실행, Unit 당 1일)
+  → application_design (1 day)
+  → units_generation (1 hr) → 5 Units
+  → construction x 5 (parallel Units, 1 day per Unit)
 
-총 소요: 5-7일
+Total Duration: 5-7 days
 ```
 
-### 6.2 시나리오 B: 기존 서비스 버그 수정
+### 6.2 Scenario B: Existing Service Bug Fix
 
 ```
 workspace_detection (1min)
-  → reverse_engineering (Minimal, 버그 주변 코드만 30min)
+  → reverse_engineering (Minimal, bug vicinity code only 30min)
   → requirements_analysis (Minimal, 10min)
   → [SKIP user_stories]
   → workflow_planning (10min)
   → [SKIP application_design]
-  → [SKIP units_generation, 단일 Unit 자동 생성]
-  → construction (2-4시간)
+  → [SKIP units_generation, single Unit auto-generated]
+  → construction (2-4 hrs)
 
-총 소요: 3-5시간
+Total Duration: 3-5 hours
 ```
 
-### 6.3 시나리오 C: 레거시 시스템 마이그레이션
+### 6.3 Scenario C: Legacy System Migration
 
 ```
-workspace_detection (5min, 레거시 복잡도 분석)
-  → reverse_engineering (Comprehensive, 2-3일)
-  → requirements_analysis (Comprehensive, 1일)
-  → user_stories (1일, 기존 사용자 워크플로 매핑)
-  → workflow_planning (반나절, 마이그레이션 로드맵)
-  → application_design (2일, Strangler Fig 패턴)
-  → units_generation (반나절, 20+ Units)
-  → construction x 20 (점진적 실행, 수개월)
+workspace_detection (5min, legacy complexity analysis)
+  → reverse_engineering (Comprehensive, 2-3 days)
+  → requirements_analysis (Comprehensive, 1 day)
+  → user_stories (1 day, map existing user workflows)
+  → workflow_planning (half day, migration roadmap)
+  → application_design (2 days, Strangler Fig pattern)
+  → units_generation (half day, 20+ Units)
+  → construction x 20 (incremental execution, several months)
 
-총 소요: 3-6개월
+Total Duration: 3-6 months
 ```
 
-### 6.4 시나리오 D: DevOps 자동화 (CI/CD 개선)
+### 6.4 Scenario D: DevOps Automation (CI/CD Improvement)
 
 ```
 workspace_detection (1min)
   → [SKIP reverse_engineering]
-  → requirements_analysis (Standard, 1시간)
-  → [SKIP user_stories, 개발자 내부 도구]
+  → requirements_analysis (Standard, 1 hr)
+  → [SKIP user_stories, internal developer tool]
   → workflow_planning (20min)
-  → [SKIP application_design, 기존 파이프라인 개선]
+  → [SKIP application_design, improving existing pipeline]
   → units_generation (30min, 3-5 Units)
-  → construction x 3-5 (각 Unit 1-2시간)
+  → construction x 3-5 (1-2 hrs each Unit)
 
-총 소요: 1-2일
+Total Duration: 1-2 days
 ```
 
 ---
 
-## 7. Adaptive Execution 구현 체크리스트
+## 7. Adaptive Execution Implementation Checklist
 
-조직에서 AIDLC Adaptive Execution 을 도입할 때 확인할 항목:
+Items to verify when adopting AIDLC Adaptive Execution in your organization:
 
-- [ ] **Workspace Detection 자동화**: 코드베이스 분석 도구 통합 (예: `cloc`, `git log`, AST 파서)
-- [ ] **Complexity Scorer**: Requirements 의 Minimal/Standard/Comprehensive 자동 분류
-- [ ] **User Stories Trigger**: 사용자 임팩트 키워드 사전 정의
-- [ ] **Application Design Trigger**: 새 Bounded Context 여부 판단 규칙
-- [ ] **Units Generation Splitter**: Unit 분해 기준 정의 (파일 수, LOC, 팀 소유권)
-- [ ] **Stage Skip Logging**: 스킵된 stage 에 대한 **감사 로그** 기록 (Audit Logging 규칙과 연동)
-- [ ] **Checkpoint Approval Gates**: 각 stage 간 승인 게이트 구현
-- [ ] **Session Continuity**: 세션 중단·재개 시 다음 실행할 stage 복원
+- [ ] **Workspace Detection Automation**: Integrate codebase analysis tools (e.g., `cloc`, `git log`, AST parser)
+- [ ] **Complexity Scorer**: Auto-classify Requirements into Minimal/Standard/Comprehensive
+- [ ] **User Stories Trigger**: Define user impact keyword dictionary
+- [ ] **Application Design Trigger**: Rules for determining new Bounded Context
+- [ ] **Units Generation Splitter**: Define Unit decomposition criteria (file count, LOC, team ownership)
+- [ ] **Stage Skip Logging**: Record **audit logs** for skipped stages (linked to Audit Logging rule)
+- [ ] **Checkpoint Approval Gates**: Implement approval gates between stages
+- [ ] **Session Continuity**: Restore next stage to execute when session is interrupted/resumed
 
 ---
 
-## 8. 참고 자료
+## 8. References
 
-### 공식 저장소
-- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception) — 7 stage 상세 규칙
-- [AWS Labs AIDLC Construction](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/construction) — per-Unit loop 규격
-- [Open-Sourcing Adaptive Workflows for AI-DLC (AWS Blog)](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — Adaptive 컨셉 원문
+### Official Repositories
+- [AWS Labs AIDLC Inception Stages](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception) — Detailed rules for 7 stages
+- [AWS Labs AIDLC Construction](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/construction) — per-Unit loop specification
+- [Open-Sourcing Adaptive Workflows for AI-DLC (AWS Blog)](https://aws.amazon.com/blogs/devops/open-sourcing-adaptive-workflows-for-ai-driven-development-life-cycle-ai-dlc/) — Original Adaptive concept
 
-### 관련 문서
-- [10대 원칙과 실행 모델](./principles-and-model.md) — Intent/Unit/Bolt 개요 및 공식 용어 매핑
-- [Common Rules](./common-rules.md) — 11개 공통 규칙 (Workflow Changes, Checkpoint Approval 포함)
-- [DDD 통합](./ddd-integration.md) — Unit 을 DDD Bounded Context 로 매핑하는 방법
-- [AI 코딩 에이전트](../toolchain/ai-coding-agents.md) — Construction Phase 도구 선택
+### Related Documentation
+- [10 Principles and Execution Model](./principles-and-model.md) — Intent/Unit/Bolt overview and official terminology mapping
+- [Common Rules](./common-rules.md) — 11 common rules (including Workflow Changes, Checkpoint Approval)
+- [DDD Integration](./ddd-integration.md) — How to map Units to DDD Bounded Contexts
+- [AI Coding Agents](../toolchain/ai-coding-agents.md) — Tool selection for Construction Phase

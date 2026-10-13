@@ -1,11 +1,11 @@
 ---
-title: S4. 페르소나 매칭 + 클러스터링
-description: 라이프스타일 페르소나 자동 분류 + RFM × 카테고리 친화도 KMeans 통합
+title: S4. Persona Matching + Clustering
+description: Auto-classified lifestyle personas + RFM × Category affinity KMeans integrated
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 4
 tags:
   - industry-solution
   - retail
@@ -16,57 +16,57 @@ tags:
 sidebar_label: S4. Persona & Cluster
 ---
 
-> 이 화면은 두 가지 분석을 제공합니다. **페르소나 매칭**은 미리 정의한 생활 유형에 회원이 얼마나 부합하는지 평가하고, **클러스터링**은 비슷한 특성의 회원을 묶습니다. 클러스터링에는 **RFM(최근 구매 시점·구매 빈도·구매 금액)**과 카테고리, 채널, 소셜 활동을 입력합니다. 인스타그램과 올리브영 키워드는 생성한 그룹의 이름을 설명하는 데 사용합니다.
+> This screen supports two analyses. **Persona matching** scores members against predefined lifestyle profiles; **clustering** groups members by similar features. The clustering inputs include **RFM—recency, frequency, and monetary value of purchases**—along with category, channel, and social activity. Instagram and Olive Young keywords provide context for the generated cluster labels.
 
-## 1. URL 경로
+## 1. URL Path
 - `/personas`
 
-## 2. 사용자 스토리
-> P2 (인사이트) — 회원 5만명을 5종 라이프스타일 페르소나로 자동 분류 + 의미 있는 6~8 클러스터로 묶고 싶다.
+## 2. User Stories
+> P2 (Insights) — Wants to automatically classify 50K members into 5 lifestyle personas and group them into 6~8 meaningful clusters.
 
-## 3. 입력 UI
-- **페르소나 매칭 탭**: 회원 단건/일괄 매칭
-- **클러스터링 탭**: KMeans 클러스터 분석
-- 페르소나 정의 카드 (5종): 키즈맘 · 골드미스 · 1인가구 · 시니어 · 트렌드세터
+## 3. Input UI
+- **Persona matching tab**: Single-member / bulk matching
+- **Clustering tab**: KMeans cluster analysis
+- Persona definition cards (5 types): Kids mom · Gold miss · Single household · Senior · Trendsetter
 
-## 4. 데이터 믹스
-| 데이터 | 출처 | 활용 |
+## 4. Data Mix
+| Data | Source | Use |
 |---|---|---|
-| RFM 피처 | Neptune | KMeans 입력 |
-| 카테고리 친화도 | Neptune (Customer × Category 빈도) | KMeans 입력 |
-| 채널 비중 | Neptune | KMeans 입력 |
-| **소셜 페르소나** | 인스타·올영 키워드 → SocialSignal | LLM 라벨링 보강 |
+| RFM features | Neptune | KMeans input |
+| Category affinity | Neptune (Customer × Category frequency) | KMeans input |
+| Channel share | Neptune | KMeans input |
+| **Social personas** | Instagram · Olive Young keywords → SocialSignal | LLM labeling reinforcement |
 
-## 5. 처리 파이프라인 (페르소나 매칭)
+## 5. Processing Pipeline (Persona Matching)
 ```
-1. 회원 1-hop 데이터 (openCypher)
-2. 피처 벡터: 카테고리 비중·가격대·시간대·채널 비중
-3. 페르소나별 가중치 점수
-4. 1·2순위 + 신뢰도 (entropy)
-```
-
-## 6. 처리 파이프라인 (클러스터링)
-```
-1. 피처 추출: RFM + 카테고리 친화도 + 채널 비중 + 소셜 활동
-2. 표준화 (z-score)
-3. KMeans 6 (또는 elbow)
-4. 클러스터별 평균 + 소셜 키워드 → Sonnet 4.6 라벨링
-5. 라벨 예: "프리미엄 Beauty 충성층", "할인 민감 1인가구", "주말 가족 쇼핑객"
+1. Member 1-hop data (openCypher)
+2. Feature vector: category share · price band · time-of-day · channel share
+3. Per-persona weighted score
+4. 1st/2nd rank + confidence (entropy)
 ```
 
-## 7. 출력 UI
-- 페르소나 카드 (마스킹 ID + 1·2순위 + 신뢰도 바)
-- 클러스터 카드 (라벨, 회원 수, 핵심 특징, 대표 SKU 5)
-- 2D 산점도 (PCA)
-- 페르소나 → 클러스터 Sankey
+## 6. Processing Pipeline (Clustering)
+```
+1. Feature extraction: RFM + category affinity + channel share + social activity
+2. Standardization (z-score)
+3. KMeans 6 (or elbow)
+4. Per-cluster mean + social keywords → Sonnet 4.6 labeling
+5. Label examples: "Premium Beauty loyalists", "Discount-sensitive single household", "Weekend family shoppers"
+```
 
-## 8. 가드레일
-- 페르소나 라벨 회원 본인 비노출 (내부 분석 전용)
-- "민감 추정" (임신·질병) 금지
-- 표본 너무 작은 클러스터(&lt;30명) 별도 표시
-- LLM 라벨에 차별·편견 어휘 금지
+## 7. Output UI
+- Persona card (masked ID + 1st/2nd rank + confidence bar)
+- Cluster card (label, member count, key traits, top 5 representative SKUs)
+- 2D scatter plot (PCA)
+- Persona → Cluster Sankey
 
-## 9. 데모 시나리오
-1. 단건 매칭 → "1순위 키즈맘 0.62 / 2순위 1인가구 0.18"
-2. 5만명 일괄 클러스터링 → 6 클러스터 자동 라벨
-3. "이 클러스터에 캠페인 발송 시뮬" → S5 연계
+## 8. Guardrails
+- Persona labels not exposed to the members themselves (internal analysis only)
+- "Sensitive inference" (pregnancy · illness) forbidden
+- Clusters with very small samples (&lt;30 members) shown separately
+- LLM labels must avoid discriminatory · biased terms
+
+## 9. Demo Scenarios
+1. Single-member matching → "Rank 1 Kids mom 0.62 / Rank 2 Single household 0.18"
+2. 50K-member bulk clustering → 6 clusters auto-labeled
+3. "Simulate a campaign send to this cluster" → S5 linkage

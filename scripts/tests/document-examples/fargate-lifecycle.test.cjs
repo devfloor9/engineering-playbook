@@ -12,8 +12,8 @@ const root = path.resolve(process.env.FARGATE_DOC_ROOT || process.cwd());
 const dependencyRoot = path.resolve(process.env.FARGATE_DEPS_ROOT || process.cwd());
 const yaml = createRequire(path.join(dependencyRoot, 'package.json'))('js-yaml');
 const documents = {
-  ko: 'docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md',
-  en: 'i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md',
+  ko: 'i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md',
+  en: 'docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-fargate.md',
 };
 
 function extract(relativePath) {

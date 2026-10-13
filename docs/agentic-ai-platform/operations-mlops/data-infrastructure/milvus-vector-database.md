@@ -1,11 +1,11 @@
 ---
-title: Milvus 벡터 데이터베이스 통합
-description: Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법
+title: Milvus Vector Database Integration
+description: Deploying Milvus vector database on Amazon EKS and integrating with RAG pipelines
 created: "2026-02-05"
 last_update:
-  date: 2026-09-18
-  author: YoungJoon Jeong
-reading_time: 11
+  date: 2026-09-21
+  author: devfloor9
+reading_time: 18
 tags:
   - milvus
   - vector-database
@@ -15,7 +15,7 @@ tags:
   - genai
   - embedding
   - scope:ops
-sidebar_label: Milvus 벡터 DB
+sidebar_label: Milvus Vector DB
 sidebar_position: 9
 category: genai-aiml
 ---
@@ -29,28 +29,28 @@ import {
   StorageCostComparisonTable
 } from '@site/src/components/MilvusTables';
 
-Milvus v2.4.x는 대규모 벡터 유사도 검색을 위한 오픈소스 벡터 데이터베이스입니다. Agentic AI 플랫폼에서 RAG(Retrieval-Augmented Generation) 파이프라인의 핵심 컴포넌트로 활용됩니다.
+Milvus v2.4.x is an open-source vector database for large-scale vector similarity search. It serves as a core component of RAG (Retrieval-Augmented Generation) pipelines in the Agentic AI Platform.
 
-## 1. 개요
+## 1. Overview
 
-### Milvus가 필요한 이유
+### Why Milvus Is Needed
 
-Agentic AI 시스템에서 벡터 데이터베이스는 다음과 같은 역할을 수행합니다:
+In Agentic AI systems, vector databases perform the following roles:
 
-- **지식 저장소**: 문서, FAQ, 제품 정보 등을 임베딩 벡터로 저장
-- **의미 기반 검색**: 키워드가 아닌 의미적 유사성 기반 검색
-- **컨텍스트 제공**: LLM에 관련 정보를 제공하여 환각(hallucination) 감소
-- **장기 메모리**: Agent의 대화 히스토리 및 학습 내용 저장
+- **Knowledge store**: Store documents, FAQs, product information as embedding vectors
+- **Semantic search**: Search based on semantic similarity rather than keywords
+- **Context provision**: Provide relevant information to LLMs to reduce hallucination
+- **Long-term memory**: Store agent conversation history and learned content
 
 ```mermaid
 flowchart LR
-    Q[사용자<br/>쿼리]
-    E[임베딩<br/>모델]
-    S[벡터<br/>검색]
+    Q[User<br/>Query]
+    E[Embedding<br/>Model]
+    S[Vector<br/>Search]
     M[(Milvus)]
-    C[컨텍스트<br/>구성]
-    L[LLM<br/>추론]
-    R[응답<br/>생성]
+    C[Context<br/>Construction]
+    L[LLM<br/>Inference]
+    R[Response<br/>Generation]
 
     Q --> E
     E --> S
@@ -63,9 +63,9 @@ flowchart LR
     style L fill:#ffd93d,stroke:#333
 ```
 
-## 2. Milvus 클러스터 아키텍처
+## 2. Milvus Cluster Architecture
 
-### 분산 아키텍처 구성요소
+### Distributed Architecture Components
 
 ```mermaid
 flowchart TB
@@ -115,68 +115,68 @@ flowchart TB
     style M fill:#ff9900,stroke:#333
 ```
 
-### 컴포넌트 역할
+### Component Roles
 
 <ComponentRolesTable />
 
-## 3. EKS 배포 가이드
+## 3. EKS Deployment Guide
 
-### 배포 개요
+### Deployment Overview
 
-Milvus는 EKS에서 Helm 차트를 통해 배포할 수 있습니다. 프로덕션 환경에서는 다음 컴포넌트를 고려해야 합니다:
+Milvus can be deployed on EKS via Helm charts. For production environments, consider:
 
-- **Cluster Mode**: 분산 아키텍처로 고가용성 제공
-- **etcd**: 메타데이터 저장 (최소 3개 복제본 권장)
-- **Storage**: MinIO 또는 Amazon S3/S3 Express One Zone
-- **Message Queue**: Pulsar (이벤트 스트리밍)
-- **Query/Data/Index Nodes**: 워크로드에 따라 스케일링
+- **Cluster Mode**: Distributed architecture for high availability
+- **etcd**: Metadata storage (minimum 3 replicas recommended)
+- **Storage**: MinIO or Amazon S3/S3 Express One Zone
+- **Message Queue**: Pulsar (event streaming)
+- **Query/Data/Index Nodes**: Scale based on workload
 
-**권장 리소스 구성:**
-- Proxy: 2+ replicas, 1-2 CPU, 2-4Gi 메모리
-- Query Node: 3+ replicas, 2-4 CPU, 8-16Gi 메모리
-- Data Node: 2+ replicas, 1-2 CPU, 4-8Gi 메모리
-- Index Node: 2+ replicas, 2-4 CPU, 8-16Gi 메모리
+**Recommended resource configuration:**
+- Proxy: 2+ replicas, 1-2 CPU, 2-4Gi memory
+- Query Node: 3+ replicas, 2-4 CPU, 8-16Gi memory
+- Data Node: 2+ replicas, 1-2 CPU, 4-8Gi memory
+- Index Node: 2+ replicas, 2-4 CPU, 8-16Gi memory
 
-### Amazon S3 통합
+### Amazon S3 Integration
 
-MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습니다. S3 Express One Zone을 사용하면 더 빠른 성능과 낮은 지연 시간을 제공합니다.
+Using Amazon S3 directly instead of MinIO reduces operational burden. S3 Express One Zone provides faster performance and lower latency.
 
-:::tip S3 Express One Zone 장점
+:::tip S3 Express One Zone Benefits
 
-- **10배 빠른 성능**: 표준 S3 대비 10배 빠른 데이터 액세스
-- **일관된 밀리초 지연**: 단일 자리 밀리초 지연 시간
-- **비용 효율**: 요청 비용 최대 80% 절감 (2025-04 가격 인하 반영: PUT -55%, GET -85%, 스토리지 -31%)
-- **단일 AZ**: 동일 AZ 내 컴퓨팅 리소스와 함께 사용 시 최적
+- **10x faster performance**: 10x faster data access vs standard S3
+- **Consistent millisecond latency**: Single-digit millisecond latency
+- **Cost efficiency**: up to 80% request cost reduction (reflecting the 2025-04 price cut: PUT -55%, GET -85%, storage -31%)
+- **Single AZ**: Optimal when used with compute resources in the same AZ
 
 :::
 
-**S3 통합 고려사항:**
-- IRSA(IAM Roles for Service Accounts)를 사용한 권한 관리
-- S3 버킷 정책: GetObject, PutObject, DeleteObject, ListBucket 권한 필요
-- S3 Express One Zone: 단일 AZ 제한, 고성능 요구 시 권장
+**S3 Integration Considerations:**
+- Use IRSA (IAM Roles for Service Accounts) for permission management
+- S3 bucket policy: Requires GetObject, PutObject, DeleteObject, ListBucket permissions
+- S3 Express One Zone: Single AZ limitation, recommended for high-performance requirements
 
-:::info 상세 배포 가이드
-Milvus 배포 상세 절차, Helm values 설정, S3 IAM 정책 예제는 [Milvus 공식 Helm 차트 문서](https://milvus.io/docs/install_cluster-helm.md)를 참조하세요.
+:::info Detailed Deployment Guide
+For Milvus deployment procedures, Helm values configuration, and S3 IAM policy examples, see [Milvus Official Helm Chart Documentation](https://milvus.io/docs/install_cluster-helm.md).
 :::
 
-## 4. 인덱스 타입 선택 가이드
+## 4. Index Type Selection Guide
 
-### 주요 인덱스 타입 비교
+### Major Index Type Comparison
 
 <IndexComparisonTable />
 
-### SCANN 인덱스 (Milvus 2.3+)
+### SCANN Index (Milvus 2.4+)
 
-Google의 Scalable Nearest Neighbors(SCANN) 인덱스는 Milvus 2.3.0(2023-08)에서 추가된 고성능 인덱스입니다:
+Google's Scalable Nearest Neighbors (SCANN) index is a high-performance index added in Milvus 2.4:
 
 ```python
-# SCANN 인덱스 생성
+# Create SCANN index
 index_params = {
     "metric_type": "COSINE",
     "index_type": "SCANN",
     "params": {
-        "nlist": 1024,  # 클러스터 수
-        "with_raw_data": True,  # 원본 데이터 저장 여부
+        "nlist": 1024,  # Number of clusters
+        "with_raw_data": True,  # Store raw data
     }
 }
 
@@ -184,18 +184,18 @@ collection.create_index(field_name="embedding", index_params=index_params)
 collection.load()
 ```
 
-**SCANN 장점:**
-- HNSW와 유사한 검색 속도
-- IVF 계열보다 높은 정확도
-- 메모리 사용량이 HNSW보다 낮음
-- 대규모 데이터셋에서 우수한 성능
+**SCANN advantages:**
+- Search speed similar to HNSW
+- Higher accuracy than IVF family
+- Lower memory usage than HNSW
+- Excellent performance on large datasets
 
-### 인덱스 생성 예제
+### Index Creation Example
 
 ```python
 from pymilvus import Collection, CollectionSchema, FieldSchema, DataType
 
-# 컬렉션 스키마 정의
+# Define collection schema
 fields = [
     FieldSchema(name="id", dtype=DataType.INT64, is_primary=True, auto_id=True),
     FieldSchema(name="text", dtype=DataType.VARCHAR, max_length=65535),
@@ -206,13 +206,13 @@ fields = [
 schema = CollectionSchema(fields=fields, description="Document embeddings")
 collection = Collection(name="documents", schema=schema)
 
-# HNSW 인덱스 생성 (고성능 검색용)
+# Create HNSW index (for high-performance search)
 index_params = {
     "metric_type": "COSINE",
     "index_type": "HNSW",
     "params": {
-        "M": 16,           # 그래프 연결 수 (높을수록 정확, 메모리 증가)
-        "efConstruction": 256  # 인덱스 빌드 품질 (높을수록 정확, 빌드 시간 증가)
+        "M": 16,           # Graph connections (higher = more accurate, more memory)
+        "efConstruction": 256  # Index build quality (higher = more accurate, longer build)
     }
 }
 
@@ -220,9 +220,9 @@ collection.create_index(field_name="embedding", index_params=index_params)
 collection.load()
 ```
 
-## 5. LangChain/LlamaIndex 통합
+## 5. LangChain/LlamaIndex Integration
 
-### LangChain 통합 예제
+### LangChain Integration Example
 
 ```python
 from langchain_community.vectorstores import Milvus
@@ -230,7 +230,7 @@ from langchain_openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import DirectoryLoader
 
-# 문서 로드 및 분할
+# Load and split documents
 loader = DirectoryLoader("./documents", glob="**/*.md")
 documents = loader.load()
 
@@ -241,10 +241,10 @@ text_splitter = RecursiveCharacterTextSplitter(
 )
 splits = text_splitter.split_documents(documents)
 
-# 임베딩 모델 설정
+# Configure embedding model
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 
-# Milvus 벡터 스토어 생성
+# Create Milvus vector store
 vectorstore = Milvus.from_documents(
     documents=splits,
     embedding=embeddings,
@@ -256,8 +256,8 @@ vectorstore = Milvus.from_documents(
     drop_old=True,
 )
 
-# 유사도 검색
-query = "Kubernetes에서 GPU 스케줄링하는 방법"
+# Similarity search
+query = "How to schedule GPUs in Kubernetes"
 docs = vectorstore.similarity_search(query, k=5)
 
 for doc in docs:
@@ -266,17 +266,17 @@ for doc in docs:
     print("---")
 ```
 
-### LlamaIndex 통합 예제
+### LlamaIndex Integration Example
 
 ```python
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
 from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.embeddings.openai import OpenAIEmbedding
 
-# 임베딩 모델 설정
+# Configure embedding model
 Settings.embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 
-# Milvus 벡터 스토어 설정
+# Configure Milvus vector store
 vector_store = MilvusVectorStore(
     uri="http://milvus-proxy.ai-data.svc.cluster.local:19530",
     collection_name="llamaindex_docs",
@@ -284,51 +284,51 @@ vector_store = MilvusVectorStore(
     overwrite=True,
 )
 
-# 문서 로드 및 인덱싱
+# Load documents and index
 documents = SimpleDirectoryReader("./documents").load_data()
 index = VectorStoreIndex.from_documents(
     documents,
     vector_store=vector_store,
 )
 
-# 쿼리 엔진 생성
+# Create query engine
 query_engine = index.as_query_engine(similarity_top_k=5)
 
-# 질의 수행
-response = query_engine.query("Agentic AI 플랫폼 아키텍처 설명해줘")
+# Execute query
+response = query_engine.query("Explain Agentic AI platform architecture")
 print(response)
 ```
 
-### RAG 파이프라인 전체 구성
+### Complete RAG Pipeline Configuration
 
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.chains import RetrievalQA
 from langchain.prompts import PromptTemplate
 
-# LLM 설정
+# Configure LLM
 llm = ChatOpenAI(
     model="gpt-4o",
     temperature=0,
 )
 
-# 프롬프트 템플릿
-prompt_template = """다음 컨텍스트를 사용하여 질문에 답변하세요.
-컨텍스트에 답변이 없으면 "정보가 없습니다"라고 말하세요.
+# Prompt template
+prompt_template = """Use the following context to answer the question.
+If the answer is not in the context, say "No information available."
 
-컨텍스트:
+Context:
 {context}
 
-질문: {question}
+Question: {question}
 
-답변:"""
+Answer:"""
 
 PROMPT = PromptTemplate(
     template=prompt_template,
     input_variables=["context", "question"]
 )
 
-# RAG 체인 구성
+# Configure RAG chain
 qa_chain = RetrievalQA.from_chain_type(
     llm=llm,
     chain_type="stuff",
@@ -340,42 +340,42 @@ qa_chain = RetrievalQA.from_chain_type(
     return_source_documents=True,
 )
 
-# 질의 수행
-result = qa_chain.invoke({"query": "GPU 리소스 관리 방법은?"})
+# Execute query
+result = qa_chain.invoke({"query": "How to manage GPU resources?"})
 print(f"Answer: {result['result']}")
 print(f"Sources: {[doc.metadata for doc in result['source_documents']]}")
 ```
 
-## 6. 쿼리 최적화
+## 6. Query Optimization
 
-### 검색 파라미터 튜닝
+### Search Parameter Tuning
 
 ```python
-# 검색 파라미터 설정
+# Configure search parameters
 search_params = {
     "metric_type": "COSINE",
     "params": {
-        "ef": 128,  # HNSW 검색 범위 (높을수록 정확, 느림)
+        "ef": 128,  # HNSW search range (higher = more accurate, slower)
     }
 }
 
-# 필터링과 함께 검색
+# Search with filtering
 results = collection.search(
     data=[query_embedding],
     anns_field="embedding",
     param=search_params,
     limit=10,
-    expr='metadata["category"] == "kubernetes"',  # 메타데이터 필터
+    expr='metadata["category"] == "kubernetes"',  # Metadata filter
     output_fields=["text", "metadata"],
 )
 ```
 
-### 하이브리드 검색 (벡터 + 키워드)
+### Hybrid Search (Vector + Keyword)
 
 ```python
 from pymilvus import AnnSearchRequest, RRFRanker
 
-# 벡터 검색 요청
+# Vector search request
 vector_search = AnnSearchRequest(
     data=[query_embedding],
     anns_field="embedding",
@@ -383,10 +383,10 @@ vector_search = AnnSearchRequest(
     limit=20
 )
 
-# 키워드 검색을 위한 BM25 스코어 (내장 Sparse-BM25 full-text search)
-# Milvus 2.5+ 에서 지원 (v2.5.0, 2024-12-23)
+# BM25 score for keyword search (requires separate field)
+# Supported in Milvus 2.4+
 
-# RRF(Reciprocal Rank Fusion)로 결과 병합
+# Merge results with RRF (Reciprocal Rank Fusion)
 results = collection.hybrid_search(
     reqs=[vector_search],
     ranker=RRFRanker(k=60),
@@ -395,143 +395,141 @@ results = collection.hybrid_search(
 )
 ```
 
-## 7. 고가용성 및 백업
+## 7. High Availability and Backup
 
-### 데이터 백업 전략
+### Data Backup Strategy
 
-Milvus는 공식 백업 도구(`milvus-backup`)를 제공하여 컬렉션 데이터를 백업하고 복원할 수 있습니다.
+Milvus provides an official backup tool (`milvus-backup`) for backing up and restoring collection data.
 
-**백업 고려사항:**
-- 백업 대상: MinIO/S3 버킷으로 컬렉션 데이터 내보내기
-- 백업 주기: 일일 또는 주간 백업 권장
-- 백업 동작 제어: `backup.parallelism` (copydata, backupCollection, backupSegment) 및 `multipartCopyThresholdMiB` 설정으로 병렬 처리 조정. 대규모 복원은 멀티 세그먼트 restore가 네이티브 지원됨 (milvus-backup v0.5.10+ 기준, `maxSegmentGroupSize` 옵션은 제거됨)
-- 복원 전략: 동일 클러스터 또는 다른 클러스터로 복원 가능
+**Backup considerations:**
+- Backup target: Export collection data to MinIO/S3 bucket
+- Backup frequency: Daily or weekly backup recommended
+- Backup size limit: Control chunk size with `maxSegmentGroupSize` setting
+- Restore strategy: Restore to same or different cluster
 
-### 재해 복구 구성
+### Disaster Recovery Configuration
 
-프로덕션 환경에서는 크로스 리전 복제를 통한 재해 복구 전략을 권장합니다.
+Production environments should implement disaster recovery strategy through cross-region replication.
 
-**DR 전략:**
-- **크로스 리전 S3 복제**: 백업 데이터를 다른 AWS 리전으로 자동 복제
-- **복구 시간 목표(RTO)**: S3 복제 지연 + Milvus 클러스터 프로비저닝 시간
-- **복구 시점 목표(RPO)**: 백업 주기에 따라 결정 (일반적으로 6-24시간)
-- **자동화**: CronJob을 사용한 주기적 백업 및 동기화
+**DR strategy:**
+- **Cross-region S3 replication**: Automatically replicate backup data to another AWS region
+- **Recovery Time Objective (RTO)**: S3 replication delay + Milvus cluster provisioning time
+- **Recovery Point Objective (RPO)**: Determined by backup frequency (typically 6-24 hours)
+- **Automation**: Periodic backup and synchronization using CronJob
 
-:::info 상세 백업 가이드
-백업 도구 설치, 설정 파일 작성, CronJob 구성 등 상세 절차는 [Milvus 백업 및 복원 가이드](https://milvus.io/docs/milvus_backup_cli.md)를 참조하세요.
+:::info Detailed Backup Guide
+For backup tool installation, configuration file creation, CronJob setup procedures, see [Milvus Backup and Restore Guide](https://milvus.io/docs/milvus_backup_cli.md).
 :::
 
-## 8. 모니터링 및 메트릭
+## 8. Monitoring and Metrics
 
-### Prometheus 메트릭 수집
+### Prometheus Metrics Collection
 
-Milvus는 Prometheus 형식의 메트릭을 `/metrics` 엔드포인트에서 제공합니다. ServiceMonitor를 사용하여 자동으로 메트릭을 수집할 수 있습니다.
+Milvus provides Prometheus-format metrics at the `/metrics` endpoint. ServiceMonitor can be used to automatically collect metrics.
 
-**메트릭 수집 설정:**
-- 엔드포인트: `/metrics` (기본 포트 9091)
-- 수집 주기: 30초 권장
-- 레이블: `app.kubernetes.io/name: milvus`로 필터링
+**Metrics collection configuration:**
+- Endpoint: `/metrics` (default port 9091)
+- Collection interval: 30 seconds recommended
+- Label: Filter by `app.kubernetes.io/name: milvus`
 
-### 주요 모니터링 메트릭
+### Key Monitoring Metrics
 
 <MonitoringMetricsTable />
 
-### Grafana 대시보드
+### Grafana Dashboard
 
-**권장 시각화 패널:**
+**Recommended visualization panels:**
 - Search Latency P99: `histogram_quantile(0.99, rate(milvus_proxy_search_latency_bucket[5m]))`
 - Query Throughput: `sum(rate(milvus_proxy_search_vectors_count[5m]))`
 - Memory Usage: `milvus_querynode_memory_used_bytes`
 - Collection Size: `milvus_collection_num_entities`
 
-:::info 상세 모니터링 가이드
-ServiceMonitor YAML, Grafana 대시보드 JSON, 알람 규칙 설정은 [Milvus 모니터링 가이드](https://milvus.io/docs/monitor.md)를 참조하세요.
+:::info Detailed Monitoring Guide
+For ServiceMonitor YAML, Grafana dashboard JSON, alarm rule configuration, see [Milvus Monitoring Guide](https://milvus.io/docs/monitor.md).
 :::
 
 ---
 
-## 9. Kubernetes Operator 기반 배포
+## 9. Kubernetes Operator-based Deployment
 
-Milvus Operator를 사용하면 복잡한 분산 아키텍처를 선언적으로 관리할 수 있습니다.
+### Milvus Operator Overview
 
-### Milvus Operator 개요
+**Operator advantages:**
+- **Declarative management**: Define cluster configuration with Milvus CRD
+- **Auto-scaling**: Component-level auto-scaling integrated with HPA
+- **Rolling updates**: Zero-downtime upgrade support
+- **Dependency management**: Automatic etcd, MinIO, Pulsar deployment
 
-**Operator 장점:**
-- **선언적 관리**: Milvus CRD로 클러스터 구성 정의
-- **자동 스케일링**: HPA와 연동하여 컴포넌트별 자동 스케일링
-- **롤링 업데이트**: 무중단 업그레이드 지원
-- **의존성 관리**: etcd, MinIO, Pulsar 자동 배포
+**Key component configuration:**
+- Enable Cluster Mode
+- etcd replica count (minimum 3 recommended)
+- Storage backend (MinIO or S3)
+- Enable Pulsar message queue
+- Configure replica and resources per node type
 
-**주요 컴포넌트 설정:**
-- Cluster Mode 활성화
-- etcd 복제본 수 (최소 3개)
-- Storage 백엔드 (MinIO 또는 S3)
-- Pulsar 메시지 큐 활성화
-- 각 노드 타입별 replica 및 리소스 설정
+### GPU Accelerated Indexing
 
-### GPU 가속 인덱싱
+Assigning GPUs to Index Nodes can significantly improve index build speed.
 
-Index Node에 GPU를 할당하면 인덱스 빌드 속도를 크게 향상시킬 수 있습니다.
+**GPU indexing configuration:**
+- GPU resource request: `nvidia.com/gpu: 1`
+- Specify GPU nodes with NodeSelector
+- Handle GPU taints with Toleration
 
-**GPU 인덱싱 설정:**
-- GPU 리소스 요청: `nvidia.com/gpu: 1`
-- NodeSelector로 GPU 노드 지정
-- Toleration으로 GPU taint 처리
-
-**권장 GPU 인스턴스:**
+**Recommended GPU instances:**
 
 <GPUInstanceTable />
 
-**GPU 인덱싱 성능 비교:**
+**GPU Indexing Performance Comparison:**
 
 <GPUIndexingPerformanceTable />
 
-:::info 상세 Operator 가이드
-Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문서](https://milvus.io/docs/install_cluster-milvusoperator.md)를 참조하세요.
+:::info Detailed Operator Guide
+For Milvus Operator installation, CRD schema, GPU configuration examples, see [Milvus Operator Documentation](https://milvus.io/docs/install_cluster-milvusoperator.md).
 :::
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Milvus 공식 문서](https://milvus.io/docs)
-- [Milvus Helm 차트](https://milvus.io/docs/install_cluster-helm.md)
-- [Milvus 백업 및 복원](https://milvus.io/docs/milvus_backup_cli.md)
-- [Milvus 모니터링](https://milvus.io/docs/monitor.md)
+### Official Documentation
+- [Milvus Official Documentation](https://milvus.io/docs)
+- [Milvus Helm Chart](https://milvus.io/docs/install_cluster-helm.md)
+- [Milvus Backup and Restore](https://milvus.io/docs/milvus_backup_cli.md)
+- [Milvus Monitoring](https://milvus.io/docs/monitor.md)
 - [Milvus Operator](https://milvus.io/docs/install_cluster-milvusoperator.md)
 
-### 관련 문서
+### Related Documents
 
-- [Agentic AI 플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md)
-- [Agentic AI 기술 도전과제](../../design-architecture/foundations/agentic-ai-challenges.md)
-- [Ragas RAG 평가 프레임워크](../governance/ragas-evaluation.md)
-- [Agent 모니터링](../observability/agent-monitoring.md)
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md)
+- [Agentic AI Technical Challenges](../../design-architecture/foundations/agentic-ai-challenges.md)
+- [Ragas RAG Evaluation Framework](../governance/ragas-evaluation.md)
+- [Agent Monitoring](../observability/agent-monitoring.md)
 
-:::info 권장 사항
+:::info Recommendations
 
-- 프로덕션 환경에서는 최소 3개의 Query Node를 운영하세요
-- 대규모 데이터셋(1억+ 벡터)에서는 DISKANN 인덱스를 고려하세요
-- S3를 스토리지로 사용하면 운영 복잡도를 크게 줄일 수 있습니다
-- S3 Express One Zone을 사용하면 10배 빠른 성능과 최대 80% 저렴한 요청 비용을 제공합니다 (2025-04 가격 인하)
-- GPU를 사용한 인덱싱으로 빌드 시간을 크게 단축할 수 있습니다 (g5.xlarge 권장)
-- Milvus v2.4.x는 SCANN 인덱스, 하이브리드 검색, 스칼라 필터링, 동적 스키마 등 고급 기능을 제공합니다
-- Helm 차트 버전 4.2.x를 사용하여 Milvus 2.4.x를 배포하세요 (4.1.x는 2.4.0~2.4.5까지만 지원, 4.2.0부터 Milvus 2.3.x 미지원)
+- Operate at least 3 Query Nodes in production environments
+- Consider DISKANN index for large datasets (100M+ vectors)
+- Using S3 as storage significantly reduces operational complexity
+- S3 Express One Zone provides 10x faster performance and up to 80% cheaper request costs (2025-04 price cut)
+- GPU-accelerated indexing can significantly reduce build times (g5.xlarge recommended)
+- Milvus v2.4.x provides advanced features including SCANN index, hybrid search, scalar filtering, and dynamic schema
+- Use Helm chart version 4.2.x to deploy Milvus 2.4.x (4.1.x supports only 2.4.0–2.4.5; 4.2.0+ drops Milvus 2.3.x support)
 :::
 
-### 스토리지 비용 비교
+### Storage Cost Comparison
 
 <StorageCostComparisonTable />
 
-**권장 사항:**
-- **개발/테스트**: MinIO (간편한 설정)
-- **프로덕션 (일반)**: S3 Standard (비용 효율)
-- **프로덕션 (고성능)**: S3 Express One Zone (10배 빠른 성능)
+**Recommendations:**
+- **Dev/Test**: MinIO (simple setup)
+- **Production (general)**: S3 Standard (cost efficient)
+- **Production (high-perf)**: S3 Express One Zone (10x faster performance)
 
-:::warning 주의사항
+:::warning Cautions
 
-- 인덱스 빌드는 CPU/메모리를 많이 사용하므로 별도 시간대에 수행하세요
-- 컬렉션 삭제 시 데이터가 영구 삭제되므로 백업을 먼저 확인하세요
-- GPU Index Node는 비용이 높으므로 필요한 경우에만 활성화하세요
-- S3 Express One Zone은 단일 AZ에 제한되므로 고가용성 요구사항을 고려하세요
+- Index builds are CPU/memory intensive; perform during off-peak hours
+- Collection deletion permanently removes data; verify backups first
+- GPU Index Nodes are costly; enable only when needed
+- S3 Express One Zone is limited to a single AZ; consider HA requirements
 :::

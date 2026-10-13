@@ -1,6 +1,6 @@
 ---
-title: S3. 카테고리·BU 인사이트 카드 (Momo)
-description: 방대 SKU 카테고리 + 라이브 + 배송 + 외부 결합 자동 보고서
+title: S3. Category · BU Insight Cards (Momo)
+description: Automated reports combining massive-SKU categories + Live + Delivery + External signals
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,31 +16,31 @@ tags:
 sidebar_label: S3. Insight Cards
 ---
 
-## 1. URL · 페르소나
+## 1. URL · Persona
 - `/insights` · P3
 
-## 2. 카드 프리셋
+## 2. Card Presets
 
-| 카드 | 데이터 |
+| Card | Data |
 |---|---|
-| 카테고리 GMV TOP 30 (월별) | OrderTransaction × Category |
-| **라이브 방송 GMV** vs 일반 GMV | LiveStreamPurchase vs OrderTransaction |
-| **배송 SLA 추이** (24시간 약속) | DeliverySLA × 권역 |
-| **롱테일 SKU 노출 비율** | LongTailSKU × 추천 노출 |
-| 검색 트렌드 vs 자사 | SocialSignal + GMV |
-| 폭우 영향 (배송) | WeatherSignal × DeliverySLA |
+| Top-30 Category GMV (monthly) | OrderTransaction × Category |
+| **Live-broadcast GMV** vs Regular GMV | LiveStreamPurchase vs OrderTransaction |
+| **Delivery SLA trend** (24-hour promise) | DeliverySLA × Region |
+| **Long-tail SKU exposure ratio** | LongTailSKU × Recommendation exposure |
+| Search trend vs in-house | SocialSignal + GMV |
+| Heavy-rain impact (delivery) | WeatherSignal × DeliverySLA |
 
-## 3. 페르소나별 코멘트
+## 3. Per-Persona Commentary
 
-| P | 동일 카드 (라이브 GMV) |
+| P | Same Card (Live GMV) |
 |---|---|
-| P1 | "어제 19시 라이브 GMV 1.2억 — 신상 캠페인 효과" |
-| P2 | "소셜 #여름텐트 +35% — 라이브 효과 추정" |
-| P3 | "라이브 핀 SKU 다양성 0.42 (낮음) — 추천 보강 필요" |
-| P4 | "라이브 후 환불률 8% — 평균 5% 대비 +3pt 위험" |
-| P5 | "라이브 다발 시간대 fulfillment 부하 +60%" |
+| P1 | "Yesterday's 19:00 live GMV 120M NTD — new-product campaign effect" |
+| P2 | "Social #summertent +35% — likely live-broadcast effect" |
+| P3 | "Live-pin SKU diversity 0.42 (low) — recommendation reinforcement needed" |
+| P4 | "Refund rate after live broadcasts 8% — +3pt vs 5% average risk" |
+| P5 | "Fulfillment load +60% during high-frequency live time slots" |
 
-## 4. 데모 시나리오
-1. "어제 라이브 GMV" → 5 페르소나 코멘트
-2. "폭우 영향" → 배송 -15% 시각화
-3. "롱테일 노출" → 다양성 0.4 미달 카테고리 표시
+## 4. Demo Scenarios
+1. "Yesterday's live GMV" → 5-persona commentary
+2. "Heavy-rain impact" → -15% delivery visualization
+3. "Long-tail exposure" → categories below 0.4 diversity

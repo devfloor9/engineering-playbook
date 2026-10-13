@@ -1,96 +1,96 @@
 ---
-title: Probe 안티패턴
-description: 불필요한 재시작과 잘못된 헬스체크 구성을 점검합니다.
+title: Probe antipatterns
+description: Examine unnecessary restarts and incorrect health check configurations.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
-  author: YoungJoon Jeong
-reading_time: 2
+  date: 2026-09-18
+  author: devfloor9
+reading_time: 3
 tags:
   - eks
   - kubernetes
   - probes
   - lifecycle
   - scope:ops
-sidebar_label: Probe 안티패턴
+sidebar_label: Probe antipatterns
 category: operations
 ---
 
-[Pod 라이프사이클 개요](../eks-pod-health-lifecycle.md) · [체크리스트와 참고 자료](./checklist-references.md)
+[Pod lifecycle overview](../eks-pod-health-lifecycle.md) · [Checklist and references](./checklist-references.md)
 
-## Probe 안티패턴과 함정 {#25-probe-안티패턴과-함정}
+## Probe Antipatterns and Pitfalls {#25-probe-안티패턴과-함정}
 
-### ❌ 안티패턴 1: Liveness Probe에 외부 의존성 포함 {#-안티패턴-1-liveness-probe에-외부-의존성-포함}
+### ❌ Antipattern 1: Including External Dependencies in a Liveness Probe {#-안티패턴-1-liveness-probe에-외부-의존성-포함}
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
   httpGet:
-    path: /health  # DB, Redis 연결 확인 포함
+    path: /health  # Includes database and Redis connection checks
     port: 8080
 ```
 
-**결과:**
-- DB 장애 시 모든 Pod이 동시 재시작 → Cascading Failure
-- 일시적인 네트워크 지연으로도 Pod 재시작
+**Consequences:**
+- A database failure causes all Pods to restart simultaneously → Cascading Failure
+- Even transient network delays cause Pods to restart.
 
-**올바른 설정:**
+**Correct configuration:**
 
 ```yaml
-# Liveness: 애플리케이션 자체 상태만
+# Liveness: Application health only
 livenessProbe:
   httpGet:
-    path: /healthz  # 내부 상태만 확인
+    path: /healthz  # Check internal health only
     port: 8080
 
-# Readiness: 외부 의존성 포함
+# Readiness: Include external dependencies
 readinessProbe:
   httpGet:
-    path: /ready  # DB, Redis 등 확인
+    path: /ready  # Check the database, Redis, and other dependencies
     port: 8080
 ```
 
-### ❌ 안티패턴 2: Startup Probe 없이 높은 initialDelaySeconds {#-안티패턴-2-startup-probe-없이-높은-initialdelayseconds}
+### ❌ Antipattern 2: A High initialDelaySeconds Without a Startup Probe {#-안티패턴-2-startup-probe-없이-높은-initialdelayseconds}
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  initialDelaySeconds: 120  # 2분 대기
+  initialDelaySeconds: 120  # Wait 2 minutes
   periodSeconds: 10
 ```
 
-**결과:**
-- 앱이 30초에 시작 완료해도 90초 동안 헬스체크 없음
-- 시작 중 크래시가 발생해도 2분까지 감지 불가
+**Consequences:**
+- Even if the application starts in 30 seconds, it has no health checks for another 90 seconds.
+- A crash during startup can remain undetected for up to 2 minutes.
 
-**올바른 설정:**
+**Correct configuration:**
 
 ```yaml
-# Startup Probe로 시작 보호
+# Protect startup with a Startup Probe
 startupProbe:
   httpGet:
     path: /healthz
     port: 8080
-  failureThreshold: 12  # 최대 120초 대기
+  failureThreshold: 12  # Wait up to 120 seconds
   periodSeconds: 10
 
-# Liveness는 Startup 성공 후 즉시 활성화
+# Liveness activates immediately after Startup succeeds
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  initialDelaySeconds: 0  # Startup 성공 후 바로 시작
+  initialDelaySeconds: 0  # Start immediately after Startup succeeds
   periodSeconds: 10
 ```
 
-### ❌ 안티패턴 3: Liveness와 Readiness에 같은 엔드포인트 {#-안티패턴-3-liveness와-readiness에-같은-엔드포인트}
+### ❌ Antipattern 3: Using the Same Endpoint for Liveness and Readiness {#-안티패턴-3-liveness와-readiness에-같은-엔드포인트}
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
@@ -100,31 +100,31 @@ livenessProbe:
 
 readinessProbe:
   httpGet:
-    path: /health  # 동일한 엔드포인트
+    path: /health  # Same endpoint
     port: 8080
 ```
 
-**결과:**
-- `/health`가 외부 의존성을 확인하면 Liveness가 실패하여 불필요한 재시작
-- 역할 구분이 모호하여 디버깅 어려움
+**Consequences:**
+- If `/health` checks external dependencies, Liveness failures cause unnecessary restarts.
+- Unclear separation of responsibilities makes debugging difficult.
 
-**올바른 설정:**
+**Correct configuration:**
 
 ```yaml
 livenessProbe:
   httpGet:
-    path: /healthz  # 내부 상태만
+    path: /healthz  # Internal health only
     port: 8080
 
 readinessProbe:
   httpGet:
-    path: /ready  # 외부 의존성 포함
+    path: /ready  # Include external dependencies
     port: 8080
 ```
 
-### ❌ 안티패턴 4: 너무 공격적인 failureThreshold {#-안티패턴-4-너무-공격적인-failurethreshold}
+### ❌ Antipattern 4: An Overly Aggressive failureThreshold {#-안티패턴-4-너무-공격적인-failurethreshold}
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
@@ -132,14 +132,14 @@ livenessProbe:
     path: /healthz
     port: 8080
   periodSeconds: 5
-  failureThreshold: 1  # 단 1번 실패로 재시작
+  failureThreshold: 1  # Restart after just 1 failure
 ```
 
-**결과:**
-- 일시적인 네트워크 지연, GC pause 등으로 불필요한 재시작
-- 재시작 루프 발생 가능
+**Consequences:**
+- Transient network delays, GC pauses, and similar events cause unnecessary restarts.
+- Restart loops can occur.
 
-**올바른 설정:**
+**Correct configuration:**
 
 ```yaml
 livenessProbe:
@@ -147,35 +147,35 @@ livenessProbe:
     path: /healthz
     port: 8080
   periodSeconds: 10
-  failureThreshold: 3  # 30초(3 x 10s) 후 재시작
+  failureThreshold: 3  # Restart after 30 seconds (3 x 10s)
   timeoutSeconds: 5
 ```
 
-### ❌ 안티패턴 5: 과도하게 긴 timeoutSeconds {#-안티패턴-5-과도하게-긴-timeoutseconds}
+### ❌ Antipattern 5: An Excessively Long timeoutSeconds {#-안티패턴-5-과도하게-긴-timeoutseconds}
 
-**문제:**
+**Problem:**
 
 ```yaml
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  timeoutSeconds: 30  # 30초 대기
+  timeoutSeconds: 30  # Wait 30 seconds
   periodSeconds: 10
 ```
 
-**결과:**
-- Probe가 30초 동안 blocking되어 다음 Probe 실행 지연
-- 장애 감지가 느려짐
+**Consequences:**
+- The probe blocks for 30 seconds, delaying the next probe execution.
+- Failure detection becomes slower.
 
-**올바른 설정:**
+**Correct configuration:**
 
 ```yaml
 livenessProbe:
   httpGet:
     path: /healthz
     port: 8080
-  timeoutSeconds: 5  # 5초 이내 응답 필요
+  timeoutSeconds: 5  # A response is required within 5 seconds
   periodSeconds: 10
   failureThreshold: 3
 ```

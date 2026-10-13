@@ -11,7 +11,7 @@ import re
 import types
 import unittest
 
-PREFIXES = ("docs", "i18n/en/docusaurus-plugin-content-docs/current")
+PREFIXES = ("i18n/ko/docusaurus-plugin-content-docs/current", "docs")
 RELATIVE_DOCS = tuple(
     f"{prefix}/aidlc/{suffix}"
     for prefix in PREFIXES
@@ -126,7 +126,7 @@ class EnglishEvaluationTests(unittest.TestCase):
     locale = "en"
 
     def setUp(self):
-        prefix = "docs" if self.locale == "ko" else "i18n/en/docusaurus-plugin-content-docs/current"
+        prefix = "i18n/ko/docusaurus-plugin-content-docs/current" if self.locale == "ko" else "docs"
         source_root = repository_root()
         self.gov = source_root / prefix / "aidlc/enterprise/agent-versioning/governance-automation.md"
         self.evaluation = source_root / prefix / "aidlc/toolchain/evaluation-framework.md"

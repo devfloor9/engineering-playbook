@@ -1,6 +1,6 @@
 ---
-title: S2. 5 부서 페르소나 챗봇 (Mitsukoshi)
-description: 마케팅·인사이트·디지털·VIP·MD 5 부서별 도구 자율 호출
+title: S2. 5-Department Persona Chatbot (Mitsukoshi)
+description: Autonomous tool invocation tailored to Marketing, Insights, Digital, VIP, and MD personas
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,29 +16,29 @@ tags:
 sidebar_label: S2. Persona Chatbot
 ---
 
-## 1. URL · 페르소나
-- `/chat` · 모든 페르소나
+## 1. URL · Personas
+- `/chat` · All personas
 
-## 2. 도구 12종
+## 2. 12 Tools
 
-| 도구 | 설명 |
+| Tool | Description |
 |---|---|
-| `semantic_search` | OpenSearch BM25+KNN+Rerank (다국어) |
+| `semantic_search` | OpenSearch BM25 + KNN + Rerank (multilingual) |
 | `neptune_query` | openCypher |
-| `foreigner_analysis` | 국적·환율 결합 행동 (S9-M) |
-| `brand_sov` | 입점 브랜드 SOV 매대 점유 (S10-M) |
-| `vip_concierge` | Black/Platinum/Gold 추천 (S11-M) |
+| `foreigner_analysis` | Behavior joined with nationality and FX (S9-M) |
+| `brand_sov` | Tenant brand SOV and counter occupancy (S10-M) |
+| `vip_concierge` | Black/Platinum/Gold recommendations (S11-M) |
 | `campaign_simulator` | Bayesian ROAS |
-| `social_trend_join` | 소홍서·Dcard·인스타·일본 트위터 |
-| `weather_join` | 中央氣象署 |
-| `economic_join` | 환율·물가 (다국가) |
-| `tourism_join` | 대만 관광청 |
-| `cluster_run` | KMeans + LLM 라벨 |
+| `social_trend_join` | Xiaohongshu, Dcard, Instagram, Japanese Twitter |
+| `weather_join` | Central Weather Administration of Taiwan |
+| `economic_join` | FX and CPI (multi-country) |
+| `tourism_join` | Taiwan Tourism Bureau |
+| `cluster_run` | KMeans + LLM labeling |
 | `pii_mask` | PII |
 
-## 3. 페르소나별 변형
+## 3. Persona Variants
 
-| P | 주 도구 |
+| P | Primary Tools |
 |---|---|
 | P1 | campaign_simulator · attribution_calc |
 | P2 | cluster_run · social_trend_join · foreigner_analysis |
@@ -46,7 +46,7 @@ sidebar_label: S2. Persona Chatbot
 | P4 | vip_concierge · semantic_search |
 | P5 | brand_sov · store_metrics_push |
 
-## 4. 데모 시나리오
-1. (P1) "週年慶 응답률 점포·국적별" → tourism_join + campaign
-2. (P1→P5 스위처) 동일 → 매대 진열 관점
-3. (P2) "30대 일본인 여성 행동" → foreigner_analysis
+## 4. Demo Scenarios
+1. (P1) "Anniversary Sale response rate by store and nationality" → tourism_join + campaign
+2. (P1 → P5 switcher) Same prompt → counter merchandising perspective
+3. (P2) "Japanese women in their 30s behavior" → foreigner_analysis

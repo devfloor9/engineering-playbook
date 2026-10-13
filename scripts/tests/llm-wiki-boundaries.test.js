@@ -49,7 +49,7 @@ Before <Layers /> after. Example: \`<Layers />\`.
   assert.ok(output.includes('Before '));
   assert.ok(output.includes(' after. Example: `<Layers />`.'));
   assert.ok(output.includes('Layer 6: Experience & Channels'));
-  assert.equal((output.match(/런타임 레이어/g) || []).length, 1);
+  assert.equal((output.match(/Runtime Layers/g) || []).length, 1);
 });
 
 test('ESM exports are removed at their boundary without leaking functions into article prose', () => {
@@ -86,7 +86,7 @@ test('literal tables retain units, recommendations, multiline values and every r
   for (let i = 1; i <= 15; i++) assert.ok(output.includes(`${i} GB | row-${i} |`));
   const comparison = stripMdx(`import {ComparisonTable} from '@site/src/components/tables';
 <ComparisonTable headers={['Name', 'Description']} recommendedId="a" rows={[{id:'a',cells:['Alpha','one\\ntwo']}, {id:'b',cells:['Beta','a | b']}]} />`);
-  assert.ok(comparison.includes('추천'));
+  assert.ok(comparison.includes('Recommended'));
   assert.ok(comparison.includes('one<br />two'));
   assert.ok(comparison.includes('a \\| b'));
 });

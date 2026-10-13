@@ -1,507 +1,507 @@
 ---
-title: 엔터프라이즈 AIDLC 도입 전략
-description: AIDLC 엔터프라이즈 도입 전략 — 워터폴→하이브리드 전환, 챔피언 모델, 단계별 확산 로드맵
+title: Enterprise AIDLC Adoption Strategy
+description: AIDLC Enterprise Adoption Strategy — Waterfall→Hybrid Transition, Champion Model, Phased Rollout Roadmap
 created: "2026-04-07"
 last_update:
-  date: 2026-10-13
-  author: YoungJoon Jeong
-reading_time: 10
+  date: "2026-06-30"
+  author: devfloor9
+reading_time: 26
 tags:
   - aidlc
   - enterprise
   - agentic-ai
   - scope:enterprise
-sidebar_label: 도입 전략
+sidebar_label: Adoption Strategy
 ---
 
-엔터프라이즈 SI 환경에서 워터폴 중심 개발 문화를 AIDLC로 전환하기 위한 실전 도입 전략을 제시합니다.
+A practical adoption strategy for transitioning waterfall-centric development culture to AIDLC in enterprise SI environments.
 
 ---
 
-## 엔터프라이즈 AIDLC 도입의 현실
+## Reality of Enterprise AIDLC Adoption
 
-### 워터폴 SI 시장의 구조적 제약
+### Structural Constraints of Waterfall SI Markets
 
-대형 SI 프로젝트는 다음과 같은 이유로 AIDLC 직접 도입이 어렵습니다:
+Large SI projects face difficulty in direct AIDLC adoption for the following reasons:
 
-| 제약 요소 | 설명 | AIDLC 충돌 지점 |
+| Constraint | Description | AIDLC Conflict Point |
 |----------|------|---------------|
-| **고정 프로세스** | ISO 9001, CMMI 인증 프로세스 | Intent/Bolt 주기가 문서 템플릿과 불일치 |
-| **RFP 문화** | 요구사항 명세 → 고정가 계약 | Adaptive Elaboration이 범위 변경으로 해석됨 |
-| **역할 경직성** | 기획자/개발자/QA 분리 | Mob Programming이 역할 경계를 흐림 |
-| **산출물 중심** | 계약서, 요구사항 명세서, 설계서, 테스트 계획서 | Working software over documentation 충돌 |
-| **검수 단계** | 완료 시점 일괄 검수 | Continuous Validation과 리듬 충돌 |
+| **Fixed Process** | ISO 9001, CMMI certified processes | Intent/Bolt cycles misalign with document templates |
+| **RFP Culture** | Requirements specification → Fixed-price contract | Adaptive Elaboration interpreted as scope change |
+| **Role Rigidity** | Planner/Developer/QA separation | Mob Programming blurs role boundaries |
+| **Deliverable-Centric** | Contracts, requirements specs, design docs, test plans | Working software over documentation conflict |
+| **Acceptance Stage** | Bulk acceptance at completion | Conflicts with Continuous Validation rhythm |
 
-#### VP 압력과 현장 저항의 딜레마
+#### VP Pressure vs Field Resistance Dilemma
 
-- **경영진**: "AI 활용률 80% 달성" 같은 정량적 목표 선언
-- **현장**: 기존 방식 고수 ("일정 내에 배울 시간 없음", "고객이 요구하지 않음")
-- **중간 관리자**: 혁신 압력과 프로젝트 납기 사이에서 갈등
+- **Executives**: Declare quantitative goals like "80% AI utilization"
+- **Field**: Stick to existing methods ("No time to learn during deadlines", "Customers don't require it")
+- **Middle Management**: Caught between innovation pressure and project deadlines
 
-→ **점진적 전환 모델 없이는 조직 전체가 표면적 도입에 그침**
+→ **Without a gradual transition model, the entire organization remains superficial**
 
 ---
 
-## 3단계 전환 모델
+## 3-Phase Transition Model
 
-AIDLC를 한 번에 도입하지 않고, 기존 워터폴 프레임 안에서 점진적으로 적용합니다.
+Apply AIDLC gradually within the existing waterfall framework rather than all at once.
 
 ```mermaid
 graph LR
-    Phase1["Phase 1<br/>워터폴 + AI 보조"]
-    Phase2["Phase 2<br/>하이브리드"]
-    Phase3["Phase 3<br/>AIDLC 네이티브"]
+    Phase1["Phase 1<br/>Waterfall + AI Assist"]
+    Phase2["Phase 2<br/>Hybrid"]
+    Phase3["Phase 3<br/>AIDLC Native"]
 
-    Phase1 -->|3-6개월| Phase2
-    Phase2 -->|6-12개월| Phase3
+    Phase1 -->|3-6 months| Phase2
+    Phase2 -->|6-12 months| Phase3
 
     style Phase1 fill:#e8f4f8
     style Phase2 fill:#b3e5fc
     style Phase3 fill:#4fc3f7
 ```
 
-### Phase 1: 워터폴 + AI 보조 (3-6개월)
+### Phase 1: Waterfall + AI Assist (3-6 months)
 
-기존 프로세스를 유지하되, 개발 단계에서만 AI를 코딩 보조로 활용합니다.
+Maintain existing processes, but allow AI use as coding assistance in development stage only.
 
-#### 적용 범위
+#### Scope
 
-- 요구사항 분석: 기존 방식 유지
-- 설계: 기존 방식 유지
-- **개발**: Claude Code, GitHub Copilot 등 코딩 보조 도구 허용
-- 테스트: 기존 QA 프로세스 유지
+- Requirements Analysis: Maintain existing approach
+- Design: Maintain existing approach
+- **Development**: Allow coding assistance tools like Claude Code, GitHub Copilot
+- Testing: Maintain existing QA process
 
-#### 성과 지표
+#### Success Metrics
 
-- 개발 속도 개선: 20-30%
-- 버그 밀도: 유지 또는 소폭 개선
-- 팀원 만족도: AI 도구 사용 경험 축적
+- Development speed improvement: 20-30%
+- Bug density: Maintained or slightly improved
+- Team satisfaction: Accumulate AI tool experience
 
-#### 조직 변화
+#### Organizational Changes
 
-- 없음 (역할, 프로세스, 산출물 변화 없음)
-- AI 도구 교육 프로그램 운영 (주 1회, 2시간)
+- None (no changes to roles, processes, or deliverables)
+- Run AI tool training programs (once weekly, 2 hours)
 
 ---
 
-### Phase 2: 하이브리드 (6-12개월)
+### Phase 2: Hybrid (6-12 months)
 
-워터폴 프레임을 유지하되, 개발 단계에서 **Bolt 주기**와 **Mob Programming**을 도입합니다.
+Maintain waterfall framework but introduce **Bolt cycles** and **Mob Programming** in the development stage.
 
-#### 적용 범위
+#### Scope
 
-- 요구사항 분석: 워터폴 (산출물 형식 유지)
-- 설계: 워터폴 + **Mob Elaboration** (핵심 모듈만)
-- **개발**: **Bolt 주기** (2주 단위 Working Software 산출)
-- 테스트: **Continuous Validation** (Bolt마다 시연)
+- Requirements Analysis: Waterfall (maintain deliverable format)
+- Design: Waterfall + **Mob Elaboration** (core modules only)
+- **Development**: **Bolt cycles** (2-week cycles producing Working Software)
+- Testing: **Continuous Validation** (demonstration per Bolt)
 
-#### Bolt 주기 구조
+#### Bolt Cycle Structure
 
 ```mermaid
 graph TD
-    Intent["Intent 정의<br/>(2주 Bolt 목표)"]
-    Unit["Unit 분해<br/>(1-3일 작업)"]
-    Dev["Mob Programming<br/>(Daily Unit 완료)"]
+    Intent["Define Intent<br/>(2-week Bolt goal)"]
+    Unit["Decompose Units<br/>(1-3 day tasks)"]
+    Dev["Mob Programming<br/>(Complete daily Units)"]
     Val["Bolt Validation<br/>(Working Demo)"]
 
     Intent --> Unit
     Unit --> Dev
     Dev --> Val
-    Val -->|다음 Bolt| Intent
+    Val -->|Next Bolt| Intent
 
     style Intent fill:#fff9c4
     style Dev fill:#c5e1a5
     style Val fill:#90caf9
 ```
 
-#### 성과 지표
+#### Success Metrics
 
-- 개발 속도 개선: 40-60%
-- 요구사항 변경 대응 시간: 50% 단축
-- 고객 만족도: Bolt 시연으로 가시성 증가
+- Development speed improvement: 40-60%
+- Requirements change response time: 50% reduction
+- Customer satisfaction: Increased visibility through Bolt demonstrations
 
-#### 조직 변화
+#### Organizational Changes
 
-- **역할 유연화**: 개발자가 설계 일부 참여, QA가 Bolt 시연 참여
-- **Mob 세션**: 주 2-3회, 핵심 로직에 한정
-- **산출물 간소화**: Bolt 종료 보고서 = 시연 영상 + 코드
-
----
-
-### Phase 3: AIDLC 네이티브 (12개월+)
-
-Intent → Unit → Bolt 풀사이클을 적용하고, 온톨로지/하네스를 전면 활용합니다.
-
-#### 적용 범위
-
-- **Intent Driven**: 고객 요구를 Intent로 직접 변환
-- **Mob Elaboration**: 전체 설계를 Mob으로 진행
-- **Bolt 주기**: 1-2주 단위 Intent 완료
-- **하네스 자동화**: Unit 테스트, 통합 테스트, 배포 자동화
-- **온톨로지**: 도메인 지식을 명시적으로 관리
-
-#### 조직 구조
-
-- **역할 재정의**: [역할 재정의](./role-composition.md) 참조
-  - Facilitator: Intent 정제, Mob 진행
-  - Domain Expert: 온톨로지 관리
-  - Infrastructure Engineer: 하네스 관리
-- **프로젝트 구조**: 10-15명 → 5-7명 Mob 단위로 분할
-- **계약 방식**: 고정가 → Time & Material 또는 Bolt 단위 검수
-
-#### 성과 지표
-
-- 개발 속도 개선: 60-80%
-- 요구사항 변경 비용: 80% 감소
-- 배포 빈도: 주 1회 → 일 1회
-- 품질: 운영 버그 50% 감소
+- **Role Flexibility**: Developers participate in some design, QA participates in Bolt demos
+- **Mob Sessions**: 2-3 times weekly, limited to core logic
+- **Deliverable Simplification**: Bolt completion report = demo video + code
 
 ---
 
-## Brownfield-First 전략
+### Phase 3: AIDLC Native (12+ months)
 
-신규 프로젝트가 아닌 **기존 시스템 최적화**부터 시작합니다.
+Apply full Intent → Unit → Bolt cycle with comprehensive ontology/harness utilization.
 
-### 왜 Brownfield인가?
+#### Scope
 
-| 요소 | Greenfield (신규) | Brownfield (기존) |
+- **Intent Driven**: Convert customer requirements directly to Intents
+- **Mob Elaboration**: Entire design conducted through Mob
+- **Bolt Cycles**: Complete Intents in 1-2 week cycles
+- **Harness Automation**: Unit tests, integration tests, deployment automation
+- **Ontology**: Explicit domain knowledge management
+
+#### Organizational Structure
+
+- **Role Redefinition**: See [Role Composition](./role-composition.md)
+  - Facilitator: Intent refinement, Mob facilitation
+  - Domain Expert: Ontology management
+  - Infrastructure Engineer: Harness management
+- **Project Structure**: Split 10-15 person teams into 5-7 person Mob units
+- **Contract Method**: Fixed price → Time & Material or Bolt-based acceptance
+
+#### Success Metrics
+
+- Development speed improvement: 60-80%
+- Requirements change cost: 80% reduction
+- Deployment frequency: Weekly → Daily
+- Quality: 50% reduction in production bugs
+
+---
+
+## Brownfield-First Strategy
+
+Start with **existing system optimization** rather than new projects.
+
+### Why Brownfield?
+
+| Factor | Greenfield (New) | Brownfield (Existing) |
 |------|------------------|------------------|
-| **리스크** | 높음 (전체 실패 시 책임 명확) | 낮음 (부분 개선, 현 상태보다 나쁠 수 없음) |
-| **학습 곡선** | 가파름 (모든 것을 새로 결정) | 완만함 (기존 코드베이스 이해 필요) |
-| **가시성** | 낮음 (완료 시점까지 산출물 없음) | 높음 (개선 전후 비교 가능) |
-| **고객 신뢰** | 불확실 (최종 결과에 의존) | 높음 (빠른 피드백) |
+| **Risk** | High (entire failure has clear responsibility) | Low (partial improvement, can't be worse than current state) |
+| **Learning Curve** | Steep (everything decided anew) | Gradual (requires understanding existing codebase) |
+| **Visibility** | Low (no deliverables until completion) | High (before/after comparison possible) |
+| **Customer Trust** | Uncertain (depends on final result) | High (rapid feedback) |
 
-### 3단계 확산 경로
+### 3-Stage Rollout Path
 
 ```mermaid
 graph LR
-    Small["소형 프로젝트<br/>(10억 이하)<br/>Brownfield 최적화"]
-    Medium["중형 프로젝트<br/>(10-50억)<br/>부분 Greenfield"]
-    Large["대형 프로젝트<br/>(50억+)<br/>전면 AIDLC"]
+    Small["Small Project<br/>(< ₩1B)<br/>Brownfield Optimization"]
+    Medium["Medium Project<br/>(₩1-5B)<br/>Partial Greenfield"]
+    Large["Large Project<br/>(₩5B+)<br/>Full AIDLC"]
 
-    Small -->|성공 사례 축적| Medium
-    Medium -->|조직 신뢰 확보| Large
+    Small -->|Build Success Cases| Medium
+    Medium -->|Establish Organizational Trust| Large
 
     style Small fill:#c8e6c9
     style Medium fill:#81c784
     style Large fill:#4caf50
 ```
 
-#### Stage 1: 소형 프로젝트 (10억 이하)
+#### Stage 1: Small Projects (< ₩1B)
 
-- **대상**: 레거시 시스템 유지보수, 기능 추가
-- **목표**: AIDLC 적용 경험 축적
-- **기간**: 3-6개월
-- **성과**: Bolt 주기, Mob 세션, 하네스 자동화 검증
+- **Target**: Legacy system maintenance, feature additions
+- **Goal**: Accumulate AIDLC application experience
+- **Duration**: 3-6 months
+- **Outcome**: Validate Bolt cycles, Mob sessions, harness automation
 
-#### Stage 2: 중형 프로젝트 (10-50억)
+#### Stage 2: Medium Projects (₩1-5B)
 
-- **대상**: 기존 시스템 일부 재작성 + 신규 기능
-- **목표**: 하이브리드 모델 검증
-- **기간**: 6-12개월
-- **성과**: 온톨로지 적용, 역할 재정의, 계약 모델 실험
+- **Target**: Partial rewrite of existing systems + new features
+- **Goal**: Validate hybrid model
+- **Duration**: 6-12 months
+- **Outcome**: Apply ontology, redefine roles, experiment with contract models
 
-#### Stage 3: 대형 프로젝트 (50억+)
+#### Stage 3: Large Projects (₩5B+)
 
-- **대상**: 전사 시스템 전면 재구축
-- **목표**: AIDLC 네이티브 적용
-- **기간**: 12개월+
-- **성과**: 조직 전체 프로세스 전환, 고객사 확산
+- **Target**: Full enterprise system reconstruction
+- **Goal**: Apply AIDLC native
+- **Duration**: 12+ months
+- **Outcome**: Organization-wide process transition, customer expansion
 
 ---
 
-## 챔피언 모델
+## Champion Model
 
-조직 내 AIDLC 확산은 **1인 챔피언**에서 시작해 **팀**, **조직**으로 확산합니다.
+AIDLC adoption within an organization starts with **one champion**, then expands to **team** and **organization**.
 
-### 3단계 확산 구조
+### 3-Stage Expansion Structure
 
 ```mermaid
 graph TD
-    Champion["1인 챔피언<br/>(주 1일 AIDLC 적용)"]
-    Team["팀 확산<br/>(챔피언이 팀원 교육)"]
-    Org["조직 표준화<br/>(전사 거버넌스)"]
+    Champion["Single Champion<br/>(AIDLC 1 day/week)"]
+    Team["Team Expansion<br/>(Champion trains team)"]
+    Org["Organizational Standardization<br/>(Enterprise governance)"]
 
-    Champion -->|3개월| Team
-    Team -->|6개월| Org
+    Champion -->|3 months| Team
+    Team -->|6 months| Org
 
     style Champion fill:#fff9c4
     style Team fill:#c5e1a5
     style Org fill:#90caf9
 ```
 
-### Stage 1: 1인 챔피언 (0-3개월)
+### Stage 1: Single Champion (0-3 months)
 
-#### 챔피언 선정 기준
+#### Champion Selection Criteria
 
-- **기술 역량**: 코딩 경험, 도구 학습 능력
-- **소프트 스킬**: 팀 내 영향력, 교육 의지
-- **시간 확보**: 주 1일 (금요일) AIDLC 적용 허용
+- **Technical Capability**: Coding experience, tool learning ability
+- **Soft Skills**: Team influence, teaching willingness
+- **Time Availability**: Allow 1 day/week (Fridays) for AIDLC application
 
-#### 챔피언 활동
+#### Champion Activities
 
-- 주 1일 AIDLC 적용 (개인 프로젝트 또는 소형 태스크)
-- [10대 원칙](../methodology/principles-and-model.md) 학습
-- Mob 세션 주도 (팀원 초대)
-- 성공 사례 문서화 (스티어링 파일, Bolt 보고서)
+- Apply AIDLC 1 day/week (personal project or small tasks)
+- Study [10 Principles](../methodology/principles-and-model.md)
+- Lead Mob sessions (invite team members)
+- Document success cases (steering files, Bolt reports)
 
-#### 조직 지원
+#### Organizational Support
 
-- 실패 허용 (챔피언 활동은 평가에서 제외)
-- 외부 교육 지원 (컨퍼런스, 워크숍)
-- 주간 리뷰 미팅 (VP 또는 부서장 참여)
-
----
-
-### Stage 2: 팀 확산 (3-6개월)
-
-#### 확산 메커니즘
-
-- 챔피언이 **주 1회 Mob 세션** 주최
-- 팀원이 순차적으로 Mob 참여 (관찰 → 보조 → 주도)
-- 프로젝트별 AIDLC 적용률 목표 설정 (20% → 50% → 80%)
-
-#### 팀 레벨 산출물
-
-- **스티어링 파일 표준**: 프로젝트별 스티어링 파일 템플릿 작성
-- **Bolt 보고서 형식**: 시연 영상 + 코드 + 회고 요약
-- **온톨로지 초안**: 도메인 용어 정의, 핵심 엔티티 모델
-
-#### 성과 지표
-
-- 팀원 AIDLC 적용률: 50% 이상
-- Mob 세션 참여율: 80% 이상
-- 프로젝트 속도 개선: 30% 이상
+- Allow failure (champion activities excluded from evaluation)
+- Support external training (conferences, workshops)
+- Weekly review meetings (with VP or department head)
 
 ---
 
-### Stage 3: 조직 표준화 (6-12개월)
+### Stage 2: Team Expansion (3-6 months)
 
-#### 거버넌스 프레임워크
+#### Expansion Mechanism
 
-- **스티어링 파일 표준**: [거버넌스](./governance-framework.md) 참조
-- **Bolt 주기 정책**: 길이(1-2주), 검수 기준, 시연 형식
-- **Mob 세션 가이드**: 역할, 시간, 도구, 회고 형식
-- **온톨로지 관리**: 도메인별 온톨로지 레지스트리, 버전 관리
+- Champion hosts **weekly Mob sessions**
+- Team members progressively participate in Mob (observe → assist → lead)
+- Set AIDLC application rate goals per project (20% → 50% → 80%)
 
-#### 조직 구조 변화
+#### Team-Level Deliverables
 
-- **AIDLC CoE** (Center of Excellence) 설립
-  - 챔피언 네트워크 운영
-  - 교육 프로그램 개발
-  - 도구 표준화 (Claude Code, GitHub, Slack)
-- **프로젝트 평가 기준** 변경
-  - 산출물 수 → Working Software 빈도
-  - 계획 준수율 → 고객 만족도
+- **Steering File Standards**: Create project steering file templates
+- **Bolt Report Format**: Demo video + code + retrospective summary
+- **Ontology Draft**: Domain terminology definitions, core entity models
 
-#### 성과 지표
+#### Success Metrics
 
-- 조직 AIDLC 적용률: 70% 이상
-- 프로젝트 성공률: 90% 이상
-- 직원 만족도: NPS 50+ (기존 대비 +20)
+- Team AIDLC application rate: 50%+
+- Mob session participation: 80%+
+- Project speed improvement: 30%+
 
 ---
 
-## 타임라인 템플릿
+### Stage 3: Organizational Standardization (6-12 months)
 
-### 3개월 목표
+#### Governance Framework
 
-| 주차 | 활동 | 산출물 | 담당 |
+- **Steering File Standards**: See [Governance](./governance-framework.md)
+- **Bolt Cycle Policy**: Length (1-2 weeks), acceptance criteria, demonstration format
+- **Mob Session Guide**: Roles, timing, tools, retrospective format
+- **Ontology Management**: Domain ontology registry, version control
+
+#### Organizational Structure Changes
+
+- **AIDLC CoE** (Center of Excellence) establishment
+  - Operate champion network
+  - Develop training programs
+  - Standardize tools (Claude Code, GitHub, Slack)
+- **Project Evaluation Criteria** changes
+  - Deliverable count → Working Software frequency
+  - Plan adherence rate → Customer satisfaction
+
+#### Success Metrics
+
+- Organizational AIDLC application rate: 70%+
+- Project success rate: 90%+
+- Employee satisfaction: NPS 50+ (+20 vs baseline)
+
+---
+
+## Timeline Template
+
+### 3-Month Goals
+
+| Week | Activity | Deliverable | Responsible |
 |------|------|--------|------|
-| 1-2주 | 챔피언 선정 (1-2명) | 챔피언 명단, 활동 계획 | VP/부서장 |
-| 3-4주 | AIDLC 교육 (8시간) | [10대 원칙](../methodology/principles-and-model.md) 학습 완료 | 챔피언 |
-| 5-8주 | 파일럿 프로젝트 1 (Brownfield) | Bolt 1-2개 완료, 시연 | 챔피언 + 팀원 2명 |
-| 9-12주 | 파일럿 프로젝트 2 (소형 Greenfield) | Bolt 3-4개 완료, 회고 | 챔피언 + 팀 전체 |
+| 1-2 | Select champions (1-2 people) | Champion list, activity plan | VP/Department Head |
+| 3-4 | AIDLC training (8 hours) | Complete [10 Principles](../methodology/principles-and-model.md) study | Champion |
+| 5-8 | Pilot Project 1 (Brownfield) | Complete 1-2 Bolts, demonstration | Champion + 2 team members |
+| 9-12 | Pilot Project 2 (Small Greenfield) | Complete 3-4 Bolts, retrospective | Champion + Full team |
 
-**성과**: 챔피언 1-2명, 프로젝트 2개, Bolt 4-6개 완료
+**Outcome**: 1-2 champions, 2 projects, 4-6 Bolts completed
 
 ---
 
-### 6개월 목표
+### 6-Month Goals
 
-| 월 | 활동 | 산출물 | 담당 |
+| Month | Activity | Deliverable | Responsible |
 |----|------|--------|------|
-| 1-3개월 | 3개월 목표 달성 | 챔피언 1-2명 | VP/부서장 |
-| 4개월 | 팀 확산 (3-5팀) | 팀별 스티어링 파일 | 챔피언 + 팀장 |
-| 5개월 | Mob 세션 정례화 | 주 1회 Mob, 녹화 영상 | 챔피언 + 팀 |
-| 6개월 | 스티어링 파일 표준화 | 조직 표준 템플릿 | AIDLC CoE |
+| 1-3 | Achieve 3-month goals | 1-2 champions | VP/Department Head |
+| 4 | Team expansion (3-5 teams) | Steering files per team | Champion + Team Lead |
+| 5 | Regularize Mob sessions | Weekly Mob, recorded videos | Champion + Team |
+| 6 | Standardize steering files | Organizational standard template | AIDLC CoE |
 
-**성과**: 팀 3-5개, 챔피언 3-5명, 스티어링 파일 표준 완성
+**Outcome**: 3-5 teams, 3-5 champions, complete steering file standard
 
 ---
 
-### 12개월 목표
+### 12-Month Goals
 
-| 분기 | 활동 | 산출물 | 담당 |
+| Quarter | Activity | Deliverable | Responsible |
 |------|------|--------|------|
-| Q1-Q2 | 6개월 목표 달성 | 팀 3-5개 | VP/부서장 |
-| Q3 | 거버넌스 프레임워크 수립 | [거버넌스](./governance-framework.md) | AIDLC CoE |
-| Q4 | 조직 표준 적용 (전체 프로젝트) | 온톨로지 레지스트리, Bolt 정책 | AIDLC CoE |
+| Q1-Q2 | Achieve 6-month goals | 3-5 teams | VP/Department Head |
+| Q3 | Establish governance framework | [Governance](./governance-framework.md) | AIDLC CoE |
+| Q4 | Apply organizational standards (all projects) | Ontology registry, Bolt policy | AIDLC CoE |
 
-**성과**: 조직 AIDLC 적용률 70%, 프로젝트 성공률 90%
+**Outcome**: 70% organizational AIDLC application rate, 90% project success rate
 
 ---
 
-## 성숙도 모델
+## Maturity Model
 
-조직의 AIDLC 적용 수준을 4단계로 평가합니다.
+Evaluate organizational AIDLC application level in 4 stages.
 
-### Level 0: Pilot (파일럿)
+### Level 0: Pilot
 
-| 요소 | 상태 |
+| Element | Status |
 |------|------|
-| **챔피언** | 1-2명 |
-| **프로젝트** | 1-2개 (Brownfield) |
-| **Bolt 주기** | 비공식 (챔피언 개인 실험) |
-| **Mob 세션** | 없음 또는 비정기 |
-| **온톨로지** | 없음 |
-| **하네스** | 수동 테스트 |
+| **Champions** | 1-2 people |
+| **Projects** | 1-2 (Brownfield) |
+| **Bolt Cycles** | Informal (champion personal experiments) |
+| **Mob Sessions** | None or irregular |
+| **Ontology** | None |
+| **Harness** | Manual testing |
 
 ---
 
-### Level 1: Team (팀)
+### Level 1: Team
 
-| 요소 | 상태 |
+| Element | Status |
 |------|------|
-| **챔피언** | 3-5명 |
-| **프로젝트** | 3-5개 (Brownfield + 소형 Greenfield) |
-| **Bolt 주기** | 팀별 표준 (2주) |
-| **Mob 세션** | 주 1회 정례화 |
-| **온톨로지** | 팀별 초안 |
-| **하네스** | 자동 테스트 일부 |
+| **Champions** | 3-5 people |
+| **Projects** | 3-5 (Brownfield + small Greenfield) |
+| **Bolt Cycles** | Team standard (2 weeks) |
+| **Mob Sessions** | Weekly regular |
+| **Ontology** | Team draft |
+| **Harness** | Some automated tests |
 
 ---
 
-### Level 2: Division (부서)
+### Level 2: Division
 
-| 요소 | 상태 |
+| Element | Status |
 |------|------|
-| **챔피언** | 10명+ (부서별 1-2명) |
-| **프로젝트** | 전체 프로젝트의 50% |
-| **Bolt 주기** | 부서 표준 (1-2주) |
-| **Mob 세션** | 주 2-3회, 녹화 공유 |
-| **온톨로지** | 부서 레지스트리 |
-| **하네스** | CI/CD 파이프라인 |
+| **Champions** | 10+ (1-2 per division) |
+| **Projects** | 50% of all projects |
+| **Bolt Cycles** | Division standard (1-2 weeks) |
+| **Mob Sessions** | 2-3 times weekly, recorded sharing |
+| **Ontology** | Division registry |
+| **Harness** | CI/CD pipeline |
 
 ---
 
-### Level 3: Enterprise (전사)
+### Level 3: Enterprise
 
-| 요소 | 상태 |
+| Element | Status |
 |------|------|
-| **챔피언** | 전사 네트워크 (50명+) |
-| **프로젝트** | 전체 프로젝트의 80% |
-| **Bolt 주기** | 전사 표준 + [거버넌스](./governance-framework.md) |
-| **Mob 세션** | 일일 Mob (핵심 프로젝트) |
-| **온톨로지** | 전사 레지스트리, 버전 관리 |
-| **하네스** | 완전 자동화 (배포 포함) |
+| **Champions** | Enterprise network (50+) |
+| **Projects** | 80% of all projects |
+| **Bolt Cycles** | Enterprise standard + [Governance](./governance-framework.md) |
+| **Mob Sessions** | Daily Mob (core projects) |
+| **Ontology** | Enterprise registry, version control |
+| **Harness** | Full automation (including deployment) |
 
 ---
 
-## 안티패턴
+## Anti-Patterns
 
-### 1. 빅뱅 도입
+### 1. Big Bang Adoption
 
-**증상**: "다음 프로젝트부터 전사 AIDLC 적용" 선언
+**Symptom**: "All AIDLC from the next project" declaration
 
-**위험**:
-- 전체 조직이 학습 곡선에 동시 진입 → 초기 생산성 급락
-- 실패 시 AIDLC 전체가 신뢰 상실
-- 챔피언 없이 표면적 적용 → "AI 도구만 쓰면 AIDLC"로 오해
+**Risks**:
+- Entire organization enters learning curve simultaneously → Initial productivity plummets
+- Failure causes total AIDLC credibility loss
+- Superficial application without champions → Misunderstand as "AI tools = AIDLC"
 
-**대안**: 챔피언 모델 + Brownfield-First
-
----
-
-### 2. 도구만 도입하고 방법론 무시
-
-**증상**: "Claude Code 라이선스 전사 배포" → "AIDLC 도입 완료"
-
-**위험**:
-- Mob Programming, Bolt 주기 없이 도구만 사용 → 생산성 개선 미미
-- Intent/Unit 분해 없이 코딩 보조로만 활용 → 설계 품질 저하
-- 온톨로지/하네스 무시 → 유지보수성 악화
-
-**대안**: [10대 원칙](../methodology/principles-and-model.md) 교육 선행
+**Alternative**: Champion model + Brownfield-First
 
 ---
 
-### 3. 측정 없는 확산
+### 2. Tools Only, Methodology Ignored
 
-**증상**: "팀 5개가 AIDLC 적용 중" (실제 적용률, 성과 불명)
+**Symptom**: "Deployed Claude Code licenses enterprise-wide" → "AIDLC adoption complete"
 
-**위험**:
-- 형식적 적용 (Mob 세션은 하되, 기존 코드 리뷰 병행 → 이중 작업)
-- 성과 가시화 실패 → 경영진 지원 중단
-- 실패 사례 학습 불가 → 동일 실수 반복
+**Risks**:
+- Using tools without Mob Programming or Bolt cycles → Minimal productivity improvement
+- Coding assistance only without Intent/Unit decomposition → Design quality degradation
+- Ignoring ontology/harness → Maintainability deterioration
 
-**대안**: [비용 효과](./cost-estimation.md) 지표 추적
-
----
-
-### 4. 경영진 지원 없는 바텀업
-
-**증상**: 현장 개발자가 자발적으로 AIDLC 적용 시도, 관리자 반대
-
-**위험**:
-- 프로젝트 일정 압박 시 AIDLC 중단 압력
-- 역할 경계 침범 (Mob 시 기획자/QA 참여 거부)
-- 예산 부족 (도구 라이선스, 교육 프로그램 미지원)
-
-**대안**: VP/부서장 스폰서십 확보 필수
+**Alternative**: [10 Principles](../methodology/principles-and-model.md) training first
 
 ---
 
-### 5. 고객사 설득 실패
+### 3. Expansion Without Measurement
 
-**증상**: SI 팀은 AIDLC 적용하되, 고객사는 워터폴 산출물 요구
+**Symptom**: "5 teams applying AIDLC" (actual application rate, performance unknown)
 
-**위험**:
-- 이중 작업 (AIDLC로 개발 + 워터폴 산출물 별도 작성)
-- Bolt 검수 거부 → 프로젝트 종료 시점 일괄 검수로 회귀
-- 고객사 불신 ("산출물 없으면 진행 상황을 어떻게 아나?")
+**Risks**:
+- Formal application (doing Mob sessions but also maintaining code reviews → Double work)
+- Failure to demonstrate performance → Executive support withdrawn
+- Can't learn from failures → Repeat same mistakes
 
-**대안**: Bolt 시연을 계약서에 명시, 산출물 간소화 협상
-
----
-
-## 실행 체크리스트
-
-### 조직 준비도 평가
-
-- [ ] VP/부서장 스폰서십 확보
-- [ ] 챔피언 후보 선정 (1-2명)
-- [ ] 파일럿 프로젝트 선정 (Brownfield 우선)
-- [ ] 실패 허용 정책 수립
-
-### 3개월 목표
-
-- [ ] 챔피언 교육 완료 ([10대 원칙](../methodology/principles-and-model.md))
-- [ ] 파일럿 프로젝트 1-2개 완료
-- [ ] Bolt 4-6개 산출, 시연 영상 확보
-- [ ] 팀 레벨 스티어링 파일 초안
-
-### 6개월 목표
-
-- [ ] 팀 3-5개 확산
-- [ ] 스티어링 파일 표준화
-- [ ] 온톨로지 초안 (도메인별)
-- [ ] [비용 효과](./cost-estimation.md) 지표 측정
-
-### 12개월 목표
-
-- [ ] 조직 AIDLC 적용률 70%
-- [ ] [거버넌스](./governance-framework.md) 프레임워크 완성
-- [ ] 온톨로지 레지스트리 운영
-- [ ] 프로젝트 성공률 90%
+**Alternative**: Track [Cost Effectiveness](./cost-estimation.md) metrics
 
 ---
 
-## 다음 단계
+### 4. Bottom-Up Without Executive Support
 
-- [역할 재정의](./role-composition.md): AIDLC 팀 구조와 역할 변화
-- [비용 효과](./cost-estimation.md): ROI 측정 및 경영진 보고
-- [거버넌스](./governance-framework.md): 전사 표준 수립
-- [10대 원칙](../methodology/principles-and-model.md): AIDLC 방법론 기초
+**Symptom**: Field developers attempt AIDLC voluntarily, management opposes
 
-**핵심 메시지**: 워터폴→AIDLC 전환은 빅뱅이 아닌 3단계 점진적 전환(워터폴+AI → 하이브리드 → 네이티브)과 챔피언 모델(1인 → 팀 → 조직)로 실행합니다. Brownfield-First로 신뢰를 구축하고, 측정 가능한 성과로 확산합니다.
+**Risks**:
+- Pressure to stop AIDLC under project schedule pressure
+- Role boundary violations (planners/QA refuse Mob participation)
+- Budget shortfall (tools licensing, training programs unsupported)
+
+**Alternative**: VP/Department Head sponsorship essential
+
+---
+
+### 5. Customer Persuasion Failure
+
+**Symptom**: SI team applies AIDLC, but customer demands waterfall deliverables
+
+**Risks**:
+- Double work (develop with AIDLC + write waterfall deliverables separately)
+- Bolt acceptance refused → Revert to bulk acceptance at project end
+- Customer distrust ("How do I track progress without deliverables?")
+
+**Alternative**: Specify Bolt demonstrations in contract, negotiate deliverable simplification
+
+---
+
+## Execution Checklist
+
+### Organizational Readiness Assessment
+
+- [ ] Secure VP/Department Head sponsorship
+- [ ] Select champion candidates (1-2 people)
+- [ ] Select pilot project (Brownfield priority)
+- [ ] Establish failure tolerance policy
+
+### 3-Month Goals
+
+- [ ] Complete champion training ([10 Principles](../methodology/principles-and-model.md))
+- [ ] Complete 1-2 pilot projects
+- [ ] Produce 4-6 Bolts, secure demonstration videos
+- [ ] Draft team-level steering files
+
+### 6-Month Goals
+
+- [ ] Expand to 3-5 teams
+- [ ] Standardize steering files
+- [ ] Ontology draft (per domain)
+- [ ] Measure [Cost Effectiveness](./cost-estimation.md) metrics
+
+### 12-Month Goals
+
+- [ ] 70% organizational AIDLC application rate
+- [ ] Complete [Governance](./governance-framework.md) framework
+- [ ] Operate ontology registry
+- [ ] 90% project success rate
+
+---
+
+## Next Steps
+
+- [Role Composition](./role-composition.md): AIDLC team structure and role changes
+- [Cost Effectiveness](./cost-estimation.md): ROI measurement and executive reporting
+- [Governance](./governance-framework.md): Establish enterprise standards
+- [10 Principles](../methodology/principles-and-model.md): AIDLC methodology foundation
+
+**Key Message**: Waterfall→AIDLC transition executes through 3-phase gradual transition (Waterfall+AI → Hybrid → Native) and Champion model (1 person → Team → Organization). Build trust with Brownfield-First and expand with measurable results.

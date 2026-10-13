@@ -1,6 +1,6 @@
 ---
-title: S1. 자연어 시맨틱 검색 (Uni-President)
-description: 5 BU SKU + OPENPOINT 회원 + 외부 후기 통합 검색
+title: S1. Natural-Language Semantic Search (Uni-President)
+description: Unified search across 5-BU SKUs + OPENPOINT members + external reviews
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,21 +16,21 @@ tags:
 sidebar_label: S1. Semantic Search
 ---
 
-## 1. URL · 페르소나
+## 1. URL · Persona
 - `/semantic-search` · P1, P5
 
-## 2. 데이터 믹스
-- 5 BU 자사 SKU + OPENPOINT 회원 + 자사 리뷰 + Dcard·小紅書 후기
+## 2. Data Mix
+- 5-BU own SKUs + OPENPOINT members + first-party reviews + Dcard · Xiaohongshu (小紅書) reviews
 
-## 3. 입력 예시
-- "여름 우롱차 PB SKU + 7ELE 매장 + Dcard 별점 4+"
+## 3. Sample Input
+- "Summer oolong tea PB SKUs + 7ELE stores + Dcard rating 4+"
 
-## 4. 출력 UI
-- 결과 3컬럼: SKU + 회원 + 외부 후기
-- BU 색상 코딩 (7ELE/까르푸/Starbucks/Donut/KFC/統一食품)
+## 4. Output UI
+- 3-column results: SKUs + members + external reviews
+- BU color coding (7ELE / Carrefour / Starbucks / Donut / KFC / Uni-President Food)
 - 1-hop KG (cytoscape)
 
-## 5. 데모 시나리오
-1. "麥香 음료 7ELE 매장 인기 SKU" → SKU + sell-through (S10-U 연계)
-2. "OPENPOINT 골드 회원 + 까르푸 식품 충성층" → 회원 + 카테고리 매트릭스
-3. "Starbucks 인기 시즌 메뉴" → SKU + 외부 후기
+## 5. Demo Scenarios
+1. "Top-selling Mai-Hsiang (麥香) beverage SKUs at 7ELE" → SKUs + sell-through (linked to S10-U)
+2. "OPENPOINT Gold members + Carrefour food loyalists" → members + category matrix
+3. "Popular Starbucks seasonal menu" → SKUs + external reviews

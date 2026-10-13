@@ -155,7 +155,7 @@ test('static navigation preserves each card title, destination and description',
     assert.equal(description, document.description);
     assert.ok(title.length > 0);
   }
-  for (const title of ['설계 & 아키텍처', '모델 서빙 & 추론 인프라', '운영 & 거버넌스', 'Reference Architecture']) assert.ok(cards.some(card => card[1] === title));
+  for (const title of ['Design & Architecture', 'Model Serving & Inference Infrastructure', 'Operations & Governance', 'Reference Architecture']) assert.ok(cards.some(card => card[1] === title));
   assert.ok(!output.includes('color='));
 });
 

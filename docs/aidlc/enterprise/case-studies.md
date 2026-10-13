@@ -1,649 +1,649 @@
 ---
-title: AIDLC 도입 시나리오와 검증 계획
-description: 금융·제조·공공·Fintech의 가상 시나리오로 AIDLC 도입과 하네스 검증 계획을 구성하는 방법
+title: AIDLC Adoption Scenarios and Validation Plans
+description: Illustrative financial, manufacturing, public-sector, and fintech scenarios for planning AIDLC adoption and harness validation
 created: "2026-04-07"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 14
+  author: devfloor9
+reading_time: 33
 tags:
   - aidlc
   - enterprise
   - agentic-ai
   - scope:enterprise
-sidebar_label: AIDLC 도입 시나리오
+sidebar_label: AIDLC Adoption Scenarios
 ---
 
-이 문서는 금융·제조·공공·Fintech 환경을 가정한 **가상 도입 시나리오**입니다. 조직, 일정, 비용, 사건과 결과 수치는 설명을 위한 입력이며, 익명화한 고객 사례나 검증된 성과가 아닙니다. 시나리오를 통해 검토할 질문과 검증 계획을 구성합니다.
+This document presents **fictional adoption scenarios** for financial services, manufacturing, the public sector, and fintech. Organizations, timelines, costs, incidents, and outcomes are illustrative inputs, not anonymized customer evidence or validated results. Use the scenarios to formulate review questions and validation plans.
 
-:::note 수치의 사용 범위
-Before/After 표는 계산 방법을 보여 주는 가정입니다. 실제 도입 효과를 판단하려면 비교 기간, 표본 수, 업무 범위, 인력·도구 비용, 품질 기준을 고정하고 결과를 측정해야 합니다. 아래의 개선율이나 일정을 목표 보장값으로 사용하지 않습니다.
+:::note How to use the numbers
+Before/After tables demonstrate calculations with assumed values. To assess an actual adoption, define the comparison period, sample size, workload scope, staff and tool costs, and quality criteria, then measure the results. The improvements and timelines below are not guarantees.
 :::
 
 ---
 
-## 사례 연구 프레임워크
+## Case Study Framework
 
-각 사례는 다음 구조로 정리됩니다:
+Each case is organized with the following structure:
 
 ```
-1. 컨텍스트        — 산업, 프로젝트 규모, 조직 구조
-2. 도전과제        — 해결해야 할 문제들
-3. AIDLC 접근법    — 어떤 전략으로 도입했는가
-4. 정량 가정       — 검증할 Before/After 지표
-5. 교훈           — 무엇을 배웠는가
+1. Context         — Industry, project scale, organizational structure
+2. Challenges      — Problems that needed solving
+3. AIDLC Approach  — What strategy was used for adoption
+4. Quantitative Assumptions — Before/After metrics
+5. Lessons Learned — What was learned
 ```
 
 ---
 
-## 사례 1: 금융사 A — 레거시 모놀리스 마이그레이션
+## Case 1: Financial Company A — Legacy Monolith Migration
 
-### 1.1 컨텍스트
+### 1.1 Context
 
-| 항목 | 내용 |
-|------|------|
-| **산업** | 금융 서비스 (자산운용) |
-| **프로젝트 규모** | 소형 (~8억원, 6개월) |
-| **조직 구조** | 워터폴 기반, 역할 사일로 강함 (기획/개발/QA 분리) |
-| **기술 스택** | 레거시 모놀리스(Java) → MSA(Spring Boot + K8s) 전환 |
-| **팀 구성** | PM 1명, 아키텍트 1명, 개발자 5명, QA 2명 |
+| Item | Details |
+|------|---------|
+| **Industry** | Financial Services (Asset Management) |
+| **Project Scale** | Small (~KRW 800 million, 6 months) |
+| **Organizational Structure** | Waterfall-based, strong role silos (planning/dev/QA separated) |
+| **Tech Stack** | Legacy Monolith(Java) → MSA(Spring Boot + K8s) transition |
+| **Team Composition** | 1 PM, 1 Architect, 5 Developers, 2 QA Engineers |
 
-### 1.2 도전과제
+### 1.2 Challenges
 
-**비즈니스 과제:**
-- 20년 된 레거시 시스템, 문서화 부재
-- 도메인 지식 보유자 퇴사, 암묵지 손실
-- 규제 요구사항 강화 (금융감독원 가이드라인)
+**Business Challenges:**
+- 20-year-old legacy system with no documentation
+- Loss of tacit knowledge due to domain expert departures
+- Strengthened regulatory requirements (financial supervisory guidelines)
 
-**기술 과제:**
-- 200만 줄 이상의 모놀리스 코드베이스
-- 명확하지 않은 비즈니스 로직 경계
-- MSA 전환 경험 부족
+**Technical Challenges:**
+- Codebase of over 2 million lines of monolithic code
+- Unclear business logic boundaries
+- Lack of MSA transition experience
 
-**조직 과제:**
-- 워터폴 프로세스에 익숙한 팀
-- "AI는 보조 도구"라는 인식
-- 역할 간 핸드오프 지연 (기획 → 개발 → QA)
+**Organizational Challenges:**
+- Team accustomed to waterfall processes
+- Perception that "AI is just an assistive tool"
+- Handoff delays between roles (planning → dev → QA)
 
-### 1.3 AIDLC 접근법
+### 1.3 AIDLC Approach
 
-**Phase 1: AI 코딩 보조 도입 (1개월)**
-
-```
-목표: 개발자가 AI 도구에 익숙해지기
-도구: Amazon Q Developer
-활동:
-  - 기존 코드 리팩터링 실습
-  - 단위 테스트 자동 생성
-  - 코드 리뷰 자동화 시범 운영
-```
-
-**Phase 2: Mob Elaboration 도입 (2개월)**
+**Phase 1: AI Coding Assistant Introduction (1 month)**
 
 ```
-목표: AI 주도 요구사항 분석
-전략:
-  - 주 1회 Mob Elaboration 세션 (전체 팀 참여)
-  - AI Agent로 Intent → Unit 분해 실습
-  - 온톨로지 초안 구축 (금융 도메인 용어)
+Goal: Developers become familiar with AI tools
+Tool: Amazon Q Developer
+Activities:
+  - Practice refactoring existing code
+  - Automated unit test generation
+  - Pilot automated code review
 ```
 
-**Phase 3: 온톨로지 기반 리팩터링 (3개월)**
+**Phase 2: Mob Elaboration Introduction (2 months)**
 
 ```
-목표: 레거시 코드를 DDD 구조로 전환
-전략:
-  - AI가 기존 코드 분석 → Aggregate 추출
-  - 온톨로지 기반 도메인 모델링
-  - 점진적 마이그레이션 (Strangler Fig 패턴)
+Goal: AI-led requirements analysis
+Strategy:
+  - Weekly Mob Elaboration sessions (full team participation)
+  - Practice Intent → Unit decomposition with AI Agent
+  - Build initial ontology (financial domain terminology)
 ```
 
-### 1.4 정량 결과
+**Phase 3: Ontology-based Refactoring (3 months)**
 
-**설명용 가정:** 아래 수치는 측정 결과가 아닙니다. 개선율은 별도 표시가 없으면 기준값 대비 상대 변화입니다.
+```
+Goal: Transform legacy code to DDD structure
+Strategy:
+  - AI analyzes existing code → extracts Aggregates
+  - Ontology-based domain modeling
+  - Gradual migration (Strangler Fig pattern)
+```
 
-| 지표 | Before | After | 개선율 |
-|------|--------|-------|-------|
-| **요구사항 분석 시간** | 평균 3주 | 평균 1.5주 | **-50%** |
-| **코드 리뷰 시간** | 개발자당 4시간/주 | 개발자당 2.2시간/주 | **-45%** |
-| **초기 결함률** | 100 LOC당 8.5건 | 100 LOC당 5.9건 | **-31%** |
-| **개발 일정** | 6개월 계획 | 4.8개월 가정 | **-20%** |
-| **테스트 커버리지** | 52% | 81% | **+56%** |
+### 1.4 Quantitative Results
 
-**비용 효과:**
-- 프로젝트 비용: 8억원 → 가정 지출 6.8억원 (**1.2억원 절감**)
-- 조기 완료로 인한 기회 비용 절감: 약 2억원 상당 (신규 고객 유입)
+**Illustrative assumptions:** These values are not measurements. Unless indicated otherwise, improvement percentages are relative to the baseline.
 
-### 1.5 교훈
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **Requirements Analysis Time** | Average 3 weeks | Average 1.5 weeks | **-50%** |
+| **Code Review Time** | 4 hours/dev/week | 2.2 hours/dev/week | **-45%** |
+| **Initial Defect Rate** | 8.5 per 100 LOC | 5.9 per 100 LOC | **-31%** |
+| **Development Schedule** | 6 months planned | 4.8 months assumed | **-20%** |
+| **Test Coverage** | 52% | 81% | **+56%** |
 
-**✅ 성공 요인:**
+**Cost Benefits:**
+- Project cost: KRW 800 million → assumed spending KRW 680 million (**KRW 120 million savings**)
+- Opportunity cost savings from early completion: approximately KRW 200 million (new customer acquisition)
 
-1. **점진적 도입** — 빅뱅이 아닌 단계적 전환 (Phase 1 → 2 → 3)
-2. **Mob Elaboration** — 사일로를 깬 전사 협업 리추얼
-3. **온톨로지 투자** — 도메인 지식 형식화가 장기 ROI의 핵심
+### 1.5 Lessons Learned
 
-**⚠️ 저항 포인트:**
+**✅ Success Factors:**
 
-1. **보안 인력의 Shift-Left 저항**
-   - 문제: QA 팀이 "AI가 우리 역할을 뺏는다"고 반발
-   - 해결: QA → 테스트 전략 설계자로 역할 재정의, AI는 단순 반복 테스트 자동화
-   - 결과: QA 만족도 상승 (전략적 업무 비중 증가)
+1. **Gradual Adoption** — Phased transformation (Phase 1 → 2 → 3), not big bang
+2. **Mob Elaboration** — Cross-organizational collaboration ritual that broke silos
+3. **Ontology Investment** — Formalizing domain knowledge is key to long-term ROI
 
-2. **워터폴 문화와의 충돌**
-   - 문제: "요구사항 변경"을 실패로 인식하는 문화
-   - 해결: Intent → Unit 분해로 요구사항 변경을 자연스러운 정제 과정으로 전환
-   - 결과: 요구사항 변경 횟수는 증가했지만, 품질은 향상됨
+**⚠️ Resistance Points:**
 
-3. **PM의 권한 불안**
-   - 문제: AI가 계획을 제안하면 PM의 역할이 축소된다는 불안감
-   - 해결: PM을 "AI 제안 검증자 + 비즈니스 맥락 제공자"로 재정의
-   - 결과: PM이 전략적 의사결정에 더 집중
+1. **Security Personnel Shift-Left Resistance**
+   - Problem: QA team pushed back saying "AI is taking away our role"
+   - Solution: Redefined QA → Test Strategy Designer role, AI automates repetitive testing
+   - Result: Increased QA satisfaction (increased strategic work proportion)
 
-**검토할 관점:**
+2. **Clash with Waterfall Culture**
+   - Problem: Culture perceiving "requirements changes" as failure
+   - Solution: Intent → Unit decomposition transformed requirements changes into natural refinement process
+   - Result: Requirements changes increased, but quality improved
 
-> 역할과 검토 책임을 먼저 정하고, 협업 방식의 효과는 업무별로 측정합니다.
+3. **PM Authority Anxiety**
+   - Problem: Anxiety that PM role would diminish if AI proposes plans
+   - Solution: Redefined PM as "AI proposal validator + business context provider"
+   - Result: PM focused more on strategic decision-making
+
+**Review perspective:**
+
+> Define responsibilities first and measure collaboration outcomes for each workload.
 
 ---
 
-## 사례 2: 제조사 B — 스마트 팩토리 운영 플랫폼
+## Case 2: Manufacturer B — Smart Factory Operations Platform
 
-### 2.1 컨텍스트
+### 2.1 Context
 
-| 항목 | 내용 |
-|------|------|
-| **산업** | 제조업 (자동차 부품) |
-| **프로젝트 규모** | 중형 (~30억원, 12개월) |
-| **조직 구조** | Agile 스크럼 (3개 팀 병렬) |
-| **기술 스택** | IoT(MQTT) + Real-time Data(Kafka) + K8s + TimescaleDB |
-| **팀 구성** | PM 1명, 아키텍트 2명, 개발자 12명, SRE 3명 |
+| Item | Details |
+|------|---------|
+| **Industry** | Manufacturing (Automotive Parts) |
+| **Project Scale** | Medium (~KRW 3 billion, 12 months) |
+| **Organizational Structure** | Agile Scrum (3 parallel teams) |
+| **Tech Stack** | IoT(MQTT) + Real-time Data(Kafka) + K8s + TimescaleDB |
+| **Team Composition** | 1 PM, 2 Architects, 12 Developers, 3 SREs |
 
-### 2.2 도전과제
+### 2.2 Challenges
 
-**비즈니스 과제:**
-- 실시간 생산 데이터 처리 (초당 50만 이벤트)
-- 예측 정비 요구 (99.5% 정확도 목표)
-- Brownfield 환경 (기존 레거시와 통합 필수)
+**Business Challenges:**
+- Real-time production data processing (500K events/second)
+- Predictive maintenance requirements (99.5% accuracy target)
+- Brownfield environment (must integrate with existing legacy)
 
-**기술 과제:**
-- 복잡한 도메인 (생산, 물류, 품질, 정비 4개 Subdomain)
-- 실시간 처리 vs 비용 효율성 트레이드오프
-- K8s 운영 경험 부족
+**Technical Challenges:**
+- Complex domain (4 Subdomains: production, logistics, quality, maintenance)
+- Real-time processing vs cost efficiency tradeoffs
+- Lack of K8s operations experience
 
-**조직 과제:**
-- 팀 간 의존성 높음 (생산 ↔ 품질 ↔ 정비)
-- 도메인 전문가와 개발팀 간 언어 격차
-- 야간 배포 반복으로 SRE 번아웃
+**Organizational Challenges:**
+- High inter-team dependencies (production ↔ quality ↔ maintenance)
+- Language gap between domain experts and dev teams
+- SRE burnout from repeated night deployments
 
-### 2.3 AIDLC 접근법
+### 2.3 AIDLC Approach
 
-**Phase 1: 온톨로지 기반 도메인 모델링 (2개월)**
-
-```
-목표: 도메인 전문가 ↔ 개발팀 간 공통 언어 확립
-전략:
-  - 4개 Subdomain(Core/Supporting) 식별
-    - Core: 생산 스케줄링, 예측 정비
-    - Supporting: 품질 검사, 물류 조정
-  - 온톨로지 구축 (34개 Entity, 18개 Aggregate)
-  - Ubiquitous Language 사전 작성 (125개 용어)
-```
-
-**Phase 2: AgenticOps 피드백 루프 (6개월)**
+**Phase 1: Ontology-based Domain Modeling (2 months)**
 
 ```
-목표: AI 기반 자율 운영
-전략:
-  - ADOT → AMP → Grafana 관찰성 스택
-  - AI Agent로 이상 탐지 (MTTR 60% 단축)
-  - 자동 스케일링 (Karpenter + KEDA)
+Goal: Establish common language between domain experts ↔ dev teams
+Strategy:
+  - Identify 4 Subdomains (Core/Supporting)
+    - Core: Production scheduling, Predictive maintenance
+    - Supporting: Quality inspection, Logistics coordination
+  - Build ontology (34 Entities, 18 Aggregates)
+  - Create Ubiquitous Language dictionary (125 terms)
 ```
 
-**Phase 3: 하네스 강화 (4개월)**
+**Phase 2: AgenticOps Feedback Loop (6 months)**
 
 ```
-목표: 운영 신뢰성 보장
-전략:
-  - 서킷 브레이커 (IoT 디바이스 장애 격리)
-  - 재시도 예산 (Kafka 재처리 제한)
-  - 출력 게이트 (예측 정비 알림 검증)
+Goal: AI-based autonomous operations
+Strategy:
+  - ADOT → AMP → Grafana observability stack
+  - AI Agent anomaly detection (60% MTTR reduction)
+  - Auto-scaling (Karpenter + KEDA)
 ```
 
-### 2.4 정량 결과
+**Phase 3: Harness Strengthening (4 months)**
 
-**설명용 가정:** 아래 수치는 측정 결과가 아닙니다. 개선율은 별도 표시가 없으면 기준값 대비 상대 변화입니다.
+```
+Goal: Ensure operational reliability
+Strategy:
+  - Circuit breakers (IoT device failure isolation)
+  - Retry budgets (Kafka reprocessing limits)
+  - Output gates (Predictive maintenance alert validation)
+```
 
-| 지표 | Before | After | 개선율 |
-|------|--------|-------|-------|
-| **에러율** | 8.3% | 1.2% (31일 평균을 가정) | **-85%** |
-| **MTTR** | 평균 45분 | 평균 18분 | **-60%** |
-| **인시던트 자동 복구율** | 0% | 38% | **신규** |
-| **운영 비용** | 월 3,200만원 | 월 2,400만원 | **-25%** |
-| **예측 정비 정확도** | 91.2% | 99.1% | **+7.9%p** |
+### 2.4 Quantitative Results
 
-**비용 효과:**
-- 운영 비용 절감: 연간 9,600만원
-- 예상치 못한 생산 중단 감소: 연간 2.8억원 손실 방지
-- 투자 회수 기간: 도입에 추가로 투입한 비용과 증분 편익을 별도로 산정합니다. 위 가정만으로 1년 내 회수를 결론내릴 수 없습니다.
+**Illustrative assumptions:** These values are not measurements. Unless indicated otherwise, improvement percentages are relative to the baseline.
 
-### 2.5 교훈
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **Error Rate** | 8.3% | 1.2% (31-day avg) | **-85%** |
+| **MTTR** | Average 45 min | Average 18 min | **-60%** |
+| **Incident Auto-Recovery Rate** | 0% | 38% | **New** |
+| **Operating Cost** | KRW 32 million/month | KRW 24 million/month | **-25%** |
+| **Predictive Maintenance Accuracy** | 91.2% | 99.1% | **+7.9%p** |
 
-**✅ 성공 요인:**
+**Cost Benefits:**
+- Operating cost savings: KRW 96 million annually
+- Prevented unexpected production downtime: KRW 280 million annual loss prevention
+- Payback: Calculate the incremental adoption cost and benefit separately. The assumptions above do not establish payback within one year.
 
-1. **온톨로지 초기 투자**
-   - 2개월 동안 도메인 모델링만 수행 → 장기 ROI의 핵심
-   - Ubiquitous Language 사전이 팀 간 의사소통 시간 70% 단축
+### 2.5 Lessons Learned
 
-2. **AgenticOps 피드백 루프**
-   - 운영 데이터 → 온톨로지 진화 → 더 나은 예측
-   - 자기 개선 시스템 구축 성공
+**✅ Success Factors:**
+
+1. **Initial Ontology Investment**
+   - Spent 2 months on domain modeling only → key to long-term ROI
+   - Ubiquitous Language dictionary reduced inter-team communication time by 70%
+
+2. **AgenticOps Feedback Loop**
+   - Operational data → Ontology evolution → Better predictions
+   - Successfully built self-improving system
 
 3. **SRE Shift-Right**
-   - SRE를 "장애 대응"에서 "하네스 설계"로 역할 전환
-   - 야간 대응 감소 → 번아웃 해소
+   - Transitioned SRE role from "incident response" to "harness design"
+   - Reduced night responses → resolved burnout
 
-**⚠️ 저항 포인트:**
+**⚠️ Resistance Points:**
 
-1. **도메인 전문가의 온톨로지 참여 거부**
-   - 문제: "우리는 공장을 돌리는 사람이지 IT 용어를 정의하는 사람이 아니다"
-   - 해결: 온톨로지를 현장의 업무 용어와 운영 규칙을 정리하는 작업으로 설명하고, 생산·품질·정비 업무에서 이 정의를 어떻게 사용할지 제시
-   - 결과: 도메인 전문가가 온톨로지 진화의 주도권 획득
+1. **Domain Expert Resistance to Ontology Participation**
+   - Problem: "We run factories, not define IT terminology"
+   - Solution: Explained the work as recording workplace terminology and operating rules, then showed how those definitions support production, quality, and maintenance tasks
+   - Result: Domain experts took ownership of ontology evolution
 
-2. **실시간 처리 vs AI 추론 지연**
-   - 문제: AI 모델 추론 시간이 실시간 요구사항 위반 (50ms 목표 → 200ms를 관측했다고 가정)
-   - 해결: Edge AI + Cloud AI 하이브리드 (긴급 → Edge, 복잡 → Cloud)
-   - 결과: 95%는 Edge에서 처리, 평균 지연 60ms를 가정하더라도 50ms 목표는 미달이므로 추가 검증 필요
+2. **Real-time Processing vs AI Inference Latency**
+   - Problem: AI model inference time violated real-time requirements (50ms target → assume 200ms was observed)
+   - Solution: Edge AI + Cloud AI hybrid (urgent → Edge, complex → Cloud)
+   - Result: Assume 95% is processed at Edge with 60ms average latency; the 50ms target still requires further work
 
-**검토할 관점:**
+**Review perspective:**
 
-> 도메인 모델링의 범위를 정하고, 이해도·재작업·유지 비용을 함께 평가합니다.
+> Scope domain modeling and evaluate comprehension, rework, and maintenance costs together.
 
 ---
 
-## 사례 3: 공공기관 C — 대형 정보화 사업
+## Case 3: Public Agency C — Large-scale Informatization Project
 
-### 3.1 컨텍스트
+### 3.1 Context
 
-| 항목 | 내용 |
-|------|------|
-| **산업** | 공공 부문 (중앙 행정기관) |
-| **프로젝트 규모** | 대형 (~50억원, 18개월) |
-| **조직 구조** | 다층 거버넌스 (발주처 + 종합 SI + 하도급 3사) |
-| **기술 스택** | 온프레미스 K8s + 오픈 웨이트 모델(GLM-5) + PostgreSQL |
-| **팀 구성** | PM 2명, EA 3명, 개발자 30명, 보안 감사 팀 5명 |
+| Item | Details |
+|------|---------|
+| **Industry** | Public Sector (Central Government Agency) |
+| **Project Scale** | Large (~KRW 5 billion, 18 months) |
+| **Organizational Structure** | Multi-layer governance (client + general SI + 3 subcontractors) |
+| **Tech Stack** | On-premises K8s + Open-weight model(GLM-5) + PostgreSQL |
+| **Team Composition** | 2 PMs, 3 EAs, 30 Developers, 5 Security Audit Team |
 
-### 3.2 도전과제
+### 3.2 Challenges
 
-**비즈니스 과제:**
-- 데이터 레지던시 요구 (국외 반출 금지)
-- 개인정보보호법 준수 (민감 정보 처리)
-- 다층 거버넌스 (5단계 승인 프로세스)
+**Business Challenges:**
+- Data residency requirements (no overseas transfer)
+- Personal Information Protection Act compliance (sensitive information handling)
+- Multi-layer governance (5-step approval process)
 
-**기술 과제:**
-- 클라우드 사용 제한 (온프레미스 우선)
-- 민감 정보의 외부 LLM API 전송 금지; 일반 업무도 별도 정책 승인 필요
-- 오픈 웨이트 모델 운영 경험 부족
+**Technical Challenges:**
+- Cloud usage restrictions (on-premises priority)
+- Sending sensitive data to external LLM APIs is prohibited; general work also requires policy approval
+- Lack of open-weight model operation experience
 
-**조직 과제:**
-- 30명의 개발자를 어떻게 조율할 것인가?
-- 하도급사 간 코드 품질 편차
-- 보안 감사 대응 (매 마일스톤)
+**Organizational Challenges:**
+- How to coordinate 30 developers?
+- Code quality variance across subcontractors
+- Security audit response (every milestone)
 
-### 3.3 AIDLC 접근법
+### 3.3 AIDLC Approach
 
-**Phase 1: 하이브리드 LLM 전략 (3개월)**
-
-```
-목표: 데이터 레지던시 준수 + 비용 절감
-전략:
-  - 민감 정보 처리 → 온프레미스 Kubernetes + vLLM의 GLM-5
-  - 일반 업무 → 정책상 허용된 경우에만 승인된 클라우드 모델
-  - LiteLLM Gateway로 라우팅 자동화
-```
-
-**Phase 2: 거버넌스 프레임워크 구축 (6개월)**
+**Phase 1: Hybrid LLM Strategy (3 months)**
 
 ```
-목표: 전사 AI 품질 관리
-전략:
-  - 3층 거버넌스 프레임워크
-    - Policy Layer: 보안·컴플라이언스 정책
-    - Process Layer: 리뷰 프로세스, 승인 워크플로우
-    - Tool Layer: AI 코드 리뷰, 보안 스캔
-  - 하도급사 코드 통합 검증 (독립 AI 에이전트)
+Goal: Data residency compliance + cost reduction
+Strategy:
+  - Sensitive information processing → GLM-5 on on-premises Kubernetes with vLLM
+  - General business → An approved cloud model only when permitted by policy
+  - Automated routing with LiteLLM Gateway
 ```
 
-**Phase 3: 선언적 배포 자동화 (9개월)**
+**Phase 2: Governance Framework Construction (6 months)**
 
 ```
-목표: 배포 리드타임 단축
-전략:
+Goal: Enterprise-wide AI quality management
+Strategy:
+  - 3-layer governance framework
+    - Policy Layer: Security·compliance policies
+    - Process Layer: Review process, approval workflows
+    - Tool Layer: AI code review, security scanning
+  - Subcontractor code integration verification (independent AI agent)
+```
+
+**Phase 3: Declarative Deployment Automation (9 months)**
+
+```
+Goal: Reduce deployment lead time
+Strategy:
   - GitOps (ArgoCD)
-  - AI가 Helm Chart + Terraform 자동 생성
-  - 보안 감사 자동화 (Trivy, Falco)
+  - AI auto-generates Helm Chart + Terraform
+  - Automated security audits (Trivy, Falco)
 ```
 
-### 3.4 정량 결과
+### 3.4 Quantitative Results
 
-**설명용 가정:** 아래 수치는 측정 결과가 아닙니다. 개선율은 별도 표시가 없으면 기준값 대비 상대 변화입니다.
+**Illustrative assumptions:** These values are not measurements. Unless indicated otherwise, improvement percentages are relative to the baseline.
 
-| 지표 | Before | After | 개선율 |
-|------|--------|-------|-------|
-| **LLM API 비용** | 월 1,800만원 예상 | 월 1,260만원 가정 | **-30%** |
-| **보안 컴플라이언스** | 수동 증거 확인 (영업일 15일/회) | 자동 증거 확인 (영업일 1일/회) | **-93%** |
-| **배포 리드타임** | 평균 5일 | 평균 1.5일 | **-70%** |
-| **코드 품질 편차** | 하도급사별 ±35% | 통합 검증 후 ±8% | **-77%** |
-| **보안 취약점** | 마일스톤당 평균 23건 | 마일스톤당 평균 4건 | **-83%** |
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| **LLM API Cost** | KRW 18 million/month assumed | KRW 12.6 million/month assumed | **-30%** |
+| **Security Compliance** | Manual evidence checks (15 working days/cycle) | Automated evidence checks (1 working day/cycle) | **-93%** |
+| **Deployment Lead Time** | Average 5 days | Average 1.5 days | **-70%** |
+| **Code Quality Variance** | ±35% by subcontractor | ±8% after integration verification | **-77%** |
+| **Security Vulnerabilities** | Average 23 per milestone | Average 4 per milestone | **-83%** |
 
-**비용 효과:**
-- 프로젝트 비용: 50억원 → 가정 지출 48억원 (**2억원 절감**)
-- LLM 비용 절감: 연간 6,480만원
-- 보안 감사 대응 시간 절감: 약 1.2억원 상당
+**Cost Benefits:**
+- Project cost: KRW 5 billion → assumed spending KRW 4.8 billion (**KRW 200 million savings**)
+- LLM cost savings: KRW 64.8 million annually
+- Security audit response time savings: approximately KRW 120 million
 
-### 3.5 교훈
+### 3.5 Lessons Learned
 
-**✅ 성공 요인:**
+**✅ Success Factors:**
 
-1. **하이브리드 LLM 전략**
-   - 온프레미스 + 클라우드 조합으로 보안과 비용 효율성 양립
-   - LiteLLM Gateway로 투명한 라우팅
+1. **Hybrid LLM Strategy**
+   - On-premises + Cloud combination achieved both security and cost efficiency
+   - Transparent routing with LiteLLM Gateway
 
-2. **거버넌스 프레임워크**
-   - AI 품질 관리를 "권장 사항"이 아닌 "강제 프로세스"로 승격
-   - 하도급사 간 품질 편차 대폭 감소
+2. **Governance Framework**
+   - Elevated AI quality management from "recommendation" to "mandatory process"
+   - Significantly reduced quality variance across subcontractors
 
-3. **경영진 후원**
-   - 발주처 CIO의 전폭적 지원 → 저항 최소화
-   - "AI는 선택이 아닌 필수"라는 톱다운 메시지
+3. **Executive Sponsorship**
+   - Full support from client CIO → minimized resistance
+   - Top-down message that "AI is essential, not optional"
 
-**⚠️ 저항 포인트:**
+**⚠️ Resistance Points:**
 
-1. **거버넌스 프레임워크 없이 시작한 초기 실패**
-   - 문제: 1-2개월차에 하도급사가 각자 다른 AI 도구 사용 → 혼란
-   - 해결: 3개월차에 거버넌스 프레임워크 도입, 표준화
-   - 교훈: **대형 프로젝트는 거버넌스부터 구축하라**
+1. **Initial Failure Starting Without Governance Framework**
+   - Problem: Months 1-2, subcontractors used different AI tools → chaos
+   - Solution: Month 3 introduced governance framework, standardization
+   - Lesson: **Large projects must build governance first**
 
-2. **온프레미스 오픈 웨이트 모델 운영 난이도**
-   - 문제: vLLM 설치, GPU 리소스 관리, 모델 버전 관리 복잡도
-   - 해결: 전문가 검토와 [EKS GPU 노드 전략](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy) 적용
-   - 결과: 3개월차에 안정화
+2. **On-premises Open-weight Model Operation Difficulty**
+   - Problem: vLLM installation, GPU resource management, model version management complexity
+   - Solution: Specialist review, applied [EKS GPU Node Strategy](/docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy)
+   - Result: Stabilized by month 3
 
-**검토할 관점:**
+**Review perspective:**
 
-> 참여 조직이 많을수록 공통 검토 기준과 예외 승인 경로를 명확히 합니다.
+> "Attempting AIDLC in large projects without governance is like sending 30 soldiers to battle without a commander."
 
 ---
 
-## 사례 4: Fintech 스타트업 D — AI Agent 사고 사례
+## Case 4: Fintech Startup D — AI Agent Incident Case
 
-### 4.1 컨텍스트
+### 4.1 Context
 
-| 항목 | 내용 |
-|------|------|
-| **산업** | Fintech (B2B SaaS) |
-| **프로젝트 규모** | 스타트업 (개발자 4명) |
-| **조직 구조** | Agile (스크럼 없이 Kanban) |
-| **기술 스택** | Node.js + OpenAI GPT-4 + Sendgrid |
-| **팀 구성** | CTO 1명, 개발자 3명 |
+| Item | Details |
+|------|---------|
+| **Industry** | Fintech (B2B SaaS) |
+| **Project Scale** | Startup (4 developers) |
+| **Organizational Structure** | Agile (Kanban without Scrum) |
+| **Tech Stack** | Node.js + OpenAI GPT-4 + Sendgrid |
+| **Team Composition** | 1 CTO, 3 Developers |
 
-### 4.2 사건 개요
+### 4.2 Incident Overview
 
-:::note 가상 사고 시나리오: 제어되지 않은 재시도
+:::note Fictional incident scenario: uncontrolled retries
 
-이 예시는 이메일 초안을 생성하는 에이전트가 하나의 작업에서 **847번 재시도**했다고 가정합니다. 다음 값은 실제 사고 보고가 아닌 분석용 입력입니다:
+Assume an email-drafting agent retries **847 times** during one task. The values below are inputs for analysis, not a reported incident:
 
-- **$2,200의 LLM API 비용** 발생 (예산의 4배)
-- **14개의 불완전한 이메일** 고객에게 전송 (신뢰도 타격)
-- **3시간 동안 서비스 정지** (수동 개입 필요)
+- **$2,200 in LLM API costs** (4x budget)
+- **14 incomplete emails** sent to customers (credibility hit)
+- **3 hours of service outage** (manual intervention required)
 
 :::
 
-### 4.3 원인 분석
+### 4.3 Root Cause Analysis
 
-**표면적 원인:**
-- AI 에이전트가 이메일 초안 생성 중 계속 실패 → 무제한 재시도
+**Surface Cause:**
+- AI agent continued to fail while generating email drafts → unlimited retries
 
-**근본 원인 (하네스 부재):**
+**Root Cause (Harness Absence):**
 
-| 하네스 패턴 | 구현 여부 | 결과 |
-|-----------|----------|-----|
-| **재시도 예산** | ❌ 없음 (무제한 재시도) | 847번 재시도 |
-| **타임아웃** | ❌ 없음 | 루프 무한 실행 |
-| **출력 게이트** | ❌ 없음 | 불완전 이메일 14개 전송 |
-| **서킷 브레이커** | ❌ 없음 | 847번 실패 후에도 계속 시도 |
-| **비용 제한** | ❌ 없음 | $2,200 청구 전까지 알림 없음 |
+| Harness Pattern | Implemented? | Result |
+|----------------|--------------|--------|
+| **Retry Budget** | ❌ None (unlimited retries) | 847 retries |
+| **Timeout** | ❌ None | Loop ran indefinitely |
+| **Output Gate** | ❌ None | 14 incomplete emails sent |
+| **Circuit Breaker** | ❌ None | Continued trying after 847 failures |
+| **Cost Limit** | ❌ None | No alert until $2,200 charge |
 
-이 시나리오만으로 모델·프롬프트·코드 중 어느 계층이 최초 실패를 일으켰는지 판단할 수 없습니다. 요청 로그와 입력·모델 버전으로 원인을 조사하고, 실패가 반복되더라도 비용과 외부 전송이 계속 증가하지 않도록 실행 제어를 검증합니다.
+This scenario does not identify whether the initial failure arose from the model, prompt, or code. Investigate request logs and input/model revisions, and verify that repeated failures cannot cause unbounded spending or external messages.
 
-### 4.4 하네스 적용 후 재설계
+### 4.4 Redesign with Harness Applied
 
-아래 YAML은 설계 검토용 예시이며 특정 SDK의 실행 가능한 설정이 아닙니다. 제한은 실제 실행 경로에 구현해야 합니다. 중복 이메일은 멱등 키와 전송 승인으로 방지하고, 병렬 작업의 비용·시도 횟수는 공유 저장소에서 원자적으로 집계합니다.
+The YAML below is a design-review example, not executable configuration for a particular SDK. Implement each limit in the actual execution path. Use idempotency keys and send approval for email, and atomically track shared budgets and attempts across concurrent jobs.
 
-**재시도 예산 설정:**
+**Retry Budget Configuration:**
 ```yaml
 retry_budget:
-  max_attempts: 3            # 847 → 3으로 제한
+  max_attempts: 3            # Limited 847 → 3
   backoff: exponential       # 1s, 2s, 4s
-  budget_limit: 10           # 시간당 10회
+  budget_limit: 10           # 10 times per hour
 ```
 
-**타임아웃 설정:**
+**Timeout Configuration:**
 ```yaml
 timeout:
-  request: 30s              # 단일 요청 30초
-  total: 300s               # 전체 작업 5분
+  request: 30s              # 30 seconds per request
+  total: 300s               # 5 minutes total operation
 ```
 
-**출력 게이트:**
+**Output Gate:**
 ```yaml
 output_gate:
   validators:
-    - email_completeness    # 필수 필드 검증
-    - syntax_check          # HTML 구문 검증
-    - pii_detection        # PII 마스킹
+    - email_completeness    # Required field validation
+    - syntax_check          # HTML syntax validation
+    - pii_detection        # PII masking
   action_on_failure: reject
 ```
 
-**서킷 브레이커:**
+**Circuit Breaker:**
 ```yaml
 circuit_breaker:
-  failure_threshold: 5      # 5번 실패 시 Open
-  timeout: 60s             # 60초 후 Half-Open
+  failure_threshold: 5      # Open after 5 failures
+  timeout: 60s             # Half-Open after 60s
 ```
 
-**비용 제한:**
+**Cost Limit:**
 ```yaml
 cost_limit:
-  per_request: 0.50         # 요청당 $0.50
-  per_hour: 10.00          # 시간당 $10
-  alert_threshold: 0.80    # 80% 도달 시 알림
+  per_request: 0.50         # $0.50 per request
+  per_hour: 10.00          # $10 per hour
+  alert_threshold: 0.80    # Alert at 80%
 ```
 
-### 4.5 재설계 후 결과
+### 4.5 Post-Redesign Results
 
-| 지표 | 가상 사고 입력 | 재설계 검증 조건 |
-|------|----------------|------------------|
-| **작업당 API 호출 시도** | 제한되지 않은 재시도 | 최초 호출을 포함해 `max_attempts: 3`을 초과하지 않는지 검증 |
-| **비용** | $2,200 | 정상·실패·병렬 부하에서 비용 한도와 중단 동작 측정 |
-| **불완전 이메일** | 14개 전송 | 검증 실패·중복 요청·승인 부재에서 외부 전송이 차단되는지 검증 |
-| **서비스 정지 시간** | 3시간 | 장애 주입으로 복구 시간을 측정하고 합의한 목표와 비교 |
+| Metric | Fictional incident input | Validation condition |
+|--------|--------------------------|----------------------|
+| **API attempts per task** | Unbounded retries | Verify that `max_attempts: 3` includes the initial call and is not exceeded |
+| **Cost** | $2,200 | Measure spending limits and termination under normal, failing, and concurrent load |
+| **Incomplete emails** | 14 sent | Verify blocking on validation failure, duplicate requests, and missing approval |
+| **Service downtime** | 3 hours | Measure recovery with fault injection and compare with the agreed objective |
 
-재설계만으로 비용 $8.40, 이메일 오류 0건, 정지 시간 0분이 달성됐다고 판단할 수 없습니다. 완료 기준에는 실행 로그, 평가 범위, 실패 사례와 잔여 위험이 필요합니다.
+Redesign alone does not establish a cost of $8.40, zero incomplete emails, or zero downtime. Acceptance requires execution records, evaluation scope, failure cases, and residual-risk review.
 
-### 4.6 교훈
+### 4.6 Lessons Learned
 
-**✅ 핵심 교훈:**
+**✅ Key Lessons:**
 
-1. **하네스 엔지니어링의 중요성**
-   - 실패 원인과 관계없이 실행 제어가 피해 범위를 제한하는지 검증
-   - "에이전트가 어려운 게 아니라, 하네스가 어렵다"
+1. **Importance of Harness Engineering**
+   - Verify that execution controls limit harm regardless of the initial failure cause
+   - "Agents aren't hard; harnesses are"
 
-2. **하네스는 선택이 아닌 필수**
-   - 스타트업이라도 하네스 5가지 패턴은 필수:
-     - 재시도 예산
-     - 타임아웃
-     - 출력 게이트
-     - 서킷 브레이커
-     - 비용 제한
+2. **Harness is Essential, Not Optional**
+   - Even for startups, 5 harness patterns are essential:
+     - Retry budget
+     - Timeout
+     - Output gate
+     - Circuit breaker
+     - Cost limit
 
-3. **프로덕션 전 하네스 검증**
-   - 배포 전 오류·재시도·외부 전송·비용 한도에 대한 실패 경로 검증
-   - Chaos Engineering으로 하네스 사전 검증
+3. **Harness Verification Before Production**
+   - Verify failure paths for retries, external messages, and spending limits before deployment
+   - Pre-verify harness with Chaos Engineering
 
-**⚠️ 안티패턴:**
-
-```
-❌ "작은 프로젝트니까 하네스는 나중에"
-❌ "GPT-4는 똑똑하니까 알아서 할 거야"
-❌ "테스트에서 잘 돌아가면 프로덕션도 괜찮겠지"
-```
-
-**✅ 올바른 접근:**
+**⚠️ Anti-patterns:**
 
 ```
-✅ 하네스는 프로젝트 크기와 무관하게 필수
-✅ 모델이 아무리 좋아도 하네스 없으면 위험
-✅ 프로덕션 전 하네스 Chaos Test 필수
+❌ "Small project, harness can wait"
+❌ "GPT-4 is smart, it'll handle it"
+❌ "If it works in testing, production should be fine"
 ```
 
-**검토할 관점:**
+**✅ Correct Approach:**
 
-> 모델 평가와 실행 제어 검증을 모두 배포 판단에 포함합니다.
+```
+✅ Harness is essential regardless of project size
+✅ Even with the best model, it's dangerous without harness
+✅ Harness Chaos Test essential before production
+```
 
----
+**Review perspective:**
 
-## 공통 실패 패턴과 교훈
-
-다음은 위 가상 시나리오를 검토할 때 사용할 실패 패턴과 점검 질문입니다. 실제 프로젝트 표본에서 빈도나 인과 효과를 추정한 결과가 아닙니다.
-
-### 실패 패턴 1: 빅뱅 도입
-
-**증상:**
-- "다음 프로젝트부터는 전면 AIDLC로 가자"
-- Phase 1-4를 건너뛰고 바로 AI Agent 도입
-
-**결과:**
-- 팀이 AI를 "마법"으로 기대 → 실망
-- 기존 프로세스와 충돌 → 혼란
-- 3개월 후 전통 방식으로 회귀
-
-**교훈:**
-- AIDLC는 점진적 도입이 필수 (Phase 1 → 2 → 3 → 4)
-- 각 Phase의 종료 조건과 관측 기간을 업무 규모에 맞게 결정
+> Include both model evaluation and execution-control validation in release decisions.
 
 ---
 
-### 실패 패턴 2: 도구만 도입, 방법론 무시
+## Common Failure Patterns and Lessons
 
-**증상:**
-- "Q Developer 구매했으니 생산성 2배 될 거야"
-- 온톨로지, 하네스 엔지니어링 없이 도구만 도입
+The following patterns and questions support review of the fictional scenarios above. They are not frequency estimates or causal findings from a sample of real projects.
 
-**결과:**
-- 코드 생성 속도는 빨라졌지만 품질은 하락
-- 6개월 후 기술 부채 폭증
-- "AI는 도움이 안 된다"는 반감 확산
+### Failure Pattern 1: Big Bang Adoption
 
-**교훈:**
-- 도구는 수단, 방법론이 본질
-- 확산 전에 도메인 이해와 실행 제어를 검증
+**Symptoms:**
+- "Let's go full AIDLC from the next project"
+- Skipping Phases 1-4 and jumping straight to AI Agent adoption
 
----
+**Result:**
+- Team expects AI to be "magic" → disappointment
+- Conflict with existing processes → chaos
+- Regression to traditional methods after 3 months
 
-### 실패 패턴 3: 측정 없는 확산
-
-**증상:**
-- "AI 도입했으니 좋아졌겠지?"
-- Before/After 지표 측정 없음
-
-**결과:**
-- 실제 효과를 증명할 수 없음
-- 경영진 후원 상실 → 예산 삭감
-- 팀원들도 효과를 체감하지 못함
-
-**교훈:**
-- AIDLC 도입 전 **측정 지표 먼저 정의**
-- 최소 지표: 개발 속도, 결함률, 코드 리뷰 시간, 비용
+**Lesson:**
+- AIDLC requires gradual adoption (Phase 1 → 2 → 3 → 4)
+- Each Phase needs 2-3 months stabilization period
 
 ---
 
-### 실패 패턴 4: 경영진 후원 없는 바텀업 시도
+### Failure Pattern 2: Tools Only, Methodology Ignored
 
-**증상:**
-- 개발팀이 자발적으로 AIDLC 시도
-- 경영진은 "팀이 알아서 하는 거겠지" 방관
+**Symptoms:**
+- "We bought Q Developer, productivity will double"
+- Adopting tools only without ontology, harness engineering
 
-**결과:**
-- 조직 변화 필요 시 막힘 (역할 재정의, 프로세스 변경)
-- 예산 부족 (온프레미스 GPU, LLM API 비용)
-- 저항 세력에 의해 6개월 내 중단
+**Result:**
+- Code generation speed increased but quality declined
+- Technical debt explosion after 6 months
+- Spread of sentiment "AI doesn't help"
 
-**교훈:**
-- AIDLC는 **조직 변환** 프로젝트
-- 경영진의 전폭적 후원 필수 (특히 대형 프로젝트)
-
----
-
-### 실패 패턴 5: 하네스 없는 프로덕션 배포
-
-**증상:**
-- "개발 환경에서 잘 돌아가니 프로덕션도 괜찮겠지"
-- 하네스 설계 없이 AI Agent 배포
-
-**결과:**
-- Fintech 사례와 유사한 사고 (비용 폭주, 데이터 손상)
-- 고객 신뢰 하락
-- 긴급 롤백 → AI 도입 중단
-
-**교훈:**
-- **하네스는 프로덕션 배포의 전제조건**
-- 재시도 예산, 타임아웃, 출력 게이트, 서킷 브레이커, 비용 제한 필수
+**Lesson:**
+- Tools are means, methodology is essence
+- Evaluate domain understanding and execution controls before expanding adoption
 
 ---
 
-## 성공 요인 요약
+### Failure Pattern 3: Expansion Without Measurement
 
-도입 계획에서 검토할 항목 (상세 로드맵: [도입 전략](./adoption-strategy.md)):
+**Symptoms:**
+- "We adopted AI, so it must have improved, right?"
+- No Before/After metric measurement
 
-| 항목 | 검토 대상 | 설명 | 확인할 증거 |
-|------|----------|------|-------|
-| 1 | **점진적 도입** | Phase 1→2→3→4 단계적 전환, 각 Phase의 검증 조건 충족 후 확장 | 검증 계획과 결과 |
-| 2 | **온톨로지 투자** | 도메인 지식 형식화에 필요한 도메인 범위와 유지 비용을 평가 | 검증 계획과 결과 |
-| 3 | **하네스 엔지니어링** | 5가지 하네스 패턴 필수 구현, 프로덕션 배포 전 검증 | 검증 계획과 결과 |
-| 4 | **경영진 후원** | CIO/CTO 레벨의 전폭적 지원, 조직 변화 권한 부여 | 책임자와 검토 기록 |
-| 5 | **측정 기반 확산** | Before/After 지표 측정, 데이터 기반 확산 결정 | 책임자와 검토 기록 |
+**Result:**
+- Cannot prove actual benefits
+- Loss of executive sponsorship → budget cuts
+- Team members also don't feel the benefits
 
-**추가 성공 요인:**
-- **역할 재정의**: AI 협력자로서의 역할 명확화 ([역할 재정의](./role-composition.md) 참조)
-- **Mob Elaboration**: 사일로 깨는 전사 협업 리추얼
-- **독립 검증**: 코드 생성 에이전트 ≠ 검증 에이전트
-- **하이브리드 전략**: 온프레미스 + 클라우드 LLM 조합
+**Lesson:**
+- **Define measurement metrics first** before AIDLC adoption
+- Minimum metrics: development speed, defect rate, code review time, cost
 
 ---
 
-## 다음 단계
+### Failure Pattern 4: Bottom-up Attempt Without Executive Sponsorship
 
-사례 연구를 통해 AIDLC 도입의 구체적 인사이트를 얻었다면, 다음 문서를 참고하세요:
+**Symptoms:**
+- Dev team voluntarily tries AIDLC
+- Executives remain hands-off: "Team will handle it"
 
-**도입 계획 수립:**
-- **[도입 전략](./adoption-strategy.md)** — 조직별 맞춤 도입 로드맵
-- **[비용 효과 프레임워크](./cost-estimation.md)** — ROI 계산 및 RFP 산정
-- **[거버넌스 프레임워크](./governance-framework.md)** — 전사 AI 품질 관리
+**Result:**
+- Blocked when organizational change needed (role redefinition, process changes)
+- Budget shortage (on-premises GPU, LLM API costs)
+- Stopped within 6 months by resistance forces
 
-**기술 심화:**
-- **[온톨로지 엔지니어링](../methodology/ontology-engineering.md)** — 도메인 지식 형식화
-- **[하네스 엔지니어링](../methodology/harness-engineering.md)** — AI 실행 안전성 보장
-- **[MSA 복잡도 평가](./msa-complexity/index.md)** — 대규모 프로젝트 적용 가이드
+**Lesson:**
+- AIDLC is an **organizational transformation** project
+- Executive full sponsorship essential (especially for large projects)
 
 ---
 
-## 참고 자료
+### Failure Pattern 5: Production Deployment Without Harness
 
-### AIDLC 방법론
-- [AIDLC 10대 원칙과 실행 모델](../methodology/principles-and-model.md)
-- [DDD 통합](../methodology/ddd-integration.md)
+**Symptoms:**
+- "Works well in dev environment, production should be fine"
+- Deploying AI Agent without harness design
+
+**Result:**
+- Incidents similar to Fintech case (cost explosion, data corruption)
+- Customer trust decline
+- Emergency rollback → AI adoption halted
+
+**Lesson:**
+- **Harness is a prerequisite for production deployment**
+- Retry budget, timeout, output gate, circuit breaker, cost limit essential
+
+---
+
+## Success Factor Summary
+
+Review these five areas when building an adoption plan:
+
+| Item | Review Area | Description | Evidence |
+|------|---------------|-------------|------------|
+| 1 | **Gradual Adoption** | Phased transition Phase 1→2→3→4, Advance after the phase validation criteria are met | Validation plan and results |
+| 2 | **Ontology Investment** | Assess the required domain scope and its maintenance cost | Validation plan and results |
+| 3 | **Harness Engineering** | Implement 5 essential harness patterns, verify before production deployment | Validation plan and results |
+| 4 | **Executive Sponsorship** | Full support from CIO/CTO level, authority for organizational change | Owners and review records |
+| 5 | **Measurement-based Expansion** | Measure Before/After metrics, data-driven expansion decisions | Owners and review records |
+
+**Additional Success Factors:**
+- **Role Redefinition**: Clarify roles as AI collaborators (see [Role Redefinition](./role-composition.md))
+- **Mob Elaboration**: Cross-organizational collaboration ritual breaking silos
+- **Independent Verification**: Code generation agent ≠ Verification agent
+- **Hybrid Strategy**: On-premises + Cloud LLM combination
+
+---
+
+## Next Steps
+
+If you've gained concrete insights on AIDLC adoption through these case studies, refer to the following documents:
+
+**Adoption Planning:**
+- **[Adoption Strategy](./adoption-strategy.md)** — Customized adoption roadmap by organization
+- **[Cost Estimation Framework](./cost-estimation.md)** — ROI calculation and RFP estimation
+- **[Governance Framework](./governance-framework.md)** — Enterprise-wide AI quality management
+
+**Technical Deep Dive:**
+- **[Ontology Engineering](../methodology/ontology-engineering.md)** — Domain knowledge formalization
+- **[Harness Engineering](../methodology/harness-engineering.md)** — AI execution safety assurance
+- **[MSA Complexity Assessment](msa-complexity/index.md)** — Large-scale project application guide
+
+---
+
+## References
+
+### AIDLC Methodology
+- [AIDLC 10 Principles and Execution Model](../methodology/principles-and-model.md)
+- [DDD Integration](../methodology/ddd-integration.md)
 - [AgenticOps](/docs/aidlc/operations)
 
-### 외부 참조
+### External References
 
 - [Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) — Harness design methods
 - [AI-Driven Development Life Cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/) — AIDLC methodology

@@ -12,8 +12,8 @@ import types
 import unittest
 
 DOCS = {
-    "ko": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md",
-    "en": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md",
+    "ko": "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md",
+    "en": "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-draining.md",
 }
 WATCHDOG = 3  # Deadlock watchdog only; test sequencing uses Events, never sleeps.
 OPTIONS = None

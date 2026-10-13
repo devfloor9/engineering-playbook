@@ -27,8 +27,8 @@ const rawCss = fs.readFileSync(cssFile, 'utf8');
 const fixtureCss = rawCss.replace(/^\s*@import[^\n]*;\s*$/gm, '');
 const cssHash = createHash('sha256').update(rawCss).digest('hex');
 const documents = {
-  ko: 'docs/rosa/rosa-demo-installation.md',
-  en: 'i18n/en/docusaurus-plugin-content-docs/current/rosa/rosa-demo-installation.md',
+  ko: 'i18n/ko/docusaurus-plugin-content-docs/current/rosa/rosa-demo-installation.md',
+  en: 'docs/rosa/rosa-demo-installation.md',
 };
 const graphs = Object.fromEntries(Object.entries(documents).map(([locale, filename]) => {
   const text = fs.readFileSync(path.join(root, filename), 'utf8');

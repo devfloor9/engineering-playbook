@@ -13,8 +13,8 @@ const root = path.resolve(process.env.INIT_DOC_ROOT || process.cwd());
 const deps = path.resolve(process.env.INIT_DEPS_ROOT || process.cwd());
 const yaml = createRequire(path.join(deps, 'package.json'))('js-yaml');
 const DOCS = {
-  ko: 'docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md',
-  en: 'i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md',
+  ko: 'i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md',
+  en: 'docs/eks-best-practices/operations-reliability/pod-lifecycle/init-containers.md',
 };
 const mutation = process.env.INIT_TEST_MUTATION || '';
 assert.ok(['', 'mask-migration-failure', 'dump-secret', 'accept-exhaustion'].includes(mutation));

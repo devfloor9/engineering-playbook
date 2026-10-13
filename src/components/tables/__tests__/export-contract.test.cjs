@@ -113,7 +113,7 @@ test('all shared-table occurrences in the three existing ko/en manuals export wi
   let occurrences = 0;
   for (const locale of ['ko', 'en']) {
     for (const manual of manuals) {
-      const file = path.join(root, locale === 'ko' ? 'docs' : 'i18n/en/docusaurus-plugin-content-docs/current', manual);
+      const file = path.join(root, locale === 'ko' ? 'i18n/ko/docusaurus-plugin-content-docs/current' : 'docs', manual);
       const {lines, imports} = readImports(fs.readFileSync(file, 'utf8'));
       for (let index = 0; index < lines.length; index++) {
         const tag = lines[index].trim().match(/^<(ComparisonTable|SpecificationTable)\b/)?.[1];

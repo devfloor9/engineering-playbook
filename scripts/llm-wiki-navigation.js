@@ -44,13 +44,14 @@ function sidebarCards(block, imports, {filePath, renderer}) {
   const initializer = declaration?.declarations.find(d => d.id.name === 'sidebars')?.init;
   if (!initializer) throw new StaticGap('Static sidebar declaration not found');
   const sidebar = renderer.evaluate(initializer, renderer.globals(sidebarFile));
+  // 기본 로케일(en) 문서는 docs/ 에, 번역 로케일(ko 등)은 i18n/<locale>/ 아래에 위치한다.
   const docsRoot = path.join(renderer.root, renderer.locale === 'en'
-    ? 'i18n/en/docusaurus-plugin-content-docs/current' : 'docs');
+    ? 'docs' : `i18n/${renderer.locale}/docusaurus-plugin-content-docs/current`);
   if (!filePath.startsWith(docsRoot + path.sep)) throw new StaticGap('Navigation source is outside the locale document root');
   const id = path.relative(docsRoot, filePath).replace(/\.mdx?$/, '').replaceAll(path.sep, '/');
   let translations = {};
-  if (renderer.locale === 'en') {
-    const translationFile = path.join(renderer.root, 'i18n/en/docusaurus-plugin-content-docs/current.json');
+  if (renderer.locale !== 'en') {
+    const translationFile = path.join(renderer.root, `i18n/${renderer.locale}/docusaurus-plugin-content-docs/current.json`);
     translations = JSON.parse(fs.readFileSync(translationFile, 'utf8'));
     renderer.files.add(translationFile);
   }

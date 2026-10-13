@@ -1,6 +1,6 @@
 ---
-title: S4. 페르소나 매칭 + 클러스터링 (Mitsukoshi)
-description: 라이프스타일 페르소나 5종 + RFM × 럭셔리 친화도 + 소셜 페르소나
+title: S4. Persona Matching + Clustering (Mitsukoshi)
+description: 5 lifestyle personas + RFM × luxury affinity + social personas
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,30 +16,30 @@ tags:
 sidebar_label: S4. Persona & Cluster
 ---
 
-## 1. URL · 페르소나
+## 1. URL · Personas
 - `/personas` · P2
 
-## 2. 라이프스타일 5종
+## 2. 5 Lifestyle Personas
 
-| 페르소나 | 시그널 |
+| Persona | Signals |
 |---|---|
-| 럭셔리 콜렉터 | LV·Hermes·Chanel 정기 구매 · Black 등급 |
-| 시즌 트렌드세터 | SS/FW 신상 즉시 구매 · 인스타 |
-| 외국인 관광객 | TaxRefund · 환율 민감 · 단발 구매 |
-| 가족 쇼핑객 | 식품·주말 · 평균 객단가 |
-| 액세서리 입문자 | 저가 SKU · 첫 구매 |
+| Luxury collector | Regular purchases of LV/Hermes/Chanel · Black tier |
+| Seasonal trendsetter | Immediate purchase of SS/FW new releases · Instagram |
+| Foreign tourist | TaxRefund · FX-sensitive · single-visit purchases |
+| Family shopper | Food / weekends · average basket size |
+| Accessory beginner | Low-price SKUs · first purchase |
 
-## 3. 데이터 믹스
+## 3. Data Mix
 - RFM (Customer + Foreigner)
-- 럭셔리 친화도 (LV/Hermes/Chanel 구매 비중)
-- 소홍서·Dcard 키워드 (소셜 페르소나)
+- Luxury affinity (purchase share of LV/Hermes/Chanel)
+- Xiaohongshu / Dcard keywords (social personas)
 
-## 4. 출력 UI
-- 페르소나 카드 5종 분포
-- KMeans 6 클러스터 (LLM 라벨)
-- PCA 산점도
+## 4. Output UI
+- Distribution of 5 persona cards
+- KMeans 6 clusters (LLM labeled)
+- PCA scatter plot
 
-## 5. 데모 시나리오
-1. 단건 매칭 → "럭셔리 콜렉터 0.62 / 시즌 트렌드세터 0.18"
-2. 2,500명 일괄 → 6 클러스터
-3. 클러스터 → 캠페인 시뮬 (S5)
+## 5. Demo Scenarios
+1. Single-record matching → "Luxury collector 0.62 / Seasonal trendsetter 0.18"
+2. Batch of 2,500 members → 6 clusters
+3. Clusters → campaign simulator (S5)

@@ -1,11 +1,11 @@
 ---
 title: Audit & Governance Logging
-description: AIDLC Checkpoint Approval 게이트와 ISO 8601 기반 감사 로그 — 규제 산업을 위한 AIDLC 감사 추적 구현 가이드
+description: AIDLC Checkpoint Approval gates and ISO 8601-based audit logs — Implementation guide for AIDLC audit trails in regulated industries
 created: "2026-04-18"
 last_update:
   date: 2026-09-18
-  author: YoungJoon Jeong
-reading_time: 6
+  author: devfloor9
+reading_time: 12
 tags:
   - aidlc
   - audit
@@ -18,89 +18,91 @@ sidebar_position: 4
 category: aidlc
 ---
 
-AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) 중 가장 거버넌스 비중이 높은 두 규칙은 **Checkpoint Approval (규칙 7)** 과 **Audit Logging (규칙 8)** 입니다. 본 문서는 이 두 규칙을 운영 환경에서 **규제 산업(금융·의료·공공)** 의 감사 요구를 충족하도록 구현하는 실전 가이드입니다.
+> 📅 **Date**: 2026-04-18 | ⏱️ **Reading Time**: ~17 minutes
+
+Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common), the two rules with the highest governance weight are **Checkpoint Approval (Rule 7)** and **Audit Logging (Rule 8)**. This document is a practical guide for implementing these rules in production environments to meet audit requirements in **regulated industries (finance, healthcare, public sector)**.
 
 ---
 
-## 1. 왜 Audit Log 가 필요한가
+## 1. Why Audit Logs are Necessary
 
-### 1.1 규제 요구사항
+### 1.1 Regulatory Requirements
 
-| 규제 | 감사 요구 | 보존 기간 | AIDLC 관련성 |
-|------|----------|----------|--------------|
-| **전자금융감독규정 (KR)** | IT 변경·접근 이력 완전 기록 | 5년 | AIDLC 전체 stage 승인·결정 이력 |
-| **개인정보 보호법 (KR)** | 개인정보 처리 의사결정 이력 | 3년 | Requirements Analysis, Application Design |
-| **HIPAA (US)** | PHI 접근·처리 로그 | 6년 | 의료 도메인 모델링 결정 |
-| **SOX (US)** | 재무 시스템 변경 통제 | 7년 | Checkpoint Approval, 산출물 해시 |
-| **ISMS-P (KR)** | 정보시스템 운영 로그 | 3년 | 전체 Session 이력 |
-| **GDPR (EU)** | 개인정보 의사결정 근거 | Case by case | 온톨로지 결정, 데이터 처리 설계 |
+| Regulation | Audit Requirement | Retention Period | AIDLC Relevance |
+|-----------|------------------|------------------|----------------|
+| **Korea Electronic Financial Supervision Regulations** | Complete IT change & access history | 5 years | All AIDLC stage approval & decision history |
+| **Korea Personal Information Protection Act** | Personal data processing decision history | 3 years | Requirements Analysis, Application Design |
+| **HIPAA (US)** | PHI access & processing logs | 6 years | Healthcare domain modeling decisions |
+| **SOX (US)** | Financial system change control | 7 years | Checkpoint Approval, artifact hashes |
+| **ISMS-P (KR)** | Information system operation logs | 3 years | Complete Session history |
+| **GDPR (EU)** | Personal data decision rationale | Case by case | Ontology decisions, data processing design |
 
-### 1.2 AIDLC 특유의 감사 과제
+### 1.2 AIDLC-Specific Audit Challenges
 
 ```mermaid
 graph LR
-    HUMAN[인간 의사결정] -.전통적 감사.-> LOG[로그]
-    AI[AI 의사결정] -.???.-> LOG
+    HUMAN[Human Decision] -.Traditional Audit.-> LOG[Logs]
+    AI[AI Decision] -.???.-> LOG
 
-    AI --> Q1[어떤 모델?]
-    AI --> Q2[어떤 프롬프트?]
-    AI --> Q3[어떤 컨텍스트?]
-    AI --> Q4[왜 이 선택?]
+    AI --> Q1[Which Model?]
+    AI --> Q2[Which Prompt?]
+    AI --> Q3[Which Context?]
+    AI --> Q4[Why This Choice?]
 
     style AI fill:#e74c3c,color:#fff
     style HUMAN fill:#2ecc71,color:#fff
 ```
 
-**AIDLC 감사가 전통적 감사보다 어려운 이유:**
-1. AI 출력은 **비결정적** 일 수 있음 → 재현성 증명 필요 (Common Rule 11)
-2. AI 가 **수많은 작은 결정** 을 내림 → 모든 결정 이력이 필요
-3. **모델 버전 변경** 이 결과에 영향 → 버전 정보 기록 필수
-4. **프롬프트 인젝션** 공격 가능성 → 입력 원본 보존 필요
+**Why AIDLC Auditing is More Difficult Than Traditional Auditing:**
+1. AI outputs can be **non-deterministic** → Reproducibility proof required (Common Rule 11)
+2. AI makes **numerous small decisions** → All decision history needed
+3. **Model version changes** affect results → Version info recording essential
+4. **Prompt injection** attack possibility → Original input preservation required
 
-### 1.3 재현성(Reproducibility)과 감사의 관계
+### 1.3 Reproducibility and Audit Relationship
 
-AIDLC 의 감사는 **단순 이벤트 로깅을 넘어 "의사결정 재현 가능성"** 까지 요구합니다:
+AIDLC auditing requires **"decision reproducibility" beyond simple event logging**:
 
 ```
-감사관: "2026-03-15 에 결제 서비스 인증 방식을 왜 Cognito 로 결정했는가?"
+Auditor: "Why was Cognito chosen as the authentication method for payment service on 2026-03-15?"
 
-전통 시스템: "엔지니어 김00 이 결정했다는 승인 기록"
+Traditional System: "Approval record showing engineer Kim decided"
 
-AIDLC 시스템:
-  - User Request 원본
-  - AI 가 제시한 5지선다 옵션 원본
-  - 사용자 응답 `[Answer]: A` 원본
-  - 사용된 모델 (`claude-opus-4-7` 버전, temperature 0, seed 42)
-  - 활성화된 Extension 목록
-  - 산출물 SHA-256 해시
-  → 동일 입력 재실행 시 동일 결과 생성 가능
+AIDLC System:
+  - Original User Request
+  - Original AI-presented 5-option choices
+  - Original user response `[Answer]: A`
+  - Model used (`claude-opus-4-7` version, temperature 0, seed 42)
+  - List of activated Extensions
+  - Artifact SHA-256 hash
+  → Same input re-execution can generate identical results
 ```
 
 ---
 
-## 2. Checkpoint Approval 게이트
+## 2. Checkpoint Approval Gates
 
-### 2.1 Stage 전환 승인 패턴
+### 2.1 Stage Transition Approval Pattern
 
-AIDLC 의 각 stage 간 전환은 **명시적 승인 게이트** 로 보호됩니다.
+Each stage transition in AIDLC is protected by **explicit approval gates**.
 
 ```mermaid
 flowchart LR
-    S1[Stage N<br/>완료] --> GATE{Approval<br/>Gate}
-    GATE -->|Approve| S2[Stage N+1<br/>시작]
+    S1[Stage N<br/>Complete] --> GATE{Approval<br/>Gate}
+    GATE -->|Approve| S2[Stage N+1<br/>Start]
     GATE -->|Reject| S1
-    GATE -->|Conditional| REVISE[수정 작업]
+    GATE -->|Conditional| REVISE[Revision Work]
     REVISE --> S1
 
-    GATE -.기록.-> AUDIT[(Audit Log)]
+    GATE -.Record.-> AUDIT[(Audit Log)]
 
     style GATE fill:#ff9900,color:#fff
     style AUDIT fill:#e74c3c,color:#fff
 ```
 
-### 2.2 승인 게이트 템플릿
+### 2.2 Approval Gate Template
 
-**표준 승인 문서 포맷:**
+**Standard Approval Document Format:**
 ```markdown
 # Checkpoint Approval: <stage name> → <next stage>
 
@@ -123,21 +125,21 @@ flowchart LR
 ## Approvers Required
 - [x] Primary: Architect (yjeong@example.com)
 - [ ] Secondary: Security Lead (security-lead@example.com)
-- [ ] Tertiary: Compliance Officer (compliance@example.com) — 금융 산업 필수
+- [ ] Tertiary: Compliance Officer (compliance@example.com) — Required for financial industry
 
 ## Decision Options (Common Rule 1: Question Format)
 
-A. **Approve** — 다음 stage 진행
-B. **Reject** — 현재 stage 재작업 (피드백 필수)
-C. **Conditional Approve** — 조건부 승인 (조건 명시 필수)
-D. **Escalate** — 상위 거버넌스 위원회로 에스컬레이트
-E. **Defer** — 결정 보류 (기한 명시 필수)
+A. **Approve** — Proceed to next stage
+B. **Reject** — Rework current stage (feedback required)
+C. **Conditional Approve** — Conditional approval (conditions must be specified)
+D. **Escalate** — Escalate to higher governance committee
+E. **Defer** — Defer decision (deadline must be specified)
 
 **Primary Approver Decision**:
 [Answer]: A
 
 **Approval Rationale**:
-모든 NFR 이 측정 가능하며, 주요 리스크가 식별되었음.
+All NFRs are measurable and major risks have been identified.
 
 **Secondary Approver Decision**:
 [Answer]: <pending>
@@ -146,58 +148,58 @@ E. **Defer** — 결정 보류 (기한 명시 필수)
 [Answer]: <pending>
 ```
 
-### 2.3 다중 승인자 패턴 (Multi-Sig)
+### 2.3 Multi-Approver Pattern (Multi-Sig)
 
-규제 산업은 **단일 승인으로 stage 전환 불가** 를 요구합니다.
+Regulated industries require **stage transitions cannot proceed with single approval**.
 
-**다중 승인 매트릭스 예시 (금융):**
-| Stage 전환 | Primary | Secondary | Tertiary | 추가 요구 |
-|-----------|---------|-----------|----------|----------|
-| Requirements → User Stories | Architect | - | - | 단순 검토 |
+**Multi-Approval Matrix Example (Finance):**
+| Stage Transition | Primary | Secondary | Tertiary | Additional Requirements |
+|-----------------|---------|-----------|----------|------------------------|
+| Requirements → User Stories | Architect | - | - | Simple review |
 | User Stories → Workflow Planning | Architect | PM | - | - |
-| Workflow Planning → Application Design | Architect | Security Lead | - | 위협 모델 필수 |
-| Application Design → Units Generation | Architect | Security Lead | Compliance | 규제 매핑 필수 |
-| Construction → Production Deploy | Architect | Security Lead | Compliance + SRE | 4인 승인 |
+| Workflow Planning → Application Design | Architect | Security Lead | - | Threat model required |
+| Application Design → Units Generation | Architect | Security Lead | Compliance | Regulatory mapping required |
+| Construction → Production Deploy | Architect | Security Lead | Compliance + SRE | 4-person approval |
 
-### 2.4 자동 차단 조건
+### 2.4 Auto-Block Conditions
 
-다음 조건에서는 AIDLC 가 **Checkpoint Approval 을 자동 차단** 합니다:
+AIDLC **automatically blocks Checkpoint Approval** under the following conditions:
 
 ```yaml
 auto_block_conditions:
   - condition: content_validation_failed
-    reason: "Common Rule 2 위반"
-    action: "현재 stage 로 복귀"
+    reason: "Common Rule 2 violation"
+    action: "Return to current stage"
 
   - condition: audit_log_tampered
-    reason: "감사 로그 해시 불일치"
-    action: "세션 중단, 보안 팀 알림"
+    reason: "Audit log hash mismatch"
+    action: "Halt session, notify security team"
 
   - condition: model_drift_detected
-    reason: "모델 응답 재현성 < 80%"
-    action: "Common Rule 11 위반, 모델 버전 확인"
+    reason: "Model response reproducibility < 80%"
+    action: "Common Rule 11 violation, verify model version"
 
   - condition: extension_required_missing
-    reason: "opt-in.md 에 필수 Extension 누락"
-    action: "Extension 활성화 후 재시도"
+    reason: "Required Extension missing in opt-in.md"
+    action: "Activate Extension and retry"
 
   - condition: overconfidence_unchecked
-    reason: "Common Rule 4 — Low confidence 응답에 대한 추가 컨텍스트 없음"
-    action: "사람 개입 필수"
+    reason: "Common Rule 4 — No additional context for low confidence response"
+    action: "Human intervention required"
 ```
 
 ---
 
-## 3. Audit Log 포맷
+## 3. Audit Log Format
 
-### 3.1 이벤트 타입 분류
+### 3.1 Event Type Classification
 
 ```mermaid
 graph TB
-    AUDIT[Audit Events] --> INTERACT[상호작용 이벤트]
-    AUDIT --> DECISION[의사결정 이벤트]
-    AUDIT --> ARTIFACT[산출물 이벤트]
-    AUDIT --> SYSTEM[시스템 이벤트]
+    AUDIT[Audit Events] --> INTERACT[Interaction Events]
+    AUDIT --> DECISION[Decision Events]
+    AUDIT --> ARTIFACT[Artifact Events]
+    AUDIT --> SYSTEM[System Events]
 
     INTERACT --> Q[Question Asked]
     INTERACT --> A[Answer Given]
@@ -216,26 +218,26 @@ graph TB
     style AUDIT fill:#e74c3c,color:#fff
 ```
 
-### 3.2 이벤트 공통 스키마
+### 3.2 Common Event Schema
 
-모든 감사 이벤트는 다음 필드를 **필수** 로 포함:
+All audit events **must** include the following fields:
 
 ```yaml
 event:
-  id: evt-2026-04-18-042                     # 유일 ID
-  timestamp: 2026-04-18T10:45:12.345Z        # ISO 8601, 밀리초 precision, UTC
+  id: evt-2026-04-18-042                     # Unique ID
+  timestamp: 2026-04-18T10:45:12.345Z        # ISO 8601, millisecond precision, UTC
   session_id: sess-20260418-payment-service
   stage: requirements_analysis
   event_type: question_asked
   actor:
     type: [human | ai_agent | system]
     id: yjeong@example.com
-  sequence_number: 42                         # 세션 내 순서 보장
+  sequence_number: 42                         # Sequence guarantee within session
 
-# 이벤트별 추가 필드는 유형별 정의
+# Additional fields per event type are defined by type
 ```
 
-### 3.3 질문·응답 이벤트
+### 3.3 Question & Answer Events
 
 ```yaml
 event:
@@ -250,18 +252,18 @@ event:
     prompt_version: "aidlc-requirements-v1.3.2"
 
   question:
-    text: |                                  # 원본 보존 (Common Rule 8)
-      Q15. Payment Service 의 데이터 저장소로 무엇을 선택하시겠습니까?
+    text: |                                  # Preserve original (Common Rule 8)
+      Q15. What data store would you choose for Payment Service?
       A. DynamoDB (NoSQL, Serverless)
-      B. Aurora PostgreSQL (관계형, 고가용)
-      C. RDS MySQL (관계형, 저비용)
-      D. DocumentDB (MongoDB 호환)
+      B. Aurora PostgreSQL (Relational, High Availability)
+      C. RDS MySQL (Relational, Low Cost)
+      D. DocumentDB (MongoDB Compatible)
       E. Other (please specify)
       [Answer]:
     ai_confidence: high
     ai_recommendation: A
     ai_reasoning: |
-      결제 트랜잭션의 쓰기 중심 워크로드 특성상 DynamoDB 가 적합...
+      DynamoDB is suitable given write-heavy workload characteristics of payment transactions...
 
 ---
 
@@ -279,15 +281,15 @@ event:
     question_id: evt-2026-04-18-041
 
   answer:
-    raw_text: |                              # 사용자 원본 응답 절대 수정 금지
+    raw_text: |                              # Never modify user's original response
       [Answer]: B
 
-      조직 표준으로 PostgreSQL 을 사용하므로 Aurora 선택.
+      Choosing Aurora as organization standard is PostgreSQL.
     parsed_option: B
-    user_comment: "조직 표준으로 PostgreSQL 을 사용하므로 Aurora 선택."
+    user_comment: "Choosing Aurora as organization standard is PostgreSQL."
 ```
 
-### 3.4 승인 이벤트
+### 3.4 Approval Events
 
 ```yaml
 event:
@@ -310,7 +312,7 @@ event:
     raw_text: "[Answer]: A"
     parsed: approve
     rationale: |
-      모든 NFR 이 측정 가능하며, 주요 리스크가 식별되었음.
+      All NFRs are measurable and major risks have been identified.
 
   artifacts_hash:
     - file: requirements.md
@@ -324,7 +326,7 @@ event:
     signature: "base64..."
 ```
 
-### 3.5 산출물 이벤트
+### 3.5 Artifact Events
 
 ```yaml
 event:
@@ -357,14 +359,14 @@ event:
 
 ---
 
-## 4. Audit 저장소 구조
+## 4. Audit Repository Structure
 
-### 4.1 디렉터리 레이아웃
+### 4.1 Directory Layout
 
 ```
 .aidlc/audit/
-  audit.md                                  # 사람이 읽을 수 있는 요약
-  events/                                   # 원자적 이벤트 로그
+  audit.md                                  # Human-readable summary
+  events/                                   # Atomic event logs
     2026-04-18/
       00-session-start.yaml
       01-workspace-detected.yaml
@@ -372,25 +374,25 @@ event:
       03-answer-given-ext-opt-in.yaml
       ...
       99-session-checkpoint.yaml
-  stages/                                   # stage 별 집계
+  stages/                                   # Per-stage aggregation
     stage-requirements-analysis.md
     stage-user-stories.md
     stage-workflow-planning.md
-  gates/                                    # 승인 게이트 기록
+  gates/                                    # Approval gate records
     gate-2026-04-18-042.md
     gate-2026-04-19-015.md
-  artifacts/                                # 산출물 스냅샷
+  artifacts/                                # Artifact snapshots
     2026-04-18T10:45/
       requirements.md
       validation-report.md
     2026-04-18T14:20/
       user-stories.md
-  signatures/                               # 디지털 서명
+  signatures/                               # Digital signatures
     evt-2026-04-18-100.sig
-  manifest.yaml                             # 전체 메타데이터
+  manifest.yaml                             # Complete metadata
 ```
 
-### 4.2 manifest.yaml 예시
+### 4.2 manifest.yaml Example
 
 ```yaml
 audit_manifest:
@@ -402,13 +404,13 @@ audit_manifest:
   storage:
     primary: s3://company-audit-logs/aidlc/
     backup: glacier://company-audit-archive/
-    retention: 7_years              # SOX 준수
+    retention: 7_years              # SOX compliance
     worm_enabled: true              # Object Lock
 
   integrity:
     hash_algorithm: sha256
     signature_algorithm: rsa-2048
-    chain_of_custody: true          # 이벤트 간 해시 체인
+    chain_of_custody: true          # Hash chain between events
 
   events_count: 1_284
   gates_count: 7
@@ -423,40 +425,40 @@ audit_manifest:
       covered_controls: [Section 404]
 ```
 
-### 4.3 Hash Chain 구조
+### 4.3 Hash Chain Structure
 
-각 이벤트는 이전 이벤트의 해시를 포함하여 **변조 방지 체인** 을 구성:
+Each event includes the hash of the previous event to form a **tamper-proof chain**:
 
 ```yaml
 event:
   id: evt-2026-04-18-043
   timestamp: 2026-04-18T10:50:00.000Z
-  previous_event_hash: sha256:a1b2c3...     # evt-042 의 해시
+  previous_event_hash: sha256:a1b2c3...     # Hash of evt-042
   content_hash: sha256:f9e8d7...
   # ...
 
-# 무결성 검증:
-# 1. event.content_hash == sha256(event 본문)
+# Integrity verification:
+# 1. event.content_hash == sha256(event body)
 # 2. next_event.previous_event_hash == this event.content_hash
-# 3. 체인이 깨지면 변조 탐지
+# 3. If chain breaks, tampering detected
 ```
 
 ---
 
-## 5. 규제 산업 감사 추적 예시
+## 5. Audit Trail Examples in Regulated Industries
 
-### 5.1 금융 산업 (전자금융감독규정)
+### 5.1 Financial Industry (Korea Electronic Financial Supervision Regulations)
 
-**감사 시나리오**: 금융감독원 IT 점검 시 "2026년 3월 15일 결제 서비스 API 변경의 승인 경로" 요청.
+**Audit Scenario**: Financial Supervisory Service IT inspection requests "approval path for payment service API changes on March 15, 2026."
 
-**AIDLC 감사 응답:**
+**AIDLC Audit Response:**
 ```bash
-# 1. 해당 시점 세션 검색
+# 1. Search session at that time
 aidlc audit query --date 2026-03-15 --service payment-service
 
 → Found: sess-20260315-payment-api-v2
 
-# 2. 승인 게이트 추적
+# 2. Track approval gates
 aidlc audit gates --session sess-20260315-payment-api-v2
 
 → Gate 1: requirements_analysis → user_stories
@@ -472,79 +474,79 @@ aidlc audit gates --session sess-20260315-payment-api-v2
   Signatures: all verified ✓
   Regulatory Compliance Check: PASSED (EFSR-8, EFSR-13, EFSR-DR)
 
-# 3. 산출물 해시 검증
+# 3. Verify artifact hashes
 aidlc audit verify-artifacts --session sess-20260315-payment-api-v2
 
 → All 42 artifacts verified ✓
 → No tampering detected
 ```
 
-### 5.2 의료 산업 (HIPAA)
+### 5.2 Healthcare Industry (HIPAA)
 
-**감사 시나리오**: HIPAA 감사관이 환자 데이터 처리 로직 결정 근거 요청.
+**Audit Scenario**: HIPAA auditor requests rationale for patient data processing logic decisions.
 
-**추적 가능 항목:**
-- PHI (Protected Health Information) 필드를 식별한 시점
-- 암호화 방식 결정의 옵션·승인자
-- 접근 제어(RBAC) 설계 결정 이력
-- 데이터 보관 기간(6년) 설정 근거
+**Traceable Items:**
+- Time when PHI (Protected Health Information) fields were identified
+- Encryption method decision options and approvers
+- Access control (RBAC) design decision history
+- Rationale for data retention period (6 years) setting
 
-### 5.3 공공 산업 (ISMS-P)
+### 5.3 Public Sector (ISMS-P)
 
-**감사 시나리오**: ISMS-P 심사위원이 "개인정보 처리 단계별 보호 조치" 결정 이력 요청.
+**Audit Scenario**: ISMS-P examiner requests "protection measures by personal information processing stage" decision history.
 
-**제공 가능 증거:**
+**Providable Evidence:**
 ```
-✓ 수집 단계: Requirements Analysis 에서 최소 수집 원칙 Q&A 기록
-✓ 이용 단계: Application Design 에서 목적 외 이용 제한 설계
-✓ 제공 단계: Unit of Work 에서 외부 API 공유 통제
-✓ 파기 단계: Infrastructure Design 에서 TTL 정책
-✓ 각 단계의 승인자 · 승인 시점 · 서명
+✓ Collection Stage: Minimum collection principle Q&A records in Requirements Analysis
+✓ Use Stage: Purpose limitation design in Application Design
+✓ Provision Stage: External API sharing controls in Unit of Work
+✓ Disposal Stage: TTL policy in Infrastructure Design
+✓ Approver, approval time, and signature for each stage
 ```
 
 ---
 
-## 6. 기존 시스템과의 관계
+## 6. Relationship with Existing Systems
 
-### 6.1 observability-stack 과의 통합
+### 6.1 Integration with observability-stack
 
-AIDLC Audit Log 는 [관찰성 스택](./observability-stack.md) 의 **서브셋** 이 아닌 **상위 거버넌스 레이어** 입니다.
+AIDLC Audit Log is not a **subset** of [Observability Stack](./observability-stack.md) but a **higher governance layer**.
 
 ```mermaid
 graph TB
-    AUDIT[AIDLC Audit Log<br/>의사결정 레벨]
-    OBS[Observability Stack<br/>운영 레벨]
+    AUDIT[AIDLC Audit Log<br/>Decision Level]
+    OBS[Observability Stack<br/>Operations Level]
 
     APP[Application Logs]
     MET[Metrics]
     TRA[Traces]
 
-    AUDIT -->|연계 ID| OBS
+    AUDIT -->|Linked ID| OBS
     OBS --> APP
     OBS --> MET
     OBS --> TRA
 
-    AUDIT -.참조.-> DECISIONS[AI 의사결정 근거]
-    OBS -.참조.-> INCIDENTS[운영 이슈]
+    AUDIT -.Reference.-> DECISIONS[AI Decision Rationale]
+    OBS -.Reference.-> INCIDENTS[Operations Issues]
 
     style AUDIT fill:#e74c3c,color:#fff
     style OBS fill:#2ecc71,color:#fff
 ```
 
-**역할 분담:**
-| 항목 | Audit Log | Observability |
+**Role Division:**
+| Item | Audit Log | Observability |
 |------|-----------|---------------|
-| 대상 | AIDLC 의사결정 · 승인 | 런타임 이벤트 |
-| 보존 | 5-7년 (WORM) | 30-90일 (일반) |
-| 접근자 | 감사관 · 컴플라이언스 | SRE · 개발자 |
-| 포맷 | 구조화 YAML + 서명 | JSON / OTel |
+| Target | AIDLC decisions & approvals | Runtime events |
+| Retention | 5-7years (WORM) | 30-90days (general) |
+| Accessor | Auditors & Compliance | SRE · Developers |
+| Format | Structured YAML + signatures | JSON / OTel |
 
-### 6.2 하네스 엔지니어링과의 관계
+### 6.2 Relationship with Harness Engineering
 
-[하네스 엔지니어링](../methodology/harness-engineering.md) 의 **품질 게이트** 는 Audit Log 와 **양방향 통합**:
+The **quality gates** of [Harness Engineering](../methodology/harness-engineering.md) have **bidirectional integration** with Audit Log:
 
-- 하네스가 검출한 품질 이벤트 → Audit Log 에 기록
-- Audit Log 의 Checkpoint Approval 실패 이력 → 하네스 규칙 개선 입력
+- Quality events detected by Harness → recorded in Audit Log
+- Audit Log Checkpoint Approval failure history → input for Harness rule improvement
 
 ```mermaid
 sequenceDiagram
@@ -553,80 +555,80 @@ sequenceDiagram
     participant Audit as Audit Log
     participant Human as Human Approver
 
-    Agent->>Harness: 코드 생성
-    Harness->>Harness: 품질 게이트 실행
-    Harness->>Audit: 검증 결과 기록
-    Harness->>Human: 승인 요청
-    Human->>Audit: 승인 결정 기록
-    Audit->>Harness: 다음 규칙 개선 입력
+    Agent->>Harness: Code generation
+    Harness->>Harness: Execute quality gate
+    Harness->>Audit: Record verification results
+    Harness->>Human: Request approval
+    Human->>Audit: Record approval decision
+    Audit->>Harness: Input for next rule improvement
 ```
 
-### 6.3 Common Rules 와의 매핑
+### 6.3 Mapping to Common Rules
 
-본 문서의 구현은 AIDLC [Common Rules](../methodology/common-rules.md) 중 다음을 운영화한 것:
+This document operationalizes the following AIDLC [Common Rules](../methodology/common-rules.md):
 
-| Common Rule | 본 문서 구현 |
+| Common Rule | This Document Implementation |
 |-------------|--------------|
-| 1. Question Format | §2.2 승인 게이트 템플릿 (A-E 옵션) |
-| 3. Error Handling | §2.4 자동 차단 조건 |
-| 5. Session Continuity | §4.1 `.aidlc/audit/` 디렉터리 구조 |
-| 7. Checkpoint Approval | §2 전체 |
-| 8. Audit Logging | §3-4 전체 |
-| 11. Reproducible | §1.3 재현성 |
+| 1. Question Format | §2.2 Approval gate template (A-E options) |
+| 3. Error Handling | §2.4 Auto-block conditions |
+| 5. Session Continuity | §4.1 `.aidlc/audit/` directory structure |
+| 7. Checkpoint Approval | §2 Complete |
+| 8. Audit Logging | §3-4 Complete |
+| 11. Reproducible | §1.3 Reproducibility |
 
 ---
 
-## 7. 운영 체크리스트
+## 7. Operations Checklist
 
-### 7.1 Audit 인프라 구축
+### 7.1 Build Audit Infrastructure
 
-- [ ] S3 버킷 + Object Lock (WORM) 활성화
-- [ ] KMS 키 생성 (감사 로그 전용, 7년 이상 회전 없음)
-- [ ] Glacier Deep Archive 연계 (7년 후 자동 이동)
-- [ ] CloudTrail Data Events 로 S3 접근 로깅
-- [ ] VPC Endpoint 로 S3 접근 경로 격리
+- [ ] S3 bucket + Object Lock (WORM) enable
+- [ ] KMS key creation (dedicated to audit logs, no rotation for 7+ years)
+- [ ] Glacier Deep Archive linkage (7automatic migration after 7 years)
+- [ ] CloudTrail Data Events for S3 access logging
+- [ ] VPC Endpoint for S3 access path isolation
 
-### 7.2 프로세스 체크리스트
+### 7.2 Process Checklist
 
-- [ ] 감사 이벤트 스키마 문서화 (팀 위키)
-- [ ] 승인자 역할·자격 조건 명시
-- [ ] 다중 승인 매트릭스 작성 (stage × 산업)
-- [ ] 월 1회 무결성 검증 자동 실행
-- [ ] 분기 1회 모의 감사 실시
+- [ ] Document audit event schema (team wiki)
+- [ ] Specify approver roles & qualifications
+- [ ] Create multi-approval matrix (stage × industry)
+- [ ] Auto-run integrity verification monthly
+- [ ] Conduct mock audit quarterly
 
-### 7.3 자동화 도구
+### 7.3 Automation Tools
 
 ```bash
-# 감사 로그 무결성 검증
+# Verify audit log integrity
 aidlc audit verify --session <session-id>
 
-# 특정 이벤트 조회
+# Query specific event
 aidlc audit query --event-type approval_granted --date 2026-03-15
 
-# 규제별 감사 리포트 생성
+# Generate audit report by regulation
 aidlc audit report --standard ISMS-P --period 2026-Q1
 
-# 산출물 스냅샷 복원
+# Restore artifact snapshot
 aidlc audit restore-artifact --session <id> --timestamp 2026-03-15T10:00:00Z
 ```
 
 ---
 
-## 8. 참고 자료
+## 8. References
 
-### 공식 저장소
-- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — Checkpoint Approval, Audit Logging 원문
+### Official Repository
+- [AWS Labs AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) — Checkpoint Approval, Audit Logging original text
 
-### 관련 문서
-- [Common Rules](../methodology/common-rules.md) — 11개 공통 규칙 전체 해설
-- [관찰성 스택](./observability-stack.md) — 운영 관찰성 구현
-- [하네스 엔지니어링](../methodology/harness-engineering.md) — 품질 게이트와 Audit 통합
-- [Extension System](../enterprise/extension-system.md) — Extension 별 감사 규칙
-- [거버넌스 프레임워크](../enterprise/governance-framework.md) — 3층 거버넌스
+### Related Documentation
+- [Common Rules](../methodology/common-rules.md) — 11Common Rules Complete explanation
+- [Observability Stack](./observability-stack.md) — Operations observability implementation
+- [Harness Engineering](../methodology/harness-engineering.md) — Quality gates and Audit integration
+- [Extension System](../enterprise/extension-system.md) — Extension audit rules per
+- [Governance Framework](../enterprise/governance-framework.md) — 33-layer governance
 
-### 규제·표준 참고
+### Regulatory & Standards References
 - [ISO 27001:2022 Annex A.8.15 Logging](https://www.iso.org/standard/27001)
 - [NIST SP 800-92 Guide to Computer Security Log Management](https://csrc.nist.gov/publications/detail/sp/800-92/final)
-- [전자금융감독규정](https://fss.or.kr/) — IT 변경 통제
+- [Korea Electronic Financial Supervision Regulations](https://fss.or.kr/) — IT change control
 - [HIPAA Security Rule 164.312(b) Audit Controls](https://www.hhs.gov/hipaa/)
 - [SOX Section 404 IT General Controls](https://sarbanes-oxley-101.com/)

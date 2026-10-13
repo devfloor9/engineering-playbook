@@ -1,11 +1,11 @@
 ---
-title: 모델 서빙 & 추론 인프라
-description: GPU 인프라·추론 프레임워크·추론 최적화 계층 안내와, LLM 추론 요청 경로 전체의 계층별 튜닝 레버(인퍼런스 게이트웨이·prefill/decode 분리·KV cache-aware 라우팅·LMCache·캐시 히트 전략)를 한 장의 지도로 정리
+title: Model Serving & Inference Infrastructure
+description: A guide to the GPU infrastructure, inference framework, and inference optimization layers, with a single map of the end-to-end LLM inference request path and per-layer tuning levers — inference gateway, prefill/decode disaggregation, KV cache-aware routing, LMCache, and cache-hit strategy.
 created: "2026-03-06"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-12
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 22
 tags:
   - model-serving
   - gpu
@@ -22,85 +22,85 @@ keywords:
   - KV Cache-Aware Routing
   - Disaggregated Serving
   - LMCache
-sidebar_label: 모델 서빙 & 추론 인프라
+sidebar_label: Model Serving & Inference Infrastructure
 ---
 
 import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
 import { TieredGatewayDiagram } from '@site/src/components/GatewayApiTables';
 
-## 개요
+## Overview
 
-이 문서는 GPU/가속기 위에서 LLM을 배포·서빙하는 방법을 다루는 **모델 서빙 & 추론 인프라** 카테고리의 진입 문서입니다. **LLM 추론(Inference)이 인프라 레벨에서 어떻게 동작하는지**를 요청 경로 전체에 걸쳐 설명하고, 각 계층에서 무엇을 튜닝할 수 있는지를 한 장의 지도로 정리합니다. 대상 독자는 EKS 위에 추론 플랫폼을 설계·운영하는 플랫폼 엔지니어입니다.
+This guide helps platform engineers design and operate LLM inference on EKS GPUs and accelerators. Follow the request path to understand six areas you can tune: GPU node placement, serving-engine memory management, distributed topology, in-cluster routing, gateway policies, and caching.
 
-추론 최적화는 단일 기술이 아니라 **여러 계층의 조합**으로 달성됩니다. GPU 노드 배치부터 서빙 엔진의 메모리 관리, 분산 토폴로지, 클러스터 내 라우팅, 게이트웨이 정책, 캐시 계층까지 각 단계마다 고유한 튜닝 레버가 존재합니다. 이 문서는 그 레버를 **계층별로 나열하고 연결**하는 지도 역할을 하며, 각 주제의 상세 내용은 전용 심화 문서로 연결됩니다. 본문은 개념과 연결 관계에 집중하고, 구현·배포 절차는 링크된 문서에서 다룹니다.
+The sections below explain how these areas work together and link to detailed implementation and deployment guides.
 
-## 카테고리 구성
+## Category Structure
 
-- **가속 컴퓨팅 인프라 계층**: Kubernetes 위에서 GPU·AWS 커스텀 가속기(Trainium/Inferentia) 인스턴스·드라이버·스케줄러·파티셔닝을 관리하는 계층. 어느 노드에 어떻게 가속기를 할당할지 결정합니다.
-- **추론 프레임워크 계층**: 확보된 GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층. vLLM·llm-d·MoE·NeMo 가 여기 속합니다.
-- **추론 최적화 & 라우팅 계층**: KV cache·Disaggregated Serving·LMCache·캐시 히트 전략과 게이트웨이 라우팅으로 성능과 비용을 최적화하는 계층.
+- **Accelerated Computing Infrastructure Layer**: The layer that manages GPU and AWS custom accelerator (Trainium/Inferentia) instances, drivers, schedulers, and partitioning on top of Kubernetes. Determines which nodes get accelerator allocation and how.
+- **Inference Framework Layer**: The AI framework layer that actually serves models, performs distributed inference, and fine-tunes on the secured GPUs. vLLM, llm-d, MoE, and NeMo belong here.
+- **Inference Optimization & Routing Layer**: The layer that optimizes performance and cost through KV cache, Disaggregated Serving, LMCache, cache-hit strategy, and gateway routing.
 
 <DocCardGrid columns={3}>
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure"
     icon="🖥️"
-    title="가속 컴퓨팅 인프라"
-    description="EKS GPU 노드 전략, Karpenter·KEDA·DRA 기반 리소스 관리, NVIDIA GPU 스택(ClusterPolicy·DCGM·MIG·Time-Slicing), AWS Neuron Stack(Trainium2/Inferentia2)."
+    title="Accelerated Computing Infrastructure"
+    description="EKS GPU node strategy, Karpenter·KEDA·DRA-based resource management, NVIDIA GPU stack (ClusterPolicy·DCGM·MIG·Time-Slicing), AWS Neuron Stack (Trainium2/Inferentia2)."
     color="#326ce5"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks"
     icon="🚀"
-    title="추론 프레임워크"
-    description="vLLM PagedAttention·Multi-LoRA, llm-d 분산 추론·KV Cache-aware 라우팅, MoE 모델 서빙, NVIDIA NeMo 학습·파인튜닝 프레임워크."
+    title="Inference Frameworks"
+    description="vLLM PagedAttention·Multi-LoRA, llm-d distributed inference·KV Cache-aware routing, MoE model serving, NVIDIA NeMo training·fine-tuning framework."
     color="#ff6b6b"
   />
   <DocCard
     to="/docs/agentic-ai-platform/model-serving/inference-optimization"
     icon="⚡"
-    title="추론 최적화 & 라우팅"
-    description="KV cache 최적화, Disaggregated Serving, LMCache, 캐시 히트 전략, 티어드 게이트웨이·Cascade 라우팅 전략."
+    title="Inference Optimization & Routing"
+    description="KV cache optimization, Disaggregated Serving, LMCache, cache-hit strategy, tiered gateway and Cascade routing strategies."
     color="#00897b"
   />
 </DocCardGrid>
 
-:::tip 학습 순서
-아래 지도로 전체 그림을 잡은 뒤 **가속 컴퓨팅 인프라 → 추론 프레임워크 → 추론 최적화 & 라우팅** 순으로 읽는 것이 자연스럽습니다. 가속 컴퓨팅 인프라에서 "어떤 노드·파티셔닝·드라이버 스택을 쓸 것인가" 를 결정하고, 추론 프레임워크에서 "그 위에 vLLM·llm-d 를 어떻게 배포할 것인가" 를, 추론 최적화 & 라우팅에서 "어떻게 성능·비용을 최적화하고 트래픽을 라우팅할 것인가" 를 다룹니다.
+:::tip Learning Order
+After grasping the full picture with the map below, reading in the order **Accelerated Computing Infrastructure → Inference Frameworks → Inference Optimization & Routing** is natural. First decide "which nodes, partitioning, and driver stack to use" in Accelerated Computing Infrastructure, then cover "how to deploy vLLM and llm-d on top of that" in Inference Frameworks, and finally "how to optimize performance/cost and route traffic" in Inference Optimization & Routing.
 :::
 
-## 추론 요청의 전체 경로
+## End-to-End Path of an Inference Request
 
-LLM 추론 요청은 클라이언트에서 GPU 연산까지 여러 계층을 통과합니다. 각 계층은 서로 다른 책임을 가지며, 어느 계층에서 어떤 결정을 내리느냐에 따라 지연 시간(Latency)과 처리량(Throughput), 비용이 달라집니다.
+An LLM inference request passes through multiple layers from the client to GPU computation. Each layer has a different responsibility, and which decisions are made at which layer changes latency, throughput, and cost.
 
 ```mermaid
 flowchart TB
-    CLIENT["클라이언트 / 에이전트<br/>SDK · UI · MCP Client"]
+    CLIENT["Client / Agent<br/>SDK · UI · MCP Client"]
 
-    subgraph L4["L4 · 게이트웨이 계층"]
-        T1["Tier 1 Ingress<br/>(kgateway · NLB)<br/>TLS · 인증 · Rate Limit"]
-        T2B["Tier 2 ② LLM API Gateway<br/>(Bifrost · LiteLLM)<br/>모델 선택 · Cascade · Semantic Cache"]
+    subgraph L4["L4 · Gateway Layer"]
+        T1["Tier 1 Ingress<br/>(kgateway · NLB)<br/>TLS · AuthN · Rate Limit"]
+        T2B["Tier 2 ② LLM API Gateway<br/>(Bifrost · LiteLLM)<br/>Model Selection · Cascade · Semantic Cache"]
     end
 
-    subgraph L3["L3 · 추론 라우팅 계층"]
-        T2A["Tier 2 ① Inference Routing<br/>(InferencePool · EPP)<br/>KV·부하 인지 Pod 선택"]
+    subgraph L3["L3 · Inference Routing Layer"]
+        T2A["Tier 2 ① Inference Routing<br/>(InferencePool · EPP)<br/>KV · Load-aware Pod Selection"]
     end
 
-    subgraph L2L1["L2·L1 · 서빙 / 분산 계층"]
+    subgraph L2L1["L2·L1 · Serving / Distribution Layer"]
         POD["vLLM · llm-d Pod<br/>prefill / decode · KV Cache · LMCache"]
     end
 
-    subgraph L0["L0 · GPU / 가속기 계층"]
-        GPU["GPU 노드 · MIG · 드라이버<br/>(Karpenter · DRA · Neuron)"]
+    subgraph L0["L0 · GPU / Accelerator Layer"]
+        GPU["GPU Node · MIG · Driver<br/>(Karpenter · DRA · Neuron)"]
     end
 
-    ADP["직교 축: Agent Data Plane<br/>(agentgateway · MCP/A2A)"]
+    ADP["Orthogonal axis: Agent Data Plane<br/>(agentgateway · MCP/A2A)"]
 
     CLIENT --> T1
     T1 --> T2B
     T1 --> T2A
     T1 -.MCP/A2A.-> ADP
-    T2B -.자체 호스팅 추론.-> T2A
-    T2B -->|외부 프로바이더| EXT["외부 LLM<br/>(Bedrock · OpenAI)"]
+    T2B -.Self-hosted inference.-> T2A
+    T2B -->|External providers| EXT["External LLM<br/>(Bedrock · OpenAI)"]
     T2A --> POD
     ADP --> POD
     POD --> GPU
@@ -114,118 +114,118 @@ flowchart TB
     style EXT fill:#607d8b,stroke:#37474f,color:#fff
 ```
 
-각 계층의 역할은 다음과 같습니다.
+Each layer's role is as follows.
 
-- **L4 게이트웨이**: 외부 트래픽 진입(Tier 1)과 모델 추상화·Cascade·캐싱(Tier 2 ②)을 담당합니다.
-- **L3 추론 라우팅**: 자체 호스팅 모델에서 어느 Pod로 보낼지를 KV cache·부하를 고려해 결정합니다.
-- **L2·L1 서빙/분산**: 실제 토큰을 생성하는 계층으로, prefill/decode 처리와 KV cache 관리가 일어납니다.
-- **L0 GPU/가속기**: 연산이 실행되는 물리 계층으로, 노드 선택·파티셔닝·드라이버 스택을 다룹니다.
+- **L4 Gateway**: Handles external traffic ingress (Tier 1) and model abstraction, Cascade, and caching (Tier 2 ②).
+- **L3 Inference Routing**: For self-hosted models, decides which Pod to send a request to, considering KV cache and load.
+- **L2·L1 Serving/Distribution**: The layer that actually generates tokens — handles prefill/decode processing and KV cache management.
+- **L0 GPU/Accelerator**: The physical layer where computation runs — covers node selection, partitioning, and the driver stack.
 
-### 두 종류의 라우팅 — 라우팅 ≠ 추론
+### Two Kinds of Routing — Routing ≠ Inference
 
-추론 인프라에는 **성격이 다른 두 개의 라우팅 결정**이 존재하며, 이 둘을 혼동하면 게이트웨이 선택이 어긋납니다.
+Inference infrastructure contains **two routing decisions with different natures**, and conflating them leads to misaligned gateway choices.
 
-- **across-model 라우팅 (Tier 2 ②)**: "어느 **모델**로 보낼 것인가"를 결정합니다. 복잡도 기반 Cascade, 비용 추적, 외부 프로바이더 폴백이 여기에 속합니다. Bifrost·LiteLLM 같은 LLM API Gateway가 담당합니다.
-- **within-model 라우팅 (Tier 2 ①)**: "같은 모델의 여러 Pod 중 어느 **Pod**로 보낼 것인가"를 결정합니다. KV cache 위치와 부하를 실시간 메트릭으로 보고 고릅니다. Gateway API Inference Extension(InferencePool·EPP)이 담당합니다.
+- **Across-model routing (Tier 2 ②)**: Decides "which **model** to send to." Complexity-based Cascade, cost tracking, and external provider fallback fall here. Handled by LLM API Gateways such as Bifrost or LiteLLM.
+- **Within-model routing (Tier 2 ①)**: Decides "which **Pod** of the same model to send to among many." Selection is based on KV cache locality and real-time load metrics. Handled by the Gateway API Inference Extension (InferencePool · EPP).
 
-두 레이어의 정의와 대응 관계는 [티어드 게이트웨이 아키텍처](./inference-routing/tiered-gateway-architecture.md)와 [라우팅 전략 — 두 개의 라우팅 레이어](./inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)에서 상세히 다룹니다.
+Definitions and the correspondence between the two layers are covered in detail in [Tiered Gateway Architecture](./inference-routing/tiered-gateway-architecture.md) and [Routing Strategy — Gateway Layer Separation](./inference-routing/routing-strategy.md#gateway-layer-separation).
 
-## 레이어드 튜닝 모델
+## Layered Tuning Model
 
-추론 성능을 좌우하는 튜닝 레버를 계층별로 정리하면 다음과 같습니다. 각 레버의 상세 동작과 설정은 우측 심화 문서를 참조하세요.
+The tuning levers that govern inference performance, organized by layer, are as follows. For detailed behavior and configuration of each lever, refer to the deep-dive documents on the right.
 
-| 계층 | 주요 튜닝 레버 | 영향 지표 | 심화 문서 |
+| Layer | Key Tuning Levers | Affected Metrics | Deep-Dive Document |
 |------|--------------|----------|----------|
-| **L0** GPU/가속기 | 인스턴스 선택 · MIG · Time-Slicing · DRA · Neuron | GPU 활용률 · 비용 | [GPU 리소스 관리](./gpu-infrastructure/gpu-resource-management.md) |
-| **L1** 서빙 엔진 | PagedAttention · Continuous Batching · FP8 KV · Prefix Caching · Chunked Prefill · Speculative Decoding · 양자화 · TP/PP/EP | TTFT · TPS · 메모리 | [vLLM 모델 서빙](./inference-frameworks/vllm-model-serving.md) · [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md) |
-| **L2** 분산 토폴로지 | Prefill/Decode 분리 · NIXL · LWS 멀티노드 | 대형 모델 처리량 | [Disaggregated Serving](./inference-optimization/disaggregated-serving.md) |
-| **L3** 추론 라우팅 | KV cache-aware · context-aware · prefix-cache scorer | 캐시 적중률 · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
-| **L4** 게이트웨이 | 모델 Cascade · 비용 추적 · Rate Limit · L7 한계 보완 | 비용 · 가용성 | [티어드 게이트웨이](./inference-routing/tiered-gateway-architecture.md) · [라우팅 전략](./inference-routing/routing-strategy.md) |
-| **L5** 캐시 계층 | KV/prefix cache · prompt cache · semantic cache · LMCache | 캐시 적중률 · 비용 | [LMCache](./inference-optimization/lmcache.md) · [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md) |
+| **L0** GPU/Accelerator | Instance selection · MIG · Time-Slicing · DRA · Neuron | GPU utilization · cost | [GPU Resource Management](./gpu-infrastructure/gpu-resource-management.md) |
+| **L1** Serving Engine | PagedAttention · Continuous Batching · FP8 KV · Prefix Caching · Chunked Prefill · Speculative Decoding · Quantization · TP/PP/EP | TTFT · TPS · memory | [vLLM Model Serving](./inference-frameworks/vllm-model-serving.md) · [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md) |
+| **L2** Distributed Topology | Prefill/Decode disaggregation · NIXL · LWS multi-node | Large-model throughput | [Disaggregated Serving](./inference-optimization/disaggregated-serving.md) |
+| **L3** Inference Routing | KV cache-aware · context-aware · prefix-cache scorer | Cache hit rate · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
+| **L4** Gateway | Model Cascade · cost tracking · Rate Limit · L7 limitations | Cost · availability | [Tiered Gateway](./inference-routing/tiered-gateway-architecture.md) · [Routing Strategy](./inference-routing/routing-strategy.md) |
+| **L5** Cache Layer | KV/prefix cache · prompt cache · semantic cache · LMCache | Cache hit rate · cost | [LMCache](./inference-optimization/lmcache.md) · [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md) |
 
-:::tip 읽는 순서
-하위 계층(L0 GPU)부터 상위 계층(L4 게이트웨이)으로 읽으면 인프라 관점에서, 요청 경로 순서(L4 → L0)로 읽으면 트래픽 관점에서 이해하기 쉽습니다. 성능 지표(TTFT·TPS·캐시 적중률)와 3-Tier 권장 구성은 [추론 최적화 개요](./inference-optimization/index.md)를 참조하세요.
+:::tip Reading order
+Reading from lower layers (L0 GPU) upward (L4 Gateway) gives the infrastructure perspective; reading along the request path (L4 → L0) gives the traffic perspective. For performance metrics (TTFT · TPS · cache hit rate) and the recommended 3-Tier composition, see [Inference Optimization Overview](./inference-optimization/index.md).
 :::
 
-## 추론 게이트웨이의 역할과 기능
+## Roles and Functions of the Inference Gateway
 
-"추론 게이트웨이(Inference Gateway)"는 단일 컴포넌트가 아니라 서로 다른 책임을 가진 여러 계층의 묶음입니다. 플랫폼 전역에서는 클러스터 내 추론 Pod 라우팅과 외부 LLM 프로바이더 프록시를 명시적으로 구분합니다.
+The "Inference Gateway" is not a single component but a bundle of multiple layers with different responsibilities. Across the platform, in-cluster inference Pod routing and external LLM provider proxying are explicitly separated.
 
 <TieredGatewayDiagram />
 
-| 계층 | 역할 | 대표 구현체 |
+| Layer | Role | Representative Implementations |
 |------|------|------------|
-| **Tier 1** Ingress | 외부 트래픽 수신, TLS 종료, 인증, Rate Limiting | kgateway · AWS LBC · Envoy Gateway |
-| **Tier 2 ①** Inference Routing | 클러스터 내 추론 Pod 선택(KV·부하 인지) | Gateway API Inference Extension |
-| **Tier 2 ②** LLM API Gateway | 모델 추상화, Cascade, 비용 추적, Semantic Caching | Bifrost · LiteLLM · OpenRouter |
+| **Tier 1** Ingress | Receive external traffic, TLS termination, authentication, rate limiting | kgateway · AWS LBC · Envoy Gateway |
+| **Tier 2 ①** Inference Routing | In-cluster inference Pod selection (KV · load-aware) | Gateway API Inference Extension |
+| **Tier 2 ②** LLM API Gateway | Model abstraction, Cascade, cost tracking, Semantic Caching | Bifrost · LiteLLM · OpenRouter |
 
-각 계층의 역할 정의와 솔루션 선정 기준은 [티어드 게이트웨이 아키텍처](./inference-routing/tiered-gateway-architecture.md)에, 솔루션 비교와 Cascade·Semantic 전략은 [라우팅 전략](./inference-routing/routing-strategy.md)에 정리되어 있습니다.
+Each layer's role definition and solution selection criteria are covered in [Tiered Gateway Architecture](./inference-routing/tiered-gateway-architecture.md), and solution comparisons along with Cascade and Semantic strategies are covered in [Routing Strategy](./inference-routing/routing-strategy.md).
 
-## 기존 L7 게이트웨이의 한계
+## Limitations of Conventional L7 Gateways
 
-범용 L7 게이트웨이(NGINX·기본 Envoy 등)는 HTTP 요청을 stateless로 분배하도록 설계되어, LLM 추론 트래픽의 특성을 인지하지 못합니다. 이로 인해 다음과 같은 한계가 발생합니다.
+General-purpose L7 gateways (NGINX, default Envoy, and others) are designed to distribute HTTP requests in a stateless manner and cannot recognize the characteristics of LLM inference traffic. This results in the following limitations.
 
-- **Round-Robin이 prefix cache를 무력화**: 동일 시스템 프롬프트를 공유하는 요청이 매번 다른 Pod로 분배되면, 각 Pod가 같은 prefill 연산을 반복합니다. 결과적으로 KV cache 재사용률이 떨어지고 TTFT가 증가합니다.
-- **토큰 단위 과금·스트리밍 미인지**: L7 게이트웨이는 요청 수 기준으로만 부하를 판단해, 토큰 길이에 비례하는 실제 연산 비용을 반영하지 못합니다.
-- **모델 서버 메트릭 부재**: KV cache 사용량, 대기 큐 깊이(queue depth) 같은 추론 엔진 내부 상태를 알지 못해, 부하가 몰린 Pod로도 요청을 보냅니다.
+- **Round-Robin neutralizes prefix cache**: When requests sharing the same system prompt are distributed to different Pods each time, each Pod repeats the same prefill computation. As a result, KV cache reuse drops and TTFT increases.
+- **Unaware of token-based billing and streaming**: L7 gateways judge load only by request count and cannot reflect the actual computational cost, which scales with token length.
+- **No model server metrics**: They lack awareness of inference engine internal state such as KV cache usage and queue depth, so they may forward requests to overloaded Pods.
 
-이 한계를 해결하기 위해 KV·부하를 인지하는 별도의 추론 라우팅 계층(Tier 2 ①)이 필요합니다. 상세 근거는 [KV Cache 최적화 — 기존 문제: Round-Robin의 한계](./inference-optimization/kv-cache-optimization.md#기존-문제-round-robin의-한계)와 [라우팅 전략 — 두 개의 라우팅 레이어](./inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)를 참조하세요.
+To overcome these limitations, a separate inference routing layer (Tier 2 ①) that is KV- and load-aware is required. For detailed rationale, see [KV Cache Optimization — Existing Problem: Round-Robin Limitations](./inference-optimization/kv-cache-optimization.md#existing-problem-round-robin-limitations) and [Routing Strategy — Gateway Layer Separation](./inference-routing/routing-strategy.md#gateway-layer-separation).
 
-## prefill / decode / Disaggregated Serving
+## Prefill / Decode / Disaggregated Serving
 
-LLM 추론은 입력 프롬프트를 한 번에 처리하는 **prefill 단계**와, 토큰을 하나씩 생성하는 **decode 단계**로 나뉩니다. 두 단계는 연산 특성이 달라(prefill은 연산 집약적, decode는 메모리 대역폭 집약적), 같은 GPU에 함께 두면 서로의 효율을 떨어뜨립니다.
+LLM inference is split into a **prefill stage** that processes the input prompt in one shot, and a **decode stage** that generates tokens one at a time. The two stages have different computational characteristics (prefill is compute-bound, decode is memory-bandwidth-bound), and placing them on the same GPU degrades each other's efficiency.
 
-**Disaggregated Serving**은 prefill과 decode를 별도의 GPU 그룹으로 분리하고, 그 사이의 KV cache를 NIXL 같은 전송 엔진으로 옮기는 아키텍처입니다. 700B+ 대형 MoE 모델은 LWS(LeaderWorkerSet) 기반 멀티노드 배포와 결합합니다. 상세 아키텍처와 GLM-5 배포 예제는 [Disaggregated Serving](./inference-optimization/disaggregated-serving.md)에, AWS 관리형 구현은 [HyperPod Inference Operator — Disaggregated Prefill/Decode](./inference-frameworks/hyperpod-inference-operator.md#disaggregated-prefilldecode-dpd)에 정리되어 있습니다.
+**Disaggregated Serving** is an architecture that separates prefill and decode onto distinct GPU groups and moves the KV cache between them via a transport engine such as NIXL. 700B+ large MoE models combine this with multi-node deployment based on LWS (LeaderWorkerSet). Detailed architecture and a GLM-5 deployment example are covered in [Disaggregated Serving](./inference-optimization/disaggregated-serving.md), and the AWS managed implementation is covered in [HyperPod Inference Operator — Disaggregated Prefill/Decode](./inference-frameworks/hyperpod-inference-operator.md#disaggregated-prefilldecode-dpd).
 
-## Context-aware routing
+## Context-aware Routing
 
-context-aware 라우팅은 요청의 **내용·복잡도**를 보고 적절한 모델·경로를 고르는 전략입니다. 단순 질의는 경량 모델로, 복잡한 추론은 대형 모델로 보내 비용과 품질을 균형 잡습니다.
+Context-aware routing is a strategy that selects an appropriate model or path by looking at the **content and complexity** of the request. Simple queries are sent to lightweight models, and complex reasoning is sent to large models, balancing cost and quality.
 
-- **LLM Classifier**: 요청을 복잡도 티어로 분류해 라우팅
-- **RouteLLM**: MF(Matrix Factorization) 분류기로 모델 선택
-- **vLLM Semantic Router**: 의미 기반 라우팅
+- **LLM Classifier**: Routes by classifying requests into complexity tiers
+- **RouteLLM**: Selects models via an MF (Matrix Factorization) classifier
+- **vLLM Semantic Router**: Meaning-based routing
 
-상세 구현과 평가 결과는 [Request Cascading — 지능형 모델 라우팅](./inference-routing/request-cascading.md)을 참조하세요. 의미 기반 캐시와의 관계는 [Semantic Caching 전략](./inference-optimization/semantic-caching-strategy.md)에서 다룹니다.
+For detailed implementations and evaluation results, see [Request Cascading — Intelligent Model Routing](./inference-routing/request-cascading.md). The relationship to meaning-based caching is covered in [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md).
 
-## KV cache-aware routing
+## KV Cache-Aware Routing
 
-KV cache-aware 라우팅은 같은 모델의 여러 Pod 중에서 **요청의 prefix와 일치하는 KV cache를 이미 보유한 Pod**로 보내는 전략입니다. prefill 재연산을 피해 TTFT를 줄이고 처리량을 높입니다.
+KV cache-aware routing is a strategy that, among multiple Pods of the same model, sends a request to **the Pod that already holds a KV cache matching the request's prefix**. By avoiding prefill recomputation, it lowers TTFT and increases throughput.
 
-- **prefix-cache scorer**: 각 Pod의 prefix 캐시 보유 상태를 점수화
-- **EPP(Endpoint Picker)**: ext-proc로 위임받아 최적 Pod 선택
-- **llm-d vs NVIDIA Dynamo**: 구현 방식과 KV 오프로딩 계층이 다름
+- **prefix-cache scorer**: Scores each Pod's prefix cache holdings
+- **EPP (Endpoint Picker)**: Delegated via ext-proc to pick the optimal Pod
+- **llm-d vs NVIDIA Dynamo**: Different implementation approaches and KV offload layers
 
-상세 비교는 [KV Cache 최적화 — KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing)과 [라우팅 전략 — EPP 정확한 정의](./inference-routing/routing-strategy.md#eppendpoint-picker-정확한-정의)를 참조하세요.
+For a detailed comparison, see [KV Cache Optimization — KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) and [Routing Strategy — Gateway API Inference Extension](./inference-routing/routing-strategy.md#gateway-api-inference-extension).
 
 ## LMCache
 
-**LMCache**는 KV cache를 GPU 메모리 너머 CPU·디스크 계층으로 오프로딩하고, 여러 추론 인스턴스 간에 공유하는 KV cache 계층입니다. vLLM의 in-GPU prefix cache가 한 Pod 안에서만 유효한 것과 달리, LMCache는 Pod·노드를 넘어 KV cache를 재사용할 수 있게 해 `kvaware` 라우팅의 효과를 확장합니다.
+**LMCache** is a KV cache tier that offloads KV cache beyond GPU memory to CPU and disk layers and shares it across inference instances. Unlike vLLM's in-GPU prefix cache, which is valid only within a single Pod, LMCache enables KV cache reuse across Pods and nodes, extending the effectiveness of `kvaware` routing.
 
-개념·계층 구조·vLLM/NIXL과의 관계는 [LMCache](./inference-optimization/lmcache.md) 문서에서 다룹니다.
+The concept, layer structure, and relationships with vLLM/NIXL are covered in [LMCache](./inference-optimization/lmcache.md).
 
-## 캐시 히트 전략
+## Cache-Hit Strategy
 
-추론 캐시는 단일 계층이 아니라 **세 계층**으로 나뉘며, 각각 적중 조건과 효과가 다릅니다.
+Inference caches are split into **three layers**, not a single one, and each has different hit conditions and effects.
 
-| 캐시 계층 | 적중 조건 | 효과 |
+| Cache Layer | Hit Condition | Effect |
 |----------|----------|------|
-| **KV / Prefix Cache** | 동일 prefix(시스템 프롬프트 등) | prefill 재연산 회피, TTFT 감소 |
-| **Prompt Cache** | 완전 동일 요청 | 전체 추론 회피 |
-| **Semantic Cache** | 의미적으로 유사한 요청(임베딩 유사도) | 유사 질의 추론 회피 |
+| **KV / Prefix Cache** | Same prefix (system prompts, etc.) | Avoids prefill recomputation, reduces TTFT |
+| **Prompt Cache** | Exact identical request | Avoids full inference |
+| **Semantic Cache** | Semantically similar request (embedding similarity) | Avoids inference for similar queries |
 
-각 계층의 히트율을 어떻게 높이고 어디서 측정하는지를 통합한 의사결정 프레임은 [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md)에서 다룹니다. semantic cache의 임계값 설계는 [Semantic Caching 전략](./inference-optimization/semantic-caching-strategy.md)을, prefix cache 효과는 [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md)를 참조하세요.
+A unified decision framework for how to raise hit rates and where to measure them at each layer is covered in [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md). For threshold design of the semantic cache, see [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md); for prefix cache effects, see [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md).
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) — 클러스터 내 추론 라우팅(InferencePool·EPP) 표준
-- [vLLM Documentation](https://docs.vllm.ai/) — vLLM 서빙 엔진 공식 가이드
+### Official Documentation
+- [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) — The standard for in-cluster inference routing (InferencePool · EPP)
+- [vLLM Documentation](https://docs.vllm.ai/) — Official guide to the vLLM serving engine
 
-### 논문 / 기술 블로그
-- [PagedAttention (SOSP 2023)](https://arxiv.org/abs/2309.06180) — vLLM KV cache 관리 논문
-- [DistServe (OSDI 2024)](https://arxiv.org/abs/2401.09670) — Prefill/Decode 분리(Disaggregated Serving) 연구
+### Papers / Tech Blogs
+- [PagedAttention (SOSP 2023)](https://arxiv.org/abs/2309.06180) — The vLLM KV cache management paper
+- [DistServe (OSDI 2024)](https://arxiv.org/abs/2401.09670) — Research on Prefill/Decode disaggregation (Disaggregated Serving)
 
-### 관련 문서 (내부)
-- [추론 최적화 개요](./inference-optimization/index.md) — TTFT·TPS 등 핵심 지표와 3-Tier 권장 구성
-- [티어드 게이트웨이 아키텍처](./inference-routing/tiered-gateway-architecture.md) — 게이트웨이 계층 단일 정의
-- [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md) — vLLM 심화와 KV Cache-Aware Routing
+### Related Documents (Internal)
+- [Inference Optimization Overview](./inference-optimization/index.md) — Core metrics such as TTFT and TPS and the recommended 3-Tier composition
+- [Tiered Gateway Architecture](./inference-routing/tiered-gateway-architecture.md) — Single definition of gateway layers
+- [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md) — vLLM deep-dive and KV Cache-Aware Routing

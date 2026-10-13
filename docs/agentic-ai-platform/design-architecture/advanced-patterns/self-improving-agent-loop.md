@@ -1,11 +1,11 @@
 ---
 title: Self-Improving Agent Loop (Autoresearch)
-description: Karpathy의 autoresearch 개념을 기반으로 self-hosted SLM이 프로덕션 trace로부터 스스로 학습·강화하는 5-stage 루프 설계와 안전장치
+description: 5-stage loop design and safety mechanisms for self-hosted SLMs to autonomously learn and improve from production traces based on Karpathy's autoresearch concept
 created: "2026-04-18"
 last_update:
-  date: 2026-10-12
-  author: YoungJoon Jeong
-reading_time: 16
+  date: 2026-09-22
+  author: devfloor9
+reading_time: 28
 tags:
   - self-improving
   - autoresearch
@@ -17,24 +17,24 @@ sidebar_label: Self-Improving Loop
 sidebar_position: 8
 ---
 
-:::warning self-hosted SLM 전용
-본 루프는 self-hosted 오픈웨이트 모델(Qwen3, Llama 4, GLM-5 등) 전용입니다. AgentCore의 Claude/Nova 등 관리형 폐쇄 모델은 자가 학습이 불가능하므로 스코프에서 제외합니다.
+:::warning Self-Hosted SLM Only
+This loop is exclusively for self-hosted open-weight models (Qwen3, Llama 4, GLM-5, etc.). AgentCore's managed closed models like Claude/Nova cannot self-learn and are excluded from scope.
 :::
 
-:::info ADR 선행 필요
-실 운영 적용 전에 스코프·자동화 경계·데이터 거버넌스·롤백 기준에 대한 합의가 필요합니다. 자세한 합의 대상은 [ADR — Self-Improving Agent Loop 도입 의사결정](./adr-self-improving-loop.md)을 참조합니다.
+:::info ADR Required
+Before production deployment, consensus on scope, automation boundaries, data governance, and rollback criteria is needed. See [ADR — Self-Improving Agent Loop Decision](./adr-self-improving-loop.md) for detailed consensus items.
 :::
 
-## Autoresearch 담론과 엔터프라이즈 해석
+## Autoresearch Discourse and Enterprise Interpretation
 
-### Karpathy의 핵심 주장
+### Karpathy's Core Argument
 
-Andrej Karpathy는 2026년 3월 [autoresearch](https://github.com/karpathy/autoresearch) 프로젝트를 통해 LLM이 단순한 "next token prediction" 기계를 넘어 **자가 탐색(autoresearch)** 시스템으로 진화할 것이라고 주장했습니다. 핵심 메커니즘:
+Andrej Karpathy argued that LLMs will evolve beyond simple "next token prediction" machines into **autoresearch systems**. Core mechanisms:
 
-1. **Tool-use Rollout**: LLM이 도구(코드 실행, 웹 검색, 계산기 등)를 사용하며 여러 추론 경로를 탐색
-2. **Success as Signal**: 성공한 경로(정답 도달, 작업 완료)가 다음 학습의 시그널이 됨
-3. **Self-Supervised Loop**: 인간 라벨링 없이 자체 성공·실패 데이터를 축적하고 강화학습으로 재학습
-4. **Compound Growth**: 더 강해진 모델이 더 많은 성공 trace를 생성 → 더 강해지는 선순환
+1. **Tool-use Rollout**: LLM explores multiple reasoning paths using tools (code execution, web search, calculator, etc.)
+2. **Success as Signal**: Successful paths (reaching correct answer, completing tasks) become signals for next learning
+3. **Self-Supervised Loop**: Accumulate own success/failure data without human labeling and retrain with reinforcement learning
+4. **Compound Growth**: Stronger models generate more success traces → stronger models (virtuous cycle)
 
 ```mermaid
 graph LR
@@ -53,33 +53,33 @@ graph LR
     style G fill:#9c27b0
 ```
 
-**예시**: 수학 문제 해결 Agent
-- **Rollout**: "53 × 47 = ?"에 대해 5가지 접근(직접 계산, Python 실행, Wolfram Alpha, 근사 추정, 분해 계산)
-- **Success**: Python 실행과 분해 계산이 정답 2491에 도달
-- **Training**: 성공 경로를 preferred 샘플로, 실패 경로를 rejected 샘플로 DPO 학습
-- **Next Iteration**: 모델이 복잡한 계산 시 Python 실행을 먼저 시도하도록 bias 증가
+**Example**: Math problem-solving Agent
+- **Rollout**: "53 × 47 = ?" with 5 approaches (direct calculation, Python execution, Wolfram Alpha, approximation, decomposition)
+- **Success**: Python execution and decomposition reach correct answer 2491
+- **Training**: DPO learning with success paths as preferred samples, failure paths as rejected
+- **Next Iteration**: Model bias increases to try Python execution first for complex calculations
 
-### 엔터프라이즈 환경의 제약
+### Enterprise Environment Constraints
 
-Karpathy의 이상론을 기업 환경에 적용하려면 다음 제약을 고려해야 합니다:
+Applying Karpathy's idealism to enterprise environments requires considering these constraints:
 
-| 제약 | 설명 | 해결 방향 |
+| Constraint | Description | Solution Direction |
 |------|------|----------|
-| **데이터 거버넌스** | 프로덕션 trace에 PII, 기밀 정보 포함 가능 | Presidio PII 스캐너, k-anonymity, consent 추적 |
-| **비용** | Rollout마다 LLM 호출 N배 증가 (N=탐색 경로 수) | 비용·품질 trade-off 최적화, 저비용 모델 우선 사용 |
-| **Reward 모델링** | "성공"의 정의가 모호(고객 만족? 정확도? latency?) | 복합 reward: LLM-as-judge + Ragas + 유저 피드백 |
-| **Mode Collapse** | 특정 패턴만 반복 생성 (diversity 손실) | Entropy regularization, diverse sampling |
-| **Regulatory** | 모델 변경마다 감사 로그, 모델 카드 업데이트 필요 | 버전 관리, audit trail, [Agent 버전관리](../../../aidlc/enterprise/agent-versioning/index.md) 연동 |
+| **Data Governance** | Production traces may contain PII, confidential information | Presidio PII scanner, k-anonymity, consent tracking |
+| **Cost** | LLM calls increase N-fold per rollout (N=number of exploration paths) | Optimize cost-quality trade-off, prioritize low-cost models |
+| **Reward Modeling** | Definition of "success" is ambiguous (customer satisfaction? accuracy? latency?) | Composite reward: LLM-as-judge + Ragas + user feedback |
+| **Mode Collapse** | Generate only specific patterns repeatedly (diversity loss) | Entropy regularization, diverse sampling |
+| **Regulatory** | Audit log and model card update required for each model change | Version control, audit trail, [Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md) integration |
 
-:::tip 엔터프라이즈 인사이트
-Self-improving loop는 **"완전 자동화"가 아니라 "인간 감독 하의 자동 강화"**로 해석해야 합니다. 매 iteration마다 품질 게이트와 휴먼-인-루프 검증이 필수입니다.
+:::tip Enterprise Insight
+Self-improving loop should be interpreted as **"automated reinforcement under human supervision"**, not **"full automation"**. Quality gates and human-in-the-loop verification are essential at each iteration.
 :::
 
 ---
 
-## 5-Stage Loop 아키텍처
+## 5-Stage Loop Architecture
 
-### 전체 아키텍처 다이어그램
+### Overall Architecture Diagram
 
 ```mermaid
 graph TB
@@ -128,23 +128,23 @@ graph TB
     style Stage5 fill:#fce4ec
 ```
 
-### Stage 1: Rollout — 프로덕션 트래픽 수집
+### Stage 1: Rollout — Production Traffic Collection
 
-**목표**: 실제 사용자 요청에 대한 Agent 실행 trace를 수집합니다.
+**Goal**: Collect Agent execution traces for actual user requests.
 
-**실행 주기**: 연속(Real-time)
+**Execution Cycle**: Continuous (Real-time)
 
-**입력**: 사용자 요청, 컨텍스트, Agent 상태  
-**출력**: Trace (프롬프트, 도구 호출, 중간 추론, 최종 응답, latency, 토큰 수)
+**Input**: User request, context, Agent state  
+**Output**: Trace (prompt, tool calls, intermediate reasoning, final response, latency, token count)
 
-**수집 메커니즘**:
+**Collection Mechanism**:
 
 ```python
 from langfuse import Langfuse
 
 langfuse = Langfuse()
 
-@trace_agent_call  # 데코레이터로 자동 trace
+@trace_agent_call  # Automatic trace with decorator
 def execute_agent(user_query: str, context: dict):
     trace = langfuse.trace(name="agent-execution", metadata={"user_id": context["user_id"]})
 
@@ -162,22 +162,22 @@ def execute_agent(user_query: str, context: dict):
     return response
 ```
 
-**다양성 확보**: 동일 요청에 대해 temperature 변화(0.7/0.9/1.1)로 3가지 응답 생성 → diversity 증가
+**Diversity Assurance**: Generate 3 responses with temperature variations (0.7/0.9/1.1) for same request to increase diversity
 
-**실패 복구**: Trace 수집 실패해도 사용자 응답은 정상 반환 (async logging)
+**Failure Recovery**: User response returned normally even if trace collection fails (async logging)
 
 ---
 
-### Stage 2: Score — Reward 계산
+### Stage 2: Score — Reward Calculation
 
-**목표**: 각 trace에 0-1 점수를 부여하여 "얼마나 좋은 응답인가"를 정량화합니다.
+**Goal**: Quantify "how good each response is" by assigning 0-1 score to each trace.
 
-**실행 주기**: 시간별(Hourly) 배치
+**Execution Cycle**: Hourly batch
 
-**입력**: Langfuse trace ID 배치  
-**출력**: `{trace_id: reward_score}` 테이블
+**Input**: Langfuse trace ID batch  
+**Output**: `{trace_id: reward_score}` table
 
-**복합 Reward 공식**:
+**Composite Reward Formula**:
 
 ```python
 reward_score = (
@@ -185,37 +185,37 @@ reward_score = (
     w2 * ragas_faithfulness +   # Ragas faithfulness (0-1)
     w3 * ragas_context_recall + # Ragas context recall (0-1)
     w4 * user_feedback_score +  # Thumbs up=1, down=0, neutral=0.5
-    w5 * latency_penalty        # P99 초과 시 감점
+    w5 * latency_penalty        # Penalty if P99 exceeds
 )
 
-# 기본 가중치 (실험으로 조정)
+# Default weights (adjust with experiments)
 w1, w2, w3, w4, w5 = 0.3, 0.25, 0.2, 0.2, 0.05
 ```
 
-**LLM-as-Judge 프롬프트**:
+**LLM-as-Judge Prompt**:
 
 ```python
 judge_prompt = f"""
-다음 Agent 응답을 평가하세요:
+Evaluate the following Agent response:
 
-**질문**: {question}
-**컨텍스트**: {context}
-**응답**: {answer}
+**Question**: {question}
+**Context**: {context}
+**Answer**: {answer}
 
-평가 기준:
-1. 정확성: 컨텍스트 기반 사실 정확성
-2. 완전성: 질문의 모든 측면을 다루는가
-3. 명확성: 사용자가 이해하기 쉬운가
-4. 간결성: 불필요한 정보 없이 핵심만 전달하는가
+Evaluation Criteria:
+1. Accuracy: Factual accuracy based on context
+2. Completeness: Covers all aspects of the question
+3. Clarity: Easy for user to understand
+4. Conciseness: Delivers only core without unnecessary information
 
-0-1 사이 점수와 근거를 JSON으로 반환하세요.
-{{"score": 0.85, "reasoning": "정확하고 완전하나 약간 장황함"}}
+Return score between 0-1 and reasoning in JSON.
+{{"score": 0.85, "reasoning": "Accurate and complete but slightly verbose"}}
 """
 
-judge_response = cheap_llm.generate(judge_prompt)  # Qwen3-8B 사용 (비용 절감)
+judge_response = cheap_llm.generate(judge_prompt)  # Use Qwen3-7B (cost reduction)
 ```
 
-**Ragas 평가**:
+**Ragas Evaluation**:
 
 ```python
 from ragas.metrics import faithfulness, context_recall
@@ -230,49 +230,49 @@ eval_data = {
 ragas_result = evaluate(Dataset.from_dict(eval_data), metrics=[faithfulness, context_recall])
 ```
 
-**User Feedback 통합**:
+**User Feedback Integration**:
 
 ```python
-# Langfuse에서 사용자 피드백 조회
+# Query user feedback from Langfuse
 feedback = langfuse.get_scores(trace_id=trace_id, name="user-feedback")
 user_score = 1.0 if feedback.value == "positive" else 0.0 if feedback.value == "negative" else 0.5
 ```
 
-**비용 최적화**:
-- LLM-as-Judge는 저비용 모델(Qwen3-8B, Llama 4 Scout) 사용
-- Ragas는 캐싱(동일 question+context 조합 재사용)
-- 유저 피드백 우선 — 피드백 있으면 LLM-as-Judge 스킨
+**Cost Optimization**:
+- LLM-as-Judge uses low-cost model (Qwen3-7B, Llama 4 Scout)
+- Ragas with caching (reuse same question+context combinations)
+- Prioritize user feedback — skip LLM-as-Judge if feedback exists
 
 ---
 
-### Stage 3: Filter — 데이터 큐레이션 & PII 게이트
+### Stage 3: Filter — Data Curation & PII Gate
 
-**목표**: 고품질 trace만 학습 데이터로 선별하고, 민감 정보를 제거합니다.
+**Goal**: Select only high-quality traces as training data and remove sensitive information.
 
-**실행 주기**: 시간별(Hourly) 배치
+**Execution Cycle**: Hourly batch
 
-**입력**: Scored traces  
-**출력**: Clean training dataset (S3 Iceberg 테이블)
+**Input**: Scored traces  
+**Output**: Clean training dataset (S3 Iceberg table)
 
-**품질 게이트**:
+**Quality Gates**:
 
 ```python
 def filter_traces(scored_traces):
     filtered = []
     for trace in scored_traces:
-        # 1. 최소 점수 임계값
+        # 1. Minimum score threshold
         if trace.reward_score < 0.7:
             continue
 
-        # 2. Latency 이상치 제거 (P99 > 30초)
+        # 2. Remove latency outliers (P99 > 30 seconds)
         if trace.latency > 30:
             continue
 
-        # 3. 에러 발생 trace 제외
+        # 3. Exclude traces with errors
         if trace.error_count > 0:
             continue
 
-        # 4. 중복 제거 (동일 question+answer 조합)
+        # 4. Remove duplicates (same question+answer combination)
         if is_duplicate(trace):
             continue
 
@@ -281,55 +281,27 @@ def filter_traces(scored_traces):
     return filtered
 ```
 
-**PII 스캐닝 (Presidio)**:
+**PII Scanning (Presidio)**:
 
 ```python
-from presidio_analyzer import AnalyzerEngine, PatternRecognizer, Pattern
-from presidio_analyzer.nlp_engine import NlpEngineProvider
+from presidio_analyzer import AnalyzerEngine
 from presidio_anonymizer import AnonymizerEngine
 
-# 한국어 NLP 모델 구성 (기본 AnalyzerEngine은 영어만 지원하므로 한국어 엔진 필요)
-nlp_config = {
-    "nlp_engine_name": "spacy",
-    "models": [{"lang_code": "ko", "model_name": "ko_core_news_lg"}]
-}
-nlp_engine_provider = NlpEngineProvider(nlp_configuration=nlp_config)
-
-analyzer = AnalyzerEngine(
-    nlp_engine=nlp_engine_provider.create_engine(),
-    supported_languages=["ko"]
-)
-
-# 한국어 주민등록번호 커스텀 인식기 (Presidio는 한국 특화 recognizer 미제공)
-rrn_recognizer = PatternRecognizer(
-    supported_entity="KR_RRN",
-    patterns=[Pattern("rrn", r"\d{6}-\d{7}", 0.85)],
-    supported_language="ko"
-)
-analyzer.registry.add_recognizer(rrn_recognizer)
-
-# 한국 계좌번호 커스텀 인식기
-account_recognizer = PatternRecognizer(
-    supported_entity="KR_ACCOUNT",
-    patterns=[Pattern("account", r"\d{3}-\d{2,6}-\d{2,7}", 0.8)],
-    supported_language="ko"
-)
-analyzer.registry.add_recognizer(account_recognizer)
-
+analyzer = AnalyzerEngine()
 anonymizer = AnonymizerEngine()
 
 def scan_and_anonymize(text: str) -> tuple[str, bool]:
-    """PII 탐지 후 익명화. (익명화된 텍스트, PII 발견 여부) 반환"""
+    """Detect PII then anonymize. Returns (anonymized text, PII found)."""
     results = analyzer.analyze(text=text, language='ko')
 
     if not results:
-        return text, False  # PII 없음
+        return text, False  # No PII
 
-    # PII 발견 → 익명화
+    # PII found → anonymize
     anonymized = anonymizer.anonymize(text=text, analyzer_results=results)
     return anonymized.text, True
 
-# Trace 처리
+# Process trace
 for trace in filtered_traces:
     trace.question, q_has_pii = scan_and_anonymize(trace.question)
     trace.answer, a_has_pii = scan_and_anonymize(trace.answer)
@@ -338,20 +310,20 @@ for trace in filtered_traces:
         trace.metadata["pii_detected"] = True
 ```
 
-**k-Anonymity 체크** (동일 query 패턴이 k명 이상 있어야 학습 데이터로 사용):
+**k-Anonymity Check** (Must have k+ people with same query pattern to use as training data):
 
 ```python
 def check_k_anonymity(traces, k=5):
-    """동일 패턴이 k건 미만이면 제거"""
+    """Remove if same pattern has less than k instances"""
     query_counts = defaultdict(int)
     for trace in traces:
-        query_pattern = extract_pattern(trace.question)  # 엔티티 제거 후 패턴 추출
+        query_pattern = extract_pattern(trace.question)  # Extract pattern after entity removal
         query_counts[query_pattern] += 1
 
     return [t for t in traces if query_counts[extract_pattern(t.question)] >= k]
 ```
 
-**저장소 — S3 + Iceberg**:
+**Storage — S3 + Iceberg**:
 
 ```python
 import pyiceberg
@@ -359,7 +331,7 @@ import pyiceberg
 catalog = pyiceberg.catalog.load_catalog("training_data")
 table = catalog.load_table("agent_traces")
 
-# Iceberg 테이블에 append
+# Append to Iceberg table
 table.append([
     {"trace_id": t.id, "question": t.question, "answer": t.answer, 
      "reward": t.reward_score, "timestamp": t.timestamp}
@@ -367,29 +339,29 @@ table.append([
 ])
 ```
 
-**규제 준수**:
-- **GDPR/PIPA**: 사용자 동의 없이 학습 데이터 사용 시 opt-out 메커니즘 필수
-- **데이터 보관 기간**: 학습 완료 후 90일 이내 삭제 (정책 설정)
-- **Audit Log**: 모든 PII 탐지·익명화 이벤트를 CloudTrail/Audit DB에 기록
+**Regulatory Compliance**:
+- **GDPR/PIPA**: Opt-out mechanism required when using training data without user consent
+- **Data Retention Period**: Delete within 90 days after training (policy setting)
+- **Audit Log**: Record all PII detection/anonymization events in CloudTrail/Audit DB
 
 ---
 
 ### Stage 4: Train — Preference Tuning
 
-**목표**: 고품질 trace를 사용해 모델을 강화학습으로 재학습합니다.
+**Goal**: Retrain model with reinforcement learning using high-quality traces.
 
-**실행 주기**: 주간(Weekly) 또는 월간(Monthly)
+**Execution Cycle**: Weekly or Monthly
 
-**입력**: S3 Iceberg 테이블 (preference pairs)  
-**출력**: Candidate 모델 체크포인트
+**Input**: S3 Iceberg table (preference pairs)  
+**Output**: Candidate model checkpoint
 
-**Preference Pair 구성**:
+**Preference Pair Construction**:
 
-Self-improving loop는 "동일 질문에 대한 여러 응답" 중 reward가 높은 것을 preferred, 낮은 것을 rejected로 사용합니다.
+Self-improving loop uses high-reward as preferred, low-reward as rejected among multiple responses to same question.
 
 ```python
 def build_preference_pairs(traces):
-    """동일 question에 대한 trace들을 묶어 pair 생성"""
+    """Group traces for same question to generate pairs"""
     grouped = defaultdict(list)
     for trace in traces:
         grouped[trace.question].append(trace)
@@ -397,16 +369,16 @@ def build_preference_pairs(traces):
     pairs = []
     for question, trace_list in grouped.items():
         if len(trace_list) < 2:
-            continue  # pair 불가
+            continue  # Cannot pair
 
-        # Reward 기준 정렬
+        # Sort by reward
         sorted_traces = sorted(trace_list, key=lambda t: t.reward_score, reverse=True)
 
         # Top 1 vs Bottom 1 pair
         preferred = sorted_traces[0]
         rejected = sorted_traces[-1]
 
-        # Reward 차이가 충분히 커야 유의미한 pair
+        # Reward difference must be large enough for meaningful pair
         if preferred.reward_score - rejected.reward_score < 0.2:
             continue
 
@@ -420,65 +392,57 @@ def build_preference_pairs(traces):
     return pairs
 ```
 
-**학습 방법 선택 가이드**:
+**Training Method Selection Guide**:
 
-| 방법 | 데이터 요구량 | GPU-hours (대략적 범위) | 수렴 안정성 | 적합 시나리오 |
+| Method | Data Requirement | GPU-hours (7B model) | Convergence Stability | Suitable Scenario |
 |------|-------------|---------------------|------------|-------------|
-| **GRPO** | 1k+ pairs | 수십 GPU-hours | ⭐⭐⭐ | 초기 self-improvement, 빠른 iteration |
-| **DPO** | 5k+ pairs | 수~수십 GPU-hours | ⭐⭐⭐⭐ | 충분한 데이터 확보 후, 안정적 학습 |
-| **RLAIF** | 10k+ pairs + reward model | 수십~수백 GPU-hours | ⭐⭐ | 복잡한 reward 모델링 필요 시 |
-| **RFT** | 10k+ high-quality traces | 최저 (SFT 수준) | ⭐⭐⭐⭐⭐ | Supervised 학습 가능한 golden dataset 확보 시 |
+| **GRPO** | 1k+ pairs | ~50 (4×H100) | ⭐⭐⭐ | Initial self-improvement, fast iteration |
+| **DPO** | 5k+ pairs | ~200 (8×H100) | ⭐⭐⭐⭐ | Stable learning after sufficient data |
+| **RLAIF** | 10k+ pairs + reward model | ~500 (8×H100) | ⭐⭐ | When complex reward modeling needed |
+| **RFT** | 10k+ high-quality traces | ~300 (8×H100) | ⭐⭐⭐⭐⭐ | When golden dataset for supervised learning available |
 
-:::note GPU-hours 수치는 환경 의존적
-위 범위는 7B-8B 모델 기준 대략적 추정입니다. 실제 소요 시간은 모델 크기, 데이터셋 크기, 하드웨어 구성, 하이퍼파라미터에 따라 크게 달라집니다. DPO 7B 전체 파인튜닝은 16×A100에서 2-4시간(Zephyr-7B 실측) 수준이며, 이는 약 32-64 GPU-hours에 해당합니다.
+:::tip Selection Guide
+- **Initial (data &lt;2k pairs)**: GRPO — Fastest and effective with minimal data
+- **Mid-stage (data 5k-10k pairs)**: DPO — Balance of stability and effectiveness
+- **Maturity (data &gt;10k)**: RLAIF or RFT — Complex reward modeling
 :::
 
-:::tip 선택 가이드
-- **초기 (데이터 &lt;2k pairs)**: GRPO — 가장 빠르고 적은 데이터로 효과
-- **중기 (데이터 5k-10k pairs)**: DPO — 안정성과 효과의 균형
-- **성숙기 (데이터 >10k)**: RLAIF 또는 RFT — 복잡한 reward 모델링
-:::
-
-**GRPO 학습 예시 (NeMo-RL)**:
+**GRPO Training Example (NeMo-RL)**:
 
 ```python
-# NeMo-Aligner는 2025-11-19 아카이브됨. NeMo-RL로 이전
-from nemo_rl.algorithms.grpo import setup, grpo_train
 from nemo.collections.nlp.models.language_modeling import MegatronGPTSFTModel
+from nemo_aligner.algorithms.grpo import GRPOTrainer
 
-# Base model 로드
-model = MegatronGPTSFTModel.restore_from("qwen3-8b-base.nemo")
+# Load base model
+model = MegatronGPTSFTModel.restore_from("qwen3-7b-base.nemo")
 
-# GRPO 설정 (함수 기반 API)
-grpo_config = setup(
-    model=model,
-    num_rollouts=4,         # 질문당 4개 응답 생성
-    kl_coef=0.05,           # KL divergence penalty (policy drift 방지)
-    clip_range=0.2,
-    learning_rate=1e-6,
-    batch_size=16,
-    gradient_accumulation_steps=4,
-)
+# GRPO configuration
+grpo_config = {
+    "num_rollouts": 4,  # Generate 4 responses per question
+    "kl_coef": 0.05,    # KL divergence penalty (prevent policy drift)
+    "clip_range": 0.2,
+    "learning_rate": 1e-6,
+    "batch_size": 16,
+    "gradient_accumulation": 4,
+}
 
-# 학습 실행
-grpo_train(
-    config=grpo_config,
-    train_dataset=preference_pairs,
-    val_dataset=golden_dataset
-)
+trainer = GRPOTrainer(model=model, config=grpo_config)
 
-# 체크포인트 저장
-model.save_to("qwen3-8b-grpo-2026-04-18.nemo")
+# Execute training
+trainer.fit(train_dataset=preference_pairs, val_dataset=golden_dataset)
+
+# Save checkpoint
+model.save_to("qwen3-7b-grpo-2026-04-18.nemo")
 ```
 
-**DPO 학습 예시 (TRL)**:
+**DPO Training Example (TRL)**:
 
 ```python
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from trl import DPOTrainer, DPOConfig
 
-model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-8B")
-tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-8B")
+model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen3-7B-Instruct")
+tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-7B-Instruct")
 
 dpo_config = DPOConfig(
     beta=0.1,  # Temperature for DPO loss
@@ -493,80 +457,80 @@ trainer = DPOTrainer(
     model=model,
     args=dpo_config,
     train_dataset=preference_dataset,
-    processing_class=tokenizer,
+    tokenizer=tokenizer,
 )
 
 trainer.train()
-model.save_pretrained("qwen3-8b-dpo-2026-04-18")
+model.save_pretrained("qwen3-7b-dpo-2026-04-18")
 ```
 
-**학습 모니터링**:
+**Training Monitoring**:
 
 ```python
-# Wandb 연동으로 실시간 메트릭 추적
+# Track real-time metrics with Wandb integration
 import wandb
 
 wandb.init(project="self-improving-agent", name="grpo-2026-04-18")
 
-# 추적 메트릭
-- Reward mean/std (배치별)
-- KL divergence (base model 대비 policy drift)
+# Tracked Metrics
+- Reward mean/std (per batch)
+- KL divergence (policy drift vs base model)
 - Loss curve
 - Validation accuracy (golden dataset)
 - Training time per epoch
 ```
 
-**비용 추정 (Qwen3-8B, 5k pairs, DPO)**:
-- GPU: 8× H100 × 25시간 = 200 GPU-hours
-- 클라우드 비용 (p5.48xlarge, $55.04/hr, 2025-06-01 이후 44% 인하 반영): ~$1,376
-- 비교: 매주 학습 시 월 $5.5k, 월간 학습 시 월 $1.4k
+**Cost Estimate (Qwen3-7B, 5k pairs, DPO)**:
+- GPU: 8× H100 × 25 hours = 200 GPU-hours
+- Cloud cost (p5.48xlarge, $98.32/hr): ~$2,458
+- Comparison: Weekly training $10k/month, Monthly training $2.5k/month
 
 ---
 
-### Stage 5: Deploy — 회귀 검증 & 점진 배포
+### Stage 5: Deploy — Regression Verification & Gradual Deployment
 
-**목표**: 새로 학습된 모델이 기존 대비 퇴화하지 않았는지 검증 후 프로덕션에 배포합니다.
+**Goal**: Verify new trained model has not regressed vs baseline before deploying to production.
 
-**실행 주기**: 학습 완료 후 1회
+**Execution Cycle**: Once after training completion
 
-**입력**: Candidate 모델 체크포인트  
-**출력**: 프로덕션 배포 또는 롤백
+**Input**: Candidate model checkpoint  
+**Output**: Production deployment or rollback
 
-**Golden Dataset 평가**:
+**Golden Dataset Evaluation**:
 
 ```python
 from ragas import evaluate
 from datasets import Dataset
 
-# Golden Dataset (도메인 전문가가 검증한 100-200개 QA)
+# Golden Dataset (100-200 QA validated by domain experts)
 golden_data = load_golden_dataset("s3://golden-eval/agent-qa-v2.jsonl")
 
-# Baseline 모델 평가
+# Evaluate baseline model
 baseline_results = evaluate_model(baseline_model, golden_data)
 
-# Candidate 모델 평가
+# Evaluate candidate model
 candidate_results = evaluate_model(candidate_model, golden_data)
 
-# 통계 비교
+# Statistical comparison
 from scipy.stats import ttest_rel
 
 t_stat, p_value = ttest_rel(baseline_results, candidate_results)
 
 if p_value < 0.05 and mean(candidate_results) > mean(baseline_results):
-    print("✅ Candidate 모델이 통계적으로 유의하게 우수")
+    print("✅ Candidate model is statistically significantly better")
     decision = "PROCEED_TO_SHADOW"
 elif mean(candidate_results) < mean(baseline_results) * 0.95:
-    print("❌ 5% 이상 퇴화 감지 → 롤백")
+    print("❌ 5%+ regression detected → rollback")
     decision = "ROLLBACK"
 else:
-    print("⚠️ 유의미한 차이 없음 → 추가 검증 필요")
+    print("⚠️ No significant difference → additional verification needed")
     decision = "MANUAL_REVIEW"
 ```
 
-**Shadow Test (5% 트래픽)**:
+**Shadow Test (5% Traffic)**:
 
 ```python
-# Inference Gateway 설정 (LiteLLM + Feature Flag)
+# Inference Gateway configuration (LiteLLM + Feature Flag)
 from ldclient import LDClient, Context
 
 ld_client = LDClient(sdk_key="sdk-key")
@@ -578,23 +542,23 @@ def select_model(user_id: str) -> str:
     # 95% baseline, 5% candidate (shadow)
     return "qwen3-7b-baseline" if variant.name == "control" else "qwen3-7b-candidate"
 
-# Shadow 응답은 로깅만, 사용자에게는 baseline 반환
+# Shadow response logged only, baseline returned to user
 async def execute_with_shadow(query: str, user_id: str):
     baseline_task = agent_call(model="qwen3-7b-baseline", query=query)
     candidate_task = agent_call(model="qwen3-7b-candidate", query=query, shadow=True)
 
     baseline_resp, candidate_resp = await asyncio.gather(baseline_task, candidate_task)
 
-    # 비교 로깅
+    # Comparison logging
     log_shadow_comparison(query, baseline_resp, candidate_resp)
 
-    return baseline_resp  # 사용자에게는 baseline만
+    return baseline_resp  # Only baseline to user
 ```
 
-**회귀 모니터링 (24시간)**:
+**Regression Monitoring (24 hours)**:
 
 ```promql
-# Prometheus 쿼리: Candidate vs Baseline 에러율
+# Prometheus query: Candidate vs Baseline error rate
 rate(agent_errors_total{model="candidate"}[1h]) / rate(agent_requests_total{model="candidate"}[1h])
 vs
 rate(agent_errors_total{model="baseline"}[1h]) / rate(agent_requests_total{model="baseline"}[1h])
@@ -604,11 +568,11 @@ histogram_quantile(0.99, rate(agent_latency_bucket{model="candidate"}[1h]))
 vs
 histogram_quantile(0.99, rate(agent_latency_bucket{model="baseline"}[1h]))
 
-# User Feedback 비율
+# User Feedback ratio
 sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedback_total{model="candidate"}[1h]))
 ```
 
-**자동 롤백 트리거**:
+**Auto-rollback Triggers**:
 
 ```yaml
 # Prometheus AlertManager
@@ -621,37 +585,37 @@ sum(rate(user_feedback_positive{model="candidate"}[1h])) / sum(rate(user_feedbac
      / rate(agent_requests_total{model="baseline"}[30m]))
   for: 30m
   annotations:
-    summary: "Candidate 모델 에러율 1.5배 증가 → 자동 롤백"
-  # Webhook → Lambda → LaunchDarkly API (variant weight를 0%로 변경)
+    summary: "Candidate model error rate 1.5x increase → automatic rollback"
+  # Webhook → Lambda → LaunchDarkly API (change variant weight to 0%)
 ```
 
-**Canary 배포 (Shadow 성공 시)**:
+**Canary Deployment (on Shadow success)**:
 
 ```python
-# LaunchDarkly 콘솔에서 점진적 비율 증가
+# Gradually increase ratio in LaunchDarkly console
 # Day 1: 5% (shadow) → 5% (live)
 # Day 2: 25%
 # Day 3: 50%
 # Day 4: 100%
 
-# 각 단계마다 24시간 모니터링 → 회귀 없으면 다음 단계
+# 24-hour monitoring at each stage → proceed to next if no regression
 ```
 
 ---
 
-## Reward 설계
+## Reward Design
 
-### LLM-as-Judge + Ragas + User Feedback 가중치
+### LLM-as-Judge + Ragas + User Feedback Weights
 
-**기본 가중치** (실험으로 조정 필요):
+**Default weights (adjust with experiments)**:
 
 ```python
 REWARD_WEIGHTS = {
-    "llm_judge": 0.30,        # LLM-as-Judge 평가
-    "faithfulness": 0.25,     # Ragas faithfulness (환각 방지)
-    "context_recall": 0.20,   # Ragas context recall (검색 품질)
+    "llm_judge": 0.30,        # LLM-as-Judge evaluation
+    "faithfulness": 0.25,     # Ragas faithfulness (prevent hallucination)
+    "context_recall": 0.20,   # Ragas context recall (retrieval quality)
     "user_feedback": 0.20,    # Thumbs up/down
-    "latency_penalty": 0.05,  # P99 초과 시 감점
+    "latency_penalty": 0.05,  # Penalty if P99 exceeds
 }
 
 def compute_reward(trace):
@@ -674,53 +638,53 @@ def compute_reward(trace):
                      0.0 if trace.user_feedback == "negative" else 0.5
     score += REWARD_WEIGHTS["user_feedback"] * feedback_score
 
-    # 5. Latency penalty (P99 > 10초 시 감점)
+    # 5. Latency penalty (deduct if P99 > 10 seconds)
     if trace.latency > 10:
-        penalty = min(0.05, (trace.latency - 10) / 100)  # 최대 5% 감점
+        penalty = min(0.05, (trace.latency - 10) / 100)  # Maximum 5% penalty
         score -= penalty
 
-    return max(0.0, min(1.0, score))  # 0-1 범위로 clamp
+    return max(0.0, min(1.0, score))  # Clamp to 0-1 range
 ```
 
-### 가중치 조정 실험
+### Weight Tuning Experiment
 
-**A/B Test로 최적 가중치 탐색**:
+**Optimal Weight Search with A/B Test**:
 
 ```python
-# 실험군 정의
+# Define experiment groups
 experiments = [
     {"name": "baseline", "weights": {"llm_judge": 0.3, "faithfulness": 0.25, ...}},
     {"name": "user-first", "weights": {"llm_judge": 0.2, "user_feedback": 0.4, ...}},
     {"name": "quality-first", "weights": {"faithfulness": 0.4, "context_recall": 0.3, ...}},
 ]
 
-# 각 실험군에 대해 별도 학습 파이프라인 실행
+# Run separate training pipeline for each experiment group
 for exp in experiments:
     model = train_with_rewards(base_model, preference_pairs, reward_weights=exp["weights"])
 
-    # Golden dataset 평가
+    # Golden dataset evaluation
     results = evaluate(model, golden_dataset)
 
-    # 프로덕션 테스트 (Canary 5%)
+    # Production test (Canary 5%)
     production_metrics = deploy_canary(model, traffic_pct=0.05, duration_hours=24)
 
-    # 비즈니스 메트릭 추적
+    # Track business metrics
     print(f"{exp['name']}: Accuracy={results.accuracy}, User Satisfaction={production_metrics.satisfaction}")
 ```
 
-**반복 최적화**:
-1. 초기 가중치로 모델 학습
-2. 프로덕션 배포 후 비즈니스 메트릭 수집 (user satisfaction, task completion rate)
-3. 가중치 조정 후 재학습
-4. 2-3회 iteration 후 최적 조합 확정
+**Iterative Optimization**:
+1. Train model with initial weights
+2. Collect business metrics after production deployment (user satisfaction, task completion rate)
+3. Retrain after weight adjustment
+4. Finalize optimal combination after 2-3 iterations
 
 ---
 
-## 데이터 큐레이션 & PII 게이트
+## Data Curation & PII Gate
 
-### Langfuse Trace → S3 Iceberg 테이블
+### Langfuse Trace → S3 Iceberg Table
 
-**데이터 플로우**:
+**Data Flow**:
 
 ```mermaid
 graph LR
@@ -744,7 +708,7 @@ from presidio_analyzer import AnalyzerEngine
 from pyiceberg.catalog import load_catalog
 
 def lambda_handler(event, context):
-    # 1. Langfuse DB에서 지난 1시간 trace 조회
+    # 1. Query traces from last hour in Langfuse DB
     conn = psycopg2.connect(os.environ["LANGFUSE_DB_URL"])
     cursor = conn.execute("""
         SELECT id, input, output, metadata, score
@@ -754,7 +718,7 @@ def lambda_handler(event, context):
     """)
     traces = cursor.fetchall()
 
-    # 2. PII 스캐닝
+    # 2. PII scanning
     analyzer = AnalyzerEngine()
     clean_traces = []
 
@@ -763,15 +727,15 @@ def lambda_handler(event, context):
         output_results = analyzer.analyze(text=trace["output"], language="ko")
 
         if input_results or output_results:
-            # PII 발견 → 익명화 or 폐기
+            # PII found → anonymize or discard
             if should_anonymize(trace):
                 trace = anonymize_trace(trace, input_results, output_results)
             else:
-                continue  # 폐기
+                continue  # Discard
 
         clean_traces.append(trace)
 
-    # 3. Iceberg 테이블에 저장
+    # 3. Save to Iceberg table
     catalog = load_catalog("glue", **{"s3.endpoint": "https://s3.amazonaws.com"})
     table = catalog.load_table("training_data.agent_traces")
     table.append(clean_traces)
@@ -779,17 +743,17 @@ def lambda_handler(event, context):
     return {"status": "success", "traces_processed": len(clean_traces)}
 ```
 
-### Presidio PII 스캐너
+### Presidio PII Scanner
 
-**지원 엔티티** (한국어):
-- 이름, 이메일, 전화번호, 주민등록번호, 신용카드 번호, 주소, IP 주소
+**Supported Entities (Korean)**:
+- Name, email, phone number, SSN, credit card number, address, IP address
 
-**커스텀 인식기 추가**:
+**Add Custom Recognizers**:
 
 ```python
 from presidio_analyzer import Pattern, PatternRecognizer
 
-# 한국 계좌번호 패턴
+# Korean account number pattern
 account_number_recognizer = PatternRecognizer(
     supported_entity="KR_ACCOUNT_NUMBER",
     patterns=[Pattern("account", r"\d{3}-\d{2}-\d{6}", 0.8)],
@@ -800,55 +764,55 @@ analyzer.registry.add_recognizer(account_number_recognizer)
 
 ### k-Anonymity
 
-**개념**: 동일한 패턴의 query가 최소 k명 이상 존재해야 개인 식별 위험이 낮다고 판단.
+**Concept**: Same pattern query must exist for at least k people to be considered low risk for individual identification.
 
-**구현**:
+**Implementation**:
 
 ```python
 from collections import defaultdict
 
 def apply_k_anonymity(traces, k=5):
-    """k-anonymity 기준 미달 trace 제거"""
+    """Remove traces failing k-anonymity criteria"""
 
-    # 1. Query 패턴 추출 (named entity 제거)
+    # 1. Extract query pattern (remove named entities)
     pattern_groups = defaultdict(list)
     for trace in traces:
-        pattern = extract_pattern(trace.question)  # "홍길동" → "[NAME]", "2026-04-18" → "[DATE]"
+        pattern = extract_pattern(trace.question)  # "John Doe" → "[NAME]", "2026-04-18" → "[DATE]"
         pattern_groups[pattern].append(trace)
 
-    # 2. k개 미만 그룹 제거
+    # 2. Remove groups with less than k
     filtered = []
     for pattern, group in pattern_groups.items():
         if len(group) >= k:
             filtered.extend(group)
         else:
-            print(f"⚠️ 패턴 '{pattern}' 제거 (k={len(group)} < {k})")
+            print(f"⚠️ Pattern '{pattern}' removed (k={len(group)} < {k})")
 
     return filtered
 
 def extract_pattern(text: str) -> str:
-    """Named entity를 placeholder로 치환"""
-    # NER 모델로 엔티티 추출 후 치환
+    """Replace named entities with placeholders"""
+    # Extract entities with NER model and replace
     entities = ner_model.predict(text)
     for entity in entities:
         text = text.replace(entity.text, f"[{entity.label}]")
     return text
 ```
 
-### 약관 & 지역 저장 요건
+### Terms & Regional Storage Requirements
 
-**한국 PIPA (개인정보보호법)**:
-- 사용자 동의 없이 프로필 기반 자동 결정 금지 → **opt-in consent 필수**
-- 국외 이전 시 별도 동의 필요 → **국내 리전(ap-northeast-2) 저장**
+**Korean PIPA (Personal Information Protection Act, 개인정보보호법)**:
+- Prohibits automated profile-based decisions without user consent → **opt-in consent required**
+- Separate consent required for overseas transfer → **storage in domestic region (ap-northeast-2)**
 
 **GDPR**:
-- Right to be forgotten → **사용자 요청 시 7일 내 삭제**
-- Data minimization → **학습 완료 후 90일 이내 원본 trace 삭제**
+- Right to be forgotten → **Delete within 7 days upon user request**
+- Data minimization → **Delete original traces within 90 days after training**
 
-**Consent 추적**:
+**Consent Tracking**:
 
 ```python
-# User consent 테이블
+# User consent table
 consent_table = {
     "user_id": "u123",
     "consent_to_training": True,
@@ -856,63 +820,63 @@ consent_table = {
     "withdraw_date": None,
 }
 
-# Trace 수집 시 consent 확인
+# Verify consent when collecting trace
 if not user_consents[trace.user_id].consent_to_training:
-    continue  # 학습 데이터로 사용 불가
+    continue  # Cannot use as training data
 ```
 
 ---
 
-## Preference Tuning 선택 가이드
+## Preference Tuning Selection Guide
 
 ### GRPO (Group Relative Policy Optimization)
 
-**원리**: 동일 프롬프트에 대한 여러 응답(rollout)의 상대적 reward를 기준으로 policy 업데이트. PPO의 변형이지만 Critic(Value) model을 제거하여 메모리를 절약합니다. Reference model은 KL divergence penalty 계산에 여전히 사용됩니다(DeepSeekMath 원 논문 β=0.04).
+**Principle**: Update policy based on relative rewards of multiple responses (rollouts) to same prompt. Variant of PPO but no reference model required.
 
-**장점**:
-- 적은 데이터로도 효과 (1k pairs부터)
-- 빠른 수렴
-- Critic(Value) model 불필요 → 메모리 절약
+**Advantages**:
+- Effective even with small data (starting from 1k pairs)
+- Fast convergence (50 GPU-hours)
+- No reference model required → save memory
 
-**단점**:
-- 수렴 불안정 (learning rate 조정 민감)
-- 복잡한 reward 함수 대응 어려움
+**Disadvantages**:
+- Unstable convergence (sensitive to learning rate adjustment)
+- Difficult to handle complex reward functions
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
-# NeMo-RL GRPO
-from nemo_rl.algorithms.grpo import setup, grpo_train
+# NeMo-Aligner GRPO
+from nemo_aligner.algorithms.grpo import GRPOTrainer
 
-grpo_config = setup(
+trainer = GRPOTrainer(
     model=base_model,
-    num_rollouts=4,           # 질문당 4개 응답 생성
+    num_rollouts=4,           # Generate 4 responses per question
     kl_coef=0.05,             # KL penalty
     learning_rate=1e-6,
     batch_size=16,
 )
 
-grpo_train(config=grpo_config, train_dataset=train_dataset)
+trainer.fit(train_dataset)
 ```
 
-**적합 시나리오**: 초기 self-improvement, 빠른 iteration 필요 시
+**Suitable Scenario**: Initial self-improvement when fast iteration required
 
 ---
 
 ### DPO (Direct Preference Optimization)
 
-**원리**: Preferred/rejected pair를 직접 사용하여 implicit reward 학습. Reward model 없이 policy 직접 최적화.
+**Principle**: Learn implicit reward using preferred/rejected pairs directly. Directly optimize policy without reward model.
 
-**장점**:
-- 안정적 수렴
-- Reference model과의 KL divergence 자동 제어
-- 구현 단순 (TRL 라이브러리)
+**Advantages**:
+- Stable convergence
+- Automatic KL divergence control with reference model
+- Simple implementation (TRL library)
 
-**단점**:
-- 충분한 데이터 필요 (5k+ pairs)
-- 학습 시간 김 (200 GPU-hours)
+**Disadvantages**:
+- Requires sufficient data (5k+ pairs)
+- Long training time (200 GPU-hours)
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
 from trl import DPOTrainer, DPOConfig
@@ -927,37 +891,37 @@ config = DPOConfig(
 trainer = DPOTrainer(
     model=base_model,
     args=config,
-    train_dataset=preference_dataset,  # {"prompt", "chosen", "rejected"} 형식
-    processing_class=tokenizer,
+    train_dataset=preference_dataset,  # {"prompt", "chosen", "rejected"} format
+    tokenizer=tokenizer,
 )
 
 trainer.train()
 ```
 
-**적합 시나리오**: 충분한 데이터 확보 후 안정적 학습
+**Suitable Scenario**: Stable learning after sufficient data
 
 ---
 
 ### RLAIF (Reinforcement Learning from AI Feedback)
 
-**원리**: AI가 생성한 피드백으로 reward model 학습 → PPO로 policy 최적화. RLHF의 "Human" → "AI" 변형.
+**Principle**: Learn reward model from AI-generated feedback and optimize policy with PPO. RLHF variant replacing "Human" with "AI".
 
-**장점**:
-- 복잡한 reward 함수 표현 가능
-- 대규모 학습에 유리
+**Advantages**:
+- Can express complex reward functions
+- Advantageous for large-scale training
 
-**단점**:
-- Reward model 학습 오버헤드 (추가 GPU-hours)
-- 수렴 불안정 (hyperparameter 민감)
-- 구현 복잡도 높음
+**Disadvantages**:
+- Reward model training overhead (additional GPU-hours)
+- Unstable convergence (sensitive to hyperparameters)
+- High implementation complexity
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
-# 1. Reward model 학습
+# 1. Train reward model
 from transformers import AutoModelForSequenceClassification
 
-reward_model = AutoModelForSequenceClassification.from_pretrained("Qwen/Qwen3-8B", num_labels=1)
+reward_model = AutoModelForSequenceClassification.from_pretrained("Qwen/Qwen3-7B", num_labels=1)
 
 reward_trainer = Trainer(
     model=reward_model,
@@ -965,7 +929,7 @@ reward_trainer = Trainer(
 )
 reward_trainer.train()
 
-# 2. PPO로 policy 최적화
+# 2. Optimize policy with PPO
 from trl import PPOTrainer
 
 ppo_trainer = PPOTrainer(
@@ -978,36 +942,36 @@ ppo_trainer = PPOTrainer(
 ppo_trainer.train()
 ```
 
-**적합 시나리오**: 복잡한 reward 모델링 필요 시 (예: 다단계 추론, 창의성 평가)
+**Suitable Scenario**: When complex reward modeling needed (e.g., multi-step reasoning, creativity evaluation)
 
 ---
 
 ### RFT (Rejection Sampling Fine-Tuning)
 
-**원리**: 다수 rollout 중 high-reward 응답만 선별 → supervised fine-tuning. RL 없이 SFT로 강화.
+**Principle**: Select only high-reward responses from multiple rollouts for supervised fine-tuning. Reinforce with SFT without RL.
 
-**장점**:
-- 가장 안정적 수렴
-- 구현 단순 (SFT와 동일)
-- High-quality dataset 확보 시 최고 효율
+**Advantages**:
+- Most stable convergence
+- Simple implementation (same as SFT)
+- Best efficiency when high-quality dataset available
 
-**단점**:
-- Golden dataset 필요 (10k+ high-quality traces)
-- Exploration 부족 (선별된 응답만 학습)
+**Disadvantages**:
+- Requires golden dataset (10k+ high-quality traces)
+- Lack of exploration (only selected responses learned)
 
-**사용 예시**:
+**Usage Example**:
 
 ```python
-# 1. High-reward trace 선별
+# 1. Select high-reward traces
 high_quality_traces = [t for t in traces if t.reward_score > 0.9]
 
-# 2. SFT 데이터셋 구성
+# 2. Construct SFT dataset
 sft_dataset = [
     {"prompt": t.question, "completion": t.answer}
     for t in high_quality_traces
 ]
 
-# 3. SFT 학습
+# 3. SFT training
 from transformers import Trainer
 
 trainer = Trainer(
@@ -1019,50 +983,50 @@ trainer = Trainer(
 trainer.train()
 ```
 
-**적합 시나리오**: 도메인 전문가가 검증한 golden dataset 확보 시
+**Suitable Scenario**: When golden dataset validated by domain experts available
 
 ---
 
-### 실전 비교 (Qwen3-8B, 5k pairs 기준)
+### Practical Comparison (Qwen3-7B, 5k pairs baseline)
 
-| 메트릭 | GRPO | DPO | RLAIF | RFT |
+| Metric | GRPO | DPO | RLAIF | RFT |
 |--------|------|-----|-------|-----|
 | **GPU-hours** | 50 | 200 | 500 | 300 |
-| **최소 데이터** | 1k | 5k | 10k | 10k |
-| **수렴 안정성** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **구현 복잡도** | 중 | 낮 | 높 | 낮 |
-| **Reward 유연성** | 낮 | 중 | 높 | 낮 |
-| **클라우드 비용** | $500 | $2,000 | $5,000 | $3,000 |
+| **Minimum Data** | 1k | 5k | 10k | 10k |
+| **Convergence Stability** | ⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Implementation Complexity** | Medium | Low | High | Low |
+| **Reward Flexibility** | Low | Medium | High | Low |
+| **Cloud Cost** | $500 | $2,000 | $5,000 | $3,000 |
 
-**권장 로드맵**:
-1. **Phase 1 (1-2개월)**: GRPO로 빠른 proof-of-concept
-2. **Phase 2 (3-6개월)**: 데이터 축적 후 DPO 전환
-3. **Phase 3 (6개월+)**: 복잡한 reward 필요 시 RLAIF 도입, 또는 golden dataset 확보 시 RFT 병행
+**Recommended Roadmap**:
+1. **Phase 1 (1-2 months)**: Fast proof-of-concept with GRPO
+2. **Phase 2 (3-6 months)**: Switch to DPO after data accumulation
+3. **Phase 3 (6+ months)**: Introduce RLAIF when complex reward needed, or parallel RFT when golden dataset available
 
 ---
 
-## Safety — Reward Hacking 탐지 및 방어
+## Safety — Reward Hacking Detection and Defense
 
-### Reward Hacking이란?
+### What is Reward Hacking?
 
-모델이 "진짜 좋은 응답"이 아니라 "reward를 높게 받는 응답"만 학습하는 현상.
+Reward hacking occurs when a model learns to increase its evaluation score without improving the quality that score is meant to measure. For example, if longer answers receive higher completeness scores, the model may become more verbose without becoming more useful.
 
-**예시**:
-- **과도한 장황함**: 길게 쓰면 completeness 점수 ↑ → 불필요하게 긴 답변 생성
-- **템플릿 반복**: "다음 단계를 따르세요: 1) ... 2) ..." 패턴이 높은 점수 → 모든 답변이 동일 형식
-- **확신 과잉**: "절대 확실합니다" 같은 단정적 표현이 LLM-as-Judge 점수 ↑ → 환각도 자신있게 답변
+**Examples**:
+- **Excessive verbosity**: Write long to increase completeness score → unnecessarily long answers
+- **Template repetition**: "Follow these steps: 1) ... 2) ..." pattern scores high → all answers follow same format
+- **Overconfidence**: "Absolutely certain" assertive expressions get high LLM-as-Judge scores → confident hallucinations
 
-### Diverse Rollout 샘플링
+### Diverse Rollout Sampling
 
-**전략**: 동일 질문에 대해 다양한 응답 생성 → diversity 확보.
+**Strategy**: Generate diverse responses to same question to ensure diversity.
 
 ```python
 def diverse_rollout(prompt: str, n=4):
-    """다양성 확보를 위한 샘플링"""
+    """Sampling for diversity"""
     responses = []
 
     for i in range(n):
-        # Temperature, top_p 변화
+        # Temperature, top_p variation
         temp = 0.7 + i * 0.1  # 0.7, 0.8, 0.9, 1.0
         top_p = 0.9 - i * 0.05  # 0.9, 0.85, 0.8, 0.75
 
@@ -1077,7 +1041,7 @@ def diverse_rollout(prompt: str, n=4):
     return responses
 ```
 
-**Diversity 메트릭 모니터링**:
+**Diversity Metric Monitoring**:
 
 ```python
 from sentence_transformers import SentenceTransformer
@@ -1086,23 +1050,23 @@ from sklearn.metrics.pairwise import cosine_similarity
 embedder = SentenceTransformer("sentence-transformers/paraphrase-multilingual-mpnet-base-v2")
 
 def measure_diversity(responses: list[str]) -> float:
-    """응답 간 cosine similarity 평균 (낮을수록 diverse)"""
+    """Average cosine similarity between responses (lower is more diverse)"""
     embeddings = embedder.encode(responses)
     similarities = cosine_similarity(embeddings)
 
-    # 대각선 제외 (자기 자신과의 유사도)
+    # Exclude diagonal (similarity with self)
     avg_sim = (similarities.sum() - len(responses)) / (len(responses) * (len(responses) - 1))
 
-    return 1 - avg_sim  # diversity score (높을수록 diverse)
+    return 1 - avg_sim  # Diversity score (higher is more diverse)
 
-# 알림 설정
+# Alert configuration
 if measure_diversity(batch_responses) < 0.3:
-    alert("⚠️ 응답 diversity 부족 → mode collapse 가능성")
+    alert("⚠️ Insufficient response diversity → possibility of mode collapse")
 ```
 
 ### Entropy Regularization
 
-**목적**: 모델이 특정 패턴에 과도하게 치우치지 않도록 출력 분포의 entropy를 유지.
+**Purpose**: Maintain entropy of output distribution to prevent model from being excessively biased toward specific patterns.
 
 ```python
 import torch
@@ -1111,39 +1075,39 @@ import torch.nn.functional as F
 def entropy_regularized_loss(logits, labels, entropy_coef=0.01):
     """Cross-entropy loss + entropy regularization"""
 
-    # 1. 기본 loss
+    # 1. Base loss
     ce_loss = F.cross_entropy(logits, labels)
 
-    # 2. Output distribution의 entropy 계산
+    # 2. Calculate entropy of output distribution
     probs = F.softmax(logits, dim=-1)
     entropy = -torch.sum(probs * torch.log(probs + 1e-10), dim=-1).mean()
 
-    # 3. Entropy를 loss에서 빼서 high-entropy 선호
+    # 3. Subtract entropy from loss to prefer high-entropy
     total_loss = ce_loss - entropy_coef * entropy
 
     return total_loss
 ```
 
-**Entropy 모니터링**:
+**Entropy Monitoring**:
 
 ```python
-# 학습 중 batch별 entropy 추적
+# Track batch entropy during training
 wandb.log({"output_entropy": entropy.item()})
 
-# Entropy가 급감하면 mode collapse 경고
-if entropy < 2.0:  # threshold는 vocab size에 따라 조정
-    alert("⚠️ Low entropy detected → mode collapse 가능성")
+# Alert mode collapse if entropy drops sharply
+if entropy < 2.0:  # Adjust threshold based on vocab size
+    alert("⚠️ Low entropy detected → possible mode collapse")
 ```
 
-### Policy Drift 모니터링 (KL Divergence)
+### Policy Drift Monitoring (KL Divergence)
 
-**목적**: 재학습 후 모델이 base model과 너무 멀어지지 않도록 KL divergence 추적.
+**Purpose**: Track KL divergence to prevent model from drifting too far from base model after retraining.
 
 ```python
 import torch.nn.functional as F
 
 def compute_kl_divergence(base_model, new_model, test_prompts):
-    """Base model과 new model의 KL divergence 계산"""
+    """Calculate KL divergence between base model and new model"""
 
     kl_divs = []
     for prompt in test_prompts:
@@ -1162,27 +1126,27 @@ def compute_kl_divergence(base_model, new_model, test_prompts):
 
     return sum(kl_divs) / len(kl_divs)
 
-# 배포 전 체크
-kl_threshold = 0.5  # 경험적으로 조정
+# Pre-deployment check
+kl_threshold = 0.5  # Empirically adjust
 avg_kl = compute_kl_divergence(base_model, candidate_model, golden_prompts)
 
 if avg_kl > kl_threshold:
-    alert(f"⚠️ KL divergence {avg_kl:.3f} > {kl_threshold} → policy drift 과도")
+    alert(f"⚠️ KL divergence {avg_kl:.3f} > {kl_threshold} → excessive policy drift")
     decision = "ROLLBACK"
 ```
 
-### 휴먼-인-루프 검증
+### Human-in-the-Loop Verification
 
-**전략**: 전체 학습 데이터의 1-2%를 주간 인간 검토로 품질 확인.
+**Strategy**: Verify quality with weekly human review of 1-2% of total training data.
 
 ```python
 def sample_for_human_review(traces, sample_rate=0.02):
-    """랜덤 샘플링 + edge case 우선 선택"""
+    """Random sampling + prioritize edge cases"""
 
-    # 1. 랜덤 샘플
+    # 1. Random sample
     random_sample = random.sample(traces, int(len(traces) * sample_rate * 0.5))
 
-    # 2. Edge case 우선 샘플 (높은 reward + 낮은 user feedback)
+    # 2. Edge case priority sample (high reward + low user feedback)
     edge_cases = sorted(
         traces,
         key=lambda t: abs(t.reward_score - t.user_feedback_score),
@@ -1194,18 +1158,18 @@ def sample_for_human_review(traces, sample_rate=0.02):
 # Weekly review
 review_batch = sample_for_human_review(last_week_traces)
 
-# Labeling UI로 전송
+# Send to labeling UI
 for trace in review_batch:
     send_to_labeling_ui(trace, reviewer="domain_expert")
 ```
 
-**검토 결과 피드백**:
+**Review Result Feedback**:
 
 ```python
-# 인간 검토 결과
+# Human review results
 human_labels = load_human_reviews("s3://reviews/week-2026-04-18.json")
 
-# Reward 함수와 인간 평가 간 상관계수 계산
+# Calculate correlation coefficient between reward function and human evaluation
 from scipy.stats import spearmanr
 
 corr, p_value = spearmanr(
@@ -1214,50 +1178,50 @@ corr, p_value = spearmanr(
 )
 
 if corr < 0.7:
-    alert(f"⚠️ Reward-human 상관계수 {corr:.2f} < 0.7 → reward 함수 재조정 필요")
+    alert(f"⚠️ Reward-human correlation {corr:.2f} < 0.7 → need reward function readjustment")
 ```
 
 ---
 
-## 조직 의사결정 체크리스트
+## Organizational Decision Checklist
 
-### 비용 손익 분석
+### Cost-Benefit Analysis
 
-**투자 비용 (월간 기준)**:
+**Investment Cost (Monthly)**:
 
-| 항목 | 비용 (USD) | 비고 |
+| Item | Cost (USD) | Note |
 |------|-----------|------|
-| **GPU 학습** | $2,500 | 주간 DPO 학습, 8×H100 × 25h |
-| **Trace 저장** | $300 | S3 + Iceberg (1TB) |
-| **LLM-as-Judge 추론** | $500 | Qwen3-8B, 시간당 10k 평가 |
-| **Ragas 평가** | $200 | 캐싱 활용 |
-| **인프라 운영** | $500 | Lambda, Glue, Athena |
-| **총계** | **$4,000** | 월간 운영 비용 |
+| **GPU Training** | $2,500 | Weekly DPO training, 8×H100 × 25h |
+| **Trace Storage** | $300 | S3 + Iceberg (1TB) |
+| **LLM-as-Judge Inference** | $500 | Qwen3-7B, 10k evaluations per hour |
+| **Ragas Evaluation** | $200 | With caching |
+| **Infrastructure Operations** | $500 | Lambda, Glue, Athena |
+| **Total** | **$4,000** | Monthly operational cost |
 
-**예상 효과 (3개월 기준)**:
+**Expected Effect (3 months baseline)**:
 
-| 메트릭 | Before | After | 개선율 |
+| Metric | Before | After | Improvement |
 |--------|--------|-------|--------|
 | **Exact Match** | 0.78 | 0.85 | +9%p |
 | **User Satisfaction** | 3.5/5 | 4.2/5 | +20% |
 | **Task Completion** | 72% | 83% | +11%p |
 | **Escalation Rate** | 15% | 9% | -40% |
 
-**ROI 계산**:
-- 월 비용: $4,000
-- 인간 에이전트 1명 절감 (연봉 $60k) → 월 $5,000 절감
-- **Payback Period**: 0.8개월
+**ROI Calculation**:
+- Monthly cost: $4,000
+- Save 1 human agent (annual salary $60k) → monthly $5,000 savings
+- **Payback Period**: 0.8 months
 
-### 거버넌스
+### Governance
 
-**모델 카드 업데이트**:
+**Model Card Update**:
 
 ```yaml
 # model-card.yaml
-model_name: "qwen3-8b-agent-v2"
+model_name: "qwen3-7b-agent-v2"
 version: "2.0"
 training_date: "2026-04-18"
-base_model: "Qwen/Qwen3-8B"
+base_model: "Qwen/Qwen3-7B-Instruct"
 
 training_data:
   source: "Production traces (2026-01 ~ 2026-03)"
@@ -1289,10 +1253,10 @@ approval:
   deployment_stage: "Canary 5%"
 ```
 
-**감사 로그**:
+**Audit Log**:
 
 ```sql
--- 모든 학습 이벤트 기록
+-- Record all training events
 CREATE TABLE training_audit_log (
     id UUID PRIMARY KEY,
     event_type VARCHAR(50),  -- 'training_started', 'model_deployed', 'rollback'
@@ -1302,93 +1266,92 @@ CREATE TABLE training_audit_log (
     metadata JSONB
 );
 
--- 예시 쿼리: "2026년 4월에 누가 모델을 배포했는가?"
+-- Example query: "Who deployed models in April 2026?"
 SELECT * FROM training_audit_log
 WHERE event_type = 'model_deployed'
   AND timestamp BETWEEN '2026-04-01' AND '2026-04-30';
 ```
 
-### 팀 역량 체크
+### Team Capability Check
 
-**필요 역량**:
+**Required Capabilities**:
 
-| 역량 | 필수도 | 현재 수준 | 격차 해소 방안 |
+| Capability | Necessity | Current Level | Gap Closure Plan |
 |------|--------|----------|--------------|
-| **RL 전문성** | ⭐⭐⭐ | - | 외부 컨설팅 or 채용 |
-| **MLOps 성숙도** | ⭐⭐⭐⭐ | - | CI/CD 파이프라인 구축 |
-| **LLM 평가 경험** | ⭐⭐⭐ | - | Ragas/Langfuse 교육 |
-| **프로덕션 운영** | ⭐⭐⭐⭐⭐ | - | SRE 팀 협업 |
-| **데이터 거버넌스** | ⭐⭐⭐⭐ | - | Legal/Compliance 팀 연계 |
+| **RL Expertise** | ⭐⭐⭐ | - | External consulting or hiring |
+| **MLOps Maturity** | ⭐⭐⭐⭐ | - | Build CI/CD pipeline |
+| **LLM Evaluation Experience** | ⭐⭐⭐ | - | Ragas/Langfuse training |
+| **Production Operations** | ⭐⭐⭐⭐⭐ | - | SRE team collaboration |
+| **Data Governance** | ⭐⭐⭐⭐ | - | Link with Legal/Compliance team |
 
-**최소 팀 구성**:
-- ML Engineer (RL 경험) × 1
+**Minimum Team Composition**:
+- ML Engineer (RL experience) × 1
 - MLOps Engineer × 1
 - Data Engineer × 1
 - SRE × 0.5 (part-time)
 - Domain Expert (labeling) × 1
 
-### Go/No-Go 기준
+### Go/No-Go Criteria
 
-**Go (진행) 조건**:
-- ✅ 월 $4k 예산 확보
-- ✅ 최소 3개월 production trace 축적 (>2k traces)
-- ✅ Golden dataset 준비 (>100 samples)
-- ✅ MLOps 파이프라인 구축 (CI/CD, monitoring)
-- ✅ Legal/Compliance 승인 (PII 처리, consent)
-- ✅ RL/MLOps 전문성 확보 (내부 or 외부)
+**Go (Proceed) Conditions**:
+- ✅ $4k monthly budget secured
+- ✅ Minimum 3 months production trace accumulation (&gt;2k traces)
+- ✅ Golden dataset prepared (&gt;100 samples)
+- ✅ MLOps pipeline established (CI/CD, monitoring)
+- ✅ Legal/Compliance approval (PII handling, consent)
+- ✅ Secure RL/MLOps expertise (internal or external)
 
-**No-Go (중단) 조건**:
-- ❌ 데이터 부족 (&lt;1k traces)
-- ❌ 팀 역량 부족 (RL 전문성 없음)
-- ❌ Compliance 미해결 (PII 처리 방안 없음)
-- ❌ ROI 부정적 (비용 > 예상 효과)
+**No-Go (Stop) Conditions**:
+- ❌ Insufficient data (&lt;1k traces)
+- ❌ Insufficient team capability (no RL expertise)
+- ❌ Unresolved compliance (no PII handling plan)
+- ❌ Negative ROI (cost &gt; expected effect)
 
-**Phase별 의사결정**:
+**Phase-by-Phase Decision**:
 
-1. **Phase 0 (Pilot, 1개월)**: GRPO로 소규모 실험, 500 traces, $500 예산
-   - **Go 기준**: Exact Match +3%p 이상 개선
-2. **Phase 1 (PoC, 3개월)**: DPO로 확장, 5k traces, $12k 예산
-   - **Go 기준**: User Satisfaction +10% 이상, 회귀 없음
-3. **Phase 2 (Production, 6개월+)**: 정기 학습 루프 확립
-   - **Go 기준**: ROI > 1.5, 품질 게이트 통과율 >95%
+1. **Phase 0 (Pilot, 1 month)**: Small-scale experiment with GRPO, 500 traces, $500 budget
+   - **Go Criteria**: Exact Match +3%p improvement or more
+2. **Phase 1 (PoC, 3 months)**: Expand with DPO, 5k traces, $12k budget
+   - **Go Criteria**: User Satisfaction +10% or more, no regression
+3. **Phase 2 (Production, 6+ months)**: Establish regular learning loop
+   - **Go Criteria**: ROI &gt; 1.5, quality gate pass rate &gt;95%
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
-- [TRL (Transformer Reinforcement Learning)](https://github.com/huggingface/trl) — HuggingFace RL 라이브러리
-- [NeMo-Aligner](https://github.com/NVIDIA/NeMo-Aligner) — NVIDIA 강화학습 도구
-- [Presidio PII Scanner](https://microsoft.github.io/presidio/) — Microsoft PII 탐지
-- [Ragas Documentation](https://docs.ragas.io/) — RAG 평가 프레임워크
+- [TRL (Transformer Reinforcement Learning)](https://github.com/huggingface/trl) — HuggingFace RL library
+- [NeMo-Aligner](https://github.com/NVIDIA/NeMo-Aligner) — NVIDIA reinforcement learning toolkit
+- [Presidio PII Scanner](https://microsoft.github.io/presidio/) — Microsoft PII detection
+- [Ragas Documentation](https://docs.ragas.io/) — RAG evaluation framework
 
-### 논문 / 기술 블로그
+### Papers / Technical Blogs
 
-- [DPO: Direct Preference Optimization (NeurIPS 2023)](https://arxiv.org/abs/2305.18290) — DPO 논문
-- [DeepSeekMath: GRPO (2024)](https://arxiv.org/abs/2402.03300) — GRPO 원 논문
-- [DeepSeek-R1: Incentivizing Reasoning Capability in LLMs (2025)](https://arxiv.org/abs/2501.12948) — DeepSeek-R1 강화학습 기반 추론 능력 향상
-- [Constitutional AI: RLAIF (Anthropic 2022)](https://arxiv.org/abs/2212.08073) — RLAIF 논문
-- [Andrej Karpathy — autoresearch (2026년 3월)](https://github.com/karpathy/autoresearch) — 자율 ML 연구 루프 프로젝트
+- [DPO: Direct Preference Optimization (NeurIPS 2023)](https://arxiv.org/abs/2305.18290) — DPO paper
+- [DeepSeekMath: GRPO (2024)](https://arxiv.org/abs/2402.03300) — GRPO paper
+- [Constitutional AI: RLAIF (Anthropic 2022)](https://arxiv.org/abs/2212.08073) — RLAIF paper
+- [Andrej Karpathy on Autoresearch](https://karpathy.github.io/) — Autoresearch concept
 
-### 관련 문서 (내부)
+### Related Documents (Internal)
 
-- [Agent 버전 관리](../../../aidlc/enterprise/agent-versioning/index.md) — 모델 버전 관리
-- [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) — Langfuse 트레이싱
-- [Ragas 평가](../../operations-mlops/governance/ragas-evaluation.md) — RAG 품질 평가
-- [Cascade Routing 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md) — 라우팅 최적화
+- [Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md) — Model version management
+- [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) — Langfuse tracing
+- [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation.md) — RAG quality evaluation
+- [Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md) — Routing optimization
 
-:::danger Reward Hacking 디스클레이머
-Self-improving loop는 **"완전 자동화"가 불가능**합니다. Reward hacking, mode collapse, policy drift는 언제든 발생할 수 있으며, 휴먼-인-루프 검증과 통계적 모니터링이 **필수**입니다. 맹목적 자동화는 모델 품질 퇴화로 이어질 수 있습니다.
+:::danger Reward Hacking Disclaimer
+Self-improving loop **cannot be fully automated**. Reward hacking, mode collapse, and policy drift can occur anytime. Human-in-the-loop verification and statistical monitoring are **essential**. Blind automation can lead to model quality degradation.
 :::
 
 ---
 
-## 다음 단계
+## Next Steps
 
-Self-improving loop 도입을 검토 중이라면:
+If considering Self-improving loop adoption:
 
-1. **[Cascade Routing 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)** — 저비용 모델 우선 시도로 학습 데이터 다양성 확보
-2. **[Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)** — 정기 학습 자동화 파이프라인 설계
-3. **[Agent 변경 관리](../../../aidlc/enterprise/agent-versioning/index.md)** — 모델 버전 관리 및 점진 배포 전략
-4. **[Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md)** — Langfuse 기반 trace 수집 및 비용 추적
+1. **[Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md)** — Ensure training data diversity by prioritizing low-cost models first
+2. **[Continuous Training Pipeline](../../reference-architecture/model-lifecycle/continuous-training/index.md)** — Design automated regular training pipeline
+3. **[Agent Versioning](../../../aidlc/enterprise/agent-versioning/index.md)** — Model version management and progressive deployment strategy
+4. **[Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md)** — Langfuse-based trace collection and cost tracking

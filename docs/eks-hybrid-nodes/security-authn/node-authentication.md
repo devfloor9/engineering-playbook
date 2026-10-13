@@ -1,11 +1,11 @@
 ---
-title: 노드 인증 방식 — SSM vs IAM Roles Anywhere
-description: "EKS Hybrid Nodes의 IAM 자격 증명 공급자 선택 가이드 — SSM hybrid activation과 IAM Roles Anywhere 비교, Vault PKI 연동 패턴, Hybrid Nodes IAM role 최소 권한, 자격 증명 수명주기 관리를 다룹니다."
+title: Node Authentication Methods — SSM vs IAM Roles Anywhere
+description: "IAM credential provider selection guide for EKS Hybrid Nodes — SSM hybrid activation vs IAM Roles Anywhere comparison, the Vault PKI integration pattern, Hybrid Nodes IAM role minimum permissions, and credential lifecycle management."
 created: "2026-08-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 26
 tags:
   - eks
   - hybrid-node
@@ -17,47 +17,48 @@ keywords:
   - IAM Roles Anywhere
   - nodeadm
   - X.509
-sidebar_label: 노드 인증 방식
+sidebar_label: Node Authentication Methods
 category: hybrid-multicloud
 ---
 
-## 개요
+## Overview
 
-하이브리드 노드는 EC2 인스턴스 프로파일이 없으므로 온프레미스용 IAM 자격 증명 공급자가 필요합니다. 선택지는 SSM hybrid activation과 IAM Roles Anywhere 두 가지이며, `nodeadm install`의 `--credential-provider` 옵션으로 지정합니다. 본 문서는 두 방식의 동작 차이, 조직 유형별 선택 기준, 그리고 자격 증명 수명주기 관리 관점의 권장 사항을 다룹니다.
+Hybrid nodes have no EC2 instance profile, so an IAM credential provider for on-premises is required. The two options are SSM hybrid activation and IAM Roles Anywhere, specified with the `--credential-provider` option of `nodeadm install`. This document covers the operational differences between the two methods, selection criteria by organization type, and recommendations from a credential lifecycle management perspective.
 
-## 동작 방식 비교
+## How They Work: Comparison
 
-| 항목 | SSM hybrid activation | IAM Roles Anywhere |
+| Item | SSM hybrid activation | IAM Roles Anywhere |
 |------|----------------------|--------------------|
-| 인증 기반 | activation code/ID로 등록된 SSM 관리형 인스턴스 | X.509 인증서 (사설 CA 신뢰 앵커) |
-| 사전 인프라 | 불필요 | PKI(사설 CA)·인증서 배포 체계 필요 |
-| 자격 증명 갱신 | SSM agent가 자동 갱신 (5분 주기 heartbeat) | 인증서 기반 세션 갱신 — 인증서 수명주기 관리 필요 |
-| nodeadm 옵션 | `--credential-provider ssm` | `--credential-provider iam-ra` |
-| 방화벽 대상(자격 증명 갱신) | `ssm.<region>.amazonaws.com`, 설치 아티팩트용 `amazon-ssm-<region>.s3.<region>.amazonaws.com` | `rolesanywhere.<region>.amazonaws.com`(세션 발급), `rolesanywhere.amazonaws.com`(바이너리 엔드포인트) |
-| 부가 효과 | 노드가 SSM 관리형 인스턴스로 등록됨 — Session Manager 접속·패치 관리를 연계할 수 있으나, 이를 위해서는 자격 증명 갱신용 `ssm.<region>` 외에 `ssmmessages.<region>.amazonaws.com`(및 2024년 이전 출시 리전에서는 `ec2messages.<region>.amazonaws.com`) 방화벽 허용이 추가로 필요합니다 | 기존 PKI 거버넌스와 통합 — 다만 인증서 폐기(CRL)는 새 세션 발급을 막을 뿐, 이미 발급된 임시 자격 증명을 즉시 무효화하지는 않습니다(아래 "자격 증명 폐기" 참조) |
-| 운영 부담 | activation 만료·수량 관리 | CA 운영, 인증서 발급·갱신·폐기 자동화 |
+| Authentication basis | SSM managed instance registered with an activation code/ID | X.509 certificates (private CA trust anchor) |
+| Prerequisite infrastructure | None | PKI (private CA) and certificate distribution system required |
+| Credential renewal | Automatically renewed by the SSM agent (5-minute heartbeat) | Certificate-based session renewal — certificate lifecycle management required |
+| nodeadm option | `--credential-provider ssm` | `--credential-provider iam-ra` |
+| Firewall targets (credential refresh) | `ssm.<region>.amazonaws.com`, plus `amazon-ssm-<region>.s3.<region>.amazonaws.com` for install artifacts | `rolesanywhere.<region>.amazonaws.com` (session issuance), `rolesanywhere.amazonaws.com` (binary endpoint) |
+| Side benefits | Node is registered as an SSM managed instance — you can integrate Session Manager access and patch management, but that requires allowing `ssmmessages.<region>.amazonaws.com` (and, in Regions launched before 2024, `ec2messages.<region>.amazonaws.com`) through the firewall in addition to the `ssm.<region>` credential-refresh endpoint | Integrates with existing PKI governance — but certificate revocation (CRL) only blocks issuance of new sessions; it does not immediately invalidate already-issued temporary credentials (see "Credential revocation" below) |
+| Operational burden | Managing activation expiration and quantity | CA operations; automating certificate issuance, renewal, and revocation |
 
-## 선택 기준
+## Selection Criteria
 
-- **PKI를 운영하지 않는 조직**: SSM이 기본 선택입니다. 별도 인프라 없이 activation 발급만으로 시작할 수 있고, 공식 quickstart 경로도 SSM 기준입니다.
-- **사설 CA·인증서 거버넌스를 이미 갖춘 조직**(금융·통신 보안팀 관리 체계): IAM Roles Anywhere가 기존 통제 체계와 자연스럽게 통합됩니다. 인증서 수명주기(발급·갱신·폐기)를 기존 PKI 통제 체계로 관리하려는 보안 조직에 적합합니다. 다만 인증서 폐기(CRL)는 이후 새 세션 발급을 거부할 뿐 이미 발급된 임시 자격 증명을 즉시 무효화하지는 않으므로, 즉시 차단이 필요한 경우의 절차는 "자격 증명 폐기" 절을 참조합니다.
-- **기존 HashiCorp Vault 운영 조직**: Vault가 독립적인 자격 증명 공급자로 지원되는 것은 아니며, Vault의 PKI Secrets Engine을 사설 CA로 사용해 IAM Roles Anywhere의 신뢰 앵커(trust anchor)로 등록하는 통합 패턴이 AWS 공식 블로그로 제공됩니다. 기존 Vault 기반 시크릿·인증서 관리 체계를 유지하면서 하이브리드 노드 인증에 연결할 수 있습니다.
-- 어느 쪽이든 노드별 IAM role은 Hybrid Nodes IAM role 하나로 수렴하며, 방화벽 등록 대상 엔드포인트가 달라진다는 점([Zone C 도메인 목록](../networking/firewall-connectivity.md#zone-c-aws-서비스-엔드포인트-outbound-도메인))을 신청서에 반영해야 합니다.
+- **Organizations that do not operate a PKI**: SSM is the default choice. It can start with just an activation issuance, without additional infrastructure, and the official quickstart path is also based on SSM.
+- **Organizations that already have private CA and certificate governance** (security-team-managed regimes in finance and telecom): IAM Roles Anywhere integrates naturally with the existing control framework. It suits security organizations that want to manage the certificate lifecycle (issuance, renewal, revocation) through an existing PKI control regime. Note that certificate revocation (CRL) only causes subsequent new sessions to be refused — it does not immediately invalidate already-issued temporary credentials; for immediate containment, see the "Credential revocation" section.
+- **Organizations already operating HashiCorp Vault**: Vault is not supported as an independent credential provider; instead, an integration pattern documented in an official AWS blog uses Vault's PKI Secrets Engine as the private CA registered as the IAM Roles Anywhere trust anchor. This connects hybrid node authentication to an existing Vault-based secrets and certificate management regime.
+- Either way, the per-node IAM role converges to a single Hybrid Nodes IAM role, and the firewall registration endpoints differ ([Zone C domain list](../networking/firewall-connectivity.md#zone-c-aws-service-endpoints-outbound-domains)), which must be reflected in the request form.
 
-:::note nodeadm 버전 주의 (SSM)
-SSM을 자격 증명 공급자로 사용하는 경우 `nodeadm` 1.0.19 이상이 필요합니다. 이전 버전은 만료된 SSM 서명 키를 포함해 `nodeadm install`/`upgrade`가 서명 검증 오류로 실패합니다. 업그레이드 시 유의점은 [업그레이드와 수명주기 관리](../operations-cost/upgrade-lifecycle)를 참조합니다.
+:::note nodeadm version caution (SSM)
+When using SSM as the credential provider, `nodeadm` 1.0.19 or later is required. Earlier versions include an expired SSM signing key, causing `nodeadm install`/`upgrade` to fail with a signature verification error. For upgrade-time considerations, see [Upgrades and Lifecycle Management](../operations-cost/upgrade-lifecycle).
 :::
 
-## SSM Hybrid Activation 구조적 특징
+## Structural Characteristics of SSM Hybrid Activation
 
-SSM 방식을 선택하면 다음 두 가지 구조적 특징이 운영 설계에 영향을 줍니다.
+Choosing the SSM method brings the following structural characteristics that affect operational design.
 
-- **노드 이름이 `mi-` 관리형 인스턴스 ID로 고정됩니다.** SSM hybrid activation으로 등록된 노드는 SSM이 발급하는 관리형 인스턴스 ID(`mi-` 접두사, 예: `mi-0f1c2d3e4a5b6c7d8`)가 Kubernetes 노드 이름이 되며, 임의의 노드 이름을 지정할 수 없습니다. 호스트명 기반 노드 식별·자동화 스크립트를 운영하는 조직은 노드 레이블(`--node-labels`)로 식별 체계를 보완해야 합니다. 노드 이름을 직접 지정해야 하는 요건(사내 CMDB 연동 등)이 있다면 IAM Roles Anywhere가 대안입니다 — 인증서 CN이 노드 이름이 됩니다.
-- **activation은 만료 기한을 갖습니다.** 기본 24시간, 최대 30일까지 설정할 수 있으며(activation당 등록 한도 최대 1,000대), 만료된 activation으로는 신규 노드를 등록할 수 없습니다(기존 등록 노드의 자격 증명 갱신은 activation 만료와 무관하게 SSM agent가 계속 수행). 대규모 증설 시 만료 전 등록 완료가 가능하도록 activation 발급을 증설 일정과 묶어 관리하고, 클러스터당 activation 1개를 클러스터 ARN 태그와 함께 운영하는 구성이 권장됩니다.
-- **단선 복구 지연을 감안합니다.** SSM 임시 자격 증명은 1시간 유효·자동 갱신되지만, 네트워크 단선 시 SSM agent의 재시도 백오프가 최대 30분까지 늘어나 재연결 후 노드 복귀에 최대 30분이 걸릴 수 있습니다(강제 갱신은 `amazon-ssm-agent` 재시작). IAM Roles Anywhere는 kubelet이 요청 시점에 자격 증명을 발급받으므로 연결 복구 후 수 초 내 재인증됩니다 — 단선이 잦은 환경에서는 이 차이가 선택 기준이 됩니다.
+- **The node name is fixed to the `mi-` managed instance ID.** A node registered via SSM hybrid activation gets the SSM-issued managed instance ID (with the `mi-` prefix, e.g. `mi-0f1c2d3e4a5b6c7d8`) as its Kubernetes node name, and an arbitrary node name cannot be specified. Organizations that run hostname-based node identification or automation scripts must supplement their identification scheme with node labels (`--node-labels`). If naming nodes directly is a requirement (internal CMDB integration, etc.), IAM Roles Anywhere is the alternative — the certificate CN becomes the node name.
+- **Activations carry an expiration.** The default is 24 hours and the maximum is 30 days (with a registration limit of up to 1,000 nodes per activation), and expired activations cannot register new nodes (credential renewal for already-registered nodes continues via the SSM agent regardless of activation expiry). For large expansions, tie activation issuance to the expansion schedule so registration completes before expiry, and the recommended arrangement is one activation per cluster, tagged with the cluster ARN.
+- **Account for delayed recovery after disconnections.** SSM temporary credentials are valid for one hour and renew automatically, but on a network disconnection the SSM agent's retry backoff grows to as long as 30 minutes, so node recovery after reconnection can take up to 30 minutes (force a renewal by restarting `amazon-ssm-agent`). IAM Roles Anywhere issues credentials at kubelet's request time, so re-authentication happens within seconds of connectivity recovery — in environments with frequent disconnections, this difference becomes a selection criterion.
 
 ```bash
-# 30일 유효·최대 10대 등록 activation 발급 예시 (만료일은 발급일 +30일 이내로 지정)
+# Example: issue an activation valid for 30 days with up to 10 registrations
+# (set the expiration within issuance date +30 days)
 aws ssm create-activation \
   --default-instance-name eks-hybrid-nodes \
   --iam-role AmazonEKSHybridNodesRole \
@@ -66,9 +67,9 @@ aws ssm create-activation \
   --region us-west-2
 ```
 
-## IAM Roles Anywhere 구성과 인증서 체인 검증
+## IAM Roles Anywhere Configuration and Certificate Chain Verification
 
-사설 PKI(자체 CA 또는 HashiCorp Vault PKI)로 IAM Roles Anywhere를 구성할 때 `nodeadm` NodeConfig는 다음 형식을 따릅니다.
+When configuring IAM Roles Anywhere with a private PKI (a self-managed CA or HashiCorp Vault PKI), the `nodeadm` NodeConfig follows this format.
 
 ```yaml
 apiVersion: node.eks.aws/v1alpha1
@@ -79,59 +80,61 @@ spec:
     region: us-west-2
   hybrid:
     iamRolesAnywhere:
-      nodeName: hybrid-node-01            # 세션 이름으로 사용됨 — 인증서 CN에 바인딩하려면 trust policy 조건 필요(아래 설명)
+      nodeName: hybrid-node-01            # used as the session name — binding it to the certificate CN requires a trust-policy condition (see below)
       trustAnchorArn: arn:aws:rolesanywhere:us-west-2:ACCOUNT_ID:trust-anchor/TA_ID
       profileArn: arn:aws:rolesanywhere:us-west-2:ACCOUNT_ID:profile/PROFILE_ID
       roleArn: arn:aws:iam::ACCOUNT_ID:role/AmazonEKSHybridNodesRole
-      certificatePath: /etc/iam/pki/node.crt   # 인증서 (체인 포함 시 결합 순서 준수)
+      certificatePath: /etc/iam/pki/node.crt   # certificate (respect concatenation order if chained)
       privateKeyPath: /etc/iam/pki/node.key
 ```
 
-구성 시 가장 잦은 실패 지점은 **인증서 체인 파일의 결합 순서**입니다. 중간 CA를 사용하는 PKI(Vault 포함)에서 인증서 파일은 반드시 다음 순서로 결합합니다.
+The most frequent point of failure in configuration is **the concatenation order of the certificate chain file**. In a PKI using intermediate CAs (including Vault), the certificate file must be concatenated strictly in the following order.
 
 ```text
-node.crt 파일 구성 (위 → 아래 순서 엄수)
-① 노드(leaf) 인증서
-② 중간 CA 체인 (ca_chain — 발급 CA부터 상위 순)
-③ 루트 CA (trust anchor에 등록된 CA까지)
+node.crt file layout (top → bottom, order is mandatory)
+① Node (leaf) certificate
+② Intermediate CA chain (ca_chain — starting from the issuing CA upward)
+③ Root CA (up to the CA registered as the trust anchor)
 ```
 
 ```bash
-# 개인 키가 생성 시점부터 소유자 전용으로 제한되도록 umask를 먼저 좁힙니다.
+# Narrow the umask first so the private key is owner-only from the moment it is created.
 umask 077
-install -d -m 700 /etc/iam/pki        # 자격 증명 전용 디렉터리(소유자만 접근)
+install -d -m 700 /etc/iam/pki        # credential-only directory (owner access only)
 cd /etc/iam/pki
 
-# Vault PKI 발급 — 출력에 개인 키가 포함되므로 중간 파일을 디스크에 남기지 않고 바로 분리합니다.
+# Vault PKI issuance — the output contains the private key, so split it directly
+# without leaving an intermediate file on disk.
 issued=$(vault write -format=json pki_int/issue/eks-hybrid \
   common_name="hybrid-node-01" ttl="8760h")
 
 printf '%s' "$issued" | jq -r '.data.certificate' >  node.crt   # ① leaf
-printf '%s' "$issued" | jq -r '.data.ca_chain[]'  >> node.crt   # ② 중간 CA 체인
+printf '%s' "$issued" | jq -r '.data.ca_chain[]'  >> node.crt   # ② intermediate CA chain
 printf '%s' "$issued" | jq -r '.data.private_key' >  node.key
 unset issued
 
-# 개인 키는 소유자 읽기 전용, 인증서는 소유자 쓰기로 고정합니다.
+# Pin the private key to owner read-only and the certificate to owner-writable.
 chmod 600 node.key
 chmod 644 node.crt
-# nodeadm/kubelet이 다른 사용자로 읽는다면 chown으로 해당 소유자에 맞춥니다.
+# If nodeadm/kubelet reads these as a different user, chown to that owner.
 
-# 경로 검증 — leaf에서 trust anchor(root-ca.crt)까지 유효한 체인 경로를 구성할 수 있으면 OK 출력.
-# (OK는 유효한 경로의 존재를 증명하며, 입력 파일의 물리적 결합 순서를 검증하지는 않습니다.
-#  결합 순서·중간 CA 포함 여부는 `openssl crl2pkcs7`나 `-show_chain` 등으로 별도 확인합니다.)
+# Path validation — prints OK when a valid chain path can be built from the leaf
+# up to the trust anchor (root-ca.crt). OK proves that a valid path exists; it does
+# NOT verify the physical concatenation order of the input bundle. Verify the order
+# and intermediate-CA inclusion separately (e.g. `-show_chain`).
 openssl verify -CAfile root-ca.crt -untrusted node.crt node.crt
 ```
 
-순서가 뒤바뀌거나 중간 CA가 누락되면 IAM Roles Anywhere의 `CreateSession` 호출이 신뢰 체인 검증 실패로 거부되고, 노드는 `AccessDeniedException` 또는 인증서 검증 오류로 조인에 실패합니다. 다음 세 가지를 배포 자동화의 검증 게이트로 고정합니다.
+If the order is reversed or an intermediate CA is missing, the IAM Roles Anywhere `CreateSession` call is rejected on trust chain validation, and the node fails to join with an `AccessDeniedException` or a certificate validation error. Fix the following as validation gates in the deployment automation.
 
-1. `nodeName`을 인증서 CN에 바인딩하려는 경우의 조건 — IAM Roles Anywhere는 기본적으로 세션 이름(Session Name)을 인증서의 16진수 시리얼 번호로 설정하고, 인증서 Subject의 CN을 source identity로 설정합니다. `nodeName`을 CN과 동일하게 쓰려는 것은 설계상의 선택이며, 이를 강제하려면 ① 프로파일에서 커스텀 role session name 허용(`acceptRoleSessionName`)을 활성화하고 ② role trust policy에 `aws:PrincipalTag/x509Subject/CN` 조건을 추가해야 합니다(`nodeName`은 64자 이하)
-2. leaf → 중간 CA → 루트 CA 결합 순서와 체인 완결성 (`openssl verify`)
-3. trust anchor에 등록된 CA가 체인의 종점과 일치하는지
-4. IAM Roles Anywhere 프로파일의 **커스텀 role session name 허용(`acceptRoleSessionName`) 활성화** 여부 — 비활성 상태면 nodeName 기반 세션 이름 지정이 거부됨
+1. The condition for binding `nodeName` to the certificate CN — by default, IAM Roles Anywhere sets the session Name to the certificate's hex-encoded serial number and sets the certificate Subject CN as the source identity. Using `nodeName` as the CN is a deliberate design choice; to enforce it, you must ① enable custom role session names on the profile (`acceptRoleSessionName`) and ② add an `aws:PrincipalTag/x509Subject/CN` condition to the role trust policy (`nodeName` must be 64 characters or fewer)
+2. Leaf → intermediate CA → root CA concatenation order and chain completeness (`openssl verify`)
+3. The CA registered as the trust anchor matches the terminus of the chain
+4. The IAM Roles Anywhere profile has **custom role session names enabled (`acceptRoleSessionName`)** — when disabled, specifying a nodeName-based session name is rejected
 
-## EKS Access Entry: HYBRID_LINUX 매핑 (필수)
+## EKS Access Entry: HYBRID_LINUX Mapping (Required)
 
-자격 증명 공급자 구성과 별개로, 클러스터 측에서 Hybrid Nodes IAM role을 **`HYBRID_LINUX` 타입 access entry**로 등록해야 노드 조인이 승인됩니다. 이 매핑이 없으면 자격 증명 발급까지 성공해도 kubelet의 API server 인증이 `Unauthorized`로 거부됩니다.
+Separately from the credential provider configuration, the Hybrid Nodes IAM role must be registered on the cluster side as an access entry of **type `HYBRID_LINUX`** for node joins to be authorized. Without this mapping, even if credential issuance succeeds, kubelet's API server authentication is rejected with `Unauthorized`.
 
 ```bash
 aws eks create-access-entry \
@@ -139,60 +142,60 @@ aws eks create-access-entry \
   --principal-arn arn:aws:iam::ACCOUNT_ID:role/AmazonEKSHybridNodesRole \
   --type HYBRID_LINUX
 
-# 등록 확인
+# Verify registration
 aws eks list-access-entries --cluster-name my-hybrid-cluster
 ```
 
-- `HYBRID_LINUX` 타입 access entry에는 Kubernetes 그룹·access policy를 추가로 연결할 수 없으며, EKS가 노드 권한(`system:nodes` 상당)을 자동 부여합니다.
-- 클러스터 인증 모드가 `API` 또는 `API_AND_CONFIG_MAP`이어야 합니다. 공식 문서는 Hybrid Nodes IAM role을 access entry **또는** `aws-auth` ConfigMap 항목으로 Kubernetes RBAC에 매핑할 수 있다고 안내하며, `aws-auth` 매핑은 인증 모드가 `API_AND_CONFIG_MAP`일 때 사용할 수 있습니다. 다만 `HYBRID_LINUX` 타입 access entry는 EKS가 노드 권한을 자동 부여하므로 하이브리드 노드에는 access entry 방식을 권장하며, `CONFIG_MAP` 전용 모드(access entry 미지원)는 사용하지 않습니다.
-- `nodeadm init`은 이 access entry의 존재를 사전 검증합니다(`eks:ListAccessEntries` 권한 필요 — 위 최소 권한 표 참조).
+- No additional Kubernetes groups or access policies can be attached to a `HYBRID_LINUX` access entry; EKS automatically grants node permissions (equivalent to `system:nodes`).
+- The cluster authentication mode must be `API` or `API_AND_CONFIG_MAP`. The official documentation states that the Hybrid Nodes IAM role can be mapped to Kubernetes RBAC with an access entry **or** an `aws-auth` ConfigMap entry, and the `aws-auth` mapping is usable when the authentication mode is `API_AND_CONFIG_MAP`. That said, because a `HYBRID_LINUX` access entry has EKS grant node permissions automatically, the access entry approach is recommended for hybrid nodes, and a `CONFIG_MAP`-only mode (which does not support access entries) should not be used.
+- `nodeadm init` pre-validates the existence of this access entry (requires the `eks:ListAccessEntries` permission — see the minimum permissions table below).
 
-## Hybrid Nodes IAM Role 최소 권한
+## Hybrid Nodes IAM Role Minimum Permissions
 
-Hybrid Nodes IAM role에는 다음 권한이 필요합니다. 공식 문서가 명시하는 최소 구성이며, 워크로드용 권한을 이 role에 추가하지 않습니다.
+The Hybrid Nodes IAM role requires the following permissions. This is the minimum configuration stated in the official documentation; do not add workload permissions to this role.
 
-| 권한 | 용도 | 미부여 시 대안 |
-|------|------|---------------|
-| `eks:DescribeCluster` | `nodeadm`이 API 엔드포인트·CA 번들·Service CIDR 등 클러스터 정보 조회 | NodeConfig에 해당 값을 직접 기입 |
-| `eks:ListAccessEntries` | `nodeadm`이 클러스터 access entry 사전 검증 | `nodeadm init`에 `--skip cluster-access-validation` 지정 |
-| `AmazonEC2ContainerRegistryPullOnly` (관리형 정책) | kubelet의 ECR 컨테이너 이미지 pull | 없음 (필수) |
-| `AmazonSSMManagedInstanceCore` (관리형 정책, SSM 사용 시) | hybrid activation 등록과 자격 증명 갱신 | 없음 (SSM 필수) |
-| `ssm:DeregisterManagedInstance` + `ssm:DescribeInstanceInformation` (SSM 사용 시) | `nodeadm uninstall`의 관리형 인스턴스 등록 해제 | 노드 제거 시 SSM 항목 수동 정리 |
-| `eks-auth:AssumeRoleForPodIdentity` (선택) | EKS Pod Identity Agent의 Pod 자격 증명 발급 | Pod Identity 미사용 시 불필요 |
+| Permission | Purpose | Alternative if not granted |
+|------------|---------|---------------------------|
+| `eks:DescribeCluster` | `nodeadm` retrieves cluster information such as the API endpoint, CA bundle, and Service CIDR | Provide those values directly in the NodeConfig |
+| `eks:ListAccessEntries` | `nodeadm` pre-validates cluster access entries | Pass `--skip cluster-access-validation` to `nodeadm init` |
+| `AmazonEC2ContainerRegistryPullOnly` (managed policy) | kubelet pulls container images from ECR | None (required) |
+| `AmazonSSMManagedInstanceCore` (managed policy, when using SSM) | Hybrid activation registration and credential renewal | None (required for SSM) |
+| `ssm:DeregisterManagedInstance` + `ssm:DescribeInstanceInformation` (when using SSM) | Managed instance deregistration by `nodeadm uninstall` | Manually clean up SSM entries when removing nodes |
+| `eks-auth:AssumeRoleForPodIdentity` (optional) | Pod credential issuance by the EKS Pod Identity Agent | Not needed if Pod Identity is unused |
 
-`ssm:DeregisterManagedInstance`는 공식 CloudFormation 예제처럼 해당 hybrid activation과 연결된 인스턴스로 리소스 조건을 좁혀 부여하는 것이 권장됩니다.
+For `ssm:DeregisterManagedInstance`, it is recommended to scope the resource condition down to instances associated with the corresponding hybrid activation, as in the official CloudFormation example.
 
-## 자격 증명 수명주기 관리
+## Credential Lifecycle Management
 
-인증 방식 결정 이후에는 자격 증명의 발급·갱신·폐기 흐름을 운영 절차로 정착시켜야 합니다.
+After the authentication method is decided, the issuance, renewal, and revocation flow of credentials must be established as an operational procedure.
 
-- **SSM**: activation은 만료 기한과 등록 가능 수량을 갖습니다. 노드 증설 계획에 맞춰 activation을 발급·관리하고, 만료된 activation으로는 신규 노드를 등록할 수 없다는 점을 증설 런북에 반영합니다. 등록 해제된 노드의 SSM 관리형 인스턴스 항목은 정리 대상입니다.
-- **IAM Roles Anywhere**: 인증서 만료가 곧 신규 세션 발급 실패입니다. 인증서 갱신 자동화(만료 전 교체)와 만료 임박 알림을 구성합니다. 임시 자격 증명의 세션 유효 기간은 기본 1시간이며 프로파일 설정으로 조정할 수 있습니다.
-  - **자격 증명 폐기**: 유출 의심 시 폐기 절차는 두 단계로 구분해야 합니다. ① **새 세션 차단** — IAM Roles Anywhere의 CRL은 선택 기능이며, 가져온(import) CRL은 이후 `CreateSession` 호출에서만 검사됩니다(CDP/OCSP 콜백은 미지원이므로 CA 측 CRL 게시만으로는 반영되지 않고 IAM Roles Anywhere에 CRL을 가져와야 합니다). ② **이미 발급된 임시 자격 증명 무효화** — CRL 게시나 인증서 폐기는 이미 발급된 임시 자격 증명을 즉시 무효화하지 않습니다. 발급 완료된 세션을 즉시 차단하려면 role에 `AWSRevokeOlderSessions` 인라인 정책(또는 `aws:TokenIssueTime` 조건의 Deny 정책)을 적용해야 하며, 이 정책은 **해당 role을 사용하는 모든 노드의 기존 세션을 함께 거부**합니다(공유 role의 blast radius). 단일 노드만 격리하려면 노드별로 role을 분리하는 설계가 필요합니다.
-- **최소 권한**: Hybrid Nodes IAM role에는 노드 운영에 필요한 권한만 부여하고, 워크로드 권한은 IRSA 또는 EKS Pod Identity로 Pod 단위 분리합니다. 노드 role에 워크로드용 광범위 권한을 얹는 구성은 피합니다.
+- **SSM**: An activation has an expiration date and a registration quantity limit. Issue and manage activations in line with node expansion plans, and reflect in the expansion runbook that new nodes cannot be registered with an expired activation. SSM managed instance entries for deregistered nodes are cleanup targets.
+- **IAM Roles Anywhere**: Certificate expiration means failure to issue new sessions. Configure certificate renewal automation (replacement before expiration) and expiration-approaching alerts. The temporary credential session validity defaults to one hour and can be adjusted via profile settings.
+  - **Credential revocation**: On suspected compromise, separate revocation into two steps. ① **Block new sessions** — CRLs are an optional feature of IAM Roles Anywhere, and an imported CRL is only checked on subsequent `CreateSession` calls (CDP/OCSP callbacks are not supported, so CA-side CRL publication alone is not honored; you must import the CRL into IAM Roles Anywhere). ② **Invalidate already-issued temporary credentials** — publishing a CRL or revoking the certificate does not immediately invalidate temporary credentials that have already been issued. To immediately block already-issued sessions, apply the `AWSRevokeOlderSessions` inline policy (or a Deny policy conditioned on `aws:TokenIssueTime`) to the role; this policy **denies the existing sessions of every node that uses that role** (the blast radius of a shared role). To isolate a single node, you need a design that uses a separate role per node.
+- **Least privilege**: Grant the Hybrid Nodes IAM role only the permissions required for node operations, and separate workload permissions per Pod with IRSA or EKS Pod Identity. Avoid configurations that pile broad workload permissions onto the node role.
 
-## 권장 사항 요약
+## Summary of Recommendations
 
-- PKI 부재 조직은 SSM, 사설 CA 거버넌스 보유 조직은 IAM Roles Anywhere를 선택합니다.
-- SSM 사용 시 nodeadm 1.0.19 이상을 사용하고, 노드 이름이 `mi-` ID로 고정되는 특성을 자동화 체계에 반영합니다.
-- IAM Roles Anywhere는 인증서 결합 순서(leaf → 중간 CA → 루트 CA)를 배포 검증 게이트로 고정하고, `nodeName`을 인증서 CN에 바인딩하려면 trust policy의 CN 조건과 `acceptRoleSessionName`을 함께 구성합니다.
-- Hybrid Nodes IAM role을 `HYBRID_LINUX` access entry로 등록하는 절차를 클러스터 생성 직후 단계에 포함합니다.
-- 선택한 방식의 자격 증명 엔드포인트를 방화벽 신청서(Zone A·C)에 반영합니다.
-- 자격 증명 갱신·폐기 절차를 증설 런북과 보안 대응 플레이북에 문서화합니다.
-- 워크로드 권한은 노드 role이 아닌 IRSA/Pod Identity로 분리합니다.
+- Organizations without a PKI choose SSM; organizations with private CA governance choose IAM Roles Anywhere.
+- When using SSM, use nodeadm 1.0.19 or later, and reflect in the automation regime that node names are fixed to `mi-` IDs.
+- For IAM Roles Anywhere, fix the certificate concatenation order (leaf → intermediate CA → root CA) as a deployment validation gate, and to bind `nodeName` to the certificate CN, configure the trust policy's CN condition together with `acceptRoleSessionName`.
+- Include registering the Hybrid Nodes IAM role as a `HYBRID_LINUX` access entry in the step right after cluster creation.
+- Reflect the credential endpoints of the chosen method in the firewall request form (Zones A and C).
+- Document credential renewal and revocation procedures in the expansion runbook and the security response playbook.
+- Separate workload permissions with IRSA/Pod Identity rather than the node role.
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Prepare credentials for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-creds.html) — SSM·IAM Roles Anywhere 자격 증명 구성
-- [Amazon EKS Hybrid Nodes overview](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Hybrid Nodes 전제 조건
-- [IAM Roles Anywhere User Guide](https://docs.aws.amazon.com/rolesanywhere/latest/userguide/introduction.html) — 신뢰 앵커·프로파일 구성
-- [Grant IAM users access to Kubernetes with EKS access entries](https://docs.aws.amazon.com/eks/latest/userguide/access-entries.html) — HYBRID_LINUX 타입 access entry
-- [SSM CreateActivation API](https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_CreateActivation.html) — activation 만료(기본 24시간·최대 30일)·등록 수량 파라미터
+### Official Documentation
+- [Prepare credentials for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-creds.html) — SSM and IAM Roles Anywhere credential configuration
+- [Amazon EKS Hybrid Nodes overview](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Hybrid Nodes prerequisites
+- [IAM Roles Anywhere User Guide](https://docs.aws.amazon.com/rolesanywhere/latest/userguide/introduction.html) — Trust anchor and profile configuration
+- [Grant IAM users access to Kubernetes with EKS access entries](https://docs.aws.amazon.com/eks/latest/userguide/access-entries.html) — The HYBRID_LINUX access entry type
+- [SSM CreateActivation API](https://docs.aws.amazon.com/systems-manager/latest/APIReference/API_CreateActivation.html) — Activation expiration (default 24 hours, max 30 days) and registration quantity parameters
 
-### 기술 블로그
-- [Extending EKS with Hybrid Nodes: IAM Roles Anywhere and HashiCorp Vault — AWS Containers Blog](https://aws.amazon.com/blogs/containers/extending-eks-with-hybrid-nodes-iam-roles-anywhere-and-hashicorp-vault/) — Vault PKI를 신뢰 앵커로 사용하는 통합 패턴
+### Technical Blogs
+- [Extending EKS with Hybrid Nodes: IAM Roles Anywhere and HashiCorp Vault — AWS Containers Blog](https://aws.amazon.com/blogs/containers/extending-eks-with-hybrid-nodes-iam-roles-anywhere-and-hashicorp-vault/) — Integration pattern using Vault PKI as the trust anchor
 
-### 관련 문서 (내부)
-- [EKS Hybrid Nodes 개념과 동작 원리](../overview-architecture/hybrid-nodes-fundamentals.md) — nodeadm 등록 흐름
-- [방화벽·DNS 사전 등록 가이드](../networking/firewall-connectivity.md) — 인증 방식별 엔드포인트 등록
+### Related Documents (Internal)
+- [EKS Hybrid Nodes Concepts and How It Works](../overview-architecture/hybrid-nodes-fundamentals.md) — nodeadm registration flow
+- [Firewall and DNS Pre-registration Guide](../networking/firewall-connectivity.md) — Endpoint registration per authentication method

@@ -1,11 +1,11 @@
 ---
-title: AWS 단일 아키텍처 (Mitsukoshi)
-description: Bedrock + Neptune + OpenSearch + AgentCore — 다국어 + 환율 라이브
+title: AWS Single Architecture (Mitsukoshi)
+description: Bedrock + Neptune + OpenSearch + AgentCore — multilingual + live FX
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - industry-solution
   - retail
@@ -16,9 +16,9 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> [LG생활건강 아키텍처](../lg-hnh-marketing-innovation/05-architecture.md)의 Next.js 화면, ECS Fargate의 FastAPI 백엔드, AI 서비스 연동, Neptune, OpenSearch를 재사용합니다. Mitsukoshi에는 **번체 중국어·일본어·영어** 지원과 EventBridge 일정에 따른 환율·관광 데이터 수집을 추가합니다. 그래프의 관계 수는 약 **55만 개**로 추정합니다.
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, AI-service integration, Neptune, and OpenSearch. Mitsukoshi adds **Traditional Chinese, Japanese, and English** support and scheduled EventBridge ingestion of foreign-exchange (FX) and tourism data. The graph is estimated at **550K edges**.
 
-## 1. 아키텍처
+## 1. Architecture
 
 ```mermaid
 graph TB
@@ -42,9 +42,9 @@ graph TB
         OS[OpenSearch<br/>Smartcn + Kuromoji]
     end
     subgraph External
-        FX[Open Exchange Rates<br/>일 1회]
-        Tour[대만 관광청<br/>일 1회]
-        Soc[소홍서·Dcard·인스타]
+        FX[Open Exchange Rates<br/>daily]
+        Tour[Taiwan Tourism Bureau<br/>daily]
+        Soc[Xiaohongshu / Dcard / Instagram]
     end
 
     Browser --> CF --> Next <--> FastAPI
@@ -55,29 +55,29 @@ graph TB
     External -->|EventBridge| Glue --> Neptune
 ```
 
-## 2. 특화 컴포넌트
+## 2. Specialized Components
 
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **OpenSearch (Smartcn + Kuromoji)** | 번체중 + 일본어 형태소 + KNN |
-| **Cohere multilingual** | 번체중·일본어·영어 임베딩·rerank |
-| **EventBridge cron** | 환율 일 1회, 관광 지표 일 1회 |
-| **CloudFront Taipei PoP** | 대만·일본 사용자 latency 최소 |
+| **OpenSearch (Smartcn + Kuromoji)** | Traditional Chinese + Japanese morphological analysis + KNN |
+| **Cohere multilingual** | Embedding and rerank for Traditional Chinese, Japanese, English |
+| **EventBridge cron** | FX daily, tourism metrics daily |
+| **CloudFront Taipei PoP** | Minimize latency for users in Taiwan and Japan |
 
-## 3. 보안·거버넌스
+## 3. Security & Governance
 
-| 항목 | 구현 |
+| Item | Implementation |
 |---|---|
-| 인증 | Cognito + Lambda@Edge JWT |
-| 권한 | 페르소나 그룹 + Boutique 입점 브랜드 권한 |
-| PII | 마스킹 (Foreigner 여권 hash) |
-| 가드레일 | 4 토픽 + 면세 규정 + 광고 표현 |
+| Authentication | Cognito + Lambda@Edge JWT |
+| Authorization | Persona groups + Boutique tenant brand permissions |
+| PII | Masking (Foreigner passport hash) |
+| Guardrails | 4 topics + duty-free regulations + advertising expressions |
 
-## 4. 비용 (8주 PoC)
+## 4. Cost (8-week PoC)
 
-| 항목 | 추정 |
+| Item | Estimate |
 |---|---|
-| Bedrock + Cohere multilingual | $1.5K/월 |
-| Neptune + OpenSearch | $1.2K/월 |
-| ECS + 외부 API | $0.5K/월 |
-| **합계** | **~$3.5K/월** |
+| Bedrock + Cohere multilingual | $1.5K/month |
+| Neptune + OpenSearch | $1.2K/month |
+| ECS + external APIs | $0.5K/month |
+| **Total** | **~$3.5K/month** |

@@ -1,102 +1,98 @@
 ---
-title: 온톨로지 엔지니어링
-description: AIDLC 신뢰성의 첫 번째 축 — Typed World Model로 AI 환각을 방지하고 도메인 정확성을 보장하는 온톨로지 접근법 (engineering-playbook 확장 콘텐츠)
+title: Ontology Engineering
+description: The first axis of AIDLC reliability — An ontology approach to prevent AI hallucination and ensure domain accuracy through a Typed World Model
 created: "2026-04-07"
 last_update:
   date: 2026-10-12
-  author: YoungJoon Jeong
-reading_time: 13
+  author: devfloor9
+reading_time: 25
 tags:
   - aidlc
   - ontology
   - methodology
   - scope:methodology
-sidebar_label: 온톨로지 엔지니어링
+sidebar_label: Ontology Engineering
 ---
 
-:::info 확장 개념 (engineering-playbook 독자 콘텐츠)
-온톨로지·하네스 엔지니어링은 [AWS Labs AIDLC 공식 방법론](https://github.com/awslabs/aidlc-workflows) 에 포함되지 않은, engineering-playbook 의 독자 확장 콘텐츠입니다. DDD + 2026년 Agentic AI 베스트 프랙티스를 반영해 엔터프라이즈 AI 신뢰성을 강화했습니다. 공식 AIDLC 적용 시 이 축은 선택적으로 도입 가능합니다.
-:::
+> "Prompt engineering is ontology engineering" — 2026 AI Community Consensus
 
-> "프롬프트 엔지니어링은 온톨로지 엔지니어링이다" — 2026 AI 커뮤니티 컨센서스
+In this guide, **ontology engineering** expresses domain-driven design (DDD) terminology as a machine-readable schema of entities, relationships, and constraints. The schema gives agents a shared domain reference and gives validation code explicit rules to check. It can expose inconsistent or invalid outputs, but defining the schema alone does not ensure that generated output follows it.
 
-**온톨로지 엔지니어링**은 업무 개념과 개념 간 관계, 지켜야 할 규칙을 기계가 읽을 수 있는 스키마로 정리하는 작업입니다. 팀이 함께 쓰는 업무 용어(DDD의 Ubiquitous Language)를 스키마로 옮겨, AI가 생성한 결과가 정해진 규칙을 따르는지 검증하는 데 사용합니다.
+## 1. What is Ontology
 
-## 1. 온톨로지란 무엇인가
+### 1.1 Ontology as a Typed World Model
 
-### 1.1 Typed World Model로서의 온톨로지
+**Ontology** is a "typed world model" that formalizes domain knowledge. While DDD's Ubiquitous Language was an informal agreement for team communication, ontology transforms it into a structured schema that AI can mechanically understand and comply with.
 
-**온톨로지(Ontology)**는 도메인 지식을 형식화한 "typed world model"입니다. DDD의 Ubiquitous Language가 팀 내 소통을 위한 비형식적 합의였다면, 온톨로지는 이를 AI가 기계적으로 이해하고 준수할 수 있는 구조화된 스키마로 변환합니다.
+**Key Characteristics:**
 
-**핵심 특징:**
+- **Formality**: Entities, relationships, and constraints are explicitly defined
+- **Type Safety**: All domain concepts are expressed through a type system
+- **Verifiability**: Constraints can be automatically verified
+- **Evolvability**: Continuously refined through operational data
 
-- **형식성**: 엔티티, 관계, 제약 조건이 명시적으로 정의됨
-- **타입 안전성**: 모든 도메인 개념이 타입 시스템으로 표현됨
-- **검증 가능성**: 제약 조건을 자동으로 검증할 수 있는 구조
-- **진화 가능성**: 운영 데이터를 통해 지속적으로 정제됨
+### 1.2 Relationship with DDD Ubiquitous Language
 
-### 1.2 DDD Ubiquitous Language와의 관계
-
-| 측면 | Ubiquitous Language | 온톨로지 |
+| Aspect | Ubiquitous Language | Ontology |
 |------|---------------------|----------|
-| **형식성** | 비형식적 합의 (자연어) | 형식 스키마 (타입 정의) |
-| **범위** | 팀 내 소통 | AI 에이전트 + 팀 + 코드 |
-| **검증** | 수동 리뷰 | 자동 제약 검증 |
-| **진화** | 문서 업데이트 | 피드백 루프 기반 자동 정제 |
-| **AI 이해** | 불가능 (암묵적 맥락) | 가능 (명시적 구조) |
+| **Formality** | Informal agreement (natural language) | Formal schema (type definitions) |
+| **Scope** | Team communication | AI agents + team + code |
+| **Verification** | Manual review | Automatic constraint validation |
+| **Evolution** | Document updates | Auto-refinement based on feedback loops |
+| **AI Understanding** | Impossible (implicit context) | Possible (explicit structure) |
 
-DDD의 Aggregate, Entity, Value Object, Domain Event는 온톨로지의 **기본 빌딩 블록**이 됩니다. 차이는 이들의 관계와 제약이 기계 판독 가능한 형식으로 표현된다는 점입니다.
+DDD's Aggregate, Entity, Value Object, Domain Event become the **basic building blocks** of ontology. The difference is that their relationships and constraints are expressed in machine-readable format.
 
-## 2. 왜 온톨로지가 필요한가
+## 2. Why is Ontology Needed
 
-### 2.1 AI 에이전트 실패의 근본 원인
+### 2.1 Root Cause of AI Agent Failures
 
-아래 실패 사례에는 업무 개념, 개념 간 관계, 규칙이 에이전트의 문맥 안에서 일관되게 정의되지 않았다는 공통점이 있습니다. 명시적인 스키마는 이 문제를 확인하고 줄이는 데 도움이 됩니다. 모델의 한계와 프롬프트 오류는 별도로 평가해야 합니다.
+The failure patterns below share a domain-modeling problem: entities, relationships, and rules are not defined consistently in the agent's context. An explicit schema helps address that problem; model limitations and prompt errors still require separate evaluation.
 
-**전형적인 실패 패턴:**
+**Typical Failure Patterns:**
 
-- **맥락 유실**: 사용자, 주문, 태스크, 규칙의 정의가 프롬프트 안에 흩어져 있으면 AI는 맥락을 잃음
-- **환각 생성**: 명시적 제약이 없으면 AI는 "논리적으로 그럴듯한" 하지만 틀린 추론을 생성
-- **일관성 부재**: 동일 개념에 대한 정의가 세션마다 달라져 예측 불가능한 동작 발생
+- **Context Loss**: When definitions of users, orders, tasks, rules are scattered in prompts, AI loses context
+- **Hallucination Generation**: Without explicit constraints, AI generates "logically plausible" but incorrect reasoning
+- **Lack of Consistency**: Definitions of the same concept vary across sessions, causing unpredictable behavior
 
-### 2.2 온톨로지가 해결하는 문제
+### 2.2 Problems Solved by Ontology
 
-**1. 환각 방지**
-- 모든 도메인 개념이 명시적으로 정의되어 AI가 임의로 해석할 여지 제거
-- 엔티티 간 관계가 형식화되어 존재하지 않는 연결을 생성할 수 없음
+**1. Preventing Hallucination**
+- All domain concepts are explicitly defined, eliminating room for AI to interpret arbitrarily
+- Relationships between entities are formalized, preventing creation of non-existent connections
 
-**2. 도메인 정확성 보장**
-- 불변 조건(invariant)이 온톨로지에 인코딩되어 위반 시 자동 탐지
-- 도메인 이벤트의 전이 경로가 명시되어 잘못된 상태 전환 차단
+**2. Ensuring Domain Accuracy**
+- Invariants are encoded in ontology for automatic detection of violations
+- Transition paths of domain events are specified, blocking incorrect state transitions
 
-**3. 컨텍스트 일관성**
-- 온톨로지가 AI 에이전트의 컨텍스트 윈도우에 주입되어 모든 생성 작업의 기준이 됨
-- 세션 간, 에이전트 간 동일한 도메인 이해 보장
+**3. Context Consistency**
+- Ontology is injected into AI agent's context window, becoming the baseline for all generation tasks
+- Ensures same domain understanding across sessions and agents
 
-### 2.3 실전 증거
+### 2.3 Real-World Evidence
 
-:::info 정량적 개선 효과
-HITL(Human-in-the-Loop) 기반 온톨로지 피드백 루프 통합 시:
-- **정확도 31% 향상**
-- **False Positive 67% 감소**
-- **에러율 8.3% → 1.2%** (31일 만에 달성)
+:::info Quantitative Improvement Effects
+When integrating HITL (Human-in-the-Loop) based ontology feedback loops:
+- **31% improvement in accuracy**
+- **67% reduction in False Positives**
+- **Error rate 8.3% → 1.2%** (achieved in 31 days)
 
-피드백 루프 미적용 시: $28K 비용에 에러율 8.3%→7.9% 미미한 개선.
+Without feedback loops: $28K cost with minimal improvement in error rate 8.3%→7.9%.
 :::
 
-## 3. 온톨로지 구조
+## 3. Ontology Structure
 
-### 3.1 DDD 개념의 온톨로지 매핑
+### 3.1 Ontology Mapping of DDD Concepts
 
 ```yaml
 domain_ontology:
   aggregates:
     Payment:
-      description: "결제 처리의 트랜잭션 경계"
+      description: "Transaction boundary for payment processing"
       invariants:
-        - "amount는 0보다 커야 한다"
-        - "status 전이: CREATED → PROCESSING → COMPLETED | FAILED"
-        - "FAILED 상태에서 재시도는 최대 2회"
+        - "amount must be greater than 0"
+        - "status transition: CREATED → PROCESSING → COMPLETED | FAILED"
+        - "Maximum 2 retries from FAILED state"
       entities:
         - PaymentMethod:
             type: "enum"
@@ -111,17 +107,17 @@ domain_ontology:
             amount: "decimal(19,4)"
             invariants:
               - "amount >= 0"
-              - "currency는 null일 수 없음"
+              - "currency cannot be null"
       domain_events:
         - PaymentCreated:
-            trigger: "결제 요청 수신"
+            trigger: "Payment request received"
             data: ["paymentId", "amount", "customerId"]
             timestamp: "ISO 8601"
         - PaymentCompleted:
-            trigger: "PG 승인 완료"
+            trigger: "PG approval completed"
             data: ["paymentId", "pgTransactionId"]
         - PaymentFailed:
-            trigger: "PG 거부 또는 타임아웃"
+            trigger: "PG rejection or timeout"
             data: ["paymentId", "errorCode", "reason"]
 
   relationships:
@@ -131,43 +127,43 @@ domain_ontology:
     - "Payment EMITS PaymentCompleted | PaymentFailed (1:1, mutually exclusive)"
 
   constraints:
-    - "동일 Customer의 동시 결제는 최대 3건"
-    - "PROCESSING 상태는 최대 30초 유지, 초과 시 자동 FAILED 전환"
-    - "PaymentMethod 변경은 CREATED 상태에서만 가능"
+    - "Maximum 3 concurrent payments per Customer"
+    - "PROCESSING state maintained for max 30 seconds, auto-transition to FAILED if exceeded"
+    - "PaymentMethod changes only allowed in CREATED state"
 ```
 
-### 3.2 Knowledge Source 계층
+### 3.2 Knowledge Source Hierarchy
 
-온톨로지 구축 시 지식 소스의 신뢰도를 계층화하여 관리합니다.
+When building ontology, manage knowledge source reliability in tiers.
 
-| 우선순위 | 소스 | 예시 | 신뢰도 | 활용 방식 |
+| Priority | Source | Example | Reliability | Usage Method |
 |---------|------|------|--------|----------|
-| **1** | 실제 구현 코드/PR | awslabs/ai-on-eks, Helm chart 소스코드 | 최고 | 실제 동작하는 코드 기준 |
-| **2** | 프로젝트 GitHub 이슈/릴리스 | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | 높음 | 개발자 간 사실 교환 |
-| **3** | 공식 문서 | docs.nvidia.com, docs.aws.amazon.com | 중간 | 일반론, 업데이트 지연 가능 |
-| **4** | 블로그/튜토리얼 | Medium, AWS Blog | 낮음 | 특정 시점의 스냅샷 |
+| **1** | Actual implementation code/PRs | awslabs/ai-on-eks, Helm chart source code | Highest | Based on actually working code |
+| **2** | Project GitHub issues/releases | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | High | Fact exchange between developers |
+| **3** | Official documentation | docs.nvidia.com, docs.aws.amazon.com | Medium | General theory, may have update delays |
+| **4** | Blogs/tutorials | Medium, AWS Blog | Low | Snapshot at specific point in time |
 
-:::caution 실전 교훈: 공식 문서만으로는 부족하다
-온톨로지 구축 시 **공식 문서(Official Documentation)만 참조하면 AI는 "논리적으로 그럴듯한 추론"을 "검증된 사실"로 혼동**합니다.
+:::caution Real-World Lesson: Official Documentation Alone is Insufficient
+When building ontology, **referencing only Official Documentation causes AI to confuse "logically plausible reasoning" with "verified facts"**.
 
-**실제 사례:**
-- **문제**: AWS EKS Auto Mode 공식 문서에 "AWS가 GPU 드라이버를 관리한다"고 기술 → AI가 "GPU Operator 설치 불가"로 비약 → 비교표, 아키텍처, 권장사항 전체가 오염
-- **원인**: 실제 구현 레포([awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288))를 확인하지 않고 공식 문서의 일반론만으로 추론
-- **결과**: "기술적 불가능"이라는 잘못된 전제가 문서 전체로 전파되어 12개 이상의 비교표와 아키텍처 권장사항이 모두 틀림
+**Real Case:**
+- **Problem**: AWS EKS Auto Mode official docs state "AWS manages GPU drivers" → AI extrapolates to "GPU Operator installation impossible" → Entire comparison tables, architectures, and recommendations become contaminated
+- **Cause**: Didn't verify actual implementation repo ([awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)), only relied on general statements in official docs
+- **Result**: False premise of "technical impossibility" propagated throughout docs, corrupting 12+ comparison tables and architecture recommendations
 
-**원칙**: AI가 생성한 기술 문서는 반드시 **실제 구현 코드와 교차 검증(cross-validation)**해야 합니다. 공식 문서의 "할 수 없다"는 "아직 문서화되지 않았다"일 수 있습니다.
+**Principle**: AI-generated technical documentation must always be **cross-validated with actual implementation code**. Official docs saying "cannot do" may mean "not yet documented".
 :::
 
-### 3.3 규칙 템플릿 계층
+### 3.3 Rule Template Hierarchy
 
-온톨로지는 단순 스키마를 넘어 **실행 가능한 규칙**으로 확장됩니다.
+Ontology extends beyond simple schemas to **executable rules**.
 
 ```yaml
 rule_templates:
   validation_rules:
     - rule_id: "PAYMENT_AMOUNT_POSITIVE"
       condition: "Payment.amount > 0"
-      error_message: "결제 금액은 0보다 커야 합니다"
+      error_message: "Payment amount must be greater than 0"
       severity: "ERROR"
 
     - rule_id: "PAYMENT_STATUS_TRANSITION"
@@ -175,45 +171,45 @@ rule_templates:
         IF current_status == "CREATED" THEN next_status IN ["PROCESSING", "FAILED"]
         ELIF current_status == "PROCESSING" THEN next_status IN ["COMPLETED", "FAILED"]
         ELSE invalid_transition
-      error_message: "잘못된 결제 상태 전환"
+      error_message: "Invalid payment status transition"
       severity: "ERROR"
 
   business_rules:
     - rule_id: "MAX_CONCURRENT_PAYMENTS"
       condition: "COUNT(Payment WHERE customer_id = X AND status = 'PROCESSING') <= 3"
-      error_message: "동시 처리 중인 결제가 최대 한도를 초과했습니다"
+      error_message: "Maximum concurrent payments exceeded"
       severity: "WARNING"
       action: "QUEUE_PAYMENT"
 ```
 
-이 규칙 템플릿은:
-1. **코드 생성 시**: 검증 로직으로 자동 변환
-2. **테스트 생성 시**: 경계 조건 테스트 케이스로 자동 도출
-3. **런타임 시**: 가드레일(guardrail)로 동작
+These rule templates:
+1. **During code generation**: Auto-converted to validation logic
+2. **During test generation**: Auto-derived as boundary condition test cases
+3. **During runtime**: Operate as guardrails
 
-## 4. 3중 피드백 루프: 살아있는 온톨로지
+## 4. Triple Feedback Loop: Living Ontology
 
-온톨로지는 한 번 정의하면 끝나는 정적 스키마가 아닙니다. **운영 데이터와 개발 경험을 통해 지속적으로 진화**하는 살아있는 모델입니다.
+Ontology is not a static schema defined once and done. It's a **living model that continuously evolves through operational data and development experience**.
 
-### 4.1 피드백 루프 구조
+### 4.1 Feedback Loop Structure
 
 ```mermaid
 graph TD
-    subgraph Inner["Inner Loop (분 단위)"]
-        GEN["AI 코드 생성"] --> TEST["테스트/하네스 실행"]
-        TEST -->|"실패: 온톨로지 제약 위반"| REFINE["온톨로지 제약 정제"]
+    subgraph Inner["Inner Loop (minute cadence)"]
+        GEN["AI Code Generation"] --> TEST["Test/Harness Execution"]
+        TEST -->|"Failure: Ontology Constraint Violation"| REFINE["Refine Ontology Constraints"]
         REFINE --> GEN
     end
 
-    subgraph Middle["Middle Loop (일 단위)"]
-        PR["PR 리뷰"] --> METRIC["메트릭 수집"]
-        METRIC -->|"반복 패턴 발견"| SCHEMA["온톨로지 스키마 갱신"]
+    subgraph Middle["Middle Loop (day cadence)"]
+        PR["PR Review"] --> METRIC["Metric Collection"]
+        METRIC -->|"Pattern Discovery"| SCHEMA["Update Ontology Schema"]
         SCHEMA --> PR
     end
 
-    subgraph Outer["Outer Loop (주 단위)"]
-        OBS["운영 관찰성<br/>(AIOps)"] -->|"인시던트/SLO 위반"| REDESIGN["도메인 온톨로지<br/>구조 재설계"]
-        REDESIGN --> SPEC["Spec 개선"]
+    subgraph Outer["Outer Loop (week cadence)"]
+        OBS["Operations Observability<br/>(AIOps)"] -->|"Incident/SLO Violation"| REDESIGN["Domain Ontology<br/>Structure Redesign"]
+        REDESIGN --> SPEC["Spec Improvement"]
         SPEC --> OBS
     end
 
@@ -225,240 +221,240 @@ graph TD
     style Outer fill:#fce4ec,stroke:#e91e63
 ```
 
-### 4.2 각 루프의 역할
+### 4.2 Role of Each Loop
 
-| 루프 | 주기 | 트리거 | 온톨로지 변화 | 예시 |
+| Loop | Cadence | Trigger | Ontology Change | Example |
 |------|------|--------|-------------|------|
-| **Inner Loop** | 분 단위 | 테스트 실패, 하네스 위반 | 제약 조건 추가/수정 | 누락된 invariant 발견: "amount > 0" 제약 추가 |
-| **Middle Loop** | 일 단위 | PR 리뷰에서 반복 패턴 | 엔티티/관계 스키마 갱신 | 반복되는 에러 패턴 → 새로운 Value Object 추가 |
-| **Outer Loop** | 주 단위 | 운영 인시던트, SLO 위반 | 도메인 모델 구조 재설계 | P99 지연 시간 증가 → Aggregate 경계 재정의 |
+| **Inner Loop** | Minute cadence | Test failure, harness violation | Add/modify constraints | Missing invariant found: add "amount > 0" constraint |
+| **Middle Loop** | Day cadence | Repeated patterns in PR review | Update entity/relationship schema | Repeated error pattern → add new Value Object |
+| **Outer Loop** | Week cadence | Operational incident, SLO violation | Redesign domain model structure | P99 latency increase → redefine Aggregate boundaries |
 
-### 4.3 Inner Loop: 즉각적 제약 정제
+### 4.3 Inner Loop: Immediate Constraint Refinement
 
-**시나리오**: AI가 생성한 코드가 테스트 실패
+**Scenario**: AI-generated code fails tests
 
 ```python
-# AI 생성 코드 (1차 시도)
+# AI-generated code (1st attempt)
 def create_payment(amount: float, customer_id: str):
     payment = Payment(
-        amount=amount,  # amount가 음수일 수 있음을 간과
+        amount=amount,  # Overlooked that amount can be negative
         customer_id=customer_id,
         status="CREATED"
     )
     return payment
 
-# 테스트 실패
+# Test failure
 def test_negative_amount():
     with pytest.raises(ValueError):
         create_payment(-100, "customer-123")
     # AssertionError: ValueError not raised
 
-# 온톨로지 제약 추가
+# Add ontology constraint
 invariants:
   - "amount > 0"
 
-# AI 재생성 코드 (2차 시도)
+# AI-regenerated code (2nd attempt)
 def create_payment(amount: float, customer_id: str):
     if amount <= 0:
-        raise ValueError("결제 금액은 0보다 커야 합니다")
+        raise ValueError("Payment amount must be greater than 0")
     payment = Payment(...)
     return payment
 ```
 
-**효과**: 분 단위로 제약 조건이 정제되어 동일 에러 재발 방지.
+**Effect**: Constraints refined at minute cadence to prevent same error recurrence.
 
-### 4.4 Middle Loop: 스키마 구조 개선
+### 4.4 Middle Loop: Schema Structure Improvement
 
-**시나리오**: PR 리뷰에서 반복 패턴 발견
+**Scenario**: Repeated pattern found in PR review
 
 ```markdown
-## PR 리뷰 메트릭 (7일간)
-- "Currency mismatch" 에러: 12건
-- "Amount precision loss" 에러: 8건
-- 공통 패턴: Money를 float로 처리하여 정밀도 손실
+## PR Review Metrics (7 days)
+- "Currency mismatch" errors: 12 instances
+- "Amount precision loss" errors: 8 instances
+- Common pattern: Handling Money as float causing precision loss
 
-## 온톨로지 갱신
+## Ontology Update
 value_objects:
   - Money:
       currency: "ISO 4217"
-      amount: "decimal(19,4)"  # float → decimal 변경
+      amount: "decimal(19,4)"  # Changed from float → decimal
       invariants:
         - "amount >= 0"
-        - "currency는 null일 수 없음"
+        - "currency cannot be null"
 ```
 
-**효과**: 반복되는 에러 패턴이 온톨로지 스키마에 반영되어 구조적으로 차단됨.
+**Effect**: Repeated error patterns reflected in ontology schema for structural prevention.
 
-### 4.5 Outer Loop: 도메인 모델 재설계
+### 4.5 Outer Loop: Domain Model Redesign
 
-**시나리오**: 운영 인시던트 — P99 지연 시간 SLO 위반
+**Scenario**: Operational incident — P99 latency SLO violation
 
 ```markdown
-## 인시던트 분석
-- 원인: Payment Aggregate가 고객 히스토리까지 포함하여 과도하게 비대
-- 영향: 결제 조회 시 불필요한 데이터 로드 → DB 쿼리 증가
+## Incident Analysis
+- Cause: Payment Aggregate excessively bloated by including customer history
+- Impact: Unnecessary data loading during payment lookup → DB query increase
 
-## 온톨로지 재설계
+## Ontology Redesign
 # Before
 aggregates:
   Payment:
     entities:
-      - Customer (전체 히스토리 포함)
+      - Customer (includes full history)
 
 # After
 aggregates:
   Payment:
     entities:
-      - CustomerReference (ID만 참조)
+      - CustomerReference (ID reference only)
 
-  CustomerProfile:  # 별도 Aggregate로 분리
+  CustomerProfile:  # Separated into distinct Aggregate
     entities:
       - PaymentHistory
 ```
 
-**효과**: Aggregate 경계 재정의를 통해 P99 지연 시간 42% 감소.
+**Effect**: Aggregate boundary redefinition reduces P99 latency by 42%.
 
-## 5. SemanticForge 패턴: Knowledge Graph 통합
+## 5. SemanticForge Pattern: Knowledge Graph Integration
 
 ### 5.1 Knowledge Graph as Constraint Satisfaction Harness
 
-온톨로지를 Knowledge Graph로 구체화하면 **SemanticForge 패턴**을 적용할 수 있습니다. Knowledge Graph가 constraint satisfaction 하네스 역할을 하여 AI가 생성하는 코드의 논리적/구조적 환각을 원천 차단합니다.
+When concretizing ontology as a Knowledge Graph, the **SemanticForge pattern** can be applied. The Knowledge Graph acts as a constraint satisfaction harness, blocking logical/structural hallucinations in AI-generated code at the source.
 
 ```mermaid
 graph LR
     subgraph KG["Knowledge Graph"]
-        ENT["엔티티 노드"]
-        REL["관계 엣지"]
-        CONS["제약 조건"]
+        ENT["Entity Nodes"]
+        REL["Relationship Edges"]
+        CONS["Constraints"]
     end
 
-    subgraph AI["AI 생성 엔진"]
-        GEN["코드 생성"]
-        VAL["제약 검증"]
+    subgraph AI["AI Generation Engine"]
+        GEN["Code Generation"]
+        VAL["Constraint Validation"]
     end
 
-    KG -->|"스키마 주입"| GEN
-    GEN -->|"생성 코드"| VAL
-    VAL -->|"제약 위반 시"| KG
-    VAL -->|"검증 통과"| OUTPUT["검증된 코드"]
+    KG -->|"Schema Injection"| GEN
+    GEN -->|"Generated Code"| VAL
+    VAL -->|"On Constraint Violation"| KG
+    VAL -->|"Validation Pass"| OUTPUT["Validated Code"]
 
     style KG fill:#4caf50,color:#fff
     style AI fill:#2196f3,color:#fff
 ```
 
-### 5.2 SemanticForge 적용 예시
+### 5.2 SemanticForge Application Example
 
-**Knowledge Graph 구조:**
+**Knowledge Graph Structure:**
 
 ```cypher
-// 엔티티 정의
+// Entity definitions
 CREATE (p:Aggregate {name: "Payment"})
 CREATE (pm:Entity {name: "PaymentMethod", type: "enum"})
 CREATE (m:ValueObject {name: "Money"})
 
-// 관계 정의
+// Relationship definitions
 CREATE (p)-[:CONTAINS {cardinality: "1:1"}]->(pm)
 CREATE (p)-[:USES {cardinality: "1:1"}]->(m)
 
-// 제약 조건
+// Constraints
 CREATE (p)-[:INVARIANT {rule: "amount > 0"}]->(m)
 CREATE (p)-[:INVARIANT {rule: "status transition: CREATED → PROCESSING → COMPLETED|FAILED"}]->(p)
 ```
 
-**AI 생성 시 검증:**
+**Validation During AI Generation:**
 
 ```python
-# AI가 생성한 코드
-payment.amount = -100  # 제약 위반
+# AI-generated code
+payment.amount = -100  # Constraint violation
 
-# SemanticForge가 Knowledge Graph를 쿼리하여 검증
+# SemanticForge queries Knowledge Graph for validation
 query = """
 MATCH (p:Aggregate {name: "Payment"})-[:INVARIANT]->(m:ValueObject {name: "Money"})
 WHERE m.rule CONTAINS "amount > 0"
 RETURN m.rule
 """
-# 제약 위반 탐지 → AI에게 재생성 요청
+# Constraint violation detected → Request AI to regenerate
 ```
 
-**효과**: AI가 Knowledge Graph에 인코딩된 제약을 위반하는 코드를 생성할 수 없음.
+**Effect**: AI cannot generate code that violates constraints encoded in the Knowledge Graph.
 
-### 5.3 참고 자료
+### 5.3 References
 
-- [SemanticForge: Knowledge Graph 기반 환각 방지](https://arxiv.org/html/2511.07584v1)
-- Knowledge Graph를 제약 만족 하네스로 활용하는 구체적 패턴 제시
+- [SemanticForge: Hallucination Prevention via Knowledge Graph](https://arxiv.org/html/2511.07584v1)
+- Presents concrete patterns for using Knowledge Graph as constraint satisfaction harness
 
-## 6. HITL(Human-in-the-Loop) 통합
+## 6. HITL (Human-in-the-Loop) Integration
 
-### 6.1 HITL의 전략적 역할
+### 6.1 Strategic Role of HITL
 
-HITL을 자율성의 과도기가 아닌 **온톨로지 진화의 전략적 설계 요소**로 배치합니다. 인간 피드백이 온톨로지 정제의 핵심 신호입니다.
+Position HITL not as a transitional phase of autonomy but as a **strategic design element of ontology evolution**. Human feedback is the core signal for ontology refinement.
 
 ```mermaid
 graph TD
-    AI["AI 생성"] --> HUMAN["인간 검토"]
-    HUMAN -->|"승인"| DEPLOY["배포"]
-    HUMAN -->|"수정 요청"| FEEDBACK["피드백 분석"]
-    FEEDBACK -->|"패턴 추출"| ONT["온톨로지 갱신"]
-    ONT -->|"제약 강화"| AI
+    AI["AI Generation"] --> HUMAN["Human Review"]
+    HUMAN -->|"Approve"| DEPLOY["Deploy"]
+    HUMAN -->|"Request Modification"| FEEDBACK["Feedback Analysis"]
+    FEEDBACK -->|"Extract Patterns"| ONT["Ontology Update"]
+    ONT -->|"Strengthen Constraints"| AI
 
     style HUMAN fill:#ff9800,color:#fff
     style ONT fill:#4caf50,color:#fff
 ```
 
-### 6.2 HITL 통합 효과
+### 6.2 HITL Integration Effects
 
-:::info 정량적 증거
-- **정확도 31% 향상**: AI 생성 코드의 도메인 정확성
-- **False Positive 67% 감소**: 불필요한 에러 알림 감소
-- **에러율 8.3% → 1.2%**: 31일 만에 달성
+:::info Quantitative Evidence
+- **31% improvement in accuracy**: Domain accuracy of AI-generated code
+- **67% reduction in False Positives**: Decrease in unnecessary error alerts
+- **Error rate 8.3% → 1.2%**: Achieved in 31 days
 
-**비용 비교:**
-- 피드백 루프 미적용: $28K 비용, 에러율 8.3%→7.9% (미미한 개선)
-- HITL 기반 피드백 루프: 운영 비용 대폭 감소, 에러율 85% 감소
+**Cost Comparison:**
+- Without feedback loops: $28K cost, error rate 8.3%→7.9% (minimal improvement)
+- With HITL-based feedback loops: Significant reduction in operational costs, 85% error reduction
 :::
 
-### 6.3 HITL 피드백 수집 포인트
+### 6.3 HITL Feedback Collection Points
 
-| 단계 | HITL 개입 지점 | 온톨로지 개선 방향 |
+| Stage | HITL Intervention Point | Ontology Improvement Direction |
 |------|---------------|------------------|
-| **Inception** | Mob Elaboration 검토 | 도메인 제약 정의 정교화 |
-| **Construction** | PR 리뷰 | 엔티티 관계 스키마 갱신 |
-| **Operations** | 인시던트 포스트모템 | 도메인 모델 구조 재설계 |
+| **Inception** | Mob Elaboration review | Refine domain constraint definitions |
+| **Construction** | PR review | Update entity relationship schema |
+| **Operations** | Incident postmortem | Redesign domain model structure |
 
-### 6.4 참고 자료
+### 6.4 References
 
 - [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026-03
 - [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026-03
 
-## 7. Kiro Spec + 온톨로지 통합
+## 7. Kiro Spec + Ontology Integration
 
-### 7.1 온톨로지를 Spec에 임베딩
+### 7.1 Embedding Ontology in Spec
 
-Kiro Spec의 `requirements.md`에 온톨로지를 직접 포함하여 AI 에이전트가 요구사항 분석 단계부터 도메인 제약을 인식하도록 합니다.
+Include ontology directly in Kiro Spec's `requirements.md` so AI agents recognize domain constraints from the requirements analysis stage.
 
-**requirements.md 예시:**
+**requirements.md Example:**
 
 ```markdown
-# Payment Service 배포 요구사항
+# Payment Service Deployment Requirements
 
-## 기능 요구사항
-- REST API 엔드포인트: /api/v1/payments
-- DynamoDB 테이블과 연동
-- SQS를 통한 비동기 이벤트 처리
+## Functional Requirements
+- REST API endpoint: /api/v1/payments
+- Integration with DynamoDB table
+- Asynchronous event processing via SQS
 
-## 비기능 요구사항
-- P99 지연 시간: < 200ms
-- 가용성: 99.95%
-- 자동 스케일링: 2-20 Pod
+## Non-Functional Requirements
+- P99 latency: < 200ms
+- Availability: 99.95%
+- Auto-scaling: 2-20 Pods
 
-## 도메인 온톨로지
+## Domain Ontology
 
 ### Aggregates
 #### Payment
 - **Invariants:**
-  - amount는 0보다 커야 한다
-  - status 전이: CREATED → PROCESSING → COMPLETED | FAILED
-  - FAILED 상태에서 재시도는 최대 2회
+  - amount must be greater than 0
+  - status transition: CREATED → PROCESSING → COMPLETED | FAILED
+  - Maximum 2 retries from FAILED state
 
 - **Entities:**
   - PaymentMethod: enum[CARD, BANK, WALLET]
@@ -468,205 +464,205 @@ Kiro Spec의 `requirements.md`에 온톨로지를 직접 포함하여 AI 에이�
   - Money: { currency: ISO 4217, amount: decimal(19,4) }
 
 - **Domain Events:**
-  - PaymentCreated: { trigger: "결제 요청 수신", data: [paymentId, amount, customerId] }
-  - PaymentCompleted: { trigger: "PG 승인 완료", data: [paymentId, pgTransactionId] }
-  - PaymentFailed: { trigger: "PG 거부 또는 타임아웃", data: [paymentId, errorCode, reason] }
+  - PaymentCreated: { trigger: "Payment request received", data: [paymentId, amount, customerId] }
+  - PaymentCompleted: { trigger: "PG approval completed", data: [paymentId, pgTransactionId] }
+  - PaymentFailed: { trigger: "PG rejection or timeout", data: [paymentId, errorCode, reason] }
 
 ### Relationships
 - Payment CONTAINS PaymentMethod (1:1)
 - Customer INITIATES Payment (1:N)
 
 ### Constraints
-- 동일 Customer의 동시 결제는 최대 3건
-- PROCESSING 상태는 최대 30초 유지, 초과 시 자동 FAILED 전환
+- Maximum 3 concurrent payments per Customer
+- PROCESSING state maintained for max 30 seconds, auto-transition to FAILED if exceeded
 ```
 
-### 7.2 온톨로지 기반 코드 생성
+### 7.2 Ontology-Based Code Generation
 
-Kiro AI 에이전트는 이 온톨로지를 컨텍스트 윈도우에 주입하여:
+Kiro AI agent injects this ontology into the context window to:
 
-1. **코드 생성 시**: 엔티티 관계와 invariant를 자동 준수
+1. **During code generation**: Automatically comply with entity relationships and invariants
    ```go
    func CreatePayment(amount decimal.Decimal, customerID uuid.UUID) (*Payment, error) {
        if amount.LessThanOrEqual(decimal.Zero) {
-           return nil, errors.New("결제 금액은 0보다 커야 합니다")
+           return nil, errors.New("Payment amount must be greater than 0")
        }
-       // 온톨로지 제약 자동 적용
+       // Ontology constraints automatically applied
    }
    ```
 
-2. **테스트 생성 시**: 도메인 이벤트의 전이 경로를 기반으로 경계 케이스 자동 도출
+2. **During test generation**: Automatically derive boundary cases based on domain event transition paths
    ```go
    func TestPaymentStatusTransition(t *testing.T) {
-       // 온톨로지의 상태 전이 규칙을 기반으로 자동 생성
+       // Auto-generated based on ontology state transition rules
        t.Run("CREATED to PROCESSING", ...)
        t.Run("PROCESSING to COMPLETED", ...)
        t.Run("Invalid transition: COMPLETED to CREATED", ...)
    }
    ```
 
-3. **코드 리뷰 시**: 온톨로지 위반 자동 탐지
+3. **During code review**: Automatically detect ontology violations
    ```markdown
-   ## 온톨로지 위반 탐지
-   - ❌ Line 42: amount가 음수일 수 있음 (invariant 위반)
-   - ❌ Line 58: COMPLETED → PROCESSING 전이 시도 (잘못된 상태 전환)
+   ## Ontology Violation Detection
+   - ❌ Line 42: amount can be negative (invariant violation)
+   - ❌ Line 58: Attempting COMPLETED → PROCESSING transition (incorrect state transition)
    ```
 
-## 8. 온톨로지와 생산성: ROI 증거
+## 8. Ontology and Productivity: ROI Evidence
 
-### 8.1 에러율 감소 사례
+### 8.1 Error Rate Reduction Case
 
-:::tip 실전 데이터
-**Before (온톨로지 미적용):**
-- 초기 에러율: 8.3%
-- 투자: $28K
-- 31일 후 에러율: 7.9%
-- 개선: 0.4%p (미미)
+:::tip Real-World Data
+**Before (without ontology):**
+- Initial error rate: 8.3%
+- Investment: $28K
+- Error rate after 31 days: 7.9%
+- Improvement: 0.4%p (minimal)
 
-**After (온톨로지 + 피드백 루프 적용):**
-- 초기 에러율: 8.3%
-- 31일 후 에러율: 1.2%
-- 개선: 7.1%p (85% 감소)
-- 추가 효과: False Positive 67% 감소, 정확도 31% 향상
+**After (with ontology + feedback loops):**
+- Initial error rate: 8.3%
+- Error rate after 31 days: 1.2%
+- Improvement: 7.1%p (85% reduction)
+- Additional effects: 67% False Positive reduction, 31% accuracy improvement
 :::
 
-### 8.2 생산성 지표
+### 8.2 Productivity Metrics
 
-| 지표 | 온톨로지 미적용 | 온톨로지 적용 | 개선율 |
+| Metric | Without Ontology | With Ontology | Improvement |
 |------|---------------|-------------|--------|
-| **PR 리뷰 시간** | 평균 45분 | 평균 18분 | 60% 감소 |
-| **테스트 커버리지** | 68% | 89% | 31%p 증가 |
-| **프로덕션 인시던트** | 월 12건 | 월 2건 | 83% 감소 |
-| **평균 수정 시간** | 2.3일 | 0.4일 | 83% 감소 |
+| **PR Review Time** | Average 45 min | Average 18 min | 60% reduction |
+| **Test Coverage** | 68% | 89% | 31%p increase |
+| **Production Incidents** | 12/month | 2/month | 83% reduction |
+| **Average Fix Time** | 2.3 days | 0.4 days | 83% reduction |
 
-### 8.3 참고 자료
+### 8.3 References
 
 - [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
 - [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026-03
 
-## 9. AIDLC 3단계별 온톨로지 적용
+## 9. Ontology Application Across AIDLC 3 Phases
 
-### 9.1 Inception: 도메인 온톨로지 정의
+### 9.1 Inception: Domain Ontology Definition
 
-**활동:**
-- Mob Elaboration을 통한 도메인 개념 추출
-- Aggregate, Entity, Value Object, Domain Event 정의
-- 제약 조건(invariant) 명시
-- Knowledge Graph 초기 구축
+**Activities:**
+- Extract domain concepts through Mob Elaboration
+- Define Aggregate, Entity, Value Object, Domain Event
+- Specify constraints (invariants)
+- Initial Knowledge Graph construction
 
-**산출물:**
-- `requirements.md` 내 도메인 온톨로지 섹션
-- Knowledge Graph 스키마 (Neo4j/RDF)
+**Deliverables:**
+- Domain ontology section in `requirements.md`
+- Knowledge Graph schema (Neo4j/RDF)
 
-**온톨로지 피드백:**
-- Inner Loop: Mob Elaboration 세션 내 즉각적 정제
-- 목표: 요구사항 정제 루프를 통해 온톨로지 초안 완성
+**Ontology Feedback:**
+- Inner Loop: Immediate refinement within Mob Elaboration sessions
+- Goal: Complete ontology draft through requirements refinement loop
 
-### 9.2 Construction: 코드 생성 제약
+### 9.2 Construction: Code Generation Constraints
 
-**활동:**
-- 온톨로지를 AI 에이전트 컨텍스트에 주입
-- 온톨로지 기반 코드 생성 및 테스트 생성
-- PR 리뷰 시 온톨로지 위반 자동 탐지
+**Activities:**
+- Inject ontology into AI agent context
+- Ontology-based code generation and test generation
+- Automatically detect ontology violations during PR review
 
-**산출물:**
-- 온톨로지 제약을 준수하는 코드
-- 도메인 이벤트 기반 통합 테스트
-- PR 리뷰 메트릭 (온톨로지 위반 횟수)
+**Deliverables:**
+- Code complying with ontology constraints
+- Integration tests based on domain events
+- PR review metrics (ontology violation count)
 
-**온톨로지 피드백:**
-- Inner Loop: 테스트 실패 시 제약 조건 추가
-- Middle Loop: PR 리뷰 패턴 분석 → 스키마 갱신
-- 목표: 반복 에러 패턴을 온톨로지에 반영하여 구조적 차단
+**Ontology Feedback:**
+- Inner Loop: Add constraints on test failures
+- Middle Loop: PR review pattern analysis → schema updates
+- Goal: Reflect repeated error patterns in ontology for structural prevention
 
-### 9.3 Operations: 운영 컨텍스트 모델 진화
+### 9.3 Operations: Operational Context Model Evolution
 
-**활동:**
-- 운영 관찰성 데이터를 온톨로지 피드백으로 활용
-- 인시던트 분석을 통한 도메인 모델 재설계
-- SLO 위반 패턴을 제약 조건으로 인코딩
+**Activities:**
+- Use operational observability data as ontology feedback
+- Redesign domain model through incident analysis
+- Encode SLO violation patterns as constraints
 
-**산출물:**
-- 운영 데이터 기반 온톨로지 갱신
-- 인시던트 포스트모템 → 온톨로지 재설계 문서
-- AIOps 통합: 관찰성 데이터 → 온톨로지 자동 정제
+**Deliverables:**
+- Ontology updates based on operational data
+- Incident postmortem → ontology redesign documents
+- AIOps integration: Observability data → automatic ontology refinement
 
-**온톨로지 피드백:**
-- Outer Loop: 주 단위 인시던트 리뷰 → 도메인 구조 재설계
-- 목표: 운영 경험을 온톨로지에 지속적으로 반영 (AIOps → AIDLC)
+**Ontology Feedback:**
+- Outer Loop: Weekly incident review → domain structure redesign
+- Goal: Continuously reflect operational experience in ontology (AIOps → AIDLC)
 
-### 9.4 3단계 통합 효과
+### 9.4 Three-Phase Integration Effect
 
 ```mermaid
 graph LR
-    INC["Inception<br/>온톨로지 정의"] -->|"제약 전달"| CONS["Construction<br/>코드 생성 제약"]
-    CONS -->|"검증 결과"| OPS["Operations<br/>운영 컨텍스트 진화"]
-    OPS -->|"운영 피드백"| INC
+    INC["Inception<br/>Ontology Definition"] -->|"Pass Constraints"| CONS["Construction<br/>Code Generation Constraints"]
+    CONS -->|"Validation Results"| OPS["Operations<br/>Operational Context Evolution"]
+    OPS -->|"Operational Feedback"| INC
 
     style INC fill:#e8f5e9,stroke:#4caf50
     style CONS fill:#e3f2fd,stroke:#2196f3
     style OPS fill:#fff3e0,stroke:#ff9800
 ```
 
-**효과:**
-- Inception에서 정의한 온톨로지가 Construction에서 코드 생성을 제약
-- Construction에서 발견한 패턴이 온톨로지를 정제
-- Operations에서 발생한 인시던트가 온톨로지 구조를 재설계
-- 순환 피드백을 통해 온톨로지가 지속적으로 진화
+**Effects:**
+- Ontology defined in Inception constrains code generation in Construction
+- Patterns discovered in Construction refine ontology
+- Incidents in Operations redesign ontology structure
+- Ontology continuously evolves through circular feedback
 
-## 10. 관련 문서
+## 10. Related Documents
 
-### 10.1 AIDLC 신뢰성 듀얼 축
+### 10.1 AIDLC Reliability Dual Axes
 
-온톨로지는 **WHAT + WHEN**(도메인 제약 정의)을 담당하며, **HOW**(검증 메커니즘)는 [하네스 엔지니어링](./harness-engineering.md)이 담당합니다. 두 축의 협력으로 AI 생성 코드의 신뢰성을 보장합니다.
+Ontology handles **WHAT + WHEN** (domain constraint definition), while **HOW** (verification mechanism) is handled by [Harness Engineering](./harness-engineering.md). Collaboration between the two axes ensures reliability of AI-generated code.
 
 ```mermaid
 graph LR
-    subgraph Ontology["온톨로지 (WHAT + WHEN)"]
-        DEF["도메인 제약 정의"]
-        FB["피드백 루프<br/>(자체 진화)"]
-        DEF -->|"운영 데이터"| FB
-        FB -->|"정제"| DEF
+    subgraph Ontology["Ontology (WHAT + WHEN)"]
+        DEF["Define Domain Constraints"]
+        FB["Feedback Loop<br/>(Self-Evolution)"]
+        DEF -->|"Operational Data"| FB
+        FB -->|"Refinement"| DEF
     end
 
-    subgraph Harness["하네스 엔지니어링 (HOW)"]
-        VAL["구조화된 검증"]
-        ARCH["아키텍처적 제약"]
+    subgraph Harness["Harness Engineering (HOW)"]
+        VAL["Structured Validation"]
+        ARCH["Architectural Constraints"]
     end
 
-    Ontology -->|"제약 조건 전달"| Harness
-    Harness -->|"검증 결과 → 온톨로지 진화"| Ontology
+    Ontology -->|"Pass Constraints"| Harness
+    Harness -->|"Validation Results → Ontology Evolution"| Ontology
 
     style Ontology fill:#4caf50,color:#fff
     style Harness fill:#2196f3,color:#fff
 ```
 
-### 10.2 방법론 통합
+### 10.2 Methodology Integration
 
-- **[DDD 통합](./ddd-integration.md)**: DDD 개념을 온톨로지로 형식화하는 구체적 방법
-- **[하네스 엔지니어링](./harness-engineering.md)**: 온톨로지가 정의한 제약을 아키텍처적으로 검증하는 방법
+- **[DDD Integration](./ddd-integration.md)**: Concrete methods for formalizing DDD concepts into ontology
+- **[Harness Engineering](./harness-engineering.md)**: Methods for architecturally validating constraints defined by ontology
 
-### 10.3 기업 적용
+### 10.3 Enterprise Application
 
-- **[비용 효과](../enterprise/cost-estimation.md)**: 온톨로지 투자 대비 ROI 분석
-- **[도입 전략](../enterprise/adoption-strategy.md)**: 기존 조직에 온톨로지 기반 개발을 점진적으로 도입하는 전략
+- **[Cost Effectiveness](../enterprise/cost-estimation.md)**: ROI analysis of ontology investment
+- **[Adoption Strategy](../enterprise/adoption-strategy.md)**: Strategy for gradually introducing ontology-based development to existing organizations
 
-### 10.4 운영 통합
+### 10.4 Operations Integration
 
-- **[자율 대응](../operations/autonomous-response.md)**: Outer Loop의 운영 피드백을 자동화하는 AIOps 통합
+- **[Autonomous Response](../operations/autonomous-response.md)**: AIOps integration automating Outer Loop operational feedback
 
-## 참고 자료
+## References
 
-### 핵심 논문 및 아티클
+### Core Papers and Articles
 
 1. [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
 2. [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026-03
-3. [SemanticForge: Knowledge Graph 기반 환각 방지](https://arxiv.org/html/2511.07584v1)
+3. [SemanticForge: Hallucination Prevention via Knowledge Graph](https://arxiv.org/html/2511.07584v1)
 4. [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026-03
 5. [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026-03
 
-### 관련 프레임워크
+### Related Frameworks
 
-- **Kiro**: MCP 네이티브 AI 코딩 에이전트, 온톨로지 기반 코드 생성 지원
-- **Neo4j**: Knowledge Graph 구축 및 제약 검증
-- **SemanticForge**: Knowledge Graph 기반 환각 방지 패턴
+- **Kiro**: MCP native AI coding agent, supports ontology-based code generation
+- **Neo4j**: Knowledge Graph construction and constraint validation
+- **SemanticForge**: Hallucination prevention pattern via Knowledge Graph

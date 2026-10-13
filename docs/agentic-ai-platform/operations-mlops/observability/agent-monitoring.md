@@ -1,11 +1,11 @@
 ---
-title: AI Agent 모니터링 및 운영
-description: Langfuse 기반 Agent 모니터링 운영 전용 문서 — 모니터링 아키텍처·핵심 메트릭·PromQL·알림·비용 추적 (도구 비교는 LLMOps Observability 문서 참조)
+title: AI Agent Monitoring and Operations
+description: Langfuse-based agent monitoring operations — monitoring architecture, key metrics, PromQL, alerting, and cost tracking (for tool comparison, see LLMOps Observability)
 created: "2026-02-05"
 last_update:
-  date: 2026-09-22
-  author: YoungJoon Jeong
-reading_time: 11
+  date: 2026-09-21
+  author: devfloor9
+reading_time: 15
 tags:
   - eks
   - langfuse
@@ -17,7 +17,7 @@ tags:
   - operations
   - alerting
   - scope:ops
-sidebar_label: Agent 모니터링 & 운영
+sidebar_label: Agent Monitoring & Operations
 sidebar_position: 1
 category: genai-aiml
 ---
@@ -31,84 +31,84 @@ import {
   MaturityModelTable
 } from '@site/src/components/AgentMonitoringTables';
 
-이 문서에서는 Agentic AI 애플리케이션의 모니터링 아키텍처, 핵심 메트릭 설계, 알림 전략을 개념 수준에서 다룹니다.
+This document covers the monitoring architecture, key metric design, and alerting strategy for Agentic AI applications at a conceptual level.
 
-:::info 실전 배포 가이드
-Langfuse Helm 배포, AMP/AMG 구성, ServiceMonitor YAML, Grafana 대시보드 JSON 등 실전 구성은 [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md)를 참조하세요.
+:::info Production Deployment Guide
+For Langfuse Helm deployment, AMP/AMG configuration, ServiceMonitor YAML, and Grafana dashboard JSON, see the [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md).
 :::
 
-## 1. 개요
+## 1. Overview
 
-Agentic AI 애플리케이션은 복잡한 추론 체인과 다양한 도구 호출을 수행하기 때문에, 전통적인 APM(Application Performance Monitoring) 도구만으로는 충분한 가시성을 확보하기 어렵습니다. LLM 특화 관측성 도구인 Langfuse와 LangSmith는 다음과 같은 핵심 기능을 제공합니다:
+Agentic AI applications perform complex reasoning chains and various tool calls, making it difficult to achieve sufficient visibility with traditional APM (Application Performance Monitoring) tools alone. LLM-specialized observability tools like Langfuse and LangSmith provide the following core capabilities:
 
-- **트레이스 추적**: LLM 호출, 도구 실행, 에이전트 추론 과정의 전체 흐름 추적
-- **토큰 사용량 분석**: 입력/출력 토큰 수 및 비용 계산
-- **품질 평가**: 응답 품질 점수화 및 피드백 수집
-- **디버깅**: 프롬프트 및 응답 내용 검토를 통한 문제 진단
+- **Trace tracking**: Full flow tracking of LLM calls, tool execution, and agent reasoning processes
+- **Token usage analysis**: Input/output token counts and cost calculation
+- **Quality evaluation**: Response quality scoring and feedback collection
+- **Debugging**: Problem diagnosis through prompt and response content review
 
-:::info 대상 독자
-이 문서는 플랫폼 운영자, MLOps 엔지니어, AI 개발자를 대상으로 합니다. Kubernetes와 Python에 대한 기본적인 이해가 필요합니다.
+:::info Target Audience
+This document is intended for platform operators, MLOps engineers, and AI developers. Basic understanding of Kubernetes and Python is required.
 :::
 
 ---
 
-## 2. 모니터링 아키텍처
+## 2. Monitoring Architecture
 
-### Langfuse 아키텍처 개요
+### Langfuse Architecture Overview
 
-Langfuse v3 (2024-12+)는 다음 컴포넌트로 구성됩니다. v3는 ClickHouse+Redis+S3 아키텍처로, v2 대비 셀프호스팅 복잡도가 증가했습니다:
+Langfuse v3.162.0+ consists of the following components:
 
 ```mermaid
 flowchart TB
-    subgraph Clients["AI 애플리케이션"]
+    subgraph Clients["AI Applications"]
         AGENT1[Agent 1]
         AGENT2[Agent 2]
         AGENTN[Agent N]
     end
 
-    subgraph Langfuse["Langfuse 스택"]
+    subgraph Langfuse["Langfuse Stack"]
         WEB[Web UI<br/>Next.js]
         API[API Server<br/>tRPC]
         WORKER[Background<br/>Worker]
     end
 
-    subgraph Storage["스토리지"]
-        PG[(PostgreSQL<br/>메타데이터)]
-        REDIS[(Redis<br/>캐시/큐)]
+    subgraph Storage["Storage"]
+        PG[(PostgreSQL<br/>Metadata)]
+        REDIS[(Redis<br/>Cache/Queue)]
         S3[S3<br/>Blob]
     end
 
-    AGENT1 -->|트레이스| API
-    AGENT2 -->|트레이스| API
-    AGENTN -->|트레이스| API
-    WEB -->|조회| API
+    AGENT1 -->|Traces| API
+    AGENT2 -->|Traces| API
+    AGENTN -->|Traces| API
+    WEB -->|Query| API
     API --> PG
     API --> REDIS
     WORKER --> PG
     WORKER --> REDIS
-    WORKER -->|아티팩트| S3
+    WORKER -->|Artifacts| S3
 
     style Clients fill:#ffd93d
     style Langfuse fill:#4285f4
     style Storage fill:#326ce5
 ```
 
-### AMP/AMG 통합 데이터 흐름
+### AMP/AMG Integrated Data Flow
 
 ```mermaid
 flowchart TB
-    subgraph Sources["메트릭 수집원"]
+    subgraph Sources["Metric Sources"]
         VLLM[vLLM<br/>:8000/metrics]
         DCGM[DCGM Exporter<br/>:9400/metrics]
         NODE[Node Exporter<br/>:9100/metrics]
         KGATEWAY[kgateway<br/>:9091/metrics]
     end
 
-    subgraph Collector["수집기"]
+    subgraph Collector["Collector"]
         PROM[Prometheus<br/>ServiceMonitor]
     end
 
-    subgraph AWS["AWS 관리형 서비스"]
+    subgraph AWS["AWS Managed Services"]
         AMP[Amazon Managed<br/>Prometheus]
         AMG[Amazon Managed<br/>Grafana]
     end
@@ -130,52 +130,52 @@ flowchart TB
     style AMG fill:#ff9900,stroke:#333
 ```
 
-### 모니터링 데이터 계층
+### Monitoring Data Layers
 
-| 계층 | 수집 도구 | 메트릭 패턴 | 확인 가능 항목 |
-|------|----------|-----------|--------------|
-| **LLM 추론** | Langfuse | trace, generation | 토큰 사용량, 비용, TTFT, 사용자별 패턴 |
-| **모델 서버** | vLLM Prometheus | `vllm_*` | 요청 수, 배치 크기, KV cache 사용률, TPS |
-| **GPU** | DCGM Exporter | `DCGM_FI_DEV_*` | GPU 활용도, 온도, 전력, 메모리 사용량 |
-| **인프라** | Node Exporter | `node_*` | CPU, 메모리, 네트워크, 디스크 I/O |
-| **게이트웨이** | kgateway | `envoy_*` | 요청 수, 지연 시간, 에러율, 업스트림 상태 |
+| Layer | Collection Tool | Metric Pattern | Visible Items |
+|-------|----------------|---------------|---------------|
+| **LLM Inference** | Langfuse | trace, generation | Token usage, cost, TTFT, per-user patterns |
+| **Model Server** | vLLM Prometheus | `vllm_*` | Request count, batch size, KV cache utilization, TPS |
+| **GPU** | DCGM Exporter | `DCGM_FI_DEV_*` | GPU utilization, temperature, power, memory usage |
+| **Infrastructure** | Node Exporter | `node_*` | CPU, memory, network, disk I/O |
+| **Gateway** | kgateway | `envoy_*` | Request count, latency, error rate, upstream status |
 
 ---
 
-## 3. 핵심 모니터링 메트릭
+## 3. Key Monitoring Metrics
 
-Agentic AI 애플리케이션에서 추적해야 할 핵심 메트릭을 정의합니다.
+Defines the key metrics to track in Agentic AI applications.
 
-### 메트릭 카테고리
+### Metric Categories
 
 ```mermaid
 flowchart TB
-    subgraph Latency["지연시간 메트릭"]
-        E2E[E2E 지연]
-        LLM_LAT[LLM 추론]
-        TOOL_LAT[도구 실행]
-        RETRIEVAL_LAT[검색 지연]
+    subgraph Latency["Latency Metrics"]
+        E2E[E2E Latency]
+        LLM_LAT[LLM Inference]
+        TOOL_LAT[Tool Execution]
+        RETRIEVAL_LAT[Retrieval Latency]
     end
 
-    subgraph Tokens["토큰 사용량"]
-        INPUT_TOK[입력 토큰]
-        OUTPUT_TOK[출력 토큰]
-        TOTAL_TOK[총 토큰]
-        COST[비용 USD]
+    subgraph Tokens["Token Usage"]
+        INPUT_TOK[Input Tokens]
+        OUTPUT_TOK[Output Tokens]
+        TOTAL_TOK[Total Tokens]
+        COST[Cost USD]
     end
 
-    subgraph Errors["오류율"]
-        LLM_ERR[LLM 오류]
-        TOOL_ERR[도구 오류]
-        TIMEOUT[타임아웃]
+    subgraph Errors["Error Rate"]
+        LLM_ERR[LLM Errors]
+        TOOL_ERR[Tool Errors]
+        TIMEOUT[Timeouts]
         RATE_LIMIT[Rate Limit]
     end
 
-    subgraph Traces["트레이스 분석"]
-        CHAIN_LEN[체인 길이]
-        TOOL_CALLS[도구 호출]
-        ITERATIONS[반복 횟수]
-        SUCCESS[성공률]
+    subgraph Traces["Trace Analysis"]
+        CHAIN_LEN[Chain Length]
+        TOOL_CALLS[Tool Calls]
+        ITERATIONS[Iterations]
+        SUCCESS[Success Rate]
     end
 
     style Latency fill:#4285f4
@@ -184,84 +184,84 @@ flowchart TB
     style Traces fill:#fbbc04
 ```
 
-### Latency 메트릭
+### Latency Metrics
 
 <LatencyMetricsTable />
 
-### Token Usage 메트릭
+### Token Usage Metrics
 
 <TokenUsageMetricsTable />
 
-### Error Rate 메트릭
+### Error Rate Metrics
 
 <ErrorRateMetricsTable />
 
 ---
 
-## 4. PromQL 쿼리 레퍼런스
+## 4. PromQL Query Reference
 
-### GPU 메트릭
+### GPU Metrics
 
 ```prometheus
-# 전체 GPU 평균 활용도
+# Overall GPU average utilization
 avg(DCGM_FI_DEV_GPU_UTIL)
 
-# 노드별 GPU 활용도
+# Per-node GPU utilization
 avg(DCGM_FI_DEV_GPU_UTIL) by (Hostname)
 
-# GPU 메모리 사용률
+# GPU memory utilization
 avg(DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE * 100) by (gpu)
 ```
 
-### vLLM 메트릭
+### vLLM Metrics
 
 ```prometheus
-# 전체 TPS (초당 생성 토큰)
+# Overall TPS (tokens generated per second)
 rate(vllm_generation_tokens_total[5m])
 
-# 모델별 TPS
+# Per-model TPS
 sum(rate(vllm_generation_tokens_total[5m])) by (model)
 
 # TTFT P99 (Time to First Token)
-histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))
+histogram_quantile(0.99, rate(vllm_time_to_first_token_seconds_bucket[5m]))
 
 # TTFT P95
-histogram_quantile(0.95, rate(vllm:time_to_first_token_seconds_bucket[5m]))
+histogram_quantile(0.95, rate(vllm_time_to_first_token_seconds_bucket[5m]))
 
-# E2E 지연 P99
+# E2E Latency P99
 histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))
 
-# 배치 크기 평균
+# Average batch size
 avg(vllm_num_requests_running)
 ```
 
-### Gateway 메트릭
+### Gateway Metrics
 
 ```prometheus
-# 5xx 에러율 (%)
+# 5xx error rate (%)
 rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]) 
 / 
 rate(envoy_http_downstream_rq_total[5m]) * 100
 
-# 업스트림 헬스 체크 실패율
+# Upstream health check failure rate
 sum(rate(envoy_cluster_upstream_cx_connect_fail[5m])) by (envoy_cluster_name)
 ```
 
-### 비용 메트릭
+### Cost Metrics
 
 ```prometheus
-# 일별 총 비용
+# Daily total cost
 sum(increase(llm_cost_dollars_total[24h]))
 
-# 테넌트별 일별 비용
+# Per-tenant daily cost
 sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)
 
-# 모델별 비용 비율
+# Per-model cost ratio
 sum(increase(llm_cost_dollars_total[24h])) by (model)
 / ignoring(model) group_left
 sum(increase(llm_cost_dollars_total[24h]))
 
-# 예산 대비 사용률 (월간)
+# Budget utilization (monthly)
 sum(increase(llm_cost_dollars_total[30d])) by (tenant_id)
 / on(tenant_id) group_left
 tenant_monthly_budget_usd
@@ -269,169 +269,105 @@ tenant_monthly_budget_usd
 
 ---
 
-## 5. 알림 전략
+## 5. Alerting Strategy
 
-### 알림 임계값 설계
+### Alert Threshold Design
 
-| 알림 | 조건 | 심각도 | 지속 시간 |
-|------|------|--------|----------|
-| **Agent High Latency** | P99 지연 > 10초 | Warning | 5분 |
-| **Agent High Error Rate** | 에러율 > 5% | Critical | 5분 |
-| **LLM Rate Limit** | Rate limit 에러 > 10건/5분 | Warning | 2분 |
-| **Daily Cost Budget** | 일일 비용 > $100 | Warning | 즉시 |
-| **GPU High Temperature** | GPU 온도 > 85도 | Warning | 5분 |
-| **GPU Memory Full** | GPU 메모리 > 95% | Critical | 3분 |
-| **vLLM High Latency** | P99 E2E 지연 > 30초 | Warning | 5분 |
+| Alert | Condition | Severity | Duration |
+|-------|----------|----------|----------|
+| **Agent High Latency** | P99 latency > 10s | Warning | 5 min |
+| **Agent High Error Rate** | Error rate > 5% | Critical | 5 min |
+| **LLM Rate Limit** | Rate limit errors > 10/5min | Warning | 2 min |
+| **Daily Cost Budget** | Daily cost > $100 | Warning | Immediate |
+| **GPU High Temperature** | GPU temp > 85C | Warning | 5 min |
+| **GPU Memory Full** | GPU memory > 95% | Critical | 3 min |
+| **vLLM High Latency** | P99 E2E latency > 30s | Warning | 5 min |
 
-### 알림 계층 구조
+### Alert Hierarchy
 
-1. **인프라 계층**: GPU 온도, 메모리, 전력 이상
-2. **모델 서버 계층**: vLLM 지연 증가, KV cache 부족
-3. **애플리케이션 계층**: Agent 에러율, Rate limit
-4. **비즈니스 계층**: 비용 초과, SLA 위반
+1. **Infrastructure layer**: GPU temperature, memory, power anomalies
+2. **Model server layer**: vLLM latency increase, KV cache shortage
+3. **Application layer**: Agent error rate, Rate limit
+4. **Business layer**: Cost overrun, SLA violations
 
-:::tip 모니터링 베스트 프랙티스
+:::tip Monitoring Best Practices
 
-1. **계층별 메트릭 연결**: LLM 요청이 늘면 GPU 활용도가 오르고 인프라 부하가 커지는 상관관계를 분석
-2. **이상 탐지**: P99 지연이 갑자기 증가하면 GPU 온도나 메모리 사용량 동시 확인
-3. **용량 계획**: 평균 GPU 활용도가 70% 이상이면 추가 GPU 노드 프로비저닝 고려
-4. **비용 최적화**: TTFT가 낮은 모델을 우선 사용하여 사용자 경험 개선 + 처리량 증가
+1. **Cross-layer metric correlation**: Analyze correlations — LLM request increase -> GPU utilization rise -> infrastructure load increase
+2. **Anomaly detection**: When P99 latency suddenly increases, simultaneously check GPU temperature and memory usage
+3. **Capacity planning**: Consider provisioning additional GPU nodes when average GPU utilization exceeds 70%
+4. **Cost optimization**: Prioritize models with lower TTFT to improve user experience + increase throughput
 :::
 
 ---
 
-## 6. Cascade Fallback 전략
+## 6. Cost Tracking
 
-Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 시에도 무중단 서비스를 유지할 수 있습니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
+### Cost Tracking Concepts
 
-```mermaid
-flowchart LR
-    C[Client App] --> BF[Bifrost Gateway]
+This section covers the **observation** of cost — metric collection, PromQL queries, and dashboards. For the methodology of **allocating** observed costs to tenants (showback/chargeback) and budget policy design, see [LLM FinOps — Chargeback and Cost Allocation](../governance/llm-finops-chargeback.md); for gateway-level budget enforcement, see [AI Gateway Multi-Tenancy](../governance/ai-gateway-multi-tenancy.md).
 
-    subgraph SelfHosted["Self-Hosted (EKS)"]
-        LLMD[llm-d + vLLM<br/>Qwen3-32B / GLM-5]
-    end
+Track LLM usage costs by the following criteria:
 
-    subgraph Managed["AWS Managed"]
-        BR[Amazon Bedrock<br/>Claude Sonnet<br/>Nova Pro]
-    end
+- **Per-model**: Total cost and request count per model, identifying the most expensive models
+- **Per-tenant**: Per-tenant/team daily token usage and budget utilization
+- **Per-time**: Peak time analysis, cost trends
 
-    BF -->|"1차: Self-hosted"| LLMD
-    BF -->|"2차: Fallback"| BR
+### Per-Model Cost Reference (2026-04 baseline)[^1]
 
-    LLMD -.->|"500/502/503/timeout"| BF
-    BF -.->|"자동 전환"| BR
+| Tier | Model | Input ($/1M tok) | Output ($/1M tok) | Features |
+|------|-------|----------------|----------------|----------|
+| **Frontier** | Claude Opus 4.7 / 4.8 | $5 | $25 | Highest quality reasoning |
+| **Frontier** | GPT-4.1 / o3 | $10 | $30 | Complex reasoning |
+| **Frontier** | Gemini 2.5 Pro | $1.25 | $5 | Enhanced multimodal |
+| **Balanced** | Claude Sonnet 4.6 | $3 | $15 | Quality-cost balance |
+| **Balanced** | GPT-4.1 mini | $0.40 | $1.60 | Fast inference |
+| **Balanced** | Gemini 2.5 Flash | $0.10 | $0.40 | High throughput |
+| **Fast/Cheap** | Claude Haiku 4.5 | $0.80 | $4 | Simple tasks |
+| **Fast/Cheap** | GPT-4.1 nano / o4-mini | $0.15 | $0.60 | Ultra-low cost |
+| **Fast/Cheap** | Gemini 2.5 Flash-Lite | $0.05 | $0.20 | Minimal latency |
+| **Open-weight** | DeepSeek V3.1 | Self-hosted | Self-hosted | Open license |
+| **Open-weight** | Llama 4 Scout | Self-hosted | Self-hosted | Meta official |
+| **Open-weight** | Qwen3-32B | Self-hosted | Self-hosted | Alibaba Cloud (largest Qwen3 dense model) |
 
-    style BF fill:#ff9900,color:#fff
-    style LLMD fill:#326ce5,color:#fff
-    style BR fill:#ff6b6b,color:#fff
-```
+[^1]: As of 2026-04-17. For latest pricing, see official pricing pages: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
 
-### Fallback 조건 설정
+:::tip Cost Optimization Tips
 
-Bifrost는 요청 본문의 `fallbacks` 배열과 governance `routing_rules`(CEL 표현식 + weighted targets)로 폴백을 구성합니다. 폴백 트리거는 5xx/429 등 재시도 가능한 에러로 하드코딩되어 있습니다(status code/latency/error-rate 기반 조건부 폴백은 2026-05 기준 feature request, issue #3261).
-
-```yaml
-# bifrost Helm values - governance routing_rules 예시
-routing_rules:
-  - name: cost-optimized-cascade
-    match: "request.model == 'qwen3-32b'"
-    targets:
-      - provider: "self-hosted"
-        model: "qwen3-32b"
-        weight: 80
-      - provider: "bedrock"
-        model: "claude-sonnet"
-        weight: 20
-    fallbacks:
-      - "bedrock/claude-sonnet"  # 순서대로 시도
-```
-
-### 가용성·비용 관점 비교
-
-| 관점 | Self-hosted 단독 | Cascade (Self-hosted + Bedrock) |
-|------|----------------|-------------------------------|
-| **가용성** | GPU 장애 시 서비스 중단 | Bedrock 폴백으로 무중단 |
-| **비용** | GPU 고정 비용 | 평시 Self-hosted(저비용) + 피크 Bedrock(종량제) |
-| **용량 계획** | 피크 트래픽 기준 GPU 확보 | 기본 트래픽만 GPU, 초과분 Bedrock |
-| **Cold Start** | Spot 중단 시 수 분 지연 | Bedrock 즉시 응답 |
-
-:::tip 비용 최적화 패턴
-평시 트래픽의 80%를 Self-hosted로 처리하고 피크 시 20%를 Bedrock으로 오프로드하는 하이브리드 패턴은 GPU를 피크 기준으로 프로비저닝할 필요를 줄입니다. 실제 절감률은 트래픽 패턴에 따라 크게 달라지며(제3자 추정 30-70%), 일반화는 어렵습니다.
-:::
-
-온프레미스 GPU 팜까지 포함한 3-Tier Cascade(On-Prem → Cloud → Bedrock) 구성은 [하이브리드 GPU 워크로드와 SR-IOV 네트워킹](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking), Gateway 레벨 라우팅 튜닝은 [Cascade 라우팅 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)을 참조하세요.
-
----
-
-## 7. 비용 추적
-
-### 비용 추적 개념
-
-본 섹션은 비용의 **관측(Observation)** — 메트릭 수집·PromQL 쿼리·대시보드 — 을 다룹니다. 관측된 비용을 테넌트에 **배부(showback/chargeback)** 하는 방법론과 예산 정책 설계는 [LLM FinOps — Chargeback 및 비용 배부](../governance/llm-finops-chargeback.md)를 참조하고, 게이트웨이 레벨 예산 강제는 [AI Gateway 멀티테넌시](../governance/ai-gateway-multi-tenancy.md)를 참조하세요.
-
-LLM 사용 비용을 다음 기준으로 추적합니다:
-
-- **모델별**: 모델별 총 비용 및 요청 수, 가장 비용이 높은 모델 식별
-- **테넌트별**: 테넌트/팀별 일일 토큰 사용량 및 예산 대비 사용률
-- **시간별**: 피크 시간대 분석, 비용 추세
-
-### 모델별 비용 참조 (2026-04 기준)[^1]
-
-| Tier | 모델 | 입력 ($/1M tok) | 출력 ($/1M tok) | 특징 |
-|------|------|----------------|----------------|------|
-| **Frontier** | Claude Opus 4.7 / 4.8 | $5 | $25 | 최고 품질 추론 |
-| **Frontier** | GPT-4.1 / o3 | $2 | $8 | 복잡한 reasoning (o3는 2025-06 80% 인하, GPT-5로 승계) |
-| **Frontier** | Gemini 2.5 Pro | $1.25 | $5 | 멀티모달 강화 |
-| **Balanced** | Claude Sonnet 4.6 | $3 | $15 | 품질-비용 균형 |
-| **Balanced** | GPT-4.1 mini | $0.40 | $1.60 | 빠른 추론 |
-| **Balanced** | Gemini 2.5 Flash | $0.10 | $0.40 | 높은 처리량 |
-| **Fast/Cheap** | Claude Haiku 4.5 | $0.80 | $4 | 간단한 작업 |
-| **Fast/Cheap** | GPT-4.1 nano / o4-mini | $0.15 | $0.60 | 초저비용 |
-| **Fast/Cheap** | Gemini 2.5 Flash-Lite | $0.05 | $0.20 | 최소 지연 |
-| **Open-weight** | DeepSeek V3.1 | Self-hosted | Self-hosted | 오픈 라이선스 |
-| **Open-weight** | Llama 4 Scout | Self-hosted | Self-hosted | Meta 공식 |
-| **Open-weight** | Qwen3-32B | Self-hosted | Self-hosted | Alibaba Cloud (Qwen3 최대 dense 모델) |
-
-[^1]: 2026-04-17 기준. 최신 가격은 공식 pricing 페이지를 참조하세요: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
-
-:::tip 비용 최적화 팁
-
-1. **모델 선택 최적화**: 간단한 작업에는 저렴한 모델(GPT-4.1 nano, Haiku 4.5, Gemini 2.5 Flash-Lite) 사용
-2. **프롬프트 최적화**: 불필요한 컨텍스트 제거로 입력 토큰 절감
-3. **캐싱 활용**: 반복적인 쿼리에 대한 응답 캐싱 (Prompt Caching, Semantic Caching)
-4. **Cascade Routing**: 저비용 모델 우선 시도 후 실패 시 고성능 모델로 Fallback — 66% 비용 절감 가능
-5. **Open-weight 모델**: 자체 호스팅 시 DeepSeek V3.1, Llama 4, Qwen3로 고정 비용 전환
+1. **Model selection optimization**: Use cheaper models (GPT-4.1 nano, Haiku 4.5, Gemini 2.5 Flash-Lite) for simple tasks
+2. **Prompt optimization**: Reduce input tokens by removing unnecessary context
+3. **Caching**: Cache responses for repetitive queries (Prompt Caching, Semantic Caching)
+4. **Cascade Routing**: Try low-cost model first, fallback to high-performance model on failure — 66% cost savings possible
+5. **Open-weight models**: Convert to fixed costs with DeepSeek V3.1, Llama 4, Qwen3 when self-hosting
 :::
 
 ---
 
-## 8. 운영 체크리스트
+## 7. Operations Checklist
 
-### 일일 점검 항목
+### Daily Checks
 
 <DailyChecksTable />
 
-### 주간 점검 항목
+### Weekly Checks
 
 <WeeklyChecksTable />
 
 ---
 
-## 9. 모니터링 성숙도 모델
+## 8. Monitoring Maturity Model
 
 <MaturityModelTable />
 
 ---
 
-## 10. 다음 단계
+## 9. Next Steps
 
-- [모니터링 스택 구성 가이드](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG 배포, Langfuse Helm 설치, ServiceMonitor, Grafana 대시보드 실전 구성
-- [LLMOps Observability 비교 가이드](./llmops-observability.md) - Langfuse vs LangSmith vs Helicone 심층 비교
-- [Agentic AI Platform 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md) - 전체 플랫폼 설계
-- [RAG 평가 프레임워크](../governance/ragas-evaluation.md) - Ragas를 활용한 품질 평가
+- [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG deployment, Langfuse Helm installation, ServiceMonitor, Grafana dashboard production setup
+- [LLMOps Observability Comparison Guide](./llmops-observability.md) - In-depth comparison of Langfuse vs LangSmith vs Helicone
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md) - Overall platform design
+- [RAG Evaluation Framework](../governance/ragas-evaluation.md) - Quality evaluation with Ragas
 
-## 참고 자료
+## References
 
 - [Langfuse Documentation](https://langfuse.com/docs)
 - [LangSmith Documentation](https://docs.smith.langchain.com/)

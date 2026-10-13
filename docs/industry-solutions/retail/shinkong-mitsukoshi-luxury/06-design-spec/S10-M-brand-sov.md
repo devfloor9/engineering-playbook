@@ -1,6 +1,6 @@
 ---
-title: S10-M. 럭셔리 브랜드 SOV + 매대 점유 (Mitsukoshi 특화)
-description: 입점 700+ 브랜드 × 19점포 × 시즌 매대 점유 분석
+title: S10-M. Luxury Brand SOV + Counter Occupancy (Mitsukoshi-specific)
+description: Counter occupancy analysis across 700+ tenant brands × 19 stores × seasons
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,43 +16,43 @@ tags:
 sidebar_label: S10-M. Brand SOV
 ---
 
-> **Mitsukoshi 차별 포인트** ⭐ — 700+ 입점 브랜드의 매대 점유와 SOV(Share of Voice)를 19점포·층·시즌 단위로 분석.
+> **Mitsukoshi differentiation point** ⭐ — Analyze counter occupancy and SOV (Share of Voice) of 700+ tenant brands by 19 stores, floors, and seasons.
 
-## 1. URL · 페르소나
-- `/brand-sov` · P5 (MD·매장 운영)
+## 1. URL · Personas
+- `/brand-sov` · P5 (MD & Store Operations)
 
-## 2. 사용자 스토리
-> P5 — 信義점 1F의 LV vs Hermes 매대 GMV·회전율을 비교 + SS 시즌 신상 진열 후 4주 영향 분석.
+## 2. User Stories
+> P5 — Compare counter GMV and turnover for LV vs Hermes on the 1F of Xinyi store + analyze 4-week impact after SS-season new releases hit the display.
 
-## 3. 데이터 믹스
-| 데이터 | 출처 |
+## 3. Data Mix
+| Data | Source |
 |---|---|
 | Boutique × Brand × Store | Neptune (~3K Boutique) |
 | POSTransaction | Neptune (~200K) |
-| 매대 면적·임대 | Boutique 속성 |
-| 시즌 (週年慶/SS/FW) | Campaign 노드 |
-| 경쟁사 SOV | CompetitorSignal (소셜 + 등장 빈도) |
+| Counter area / lease | Boutique attributes |
+| Season (Anniversary Sale / SS / FW) | Campaign nodes |
+| Competitor SOV | CompetitorSignal (social + mention frequency) |
 
-## 4. 처리 파이프라인
+## 4. Processing Pipeline
 ```
-1. (점포, 층, 브랜드) 그룹별 GMV·회전 집계
-2. 매대 면적 대비 GMV 효율 계산
-3. 시즌 비교 (SS 신상 출시 후 4주 영향)
-4. 경쟁사 SOV 결합 (소홍서·인스타 언급)
-5. 매대 재배치 추천 (Sonnet 4.6)
+1. Aggregate GMV / turnover by (store, floor, brand)
+2. Compute GMV efficiency per counter area
+3. Compare seasons (4-week impact after SS new releases)
+4. Join with competitor SOV (Xiaohongshu and Instagram mentions)
+5. Counter re-layout recommendation (Sonnet 4.6)
 ```
 
-## 5. 출력 UI
-- 좌: 19 점포 × 층 매트릭스 (heatmap)
-- 중앙: 브랜드 SOV 막대 (자사 vs 경쟁사)
-- 우: 매대 효율 산점도 (면적 vs GMV)
-- 하단: 추천 매대 재배치 카드 (Sonnet)
+## 5. Output UI
+- Left: 19 stores × floor matrix (heatmap)
+- Center: brand SOV bar chart (first-party vs competitors)
+- Right: counter efficiency scatter plot (area vs GMV)
+- Bottom: recommended counter re-layout card (Sonnet)
 
-## 6. 가드레일
-- 입점 브랜드 영업 정보 보호 (외부 노출 X)
-- 매대 임대 가격 비공개
+## 6. Guardrails
+- Protect tenant brand business information (no external exposure)
+- Counter lease prices kept private
 
-## 7. 데모 시나리오
-1. **信義점 1F LV vs Hermes** → GMV 비교 + 회전율
-2. **SS 신상 출시 후 4주** → 자사 LV +12%, 경쟁사 SOV +18%
-3. **매대 재배치 추천** → "B1 식품 → 1F 신상 캐비넷으로 이동 시 +8% 예상"
+## 7. Demo Scenarios
+1. **Xinyi store 1F LV vs Hermes** → GMV comparison + turnover
+2. **4 weeks after SS new release** → first-party LV +12%, competitor SOV +18%
+3. **Counter re-layout recommendation** → "Moving B1 food → 1F new-release cabinet expected to lift +8%"

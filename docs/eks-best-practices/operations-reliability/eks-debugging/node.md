@@ -1,11 +1,11 @@
 ---
-title: 노드 레벨 디버깅
-description: EKS 노드 문제 진단 및 해결 가이드
-created: "2026-04-07"
+title: Node-Level Debugging
+description: Guide to diagnosing and resolving EKS node issues
+created: "2026-04-21"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
-reading_time: 8
+  author: devfloor9
+reading_time: 11
 tags:
   - eks
   - kubernetes
@@ -14,82 +14,82 @@ tags:
   - troubleshooting
   - karpenter
   - scope:ops
-sidebar_label: 노드
+sidebar_label: Node
 ---
 
 import { NodeGroupErrorTable } from '@site/src/components/EksDebugTables';
 
-## 노드 조인 실패 디버깅
+## Node Join Failure Debugging
 
-노드가 클러스터에 조인하지 못하는 경우 다양한 원인이 있습니다. 다음은 가장 흔한 8가지 원인과 진단 방법입니다.
+Nodes can fail to join a cluster for a variety of reasons. The following are the eight most common causes and how to diagnose them.
 
-**노드 조인 실패의 일반적인 원인:**
+**Common causes of node join failures:**
 
-1. **aws-auth ConfigMap에 노드 IAM Role이 등록되지 않음** (또는 Access Entry 미생성) — 노드가 API 서버에 인증할 수 없음
-2. **부트스트랩 스크립트의 ClusterName이 실제 클러스터명과 불일치** — kubelet이 잘못된 클러스터에 연결 시도
-3. **노드 보안그룹이 컨트롤 플레인과의 통신을 허용하지 않음** — TCP 443 (API 서버), TCP 10250 (kubelet) 포트가 필요
-4. **퍼블릭 서브넷에서 auto-assign public IP가 비활성화됨** — 퍼블릭 엔드포인트만 활성화된 클러스터에서 인터넷 접근 불가
-5. **VPC DNS 설정 문제** — `enableDnsHostnames`, `enableDnsSupport`가 비활성화됨
-6. **STS 리전 엔드포인트가 비활성화됨** — IAM 인증 시 STS 호출 실패
-7. **인스턴스 프로파일 ARN을 노드 IAM Role ARN 대신 aws-auth에 등록** — aws-auth에는 Role ARN만 등록해야 함
-8. **`eks:kubernetes.io/cluster-name` 태그 누락** (자체관리형 노드) — EKS가 노드를 클러스터 소속으로 인식하지 못함
+1. **Node IAM Role not registered in aws-auth ConfigMap** (or Access Entry not created) — node cannot authenticate to the API server
+2. **Bootstrap script ClusterName does not match the actual cluster name** — kubelet attempts to connect to the wrong cluster
+3. **Node Security Group does not allow communication with the control plane** — TCP 443 (API server) and TCP 10250 (kubelet) are required
+4. **Auto-assign public IP disabled on public subnets** — cannot access the internet on clusters with only a public endpoint enabled
+5. **VPC DNS settings issue** — `enableDnsHostnames` or `enableDnsSupport` disabled
+6. **STS regional endpoint disabled** — IAM authentication fails due to failed STS calls
+7. **Instance profile ARN registered in aws-auth instead of the node IAM Role ARN** — aws-auth must contain only the Role ARN
+8. **Missing `eks:kubernetes.io/cluster-name` tag** (self-managed nodes) — EKS does not recognize the node as cluster-owned
 
-**진단 명령어:**
+**Diagnostic commands:**
 
 ```bash
-# 노드 부트스트랩 로그 확인 (SSM 접속 후)
+# Check node bootstrap logs (after SSM session)
 sudo journalctl -u kubelet --no-pager | tail -50
 sudo cat /var/log/cloud-init-output.log | tail -50
 
-# 보안그룹 규칙 확인
+# Check Security Group rules
 aws ec2 describe-security-groups --group-ids $CLUSTER_SG \
   --query 'SecurityGroups[].IpPermissions' --output table
 
-# VPC DNS 설정 확인
+# Check VPC DNS settings
 aws ec2 describe-vpc-attribute --vpc-id $VPC_ID --attribute enableDnsHostnames
 aws ec2 describe-vpc-attribute --vpc-id $VPC_ID --attribute enableDnsSupport
 ```
 
-:::warning aws-auth에 등록할 ARN
-aws-auth ConfigMap에는 인스턴스 프로파일 ARN (`arn:aws:iam::ACCOUNT:instance-profile/...`)이 아닌, **IAM Role ARN** (`arn:aws:iam::ACCOUNT:role/...`)을 등록해야 합니다. 이 실수는 매우 빈번하며 노드 조인 실패의 주요 원인입니다.
+:::warning ARN to register in aws-auth
+The aws-auth ConfigMap must contain the **IAM Role ARN** (`arn:aws:iam::ACCOUNT:role/...`), not the instance profile ARN (`arn:aws:iam::ACCOUNT:instance-profile/...`). This mistake is very common and a major cause of node join failures.
 :::
 
 ## Node NotReady Decision Tree
 
 ```mermaid
 flowchart TD
-    NR["`**Node NotReady**`"] --> CHECK_INST{"`EC2 인스턴스
-    상태 확인`"}
+    NR["`**Node NotReady**`"] --> CHECK_INST{"`Check EC2
+    instance status`"}
 
-    CHECK_INST -->|Stopped/Terminated| INST_ISSUE["`인스턴스 재시작
-    또는 새 노드 프로비저닝`"]
+    CHECK_INST -->|Stopped/Terminated| INST_ISSUE["`Restart instance
+    or provision a new node`"]
 
-    CHECK_INST -->|Running| CHECK_KUBELET{"`kubelet 상태
-    확인`"}
+    CHECK_INST -->|Running| CHECK_KUBELET{"`Check kubelet
+    status`"}
 
-    CHECK_KUBELET -->|Not Running| KUBELET_FIX["`kubelet 재시작
+    CHECK_KUBELET -->|Not Running| KUBELET_FIX["`Restart kubelet
     systemctl restart kubelet`"]
 
-    CHECK_KUBELET -->|Running| CHECK_CONTAINERD{"`containerd
-    상태 확인`"}
+    CHECK_KUBELET -->|Running| CHECK_CONTAINERD{"`Check containerd
+    status`"}
 
-    CHECK_CONTAINERD -->|Not Running| CONTAINERD_FIX["`containerd 재시작
+    CHECK_CONTAINERD -->|Not Running| CONTAINERD_FIX["`Restart containerd
     systemctl restart containerd`"]
 
-    CHECK_CONTAINERD -->|Running| CHECK_RESOURCE{"`리소스 압박
-    확인`"}
+    CHECK_CONTAINERD -->|Running| CHECK_RESOURCE{"`Check resource
+    pressure`"}
 
-    CHECK_RESOURCE -->|DiskPressure| DISK_FIX["`디스크 정리
+    CHECK_RESOURCE -->|DiskPressure| DISK_FIX["`Disk cleanup
     crictl rmi --prune`"]
 
-    CHECK_RESOURCE -->|MemoryPressure| MEM_FIX["`저우선순위 Pod 축출
-    또는 노드 교체`"]
+    CHECK_RESOURCE -->|MemoryPressure| MEM_FIX["`Evict low-priority Pods
+    or replace node`"]
 
-    CHECK_RESOURCE -->|정상| CHECK_NET{"`노드 네트워크
-    확인`"}
+    CHECK_RESOURCE -->|Normal| CHECK_NET{"`Check node
+    networking`"}
 
-    CHECK_NET --> NET_FIX["`Security Group / NACL
-    / VPC 라우팅 점검`"]
+    CHECK_NET --> NET_FIX["`Review Security Group / NACL
+    / VPC routing`"]
 
     style NR fill:#ff4444,stroke:#cc3636,color:#fff
     style INST_ISSUE fill:#34a853,stroke:#2a8642,color:#fff
@@ -100,95 +100,95 @@ flowchart TD
     style NET_FIX fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-## kubelet / containerd 디버깅
+## kubelet / containerd Debugging
 
 ```bash
-# SSM을 통한 노드 접속
+# Connect to node via SSM
 aws ssm start-session --target <instance-id>
 
-# kubelet 상태 확인
+# Check kubelet status
 systemctl status kubelet
 journalctl -u kubelet -n 100 -f
 
-# containerd 상태 확인
+# Check containerd status
 systemctl status containerd
 
-# 컨테이너 런타임 상태 확인
+# Check container runtime status
 crictl pods
 crictl ps -a
 
-# 특정 컨테이너 로그 확인
+# Check logs for a specific container
 crictl logs <container-id>
 ```
 
-:::info SSM 접속 사전 요구사항
-SSM 접속을 위해서는 노드의 IAM Role에 `AmazonSSMManagedInstanceCore` 정책이 연결되어 있어야 합니다. EKS 관리형 노드 그룹에서는 기본 포함되지만, 커스텀 AMI를 사용하는 경우 SSM Agent 설치를 확인하세요.
+:::info SSM Access Prerequisites
+SSM access requires the node IAM Role to have the `AmazonSSMManagedInstanceCore` policy attached. This is included by default in EKS Managed Node Groups; when using a custom AMI, verify that the SSM Agent is installed.
 :::
 
-## 리소스 압박 진단 및 해결
+## Diagnosing and Resolving Resource Pressure
 
 ```bash
-# 노드 상태 확인
+# Check node status
 kubectl describe node <node-name>
 ```
 
-| Condition | 임계값 | 진단 명령어 | 해결 방법 |
+| Condition | Threshold | Diagnostic Command | Resolution |
 |-----------|--------|-----------|----------|
-| **DiskPressure** | 사용 가능 디스크 < 10% | `df -h` (SSM 접속 후) | `crictl rmi --prune` 으로 미사용 이미지 정리, `crictl rm` 으로 중지된 컨테이너 삭제 |
-| **MemoryPressure** | 사용 가능 메모리 < 100Mi | `free -m` (SSM 접속 후) | 저우선순위 Pod 축출, 메모리 requests/limits 조정, 노드 교체 |
-| **PIDPressure** | 사용 가능 PID < 5% | `ps aux \| wc -l` (SSM 접속 후) | `kernel.pid_max` 증가, PID leak 원인 컨테이너 식별 및 재시작 |
+| **DiskPressure** | Available disk < 10% | `df -h` (after SSM) | `crictl rmi --prune` to remove unused images; `crictl rm` to delete stopped containers |
+| **MemoryPressure** | Available memory < 100Mi | `free -m` (after SSM) | Evict low-priority Pods, adjust memory requests/limits, replace the node |
+| **PIDPressure** | Available PIDs < 5% | `ps aux \| wc -l` (after SSM) | Increase `kernel.pid_max`; identify and restart containers leaking PIDs |
 
-## Karpenter 노드 프로비저닝 디버깅
+## Karpenter Node Provisioning Debugging
 
 ```bash
-# Karpenter 컨트롤러 로그 확인
+# Check Karpenter controller logs
 kubectl logs -f deployment/karpenter -n kube-system
 
-# NodePool 상태 확인
+# Check NodePool status
 kubectl get nodepool
 kubectl describe nodepool <nodepool-name>
 
-# EC2NodeClass 확인
+# Check EC2NodeClass
 kubectl get ec2nodeclass
 kubectl describe ec2nodeclass <nodeclass-name>
 
-# 프로비저닝 실패 시 확인 사항:
-# 1. NodePool의 limits가 초과되지 않았는지
-# 2. EC2NodeClass의 서브넷/보안그룹 셀렉터가 올바른지
-# 3. 인스턴스 타입에 대한 Service Quotas가 충분한지
-# 4. Pod의 nodeSelector/affinity가 NodePool requirements와 매칭되는지
+# When provisioning fails, check:
+# 1. Whether NodePool limits are exceeded
+# 2. Whether EC2NodeClass subnet/Security Group selectors are correct
+# 3. Whether Service Quotas for the instance types are sufficient
+# 4. Whether Pod nodeSelector/affinity matches NodePool requirements
 ```
 
-:::warning Karpenter v1 API 변경사항
-Karpenter v1.0(v1 API)부터 `Provisioner` → `NodePool`, `AWSNodeTemplate` → `EC2NodeClass`로 변경되었습니다(최신 v1.13+). 기존 v0.x 설정을 사용 중이라면 마이그레이션이 필요합니다. API 그룹도 `karpenter.sh/v1`로 업데이트하세요.
+:::warning Karpenter v1 API Changes
+Karpenter v1.2+ renamed `Provisioner` → `NodePool` and `AWSNodeTemplate` → `EC2NodeClass`. Migration is required when coming from v0.x configurations. Also update the API group to `karpenter.sh/v1`.
 :::
 
-## Managed Node Group 에러 코드
+## Managed Node Group Error Codes
 
-Managed Node Group의 헬스 상태를 확인하여 프로비저닝 및 운영 문제를 진단합니다.
+Check Managed Node Group health status to diagnose provisioning and operational issues.
 
 ```bash
-# 노드 그룹 헬스 상태 확인
+# Check node group health
 aws eks describe-nodegroup --cluster-name $CLUSTER --nodegroup-name $NODEGROUP \
   --query 'nodegroup.health' --output json
 ```
 
 <NodeGroupErrorTable />
 
-**AccessDenied 에러 복구 — eks:node-manager ClusterRole 확인:**
+**AccessDenied Recovery — Check the eks:node-manager ClusterRole:**
 
-`AccessDenied` 에러는 주로 `eks:node-manager` ClusterRole 또는 ClusterRoleBinding이 삭제되거나 변경된 경우 발생합니다.
+`AccessDenied` errors typically occur when the `eks:node-manager` ClusterRole or ClusterRoleBinding is deleted or modified.
 
 ```bash
-# eks:node-manager ClusterRole 확인
+# Check eks:node-manager ClusterRole
 kubectl get clusterrole eks:node-manager
 kubectl get clusterrolebinding eks:node-manager
 ```
 
-:::danger AccessDenied 복구
-`eks:node-manager` ClusterRole/ClusterRoleBinding이 누락된 경우, EKS는 이를 **자동으로 복원하지 않습니다**. 다음 방법으로 직접 복구해야 합니다:
+:::danger AccessDenied Recovery
+If the `eks:node-manager` ClusterRole/ClusterRoleBinding is missing, EKS **does not restore it automatically**. Recover it using one of the following methods:
 
-**방법 1: 수동 재생성 (권장)**
+**Method 1: Manual re-creation (recommended)**
 
 ```yaml
 # eks-node-manager-role.yaml
@@ -225,79 +225,79 @@ subjects:
 kubectl auth reconcile -f eks-node-manager-role.yaml
 ```
 
-**방법 2: 노드 그룹 재생성**
+**Method 2: Recreate the node group**
 
 ```bash
-# 새 노드 그룹 생성 시 RBAC 리소스가 함께 생성됨
+# Creating a new node group also creates the RBAC resources
 eksctl create nodegroup --cluster=<cluster-name> --name=<new-nodegroup-name>
 ```
 
-**방법 3: 노드 그룹 업그레이드**
+**Method 3: Upgrade the node group**
 
 ```bash
-# 업그레이드 과정에서 RBAC 재설정이 트리거될 수 있음
+# RBAC reconciliation may be triggered during upgrade
 eksctl upgrade nodegroup --cluster=<cluster-name> --name=<nodegroup-name>
 ```
 
-> **참고**: Kubernetes 기본 시스템 ClusterRole(`system:*`)은 API 서버가 자동 reconcile하지만, EKS 전용 ClusterRole(`eks:*`)은 자동 복원 대상이 아닙니다. RBAC 리소스를 삭제하기 전에 반드시 백업하세요.
+> **Note**: The Kubernetes API server auto-reconciles default system ClusterRoles (`system:*`), but EKS-specific ClusterRoles (`eks:*`) are not auto-restored. Back up RBAC resources before deleting them.
 :::
 
-## Node Readiness Controller를 활용한 노드 부트스트랩 디버깅
+## Node Bootstrap Debugging with Node Readiness Controller
 
-:::info Kubernetes 새 기능 (2026년 2월)
-[Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller)는 Kubernetes 공식 블로그에서 발표된 새로운 프로젝트로, 노드 부트스트랩 과정에서 발생하는 조기 스케줄링 문제를 선언적으로 해결합니다.
+:::info New Kubernetes Feature (February 2026)
+The [Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller) is a new project announced on the Kubernetes official blog that declaratively addresses early scheduling problems during node bootstrap.
 :::
 
-### 문제 상황
+### Problem Context
 
-기존 Kubernetes에서는 노드가 `Ready` 상태가 되면 즉시 워크로드가 스케줄링됩니다. 하지만 실제로는 아직 준비가 완료되지 않은 경우가 많습니다:
+In traditional Kubernetes, workloads are scheduled immediately when a node reaches `Ready` state. However, many times the node is not actually fully ready:
 
-| 미완료 구성 요소 | 증상 | 영향 |
+| Incomplete Component | Symptoms | Impact |
 |---|---|---|
-| GPU 드라이버/펌웨어 로딩 중 | `nvidia-smi` 실패, Pod `CrashLoopBackOff` | GPU 워크로드 실패 |
-| CNI 플러그인 초기화 중 | Pod IP 미할당, `NetworkNotReady` | 네트워크 통신 불가 |
-| CSI 드라이버 미등록 | PVC `Pending`, volume mount 실패 | 스토리지 접근 불가 |
-| 보안 에이전트 미설치 | 컴플라이언스 위반 | 보안 정책 미충족 |
+| GPU driver/firmware loading | `nvidia-smi` failure, Pod `CrashLoopBackOff` | GPU workload failures |
+| CNI plugin initializing | Pod IP not allocated, `NetworkNotReady` | Networking unavailable |
+| CSI driver not registered | PVC `Pending`, volume mount failures | Storage unavailable |
+| Security agent not installed | Compliance violation | Security policy not met |
 
-### Node Readiness Controller 동작 원리
+### How Node Readiness Controller Works
 
-Node Readiness Controller는 **커스텀 taint를 선언적으로 관리**하여, 모든 인프라 요구사항이 충족될 때까지 워크로드 스케줄링을 지연시킵니다:
+The Node Readiness Controller **declaratively manages custom taints**, deferring workload scheduling until all infrastructure requirements are satisfied:
 
 ```mermaid
 flowchart LR
-    A[노드 프로비저닝] --> B[kubelet Ready]
-    B --> C[커스텀 Taint 부여<br/>node.readiness/gpu=NotReady:NoSchedule<br/>node.readiness/cni=NotReady:NoSchedule]
-    C --> D{헬스 시그널 확인}
-    D -->|GPU 준비 완료| E[GPU Taint 제거]
-    D -->|CNI 준비 완료| F[CNI Taint 제거]
-    E --> G{모든 Taint 제거?}
+    A[Node provisioned] --> B[kubelet Ready]
+    B --> C[Apply custom taints<br/>node.readiness/gpu=NotReady:NoSchedule<br/>node.readiness/cni=NotReady:NoSchedule]
+    C --> D{Check health signals}
+    D -->|GPU ready| E[Remove GPU taint]
+    D -->|CNI ready| F[Remove CNI taint]
+    E --> G{All taints removed?}
     F --> G
-    G -->|Yes| H[워크로드 스케줄링 시작]
+    G -->|Yes| H[Workload scheduling begins]
     G -->|No| D
 ```
 
-### 디버깅 체크리스트
+### Debugging Checklist
 
-노드가 `Ready`인데 Pod가 스케줄링되지 않는 경우:
+If a node is `Ready` but Pods are not scheduling:
 
 ```bash
-# 1. 노드의 커스텀 readiness taint 확인
+# 1. Check custom readiness taints on the node
 kubectl get node <node-name> -o jsonpath='{.spec.taints}' | jq .
 
-# 2. node.readiness 관련 taint 필터링
+# 2. Filter node.readiness-related taints
 kubectl get nodes -o json | jq '
   .items[] |
   select(.spec.taints // [] | any(.key | startswith("node.readiness"))) |
   {name: .metadata.name, taints: [.spec.taints[] | select(.key | startswith("node.readiness"))]}
 '
 
-# 3. Pod의 tolerations와 노드 taint 불일치 확인
+# 3. Check mismatch between Pod tolerations and node taints
 kubectl describe pod <pending-pod> | grep -A 20 "Events:"
 ```
 
-### 관련 기능: Pod Scheduling Readiness (K8s 1.30 GA)
+### Related Feature: Pod Scheduling Readiness (K8s 1.30 GA)
 
-`schedulingGates`를 사용하면 Pod 측에서도 스케줄링 준비 상태를 제어할 수 있습니다:
+Using `schedulingGates`, scheduling readiness can also be controlled on the Pod side:
 
 ```yaml
 apiVersion: v1
@@ -306,14 +306,14 @@ metadata:
   name: gated-pod
 spec:
   schedulingGates:
-    - name: "example.com/gpu-validation"  # 이 gate가 제거될 때까지 스케줄링 대기
+    - name: "example.com/gpu-validation"  # Pod waits until this gate is removed
   containers:
     - name: app
       image: app:latest
 ```
 
 ```bash
-# schedulingGates가 있는 Pod 확인
+# Check Pods with schedulingGates
 kubectl get pods -o json | jq '
   .items[] |
   select(.spec.schedulingGates != null and (.spec.schedulingGates | length > 0)) |
@@ -321,47 +321,47 @@ kubectl get pods -o json | jq '
 '
 ```
 
-### 관련 기능: Pod Readiness Gates (AWS LB Controller)
+### Related Feature: Pod Readiness Gates (AWS LB Controller)
 
-AWS Load Balancer Controller는 `elbv2.k8s.aws/pod-readiness-gate-inject` 어노테이션을 통해 Pod가 ALB/NLB 타겟 등록이 완료될 때까지 `Ready` 상태 전환을 지연시킵니다:
+The AWS Load Balancer Controller uses the `elbv2.k8s.aws/pod-readiness-gate-inject` annotation to delay a Pod's transition to `Ready` until ALB/NLB target registration is complete:
 
 ```bash
-# Readiness Gate 상태 확인
+# Check Readiness Gate status
 kubectl get pod <pod-name> -o jsonpath='{.status.conditions}' | jq '
   [.[] | select(.type | contains("target-health"))]
 '
 
-# Namespace에 readiness gate injection 활성화 확인
+# Check whether readiness gate injection is enabled on a namespace
 kubectl get namespace <ns> -o jsonpath='{.metadata.labels.elbv2\.k8s\.aws/pod-readiness-gate-inject}'
 ```
 
-:::tip Readiness 기능 비교
+:::tip Comparing Readiness Features
 
-| 기능 | 적용 대상 | 제어 방식 | 상태 |
+| Feature | Target | Control | Status |
 |------|-----------|-----------|------|
-| **Node Readiness Controller** | 노드 | Taint 기반 | New (2026.02) |
+| **Node Readiness Controller** | Node | Taint-based | New (2026.02) |
 | **Pod Scheduling Readiness** | Pod | schedulingGates | GA (K8s 1.30) |
 | **Pod Readiness Gates** | Pod | Readiness Conditions | GA (AWS LB Controller) |
 :::
 
-## eks-node-viewer 사용법
+## Using eks-node-viewer
 
-[eks-node-viewer](https://github.com/awslabs/eks-node-viewer)는 노드의 리소스 사용률을 터미널에서 실시간으로 시각화하는 도구입니다.
+[eks-node-viewer](https://github.com/awslabs/eks-node-viewer) is a terminal tool that visualizes node resource usage in real time.
 
 ```bash
-# 기본 사용 (CPU 기준)
+# Default usage (CPU view)
 eks-node-viewer
 
-# CPU와 메모리 함께 확인
+# View CPU and memory together
 eks-node-viewer --resources cpu,memory
 
-# 특정 NodePool만 확인
+# View only a specific NodePool
 eks-node-viewer --node-selector karpenter.sh/nodepool=<nodepool-name>
 ```
 
-## 관련 문서
+## Related Documents
 
-- [EKS 디버깅 가이드 (메인)](./index.md) - 전체 디버깅 가이드
-- [컨트롤 플레인 디버깅](./control-plane.md) - 컨트롤 플레인 문제 진단
-- [워크로드 디버깅](./workload.md) - Pod 및 워크로드 문제 진단
-- [네트워킹 디버깅](./networking.md) - 네트워크 문제 진단
+- [EKS Debugging Guide (Main)](./index.md) - Full debugging guide
+- [Control Plane Debugging](./control-plane.md) - Control plane issue diagnosis
+- [Workload Debugging](./workload.md) - Pod and workload issue diagnosis
+- [Networking Debugging](./networking.md) - Networking issue diagnosis

@@ -1,11 +1,11 @@
 ---
-title: AWS 단일 아키텍처 (AMWAY)
-description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — ABO Tree·구독·다국어 특화
+title: Single AWS Architecture (AMWAY)
+description: Bedrock + Neptune + OpenSearch + AgentCore + Cohere — specialized for ABO tree, subscriptions, multilingual operations
 created: "2026-05-14"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 4
 tags:
   - industry-solution
   - retail
@@ -16,11 +16,11 @@ tags:
 sidebar_label: 05. Architecture
 ---
 
-> [LG생활건강 아키텍처](../lg-hnh-marketing-innovation/05-architecture.md)의 Next.js 화면, ECS Fargate의 FastAPI 백엔드, Bedrock·AgentCore 연동, Neptune 그래프 저장소, OpenSearch 검색 구성을 재사용합니다. AMWAY에는 ABO 계층의 깊이 조회, 정기구독 상태 관리, 다국어 지원, 직접판매 정책 검사를 추가합니다.
+> This design reuses the [LG H&H architecture](../lg-hnh-marketing-innovation/05-architecture.md): a Next.js frontend, FastAPI backend on ECS Fargate, Bedrock and AgentCore integration, Neptune graph storage, and OpenSearch search. AMWAY adds ABO-tree depth queries, a subscription state machine, multilingual support, and direct-selling policy checks.
 
 ---
 
-## 1. 아키텍처 개요
+## 1. Architecture Overview
 
 ```mermaid
 graph TB
@@ -37,19 +37,19 @@ graph TB
         Bedrock[Bedrock Sonnet 4.6]
         Cohere[Cohere multilingual]
         AC[AgentCore]
-        GR[Bedrock Guardrails<br/>+ 직접판매 규제]
+        GR[Bedrock Guardrails<br/>+ direct-selling regulations]
     end
     subgraph Semantic
         SP[Semantic Pipeline<br/>Glue + Lambda]
-        Neptune[(Neptune<br/>~700K edges<br/>ABO Tree 깊이 쿼리)]
-        OS[OpenSearch Serverless<br/>다국어 + KNN + RRF]
+        Neptune[(Neptune<br/>~700K edges<br/>ABO Tree depth queries)]
+        OS[OpenSearch Serverless<br/>Multilingual + KNN + RRF]
         SubMgr[Subscription State Manager<br/>Step Functions]
     end
     subgraph External
-        Reg[규제 (FTC·방판법·식약처)]
-        Soc[소셜 (다국어)]
-        Wea[기상]
-        Eco[환율 (다국가)]
+        Reg[Regulation - FTC, Korea Door-to-Door Sales Act, MFDS]
+        Soc[Social - multilingual]
+        Wea[Weather]
+        Eco[FX - multi-country]
     end
 
     Browser-->CF-->LE-->Cog
@@ -65,63 +65,63 @@ graph TB
 
 ---
 
-## 2. AMWAY 특화 컴포넌트
+## 2. AMWAY-specific Components
 
-| 컴포넌트 | 역할 |
+| Component | Role |
 |---|---|
-| **Neptune (700K edges)** | ABO Tree 깊이 5단 쿼리 (`*1..5` openCypher) — LG H&H 500K 대비 +40% |
-| **Step Functions (Subscription State Manager)** | 구독 state machine: Active → Pause → Cancelled / Renewed |
-| **Bedrock Guardrails (강화)** | 4 토픽 + 직접판매 규제 + 미성년 + 건강기능식품 광고 |
-| **Cohere embed-v4 / rerank-v3.5** | 한·중·일·영·스페인어 동시 (글로벌 100여 국가, `cohere.rerank-v3-5:0`) |
-| **OpenSearch 다국어 분석기** | Nori + Smartcn (중국어) + Kuromoji (일본어) + Standard |
+| **Neptune (700K edges)** | ABO tree 5-level depth queries (`*1..5` openCypher) — +40% vs. LG H&H's 500K |
+| **Step Functions (Subscription State Manager)** | Subscription state machine: Active → Pause → Cancelled / Renewed |
+| **Bedrock Guardrails (enhanced)** | 4 topics + direct-selling regulations + minors + health functional food ads |
+| **Cohere embed-v4 / rerank-v3.5** | Korean · Chinese · Japanese · English · Spanish concurrently (more than 100 countries, `cohere.rerank-v3-5:0`) |
+| **OpenSearch multilingual analyzers** | Nori + Smartcn (Chinese) + Kuromoji (Japanese) + Standard |
 
 ---
 
-## 3. 트래픽 흐름 (S9-A ABO 트리 시각화)
+## 3. Traffic Flow (S9-A ABO Tree Visualization)
 
 ```
-1. Browser → CloudFront → Lambda@Edge (JWT + persona 헤더)
+1. Browser → CloudFront → Lambda@Edge (JWT + persona header)
 2. CloudFront → Next.js → FastAPI /api/abo-tree?root=$rootId&depth=5
 3. FastAPI → Neptune openCypher: MATCH (root)-[:HAS_DOWNLINE*1..5]->(d) ...
-4. 결과 → cytoscape.js JSON
-5. Browser 렌더링 + 인터랙션
+4. Result → cytoscape.js JSON
+5. Browser rendering + interaction
 ```
 
 ---
 
-## 4. 보안·거버넌스 (AMWAY 강화)
+## 4. Security & Governance (AMWAY-enhanced)
 
-| 항목 | 구현 |
+| Item | Implementation |
 |---|---|
-| 인증 | Cognito + Lambda@Edge JWT |
-| 권한 | 페르소나 × 국가 화이트리스트 (P5 Compliance만 RegulatorySignal 쓰기) |
-| PII | ABO 트리 시각화 시 마스킹 ID만 노출 |
-| 가드레일 | 4 토픽 + 직접판매 + 미성년 + 건기식 + 다국가 광고 표현 검수 |
-| 감사 | CloudTrail + Audit DynamoDB (Compliance 행동 일별 보고) |
+| Authentication | Cognito + Lambda@Edge JWT |
+| Authorization | Persona × country whitelist (only P5 Compliance can write RegulatorySignal) |
+| PII | ABO tree visualization exposes only masked IDs |
+| Guardrails | 4 topics + direct selling + minors + HFF + multi-country ad-language review |
+| Audit | CloudTrail + Audit DynamoDB (Compliance daily activity report) |
 
 ---
 
-## 5. 비용 (8주 PoC)
+## 5. Cost (8-week PoC)
 
-| 항목 | 추정 |
+| Item | Estimate |
 |---|---|
-| Bedrock Sonnet | 챗봇 1.5만/월 (다국어 길어짐) |
-| Cohere multilingual | 6만/월 |
-| Neptune | r6g.large 1노드 (700K edges) |
+| Bedrock Sonnet | Chatbot 15K/month (multilingual lengthens responses) |
+| Cohere multilingual | 60K/month |
+| Neptune | r6g.large 1 node (700K edges) |
 | OpenSearch Serverless | 3 OCU |
-| Step Functions | 구독 state 처리 |
-| **월 추정** | **약 $5K~$7K USD** |
+| Step Functions | Subscription state processing |
+| **Monthly estimate** | **Approximately $5K–$7K USD** |
 
 ---
 
-## 6. PoC 마일스톤 (8주)
+## 6. PoC Milestones (8 weeks)
 
-| 주차 | 작업 |
+| Week | Work |
 |---|---|
-| 1-2 | 인프라 + 데이터 적재 (자사 + 49.5K 합성 ABO Tree + 외부) |
-| 3 | S1·S2·S3 |
-| 4 | S9-A ABO Tree + S10-A 구독 |
-| 5 | S5·S7 |
-| 6 | S11-A 규제 + S8 가드레일 |
-| 7 | S4·S6 |
-| 8 | 시연 리허설 |
+| 1–2 | Infrastructure + data ingestion (in-house + 49.5K synthetic ABO tree + external) |
+| 3 | S1 · S2 · S3 |
+| 4 | S9-A ABO Tree + S10-A subscription |
+| 5 | S5 · S7 |
+| 6 | S11-A regulatory + S8 guardrails |
+| 7 | S4 · S6 |
+| 8 | Demo rehearsal |

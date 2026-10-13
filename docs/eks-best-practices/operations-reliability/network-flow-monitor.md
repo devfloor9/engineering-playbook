@@ -1,9 +1,9 @@
 ---
-title: "Network Flow Monitor 동작 원리: eBPF sock_ops 기반 TCP 관측"
-description: CloudWatch Network Flow Monitor 에이전트의 내부 동작을 해부합니다. eBPF sock_ops 콜백 수집, 유저스페이스 집계와 Kubernetes enrichment, OTLP 전송 경로, EKS add-on 배포와 데이터 미표시 3계층 진단
+title: "How Network Flow Monitor Works: TCP Observation with eBPF sock_ops"
+description: The Network Flow Monitor agent's TCP callbacks, userspace aggregation, Kubernetes metadata, OTLP publishing, and EKS troubleshooting.
 created: "2026-08-04"
 last_update:
-  date: "2026-08-04"
+  date: "2026-09-17"
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -22,114 +22,114 @@ sidebar_label: Network Flow Monitor
 category: observability-monitoring
 ---
 
-## 개요
+## Overview
 
-CloudWatch Network Flow Monitor(NFM)는 워크로드 관점의 네트워크 성능(재전송·RTT·타임아웃)을 flow 단위로 관측하고, 성능 저하가 애플리케이션 문제인지 AWS 네트워크 문제인지 판별하는 근거를 제공하는 서비스입니다. 핵심 오해부터 바로잡으면, NFM 에이전트는 **패킷 캡처 도구가 아닙니다**. 패킷 미러링이나 XDP 없이, 커널 TCP 스택이 올려주는 소켓 이벤트 콜백(`sock_ops`)만 구독하므로 오버헤드가 낮고 관측 대상은 TCP로 한정됩니다.
+CloudWatch Network Flow Monitor (NFM) observes network performance from the workload's perspective. It collects flow-level retransmissions, round-trip time (RTT), and timeouts to help distinguish application problems from AWS network problems. The agent subscribes to socket-event callbacks (`sock_ops`) from the kernel TCP stack. It does not capture packet payloads, use packet mirroring, or attach an XDP program. Its observation scope is TCP.
 
-에이전트는 오픈소스([aws/network-flow-monitor-agent](https://github.com/aws/network-flow-monitor-agent), Rust, Apache-2.0)로 공개되어 있어 수집 항목과 전송 경로를 코드 수준에서 확인할 수 있습니다. 이 문서는 커널 측 수집 → 유저스페이스 집계·enrichment → 백엔드 전송의 전체 경로와, EKS add-on 배포·트러블슈팅을 다룹니다.
+The agent is open source ([aws/network-flow-monitor-agent](https://github.com/aws/network-flow-monitor-agent), Rust, Apache-2.0), so its collection and publishing paths can be inspected in code. This guide follows the path from kernel collection through userspace aggregation and Kubernetes enrichment to backend publishing, then covers EKS add-on deployment and troubleshooting.
 
-## 배경: 백엔드 구성 요소
+## Background: Backend Components
 
-에이전트를 보기 전에 데이터가 도달하는 백엔드의 개념을 정리합니다.
+The backend uses the following concepts.
 
-| 구성 요소 | 역할 |
+| Component | Role |
 |---|---|
-| Scope | 관측 대상 계정 집합. Organizations 사용 시 최대 100개 계정까지 확장 |
-| Workload insights | Scope 내 전체 flow의 집계 지표와 metric별 top contributors (AZ 내/간, VPC 간 등 카테고리별) |
-| Monitor | 특정 local/remote 리소스 쌍(서브넷, VPC, AZ, EKS 클러스터 등)을 지정한 상세 추적. end-to-end 지표와 NHI 발행 |
-| NHI(Network Health Indicator) | 이진 지표. **100 = Degraded = 해당 구간의 최소 1개 flow에 AWS 네트워크 이슈가 있었음** |
+| Scope | The set of accounts to observe. An AWS Organizations scope can include up to 100 accounts. |
+| Workload insights | Aggregated flow metrics within a scope and top contributors for each metric, grouped into categories such as intra-AZ, inter-AZ, and inter-VPC traffic. |
+| Monitor | Detailed tracking for selected local and remote resources, such as subnets, VPCs, AZs, or EKS clusters. Publishes end-to-end metrics and NHI. |
+| Network Health Indicator (NHI) | A binary indicator. **100 means Degraded: at least one flow in the monitored segment experienced an AWS network issue.** |
 
-NHI가 이 서비스의 차별점입니다. "우리 앱 문제인가, AWS 네트워크 문제인가"라는 장애 대응의 첫 분기 질문에 AWS 측 판정을 제공합니다. 단, NHI 산정의 내부 알고리즘은 공개되어 있지 않으며, RTT 지표는 항상 계산되는 값이 아니어서 희소(sparse)할 수 있다고 공식 문서에 명시되어 있습니다.
+NHI supplies AWS's assessment of network health during an incident. Its internal calculation is not public. The official documentation also notes that RTT is not available for every observation and can be sparse.
 
-## 아키텍처: 전체 데이터 경로
+## Architecture: The Data Path
 
 ```mermaid
 flowchart TB
-    subgraph NODE["EKS 워커 노드"]
-        APP["애플리케이션 Pod"] -->|TCP| KSTACK["커널 TCP 스택"]
-        KSTACK -->|"sock_ops 콜백<br/>(cgroup v2 attach)"| BPF["eBPF: nfm_sock_ops<br/>(항상 BPF_OK 리턴)"]
-        BPF --> MAPS["BPF 맵<br/>(소켓별 통계)"]
-        MAPS -->|"500ms 집계 주기"| AGENT["유저스페이스 에이전트 (Rust)"]
-        K8S["Pod / EndpointSlice watcher"] -->|"IP:port → pod/service 맵"| AGENT
-        AGENT -->|"top-K 필터 (기본 500)"| REPORT["NfmReport v1.1"]
+    subgraph NODE["EKS worker node"]
+        APP["Application Pod"] -->|TCP| KSTACK["Kernel TCP stack"]
+        KSTACK -->|"sock_ops callbacks<br/>(cgroup v2 attachment)"| BPF["eBPF: nfm_sock_ops<br/>(returns BPF_OK)"]
+        BPF --> MAPS["BPF maps<br/>(per-socket statistics)"]
+        MAPS -->|"500 ms aggregation interval"| AGENT["Userspace agent (Rust)"]
+        K8S["Pod / EndpointSlice watchers"] -->|"IP:port → Pod/Service mapping"| AGENT
+        AGENT -->|"top-K filter (default: 500)"| REPORT["NfmReport v1.1"]
     end
-    REPORT -->|"30초 ±5초 지터<br/>OTLP protobuf + gzip + SigV4"| BE["networkflowmonitorreports.리전.api.aws"]
+    REPORT -->|"30 seconds ±5 seconds jitter<br/>OTLP protobuf + gzip + SigV4"| BE["networkflowmonitorreports.region.api.aws"]
     BE --> WI["Workload insights<br/>(top contributors)"]
-    BE --> MON["Monitor<br/>(end-to-end 지표 + NHI)"]
-    WI & MON --> CONSOLE["CloudWatch / EKS 콘솔"]
+    BE --> MON["Monitor<br/>(end-to-end metrics + NHI)"]
+    WI & MON --> CONSOLE["CloudWatch / EKS console"]
 ```
 
-## Deep Dive: 커널 측 — 무엇을 어떻게 수집하는가
+## Kernel Collection
 
-### 단일 sock_ops 프로그램
+### A Single sock_ops Program
 
-eBPF 프로그램은 `BPF_PROG_TYPE_SOCK_OPS` 타입 하나뿐이며 cgroup v2에 attach됩니다([nfm-bpf/src/main.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-bpf/src/main.rs)). 커널이 TCP 소켓의 상태 변화·RTT 측정·재전송 등 이벤트마다 콜백을 호출하면 프로그램이 소켓별 통계를 BPF 맵에 누적합니다. 콜백의 리턴값은 무조건 `BPF_OK`입니다 — 소스 주석 그대로 "Always return ok so as not to mess with the customer connection", 관측이 고객 연결의 동작에 개입하지 않도록 하는 설계입니다.
+The agent attaches one `BPF_PROG_TYPE_SOCK_OPS` program to cgroup v2 ([nfm-bpf/src/main.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-bpf/src/main.rs)). The kernel invokes it for events such as TCP state changes, RTT measurements, and retransmissions. The program accumulates per-socket statistics in BPF maps and returns `BPF_OK` so that observation does not change the connection's behavior.
 
-### 콜백별 수집 항목
+### Events and Collected Values
 
-[sock_ops_handler.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-common/src/sock_ops_handler.rs)의 `handle_socket_event()` 기준으로, 처리되는 콜백과 기록 값은 다음과 같습니다.
+The following table summarizes `handle_socket_event()` in [sock_ops_handler.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-common/src/sock_ops_handler.rs).
 
-| sock_ops 콜백 | 기록되는 값 |
+| sock_ops callback | Recorded values |
 |---|---|
-| `TCP_CONNECT_CB` | 신규 소켓 등록(client), `connect_attempts` 증가, 연결 시작 시각 |
-| `PASSIVE_ESTABLISHED_CB` | 신규 소켓 등록(server) |
-| `STATE_CB` | ESTABLISHED 진입 시 `connect_duration_us`·`connect_successes`, 종료 단계별 플래그(`TERMINATED_FROM_SYN`/`FROM_EST`/`CLOSED`), CLOSE 시 최종 바이트·세그먼트 스냅샷 |
-| `RTT_CB` | `rtt_latest_us`, `rtt_smoothed_us`(인수 부재 시 `srtt_us` 폴백 + `rtts_invalid` 카운트) |
-| `RETRANS_CB` | 재전송 세그먼트를 연결 상태별로 분리 집계: `retrans_syn` / `retrans_est` / `retrans_close` |
-| `RTO_CB` | 재전송 타임아웃을 상태별로 집계: `rtos_syn` / `rtos_est` / `rtos_close` |
-| `PARSE_HDR_OPT_CB`, `HDR_OPT_LEN_CB` | 송수신 바이트·세그먼트 갱신 |
+| `TCP_CONNECT_CB` | Registers a new client socket, increments `connect_attempts`, and records the connection start time. |
+| `PASSIVE_ESTABLISHED_CB` | Registers a new server socket. |
+| `STATE_CB` | Records `connect_duration_us` and `connect_successes` on ESTABLISHED; sets termination flags (`TERMINATED_FROM_SYN` / `FROM_EST` / `CLOSED`); records final byte and segment counts on CLOSE. |
+| `RTT_CB` | Updates `rtt_latest_us` and `rtt_smoothed_us`; falls back to `srtt_us` and increments `rtts_invalid` when an argument is unavailable. |
+| `RETRANS_CB` | Counts retransmitted segments by connection state: `retrans_syn`, `retrans_est`, and `retrans_close`. |
+| `RTO_CB` | Counts retransmission timeouts by state: `rtos_syn`, `rtos_est`, and `rtos_close`. |
+| `PARSE_HDR_OPT_CB`, `HDR_OPT_LEN_CB` | Updates sent and received byte and segment counts. |
 
-`TIMEOUT_INIT`, `RWND_INIT`, `NEEDS_ECN`, `ACTIVE_ESTABLISHED_CB`는 조기 폐기됩니다(연결 성립은 CONNECT+STATE 조합으로 충분). 재전송·RTO를 SYN/ESTABLISHED/CLOSE 상태별로 분리하는 것이 특징인데, 연결 수립 단계의 손실(용량·보안그룹 문제 신호)과 수립 이후 손실(경로 품질 신호)을 백엔드가 구분해 해석할 수 있게 합니다.
+`TIMEOUT_INIT`, `RWND_INIT`, `NEEDS_ECN`, and `ACTIVE_ESTABLISHED_CB` return early; CONNECT and STATE events cover connection establishment. Separating retransmissions and RTOs into SYN, ESTABLISHED, and CLOSE phases helps distinguish connection-establishment failures from loss after a connection has formed.
 
-### 샘플링과 권한 축소
+### Sampling and Capability Reduction
 
-- **샘플링은 신규 소켓의 입구에서만** 적용됩니다(`NFM_CONTROL` 맵의 `sampling_interval`, CONNECT/PASSIVE_ESTABLISHED 시점). 일단 추적 대상이 된 소켓의 이벤트는 하나도 버리지 않으므로, flow별 통계의 내적 일관성이 보장됩니다.
-- 에이전트는 privileged로 시작하지만 eBPF 로드가 끝나면 `CAP_SYS_ADMIN`·`CAP_PERFMON`·`CAP_NET_ADMIN`을 스스로 드롭하고 BPF 맵 읽기에 필요한 **`CAP_BPF`만 유지**합니다([lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs)의 `drop_capabilities`).
+- **Sampling is applied when a socket enters tracking**, at CONNECT or PASSIVE_ESTABLISHED, using `sampling_interval` in the `NFM_CONTROL` map. Subsequent events for a tracked socket remain part of its statistics.
+- The agent starts privileged, then drops `CAP_SYS_ADMIN`, `CAP_PERFMON`, and `CAP_NET_ADMIN` after loading eBPF. It retains **`CAP_BPF`** for BPF-map access; see `drop_capabilities` in [lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs).
 
-## Deep Dive: 유저스페이스 — 집계·enrichment·전송
+## Userspace Aggregation, Enrichment, and Publishing
 
-### 타이머 기반 메인 루프
+### Timer-Driven Main Loop
 
-메인 루프는 세 개의 타이머로 구동됩니다. 주요 옵션과 기본값:
+Three timers drive the main loop. The principal options and defaults are:
 
-| 옵션 | 기본값 | 의미 |
+| Option | Default | Purpose |
 |---|---|---|
-| `--aggregate-msecs` | 500 | BPF 맵 → 유저스페이스 flow 집계 주기 |
-| `--publish-secs` / `--jitter-secs` | 30 / 5 | 리포트 전송 주기와 지터 (실효 25~35초) |
-| `--top-k` | 500 | 리포트에 담을 flow 수 상한. 손실(loss) 상위 우선 선별 |
-| `--notrack-secs` | 65 | 유휴 소켓 추적 종료. TCP 지수 백오프 6회(최대 63초)를 커버하는 값 |
-| `--report-compression` | gzip | 전송 압축 |
-| `--kubernetes-metadata` | off | Pod/EndpointSlice watcher 활성화 (EKS add-on은 entrypoint에서 on으로 override) |
-| `--resolve-nat` | off | conntrack 조회로 로컬 NAT 뒤 실제 주소 복원 |
+| `--aggregate-msecs` | 500 | Interval for aggregating BPF-map data into userspace flows. |
+| `--publish-secs` / `--jitter-secs` | 30 / 5 | Publishing interval and jitter, giving an effective interval of 25–35 seconds. |
+| `--top-k` | 500 | Maximum flows per report; prioritizes flows with greater loss. |
+| `--notrack-secs` | 65 | Stops tracking idle sockets; covers six TCP exponential-backoff intervals totaling up to 63 seconds. |
+| `--report-compression` | gzip | Report compression. |
+| `--kubernetes-metadata` | off | Enables Pod and EndpointSlice watchers. The EKS add-on entrypoint enables it. |
+| `--resolve-nat` | off | Uses conntrack to recover addresses behind local NAT. |
 
-### Kubernetes enrichment: flow에 pod·service 이름 붙이기
+### Kubernetes Enrichment: Adding Pod and Service Names
 
-EKS 콘솔의 service map이 가능한 이유가 이 로직입니다([kubernetes_metadata_collector.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/kubernetes/kubernetes_metadata_collector.rs)).
+[kubernetes_metadata_collector.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/kubernetes/kubernetes_metadata_collector.rs) supplies the Kubernetes context used by the EKS console's service map.
 
-1. **Pod watcher와 EndpointSlice watcher** 두 개가 `IP 주소 → (TCP 포트 → {pod, namespace, service})` 맵을 유지합니다. service 이름은 EndpointSlice의 `kubernetes.io/service-name` 라벨(없으면 ownerReference)에서 옵니다. Pod 이벤트는 EndpointSlice가 이미 채운 엔트리를 덮어쓰지 않는데, EndpointSlice 쪽 정보가 더 풍부하기 때문입니다.
-2. flow마다 local/remote 주소를 이 맵에서 조회합니다. client 쪽 flow는 remote 포트로 상대 pod를 확정할 수 있지만, local pod는 ephemeral 포트라 어느 포트가 연결을 열었는지 알 수 없으므로 "그 IP의 모든 포트가 같은 pod일 때"만 확정합니다. server 쪽 flow는 반대입니다.
-3. IPv4-mapped IPv6 주소(`::ffff:10.0.0.1`)는 IPv4로 되짚어 조회하며, **TCP 포트만** 취급합니다(UDP ContainerPort 무시).
+1. **Pod and EndpointSlice watchers** maintain an `IP address → (TCP port → {pod, namespace, service})` map. The Service name comes from the EndpointSlice's `kubernetes.io/service-name` label, falling back to its owner reference. Pod events preserve entries populated by EndpointSlices because the latter contain richer metadata.
+2. For each flow, the agent looks up the local and remote addresses. On a client flow, the remote port can identify the remote Pod. The local ephemeral port does not identify an application port, so the agent assigns a local Pod only when all ports associated with that IP map to the same Pod. The direction is reversed for a server flow.
+3. IPv4-mapped IPv6 addresses such as `::ffff:10.0.0.1` are also looked up as IPv4 addresses. The map considers **TCP ports only**, ignoring UDP container ports.
 
-### 리포트 내용
+### Report Contents
 
-전송 단위인 `NfmReport`(report_version 1.1, [report.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/report.rs))에는 flow 통계 외에 실무적으로 유용한 항목이 함께 실립니다.
+`NfmReport` version 1.1 ([report.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/report.rs)) contains:
 
-- `network_stats[]` — flow별 소켓 상태 카운트, 송수신 바이트·세그먼트, 상태별 재전송·RTO, 히스토그램 3종(`connect_us`, `rtt_us`, `rtt_smoothed_us`)
-- `host_stats.interface_stats[]` — **ENA allowance 카운터**: `bw_in/out_allowance_exceeded`, `pps_allowance_exceeded`, `conntrack_allowance_exceeded/available`, `linklocal_allowance_exceeded`. 인스턴스 네트워크 한도 초과로 인한 **Nitro 레벨 드롭**이 flow 지표와 같은 리포트에 올라오므로, "애플리케이션 손실 vs 인스턴스 한도 초과"를 한 화면에서 대조할 수 있습니다
-- `process_stats` — 에이전트 자체 CPU/메모리/추적 소켓 수 (에이전트 오버헤드 감시용)
-- `k8s_metadata` — `node_name`, `cluster_name`
+- `network_stats[]`: per-flow socket-state counts, sent and received bytes and segments, state-specific retransmissions and RTOs, and the `connect_us`, `rtt_us`, and `rtt_smoothed_us` histograms.
+- `host_stats.interface_stats[]`: **ENA allowance counters**, including `bw_in/out_allowance_exceeded`, `pps_allowance_exceeded`, `conntrack_allowance_exceeded/available`, and `linklocal_allowance_exceeded`. Reporting these alongside flow metrics helps correlate loss with instance networking limits.
+- `process_stats`: the agent's CPU use, memory use, and tracked-socket count.
+- `k8s_metadata`: `node_name` and `cluster_name`.
 
-### 전송 경로
+### Publishing Path
 
-`NfmReport`는 OpenTelemetry `ExportMetricsServiceRequest` protobuf로 변환된 뒤 gzip 압축, **SigV4 서명(서비스명 `networkflowmonitor`)** 을 거쳐 `https://networkflowmonitorreports.<region>.api.aws/publish`로 POST됩니다([publisher_endpoint.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/publisher_endpoint.rs)). 응답이 200이 아니면 `failed_reports` 카운터를 올려 다음 리포트에 실어 보냅니다. 따라서 에이전트 로그의 `HTTP request complete, status:200 ... publisher_endpoint`가 **publish 정상의 결정적 증거**입니다.
+The agent converts `NfmReport` to an OpenTelemetry `ExportMetricsServiceRequest` protobuf, compresses it with gzip, signs it with **SigV4 using the service name `networkflowmonitor`**, and POSTs it to `https://networkflowmonitorreports.<region>.api.aws/publish`. See [publisher_endpoint.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/publisher_endpoint.rs). A response other than HTTP 200 increments `failed_reports`, which is included in a later report. A log entry containing `HTTP request complete, status:200 ... publisher_endpoint` confirms a successful publishing request.
 
-CloudWatch 콘솔 대신 자체 관측 스택을 쓰는 경로도 코드에 준비되어 있습니다. `--prometheus-workspace-id`를 지정하면 Amazon Managed Service for Prometheus의 remote write 엔드포인트로 직접 전송하고, `open-metrics` feature를 켜면 로컬 Prometheus 스크레이프 서버를 노출합니다.
+The source also supports other destinations. `--prometheus-workspace-id` selects an Amazon Managed Service for Prometheus remote-write endpoint. Building with the `open-metrics` feature exposes a local Prometheus scrape server.
 
-## EKS 배포와 운영 고려사항
+## EKS Deployment and Operations
 
-### 설치
+### Installation
 
-EKS add-on 이름은 `aws-network-flow-monitoring-agent`입니다(Kubernetes 1.25+, 에이전트 이미지 v1.1.x 계열). 에이전트가 SigV4 서명에 쓸 자격 증명은 Pod Identity로 공급하므로 **`eks-pod-identity-agent` add-on이 선행 조건**이며, IAM 역할에 관리형 정책 `CloudWatchNetworkFlowMonitorAgentPublishPolicy`를 연결합니다.
+The EKS add-on name is `aws-network-flow-monitoring-agent`. The source guide describes Kubernetes 1.25+ and agent images in the v1.1.x series; select an add-on version compatible with the cluster when deploying. Pod Identity supplies the credentials used for SigV4 signing, so install **`eks-pod-identity-agent`** first and attach the managed policy `CloudWatchNetworkFlowMonitorAgentPublishPolicy` to the agent's IAM role.
 
 ```bash
 aws eks create-addon --cluster-name <CLUSTER> \
@@ -138,62 +138,65 @@ aws eks create-addon --cluster-name <CLUSTER> \
     serviceAccount=aws-network-flow-monitor-agent-service-account,roleArn=<ROLE_ARN>
 ```
 
-### 리소스 이름 불일치 주의
+### Resource Names
 
-add-on·네임스페이스·DaemonSet의 이름이 미묘하게 달라 오진의 단골 원인이 됩니다.
+The add-on, namespace, and DaemonSet have slightly different names.
 
-| 리소스 | 이름 |
+| Resource | Name |
 |---|---|
-| EKS add-on | `aws-network-flow-monitoring-agent` (**"monitoring"**) |
-| 네임스페이스 | `amazon-network-flow-monitor` (**"monitor" — "ing" 없음**) |
-| DaemonSet / pod 라벨 | `aws-network-flow-monitor-agent` / `name=aws-network-flow-monitor-agent` |
+| EKS add-on | `aws-network-flow-monitoring-agent` (**monitoring**) |
+| Namespace | `amazon-network-flow-monitor` (**monitor**, without **ing**) |
+| DaemonSet / Pod label | `aws-network-flow-monitor-agent` / `name=aws-network-flow-monitor-agent` |
 | ServiceAccount | `aws-network-flow-monitor-agent-service-account` |
-| 컨테이너 이미지 내부명 | `aws-network-sonar-agent` |
+| Internal container-image name | `aws-network-sonar-agent` |
 
 ```bash
-# 에이전트 상태 확인 — 네임스페이스와 라벨에 주의
+# Check the agent using the exact namespace and label.
 kubectl get pods -n amazon-network-flow-monitor -l name=aws-network-flow-monitor-agent
 kubectl logs -n amazon-network-flow-monitor -l name=aws-network-flow-monitor-agent \
   --tail=50 | grep publisher_endpoint
 ```
 
-### 제약 사항
+### Constraints
 
-- **TCP 전용** — sock_ops 구조상 UDP·ICMP flow는 수집되지 않습니다
-- **커널 5.8+, cgroup v2 필수**
-- **Fargate 미지원** — privileged hostPath(cgroup) 마운트를 요구하는 DaemonSet이므로 Fargate에는 스케줄될 수 없습니다
-- **일부 배포판 미지원** — SUSE 15 SP5, Ubuntu 20.04는 BPF helper를 GPL 전용으로 강제하는 커널 설정 때문에 에이전트(Apache-2.0)가 동작하지 않습니다(에이전트 README 명시)
+- **TCP only**: the sock_ops collection path does not observe UDP or ICMP flows.
+- **Kernel 5.8+ and cgroup v2 are required.**
+- **Fargate is unsupported**: the DaemonSet requires privileged access and a hostPath mount for cgroup.
+- **Distribution compatibility matters**: the agent README identifies SUSE 15 SP5 and Ubuntu 20.04 as unsupported because their kernel configuration restricts required BPF helpers to GPL-licensed programs.
 
-### "Enabled인데 데이터가 없다": 3계층 진단
+### Enabled but No Data: Three Diagnostic Layers
 
-flow 데이터가 콘솔에 보이지 않을 때 원인은 세 계층 중 하나이며, 아래에서 위로 확인합니다.
+Check the collection path from the agent upward.
 
-1. **Agent publish 계층** — 에이전트 pod가 각 노드에 떠 있는가, 로그에 `status:200 ... publisher_endpoint`가 찍히는가. 403이면 Pod Identity 연결과 IAM 정책, 타임아웃이면 아웃바운드 경로(프록시·VPC 엔드포인트)를 확인
-2. **Scope 계층** — 해당 계정이 NFM Scope에 포함되어 있는가. Scope가 없으면 데이터가 수집되어도 Workload insights 쿼리가 라우팅되지 않음
-3. **Monitor 계층** — 보려는 flow의 local/remote 리소스 쌍을 커버하는 Monitor가 존재하는가. Monitor는 EKS 클러스터를 local resource로 지정할 수 있음
+1. **Agent publishing**: confirm an agent Pod is running on each expected node and inspect logs for `status:200 ... publisher_endpoint`. For HTTP 403, check the Pod Identity association and IAM policy. For timeouts, check the outbound path, including proxies and VPC endpoints.
+2. **Scope**: confirm the account belongs to the intended NFM scope. A successful publishing request alone does not establish that the console is querying the appropriate scope.
+3. **Monitor**: confirm that a monitor covers the local and remote resources for the flows being investigated. An EKS cluster can be selected as a local resource.
 
-`--kubernetes-metadata`가 켜져 있어도 service map이 비어 있다면 enrichment 실패 가능성이 있습니다. 에이전트 로그의 `Flow enrichment completed.` 메시지가 watcher 정상 동작의 시그널입니다.
+If the service map is empty despite `--kubernetes-metadata` being enabled, investigate enrichment. The agent's `Flow enrichment completed.` log message indicates that an enrichment pass has completed.
 
-## 결론
+## Summary
 
-NFM 에이전트는 cgroup v2에 attach한 단일 `sock_ops` eBPF 프로그램으로 커널 TCP 이벤트(연결·RTT·재전송·RTO)를 소켓별로 집계하고, 유저스페이스에서 500ms 주기로 flow 단위 통합, Pod/EndpointSlice watcher로 Kubernetes 컨텍스트를 부여한 뒤, 30초(±5초) 주기로 OTLP protobuf를 SigV4 서명해 NFM 백엔드로 push합니다. 백엔드는 Scope 단위 top contributors와 Monitor 단위 NHI를 제공하며, NHI 100(Degraded)은 AWS 네트워크 이슈의 판정 근거가 됩니다. 패킷 캡처가 아닌 소켓 콜백 구독이므로 오버헤드가 낮은 대신 TCP 전용이라는 경계를 이해하고 배포하는 것이 중요합니다.
+NFM uses a cgroup v2 `sock_ops` program to collect TCP socket events, aggregates them into flows in userspace, adds Kubernetes context through Pod and EndpointSlice watchers, and publishes signed OTLP reports. Workload insights provides scope-level contributors, while monitors provide end-to-end metrics and NHI. Use the publishing, scope, and monitor layers to locate missing-data problems, and account for the agent's TCP-only observation boundary.
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Components and features of Network Flow Monitor](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-components.html) — Scope·Workload insights·Monitor·NHI 정의
-- [Using Network Flow Monitor](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor.html) — 서비스 개요와 동작 방식
-- [Install the agent on EKS clusters](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-agents-kubernetes-eks.html) — add-on 설치와 Pod Identity 구성
+### Official Documentation
 
-### 코드 (aws/network-flow-monitor-agent)
-- [nfm-bpf/src/main.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-bpf/src/main.rs) — sock_ops eBPF 프로그램
-- [nfm-common/src/sock_ops_handler.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-common/src/sock_ops_handler.rs) — 콜백별 이벤트 처리
-- [nfm-controller/src/lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs) — 메인 루프·옵션 기본값·capability 드롭
-- [kubernetes_metadata_collector.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/kubernetes/kubernetes_metadata_collector.rs) — Pod/EndpointSlice enrichment
-- [reports/report.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/report.rs) · [publisher_endpoint.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/publisher_endpoint.rs) — 리포트 스키마와 전송
+- [Components and features of Network Flow Monitor](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-components.html) — Scope, workload insights, monitors, and NHI.
+- [Using Network Flow Monitor](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor.html) — Service overview.
+- [Install the agent on EKS clusters](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-agents-kubernetes-eks.html) — Add-on installation and Pod Identity.
 
-### 관련 문서 (내부)
-- [VPC CNI 동작 원리](../networking-performance/vpc-cni-deep-dive.md) — 관측 대상인 데이터패스의 구조
-- [EKS Node Monitoring Agent](./node-monitoring-agent.md) — 노드 상태 관측 계열의 자매 add-on
-- [EKS 네트워킹 디버깅](./eks-debugging/networking.md) — 네트워크 문제 진단 절차
-- [Nitro 아키텍처 & 튜닝](../networking-performance/nitro-architecture-performance-tuning.md) — ENA allowance 한도의 배경
+### Source Code
+
+- [nfm-bpf/src/main.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-bpf/src/main.rs) — The sock_ops eBPF program.
+- [nfm-common/src/sock_ops_handler.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-common/src/sock_ops_handler.rs) — Callback handling.
+- [nfm-controller/src/lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs) — Main loop, defaults, and capability reduction.
+- [kubernetes_metadata_collector.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/kubernetes/kubernetes_metadata_collector.rs) — Pod and EndpointSlice enrichment.
+- [reports/report.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/report.rs) and [publisher_endpoint.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/publisher_endpoint.rs) — Report schema and publishing.
+
+### Related Documents
+
+- [How VPC CNI Works](../networking-performance/vpc-cni-deep-dive.md) — The datapath being observed.
+- [EKS Node Monitoring Agent](./node-monitoring-agent.md) — Node health monitoring.
+- [Networking Debugging](./eks-debugging/networking.md) — Network troubleshooting procedures.
+- [Nitro Architecture and Tuning](../networking-performance/nitro-architecture-performance-tuning.md) — ENA allowance limits.

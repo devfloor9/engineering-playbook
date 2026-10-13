@@ -1,11 +1,11 @@
 ---
-title: 티어드 게이트웨이 아키텍처
-description: "Agentic AI 플랫폼의 게이트웨이 계층 단일 정의: Tier 1 Ingress, Tier 2 추론 라우팅(Inference Extension)과 LLM API 게이트웨이, Agent Data Plane의 역할 구분과 채움 전략"
+title: Tiered Gateway Architecture
+description: "Single definition of the Agentic AI Platform gateway layers: Tier 1 Ingress, Tier 2 Inference Routing (Inference Extension) and LLM API Gateway, and the Agent Data Plane — their role separation and how to fill each layer"
 created: "2026-06-17"
 last_update:
-  date: 2026-09-22
-  author: YoungJoon Jeong
-reading_time: 6
+  date: 2026-09-19
+  author: devfloor9
+reading_time: 10
 tags:
   - gateway-api
   - inference-gateway
@@ -13,66 +13,66 @@ tags:
   - agentgateway
   - networking
   - scope:impl
-sidebar_label: 티어드 게이트웨이 아키텍처
+sidebar_label: Tiered Gateway Architecture
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## 개요
+## Overview
 
-Agentic AI 플랫폼의 게이트웨이 계층은 서로 다른 책임을 가진 여러 컴포넌트로 구성됩니다. 그동안 "추론 게이트웨이(Inference Gateway)"라는 용어가 **클러스터 내 추론 Pod 라우팅**과 **외부 LLM 프로바이더 프록시**라는 두 가지 다른 대상을 동시에 가리켜 혼동이 있었습니다. 이 문서는 게이트웨이 계층의 **용어와 역할을 단일하게 정의**하고, 각 계층을 어떤 솔루션으로 채울지 판단 기준을 제공합니다.
+The gateway layer of the Agentic AI Platform consists of multiple components with distinct responsibilities. The term "Inference Gateway" has been ambiguous — it referred to both **in-cluster inference pod routing** and **external LLM provider proxying**, causing confusion. This document **defines the gateway-layer terminology and roles unambiguously** and provides criteria for deciding which solution fills each layer.
 
-이 문서는 **정의와 지도(map)** 에 집중합니다. 각 계층의 상세 비교·배포 절차는 본문 링크로 연결되는 전용 문서를 참조하세요.
+This document focuses on **definition and mapping**. For detailed comparison and deployment of each layer, follow the links to the dedicated documents.
 
-:::info 이 문서의 위치
-게이트웨이 계층은 [플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md)의 **Layer 5 (Gateway & Routing)** 에 해당합니다. 요청 흐름은 Layer 6(진입) → Layer 5(게이트웨이) → Layer 4(Agent)로 내려가며, Agent가 추론을 요청하면 다시 Layer 5를 거쳐 Layer 2(모델 서빙)를 호출합니다.
+:::info Where this document sits
+The gateway layer corresponds to **Layer 5 (Gateway & Routing)** of the [platform architecture](../../design-architecture/foundations/agentic-platform-architecture.md). The request flow descends Layer 6 (entry) → Layer 5 (gateway) → Layer 4 (Agent), and when an agent needs inference it goes back through Layer 5 to call Layer 2 (Model Serving).
 :::
 
-## 게이트웨이 계층 정의
+## Gateway Layer Definitions
 
-플랫폼 전역에서 다음 용어를 사용합니다. "추론 게이트웨이"라는 모호한 표현 대신, 클러스터 내 라우팅과 LLM API 프록시를 **명시적으로 구분**합니다.
+The following terms are used across the platform. Instead of the ambiguous "Inference Gateway", in-cluster routing and LLM API proxying are **explicitly distinguished**.
 
-| 계층 | 명칭 | 역할 | 대표 구현체 |
-|------|------|------|-------------|
-| **Tier 1** | Ingress / North-South Gateway | 외부 트래픽 수신, TLS 종료, 경로 라우팅, 인증, Rate Limiting | AWS LBC · Cilium · NGINX GF · Envoy Gateway · kGateway · Kong |
-| **Tier 2 ①** | Inference Routing (in-cluster) | 클러스터 내 추론 Pod 그룹으로 라우팅, KV cache·부하 인지 엔드포인트 선택 | Gateway API **Inference Extension** (InferencePool · EPP) |
-| **Tier 2 ②** | LLM API Gateway (provider proxy) | 외부/내부 모델 추상화, 모델 선택·Cascade, 비용 추적, Semantic Caching | Bifrost · LiteLLM · OpenRouter · Portkey · Helicone · Kong AI Gateway |
-| **직교 축** | Agent Data Plane | MCP/A2A 프로토콜, stateful 세션, 도구 라우팅 | agentgateway |
+| Layer | Name | Role | Representative Implementations |
+|-------|------|------|-------------------------------|
+| **Tier 1** | Ingress / North-South Gateway | External traffic ingress, TLS termination, path routing, auth, rate limiting | AWS LBC · Cilium · NGINX GF · Envoy Gateway · kGateway · Kong |
+| **Tier 2 ①** | Inference Routing (in-cluster) | Routing to in-cluster inference pod groups, KV-cache/load-aware endpoint selection | Gateway API **Inference Extension** (InferencePool · EPP) |
+| **Tier 2 ②** | LLM API Gateway (provider proxy) | Model abstraction, model selection/cascade, cost tracking, semantic caching | Bifrost · LiteLLM · OpenRouter · Portkey · Helicone · Kong AI Gateway |
+| **Orthogonal axis** | Agent Data Plane | MCP/A2A protocols, stateful sessions, tool routing | agentgateway |
 
-:::tip 핵심 구분 — Tier 2 ① vs ②
-- **Tier 2 ① Inference Routing**은 **클러스터 내부**에서 동작합니다. HTTPRoute가 InferencePool을 백엔드로 참조하고, EPP(Endpoint Picker)가 KV cache·부하를 고려해 vLLM/llm-d Pod 엔드포인트를 고릅니다. 자체 호스팅 모델 인프라를 다룹니다.
-- **Tier 2 ② LLM API Gateway**는 **모델 API를 추상화**합니다. OpenAI 호환 API로 외부 프로바이더(OpenAI·Anthropic·Bedrock)나 자체 모델을 단일 인터페이스로 노출하고, 복잡도 기반 Cascade·비용 추적·캐싱을 수행합니다.
-- 둘은 **배타적이지 않습니다.** 자체 호스팅 추론은 ①로, 외부 프로바이더 통합은 ②로 처리하는 하이브리드 구성이 일반적입니다.
+:::tip Key distinction — Tier 2 ① vs ②
+- **Tier 2 ① Inference Routing** operates **inside the cluster**. An HTTPRoute references an InferencePool as its backend, and the EPP (Endpoint Picker) selects a vLLM/llm-d pod endpoint considering KV cache and load. It handles self-hosted model infrastructure.
+- **Tier 2 ② LLM API Gateway** **abstracts the model API**. It exposes external providers (OpenAI · Anthropic · Bedrock) or self-hosted models through a single OpenAI-compatible interface, performing complexity-based cascade, cost tracking, and caching.
+- The two are **not mutually exclusive.** A hybrid setup — ① for self-hosted inference, ② for external provider integration — is common.
 :::
 
-이 문서에서 `Agent Data Plane`(agentgateway)은 도구 호출, 에이전트 간 통신, 상태를 유지하는 세션을 담당하는 기능으로 구분합니다. Tier 1~2가 모델 요청을 어디로 보낼지 정한다면, 이 기능은 MCP/A2A 연결과 세션을 처리합니다. MCP/A2A도 HTTP를 전송 수단으로 사용할 수 있으므로, 이 구분은 전송 프로토콜이 아니라 담당 기능을 기준으로 합니다. 모든 요청이 순서대로 통과하는 또 하나의 Tier로 해석하지 않습니다.
+In this guide, the `Agent Data Plane` (agentgateway) handles tool calls, communication between agents, and stateful sessions. Tier 1–2 determine where model requests go, while this function handles MCP/A2A connections and sessions. MCP/A2A can also use HTTP as a transport, so this is a distinction between responsibilities, not transport protocols. It is not another tier that every request must pass through in sequence.
 
-## 전체 구조
+## Overall Structure
 
 ```mermaid
 flowchart TB
-    subgraph CL["클라이언트 / 에이전트 (Layer 6·4)"]
+    subgraph CL["Clients / Agents (Layer 6·4)"]
         CLIENT[Clients · SDK · UI]
     end
 
     subgraph T1["Tier 1: Ingress / North-South Gateway"]
-        GW1["범용 Gateway API<br/>(AWS LBC · Cilium · NGINX GF<br/>Envoy · kGateway · Kong)<br/>TLS · 인증 · Rate Limit"]
+        GW1["General Gateway API<br/>(AWS LBC · Cilium · NGINX GF<br/>Envoy · kGateway · Kong)<br/>TLS · auth · rate limit"]
     end
 
-    subgraph T2["Tier 2: 추론 트래픽 처리"]
+    subgraph T2["Tier 2: Inference Traffic Handling"]
         direction LR
-        T2A["② LLM API Gateway<br/>(Bifrost · LiteLLM · OpenRouter)<br/>모델 추상화 · Cascade · 캐싱"]
+        T2A["② LLM API Gateway<br/>(Bifrost · LiteLLM · OpenRouter)<br/>model abstraction · cascade · caching"]
         T2B["① Inference Routing<br/>(Inference Extension)<br/>InferencePool · EPP"]
     end
 
-    subgraph ADP["직교 축: Agent Data Plane"]
-        AGW["agentgateway<br/>MCP/A2A · 세션"]
+    subgraph ADP["Orthogonal axis: Agent Data Plane"]
+        AGW["agentgateway<br/>MCP/A2A · sessions"]
     end
 
-    subgraph BE["백엔드"]
-        EXT["외부 LLM 프로바이더<br/>(OpenAI · Anthropic · Bedrock)"]
-        PODS["클러스터 내 추론 Pod<br/>(vLLM · llm-d)"]
+    subgraph BE["Backends"]
+        EXT["External LLM providers<br/>(OpenAI · Anthropic · Bedrock)"]
+        PODS["In-cluster inference pods<br/>(vLLM · llm-d)"]
     end
 
     CLIENT --> GW1
@@ -80,7 +80,7 @@ flowchart TB
     GW1 --> T2B
     GW1 --> AGW
     T2A --> EXT
-    T2A -.모델 추상화.-> PODS
+    T2A -.model abstraction.-> PODS
     T2B --> PODS
     AGW --> PODS
 
@@ -90,35 +90,35 @@ flowchart TB
     style AGW fill:#ff9900,stroke:#e65100,color:#000
 ```
 
-## 각 계층을 무엇으로 채우나
+## How to Fill Each Layer
 
-각 계층의 솔루션 선정·상세 비교·배포 절차는 전용 문서에서 다룹니다. 이 표는 **어디를 읽어야 하는지**에 대한 지도입니다.
+Solution selection, detailed comparison, and deployment procedures for each layer are covered in dedicated documents. This table is a **map of what to read where**.
 
-| 계층 | 무엇으로 채우나 | 상세 참조 |
-|------|----------------|-----------|
-| **Tier 1** Ingress | 6개 범용 Gateway API 구현체 비교·선정 | [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) (EKS Best Practices) |
-| **Tier 2 ①** Inference Routing | Gateway API Inference Extension (InferencePool·EPP) | [라우팅 전략 — Gateway API Inference Extension](./routing-strategy.md#gateway-api-inference-extension) |
-| **Tier 2 ②** LLM API Gateway | Bifrost·LiteLLM·OpenRouter 등 비교 및 Cascade/Semantic 전략 | [라우팅 전략 — LLM Gateway 솔루션 비교](./routing-strategy.md#llm-gateway-솔루션-비교) · [배포 가이드](../../reference-architecture/inference-gateway/setup/) |
-| **Agent Data Plane** | agentgateway (MCP/A2A) | [라우팅 전략 — agentgateway 데이터 플레인](./routing-strategy.md#agentgateway-데이터-플레인) |
+| Layer | What fills it | Detailed reference |
+|-------|---------------|--------------------|
+| **Tier 1** Ingress | Comparison/selection of 6 general Gateway API implementations | [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) (EKS Best Practices) |
+| **Tier 2 ①** Inference Routing | Gateway API Inference Extension (InferencePool · EPP) | [Routing Strategy — Gateway API Inference Extension](./routing-strategy.md#gateway-api-inference-extension) |
+| **Tier 2 ②** LLM API Gateway | Comparison of Bifrost·LiteLLM·OpenRouter etc. and Cascade/Semantic strategies | [Routing Strategy — LLM Gateway Comparison](./routing-strategy.md#llm-gateway-solution-comparison) · [Setup Guide](../../reference-architecture/inference-gateway/setup/) |
+| **Agent Data Plane** | agentgateway (MCP/A2A) | [Routing Strategy — agentgateway Data Plane](./routing-strategy.md#agentgateway-data-plane) |
 
-:::note Tier 1과 Tier 2의 관계
-**Tier 1(범용 게이트웨이)** 은 EKS 네트워킹 관점에서 깊이 다루며, NGINX Ingress 은퇴 대응을 포함한 North-South 트래픽 전반을 책임집니다. **Tier 2** 는 그 위에서 추론 트래픽에 특화된 라우팅을 담당합니다. 대부분의 Agentic 플랫폼은 Tier 1과 Tier 2를 **함께** 구성하며, 두 계층을 어떤 솔루션 조합으로 채울지가 설계의 핵심입니다.
+:::note Relationship between Tier 1 and Tier 2
+**Tier 1 (general gateway)** is covered in depth from the EKS networking perspective and is responsible for all North-South traffic, including the NGINX Ingress retirement response. **Tier 2** handles inference-specialized routing on top of it. Most agentic platforms configure Tier 1 and Tier 2 **together**, and the core design decision is which combination of solutions fills the two layers.
 :::
 
-## 트래픽 플로우 예시
+## Traffic Flow Examples
 
-- **외부 LLM 호출**: Client → Tier 1(kgateway) → Tier 2 ②(Bifrost/LiteLLM, Cascade·캐시) → 외부 프로바이더 → 응답 + 비용 기록
-- **자체 호스팅 추론**: Client → Tier 1(kgateway) → Tier 2 ①(InferencePool·EPP) → vLLM/llm-d Pod → 응답
-- **에이전트 도구 호출**: Client → Tier 1(kgateway) → Agent Data Plane(agentgateway, MCP/A2A) → 도구·세션
+- **External LLM call**: Client → Tier 1 (kgateway) → Tier 2 ② (Bifrost/LiteLLM, cascade·cache) → external provider → response + cost record
+- **Self-hosted inference**: Client → Tier 1 (kgateway) → Tier 2 ① (InferencePool·EPP) → vLLM/llm-d pod → response
+- **Agent tool call**: Client → Tier 1 (kgateway) → Agent Data Plane (agentgateway, MCP/A2A) → tools·session
 
-## 참고 자료
+## References
 
-### 공식 문서
-- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/) — Tier 1 범용 게이트웨이 표준
-- [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) — Tier 2 ① 클러스터 내 추론 라우팅(InferencePool·EPP)
+### Official Documentation
+- [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/) — Tier 1 general gateway standard
+- [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/) — Tier 2 ① in-cluster inference routing (InferencePool·EPP)
 
-### 관련 문서 (내부)
-- [추론 게이트웨이 & LLM Gateway 라우팅 전략](./routing-strategy.md) — Tier 2 솔루션 비교·Cascade·Semantic 전략
-- [Inference Gateway 배포 가이드](../../reference-architecture/inference-gateway/setup/) — Tier 2 배포 절차(Helm·HTTPRoute·OTel)
-- [Gateway API 도입 가이드](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — Tier 1 범용 게이트웨이 6종 비교·선정
-- [플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md) — Layer 5(Gateway & Routing) 정의
+### Related Documents (internal)
+- [Inference Gateway & LLM Gateway Routing Strategy](./routing-strategy.md) — Tier 2 solution comparison, cascade, semantic strategies
+- [Inference Gateway Setup Guide](../../reference-architecture/inference-gateway/setup/) — Tier 2 deployment procedures (Helm·HTTPRoute·OTel)
+- [Gateway API Adoption Guide](/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide) — Tier 1 comparison/selection of 6 general gateways
+- [Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md) — Layer 5 (Gateway & Routing) definition

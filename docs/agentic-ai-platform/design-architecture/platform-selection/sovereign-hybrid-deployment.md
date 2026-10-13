@@ -1,11 +1,11 @@
 ---
-title: "소버린 & 하이브리드 배포: 데이터 주권과 리전 강제"
-description: 데이터 주권 요구를 충족하는 Agentic AI 배포 전략 — SCP 리전 강제, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 기반 하이브리드·in-country 자체 호스팅
+title: "Sovereign & Hybrid Deployment: Data Sovereignty and Region Enforcement"
+description: Agentic AI deployment strategies that meet data sovereignty requirements — SCP region enforcement, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/in-country self-hosting
 created: "2026-06-14"
 last_update:
-  date: "2026-07-17"
-  author: YoungJoon Jeong
-reading_time: 12
+  date: 2026-09-19
+  author: devfloor9
+reading_time: 19
 tags:
   - sovereignty
   - hybrid
@@ -14,42 +14,42 @@ tags:
   - eks
   - compliance
   - scope:design
-sidebar_label: 소버린 & 하이브리드 배포
+sidebar_label: Sovereign & Hybrid Deployment
 sidebar_position: 6
 category: genai-aiml
 ---
 
 import { SovereigntySpectrum } from '@site/src/components/DecisionFrameworkTables';
 
-## 개요
+## Overview
 
-금융, 공공, 의료, 자율주행 등 규제 산업에서 Agentic AI를 도입할 때 가장 강한 제약은 **데이터 주권(Data Sovereignty)**입니다. 추론 입출력, 학습 데이터, 모델 가중치가 특정 국가·지리 경계를 벗어나면 안 되는 요구가 하드 제약으로 작용합니다. 이 문서는 데이터 주권 요구를 **AWS Native, EKS 자체 호스팅, 하이브리드** 중 어떤 조합으로 충족할지 의사결정 프레임워크를 제공하고, **SCP 리전 강제**, **Bedrock Geographic cross-Region inference**, **EKS Hybrid Nodes** 기반 구현 패턴을 정리합니다.
+When adopting Agentic AI in regulated industries such as finance, public sector, healthcare, and autonomous driving, the strongest constraint is **data sovereignty**. The requirement that inference inputs/outputs, training data, and model weights must not leave a specific country or geographic boundary acts as a hard constraint. This document provides a decision framework for which combination of **AWS Native, EKS self-hosting, and hybrid** meets data sovereignty requirements, and summarizes implementation patterns based on **SCP region enforcement**, **Bedrock Geographic cross-Region inference**, and **EKS Hybrid Nodes**.
 
-:::info 선행 문서
-이 문서를 읽기 전에 다음 문서를 먼저 참조하세요:
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 거버넌스·안전·주권 플레인
-- [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md) — 매니지드 vs 오픈소스 의사결정
-- [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — Self-hosted 스택, EKS Hybrid Nodes
+:::info Prerequisites
+Before reading this document, refer to the following:
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — Governance, Safety & Sovereignty plane
+- [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open source decision
+- [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md) — Self-hosted stack, EKS Hybrid Nodes
 :::
 
 ---
 
-## 데이터 주권 스펙트럼
+## The Data Sovereignty Spectrum
 
-데이터 주권 요구는 단일 기준이 아니라 **연속적인 스펙트럼**입니다. 요구 강도가 높아질수록 매니지드 서비스 의존도는 낮아지고 자체 호스팅·온프레미스 비중이 커집니다.
+Data sovereignty requirements are not a single criterion but a **continuous spectrum**. The stronger the requirement, the lower the dependency on managed services and the larger the share of self-hosting/on-premises.
 
 <SovereigntySpectrum />
 
 ```mermaid
 flowchart LR
-    PUBLIC["Public Region<br/>일반 리전 자유 사용"]
-    INCOUNTRY["In-country Region<br/>국내 리전 고정"]
-    HYBRID["Hybrid<br/>온프레미스 + 클라우드"]
-    AIRGAP["Air-gapped<br/>완전 격리"]
+    PUBLIC["Public Region<br/>General region, free use"]
+    INCOUNTRY["In-country Region<br/>Fixed to domestic region"]
+    HYBRID["Hybrid<br/>On-premises + cloud"]
+    AIRGAP["Air-gapped<br/>Fully isolated"]
 
-    PUBLIC -->|"리전 제약 발생"| INCOUNTRY
-    INCOUNTRY -->|"온프레미스 데이터 중력"| HYBRID
-    HYBRID -->|"외부 연결 차단"| AIRGAP
+    PUBLIC -->|"region constraint arises"| INCOUNTRY
+    INCOUNTRY -->|"on-premises data gravity"| HYBRID
+    HYBRID -->|"external connectivity cut off"| AIRGAP
 
     style PUBLIC fill:#e1f5ff
     style INCOUNTRY fill:#fff4e1
@@ -57,33 +57,33 @@ flowchart LR
     style AIRGAP fill:#232f3e,color:#fff
 ```
 
-| 수준 | 데이터 경계 | 권장 접근 | 대표 사례 |
-|------|-----------|----------|----------|
-| **Public** | 리전 제약 없음 | AWS Native (Bedrock + AgentCore) | 일반 SaaS, 내부 생산성 도구 |
-| **In-country** | 국내 리전 내 처리·저장 | Bedrock Geographic CRIS + SCP 리전 강제 | 국내 금융, 공공 클라우드 |
-| **Hybrid** | 온프레미스 + in-country 클라우드 | EKS Hybrid Nodes + 자체 호스팅 모델 | 데이터 중력이 큰 제조·자율주행 |
-| **Air-gapped** | 외부 네트워크 완전 차단 | 온프레미스 EKS + 자체 호스팅 전용 | 국방, 기밀 연구 |
+| Level | Data Boundary | Recommended Approach | Representative Case |
+|-------|---------------|---------------------|---------------------|
+| **Public** | No region constraint | AWS Native (Bedrock + AgentCore) | General SaaS, internal productivity tools |
+| **In-country** | Processing/storage within domestic region | Bedrock Geographic CRIS + SCP region enforcement | Domestic finance, public cloud |
+| **Hybrid** | On-premises + in-country cloud | EKS Hybrid Nodes + self-hosted models | Manufacturing/autonomous driving with high data gravity |
+| **Air-gapped** | External network fully cut off | On-premises EKS + dedicated self-hosting | Defense, classified research |
 
-:::tip 대부분은 In-country 또는 Hybrid로 수렴
-완전 Air-gapped는 드물고, 실무에서는 **In-country 리전 고정 + 민감 워크로드만 온프레미스 자체 호스팅**하는 Hybrid가 가장 흔한 해법입니다. 자율주행 비전 데이터처럼 대용량·고민감 데이터를 다루는 조직은 데이터 중력 때문에 온프레미스 GPU를 두고, 일반 추론은 in-country 리전의 Bedrock/EKS와 조합합니다.
+:::tip Most converge on In-country or Hybrid
+Fully air-gapped is rare; in practice, **fixing to an in-country region + self-hosting only sensitive workloads on-premises** (Hybrid) is the most common solution. Organizations handling large, highly sensitive data such as autonomous driving vision data keep on-premises GPUs due to data gravity and combine general inference with in-country Bedrock/EKS.
 :::
 
 ---
 
-## 의사결정 플로우차트
+## Decision Flowchart
 
 ```mermaid
 flowchart TD
-    START["주권 요구 식별"]
+    START["Identify sovereignty requirement"]
 
-    Q1{"외부 네트워크<br/>연결 가능?"}
-    Q2{"데이터가 특정 국가<br/>경계 내 처리 필수?"}
-    Q3{"온프레미스에<br/>대용량 민감 데이터<br/>(데이터 중력)?"}
-    Q4{"Open Weight 모델<br/>자체 호스팅 필요?"}
+    Q1{"External network<br/>connectivity allowed?"}
+    Q2{"Data must be processed<br/>within a specific country?"}
+    Q3{"Large sensitive data<br/>on-premises<br/>(data gravity)?"}
+    Q4{"Need to self-host<br/>Open Weight models?"}
 
-    AIRGAP["🔒 Air-gapped<br/>온프레미스 EKS 전용"]
-    HYBRID["🔄 Hybrid<br/>EKS Hybrid Nodes +<br/>in-country 클라우드"]
-    INCOUNTRY_EKS["🏢 In-country EKS<br/>자체 호스팅 모델"]
+    AIRGAP["🔒 Air-gapped<br/>On-premises EKS only"]
+    HYBRID["🔄 Hybrid<br/>EKS Hybrid Nodes +<br/>in-country cloud"]
+    INCOUNTRY_EKS["🏢 In-country EKS<br/>Self-hosted models"]
     INCOUNTRY_MANAGED["☁️ In-country Managed<br/>Bedrock Geo CRIS + SCP"]
 
     START --> Q1
@@ -104,13 +104,13 @@ flowchart TD
 
 ---
 
-## 수단 1: SCP 기반 리전 강제
+## Means 1: SCP-based Region Enforcement
 
-데이터 주권의 가장 기본적인 기술 통제는 **승인되지 않은 리전에서의 AWS API 호출을 조직 수준에서 차단**하는 것입니다. AWS Organizations의 Service Control Policy(SCP)로 구현하며, 개별 IAM 정책보다 상위에서 가드레일로 작동합니다.
+The most basic technical control for data sovereignty is **blocking AWS API calls from unapproved regions at the organization level**. It is implemented with AWS Organizations Service Control Policies (SCP) and acts as a guardrail above individual IAM policies.
 
-### 리전 거부 SCP 패턴
+### Region Deny SCP Pattern
 
-핵심은 `Deny` 효과에 `aws:RequestedRegion` 조건을 걸되, 리전 개념이 없는 **글로벌 서비스(IAM, Organizations, CloudFront, Route 53 등)는 `NotAction`으로 예외 처리**하는 것입니다. 예외하지 않으면 글로벌 서비스 호출까지 막혀 계정이 정상 동작하지 않습니다.
+The key is to apply a `Deny` effect with an `aws:RequestedRegion` condition, while **excepting global services (IAM, Organizations, CloudFront, Route 53, etc.) that have no region concept via `NotAction`**. Without the exception, even global service calls are blocked and the account cannot function normally.
 
 ```json
 {
@@ -152,157 +152,152 @@ flowchart TD
 }
 ```
 
-| 요소 | 역할 |
-|------|------|
-| `Effect: Deny` + `aws:RequestedRegion` | 승인 리전(`ap-northeast-2` 등) 외 모든 요청 거부 |
-| `NotAction` (글로벌 서비스) | IAM·Organizations·KMS·CloudFront 등 리전 무관 서비스 예외 |
-| `ArnNotLike` (break-glass) | 긴급 운영용 예외 역할 1개 지정 (감사 추적 필수) |
+| Element | Role |
+|---------|------|
+| `Effect: Deny` + `aws:RequestedRegion` | Deny all requests outside approved regions (`ap-northeast-2`, etc.) |
+| `NotAction` (global services) | Except region-agnostic services such as IAM·Organizations·KMS·CloudFront |
+| `ArnNotLike` (break-glass) | Designate one exception role for emergency operations (audit trail required) |
 
-:::warning Bedrock 사용 시 SCP와 cross-Region inference 충돌 주의
-Bedrock Geographic cross-Region inference를 사용하는 경우, 소스 리전만 허용하면 추론이 **실패**합니다. inference profile이 라우팅하는 **모든 destination 리전을 SCP 허용 목록에 포함**해야 합니다. 
-
-**중요**: APAC 프로파일(예: `apac.anthropic.claude-sonnet-4`)의 destination은 **최소 8개 이상 리전**(ap-northeast-1/2/3, ap-south-1/2, ap-southeast-1/2/4 등)이며, 모델과 source 리전에 따라 달라집니다. 특정 리전 목록을 하드코딩하지 말고, **GetInferenceProfile API 또는 모델별 상세 페이지**에서 source 리전별 destination 전체를 확인 후 SCP에 반영하세요. 데이터가 의도하지 않은 리전(인도·호주 등)으로 이동할 수 있습니다.
-
-국가 단위 data residency가 필요하면 지리 프로파일(`apac.*`) 대신 **국가 프로파일**(`jp.*` Tokyo/Osaka, `au.*` Sydney/Melbourne)을 사용하세요.
+:::warning Watch for SCP and cross-Region inference conflicts when using Bedrock
+When using Bedrock Geographic cross-Region inference, allowing only the source region causes inference to **fail**. You must **include all destination regions that the inference profile routes to in the SCP allow list**. For example, if an `apac` profile routes to `ap-northeast-1`, `ap-northeast-2`, and `ap-southeast-1`, all three regions must be allowed.
 :::
 
 ### Control Tower Region Deny Control
 
-AWS Control Tower를 사용하는 조직은 직접 SCP를 작성하는 대신 **Region deny control**(landing zone 수준)을 활성화하면 동일한 효과를 선언적으로 얻을 수 있습니다. 글로벌 서비스 예외 목록이 사전 정의되어 있어 유지보수가 간편합니다.
+Organizations using AWS Control Tower can achieve the same effect declaratively by enabling the **Region deny control** (at the landing zone level) instead of writing SCPs directly. The global service exception list is predefined, making maintenance simpler.
 
 ---
 
-## 수단 2: Bedrock Geographic Cross-Region Inference
+## Means 2: Bedrock Geographic Cross-Region Inference
 
-매니지드 모델(Bedrock)을 쓰면서도 데이터 residency를 지키려면 **Geographic cross-Region inference(CRIS)**를 사용합니다. 요청을 단일 리전이 아니라 **지정된 지리 경계(US, EU, APAC 등) 내 리전들로만** 분산하여, 처리량을 높이면서 데이터가 지리 경계를 벗어나지 않도록 보장합니다.
+To maintain data residency while using managed models (Bedrock), use **Geographic cross-Region inference (CRIS)**. It distributes requests only across **regions within a designated geographic boundary (US, EU, APAC, etc.)** rather than a single region, increasing throughput while ensuring data does not leave the geographic boundary.
 
 ```mermaid
 flowchart LR
     AGENT["Agent / Gateway<br/>(Layer 5)"]
     PROFILE["APAC Inference Profile<br/>apac.anthropic.claude-..."]
 
-    subgraph APAC["APAC 지리 경계 (8+ 리전, 모델별 상이)"]
-        R1["ap-northeast-1/2/3<br/>(Tokyo, Seoul, Osaka)"]
-        R2["ap-south-1/2<br/>(Mumbai, Hyderabad)"]
-        R3["ap-southeast-1/2/4<br/>(Singapore, Sydney, Melbourne)"]
-        R4["... 기타 destination<br/>(GetInferenceProfile API로 확인)"]
+    subgraph APAC["APAC Geographic Boundary"]
+        R1["ap-northeast-2<br/>(source)"]
+        R2["ap-northeast-1"]
+        R3["ap-southeast-1"]
     end
 
     AGENT --> PROFILE
-    PROFILE --> R1 & R2 & R3 & R4
+    PROFILE --> R1 & R2 & R3
 
     style APAC fill:#fff4e1
     style PROFILE fill:#ff9900,color:#fff
 ```
 
-| 특성 | 설명 |
-|------|------|
-| **데이터 경계** | 지리(US/EU/APAC) 내 리전으로만 라우팅, 경계 외 이동 없음 |
-| **처리량** | 단일 리전 대비 burst 트래픽 흡수, throttling 완화 |
-| **전송 암호화** | 리전 간 트래픽은 AWS 보안 네트워크에서 암호화 전송 |
-| **IAM 요구** | 소스 리전 + 모든 destination 리전의 foundation model 접근 권한 필요 |
+| Characteristic | Description |
+|----------------|-------------|
+| **Data boundary** | Routes only to regions within a geography (US/EU/APAC), no movement outside the boundary |
+| **Throughput** | Absorbs burst traffic vs single region, mitigates throttling |
+| **Transit encryption** | Inter-region traffic is encrypted over Amazon's secure network |
+| **IAM requirement** | Requires foundation model access in source region + all destination regions |
 
-:::info IAM·SCP 동시 설정 필요
-Geographic CRIS는 ① inference profile ARN, ② 소스 리전의 foundation model, ③ **모든 destination 리전의 foundation model**에 대한 `bedrock:InvokeModel` 권한이 모두 있어야 동작합니다. 조직에 리전 거부 SCP가 있다면 destination 리전도 함께 허용해야 합니다. (위 [수단 1](#수단-1-scp-기반-리전-강제) 경고 참조)
+:::info IAM and SCP must both be configured
+Geographic CRIS requires `bedrock:InvokeModel` permissions for ① the inference profile ARN, ② the foundation model in the source region, and ③ **the foundation model in all destination regions**. If your organization has a region deny SCP, the destination regions must also be allowed. (See the [Means 1](#means-1-scp-based-region-enforcement) warning above.)
 :::
 
 ---
 
-## 수단 3: EKS Hybrid Nodes 기반 하이브리드·자체 호스팅
+## Means 3: EKS Hybrid Nodes-based Hybrid/Self-hosting
 
-데이터 중력이 크거나(대용량 비전·로그 데이터) in-country 리전조차 허용되지 않는 경우, **온프레미스 또는 in-country 데이터센터의 GPU를 EKS 클러스터에 편입**하는 EKS Hybrid Nodes로 자체 호스팅합니다. 컨트롤 플레인은 AWS 리전에, 데이터 플레인(GPU 노드)은 온프레미스에 두어 단일 Kubernetes 운영 모델을 유지합니다.
+When data gravity is high (large vision/log data) or even an in-country region is not permitted, **incorporate GPUs from on-premises or in-country data centers into the EKS cluster** with EKS Hybrid Nodes for self-hosting. The control plane stays in an AWS region while the data plane (GPU nodes) stays on-premises, maintaining a single Kubernetes operating model.
 
 ```mermaid
 flowchart TB
     subgraph AWS["AWS In-country Region"]
         CP["EKS Control Plane"]
-        BEDROCK["Bedrock<br/>(비민감 추론)"]
+        BEDROCK["Bedrock<br/>(non-sensitive inference)"]
     end
 
-    subgraph ONPREM["온프레미스 / In-country DC"]
-        HN["EKS Hybrid Nodes<br/>(온프레미스 GPU)"]
-        VLLM["vLLM 자체 호스팅<br/>(민감 모델)"]
-        DATA["민감 데이터<br/>(이탈 불가)"]
+    subgraph ONPREM["On-premises / In-country DC"]
+        HN["EKS Hybrid Nodes<br/>(on-premises GPU)"]
+        VLLM["vLLM self-hosting<br/>(sensitive models)"]
+        DATA["Sensitive data<br/>(cannot leave)"]
     end
 
-    CP -.->|"관리"| HN
+    CP -.->|"manage"| HN
     HN --> VLLM
     VLLM --> DATA
-    VLLM -.->|"비민감 위임"| BEDROCK
+    VLLM -.->|"delegate non-sensitive"| BEDROCK
 
     style AWS fill:#e1f5ff
     style ONPREM fill:#8b5cf6,color:#fff
     style DATA fill:#232f3e,color:#fff
 ```
 
-| 구성 요소 | 배치 | 이유 |
-|----------|------|------|
-| EKS Control Plane | AWS in-country 리전 | 관리형 운영, 패치·HA 위임 |
-| GPU 데이터 플레인 | 온프레미스 (Hybrid Nodes) | 민감 데이터 이탈 방지, 데이터 중력 |
-| 민감 모델 추론 | 온프레미스 vLLM | 입출력이 경계를 벗어나지 않음 |
-| 비민감 추론 | in-country Bedrock | 운영 부담 절감, Cascade 위임 |
+| Component | Placement | Reason |
+|-----------|-----------|--------|
+| EKS Control Plane | AWS in-country region | Managed operations, patching/HA delegated |
+| GPU data plane | On-premises (Hybrid Nodes) | Prevent sensitive data egress, data gravity |
+| Sensitive model inference | On-premises vLLM | Inputs/outputs do not leave the boundary |
+| Non-sensitive inference | In-country Bedrock | Reduce operational burden, Cascade delegation |
 
-**자율주행 비전 데이터 시나리오**: 차량 카메라 원본 데이터는 용량이 크고 민감하여 온프레미스에 고정됩니다. 어노테이션·전처리 추론은 온프레미스 GPU(Hybrid Nodes)에서 자체 호스팅 모델로 처리하고, 일반 텍스트 요약·리포팅 같은 비민감 작업만 in-country 리전의 매니지드 서비스로 위임하여 비용과 운영 부담을 줄입니다.
+**Autonomous driving vision data scenario**: Vehicle camera raw data is large and sensitive, so it is fixed on-premises. Annotation/preprocessing inference is handled on-premises GPUs (Hybrid Nodes) with self-hosted models, while only non-sensitive tasks such as general text summarization and reporting are delegated to managed services in an in-country region, reducing cost and operational burden.
 
-:::info EKS Hybrid Nodes 상세
-EKS Hybrid Nodes 구성, 온프레미스 GPU 편입, 네트워킹 요구사항은 [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md#eks-auto-mode로-빠르게-시작)를 참조하세요.
+:::info EKS Hybrid Nodes Details
+For EKS Hybrid Nodes configuration, on-premises GPU incorporation, and networking requirements, see [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md).
 :::
 
 ---
 
-## 주권 수준별 권장 구성 요약
+## Recommended Configuration Summary by Sovereignty Level
 
-| 주권 수준 | 추론 | 데이터·모델 | 리전 통제 | 핵심 수단 |
-|----------|------|-----------|----------|----------|
-| **Public** | Bedrock (글로벌/지리 CRIS) | 리전 제약 없음 | 선택 | AWS Native |
-| **In-country (Managed)** | Bedrock Geographic CRIS | in-country 리전 | SCP 리전 강제 | 수단 1 + 2 |
-| **In-country (Self-hosted)** | in-country EKS + vLLM | in-country 리전 | SCP 리전 강제 | 수단 1 + 3 |
-| **Hybrid** | 온프레미스 vLLM + in-country Bedrock | 온프레미스 + 리전 | SCP + 네트워크 격리 | 수단 1 + 2 + 3 |
-| **Air-gapped** | 온프레미스 EKS 전용 | 온프레미스 전용 | 물리·네트워크 격리 | 수단 3 (외부 연결 차단) |
+| Sovereignty Level | Inference | Data·Models | Region Control | Key Means |
+|-------------------|-----------|-------------|----------------|-----------|
+| **Public** | Bedrock (global/geo CRIS) | No region constraint | Optional | AWS Native |
+| **In-country (Managed)** | Bedrock Geographic CRIS | In-country region | SCP region enforcement | Means 1 + 2 |
+| **In-country (Self-hosted)** | In-country EKS + vLLM | In-country region | SCP region enforcement | Means 1 + 3 |
+| **Hybrid** | On-premises vLLM + in-country Bedrock | On-premises + region | SCP + network isolation | Means 1 + 2 + 3 |
+| **Air-gapped** | On-premises EKS only | On-premises only | Physical/network isolation | Means 3 (external connectivity cut off) |
 
 ---
 
-## 컴플라이언스 매핑
+## Compliance Mapping
 
-데이터 주권 수단은 규제 요구와 직접 연결됩니다.
+Map each data sovereignty control to the regulatory requirement it is intended to support.
 
-| 규제 | 핵심 요구 | 대응 수단 |
-|------|----------|----------|
-| **전자금융감독규정** | 국내 데이터 처리·보관 | SCP in-country 리전 강제, 자체 호스팅 |
-| **ISMS-P** | 데이터 위치·접근 통제, 감사 추적 | SCP + CloudTrail, RBAC |
-| **GDPR (EU)** | EU 역내 개인정보 처리 | Bedrock EU Geographic CRIS |
-| **개인정보보호법** | 국외 이전 제한 | 리전 거부 SCP, 온프레미스 격리 |
+| Regulation | Key Requirement | Corresponding Means |
+|------------|-----------------|---------------------|
+| **e-Finance Supervisory Regulation (Korea)** | Domestic data processing/storage | SCP in-country region enforcement, self-hosting |
+| **ISMS-P** | Data location/access control, audit trail | SCP + CloudTrail, RBAC |
+| **GDPR (EU)** | Personal data processing within the EU | Bedrock EU Geographic CRIS |
+| **Personal Information Protection Act (Korea)** | Cross-border transfer restriction | Region deny SCP, on-premises isolation |
 
-:::info 컴플라이언스 상세
-SOC2·ISMS-P 통제 항목과 플랫폼 컴포넌트 매핑은 [컴플라이언스 프레임워크](../../operations-mlops/governance/compliance-framework.md)를 참조하세요.
+:::info Compliance Details
+For SOC2·ISMS-P control items and their mapping to platform components, see [Compliance Framework](../../operations-mlops/governance/compliance-framework.md).
 :::
 
 ---
 
-## 결론
+## Conclusion
 
-데이터 주권은 단일 스위치가 아니라 Public → In-country → Hybrid → Air-gapped로 이어지는 스펙트럼이며, 각 수준은 SCP 리전 강제, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 자체 호스팅을 조합하여 충족합니다. 대부분의 규제 산업 조직은 **in-country 리전 고정 + 민감 워크로드 온프레미스 자체 호스팅**의 Hybrid로 수렴하며, 비민감 작업은 매니지드 서비스로 위임하여 비용과 운영 부담을 최적화합니다. 주권 통제는 거버넌스 플레인에서 플랫폼 전 레이어에 걸쳐 강제됩니다.
+Data sovereignty is not a single switch but a spectrum from Public → In-country → Hybrid → Air-gapped, and each level is met by combining SCP region enforcement, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes self-hosting. Most regulated-industry organizations converge on **fixing to an in-country region + self-hosting sensitive workloads on-premises** (Hybrid), delegating non-sensitive tasks to managed services to optimize cost and operational burden. Sovereignty controls are enforced across all platform layers from the governance plane.
 
 ---
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 
-- [Service Control Policies (SCP)](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html) — AWS Organizations SCP 가이드
-- [Region deny control - AWS Control Tower](https://docs.aws.amazon.com/controltower/latest/controlreference/primary-region-deny-policy.html) — 리전 거부 컨트롤 SCP
-- [Geographic cross-Region inference - Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/geographic-cross-region-inference.html) — 지리 경계 추론, IAM·SCP 요구사항
-- [Restrict data transfers across AWS Regions](https://docs.aws.amazon.com/prescriptive-guidance/latest/privacy-reference-architecture/restrict-data-transfers-across-regions.html) — 리전 간 데이터 전송 제한 SCP 샘플
+- [Service Control Policies (SCP)](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_policies_scps.html) — AWS Organizations SCP guide
+- [Region deny control - AWS Control Tower](https://docs.aws.amazon.com/controltower/latest/controlreference/primary-region-deny-policy.html) — Region deny control SCP
+- [Geographic cross-Region inference - Amazon Bedrock](https://docs.aws.amazon.com/bedrock/latest/userguide/geographic-cross-region-inference.html) — Geographic boundary inference, IAM·SCP requirements
+- [Restrict data transfers across AWS Regions](https://docs.aws.amazon.com/prescriptive-guidance/latest/privacy-reference-architecture/restrict-data-transfers-across-regions.html) — Sample SCP for restricting inter-region data transfers
 
-### 논문 / 기술 블로그
+### Papers / Technical Blogs
 
-- [AWS Well-Architected Generative AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html) — 생성형 AI 설계 원칙, 데이터 거버넌스
-- [Financial Services Industry Lens](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/) — 금융 서비스 Well-Architected 렌즈 (데이터 residency 포함)
-- [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — 온프레미스 노드 편입
+- [AWS Well-Architected Generative AI Lens](https://docs.aws.amazon.com/wellarchitected/latest/generative-ai-lens/generative-ai-lens.html) — Generative AI design principles, data governance
+- [Financial Services Industry Lens - FSISUS02](https://docs.aws.amazon.com/wellarchitected/latest/financial-services-industry-lens/fsisus02.html) — Data residency design
+- [Amazon EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html) — Incorporating on-premises nodes
 
-### 관련 문서 (내부)
+### Related Documents (Internal)
 
-- [플랫폼 아키텍처](../foundations/agentic-platform-architecture.md) — 거버넌스·안전·주권 플레인
-- [AI 플랫폼 선택 가이드](./ai-platform-decision-framework.md) — 매니지드 vs 오픈소스 vs 하이브리드
-- [EKS 기반 오픈 아키텍처](./agentic-ai-solutions-eks.md) — EKS Hybrid Nodes 자체 호스팅
-- [컴플라이언스 프레임워크](../../operations-mlops/governance/compliance-framework.md) — SOC2·ISMS-P 매핑
+- [Platform Architecture](../foundations/agentic-platform-architecture.md) — Governance, Safety & Sovereignty plane
+- [AI Platform Selection Guide](./ai-platform-decision-framework.md) — Managed vs open source vs hybrid
+- [EKS-Based Open Architecture](./agentic-ai-solutions-eks.md) — EKS Hybrid Nodes self-hosting
+- [Compliance Framework](../../operations-mlops/governance/compliance-framework.md) — SOC2·ISMS-P mapping

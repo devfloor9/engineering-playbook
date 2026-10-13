@@ -29,7 +29,7 @@ DOCUMENTS = {
     "evaluation": "agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/evaluation-rollout.md",
     "sagemaker": "agentic-ai-platform/reference-architecture/integrations/sagemaker-eks-integration.md",
 }
-PREFIXES = {"ko": "docs", "en": "i18n/en/docusaurus-plugin-content-docs/current"}
+PREFIXES = {"ko": "i18n/ko/docusaurus-plugin-content-docs/current", "en": "docs"}
 MODULES = {
     "eval_gate.py": "evaluation",
     "roi_analysis.py": "evaluation",

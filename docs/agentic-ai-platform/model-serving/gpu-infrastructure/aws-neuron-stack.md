@@ -1,11 +1,11 @@
 ---
 title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
-description: EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드
+description: Guide to Neuron SDK, Device Plugin, and NxD Inference for operating AWS custom AI accelerators (Trainium2/Inferentia2) on EKS
 created: "2026-04-17"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 20
+  author: devfloor9
+reading_time: 31
 tags:
   - trainium2
   - inferentia2
@@ -19,98 +19,95 @@ tags:
 sidebar_label: AWS Neuron Stack
 ---
 
-AWS Neuron은 AWS가 설계한 AI 가속기(Trainium, Inferentia) 위에서 학습·추론 워크로드를 실행하기 위한 소프트웨어 스택입니다. NVIDIA의 CUDA + GPU Operator 조합이 NVIDIA GPU 상에서 수행하는 역할과 유사하게, Neuron SDK + Neuron Device Plugin 이 EKS 위에서 Trainium/Inferentia 칩을 Kubernetes 리소스로 추상화합니다.
+AWS Neuron is a software stack for running training and inference workloads on AWS-designed AI accelerators (Trainium, Inferentia). Similar to how NVIDIA's CUDA + GPU Operator combination abstracts NVIDIA GPUs as Kubernetes resources, Neuron SDK + Neuron Device Plugin abstracts Trainium/Inferentia chips as Kubernetes resources on EKS.
 
-이 문서는 Trainium2/Inferentia2 인스턴스를 EKS에서 운영하기 위한 Neuron 소프트웨어 스택, Device Plugin, Karpenter 구성, 추론 프레임워크 선택 기준을 다룹니다. NVIDIA GPU 기반 스택은 [NVIDIA GPU 스택](./nvidia-gpu-stack.md)을, 노드 타입 선택 전반은 [EKS GPU 노드 전략](./eks-gpu-node-strategy.md)을 참조하세요.
+This document covers the Neuron software stack, Device Plugin, Karpenter configuration, and inference framework selection criteria for operating Trainium2/Inferentia2 instances on EKS. For NVIDIA GPU-based stacks, refer to [NVIDIA GPU Stack](./nvidia-gpu-stack.md); for overall node type selection, see [EKS GPU Node Strategy](./eks-gpu-node-strategy.md).
 
-| 계층 | 역할 | 핵심 컴포넌트 |
-|------|------|-------------|
-| **인프라 자동화** | Neuron 드라이버, 런타임, Device Plugin | aws-neuron-dkms, neuron-device-plugin |
-| **컴파일러** | 모델 → NEFF(Neuron Executable) 컴파일 | neuronx-cc (Neuron Compiler) |
-| **런타임** | NeuronCore 실행, 메모리 관리 | aws-neuron-runtime, neuronx-collectives |
-| **추론 프레임워크** | 대규모 LLM 서빙 | NxD Inference, vLLM Neuron backend, TGI Neuron |
-| **관측** | NeuronCore 메트릭, 프로파일링 | neuron-monitor, neuron-top, neuron-ls |
+| Layer | Role | Core Components |
+|-------|------|----------------|
+| **Infrastructure Automation** | Neuron driver, runtime, Device Plugin | aws-neuron-dkms, neuron-device-plugin |
+| **Compiler** | Model → NEFF (Neuron Executable) compilation | neuronx-cc (Neuron Compiler) |
+| **Runtime** | NeuronCore execution, memory management | aws-neuron-runtime, neuronx-collectives |
+| **Inference Framework** | Large-scale LLM serving | NxD Inference, vLLM Neuron backend, TGI Neuron |
+| **Observability** | NeuronCore metrics, profiling | neuron-monitor, neuron-top, neuron-ls |
 
 ---
 
-## 1. 왜 Neuron 인가
+## 1. Why Neuron
 
-### 1.1 Neuron 을 선택하는 세 가지 이유
+### 1.1 Three Reasons to Choose Neuron
 
-**1) 비용 효율성 (Per-Token TCO)**
+**1) Cost Efficiency (Per-Token TCO)**
 
-AWS 공식 자료 기준 Trainium2/Inferentia2 는 유사 성능 GPU 대비 토큰당 비용이 낮습니다. 특히 다음 조건에서 효과가 큽니다.
+According to AWS official materials, Trainium2/Inferentia2 offer lower per-token costs compared to similar-performance GPUs. The effect is particularly significant under these conditions:
 
-- 장기간(> 3개월) 지속되는 안정적 추론 트래픽
-- FP8/INT8/BF16 기반 표준 Transformer 계열 모델
-- AWS Reserved/Savings Plan 적용 가능한 워크로드
+- Stable inference traffic sustained long-term (&gt;3 months)
+- Standard Transformer-family models based on FP8/INT8/BF16
+- Workloads eligible for AWS Reserved/Savings Plans
 
-**2) Capacity 가용성**
+**2) Capacity Availability**
 
-NVIDIA H100/H200/B200 공급이 타이트한 시기에 Trainium2 는 상대적으로 확보가 용이합니다. 특히 미국/아시아 특정 리전에서 p5/p5en 재고 부족 시 Neuron 이 실질적인 대안이 됩니다.
+When NVIDIA H100/H200/B200 supply is tight, Trainium2 is relatively easier to procure. Particularly when p5/p5en inventory is scarce in certain US/Asia regions, Neuron becomes a practical alternative.
 
-**3) Bedrock 과의 연속성**
+**3) Continuity with Bedrock**
 
-Bedrock 이 서빙하는 일부 FM(Claude, Llama, Titan 등)은 내부적으로 Neuron 스택 위에서 동작합니다(AWS 공식 확인: Bedrock FAQ는 Trainium2 사용을 명시, AWS CMO Julia White는 2025-10 인터뷰에서 "Bedrock의 절반 이상이 Trainium에서 구동"이라고 공개). Bedrock → Self-hosted 마이그레이션 경로에서 Neuron 을 선택하면 Neuron 운영 패턴(모니터링·NEFF 캐시 관리·거버넌스)을 재사용할 수 있습니다. 단, Bedrock은 fully managed API 서비스로 내부 컴파일 아티팩트(NEFF)는 고객에게 노출·내보내기되지 않으며, NEFF는 배치 크기·TP 구성·Neuron SDK 메이저 버전에 종속되어 호환성이 보장되지 않습니다.
+Some Foundation Models served by Bedrock (Claude, Llama, Titan, etc.) run internally on the Neuron stack. Choosing Neuron in the Bedrock → Self-hosted migration path allows reuse of compiled artifacts and operational patterns.
 
-### 1.2 적합/비적합 워크로드
+### 1.2 Suitable/Unsuitable Workloads
 
-| 구분 | 워크로드 |
-|------|---------|
-| **적합** | 표준 Llama/Mistral/Qwen 계열 추론, 대규모 장기 운영, FP8/BF16 기반 서빙, Bedrock 스타일 거버넌스 |
-| **주의 필요** | 신규 아키텍처 최초 출시 모델(지원 지연), 커스텀 CUDA 커널 의존 워크로드, AWQ/GPTQ 일부 양자화 포맷 |
-| **부적합** | 연구·실험 환경에서 모델 구조를 자주 바꾸는 경우, CUDA 전용 라이브러리(Triton inference server custom kernels)에 강하게 결합된 코드 |
+| Category | Workloads |
+|----------|-----------|
+| **Suitable** | Standard Llama/Mistral/Qwen-family inference, large-scale long-term operations, FP8/BF16-based serving, Bedrock-style governance |
+| **Caution Required** | Newly released models with novel architectures (support delay), workloads dependent on custom CUDA kernels, some AWQ/GPTQ quantization formats |
+| **Unsuitable** | Research/experimental environments with frequent model architecture changes, code tightly coupled to CUDA-only libraries (Triton inference server custom kernels) |
 
-:::info Neuron vs NVIDIA 의사결정 원칙
-- **모델 생태계 최신성이 핵심** → NVIDIA GPU (H100/H200/B200)
-- **장기 운영 TCO / Capacity 가 핵심** → Trainium2 / Inferentia2
-- **Bedrock 과 하이브리드 운영** → Neuron 우선 검토
+:::info Neuron vs NVIDIA Decision Principles
+- **Model ecosystem recency is critical** → NVIDIA GPU (H100/H200/B200)
+- **Long-term operational TCO / Capacity is critical** → Trainium2 / Inferentia2
+- **Hybrid operations with Bedrock** → Prioritize Neuron review
 :::
 
 ---
 
-## 2. 인스턴스 라인업
+## 2. Instance Lineup
 
-AWS 공식 제품 페이지 및 EC2 사용자 가이드 기준 2026-04 시점의 Neuron 인스턴스 라인업입니다. 실제 리전별 가용성은 AWS 콘솔에서 확인해야 합니다.
+This is the Neuron instance lineup as of April 2026 based on AWS official product pages and EC2 user guides. Actual regional availability must be verified in the AWS console.
 
-### 2.1 추론 전용 인스턴스 (Inferentia2)
+### 2.1 Inference-Only Instances (Inferentia2)
 
-| 인스턴스 | 칩 수 | NeuronCore | 총 가속기 메모리 | vCPU | 메모리 | 네트워크 |
-|---------|------|-----------|----------------|------|-------|---------|
-| inf2.xlarge | 1× Inferentia2 | 2 | 32 GB | 4 | 16 GB | 최대 15 Gbps |
-| inf2.8xlarge | 1× Inferentia2 | 2 | 32 GB | 32 | 128 GB | 최대 25 Gbps |
+| Instance | Chips | NeuronCore | Total Accelerator Memory | vCPU | Memory | Network |
+|----------|-------|-----------|-------------------------|------|--------|---------|
+| inf2.xlarge | 1× Inferentia2 | 2 | 32 GB | 4 | 16 GB | Up to 15 Gbps |
+| inf2.8xlarge | 1× Inferentia2 | 2 | 32 GB | 32 | 128 GB | Up to 25 Gbps |
 | inf2.24xlarge | 6× Inferentia2 | 12 | 192 GB | 96 | 384 GB | 50 Gbps |
 | inf2.48xlarge | 12× Inferentia2 | 24 | 384 GB | 192 | 768 GB | 100 Gbps |
 
-### 2.2 학습·추론 겸용 인스턴스 (Trainium1/Trainium2)
+### 2.2 Training/Inference Dual-Purpose Instances (Trainium1/Trainium2)
 
-| 인스턴스 | 칩 수 | NeuronCore | 총 가속기 메모리 | vCPU | 메모리 | 네트워크 |
-|---------|------|-----------|----------------|------|-------|---------|
-| trn1.2xlarge | 1× Trainium1 | 2 | 32 GB | 8 | 32 GB | 최대 12.5 Gbps |
+| Instance | Chips | NeuronCore | Total Accelerator Memory | vCPU | Memory | Network |
+|----------|-------|-----------|-------------------------|------|--------|---------|
+| trn1.2xlarge | 1× Trainium1 | 2 | 32 GB | 8 | 32 GB | Up to 12.5 Gbps |
 | trn1.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 800 Gbps EFA |
 | trn1n.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 1,600 Gbps EFA |
 | trn2.48xlarge | 16× Trainium2 | 128 | 1.5 TB (HBM3) | 192 | 2 TiB | 3.2 Tbps EFA v3 |
-| **trn2 Ultra** (trn2u.48xlarge) | 64× Trainium2 (4×trn2 NeuronLink) | 512 | 6 TB (HBM3) | - | - | 12.8 Tbps |
+| **trn2 Ultra** (trn2u.48xlarge, preview/limited availability) | 64× Trainium2 (4×trn2 NeuronLink) | 512 | 6 TB (HBM3) | - | - | 12.8 Tbps |
 
-:::caution trn2 Ultra 가용성
-trn2 Ultra(trn2u.48xlarge)는 2026-04 기준 **preview 또는 제한 가용성** 상태로, 본 문서 전반(섹션 7의 모델 매트릭스 포함)에서 Ultra 관련 서술은 동일한 가용성 제약을 공유합니다. 일반 가용성·리전 범위·Spot 지원 여부는 AWS 계정 팀 또는 공식 문서로 반드시 확인하세요.
-:::
-
-:::caution 버전·수치 주의
-- NeuronCore 수 및 메모리 용량은 AWS 공식 자료 기준이며 SDK 릴리스에 따라 보고 단위가 달라질 수 있습니다. 배포 전 `neuron-ls` 로 실제 디바이스를 확인하세요.
-- inf1 (1세대 Inferentia) 은 본 문서에서 다루지 않습니다. 신규 배포에는 Inferentia2/Trainium2 를 사용하세요.
+:::caution Version and Specification Notes
+- NeuronCore counts and memory capacity are based on AWS official materials, and reporting units may vary with SDK releases. Verify actual devices with `neuron-ls` before deployment.
+- **trn2 Ultra (trn2u)** is defined in AWS official announcements as "an ultraserver combining 4 trn2s with NeuronLink." **As of April 2026, it may be in preview or limited availability**; general availability, regional scope, and Spot support must be confirmed with AWS account teams or official documentation.
+- inf1 (1st generation Inferentia) is not covered in this document. Use Inferentia2/Trainium2 for new deployments.
 :::
 
 ---
 
-## 3. Neuron SDK 2.x 스택 아키텍처
+## 3. Neuron SDK 2.x Stack Architecture
 
-### 3.1 계층 구조
+### 3.1 Layer Structure
 
 ```mermaid
 flowchart TB
     subgraph App["Application Layer"]
-        NXD["NxD Inference<br/>(PyTorch 기반)"]
+        NXD["NxD Inference<br/>(PyTorch-based)"]
         VLLM["vLLM Neuron backend"]
         TGI["TGI Neuron fork"]
         TORCH["torch-neuronx"]
@@ -118,12 +115,12 @@ flowchart TB
 
     subgraph Compiler["Compilation"]
         NCC["neuronx-cc<br/>Neuron Compiler"]
-        NEFF["NEFF Artifact<br/>(컴파일된 실행 파일)"]
+        NEFF["NEFF Artifact<br/>(Compiled executable)"]
     end
 
     subgraph Runtime["Runtime Layer"]
         RT["aws-neuron-runtime<br/>libnrt.so"]
-        COL["aws-neuronx-collectives<br/>(분산 통신)"]
+        COL["aws-neuronx-collectives<br/>(Distributed communication)"]
     end
 
     subgraph K8s["Kubernetes Layer"]
@@ -132,8 +129,8 @@ flowchart TB
     end
 
     subgraph Driver["Driver"]
-        DKMS["aws-neuron-dkms<br/>커널 모듈"]
-        HW["Trainium2 / Inferentia2<br/>하드웨어"]
+        DKMS["aws-neuron-dkms<br/>Kernel module"]
+        HW["Trainium2 / Inferentia2<br/>Hardware"]
     end
 
     NXD --> TORCH
@@ -153,87 +150,85 @@ flowchart TB
     style DKMS fill:#146eb4,color:#fff
 ```
 
-### 3.2 핵심 컴포넌트
+### 3.2 Core Components
 
-| 컴포넌트 | 설명 | 배포 형태 |
-|---------|------|---------|
-| **aws-neuron-dkms** | Linux 커널 모듈. `/dev/neuron*` 디바이스 노드 생성 | AMI 사전 설치 또는 DKMS 패키지 |
-| **aws-neuron-runtime (libnrt)** | NeuronCore 실행, 메모리 관리, 스케줄링 | 컨테이너 이미지 포함 |
-| **aws-neuronx-collectives** | 분산 학습·추론용 collectives (AllReduce, AllGather 등) | 컨테이너 이미지 포함 |
-| **neuronx-cc** | 그래프 컴파일러. PyTorch/JAX 모델을 NEFF 로 변환 | 개발·빌드 단계에서 사용 |
-| **torch-neuronx** | PyTorch 2.x 프론트엔드. `torch.compile(backend="neuronx")` | pip 패키지 |
-| **neuron-device-plugin** | Kubernetes Device Plugin. `aws.amazon.com/neuron*` 리소스 등록 | DaemonSet |
-| **neuron-monitor / neuron-top / neuron-ls** | 관측 및 프로파일링 도구 | 컨테이너 이미지/CLI |
+| Component | Description | Deployment Form |
+|-----------|-------------|-----------------|
+| **aws-neuron-dkms** | Linux kernel module. Creates `/dev/neuron*` device nodes | Pre-installed in AMI or DKMS package |
+| **aws-neuron-runtime (libnrt)** | NeuronCore execution, memory management, scheduling | Included in container image |
+| **aws-neuronx-collectives** | Collectives for distributed training/inference (AllReduce, AllGather, etc.) | Included in container image |
+| **neuronx-cc** | Graph compiler. Converts PyTorch/JAX models to NEFF | Used in development/build stage |
+| **torch-neuronx** | PyTorch 2.x frontend. `torch.compile(backend="neuronx")` | pip package |
+| **neuron-device-plugin** | Kubernetes Device Plugin. Registers `aws.amazon.com/neuron*` resources | DaemonSet |
+| **neuron-monitor / neuron-top / neuron-ls** | Observability and profiling tools | Container image/CLI |
 
-:::info Neuron SDK 2.x (2026-04 기준 최신 안정 버전)
-Neuron SDK 는 2.x 릴리스 트레인에서 정기적으로 업데이트됩니다. 2026-04 기준 최신 안정 버전의 주요 특징:
+:::info Neuron SDK 2.x (Latest stable version as of April 2026)
+Neuron SDK is regularly updated in the 2.x release train. Key features of the latest stable version as of April 2026:
 
-- Trainium2 (trn2) + trn2 Ultra(NeuronLink) 정식 지원
-- NxD Inference 의 LLM 라이브러리 (Llama 3/4, DBRX, Mistral 계열 pre-compiled checkpoint)
-- vLLM Neuron backend 정식 지원 (continuous batching, PagedAttention-유사 구조)
-- PyTorch 2.5+ / JAX 호환
-- FP8 (E4M3/E5M2) 추론 경로
+- Official support for Trainium2 (trn2) + trn2 Ultra (NeuronLink)
+- NxD Inference LLM library (pre-compiled checkpoints for Llama 3/4, DBRX, Mistral families)
+- Official vLLM Neuron backend support (continuous batching, PagedAttention-like structure)
+- PyTorch 2.5+ / JAX compatibility
+- FP8 (E4M3/E5M2) inference path
 
-정확한 마이너 버전은 [AWS Neuron SDK Release Notes](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/) 에서 확인하세요.
+For exact minor version, check [AWS Neuron SDK Release Notes](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/).
 :::
 
-### 3.3 컴파일 모델과 NEFF
+### 3.3 Compilation Model and NEFF
 
-Neuron은 **사전 컴파일(Ahead-of-Time, AOT)** 방식을 사용합니다. PyTorch eager 모드처럼 바로 실행하는 대신, 실행 전에 모델을 컴파일합니다. `neuronx-cc`는 모델의 출력을 계산하는 데 필요한 연산들을 나타내는 **연산 그래프**를 NeuronCore 하드웨어 명령어로 변환하고, 실행할 수 있도록 NEFF(Neuron Executable File Format) 파일에 저장합니다.
+Neuron uses **Ahead-of-Time (AOT) compilation**: compile the model before running it, rather than executing it directly in PyTorch eager mode. The `neuronx-cc` compiler converts the model’s computation graph—the operations needed to compute its outputs—into instructions for NeuronCore hardware. It stores the result in NEFF (Neuron Executable File Format) for execution.
 
 ```
-PyTorch / JAX 모델
+PyTorch / JAX model
         ↓  torch-neuronx trace/compile
 Neuron IR (HLO)
         ↓  neuronx-cc
-NEFF (Neuron Executable) — 최초 컴파일 5-30분, 이후 캐시 재사용
+NEFF (Neuron Executable) — Initial compilation 5-30 min, then cache reuse
         ↓  aws-neuron-runtime
-Trainium / Inferentia 하드웨어 실행
+Trainium / Inferentia hardware execution
 ```
 
-**운영상의 함의:**
-- 첫 Pod 기동 시 NEFF 컴파일로 20-30분 이상 소요 가능 → **사전 컴파일 후 S3/ECR 에 캐싱**
-- 모델 가중치 변경 시 재컴파일 필요 → CI 파이프라인에서 NEFF 아티팩트를 함께 관리
-- NxD Inference 는 공식 모델에 대해 **pre-compiled checkpoint** 을 제공하여 초기 기동 시간을 단축
+**Operational Implications:**
+- First Pod startup can take 20-30+ minutes for NEFF compilation → **Pre-compile and cache in S3/ECR**
+- Model weight changes require recompilation → Manage NEFF artifacts in CI pipeline
+- NxD Inference provides **pre-compiled checkpoints** for official models to reduce initial startup time
 
 ---
 
-## 4. EKS 통합
+## 4. EKS Integration
 
-### 4.1 Neuron Device Plugin 배포
+### 4.1 Neuron Device Plugin Deployment
 
-Neuron Device Plugin 은 노드의 `/dev/neuron*` 디바이스를 Kubernetes 확장 리소스로 등록합니다. AWS 공식 YAML/Helm 차트를 사용합니다.
+Neuron Device Plugin registers the node's `/dev/neuron*` devices as Kubernetes extended resources. Use AWS official YAML/Helm charts.
 
 ```bash
-# 공식 YAML 기반 배포 예
+# Example deployment with official YAML
 kubectl apply -f https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/k8/k8s-neuron-device-plugin.yml
 kubectl apply -f https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/k8/k8s-neuron-device-plugin-rbac.yml
 ```
 
-배포 후 노드 리소스에 다음이 나타납니다.
+After deployment, the following appears in node resources:
 
 ```bash
 kubectl describe node <trn2-node> | grep aws.amazon.com
 # Allocatable:
-#   aws.amazon.com/neuron:       16    # trn2.48xlarge: Trainium2 칩 수
-#   aws.amazon.com/neuroncore:  128    # 총 NeuronCore 수
+#   aws.amazon.com/neuron:       16    # trn2.48xlarge: Trainium2 chip count
+#   aws.amazon.com/neuroncore:  128    # Total NeuronCore count
+#   aws.amazon.com/neurondevice: 16    # Device file count
 ```
 
-:::caution neurondevice 리소스 제거 (Neuron 2.20+)
-Neuron SDK 2.20(2024-09)부터 `aws.amazon.com/neurondevice` 리소스는 `aws.amazon.com/neuron`으로 통합되어 제거되었습니다. 현행 Device Plugin(master YAML 기준 v2.22.4)은 `neuron`과 `neuroncore` 두 리소스만 등록합니다. 기존 YAML에서 `neurondevice`를 참조하면 스케줄링 실패합니다.
-:::
+### 4.2 Resource Request Patterns
 
-### 4.2 리소스 요청 패턴
+When requesting Neuron resources in Pod specs, choose one of three units:
 
-Pod 스펙에서 Neuron 리소스를 요청할 때 두 가지 단위 중 하나를 선택합니다.
-
-| 리소스 | 의미 | 사용 시점 |
-|-------|------|---------|
-| `aws.amazon.com/neuron` | Neuron 칩 단위 (trn2 의 Trainium2 칩) | 칩 단위 할당이 명확한 경우 |
-| `aws.amazon.com/neuroncore` | NeuronCore 단위 (trn2 칩당 8개) | 세밀한 코어 단위 스케줄링 |
+| Resource | Meaning | When to Use |
+|----------|---------|-------------|
+| `aws.amazon.com/neuron` | Neuron chip unit (Trainium2 chips in trn2) | When chip-level allocation is clear |
+| `aws.amazon.com/neuroncore` | NeuronCore unit (8 per trn2 chip) | For fine-grained core-level scheduling |
+| `aws.amazon.com/neurondevice` | `/dev/neuron*` device file unit | For legacy / specific tool compatibility |
 
 ```yaml
-# 예: trn2.48xlarge 전체 사용 (칩 16개 = NeuronCore 128개)
+# Example: Use entire trn2.48xlarge (16 chips = 128 NeuronCores)
 apiVersion: v1
 kind: Pod
 metadata:
@@ -256,46 +251,46 @@ spec:
 ```
 
 ```yaml
-# 예: NeuronCore 4개만 사용 (inf2.xlarge 2개 + NeuronCore 절반)
+# Example: Use only 4 NeuronCores (2 inf2.xlarge + half NeuronCores)
 resources:
   limits:
     aws.amazon.com/neuroncore: "4"
 ```
 
-### 4.3 노드 Taint / Toleration 패턴
+### 4.3 Node Taint / Toleration Pattern
 
-NVIDIA GPU 노드와 동일한 패턴을 권장합니다.
+The same pattern as NVIDIA GPU nodes is recommended.
 
 ```yaml
-# 노드에 taint 적용 (Karpenter NodePool 에서 설정)
+# Apply taint to node (configured in Karpenter NodePool)
 taints:
   - key: aws.amazon.com/neuron
     effect: NoSchedule
 ```
 
 ```yaml
-# Pod 에서 toleration 선언
+# Declare toleration in Pod
 tolerations:
   - key: aws.amazon.com/neuron
     operator: Exists
     effect: NoSchedule
 ```
 
-### 4.4 AMI 선택
+### 4.4 AMI Selection
 
-| AMI | Neuron 드라이버 | 권장 용도 |
-|-----|--------------|---------|
-| **EKS Optimized AMI (Neuron)** | 사전 설치 | 프로덕션 표준 — `--ami-type AL2023_x86_64_NEURON` 또는 동등 |
-| **Deep Learning AMI (Neuron)** | 사전 설치 + Neuron SDK tools | 개발/디버깅 노드 |
-| **일반 AL2023** | 수동 설치(DKMS) | 권장하지 않음 |
+| AMI | Neuron Driver | Recommended Use |
+|-----|--------------|-----------------|
+| **EKS Optimized AMI (Neuron)** | Pre-installed | Production standard — `--ami-type AL2023_x86_64_NEURON` or equivalent |
+| **Deep Learning AMI (Neuron)** | Pre-installed + Neuron SDK tools | Development/debugging nodes |
+| **General AL2023** | Manual installation (DKMS) | Not recommended |
 
-EKS 관리형 노드 그룹에서 Neuron 최적화 AMI 사용 시 `nodeadm` 이 Neuron 드라이버를 자동으로 구성합니다.
+When using Neuron-optimized AMI with EKS managed node groups, `nodeadm` automatically configures Neuron drivers.
 
 ---
 
-## 5. Karpenter NodePool 예시
+## 5. Karpenter NodePool Examples
 
-### 5.1 trn2 학습/대형 추론 NodePool
+### 5.1 trn2 Training/Large Inference NodePool
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -333,7 +328,7 @@ spec:
     aws.amazon.com/neuron: "64"
 ```
 
-### 5.2 inf2 저비용 추론 NodePool
+### 5.2 inf2 Low-Cost Inference NodePool
 
 ```yaml
 apiVersion: karpenter.sh/v1
@@ -374,7 +369,7 @@ metadata:
   name: neuron-nodeclass
 spec:
   amiSelectorTerms:
-    - alias: al2023@latest   # Neuron 최적화 AMI variant 를 사용하는 경우 명시적으로 id 지정 권장
+    - alias: al2023@latest   # When using Neuron-optimized AMI variant, explicit id specification recommended
   role: KarpenterNodeRole-eks-genai
   subnetSelectorTerms:
     - tags:
@@ -386,7 +381,7 @@ spec:
   blockDeviceMappings:
     - deviceName: /dev/xvda
       ebs:
-        volumeSize: 500Gi   # NEFF 캐시 + 모델 가중치 공간
+        volumeSize: 500Gi   # NEFF cache + model weights storage
         volumeType: gp3
         iops: 16000
         throughput: 1000
@@ -395,114 +390,114 @@ spec:
     httpTokens: required
 ```
 
-:::tip AMI 선택 주의
-Karpenter EC2NodeClass 의 `amiSelectorTerms` 에서 `al2023` alias 는 표준 AL2023 AMI 를 의미합니다. Neuron 드라이버가 사전 설치된 variant 를 사용하려면 AWS 가 게시하는 Neuron optimized AMI 의 SSM parameter 또는 명시적 AMI ID 를 지정하세요. UserData 로 Neuron DKMS 를 설치하는 방식도 가능하지만 권장하지 않습니다.
+:::tip AMI Selection Notes
+In Karpenter EC2NodeClass `amiSelectorTerms`, the `al2023` alias refers to the standard AL2023 AMI. To use variants with pre-installed Neuron drivers, specify the SSM parameter or explicit AMI ID for the Neuron-optimized AMI published by AWS. Installing Neuron DKMS via UserData is possible but not recommended.
 :::
 
 ---
 
-## 6. 추론 프레임워크
+## 6. Inference Frameworks
 
-Neuron 에서 LLM 을 서빙하는 주요 프레임워크는 세 가지입니다.
+There are three main frameworks for serving LLMs on Neuron.
 
 ### 6.1 NxD Inference (Neuron Distributed Inference)
 
-AWS 가 공식 유지하는 **대규모 LLM 추론 라이브러리** 입니다. PyTorch 기반으로 Llama 계열 및 주요 공개 모델에 대해 Tensor/Pipeline Parallelism, Continuous Batching, PagedAttention 유사 메모리 관리, Speculative Decoding 을 제공합니다.
+AWS officially maintains this **large-scale LLM inference library**. Based on PyTorch, it provides Tensor/Pipeline Parallelism, Continuous Batching, PagedAttention-like memory management, and Speculative Decoding for Llama families and major public models.
 
-**특징:**
-- Llama 3/4, DBRX, Mistral, Mixtral 등 **pre-compiled checkpoint 공식 제공**
-- NeuronCore 단위의 TP/PP 구성 API
-- Bedrock 내부 서빙 경로와 유사한 최적화 프로파일
-- Apache 2.0 / AWS 공식 지원
+**Features:**
+- **Official provision of pre-compiled checkpoints** for Llama 3/4, DBRX, Mistral, Mixtral, etc.
+- TP/PP configuration API at NeuronCore level
+- Optimization profile similar to Bedrock internal serving path
+- Apache 2.0 / AWS Official Support
 
 ### 6.2 vLLM Neuron backend
 
-vLLM 의 Neuron 백엔드는 2024년부터 실험적으로 도입되었고, 2025~2026 시점에 기능 parity 가 빠르게 개선되고 있습니다. 2026-04 기준 주요 LLM(Llama 3/4, Qwen, Mistral) 에 대해 continuous batching 및 OpenAI 호환 API 서빙이 가능합니다.
+vLLM's Neuron backend was introduced experimentally starting in 2024, and feature parity has been rapidly improving in 2025~2026. As of April 2026, continuous batching and OpenAI-compatible API serving are available for major LLMs (Llama 3/4, Qwen, Mistral).
 
-**특징:**
-- `vllm --device neuron --tensor-parallel-size N` 형태로 기존 vLLM 배포 스크립트와 호환
-- PagedAttention 자체는 CUDA 구현이나, Neuron backend 는 동등한 블록 단위 KV 관리를 제공
-- 최신 vLLM 기능(speculative decoding, chunked prefill, prefix caching)의 Neuron parity 는 기능별로 다르므로 **릴리스 노트 확인 필수**
+**Features:**
+- Compatible with existing vLLM deployment scripts in the form `vllm --device neuron --tensor-parallel-size N`
+- While PagedAttention itself is a CUDA implementation, the Neuron backend provides equivalent block-based KV management
+- Neuron parity for latest vLLM features (speculative decoding, chunked prefill, prefix caching) varies by feature, so **release notes must be checked**
 
 ### 6.3 TGI (Text Generation Inference) Neuron fork
 
-HuggingFace 가 유지하는 TGI 의 **optimum-neuron** 기반 fork 입니다. `optimum[neuronx]` 를 통해 HuggingFace 모델을 간단히 Neuron 으로 컴파일·서빙합니다.
+HuggingFace maintains a TGI fork based on **optimum-neuron**. HuggingFace models can be easily compiled and served on Neuron through `optimum[neuronx]`.
 
-**특징:**
-- HuggingFace Hub 기반 워크플로우와 긴밀하게 통합
-- TGI 자체가 2025년부터 유지보수 모드 → 신규 기능은 vLLM 대비 느린 편
-- SageMaker 의 HuggingFace LLM DLC 와의 호환성
+**Features:**
+- Tightly integrated with HuggingFace Hub-based workflows
+- TGI itself has been in maintenance mode since 2025 → new features are slower compared to vLLM
+- Compatibility with SageMaker's HuggingFace LLM DLC
 
-### 6.4 프레임워크 비교
+### 6.4 Framework Comparison
 
-| 항목 | NxD Inference | vLLM Neuron backend | TGI Neuron fork |
+| Aspect | NxD Inference | vLLM Neuron backend | TGI Neuron fork |
 |------|--------------|--------------------|-----------------| 
-| **유지 주체** | AWS 공식 | vLLM 커뮤니티 + AWS 기여 | HuggingFace + AWS 기여 |
-| **모델 커버리지** | AWS 선정 공식 모델 (Llama/Mistral/DBRX 등) | vLLM 지원 모델 중 Neuron 포팅된 것 | HuggingFace 모델 중 optimum-neuron 지원 |
-| **pre-compiled checkpoint** | 제공 | 부분적 | 부분적 |
-| **OpenAI 호환 API** | 지원 | 지원 | 지원 |
-| **Continuous Batching** | 지원 | 지원 | 지원 |
-| **Speculative Decoding** | 지원 (모델별) | 부분 지원 | 제한적 |
-| **Prefix Caching** | 모델별 | 제한적 | 제한적 |
-| **업데이트 속도** | AWS 릴리스 주기 | vLLM 릴리스 주기(빠름) | 느림(유지보수 모드) |
-| **권장 용도** | AWS 공식 모델 대규모 프로덕션 | 다양한 모델·기능 최신 기능 활용 | HuggingFace 생태계 연속성 |
+| **Maintainer** | AWS Official | vLLM community + AWS contributions | HuggingFace + AWS contributions |
+| **Model Coverage** | AWS-selected official models (Llama/Mistral/DBRX, etc.) | Neuron-ported vLLM-supported models | optimum-neuron supported HuggingFace models |
+| **Pre-compiled checkpoint** | Provided | Partial | Partial |
+| **OpenAI-compatible API** | Supported | Supported | Supported |
+| **Continuous Batching** | Supported | Supported | Supported |
+| **Speculative Decoding** | Supported (model-specific) | Partially supported | Limited |
+| **Prefix Caching** | Model-specific | Limited | Limited |
+| **Update Speed** | AWS release cycle | vLLM release cycle (fast) | Slow (maintenance mode) |
+| **Recommended Use** | Large-scale production with AWS official models | Diverse models and latest vLLM features | HuggingFace ecosystem continuity |
 
-:::tip 프레임워크 선택 가이드
-- **Llama 계열 대규모 프로덕션** → NxD Inference (pre-compiled checkpoint 이점)
-- **다양한 모델, 최신 vLLM 기능 활용** → vLLM Neuron backend
-- **HuggingFace Hub 기반 기존 파이프라인** → TGI Neuron fork
-- **신규 프로젝트** 는 NxD Inference 또는 vLLM Neuron 중 택일을 권장
+:::tip Framework Selection Guide
+- **Large-scale Llama production** → NxD Inference (pre-compiled checkpoint advantage)
+- **Diverse models and latest vLLM features** → vLLM Neuron backend
+- **Existing HuggingFace Hub-based pipelines** → TGI Neuron fork
+- **New projects** are recommended to choose between NxD Inference or vLLM Neuron
 :::
 
 ---
 
-## 7. 지원 모델 매트릭스
+## 7. Supported Model Matrix
 
-AWS Neuron 공식 Model Zoo 및 NxD Inference 지원 매트릭스 기준입니다. 최신 지원 범위는 [AWS Neuron Samples GitHub](https://github.com/aws-neuron/aws-neuron-samples) 및 [NxD Inference 문서](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/index.html) 를 확인하세요.
+Based on AWS Neuron official Model Zoo and NxD Inference support matrix. For the latest support coverage, check [AWS Neuron Samples GitHub](https://github.com/aws-neuron/aws-neuron-samples) and [NxD Inference documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/index.html).
 
-### 7.1 주요 공식 지원 모델 (2026-04 기준)
+### 7.1 Major Officially Supported Models (as of April 2026)
 
-| 모델 | 크기 | 권장 인스턴스 | Pre-compiled | 비고 |
+| Model | Size | Recommended Instance | Pre-compiled | Notes |
 |------|-----|------------|-------------|------|
-| Llama 4 Scout | 17B (MoE) | inf2.48xlarge / trn2.48xlarge | ✅ | NxD 공식 |
-| Llama 4 Maverick | 70B | trn2.48xlarge | ✅ | NxD 공식 |
-| Llama 4 Behemoth | 288B+ (MoE) | trn2 Ultra | 릴리스 기준 확인 | NxD 지원 확장 중 |
-| Mistral 7B / Mixtral 8x7B | 7B / 47B | inf2.48xlarge | ✅ | NxD/vLLM 지원 |
-| Mixtral 8x22B | 141B | trn2.48xlarge | 부분 | MoE, EP 필요 |
-| Qwen3 계열 | 4B-32B | inf2 / trn2 | 부분 | vLLM Neuron backend 경유 권장 |
-| DBRX 132B | 132B | trn2.48xlarge | ✅ | NxD 공식 (MoE) |
-| DeepSeek V3 | 671B MoE | trn2 Ultra | 제한적 | 컴파일·메모리 제약 확인 필요 |
+| Llama 4 Scout / Maverick | 8B / 70B | inf2.48xlarge / trn2.48xlarge | ✅ | NxD Official |
+| Llama 4 Maverick | 70B | trn2.48xlarge | ✅ | NxD Official |
+| Llama 4 (Scout/Maverick) | 17B-400B | trn2.48xlarge / trn2 Ultra | Check release status | NxD support expanding |
+| Mistral 7B / Mixtral 8x7B | 7B / 47B | inf2.48xlarge | ✅ | NxD/vLLM Supported |
+| Mixtral 8x22B | 141B | trn2.48xlarge | Partial | MoE, EP required |
+| Qwen3 series | 4B-32B | inf2 / trn2 | Partial | vLLM Neuron backend recommended |
+| DBRX 132B | 132B | trn2.48xlarge | ✅ | NxD Official (MoE) |
+| DeepSeek V3 | 671B MoE | trn2 Ultra | Limited | Check compilation & memory constraints |
 
-:::caution 미래 지원 모델
-DeepSeek V3, Llama 4 Maverick, GLM-5 등 최신 대형 MoE 모델은 Neuron 지원이 단계적으로 추가됩니다. 배포 전 반드시 **해당 시점의 NxD Inference 지원 매트릭스와 Release Notes** 를 확인하세요. 본 문서의 표는 참고 목적이며 구체 버전 지원 여부를 보장하지 않습니다.
+:::caution Future Model Support
+Latest large MoE models (DeepSeek V3, Llama 4 Maverick, GLM-5, etc.) are being added to Neuron support incrementally. Before deployment, always check the **NxD Inference support matrix and Release Notes at that time**. This document's table is for reference purposes and does not guarantee specific version support.
 :::
 
-### 7.2 양자화 지원
+### 7.2 Quantization Support
 
-| 포맷 | Neuron 지원 |
+| Format | Neuron Support |
 |------|------------|
-| BF16 | 기본 |
-| FP16 | 지원 |
-| FP8 (E4M3, E5M2) | Trainium2 지원, Inferentia2 제한적 |
-| INT8 (weights) | 지원 (모델별) |
-| AWQ | 제한적 (모델·버전별 확인 필요) |
-| GPTQ | 제한적 |
-| GGUF | 미지원 |
+| BF16 | Default |
+| FP16 | Supported |
+| FP8 (E4M3, E5M2) | Trainium2 Supported, Inferentia2 Limited |
+| INT8 (weights) | Supported (model-specific) |
+| AWQ | Limited (check model & version) |
+| GPTQ | Limited |
+| GGUF | Not supported |
 
 ---
 
-## 8. 관측성
+## 8. Observability
 
-### 8.1 Neuron 전용 도구
+### 8.1 Neuron-Specific Tools
 
-| 도구 | 역할 | 사용 시점 |
+| Tool | Role | When to Use |
 |-----|------|---------|
-| **neuron-ls** | 노드의 Neuron 디바이스 나열 | 초기 진단 |
-| **neuron-top** | 실시간 NeuronCore 사용률, 메모리, 전력 | 실시간 모니터링 |
-| **neuron-monitor** | JSON 포맷 메트릭 스트리밍 | Prometheus exporter 입력 |
-| **neuron-profile** | NEFF 실행 프로파일링 | 성능 최적화 |
+| **neuron-ls** | List Neuron devices on the node | Initial diagnosis |
+| **neuron-top** | Real-time NeuronCore utilization, memory, power | Real-time monitoring |
+| **neuron-monitor** | Stream metrics in JSON format | Prometheus exporter input |
+| **neuron-profile** | Profile NEFF execution | Performance optimization |
 
-### 8.2 Prometheus / CloudWatch 통합
+### 8.2 Prometheus / CloudWatch Integration
 
 ```mermaid
 flowchart LR
@@ -526,75 +521,75 @@ flowchart LR
     style AMP fill:#e6522c,color:#fff
 ```
 
-**수집 체인:**
-- `neuron-monitor` 가 JSON 스트림으로 NeuronCore 사용률, HBM 사용량, 디바이스 온도, 실행 지연 등을 출력
-- OSS 커뮤니티의 `neuron-monitor-prometheus` exporter 가 이를 Prometheus 형식으로 변환
-- AMP(Amazon Managed Prometheus) 에서 remote-write 로 수집하고 AMG(Amazon Managed Grafana) 에서 대시보드화
-- CloudWatch Container Insights 의 Neuron 메트릭도 함께 활용 가능
+**Collection chain:**
+- `neuron-monitor` outputs NeuronCore utilization, HBM usage, device temperature, execution latency, etc. as JSON stream
+- OSS community `neuron-monitor-prometheus` exporter converts this to Prometheus format
+- AMP (Amazon Managed Prometheus) collects via remote-write and dashboards in AMG (Amazon Managed Grafana)
+- CloudWatch Container Insights Neuron metrics can also be utilized
 
-상세 AMP/AMG 구성은 [모니터링·Observability 셋업](../../reference-architecture/integrations/monitoring-observability-setup.md) 을 참조하세요.
+For detailed AMP/AMG configuration, refer to [Monitoring & Observability Setup](../../reference-architecture/integrations/monitoring-observability-setup.md).
 
-### 8.3 주요 메트릭
+### 8.3 Key Metrics
 
-| 메트릭 | 설명 | 활용 |
+| Metric | Description | Usage |
 |-------|------|------|
-| `neuron_core_utilization` | NeuronCore 사용률 (%) | HPA/KEDA 트리거 |
-| `neuron_device_memory_used` | HBM 사용량 (MB) | OOM 방지, 용량 계획 |
-| `neuron_execution_latency` | 추론 요청 처리 지연 | SLO 모니터링 |
-| `neuron_hardware_ecc_events` | ECC 오류 수 | 하드웨어 건강 체크 |
-| `neuron_power_watts` | 칩당 전력 (W) | 열·비용 관리 |
+| `neuron_core_utilization` | NeuronCore utilization (%) | HPA/KEDA trigger |
+| `neuron_device_memory_used` | HBM usage (MB) | OOM prevention, capacity planning |
+| `neuron_execution_latency` | Inference request processing latency | SLO monitoring |
+| `neuron_hardware_ecc_events` | ECC error count | Hardware health check |
+| `neuron_power_watts` | Power per chip (W) | Thermal & cost management |
 
 ---
 
-## 9. 한계 및 주의사항
+## 9. Limitations and Considerations
 
-### 9.1 기능 제약
+### 9.1 Feature Constraints
 
-| 범주 | 제약 |
+| Category | Constraint |
 |------|------|
-| **커스텀 커널** | CUDA 전용 커널(FlashAttention custom impl 등)은 Neuron 으로 직접 포팅 필요 |
-| **양자화** | AWQ/GPTQ 일부 변종, GGUF 미지원 |
-| **컴파일 시간** | 신규 모델 최초 컴파일 20-30분 이상 → NEFF 캐시 필수 |
-| **디버깅** | nvidia-smi 대비 GPU 텔레메트리 도구 생태계가 협소 |
-| **오픈소스 생태계** | NVIDIA GPU Operator / DCGM 동등 "통합 오케스트레이터" 부재 — Neuron Device Plugin + 별도 exporter 조합 |
+| **Custom Kernels** | CUDA-only kernels (FlashAttention custom impl, etc.) require direct porting to Neuron |
+| **Quantization** | AWQ/GPTQ some variants, GGUF not supported |
+| **Compilation Time** | New model initial compilation 20-30+ minutes → NEFF cache essential |
+| **Debugging** | GPU telemetry tool ecosystem is narrower compared to nvidia-smi |
+| **Open Source Ecosystem** | No equivalent "integrated orchestrator" like NVIDIA GPU Operator / DCGM — combination of Neuron Device Plugin + separate exporter |
 
-### 9.2 운영상 주의점
+### 9.2 Operational Considerations
 
-:::warning 프로덕션 배포 전 체크리스트
-- [ ] 대상 모델이 NxD Inference 또는 vLLM Neuron backend 에서 **현재 버전에서 지원되는지** 확인
-- [ ] 모델 NEFF 를 **CI 단계에서 사전 컴파일** 하고 S3/ECR 에 아티팩트로 관리
-- [ ] 첫 Pod 기동 지연을 고려한 `readinessProbe` / `startupProbe` 설정 (initialDelaySeconds 충분히 크게)
-- [ ] HPA/KEDA 트리거 메트릭에서 `neuron_core_utilization` 이 정상적으로 수집되는지 검증
-- [ ] 리전별 Trainium2 capacity 확인 및 Spot 인터럽트 정책 수립
-- [ ] Bedrock 과의 하이브리드 운영 시 모델 버전 동기화 정책 명문화
+:::warning Pre-Production Deployment Checklist
+- [ ] Verify that target model is **supported in current version** by NxD Inference or vLLM Neuron backend
+- [ ] **Pre-compile model NEFF in CI stage** and manage as artifact in S3/ECR
+- [ ] Configure `readinessProbe` / `startupProbe` considering first Pod startup delay (with sufficiently large initialDelaySeconds)
+- [ ] Verify that `neuron_core_utilization` is properly collected in HPA/KEDA trigger metrics
+- [ ] Verify Trainium2 capacity by region and establish Spot interrupt policy
+- [ ] Document model version synchronization policy for hybrid operations with Bedrock
 :::
 
-### 9.3 Neuron 에서 피해야 하는 워크로드
+### 9.3 Workloads to Avoid on Neuron
 
-- 매주 모델 구조를 바꾸는 R&D 실험 — 컴파일 비용이 반복적으로 발생
-- Triton Inference Server + 커스텀 Python backend 가 이미 깊게 결합된 기존 스택
-- 매우 작은 요청(&lt;10 tokens/sec) 의 드문 호출 — 워밍업·컴파일 오버헤드가 상대적으로 큼
+- R&D experiments changing model architecture weekly — compilation cost occurs repeatedly
+- Existing stack deeply coupled with Triton Inference Server + custom Python backend
+- Rare calls with very small requests (&lt;10 tokens/sec) — warmup/compilation overhead is relatively large
 
 ---
 
-## 10. 관련 문서
+## 10. Related Documents
 
-- [EKS GPU 노드 전략](./eks-gpu-node-strategy.md) — AWS 가속기 선택 가이드, NVIDIA vs Neuron
-- [NVIDIA GPU 스택](./nvidia-gpu-stack.md) — NVIDIA 스택과의 비교 기준
-- [GPU 리소스 관리](./gpu-resource-management.md) — Karpenter/KEDA/DRA 기반 오토스케일링
-- [vLLM 모델 서빙](../inference-frameworks/vllm-model-serving.md) — vLLM 기반 추론 엔진 (CUDA 경로)
-- [MoE 모델 서빙](../inference-frameworks/moe-model-serving.md) — MoE 구조 개념 및 Trainium2 배치 전략
-- [모니터링·Observability 셋업](../../reference-architecture/integrations/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
+- [EKS GPU Node Strategy](./eks-gpu-node-strategy.md) — AWS accelerator selection guide, NVIDIA vs Neuron
+- [NVIDIA GPU Stack](./nvidia-gpu-stack.md) — Comparison criteria with NVIDIA stack
+- [GPU Resource Management](./gpu-resource-management.md) — Karpenter/KEDA/DRA-based autoscaling
+- [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — vLLM-based inference engine (CUDA path)
+- [MoE Model Serving](../inference-frameworks/moe-model-serving.md) — MoE architecture concepts and Trainium2 deployment strategy
+- [Monitoring & Observability Setup](../../reference-architecture/integrations/monitoring-observability-setup.md) — AMP/AMG, Langfuse, OTel
 
-## 참고 자료
+## References
 
 - [AWS Neuron SDK GitHub (aws-neuron)](https://github.com/aws-neuron/aws-neuron-sdk)
 - [AWS Neuron Documentation](https://awsdocs-neuron.readthedocs-hosted.com/)
 - [AWS Neuron Samples](https://github.com/aws-neuron/aws-neuron-samples)
 - [NxD Inference Documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/index.html)
 - [Neuron SDK Release Notes](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/)
-- [AWS Trainium2 제품 페이지](https://aws.amazon.com/machine-learning/trainium/)
-- [AWS Inferentia2 제품 페이지](https://aws.amazon.com/machine-learning/inferentia/)
-- [vLLM Neuron backend 문서](https://docs.vllm.ai/en/latest/getting_started/installation.html#neuron-installation)
+- [AWS Trainium2 Product Page](https://aws.amazon.com/machine-learning/trainium/)
+- [AWS Inferentia2 Product Page](https://aws.amazon.com/machine-learning/inferentia/)
+- [vLLM Neuron Backend Documentation](https://docs.vllm.ai/en/latest/getting_started/installation.html#neuron-installation)
 - [optimum-neuron (HuggingFace)](https://github.com/huggingface/optimum-neuron)
 - [AWS Neuron Kubernetes Device Plugin](https://github.com/aws-neuron/aws-neuron-sdk/tree/master/src/k8)

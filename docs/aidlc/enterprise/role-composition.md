@@ -1,118 +1,118 @@
 ---
-title: 역할 재정의
-description: AIDLC 엔터프라이즈 - role-composition
+title: Role Composition
+description: Team Structure and Role Changes in the AIDLC Era — Harness Engineer, Ontology Steward, AI Verifier
 created: "2026-04-07"
 last_update:
-  date: 2026-10-13
-  author: YoungJoon Jeong
-reading_time: 11
+  date: "2026-06-30"
+  author: devfloor9
+reading_time: 24
 tags:
   - aidlc
   - enterprise
   - agentic-ai
   - scope:enterprise
-sidebar_label: 역할 재정의
+sidebar_label: Role Composition
 ---
 
-AIDLC는 코드 생성 자동화를 통해 전통적인 SI 팀 구조를 근본적으로 변화시킵니다. 핵심 통찰은 **AI가 코드 생성을 담당하면, 인간은 하네스 설계, 온톨로지 관리, AI 출력 검증으로 전환**한다는 것입니다.
+AIDLC fundamentally transforms traditional SI team structures through code generation automation. The core insight: **When AI handles code generation, humans transition to harness design, ontology management, and AI output verification**.
 
-## 전통적 SI 역할 모델
+## Traditional SI Role Model
 
-전통적인 SI 프로젝트는 순차적 핸드오프 구조로 운영됩니다:
+Traditional SI projects operate with sequential handoff structure:
 
 ```mermaid
 graph LR
-    PM[프로젝트 매니저] --> 설계[설계자]
-    설계 --> 개발[개발자]
-    개발 --> QA[QA]
-    QA --> 보안[보안 담당자]
+    PM[Project Manager] --> Design[Designer]
+    Design --> Dev[Developer]
+    Dev --> QA[QA]
+    QA --> Security[Security Officer]
 ```
 
-### 역할별 책임
+### Responsibilities by Role
 
-- **프로젝트 매니저**: 범위 정의, 일정 관리, 고객 커뮤니케이션
-- **설계자**: 아키텍처 설계, 기술 스택 선정, 인터페이스 정의
-- **개발자**: 코드 작성, 단위 테스트, 통합 개발 (팀의 60~70%)
-- **QA**: 테스트 케이스 작성, 수동 테스트, 결함 추적 (팀의 15~20%)
-- **보안 담당자**: 프로젝트 말미에 취약점 스캔, 보안 리뷰 (프로젝트당 1~2명)
+- **Project Manager**: Scope definition, schedule management, customer communication
+- **Designer**: Architecture design, technology stack selection, interface definition
+- **Developer**: Code writing, unit testing, integration development (60-70% of team)
+- **QA**: Test case writing, manual testing, defect tracking (15-20% of team)
+- **Security Officer**: Vulnerability scanning, security review at project end (1-2 per project)
 
-### 문제점
+### Problems
 
-1. **순차적 핸드오프**: 각 단계에서 컨텍스트 손실 발생
-2. **늦은 보안 개입**: 프로젝트 끝에서 취약점 발견 시 재작업 비용 급증
-3. **개발자 병목**: 전체 팀의 대부분이 코드 작성에 투입되지만 생산성은 개인 역량에 의존
-4. **테스트 지연**: QA가 개발 완료 후 시작되어 피드백 사이클 길어짐
+1. **Sequential Handoff**: Context loss at each stage
+2. **Late Security Involvement**: Discovering vulnerabilities at project end causes exponential rework costs
+3. **Developer Bottleneck**: Most of team dedicated to code writing, but productivity depends on individual capability
+4. **Testing Delay**: QA starts after development completion, lengthening feedback cycle
 
-## AIDLC 역할 전환
+## AIDLC Role Transformation
 
-AIDLC 방법론에서는 역할이 근본적으로 재정의됩니다:
+In AIDLC methodology, roles are fundamentally redefined:
 
-| 전통적 역할 | AIDLC 역할 | 변화 내용 |
+| Traditional Role | AIDLC Role | Change Content |
 |------------|-----------|---------|
-| 프로젝트 매니저 | Intent Architect | 비즈니스 의도를 AI가 이해할 수 있는 구조화된 명세로 정의 |
-| 설계자 | 온톨로지 스튜어드 | 도메인 온톨로지 설계·진화 관리, 지식 그래프 큐레이션 |
-| 개발자 | 하네스 엔지니어 | 코드 작성 → 하네스 설계로 전환 (서킷 브레이커, 품질 게이트) |
-| QA | AI 검증자 | 수동 테스트 → AI 생성 테스트의 품질 검증, 하네스 효과성 측정 |
-| 보안 담당자 | Shift-Left 보안 | 프로젝트 끝 → Inception 단계로 이동, 하네스 보안 정책 설계 |
+| Project Manager | Intent Architect | Define business intent as structured specifications AI can understand |
+| Designer | Ontology Steward | Design and evolve domain ontology, curate knowledge graphs |
+| Developer | Harness Engineer | Transition from code writing → Harness design (circuit breakers, quality gates) |
+| QA | AI Verifier | Manual testing → Verify quality of AI-generated tests, measure harness effectiveness |
+| Security Officer | Shift-Left Security | Project end → Move to Inception phase, design harness security policies |
 
 ### Intent Architect
 
-**전통적 PM**은 범위와 일정을 관리했지만, **Intent Architect**는 비즈니스 의도를 AI가 실행 가능한 구조로 변환합니다.
+**Traditional PM** managed scope and schedule, but **Intent Architect** transforms business intent into AI-executable structures.
 
-#### 핵심 역량
-- 고객 요구사항을 도메인 온톨로지 엔티티로 매핑
-- 의도 명세 작성 (structured intent specification)
-- AI 생성 결과가 비즈니스 의도와 일치하는지 검증
-- 변경 요청을 온톨로지 패치로 표현
+#### Core Competencies
+- Map customer requirements to domain ontology entities
+- Write intent specifications (structured intent specification)
+- Verify AI-generated results align with business intent
+- Express change requests as ontology patches
 
-#### 도구
-- 온톨로지 시각화 도구 (Neo4j Bloom, GraphXR)
-- 의도 명세 템플릿 (YAML/JSON schema)
-- 비즈니스 룰 엔진 (Drools, DMN)
+#### Tools
+- Ontology visualization tools (Neo4j Bloom, GraphXR)
+- Intent specification templates (YAML/JSON schema)
+- Business rule engines (Drools, DMN)
 
-### 온톨로지 스튜어드
+### Ontology Steward
 
-**전통적 설계자**는 기술 아키텍처를 설계했지만, **온톨로지 스튜어드**는 도메인 지식 구조를 설계하고 진화시킵니다.
+**Traditional Designer** designed technical architecture, but **Ontology Steward** designs and evolves domain knowledge structure.
 
-#### 핵심 역량
-- 도메인 온톨로지 설계 (엔티티, 관계, 제약 조건)
-- 온톨로지 버전 관리 및 마이그레이션
-- 다중 도메인 온톨로지 통합 (금융+결제, 의료+보험)
-- 온톨로지 품질 검증 (일관성, 완전성, 모호성 제거)
+#### Core Competencies
+- Domain ontology design (entities, relationships, constraints)
+- Ontology version management and migration
+- Multi-domain ontology integration (finance+payment, healthcare+insurance)
+- Ontology quality verification (consistency, completeness, ambiguity removal)
 
-#### 도구
-- 온톨로지 편집기 (Protégé, WebVOWL)
-- 그래프 데이터베이스 (Neo4j, Amazon Neptune)
-- RDF/OWL 변환 도구
+#### Tools
+- Ontology editors (Protégé, WebVOWL)
+- Graph databases (Neo4j, Amazon Neptune)
+- RDF/OWL conversion tools
 
-#### 전통적 설계자와의 차이
+#### Differences from Traditional Designer
 
-| 측면 | 전통적 설계자 | 온톨로지 스튜어드 |
+| Aspect | Traditional Designer | Ontology Steward |
 |-----|------------|----------------|
-| 산출물 | API 명세, ERD | 온톨로지 스키마, 지식 그래프 |
-| 도구 | UML, Swagger | Protégé, Neo4j |
-| 검증 방법 | 기술 리뷰 | 추론 엔진 검증 (reasoning) |
-| 변경 관리 | 버전 관리 (Git) | 온톨로지 패치 (semantic diff) |
+| Deliverable | API specs, ERD | Ontology schema, knowledge graph |
+| Tools | UML, Swagger | Protégé, Neo4j |
+| Verification Method | Technical review | Reasoning engine verification |
+| Change Management | Version control (Git) | Ontology patches (semantic diff) |
 
-자세한 내용은 [온톨로지 엔지니어링](../methodology/ontology-engineering.md)을 참고합니다.
+See [Ontology Engineering](../methodology/ontology-engineering.md) for details.
 
-## 하네스 엔지니어 역할 상세
+## Harness Engineer Role Details
 
-### 패러다임 전환: "코드 생성은 AI, 인간은 하네스 설계자"
+### Paradigm Shift: "AI Generates Code, Humans Design Harness"
 
-OpenAI Codex 사례에서 100만 줄 이상의 코드가 AI로 생성되었지만, **인간 엔지니어는 하네스 설계에 집중**하여 품질과 안정성을 보장했습니다.
+In the OpenAI Codex case, over 1 million lines of code were generated by AI, but **human engineers focused on harness design** to ensure quality and stability.
 
 > "We don't write code anymore. We design guardrails and circuit breakers that keep AI-generated code safe and aligned with business intent."  
 > — Production Engineering Team, OpenAI (2024)
 
-### 핵심 역량
+### Core Competencies
 
-#### 1. 서킷 브레이커 설계
+#### 1. Circuit Breaker Design
 
-AI 생성 코드가 예상치 못한 동작을 할 때 자동으로 중단하는 메커니즘 설계:
+Design mechanisms to automatically halt AI-generated code when unexpected behavior occurs:
 
 ```yaml
-# 예시: API 호출 서킷 브레이커
+# Example: API call circuit breaker
 circuit_breaker:
   failure_threshold: 5
   timeout_seconds: 30
@@ -123,12 +123,12 @@ circuit_breaker:
       window: 5m
 ```
 
-#### 2. 재시도 예산 관리
+#### 2. Retry Budget Management
 
-AI 에이전트의 재시도 횟수와 비용을 제한:
+Limit AI agent retry attempts and costs:
 
 ```yaml
-# 예시: LLM 호출 재시도 예산
+# Example: LLM call retry budget
 retry_budget:
   max_attempts: 3
   backoff_strategy: exponential
@@ -138,12 +138,12 @@ retry_budget:
       action: switch_to_smaller_model
 ```
 
-#### 3. 출력 게이트 정의
+#### 3. Output Gate Definition
 
-AI 생성 결과가 프로덕션으로 배포되기 전에 통과해야 하는 검증 게이트:
+Verification gates AI-generated results must pass before production deployment:
 
 ```yaml
-# 예시: 코드 생성 출력 게이트
+# Example: Code generation output gate
 output_gates:
   - name: security_scan
     tools: [semgrep, bandit]
@@ -157,9 +157,9 @@ output_gates:
     alert: slack_channel
 ```
 
-#### 4. 독립 검증 구조
+#### 4. Independent Verification Structure
 
-AI 생성 결과를 다른 AI 모델이나 독립적인 도구로 교차 검증:
+Cross-verify AI-generated results with other AI models or independent tools:
 
 ```mermaid
 graph TD
@@ -170,167 +170,167 @@ graph TD
     B -->|Any Gate Fails| F[Reject & Alert]
 ```
 
-### 전통적 개발자와의 차이
+### Differences from Traditional Developer
 
-| 측면 | 전통적 개발자 | 하네스 엔지니어 |
+| Aspect | Traditional Developer | Harness Engineer |
 |-----|------------|--------------|
-| 주요 활동 | 코드 작성 (80%) | 하네스 설계 (70%), 검증 (30%) |
-| 생산성 지표 | 커밋 수, LOC | 하네스 적중률, 결함 방지율 |
-| 기술 스택 | 프로그래밍 언어 | YAML/JSON DSL, 모니터링 도구 |
-| 디버깅 방식 | 코드 읽기 | 하네스 로그 분석, AI 의사결정 추적 |
-| 협업 방식 | 코드 리뷰 | 하네스 리뷰, 온톨로지 싱크 |
+| Primary Activity | Code writing (80%) | Harness design (70%), Verification (30%) |
+| Productivity Metric | Commit count, LOC | Harness hit rate, Defect prevention rate |
+| Technology Stack | Programming languages | YAML/JSON DSL, Monitoring tools |
+| Debugging Method | Code reading | Harness log analysis, AI decision tracking |
+| Collaboration Method | Code review | Harness review, Ontology sync |
 
-자세한 내용은 [하네스 엔지니어링](../methodology/harness-engineering.md)을 참고합니다.
+See [Harness Engineering](../methodology/harness-engineering.md) for details.
 
-## AI 검증자
+## AI Verifier
 
-**전통적 QA**는 수동 테스트를 실행했지만, **AI 검증자**는 AI가 생성한 테스트의 품질을 검증하고, 하네스가 실제로 결함을 방지하는지 측정합니다.
+**Traditional QA** executed manual tests, but **AI Verifier** validates quality of AI-generated tests and measures whether harness actually prevents defects.
 
-### 핵심 역량
+### Core Competencies
 
-#### 1. AI 생성 테스트 품질 검증
-- 테스트 케이스 커버리지 분석 (엣지 케이스 누락 확인)
-- 테스트 데이터 다양성 검증 (boundary, negative, fuzzing)
-- 플레이키 테스트 식별 및 제거
+#### 1. AI-Generated Test Quality Verification
+- Test case coverage analysis (identify missing edge cases)
+- Test data diversity verification (boundary, negative, fuzzing)
+- Flaky test identification and removal
 
-#### 2. 하네스 효과성 측정
-- 서킷 브레이커 적중률 (false positive/negative 비율)
-- 출력 게이트 블록률 (어떤 게이트가 가장 많은 결함을 방지하는가)
-- 재시도 예산 소진 패턴 (어떤 시나리오에서 재시도가 빈번한가)
+#### 2. Harness Effectiveness Measurement
+- Circuit breaker hit rate (false positive/negative ratio)
+- Output gate block rate (which gates prevent most defects)
+- Retry budget exhaustion patterns (which scenarios retry frequently)
 
-#### 3. 독립 검증 설계
-- Primary LLM과 다른 모델로 교차 검증
-- 정적 분석 도구와 AI 판단의 일치도 측정
-- 프로덕션 데이터와 생성 데이터의 분포 비교
+#### 3. Independent Verification Design
+- Cross-verify with different model than Primary LLM
+- Measure agreement between static analysis tools and AI judgment
+- Compare distribution between production data and generated data
 
-### 전통적 QA와의 차이
+### Differences from Traditional QA
 
-| 측면 | 전통적 QA | AI 검증자 |
+| Aspect | Traditional QA | AI Verifier |
 |-----|---------|---------|
-| 테스트 작성 | 수동 작성 (80%) | AI 생성 검증 (90%) |
-| 결함 발견 방식 | 수동 실행 | 하네스 로그 분석 |
-| 커버리지 목표 | 라인 커버리지 | 의도 커버리지 (intent coverage) |
-| 회귀 테스트 | 전체 실행 | 하네스가 자동 선별 |
+| Test Writing | Manual writing (80%) | AI generation verification (90%) |
+| Defect Discovery Method | Manual execution | Harness log analysis |
+| Coverage Goal | Line coverage | Intent coverage |
+| Regression Testing | Execute all | Harness auto-selects |
 
-## 팀 구성 비율 변화
+## Team Composition Ratio Changes
 
-AIDLC 도입으로 팀 구성 비율이 근본적으로 변화합니다.
+AIDLC adoption fundamentally changes team composition ratios.
 
-### 소형 프로젝트 (5명)
+### Small Project (5 people)
 
-| 전통적 비율 | AIDLC 비율 |
+| Traditional Ratio | AIDLC Ratio |
 |-----------|----------|
-| PM 1명 (20%) | Intent Architect 1명 (20%) |
-| 개발자 3명 (60%) | 하네스 엔지니어 2명 (40%) |
-| QA 1명 (20%) | AI 검증자 1명 (20%) |
-| - | 온톨로지 스튜어드 1명 (20%) |
+| PM 1 (20%) | Intent Architect 1 (20%) |
+| Developer 3 (60%) | Harness Engineer 2 (40%) |
+| QA 1 (20%) | AI Verifier 1 (20%) |
+| - | Ontology Steward 1 (20%) |
 
-**변화 해석**: 개발자 3명 → 하네스 엔지니어 2명으로 축소 가능. 하네스 엔지니어 1명이 AI를 활용하여 전통적 개발자 1.5명분의 산출물을 생성합니다.
+**Change Interpretation**: 3 developers → 2 harness engineers reduction possible. One harness engineer using AI produces output equivalent to 1.5 traditional developers.
 
-### 중형 프로젝트 (15명)
+### Medium Project (15 people)
 
-| 전통적 비율 | AIDLC 비율 |
+| Traditional Ratio | AIDLC Ratio |
 |-----------|----------|
-| PM 2명 (13%) | Intent Architect 2명 (13%) |
-| 설계자 2명 (13%) | 온톨로지 스튜어드 2명 (13%) |
-| 개발자 8명 (53%) | 하네스 엔지니어 6명 (40%) |
-| QA 2명 (13%) | AI 검증자 3명 (20%) |
-| 보안 1명 (7%) | Shift-Left 보안 2명 (13%) |
+| PM 2 (13%) | Intent Architect 2 (13%) |
+| Designer 2 (13%) | Ontology Steward 2 (13%) |
+| Developer 8 (53%) | Harness Engineer 6 (40%) |
+| QA 2 (13%) | AI Verifier 3 (20%) |
+| Security 1 (7%) | Shift-Left Security 2 (13%) |
 
-**변화 해석**:
-- 개발자 8명 → 하네스 엔지니어 6명: AI가 코드 생성 담당, 인간은 하네스 설계
-- QA 2명 → AI 검증자 3명: 수동 테스트 감소, 하네스 검증 증가
-- 보안 1명 → 2명: Shift-Left로 Inception 단계부터 투입
+**Change Interpretation**:
+- 8 developers → 6 harness engineers: AI handles code generation, humans design harness
+- 2 QA → 3 AI verifiers: Manual testing decreases, harness verification increases
+- 1 security → 2: Shift-Left from Inception phase onward
 
-### 대형 프로젝트 (50명)
+### Large Project (50 people)
 
-| 전통적 비율 | AIDLC 비율 |
+| Traditional Ratio | AIDLC Ratio |
 |-----------|----------|
-| PM 5명 (10%) | Intent Architect 5명 (10%) |
-| 설계자 5명 (10%) | 온톨로지 스튜어드 6명 (12%) |
-| 개발자 30명 (60%) | 하네스 엔지니어 20명 (40%) |
-| QA 7명 (14%) | AI 검증자 10명 (20%) |
-| 보안 3명 (6%) | Shift-Left 보안 9명 (18%) |
+| PM 5 (10%) | Intent Architect 5 (10%) |
+| Designer 5 (10%) | Ontology Steward 6 (12%) |
+| Developer 30 (60%) | Harness Engineer 20 (40%) |
+| QA 7 (14%) | AI Verifier 10 (20%) |
+| Security 3 (6%) | Shift-Left Security 9 (18%) |
 
-**변화 해석**:
-- 개발자 30명 → 하네스 엔지니어 20명: **33% 인력 감축** 또는 **동일 인력으로 50% 더 많은 기능 개발**
-- 보안 3명 → 9명: Shift-Left로 인력 3배 증가, 하지만 프로젝트 말미 재작업 비용 90% 감축
-- 온톨로지 스튜어드 6명: 복잡한 도메인 온톨로지 관리 (금융, 의료, 물류 통합)
+**Change Interpretation**:
+- 30 developers → 20 harness engineers: **33% workforce reduction** or **50% more features with same workforce**
+- 3 security → 9: Shift-Left triples personnel, but reduces project-end rework cost by 90%
+- 6 ontology stewards: Manage complex domain ontology (finance, healthcare, logistics integration)
 
-### 비용 효과
+### Cost Effectiveness
 
-| 프로젝트 규모 | 전통적 비용 | AIDLC 비용 | 절감 효과 |
+| Project Scale | Traditional Cost | AIDLC Cost | Savings |
 |------------|----------|-----------|---------|
-| 소형 (5명) | 100% | 85% | 15% 절감 |
-| 중형 (15명) | 100% | 75% | 25% 절감 |
-| 대형 (50명) | 100% | 67% | 33% 절감 |
+| Small (5 people) | 100% | 85% | 15% savings |
+| Medium (15 people) | 100% | 75% | 25% savings |
+| Large (50 people) | 100% | 67% | 33% savings |
 
-자세한 비용 분석은 [비용 효과](./cost-estimation.md)를 참고합니다.
+See [Cost Effectiveness](./cost-estimation.md) for detailed cost analysis.
 
-## 보안 Shift-Left
+## Security Shift-Left
 
-전통적으로 보안 담당자는 **프로젝트 말미**에 투입되어 취약점 스캔을 수행했습니다. 문제 발견 시 대규모 재작업이 발생하고, 일정 지연과 비용 증가를 초래했습니다.
+Traditionally, security officers were deployed **at project end** to perform vulnerability scans. When issues were found, massive rework occurred, causing schedule delays and cost increases.
 
-### 전통적 보안 개입 타이밍
-
-```mermaid
-gantt
-    title 전통적 보안 개입 (프로젝트 말미)
-    dateFormat YYYY-MM-DD
-    section 개발
-    설계            :2026-01-01, 30d
-    개발            :2026-01-31, 90d
-    테스트          :2026-05-01, 30d
-    보안 리뷰       :crit, 2026-05-31, 10d
-    재작업          :crit, 2026-06-10, 20d
-    배포            :2026-06-30, 5d
-```
-
-**문제점**:
-- 보안 취약점을 개발 완료 후 발견 → 재작업 비용 10배 증가
-- 보안 리뷰가 배포 블로커로 작용 → 일정 지연
-- 보안 담당자와 개발자 간 컨텍스트 미스매치
-
-### AIDLC Shift-Left 보안
+### Traditional Security Involvement Timing
 
 ```mermaid
 gantt
-    title AIDLC Shift-Left 보안 (Inception부터 참여)
+    title Traditional Security Involvement (Project End)
     dateFormat YYYY-MM-DD
-    section 개발
-    보안 정책 설계  :crit, 2026-01-01, 10d
-    온톨로지 설계   :2026-01-01, 30d
-    하네스 설계     :2026-01-11, 20d
-    AI 코드 생성    :2026-01-31, 60d
-    연속 보안 검증  :crit, 2026-01-31, 60d
-    배포            :2026-03-31, 5d
+    section Development
+    Design            :2026-01-01, 30d
+    Development       :2026-01-31, 90d
+    Testing           :2026-05-01, 30d
+    Security Review   :crit, 2026-05-31, 10d
+    Rework            :crit, 2026-06-10, 20d
+    Deployment        :2026-06-30, 5d
 ```
 
-**효과**:
-- 보안 정책이 하네스에 내장 → 코드 생성 시점부터 보안 규칙 적용
-- 연속 보안 검증 → 취약점을 즉시 발견하고 자동 수정
-- 재작업 비용 **90% 감축** (NIST 연구: Shift-Left 효과)
+**Problems**:
+- Discovering security vulnerabilities after development completion → Rework cost increases 10x
+- Security review acts as deployment blocker → Schedule delays
+- Context mismatch between security officer and developers
 
-### Shift-Left 보안 역할
+### AIDLC Shift-Left Security
 
-#### Inception 단계
-- 도메인 온톨로지에 보안 제약 조건 정의
-- 보안 정책을 하네스 YAML로 작성
-- 위협 모델링 (STRIDE, DREAD)
+```mermaid
+gantt
+    title AIDLC Shift-Left Security (From Inception)
+    dateFormat YYYY-MM-DD
+    section Development
+    Security Policy Design  :crit, 2026-01-01, 10d
+    Ontology Design         :2026-01-01, 30d
+    Harness Design          :2026-01-11, 20d
+    AI Code Generation      :2026-01-31, 60d
+    Continuous Security Verification :crit, 2026-01-31, 60d
+    Deployment              :2026-03-31, 5d
+```
 
-#### 개발 단계
-- 하네스가 AI 생성 코드를 실시간 검증
-- 취약점 발견 시 자동 알림 및 수정 제안
-- 보안 게이트 모니터링 (SAST, DAST, SCA)
+**Effects**:
+- Security policies embedded in harness → Apply security rules from code generation point
+- Continuous security verification → Immediately detect and auto-fix vulnerabilities
+- Rework cost **90% reduction** (NIST research: Shift-Left effect)
 
-#### 배포 단계
-- 프로덕션 하네스 정책 최종 검증
-- 런타임 보안 모니터링 설정 (RASP, WAF)
+### Shift-Left Security Roles
 
-### 보안 하네스 예시
+#### Inception Phase
+- Define security constraints in domain ontology
+- Write security policies as harness YAML
+- Threat modeling (STRIDE, DREAD)
+
+#### Development Phase
+- Harness verifies AI-generated code in real-time
+- Automatic alerts and fix suggestions on vulnerability detection
+- Security gate monitoring (SAST, DAST, SCA)
+
+#### Deployment Phase
+- Final verification of production harness policies
+- Runtime security monitoring setup (RASP, WAF)
+
+### Security Harness Example
 
 ```yaml
-# 예시: SQL Injection 방어 하네스
+# Example: SQL Injection defense harness
 security_harness:
   - name: sql_injection_guard
     trigger: ai_generates_sql_query
@@ -345,109 +345,109 @@ security_harness:
     fallback: use_orm_instead
 ```
 
-## 팀 토폴로지 패턴
+## Team Topology Patterns
 
-AIDLC 조직은 Team Topologies (Matthew Skelton, Manuel Pais) 패턴을 따릅니다:
+AIDLC organizations follow Team Topologies (Matthew Skelton, Manuel Pais) patterns:
 
 ### Stream-Aligned Team
 
-**목적**: 특정 비즈니스 도메인의 end-to-end 가치 흐름 구현
+**Purpose**: Implement end-to-end value stream for specific business domain
 
-**구성**:
-- Intent Architect 1명
-- 온톨로지 스튜어드 1명
-- 하네스 엔지니어 3~5명
-- AI 검증자 1~2명
-- Shift-Left 보안 1명 (겸직 가능)
+**Composition**:
+- Intent Architect 1
+- Ontology Steward 1
+- Harness Engineer 3-5
+- AI Verifier 1-2
+- Shift-Left Security 1 (can be dual role)
 
-**책임**:
-- 도메인 온톨로지 소유
-- 하네스 설계 및 구현
-- AI 생성 코드 검증 및 배포
+**Responsibilities**:
+- Own domain ontology
+- Design and implement harness
+- Verify and deploy AI-generated code
 
 ### Platform Team
 
-**목적**: 하네스 인프라, AI 모델 서빙, 온톨로지 저장소 운영
+**Purpose**: Operate harness infrastructure, AI model serving, ontology repositories
 
-**구성**:
-- Platform Engineer 3~5명
-- MLOps Engineer 2~3명
-- 온톨로지 아키텍트 1~2명
+**Composition**:
+- Platform Engineer 3-5
+- MLOps Engineer 2-3
+- Ontology Architect 1-2
 
-**책임**:
-- 하네스 프레임워크 개발 및 유지보수
-- AI 모델 배포 파이프라인 관리
-- 온톨로지 저장소 (Neo4j, Amazon Neptune) 운영
-- 공통 하네스 라이브러리 제공
+**Responsibilities**:
+- Develop and maintain harness framework
+- Manage AI model deployment pipeline
+- Operate ontology repositories (Neo4j, Amazon Neptune)
+- Provide common harness libraries
 
 ### Enabling Team
 
-**목적**: Stream-Aligned Team의 AIDLC 역량 강화
+**Purpose**: Enhance Stream-Aligned Team AIDLC capabilities
 
-**구성**:
-- AIDLC 코치 2~3명
-- 온톨로지 트레이너 1~2명
-- 하네스 베스트 프랙티스 큐레이터 1명
+**Composition**:
+- AIDLC Coach 2-3
+- Ontology Trainer 1-2
+- Harness Best Practice Curator 1
 
-**책임**:
-- AIDLC 방법론 교육
-- 온톨로지 설계 워크샵 운영
-- 하네스 패턴 라이브러리 큐레이션
-- 팀 간 지식 공유 촉진
+**Responsibilities**:
+- AIDLC methodology training
+- Run ontology design workshops
+- Curate harness pattern library
+- Facilitate knowledge sharing across teams
 
-### 팀 상호작용 모드
+### Team Interaction Modes
 
 ```mermaid
 graph TD
-    SA1[Stream-Aligned Team 1<br/>금융 도메인] -.->|X-as-a-Service| PT[Platform Team]
-    SA2[Stream-Aligned Team 2<br/>결제 도메인] -.->|X-as-a-Service| PT
+    SA1[Stream-Aligned Team 1<br/>Finance Domain] -.->|X-as-a-Service| PT[Platform Team]
+    SA2[Stream-Aligned Team 2<br/>Payment Domain] -.->|X-as-a-Service| PT
     ET[Enabling Team] -->|Facilitation| SA1
     ET -->|Facilitation| SA2
     SA1 <-->|Collaboration| SA2
 ```
 
-- **X-as-a-Service**: Platform Team이 하네스 인프라를 서비스로 제공
-- **Facilitation**: Enabling Team이 일시적으로 Stream-Aligned Team 지원
-- **Collaboration**: 온톨로지 통합 시 Stream-Aligned Team 간 협업
+- **X-as-a-Service**: Platform Team provides harness infrastructure as service
+- **Facilitation**: Enabling Team temporarily supports Stream-Aligned Team
+- **Collaboration**: Stream-Aligned Teams collaborate when integrating ontologies
 
-## 도입 전략
+## Adoption Strategy
 
-역할 전환은 점진적으로 진행합니다. 자세한 로드맵은 [도입 전략](./adoption-strategy.md)을 참고합니다.
+Role transition proceeds gradually. See [Adoption Strategy](./adoption-strategy.md) for detailed roadmap.
 
-### Phase 1: 파일럿 (1개 팀, 3개월)
-- 전통적 개발자 중 자원자 선발 → 하네스 엔지니어 교육
-- 소규모 프로젝트에 AIDLC 적용
-- 하네스 패턴 라이브러리 초기 구축
+### Phase 1: Pilot (1 team, 3 months)
+- Select volunteers from traditional developers → Train as harness engineers
+- Apply AIDLC to small project
+- Build initial harness pattern library
 
-### Phase 2: 확장 (3~5개 팀, 6개월)
-- Platform Team 구성 → 하네스 인프라 표준화
-- Enabling Team 구성 → 조직 전체 교육 시작
-- 온톨로지 스튜어드 역할 정립 (도메인별)
+### Phase 2: Expansion (3-5 teams, 6 months)
+- Form Platform Team → Standardize harness infrastructure
+- Form Enabling Team → Start organization-wide training
+- Establish ontology steward role (per domain)
 
-### Phase 3: 전사 도입 (전체 조직, 12개월)
-- Stream-Aligned Team 재편 (도메인별)
-- Shift-Left 보안 조직 확대
-- AIDLC CoE (Center of Excellence) 운영
+### Phase 3: Enterprise Adoption (Entire organization, 12 months)
+- Reorganize Stream-Aligned Teams (per domain)
+- Expand Shift-Left Security organization
+- Operate AIDLC CoE (Center of Excellence)
 
-## 성공 지표
+## Success Metrics
 
-역할 전환 성공 여부를 측정하는 지표:
+Metrics to measure role transformation success:
 
-### 팀 수준
-- **하네스 적중률**: 하네스가 실제 결함을 방지한 비율 (목표: 80% 이상)
-- **AI 코드 생성 비율**: 전체 코드 중 AI가 생성한 비율 (목표: 70% 이상)
-- **온톨로지 재사용률**: 기존 온톨로지 엔티티 재사용 비율 (목표: 60% 이상)
+### Team Level
+- **Harness Hit Rate**: Ratio of defects actually prevented by harness (Target: 80%+)
+- **AI Code Generation Ratio**: Ratio of code generated by AI out of total (Target: 70%+)
+- **Ontology Reuse Rate**: Ratio of existing ontology entity reuse (Target: 60%+)
 
-### 조직 수준
-- **개발 인력 효율성**: 동일 인력으로 구현 가능한 기능 수 (목표: 50% 증가)
-- **보안 재작업 비율**: 보안 취약점 수정에 소요되는 시간 비율 (목표: 5% 이하)
-- **프로젝트 일정 준수율**: 계획 대비 일정 준수 비율 (목표: 90% 이상)
+### Organization Level
+- **Development Personnel Efficiency**: Number of implementable features with same personnel (Target: 50% increase)
+- **Security Rework Ratio**: Time spent fixing security vulnerabilities as ratio (Target: under 5%)
+- **Project Schedule Adherence Rate**: Schedule adherence ratio vs plan (Target: 90%+)
 
-## 참고 자료
+## References
 
-- [하네스 엔지니어링](../methodology/harness-engineering.md) — 하네스 설계 가이드
-- [온톨로지 엔지니어링](../methodology/ontology-engineering.md) — 온톨로지 스튜어드 역할 상세
-- [도입 전략](./adoption-strategy.md) — 점진적 역할 전환 로드맵
-- [비용 효과](./cost-estimation.md) — 팀 구성 비율 변화의 비용 영향
+- [Harness Engineering](../methodology/harness-engineering.md) — Harness design guide
+- [Ontology Engineering](../methodology/ontology-engineering.md) — Ontology steward role details
+- [Adoption Strategy](./adoption-strategy.md) — Gradual role transformation roadmap
+- [Cost Effectiveness](./cost-estimation.md) — Cost impact of team composition ratio changes
 - Team Topologies (Matthew Skelton, Manuel Pais, 2019)
 - "The Cost of Fixing Bugs: Shift-Left vs Shift-Right" (NIST, 2023)

@@ -1,6 +1,6 @@
 ---
-title: S1. 자연어 시맨틱 검색
-description: 자사 SKU·회원·리뷰 + 외부 소셜 리뷰(올영·X) 통합 시맨틱 검색
+title: S1. Natural-Language Semantic Search
+description: Integrated semantic search across first-party SKU · Member · Reviews + external social reviews (Olive Young · X)
 created: "2026-05-14"
 last_update:
   date: "2026-06-30"
@@ -16,63 +16,63 @@ tags:
 sidebar_label: S1. Semantic Search
 ---
 
-## 1. URL 경로
+## 1. URL Path
 - `/semantic-search`
-- 페르소나 스위처 헤더 자동 적용
+- Persona switcher header applied automatically
 
-## 2. 사용자 스토리
-> P1 (브랜드 마케터) — "30대 여성 민감성 두피, 오가닉 선호, 최근 90일 미구매 + 올영 별점 4.5↑" 입력 시 즉시 회원 + SKU + 자사·외부 리뷰가 한 화면에.
+## 2. User Stories
+> P1 (Brand Marketer) — Enter "Women in 30s, sensitive scalp, prefers organic, unpurchased in last 90 days + Olive Young rating 4.5+" and instantly see Member + SKU + first-party / external reviews on one screen.
 
-> P5 (MD) — "겨울 핸드크림 5천원대 인기 SKU + 인스타 언급 폭증" 입력 시 SKU·회전·소셜 SOV 동시.
+> P5 (MD) — Enter "Popular winter hand creams in the 5K KRW range + surging Instagram mentions" and see SKU · turnover · social SOV simultaneously.
 
-## 3. 입력 UI
-- 메인 검색창 (자연어, 한국어)
-- 필터: BU(Beauty/HDB/Refreshment) · 브랜드 · 가격 · 기간 · 세그먼트
-- 페르소나 스위처
+## 3. Input UI
+- Main search bar (natural-language, Korean)
+- Filters: BU (Beauty/HDB/Refreshment) · Brand · Price · Period · Segment
+- Persona switcher
 
-## 4. 데이터 믹스
-| 데이터 | 출처 | 활용 |
+## 4. Data Mix
+| Data | Source | Use |
 |---|---|---|
-| 자사 SKU | OpenSearch `idx_product` | BM25+KNN |
-| 회원 프로필 | OpenSearch `idx_customer` | KNN |
-| 자사 리뷰 | OpenSearch `idx_review` (자사몰) | BM25+KNN |
-| **외부 리뷰 (올리브영·네이버·X)** | OpenSearch `idx_review`/`idx_social_trend` | KNN |
-| KG 1-hop | Neptune (Customer × Product × Brand × BU) | 그래프 확장 |
+| First-party SKU | OpenSearch `idx_product` | BM25+KNN |
+| Member profile | OpenSearch `idx_customer` | KNN |
+| First-party reviews | OpenSearch `idx_review` (owned mall) | BM25+KNN |
+| **External reviews (Olive Young · Naver · X)** | OpenSearch `idx_review`/`idx_social_trend` | KNN |
+| KG 1-hop | Neptune (Customer × Product × Brand × BU) | Graph expansion |
 
-## 5. 처리 파이프라인
+## 5. Processing Pipeline
 ```
-1. 입력 → Cohere embed-v4 (1024d)
-2. OpenSearch 병렬
-   - BM25 (Nori) → top 100 (자사 + 외부 리뷰)
+1. Input → Cohere embed-v4 (1024d)
+2. OpenSearch in parallel
+   - BM25 (Nori) → top 100 (first-party + external reviews)
    - KNN (cosine) → top 100
-3. RRF 융합 → top 50
+3. RRF fusion → top 50
 4. Cohere rerank-v3.5 → top 20
-5. Neptune 1-hop 확장 (선택 SKU/Customer)
-6. 결과 카드 + 그래프
+5. Neptune 1-hop expansion (selected SKU/Customer)
+6. Result cards + graph
 ```
 
-## 6. 출력 UI
-- 결과 카드 (3 컬럼): SKU 카드 / 회원 카드 / **리뷰 카드 (자사·외부 분리)**
-- 1-hop 그래프 패널 (cytoscape.js)
-- Cohort 배지: 🟢 real / 🟡 synth / 🔵 external
-- 결과 카운트: "37건 (BM25 12, KNN 18, 공통 7)"
+## 6. Output UI
+- Result cards (3 columns): SKU card / Member card / **Review card (first-party · external separated)**
+- 1-hop graph panel (cytoscape.js)
+- Cohort badges: green real / yellow synth / blue external
+- Result count: "37 items (BM25 12, KNN 18, common 7)"
 
-## 7. 부서별 변형
-| 페르소나 | 추천 질의 | 결과 정렬 |
+## 7. Per-Department Variations
+| Persona | Recommended Query | Result Order |
 |---|---|---|
-| P1 브랜드 마케터 | "최근 90일 미구매 골드 회원" | 회원 카드 우선, 캠페인 추천 부착 |
-| P2 인사이트 | "올영 부정 리뷰 폭증 SKU" | 리뷰 카드 우선, SOV 표시 |
-| P3 D&A | "리뷰 임베딩 drift" | 리뷰 카드 + drift 점수 |
-| P4 CRM·LG 멤버스 | "VIP 진입 후 활성도 낮은 회원" | 회원 + 등급 변동 |
-| P5 MD·채널 영업 | "겨울 인기 핸드크림 + 인스타 언급↑" | SKU 우선, 회전·SOV |
+| P1 Brand Marketer | "Gold members unpurchased in last 90 days" | Member card prioritized, with campaign recommendations attached |
+| P2 Insights | "SKUs with surging negative Olive Young reviews" | Review card prioritized, SOV shown |
+| P3 D&A | "Review embedding drift" | Review card + drift score |
+| P4 CRM · LG Members | "Members with low activity after VIP entry" | Member + tier change |
+| P5 MD · Channel Sales | "Popular winter hand creams + Instagram mentions surge" | SKU prioritized, turn · SOV |
 
-## 8. 가드레일
-- PII 마스킹 (이름·연락처·주소)
-- 마케팅 동의 미수신 회원 카드: 별도 배지 + 외부 발송 차단
-- 미성년 추정 회원에게 화장품 마케팅 차단
-- 외부 리뷰 출처 표기 (올영·네이버·X 라벨)
+## 8. Guardrails
+- PII masking (name · contact · address)
+- Marketing-non-consent member cards: separate badge + external send blocked
+- Block cosmetics marketing for estimated-minor members
+- External review source attribution (Olive Young · Naver · X labels)
 
-## 9. 데모 시나리오
-1. "30대 민감성 두피 오가닉 샴푸 2만원대 + 올영 별점 4.5↑" → SKU(엘라스틴) + 자사·올영 리뷰 통합
-2. "1인가구 + Beauty 충성층 + 인스타 언급↑" → 회원 + 그들이 자주 사는 SKU + SNS 키워드
-3. "지난주 우천에 매출 빠진 음료 SKU" → SKU + 채널 + 외부 신호 (S6 연계)
+## 9. Demo Scenarios
+1. "30s sensitive scalp organic shampoo in 20K KRW range + Olive Young rating 4.5+" → SKU(Elastine) + first-party/Olive Young reviews integrated
+2. "Single-household + Beauty loyalists + Instagram mentions surging" → Members + SKUs they frequently buy + SNS keywords
+3. "Beverage SKUs whose sales dropped during last week's rain" → SKU + Channel + external signals (S6 linkage)

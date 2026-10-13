@@ -11,8 +11,8 @@ const yaml = createRequire(path.join(process.cwd(), 'package.json'))('js-yaml');
 
 const suffix = 'eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md';
 const paths = [
+  path.join('i18n/ko/docusaurus-plugin-content-docs/current', suffix),
   path.join('docs', suffix),
-  path.join('i18n/en/docusaurus-plugin-content-docs/current', suffix),
 ];
 const variants = ['aws', 'cilium', 'nginx', 'envoy', 'kgateway'];
 const api = {

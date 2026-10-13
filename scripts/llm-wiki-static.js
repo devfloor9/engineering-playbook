@@ -50,7 +50,7 @@ class Scope {
 }
 
 class StaticRenderer {
-  constructor({root, locale = 'ko', adapters = {}, stateProfiles = {}}) {
+  constructor({root, locale = 'en', adapters = {}, stateProfiles = {}}) {
     this.root = path.resolve(root);
     this.realRoot = fs.realpathSync(this.root);
     this.locale = locale;

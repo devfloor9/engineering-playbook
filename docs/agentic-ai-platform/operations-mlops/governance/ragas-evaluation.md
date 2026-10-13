@@ -1,11 +1,11 @@
 ---
-title: Ragas RAG 평가 프레임워크
-description: Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법
+title: Ragas RAG Evaluation Framework
+description: RAG pipeline quality evaluation and continuous improvement using Ragas
 created: "2026-02-05"
 last_update:
   date: 2026-09-19
-  author: YoungJoon Jeong
-reading_time: 13
+  author: devfloor9
+reading_time: 23
 tags:
   - ragas
   - rag
@@ -15,43 +15,43 @@ tags:
   - genai
   - testing
   - scope:ops
-sidebar_label: Ragas 평가
+sidebar_label: Ragas Evaluation
 sidebar_position: 4
 category: genai-aiml
 ---
 
 import { RagasVsBedrockComparison, RagasMetrics, CostOptimizationStrategies, CostComparison, ImprovementChecklist } from '@site/src/components/RagasTables';
 
-Ragas(RAG Assessment)는 RAG(Retrieval-Augmented Generation) 파이프라인을 여러 지표로 평가하는 오픈소스 프레임워크입니다. 검색한 문서가 답변의 주장을 뒷받침하는지, 답변이 질문과 관련이 있는지 등을 나누어 확인할 수 있습니다. 점수는 평가 데이터와 메트릭, 평가에 사용하는 모델에 따라 달라지므로, 개선 전후를 비교할 때 이 조건을 함께 기록합니다.
+Ragas (RAG Assessment) is an open-source framework that evaluates Retrieval-Augmented Generation (RAG) pipelines using several metrics. For example, it can assess whether retrieved documents support the answer's claims and whether the answer is relevant to the question. Scores depend on the evaluation dataset, metrics, and evaluation model, so record those conditions when comparing changes.
 
-## 1. 개요
+## 1. Overview
 
-### RAG 평가가 필요한 이유
+### Why RAG Evaluation Is Needed
 
-RAG 시스템은 여러 컴포넌트(검색, 생성, 컨텍스트 처리)로 구성되어 있어 전체 품질을 측정하기 어렵습니다:
+RAG systems consist of multiple components (retrieval, generation, context processing), making it difficult to measure overall quality:
 
 ```mermaid
 flowchart LR
-    Q[질문]
-    R[검색<br/>Retrieval]
-    C[컨텍스트<br/>Context]
-    G[생성<br/>Generation]
-    A[답변]
+    Q[Question]
+    R[Retrieval]
+    C[Context]
+    G[Generation]
+    A[Answer]
 
-    E1[검색 품질<br/>Precision/Recall]
-    E2[답변 충실도<br/>Faithfulness]
-    E3[답변 관련성<br/>Relevancy]
-    E4[답변 정확성<br/>Correctness]
+    E1[Retrieval Quality<br/>Precision/Recall]
+    E2[Answer Faithfulness]
+    E3[Answer Relevancy]
+    E4[Answer Correctness]
 
     Q --> R
     R --> C
     C --> G
     G --> A
 
-    R -.->|평가| E1
-    C -.->|평가| E2
-    A -.->|평가| E3
-    A -.->|평가| E4
+    R -.->|Evaluate| E1
+    C -.->|Evaluate| E2
+    A -.->|Evaluate| E3
+    A -.->|Evaluate| E4
 
     style Q fill:#f5f5f5
     style R fill:#4285f4
@@ -67,31 +67,31 @@ flowchart LR
 ### Ragas vs AWS Bedrock RAG Evaluation
 
 :::tip AWS Bedrock RAG Evaluation GA
-AWS Bedrock RAG Evaluation은 **2025년 3월 GA**되었습니다. Bedrock 네이티브 통합으로 별도 설정 없이 RAG 평가를 수행할 수 있습니다.
+AWS Bedrock RAG Evaluation became **GA in March 2025**. With Bedrock native integration, RAG evaluation can be performed without additional setup.
 :::
 
 <RagasVsBedrockComparison />
 
-**AWS Bedrock RAG Evaluation 메트릭:**
+**AWS Bedrock RAG Evaluation Metrics:**
 
-- **Context Relevance**: 검색된 컨텍스트가 질문과 관련있는지
-- **Coverage**: 답변이 질문의 모든 측면을 다루는지
-- **Correctness**: 답변이 정확한지 (ground truth 대비)
-- **Faithfulness**: 답변이 컨텍스트에 충실한지
+- **Context Relevance**: Whether retrieved context is relevant to the question
+- **Coverage**: Whether the answer covers all aspects of the question
+- **Correctness**: Whether the answer is accurate (compared to ground truth)
+- **Faithfulness**: Whether the answer is faithful to the context
 
-### Ragas 핵심 메트릭
+### Ragas Core Metrics
 
 <RagasMetrics />
 
-:::note 이 페이지의 Ragas 기준 버전
-Ragas **0.4.3**, Python **3.11**, `ragas.metrics.collections`의 `ascore()` API를 사용합니다. [공식 마이그레이션 가이드](https://docs.ragas.io/en/stable/howtos/migrations/migrate_from_v03_to_v04/)에 따라 메트릭 객체에 LLM·embeddings를 명시하고 `MetricResult.value`를 읽습니다. 기본·종합·CI·캐시 예제 모두 같은 API를 사용합니다.
+:::note Ragas baseline for this page
+Use Ragas **0.4.3**, Python **3.11**, and `ascore()` from `ragas.metrics.collections`. Following the [official migration guide](https://docs.ragas.io/en/stable/howtos/migrations/migrate_from_v03_to_v04/), configure LLMs and embeddings explicitly and read `MetricResult.value`. Basic, comprehensive, CI, and caching examples all use this API.
 :::
 
-## 2. 설치 및 기본 설정
+## 2. Installation and Basic Setup
 
-### Python 환경 설정
+### Python Environment Setup
 
-실행 파일과 고정 의존성은 저장소의 [examples/ragas-evaluation](https://github.com/devfloor9/engineering-playbook/tree/main/examples/ragas-evaluation)에 있습니다. 아래 설치 명령 이후의 Python 예제는 해당 디렉터리에서 실행합니다.
+The runnable module and pinned dependencies are in [examples/ragas-evaluation](https://github.com/devfloor9/engineering-playbook/tree/main/examples/ragas-evaluation). Run the subsequent Python examples from that directory after installation.
 
 ```bash
 # Run from the repository root; Python 3.11 is the verified baseline.
@@ -102,13 +102,13 @@ cd examples/ragas-evaluation
 python test_smoke.py
 ```
 
-`requirements.txt`는 Ragas 0.4.3, OpenAI 2.54.0, Instructor 1.17.0 및 검증한 전이 의존성을 고정합니다. Ragas 0.4.3이 import하는 VertexAI 모듈이 `langchain-community` 0.4.2에는 없어, 검증된 0.3.31을 사용합니다. 예제 자체는 LangChain wrapper를 사용하지 않습니다. 단순히 `ragas>=0.2`로 설치하면 이 구성을 재현할 수 없습니다.
+`requirements.txt` pins Ragas 0.4.3, OpenAI 2.54.0, Instructor 1.17.0, and the tested transitive dependencies. Ragas 0.4.3 imports a VertexAI module absent from `langchain-community` 0.4.2, so the environment pins the verified 0.3.31 release. The example itself does not use LangChain wrappers. Installing only `ragas>=0.2` does not reproduce this configuration.
 
-`test_smoke.py`는 네트워크 연결을 차단하고 모의 HTTP 응답으로 실제 메트릭을 실행합니다. API 키와 유료 호출은 필요하지 않습니다. 이 검증은 모델 응답 품질이나 실제 서비스 접근 권한을 확인하지 않습니다.
+`test_smoke.py` blocks network connections and runs real metrics against mocked HTTP responses. It needs neither an API key nor paid calls. These checks do not validate model quality or access to a live service.
 
-### 기본 평가 코드
+### Basic Evaluation Code
 
-`ragas_eval.py`의 `make_metrics()`는 다음과 같이 evaluator를 구성합니다. LLM은 구조화된 판정을 생성하고, embeddings는 `AnswerRelevancy`의 질문 유사도 계산에 사용됩니다. 두 모델을 모두 명시해야 합니다.
+`make_metrics()` in `ragas_eval.py` configures evaluators as shown below. The LLM produces structured judgments; embeddings provide question similarity for `AnswerRelevancy`. Both models are explicit.
 
 ```python
 from openai import AsyncOpenAI
@@ -130,7 +130,7 @@ def make_basic_metrics(client: AsyncOpenAI):
     }
 ```
 
-아래 코드는 **유료 API 호출을 수행**합니다. 실행 전에 환경에 `OPENAI_API_KEY`를 설정하고 지정한 두 모델의 접근 권한을 확인하세요. 키를 소스 파일에 기록하지 마세요. `CASES`와 `demo_pipeline`은 모듈에 정의된 두 개의 고정 입력이며, 실제 RAG 시스템의 품질을 측정하는 데이터셋이 아닙니다.
+The following code **makes paid API calls**. Set `OPENAI_API_KEY` in the environment and confirm access to both configured models before running it. Keep credentials out of source files. `CASES` and `demo_pipeline` are two deterministic fixtures defined in the module, not a dataset measuring production RAG quality.
 
 ```python
 import asyncio
@@ -156,33 +156,33 @@ async def main():
 asyncio.run(main())
 ```
 
-`score_samples()`는 각 메트릭에 필요한 필드만 `await metric.ascore(...)`로 전달합니다. 예외, NaN, 무한대, 비숫자 결과는 해당 점수를 `null`로 기록하고 오류 유형을 남깁니다. 하나라도 실패한 메트릭의 평균은 `null`이며 품질 게이트가 실패합니다. 정상 점수만 골라 평균 내거나 NaN을 0으로 바꾸지 않습니다. 노트북에서는 `asyncio.run(main())` 대신 `await main()`을 사용하세요.
+`score_samples()` passes only the required fields to each `await metric.ascore(...)`. Exceptions, NaN, infinity, and nonnumeric results become `null` scores with an error type. If any sample fails a metric, that metric's aggregate is `null` and quality gates fail. Failed rows are neither omitted from averages nor replaced with zero. In a notebook, use `await main()` instead of `asyncio.run(main())`.
 
-## 3. 핵심 메트릭 상세 설명
+## 3. Core Metric Details
 
-### 1. Faithfulness (충실도)
+### 1. Faithfulness
 
-`Faithfulness(llm=llm)`은 답변을 주장으로 나누고 검색된 컨텍스트가 각 주장을 뒷받침하는지 평가합니다. `ascore(user_input=..., response=..., retrieved_contexts=...)`에 필요한 값을 전달합니다. 0.4.3 구현에서는 생성된 주장이 없으면 NaN을 반환할 수 있으므로 결과의 유한성을 검사해야 합니다.
+`Faithfulness(llm=llm)` splits the response into claims and checks whether retrieved contexts support each claim. Call `ascore(user_input=..., response=..., retrieved_contexts=...)`. The 0.4.3 implementation can return NaN when no statements are generated, so validate that every result is finite.
 
-### 2. Answer Relevancy (답변 관련성)
+### 2. Answer Relevancy
 
-`AnswerRelevancy(llm=llm, embeddings=embeddings, strictness=3)`는 답변에서 질문을 생성하고 원본 질문과 임베딩 유사도를 비교합니다. `ascore(user_input=..., response=...)`를 사용합니다. 사실의 정확성은 별도 메트릭으로 평가하며, NaN은 낮은 관련성 점수로 해석하지 말고 평가 실패로 처리하세요.
+`AnswerRelevancy(llm=llm, embeddings=embeddings, strictness=3)` generates questions from the response and compares their embeddings with the original question. Call `ascore(user_input=..., response=...)`. Evaluate factual correctness separately; treat NaN as an evaluation failure rather than a low relevance score.
 
-### 3. Context Precision (컨텍스트 정밀도)
+### 3. Context Precision
 
-이 예제의 `ContextPrecision(llm=llm)`은 **reference 답변을 사용하는** 메트릭입니다. `ascore(user_input=..., reference=..., retrieved_contexts=...)`로 검색 결과 순위에서 유용한 컨텍스트가 얼마나 앞에 있는지 평가합니다. 관련 문서 수를 전체 문서 수로 나누는 단순 비율과는 다릅니다.
+This example uses `ContextPrecision(llm=llm)` **with a reference answer**. Call `ascore(user_input=..., reference=..., retrieved_contexts=...)` to evaluate how early useful contexts appear in the retrieval ranking. It is not simply the fraction of retrieved documents that are relevant.
 
-### 4. Context Recall (컨텍스트 재현율)
+### 4. Context Recall
 
-`ContextRecall(llm=llm)`은 reference 답변의 주장 중 검색된 컨텍스트로 뒷받침되는 비율을 평가합니다. `ascore(user_input=..., retrieved_contexts=..., reference=...)`를 사용합니다. 따라서 reference가 누락되면 이 페이지의 평가 데이터 계약을 충족하지 못합니다.
+`ContextRecall(llm=llm)` evaluates the fraction of reference-answer claims supported by retrieved contexts. Call `ascore(user_input=..., retrieved_contexts=..., reference=...)`. A missing reference therefore violates this page's evaluation data contract.
 
-공식 [메트릭 문서](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/)와 [0.4.3 구현](https://github.com/vibrantlabsai/ragas/tree/v0.4.3/src/ragas/metrics/collections)을 기준으로 합니다.
+These descriptions follow the [official metric documentation](https://docs.ragas.io/en/stable/concepts/metrics/available_metrics/faithfulness/) and the [0.4.3 implementation](https://github.com/vibrantlabsai/ragas/tree/v0.4.3/src/ragas/metrics/collections).
 
-## 4. 종합 평가 파이프라인
+## 4. Comprehensive Evaluation Pipeline
 
-### 전체 RAG 시스템 평가
+### Full RAG System Evaluation
 
-파이프라인 어댑터 계약은 `pipeline(question: str) -> {"response": str, "retrieved_contexts": list[str]}`입니다. `collect_samples(cases, pipeline)`가 질문·reference와 결과를 결합합니다. 검색 순서를 유지하고 실제 생성기에 제공한 컨텍스트를 반환하세요. 아래 어댑터는 페이지에서 바로 실행할 수 있는 고정 데이터 예제입니다.
+The adapter contract is `pipeline(question: str) -> {"response": str, "retrieved_contexts": list[str]}`. `collect_samples(cases, pipeline)` joins its output with questions and references. Preserve retrieval order and return the contexts actually supplied to the generator. This complete adapter uses fixtures so that the example can run as written.
 
 ```python
 from pathlib import Path
@@ -204,11 +204,11 @@ python ragas_eval.py --live --comprehensive --samples samples.json \
   --output results/evaluation.json
 ```
 
-실제 시스템에서는 `pipeline()` 본문에서 초기화된 검색기·생성기를 호출하도록 바꾸고 `CASES`도 도메인 전문가가 검증한 질문·reference로 교체하세요. 어댑터는 동기 함수입니다. 비동기 파이프라인은 실행 결과를 같은 스키마의 JSON 배열로 저장해 `--samples`로 전달할 수 있습니다. 입력은 비어 있지 않아야 하며 각 샘플에 `user_input`, `response`, `retrieved_contexts`, `reference`가 모두 필요합니다. 어댑터·입력 검증 오류는 평가 시작 전에 실행을 실패시킵니다.
+For a real system, replace the body of `pipeline()` with calls to your initialized retriever and generator, and replace `CASES` with questions and references reviewed by domain experts. The adapter is synchronous. An asynchronous pipeline can instead save its outputs as a JSON array with the same schema and pass it through `--samples`. Inputs must be nonempty; every sample requires `user_input`, `response`, `retrieved_contexts`, and `reference`. Adapter or input-validation errors fail the run before evaluation starts.
 
-`--comprehensive`는 기본 네 메트릭에 `AnswerCorrectness(llm=llm, embeddings=embeddings, weights=[0.75, 0.25], beta=1.0)`를 추가합니다. 동일한 evaluator로 `user_input`, `response`, `reference`를 평가하며 설정은 결과 JSON에 기록됩니다. CLI는 `--live`와 API 키가 없으면 호출을 시작하지 않습니다.
+`--comprehensive` adds `AnswerCorrectness(llm=llm, embeddings=embeddings, weights=[0.75, 0.25], beta=1.0)` to the four basic metrics. It evaluates `user_input`, `response`, and `reference` using the same evaluator, with configuration recorded in the report. The CLI requires both `--live` and an API key before making calls.
 
-### 평가 결과 분석
+### Evaluation Result Analysis
 
 ```python
 import json
@@ -223,13 +223,13 @@ for failure in quality_failures(report):
     print(failure)
 ```
 
-결과는 `metrics`(전체 샘플의 평균), `rows`(샘플별 점수·오류·캐시 여부), `failed_samples`, `sample_count`, `config`를 포함합니다. `null` 점수는 비교 대상에서 제외할 수 있는 정상값이 아닙니다. 해당 샘플의 오류를 해결한 후 다시 평가하세요. 기록되는 샘플에는 질문·답변·컨텍스트·reference가 포함되므로 테스트 데이터와 결과 파일의 공유 범위를 정하세요.
+The report contains `metrics` (means across all samples), `rows` (per-sample scores, errors, and cache status), `failed_samples`, `sample_count`, and `config`. A `null` score is not a valid result that can be excluded from comparisons. Resolve that sample's error and rerun evaluation. Reports include questions, responses, contexts, and references, so choose suitable sharing rules for test data and result files.
 
-## 5. CI/CD 파이프라인 통합
+## 5. CI/CD Pipeline Integration
 
-### GitHub Actions 워크플로우
+### GitHub Actions Workflow
 
-아래는 소비자가 별도로 추가할 수 있는 워크플로우 예시입니다. PR에서는 오프라인 검증만 수행하고, 수동 실행에서 `live`를 선택한 경우에만 저장소 secret으로 평가합니다. 예시의 유료 실행 대상은 고정 데이터이며 실제 회귀 평가에는 자체 `--samples` 파일을 연결하세요. Linux GitHub runner에서의 실행은 이 페이지의 로컬 검증 범위에 포함되지 않습니다.
+This illustrative workflow can be installed separately by a consuming project. Pull requests run only offline checks; selecting `live` during manual dispatch enables evaluation with a repository secret. The paid example evaluates fixtures; supply your own `--samples` file for an actual regression gate. Execution on a Linux GitHub runner is outside this page's local verification scope.
 
 ```yaml
 # Illustrative .github/workflows/rag-evaluation.yml; not installed by this guide.
@@ -275,9 +275,9 @@ jobs:
           path: examples/ragas-evaluation/results/evaluation.json
 ```
 
-### 품질 게이트 스크립트
+### Quality Gate Script
 
-CLI는 보고서를 먼저 저장하고 품질 게이트 실패 시 종료 코드 1을 반환합니다. 저장된 보고서는 다음처럼 같은 함수로 다시 검사할 수 있습니다.
+The CLI writes the report before returning exit code 1 on gate failure. Recheck a saved report using the same function:
 
 ```python
 import json
@@ -291,15 +291,15 @@ for failure in failures:
 raise SystemExit(1 if failures else 0)
 ```
 
-예제 임계값은 faithfulness 0.8, answer relevancy 0.75, context precision·recall 각각 0.7입니다. Ragas 기본값이나 측정으로 확정된 기준이 아니므로 자체 평가셋으로 조정하세요. 누락·비유한 점수, 빈 결과, 불완전한 행 수, 행과 평균의 불일치도 실패합니다. 종합 평가의 answer correctness는 유효성을 검사하지만 이 예제에는 별도 점수 임계값이 없습니다.
+Illustrative thresholds are 0.8 for faithfulness, 0.75 for answer relevancy, and 0.7 each for context precision and recall. These are neither Ragas defaults nor measured acceptance criteria; calibrate them against your evaluation set. Missing or non-finite scores, empty results, incomplete row counts, and inconsistent aggregates also fail. Comprehensive evaluation checks answer correctness for validity but does not assign it a separate score threshold in this example.
 
-## 6. Kubernetes Job으로 정기 평가
+## 6. Kubernetes Job for Regular Evaluation
 
-:::note 배포 개요
-이 절의 Kubernetes 리소스는 사용자 정의 평가 이미지·설정·저장소 연동을 전제로 한 배포 개요입니다. 위 Python 예제가 ConfigMap, S3 출력, Milvus 연결을 자동 구현하지는 않습니다. 실행 가능한 Ragas 예제의 검증 범위는 로컬 smoke check까지입니다.
+:::note Deployment outline
+The Kubernetes resources in this section assume a custom evaluator image, configuration loader, and storage integrations. The Python example above does not implement ConfigMap loading, S3 output, or Milvus connectivity. Verification of the runnable Ragas example covers local smoke checks only.
 :::
 
-### 평가 Job 정의
+### Evaluation Job Definition
 
 ```yaml
 apiVersion: batch/v1
@@ -308,7 +308,7 @@ metadata:
   name: rag-evaluation
   namespace: genai-platform
 spec:
-  schedule: "0 6 * * *"  # 매일 오전 6시
+  schedule: "0 6 * * *"  # Daily at 6 AM
   jobTemplate:
     spec:
       template:
@@ -342,7 +342,7 @@ spec:
           serviceAccountName: rag-evaluator
 ```
 
-### 평가 설정 ConfigMap
+### Evaluation Configuration ConfigMap
 
 ```yaml
 apiVersion: v1
@@ -375,18 +375,18 @@ data:
       
       alerts:
         slack_webhook: "https://hooks.slack.com/..."
-        threshold_drop: 0.1  # 10% 이상 하락 시 알림
+        threshold_drop: 0.1  # Alert on 10%+ drop
 ```
 
-## 7. 평가 결과 해석 및 개선 가이드
+## 7. Evaluation Result Interpretation and Improvement Guide
 
-### 비용 최적화 전략
+### Cost Optimization Strategies
 
-RAG 평가는 LLM API 호출이 필요하므로 비용이 발생합니다. 다음 전략으로 비용을 최적화하세요:
+RAG evaluation requires LLM API calls, so costs are incurred. Optimize costs with the following strategies:
 
 <CostOptimizationStrategies />
 
-캐시는 위 실행 모듈에서 제공하는 선택 기능입니다. 입력 순서를 유지하고, 같은 평가 안의 중복 입력도 재사용합니다. 키에는 질문·답변·검색 컨텍스트·reference, 메트릭 목록, 모델·endpoint·파라미터, 의존성 버전, 프롬프트 revision이 포함됩니다. 모든 메트릭이 성공한 샘플만 저장하며 실패·NaN 캐시 항목은 다시 계산합니다.
+Caching is an optional feature of the same runnable module. It preserves input order and reuses duplicate inputs within a run. Keys include the question, response, retrieved contexts, reference, metric list, model and endpoint configuration, parameters, dependency versions, and prompt revision. Only samples with all metrics successful are stored; failed or NaN cache entries are recomputed.
 
 ```bash
 # The same metrics, configuration, sample format, and quality gates as above.
@@ -395,18 +395,18 @@ python ragas_eval.py --live --comprehensive --samples samples.json \
   --output results/evaluation.json
 ```
 
-모델 별칭이 가리키는 모델이나 프롬프트·메트릭 설정을 바꾸면 `--revision`을 변경하거나 캐시를 삭제하세요. 기존 모델의 점수를 재사용하면 변경 이후의 품질을 측정할 수 없습니다. 이 JSON 캐시는 단일 프로세스용이며 동시 실행 간 잠금이나 자동 만료 기능은 없습니다.
+Change `--revision` or remove the cache when the model behind an alias, prompts, or metric settings change. Reusing old scores cannot measure quality after those changes. This JSON cache is for one process and does not provide concurrent-writer locking or automatic expiration.
 
-### AWS Bedrock RAG Evaluation 사용
+### AWS Bedrock RAG Evaluation Usage
 
-AWS Bedrock RAG Evaluation을 사용하면 Bedrock 네이티브 통합으로 더 간편하게 평가할 수 있습니다:
+AWS Bedrock RAG Evaluation provides simpler evaluation with Bedrock native integration:
 
 ```python
 import boto3
 
 bedrock = boto3.client('bedrock-agent-runtime')
 
-# RAG 평가 실행
+# Run RAG evaluation
 response = bedrock.evaluate_rag(
     evaluationJobName='rag-eval-2026-02-13',
     evaluationDatasetLocation={
@@ -418,7 +418,7 @@ response = bedrock.evaluate_rag(
         'CORRECTNESS',
         'FAITHFULNESS'
     ],
-    modelId='anthropic.claude-sonnet-4-5-20250929-v1:0',  # 또는 cross-region inference profile: us.anthropic.claude-sonnet-4-5-20250929-v1:0
+    modelId='anthropic.claude-3-sonnet-20240229-v1:0',
     outputDataConfig={
         's3Uri': 's3://my-bucket/eval-results/'
     }
@@ -426,50 +426,50 @@ response = bedrock.evaluate_rag(
 
 job_id = response['evaluationJobId']
 
-# 평가 결과 조회
+# Query evaluation results
 result = bedrock.get_evaluation_job(evaluationJobId=job_id)
 print(f"Status: {result['status']}")
 print(f"Metrics: {result['metrics']}")
 ```
 
-**Bedrock RAG Evaluation 장점:**
+**Bedrock RAG Evaluation Advantages:**
 
-- ✅ Bedrock 모델과 네이티브 통합
-- ✅ S3 기반 대규모 배치 평가
-- ✅ CloudWatch 자동 메트릭 게시
-- ✅ IAM 기반 접근 제어
-- ✅ 별도 인프라 불필요
+- Native integration with Bedrock models
+- S3-based large-scale batch evaluation
+- Automatic CloudWatch metric publishing
+- IAM-based access control
+- No separate infrastructure required
 
-**비용 비교 (1000개 평가 기준):**
+**Cost Comparison (per 1000 evaluations):**
 
 <CostComparison />
 
-### 메트릭별 개선 방향
+### Per-Metric Improvement Directions
 
 ```mermaid
 flowchart TB
-    subgraph Faith["낮은 Faithfulness 개선"]
-        F1[프롬프트에<br/>컨텍스트 강조]
-        F2[Temperature<br/>낮추기]
-        F3[더 강력한<br/>LLM 사용]
+    subgraph Faith["Low Faithfulness Improvement"]
+        F1[Emphasize context<br/>in prompt]
+        F2[Lower<br/>Temperature]
+        F3[Use stronger<br/>LLM]
     end
 
-    subgraph Precision["낮은 Context Precision 개선"]
-        CP1[임베딩 모델<br/>개선]
-        CP2[청킹 전략<br/>조정]
-        CP3[리랭킹 모델<br/>추가]
+    subgraph Precision["Low Context Precision Improvement"]
+        CP1[Improve embedding<br/>model]
+        CP2[Adjust chunking<br/>strategy]
+        CP3[Add reranking<br/>model]
     end
 
-    subgraph Recall["낮은 Context Recall 개선"]
-        CR1[검색 k값<br/>증가]
-        CR2[하이브리드<br/>검색 적용]
-        CR3[지식 베이스<br/>확장]
+    subgraph Recall["Low Context Recall Improvement"]
+        CR1[Increase<br/>retrieval k]
+        CR2[Apply hybrid<br/>search]
+        CR3[Expand knowledge<br/>base]
     end
 
-    subgraph Relevancy["낮은 Answer Relevancy 개선"]
-        AR1[프롬프트<br/>명확화]
-        AR2[Few-shot<br/>예제 추가]
-        AR3[출력 형식<br/>지정]
+    subgraph Relevancy["Low Answer Relevancy Improvement"]
+        AR1[Clarify<br/>prompt]
+        AR2[Add few-shot<br/>examples]
+        AR3[Specify output<br/>format]
     end
 
     style Faith fill:#34a853
@@ -478,34 +478,34 @@ flowchart TB
     style Relevancy fill:#ea4335
 ```
 
-### 개선 체크리스트
+### Improvement Checklist
 
 <ImprovementChecklist />
 
-## 참고 자료
+## References
 
-### 공식 문서
+### Official Documentation
 - [Ragas 0.4 migration guide](https://docs.ragas.io/en/stable/howtos/migrations/migrate_from_v03_to_v04/)
 - [Ragas 0.4.3 collections source](https://github.com/vibrantlabsai/ragas/tree/v0.4.3/src/ragas/metrics/collections)
 - [Ragas 0.4.3 LLM factory and imports](https://github.com/vibrantlabsai/ragas/blob/v0.4.3/src/ragas/llms/base.py)
 - [Ragas 0.4.3 native OpenAI embeddings](https://github.com/vibrantlabsai/ragas/blob/v0.4.3/src/ragas/embeddings/openai_provider.py)
 - [AWS Bedrock RAG Evaluation](https://docs.aws.amazon.com/bedrock/)
 
-### 관련 문서
-- [Milvus 벡터 데이터베이스](../data-infrastructure/milvus-vector-database.md)
-- [Agent 모니터링](../observability/agent-monitoring.md)
-- [Agentic AI 플랫폼 아키텍처](../../design-architecture/foundations/agentic-platform-architecture.md)
+### Related Documentation
+- [Milvus Vector Database](../data-infrastructure/milvus-vector-database.md)
+- [Agent Monitoring](../observability/agent-monitoring.md)
+- [Agentic AI Platform Architecture](../../design-architecture/foundations/agentic-platform-architecture.md)
 
-:::tip 권장 사항
+:::tip Recommendations
 
-- 평가 데이터셋은 최소 50개 이상의 다양한 질문을 포함하세요
-- Ground truth는 도메인 전문가가 검증한 정답을 사용하세요
-- 정기적인 평가를 통해 시간에 따른 품질 변화를 추적하세요
+- Include at least 50 diverse questions in evaluation datasets
+- Use ground truths verified by domain experts
+- Track quality changes over time through regular evaluation
 :::
 
-:::warning 주의사항
+:::warning Cautions
 
-- Ragas 평가는 LLM API 호출이 필요하므로 비용이 발생합니다
-- 대규모 평가 시 배치 처리와 캐싱을 활용하세요
-- 평가 결과는 사용된 LLM에 따라 달라질 수 있습니다
+- Ragas evaluation requires LLM API calls, incurring costs
+- Use batch processing and caching for large-scale evaluations
+- Evaluation results may vary depending on the LLM used
 :::

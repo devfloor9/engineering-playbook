@@ -1,10 +1,10 @@
 ---
-title: 컨테이너 공급망 보안
-description: 컨테이너 이미지 서명, SBOM, CI/CD 보안 게이트를 통한 공급망 보안 강화
-created: "2026-02-09"
+title: Container Supply Chain Security
+description: Strengthening supply chain security through container image signing, SBOM, and CI/CD security gates
+created: "2026-02-11"
 last_update:
   date: "2026-06-30"
-  author: YoungJoon Jeong
+  author: devfloor9
 reading_time: 1
 tags:
   - eks
@@ -14,15 +14,15 @@ tags:
   - sigstore
   - sbom
   - scope:ops
-sidebar_label: 공급망 보안
+sidebar_label: Supply Chain Security
 category: security
 ---
 
-:::info 작성 예정
-이 문서는 현재 작성 중입니다. 다음 내용이 포함될 예정입니다:
+:::info Coming Soon
+This document is currently being written. The following topics will be covered:
 
-- ECR 이미지 스캐닝 및 서명
-- Sigstore/Cosign 통합
-- SBOM 생성 및 관리
-- CI/CD 보안 게이트
+- ECR image scanning and signing
+- Sigstore/Cosign integration
+- SBOM generation and management
+- CI/CD security gates
 :::
