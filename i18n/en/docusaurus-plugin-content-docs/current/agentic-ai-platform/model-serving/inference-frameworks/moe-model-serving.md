@@ -3,7 +3,7 @@ title: MoE Model Serving Concept Guide
 description: Architecture concepts, distributed deployment strategies, and performance optimization principles for Mixture of Experts models
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
 reading_time: 48
 tags:
@@ -304,7 +304,7 @@ The following describes vLLM v0.25.0. Usable combinations depend on model archit
 - **Tensor Parallelism**: Partitions supported layer tensors across ranks
 - **PagedAttention**: Manages KV cache in blocks
 - **Continuous Batching**: Removes completed requests and adds waiting requests to the processing batch
-- **FP8 KV Cache**: Storing FP16/BF16 KV elements in eight bits halves the storage width of that data. It does not halve model weights or total VRAM; check scales, accuracy, and the attention backend. [KV quantization documentation](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/quantization/quantized_kvcache.md)
+- **FP8 KV cache**: Storing FP16/BF16 KV elements in eight bits halves the storage width of that data. It does not halve model weights or total VRAM; check scales, accuracy, and the attention backend. [KV quantization documentation](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/quantization/quantized_kvcache.md)
 - **Automatic Prefix Caching**: Reduces duplicate prefill work when reusable prefix KV blocks remain cached. It neither skips decoding nor guarantees a fixed throughput gain. [APC documentation](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/automatic_prefix_caching.md)
 - **Multi-LoRA Serving**: Serves multiple adapters for supported base models and target modules. Check LoRA support for the specific MoE architecture and its parallelism and quantization combination. [LoRA documentation](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/lora.md)
 - **GGUF Quantization**: This release describes GGUF support as experimental and under-optimized, with compatibility constraints involving other features. It does not imply that every MoE model can be served in GGUF format. [GGUF documentation](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/quantization/gguf.md)
@@ -384,7 +384,7 @@ For NVIDIA vs Neuron decision-making at the node selection stage, refer to [EKS 
 
 ### KV Cache Optimization
 
-KV Cache is a key factor significantly impacting inference performance.
+KV cache is a key factor significantly impacting inference performance.
 
 ```mermaid
 flowchart LR

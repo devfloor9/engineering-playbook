@@ -3,7 +3,7 @@ title: llm-d 기반 EKS 분산 추론 가이드
 description: llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략
 created: "2026-02-10"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 23
 tags:
@@ -289,7 +289,7 @@ flowchart LR
 | **Prefill** | 프롬프트 전체를 한 번에 처리 (compute-bound) | GPU 컴퓨팅 집중, 높은 TP |
 | **Decode** | 토큰을 하나씩 자동회귀 생성 (memory-bound) | GPU 메모리 집중, 낮은 TP |
 
-**NIXL (NVIDIA Inference Xfer Library)**: Dynamo, llm-d, production-stack, aibrix 등 대부분의 프로젝트가 사용하는 공통 KV 전송 엔진. GPU 간 직접 통신(NVLink/RDMA)으로 KV Cache를 초고속 전송합니다.
+**NIXL (NVIDIA Inference Xfer Library)**: Dynamo, llm-d, production-stack, aibrix 등 대부분의 프로젝트가 사용하는 공통 KV 전송 엔진. GPU 간 직접 통신(NVLink/RDMA)으로 KV cache를 초고속 전송합니다.
 
 ### EKS Auto Mode에서의 Disaggregated Serving
 
@@ -399,7 +399,7 @@ p5.48xlarge는 시간당 $55.04 (us-west-2 On-Demand 기준, 2025-06 AWS 가격 
 
 ---
 
-## EKS Auto Mode GPU 인스턴스 지원 현황 (2026.04 검증)
+## EKS Auto Mode GPU 인스턴스 지원 현황 (2026-04 검증) {#eks-auto-mode-gpu-인스턴스-지원-현황-202604-검증}
 
 ### 인스턴스 지원 매트릭스
 
@@ -424,7 +424,7 @@ EKS Auto Mode는 2026-04-10부터 **p6-b200.48xlarge를 공식 지원**합니다
 | ap-northeast-2 (서울) | InsufficientCapacity | 미확인 | -- |
 | **us-east-2 (Ohio)** | 가용성 변동 | **확보 성공** | **$13~15/hr** |
 
-**Spot 가격 비교 (us-east-2, 2026.04 기준)**: p5 인스턴스는 Spot으로 약 73~76% 비용 절감이 가능합니다 (On-Demand $55.04/hr 대비 Spot $13~15/hr 관측치 기준). 상세 가격표는 [GPU 리소스 관리 — 비용 최적화 전략](../gpu-infrastructure/gpu-resource-management.md#비용-최적화-전략)를 참조하세요.
+**Spot 가격 비교 (us-east-2, 2026-04 기준)**: p5 인스턴스는 Spot으로 약 73~76% 비용 절감이 가능합니다 (On-Demand $55.04/hr 대비 Spot $13~15/hr 관측치 기준). 상세 가격표는 [GPU 리소스 관리 — 비용 최적화 전략](../gpu-infrastructure/gpu-resource-management.md#비용-최적화-전략)를 참조하세요.
 
 ### GPU 쿼타 주의사항
 

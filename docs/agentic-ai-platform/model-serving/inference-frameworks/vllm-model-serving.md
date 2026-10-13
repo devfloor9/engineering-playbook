@@ -3,7 +3,7 @@ title: vLLM 모델 서빙
 description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
 created: "2026-02-05"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -83,7 +83,7 @@ llm = LLM(
 
 vLLM V1 엔진(v0.19.x 이전부터 기본값)은 다음 기능을 제공합니다:
 - **Chunked Prefill**: 프리필(계산 집약적)과 디코드(메모리 집약적)를 동일 배치에서 혼합 처리
-- **FP8 KV Cache**: KV cache 메모리를 2배 절감하여 더 긴 컨텍스트 지원
+- **FP8 KV cache**: KV cache 메모리를 2배 절감하여 더 긴 컨텍스트 지원
 - **Improved Prefix Caching**: 공통 프리픽스 재사용으로 400%+ 처리량 향상(vLLM 벤치마크 기준, 워크로드별 상이)
 
 ## GPU 메모리 요구사항

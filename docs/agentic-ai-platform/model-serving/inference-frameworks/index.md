@@ -3,7 +3,7 @@ title: 추론 프레임워크
 description: vLLM·llm-d·MoE·NeMo — GPU 위에서 실제로 모델을 서빙·분산 추론·파인튜닝하는 AI 프레임워크 계층
 created: "2026-04-17"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-13
   author: devfloor9
 reading_time: 2
 tags:
@@ -41,7 +41,7 @@ import { DocCard, DocCardGrid } from '@site/src/components/DocCards';
     to="/docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode"
     icon="🔀"
     title="llm-d 분산 추론"
-    description="Kubernetes 네이티브 분산 추론 스케줄러, KV Cache-aware 라우팅, Prefix Cache 최적화, Disaggregated Serving."
+    description="Kubernetes 네이티브 분산 추론 스케줄러, KV Cache-aware 라우팅, prefix cache 최적화, Disaggregated Serving."
     color="#8b5cf6"
   />
   <DocCard

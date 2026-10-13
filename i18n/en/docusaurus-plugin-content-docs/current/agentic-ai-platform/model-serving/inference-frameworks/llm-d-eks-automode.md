@@ -3,9 +3,9 @@ title: llm-d Based EKS Distributed Inference Guide
 description: llm-d architecture concepts, KV Cache-aware routing, Disaggregated Serving, EKS Auto Mode integration strategy
 created: "2026-02-10"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-13
   author: devfloor9
-reading_time: 25
+reading_time: 35
 tags:
   - eks
   - llm-d
@@ -43,7 +43,7 @@ import {
 
 llm-d is an Apache 2.0-licensed Kubernetes-native distributed inference stack led by Red Hat. It combines the vLLM inference engine, an Inference Gateway connecting a compatible proxy to an EPP, and Kubernetes Gateway API to provide intelligent inference routing for large language models.
 
-While existing vLLM deployments rely on simple Round-Robin load balancing, llm-d delivers intelligent routing that is KV Cache state-aware, forwarding requests with identical prefixes to Pods that already hold the corresponding KV Cache. This significantly reduces Time To First Token (TTFT) and saves GPU computation.
+While existing vLLM deployments rely on simple Round-Robin load balancing, llm-d delivers intelligent routing that is KV cache state-aware, forwarding requests with identical prefixes to Pods that already hold the corresponding KV cache. This significantly reduces Time To First Token (TTFT) and saves GPU computation.
 
 :::tip Production Deployment Guide
 For llm-d EKS deployment design and cluster preparation, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
@@ -154,7 +154,7 @@ Qwen3-32B is the default model in the Optimized Baseline example above and is Ap
 
 ## KV Cache-aware Routing
 
-The core differentiator of llm-d is intelligent routing that is aware of KV Cache state.
+The core differentiator of llm-d is intelligent routing that is aware of KV cache state.
 
 This flow is a simplified example of configured EPP plugins. A Pod with cached prefixes may still lose selection because of load.
 
@@ -326,7 +326,7 @@ llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with d
 - **EKS Auto Mode + quick start**: llm-d (GPU Operator optional)
 - **Small-medium scale (16 GPUs or less)**: llm-d
 - **Large scale (16+ GPUs), maximum throughput**: Dynamo (Flash Indexer + Planner)
-- **Long context (128K+)**: Dynamo (3-tier KV Cache: GPU→CPU→SSD)
+- **Long context (128K+)**: Dynamo (3-tier KV cache: GPU→CPU→SSD)
 - **K8s Gateway API standard compliance**: llm-d
 
 Starting with llm-d and transitioning to Dynamo as scale grows is practical. Dynamo 1.0 can integrate llm-d as an internal component, making it more of a superset than a complete alternative.
@@ -399,7 +399,7 @@ p5.48xlarge costs approximately $98.32/hr (us-west-2 On-Demand). Running 2 insta
 
 ---
 
-## EKS Auto Mode GPU Instance Support Status (Verified 2026.04)
+## EKS Auto Mode GPU Instance Support Status (Verified 2026-04) {#eks-auto-mode-gpu-instance-support-status-verified-202604}
 
 ### Instance Support Matrix
 
@@ -424,7 +424,7 @@ As of April 2026, EKS Auto Mode's managed Karpenter **cannot provision p6-b200.4
 | ap-northeast-2 (Seoul) | InsufficientCapacity | Unconfirmed | -- |
 | **us-east-2 (Ohio)** | Availability varies | **Successfully acquired** | **$13-15/hr** |
 
-**Spot Price Comparison (us-east-2, 2026.04)**: p5 instances offer 85-90% cost savings on Spot. For detailed pricing, see [GPU Resource Management — Cost Optimization Strategies](../gpu-infrastructure/gpu-resource-management.md#cost-optimization-strategies).
+**Spot Price Comparison (us-east-2, 2026-04)**: p5 instances offer 85-90% cost savings on Spot. For detailed pricing, see [GPU Resource Management — Cost Optimization Strategies](../gpu-infrastructure/gpu-resource-management.md#cost-optimization-strategies).
 
 ### GPU Quota Notes
 

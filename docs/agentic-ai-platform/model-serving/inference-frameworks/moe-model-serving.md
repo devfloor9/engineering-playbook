@@ -3,7 +3,7 @@ title: MoE 모델 서빙 개념 가이드
 description: Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리
 created: "2026-02-05"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 26
 tags:
@@ -304,7 +304,7 @@ LeaderWorkerSet 같은 배포 도구는 분산 워커의 배치를 관리합니�
 - **Tensor Parallelism**: 지원되는 레이어 텐서를 rank별로 분할
 - **PagedAttention**: KV cache를 블록 단위로 관리
 - **Continuous Batching**: 완료된 요청을 빼고 대기 요청을 처리 배치에 추가
-- **FP8 KV Cache**: FP16/BF16 KV 원소를 8-bit로 저장하면 해당 데이터의 저장 폭은 절반이 됩니다. 전체 가중치나 전체 VRAM이 절반이 되는 것은 아니며, scale과 정확도·attention backend를 확인해야 합니다. [KV 양자화 문서](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/quantization/quantized_kvcache.md)
+- **FP8 KV cache**: FP16/BF16 KV 원소를 8-bit로 저장하면 해당 데이터의 저장 폭은 절반이 됩니다. 전체 가중치나 전체 VRAM이 절반이 되는 것은 아니며, scale과 정확도·attention backend를 확인해야 합니다. [KV 양자화 문서](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/quantization/quantized_kvcache.md)
 - **Automatic Prefix Caching**: 재사용 가능한 prefix의 KV 블록이 cache에 남아 있을 때 중복 prefill 계산을 줄입니다. Decode를 생략하거나 고정된 처리량 향상을 보장하지 않습니다. [APC 문서](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/automatic_prefix_caching.md)
 - **Multi-LoRA Serving**: 지원되는 기본 모델과 target module에서 여러 어댑터를 서빙합니다. 해당 MoE 아키텍처의 LoRA 지원과 병렬화·양자화 조합을 확인해야 합니다. [LoRA 문서](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/lora.md)
 - **GGUF Quantization**: 해당 버전에서 experimental·under-optimized로 설명되며 다른 기능과의 호환성 제약이 있습니다. 모든 MoE 모델이 GGUF로 서빙된다는 의미가 아닙니다. [GGUF 문서](https://github.com/vllm-project/vllm/blob/v0.25.0/docs/features/quantization/gguf.md)
@@ -384,7 +384,7 @@ Neuron SDK 아키텍처, 인스턴스 라인업, Device Plugin 배포, Karpenter
 
 ### KV Cache 최적화
 
-KV Cache는 추론 성능에 큰 영향을 미치는 핵심 요소입니다.
+KV cache는 추론 성능에 큰 영향을 미치는 핵심 요소입니다.
 
 ```mermaid
 flowchart LR
