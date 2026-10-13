@@ -162,7 +162,7 @@ def confirm_registry_target(client, *, prompt_name, expected_version):
 
 ## AWS Bedrock Prompt Management
 
-AWS Bedrock는 [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html) 기능을 제공한다(2024년 11월 GA).
+AWS Bedrock는 [Prompt Management](https://docs.aws.amazon.com/bedrock/latest/userguide/prompt-management.html) 기능을 제공합니다(2024년 11월 GA).
 
 - **Prompt 버전**: `CreatePromptVersion`으로 정적 snapshot을 만들고 응답의 버전 ARN을 보존합니다.
 - **환경 매핑**: 애플리케이션 설정에 `PROD`나 `STAGING`이 사용할 버전 ARN을 저장합니다. 확인한 Bedrock Prompt management API 모델에는 `CreatePromptAlias`와 `UpdatePromptAlias` 작업이 없습니다.
