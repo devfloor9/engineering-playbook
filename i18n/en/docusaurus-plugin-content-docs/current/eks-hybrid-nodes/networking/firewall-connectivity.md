@@ -3,9 +3,9 @@ title: Firewall/DNS Pre-Registration and TGW Topology
 description: "Covers a 5-zone pre-registration rule table to submit to firewall and network teams when adopting EKS Hybrid Nodes, handling environments without FQDN wildcard support, Transit Gateway topology, and on-premises LB path design."
 created: "2026-08-25"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 27
 tags:
   - eks
   - hybrid-node
@@ -40,6 +40,10 @@ When separate teams own firewalls and network routing, deployment depends on sub
 
 Use the following table to prepare the on-premises firewall request for ongoing cluster operations. Each row identifies the traffic direction and the source, destination, protocol, and port to allow.
 
+:::warning API server endpoint mode assumption
+The Kubernetes API server destination in the table below (the control plane ENI subnet CIDRs) assumes the cluster is configured for **private endpoint access, so that the API server resolves to private IPs**. The official documentation recommends using either private *or* public endpoint access for hybrid nodes, and notes that with "Public and Private" the API endpoint **always resolves to public IPs for hybrid nodes outside the VPC, which can prevent nodes from joining**. If you use public endpoint access, the destination is the Region's public API endpoint rather than the ENI subnet CIDRs, so before submitting the request, confirm the API server address the hybrid nodes actually resolve (via `nslookup`/`dig`) and set the destination accordingly.
+:::
+
 | Direction | Protocol/Port | Source | Destination | Reason |
 |------|--------------|--------|--------|------|
 | Outbound | TCP 443 | Node CIDR | EKS control plane ENI subnet CIDRs | kubelet → Kubernetes API server |
@@ -54,7 +58,7 @@ Use the following table to prepare the on-premises firewall request for ongoing 
 | In/Out | App ports | Pod CIDR | Pod CIDR | Pod-to-Pod communication |
 
 :::warning Watch the direction
-TCP 10250 is **inbound from AWS (control plane) into on-premises**. A common mistake is to request it as outbound "because it is a Kubernetes port"; in that case node registration succeeds but `kubectl logs`/`exec` fails with a timeout. Also, TCP 443 is outbound from on-premises and is not "bidirectional". Port 6443 does not exist in EKS and should not be requested.
+TCP 10250 is **inbound from AWS (control plane) into on-premises**. A common mistake is to request it as outbound "because it is a Kubernetes port"; in that case node registration succeeds but `kubectl logs`/`exec` fails with a timeout. Also, TCP 443 is outbound from on-premises and is not "bidirectional". The EKS managed Kubernetes API server endpoint uses **TCP 443**, not 6443, so you do not need to request 6443 for API server access. Workloads or admission webhooks may, however, listen on 6443 themselves, so decide whether 6443 is needed by checking the backend Service's `targetPort`/listener.
 :::
 
 Webhook ports vary by add-on (e.g., 443, 8443, 9443). Check the webhook Service definitions of the add-ons you plan to deploy to finalize the list. When using the Hybrid Nodes Gateway, the webhook inbound rules and the on-premises rules related to the Pod CIDR become unnecessary; instead, a **UDP 8472 rule (gateway node IPs ↔ hybrid node IPs, bidirectional)** is added.
@@ -108,7 +112,16 @@ aws route53resolver create-resolver-endpoint \
   --direction INBOUND \
   --ip-addresses SubnetId=subnet-xxxxx SubnetId=subnet-yyyyy
 
-# outbound endpoint + internal domain forwarding (AWS → on-prem resolution)
+# outbound endpoint (the source IPs that send AWS → on-prem queries)
+# A forwarding rule requires an outbound endpoint to exist first; use the created endpoint ID in the rule's --resolver-endpoint-id below.
+aws route53resolver create-resolver-endpoint \
+  --creator-request-id hybrid-outbound-001 \
+  --name hybrid-outbound-endpoint \
+  --security-group-ids sg-resolver-xxxxx \
+  --direction OUTBOUND \
+  --ip-addresses SubnetId=subnet-xxxxx SubnetId=subnet-yyyyy
+
+# internal domain forwarding rule (reference the outbound endpoint ID created above)
 aws route53resolver create-resolver-rule \
   --creator-request-id hybrid-fwd-001 \
   --name on-prem-dns-rule \
@@ -116,6 +129,14 @@ aws route53resolver create-resolver-rule \
   --domain-name company.local \
   --target-ips Ip=192.168.1.53,Port=53 \
   --resolver-endpoint-id rslvr-out-xxxxx
+
+# The rule only takes effect once associated with the VPC (skip this and the rule exists but does nothing).
+aws route53resolver associate-resolver-rule \
+  --resolver-rule-id rslvr-rr-xxxxx \
+  --vpc-id vpc-xxxxx
+
+# After applying, verify from inside the VPC that queries for the target domain are forwarded to the on-prem resolver
+# (e.g., check that `dig company.local` from a VPC instance matches the on-prem answer).
 ```
 
 Resolver endpoint IPs are also firewall targets (TCP/UDP 53), so include them in the Zone A application.
@@ -130,7 +151,7 @@ Resolver endpoint IPs are also firewall targets (TCP/UDP 53), so include them in
 
 ## Handling Environments Without FQDN Wildcard Support
 
-In environments where the FQDN firewall does not support wildcards (`*.amazonaws.com`), domains must be enumerated individually. Concrete values for the us-west-2 region are as follows.
+In environments where the FQDN firewall does not support wildcards (`*.amazonaws.com`), domains must be enumerated individually. The table below shows concrete values for the us-west-2 region, and each row is **conditional on the features and authentication method you use**. For example, the STS row is only needed with IRSA and the EKS Auth row only with EKS Pod Identity. The API layer (`eks`/`api.ecr`), the image registry layer (`*.dkr.ecr`, `public.ecr.aws`), and S3 layer downloads (artifacts, SSM binaries) are distinct endpoints, so do not request them as a single bundle.
 
 | Purpose | Domain (us-west-2) |
 |------|------------------------|
@@ -142,6 +163,7 @@ In environments where the FQDN firewall does not support wildcards (`*.amazonaws
 | SSM | `ssm.us-west-2.amazonaws.com`, `amazon-ssm-us-west-2.s3.us-west-2.amazonaws.com` |
 | IAM Roles Anywhere | `rolesanywhere.us-west-2.amazonaws.com`, `rolesanywhere.amazonaws.com` |
 | STS (for IRSA) | `sts.us-west-2.amazonaws.com` |
+| EKS Auth (when using Pod Identity) | `eks-auth.us-west-2.amazonaws.com` |
 
 The add-on registry account ID `602401143452` is common across major regions, but **some regions use a different account** (e.g., ap-southeast-5 uses `151610086707`), so verify your target region in the [official registry list](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html). ECR pulls may fetch image layers from S3, so in environments with strict FQDN control, mirroring through a private registry (Harbor) or going through ECR PrivateLink (VPC endpoints) is a practical alternative. For Harbor configuration, see [Harbor Registry Integration](../storage-registry/harbor-registry.md).
 
@@ -164,7 +186,7 @@ Fill in the values below for each dev/stg/prd environment to prepare the applica
 
 The official networking guide covers TGW alongside VGW as a standard connectivity option. Three items must be checked in a TGW topology.
 
-1. **VPC route tables**: Routes destined for the Node CIDR (and the Pod CIDR when using full routing) must point to the TGW attachment.
+1. **VPC route tables**: Routes destined for the Node CIDR (and the Pod CIDR when using full routing) must target the **TGW ID (`tgw-...`)**. The official example also sets the VPC route target to the TGW ID. "Attachment" is the target used *inside* the TGW route tables (the TGW VPC attachment) — do not confuse it with the VPC route table target.
 2. **TGW route tables**: The Node/Pod CIDRs must be propagated or statically registered toward the on-premises-facing attachment (DX Gateway or VPN), and in the reverse direction the VPC CIDR must be advertised to the on-premises side.
 3. **Multi-account**: In structures with per-environment account separation, share the TGW via Resource Access Manager (RAM) and explicitly design the TGW route table isolation policy (whether routing between environments is blocked).
 

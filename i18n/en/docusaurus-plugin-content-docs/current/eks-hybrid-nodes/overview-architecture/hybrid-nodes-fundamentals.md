@@ -3,9 +3,9 @@ title: EKS Hybrid Nodes Concepts and How They Work
 description: "Covers Amazon EKS Hybrid Nodes from definition, use cases, and pricing model to the nodeadm registration flow, RemoteNodeNetwork/RemotePodNetwork networking structure, traffic flows, and key technical characteristics."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-26"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 52
 tags:
   - eks
   - hybrid-node
@@ -46,13 +46,17 @@ EKS Hybrid Nodes is a capability that connects physical servers or virtual machi
 
 ### Deployment Option Comparison
 
-| Item | EKS Hybrid Nodes | AWS Outposts | Amazon EKS Anywhere | Self-managed K8s |
+| Item | EKS Hybrid Nodes | AWS Outposts (local clusters) | Amazon EKS Anywhere | Self-managed K8s |
 |------|-----------------|--------------|---------------------|----------------|
 | Control plane location | AWS Region (managed) | Outposts rack (managed) | On-premises (customer-operated) | On-premises (customer-operated) |
 | Hardware | Customer-owned equipment | AWS-provided racks/servers | Customer-owned equipment | Customer-owned equipment |
 | Network requirements | Persistent DX/VPN connectivity | AWS connectivity required | Disconnected operation possible | No constraints |
 | Control plane operational burden | None | None | Yes (upgrades, backups) | Full |
 | Best fit | Existing equipment + managed control plane | Extending AWS infrastructure on-premises | Air-gapped or disconnected environments | Full self-governance required |
+
+:::note Outposts local clusters vs extended clusters
+The "AWS Outposts" column above reflects **local clusters**, where the control plane also runs on the Outposts rack. EKS on Outposts offers two deployment options. **Extended clusters** run the control plane in an **AWS Region** and place only the nodes on the Outpost, conserving Outpost capacity, but a loss of Region connectivity can affect application availability. **Local clusters** run both the control plane and nodes on the Outpost, so cluster operations continue through Region disconnects, which suits data residency requirements or a need for disconnect tolerance. Local clusters are supported only on Outposts racks, and in both options the control plane is fully managed by AWS.
+:::
 
 EKS Hybrid Nodes fits environments where "the equipment already exists and the goal is to eliminate control plane operational burden." Because the control plane resides in an AWS Region, a stable private connection between on-premises and the Region is a prerequisite.
 
@@ -71,7 +75,14 @@ In highly regulated environments such as finance and the public sector, the term
 Because the control plane runs in an AWS Region, hybrid nodes presuppose an **always-on, reliable connection** to the Region. In DDIL (Denied, Disrupted, Intermittent, Limited) environments where communication is fully blocked or drops intermittently, node credential renewal, scheduling, and `kubectl` operations all become impossible. The correct answer for such environments is **Amazon EKS Anywhere**, which runs the control plane on-premises as well — do not attempt a workaround with Hybrid Nodes.
 :::
 
-By contrast, a **private closed network where only the public internet is blocked** is fully supported. Create the EKS cluster API endpoint in Private mode and open the AWS services the nodes need — ECR, SSM, STS, and others — as interface VPC endpoints inside the VPC, and all communication completes over the private path of DX/VPN → VPC → PrivateLink. Detailed per-endpoint design is covered in [Private Air-gapped VPC Endpoint Design](../networking/private-vpc-endpoints).
+By contrast, a **private closed network where only the public internet is blocked** is fully supported. When designing this environment, however, you must secure four distinct communication paths over private routing; collapsing them into one can cause node bootstrap to fail.
+
+- **Kubernetes API access**: Create the EKS cluster API endpoint in Private mode so the kubelet and `kubectl` can reach the control plane. This is privatization at the Kubernetes API level and is separate from the AWS service API access (PrivateLink) below.
+- **AWS service API access**: Open the AWS services the node calls for credentials and management — SSM, STS, IAM Roles Anywhere, and others — as interface VPC endpoints (PrivateLink) inside the VPC.
+- **Container registry and image layers**: Reach ECR through interface endpoints (`ecr.api` and `ecr.dkr`), and reach **Amazon S3 — where the actual image layers are stored — through a gateway endpoint (or an S3 interface endpoint)**. Opening only the ECR endpoints and omitting the S3 path causes image pulls to fail at the layer-download stage.
+- **Node bootstrap artifacts**: The `nodeadm` binary, OS package repositories, and hybrid nodes dependencies are fetched from public locations by default. In a closed network, mirror these into an internal mirror/artifact store, or pre-build an OS image that includes `nodeadm` to remove the runtime external dependency.
+
+Once all four paths are in place, communication completes over the private path of DX/VPN → VPC → PrivateLink. Detailed per-endpoint design is covered in [Private Air-gapped VPC Endpoint Design](../networking/private-vpc-endpoints).
 
 ### Shared Responsibility Model
 
@@ -85,31 +96,40 @@ Hybrid nodes carry a wider customer responsibility scope than cloud nodes. Use t
 | Security and authentication | The IAM, SSM, and IAM Roles Anywhere services | Operating the credential infrastructure (activations, private PKI), certificate renewal and revocation, node IAM role least privilege |
 | Observability | Control plane logs and metrics, Cluster Insights | Node and workload metric collection, cross-network path monitoring |
 
-The practical difference is that the AMI patching and node replacement AWS handles for cloud nodes (managed node groups) fall entirely on the customer for hybrid nodes. Upgrade procedures and the runbook are covered in [Upgrades and Lifecycle Management](../operations-cost/upgrade-lifecycle).
+For cloud nodes (managed node groups), AWS **builds patched versions of the EKS optimized AMI** and provides node update and replacement orchestration (draining and rolling replacement), but **you initiate the deployment** of those patched AMIs to the node group (the shared responsibility stated in the official documentation). For hybrid nodes, even that AMI-build service is absent, so OS installation and patching and node replacement via `nodeadm upgrade` fall entirely on the customer — that is the practical difference. Upgrade procedures and the runbook are covered in [Upgrades and Lifecycle Management](../operations-cost/upgrade-lifecycle).
 
 ### Pricing Model
 
-EKS Hybrid Nodes applies tiered billing based on vCPU-hours of hybrid nodes. The unit price decreases as monthly cumulative usage increases.
+EKS Hybrid Nodes applies tiered billing based on vCPU-hours of hybrid nodes. The unit price decreases as monthly cumulative usage increases. Billing starts when a node joins the cluster and stops when it is removed, and the tiers apply to the **aggregate monthly vCPU-hours in the same AWS Region within the account** (aggregated across accounts in the organization when AWS Organizations consolidated billing is used). The unit prices below are from the official pricing page (verified 2026-10-13); they can change by Region and over time, so confirm actual costs against the pricing page or an AWS quote.
 
-| Monthly cumulative vCPU-hours | Unit price ($/vCPU-hr) |
+| Monthly cumulative vCPU-hours (range) | Unit price ($/vCPU-hr) |
 |-------------------|-----------------|
 | First 576,000 | $0.020 |
-| 576,001 – 1,728,000 | $0.014 |
-| 1,728,001 – 5,184,000 | $0.010 |
-| 5,184,001 – 15,552,000 | $0.008 |
-| Above 15,552,001 | $0.006 |
+| Next 576,000 (576,001 – 1,152,000) | $0.014 |
+| Next 4,608,000 (1,152,001 – 5,760,000) | $0.010 |
+| Next 5,760,000 (5,760,001 – 11,520,000) | $0.008 |
+| Over 11,520,000 | $0.006 |
 
-For example, running one 224-vCPU server (DGX H200 class) continuously incurs roughly 163,520 vCPU-hr per month, or about $3,270 in management fees. Running 10 servers pushes cumulative usage into the second tier, lowering the average cost per node to about $2,635. This amount is the EKS management fee; hardware purchase, power, and colocation costs are separate. EKS cluster fees and cloud node (EC2) charges apply as usual. Cost optimization strategies leveraging the billing structure are covered in [Operations and Cost Optimization](../operations-cost/operations-cost-optimization.md).
+:::warning Machines over 32 vCPU require a separate quote
+The official pricing page states that **if you intend to run hybrid nodes on machines larger than 32 vCPU per machine, you must contact your account team for additional pricing information.** The 224-vCPU example below is therefore only a **hypothetical estimate** that applies the public tier prices directly — not an actual bill — and such large-machine environments must obtain an applicable quote.
+:::
+
+For example, assuming the public tier prices apply directly, running one 224-vCPU server (DGX H200 class) continuously for 730 hours per month produces about 163,520 vCPU-hr (224 × 730). All of it falls in tier 1 ($0.020), so the estimate is about $3,270. Running 10 servers (1,635,200 vCPU-hr per month) applies $0.020 to the first 576,000, $0.014 to the next 576,000, and $0.010 to the remaining 483,200, for a total of about $24,416, or about $2,441.60 per node on average. This amount is an EKS management-fee estimate; hardware purchase, power, and colocation costs are separate. EKS cluster fees and cloud node (EC2) charges apply as usual. Cost optimization strategies leveraging the billing structure are covered in [Operations and Cost Optimization](../operations-cost/operations-cost-optimization.md).
 
 ### System Requirements
 
 | Item | Requirement |
 |------|----------|
-| Operating system | Amazon Linux 2023, Ubuntu 20.04/22.04/24.04 LTS, RHEL 8/9 |
+| Operating system | Amazon Linux 2023 (AL2023, on-premises virtualized environments only — not covered by AWS Support Plans when run outside Amazon EC2), Ubuntu 20.04/22.04/24.04 LTS, RHEL 8/9, Bottlerocket v1.37.0+ (VMware vSphere variants only) |
+| Architecture | x86_64 and ARM (ARM requires an ARMv8.2+Crypto processor); the Bottlerocket VMware variant is x86_64 only |
 | Container runtime | containerd (installed and managed by nodeadm) |
 | Network connectivity | AWS Direct Connect, Site-to-Site VPN, or self-managed VPN-based private connection |
 | Bandwidth and latency | Minimum 100Mbps, round-trip time (RTT) of 200ms or less recommended (official guidance) |
 | CNI | Cilium — the AWS-supported CNI (the VPC CNI is incompatible with hybrid nodes; Calico is a community-supported path) |
+
+:::note OS support boundaries and the Bottlerocket bootstrap path
+The operating systems in the table above are the ones the official documentation validates for hybrid nodes, which is distinct from "whether AWS supports the OS itself." **For Ubuntu and RHEL, AWS supports the hybrid nodes integration but not the operating system itself**, so OS provisioning and management are your responsibility. **AL2023 can only be used in on-premises virtualized environments** — installing it directly on physical (bare-metal) servers is not a supported configuration, so bare-metal GPU servers you own require Ubuntu/RHEL or a virtualization layer. **Bottlerocket is supported only in VMware vSphere environments** and does not use `nodeadm`: it already contains the hybrid nodes dependencies and automatically connects to the cluster at host startup, so its registration flow differs from the other operating systems.
+:::
 
 :::note Interpreting the Bandwidth Requirement
 100Mbps/200ms is general guidance that accommodates most use cases, not a strict requirement. Actual bandwidth needs depend on node count, container image size, monitoring and logging configuration, and AWS service data access patterns. GPU inference environments that use large model images require validation with their own workloads before production adoption.
@@ -208,7 +228,7 @@ The difficulty of hybrid networking varies with the **direction** of traffic.
 
 **② AWS → On-premises node (inbound, node level)**: The control plane initiates connections to the kubelet (TCP 10250). `kubectl logs`/`exec` use this path, which is why bidirectional Node CIDR routing is mandatory.
 
-**③ AWS → On-premises Pod (inbound, Pod level)**: Webhook calls, Metrics Server scraping, and ALB/NLB IP-target traffic use the Pod IP directly as the destination. SNAT cannot create a path for externally initiated connections, so Pod CIDR routing or the Hybrid Nodes Gateway is required.
+**③ AWS → On-premises Pod (inbound, Pod level)**: Webhook calls, the control plane reaching the Metrics Server Pod, and ALB/NLB IP-target traffic use the Pod IP directly as the destination. SNAT cannot create a path for externally initiated connections, so Pod CIDR routing or the Hybrid Nodes Gateway is required. For Metrics Server, distinguish two flows. **(a) Control plane → Metrics Server**: for the API aggregation layer, the kube-apiserver must reach the Metrics Server's **Pod IP on port 10250** (or the node IP and a custom port if Metrics Server runs with `hostNetwork`), so this is the inbound (③) flow that requires Pod CIDR routing or the Gateway. **(b) Metrics Server → kubelet**: a separate flow in which Metrics Server scrapes each node's kubelet (port 10250), targeting node IPs and ports, so it is handled over the Node CIDR (②). In other words, "scraping" is not the Pod-level inbound requirement; the path that requires Pod CIDR routing is the (a) API aggregation path.
 
 ```text
 [egress — supported by default]
@@ -271,7 +291,12 @@ The only Pod traffic NAT mechanism specified in the official documentation is CN
 > "The gateway **eliminates the need to make on-premises pod networks routable from the VPC** or coordinate network infrastructure changes."
 > — [Amazon EKS Hybrid Nodes gateway](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-gateway-overview.html)
 
-The Gateway leverages the VTEP (VXLAN Tunnel Endpoint) capability of the Cilium CNI. It establishes a VXLAN tunnel (`hybrid_vxlan0` interface, VNI 2, UDP 8472) between EC2 gateway nodes in the VPC and Cilium nodes on-premises, encapsulating and forwarding Pod traffic. Only UDP traffic between node IPs flows over the physical network; the Pod CIDR is not exposed. It operates on a leader-election-based active-standby model, with an expected failover time of about 3–5 seconds (stated in the official documentation).
+The Gateway leverages the VTEP (VXLAN Tunnel Endpoint) capability of the Cilium CNI. It establishes a VXLAN tunnel (`hybrid_vxlan0` interface, VNI 2, UDP 8472) between EC2 gateway nodes in the VPC and Cilium nodes on-premises, encapsulating and forwarding Pod traffic. Because the outer header on the physical network shows only UDP traffic between node IPs, you **no longer need to advertise the Pod CIDR as routable on the on-premises physical network**. This removes the routing requirement, but it is not concealment or encryption. Distinguish two points.
+
+- **Encryption boundary**: The official documentation states that the **VXLAN tunnels created by the Gateway do not encrypt traffic**. The encapsulated inner packet still carries the Pod IP header and payload, so if you require encryption in transit, you must separately use an **encrypted transport layer** such as Direct Connect with MACsec or a VPN.
+- **Pod CIDR visibility**: For the Gateway to work, the Pod ranges still appear in the **VPC route table entries** managed by the leader gateway and in the **`CiliumVTEPConfig` custom resource** deployed to hybrid nodes. In other words, the Pod CIDR does not disappear from the cluster and VPC configuration; only the requirement to advertise it to the on-premises physical routers goes away.
+
+It operates on a Kubernetes Lease-based leader-election active-standby model, and because both gateway Pods create a VXLAN interface at startup, the official documentation states an expected failover time of about 3–5 seconds. This is a design target, so measure and confirm the actual switchover time in your own environment.
 
 **What the Gateway does not do** is equally clear. The Gateway is not NAT, so it does not resolve CIDR overlaps, and the Node CIDR routing and VPC↔on-premises private connectivity requirements remain unchanged. The Gateway solves the routing problem at the Pod layer; it does not replace hybrid connectivity itself. Operating mechanisms, adoption procedures, and operational details are covered in [Hybrid Nodes Gateway Deployment and Operations](../networking/hybrid-nodes-gateway.md).
 

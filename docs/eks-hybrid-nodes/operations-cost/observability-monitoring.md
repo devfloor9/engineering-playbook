@@ -3,9 +3,9 @@ title: 관측성 통합 — 자가진단·Container Insights·eBPF
 description: "EKS Hybrid Nodes 관측성 구현 가이드 — Cluster Insights 구성 자가진단, CloudWatch Container Insights 하이브리드 구성(RUN_WITH_IRSA), NVIDIA GPU 메트릭 통합, Cilium Hubble 기반 eBPF 대시보드, Network Flow Monitor 적용성 분석을 다룹니다."
 created: "2026-08-26"
 last_update:
-  date: "2026-08-26"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 14
 tags:
   - eks
   - hybrid-node
@@ -36,18 +36,23 @@ EKS Cluster Insights는 세 가지 인사이트 유형(구성·업그레이드·
 - **`kubectl exec`/`kubectl logs` 실패**: 컨트롤 플레인 → kubelet(TCP 10250) 경로 문제 — 방화벽 inbound 방향 오류가 전형적 원인 ([방향 주의](../networking/firewall-connectivity#zone-a-온프레미스-방화벽-상시-운영-룰))
 - 그 밖의 원격 네트워크 구성 불일치
 
-운영 워크플로우는 다음과 같습니다. 인사이트는 24시간 주기로 자동 갱신되며, 조치 후 수동 갱신으로 해소 여부를 즉시 확인할 수 있습니다.
+운영 워크플로우는 다음과 같습니다. 인사이트는 24시간 주기로 자동 갱신되므로, `list-insights`·`describe-insight`는 **마지막 갱신 시점의 캐시된 결과**를 조회합니다. 조치 후 해소 여부를 즉시 확인하려면 `start-insights-refresh`로 온디맨드 갱신을 명시적으로 트리거하고, 반환되는 상태(`IN_PROGRESS`→`COMPLETED`/`FAILED`)가 완료될 때까지 기다린 뒤 다시 조회합니다.
 
 ```bash
-# 구성 인사이트 목록 조회
+# 구성 인사이트 목록 조회 (마지막 갱신 시점의 캐시된 결과)
 aws eks list-insights \
   --cluster-name CLUSTER_NAME \
   --filter categories=CONFIGURATION
 
-# 개별 인사이트의 상세 진단·권고 확인
+# 개별 인사이트의 상세 진단·권고 확인 (캐시된 결과)
 aws eks describe-insight \
   --cluster-name CLUSTER_NAME \
   --id INSIGHT_ID
+
+# 조치 후 온디맨드 갱신 트리거 — 상태가 COMPLETED가 될 때까지 대기
+aws eks start-insights-refresh \
+  --cluster-name CLUSTER_NAME
+# status가 COMPLETED가 되면 위 list-insights/describe-insight를 다시 실행해 해소 여부를 확인합니다
 ```
 
 컨트롤 플레인 관점의 Cluster Insights와 노드 관점의 `nodeadm debug`([구성 검증 자동화](./operations-cost-optimization#구성-검증-자동화))를 짝으로 운용하면 "클러스터 쪽에서 본 문제"와 "노드 쪽에서 본 문제"를 양방향으로 교차 진단할 수 있습니다. 신규 구축·방화벽 변경·업그레이드 직후를 필수 점검 시점으로 런북에 고정합니다.
@@ -82,7 +87,7 @@ spec:
 온프레미스 GPU(DGX 등)의 가속기 메트릭은 DCGM(Data Center GPU Manager) Exporter를 기준으로 수집합니다. AWS 공식 레퍼런스 아키텍처는 DCGM Exporter → Amazon Managed Service for Prometheus(AMP) → Amazon Managed Grafana(AMG) 경로입니다.
 
 - **DCGM Exporter**: GPU 사용률·메모리·온도·전력·XID 오류를 Prometheus 형식으로 노출합니다. [하이브리드 전용 Device Plugin](../compute-gpu/gpu-scheduling-failover#하이브리드-전용-nvidia-device-plugin)과 동일하게 `eks.amazonaws.com/compute-type: hybrid` nodeSelector로 배포 범위를 제한합니다.
-- **수집 경로 선택**: AMP managed collector는 Pod 메트릭 엔드포인트가 VPC에서 도달 가능해야 하므로 Pod CIDR 라우팅(BGP/Gateway)이 전제입니다. unroutable 구성에서는 ADOT 애드온 또는 클러스터 내 Prometheus가 스크래핑 후 AMP로 remote write하는 경로를 사용합니다.
+- **수집 경로 선택**: AMP managed collector는 Pod 메트릭 엔드포인트가 VPC에서 도달 가능해야 하므로 Pod CIDR 라우팅(BGP/Gateway)이 전제입니다. unroutable 구성에서는 ADOT 애드온 또는 클러스터 내 Prometheus가 스크래핑 후 AMP로 remote write하는 경로를 사용합니다. 단 ADOT 애드온은 **operator가 어드미션 웹훅을 사용**하므로, remote write 자체는 아웃바운드이더라도 operator가 하이브리드 노드에 배치되면 Pod CIDR이 라우팅되지 않는 순수 unroutable 환경에서 웹훅 어드미션이 실패할 수 있습니다(CloudWatch Observability 애드온과 동일한 제약 — [위 Container Insights 표](#cloudwatch-container-insights-통합) 참조). 따라서 ADOT를 선택하면 mixed mode에서 operator를 클라우드 노드에 배치해 컨트롤 플레인에서 웹훅에 도달 가능하도록 구성하고, 그런 어드미션 의존성이 없는 자체 관리형 클러스터 내 Prometheus는 remote write만으로 운용할 수 있습니다.
 - **CloudWatch 일원화가 요구되는 조직**: CloudWatch agent의 Prometheus 스크래핑 구성으로 DCGM 메트릭을 CloudWatch로 적재해 Container Insights 화면과 같은 계정·콘솔에서 관측할 수 있습니다.
 - Node Monitoring Agent(하이브리드 호환 애드온)를 함께 배포하면 GPU 관련 노드 헬스 이슈 탐지가 보강됩니다.
 
@@ -111,15 +116,27 @@ hubble:
 ```
 
 ```bash
+# 설치된 지원 버전과 동일한 Cilium 차트 버전을 명시해 관측 설정만 추가합니다
+# (--reuse-values는 기존 values를 보존하지만, 버전을 생략하면 CNI가 함께 업그레이드될 수 있으므로
+#  --version으로 현재 운영 중인 EKS 지원 버전을 고정합니다)
 helm upgrade cilium oci://public.ecr.aws/eks/cilium/cilium \
+  --version <현재_운영_중인_지원_버전> \
   --namespace kube-system --reuse-values --values cilium-values.yaml
+```
+
+Hubble Relay가 클러스터 전체 플로우를 집계하려면 **Cilium을 실행하는 모든 노드에서 TCP 4244 포트가 열려 있어야 합니다**(Cilium 공식 요구사항). 하이브리드 노드의 온프레미스 방화벽·보안그룹에 이 포트를 반영합니다. `hubble observe` CLI를 사용하려면 먼저 Hubble 클라이언트를 설치하고 Relay API 접근을 구성해야 합니다. 일반적으로 `cilium hubble port-forward`로 Relay를 로컬 포트에 포워딩하거나 `hubble status`로 API 접근을 검증한 뒤 조회합니다.
+
+```bash
+# Relay API 접근 구성 (로컬 포트 포워딩)
+cilium hubble port-forward &
+hubble status            # API 접근 검증
 
 # 플로우 실시간 확인 (드롭 원인 진단)
 hubble observe --verdict DROPPED --last 100
 ```
 
 - Hubble 메트릭은 각 Cilium 에이전트의 9965 포트(기본)로 노출되며, Prometheus/AMP가 스크래핑해 Grafana의 공식 Hubble 대시보드(L3/L4 플로우, DNS, 드롭 사유별 분포)로 시각화합니다.
-- **Hybrid Nodes Gateway와의 상충 주의**: Gateway는 `l7Proxy=false`를 요구하므로([도입 전 체크리스트](../networking/hybrid-nodes-gateway#도입-전-체크리스트)), Gateway 환경에서는 Hubble의 HTTP 등 L7 프로토콜 가시성은 사용할 수 없습니다. L3/L4 플로우·DNS·드롭 관측은 L7 proxy와 무관하게 동작합니다.
+- **Hybrid Nodes Gateway와의 상충 주의**: Gateway는 `l7Proxy=false`를 요구하므로([도입 전 체크리스트](../networking/hybrid-nodes-gateway#도입-전-체크리스트)), Gateway 환경에서는 L7 proxy에 의존하는 Hubble 가시성을 사용할 수 없습니다. 여기에는 HTTP 등 L7 프로토콜 가시성뿐 아니라 **DNS 질의·응답 내용 가시성**도 포함됩니다. Cilium 공식 문서는 DNS 가시성을 L7 기능으로 분류하며, L7 CiliumNetworkPolicy에 매칭되는 DNS 트래픽을 프록시로 리다이렉트해야 `hubble observe`에 질의·응답 상세가 나타납니다. 따라서 `l7Proxy=false`인 Gateway 환경에서 L7 proxy와 무관하게 동작하는 Hubble 관측은 **L3/L4 플로우와 드롭 관측**에 한정됩니다. DNS 가시성이 필요하면 CoreDNS 로그 등 별도의 DNS 텔레메트리 소스로 보완합니다.
 - Hubble Relay·UI를 하이브리드 노드에 배치하면 관측 트래픽이 온프레미스에서 완결됩니다. 클라우드 측 Grafana(AMG)에서 조회하는 경우 데이터 소스(AMP) 기준으로는 배치 위치가 무관합니다.
 - **지원 범위 주의**: Hubble은 공식 문서의 Cilium 지원 범위 표(네트워크 정책·BGP·Ingress·LB IPAM 등)에 포함되지 않은 업스트림 Cilium 기능입니다. 기술적으로 EKS 배포판 Cilium에서 동작하지만 AWS Support 범위 밖이므로, 지원 계약이 중요한 조직은 이 경계를 운영 문서에 명시합니다.
 
@@ -149,7 +166,7 @@ CloudWatch Network Flow Monitor(NFM)는 eBPF(`bpf_sock_ops`) 기반 경량 에�
 
 **결론**: NFM의 하이브리드 노드 지원은 문서화되어 있지 않으며(명시적 금지 문구도 없으나 검증 목록 부재), 프로덕션 설계에서는 mixed mode 클러스터의 **클라우드 노드 구간 전용** 관측 도구로 위치시키는 것이 안전합니다. 결과적으로 권장 구도는 역할 분담입니다.
 
-- **클라우드 노드 구간**: NFM 애드온 — EKS 콘솔 서비스 맵·플로우 테이블, AWS 네트워크 헬스 인디케이터(NHI). 에이전트의 OpenMetrics 엔드포인트(`OPEN_METRICS=on`)를 Prometheus로 스크래핑하면 위 통합 Grafana 대시보드에 클라우드 구간 패널로 편입할 수 있습니다.
+- **클라우드 노드 구간**: NFM 애드온 — EKS 콘솔 서비스 맵·플로우 테이블, AWS 네트워크 헬스 인디케이터(NHI). 에이전트가 노출하는 OpenMetrics 엔드포인트(`OPEN_METRICS=on`)를 Prometheus로 스크래핑하면 위 통합 Grafana 대시보드에 클라우드 구간 패널로 편입할 수 있습니다. 다만 에이전트의 메트릭 엔드포인트가 원격 Prometheus에서 도달 가능하도록 바인드 주소·포트와 스크래핑 경로가 노출되어 있어야 하며(엔드포인트가 로컬 전용으로 바인드되는 경우 원격 스크래핑이 되지 않습니다), 호스트/파드 네트워킹 구성에 맞춰 노출 범위를 설정하거나 동일 노드의 로컬 스크래퍼를 사용합니다.
 - **하이브리드 노드 구간**: Cilium Hubble — 동일한 eBPF 계열 데이터(플로우·드롭·DNS)를 온프레미스에서 수집. NFM이 커버하지 못하는 구간을 보완합니다.
 - **두 구간의 접점(크로스 네트워크)**: Gateway 메트릭과 DX/VPN CloudWatch 메트릭이 담당합니다.
 

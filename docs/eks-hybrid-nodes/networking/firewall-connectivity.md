@@ -3,9 +3,9 @@ title: 방화벽·DNS 사전 등록과 TGW 토폴로지
 description: "EKS Hybrid Nodes 도입 시 방화벽·네트워크 조직에 제출할 5존 사전 등록 룰 표, FQDN 와일드카드 미지원 환경 대응, Transit Gateway 토폴로지와 온프레미스 LB 경로 설계를 다룹니다."
 created: "2026-08-25"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 15
 tags:
   - eks
   - hybrid-node
@@ -40,6 +40,10 @@ category: hybrid-multicloud
 
 공식 문서의 상시 운영(ongoing operations) 요건을 신청서 형식으로 정리하면 다음과 같습니다.
 
+:::warning API 서버 엔드포인트 모드 전제
+아래 표의 Kubernetes API 서버 목적지(컨트롤 플레인 ENI 서브넷 CIDR)는 **클러스터가 프라이빗 엔드포인트 접근(private endpoint access)으로 구성되어 API 서버가 프라이빗 IP로 해석되는 경우**를 전제로 합니다. 공식 문서는 하이브리드 노드에 프라이빗 또는 퍼블릭 중 하나만 사용할 것을 권장하며, "Public and Private"로 구성하면 VPC 외부의 하이브리드 노드에서는 API 엔드포인트가 **항상 퍼블릭 IP로 해석되어 노드 조인이 실패할 수 있다**고 명시합니다. 퍼블릭 엔드포인트 접근을 사용하는 경우 목적지는 ENI 서브넷 CIDR이 아니라 리전의 퍼블릭 API 엔드포인트가 되므로, 신청 전에 하이브리드 노드에서 실제로 해석되는 API 서버 주소(`nslookup`/`dig`로 확인)에 맞춰 목적지를 결정해야 합니다.
+:::
+
 | 방향 | 프로토콜/포트 | 출발지 | 목적지 | 사유 |
 |------|--------------|--------|--------|------|
 | Outbound | TCP 443 | Node CIDR | EKS 컨트롤 플레인 ENI 서브넷 CIDR | kubelet → Kubernetes API server |
@@ -54,7 +58,7 @@ category: hybrid-multicloud
 | In/Out | 앱 포트 | Pod CIDR | Pod CIDR | Pod 간 통신 |
 
 :::warning 방향에 주의
-TCP 10250은 **AWS(컨트롤 플레인)에서 온프레미스로 들어오는 inbound**입니다. "쿠버네티스 포트니까 나가는 방향"으로 신청하는 실수가 잦으며, 이 경우 노드 등록은 성공하지만 `kubectl logs`/`exec`가 timeout으로 실패합니다. 또한 TCP 443은 온프레미스에서 나가는 outbound이며 "양방향"이 아닙니다. EKS에는 6443 포트가 존재하지 않으므로 신청 대상이 아닙니다.
+TCP 10250은 **AWS(컨트롤 플레인)에서 온프레미스로 들어오는 inbound**입니다. "쿠버네티스 포트니까 나가는 방향"으로 신청하는 실수가 잦으며, 이 경우 노드 등록은 성공하지만 `kubectl logs`/`exec`가 timeout으로 실패합니다. 또한 TCP 443은 온프레미스에서 나가는 outbound이며 "양방향"이 아닙니다. EKS 관리형 Kubernetes API 서버 엔드포인트는 6443이 아니라 **TCP 443**을 사용하므로, API 서버 접근 목적으로 6443을 신청할 필요는 없습니다. 다만 워크로드나 어드미션 웹훅이 자체적으로 6443을 수신 포트로 사용할 수 있으므로, 6443이 필요한지는 해당 백엔드 Service의 `targetPort`/리스너를 확인해 판단합니다.
 :::
 
 웹훅 포트는 애드온마다 다릅니다(예: 443, 8443, 9443). 배포 예정 애드온의 웹훅 Service 정의를 확인해 목록을 확정합니다. Hybrid Nodes Gateway를 사용하면 웹훅 inbound 룰과 Pod CIDR 관련 온프렘 룰이 불필요해지는 대신 **UDP 8472(게이트웨이 노드 IP ↔ 하이브리드 노드 IP, 양방향)** 룰이 추가됩니다.
@@ -108,7 +112,16 @@ aws route53resolver create-resolver-endpoint \
   --direction INBOUND \
   --ip-addresses SubnetId=subnet-xxxxx SubnetId=subnet-yyyyy
 
-# outbound endpoint + 사내 도메인 포워딩 (AWS → 온프렘 조회)
+# outbound endpoint 생성 (AWS → 온프렘 조회를 내보내는 출발지 IP)
+# 포워딩 룰은 outbound endpoint가 먼저 존재해야 하며, 생성된 endpoint ID를 아래 룰의 --resolver-endpoint-id에 사용합니다.
+aws route53resolver create-resolver-endpoint \
+  --creator-request-id hybrid-outbound-001 \
+  --name hybrid-outbound-endpoint \
+  --security-group-ids sg-resolver-xxxxx \
+  --direction OUTBOUND \
+  --ip-addresses SubnetId=subnet-xxxxx SubnetId=subnet-yyyyy
+
+# 사내 도메인 포워딩 룰 생성 (위에서 만든 outbound endpoint ID 지정)
 aws route53resolver create-resolver-rule \
   --creator-request-id hybrid-fwd-001 \
   --name on-prem-dns-rule \
@@ -116,6 +129,14 @@ aws route53resolver create-resolver-rule \
   --domain-name company.local \
   --target-ips Ip=192.168.1.53,Port=53 \
   --resolver-endpoint-id rslvr-out-xxxxx
+
+# 룰을 VPC에 연결해야 비로소 포워딩이 적용됩니다 (이 단계가 빠지면 룰은 생성되어도 동작하지 않습니다).
+aws route53resolver associate-resolver-rule \
+  --resolver-rule-id rslvr-rr-xxxxx \
+  --vpc-id vpc-xxxxx
+
+# 적용 후 VPC 내부에서 대상 도메인 조회가 온프렘 리졸버로 포워딩되는지 확인합니다.
+# (예: VPC 내 인스턴스에서 `dig company.local` 결과가 온프렘 응답과 일치하는지 점검)
 ```
 
 Resolver endpoint IP도 방화벽 대상(TCP·UDP 53)이므로 Zone A 신청서에 포함합니다.
@@ -130,7 +151,7 @@ Resolver endpoint IP도 방화벽 대상(TCP·UDP 53)이므로 Zone A 신청서�
 
 ## FQDN 와일드카드 미지원 환경 대응
 
-FQDN 방화벽이 와일드카드(`*.amazonaws.com`)를 지원하지 않는 환경에서는 도메인을 개별 열거해야 합니다. us-west-2 리전 기준 구체 값은 다음과 같습니다.
+FQDN 방화벽이 와일드카드(`*.amazonaws.com`)를 지원하지 않는 환경에서는 도메인을 개별 열거해야 합니다. 아래 표는 us-west-2 리전 기준 구체 값이며, 각 행은 **사용하는 기능·인증 방식에 따라 조건부**입니다. 예를 들어 STS 행은 IRSA, EKS Auth 행은 EKS Pod Identity를 사용할 때만 필요합니다. 또한 API 계층(`eks`/`api.ecr`), 이미지 레지스트리 계층(`*.dkr.ecr`·`public.ecr.aws`), S3 레이어 다운로드(아티팩트·SSM 바이너리)는 서로 다른 엔드포인트이므로 하나로 묶어 신청하지 않습니다.
 
 | 용도 | 도메인 (us-west-2) |
 |------|------------------------|
@@ -142,6 +163,7 @@ FQDN 방화벽이 와일드카드(`*.amazonaws.com`)를 지원하지 않는 환�
 | SSM | `ssm.us-west-2.amazonaws.com`, `amazon-ssm-us-west-2.s3.us-west-2.amazonaws.com` |
 | IAM Roles Anywhere | `rolesanywhere.us-west-2.amazonaws.com`, `rolesanywhere.amazonaws.com` |
 | STS (IRSA 시) | `sts.us-west-2.amazonaws.com` |
+| EKS Auth (Pod Identity 사용 시) | `eks-auth.us-west-2.amazonaws.com` |
 
 애드온 레지스트리 계정 ID `602401143452`는 주요 리전 공통이나 **리전별로 다른 계정을 쓰는 리전이 있으므로**(예: ap-southeast-5는 `151610086707`) 대상 리전을 [공식 레지스트리 목록](https://docs.aws.amazon.com/eks/latest/userguide/add-ons-images.html)에서 확인합니다. ECR pull은 이미지 레이어를 S3에서 받는 경우가 있어, FQDN 제어가 엄격한 환경에서는 프라이빗 레지스트리(Harbor) 미러링 또는 ECR PrivateLink(VPC 엔드포인트) 경유가 현실적인 대안입니다. Harbor 구성은 [Harbor 레지스트리 통합](../storage-registry/harbor-registry.md)을 참조합니다.
 
@@ -164,7 +186,7 @@ dev/stg/prd 환경마다 아래 값을 채워 신청서를 작성합니다.
 
 공식 네트워킹 가이드는 VGW와 함께 TGW를 표준 연결 옵션으로 다룹니다. TGW 토폴로지에서 점검할 항목은 세 가지입니다.
 
-1. **VPC 라우트 테이블**: Node CIDR(및 풀 라우팅 시 Pod CIDR) 목적지 경로가 TGW attachment를 가리켜야 합니다.
+1. **VPC 라우트 테이블**: Node CIDR(및 풀 라우팅 시 Pod CIDR) 목적지 경로의 타겟은 **TGW ID(`tgw-...`)**여야 합니다. 공식 예시도 VPC 라우트의 타겟을 TGW ID로 지정합니다. "attachment"는 TGW 라우트 테이블 내부에서 사용하는 타겟(TGW VPC attachment)이며, VPC 라우트 테이블의 타겟과 혼동하지 않습니다.
 2. **TGW 라우트 테이블**: 온프레미스 방향 attachment(DX Gateway 또는 VPN)로 Node/Pod CIDR가 전파(propagation) 또는 정적 등록되어야 하고, 역방향으로 VPC CIDR가 온프레미스 측에 광고되어야 합니다.
 3. **멀티 계정**: 환경별 계정 분리 구조에서는 TGW를 Resource Access Manager(RAM)로 공유하고, TGW 라우트 테이블 격리 정책(환경 간 라우팅 차단 여부)을 명시적으로 설계합니다.
 
