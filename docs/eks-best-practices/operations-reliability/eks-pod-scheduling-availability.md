@@ -3,9 +3,9 @@ title: EKS Pod 스케줄링 & 가용성 패턴
 description: Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 96
+reading_time: 122
 tags:
   - eks
   - kubernetes
@@ -1226,17 +1226,18 @@ Cluster Autoscaler와 Karpenter의 핵심 차이는 **노드 프로비저닝 방
 
 ##### 동작 비교
 
+아래 표는 두 컨트롤러의 **메커니즘과 설정 제약**을 비교합니다. 프로비저닝 속도, 노드 준비 시간, 비용 절감률은 워크로드, AMI, 리전, 용량 상황에 따라 달라지므로 측정 없이 단정하지 않습니다. 측정값이 필요하면 동일 조건에서 트리거→용량 확보→노드 등록→Pod 바인딩→워크로드 준비 시간을 각각 측정해 비교하십시오.
+
 | 비교 항목 | Cluster Autoscaler | Karpenter |
 |----------|-------------------|-----------|
-| **트리거 방식** | Pending Pod 감지 → ASG 확장 요청 | Pending Pod 감지 → 즉시 EC2 프로비저닝 |
-| **확장 속도** | 수십 초 ~ 수 분 (ASG 대기 시간) | 수 초 (직접 EC2 API 호출) |
-| **노드 선택** | 미리 정의된 ASG 그룹 중 선택 | Pod 요구사항 기반 실시간 인스턴스 타입 선택 |
-| **인스턴스 타입 다양성** | ASG당 고정된 타입 (LaunchTemplate) | 100+ 타입 중 최적 선택 (NodePool 요구사항) |
-| **비용 최적화** | 수동 ASG 설정 필요 | 자동 Spot/On-Demand 믹스, 최저가 선택 |
-| **Bin Packing** | 제한적 (ASG 단위) | 고급 (Pod 요구사항 인식) |
-| **Taints/Tolerations 인식** | 제한적 | 네이티브 통합 |
-| **Topology Spread 인식** | 제한적 | 네이티브 통합 |
-| **통합 수준** | Kubernetes 외부 도구 | Kubernetes 네이티브 (CRD 기반) |
+| **트리거 방식** | 스케줄링 불가 Pod를 감지하면 설정된 스캔 주기로 ASG `DesiredCapacity` 조정을 요청 | 스케줄링 불가 Pod를 감지하면 NodeClaim을 만들고 AWS provider가 EC2 인스턴스를 생성 |
+| **확장 경로** | ASG(관리형 노드 그룹 포함)의 용량을 조정하고 Pod 적합성을 시뮬레이션. ASG MixedInstancePolicy 사용 시 모든 인스턴스 타입이 동일한 CPU/메모리/GPU 형태여야 함 | Pod 요구사항에 맞는 허용 인스턴스/용량 옵션 중에서 선택해 NodeClaim·노드를 생성 |
+| **노드 선택 단위** | 미리 정의·발견된 ASG 그룹 단위 | NodePool `requirements`가 허용하는 인스턴스 타입 집합 중 Pod 요구사항 기반 선택 |
+| **용량 타입 처리** | ASG별로 Spot/On-Demand를 분리 설정 | NodePool `requirements`에 허용 용량 타입을 선언. 검토한 AWS provider는 price-capacity-optimized 할당을 사용하며, "항상 최저가"로 단정할 수 없음 |
+| **Bin Packing** | ASG 단위로 시뮬레이션 | Pod 요구사항을 인식해 노드 단위로 결정 |
+| **Taints/Tolerations 인식** | ASG UserData로 노드에 적용(Pod 적합성 시뮬레이션에 반영) | NodePool `template.spec.taints`로 네이티브 선언 |
+| **Topology Spread 인식** | 노드 그룹 라벨/스케줄링 속성 가정에 의존 | kube-scheduler의 Topology Spread 제약을 인식해 프로비저닝 |
+| **통합 수준** | Kubernetes 외부 컨트롤러(AWS Cloud Provider 구현) | Kubernetes 네이티브 (CRD 기반) |
 
 ##### 확장 시나리오 예시
 
@@ -1271,19 +1272,25 @@ Cluster Autoscaler와 Karpenter의 핵심 차이는 **노드 프로비저닝 방
 
 **Karpenter:**
 - NodePool requirements에 허용할 capacity type을 선언하며, 배열 순서가 On-Demand 우선순위를 뜻하지 않습니다.
-- 실시간으로 가장 저렴한 인스턴스 타입 선택
+- 허용된 인스턴스/용량 옵션 중에서 Pod 요구사항에 맞는 노드를 선택합니다. 검토한 AWS provider는 price-capacity-optimized 할당을 사용하며, 항상 최저가 옵션만 고르는 것은 아닙니다.
 - Pod 요구사항에 정확히 맞는 노드 프로비저닝
 
-**비용 절감 예시 (실측 데이터):**
+**단가 비교 예시 (검증되지 않은 예시 계산):**
+
+아래는 비용 구조를 설명하기 위한 **예시 계산**이며 실측 데이터가 아닙니다. 가격은 리전·날짜·OS·테넌시·구매 옵션에 따라 달라지므로, 아래 시간당 가격은 1차 가격 스냅샷으로 확인하기 전에는 현재 값으로 가정하지 마십시오. 또한 2 vCPU 인스턴스라고 해서 2 vCPU 전체가 Pod에 할당 가능한 것은 아닙니다. 시스템·DaemonSet 예약분과 kubelet 예약분을 뺀 allocatable이 실제 배치 가능 용량입니다. 따라서 아래 단가 차이가 그대로 TCO 절감으로 이어지지 않으며, 실제 절감률은 동일 워크로드·SLO·노드 allocatable·사용률·기간을 측정해야 알 수 있습니다.
+
 ```yaml
+# 아래 가격은 예시 값이며 실측이 아님. 1차 가격 소스로 확인 필요
 # Cluster Autoscaler: 고정 ASG
-# m5.2xlarge (8 vCPU, 32GB) → $0.384/시간
-# → Pod가 2 vCPU만 요청해도 전체 노드 비용 부담
+# m5.2xlarge (8 vCPU, 32GB) → 예시 단가 $0.384/시간
+# → ASG가 큰 노드만 제공하면 작은 Pod도 큰 노드에 배치될 수 있음
 
 # Karpenter: 유연한 선택
-# m5.large (2 vCPU, 8GB) → $0.096/시간
-# → Pod 요구사항에 맞춰 작은 노드 선택
-# → 75% 비용 절감
+# m5.large (2 vCPU, 8GB) → 예시 단가 $0.096/시간
+# → Pod 요구사항에 맞춰 더 작은 노드 선택 가능
+
+# 예시 단가만 쓰면 1 - 0.096 / 0.384 = 0.75 (단가 기준 75%)
+# 단, 이는 단가 산술이며 노드 allocatable 오버헤드, 사용률, 기간을 반영한 실제 절감률이 아님
 ```
 
 #### 5.6.2 마이그레이션 체크리스트
@@ -1474,40 +1481,55 @@ cluster_autoscaler_scaled_down_nodes_total
 cluster_autoscaler_unschedulable_pods_count
 ```
 
-**Karpenter 메트릭:**
+**Karpenter 메트릭 (Prometheus):**
+
+아래는 Karpenter `v1.14`/`v1.15` 메트릭 레퍼런스에서 확인한 이름입니다. 메트릭 이름과 안정성 수준은 버전에 민감하므로 설치한 버전의 레퍼런스로 다시 확인하십시오. 카운터는 `_total` 접미사를 가지며, 레퍼런스에서 확인한 정확한 이름을 사용해야 합니다.
+
 ```promql
-# 새로운 메트릭 예시
-karpenter_nodes_created
-karpenter_nodes_terminated
+# 노드 생성/종료 카운터 (Counter, STABLE)
+karpenter_nodes_created_total
+karpenter_nodes_terminated_total
+
+# Pod 시작 소요 시간 (Summary, STABLE) — 분위수/합계/건수로 집계
 karpenter_pods_startup_duration_seconds
-karpenter_disruption_queue_depth
-karpenter_nodepool_usage
+
+# NodePool별 프로비저닝된 리소스 양 (Gauge, STABLE)
+karpenter_nodepools_usage
+
+# 스케줄 대기 중인 Pod 수 (Gauge, BETA)
+# 베이스라인의 karpenter_disruption_queue_depth는 레퍼런스에 없는 이름이라 제거함.
+# "중단(disruption) 큐"에 대응하는 문서화된 메트릭은 확인하지 못함.
+karpenter_scheduler_queue_depth
 ```
 
-**CloudWatch 대시보드 업데이트:**
+**CloudWatch 대시보드 (선행 조건: Prometheus 수집 → CloudWatch 변환 설정):**
+
+위 메트릭은 Karpenter가 Prometheus 형식으로 노출합니다. CloudWatch로 보내려면 CloudWatch 에이전트의 Prometheus 스크레이프와 임베디드 메트릭 변환을 먼저 구성해야 하며, 그때 CloudWatch 네임스페이스·차원이 결정됩니다. `AWS/Karpenter`처럼 자동으로 채워지는 네임스페이스는 없습니다. 또한 CloudWatch 에이전트는 Prometheus **Histogram 타입을 버리고**, Counter/Gauge/Summary만 지원합니다(Summary의 sum·count는 Counter처럼 처리). 따라서 아래 위젯은 변환 설정에서 쓰기로 한 네임스페이스·메트릭 이름에 맞춰 바꿔야 하는 예시입니다.
+
 ```yaml
-# CloudWatch Container Insights 위젯 예시
+# 예시 — CloudWatch 변환 설정에서 정의한 네임스페이스/메트릭 이름으로 교체 필요
+# (아래 "ContainerInsights/Karpenter"와 메트릭 이름은 자리표시자이며 자동 생성되지 않음)
 {
   "type": "metric",
   "properties": {
     "metrics": [
-      [ "AWS/Karpenter", "NodesCreated", { "stat": "Sum" } ],
-      [ ".", "NodesTerminated", { "stat": "Sum" } ],
-      [ ".", "PendingPods", { "stat": "Average" } ]
+      [ "ContainerInsights/Karpenter", "karpenter_nodes_created_total", { "stat": "Sum" } ],
+      [ ".", "karpenter_nodes_terminated_total", { "stat": "Sum" } ],
+      [ ".", "karpenter_nodepools_usage", { "stat": "Average" } ]
     ],
     "period": 300,
     "stat": "Average",
     "region": "us-east-1",
-    "title": "Karpenter 노드 오토스케일링"
+    "title": "Karpenter 노드 오토스케일링 (변환 설정 선행 필요)"
   }
 }
 ```
 
 **알람 전환 체크리스트:**
 - [ ] Cluster Autoscaler 알람 비활성화
-- [ ] Karpenter 메트릭 기반 새 알람 생성
-- [ ] 노드 생성 실패 알람 (`karpenter_nodeclaims_created{reason="failed"}`)
-- [ ] Pending Pod 지속 알람 (`karpenter_pods_state{state="pending"} > 5`)
+- [ ] Karpenter 메트릭 기반 새 알람 생성 (아래는 Prometheus 측 알람 기준이며, CloudWatch로 보내려면 위의 변환 설정이 선행되어야 함)
+- [ ] 노드 생성 실패 알람: `karpenter_nodeclaims_created_total`의 `reason`은 생성 사유(`provisioned` 등)이지 성공/실패 상태가 아니므로 `reason="failed"`로 실패를 셀 수 없음. 실패는 문서화된 오류 메트릭으로 측정 — 예: `increase(karpenter_cloudprovider_instance_launch_failures_total[15m]) > 0` 또는 `increase(karpenter_cloudprovider_errors_total{error="InsufficientCapacityError"}[15m]) > 0`
+- [ ] Pending Pod 지속 알람: `karpenter_pods_state`에는 `state` 라벨이 없고 Pod 단계는 `phase` 라벨(`Pending`/`Running` 등)로 노출됨. 이 메트릭은 Pod `name`/`namespace`별로 series가 분리되므로 개수를 세려면 집계가 필요 — 예: `count(karpenter_pods_state{phase="Pending"}) > 5`. 지속 시간은 알람의 `for:` 구간으로, series 누락 처리 정책과 함께 명시
 
 ##### 6단계: 단계별 마이그레이션 전략
 
@@ -1885,7 +1907,12 @@ kubectl describe pdb <pdb-name>
 
 **증상:** Karpenter가 노드를 제거하려 하지만 PDB 때문에 실패하고, 노드가 `cordoned` 상태로 남음
 
-**원인:** PDB가 너무 엄격하여 Karpenter의 Disruption budget과 충돌
+**원인:** `cordoned` 상태 하나만으로는 PDB와 NodePool disruption budget 중 무엇이 원인인지 단정할 수 없습니다. 다음을 함께 확인한 뒤 원인을 판단합니다.
+- 해당 노드의 NodeClaim·Node 이벤트와 조건(교체 노드가 초기화 중인지 포함)
+- 선택된 Pod가 참조하는 PDB의 `status.disruptionsAllowed`가 0인지, 그리고 선택된 Pod의 readiness 상태
+- NodePool `spec.disruption.budgets`가 동시 노드 중단을 제한하고 있는지
+
+PDB가 Pod 수준에서 축출을 막는 경우와 NodePool budget이 노드 수준에서 중단 동시성을 제한하는 경우는 서로 다른 조치가 필요하므로 분리해서 진단합니다.
 
 **해결 방법:**
 
@@ -1935,7 +1962,7 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: high-priority
-value: 1000000  # 높을수록 우선순위 높음 (최대 10억)
+value: 100000  # 높을수록 우선순위 높음 (사용자 정의 최대 1,000,000,000)
 globalDefault: false
 description: "High priority for mission-critical services"
 ```
@@ -1949,8 +1976,8 @@ description: "High priority for mission-critical services"
 | `preemptionPolicy` | Preemption 정책 | `PreemptLowerPriority` (기본) 또는 `Never` |
 | `description` | 설명 | 사용 목적 명시 |
 
-:::warning System PriorityClass 예약 범위
-10억 이상의 값은 Kubernetes 시스템 컴포넌트(kube-system)용으로 예약되어 있습니다. 사용자 정의 PriorityClass는 10억 미만의 값을 사용하세요.
+:::warning System PriorityClass 예약 범위와 예약 이름
+사용자 정의 PriorityClass의 `value`는 **1,000,000,000(10억) 이하**까지 지정할 수 있으며, 이 값은 포함됩니다. 10억보다 큰 값은 시스템 중요 Pod를 위한 내장 PriorityClass용으로 예약되어 있습니다. 또한 PriorityClass 이름은 유효한 DNS 서브도메인이어야 하고 `system-` 접두사로 시작할 수 없습니다. 내장 클래스 `system-node-critical`·`system-cluster-critical`만 이 접두사를 사용합니다. 자세한 규칙은 [Kubernetes Pod Priority and Preemption](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/)을 참조하세요.
 :::
 
 ### 7.2 프로덕션 5-Tier 우선순위 체계 {#72-프로덕션-4-tier-우선순위-체계}
@@ -1958,11 +1985,11 @@ description: "High priority for mission-critical services"
 **권장 우선순위 계층:**
 
 ```yaml
-# Tier 1: Critical System (10억 미만 최고값)
+# Tier 1: Platform Critical (10억 이하 최고값)
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: system-critical
+  name: platform-critical  # 'system-' 접두사는 예약되어 사용 불가
 value: 999999000
 globalDefault: false
 description: "Critical system components (DNS, CNI, monitoring)"
@@ -2005,6 +2032,18 @@ preemptionPolicy: Never  # 다른 Pod를 Preempt하지 않음
 description: "Batch jobs, non-critical background tasks"
 ```
 
+이 다섯 개 클래스가 본 문서 6~7장에서 사용하는 **단일 기준 우선순위 체계**입니다. 아래 매핑을 이름·주석·표·워크로드 예시에 일관되게 적용합니다.
+
+| 이름 | value | 역할 |
+|------|-------|------|
+| `platform-critical` | 999999000 | 플랫폼 핵심 컴포넌트(DNS, CNI, 모니터링) |
+| `business-critical` | 1000000 | 매출 영향 서비스(결제, 체크아웃, 인증) |
+| `high-priority` | 100000 | 중요 서비스(API, 웹 프론트엔드) |
+| `standard-priority` | 10000 | 일반 워크로드 |
+| `low-priority` | 1000 | 배치·비핵심 백그라운드 작업 |
+
+`standard-priority`는 `globalDefault: true`이므로 `priorityClassName`을 지정하지 않은 Pod에 적용됩니다. `globalDefault: true` PriorityClass는 클러스터에 하나만 존재할 수 있습니다. `low-priority`는 `preemptionPolicy: Never`이므로 스케줄링 큐에서 낮은 우선순위 Pod보다 앞서지만 다른 Pod를 선점하지는 않습니다. 내장 클래스 `system-node-critical`·`system-cluster-critical`은 이 체계와 별개이며 그대로 유지합니다. 위 value는 Kubernetes가 강제하는 등급이 아니라 문서상의 정책 선택입니다. 서로 독립적으로 정의된 PriorityClass들을 하나의 설치본처럼 혼용하지 마세요.
+
 **적용 예시:**
 
 ```yaml
@@ -2042,10 +2081,13 @@ spec:
       template:
         spec:
           priorityClassName: low-priority  # 배치 작업은 낮은 우선순위
+          restartPolicy: Never  # Job Pod는 Never 또는 OnFailure만 허용(Deployment 기본값 Always 사용 불가)
           containers:
           - name: cleanup
             image: data-cleanup:v1.0
 ```
+
+Job Pod는 `restartPolicy`로 `Never` 또는 `OnFailure`만 사용할 수 있습니다. Deployment의 기본값인 `Always`는 Job에서 거부됩니다. `Never`는 실패한 시도마다 새 Pod를 생성하고, `OnFailure`는 같은 Pod의 컨테이너를 재시작합니다. 재시도 횟수는 `spec.backoffLimit`로, 작업의 멱등성은 애플리케이션 로직으로 별도 보장합니다. 자세한 규칙은 [Kubernetes Jobs](https://v1-34.docs.kubernetes.io/docs/concepts/workloads/controllers/job/)를 참조하세요.
 
 ### 7.3 Preemption 동작 이해
 
@@ -2122,17 +2164,17 @@ spec:
 
 ### 7.4 PreemptionPolicy: Never
 
-특정 워크로드가 다른 Pod를 Preempt하지 않도록 설정할 수 있습니다:
+특정 워크로드가 다른 Pod를 Preempt하지 않도록 설정할 수 있습니다. 기준 체계의 `low-priority`가 이미 `preemptionPolicy: Never`로 정의되어 있으므로, 아래처럼 같은 클래스를 참조합니다. (7.2에서 `value: 1000`으로 정의한 것과 동일한 클래스입니다.)
 
 ```yaml
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: batch-job
-value: 5000
+  name: low-priority
+value: 1000
 globalDefault: false
 preemptionPolicy: Never  # 다른 Pod를 Preempt하지 않음
-description: "Batch jobs that wait for available resources"
+description: "Batch jobs, non-critical background tasks"
 ```
 
 **사용 사례:**
@@ -2193,19 +2235,21 @@ kubectl get pods -n production \
 
 #### 권장 조합 매트릭스
 
-아래 매트릭스는 워크로드 정책 예시입니다. priority 값과 이름은 실제 클러스터의 PriorityClass에 맞춰야 하며, 표는 실측 생존율이나 비용 순위를 나타내지 않습니다.
+아래 매트릭스는 워크로드 정책 예시이며, "Priority 정책" 열은 7.2 기준 체계의 PriorityClass 이름을 사용합니다. 표는 실측 생존율이나 비용 순위를 나타내지 않습니다.
 
-| 조합 | Priority 정책 | QoS | 스케줄링 판단 | 메모리 pressure 판단 | 워크로드 예시 |
+| 조합 | Priority 정책(클래스) | QoS | 스케줄링 판단 | 메모리 pressure 판단 | 워크로드 예시 |
 |------|----------|-----|-----------------|-------------|------|
-| **Tier 1** | critical | Guaranteed | 높은 우선순위지만 배치 가능 조건 필요 | 양수인 request/limit이 일치해도 OOM·eviction 가능 | 결제 시스템, DB |
-| **Tier 2** | high | Guaranteed | critical 정책보다 낮음 | 같은 QoS 분류에 다른 priority 적용 | API 게이트웨이 |
-| **Tier 3** | standard | Burstable | 일반 정책 | 실제 사용량과 request를 비교 | 프론트엔드, 백오피스 |
-| **Tier 4** | low | Burstable | 낮은 우선순위 정책 | 낮은 priority로 eviction·선점 가능성 증가 | 내부 도구 |
-| **Tier 5** | batch | BestEffort | 이 예시에서 가장 낮은 정책 | 메모리 사용량이 request를 초과 | 재시도 가능한 배치, CI/CD |
+| **Tier 1** | `business-critical` | Guaranteed | 높은 우선순위지만 배치 가능 조건 필요 | 양수인 request/limit이 일치해도 OOM·eviction 가능 | 결제 시스템, DB |
+| **Tier 2** | `high-priority` | Guaranteed | business-critical보다 낮음 | 같은 QoS 분류에 다른 priority 적용 | API 게이트웨이 |
+| **Tier 3** | `standard-priority` | Burstable | 일반 정책 | 실제 사용량과 request를 비교 | 프론트엔드, 백오피스 |
+| **Tier 4** | `low-priority` | Burstable | 낮은 우선순위 정책 | 낮은 priority로 eviction·선점 가능성 증가 | 내부 도구 |
+| **Tier 5** | `low-priority` (배치 재사용) | BestEffort | 이 예시에서 가장 낮은 정책 | 메모리 사용량이 request를 초과 | 재시도 가능한 배치, CI/CD |
+
+Tier 4와 Tier 5는 같은 `low-priority` 클래스를 사용하되 QoS 구성(Burstable 대 BestEffort)으로 구분합니다.
 
 **조합별 상세 설명:**
 
-##### Tier 1: Guaranteed + critical-priority (최고 보장)
+##### Tier 1: Guaranteed + business-critical (최고 보장) {#tier-1-guaranteed--critical-priority-최고-보장}
 
 **특징:**
 - 낮은 priority Pod를 제거해 배치가 가능해지는 경우 높은 priority가 선점에 사용될 수 있음
@@ -2232,7 +2276,7 @@ spec:
         app: payment-gateway
         tier: critical
     spec:
-      priorityClassName: critical-priority  # Priority: 10000
+      priorityClassName: business-critical  # Priority: 1000000
       containers:
       - name: gateway
         image: payment-gateway:v3.5
@@ -2262,7 +2306,7 @@ metadata:
   name: payment-gateway-pdb
   namespace: production
 spec:
-  minAvailable: 4  # 6개 중 최소 4개 항상 유지
+  minAvailable: 4  # PDB를 존중하는 자발적 축출 시 healthy 선택 Pod를 최소 4개 요구; 비자발적 장애·직접 삭제는 막지 못함
   selector:
     matchLabels:
       app: payment-gateway
@@ -2299,7 +2343,7 @@ spec:
       labels:
         app: api-server
     spec:
-      priorityClassName: high-priority  # Priority: 5000
+      priorityClassName: high-priority  # Priority: 100000
       containers:
       - name: api
         image: api-server:v2.8
@@ -2346,7 +2390,7 @@ spec:
       labels:
         app: web-frontend
     spec:
-      priorityClassName: standard-priority  # Priority: 1000
+      priorityClassName: standard-priority  # Priority: 10000
       containers:
       - name: frontend
         image: web-frontend:v1.12
@@ -2393,7 +2437,7 @@ spec:
       labels:
         app: monitoring-agent
     spec:
-      priorityClassName: low-priority  # Priority: 500
+      priorityClassName: low-priority  # Priority: 1000
       containers:
       - name: agent
         image: monitoring-agent:v2.1
@@ -2412,7 +2456,7 @@ spec:
 - 메트릭 Exporter
 - 개발 도구
 
-##### Tier 5: BestEffort + batch-priority (배치 작업)
+##### Tier 5: BestEffort + low-priority (배치 작업) {#tier-5-besteffort--batch-priority-배치-작업}
 
 **특징:**
 - 이 예시에는 CPU·메모리 request/limit이 없으며 리소스 경합이 발생할 수 있음
@@ -2433,7 +2477,7 @@ spec:
     spec:
       template:
         spec:
-          priorityClassName: batch-priority  # Priority: 100
+          priorityClassName: low-priority  # Priority: 1000
           restartPolicy: OnFailure
           containers:
           - name: etl
@@ -2567,8 +2611,10 @@ evictionMaxPodGracePeriod: 60
 
 **패턴 1: Multi-Tier 아키텍처**
 
+아래 매니페스트는 Priority + QoS 조합을 보여주는 예시입니다. `replicas: 3`이나 세 개의 Pod가 그 자체로 복제된 고가용성 데이터베이스를 구성하지는 않습니다. PostgreSQL 복제는 별도 operator·headless Service·스토리지·백업/장애조치 구성이 필요합니다. 아래 label·image 값은 일관성을 위해 제시한 작성 예시이며 실제 배포에서 발견한 값이 아닙니다. 기존 컨트롤러의 `selector`는 변경할 수 없으므로 Service·PDB selector를 선택한 label에 맞춰 조정합니다.
+
 ```yaml
-# Tier 1: Database (Guaranteed + critical)
+# Tier 1: Database (Guaranteed + business-critical)
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -2576,9 +2622,15 @@ metadata:
 spec:
   serviceName: postgres
   replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
   template:
+    metadata:
+      labels:
+        app: postgres
     spec:
-      priorityClassName: critical-priority
+      priorityClassName: business-critical
       containers:
       - name: postgres
         image: postgres:16
@@ -2590,49 +2642,70 @@ spec:
             cpu: "4"
             memory: 16Gi
 ---
-# Tier 2: API Server (Guaranteed + high)
+# Tier 2: API Server (Guaranteed + high-priority)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-server
 spec:
   replicas: 10
+  selector:
+    matchLabels:
+      app: api-server
   template:
+    metadata:
+      labels:
+        app: api-server
     spec:
       priorityClassName: high-priority
       containers:
       - name: api
+        image: api-server:v2.8
         resources:
           requests: { cpu: "1", memory: 2Gi }
           limits: { cpu: "1", memory: 2Gi }
 ---
-# Tier 3: Frontend (Burstable + standard)
+# Tier 3: Frontend (Burstable + standard-priority)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
 spec:
   replicas: 8
+  selector:
+    matchLabels:
+      app: frontend
   template:
+    metadata:
+      labels:
+        app: frontend
     spec:
       priorityClassName: standard-priority
       containers:
       - name: frontend
+        image: web-frontend:v1.12
         resources:
           requests: { cpu: "500m", memory: 1Gi }
           limits: { cpu: "2", memory: 4Gi }
 ---
-# Tier 4: Monitoring (Burstable + low)
+# Tier 4: Monitoring (Burstable + low-priority)
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: node-exporter
 spec:
+  selector:
+    matchLabels:
+      app: node-exporter
   template:
+    metadata:
+      labels:
+        app: node-exporter
     spec:
       priorityClassName: low-priority
       containers:
       - name: exporter
+        image: node-exporter:v1.8
         resources:
           requests: { cpu: "100m", memory: 128Mi }
           limits: { cpu: "200m", memory: 256Mi }
@@ -2658,7 +2731,7 @@ kubectl describe node <node-name> | grep -A 10 "Non-terminated Pods"
 | 증상 | 원인 | 해결 방법 |
 |------|------|----------|
 | Guaranteed Pod가 OOM Kill됨 | limits 설정이 너무 낮음 | 메모리 프로파일링 후 limits 상향 |
-| Burstable Pod가 CPU 스로틀링 | limits 도달, 노드 리소스 부족 | requests 상향 또는 노드 추가 |
+| Burstable Pod가 CPU 스로틀링 | CPU limit(CFS quota) 도달, 또는 노드 CPU 경합 | limit·quota와 스로틀링 메트릭을 확인해 적절한 limit·스케일링 정책을 선택(quota 원인). 노드 수요와 request/share 배분을 확인해 request 재산정·용량 추가(경합 원인). request만 올려도 변경하지 않은 CPU limit은 올라가지 않음 |
 | Low-priority Pod가 계속 Pending | High-priority Pod가 리소스 독점 | 노드 추가 또는 Priority 재조정 |
 | BestEffort Pod가 즉시 종료됨 | Eviction 임계값 도달 | Burstable로 전환, requests 설정 |
 
@@ -2714,7 +2787,9 @@ helm install descheduler descheduler/descheduler \
 
 #### 전략 1: RemoveDuplicates
 
-**목적**: 같은 Controller(ReplicaSet, Deployment)의 Pod가 한 노드에 중복 배치된 경우, 분산시킴
+**목적**: 같은 소유자(ReplicaSet, ReplicationController, StatefulSet, Job)에 속한 Pod가 한 노드에 2개 이상 배치된 경우, 중복 Pod를 Evict하여 분산시킵니다. (출처: descheduler v0.34.0 `RemoveDuplicates`)
+
+Deployment는 ReplicaSet을 통해 Pod를 생성하므로, Deployment replica의 소유자 종류는 `ReplicaSet`입니다. descheduler 문서에 따르면 **`excludeOwnerKinds`에 나열된 종류를 소유자로 가진 Pod는 Evict 대상에서 제외**됩니다. 따라서 Deployment replica를 재분산하려면 `excludeOwnerKinds`에 `ReplicaSet`을 **포함하지 않아야** 합니다. 아래 예시는 StatefulSet Pod만 제외하여 Deployment/ReplicaSet Pod가 재분산 대상이 되도록 합니다.
 
 ```yaml
 apiVersion: v1
@@ -2731,9 +2806,9 @@ data:
         pluginConfig:
         - name: RemoveDuplicates
           args:
-            # 노드당 같은 Controller의 Pod 1개만 유지
+            # 지정한 소유자 종류의 Pod는 Evict 대상에서 제외
+            # (ReplicaSet을 넣으면 Deployment Pod가 제외되므로 넣지 않음)
             excludeOwnerKinds:
-            - "ReplicaSet"
             - "StatefulSet"
         plugins:
           balance:
@@ -2741,7 +2816,7 @@ data:
             - RemoveDuplicates
 ```
 
-**효과**: 같은 Deployment의 replica가 여러 개 한 노드에 있으면, 일부를 Evict하여 다른 노드로 분산
+**효과**: 같은 Deployment(ReplicaSet)의 replica가 한 노드에 2개 이상 있으면 일부가 Evict 후보가 됩니다. 실제 Evict 여부는 DefaultEvictor 필터와 PDB가, 재배치 위치는 kube-scheduler가 결정하며, 이 플러그인은 교체 Pod를 특정 노드에 직접 바인딩하지 않습니다.
 
 #### 전략 2: LowNodeUtilization
 
@@ -2778,11 +2853,12 @@ data:
             - LowNodeUtilization
 ```
 
-**동작:**
-1. CPU/Memory/Pod 수가 20% 미만인 노드 식별 (underutilized)
-2. 50% 이상인 노드 식별 (overutilized)
-3. overutilized 노드에서 Pod를 Evict
-4. Kubernetes 스케줄러가 underutilized 노드에 재배치
+**동작:** (출처: descheduler v0.34.0 `LowNodeUtilization`)
+1. 각 노드의 사용률을 계산합니다. 기본값은 **노드에 스케줄된 Pod의 리소스 요청량(requests) 합계 ÷ 노드 할당 가능(allocatable) 용량**이며, 관측된 실제 CPU/메모리 사용량이 아닙니다. 실제 사용량 기반으로 동작시키려면 `metricsUtilization.source`를 `KubernetesMetrics`로 설정하고 metrics 공급자를 별도로 구성해야 합니다.
+2. 설정한 모든 차원(cpu, memory, pods 등)이 `thresholds` **미만**인 노드를 underutilized로 식별합니다.
+3. 설정한 차원 중 **하나라도** `targetThresholds`를 **초과**하는 노드를 overutilized로 식별합니다. 두 기준 사이의 노드는 Evict 대상이 아닙니다.
+4. underutilized 노드와 overutilized 노드가 모두 1개 이상일 때만 동작하며, overutilized 노드에서 Pod를 Evict합니다. overutilized 노드당 한 번에 최대 1개 Pod만 Evict됩니다.
+5. Evict된 Pod는 kube-scheduler가 재스케줄링합니다. underutilized 노드로의 재배치는 기대 효과일 뿐 보장되지 않으며, 스케줄러가 가용한 노드를 독립적으로 선택합니다.
 
 #### 전략 3: RemovePodsViolatingNodeAffinity
 
@@ -2835,7 +2911,7 @@ data:
             - RemovePodsViolatingInterPodAntiAffinity
 ```
 
-**시나리오**: 초기에는 노드가 충분하여 Anti-Affinity 만족 → 노드 축소로 같은 노드에 위반 Pod 배치 → 노드 추가 후 Descheduler가 재배치
+**시나리오**: `requiredDuringSchedulingIgnoredDuringExecution` Anti-Affinity는 스케줄링 시점에만 강제되고 실행 중에는 무시됩니다(`IgnoredDuringExecution`). 따라서 노드 축소만으로 새 Pod가 하드 Anti-Affinity를 위반하도록 배치될 수는 없습니다. 대신 실행 중 Pod 또는 노드의 레이블이 변경되면 이미 실행 중인 Pod가 현재의 Anti-Affinity 조건과 어긋난 상태가 될 수 있고, 이때 descheduler가 그 기존 위반 Pod를 Evict하여 조건에 맞는 재스케줄링을 유도합니다. (출처: descheduler v0.34.0 `RemovePodsViolatingInterPodAntiAffinity`; Kubernetes v1.34 Assigning Pods to Nodes)
 
 #### 전략 5: RemovePodsHavingTooManyRestarts
 
@@ -2866,7 +2942,7 @@ data:
 
 #### 전략 6: PodLifeTime
 
-**목적**: 오래된 Pod를 제거하여 최신 이미지/설정으로 교체
+**목적**: 설정한 수명(`maxPodLifeTimeSeconds`)을 초과한 Pod를 Evict합니다. (출처: descheduler v0.34.0 `PodLifeTime`) Evict 후에는 소유 컨트롤러(Deployment, StatefulSet 등)가 **현재 Pod 템플릿**을 기준으로 Pod를 다시 생성합니다. 따라서 이것 자체는 이미지/설정 업데이트 수단이 아닙니다. 템플릿이 변경되지 않았다면 동일한 이미지/설정으로 재생성되고, 이미지 태그가 가변(mutable)이고 `imagePullPolicy: Always`인 경우에만 재생성 시 다른 이미지가 당겨질 수 있는데 이는 버전 롤아웃을 보장하는 신뢰할 수 있는 방법이 아닙니다. 실제 버전 교체는 Deployment 템플릿을 변경하는 명시적 롤아웃으로 수행해야 합니다.
 
 ```yaml
 apiVersion: v1
@@ -2923,8 +2999,16 @@ Descheduler는 Pod 재배치에 특화되고, Karpenter는 노드 관리에 특�
 
 **함께 사용하는 설정 예시:**
 
+아래 두 매니페스트는 **이미 설치된** descheduler와 Karpenter가 있다고 가정한 설정 예시이며, 그대로 적용 가능한 완전한 설치 매니페스트가 아닙니다. descheduler CronJob이 동작하려면 다음이 추가로 필요합니다.
+
+- 정책 파일을 담은 ConfigMap(`policy.yaml` 키)과 이를 컨테이너의 `--policy-config-file` 경로에 마운트하는 volume/volumeMount
+- 같은 네임스페이스의 ServiceAccount와, 노드·Pod 조회 및 eviction 생성을 허용하는 RBAC(ClusterRole/ClusterRoleBinding)
+- 사용하는 descheduler 이미지·차트·정책 스키마 버전을 하나로 맞춘 조합. 이 문서는 정책 스키마를 descheduler **v0.34.0** 기준으로 설명하므로, 이미지도 그와 호환되는 버전을 핀으로 고정해야 합니다. (아래 예시 이미지 태그는 플레이스홀더이며 실제 배포 시 사용 버전으로 교체하세요.)
+
+Karpenter NodePool은 `template.spec.nodeClassRef`로 실제 EC2NodeClass를 참조해야 하며, 아래 조각은 disruption 설정만 보여 주는 부분 예시입니다.
+
 ```yaml
-# Descheduler: 15분마다 균형 조정
+# Descheduler: 15분마다 균형 조정 (설치 예시가 아닌 설정 조각)
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -2936,14 +3020,24 @@ spec:
     spec:
       template:
         spec:
+          serviceAccountName: descheduler  # 노드/Pod 조회·eviction 권한을 가진 SA
+          restartPolicy: Never
           containers:
           - name: descheduler
-            image: registry.k8s.io/descheduler/descheduler:v0.29.0
+            # 플레이스홀더 태그. 정책 스키마(v0.34.0)와 호환되는 버전으로 고정하세요.
+            image: registry.k8s.io/descheduler/descheduler:v0.34.0
             command:
             - /bin/descheduler
             - --policy-config-file=/policy/policy.yaml
+            volumeMounts:
+            - name: policy
+              mountPath: /policy
+          volumes:
+          - name: policy
+            configMap:
+              name: descheduler-policy  # policy.yaml 키 포함
 ---
-# Karpenter: 지속적 노드 통합
+# Karpenter v1: 지속적 노드 통합 (nodeClassRef 등 나머지 필드는 별도 구성 필요)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -2951,14 +3045,24 @@ metadata:
 spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 5m  # 5분 후 통합 시작
+    consolidateAfter: 5m  # 노드에 Pod가 추가/삭제된 후 5분 동안 안정되면 통합 후보
     budgets:
     - nodes: "20%"
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default  # 사전에 생성된 EC2NodeClass 이름
+      requirements:
+      - key: kubernetes.io/arch
+        operator: In
+        values: ["amd64"]
 ```
 
 #### 8.4.1 Descheduler + Karpenter 실전 조합 패턴
 
-Descheduler와 Karpenter를 함께 사용하면 Pod 재배치와 노드 통합이 자동으로 조율되어 클러스터 효율성과 비용 절감을 동시에 달성할 수 있습니다.
+Descheduler와 Karpenter는 서로를 인지하지 않는 **독립적인 컨트롤러**입니다. 따라서 둘을 함께 쓴다고 자동으로 조율되지는 않습니다. 각자 자신의 정책(descheduler 정책, Karpenter disruption 설정)에 따라 독립적으로 동작하며, 제안하는 구성은 다음과 같습니다: descheduler가 조건에 맞는 Pod를 Evict하고, kube-scheduler가 재배치 위치를 결정하며, Karpenter가 그와 별개로 노드 프로비저닝·통합을 평가합니다. 타이밍이 맞지 않으면 Pod가 반복 이동(churn)하거나 통합이 실패할 수 있습니다. 효율성·비용 개선은 보장된 효과가 아니라 각 환경에서 측정해야 할 결과입니다.
 
 **조합의 시너지 원리:**
 
@@ -3014,9 +3118,9 @@ metadata:
 spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 5m  # Descheduler가 Pod를 이동시킨 후 5분 대기
+    consolidateAfter: 5m  # 노드에 Pod가 추가/삭제된 후 (원인과 무관하게) 타이머가 리셋되며, 5분간 변화가 없어야 통합 후보가 됨
     budgets:
-    - nodes: "20%"  # 동시에 최대 20% 노드만 통합
+    - nodes: "20%"  # 동시 중단 허용치 = ceil(전체 노드 수 × 0.20) − 삭제 중·NotReady 노드. 반올림(올림) 때문에 정확히 20%를 초과할 수 있음
   template:
     spec:
       requirements:
@@ -3039,12 +3143,16 @@ spec:
 시간: 00:01 - Kubernetes Scheduler 재배치
   └─ Pod-1 → Node-B로 스케줄링
   └─ Pod-2 → Node-C로 스케줄링
-  └─ Node-A는 이제 CPU 50%, Memory 55% (정상 범위)
+  └─ Node-A는 이제 CPU 50%, Memory 55% (예시 값)
+     ※ `targetThresholds`를 50으로 둔 경우 Memory 55%는 여전히 기준 초과입니다.
+       CPU 50%는 "초과(above)"가 아니라 경계값이므로 CPU만으로는 overutilized가 아닙니다.
 
-시간: 00:06 - Karpenter 통합 (5분 경과)
-  └─ Node-B: 여전히 저활용 상태지만 Pod 실행 중 → 유지
+시간: 00:06 - Karpenter 통합 (consolidateAfter 경과, 예시 이벤트)
+  └─ Node-B: 저활용 상태이며 Pod 실행 중 → WhenEmptyOrUnderutilized 정책에서는
+     비어 있지 않은 저활용 노드도 시뮬레이션·disruption 제약이 허용하면 통합 대상이 될 수 있음
   └─ Node-D: 빈 노드 감지 (이전에 Pod가 있었으나 이동) → 종료
-  └─ 비용 절감 달성
+  └─ 위 타임라인(00:01/00:06)과 비용 절감 효과는 측정값이 아닌 가상 예시이며,
+     실제 동작은 사용률 입력·스케줄링 시뮬레이션·타이밍·과금에 따라 달라집니다
 ```
 
 **PDB와의 상호작용:**
@@ -3104,9 +3212,9 @@ kubectl get pdb -A
 |------|------|
 | **자동 균형 조정** | Descheduler가 리소스 불균형 자동 해소 |
 | **비용 최적화** | Karpenter가 불필요한 노드 제거 |
-| **안전성 보장** | PDB 존중으로 서비스 중단 방지 |
-| **운영 부담 감소** | 수동 개입 없이 자동 조율 |
-| **확장성** | 클러스터 규모에 관계없이 동작 |
+| **안전성 보장** | PDB와 disruption budget을 존중하는 **자발적(voluntary) eviction**을 제한합니다. 비자발적 장애(스팟 회수, 하드웨어 장애 등)나 모든 중단을 막지는 못합니다. |
+| **운영 부담 감소** | 두 컨트롤러는 독립적이므로, 정책 조율·관측·튜닝이 여전히 필요합니다. |
+| **확장성** | 용량·컨트롤러 한계와 동작은 대상 워크로드에서 검증해야 하며, 규모와 무관하게 보장되지 않습니다. |
 
 ---
 
@@ -3126,7 +3234,7 @@ kubectl get pdb -A
 | **캐시 (Redis)** | Memory 최적화 노드 (r6i) | Hard (노드 분산) | Hard (AZ 분산) | - | `high-priority` | `minAvailable: 2` | Persistence 설정 |
 | **배치 작업** | Spot 노드 허용 | - | - | Spot Tolerate | `low-priority`, `preemptionPolicy: Never` | - | 재시작 가능 설계 |
 | **CI/CD Runner** | Spot 노드 선호 | - | - | Spot Tolerate | `low-priority` | - | Ephemeral 작업 |
-| **로그 수집 (DaemonSet)** | 수집 대상 노드 | - | - | 노드·에이전트에 필요한 toleration만 | `system-critical` | - | `hostPath` 사용 |
+| **로그 수집 (DaemonSet)** | 수집 대상 노드 | - | - | 노드·에이전트에 필요한 toleration만 | `platform-critical` | - | `hostPath` 사용 |
 | **Ingress Controller** | On-Demand | Hard (노드 분산) | Hard (AZ 분산) | - | `high-priority` | `minAvailable: 2` | NodePort / LB 구성 |
 | **모니터링 (Prometheus)** | 전용 모니터링 노드 | Soft (노드 분산) | Soft (AZ 분산) | 모니터링 Taint Tolerate | `high-priority` | `minAvailable: 1` | 대용량 스토리지 |
 | **웹 프론트엔드** | ARM 노드 가능 | Soft (노드 분산) | Hard (AZ 분산) | - | `standard-priority` | `minAvailable: "50%"` | CDN 통합 |
@@ -3298,12 +3406,18 @@ spec:
       restartPolicy: OnFailure
 ```
 
+:::warning 공유 PVC는 다중 노드 접근을 보장하지 않습니다
+위 예시에서 모든 Job Pod가 `training-data`·`model-checkpoints` PVC를 참조하지만, PVC 이름을 공유한다고 해서 여러 노드의 Pod가 같은 볼륨을 동시에 읽고 쓸 수 있는 것은 아닙니다. 동시 다중 노드 접근 가능 여부는 PVC/PV의 [접근 모드](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes)와 CSI 드라이버의 지원 범위로 결정됩니다. `ReadWriteOnce`(RWO) 볼륨은 한 번에 하나의 노드에만 마운트되므로, 서로 다른 노드에 분산된 학습 Pod가 공유할 수 없습니다. 예시의 EBS 기반 StorageClass처럼 RWO만 지원하는 스토리지에서는 이 매니페스트가 그대로 동작하지 않습니다.
+
+다중 노드 학습에서는 다음 두 가지를 분리해 설계하는 것이 안전합니다. 첫째, 학습 데이터는 읽기 전용 배포(예: `ReadOnlyMany`를 지원하는 공유 파일 시스템 또는 각 노드가 객체 스토리지에서 내려받는 방식)로 다룹니다. 둘째, 체크포인트 쓰기는 동시 쓰기 충돌을 피하도록 조정합니다. 구체적으로는 랭크 0 프로세스만 기록하거나, Pod·랭크별로 분리된 경로에 기록한 뒤 외부에서 병합하는 프로토콜이 필요합니다. 이 예시는 실제 스토리지 접근 모드·CSI 역량·가용 영역 배치·체크포인트 소유권과 원자성·복원 테스트 증거를 포함하지 않으므로, 다중 노드 공유 스토리지 설계로 검증된 것이 아니라 구조 예시로만 사용하십시오.
+:::
+
 **Multi-Instance GPU (MIG) 활용:**
 
-NVIDIA A100, A30 등의 GPU는 MIG를 지원하여 하나의 GPU를 여러 독립적인 인스턴스로 분할할 수 있습니다.
+NVIDIA A100, A30, H100 등 컴퓨트 능력(compute capability) 8.0 이상의 데이터센터 GPU는 MIG를 지원하여 하나의 GPU를 여러 독립적인 인스턴스로 분할할 수 있습니다. 반면 EC2 G5 인스턴스가 사용하는 NVIDIA A10G는 [MIG 지원 GPU 목록](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/supported-gpus.html)에 포함되지 않으므로 MIG로 분할할 수 없습니다. 따라서 아래 예시와 프로파일 표는 앞 절의 G5/A10G NodePool 예시와는 별개의 GPU 계열(A100-40GB)에 해당합니다.
 
 ```yaml
-# MIG 프로파일 요청 예시 (A100 GPU)
+# MIG 프로파일 요청 예시 (A100-40GB GPU)
 apiVersion: v1
 kind: Pod
 metadata:
@@ -3314,14 +3428,16 @@ spec:
     image: ml/inference:v1.0
     resources:
       requests:
-        nvidia.com/mig-1g.5gb: 1  # 1/7 A100 (1 GPU slice, 5GB memory)
+        nvidia.com/mig-1g.5gb: 1  # A100-40GB 1개 instance (compute 1/7, 메모리 5GB)
       limits:
         nvidia.com/mig-1g.5gb: 1
 ```
 
-**MIG 프로파일:**
+**MIG 프로파일(A100-40GB 기준):**
 
-| MIG 프로파일 | GPU Slice | 메모리 | 사용 사례 |
+아래 표의 `GPU Slice`는 해당 프로파일이 사용하는 컴퓨트(SM) 비율을 나타내며, 메모리 비율과는 다를 수 있습니다. 각 프로파일이 노출하는 리소스 이름(`nvidia.com/mig-<profile>`)과 실제 분할 결과는 GPU 모델, 드라이버 버전, device plugin의 MIG 전략 설정에 따라 달라집니다. 다른 GPU 모델(A100-80GB, A30, H100 등)은 메모리 용량과 사용 가능한 프로파일 집합이 다르므로 아래 값을 그대로 적용할 수 없습니다.
+
+| MIG 프로파일 | 컴퓨트(SM) 비율 | 메모리 | 사용 사례 |
 |-------------|-----------|--------|----------|
 | `mig-1g.5gb` | 1/7 | 5GB | 소형 추론 |
 | `mig-2g.10gb` | 2/7 | 10GB | 중형 추론 |
@@ -3342,48 +3458,43 @@ Kubernetes 1.34+에서는 Dynamic Resource Allocation(DRA)을 통해 GPU 등의 
 | 제한적 공유 | 동적 공유/분할 |
 | 노드 재시작 필요 | 런타임 재구성 |
 
-**DRA ResourceClass 및 ResourceClaim 예시:**
+**DRA DeviceClass 및 ResourceClaim 예시 (Kubernetes v1.34, `resource.k8s.io/v1`):**
+
+Kubernetes v1.34에서 DRA 핵심 API(`DeviceClass`, `ResourceClaim`, `ResourceClaimTemplate`, `ResourceSlice`)는 모두 `resource.k8s.io/v1` 그룹에 속하며 GA 상태로 기본 활성화됩니다. 이전 설계에서 쓰이던 `ResourceClass`·`resource.k8s.io/v1alpha4`·`driverName`·`parametersRef` 같은 필드는 이 API에 존재하지 않습니다. 대신 다음과 같이 역할이 나뉩니다. `DeviceClass`는 선택 가능한 장치 범주를 정의하고 CEL 식으로 장치 속성을 거릅니다. `ResourceClaim`(또는 Pod별 생성용 `ResourceClaimTemplate`)은 그 DeviceClass에서 장치를 요청합니다. Pod는 `spec.resourceClaims`로 클레임을 참조하고, 컨테이너는 `resources.claims`로 그 클레임을 사용합니다.
+
+:::warning 전제 조건과 검증 한계
+DRA가 실제로 장치를 할당하려면 **DRA 호환 드라이버가 설치되어 ResourceSlice를 게시**해야 합니다. GPU의 경우 NVIDIA가 제공하는 것과 같은 DRA 드라이버가 필요합니다. 아래 예시의 `driver` 값(`gpu.example.com`)과 CEL 속성(`gpu.example.com/*`)은 **설명용 자리표시자**이며, 실제 드라이버가 게시하는 `driver` 이름·장치 속성·용량으로 교체하기 전에는 동작하지 않습니다. 사용 중인 EKS 버전의 DRA 지원 여부, 드라이버가 지원하는 GPU/AMI/런타임 조합은 별도로 확인해야 합니다. 이 매니페스트는 구조(API shape) 예시이며 특정 NVIDIA A100/MIG 지원이 검증된 것이 아닙니다.
+:::
 
 ```yaml
-# ResourceClass: GPU 리소스 클래스 정의
-apiVersion: resource.k8s.io/v1alpha4
-kind: ResourceClass
+# DeviceClass: 선택 가능한 GPU 장치 범주 정의 (클러스터 관리자 또는 드라이버가 생성)
+apiVersion: resource.k8s.io/v1
+kind: DeviceClass
 metadata:
-  name: nvidia-a100-gpu
+  name: nvidia-gpu
 spec:
-  driverName: gpu.nvidia.com
-  parameters:
-    apiVersion: gpu.nvidia.com/v1alpha1
-    kind: GpuConfig
-    memory: "40Gi"
-    computeCapability: "8.0"  # A100
-    migEnabled: true
+  # CEL 식으로 드라이버/속성을 거릅니다. 아래 값은 자리표시자이며
+  # 실제 DRA 드라이버가 게시하는 driver 이름과 속성 키로 교체해야 합니다.
+  selectors:
+  - cel:
+      expression: device.driver == "gpu.example.com"
 ---
-# ResourceClaim: GPU 리소스 요청
-apiVersion: resource.k8s.io/v1alpha4
+# ResourceClaim: DeviceClass에서 장치 1개 요청
+apiVersion: resource.k8s.io/v1
 kind: ResourceClaim
 metadata:
   name: ml-training-gpu
   namespace: ml-team
 spec:
-  resourceClassName: nvidia-a100-gpu
-  parametersRef:
-    apiGroup: gpu.nvidia.com
-    kind: GpuClaimParameters
-    name: training-params
+  devices:
+    requests:
+    - name: gpu
+      exactly:
+        deviceClassName: nvidia-gpu
+        allocationMode: ExactCount
+        count: 1
 ---
-# GpuClaimParameters: 세부 요구사항
-apiVersion: gpu.nvidia.com/v1alpha1
-kind: GpuClaimParameters
-metadata:
-  name: training-params
-  namespace: ml-team
-spec:
-  count: 1  # GPU 1개
-  migProfile: "mig-3g.20gb"  # MIG 프로파일 지정
-  sharing: "TimeSlicing"  # 시간 분할 공유 허용
----
-# Pod: ResourceClaim 사용
+# Pod: ResourceClaim 참조 및 컨테이너에서 사용
 apiVersion: v1
 kind: Pod
 metadata:
@@ -3399,13 +3510,11 @@ spec:
     resources:
       claims:
       - name: gpu-claim
-    env:
-    - name: CUDA_VISIBLE_DEVICES
-      value: "0"
+        request: gpu
 ```
 
 :::info DRA 도입 시기
-DRA 코어는 Kubernetes 1.34에서 GA되었습니다 (`resource.k8s.io/v1`, 기본 활성화). 프로덕션 사용 가능하며, 현재는 기존 Device Plugin 방식과 병행 사용 가능합니다.
+DRA 코어는 Kubernetes 1.34에서 GA되었습니다 (`resource.k8s.io/v1`, 기본 활성화). 프로덕션 사용 가능하며, 현재는 기존 Device Plugin 방식과 병행 사용 가능합니다. MIG 프로파일 지정이나 시간 분할 공유 같은 벤더별 설정은 DRA 코어 API가 아니라 설치한 DRA 드라이버가 노출하는 장치 속성·구성으로 표현되므로, 사용 중인 드라이버 문서를 확인하십시오.
 :::
 
 #### 9.2.3 AI 학습 vs 추론 스케줄링 전략
@@ -3439,6 +3548,7 @@ metadata:
 spec:
   parallelism: 8
   completions: 8
+  completionMode: Indexed  # 각 Pod에 0..7 완료 인덱스를 부여하여 노드 랭크로 사용
   template:
     metadata:
       labels:
@@ -3475,14 +3585,27 @@ spec:
           limits:
             nvidia.com/gpu: 4
         env:
+        # torchrun이 랑데부(rendezvous)에 사용할 값. MASTER_ADDR는 모든 Pod에서
+        # 동일하게 해석되는 헤드리스 Service DNS 이름이어야 합니다(아래 Service 참고).
         - name: MASTER_ADDR
-          value: "distributed-training-master"
-        - name: WORLD_SIZE
-          value: "8"  # 총 8개 프로세스
-        - name: RANK
+          value: "distributed-training.ml-team.svc.cluster.local"
+        - name: MASTER_PORT
+          value: "29500"
+        # 노드(=Pod) 랭크는 Indexed Job이 주입하는 완료 인덱스(0..7)에서 가져옵니다.
+        - name: NODE_RANK
           valueFrom:
             fieldRef:
-              fieldPath: metadata.name
+              fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+        command: ["torchrun"]
+        # 8개 Pod × Pod당 4 프로세스(=GPU 1개당 1 프로세스) → 전역 프로세스 수(WORLD_SIZE) 32.
+        # torchrun이 각 프로세스의 전역 RANK(0..31)와 LOCAL_RANK, WORLD_SIZE를 설정합니다.
+        args:
+        - "--nnodes=8"
+        - "--nproc-per-node=4"
+        - "--node-rank=$(NODE_RANK)"
+        - "--master-addr=$(MASTER_ADDR)"
+        - "--master-port=$(MASTER_PORT)"
+        - "train.py"
         volumeMounts:
         - name: checkpoints
           mountPath: /checkpoints
@@ -3493,17 +3616,25 @@ spec:
       restartPolicy: OnFailure
 ```
 
+:::warning 분산 학습 랑데부 계약은 명시적으로 지정해야 합니다
+원래 예시는 각 프로세스의 `RANK`에 Pod 이름 문자열(`metadata.name`)을 주입했는데, PyTorch 분산(c10d)의 `RANK`는 `0`부터 `WORLD_SIZE-1`까지의 **정수**여야 하고 프로세스마다 고유해야 하므로 그대로는 동작하지 않습니다. 또한 `WORLD_SIZE`는 Pod 수가 아니라 **전체 프로세스 수**입니다. Pod 8개가 각각 GPU 4개를 1 프로세스씩 사용하면 프로세스는 32개이므로 `WORLD_SIZE=32`가 됩니다. 몇 개의 프로세스를 띄울지는 런처(launcher) 결정 사항입니다.
+
+위 예시는 이 계약을 런처에 위임합니다. `completionMode: Indexed` Job을 전제로, 각 Pod는 완료 인덱스(`batch.kubernetes.io/job-completion-index`, 0–7)를 노드 랭크로 받고, `torchrun --nnodes=8 --nproc-per-node=4 --node-rank=<index>`가 프로세스별 전역 `RANK`·`LOCAL_RANK`·`WORLD_SIZE`를 설정합니다. `MASTER_ADDR`는 랑데부 종단점이 실제로 살아 있는 **헤드리스 Service**의 DNS 이름이어야 합니다. 이 매니페스트는 다음을 보장하지 않습니다. 즉, Job에 `completionMode: Indexed`가 설정되어 있어야 하고, `distributed-training` 헤드리스 Service와 그 종단점이 존재해야 하며, 컨테이너 이미지에 `torchrun`과 `train.py`가 포함되고 노드 간 네트워크 통신이 허용되어야 합니다. 이 예시는 실행 가능한 완성본이 아니라 랑데부 계약을 보여주는 구조 예시입니다.
+:::
+
 #### 9.2.4 Setu: Kueue + Karpenter 프로액티브 스케줄링
 
-분산 AI 학습 워크로드(예: PyTorch DDP, JAX)는 **Gang Scheduling** 요구사항을 가집니다. 모든 GPU 노드가 동시에 준비되지 않으면 리소스 낭비가 발생하거나 학습이 시작되지 않습니다. 기존 Karpenter는 **반응형(reactive)** 프로비저닝만 지원하여, Pod가 Pending 상태가 된 후에야 노드를 생성합니다. 이로 인해 다음과 같은 문제가 발생합니다:
+일부 분산 AI 학습 워크로드(예: PyTorch DDP, JAX)는 모든 워커가 함께 시작해야 의미가 있어 **Gang Scheduling**(모든 Pod를 전부 함께 스케줄링하거나 전혀 스케줄링하지 않는 방식)이 유용합니다. 다만 모든 분산 프레임워크나 모든 워크로드가 Gang Scheduling을 반드시 요구하는 것은 아니며, 재시작 허용 여부와 체크포인트 설계에 따라 다릅니다. 모든 GPU 노드가 준비되기 전에 일부만 준비되면 그 노드가 유휴 상태로 비용을 소모하거나 학습이 지연될 수 있습니다.
 
-**기존 Karpenter의 한계:**
+Karpenter의 동작은 비교 대상에 따라 다릅니다. 아래 표는 **동적 프로비저닝 NodePool**(Pod가 Pending 상태가 된 뒤에야 노드를 생성하는 반응형 동작)과 비교한 것입니다. Karpenter v1.14 문서는 `spec.replicas`로 노드 수를 고정하는 **정적(static) NodePool**도 설명하지만, 이는 사전 용량 확보일 뿐 Gang Scheduling은 아닙니다. 이 문서의 예시는 v1.0 API를 사용하므로 `spec.replicas` 필드를 추가하지 않습니다. 반응형 동적 프로비저닝과 Gang Scheduling 워크로드를 함께 사용할 때 다음과 같은 문제가 발생할 수 있습니다:
+
+**반응형 동적 프로비저닝의 한계(Gang Scheduling 워크로드 기준):**
 
 | 문제 | 설명 | 영향 |
 |------|------|------|
 | **부분 할당 리스크** | 4-GPU 노드 4대가 필요한데 2대만 프로비저닝 성공 | 2대는 유휴 상태 유지, 비용 낭비 |
 | **스케줄링 지연** | Pod Pending → Karpenter 감지 → EC2 프로비저닝 (순차 프로세스) | 분산 학습 시작까지 수 분 소요 |
-| **원자성 부재** | 일부 노드만 생성되고 나머지는 용량 부족으로 실패 | 워크로드가 무한 대기 상태 |
+| **용량 확보 실패** | 일부 노드만 생성되고 나머지는 용량 부족으로 실패 | 워크로드가 대기 상태로 지연 |
 
 **Setu 솔루션:**
 
@@ -3522,24 +3653,24 @@ sequenceDiagram
     User->>Kueue: Job 제출 (4-GPU 노드 4대 필요)
     Kueue->>Kueue: Workload 생성 (Pending)
     Kueue->>Setu: AdmissionCheck 요청
-    Setu->>Karpenter: NodeClaim 4개 생성 (원자적)
+    Setu->>Karpenter: NodeClaim 4개 생성 (순차 생성, 실패 시 보상적 정리)
     Karpenter->>EC2: EC2 인스턴스 4대 프로비저닝
     EC2-->>Karpenter: 모든 노드 Ready
-    Karpenter-->>Setu: NodeClaim 승인 완료
+    Karpenter-->>Setu: NodeClaim Ready 확인
     Setu-->>Kueue: AdmissionCheck 통과
     Kueue->>Kueue: Workload 승인 (Active)
-    Kueue->>User: Pod 스케줄링 시작 (즉시 배치)
+    Kueue->>User: Pod 스케줄링 시작
 ```
 
-**Gang Scheduling과 스케줄링 안전성:**
+**사전 승인 readiness gate와 스케줄링 안전성:**
 
-Setu의 핵심 가치는 **All-or-Nothing** 보장입니다. 분산 학습 워크로드는 모든 replica가 동시에 실행되어야 의미가 있습니다.
+Setu의 핵심 동작은 **사전 승인(pre-admission) readiness gate**입니다. 필요한 NodeClaim이 모두 Ready 상태가 되기 전에는 Kueue 워크로드 승인을 보류합니다. 이는 분산 트랜잭션이나 Gang 스케줄러가 아니라, 승인 전에 노드 준비 상태를 확인하는 게이트입니다. NodeClaim은 순차적으로 생성되고, 일부가 실패하면 이미 만들어진 NodeClaim을 삭제하는 보상적 정리(compensating cleanup)를 수행하며, 재시도와 정리 과정에서 시간과 용량을 소모하거나 최종적으로 실패할 수 있습니다. Pod의 노드 배치(스케줄링)는 승인 이후의 별도 단계입니다.
 
-| 시나리오 | 기존 Karpenter | Setu + Kueue |
+| 시나리오 | 반응형 동적 프로비저닝 | Setu + Kueue |
 |---------|---------------|-------------|
-| **4-GPU 노드 4대 필요** | 2대만 생성 → 2대 유휴 → 비용 낭비 | 4대 모두 Ready 확인 후 승인 → 낭비 제로 |
-| **노드 프로비저닝 실패** | 일부 Pod만 Running, 나머지 무한 Pending | 자동 롤백 + 지수 백오프 재시도 (5s-80s, 최대 5회) |
-| **스케줄링 시작 시점** | 노드가 생성될 때마다 순차 스케줄링 | 모든 노드 Ready → 동시 스케줄링 |
+| **4-GPU 노드 4대 필요** | 2대만 생성 → 2대 유휴 → 비용 낭비 | 4대 모두 Ready 확인 후 승인 → 부분 할당으로 인한 유휴 감소 |
+| **노드 프로비저닝 실패** | 일부 Pod만 Running, 나머지 지속 Pending | 생성된 NodeClaim 정리 + 지수 백오프 재시도 (5s-80s, 최대 5회), 재시도 소진 시 승인 거부 |
+| **스케줄링 시작 시점** | 노드가 생성될 때마다 순차 스케줄링 | 모든 노드 Ready 확인 후 승인 → 이후 스케줄러가 Pod 배치 |
 
 **실패 처리 및 재시도 로직:**
 
@@ -3548,7 +3679,7 @@ Setu는 노드 프로비저닝 실패 시 지능적으로 대응합니다:
 ```
 실패 시나리오:
 1. NodeClaim 4개 중 3개만 성공 (1개는 Spot 용량 부족)
-2. Setu가 실패 감지 → 모든 NodeClaim 삭제 (롤백)
+2. Setu가 실패 감지 → 생성된 NodeClaim 삭제 (보상적 정리)
 3. 지수 백오프 재시도:
    - 1회 재시도: 5초 후
    - 2회 재시도: 10초 후
@@ -3564,24 +3695,30 @@ Setu는 Kueue의 AdmissionCheck CRD를 사용하여 워크로드 승인 프로�
 
 ```yaml
 # 1. AdmissionCheck 정의: Setu 컨트롤러 지정
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: AdmissionCheck
 metadata:
   name: karpenter-provision
 spec:
-  controllerName: setu.io/karpenter-provision
+  # Setu 컨트롤러 소스(커밋 7802a60)에 등록된 controllerName과 정확히 일치해야 합니다.
+  # 이 값이 설치된 Setu 컨트롤러와 일치하지 않으면 AdmissionCheck가 Active 상태로 전환되지 않습니다.
+  controllerName: setu.kueue.x-k8s.io/admission-check
 ---
 # 2. ClusterQueue: AdmissionCheck 적용
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ClusterQueue
 metadata:
   name: ml-training-queue
 spec:
   namespaceSelector: {}
   resourceGroups:
-  - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+  # coveredResources에 나열한 모든 리소스는 각 flavor가 동일한 순서로 nominalQuota를
+  # 제공해야 합니다. 아래 flavor는 GPU 쿼터만 제공하므로 coveredResources도 GPU만 포함합니다.
+  # Pod의 CPU/memory 요청은 쿼터로 제한하지 않습니다. CPU/memory도 쿼터로 관리하려면
+  # 모든 flavor에 cpu/memory nominalQuota를 명시적으로 추가해야 합니다.
+  - coveredResources: ["nvidia.com/gpu"]
     flavors:
-    - name: gpu-flavor
+    - name: gpu-flavor  # 동일 이름의 ResourceFlavor가 GPU 노드 라벨과 함께 사전 정의되어 있어야 합니다.
       resources:
       - name: nvidia.com/gpu
         nominalQuota: 32  # 총 32 GPU까지 허용
@@ -3590,7 +3727,7 @@ spec:
   - karpenter-provision
 ---
 # 3. LocalQueue: 네임스페이스별 큐
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: LocalQueue
 metadata:
   name: training-jobs
@@ -3621,10 +3758,14 @@ spec:
       - name: trainer
         image: ml/pytorch-distributed:v2.0
         resources:
+          # 확장 리소스(nvidia.com/gpu)는 limits에만 지정하거나, requests와 limits를
+          # 같은 값으로 함께 지정해야 합니다. requests만 지정하면 Pod가 거부됩니다.
           requests:
             nvidia.com/gpu: 1
             cpu: "7"
             memory: 28Gi
+          limits:
+            nvidia.com/gpu: 1
       restartPolicy: OnFailure
 ```
 
@@ -3639,7 +3780,7 @@ spec:
 6. 모든 노드 Ready 확인 (kubelet 등록 + GPU 디바이스 플러그인 활성화)
 7. Setu가 AdmissionCheck 승인 → Kueue가 Workload Active로 전환
 8. Kueue가 Job의 suspend: false 설정 → Pod 4개 스케줄링 시작
-9. Scheduler가 Pod를 새로 생성된 GPU 노드에 즉시 배치 (Pending 시간 제로)
+9. 승인 이후 Scheduler가 Pod를 GPU 노드에 배치합니다. 노드는 이미 Ready 상태이므로 노드 생성 대기는 없지만, Pod는 여전히 스케줄링·바인딩·이미지 풀·컨테이너 시작 단계를 거칩니다. 전체 Pending/시작 시간은 워크로드에 따라 달라집니다.
 ```
 
 **비교: 기존 Karpenter vs Setu + Kueue:**
@@ -3649,20 +3790,22 @@ spec:
 | **Job 제출** | 즉시 Pod 생성 (Pending) | Kueue가 Workload로 관리 (승인 대기) |
 | **노드 프로비저닝** | Pod Pending 감지 후 반응 | AdmissionCheck에서 사전 프로비저닝 |
 | **부분 실패 처리** | 일부 Pod만 Running, 나머지 무한 대기 | 전체 롤백 + 재시도 (All-or-Nothing) |
-| **스케줄링 시작** | 노드 생성 시마다 순차 | 모든 노드 Ready 후 동시 |
-| **소요 시간** | 2-3분 (순차 프로세스) | 1-2분 (병렬 + 사전 준비) |
+| **스케줄링 시작** | 노드 생성 시마다 순차 | 모든 노드 Ready 확인 후 |
+| **소요 시간** | 측정값 아님(워크로드·용량·이미지 크기에 따라 다름) | 측정값 아님(사전 프로비저닝으로 노드 생성 대기는 줄지만 Pod 시작 단계는 동일) |
 
 **권장 사용 사례:**
 
-| 워크로드 유형 | Setu 필요 여부 | 이유 |
+| 워크로드 유형 | Setu 적합성 | 이유 |
 |-------------|--------------|------|
-| **대규모 분산 학습** (16+ GPU) | ✅ 필수 | Gang Scheduling 보장, 부분 할당 방지 |
+| **대규모 분산 학습** (16+ GPU) | 검토 후 선택 | 사전 프로비저닝으로 부분 할당 유휴를 줄일 수 있으나, GPU 수가 많다는 이유만으로 Setu가 필수가 되는 것은 아닙니다. 호환성·워크로드 검증 후 아키텍처로 선택하세요. |
 | **소규모 학습** (1-4 GPU) | ⚠️ 선택 | 오버헤드 대비 이득 제한적 |
-| **단일 GPU 추론** | ❌ 불필요 | 기존 Karpenter로 충분 |
+| **단일 GPU 추론** | ❌ 불필요 | 반응형 Karpenter로 충분 |
 | **배치 처리** (CPU 워크로드) | ⚠️ 선택 | 비용 효율성 목적이라면 유용 |
 
-:::info Setu 설치 및 설정
-Setu는 Karpenter v1.0+ 및 Kueue v0.6+를 요구합니다. Helm 차트를 통해 설치 가능하며, 상세 가이드는 [Setu GitHub 저장소](https://github.com/sanjeevrg89/Setu)를 참조하세요.
+:::info Setu 성숙도 및 버전 요구사항
+Setu는 Kueue 워크로드 큐잉과 Karpenter 노드 프로비저닝을 연결하는 **커뮤니티 프로젝트이며, 작성 시점 기준 상태는 Alpha**입니다(프로젝트 README가 "Alpha, AWS EKS에서 기능 및 E2E 테스트 완료, 먼저 비프로덕션 환경에서 사용"이라고 명시). 프로젝트가 보고한 호환성은 리뷰로 검증한 결과나 프로덕션 지원과 다릅니다.
+
+검사한 Setu 커밋(`7802a60`)은 `kueue.x-k8s.io/v1beta2` API를 사용하며, 프로젝트는 Kueue v0.16+ 및 Karpenter v1+ 조합을 문서화합니다. 프로젝트가 보고한 E2E 조합은 EKS 1.35 / Karpenter 1.8.2 / Kueue 0.16이지만, 이 문서 작성 과정에서 직접 실행해 검증하지는 않았습니다. 이전 Kueue 버전과의 호환성은 해당 버전에 맞는 특정 릴리스 아티팩트가 있어야 합니다. 사용 전에 테스트된 전체 조합(Setu 릴리스/커밋, Kueue, Karpenter, CRD)을 핀하세요. Helm 차트 설치 및 상세 가이드는 [Setu GitHub 저장소](https://github.com/sanjeevrg89/Setu)를 참조하세요.
 :::
 
 :::warning 프로덕션 사용 시 고려사항
@@ -3759,7 +3902,7 @@ spec:
 
 **Inferentia/Graviton 추론 최적화:**
 
-AWS Inferentia는 추론 전용 가속기로, GPU 대비 최대 70% 비용 절감이 가능합니다.
+AWS Inferentia는 추론 전용 가속기입니다. AWS는 Inferentia2 기반 Inf2 인스턴스가 "다른 비교 가능한 Amazon EC2 인스턴스 대비 최대 40% 더 나은 가격 대비 성능(price performance)"을 제공한다고 밝힙니다([EC2 Inf2 인스턴스](https://aws.amazon.com/ec2/instance-types/inf2/), 비교 대상·워크로드는 AWS가 명시한 범위에 한함). 이는 모든 워크로드에 적용되는 보편적인 40% 비용 절감이 아니며, 실제 효과는 모델·정밀도·처리량/지연 목표에 따라 달라지므로 대상 워크로드로 직접 벤치마크해 확인하세요.
 
 ```yaml
 # Inferentia 노드 스케줄링
@@ -3788,7 +3931,7 @@ spec:
         image: ml/neuron-inference:v1.0
         resources:
           requests:
-            aws.amazon.com/neuron: 1  # Inferentia 코어 1개
+            aws.amazon.com/neuron: 1  # Neuron 디바이스 1개(코어 포함) 전체 할당. 코어 단위 할당이 필요하면 aws.amazon.com/neuroncore 리소스를 사용하세요.
             cpu: "3"
             memory: 8Gi
           limits:
@@ -3863,8 +4006,8 @@ flowchart TB
     Q3 -->|아니오| Q6
 
     B1 --> B2
-    B2 --> Q4
-    B3 --> FINAL
+    B2 --> Q6
+    B3 --> Q6
 
     Q6 -->|예| F1
     Q6 -->|선호| F2
@@ -3881,7 +4024,7 @@ flowchart TB
 
     Q5 -->|아니오| D1
     Q5 -->|예| D2
-    Q5 -->|무관| E2
+    Q5 -->|무관| E3
 
     D1 --> E1
     D2 --> E2
@@ -3903,6 +4046,8 @@ flowchart TB
 4. **고가용성 요구사항** → Topology Spread, Anti-Affinity
 5. **업그레이드 안전성** → 롤아웃 전략·Readiness 설정, Eviction API 기반 노드 Drain에는 PDB 설정
 
+이 체크 항목들은 상호 배타적인 선택이 아니라 누적 적용됩니다. GPU·우선순위·Spot·affinity를 선택했더라도 Topology Spread, replica 분산, PDB 같은 독립 제약을 건너뛰지 않고 모두 평가해야 합니다.
+
 ---
 
 ## 10. 2025-2026 AWS 혁신과 스케줄링 전략
@@ -3913,16 +4058,20 @@ AWS re:Invent 2025에서 발표된 주요 혁신들은 EKS 스케줄링 전략�
 
 **개요:**
 
-Provisioned Control Plane은 XL, 2XL, 4XL 등 사전 정의된 티어로 컨트롤 플레인 용량을 프로비저닝하여 예측 가능한 고성능 Kubernetes 운영을 제공합니다.
+EKS는 컨트롤 플레인을 두 가지 모드로 운영합니다. 기본값은 **Standard 모드**로, 워크로드 수요에 따라 컨트롤 플레인이 자동으로 확장·축소됩니다. **Provisioned 모드**(EKS Provisioned Control Plane)는 관리자가 XL, 2XL, 4XL, 8XL 중 하나의 스케일링 티어를 선택해 컨트롤 플레인 용량을 미리 할당하는 선택적 모드이며, 명시적으로 opt-in 해야 합니다. "Standard"는 티어가 아니라 기본 모드의 이름입니다.
 
-**티어별 성능 특성:**
+**티어별 용량 속성 (AWS 문서 2026-10-13 확인, Kubernetes v1.34 이상):**
 
-| 티어 | API 동시성 | Pod 스케줄링 속도 | 클러스터 규모 | 사용 사례 |
-|------|-----------|-----------------|------------|----------|
-| **Standard** | 동적 스케일링 | 일반 | ~1,000 노드 | 일반 워크로드 |
-| **XL** | 높음 | 빠름 | ~2,000 노드 | 대규모 배포 |
-| **2XL** | 매우 높음 | 매우 빠름 | ~4,000 노드 | AI/ML 학습, HPC |
-| **4XL** | 극대화 | 극대화 | ~8,000 노드 | 초대규모 클러스터 |
+각 Provisioned 티어는 다음 네 가지 컨트롤 플레인 속성으로 정의되며, 노드 수 상한을 지정하는 것은 아닙니다. 아래 수치는 Kubernetes 버전에 따라 달라집니다(v1.30–v1.33은 더 낮음). 반드시 현재 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)에서 사용 중인 버전의 값을 확인하십시오.
+
+| 티어 | API 요청 동시성(seats) | Pod 스케줄링 속도(pods/sec) | 클러스터 데이터베이스(etcd) 크기 | SLA(1분 간격) |
+|------|-----------------------|----------------------------|-------------------------------|---------------|
+| **XL** | 2,000 | 167 | 16 GB | 99.99% |
+| **2XL** | 4,000 | 283 | 16 GB | 99.99% |
+| **4XL** | 8,000 | 400 | 16 GB | 99.99% |
+| **8XL** | 16,000 | 400 | 16 GB | 99.99% |
+
+기본 Standard 모드는 99.95% SLA(5분 간격)와 최대 8 GB etcd를 제공합니다. 티어 간 자동 스케일링은 없으며, 선택한 티어에 고정됩니다. AWS 문서는 "티어 속성은 EKS가 적용하는 구성값이며, 실제로 얻는 성능은 워크로드 패턴·구성·Kubernetes 모범 사례 준수 여부에 따라 달라진다"고 명시합니다. 특히 Pod 스케줄링 속도는 스케줄러 QPS 상한이며, 실제 속도는 노드가 Ready·정상 상태인지 등에 따라 달라집니다.
 
 **스케줄링 성능 향상:**
 
@@ -3930,8 +4079,8 @@ Provisioned Control Plane은 다음과 같은 방식으로 스케줄링 성능�
 
 1. **API 서버 동시 처리 능력**: 더 많은 스케줄링 요청을 동시에 처리
 2. **etcd 용량 확장**: 더 많은 노드 및 Pod 메타데이터 저장
-3. **스케줄러 처리량 증가**: 초당 더 많은 Pod 바인딩 처리
-4. **예측 가능한 지연**: 트래픽 버스트 시에도 일관된 스케줄링 지연 보장
+3. **스케줄러 처리량 증가**: 티어에 설정된 스케줄러 QPS 상한까지 초당 더 많은 Pod 스케줄링 시도 처리
+4. **문서화된 컨트롤 플레인 용량 제공**: 티어의 용량 속성(API 동시성, 스케줄러 QPS, etcd 크기, 엔드포인트 SLA)을 보장합니다. 다만 이는 Kubernetes API 엔드포인트에 대한 SLA이며, 워크로드의 스케줄링·시작 지연은 제약 조건, 큐잉, 가용 노드 수, Pod 초기화 등에도 좌우되므로 티어가 일정한 end-to-end 지연을 보장하지는 않습니다.
 
 **대규모 클러스터 스케줄링 전략:**
 
@@ -3990,47 +4139,52 @@ Provisioned Control Plane은 AI/ML 학습 워크로드에서 수천 개의 GPU P
 ```mermaid
 sequenceDiagram
     participant User
-    participant APIServer as API Server<br/>(Provisioned XL)
-    participant Scheduler as Kube-Scheduler<br/>(Enhanced)
+    participant APIServer as API Server<br/>(Provisioned 티어)
+    participant Scheduler as Kube-Scheduler
     participant Karpenter
-    participant EC2 as EC2 Auto Scaling
+    participant EC2 as EC2
 
-    User->>APIServer: Job 생성 (1000 GPU Pod)
-    APIServer->>Scheduler: 1000 Pod 스케줄링 요청
+    User->>APIServer: Job 생성 (예: 1000 GPU Pod)
+    APIServer->>Scheduler: Pod watch 이벤트
 
-    Note over Scheduler: 병렬 스케줄링<br/>(초당 100+ Pod)
+    Note over Scheduler: 가용 용량에 배치 시도<br/>용량 부족 Pod는<br/>Unschedulable=True 설정
 
-    Scheduler->>Karpenter: 부족한 GPU 노드 요청
-    Karpenter->>EC2: 250 GPU 노드 프로비저닝
+    Note over Scheduler,Karpenter: 스케줄러는 Karpenter를 호출하지 않음
 
-    Note over EC2: 노드 병렬 생성<br/>(5-10분)
+    Karpenter->>APIServer: Unschedulable Pod watch
+    Karpenter->>EC2: 제약을 만족하는 용량 요청<br/>(노드 수는 Pod 요구에 따라 가변)
 
-    EC2-->>Karpenter: 노드 준비 완료
-    Karpenter-->>Scheduler: 노드 등록
+    Note over EC2: 노드 비동기 생성<br/>(시작 시간은 인스턴스 타입·<br/>이미지·가용성에 따라 가변)
 
-    Scheduler->>APIServer: Pod 바인딩 (250 batch)
-    APIServer->>Scheduler: 다음 배치 스케줄링
+    EC2-->>Karpenter: 노드 Ready
+    Karpenter-->>APIServer: 노드가 클러스터에 등록
 
-    Note over Scheduler,APIServer: 4번 반복<br/>(1000 Pod 완료)
+    loop Pod별 개별 바인딩
+        Scheduler->>APIServer: Pod 바인딩
+    end
 
-    APIServer-->>User: Job 실행 시작
+    Note over Scheduler,APIServer: 고정 배치 크기나<br/>보장된 완료 시간은 없음
+
+    APIServer-->>User: Pod가 노드에서 실행 시작
 ```
 
-**사용 사례별 권장 티어:**
+**사용 사례별 권장 모드·티어:**
 
-| 사용 사례 | 권장 티어 | 이유 |
-|----------|----------|------|
-| **일반 웹 애플리케이션** | Standard | 동적 스케일링으로 충분 |
-| **대규모 배치 작업 (500+ Pod)** | XL | 빠른 동시 스케줄링 필요 |
-| **분산 ML 학습 (1000+ GPU Pod)** | 2XL | 초고속 스케줄링 + 높은 API 동시성 |
-| **HPC 클러스터 (수천 노드)** | 4XL | 최대 스케일 + 예측 가능한 성능 |
-| **미션 크리티컬 서비스** | XL 이상 | 트래픽 버스트 시에도 일관된 지연 |
+아래는 워크로드 특성에 따른 일반적 출발점이며, 실제 티어는 [티어 활용률 메트릭](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)으로 부하 테스트해 결정하십시오. 노드 수가 아니라 컨트롤 플레인 부하(API 동시성, 스케줄러 QPS, etcd 사용량)가 선택 기준입니다.
+
+| 사용 사례 | 권장 모드·티어 | 이유 |
+|----------|---------------|------|
+| **일반 웹 애플리케이션** | Standard 모드(Provisioned 미사용) | 자동 스케일링으로 충분 |
+| **대규모 배치 작업 (500+ Pod)** | XL 이상 | 높은 동시 스케줄링 부하 처리 |
+| **분산 ML 학습 (1000+ GPU Pod)** | 2XL 이상 | 높은 스케줄러 QPS와 API 동시성 필요 |
+| **HPC 클러스터 (대규모)** | 4XL/8XL | 최대 컨트롤 플레인 용량 |
+| **미션 크리티컬 서비스** | Provisioned(XL 이상) | 99.99% 엔드포인트 SLA와 용량 변동 없는 운영 |
 
 :::tip Provisioned Control Plane 선택 기준
-- **노드 수 > 1,000**: XL 이상 고려
-- **빈번한 대규모 배포 (500+ Pod)**: XL 이상
-- **GPU 워크로드 (100+ GPU)**: 2XL 이상
-- **예측 가능한 성능 요구**: 모든 규모에서 Provisioned 고려
+- 선택 기준은 노드 수가 아니라 컨트롤 플레인 부하입니다. 최고 티어(8XL)로 부하 테스트한 뒤 티어 활용률 메트릭을 보고 적정 티어를 고르는 것이 AWS 권장 방법입니다.
+- **빈번한 대규모 배포 (500+ Pod)**: Provisioned 티어 고려
+- **GPU 워크로드 (100+ GPU)**: 2XL 이상 고려
+- **용량 변동 없는 엔드포인트 SLA(99.99%) 필요**: 모든 규모에서 Provisioned 고려
 :::
 
 ### 10.2 EKS Auto Mode 자동 노드 프로비저닝
@@ -4459,12 +4613,16 @@ Container Network Observability는 세분화된 네트워크 메트릭을 제공
 
 **Pod 배치와 네트워크 성능 상관관계:**
 
-| Pod 배치 패턴 | 네트워크 지연 | Cross-AZ 트래픽 비용 | 사용 사례 |
-|-------------|-------------|-------------------|----------|
-| **Same Node** | ~0.1ms | $0 | Cache 서버 + 애플리케이션 |
-| **Same AZ** | ~0.5ms | $0 | 빈번한 통신하는 마이크로서비스 |
-| **Cross-AZ** | ~2-5ms | $0.01/GB | 고가용성 필요 서비스 |
-| **Cross-Region** | ~50-100ms | $0.02/GB | 지역별 분산 서비스 |
+아래 표는 배치 패턴에 따른 상대적 경향만 나타냅니다. 절대 지연 값과 요금은 워크로드·프로토콜, 리전/AZ 경로, 측정 방법·백분위수, 그리고 적용 시점의 요금에 따라 달라지므로 여기에 고정 수치로 적지 않습니다. 실제 지연은 직접 측정하고, 데이터 전송 요금은 서비스·방향·리전 쌍·날짜·과금 구간과 적용 가능한 면제 조건을 명시한 최신 [AWS 데이터 전송 요금](https://aws.amazon.com/ec2/pricing/on-demand/)으로 확인하십시오.
+
+| Pod 배치 패턴 | 상대적 네트워크 지연 | Cross-AZ 데이터 전송 요금 | 사용 사례 |
+|-------------|------------------|------------------------|----------|
+| **Same Node** | 가장 낮음 | Cross-AZ 전송 구간 없음(단, 서비스·처리 비용은 별도) | Cache 서버 + 애플리케이션 |
+| **Same AZ** | 낮음 | Cross-AZ 전송 구간 없음(단, 서비스·처리 비용은 별도) | 빈번한 통신하는 마이크로서비스 |
+| **Cross-AZ** | 중간(동일 리전 내) | 적용 가능한 리전별 AZ 간 전송 요금 발생 | 고가용성 필요 서비스 |
+| **Cross-Region** | 가장 높음 | 적용 가능한 리전 간 전송 요금 발생 | 지역별 분산 서비스 |
+
+> Same Node·Same AZ에 "Cross-AZ 전송 구간이 없다"는 것이 네트워크·서비스 처리 비용이 모두 $0이라는 뜻은 아닙니다.
 
 **Cross-AZ 트래픽 경로와 배치 선호를 함께 평가하기:**
 
@@ -4545,8 +4703,10 @@ spec:
 
 Container Network Observability 메트릭을 분석하여 스케줄링 전략을 조정합니다.
 
+`pod_network_rx_bytes`는 Container Insights(enhanced observability)가 게시하는 Pod 네트워크 수신 메트릭으로, 집계 기간 동안의 **초당 평균 수신 바이트(rate)**이지 누적 바이트나 Cross-AZ 전용 바이트가 아닙니다. CloudWatch는 차원(dimension) 값에 와일드카드를 받지 않으므로, 아래 `PodName` 값은 특정 Pod 이름(예시)로 지정해야 하며 `api-gateway-*` 같은 패턴 매칭은 별도의 메트릭 검색·탐색 설계(예: `ListMetrics` 후 `GetMetricData`의 수식/검색 식)가 필요합니다. 실제 차원 집합과 수집 모드, 시간 범위, 누락 데이터 처리는 사용 중인 Container Insights 버전의 [게시 메트릭 참조](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-EKS.html)로 확인하십시오. 아래는 하나의 `GetMetricData` 쿼리 조각(illustrative)이며, 전체 요청에는 `MetricDataQueries`, `StartTime`, `EndTime`가 더 필요합니다.
+
 ```yaml
-# CloudWatch Container Insights 메트릭 쿼리 예시
+# 예시(illustrative): CloudWatch Container Insights 메트릭 쿼리 조각
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -4557,11 +4717,11 @@ data:
       "MetricName": "pod_network_rx_bytes",
       "Namespace": "ContainerInsights",
       "Dimensions": [
-        {"Name": "PodName", "Value": "api-gateway-*"},
+        {"Name": "PodName", "Value": "api-gateway"},
         {"Name": "Namespace", "Value": "default"}
       ],
       "Period": 300,
-      "Stat": "Sum"
+      "Stat": "Average"
     }
 ```
 
@@ -4653,13 +4813,16 @@ spec:
             memory: 8Gi
 ```
 
-**네트워크 관찰성 기반 비용 절감 효과:**
+**네트워크 관찰성 기반 비용 절감 효과(가상 예시):**
 
-| 최적화 전 | 최적화 후 | 절감 효과 |
-|----------|----------|----------|
-| Cross-AZ 트래픽: 1TB/월 | Cross-AZ 트래픽: 0.2TB/월 | $8/월 절감 |
-| 평균 지연: 3ms | 평균 지연: 0.5ms | 6배 성능 향상 |
-| Pod Affinity 미사용 | Pod Affinity 최적화 | 운영 효율 증가 |
+아래 표는 측정값이 아니라 가정에 따른 산술 예시입니다. 수치는 명시한 단위·요금 가정에서만 성립하며, Pod affinity가 원인이라는 측정 근거는 제시되지 않았습니다.
+
+| 항목 | 최적화 전 | 최적화 후 | 가정에 따른 변화 |
+|------|----------|----------|----------------|
+| Cross-AZ 트래픽 | 1 TB/월 | 0.2 TB/월 | 선택한 단위 기준 80% 감소 |
+| 전송 요금 | — | — | 0.8 TB가 800 과금 GB이고 해당 전송 구간 요금이 $0.01/GB일 때에만 월 약 $8 절감(요금·방향 미검증) |
+| 평균 지연 | 3 ms | 0.5 ms | 지연이 1/6(약 83.3% 낮음); 처리량 6배를 의미하지 않음 |
+| Pod Affinity | 미사용 | 적용 | 측정된 인과 효과는 별도 확인 필요 |
 
 ---
 
