@@ -3,7 +3,7 @@ title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 �
 description: NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획
 created: "2026-02-14"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 43
 tags:
@@ -57,13 +57,13 @@ Gateway API 도입을 검토하는 대표적인 상황은 기존 Ingress 컨트�
 
 **기존 ingress-nginx를 교체해야 하는 경우.** Kubernetes 커뮤니티의 ingress-nginx 프로젝트는 2026년 3월 유지보수를 종료했습니다. 이후에는 버그 수정과 보안 업데이트가 제공되지 않으므로, 해당 컨트롤러를 사용하는 팀은 Gateway API 구현체나 다른 지원 중인 Ingress 컨트롤러로 이전해야 합니다. Ingress API 자체가 폐기된 것은 아닙니다. 자세한 범위는 [공식 은퇴 안내](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)를 참고하세요.
 
-**LLM 추론 트래픽을 별도로 처리해야 하는 경우.** 일반 웹/API 라우팅 외에 토큰 단위 과금·속도 제한, 모델 선택, KV 캐시를 고려한 분산, 프롬프트/응답 검사 등이 필요할 수 있습니다. 아래에서 다루는 2-Tier 구성은 **클러스터 외부에서 들어오는 트래픽을 받는 범용 게이트웨이**와 **추론 Pod로 요청을 분산하는 추론 게이트웨이**로 역할을 나눕니다. Gateway API는 게이트웨이와 라우트 설정을 표현하고, [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/)은 추론 대상과 라우팅을 위한 기능을 확장합니다. 과금이나 가드레일 지원 범위는 선택한 구현체에서 별도로 확인해야 합니다.
+**LLM 추론 트래픽을 별도로 처리해야 하는 경우.** 일반 웹/API 라우팅 외에 토큰 단위 과금·속도 제한, 모델 선택, KV cache를 고려한 분산, 프롬프트/응답 검사 등이 필요할 수 있습니다. 아래에서 다루는 2-Tier 구성은 **클러스터 외부에서 들어오는 트래픽을 받는 범용 게이트웨이**와 **추론 Pod로 요청을 분산하는 추론 게이트웨이**로 역할을 나눕니다. Gateway API는 게이트웨이와 라우트 설정을 표현하고, [Gateway API Inference Extension](https://gateway-api-inference-extension.sigs.k8s.io/)은 추론 대상과 라우팅을 위한 기능을 확장합니다. 과금이나 가드레일 지원 범위는 선택한 구현체에서 별도로 확인해야 합니다.
 
 이 가이드는 Gateway API의 아키텍처 이해부터 6개 주요 구현체(AWS LBC v3, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong) 비교, Cilium ENI 모드 심화 구성, 단계별 마이그레이션 실행 전략, 성능 벤치마크 계획까지 포괄합니다. Agentic 워크로드를 위한 추론 게이트웨이 계층의 상세 구성은 [에이전틱 AI 플랫폼 — 추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)로 연결됩니다.
 
 :::tip 범용 Gateway vs 추론 게이트웨이 — 어디를 읽어야 하나
 - **북-남 트래픽·NGINX Ingress 대체·일반 API 라우팅**을 설계한다면 → 이 문서(범용 Gateway API 계층)
-- **LLM 추론 Pod 라우팅·KV 캐시 인지 분산·모델 엔드포인트 관리**를 설계한다면 → [추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)
+- **LLM 추론 Pod 라우팅·KV cache 인지 분산·모델 엔드포인트 관리**를 설계한다면 → [추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)
 - 두 역할을 분리하는 구성이라면 섹션 4 비교표에서 **각 계층을 맡을 솔루션 조합**을 검토하세요.
 :::
 
@@ -825,7 +825,7 @@ flowchart TD
 
 ## 5. 벤치마크 비교 계획
 
-벤치마크 보고서는 이 가이드의 6개 구현체에 Istio·Traefik을 더하고, VPC Lattice를 별도 경로로 다룹니다. 관리형 edge·클러스터 내 프록시·CNI/mesh 경로를 분리해 처리량, 레이턴시, TLS, L7 라우팅, 스케일링, 리소스 효율성, 장애 복구, gRPC를 비교하도록 설계했습니다. 공개 적합성 자료와 로컬 측정 도구는 검증했으며 실제 EKS 성능 측정은 대기 상태입니다.
+벤치마크 보고서는 이 가이드의 6개 구현체에 Istio·Traefik을 더하고, VPC Lattice를 별도 경로로 다룹니다. 관리형 edge·클러스터 내 프록시·CNI/mesh 경로를 분리해 처리량, 지연 시간, TLS, L7 라우팅, 스케일링, 리소스 효율성, 장애 복구, gRPC를 비교하도록 설계했습니다. 공개 적합성 자료와 로컬 측정 도구는 검증했으며 실제 EKS 성능 측정은 대기 상태입니다.
 
 :::info 벤치마크 상세 계획
 아키텍처별 비교, 원시 검증 자료와 실행 계획은 **[Gateway API 기능·성능 비교 보고서](/docs/benchmarks/gateway-api-benchmark)**에서 확인할 수 있습니다.
@@ -930,7 +930,7 @@ East-West(서비스 간) 트래픽으로의 확장은 별도 서비스 메시 �
 ### 관련 문서 (Agentic AI 플랫폼)
 
 - **[티어드 게이트웨이 아키텍처](/docs/agentic-ai-platform/model-serving/inference-routing/tiered-gateway-architecture)** — Tier 1(이 문서)·Tier 2 ①추론 라우팅·②LLM API 게이트웨이·Agent Data Plane의 전체 지도와 용어 정의(단일 정의처)
-- **[추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)** — Agentic 워크로드를 위한 Tier 2 추론 게이트웨이 계층(KV 캐시 인지 라우팅, 모델 엔드포인트 관리). 이 문서(Tier 1 범용 게이트웨이)와 함께 2-Tier로 구성
+- **[추론 게이트웨이 레퍼런스](/docs/agentic-ai-platform/reference-architecture/inference-gateway)** — Agentic 워크로드를 위한 Tier 2 추론 게이트웨이 계층(KV cache 인지 라우팅, 모델 엔드포인트 관리). 이 문서(Tier 1 범용 게이트웨이)와 함께 2-Tier로 구성
 - **[Inference Gateway 배포 가이드](/docs/agentic-ai-platform/reference-architecture/inference-gateway/setup)** — 추론 게이트웨이 Helm 배포·HTTPRoute·OTel 구성
 
 ### 관련 카테고리
