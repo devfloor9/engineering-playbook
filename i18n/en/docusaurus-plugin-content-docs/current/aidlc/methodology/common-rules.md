@@ -3,7 +3,7 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC official 11 common rules explained — Question Format through Audit Logging with enterprise adoption guide
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: devfloor9
 reading_time: 23
 tags:
@@ -572,7 +572,7 @@ gantt
     Rule 11 + Enterprise rollout          :2026-06-24, 14d
 ```
 
-### 13.3 Tool/Platform Implementation Status (as of 2026.04)
+### 13.3 Tool/Platform Implementation Status (as of 2026-04) {#133-toolplatform-implementation-status-as-of-202604}
 
 | Platform | Rules 1-4 | Rules 5-8 | Rules 9-11 | Notes |
 |----------|-----------|-----------|------------|-------|

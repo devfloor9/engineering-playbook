@@ -3,7 +3,7 @@ title: 온톨로지 엔지니어링
 description: AIDLC 신뢰성의 첫 번째 축 — Typed World Model로 AI 환각을 방지하고 도메인 정확성을 보장하는 온톨로지 접근법 (engineering-playbook 확장 콘텐츠)
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -231,7 +231,7 @@ graph TD
 |------|------|--------|-------------|------|
 | **Inner Loop** | 분 단위 | 테스트 실패, 하네스 위반 | 제약 조건 추가/수정 | 누락된 invariant 발견: "amount > 0" 제약 추가 |
 | **Middle Loop** | 일 단위 | PR 리뷰에서 반복 패턴 | 엔티티/관계 스키마 갱신 | 반복되는 에러 패턴 → 새로운 Value Object 추가 |
-| **Outer Loop** | 주 단위 | 운영 인시던트, SLO 위반 | 도메인 모델 구조 재설계 | P99 레이턴시 증가 → Aggregate 경계 재정의 |
+| **Outer Loop** | 주 단위 | 운영 인시던트, SLO 위반 | 도메인 모델 구조 재설계 | P99 지연 시간 증가 → Aggregate 경계 재정의 |
 
 ### 4.3 Inner Loop: 즉각적 제약 정제
 
@@ -291,7 +291,7 @@ value_objects:
 
 ### 4.5 Outer Loop: 도메인 모델 재설계
 
-**시나리오**: 운영 인시던트 — P99 레이턴시 SLO 위반
+**시나리오**: 운영 인시던트 — P99 지연 시간 SLO 위반
 
 ```markdown
 ## 인시던트 분석
@@ -316,7 +316,7 @@ aggregates:
       - PaymentHistory
 ```
 
-**효과**: Aggregate 경계 재정의를 통해 P99 레이턴시 42% 감소.
+**효과**: Aggregate 경계 재정의를 통해 P99 지연 시간 42% 감소.
 
 ## 5. SemanticForge 패턴: Knowledge Graph 통합
 
@@ -427,8 +427,8 @@ graph TD
 
 ### 6.4 참고 자료
 
-- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
-- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
+- [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026-03
+- [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026-03
 
 ## 7. Kiro Spec + 온톨로지 통합
 
@@ -447,7 +447,7 @@ Kiro Spec의 `requirements.md`에 온톨로지를 직접 포함하여 AI 에이�
 - SQS를 통한 비동기 이벤트 처리
 
 ## 비기능 요구사항
-- P99 레이턴시: < 200ms
+- P99 지연 시간: < 200ms
 - 가용성: 99.95%
 - 자동 스케일링: 2-20 Pod
 
@@ -542,7 +542,7 @@ Kiro AI 에이전트는 이 온톨로지를 컨텍스트 윈도우에 주입하�
 ### 8.3 참고 자료
 
 - [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
-- [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
+- [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026-03
 
 ## 9. AIDLC 3단계별 온톨로지 적용
 
@@ -660,10 +660,10 @@ graph LR
 ### 핵심 논문 및 아티클
 
 1. [Why Ontology Matters for Agentic AI in 2026](https://kenhuangus.substack.com/p/why-ontology-matters-for-agentic) — Ken Huang & Bhavya Gupta
-2. [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026.03
+2. [Why AI Agents Fail Without Ontologies](https://medium.com/@itznihal/why-ai-agents-fail-without-ontologies-production-lessons-beb9fe9c3af9) — Nihal Parmar, 2026-03
 3. [SemanticForge: Knowledge Graph 기반 환각 방지](https://arxiv.org/html/2511.07584v1)
-4. [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026.03
-5. [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026.03
+4. [How to Build an AI Agent Feedback Loop](https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement) — Braincuber, 2026-03
+5. [Human-in-the-Loop in Agentic AI](https://atalupadhyay.wordpress.com/2026/03/16/human-in-the-loop-in-agentic-ai/) — 2026-03
 
 ### 관련 프레임워크
 
