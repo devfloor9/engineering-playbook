@@ -22,8 +22,8 @@ from unittest.mock import patch
 
 ROOT = Path.cwd()
 SUFFIX = Path("aidlc/enterprise/agent-versioning/prompt-model-registry.md")
-PATHS = {"ko": Path("docs") / SUFFIX,
-         "en": Path("i18n/en/docusaurus-plugin-content-docs/current") / SUFFIX}
+PATHS = {"ko": Path("i18n/ko/docusaurus-plugin-content-docs/current") / SUFFIX,
+         "en": Path("docs") / SUFFIX}
 MODULES = ("registry_label_check", "bedrock_prompt_version", "bedrock_prompt_setup")
 ARN = "arn:aws:bedrock:us-east-1:123456789012:prompt/ABCDEFGHIJ"
 CREATE_TOKEN = "create-" + "a" * 40

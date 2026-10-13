@@ -22,7 +22,7 @@ async function main(args = process.argv.slice(2), {workspace = root} = {}) {
   for (const file of [...new Set(files)]) {
     const full = path.resolve(workspace, file);
     const relative = path.relative(workspace, full).replaceAll(path.sep, '/');
-    if (!/^(docs\/|i18n\/en\/docusaurus-plugin-content-docs\/current\/).+\.mdx?$/.test(relative)) {
+    if (!/^(docs\/|i18n\/[^/]+\/docusaurus-plugin-content-docs\/current\/).+\.mdx?$/.test(relative)) {
       throw new Error(`Not a documentation source: ${file}`);
     }
     const realRelative = path.relative(fs.realpathSync(workspace), fs.realpathSync(full)).replaceAll(path.sep, '/');

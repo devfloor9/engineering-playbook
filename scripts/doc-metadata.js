@@ -15,7 +15,10 @@ async function readingTime(source, filePath) {
   const previousLocale = staticRenderer.locale;
   let rendered;
   try {
-    staticRenderer.locale = /[/\\]i18n[/\\]en[/\\]/.test(filePath || '') ? 'en' : 'ko';
+    // 기본 로케일(en) 문서는 docs/ 에, 번역(ko)은 i18n/<locale>/ 아래에 위치한다.
+    // 경로에 i18n/<locale>/ 세그먼트가 있으면 그 로케일을, 없으면 기본 로케일(en)을 사용한다.
+    const localeMatch = /[/\\]i18n[/\\]([^/\\]+)[/\\]/.exec(filePath || '');
+    staticRenderer.locale = localeMatch ? localeMatch[1] : 'en';
     rendered = stripMdx(matter(source).content, {filePath, omitted});
   } finally {
     staticRenderer.locale = previousLocale;

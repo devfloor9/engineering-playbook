@@ -18,7 +18,7 @@ require('node:tls').connect = () => { throw Error('Network disabled'); };
 globalThis.fetch = () => { throw Error('Network disabled'); };
 const root = process.env.GATEWAY_COOKBOOK_SOURCE_ROOT || process.cwd();
 const suffix = 'eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md';
-const paths = {ko: `docs/${suffix}`, en: `i18n/en/docusaurus-plugin-content-docs/current/${suffix}`};
+const paths = {ko: `i18n/ko/docusaurus-plugin-content-docs/current/${suffix}`, en: `docs/${suffix}`};
 
 function ipTab(text) {
   const sections = [...text.matchAll(/^## (\d+)\. .+$/gm)];

@@ -2,7 +2,7 @@
 /**
  * normalize-frontmatter.js - 전 문서 frontmatter를 단일 템플릿으로 통일한다.
  *
- * 적용 대상: docs 하위 .md (+ --include-en 시 i18n/en 하위 .md)
+ * 적용 대상: docs 하위 .md (기본 로케일 en) (+ --include-translations[/--include-en] 시 i18n/ko 하위 .md)
  *
  * 통일 규칙 (AWS Tech Blog 구조 기준, 예외 없이):
  *  - 필드 순서 고정(TEMPLATE_ORDER). 그 외 알 수 없는 키는 순서 뒤에 원본 유지.
@@ -16,7 +16,7 @@
  *  - tags          : 기존 보존(배열 정규화). scope 태그 없으면 경로 기반 1개 추가.
  *
  * dry-run: node scripts/normalize-frontmatter.js
- * apply  : node scripts/normalize-frontmatter.js --apply [--include-en]
+ * apply  : node scripts/normalize-frontmatter.js --apply [--include-translations]
  */
 const fs = require('fs');
 const path = require('path');
@@ -41,7 +41,7 @@ function dumpFrontmatter(data, body) {
 }
 
 const APPLY = process.argv.includes('--apply');
-const INCLUDE_EN = process.argv.includes('--include-en');
+const INCLUDE_TRANSLATIONS = process.argv.includes('--include-translations') || process.argv.includes('--include-en');
 const ROOT = path.join(__dirname, '..');
 const DEFAULT_AUTHOR = 'YoungJoon Jeong';
 const RATE = CHARACTERS_PER_MINUTE;
@@ -128,7 +128,7 @@ function walk(dir) {
 
 async function main() {
 const targets = [...walk(path.join(ROOT, 'docs'))];
-if (INCLUDE_EN) targets.push(...walk(path.join(ROOT, 'i18n/en/docusaurus-plugin-content-docs/current')));
+if (INCLUDE_TRANSLATIONS) targets.push(...walk(path.join(ROOT, 'i18n/ko/docusaurus-plugin-content-docs/current')));
 
 let changed = 0;
 let createdBackfilled = 0;

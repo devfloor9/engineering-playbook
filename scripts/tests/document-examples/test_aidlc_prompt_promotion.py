@@ -18,8 +18,8 @@ from unittest.mock import patch
 ROOT = Path.cwd()
 SUFFIX = Path("aidlc/enterprise/agent-versioning/prompt-model-registry.md")
 PATHS = {
-    "ko": Path("docs") / SUFFIX,
-    "en": Path("i18n/en/docusaurus-plugin-content-docs/current") / SUFFIX,
+    "ko": Path("i18n/ko/docusaurus-plugin-content-docs/current") / SUFFIX,
+    "en": Path("docs") / SUFFIX,
 }
 
 

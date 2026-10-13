@@ -44,7 +44,7 @@ test('document API placeholders render as literal text instead of MDX variables'
   ];
   for (const [file, placeholder] of cases) {
     const source = fs.readFileSync(path.join(root,
-      'i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform', file), 'utf8');
+      'docs/agentic-ai-platform', file), 'utf8');
     const paragraph = source.split(/\n\s*\n/).find(value => value.includes(placeholder));
     assert.ok(paragraph, `Missing API example in ${file}`);
     const compiled = await compile(paragraph, {outputFormat: 'function-body'});

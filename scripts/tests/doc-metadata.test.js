@@ -60,10 +60,10 @@ test('shared Figure and Icon styling does not inflate the estimate', async () =>
 });
 
 test('English sidebar cards contribute localized text to reading estimates', async () => {
-  const file = path.resolve(__dirname, '../../i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/index.md');
+  const file = path.resolve(__dirname, '../../docs/agentic-ai-platform/index.md');
   const result = await readingTime(fs.readFileSync(file, 'utf8'), file);
   assert.ok(Number.isInteger(result) && result > 0);
-  assert.equal(require('../llm-wiki-components').staticRenderer.locale, 'ko');
+  assert.equal(require('../llm-wiki-components').staticRenderer.locale, 'en');
 });
 
 test('presentation mode leaves source dates and reading time byte-for-byte unchanged', async () => {

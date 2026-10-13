@@ -1,7 +1,7 @@
 {
   "documents": {
-    "ko": "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
-    "en": "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+    "ko": "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+    "en": "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
   },
   "locators": [
     {

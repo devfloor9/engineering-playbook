@@ -28,7 +28,7 @@ const root = findRoot();
 const sourceRoot = path.resolve(process.env.KARPENTER_BUDGET_DOC_ROOT || root);
 const yaml = createRequire(path.join(root, 'package.json'))('js-yaml');
 const locales = ['ko', 'en'];
-const prefixes = {ko: 'docs/', en: 'i18n/en/docusaurus-plugin-content-docs/current/'};
+const prefixes = {ko: 'i18n/ko/docusaurus-plugin-content-docs/current/', en: 'docs/'};
 const headings = {
   ko: {early: '### Consolidation Policy 설정', window: '### 시간대별 Consolidation',
     life: '## NodeClaim 라이프사이클', flow: '### Consolidation 동작 흐름',

@@ -1,39 +1,39 @@
 [
-  {
-    "name": "layer-roles",
-    "page": "docs/agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture.html",
-    "tag": "div",
-    "includes": [
-      "런타임 레이어 (6)",
-      "횡단 플레인 (3)"
-    ],
-    "module": "@site/src/components/ArchitectureTables",
-    "exported": "LayerRoles",
-    "file": "llm-wiki-52-layer-roles.html",
-    "baseline_sha256": "341cb23b671b0fa8edbc4cecdf7d95250e0d47878ed3d384dc521f0d97782508"
-  },
-  {
-    "name": "coredns-targets",
-    "page": "docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.html",
-    "tag": "figure",
-    "includes": [
-      "CoreDNS 성능 목표 예시"
-    ],
-    "module": "@site/src/components/CoreDnsTables",
-    "exported": "PerformanceBenchmarks",
-    "file": "llm-wiki-52-coredns-targets.html",
-    "baseline_sha256": "15d9d2ef32206bd43bda242630a1b56a81abc212bffbd55e85a5d07a54a8bdc4"
-  },
-  {
-    "name": "sidebar-foundations",
-    "page": "docs/agentic-ai-platform/design-architecture/foundations.html",
-    "tag": "section",
-    "includes": [
-      "Agentic AI 플랫폼",
-      "아키텍처"
-    ],
-    "navigation": true,
-    "file": "llm-wiki-52-sidebar-foundations.html",
-    "baseline_sha256": "28875bc52f57e68ea145ab2319f06678927efc80d628d6a0cbf2f9fa51e19ecf"
-  }
+ {
+  "name": "layer-roles",
+  "page": "docs/agentic-ai-platform/design-architecture/foundations/agentic-platform-architecture.html",
+  "tag": "div",
+  "includes": [
+   "Runtime Layers (6)",
+   "Cross-cutting Planes (3)"
+  ],
+  "module": "@site/src/components/ArchitectureTables",
+  "exported": "LayerRoles",
+  "file": "llm-wiki-52-layer-roles.html",
+  "baseline_sha256": "a5f760da105f5b871e151ed42cf313696a1bca64830bc6e559cae89507344d72"
+ },
+ {
+  "name": "coredns-targets",
+  "page": "docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.html",
+  "tag": "figure",
+  "includes": [
+   "Example CoreDNS performance targets"
+  ],
+  "module": "@site/src/components/CoreDnsTables",
+  "exported": "PerformanceBenchmarks",
+  "file": "llm-wiki-52-coredns-targets.html",
+  "baseline_sha256": "89379a15efd3affc601c169a07de81c628f7bb98e7114cf86fd6bcdd9dc82377"
+ },
+ {
+  "name": "sidebar-foundations",
+  "page": "docs/agentic-ai-platform/design-architecture/foundations.html",
+  "tag": "section",
+  "includes": [
+   "Platform Architecture",
+   "Technical Challenges"
+  ],
+  "navigation": true,
+  "file": "llm-wiki-52-sidebar-foundations.html",
+  "baseline_sha256": "b28b75d51d4214fb3c9cd42a930c7440d690fe93ad41cf28267b09717445a77d"
+ }
 ]

@@ -25,7 +25,7 @@ const definitions = [
   ['pod-lifecycle/probe-load-balancers.md', ['myapp']],
   ['pod-lifecycle/shutdown-languages.md', ['nodejs-app', 'spring-boot-app', 'go-app', 'python-app']],
 ];
-const locales = {ko: 'docs/', en: 'i18n/en/docusaurus-plugin-content-docs/current/'};
+const locales = {ko: 'i18n/ko/docusaurus-plugin-content-docs/current/', en: 'docs/'};
 const fencePattern = () => /^```ya?ml[ \t]*\r?\n([\s\S]*?)^```[ \t]*$/gm;
 const plain = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const clone = value => JSON.parse(JSON.stringify(value));

@@ -32,7 +32,7 @@ const root = findRoot();
 const dependency = createRequire(path.join(root, 'package.json'));
 const yaml = dependency('js-yaml');
 const {parse} = dependency('@babel/parser');
-const prefixes = {ko: 'docs/', en: 'i18n/en/docusaurus-plugin-content-docs/current/'};
+const prefixes = {ko: 'i18n/ko/docusaurus-plugin-content-docs/current/', en: 'docs/'};
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const locales = ['ko', 'en'];
 const NEW = 'WhenEmptyOrUnderutilized', OLD = 'WhenUnderutilized';

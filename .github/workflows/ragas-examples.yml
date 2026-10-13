@@ -6,14 +6,14 @@ on:
     paths:
       - 'examples/ragas-evaluation/**'
       - 'docs/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
-      - 'i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
+      - 'i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
       - '.github/workflows/ragas-examples.yml'
   pull_request:
     branches: [main]
     paths:
       - 'examples/ragas-evaluation/**'
       - 'docs/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
-      - 'i18n/en/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
+      - 'i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ragas-evaluation.md'
       - '.github/workflows/ragas-examples.yml'
   workflow_dispatch:
 

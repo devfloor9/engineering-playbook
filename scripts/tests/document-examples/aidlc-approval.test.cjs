@@ -9,8 +9,8 @@ const vm = require('node:vm');
 const {test} = require('node:test');
 
 const DOCS = {
-  ko: 'docs/aidlc/enterprise/agent-versioning/governance-automation.md',
-  en: 'i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md',
+  ko: 'i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/governance-automation.md',
+  en: 'docs/aidlc/enterprise/agent-versioning/governance-automation.md',
 };
 function repositoryRoot() {
   // Repo cwd works for the review artifact; ancestors work after installation.

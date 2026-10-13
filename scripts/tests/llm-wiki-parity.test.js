@@ -181,7 +181,7 @@ test('source adapters preserve every static item, hidden detail, YAML body and r
       if (Array.isArray(value)) return value.forEach(item => check(item));
       if (value && typeof value === 'object') {
         if (value.kind === 'element') return visibleText(value).forEach(text => check(text));
-        if ('ko' in value) return check(value.ko);
+        if ('ko' in value) return check(value.en);
         return Object.entries(value).forEach(([k, v]) => check(v, k));
       }
       if (typeof value === 'string' || typeof value === 'number') {

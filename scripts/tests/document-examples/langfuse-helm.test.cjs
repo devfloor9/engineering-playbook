@@ -10,8 +10,8 @@ const {test} = require('node:test');
 const yaml = require('js-yaml');
 
 const PATHS = {
-  ko: 'docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md',
-  en: 'i18n/en/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md',
+  ko: 'i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md',
+  en: 'docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md',
 };
 const PIN = {chart: '2.1.1', app: '4.35.0'};
 const MARKER = '# langfuse-values.yaml';

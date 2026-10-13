@@ -24,7 +24,7 @@ globalThis.fetch = () => { throw Error('Network disabled'); };
 
 const root = process.env.GATEWAY_COOKBOOK_SOURCE_ROOT || process.cwd();
 const suffix = 'eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md';
-const files = {ko: 'docs/' + suffix, en: 'i18n/en/docusaurus-plugin-content-docs/current/' + suffix};
+const files = {ko: 'i18n/ko/docusaurus-plugin-content-docs/current/' + suffix, en: 'docs/' + suffix};
 const definitions = [
   [2, 'cilium', 'cilium-rate'], [2, 'kgateway', 'kgateway-rate'],
   [6, 'nginx', 'ngf-session-rule'], [6, 'kgateway', 'kgateway-session-rule'],
