@@ -3,7 +3,7 @@ title: Model Serving & Inference Infrastructure
 description: A guide to the GPU infrastructure, inference framework, and inference optimization layers, with a single map of the end-to-end LLM inference request path and per-layer tuning levers — inference gateway, prefill/decode disaggregation, KV cache-aware routing, LMCache, and cache-hit strategy.
 created: "2026-03-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 22
 tags:
@@ -59,7 +59,7 @@ The sections below explain how these areas work together and link to detailed im
     to="/docs/agentic-ai-platform/model-serving/inference-optimization"
     icon="⚡"
     title="Inference Optimization & Routing"
-    description="KV Cache optimization, Disaggregated Serving, LMCache, cache-hit strategy, tiered gateway and Cascade routing strategies."
+    description="KV cache optimization, Disaggregated Serving, LMCache, cache-hit strategy, tiered gateway and Cascade routing strategies."
     color="#00897b"
   />
 </DocCardGrid>
@@ -141,7 +141,7 @@ The tuning levers that govern inference performance, organized by layer, are as 
 | **L2** Distributed Topology | Prefill/Decode disaggregation · NIXL · LWS multi-node | Large-model throughput | [Disaggregated Serving](./inference-optimization/disaggregated-serving.md) |
 | **L3** Inference Routing | KV cache-aware · context-aware · prefix-cache scorer | Cache hit rate · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
 | **L4** Gateway | Model Cascade · cost tracking · Rate Limit · L7 limitations | Cost · availability | [Tiered Gateway](./inference-routing/tiered-gateway-architecture.md) · [Routing Strategy](./inference-routing/routing-strategy.md) |
-| **L5** Cache Layer | KV/Prefix cache · Prompt cache · Semantic cache · LMCache | Cache hit rate · cost | [LMCache](./inference-optimization/lmcache.md) · [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md) |
+| **L5** Cache Layer | KV/prefix cache · prompt cache · semantic cache · LMCache | Cache hit rate · cost | [LMCache](./inference-optimization/lmcache.md) · [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md) |
 
 :::tip Reading order
 Reading from lower layers (L0 GPU) upward (L4 Gateway) gives the infrastructure perspective; reading along the request path (L4 → L0) gives the traffic perspective. For performance metrics (TTFT · TPS · cache hit rate) and the recommended 3-Tier composition, see [Inference Optimization Overview](./inference-optimization/index.md).
@@ -165,7 +165,7 @@ Each layer's role definition and solution selection criteria are covered in [Tie
 
 General-purpose L7 gateways (NGINX, default Envoy, and others) are designed to distribute HTTP requests in a stateless manner and cannot recognize the characteristics of LLM inference traffic. This results in the following limitations.
 
-- **Round-Robin neutralizes Prefix Cache**: When requests sharing the same system prompt are distributed to different Pods each time, each Pod repeats the same prefill computation. As a result, KV cache reuse drops and TTFT increases.
+- **Round-Robin neutralizes prefix cache**: When requests sharing the same system prompt are distributed to different Pods each time, each Pod repeats the same prefill computation. As a result, KV cache reuse drops and TTFT increases.
 - **Unaware of token-based billing and streaming**: L7 gateways judge load only by request count and cannot reflect the actual computational cost, which scales with token length.
 - **No model server metrics**: They lack awareness of inference engine internal state such as KV cache usage and queue depth, so they may forward requests to overloaded Pods.
 
@@ -213,7 +213,7 @@ Inference caches are split into **three layers**, not a single one, and each has
 | **Prompt Cache** | Exact identical request | Avoids full inference |
 | **Semantic Cache** | Semantically similar request (embedding similarity) | Avoids inference for similar queries |
 
-A unified decision framework for how to raise hit rates and where to measure them at each layer is covered in [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md). For threshold design of the Semantic cache, see [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md); for Prefix cache effects, see [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md).
+A unified decision framework for how to raise hit rates and where to measure them at each layer is covered in [Cache-Hit Strategy](./inference-optimization/cache-hit-strategy.md). For threshold design of the semantic cache, see [Semantic Caching Strategy](./inference-optimization/semantic-caching-strategy.md); for prefix cache effects, see [KV Cache Optimization](./inference-optimization/kv-cache-optimization.md).
 
 ## References
 

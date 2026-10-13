@@ -3,9 +3,9 @@ title: vLLM Model Serving
 description: vLLM PagedAttention, parallelization strategies, Multi-LoRA, and hardware support architecture
 created: "2026-02-05"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-12
   author: devfloor9
-reading_time: 25
+reading_time: 27
 tags:
   - vllm
   - paged-attention
@@ -106,7 +106,7 @@ Determined by parameter count and precision.
 
 **Example calculation**:
 - Llama-3.3-70B (FP16): 70B × 2 bytes = 140GB (weights only)
-- KV Cache (batch size 256, sequence length 8192): ~40GB
+- KV cache (batch size 256, sequence length 8192): ~40GB
 - Activation and other overhead: ~20GB
 - **Total**: ~200GB → Not possible on single H100 80GB, TP=4 needed (50GB per GPU)
 
@@ -163,7 +163,7 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
   ]}
 />
 
-### PP Multi-node Constraints (V1 Engine, 2026.04)
+### PP Multi-node Constraints (V1 Engine, 2026-04) {#pp-multi-node-constraints-v1-engine-202604}
 
 vLLM V1 engine's multiproc_executor performs multi-node synchronization via NCCL TCPStore. For large models (744B class), loading time may exceed `VLLM_ENGINE_READY_TIMEOUT_S` (default 600s), causing deadlock.
 
