@@ -1,0 +1,2778 @@
+{
+ "schema": 1,
+ "generated_at": "2026-10-13 05:27:17 UTC",
+ "region": "us-east-1",
+ "price_checked": "2026-10-12",
+ "windows_utc": {
+  "main": [
+   "2026-10-12 22:28",
+   "2026-10-13 00:18"
+  ],
+  "fable51": [
+   "2026-10-13 04:36",
+   "2026-10-13 05:21"
+  ]
+ },
+ "reference": {
+  "author": {
+   "ko": "로보코(Roboco) 정도현",
+   "en": "Jung Do Hyun (정도현, Roboco)"
+  },
+  "title": {
+   "ko": "랄프 루프 모델별 완주 비교",
+   "en": "Ralph loop completion by model"
+  },
+  "url": "https://roboco.io/coding-agent-benchmark/",
+  "repo": "https://github.com/roboco-io/coding-agent-benchmark"
+ },
+ "group_labels": {
+  "F": {
+   "ko": "프론티어",
+   "en": "Frontier"
+  },
+  "C": {
+   "ko": "중국 오픈웨이트",
+   "en": "Chinese open-weight"
+  }
+ },
+ "totals": {
+  "models": 14,
+  "runs": 70,
+  "completed": 69,
+  "spend_usd": {
+   "results": 88.42,
+   "discarded_first_attempt": 17.6,
+   "total": 106.02
+  }
+ },
+ "highlights": {
+  "cheapest": "gpt6luna",
+  "priciest": "gpt6astra",
+  "fastest": "gpt6sol",
+  "cost_ratio_max_min": 130.4,
+  "cache_read_token_share": 0.9425,
+  "group_cost_ratio_c_over_f": 1.95
+ },
+ "group_stats": {
+  "F": {
+   "models": 12,
+   "cost_usd": {
+    "med": 0.83115,
+    "min": 0.0268,
+    "max": 3.4954
+   },
+   "output_tokens": {
+    "med": 21444.0,
+    "min": 8544,
+    "max": 52713
+   },
+   "total_tokens": {
+    "med": 1174103.5,
+    "min": 445388,
+    "max": 3059198
+   },
+   "llm_requests": {
+    "med": 47.0,
+    "min": 25,
+    "max": 85
+   },
+   "run_minutes": {
+    "med": 7.292,
+    "min": 3.083,
+    "max": 9.733
+   }
+  },
+  "C": {
+   "models": 2,
+   "cost_usd": {
+    "med": 1.621325,
+    "min": 1.422,
+    "max": 1.82065
+   },
+   "output_tokens": {
+    "med": 49543.2,
+    "min": 39505,
+    "max": 59581.5
+   },
+   "total_tokens": {
+    "med": 2712493.8,
+    "min": 1658186,
+    "max": 3766801.5
+   },
+   "llm_requests": {
+    "med": 70.5,
+    "min": 61,
+    "max": 80.0
+   },
+   "run_minutes": {
+    "med": 10.283,
+    "min": 10.083,
+    "max": 10.483
+   }
+  }
+ },
+ "models": [
+  {
+   "key": "opus55",
+   "name": "Claude Opus 5.5",
+   "vendor": "Anthropic",
+   "group": "F",
+   "model_id": "us.anthropic.claude-opus-5-5",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 7,
+   "prices_usd_per_mtok": {
+    "input": 4.4,
+    "output": 22.0,
+    "cache_read": 0.22,
+    "cache_write": 5.5
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 0.9073,
+     "min": 0.8605,
+     "max": 1.0538
+    },
+    "builder_cost_usd": {
+     "med": 0.7723,
+     "min": 0.7231,
+     "max": 0.9144
+    },
+    "verifier_cost_usd": {
+     "med": 0.1351,
+     "min": 0.1201,
+     "max": 0.179
+    },
+    "input_tokens": {
+     "med": 74,
+     "min": 64,
+     "max": 94
+    },
+    "output_tokens": {
+     "med": 20667,
+     "min": 20402,
+     "max": 23773
+    },
+    "cache_read_tokens": {
+     "med": 722474,
+     "min": 558985,
+     "max": 1008530
+    },
+    "cache_write_tokens": {
+     "med": 53343,
+     "min": 51908,
+     "max": 56770
+    },
+    "total_tokens": {
+     "med": 796558,
+     "min": 631889,
+     "max": 1088484
+    },
+    "llm_requests": {
+     "med": 35,
+     "min": 30,
+     "max": 45
+    },
+    "builder_requests": {
+     "med": 23,
+     "min": 20,
+     "max": 30
+    },
+    "verifier_requests": {
+     "med": 11,
+     "min": 10,
+     "max": 15
+    },
+    "run_minutes": {
+     "med": 6.083,
+     "min": 5.65,
+     "max": 7.983
+    },
+    "builder_minutes": {
+     "med": 4.783,
+     "min": 4.45,
+     "max": 5.983
+    },
+    "commits": {
+     "med": 2,
+     "min": 2,
+     "max": 3
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.1489,
+   "cache_read_token_share": 0.907,
+   "published_pi_run": {
+    "experiment": "EXP-030",
+    "cost_usd": 0.896,
+    "output_tokens": 18990
+   },
+   "note": {
+    "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
+    "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
+   }
+  },
+  {
+   "key": "sonnet55",
+   "name": "Claude Sonnet 5.5",
+   "vendor": "Anthropic",
+   "group": "F",
+   "model_id": "us.anthropic.claude-sonnet-5-5",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 4,
+   "prices_usd_per_mtok": {
+    "input": 2.2,
+    "output": 11.0,
+    "cache_read": 0.11,
+    "cache_write": 2.75
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 0.3061,
+     "min": 0.2571,
+     "max": 0.3282
+    },
+    "builder_cost_usd": {
+     "med": 0.2687,
+     "min": 0.2171,
+     "max": 0.2911
+    },
+    "verifier_cost_usd": {
+     "med": 0.0374,
+     "min": 0.0355,
+     "max": 0.0489
+    },
+    "input_tokens": {
+     "med": 54,
+     "min": 52,
+     "max": 58
+    },
+    "output_tokens": {
+     "med": 14161,
+     "min": 12677,
+     "max": 14407
+    },
+    "cache_read_tokens": {
+     "med": 392240,
+     "min": 178476,
+     "max": 548677
+    },
+    "cache_write_tokens": {
+     "med": 38933,
+     "min": 35587,
+     "max": 43014
+    },
+    "total_tokens": {
+     "med": 445388,
+     "min": 226794,
+     "max": 603161
+    },
+    "llm_requests": {
+     "med": 25,
+     "min": 23,
+     "max": 27
+    },
+    "builder_requests": {
+     "med": 17,
+     "min": 14,
+     "max": 21
+    },
+    "verifier_requests": {
+     "med": 8,
+     "min": 6,
+     "max": 9
+    },
+    "run_minutes": {
+     "med": 3.75,
+     "min": 3.417,
+     "max": 4.067
+    },
+    "builder_minutes": {
+     "med": 2.733,
+     "min": 2.4,
+     "max": 2.983
+    },
+    "commits": {
+     "med": 2,
+     "min": 1,
+     "max": 3
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    2
+   ],
+   "self_terminated_sessions": 1,
+   "verifier_cost_share": 0.1222,
+   "cache_read_token_share": 0.8807,
+   "published_pi_run": {
+    "experiment": "EXP-032",
+    "cost_usd": 0.282,
+    "output_tokens": 12223
+   },
+   "note": {
+    "ko": "5회차는 첫 번째 반복에서 빌더가 자기 프로세스까지 종료했고(exit 143), 두 번째 반복에서 완주했습니다. 2·3회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다.",
+    "en": "Run 5: in iteration 1 the builder killed its own process (exit 143); it completed in iteration 2. Runs 2, 3: the server listened on another port than `PORT`, so the verifier said FAIL, but official grading passed."
+   }
+  },
+  {
+   "key": "haiku55",
+   "name": "Claude Haiku 5.5",
+   "vendor": "Anthropic",
+   "group": "F",
+   "model_id": "us.anthropic.claude-haiku-5-5",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 2,
+   "prices_usd_per_mtok": {
+    "input": 0.11,
+    "output": 0.55,
+    "cache_read": 0.011,
+    "cache_write": 0.1375
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 0.0649,
+     "min": 0.0457,
+     "max": 0.0843
+    },
+    "builder_cost_usd": {
+     "med": 0.0608,
+     "min": 0.0405,
+     "max": 0.0739
+    },
+    "verifier_cost_usd": {
+     "med": 0.0052,
+     "min": 0.0038,
+     "max": 0.0105
+    },
+    "input_tokens": {
+     "med": 104,
+     "min": 82,
+     "max": 162
+    },
+    "output_tokens": {
+     "med": 52713,
+     "min": 42838,
+     "max": 67557
+    },
+    "cache_read_tokens": {
+     "med": 2008107,
+     "min": 1034505,
+     "max": 2581355
+    },
+    "cache_write_tokens": {
+     "med": 93162,
+     "min": 77922,
+     "max": 142826
+    },
+    "total_tokens": {
+     "med": 2156808,
+     "min": 1155347,
+     "max": 2727358
+    },
+    "llm_requests": {
+     "med": 50,
+     "min": 39,
+     "max": 77
+    },
+    "builder_requests": {
+     "med": 41,
+     "min": 29,
+     "max": 57
+    },
+    "verifier_requests": {
+     "med": 10,
+     "min": 8,
+     "max": 20
+    },
+    "run_minutes": {
+     "med": 7.433,
+     "min": 6.2,
+     "max": 9.95
+    },
+    "builder_minutes": {
+     "med": 6.583,
+     "min": 5.25,
+     "max": 8.25
+    },
+    "commits": {
+     "med": 4,
+     "min": 4,
+     "max": 7
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    2,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.0801,
+   "cache_read_token_share": 0.9311,
+   "published_pi_run": {
+    "experiment": "EXP-038",
+    "cost_usd": 0.067,
+    "output_tokens": 54120
+   },
+   "note": {
+    "ko": "4회차는 첫 번째 반복이 완료 선언 없이 끝났고(채점 0/13 파일), 두 번째 반복에서 완주했습니다. pi 0.87.1이 Haiku 5.5에 맞지 않는 thinking 형식을 보내 Bedrock이 요청을 거부하므로, pi 번들의 모델 이름 목록 두 곳에 `haiku-5`를 추가해 실행했습니다.",
+    "en": "Run 4: iteration 1 ended without a completion claim (grader 0/13 files); it completed in iteration 2. pi 0.87.1 sends a thinking format that Bedrock rejects for Haiku 5.5, so `haiku-5` was added to two model-name lists in the pi bundle."
+   }
+  },
+  {
+   "key": "fable51",
+   "name": "Claude Fable 5.1",
+   "vendor": "Anthropic",
+   "group": "F",
+   "model_id": "us.anthropic.claude-fable-5-1",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 13,
+   "prices_usd_per_mtok": {
+    "input": 11.0,
+    "output": 55.0,
+    "cache_read": 0.275,
+    "cache_write": 13.75
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 2.5664,
+     "min": 2.1181,
+     "max": 2.8369
+    },
+    "builder_cost_usd": {
+     "med": 2.1918,
+     "min": 1.7638,
+     "max": 2.4325
+    },
+    "verifier_cost_usd": {
+     "med": 0.3746,
+     "min": 0.3543,
+     "max": 0.4849
+    },
+    "input_tokens": {
+     "med": 92,
+     "min": 76,
+     "max": 120
+    },
+    "output_tokens": {
+     "med": 26693,
+     "min": 22047,
+     "max": 29187
+    },
+    "cache_read_tokens": {
+     "med": 1096620,
+     "min": 713581,
+     "max": 1472841
+    },
+    "cache_write_tokens": {
+     "med": 61437,
+     "min": 51525,
+     "max": 63630
+    },
+    "total_tokens": {
+     "med": 1183739,
+     "min": 787229,
+     "max": 1564029
+    },
+    "llm_requests": {
+     "med": 44,
+     "min": 36,
+     "max": 58
+    },
+    "builder_requests": {
+     "med": 33,
+     "min": 25,
+     "max": 42
+    },
+    "verifier_requests": {
+     "med": 13,
+     "min": 11,
+     "max": 16
+    },
+    "run_minutes": {
+     "med": 8.867,
+     "min": 6.917,
+     "max": 10.95
+    },
+    "builder_minutes": {
+     "med": 7.283,
+     "min": 5.333,
+     "max": 8.7
+    },
+    "commits": {
+     "med": 2,
+     "min": 2,
+     "max": 7
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.146,
+   "cache_read_token_share": 0.9264,
+   "published_pi_run": null,
+   "note": {
+    "ko": "계정의 us-east-1 데이터 보존 모드를 `aws_review`로 바꾼 뒤, 다른 13개 모델의 실행이 끝나고 약 4시간 18분 뒤에 단독으로 실행했습니다. 5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
+    "en": "Ran alone, about 4 h 18 min after the other 13 models finished, once the account's us-east-1 data retention mode had been set to `aws_review`. All five runs completed in the first iteration, and the verifier said PASS every time."
+   }
+  },
+  {
+   "key": "opus5",
+   "name": "Claude Opus 5",
+   "vendor": "Anthropic",
+   "group": "F",
+   "model_id": "us.anthropic.claude-opus-5",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 11,
+   "prices_usd_per_mtok": {
+    "input": 5.5,
+    "output": 27.5,
+    "cache_read": 0.55,
+    "cache_write": 6.875
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 1.9993,
+     "min": 1.6346,
+     "max": 3.7261
+    },
+    "builder_cost_usd": {
+     "med": 1.7731,
+     "min": 1.432,
+     "max": 3.5414
+    },
+    "verifier_cost_usd": {
+     "med": 0.2027,
+     "min": 0.1779,
+     "max": 0.3169
+    },
+    "input_tokens": {
+     "med": 114,
+     "min": 100,
+     "max": 182
+    },
+    "output_tokens": {
+     "med": 28503,
+     "min": 24165,
+     "max": 40478
+    },
+    "cache_read_tokens": {
+     "med": 1467821,
+     "min": 1057977,
+     "max": 3729782
+    },
+    "cache_write_tokens": {
+     "med": 59283,
+     "min": 56383,
+     "max": 81541
+    },
+    "total_tokens": {
+     "med": 1555721,
+     "min": 1138625,
+     "max": 3851983
+    },
+    "llm_requests": {
+     "med": 57,
+     "min": 50,
+     "max": 91
+    },
+    "builder_requests": {
+     "med": 44,
+     "min": 36,
+     "max": 79
+    },
+    "verifier_requests": {
+     "med": 14,
+     "min": 12,
+     "max": 20
+    },
+    "run_minutes": {
+     "med": 8.4,
+     "min": 6.767,
+     "max": 13.983
+    },
+    "builder_minutes": {
+     "med": 6.567,
+     "min": 5.2,
+     "max": 12.417
+    },
+    "commits": {
+     "med": 2,
+     "min": 2,
+     "max": 3
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.1014,
+   "cache_read_token_share": 0.9435,
+   "published_pi_run": null,
+   "note": {
+    "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다. 3회차 비용이 중앙값의 약 1.9배였습니다(LLM 요청 91회, 반복 1회).",
+    "en": "All five runs completed in the first iteration, and the verifier said PASS every time. Run 3 cost about 1.9× the median (91 LLM requests, 1 iteration)."
+   }
+  },
+  {
+   "key": "sonnet5",
+   "name": "Claude Sonnet 5",
+   "vendor": "Anthropic",
+   "group": "F",
+   "model_id": "us.anthropic.claude-sonnet-5",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 8,
+   "prices_usd_per_mtok": {
+    "input": 2.2,
+    "output": 11.0,
+    "cache_read": 0.22,
+    "cache_write": 2.75
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 1.1789,
+     "min": 1.1282,
+     "max": 1.4552
+    },
+    "builder_cost_usd": {
+     "med": 1.1009,
+     "min": 1.0478,
+     "max": 1.3955
+    },
+    "verifier_cost_usd": {
+     "med": 0.0615,
+     "min": 0.0598,
+     "max": 0.0804
+    },
+    "input_tokens": {
+     "med": 170,
+     "min": 154,
+     "max": 204
+    },
+    "output_tokens": {
+     "med": 32142,
+     "min": 31074,
+     "max": 36492
+    },
+    "cache_read_tokens": {
+     "med": 2960551,
+     "min": 2689255,
+     "max": 3906673
+    },
+    "cache_write_tokens": {
+     "med": 70704,
+     "min": 66420,
+     "max": 77450
+    },
+    "total_tokens": {
+     "med": 3059198,
+     "min": 2787977,
+     "max": 4019069
+    },
+    "llm_requests": {
+     "med": 85,
+     "min": 77,
+     "max": 102
+    },
+    "builder_requests": {
+     "med": 71,
+     "min": 66,
+     "max": 92
+    },
+    "verifier_requests": {
+     "med": 10,
+     "min": 8,
+     "max": 14
+    },
+    "run_minutes": {
+     "med": 9.733,
+     "min": 8.067,
+     "max": 11.383
+    },
+    "builder_minutes": {
+     "med": 8.55,
+     "min": 7.05,
+     "max": 10.317
+    },
+    "commits": {
+     "med": 2,
+     "min": 1,
+     "max": 2
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.0522,
+   "cache_read_token_share": 0.9678,
+   "published_pi_run": null,
+   "note": {
+    "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
+    "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
+   }
+  },
+  {
+   "key": "opus48",
+   "name": "Claude Opus 4.8",
+   "vendor": "Anthropic",
+   "group": "F",
+   "model_id": "us.anthropic.claude-opus-4-8",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 12,
+   "prices_usd_per_mtok": {
+    "input": 5.5,
+    "output": 27.5,
+    "cache_read": 0.55,
+    "cache_write": 6.875
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 2.0177,
+     "min": 1.8591,
+     "max": 2.678
+    },
+    "builder_cost_usd": {
+     "med": 1.8869,
+     "min": 1.7212,
+     "max": 2.5705
+    },
+    "verifier_cost_usd": {
+     "med": 0.1333,
+     "min": 0.1074,
+     "max": 0.1529
+    },
+    "input_tokens": {
+     "med": 120,
+     "min": 112,
+     "max": 150
+    },
+    "output_tokens": {
+     "med": 23804,
+     "min": 22316,
+     "max": 29333
+    },
+    "cache_read_tokens": {
+     "med": 1787192,
+     "min": 1600449,
+     "max": 2645739
+    },
+    "cache_write_tokens": {
+     "med": 58440,
+     "min": 53032,
+     "max": 60411
+    },
+    "total_tokens": {
+     "med": 1873275,
+     "min": 1675909,
+     "max": 2735633
+    },
+    "llm_requests": {
+     "med": 60,
+     "min": 56,
+     "max": 75
+    },
+    "builder_requests": {
+     "med": 52,
+     "min": 46,
+     "max": 67
+    },
+    "verifier_requests": {
+     "med": 9,
+     "min": 8,
+     "max": 11
+    },
+    "run_minutes": {
+     "med": 7.15,
+     "min": 6.567,
+     "max": 9.583
+    },
+    "builder_minutes": {
+     "med": 6.15,
+     "min": 5.483,
+     "max": 8.617
+    },
+    "commits": {
+     "med": 2,
+     "min": 2,
+     "max": 2
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 1,
+   "verifier_cost_share": 0.0661,
+   "cache_read_token_share": 0.954,
+   "published_pi_run": null,
+   "note": {
+    "ko": "3회차 검증자 세션이 자기 프로세스까지 종료해(exit 143) 판정이 남지 않았습니다. 공식 채점은 통과했습니다.",
+    "en": "Run 3: the verifier session killed its own process (exit 143) and left no verdict; the run still passed official grading."
+   }
+  },
+  {
+   "key": "gpt61sol",
+   "name": "GPT-6.1 Sol",
+   "vendor": "OpenAI",
+   "group": "F",
+   "model_id": "us.openai.gpt-6.1-sol",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 5,
+   "prices_usd_per_mtok": {
+    "input": 2.2,
+    "output": 11.0,
+    "cache_read": 0.11,
+    "cache_write": 2.75
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 0.5268,
+     "min": 0.457,
+     "max": 0.5594
+    },
+    "builder_cost_usd": {
+     "med": 0.4417,
+     "min": 0.4147,
+     "max": 0.5104
+    },
+    "verifier_cost_usd": {
+     "med": 0.0552,
+     "min": 0.0423,
+     "max": 0.094
+    },
+    "input_tokens": {
+     "med": 92,
+     "min": 88,
+     "max": 106
+    },
+    "output_tokens": {
+     "med": 20621,
+     "min": 18490,
+     "max": 22847
+    },
+    "cache_read_tokens": {
+     "med": 1074525,
+     "min": 1011677,
+     "max": 1302871
+    },
+    "cache_write_tokens": {
+     "med": 59843,
+     "min": 50416,
+     "max": 69232
+    },
+    "total_tokens": {
+     "med": 1164468,
+     "min": 1096209,
+     "max": 1385667
+    },
+    "llm_requests": {
+     "med": 46,
+     "min": 44,
+     "max": 53
+    },
+    "builder_requests": {
+     "med": 38,
+     "min": 34,
+     "max": 45
+    },
+    "verifier_requests": {
+     "med": 8,
+     "min": 7,
+     "max": 10
+    },
+    "run_minutes": {
+     "med": 8.117,
+     "min": 6.5,
+     "max": 8.783
+    },
+    "builder_minutes": {
+     "med": 7.1,
+     "min": 5.8,
+     "max": 7.817
+    },
+    "commits": {
+     "med": 5,
+     "min": 4,
+     "max": 7
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.1048,
+   "cache_read_token_share": 0.9228,
+   "published_pi_run": {
+    "experiment": "EXP-034",
+    "cost_usd": 0.332,
+    "output_tokens": 13251
+   },
+   "note": {
+    "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
+    "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
+   }
+  },
+  {
+   "key": "gpt6astra",
+   "name": "GPT-6 Astra",
+   "vendor": "OpenAI",
+   "group": "F",
+   "model_id": "us.openai.gpt-6-astra",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 14,
+   "prices_usd_per_mtok": {
+    "input": 11.0,
+    "output": 55.0,
+    "cache_read": 1.1,
+    "cache_write": 13.75
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 3.4954,
+     "min": 3.1016,
+     "max": 3.5623
+    },
+    "builder_cost_usd": {
+     "med": 3.1959,
+     "min": 2.8113,
+     "max": 3.2875
+    },
+    "verifier_cost_usd": {
+     "med": 0.2784,
+     "min": 0.2457,
+     "max": 0.315
+    },
+    "input_tokens": {
+     "med": 96,
+     "min": 92,
+     "max": 110
+    },
+    "output_tokens": {
+     "med": 22221,
+     "min": 21151,
+     "max": 23685
+    },
+    "cache_read_tokens": {
+     "med": 1236901,
+     "min": 1062948,
+     "max": 1399215
+    },
+    "cache_write_tokens": {
+     "med": 58048,
+     "min": 53959,
+     "max": 66303
+    },
+    "total_tokens": {
+     "med": 1325517,
+     "min": 1139606,
+     "max": 1479623
+    },
+    "llm_requests": {
+     "med": 48,
+     "min": 46,
+     "max": 55
+    },
+    "builder_requests": {
+     "med": 41,
+     "min": 37,
+     "max": 45
+    },
+    "verifier_requests": {
+     "med": 9,
+     "min": 7,
+     "max": 10
+    },
+    "run_minutes": {
+     "med": 7.883,
+     "min": 7.3,
+     "max": 8.8
+    },
+    "builder_minutes": {
+     "med": 6.917,
+     "min": 6.417,
+     "max": 7.733
+    },
+    "commits": {
+     "med": 5,
+     "min": 4,
+     "max": 6
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.0796,
+   "cache_read_token_share": 0.9331,
+   "published_pi_run": null,
+   "note": {
+    "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
+    "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
+   }
+  },
+  {
+   "key": "gpt6sol",
+   "name": "GPT-6 Sol",
+   "vendor": "OpenAI",
+   "group": "F",
+   "model_id": "us.openai.gpt-6-sol",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 3,
+   "prices_usd_per_mtok": {
+    "input": 2.2,
+    "output": 11.0,
+    "cache_read": 0.22,
+    "cache_write": 2.75
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 0.2912,
+     "min": 0.2582,
+     "max": 0.3583
+    },
+    "builder_cost_usd": {
+     "med": 0.259,
+     "min": 0.2112,
+     "max": 0.3332
+    },
+    "verifier_cost_usd": {
+     "med": 0.0467,
+     "min": 0.0251,
+     "max": 0.0476
+    },
+    "input_tokens": {
+     "med": 72,
+     "min": 64,
+     "max": 102
+    },
+    "output_tokens": {
+     "med": 8544,
+     "min": 7967,
+     "max": 9605
+    },
+    "cache_read_tokens": {
+     "med": 525901,
+     "min": 393654,
+     "max": 778994
+    },
+    "cache_write_tokens": {
+     "med": 30494,
+     "min": 29564,
+     "max": 36338
+    },
+    "total_tokens": {
+     "med": 564091,
+     "min": 432181,
+     "max": 818653
+    },
+    "llm_requests": {
+     "med": 36,
+     "min": 32,
+     "max": 51
+    },
+    "builder_requests": {
+     "med": 28,
+     "min": 24,
+     "max": 44
+    },
+    "verifier_requests": {
+     "med": 7,
+     "min": 7,
+     "max": 8
+    },
+    "run_minutes": {
+     "med": 3.083,
+     "min": 2.483,
+     "max": 3.333
+    },
+    "builder_minutes": {
+     "med": 2.2,
+     "min": 1.967,
+     "max": 2.733
+    },
+    "commits": {
+     "med": 2,
+     "min": 2,
+     "max": 3
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.1604,
+   "cache_read_token_share": 0.9323,
+   "published_pi_run": {
+    "experiment": "EXP-030",
+    "cost_usd": 0.298,
+    "output_tokens": 7599
+   },
+   "note": {
+    "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
+    "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
+   }
+  },
+  {
+   "key": "gpt6luna",
+   "name": "GPT-6 Luna",
+   "vendor": "OpenAI",
+   "group": "F",
+   "model_id": "us.openai.gpt-6-luna",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 1,
+   "prices_usd_per_mtok": {
+    "input": 0.11,
+    "output": 0.55,
+    "cache_read": 0.011,
+    "cache_write": 0.1375
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 0.0268,
+     "min": 0.0244,
+     "max": 0.066
+    },
+    "builder_cost_usd": {
+     "med": 0.022,
+     "min": 0.0181,
+     "max": 0.0393
+    },
+    "verifier_cost_usd": {
+     "med": 0.0066,
+     "min": 0.0024,
+     "max": 0.0267
+    },
+    "input_tokens": {
+     "med": 100,
+     "min": 86,
+     "max": 226
+    },
+    "output_tokens": {
+     "med": 14272,
+     "min": 13818,
+     "max": 45643
+    },
+    "cache_read_tokens": {
+     "med": 982784,
+     "min": 774123,
+     "max": 1778975
+    },
+    "cache_write_tokens": {
+     "med": 60391,
+     "min": 48510,
+     "max": 154825
+    },
+    "total_tokens": {
+     "med": 1057982,
+     "min": 848865,
+     "max": 1979669
+    },
+    "llm_requests": {
+     "med": 50,
+     "min": 43,
+     "max": 113
+    },
+    "builder_requests": {
+     "med": 44,
+     "min": 33,
+     "max": 76
+    },
+    "verifier_requests": {
+     "med": 10,
+     "min": 6,
+     "max": 37
+    },
+    "run_minutes": {
+     "med": 4.167,
+     "min": 3.967,
+     "max": 15.733
+    },
+    "builder_minutes": {
+     "med": 3.383,
+     "min": 3.167,
+     "max": 11.483
+    },
+    "commits": {
+     "med": 2,
+     "min": 2,
+     "max": 5
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    3,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.2463,
+   "cache_read_token_share": 0.9289,
+   "published_pi_run": null,
+   "note": {
+    "ko": "3회차: 첫 번째 반복에서 빌더가 `npm run dev`를 포그라운드로 실행해 세션이 멈췄고, 300초 멈춤 감지로 종료됐습니다. 두 번째 반복 뒤 채점은 13개 파일 중 5개만 통과했고, 세 번째 반복에서 완주했습니다. 1회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다. 3회차 비용이 중앙값의 약 2.5배였습니다(LLM 요청 113회, 반복 3회).",
+    "en": "Run 3: In iteration 1 the builder ran `npm run dev` in the foreground and the session hung until the 300-second stall watchdog ended it. After iteration 2 the grader passed 5 of 13 files; the run completed in iteration 3. Run 1: the server listened on another port than `PORT`, so the verifier said FAIL, but official grading passed. Run 3 cost about 2.5× the median (113 LLM requests, 3 iterations)."
+   }
+  },
+  {
+   "key": "gpt56sol",
+   "name": "GPT-5.6 Sol",
+   "vendor": "OpenAI",
+   "group": "F",
+   "model_id": "us.openai.gpt-5.6-sol",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 6,
+   "prices_usd_per_mtok": {
+    "input": 4.4,
+    "output": 22.0,
+    "cache_read": 0.44,
+    "cache_write": 5.5
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 0.755,
+     "min": 0.6673,
+     "max": 0.9085
+    },
+    "builder_cost_usd": {
+     "med": 0.5519,
+     "min": 0.499,
+     "max": 0.685
+    },
+    "verifier_cost_usd": {
+     "med": 0.1809,
+     "min": 0.1563,
+     "max": 0.2235
+    },
+    "input_tokens": {
+     "med": 62,
+     "min": 54,
+     "max": 68
+    },
+    "output_tokens": {
+     "med": 12032,
+     "min": 10223,
+     "max": 12787
+    },
+    "cache_read_tokens": {
+     "med": 528733,
+     "min": 451226,
+     "max": 704329
+    },
+    "cache_write_tokens": {
+     "med": 49072,
+     "min": 43570,
+     "max": 58857
+    },
+    "total_tokens": {
+     "med": 584537,
+     "min": 505256,
+     "max": 775728
+    },
+    "llm_requests": {
+     "med": 31,
+     "min": 27,
+     "max": 34
+    },
+    "builder_requests": {
+     "med": 22,
+     "min": 19,
+     "max": 26
+    },
+    "verifier_requests": {
+     "med": 8,
+     "min": 7,
+     "max": 9
+    },
+    "run_minutes": {
+     "med": 4.117,
+     "min": 3.4,
+     "max": 5.817
+    },
+    "builder_minutes": {
+     "med": 2.917,
+     "min": 2.783,
+     "max": 3.933
+    },
+    "commits": {
+     "med": 2,
+     "min": 2,
+     "max": 4
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.2396,
+   "cache_read_token_share": 0.9045,
+   "published_pi_run": null,
+   "note": {
+    "ko": "2·4회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다.",
+    "en": "Runs 2, 4: the server listened on another port than `PORT`, so the verifier said FAIL, but official grading passed."
+   }
+  },
+  {
+   "key": "kimik3",
+   "name": "Kimi K3",
+   "vendor": "Moonshot AI",
+   "group": "C",
+   "model_id": "us.moonshotai.kimi-k3",
+   "completed": 5,
+   "runs": 5,
+   "cost_rank": 9,
+   "prices_usd_per_mtok": {
+    "input": 3.3,
+    "output": 16.5,
+    "cache_read": 0.33,
+    "cache_write": 4.125
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 1.422,
+     "min": 1.1538,
+     "max": 1.6403
+    },
+    "builder_cost_usd": {
+     "med": 1.2998,
+     "min": 1.0347,
+     "max": 1.49
+    },
+    "verifier_cost_usd": {
+     "med": 0.1222,
+     "min": 0.1172,
+     "max": 0.1503
+    },
+    "input_tokens": {
+     "med": 427,
+     "min": 399,
+     "max": 441
+    },
+    "output_tokens": {
+     "med": 39505,
+     "min": 32640,
+     "max": 47056
+    },
+    "cache_read_tokens": {
+     "med": 1556409,
+     "min": 1190363,
+     "max": 1739007
+    },
+    "cache_write_tokens": {
+     "med": 60969,
+     "min": 53595,
+     "max": 69963
+    },
+    "total_tokens": {
+     "med": 1658186,
+     "min": 1276997,
+     "max": 1856453
+    },
+    "llm_requests": {
+     "med": 61,
+     "min": 57,
+     "max": 65
+    },
+    "builder_requests": {
+     "med": 47,
+     "min": 41,
+     "max": 50
+    },
+    "verifier_requests": {
+     "med": 16,
+     "min": 13,
+     "max": 17
+    },
+    "run_minutes": {
+     "med": 10.483,
+     "min": 8.25,
+     "max": 11.967
+    },
+    "builder_minutes": {
+     "med": 9.217,
+     "min": 7.133,
+     "max": 10.483
+    },
+    "commits": {
+     "med": 4,
+     "min": 2,
+     "max": 5
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "self_terminated_sessions": 0,
+   "verifier_cost_share": 0.0859,
+   "cache_read_token_share": 0.9386,
+   "published_pi_run": {
+    "experiment": "EXP-029",
+    "cost_usd": 0.749,
+    "output_tokens": 18667
+   },
+   "note": {
+    "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다. 3회차에서 Bedrock 스트림 오류가 2번 났고, pi가 자동으로 다시 요청해 이어졌습니다. 모델 카드는 Converse에서 명시적 프롬프트 캐싱을 제공하지 않는다고 하지만, Bedrock은 캐시 읽기·쓰기 토큰을 보고했습니다(적용 방식 확인 불가).",
+    "en": "All five runs completed in the first iteration, and the verifier said PASS every time. Run 3 hit 2 transient Bedrock stream errors; pi retried automatically. Its model card says explicit prompt caching is not offered through Converse, yet Bedrock reported cache-read and cache-write tokens (mechanism not verified)."
+   }
+  },
+  {
+   "key": "glm53",
+   "name": "GLM 5.3",
+   "vendor": "Z.AI",
+   "group": "C",
+   "model_id": "us.zai.glm-5.3",
+   "completed": 4,
+   "runs": 5,
+   "cost_rank": 10,
+   "prices_usd_per_mtok": {
+    "input": 1.848,
+    "output": 5.808,
+    "cache_read": 0.3432,
+    "cache_write": 2.31
+   },
+   "stats": {
+    "cost_usd": {
+     "med": 1.82065,
+     "min": 1.4018,
+     "max": 2.0615
+    },
+    "builder_cost_usd": {
+     "med": 1.7293,
+     "min": 1.3288,
+     "max": 1.9777
+    },
+    "verifier_cost_usd": {
+     "med": 0.08165,
+     "min": 0.0687,
+     "max": 0.1076
+    },
+    "input_tokens": {
+     "med": 160.0,
+     "min": 146,
+     "max": 178
+    },
+    "output_tokens": {
+     "med": 59581.5,
+     "min": 48793,
+     "max": 77914
+    },
+    "cache_read_tokens": {
+     "med": 3612806.0,
+     "min": 2752084,
+     "max": 4200005
+    },
+    "cache_write_tokens": {
+     "med": 87281.0,
+     "min": 75176,
+     "max": 100777
+    },
+    "total_tokens": {
+     "med": 3766801.5,
+     "min": 2876201,
+     "max": 4364926
+    },
+    "llm_requests": {
+     "med": 80.0,
+     "min": 73,
+     "max": 89
+    },
+    "builder_requests": {
+     "med": 64.5,
+     "min": 59,
+     "max": 71
+    },
+    "verifier_requests": {
+     "med": 15.5,
+     "min": 14,
+     "max": 18
+    },
+    "run_minutes": {
+     "med": 10.083,
+     "min": 8.233,
+     "max": 15.033
+    },
+    "builder_minutes": {
+     "med": 9.033,
+     "min": 7.15,
+     "max": 14.2
+    },
+    "commits": {
+     "med": 4.5,
+     "min": 4,
+     "max": 6
+    }
+   },
+   "iterations": [
+    1,
+    1,
+    1,
+    null,
+    1
+   ],
+   "self_terminated_sessions": 1,
+   "verifier_cost_share": 0.0448,
+   "cache_read_token_share": 0.9591,
+   "published_pi_run": null,
+   "note": {
+    "ko": "4회차: 첫 번째 반복에서 빌더가 테스트용 node 서버를 포그라운드로 띄운 채 멈췄고, 300초 멈춤 감지로 종료됐습니다. 두 번째 반복은 20분 상한에 걸려 `.ralph-done`을 만들기 전에 끝났습니다. 상한 직후 채점에서 저장소는 13개 파일을 모두 통과했지만, 완주 규칙(`.ralph-done` + 13개 파일 통과)에 따라 미완주로 집계했습니다. 2회차 검증자 세션이 자기 프로세스까지 종료해(exit 143) 판정이 남지 않았습니다. 공식 채점은 통과했습니다.",
+    "en": "Run 4: In iteration 1 the builder started a node test server in the foreground and hung; the 300-second stall watchdog ended the session. Iteration 2 hit the 20-minute run cap before the builder created `.ralph-done`. Grading right after the cap passed all 13 files, but under the completion rule (`.ralph-done` plus 13 passing files) the run counts as incomplete. Run 2: the verifier session killed its own process (exit 143) and left no verdict; the run still passed official grading."
+   }
+  }
+ ],
+ "runs": [
+  {
+   "id": "opus55-en-1",
+   "model": "opus55",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.117,
+   "llm_requests": 41,
+   "output_tokens": 22812,
+   "total_tokens": 1079865,
+   "cost_usd": 1.0345,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus55-en-2",
+   "model": "opus55",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 5.65,
+   "llm_requests": 30,
+   "output_tokens": 20467,
+   "total_tokens": 689505,
+   "cost_usd": 0.8718,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus55-en-3",
+   "model": "opus55",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.083,
+   "llm_requests": 30,
+   "output_tokens": 20402,
+   "total_tokens": 631889,
+   "cost_usd": 0.8605,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus55-en-4",
+   "model": "opus55",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.983,
+   "llm_requests": 45,
+   "output_tokens": 23773,
+   "total_tokens": 1088484,
+   "cost_usd": 1.0538,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 3,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus55-en-5",
+   "model": "opus55",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.083,
+   "llm_requests": 35,
+   "output_tokens": 20667,
+   "total_tokens": 796558,
+   "cost_usd": 0.9073,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet55-en-1",
+   "model": "sonnet55",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.683,
+   "llm_requests": 25,
+   "output_tokens": 13929,
+   "total_tokens": 489440,
+   "cost_usd": 0.3192,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet55-en-2",
+   "model": "sonnet55",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.75,
+   "llm_requests": 24,
+   "output_tokens": 14407,
+   "total_tokens": 418465,
+   "cost_usd": 0.3052,
+   "verifier_verdicts": [
+    "FAIL"
+   ],
+   "commits": 1,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet55-en-3",
+   "model": "sonnet55",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 4.067,
+   "llm_requests": 27,
+   "output_tokens": 14309,
+   "total_tokens": 603161,
+   "cost_usd": 0.3282,
+   "verifier_verdicts": [
+    "FAIL"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet55-en-4",
+   "model": "sonnet55",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.417,
+   "llm_requests": 25,
+   "output_tokens": 14161,
+   "total_tokens": 445388,
+   "cost_usd": 0.3061,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 3,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet55-en-5",
+   "model": "sonnet55",
+   "n": 5,
+   "status": "done",
+   "iterations": 2,
+   "run_minutes": 3.917,
+   "llm_requests": 23,
+   "output_tokens": 12677,
+   "total_tokens": 226794,
+   "cost_usd": 0.2571,
+   "verifier_verdicts": [
+    "PASS",
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 1
+  },
+  {
+   "id": "haiku55-en-1",
+   "model": "haiku55",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.2,
+   "llm_requests": 39,
+   "output_tokens": 42838,
+   "total_tokens": 1155347,
+   "cost_usd": 0.0457,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "haiku55-en-2",
+   "model": "haiku55",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.25,
+   "llm_requests": 62,
+   "output_tokens": 52713,
+   "total_tokens": 2727358,
+   "cost_usd": 0.0702,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "haiku55-en-3",
+   "model": "haiku55",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.433,
+   "llm_requests": 50,
+   "output_tokens": 54257,
+   "total_tokens": 2156808,
+   "cost_usd": 0.0649,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "haiku55-en-4",
+   "model": "haiku55",
+   "n": 4,
+   "status": "done",
+   "iterations": 2,
+   "run_minutes": 9.95,
+   "llm_requests": 77,
+   "output_tokens": 67557,
+   "total_tokens": 2711858,
+   "cost_usd": 0.0843,
+   "verifier_verdicts": [
+    "FAIL",
+    "PASS"
+   ],
+   "commits": 7,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "haiku55-en-5",
+   "model": "haiku55",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.0,
+   "llm_requests": 49,
+   "output_tokens": 47874,
+   "total_tokens": 2032399,
+   "cost_usd": 0.0586,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 6,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "fable51-en-1",
+   "model": "fable51",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.867,
+   "llm_requests": 44,
+   "output_tokens": 29187,
+   "total_tokens": 1238647,
+   "cost_usd": 2.7963,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "fable51-en-2",
+   "model": "fable51",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 10.95,
+   "llm_requests": 58,
+   "output_tokens": 28567,
+   "total_tokens": 1564029,
+   "cost_usd": 2.8369,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "fable51-en-3",
+   "model": "fable51",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.917,
+   "llm_requests": 36,
+   "output_tokens": 22047,
+   "total_tokens": 787229,
+   "cost_usd": 2.1181,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 7,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "fable51-en-4",
+   "model": "fable51",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 9.3,
+   "llm_requests": 46,
+   "output_tokens": 25586,
+   "total_tokens": 1183739,
+   "cost_usd": 2.5546,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "fable51-en-5",
+   "model": "fable51",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.417,
+   "llm_requests": 44,
+   "output_tokens": 26693,
+   "total_tokens": 1062192,
+   "cost_usd": 2.5664,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 6,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus5-en-1",
+   "model": "opus5",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.767,
+   "llm_requests": 50,
+   "output_tokens": 24165,
+   "total_tokens": 1138625,
+   "cost_usd": 1.6346,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus5-en-2",
+   "model": "opus5",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.3,
+   "llm_requests": 56,
+   "output_tokens": 26436,
+   "total_tokens": 1452008,
+   "cost_usd": 1.8758,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus5-en-3",
+   "model": "opus5",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 13.983,
+   "llm_requests": 91,
+   "output_tokens": 40478,
+   "total_tokens": 3851983,
+   "cost_usd": 3.7261,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 3,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus5-en-4",
+   "model": "opus5",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 10.3,
+   "llm_requests": 69,
+   "output_tokens": 32053,
+   "total_tokens": 1769367,
+   "cost_usd": 2.2579,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus5-en-5",
+   "model": "opus5",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.4,
+   "llm_requests": 57,
+   "output_tokens": 28503,
+   "total_tokens": 1555721,
+   "cost_usd": 1.9993,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet5-en-1",
+   "model": "sonnet5",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 11.317,
+   "llm_requests": 102,
+   "output_tokens": 36492,
+   "total_tokens": 3758302,
+   "cost_usd": 1.412,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 1,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet5-en-2",
+   "model": "sonnet5",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.3,
+   "llm_requests": 80,
+   "output_tokens": 32142,
+   "total_tokens": 2787977,
+   "cost_usd": 1.1282,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet5-en-3",
+   "model": "sonnet5",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 9.733,
+   "llm_requests": 85,
+   "output_tokens": 31074,
+   "total_tokens": 3059198,
+   "cost_usd": 1.1789,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet5-en-4",
+   "model": "sonnet5",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.067,
+   "llm_requests": 77,
+   "output_tokens": 31127,
+   "total_tokens": 2909277,
+   "cost_usd": 1.1548,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "sonnet5-en-5",
+   "model": "sonnet5",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 11.383,
+   "llm_requests": 93,
+   "output_tokens": 34760,
+   "total_tokens": 4019069,
+   "cost_usd": 1.4552,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus48-en-1",
+   "model": "opus48",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.567,
+   "llm_requests": 60,
+   "output_tokens": 23680,
+   "total_tokens": 1749809,
+   "cost_usd": 1.9708,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus48-en-2",
+   "model": "opus48",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.633,
+   "llm_requests": 56,
+   "output_tokens": 22316,
+   "total_tokens": 1675909,
+   "cost_usd": 1.8591,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus48-en-3",
+   "model": "opus48",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 9.583,
+   "llm_requests": 75,
+   "output_tokens": 29333,
+   "total_tokens": 2735633,
+   "cost_usd": 2.678,
+   "verifier_verdicts": [
+    "none"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 1
+  },
+  {
+   "id": "opus48-en-4",
+   "model": "opus48",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.583,
+   "llm_requests": 62,
+   "output_tokens": 27140,
+   "total_tokens": 1873275,
+   "cost_usd": 2.1344,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "opus48-en-5",
+   "model": "opus48",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.15,
+   "llm_requests": 60,
+   "output_tokens": 23804,
+   "total_tokens": 1877268,
+   "cost_usd": 2.0177,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt61sol-en-1",
+   "model": "gpt61sol",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.783,
+   "llm_requests": 53,
+   "output_tokens": 22847,
+   "total_tokens": 1385667,
+   "cost_usd": 0.5594,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 6,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt61sol-en-2",
+   "model": "gpt61sol",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.667,
+   "llm_requests": 46,
+   "output_tokens": 18490,
+   "total_tokens": 1112514,
+   "cost_usd": 0.457,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 5,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt61sol-en-3",
+   "model": "gpt61sol",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.117,
+   "llm_requests": 45,
+   "output_tokens": 20621,
+   "total_tokens": 1164468,
+   "cost_usd": 0.5356,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 7,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt61sol-en-4",
+   "model": "gpt61sol",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.417,
+   "llm_requests": 44,
+   "output_tokens": 22189,
+   "total_tokens": 1096209,
+   "cost_usd": 0.5268,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt61sol-en-5",
+   "model": "gpt61sol",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 6.5,
+   "llm_requests": 49,
+   "output_tokens": 19083,
+   "total_tokens": 1251798,
+   "cost_usd": 0.4953,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 5,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6astra-en-1",
+   "model": "gpt6astra",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.517,
+   "llm_requests": 46,
+   "output_tokens": 22221,
+   "total_tokens": 1325517,
+   "cost_usd": 3.4954,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6astra-en-2",
+   "model": "gpt6astra",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.3,
+   "llm_requests": 48,
+   "output_tokens": 21151,
+   "total_tokens": 1208409,
+   "cost_usd": 3.1528,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6astra-en-3",
+   "model": "gpt6astra",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 7.883,
+   "llm_requests": 48,
+   "output_tokens": 21299,
+   "total_tokens": 1139606,
+   "cost_usd": 3.1016,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 6,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6astra-en-4",
+   "model": "gpt6astra",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.8,
+   "llm_requests": 50,
+   "output_tokens": 23685,
+   "total_tokens": 1340715,
+   "cost_usd": 3.5109,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 5,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6astra-en-5",
+   "model": "gpt6astra",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.017,
+   "llm_requests": 55,
+   "output_tokens": 22250,
+   "total_tokens": 1479623,
+   "cost_usd": 3.5623,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 5,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6sol-en-1",
+   "model": "gpt6sol",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.217,
+   "llm_requests": 32,
+   "output_tokens": 8428,
+   "total_tokens": 456816,
+   "cost_usd": 0.2815,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6sol-en-2",
+   "model": "gpt6sol",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 2.867,
+   "llm_requests": 36,
+   "output_tokens": 9605,
+   "total_tokens": 592640,
+   "cost_usd": 0.326,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 3,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6sol-en-3",
+   "model": "gpt6sol",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 2.483,
+   "llm_requests": 33,
+   "output_tokens": 7967,
+   "total_tokens": 432181,
+   "cost_usd": 0.2582,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6sol-en-4",
+   "model": "gpt6sol",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.333,
+   "llm_requests": 51,
+   "output_tokens": 9441,
+   "total_tokens": 818653,
+   "cost_usd": 0.3583,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6sol-en-5",
+   "model": "gpt6sol",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.083,
+   "llm_requests": 41,
+   "output_tokens": 8544,
+   "total_tokens": 564091,
+   "cost_usd": 0.2912,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6luna-en-1",
+   "model": "gpt6luna",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 5.833,
+   "llm_requests": 59,
+   "output_tokens": 16847,
+   "total_tokens": 1227597,
+   "cost_usd": 0.0295,
+   "verifier_verdicts": [
+    "FAIL"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6luna-en-2",
+   "model": "gpt6luna",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.967,
+   "llm_requests": 43,
+   "output_tokens": 14265,
+   "total_tokens": 848865,
+   "cost_usd": 0.0247,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 3,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6luna-en-3",
+   "model": "gpt6luna",
+   "n": 3,
+   "status": "done",
+   "iterations": 3,
+   "run_minutes": 15.733,
+   "llm_requests": 113,
+   "output_tokens": 45643,
+   "total_tokens": 1979669,
+   "cost_usd": 0.066,
+   "verifier_verdicts": [
+    "FAIL",
+    "FAIL",
+    "PASS"
+   ],
+   "commits": 5,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6luna-en-4",
+   "model": "gpt6luna",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 4.167,
+   "llm_requests": 43,
+   "output_tokens": 13818,
+   "total_tokens": 1057982,
+   "cost_usd": 0.0268,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt6luna-en-5",
+   "model": "gpt6luna",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 4.083,
+   "llm_requests": 50,
+   "output_tokens": 14272,
+   "total_tokens": 961021,
+   "cost_usd": 0.0244,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt56sol-en-1",
+   "model": "gpt56sol",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 4.117,
+   "llm_requests": 34,
+   "output_tokens": 12032,
+   "total_tokens": 664801,
+   "cost_usd": 0.818,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt56sol-en-2",
+   "model": "gpt56sol",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 5.817,
+   "llm_requests": 27,
+   "output_tokens": 12787,
+   "total_tokens": 524621,
+   "cost_usd": 0.755,
+   "verifier_verdicts": [
+    "FAIL"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt56sol-en-3",
+   "model": "gpt56sol",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.4,
+   "llm_requests": 32,
+   "output_tokens": 10223,
+   "total_tokens": 584537,
+   "cost_usd": 0.7082,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt56sol-en-4",
+   "model": "gpt56sol",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 5.767,
+   "llm_requests": 31,
+   "output_tokens": 12480,
+   "total_tokens": 775728,
+   "cost_usd": 0.9085,
+   "verifier_verdicts": [
+    "FAIL"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "gpt56sol-en-5",
+   "model": "gpt56sol",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 3.733,
+   "llm_requests": 29,
+   "output_tokens": 10402,
+   "total_tokens": 505256,
+   "cost_usd": 0.6673,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 3,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "kimik3-en-1",
+   "model": "kimik3",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 9.833,
+   "llm_requests": 61,
+   "output_tokens": 39505,
+   "total_tokens": 1658186,
+   "cost_usd": 1.422,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 5,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "kimik3-en-2",
+   "model": "kimik3",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 11.967,
+   "llm_requests": 61,
+   "output_tokens": 47056,
+   "total_tokens": 1856453,
+   "cost_usd": 1.6403,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "kimik3-en-3",
+   "model": "kimik3",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 10.617,
+   "llm_requests": 65,
+   "output_tokens": 35008,
+   "total_tokens": 1637495,
+   "cost_usd": 1.3263,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 2,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "kimik3-en-4",
+   "model": "kimik3",
+   "n": 4,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 10.483,
+   "llm_requests": 63,
+   "output_tokens": 40008,
+   "total_tokens": 1815345,
+   "cost_usd": 1.4787,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "kimik3-en-5",
+   "model": "kimik3",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.25,
+   "llm_requests": 57,
+   "output_tokens": 32640,
+   "total_tokens": 1276997,
+   "cost_usd": 1.1538,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "glm53-en-1",
+   "model": "glm53",
+   "n": 1,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 10.25,
+   "llm_requests": 74,
+   "output_tokens": 48793,
+   "total_tokens": 2876201,
+   "cost_usd": 1.4018,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "glm53-en-2",
+   "model": "glm53",
+   "n": 2,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 9.917,
+   "llm_requests": 89,
+   "output_tokens": 68386,
+   "total_tokens": 4364926,
+   "cost_usd": 2.0615,
+   "verifier_verdicts": [
+    "none"
+   ],
+   "commits": 4,
+   "self_terminated_sessions": 1
+  },
+  {
+   "id": "glm53-en-3",
+   "model": "glm53",
+   "n": 3,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 8.233,
+   "llm_requests": 86,
+   "output_tokens": 50777,
+   "total_tokens": 3389784,
+   "cost_usd": 1.5949,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 5,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "glm53-en-4",
+   "model": "glm53",
+   "n": 4,
+   "status": "timeout",
+   "iterations": 2,
+   "run_minutes": 20.117,
+   "llm_requests": 85,
+   "output_tokens": 52892,
+   "total_tokens": 2491280,
+   "cost_usd": 1.4325,
+   "verifier_verdicts": [
+    "FAIL"
+   ],
+   "commits": 3,
+   "self_terminated_sessions": 0
+  },
+  {
+   "id": "glm53-en-5",
+   "model": "glm53",
+   "n": 5,
+   "status": "done",
+   "iterations": 1,
+   "run_minutes": 15.033,
+   "llm_requests": 73,
+   "output_tokens": 77914,
+   "total_tokens": 4143819,
+   "cost_usd": 2.0464,
+   "verifier_verdicts": [
+    "PASS"
+   ],
+   "commits": 6,
+   "self_terminated_sessions": 0
+  }
+ ]
+}

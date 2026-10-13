@@ -1,9 +1,9 @@
 ---
 title: EKS 성능 벤치마크 보고서
-description: EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영
+description: EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영, AI 에이전트
 created: "2026-02-09"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
 reading_time: 2
 tags:
@@ -41,6 +41,14 @@ EKS 환경의 성능 보고서와 측정 계획을 모았습니다. 각 보고�
 | 6 | [인프라 성능](./infrastructure-performance.md) | 🔜 예정 |
 | 7 | [하이브리드 인프라](./hybrid-infrastructure.md) | 🔜 예정 |
 | 8 | [보안 및 운영](./security-operations.md) | 🔜 예정 |
+
+## AI 에이전트
+
+Amazon Bedrock에서 실행한 AI 코딩 에이전트 측정입니다. EKS 환경에서 측정한 결과가 아닙니다.
+
+| # | 보고서 | 상태 |
+|---|--------|------|
+| 9 | [코딩 에이전트 랄프 루프 벤치마크: Amazon Bedrock 14개 모델 실측](./ralph-loop-coding-agent-bedrock.md) | 실측 완료 / 원 데이터 미포함 |
 
 ## 벤치마크 방법론
 

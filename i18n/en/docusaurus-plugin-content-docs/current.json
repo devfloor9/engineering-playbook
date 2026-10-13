@@ -183,6 +183,10 @@
     "message": "Infrastructure & Operations",
     "description": "The label for category '인프라 & 운영' in sidebar 'benchmarks'"
   },
+  "sidebar.benchmarks.category.AI 에이전트": {
+    "message": "AI Agents",
+    "description": "The label for category 'AI 에이전트' in sidebar 'benchmarks'"
+  },
   "sidebar.docs.category.Pod 헬스체크 & 라이프사이클": {
     "message": "Pod Health Checks & Lifecycle",
     "description": "The label for category 'Pod 헬스체크 & 라이프사이클' in sidebar 'docs'"
