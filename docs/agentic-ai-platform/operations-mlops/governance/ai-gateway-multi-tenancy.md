@@ -3,7 +3,7 @@ title: AI Gateway 멀티테넌시 전략
 description: LLM Gateway 레벨 멀티테넌시 전략 — LiteLLM virtual key 계층 모델과 Kong Consumer 정책 비교, 예산 강제, 테넌트 격리 3단 모델(게이트웨이·데이터·관측)
 created: "2026-08-11"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 13
 tags:
@@ -218,7 +218,7 @@ flowchart LR
 
 ### ② 데이터 격리
 
-**벡터 DB 네임스페이스 분리**: RAG 또는 Semantic Cache에서 사용하는 벡터 DB(Milvus, Qdrant, Redis)는 테넌트별 namespace로 분리해야 합니다.
+**벡터 DB 네임스페이스 분리**: RAG 또는 semantic cache에서 사용하는 벡터 DB(Milvus, Qdrant, Redis)는 테넌트별 namespace로 분리해야 합니다.
 
 ```python
 # pseudo-code: Milvus 테넌트별 컬렉션
@@ -226,7 +226,7 @@ collection_name = f"embeddings_{tenant_id}"
 milvus_client.create_collection(collection_name)
 ```
 
-**캐시 키 네임스페이스**: Semantic Cache의 캐시 키는 `tenant_id`를 prefix로 포함해야 합니다. 상세 설계는 [Semantic Caching 전략 — 캐시 키 설계와 멀티테넌시](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-캐시-키-설계와-멀티테넌시)를 참조하세요.
+**캐시 키 네임스페이스**: semantic cache의 캐시 키는 `tenant_id`를 prefix로 포함해야 합니다. 상세 설계는 [Semantic Caching 전략 — 캐시 키 설계와 멀티테넌시](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-캐시-키-설계와-멀티테넌시)를 참조하세요.
 
 ```python
 # pseudo-code: Redis 캐시 키 네임스페이스
@@ -285,7 +285,7 @@ langfuse_context.update_current_observation(
 ### 데이터 격리
 
 - [ ] 벡터 DB namespace를 `tenant_id`로 분리
-- [ ] Semantic Cache 키에 `tenant_id` prefix 포함
+- [ ] semantic cache 키에 `tenant_id` prefix 포함
 - [ ] Row-level Security (RLS) 활성화 (PostgreSQL 등)
 - [ ] 크로스 테넌트 데이터 접근 단위 테스트 작성
 

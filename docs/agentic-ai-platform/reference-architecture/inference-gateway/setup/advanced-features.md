@@ -3,7 +3,7 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -760,7 +760,7 @@ litellm_settings:
     port: 6379
 ```
 
-Semantic Cache 활성화:
+Semantic cache 활성화:
 
 ```yaml
 litellm_settings:

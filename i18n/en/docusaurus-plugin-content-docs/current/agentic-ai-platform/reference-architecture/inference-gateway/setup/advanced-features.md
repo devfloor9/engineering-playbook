@@ -3,7 +3,7 @@ title: Advanced Features
 description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
 created: "2026-04-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: devfloor9
 reading_time: 18
 tags:
@@ -656,7 +656,7 @@ litellm_settings:
     port: 6379
 ```
 
-Semantic Cache activation:
+Semantic cache activation:
 
 ```yaml
 litellm_settings:
@@ -673,7 +673,7 @@ For detailed options, refer to [LiteLLM Caching documentation](https://docs.lite
 
 #### Bifrost + RedisVL Sidecar
 
-Bifrost itself only supports exact-match cache, so implement Semantic Cache in two ways.
+Bifrost itself only supports exact-match cache, so implement semantic cache in two ways.
 
 **Method A: Python proxy frontend** — Deploy lightweight FastAPI proxy using RedisVL `SemanticCache` class in front of Bifrost
 

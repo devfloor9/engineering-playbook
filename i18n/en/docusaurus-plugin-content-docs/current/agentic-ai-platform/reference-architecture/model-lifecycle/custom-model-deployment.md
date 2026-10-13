@@ -3,7 +3,7 @@ title: Custom Model Deployment Guide
 description: Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience
 created: "2026-04-04"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-12
   author: devfloor9
 reading_time: 32
 tags:
@@ -86,7 +86,7 @@ If the model's VRAM requirement exceeds the instance VRAM, PP (Pipeline Parallel
 **Choose the cheapest Spot instance with sufficient VRAM.**
 
 1. **Same price**: If p5en Spot and p5 Spot are both $12/hr, choose p5en for more VRAM
-2. **VRAM headroom**: Secure at least 1.5x VRAM relative to model size (for KV Cache)
+2. **VRAM headroom**: Secure at least 1.5x VRAM relative to model size (for KV cache)
 3. **Simplicity**: Eliminate multi-node complexity
 4. **Stability**: Avoid PP deadlock issues
 

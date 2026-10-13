@@ -3,7 +3,7 @@ title: AI Gateway Multi-Tenancy Strategy
 description: LLM Gateway-level multi-tenancy strategy — LiteLLM virtual key hierarchical model vs Kong Consumer policy comparison, budget enforcement, 3-tier tenant isolation (gateway, data, observability)
 created: "2026-08-11"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-12
   author: devfloor9
 reading_time: 24
 tags:
@@ -218,7 +218,7 @@ flowchart LR
 
 ### ② Data Isolation
 
-**Vector DB Namespace Separation**: Vector DBs (Milvus, Qdrant, Redis) used in RAG or Semantic Cache must be separated by tenant namespace.
+**Vector DB Namespace Separation**: Vector DBs (Milvus, Qdrant, Redis) used in RAG or semantic cache must be separated by tenant namespace.
 
 ```python
 # pseudo-code: Milvus per-tenant collections
@@ -226,7 +226,7 @@ collection_name = f"embeddings_{tenant_id}"
 milvus_client.create_collection(collection_name)
 ```
 
-**Cache Key Namespace**: Semantic Cache keys must include `tenant_id` as a prefix. For detailed design, see [Semantic Caching Strategy — Cache Key Design and Multi-Tenancy](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-cache-key-design-and-multi-tenancy).
+**Cache Key Namespace**: semantic cache keys must include `tenant_id` as a prefix. For detailed design, see [Semantic Caching Strategy — Cache Key Design and Multi-Tenancy](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-cache-key-design-and-multi-tenancy).
 
 ```python
 # pseudo-code: Redis cache key namespace
@@ -285,7 +285,7 @@ The **back-end** of budget policies (billing and allocation after budget executi
 ### Data Isolation
 
 - [ ] Separate vector DB namespaces by `tenant_id`
-- [ ] Include `tenant_id` prefix in Semantic Cache keys
+- [ ] Include `tenant_id` prefix in semantic cache keys
 - [ ] Enable Row-level Security (RLS) (PostgreSQL, etc.)
 - [ ] Write unit tests for cross-tenant data access
 

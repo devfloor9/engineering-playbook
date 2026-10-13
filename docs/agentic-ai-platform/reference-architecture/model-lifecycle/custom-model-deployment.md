@@ -3,7 +3,7 @@ title: 커스텀 모델 배포 가이드
 description: GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드
 created: "2026-04-04"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-12
   author: YoungJoon Jeong
 reading_time: 19
 tags:
@@ -86,7 +86,7 @@ LLM Classifier를 사용하면 클라이언트가 단일 엔드포인트(`/v1`)�
 **VRAM이 충분한 최저가 Spot 인스턴스를 선택하세요.**
 
 1. **가격 동일**: p5en Spot과 p5 Spot이 동일한 $12/hr인 경우 VRAM이 큰 p5en 선택
-2. **VRAM 여유**: 모델 크기 대비 1.5배 이상 VRAM 확보 (KV Cache 공간)
+2. **VRAM 여유**: 모델 크기 대비 1.5배 이상 VRAM 확보 (KV cache 공간)
 3. **단순성**: 멀티노드 복잡도 제거
 4. **안정성**: PP 교착 문제 회피
 
@@ -390,7 +390,7 @@ HuggingFace Hub에서 직접 다운로드하면 각 노드가 독립적으로 �
 | 5. Distributed 타임아웃 | `VLLM_DISTRIBUTED_TIMEOUT=1800` | ❌ 환경변수 미인식 | vLLM 코드에 해당 변수 없음 |
 | 6. Ray 모드 | `--distributed-executor-backend ray` | ❌ Kubernetes + Ray 통합 복잡 | Ray cluster 구성 필요 (v0.6+ 플래그는 --engine-use-ray 제거됨) |
 
-:::caution 결론: vLLM V1 멀티노드 PP는 2026.04 기준 불안정
+:::caution 결론: vLLM V1 멀티노드 PP는 2026-04 기준 불안정
 vLLM V1 엔진의 non-Ray 멀티노드 Pipeline Parallelism은 2026년 4월 기준 프로덕션 환경에 적합하지 않습니다. Leader-Worker 동기화가 불완전하고, torch.compile 활성화 시 교착 발생 빈도가 높습니다.
 :::
 
@@ -944,7 +944,7 @@ spec:
 2. **Standard Mode + MNG가 가장 안정적** — Auto Mode의 인스턴스 타입 제약 없음
 3. **vLLM 커스텀 이미지 필수** — 최신 transformers로 모델 지원 확보
 4. **S3 + s5cmd + NVMe emptyDir** — 고속 모델 다운로드 파이프라인
-5. **vLLM PP 멀티노드는 피하라** — 2026.04 기준 불안정, SGLang 또는 단일 노드 권장
+5. **vLLM PP 멀티노드는 피하라** — 2026-04 기준 불안정, SGLang 또는 단일 노드 권장
 6. **Service 이름에 vllm- prefix 금지** — K8s 환경변수 충돌
 7. **GPU Operator는 devicePlugin=false** — Auto Mode 내장 Device Plugin 사용
 
