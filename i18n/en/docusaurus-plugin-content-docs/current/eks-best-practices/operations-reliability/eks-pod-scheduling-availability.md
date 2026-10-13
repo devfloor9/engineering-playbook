@@ -3,9 +3,9 @@ title: EKS Pod Scheduling & Availability Patterns
 description: Kubernetes Pod scheduling strategies, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations best practices
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
-reading_time: 169
+reading_time: 215
 tags:
   - eks
   - kubernetes
@@ -1228,17 +1228,18 @@ The key differences between Cluster Autoscaler and Karpenter are **how they prov
 
 ##### Behavior Comparison
 
+The table below compares the two controllers' **mechanisms and configuration constraints**. Provisioning speed, node-ready time and cost-savings percentage depend on workload, AMI, Region and capacity conditions, so this guide does not assert them without measurement. When you need numbers, measure trigger→capacity→node registration→Pod binding→workload readiness separately under identical conditions.
+
 | Comparison | Cluster Autoscaler | Karpenter |
 |----------|-------------------|-----------|
-| **Trigger** | Detect Pending Pods → Request ASG scale-out | Detect Pending Pods → Immediately provision EC2 instances |
-| **Scaling speed** | Tens of seconds ~ Several minutes (ASG wait time) | A few seconds (direct EC2 API calls) |
-| **Node selection** | Select from predefined ASG groups | Select instance types in real time based on Pod requirements |
-| **Instance type diversity** | Fixed types per ASG (LaunchTemplate) | Optimal selection from 100+ types (NodePool requirements) |
-| **Cost optimization** | Manual ASG configuration required | Automatic Spot/On-Demand mix and lowest-price selection |
-| **Bin Packing** | Limited (ASG level) | Advanced (aware of Pod requirements) |
-| **Taints/Tolerations awareness** | Limited | Native integration |
-| **Topology Spread awareness** | Limited | Native integration |
-| **Integration level** | External tool for Kubernetes | Kubernetes-native (CRD-based) |
+| **Trigger** | On detecting unschedulable Pods, requests an ASG `DesiredCapacity` change on its configured scan interval | On detecting unschedulable Pods, creates NodeClaims and the AWS provider creates EC2 instances |
+| **Scaling path** | Adjusts ASG (including managed node group) capacity and simulates Pod fit. With an ASG MixedInstancePolicy, all instance types must share the same CPU/memory/GPU shape | Selects from the allowed instance/capacity options that match Pod requirements and creates NodeClaims/nodes |
+| **Node selection unit** | Predefined/discovered ASG groups | Pod-requirement-based selection from the instance-type set allowed by NodePool `requirements` |
+| **Capacity-type handling** | Configure Spot/On-Demand separately per ASG | Declare allowed capacity types in NodePool `requirements`. The inspected AWS provider uses price-capacity-optimized allocation, so it cannot be stated as "always lowest price" |
+| **Bin Packing** | Simulated at the ASG level | Decided per node, aware of Pod requirements |
+| **Taints/Tolerations awareness** | Applied to nodes via ASG UserData (reflected in Pod-fit simulation) | Declared natively via NodePool `template.spec.taints` |
+| **Topology Spread awareness** | Relies on node-group label/scheduling-property assumptions | Provisions with awareness of kube-scheduler Topology Spread constraints |
+| **Integration level** | External controller for Kubernetes (AWS Cloud Provider implementation) | Kubernetes-native (CRD-based) |
 
 ##### Scaling Scenario Example
 
@@ -1273,19 +1274,26 @@ The key differences between Cluster Autoscaler and Karpenter are **how they prov
 
 **Karpenter:**
 - Declare allowed capacity types in NodePool requirements; list order is not an On-Demand preference.
-- Select the cheapest instance type in real time
+- Selects a node that matches Pod requirements from the allowed instance/capacity options. The inspected AWS provider uses price-capacity-optimized allocation and does not always pick the single lowest-price option.
 - Provision nodes that precisely match Pod requirements
 
-**Cost Savings Example (Measured Data):**
+**Unit-Price Comparison Example (Unverified Illustrative Arithmetic):**
+
+The following is **illustrative arithmetic** to explain the cost structure, not measured data. Prices vary by Region, date, OS, tenancy and purchase option, so do not assume the hourly values below are current until you confirm them against a primary price snapshot. Also, a 2-vCPU instance does not expose a full 2 vCPU as allocatable to a Pod: after system/DaemonSet and kubelet reservations, allocatable is the real placeable capacity. The unit-price difference below therefore does not translate directly into TCO savings; the actual savings are unknown until you measure an identical workload/SLO, node allocatable, utilization and duration.
+
 ```yaml
+# The prices below are illustrative, not measured. Confirm against a primary price source.
 # Cluster Autoscaler: Fixed ASG
-# m5.2xlarge (8 vCPU, 32GB) → $0.384/hour
-# → Pay for the entire node even when a Pod requests only 2 vCPU
+# m5.2xlarge (8 vCPU, 32GB) → illustrative $0.384/hour
+# → If the ASG only offers large nodes, small Pods may land on a large node
 
 # Karpenter: Flexible selection
-# m5.large (2 vCPU, 8GB) → $0.096/hour
-# → Select a smaller node to match Pod requirements
-# → 75% cost savings
+# m5.large (2 vCPU, 8GB) → illustrative $0.096/hour
+# → Can select a smaller node to match Pod requirements
+
+# Using the illustrative unit prices only: 1 - 0.096 / 0.384 = 0.75 (75% on unit price)
+# But this is unit-price arithmetic, not the real saving once node allocatable overhead,
+# utilization and duration are accounted for.
 ```
 
 #### 5.6.2 Migration Checklist
@@ -1476,40 +1484,55 @@ cluster_autoscaler_scaled_down_nodes_total
 cluster_autoscaler_unschedulable_pods_count
 ```
 
-**Karpenter Metrics:**
+**Karpenter Metrics (Prometheus):**
+
+The names below are verified against the Karpenter `v1.14`/`v1.15` metrics reference. Metric names and stability levels are version-sensitive, so re-check them against the reference for your installed version. Counters carry a `_total` suffix, and you must use the exact names from the reference.
+
 ```promql
-# New metric examples
-karpenter_nodes_created
-karpenter_nodes_terminated
+# Node creation/termination counters (Counter, STABLE)
+karpenter_nodes_created_total
+karpenter_nodes_terminated_total
+
+# Pod startup duration (Summary, STABLE) — aggregate via quantiles/sum/count
 karpenter_pods_startup_duration_seconds
-karpenter_disruption_queue_depth
-karpenter_nodepool_usage
+
+# Resources provisioned per NodePool (Gauge, STABLE)
+karpenter_nodepools_usage
+
+# Pods currently waiting to be scheduled (Gauge, BETA)
+# The baseline's karpenter_disruption_queue_depth is not a name in the reference, so it is removed.
+# No documented metric was found for the intended "disruption" queue.
+karpenter_scheduler_queue_depth
 ```
 
-**Update the CloudWatch Dashboard:**
+**CloudWatch Dashboard (Prerequisite: Prometheus Scrape → CloudWatch Conversion):**
+
+Karpenter exposes the metrics above in Prometheus format. To send them to CloudWatch you must first configure the CloudWatch agent's Prometheus scrape and embedded-metric conversion, which is where the CloudWatch namespace and dimensions are decided; there is no auto-populated `AWS/Karpenter` namespace. The CloudWatch agent also **drops Prometheus Histogram-type metrics** and supports only Counter, Gauge and Summary (a Summary's sum and count are handled like counters). The widget below is therefore an example you must adjust to the namespace and metric names your conversion configuration writes.
+
 ```yaml
-# CloudWatch Container Insights widget example
+# Example — replace with the namespace/metric names defined in your CloudWatch conversion config.
+# ("ContainerInsights/Karpenter" and the metric names below are placeholders, not auto-generated.)
 {
   "type": "metric",
   "properties": {
     "metrics": [
-      [ "AWS/Karpenter", "NodesCreated", { "stat": "Sum" } ],
-      [ ".", "NodesTerminated", { "stat": "Sum" } ],
-      [ ".", "PendingPods", { "stat": "Average" } ]
+      [ "ContainerInsights/Karpenter", "karpenter_nodes_created_total", { "stat": "Sum" } ],
+      [ ".", "karpenter_nodes_terminated_total", { "stat": "Sum" } ],
+      [ ".", "karpenter_nodepools_usage", { "stat": "Average" } ]
     ],
     "period": 300,
     "stat": "Average",
     "region": "us-east-1",
-    "title": "Karpenter Node Autoscaling"
+    "title": "Karpenter Node Autoscaling (conversion config required)"
   }
 }
 ```
 
 **Alarm Transition Checklist:**
 - [ ] Disable Cluster Autoscaler alarms
-- [ ] Create new alarms based on Karpenter metrics
-- [ ] Node creation failure alarm (`karpenter_nodeclaims_created{reason="failed"}`)
-- [ ] Persistent Pending Pod alarm (`karpenter_pods_state{state="pending"} > 5`)
+- [ ] Create new alarms based on Karpenter metrics (the expressions below are Prometheus-side alerting; sending them to CloudWatch requires the conversion configuration above first)
+- [ ] Node creation failure alarm: the `reason` label on `karpenter_nodeclaims_created_total` is the reason a NodeClaim was created (`provisioned`, etc.), not a success/failure status, so `reason="failed"` cannot count failures. Measure failures with a documented error metric instead — for example `increase(karpenter_cloudprovider_instance_launch_failures_total[15m]) > 0` or `increase(karpenter_cloudprovider_errors_total{error="InsufficientCapacityError"}[15m]) > 0`
+- [ ] Persistent Pending Pod alarm: `karpenter_pods_state` has no `state` label; the Pod phase is exposed via the `phase` label (`Pending`/`Running`, etc.). Because this metric emits one series per Pod `name`/`namespace`, counting requires aggregation — for example `count(karpenter_pods_state{phase="Pending"}) > 5`. Express persistence with the alarm's `for:` window and state an explicit missing-series policy
 
 ##### Step 6: Phased Migration Strategy
 
@@ -1887,7 +1910,12 @@ kubectl describe pdb <pdb-name>
 
 **Symptoms:** Karpenter attempts to remove a node but fails because of PDB, leaving the node `cordoned`
 
-**Cause:** An overly strict PDB conflicts with Karpenter's disruption budget
+**Cause:** The `cordoned` state alone does not prove whether a PDB or a NodePool disruption budget is responsible. Determine the cause only after checking:
+- The node's NodeClaim/Node events and conditions, including whether a replacement node is still initializing
+- Whether `status.disruptionsAllowed` is 0 on the PDB that selects the Pods, together with the readiness of the selected Pods
+- Whether the NodePool `spec.disruption.budgets` is limiting concurrent node disruption
+
+A PDB blocking eviction at the Pod level and a NodePool budget limiting node-disruption concurrency at the node level require different fixes, so diagnose them separately.
 
 **Resolution:**
 
@@ -1937,7 +1965,7 @@ apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
   name: high-priority
-value: 1000000  # Higher values mean higher priority (up to 1 billion)
+value: 100000  # Higher values mean higher priority (user-defined maximum 1,000,000,000)
 globalDefault: false
 description: "High priority for mission-critical services"
 ```
@@ -1951,8 +1979,8 @@ description: "High priority for mission-critical services"
 | `preemptionPolicy` | Preemption policy | `PreemptLowerPriority` (default) or `Never` |
 | `description` | Description | Specify the intended use |
 
-:::warning Reserved Range for System PriorityClasses
-Values of 1 billion or greater are reserved for Kubernetes system components (kube-system). Use values below 1 billion for user-defined PriorityClasses.
+:::warning Reserved Range and Reserved Names for System PriorityClasses
+A user-defined PriorityClass `value` may be at most **1,000,000,000 (one billion), inclusive**. Values greater than one billion are reserved for the built-in PriorityClasses that represent critical system Pods. A PriorityClass name must also be a valid DNS subdomain and cannot begin with the reserved `system-` prefix; only the built-in classes `system-node-critical` and `system-cluster-critical` use it. See [Kubernetes Pod Priority and Preemption](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/) for the exact rules.
 :::
 
 ### 7.2 Five-Tier Priority System for Production {#72-four-tier-priority-system-for-production}
@@ -1960,11 +1988,11 @@ Values of 1 billion or greater are reserved for Kubernetes system components (ku
 **Recommended priority hierarchy:**
 
 ```yaml
-# Tier 1: Critical System (highest value below 1 billion)
+# Tier 1: Platform Critical (highest value at or below 1 billion)
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: system-critical
+  name: platform-critical  # The 'system-' prefix is reserved and cannot be used
 value: 999999000
 globalDefault: false
 description: "Critical system components (DNS, CNI, monitoring)"
@@ -2007,6 +2035,18 @@ preemptionPolicy: Never  # Do not preempt other Pods
 description: "Batch jobs, non-critical background tasks"
 ```
 
+These five classes are the **single canonical priority scheme** used throughout sections 6 and 7 of this document. Apply the mapping below consistently to names, comments, tables, and workload examples.
+
+| Name | value | Role |
+|------|-------|------|
+| `platform-critical` | 999999000 | Platform-critical components (DNS, CNI, monitoring) |
+| `business-critical` | 1000000 | Revenue-impacting services (payment, checkout, auth) |
+| `high-priority` | 100000 | Important services (API, web frontend) |
+| `standard-priority` | 10000 | Standard workloads |
+| `low-priority` | 1000 | Batch and non-critical background tasks |
+
+`standard-priority` has `globalDefault: true`, so it applies to Pods that do not set `priorityClassName`; only one PriorityClass with `globalDefault: true` can exist in a cluster. `low-priority` has `preemptionPolicy: Never`, so it is placed ahead of lower-priority Pods in the scheduling queue but does not preempt other Pods. The built-in classes `system-node-critical` and `system-cluster-critical` are separate from this scheme and remain unchanged. The values above are documentation policy choices, not tiers that Kubernetes enforces. Do not mix independently defined PriorityClasses as if they were a single installation.
+
 **Usage example:**
 
 ```yaml
@@ -2044,10 +2084,13 @@ spec:
       template:
         spec:
           priorityClassName: low-priority  # Low priority for batch jobs
+          restartPolicy: Never  # Job Pods allow only Never or OnFailure (the Deployment default Always is rejected)
           containers:
           - name: cleanup
             image: data-cleanup:v1.0
 ```
+
+A Job Pod may use only `Never` or `OnFailure` for `restartPolicy`; the Deployment default `Always` is rejected for Jobs. `Never` creates a new Pod for each failed attempt, while `OnFailure` restarts the container in the same Pod. Control the retry count with `spec.backoffLimit` and ensure idempotency in application logic separately. See [Kubernetes Jobs](https://v1-34.docs.kubernetes.io/docs/concepts/workloads/controllers/job/) for the rules.
 
 ### 7.3 Understanding Preemption Behavior
 
@@ -2124,17 +2167,17 @@ spec:
 
 ### 7.4 PreemptionPolicy: Never
 
-Specific workloads can be configured not to preempt other Pods:
+Specific workloads can be configured not to preempt other Pods. The canonical scheme already defines `low-priority` with `preemptionPolicy: Never`, so reference that same class as shown below. (This is the same class defined with `value: 1000` in section 7.2.)
 
 ```yaml
 apiVersion: scheduling.k8s.io/v1
 kind: PriorityClass
 metadata:
-  name: batch-job
-value: 5000
+  name: low-priority
+value: 1000
 globalDefault: false
 preemptionPolicy: Never  # Do not preempt other Pods
-description: "Batch jobs that wait for available resources"
+description: "Batch jobs, non-critical background tasks"
 ```
 
 **Use cases:**
@@ -2195,19 +2238,21 @@ kubectl get pods -n production \
 
 #### Recommended Combination Matrix
 
-The following matrix is a workload policy sketch. Priority values and class names must be reconciled with the cluster's actual PriorityClasses; the table does not rank measured survival or cost.
+The following matrix is a workload policy sketch; the "Priority policy" column uses the PriorityClass names from the canonical scheme in section 7.2. The table does not rank measured survival or cost.
 
-| Combination | Priority policy | QoS | Scheduling consideration | Memory-pressure consideration | Example workloads |
+| Combination | Priority policy (class) | QoS | Scheduling consideration | Memory-pressure consideration | Example workloads |
 |------|----------|-----|-----------------|-------------|------|
-| **Tier 1** | critical | Guaranteed | Higher priority, subject to feasibility | Positive matching requests/limits; still subject to OOM/eviction | Payment systems, DB |
-| **Tier 2** | high | Guaranteed | Below critical policy | Same QoS classification, different priority | API gateway |
-| **Tier 3** | standard | Burstable | Normal policy | Compare actual usage with requests | Frontend, back office |
-| **Tier 4** | low | Burstable | Lower-priority policy | Lower priority can increase eviction/preemption exposure | Internal tools |
-| **Tier 5** | batch | BestEffort | Lowest policy in this example | Positive memory usage exceeds requests | Retryable batch, CI/CD |
+| **Tier 1** | `business-critical` | Guaranteed | Higher priority, subject to feasibility | Positive matching requests/limits; still subject to OOM/eviction | Payment systems, DB |
+| **Tier 2** | `high-priority` | Guaranteed | Below business-critical | Same QoS classification, different priority | API gateway |
+| **Tier 3** | `standard-priority` | Burstable | Normal policy | Compare actual usage with requests | Frontend, back office |
+| **Tier 4** | `low-priority` | Burstable | Lower-priority policy | Lower priority can increase eviction/preemption exposure | Internal tools |
+| **Tier 5** | `low-priority` (batch reuse) | BestEffort | Lowest policy in this example | Positive memory usage exceeds requests | Retryable batch, CI/CD |
+
+Tiers 4 and 5 use the same `low-priority` class but are distinguished by their QoS configuration (Burstable vs. BestEffort).
 
 **Details of each combination:**
 
-##### Tier 1: Guaranteed + critical-priority (Strongest Guarantees)
+##### Tier 1: Guaranteed + business-critical (Strongest Guarantees) {#tier-1-guaranteed--critical-priority-strongest-guarantees}
 
 **Characteristics:**
 - Higher priority can enable preemption when removing lower-priority Pods makes placement feasible
@@ -2234,7 +2279,7 @@ spec:
         app: payment-gateway
         tier: critical
     spec:
-      priorityClassName: critical-priority  # Priority: 10000
+      priorityClassName: business-critical  # Priority: 1000000
       containers:
       - name: gateway
         image: payment-gateway:v3.5
@@ -2264,7 +2309,7 @@ metadata:
   name: payment-gateway-pdb
   namespace: production
 spec:
-  minAvailable: 4  # Always maintain at least 4 out of 6
+  minAvailable: 4  # For PDB-respecting voluntary evictions, require at least four healthy selected Pods; involuntary failures and direct deletion can still reduce availability
   selector:
     matchLabels:
       app: payment-gateway
@@ -2301,7 +2346,7 @@ spec:
       labels:
         app: api-server
     spec:
-      priorityClassName: high-priority  # Priority: 5000
+      priorityClassName: high-priority  # Priority: 100000
       containers:
       - name: api
         image: api-server:v2.8
@@ -2348,7 +2393,7 @@ spec:
       labels:
         app: web-frontend
     spec:
-      priorityClassName: standard-priority  # Priority: 1000
+      priorityClassName: standard-priority  # Priority: 10000
       containers:
       - name: frontend
         image: web-frontend:v1.12
@@ -2395,7 +2440,7 @@ spec:
       labels:
         app: monitoring-agent
     spec:
-      priorityClassName: low-priority  # Priority: 500
+      priorityClassName: low-priority  # Priority: 1000
       containers:
       - name: agent
         image: monitoring-agent:v2.1
@@ -2414,7 +2459,7 @@ spec:
 - Metrics exporters
 - Development tools
 
-##### Tier 5: BestEffort + batch-priority (Batch Jobs)
+##### Tier 5: BestEffort + low-priority (Batch Jobs) {#tier-5-besteffort--batch-priority-batch-jobs}
 
 **Characteristics:**
 - No CPU/memory requests or limits in this example; resource contention is possible
@@ -2435,7 +2480,7 @@ spec:
     spec:
       template:
         spec:
-          priorityClassName: batch-priority  # Priority: 100
+          priorityClassName: low-priority  # Priority: 1000
           restartPolicy: OnFailure
           containers:
           - name: etl
@@ -2569,8 +2614,10 @@ Thresholds need workload and node-memory evidence. A low threshold can allow ker
 
 **Pattern 1: Multi-Tier Architecture**
 
+The manifests below illustrate Priority + QoS combinations. Neither `replicas: 3` nor three Pods on their own form a replicated, highly available database; PostgreSQL replication needs a separate operator, a headless Service, storage, and backup/failover configuration. The label and image values below are authoring choices shown for consistency, not labels discovered in a deployment. Existing controller `selector` fields are immutable, so reconcile Service and PDB selectors with the labels you choose.
+
 ```yaml
-# Tier 1: Database (Guaranteed + critical)
+# Tier 1: Database (Guaranteed + business-critical)
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -2578,9 +2625,15 @@ metadata:
 spec:
   serviceName: postgres
   replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
   template:
+    metadata:
+      labels:
+        app: postgres
     spec:
-      priorityClassName: critical-priority
+      priorityClassName: business-critical
       containers:
       - name: postgres
         image: postgres:16
@@ -2592,49 +2645,70 @@ spec:
             cpu: "4"
             memory: 16Gi
 ---
-# Tier 2: API Server (Guaranteed + high)
+# Tier 2: API Server (Guaranteed + high-priority)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api-server
 spec:
   replicas: 10
+  selector:
+    matchLabels:
+      app: api-server
   template:
+    metadata:
+      labels:
+        app: api-server
     spec:
       priorityClassName: high-priority
       containers:
       - name: api
+        image: api-server:v2.8
         resources:
           requests: { cpu: "1", memory: 2Gi }
           limits: { cpu: "1", memory: 2Gi }
 ---
-# Tier 3: Frontend (Burstable + standard)
+# Tier 3: Frontend (Burstable + standard-priority)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
 spec:
   replicas: 8
+  selector:
+    matchLabels:
+      app: frontend
   template:
+    metadata:
+      labels:
+        app: frontend
     spec:
       priorityClassName: standard-priority
       containers:
       - name: frontend
+        image: web-frontend:v1.12
         resources:
           requests: { cpu: "500m", memory: 1Gi }
           limits: { cpu: "2", memory: 4Gi }
 ---
-# Tier 4: Monitoring (Burstable + low)
+# Tier 4: Monitoring (Burstable + low-priority)
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: node-exporter
 spec:
+  selector:
+    matchLabels:
+      app: node-exporter
   template:
+    metadata:
+      labels:
+        app: node-exporter
     spec:
       priorityClassName: low-priority
       containers:
       - name: exporter
+        image: node-exporter:v1.8
         resources:
           requests: { cpu: "100m", memory: 128Mi }
           limits: { cpu: "200m", memory: 256Mi }
@@ -2660,7 +2734,7 @@ kubectl describe node <node-name> | grep -A 10 "Non-terminated Pods"
 | Symptom | Cause | Resolution |
 |------|------|----------|
 | Guaranteed Pod is OOM-killed | limits are too low | Profile memory and increase limits |
-| Burstable Pod experiences CPU throttling | limits reached, insufficient node resources | Increase requests or add nodes |
+| Burstable Pod experiences CPU throttling | CPU limit (CFS quota) reached, or node CPU contention | Inspect the CPU limit/quota and throttling metrics and choose an appropriate limit or scaling policy (quota cause). Inspect node demand and request/share allocation and resize requests or add capacity (contention cause). Changing requests alone does not raise an unchanged CPU limit |
 | Low-priority Pod remains Pending | High-priority Pods monopolize resources | Add nodes or adjust Priority |
 | BestEffort Pod terminates immediately | Eviction threshold reached | Switch to Burstable and set requests |
 
@@ -2716,7 +2790,9 @@ helm install descheduler descheduler/descheduler \
 
 #### Strategy 1: RemoveDuplicates
 
-**Purpose**: Distribute Pods from the same controller (ReplicaSet, Deployment) when multiple Pods are placed on one node
+**Purpose**: When two or more Pods owned by the same owner (ReplicaSet, ReplicationController, StatefulSet, or Job) are placed on one node, evict the duplicates to spread them out. (Source: descheduler v0.34.0 `RemoveDuplicates`)
+
+A Deployment creates its Pods through a ReplicaSet, so the owner kind of a Deployment replica is `ReplicaSet`. Per the descheduler docs, **a Pod whose owner kind is listed in `excludeOwnerKinds` is excluded from eviction**. Therefore, to redistribute Deployment replicas you must **not** list `ReplicaSet` in `excludeOwnerKinds`. The example below excludes only StatefulSet Pods so that Deployment/ReplicaSet Pods remain candidates for redistribution.
 
 ```yaml
 apiVersion: v1
@@ -2733,9 +2809,9 @@ data:
         pluginConfig:
         - name: RemoveDuplicates
           args:
-            # Keep only 1 Pod from the same controller per node
+            # Pods owned by these kinds are excluded from eviction
+            # (listing ReplicaSet would exclude Deployment Pods, so it is omitted)
             excludeOwnerKinds:
-            - "ReplicaSet"
             - "StatefulSet"
         plugins:
           balance:
@@ -2743,7 +2819,7 @@ data:
             - RemoveDuplicates
 ```
 
-**Effect**: When multiple replicas of the same Deployment are on one node, evict some to distribute them across other nodes
+**Effect**: When two or more replicas of the same Deployment (ReplicaSet) are on one node, some become eviction candidates. Whether they are actually evicted is decided by the DefaultEvictor filters and PDBs, and the replacement placement is decided by kube-scheduler; this plugin does not bind replacement Pods to a specific node.
 
 #### Strategy 2: LowNodeUtilization
 
@@ -2780,11 +2856,12 @@ data:
             - LowNodeUtilization
 ```
 
-**Behavior:**
-1. Identify nodes with CPU/memory/Pod counts below 20% (underutilized)
-2. Identify nodes at or above 50% (overutilized)
-3. Evict Pods from overutilized nodes
-4. The Kubernetes scheduler relocates them to underutilized nodes
+**Behavior:** (Source: descheduler v0.34.0 `LowNodeUtilization`)
+1. Compute each node's utilization. By default this is **the sum of resource requests of the Pods scheduled on the node divided by the node's allocatable capacity**, not observed actual CPU/memory usage. To drive it from actual usage, set `metricsUtilization.source` to `KubernetesMetrics` and configure a metrics provider separately.
+2. A node is underutilized when **every** configured dimension (cpu, memory, pods, etc.) is **below** its `thresholds` value.
+3. A node is overutilized when **at least one** configured dimension is **above** its `targetThresholds` value. Nodes between the two bounds are not eviction candidates.
+4. The strategy acts only when there is at least one underutilized node and at least one overutilized node, evicting Pods from overutilized nodes. At most one Pod is evicted per overutilized node per run.
+5. kube-scheduler reschedules the evicted Pods. Relocation onto underutilized nodes is the intended outcome but is not guaranteed; the scheduler independently selects a feasible node.
 
 #### Strategy 3: RemovePodsViolatingNodeAffinity
 
@@ -2837,7 +2914,7 @@ data:
             - RemovePodsViolatingInterPodAntiAffinity
 ```
 
-**Scenario**: Initially, sufficient nodes satisfy Anti-Affinity → node scale-down places violating Pods on the same node → Descheduler relocates them after nodes are added
+**Scenario**: `requiredDuringSchedulingIgnoredDuringExecution` anti-affinity is enforced only at scheduling time and ignored during execution (`IgnoredDuringExecution`). Node scale-down alone therefore cannot cause a newly scheduled Pod to be placed in violation of a hard anti-affinity rule. Instead, changing Pod or node labels at execution time can leave already-running Pods inconsistent with the current anti-affinity rule; the descheduler can then evict those existing violating Pods so the scheduler reschedules them to compliant nodes. (Sources: descheduler v0.34.0 `RemovePodsViolatingInterPodAntiAffinity`; Kubernetes v1.34 Assigning Pods to Nodes)
 
 #### Strategy 5: RemovePodsHavingTooManyRestarts
 
@@ -2868,7 +2945,7 @@ data:
 
 #### Strategy 6: PodLifeTime
 
-**Purpose**: Remove old Pods to replace them with the latest images/configuration
+**Purpose**: Evict Pods that have exceeded a configured age (`maxPodLifeTimeSeconds`). (Source: descheduler v0.34.0 `PodLifeTime`) After eviction, the owning controller (Deployment, StatefulSet, etc.) recreates the Pod from its **current Pod template**. This by itself is not an image or configuration update mechanism: if the template is unchanged, the Pod is recreated with the same image and configuration. A new image can be pulled on recreation only when the image tag is mutable and `imagePullPolicy: Always` is set, which is not a reliable versioning strategy. An actual version change requires an explicit rollout that modifies the Deployment template.
 
 ```yaml
 apiVersion: v1
@@ -2925,8 +3002,16 @@ Descheduler specializes in Pod relocation, while Karpenter specializes in node m
 
 **Example configuration for using both tools:**
 
+The two manifests below are configuration examples that assume descheduler and Karpenter are **already installed**; they are not complete, directly applicable installation manifests. For the descheduler CronJob to run, you additionally need:
+
+- A ConfigMap holding the policy file (key `policy.yaml`) and a volume/volumeMount that mounts it at the container's `--policy-config-file` path.
+- A ServiceAccount in the same namespace plus RBAC (ClusterRole/ClusterRoleBinding) that allows listing nodes and Pods and creating evictions.
+- A single pinned combination of descheduler image, chart, and policy-schema versions. This document describes the policy schema at descheduler **v0.34.0**, so the image must be pinned to a compatible version. (The image tag below is a placeholder; replace it with the version you deploy.)
+
+The Karpenter NodePool must reference a real EC2NodeClass through `template.spec.nodeClassRef`; the fragment below shows only the disruption settings.
+
 ```yaml
-# Descheduler: rebalance every 15 minutes
+# Descheduler: rebalance every 15 minutes (a configuration fragment, not an install)
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -2938,14 +3023,24 @@ spec:
     spec:
       template:
         spec:
+          serviceAccountName: descheduler  # SA with node/Pod list and eviction permissions
+          restartPolicy: Never
           containers:
           - name: descheduler
-            image: registry.k8s.io/descheduler/descheduler:v0.29.0
+            # Placeholder tag. Pin to a version compatible with the policy schema (v0.34.0).
+            image: registry.k8s.io/descheduler/descheduler:v0.34.0
             command:
             - /bin/descheduler
             - --policy-config-file=/policy/policy.yaml
+            volumeMounts:
+            - name: policy
+              mountPath: /policy
+          volumes:
+          - name: policy
+            configMap:
+              name: descheduler-policy  # contains the policy.yaml key
 ---
-# Karpenter: continuous node consolidation
+# Karpenter v1: continuous node consolidation (nodeClassRef and other fields configured separately)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -2953,14 +3048,24 @@ metadata:
 spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 5m  # Start consolidation after 5 minutes
+    consolidateAfter: 5m  # consolidation candidate after 5 minutes with no Pods added or removed
     budgets:
     - nodes: "20%"
+  template:
+    spec:
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: default  # a pre-created EC2NodeClass name
+      requirements:
+      - key: kubernetes.io/arch
+        operator: In
+        values: ["amd64"]
 ```
 
 #### 8.4.1 Practical Patterns Combining Descheduler and Karpenter
 
-Using Descheduler and Karpenter together automatically coordinates Pod relocation and node consolidation to improve cluster efficiency and reduce cost simultaneously.
+Descheduler and Karpenter are **independent controllers** that are not aware of each other, so running them together does not automatically coordinate them. Each acts on its own policy (the descheduler policy and the Karpenter disruption settings). The proposed composition is: the descheduler evicts qualifying Pods, kube-scheduler chooses the replacement placement, and Karpenter separately evaluates node provisioning and consolidation. If their timing is not tuned, Pods can churn (move repeatedly) and consolidation can fail. Efficiency and cost improvements are not guaranteed effects; they are outcomes you must measure in your own environment.
 
 **How the combination works:**
 
@@ -3016,9 +3121,9 @@ metadata:
 spec:
   disruption:
     consolidationPolicy: WhenEmptyOrUnderutilized
-    consolidateAfter: 5m  # Wait 5 minutes after Descheduler moves Pods
+    consolidateAfter: 5m  # Timer resets whenever a Pod is added to or removed from the node (regardless of cause); the node must be stable for 5m to become a candidate
     budgets:
-    - nodes: "20%"  # Consolidate at most 20% of nodes at a time
+    - nodes: "20%"  # Allowed = ceil(total nodes * 0.20) - deleting - NotReady nodes; rounding up may exceed an exact 20% fraction
   template:
     spec:
       requirements:
@@ -3041,12 +3146,18 @@ Time: 00:00 - Descheduler runs (15-minute interval)
 Time: 00:01 - Kubernetes Scheduler relocates Pods
   └─ Pod-1 → scheduled on Node-B
   └─ Pod-2 → scheduled on Node-C
-  └─ Node-A now has CPU 50%, Memory 55% (normal range)
+  └─ Node-A now has CPU 50%, Memory 55% (illustrative values)
+     Note: with targetThresholds set to 50, Memory 55% is still above the target.
+     CPU at exactly 50% is the boundary, not "above", so CPU alone is not overutilized.
 
-Time: 00:06 - Karpenter consolidation (5 minutes elapsed)
-  └─ Node-B: still underutilized but running Pods → retain
+Time: 00:06 - Karpenter consolidation (consolidateAfter elapsed; illustrative event)
+  └─ Node-B: underutilized and running Pods → under WhenEmptyOrUnderutilized,
+     a nonempty underutilized node can still be consolidated if the scheduling
+     simulation and disruption constraints permit it
   └─ Node-D: detected as empty (previously hosted Pods that have moved) → terminate
-  └─ Cost savings achieved
+  └─ The 00:01/00:06 timeline and the cost savings are a hypothetical illustration,
+     not measured results; actual behavior depends on utilization input,
+     scheduling simulation, timing, and billing
 ```
 
 **Interaction with PDB:**
@@ -3106,9 +3217,9 @@ kubectl get pdb -A
 |------|------|
 | **Automatic balancing** | Descheduler automatically resolves resource imbalance |
 | **Cost optimization** | Karpenter removes unnecessary nodes |
-| **Safety guarantees** | Respecting PDB prevents service interruptions |
-| **Reduced operational burden** | Automatic coordination without manual intervention |
-| **Scalability** | Works regardless of cluster size |
+| **Safety guarantees** | Constrains budget- and PDB-respecting **voluntary** evictions. It does not prevent involuntary failures (spot reclamation, hardware failure) or every outage. |
+| **Reduced operational burden** | The two controllers are independent, so policy coordination, observation, and tuning are still required. |
+| **Scalability** | Capacity and controller limits and behavior must be assessed on the intended workload; operation is not guaranteed regardless of cluster size. |
 
 ---
 
@@ -3128,7 +3239,7 @@ The following table summarizes recommended scheduling settings for various workl
 | **Cache (Redis)** | Memory-optimized nodes (r6i) | Hard (spread across nodes) | Hard (spread across AZs) | - | `high-priority` | `minAvailable: 2` | Configure persistence |
 | **Batch jobs** | Allow Spot nodes | - | - | Spot Tolerate | `low-priority`, `preemptionPolicy: Never` | - | Design for restartability |
 | **CI/CD Runner** | Prefer Spot nodes | - | - | Spot Tolerate | `low-priority` | - | Ephemeral jobs |
-| **Log collection (DaemonSet)** | Intended collection nodes | - | - | Only required node/agent tolerations | `system-critical` | - | Use `hostPath` |
+| **Log collection (DaemonSet)** | Intended collection nodes | - | - | Only required node/agent tolerations | `platform-critical` | - | Use `hostPath` |
 | **Ingress Controller** | On-Demand | Hard (spread across nodes) | Hard (spread across AZs) | - | `high-priority` | `minAvailable: 2` | Configure NodePort / LB |
 | **Monitoring (Prometheus)** | Dedicated monitoring nodes | Soft (spread across nodes) | Soft (spread across AZs) | Tolerate monitoring taints | `high-priority` | `minAvailable: 1` | Large-capacity storage |
 | **Web frontend** | ARM nodes supported | Soft (spread across nodes) | Hard (spread across AZs) | - | `standard-priority` | `minAvailable: "50%"` | CDN integration |
@@ -3300,12 +3411,18 @@ spec:
       restartPolicy: OnFailure
 ```
 
+:::warning A shared PVC does not guarantee multi-node access
+In the example above, every Job Pod references the `training-data` and `model-checkpoints` PVCs, but sharing a PVC name does not mean Pods on different nodes can read and write the same volume at the same time. Whether concurrent multi-node access is possible is determined by the [access modes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/#access-modes) of the PVC/PV and by what the CSI driver supports. A `ReadWriteOnce` (RWO) volume is mounted on only one node at a time, so training Pods spread across different nodes cannot share it. On storage that supports only RWO (such as the EBS-backed StorageClass in these examples), this manifest will not work as written.
+
+For multi-node training it is safer to separate two concerns. First, treat training data as read-only distribution — for example, a shared file system that supports `ReadOnlyMany`, or each node pulling from object storage. Second, coordinate checkpoint writes so that concurrent writers do not conflict: either only the rank-0 process writes, or each Pod/rank writes to a separate path that is merged afterwards. This example does not include the actual storage access modes, CSI capabilities, Availability Zone placement, checkpoint ownership and atomicity, or restore-test evidence, so treat it as an illustration of structure rather than a validated multi-node shared-storage design.
+:::
+
 **Using Multi-Instance GPU (MIG):**
 
-GPUs such as the NVIDIA A100 and A30 support MIG, which partitions a single GPU into multiple independent instances.
+Datacenter GPUs with compute capability 8.0 or higher — such as the NVIDIA A100, A30, and H100 — support MIG, which partitions a single GPU into multiple independent instances. The NVIDIA A10G used by EC2 G5 instances is not on the [list of MIG-supported GPUs](https://docs.nvidia.com/datacenter/tesla/mig-user-guide/supported-gpus.html) and therefore cannot be partitioned with MIG. The example and profile table below apply to a different GPU family (A100-40GB) than the G5/A10G NodePool example in the previous section.
 
 ```yaml
-# Example MIG profile request (A100 GPU)
+# Example MIG profile request (A100-40GB GPU)
 apiVersion: v1
 kind: Pod
 metadata:
@@ -3316,14 +3433,16 @@ spec:
     image: ml/inference:v1.0
     resources:
       requests:
-        nvidia.com/mig-1g.5gb: 1  # 1/7 A100 (1 GPU slice, 5GB memory)
+        nvidia.com/mig-1g.5gb: 1  # One A100-40GB instance (compute 1/7, 5GB memory)
       limits:
         nvidia.com/mig-1g.5gb: 1
 ```
 
-**MIG profiles:**
+**MIG profiles (for A100-40GB):**
 
-| MIG Profile | GPU Slice | Memory | Use Case |
+In the table below, `GPU Slice` is the fraction of compute (SM) resources the profile uses, which can differ from the memory fraction. The resource name each profile exposes (`nvidia.com/mig-<profile>`) and the actual partition result depend on the GPU model, driver version, and the device plugin's MIG strategy. Other GPU models (A100-80GB, A30, H100, and so on) have different memory capacities and available profile sets, so these values cannot be applied as-is.
+
+| MIG Profile | Compute (SM) fraction | Memory | Use Case |
 |-------------|-----------|--------|----------|
 | `mig-1g.5gb` | 1/7 | 5GB | Small-scale inference |
 | `mig-2g.10gb` | 2/7 | 10GB | Medium-scale inference |
@@ -3344,48 +3463,43 @@ In Kubernetes 1.34+, Dynamic Resource Allocation (DRA) provides more flexible al
 | Limited sharing | Dynamic sharing/partitioning |
 | Node restart required | Runtime reconfiguration |
 
-**DRA ResourceClass and ResourceClaim example:**
+**DRA DeviceClass and ResourceClaim example (Kubernetes v1.34, `resource.k8s.io/v1`):**
+
+In Kubernetes v1.34 the core DRA kinds (`DeviceClass`, `ResourceClaim`, `ResourceClaimTemplate`, `ResourceSlice`) are all in the `resource.k8s.io/v1` group and are GA (enabled by default). The `ResourceClass` kind, the `resource.k8s.io/v1alpha4` version, and fields such as `driverName` and `parametersRef` used by earlier designs do not exist in this API. Instead the roles are split: a `DeviceClass` defines a category of claimable devices and filters device attributes with CEL; a `ResourceClaim` (or a `ResourceClaimTemplate` for per-Pod generation) requests devices from that DeviceClass; a Pod references the claim through `spec.resourceClaims`, and the container consumes it through `resources.claims`.
+
+:::warning Prerequisites and validation limits
+For DRA to actually allocate devices, a **DRA-compatible driver must be installed and publishing ResourceSlices**. For GPUs this means a DRA driver such as the one provided by NVIDIA. The `driver` value (`gpu.example.com`) and CEL attributes (`gpu.example.com/*`) below are **illustrative placeholders** and will not work until they are replaced with the real `driver` name, device attributes, and capacities that your driver publishes. Confirm separately whether your EKS version supports DRA and which GPU/AMI/runtime combinations the driver supports. This manifest illustrates the API shape; it is not evidence of verified NVIDIA A100/MIG support.
+:::
 
 ```yaml
-# ResourceClass: Define a GPU resource class
-apiVersion: resource.k8s.io/v1alpha4
-kind: ResourceClass
+# DeviceClass: define a category of claimable GPU devices (created by a cluster admin or the driver)
+apiVersion: resource.k8s.io/v1
+kind: DeviceClass
 metadata:
-  name: nvidia-a100-gpu
+  name: nvidia-gpu
 spec:
-  driverName: gpu.nvidia.com
-  parameters:
-    apiVersion: gpu.nvidia.com/v1alpha1
-    kind: GpuConfig
-    memory: "40Gi"
-    computeCapability: "8.0"  # A100
-    migEnabled: true
+  # Filter by driver/attributes with CEL. The values below are placeholders and must be
+  # replaced with the driver name and attribute keys that your DRA driver publishes.
+  selectors:
+  - cel:
+      expression: device.driver == "gpu.example.com"
 ---
-# ResourceClaim: Request GPU resources
-apiVersion: resource.k8s.io/v1alpha4
+# ResourceClaim: request one device from the DeviceClass
+apiVersion: resource.k8s.io/v1
 kind: ResourceClaim
 metadata:
   name: ml-training-gpu
   namespace: ml-team
 spec:
-  resourceClassName: nvidia-a100-gpu
-  parametersRef:
-    apiGroup: gpu.nvidia.com
-    kind: GpuClaimParameters
-    name: training-params
+  devices:
+    requests:
+    - name: gpu
+      exactly:
+        deviceClassName: nvidia-gpu
+        allocationMode: ExactCount
+        count: 1
 ---
-# GpuClaimParameters: Detailed requirements
-apiVersion: gpu.nvidia.com/v1alpha1
-kind: GpuClaimParameters
-metadata:
-  name: training-params
-  namespace: ml-team
-spec:
-  count: 1  # 1 GPU
-  migProfile: "mig-3g.20gb"  # Specify the MIG profile
-  sharing: "TimeSlicing"  # Allow time-sliced sharing
----
-# Pod: Use the ResourceClaim
+# Pod: reference the ResourceClaim and consume it in the container
 apiVersion: v1
 kind: Pod
 metadata:
@@ -3401,13 +3515,11 @@ spec:
     resources:
       claims:
       - name: gpu-claim
-    env:
-    - name: CUDA_VISIBLE_DEVICES
-      value: "0"
+        request: gpu
 ```
 
 :::info DRA Availability
-The DRA core became GA in Kubernetes 1.34 (`resource.k8s.io/v1`, enabled by default). It is available for production use and can currently run alongside the existing Device Plugin approach.
+The DRA core became GA in Kubernetes 1.34 (`resource.k8s.io/v1`, enabled by default). It is available for production use and can currently run alongside the existing Device Plugin approach. Vendor-specific settings such as a MIG profile or time-sliced sharing are not part of the DRA core API; they are expressed through the device attributes and configuration that your installed DRA driver exposes, so consult that driver's documentation.
 :::
 
 #### 9.2.3 Scheduling Strategies for AI Training vs. Inference
@@ -3441,6 +3553,7 @@ metadata:
 spec:
   parallelism: 8
   completions: 8
+  completionMode: Indexed  # Assigns a 0..7 completion index to each Pod, used as the node rank
   template:
     metadata:
       labels:
@@ -3477,14 +3590,27 @@ spec:
           limits:
             nvidia.com/gpu: 4
         env:
+        # Values torchrun uses for rendezvous. MASTER_ADDR must be a headless Service DNS name
+        # that resolves identically from every Pod (see the Service note below).
         - name: MASTER_ADDR
-          value: "distributed-training-master"
-        - name: WORLD_SIZE
-          value: "8"  # 8 processes in total
-        - name: RANK
+          value: "distributed-training.ml-team.svc.cluster.local"
+        - name: MASTER_PORT
+          value: "29500"
+        # The node (Pod) rank comes from the completion index (0..7) injected by the Indexed Job.
+        - name: NODE_RANK
           valueFrom:
             fieldRef:
-              fieldPath: metadata.name
+              fieldPath: metadata.annotations['batch.kubernetes.io/job-completion-index']
+        command: ["torchrun"]
+        # 8 Pods x 4 processes per Pod (one process per GPU) => global process count (WORLD_SIZE) 32.
+        # torchrun sets each process's global RANK (0..31), LOCAL_RANK, and WORLD_SIZE.
+        args:
+        - "--nnodes=8"
+        - "--nproc-per-node=4"
+        - "--node-rank=$(NODE_RANK)"
+        - "--master-addr=$(MASTER_ADDR)"
+        - "--master-port=$(MASTER_PORT)"
+        - "train.py"
         volumeMounts:
         - name: checkpoints
           mountPath: /checkpoints
@@ -3495,17 +3621,25 @@ spec:
       restartPolicy: OnFailure
 ```
 
+:::warning The distributed-training rendezvous contract must be specified explicitly
+The original example injected the Pod name string (`metadata.name`) into each process's `RANK`, but PyTorch distributed (c10d) requires `RANK` to be an **integer** from `0` to `WORLD_SIZE-1`, unique per process, so that does not work. `WORLD_SIZE` is also the **total number of processes**, not the Pod count: 8 Pods each using 4 GPUs with one process per GPU is 32 processes, so `WORLD_SIZE=32`. How many processes to launch is a launcher decision.
+
+The example above delegates that contract to the launcher. It assumes a `completionMode: Indexed` Job, so each Pod receives a completion index (`batch.kubernetes.io/job-completion-index`, 0–7) as its node rank, and `torchrun --nnodes=8 --nproc-per-node=4 --node-rank=<index>` sets the per-process global `RANK`, `LOCAL_RANK`, and `WORLD_SIZE`. `MASTER_ADDR` must be the DNS name of a **headless Service** whose rendezvous endpoint is actually live. This manifest does not guarantee the following: the Job must have `completionMode: Indexed` set, the `distributed-training` headless Service and its endpoints must exist, the container image must include `torchrun` and `train.py`, and inter-node network communication must be allowed. It is an illustration of the rendezvous contract, not a runnable, complete example.
+:::
+
 #### 9.2.4 Setu: Proactive Scheduling with Kueue + Karpenter
 
-Distributed AI training workloads (such as PyTorch DDP and JAX) require **Gang Scheduling**. If all GPU nodes are not ready at the same time, resources are wasted or training cannot start. Traditional Karpenter supports only **reactive** provisioning, creating nodes only after Pods enter the Pending state. This causes the following issues:
+Some distributed AI training workloads (such as PyTorch DDP and JAX) are only useful when all workers start together, so **Gang Scheduling** (scheduling all Pods together or none at all) helps. However, not every distributed framework or workload requires gang scheduling; it depends on whether restarts are acceptable and on the checkpointing design. If only some GPU nodes become ready before the rest, those nodes sit idle consuming cost, or training is delayed.
 
-**Limitations of traditional Karpenter:**
+Karpenter's behavior depends on what you compare it to. The table below compares a **dynamic-provisioning NodePool** (the reactive behavior that creates nodes only after Pods enter the Pending state). Karpenter v1.14 documentation also describes **static NodePools** that fix the node count with `spec.replicas`; that is pre-provisioned capacity, not gang scheduling. The examples in this document use the v1.0 API, so they do not add a `spec.replicas` field. Combining reactive dynamic provisioning with gang-scheduling workloads can cause the following issues:
+
+**Limitations of reactive dynamic provisioning (for gang-scheduling workloads):**
 
 | Issue | Description | Impact |
 |------|------|------|
 | **Partial allocation risk** | 4 nodes with 4 GPUs each are required, but only 2 are successfully provisioned | 2 nodes remain idle, wasting costs |
 | **Scheduling delay** | Pod Pending → Karpenter detection → EC2 provisioning (sequential process) | Distributed training takes several minutes to start |
-| **Lack of atomicity** | Only some nodes are created; the rest fail due to insufficient capacity | Workload waits indefinitely |
+| **Capacity shortfall** | Only some nodes are created; the rest fail due to insufficient capacity | Workload is delayed while waiting |
 
 **The Setu solution:**
 
@@ -3524,24 +3658,24 @@ sequenceDiagram
     User->>Kueue: Submit Job (4 nodes with 4 GPUs each required)
     Kueue->>Kueue: Create Workload (Pending)
     Kueue->>Setu: Request AdmissionCheck
-    Setu->>Karpenter: Create 4 NodeClaims (atomically)
+    Setu->>Karpenter: Create 4 NodeClaims (sequentially, with compensating cleanup on failure)
     Karpenter->>EC2: Provision 4 EC2 instances
     EC2-->>Karpenter: All nodes Ready
-    Karpenter-->>Setu: NodeClaim approval complete
+    Karpenter-->>Setu: NodeClaims confirmed Ready
     Setu-->>Kueue: AdmissionCheck passed
     Kueue->>Kueue: Admit Workload (Active)
-    Kueue->>User: Start Pod scheduling (immediate placement)
+    Kueue->>User: Start Pod scheduling
 ```
 
-**Gang Scheduling and scheduling safety:**
+**Pre-admission readiness gate and scheduling safety:**
 
-Setu's core value is its **All-or-Nothing** guarantee. Distributed training workloads are only useful when all replicas run simultaneously.
+Setu's core behavior is a **pre-admission readiness gate**: it holds Kueue workload admission until all required NodeClaims reach the Ready state. This is a readiness gate that checks node readiness before admission, not a distributed transaction or a gang scheduler. NodeClaims are created sequentially; if some fail, Setu runs a compensating cleanup that deletes the NodeClaims it already created, and the retry and cleanup can consume time and capacity or ultimately fail. Pod placement (scheduling) onto nodes is a separate step that happens after admission.
 
-| Scenario | Traditional Karpenter | Setu + Kueue |
+| Scenario | Reactive dynamic provisioning | Setu + Kueue |
 |---------|---------------|-------------|
-| **4 nodes with 4 GPUs each required** | Only 2 created → 2 idle → wasted costs | Admit after confirming all 4 are Ready → zero waste |
-| **Node provisioning failure** | Some Pods Running, the rest indefinitely Pending | Automatic rollback + exponential backoff retries (5s-80s, up to 5 retries) |
-| **Scheduling start time** | Sequential scheduling as each node is created | All nodes Ready → simultaneous scheduling |
+| **4 nodes with 4 GPUs each required** | Only 2 created → 2 idle → wasted costs | Admit after confirming all 4 are Ready → less idle from partial allocation |
+| **Node provisioning failure** | Some Pods Running, the rest indefinitely Pending | Cleanup of created NodeClaims + exponential backoff retries (5s-80s, up to 5 retries); admission is rejected once retries are exhausted |
+| **Scheduling start time** | Sequential scheduling as each node is created | Admit after all nodes are Ready → the scheduler then places Pods |
 
 **Failure handling and retry logic:**
 
@@ -3550,7 +3684,7 @@ Setu responds intelligently to node provisioning failures:
 ```
 Failure scenario:
 1. Only 3 of 4 NodeClaims succeed (1 fails due to insufficient Spot capacity)
-2. Setu detects the failure → deletes all NodeClaims (rollback)
+2. Setu detects the failure → deletes the created NodeClaims (compensating cleanup)
 3. Retry with exponential backoff:
    - Retry 1: after 5 seconds
    - Retry 2: after 10 seconds
@@ -3566,24 +3700,30 @@ Setu integrates with the workload admission process through Kueue's AdmissionChe
 
 ```yaml
 # 1. Define AdmissionCheck: Specify the Setu controller
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: AdmissionCheck
 metadata:
   name: karpenter-provision
 spec:
-  controllerName: setu.io/karpenter-provision
+  # Must exactly match the controllerName registered in the Setu controller source (commit 7802a60).
+  # If this value does not match the installed Setu controller, the AdmissionCheck never becomes Active.
+  controllerName: setu.kueue.x-k8s.io/admission-check
 ---
 # 2. ClusterQueue: Apply AdmissionCheck
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: ClusterQueue
 metadata:
   name: ml-training-queue
 spec:
   namespaceSelector: {}
   resourceGroups:
-  - coveredResources: ["cpu", "memory", "nvidia.com/gpu"]
+  # Every resource listed in coveredResources must be supplied by each flavor, in the same order,
+  # with a nominalQuota. The flavor below provides GPU quota only, so coveredResources lists GPU only.
+  # Pod CPU/memory requests are not capped by this queue. To also govern CPU/memory with quota,
+  # add explicit cpu/memory nominalQuota entries to every flavor.
+  - coveredResources: ["nvidia.com/gpu"]
     flavors:
-    - name: gpu-flavor
+    - name: gpu-flavor  # A ResourceFlavor of this name, matching the GPU node labels, must be defined beforehand.
       resources:
       - name: nvidia.com/gpu
         nominalQuota: 32  # Allow up to 32 GPUs in total
@@ -3592,7 +3732,7 @@ spec:
   - karpenter-provision
 ---
 # 3. LocalQueue: Per-namespace queue
-apiVersion: kueue.x-k8s.io/v1beta1
+apiVersion: kueue.x-k8s.io/v1beta2
 kind: LocalQueue
 metadata:
   name: training-jobs
@@ -3623,10 +3763,14 @@ spec:
       - name: trainer
         image: ml/pytorch-distributed:v2.0
         resources:
+          # Extended resources (nvidia.com/gpu) must be set in limits only, or in both requests
+          # and limits with equal values. Specifying requests alone causes the Pod to be rejected.
           requests:
             nvidia.com/gpu: 1
             cpu: "7"
             memory: 28Gi
+          limits:
+            nvidia.com/gpu: 1
       restartPolicy: OnFailure
 ```
 
@@ -3641,7 +3785,7 @@ spec:
 6. Confirm all nodes are Ready (kubelet registered + GPU device plugin activated)
 7. Setu approves AdmissionCheck → Kueue transitions the Workload to Active
 8. Kueue sets suspend: false on the Job → scheduling starts for 4 Pods
-9. The Scheduler immediately places Pods on the newly created GPU nodes (zero Pending time)
+9. After admission, the Scheduler places Pods on the GPU nodes. Because the nodes are already Ready there is no wait for node creation, but the Pods still go through scheduling, binding, image pull, and container startup. End-to-end Pending/startup time remains workload-dependent.
 ```
 
 **Comparison: Traditional Karpenter vs. Setu + Kueue:**
@@ -3651,20 +3795,22 @@ spec:
 | **Job submission** | Immediately creates Pods (Pending) | Kueue manages the Job as a Workload (awaiting admission) |
 | **Node provisioning** | Reacts after detecting Pending Pods | Pre-provisions through AdmissionCheck |
 | **Partial failure handling** | Some Pods Running, the rest waiting indefinitely | Full rollback + retry (All-or-Nothing) |
-| **Scheduling start** | Sequentially as nodes are created | Simultaneously after all nodes are Ready |
-| **Time required** | 2-3 minutes (sequential process) | 1-2 minutes (parallel + advance preparation) |
+| **Scheduling start** | Sequentially as nodes are created | After all nodes are confirmed Ready |
+| **Time required** | Not a measured value (depends on workload, capacity, image size) | Not a measured value (pre-provisioning removes the node-creation wait, but Pod startup steps are unchanged) |
 
 **Recommended use cases:**
 
-| Workload Type | Setu Required? | Reason |
+| Workload Type | Setu Suitability | Reason |
 |-------------|--------------|------|
-| **Large-scale distributed training** (16+ GPUs) | ✅ Required | Guarantees Gang Scheduling and prevents partial allocation |
+| **Large-scale distributed training** (16+ GPUs) | Optional, after evaluation | Pre-provisioning can reduce idle time from partial allocation, but a high GPU count alone does not make Setu mandatory. Choose it as an architecture after compatibility and workload validation. |
 | **Small-scale training** (1-4 GPUs) | ⚠️ Optional | Limited benefit relative to overhead |
-| **Single-GPU inference** | ❌ Not required | Traditional Karpenter is sufficient |
+| **Single-GPU inference** | ❌ Not required | Reactive Karpenter is sufficient |
 | **Batch processing** (CPU workloads) | ⚠️ Optional | Useful when cost efficiency is the goal |
 
-:::info Setu Installation and Configuration
-Setu requires Karpenter v1.0+ and Kueue v0.6+. It can be installed through a Helm chart; see the [Setu GitHub repository](https://github.com/sanjeevrg89/Setu) for detailed guidance.
+:::info Setu Maturity and Version Requirements
+Setu is a **community project that connects Kueue workload queuing with Karpenter node provisioning, and its status at the time of writing is Alpha** (the project README states "Alpha — Functional and E2E-tested on AWS EKS. Use in non-production environments first."). Project-reported compatibility is not the same as review-verified behavior or production support.
+
+The inspected Setu commit (`7802a60`) uses the `kueue.x-k8s.io/v1beta2` API, and the project documents a Kueue v0.16+ and Karpenter v1+ combination. The project's reported end-to-end combination is EKS 1.35 / Karpenter 1.8.2 / Kueue 0.16, which this document did not execute to verify. Compatibility with older Kueue versions requires a specific release artifact for that version. Before use, pin a complete tested combination (Setu release/commit, Kueue, Karpenter, and CRDs). For Helm chart installation and detailed guidance, see the [Setu GitHub repository](https://github.com/sanjeevrg89/Setu).
 :::
 
 :::warning Production Considerations
@@ -3761,7 +3907,7 @@ spec:
 
 **Inferentia/Graviton inference optimization:**
 
-AWS Inferentia is a dedicated inference accelerator that can reduce costs by up to 70% compared with GPUs.
+AWS Inferentia is a dedicated inference accelerator. AWS states that Inf2 instances, based on Inferentia2, deliver "up to 40% better price performance than other comparable Amazon EC2 instances" ([EC2 Inf2 instances](https://aws.amazon.com/ec2/instance-types/inf2/); the comparison set and workload are limited to AWS's stated scope). This is not a universal 40% cost saving across all workloads; actual results depend on the model, precision, and throughput/latency targets, so benchmark your target workload directly to confirm.
 
 ```yaml
 # Schedule on Inferentia nodes
@@ -3790,7 +3936,7 @@ spec:
         image: ml/neuron-inference:v1.0
         resources:
           requests:
-            aws.amazon.com/neuron: 1  # 1 Inferentia core
+            aws.amazon.com/neuron: 1  # Allocates 1 whole Neuron device, including its cores. For core-level allocation, use the aws.amazon.com/neuroncore resource instead.
             cpu: "3"
             memory: 8Gi
           limits:
@@ -3865,8 +4011,8 @@ flowchart TB
     Q3 -->|No| Q6
 
     B1 --> B2
-    B2 --> Q4
-    B3 --> FINAL
+    B2 --> Q6
+    B3 --> Q6
 
     Q6 -->|Yes| F1
     Q6 -->|Preferred| F2
@@ -3883,7 +4029,7 @@ flowchart TB
 
     Q5 -->|No| D1
     Q5 -->|Yes| D2
-    Q5 -->|Either| E2
+    Q5 -->|Either| E3
 
     D1 --> E1
     D2 --> E2
@@ -3905,6 +4051,8 @@ flowchart TB
 4. **High availability requirements** → Topology Spread, Anti-Affinity
 5. **Upgrade safety** → Configure rollout strategy/readiness, and a PDB for Eviction API-based node drains
 
+These checks are cumulative, not mutually exclusive choices. Selecting GPU, priority, Spot, or affinity does not skip the independent constraints — Topology Spread, replica distribution, and a PDB must all still be evaluated.
+
 ---
 
 <span id="10-2025-2026-aws-innovations" />
@@ -3917,16 +4065,20 @@ Key innovations announced at AWS re:Invent 2025 are significantly influencing EK
 
 **Overview:**
 
-Provisioned Control Plane provisions control plane capacity in predefined tiers such as XL, 2XL, and 4XL, providing predictable, high-performance Kubernetes operations.
+EKS runs the control plane in one of two modes. The default is **Standard mode**, where the control plane scales up and down automatically based on workload demand. **Provisioned mode** (EKS Provisioned Control Plane) is an optional mode in which an administrator selects one scaling tier — XL, 2XL, 4XL, or 8XL — to pre-allocate control plane capacity; you must explicitly opt in. "Standard" is the name of the default mode, not a tier.
 
-**Performance characteristics by tier:**
+**Tier capacity attributes (AWS documentation checked 2026-10-13, Kubernetes v1.34 and later):**
 
-| Tier | API Concurrency | Pod Scheduling Speed | Cluster Scale | Use Case |
-|------|-----------|-----------------|------------|----------|
-| **Standard** | Dynamic scaling | Standard | ~1,000 nodes | General workloads |
-| **XL** | High | Fast | ~2,000 nodes | Large-scale deployments |
-| **2XL** | Very high | Very fast | ~4,000 nodes | AI/ML training, HPC |
-| **4XL** | Maximum | Maximum | ~8,000 nodes | Very large clusters |
+Each Provisioned tier is defined by the following four control-plane attributes; it does not set a node-count limit. The values below vary by Kubernetes version (v1.30–v1.33 are lower). Always confirm the values for your version in the current [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html).
+
+| Tier | API request concurrency (seats) | Pod scheduling rate (pods/sec) | Cluster database (etcd) size | SLA (1-minute intervals) |
+|------|---------------------------------|--------------------------------|------------------------------|--------------------------|
+| **XL** | 2,000 | 167 | 16 GB | 99.99% |
+| **2XL** | 4,000 | 283 | 16 GB | 99.99% |
+| **4XL** | 8,000 | 400 | 16 GB | 99.99% |
+| **8XL** | 16,000 | 400 | 16 GB | 99.99% |
+
+The default Standard mode provides a 99.95% SLA (5-minute intervals) and up to 8 GB of etcd. There is no automatic scaling between tiers; the control plane stays pinned to the selected tier. The AWS documentation states that the tier attributes are the configurations EKS applies, while the performance you actually achieve depends on your workload patterns, configuration, and adherence to Kubernetes best practices. In particular, the Pod scheduling rate is the scheduler QPS ceiling; the actual rate also depends on factors such as nodes being Ready and healthy.
 
 **Scheduling performance improvements:**
 
@@ -3934,8 +4086,8 @@ Provisioned Control Plane improves scheduling performance in the following ways:
 
 1. **API server concurrency**: Processes more scheduling requests simultaneously
 2. **Expanded etcd capacity**: Stores metadata for more nodes and Pods
-3. **Increased scheduler throughput**: Processes more Pod bindings per second
-4. **Predictable latency**: Ensures consistent scheduling latency even during traffic bursts
+3. **Increased scheduler throughput**: Processes more Pod scheduling attempts per second, up to the tier's scheduler QPS ceiling
+4. **Documented control-plane capacity**: Guarantees the tier's capacity attributes (API concurrency, scheduler QPS, etcd size, endpoint SLA). Note that the SLA covers the Kubernetes API endpoint; a workload's scheduling and startup latency also depends on constraints, queueing, the number of available nodes, and Pod initialization, so the tier does not guarantee invariant end-to-end latency.
 
 **Scheduling strategy for large clusters:**
 
@@ -3994,47 +4146,52 @@ Provisioned Control Plane is optimized for scenarios that simultaneously schedul
 ```mermaid
 sequenceDiagram
     participant User
-    participant APIServer as API Server<br/>(Provisioned XL)
-    participant Scheduler as Kube-Scheduler<br/>(Enhanced)
+    participant APIServer as API Server<br/>(Provisioned tier)
+    participant Scheduler as Kube-Scheduler
     participant Karpenter
-    participant EC2 as EC2 Auto Scaling
+    participant EC2 as EC2
 
-    User->>APIServer: Create Job (1000 GPU Pods)
-    APIServer->>Scheduler: Request scheduling for 1000 Pods
+    User->>APIServer: Create Job (e.g. 1000 GPU Pods)
+    APIServer->>Scheduler: Pod watch events
 
-    Note over Scheduler: Parallel scheduling<br/>(100+ Pods per second)
+    Note over Scheduler: Attempts to bind to available capacity;<br/>sets Unschedulable=True<br/>on Pods that do not fit
 
-    Scheduler->>Karpenter: Request additional GPU nodes
-    Karpenter->>EC2: Provision 250 GPU nodes
+    Note over Scheduler,Karpenter: The scheduler does not call Karpenter
 
-    Note over EC2: Create nodes in parallel<br/>(5-10 minutes)
+    Karpenter->>APIServer: Watch Unschedulable Pods
+    Karpenter->>EC2: Request capacity that satisfies constraints<br/>(node count varies with Pod demand)
 
-    EC2-->>Karpenter: Nodes ready
-    Karpenter-->>Scheduler: Register nodes
+    Note over EC2: Nodes created asynchronously<br/>(startup time varies by instance type,<br/>image, and availability)
 
-    Scheduler->>APIServer: Bind Pods (250 batch)
-    APIServer->>Scheduler: Schedule the next batch
+    EC2-->>Karpenter: Nodes Ready
+    Karpenter-->>APIServer: Nodes register with the cluster
 
-    Note over Scheduler,APIServer: Repeat 4 times<br/>(1000 Pods complete)
+    loop Per-Pod individual binding
+        Scheduler->>APIServer: Bind Pod
+    end
 
-    APIServer-->>User: Start Job execution
+    Note over Scheduler,APIServer: No fixed batch size and<br/>no guaranteed completion time
+
+    APIServer-->>User: Pods start running on nodes
 ```
 
-**Recommended tiers by use case:**
+**Recommended mode/tier by use case:**
 
-| Use Case | Recommended Tier | Reason |
-|----------|----------|------|
-| **General web applications** | Standard | Dynamic scaling is sufficient |
-| **Large-scale batch jobs (500+ Pods)** | XL | Fast concurrent scheduling required |
-| **Distributed ML training (1000+ GPU Pods)** | 2XL | Very fast scheduling + high API concurrency |
-| **HPC clusters (thousands of nodes)** | 4XL | Maximum scale + predictable performance |
-| **Mission-critical services** | XL or higher | Consistent latency even during traffic bursts |
+The following are general starting points based on workload characteristics; determine the actual tier by load-testing with the [tier utilization metrics](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html). The selection criterion is control-plane load (API concurrency, scheduler QPS, etcd usage), not node count.
+
+| Use Case | Recommended Mode/Tier | Reason |
+|----------|----------------------|------|
+| **General web applications** | Standard mode (no Provisioned) | Automatic scaling is sufficient |
+| **Large-scale batch jobs (500+ Pods)** | XL or higher | Handles high concurrent scheduling load |
+| **Distributed ML training (1000+ GPU Pods)** | 2XL or higher | Requires high scheduler QPS and API concurrency |
+| **HPC clusters (large scale)** | 4XL/8XL | Maximum control-plane capacity |
+| **Mission-critical services** | Provisioned (XL or higher) | 99.99% endpoint SLA and operation without capacity variability |
 
 :::tip Provisioned Control Plane Selection Criteria
-- **Node count > 1,000**: Consider XL or higher
-- **Frequent large-scale deployments (500+ Pods)**: XL or higher
-- **GPU workloads (100+ GPUs)**: 2XL or higher
-- **Predictable performance requirements**: Consider Provisioned at any scale
+- The selection criterion is control-plane load, not node count. The AWS-recommended method is to load-test on the highest tier (8XL), then pick the appropriate tier from the tier utilization metrics.
+- **Frequent large-scale deployments (500+ Pods)**: Consider a Provisioned tier
+- **GPU workloads (100+ GPUs)**: Consider 2XL or higher
+- **Need a capacity-stable endpoint SLA (99.99%)**: Consider Provisioned at any scale
 :::
 
 ### 10.2 Automatic Node Provisioning with EKS Auto Mode
@@ -4463,12 +4620,16 @@ Container Network Observability provides granular network metrics to analyze the
 
 **Correlation between Pod placement and network performance:**
 
-| Pod Placement Pattern | Network Latency | Cross-AZ Traffic Cost | Use Case |
-|-------------|-------------|-------------------|----------|
-| **Same Node** | ~0.1ms | $0 | Cache server + application |
-| **Same AZ** | ~0.5ms | $0 | Microservices that communicate frequently |
-| **Cross-AZ** | ~2-5ms | $0.01/GB | Services requiring high availability |
-| **Cross-Region** | ~50-100ms | $0.02/GB | Geographically distributed services |
+The table below shows only relative tendencies by placement pattern. Absolute latency values and prices depend on the workload/protocol, the region/AZ path, the measurement method and percentile, and the pricing in effect on a given date, so no fixed numbers are stated here. Measure actual latency directly, and confirm data transfer charges against the current [AWS data transfer pricing](https://aws.amazon.com/ec2/pricing/on-demand/), stating the service, direction, region pair, date, billing tier, and any applicable exemptions.
+
+| Pod Placement Pattern | Relative Network Latency | Cross-AZ Data Transfer Charge | Use Case |
+|-------------|------------------|------------------------------|----------|
+| **Same Node** | Lowest | No cross-AZ transfer leg (service/processing costs still apply) | Cache server + application |
+| **Same AZ** | Low | No cross-AZ transfer leg (service/processing costs still apply) | Microservices that communicate frequently |
+| **Cross-AZ** | Medium (within a region) | Applicable per-region inter-AZ transfer charge applies | Services requiring high availability |
+| **Cross-Region** | Highest | Applicable inter-region transfer charge applies | Geographically distributed services |
+
+> "No cross-AZ transfer leg" for Same Node/Same AZ does not mean all network and service-processing costs are $0.
 
 **Evaluate Cross-AZ request paths alongside placement preferences:**
 
@@ -4549,8 +4710,10 @@ spec:
 
 Analyze Container Network Observability metrics to adjust scheduling strategies.
 
+`pod_network_rx_bytes` is a Pod network-receive metric published by Container Insights (enhanced observability). It is the **average received bytes per second (a rate)** over each aggregation period, not total bytes and not cross-AZ-only bytes. CloudWatch does not accept wildcards in dimension values, so the `PodName` value below must name a specific Pod (illustrative); pattern matching such as `api-gateway-*` requires a separate metric search/discovery design (for example, `ListMetrics` followed by a `GetMetricData` math/search expression). Confirm the actual dimension set, collection mode, time range, and missing-data handling in the [published metrics reference](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-EKS.html) for your Container Insights version. The block below is one `GetMetricData` query fragment (illustrative); a full request also needs `MetricDataQueries`, `StartTime`, and `EndTime`.
+
 ```yaml
-# Example CloudWatch Container Insights metrics query
+# Illustrative: CloudWatch Container Insights metrics query fragment
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -4561,11 +4724,11 @@ data:
       "MetricName": "pod_network_rx_bytes",
       "Namespace": "ContainerInsights",
       "Dimensions": [
-        {"Name": "PodName", "Value": "api-gateway-*"},
+        {"Name": "PodName", "Value": "api-gateway"},
         {"Name": "Namespace", "Value": "default"}
       ],
       "Period": 300,
-      "Stat": "Sum"
+      "Stat": "Average"
     }
 ```
 
@@ -4657,13 +4820,16 @@ spec:
             memory: 8Gi
 ```
 
-**Cost savings from network observability:**
+**Cost savings from network observability (hypothetical example):**
 
-| Before Optimization | After Optimization | Savings |
-|----------|----------|----------|
-| Cross-AZ traffic: 1TB/month | Cross-AZ traffic: 0.2TB/month | Save $8/month |
-| Average latency: 3ms | Average latency: 0.5ms | 6x performance improvement |
-| Pod Affinity not used | Pod Affinity optimized | Increased operational efficiency |
+The table below is illustrative arithmetic under stated assumptions, not measured results. The figures hold only under the stated unit and pricing assumptions, and no measured evidence attributes the change to Pod affinity.
+
+| Item | Before Optimization | After Optimization | Change under the assumptions |
+|------|---------------------|--------------------|------------------------------|
+| Cross-AZ traffic | 1 TB/month | 0.2 TB/month | 80% reduction under the chosen unit convention |
+| Transfer charge | — | — | ~$8/month only if 0.8 TB means 800 billable GB and the applicable transfer leg is $0.01/GB (rate/direction unverified) |
+| Average latency | 3 ms | 0.5 ms | One-sixth the latency (~83.3% lower); does not imply 6x throughput |
+| Pod Affinity | Not used | Applied | Measured causal effect must be confirmed separately |
 
 ---
 

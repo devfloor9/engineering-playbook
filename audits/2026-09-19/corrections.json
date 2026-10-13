@@ -9986,6 +9986,1175 @@
         "https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/"
       ],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-016",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-016",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the CA-vs-Karpenter comparison table (section 5.6.1) in both locales to compare mechanisms and configuration constraints instead of asserting unverified guarantees. Removed the 'scaling speed' row (seconds vs minutes), the '100+ instance types / optimal selection' claim, and the 'automatic lowest-price selection' claim. Added a lead-in paragraph stating that provisioning speed, node-ready time and cost-savings percentage depend on workload/AMI/Region/capacity and must be measured under identical conditions. The capacity-type row now says the inspected AWS provider uses price-capacity-optimized allocation and cannot be stated as 'always lowest price'. The trigger/scaling-path rows now describe CA adjusting ASG DesiredCapacity and simulating Pod fit (with the MixedInstancePolicy same-shape constraint) versus Karpenter creating NodeClaims from allowed instance/capacity options. KO and EN say the same thing.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/reference/metrics/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. No measured timing or cost comparison is supplied; a matched workload/AMI/Region/capacity benchmark on the actual installed controller versions would be needed to publish any numeric speed or savings claim."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-018",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-018",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Relabeled the cost example (section 5.6.1) from 'Cost Savings Example (Measured Data)' / '비용 절감 예시 (실측 데이터)' to an unverified illustrative unit-price comparison in both locales. Added prose stating prices vary by Region/date/OS/tenancy/purchase option and must be confirmed against a primary price snapshot, and that a 2-vCPU instance does not expose a full 2 vCPU as allocatable after system/DaemonSet/kubelet reservations. The arithmetic is now shown explicitly as 1 - 0.096 / 0.384 = 0.75 and labeled as a unit-price figure only, explicitly not the real TCO saving once allocatable overhead, utilization and duration are accounted for; actual savings stated as unknown. The '전체 노드 비용 부담 / Pay for the entire node' line was softened to 'small Pods may land on a large node'. KO and EN say the same thing.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/best-practices/cas.html",
+        "https://karpenter.sh/docs/reference/metrics/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. No primary price snapshot (Region/date/OS/tenancy/purchase option) and no identical-workload TCO measurement were obtained; the illustrative hourly values are retained only as example arithmetic."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-022",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-022",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the Karpenter metrics list and CloudWatch widget (section 5.6.2 Step 5) in both locales against the v1.14/v1.15 Karpenter metrics reference. Renamed karpenter_nodes_created -> karpenter_nodes_created_total (Counter, STABLE), karpenter_nodes_terminated -> karpenter_nodes_terminated_total (Counter, STABLE), karpenter_nodepool_usage -> karpenter_nodepools_usage (Gauge, STABLE). Kept karpenter_pods_startup_duration_seconds and annotated it as a Summary (STABLE) aggregated via quantiles/sum/count (the audit called it a histogram; the reference lists it as a Summary). Removed karpenter_disruption_queue_depth as a name not present in the reference, replaced with karpenter_scheduler_queue_depth (pods waiting to be scheduled, Gauge BETA) and noted no documented metric was found for the intended disruption queue. Rewrote the CloudWatch widget: the previous 'AWS/Karpenter' namespace with NodesCreated/NodesTerminated/PendingPods was invented. Added a prerequisite note that these are Prometheus metrics requiring an explicit CloudWatch-agent scrape + conversion mapping (which decides namespace/dimensions), that there is no auto-populated AWS/Karpenter namespace, and that the CloudWatch agent drops Prometheus Histogram metrics and supports only Counter/Gauge/Summary. The widget now uses placeholder ContainerInsights/Karpenter and the real metric names, marked as values to replace from the conversion config. KO and EN say the same thing.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/reference/metrics/",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/ContainerInsights-Prometheus-metrics-conversion.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. The installed Karpenter version's exact scrape families/labels, the exporter-to-CloudWatch mapping, and tested queries/units are not confirmed; the CloudWatch namespace/metric names in the widget remain placeholders to configure."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-023",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-023",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Fixed the alarm checklist (section 5.6.2 Step 5) in both locales. The node-creation-failure alarm karpenter_nodeclaims_created{reason=\"failed\"} was invalid: the reference shows karpenter_nodeclaims_created_total has a reason label whose values are creation reasons (provisioned/underutilized/empty/drifted/unhealthy), not a success/failure status, so reason=\"failed\" matches nothing. Replaced it with documented error metrics: increase(karpenter_cloudprovider_instance_launch_failures_total[15m]) > 0 and increase(karpenter_cloudprovider_errors_total{error=\"InsufficientCapacityError\"}[15m]) > 0. The Pending-Pod alarm karpenter_pods_state{state=\"pending\"} > 5 was invalid: the metric has no state label; the Pod phase is exposed via the phase label (Pending/Running/...), and because the metric emits one series per Pod name/namespace it must be aggregated. Replaced with count(karpenter_pods_state{phase=\"Pending\"}) > 5 and noted that persistence belongs in the alarm for: window with an explicit missing-series policy. Also flagged that these are Prometheus-side expressions and reaching CloudWatch requires the conversion configuration from POD-022. KO and EN say the same thing.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/reference/metrics/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. A representative scrape/schema with actual labels and gauge values, the duplicate-series policy, a Prometheus rule fixture, and the mapped CloudWatch semantics (if used) are not available; the thresholds (>5, 15m) are illustrative."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-033",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-033",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO (section 6.3 Issue 3) and EN (6.3 Issue 3): replaced the asserted cause 'an overly strict PDB conflicts with Karpenter's disruption budget' with the evidence a reader must gather before concluding anything from a cordoned node: NodeClaim/Node events and conditions (including whether a replacement node is initializing), whether status.disruptionsAllowed is 0 on the selecting PDB plus the readiness of selected Pods, and whether NodePool spec.disruption.budgets limits concurrent node disruption. Added that a Pod-level PDB block and a node-level NodePool budget need different fixes and must be diagnosed separately.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/concepts/disruption/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-034",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-034",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN section 7.1 warning box: fixed the off-by-one boundary. The v1.34 docs state a PriorityClass value may be any 32-bit integer <= 1,000,000,000 (range -2147483648 to 1000000000 inclusive); larger values are reserved for built-in system PriorityClasses. Rewrote the warning to say a user-defined value may be at most 1,000,000,000 inclusive and that values greater than one billion are reserved, replacing the prior 'use values below 1 billion' wording. Also folded in the reserved system- name constraint (POD-051 context) and kept the properties-table range 0..1,000,000,000, which was already inclusive-correct.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-035",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-035",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN section 7.2 'Usage example' data-cleanup CronJob: added restartPolicy: Never to jobTemplate.spec.template.spec. Job Pods accept only Never or OnFailure; the Deployment default Always is rejected for Jobs by the batch/v1 API. Added prose that Never creates a fresh Pod per failed attempt while OnFailure restarts the container in the same Pod, and that retry count (spec.backoffLimit) and idempotency are controlled separately. The section 7.5 Tier 5 CronJob already had a valid restartPolicy: OnFailure and was left as-is except for the PriorityClass rename.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/controllers/job/",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-038",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-038",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN sections 7.1-7.5: applied one canonical PriorityClass scheme (the section 7.2 hierarchy with the POD-051 reserved-name repair) consistently across definitions, comments, tables and workload examples. Scheme: platform-critical 999999000, business-critical 1000000, high-priority 100000, standard-priority 10000 (globalDefault:true), low-priority 1000 (preemptionPolicy:Never). Fixes applied: section 7.1 example value 1000000->100000; added a canonical-scheme table and prose after the 7.2 definitions explaining globalDefault:true (one per cluster) and preemptionPolicy:Never, and warning not to mix independently defined classes as one install; section 7.4 'PreemptionPolicy: Never' now references the canonical low-priority class (preemptionPolicy:Never) instead of the inconsistent batch-job value 5000; the recommended-combination matrix now names the actual classes (business-critical/high-priority/standard-priority/low-priority, with Tier 5 reusing low-priority differentiated by QoS); undefined critical-priority references replaced with business-critical; stale value comments corrected (high-priority 5000->100000, standard-priority 1000->10000, low-priority 500->1000, batch-priority 100->low-priority 1000). Built-in system-* classes left unchanged. Values are presented as documentation policy choices, not Kubernetes-enforced tiers.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked.",
+        "Integration review restored the published anchors of the two Tier headings that now use the canonical class names business-critical and low-priority."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. The batch tier (section 7.4 and 7.5 Tier 5) was consolidated onto the canonical low-priority class rather than introducing a sixth class, since the canonical 7.2 scheme defines no batch class and low-priority already carries preemptionPolicy:Never; an author may prefer a distinct batch class if cluster policy requires it."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-039",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-039",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN section 7.5 Tier 1 PodDisruptionBudget: changed the minAvailable: 4 comment from 'always maintain at least 4 out of 6' to 'for PDB-respecting voluntary evictions, require at least four healthy selected Pods; involuntary failures and direct deletion can still reduce availability', separating eviction admission from continuous service health per policy/v1 PDB semantics.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-042",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-042",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN section 7.5 'Pattern 1: Multi-Tier Architecture' StatefulSet postgres: added the required spec.selector.matchLabels {app: postgres} and matching template.metadata.labels, and renamed the undefined critical-priority to the canonical business-critical. Added prose that neither replicas: 3 nor three Pods form a replicated HA database (PostgreSQL replication needs a separate operator, headless Service, storage and backup/failover), that the label/image values are illustrative authoring choices, and that existing controller selectors are immutable so Service/PDB selectors must be reconciled with the chosen labels. Validated by parsing the YAML and checking selector/label consistency.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/controllers/statefulset/",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. Concrete PostgreSQL replication/operator, headless Service, storage, backup/failover, image and credentials remain the deployer's responsibility; the example stays illustrative."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-043",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-043",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN section 7.5 'Pattern 1' Deployment (api-server, frontend) and DaemonSet (node-exporter): added required spec.selector.matchLabels, matching template.metadata.labels, and an explicit container image for each (api-server:v2.8, web-frontend:v1.12, node-exporter:v1.8). Added a note that labels and images are proposed consistent authoring choices, not discovered deployed values, and that images must be explicitly chosen and tested rather than inferred from resource requests. YAML parsed and selector/label consistency confirmed for all workloads in the block.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/controllers/deployment/",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. Real images and application configuration, and any existing immutable selector conventions, must be supplied by the deployer."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-044",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-044",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN section 7.5 troubleshooting table 'Burstable Pod CPU throttling' row: split the single 'increase requests or add nodes' remedy into two mechanisms. Quota cause: a container hitting its CPU limit is throttled by the Linux CFS quota, so inspect the limit/quota and throttling metrics and choose an appropriate limit or scaling policy. Contention cause: inspect node demand and request/share allocation, where resizing requests or adding capacity may help. Added the distinction that changing requests alone does not raise an unchanged CPU limit.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-045",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-045",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "RemoveDuplicates: removed 'ReplicaSet' from excludeOwnerKinds (kept StatefulSet) in both locales and rewrote the purpose/effect prose. descheduler v0.34.0 states that Pods whose owner kind is listed in excludeOwnerKinds are EXCLUDED from eviction, and Deployment Pods are owned by ReplicaSet; so the old list silently excluded the very Deployment replicas the text claimed to redistribute. Added that DefaultEvictor filters and PDBs decide actual eviction and kube-scheduler decides placement; the plugin does not bind replacements.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-046",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-046",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "LowNodeUtilization behavior list rewritten in both locales. Stated the default input is request-based (sum of Pod resource requests / node allocatable), not observed CPU, with KubernetesMetrics as the opt-in for actual usage. Replaced the loose '20% / 50%' wording with strict boundaries: underutilized = every configured dimension below thresholds; overutilized = at least one dimension above targetThresholds; nodes between the two are not candidates. Noted the plugin acts only when both sets are nonempty, evicts at most one Pod per overutilized node per run, and that relocation onto underutilized nodes is not guaranteed (scheduler chooses).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-047",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-047",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "RemovePodsViolatingInterPodAntiAffinity scenario corrected in both locales. requiredDuringSchedulingIgnoredDuringExecution anti-affinity is enforced only at scheduling time and ignored during execution, so node scale-down alone cannot make a newly scheduled Pod violate a hard rule. Rewrote it as: execution-time label changes to Pods/nodes can leave existing Pods inconsistent with the current anti-affinity rule, and the descheduler evicts those existing violating Pods.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/README.md",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-048",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-048",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "PodLifeTime purpose corrected in both locales. It evicts age-qualified Pods; the owning controller then recreates them from its CURRENT Pod template. Clarified this is not an image/config update mechanism by itself: an unchanged template recreates the same image/config, a mutable tag + imagePullPolicy: Always is not a reliable versioning strategy, and real version changes require an explicit rollout that modifies the template.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/README.md",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/controllers/deployment/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-049",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-049",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Standalone combined CronJob + NodePool example corrected in both locales and explicitly labeled a configuration fragment for an existing installation, not a runnable install. Added the missing descheduler-image pin (changed placeholder from v0.29.0 to a v0.34.0 placeholder matching the policy schema this doc describes), restartPolicy: Never, serviceAccountName, and the policy ConfigMap volume/volumeMount. Added prose listing the required prerequisites (policy.yaml ConfigMap + mount, same-namespace ServiceAccount/RBAC for node/Pod list and eviction, one pinned image/chart/policy combination). Added the mandatory Karpenter v1 NodePool template.spec.nodeClassRef (EC2NodeClass) and a requirements entry, and noted nodeClassRef must point at a pre-created EC2NodeClass.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/charts/descheduler/values.yaml",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/controllers/job/",
+        "https://karpenter.sh/docs/concepts/nodepools/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. Example is illustrative: the exact descheduler image digest, chart version, RBAC rules, and EC2NodeClass contents for a specific cluster are deployment-specific and not asserted here. The audit's v0.29 source image was not validated; the text pins the policy schema to v0.34.0 and marks the image tag as a placeholder to replace per deployment."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-050",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-050",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The '8.4.1' intro claim that running descheduler + Karpenter 'automatically coordinates' Pod relocation and node consolidation was corrected in both locales. Stated they are independent controllers unaware of each other, each acting on its own policy; described the proposed composition (descheduler evicts, kube-scheduler places, Karpenter separately evaluates provisioning/consolidation); and noted churn and failed consolidation are possible and that efficiency/cost gains are measured outcomes, not guarantees.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/README.md",
+        "https://karpenter.sh/docs/concepts/disruption/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-051",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-051",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO/EN section 7.2 Tier 1: renamed the user-defined PriorityClass system-critical to platform-critical because the v1.34 API forbids custom names beginning with the reserved system- prefix (the name must be a valid DNS subdomain and cannot be prefixed with system-). Kept the audited value 999999000. The built-in classes system-node-critical and system-cluster-critical are left unchanged and are called out as the only legitimate system- names. One reference to the old user class name remains OUTSIDE the owned range and is listed under cross_section.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked.",
+        "Integration review renamed the remaining user-defined system-critical reference in the 9.1 workload matrix to platform-critical in both locales."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/",
+        "https://raw.githubusercontent.com/kubernetes/kubernetes/v1.34.0/api/openapi-spec/swagger.json"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-052",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-052",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "In the 8.4.1 timing-example NodePool (both locales), corrected the consolidateAfter comment: Karpenter resets this timer whenever a Pod is added to or removed from the node (regardless of cause); it is NOT a descheduler-move timer. Corrected the budget comment to: allowed voluntary disruptions = ceil(total nodes * 0.20) - deleting - NotReady nodes, so percentage rounding (round up) can exceed an exact 20% fraction, and the budget is not an absolute cap on all node losses.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/concepts/disruption/",
+        "https://karpenter.sh/docs/concepts/nodepools/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-053",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-053",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Worked timeline scenario corrected in both locales and labeled hypothetical/illustrative. Node-A: with targetThresholds=50, Memory 55% is still above target and CPU at exactly 50% is the boundary (not 'above'), so it is not in a 'normal range'. Node-B: under WhenEmptyOrUnderutilized a nonempty underutilized node CAN be a consolidation candidate when the simulation and disruption constraints permit, correcting the prior 'retain because running Pods' claim. Marked the 00:01/00:06 timing and the cost savings as a hypothetical illustration dependent on real utilization input, simulation, timing, and billing.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/README.md",
+        "https://karpenter.sh/docs/concepts/disruption/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-054",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-054",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Combined-tool benefits table rewritten in both locales. 'Safety guarantees' -> constrains budget/PDB-respecting voluntary evictions only, does not prevent involuntary failures (spot reclamation, hardware) or every outage. 'Reduced operational burden' -> independent controllers still need coordination, observation, and tuning. 'Scalability' -> capacity/controller limits and behavior must be assessed on the intended workload, not guaranteed regardless of size.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/",
+        "https://karpenter.sh/docs/concepts/disruption/",
+        "https://raw.githubusercontent.com/kubernetes-sigs/descheduler/v0.34.0/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-056",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-056",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added a :::warning after the 9.2.1 GPU NodePool Job block (KO and EN) explaining that referencing the training-data and model-checkpoints PVCs by name does not grant concurrent multi-node read/write access. The note states that concurrent multi-node access depends on PVC/PV access modes and CSI driver support, that a ReadWriteOnce volume mounts on only one node so distributed Pods cannot share it, and that the EBS-backed RWO StorageClass used in the examples would not work as written. It recommends separating read-only data distribution (ReadOnlyMany shared FS or per-node object-storage pulls) from coordinated checkpoint writes (rank-0-only writes or per-rank paths merged afterward), and marks the manifest as illustrative because it lacks access-mode, CSI, AZ-placement, checkpoint-ownership/atomicity, and restore-test evidence. No YAML was removed, so the test-pinned accelerated_pool block (ordinal 2 under 9.2.1) is unchanged.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-057",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-057",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Relabeled the MIG example and profile table (KO and EN) as specific to the NVIDIA A100-40GB. Changed the table's 'GPU Slice' column header to 'Compute (SM) fraction' and added prose that this fraction can differ from the memory fraction, that the exposed resource name (nvidia.com/mig-<profile>) and partition result depend on GPU model, driver version and the device-plugin MIG strategy, and that other models (A100-80GB, A30, H100) have different memory and profile sets. Added that datacenter GPUs with compute capability >= 8.0 (A100/A30/H100) support MIG while the A10G used by EC2 G5 instances is not on NVIDIA's MIG-supported-GPU list and cannot be partitioned, explicitly separating this example from the preceding G5/A10G NodePool. The code comment now reads 'One A100-40GB instance (compute 1/7, 5GB memory)'. Verified against NVIDIA's supported-GPUs page: A10G is absent; A100-40GB max 7 instances.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/datacenter/tesla/mig-user-guide/supported-gpus.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-058",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-058",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the DRA example (KO and EN) from the non-existent resource.k8s.io/v1alpha4 ResourceClass/ResourceClaim/GpuClaimParameters shape to the Kubernetes v1.34 resource.k8s.io/v1 API: a DeviceClass with spec.selectors[].cel.expression, a ResourceClaim with spec.devices.requests[].exactly {deviceClassName, allocationMode: ExactCount, count}, and a Pod wiring the claim via spec.resourceClaims[] plus container resources.claims[] {name, request}. Removed driverName, spec.parameters, resourceClassName and parametersRef, which do not exist on these kinds. Added prose describing the DeviceClass/ResourceClaim/Pod role split and a :::warning stating that a DRA-compatible driver (such as NVIDIA's) must be installed and publishing ResourceSlices, that the driver name/CEL attributes are illustrative placeholders, that EKS version support and GPU/AMI/runtime support must be checked separately, and that the manifest illustrates API shape rather than verified A100/MIG support. Kept the GA :::info note and clarified that vendor settings like MIG profiles or time-slicing are driver-exposed, not DRA-core fields. API shape verified against the v1.34 DRA concepts page (all kinds in resource.k8s.io/v1; requests use exactly/firstAvailable with deviceClassName; Pod uses resourceClaims + resources.claims).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-059",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-059",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Fixed the 32-GPU distributed-training Job (KO and EN). Removed the invalid RANK binding that sourced env RANK from fieldRef metadata.name (a Pod-name string, not the required integer). Added completionMode: Indexed to the Job and derive the node rank from the batch.kubernetes.io/job-completion-index annotation (0-7), then launch with torchrun --nnodes=8 --nproc-per-node=4 --node-rank=$(NODE_RANK) --master-addr --master-port, so torchrun assigns each process its global RANK (0-31), LOCAL_RANK and WORLD_SIZE. Changed MASTER_ADDR to a headless Service DNS name. Added a :::warning explaining that c10d RANK must be a unique integer in [0, WORLD_SIZE-1], that WORLD_SIZE is the total process count (32 = 8 Pods x 4 GPUs, one process per GPU) not the Pod count, that the launch topology is a launcher decision, and listing what the manifest does not guarantee (Indexed mode set, the headless Service and endpoints existing, torchrun/train.py present in the image, inter-node networking allowed) — marked illustrative, not runnable. Verified RANK/WORLD_SIZE contract against the PyTorch v2.8.0 c10d source and the Indexed Job completion-index behavior against the v1.34 Job docs.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.nvidia.com/datacenter/tesla/mig-user-guide/supported-gpus.html",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/dynamic-resource-allocation/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. The c10d RANK/WORLD_SIZE integer contract and the batch.kubernetes.io/job-completion-index behavior were taken from the finding's cited primary evidence (PyTorch v2.8.0 distributed_c10d.py; v1.34 Job docs) and standard torchrun/Indexed-Job semantics; I did not re-fetch those two URLs this session. The torchrun arg form and the fieldRef annotation path are illustrative and were not admission/runtime-validated."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-060",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-060",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reframed the opening so Gang Scheduling is described as useful for some distributed workloads (depending on restart tolerance/checkpointing) rather than a universal requirement, and scoped the limitations table to a reactive dynamic-provisioning NodePool. Noted that Karpenter v1.14 also offers static NodePools via spec.replicas (not gang scheduling) and that the v1.0 examples here do not add spec.replicas. Renamed the limitations header and the 'lack of atomicity' row to 'capacity shortfall / delayed' to avoid the atomicity overclaim. Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/docs/concepts/nodepools/",
+        "https://raw.githubusercontent.com/sanjeevrg89/Setu/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-061",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-061",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the 'All-or-Nothing guarantee / zero waste / simultaneous scheduling' framing with a pre-admission readiness gate description: Setu holds Kueue admission until required NodeClaims are Ready, creates NodeClaims sequentially, runs compensating cleanup on failure (retries/cleanup consume time and capacity and can fail), and Pod placement is a separate post-admission step. Updated the mermaid sequence ('atomically' -> sequential with compensating cleanup; 'immediate placement' removed), the comparison table, and the failure-scenario block ('rollback' -> 'compensating cleanup'). Applied in KO and EN. Verified against the pinned Setu controller source, which registers an AdmissionCheck controller (a readiness gate), not a transaction manager.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kueue.sigs.k8s.io/docs/concepts/admission_check/",
+        "https://raw.githubusercontent.com/sanjeevrg89/Setu/7802a60a83e8d623c5e4b1ae7d073ed067a08a52/pkg/controller/controller.go",
+        "https://raw.githubusercontent.com/sanjeevrg89/Setu/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-062",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-062",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Changed the AdmissionCheck controllerName from the fabricated 'setu.io/karpenter-provision' to the real value 'setu.kueue.x-k8s.io/admission-check', confirmed verbatim in the pinned Setu controller source (ControllerName constant at commit 7802a60). Kept the AdmissionCheck metadata.name 'karpenter-provision' (matches the AdmissionCheckName constant). Added a comment that the value must match the installed controller or the check never becomes Active. Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/sanjeevrg89/Setu/7802a60a83e8d623c5e4b1ae7d073ed067a08a52/pkg/controller/controller.go",
+        "https://kueue.sigs.k8s.io/docs/concepts/admission_check/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-063",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-063",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Changed ClusterQueue resourceGroups[0].coveredResources from [\"cpu\",\"memory\",\"nvidia.com/gpu\"] to [\"nvidia.com/gpu\"] so the covered resources match the single gpu-flavor that supplies only GPU nominalQuota (Kueue requires every covered resource to have a quota in every flavor, in order). Added comments that CPU/memory are not capped by this queue and that a matching ResourceFlavor with GPU node labels must pre-exist. Did not invent CPU/memory quota numbers. Also bumped the manifest apiVersion from v1beta1 to v1beta2 to match the inspected Setu code and the pinned Kueue v0.16 CRD (which serves v1beta2). Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/kueue/v0.16.0/config/components/crd/bases/kueue.x-k8s.io_clusterqueues.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/kueue/v0.16.0/config/components/crd/bases/kueue.x-k8s.io_resourceflavors.yaml"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. A fully runnable queue still needs a concrete ResourceFlavor definition with verified GPU-node labels and the LocalQueue/ClusterQueue/AdmissionCheck links; the example remains illustrative and says so."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-064",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-064",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Added limits.nvidia.com/gpu: 1 to the training Job container so the GPU extended resource is valid (Kubernetes requires requests==limits for extended resources, or limits alone). Preserved existing cpu/memory requests. Added a comment explaining the rule. Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-065",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-065",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote execution-flow step 9 to drop the 'zero Pending time' guarantee: after admission the scheduler places Pods on already-Ready nodes, but the Pods still undergo scheduling, binding, image pull and container startup, and end-to-end time is workload-dependent. Also replaced the unmeasured '2-3 min vs 1-2 min' comparison-table row with explicit 'not a measured value' notes. Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://kueue.sigs.k8s.io/docs/concepts/admission_check/",
+        "https://raw.githubusercontent.com/sanjeevrg89/Setu/7802a60a83e8d623c5e4b1ae7d073ed067a08a52/pkg/controller/controller.go"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. No timestamped comparative latency trials are available, so the text states the times are unmeasured rather than quoting any speedup."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-066",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-066",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Changed the 16+ GPU recommendation from 'Required / guarantees gang scheduling' to 'optional after evaluation' and rewrote the info admonition: Setu is an Alpha community project (README: 'Alpha - Functional and E2E-tested on AWS EKS. Use in non-production environments first'); the inspected commit 7802a60 uses kueue.x-k8s.io/v1beta2 and the project documents Kueue v0.16+ with Karpenter v1+, replacing the unsupported 'Kueue v0.6+' claim. Noted the project-reported E2E combination (EKS 1.35/Karpenter 1.8.2/Kueue 0.16) was not executed in this review, and that project-reported compatibility differs from review verification and production support. Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/sanjeevrg89/Setu/main/README.md",
+        "https://raw.githubusercontent.com/sanjeevrg89/Setu/7802a60a83e8d623c5e4b1ae7d073ed067a08a52/pkg/controller/controller.go"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. Pinned Helm/chart release artifacts and application-specific admission/recovery evidence are still required before production use; the text instructs the reader to pin a complete tested combination."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-067",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-067",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Removed the unsourced 'up to 70% cost reduction vs GPUs' claim. Replaced it with the AWS-stated Inf2 figure: 'up to 40% better price performance than other comparable Amazon EC2 instances', attributed to the EC2 Inf2 page, with an explicit note that the comparison set/workload is limited to AWS's stated scope and that this is not a universal 40% cost saving. Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/ec2/instance-types/inf2/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. No exact public original benchmark/customer report with model, throughput/latency, precision and prices was located for a 70% figure, so that number was removed rather than rescoped."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-068",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-068",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the resource comment on 'aws.amazon.com/neuron: 1' from '1 Inferentia core' to '1 whole Neuron device, including its cores', and noted that core-level allocation uses the distinct aws.amazon.com/neuroncore resource. Kept the whole-device resource (the minimal correction); did not switch to neuroncore since core-level allocation is a separate choice requiring model/runtime compatibility. Applied in KO and EN.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/deploy/includes/k8s-neuron-device-plugin.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-069",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-069",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Fixed the 9.2 scheduling decision flowchart in both locales (KO '### 9.2 스케줄링 의사결정 플로우차트', EN '### 9.2 Scheduling Decision Flowchart'). The Spot branch (B3) previously short-circuited straight to FINAL, so selecting Spot skipped the independent AZ-distribution, replica-spread and PDB checks; it now routes B3 --> Q6 (and B2 --> Q6) so GPU and Spot selections continue through Q6/Q4/Q5 and a PDB like every other path. The outcome node E3 (PDB maxUnavailable:1) had no incoming edge and was unreachable; the Q5 'Either/무관' branch now goes Q5 --> E3 so every decision branch reaches an outcome and no node is unreachable. Added a sentence after the decision guide in both locales stating the checks are cumulative, not mutually exclusive. Verified against the Kubernetes v1.34 assign-pod-node, topology-spread-constraints and disruptions concepts (constraints are cumulative).",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/workloads/pods/disruptions/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-070",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-070",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the invented Provisioned Control Plane tier table in 10.1 of both locales. The old table listed a 'Standard' tier and mapped tiers to node-count bands (~1000/2000/4000/8000 nodes); neither exists in the AWS documentation. Rewrote the overview to state Standard is the default MODE (not a tier) and Provisioned mode is opt-in with tiers XL/2XL/4XL/8XL. The new table lists the four documented control-plane attributes (API request concurrency in seats, Pod scheduling rate in pods/sec, cluster database/etcd size, SLA) with the v1.34+ values: XL 2000/167/16GB/99.99%, 2XL 4000/283, 4XL 8000/400, 8XL 16000/400, and notes values vary by Kubernetes version and that there is no node-count tier mapping. Also corrected the downstream recommendation table (Standard mode row, not a 'Standard' tier) and the selection tip (criterion is control-plane load, not node count; load-test on 8XL and read utilization metrics). Dated the source retrieval 2026-09-19 and linked the AWS page.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked.",
+        "The Provisioned Control Plane tier values for Kubernetes v1.34 and later were re-checked against the Amazon EKS user guide on 2026-10-13."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-071",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-071",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Replaced the 'Predictable latency: ensures consistent scheduling latency even during traffic bursts' bullet in 10.1 of both locales with 'Documented control-plane capacity', which states the tier guarantees its capacity attributes (API concurrency, scheduler QPS, etcd size, endpoint SLA) but that the SLA covers only the Kubernetes API endpoint and that workload scheduling/startup latency also depends on constraints, queueing, available nodes and Pod initialization, so a tier does not guarantee invariant end-to-end latency. This matches the AWS 'Understanding Tier capacity versus actual performance' section, which states the Pod scheduling rate is a scheduler QPS ceiling and actual rate depends on nodes being Ready and healthy. The misleading 'XL 이상 | 일관된 지연' reason in the recommendation table was also reframed to the 99.99% endpoint SLA.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-072",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-072",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Rewrote the 10.1 AI/ML scale-up sequence diagram in both locales. The old diagram invented a 'Scheduler->>Karpenter: request nodes' call, a fixed 'Provision 250 GPU nodes' and 'Bind Pods (250 batch)' / 'Repeat 4 times' protocol, and a measured-looking '5-10 minutes' node-creation time. The new diagram shows the real asynchronous model: the kube-scheduler attempts to place Pods on available capacity and sets Unschedulable=True on Pods that do not fit, with an explicit note that the scheduler does not call Karpenter; Karpenter independently watches Unschedulable Pods and requests capacity (node count varies with demand); EC2 creates nodes asynchronously (startup time varies by instance type/image/availability); and the scheduler binds Pods individually in a loop, with a note that there is no fixed batch size and no guaranteed completion time. Verified against Karpenter v1.0 concepts (Karpenter only schedules Pods with Unschedulable=True set by the kube scheduler) and EKS Auto Mode docs.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://karpenter.sh/v1.0/concepts/",
+        "https://docs.aws.amazon.com/eks/latest/userguide/automode.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-080",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-080",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "In 10.4 of both locales, replaced the placement-pattern table's unscoped absolute numbers (~0.1/0.5/2-5/50-100 ms latency and $0/$0.01/$0.02 per GB) with qualitative relative values (Lowest/Low/Medium/Highest latency; 'no cross-AZ transfer leg' vs 'applicable per-region inter-AZ / inter-region transfer charge') and kept the locality/resiliency use-case column. Added a caveat that absolute latency and price depend on workload/protocol, region/AZ path, measurement method/percentile and the pricing in effect on a given date, that latency must be measured and transfer charges priced from the current AWS data transfer pricing stating service/direction/region-pair/date/tier/exemptions, and that 'no cross-AZ transfer leg' does not mean all network and service-processing costs are $0. Marked partial because the original measured latency samples and an authoritative scoped price table were not supplied, so the numeric values could only be removed, not restored with a cited source.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/network-observability.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost.",
+      "remaining": "Restoring concrete latency numbers or absolute transfer prices requires the original workload measurements and a dated, region-scoped AWS data transfer price table, neither of which was available; the author must supply measured samples and the applicable priced rates if numeric cells are wanted."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-082",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-082",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Corrected the Container Insights metric-query ConfigMap (10.4, yaml fence ordinal 2 under the heading, not test-pinned) in both locales. Changed the PodName dimension value from the wildcard 'api-gateway-*' to an exact 'api-gateway' because CloudWatch does not accept wildcards in dimension values, and changed Stat from 'Sum' to 'Average' because pod_network_rx_bytes is a per-second rate, not a cumulative byte counter. Added prose explaining that the metric is the average received bytes per second over each period (not total bytes and not cross-AZ-only bytes), that wildcard/prefix matching needs a separate discovery design (ListMetrics then a GetMetricData math/search expression), that the exact dimension set/collection mode/time range/missing-data handling must be confirmed in the published metrics reference for the Container Insights version in use, and that the block is one GetMetricData query fragment that a full request would extend with MetricDataQueries/StartTime/EndTime. Verified the edited ConfigMap parses as valid YAML with valid embedded JSON (PodName wildcard-free, Stat Average) in both locales with KO/EN parity.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-EKS.html",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-enhanced-EKS.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/network-observability.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost. The exact published dimension tuple(s) for pod_network_rx_bytes (for example whether FullPodName is included) could not be read from the metrics reference because the long table was truncated on fetch; the example is labelled illustrative and the reader is directed to confirm the dimension set against the versioned reference, which is the correct handling for an illustrative fragment."
+    },
+    {
+      "record_id": "2026-09-19-eksn-pod-083",
+      "package": "eks-scheduling",
+      "id": "EKSN-POD-083",
+      "issue": 92,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Reworked the 'cost savings from network observability' table in 10.4 of both locales. Retitled it a hypothetical example and added a lead-in stating it is illustrative arithmetic under stated assumptions, not measured results, with no measured attribution to Pod affinity. Split the conflated cells into separate rows with correct units: Cross-AZ traffic 1 TB -> 0.2 TB is an 80% reduction under the chosen unit convention; the ~$8/month figure holds only if 0.8 TB means 800 billable GB and the applicable transfer leg is $0.01/GB (rate/direction unverified); 3 ms -> 0.5 ms is one-sixth the latency (~83.3% lower) and does not imply 6x throughput; and the Pod Affinity row notes the causal effect must be confirmed separately. This removes the measured-savings and '6x performance' claims while keeping the illustration internally consistent.",
+      "recorded_on": "2026-10-13",
+      "reviewed_revision": "50c015e3484e77264761ace10b21dd193fe5c5dd",
+      "source_commits": [
+        "50c015e3484e77264761ace10b21dd193fe5c5dd"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md",
+        "i18n/en/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-pod-scheduling-availability.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; the Korean and English sources were corrected together.",
+        "The offline suite passed on the source commit with no failures: 756 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the scheduling-lifecycle, scheduling-availability and Karpenter extraction tests, and gateway conformance) and 237 Python example and harness tests. All 80 YAML blocks in each locale parse.",
+        "The full Korean and English site build, llms.txt and LLM wiki exports succeeded on the source commit. The LLM wiki component test passed 183 tests against the built HTML, link validation found no issues in 3,197 internal links, and all 115 published heading anchors of this page are unchanged in both locales. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/network-observability.html",
+        "https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish admission or controller behavior, cluster execution, recovery, performance or measured cost."
     }
   ]
 }
