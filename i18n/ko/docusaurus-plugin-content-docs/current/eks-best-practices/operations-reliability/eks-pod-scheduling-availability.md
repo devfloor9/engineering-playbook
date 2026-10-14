@@ -415,7 +415,7 @@ Pod Affinity와 Anti-Affinity는 **Pod 간의 관계**를 기반으로 스케줄
 Pod Affinity는 특정 Pod가 있는 토폴로지 도메인(노드, AZ, 리전)을 배치 조건이나 선호로 사용합니다. Service나 프록시가 요청별로 선택하는 endpoint는 별도 라우팅 설정에 따릅니다.
 
 **주요 사용 사례:**
-- **Cache Locality**: 캐시 서버와 애플리케이션을 같은 노드에 배치하여 레이턴시 최소화
+- **Cache Locality**: 캐시 서버와 애플리케이션을 같은 노드에 배치하여 지연 시간 최소화
 - **Data Locality**: 데이터 처리 워크로드를 데이터 소스와 가까이 배치
 - **Communication Intensive**: 빈번하게 통신하는 마이크로서비스를 같은 AZ에 배치
 
