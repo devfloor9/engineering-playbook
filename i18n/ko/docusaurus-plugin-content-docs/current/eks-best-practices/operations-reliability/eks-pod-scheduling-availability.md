@@ -40,6 +40,8 @@ Kubernetes의 Pod 스케줄링은 서비스 가용성, 성능, 비용 효율성�
 
 ### 스케줄링이 중요한 이유
 
+**표 1. 잘못된 스케줄링과 올바른 스케줄링의 시나리오별 비교**
+
 | 시나리오 | 잘못된 스케줄링 | 올바른 스케줄링 |
 |---------|----------------|----------------|
 | **장애 격리** | 모든 replica가 같은 노드 → 해당 노드 장애에 함께 노출 | Anti-Affinity로 직접적인 동시 노출을 줄이며, 다른 의존성의 장애는 별도로 평가 |
@@ -55,6 +57,8 @@ Kubernetes의 Pod 스케줄링은 서비스 가용성, 성능, 비용 효율성�
 ### 2.1 스케줄링 프로세스
 
 Kubernetes 스케줄러는 3단계 프로세스를 거쳐 Pod를 노드에 배치합니다:
+
+**그림 1. Kubernetes 스케줄러의 3단계 Pod 배치 프로세스**
 
 ```mermaid
 flowchart TB
@@ -128,6 +132,8 @@ Pod가 `Pending` 상태로 남아있다면, `kubectl describe pod <pod-name>`으
 
 ### 2.2 스케줄링에 영향을 주는 요소
 
+**표 2. 스케줄링에 영향을 주는 요소와 타입·영향 단계·강제성**
+
 | 요소 | 타입 | 영향 단계 | 강제성 | 주요 사용 사례 |
 |------|------|-----------|--------|---------------|
 | **Node Selector** | Pod | Filtering | Hard | 특정 노드 타입 지정 (GPU, ARM) |
@@ -190,6 +196,8 @@ Node Affinity는 Node Selector의 확장 버전으로, 복잡한 논리 조건�
 
 #### Required vs Preferred
 
+**표 3. Node Affinity의 Required 타입과 Preferred 타입 비교**
+
 | 타입 | 동작 | 사용 시기 |
 |------|------|----------|
 | `requiredDuringSchedulingIgnoredDuringExecution` | 조건 충족 필수 (Hard) | 반드시 특정 노드에 배치해야 할 때 |
@@ -200,6 +208,8 @@ Node Affinity는 Node Selector의 확장 버전으로, 복잡한 논리 조건�
 :::
 
 #### 연산자 종류
+
+**표 4. Node Affinity 연산자 종류와 설명·예시**
 
 | 연산자 | 설명 | 예시 |
 |--------|------|------|
@@ -452,6 +462,8 @@ spec:
 
 **topologyKey 설명:**
 
+**표 5. topologyKey 값별 분산 범위와 설명**
+
 | topologyKey | 범위 | 설명 |
 |-------------|------|------|
 | `kubernetes.io/hostname` | 노드 | 같은 노드에 배치 (가장 강력한 co-location) |
@@ -497,6 +509,8 @@ spec:
 ### 4.2 Pod Anti-Affinity
 
 Pod Anti-Affinity는 selector로 선택한 Pod들이 같은 노드나 AZ에 모이지 않도록 배치를 제한하거나 분산을 선호하게 합니다. 아래 그림은 세 도메인에 분산된 배치 예시입니다. 실제 배치는 후보 노드와 다른 제약에 따라 달라지며, 분산해도 공유 데이터베이스 같은 의존성의 장애는 남습니다. Hard AZ anti-affinity를 쓰려면 admission 설정이 해당 topology key를 허용해야 합니다.
+
+**그림 2. 세 도메인에 분산 배치된 Pod Anti-Affinity 예시**
 
 ```mermaid
 flowchart TB
@@ -611,6 +625,8 @@ spec:
 
 #### Hard vs Soft 선택 기준
 
+**표 6. Hard와 Soft 선택 기준: 시나리오별 권장과 이유**
+
 | 시나리오 | 권장 | 이유 |
 |---------|------|------|
 | 적격 hostname·용량이 충분함 | Hard 고려 | 선택한 Pod를 hostname마다 최대 한 개로 제한하며 rollout surge 여유도 필요 |
@@ -620,6 +636,8 @@ spec:
 | 빠른 스케일링 필요 | 제약·용량 함께 검토 | Soft만으로 Pending 해소나 배치 성공을 보장하지 않음 |
 
 ### 4.3 Affinity/Anti-Affinity vs Topology Spread 비교
+
+**표 7. Pod Anti-Affinity와 Topology Spread Constraints 비교**
 
 | 비교 항목 | Pod Anti-Affinity | Topology Spread Constraints |
 |----------|-------------------|----------------------------|
@@ -868,6 +886,8 @@ spec:
 
 ##### 패턴 비교표
 
+**표 8. Topology Spread 패턴별 설정값과 복잡도·권장 Replica 수**
+
 | 패턴 | maxSkew | minDomains | whenUnsatisfiable | 추가 제약 | 복잡도 | 권장 Replica 수 |
 |------|---------|------------|-------------------|----------|--------|----------------|
 | **패턴 1: 기본 Multi-AZ** | 1 | - | DoNotSchedule | 없음 | 낮음 | 3~12 |
@@ -876,6 +896,8 @@ spec:
 | **패턴 4: 다중 Spread** | 1, 2 | 3 | Mixed | 동시 적용하는 AZ 제약·hostname 선호 | 높음 | 15+ |
 
 ##### 트러블슈팅: Topology Spread 실패 원인
+
+**표 9. Topology Spread 실패의 증상·원인·해결 방법**
 
 | 증상 | 원인 | 해결 방법 |
 |------|------|----------|
@@ -981,6 +1003,8 @@ Taint는 노드에, toleration은 Pod에 지정합니다. 스케줄러는 Pod가
 - **Toleration**: Pod에 적용 (예: "나는 GPU 노드를 Tolerate합니다")
 
 ### 5.1 Taint 효과 (Effect)
+
+**표 10. Taint 효과(Effect)별 동작과 기존 Pod 영향·사용 시기**
 
 | Effect | 동작 | 기존 Pod 영향 | 사용 시기 |
 |--------|------|--------------|----------|
@@ -1163,6 +1187,8 @@ spec:
 
 아래는 EKS에서도 사용하는 Kubernetes의 노드 상태 taint와 기본 toleration 동작입니다. [공식 taint·toleration 설명](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/)에서 스케줄링 차단과 퇴거를 구분해 확인할 수 있습니다.
 
+**표 11. EKS 기본 노드 상태 Taint와 적용 대상·대응 방법**
+
 | Taint | 적용 대상 | 효과 | 대응 방법 |
 |-------|----------|------|----------|
 | `node.kubernetes.io/not-ready` | Ready=False | NoExecute | 기본 admission은 일반 Pod에 300초, DaemonSet controller는 무기한 toleration 추가 |
@@ -1227,6 +1253,8 @@ Cluster Autoscaler와 Karpenter의 핵심 차이는 **노드 프로비저닝 방
 ##### 동작 비교
 
 아래 표는 두 컨트롤러의 **메커니즘과 설정 제약**을 비교합니다. 프로비저닝 속도, 노드 준비 시간, 비용 절감률은 워크로드, AMI, 리전, 용량 상황에 따라 달라지므로 측정 없이 단정하지 않습니다. 측정값이 필요하면 동일 조건에서 트리거→용량 확보→노드 등록→Pod 바인딩→워크로드 준비 시간을 각각 측정해 비교하십시오.
+
+**표 12. Cluster Autoscaler와 Karpenter의 메커니즘·설정 제약 비교**
 
 | 비교 항목 | Cluster Autoscaler | Karpenter |
 |----------|-------------------|-----------|
@@ -1358,6 +1386,8 @@ spec:
 
 **변환 가이드:**
 
+**표 13. ASG 설정과 Karpenter NodePool 필드 변환 가이드**
+
 | ASG 설정 | NodePool 필드 | 비고 |
 |---------|--------------|------|
 | LaunchTemplate 인스턴스 타입 | `requirements[instance-type]` | 더 넓은 범위 권장 (비용 최적화) |
@@ -1451,6 +1481,8 @@ spec:
 Karpenter는 Topology Spread Constraints를 네이티브 지원하지만, 기존 설정을 재검증해야 합니다.
 
 **검증 포인트:**
+
+**표 14. Karpenter 전환 시 Topology Spread 재검증 항목**
 
 | 항목 | 확인 사항 |
 |------|----------|
@@ -1592,6 +1624,8 @@ kubectl --context "$CONTEXT" get pods -A -o json > migration-pods.json
 kubectl --context "$CONTEXT" get nodes -o json > migration-nodes.json
 ```
 
+**표 15. 마이그레이션 정리 기록에 필요한 내용과 판단**
+
 | 정리 기록 | 필요한 내용과 판단 |
 |---|---|
 | 소유 관계 인벤토리 | Node provider ID를 수집 시각이 있는 EC2/ASG·EKS 관리형 노드 그룹 인벤토리와 연결합니다. 정확한 instance ID, ASG 이름, 관리형 노드 그룹 식별자와 남은 Pod owner를 기록하며, 연결이 불명확하면 정리를 진행하지 않습니다. |
@@ -1711,11 +1745,13 @@ PDB의 기본 개념과 Karpenter와의 상호작용은 [EKS 고가용성 아키
 
 **자발적 vs 비자발적 중단:**
 
+**표 16. 자발적·비자발적 중단 유형별 PDB 적용과 대응 방법**
+
 | 중단 유형 | 예시 | PDB 적용 | 대응 방법 |
 |----------|------|---------|----------|
-| **자발적: Eviction API 사용** | 기본 `kubectl drain`, Eviction API를 사용하는 노드 업그레이드·통합 | ✅ Eviction 요청 제한 | PDB 설정 |
-| **자발적: controller 롤아웃·직접 삭제** | Deployment·StatefulSet 롤링 업데이트, Pod 직접 삭제 | ❌ 작업을 제한하지 않음; 비가용 Pod는 예산에 반영 | 롤아웃 전략·Readiness 설정, 직접 삭제 회피 |
-| **비자발적** | 노드 크래시, OOM Kill, 하드웨어 장애, AZ 장애 | ❌ 중단을 막지 않음; 비가용 Pod는 예산에 반영 | Replica 증가, Anti-Affinity |
+| **자발적: Eviction API 사용** | 기본 `kubectl drain`, Eviction API를 사용하는 노드 업그레이드·통합 | 적용(Eviction 요청 제한) | PDB 설정 |
+| **자발적: controller 롤아웃·직접 삭제** | Deployment·StatefulSet 롤링 업데이트, Pod 직접 삭제 | 미적용(작업을 제한하지 않음; 비가용 Pod는 예산에 반영) | 롤아웃 전략·Readiness 설정, 직접 삭제 회피 |
+| **비자발적** | 노드 크래시, OOM Kill, 하드웨어 장애, AZ 장애 | 미적용(중단을 막지 않음; 비가용 Pod는 예산에 반영) | Replica 증가, Anti-Affinity |
 
 ### 6.2 PDB 고급 전략
 
@@ -1815,6 +1851,8 @@ spec:
     matchLabels:
       app: worker
 ```
+
+**표 17. 비율 기반 PDB에서 Replica 수별 동시 Evict 가능 수**
 
 | Replica 수 | maxUnavailable: "25%" | 동시 Evict 가능 수 |
 |-----------|---------------------|------------------|
@@ -1969,6 +2007,8 @@ description: "High priority for mission-critical services"
 
 **주요 속성:**
 
+**표 18. PriorityClass 주요 속성과 권장값**
+
 | 속성 | 설명 | 권장값 |
 |------|------|--------|
 | `value` | 우선순위 값 (정수) | 0 ~ 1,000,000,000 |
@@ -2034,6 +2074,8 @@ description: "Batch jobs, non-critical background tasks"
 
 이 다섯 개 클래스가 본 문서 6~7장에서 사용하는 **단일 기준 우선순위 체계**입니다. 아래 매핑을 이름·주석·표·워크로드 예시에 일관되게 적용합니다.
 
+**표 19. 5-Tier 우선순위 체계의 PriorityClass 이름·value·역할**
+
 | 이름 | value | 역할 |
 |------|-------|------|
 | `platform-critical` | 999999000 | 플랫폼 핵심 컴포넌트(DNS, CNI, 모니터링) |
@@ -2092,6 +2134,8 @@ Job Pod는 `restartPolicy`로 `Never` 또는 `OnFailure`만 사용할 수 있습
 ### 7.3 Preemption 동작 이해
 
 Preemption은 높은 우선순위 Pod가 스케줄링되지 못할 때, 낮은 우선순위 Pod를 Evict하여 리소스를 확보하는 메커니즘입니다.
+
+**그림 3. 높은 우선순위 Pod를 위한 Preemption 동작 흐름**
 
 ```mermaid
 flowchart TB
@@ -2190,6 +2234,8 @@ PriorityClass는 스케줄링·선점과 kubelet pressure eviction에 영향을 
 
 Kubernetes는 Pod의 리소스 요청(requests)과 제한(limits) 설정에 따라 자동으로 QoS Class를 할당합니다.
 
+**표 20. QoS Class별 admission 조건과 CPU·메모리 pressure 동작**
+
 | QoS Class | admission 후 조건 | CPU 동작 | 메모리 pressure 판단 | 일반적 사용 |
 |-----------|------|-------------|-------------------|------------|
 | **Guaranteed** | 모든 컨테이너에 양수인 CPU·메모리 request와 limit이 있고 리소스별 두 값이 같음 | CPU limit에 도달하면 스로틀링 가능 | request가 순위에 영향을 주며 eviction·OOM은 여전히 가능 | 리소스를 신중히 산정한 중요 워크로드 |
@@ -2236,6 +2282,8 @@ kubectl get pods -n production \
 #### 권장 조합 매트릭스
 
 아래 매트릭스는 워크로드 정책 예시이며, "Priority 정책" 열은 7.2 기준 체계의 PriorityClass 이름을 사용합니다. 표는 실측 생존율이나 비용 순위를 나타내지 않습니다.
+
+**표 21. QoS와 Priority 권장 조합 매트릭스**
 
 | 조합 | Priority 정책(클래스) | QoS | 스케줄링 판단 | 메모리 pressure 판단 | 워크로드 예시 |
 |------|----------|-----|-----------------|-------------|------|
@@ -2506,6 +2554,8 @@ spec:
 
 아래 다이어그램은 kubelet의 **메모리 pressure eviction**을 설명하며 kernel OOM killer나 컨테이너의 메모리 limit 초과를 나타내지 않습니다. kubelet은 먼저 노드 수준 리소스 회수를 시도하고, Pod eviction이 필요하면 부족한 리소스를 기준으로 후보를 정렬합니다.
 
+**그림 4. 메모리 pressure 발생 시 kubelet의 Eviction 순서**
+
 ```mermaid
 flowchart TD
     A["메모리 pressure 임계값 충족"]
@@ -2590,6 +2640,8 @@ evictionMaxPodGracePeriod: 60
 ```
 
 **Eviction 임계값 설명:**
+
+**표 22. kubelet eviction 임계값 설정의 의미와 병합 예시 값**
 
 | 설정 | 의미 | 병합 예시 값 |
 |------|------|--------|
@@ -2728,6 +2780,8 @@ kubectl describe node <node-name> | grep -A 10 "Non-terminated Pods"
 
 #### 트러블슈팅: QoS + Priority 조합 문제
 
+**표 23. QoS + Priority 조합 문제의 증상·원인·해결 방법**
+
 | 증상 | 원인 | 해결 방법 |
 |------|------|----------|
 | Guaranteed Pod가 OOM Kill됨 | limits 설정이 너무 낮음 | 메모리 프로파일링 후 limits 상향 |
@@ -2777,6 +2831,8 @@ helm install descheduler descheduler/descheduler \
 ```
 
 **CronJob vs Deployment 모드:**
+
+**표 24. Descheduler의 CronJob 모드와 Deployment 모드 비교**
 
 | 모드 | 실행 주기 | 리소스 사용 | 권장 환경 |
 |------|----------|------------|----------|
@@ -2978,17 +3034,19 @@ data:
 
 ### 8.4 Descheduler vs Karpenter Consolidation 비교
 
+**표 25. Descheduler와 Karpenter Consolidation 기능 비교**
+
 | 기능 | Descheduler | Karpenter Consolidation |
 |------|------------|------------------------|
 | **목적** | Pod 재배치 (균형) | 노드 제거 (비용 절감) |
 | **범위** | Pod 레벨 | 노드 레벨 |
 | **실행 주기** | CronJob (예: 15분) | 지속적 감시 (실시간) |
 | **전략** | 다양한 전략 (6+개) | Empty / Underutilized 노드 |
-| **PDB 존중** | ✅ 예 | ✅ 예 |
-| **노드 추가/제거** | ❌ 아니오 | ✅ 예 |
-| **Cluster Autoscaler 호환** | ✅ 예 | N/A (대체재) |
+| **PDB 존중** | 예 | 예 |
+| **노드 추가/제거** | 아니오 | 예 |
+| **Cluster Autoscaler 호환** | 예 | N/A (대체재) |
 | **주요 사용 사례** | 불균형 해소, Affinity 위반 해결 | 비용 최적화, 노드 통합 |
-| **함께 사용 가능** | ✅ Karpenter와 병행 가능 | ✅ Descheduler와 병행 가능 |
+| **함께 사용 가능** | Karpenter와 병행 가능 | Descheduler와 병행 가능 |
 
 :::tip Descheduler + Karpenter 조합 권장
 Descheduler는 Pod 재배치에 특화되고, Karpenter는 노드 관리에 특화되어 있습니다. 두 도구를 함께 사용하면 시너지가 발생합니다:
@@ -3208,6 +3266,8 @@ kubectl get pdb -A
 
 **조합의 장점:**
 
+**표 26. Descheduler와 Karpenter 조합의 장점**
+
 | 장점 | 설명 |
 |------|------|
 | **자동 균형 조정** | Descheduler가 리소스 불균형 자동 해소 |
@@ -3223,6 +3283,8 @@ kubectl get pdb -A
 ### 9.1 워크로드 유형별 스케줄링 설정 매트릭스
 
 아래 표는 다양한 워크로드 유형에 대한 권장 스케줄링 설정을 정리한 것입니다.
+
+**표 27. 워크로드 유형별 스케줄링 설정 권장 매트릭스**
 
 | 워크로드 유형 | Node Selector/Affinity | Pod Anti-Affinity | Topology Spread | Taints/Tolerations | PriorityClass | PDB | 추가 고려사항 |
 |-------------|----------------------|-------------------|-----------------|-------------------|---------------|-----|-------------|
@@ -3437,6 +3499,8 @@ spec:
 
 아래 표의 `GPU Slice`는 해당 프로파일이 사용하는 컴퓨트(SM) 비율을 나타내며, 메모리 비율과는 다를 수 있습니다. 각 프로파일이 노출하는 리소스 이름(`nvidia.com/mig-<profile>`)과 실제 분할 결과는 GPU 모델, 드라이버 버전, device plugin의 MIG 전략 설정에 따라 달라집니다. 다른 GPU 모델(A100-80GB, A30, H100 등)은 메모리 용량과 사용 가능한 프로파일 집합이 다르므로 아래 값을 그대로 적용할 수 없습니다.
 
+**표 28. A100-40GB MIG 프로파일별 컴퓨트·메모리 비율과 사용 사례**
+
 | MIG 프로파일 | 컴퓨트(SM) 비율 | 메모리 | 사용 사례 |
 |-------------|-----------|--------|----------|
 | `mig-1g.5gb` | 1/7 | 5GB | 소형 추론 |
@@ -3449,6 +3513,8 @@ spec:
 Kubernetes 1.34+에서는 Dynamic Resource Allocation(DRA)을 통해 GPU 등의 특수 리소스를 더 유연하게 할당할 수 있습니다.
 
 **DRA의 장점:**
+
+**표 29. 기존 Device Plugin 방식과 DRA 방식 비교**
 
 | 기존 방식 (Device Plugin) | DRA (K8s 1.34+) |
 |-------------------------|----------------|
@@ -3523,13 +3589,15 @@ AI/ML 워크로드는 학습(Training)과 추론(Inference)의 요구사항이 �
 
 **학습 vs 추론 비교:**
 
+**표 30. AI 학습과 추론의 스케줄링 요구사항 비교**
+
 | 비교 항목 | 학습 (Training) | 추론 (Inference) |
 |----------|----------------|-----------------|
 | **GPU 요구** | 대규모 (4-8+ GPU) | 소규모 (1-2 GPU) 또는 Inferentia |
 | **실행 시간** | 장시간 (수 시간~수 일) | 짧은 지연 (ms~초) |
 | **워크로드 타입** | 배치 작업 (Job) | 상시 서비스 (Deployment) |
 | **인스턴스 타입** | g5, p4d, p5 (NVIDIA) | g5 (소형), inf2 (Inferentia), c7g (Graviton) |
-| **Spot 사용** | ✅ 가능 (Checkpointing 필수) | ⚠️ 신중 (고가용성 필요) |
+| **Spot 사용** | 가능(Checkpointing 필수) | 조건부(고가용성 필요 시 신중) |
 | **PriorityClass** | `standard-priority` | `high-priority` |
 | **PDB** | `maxUnavailable: 1` (재시작 허용) | `minAvailable: 2` (가용성 보장) |
 | **스케줄링 전략** | Soft Anti-Affinity (분산 선호) | Hard Anti-Affinity (장애 격리) |
@@ -3630,6 +3698,8 @@ Karpenter의 동작은 비교 대상에 따라 다릅니다. 아래 표는 **동
 
 **반응형 동적 프로비저닝의 한계(Gang Scheduling 워크로드 기준):**
 
+**표 31. 반응형 동적 프로비저닝의 Gang Scheduling 한계**
+
 | 문제 | 설명 | 영향 |
 |------|------|------|
 | **부분 할당 리스크** | 4-GPU 노드 4대가 필요한데 2대만 프로비저닝 성공 | 2대는 유휴 상태 유지, 비용 낭비 |
@@ -3641,6 +3711,8 @@ Karpenter의 동작은 비교 대상에 따라 다릅니다. 아래 표는 **동
 Setu는 Kueue의 **AdmissionCheck**와 Karpenter의 **NodeClaim v1 API**를 브릿지하여, 워크로드 승인 전에 필요한 모든 노드를 **프로액티브하게** 프로비저닝합니다.
 
 **동작 흐름:**
+
+**그림 5. Setu의 사전 승인 프로비저닝 동작 흐름**
 
 ```mermaid
 sequenceDiagram
@@ -3665,6 +3737,8 @@ sequenceDiagram
 **사전 승인 readiness gate와 스케줄링 안전성:**
 
 Setu의 핵심 동작은 **사전 승인(pre-admission) readiness gate**입니다. 필요한 NodeClaim이 모두 Ready 상태가 되기 전에는 Kueue 워크로드 승인을 보류합니다. 이는 분산 트랜잭션이나 Gang 스케줄러가 아니라, 승인 전에 노드 준비 상태를 확인하는 게이트입니다. NodeClaim은 순차적으로 생성되고, 일부가 실패하면 이미 만들어진 NodeClaim을 삭제하는 보상적 정리(compensating cleanup)를 수행하며, 재시도와 정리 과정에서 시간과 용량을 소모하거나 최종적으로 실패할 수 있습니다. Pod의 노드 배치(스케줄링)는 승인 이후의 별도 단계입니다.
+
+**표 32. 반응형 동적 프로비저닝과 Setu + Kueue 시나리오 비교**
 
 | 시나리오 | 반응형 동적 프로비저닝 | Setu + Kueue |
 |---------|---------------|-------------|
@@ -3785,6 +3859,8 @@ spec:
 
 **비교: 기존 Karpenter vs Setu + Kueue:**
 
+**표 33. 기존 Karpenter와 Setu + Kueue 단계별 비교**
+
 | 단계 | 기존 Karpenter | Setu + Kueue |
 |------|---------------|-------------|
 | **Job 제출** | 즉시 Pod 생성 (Pending) | Kueue가 Workload로 관리 (승인 대기) |
@@ -3795,12 +3871,14 @@ spec:
 
 **권장 사용 사례:**
 
+**표 34. 워크로드 유형별 Setu 적합성과 이유**
+
 | 워크로드 유형 | Setu 적합성 | 이유 |
 |-------------|--------------|------|
 | **대규모 분산 학습** (16+ GPU) | 검토 후 선택 | 사전 프로비저닝으로 부분 할당 유휴를 줄일 수 있으나, GPU 수가 많다는 이유만으로 Setu가 필수가 되는 것은 아닙니다. 호환성·워크로드 검증 후 아키텍처로 선택하세요. |
-| **소규모 학습** (1-4 GPU) | ⚠️ 선택 | 오버헤드 대비 이득 제한적 |
-| **단일 GPU 추론** | ❌ 불필요 | 반응형 Karpenter로 충분 |
-| **배치 처리** (CPU 워크로드) | ⚠️ 선택 | 비용 효율성 목적이라면 유용 |
+| **소규모 학습** (1-4 GPU) | 조건부(선택) | 오버헤드 대비 이득 제한적 |
+| **단일 GPU 추론** | 불필요 | 반응형 Karpenter로 충분 |
+| **배치 처리** (CPU 워크로드) | 조건부(선택) | 비용 효율성 목적이라면 유용 |
 
 :::info Setu 성숙도 및 버전 요구사항
 Setu는 Kueue 워크로드 큐잉과 Karpenter 노드 프로비저닝을 연결하는 **커뮤니티 프로젝트이며, 작성 시점 기준 상태는 Alpha**입니다(프로젝트 README가 "Alpha, AWS EKS에서 기능 및 E2E 테스트 완료, 먼저 비프로덕션 환경에서 사용"이라고 명시). 프로젝트가 보고한 호환성은 리뷰로 검증한 결과나 프로덕션 지원과 다릅니다.
@@ -3943,15 +4021,19 @@ spec:
 
 **비용 최적화 전략 요약:**
 
+**표 35. 워크로드별 인스턴스 타입과 Spot 사용·권장 전략**
+
 | 워크로드 | 인스턴스 타입 | Spot 사용 | 권장 전략 |
 |---------|-------------|----------|----------|
-| **대규모 학습** | g5.12xlarge, p4d.24xlarge | ✅ 가능 | Spot + Checkpointing + Spot Interruption Handler |
-| **소규모 학습** | g5.2xlarge, g5.4xlarge | ✅ 가능 | Spot 70% + On-Demand 30% 혼합 |
-| **고성능 추론** | g5.xlarge, g5.2xlarge | ❌ 비권장 | On-Demand + Savings Plans |
-| **경량 추론** | inf2.xlarge, c7g.xlarge | ❌ 비권장 | On-Demand 또는 Reserved Instances |
-| **배치 추론** | g5.xlarge | ✅ 가능 | Spot + 재시도 로직 |
+| **대규모 학습** | g5.12xlarge, p4d.24xlarge | 가능 | Spot + Checkpointing + Spot Interruption Handler |
+| **소규모 학습** | g5.2xlarge, g5.4xlarge | 가능 | Spot 70% + On-Demand 30% 혼합 |
+| **고성능 추론** | g5.xlarge, g5.2xlarge | 비권장 | On-Demand + Savings Plans |
+| **경량 추론** | inf2.xlarge, c7g.xlarge | 비권장 | On-Demand 또는 Reserved Instances |
+| **배치 추론** | g5.xlarge | 가능 | Spot + 재시도 로직 |
 
 ### 9.2 스케줄링 의사결정 플로우차트
+
+**그림 6. 스케줄링 의사결정 플로우차트**
 
 ```mermaid
 flowchart TB
@@ -4064,6 +4146,8 @@ EKS는 컨트롤 플레인을 두 가지 모드로 운영합니다. 기본값은
 
 각 Provisioned 티어는 다음 네 가지 컨트롤 플레인 속성으로 정의되며, 노드 수 상한을 지정하는 것은 아닙니다. 아래 수치는 Kubernetes 버전에 따라 달라집니다(v1.30–v1.33은 더 낮음). 반드시 현재 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)에서 사용 중인 버전의 값을 확인하십시오.
 
+**표 36. Provisioned 티어별 컨트롤 플레인 용량 속성과 SLA**
+
 | 티어 | API 요청 동시성(seats) | Pod 스케줄링 속도(pods/sec) | 클러스터 데이터베이스(etcd) 크기 | SLA(1분 간격) |
 |------|-----------------------|----------------------------|-------------------------------|---------------|
 | **XL** | 2,000 | 167 | 16 GB | 99.99% |
@@ -4136,6 +4220,8 @@ spec:
 
 Provisioned Control Plane은 AI/ML 학습 워크로드에서 수천 개의 GPU Pod를 동시에 스케줄링하는 시나리오에 최적화되어 있습니다.
 
+**그림 7. AI/ML 학습 워크로드의 Provisioned Control Plane 스케줄링**
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -4172,6 +4258,8 @@ sequenceDiagram
 
 아래는 워크로드 특성에 따른 일반적 출발점이며, 실제 티어는 [티어 활용률 메트릭](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)으로 부하 테스트해 결정하십시오. 노드 수가 아니라 컨트롤 플레인 부하(API 동시성, 스케줄러 QPS, etcd 사용량)가 선택 기준입니다.
 
+**표 37. 사용 사례별 권장 모드·티어와 이유**
+
 | 사용 사례 | 권장 모드·티어 | 이유 |
 |----------|---------------|------|
 | **일반 웹 애플리케이션** | Standard 모드(Provisioned 미사용) | 자동 스케일링으로 충분 |
@@ -4198,6 +4286,8 @@ EKS Auto Mode는 노드 프로비저닝과 유지보수를 관리합니다. 아�
 독립 실행형 Karpenter는 `karpenter.k8s.aws/EC2NodeClass`, Auto Mode는 `eks.amazonaws.com/NodeClass`를 사용합니다. 예제를 적용할 때 각 NodePool이 올바른 종류의 NodeClass를 참조하는지 확인합니다.
 
 **Auto Mode가 스케줄링에 미치는 영향:**
+
+**표 38. 수동 방식과 EKS Auto Mode의 노드 프로비저닝 비교**
 
 | 기능 | 기존 방식 (수동) | Auto Mode |
 |------|---------------|----------|
@@ -4290,14 +4380,16 @@ spec:
 
 Auto Mode는 노드 프로비저닝을 자동화하지만, 다음 스케줄링 설정은 **여전히 명시적으로 설정해야 합니다**:
 
+**표 39. Auto Mode에서 여전히 명시해야 하는 스케줄링 설정**
+
 | 설정 | Auto Mode 자동화 여부 | 설명 |
 |------|---------------------|------|
-| **Resource Requests/Limits** | ❌ 필수 설정 | 워크로드 리소스 요구사항 명시 필요 |
-| **Topology Spread** | ⚠️ 애플리케이션 요구에 맞는 명시적 정책 | 기본 스케줄러 동작만으로 필요한 AZ 분산이 성립하지 않음 |
-| **Pod Anti-Affinity** | ❌ 필수 설정 | 같은 앱 replica 분산은 명시 필요 |
-| **PDB** | ❌ 필수 설정 | 최소 가용성 보장은 앱 담당 |
-| **PriorityClass** | ❌ 필수 설정 | 우선순위는 앱 담당 |
-| **Taints/Tolerations** | ⚠️ 특수 노드만 | GPU 등 특수 워크로드는 명시 필요 |
+| **Resource Requests/Limits** | 자동화 안 됨(필수 설정) | 워크로드 리소스 요구사항 명시 필요 |
+| **Topology Spread** | 조건부(애플리케이션 요구에 맞는 명시적 정책) | 기본 스케줄러 동작만으로 필요한 AZ 분산이 성립하지 않음 |
+| **Pod Anti-Affinity** | 자동화 안 됨(필수 설정) | 같은 앱 replica 분산은 명시 필요 |
+| **PDB** | 자동화 안 됨(필수 설정) | 최소 가용성 보장은 앱 담당 |
+| **PriorityClass** | 자동화 안 됨(필수 설정) | 우선순위는 앱 담당 |
+| **Taints/Tolerations** | 조건부(특수 노드만) | GPU 등 특수 워크로드는 명시 필요 |
 
 **Auto Mode 환경의 권장 스케줄링 패턴:**
 
@@ -4369,6 +4461,8 @@ spec:
 
 Auto Mode는 내부적으로 Karpenter와 유사한 자동 스케일링을 제공하며, PDB를 존중합니다.
 
+**그림 8. Auto Mode·PDB·Karpenter 상호작용 흐름**
+
 ```mermaid
 flowchart TB
     subgraph "Auto Mode 환경"
@@ -4409,6 +4503,8 @@ EKS의 ARC zonal shift는 손상 AZ로 향하는 지원 대상 트래픽을 줄�
 - 시작 전에 남은 AZ의 replica·CoreDNS·용량·의존성으로 부하를 감당할 수 있어야 합니다. LB resource의 ARC 설정, target type과 endpoint 소비 경로도 확인합니다. 아래 NodePool은 기존 `default` EC2NodeClass와 해당 Region의 네트워크·이미지·권한을 전제로 하며, 리소스 이름만으로 ARC가 활성화되지 않습니다.
 
 **지원되는 트래픽 전환과 독립적인 Karpenter 동작:**
+
+**그림 9. ARC Zonal Shift와 Karpenter의 독립적 동작**
 
 ```mermaid
 sequenceDiagram
@@ -4599,6 +4695,8 @@ data:
 
 **AZ 장애 대응 시 확인할 경계:**
 
+**표 40. AZ 장애 대응 시 PDB·Topology Spread·용량 경로별 확인 경계**
+
 | 시나리오 | PDB 역할 | Topology Spread | 용량·제어 경로 | 검증할 결과 |
 |---------|---------|----------------|---------------|----------|
 | **완전 AZ 장애** | 자발적 Eviction만 제한 | Soft 예시와 잔여 Hard 제약 확인 | 잔여 AZ에 사전 확보한 replica·용량, 활성화된 ARC 경로 | endpoint 전환과 서비스 SLO를 실제 측정 |
@@ -4614,6 +4712,8 @@ Container Network Observability는 세분화된 네트워크 메트릭을 제공
 **Pod 배치와 네트워크 성능 상관관계:**
 
 아래 표는 배치 패턴에 따른 상대적 경향만 나타냅니다. 절대 지연 값과 요금은 워크로드·프로토콜, 리전/AZ 경로, 측정 방법·백분위수, 그리고 적용 시점의 요금에 따라 달라지므로 여기에 고정 수치로 적지 않습니다. 실제 지연은 직접 측정하고, 데이터 전송 요금은 서비스·방향·리전 쌍·날짜·과금 구간과 적용 가능한 면제 조건을 명시한 최신 [AWS 데이터 전송 요금](https://aws.amazon.com/ec2/pricing/on-demand/)으로 확인하십시오.
+
+**표 41. Pod 배치 패턴별 상대적 네트워크 지연과 Cross-AZ 요금**
 
 | Pod 배치 패턴 | 상대적 네트워크 지연 | Cross-AZ 데이터 전송 요금 | 사용 사례 |
 |-------------|------------------|------------------------|----------|
@@ -4732,6 +4832,8 @@ data:
 3. **Pod 간 통신 패턴 분석** → Service Mesh(Istio)의 라우팅·health 설정 검증
 4. **네트워크 지연 급증 감지** → 운영자 또는 별도 자동화가 원인과 사전 준비를 확인한 뒤 지원 리소스의 ARC 트래픽 shift 판단
 
+**그림 10. Cross-AZ 트래픽 감지 후 배치·대응 판단 흐름**
+
 ```mermaid
 flowchart TB
     subgraph "Container Network Observability"
@@ -4817,6 +4919,8 @@ spec:
 
 아래 표는 측정값이 아니라 가정에 따른 산술 예시입니다. 수치는 명시한 단위·요금 가정에서만 성립하며, Pod affinity가 원인이라는 측정 근거는 제시되지 않았습니다.
 
+**표 42. 네트워크 관찰성 기반 비용 절감의 가정 기반 산술 예시**
+
 | 항목 | 최적화 전 | 최적화 후 | 가정에 따른 변화 |
 |------|----------|----------|----------------|
 | Cross-AZ 트래픽 | 1 TB/월 | 0.2 TB/월 | 선택한 단위 기준 80% 감소 |
@@ -4845,6 +4949,8 @@ rule 객체는 API 규약을 보여줍니다. reporter와 노드 등록 설정�
 
 스케줄러는 리소스, taint, affinity, topology 등 여러 제약을 평가합니다. `Ready=True`만으로 모든 워크로드 의존 구성 요소의 사용 가능성이 증명되지는 않습니다. 아래는 발생 가능한 초기화 공백의 예시이며 실측 장애 결과가 아닙니다.
 
+**표 43. Ready=True만으로 판단할 때의 시나리오·노드 상태·결과**
+
 | 시나리오 | 노드 상태 | 실제 상황 | 결과 |
 |---------|---------|----------|------|
 | **CNI 플러그인 미준비** | `Ready` | Calico/Cilium Pod 시작 중 | Pod 네트워크 연결 실패 |
@@ -4859,6 +4965,8 @@ NRC는 `NodeReadinessRule` CRD(`readiness.node.x-k8s.io/v1alpha1`)를 사용하�
 1. **조건 기반 taint 관리**: rule이 요구하는 Node Condition에 따라 해당 taint를 조정합니다.
 2. **일반 스케줄링 차단**: `NoSchedule` guard는 일치하는 toleration이 없는 신규 Pod를 차단하며 기존 Pod를 evict하지 않습니다.
 3. **조건부 taint 제거**: 해당 rule의 condition이 일치하면 그 taint를 제거합니다. 다른 guard와 스케줄러 제약도 배치를 허용해야 합니다.
+
+**그림 11. Node Readiness Controller의 taint 관리와 스케줄링 차단 흐름**
 
 ```mermaid
 sequenceDiagram
@@ -4887,6 +4995,8 @@ sequenceDiagram
 **두 가지 Enforcement 모드:**
 
 NRC는 두 가지 모드로 동작하며, 각 모드는 스케줄링 안전성에 다른 영향을 미칩니다:
+
+**표 44. Node Readiness Controller의 두 Enforcement 모드 비교**
 
 | 모드 | 동작 방식 | 스케줄링 영향 | 사용 사례 |
 |------|---------|-------------|----------|
@@ -4955,6 +5065,8 @@ spec:
 
 Kubernetes는 Pod 수준과 노드 수준 양쪽에서 스케줄링 안전성을 제어할 수 있습니다:
 
+**표 45. schedulingGates와 NodeReadinessRule 비교**
+
 | 비교 항목 | `schedulingGates` (Pod 수준) | `NodeReadinessRule` (노드 수준) |
 |----------|------------------------------|--------------------------------|
 | **제어 대상** | 특정 Pod의 스케줄링 | guard를 tolerate하지 않는 Pod에 대한 대상 노드의 배치 가능 여부 |
@@ -4991,6 +5103,8 @@ spec:
 **Karpenter + NRC 연동 패턴:**
 
 Karpenter로 동적 노드 프로비저닝을 사용하는 환경에서 NRC는 다음과 같은 워크플로우를 제공합니다:
+
+**그림 12. Karpenter와 NRC를 연동한 Pod·노드 수준 스케줄링 안전성**
 
 ```mermaid
 flowchart TB
@@ -5115,6 +5229,8 @@ spec:
 
 #### 기본 스케줄링 (모든 워크로드)
 
+**표 46. 기본 스케줄링 체크리스트(모든 워크로드)**
+
 | 항목 | 설명 | 확인 |
 |------|------|------|
 | **Resource Requests 설정** | 모든 컨테이너에 CPU, Memory requests 명시 | [ ] |
@@ -5124,6 +5240,8 @@ spec:
 | **Image Pull Policy** | 프로덕션: `IfNotPresent` 또는 `Always` | [ ] |
 
 #### 고가용성 (Critical 워크로드)
+
+**표 47. 고가용성 체크리스트(Critical 워크로드)**
 
 | 항목 | 설명 | 확인 |
 |------|------|------|
@@ -5136,6 +5254,8 @@ spec:
 
 #### 리소스 최적화
 
+**표 48. 리소스 최적화 체크리스트**
+
 | 항목 | 설명 | 확인 |
 |------|------|------|
 | **Spot 노드 활용** | 재시작 가능한 워크로드에 Spot 노드 허용 | [ ] |
@@ -5145,6 +5265,8 @@ spec:
 | **Karpenter 통합** | Disruption budget 설정 | [ ] |
 
 #### 특수 워크로드
+
+**표 49. 특수 워크로드 체크리스트**
 
 | 항목 | 설명 | 확인 |
 |------|------|------|
