@@ -3,9 +3,9 @@ title: Advanced Features
 description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
 created: "2026-04-06"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-14
   author: devfloor9
-reading_time: 18
+reading_time: 19
 tags:
   - llm-classifier
   - cloudfront
@@ -52,8 +52,8 @@ graph LR
 ```
 
 **Key Features:**
-- Clients request with `model: "auto"` (or any model name) — unaware of model selection
-- Classification based on keyword matching + token length + conversation turn count
+- Clients request with `model: "auto"` (or any model name); the proxy rewrites it to the selected backend's served model name before forwarding
+- Classification based on keyword matching + input character length + conversation turn count
 - Direct trace transmission via Langfuse OTel SDK
 - Container image under 50MB (FastAPI + httpx)
 
@@ -61,60 +61,123 @@ graph LR
 
 ```python
 """LLM Classifier — Prompt-based automatic model routing"""
-import os, httpx
-from fastapi import FastAPI, Request
+import os, contextlib, httpx
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
 
-app = FastAPI()
+# A single, long-lived AsyncClient reused across requests. It must outlive the
+# streaming response iterator, so it is NOT opened with `async with` inside the
+# handler — doing so closes the client (and its connection pool) before the
+# StreamingResponse body is read. It is closed once on application shutdown.
+client = httpx.AsyncClient(timeout=300)
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await client.aclose()
+
+app = FastAPI(lifespan=lifespan)
 
 # --- Classification Settings ---
 STRONG_KEYWORDS = [
     "refactor", "architect", "design", "analyze", "optimize", "debug",
     "migration", "complex", "performance", "security", "review",
 ]
-TOKEN_THRESHOLD = 500
+# Heuristic over raw characters, not tokens — rename accordingly so the
+# threshold is not mistaken for a token budget.
+CHAR_THRESHOLD = 500
 TURN_THRESHOLD = 5
 
 # --- Backend Settings ---
+# Each tier maps to a (base URL, served model name) pair. The served model name
+# is the id the backend was started with (vLLM `--served-model-name`); the proxy
+# rewrites the client's `model` field to it so that `model: "auto"` actually
+# resolves to a model the backend will accept.
 WEAK_URL = os.getenv("WEAK_BACKEND", "http://qwen3-serving:8000")
 STRONG_URL = os.getenv("STRONG_BACKEND", "http://glm5-serving:8000")
+WEAK_MODEL = os.getenv("WEAK_MODEL", "qwen3-4b")
+STRONG_MODEL = os.getenv("STRONG_MODEL", "glm-5")
+
+def _text(content) -> str:
+    """Flatten OpenAI message content: a plain string, or an array of
+    {type, text} parts (array form is used by multimodal clients)."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return " ".join(
+            part.get("text", "")
+            for part in content
+            if isinstance(part, dict) and part.get("type") == "text"
+        )
+    return ""
 
 def classify(messages: list[dict]) -> str:
     """Analyze prompt content → decide weak / strong"""
-    content = " ".join(
-        m.get("content", "") for m in messages if m.get("content")
-    )
+    content = " ".join(_text(m.get("content")) for m in messages if m.get("content"))
     lower = content.lower()
     # 1. Keyword matching
     if any(kw in lower for kw in STRONG_KEYWORDS):
         return "strong"
-    # 2. Input length
-    if len(content) > TOKEN_THRESHOLD:
+    # 2. Input length (character count, not tokens)
+    if len(content) > CHAR_THRESHOLD:
         return "strong"
     # 3. Conversation turn count
     if len(messages) > TURN_THRESHOLD:
         return "strong"
     return "weak"
 
-@app.api_route("/v1/{path:path}", methods=["POST"])
+# GET is needed so the documented `GET /v1/models` smoke check reaches a backend
+# instead of returning 405; POST carries chat/completion requests.
+@app.api_route("/v1/{path:path}", methods=["GET", "POST"])
 async def proxy(path: str, request: Request):
+    # GET (e.g. /v1/models) has no prompt to classify — forward to the weak
+    # backend and relay its status and body verbatim.
+    if request.method == "GET":
+        resp = await client.get(f"{WEAK_URL}/v1/{path}", params=request.query_params)
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            media_type=resp.headers.get("content-type"),
+        )
+
     body = await request.json()
     messages = body.get("messages", [])
     tier = classify(messages)
-    backend = STRONG_URL if tier == "strong" else WEAK_URL
+    backend, model = (
+        (STRONG_URL, STRONG_MODEL) if tier == "strong" else (WEAK_URL, WEAK_MODEL)
+    )
+    # Rewrite the client-supplied model (e.g. "auto") to the backend's served
+    # model name; otherwise the backend rejects an unknown model id.
+    body["model"] = model
     target = f"{backend}/v1/{path}"
 
-    async with httpx.AsyncClient(timeout=300) as client:
-        if body.get("stream"):
-            req = client.build_request("POST", target, json=body)
-            resp = await client.send(req, stream=True)
-            return StreamingResponse(
-                resp.aiter_bytes(),
-                status_code=resp.status_code,
-                headers=dict(resp.headers),
-            )
-        resp = await client.post(target, json=body)
-        return resp.json()
+    if body.get("stream"):
+        req = client.build_request("POST", target, json=body)
+        resp = await client.send(req, stream=True)
+
+        async def relay_body():
+            # Closing the downstream iterator (normal completion, client
+            # cancellation, or an exception) also closes the upstream response.
+            try:
+                async for chunk in resp.aiter_bytes():
+                    yield chunk
+            finally:
+                await resp.aclose()
+
+        return StreamingResponse(
+            relay_body(),
+            status_code=resp.status_code,
+            headers={"content-type": resp.headers.get("content-type", "text/event-stream")},
+        )
+
+    resp = await client.post(target, json=body)
+    # Propagate the upstream status and body instead of silently returning
+    # parsed JSON with a 200 — an upstream 4xx/5xx must reach the caller.
+    return Response(
+        content=resp.content,
+        status_code=resp.status_code,
+        media_type=resp.headers.get("content-type"),
+    )
 ```
 
 :::tip Langfuse OTel Integration
@@ -235,7 +298,7 @@ LLM inference can take tens of seconds. Set `timeouts.request` and `backendReque
 
 ### 1.6 Aider/Cline Connection
 
-With LLM Classifier, **all clients connect to a single endpoint**. Model name can be any value (Classifier ignores it and classifies based on prompt).
+With LLM Classifier, **all clients connect to a single endpoint**. The incoming model name does not affect routing (the Classifier routes on prompt content); the proxy then rewrites it to the selected backend's served model name.
 
 #### Aider
 
