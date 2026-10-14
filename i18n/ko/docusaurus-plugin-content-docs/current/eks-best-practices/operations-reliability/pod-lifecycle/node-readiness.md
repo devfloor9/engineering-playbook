@@ -337,6 +337,8 @@ spec:
 
 ### 워크플로우 다이어그램 {#워크플로우-다이어그램}
 
+**그림 1. Node Readiness Controller 동작 워크플로우**
+
 ```mermaid
 sequenceDiagram
     participant Node as 새 노드
@@ -385,6 +387,8 @@ sequenceDiagram
 
 Kubernetes의 Readiness 메커니즘은 이제 3계층 구조로 완성됩니다:
 
+**표 1. 3계층 Readiness 메커니즘의 범위·실패 시 동작·사용 사례**
+
 | 계층 | 메커니즘 | 범위 | 실패 시 동작 | 사용 사례 |
 |------|---------|------|-------------|----------|
 | **1. 컨테이너** | Readiness Probe | 컨테이너 내부 헬스체크 | Service Endpoint 제거 | 애플리케이션 준비 상태 확인 |
@@ -429,7 +433,7 @@ spec:
       # - Taint가 없는 노드에만 스케줄링됨
 ```
 
-**트래픽 수신 체크리스트:**
+**그림 2. Pod 생성부터 트래픽 수신까지의 Readiness 검증 흐름**
 
 ```mermaid
 flowchart TD

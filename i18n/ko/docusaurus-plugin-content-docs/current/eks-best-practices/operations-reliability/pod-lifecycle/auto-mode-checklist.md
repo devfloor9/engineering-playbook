@@ -28,6 +28,8 @@ Auto Mode는 컴퓨팅 프로비저닝·스케일링과 노드 OS 관리, 네트
 
 ### Auto Mode 특성이 Probe에 미치는 영향 {#auto-mode-특성이-probe에-미치는-영향}
 
+**표 1. Auto Mode 특성이 Probe에 미치는 영향과 적용 기준**
+
 | 고려사항 | 확인할 데이터 | 적용 기준 |
 |---|---|---|
 | 인스턴스·아키텍처 다양성 | 지원하는 각 환경의 초기화 시간 분포 | 정상 콜드 스타트를 수용하는 startupProbe 예산 |
@@ -38,6 +40,8 @@ Auto Mode는 컴퓨팅 프로비저닝·스케일링과 노드 OS 관리, 네트
 `failureThreshold × periodSeconds`는 startupProbe 예산을 정할 때 쓰는 근사값입니다. `initialDelaySeconds`, probe 실행 시간과 스케줄링도 고려하세요. `terminationGracePeriodSeconds`의 카운트다운에는 **preStop 실행 시간도 포함**됩니다. preStop이 끝난 뒤 새로운 전체 유예 시간이 시작되는 것이 아닙니다.
 
 ### Auto Mode 환경 Probe 체크리스트 {#auto-mode-환경-probe-체크리스트}
+
+**표 2. Auto Mode 환경 Probe 설정 체크리스트**
 
 | 항목 | 확인 사항 |
 |---|---|
@@ -136,6 +140,8 @@ NodePool이 선택 가능한 AZ와 인스턴스, 서브넷 IP, rollout의 추가
 ### Auto Mode 환경의 OS 패치 자동 eviction 대응 {#auto-mode-환경의-os-패치-자동-eviction-대응}
 
 다음은 자발적 노드 교체 중 **Pod 종료 경로의 개념도**입니다. 대체 노드 생성, eviction, 재스케줄링 순서는 교체 사유와 컨트롤러 동작에 따라 달라질 수 있습니다.
+
+**그림 1. 자발적 노드 교체 중 Pod 종료 경로 개념도**
 
 ```mermaid
 sequenceDiagram

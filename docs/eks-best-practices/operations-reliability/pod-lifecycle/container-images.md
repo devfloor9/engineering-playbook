@@ -197,7 +197,7 @@ ENTRYPOINT ["/main"]
 - Small image size
 - Fewer CVE vulnerabilities
 
-**scratch vs distroless:**
+**Table 1. scratch vs distroless: size, contents and suitable use**
 
 | Image | Size | Contents | Suitable for |
 |--------|------|-----------|------------|
@@ -208,6 +208,8 @@ ENTRYPOINT ["/main"]
 ### Startup Time Benchmarks {#64-시작-시간-벤치마크}
 
 Startup time comparison across image strategies (EKS 1.30, m6i.xlarge):
+
+**Table 2. Startup time benchmark by image strategy**
 
 | Application | Base Image | Image Size | Pull Time | Startup Time | Total Time |
 |-------------|--------------|-----------|----------|----------|---------|

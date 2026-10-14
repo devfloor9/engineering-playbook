@@ -24,6 +24,8 @@ category: operations
 
 #### Pod 헬스체크 {#pod-헬스체크}
 
+**표 1. Pod 헬스체크 체크리스트**
+
 | 항목 | 확인 사항 | 우선순위 |
 |------|----------|---------|
 | **Startup Probe** | 시작이 느린 앱(30초+)에 Startup Probe 설정 | 높음 |
@@ -36,6 +38,8 @@ category: operations
 
 #### Graceful Shutdown {#graceful-shutdown}
 
+**표 2. Graceful Shutdown 체크리스트**
+
 | 항목 | 확인 사항 | 우선순위 |
 |------|----------|---------|
 | **preStop Hook** | `sleep 5` 추가로 Endpoint 제거 대기 | 필수 |
@@ -47,6 +51,8 @@ category: operations
 
 #### 리소스 및 이미지 {#리소스-및-이미지}
 
+**표 3. 리소스 및 이미지 체크리스트**
+
 | 항목 | 확인 사항 | 우선순위 |
 |------|----------|---------|
 | **리소스 requests/limits** | CPU/메모리 requests 설정 (HPA, VPA 기준) | 필수 |
@@ -56,6 +62,8 @@ category: operations
 | **non-root 사용자** | 컨테이너를 non-root로 실행 | 높음 |
 
 #### 고가용성 {#고가용성}
+
+**표 4. 고가용성 체크리스트**
 
 | 항목 | 확인 사항 | 우선순위 |
 |------|----------|---------|

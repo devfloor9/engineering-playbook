@@ -31,6 +31,8 @@ Regular init containers finish the preparation needed by the application, then e
 
 The diagram shows a retry-enabled Pod. It retries the failed container rather than returning to a completed earlier container. Initialization can run again, for example after Pod recreation, so the work must be safe to repeat.
 
+**Figure 1. Init container execution flow when retries are enabled**
+
 ```mermaid
 flowchart LR
     START[Pod creation] --> INIT1[Init Container 1]
@@ -303,6 +305,8 @@ spec:
 ### Init Container vs Sidecar Container (Kubernetes 1.29+) {#43-init-container-vs-sidecar-container-kubernetes-129}
 
 Native sidecars use the `SidecarContainers` feature, enabled by default since Kubernetes 1.29. An `initContainers` entry with `restartPolicy: Always` keeps running after it starts, allowing initialization to proceed to the next entry.
+
+**Table 1. Init Container vs Sidecar Container (1.29+) characteristics**
 
 | Characteristic | Init Container | Sidecar Container (1.29+) |
 |------|---------------|---------------------------|
