@@ -73,6 +73,8 @@ Amazon EKS 환경의 보안은 단일 방어벽 구축이 아니라 다층 방�
 
 ## 아키텍처 패턴
 
+**그림 1. EKS 다층 방어 보안 아키텍처**
+
 ```mermaid
 graph TB
     subgraph External["External Access"]
@@ -160,6 +162,8 @@ graph TB
 
 EKS 환경에서 컴플라이언스 요구사항은 기술적 통제로 매핑됩니다.
 
+**표 1. 컴플라이언스 요구사항별 EKS 구현 수단**
+
 | 요구사항 | 구현 수단 |
 |----------|----------|
 | 접근 제어 | AWS IAM + Kubernetes RBAC (Access Entry, Pod Identity) |
@@ -184,6 +188,8 @@ AWS 네이티브 서비스로는 SQL 인젝션·XSS 등 웹 공격을 차단하�
 ## 보안 로드맵 2025
 
 ### 최신 보안 기능 (AWS re:Invent 2025)
+
+**표 2. re:Invent 2025 최신 보안 기능별 상태와 영향도**
 
 | 기능 | 상태 | 영향도 |
 |------|------|--------|

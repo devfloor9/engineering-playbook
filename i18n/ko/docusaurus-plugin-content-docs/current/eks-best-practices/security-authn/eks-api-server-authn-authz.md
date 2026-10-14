@@ -36,12 +36,14 @@ sidebar_label: API Server AuthN/AuthZ
 
 아래 표는 Kubernetes API에 제시하는 인증 수단을 비교합니다. **EKS Pod Identity와 IRSA는 AWS 자격 증명을 제공**하며, 별도의 Kubernetes API 인증 방식이 아닙니다. [EKS 접근 제어](https://docs.aws.amazon.com/eks/latest/userguide/cluster-auth.html)를 참고하세요.
 
+**표 1. EKS API Server 인증 방법별 사용 사례와 권장도**
+
 | # | 인증 방법 | 적합한 사용 사례 | 권장도 |
 |---|---------|---------------|-------|
-| ① | **IAM** (aws-iam-authenticator) | AWS 인프라에서 실행되는 시스템, kubectl 사용자 | ⭐⭐⭐ 최우선 권장 |
-| ② | **Kubernetes Service Account Token** | 클러스터 내부 자동화, CI/CD 파이프라인 | ⭐⭐ 외부 시스템에도 활용 가능 |
-| ③ | **외부 OIDC Identity Provider** | 기업 IdP 통합 (Okta, Azure AD, Google 등) | ⭐⭐⭐ 기업 SSO 통합 최적 |
-| ④ | **x509 Client Certificate** | 인증서 기반 인증이 필요한 레거시 시스템 | ⭐ 제한적 (CRL 미지원) |
+| ① | **IAM** (aws-iam-authenticator) | AWS 인프라에서 실행되는 시스템, kubectl 사용자 | 최우선 권장 |
+| ② | **Kubernetes Service Account Token** | 클러스터 내부 자동화, CI/CD 파이프라인 | 외부 시스템에도 활용 가능 |
+| ③ | **외부 OIDC Identity Provider** | 기업 IdP 통합 (Okta, Azure AD, Google 등) | 기업 SSO 통합 최적 |
+| ④ | **x509 Client Certificate** | 인증서 기반 인증이 필요한 레거시 시스템 | 제한적 (CRL 미지원) |
 
 ---
 
@@ -182,11 +184,13 @@ CONFIG_MAP → API_AND_CONFIG_MAP → API
     (단방향, 롤백 불가)
 ```
 
+**표 2. Authentication Mode별 Access Entry·ConfigMap 사용 가능 여부**
+
 | 모드 | Access Entry API | aws-auth ConfigMap | 권장 |
 |-----|:---:|:---:|------|
-| `CONFIG_MAP` | ❌ 사용 불가 | ✅ 사용 | 레거시 |
-| `API_AND_CONFIG_MAP` | ✅ 사용 가능 | ✅ 사용 | ⭐ 마이그레이션 기간 |
-| `API` | ✅ 사용 가능 | ❌ 무시됨 | ⭐⭐ 최종 목표 |
+| `CONFIG_MAP` | 사용 불가 | 사용 | 레거시 |
+| `API_AND_CONFIG_MAP` | 사용 가능 | 사용 | 마이그레이션 기간 |
+| `API` | 사용 가능 | 무시됨 | 최종 목표 |
 
 ### 마이그레이션 단계
 
@@ -218,6 +222,8 @@ Authentication Mode 변경은 **단방향**입니다. `API`로 전환하면 `API
 EKS Auto Mode는 클러스터 인프라 관리를 AWS에 위임하는 운영 모드로, 인증/인가에도 중요한 차이가 있습니다.
 
 ### Auto Mode 인증 특성
+
+**표 3. Auto Mode 사용 여부에 따른 인증 특성 비교**
 
 | 항목 | Auto Mode를 사용하지 않는 EKS | Auto Mode |
 |-----|:---:|:---:|
@@ -274,6 +280,8 @@ aws eks create-access-entry \
 ```bash
 aws eks list-access-policies
 ```
+
+**표 4. 대표 EKS 관리형 Access Policy와 활용 시나리오**
 
 | Policy 이름 | 설명 | 활용 시나리오 |
 |-----------|------|------------|
@@ -334,6 +342,8 @@ Access Policy와 Kubernetes RBAC 권한은 **합집합(Union)**으로 동작합�
 
 ## 6. 종합 권장 아키텍처
 
+**그림 1. 호출자 유형별 EKS API Server 인증·인가 종합 아키텍처**
+
 ```mermaid
 flowchart TB
     subgraph External["외부 시스템 — AWS 인프라"]
@@ -387,6 +397,8 @@ flowchart TB
 
 ### 접근 경로 요약
 
+**표 5. 호출자 유형별 인증·인가 방법 요약**
+
 | 호출자 유형 | 인증 방법 | 인가 방법 | 예시 |
 |-----------|---------|---------|-----|
 | AWS 인프라 외부 시스템 | IAM Role → Access Entry | Access Policy (namespace scope) | CI/CD, 모니터링, 자동화 |
@@ -397,6 +409,8 @@ flowchart TB
 ---
 
 ## 7. 보안 Best Practices 체크리스트
+
+**표 6. 보안 원칙별 구체적 조치**
 
 | 원칙 | 구체적 조치 |
 |-----|----------|

@@ -33,6 +33,8 @@ This document covers DRA from a framework perspective — the core API model, th
 
 Kubernetes' existing extended resource model (Device Plugin) represents devices only as **opaque integer counters** such as `nvidia.com/gpu: 1`. The model is simple and stable, but it cannot express the following requirements.
 
+**Table 1. Requirements the Device Plugin model cannot express**
+
 | Limitation | Description |
 |---|---|
 | **Static registration** | Device count is fixed at node startup. No runtime reconfiguration (e.g., changing partitioning) |
@@ -49,6 +51,8 @@ DRA solves these limitations by having drivers **declare device attributes and c
 
 DRA consists of four objects in the `resource.k8s.io/v1` API group.
 
+**Table 2. The four DRA API objects and their roles**
+
 | Object | Created by | Role |
 |---|---|---|
 | **DeviceClass** | Cluster admin / driver | Defines device categories (e.g., `gpu.nvidia.com`, `mrdma.google.com`) with common selection criteria and configuration |
@@ -57,6 +61,8 @@ DRA consists of four objects in the `resource.k8s.io/v1` API group.
 | **ResourceClaimTemplate** | Workload operator | A template that auto-creates a ResourceClaim per Pod (used with Deployments and other multi-replica workloads) |
 
 ### Allocation Flow
+
+**Figure 1. DRA device allocation flow**
 
 ```mermaid
 flowchart LR
@@ -96,6 +102,8 @@ spec:
 
 ### Version History
 
+**Table 3. DRA status by Kubernetes version**
+
 | K8s version | Status | Notes |
 |---|---|---|
 | 1.26 | Alpha | classic DRA (KEP-3063, later deprecated) |
@@ -109,6 +117,8 @@ The core framework reached GA in 1.34; individual advanced capabilities have var
 ## Resource Types Covered by DRA
 
 DRA's extension point is the driver. Once a vendor or project writes a driver for its device and publishes ResourceSlices, the scheduler allocates it with the same matching logic regardless of device kind.
+
+**Table 4. Resource types covered by DRA and their representative drivers**
 
 | Resource type | Representative driver | Target devices | Maturity (2026.07) |
 |---|---|---|---|
@@ -155,6 +165,8 @@ The ComputeDomain subsystem of the NVIDIA DRA driver abstracts a group of GPUs c
 
 These are DRA-specific capabilities that the Device Plugin model cannot express. Even after core GA (1.34), individual features have differing maturity, so verify before adopting.
 
+**Table 5. DRA-specific advanced capabilities and maturity**
+
 | Capability | Description | Maturity (as of K8s 1.36) |
 |---|---|---|
 | **Prioritized list** (`firstAvailable`) | Ranked alternatives such as "H100 first, otherwise A100" | Stable (1.36) |
@@ -170,6 +182,8 @@ Of these, **multi-heterogeneous-resource coordination** matters most in practice
 
 ### Cluster Requirements
 
+**Table 6. Cluster requirements for adopting DRA**
+
 | Item | Requirement |
 |---|---|
 | Kubernetes version | 1.34+ (DRA core GA, enabled by default). EKS 1.34/1.35 serves `resource.k8s.io/v1` automatically |
@@ -179,6 +193,8 @@ Of these, **multi-heterogeneous-resource coordination** matters most in practice
 | When using beta features | Enable the relevant feature gates and API groups (EKS control plane is managed, so check supported scope) |
 
 ### Device Plugin vs DRA Decision Criteria
+
+**Table 7. Choosing between Device Plugin and DRA by situation**
 
 | Situation | Recommendation |
 |---|---|
