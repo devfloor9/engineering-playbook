@@ -203,6 +203,8 @@ The Gateway API fundamentally resolves the structural vulnerabilities of NGINX I
 
 NGINX Ingress allows arbitrary strings to be injected into annotations, creating serious security risks:
 
+**Figure 4. Arbitrary configuration injection path through NGINX Ingress annotations**
+
 ```mermaid
 flowchart LR
     subgraph nginx["NGINX Ingress Attack Path"]
@@ -242,6 +244,8 @@ These structural problems make it hard for NGINX Ingress to meet production secu
 <TabItem value="gateway" label="✅ Gateway API Structural Resolution">
 
 **1. 3-Tier Role Separation Eliminates Snippets at the Source**
+
+**Figure 5. Gateway API 3-tier role separation**
 
 ```mermaid
 flowchart TB
@@ -303,6 +307,8 @@ rules:
 
 Predefining all fields with an OpenAPI schema makes arbitrary config injection fundamentally impossible:
 
+**Figure 6. HTTPRoute validation flow based on the OpenAPI schema**
+
 ```mermaid
 flowchart LR
     subgraph gw["Gateway API Validation Flow"]
@@ -337,6 +343,8 @@ spec:
 **3. Safe Extension via the Policy Attachment Pattern**
 
 Extension features are separated into dedicated Policy resources, with access controlled by RBAC:
+
+**Figure 7. Extension features separated into a dedicated Policy resource with RBAC access control**
 
 ```mermaid
 flowchart TB
@@ -400,7 +408,7 @@ spec:
 
 ### 3.1 Gateway API Architecture
 
-**Figure 4. Gateway API role-based model**
+**Figure 8. Gateway API role-based model**
 
 ![Gateway API role-based model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/gateway-roles.png)
 
@@ -417,7 +425,7 @@ The Gateway API separates responsibilities across the following layered structur
 <Tabs>
   <TabItem value="overview" label="Role Overview" default>
 
-  **Figure 5. Gateway API resource model layered structure**
+  **Figure 9. Gateway API resource model layered structure**
 
   ![Gateway API resource model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
@@ -512,6 +520,8 @@ The deployment order of Gateway API resources used in real production environmen
 
 <Tabs>
   <TabItem value="overview" label="Deployment Flow" default>
+
+**Figure 10. Deployment flow of the basic Gateway API resources**
 
 ```mermaid
 flowchart LR
@@ -786,7 +796,7 @@ The YAML manifests for each feature across AWS LBC, Cilium, NGINX GF, Envoy Gate
 
 The following decision tree helps select the optimal solution for an organization.
 
-**Figure 6. Implementation selection decision tree**
+**Figure 11. Implementation selection decision tree**
 
 ```mermaid
 flowchart TD

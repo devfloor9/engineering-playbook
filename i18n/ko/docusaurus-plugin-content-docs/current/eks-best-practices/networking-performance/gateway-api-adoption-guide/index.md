@@ -203,6 +203,8 @@ Gateway API는 NGINX Ingress의 구조적 취약점을 근본적으로 해결합
 
 NGINX Ingress는 annotations에 임의 문자열을 주입할 수 있어 심각한 보안 위험을 초래합니다:
 
+**그림 4. NGINX Ingress annotation을 통한 임의 설정 주입 경로**
+
 ```mermaid
 flowchart LR
     subgraph nginx["NGINX Ingress 공격 경로"]
@@ -242,6 +244,8 @@ annotations:
 <TabItem value="gateway" label="✅ Gateway API 구조적 해결">
 
 **1. 3-Tier 역할 분리로 Snippets 원천 차단**
+
+**그림 5. Gateway API의 3-Tier 역할 분리**
 
 ```mermaid
 flowchart TB
@@ -303,6 +307,8 @@ rules:
 
 OpenAPI 스키마로 모든 필드를 사전 정의하여 임의 설정 주입이 원천적으로 불가능합니다:
 
+**그림 6. OpenAPI 스키마 기반 HTTPRoute 검증 흐름**
+
 ```mermaid
 flowchart LR
     subgraph gw["Gateway API 검증 흐름"]
@@ -337,6 +343,8 @@ spec:
 **3. Policy Attachment 패턴으로 안전한 확장**
 
 확장 기능을 별도의 Policy 리소스로 분리하여 RBAC으로 접근을 제어합니다:
+
+**그림 7. 별도 Policy 리소스로 분리한 확장 기능과 RBAC 접근 제어**
 
 ```mermaid
 flowchart TB
@@ -400,7 +408,7 @@ spec:
 
 ### 3.1 Gateway API 아키텍처
 
-**그림 4. Gateway API 역할 기반 모델**
+**그림 8. Gateway API 역할 기반 모델**
 
 ![Gateway API 역할 기반 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/gateway-roles.png)
 
@@ -417,7 +425,7 @@ Gateway API는 다음과 같은 계층 구조로 책임을 분리합니다:
 <Tabs>
   <TabItem value="overview" label="역할 개요" default>
 
-  **그림 5. Gateway API 리소스 모델 계층 구조**
+  **그림 9. Gateway API 리소스 모델 계층 구조**
 
   ![Gateway API 리소스 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
@@ -512,6 +520,8 @@ Gateway API의 6가지 핵심 이점을 시각적 다이어그램과 YAML 예제
 
 <Tabs>
   <TabItem value="overview" label="배포 흐름도" default>
+
+**그림 10. Gateway API 기본 리소스 배포 흐름**
 
 ```mermaid
 flowchart LR
@@ -787,7 +797,7 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 
 다음 의사결정 트리를 통해 조직에 최적의 솔루션을 선택할 수 있습니다.
 
-**그림 6. 구현체 선택 의사결정 트리**
+**그림 11. 구현체 선택 의사결정 트리**
 
 ```mermaid
 flowchart TD
