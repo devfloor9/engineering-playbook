@@ -27,6 +27,8 @@ The **NIST AI Risk Management Framework (AI RMF)** is a voluntary framework for 
 
 GOVERN applies across the other three functions. MAP, MEASURE, and MANAGE are activities repeated throughout the system lifecycle, rather than a fixed certification sequence.
 
+**Figure 1. The four NIST AI RMF functions (GOVERN, MAP, MEASURE, MANAGE) and how they relate**
+
 ```mermaid
 flowchart TB
     accTitle: The four NIST AI RMF functions

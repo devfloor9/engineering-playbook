@@ -27,6 +27,8 @@ sidebar_label: NIST AI RMF
 
 GOVERN은 나머지 세 기능에 걸쳐 적용됩니다. MAP·MEASURE·MANAGE는 순서가 고정된 인증 절차가 아니라 시스템의 수명주기 동안 반복하는 활동입니다.
 
+**그림 1. NIST AI RMF의 4개 기능(GOVERN·MAP·MEASURE·MANAGE)과 관계**
+
 ```mermaid
 flowchart TB
     accTitle: NIST AI RMF의 네 기능
