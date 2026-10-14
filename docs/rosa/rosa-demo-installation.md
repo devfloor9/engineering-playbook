@@ -84,6 +84,8 @@ rosa create cluster --cluster-name rosa-demo-icn \
 
 These are the values recorded in the original document, not a query of a currently running cluster. `Customer Hosted` denotes the Classic account placement; it does not assign control-plane operations to the customer.
 
+**Table 1. Demo cluster basic information**
+
 | Item | Value |
 |------|-------|
 | **Name** | rosa-demo-icn |
@@ -94,6 +96,8 @@ These are the values recorded in the original document, not a query of a current
 
 ### Node Configuration
 
+**Table 2. Node count by type**
+
 | Node Type | Count |
 |-----------|-------|
 | Control Plane | 3 |
@@ -101,6 +105,8 @@ These are the values recorded in the original document, not a query of a current
 | Compute | 2 |
 
 ### Network Configuration
+
+**Table 3. Network configuration settings**
 
 | Setting | Value |
 |---------|-------|
@@ -128,6 +134,8 @@ Operator IAM Roles:
 ```
 
 ### Additional Settings
+
+**Table 4. Additional cluster settings**
 
 | Setting | Value |
 |---------|-------|
@@ -202,6 +210,8 @@ rosa logs install -c rosa-demo-icn --watch
 Retain sanitized CLI versions, applied settings, and installation logs with the lab record. At the end, preserve required data and logs and follow the [official deletion procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html) for the exact lab cluster. Wait for cluster deletion before removing IAM roles or OIDC resources needed for cleanup. Retain account roles, policies, or OIDC configuration shared by other clusters and check for remaining billable resources.
 
 ## Architecture Diagram
+
+**Figure 1. Node, IAM, and network layout of the demo cluster**
 
 ```mermaid
 graph TB

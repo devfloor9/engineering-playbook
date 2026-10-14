@@ -31,6 +31,8 @@ The original note described console-access requirements from a financial institu
 
 ## Current Understanding
 
+**Table 1. Authentication, authorization, and separate checks by access target**
+
 | Access target | Authentication and authorization | Separate check |
 | --- | --- | --- |
 | AWS console and APIs | AWS federation and IAM | Roles and policies for the AWS resources used by ROSA |
@@ -65,6 +67,8 @@ The ROSA cluster separately uses a [supported OAuth IdP](https://docs.aws.amazon
 
 The administrator signs in to HCC through its separately configured corporate IdP. The IdP evaluates configured MFA and login policies and returns an authentication result. OCM then checks permissions for the requested management operation. Direct OpenShift API access follows the cluster's own login and RBAC checks.
 
+**Figure 1. IdP, OCM, and cluster authentication flow at administrator login**
+
 ```mermaid
 sequenceDiagram
     participant A as Administrator
@@ -84,6 +88,8 @@ sequenceDiagram
 
 ### Overall Architecture
 
+**Figure 2. Identity integration across the three access paths**
+
 ```mermaid
 flowchart LR
     A["Administrator"]
@@ -102,6 +108,8 @@ flowchart LR
 Dotted lines represent separate identity integrations. Configuring one does not configure access control for the other two paths.
 
 ## Required Responses
+
+**Table 2. Questions to confirm and the evidence required**
 
 | Question | Evidence required |
 | --- | --- |

@@ -101,6 +101,8 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 
 <RalphMetricMatrix />
 
+**표 1. 모델별 완주·비용·토큰·요청·시간 (완주 run 중앙값)**
+
 <DataTableFrame minWidth="60rem">
 
 | 그룹 | 모델 | 완주 | run당 비용(USD) | 출력 토큰 | 전체 토큰 | LLM 요청 | 랄프 반복 | run 시간(분) |
@@ -171,6 +173,8 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 - Anthropic·OpenAI 모델의 미국 교차 리전 단가는 글로벌 교차 리전 단가보다 10% 높습니다. 공개 Price List API의 us-east-1 데이터(2026-10-10 게시본)에는 이 모델들의 항목이 없었습니다.
 
 ## 실행 비용 [계산]
+
+**표 2. 집계·폐기 실행별 비용 (보고 토큰 × 단가)**
 
 | 구분 | 비용(보고 토큰 × 단가) | 설명 |
 |---|---|---|

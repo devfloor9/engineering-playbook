@@ -84,6 +84,8 @@ rosa create cluster --cluster-name rosa-demo-icn \
 
 아래 값은 원문에 기록된 구성입니다. 현재 실행 중인 클러스터를 조회한 결과가 아닙니다. `Customer Hosted`는 Classic의 계정 배치를 뜻하며, 고객이 컨트롤 플레인 운영을 맡는다는 의미가 아닙니다.
 
+**표 1. 데모 클러스터 기본 정보**
+
 | 항목 | 값 |
 |------|-----|
 | **Name** | rosa-demo-icn |
@@ -94,6 +96,8 @@ rosa create cluster --cluster-name rosa-demo-icn \
 
 ### 노드 구성
 
+**표 2. 노드 타입별 수량**
+
 | 노드 타입 | 수량 |
 |----------|------|
 | Control Plane | 3 |
@@ -101,6 +105,8 @@ rosa create cluster --cluster-name rosa-demo-icn \
 | Compute | 2 |
 
 ### 네트워크 구성
+
+**표 3. 네트워크 구성 설정값**
 
 | 설정 | 값 |
 |------|-----|
@@ -128,6 +134,8 @@ Operator IAM 역할:
 ```
 
 ### 추가 설정
+
+**표 4. 추가 클러스터 설정값**
 
 | 설정 | 값 |
 |------|-----|
@@ -202,6 +210,8 @@ rosa logs install -c rosa-demo-icn --watch
 실습 기록에는 CLI 버전, 적용한 설정과 설치 로그를 비밀값을 제거해 보관합니다. 종료 시 데이터와 필요한 로그를 먼저 보존하고, [공식 삭제 절차](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html)에 따라 정확한 실습 클러스터를 삭제합니다. 클러스터 삭제 완료 전에는 정리에 필요한 IAM 역할·OIDC를 제거하지 않습니다. 다른 클러스터가 공유하는 계정 역할·정책·OIDC 구성은 남겨야 하며, 남은 과금 자원도 확인합니다.
 
 ## 아키텍처 다이어그램
+
+**그림 1. 데모 클러스터의 노드·IAM·네트워크 구성**
 
 ```mermaid
 graph TB
