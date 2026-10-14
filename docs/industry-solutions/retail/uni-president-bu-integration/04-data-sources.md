@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. Data Scale
 
+**Table 1. Scale by data source**
+
 | Item | Scale |
 |---|---|
 | OPENPOINT members | N=5,000 (PII masked) |
@@ -32,6 +34,8 @@ sidebar_label: 04. Data Sources
 → ~900K Neptune edges
 
 ## 2. cohort_tag
+
+**Table 2. cohort_tag values and meanings**
 
 | Value | Meaning |
 |---|---|
@@ -71,6 +75,8 @@ def gen_bu_crossover_member():
 
 ## 5. Seasonal Impact on Cold-Chain SLA
 
+**Table 3. Seasonal impact on cold-chain SLA**
+
 | Event | Impact |
 |---|---|
 | Heatwave (35℃+) | Dairy SLA breach rate +40% |
@@ -78,6 +84,8 @@ def gen_bu_crossover_member():
 | Lunar New Year (春節) | -3-day cold-chain delay due to holiday closures |
 
 ## 6. Ingestion Pipeline
+
+**Figure 1. Data ingestion pipeline**
 
 ```mermaid
 graph LR

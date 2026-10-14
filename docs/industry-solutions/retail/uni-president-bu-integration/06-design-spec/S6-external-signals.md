@@ -18,6 +18,8 @@ sidebar_label: S6. External Signals
 
 ## 4 External Sources
 
+**Table 1. 4 external signal types and sources**
+
 | Type | Source |
 |---|---|
 | Social | Dcard · Xiaohongshu (小紅書) · Instagram · X |

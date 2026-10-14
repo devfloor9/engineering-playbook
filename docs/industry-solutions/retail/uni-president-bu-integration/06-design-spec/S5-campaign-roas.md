@@ -20,6 +20,9 @@ sidebar_label: S5. Campaign ROAS
 - OPENPOINT app push · KakaoTalk / Line · 7ELE in-store display · Carrefour flyer · Starbucks card earning · SNS ads · live streaming
 
 ## Data Mix
+
+**Table 1. Data mix and sources**
+
 | Data | Source |
 |---|---|
 | Historical campaigns | CAMPAIGN_MART |

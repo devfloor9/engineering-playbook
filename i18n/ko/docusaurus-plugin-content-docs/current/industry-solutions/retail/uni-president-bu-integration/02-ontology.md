@@ -16,6 +16,8 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
+**표 1. KG 25 클래스 그룹**
+
 | 그룹 | 클래스 |
 |---|---|
 | **고객/회원** | Customer · **OPENPOINTMembership** · Household · Persona · Segment |
@@ -27,26 +29,40 @@ sidebar_label: 02. Ontology
 ## Uni-President 특화 클래스
 
 ### OPENPOINTMembership
+
+**표 2. OPENPOINTMembership 속성**
+
 | 속성 |
 |---|
 | member_id · grade · joined_at · 자사 BU 교차 사용 횟수 |
 
 ### OwnSKU (자사 제조)
+
+**표 3. OwnSKU 속성**
+
 | 속성 |
 |---|
 | sku · 제조 BU · 출하 채널 (7ELE/까르푸/외부) · 콜드체인 여부 |
 
 ### BUTransfer (BU 간 행동)
+
+**표 4. BUTransfer 속성**
+
 | 속성 |
 |---|
 | transfer_id · member_id · from_BU · to_BU · within_days · category |
 
 ### ColdChainSLA
+
+**표 5. ColdChainSLA 속성**
+
 | 속성 |
 |---|
 | shipment_id · sku · 출하 BU · 도착 매장 · target_temp · actual_temp · breach |
 
 ## 핵심 관계 (BU 가로지르기 강조)
+
+**그림 1. BU를 가로지르는 핵심 엔티티 관계**
 
 ```mermaid
 graph LR
@@ -105,6 +121,9 @@ ORDER BY breach DESC
 ```
 
 ## 인덱스
+
+**표 6. OpenSearch 인덱스와 분석기**
+
 | 인덱스 | 분석기 |
 |---|---|
 | `idx_product` | Smartcn |

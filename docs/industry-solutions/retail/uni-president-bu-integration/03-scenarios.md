@@ -16,6 +16,10 @@ tags:
 sidebar_label: 03. Scenarios
 ---
 
+Specialized scenarios are marked with "(specialized)" after the code.
+
+**Table 1. 11 scenarios and primary personas**
+
 | # | Scenario | URL | Primary Persona |
 |---|---|---|---|
 | S1 | Natural-language semantic search | `/semantic-search` | P1, P5 |
@@ -26,19 +30,23 @@ sidebar_label: 03. Scenarios
 | S6 | External-signal fusion | `/signals` | P2 |
 | S7 | Omnichannel member journey | `/journey` | P4 |
 | S8 | Guardrails | `/compliance` | P4 |
-| **S9-U** ⭐ | Cross-BU OPENPOINT member journey | `/bu-journey` | P1, P2 |
-| **S10-U** ⭐ | Own-manufactured SKU vs own-channel sell-through | `/own-sku` | P5 |
-| **S11-U** ⭐ | Cold-chain · logistics SLA + store ordering | `/cold-chain` | P5 |
+| **S9-U** (specialized) | Cross-BU OPENPOINT member journey | `/bu-journey` | P1, P2 |
+| **S10-U** (specialized) | Own-manufactured SKU vs own-channel sell-through | `/own-sku` | P5 |
+| **S11-U** (specialized) | Cold-chain · logistics SLA + store ordering | `/cold-chain` | P5 |
 
 ## Persona Matrix
 
+"Yes" means the department uses that scenario; a blank cell means it does not.
+
+**Table 2. Scenario usage matrix by department**
+
 | Department | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 | S9-U | S10-U | S11-U |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| P1 | ⭐ | ⭐ |  |  | ⭐ |  |  |  | ⭐ |  |  |
-| P2 |  | ⭐ |  | ⭐ |  | ⭐ |  |  | ⭐ |  |  |
-| P3 |  | ⭐ | ⭐ |  |  | ⭐ |  |  |  |  |  |
-| P4 |  | ⭐ |  |  |  |  | ⭐ | ⭐ |  |  |  |
-| P5 | ⭐ | ⭐ |  |  |  |  |  |  |  | ⭐ | ⭐ |
+| P1 | Yes | Yes |  |  | Yes |  |  |  | Yes |  |  |
+| P2 |  | Yes |  | Yes |  | Yes |  |  | Yes |  |  |
+| P3 |  | Yes | Yes |  |  | Yes |  |  |  |  |  |
+| P4 |  | Yes |  |  |  |  | Yes | Yes |  |  |  |
+| P5 | Yes | Yes |  |  |  |  |  |  |  | Yes | Yes |
 
 ## Top-5 Demo Path (30 min)
 
@@ -61,6 +69,9 @@ sidebar_label: 03. Scenarios
 ```
 
 ## PoC Schedule (8 weeks)
+
+**Table 3. PoC 8-week schedule**
+
 | Week | Work |
 |---|---|
 | 1-2 | Load 5-BU data + OPENPOINT |

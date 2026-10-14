@@ -18,6 +18,8 @@ sidebar_label: S2. Persona Chatbot
 
 ## 12 Tools
 
+**Table 1. The 12 agent tools**
+
 | Tool | Description |
 |---|---|
 | `semantic_search` | OpenSearch BM25 + KNN + rerank |
@@ -34,6 +36,9 @@ sidebar_label: S2. Persona Chatbot
 | `pii_mask` | PII |
 
 ## Per-Persona Variations
+
+**Table 2. Primary tools by persona**
+
 | P | Primary Tools |
 |---|---|
 | P1 | bu_crossover · campaign_simulator |

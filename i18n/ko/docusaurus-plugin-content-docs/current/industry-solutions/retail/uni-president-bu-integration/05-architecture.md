@@ -20,6 +20,8 @@ sidebar_label: 05. Architecture
 
 ## 1. 아키텍처
 
+**그림 1. AWS 단일 아키텍처 구성**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -68,6 +70,8 @@ graph TB
 
 ## 2. UPI 특화 컴포넌트
 
+**표 1. UPI 특화 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **Glue (BU 간 ETL)** | 5 BU의 별도 OMS·ERP를 매일 통합 → Neptune (S9-U 핵심) |
@@ -77,6 +81,8 @@ graph TB
 
 ## 3. 보안·거버넌스
 
+**표 2. 보안·거버넌스 항목과 구현**
+
 | 항목 | 구현 |
 |---|---|
 | 인증 | Cognito + Lambda@Edge |
@@ -85,6 +91,9 @@ graph TB
 | 가드레일 | 4 토픽 + 미성년 + PDPA + BU 영업 정보 분리 |
 
 ## 4. 비용 (8주 PoC)
+
+**표 3. 8주 PoC 월 비용 추정**
+
 | 항목 | 추정 |
 |---|---|
 | Bedrock + Cohere | $1.8K/월 |

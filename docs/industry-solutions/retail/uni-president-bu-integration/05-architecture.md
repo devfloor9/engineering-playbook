@@ -20,6 +20,8 @@ sidebar_label: 05. Architecture
 
 ## 1. Architecture
 
+**Figure 1. AWS single-architecture layout**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -68,6 +70,8 @@ graph TB
 
 ## 2. UPI-Specific Components
 
+**Table 1. UPI-specific components and roles**
+
 | Component | Role |
 |---|---|
 | **Glue (cross-BU ETL)** | Daily integration of separate OMS · ERP systems across 5 BUs → Neptune (core of S9-U) |
@@ -77,6 +81,8 @@ graph TB
 
 ## 3. Security · Governance
 
+**Table 2. Security and governance items and implementation**
+
 | Item | Implementation |
 |---|---|
 | Authentication | Cognito + Lambda@Edge |
@@ -85,6 +91,9 @@ graph TB
 | Guardrails | 4 topics + minors + PDPA + BU commercial-information segregation |
 
 ## 4. Cost (8-Week PoC)
+
+**Table 3. Estimated monthly cost for the 8-week PoC**
+
 | Item | Estimate |
 |---|---|
 | Bedrock + Cohere | $1.8K/month |

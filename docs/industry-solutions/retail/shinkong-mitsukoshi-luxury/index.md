@@ -17,7 +17,7 @@ VIP membership across 19 Shinkong Mitsukoshi stores, 700+ luxury tenant brands, 
 
 ---
 
-## 🚀 Interactive Demo
+## Interactive Demo
 
 > <strong><a href="/engineering-playbook/demo/mitsukoshi/" target="_blank" rel="noopener noreferrer">👉 Open demo page (new window)</a></strong>
 
@@ -26,6 +26,8 @@ Switch between 11 scenarios from the sidebar to experience the persona switcher,
 ---
 
 ## 1. PoC One-Line Summary
+
+**Table 1. PoC audience, scope, and method summary**
 
 | Axis | Description |
 |---|---|
@@ -39,6 +41,8 @@ Switch between 11 scenarios from the sidebar to experience the persona switcher,
 
 ## 2. Business Structure (Public Information)
 
+**Table 2. Business structure (public information)**
+
 | Axis | Description |
 |---|---|
 | Stores | 19 (Taipei Xinyi/A11/A8/A9/A4 + Taichung/Tainan/Kaohsiung/Taoyuan/Chiayi) |
@@ -50,6 +54,8 @@ Switch between 11 scenarios from the sidebar to experience the persona switcher,
 ---
 
 ## 3. 5-Department Personas
+
+**Table 3. 5-department personas and KPIs**
 
 | Code | Department | KPI |
 |---|---|---|
@@ -63,6 +69,10 @@ Switch between 11 scenarios from the sidebar to experience the persona switcher,
 
 ## 4. 11 Scenarios (One-Line Summary)
 
+Specialized scenarios are marked with "(specialized)" after the code.
+
+**Table 4. 11 scenarios and data mix**
+
 | # | Scenario | Data Mix |
 |---|---|---|
 | **S1** | Natural-language semantic search | Tenant brand SKU + members + external reviews (Xiaohongshu, Dcard) |
@@ -73,9 +83,9 @@ Switch between 11 scenarios from the sidebar to experience the persona switcher,
 | **S6** | External signal fusion (4 types) | First-party GMV × 4 external signals (including tourism metrics) |
 | **S7** | Omnichannel member journey | First-party online → store → duty-free → repeat visit |
 | **S8** | Marketing consent / PII guardrails | Bedrock Guardrails + duty-free regulations |
-| **S9-M** ⭐ | **Foreign tourist behavior analysis + duty-free recommendation** | Passport, nationality, FX, tourism |
-| **S10-M** ⭐ | **Luxury brand SOV + counter occupancy** | 700+ tenant brands × stores × seasons |
-| **S11-M** ⭐ | **VIP tier lounge concierge** | Black/Platinum/Gold recommendations and pre-sale |
+| **S9-M** (specialized) | **Foreign tourist behavior analysis + duty-free recommendation** | Passport, nationality, FX, tourism |
+| **S10-M** (specialized) | **Luxury brand SOV + counter occupancy** | 700+ tenant brands × stores × seasons |
+| **S11-M** (specialized) | **VIP tier lounge concierge** | Black/Platinum/Gold recommendations and pre-sale |
 
 ---
 
@@ -87,12 +97,16 @@ Same as LG H&H + multilingual (Traditional Chinese, Japanese, English), live FX 
 
 ## 6. Top-5 Demo Flow (30 minutes)
 
+Specialized scenarios are marked with "(specialized)" after the code.
+
+**Table 5. Top-5 demo flow (30 minutes)**
+
 | Order | Scenario | Demo Highlight | Time |
 |---|---|---|---|
 | 1 | **S1** Semantic search | "Female in her 30s + LV/Chanel + Anniversary Sale 50% off" | 4 min |
-| 2 | **S9-M** ⭐ Foreigner duty-free | "Japanese tourist in her 30s → duty-free recommendation + FX-aware" | 5 min |
-| 3 | **S10-M** ⭐ Luxury SOV | "Hermes vs Chanel counter occupancy by store" | 4 min |
-| 4 | **S11-M** ⭐ VIP concierge | "Pre-sale recommendation for a Black-tier member" | 5 min |
+| 2 | **S9-M** (specialized) Foreigner duty-free | "Japanese tourist in her 30s → duty-free recommendation + FX-aware" | 5 min |
+| 3 | **S10-M** (specialized) Luxury SOV | "Hermes vs Chanel counter occupancy by store" | 4 min |
+| 4 | **S11-M** (specialized) VIP concierge | "Pre-sale recommendation for a Black-tier member" | 5 min |
 | 5 | **S2** Persona chatbot | "Anniversary Sale ROAS" P1 vs P5 comparison | 4 min |
 
 Details: [99. Demo Storytelling](./99-demo-storytelling.md)

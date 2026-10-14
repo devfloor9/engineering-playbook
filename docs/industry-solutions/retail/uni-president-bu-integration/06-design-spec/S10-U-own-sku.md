@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-U. Own SKU
 ---
 
-> **Uni-President differentiator** ⭐ — the core of manufacturing-distribution vertical integration: analyze how own Uni-President Food SKUs turn over in own channels (7ELE · Carrefour) versus external channels.
+> **Uni-President differentiator** — the core of manufacturing-distribution vertical integration: analyze how own Uni-President Food SKUs turn over in own channels (7ELE · Carrefour) versus external channels.
 
 ## 1. URL · Persona
 - `/own-sku` · P5 (Manufacturing · Logistics · Stores)
@@ -25,6 +25,9 @@ sidebar_label: S10-U. Own SKU
 > P5 — Compare Uni-President Mai-Hsiang (麥香) oolong-tea sell-through across 7ELE vs Carrefour vs external (FamilyMart · Hi-Life) + decide shipment priority for new SKUs.
 
 ## 3. Data Mix
+
+**Table 1. Data mix and sources**
+
 | Data | Source |
 |---|---|
 | OwnSKU (own-manufactured) | Neptune (~5K SKUs) |

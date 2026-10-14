@@ -16,6 +16,8 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
+**Table 1. KG 25-class groups**
+
 | Group | Classes |
 |---|---|
 | **Customer / Member** | Customer · **OPENPOINTMembership** · Household · Persona · Segment |
@@ -27,26 +29,40 @@ sidebar_label: 02. Ontology
 ## Uni-President-Specific Classes
 
 ### OPENPOINTMembership
+
+**Table 2. OPENPOINTMembership attributes**
+
 | Attributes |
 |---|
 | member_id · grade · joined_at · cross-BU usage count |
 
 ### OwnSKU (Own-Manufactured)
+
+**Table 3. OwnSKU attributes**
+
 | Attributes |
 |---|
 | sku · manufacturing BU · shipment channels (7ELE / Carrefour / external) · cold-chain flag |
 
 ### BUTransfer (Cross-BU Behavior)
+
+**Table 4. BUTransfer attributes**
+
 | Attributes |
 |---|
 | transfer_id · member_id · from_BU · to_BU · within_days · category |
 
 ### ColdChainSLA
+
+**Table 5. ColdChainSLA attributes**
+
 | Attributes |
 |---|
 | shipment_id · sku · origin BU · destination store · target_temp · actual_temp · breach |
 
 ## Key Relationships (Cross-BU Emphasized)
+
+**Figure 1. Core entity relationships across BUs**
 
 ```mermaid
 graph LR
@@ -105,6 +121,9 @@ ORDER BY breach DESC
 ```
 
 ## Indexes
+
+**Table 6. OpenSearch indexes and analyzers**
+
 | Index | Analyzer |
 |---|---|
 | `idx_product` | Smartcn |

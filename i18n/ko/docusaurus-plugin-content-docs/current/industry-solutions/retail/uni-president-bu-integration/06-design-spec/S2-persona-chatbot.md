@@ -18,6 +18,8 @@ sidebar_label: S2. Persona Chatbot
 
 ## 도구 12종
 
+**표 1. 에이전트 도구 12종**
+
 | 도구 | 설명 |
 |---|---|
 | `semantic_search` | OpenSearch BM25+KNN+Rerank |
@@ -34,6 +36,9 @@ sidebar_label: S2. Persona Chatbot
 | `pii_mask` | PII |
 
 ## 페르소나별 변형
+
+**표 2. 페르소나별 주 도구**
+
 | P | 주 도구 |
 |---|---|
 | P1 | bu_crossover · campaign_simulator |

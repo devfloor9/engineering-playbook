@@ -18,6 +18,8 @@ sidebar_label: S3. Insight Cards
 
 ## 카드 프리셋
 
+**표 1. 인사이트 카드 프리셋**
+
 | 카드 | 데이터 |
 |---|---|
 | 월별 BU GMV (5 BU 비교) | All Transactions × BU |
@@ -28,6 +30,8 @@ sidebar_label: S3. Insight Cards
 | 경쟁사 (FamilyMart) 캠페인 영향 | CompetitorSignal annotation |
 
 ## 페르소나별 코멘트 차이
+
+**표 2. 페르소나별 BU GMV 코멘트 차이**
 
 | P | BU GMV 코멘트 |
 |---|---|

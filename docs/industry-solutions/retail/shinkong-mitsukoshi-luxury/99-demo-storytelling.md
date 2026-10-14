@@ -17,7 +17,10 @@ sidebar_label: 99. Demo Storytelling
 ---
 
 ## 0. Pre-Demo Checklist
-| ✅ | Top-5 responses within 1 minute / multilingual / live FX / tourism metrics |
+
+**Table 1. Pre-demo readiness check**
+
+| Ready | Top-5 responses within 1 minute / multilingual / live FX / tourism metrics |
 
 ## 1. Opening (3 min)
 > "Today's demo unifies Mitsukoshi's **VIP membership, foreign duty-free, and 700+ luxury tenant brands** into a single KG and operationalizes it from the perspective of 5 departments. **This is not a concept** — it runs on N=2K real members + N=500 Foreigners + 49.5K synthetic + live 4 external signals."
@@ -34,16 +37,16 @@ sidebar_label: 99. Demo Storytelling
 - P1 → "Female in her 30s + LV/Chanel + Anniversary Sale 50% off"
 - Result: SKU + members + external reviews
 
-### Step 2 — S9-M Foreigner Duty-Free ⭐ (5 min)
+### Step 2 — S9-M Foreigner Duty-Free (5 min)
 - P2 → "Japanese female in her 30s behavior + FX-aware"
 - Result: Foreigner profile + recommendations + FX fluctuations
 - Highlight: "Automatic simulation of weak-yen impact"
 
-### Step 3 — S10-M Luxury SOV ⭐ (4 min)
+### Step 3 — S10-M Luxury SOV (4 min)
 - P5 → "Xinyi store 1F LV vs Hermes counter occupancy"
 - Result: GMV comparison + turnover + counter re-layout recommendation
 
-### Step 4 — S11-M VIP Concierge ⭐ (5 min)
+### Step 4 — S11-M VIP Concierge (5 min)
 - P4 → "One Black member + pre-sale recommendation"
 - Result: Member profile + concierge chatbot
 - Highlight: "1:1 concierge automation — no other company offers this"
@@ -58,6 +61,9 @@ sidebar_label: 99. Demo Storytelling
 - Wrap-up + next steps (Discovery 2 weeks → PoC 8 weeks → Operations 12 weeks)
 
 ## 5. Q&A
+
+**Table 2. Anticipated questions and answers**
+
 | Question | Answer |
 |---|---|
 | Tenant brand data agreements? | Counter GMV is first-party; brand metadata is public and separated by tenant consent |

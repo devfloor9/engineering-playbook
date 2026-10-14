@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-U. BU Crossover
 ---
 
-> **Uni-President 차별 포인트** ⭐ (PoC 결정적 한 컷) — 한 OPENPOINT 회원이 5 BU(7ELE/까르푸/Starbucks/Donut/KFC)를 어떻게 가로지르는지 단일 KG로 시각화·분석.
+> **Uni-President 차별 포인트** (PoC 결정적 한 컷) — 한 OPENPOINT 회원이 5 BU(7ELE/까르푸/Starbucks/Donut/KFC)를 어떻게 가로지르는지 단일 KG로 시각화·분석.
 
 ## 1. URL · 페르소나
 - `/bu-journey` · P1 (통합 마케팅), P2 (CMI)
@@ -27,6 +27,9 @@ sidebar_label: S9-U. BU Crossover
 > P2 — "7ELE 음료 충성층 → 까르푸로 이동하는 카테고리"의 통계적 패턴.
 
 ## 3. 데이터 믹스
+
+**표 1. 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | OPENPOINTMembership | Neptune |

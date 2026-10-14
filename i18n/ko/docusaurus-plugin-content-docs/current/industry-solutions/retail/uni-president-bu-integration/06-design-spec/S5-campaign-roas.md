@@ -20,6 +20,9 @@ sidebar_label: S5. Campaign ROAS
 - OPENPOINT 앱 푸시 · 카톡/Line · 7ELE 매장 디스플레이 · 까르푸 전단 · Starbucks 카드 적립 ·  SNS 광고 · 라이브
 
 ## 데이터 믹스
+
+**표 1. 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | 과거 캠페인 | CAMPAIGN_MART |

@@ -16,6 +16,8 @@ tags:
 sidebar_label: 01. Personas
 ---
 
+**Table 1. 5-department personas with KPIs and primary scenarios**
+
 | Code | Department | Mission | KPI | Primary Scenarios |
 |---|---|---|---|---|
 | **P1** | Integrated Marketing (cross-BU) | Drive OPENPOINT campaigns & cross-BU usage | Campaign ROAS / cross-BU share | S1·S2·S5·**S9-U** |

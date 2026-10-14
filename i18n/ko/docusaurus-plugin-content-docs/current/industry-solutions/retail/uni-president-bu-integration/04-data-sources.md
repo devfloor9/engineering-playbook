@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. 데이터 규모
 
+**표 1. 데이터 소스별 규모**
+
 | 항목 | 규모 |
 |---|---|
 | OPENPOINT 회원 | N=5,000 (PII 마스킹) |
@@ -32,6 +34,8 @@ sidebar_label: 04. Data Sources
 → ~900K Neptune edges
 
 ## 2. cohort_tag
+
+**표 2. cohort_tag 값과 의미**
 
 | 값 | 의미 |
 |---|---|
@@ -71,6 +75,8 @@ def gen_bu_crossover_member():
 
 ## 5. 콜드체인 SLA 시즌 영향
 
+**표 3. 콜드체인 SLA 시즌 영향**
+
 | 이벤트 | 영향 |
 |---|---|
 | 폭염 (35℃+) | 우유·유제품 SLA 위반률 +40% |
@@ -78,6 +84,8 @@ def gen_bu_crossover_member():
 | 春節 | 명절 휴무로 콜드체인 -3일 지연 |
 
 ## 6. 적재 파이프라인
+
+**그림 1. 데이터 적재 파이프라인**
 
 ```mermaid
 graph LR

@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-U. Cold Chain
 ---
 
-> **Uni-President 차별 포인트** ⭐ — 자체 물류 (President Transnet) 콜드체인은 우유·아이스크림·도시락 등 핵심 SKU의 품질 직결. 외기온 결합 + 매장 발주 최적화.
+> **Uni-President 차별 포인트** — 자체 물류 (President Transnet) 콜드체인은 우유·아이스크림·도시락 등 핵심 SKU의 품질 직결. 외기온 결합 + 매장 발주 최적화.
 
 ## 1. URL · 페르소나
 - `/cold-chain` · P5 (제조·물류·점포)
@@ -25,6 +25,9 @@ sidebar_label: S11-U. Cold Chain
 > P5 — 남부 폭염 35℃+ 시 우유·유제품 콜드체인 SLA 위반률 + 매장 발주 보정 권고.
 
 ## 3. 데이터 믹스
+
+**표 1. 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | ColdChainSLA 로그 | TimeStream (~50K) |

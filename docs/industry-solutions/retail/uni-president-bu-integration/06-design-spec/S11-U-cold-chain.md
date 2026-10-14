@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-U. Cold Chain
 ---
 
-> **Uni-President differentiator** ⭐ — the in-house logistics arm (President Transnet) runs the cold chain that directly determines quality for core SKUs (dairy, ice cream, bento). Combines outdoor temperature + store-order optimization.
+> **Uni-President differentiator** — the in-house logistics arm (President Transnet) runs the cold chain that directly determines quality for core SKUs (dairy, ice cream, bento). Combines outdoor temperature + store-order optimization.
 
 ## 1. URL · Persona
 - `/cold-chain` · P5 (Manufacturing · Logistics · Stores)
@@ -25,6 +25,9 @@ sidebar_label: S11-U. Cold Chain
 > P5 — At southern heatwaves of 35℃+, derive the dairy cold-chain SLA breach rate + store-order correction recommendations.
 
 ## 3. Data Mix
+
+**Table 1. Data mix and sources**
+
 | Data | Source |
 |---|---|
 | ColdChainSLA logs | TimeStream (~50K) |

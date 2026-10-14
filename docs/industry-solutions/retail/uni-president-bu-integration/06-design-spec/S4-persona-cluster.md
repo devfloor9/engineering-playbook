@@ -18,6 +18,8 @@ sidebar_label: S4. Persona & Cluster
 
 ## 5 Lifestyle Personas
 
+**Table 1. 5 lifestyle personas and signals**
+
 | Persona | Signal |
 |---|---|
 | Daily CVS Shopper | Daily 7ELE + beverages · bento |

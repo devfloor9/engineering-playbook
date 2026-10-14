@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-U. BU Crossover
 ---
 
-> **Uni-President differentiator** ⭐ (the PoC's decisive moment) — visualize and analyze, in a single KG, how one OPENPOINT member crosses 5 BUs (7ELE / Carrefour / Starbucks / Donut / KFC).
+> **Uni-President differentiator** (the PoC's decisive moment) — visualize and analyze, in a single KG, how one OPENPOINT member crosses 5 BUs (7ELE / Carrefour / Starbucks / Donut / KFC).
 
 ## 1. URL · Persona
 - `/bu-journey` · P1 (Integrated Marketing), P2 (CMI)
@@ -27,6 +27,9 @@ sidebar_label: S9-U. BU Crossover
 > P2 — Statistical pattern of "the categories where 7ELE beverage loyalists migrate to Carrefour."
 
 ## 3. Data Mix
+
+**Table 1. Data mix and sources**
+
 | Data | Source |
 |---|---|
 | OPENPOINTMembership | Neptune |

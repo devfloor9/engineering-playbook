@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-U. Own SKU
 ---
 
-> **Uni-President 차별 포인트** ⭐ — 제조-유통 수직 통합의 핵심: 자사 統一食品 SKU가 자사 채널(7ELE·까르푸)에서 외부 채널 대비 어떻게 회전하는지 분석.
+> **Uni-President 차별 포인트** — 제조-유통 수직 통합의 핵심: 자사 統一食品 SKU가 자사 채널(7ELE·까르푸)에서 외부 채널 대비 어떻게 회전하는지 분석.
 
 ## 1. URL · 페르소나
 - `/own-sku` · P5 (제조·물류·점포)
@@ -25,6 +25,9 @@ sidebar_label: S10-U. Own SKU
 > P5 — 統一 麥香 우롱차의 7ELE vs 까르푸 vs 외부 (FamilyMart·Hi-Life) sell-through를 비교 + 신상 出荷 우선순위 결정.
 
 ## 3. 데이터 믹스
+
+**표 1. 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | OwnSKU (자사 제조) | Neptune (~5K SKU) |

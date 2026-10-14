@@ -18,6 +18,8 @@ sidebar_label: S3. Insight Cards
 
 ## Card Presets
 
+**Table 1. Insight card presets**
+
 | Card | Data |
 |---|---|
 | Monthly BU GMV (5-BU comparison) | All Transactions × BU |
@@ -28,6 +30,8 @@ sidebar_label: S3. Insight Cards
 | Competitor (FamilyMart) campaign impact | CompetitorSignal annotation |
 
 ## Per-Persona Commentary Differences
+
+**Table 2. Per-persona differences in BU GMV commentary**
 
 | P | BU GMV Commentary |
 |---|---|
