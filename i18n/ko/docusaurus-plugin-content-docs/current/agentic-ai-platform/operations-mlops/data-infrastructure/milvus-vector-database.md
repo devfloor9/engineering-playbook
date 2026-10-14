@@ -42,6 +42,8 @@ Agentic AI 시스템에서 벡터 데이터베이스는 다음과 같은 역할�
 - **컨텍스트 제공**: LLM에 관련 정보를 제공하여 환각(hallucination) 감소
 - **장기 메모리**: Agent의 대화 히스토리 및 학습 내용 저장
 
+**그림 1. RAG 요청 처리 흐름**
+
 ```mermaid
 flowchart LR
     Q[사용자<br/>쿼리]
@@ -66,6 +68,8 @@ flowchart LR
 ## 2. Milvus 클러스터 아키텍처
 
 ### 분산 아키텍처 구성요소
+
+**그림 2. Milvus 분산 아키텍처 구성요소**
 
 ```mermaid
 flowchart TB

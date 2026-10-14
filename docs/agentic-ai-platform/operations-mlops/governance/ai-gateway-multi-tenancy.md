@@ -33,6 +33,8 @@ Multi-tenancy lets organizations, teams, and users share LLM infrastructure whil
 
 In large organizations, LLM platforms are shared by multiple organizations, teams, and projects using a **single inference infrastructure**. This requires solving the following problems:
 
+**Table 1. Challenges of shared infrastructure and gateway multi-tenancy solutions**
+
 | Challenge | Gateway Multi-Tenancy Solution |
 |---------|---------------------------|
 | **Budget Explosion**: One team's excessive usage exhausts entire budget | Team-level hard limit budgets, block on exceed |
@@ -58,6 +60,8 @@ LiteLLM Proxy supports **hierarchical budget and rate limit configuration**, ena
 ### Hierarchical Structure and Budget Policies
 
 LiteLLM allows setting budgets and rate limits at the following levels:
+
+**Table 2. LiteLLM budget/limit scope by level**
 
 | Level | Configuration Target | Budget/Limit Scope | Example |
 |------|----------|-------------------|------|
@@ -101,6 +105,8 @@ Kong AI Gateway implements multi-tenancy through **Consumer/Consumer Group** bas
 
 Kong's multi-tenancy consists of the following entities:
 
+**Table 3. Kong multi-tenancy entities and policy application scope**
+
 | Entity | Role | Policy Application Scope |
 |--------|------|---------------|
 | **Consumer** | Individual clients identified by API keys or JWT | Consumer-level rate limit, ACL |
@@ -121,6 +127,8 @@ Match conditions can be combined with **AND logic**, enabling multi-dimensional 
 
 Kong's most powerful feature is **token-level Rate Limiting**. Traditional request count (QPM) limits are inaccurate in LLM environments where each request has different costs. Kong supports four token counting strategies:
 
+**Table 4. Kong token counting strategies by calculation basis and use case**
+
 | Strategy | Calculation Basis | Use Case |
 |------|----------|----------|
 | `total_tokens` | Prompt + completion token sum | General throughput control |
@@ -133,6 +141,8 @@ Since the LLM must generate a response to know the token count, token costs are 
 :::
 
 ### Fundamental Differences Between Kong and LiteLLM
+
+**Table 5. Kong AI Gateway vs LiteLLM architecture comparison**
 
 | Item | LiteLLM | Kong AI Gateway |
 |------|---------|-----------------|
@@ -153,6 +163,8 @@ This guide evaluates LiteLLM and Kong as alternatives for a single gateway. It d
 
 ### Selection Decision Tree
 
+**Figure 1. LiteLLM vs Kong selection decision tree**
+
 ```mermaid
 flowchart TD
     START[Gateway Selection] --> Q1{Existing Kong<br/>Operations?}
@@ -170,6 +182,8 @@ flowchart TD
 ```
 
 ### Selection Criteria Table
+
+**Table 6. LiteLLM/Kong selection criteria and reasons by condition**
 
 | Condition | Recommendation | Reason |
 |------|------|------|
@@ -195,6 +209,8 @@ Multi-tenancy is insufficient with **gateway isolation** alone. Data and observa
 
 ### Isolation Layers
 
+**Figure 2. Three-tier tenant isolation model**
+
 ```mermaid
 flowchart LR
     REQ[Tenant A Request] --> L1[① Gateway Isolation<br/>Key·Budget·Model Access]
@@ -208,6 +224,8 @@ flowchart LR
 ```
 
 ### ① Gateway Isolation
+
+**Table 7. LiteLLM/Kong implementation by gateway isolation target**
 
 | Isolation Target | LiteLLM Implementation | Kong Implementation |
 |----------|-------------|----------|
@@ -255,6 +273,8 @@ langfuse_context.update_current_observation(
 How to respond when tenants exceed budgets is a **policy choice**. Various strategies can be combined, including hard blocking, soft alerts, and model downgrading.
 
 ### Policy Patterns
+
+**Table 8. Budget-exceed response policy patterns and implementation**
 
 | Policy | Behavior | Use Case | Implementation |
 |------|------|----------|------|

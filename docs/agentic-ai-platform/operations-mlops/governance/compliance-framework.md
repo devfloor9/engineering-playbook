@@ -27,6 +27,8 @@ Provides compliance frameworks and practical mapping guides that must be followe
 Traditional IT compliance deals with **static systems**, while AI compliance deals with **non-deterministic, learning systems**.
 :::
 
+**Table 1. Traditional IT compliance vs AI operations compliance**
+
 | Area | Traditional IT Compliance | AI Operations Compliance |
 |------|--------------------------|-------------------------|
 | **Predictability** | Code → Same input = Same output | Model → Same input may produce varying outputs |
@@ -54,6 +56,8 @@ These risks must be mapped to existing compliance frameworks to establish **acti
 SOC2 (Service Organization Control 2) is a global standard for verifying cloud service security, availability, and confidentiality.
 
 ### SOC2 Control Mapping Table
+
+**Table 2. SOC2 control mapping to AI operations implementation and technology stack**
 
 | SOC2 Control | Trust Criteria | AI Operations Implementation | Technology Stack |
 |-------------|----------------|---------------------------|-----------------|
@@ -107,6 +111,8 @@ ISO27001 is the international standard for Information Security Management Syste
 
 ### ISO27001 Control Mapping Table
 
+**Table 3. ISO27001 Annex A control mapping to AI operations implementation and technology stack**
+
 | Annex A | Control Area | AI Operations Implementation | Technology Stack |
 |---------|-------------|---------------------------|-----------------|
 | **A.8** | Asset management | Model registry + LoRA adapter management | **ECR + MLflow Model Registry** |
@@ -117,6 +123,8 @@ ISO27001 is the international standard for Information Security Management Syste
 | **A.17** | Business continuity | Multi-AZ deployment + Autoscaling | **EKS + Karpenter** |
 
 ### A.14 Implementation: Playbook CI/CD Pipeline
+
+**Figure 1. Playbook CI/CD pipeline (ISO27001 A.14)**
 
 ```mermaid
 graph LR
@@ -155,6 +163,8 @@ spec:
 
 ### Electronic Financial Supervisory Regulation (전자금융감독규정) Mapping
 
+**Table 4. Electronic Financial Supervisory Regulation article mapping to AI operations and implementation**
+
 | Article | Content | AI Operations Mapping | Implementation |
 |---------|---------|----------------------|---------------|
 | **Article 15** | Access control and authorization management | Model API authentication + Audit logs | **API Key + CloudTrail** |
@@ -180,6 +190,8 @@ spec:
 
 ### ISMS-P (Korean Personal Information & Information Security Management System) Mapping
 
+**Table 5. ISMS-P item mapping to AI operations and implementation**
+
 | Item | Requirement | AI Operations Mapping | Implementation |
 |------|-----------|----------------------|---------------|
 | **2.6** | Access control | API Key + RBAC + Multi-factor authentication | **Pod Identity + MFA** |
@@ -196,6 +208,8 @@ PII detection/blocking through Guardrails is a technical control that satisfies 
 
 ## Automated Verification CI/CD Pipeline
 
+**Figure 2. Compliance automated verification CI/CD pipeline**
+
 ```mermaid
 graph LR
     PR[Pull Request] --> UT[Unit Tests]
@@ -211,6 +225,8 @@ graph LR
 ```
 
 ### Pipeline Stage Description
+
+**Table 6. CI/CD pipeline stages by purpose, tool, and action on failure**
 
 | Stage | Purpose | Tool | Action on Failure |
 |-------|---------|------|-------------|
@@ -245,6 +261,8 @@ def check_compliance(playbook_path):
 ## Audit Data Retention Policy
 
 ### Per-Data-Classification Retention Criteria
+
+**Table 7. Audit data retention location, period, access authority, and legal basis by classification**
 
 | Data | Storage Location | Retention Period | Access Authority | Legal Basis |
 |------|-----------------|-----------------|-----------------|------------|
