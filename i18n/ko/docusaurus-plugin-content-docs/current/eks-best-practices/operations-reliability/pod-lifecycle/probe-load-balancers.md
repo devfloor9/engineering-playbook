@@ -24,6 +24,8 @@ AWS Load Balancer Controller를 사용하는 경우, ALB/NLB의 헬스체크와 
 
 ### ALB Target Group 헬스체크 vs Readiness Probe {#alb-target-group-헬스체크-vs-readiness-probe}
 
+**표 1. ALB/NLB 헬스체크와 Kubernetes Readiness Probe 비교**
+
 | 구분 | ALB/NLB 헬스체크 | Kubernetes Readiness Probe |
 |------|-----------------|---------------------------|
 | **실행 주체** | AWS Load Balancer | kubelet |
@@ -35,6 +37,8 @@ AWS Load Balancer Controller를 사용하는 경우, ALB/NLB의 헬스체크와 
 ### 헬스체크 타이밍 동기화 전략 {#헬스체크-타이밍-동기화-전략}
 
 롤링 업데이트 시 다음 순서로 동작합니다:
+
+**그림 1. 롤링 업데이트 시 Pod 생성·종료와 로드밸런서 헬스체크 타이밍**
 
 ```mermaid
 sequenceDiagram
@@ -158,6 +162,8 @@ AWS Load Balancer Controller v2.14+는 Kubernetes Gateway API v1.4와 네이티�
 
 #### Gateway API vs Ingress 헬스체크 비교 {#gateway-api-vs-ingress-헬스체크-비교}
 
+**표 2. Ingress와 Gateway API의 헬스체크 기능 비교**
+
 | 구분 | Ingress | Gateway API |
 |------|---------|-------------|
 | **헬스체크 설정 위치** | Service/Ingress annotation | HealthCheckPolicy CRD |
@@ -167,6 +173,8 @@ AWS Load Balancer Controller v2.14+는 Kubernetes Gateway API v1.4와 네이티�
 | **가중치 기반 카나리** | 어렵거나 불가능 | HTTPRoute 네이티브 지원 |
 
 #### Gateway API 아키텍처와 헬스체크 {#gateway-api-아키텍처와-헬스체크}
+
+**그림 2. Gateway API 구성 요소와 HealthCheckPolicy 적용 구조**
 
 ```mermaid
 flowchart TB
@@ -349,6 +357,8 @@ kubectl get pod -n production -l app=api-v1 \
 ```
 
 #### Ingress에서 Gateway API로 마이그레이션 시 헬스체크 전환 체크리스트 {#ingress에서-gateway-api로-마이그레이션-시-헬스체크-전환-체크리스트}
+
+**표 3. Ingress에서 Gateway API로 전환할 때 단계별 헬스체크 확인 항목**
 
 | 단계 | Ingress | Gateway API | 확인 항목 |
 |------|---------|-------------|----------|

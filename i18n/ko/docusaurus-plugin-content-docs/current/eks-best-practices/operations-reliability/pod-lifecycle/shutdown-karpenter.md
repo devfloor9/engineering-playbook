@@ -24,6 +24,8 @@ Karpenter가 노드를 통합(consolidation)하거나 Spot 인스턴스가 종�
 
 ### Karpenter Disruption과 Graceful Shutdown {#karpenter-disruption과-graceful-shutdown}
 
+**그림 1. Karpenter 노드 통합 시 Pod Drain과 Graceful Shutdown 시퀀스**
+
 ```mermaid
 sequenceDiagram
     participant Karpenter
@@ -87,7 +89,7 @@ AWS Application Recovery Controller(ARC)와 Karpenter의 통합(2025년 발표)�
 
 Zonal Shift는 특정 AZ에서 발생한 장애나 성능 저하를 감지했을 때, 해당 AZ의 트래픽을 자동으로 다른 정상 AZ로 전환하는 기능입니다. EKS와 통합 시 Pod의 안전한 이동까지 자동화됩니다.
 
-**아키텍처 구성 요소:**
+**표 1. ARC + Karpenter AZ 대피 패턴의 아키텍처 구성 요소와 역할**
 
 | 컴포넌트 | 역할 | 동작 |
 |----------|------|------|
@@ -96,7 +98,7 @@ Zonal Shift는 특정 AZ에서 발생한 장애나 성능 저하를 감지했을
 | **AWS Load Balancer** | 트래픽 라우팅 제어 | 장애 AZ의 Target 제거 |
 | **PodDisruptionBudget** | Pod 이동 시 가용성 보장 | 최소 가용 Pod 수 유지 |
 
-**AZ 대피 시퀀스:**
+**그림 2. AZ 장애 감지부터 다른 AZ로의 Pod 대피 완료까지의 시퀀스**
 
 ```mermaid
 sequenceDiagram
@@ -368,6 +370,8 @@ spec:
 **Gray Failure 처리 전략:**
 
 Gray Failure는 완전한 장애가 아닌 성능 저하 상태로, 감지가 어렵습니다. ARC + Karpenter + Istio 조합으로 대응:
+
+**표 2. Gray Failure 증상별 감지 방법과 자동 대응**
 
 | Gray Failure 증상 | 감지 방법 | 자동 대응 |
 |------------------|----------|----------|

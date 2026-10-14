@@ -24,6 +24,8 @@ When Karpenter consolidates nodes or a Spot instance terminates, all Pods on the
 
 ### Karpenter disruption and graceful shutdown {#karpenter-disruption과-graceful-shutdown}
 
+**Figure 1. Pod drain and graceful shutdown sequence during Karpenter node consolidation**
+
 ```mermaid
 sequenceDiagram
     participant Karpenter
@@ -87,7 +89,7 @@ The integration of AWS Application Recovery Controller (ARC) and Karpenter, anno
 
 Zonal Shift automatically shifts traffic from an AZ to other healthy AZs when a failure or performance degradation is detected in that AZ. Integration with EKS also automates safe Pod relocation.
 
-**Architecture components:**
+**Table 1. Architecture components and roles of the ARC + Karpenter AZ evacuation pattern**
 
 | Component | Role | Behavior |
 |----------|------|------|
@@ -96,7 +98,7 @@ Zonal Shift automatically shifts traffic from an AZ to other healthy AZs when a 
 | **AWS Load Balancer** | Control traffic routing | Remove targets in the affected AZ |
 | **PodDisruptionBudget** | Ensure availability during Pod relocation | Maintain the minimum number of available Pods |
 
-**AZ evacuation sequence:**
+**Figure 2. Sequence from AZ failure detection to Pod evacuation into a healthy AZ**
 
 ```mermaid
 sequenceDiagram
@@ -368,6 +370,8 @@ spec:
 **Gray failure handling strategies:**
 
 A gray failure is a state of degraded performance rather than a complete failure, making it difficult to detect. Use ARC + Karpenter + Istio together to respond:
+
+**Table 2. Detection methods and automated responses by gray failure symptom**
 
 | Gray failure symptom | Detection method | Automated response |
 |------------------|----------|----------|

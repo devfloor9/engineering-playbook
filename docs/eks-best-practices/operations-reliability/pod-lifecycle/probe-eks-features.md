@@ -135,7 +135,7 @@ data:
     }
 ```
 
-**Diagnostic workflow:**
+**Figure 1. Workflow for diagnosing network vs application causes of Readiness Probe failures**
 
 ```mermaid
 flowchart TD
@@ -196,7 +196,7 @@ spec:
 EOF
 ```
 
-**Key Control Plane metrics:**
+**Table 1. Key Control Plane metrics and their relationship to probes**
 
 | Metric | Description | Relationship to Probes | Example Threshold |
 |--------|------|-------------|------------|
@@ -320,7 +320,7 @@ In clusters with 1000 or more nodes, probe requests from all kubelets can concen
 
 Provisioned Control Plane (announced in November 2025) ensures predictable, high-performance Kubernetes operations with preallocated control plane capacity. It prevents probe requests in large clusters from being affected by API Server performance degradation.
 
-**Performance characteristics by tier:**
+**Table 2. Performance characteristics and suitable workloads by Provisioned Control Plane tier**
 
 | Tier | API Concurrency | Pod Scheduling Rate | Maximum Nodes | Probe Processing Guarantee | Suitable Workloads |
 |------|----------|---------------|------------|--------------|-------------|
@@ -328,7 +328,7 @@ Provisioned Control Plane (announced in November 2025) ensures predictable, high
 | **2XL** | Very high | ~1,000 Pods/min | 2,500 | 99.9% < 80ms | Large-scale batch processing |
 | **4XL** | Ultra-fast | ~2,000 Pods/min | 5,000 | 99.9% < 50ms | Massive-scale ML |
 
-**Standard vs Provisioned Control Plane:**
+**Figure 2. Load handling comparison between Standard and Provisioned Control Plane**
 
 ```mermaid
 graph LR
@@ -522,7 +522,7 @@ spec:
               key: health-token
 ```
 
-**GuardDuty detection scenario:**
+**Figure 3. GuardDuty health check spoofing detection and automated response scenario**
 
 ```mermaid
 flowchart TD
