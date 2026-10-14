@@ -1,7 +1,7 @@
 ---
 title: "Foundation Model별 토큰 비용 비교: 코딩 에이전트 랄프 루프로 실측한 Amazon Bedrock 14개 모델"
 description: RealWorld 백엔드 구현 과제를 랄프 루프로 Amazon Bedrock us-east-1의 14개 모델에서 5회씩 실행하고, 완주 여부와 토큰·비용·LLM 요청 수를 비교한 실측 보고서
-created: "2026-10-14"
+created: "2026-10-13"
 last_update:
   date: 2026-10-14
   author: YoungJoon Jeong
@@ -72,7 +72,7 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 - **오픈웨이트 확인** [출처]: Kimi K3와 GLM 5.3의 Bedrock 모델 카드는 두 모델을 각각 "open-weight model", "open weight text generation model"이라고 적고 있습니다.
 - **Claude Fable 5.1** [사실]: 계정의 us-east-1 데이터 보존 모드가 `aws_review` 이상이어야 호출됩니다. 계정 소유자가 `inherit`에서 `aws_review`로 바꾼 뒤(2026-10-13 04:25:43 UTC) 실행했습니다.
 
-- **측정 범위** [사실]: Amazon Bedrock us-east-1에서 호출할 수 있는 텍스트 생성 모델 중 14개를 측정했습니다. Bedrock에는 이 밖에도 Claude Fable 5·Claude Opus 4.7·GPT-5.6 Terra·gpt-oss-120b·Grok 4.7·DeepSeek V3.2·Qwen3 Coder Next·MiniMax M2.5·Kimi K2.5·GLM 5 등의 텍스트 생성 모델이 있지만 이번 측정에는 포함하지 않았습니다([Bedrock 문서](https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html) 2026-10-14 기준).
+- **측정 범위** [출처]: Amazon Bedrock us-east-1에서 호출할 수 있는 텍스트 생성 모델 중 14개를 측정했습니다. Bedrock에는 이 밖에도 Claude Fable 5·Claude Opus 4.7·GPT-5.6 Terra·gpt-oss-120b·Grok 4.7·DeepSeek V3.2·Qwen3 Coder Next·MiniMax M2.5·Kimi K2.5·GLM 5 등의 텍스트 생성 모델이 있지만 이번 측정에는 포함하지 않았습니다([Bedrock 문서](https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html) 2026-10-14 기준).
 
 <details>
 <summary>데이터 보존 설정이 미치는 영향</summary>
@@ -203,7 +203,7 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 
 ## 참고 자료
 
-- 로보코(Roboco) 정도현, [랄프 루프 모델별 완주 비교](https://roboco.io/coding-agent-benchmark/) (참고한 리포트, 2026-10-12 15:40 UTC 확인)
+- 로보코(Roboco) 정도현, [랄프 루프 모델별 완주 비교](https://roboco.io/coding-agent-benchmark/) (참고한 리포트, 2026-10-14 05:27 UTC 확인)
 - [roboco-io/coding-agent-benchmark](https://github.com/roboco-io/coding-agent-benchmark) (과제, 빌더 프롬프트, 채점용 Hurl 테스트)
 - [Amazon Bedrock 요금](https://aws.amazon.com/bedrock/pricing/)
 - [Amazon Bedrock 사용자 가이드: Data retention](https://docs.aws.amazon.com/bedrock/latest/userguide/data-retention.html)

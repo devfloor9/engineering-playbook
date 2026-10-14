@@ -103,7 +103,7 @@ const TEXT = {
         '다이어그램: 측정한 모델. 모두 us-east-1에서 미국 교차 리전 추론 프로필(`us.` 모델 ID)로 호출했고, 2026-10-12에 모델 카드·계정 권한·실제 호출 3단계로 확인했습니다.',
         `- 그룹 1 프론티어, 실측 ${f.length}개: ${f.map(m => m.name + badge(m)).join(', ')}`,
         `- 그룹 2 중국 오픈웨이트, 실측 ${c.length}개: ${c.map(m => m.name + badge(m)).join(', ')}`,
-        `- 측정 범위: us-east-1에서 호출할 수 있는 텍스트 생성 모델 중 ${f.length + c.length}개를 측정했습니다. Bedrock에는 이 밖에도 ${nm.map(x => x.name).join('·')} 등의 텍스트 생성 모델이 있지만 이번 측정에는 포함하지 않았습니다(${cat.checked} 기준).`,
+        `- 측정 안 함(예): ${nm.map(x => x.name).join('·')}. Bedrock에 있지만 이번에 측정하지 않은 모델의 일부 예입니다(${cat.checked} Bedrock 문서 기준).`,
       ].join('\n');
     },
     tokens: () => [
@@ -163,7 +163,7 @@ const TEXT = {
         'Diagram: models measured. All were called in us-east-1 through US cross-Region inference profiles (`us.` model IDs), checked on 2026-10-12 in three steps: model cards, account permissions and a live call.',
         `- Group 1 frontier, measured (${f.length}): ${f.map(m => m.name + badge(m)).join(', ')}`,
         `- Group 2 Chinese open-weight, measured (${c.length}): ${c.map(m => m.name + badge(m)).join(', ')}`,
-        `- Scope: ${f.length + c.length} of the text-generation models callable in us-east-1 were measured. Bedrock also offers other text-generation models, e.g. ${nm.map(x => x.name).join(', ')}, which were not included (checked ${cat.checked}).`,
+        `- Not measured (examples): ${nm.map(x => x.name).join(', ')}. Some of the models that are on Bedrock but were not measured (Bedrock documentation, checked ${cat.checked}).`,
       ].join('\n');
     },
     tokens: () => [

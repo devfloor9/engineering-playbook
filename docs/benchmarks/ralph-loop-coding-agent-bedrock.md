@@ -1,7 +1,7 @@
 ---
 title: "Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measured with a Coding-Agent Ralph Loop"
 description: Measured report that ran a RealWorld backend implementation task in a Ralph loop five times on each of 14 models in Amazon Bedrock us-east-1 and compares completion, tokens, cost and LLM requests
-created: "2026-10-14"
+created: "2026-10-13"
 last_update:
   date: 2026-10-14
   author: devfloor9
@@ -72,7 +72,7 @@ This report measures, on Amazon Bedrock, how many tokens, how much money and how
 - **Open-weight status** [source]: the Bedrock model cards describe Kimi K3 as an "open-weight model" and GLM 5.3 as an "open weight text generation model".
 - **Claude Fable 5.1** [fact]: it can be called only when the account's us-east-1 data retention mode is `aws_review` or stronger. It ran after the account owner changed the mode from `inherit` to `aws_review` (2026-10-13 04:25:43 UTC).
 
-- **Scope** [fact]: 14 of the text-generation models callable on Amazon Bedrock in us-east-1 were measured. Bedrock also offers other text-generation models, e.g. Claude Fable 5, Claude Opus 4.7, GPT-5.6 Terra, gpt-oss-120b, Grok 4.7, DeepSeek V3.2, Qwen3 Coder Next, MiniMax M2.5, Kimi K2.5, GLM 5, which were not included ([Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html), checked 2026-10-14).
+- **Scope** [source]: 14 of the text-generation models callable on Amazon Bedrock in us-east-1 were measured. Bedrock also offers other text-generation models, e.g. Claude Fable 5, Claude Opus 4.7, GPT-5.6 Terra, gpt-oss-120b, Grok 4.7, DeepSeek V3.2, Qwen3 Coder Next, MiniMax M2.5, Kimi K2.5, GLM 5, which were not included ([Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html), checked 2026-10-14).
 
 <details>
 <summary>What the data retention setting changes</summary>
@@ -203,7 +203,7 @@ These amounts are reported token counts multiplied by prices. The actual bill mu
 
 ## References
 
-- Jung Do Hyun (정도현, Roboco), [Ralph loop completion by model](https://roboco.io/coding-agent-benchmark/) (reference, checked 2026-10-12 15:40 UTC)
+- Jung Do Hyun (정도현, Roboco), [Ralph loop completion by model](https://roboco.io/coding-agent-benchmark/) (reference, checked 2026-10-14 05:27 UTC)
 - [roboco-io/coding-agent-benchmark](https://github.com/roboco-io/coding-agent-benchmark) (the task, the builder prompt and the grading Hurl tests)
 - [Amazon Bedrock pricing](https://aws.amazon.com/bedrock/pricing/)
 - [Amazon Bedrock User Guide: Data retention](https://docs.aws.amazon.com/bedrock/latest/userguide/data-retention.html)
