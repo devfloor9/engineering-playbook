@@ -49,6 +49,8 @@ Agentic AI 플랫폼은 에이전트가 모델과 도구를 호출해 작업을 
 
 Agentic AI Platform은 **6개 런타임 레이어**와 이를 관통하는 **3개 횡단 플레인**으로 구성됩니다. 각 레이어는 명확한 책임을 가지며, 느슨한 결합을 통해 독립적인 확장과 운영이 가능합니다.
 
+**그림 1. 6개 런타임 레이어와 3개 횡단 플레인으로 구성된 전체 시스템 아키텍처**
+
 ```mermaid
 flowchart TD
     subgraph Planes["횡단 플레인 (전 레이어 관통)"]
@@ -148,6 +150,8 @@ flowchart TD
 
 이전 버전은 8개 레이어를 사용했으나, 평가·드리프트·피드백·Guardrails가 여러 레이어에 중복되는 문제가 있었습니다. 다음과 같이 6 레이어 + 3 플레인으로 재정렬했습니다.
 
+**표 1. 기존 8-레이어 모델과 현재 6 레이어 + 3 플레인 구성의 매핑**
+
 | 기존 (8-레이어) | 현재 (6 레이어 + 3 플레인) |
 |----------------|--------------------------|
 | Layer 1: Client & Feedback | Layer 6: Experience & Channels (Feedback → 라이프사이클 플레인) |
@@ -169,6 +173,8 @@ flowchart TD
 ### Layer 1: AI Infrastructure
 
 플랫폼의 최하단에서 **가속 컴퓨팅 자원과 그 운영**을 담당하는 레이어입니다. GPU·Trainium·Inferentia 같은 가속기는 Agentic AI에서 가장 비싼 자원이므로, 단순 프로비저닝을 넘어 오케스트레이션·모니터링·성능 최적화가 하나의 계층으로 통합되어야 합니다. 이 레이어는 다수의 컴포넌트가 조합되어 동작하며, 상위 레이어(Layer 2 모델 서빙)에 안정적인 가속 컴퓨팅 추상화를 제공합니다.
+
+**그림 2. Layer 1 AI Infrastructure의 가속 컴퓨팅·오케스트레이션·텔레메트리 구성**
 
 ```mermaid
 flowchart TB
@@ -203,6 +209,8 @@ flowchart TB
 ```
 
 Karpenter(노드 공급), Kueue(작업 승인·쿼터), 디바이스 할당(DRA/MIG/Time-Slicing)은 **서로 다른 제어 책임**이며, 하나의 직렬 파이프라인이 아닙니다. Karpenter는 노드를 공급하고, Kueue는 쿼터 안에서 작업을 승인하며, 디바이스 할당 계층은 승인된 Pod에 가속기를 배정합니다. 세 책임은 독립적으로 설정·운영됩니다.
+
+**표 2. Layer 1 AI Infrastructure의 기능 영역별 책임과 주요 컴포넌트**
 
 | 기능 영역 | 책임 | 주요 컴포넌트 |
 |----------|------|-------------|
@@ -310,6 +318,8 @@ Offline Store (S3 Parquet)
 
 AI 에이전트가 실행되는 레이어입니다. 각 에이전트는 독립적인 컨테이너로 실행되며, 워크플로우 엔진이 라이프사이클을 관리합니다.
 
+**그림 3. Layer 4 Agent Runtime의 Agent Pod와 연결 서비스 구성**
+
 ```mermaid
 flowchart LR
     subgraph AgentPod["Agent Pod"]
@@ -334,6 +344,8 @@ flowchart LR
     style Services fill:#fff4e1
 ```
 
+**표 3. Agent Runtime이 제공하는 기능과 설명**
+
 | 기능 | 설명 |
 |------|------|
 | **상태 관리** | 대화 컨텍스트 및 작업 상태 유지, 체크포인팅 |
@@ -345,6 +357,8 @@ flowchart LR
 #### Tool Registry
 
 에이전트가 사용할 수 있는 도구를 중앙에서 선언적으로 관리합니다. 도구는 **MCP 서버**를 통해 노출되며, 하나의 MCP 서버는 보통 **여러 도구(tool)**를 제공합니다(도구와 서버는 1:1이 아닙니다). Agent는 MCP 표준 프로토콜로 이 도구들을 호출합니다. 외부 REST/gRPC API처럼 MCP를 직접 지원하지 않는 대상은 **어댑터**가 MCP 도구로 감싸 노출합니다. 한편 **A2A(Agent-to-Agent)는 MCP와 별개의 프로토콜**로, Agent 간 작업 위임에 사용됩니다. 아래 표의 "A2A 도구"는 A2A 호출을 MCP 도구 인터페이스로 감싼 어댑터를 가리키며, A2A가 MCP의 하위 기능이라는 뜻은 아닙니다.
+
+**표 4. Tool Registry가 관리하는 도구 유형별 용도와 예시**
 
 | 도구 유형 | 용도 | 예시 |
 |----------|------|------|
@@ -366,6 +380,8 @@ Kagent 기반 Kubernetes Agent 관리는 [Kagent](../../operations-mlops/observa
 ### Layer 5: Gateway & Routing
 
 모델 추론 요청을 지능적으로 라우팅하는 레이어입니다. Self-hosted 모델(Layer 2)과 외부 AI Provider를 단일 엔드포인트로 통합합니다.
+
+**그림 4. Layer 5 Gateway & Routing의 2-Tier 게이트웨이 요청 흐름**
 
 ```mermaid
 flowchart LR
@@ -401,6 +417,8 @@ flowchart LR
 
 **라우팅 전략:** 아래 전략들의 효과(지연·비용 절감 등)는 트래픽·캐시 적중률·모델 구성에 따라 달라지므로, 도입 전후 측정으로 검증해야 하는 **정책**으로 다룹니다.
 
+**표 5. Layer 5 게이트웨이의 라우팅 전략별 동작**
+
 | 전략 | 설명 |
 |------|------|
 | **모델 기반 라우팅** | 요청 헤더/파라미터에 따라 적절한 모델 백엔드로 분배 |
@@ -433,6 +451,8 @@ Layer 5의 운영 상세는 다음 문서에서 다룹니다.
 ### Layer 6: Experience & Channels
 
 사용자와 외부 시스템이 플랫폼에 진입하는 최상단 레이어입니다. 다양한 채널(API, SDK, Web UI, 메신저·상담 채널)로 Agent 기능을 노출합니다.
+
+**표 6. Layer 6 Experience & Channels의 진입점별 설명과 활용**
 
 | 진입점 | 설명 | 활용 |
 |--------|------|------|
@@ -512,6 +532,8 @@ OIDC/JWT 인증, 역할 기반 접근 제어, 도구별 호출 권한 제한, �
 
 데이터 주권 요구가 있는 조직(금융·공공·규제 산업)은 추론·학습·데이터 저장을 특정 지리 경계 내로 강제해야 합니다. 아래 수단들은 각각 **서로 다른 경계만 통제**하므로, 조직은 처리·저장·텔레메트리·컨트롤 플레인별로 요구되는 경계와 프로파일링되는 모든 목적지를 먼저 식별한 뒤 조합해야 합니다. 이 표는 "플랫폼이 주권을 자동으로 충족한다"가 아니라 **각 수단이 통제하는 범위와 남는 흐름(residual flow)**을 보여줍니다.
 
+**표 7. 데이터 주권·리전 강제 수단별 통제 범위와 잔여 흐름**
+
 | 수단 | 통제하는 범위 | 통제하지 못하는 범위(잔여 흐름) | 적용 위치 |
 |------|------|------|----------|
 | **SCP 리전 강제** | `aws:RequestedRegion`으로 승인되지 않은 리전의 **API 호출 엔드포인트**를 거부 | 엔드포인트 리전만 제한할 뿐, 서비스 내부에서 데이터가 처리되는 리전은 서비스 동작에 따름 | 계정·OU 경계 |
@@ -532,6 +554,8 @@ SCP 리전 강제 정책, Bedrock Geographic cross-Region inference, EKS Hybrid 
 #### Training Pipeline Orchestration
 
 Kubeflow Pipelines 또는 Argo Workflows로 학습 워크플로우를 자동화합니다. 데이터 검증 → 전처리 → 학습 → 평가 → 등록 단계를 DAG로 정의합니다. 학습 워크로드는 Layer 1 AI Infrastructure의 가속 컴퓨팅을 공유합니다.
+
+**그림 5. FMOps 플레인의 학습 파이프라인 DAG와 품질 게이트 흐름**
 
 ```mermaid
 graph LR
@@ -582,6 +606,8 @@ MLOps 파이프라인(EKS), 지속 학습(GRPO/DPO), trace-to-dataset, 평가·�
 
 프로덕션 피드백이 재학습을 트리거하고, 새 모델이 배포되는 전체 루프입니다. 라이프사이클 플레인과 관측성 플레인이 런타임 레이어를 관통합니다.
 
+**그림 6. 피드백 수집부터 재학습·canary 배포까지의 Feedback → Training → Serving 루프**
+
 ```mermaid
 graph LR
     A["Agent Runtime<br/>(Layer 4)"] -->|피드백 수집| B["Feedback Loop<br/>(라이프사이클 플레인)"]
@@ -604,6 +630,8 @@ graph LR
 ### Evaluation → Rollback Path
 
 품질 회귀를 감지하고 자동으로 롤백하는 경로입니다. 관측성 플레인이 감지하고 라이프사이클 플레인이 대응합니다.
+
+**그림 7. 품질 회귀 감지부터 트래픽 컷오버까지의 Evaluation → Rollback 경로**
 
 ```mermaid
 graph LR
@@ -633,6 +661,8 @@ graph LR
 
 두 Agent/Model variant를 실험하여 승자를 프로덕션에 배포하는 경로입니다.
 
+**그림 8. 두 variant 실험부터 승자 프로덕션 전환까지의 A/B Testing → Production 경로**
+
 ```mermaid
 graph LR
     A["Agent Variants A/B<br/>(Layer 4)"] -->|Gateway 라우팅| B["Experiment Tracking<br/>(관측성 플레인)"]
@@ -659,6 +689,8 @@ graph LR
 
 관심사 분리와 보안을 위해 기능별로 네임스페이스를 분리하고, 각 네임스페이스에는 **최소 권한(Pod Security Standards)**을 기본값으로 적용합니다. Pod Security의 `privileged`는 "제약이 없는(unrestricted)" 정책으로 알려진 권한 상승을 허용하고 컨테이너 격리를 우회할 수 있으므로, GPU를 쓴다는 이유만으로 서빙·학습 전체를 `privileged`로 두어서는 안 됩니다. 일반 GPU 모델 Pod는 호스트 특권 없이 `baseline`(또는 디바이스 플러그인 요구에 맞춘 예외) 수준으로 동작할 수 있으며, 드라이버·시스템 오퍼레이터 등 **호스트 접근이 실제로 필요한 특권 컴포넌트만** 좁은 예외로 분리합니다.
 
+**표 8. 네임스페이스별 레이어/플레인·컴포넌트·Pod Security·GPU 요구**
+
 | 네임스페이스 | 레이어 / 플레인 | 컴포넌트 | Pod Security | GPU |
 |-------------|---------------|---------|-------------|-----|
 | **ai-infra** | Layer 1 | GPU Operator, Karpenter, Kueue, DCGM Exporter | baseline (단, GPU 드라이버/디바이스 플러그인 등 호스트 접근 컴포넌트만 privileged 예외) | 필요 |
@@ -682,6 +714,8 @@ Layer 6(Experience & Channels)은 별도 네임스페이스 없이 ai-gateway �
 
 각 컴포넌트는 독립적으로 수평 확장이 가능합니다.
 
+**표 9. 컴포넌트별 수평 확장 트리거와 방식**
+
 | 컴포넌트 | 레이어 | 스케일링 트리거 | 방식 |
 |---------|-------|---------------|------|
 | GPU 노드 | Layer 1 | Pending Pod, GPU 요청량 | Karpenter Node Auto-provisioning |
@@ -702,6 +736,8 @@ Layer 6(Experience & Channels)은 별도 네임스페이스 없이 ai-gateway �
 ## 보안 아키텍처
 
 Agentic AI Platform은 외부 접근, 내부 통신, 데이터 보안의 **3중 보안 레이어**를 적용합니다.
+
+**그림 9. 외부 접근·내부 통신·데이터 보호의 3중 보안 레이어 구성**
 
 ```mermaid
 flowchart LR
@@ -748,6 +784,8 @@ flowchart LR
 
 사용자 요청이 플랫폼을 통해 처리되는 전체 흐름입니다.
 
+**그림 10. 사용자 요청이 레이어를 거쳐 처리되는 데이터 플로우 시퀀스**
+
 ```mermaid
 sequenceDiagram
     participant Client as 클라이언트<br/>(L6)
@@ -784,6 +822,8 @@ sequenceDiagram
 
 ### 주요 모니터링 영역
 
+**표 10. 모니터링 영역별 대상 메트릭과 목적**
+
 | 영역 | 대상 메트릭 | 목적 |
 |------|-----------|------|
 | **Agent Performance** | 요청 수, P50/P99 지연 시간, 오류율, 스텝 수 | 에이전트 성능 추적 |
@@ -804,6 +844,8 @@ sequenceDiagram
 ---
 
 ## 플랫폼 요구사항
+
+**표 11. 레이어/플레인별 필요 역량과 설명**
 
 | 영역 | 레이어 / 플레인 | 필요 역량 | 설명 |
 |------|---------------|----------|------|

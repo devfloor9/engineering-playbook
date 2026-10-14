@@ -37,6 +37,8 @@ Architecture Decision Record(ADR)는 아키텍처 수준의 중요한 의사결�
 
 ### 일반 구조 (Nygard 원형)
 
+**표 1. Nygard 원형 ADR의 섹션 구성과 역할**
+
 | 섹션 | 역할 |
 |------|------|
 | Title | 한 줄 결정 요약 (예: "Self-Improving Loop 도입 원칙") |
@@ -80,13 +82,15 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autoresearch 담론을 엔터프�
 
 ### 2. 루프 자동화 경계 — 5 stage 중 3 stage만 자동화
 
+**표 2. 5-stage 루프의 stage별 자동화 여부와 사람 개입**
+
 | Stage | 자동화 여부 | 사람 개입 |
 |-------|-----|----------|
-| 1. Rollout (trace 수집) | ✅ 자동 | — |
-| 2. Score (Reward labeling) | ✅ 자동 | 주간 1–2% 샘플 수동 검증 |
-| 3. Filter (데이터 큐레이션) | ✅ 자동 | PII 스캐너 통과 강제 |
-| 4. Train (GRPO/DPO/RLAIF) | ⚠ **수동 트리거** | 배포 엔지니어 승인 필수 |
-| 5. Deploy (Canary) | ⚠ **수동 승인 + Canary** | 10% → 50% → 100% 단계별 게이트 |
+| 1. Rollout (trace 수집) | 자동 | — |
+| 2. Score (Reward labeling) | 자동 | 주간 1–2% 샘플 수동 검증 |
+| 3. Filter (데이터 큐레이션) | 자동 | PII 스캐너 통과 강제 |
+| 4. Train (GRPO/DPO/RLAIF) | **수동 트리거** | 배포 엔지니어 승인 필수 |
+| 5. Deploy (Canary) | **수동 승인 + Canary** | 10% → 50% → 100% 단계별 게이트 |
 
 **근거**: Train/Deploy까지 무인 자동화할 경우 reward hacking 가능성과 롤백 비용이 급증합니다. Train은 최소 주간 cadence의 수동 Job trigger로 시작합니다.
 

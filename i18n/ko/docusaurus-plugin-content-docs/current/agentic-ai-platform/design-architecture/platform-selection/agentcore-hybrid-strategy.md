@@ -36,6 +36,8 @@ AgentCore Runtime은 agent 실행 환경이며 모델 endpoint를 호출합니�
 
 하이브리드 설계의 기대 가치는 배치 유연성입니다. 비용 절감률과 지연 개선율은 baseline과 측정 없이는 확정하지 않습니다.
 
+**그림 1. AgentCore Runtime과 EKS agent를 라우팅 정책으로 결합한 하이브리드 배치**
+
 ```mermaid
 flowchart LR
     ROUTER[Application routing policy] --> AC[AgentCore Runtime]
@@ -56,6 +58,8 @@ flowchart LR
 
 8축은 평가 틀이며 특정 조직의 승인된 가중치가 아닙니다. 먼저 데이터/보안 필수 조건을 pass/fail로 적용합니다. 통과한 대안에만 `score = Σ(weight × rating)`을 적용하고 가중치 합은 1로 둡니다. 모르는 rating을 임의로 채우지 않습니다.
 
+**표 1. Agent 배치 Decision Matrix의 8개 평가 축과 필요한 증거**
+
 | 축 | 필요한 증거 |
 |---|---|
 | 추론 지연 | 동일 payload·warm/cold·network별 p95/p99 |
@@ -70,6 +74,8 @@ flowchart LR
 ### 의사결정 플로우차트
 
 고정 요청량이나 “PII이면 EKS” 규칙 대신 필수 조건→측정→승인 순서로 결정합니다. EKS도 추가 통제 없이 민감 데이터 안전성을 보장하지 않습니다.
+
+**그림 2. 필수 조건·측정·승인 순서로 배치를 결정하는 의사결정 플로우차트**
 
 ```mermaid
 flowchart TD
@@ -91,6 +97,8 @@ flowchart TD
 ### 역방향 호출 패턴
 
 같은 VPC의 내부 MCP endpoint는 Runtime VPC 연결과 실제 DNS·route·security group·TLS·인증 구성이 필요합니다. `*.svc.cluster.local`은 VPC 전체에서 자동 해석되는 이름이 아닙니다. 내부 load balancer 등 VPC에서 도달 가능한 endpoint를 사용합니다. Gateway를 거치면 Gateway target의 지원 네트워크/인증 경계를 별도로 검증합니다.
+
+**그림 3. VPC 연결 Runtime이 내부 MCP endpoint를 호출하는 역방향 호출 흐름**
 
 ```mermaid
 sequenceDiagram

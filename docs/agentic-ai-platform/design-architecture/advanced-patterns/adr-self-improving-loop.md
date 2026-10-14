@@ -37,6 +37,8 @@ An Architecture Decision Record (ADR) is a lightweight record format that fixes 
 
 ### General Structure (Nygard original)
 
+**Table 1. Section roles in the Nygard original ADR**
+
 | Section | Role |
 |---------|------|
 | Title | One-line decision summary (e.g., "Self-Improving Loop Adoption Principles") |
@@ -80,13 +82,15 @@ Automated learning loops can improve models, but reward hacking, data leakage, a
 
 ### 2. Loop Automation Boundary — Only 3 of 5 Stages Automated
 
+**Table 2. Automation and human intervention per stage of the 5-stage loop**
+
 | Stage | Automation | Human Intervention |
 |-------|-----|----------|
-| 1. Rollout (trace collection) | ✅ Automated | — |
-| 2. Score (Reward labeling) | ✅ Automated | Weekly 1–2% manual sample verification |
-| 3. Filter (data curation) | ✅ Automated | Mandatory PII scanner pass |
-| 4. Train (GRPO/DPO/RLAIF) | ⚠ **Manual trigger** | Deployment engineer approval required |
-| 5. Deploy (Canary) | ⚠ **Manual approval + Canary** | 10% → 50% → 100% staged gates |
+| 1. Rollout (trace collection) | Automated | — |
+| 2. Score (Reward labeling) | Automated | Weekly 1–2% manual sample verification |
+| 3. Filter (data curation) | Automated | Mandatory PII scanner pass |
+| 4. Train (GRPO/DPO/RLAIF) | **Manual trigger** | Deployment engineer approval required |
+| 5. Deploy (Canary) | **Manual approval + Canary** | 10% → 50% → 100% staged gates |
 
 **Rationale**: Unattended automation through Train/Deploy dramatically increases reward hacking risk and rollback costs. Start Train with minimum weekly cadence manual job triggers.
 

@@ -36,6 +36,8 @@ AgentCore Runtime executes agents that call model endpoints. Runtime cost is not
 
 The design offers placement flexibility. Cost and latency improvements require a measured baseline.
 
+**Figure 1. Hybrid placement combining AgentCore Runtime and EKS agent via a routing policy**
+
 ```mermaid
 flowchart LR
     ROUTER[Application routing policy] --> AC[AgentCore Runtime]
@@ -56,6 +58,8 @@ Request volume alone does not determine break-even. Include input/output tokens,
 
 These eight axes are an evaluation framework, not approved organizational weights. Apply mandatory data/security constraints as pass/fail first. For eligible options, use score = Σ(weight × rating), with weights summing to 1. Leave unknown ratings unknown.
 
+**Table 1. The eight evaluation axes of the agent-placement Decision Matrix and the evidence each requires**
+
 | Axis | Required evidence |
 |---|---|
 | Inference latency | Same payload, warm/cold and network p95/p99 |
@@ -70,6 +74,8 @@ These eight axes are an evaluation framework, not approved organizational weight
 ### Decision Flowchart
 
 Decide using mandatory constraints, measurement, and approval instead of fixed request counts or “PII implies EKS.” EKS alone does not guarantee sensitive-data protection.
+
+**Figure 2. Decision flowchart that places agents by mandatory constraints, measurement, and approval**
 
 ```mermaid
 flowchart TD
@@ -91,6 +97,8 @@ Data gravity describes how the location of data influences where an application 
 ### Reverse Call Pattern
 
 An internal MCP endpoint requires Runtime VPC connectivity plus actual DNS, routes, security groups, TLS, and authentication. *.svc.cluster.local is not automatically resolvable throughout a VPC. Use a VPC-reachable endpoint such as an internal load balancer. If using AgentCore Gateway, verify its target networking/authentication separately.
+
+**Figure 3. Reverse-call flow where a VPC-connected Runtime calls an internal MCP endpoint**
 
 ```mermaid
 sequenceDiagram

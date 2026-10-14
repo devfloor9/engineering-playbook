@@ -38,6 +38,8 @@ The three planes divide responsibilities. A coordinator and adapters must implem
 
 This is a logical data flow. Each store has its own commit boundary.
 
+**Figure 1. Logical data flow across the KFS three planes**
+
 ```mermaid
 flowchart TB
     SOURCE[Canonical source and transactional outbox] --> EVENTS[Versioned events]
@@ -53,6 +55,8 @@ flowchart TB
 ```
 
 ### Role of Each Plane
+
+**Table 1. Responsibility and separate verification per plane**
 
 | Plane | Responsibility | Separate verification |
 |---|---|---|
@@ -122,6 +126,8 @@ Version the property-graph mapping: HAS_CONTRACT → kfs:hasContract, USES_DEVIC
 
 ### Managed vs Open Source Options
 
+**Table 2. Managed and open-source store options by plane role, with distinctions**
+
 | Role | Options | Distinction |
 |---|---|---|
 | Transactional graph/RDF | Neptune Database or suitable self-hosted store | Distinguish Neptune Database RDF/SPARQL from property-graph APIs |
@@ -137,6 +143,8 @@ Graph expansion may improve recall, but incorrect edges and excessive context ca
 ### Vector Search + Graph Expansion
 
 Apply retrieval, entity resolution, authorization filters, graph expansion, evidence-document fusion, and reranking. Expanding entities alone does not add answer evidence unless their authorized supporting context reaches the final result.
+
+**Figure 2. RAG retrieval flow combining vector search and graph expansion**
 
 ```mermaid
 flowchart TB
@@ -182,6 +190,8 @@ This proposal defaults to eventual consistency across asynchronous projections. 
 
 Design the source transaction and outbox to commit together, then deliver versioned events through CDC. Preserve source commit/partition ordering without assuming a global order across sources. Distinguish successful persistence from searchable visibility in each writer.
 
+**Figure 3. CDC-based projection write and publication flow**
+
 ```mermaid
 flowchart TB
     DB[Source transaction and outbox] --> CDC[CDC event log]
@@ -196,6 +206,8 @@ flowchart TB
 ```
 
 ### Offline Batch vs Online Stream
+
+**Table 3. Benefits and risks to verify for Batch, Stream, and Combined modes**
 
 | Mode | Benefit | Risk to verify |
 |---|---|---|
@@ -249,6 +261,8 @@ on failure: retry idempotently; quarantine poison and conflicting events; reconc
 Graph adapters use bound parameters and unique entity/edge keys. Vector adapters implement upsert/delete without duplicate document versions. Replay after partial failure must preserve completed planes. Propagate deletion tombstones across every plane and prevent old retries from resurrecting data. Do not directly compare version numbers from different sources; apply an explicit conflict policy.
 
 Run these fixtures for synthetic tenant test-a and entity customer-001. Each row starts from an independent initial state. v1 upserts Premium, v2 upserts VIP, and v3 deletes the entity. The test assumes version history in all three planes; adapters without it must reject consistent-generation mode. These are expected outcomes, not observed results.
+
+**Table 4. Input sequence and expected result per write-failure fixture**
 
 | Fixture | Input/failure sequence | Expected result |
 |---|---|---|
