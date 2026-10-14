@@ -3,9 +3,9 @@ title: llm-d Based EKS Distributed Inference Guide
 description: llm-d architecture concepts, KV Cache-aware routing, Disaggregated Serving, EKS Auto Mode integration strategy
 created: "2026-02-10"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: devfloor9
-reading_time: 35
+reading_time: 45
 tags:
   - eks
   - llm-d
@@ -147,7 +147,7 @@ InferencePool selects this workload's Pod labels. InferenceObjective expresses r
 <Qwen3SpecsTable />
 
 :::info Qwen3-32B Selection Background
-Qwen3-32B is the default model in the Optimized Baseline example above and is Apache 2.0-licensed for free commercial use. Requiring ~65GB VRAM at BF16, it can be stably served with TP=2 (2x GPU) on H100 80GB.
+Qwen3-32B is the default model in the Optimized Baseline example above and is Apache 2.0-licensed for free commercial use. Its 32.8B BF16 weights occupy roughly 66GB (32.8B × 2 bytes), and KV cache and runtime buffers require additional VRAM on top of that. TP=2 across two H100 80GB GPUs gives about 160GB aggregate, leaving headroom for KV cache; whether that configuration serves a given workload stably depends on context length, concurrency, the serving engine and the latency/throughput targets you measure, not on the weight footprint alone.
 :::
 
 ---
@@ -205,15 +205,15 @@ KV Cache-aware routing is most effective in applications using identical system 
 
 **Advantages:**
 
-- **Automatic GPU driver management**: AWS automatically installs and updates NVIDIA GPU drivers
+- **Automatic GPU driver management**: AWS installs and updates the NVIDIA host driver and the NVIDIA container toolkit on Auto Mode GPU nodes
 - **Automatic NodeClass selection**: Using `default` NodeClass lets Auto Mode auto-select optimal AMI and driver version
-- **Operational simplification**: Eliminates driver installation, CUDA version management, and driver compatibility verification burden
-- **GPU Operator installable**: Only Device Plugin disabled via label; DCGM/NFD/GFD operate normally
+- **Operational simplification**: Removes the burden of installing and version-managing the host driver. It does not remove the need to verify that each application image's CUDA/runtime (the CUDA userspace shipped inside the container, e.g. the vLLM image) is compatible with the AWS-managed host driver and the target GPU architecture
+- **GPU Operator installable**: Because AWS manages the NVIDIA driver, container toolkit and device plugin on Auto Mode nodes, install the GPU Operator with `driver.enabled=false` and `toolkit.enabled=false` and keep its device plugin off those nodes with the label `nvidia.com/gpu.deploy.device-plugin: "false"` (see Transition Notes below); DCGM Exporter, NFD and GFD operate normally
 
 **Limitations:**
 
 - **MIG/Time-Slicing restrictions**: Users cannot change the NVIDIA device plugin configuration managed by Auto Mode. This does not mean that NodeClass itself is read-only.
-- **Custom AMI not available**: Cannot pin specific CUDA versions or drivers
+- **Custom AMI not available**: Cannot pin a specific host driver or CUDA driver version; applications needing a pinned driver must use a node type where you own the driver (Managed Node Group or self-managed nodes)
 
 ### Auto Mode vs Karpenter + GPU Operator Comparison
 
@@ -234,9 +234,10 @@ Auto Mode is suitable for large model serving without GPU driver management burd
 :::
 
 :::danger llm-d + DRA Karpenter version constraints
-When llm-d ModelService requests GPUs via DRA (ResourceClaim), support depends on the Karpenter version and deployment method.
-- **Self-managed Karpenter v1.14.0+**: DRA is supported (AWS Provider v1.14.0 includes the core v1.14.0 DRA allocator, with consumable capacity & partitionable devices). Versions ≤ v1.13 skip Pods with `spec.resourceClaims`.
-- **EKS Auto Mode**: Not supported today — it uses an AWS-managed internal Karpenter that users cannot bump to v1.14+. With Auto Mode, **Managed Node Group + Cluster Autoscaler** is the recommended approach.
+When llm-d ModelService requests GPUs via DRA (ResourceClaim), support depends on the EKS Kubernetes version and how nodes are provisioned. Per the [EKS device management guide](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html), DRA is a Kubernetes feature that reached general availability in Kubernetes 1.34.
+- **Supported node paths**: AWS documents DRA as available on EKS 1.33+ (recommended on 1.34+), and only with **static capacity provisioning in Karpenter** (a static NodePool), **EKS Managed Node Groups**, or **self-managed nodes** running a DRA driver.
+- **Not supported**: DRA is **not currently compatible with EKS Auto Mode**, and **not compatible with Karpenter when capacity is dynamically provisioned**. For DRA workloads under Auto Mode, use **Managed Node Groups** (or self-managed nodes / a static Karpenter NodePool) instead.
+- **Driver coexistence**: A DRA driver and the matching device plugin for the same device type must not run on the same node simultaneously.
 
 Details: [EKS GPU Node Strategy — MNG Hybrid for DRA Workloads](../gpu-infrastructure/eks-gpu-node-strategy.md#53-mng-hybrid-for-dra-workloads)
 :::
@@ -284,12 +285,14 @@ flowchart LR
     style Decode fill:#76b900,stroke:#333
 ```
 
-| Phase | Characteristics | Optimization Direction |
+| Phase | Characteristics | Typical tuning (workload-specific) |
 |-------|----------------|----------------------|
-| **Prefill** | Processes entire prompt at once (compute-bound) | GPU computing focused, high TP |
-| **Decode** | Autoregressive token-by-token generation (memory-bound) | GPU memory focused, low TP |
+| **Prefill** | Processes entire prompt at once (compute-bound) | Parallelism chosen to meet prefill latency; the llm-d example uses prefill TP=1 |
+| **Decode** | Autoregressive token-by-token generation (memory-bound) | Parallelism chosen for KV-cache capacity and decode throughput; the llm-d example uses decode TP=5 |
 
-**NIXL (NVIDIA Inference Xfer Library)**: Common KV transfer engine used by most projects including Dynamo, llm-d, production-stack, and aibrix. Transfers KV cache at ultra-high speed via direct GPU communication (NVLink/RDMA).
+TP values are not fixed by the stage role — the [llm-d P/D disaggregation example](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md) runs prefill at TP=1 and decode at TP=5. Choose TP per model, hardware and measured targets.
+
+**NIXL (NVIDIA Inference Xfer Library)**: A common KV transfer library used by projects including Dynamo, llm-d, production-stack, and aibrix. NIXL moves KV blocks over a UCX-backed transport; it **supports TCP**, but high-bandwidth networking (InfiniBand, RoCE, or EFA) is recommended for production. The achievable transfer rate and overhead depend on the actual physical interconnect and topology, not on NIXL alone, and the TCP path remains a working fallback.
 
 ### Disaggregated Serving on EKS Auto Mode
 
@@ -313,23 +316,23 @@ llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with d
 |------|-------|---------------|
 | **Lead** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
 | **Architecture** | Aggregated + Disaggregated | Aggregated + Disaggregated (equal support) |
-| **KV Cache Transfer** | NIXL (network supported) | NIXL (NVLink/RDMA ultra-fast) |
+| **KV Cache Transfer** | NIXL (TCP supported; IB/RoCE/EFA recommended) | NIXL (TCP supported; IB/RoCE/EFA recommended) |
 | **KV Cache Indexing** | Prefix-aware routing | Flash Indexer (radix tree-based) |
 | **Routing** | Gateway API + Envoy EPP | Dynamo Router + custom EPP (Gateway API integration) |
 | **Pod Scheduling** | K8s default scheduler | KAI Scheduler (GPU-aware Pod placement) |
 | **Autoscaling** | HPA/KEDA integration | Planner (SLO-based: profiling → autoscale) + KEDA/HPA |
-| **GPU Operator Required** | Optional (Auto Mode compatible) | Required (KAI Scheduler's ClusterPolicy dependency) |
+| **GPU Operator Required** | Optional (Auto Mode compatible) | Dynamo Platform prerequisite; KAI Scheduler is an optional multi-node component |
 | **Complexity** | Low | High |
 | **Strengths** | K8s native, lightweight, fast adoption | Flash Indexer, KAI Scheduler, Planner SLO autoscaling |
 
 :::tip Selection Guide
 - **EKS Auto Mode + quick start**: llm-d (GPU Operator optional)
-- **Small-medium scale (16 GPUs or less)**: llm-d
-- **Large scale (16+ GPUs), maximum throughput**: Dynamo (Flash Indexer + Planner)
-- **Long context (128K+)**: Dynamo (3-tier KV cache: GPU→CPU→SSD)
+- **K8s-native, lightweight stacks**: llm-d
+- **Maximum throughput at scale**: Dynamo (Flash Indexer + Planner)
+- **Long context with multi-tier KV cache offload (GPU→CPU→SSD)**: Dynamo exposes this via KVBM; evaluate against your context length and latency targets
 - **K8s Gateway API standard compliance**: llm-d
 
-Starting with llm-d and transitioning to Dynamo as scale grows is practical. Dynamo 1.0 can integrate llm-d as an internal component, making it more of a superset than a complete alternative.
+llm-d and Dynamo are complementary. They are independent parallel stacks that share NIXL (the KV transfer library) and the Gateway API; llm-d uses NIXL for KV cache transfer. Starting with llm-d and moving to Dynamo as requirements grow is practical, but a given GPU count does not by itself require migration — compare the configured features and your measured requirements.
 :::
 
 ### Migration Path
@@ -363,18 +366,20 @@ flowchart LR
     style PLAN fill:#e91e63,color:#fff
 ```
 
-**Phased transition path:**
+**Phased transition path (optional designs, not a required ladder):**
 
-| Phase | Configuration | Suitable For |
+These phases are example configurations, not an ordered requirement; a larger GPU count does not by itself mandate a later phase or establish maximum performance. Choose a configuration from your workload's isolation, scheduling and DRA needs.
+
+| Phase | Configuration | Example fit |
 |-------|--------------|-------------|
-| **Phase 1** | Auto Mode + llm-d | PoC, dev environments, 16 GPUs or less |
-| **Phase 1.5** | Auto Mode + GPU Operator + llm-d | Enhanced monitoring/scheduling |
+| **Phase 1** | Auto Mode + llm-d | PoC, dev environments |
+| **Phase 1.5** | Auto Mode + GPU Operator + llm-d | Added monitoring/scheduling operands |
 | **Phase 2a** | Karpenter + llm-d Disaggregated | Mid-scale production, MIG utilization |
-| **Phase 2b** | MNG + DRA + llm-d | P6e-GB200, DRA-required environments |
-| **Phase 3** | Karpenter + Dynamo | Large scale (16+ GPUs), maximum performance |
+| **Phase 2b** | MNG + DRA + llm-d | DRA-required environments |
+| **Phase 3** | Karpenter + Dynamo | Dynamo-specific features (Flash Indexer, Planner) |
 
 :::caution Transition Notes
-Auto Mode and self-managed Karpenter can coexist in the same cluster. In Phase 1.5, add the `nvidia.com/gpu.deploy.device-plugin: "false"` label to Auto Mode NodePool to prevent Device Plugin conflicts.
+Auto Mode and self-managed Karpenter can coexist in the same cluster. In Phase 1.5, keep the GPU Operator's device plugin off the AWS-managed Auto Mode nodes so it does not conflict with the AWS-managed device plugin. Set the label `nvidia.com/gpu.deploy.device-plugin: "false"` in the Auto Mode NodePool template, as in the configuration reviewed in [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288). The GPU Operator applies its `nvidia.com/gpu.deploy.*` labels only where a label is absent or empty, so it keeps an existing `false` value and skips that operand on those nodes ([`addGPUStateLabels`](https://github.com/NVIDIA/gpu-operator/blob/fbe793082611bfdba1621b614edefdd3461bf14d/controllers/state_manager.go)). The ClusterPolicy has no per-component or common DaemonSet `nodeSelector`/`affinity` field for this. Setting `devicePlugin.enabled=false` instead turns the device plugin off on every node, so use it only when no node in the cluster relies on the GPU Operator's device plugin.
 :::
 
 ---
@@ -394,7 +399,7 @@ Auto Mode and self-managed Karpenter can coexist in the same cluster. In Phase 1
 <CostOptimizationTable />
 
 :::warning Cost Caution
-p5.48xlarge costs approximately $98.32/hr (us-west-2 On-Demand). Running 2 instances costs **~$141,580/month**. Always clean up resources after testing.
+As an example rate, p5.48xlarge On-Demand in us-west-2 is about $55.04/hr (reflecting the June 2025 EC2 GPU price reduction — the [announcement](https://aws.amazon.com/about-aws/whats-new/2025/06/pricing-usage-model-ec2-instances-nvidia-gpus/) states up to a 45% reduction for P5 rather than a specific rate, so confirm the current figure on the EC2 pricing page). Two instances therefore cost about $55.04 × 2 × 720h = **$79,258/month** (720h) to $55.04 × 2 × 730h = **$80,360/month** (730h). This covers the EC2 instances only; the EKS Auto Mode management fee, EBS volumes, data transfer and other charges are additional. Always clean up resources after testing.
 :::
 
 ---
@@ -403,28 +408,28 @@ p5.48xlarge costs approximately $98.32/hr (us-west-2 On-Demand). Running 2 insta
 
 ### Instance Support Matrix
 
-| Instance Type | GPU | VRAM (Total) | Auto Mode Support | Verification Status |
+| Instance Type | GPU | VRAM (Total) | Auto Mode Support | Observation |
 |-------------|-----|-----------|---------------|-------------------|
-| g5.xlarge~48xlarge | A10G | 24~192GB | Normal | Provisioning confirmed |
-| g6.xlarge~48xlarge | L4 | 24~192GB | Normal | Provisioning confirmed |
-| g6e.xlarge~48xlarge | L40S | 48~384GB | Normal | Provisioning confirmed |
-| p4d.24xlarge | A100 40GB x 8 | 320GB | Normal | Dry-run confirmed |
-| p5.48xlarge | H100 80GB x 8 | 640GB | Normal | **Spot provisioning confirmed** (us-east-2) |
-| p5en.48xlarge | H200 141GB x 8 | 1,128GB | Limited | Dry-run passes, offering matching may fail |
-| **p6-b200.48xlarge** | **B200 192GB x 8** | **1,536GB** | **Not supported** | **`NoCompatibleInstanceTypes` error** |
+| g5.xlarge~48xlarge | A10G | 24~192GB | Supported | Provisioning observed |
+| g6.xlarge~48xlarge | L4 | 24~192GB | Supported | Provisioning observed |
+| g6e.xlarge~48xlarge | L40S | 48~384GB | Supported | Provisioning observed |
+| p4d.24xlarge | A100 40GB x 8 | 320GB | Supported | Dry-run only (API admission validation, not a provisioning guarantee) |
+| p5.48xlarge | H100 80GB x 8 | 640GB | Supported | Spot provisioning observed (us-east-2) |
+| p5en.48xlarge | H200 141GB x 8 | 1,128GB | Supported | Dry-run passes; capacity/offering matching may still fail |
+| **p6-b200.48xlarge** | **B200 180GB x 8** | **1,440GB** | **Supported (since 2026-04-10)** | **Specify `eks.amazonaws.com/instance-family: p6-b200` in NodePool requirements; regional B200 and Capacity Block availability may limit provisioning** |
 
-:::warning p6 Instance Not Supported
-As of April 2026, EKS Auto Mode's managed Karpenter **cannot provision p6-b200.48xlarge**. Use EKS Standard Mode + Karpenter if p6 instances are needed.
+:::info p6-b200 Instance Support (2026-04-10+)
+EKS Auto Mode's managed Karpenter supports p6-b200.48xlarge as of 2026-04-10. "Dry-run" entries above reflect that the Kubernetes dry-run admission path validated the request; dry-run validates API admission and does not guarantee that capacity can actually be provisioned. Regional B200 capacity and Capacity Block availability can still limit real provisioning.
 :::
 
 ### Per-Region GPU Capacity Availability
 
 | Region | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot Price |
 |--------|---------------------|-----------------|-----------|
-| ap-northeast-2 (Seoul) | InsufficientCapacity | Unconfirmed | -- |
-| **us-east-2 (Ohio)** | Availability varies | **Successfully acquired** | **$13-15/hr** |
+| ap-northeast-2 (Seoul) | InsufficientCapacity (unverified) | Unconfirmed | -- |
+| **us-east-2 (Ohio)** | Availability varies | Acquired (unverified) | $13-15/hr (observed) |
 
-**Spot Price Comparison (us-east-2, 2026-04)**: p5 instances offer 85-90% cost savings on Spot. For detailed pricing, see [GPU Resource Management — Cost Optimization Strategies](../gpu-infrastructure/gpu-resource-management.md#cost-optimization-strategies).
+**Spot Price Comparison (us-east-2, 2026-04)**: These are point-in-time observations without stored artifacts; treat them as unverified and expect no future availability guarantee. Against the $55.04/hr On-Demand example, an observed $13-15/hr Spot price implies about (55.04-15)/55.04 = 72.75% to (55.04-13)/55.04 = 76.38% savings — roughly **73-76%**, not a 90% upper bound. For detailed pricing, see [GPU Resource Management — Cost Optimization Strategies](../gpu-infrastructure/gpu-resource-management.md#cost-optimization-strategies).
 
 ### GPU Quota Notes
 

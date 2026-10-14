@@ -3,9 +3,9 @@ title: GPU Resource Management
 description: GPU resource management and cost optimization using Karpenter, KEDA, and DRA on EKS
 created: "2026-02-05"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 36
+reading_time: 54
 tags:
   - gpu
   - karpenter
@@ -45,7 +45,7 @@ This document covers the architecture and design decision criteria for each axis
 ## Karpenter GPU NodePool
 
 :::info Karpenter GA (v1.0+)
-Karpenter has been GA since v1.0, and all examples in this document use the `karpenter.sh/v1` API. The DRA allocator was added to core (`kubernetes-sigs/karpenter`) v1.14.0, and the AWS Provider (`karpenter-provider-aws`) **v1.14.0** that includes it was released on 2026-07-11. So **installing self-managed Karpenter v1.14.0+** enables DRA node provisioning on EKS. However, the controller setting `ignoreDRARequests` **defaults to `true` (DRA requests ignored)**, so it must be flipped to `false` for DRA to actually work. See [Node Provisioning Compatibility](#node-provisioning-compatibility) and [Karpenter DRA Enablement Parameters](#karpenter-dra-enablement-parameters-v1140) below.
+Karpenter has been GA since v1.0, and all examples in this document use the `karpenter.sh/v1` API. The DRA allocator was added to core (`kubernetes-sigs/karpenter`) v1.14.0, and the AWS Provider (`karpenter-provider-aws`) **v1.14.0** that includes it was released on 2026-07-11. With `ignoreDRARequests` set to `false`, self-managed Karpenter v1.14.0+ **accounts for** DRA requests when scheduling Pods onto GPU nodes that already exist. The controller setting `ignoreDRARequests` **defaults to `true` (DRA requests ignored)**, so it must be flipped to `false` for DRA scheduling to work at all. Provisioning a brand-new GPU node directly from a DRA request on AWS is a separate, unverified path (see [Node Provisioning Compatibility](#node-provisioning-compatibility) and [Karpenter DRA Enablement Parameters](#karpenter-dra-enablement-parameters-v1140) below).
 :::
 
 ### GPU Node Auto-Provisioning Concept
@@ -107,10 +107,10 @@ spec:
 
 **Design Points:**
 
-- `limits.nvidia.com/gpu: 64` — Cluster-wide GPU cap to prevent cost runaway
-- `disruption.consolidateAfter: 30s` — Quick cleanup is key since GPU nodes are expensive
-- `weight: 100` — Priority setting among multiple NodePools
-- Per-workload separation: inference uses On-Demand + `WhenEmpty`; training uses `[spot, on-demand]` + `consolidateAfter: 30m` to prevent interruption
+- `limits.nvidia.com/gpu: 64` — Per-NodePool resource cap. `limits` bounds the total resources Karpenter provisions **for this NodePool**, not for the whole cluster; a cluster-wide ceiling needs the limit replicated across every GPU NodePool or a separate `ResourceQuota`. Karpenter stops provisioning once the pool's total would exceed the limit.
+- `disruption.consolidateAfter: 30s` — Delay before Karpenter voluntarily consolidates a node Karpenter itself decides is empty or underutilized. This governs **voluntary** disruption only; it does not affect **involuntary** Spot reclamation, which EC2 initiates independently with a two-minute notice. A short value reclaims idle GPU cost quickly but increases node churn.
+- `weight: 100` — Relative priority when several NodePools can satisfy the same Pod; higher weight is preferred first.
+- Per-workload separation: inference uses On-Demand + `WhenEmpty` (consolidate only fully empty nodes); training uses `[spot, on-demand]` + `consolidateAfter: 30m` to reduce voluntary churn during long jobs. Neither setting prevents involuntary Spot interruption — training must still checkpoint and resume, since a reclaimed node restarts its Pods elsewhere.
 
 ### EC2NodeClass Configuration Example
 
@@ -121,7 +121,7 @@ metadata:
   name: gpu-nodeclass
 spec:
   amiSelectorTerms:
-    - alias: al2023
+    - alias: al2023@latest   # family@version is required; a bare "al2023" is rejected by the CRD
   role: KarpenterNodeRole-eks-genai-cluster
   subnetSelectorTerms:
     - tags:
@@ -158,7 +158,7 @@ spec:
     { id: '3', cells: ['p5e.48xlarge', '8x H200', '141GB x 8', '192', '2048 GiB', '3200 Gbps EFA', 'Large model training/inference'] },
     { id: '4', cells: ['g5.48xlarge', '8x A10G', '24GB x 8', '192', '768 GiB', '100 Gbps', 'Small/medium model inference'] },
     { id: '5', cells: ['g6e.xlarge ~ g6e.48xlarge', 'NVIDIA L40S', 'Up to 8x48GB', 'Up to 192', 'Up to 768 GiB', 'Up to 100 Gbps', 'Cost-efficient inference'] },
-    { id: '6', cells: ['trn2.48xlarge', '16x Trainium2', '-', '192', '2048 GiB', '1600 Gbps', 'AWS native training'] }
+    { id: '6', cells: ['trn2.48xlarge', '16x Trainium2', '-', '192', '2048 GiB', '3200 Gbps', 'AWS native training'] }
   ]}
 />
 
@@ -172,7 +172,7 @@ spec:
 :::
 
 :::tip EKS Auto Mode
-EKS Auto Mode automatically detects GPU workloads and provisions appropriate GPU instances. Without separate NodePool configuration, it selects optimal instances based on Pod resource requests.
+EKS Auto Mode manages node provisioning, but its two **built-in** NodePools (`general-purpose` and `system`) exclude accelerated (GPU) instance families, so they never launch GPU nodes. To run GPU workloads on Auto Mode you must create a **custom NodePool** that selects GPU instances (for example, a `karpenter.k8s.aws/instance-gpu-count` requirement) and tolerates the `nvidia.com/gpu` taint Auto Mode applies to GPU nodes. Once an eligible GPU NodePool exists, Auto Mode provisions instances based on Pod resource requests. See the EKS docs on [built-in node pools](https://docs.aws.amazon.com/eks/latest/userguide/set-builtin-node-pools.html) and [accelerated workloads in Auto Mode](https://docs.aws.amazon.com/eks/latest/userguide/auto-accelerated.html).
 :::
 
 ---
@@ -191,11 +191,11 @@ resources:
     nvidia.com/gpu: 1
 ```
 
-Device Plugin is simple and stable but can only allocate GPUs as **whole units** and cannot do attribute-based selection (e.g., MIG profiles, specific GPU models).
+Device Plugin is simple and stable. Through the NVIDIA Device Plugin's shared-GPU configuration it can also expose **sub-GPU** units — MIG partitions, time-slicing replicas, and MPS slices — not only whole GPUs. Its limitation is in *how* resources are selected and bound: each sharing mode is a statically named `nvidia.com/gpu`-style resource fixed at node startup, so a Pod cannot express attribute-based requirements (e.g. "any MIG profile with ≥20 GB" or "a specific GPU model") and the plugin cannot coordinate the selection across multiple resource types at schedule time. DRA, covered below, adds that attribute-based, Pod-time selection.
 
 ### Topology-Aware Routing
 
-Topology-Aware Routing, stabilized in K8s 1.33+, minimizes network latency between GPU nodes. It prioritizes routing traffic to GPU nodes within the same AZ (availability zone), particularly improving performance for multi-node tensor parallelism workloads.
+`trafficDistribution: PreferSameZone` controls how a Kubernetes **Service** picks among its ready endpoints: kube-proxy prefers endpoints in the client's own availability zone, falling back to other zones when none are ready locally. It affects **client-to-Service** request routing (for example, a gateway calling a vLLM Service) and can cut cross-AZ data-transfer cost and latency for that hop. It is **not** the transport for multi-node tensor-parallel traffic: collective communication between GPU workers runs pod-to-pod over NCCL/EFA/RDMA and is placed by scheduling (node affinity, topology-aware scheduling, Gang Scheduling), not by Service endpoint selection. `PreferSameZone` is a field on the Service spec available since Kubernetes 1.33 (stable; the earlier `topology.kubernetes.io/zone`-based annotation is being superseded). Any latency improvement for distributed workloads depends on co-locating the workers themselves, so treat it as request-routing locality rather than a guaranteed throughput gain.
 
 ```yaml
 apiVersion: v1
@@ -240,18 +240,20 @@ The DRA core reached GA in K8s 1.34 (`resource.k8s.io/v1`, enabled by default) a
 
 ### GPU Allocation Flow
 
-DRA separates **declarative resource requests** (ResourceClaim) from **immediate allocation**. When a Pod requests GPUs based on attributes like "1 H100 GPU, MIG 3g.20gb profile", the DRA Driver matches it with actual hardware. For the general API object model and CEL matching principles, see [Kubernetes DRA — Core Model](../../../eks-best-practices/resource-cost/kubernetes-dra.md#the-dra-core-model). The flow below shows GPU allocation combined with node scale-out on EKS.
+DRA separates the **declarative resource request** (ResourceClaim) from the **allocation decision**, which the `kube-scheduler` makes — not the driver. The DRA driver's role is to **publish** what each node offers as ResourceSlices and to **prepare** the device on the node once a Pod is bound; the scheduler then evaluates a Pod's ResourceClaim (for example "1 H100 GPU, MIG 3g.20gb profile") against those published slices using CEL and records the allocation in the ResourceClaim's status. For the general API object model and CEL matching principles, see [Kubernetes DRA — Core Model](../../../eks-best-practices/resource-cost/kubernetes-dra.md#the-dra-core-model). The flow below shows this ordering combined with node scale-out on EKS. Scale-out from zero additionally depends on the autoscaler being able to simulate the devices a not-yet-created node would publish (see [Node Provisioning Compatibility](#node-provisioning-compatibility)).
 
 ```mermaid
 flowchart LR
-    A[Pod Creation<br/>ResourceClaim] -->|Pending| B[kube-scheduler<br/>DRA Analysis]
-    B -->|Node Selection| D[DRA Driver]
-    D -->|Allocated| E[Pod Binding]
-    E -->|Reserved| F[Pod Running]
+    DRV[DRA Driver on node] -->|publishes| RS[ResourceSlices<br/>node capacity]
+    A[Pod Creation<br/>ResourceClaim] -->|Pending| B[kube-scheduler]
+    RS --> B
+    B -->|allocate from slices<br/>+ pick node| ALLOC[ResourceClaim<br/>Allocated]
+    ALLOC -->|Pod bound| PREP[DRA Driver<br/>prepares device]
+    PREP --> F[Pod Running]
 
-    B -.->|Insufficient Capacity| CA[Cluster Autoscaler]
-    CA -->|MNG Scale-out| N[GPU Node]
-    N -->|DRA Driver Deploy| D
+    B -.->|no node has matching capacity| CA[Cluster Autoscaler]
+    CA -->|MNG scale-out<br/>needs device simulation| N[GPU Node]
+    N -->|DRA Driver deploy| DRV
 ```
 
 ### DRA vs Device Plugin Comparison
@@ -260,40 +262,42 @@ flowchart LR
   headers={['Item', 'Device Plugin', 'DRA']}
   rows={[
     { id: '1', cells: ['Resource Allocation', 'Static registration at node start', 'Dynamic allocation at Pod scheduling'] },
-    { id: '2', cells: ['Allocation Unit', 'Whole GPU only', 'GPU partitioning possible (MIG, Time-Slicing)'] },
-    { id: '3', cells: ['Attribute-based Selection', 'Not possible (index-based)', 'GPU attribute matching via CEL expressions'] },
+    { id: '2', cells: ['Allocation Unit', 'Whole GPU, or statically preconfigured MIG / time-slicing / MPS units', 'GPU partitioning requested dynamically per Pod (MIG, Time-Slicing)'] },
+    { id: '3', cells: ['Attribute-based Selection', 'Not possible (fixed resource names)', 'GPU attribute matching via CEL expressions'] },
     { id: '4', cells: ['Multi-resource Coordination', 'Not possible', 'Pod-level coordination of multiple resources'] },
-    { id: '5', cells: ['Karpenter Compatible', 'Fully supported', 'Supported on v1.14.0+ (ignoreDRARequests=false); not supported on v1.13 or below'] },
+    { id: '5', cells: ['Karpenter Compatible', 'Fully supported', 'Scheduling onto existing nodes on v1.14.0+ (ignoreDRARequests=false); DRA-driven scale-from-zero on AWS unverified; not supported on v1.13 or below'] },
     { id: '6', cells: ['Maturity', 'Production', 'K8s 1.34+ GA'], recommended: true }
   ]}
 />
 
 ### Node Provisioning Compatibility
 
-:::warning DRA node provisioning compatibility (as of 2026-07)
+:::warning DRA node provisioning compatibility (per AWS EKS guidance pinned to 2026-08-03)
 
-| Node Provisioning | DRA Compatible | Notes |
-|---|---|---|
-| **Managed Node Group** | ✅ Supported | Recommended (all versions), with Cluster Autoscaler |
-| **Self-Managed Node Group** | ✅ Supported | Manual configuration required |
-| **Self-managed Karpenter v1.14.0+** | ✅ Supported | AWS Provider v1.14.0 (2026-07-11) includes the core v1.14.0 DRA allocator ([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113)); consumable capacity & partitionable devices supported |
-| **Self-managed Karpenter ≤ v1.13** | ❌ Not supported | Skips Pods with `spec.resourceClaims` ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)) |
-| **EKS Auto Mode** | ❌ Not supported (current) | AWS-managed internal Karpenter — users cannot bump the version. DRA is unavailable until Auto Mode's Karpenter is updated to v1.14+ |
+AWS's EKS device-management guidance distinguishes **statically provisioned** capacity (nodes that already exist) from **dynamically provisioned** capacity (nodes created on demand). As of the pinned date it states that DRA works with static capacity but not with dynamic Karpenter-created capacity or EKS Auto Mode.
+
+| Node Provisioning | DRA with existing (static) nodes | DRA-driven scale-up (new nodes) | Notes |
+|---|---|---|---|
+| **Managed Node Group** | ✅ Supported | ⚠️ Only via Cluster Autoscaler with DRA simulation (CA 1.34+); requires the DRA driver installed and ResourceSlices simulable | Pods land on existing eligible nodes; scale-up from zero depends on the autoscaler simulating the devices the new node would publish |
+| **Self-Managed Node Group** | ✅ Supported | ⚠️ Same CA dependency as MNG | Manual node and driver configuration required |
+| **Self-managed Karpenter v1.14.0+** | ✅ Scheduling onto existing nodes with `ignoreDRARequests=false` | ❌ Not yet a verified scale-from-zero path on AWS | Core v1.14.0 ships the DRA allocator ([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113)), but the AWS provider does not populate template devices for a not-yet-created instance, so provisioning a new GPU node purely from a DRA request is unverified. See [Karpenter DRA scope](#karpenter-dra-enablement-parameters-v1140) |
+| **Self-managed Karpenter ≤ v1.13** | ❌ Not supported | ❌ Not supported | Skips Pods with `spec.resourceClaims` ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)) |
+| **EKS Auto Mode** | ❌ Not supported | ❌ Not supported | AWS's current guidance lists Auto Mode as not supporting DRA; AWS does not publish the internal Karpenter version, so treat this as an AWS support statement rather than an inferred version threshold |
 :::
 
 **Behavior differences by version:**
 
-The DRA allocator was merged into core Karpenter v1.14.0, and the AWS Provider v1.14.0 that includes it has also been released. So **installing self-managed Karpenter v1.14.0+** enables DRA node provisioning on EKS. Karpenter before v1.14.0 skipped Pods with `spec.resourceClaims` due to the following structural constraints:
+The DRA allocator was merged into core Karpenter v1.14.0, and the AWS Provider v1.14.0 that includes it was released on 2026-07-11. Installing self-managed Karpenter v1.14.0+ with `ignoreDRARequests=false` lets Karpenter **account for** DRA requests when scheduling onto nodes that already exist. Provisioning a **new** GPU node directly from a DRA request is a harder problem, because of the following structural constraints:
 
-1. **ResourceSlice is created after node exists**: DRA Driver issues ResourceSlice after detecting GPUs on the node, but Karpenter needs this information before node creation (chicken-and-egg problem)
-2. **No instance→ResourceSlice mapping**: With Device Plugin, `p5.48xlarge → nvidia.com/gpu: 8` is statically known, but with DRA the content varies by Driver implementation
-3. **CEL expression simulation impossible**: ResourceSlice attribute values needed for evaluation don't exist before node creation
+1. **ResourceSlice is created after the node exists**: the DRA driver publishes ResourceSlices only after detecting GPUs on a running node, but a provisioner needs that information *before* creating the node (chicken-and-egg problem)
+2. **No static instance→ResourceSlice mapping**: with the Device Plugin, `p5.48xlarge → nvidia.com/gpu: 8` is statically known, but with DRA the published content depends on the driver implementation
+3. **Simulation requires template devices**: to evaluate a CEL expression before node creation, the provisioner must synthesize the devices the new node *would* publish
 
-The v1.14.0 DRA allocator resolves this simulation problem at the core level. However, **EKS Auto Mode uses an AWS-managed internal Karpenter**, so users cannot raise its version arbitrarily — DRA remains unavailable until Auto Mode's Karpenter reaches v1.14+. In that case **MNG + Cluster Autoscaler** is recommended (Cluster Autoscaler works without interpreting DRA — it only needs "there are Pending Pods, so scale up" — and has no version constraint).
+The core v1.14.0 allocator adds the simulation machinery, but on AWS the provider's InstanceType construction does not yet populate those template devices, so DRA-driven scale-from-zero on Karpenter is **not a verified path** at the pinned date. For capacity that must scale from zero today, **MNG + Cluster Autoscaler (CA 1.34+)** is the documented option: CA 1.34 does include a DRA-aware simulator (`simulator/dynamicresources/provider`), so it does evaluate ResourceClaims rather than reacting to Pending Pods blindly — the DRA driver and simulable ResourceSlices must be in place for its fit check to succeed. **EKS Auto Mode** does not support DRA per current AWS guidance.
 
 ### Karpenter DRA Enablement Parameters (v1.14.0+)
 
-Karpenter v1.14.0+ ships the DRA allocator code, but the **controller is deployed to ignore DRA requests by default**. To enable DRA node provisioning on self-managed Karpenter, the following parameters must be set explicitly.
+Karpenter v1.14.0+ ships the DRA allocator code, but the **controller is deployed to ignore DRA requests by default**. To let self-managed Karpenter account for DRA requests when scheduling onto GPU nodes, the following parameters must be set explicitly. This enables DRA-aware **scheduling**; whether Karpenter can also provision a brand-new GPU node directly from a DRA request on AWS is a separate, currently unverified capability (the AWS provider does not populate the template devices a pre-creation simulation needs).
 
 | Layer | Parameter | Default | Setting for DRA |
 |---|---|---|---|
@@ -335,16 +339,17 @@ To use GPUs via DRA, parameters across three layers must all be satisfied: **nod
 | **1. K8s feature gate** | `DynamicResourceAllocation` | on by default on K8s 1.34+ | on (on 1.33 and below, set `--feature-gates=DynamicResourceAllocation=true` on kube-apiserver, scheduler, controller-manager, and kubelet) |
 | **1. K8s API group** | `--runtime-config=resource.k8s.io/v1=true` | served by default on 1.34+ | served (EKS control-plane-managed — automatic if cluster is 1.34/1.35) |
 | **2. Node provisioning** | Karpenter `ignoreDRARequests` | `true` | **`false`** (see table above) |
-| **3. NVIDIA DRA driver GPU allocation** | `resources.gpus.enabled` (v25.10+ charts use `gpuResourcesEnabledOverride`) | **`false`** (GPU subsystem disabled by default) | **`true`** |
+| **3. NVIDIA DRA driver GPU allocation** | override gate `gpuResourcesEnabledOverride` (top-level) | **`false`** | **`true`** — turns on the GPU-allocation subsystem; the subsystem field `resources.gpus.enabled` is itself `true` by default (chart v25.12.0) |
 | **3. Disable Device Plugin** | GPU Operator `devicePlugin.enabled` | `true` | **`false`** (avoid conflict with DRA driver) |
-| **3. Container runtime CDI** | containerd/CRI-O CDI | on by default in GPU Operator v25.10+ | enabled (requires NVIDIA Driver 580+) |
+| **3. Container runtime CDI** | containerd/CRI-O CDI | on by default in GPU Operator v25.10+ | enabled (requires a matching NVIDIA driver; see the driver's own release notes for the exact minimum) |
 
 ```bash
-# Install NVIDIA DRA driver — enable the GPU allocation subsystem (disabled by default)
+# Install NVIDIA DRA driver (chart v25.12.0) — set the override gate that unlocks GPU allocation
 helm install nvidia-dra-driver-gpu nvidia/nvidia-dra-driver-gpu \
+  --version 25.12.0 \
   --namespace nvidia-dra-driver-gpu --create-namespace \
   --set gpuResourcesEnabledOverride=true \
-  --set nvidiaDriverRoot=/run/nvidia/driver
+  --set nvidiaDriverRoot=/run/nvidia/driver   # use "/" for a host-installed driver, "/run/nvidia/driver" for the GPU Driver Container
 
 # Deploy GPU Operator with the Device Plugin disabled (avoid GPU allocation conflict with the DRA driver)
 helm upgrade -i gpu-operator nvidia/gpu-operator \
@@ -352,24 +357,23 @@ helm upgrade -i gpu-operator nvidia/gpu-operator \
   --set devicePlugin.enabled=false
 ```
 
-:::warning The NVIDIA DRA driver GPU subsystem is disabled by default
-The NVIDIA DRA driver (`nvidia-dra-driver-gpu`) consists of two subsystems: **GPU allocation** and **ComputeDomain** (Multi-Node NVLink). The **GPU allocation subsystem (`resources.gpus.enabled`) defaults to `false`** in the Helm chart, so it must be explicitly enabled to allocate GPUs via DRA. NVIDIA Driver 580+ and container-runtime CDI enablement are prerequisites.
+:::warning The GPU-allocation subsystem is gated behind an override and is early-stage
+The NVIDIA DRA driver (`nvidia-dra-driver-gpu`) has two subsystems: **GPU allocation** (`resources.gpus.enabled`) and **ComputeDomain** / Multi-Node NVLink (`resources.computeDomains.enabled`). Both subsystem fields default to `true` in chart v25.12.0, **but GPU allocation is held behind a separate top-level gate `gpuResourcesEnabledOverride`, which defaults to `false`** — so GPU allocation stays off until you set that override to `true`. GPU allocation via DRA is a comparatively new capability of the driver (distinct from the long-stable ComputeDomain path), so pin the chart version and read that version's README and values before relying on it in production. Set `nvidiaDriverRoot` to match where the driver actually lives (`/` for a host-installed driver, `/run/nvidia/driver` for the GPU Driver Container).
 :::
 
 ### DRA Selection Guide
 
 :::tip When to use DRA
-**DRA is needed when:**
-- GPU partitioning required (MIG, Time-Slicing, MPS)
-- CEL-based GPU attribute selection in multi-tenant environments
-- Topology-aware scheduling (NVLink, NUMA)
-- P6e-GB200 UltraServer environments (DRA required)
-- K8s 1.34+ environments
+**DRA is the better fit when:**
+- You need **attribute-based, per-Pod** GPU selection — e.g. CEL matching on GPU model or MIG profile in a multi-tenant cluster — rather than statically preconfigured sharing. (MIG, Time-Slicing, and MPS themselves are also available through the Device Plugin's shared-GPU config; DRA adds dynamic, expression-based selection of them.)
+- You need Pod-level coordination of multiple device types, or topology-aware placement (NVLink, NUMA) expressed as claim constraints.
+- Your platform **requires** it: for example, P6e-GB200 UltraServer GPU allocation is documented as DRA-based.
 
-**Device Plugin is sufficient when:**
-- Only whole GPU allocation needed
-- Using EKS Auto Mode (internal Karpenter below v1.14)
-- K8s 1.33 or below
+**The Device Plugin is sufficient when:**
+- You allocate whole GPUs, or a fixed MIG/time-slicing layout decided at node setup, without per-Pod attribute selection.
+- You are on EKS Auto Mode or a Karpenter/K8s combination where DRA is not a supported provisioning path.
+
+**Kubernetes version is about eligibility, not obligation:** DRA core reached GA in K8s 1.34, so 1.34+ *allows* DRA, but a 1.34 cluster with only whole-GPU needs can keep using the Device Plugin. Likewise, running K8s 1.33 or below means DRA is unavailable, not that you are missing a required feature.
 :::
 
 ---
@@ -468,6 +472,8 @@ LLM Metrics (KV Cache, TTFT, Queue)
 
 ### GPU Workload Cost Comparison
 
+The prices below are **illustrative example figures**, not a live quote. On-Demand and Spot prices vary by Region and over time, Spot is a fluctuating average rather than a fixed rate, and Savings Plans discounts depend on the commitment term and payment option. Check the [EC2 pricing page](https://aws.amazon.com/ec2/pricing/) and your own account for current numbers.
+
 #### Inference Workloads (per hour)
 
 <SpotInstancePricingInference />
@@ -484,17 +490,23 @@ LLM Metrics (KV Cache, TTFT, Queue)
 
 <KarpenterGpuOptimization />
 
-| Strategy | Core Mechanism | Expected Savings | Target |
+The ranges below are **illustrative planning figures, not measured results**; actual savings depend on your baseline instance mix, utilization, Region, and purchase commitments. Treat them as "where to look", then measure against your own on-demand baseline.
+
+| Strategy | Core Mechanism | Illustrative Savings vs On-Demand | Target |
 |----------|---------------|-----------------|--------|
-| **Spot Instance Priority** | `capacity-type: spot` + diverse instance types | 60-90% | Inference (stateless) workloads |
-| **Time-based Disruption Budget** | Business hours `nodes: 10%`, off-hours `nodes: 50%` | 30-40% | Services with clear business hour patterns |
-| **Consolidation** | `WhenEmptyOrUnderutilized` + `consolidateAfter: 30s` | 20-30% | All GPU workloads |
-| **Per-workload Instance Optimization** | Small models→g5, large models→p5, weight for priority | 15-25% | Operating various model sizes |
+| **Spot Instance Priority** | `capacity-type: spot` + diverse instance types | up to ~60-90% on the Spot portion (varies by Region/capacity) | Interruption-tolerant inference (stateless) workloads |
+| **Time-based Disruption Budget** | Business hours `nodes: 10%`, off-hours `nodes: 50%` | depends on how much capacity is actually idle off-hours | Services with clear business-hour patterns |
+| **Consolidation** | `WhenEmptyOrUnderutilized` + `consolidateAfter: 30s` | reclaims idle-node cost; magnitude depends on fragmentation | All GPU workloads |
+| **Per-workload Instance Optimization** | Small models→g5, large models→p5, weight for priority | avoids over-provisioning; magnitude depends on current waste | Operating various model sizes |
 
-:::tip Combined Cost Optimization Effect
-**Inference workloads:** Spot (70%) + Consolidation (20%) + Time-based scheduling (30%) = **~85% total savings**
+A `disruption.budgets` entry such as `nodes: 10%` is a **ceiling on voluntary disruption** — it caps how many nodes Karpenter may consolidate at once; it does **not** by itself scale capacity down on a schedule. To reduce capacity during off-hours you combine it with scheduled scaling of the workloads (and therefore of the nodes they require).
 
-**Training workloads:** Savings Plans 1-year commitment (35%) + Spot for experiments (40%) + checkpoint restart = **~60% total savings**
+:::tip Combined Cost Optimization (worked example, not a guarantee)
+The combined figures below are an **arithmetic example** on a hypothetical baseline, not a measured or guaranteed outcome, and the per-strategy percentages are **not additive** — they apply to different, overlapping cost bases. Validate with your own billing data before quoting any number.
+
+**Inference example:** if ~70% of inference capacity runs on Spot (saving ~70% on that portion) and consolidation plus off-hours scaling trim the remaining on-demand base, the *blended* saving can approach a large fraction of the all-on-demand bill — compute it from your real split rather than summing the percentages.
+
+**Training example:** a 1-year Savings Plan commitment on steady training capacity plus Spot for interruption-tolerant experiments (with checkpoint/resume) blends a committed-use discount with Spot pricing; the net depends on the committed-vs-Spot ratio.
 :::
 
 ### LLMOps Cost Governance
@@ -515,9 +527,9 @@ flowchart LR
 - **Application Layer** (Langfuse): Per-agent-workflow-step token consumption, end-to-end cost, trace-based bottleneck analysis
 
 :::warning Spot Instance Cautions
-- **Interruption handling**: 2-minute advance notice. Implement graceful shutdown with `terminationGracePeriodSeconds` and `preStop` hooks
-- **Workload suitability**: Suitable for stateless inference workloads
-- **Availability**: Spot availability for specific instance types may be low; specify diverse types
+- **Interruption handling**: EC2 delivers a Spot interruption notice **up to two minutes** before reclaiming the instance, but this is **best-effort** — the warning can arrive with less lead time or, in rare cases, not at all, and the two minutes is a hard deadline after which the instance is forcibly stopped. Use `terminationGracePeriodSeconds` and a `preStop` hook to drain, but keep the grace period comfortably under two minutes so the kubelet can finish before the deadline.
+- **Workload suitability**: "Stateless" means no local persistent state to lose, but it does **not** protect requests in flight — an in-progress token generation on a reclaimed node is cut off. Combine Spot with request draining (stop accepting new requests, finish or fail-fast in-flight ones) and client-side retries so a reclamation degrades gracefully.
+- **Availability**: Spot availability for a given instance type and Region fluctuates; specify diverse instance types and let Karpenter fall back to On-Demand when Spot capacity is unavailable.
 :::
 
 ### Cost Optimization Checklist

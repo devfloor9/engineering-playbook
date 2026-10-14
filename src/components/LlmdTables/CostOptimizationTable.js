@@ -7,24 +7,24 @@ const CostOptimizationTable = () => {
   const isKo = i18n.currentLocale === 'ko';
   const strategies = [{
     strategy: 'Savings Plans',
-    description: isKo ? '1년/3년 Compute Savings Plans 약정' : '1-year/3-year Compute Savings Plans commitment',
-    savings: '30-60%'
+    description: isKo ? '1년/3년 Compute Savings Plans 약정 (약정 기간·선결제 비율에 따라 할인율 변동)' : '1-year/3-year Compute Savings Plans commitment (discount varies by term and upfront option)',
+    savings: isKo ? 'On-Demand 대비 할인율 (약정 조건별)' : 'Discount vs On-Demand (per commitment terms)'
   }, {
     strategy: isKo ? '비피크 시간 스케일 다운' : 'Off-Peak Scale Down',
-    description: isKo ? '야간/주말 replicas 축소 (CronJob 활용)' : 'Reduce replicas during nights/weekends (using CronJob)',
-    savings: '40-60%'
+    description: isKo ? '야간/주말 replicas 축소 (CronJob 활용). 축소된 시간의 billed 인스턴스 수에 비례해 절감' : 'Reduce replicas during nights/weekends (CronJob); saves in proportion to billed instance-hours removed',
+    savings: isKo ? '축소된 인스턴스-시간에 비례' : 'Scales with removed instance-hours'
   }, {
     strategy: isKo ? '모델 양자화' : 'Model Quantization',
-    description: isKo ? 'INT8/INT4로 GPU 수 절감' : 'Reduce GPU count with INT8/INT4',
-    savings: isKo ? 'GPU 비용 50%' : '50% GPU cost'
+    description: isKo ? 'INT8/INT4로 GPU 수 절감 가능 (정확도·처리량 영향 검증 필요)' : 'May reduce GPU count via INT8/INT4 (validate accuracy and throughput impact)',
+    savings: isKo ? 'billed GPU 수가 실제로 줄 때만 절감' : 'Only when billed GPU count actually drops'
   }, {
     strategy: 'Spot Instances',
     description: isKo ? '내결함성 워크로드에 적용 (중단 위험 있음)' : 'Apply to fault-tolerant workloads (risk of interruption)',
-    savings: '60-90%'
+    savings: isKo ? 'On-Demand 대비 Spot 할인 (가변, 중단 위험 수반)' : 'Spot discount vs On-Demand (variable, with interruption risk)'
   }, {
     strategy: isKo ? 'TP 최적화' : 'TP Optimization',
     description: isKo ? '모델 크기에 맞는 최소 TP 값 사용' : 'Use minimum TP value appropriate for model size',
-    savings: isKo ? '불필요한 GPU 절약' : 'Avoid unnecessary GPUs'
+    savings: isKo ? '불필요한 GPU 할당 회피' : 'Avoids over-allocating GPUs'
   }];
   return <div style={{
     maxWidth: '100%',

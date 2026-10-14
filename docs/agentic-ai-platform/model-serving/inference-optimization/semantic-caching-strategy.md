@@ -3,9 +3,9 @@ title: Semantic Caching Strategy
 description: LLM Gateway-level semantic caching strategy and implementation options comparison (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
 created: "2026-04-17"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: devfloor9
-reading_time: 30
+reading_time: 50
 tags:
   - semantic-caching
   - caching
@@ -32,20 +32,20 @@ This document covers design principles and operational considerations for **gate
 In large-scale LLM services, user queries are often **semantically identical but differently expressed**. Traditional caches (HTTP cache, Redis key-value) that match exact strings cannot eliminate such duplicates. A semantic cache detects semantically similar requests using **embedding-based similarity** and reuses previous responses, simultaneously improving three issues:
 
 - **Token Cost Reduction**: Skip LLM calls on cache HITs, saving API costs and GPU time
-- **Latency Reduction**: Respond with vector lookup (few ms) instead of generation latency (hundreds of ms to seconds)
-- **GPU Capacity Expansion**: Effectively increase throughput in self-hosted vLLM/llm-d environments
+- **Latency Reduction**: On a HIT, the cache path replaces full generation (hundreds of ms to seconds) with embedding the query plus a vector-similarity lookup. The lookup itself is typically a few ms, but the end-to-end HIT latency also includes embedding computation (local model or embedding-API call), so measure it for your embedding model rather than assuming lookup time alone.
+- **GPU Capacity Expansion**: On self-hosted vLLM/llm-d, avoided generations free GPU time for other requests; the realized throughput gain depends on your HIT rate and traffic mix.
 
 ### Expected Savings by Threshold
 
-Savings rates vary significantly based on **user query repetitiveness**, **domain** (FAQ/customer support/code generation), and **prompt structure**, so the figures below are general ranges observed in public implementation documentation and vendor blogs. Each organization must validate actual effects through **progressive rollout** and A/B evaluation.
+Savings depend on **user query repetitiveness**, **domain** (FAQ/customer support/code generation), and **prompt structure**. The figures below are **illustrative planning ranges, not measurements from a specific published benchmark** — the public implementations and vendor blogs that discuss semantic caching report different numbers under different models, datasets, and cost accounting, so they cannot be combined into one authoritative band. Treat these as starting hypotheses and establish your own numbers through **progressive rollout** and A/B evaluation before relying on them.
 
-| Similarity Threshold | Operation Policy | Observed Savings Range | Characteristics |
+| Similarity Threshold | Operation Policy | Illustrative Savings Range | Characteristics |
 |---------------------|------------------|------------------------|----------------|
-| **0.95 (Strict)** | Cache only nearly identical queries | approximately 10-15% | Very low false positive risk, strict quality requirements |
-| **0.85 (Balanced)** | Allow same meaning with different expressions | approximately 30-40% | Recommended default for general LLM chat/assistants |
-| **0.70 (Aggressive)** | Group related topics together | approximately 50-60% | Only for FAQ/static KB with very high repetition |
+| **0.95 (Strict)** | Cache only nearly identical queries | lower | Very low false positive risk, strict quality requirements |
+| **0.85 (Balanced)** | Allow same meaning with different expressions | moderate | Recommended default for general LLM chat/assistants |
+| **0.70 (Aggressive)** | Group related topics together | higher, but with higher false-positive risk | Only for FAQ/static KB with very high repetition |
 
-Reference sources: [Redis — Building an LLM semantic cache](https://redis.io/blog/building-llm-applications-with-kernel-memory-and-redis/), [Portkey Semantic Cache docs](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic), [Helicone Caching docs](https://docs.helicone.ai/features/advanced-usage/caching), [GPTCache README](https://github.com/zilliztech/GPTCache).
+Here "savings" means the share of requests served from cache (and the token/API cost they would have incurred); the absolute percentage is workload-specific. Reference material on semantic-cache mechanics: [Redis — Semantic caching (RedisVL)](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/how_to_guides/llmcache/), [Portkey Semantic Cache docs](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic), [Helicone Caching docs](https://docs.helicone.ai/features/advanced-usage/caching), [GPTCache README](https://github.com/zilliztech/GPTCache). These sources document how the caches work; they do not jointly establish the ranges above.
 
 :::warning Always Validate Savings Numbers
 The above figures are **rough ranges** based on public materials. Not all domains achieve the same HIT rate. Measure **actual HIT rate and false-positive rate for your workload** with dashboards (§6) before finalizing thresholds.
@@ -84,23 +84,25 @@ flowchart LR
 | Aspect | KV Cache (vLLM PagedAttention) | Prompt Cache (Anthropic/OpenAI managed) | Semantic Cache (Gateway level) |
 |--------|--------------------------------|----------------------------------------|-------------------------------|
 | **Operation Location** | Inside inference engine (GPU HBM) | Model provider side | Gateway (Bifrost/LiteLLM/Portkey) front |
-| **Storage Unit** | Token-level KV blocks | Explicit `cache_control` marked sections | Entire response object (text/JSON) |
-| **Matching Method** | **Prefix exact match** | Provider-internal hash-based exact match | **Embedding cosine similarity** |
+| **Storage Unit** | Token-level KV blocks | Anthropic: sections marked with `cache_control` / OpenAI: automatic prefix caching (no marker) | Entire response object (text/JSON) |
+| **Matching Method** | **Prefix exact match** | **Prefix exact match** (provider-internal; reuse requires the rendered prefix to match) | **Embedding cosine similarity** |
 | **Primary Purpose** | TTFT & throughput improvement | Repeated system prompt cost reduction | **Eliminate duplicate LLM calls entirely** |
 | **Cost Impact** | GPU time savings (self-hosted) | Input token price discount (managed) | Skip API calls entirely |
 | **Failure Impact** | Performance degradation only | Cache not applied → regular pricing | **Direct response quality impact** (false answer risk) |
 | **Related Docs** | [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md) | Provider official docs | This document |
 
-:::tip Three Layers Can Combine Independently
-A semantic cache HIT → immediate response (skip LLM call). On MISS, provider call → prompt cache reduces system prompt input cost → inference engine KV cache improves generation speed. The three layers are **orthogonal** to each other, so enabling all simultaneously is common.
+:::tip The Three Layers Address Different Reuse and Can Be Combined
+The three layers reuse different things: a semantic cache reuses a whole prior **response** across similar queries; provider prompt caching and vLLM prefix caching reuse computation over a shared **prefix** of a single request. Because they act on different units, they can be enabled together — on a MISS, the provider/engine call can still benefit from prefix reuse. They are not strictly independent, though: a semantic-cache HIT skips the downstream call entirely (so prompt/KV reuse never runs for that request), and provider prompt caching and self-hosted prefix caching are **alternative implementations of prefix reuse** for the same request, not two stages you stack. Enable the layers your deployment actually has (a managed provider gives you prompt caching; self-hosted vLLM/llm-d gives you prefix caching), not all three by default.
 :::
 
 ### Application Timing Comparison
 
-- **Prototype/single model**: KV cache (automatic) + prompt cache (if provider supports) is sufficient
-- **Multi-tenant/multi-provider**: Add Gateway-level semantic cache — absorbs patterns where identical queries repeat across multiple users
-- **FAQ/chatbot/fixed KB**: Lower semantic cache threshold (0.80-0.85) for aggressive reuse
-- **Code generation/IDE agents**: Apply semantic cache **conservatively** (0.95) or disable — similar queries often have different file contexts making reuse risky
+Prefix reuse exists in two forms — **provider-managed** (OpenAI/Anthropic prompt caching, available only when you call that provider) and **self-hosted** (vLLM/llm-d automatic prefix caching, available only when you run the engine). You get whichever matches your serving path; you do not configure both for the same request.
+
+- **Prototype/single model**: Prefix reuse (provider prompt caching if you call a managed provider, or vLLM/llm-d prefix caching if self-hosted) usually covers early needs. Add a semantic cache only once you observe repeated, semantically similar queries that a response cache could absorb.
+- **Multi-tenant/multi-provider**: A gateway-level semantic cache absorbs identical queries repeated across users — but only add it after measuring that such repetition exists in your traffic, and design keys/namespaces (§5) before enabling it.
+- **FAQ/chatbot/fixed KB**: A lower semantic-cache threshold (0.80-0.85) enables more aggressive reuse; validate false-positive rates (§3, §6) before lowering.
+- **Code generation/IDE agents**: Apply a semantic cache **conservatively** (0.95) or disable it — similar queries often carry different file contexts, so reusing a response risks a wrong answer.
 
 ---
 
@@ -130,14 +132,17 @@ graph LR
 
 ### Considerations When Setting Thresholds
 
-1. **User Error Tolerance**: Lower if "closest answer" suffices like customer support; higher for code/calculations
-2. **Domain Vocabulary Diversity**: Domains with many term synonyms (medical/legal) tend to group meanings well even at lower thresholds
-3. **Embedding Model Quality**: Stronger embeddings (e.g., `text-embedding-3-large`, `bge-m3`) maintain safety even at lower thresholds
-4. **Conversation Context**: Multi-turn conversations must include previous turns in hash keys (§5)
-5. **Language/Locale**: Multilingual services should separate namespaces by language to prevent cross-contamination
+A similarity score measures embedding proximity, **not answer correctness**: two queries can be close in embedding space yet require different answers (opposite polarity via negation, different quantities, different entities, or different freshness/time context). No fixed score and no embedding-model ranking makes a threshold "safe" on its own — validate it with a labeled evaluation set for your model and domain that deliberately includes negation, numeric differences, entity identity, and time-sensitive cases.
+
+1. **User Error Tolerance**: Where an approximate "closest answer" is acceptable (some customer-support flows), a lower threshold may be tolerable; code and calculations need high thresholds. This is a product decision, not a safety guarantee.
+2. **Domain Vocabulary**: Domains with many synonyms (medical/legal) may *appear* to group meanings well, but these domains also carry the highest cost of a wrong reuse. Do not lower the threshold on the assumption that synonym richness makes grouping safe; confirm it against labeled false matches.
+3. **Embedding Model Quality**: A stronger embedding (e.g., `text-embedding-3-large`, `bge-m3`) can improve retrieval quality, but it does **not** by itself make a lower threshold safe — these are retrieval models, not correctness oracles, and their documentation makes no cache-safety claim. Re-measure the false-positive rate whenever you change the embedding model.
+4. **Similarity vs. Distance**: Confirm whether your cache library compares a **similarity** (higher = closer, e.g., cosine similarity) or a **distance** (lower = closer, e.g., cosine distance in RedisVL). A threshold is meaningless until you know which convention applies, because the comparison direction reverses.
+5. **Conversation Context**: Multi-turn conversations must include previous turns in cache keys (§5).
+6. **Language/Locale**: Multilingual services should separate namespaces by language to prevent cross-contamination.
 
 :::warning Thresholds are Not Fixed Values but Tuning Targets Based on Observation
-Start conservatively at 0.90, then adjust by 0.05 increments while monitoring **HIT rate and user dissatisfaction metrics (👎, regenerate clicks)** on Langfuse/Grafana dashboards.
+Start conservatively (for example 0.90, interpreted in your library's similarity/distance convention), then adjust in small increments **only when a labeled evaluation shows the change does not increase false matches**. Monitor **HIT rate and user dissatisfaction metrics (👎, regenerate clicks)** on Langfuse/Grafana dashboards as leading indicators, not as a substitute for labeled evaluation.
 :::
 
 ---
@@ -156,17 +161,18 @@ When implementing a semantic cache, select solutions considering these factors.
 
 ### Implementation Patterns
 
-**Pattern A: Gateway All-in-one** — Routing, cache, observability in single product (e.g., Portkey, Helicone)
+**Pattern A: Gateway All-in-one** — Routing, cache, and observability in a single product (e.g., Portkey)
 - Pros: Integrated configuration, rapid deployment
 - Cons: Vendor lock-in, advanced features depend on managed plans
+- Note on caching type: confirm whether the product's cache is **semantic** (embedding-similarity) or **exact-match response** caching before relying on it to deduplicate paraphrased queries. Portkey documents a semantic cache. Helicone's documented caching is **exact-match response caching** (it hashes the request body and stores complete responses on an edge KV store), not semantic caching; use Helicone for exact-request reuse and observability, and pair it with a semantic layer if you need similarity matching.
 
 **Pattern B: Modular** — Gateway (Bifrost/LiteLLM) + independent cache layer (RedisVL, GPTCache)
 - Pros: Independent layer replacement possible, open source first
 - Cons: Increased integration complexity
 
 **Pattern C: Managed** — Redis Enterprise LangCache, Portkey SaaS
-- Pros: Minimal operational burden, compliance certifications included
-- Cons: Cost, region constraints
+- Pros: Minimal operational burden; the vendor operates the service
+- Cons: Cost, region constraints; **verify each vendor's specific compliance certifications against your own regulatory requirements** rather than assuming a generic "certified" status — the applicable certifications (e.g., SOC 2, ISO 27001, HIPAA eligibility) differ by product, plan, and region.
 
 For specific tool comparison tables, configuration examples, and deployment snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup/advanced-features).
 
@@ -188,6 +194,12 @@ The simplest key is just `embedding(user_query)`, but in real services, the foll
 - `tool_set_hash`: Agent's available tool set
 - `embedding(user_query)`: Semantic similarity matching target
 
+Also bind any request or authorization state that changes the answer, or a cached response may be reused when it should not be:
+- **Decoding parameters** that affect output (e.g., `temperature`, `top_p`, `max_tokens`, `seed`) — reuse across different decoding settings can return an answer the caller did not ask for
+- **Response format / structured-output schema** (e.g., OpenAI `text.format`, `response_format`) — a JSON-schema request must not reuse a free-text answer
+- **Retrieved context / data version** for RAG or tool-grounded answers — a response grounded on stale documents must expire when the underlying data changes
+- **Authorization scope** — the retrieving user's permissions, so a cached answer is only served to callers allowed to see it (see §8)
+
 ### Multi-tenant Namespace Strategy
 
 | Layer | Namespace Pattern Example | Isolation Purpose |
@@ -200,12 +212,12 @@ The simplest key is just `embedding(user_query)`, but in real services, the foll
 
 ### Non-determinism Handling
 
-Requests with `temperature > 0`, `top_p < 1`, or tool calls produce **different responses each time**, so simple reuse can degrade user experience.
+Two different concerns are often conflated here. **Sampling variability**: with `temperature > 0` or `top_p < 1`, the model *may* return a different response on each call, so reusing one sampled answer can surprise users who expected variety. **Non-reproducible execution**: tool calls, retrieval, or any step that reads changing external state can make the "same" request produce a different, freshness-dependent answer. Both reduce how safely a response can be reused, but for different reasons — the first is about expected variety, the second is about correctness against current data.
 
 **Recommended Policy:**
-- **Default cache disabled** for streaming/agent-type requests
-- Selectively allow only on endpoints with guaranteed reproducibility (e.g., `/summarize`, `/classify`)
-- Recommend routing rules that cache only `temperature=0` requests
+- **Default cache disabled** for streaming and agent-type (tool-using) requests until you have evaluated reuse for them
+- Treat endpoints such as `/summarize` or `/classify` as **candidates** that are *more likely* to be reproducible — not guaranteed. An endpoint name does not establish reproducibility; verify that its output does not depend on changing data or sampling before caching it
+- Prefer caching requests pinned to deterministic settings (e.g., `temperature=0`, and a fixed `seed` where the provider supports one), and still bind the decoding parameters into the key (above) so a later non-deterministic request does not reuse the deterministic entry
 
 For specific gateway integration patterns (kgateway, LiteLLM, Bifrost), configuration examples, and code snippets, refer to [Inference Gateway Setup Guide — Semantic Caching Implementation Options](../../reference-architecture/inference-gateway/setup/advanced-features).
 
@@ -217,36 +229,40 @@ A semantic cache returns a previous answer directly to the user. Monitor whether
 
 ### Langfuse Trace Tags
 
-Attach these attributes to each request trace (Langfuse Python/TypeScript SDK supports via `metadata` or `tags`):
+Attach these attributes to each request trace. In Langfuse, **tags** are strings only (max 200 characters each) used to categorize and filter; typed or numeric values such as `similarity_score` belong in **metadata** (structured) or in a numeric score/observation, not in tags. Use tags for low-cardinality labels (e.g., `cache_hit`, `cache_source`) and metadata for the typed fields:
 
-- `cache_hit`: `true` / `false`
-- `similarity_score`: `0.92` (on HIT, highest matched similarity)
-- `cache_source`: `redis-semantic` / `portkey` / `helicone`, etc.
-- `cache_namespace`: `{tenant}:{lang}:{domain}` (no PII)
-- `cache_ttl_remaining_s`: Remaining TTL (for debugging)
-- `cache_eviction_reason`: MISS cause (`below_threshold`, `namespace_miss`, `ttl_expired`)
+- `cache_hit`: `true` / `false` (tag or boolean metadata)
+- `similarity_score`: e.g. `0.92` (numeric metadata — on HIT, highest matched similarity; interpret per your similarity/distance convention, §3)
+- `cache_source`: `redis-semantic` / `portkey` / `helicone`, etc. (tag)
+- `cache_namespace`: `{tenant}:{lang}:{domain}` (metadata; no PII)
+- `cache_ttl_remaining_s`: Remaining TTL in seconds (numeric metadata, for debugging)
+- `cache_eviction_reason`: MISS cause (`below_threshold`, `namespace_miss`, `ttl_expired`) (tag or metadata)
 
 ### Recommended Dashboard Panels
 
-Visualize the following with Langfuse custom dashboards or Prometheus + Grafana:
+Visualize the following with Langfuse custom dashboards or Prometheus + Grafana. The expressions below are **conceptual definitions, not executable PromQL or Langfuse queries** — translate them to the metric names and query language of the backend you use.
 
-| Panel | Query/Metric | Target Value |
+| Panel | Concept (not literal query) | Target Value |
 |-------|--------------|--------------|
-| **Overall HIT Rate** | `count(cache_hit=true) / count(*)` | 15-40% (varies by service characteristics) |
-| **HIT Rate by Namespace** | group by `cache_namespace` | Monitor tenant variance |
+| **Overall HIT Rate** | HITs ÷ total cache lookups | 15-40% (workload-specific; not a target to force) |
+| **HIT Rate by Namespace** | HIT rate grouped by `cache_namespace` | Monitor tenant variance |
 | **similarity_score Distribution** | histogram of `similarity_score` on HIT | Watch for excessive bins near threshold |
-| **False-positive Proxy** | 👎 feedback / regenerate click rate (where cache_hit=true) | No increase vs baseline |
-| **Total Saved Tokens** | `sum(tokens_saved)` on HIT | Cost reporting |
-| **Cache Store Size** | Redis `DBSIZE`, memory usage | Check TTL & eviction policy |
+| **False-positive Proxy** | rate of 👎 feedback / regenerate clicks among `cache_hit=true` responses | No increase vs baseline |
+| **Total Saved Tokens** | sum of `tokens_saved` on HIT | Cost reporting |
+| **Cache Store Size** | count of cache entries in the cache's index/namespace (e.g., `FT.INFO` on a RedisVL index, or a `SCAN`-based count of the namespace), plus Redis memory usage | Check TTL & eviction policy |
+
+Define `tokens_saved` explicitly before reporting it: it is an **estimate**, typically the input+output token count the avoided generation would have produced for that request (e.g., the token usage of the stored response, or the request's prompt tokens plus the stored completion tokens). State which convention you use so the cost figure is reproducible. Note that Redis `DBSIZE` returns the number of keys in the **entire database** (an O(1) whole-DB count), not the size of a single cache namespace — use an index count (`FT.INFO`) or a namespace-scoped scan when you want per-namespace size.
 
 ### Alert Rules
 
-| Alert | Condition | Severity |
-|-------|-----------|----------|
-| HIT Rate Plunge | HIT rate &lt; 50% of previous 24h average | Warning — possible embedding/Redis failure |
-| Abnormal HIT Rate Increase | HIT rate &gt; 70% + false-positive proxy increase | Critical — suspected threshold misconfiguration |
-| similarity_score Concentration | HIT ratio within threshold ±0.02 &gt; 40% | Warning — excessive borderline matching |
-| Redis Latency | P99 &gt; 20ms | Warning — cache becoming bottleneck |
+The thresholds below are **proposed starting values, not validated limits**. Before alerting on them, establish a per-workload baseline and confirm each rule against your traffic mix, request rate, and the sample size (denominator) behind the metric — a hit-rate comparison is unstable when the window has few lookups. In particular, a high absolute hit rate (e.g., 70%) is **not by itself** abnormal: it is expected for highly repetitive FAQ traffic. Treat these as triggers to **investigate**, correlated with the false-positive proxy and labeled quality outcomes, not as direct evidence of a root cause.
+
+| Alert | Condition (starting point) | Severity | Investigate |
+|-------|-----------|----------|----------|
+| HIT Rate Plunge | HIT rate &lt; 50% of previous 24h average (same workload, sufficient sample) | Warning | Possible embedding/Redis failure — verify before concluding |
+| HIT Rate Increase with Quality Drop | HIT rate rises **and** false-positive proxy rises together | Critical | Suspected threshold misconfiguration; a rate rise alone is not enough |
+| similarity_score Concentration | HIT ratio within threshold ±0.02 &gt; 40% | Warning | Excessive borderline matching |
+| Redis Latency | P99 &gt; 20ms (tune to your SLO) | Warning | Cache becoming a bottleneck |
 
 ### Langfuse OTel Integration Reference
 
@@ -258,16 +274,16 @@ For Bifrost/LiteLLM OTel transmission configuration, follow existing [LLMOps Obs
 
 ### Security & Privacy
 
-- Prohibit caching prompts containing PII (place Guardrails **before** the semantic cache)
+- Place Guardrails **before** the semantic cache to keep PII-bearing prompts out of the store — but note this guards the **input** only. Also authorize at **retrieval** (serve a cached answer only to callers allowed to see it, §8) and validate the **stored response**, because an input filter does not remove user-specific content that is already inside a cached answer.
 - Prohibit cache storage on prompt injection detection
 - Prevent cross-tenant leakage (enforce namespace design with unit tests)
-- Retain audit logs for minimum 90 days (HIT/MISS, namespace, similarity_score)
+- **Audit-log retention is set by your own regulatory/organizational policy** (what to log — HIT/MISS, namespace, similarity_score — and for how long). "90 days" is only an example starting point; confirm the period your compliance obligations actually require.
 
 ### Operations & Lifecycle
 
-- **TTL**: Static KB 7-30 days / product info 1-24h / news & time-series disable
+- **TTL (examples, tune per data volatility)**: static KB on the order of days-to-weeks; product info hours; news/time-series disabled. These are starting points, not fixed rules — set TTL from how fast each data source changes.
 - **Model Version Replacement**: Include version in key (`glm-5:v2026-03`) → natural expiration
-- **Embedding Model Replacement**: Full rebuild required
+- **Embedding Model Replacement**: Namespace the index by embedding model/version. Entries embedded with the old model are **not comparable** to new-model query vectors, so route new traffic to a new namespace and retire the old one as its TTL elapses or after backfilling. A full, immediate rebuild is one option (simplest, highest cost); versioned namespaces with gradual migration avoid a hard cutover. State which you choose and when old entries are retired.
 - **Failure Fallback**: Fail-open on Redis failure (secure original rate limit in advance)
 - **Progressive Rollout**: Validate new policies with A/B testing
 
@@ -295,14 +311,14 @@ Even with the same semantic cache engine, **key composition, thresholds, and TTL
 |--------|-----------|-----|----------------|
 | **FAQ / Product Q&A** | 0.80-0.85 | 24-72h | Repetitive queries, fixed answers. Key: `tenant+language+product_version` |
 | **Internal KB** | 0.85-0.90 | 1-7d | Prioritize isolation by permission. Key: `tenant+role_hash+language` |
-| **Customer Support** | 0.85 | 6-24h | Redact PII with Guardrails before embedding. Key: `tenant+intent+language` |
+| **Customer Support** | 0.85 | 6-24h | **Only cache answers that are not user-specific.** For personalized answers, include `user_id` (or an authorization scope) in the key and re-check permissions at retrieval. Key for public answers: `tenant+intent+language`; key for personalized answers: `tenant+user_id+intent+language`. Redacting PII from the *input* does not make the stored *response* safe to share. |
 | **Code Generation/IDE** | 0.97+ or disabled | 30m-2h | High context dependency. Disable for refactoring/debugging |
 
 **Considerations:**
 - FAQ/Product Q&A: Natural invalidation via `product_version` key on product changes
-- Internal KB: Flush user namespace on ACL changes
-- Customer Support: PII (names, order numbers) must pass through Guardrails
-- Code Generation: Different file/repo contexts require different answers for same queries
+- Internal KB: Flush user namespace on ACL changes, and apply access filters at retrieval
+- Customer Support: Input redaction (names, order numbers) through Guardrails is **not sufficient** on its own — a response generated for one user can still contain that user's account state. Cache only explicitly public, context-independent answers under a shared key; key personalized answers by validated `user_id`/authorization scope and revalidate on ACL changes
+- Code Generation: Different file/repo contexts require different answers for the same query
 
 ---
 
@@ -321,7 +337,7 @@ Multilingual: `bge-m3`, `text-embedding-3-large`. English-only: `text-embedding-
 Users deliberately set high temperature for diverse answers; returning the same answer violates expectations. Disable cache by default for creative endpoints.
 
 **Q5. What if cache HIT rate is low?**  
-Check namespace over-segmentation → lower threshold by 0.05 → evaluate embedding model quality in that order. 10-15% HIT rate is normal for non-FAQ workloads.
+Diagnose before loosening the threshold. In order: (1) check for a **labeled false-match / quality** problem — if hits are already producing wrong answers, raising the HIT rate makes it worse; (2) check **eligibility and keys** — over-segmented namespaces or keys that include volatile fields prevent legitimate reuse; (3) evaluate **embedding model quality** on a labeled set. Only after those, consider lowering the similarity threshold in small steps, and only if a labeled evaluation shows false matches do not increase. A low HIT rate can be the *correct* outcome for low-repetition traffic; there is no universal "normal" value, so set a target from your own workload rather than a fixed percentage.
 
 **Q6. What about compliance for cached responses?**  
 Medical/financial/legal domains may require audit log recording even for cache HITs. Always log `cache_hit=true` and comply with regulatory retention periods.
