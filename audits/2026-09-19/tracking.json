@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 542,
-    "open": 1648,
+    "source_correction_accepted": 692,
+    "open": 1498,
     "withdrawn": 1
   },
   "assignment_counts": {
@@ -814,9 +814,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -825,9 +828,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -836,9 +842,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -847,9 +856,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -858,9 +870,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -869,9 +884,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -880,9 +898,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -891,9 +912,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -902,9 +926,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -913,9 +940,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -924,9 +954,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -935,9 +968,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-012"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -946,9 +982,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-013"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -958,8 +997,11 @@
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-014"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -968,9 +1010,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-cascade-015"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1091,9 +1136,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-chit-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1102,9 +1150,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-chit-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1124,9 +1175,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-chit-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1135,9 +1189,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-chit-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1146,9 +1203,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-chit-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1157,9 +1217,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-ctune-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1798,9 +1861,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-fwidx001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1809,9 +1875,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuidx001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1831,9 +1900,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1842,9 +1914,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1853,9 +1928,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1864,9 +1942,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1875,9 +1956,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1886,9 +1970,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1897,9 +1984,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1908,9 +1998,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1919,9 +2012,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1930,9 +2026,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1952,9 +2051,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-013"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1963,9 +2065,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-014"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1974,9 +2079,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-015"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -1985,9 +2093,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpuops-016"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2007,9 +2118,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2018,9 +2132,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2029,9 +2146,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2040,9 +2160,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2051,9 +2174,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2062,9 +2188,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2073,9 +2202,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2084,9 +2216,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2095,9 +2230,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2106,9 +2244,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2117,9 +2258,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-gpustack-011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2304,9 +2448,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-hpo-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2315,9 +2462,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-hpo-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2326,9 +2476,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-hpo-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2337,9 +2490,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-hpo-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2348,9 +2504,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-hpo-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2359,9 +2518,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-hpo-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2659,9 +2821,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-lmc-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2670,9 +2835,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-lmc-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2681,9 +2849,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-lmc-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2692,9 +2863,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-lmc-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2703,9 +2877,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-lmc-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -2714,9 +2891,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-lmc-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3313,9 +3493,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3324,9 +3507,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3335,9 +3521,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3346,9 +3535,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3357,9 +3549,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3368,9 +3563,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3379,9 +3577,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3390,9 +3591,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3401,9 +3605,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3412,9 +3619,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3423,9 +3633,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3434,9 +3647,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo012"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3445,9 +3661,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo013"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3456,9 +3675,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo014"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3467,9 +3689,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo015"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3478,9 +3703,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-nemo016"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3489,9 +3717,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3500,9 +3731,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3511,9 +3745,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3522,9 +3759,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3533,9 +3773,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3544,9 +3787,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3555,9 +3801,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3566,9 +3815,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3577,9 +3829,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3588,9 +3843,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3599,9 +3857,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3610,9 +3871,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-neuron-012"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3874,9 +4138,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3885,9 +4152,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3896,9 +4166,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3908,8 +4181,11 @@
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3918,9 +4194,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3929,9 +4208,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3940,9 +4222,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3951,9 +4236,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3962,9 +4250,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3973,9 +4264,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3984,9 +4278,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -3995,9 +4292,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw012"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4006,9 +4306,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw013"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4017,9 +4320,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw014"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4028,9 +4334,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw015"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4039,9 +4348,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw016"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4050,9 +4362,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw017"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4061,9 +4376,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw018"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4072,9 +4390,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-oclaw019"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4083,9 +4404,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4094,9 +4418,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4105,9 +4432,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4116,9 +4446,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4127,9 +4460,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4138,9 +4474,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4149,9 +4488,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4160,9 +4502,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4171,9 +4516,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4182,9 +4530,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4193,9 +4544,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4204,9 +4558,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route012"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4215,9 +4572,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route013"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4227,8 +4587,11 @@
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route014"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4237,9 +4600,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route015"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4248,9 +4614,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route016"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4259,9 +4628,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route017"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4270,9 +4642,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route018"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4281,9 +4656,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route019"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4292,9 +4670,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-route020"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4830,9 +5211,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4841,9 +5225,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4852,9 +5239,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4863,9 +5253,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4874,9 +5267,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4885,9 +5281,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4896,9 +5295,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -4907,9 +5309,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-servidx008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5072,9 +5477,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-tier-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5083,9 +5491,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-001"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5094,9 +5505,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-002"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5105,9 +5519,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-003"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5116,9 +5533,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-004"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5127,9 +5547,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-005"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5138,9 +5561,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-006"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5150,8 +5576,11 @@
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-007"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5160,9 +5589,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-008"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5171,9 +5603,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-009"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5182,9 +5617,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-010"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5193,9 +5631,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-011"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5204,9 +5645,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-012"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5215,9 +5659,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-013"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5226,9 +5673,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-014"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5237,9 +5687,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-015"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5248,9 +5701,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-016"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5259,9 +5715,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-017"
+      ]
     },
     {
       "package": "agentic-design-serving",
@@ -5270,9 +5729,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-ads-vllm-018"
+      ]
     },
     {
       "package": "agentic-operations",
