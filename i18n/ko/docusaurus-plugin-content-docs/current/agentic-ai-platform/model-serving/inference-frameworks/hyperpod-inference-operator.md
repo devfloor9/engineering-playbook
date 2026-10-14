@@ -36,6 +36,8 @@ Amazon SageMaker HyperPod Inference Operator는 **EKS 오케스트레이션 기�
 
 HyperPod 추론 엔드포인트는 두 개의 라우팅 레이어로 구성됩니다. 이 구분이 "HyperPod 게이트웨이가 풀스택 게이트웨이인가"라는 질문의 출발점입니다.
 
+**표 1. HyperPod 추론 엔드포인트의 두 라우팅 레이어와 각 레이어의 담당 범위**
+
 | 레이어 | 컴포넌트 | 이 가이드 구성에서 담당 | 이 가이드 구성에서 담당하지 않음 |
 |--------|----------|------|---------------|
 | **L1 (엣지)** | Application Load Balancer | TLS 종료, 헬스 체크, DNS(Route 53 연동, 선택) | 모델/프로바이더 선택 |
@@ -52,6 +54,8 @@ HyperPod 추론 엔드포인트는 두 개의 라우팅 레이어로 구성됩�
 ## HyperPod Intelligent Router vs Tiered Gateway
 
 [라우팅 전략 문서](../../model-serving/inference-routing/routing-strategy.md)의 2-Tier 게이트웨이는 **L1 엣지 게이트웨이**(인증·Rate Limit·TLS)와 **L2 추론 라우팅**(KV-aware Pod 선택)을 별도 컴포넌트로 분리합니다. 아래 비교는 **Operator-only 아키텍처**의 Intelligent Router(관리형 Inference Gateway를 켜지 않은 상태, 즉 L2만 담당)를 기준으로 합니다.
+
+**표 2. HyperPod Intelligent Router와 Tiered Gateway의 기능 비교**
 
 | 기능 | HyperPod Intelligent Router (Operator-only) | Tiered Gateway (kgateway + EPP) |
 |------|----------------------------|--------------------------------|
@@ -99,6 +103,8 @@ kvCacheSpec:
 
 지능형 라우팅은 들어온 요청을 관련 KV cache를 보유했을 가능성이 가장 높은 인스턴스로 보냅니다. 다음 전략을 제공합니다.
 
+**표 3. 지능형 라우팅이 제공하는 네 가지 전략과 동작**
+
 | 전략 | 동작 |
 |------|------|
 | `prefixaware` (기본값) | 동일 prompt prefix 요청을 같은 인스턴스로 라우팅 |
@@ -109,6 +115,8 @@ kvCacheSpec:
 `kvaware` 전략에는 제약이 있습니다. vLLM 기반 이미지에서만 동작하며, 배포 매니페스트의 `invocationEndpoint`를 `/completions`로 설정해야 합니다(`/v1/chat/completions` 미지원). 이 제약은 `kvaware`에만 적용되며, 다른 전략(`prefixaware`·`session`·`roundrobin`)은 임의의 엔드포인트에서 동작합니다.
 
 LMCache·vLLM 호환 버전은 Operator 버전에 따라 **두 가지 지원 조합**이 있습니다. v3.1.3이 최소 요건은 아니며, 공식 호환성 매트릭스는 더 낮은 버전 조합도 지원 대상으로 명시합니다.
+
+**표 4. Operator 버전별 LMCache·vLLM 호환 버전 조합**
 
 | Inference Operator | Amazon EKS 애드온 | LMCache 이미지 | vLLM 이미지 |
 |------|------|------|------|
@@ -135,6 +143,8 @@ prompt의 **동일한 토큰 prefix가 재사용될 때** KV cache 적중률이 
 
 구체적인 성능 수치(TTFT·처리량 개선율)는 모델·하드웨어·백분위수·기준선·측정 지표에 따라 크게 달라지므로, 출처가 명시된 측정값과 함께 [KV Cache 최적화](../inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing)에서 다룹니다. 아래 표는 각 레버의 효과 방향만 나타내며, 절대 수치는 벤치마크 산출물 없이는 단정하지 않습니다.
 
+**표 5. 처리량(TTFT·TPS) 레버별 효과 방향과 HyperPod 적용 방법**
+
 | 레버 | 효과(방향) | HyperPod에서 |
 |------|------|-------------|
 | prefix 캐시 재사용 | 동일 토큰 prefix에 대한 prefill 생략 → TTFT↓·처리량↑ (구체 수치는 KV Cache 최적화 문서 참조) | `prefixaware`/`kvaware` 라우팅 + L2 tiered 캐시 |
@@ -145,6 +155,8 @@ prompt의 **동일한 토큰 prefix가 재사용될 때** KV cache 적중률이 
 라우팅 결정(prefix 해시 조회)은 추론이 아니며, 최종 워크로드만 추론이라는 구분은 [KV Cache 최적화 문서의 라우팅 노트](../inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing)를 참조하세요.
 
 ## 적합성과 한계
+
+**표 6. HyperPod Inference Operator의 적합 영역과 제약**
 
 | 구분 | 내용 |
 |------|------|

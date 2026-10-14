@@ -29,6 +29,8 @@ The detailed implementation of each layer is covered in dedicated documents. Thi
 
 ## 3-Layer Cache Comparison
 
+**Table 1. Hit condition, computation avoided, and hit unit across the three inference cache layers**
+
 | Layer | Hit Condition | Computation Avoided | Hit Unit | Detailed Document |
 |------|----------|-------------|----------|----------|
 | **KV / Prefix Cache** | Same prefix (system prompts, common context) | Part of prefill | Pod or shared KV layer | [KV Cache Optimization](./kv-cache-optimization.md) |
@@ -40,6 +42,8 @@ The second layer, which this document calls the **exact-response cache**, is a g
 :::
 
 The three layers are not mutually exclusive. It is common to **stack them**: avoid entire inference at the gateway via semantic and exact-response caches, and on cache miss reduce prefill via KV/prefix cache at the serving engine.
+
+**Figure 1. Overlapping flow that checks the exact-response, semantic, and KV/prefix caches in order**
 
 ```mermaid
 flowchart TB
@@ -93,6 +97,8 @@ Threshold design, cache key composition, and multi-tenancy handling are covered 
 ## Hit-Rate Targets and Measurement
 
 Cache effectiveness cannot be managed without measurement. Hit rates must be measured separately per layer, looking at both gateway and serving-engine metrics. Note that the **hit unit differs by layer**: the KV/Prefix cache hit rate is the **token-level prefix hit rate** reported by the serving engine (vLLM aggregates prefix cache hits on a token basis; see [vLLM v1 metrics loggers.py](https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/v1/metrics/loggers.py)), whereas the exact-response and semantic cache hit rates are the **request-level response hit rate** seen at the gateway. The two must not be compared on the same axis.
+
+**Table 2. Measurement point, hit unit, and proposed starting value by cache layer**
 
 | Metric | Measurement Point | Hit Unit | Proposed Starting Value (before measurement) |
 |------|----------|----------|----------|

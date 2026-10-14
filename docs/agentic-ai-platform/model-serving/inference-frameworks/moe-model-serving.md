@@ -43,6 +43,8 @@ For practical deployment including EKS deployment YAML, helm commands, and multi
 
 MoE models consist of multiple "Expert" networks and a "Router (Gate)" network that selects them.
 
+**Figure 1. MoE layer structure where the Router selects Top-K Experts and combines them by weight**
+
 ```mermaid
 flowchart TB
     INPUT[Input Token<br/>Hidden State]
@@ -81,6 +83,8 @@ flowchart TB
 
 The core of MoE models is the routing mechanism that selects appropriate Experts based on input tokens.
 
+**Table 1. Selection unit and behavior of each MoE routing method**
+
 | Method | Selection unit and behavior | Example and evidence |
 |--------|-----------------------------|----------------------|
 | Token-choice Top-K | Each token selects the K experts with the highest router scores | [Mixtral uses K=2](https://arxiv.org/html/2401.04088v1); [Switch Transformer uses K=1](https://arxiv.org/html/2101.03961v3) |
@@ -101,6 +105,8 @@ These steps describe **token-choice Top-K** routing in the diagram above.
 
 ### MoE vs Dense Model Comparison
 
+**Table 2. Comparison of Dense and MoE models across parameters, compute, training, and scaling**
+
 | Characteristic | Dense | MoE |
 |----------------|-------|-----|
 | Parameter activation | Uses the weights of dense layers for each token | Uses shared layers and selected expert weights; the active fraction varies by model |
@@ -112,6 +118,8 @@ These steps describe **token-choice Top-K** routing in the diagram above.
 For example, [Mixtral 8x7B](https://arxiv.org/html/2401.04088v1) activates 12.9B / 46.7B ≈ **27.6%** of its parameters. The model cards below give 40B / 744B ≈ **5.4%** for GLM-5 and 32B / 1,000B = **3.2%** for Kimi K2.5. These fractions are neither weight-memory savings nor measured throughput.
 
 Mixtral's approximately 47B total / 13B active parameters describe the **whole model**. The right side below illustrates selecting two of eight FFNs in one MoE layer; each expert is not an independent 7B model. Shared attention and the remaining layers are omitted.
+
+**Figure 2. Dense 70B full activation contrasted with Expert selection in a Mixtral MoE layer**
 
 ```mermaid
 flowchart LR
@@ -173,6 +181,8 @@ Pin the checkpoint revision, weight and KV cache precision, engine version, and 
 
 When weights at the selected precision plus KV cache and runtime allocations exceed one GPU's usable memory, a memory strategy such as parallel partitioning or offloading is needed. Base the deployment on that complete budget and target load, rather than active parameter count.
 
+**Figure 3. GPU partitioning in Tensor, Expert, and Pipeline Parallelism**
+
 ```mermaid
 flowchart TB
     subgraph TP["Tensor Parallelism (TP=4)"]
@@ -215,6 +225,8 @@ Tensor Parallelism distributes each model layer across multiple GPUs.
 
 The following is an **arithmetic example assuming uniform partitioning** of BF16 weights across N ranks. N is neither a recommended GPU count nor a supported TP configuration. Actual TP also requires accounting for replicated tensors, partitioning constraints, uneven rank usage, and allocations beyond weights.
 
+**Table 3. Arithmetic example of BF16 weights divided evenly across an assumed rank count**
+
 | Model | Total parameters | BF16 weights only (GB) | Assumed rank count N | Weights/N (GB/rank) |
 |-------|------------------|-----------------------|----------------------|--------------------|
 | Mixtral 8x7B | 46.7B | 93.4 | 2 | 46.7 |
@@ -241,6 +253,8 @@ With EP enabled, the MoE layers use an EP size of `TP × DP`. For example, `--te
 ### Expert Activation Patterns
 
 The following is a **Top-1 arithmetic example** in which five tokens each select one expert. The counts are 2, 1, 1, and 1, giving shares of 40%, 20%, 20%, and 20%. It represents neither Mixtral's Top-2 routing nor a measured load distribution.
+
+**Figure 4. Expert load imbalance example from a Top-1 selection of five tokens**
 
 ```mermaid
 flowchart TB
@@ -317,6 +331,8 @@ As checked on September 19, 2026, the [official TGI repository](https://github.c
 
 Establish performance rankings through measurements with the same model revision, precision, input/output lengths, concurrency, and hardware. The table lists what to record when comparing vLLM v0.25.0 with a selected TGI release.
 
+**Table 4. Evidence and measurements to record when comparing vLLM and TGI**
+
 | Comparison | Evidence and measurement |
 |------------|--------------------------|
 | Throughput | Record output tokens meeting quality and latency SLOs, and the measurement duration |
@@ -337,6 +353,8 @@ AWS Trainium2 and Inferentia2 use the Neuron software stack. When evaluating the
 
 ### Summary
 
+**Table 5. Overview of review items for Trainium2-based MoE inference**
+
 | Item | Overview |
 |------|----------|
 | Hardware | trn2.48xlarge has 16 Trainium2 chips, each with eight physical NeuronCore-v3 cores: 128 per instance. Default LNC=2 exposes 64 logical NeuronCores |
@@ -351,6 +369,8 @@ The physical/logical core distinction and configuration requirements follow the 
 
 First distinguish the hardware units being priced. HBM uses the **GiB** values in the [Neuron architecture documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trn2-arch.html); UltraServer is not another name for a single instance.
 
+**Table 6. Accelerator, memory, and network specifications of trn2.48xlarge and the Trn2 UltraServer**
+
 | Comparison unit | Accelerator configuration | Device memory in Neuron documentation | EFA network specification |
 |-----------------|---------------------------|---------------------------------------|---------------------------|
 | One trn2.48xlarge | 16 Trainium2 chips | 1,536GiB | 3,200Gbps per instance |
@@ -361,6 +381,8 @@ The bandwidth values are product specifications, not measured application transf
 :::info Specifications still to confirm
 On September 19, 2026, the [EC2 instance specification table](https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html) listed 8,192GiB of accelerator memory for trn2.48xlarge and no accelerators for trn2u.48xlarge, conflicting with the Neuron documentation above. Neuron's UltraServer network table lists 3,200Gbps, while the EC2 product page gives 12.8Tbps across four instances. The table above attributes values to their sources; it does not resolve these differences. Confirm the target configuration before using the figures for capacity or cost planning.
 :::
+
+**Table 7. GPU and Trainium2 cost-comparison candidates and the conditions to hold constant**
 
 | Cost-comparison candidate | Conditions to hold constant and record |
 |---------------------------|----------------------------------------|
@@ -386,6 +408,8 @@ For NVIDIA vs Neuron decision-making at the node selection stage, refer to [EKS 
 
 KV cache is a key factor significantly impacting inference performance.
 
+**Figure 5. Memory waste in a traditional KV cache contrasted with PagedAttention block allocation**
+
 ```mermaid
 flowchart LR
     subgraph Trad["Traditional KV Cache"]
@@ -408,6 +432,8 @@ flowchart LR
     style POOL fill:#76b900
 ```
 
+**Table 8. Meaning and tuning criterion of vLLM v0.25.0 KV cache options**
+
 | vLLM v0.25.0 option | Meaning and tuning criterion |
 |--------------------|------------------------------|
 | `--gpu-memory-utilization` | GPU memory fraction for this vLLM instance's model executor. It is neither measured whole-device utilization nor a reservation mechanism among processes |
@@ -421,6 +447,8 @@ A fixed memory fraction is not a universal recommendation for MoE deployments. U
 ### Speculative Decoding
 
 The diagram illustrates speculative decoding with a small draft model whose proposed tokens are verified by the target. It emits the accepted prefix followed by a token selected by the verification algorithm, and regenerates draft tokens after the first rejection. Throughput benefit depends on draft cost, acceptance rate, batching, and load.
+
+**Figure 6. Speculative decoding flow where the target model verifies the draft model's proposals**
 
 ```mermaid
 sequenceDiagram
@@ -453,6 +481,8 @@ sequenceDiagram
 
 ### Batch Processing Optimization
 
+**Table 9. Behavior and comparison metrics of batch processing optimization techniques**
+
 | Technique | Behavior | Measurement and scope |
 |-----------|----------|-----------------------|
 | Continuous Batching | Removes completed requests and adds waiting requests to subsequent processing batches | Compare throughput, waiting time, and errors under the same load; there is no universal 2–3× improvement |
@@ -468,6 +498,8 @@ For vLLM scheduling behavior, see the [tuning guide for this release](https://gi
 ### Key Monitoring Metrics
 
 The vLLM names below follow the [v0.25.0 V1 exporter definitions](https://github.com/vllm-project/vllm/blob/v0.25.0/vllm/v1/metrics/loggers.py). Inspect the actual series and labels at the deployed `/metrics` endpoint; preserve `model_name` and `engine` distinctions before choosing aggregation scope.
+
+**Table 10. Unit and interpretation of key monitoring metrics**
 
 | Metric or PromQL | Unit and interpretation |
 |------------------|-------------------------|
@@ -493,6 +525,8 @@ and
 This expression assumes matching label sets for both series. Inspect missing or invalid collector values first; do not sum used and free memory over different GPU sets. The five-minute rate window and 0.95 threshold are examples to evaluate for the operating environment.
 
 Configure alerts with SLOs and durations established through load tests. These observations guide investigation; they are not automatic failure or scale-out rules.
+
+**Table 11. What to investigate for each monitoring observation**
 
 | Observation | What to investigate |
 |-------------|---------------------|

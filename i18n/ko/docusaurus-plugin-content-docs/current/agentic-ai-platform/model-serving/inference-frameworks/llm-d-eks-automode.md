@@ -72,6 +72,8 @@ llm-d의 Intelligent Inference Scheduling 아키텍처는 다음과 같이 구�
 
 실선은 요청·응답 및 ext-proc 호출, 점선은 설정 참조·Pod 관리 관계입니다. GPU 수와 TP는 설명용 워크로드 값입니다. InferencePool은 기존 Pod를 선택하고 EPP를 참조하며, 이미지·GPU 요청·replica 수는 Deployment/LeaderWorkerSet 등의 워크로드에 정의합니다.
 
+**그림 1. llm-d Intelligent Inference Scheduling의 컴포넌트 구성과 참조 관계**
+
 ```mermaid
 flowchart TB
     CLIENT[Client App<br/>OpenAI API]
@@ -132,6 +134,8 @@ flowchart TB
 
 [Optimized Baseline v0.8.1](https://github.com/llm-d/llm-d/blob/v0.8.1/guides/optimized-baseline/README.md)의 NVIDIA GPU 예제를 기준으로 한 구성입니다. EKS에서 실행 검증한 기본값이나 모든 배포 경로의 공통값은 아닙니다. 이 릴리스는 router Helm chart와 모델 서버 Kustomize 매니페스트를 사용합니다.
 
+**표 1. Optimized Baseline v0.8.1 예제 기준 기본 배포 구성**
+
 | 설정 | 예제 값 | 정의 위치 |
 |------|---------|-----------|
 | 모델 | `Qwen/Qwen3-32B` | 모델 서버 인수 |
@@ -157,6 +161,8 @@ Qwen3-32B는 위 Optimized Baseline 예제의 기본 모델이며, Apache 2.0 �
 llm-d의 차별점은 KV cache 상태를 인식하는 지능적 라우팅입니다.
 
 다음 흐름은 설정된 EPP 플러그인의 동작을 단순화한 예시입니다. 캐시가 있는 Pod도 부하에 따라 선택되지 않을 수 있습니다.
+
+**그림 2. 반복 prefix 요청과 새 prefix 요청에서 EPP가 엔드포인트를 선택하는 흐름**
 
 ```mermaid
 sequenceDiagram
@@ -248,6 +254,8 @@ llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경�
 
 상태는 [v0.8.1 릴리스](https://github.com/llm-d/llm-d/releases/tag/v0.8.1)와 해당 태그의 문서 기준입니다. 배포 패턴·구현 기능·API 안정성은 서로 다른 상태를 나타냅니다.
 
+**표 2. llm-d v0.8.1 주요 기능과 검토 기준 시점의 상태**
+
 | 기능 | 설명 | 검토 기준의 상태 |
 |------|------|------------------|
 | **Prefill/Decode Disaggregation** | Prefill과 Decode를 별도 Pod 그룹으로 배포하고 KV를 전송 | [Well-lit path](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md) |
@@ -261,6 +269,8 @@ llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경�
 ### Disaggregated Serving 개념
 
 Disaggregated Serving은 LLM 추론의 두 단계를 분리하여 각각 독립적으로 최적화합니다:
+
+**그림 3. Prefill Pod 그룹과 Decode Pod 그룹을 NIXL KV 전송으로 연결한 구조**
 
 ```mermaid
 flowchart LR
@@ -284,6 +294,8 @@ flowchart LR
     style Prefill fill:#326ce5,stroke:#333
     style Decode fill:#76b900,stroke:#333
 ```
+
+**표 3. Prefill 단계와 Decode 단계의 연산 특성과 일반적 튜닝**
 
 | 단계 | 특성 | 일반적 튜닝 (워크로드별) |
 |------|------|-----------|
@@ -312,6 +324,8 @@ Decode NodePool: Pod당 TP=2, nvidia.com/gpu: 2
 
 llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하지만 접근 방식이 다릅니다. 상세 비교는 [NVIDIA GPU 스택 — llm-d vs Dynamo](../gpu-infrastructure/nvidia-gpu-stack.md#llm-d와의-선택-가이드)를 참조하세요.
 
+**표 4. llm-d와 NVIDIA Dynamo의 아키텍처·라우팅·운영 특성 비교**
+
 | 항목 | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|
 | **주도** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
@@ -336,6 +350,8 @@ llm-d와 Dynamo는 상호보완적 관계입니다. 두 프로젝트는 NIXL(KV 
 :::
 
 ### 마이그레이션 경로
+
+**그림 4. Auto Mode + llm-d 구성과 Karpenter + Dynamo 구성의 토폴로지 대비**
 
 ```mermaid
 flowchart LR
@@ -369,6 +385,8 @@ flowchart LR
 **단계별 전환 경로 (필수 순서가 아닌 선택적 설계):**
 
 아래 단계는 예시 구성이며 반드시 순서대로 밟아야 하는 요구사항이 아닙니다. GPU 수가 많다고 해서 후속 단계가 강제되거나 최대 성능이 보장되는 것은 아닙니다. 워크로드의 격리·스케줄링·DRA 요구사항에 맞춰 구성을 선택합니다.
+
+**표 5. 단계별 전환 경로의 구성과 예시 적합 대상**
 
 | Phase | 구성 | 예시 적합 대상 |
 |-------|------|----------|
@@ -408,6 +426,8 @@ Auto Mode와 Karpenter 자체 관리는 동일 클러스터에서 혼용이 가�
 
 ### 인스턴스 지원 매트릭스
 
+**표 6. EKS Auto Mode GPU 인스턴스 타입별 지원 현황과 관측 사항**
+
 | 인스턴스 타입 | GPU | VRAM (총합) | Auto Mode 지원 | 관측 사항 |
 |-------------|-----|-----------|---------------|----------|
 | g5.xlarge~48xlarge | A10G | 24~192GB | 지원 | 프로비저닝 관측 |
@@ -424,6 +444,8 @@ EKS Auto Mode의 관리형 Karpenter는 2026-04-10부터 p6-b200.48xlarge를 지
 
 ### 리전별 GPU 용량 가용성
 
+**표 7. 리전별 p5.48xlarge On-Demand·Spot 가용성과 관측 가격**
+
 | 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot 가격 |
 |------|---------------------|-----------------|----------|
 | ap-northeast-2 (서울) | InsufficientCapacity (미검증) | 미확인 | -- |
@@ -432,6 +454,8 @@ EKS Auto Mode의 관리형 Karpenter는 2026-04-10부터 p6-b200.48xlarge를 지
 **Spot 가격 비교 (us-east-2, 2026-04 기준)**: 이 값들은 저장된 로그가 없는 시점 관측치이므로 미검증으로 간주하며, 향후 가용성을 보장하지 않습니다. $55.04/hr On-Demand 예시 대비 관측된 Spot $13~15/hr은 (55.04-15)/55.04 = 72.75% ~ (55.04-13)/55.04 = 76.38%, 즉 약 **73~76%** 절감에 해당하며 90%대 상한이 아닙니다. 상세 가격표는 [GPU 리소스 관리 — 비용 최적화 전략](../gpu-infrastructure/gpu-resource-management.md#비용-최적화-전략)를 참조하세요.
 
 ### GPU 쿼타 주의사항
+
+**표 8. GPU 인스턴스 관련 Service Quotas와 계정별 적용값 예시**
 
 | 쿼타 이름 | 적용 인스턴스 | AWS 기본값 | 계정별 적용값 예시 |
 |-----------|-------------|------------|------------------|
