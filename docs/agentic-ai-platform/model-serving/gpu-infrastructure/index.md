@@ -3,7 +3,7 @@ title: Accelerated Computing Infrastructure
 description: EKS GPU node strategy, Karpenter·KEDA·DRA resource management, NVIDIA GPU stack, AWS Neuron stack — the accelerated computing layer covering GPUs and AWS custom accelerators
 created: "2026-04-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
 reading_time: 3
 tags:
@@ -49,8 +49,21 @@ This section covers three infrastructure decisions on Kubernetes: which accelera
     description="Trainium2/Inferentia2, Neuron SDK 2.x, aws-neuron-device-plugin, NxD Inference, vLLM Neuron backend."
     color="#ff9900"
   />
+  <DocCard
+    to="/docs/agentic-ai-platform/model-serving/gpu-infrastructure/criu-gpu-migration"
+    icon="🧪"
+    title="CRIU GPU Migration (Preview)"
+    description="Technology trends for GPU workload checkpoint/restore on Spot reclaim and node replacement, plus a validation checklist for EKS adoption scenarios."
+    color="#9c27b0"
+  />
 </DocCardGrid>
 
 :::tip Selection Guide
 If focused on NVIDIA, read **Node Strategy → Resource Management → NVIDIA Stack**; if considering AWS silicon (Trainium/Inferentia), read **Node Strategy → Neuron Stack**.
 :::
+
+## Related Documents
+
+- [EKS Debugging — GPU and AI Workloads](/docs/eks-best-practices/operations-reliability/eks-debugging/gpu-ai-workload) — Troubleshooting playbook for GPU nodes, drivers, and DCGM
+- [vLLM Model Serving](../inference-frameworks/vllm-model-serving.md) — The inference engine layer above this one
+- [llm-d EKS Auto Mode](../inference-frameworks/llm-d-eks-automode.md) — Disaggregated Serving and Auto Mode case study

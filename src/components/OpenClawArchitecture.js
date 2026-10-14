@@ -144,7 +144,7 @@ function draw(svgEl, isDark) {
     addText(257, 80, 'OpenClaw\n:18789', { fs: 11, color: 'var(--ifm-font-color-base)' });
 
     rRect(355, 58, 190, 55, { fill: '#d0bfff', stroke: '#7048e8' });
-    addText(450, 80, 'Bifrost Proxy\n:4000 (Auto-Router)', { fs: 9, color: 'var(--ifm-font-color-base)' });
+    addText(450, 80, 'LiteLLM Proxy\n:4000 (Auto-Router)', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     // Redis (below Gateway Pod, to the right)
     rRect(575, 150, 135, 48, { fill: '#ffc9c9', stroke: '#e03131' });
@@ -152,7 +152,7 @@ function draw(svgEl, isDark) {
 
     // Observability nodes
     rRect(180, 250, 115, 48, { fill: '#96f2d7', stroke: '#099268' });
-    addText(237, 274, 'OTEL Collector\n:4317', { fs: 9, color: 'var(--ifm-font-color-base)' });
+    addText(237, 274, 'OTEL Collector\n:4318 (HTTP)', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     rRect(330, 250, 115, 48, { fill: '#ffd8a8', stroke: '#e8590c' });
     addText(387, 274, 'Prometheus', { fs: 11, color: 'var(--ifm-font-color-base)' });
@@ -180,8 +180,18 @@ function draw(svgEl, isDark) {
     rRect(890, 128, 158, 68, { fill: '#ffd8a8', stroke: '#e8590c' });
     addText(969, 158, 'Bedrock\nGLM-4.7\n(Coding)', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
-    rRect(890, 214, 158, 68, { fill: '#ffd8a8', stroke: '#e8590c' });
-    addText(969, 244, 'Bedrock\nSolar Pro 3\n(Korean)', { fs: 9, color: 'var(--ifm-font-color-base)' });
+    // Solar Pro 3 — reached via an EXTERNAL provider (OpenRouter / Upstage), not Bedrock.
+    // Drawn outside the AWS Cloud group to show it leaves the private VPC path.
+    rRect(1115, 470, 180, 60, { fill: '#d0ebff', stroke: '#1971c2' });
+    addText(1205, 500, 'External Provider\nSolar Pro 3 (Korean)\nOpenRouter / Upstage', { fs: 8, color: 'var(--ifm-font-color-base)' });
+
+    // OpenAI embedding — external call used by the Auto-Router to embed queries
+    rRect(1115, 390, 180, 56, { fill: '#d0ebff', stroke: '#1971c2' });
+    addText(1205, 418, 'External Provider\nOpenAI Embeddings\n(Auto-Router)', { fs: 8, color: 'var(--ifm-font-color-base)' });
+
+    // OpenClaw persistent state (stateful workload)
+    rRect(165, 150, 135, 48, { fill: '#ffec99', stroke: '#f08c00' });
+    addText(232, 174, 'PVC\nAgent State 10Gi', { fs: 9, color: 'var(--ifm-font-color-base)' });
 
     // AWS infra services
     rRect(1068, 42, 148, 68, { fill: '#ffec99', stroke: '#f08c00' });
@@ -195,22 +205,30 @@ function draw(svgEl, isDark) {
 
     // ═══ ARROWS (left-to-right flow, no crossings) ═══
 
-    // Main data flow: Client → OpenClaw → Bifrost
+    // Main data flow: Client → OpenClaw → LiteLLM
     addArrow([[123, 84], [180, 85]], { color: '#2f9e44', sw: 2, animated: true });
     addArrow([[335, 85], [355, 85]], { color: '#1c7ed6', sw: 2, animated: true });
 
-    // Bifrost → Redis (elbow: right then down)
+    // OpenClaw → PVC (persist agent state; stateful workload)
+    addArrow([[232, 113], [232, 150]], { color: '#f08c00', sw: 1.5 });
+
+    // LiteLLM → Redis (elbow: right then down)
     addArrow([[530, 113], [642, 113], [642, 150]], { color: '#e03131', sw: 1.5, animated: true });
 
-    // Bifrost → Bedrock models (elbow: right through gap, then to each model)
+    // LiteLLM → Bedrock models (private VPC path for Claude + GLM)
     addArrow([[545, 72], [850, 72], [850, 76], [890, 76]], { color: '#e8590c', sw: 2, animated: true });
     addArrow([[545, 80], [850, 80], [850, 162], [890, 162]], { color: '#e8590c', sw: 2, animated: true });
-    addArrow([[545, 88], [850, 88], [850, 248], [890, 248]], { color: '#e8590c', sw: 2, animated: true });
+
+    // LiteLLM → External provider (Solar) — leaves the private VPC path
+    addArrow([[450, 113], [450, 560], [1205, 560], [1205, 530]], { color: '#1971c2', sw: 2, animated: true });
+
+    // LiteLLM → OpenAI embeddings (external, Auto-Router query embedding)
+    addArrow([[545, 100], [1115, 418]], { color: '#1971c2', sw: 1.5, animated: true });
 
     // Observability: OpenClaw → OTEL (near-vertical down)
     addArrow([[257, 113], [237, 250]], { color: '#099268', sw: 1.5, animated: true });
 
-    // Observability: Bifrost → Langfuse (elbow: down, right, down)
+    // Observability: LiteLLM → Langfuse (elbow: down, right, down)
     addArrow([[450, 113], [450, 208], [685, 208], [685, 250]], { color: '#7048e8', sw: 1.5, animated: true });
 
     // OTEL → Prometheus
@@ -224,8 +242,10 @@ function draw(svgEl, isDark) {
 
     // ═══ ARROW LABELS ═══
     addText(152, 72, 'request', { fs: 10, color: '#2f9e44' });
+    addText(260, 135, 'state', { fs: 9, color: '#f08c00' });
     addText(590, 105, 'cache', { fs: 9, color: '#e03131' });
-    addText(700, 58, 'Auto-Route', { fs: 10, color: '#e8590c' });
+    addText(700, 58, 'Bedrock (VPC)', { fs: 10, color: '#e8590c' });
+    addText(820, 548, 'external (Solar)', { fs: 9, color: '#1971c2' });
     addText(228, 180, 'OTLP', { fs: 9, color: '#099268' });
     addText(570, 200, 'callback', { fs: 9, color: '#7048e8' });
     addText(400, 378, 'L7 flow', { fs: 9, color: '#9c36b5' });

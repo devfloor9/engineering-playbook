@@ -9,22 +9,22 @@ const TopologyEffectsTable = () => {
     id: 'cross-az-traffic',
     metric: isKo ? '크로스 AZ 트래픽' : 'Cross-AZ Traffic',
     before: isKo ? '높음' : 'High',
-    after: isKo ? '최소화' : 'Minimized',
-    improvement: isKo ? '데이터 전송 비용 50% 절감' : '50% data transfer cost savings',
+    after: isKo ? '감소 (조건부)' : 'Reduced (conditional)',
+    improvement: isKo ? '동일 AZ 우선 시 크로스 AZ 데이터 전송·비용 감소 (실제 절감폭은 트래픽 분포·AZ 구성에 따라 측정 필요)' : 'Prioritizing same-AZ reduces cross-AZ transfer and cost (actual savings depend on traffic distribution/AZ layout; measure to confirm)',
     color: '#10b981'
   }, {
     id: 'latency',
     metric: isKo ? '지연 시간' : 'Latency',
     before: isKo ? '높음 (크로스 AZ)' : 'High (cross-AZ)',
     after: isKo ? '낮음 (동일 AZ)' : 'Low (same AZ)',
-    improvement: isKo ? 'P99 지연 시간 30-40% 개선' : '30-40% P99 latency improvement',
+    improvement: isKo ? '동일 AZ 라우팅은 네트워크 홉을 줄여 P99 지연을 낮출 수 있음 (개선폭은 워크로드·베이스라인에 따라 다르므로 측정 필요)' : 'Same-AZ routing can lower P99 latency by cutting network hops (magnitude varies by workload/baseline; measure to confirm)',
     color: '#3b82f6'
   }, {
     id: 'bandwidth',
     metric: isKo ? '네트워크 대역폭' : 'Network Bandwidth',
     before: isKo ? '제한적' : 'Limited',
-    after: isKo ? '최적화' : 'Optimized',
-    improvement: isKo ? '처리량 20-30% 향상' : '20-30% throughput increase',
+    after: isKo ? '최적화 (조건부)' : 'Optimized (conditional)',
+    improvement: isKo ? '크로스 AZ 홉 감소로 유효 처리량이 늘 수 있음 (실제 효과는 측정 필요)' : 'Fewer cross-AZ hops can raise effective throughput (actual effect requires measurement)',
     color: '#8b5cf6'
   }];
   return <div style={{

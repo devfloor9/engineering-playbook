@@ -10,9 +10,9 @@ const data = {
     client: '클라이언트 · 에이전트 · 외부 API',
     tier1: {
       label: 'Tier 1 — 범용 Gateway API (북-남)',
-      role: '인증 · TLS · 라우팅 · Rate Limiting · WAF',
-      solutions: '범용 Gateway API 구현체 (§4 비교 참조)',
-      doc: '이 문서',
+      role: '인증 · TLS · 라우팅 · (구현체별 선택 정책) Rate Limiting · WAF',
+      solutions: '범용 Gateway API 구현체 (Gateway API 도입 가이드의 구현체 비교 참조)',
+      doc: 'Gateway API 도입 가이드',
     },
     tier2: {
       label: 'Tier 2 — 추론 트래픽 (LLM 전용)',
@@ -29,9 +29,9 @@ const data = {
     client: 'Clients · Agents · External APIs',
     tier1: {
       label: 'Tier 1 — General Gateway API (North-South)',
-      role: 'Auth · TLS · Routing · Rate Limiting · WAF',
-      solutions: 'General Gateway API implementations (see §4 comparison)',
-      doc: 'This document',
+      role: 'Auth · TLS · Routing · (implementation-specific policies) Rate Limiting · WAF',
+      solutions: 'General Gateway API implementations (see the implementation comparison in the Gateway API Adoption Guide)',
+      doc: 'Gateway API Adoption Guide',
     },
     tier2: {
       label: 'Tier 2 — Inference Traffic (LLM-specific)',

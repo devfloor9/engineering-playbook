@@ -3,9 +3,9 @@ title: Cascade Routing 실전 튜닝
 description: Inference Gateway Cascade Routing의 분류 임계값·Canary 롤아웃·Fallback·비용 드리프트 경보를 프로덕션 trace 기반으로 튜닝하는 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 19
+reading_time: 20
 tags:
   - cascade-routing
   - inference-gateway
@@ -228,6 +228,8 @@ flowchart LR
 
 Langfuse Public API의 traces 조회는 GET과 public/secret key의 HTTP Basic 인증을 사용합니다. 다음은 읽기 전용 한 페이지 예시이며 `meta.totalPages`까지 반복해야 합니다. host·기간·page를 명시하고 trace API 응답을 SDK 속성 이름과 혼용하지 않습니다.
 
+이 `GET /api/public/traces` 예시는 Langfuse v3 또는 v4의 `legacy`·`dual` write mode에서만 동작하며, 이 경로는 `page`·`limit`로 페이지네이션해 `meta.totalPages`까지 반복합니다. 이 traces read endpoint는 deprecated 되어 Langfuse Cloud에서는 2026년 11월 16일에 제거될 예정이고(아직 지나지 않은 미래 날짜이므로 이미 제거된 것으로 간주하지 않습니다), self-hosted 배포는 이 날짜의 영향을 받지 않으나 v4로 업그레이드하면 사용할 수 없게 됩니다(Langfuse v3→v4 업그레이드 가이드 기준). v4 기본값인 `events_only` 모드에서는 아래 Observations API v2(`GET /api/public/v2/observations`)로 대체합니다. 어느 경로를 쓰든 아래 정규화된 로컬 SQL 계약은 그대로 유지합니다.
+
 ```bash
 curl --fail-with-body --silent --show-error --get \
   "${LANGFUSE_HOST:?}/api/public/traces" \
@@ -236,6 +238,18 @@ curl --fail-with-body --silent --show-error --get \
   --data-urlencode "toTimestamp=${TO_UTC:?}" \
   --data-urlencode "page=${PAGE:?}" \
   --data-urlencode "limit=100" > traces-page.json
+```
+
+v4 `events_only` 모드에서는 위 요청 대신 Observations API v2를 사용합니다. 시간 창은 `fromStartTime`·`toStartTime`로 지정하고, 이 엔드포인트는 `page`가 아니라 응답 metadata로 반환되는 base64 `cursor` 기반 페이지네이션을 사용하므로 다음 페이지는 직전 응답의 cursor를 넘겨 받습니다(`limit` 최대 1000, 기본 50). 응답 JSON의 필드 이름도 traces API와 다르므로 매핑을 확인합니다.
+
+```bash
+curl --fail-with-body --silent --show-error --get \
+  "${LANGFUSE_HOST:?}/api/public/v2/observations" \
+  --user "${LANGFUSE_PUBLIC_KEY:?}:${LANGFUSE_SECRET_KEY:?}" \
+  --data-urlencode "fromStartTime=${FROM_UTC:?}" \
+  --data-urlencode "toStartTime=${TO_UTC:?}" \
+  --data-urlencode "limit=100" \
+  --data-urlencode "cursor=${CURSOR:-}" > observations-page.json
 ```
 
 공유 shell history·로그에 키를 남기지 않습니다. 승인된 환경의 secret injection을 사용합니다.

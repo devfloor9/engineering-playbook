@@ -3,9 +3,9 @@ title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
 created: "2025-02-05"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 38
+reading_time: 75
 tags:
   - kgateway
   - bifrost
@@ -56,8 +56,8 @@ LLM inference platforms must clearly distinguish **3 different Gateway roles**. 
 graph LR
     Client[Client] --> IGW[Ingress Gateway<br/>kgateway NLB<br/>TLS Termination]
     IGW -->|Complexity Analysis| IFG[LLM API Gateway<br/>Bifrost / LiteLLM<br/>Model Selection]
-    IFG -->|Complex| LLM[GLM-5 744B<br/>Reasoning]
-    IFG -->|Simple| SLM[Qwen3-Coder 3B<br/>Fast Response]
+    IFG -->|Complex| LLM[Large reasoning model<br/>e.g. large reasoning LLM<br/>Reasoning]
+    IFG -->|Simple| SLM[Small MoE model<br/>e.g. Qwen3-Coder-30B-A3B<br/>30B total · 3B active]
     IGW -->|MCP/A2A| AGW[agentgateway<br/>Session Mgmt<br/>Tool Routing]
 
     style IGW fill:#326ce5,stroke:#333,color:#fff
@@ -67,10 +67,10 @@ graph LR
     style SLM fill:#ffd93d,stroke:#333,color:#000
 ```
 
-**Core Principles:**
-- **Ingress Gateway (kgateway)**: Handles network-level traffic control only. Does not include model selection logic
-- **LLM API Gateway (Bifrost/LiteLLM)**: Analyzes request complexity → Automatically selects appropriate model → Cost optimization
-- **Agent Data Plane (agentgateway)**: Handles AI-specific protocols (MCP/A2A), maintains stateful sessions
+**Responsibilities assigned in this design:** (These are responsibilities this 2-Tier layout assigns to each component, not exclusive product capabilities. Not all three components are required.)
+- **Ingress Gateway (kgateway)**: In this design, handles network-level traffic control only; model selection is delegated to the L2-A gateway.
+- **LLM API Gateway (Bifrost/LiteLLM)**: Analyzes requests to select a model and tracks cost. Complexity-based selection is not automatic — it requires explicitly configuring a classifier/policy, such as LiteLLM's `complexity_router` (classifier_type: heuristic/llm/etc.) or Bifrost routing rules.
+- **Agent Data Plane (agentgateway)**: In this design, handles AI-specific protocols (MCP/A2A) and maintains stateful sessions. agentgateway can itself route LLM providers and inference endpoints, but here that responsibility is kept at L2-A to separate roles.
 
 ### Overall Architecture
 
@@ -153,7 +153,7 @@ import { ComponentStructureTable } from '@site/src/components/InferenceGatewayTa
 
 <ComponentStructureTable />
 
-Gateway API v1.2.0+ provides HTTPRoute improvements, GRPCRoute stabilization, and BackendTLSPolicy, fully supported by kgateway v2.0+.
+Gateway API v1.6.0 was released on 2026-06-29, graduating UDPRoute and TCPRoute to GA (standard channel). kgateway's Gateway API support is pinned per release and is for the **standard channel**: kgateway 2.4.x (released 2026-07-23) supports Gateway API 1.4–1.6, 2.3.x (2026-05-19) supports 1.3–1.5, and 2.2.x/2.1.x support 1.2–1.4. So v1.6 is not "future" — it is already supported by kgateway 2.4.x. Before using a specific feature, confirm the exact kgateway version and Gateway API channel (standard/experimental) combination against the [kgateway version support table](https://kgateway.dev/docs/envoy/latest/reference/versions/).
 
 ### Dynamic Routing Concepts
 
@@ -170,15 +170,23 @@ Canary deployments start with 5-10% traffic and gradually increase, with immedia
 
 | Strategy | Description | Suitable Scenario |
 |------|------|--------------|
-| **Round Robin** | Sequential distribution (default) | Uniform model instances |
+| **Least Request** | Routes to the backend with the fewest requests (default when no kgateway BackendConfigPolicy is set) | General workloads with uneven processing times |
+| **Round Robin** | Sequential distribution | Uniform model instances |
 | **Random** | Random distribution | Large backend pools |
 | **Consistent Hash** | Same key → Same backend | KV Cache reuse, session affinity |
 
-Consistent Hash is particularly useful for LLM inference. Routing requests from the same user to the same vLLM instance increases prefix cache hit rates, significantly improving TTFT (Time to First Token).
+When no load balancing algorithm is set in a kgateway BackendConfigPolicy, the default is **least request** (pick the instance with the fewest requests), not round robin.
 
-### Topology-Aware Routing (Kubernetes 1.33+)
+Consistent Hash **can help** with prefix cache reuse in LLM inference, but the TTFT benefit is conditional, not guaranteed. Hit rates improve only when the same user's requests **actually share a prefix**, that prefix is **still resident (warm)** on the target vLLM instance, and hash membership is stable. Adding/removing backends reshuffles the hash ring, and differing prefixes erase the benefit — so measure hit rate and TTFT on your actual workload to confirm.
 
-Kubernetes 1.33+ topology-aware routing prioritizes same-AZ Pod communication to reduce cross-AZ data transfer costs.
+### Topology-Aware Routing (same-AZ preference) {#topology-aware-routing-kubernetes-133}
+
+Prioritizing same-AZ Pod-to-Pod communication can reduce cross-AZ data transfer cost and latency. This is not applied automatically by a Kubernetes version alone; it depends on **which mechanism you explicitly configure**, and these are distinct layers:
+
+- **Service `trafficDistribution: PreferClose`** (GA in Kubernetes 1.31): a Service-level setting that hints kube-proxy/EndpointSlice to prefer same-zone endpoints. It supersedes the older `service.kubernetes.io/topology-mode: Auto` (topology-aware hints).
+- **Gateway/EPP path**: when a Gateway API data plane or EPP (Inference Extension) routes directly to Pod addresses, it may bypass kube-proxy, so Service-level topology hints do not apply as-is. On that path, locality must be controlled by the gateway's/scheduler's own locality or zone-aware settings.
+
+So do not infer "locality is guaranteed because the cluster is at version X." State the actual data plane handling the traffic (kube-proxy Service path vs. gateway/EPP direct routing) and the topology mechanism configured there.
 
 import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTables';
 
@@ -190,9 +198,11 @@ import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTable
 |----------|------|-------------------|
 | **Timeout** | Maximum processing time per request | LLM long response generation takes tens of seconds. Adequate timeout needed (120s+) |
 | **Retry** | Auto-retry on 5xx, timeout, connection failure | Max 3 retries. Infinite retries cause system overload |
-| **Circuit Breaker** | Temporarily block backend on consecutive failures | Set `maxEjectionPercent` to 50% or below to ensure at least half backends available |
+| **Circuit Breaker / outlier detection** | Temporarily eject backends on passive health signals (e.g. consecutive failures) | `maxEjectionPercent` caps the **share of backends ejected at once**; it does not guarantee a number of available backends. The panic threshold (default 50%) and active health checks also affect availability, so "at least half available" does not hold |
 
-For streaming responses, `backendRequest` timeout is for first byte, `request` is for total time. POST retries require idempotency guarantees (caution with tool calls).
+Envoy outlier detection is **passive** health checking: it ejects hosts based on failures observed in request results. `maxEjectionPercent` only caps the share of hosts that may be ejected; it does not guarantee any specific number of available hosts, and actual availability also depends on active health checks and the panic threshold.
+
+In Gateway API timeouts, `backendRequest` is the **per-try timeout covering the entire backend response**, and `request` is the total request time including retries. So `backendRequest` is not a "first byte" timeout — it covers the whole backend response for that attempt, which means a long SSE streaming response can be cut off by it. For streaming, set first-byte (TTFB), idle, and whole-stream timeouts distinctly as appropriate. POST retries require idempotency guarantees (caution with tool calls).
 
 ---
 
@@ -202,16 +212,16 @@ For streaming responses, `backendRequest` timeout is for first byte, `request` i
 
 | Solution | Language | Key Features | Cascade Routing | License | Best For |
 |--------|------|-----------|-----------------|----------|-----------|
-| **Bifrost** | Go | 50x faster, CEL Rules conditional routing, failover | CEL Rules + external classifier | Apache 2.0 | High performance, low cost, self-hosted |
-| **LiteLLM** | Python | 100+ providers, native complexity-based routing | `routing_strategy: complexity-based` | MIT | Python ecosystem, rapid prototyping |
-| **vLLM Semantic Router** | Python | vLLM-only, lightweight embedding-based routing | Embedding similarity-based | Apache 2.0 | vLLM standalone environment |
+| **Bifrost** | Go | High-performance gateway; conditional routing rules (CEL) over `complexity_tier`/`model`/`params`/capacity signals; failover | Routing rules (`complexity_tier`) + external classifier | Apache 2.0 | High performance, low cost, self-hosted |
+| **LiteLLM** | Python | 100+ providers; multi-strategy routing (latency/usage/cost/least-busy) + native `complexity_router` (v1.101.0) + custom strategies | Native complexity_router (SIMPLE/MEDIUM/COMPLEX/REASONING) or custom strategy | MIT | Python ecosystem, rapid prototyping |
+| **vLLM Semantic Router** | Standalone service (Envoy ext_proc) | A vLLM-project signal-driven router deployed **standalone** in front of OpenAI-compatible backends (not vLLM-only); embedding-similarity classification | Embedding similarity-based | Apache 2.0 | vLLM and other OpenAI-compatible backends |
 | **Portkey** | TypeScript | SOC2 certified, semantic caching, Virtual Keys | Supported | Proprietary + OSS | Enterprise, compliance |
-| **Kong AI Gateway** | Lua/C | MCP support, leverages existing Kong infra | Plugin | Apache 2.0 / Enterprise | Existing Kong users |
+| **Kong AI Gateway** | Lua/C | MCP support, leverages existing Kong infra. Note: complexity/semantic routing via `ai-proxy-advanced` is a **Kong Enterprise (paid) edition** plugin and differs from the OSS `ai-proxy` | Plugin (edition-dependent) | Apache 2.0 (core) / Enterprise (advanced AI plugins) | Existing Kong users |
 | **Helicone** | Rust | Gateway + Observability integrated, high performance | Supported | Apache 2.0 | High performance + observability needed |
 | **OpenRouter** | SaaS (hosted) | Unified API for 400+ models·60+ providers, provider fallback, OpenAI-compatible | Provider routing supported | SaaS (commercial) | Fast multi-provider integration, prototyping |
 
-:::note LiteLLM and Kong Are Either/Or
-LiteLLM and Kong AI Gateway are both L1 gateways — **choose one of the two**. There is no verified reference for an architecture combining both products (e.g., Kong in front + LiteLLM behind). For selection criteria from the tenancy-model and budget-enforcement perspective, see [AI Gateway Multi-Tenancy — Selection Criteria](../../operations-mlops/governance/ai-gateway-multi-tenancy.md#4-selection-criteria-litellm-vs-kong).
+:::note Why this design does not combine LiteLLM and Kong (a local simplification)
+In this design we use **only one** of LiteLLM or Kong AI Gateway as the LLM API gateway (Tier 2-A). Their roles overlap, so standardizing on one is a **design choice** to reduce operational complexity — not a claim that combining them (e.g. Kong in front + LiteLLM behind) is technically impossible or prohibited. That combination simply adds hops, configuration, and observability points, and lacks a widely published verified reference. For selection criteria from the tenancy-model and budget-enforcement perspective, see [AI Gateway Multi-Tenancy — Selection Criteria](../../operations-mlops/governance/ai-gateway-multi-tenancy.md#4-selection-criteria-litellm-vs-kong).
 :::
 
 :::info Connecting L1 Budget Signals to Fallback Routing
@@ -224,18 +234,18 @@ In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-
 
 ### Bifrost vs LiteLLM
 
-**Bifrost**: Go implementation with 50x faster throughput than Python, 1/10 memory usage. CEL Rules enable conditional routing (header-based cascade, failover). Helm Chart deployment, OpenAI-compatible API. Proxy latency < 100us. Intelligent cascade via app-side complexity score calculation → `x-complexity-score` header → CEL rule branching pattern or Go Plugin.
+**Bifrost**: A Go-based high-performance gateway offering lower memory use and higher throughput than Python (public benchmark: ~11 µs (&lt;100 µs) overhead @ 5k RPS; "50x faster than LiteLLM" is a tagline summarizing the vendor's own head-to-head benchmark — public, but not third-party verified — reporting 54x P99, 40x overhead, 9.5x throughput; distinguish latency vs overhead vs throughput and do not infer performance or security from language alone). Beyond performance, supply-chain/security posture can also factor in: a single static Go binary has a smaller runtime dependency surface than a broad Python dependency tree, though actual risk varies by version/configuration and should be checked against each project's security advisories at adoption time. Conditional routing rules are CEL expressions that can read `model`, `headers`, `params`, capacity metrics (`budget_used`/`tokens_used`/`request`), and an auto-classified **`complexity_tier` — only "SIMPLE", "MEDIUM", or "COMPLEX" (there is no REASONING tier)** computed by embedding the prompt and matching the nearest reference phrase; when classification is unavailable, `complexity_tier` is treated as unknown and the rule does not match. Helm Chart deployment, OpenAI-compatible API. ([Bifrost routing rules](https://docs.getbifrost.ai/providers/routing-rules))
 
-**LiteLLM**: 100+ provider support, **native complexity-based routing** (activate with 1-line `routing_strategy: complexity-based` config), one-line Langfuse integration (`success_callback: ["langfuse"]`), direct LangChain/LlamaIndex integration. However, Python-based with lower throughput, higher memory usage.
+**LiteLLM**: 100+ provider support; multi-strategy routing (`simple-shuffle`·`latency-based-routing`·`usage-based-routing-v2`·`least-busy`·`cost-based-routing`) and custom strategies via `CustomRoutingStrategyBase`. As of v1.101.0, complexity-based routing is provided by a **native `complexity_router` (auto-router)** with built-in tiers SIMPLE/MEDIUM/COMPLEX/REASONING and a configurable `classifier_type` (heuristic·llm·heuristic_first·hybrid·custom·heuristic_v2). It is **not** enabled by a one-line `routing_strategy: complexity-based` toggle (that string does not exist); you configure a complexity_router block. For Langfuse, see the "Langfuse Integration" section (the one-line `success_callback: ["langfuse"]` is the SDK-callback path). Direct LangChain/LlamaIndex integration. However, being Python-based, it has lower throughput and higher memory use than Go. ([LiteLLM routing](https://docs.litellm.ai/docs/routing), [complexity_router v1.101.0](https://github.com/BerriAI/litellm/blob/v1.101.0/litellm/router_strategy/complexity_router/complexity_router.py))
 
 ### Selection Criteria
 
 | Use Case | Recommended Solution | Reason |
 |-----------|-----------|------|
-| Intelligent cascade (convenience priority) | **LiteLLM** | Native complexity-based routing, 1-line config |
-| Intelligent cascade (performance priority) | **Bifrost** | CEL Rules + external classifier, 50x faster |
-| vLLM standalone environment | **vLLM Semantic Router** | vLLM native, lightweight routing |
-| High performance, low cost self-hosted | **Bifrost** | 50x faster processing, low memory |
+| Intelligent cascade (convenience priority) | **LiteLLM** | Native `complexity_router` + 100+ providers, Python ecosystem |
+| Intelligent cascade (performance priority) | **Bifrost** | Routing rules (`complexity_tier`) + external classifier, low Go overhead |
+| vLLM standalone environment | **vLLM Semantic Router** | vLLM-project router (standalone ext-proc service), lightweight classification |
+| High performance, low cost self-hosted | **Bifrost** | Go-based low overhead (~tens of µs), low memory |
 | Python ecosystem (LangChain) | **LiteLLM** | Native integration, 100+ providers |
 | Enterprise compliance | **Portkey** | SOC2/HIPAA/GDPR, Semantic Cache |
 | High performance + observability integrated | **Helicone** | Rust-based All-in-one |
@@ -244,11 +254,13 @@ In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-
 
 | Scenario | Recommended Stack | Reason |
 |----------|----------|------|
-| **Startup/PoC** | kgateway + LiteLLM | Low cost, 10-min deployment, complexity routing 1-line |
-| **Self-hosted focused (performance)** | kgateway + Bifrost (CEL cascade) + agentgateway | High performance, external+self-hosted pool 2-Tier |
-| **Enterprise multi-provider** | kgateway + Portkey + Langfuse | Compliance, 250+ providers |
+| **Startup/PoC** | kgateway + LiteLLM | Low cost, 100+ provider integration. Deployment time depends on environment and cluster readiness (a simple PoC can be up in tens of minutes) |
+| **Self-hosted focused (performance)** | kgateway + Bifrost (CEL routing rules) + agentgateway | High performance, external+self-hosted pool 2-Tier |
+| **Enterprise multi-provider** | kgateway + Portkey + Langfuse | Many-provider integration and observability. Compliance is not achieved by integration alone — verify Portkey's certification (e.g. SOC2) scope and your own operational/audit requirements separately |
 | **Hybrid (external+self-hosted)** | kgateway + Bifrost/LiteLLM + agentgateway | External via Bifrost/LiteLLM, self-hosted via agentgateway |
 | **Global deployment** | Cloudflare AI Gateway + kgateway | Edge caching, DDoS protection |
+
+> These "recommendations" summarize typical fit for each stack. Provider counts and certification scope change by product, edition, and date, so confirm them against each vendor's docs at adoption time, and judge "deployed" by acceptance criteria (health checks passing, end-to-end request success) rather than an "n-minute deployment" figure.
 
 ---
 
@@ -366,14 +378,118 @@ spec:
 
 `priority: 10` is an illustrative policy that prioritizes requests over priority 0 requests in the same pool. When using [flow control](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/epp/flow-control.md), enable the EPP `flowControl` feature gate and have a trusted authentication layer set `x-llm-d-inference-objective: interactive`. Creating the Objective alone does not automatically classify all requests. Validate or replace externally supplied headers to prevent clients from self-assigning priority. This value does not reserve dedicated GPUs or define a Pod `PriorityClass`.
 
+### Two routing layers — keep them distinct
+
+An LLM inference platform separates **model/provider selection** from **in-model Pod selection**. The difference in logical roles does not by itself require two physical gateways: a supported Gateway can connect both roles using HTTPRoute together with an EPP.
+
+| Layer | Decision question | Signals | Unit | Implementations |
+|--------|----------|------|------|--------|
+| **L1 — LLM proxy / edge** | "Which provider/model/region?" | cost·budget·provider health·auth·PII·semantic similarity | model/provider target | Kong, Bifrost, LiteLLM, Portkey, (kgateway) |
+| **L2 — inference routing (KV-aware)** | "Which GPU Pod?" | vLLM internal metrics (KV cache util·prefix location·queue depth) | individual Pod | **EPP(GIE)**, HyperPod router, Dynamo, vLLM production-stack |
+
+> GIE's official docs present combining a higher-level AI Gateway (LiteLLM, Solo AI Gateway, Apigee) on top of EPP as an integration example (not a mandate). L1 (across-model) and L2 (within-model) are complementary.
+
+:::note A routing "decision" is not inference — KV-aware vs context-aware
+In L2 KV-cache-aware (prefix-aware) routing, **the routing decision itself is not inference**: it is a mechanical prefix-block hash + index lookup, with no model forward pass. **Context-aware (semantic) routing**, by contrast, runs an encoder/classifier model to classify intent, so lightweight inference happens on the routing path. In either case the **final workload the selected Pod runs is LLM inference**. See [KV Cache Optimization — Cache-Aware Routing](../../model-serving/inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing).
+:::
+
+### EPP (Endpoint Picker) — precise definition
+
+**EPP = the GIE-defined inference-scheduler service that implements the Envoy `ext-proc` (External Processing) gRPC protocol.** The Gateway (Envoy) calls the EPP on each request to delegate "which Pod inside the InferencePool to send to."
+
+**Three specs that make an EPP an EPP:**
+1. **ext-proc gRPC implementation** — any gateway supporting ext-proc-style external processing can host an EPP (Istio, kgateway, Envoy Gateway, GKE Gateway, agentgateway, NGINX Gateway Fabric, etc.)
+2. **Handles individual Pod addresses (`podIP:port`) via the InferencePool selector** — Pod-level, not a Kubernetes Service
+3. **Model-server metric-based scheduling** — KV-cache/load aware, not a simple load balancer
+
+**EPP internal pipeline** (a layered scheduler, not a single function):
+
+> **Gateway vs EPP boundary**: HTTPRoute pool selection, weighting, and path matching are **routing performed by the Gateway (Gateway API)**, not part of the EPP pipeline. After the Gateway decides which InferencePool to send to, the EPP decides only "which Pod" within that pool.
+
+| Layer | Role |
+|--------|------|
+| Data Layer | Collects/prepares the InferencePool Pod list and vLLM metrics, and lookup data such as the prefix index |
+| Flow Control | InferenceObjective request priority; priority·fairness·queueing (Saturation Detector overload defense) |
+| Scheduling Layer | **scorer + picker** — selects the actual Pod within the pool |
+
+- **scorer**: the `prefix-cache-scorer` **consumes prefix match information (PrefixCacheMatchInfo) prepared in advance by a separate producer/indexer** to score each Pod. The scorer itself does not hash/index the prompt per request; block hashing and index updates are done by the data-layer producer, and the scorer reads the result to assign scores. Other scorers include KV-cache/load-aware (load·queue-depth) and LoRA affinity.
+- **picker**: aggregates scorer scores → final Pod selection (default `max-score-picker` when no picker is specified)
+- Decision delivery: `x-gateway-destination-endpoint` HTTP header + `dynamic_metadata` (both must match), one fallback can be specified
+
+**What EPP is not**: not a gateway (it only makes the routing decision; the gateway proxies). Not a model router (within-model Pod selection only). The reference implementation is **llm-d Router**; the EPP code was consolidated into llm-d, and GIE retains only the InferencePool API and the Endpoint Picker Protocol. EPP host gateways are those supporting ext-proc-style external processing: **Istio, kgateway, Envoy Gateway, GKE Gateway, agentgateway, NGINX Gateway Fabric, etc.**
+
+### L2 options compared: EPP vs HyperPod Inference Operator vs Dynamo
+
+This compares what you implement KV-aware routing (L2) with. The common constraint is that the InferencePool selector selects **only Pods in the same namespace**, and the KV-aware scheduler depends on vLLM workers' real-time metrics. So the L2 scheduler is premised on living in the **same cluster** as vLLM; regional locality (same-region placement) is a **recommendation** for metric freshness and latency (a different region is not forbidden so much as discouraged because of cross-region latency).
+
+| Item | EPP(GIE) + Envoy gateway | HyperPod Inference Operator | NVIDIA Dynamo |
+|------|---------------------------|----------------------------|---------------|
+| KV-aware method | prefix-cache·kv-util scorer | kvaware/prefixaware (LMCache router) | KV router (Radix tree, KVPublisher/Indexer) |
+| Management | self-managed (K8s standard) | **AWS-managed** (EKS add-on) | self-managed |
+| Node auto-recovery | NMA+Auto Repair (separate) | **deep health check + spare pool, integrated** | separate |
+| Distributed inference | llm-d integration | **DPD-managed** (EFA/GPUDirect RDMA) | prefill/decode + 3-tier KV offload |
+| Backend engine | vLLM/TGI etc. | vLLM-only (kvaware is `/completions` only) | vLLM/SGLang/**TRT-LLM** |
+| Cost | EC2 pricing | A managed premium over EC2 may apply (around +15–20% has been observed in a past ml.p5 vs p5 comparison, but it varies by instance/region/date — confirm against [SageMaker pricing](https://aws.amazon.com/sagemaker/pricing/) at adoption time) | EC2 pricing |
+| Lock-in | Low (based on Gateway API/GIE standards, though an operational dependency on specific controllers/implementations remains) | Medium (SageMaker CRD, but on top of vLLM/K8s standards) | None |
+| Best fit | standard·vendor-neutral·MCP integration | minimal ops·auto-recovery·governance | peak performance·multi-engine |
+
+> **Kong has no L2 (EPP).** Kong's load balancing (consistent-hash·lowest-latency, etc.) is at the **model/provider level**, not Pod-level KV-aware scheduling, and being non-Envoy it does not implement GIE/ext-proc/InferencePool. If KV-aware is needed, keep Kong at L1 (edge) and use EPP/HyperPod/Dynamo for L2. (Re-check Kong release notes at adoption time — InferencePool is a gateway-neutral standard, so future support is possible.)
+
+:::caution Kong's semantic cache ≠ vLLM KV-cache-aware routing
+Kong AI Gateway's `ai-semantic-cache` plugin is an L1 **response cache** that reuses the "whole response" of semantically similar requests via embedding cosine similarity (eliminating duplicate LLM calls). This is a **different layer** from L2 KV-cache-aware routing, which picks a Pod by knowing the location of the vLLM Pod's prefix KV cache (three-layer cache comparison: [Semantic Caching Strategy](../inference-optimization/semantic-caching-strategy.md#2-cache-layer-distinctions)).
+
+Also, Kong's vector store is **not embedded inside Kong but connects to an external Redis/Valkey/PGVector** (on AWS, IAM-authenticated ElastiCache, etc.), and embeddings themselves are generated by calling an external embedding API (OpenAI·Bedrock, etc.). AWS integration documents a Bedrock provider and the `ai-aws-guardrails` plugin, but direct integration with an "AWS-managed KV cache" is a separate concept. (Kong behavior differs by version, so check the [Kong AI Gateway docs](https://developer.konghq.com/ai-gateway/) at adoption time.)
+:::
+
+> **HyperPod's managed DPD/KV-aware is pinned to vLLM.** If you need the performance ceiling of a TensorRT-LLM backend, a hybrid is possible: deploy Dynamo directly on HyperPod EKS and use HyperPod only as the node-recovery/governance layer.
+
+### Multi-region caution (e.g. Seoul ingress → Sydney inference)
+
+L2 (KV-aware) depends on vLLM workers' real-time metrics (freshness typically on the order of hundreds of ms to seconds), and the InferencePool selector selects **only Pods in the same cluster/namespace**. So the L2 scheduler is premised on being in the same cluster as vLLM. A gateway in Seoul can hardly stand in for the L2 KV-aware decision of a cluster in Sydney: as cross-region RTT grows (it varies by region pair and path — the Seoul–Sydney leg is typically measured in the tens to ~150 ms range, but measure it) metrics go stale, and above all the InferencePool cannot select Pods in another cluster. Under that premise, split roles as follows:
+
+- **Seoul = L1** (Kong/Bifrost/kgateway): provider/region routing, auth, $budget, PII, failover, **session affinity** (preserving the prefix cache)
+- **Sydney = L2** (EPP/HyperPod router/Dynamo) + vLLM: KV-aware Pod selection
+- The KV cache benefit occurs **only inside the Sydney cluster** (a cross-region hop cannot be shortened by the cache). Mind cross-region egress cost and added TTFT.
+
+```mermaid
+flowchart LR
+    CLIENT[Client / app<br/>Seoul ingress]
+
+    subgraph SEOUL["Seoul region (L1 edge)"]
+        L1["L1 gateway<br/>Kong / kgateway<br/>auth·rate limit·PII<br/>region routing·session affinity"]
+    end
+
+    subgraph SYDNEY["Sydney region (L2 inference)"]
+        GW2["Sydney gateway<br/>(proxies requests)"]
+        L2["EPP / HyperPod Router<br/>KV-aware Pod selection<br/>(returns decision only)"]
+        V1[vLLM Pod 1<br/>prefix cache]
+        V2[vLLM Pod 2<br/>prefix cache]
+    end
+
+    CLIENT --> L1
+    L1 -->|"inter-region private connectivity<br/>(e.g. Transit Gateway peering)"| GW2
+    GW2 <-->|"ext-proc consult"| L2
+    GW2 --> V1
+    GW2 --> V2
+
+    style L1 fill:#326ce5,stroke:#333,color:#fff
+    style GW2 fill:#00897b,stroke:#333,color:#fff
+    style L2 fill:#8b5cf6,stroke:#333,color:#fff
+    style V1 fill:#ffd93d,stroke:#333,color:#000
+    style V2 fill:#ffd93d,stroke:#333,color:#000
+```
+
+In this layout, routing runs over AWS VPC/network-level connectivity. Seoul L1 makes the region/session decision ("this is an inference request, send to Sydney"), and on the Sydney side the **gateway proxies the request** while consulting the EPP (L2) over ext-proc to delegate only which Pod (the EPP returns a decision and does not proxy traffic itself — the same separation as the earlier Gateway Mode diagram). The two clusters need not be merged into a single mesh; secure a private network path via Transit Gateway inter-region peering or similar. Note, however, that Transit Gateway is a **network-connectivity mechanism** and does not stand in for application authentication (auth/authz is handled separately at the gateway layer), nor is it a service guaranteed to be "always one hop" (the path depends on route tables, subnets, and peering configuration, which is out of scope here). To preserve multi-turn prefix reuse, the key is **session affinity**: L1 consistently sends the same session to the same Sydney endpoint.
 
 ---
 
 ## Semantic Caching
 
-Semantic Caching detects semantically similar prompts and reuses previous responses, simultaneously reducing LLM API costs and latency. At the Gateway level (Bifrost/LiteLLM/Portkey), HIT/MISS is determined by embedding similarity, so it can be combined independently with KV Cache (vLLM) · Prompt Cache (provider-managed).
+Semantic Caching detects semantically similar prompts and reuses previous responses, which can reduce LLM API cost and latency. At the Gateway level (Bifrost/LiteLLM/Portkey) it is a **response cache** that determines HIT/MISS by embedding similarity; exact-match caching and KV Cache are different layers.
 
-**Recommended default threshold**: 0.85 — allows same meaning, different expression
+**Threshold**: a single value like 0.85 is not a universal default. The right threshold depends on the embedding model, distance metric (cosine/L2), and domain, and a high numeric score does not guarantee "same meaning" (similar wording with different meaning causes false hits). So calibrate it per model within an acceptable false-hit budget, include tenant/user/data scope in the cache key for isolation, and try an exact-match lookup first to avoid unnecessary embedding cost.
+
+**Cache layers**: the Gateway's semantic response cache and vLLM's KV Cache can be combined independently. However, a provider-managed "Prompt Cache" is not a separate independent cache kind so much as a **prefix cache the provider runs internally, which overlaps with the KV-cache concept** (e.g. reusing a shared prefix). The three are therefore not fully orthogonal — distinguish what each cache keys on and which layer it operates at.
 
 Design principles (3-tier cache comparison, similarity threshold tradeoffs, tool comparison table, cache key design, observability·production checklist) are covered in detail in separate documentation.
 
@@ -392,7 +508,7 @@ Design principles (3-tier cache comparison, similarity threshold tradeoffs, tool
 
 | Item | Envoy Data Plane | agentgateway |
 |------|---------------------|---------------------------|
-| **Session Management** | Stateless, HTTP cookie-based | Stateful JSON-RPC sessions, in-memory session store |
+| **Session Management** | Stateless, HTTP cookie-based | MCP session tracking (`Mcp-Session-Id`), optional session store — sessions are optional per the MCP spec and stateless operation is allowed |
 | **Protocols** | HTTP/1.1, HTTP/2, gRPC | MCP (Model Context Protocol), A2A (Agent-to-Agent) |
 | **Security** | mTLS, RBAC | Tool Poisoning prevention, per-session Authorization |
 | **Routing** | Path/header-based | Session ID-based, tool call validation |
@@ -400,13 +516,13 @@ Design principles (3-tier cache comparison, similarity threshold tradeoffs, tool
 
 ### Core Features
 
-**1. Stateful JSON-RPC Session Management**: `X-MCP-Session-ID` header-based session tracking, Sticky Session routing, automatic inactive session cleanup (default 30 minutes)
+**1. Session Management**: MCP Streamable HTTP (2025-06-18 spec) tracks sessions via the **`Mcp-Session-Id`** header (not `X-MCP-Session-ID`). Session management is **optional** per the spec, and servers may operate statelessly. Where agentgateway does sticky-session routing or inactive-session cleanup, the timeout value (e.g. 30 minutes) is a **configurable value**, not a spec-fixed default; confirm the applied value in your deployment configuration.
 
-**2. Native MCP/A2A Protocol Support**: `/mcp/v1` (MCP protocol), `/a2a/v1` (A2A agent communication) path support
+**2. MCP/A2A Protocol Support**: routes MCP and A2A traffic. Paths such as `/mcp/v1` and `/a2a/v1` are **example paths you configure in deployment**, not spec-mandated fixed paths (the actual endpoint path is set in configuration).
 
-**3. Tool Poisoning Prevention**: Allowed tool list, dangerous tool blocking (`exec_shell`, `read_credentials`), response size limits, integrity verification (SHA-256)
+**3. Tool guardrails (require configuration)**: an allowed-tool list (allowlist), blocking of dangerous tools, response size limits, and integrity verification can be set **as policy**. This is not a guarantee that Tool Poisoning is "automatically and fully prevented" or that SHA-256 verification "always" runs — the applied scope depends on which guardrail policies the operator configures. See the [agentgateway MCP guardrails post](https://agentgateway.dev/blog/2026-06-29-mcp-guardrails-microsoft-agent-governance-toolkit/).
 
-**4. Per-session Authorization**: JWT token verification, role-based tool access, session hijacking prevention
+**4. Authorization**: per-session authorization policies such as JWT token verification and role-based tool access can be configured. Session-hijacking prevention is an effect of configuring these authentication/authorization policies correctly, not something guaranteed automatically without configuration.
 
 :::info agentgateway Project Status
 agentgateway is an AI-dedicated data plane separated from the kgateway project in late 2025, currently under active development. Features are continuously added to keep pace with rapid evolution of MCP and A2A protocols.
@@ -418,7 +534,7 @@ agentgateway is an AI-dedicated data plane separated from the kgateway project i
 
 ### Core Metrics
 
-Core metrics to monitor in AI inference gateways:
+Core metrics to monitor in AI inference gateways. The metric **names in the table below are examples**. kgateway's gateway proxy is Envoy, so the actual time series are exposed as Envoy-exported series (e.g. downstream/upstream request and connection series); confirm exact metric names and labels against the [kgateway Gateway proxy metrics docs](https://kgateway.dev/docs/envoy/latest/observability/gateway-metrics/) for the version you deploy and against an actual scrape before writing queries/recording rules.
 
 import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTables';
 
@@ -428,22 +544,31 @@ import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTab
 |----------------|----------|------|
 | **Latency** | TTFT (Time to First Token) | Time until first token generation. User-perceived responsiveness |
 | **Throughput** | TPS (Tokens Per Second) | Tokens generated per second. Model serving efficiency |
-| **Error Rate** | 5xx / Total Requests | Backend failure ratio. Immediate action if > 5% |
-| **Cache Hit Rate** | Cache Hit / Total Requests | Semantic Cache efficiency. 30%+ recommended |
-| **Cost** | Token usage by model × unit price | Real-time cost tracking |
+| **Error Rate** | 5xx / Total Requests | Backend failure ratio (the threshold below is a starter example) |
+| **Cache Hit Rate** | Cache Hit / Total Requests | Semantic Cache efficiency (target depends on workload) |
+| **Cost** | Σ (usage × unit price) for input/output/cached tokens separately | Input/output/cached token prices differ, so account for them separately |
 
-### Langfuse OTel Integration
+> The thresholds above are **starting-point examples, not universal defaults**. Error-rate, cache-hit, and P99 targets vary with traffic volume, measurement window, minimum sample size, and endpoint scope, so define the metric type/labels/window and tune to each service's SLO. Cost must be computed per token type because input/output/cached token prices differ and effective cost depends on the cache hit rate.
 
-Send OTel traces from Bifrost/LiteLLM to Langfuse to track prompts/completions, token usage, cost analysis, and tool call chains. Bifrost activates via `otel` plugin, LiteLLM via `success_callback: ["langfuse"]` config. For detailed configuration, refer to [Monitoring Stack Setup](../../reference-architecture/integrations/monitoring-observability-setup.md).
+### Langfuse Integration {#langfuse-otel-integration}
 
-### Recommended Alert Rules
+Send traces from Bifrost/LiteLLM to Langfuse to track prompts/completions, token usage, cost, and tool call chains. In LiteLLM there are two distinct paths:
 
-| Alert | Condition | Severity |
+- **OpenTelemetry path (recommended)**: the `langfuse_otel` preset (OpenTelemetry v2), recommended for Langfuse v3/v4; it sends traces to the OTLP endpoint.
+- **SDK-callback path (legacy)**: `success_callback: ["langfuse"]` is a callback that uses the Langfuse Python SDK (`langfuse>=4.7,<5`). It is **not** the same as "sending OTel traces," and requires configuring the credentials (`LANGFUSE_PUBLIC_KEY`·`LANGFUSE_SECRET_KEY`·`LANGFUSE_HOST`) and SDK version.
+
+Bifrost enables OTel export via its `otel` plugin. For detailed configuration, see the [LiteLLM Langfuse integration docs](https://docs.litellm.ai/docs/observability/langfuse_integration) and [Monitoring Stack Setup](../../reference-architecture/integrations/monitoring-observability-setup.md).
+
+### Recommended Alert Rules (starter examples) {#recommended-alert-rules}
+
+The conditions below are **starting-point examples, not universal defaults**. Define a measurement window, minimum sample size, and target endpoint scope for each, express them in PromQL against the actual metric names/labels (e.g. the series Envoy/kgateway exports), and tune to your service SLO.
+
+| Alert | Condition (example) | Severity |
 |------|------|--------|
-| High error rate | 5xx > 5% (5 min) | Critical |
-| High latency | P99 > 30s (5 min) | Warning |
-| Circuit breaker activated | circuit_breaker_open == 1 | Critical |
-| Cache hit rate drop | Cache hit < 30% | Warning |
+| High error rate | 5xx ratio > 5% (5-min window, once minimum request count is met) | Critical |
+| High latency | P99 > 30s (5-min window) | Warning |
+| Circuit breaker / outlier active | relevant state metric == 1 | Critical |
+| Cache hit rate drop | Cache hit < target (workload-specific) | Warning |
 | Budget approaching | Budget > 80% | Warning |
 
 ---

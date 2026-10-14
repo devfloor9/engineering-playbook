@@ -3,9 +3,9 @@ title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
 description: Guide to Neuron SDK, Device Plugin, and NxD Inference for operating AWS custom AI accelerators (Trainium2/Inferentia2) on EKS
 created: "2026-04-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
-reading_time: 31
+reading_time: 46
 tags:
   - trainium2
   - inferentia2
@@ -37,21 +37,23 @@ This document covers the Neuron software stack, Device Plugin, Karpenter configu
 
 ### 1.1 Three Reasons to Choose Neuron
 
-**1) Cost Efficiency (Per-Token TCO)**
+**1) Cost Efficiency (Per-Token TCO) — a hypothesis to validate**
 
-According to AWS official materials, Trainium2/Inferentia2 offer lower per-token costs compared to similar-performance GPUs. The effect is particularly significant under these conditions:
+AWS markets Trainium2/Inferentia2 as offering lower per-token cost than similar-performance GPUs, but this is **not a universal, confirmed fact across all models, traffic patterns, and regions** — treat it as a hypothesis you must validate on your own workload. The comparison figures in AWS materials are measured under specific model/batch/precision conditions, so treat the following only as **selection considerations** where an advantage is more likely to appear:
 
-- Stable inference traffic sustained long-term (&gt;3 months)
+- Stable inference traffic sustained long-term (e.g., &gt;3 months)
 - Standard Transformer-family models based on FP8/INT8/BF16
 - Workloads eligible for AWS Reserved/Savings Plans
 
-**2) Capacity Availability**
+When comparing cost, do not use the advertised hourly rate; compute **cost per accepted token measured under the same latency/throughput SLO**, recalculated with current prices for your target model, region, and date. This document states no price figures; verify current pricing with the AWS pricing pages and Pricing Calculator.
 
-When NVIDIA H100/H200/B200 supply is tight, Trainium2 is relatively easier to procure. Particularly when p5/p5en inventory is scarce in certain US/Asia regions, Neuron becomes a practical alternative.
+**2) Capacity Availability — a time- and region-dependent hypothesis**
+
+When NVIDIA H100/H200/B200 supply is tight, Trainium2 may be relatively easier to procure, but accelerator availability depends on region, point in time, and account quota, so **it cannot be stated as a universal procurement advantage**. The claim that Neuron becomes a practical alternative when p5/p5en inventory is scarce in certain regions is a hypothesis based on past, region-specific observation; verify On-Demand/Spot/Capacity Reservation availability for your target region in the AWS console or with your account team immediately before deploying.
 
 **3) Continuity with Bedrock**
 
-Some Foundation Models served by Bedrock (Claude, Llama, Titan, etc.) run internally on the Neuron stack. Choosing Neuron in the Bedrock → Self-hosted migration path allows reuse of compiled artifacts and operational patterns.
+Some Foundation Models served by Bedrock (Claude, Llama, Titan, etc.) run internally on the Neuron stack (AWS has publicly confirmed Trainium2 use for Bedrock; AWS CMO Julia White stated in an October 2025 interview that "more than half of Bedrock runs on Trainium"). Choosing Neuron in the Bedrock → Self-hosted migration path lets you reuse **operational patterns** (monitoring, NEFF cache management, governance). However, Bedrock is a fully managed API service: its internal compiled artifacts (NEFF) are **not exposed to or exportable by customers**, so this is not a reuse of Bedrock's compiled artifacts. Moreover, NEFF is tied to batch size, TP configuration, and the Neuron SDK major version, so compiled-artifact compatibility is not guaranteed across those changes.
 
 ### 1.2 Suitable/Unsuitable Workloads
 
@@ -89,12 +91,13 @@ This is the Neuron instance lineup as of April 2026 based on AWS official produc
 | trn1.2xlarge | 1× Trainium1 | 2 | 32 GB | 8 | 32 GB | Up to 12.5 Gbps |
 | trn1.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 800 Gbps EFA |
 | trn1n.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 1,600 Gbps EFA |
-| trn2.48xlarge | 16× Trainium2 | 128 | 1.5 TB (HBM3) | 192 | 2 TiB | 3.2 Tbps EFA v3 |
-| **trn2 Ultra** (trn2u.48xlarge, preview/limited availability) | 64× Trainium2 (4×trn2 NeuronLink) | 512 | 6 TB (HBM3) | - | - | 12.8 Tbps |
+| trn2.48xlarge | 16× Trainium2 | 128 (physical) | 1.5 TB (HBM3) | 192 | 2 TiB | 3.2 Tbps EFA v3 |
+| **Trn2 UltraServer** (trn2u, 4×trn2.48xlarge, preview/limited availability) | 64× Trainium2 (4×trn2 NeuronLink) | 512 (physical) | 6 TB (HBM3) | - | - | 12.8 Tbps |
 
 :::caution Version and Specification Notes
 - NeuronCore counts and memory capacity are based on AWS official materials, and reporting units may vary with SDK releases. Verify actual devices with `neuron-ls` before deployment.
-- **trn2 Ultra (trn2u)** is defined in AWS official announcements as "an ultraserver combining 4 trn2s with NeuronLink." **As of April 2026, it may be in preview or limited availability**; general availability, regional scope, and Spot support must be confirmed with AWS account teams or official documentation.
+- The NeuronCore counts above (128 for trn2.48xlarge, 512 for the UltraServer) are **physical NeuronCores**. On Trn2, the Logical NeuronCore (LNC) configuration can collapse two physical cores into one logical core (the default depends on the SDK and runtime environment), so the allocatable core count seen by applications and the Device Plugin can be half the physical count. Do not assume the Device Plugin's `aws.amazon.com/neuroncore` allocatable count always equals the logical core count your application uses; confirm the exposed values with `neuron-ls` and the [Logical NeuronCore configuration](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/arch/neuron-features/logical-neuroncore-config.html).
+- **Trn2 UltraServer (trn2u)** is defined in AWS official announcements as "an ultraserver combining 4 trn2s with NeuronLink" — it is a group of trn2 instances, not a single EC2 instance, so do not conflate its figures with the single trn2.48xlarge row above. **As of April 2026, it may be in preview or limited availability**; general availability, regional scope, and Spot support must be confirmed with AWS account teams or official documentation.
 - inf1 (1st generation Inferentia) is not covered in this document. Use Inferentia2/Trainium2 for new deployments.
 :::
 
@@ -165,7 +168,7 @@ flowchart TB
 :::info Neuron SDK 2.x (Latest stable version as of April 2026)
 Neuron SDK is regularly updated in the 2.x release train. Key features of the latest stable version as of April 2026:
 
-- Official support for Trainium2 (trn2) + trn2 Ultra (NeuronLink)
+- Official support for Trainium2 (trn2) + Trn2 UltraServer (NeuronLink)
 - NxD Inference LLM library (pre-compiled checkpoints for Llama 3/4, DBRX, Mistral families)
 - Official vLLM Neuron backend support (continuous batching, PagedAttention-like structure)
 - PyTorch 2.5+ / JAX compatibility
@@ -189,9 +192,9 @@ Trainium / Inferentia hardware execution
 ```
 
 **Operational Implications:**
-- First Pod startup can take 20-30+ minutes for NEFF compilation → **Pre-compile and cache in S3/ECR**
-- Model weight changes require recompilation → Manage NEFF artifacts in CI pipeline
-- NxD Inference provides **pre-compiled checkpoints** for official models to reduce initial startup time
+- First Pod startup can take 20-30+ minutes for NEFF compilation → **Pre-compile and cache in S3/ECR** (a compile cache you create and manage yourself)
+- Changing the graph structure (batch size, sequence length, TP configuration, etc.) requires recompilation. However, **when only the weights change**, you can replace them without recompiling via `torch_neuronx.replace_weights()` — but only for models traced with `torch_neuronx.trace(..., inline_weights_to_neff=False)` ([replace_weights API](https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/frameworks/torch/torch-neuronx/api-reference-guide/inference/api-torch-neuronx-replace-weights.rst)). Since `inline_weights_to_neff` defaults to `True`, you must opt into weight separation at compile time to use this exception. So "any weight change requires recompilation" is the default-configuration behavior, not a universal rule.
+- The **pre-compiled checkpoints** NxD Inference provides for official models are distinct from the user compile cache above: they are artifacts AWS/the vendor pre-compiles and publishes for a specific model/SDK/instance combination. Their availability, covered models, and versions must be checked in the [NxD Inference model reference](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html) at the time of use and are not guaranteed for every model.
 
 ---
 
@@ -199,33 +202,43 @@ Trainium / Inferentia hardware execution
 
 ### 4.1 Neuron Device Plugin Deployment
 
-Neuron Device Plugin registers the node's `/dev/neuron*` devices as Kubernetes extended resources. Use AWS official YAML/Helm charts.
+Neuron Device Plugin registers the node's `/dev/neuron*` devices as Kubernetes extended resources. AWS currently points to a **Helm chart (published to an OCI registry)** as the official installation path.
 
 ```bash
-# Example deployment with official YAML
-kubectl apply -f https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/k8/k8s-neuron-device-plugin.yml
-kubectl apply -f https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/k8/k8s-neuron-device-plugin-rbac.yml
+# Official Helm chart deployment (per AWS official documentation)
+helm upgrade --install neuron-helm-chart \
+  oci://public.ecr.aws/neuron/neuron-helm-chart \
+  --set "npd.enabled=false"
+
+# Verify installation
+kubectl get ds neuron-device-plugin -n kube-system
 ```
+
+:::caution Legacy raw manifest caveat
+Do not `kubectl apply` the widely cited `src/k8/k8s-neuron-device-plugin.yml` raw manifest as-is. Some versions of that manifest's DaemonSet nodeAffinity do not include trn2, so Pods may fail to schedule onto the intended trn2 nodes. Use the Helm chart above, or if you must use a raw manifest, verify before applying that the nodeAffinity instance-type matching (`beta.kubernetes.io/instance-type` / `node.kubernetes.io/instance-type`) includes trn2. Also satisfy the driver/kernel requirements in the [EKS prerequisites](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/containers/kubernetes-getting-started.html) before installing.
+:::
 
 After deployment, the following appears in node resources:
 
 ```bash
 kubectl describe node <trn2-node> | grep aws.amazon.com
 # Allocatable:
-#   aws.amazon.com/neuron:       16    # trn2.48xlarge: Trainium2 chip count
-#   aws.amazon.com/neuroncore:  128    # Total NeuronCore count
-#   aws.amazon.com/neurondevice: 16    # Device file count
+#   aws.amazon.com/neuron:       16    # trn2.48xlarge: Trainium2 chip count (device unit)
+#   aws.amazon.com/neuroncore:  128    # Total NeuronCore count (physical; the exposed value can differ with LNC configuration)
 ```
 
 ### 4.2 Resource Request Patterns
 
-When requesting Neuron resources in Pod specs, choose one of three units:
+:::caution `neurondevice` resource removed (Neuron 2.20+)
+Starting with Neuron SDK 2.20 (2024-09), the `aws.amazon.com/neurondevice` resource was consolidated into `aws.amazon.com/neuron` and removed. The current Device Plugin (v2.22.4 per the master YAML) registers only two resources — `neuron` and `neuroncore`. Referencing `neurondevice` in older YAML will cause scheduling failures.
+:::
+
+When requesting Neuron resources in Pod specs, choose one of two units:
 
 | Resource | Meaning | When to Use |
 |----------|---------|-------------|
-| `aws.amazon.com/neuron` | Neuron chip unit (Trainium2 chips in trn2) | When chip-level allocation is clear |
+| `aws.amazon.com/neuron` | Neuron chip/device unit (Trainium2 chips in trn2; all cores on the device) | When chip/device-level allocation is clear |
 | `aws.amazon.com/neuroncore` | NeuronCore unit (8 per trn2 chip) | For fine-grained core-level scheduling |
-| `aws.amazon.com/neurondevice` | `/dev/neuron*` device file unit | For legacy / specific tool compatibility |
 
 ```yaml
 # Example: Use entire trn2.48xlarge (16 chips = 128 NeuronCores)
@@ -251,7 +264,13 @@ spec:
 ```
 
 ```yaml
-# Example: Use only 4 NeuronCores (2 inf2.xlarge + half NeuronCores)
+# Example: allocate 4 NeuronCores to a single Pod.
+# (A Pod is scheduled onto a single node, so you need an instance with >=4 allocatable
+#  cores. For example, inf2.xlarge and inf2.8xlarge have only 2 NeuronCores each and are
+#  insufficient; choose a single instance that has at least the requested count, such as
+#  inf2.24xlarge (12), inf2.48xlarge (24), or trn2.48xlarge. Cores cannot be requested
+#  across multiple hosts. Resource values must be integers — fractional "half core"
+#  requests are not allowed.)
 resources:
   limits:
     aws.amazon.com/neuroncore: "4"
@@ -391,7 +410,7 @@ spec:
 ```
 
 :::tip AMI Selection Notes
-In Karpenter EC2NodeClass `amiSelectorTerms`, the `al2023` alias refers to the standard AL2023 AMI. To use variants with pre-installed Neuron drivers, specify the SSM parameter or explicit AMI ID for the Neuron-optimized AMI published by AWS. Installing Neuron DKMS via UserData is possible but not recommended.
+In Karpenter EC2NodeClass `amiSelectorTerms`, the behavior of the `al2023` alias depends on the Karpenter provider version. **As of karpenter-provider-aws v1.8.3**, when the instance type is a Neuron family (trn/inf), the `al2023` alias automatically discovers and resolves the matching **Neuron variant AMI (AL2023 x86_64 Neuron)** for that node (the AL2023 family enumerates the `standard`, `nvidia`, and `neuron` variants and attaches instance-type requirements to each). So at this version or later, you often do **not** need to manually pin an SSM parameter or explicit AMI ID just to get pre-installed Neuron drivers. Confirm your Karpenter version and verify that the resolved AMI is the expected Neuron variant via the EC2NodeClass status (`kubectl get ec2nodeclass -o yaml`). Consider installing Neuron DKMS manually via UserData only in environments where variant auto-resolution does not apply.
 :::
 
 ---
@@ -402,26 +421,25 @@ There are three main frameworks for serving LLMs on Neuron.
 
 ### 6.1 NxD Inference (Neuron Distributed Inference)
 
-AWS officially maintains this **large-scale LLM inference library**. Based on PyTorch, it provides Tensor/Pipeline Parallelism, Continuous Batching, PagedAttention-like memory management, and Speculative Decoding for Llama families and major public models.
+AWS officially maintains this **large-scale LLM inference library**. Based on PyTorch, it provides Tensor/Pipeline Parallelism, Continuous Batching, PagedAttention-like memory management, and Speculative Decoding for Llama families and major public models. NxD Inference is an **execution library**: serving frontends such as vLLM and TGI (below) call it as a common execution layer, so they are often in a driver/driven relationship rather than fully independent alternatives.
 
 **Features:**
-- **Official provision of pre-compiled checkpoints** for Llama 3/4, DBRX, Mistral, Mixtral, etc.
+- **Pre-compiled checkpoints** for official models such as Llama 3/4, DBRX, Mistral, Mixtral (availability and coverage must be checked per release in the [model reference](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html))
 - TP/PP configuration API at NeuronCore level
-- Optimization profile similar to Bedrock internal serving path
 - Apache 2.0 / AWS Official Support
 
 ### 6.2 vLLM Neuron backend
 
-vLLM's Neuron backend was introduced experimentally starting in 2024, and feature parity has been rapidly improving in 2025~2026. As of April 2026, continuous batching and OpenAI-compatible API serving are available for major LLMs (Llama 3/4, Qwen, Mistral).
+vLLM's Neuron support takes the form of a **vLLM extension (plugin) that drives NxD Inference as its execution backend**. There are two paths: (1) the AWS-maintained vLLM fork ([upstreaming-to-vllm](https://github.com/aws-neuron/upstreaming-to-vllm)) and (2) the upstream vLLM project's plugin ([vllm-neuron](https://raw.githubusercontent.com/vllm-project/vllm-neuron/main/README.md), **beta** as of April 2026). Neuron-specific features are passed through to **NxD Inference configuration** via `override_neuron_config` inside vLLM's `additional_config`. Supported models are a **subset** of the models NxDI supports (e.g., Llama 3.x/4, Qwen 2.5/3).
 
 **Features:**
-- Compatible with existing vLLM deployment scripts in the form `vllm --device neuron --tensor-parallel-size N`
-- While PagedAttention itself is a CUDA implementation, the Neuron backend provides equivalent block-based KV management
-- Neuron parity for latest vLLM features (speculative decoding, chunked prefill, prefix caching) varies by feature, so **release notes must be checked**
+- Serving uses the standard vLLM entrypoints, e.g. `vllm serve <model> --tensor-parallel-size N` or `python3 -m vllm.entrypoints.openai.api_server --model <model> --tensor-parallel-size N --port 8000`. (The older `vllm --device neuron …` form differs from the current entrypoints.)
+- While PagedAttention itself is a CUDA implementation, the Neuron path provides equivalent block-based KV management
+- Feature status (continuous batching, chunked prefill, prefix caching, speculative decoding) varies by path and version, so **the plugin/release notes and support matrix must be checked**
 
 ### 6.3 TGI (Text Generation Inference) Neuron fork
 
-HuggingFace maintains a TGI fork based on **optimum-neuron**. HuggingFace models can be easily compiled and served on Neuron through `optimum[neuronx]`.
+HuggingFace maintains a TGI fork based on **optimum-neuron**. HuggingFace models are compiled and served on Neuron through the `optimum-neuron[neuronx]` package (per the official README: `pip install --upgrade-strategy eager optimum-neuron[neuronx]`). Install the **Neuron driver and tools first**, and use the `optimum-neuron[vllm]` extra if you need vLLM integration for inference. (`optimum[neuronx]` is incorrect notation — the package is named `optimum-neuron`, not `optimum`.)
 
 **Features:**
 - Tightly integrated with HuggingFace Hub-based workflows
@@ -457,19 +475,20 @@ Based on AWS Neuron official Model Zoo and NxD Inference support matrix. For the
 
 ### 7.1 Major Officially Supported Models (as of April 2026)
 
-| Model | Size | Recommended Instance | Pre-compiled | Notes |
+| Model | Size (active / total) | Recommended Instance | Pre-compiled | Notes |
 |------|-----|------------|-------------|------|
-| Llama 4 Scout / Maverick | 8B / 70B | inf2.48xlarge / trn2.48xlarge | ✅ | NxD Official |
-| Llama 4 Maverick | 70B | trn2.48xlarge | ✅ | NxD Official |
-| Llama 4 (Scout/Maverick) | 17B-400B | trn2.48xlarge / trn2 Ultra | Check release status | NxD support expanding |
-| Mistral 7B / Mixtral 8x7B | 7B / 47B | inf2.48xlarge | ✅ | NxD/vLLM Supported |
-| Mixtral 8x22B | 141B | trn2.48xlarge | Partial | MoE, EP required |
-| Qwen3 series | 4B-32B | inf2 / trn2 | Partial | vLLM Neuron backend recommended |
-| DBRX 132B | 132B | trn2.48xlarge | ✅ | NxD Official (MoE) |
-| DeepSeek V3 | 671B MoE | trn2 Ultra | Limited | Check compilation & memory constraints |
+| Llama 4 Scout (17Bx16E) | 17B active / 109B total (MoE) | trn2.48xlarge | Check release status | NxD support — check support matrix |
+| Llama 4 Maverick (17Bx128E) | 17B active / 400B total (MoE) | trn2.48xlarge / Trn2 UltraServer | Check release status | NxD support — check support matrix |
+| Mistral 7B / Mixtral 8x7B | 7B / 47B total | inf2.48xlarge | Check release status | NxD/vLLM supported |
+| Mixtral 8x22B | 141B total | trn2.48xlarge | Check release status | MoE, EP required |
+| Qwen3 series | 4B-32B | inf2 / trn2 | Check release status | vLLM Neuron recommended |
+| DBRX | 132B total (36B active) | trn2.48xlarge | Check release status | MoE |
+| DeepSeek V3 | 671B total (37B active) MoE | Trn2 UltraServer | Check release status | Check compilation & memory constraints |
 
-:::caution Future Model Support
-Latest large MoE models (DeepSeek V3, Llama 4 Maverick, GLM-5, etc.) are being added to Neuron support incrementally. Before deployment, always check the **NxD Inference support matrix and Release Notes at that time**. This document's table is for reference purposes and does not guarantee specific version support.
+:::caution Pre-compiled column meaning and Llama 4 parameters
+- **Parameter notation**: Llama 4 is an MoE model, so activated and total parameters differ. Per Meta's official model card, Scout is 17B activated / 109B total (16 experts) and Maverick is 17B activated / 400B total (128 experts). The earlier table's "Scout 17B / Maverick 70B / Behemoth 288B+" (and the English "Scout/Maverick 8B/70B") were incorrect; Behemoth was not publicly released as of this writing.
+- **Pre-compiled column**: Asserting that a model has a pre-compiled checkpoint "provided (✅)" requires evidence of the artifact path and version. Without that evidence we do not assert ✅; the column reads **"Check release status"**. Verify actual availability in the [NxD Inference support matrix](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html) and Release Notes at deployment time.
+- Support differs per model × hardware × dtype × context-length combination, so this table is for reference only and does not guarantee specific version support.
 :::
 
 ### 7.2 Quantization Support
@@ -503,7 +522,7 @@ Latest large MoE models (DeepSeek V3, Llama 4 Maverick, GLM-5, etc.) are being a
 flowchart LR
     subgraph Node["Neuron Node"]
         NMON["neuron-monitor"]
-        EXP["neuron-monitor-prometheus<br/>exporter (OSS)"]
+        EXP["neuron-monitor-prometheus<br/>exporter (official SDK example)"]
     end
 
     subgraph Observability["Observability"]
@@ -513,7 +532,7 @@ flowchart LR
     end
 
     NMON --> EXP
-    EXP -->|:9090/metrics| AMP
+    EXP -->|"/metrics (scrape, configurable port)"| AMP
     AMP --> AMG
     NMON --> CWL
 
@@ -522,8 +541,8 @@ flowchart LR
 ```
 
 **Collection chain:**
-- `neuron-monitor` outputs NeuronCore utilization, HBM usage, device temperature, execution latency, etc. as JSON stream
-- OSS community `neuron-monitor-prometheus` exporter converts this to Prometheus format
+- `neuron-monitor` outputs NeuronCore utilization, memory usage, device temperature, execution status, etc. as a JSON stream
+- The `neuron-monitor-prometheus` exporter converts this to Prometheus format. This exporter and its reference Grafana dashboard are shipped as **official AWS Neuron SDK examples** (`src/examples/neuron-monitor/`), not community-only artifacts.
 - AMP (Amazon Managed Prometheus) collects via remote-write and dashboards in AMG (Amazon Managed Grafana)
 - CloudWatch Container Insights Neuron metrics can also be utilized
 
@@ -531,13 +550,19 @@ For detailed AMP/AMG configuration, refer to [Monitoring & Observability Setup](
 
 ### 8.3 Key Metrics
 
-| Metric | Description | Usage |
+The series names and units below are those actually used by the official Grafana dashboard example (`neuron-monitor-grafana.json`). Verify the exact labels and series for your exporter version in the [neuron-monitor user guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-sys-tools/neuron-monitor-user-guide.html).
+
+| Metric (series) | Description / Unit | Usage |
 |-------|------|------|
-| `neuron_core_utilization` | NeuronCore utilization (%) | HPA/KEDA trigger |
-| `neuron_device_memory_used` | HBM usage (MB) | OOM prevention, capacity planning |
-| `neuron_execution_latency` | Inference request processing latency | SLO monitoring |
-| `neuron_hardware_ecc_events` | ECC error count | Hardware health check |
-| `neuron_power_watts` | Power per chip (W) | Thermal & cost management |
+| `neuroncore_utilization_ratio` | NeuronCore utilization (0–1 ratio) | HPA/KEDA trigger |
+| `neuron_runtime_memory_used_bytes` | Neuron runtime memory used (bytes) | OOM prevention, capacity planning |
+| `execution_status_total{status_type="completed"}` | Completed executions (counter) — use `rate()` for throughput. **This is a runtime execution metric and is not the end-to-end request latency (SLO)**; collect request latency separately from the serving framework (e.g., vLLM) metrics | Throughput / success rate |
+| `execution_errors_total` | Execution errors (counter) | Hardware/runtime health check |
+| `hardware_ecc_events_total` | ECC error events (counter) | Hardware health check |
+
+:::note Latency metric caveat
+`neuron-monitor` exposes NeuronCore **runtime execution** metrics. To run autoscaling and SLOs off consistent values, separate the autoscaling trigger (`neuroncore_utilization_ratio`) from user-perceived latency (the serving framework's request-latency metric) and collect each independently.
+:::
 
 ---
 

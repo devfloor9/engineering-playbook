@@ -4,9 +4,9 @@ sidebar_label: "Autoscaling & Deployment Ops"
 description: "2-Tier GPU autoscaling (KEDA·Karpenter), DRA compatibility, and operational lessons learned from large MoE model (GLM-5·Kimi K2.5) deployments for LLM serving"
 created: 2026-04-03
 last_update:
-  date: 2026-09-18
+  date: 2026-10-14
   author: devfloor9
-reading_time: 16
+reading_time: 30
 tags:
   - inference
   - optimization
@@ -106,16 +106,17 @@ Prefill and Decode have different bottleneck signals.
 
 ### DRA (Dynamic Resource Allocation) Reality
 
-DRA provides GPU partitioning/topology-aware scheduling as v1beta1 in K8s 1.32+ and GA in 1.34+. However, there is an **architectural limitation of incompatibility with Karpenter/Auto Mode**.
+DRA is a Kubernetes feature made generally available in Kubernetes 1.34. Based on device attributes that a DRA driver publishes through `ResourceSlice` objects, it provides CEL-based GPU selection, topology-aware scheduling, and GPU sharing through MIG or time-slicing. Compatibility, however, **depends on how node capacity is provisioned** (per the AWS EKS User Guide, "Manage hardware devices on Amazon EKS"), so verify the conditions before adopting it:
 
-- Karpenter must simulate GPU resources **before node creation**, but DRA's ResourceSlice is published by DRA Driver **after node creation**
-- Due to this "chicken and egg" problem, DRA Pods are skipped in Karpenter
-- **When Using DRA**: MNG + Cluster Autoscaler required
+- **Incompatible with Karpenter dynamic provisioning.** Karpenter simulates schedulable resources before a node is created, but a DRA driver publishes its `ResourceSlice` only **after** the node exists, so Karpenter cannot determine a node to place the Pod on.
+- **Supported with Karpenter static capacity provisioning, EKS managed node groups (MNG), and self-managed nodes.** DRA therefore requires node capacity to be fixed in advance.
+- **Not currently supported on EKS Auto Mode.**
+- A **DRA driver and a device plugin for the same device type must not run on the same node simultaneously** (risk of silent oversubscription of the hardware). Uninstall the device plugin before installing the corresponding DRA driver, or run them on separate nodes.
 
 :::info DRA Usage Decision
-**When DRA is needed:** MIG partitioning, CEL-based attribute GPU selection, P6e-GB200 environments
+**When DRA fits:** You need MIG partitioning or GPU sharing, CEL-based attribute GPU selection, or topology-aware placement, and you can fix node capacity statically (Karpenter static, MNG, or self-managed).
 
-**When Device Plugin is sufficient:** Whole GPU unit allocation, Karpenter/Auto Mode usage
+**When Device Plugin is sufficient:** You only need whole-GPU allocation, or you use Karpenter dynamic provisioning or Auto Mode. If you need MIG, the NVIDIA device plugin's MIG strategy (single/mixed) can also expose partitioned GPUs.
 :::
 
 ## Lessons Learned: Large MoE Model Deployment
@@ -128,7 +129,7 @@ Large model (744GB+) weight download is the most common Cold Start bottleneck in
 
 | Problem | Symptoms | Response |
 |------|------|------|
-| **HF Hub Download Timeout** | Pod CrashLoopBackOff, `ConnectionError` | Retry + resume support (`HF_HUB_ENABLE_HF_TRANSFER=1`) |
+| **HF Hub Download Timeout** | Pod CrashLoopBackOff, `ConnectionError` | Raise `HF_HUB_DOWNLOAD_TIMEOUT` + resume download from the interruption point |
 | **Large File Partial Download** | Corruption error during model loading | Checksum verification + re-download |
 | **Slow Container Image Pull** | `ImagePullBackOff`, several minutes wait | Pre-cache images (Bottlerocket data volume, SOCI) |
 | **Multi-node Simultaneous Download** | Network bandwidth contention | S3 caching + init container sequential loading |
@@ -136,87 +137,122 @@ Large model (744GB+) weight download is the most common Cold Start bottleneck in
 
 #### Strategy 1: HuggingFace Transfer Acceleration
 
-`hf_transfer` is a Rust-based high-speed download library, **3-5x faster** than default download.
+As the HuggingFace Hub moved to the Xet storage backend, `huggingface_hub` v0.32.0+ bundles the `hf-xet` (Rust-based chunk-dedup) binary by default and routes all transfers through it. The older `HF_HUB_ENABLE_HF_TRANSFER=1` (`hf_transfer`) is **deprecated** in the official docs and can no longer be used, so to raise throughput set `HF_XET_HIGH_PERFORMANCE=1` (which saturates network bandwidth and uses all CPU cores). The actual speedup depends on network and file layout, so measure it in your own environment rather than assuming a fixed multiplier.
 
 ```yaml
 env:
-  - name: HF_HUB_ENABLE_HF_TRANSFER
-    value: "1"
+  - name: HF_XET_HIGH_PERFORMANCE
+    value: "1"              # Xet high-performance mode (hf-xet)
   - name: HF_TOKEN
     valueFrom:
       secretKeyRef:
         name: hf-token
         key: token
-  # Download retry configuration
+  # Per-request response-wait timeout (default 10s). This is not a retry
+  # count; it keeps slow connections from failing prematurely.
   - name: HF_HUB_DOWNLOAD_TIMEOUT
-    value: "600"            # 10 minute timeout
+    value: "600"
 ```
 
 #### Strategy 2: S3 Pre-caching + Init Container
 
-Most stable method. Pre-upload model weights to S3, copy to local NVMe in init container.
+This improves Cold Start stability by reducing the impact of network variability. Pre-upload model weights to S3 and copy them to local NVMe in an init container. The manifest below is a complete example; S3 access is granted to the ServiceAccount via IRSA (IAM Roles for Service Accounts). NVMe backing depends on node-side configuration, so also see "Strategy 3" and the "Storage Strategy" section.
 
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: vllm-with-s3-cache
+  labels:
+    app: vllm-with-s3-cache
 spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-with-s3-cache
   template:
+    metadata:
+      labels:
+        app: vllm-with-s3-cache
     spec:
+      # ServiceAccount bound via IRSA to an IAM role with S3 read access
+      serviceAccountName: vllm-s3-reader
       initContainers:
-        # Stage 1: Download model from S3 to NVMe
+        # Stage 1: download from S3 into a staging dir; commit only on success
         - name: model-downloader
-          image: amazon/aws-cli:latest
+          image: amazon/aws-cli:2.15.0
           command: ["/bin/sh", "-c"]
           args:
             - |
-              echo "Checking local cache..."
-              if [ -f /models/config.json ]; then
+              set -euo pipefail
+              DEST=/models
+              STAGING=/models/.staging
+              # Treat the model as cached only when the completion marker exists
+              if [ -f "$DEST/.download-complete" ]; then
                 echo "Model already cached, skipping download"
                 exit 0
               fi
-              echo "Downloading model from S3..."
-              aws s3 sync s3://model-cache/qwen3-32b-fp8/ /models/ \
-                --no-progress \
-                --expected-size 65000000000
-              echo "Download complete, verifying..."
-              # Checksum verification
-              if [ -f /models/model.safetensors.index.json ]; then
-                echo "Model verified successfully"
-              else
-                echo "ERROR: Model incomplete, retrying..."
-                rm -rf /models/*
-                aws s3 sync s3://model-cache/qwen3-32b-fp8/ /models/
-              fi
+              echo "Downloading model from S3 to staging..."
+              rm -rf "$STAGING" && mkdir -p "$STAGING"
+              # A sync failure (network/permission error) aborts via set -e → Pod restarts
+              aws s3 sync s3://model-cache/qwen3-32b-fp8/ "$STAGING/" --no-progress
+              echo "Verifying downloaded shards..."
+              # Confirm every shard declared by the safetensors index exists and is non-empty
+              INDEX="$STAGING/model.safetensors.index.json"
+              test -s "$INDEX"
+              python3 - "$INDEX" "$STAGING" <<'PY'
+              import json, os, sys
+              index_path, root = sys.argv[1], sys.argv[2]
+              with open(index_path) as f:
+                  shards = set(json.load(f)["weight_map"].values())
+              for shard in sorted(shards):
+                  p = os.path.join(root, shard)
+                  if not os.path.isfile(p) or os.path.getsize(p) == 0:
+                      sys.exit(f"missing or empty shard: {shard}")
+              print(f"verified {len(shards)} shards")
+              PY
+              # Only after verification: move into place and write the completion marker
+              mv "$STAGING"/* "$DEST"/
+              rm -rf "$STAGING"
+              touch "$DEST/.download-complete"
+              echo "Model verified successfully"
           volumeMounts:
             - name: model-cache
               mountPath: /models
           resources:
             requests:
-              cpu: 2
+              cpu: "2"
               memory: 4Gi
       containers:
         - name: vllm
-          image: vllm/vllm-openai:v0.6.3
+          # vLLM version that supports the Qwen3 architecture (vllm>=0.8.5)
+          image: vllm/vllm-openai:v0.8.5
           args:
             - /models
             - "--gpu-memory-utilization=0.95"
           volumeMounts:
             - name: model-cache
               mountPath: /models
+          resources:
+            limits:
+              nvidia.com/gpu: "1"   # GPU request (limits are copied to requests)
       volumes:
         - name: model-cache
+          # For emptyDir to be backed by NVMe, the node must use its instance-store
+          # volumes as ephemeral storage (Karpenter EC2NodeClass instanceStorePolicy:
+          # RAID0); otherwise it lands on the root EBS volume. sizeLimit is an upper
+          # bound, not a capacity guarantee.
           emptyDir:
-            sizeLimit: 200Gi  # NVMe emptyDir
+            sizeLimit: 200Gi
 ```
 
 #### Strategy 3: Container Image Pre-caching
 
-Methods to reduce Pull time for vLLM/SGLang images (10-20GB).
+Methods to reduce Pull time for vLLM/SGLang images (10-20GB). Karpenter has no dedicated image pre-pull feature. The settings below only raise the image **garbage-collection (GC) thresholds so already-pulled images are retained longer on the node for reuse**; they do not pre-download images onto new nodes. To actually reduce the cold start itself, combine this with SOCI (lazy loading) described below.
+
+In Karpenter v1, kubelet settings moved from `NodePool` to **`EC2NodeClass.spec.kubelet`**, and the `NodePool` must reference that EC2NodeClass through `nodeClassRef`.
 
 ```yaml
-# Enable image pre-Pull in Karpenter NodePool
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -224,59 +260,92 @@ metadata:
 spec:
   template:
     spec:
-      kubelet:
-        # Raise image GC threshold to maintain cache
-        imageGCHighThresholdPercent: 90
-        imageGCLowThresholdPercent: 85
+      # Required: reference the EC2NodeClass to use
+      nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
+        name: gpu-inference
+---
+apiVersion: karpenter.k8s.aws/v1
+kind: EC2NodeClass
+metadata:
+  name: gpu-inference
+spec:
+  # kubelet settings live on the EC2NodeClass
+  kubelet:
+    # Raise image GC thresholds to retain already-pulled images longer
+    # (this delays image eviction under disk pressure; it is not a pre-pull)
+    imageGCHighThresholdPercent: 90
+    imageGCLowThresholdPercent: 85
 ```
 
 **Using SOCI (Seekable OCI) Index:**
 
-Creating SOCI index in ECR enables image lazy-loading via Pull, **reducing container start time by 70-80%**.
+SOCI reduces container start time by lazy-loading images, but it only takes effect when you both (1) publish a SOCI index for the image to ECR and (2) configure the node's containerd with the SOCI snapshotter as a proxy plugin. Creating the index alone does not enable it. Reported startup gains vary by platform and image (for example, roughly 50% on Fargate and 30-70% on SageMaker BYOI depending on image size), so read any figure together with its measurement context and benchmark with your own image before relying on it. The benefit is largest for big images with large compressed layers.
 
 ```bash
-# Create SOCI index (ECR)
-aws soci create \
-  --image-uri 123456789012.dkr.ecr.us-east-2.amazonaws.com/vllm:v0.6.3
+# Create the SOCI index with the soci CLI from awslabs/soci-snapshotter (e.g. v0.16.1)
+soci create 123456789012.dkr.ecr.us-east-2.amazonaws.com/vllm:v0.8.5
+soci push  123456789012.dkr.ecr.us-east-2.amazonaws.com/vllm:v0.8.5
 
-# EKS Auto Mode automatically supports SOCI
-# Karpenter: Native SOCI support when using Bottlerocket AMI
+# Node requirement: configure the SOCI snapshotter as a containerd proxy plugin and set
+#   [plugins."io.containerd.grpc.v1.cri".containerd] snapshotter = "soci"
+#   (on EKS managed node groups, install/configure the snapshotter via launch template/userdata)
+# Note: Bottlerocket uses the overlayfs snapshotter by default; SOCI is not applied
+#   automatically. Automatic support on Auto Mode/Bottlerocket needs separate official evidence.
+# You can automate index creation with the CloudFormation SOCI Index Builder:
+# https://github.com/awslabs/soci-snapshotter
 ```
 
 #### Strategy 4: Multi-node LWS Model Download Coordination
 
-When deploying with LWS multi-node, network contention occurs if Leader and Worker simultaneously download the same model.
+With LWS multi-node deployment, each Pod is scheduled onto a different node, and if the model cache is node-local NVMe (`emptyDir`), **the cache cannot be shared across nodes**. The default behavior is therefore that Leader and Worker each download independently from S3; a "Leader downloads, Worker waits" coordination does not hold with node-local `emptyDir` alone. The two **independent** Pod fragments below each download directly from S3 on their own node. `set -e` makes a failed download abort the init container so the Pod restarts.
 
 ```yaml
-# Leader Pod: Download from S3 then cache to NVMe
+# Leader Pod (part of the LWS leaderTemplate). Downloads to node-local NVMe emptyDir.
 initContainers:
   - name: model-downloader
+    image: amazon/aws-cli:2.15.0
     command: ["/bin/sh", "-c"]
     args:
       - |
-        # Only Leader downloads from S3
-        aws s3 sync s3://model-cache/glm5-fp8/ /models/
-        echo "READY" > /models/.download-complete
-
-# Worker Pod: Wait for Leader completion then download independently
-initContainers:
-  - name: model-downloader
-    command: ["/bin/sh", "-c"]
-    args:
-      - |
-        # Worker downloads independently from S3
-        # (NVMe emptyDir is node-independent, cannot share)
-        aws s3 sync s3://model-cache/glm5-fp8/ /models/
+        set -euo pipefail
+        aws s3 sync s3://model-cache/glm5-fp8/ /models/ --no-progress
+    volumeMounts:
+      - name: model-cache
+        mountPath: /models
 ```
 
-:::tip Download Performance Comparison
-| Method | 744GB Model Time | Stability | Cost |
-|------|-------------------|--------|------|
-| HF Hub Direct | 20-40min | Frequent timeouts | Free |
-| HF Hub + hf_transfer | 10-15min | Good | Free |
-| **S3 Pre-caching** | **5-10min** | **Very Stable** | **S3 Storage Cost** |
-| FSx for Lustre | 5-8min | Stable | High |
-| NVMe Local Cache (Restart) | &lt; 1min | Best | Free |
+```yaml
+# Worker Pod (part of the LWS workerTemplate). On a different node, downloads independently.
+initContainers:
+  - name: model-downloader
+    image: amazon/aws-cli:2.15.0
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        set -euo pipefail
+        # A node-local emptyDir is per-node, so the Leader's cache cannot be shared — each downloads.
+        aws s3 sync s3://model-cache/glm5-fp8/ /models/ --no-progress
+    volumeMounts:
+      - name: model-cache
+        mountPath: /models
+```
+
+To genuinely download once and share, use cross-node shared storage (`ReadWriteMany`, e.g. EFS or FSx for Lustre) instead of node-local `emptyDir`, and have the other Pods wait (poll) until a completion marker file appears.
+
+:::tip Download Method Comparison (qualitative)
+This table compares the **design characteristics** of each method, not measured benchmarks. Actual time depends heavily on model size, instance network bandwidth, concurrency, and cache state (first download vs. restart), so measure it in your own environment. The "Charges" column lists only billable items — even when the transfer itself is free, S3 storage/requests, EFS/FSx provisioning, and instance runtime are billed separately.
+
+| Method | Transfer Path | Cache State | Billable Items |
+|------|--------------|-------------|----------------|
+| HF Hub Direct | External → Pod | First download | Instance runtime (no transfer fee), high timeout risk |
+| HF Hub + `HF_XET_HIGH_PERFORMANCE` | External → Pod (Xet-accelerated) | First download | Instance runtime |
+| S3 Pre-caching + init container | S3 (same region) → node NVMe | First download | S3 storage/requests, instance runtime |
+| FSx for Lustre | FSx → Pod (RWX shared) | First/shared | FSx provisioning (standing), instance runtime |
+| NVMe Local Cache | Node-local disk read | Only when the Pod restarts on the **same node** with the cache intact | Instance runtime |
+
+The "fast" case for NVMe local cache applies only when already-downloaded weights are **re-read from the same node's local disk** (see the sequential-read bandwidth in the "Storage Strategy" table). Because `emptyDir` is Pod-scoped, deleting and recreating the Pod discards the cache, and scheduling onto a different node forces a re-download.
 :::
 
 ### EKS Auto Mode GPU Limitations
@@ -299,38 +368,45 @@ p5.48xlarge frequently has InsufficientCapacity in Seoul/Tokyo regions. **Availa
 
 #### GPU Operator Conflict
 
-Installing GPU Operator with `devicePlugin.enabled=true` conflicts with Auto Mode's built-in Device Plugin, resulting in `allocatable=0`. **Must install with `devicePlugin.enabled=false`**.
+Auto Mode provides a built-in Device Plugin on GPU nodes. Installing the NVIDIA GPU Operator on top with `devicePlugin.enabled=true` makes **two Device Plugins advertise the same GPU on the same node**; in the observed case the node's `nvidia.com/gpu` allocatable was reported abnormally (for example, `0`). On Auto Mode nodes, keep the GPU Operator's Device Plugin off with the NodePool label `nvidia.com/gpu.deploy.device-plugin: "false"`, so only the Auto Mode built-in plugin advertises the GPU. The GPU Operator applies its `nvidia.com/gpu.deploy.*` labels only where a label is absent or empty, so it keeps that `false` value ([`addGPUStateLabels`](https://github.com/NVIDIA/gpu-operator/blob/fbe793082611bfdba1621b614edefdd3461bf14d/controllers/state_manager.go)). Setting `devicePlugin.enabled=false` also avoids the conflict, but it turns the Device Plugin off on every node. Because the driver and container toolkit are also AWS-managed on Auto Mode nodes, the configuration reviewed in [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288) installs the GPU Operator with `driver.enabled=false` and `toolkit.enabled=false` and keeps DCGM Exporter, NFD and GFD. The `allocatable=0` value is the observed case, not a universal guarantee for every environment.
 
 #### Cannot Directly Terminate EC2 Instances
 
-Auto Mode managed nodes block `ec2:TerminateInstances` via resource-based policy. Node cleanup must be performed indirectly through Karpenter NodePool deletion or Pod removal.
+Nodes provisioned by Auto Mode are EC2 **managed instances**: the service provider, EKS (`Operator`/`Principal` = `eks.amazonaws.com`), owns the instance lifecycle (provisioning, replacement, termination). As a result you **cannot directly modify a managed instance or terminate it with `ec2:TerminateInstances`** (per the AWS EC2 User Guide, "Amazon EC2 managed instances"). The exact enforcement mechanism (a resource-based policy, whether the root account can bypass it, etc.) is not stated in the official docs, so we do not assert one.
+
+Perform node cleanup through Karpenter:
+
+- To replace or clean up a **specific node**, delete that node's `NodeClaim` (`kubectl delete nodeclaim <name>`); Karpenter drains it and terminates the instance gracefully.
+- Deleting a `NodePool` tears down **every NodeClaim/node that NodePool owns** (a fleet-wide cascade), so do not use it to replace a single node.
+
+For Karpenter's drain, consolidation, and termination behavior, see the [Karpenter Disruption docs](https://karpenter.sh/docs/concepts/disruption/).
 
 ### Serving Framework Compatibility
 
 | Model | vLLM Support | SGLang Support | Notes |
 |------|---------|-----------|------|
-| Qwen3-32B | Supported | Supported | llm-d default model, Apache 2.0 |
+| Qwen3-32B | Supported (vllm≥0.8.5) | Supported (sglang≥0.4.6.post1) | llm-d default model, Apache-2.0 |
 | Kimi K2.5 (1T MoE) | Supported | Supported | INT4 W4A16 Marlin MoE, `gpu_memory_utilization=0.85` |
-| GLM-5 (744B MoE) | Not supported | Supported | `glm_moe_dsa` architecture → requires transformers v5.2+, vLLM uses v4.x |
-| DeepSeek V3.2 | Supported | Supported | MoE, 671B/37B active |
+| GLM-5 (744B MoE, 40B active) | Supported (vllm≥0.19.0) | Supported (sglang≥0.5.10) | DeepSeek Sparse Attention (DSA), MIT license |
+| DeepSeek V3.2 | Supported | Supported | MoE, 671B total / 37B active |
 
 :::warning GLM-5 Deployment Caution
-GLM-5 is not supported in vLLM. Must use SGLang-dedicated image (`lmsysorg/sglang:glm5-hopper`), and configure `--pp-size 2 --nnodes 2 --dist-init-addr <leader>:5000` for multi-node deployment.
+Per its model card, GLM-5-FP8 is supported by both vLLM (v0.19.0+) and SGLang (v0.5.10+). The documented single-node vLLM example is `vllm serve zai-org/GLM-5-FP8 --tensor-parallel-size 8 --tool-call-parser glm47 --reasoning-parser glm45`, adding MTP speculative decoding (`--speculative-config`) for high token volume. If a single node's GPUs cannot hold the 744B (40B active) weights and multi-node is required, do not hard-code distribution flags or topology — follow the GLM-5 recipes for vLLM (`recipes/GLM/GLM5.md`, linked from the model card) and the SGLang cookbook.
 :::
 
 ### Storage Strategy
 
-Storage performance is critical for large model (744GB+) weight loading.
+Storage performance drives large model (hundreds of GB) weight-loading time. The sequential-read figures below are **approximate observed values** that vary by environment; where a service publishes a limit (such as EFS), read the published limit and the actual throughput separately.
 
-| Storage | Sequential Read | Multi-node Sharing | Recommended Scenario |
+| Storage | Sequential Read (approx.) | Multi-node Sharing | Recommended Scenario |
 |---------|---------|------------|------------|
-| **NVMe emptyDir** | ~3,500 MB/s | Node-independent | p5 built-in NVMe, best performance |
-| EFS | ~100-300 MB/s | ReadWriteMany | Small models, when sharing needed |
-| S3 + init container | ~1,000 MB/s | S3 shared | Medium performance, cost efficient |
-| FSx for Lustre | ~1,000+ MB/s | ReadWriteMany | Training workloads |
+| **NVMe emptyDir** | ~3,500 MB/s (varies by instance) | Node-independent | p5 built-in NVMe, best for local re-reads |
+| EFS | Published ceiling up to 1,500 MiB/s (Elastic Throughput, **aggregate across the mount, conditional**) | ReadWriteMany | Small models, when cross-node sharing is needed |
+| S3 + init container | ~1,000 MB/s (varies by concurrency/instance) | S3 shared | Medium performance, cost efficient |
+| FSx for Lustre | ~1,000+ MB/s (scales with provisioned throughput) | ReadWriteMany | Training workloads |
 
 :::tip Large Model Recommendation
-Large models like GLM-5 (744GB) and Kimi K2.5 (630GB) recommend **local NVMe (emptyDir)**. p5.48xlarge has 8×3.84TB NVMe SSD built-in, providing best performance at no additional cost. First startup takes 10-20min with HuggingFace Hub direct download, but subsequent loads are fast.
+For large models such as GLM-5-FP8 (hundreds of GB of FP8 weights) and Kimi K2.5 (hundreds of GB), **local NVMe (emptyDir)** gives the best node-local read performance for loading. However, `emptyDir` is Pod-scoped, so **the cache is lost when the Pod is recreated**, and the first time weights are fetched you still need a HuggingFace Hub direct download (tens of minutes depending on network/concurrency) or S3 pre-caching, just like any other method. p5.48xlarge has 8×3.84TB NVMe SSDs built in, but using them as ephemeral storage requires node configuration (Karpenter EC2NodeClass `instanceStorePolicy: RAID0`). Exact weight byte sizes depend on the revision you use (FP8/BF16, etc.), so confirm the checkpoint size before deployment.
 :::
 
 ### GPU Quota Pitfall

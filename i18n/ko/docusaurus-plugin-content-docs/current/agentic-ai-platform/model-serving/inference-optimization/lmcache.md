@@ -3,9 +3,9 @@ title: "LMCache: KV Cache 오프로딩과 공유"
 description: GPU 메모리 너머 CPU·디스크로 KV cache를 오프로딩하고 추론 인스턴스 간 공유하는 LMCache의 개념과, vLLM prefix cache·NIXL·kvaware 라우팅과의 관계
 created: "2026-06-25"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: YoungJoon Jeong · Juwon Hwang
-reading_time: 11
+reading_time: 15
 tags:
   - lmcache
   - kv-cache
@@ -30,9 +30,9 @@ sidebar_label: LMCache
 vLLM의 in-GPU Prefix Caching은 동일 prefix를 공유하는 요청의 prefill 연산을 재사용합니다. 그러나 이 캐시에는 두 가지 제약이 있습니다.
 
 - **용량 제약**: KV cache는 GPU 메모리(HBM)를 차지하므로, 컨텍스트가 길거나 동시 요청이 많으면 캐시가 밀려나(evict) 재연산이 발생합니다.
-- **범위 제약**: in-GPU 캐시는 **한 Pod 안에서만** 유효합니다. 같은 prefix를 가진 요청이라도 다른 Pod로 라우팅되면 캐시를 재사용하지 못합니다.
+- **범위 제약**: in-GPU 캐시는 **하나의 서빙 엔진 인스턴스와 그 인스턴스에 속한 분산 워커 범위 안에서만** 유효합니다. 여기서 서빙 엔진 인스턴스는 단일 `vllm serve` 실행 단위를 뜻하며, tensor parallel이나 pipeline parallel로 여러 Pod·노드에 걸쳐 있어도 하나의 인스턴스가 KV cache를 공유합니다([vLLM Parallelism and Scaling](https://docs.vllm.ai/en/latest/serving/parallelism_scaling.html)). 반면 서로 독립적으로 배포된 복제본(replica)끼리는 같은 prefix 요청이 다른 복제본으로 라우팅되면 in-GPU 캐시를 자동으로 공유하지 못합니다.
 
-LMCache는 KV cache를 GPU 밖 계층으로 옮겨 이 두 제약을 완화합니다. GPU에서 밀려난 KV 블록을 버리지 않고 CPU·디스크에 보관했다가 다시 불러오며, 외부 저장소를 공유하면 **여러 Pod가 동일 KV cache를 재사용**할 수 있습니다.
+LMCache는 KV cache를 GPU 밖 계층으로 옮겨 이 두 제약을 완화합니다. GPU에서 밀려난 KV 블록을 버리지 않고 CPU·디스크에 보관했다가 다시 불러오며, 외부 저장소를 공유하면 **독립적으로 배포된 여러 서빙 엔진 인스턴스가 동일 KV cache를 재사용**할 수 있습니다.
 
 ## LMCache의 위치
 
@@ -61,7 +61,7 @@ flowchart LR
     style DISK fill:#607d8b,stroke:#37474f,color:#fff
 ```
 
-KV cache는 접근 속도와 용량이 다른 계층에 단계적으로 저장됩니다. 가장 빠른 GPU HBM에서 밀려난 블록은 CPU DRAM으로, 다시 디스크·원격 스토리지로 내려가며, 재사용 시 역순으로 끌어올려집니다.
+위 그림은 KV cache가 접근 속도와 용량이 다른 계층에 저장되는 **개념 모델**입니다. 가장 빠른 GPU HBM에서 밀려난 블록이 CPU DRAM으로, 다시 디스크·원격 스토리지로 내려가고 재사용 시 역순으로 끌어올려지는 흐름은 하나의 예시이며, 실제 블록이 어느 계층에 언제 놓이는지는 선택한 저장·프리페치 정책에 따라 달라집니다. 예를 들어 MP 모드의 `--l2-store-policy default`는 블록을 L2에 저장하면서 L1에도 그대로 유지하고, `--l2-prefetch-policy retain`은 프리페치한 블록을 L1에 영구 보존하므로, "evict 후에만 하위 계층으로 내려간다"는 자동 강등은 모든 엔진·블록에 보장되지 않습니다(정책별 동작은 [MP Configuration Reference](https://docs.lmcache.ai/mp/configuration.html) 참조).
 
 ## vLLM 연동 설정
 
@@ -87,7 +87,11 @@ vllm serve Qwen/Qwen3-8B \
   --kv-transfer-config '{"kv_connector":"LMCacheMPConnector","kv_connector_module_path":"lmcache.integration.vllm.lmcache_mp_connector","kv_role":"kv_both","kv_connector_extra_config":{"lmcache.mp.host":"localhost","lmcache.mp.port":5555}}'
 ```
 
-`lmcache.mp.server_urls`로 `"tcp://host1:6667,tcp://host2:6667"` 형태의 다중 서버를 지정할 수도 있습니다.
+`lmcache.mp.server_urls`에 `"tcp://host1:6667,tcp://host2:6667"`처럼 서버 목록(또는 쉼표로 구분한 문자열)을 넘기면 하나의 vLLM 배포가 여러 LMCache 서버를 대상으로 삼을 수 있습니다. 단 이 다중 서버 모드에는 LMCache v0.5.5 기준 다음 제약이 있습니다([MP Configuration Reference](https://docs.lmcache.ai/mp/configuration.html)).
+
+- `server_urls`를 지정하면 단일 서버용 `host`/`port` 키보다 우선합니다.
+- vLLM의 world size가 서버 개수로 나누어떨어져야 하며, 전역 rank가 서버 수만큼 연속 블록으로 분할되어 각 워커는 자신에게 할당된 로컬 서버 하나에만 접속합니다. 따라서 위 단일 워커 예시처럼 TP를 지정하지 않은 명령에 그대로 덧붙일 수 없고, 예를 들어 서버가 2개면 `--tensor-parallel-size`를 2의 배수로 지정해야 합니다.
+- 다중 서버 모드는 현재 tensor parallel만 지원하며, pipeline parallel(`pp_size > 1`)과 data parallel(`dp_size > 1`)은 명시적 오류와 함께 거부됩니다.
 
 :::warning vLLM 버전에 따라 커넥터 해석이 달라집니다
 
@@ -147,8 +151,8 @@ LMCache MP 모드의 L1·L2는 **LMCache 서버 내부의 계층 명칭**으로,
 
 | 항목 | 내용 |
 |------|------|
-| `hostNetwork: true` | 공식 DaemonSet 패턴이 사용. vLLM Pod은 Service DNS가 아니라 `status.hostIP`로 서버를 찾음 |
-| `/dev/shm` 호스트 마운트 | 공식 예시는 양쪽 컨테이너에 마운트. **전송 경로에 딸린 조건**이며 아래 조합으로 제거 가능 |
+| `hostNetwork: true` | 공식 DaemonSet 패턴이 **서비스 디스커버리 용도**로 사용. vLLM Pod은 Service DNS가 아니라 `status.hostIP`로 서버를 찾음. IPC 전송 방식과는 독립적인 선택이므로, 아래 `/dev/shm` 제거만으로는 `hostNetwork` 요구가 사라지지 않음 |
+| `/dev/shm` 호스트 마운트 | 공식 예시는 기본(legacy) 모드에서 CUDA IPC 메모리 공유를 위해 양쪽 컨테이너에 마운트. **isolated IPC를 양쪽에 켜면 제거 가능**(아래 전송 경로 참조) |
 | GPU 리소스 | DaemonSet에는 GPU를 요청하지 않음. 단 IPC 전송을 위해 컨테이너 런타임이 GPU 접근을 제공하므로 GPU 노드에만 스케줄해야 하며, GPU 없는 노드에서는 CUDA 초기화 오류로 크래시 |
 
 ### 전송 경로별 요구사항
@@ -161,13 +165,17 @@ LMCache MP 모드의 L1·L2는 **LMCache 서버 내부의 계층 명칭**으로,
 | `lmcache_driven` (기본) | 서버 주도 — CUDA 디바이스는 IPC, CPU 디바이스는 SHM | GPU 직결 전송 |
 | `engine_driven` | 엔진(워커) 주도 | CPU-only·비CUDA 가속기 워커 |
 
-`--shm-name`은 SHM 풀 동작을 제어하며, 빈 문자열이면 pickle 기반 전송을 사용합니다. 공식 문서는 이 조합이 **`/dev/shm`을 쓸 수 없는 환경이나 Docker에서 `--ipc host` 없이 돌릴 때 동작**한다고 명시합니다.
+`--supported-transfer-mode`는 **서버가 적재할 전송 경로**만 결정하며, 워커(vLLM 클라이언트)가 실제로 어느 경로를 쓸지는 클라이언트 설정 `lmcache.mp.mp_transfer_mode`(기본 `auto` — CUDA 디바이스는 `lmcache_driven`, 그 외는 `engine_driven`)로 결정됩니다. 따라서 서버만 `engine_driven`으로 바꾸면 CUDA vLLM 클라이언트는 여전히 기본 서버 주도 경로를 쓰려 하므로 양쪽 설정을 함께 맞춰야 합니다.
+
+`--shm-name`은 비(非)GPU 경로가 적재됐을 때(`auto`·`engine_driven`)의 SHM 풀 동작을 제어하며, 빈 문자열(기본값)이면 SHM 대신 pickle 기반 전송을 사용합니다.
 
 :::warning 배포 전 admission 정책을 확인하세요
 
-`hostNetwork: true`와 `/dev/shm` hostPath 마운트는 Pod Security Standards의 baseline·restricted 프로파일에서 금지되는 항목이며, Kyverno나 Validating Admission Policy로 동등한 제약을 걸어둔 클러스터에서도 차단됩니다. 즉 **요구 권한이 성능과 무관하게 채택 가능 여부를 결정**할 수 있습니다.
+`hostNetwork: true`와 `/dev/shm` hostPath 마운트는 Pod Security Standards의 baseline·restricted 프로파일에서 금지되는 항목이며, Kyverno나 Validating Admission Policy로 동등한 제약을 걸어둔 클러스터에서도 차단됩니다. 즉 **요구 권한이 성능과 무관하게 채택 가능 여부를 결정**할 수 있습니다. 두 항목은 서로 다른 요구이므로 분리해서 다뤄야 합니다.
 
-다만 위 표처럼 요구사항은 전송 경로에 따라 달라집니다. 정책이 엄격한 클러스터라면 `engine_driven` + pickle 전송으로 `/dev/shm` 의존을 먼저 제거해볼 수 있습니다. 대신 서버 주도 경로의 GPU 직결 전송 이점은 포기하게 되며, 그 성능 차이는 워크로드에 따라 직접 측정해야 합니다.
+- **`/dev/shm`(= `hostIPC`) 의존 제거**: 공식 문서가 명시하는 방법은 **isolated IPC**입니다. 서버에 `--isolated-ipc`를, 클라이언트에 `lmcache.mp.isolated_ipc: true`를 **양쪽 모두** 설정하면 KV 등록이 raw CUDA IPC 핸들로, 이벤트 동기화가 timeline-semaphore 방식으로 바뀌어 공유 `/dev/shm` 없이 동작합니다. 한쪽만 켜면 이벤트 핸들 불일치로 즉시 실패합니다. 단 LMCache v0.5.5 기준 isolated IPC는 vLLM MP 커넥터에서만 지원되고, VMM 할당(`expandable_segments`·sleep mode)과는 호환되지 않습니다([MP Deployment Guide](https://docs.lmcache.ai/mp/deployment.html)).
+- **`hostNetwork` 제거**: isolated IPC는 `/dev/shm`·`hostIPC` 요구만 없애며, `hostNetwork`는 vLLM Pod이 `status.hostIP`로 서버를 찾는 디스커버리 선택이므로 별도로 Service DNS 등 다른 디스커버리 방식으로 바꿔야 합니다.
+- `engine_driven` + pickle 전송은 GPU 직결 IPC 자체를 쓰지 않으므로 `/dev/shm` 의존을 피하는 또 다른 경로지만, 이때도 서버의 `--supported-transfer-mode`와 클라이언트의 `lmcache.mp.mp_transfer_mode`를 함께 맞춰야 하고 서버 주도 경로의 GPU 직결 전송 이점은 포기하게 되며, 그 성능 차이는 워크로드에 따라 직접 측정해야 합니다.
 
 프로파일별 제약 내용은 [보안 & 거버넌스](../../../eks-best-practices/security-authn/index.md)의 워크로드 보안 절을 참조하세요.
 
@@ -181,9 +189,9 @@ LMCache는 단독으로 동작하지 않고 다른 추론 최적화 기술과 �
 |------|------|------|
 | **vLLM Prefix Cache** | LMCache가 GPU 밖으로 확장 | in-GPU 캐시 evict 시 LMCache가 받아 보관 |
 | **NIXL** | KV 전송 경로 | Disaggregated Serving에서 prefill→decode KV 이동에 사용 ([Disaggregated Serving](./disaggregated-serving.md#nixl-공통-kv-cache-전송-엔진)) |
-| **kvaware 라우팅** | LMCache 공유 캐시를 활용 | 캐시 보유 Pod로 라우팅해 적중률 향상 |
+| **kvaware 라우팅** | LMCache 공유 캐시를 활용 | 라우터가 캐시 보유 위치를 알 수 있게 연동했을 때 적중률 향상 |
 
-특히 **kvaware/prefixaware 라우팅**은 LMCache 같은 공유 KV 계층이 있을 때 효과가 커집니다. 어느 Pod가 어떤 KV 블록을 보유했는지를 라우터가 알면, 캐시를 가진 Pod로 요청을 보내 prefill을 건너뛸 수 있기 때문입니다. 이 라우팅 전략은 [KV Cache-Aware Routing](./kv-cache-optimization.md#kv-cache-aware-routing)에서, 라우터 옵션 비교(EPP·HyperPod·Dynamo)는 [라우팅 전략 — L2 옵션 비교](../inference-routing/routing-strategy.md#l2-옵션-비교-epp-vs-hyperpod-inference-operator-vs-dynamo)에서 다룹니다.
+특히 **kvaware/prefixaware 라우팅**은 LMCache 같은 공유 KV 계층이 있을 때 효과를 볼 수 있지만, 그 이점은 공유 스토리지가 있다는 사실만으로 자동으로 생기지 않습니다. 라우터가 어느 엔진이 어떤 KV 블록을 보유했는지 알아야 하므로, 라우터의 prefix 인덱스나 KV 이벤트 연동 같은 **캐시 가시성(cache-visibility) 통합**을 별도로 구성해야 합니다([llm-d prefix scorer](https://github.com/llm-d/llm-d-router)). 또한 이때 적중은 세 가지로 구분되며 — 엔진 로컬 히트(재전송 없음), 원격 retrieve(LMCache 외부 저장소에서 끌어옴, 전송 비용 수반), 그리고 엔드포인트 부하 — prefix 적중률만 높인다고 전체 지연이 줄어드는 것은 아니므로 라우팅 전략의 순이득은 워크로드에서 직접 측정해야 합니다. 이 라우팅 전략은 [KV Cache-Aware Routing](./kv-cache-optimization.md#kv-cache-aware-routing)에서, 라우터 옵션 비교(EPP·HyperPod·Dynamo)는 [라우팅 전략 — L2 옵션 비교](../inference-routing/routing-strategy.md#l2-옵션-비교-epp-vs-hyperpod-inference-operator-vs-dynamo)에서 다룹니다.
 
 AWS 관리형 환경에서는 SageMaker HyperPod Inference Operator가 LMCache와 호환되는 KV cache 구성을 제공합니다. 상세는 [HyperPod Inference Operator — KV Cache 구성](../inference-frameworks/hyperpod-inference-operator.md#kv-캐시-구성-l1l2-캐시와-라우팅-전략)을 참조하세요.
 

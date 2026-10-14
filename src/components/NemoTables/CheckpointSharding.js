@@ -8,22 +8,25 @@ const CheckpointSharding = () => {
   const data = [{
     modelSize: '70B',
     shardSize: '10GB',
-    estimatedShards: isKo ? '~40 샤드' : '~40 shards',
-    saveTime: isKo ? '5-10분' : '5-10 min',
+    estimatedShards: isKo ? '~14 샤드 (BF16 가중치)' : '~14 shards (BF16 weights)',
+    saveTime: isKo ? '구성에 따라 다름' : 'Depends on setup',
     color: '#4285f4'
   }, {
     modelSize: '175B',
     shardSize: '10GB',
-    estimatedShards: isKo ? '~100 샤드' : '~100 shards',
-    saveTime: isKo ? '15-20분' : '15-20 min',
+    estimatedShards: isKo ? '~35 샤드 (BF16 가중치)' : '~35 shards (BF16 weights)',
+    saveTime: isKo ? '구성에 따라 다름' : 'Depends on setup',
     color: '#fbbc04'
   }, {
     modelSize: '405B',
     shardSize: '10GB',
-    estimatedShards: isKo ? '~230 샤드' : '~230 shards',
-    saveTime: isKo ? '30-40분' : '30-40 min',
+    estimatedShards: isKo ? '~81 샤드 (BF16 가중치)' : '~81 shards (BF16 weights)',
+    saveTime: isKo ? '구성에 따라 다름' : 'Depends on setup',
     color: '#ea4335'
   }];
+  const note = isKo
+    ? '예상 샤드 수는 "BF16 가중치만 저장(파라미터수 × 2바이트)"을 10GB 샤드로 나눈 가정값입니다(예: 405B → 810GB / 10GB ≈ 81). 옵티마이저 상태·마스터 가중치를 함께 저장하면 샤드 수는 수 배로 늘어납니다. 저장 시간은 스토리지 대역폭·네트워크·병렬 저장 설정에 좌우되므로 측정 전에는 단정하지 않습니다.'
+    : 'Estimated shards assume "BF16 weights only (params × 2 bytes)" divided into 10GB shards (e.g., 405B → 810GB / 10GB ≈ 81). Including optimizer state and master weights multiplies the shard count several-fold. Save time depends on storage bandwidth, network, and parallel-save settings, so it is not asserted without measurement.';
   return <div style={{
     maxWidth: '900px',
     margin: '20px auto',
@@ -127,6 +130,14 @@ const CheckpointSharding = () => {
               </tr>)}
           </tbody>
         </table>
+      </div>
+      <div style={{
+      fontSize: '13px',
+      color: 'var(--ifm-color-emphasis-700)',
+      marginTop: '10px',
+      lineHeight: '1.5'
+    }}>
+        {note}
       </div>
     </div>;
 };

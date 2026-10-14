@@ -3,9 +3,9 @@ title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
 description: EKS 위에서 AWS 커스텀 AI 가속기(Trainium2/Inferentia2)를 운영하기 위한 Neuron SDK, Device Plugin, NxD Inference 가이드
 created: "2026-04-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 28
 tags:
   - trainium2
   - inferentia2
@@ -37,17 +37,19 @@ AWS Neuron은 AWS가 설계한 AI 가속기(Trainium, Inferentia) 위에서 학�
 
 ### 1.1 Neuron 을 선택하는 세 가지 이유
 
-**1) 비용 효율성 (Per-Token TCO)**
+**1) 비용 효율성 (Per-Token TCO) — 검증이 필요한 가설**
 
-AWS 공식 자료 기준 Trainium2/Inferentia2 는 유사 성능 GPU 대비 토큰당 비용이 낮습니다. 특히 다음 조건에서 효과가 큽니다.
+AWS 는 Trainium2/Inferentia2 가 유사 성능 GPU 대비 토큰당 비용 우위를 가진다고 홍보하지만, 이는 모든 모델·트래픽·리전에 보편적으로 성립하는 확정된 사실이 아니라 **본인의 워크로드에서 직접 검증해야 하는 가설** 입니다. AWS 공식 자료의 비교값은 특정 모델·배치·정밀도 조건에서 측정된 것이므로, 다음 조건이 충족될 때 우위가 나타날 가능성이 높다는 **선택 고려사항** 으로만 다루세요.
 
-- 장기간(> 3개월) 지속되는 안정적 추론 트래픽
+- 장기간(예: 3개월 이상) 지속되는 안정적 추론 트래픽
 - FP8/INT8/BF16 기반 표준 Transformer 계열 모델
 - AWS Reserved/Savings Plan 적용 가능한 워크로드
 
-**2) Capacity 가용성**
+비용을 비교할 때는 광고된 시간당 단가가 아니라 **동일한 지연·처리량 SLO 조건에서 측정한 "수용된 토큰당 비용(cost per accepted token)"** 을 기준으로, 대상 모델·리전·시점의 실제 가격으로 재계산하세요. 이 문서는 가격 수치를 명시하지 않으며, 현재 가격은 AWS 공식 가격 페이지와 Pricing Calculator 로 확인해야 합니다.
 
-NVIDIA H100/H200/B200 공급이 타이트한 시기에 Trainium2 는 상대적으로 확보가 용이합니다. 특히 미국/아시아 특정 리전에서 p5/p5en 재고 부족 시 Neuron 이 실질적인 대안이 됩니다.
+**2) Capacity 가용성 — 시점·리전 종속 가설**
+
+NVIDIA H100/H200/B200 공급이 타이트한 시기에 Trainium2 가 상대적으로 확보가 용이할 수 있으나, 가속기 가용성은 리전·시점·계정 할당량에 따라 달라지므로 **보편적 조달 우위로 단정할 수 없습니다**. 특정 리전에서 p5/p5en 재고가 부족할 때 Neuron 이 대안이 될 수 있다는 서술은 과거·일부 리전의 관찰에 근거한 가설이며, 배포 직전 대상 리전에서 On-Demand/Spot/Capacity Reservation 가용성을 AWS 콘솔 또는 계정 팀으로 직접 확인해야 합니다.
 
 **3) Bedrock 과의 연속성**
 
@@ -89,15 +91,16 @@ AWS 공식 제품 페이지 및 EC2 사용자 가이드 기준 2026-04 시점의
 | trn1.2xlarge | 1× Trainium1 | 2 | 32 GB | 8 | 32 GB | 최대 12.5 Gbps |
 | trn1.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 800 Gbps EFA |
 | trn1n.32xlarge | 16× Trainium1 | 32 | 512 GB | 128 | 512 GB | 1,600 Gbps EFA |
-| trn2.48xlarge | 16× Trainium2 | 128 | 1.5 TB (HBM3) | 192 | 2 TiB | 3.2 Tbps EFA v3 |
-| **trn2 Ultra** (trn2u.48xlarge) | 64× Trainium2 (4×trn2 NeuronLink) | 512 | 6 TB (HBM3) | - | - | 12.8 Tbps |
+| trn2.48xlarge | 16× Trainium2 | 128 (물리) | 1.5 TB (HBM3) | 192 | 2 TiB | 3.2 Tbps EFA v3 |
+| **Trn2 UltraServer** (trn2u, 4×trn2.48xlarge) | 64× Trainium2 (4×trn2 NeuronLink) | 512 (물리) | 6 TB (HBM3) | - | - | 12.8 Tbps |
 
-:::caution trn2 Ultra 가용성
-trn2 Ultra(trn2u.48xlarge)는 2026-04 기준 **preview 또는 제한 가용성** 상태로, 본 문서 전반(섹션 7의 모델 매트릭스 포함)에서 Ultra 관련 서술은 동일한 가용성 제약을 공유합니다. 일반 가용성·리전 범위·Spot 지원 여부는 AWS 계정 팀 또는 공식 문서로 반드시 확인하세요.
+:::caution Trn2 UltraServer 가용성
+Trn2 UltraServer(trn2u, 4대의 trn2.48xlarge 를 NeuronLink 로 연결한 ultraserver)는 2026-04 기준 **preview 또는 제한 가용성** 상태로, 본 문서 전반(섹션 7의 모델 매트릭스 포함)에서 UltraServer 관련 서술은 동일한 가용성 제약을 공유합니다. 일반 가용성·리전 범위·Spot 지원 여부는 AWS 계정 팀 또는 공식 문서로 반드시 확인하세요. UltraServer 는 단일 EC2 인스턴스가 아니라 여러 trn2 인스턴스를 묶은 구성이므로, 위 표의 trn2.48xlarge(단일 인스턴스) 수치와 혼동하지 마세요.
 :::
 
 :::caution 버전·수치 주의
 - NeuronCore 수 및 메모리 용량은 AWS 공식 자료 기준이며 SDK 릴리스에 따라 보고 단위가 달라질 수 있습니다. 배포 전 `neuron-ls` 로 실제 디바이스를 확인하세요.
+- 위 표의 NeuronCore 수(trn2.48xlarge 128, UltraServer 512)는 **물리 NeuronCore** 기준입니다. Trn2 는 Logical NeuronCore(LNC) 설정에 따라 2개의 물리 코어를 1개의 논리 코어로 묶을 수 있고(기본값은 SDK·실행 환경에 따라 다름), 애플리케이션과 Device Plugin 이 보는 할당 가능 코어 수는 LNC 설정에 따라 물리 코어 수의 절반이 될 수 있습니다. 따라서 Device Plugin 의 `aws.amazon.com/neuroncore` 할당 가능 수가 애플리케이션이 사용하는 논리 코어 수와 항상 같다고 가정하지 말고, `neuron-ls` 와 LNC 구성([Logical NeuronCore configuration](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/arch/neuron-features/logical-neuroncore-config.html))으로 실제 노출 값을 확인하세요.
 - inf1 (1세대 Inferentia) 은 본 문서에서 다루지 않습니다. 신규 배포에는 Inferentia2/Trainium2 를 사용하세요.
 :::
 
@@ -168,7 +171,7 @@ flowchart TB
 :::info Neuron SDK 2.x (2026-04 기준 최신 안정 버전)
 Neuron SDK 는 2.x 릴리스 트레인에서 정기적으로 업데이트됩니다. 2026-04 기준 최신 안정 버전의 주요 특징:
 
-- Trainium2 (trn2) + trn2 Ultra(NeuronLink) 정식 지원
+- Trainium2 (trn2) + Trn2 UltraServer(NeuronLink) 정식 지원
 - NxD Inference 의 LLM 라이브러리 (Llama 3/4, DBRX, Mistral 계열 pre-compiled checkpoint)
 - vLLM Neuron backend 정식 지원 (continuous batching, PagedAttention-유사 구조)
 - PyTorch 2.5+ / JAX 호환
@@ -192,9 +195,9 @@ Trainium / Inferentia 하드웨어 실행
 ```
 
 **운영상의 함의:**
-- 첫 Pod 기동 시 NEFF 컴파일로 20-30분 이상 소요 가능 → **사전 컴파일 후 S3/ECR 에 캐싱**
-- 모델 가중치 변경 시 재컴파일 필요 → CI 파이프라인에서 NEFF 아티팩트를 함께 관리
-- NxD Inference 는 공식 모델에 대해 **pre-compiled checkpoint** 을 제공하여 초기 기동 시간을 단축
+- 첫 Pod 기동 시 NEFF 컴파일로 20-30분 이상 소요 가능 → **사전 컴파일 후 S3/ECR 에 캐싱**(사용자가 직접 생성·관리하는 컴파일 캐시)
+- 그래프 구조(배치 크기·시퀀스 길이·TP 구성 등)가 바뀌면 재컴파일이 필요합니다. 다만 **가중치만 바뀌는 경우** 에는, 모델을 `torch_neuronx.trace(..., inline_weights_to_neff=False)` 로 가중치 분리 컴파일한 경우에 한해 `torch_neuronx.replace_weights()` 로 재컴파일 없이 가중치를 교체할 수 있습니다([replace_weights API](https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/frameworks/torch/torch-neuronx/api-reference-guide/inference/api-torch-neuronx-replace-weights.rst)). `inline_weights_to_neff` 기본값은 `True` 이므로, 이 예외를 쓰려면 컴파일 시점에 명시적으로 분리 옵션을 지정해야 합니다. 따라서 "가중치 변경 = 항상 재컴파일" 은 기본 구성에서의 동작이며 보편 규칙이 아닙니다.
+- NxD Inference 가 공식 모델에 대해 제공하는 **pre-compiled checkpoint** 는 위의 사용자 컴파일 캐시와 구분됩니다. 이는 AWS/벤더가 특정 모델·SDK·인스턴스 조합으로 미리 컴파일해 배포하는 아티팩트로, 제공 여부·대상 모델·버전은 해당 시점의 [NxD Inference 모델 레퍼런스](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html)에서 확인해야 하며 모든 모델에 보장되지 않습니다.
 
 ---
 
@@ -202,21 +205,29 @@ Trainium / Inferentia 하드웨어 실행
 
 ### 4.1 Neuron Device Plugin 배포
 
-Neuron Device Plugin 은 노드의 `/dev/neuron*` 디바이스를 Kubernetes 확장 리소스로 등록합니다. AWS 공식 YAML/Helm 차트를 사용합니다.
+Neuron Device Plugin 은 노드의 `/dev/neuron*` 디바이스를 Kubernetes 확장 리소스로 등록합니다. AWS 는 현재 **Helm 차트(OCI 레지스트리 배포)** 를 공식 설치 경로로 안내합니다.
 
 ```bash
-# 공식 YAML 기반 배포 예
-kubectl apply -f https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/k8/k8s-neuron-device-plugin.yml
-kubectl apply -f https://raw.githubusercontent.com/aws-neuron/aws-neuron-sdk/master/src/k8/k8s-neuron-device-plugin-rbac.yml
+# 공식 Helm 차트 기반 배포 (AWS 공식 문서 기준)
+helm upgrade --install neuron-helm-chart \
+  oci://public.ecr.aws/neuron/neuron-helm-chart \
+  --set "npd.enabled=false"
+
+# 설치 확인
+kubectl get ds neuron-device-plugin -n kube-system
 ```
+
+:::caution 레거시 raw manifest 주의
+과거에 널리 인용된 `src/k8/k8s-neuron-device-plugin.yml` raw manifest 를 그대로 `kubectl apply` 하는 방식은 사용하지 마세요. 해당 manifest 의 DaemonSet nodeAffinity 는 trn2 를 포함하지 않는 버전이 있어, 의도한 trn2 노드에 Pod 가 스케줄되지 않을 수 있습니다. 반드시 위 Helm 차트를 사용하거나, raw manifest 를 쓸 경우 적용 전 nodeAffinity 의 `beta.kubernetes.io/instance-type`/`node.kubernetes.io/instance-type` 매칭에 trn2 가 포함되는지 직접 확인하세요. 설치 전 [EKS Prerequisites](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/containers/kubernetes-getting-started.html) 의 드라이버·커널 요구사항도 충족해야 합니다.
+:::
 
 배포 후 노드 리소스에 다음이 나타납니다.
 
 ```bash
 kubectl describe node <trn2-node> | grep aws.amazon.com
 # Allocatable:
-#   aws.amazon.com/neuron:       16    # trn2.48xlarge: Trainium2 칩 수
-#   aws.amazon.com/neuroncore:  128    # 총 NeuronCore 수
+#   aws.amazon.com/neuron:       16    # trn2.48xlarge: Trainium2 칩 수(디바이스 단위)
+#   aws.amazon.com/neuroncore:  128    # 총 NeuronCore 수(물리 기준; LNC 설정에 따라 노출 값이 달라질 수 있음)
 ```
 
 :::caution neurondevice 리소스 제거 (Neuron 2.20+)
@@ -256,7 +267,12 @@ spec:
 ```
 
 ```yaml
-# 예: NeuronCore 4개만 사용 (inf2.xlarge 2개 + NeuronCore 절반)
+# 예: 단일 Pod 에 NeuronCore 4개 할당
+# (한 Pod 는 하나의 노드에만 스케줄되므로, 할당 가능 코어가 4개 이상인 인스턴스가 필요합니다.
+#  예: inf2.xlarge·inf2.8xlarge 는 NeuronCore 가 각 2개뿐이므로 부족하고,
+#  inf2.24xlarge(12개)·inf2.48xlarge(24개)·trn2.48xlarge 처럼 요청량 이상을 가진 단일 인스턴스를 선택하세요.
+#  코어를 여러 호스트에 걸쳐 요청할 수는 없습니다.
+#  리소스 값은 정수여야 하며 "절반 코어" 같은 분수 요청은 허용되지 않습니다.)
 resources:
   limits:
     aws.amazon.com/neuroncore: "4"
@@ -396,7 +412,7 @@ spec:
 ```
 
 :::tip AMI 선택 주의
-Karpenter EC2NodeClass 의 `amiSelectorTerms` 에서 `al2023` alias 는 표준 AL2023 AMI 를 의미합니다. Neuron 드라이버가 사전 설치된 variant 를 사용하려면 AWS 가 게시하는 Neuron optimized AMI 의 SSM parameter 또는 명시적 AMI ID 를 지정하세요. UserData 로 Neuron DKMS 를 설치하는 방식도 가능하지만 권장하지 않습니다.
+Karpenter EC2NodeClass 의 `amiSelectorTerms` 에서 `al2023` alias 동작은 Karpenter provider 버전에 따라 다릅니다. **karpenter-provider-aws v1.8.3 기준으로는** instance type 이 Neuron 계열(trn/inf)일 때 `al2023` alias 가 해당 노드에 맞는 **Neuron variant AMI(AL2023 x86_64 Neuron)** 를 자동으로 해석(discovery)합니다. 따라서 이 버전 이상에서는 Neuron 드라이버 사전 설치를 위해 SSM parameter 나 명시적 AMI ID 를 수동 지정할 필요가 없는 경우가 많습니다. 사용 중인 Karpenter 버전을 확인하고, 해석된 AMI 가 기대한 Neuron variant 인지 `kubectl get ec2nodeclass -o yaml` 의 status 로 검증하세요. UserData 로 Neuron DKMS 를 수동 설치하는 방식은 variant 자동 해석이 동작하지 않는 환경에서만 고려하세요.
 :::
 
 ---
@@ -407,26 +423,25 @@ Neuron 에서 LLM 을 서빙하는 주요 프레임워크는 세 가지입니다
 
 ### 6.1 NxD Inference (Neuron Distributed Inference)
 
-AWS 가 공식 유지하는 **대규모 LLM 추론 라이브러리** 입니다. PyTorch 기반으로 Llama 계열 및 주요 공개 모델에 대해 Tensor/Pipeline Parallelism, Continuous Batching, PagedAttention 유사 메모리 관리, Speculative Decoding 을 제공합니다.
+AWS 가 공식 유지하는 **대규모 LLM 추론 라이브러리** 입니다. PyTorch 기반으로 Llama 계열 및 주요 공개 모델에 대해 Tensor/Pipeline Parallelism, Continuous Batching, PagedAttention 유사 메모리 관리, Speculative Decoding 을 제공합니다. NxD Inference 는 **실행 라이브러리** 로, 아래 vLLM·TGI 같은 서빙 프런트엔드가 내부적으로 호출하는 공통 실행 계층 역할도 합니다(별개의 대안이 아니라 상·하위 관계인 경우가 많음).
 
 **특징:**
-- Llama 3/4, DBRX, Mistral, Mixtral 등 **pre-compiled checkpoint 공식 제공**
+- Llama 3/4, DBRX, Mistral, Mixtral 등 공식 모델에 대한 **pre-compiled checkpoint 제공**(제공 여부·대상은 [모델 레퍼런스](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html)에서 시점별 확인)
 - NeuronCore 단위의 TP/PP 구성 API
-- Bedrock 내부 서빙 경로와 유사한 최적화 프로파일
 - Apache 2.0 / AWS 공식 지원
 
 ### 6.2 vLLM Neuron backend
 
-vLLM 의 Neuron 백엔드는 2024년부터 실험적으로 도입되었고, 2025~2026 시점에 기능 parity 가 빠르게 개선되고 있습니다. 2026-04 기준 주요 LLM(Llama 3/4, Qwen, Mistral) 에 대해 continuous batching 및 OpenAI 호환 API 서빙이 가능합니다.
+vLLM 의 Neuron 지원은 **NxD Inference 를 실행 백엔드로 구동하는 vLLM 확장(plugin)** 형태입니다. 두 가지 경로가 있습니다: (1) AWS 가 유지하는 vLLM fork([upstreaming-to-vllm](https://github.com/aws-neuron/upstreaming-to-vllm))와 (2) 상위 vLLM 프로젝트의 플러그인([vllm-neuron](https://raw.githubusercontent.com/vllm-project/vllm-neuron/main/README.md), 2026-04 기준 **beta**). Neuron 전용 기능은 vLLM 의 `additional_config` 안의 `override_neuron_config` 를 통해 **NxD Inference 설정으로 전달** 됩니다. 지원 모델은 NxDI 가 지원하는 모델의 **부분집합** 입니다(Llama 3.x/4, Qwen 2.5/3 등).
 
 **특징:**
-- `vllm --device neuron --tensor-parallel-size N` 형태로 기존 vLLM 배포 스크립트와 호환
-- PagedAttention 자체는 CUDA 구현이나, Neuron backend 는 동등한 블록 단위 KV 관리를 제공
-- 최신 vLLM 기능(speculative decoding, chunked prefill, prefix caching)의 Neuron parity 는 기능별로 다르므로 **릴리스 노트 확인 필수**
+- 서빙은 표준 vLLM 진입점을 사용합니다. 예: `vllm serve <model> --tensor-parallel-size N` 또는 `python3 -m vllm.entrypoints.openai.api_server --model <model> --tensor-parallel-size N --port 8000`. (과거 문서의 `vllm --device neuron …` 형태는 현행 진입점과 다릅니다.)
+- PagedAttention 자체는 CUDA 구현이나, Neuron 경로는 블록 단위 KV 관리로 동등 기능을 제공
+- 기능 지원 상태(continuous batching, chunked prefill, prefix caching, speculative decoding)는 경로·버전별로 다르므로 **플러그인/릴리스 노트와 지원 매트릭스 확인 필수**
 
 ### 6.3 TGI (Text Generation Inference) Neuron fork
 
-HuggingFace 가 유지하는 TGI 의 **optimum-neuron** 기반 fork 입니다. `optimum[neuronx]` 를 통해 HuggingFace 모델을 간단히 Neuron 으로 컴파일·서빙합니다.
+HuggingFace 가 유지하는 TGI 의 **optimum-neuron** 기반 fork 입니다. `optimum-neuron[neuronx]` 패키지(공식 README 기준: `pip install --upgrade-strategy eager optimum-neuron[neuronx]`)를 통해 HuggingFace 모델을 Neuron 으로 컴파일·서빙합니다. 설치 전에 **Neuron 드라이버와 tools 가 먼저 설치되어 있어야 하며**, 추론용 vLLM 연동이 필요하면 `optimum-neuron[vllm]` extra 를 사용합니다. (`optimum[neuronx]` 는 잘못된 표기입니다 — 패키지 이름은 `optimum` 이 아니라 `optimum-neuron` 입니다.)
 
 **특징:**
 - HuggingFace Hub 기반 워크플로우와 긴밀하게 통합
@@ -462,19 +477,20 @@ AWS Neuron 공식 Model Zoo 및 NxD Inference 지원 매트릭스 기준입니�
 
 ### 7.1 주요 공식 지원 모델 (2026-04 기준)
 
-| 모델 | 크기 | 권장 인스턴스 | Pre-compiled | 비고 |
+| 모델 | 크기 (활성/전체) | 권장 인스턴스 | Pre-compiled | 비고 |
 |------|-----|------------|-------------|------|
-| Llama 4 Scout | 17B (MoE) | inf2.48xlarge / trn2.48xlarge | ✅ | NxD 공식 |
-| Llama 4 Maverick | 70B | trn2.48xlarge | ✅ | NxD 공식 |
-| Llama 4 Behemoth | 288B+ (MoE) | trn2 Ultra | 릴리스 기준 확인 | NxD 지원 확장 중 |
-| Mistral 7B / Mixtral 8x7B | 7B / 47B | inf2.48xlarge | ✅ | NxD/vLLM 지원 |
-| Mixtral 8x22B | 141B | trn2.48xlarge | 부분 | MoE, EP 필요 |
-| Qwen3 계열 | 4B-32B | inf2 / trn2 | 부분 | vLLM Neuron backend 경유 권장 |
-| DBRX 132B | 132B | trn2.48xlarge | ✅ | NxD 공식 (MoE) |
-| DeepSeek V3 | 671B MoE | trn2 Ultra | 제한적 | 컴파일·메모리 제약 확인 필요 |
+| Llama 4 Scout (17Bx16E) | 17B 활성 / 109B 전체 (MoE) | trn2.48xlarge | 릴리스 기준 확인 | NxD 지원 — 지원 매트릭스 확인 |
+| Llama 4 Maverick (17Bx128E) | 17B 활성 / 400B 전체 (MoE) | trn2.48xlarge / Trn2 UltraServer | 릴리스 기준 확인 | NxD 지원 — 지원 매트릭스 확인 |
+| Mistral 7B / Mixtral 8x7B | 7B / 47B 전체 | inf2.48xlarge | 릴리스 기준 확인 | NxD/vLLM 지원 |
+| Mixtral 8x22B | 141B 전체 | trn2.48xlarge | 릴리스 기준 확인 | MoE, EP 필요 |
+| Qwen3 계열 | 4B-32B | inf2 / trn2 | 릴리스 기준 확인 | vLLM Neuron 경유 권장 |
+| DBRX | 132B 전체 (36B 활성) | trn2.48xlarge | 릴리스 기준 확인 | MoE |
+| DeepSeek V3 | 671B 전체 (37B 활성) MoE | Trn2 UltraServer | 릴리스 기준 확인 | 컴파일·메모리 제약 확인 필요 |
 
-:::caution 미래 지원 모델
-DeepSeek V3, Llama 4 Maverick, GLM-5 등 최신 대형 MoE 모델은 Neuron 지원이 단계적으로 추가됩니다. 배포 전 반드시 **해당 시점의 NxD Inference 지원 매트릭스와 Release Notes** 를 확인하세요. 본 문서의 표는 참고 목적이며 구체 버전 지원 여부를 보장하지 않습니다.
+:::caution Pre-compiled 열의 의미와 Llama 4 파라미터
+- **파라미터 표기**: Llama 4 는 MoE 모델로 활성(activated)·전체(total) 파라미터가 다릅니다. Meta 공식 모델 카드 기준 Scout 는 17B 활성/109B 전체(16 experts), Maverick 은 17B 활성/400B 전체(128 experts) 입니다. 과거 표의 "Scout 17B / Maverick 70B / Behemoth 288B+" 는 잘못된 값입니다(Behemoth 는 본 문서 작성 시점에 공개 릴리스되지 않았습니다).
+- **Pre-compiled 열**: 특정 모델에 pre-compiled checkpoint 가 "제공됨(✅)"을 단정하려면 해당 아티팩트 경로·버전 근거가 필요합니다. 근거 없이 ✅ 로 단정하지 않고 **"릴리스 기준 확인"** 으로 표기했습니다. 실제 제공 여부는 배포 시점의 [NxD Inference 지원 매트릭스](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html)와 Release Notes 로 확인하세요.
+- 모델×하드웨어×dtype×컨텍스트 길이 조합마다 지원 여부가 다르므로, 본 표는 참고용이며 구체 버전 지원을 보장하지 않습니다.
 :::
 
 ### 7.2 양자화 지원
@@ -508,7 +524,7 @@ DeepSeek V3, Llama 4 Maverick, GLM-5 등 최신 대형 MoE 모델은 Neuron 지�
 flowchart LR
     subgraph Node["Neuron Node"]
         NMON["neuron-monitor"]
-        EXP["neuron-monitor-prometheus<br/>exporter (OSS)"]
+        EXP["neuron-monitor-prometheus<br/>exporter (SDK 공식 예제)"]
     end
 
     subgraph Observability["Observability"]
@@ -518,7 +534,7 @@ flowchart LR
     end
 
     NMON --> EXP
-    EXP -->|:9090/metrics| AMP
+    EXP -->|"/metrics (scrape, 포트 구성값)"| AMP
     AMP --> AMG
     NMON --> CWL
 
@@ -527,8 +543,8 @@ flowchart LR
 ```
 
 **수집 체인:**
-- `neuron-monitor` 가 JSON 스트림으로 NeuronCore 사용률, HBM 사용량, 디바이스 온도, 실행 지연 등을 출력
-- OSS 커뮤니티의 `neuron-monitor-prometheus` exporter 가 이를 Prometheus 형식으로 변환
+- `neuron-monitor` 가 JSON 스트림으로 NeuronCore 사용률, 메모리 사용량, 디바이스 온도, 실행 상태(execution status) 등을 출력
+- `neuron-monitor-prometheus` exporter 가 이를 Prometheus 형식으로 변환합니다. 이 exporter 와 참조용 Grafana 대시보드는 **AWS Neuron SDK 공식 예제**(`src/examples/neuron-monitor/`)로 제공되며, "커뮤니티 전용" 산출물이 아닙니다.
 - AMP(Amazon Managed Prometheus) 에서 remote-write 로 수집하고 AMG(Amazon Managed Grafana) 에서 대시보드화
 - CloudWatch Container Insights 의 Neuron 메트릭도 함께 활용 가능
 
@@ -536,13 +552,19 @@ flowchart LR
 
 ### 8.3 주요 메트릭
 
-| 메트릭 | 설명 | 활용 |
+아래는 공식 Grafana 대시보드 예제(`neuron-monitor-grafana.json`)에서 실제로 사용하는 시계열 이름과 단위입니다. 정확한 라벨·시계열은 사용 중인 exporter 버전의 [neuron-monitor 사용자 가이드](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-sys-tools/neuron-monitor-user-guide.html)로 확인하세요.
+
+| 메트릭 (시계열) | 설명 / 단위 | 활용 |
 |-------|------|------|
-| `neuron_core_utilization` | NeuronCore 사용률 (%) | HPA/KEDA 트리거 |
-| `neuron_device_memory_used` | HBM 사용량 (MB) | OOM 방지, 용량 계획 |
-| `neuron_execution_latency` | 추론 요청 처리 지연 | SLO 모니터링 |
-| `neuron_hardware_ecc_events` | ECC 오류 수 | 하드웨어 건강 체크 |
-| `neuron_power_watts` | 칩당 전력 (W) | 열·비용 관리 |
+| `neuroncore_utilization_ratio` | NeuronCore 사용률 (0~1 비율) | HPA/KEDA 트리거 |
+| `neuron_runtime_memory_used_bytes` | Neuron 런타임 메모리 사용량 (bytes) | OOM 방지, 용량 계획 |
+| `execution_status_total{status_type="completed"}` | 완료된 실행 수(counter) — `rate()` 로 처리량 산출. **런타임 실행 지표이며 엔드투엔드 요청 지연(SLO)과 다릅니다**; 요청 지연은 서빙 프레임워크(vLLM 등) 메트릭으로 별도 수집 | 처리량·성공률 |
+| `execution_errors_total` | 실행 오류 수(counter) | 하드웨어·런타임 건강 체크 |
+| `hardware_ecc_events_total` | ECC 오류 이벤트 수(counter) | 하드웨어 건강 체크 |
+
+:::note 지연 메트릭 주의
+`neuron-monitor` 가 제공하는 것은 NeuronCore **런타임 실행** 지표입니다. 자동 스케일링과 SLO 를 같은 값으로 운영하려면, 오토스케일링 트리거(`neuroncore_utilization_ratio`)와 사용자 체감 지연(서빙 프레임워크의 요청 지연 메트릭)을 구분해 각각 수집하세요.
+:::
 
 ---
 

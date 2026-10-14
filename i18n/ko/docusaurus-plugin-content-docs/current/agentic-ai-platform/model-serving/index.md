@@ -5,7 +5,7 @@ created: "2026-03-06"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 15
 tags:
   - model-serving
   - gpu
@@ -82,7 +82,7 @@ flowchart TB
     end
 
     subgraph L3["L3 · 추론 라우팅 계층"]
-        T2A["Tier 2 ① Inference Routing<br/>(InferencePool · EPP)<br/>KV·부하 인지 Pod 선택"]
+        T2A["Tier 2 ① Inference Routing<br/>(InferencePool · EPP)<br/>KV·부하 인지 Pod 선택 (ext-proc 결정)"]
     end
 
     subgraph L2L1["L2·L1 · 서빙 / 분산 계층"]
@@ -97,11 +97,12 @@ flowchart TB
 
     CLIENT --> T1
     T1 --> T2B
-    T1 --> T2A
     T1 -.MCP/A2A.-> ADP
-    T2B -.자체 호스팅 추론.-> T2A
+    T2B -.자체 호스팅 추론.-> T1
     T2B -->|외부 프로바이더| EXT["외부 LLM<br/>(Bedrock · OpenAI)"]
-    T2A --> POD
+    T1 ==자체 호스팅 요청 전달==> POD
+    T1 -.ext-proc 엔드포인트 질의.-> T2A
+    T2A -.선택된 Pod 주소.-> T1
     ADP --> POD
     POD --> GPU
 
@@ -117,7 +118,7 @@ flowchart TB
 각 계층의 역할은 다음과 같습니다.
 
 - **L4 게이트웨이**: 외부 트래픽 진입(Tier 1)과 모델 추상화·Cascade·캐싱(Tier 2 ②)을 담당합니다.
-- **L3 추론 라우팅**: 자체 호스팅 모델에서 어느 Pod로 보낼지를 KV cache·부하를 고려해 결정합니다.
+- **L3 추론 라우팅**: 자체 호스팅 모델에서 어느 Pod로 보낼지를 KV cache·부하를 고려해 **결정**합니다. 결정은 ext-proc로 게이트웨이(프록시)에 위임되며, EPP는 선택한 엔드포인트 주소만 돌려주고 실제 요청 전달은 게이트웨이가 수행합니다.
 - **L2·L1 서빙/분산**: 실제 토큰을 생성하는 계층으로, prefill/decode 처리와 KV cache 관리가 일어납니다.
 - **L0 GPU/가속기**: 연산이 실행되는 물리 계층으로, 노드 선택·파티셔닝·드라이버 스택을 다룹니다.
 
@@ -139,8 +140,8 @@ flowchart TB
 | **L0** GPU/가속기 | 인스턴스 선택 · MIG · Time-Slicing · DRA · Neuron | GPU 활용률 · 비용 | [GPU 리소스 관리](./gpu-infrastructure/gpu-resource-management.md) |
 | **L1** 서빙 엔진 | PagedAttention · Continuous Batching · FP8 KV · Prefix Caching · Chunked Prefill · Speculative Decoding · 양자화 · TP/PP/EP | TTFT · TPS · 메모리 | [vLLM 모델 서빙](./inference-frameworks/vllm-model-serving.md) · [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md) |
 | **L2** 분산 토폴로지 | Prefill/Decode 분리 · NIXL · LWS 멀티노드 | 대형 모델 처리량 | [Disaggregated Serving](./inference-optimization/disaggregated-serving.md) |
-| **L3** 추론 라우팅 | KV cache-aware · context-aware · prefix-cache scorer | 캐시 적중률 · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
-| **L4** 게이트웨이 | 모델 Cascade · 비용 추적 · Rate Limit · L7 한계 보완 | 비용 · 가용성 | [티어드 게이트웨이](./inference-routing/tiered-gateway-architecture.md) · [라우팅 전략](./inference-routing/routing-strategy.md) |
+| **L3** 추론 라우팅 | KV cache-aware · prefix-cache scorer (같은 모델 내 Pod 선택) | 캐시 적중률 · P99 | [KV Cache-Aware Routing](./inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing) |
+| **L4** 게이트웨이 | 모델 Cascade · context-aware(모델 선택) · 비용 추적 · Rate Limit · L7 한계 보완 | 비용 · 가용성 | [티어드 게이트웨이](./inference-routing/tiered-gateway-architecture.md) · [라우팅 전략](./inference-routing/routing-strategy.md) |
 | **L5** 캐시 계층 | KV/prefix cache · prompt cache · semantic cache · LMCache | 캐시 적중률 · 비용 | [LMCache](./inference-optimization/lmcache.md) · [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md) |
 
 :::tip 읽는 순서
@@ -163,19 +164,19 @@ flowchart TB
 
 ## 기존 L7 게이트웨이의 한계
 
-범용 L7 게이트웨이(NGINX·기본 Envoy 등)는 HTTP 요청을 stateless로 분배하도록 설계되어, LLM 추론 트래픽의 특성을 인지하지 못합니다. 이로 인해 다음과 같은 한계가 발생합니다.
+범용 L7 게이트웨이를 **기본값(요청 수 기반 분배)으로만** 사용하면, LLM 추론 트래픽의 특성을 반영하지 못해 다음과 같은 한계가 나타납니다. 이는 L7 게이트웨이 자체의 한계라기보다, 추론에 맞게 설정·확장하지 않은 구성의 한계입니다.
 
-- **Round-Robin이 prefix cache를 무력화**: 동일 시스템 프롬프트를 공유하는 요청이 매번 다른 Pod로 분배되면, 각 Pod가 같은 prefill 연산을 반복합니다. 결과적으로 KV cache 재사용률이 떨어지고 TTFT가 증가합니다.
-- **토큰 단위 과금·스트리밍 미인지**: L7 게이트웨이는 요청 수 기준으로만 부하를 판단해, 토큰 길이에 비례하는 실제 연산 비용을 반영하지 못합니다.
-- **모델 서버 메트릭 부재**: KV cache 사용량, 대기 큐 깊이(queue depth) 같은 추론 엔진 내부 상태를 알지 못해, 부하가 몰린 Pod로도 요청을 보냅니다.
+- **설정되지 않은 Round-Robin은 prefix cache 재사용을 떨어뜨림**: 동일 시스템 프롬프트를 공유하는 요청이 매번 다른 Pod로 분배되면, 각 Pod가 같은 prefill 연산을 반복할 수 있습니다. 다만 여러 Pod가 이미 같은 prefix로 워밍업되어 있으면 round-robin에서도 재사용이 일어나므로, 효과는 복제본 수·캐시 보유 상태에 따라 달라집니다.
+- **기본 설정은 토큰 단위 비용·스트리밍을 반영하지 못함**: 요청 수만으로 부하를 판단하는 기본 구성은 토큰 길이에 비례하는 실제 연산 비용을 반영하지 못합니다. 토큰·스트리밍 인지는 플러그인이나 ext-proc 확장으로 추가할 수 있는 선택적 기능입니다.
+- **모델 서버 메트릭 미연동**: KV cache 사용량, 대기 큐 깊이(queue depth) 같은 추론 엔진 내부 상태를 연동하지 않은 구성은 부하가 몰린 Pod로도 요청을 보낼 수 있습니다.
 
-이 한계를 해결하기 위해 KV·부하를 인지하는 별도의 추론 라우팅 계층(Tier 2 ①)이 필요합니다. 상세 근거는 [KV Cache 최적화 — 기존 문제: Round-Robin의 한계](./inference-optimization/kv-cache-optimization.md#기존-문제-round-robin의-한계)와 [라우팅 전략 — 두 개의 라우팅 레이어](./inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)를 참조하세요.
+이 한계는 **캐시 지역성(locality)과 부하 분산 사이의 트레이드오프**로 요약됩니다. 지역성만 좇으면 특정 Pod에 쏠리고, 부하만 좇으면 캐시 재사용이 줄어듭니다. KV·부하를 함께 보는 별도의 추론 라우팅 계층(Tier 2 ①)이나, L7 게이트웨이에 ext-proc·prefix scorer 플러그인을 더하는 방식으로 이 트레이드오프를 조정합니다. 상세 근거는 [KV Cache 최적화 — 기존 문제: Round-Robin의 한계](./inference-optimization/kv-cache-optimization.md#기존-문제-round-robin의-한계)와 [라우팅 전략 — 두 개의 라우팅 레이어](./inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)를 참조하세요.
 
 ## prefill / decode / Disaggregated Serving
 
-LLM 추론은 입력 프롬프트를 한 번에 처리하는 **prefill 단계**와, 토큰을 하나씩 생성하는 **decode 단계**로 나뉩니다. 두 단계는 연산 특성이 달라(prefill은 연산 집약적, decode는 메모리 대역폭 집약적), 같은 GPU에 함께 두면 서로의 효율을 떨어뜨립니다.
+LLM 추론은 입력 프롬프트를 처리하는 **prefill 단계**와, 토큰을 하나씩 생성하는 **decode 단계**로 나뉩니다. 두 단계는 연산 특성이 달라 일반적으로 prefill은 연산 집약적, decode는 메모리 대역폭 집약적인 경향을 보입니다. 같은 GPU에 함께 두면 서로 간섭해 지연이 늘 수 있으나, 정도는 배치·시퀀스 길이·트래픽 패턴에 따라 다릅니다. 또한 긴 프롬프트는 chunked prefill로 여러 스텝에 나눠 처리해 decode와의 간섭을 줄일 수 있어, prefill이 반드시 "한 번에" 처리되는 것은 아닙니다.
 
-**Disaggregated Serving**은 prefill과 decode를 별도의 GPU 그룹으로 분리하고, 그 사이의 KV cache를 NIXL 같은 전송 엔진으로 옮기는 아키텍처입니다. 700B+ 대형 MoE 모델은 LWS(LeaderWorkerSet) 기반 멀티노드 배포와 결합합니다. 상세 아키텍처와 GLM-5 배포 예제는 [Disaggregated Serving](./inference-optimization/disaggregated-serving.md)에, AWS 관리형 구현은 [HyperPod Inference Operator — Disaggregated Prefill/Decode](./inference-frameworks/hyperpod-inference-operator.md#disaggregated-prefilldecode-dpd)에 정리되어 있습니다.
+**Disaggregated Serving**은 prefill과 decode를 별도의 GPU 그룹으로 분리하고, 그 사이의 KV cache를 NIXL 같은 전송 엔진으로 옮기는 아키텍처입니다. 분리는 KV cache 전송·배치 비용을 수반하므로, 이득은 워크로드에서 측정해 판단해야 하는 선택적 설계입니다. 대형 MoE 모델은 단일 노드에 담기 어려울 때 LWS(LeaderWorkerSet) 기반 멀티노드 배포와 결합할 수 있습니다. 상세 아키텍처와 GLM-5 배포 예제는 [Disaggregated Serving](./inference-optimization/disaggregated-serving.md)에, AWS 관리형 구현은 [HyperPod Inference Operator — Disaggregated Prefill/Decode](./inference-frameworks/hyperpod-inference-operator.md#disaggregated-prefilldecode-dpd)에 정리되어 있습니다.
 
 ## Context-aware routing
 
@@ -189,7 +190,7 @@ context-aware 라우팅은 요청의 **내용·복잡도**를 보고 적절한 �
 
 ## KV cache-aware routing
 
-KV cache-aware 라우팅은 같은 모델의 여러 Pod 중에서 **요청의 prefix와 일치하는 KV cache를 이미 보유한 Pod**로 보내는 전략입니다. prefill 재연산을 피해 TTFT를 줄이고 처리량을 높입니다.
+KV cache-aware 라우팅은 같은 모델의 여러 Pod 중에서 **요청의 prefix와 일치하는 KV cache를 이미 보유한 Pod**로 보내는 전략입니다. prefill 재연산을 피하면 TTFT를 줄일 수 있지만, 항상 더 빠른 것은 아닙니다. 캐시를 가진 Pod가 이미 과부하이거나 해당 캐시가 축출(eviction)되었다면 지역성 이득이 사라지므로, 실제 효과는 지역성·부하·축출 상태의 균형에 달려 있습니다.
 
 - **prefix-cache scorer**: 각 Pod의 prefix 캐시 보유 상태를 점수화
 - **EPP(Endpoint Picker)**: ext-proc로 위임받아 최적 Pod 선택
@@ -199,19 +200,21 @@ KV cache-aware 라우팅은 같은 모델의 여러 Pod 중에서 **요청의 pr
 
 ## LMCache
 
-**LMCache**는 KV cache를 GPU 메모리 너머 CPU·디스크 계층으로 오프로딩하고, 여러 추론 인스턴스 간에 공유하는 KV cache 계층입니다. vLLM의 in-GPU prefix cache가 한 Pod 안에서만 유효한 것과 달리, LMCache는 Pod·노드를 넘어 KV cache를 재사용할 수 있게 해 `kvaware` 라우팅의 효과를 확장합니다.
+**LMCache**는 KV cache를 GPU 메모리 너머 CPU·디스크 계층으로 오프로딩하고, 여러 추론 인스턴스 간에 공유하는 KV cache 계층입니다. vLLM의 in-GPU prefix cache는 하나의 추론 엔진(TP/PP로 여러 Pod·노드에 걸칠 수 있는 복제본) 범위 안에서만 유효한 반면, LMCache는 그 범위를 넘어 여러 복제본·노드 간에 KV cache를 재사용할 수 있는 외부 공유 계층을 제공합니다. 다만 이 외부 공유가 라우팅과 자동으로 연동되는 것은 아니며, `kvaware` 라우팅과 결합하려면 메모리 호환성과 연동 설정을 별도로 맞춰야 합니다.
 
 개념·계층 구조·vLLM/NIXL과의 관계는 [LMCache](./inference-optimization/lmcache.md) 문서에서 다룹니다.
 
 ## 캐시 히트 전략
 
-추론 캐시는 단일 계층이 아니라 **세 계층**으로 나뉘며, 각각 적중 조건과 효과가 다릅니다.
+추론 캐시는 단일 계층이 아니라 **세 계층**으로 나뉘며, 각각 적중 조건과 효과가 다릅니다. 아래 "완전 동일 요청"·"유사 요청"은 캐시 적중의 **필요조건**일 뿐이며, 재사용이 안전하려면 테넌트·인증 주체·모델·도구 정의·데이터 신선도가 함께 일치해야 합니다.
 
 | 캐시 계층 | 적중 조건 | 효과 |
 |----------|----------|------|
-| **KV / Prefix Cache** | 동일 prefix(시스템 프롬프트 등) | prefill 재연산 회피, TTFT 감소 |
-| **Prompt Cache** | 완전 동일 요청 | 전체 추론 회피 |
-| **Semantic Cache** | 의미적으로 유사한 요청(임베딩 유사도) | 유사 질의 추론 회피 |
+| **KV / Prefix Cache** | 동일 prefix(시스템 프롬프트 등) — 프로바이더 prompt caching 포함 | prefill 재연산 회피, 입력 토큰 비용·TTFT 감소 (전체 추론을 건너뛰지는 않음) |
+| **Response (Exact) Cache** | 테넌트·모델·도구·데이터가 같은 **완전 동일 요청** | 저장된 응답을 그대로 반환해 추론 자체를 회피 |
+| **Semantic Cache** | 의미적으로 유사한 요청(임베딩 유사도) + 보정된 동치 임계값 | 유사 질의 추론 회피 (임계값·오탐 관리 필요) |
+
+여기서 **KV/Prefix Cache**와 OpenAI·Anthropic 등의 **prompt caching**은 프롬프트 prefix를 재사용해 입력 토큰 비용과 TTFT를 줄이는 것이지, 응답을 통째로 반환하는 것이 아닙니다. 응답을 통째로 반환하는 것은 별도의 **exact 응답 캐시** 계층이며, Semantic Cache는 유사도만으로 적중시키면 다른 답을 돌려줄 수 있으므로 임계값을 보정하고 응답 동치 기준을 함께 정의해야 합니다.
 
 각 계층의 히트율을 어떻게 높이고 어디서 측정하는지를 통합한 의사결정 프레임은 [캐시 히트 전략](./inference-optimization/cache-hit-strategy.md)에서 다룹니다. semantic cache의 임계값 설계는 [Semantic Caching 전략](./inference-optimization/semantic-caching-strategy.md)을, prefix cache 효과는 [KV Cache 최적화](./inference-optimization/kv-cache-optimization.md)를 참조하세요.
 

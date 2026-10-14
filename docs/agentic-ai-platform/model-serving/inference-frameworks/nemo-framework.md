@@ -3,9 +3,9 @@ title: NeMo Framework
 description: NVIDIA NeMo Framework distributed training, fine-tuning, and TensorRT-LLM conversion architecture
 created: "2026-02-05"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-13
   author: devfloor9
-reading_time: 16
+reading_time: 35
 tags:
   - nemo
   - nvidia
@@ -74,8 +74,8 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph Control["Control Plane"]
-        Launcher[NeMo<br/>Launcher]
+    subgraph Control["Orchestration (Proposed Setup)"]
+        Launcher[NeMo-Run<br/>+ Custom Adapter]
         Scheduler[Kubeflow<br/>PyTorchJob]
     end
 
@@ -117,19 +117,31 @@ flowchart TB
     style G3 fill:#76b900
 ```
 
+:::note Scope of the orchestration layer
+
+The orchestration layer in the diagram above is a setup this guide proposes, not an off-the-shelf workflow that NVIDIA supports. For NeMo 2.0 and later, the launcher NVIDIA supports is [NeMo-Run](https://github.com/NVIDIA/NeMo-Run); the legacy [NeMo Framework Launcher](https://github.com/NVIDIA/NeMo-Framework-Launcher) is scoped to NeMo 1.0-based configurations per its README. Running a NeMo 2.0 job as a Kubeflow Training Operator PyTorchJob requires **implementing your own adapter** that translates NeMo-Run's output (distributed launch commands) into a PyTorchJob manifest; as of 2026-10-13 no official NVIDIA-provided integration was found.
+
+:::
+
 ### Container Configuration
 
 **NeMo Container Image:**
 
 ```
 nvcr.io/nvidia/nemo:25.02
-├── PyTorch 2.5.1
-├── CUDA 12.6
-├── NCCL 2.23+
+├── PyTorch 2.6.0a0
+├── CUDA 12.8
+├── NCCL 2.25.x
 ├── Megatron-LM (NeMo integrated)
-├── TensorRT-LLM 0.13+
-└── Triton Inference Server 2.50+
+├── TensorRT-LLM 0.17.0
+└── PyTriton (Triton interface)
 ```
+
+:::note Component version provenance
+
+The versions above follow the NeMo Framework 25.02 release's Software Component Versions table (PyTorch 2.6.0a0, TensorRT-LLM 0.17.0). CUDA, NCCL, and the Triton interface package are taken from the same release's container; confirm the exact set by inspecting the image manifest (`docker inspect` / layer contents) for your pull, since NVIDIA's live "latest" component table no longer lists the 25.02 row.
+
+:::
 
 **Key Dependencies:**
 
@@ -179,45 +191,66 @@ Original weights W (freeze) + LoRA delta (A × B) = Final weights
 
 | Parameter | Description | Recommended | Impact |
 |-----------|-------------|-------------|--------|
-| `r` (rank) | Rank of low-rank matrices | 8-64 | Higher = more expressive, more memory |
-| `alpha` | Scaling factor | Same as r | Controls LoRA weight influence |
-| `dropout` | Dropout rate | 0.1 | Prevents overfitting |
-| `target_modules` | Layers to train | q_proj, v_proj | Attention layer selection |
+| `dim` (rank) | Rank of the low-rank matrices. Corresponds to the paper's `r`; the NeMo 2.x `LoRA` class names it `dim` (default 32) | 8-64 | Higher = more expressive, more adapter parameters/memory |
+| `alpha` | Scaling factor, applied to the adapter output at a ratio of `alpha/dim` (default 32) | Similar to dim | Controls LoRA weight influence |
+| `dropout` | Dropout rate (NeMo 2.x default 0.0) | 0.0-0.1 | Prevents overfitting |
+| `target_modules` | Modules LoRA is applied to. NeMo uses Megatron fused layer names (default `linear_qkv`, `linear_proj`, `linear_fc1`, `linear_fc2`) | Default, or attention only (`linear_qkv`, `linear_proj`) | Selects target layers |
 
-**Memory Savings:**
+**Memory Savings (conditional example):**
 
-- **Full Fine-Tuning (7B model)**: approximately 120GB VRAM needed (A100 80GB × 2)
-- **LoRA Fine-Tuning (7B model)**: approximately 24GB VRAM needed (A100 80GB × 1)
-- **Savings**: approximately 80% memory reduction
+The figures below are examples under specific conditions and do not generalize to every setup. Actual savings depend on precision (BF16/FP16/4-bit), `dim` (rank), batch size, sequence length, and how optimizer state is stored. The following assumes a 7B model trained in BF16 with Adam optimizer state included.
+
+- **Full Fine-Tuning (7B, BF16, Adam)**: Trains weights, gradients, and optimizer state, so it needs tens to a hundred-plus GB of VRAM (for example, on the order of 2× A100 80GB)
+- **LoRA Fine-Tuning (7B, BF16, low-rank adapters only)**: Freezes original weights and trains only a small set of adapters, reducing the requirement to a level feasible on a single A100 80GB
+- **Why the difference**: LoRA sharply reduces the trainable parameters and the optimizer state they imply. The original paper ([LoRA, arXiv:2106.09685](https://arxiv.org/abs/2106.09685)) reports roughly a 10,000× reduction in trainable parameters and about a 3× reduction in optimizer-state VRAM for GPT-3 175B; those figures are specific to that paper's setup.
 
 ### Fine-tuning Execution Example
 
 ```python
 # nemo_lora_finetune.py
-from nemo.collections.llm import finetune
-from nemo.collections.llm.peft import LoRA
+import nemo_run as run
+from nemo.collections import llm
+from nemo import lightning as nl
 
-# LoRA configuration
-lora_config = LoRA(
-    r=32,  # rank
-    alpha=32,  # scaling
-    dropout=0.1,
-    target_modules=["q_proj", "v_proj", "k_proj", "o_proj"],
+# LoRA configuration (NeMo 2.x: the rank argument is dim, not r)
+lora = llm.peft.LoRA(
+    dim=32,        # rank of the low-rank matrices
+    alpha=32,      # scaling (adapter output scaled by alpha/dim)
+    dropout=0.0,
+    # NeMo uses Megatron fused layer names (not q_proj/v_proj)
+    target_modules=["linear_qkv", "linear_proj"],
 )
 
-# Execute fine-tuning
-model = finetune(
-    model_path="/models/llama-3.1-8b.nemo",
-    data_path="/data/train.jsonl",
-    peft_config=lora_config,
-    trainer_config={
-        "devices": 8,  # 8 GPU
-        "max_epochs": 3,
-        "precision": "bf16",  # BFloat16 (A100/H100)
-    },
-    output_path="/output/llama-3.1-8b-finetuned",
+# Build model/data/trainer as objects (not path strings)
+model = llm.LlamaModel(config=llm.Llama31Config8B())
+data = llm.FineTuningDataModule(
+    dataset_root="/data",       # directory containing train.jsonl, etc.
+    seq_length=4096,
+    global_batch_size=16,
+    micro_batch_size=1,
+)
+trainer = nl.Trainer(
+    devices=8,                  # 8 GPUs
+    max_steps=1000,
+    strategy=nl.MegatronStrategy(tensor_model_parallel_size=2),
+    plugins=nl.MegatronMixedPrecision(precision="bf16-mixed"),
+)
+
+# Execute fine-tuning: finetune(model, data, trainer, ..., peft=...)
+llm.finetune(
+    model=model,
+    data=data,
+    trainer=trainer,
+    log=nl.NeMoLogger(log_dir="/output/llama-3.1-8b-finetuned"),
+    peft=lora,
 )
 ```
+
+:::note API scope
+
+This example shows the shape of the NeMo 2.2.0 `nemo.collections.llm` API. `finetune` takes `LightningModule`, `LightningDataModule`, and `Trainer` **objects** plus a `peft` argument — not path strings (`model_path`/`data_path`/`output_path`). Verify the model config class names (such as `Llama31Config8B`) and data-module arguments against the NeMo version and model you use. For recipe-based runs, see the [NeMo llama31_8b recipe](https://github.com/NVIDIA/NeMo/blob/v2.2.0/nemo/collections/llm/recipes/llama31_8b.py).
+
+:::
 
 **Detailed Pipeline**: For data preprocessing, multi-node distributed training, and hyperparameter tuning, refer to the [Custom Model Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md) document.
 
@@ -248,40 +281,76 @@ s3://nemo-checkpoints/
 
 ### Large Model Checkpoint Sharding
 
-For 70B+ large models, single checkpoint files reach hundreds of GB. NeMo uses **sharding** to split storage across multiple files.
+For 70B+ large models, the total checkpoint size reaches hundreds of GB. NeMo 2.x stores weights and optimizer state across multiple files (shards) using Megatron Core's **distributed checkpoint** format. The split is determined by the **tensor/pipeline parallel ranks and Megatron Core's distributed save layout**, not by a fixed user-set "GB size".
 
 <CheckpointSharding />
 
-**Sharding Configuration:**
+**Checkpoint configuration (NeMo 2.x):** Sharding is controlled through `MegatronStrategy` and the `ModelCheckpoint` callback. The following is a conceptual example; verify the exact argument names and defaults against the NeMo/Megatron Core version you use.
 
-```yaml
-trainer:
-  checkpoint:
-    save_sharded_checkpoint: true
-    shard_size_gb: 10  # Split in 10GB units
-    num_workers: 8  # Parallel save workers
-    compression: "gzip"  # Compression (optional)
+```python
+from nemo import lightning as nl
+
+strategy = nl.MegatronStrategy(
+    tensor_model_parallel_size=4,
+    pipeline_model_parallel_size=2,
+    # Use the distributed (sharded) checkpoint format
+    ckpt_async_save=True,          # async save to minimize training stalls
+    ckpt_parallel_save=True,       # per-rank parallel save
+)
+
+checkpoint = nl.ModelCheckpoint(
+    save_top_k=3,                  # keep top checkpoints by validation loss
+    monitor="val_loss",
+)
 ```
 
-**Sharded Storage Structure:**
+**Sharded Storage Structure (conceptual):**
+
+The actual number of files and their names depend on the parallelization layout and Megatron Core version. The following is a conceptual view of the storage layout.
 
 ```
 s3://checkpoints/llama-405b/
 └── checkpoint-step=1000/
-    ├── shard-00000-of-00040.ckpt  (10GB)
-    ├── shard-00001-of-00040.ckpt  (10GB)
+    ├── __0_0.distcp   # per-rank distributed checkpoint shard
+    ├── __0_1.distcp
     ├── ...
-    └── shard-00039-of-00040.ckpt  (10GB)
+    ├── metadata.json  # shard mapping metadata
+    └── common.pt      # common (non-distributed) state
 ```
+
+:::note Checkpoint size arithmetic
+
+The "Estimated Shards" column in the `<CheckpointSharding />` table above is a **value assumed by dividing the checkpoint byte count by a 10GB shard size**. The stored size depends heavily on **what is saved alongside the weights**.
+
+- Storing **BF16 weights only** for a 405B model: 405e9 × 2 bytes ≈ 810GB
+- Storing weights + Adam optimizer state (two FP32 moments) + FP32 master weights: roughly 405e9 × (2 + 4 + 4 + 4) ≈ 5.7TB
+
+So a single value such as "one checkpoint ≈ 400GB" does not hold; the storage precision and whether optimizer state is included must be stated. The shard counts in the `<CheckpointSharding />` table above follow an **explicit assumption** such as "BF16 weights only (810GB) divided into 10GB shards ≈ 81 shards"; including optimizer state multiplies the shard count several-fold.
+
+:::
 
 ### Checkpoint Conversion
 
+```python
+# NeMo 2.0 → HuggingFace conversion (Python API, verified path)
+from nemo.collections.llm import export_ckpt
+
+# path: NeMo checkpoint, target="hf": export to HuggingFace format
+export_ckpt(
+    path="/checkpoints/llama-finetuned",
+    target="hf",
+    output_path="/models/llama-finetuned-hf",
+)
+```
+
 ```bash
-# NeMo → HuggingFace conversion
-python -m nemo.collections.llm.scripts.convert_nemo_to_hf \
-  --input_path /checkpoints/llama-finetuned.nemo \
-  --output_path /models/llama-finetuned-hf \
-  --model_type llama
+# Or the CLI (nemo llm export).
+# Confirm the argument names (path/target/output_path) with
+# `nemo llm export --help` for the NeMo version you use.
+nemo llm export \
+  path=/checkpoints/llama-finetuned \
+  target=hf \
+  output_path=/models/llama-finetuned-hf
 ```
 
 ---
@@ -309,35 +378,54 @@ flowchart LR
 
 ### Performance Improvement Comparison
 
-| Optimization Technique | Memory Savings | Speed Improvement | Description |
+| Optimization Technique | Memory Effect | Speed Effect | Description |
 |----------------------|---------------|-------------------|-------------|
-| **FP8 Quantization** | 50% | 1.5-2x | BFloat16 → FP8 (H100 only) |
-| **PagedAttention** | 40% | - | KV Cache dynamic memory management |
-| **In-flight Batching** | - | 2-3x | Continuous batch processing |
-| **Kernel Fusion** | - | 1.3-1.5x | Operation kernel fusion |
-| **Combined Effect** | **60-70%** | **2-4x** | Compound effect of above techniques |
+| **FP8 Quantization** | Halves weight storage (BF16→FP8) | Conditional improvement | Supported on Hopper (SM90) and Ada Lovelace (SM89); not on Ampere (A100) |
+| **PagedAttention** | Reduces KV cache fragmentation | - | KV Cache dynamic memory management |
+| **In-flight Batching** | - | Higher throughput | Continuous batch processing |
+| **Kernel Fusion** | - | Fewer kernel-launch overheads | Operation kernel fusion |
+
+:::note Scope of the figures
+
+The table above summarizes the **mechanism** of each technique. Fixed figures such as "50% memory savings" or "2-4x speedup" depend on measurement conditions (model, sequence length, batch size, GPU, baseline backend) and are therefore not included. In particular, FP8 lowers the **storage precision of weights and activations**; it does not uniformly halve total memory usage, which also includes the KV cache, activations, and execution graph. If you need specific figures, measure them on your own workload against a stated baseline.
+
+:::
 
 ### Conversion Concept
 
 ```python
-from tensorrt_llm import LLM
+from tensorrt_llm import LLM, BuildConfig
+from tensorrt_llm.llmapi import QuantConfig, KvCacheConfig
+from tensorrt_llm.quantization import QuantAlgo
 
-# Convert HuggingFace model to TensorRT-LLM engine
+# TensorRT-LLM 0.17: length/batch limits go in BuildConfig,
+# quantization in QuantConfig, and KV cache in KvCacheConfig
+build_config = BuildConfig(
+    max_input_len=4096,
+    max_seq_len=6144,       # input + output length combined
+    max_batch_size=64,
+)
+
+# FP8 is supported on Hopper (SM90) and Ada Lovelace (SM89)
+quant_config = QuantConfig(quant_algo=QuantAlgo.FP8)
+
 llm = LLM(
     model="/models/llama-finetuned-hf",
-    max_input_len=4096,
-    max_output_len=2048,
-    max_batch_size=64,
-    dtype="fp8",  # FP8 quantization
-    enable_paged_kv_cache=True,
-    enable_chunked_context=True,
+    build_config=build_config,
+    quant_config=quant_config,
+    kv_cache_config=KvCacheConfig(),   # PagedAttention (KV cache) config
+    enable_chunked_prefill=True,       # the correct 0.17 argument name
 )
 
 # Save engine
 llm.save("/engines/llama-finetuned-trt")
 ```
 
-**Conversion Time**: Approximately 10-20 minutes for a 7B model (1x A100)
+:::note Support scope
+
+The argument names above follow the TensorRT-LLM 0.17 `LLM`/`BuildConfig`/`QuantConfig`/`KvCacheConfig` APIs. 0.17 does not accept top-level keywords such as `max_output_len`, `dtype="fp8"`, `enable_paged_kv_cache`, or `enable_chunked_context`. Per the [support matrix](https://github.com/NVIDIA/TensorRT-LLM/blob/v0.17.0/docs/source/reference/support-matrix.md), FP8 is supported on Hopper (SM90) and Ada Lovelace (SM89); A100 (Ampere) does not support FP8. Conversion time varies widely with model, GPU, and build options, so no figure is given without stated measurement conditions.
+
+:::
 
 ---
 
@@ -384,13 +472,24 @@ flowchart TB
 └── llama-finetuned/
     ├── config.pbtxt  # Triton configuration file
     ├── 1/  # Version 1
-    │   └── model.plan  # TensorRT-LLM engine
+    │   └── engine/  # TensorRT-LLM engine directory (not a single file)
+    │       ├── config.json          # engine build config
+    │       ├── rank0.engine          # per-rank engine (one per TP/PP rank)
+    │       └── ...                   # additional rank engines
     └── tokenizer/
         ├── tokenizer.json
         └── tokenizer_config.json
 ```
 
+:::note Engine bundle
+
+The TensorRT-LLM backend loads an **engine directory** (`config.json` plus per-rank `rankN.engine` files), not a single `model.plan` file. The directory path is given as the `gpt_model_path` value in the `config.pbtxt` below.
+
+:::
+
 **config.pbtxt Core Settings:**
+
+The following are the actual keys rendered in `tensorrtllm_backend` v0.17's `config.pbtxt`. The `fill_template.py` variable name `batching_strategy` is substituted into the `gpt_model_type` key in the template, and the batch scheduler policy is a separate `batch_scheduler_policy` key.
 
 ```protobuf
 name: "llama-finetuned"
@@ -398,13 +497,23 @@ backend: "tensorrtllm"
 max_batch_size: 64
 
 parameters {
-  key: "max_tokens_in_paged_kv_cache"
-  value: { string_value: "8192" }
+  key: "gpt_model_type"
+  value: { string_value: "inflight_fused_batching" }  # or "V1"
+}
+
+parameters {
+  key: "gpt_model_path"
+  value: { string_value: "/models/llama-finetuned/1/engine" }  # engine directory
 }
 
 parameters {
   key: "batch_scheduler_policy"
-  value: { string_value: "inflight_fused_batching" }
+  value: { string_value: "max_utilization" }  # or "guaranteed_no_evict"
+}
+
+parameters {
+  key: "max_tokens_in_paged_kv_cache"
+  value: { string_value: "8192" }
 }
 ```
 
@@ -476,7 +585,7 @@ All GPUs: [1, 2, 3, 4]
 
 #### 3. ReduceScatter
 
-First sums data, then partitions and distributes to each GPU (inverse of AllGather).
+Reduces (sums element-wise) the data from all GPUs and then **partitions (scatters)** the result so each GPU holds a different portion of it. Where AllGather "gathers," ReduceScatter "reduces then splits," and **ReduceScatter followed by AllGather equals AllReduce**.
 
 ```
 Initial state:
@@ -488,7 +597,7 @@ GPU 0: [6, 8]   # (1+5), (2+6)
 GPU 1: [10, 12] # (3+7), (4+8)
 ```
 
-**Use Case**: Passing intermediate results in Pipeline Parallelism
+**Use Case**: Summing and distributing partial sums in Tensor Parallelism, or implementing AllReduce as ReduceScatter + AllGather. (Passing activations between layers in Pipeline Parallelism is handled by **point-to-point send/recv**, not by a collective.)
 
 #### 4. Broadcast
 
@@ -512,12 +621,11 @@ NCCL automatically detects the physical connection topology between GPUs and sel
 ```mermaid
 flowchart TB
     subgraph Topo["Topology Hierarchy (Fast → Slow)"]
-        L1[NVSwitch<br/>Intra-node<br/>600GB/s]
-        L2[NVLink<br/>Intra-node<br/>200GB/s]
-        L3[EFA/IB<br/>Inter-node<br/>100GB/s]
-        L4[Ethernet<br/>Inter-node<br/>10-100GB/s]
+        L1[NVLink/NVSwitch<br/>Intra-node<br/>A100: 600GB/s<br/>H100: 900GB/s<br/>B200: 1,800GB/s]
+        L2[EFA<br/>Inter-node<br/>P4d: 400Gbps<br/>P5/P5e/P5en: 3,200Gbps]
+        L3[Ethernet<br/>Inter-node<br/>10-100Gbps]
 
-        L1 --> L2 --> L3 --> L4
+        L1 --> L2 --> L3
     end
 
     style L1 fill:#76b900
@@ -528,39 +636,41 @@ flowchart TB
 
 **Per-topology Algorithm Selection:**
 
-- **NVSwitch (H100 nodes)**: Tree algorithm (parallel broadcast)
-- **NVLink (A100 nodes)**: Ring algorithm (circular transfer)
-- **EFA inter-node**: Hierarchical algorithm (intra-node Ring → inter-node Tree)
+- **NVSwitch/NVLink (H100/A100 intra-node)**: Tree algorithm (parallel broadcast) or Ring algorithm (circular transfer)
+- **EFA inter-node**: Hierarchical algorithm (intra-node Ring/Tree → inter-node Tree)
+- **A100**: NVLink 600GB/s, **H100**: NVLink4 900GB/s, **B200**: NVLink5 1,800GB/s
+
+NCCL selects the algorithm (Ring/Tree/etc.) at runtime based on the detected topology and message size, not purely by GPU generation. The intra-node NVLink figures above are aggregate per-GPU bidirectional bandwidth, which is a different quantity from an instance's inter-node network bandwidth measured in Gbps.
 
 ### NCCL Tuning Parameters
 
+By default NCCL **automatically selects** the algorithm, protocol, and channel count to match the topology and message size. So **measure with the defaults first**, and override the variables below only when you have diagnosed a reproducible performance problem for a specific configuration. Forcing values can make performance worse.
+
 ```bash
-# Core NCCL environment variables
-
-# 1. Algorithm selection
-export NCCL_ALGO=Ring  # or Tree
-
-# 2. Protocol
-export NCCL_PROTO=Simple  # Simple (throughput) or LL (latency)
-
-# 3. Channel count (important!)
-export NCCL_MIN_NCHANNELS=4
-export NCCL_MAX_NCHANNELS=8  # More = higher bandwidth, more overhead
-
-# 4. EFA settings (AWS)
+# Settings for AWS EFA (generally required)
 export FI_PROVIDER=efa
 export FI_EFA_USE_DEVICE_RDMA=1
-export NCCL_IB_DISABLE=0
+# The aws-ofi-nccl plugin must be installed and on LD_LIBRARY_PATH
+# (see your EFA-enabled node/AMI or EKS node-efa setup)
 
-# 5. Debug
-export NCCL_DEBUG=INFO  # Useful for diagnosing performance issues
+# Diagnostic logging (when analyzing performance issues)
+export NCCL_DEBUG=INFO
 ```
 
-**Recommended Channel Counts:**
+```bash
+# The following are overrides to apply only "after diagnosis" for a
+# specific case. Trusting the default auto-selection comes first.
 
-- **8 GPU intra-node**: 4-8 channels
-- **Multi-node (16+ GPUs)**: 8-16 channels
-- **Large-scale (64+ GPUs)**: 16-32 channels
+# Pin algorithm/protocol for a specific case (not a general recommendation)
+export NCCL_ALGO=Ring     # or Tree
+export NCCL_PROTO=Simple  # Simple (throughput) or LL (latency)
+```
+
+:::note Caution on channel-count variables
+
+Forcing `NCCL_MIN_NCHANNELS`/`NCCL_MAX_NCHANNELS` to arbitrary "recommended" values is generally not advised. The optimal channel count depends on GPU generation, node count, and message size, and NCCL adjusts it at runtime. The fixed channel-count recommendations seen in older guides (for example, "4-8 channels per node") are not a verified general baseline; if you need to change them, inspect the selected channel count with `NCCL_DEBUG=INFO` and A/B-measure on your own workload. For EFA, also follow the [EKS EFA node guide](https://docs.aws.amazon.com/eks/latest/userguide/node-efa.html) and install the `aws-ofi-nccl` plugin.
+
+:::
 
 ---
 
@@ -586,15 +696,15 @@ For detailed monitoring setup, refer to [Monitoring and Observability Setup](../
 :::tip Recommendations
 
 - **Before Fine-tuning**: Measure baseline performance with the base model
-- **LoRA First**: 80% memory savings vs full fine-tuning
-- **TensorRT-LLM Essential**: 2-4x inference performance improvement
-- **NCCL Tuning**: 20-30% performance improvement possible through channel count and algorithm optimization in multi-node training
+- **Consider LoRA First**: It can cut memory by reducing trainable parameters and optimizer state, but the savings depend on precision, rank, batch size, and sequence length (see "Memory Savings" above)
+- **Consider TensorRT-LLM**: It can improve inference latency/throughput, but the actual gain must be measured for your model, GPU, batch size, and baseline backend
+- **NCCL Tuning**: In multi-node training, measure with the default auto-selection first and override only when a reproducible bottleneck is confirmed (forced settings do not always guarantee an improvement)
 
 :::
 
 :::warning Cautions
 
-- **GPU Costs**: Large-scale training can cost hundreds of thousands per hour. Actively use Spot instances and checkpoints
+- **GPU Costs**: Large-scale multi-node training accumulates cost quickly. Actual cost depends on instance type, count, Region, pricing plan (On-Demand/Spot/Reserved), and training duration, so estimate it for your own configuration with the [EC2 pricing page](https://aws.amazon.com/ec2/pricing/) and the [AWS Pricing Calculator](https://calculator.aws/). Making active use of Spot instances and checkpoints can reduce the cost of interruptions
 - **Checkpoints Essential**: Configure automatic saving to persistent storage like S3 (prepare for node failure)
 - **EFA Security Groups**: All traffic must be allowed within the same security group when using EFA
 - **Memory Overflow**: On OOM, decrease `micro_batch_size` or enable `gradient_checkpointing`

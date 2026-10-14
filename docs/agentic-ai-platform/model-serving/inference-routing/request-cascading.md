@@ -3,9 +3,9 @@ title: Request Cascading — Intelligent Model Routing
 description: Complexity-based automatic model routing — comparison of LLM Classifier, LiteLLM, and vLLM Semantic Router approaches, RouteLLM research reference, and cost savings
 created: "2026-07-04"
 last_update:
-  date: 2026-09-21
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 19
+reading_time: 31
 tags:
   - cascade-routing
   - kgateway
@@ -30,8 +30,8 @@ This document covers the implementation approaches (LLM Classifier, LiteLLM, vLL
 
 | Pattern | Description | Implementation | Use Case |
 |------|------|------|----------|
-| **1. Weight-based** | Distribute traffic by fixed ratio | kgateway `backendRef weight` | A/B testing, gradual model migration |
-| **2. Fallback-based** | Auto-switch to another model on error | kgateway retry + multiple backendRef | Availability improvement, rate limit avoidance |
+| **1. Weight-based** | Distribute traffic across backends by fixed ratio | kgateway `backendRef weight` | A/B testing, gradual model migration |
+| **2. Fallback-based** | Retry on error against the next backend in a provider-defined priority/failover order | Provider-specific failover (e.g., LiteLLM `fallbacks`, Bifrost provider routing). Gateway API `backendRefs` weights + HTTPRoute retries do **not** by themselves define a cheap→frontier model order | Availability improvement, rate limit avoidance |
 | **3. Intelligent routing** | Auto-select model after request analysis | **LLM Classifier** / LiteLLM / vLLM Semantic Router | Cost optimization, quality maintenance |
 
 ```mermaid
@@ -72,11 +72,11 @@ flowchart TB
 
 ### Practical Request Cascading Implementation
 
-Intelligent cascade routing analyzes request complexity and auto-routes to appropriate models. This section focuses on verified approaches in self-hosted environments.
+Intelligent cascade routing analyzes request complexity and auto-routes to appropriate models. This section describes approaches we evaluated for self-hosted environments; the deployment choices and prices below are from our own non-published design evaluation, not an independently reproduced benchmark.
 
-#### Approach A: LLM Classifier (Recommended — Field-Validated)
+#### Approach A: LLM Classifier (Our Chosen Approach for Self-hosted vLLM) {#approach-a-llm-classifier-recommended--field-validated}
 
-**LLM Classifier** is a Python FastAPI-based lightweight router that directly analyzes prompt content to auto-select SLM/LLM. It operates as ExtProc (External Processing) or independent service behind kgateway, with clients using only a single endpoint (`/v1`).
+**LLM Classifier** is a Python FastAPI-based lightweight router that directly analyzes prompt content to auto-select SLM/LLM. It runs as a standalone HTTP service behind kgateway and proxies to backend vLLM instances; clients use only a single endpoint (`/v1`). Note that this is a plain OpenAI-compatible HTTP proxy — it is **not** an Envoy External Processing (ext_proc) processor. Envoy `ext_proc` is a bidirectional gRPC stream protocol (`ProcessingRequest`/`ProcessingResponse`), so integrating this classifier as an ext_proc filter would require implementing that gRPC interface rather than a REST endpoint.
 
 ```mermaid
 graph LR
@@ -97,27 +97,44 @@ graph LR
 
 | Criteria | weak (SLM) | strong (LLM) |
 |------|-----------|-------------|
-| **Keywords** | None | Refactor, architecture, design, analysis, debug, optimization, migration, etc. |
-| **Input length** | < 500 chars | ≥ 500 chars |
-| **Conversation turns** | ≤ 5 turns | > 5 turns |
+| **Keywords** | None | Refactor, architecture, design, analysis, debug, optimization, migration, etc. (both English and Korean forms) |
+| **Input length** | < 500 characters | ≥ 500 characters |
+| **User turns** | ≤ 5 user messages | > 5 user messages |
 
 **Core Classification Logic:**
 
+The OpenAI chat `content` field is either a string or an array of content parts (`{"type": "text", "text": ...}`, image parts, etc.), so joining it directly would raise `TypeError` on array content; the helper below extracts text parts only. The threshold is a **character** count (not tokens), the inclusive boundary matches the table (`>= 500`), and a "turn" is counted as a `user`-role message (system/assistant/tool messages are excluded). Non-text modalities (images, audio) and tool messages are out of scope for this heuristic.
+
 ```python
 STRONG_KEYWORDS = ["refactor", "architect", "design", "analyze",
-                   "optimize", "debug", "migration", "complex"]
-CHAR_THRESHOLD = 500
+                   "optimize", "debug", "migration", "complex",
+                   "리팩터", "아키텍처", "설계", "분석", "최적화",
+                   "디버그", "마이그레이션"]
+CHAR_THRESHOLD = 500  # characters, not tokens
+
+def _text(content) -> str:
+    # content may be a string or a list of content parts
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return " ".join(
+            part.get("text", "")
+            for part in content
+            if isinstance(part, dict) and part.get("type") == "text"
+        )
+    return ""
 
 def classify(messages: list[dict]) -> str:
-    content = " ".join(m.get("content", "") for m in messages if m.get("content"))
+    text = " ".join(_text(m.get("content")) for m in messages)
     # Keyword matching
-    if any(kw in content.lower() for kw in STRONG_KEYWORDS):
+    if any(kw in text.lower() for kw in STRONG_KEYWORDS):
         return "strong"
-    # Input length
-    if len(content) > CHAR_THRESHOLD:
+    # Input length (characters)
+    if len(text) >= CHAR_THRESHOLD:
         return "strong"
-    # Conversation turns
-    if len(messages) > 5:
+    # User turns
+    user_turns = sum(1 for m in messages if m.get("role") == "user")
+    if user_turns > 5:
         return "strong"
     return "weak"
 ```
@@ -131,123 +148,136 @@ Standard OpenAI-compatible clients (Aider, Cline, etc.) only configure **a singl
 
 #### Bifrost Self-hosted Cascade Limitations
 
-We attempted to use Bifrost for self-hosted vLLM cascade but switched to **LLM Classifier** due to the following limitations:
+We attempted to use Bifrost for self-hosted vLLM cascade but switched to **LLM Classifier**. The limitations below are what we observed in our own setup against the pinned Bifrost docs (routing-rules.mdx at commit `a9937c9`); they are our deployment constraints, not a statement that Bifrost cannot serve multiple self-hosted backends (custom providers and aliases exist).
 
-| Limitation | Description |
+| Limitation (as observed in our setup) | Description |
 |------|------|
-| **provider/model format enforcement** | Requires `openai/glm-5` format. Standard OpenAI clients (Aider, etc.) expect single model names like `model: "auto"` |
-| **Single base_url per provider** | Only one `network_config.base_url` per provider (e.g., `openai`). Cannot route to same provider if SLM and LLM are on different Services |
-| **No prompt access in CEL** | CEL Rules only access `request.headers`. Cannot analyze request body (prompt content) for routing |
-| **Model name normalization issues** | Unpredictable normalization like hyphen removal causes mismatch with vLLM `served-model-name` |
+| **provider/model format in requests** | Requests use `openai/glm-5` form. Standard OpenAI clients (Aider, etc.) send a single model name like `model: "auto"`, so a client-side alias or front proxy is needed to bridge the two |
+| **Single base_url per provider entry** | A provider entry (e.g., `openai`) carries one `network_config.base_url`. Serving SLM and LLM from different Services under one provider name requires separate provider entries / custom providers rather than one entry |
+| **Raw prompt text not directly matchable in rules** | CEL routing rules expose `model`, `provider`, `request_type`, `headers[...]`, `params[...]`, org/capacity variables, and a derived `complexity_tier` (`SIMPLE`/`MEDIUM`/`COMPLEX`), but not the raw request body; keyword/regex branching on raw prompt text needs a separate classifier |
+| **Model name normalization (observed, unverified)** | In our setup we saw model-name mismatches with vLLM `served-model-name`; we could not pin this to a documented normalization rule, so treat it as an unverified local observation pending an exact failing request/version |
 
 :::warning Bifrost is Best for External LLM Provider Integration
-Bifrost is optimized for **external provider integration** (OpenAI/Anthropic/Bedrock) and **failover**. LLM Classifier is better suited for intelligent cascade routing between self-hosted vLLM instances.
+Bifrost is optimized for **external provider integration** (OpenAI/Anthropic/Bedrock) and **failover**. For intelligent cascade routing between self-hosted vLLM instances with raw-prompt branching, LLM Classifier fit our needs better.
 :::
 
 #### RouteLLM Evaluation Results
 
-[RouteLLM](https://github.com/lm-sys/RouteLLM) is an open-source routing framework developed by LMSYS, with academically validated Matrix Factorization-based classification models (90%+ accuracy on LMSYS Chatbot Arena data).
+[RouteLLM](https://github.com/lm-sys/RouteLLM) is an open-source routing framework developed by LMSYS. Its Matrix Factorization router is trained on Chatbot Arena preference data, and the [paper (arXiv:2406.18665)](https://lmsys.org/blog/2024-07-01-routellm/) reports that on MT Bench it reaches 95% of GPT-4 performance using only 26% GPT-4 calls (routing between GPT-4 and Mixtral 8x7B). Chatbot Arena data is the router's *training* data, not an accuracy benchmark, so there is no "90% Arena accuracy" figure.
 
-However, the following issues were confirmed during K8s deployment:
+In our own K8s trial we ran into the following issues (local observations, not a general verdict on the framework; we did not pin an image digest or dependency lockfile, so treat these as unverified until a reproducer is published):
 
-- **Dependency conflicts**: Large dependency trees like `torch`, `transformers`, `sentence-transformers` conflict with vLLM environments
-- **Container size**: Image size 10GB+ with classification model (unsuitable for lightweight router)
-- **Deployment instability**: High frequency of pip dependency resolution failures
-- **Maintenance**: Research project nature with no production support
+- **Dependency conflicts**: large dependency trees such as `torch`, `transformers`, `sentence-transformers` collided with our vLLM environment
+- **Container size**: with the classification model included, our image exceeded 10 GB (heavy for a lightweight router)
+- **Deployment instability**: we hit frequent pip dependency-resolution failures
+- **Maintenance**: RouteLLM is a research project and does not advertise production support
 
-**Conclusion**: RouteLLM's MF classifier **concept** is valid, but for production deployment we recommend **LLM Classifier** (lightweight heuristics) or **LiteLLM complexity routing** (external provider environments).
+**Conclusion**: RouteLLM's MF classifier **concept** is valid; for our production deployment we chose **LLM Classifier** (lightweight heuristics) or **LiteLLM complexity routing** (external-provider environments). This is our deployment choice, not evidence that RouteLLM cannot be containerized.
 
-#### Approach B: LiteLLM Native (External Provider Environment)
+#### Approach B: LiteLLM Auto Router / Load Balancing (External Provider Environment) {#approach-b-litellm-native-external-provider-environment}
 
-LiteLLM natively supports **complexity-based routing**. Adding just 1 line to the config file enables automatic request complexity analysis and model selection.
+LiteLLM separates two concepts that are easy to confuse:
+
+- **Deployment load-balancing** across replicas of the *same* logical model, selected with `router_settings.routing_strategy` — the documented values are `simple-shuffle`, `latency-based-routing`, `usage-based-routing-v2`, `least-busy`, and `cost-based-routing`. There is no `complexity-based` value and no `complexity_threshold` key.
+- **Complexity-based model selection** across *different* models, provided by the **Auto Router** (beta). In the pinned `v1.101.0`, you configure it as a model whose `litellm_params.model` is `auto_router/complexity_router`, mapping each tier to a model (or pool):
 
 ```yaml
 model_list:
-  - model_name: gpt-4-turbo
-    litellm_params:
-      model: gpt-4-turbo-preview
-      api_key: os.environ/OPENAI_API_KEY
   - model_name: gpt-3.5-turbo
     litellm_params:
       model: gpt-3.5-turbo
       api_key: os.environ/OPENAI_API_KEY
+  - model_name: gpt-4-turbo
+    litellm_params:
+      model: gpt-4-turbo-preview
+      api_key: os.environ/OPENAI_API_KEY
 
-router_settings:
-  routing_strategy: complexity-based  # Enable with this 1 line
-  complexity_threshold: 0.7           # ≥ 0.7 → stronger model
+  - model_name: smart-router
+    litellm_params:
+      model: auto_router/complexity_router   # Auto Router (beta), v1.101.0
+      complexity_router_config:
+        tiers:
+          SIMPLE:    gpt-3.5-turbo
+          MEDIUM:    gpt-3.5-turbo
+          COMPLEX:   gpt-4-turbo
+          REASONING: gpt-4-turbo
+      complexity_router_default_model: gpt-3.5-turbo
 ```
 
-**Pros**: Activate with 1-line config, auto-analyzes prompt length·code inclusion·reasoning keywords, 100+ provider support
-**Cons**: Python-based low throughput, complexity algorithm not customizable, overhead for self-hosted vLLM
+Clients then call the `smart-router` model name. By default the complexity scorer is local (regex/keyword, sub-millisecond); `classifier_type: llm` can route classification through a model instead, trading that latency for accuracy.
 
-#### Approach C: vLLM Semantic Router (vLLM-only)
+**Pros**: native tier-based model selection in the pinned version, 100+ providers, Langfuse one-line integration, LangChain/LlamaIndex integration
+**Cons**: Auto Router is **beta** (config keys may change across releases), Python-based lower throughput, overhead for self-hosted vLLM
+([LiteLLM Auto Routing](https://docs.litellm.ai/docs/proxy/auto_routing), [LiteLLM routing](https://docs.litellm.ai/docs/routing))
 
-In vLLM environments, **vLLM Semantic Router** can be used for lightweight embedding-based routing. It matches embeddings to pre-defined "categories" to select models.
+#### Approach C: vLLM Semantic Router (vLLM project) {#approach-c-vllm-semantic-router-vllm-only}
 
-```python
-# vLLM Semantic Router configuration
-from vllm import SemanticRouter
+[vLLM Semantic Router](https://github.com/vllm-project/semantic-router) is **not** a Python class imported from `vllm` (there is no `vllm.SemanticRouter`). It is a **standalone routing service** placed in front of the gateway (as an Envoy `ext_proc` processor). A lightweight Rust/Candle BERT classifier assigns the prompt to a category and selects the appropriate backend model. It is configured through a **YAML config file**, not Python code.
 
-router = SemanticRouter(
-    categories={
-        "simple": ["basic question", "quick answer", "definition"],
-        "complex": ["explain in detail", "analyze", "step by step"]
-    },
-    models={
-        "simple": "qwen3-4b",
-        "complex": "glm-5-744b"
-    },
-    threshold=0.85
-)
-
-# Auto-routing
-response = router.route(prompt="Explain the architecture...")  # → glm-5-744b
+```yaml
+# vLLM Semantic Router — conceptual illustration only.
+# The real v0.3 schema (version/listeners/providers/routing/signals) differs;
+# use the pinned config as the source of truth:
+# https://github.com/vllm-project/semantic-router/blob/v0.3.0/config/config.yaml
+categories:
+  simple:
+    description: "basic question, quick answer, definition"
+    model: qwen3-4b
+  complex:
+    description: "explain in detail, analyze, step by step"
+    model: glm-5-744b
+similarity_threshold: 0.85
 ```
 
-**Pros**: vLLM native, lightweight embedding usage (inference latency < 5ms), simple configuration
-**Cons**: vLLM-only, requires pre-defined categories
+The service accepts OpenAI-compatible requests and proxies to the backend based on the classification result. Its routing *decision* runs as an Envoy `ext_proc` gRPC callback on the gateway, while the request data path is proxied to the chosen backend (deployed as a separate Pod/service alongside an Envoy-family gateway).
+
+**Pros**: under the vLLM project, lightweight classification, integrates in front of the gateway
+**Cons**: requires deploying a standalone service, categories must be pre-defined. Latency depends on the embedding/classifier model and hardware; benchmark it in your environment rather than assuming a fixed figure.
 
 ### Cascade Routing Implementation Selection Guide
 
 | Environment | Recommended Approach | Reason |
 |------|----------|------|
 | **Self-hosted vLLM (Aider/Cline)** | **LLM Classifier** | Direct prompt analysis, single endpoint, no client modification |
-| **External providers (OpenAI/Anthropic)** | **LiteLLM** | 100+ providers native, complexity routing 1-line |
-| **vLLM standalone + embeddings available** | **vLLM Semantic Router** | vLLM native, lightweight |
+| **External providers (OpenAI/Anthropic)** | **LiteLLM** | 100+ providers, load-balancing strategies + Auto Router (beta) tier selection |
+| **vLLM + classifier service available** | **vLLM Semantic Router** | vLLM-project router (standalone ext_proc service), lightweight |
 | **Hybrid (external + self-hosted)** | **LLM Classifier + LiteLLM** | Self-hosted via Classifier, external via LiteLLM |
 
 ### Cascade Routing Strategy (Fallback-based)
 
 Try **cheap -> balanced -> frontier** models progressively based on complexity.
 
-**Complexity Classification Criteria (as of 2026-04):**
+**Complexity Classification Criteria** (illustrative model/price mapping — the per-1M input/output prices below are example placeholders, not a dated quote from a provider price page; confirm current pricing before using them):
 
-| Complexity | Conditions | Recommended Model | Cost per Token |
+| Complexity | Conditions | Recommended Model | Input / Output ($/1M) |
 |--------|------|----------|-----------|
-| **Simple** | Tokens < 200, no keywords | Haiku 4.5 / GPT-4.1 nano | $0.80-$0.15/M |
-| **Medium** | Tokens 200-1000, code included | Sonnet 4.6 / Gemini 2.5 Flash | $3-$0.10/M |
-| **Complex** | Tokens 1000+, reasoning keywords | Opus 4.7 / GPT-4.1 | $15-$10/M |
+| **Simple** | Tokens < 200, no keywords | Haiku 4.5 / GPT-4.1 nano | $1.00 / $5.00 |
+| **Medium** | Tokens 200-1000, code included | Sonnet 4.6 / Gemini 2.5 Flash | $3.00 / $15.00 |
+| **Complex** | Tokens 1000+, reasoning keywords | Opus 4.7 / GPT-4.1 | $5.00 / $25.00 |
 
-**Fallback Conditions**: HTTP 5xx, Rate Limit exceeded, Timeout, Quality Score < 0.7 (optional)
+**Fallback Conditions**: HTTP 5xx, rate limit exceeded, timeout, and optionally a Quality Score below 0.7. "Quality Score" is **not** a provider response field; it is an optional score produced by a separate evaluator you run (e.g., a judge model or heuristic) on the response, within an explicit error/retry budget. Streaming and tool-calling responses constrain what a post-hoc evaluator can inspect, so define that scope before enabling it.
 
-### Cost Savings Effect (as of 2026-04)
+### Cost Savings Effect {#cost-savings-effect-as-of-2026-04}
 
-10,000 requests/day scenario:
-- Simple (50%): Haiku 4.5 — 50 tok in, 100 tok out → $0.50/day
-- Medium (30%): Sonnet 4.6 — 500 tok in, 500 tok out → $2.70/day
-- Complex (15%): Opus 4.7 — 1500 tok in, 1000 tok out → $3.38/day
-- Very Complex (5%): Opus 4.7 — 3000 tok in, 2000 tok out → $3.00/day
+10,000 requests/day scenario, using the illustrative rates above (Haiku 4.5 $1.00/$5.00, Sonnet 4.6 $3.00/$15.00, Opus 4.7 $5.00/$25.00 per 1M input/output tokens):
+- Simple (50%, 5,000 req): Haiku 4.5 — 50 tok in, 100 tok out → $2.75/day
+- Medium (30%, 3,000 req): Sonnet 4.6 — 500 tok in, 500 tok out → $27.00/day
+- Complex (15%, 1,500 req): Opus 4.7 — 1500 tok in, 1000 tok out → $48.75/day
+- Very Complex (5%, 500 req): Opus 4.7 — 3000 tok in, 2000 tok out → $32.50/day
 
-**Total cost: $9.58/day ($287/month)**
+**Routed total: $111.00/day ($3,330/month)**
 
-Processing all requests with Opus 4.7: $45/day ($1,350/month) → **79% savings**
+Running the **same workload** (identical per-tier token counts) entirely on Opus 4.7 costs $140.00/day ($4,200/month), so routing saves about **20.7%** before accounting for misroute retries. (A naive "all requests at 1,000 in / 1,000 out on Opus" baseline would be $300/day, but that is a heavier workload than the routed scenario, so comparing against it overstates the savings.)
 
-**Self-hosted LLM Classifier Scenario** (as of 2026-04):
-- Qwen3-4B (70% weak, L4 ~$0.80/hr × 24hr × 30d) = $216/month
-- GLM-5 744B (30% strong, H200 $12/hr × 24hr × 30d × 0.3) = $2,592/month
+**Self-hosted LLM Classifier Scenario** (Spot pricing, hypothetical — not a measured bill; the GLM node cost assumes an autoscaling schedule, see note):
+- Qwen3-4B weak tier (g6.xlarge L4 Spot ~$0.31/hr × 24h × 30d, always on) = ~$223/month
+- GLM-5 744B strong tier (p5en.48xlarge 8×H200 Spot ~$16/hr × 24h × 30d × **0.30 node-hours**) = ~$3,456/month
 - Langfuse + AMP/AMG = $200/month
 
-**Total cost: $3,008/month** (vs GLM-5 alone $8,900/month → **66% savings**)
+**Total: ~$3,879/month** vs GLM-5 alone running the same node always-on (~$16/hr × 24h × 30d = ~$11,520/month) → **~66% savings**
+
+:::warning The 0.30 factor is billed node-hours, not request share
+A GPU node is billed per node-hour whether it serves 30% or 100% of requests, so routing 30% of *requests* to the strong model does **not** by itself cut the GPU bill. The ~66% figure only holds if the GLM-5 node actually runs ~30% of the time — i.e., an autoscaling / scale-to-zero schedule that spins the node down when idle, with cold-start latency and warm-standby cost accounted for separately. Treat this as a hypothetical target to validate with measured node-hours, utilization, and startup cost, not a guaranteed saving.
 
 ### Enterprise Model Routing Patterns
 
@@ -266,32 +296,32 @@ Processing all requests with Opus 4.7: $45/day ($1,350/month) → **79% savings*
 
 ## Research Reference: RouteLLM
 
-**RouteLLM** is an open-source LLM routing framework developed by LMSYS. A lightweight classification model (Matrix Factorization) analyzes requests to automatically select strong/weak models.
+**RouteLLM** is an open-source LLM routing framework developed by LMSYS. Its Matrix Factorization (MF) router scores each prompt against learned model-capability embeddings and routes between a strong and a weak model. This is a **different algorithm** from our rule-based LLM Classifier (keywords + character length + user turns); the two are compared below, not combined.
 
 ```mermaid
 graph TD
-    Req[Request] --> Router[LLM Classifier<br/>Prompt Analysis]
-    Router -->|strong: refactor, design, analysis<br/>≥500 chars, >5 turns| LLM[Strong Model<br/>GLM-5 744B<br/>8xH200 ~$63/hr]
-    Router -->|weak: simple query<br/><500 chars, ≤5 turns| SLM[Weak Model<br/>Qwen3-4B<br/>L4 ~$0.80/hr]
+    Req[Request] --> MF[RouteLLM MF Router<br/>embedding score + confidence]
+    MF -->|score ≥ threshold| LLM[Strong Model<br/>e.g. GPT-4-class]
+    MF -->|score < threshold| SLM[Weak Model<br/>e.g. Mixtral-class]
     LLM --> Resp[Response]
     SLM --> Resp
 
-    style Router fill:#326ce5,stroke:#333,color:#fff
+    style MF fill:#326ce5,stroke:#333,color:#fff
     style LLM fill:#e53935,stroke:#333,color:#fff
     style SLM fill:#76b900,stroke:#333,color:#000
 ```
 
-| Item | RouteLLM (Research) | LLM Classifier (Production) |
+| Item | RouteLLM (Research) | LLM Classifier (our rule-based router) |
 |------|----------------|---------------------|
-| **Classification method** | Matrix Factorization embedding | Keywords + token length + conversation turns |
-| **Input** | User prompt + conversation history | Same |
+| **Classification method** | Matrix Factorization over learned embeddings | Keywords + character length + user turns |
+| **Input** | User prompt + conversation history | User prompt + conversation history |
 | **Output** | Strong/Weak + confidence score | Strong/Weak |
-| **Added latency** | < 10ms (MF inference) | < 1ms (rule-based) |
+| **Added latency** | MF scoring plus any embedding/network cost — measure in your environment (the LMSYS paper reports accuracy/cost, not a serving-latency SLA) | Rule-based, sub-millisecond locally |
 | **Dependencies** | torch, transformers, sentence-transformers | FastAPI, httpx (lightweight) |
-| **K8s deployment** | Unstable (dependency conflicts) | Stable (50MB image) |
+| **K8s deployment** | Unstable in our trial (dependency conflicts) — unverified, no pinned image | Stable in our setup (~50 MB image) — our measurement |
 
 :::warning RouteLLM Production Deployment Caution
-RouteLLM is a research project; K8s production deployment is not recommended. Dependency conflicts and large image size (10GB+) are problematic. The MF classifier **concept** is useful, but for production we recommend **LLM Classifier** (self-hosted) or **LiteLLM complexity routing** (external provider environments).
+RouteLLM is a research project. In our own trial we hit dependency conflicts and a large image (10 GB+), so we did not take it to production; this is a local observation, not a general verdict, and we did not pin an image digest to reproduce it. The MF classifier **concept** is useful; for production we chose the **LLM Classifier** (self-hosted) or **LiteLLM Auto Router / `complexity_router`** (external-provider environments; see Approach B above, pinned v1.101.0, beta).
 :::
 
 For detailed deployment code, refer to [Inference Gateway Deployment Guide: LLM Classifier](../../reference-architecture/inference-gateway/setup/advanced-features.md#llm-classifier-deployment).

@@ -3,9 +3,9 @@ title: Tiered Gateway Architecture
 description: "Single definition of the Agentic AI Platform gateway layers: Tier 1 Ingress, Tier 2 Inference Routing (Inference Extension) and LLM API Gateway, and the Agent Data Plane — their role separation and how to fill each layer"
 created: "2026-06-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
-reading_time: 10
+reading_time: 12
 tags:
   - gateway-api
   - inference-gateway
@@ -37,8 +37,12 @@ The following terms are used across the platform. Instead of the ambiguous "Infe
 |-------|------|------|-------------------------------|
 | **Tier 1** | Ingress / North-South Gateway | External traffic ingress, TLS termination, path routing, auth, rate limiting | AWS LBC · Cilium · NGINX GF · Envoy Gateway · kGateway · Kong |
 | **Tier 2 ①** | Inference Routing (in-cluster) | Routing to in-cluster inference pod groups, KV-cache/load-aware endpoint selection | Gateway API **Inference Extension** (InferencePool · EPP) |
-| **Tier 2 ②** | LLM API Gateway (provider proxy) | Model abstraction, model selection/cascade, cost tracking, semantic caching | Bifrost · LiteLLM · OpenRouter · Portkey · Helicone · Kong AI Gateway |
+| **Tier 2 ②** | LLM API Gateway (provider proxy) | Model abstraction, model selection/cascade, cost tracking, semantic caching (product-dependent) | Bifrost · LiteLLM · OpenRouter · Portkey · Helicone · Kong AI Gateway |
 | **Orthogonal axis** | Agent Data Plane | MCP/A2A protocols, stateful sessions, tool routing | agentgateway |
+
+:::caution Representative implementations are role examples, not feature guarantees
+The "Representative Implementations" column lists **examples of products that perform each layer's role**; being listed does not mean a product provides auth, rate limiting, cascade, or semantic caching out of the box. Whether each feature is supported depends on the chosen product, version, and integration, so verify it against that product's documentation before adopting it. In particular, **semantic caching** means an embedding-similarity-based cache, whereas — among the examples listed — Helicone's default cache is an **exact (identical-request) response cache** that hashes and matches the request, not a meaning-based cache. Some products such as Portkey distinguish simple vs. semantic caching, so confirm semantic caching support per product.
+:::
 
 :::tip Key distinction — Tier 2 ① vs ②
 - **Tier 2 ① Inference Routing** operates **inside the cluster**. An HTTPRoute references an InferencePool as its backend, and the EPP (Endpoint Picker) selects a vLLM/llm-d pod endpoint considering KV cache and load. It handles self-hosted model infrastructure.
@@ -73,16 +77,18 @@ flowchart TB
     subgraph BE["Backends"]
         EXT["External LLM providers<br/>(OpenAI · Anthropic · Bedrock)"]
         PODS["In-cluster inference pods<br/>(vLLM · llm-d)"]
+        TOOLS["Tools · MCP/A2A servers<br/>(agent session targets)"]
     end
 
     CLIENT --> GW1
     GW1 --> T2A
-    GW1 --> T2B
     GW1 --> AGW
+    GW1 ==Self-hosted request forwarding==> PODS
+    GW1 -.ext-proc endpoint query.-> T2B
+    T2B -.Selected pod address.-> GW1
     T2A --> EXT
     T2A -.model abstraction.-> PODS
-    T2B --> PODS
-    AGW --> PODS
+    AGW --> TOOLS
 
     style GW1 fill:#2e7d32,stroke:#1b5e20,color:#fff
     style T2A fill:#e53935,stroke:#b71c1c,color:#fff
@@ -108,7 +114,7 @@ Solution selection, detailed comparison, and deployment procedures for each laye
 ## Traffic Flow Examples
 
 - **External LLM call**: Client → Tier 1 (kgateway) → Tier 2 ② (Bifrost/LiteLLM, cascade·cache) → external provider → response + cost record
-- **Self-hosted inference**: Client → Tier 1 (kgateway) → Tier 2 ① (InferencePool·EPP) → vLLM/llm-d pod → response
+- **Self-hosted inference**: Client → Tier 1 (kgateway) → Tier 2 ① (InferencePool·EPP selects the pod endpoint via ext-proc; the gateway does the forwarding) → vLLM/llm-d pod → response
 - **Agent tool call**: Client → Tier 1 (kgateway) → Agent Data Plane (agentgateway, MCP/A2A) → tools·session
 
 ## References

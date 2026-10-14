@@ -226,7 +226,7 @@ test('previously uncounted draw.io iframe preserves every vertex, edge endpoint,
   assert.ok(!output.includes('<iframe'));
 });
 
-test('OpenClaw equivalent retains all 22 boxes, 11 directed polylines and 28 labels from the drawing source', () => {
+test('OpenClaw equivalent retains all 24 boxes, 13 directed polylines and 32 labels from the drawing source', () => {
   const {walk} = require('../llm-wiki-diagrams');
   const imports = new Map([['Diagram', {source: '@site/src/components/OpenClawArchitecture', exported: 'default'}]]);
   const result = renderComponent('<Diagram />', imports);
@@ -236,9 +236,9 @@ test('OpenClaw equivalent retains all 22 boxes, 11 directed polylines and 28 lab
     if (n.type === 'FunctionDeclaration' && n.id?.name === 'drawAll') draw = n;
   });
   const calls = draw.body.body.map(n => n.expression);
-  assert.equal(calls.filter(n => n.callee.name === 'rRect').length, 22);
-  assert.equal(calls.filter(n => n.callee.name === 'addArrow').length, 11);
-  assert.equal(calls.filter(n => n.callee.name === 'addText').length, 28);
+  assert.equal(calls.filter(n => n.callee.name === 'rRect').length, 24);
+  assert.equal(calls.filter(n => n.callee.name === 'addArrow').length, 13);
+  assert.equal(calls.filter(n => n.callee.name === 'addText').length, 32);
   for (const call of calls.filter(n => n.callee.name === 'addText')) {
     assert.ok(normalize(result.markdown.replace(/<br \/>/g, '')).includes(normalize(call.arguments[2].value)));
   }

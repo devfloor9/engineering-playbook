@@ -3,9 +3,9 @@ title: Cascade Routing Production Tuning
 description: Guide to tuning Inference Gateway Cascade Routing classification thresholds, Canary rollout, Fallback, and cost drift alerts based on production traces
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-13
   author: devfloor9
-reading_time: 32
+reading_time: 34
 tags:
   - cascade-routing
   - inference-gateway
@@ -228,6 +228,8 @@ flowchart LR
 
 Langfuse Public API trace retrieval uses GET and HTTP Basic authentication with the public/secret key pair. This read-only example retrieves one page; continue through meta.totalPages. Set host, window, and page explicitly; API JSON names differ from SDK attributes.
 
+This `GET /api/public/traces` example works only on Langfuse v3 or on v4 running the `legacy` or `dual` write mode, and that path paginates with `page` and `limit`, iterating through `meta.totalPages`. This traces read endpoint is deprecated: on Langfuse Cloud it will be removed on November 16, 2026 (still a future date, so do not treat it as already elapsed), and self-hosted deployments are unaffected by that date but lose the endpoint when they upgrade to v4 (per the Langfuse v3-to-v4 upgrade guide). On the v4 default write mode (`events_only`), use the Observations API v2 (`GET /api/public/v2/observations`) below instead. Regardless of which path you use, keep the normalized local SQL contract below unchanged.
+
 ```bash
 curl --fail-with-body --silent --show-error --get \
   "${LANGFUSE_HOST:?}/api/public/traces" \
@@ -236,6 +238,18 @@ curl --fail-with-body --silent --show-error --get \
   --data-urlencode "toTimestamp=${TO_UTC:?}" \
   --data-urlencode "page=${PAGE:?}" \
   --data-urlencode "limit=100" > traces-page.json
+```
+
+On the v4 `events_only` write mode, use the Observations API v2 instead of the request above. Set the time window with `fromStartTime` and `toStartTime`; this endpoint uses base64 cursor-based pagination (the `cursor` is returned in the response metadata, not a `page` number), so pass the previous response's cursor to fetch the next page (`limit` max 1000, default 50). The response JSON field names also differ from the traces API, so map them explicitly.
+
+```bash
+curl --fail-with-body --silent --show-error --get \
+  "${LANGFUSE_HOST:?}/api/public/v2/observations" \
+  --user "${LANGFUSE_PUBLIC_KEY:?}:${LANGFUSE_SECRET_KEY:?}" \
+  --data-urlencode "fromStartTime=${FROM_UTC:?}" \
+  --data-urlencode "toStartTime=${TO_UTC:?}" \
+  --data-urlencode "limit=100" \
+  --data-urlencode "cursor=${CURSOR:-}" > observations-page.json
 ```
 
 Do not place keys in shared shell history or logs. Use approved secret injection.
