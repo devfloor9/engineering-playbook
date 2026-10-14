@@ -441,7 +441,7 @@ flowchart TB
     end
 
     KEDA[KEDA] -.->|Pod 스케일링| DC
-    VLLMM[vLLM / 추론 서버 메트릭<br/>KV 캐시 사용량, TTFT] -.->|서빙 신호| KEDA
+    VLLMM[vLLM / 추론 서버 메트릭<br/>KV cache 사용량, TTFT] -.->|서빙 신호| KEDA
     DCGM[DCGM Exporter<br/>GPU 활용/전력/메모리] -.->|GPU 텔레메트리| KEDA
 
     NP_PF --> PF
@@ -453,7 +453,7 @@ flowchart TB
     style KEDA fill:#9c27b0
 ```
 
-소형 모델 NodePool은 g6e(NVIDIA L40S)를 사용합니다. L40S는 MIG 지원 GPU가 **아니므로**(MIG는 A100/H100/H200/B200 등 Ampere 이상 데이터센터 GPU에서만 지원), `nvidia.com/mig-3g.40gb` 같은 MIG 리소스를 요청할 수 없고 전체 L40S GPU나 time-slicing을 사용합니다. 또한 KV 캐시 점유율과 TTFT는 DCGM 카운터가 아니라 **추론 서버**(예: vLLM) 메트릭이며, DCGM은 GPU 수준 텔레메트리(활용률, 전력, 프레임버퍼 메모리)를 노출합니다. KEDA는 두 신호원을 각각의 exporter로부터 받아 스케일링합니다.
+소형 모델 NodePool은 g6e(NVIDIA L40S)를 사용합니다. L40S는 MIG 지원 GPU가 **아니므로**(MIG는 A100/H100/H200/B200 등 Ampere 이상 데이터센터 GPU에서만 지원), `nvidia.com/mig-3g.40gb` 같은 MIG 리소스를 요청할 수 없고 전체 L40S GPU나 time-slicing을 사용합니다. 또한 KV cache 점유율과 TTFT는 DCGM 카운터가 아니라 **추론 서버**(예: vLLM) 메트릭이며, DCGM은 GPU 수준 텔레메트리(활용률, 전력, 프레임버퍼 메모리)를 노출합니다. KEDA는 두 신호원을 각각의 exporter로부터 받아 스케일링합니다.
 
 **표 7. Karpenter + Device Plugin과 MNG + DRA 비교**
 

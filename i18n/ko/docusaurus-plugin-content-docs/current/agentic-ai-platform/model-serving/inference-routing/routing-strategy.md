@@ -3,9 +3,9 @@ title: 추론 게이트웨이 & LLM Gateway 라우팅 전략
 description: kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴
 created: "2025-02-05"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 45
+reading_time: 46
 tags:
   - kgateway
   - bifrost
@@ -531,7 +531,7 @@ Semantic Caching은 의미적으로 유사한 프롬프트를 감지하여 이�
 
 **임계값**: 유사도 0.85 같은 단일 값은 범용 기본값이 아닙니다. 적절한 임계값은 임베딩 모델·거리 척도(cosine/L2)·도메인에 따라 달라지며, 숫자 점수가 높다고 "의미가 동일"함을 보장하지 않습니다(표현이 비슷해도 의미가 다른 false hit가 발생). 따라서 모델별로 측정해 허용 가능한 false-hit 예산 안에서 보정(calibrate)하고, 캐시 조회 전에 테넌트·사용자·데이터 스코프를 키에 포함해 격리해야 합니다. 또한 정확 일치 조회를 먼저 시도해 불필요한 임베딩 비용을 줄입니다.
 
-**캐시 계층 구분**: Gateway의 semantic 응답 캐시와 vLLM의 KV Cache는 독립적으로 조합할 수 있습니다. 다만 "Prompt Cache(프로바이더 관리형)"는 별개의 독립 캐시 종류라기보다, 프로바이더가 내부적으로 운영하는 **prefix 캐시로 KV 캐시 개념과 겹칩니다**(예: 공통 prefix 재사용). 즉 세 가지가 완전히 직교하는 것은 아니므로, 각 캐시가 무엇을 키로 삼고 어느 계층에서 동작하는지 구분해야 합니다.
+**캐시 계층 구분**: Gateway의 semantic 응답 캐시와 vLLM의 KV Cache는 독립적으로 조합할 수 있습니다. 다만 "Prompt Cache(프로바이더 관리형)"는 별개의 독립 캐시 종류라기보다, 프로바이더가 내부적으로 운영하는 **prefix 캐시로 KV cache 개념과 겹칩니다**(예: 공통 prefix 재사용). 즉 세 가지가 완전히 직교하는 것은 아니므로, 각 캐시가 무엇을 키로 삼고 어느 계층에서 동작하는지 구분해야 합니다.
 
 설계 원칙(3계층 캐시 비교, 유사도 임계값 트레이드오프, 도구 비교 표, 캐시 키 설계, 관측성·실전 체크리스트)은 별도 문서에서 상세히 다룹니다.
 
