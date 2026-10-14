@@ -44,6 +44,8 @@ The platform-wide gateway-layer terminology and role definitions are consolidate
 
 LLM inference platforms must clearly distinguish **3 different Gateway roles**. (For the full layer definitions, see [Tiered Gateway Architecture](./tiered-gateway-architecture.md))
 
+**Table 1. Gateway roles, implementations, and locations by type**
+
 | Gateway Type | Role | Implementation | Location |
 |-------------|------|-------|------|
 | **Ingress Gateway** | External traffic ingress, TLS termination, path-based routing | kgateway (NLB integration) | Tier 1 |
@@ -51,6 +53,8 @@ LLM inference platforms must clearly distinguish **3 different Gateway roles**. 
 | **Agent Data Plane** | MCP/A2A protocols, stateful sessions, tool routing | agentgateway | Tier 2-B |
 
 > **Terminology note**: Here, **Tier 2-A "LLM API Gateway"** is a provider proxy (Bifrost/LiteLLM) that abstracts the model API. It serves a different purpose from the **Gateway API Inference Extension** (Tier 2 ①, later in this document) that routes to in-cluster inference pods.
+
+**Figure 1. Request distribution across the 2-Tier Gateway layers**
 
 ```mermaid
 graph LR
@@ -73,6 +77,8 @@ graph LR
 - **Agent Data Plane (agentgateway)**: In this design, handles AI-specific protocols (MCP/A2A) and maintains stateful sessions. agentgateway can itself route LLM providers and inference endpoints, but here that responsibility is kept at L2-A to separate roles.
 
 ### Overall Architecture
+
+**Figure 2. End-to-end 2-Tier Gateway architecture with observability links**
 
 ```mermaid
 flowchart TB
@@ -130,6 +136,8 @@ flowchart TB
 
 ### Responsibility Separation by Tier
 
+**Table 2. Components, responsibilities, and protocols by tier**
+
 | Tier | Component | Responsibility | Protocol |
 |------|----------|------|----------|
 | **Tier 1** (Ingress Gateway) | kgateway (Envoy-based) | Traffic routing, mTLS, rate limiting, network policies | HTTP/HTTPS, gRPC |
@@ -157,6 +165,8 @@ Gateway API v1.6.0 was released on 2026-06-29, graduating UDPRoute and TCPRoute 
 
 ### Dynamic Routing Concepts
 
+**Table 3. Criteria and use cases by dynamic routing type**
+
 | Routing Type | Criteria | Use Case |
 |------------|------|----------|
 | **Header-based** | `x-model-id`, `x-provider` | Backend selection by model/provider |
@@ -167,6 +177,8 @@ Gateway API v1.6.0 was released on 2026-06-29, graduating UDPRoute and TCPRoute 
 Canary deployments start with 5-10% traffic and gradually increase, with immediate rollback via weight=0 on issues.
 
 ### Load Balancing Strategies
+
+**Table 4. Load balancing strategies and suitable scenarios**
 
 | Strategy | Description | Suitable Scenario |
 |------|------|--------------|
@@ -194,6 +206,8 @@ import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTable
 
 ### Failure Handling Concepts
 
+**Table 5. Failure-handling mechanisms and LLM inference considerations**
+
 | Mechanism | Description | LLM Inference Considerations |
 |----------|------|-------------------|
 | **Timeout** | Maximum processing time per request | LLM long response generation takes tens of seconds. Adequate timeout needed (120s+) |
@@ -209,6 +223,8 @@ In Gateway API timeouts, `backendRequest` is the **per-try timeout covering the 
 ## LLM Gateway Solution Comparison
 
 ### Major Solution Comparison Table
+
+**Table 6. LLM Gateway solutions compared by features, cascade routing, and license**
 
 | Solution | Language | Key Features | Cascade Routing | License | Best For |
 |--------|------|-----------|-----------------|----------|-----------|
@@ -240,6 +256,8 @@ In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-
 
 ### Selection Criteria
 
+**Table 7. Recommended solution and rationale by use case**
+
 | Use Case | Recommended Solution | Reason |
 |-----------|-----------|------|
 | Intelligent cascade (convenience priority) | **LiteLLM** | Native `complexity_router` + 100+ providers, Python ecosystem |
@@ -251,6 +269,8 @@ In the table above, Bifrost·LiteLLM·Helicone·vLLM Semantic Router are **self-
 | High performance + observability integrated | **Helicone** | Rust-based All-in-one |
 
 ### Recommended Combinations by Scenario
+
+**Table 8. Recommended gateway stacks by operational scenario**
 
 | Scenario | Recommended Stack | Reason |
 |----------|----------|------|
@@ -280,6 +300,8 @@ Kubernetes Gateway API enables managing LLM inference as Kubernetes-native resou
 
 The reviewed baseline is llm-d v0.8.1 (2026-06-26), router v0.9.0, GIE v1.5.0, and Gateway API v1.5.1. Primary schemas: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1), [InferencePool v1](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/crd/bases/inference.networking.k8s.io_inferencepools.yaml), [InferenceObjective v1alpha2](https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/crd/bases/llm-d.ai_inferenceobjectives.yaml), [HTTPRoute v1](https://github.com/kubernetes-sigs/gateway-api/blob/v1.5.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml).
 
+**Table 9. Owner, responsibility, and example of each Inference Extension CRD**
+
 | Resource | Owner / API | Responsibility | Example |
 |----------|-------------|----------------|---------|
 | **Deployment / LeaderWorkerSet** | Kubernetes / separate workload API | Images, model arguments, Pod GPU requests, replica counts | Workload `replicas: 3` and `nvidia.com/gpu` |
@@ -296,6 +318,8 @@ There is no `LLMRoute` kind in the reviewed GIE or llm-d Router CRDs. Even the r
 In [Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md), one compatible Gateway can handle both traditional Services and InferencePools. The EPP returns its selection to the Gateway and does not proxy inference traffic itself. A separate edge Gateway is an option when retaining existing ingress or separating security/ownership; account for extra hops, operational cost, and consistent timeout, retry, streaming, and authentication-header handling.
 
 Solid lines show requests/responses and EPP calls; dotted lines show configuration references.
+
+**Figure 3. Resource and EPP wiring of the Gateway API Inference Extension**
 
 ```mermaid
 flowchart TB
@@ -382,6 +406,8 @@ spec:
 
 An LLM inference platform separates **model/provider selection** from **in-model Pod selection**. The difference in logical roles does not by itself require two physical gateways: a supported Gateway can connect both roles using HTTPRoute together with an EPP.
 
+**Table 10. Decision question, signals, and implementations of the two routing layers (L1/L2)**
+
 | Layer | Decision question | Signals | Unit | Implementations |
 |--------|----------|------|------|--------|
 | **L1 — LLM proxy / edge** | "Which provider/model/region?" | cost·budget·provider health·auth·PII·semantic similarity | model/provider target | Kong, Bifrost, LiteLLM, Portkey, (kgateway) |
@@ -406,6 +432,8 @@ In L2 KV-cache-aware (prefix-aware) routing, **the routing decision itself is no
 
 > **Gateway vs EPP boundary**: HTTPRoute pool selection, weighting, and path matching are **routing performed by the Gateway (Gateway API)**, not part of the EPP pipeline. After the Gateway decides which InferencePool to send to, the EPP decides only "which Pod" within that pool.
 
+**Table 11. Role of each layer in the EPP internal pipeline**
+
 | Layer | Role |
 |--------|------|
 | Data Layer | Collects/prepares the InferencePool Pod list and vLLM metrics, and lookup data such as the prefix index |
@@ -421,6 +449,8 @@ In L2 KV-cache-aware (prefix-aware) routing, **the routing decision itself is no
 ### L2 options compared: EPP vs HyperPod Inference Operator vs Dynamo
 
 This compares what you implement KV-aware routing (L2) with. The common constraint is that the InferencePool selector selects **only Pods in the same namespace**, and the KV-aware scheduler depends on vLLM workers' real-time metrics. So the L2 scheduler is premised on living in the **same cluster** as vLLM; regional locality (same-region placement) is a **recommendation** for metric freshness and latency (a different region is not forbidden so much as discouraged because of cross-region latency).
+
+**Table 12. L2 KV-aware routing options compared (EPP, HyperPod, Dynamo)**
 
 | Item | EPP(GIE) + Envoy gateway | HyperPod Inference Operator | NVIDIA Dynamo |
 |------|---------------------------|----------------------------|---------------|
@@ -450,6 +480,8 @@ L2 (KV-aware) depends on vLLM workers' real-time metrics (freshness typically on
 - **Seoul = L1** (Kong/Bifrost/kgateway): provider/region routing, auth, $budget, PII, failover, **session affinity** (preserving the prefix cache)
 - **Sydney = L2** (EPP/HyperPod router/Dynamo) + vLLM: KV-aware Pod selection
 - The KV cache benefit occurs **only inside the Sydney cluster** (a cross-region hop cannot be shortened by the cache). Mind cross-region egress cost and added TTFT.
+
+**Figure 4. Multi-region L1 (Seoul) and L2 (Sydney) role separation**
 
 ```mermaid
 flowchart LR
@@ -506,6 +538,8 @@ Design principles (3-tier cache comparison, similarity threshold tradeoffs, tool
 
 ### Envoy vs agentgateway Comparison
 
+**Table 13. Envoy data plane vs agentgateway**
+
 | Item | Envoy Data Plane | agentgateway |
 |------|---------------------|---------------------------|
 | **Session Management** | Stateless, HTTP cookie-based | MCP session tracking (`Mcp-Session-Id`), optional session store — sessions are optional per the MCP spec and stateless operation is allowed |
@@ -540,6 +574,8 @@ import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTab
 
 <MonitoringMetricsTable />
 
+**Table 14. Core inference-gateway metric categories and their meaning**
+
 | Metric Category | Key Item | Meaning |
 |----------------|----------|------|
 | **Latency** | TTFT (Time to First Token) | Time until first token generation. User-perceived responsiveness |
@@ -562,6 +598,8 @@ Bifrost enables OTel export via its `otel` plugin. For detailed configuration, s
 ### Recommended Alert Rules (starter examples) {#recommended-alert-rules}
 
 The conditions below are **starting-point examples, not universal defaults**. Define a measurement window, minimum sample size, and target endpoint scope for each, express them in PromQL against the actual metric names/labels (e.g. the series Envoy/kgateway exports), and tune to your service SLO.
+
+**Table 15. Example alert rules and severity**
 
 | Alert | Condition (example) | Severity |
 |------|------|--------|
