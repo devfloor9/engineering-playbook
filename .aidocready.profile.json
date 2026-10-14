@@ -1,0 +1,8 @@
+{
+  "id": "engineering-playbook",
+  "extends": "recommended",
+  "rules": {
+    "ADR-NUMBER-SEQUENCE": "Suggestion",
+    "ADR-INPUT-COVERAGE": "Suggestion"
+  }
+}
