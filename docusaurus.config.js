@@ -389,7 +389,9 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Engineering Playbook.`,
+        // Keep the holder and license in sync with LICENSE (MIT, devfloor9).
+        // Docusaurus renders this string as HTML, so the license text can be a link.
+        copyright: `Copyright © 2025-${new Date().getFullYear()} devfloor9. <a href="https://github.com/devfloor9/engineering-playbook/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT License</a>`,
       },
       prism: {
         theme: codeTheme,
