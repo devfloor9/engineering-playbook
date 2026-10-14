@@ -5,7 +5,7 @@ created: "2026-03-16"
 last_update:
   date: 2026-10-14
   author: devfloor9
-reading_time: 57
+reading_time: 56
 tags:
   - eks
   - gpu
@@ -156,7 +156,7 @@ Auto Mode large GPU instance support status confirmed during GLM-5 (744B MoE) de
 
 ### 3.4 Auto Mode + MNG Hybrid Limitation
 
-EKS Auto Mode and Managed Node Groups are both supported capacity types that AWS documents as able to coexist in one cluster. During this review a single internal attempt to add an MNG to an Auto Mode cluster for p5en/p6 use did not complete, with the following **observed but not independently reproduced** symptoms:
+EKS Auto Mode and Managed Node Groups are both supported capacity types that AWS documents as able to coexist in one cluster. In one recorded attempt, adding an MNG to an Auto Mode cluster for p5en/p6 use did not complete, with the following **observed but not independently reproduced** symptoms:
 
 - MNG creation stayed in `CREATING` state for 30+ minutes
 - the backing CloudFormation stack's `Resources` field remained `null`
@@ -191,7 +191,7 @@ Auto Mode's built-in Karpenter runs node consolidation continuously to reduce co
 
 Note the distinction the finding calls out: an ALB with **no registered targets** (or all targets in `initial`/`draining`) returns 503, whereas an ALB whose targets are all **unhealthy** can be configured to fail open and still route. To attribute a specific 503 to consolidation you need the ALB access logs and the target-group target-state history, not just the observation that a target was absent.
 
-Observed during this review (not an independently reproduced benchmark): running Langfuse with a single replica on an Auto Mode cluster, consolidation replaced nodes several times a day, and 503s appeared in the gap between target `DeregisterTargets` → new Pod start → `RegisterTargets`. The pattern is visible in CloudTrail as repeated `TerminateInstances` by the `eks-auto-mode-compute` role together with target-group `DeregisterTargets`/`RegisterTargets` events; treat that as correlation to investigate, not proof of causation on its own.
+Observed in operation (not an independently reproduced benchmark): running Langfuse with a single replica on an Auto Mode cluster, consolidation replaced nodes several times a day, and 503s appeared in the gap between target `DeregisterTargets` → new Pod start → `RegisterTargets`. The pattern is visible in CloudTrail as repeated `TerminateInstances` by the `eks-auto-mode-compute` role together with target-group `DeregisterTargets`/`RegisterTargets` events; treat that as correlation to investigate, not proof of causation on its own.
 
 **Mitigation — apply as a set; raising `replicas` alone is not sufficient:**
 

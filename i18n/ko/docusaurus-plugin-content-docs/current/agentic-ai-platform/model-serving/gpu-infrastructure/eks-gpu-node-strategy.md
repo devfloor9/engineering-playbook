@@ -156,7 +156,7 @@ GLM-5 (744B MoE) 배포 과정에서 확인한 Auto Mode의 대형 GPU 인스턴
 
 ### Auto Mode + MNG 하이브리드 제약
 
-EKS Auto Mode와 Managed Node Group은 모두 지원되는 용량 유형이며, AWS 문서는 두 유형이 하나의 클러스터에서 공존할 수 있다고 설명합니다. 이번 검토 중 p5en/p6 사용을 위해 Auto Mode 클러스터에 MNG를 추가하려던 단일 내부 시도가 완료되지 않았고, 다음 증상이 **관찰되었으나 독립적으로 재현되지는 않았습니다**:
+EKS Auto Mode와 Managed Node Group은 모두 지원되는 용량 유형이며, AWS 문서는 두 유형이 하나의 클러스터에서 공존할 수 있다고 설명합니다. 기록된 한 번의 시도에서는 p5en/p6 사용을 위해 Auto Mode 클러스터에 MNG를 추가하는 작업이 완료되지 않았고, 다음 증상이 **관찰되었으나 독립적으로 재현되지는 않았습니다**:
 
 - MNG 생성이 `CREATING` 상태에서 30분 이상 지속됨
 - 백킹 CloudFormation 스택의 `Resources` 필드가 `null`로 유지됨
@@ -191,7 +191,7 @@ Auto Mode의 내장 Karpenter는 비용 최적화를 위해 노드 consolidation
 
 단, 이 finding이 지적하는 구분에 유의하세요: **등록 타깃이 없거나**(또는 모두 `initial`/`draining`) 하면 ALB는 503을 반환하지만, 타깃이 모두 **unhealthy**인 경우에는 fail-open으로 설정되어 트래픽을 계속 라우팅할 수 있습니다. 특정 503을 consolidation 탓으로 귀속하려면 타깃이 없었다는 관찰만으로는 부족하며, ALB 액세스 로그와 타깃그룹의 타깃 상태 이력이 필요합니다.
 
-이번 검토 중 관찰(독립적으로 재현된 벤치마크 아님): Langfuse(replica 1)를 Auto Mode 클러스터에서 운영할 때 consolidation이 하루 수차례 노드를 교체했고, 타깃 `DeregisterTargets` → 신규 Pod 기동 → `RegisterTargets` 사이의 공백에서 503이 나타났습니다. 이 패턴은 CloudTrail에서 `eks-auto-mode-compute` 역할의 `TerminateInstances`와 타깃그룹 `DeregisterTargets`/`RegisterTargets` 이벤트가 반복되는 형태로 보이지만, 그 자체로 인과를 증명하지 않으므로 조사가 필요한 상관관계로 다루세요.
+운영 중 관찰(독립적으로 재현된 벤치마크 아님): Langfuse(replica 1)를 Auto Mode 클러스터에서 운영할 때 consolidation이 하루 수차례 노드를 교체했고, 타깃 `DeregisterTargets` → 신규 Pod 기동 → `RegisterTargets` 사이의 공백에서 503이 나타났습니다. 이 패턴은 CloudTrail에서 `eks-auto-mode-compute` 역할의 `TerminateInstances`와 타깃그룹 `DeregisterTargets`/`RegisterTargets` 이벤트가 반복되는 형태로 보이지만, 그 자체로 인과를 증명하지 않으므로 조사가 필요한 상관관계로 다루세요.
 
 **해결 — 4가지를 세트로 적용해야 합니다. replicas 증설만으로는 불충분합니다:**
 
