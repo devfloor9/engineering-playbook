@@ -30,6 +30,9 @@ sidebar_label: S5. Campaign ROAS
 - 가설 (예: "SMS:푸시:카톡:SNS:H&B = 20:15:15:30:20")
 
 ## 4. 데이터 믹스
+
+**표 1. ROAS 시뮬 입력 데이터와 출처, 활용 방식**
+
 | 데이터 | 출처 | 활용 |
 |---|---|---|
 | 과거 캠페인 | Snowflake CAMPAIGN_MART | Bayesian prior |

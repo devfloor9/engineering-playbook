@@ -31,6 +31,9 @@ sidebar_label: S7. Customer Journey
 - BU filter (Beauty/HDB/Refreshment)
 
 ## 4. Data Mix
+
+**Table 1. Customer journey timeline data with source**
+
 | Data | Source |
 |---|---|
 | SearchEvent · CartEvent · OrderTransaction (owned mall) | Neptune |

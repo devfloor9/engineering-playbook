@@ -30,6 +30,9 @@ sidebar_label: S5. Campaign ROAS
 - Hypothesis (e.g., "SMS:Push:KakaoTalk:SNS:H&B = 20:15:15:30:20")
 
 ## 4. Data Mix
+
+**Table 1. ROAS simulation input data with source and use**
+
 | Data | Source | Use |
 |---|---|---|
 | Past campaigns | Snowflake CAMPAIGN_MART | Bayesian prior |

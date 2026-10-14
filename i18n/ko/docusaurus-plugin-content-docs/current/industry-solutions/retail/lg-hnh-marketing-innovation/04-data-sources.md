@@ -22,6 +22,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. 데이터 규모 한눈에 보기
 
+**표 1. 데이터 종류별 규모와 설명**
+
 | 항목 | 규모 | 설명 |
 |---|---|---|
 | **자사 실데이터 (PII 마스킹)** | N=500~5,000 회원 | LG 멤버스 12개월치 자사몰 거래 + 추정 채널 sell-through |
@@ -42,11 +44,13 @@ sidebar_label: 04. Data Sources
 
 모든 인스턴스 노드와 OpenSearch 도큐먼트에 `cohort_tag` 속성:
 
+**표 2. cohort_tag 값별 의미와 UI 배지 표기**
+
 | 값 | 의미 | UI 배지 |
 |---|---|---|
-| `real` | PII 마스킹 자사 실데이터 | 🟢 실데이터 |
-| `synth` | 자사 데이터 합성 (49.5K) | 🟡 합성 |
-| `external` | 외부 데이터 (소셜·기상·경제·경쟁사) | 🔵 외부 |
+| `real` | PII 마스킹 자사 실데이터 | 실데이터 |
+| `synth` | 자사 데이터 합성 (49.5K) | 합성 |
+| `external` | 외부 데이터 (소셜·기상·경제·경쟁사) | 외부 |
 
 쿼리 시 항상 `WHERE cohort_tag IN (...)`. 캠페인 발송 도구는 `real` 회원에만.
 
@@ -55,6 +59,8 @@ sidebar_label: 04. Data Sources
 ## 3. 자사 실데이터 (가상 시나리오)
 
 ### 3.1 PII 마스킹 룰
+
+**표 3. PII 필드별 마스킹 규칙**
 
 | 원본 필드 | 마스킹 후 |
 |---|---|
@@ -72,6 +78,8 @@ sidebar_label: 04. Data Sources
 - 평균 100거래/년/회원
 
 ### 3.3 SKU 카탈로그 (3 BU)
+
+**표 4. BU별 대표 브랜드와 카테고리**
 
 | BU | 대표 브랜드 | 대표 카테고리 |
 |---|---|---|
@@ -93,6 +101,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 ```
 
 ### 4.2 시즌별 변동
+
+**표 5. 기간별 가중 카테고리**
+
 | 기간 | 가중 카테고리 |
 |---|---|
 | 명절 (설/추석 ±2주) | 선물세트·생활용품 +30% |
@@ -105,6 +116,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 ## 5. 외부 데이터 4종
 
 ### 5.1 소셜 트렌드
+
+**표 6. 소셜 트렌드 출처별 데이터와 수집 방식**
+
 | 출처 | 데이터 | API/방식 |
 |---|---|---|
 | 네이버 데이터랩 | 카테고리/키워드 검색 트렌드 (주별) | datalab.naver.com |
@@ -117,6 +131,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 → Neptune `SocialSignal` 노드 + OpenSearch `idx_social_trend`/`idx_review`
 
 ### 5.2 기상·환경
+
+**표 7. 기상·환경 출처별 데이터와 API**
+
 | 출처 | 데이터 | API |
 |---|---|---|
 | KMA 기상청 | 일별 기온/강수/습도/풍속 | data.kma.go.kr |
@@ -125,6 +142,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 → Neptune `WeatherSignal`
 
 ### 5.3 경제·소비
+
+**표 8. 경제·소비 출처별 데이터와 API**
+
 | 출처 | 데이터 | API |
 |---|---|---|
 | 통계청 KOSIS | 소비자물가·고용 지수 | kosis.kr |
@@ -133,6 +153,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 → Neptune `EconomicSignal`
 
 ### 5.4 경쟁사 시그널
+
+**표 9. 경쟁사 시그널 출처별 데이터와 수집 방식**
+
 | 출처 | 데이터 | 방식 |
 |---|---|---|
 | 아모레퍼시픽 / 아이모 / 유한킴벌리 등 | 신제품·캠페인 공개 등장 | 공식 보도자료 + 공개 SNS |
@@ -143,6 +166,8 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 ---
 
 ## 6. 데이터 적재 파이프라인
+
+**그림 1. 데이터 소스별 적재 파이프라인 흐름**
 
 ```mermaid
 graph LR
@@ -169,6 +194,8 @@ graph LR
 
 ## 7. 데이터 갱신 주기
 
+**표 10. 데이터별 갱신 주기와 트리거**
+
 | 데이터 | 주기 | 트리거 |
 |---|---|---|
 | 자사 실데이터 (N=500~5K) | PoC 1회 적재 후 고정 | 수동 |
@@ -181,6 +208,8 @@ graph LR
 ---
 
 ## 8. 데이터 품질 룰
+
+**표 11. 데이터 품질 룰과 임계값**
 
 | 룰 | 임계 |
 |---|---|
@@ -195,7 +224,7 @@ graph LR
 
 ## 9. 시연 시 데이터 노출 룰
 
-- 모든 결과 카드에 cohort_tag 배지 (🟢 real / 🟡 synth / 🔵 external)
+- 모든 결과 카드에 cohort_tag 배지 (real / synth / external)
 - 합성 데이터로 발송·결제 도구 호출 → "합성 — 실제 발송 X" 안내
 - 외부 데이터에 출처 표기 의무 (소셜·기상·경제·경쟁사 모두)
 - 통계 표시는 cohort 분리 옵션 (실만 / 합성만 / 합산)

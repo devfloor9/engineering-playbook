@@ -30,6 +30,9 @@ sidebar_label: S3. Insight Cards
 - "Generate Insights" button
 
 ## 4. Data Mix
+
+**Table 1. Insight card data with source and use**
+
 | Data | Source | Use |
 |---|---|---|
 | First-party GMV (BU × Category × Month) | Snowflake / Neptune | line/bar |
@@ -49,6 +52,9 @@ sidebar_label: S3. Insight Cards
 ```
 
 ## 6. 8 Card Presets
+
+**Table 2. The 8 card presets and their data**
+
 | Card | Data |
 |---|---|
 | Monthly BU GMV trend | Beauty/HDB/Refreshment comparison |
@@ -61,6 +67,9 @@ sidebar_label: S3. Insight Cards
 | Time-of-day Transaction Distribution | OrderTransaction.order_at |
 
 ## 7. Per-Department Comment Differences
+
+**Table 3. Example comments on the same card by persona**
+
 | Persona | Comment example for the same card (Beauty monthly GMV) |
 |---|---|
 | P1 Brand Marketer | "November Whoo +12% — estimated effect of pre-SMS campaign. Next campaign should..." |

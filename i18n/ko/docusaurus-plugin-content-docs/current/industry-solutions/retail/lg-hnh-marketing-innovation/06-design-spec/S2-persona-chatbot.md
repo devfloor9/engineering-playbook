@@ -46,6 +46,8 @@ sidebar_label: S2. Persona Chatbot
 
 ## 6. 사용 도구 12종
 
+**표 1. 챗봇이 호출하는 도구 12종과 설명**
+
 | 도구명 | 설명 |
 |---|---|
 | `semantic_search` | OpenSearch BM25+KNN+Rerank |
@@ -62,6 +64,9 @@ sidebar_label: S2. Persona Chatbot
 | `channel_metrics_push` | 채널 KPI 캐시 |
 
 ## 7. 부서별 변형
+
+**표 2. 페르소나별 system prompt 키워드와 주 도구**
+
 | 페르소나 | system prompt 키워드 | 주 도구 |
 |---|---|---|
 | P1 브랜드 마케터 | 캠페인·ROAS·세그먼트 | campaign_simulator, attribution_calc |

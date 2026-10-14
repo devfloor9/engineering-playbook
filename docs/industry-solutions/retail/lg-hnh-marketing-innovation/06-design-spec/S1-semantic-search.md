@@ -31,6 +31,9 @@ sidebar_label: S1. Semantic Search
 - Persona switcher
 
 ## 4. Data Mix
+
+**Table 1. Search data with source and use**
+
 | Data | Source | Use |
 |---|---|---|
 | First-party SKU | OpenSearch `idx_product` | BM25+KNN |
@@ -54,10 +57,13 @@ sidebar_label: S1. Semantic Search
 ## 6. Output UI
 - Result cards (3 columns): SKU card / Member card / **Review card (first-party · external separated)**
 - 1-hop graph panel (cytoscape.js)
-- Cohort badges: green real / yellow synth / blue external
+- Cohort badges: real / synth / external
 - Result count: "37 items (BM25 12, KNN 18, common 7)"
 
 ## 7. Per-Department Variations
+
+**Table 2. Recommended query and result order by persona**
+
 | Persona | Recommended Query | Result Order |
 |---|---|---|
 | P1 Brand Marketer | "Gold members unpurchased in last 90 days" | Member card prioritized, with campaign recommendations attached |

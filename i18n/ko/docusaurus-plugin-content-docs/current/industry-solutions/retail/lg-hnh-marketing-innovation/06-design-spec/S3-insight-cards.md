@@ -30,6 +30,9 @@ sidebar_label: S3. Insight Cards
 - "Generate Insights" 버튼
 
 ## 4. 데이터 믹스
+
+**표 1. 인사이트 카드 데이터와 출처, 활용 방식**
+
 | 데이터 | 출처 | 활용 |
 |---|---|---|
 | 자사 GMV (BU × 카테고리 × 월) | Snowflake / Neptune | line/bar |
@@ -49,6 +52,9 @@ sidebar_label: S3. Insight Cards
 ```
 
 ## 6. 카드 프리셋 8종
+
+**표 2. 카드 프리셋 8종과 사용 데이터**
+
 | 카드명 | 데이터 |
 |---|---|
 | 월별 BU GMV 추이 | Beauty/HDB/Refreshment 비교 |
@@ -61,6 +67,9 @@ sidebar_label: S3. Insight Cards
 | 시간대별 거래 분포 | OrderTransaction.order_at |
 
 ## 7. 부서별 코멘트 차이
+
+**표 3. 동일 카드에 대한 페르소나별 코멘트 예시**
+
 | 페르소나 | 동일 카드 (Beauty 월별 GMV) 코멘트 예시 |
 |---|---|
 | P1 브랜드 마케터 | "11월 후 +12% — 사전 SMS 캠페인 효과 추정. 다음 캠페인은..." |

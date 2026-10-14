@@ -22,6 +22,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. Data Scale at a Glance
 
+**Table 1. Scale and description by data type**
+
 | Item | Scale | Description |
 |---|---|---|
 | **First-party real data (PII masked)** | N = 500~5,000 members | 12 months of LG Members owned-mall transactions + estimated channel sell-through |
@@ -42,11 +44,13 @@ Total ≈ **5M+ transactions, 50K members, 10K SKUs, 365 days of external signal
 
 All instance nodes and OpenSearch documents carry a `cohort_tag` attribute:
 
+**Table 2. cohort_tag values with meaning and UI badge**
+
 | Value | Meaning | UI Badge |
 |---|---|---|
-| `real` | PII-masked first-party real data | Green real |
-| `synth` | First-party synthetic data (49.5K) | Yellow synth |
-| `external` | External data (social · weather · economy · competitor) | Blue external |
+| `real` | PII-masked first-party real data | real |
+| `synth` | First-party synthetic data (49.5K) | synth |
+| `external` | External data (social · weather · economy · competitor) | external |
 
 Queries always use `WHERE cohort_tag IN (...)`. Campaign-send tools only target `real` members.
 
@@ -55,6 +59,8 @@ Queries always use `WHERE cohort_tag IN (...)`. Campaign-send tools only target 
 ## 3. First-Party Real Data (Hypothetical Scenario)
 
 ### 3.1 PII Masking Rules
+
+**Table 3. Masking rule by PII field**
 
 | Original Field | After Masking |
 |---|---|
@@ -72,6 +78,8 @@ Queries always use `WHERE cohort_tag IN (...)`. Campaign-send tools only target 
 - Average 100 transactions/year/member
 
 ### 3.3 SKU Catalog (3 BUs)
+
+**Table 4. Representative brands and categories by BU**
 
 | BU | Representative Brands | Representative Categories |
 |---|---|---|
@@ -93,6 +101,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 ```
 
 ### 4.2 Seasonal Variation
+
+**Table 5. Weighted categories by period**
+
 | Period | Weighted Categories |
 |---|---|
 | Holidays (Lunar New Year/Chuseok ±2 weeks) | Gift sets · household goods +30% |
@@ -105,6 +116,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 ## 5. 4 External Data Types
 
 ### 5.1 Social Trends
+
+**Table 6. Social trend sources with data and method**
+
 | Source | Data | API/Method |
 |---|---|---|
 | Naver DataLab | Category/keyword search trends (weekly) | datalab.naver.com |
@@ -117,6 +131,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 → Neptune `SocialSignal` node + OpenSearch `idx_social_trend`/`idx_review`
 
 ### 5.2 Weather · Environment
+
+**Table 7. Weather and environment sources with data and API**
+
 | Source | Data | API |
 |---|---|---|
 | KMA (Korea Meteorological Administration) | Daily temp/precipitation/humidity/wind | data.kma.go.kr |
@@ -125,6 +142,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 → Neptune `WeatherSignal`
 
 ### 5.3 Economy · Consumption
+
+**Table 8. Economy and consumption sources with data and API**
+
 | Source | Data | API |
 |---|---|---|
 | Statistics Korea KOSIS | CPI · employment indicators | kosis.kr |
@@ -133,6 +153,9 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 → Neptune `EconomicSignal`
 
 ### 5.4 Competitor Signals
+
+**Table 9. Competitor signal sources with data and method**
+
 | Source | Data | Method |
 |---|---|---|
 | Amorepacific / Aimo / Yuhan-Kimberly etc. | Public appearance of new products · campaigns | Official press releases + public SNS |
@@ -143,6 +166,8 @@ gmm_txn = GaussianMixture(n_components=10).fit(real_txn_features)
 ---
 
 ## 6. Data Ingestion Pipeline
+
+**Figure 1. Data ingestion pipeline flow by source**
 
 ```mermaid
 graph LR
@@ -169,6 +194,8 @@ graph LR
 
 ## 7. Data Refresh Cadence
 
+**Table 10. Refresh cadence and trigger by data**
+
 | Data | Cadence | Trigger |
 |---|---|---|
 | First-party real data (N=500~5K) | One-time load for PoC, then fixed | Manual |
@@ -181,6 +208,8 @@ graph LR
 ---
 
 ## 8. Data Quality Rules
+
+**Table 11. Data quality rules and thresholds**
 
 | Rule | Threshold |
 |---|---|
@@ -195,7 +224,7 @@ graph LR
 
 ## 9. Demo-Time Data Exposure Rules
 
-- All result cards display a cohort_tag badge (green real / yellow synth / blue external)
+- All result cards display a cohort_tag badge (real / synth / external)
 - When send/payment tools are invoked with synthetic data → "Synthetic — no real sending" notice
 - Mandatory source attribution for external data (social · weather · economy · competitor)
 - Statistical displays offer cohort separation options (real only / synth only / combined)

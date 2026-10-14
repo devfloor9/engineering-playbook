@@ -22,6 +22,8 @@ sidebar_label: 05. Architecture
 
 ## 1. Architecture Overview
 
+**Figure 1. Overall single AWS-native stack architecture**
+
 ```mermaid
 graph TB
     subgraph User["User"]
@@ -91,6 +93,9 @@ graph TB
 ## 2. Components by Layer
 
 ### 2.1 Edge / Auth
+
+**Table 1. Edge / Auth layer components and roles**
+
 | Component | Role |
 |---|---|
 | **CloudFront** | Static assets · SSR cache · WAF (Korean PoP) |
@@ -98,6 +103,9 @@ graph TB
 | **Cognito User Pool** | Authentication + department · persona group mapping |
 
 ### 2.2 Frontend
+
+**Table 2. Frontend layer components and roles**
+
 | Component | Role |
 |---|---|
 | **Next.js 14 (App Router)** | SSR + Client Components + persona switcher |
@@ -105,6 +113,9 @@ graph TB
 | **Plotly / D3** | Charts · scatter · choropleth (S3, S5, S6) |
 
 ### 2.3 Backend
+
+**Table 3. Backend layer components and roles**
+
 | Component | Role |
 |---|---|
 | **FastAPI (Python 3.12)** | API + SSE streaming |
@@ -112,6 +123,9 @@ graph TB
 | **OpenTelemetry** | Tracing → CloudWatch + Langfuse |
 
 ### 2.4 AI / Agent
+
+**Table 4. AI / Agent layer components, roles, and scenarios**
+
 | Component | Role | Scenarios |
 |---|---|---|
 | **Bedrock Sonnet 4.6** | Chatbot · Labeling · Comments | S2, S3, S4, S6 |
@@ -122,6 +136,9 @@ graph TB
 | **Bedrock Guardrails** | 4 topics + marketing consent + PII + minor cosmetics | S8 |
 
 ### 2.5 Data Layer
+
+**Table 5. Data Layer components and roles**
+
 | Component | Role |
 |---|---|
 | **Amazon Neptune** | KG 25 classes, ~500K edges, openCypher |
@@ -130,6 +147,9 @@ graph TB
 | **DynamoDB** | Sessions · personas · rate limit (TTL) |
 
 ### 2.6 Data Ingest
+
+**Table 6. Data Ingest layer components and roles**
+
 | Component | Role |
 |---|---|
 | **AWS Glue** | ETL for 4 external types (social · weather · economy · competitor) |
@@ -162,6 +182,8 @@ graph TB
 
 ## 4. Security · Governance
 
+**Table 7. Security and governance items and implementation**
+
 | Item | Implementation |
 |---|---|
 | Authentication | Cognito (RS256 JWT) + Lambda@Edge verification |
@@ -174,6 +196,8 @@ graph TB
 ---
 
 ## 5. Cost (8-Week PoC)
+
+**Table 8. Estimated cost by item for the 8-week PoC**
 
 | Item | Estimate |
 |---|---|
@@ -190,6 +214,8 @@ graph TB
 
 ## 6. 8-Week PoC Milestones
 
+**Table 9. PoC work plan by week**
+
 | Week | Work |
 |---|---|
 | 1-2 | VPC · Cognito · CloudFront · ECS infrastructure + Neptune 25-class ingest + 4-type external ETL |
@@ -201,6 +227,8 @@ graph TB
 ---
 
 ## 7. Optional Extensions
+
+**Table 10. Optional extensions and descriptions**
 
 | Option | Description |
 |---|---|

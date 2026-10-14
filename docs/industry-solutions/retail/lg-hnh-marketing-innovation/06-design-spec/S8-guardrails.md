@@ -28,6 +28,9 @@ sidebar_label: S8. Guardrails
 - Result log (Block/Allow/Mask counts)
 
 ## 4. Data Mix
+
+**Table 1. Data used for guardrail decisions with source**
+
 | Data | Source |
 |---|---|
 | Bedrock Guardrails | AWS |
@@ -46,6 +49,9 @@ sidebar_label: S8. Guardrails
 ```
 
 ## 6. Policy Cards
+
+**Table 2. Action by guardrail topic**
+
 | Topic | Action |
 |---|---|
 | Violence · Hate · Sex · Misinformation | Block |

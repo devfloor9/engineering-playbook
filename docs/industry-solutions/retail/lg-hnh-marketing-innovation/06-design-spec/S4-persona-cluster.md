@@ -30,6 +30,9 @@ sidebar_label: S4. Persona & Cluster
 - Persona definition cards (5 types): Kids mom · Gold miss · Single household · Senior · Trendsetter
 
 ## 4. Data Mix
+
+**Table 1. Clustering input data with source and use**
+
 | Data | Source | Use |
 |---|---|---|
 | RFM features | Neptune | KMeans input |

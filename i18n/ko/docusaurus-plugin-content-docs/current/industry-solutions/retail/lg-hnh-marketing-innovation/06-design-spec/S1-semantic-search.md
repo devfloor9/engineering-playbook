@@ -31,6 +31,9 @@ sidebar_label: S1. Semantic Search
 - 페르소나 스위처
 
 ## 4. 데이터 믹스
+
+**표 1. 검색 대상 데이터와 출처, 활용 방식**
+
 | 데이터 | 출처 | 활용 |
 |---|---|---|
 | 자사 SKU | OpenSearch `idx_product` | BM25+KNN |
@@ -54,10 +57,13 @@ sidebar_label: S1. Semantic Search
 ## 6. 출력 UI
 - 결과 카드 (3 컬럼): SKU 카드 / 회원 카드 / **리뷰 카드 (자사·외부 분리)**
 - 1-hop 그래프 패널 (cytoscape.js)
-- Cohort 배지: 🟢 real / 🟡 synth / 🔵 external
+- Cohort 배지: real / synth / external
 - 결과 카운트: "37건 (BM25 12, KNN 18, 공통 7)"
 
 ## 7. 부서별 변형
+
+**표 2. 페르소나별 추천 질의와 결과 정렬**
+
 | 페르소나 | 추천 질의 | 결과 정렬 |
 |---|---|---|
 | P1 브랜드 마케터 | "최근 90일 미구매 골드 회원" | 회원 카드 우선, 캠페인 추천 부착 |

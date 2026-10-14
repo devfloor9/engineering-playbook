@@ -31,6 +31,9 @@ sidebar_label: S7. Customer Journey
 - BU 필터 (Beauty/HDB/Refreshment)
 
 ## 4. 데이터 믹스
+
+**표 1. 회원 여정 타임라인 데이터와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | SearchEvent · CartEvent · OrderTransaction (자사몰) | Neptune |

@@ -22,6 +22,8 @@ sidebar_label: 05. Architecture
 
 ## 1. 아키텍처 개요
 
+**그림 1. 전체 AWS 단일 스택 아키텍처**
+
 ```mermaid
 graph TB
     subgraph User["User"]
@@ -91,6 +93,9 @@ graph TB
 ## 2. 레이어별 컴포넌트
 
 ### 2.1 Edge / Auth
+
+**표 1. Edge / Auth 레이어 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **CloudFront** | 정적 자산·SSR 캐시·WAF (한국 PoP) |
@@ -98,6 +103,9 @@ graph TB
 | **Cognito User Pool** | 인증 + 부서·페르소나 그룹 매핑 |
 
 ### 2.2 Frontend
+
+**표 2. Frontend 레이어 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **Next.js 14 (App Router)** | SSR + Client Components + 페르소나 스위처 |
@@ -105,6 +113,9 @@ graph TB
 | **Plotly / D3** | 차트·산점도·choropleth (S3, S5, S6) |
 
 ### 2.3 Backend
+
+**표 3. Backend 레이어 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **FastAPI (Python 3.12)** | API + SSE 스트리밍 |
@@ -112,6 +123,9 @@ graph TB
 | **OpenTelemetry** | 트레이싱 → CloudWatch + Langfuse |
 
 ### 2.4 AI / Agent
+
+**표 4. AI / Agent 레이어 컴포넌트와 역할, 적용 시나리오**
+
 | 컴포넌트 | 역할 | 시나리오 |
 |---|---|---|
 | **Bedrock Sonnet 4.6** | 챗봇·라벨링·코멘트 | S2, S3, S4, S6 |
@@ -122,6 +136,9 @@ graph TB
 | **Bedrock Guardrails** | 4 토픽 + 마케팅 동의 + PII + 미성년 화장품 | S8 |
 
 ### 2.5 Data Layer
+
+**표 5. Data Layer 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **Amazon Neptune** | KG 25 클래스, ~500K edges, openCypher |
@@ -130,6 +147,9 @@ graph TB
 | **DynamoDB** | 세션·페르소나·rate limit (TTL 활용) |
 
 ### 2.6 Data Ingest
+
+**표 6. Data Ingest 레이어 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **AWS Glue** | 외부 4종 데이터 ETL (소셜·기상·경제·경쟁사) |
@@ -162,6 +182,8 @@ graph TB
 
 ## 4. 보안·거버넌스
 
+**표 7. 보안·거버넌스 항목별 구현**
+
 | 항목 | 구현 |
 |---|---|
 | 인증 | Cognito (RS256 JWT) + Lambda@Edge 검증 |
@@ -174,6 +196,8 @@ graph TB
 ---
 
 ## 5. 비용 (8주 PoC)
+
+**표 8. 8주 PoC 항목별 비용 추정**
 
 | 항목 | 추정 |
 |---|---|
@@ -190,6 +214,8 @@ graph TB
 
 ## 6. 8주 PoC 마일스톤
 
+**표 9. 주차별 PoC 작업 계획**
+
 | 주차 | 작업 |
 |---|---|
 | 1-2 | VPC·Cognito·CloudFront·ECS 인프라 + Neptune 25 클래스 적재 + 외부 4종 ETL |
@@ -201,6 +227,8 @@ graph TB
 ---
 
 ## 7. 옵션 확장
+
+**표 10. 옵션 확장과 설명**
 
 | 옵션 | 설명 |
 |---|---|

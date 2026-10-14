@@ -28,6 +28,9 @@ sidebar_label: S8. Guardrails
 - 결과 로그 (Block/Allow/Mask 카운트)
 
 ## 4. 데이터 믹스
+
+**표 1. 가드레일 판단에 사용하는 데이터와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | Bedrock Guardrails | AWS |
@@ -46,6 +49,9 @@ sidebar_label: S8. Guardrails
 ```
 
 ## 6. 정책 카드
+
+**표 2. 가드레일 토픽별 액션**
+
 | 토픽 | 액션 |
 |---|---|
 | 폭력·혐오·성·오정보 | Block |

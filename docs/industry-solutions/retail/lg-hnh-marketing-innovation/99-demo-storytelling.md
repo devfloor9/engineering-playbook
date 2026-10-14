@@ -22,11 +22,13 @@ sidebar_label: 99. Demo Storytelling
 
 ## 0. Pre-Demo Preparation (5 min, outside demo time)
 
+**Table 1. Pre-demo preparation checklist**
+
 | Check | Item |
 |---|---|
 | OK | Top-5 (S1·S2·S3·S5·S7) all respond within 1 min |
 | OK | All 5 personas confirmed in sidebar order |
-| OK | cohort_tag badges (green/yellow/blue) |
+| OK | cohort_tag badges (real/synth/external) |
 | OK | Chatbot SSE trace panel functional |
 | OK | Backup scenarios (S4·S6·S8) validated once in advance |
 | OK | External data live (social · weather · economy · competitor) |
@@ -98,7 +100,7 @@ Four key messages:
 ## 3. Governance · Data Trust (3 min)
 
 ### 3.1 cohort_tag Separation (30 sec)
-- Demo result cards with green/yellow/blue badges
+- Demo result cards with real/synth/external badges
 - "Real / Synthetic / 4 external types specified on every card"
 
 ### 3.2 Guardrails (S8) (1 min)
@@ -119,6 +121,8 @@ Four key messages:
 
 ### 4.2 Next Steps (2 min)
 
+**Table 2. Duration and deliverables by next step**
+
 | Stage | Duration | Deliverables |
 |---|---|---|
 | Discovery | 2 weeks | First-party data inventory + accessibility review of 4 external types |
@@ -131,6 +135,8 @@ Four key messages:
 ---
 
 ## 5. Frequently Asked Questions
+
+**Table 3. Frequently asked questions and answer highlights**
 
 | Question | Answer Highlight |
 |---|---|
@@ -145,6 +151,8 @@ Four key messages:
 ---
 
 ## 6. Demo Failure Fallbacks
+
+**Table 4. Response by demo failure situation**
 
 | Failure | Response |
 |---|---|

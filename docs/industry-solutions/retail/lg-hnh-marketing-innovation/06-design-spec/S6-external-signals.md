@@ -32,6 +32,9 @@ sidebar_label: S6. External Signals
 - Period slider
 
 ## 4. Data Mix
+
+**Table 1. First-party mapping and use for the 4 external signals**
+
 | External Signal | First-Party Mapping | Use |
 |---|---|---|
 | **Social trends** (Naver · Google · X · Instagram · Olive Young) | Category · keyword mapping | Time series + SOV |

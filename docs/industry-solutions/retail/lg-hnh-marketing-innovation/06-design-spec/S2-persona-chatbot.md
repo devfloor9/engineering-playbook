@@ -46,6 +46,8 @@ Tools invoke autonomously — almost all data sources accessible (Snowflake · N
 
 ## 6. 12 Tools Used
 
+**Table 1. The 12 tools the chatbot invokes with descriptions**
+
 | Tool | Description |
 |---|---|
 | `semantic_search` | OpenSearch BM25+KNN+Rerank |
@@ -62,6 +64,9 @@ Tools invoke autonomously — almost all data sources accessible (Snowflake · N
 | `channel_metrics_push` | Channel KPI cache |
 
 ## 7. Per-Department Variations
+
+**Table 2. system prompt keywords and primary tools by persona**
+
 | Persona | system prompt keywords | Primary Tools |
 |---|---|---|
 | P1 Brand Marketer | Campaign · ROAS · Segment | campaign_simulator, attribution_calc |
