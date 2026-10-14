@@ -17,7 +17,7 @@ For Uni-President (統一企業), this PoC unifies its own BUs (Uni-President Fo
 
 ---
 
-## 🚀 Interactive Demo
+## Interactive Demo
 
 > <strong><a href="/engineering-playbook/demo/upi/" target="_blank" rel="noopener noreferrer">👉 Open Demo Page (new window)</a></strong>
 
@@ -26,6 +26,8 @@ Experience the core UIs hands-on: 11 scenarios + cross-BU OPENPOINT member journ
 ---
 
 ## 1. PoC One-Liner
+
+**Table 1. PoC audience, scope, and differentiator summary**
 
 | Axis | Content |
 |---|---|
@@ -36,6 +38,8 @@ Experience the core UIs hands-on: 11 scenarios + cross-BU OPENPOINT member journ
 ---
 
 ## 2. Business Structure (Public Information)
+
+**Table 2. Business structure by BU**
 
 | BU | Content |
 |---|---|
@@ -51,6 +55,8 @@ Experience the core UIs hands-on: 11 scenarios + cross-BU OPENPOINT member journ
 
 ## 3. 5-Department Personas
 
+**Table 3. Five department personas and KPIs**
+
 | Code | Department | KPI |
 |---|---|---|
 | **P1** | Integrated Marketing (cross-BU) | OPENPOINT campaign ROAS · cross-BU usage |
@@ -63,6 +69,8 @@ Experience the core UIs hands-on: 11 scenarios + cross-BU OPENPOINT member journ
 
 ## 4. 11-Scenario Summary
 
+**Table 4. Eleven scenarios and data mix**
+
 | # | Scenario | Data Mix |
 |---|---|---|
 | **S1** | Natural-language semantic search | Own SKUs + members + external reviews |
@@ -73,9 +81,9 @@ Experience the core UIs hands-on: 11 scenarios + cross-BU OPENPOINT member journ
 | **S6** | External signal fusion | 4 sources |
 | **S7** | Omnichannel member journey | 7ELE→Carrefour→Starbucks |
 | **S8** | Guardrails | PDPA compliance + minors |
-| **S9-U** ⭐ | **Cross-BU OPENPOINT member journey** | One member's cross-BU behavior |
-| **S10-U** ⭐ | **Own-manufactured SKU vs own-channel sell-through** | Uni-President SKU turnover at 7ELE/Carrefour |
-| **S11-U** ⭐ | **Cold-chain · logistics SLA + store-order optimization** | Cold chain vs store inventory + outdoor temperature |
+| **S9-U** (key) | **Cross-BU OPENPOINT member journey** | One member's cross-BU behavior |
+| **S10-U** (key) | **Own-manufactured SKU vs own-channel sell-through** | Uni-President SKU turnover at 7ELE/Carrefour |
+| **S11-U** (key) | **Cold-chain · logistics SLA + store-order optimization** | Cold chain vs store inventory + outdoor temperature |
 
 ---
 
@@ -87,12 +95,14 @@ Same as LG H&H + reinforced cross-BU ETL via Glue, TimeStream for cold chain, ~9
 
 ## 6. Top-5 Demo (30 min)
 
+**Table 5. Top-5 demo order and duration**
+
 | Order | Scenario | Duration |
 |---|---|---|
 | 1 | **S1** Semantic search | 4 min |
-| 2 | **S9-U** ⭐ Cross-BU OPENPOINT journey | 6 min (PoC decisive moment) |
-| 3 | **S10-U** ⭐ Own-SKU sell-through | 4 min |
-| 4 | **S11-U** ⭐ Cold-chain SLA | 4 min |
+| 2 | **S9-U** (key) Cross-BU OPENPOINT journey | 6 min (PoC decisive moment) |
+| 3 | **S10-U** (key) Own-SKU sell-through | 4 min |
+| 4 | **S11-U** (key) Cold-chain SLA | 4 min |
 | 5 | **S2** Persona chatbot | 4 min |
 
 ---

@@ -17,7 +17,7 @@ sidebar_label: Overview
 
 ---
 
-## 🚀 인터랙티브 데모
+## 인터랙티브 데모
 
 > <strong><a href="/engineering-playbook/demo/upi/" target="_blank" rel="noopener noreferrer">👉 데모 페이지 열기 (새 창)</a></strong>
 
@@ -26,6 +26,8 @@ sidebar_label: Overview
 ---
 
 ## 1. PoC 한 줄 요약
+
+**표 1. PoC 대상·범위·차별점 요약**
 
 | 축 | 내용 |
 |---|---|
@@ -36,6 +38,8 @@ sidebar_label: Overview
 ---
 
 ## 2. 사업 구조 (공개 정보)
+
+**표 2. BU별 사업 구조**
 
 | BU | 내용 |
 |---|---|
@@ -51,6 +55,8 @@ sidebar_label: Overview
 
 ## 3. 5 부서 페르소나
 
+**표 3. 5 부서 페르소나와 KPI**
+
 | 코드 | 부서 | KPI |
 |---|---|---|
 | **P1** | 통합 마케팅 (BU 가로) | OPENPOINT 캠페인 ROAS · BU 교차 사용 |
@@ -63,6 +69,8 @@ sidebar_label: Overview
 
 ## 4. 11 시나리오 요약
 
+**표 4. 11개 시나리오와 데이터 믹스**
+
 | # | 시나리오 | 데이터 믹스 |
 |---|---|---|
 | **S1** | 자연어 시맨틱 검색 | 자사 SKU + 회원 + 외부 후기 |
@@ -73,9 +81,9 @@ sidebar_label: Overview
 | **S6** | 외부 시그널 융합 | 4종 |
 | **S7** | 옴니채널 회원 여정 | 7ELE→까르푸→Starbucks |
 | **S8** | 가드레일 | PDPA 준수 + 미성년 |
-| **S9-U** ⭐ | **BU 가로지르는 OPENPOINT 회원 여정** | 한 회원이 BU 가로 행동 |
-| **S10-U** ⭐ | **자사 제조 SKU vs 자사 채널 sell-through** | 統一 SKU의 7ELE/까르푸 회전 |
-| **S11-U** ⭐ | **콜드체인·물류 SLA + 매장 발주 최적화** | 콜드체인 vs 매장 재고 + 외기온 |
+| **S9-U** (핵심) | **BU 가로지르는 OPENPOINT 회원 여정** | 한 회원이 BU 가로 행동 |
+| **S10-U** (핵심) | **자사 제조 SKU vs 자사 채널 sell-through** | 統一 SKU의 7ELE/까르푸 회전 |
+| **S11-U** (핵심) | **콜드체인·물류 SLA + 매장 발주 최적화** | 콜드체인 vs 매장 재고 + 외기온 |
 
 ---
 
@@ -87,12 +95,14 @@ LG H&H 동일 + BU 간 ETL Glue 강화, 콜드체인 TimeStream, ~900K edges (BU
 
 ## 6. Top-5 시연 (30분)
 
+**표 5. Top-5 시연 순서와 시간**
+
 | 순서 | 시나리오 | 시간 |
 |---|---|---|
 | 1 | **S1** 시맨틱 검색 | 4분 |
-| 2 | **S9-U** ⭐ BU 가로지르는 OPENPOINT 여정 | 6분 (PoC 결정적 한 컷) |
-| 3 | **S10-U** ⭐ 자사 SKU sell-through | 4분 |
-| 4 | **S11-U** ⭐ 콜드체인 SLA | 4분 |
+| 2 | **S9-U** (핵심) BU 가로지르는 OPENPOINT 여정 | 6분 (PoC 결정적 한 컷) |
+| 3 | **S10-U** (핵심) 자사 SKU sell-through | 4분 |
+| 4 | **S11-U** (핵심) 콜드체인 SLA | 4분 |
 | 5 | **S2** 페르소나 챗봇 | 4분 |
 
 ---
