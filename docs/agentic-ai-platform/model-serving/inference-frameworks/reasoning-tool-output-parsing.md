@@ -53,6 +53,8 @@ If a leak reproduces on every run of the same input, or disappears when the engi
 
 Five layers each interpret boundaries before model output reaches the user's screen. A leak occurs when any one layer disagrees with the others.
 
+**Figure 1. The five layers that interpret boundaries before model output reaches the user's screen**
+
 ```mermaid
 flowchart LR
     M["1. Model<br/>trained tags and channels"] --> T["2. Chat template<br/>prompt rendering<br/>enable_thinking"]
@@ -62,6 +64,8 @@ flowchart LR
     style P fill:#fff3e0,stroke:#f57c00
     style A fill:#e3f2fd,stroke:#1976d2
 ```
+
+**Table 1. The five layers that set output boundaries and the typical symptom on mismatch**
 
 | Layer | What sets the boundary | Typical symptom on mismatch |
 |---|---|---|
@@ -74,6 +78,8 @@ flowchart LR
 ## Output formats by model family
 
 The table below is compiled from the vLLM [Reasoning Outputs](https://docs.vllm.ai/en/latest/features/reasoning_outputs.html) and [Tool Calling](https://docs.vllm.ai/en/latest/features/tool_calling.html) docs and the SGLang [Reasoning Parser](https://docs.sglang.io/advanced_features/separate_reasoning.html) doc (checked 2026-10-06). A dash (–) means the doc table has no entry, not that the combination is unsupported.
+
+**Table 2. Reasoning boundary notation and reasoning/tool-call parsers by model family**
 
 | Model family | Reasoning boundary | Thinking default and toggle | vLLM reasoning parser | SGLang reasoning parser | vLLM tool-call parser |
 |---|---|---|---|---|---|
@@ -154,6 +160,8 @@ vLLM and SGLang do not constrain the reasoning span and apply JSON schema or reg
 
 When the reasoning end boundary is missed, output with no grammar constraint is returned as a normal HTTP 200. vLLM has repeated reports of this class across models and execution modes (status checked 2026-10-06).
 
+**Table 3. vLLM issues where a missed reasoning end boundary skips grammar constraints**
+
 | Issue | Behavior | Status |
 |---|---|---|
 | [#34650](https://github.com/vllm-project/vllm/issues/34650), [#43388](https://github.com/vllm-project/vllm/issues/43388) | Under MTP, speculative decoding, or async scheduling, `</think>` is missed and the JSON grammar is never applied; code fences or leading noise appear | Fix PRs #44297 and #44993 merged, included from v0.27.0 |
@@ -229,6 +237,8 @@ gpt-oss requires reasoning between tool calls to be passed back for the next sam
 
 The output remediation layer handles probabilistic leaks that remain after structural causes are removed. Proxies and libraries that validate, repair, and retry are a recurring pattern in open source as well. Choose one of three placements.
 
+**Table 4. Strengths and constraints of the three placements for the output remediation layer**
+
 | Placement | Strength | Constraint |
 |---|---|---|
 | LLM API Gateway (Tier 2②) | Applies consistently to every application, metrics collected in one place | Hard to know per-application schemas and domain rules |
@@ -294,6 +304,8 @@ When a leak is reported, narrow down the responsible layer in this order.
 6. **Check the client path** — Compare direct engine responses with responses through the gateway and client to see whether field-name translation or `if/elif` handling loses or mixes content.
 
 ## Troubleshooting
+
+**Table 5. Output integrity symptoms with their cause, action, and verification**
 
 | Symptom | Cause | Action | How to verify |
 |---|---|---|---|

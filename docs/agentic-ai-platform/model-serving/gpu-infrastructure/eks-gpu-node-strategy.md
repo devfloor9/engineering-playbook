@@ -30,6 +30,8 @@ When operating GPU workloads on EKS, node type selection directly impacts operat
 
 AWS EKS provides 4 node types for GPU workloads:
 
+**Table 1. Four node types for EKS GPU workloads**
+
 | Node Type | Description |
 |-----------|-------------|
 | **EKS Auto Mode** | AWS fully manages the entire node lifecycle (GPU drivers pre-installed) |
@@ -50,6 +52,8 @@ This document focuses on **node type selection and hybrid architecture design**.
 ## 2. Node Type Comparison
 
 ### 2.1 Feature Comparison Table
+
+**Table 2. Feature comparison by node type**
 
 | Feature | Auto Mode | Karpenter | Managed Node Group | Hybrid Node |
 |---------|-----------|-----------|-------------------|-------------|
@@ -282,6 +286,8 @@ Key points from the node strategy perspective:
 
 Operate Auto Mode + Karpenter + Hybrid Node simultaneously in a single EKS cluster.
 
+**Figure 1. Three-node-type coexistence architecture (Auto Mode, Karpenter, Hybrid Node)**
+
 ```mermaid
 flowchart TB
     Users[Users /<br/>Applications]
@@ -321,6 +327,8 @@ flowchart TB
 
 ### 5.2 Per-Workload Node Placement Strategy
 
+**Table 3. Node placement and GPU Operator requirement by workload type**
+
 | Workload Type | Node Type (example) | GPU Operator | Reason |
 |--------------|-----------|--------------|--------|
 | **System Components** | Auto Mode | Not needed | CPU-only, no GPU stack |
@@ -335,6 +343,8 @@ flowchart TB
 ### 5.3 MNG Hybrid for DRA Workloads
 
 DRA (Dynamic Resource Allocation) was made generally available in Kubernetes 1.34, providing attribute-based device selection, topology-aware allocation and device sharing beyond the Device Plugin. Per the EKS documentation (as of 2026-09), **DRA on EKS is supported on EKS managed node groups, self-managed nodes, and Karpenter using static capacity provisioning (K8s 1.33+, recommended 1.34+); it is not currently supported on EKS Auto Mode or on dynamically provisioned Karpenter capacity.** Upstream Karpenter added handling for DRA requests (`ignoreDRARequests`) from provider v1.14.0, but that governs how Karpenter schedules around DRA claims and does not make dynamic Karpenter provisioning a supported DRA capacity type on EKS. DRA devices are published by the NVIDIA DRA driver, which is separate from the GPU Operator. For the per-provisioning-method compatibility table and enablement parameters, see [GPU Resource Management — Node Provisioning Compatibility](./gpu-resource-management.md#node-provisioning-compatibility).
+
+**Figure 2. MNG hybrid configuration for DRA workloads**
 
 ```mermaid
 flowchart TB
@@ -361,6 +371,8 @@ flowchart TB
     style CA fill:#326ce5
 ```
 
+**Table 4. Allocation method and scaling by DRA, standard GPU, and non-GPU workload**
+
 | Workload | Node Type | GPU Allocation Method | Scaling |
 |---|---|---|---|
 | DRA Workloads (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
@@ -372,6 +384,8 @@ For detailed DRA scale-out strategies, see [GPU Resource Management](./gpu-resou
 ### 5.4 Recommended Node Strategy by Model Size
 
 The table below is a **starting-point estimate**, not a measured sizing. Actual GPU memory and utilization depend on weight dtype (FP16/FP8/INT4), context length, batch size and concurrency, so validate with your serving engine before committing. Note the official Meta Llama 3 family ships at 8B and 70B parameter sizes (there is no official "Llama 3 13B"); the 13B–30B row uses other models in that range.
+
+**Table 5. Candidate nodes and rationale by model size**
 
 | Model Size | Example | Candidate Node | Rationale (verify by measurement) |
 |---|---|---|---|
@@ -388,6 +402,8 @@ The following is a **hypothetical allocation example**, not a measured result. T
 
 Assume a target of serving 8 copies of a 7B model:
 
+**Table 6. Full-GPU vs MIG 4-way split billing for 8 copies of a 7B model (hypothetical example)**
+
 | Configuration | 7B Model Copies | GPUs Used | Billed p5.48xlarge Instances | Monthly Billed Cost |
 |---|---|---|---|---|
 | Full-GPU allocation (1 GPU per copy) | 8 | 8 of 8 on one instance | 1 | ~$40,000 |
@@ -402,6 +418,8 @@ A small model occupying a full large GPU leaves much of that GPU idle. MIG (on M
 ### 5.6 Optimal Configuration for Current Timeframe (2026-04)
 
 For most LLM serving environments, DRA is not yet essential. Device Plugin + MIG combination can sufficiently cover GPU partitioning and topology placement, and Karpenter's fast scale-out is more favorable for LLM serving SLOs than MNG + Cluster Autoscaler.
+
+**Figure 3. Karpenter + GPU Operator optimal configuration for the current timeframe (2026-04)**
 
 ```mermaid
 flowchart TB
@@ -436,6 +454,8 @@ flowchart TB
 ```
 
 The small-model NodePool uses g6e (NVIDIA L40S). L40S is **not** a MIG-capable GPU (MIG requires Ampere-or-newer data-center GPUs such as A100/H100/H200/B200), so a MIG resource like `nvidia.com/mig-3g.40gb` cannot be requested there; use a whole L40S GPU or time-slicing instead. Also note that KV-cache occupancy and TTFT are **inference-server** metrics (for example from vLLM), not DCGM counters; DCGM exposes GPU-level telemetry (utilization, power, framebuffer memory). KEDA scales on both signal sources, from their respective exporters.
+
+**Table 7. Karpenter + Device Plugin vs MNG + DRA**
 
 | Criteria | Karpenter + Device Plugin | MNG + DRA |
 |---|---|---|
@@ -481,6 +501,8 @@ Indicative cost: $80,000 - $500,000/month cloud (unmeasured) + Capex (on-premise
 
 ### 5.8 DRA Transition Timing
 
+**Table 8. Conditions requiring a transition to DRA**
+
 | Condition | Transition Required |
 |---|---|
 | P6e-GB200 UltraServer Adoption | Required for Multi-Node NVLink (MNNVL) ComputeDomains, which are DRA-only; plain GPU allocation on GB200 does not by itself require DRA |
@@ -507,6 +529,8 @@ EKS GPU node strategies have traditionally been designed around NVIDIA GPUs (p/g
 
 The comparison below is **directional guidance**, not measured benchmarking. "Day-1" and "porting delay" describe typical ecosystem patterns, not a guarantee for any specific model, and the TCO/cost-per-token rows depend on model, utilization and current pricing — treat them as hypotheses to validate for your workload.
 
+**Table 9. NVIDIA GPU vs AWS Neuron selection criteria**
+
 | Criteria | NVIDIA GPU (p5/p5en/p6/g6e) | AWS Neuron (trn2/inf2) |
 |------|---------------------------|---------------------|
 | **Model Ecosystem Recency** | New open models typically run on CUDA first, but each still needs a compatible serving backend/kernel | AWS porting cycle can lag (weeks to months); check Neuron support for the specific model |
@@ -520,6 +544,8 @@ The comparison below is **directional guidance**, not measured benchmarking. "Da
 | **Hybrid (On-Premises)** | Possible with Hybrid Node | EC2 only (no on-premises option) |
 
 ### 6.2 Selection Flow
+
+**Figure 4. NVIDIA GPU vs AWS Neuron selection flow**
 
 ```mermaid
 flowchart TD
@@ -559,6 +585,8 @@ For detailed Neuron SDK, Device Plugin, Karpenter NodePool, and inference framew
 ---
 
 ## 7. Node Strategy Decision Flowchart
+
+**Figure 5. GPU workload node type decision flowchart**
 
 ```mermaid
 flowchart TD
@@ -603,6 +631,8 @@ flowchart TD
 The locality/ownership check (`Q0`) is evaluated for any GPU workload, not only large models: data-residency requirements or existing on-premises GPU assets point to Hybrid Node regardless of model size. The model-size branch then covers the full range (70B+, 30B–65B, 13B–30B, 7B and below); for every size below 70B the decision turns on whether MIG/fractional sharing is needed, rather than assuming a single node type per size.
 
 ### Decision Summary Table
+
+**Table 10. Recommended node type and GPU Operator requirement by question**
 
 | Question | Recommended Node Type | GPU Operator |
 |----------|----------------------|-------------|

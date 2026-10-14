@@ -48,6 +48,8 @@ sidebar_label: 게이트웨이 라우팅 전략
 
 LLM 추론 플랫폼은 **3가지 서로 다른 Gateway 역할**을 명확히 구분해야 합니다. (전체 계층 정의는 [티어드 게이트웨이 아키텍처](./tiered-gateway-architecture.md) 참조)
 
+**표 1. Gateway 유형별 역할·구현체·위치**
+
 | Gateway 유형 | 역할 | 구현체 | 위치 |
 |-------------|------|-------|------|
 | **Ingress Gateway** | 외부 트래픽 수신, TLS 종료, 경로 기반 라우팅 | kgateway (NLB 연동) | Tier 1 |
@@ -55,6 +57,8 @@ LLM 추론 플랫폼은 **3가지 서로 다른 Gateway 역할**을 명확히 �
 | **Agent Data Plane** | MCP/A2A 프로토콜, stateful 세션, 도구 라우팅 | agentgateway | Tier 2-B |
 
 > **용어 주의**: 여기서 **Tier 2-A "LLM API Gateway"** 는 모델 API를 추상화하는 프로바이더 프록시(Bifrost/LiteLLM)입니다. 클러스터 내 추론 Pod로 라우팅하는 **Gateway API Inference Extension**(Tier 2 ①, 본 문서 후반부)과는 용도가 다릅니다.
+
+**그림 1. 2-Tier Gateway 계층별 요청 분배 구조**
 
 ```mermaid
 graph LR
@@ -77,6 +81,8 @@ graph LR
 - **Agent Data Plane (agentgateway)**: 본 설계에서는 MCP/A2A 프로토콜 처리와 stateful 세션 유지를 맡깁니다. agentgateway 자체는 LLM 프로바이더·추론 엔드포인트 라우팅도 수행할 수 있으나, 여기서는 역할을 분리하기 위해 그 책임을 L2-A에 둡니다.
 
 ### 전체 구조
+
+**그림 2. 2-Tier Gateway 전체 아키텍처와 관측성 연결**
 
 ```mermaid
 flowchart TB
@@ -134,6 +140,8 @@ flowchart TB
 
 ### Tier별 역할 분리
 
+**표 2. Tier별 컴포넌트·책임·프로토콜**
+
 | Tier | 컴포넌트 | 책임 | 프로토콜 |
 |------|----------|------|----------|
 | **Tier 1** (Ingress Gateway) | kgateway (Envoy 기반) | 트래픽 라우팅, mTLS, rate limiting, 네트워크 정책 | HTTP/HTTPS, gRPC |
@@ -161,6 +169,8 @@ Gateway API v1.6.0은 2026-06-29에 released되어 UDPRoute·TCPRoute가 GA(stan
 
 ### Dynamic Routing 개념
 
+**표 3. 동적 라우팅 유형별 기준과 사용 사례**
+
 | 라우팅 유형 | 기준 | 사용 사례 |
 |------------|------|----------|
 | **헤더 기반** | `x-model-id`, `x-provider` | 모델/프로바이더별 백엔드 선택 |
@@ -171,6 +181,8 @@ Gateway API v1.6.0은 2026-06-29에 released되어 UDPRoute·TCPRoute가 GA(stan
 카나리 배포는 5-10% 트래픽으로 시작하여 점진적으로 증가시키며, 문제 발생 시 weight=0으로 즉시 롤백합니다.
 
 ### 로드 밸런싱 전략
+
+**표 4. 로드 밸런싱 전략별 설명과 적합 시나리오**
 
 | 전략 | 설명 | 적합 시나리오 |
 |------|------|--------------|
@@ -198,6 +210,8 @@ import { TopologyEffectsTable } from '@site/src/components/InferenceGatewayTable
 
 ### 장애 대응 개념
 
+**표 5. 장애 대응 메커니즘과 LLM 추론 고려사항**
+
 | 메커니즘 | 설명 | LLM 추론 고려사항 |
 |----------|------|-------------------|
 | **타임아웃** | 요청별 최대 처리 시간 제한 | LLM 긴 응답 생성 시 수십 초 소요. 충분한 타임아웃 필요 (120s+) |
@@ -213,6 +227,8 @@ Gateway API 타임아웃에서 `backendRequest`는 **각 재시도(try)당 백�
 ## LLM Gateway 솔루션 비교
 
 ### 주요 솔루션 비교 표
+
+**표 6. LLM Gateway 솔루션별 특징·Cascade Routing·라이선스 비교**
 
 | 솔루션 | 언어 | 주요 특징 | Cascade Routing | 라이선스 | 적합 환경 |
 |--------|------|-----------|-----------------|----------|-----------|
@@ -240,6 +256,8 @@ Gateway API 타임아웃에서 `backendRequest`는 **각 재시도(try)당 백�
 
 ### 선택 기준
 
+**표 7. 사용 사례별 권장 솔루션과 선택 이유**
+
 | 사용 사례 | 권장 솔루션 | 이유 |
 |-----------|-----------|------|
 | 지능형 cascade (편의성 우선) | **LiteLLM** | 다전략/커스텀 라우팅 + 100+ 프로바이더, Python 생태계 통합 |
@@ -251,6 +269,8 @@ Gateway API 타임아웃에서 `backendRequest`는 **각 재시도(try)당 백�
 | 고성능 + 관측성 통합 | **Helicone** | Rust 기반 All-in-one |
 
 ### 시나리오별 추천 조합
+
+**표 8. 운영 시나리오별 추천 게이트웨이 조합**
 
 | 시나리오 | 추천 조합 | 이유 |
 |----------|----------|------|
@@ -280,6 +300,8 @@ Kubernetes Gateway API는 **Inference Extension**을 통해 LLM 추론을 쿠버
 
 검토 기준은 llm-d v0.8.1(2026-06-26), router v0.9.0, GIE v1.5.0, Gateway API v1.5.1입니다. 1차 스키마: [llm-d v0.8.1](https://github.com/llm-d/llm-d/releases/tag/v0.8.1), [InferencePool v1](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/crd/bases/inference.networking.k8s.io_inferencepools.yaml), [InferenceObjective v1alpha2](https://github.com/llm-d/llm-d-router/blob/v0.9.0/config/crd/bases/llm-d.ai_inferenceobjectives.yaml), [HTTPRoute v1](https://github.com/kubernetes-sigs/gateway-api/blob/v1.5.1/config/crd/standard/gateway.networking.k8s.io_httproutes.yaml).
 
+**표 9. Inference Extension 핵심 CRD의 소속·책임·예시**
+
 | 리소스 | 소속 / API | 책임 | 예시 |
 |--------|-----------|------|------|
 | **Deployment / LeaderWorkerSet** | Kubernetes / 별도 워크로드 API | 이미지·모델 인수·Pod GPU 요청·replica 수 | 워크로드의 `replicas: 3`과 `nvidia.com/gpu` |
@@ -296,6 +318,8 @@ Kubernetes Gateway API는 **Inference Extension**을 통해 LLM 추론을 쿠버
 [Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md)에서는 호환 Gateway 하나가 일반 Service와 InferencePool을 함께 처리할 수 있습니다. EPP는 선택 결과를 Gateway에 반환하며 직접 추론 트래픽을 프록시하지 않습니다. 별도 edge Gateway는 기존 ingress 유지나 보안·소유권 분리가 필요할 때 선택하고, 추가 홉·운영 비용과 timeout·retry·스트리밍·인증 헤더의 일관성을 검토합니다.
 
 실선은 요청·응답과 EPP 호출, 점선은 설정 참조입니다.
+
+**그림 3. Gateway API Inference Extension의 리소스·EPP 연결 구조**
 
 ```mermaid
 flowchart TB
@@ -382,6 +406,8 @@ spec:
 
 LLM 추론 플랫폼에서는 **모델/프로바이더 선택**과 **모델 내 Pod 선택**의 책임을 구분합니다. 논리적 역할의 차이가 곧 물리적인 두 게이트웨이 요구사항은 아닙니다. 지원되는 Gateway는 HTTPRoute와 EPP를 함께 사용해 두 역할을 연결할 수 있습니다.
 
+**표 10. 두 라우팅 레이어(L1/L2)의 결정 질문·신호·구현체**
+
 | 레이어 | 결정 질문 | 신호 | 단위 | 구현체 |
 |--------|----------|------|------|--------|
 | **L1 — LLM 프록시 / 엣지** | "어느 프로바이더/모델/리전?" | 비용·예산·프로바이더 health·인증·PII·semantic 유사도 | 모델/프로바이더 target | Kong, Bifrost, LiteLLM, Portkey, (kgateway) |
@@ -416,6 +442,8 @@ L2의 KV-cache-aware(prefix-aware) 라우팅에서 **라우팅 결정 자체는 
 
 > **게이트웨이 vs EPP 경계**: HTTPRoute의 pool 선택·가중치·경로 매칭은 **게이트웨이(Gateway API)** 가 수행하는 라우팅이며 EPP 파이프라인의 일부가 아닙니다. 게이트웨이가 어느 InferencePool로 보낼지 정한 뒤, 그 pool 안에서 "어느 Pod인지"만 EPP가 결정합니다.
 
+**표 11. EPP 내부 파이프라인 레이어별 역할**
+
 | 레이어 | 역할 |
 |--------|------|
 | Data Layer | InferencePool Pod 목록 + vLLM 메트릭 수집·가공, prefix 인덱스 등 조회용 데이터 준비 |
@@ -431,6 +459,8 @@ L2의 KV-cache-aware(prefix-aware) 라우팅에서 **라우팅 결정 자체는 
 ### L2 옵션 비교: EPP vs HyperPod Inference Operator vs Dynamo
 
 KV-aware routing(L2)을 무엇으로 구현하느냐의 비교입니다. 공통 제약은 InferencePool의 selector가 **같은 namespace의 Pod만** 선택한다는 점과, KV-aware 스케줄러가 vLLM worker의 실시간 메트릭에 의존한다는 점입니다. 따라서 L2 스케줄러와 vLLM은 **같은 클러스터**에 두는 것이 전제이고, 리전 locality(동일 리전 배치)는 메트릭 신선도·지연을 위한 **권장 사항**입니다(물리적으로 다른 리전이 금지된다기보다, 크로스리전 지연 때문에 권장되지 않음).
+
+**표 12. L2 KV-aware 라우팅 옵션(EPP·HyperPod·Dynamo) 비교**
 
 | 항목 | EPP(GIE) + Envoy 게이트웨이 | HyperPod Inference Operator | NVIDIA Dynamo |
 |------|---------------------------|----------------------------|---------------|
@@ -460,6 +490,8 @@ L2(KV-aware)는 vLLM worker의 실시간 메트릭(대체로 수백 ms~초 수�
 - **서울 = L1**(Kong/Bifrost/kgateway): 프로바이더·리전 라우팅, 인증, $예산, PII, failover, **session affinity**(prefix 캐시 보존)
 - **호주 = L2**(EPP/HyperPod router/Dynamo) + vLLM: KV-aware Pod 선택
 - KV cache 이득은 **호주 클러스터 내부에서만** 발생(크로스리전 홉은 캐시로 단축 불가). 리전 간 egress 비용·TTFT 가산 유의.
+
+**그림 4. 멀티리전 L1(서울)·L2(시드니) 역할 분리 구조**
 
 ```mermaid
 flowchart LR
@@ -516,6 +548,8 @@ Semantic Caching은 의미적으로 유사한 프롬프트를 감지하여 이�
 
 ### Envoy vs agentgateway 비교
 
+**표 13. Envoy 데이터 플레인과 agentgateway 비교**
+
 | 항목 | Envoy 데이터 플레인 | agentgateway |
 |------|---------------------|---------------------------|
 | **세션 관리** | Stateless, HTTP 쿠키 기반 | MCP 세션 추적(`Mcp-Session-Id`), 선택적 세션 스토어 — MCP 사양상 세션은 선택적이며 stateless 운영도 가능 |
@@ -550,6 +584,8 @@ import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTab
 
 <MonitoringMetricsTable />
 
+**표 14. 추론 게이트웨이 핵심 메트릭 카테고리와 의미**
+
 | 메트릭 카테고리 | 주요 항목 | 의미 |
 |----------------|----------|------|
 | **레이턴시** | TTFT (Time to First Token) | 첫 번째 토큰 생성까지의 시간. 사용자 체감 응답성 |
@@ -572,6 +608,8 @@ Bifrost는 `otel` 플러그인으로 OTel 전송을 활성화합니다. 상세 �
 ### 알림 규칙 권장 (시작용 예시) {#알림-규칙-권장}
 
 아래 조건은 **출발점 예시**이며 범용 기본값이 아닙니다. 각 조건에는 측정 윈도우·최소 샘플 수·대상 엔드포인트 범위를 함께 정의하고, 실제 메트릭 이름/레이블(예: Envoy/kgateway가 내보내는 시계열)에 맞춰 PromQL로 표현한 뒤 서비스 SLO에 맞게 조정하세요.
+
+**표 15. 알림 규칙 예시와 심각도**
 
 | 알림 | 조건(예시) | 심각도 |
 |------|------|--------|

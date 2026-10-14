@@ -32,6 +32,8 @@ import {
 
 GPU resource management strategies in EKS environments are organized around three axes.
 
+**Table 1. Three axes of GPU resource management**
+
 | Axis | Key Question | Core Technologies |
 |---|---|---|
 | **Provisioning** | Which GPU nodes to create and when? | Karpenter, EKS Auto Mode, Managed Node Group |
@@ -242,6 +244,8 @@ The DRA core reached GA in K8s 1.34 (`resource.k8s.io/v1`, enabled by default) a
 
 DRA separates the **declarative resource request** (ResourceClaim) from the **allocation decision**, which the `kube-scheduler` makes — not the driver. The DRA driver's role is to **publish** what each node offers as ResourceSlices and to **prepare** the device on the node once a Pod is bound; the scheduler then evaluates a Pod's ResourceClaim (for example "1 H100 GPU, MIG 3g.20gb profile") against those published slices using CEL and records the allocation in the ResourceClaim's status. For the general API object model and CEL matching principles, see [Kubernetes DRA — Core Model](../../../eks-best-practices/resource-cost/kubernetes-dra.md#the-dra-core-model). The flow below shows this ordering combined with node scale-out on EKS. Scale-out from zero additionally depends on the autoscaler being able to simulate the devices a not-yet-created node would publish (see [Node Provisioning Compatibility](#node-provisioning-compatibility)).
 
+**Figure 1. DRA GPU allocation and node scale-out flow**
+
 ```mermaid
 flowchart LR
     DRV[DRA Driver on node] -->|publishes| RS[ResourceSlices<br/>node capacity]
@@ -276,13 +280,15 @@ flowchart LR
 
 AWS's EKS device-management guidance distinguishes **statically provisioned** capacity (nodes that already exist) from **dynamically provisioned** capacity (nodes created on demand). As of the pinned date it states that DRA works with static capacity but not with dynamic Karpenter-created capacity or EKS Auto Mode.
 
+**Table 2. DRA support status by node provisioning method**
+
 | Node Provisioning | DRA with existing (static) nodes | DRA-driven scale-up (new nodes) | Notes |
 |---|---|---|---|
-| **Managed Node Group** | ✅ Supported | ⚠️ Only via Cluster Autoscaler with DRA simulation (CA 1.34+); requires the DRA driver installed and ResourceSlices simulable | Pods land on existing eligible nodes; scale-up from zero depends on the autoscaler simulating the devices the new node would publish |
-| **Self-Managed Node Group** | ✅ Supported | ⚠️ Same CA dependency as MNG | Manual node and driver configuration required |
-| **Self-managed Karpenter v1.14.0+** | ✅ Scheduling onto existing nodes with `ignoreDRARequests=false` | ❌ Not yet a verified scale-from-zero path on AWS | Core v1.14.0 ships the DRA allocator ([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113)), but the AWS provider does not populate template devices for a not-yet-created instance, so provisioning a new GPU node purely from a DRA request is unverified. See [Karpenter DRA scope](#karpenter-dra-enablement-parameters-v1140) |
-| **Self-managed Karpenter ≤ v1.13** | ❌ Not supported | ❌ Not supported | Skips Pods with `spec.resourceClaims` ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)) |
-| **EKS Auto Mode** | ❌ Not supported | ❌ Not supported | AWS's current guidance lists Auto Mode as not supporting DRA; AWS does not publish the internal Karpenter version, so treat this as an AWS support statement rather than an inferred version threshold |
+| **Managed Node Group** | Supported | Conditional: only via Cluster Autoscaler with DRA simulation (CA 1.34+); requires the DRA driver installed and ResourceSlices simulable | Pods land on existing eligible nodes; scale-up from zero depends on the autoscaler simulating the devices the new node would publish |
+| **Self-Managed Node Group** | Supported | Conditional: same CA dependency as MNG | Manual node and driver configuration required |
+| **Self-managed Karpenter v1.14.0+** | Supported: scheduling onto existing nodes with `ignoreDRARequests=false` | Not supported: not yet a verified scale-from-zero path on AWS | Core v1.14.0 ships the DRA allocator ([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113)), but the AWS provider does not populate template devices for a not-yet-created instance, so provisioning a new GPU node purely from a DRA request is unverified. See [Karpenter DRA scope](#karpenter-dra-enablement-parameters-v1140) |
+| **Self-managed Karpenter ≤ v1.13** | Not supported | Not supported | Skips Pods with `spec.resourceClaims` ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)) |
+| **EKS Auto Mode** | Not supported | Not supported | AWS's current guidance lists Auto Mode as not supporting DRA; AWS does not publish the internal Karpenter version, so treat this as an AWS support statement rather than an inferred version threshold |
 :::
 
 **Behavior differences by version:**
@@ -298,6 +304,8 @@ The core v1.14.0 allocator adds the simulation machinery, but on AWS the provide
 ### Karpenter DRA Enablement Parameters (v1.14.0+)
 
 Karpenter v1.14.0+ ships the DRA allocator code, but the **controller is deployed to ignore DRA requests by default**. To let self-managed Karpenter account for DRA requests when scheduling onto GPU nodes, the following parameters must be set explicitly. This enables DRA-aware **scheduling**; whether Karpenter can also provision a brand-new GPU node directly from a DRA request on AWS is a separate, currently unverified capability (the AWS provider does not populate the template devices a pre-creation simulation needs).
+
+**Table 3. Karpenter DRA enablement parameters (v1.14.0+)**
 
 | Layer | Parameter | Default | Setting for DRA |
 |---|---|---|---|
@@ -333,6 +341,8 @@ This Karpenter setting alone does not allocate GPUs. The component that actually
 ### Full DRA Stack Parameters (3 Layers)
 
 To use GPUs via DRA, parameters across three layers must all be satisfied: **node provisioning (Karpenter) + cluster DRA enablement + NVIDIA DRA driver**.
+
+**Table 4. DRA stack parameters across three layers**
 
 | Layer | Parameter | Default | Setting for DRA |
 |---|---|---|---|
@@ -384,6 +394,8 @@ The NVIDIA DRA driver (`nvidia-dra-driver-gpu`) has two subsystems: **GPU alloca
 
 GPU workload autoscaling operates as a **2-stage chain**.
 
+**Figure 2. KEDA Pod scaling and node scaling 2-stage chain**
+
 ```mermaid
 flowchart LR
     M[GPU Metrics<br/>DCGM/vLLM] --> KEDA[KEDA]
@@ -433,6 +445,8 @@ spec:
 ### Disaggregated Serving Scaling Criteria
 
 When operating Prefill and Decode separately, the bottleneck signals differ for each role.
+
+**Table 5. Bottleneck signals and scale criteria for Prefill and Decode**
 
 | | Prefill | Decode |
 |---|---|---|
@@ -492,6 +506,8 @@ The prices below are **illustrative example figures**, not a live quote. On-Dema
 
 The ranges below are **illustrative planning figures, not measured results**; actual savings depend on your baseline instance mix, utilization, Region, and purchase commitments. Treat them as "where to look", then measure against your own on-demand baseline.
 
+**Table 6. Four key Karpenter-based cost optimization strategies**
+
 | Strategy | Core Mechanism | Illustrative Savings vs On-Demand | Target |
 |----------|---------------|-----------------|--------|
 | **Spot Instance Priority** | `capacity-type: spot` + diverse instance types | up to ~60-90% on the Spot portion (varies by Region/capacity) | Interruption-tolerant inference (stateless) workloads |
@@ -512,6 +528,8 @@ The combined figures below are an **arithmetic example** on a hypothetical basel
 ### LLMOps Cost Governance
 
 Both infrastructure costs and **token-level costs** must be tracked for complete cost visibility.
+
+**Figure 3. Infrastructure- and application-layer cost tracking**
 
 ```mermaid
 flowchart LR

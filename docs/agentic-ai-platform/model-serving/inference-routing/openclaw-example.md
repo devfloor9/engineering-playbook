@@ -29,6 +29,8 @@ OpenClaw is a general-purpose AI agent framework that provides autonomous agent 
 
 Instead of that sample, this document **proposes an alternative architecture**: deploying the OpenClaw gateway on an existing EKS cluster and combining multi-model routing with 3-layer observability. The configurations, figures, and savings shown here are a design proposal that operators should validate against their own traffic and environment before adopting; they do not, by themselves, certify that the result is production-ready.
 
+**Table 1. EC2 standalone vs EKS-based deployment**
+
 | | EC2 Standalone Deployment (reference sample) | EKS-Based Deployment (alternative proposed here) |
 |---|---|---|
 | **Infrastructure** | EC2 + CloudFormation, instance-level management | Add Pods to existing EKS cluster, Karpenter auto-scaling |
@@ -38,6 +40,8 @@ Instead of that sample, this document **proposes an alternative architecture**: 
 | **Scalability** | Manual scaling | HPA/Karpenter auto-scaling, native Spot instance interruption handling |
 
 ### Related Documents
+
+**Table 2. Related documents and their relationship to this document**
 
 | Document | Content | Relationship |
 |----------|---------|-------------|
@@ -59,6 +63,8 @@ import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
 
 Each layer of this architecture is based on the following design decisions:
 
+**Table 3. Per-layer design decisions: choice, alternative, rationale**
+
 | Decision Area | Choice | Alternative | Key Rationale |
 |---------------|--------|-------------|---------------|
 | **Hosting Platform** | EKS | EC2 standalone / AgentCore | Karpenter auto-scaling, o11y stack flexibility, Spot/Graviton combination possible. Bedrock AgentCore reached GA in 2025-10 with scheduling/cron and observability integration, but whether to use the managed abstraction or control everything directly on EKS is a trade-off to decide per requirements ([AgentCore runtime docs](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html)) |
@@ -76,6 +82,8 @@ Each layer of this architecture is based on the following design decisions:
 
 OpenClaw (TypeScript/Node.js) and LiteLLM (Python) provide ARM64-compatible images and use multi-arch images.
 
+**Table 4. Compute instance configuration and future transition**
+
 | Item | Configuration | Details |
 |------|---------------|---------|
 | **Instance** | Graviton4 **M8g** | GA, 20-40% cost reduction vs x86 (workload-dependent), energy efficiency per AWS published figures |
@@ -85,6 +93,8 @@ OpenClaw (TypeScript/Node.js) and LiteLLM (Python) provide ARM64-compatible imag
 #### Spot Instance Operational Considerations {#stable-spot-instance-operations}
 
 To run the OpenClaw gateway on Spot Instances, first account for the fact that the gateway is a **stateful workload**. OpenClaw's official Kubernetes install includes a PersistentVolumeClaim (10Gi by default) for agent state and config, and after first boot the copy persisted in the PVC is the source of truth ([OpenClaw Kubernetes install](https://raw.githubusercontent.com/openclaw/openclaw/main/docs/install/kubernetes.md)). So persist the PVC and credentials so state survives node replacement, and define replicas, placement constraints, and termination behavior together. Three layers are combined for stable operations:
+
+**Table 5. Three-layer configuration for stable Spot operations**
 
 | Layer | Tool | Role |
 |-------|------|------|
@@ -112,6 +122,8 @@ spec:
 
 ### LLM Models — Content-Based Routing
 
+**Table 6. Models, providers, and routing rationale by query type**
+
 | Query Type | Model | Provider | Rationale |
 |------------|-------|----------|-----------|
 | General (default) | **Claude Sonnet 4.6** | Bedrock | Routing default, using the context length Bedrock supports. "Best performance" holds only against specific benchmarks, so compare on your target tasks before adopting |
@@ -124,6 +136,8 @@ The model IDs, providers, and context lengths above are as of writing; Bedrock-p
 
 ### Networking
 
+**Table 7. Networking components and technologies**
+
 | Component | Technology |
 |-----------|-----------|
 | CNI | Cilium (ENI mode) |
@@ -131,6 +145,8 @@ The model IDs, providers, and context lengths above are as of writing; Bedrock-p
 | Bedrock Connection | VPC Endpoint (`com.amazonaws.<region>.bedrock-runtime`) |
 
 ### Observability (3-Layer)
+
+**Table 8. Three-layer observability: tools and tracked data per layer**
 
 | Layer | Tool | Tracks |
 |-------|------|--------|
@@ -143,6 +159,8 @@ The model IDs, providers, and context lengths above are as of writing; Bedrock-p
 ## Cost Analysis
 
 The figures below are **example estimates** under specific traffic/capacity assumptions; actual cost varies with request volume, model mix, cache hit rate, and region. Bedrock API cost scales with usage, and usage-independent paid resources — VPC Endpoint, Redis, Langfuse storage/DB, and data transfer — are additional.
+
+**Table 9. Estimated monthly cost by item with assumptions and exclusions**
 
 | Item | Estimated Monthly Cost (example) | Assumptions / exclusions |
 |------|----------------------|------|
@@ -158,6 +176,8 @@ The figures below are **example estimates** under specific traffic/capacity assu
 ### Cost Optimization Strategies
 
 Each figure is a conditional effect; actual savings depend on traffic patterns and configuration.
+
+**Table 10. Cost optimization strategies and conditional effects**
 
 | Strategy | Detail | Effect (conditional) |
 |----------|--------|---------|
@@ -175,6 +195,8 @@ Each figure is a conditional effect; actual savings depend on traffic patterns a
 ### 5.1 Infrastructure
 
 #### EKS Cluster Prerequisites
+
+**Table 11. EKS cluster prerequisites**
 
 | Requirement | Details |
 |-------------|---------|
@@ -266,6 +288,8 @@ spec:
 #### Node Monitoring Agent — Node Health Monitoring
 
 Karpenter handles Spot interruption events, but it does not detect **system-level node issues** such as kernel problems, containerd failures, disk/network anomalies. Enabling the EKS Node Monitoring Agent (NMA) as an EKS Add-on covers this gap.
+
+**Table 12. Division of roles between Karpenter and NMA by detection area**
 
 | Detection Area | Karpenter | NMA |
 |----------------|-----------|-----|
@@ -524,6 +548,8 @@ The OpenClaw config schema has no top-level `ai` key. Models/providers go under 
 
 The thresholds below are an **example starting point**; tune real alerts to the metric type, observation window, and traffic SLO. For instance, "Pod restart > 3" is an investigation trigger rather than a direct signal that the gateway is down, and latency/error-rate rules are meaningful only when you also define the measurement window and sample size.
 
+**Table 13. Example alert rules and threshold conditions**
+
 | Alert | Condition (example) | Note |
 |-------|-----------|------|
 | Budget Threshold Approaching | LiteLLM budget &gt; 80% | Per virtual-key budget |
@@ -537,6 +563,8 @@ The thresholds below are an **example starting point**; tune real alerts to the 
 ## Verification Checklist
 
 A Pod being `Running` does not mean it is ready to serve traffic, so check readiness, end-to-end behavior, and fault recovery as well.
+
+**Table 14. Deployment verification checklist**
 
 | # | Check | Command / Action |
 |---|-------|-----------------|

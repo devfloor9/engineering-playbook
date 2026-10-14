@@ -72,6 +72,8 @@ After grasping the full picture with the map below, reading in the order **Accel
 
 An LLM inference request passes through multiple layers from the client to GPU computation. Each layer has a different responsibility, and which decisions are made at which layer changes latency, throughput, and cost.
 
+**Figure 1. Per-layer path an inference request takes from client to GPU**
+
 ```mermaid
 flowchart TB
     CLIENT["Client / Agent<br/>SDK · UI · MCP Client"]
@@ -135,6 +137,8 @@ Definitions and the correspondence between the two layers are covered in detail 
 
 The tuning levers that govern inference performance, organized by layer, are as follows. For detailed behavior and configuration of each lever, refer to the deep-dive documents on the right.
 
+**Table 1. Key tuning levers and affected metrics by layer**
+
 | Layer | Key Tuning Levers | Affected Metrics | Deep-Dive Document |
 |------|--------------|----------|----------|
 | **L0** GPU/Accelerator | Instance selection · MIG · Time-Slicing · DRA · Neuron | GPU utilization · cost | [GPU Resource Management](./gpu-infrastructure/gpu-resource-management.md) |
@@ -153,6 +157,8 @@ Reading from lower layers (L0 GPU) upward (L4 Gateway) gives the infrastructure 
 The "Inference Gateway" is not a single component but a bundle of multiple layers with different responsibilities. Across the platform, in-cluster inference Pod routing and external LLM provider proxying are explicitly separated.
 
 <TieredGatewayDiagram locale="en" />
+
+**Table 2. Inference gateway roles and representative implementations by layer**
 
 | Layer | Role | Representative Implementations |
 |------|------|------------|
@@ -207,6 +213,8 @@ The concept, layer structure, and relationships with vLLM/NIXL are covered in [L
 ## Cache-Hit Strategy
 
 Inference caches are split into **three layers**, not a single one, and each has different hit conditions and effects. The "exact identical request" and "similar request" conditions below are only **necessary** conditions for a hit; safe reuse also requires the tenant, authenticated principal, model, tool definitions, and data freshness to match.
+
+**Table 3. Hit conditions and effects of the three inference cache layers**
 
 | Cache Layer | Hit Condition | Effect |
 |----------|----------|------|

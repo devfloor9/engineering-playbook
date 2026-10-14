@@ -43,6 +43,8 @@ MoE 모델의 EKS 배포 YAML, helm 명령어, 멀티노드 구성 등 실전 �
 
 MoE 모델은 여러 개의 "Expert" 네트워크와 이를 선택하는 "Router(Gate)" 네트워크로 구성됩니다.
 
+**그림 1. Router가 Top-K Expert를 선택해 가중 결합하는 MoE 레이어 구조**
+
 ```mermaid
 flowchart TB
     INPUT[Input Token<br/>Hidden State]
@@ -81,6 +83,8 @@ flowchart TB
 
 MoE 모델의 핵심은 입력 토큰에 따라 적절한 Expert를 선택하는 라우팅 메커니즘입니다.
 
+**표 1. MoE 라우팅 방식별 선택 단위와 동작**
+
 | 방식 | 선택 단위와 동작 | 예시·근거 |
 |------|------------------|-----------|
 | Token-choice Top-K | 각 토큰이 Router 점수가 높은 K개 Expert를 선택 | [Mixtral은 K=2](https://arxiv.org/html/2401.04088v1), [Switch Transformer는 K=1](https://arxiv.org/html/2101.03961v3) |
@@ -101,6 +105,8 @@ MoE 모델의 핵심은 입력 토큰에 따라 적절한 Expert를 선택하는
 
 ### MoE vs Dense 모델 비교
 
+**표 2. Dense 모델과 MoE 모델의 파라미터·연산·학습·확장 특성 비교**
+
 | 비교 항목 | Dense | MoE |
 |-----------|-------|-----|
 | 파라미터 활성화 | Dense 레이어의 가중치를 토큰마다 사용 | 공유 레이어와 선택된 Expert의 가중치를 사용. 활성 비율은 모델마다 다름 |
@@ -112,6 +118,8 @@ MoE 모델의 핵심은 입력 토큰에 따라 적절한 Expert를 선택하는
 예를 들어 [Mixtral 8x7B](https://arxiv.org/html/2401.04088v1)의 활성 비율은 12.9B / 46.7B ≈ **27.6%**입니다. 아래 모델 카드 기준 GLM-5는 40B / 744B ≈ **5.4%**, Kimi K2.5는 32B / 1,000B = **3.2%**입니다. 이 비율은 가중치 메모리 절감률이나 실측 처리량을 뜻하지 않습니다.
 
 Mixtral의 약 47B 전체 / 13B 활성 파라미터는 **모델 전체**의 값입니다. 아래 오른쪽은 한 MoE 레이어에서 8개 FFN 중 2개를 선택하는 개념도이며, 각 Expert가 독립적인 7B 모델이라는 뜻이 아닙니다. 공유 attention 등 나머지 레이어는 생략했습니다.
+
+**그림 2. Dense 70B 전체 활성화와 Mixtral MoE 레이어의 Expert 선택 대비**
 
 ```mermaid
 flowchart LR
@@ -173,6 +181,8 @@ MoE는 토큰마다 일부 Expert만 계산해도 전체 가중치를 보관할 
 
 선택한 정밀도의 가중치와 KV cache·런타임 메모리가 한 GPU의 가용 메모리를 넘으면 병렬 분할이나 offload 같은 메모리 전략이 필요합니다. 분산 배포 여부는 활성 파라미터 수가 아니라 이 전체 예산과 목표 부하로 결정합니다.
 
+**그림 3. Tensor·Expert·Pipeline Parallelism의 GPU 분할 방식 비교**
+
 ```mermaid
 flowchart TB
     subgraph TP["Tensor Parallelism (TP=4)"]
@@ -215,6 +225,8 @@ flowchart TB
 
 다음은 BF16 가중치를 N개 rank에 **균등하게 나눈다고 가정한 산술 예시**입니다. N은 권장 GPU 수나 지원되는 TP 설정을 뜻하지 않습니다. 실제 TP에서는 복제되는 텐서, 분할 제약, rank별 편차와 가중치 외 메모리를 더 확인해야 합니다.
 
+**표 3. BF16 가중치를 가정한 rank 수로 균등 분할한 산술 예시**
+
 | 모델 | 전체 파라미터 | BF16 가중치만 (GB) | 가정한 rank 수 N | 가중치/N (GB/rank) |
 |------|---------------|-------------------|-----------------|--------------------|
 | Mixtral 8x7B | 46.7B | 93.4 | 2 | 46.7 |
@@ -241,6 +253,8 @@ EP를 켜면 MoE 레이어의 EP 크기는 `TP × DP`입니다. 예를 들어 `-
 ### Expert 활성화 패턴
 
 아래는 토큰 5개가 Expert 하나씩을 선택하는 **Top-1 산술 예시**입니다. Expert별 토큰 수는 2·1·1·1개이므로 비율은 40%·20%·20%·20%입니다. Mixtral의 Top-2 라우팅이나 실측 부하 분포를 나타내지 않습니다.
+
+**그림 4. 토큰 5개 Top-1 선택에서 나타나는 Expert별 부하 불균형 예시**
 
 ```mermaid
 flowchart TB
@@ -317,6 +331,8 @@ LeaderWorkerSet 같은 배포 도구는 분산 워커의 배치를 관리합니�
 
 성능 순위는 같은 모델 revision·정밀도·입출력 길이·동시성·하드웨어를 고정한 측정으로 판단합니다. 아래는 vLLM v0.25.0과 검토 대상 TGI 릴리스를 비교할 때 기록할 항목입니다.
 
+**표 4. vLLM과 TGI를 비교할 때 확인할 근거와 측정 항목**
+
 | 비교 항목 | 확인할 근거와 측정 |
 |-----------|-------------------|
 | 처리량 | 품질·지연 SLO를 만족한 출력 토큰 수와 측정 시간을 기록 |
@@ -337,6 +353,8 @@ AWS Trainium2와 Inferentia2는 Neuron 소프트웨어 스택을 사용하는 �
 
 ### 요약
 
+**표 5. Trainium2 기반 MoE 추론 검토 항목 개요**
+
 | 항목 | 개요 |
 |------|------|
 | 하드웨어 | trn2.48xlarge는 Trainium2 16칩. 칩당 물리 NeuronCore-v3 8개로 인스턴스당 128개이며, 기본 LNC=2에서는 논리 NeuronCore 64개로 노출 |
@@ -351,6 +369,8 @@ AWS Trainium2와 Inferentia2는 Neuron 소프트웨어 스택을 사용하는 �
 
 먼저 비용을 비교하는 하드웨어 단위를 구분합니다. HBM 수치는 [Neuron 아키텍처 문서](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trn2-arch.html)의 **GiB** 표기를 사용하며, UltraServer는 단일 인스턴스의 별칭이 아닙니다.
 
+**표 6. trn2.48xlarge와 Trn2 UltraServer의 가속기·메모리·네트워크 사양**
+
 | 비교 단위 | 가속기 구성 | Neuron 문서의 device memory | EFA 네트워크 사양 |
 |-----------|-------------|----------------------------|------------------|
 | trn2.48xlarge 1대 | Trainium2 16칩 | 1,536GiB | 3,200Gbps/인스턴스 |
@@ -361,6 +381,8 @@ AWS Trainium2와 Inferentia2는 Neuron 소프트웨어 스택을 사용하는 �
 :::info 사양 확인이 남아 있는 항목
 2026년 9월 19일 확인한 [EC2 인스턴스 사양 표](https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html)는 trn2.48xlarge의 가속기 메모리를 8,192GiB로, trn2u.48xlarge는 가속기 없음으로 표시하여 위 Neuron 문서와 다릅니다. Neuron의 UltraServer 네트워크 표에는 3,200Gbps가 표시되지만 EC2 제품 페이지는 4대 합계 12.8Tbps를 제시합니다. 위 표는 출처별 값을 구분해 적은 것이며, 이 차이가 해소된 사양으로 간주하지 않습니다. 용량이나 비용 산정에 사용하기 전에 대상 구성의 사양을 확인해야 합니다.
 :::
+
+**표 7. GPU·Trainium2 비용 비교 후보와 고정·기록할 조건**
 
 | 비용 비교 후보 | 비교 시 고정·기록할 조건 |
 |----------------|-------------------------|
@@ -386,6 +408,8 @@ Neuron SDK 아키텍처, 인스턴스 라인업, Device Plugin 배포, Karpenter
 
 KV cache는 추론 성능에 큰 영향을 미치는 핵심 요소입니다.
 
+**그림 5. 전통적 KV cache의 메모리 낭비와 PagedAttention 블록 할당 대비**
+
 ```mermaid
 flowchart LR
     subgraph Trad["Traditional KV Cache"]
@@ -408,6 +432,8 @@ flowchart LR
     style POOL fill:#76b900
 ```
 
+**표 8. vLLM v0.25.0 KV cache 관련 옵션의 의미와 조정 기준**
+
 | vLLM v0.25.0 옵션 | 의미와 조정 기준 |
 |------------------|------------------|
 | `--gpu-memory-utilization` | 현재 vLLM 인스턴스의 model executor에 할당할 GPU 메모리 비율. 전체 GPU 사용률 측정값이나 여러 프로세스 사이의 예약 기능이 아님 |
@@ -421,6 +447,8 @@ flowchart LR
 ### Speculative Decoding
 
 아래는 작은 드래프트 모델이 제안한 토큰을 target 모델이 검증하는 Speculative Decoding 개념도입니다. 승인된 prefix 뒤에 검증 결과에 맞는 토큰을 출력하며, 첫 거부 이후의 드래프트 토큰은 다시 생성합니다. 처리량 이득은 드래프트 계산 비용과 승인율, 배치·부하에 따라 달라집니다.
+
+**그림 6. 드래프트 모델 제안을 target 모델이 검증하는 Speculative Decoding 흐름**
 
 ```mermaid
 sequenceDiagram
@@ -453,6 +481,8 @@ sequenceDiagram
 
 ### 배치 처리 최적화
 
+**표 9. 배치 처리 최적화 기법별 동작과 비교할 지표**
+
 | 기법 | 동작 | 비교할 지표·범위 |
 |------|------|------------------|
 | Continuous Batching | 완료된 요청을 빼고 대기 요청을 다음 처리 배치에 추가 | 같은 부하에서 처리량·대기 시간·오류율을 비교. 보편적인 2–3배 향상률은 없음 |
@@ -468,6 +498,8 @@ vLLM의 실제 scheduling 동작은 [해당 버전의 tuning 문서](https://git
 ### 주요 모니터링 메트릭
 
 아래 vLLM 이름은 [v0.25.0 V1 exporter 정의](https://github.com/vllm-project/vllm/blob/v0.25.0/vllm/v1/metrics/loggers.py)를 기준으로 합니다. 배포한 `/metrics`의 실제 series·label을 확인하고, `model_name`·`engine` 구분을 보존한 뒤 집계 범위를 정하세요.
+
+**표 10. 주요 모니터링 메트릭의 단위와 해석**
 
 | 메트릭·PromQL | 단위·해석 |
 |----------------|-----------|
@@ -493,6 +525,8 @@ and
 이 식은 두 series의 label 집합이 일치한다고 가정합니다. 누락·비정상 collector 값은 먼저 점검하고, 여러 GPU의 used와 free를 서로 다른 범위로 합산하지 마세요. 위 5분 rate 구간과 0.95 기준은 운영 환경에 맞게 평가할 예시입니다.
 
 알림은 부하 시험에서 정한 SLO·지속 시간과 함께 구성합니다. 아래는 조사 방향이며 자동 장애 판정이나 scale-out 규칙이 아닙니다.
+
+**표 11. 모니터링 관측값별 확인할 내용**
 
 | 관측 | 확인할 내용 |
 |------|-------------|

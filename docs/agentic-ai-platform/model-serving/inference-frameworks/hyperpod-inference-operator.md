@@ -36,6 +36,8 @@ The two-layer (ALB + Intelligent Router) configuration this section describes co
 
 A HyperPod inference endpoint consists of two routing layers. This distinction is the starting point for the question "is the HyperPod gateway a full-stack gateway?"
 
+**Table 1. The two routing layers of a HyperPod inference endpoint and what each handles**
+
 | Layer | Component | Handled in this guide's configuration | Not handled in this guide's configuration |
 |--------|----------|------|---------------|
 | **L1 (Edge)** | Application Load Balancer | TLS termination, health checks, DNS (optional Route 53 integration) | Model/provider selection |
@@ -52,6 +54,8 @@ To apply request limits, metrics must be enabled on the deployment. The nginx si
 ## HyperPod Intelligent Router vs Tiered Gateway
 
 The 2-Tier gateway in the [Routing Strategy document](../../model-serving/inference-routing/routing-strategy.md) separates the **L1 edge gateway** (AuthN, rate limit, TLS) and **L2 inference routing** (KV-aware Pod selection) into distinct components. The comparison below is based on the Intelligent Router in the **operator-only architecture** (with the managed Inference Gateway not enabled, i.e. handling only L2).
+
+**Table 2. Feature comparison of the HyperPod Intelligent Router and a Tiered Gateway**
 
 | Feature | HyperPod Intelligent Router (operator-only) | Tiered Gateway (kgateway + EPP) |
 |------|----------------------------|--------------------------------|
@@ -99,6 +103,8 @@ kvCacheSpec:
 
 Intelligent Routing sends incoming requests to the instance most likely to hold the relevant KV cache. The following strategies are provided.
 
+**Table 3. The four strategies Intelligent Routing provides and their behavior**
+
 | Strategy | Behavior |
 |------|------|
 | `prefixaware` (default) | Routes requests with the same prompt prefix to the same instance |
@@ -109,6 +115,8 @@ Intelligent Routing sends incoming requests to the instance most likely to hold 
 The `kvaware` strategy has constraints. It works only with vLLM-based images, and you must set `invocationEndpoint` to `/completions` in the deployment manifest (`/v1/chat/completions` is not supported). This endpoint constraint applies only to `kvaware`; the other strategies (`prefixaware`, `session`, `roundrobin`) work with any invocation endpoint.
 
 Compatible LMCache/vLLM versions come in **two supported combinations** depending on the Operator version. v3.1.3 is not a minimum requirement: the official compatibility matrix lists a lower-version combination as supported as well.
+
+**Table 4. Compatible LMCache and vLLM version combinations by Operator version**
 
 | Inference Operator | Amazon EKS Add-on | LMCache Image | vLLM Image |
 |------|------|------|------|
@@ -135,6 +143,8 @@ In workloads where the **same token prefix is reused** and KV cache hit rate dom
 
 Concrete performance numbers (TTFT and throughput improvement) vary widely with model, hardware, percentile, baseline, and metric, so they are covered — together with sourced measurements — in [KV Cache Optimization](../inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing). The table below indicates only the direction of each lever's effect; absolute figures are not asserted without a benchmark artifact.
 
+**Table 5. Direction of each throughput (TTFT · TPS) lever's effect and how it applies in HyperPod**
+
 | Lever | Effect (direction) | In HyperPod |
 |------|------|-------------|
 | Prefix cache reuse | Skips prefill for an identical token prefix → lower TTFT, higher throughput (see the KV Cache Optimization doc for figures) | `prefixaware` / `kvaware` routing + L2 tiered cache |
@@ -145,6 +155,8 @@ Concrete performance numbers (TTFT and throughput improvement) vary widely with 
 The routing decision (prefix hash lookup) is not inference; only the final workload is inference. For this distinction, see [the routing note in the KV Cache Optimization document](../inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing).
 
 ## Fit and Limitations
+
+**Table 6. Good-fit areas and constraints of the HyperPod Inference Operator**
 
 | Aspect | Details |
 |------|------|

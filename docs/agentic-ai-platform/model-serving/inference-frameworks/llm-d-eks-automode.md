@@ -72,6 +72,8 @@ llm-d's Intelligent Inference Scheduling architecture is composed as follows.
 
 Solid lines show requests/responses and ext-proc calls; dotted lines show configuration references and Pod management. GPU counts and TP are illustrative workload values. InferencePool selects existing Pods and references an EPP; images, GPU requests, and replica counts belong to workloads such as Deployment/LeaderWorkerSet.
 
+**Figure 1. Component composition and reference relationships of llm-d Intelligent Inference Scheduling**
+
 ```mermaid
 flowchart TB
     CLIENT[Client App<br/>OpenAI API]
@@ -132,6 +134,8 @@ This guide uses the following Gateway Mode resources. Gateway API/GIE CRDs and t
 
 This configuration follows the NVIDIA GPU example in [Optimized Baseline v0.8.1](https://github.com/llm-d/llm-d/blob/v0.8.1/guides/optimized-baseline/README.md). These are recipe values, not EKS-validated defaults or universal defaults for every deployment path. This release uses a router Helm chart and model-server Kustomize manifests.
 
+**Table 1. Default deployment configuration based on the Optimized Baseline v0.8.1 example**
+
 | Setting | Example value | Defined in |
 |---------|---------------|------------|
 | Model | `Qwen/Qwen3-32B` | Model-server arguments |
@@ -157,6 +161,8 @@ Qwen3-32B is the default model in the Optimized Baseline example above and is Ap
 The core differentiator of llm-d is intelligent routing that is aware of KV cache state.
 
 This flow is a simplified example of configured EPP plugins. A Pod with cached prefixes may still lose selection because of load.
+
+**Figure 2. How the EPP selects an endpoint for a repeated-prefix request versus a new-prefix request**
 
 ```mermaid
 sequenceDiagram
@@ -248,6 +254,8 @@ Details: [EKS GPU Node Strategy — MNG Hybrid for DRA Workloads](../gpu-infrast
 
 Status follows the [v0.8.1 release](https://github.com/llm-d/llm-d/releases/tag/v0.8.1) and documentation at that tag. Deployment patterns, implemented features, and API stability describe different things.
 
+**Table 2. llm-d v0.8.1 key features and their status at the reviewed baseline**
+
 | Feature | Description | Status at the reviewed baseline |
 |---------|-------------|---------------------------------|
 | **Prefill/Decode Disaggregation** | Deploy separate Prefill and Decode Pod groups with KV transfer | [Well-lit path](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md) |
@@ -261,6 +269,8 @@ Status follows the [v0.8.1 release](https://github.com/llm-d/llm-d/releases/tag/
 ### Disaggregated Serving Concept
 
 Disaggregated Serving separates the two phases of LLM inference for independent optimization:
+
+**Figure 3. Prefill Pod group and Decode Pod group connected through NIXL KV transfer**
 
 ```mermaid
 flowchart LR
@@ -284,6 +294,8 @@ flowchart LR
     style Prefill fill:#326ce5,stroke:#333
     style Decode fill:#76b900,stroke:#333
 ```
+
+**Table 3. Computational characteristics and typical tuning of the Prefill and Decode phases**
 
 | Phase | Characteristics | Typical tuning (workload-specific) |
 |-------|----------------|----------------------|
@@ -312,6 +324,8 @@ Configure replicas, GPU requests, and nodeSelector/affinity in the model-server 
 
 llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with different approaches. For detailed comparison, see [NVIDIA GPU Stack — llm-d vs Dynamo Selection Guide](../gpu-infrastructure/nvidia-gpu-stack.md#llm-d-selection-guide).
 
+**Table 4. Comparison of llm-d and NVIDIA Dynamo across architecture, routing, and operations**
+
 | Item | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|
 | **Lead** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
@@ -336,6 +350,8 @@ llm-d and Dynamo are complementary. They are independent parallel stacks that sh
 :::
 
 ### Migration Path
+
+**Figure 4. Topology contrast between the Auto Mode + llm-d and Karpenter + Dynamo configurations**
 
 ```mermaid
 flowchart LR
@@ -369,6 +385,8 @@ flowchart LR
 **Phased transition path (optional designs, not a required ladder):**
 
 These phases are example configurations, not an ordered requirement; a larger GPU count does not by itself mandate a later phase or establish maximum performance. Choose a configuration from your workload's isolation, scheduling and DRA needs.
+
+**Table 5. Configuration and example fit for each phased transition path**
 
 | Phase | Configuration | Example fit |
 |-------|--------------|-------------|
@@ -408,6 +426,8 @@ As an example rate, p5.48xlarge On-Demand in us-west-2 is about $55.04/hr (refle
 
 ### Instance Support Matrix
 
+**Table 6. EKS Auto Mode GPU instance support status and observations by instance type**
+
 | Instance Type | GPU | VRAM (Total) | Auto Mode Support | Observation |
 |-------------|-----|-----------|---------------|-------------------|
 | g5.xlarge~48xlarge | A10G | 24~192GB | Supported | Provisioning observed |
@@ -424,6 +444,8 @@ EKS Auto Mode's managed Karpenter supports p6-b200.48xlarge as of 2026-04-10. "D
 
 ### Per-Region GPU Capacity Availability
 
+**Table 7. Per-region p5.48xlarge On-Demand/Spot availability and observed price**
+
 | Region | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot Price |
 |--------|---------------------|-----------------|-----------|
 | ap-northeast-2 (Seoul) | InsufficientCapacity (unverified) | Unconfirmed | -- |
@@ -432,6 +454,8 @@ EKS Auto Mode's managed Karpenter supports p6-b200.48xlarge as of 2026-04-10. "D
 **Spot Price Comparison (us-east-2, 2026-04)**: These are point-in-time observations without stored artifacts; treat them as unverified and expect no future availability guarantee. Against the $55.04/hr On-Demand example, an observed $13-15/hr Spot price implies about (55.04-15)/55.04 = 72.75% to (55.04-13)/55.04 = 76.38% savings — roughly **73-76%**, not a 90% upper bound. For detailed pricing, see [GPU Resource Management — Cost Optimization Strategies](../gpu-infrastructure/gpu-resource-management.md#cost-optimization-strategies).
 
 ### GPU Quota Notes
+
+**Table 8. GPU instance Service Quotas and example account-level values**
 
 | Quota Name | Applicable Instances | Default |
 |-----------|---------------------|---------|

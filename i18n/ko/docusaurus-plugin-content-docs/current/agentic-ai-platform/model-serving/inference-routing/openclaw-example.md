@@ -29,6 +29,8 @@ OpenClaw은 범용 AI 에이전트 프레임워크로, 다양한 LLM을 활용�
 
 이 문서는 그 샘플 대신 **기존 EKS 클러스터 위에 OpenClaw 게이트웨이를 배포**하고 멀티 모델 라우팅과 3계층 관측성을 결합하는 **대안 아키텍처를 제안**합니다. 여기서 제시하는 구성·수치·절감 효과는 운영자가 자신의 트래픽과 환경에서 검증한 뒤 채택해야 하는 설계안이며, 그 자체로 프로덕션 준비가 완료되었음을 보장하지 않습니다.
 
+**표 1. EC2 단독 배포와 EKS 기반 배포 비교**
+
 | | EC2 단독 배포(참조 샘플) | EKS 기반 배포 (본 문서가 제안하는 대안) |
 |---|---|---|
 | **인프라** | EC2 + CloudFormation, 인스턴스 단위 관리 | 기존 EKS 클러스터에 Pod 추가, Karpenter 자동 스케일링 |
@@ -38,6 +40,8 @@ OpenClaw은 범용 AI 에이전트 프레임워크로, 다양한 LLM을 활용�
 | **확장성** | 수동 스케일링 | HPA/Karpenter 자동 스케일링, Spot 인스턴스 네이티브 중단 대응 |
 
 ### 관련 문서
+
+**표 2. 관련 문서와 본 문서의 관계**
 
 | 문서 | 내용 | 관계 |
 |------|------|------|
@@ -59,6 +63,8 @@ import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
 
 이 아키텍처의 각 계층은 다음과 같은 설계 결정에 기반합니다:
 
+**표 3. 계층별 설계 결정: 선택·대안·근거**
+
 | 결정 영역 | 선택 | 대안 | 핵심 근거 |
 |-----------|------|------|-----------|
 | **호스팅 플랫폼** | EKS | EC2 단독 / AgentCore | Karpenter 자동 스케일링, o11y 스택 완전 자체 제어, Spot/Graviton 조합 가능, 비용 구조 유연성. Bedrock AgentCore는 2025-10 GA로 전환되어 cron/스케줄링과 관측성 통합을 제공하지만, 관리형 추상화를 쓸지 EKS에서 직접 제어할지는 트레이드오프이므로 요구사항에 맞춰 선택해야 합니다 ([AgentCore 런타임 문서](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/agents-tools-runtime.html)) |
@@ -76,6 +82,8 @@ import OpenClawArchitecture from '@site/src/components/OpenClawArchitecture';
 
 OpenClaw(TypeScript/Node.js)과 LiteLLM(Python)은 ARM64 호환 이미지를 제공하며, multi-arch 이미지를 사용합니다.
 
+**표 4. 컴퓨팅 인스턴스 구성과 향후 전환**
+
 | 항목 | 구성 | 상세 |
 |------|------|------|
 | **인스턴스** | Graviton4 **M8g** | GA, x86 대비 20-40% 비용 절감(워크로드별 상이), 에너지 효율은 AWS 공개 수치 참조 |
@@ -85,6 +93,8 @@ OpenClaw(TypeScript/Node.js)과 LiteLLM(Python)은 ARM64 호환 이미지를 제
 #### Spot Instance 운영 시 고려사항 {#spot-instance-안정-운영}
 
 OpenClaw 게이트웨이를 Spot Instance에서 운영하려면, 게이트웨이가 **상태를 보존하는(stateful) 워크로드**라는 점을 먼저 반영해야 합니다. OpenClaw의 공식 Kubernetes 설치는 에이전트 상태와 설정을 저장하는 PersistentVolumeClaim(기본 10Gi)을 포함하며, 첫 기동 이후에는 PVC에 저장된 사본이 설정의 기준입니다([OpenClaw Kubernetes 설치 문서](https://raw.githubusercontent.com/openclaw/openclaw/main/docs/install/kubernetes.md)). 따라서 노드가 교체되어도 상태가 유지되도록 PVC와 자격 증명을 영속화하고, 복수 레플리카·배치 제약·종료 동작을 함께 정의해야 합니다. 안정 운영을 위해 3가지 계층을 조합합니다:
+
+**표 5. Spot 안정 운영을 위한 3계층 구성**
 
 | 계층 | 도구 | 역할 |
 |------|------|------|
@@ -112,6 +122,8 @@ spec:
 
 ### LLM Models — Content-Based Routing
 
+**표 6. 질의 유형별 모델·프로바이더·라우팅 근거**
+
 | 질의 유형 | 모델 | 프로바이더 | 근거 |
 |-----------|------|-----------|------|
 | 범용 (기본) | **Claude Sonnet 4.6** | Bedrock | Bedrock에서 지원하는 컨텍스트 길이로 라우팅 기본값. "최고 성능"은 특정 벤치마크 기준으로만 성립하므로, 채택 전 대상 작업으로 비교해야 합니다 |
@@ -124,6 +136,8 @@ spec:
 
 ### Networking
 
+**표 7. 네트워킹 구성요소와 사용 기술**
+
 | Component | Technology |
 |-----------|-----------|
 | CNI | Cilium (ENI 모드) |
@@ -131,6 +145,8 @@ spec:
 | Bedrock 연결 | VPC Endpoint (`com.amazonaws.<region>.bedrock-runtime`) |
 
 ### Observability (3-Layer)
+
+**표 8. 3계층 관측성: 계층별 도구와 추적 대상**
 
 | Layer | Tool | Tracks |
 |-------|------|--------|
@@ -143,6 +159,8 @@ spec:
 ## Cost Analysis
 
 아래 수치는 특정 트래픽·용량 가정을 전제로 한 **예시 추정치**이며, 실제 비용은 요청량, 모델 선택, 캐시 적중률, 리전에 따라 달라집니다. Bedrock API 비용은 사용량에 비례하고, VPC Endpoint·Redis·Langfuse용 스토리지/DB·데이터 전송 등 사용량과 무관하게 발생하는 유료 리소스가 별도로 추가됩니다.
+
+**표 9. 항목별 예상 월 비용과 가정·제외 항목**
 
 | 항목 | 예상 월 비용(예시) | 가정·제외 항목 |
 |------|-------------|------|
@@ -158,6 +176,8 @@ spec:
 ### 비용 최적화 전략
 
 각 수치는 조건부 효과이며, 실제 절감은 트래픽 패턴과 설정에 따라 달라집니다.
+
+**표 10. 비용 최적화 전략과 조건부 효과**
 
 | Strategy | Detail | 효과(조건부) |
 |----------|--------|---------|
@@ -175,6 +195,8 @@ spec:
 ### 5.1 Infrastructure
 
 #### EKS 클러스터 사전 요구사항
+
+**표 11. EKS 클러스터 사전 요구사항**
 
 | 요구사항 | 상세 |
 |----------|------|
@@ -266,6 +288,8 @@ spec:
 #### Node Monitoring Agent — 노드 건강 상태 감시
 
 Karpenter는 Spot 중단 이벤트에 대응하지만, **노드 자체의 시스템 레벨 이상**(커널 문제, containerd 장애, 디스크/네트워크 이상 등)은 감지하지 않습니다. EKS Node Monitoring Agent(NMA)를 EKS Add-on으로 활성화하면 이 영역을 보완합니다.
+
+**표 12. 감지 영역별 Karpenter와 NMA의 역할 분담**
 
 | 감지 영역 | Karpenter | NMA |
 |-----------|-----------|-----|
@@ -524,6 +548,8 @@ OpenClaw 설정 스키마에는 최상위 `ai` 키가 없습니다. 모델·프�
 
 아래 임계값은 **예시 출발점**이며, 실제 알림은 메트릭 유형·관측 윈도우·트래픽 SLO에 맞춰 조정해야 합니다. 예를 들어 "Pod 재시작 > 3회"는 게이트웨이 다운의 직접 신호가 아니라 조사 트리거이고, 지연·에러율은 측정 윈도우와 샘플 수를 함께 정의해야 의미가 있습니다.
 
+**표 13. 알림 규칙 예시와 임계 조건**
+
 | Alert | Condition(예시) | 비고 |
 |-------|-----------|------|
 | 예산 초과 임박 | LiteLLM budget > 80% | 가상 키별 예산 기준 |
@@ -537,6 +563,8 @@ OpenClaw 설정 스키마에는 최상위 `ai` 키가 없습니다. 모델·프�
 ## Verification Checklist
 
 Pod가 `Running`이어도 트래픽을 받을 준비가 되었다는 뜻은 아니므로, 준비 상태(readiness)와 종단 간 동작, 장애 복구까지 함께 확인합니다.
+
+**표 14. 배포 검증 체크리스트**
 
 | # | Check | Command / Action |
 |---|-------|-----------------|

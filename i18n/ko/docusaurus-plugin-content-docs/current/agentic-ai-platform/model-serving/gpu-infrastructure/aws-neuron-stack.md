@@ -23,6 +23,8 @@ AWS Neuron은 AWS가 설계한 AI 가속기(Trainium, Inferentia) 위에서 학�
 
 이 문서는 Trainium2/Inferentia2 인스턴스를 EKS에서 운영하기 위한 Neuron 소프트웨어 스택, Device Plugin, Karpenter 구성, 추론 프레임워크 선택 기준을 다룹니다. NVIDIA GPU 기반 스택은 [NVIDIA GPU 스택](./nvidia-gpu-stack.md)을, 노드 타입 선택 전반은 [EKS GPU 노드 전략](./eks-gpu-node-strategy.md)을 참조하세요.
 
+**표 1. Neuron 스택 계층별 역할과 핵심 컴포넌트**
+
 | 계층 | 역할 | 핵심 컴포넌트 |
 |------|------|-------------|
 | **인프라 자동화** | Neuron 드라이버, 런타임, Device Plugin | aws-neuron-dkms, neuron-device-plugin |
@@ -57,6 +59,8 @@ Bedrock 이 서빙하는 일부 FM(Claude, Llama, Titan 등)은 내부적으로 
 
 ### 1.2 적합/비적합 워크로드
 
+**표 2. Neuron 적합·주의·부적합 워크로드 구분**
+
 | 구분 | 워크로드 |
 |------|---------|
 | **적합** | 표준 Llama/Mistral/Qwen 계열 추론, 대규모 장기 운영, FP8/BF16 기반 서빙, Bedrock 스타일 거버넌스 |
@@ -77,6 +81,8 @@ AWS 공식 제품 페이지 및 EC2 사용자 가이드 기준 2026-04 시점의
 
 ### 2.1 추론 전용 인스턴스 (Inferentia2)
 
+**표 3. Inferentia2 추론 전용 인스턴스 사양**
+
 | 인스턴스 | 칩 수 | NeuronCore | 총 가속기 메모리 | vCPU | 메모리 | 네트워크 |
 |---------|------|-----------|----------------|------|-------|---------|
 | inf2.xlarge | 1× Inferentia2 | 2 | 32 GB | 4 | 16 GB | 최대 15 Gbps |
@@ -85,6 +91,8 @@ AWS 공식 제품 페이지 및 EC2 사용자 가이드 기준 2026-04 시점의
 | inf2.48xlarge | 12× Inferentia2 | 24 | 384 GB | 192 | 768 GB | 100 Gbps |
 
 ### 2.2 학습·추론 겸용 인스턴스 (Trainium1/Trainium2)
+
+**표 4. Trainium1/Trainium2 학습·추론 겸용 인스턴스 사양**
 
 | 인스턴스 | 칩 수 | NeuronCore | 총 가속기 메모리 | vCPU | 메모리 | 네트워크 |
 |---------|------|-----------|----------------|------|-------|---------|
@@ -109,6 +117,8 @@ Trn2 UltraServer(trn2u, 4대의 trn2.48xlarge 를 NeuronLink 로 연결한 ultra
 ## 3. Neuron SDK 2.x 스택 아키텍처
 
 ### 3.1 계층 구조
+
+**그림 1. Neuron SDK 2.x 스택 계층 구조**
 
 ```mermaid
 flowchart TB
@@ -157,6 +167,8 @@ flowchart TB
 ```
 
 ### 3.2 핵심 컴포넌트
+
+**표 5. Neuron SDK 핵심 컴포넌트와 배포 형태**
 
 | 컴포넌트 | 설명 | 배포 형태 |
 |---------|------|---------|
@@ -238,6 +250,8 @@ Neuron SDK 2.20(2024-09)부터 `aws.amazon.com/neurondevice` 리소스는 `aws.a
 
 Pod 스펙에서 Neuron 리소스를 요청할 때 두 가지 단위 중 하나를 선택합니다.
 
+**표 6. Neuron 리소스 요청 단위와 사용 시점**
+
 | 리소스 | 의미 | 사용 시점 |
 |-------|------|---------|
 | `aws.amazon.com/neuron` | Neuron 칩 단위 (trn2 의 Trainium2 칩) | 칩 단위 할당이 명확한 경우 |
@@ -298,6 +312,8 @@ tolerations:
 ```
 
 ### 4.4 AMI 선택
+
+**표 7. Neuron 노드용 AMI 선택지와 권장 용도**
 
 | AMI | Neuron 드라이버 | 권장 용도 |
 |-----|--------------|---------|
@@ -450,6 +466,8 @@ HuggingFace 가 유지하는 TGI 의 **optimum-neuron** 기반 fork 입니다. `
 
 ### 6.4 프레임워크 비교
 
+**표 8. Neuron 추론 프레임워크 비교**
+
 | 항목 | NxD Inference | vLLM Neuron backend | TGI Neuron fork |
 |------|--------------|--------------------|-----------------| 
 | **유지 주체** | AWS 공식 | vLLM 커뮤니티 + AWS 기여 | HuggingFace + AWS 기여 |
@@ -477,6 +495,8 @@ AWS Neuron 공식 Model Zoo 및 NxD Inference 지원 매트릭스 기준입니�
 
 ### 7.1 주요 공식 지원 모델 (2026-04 기준)
 
+**표 9. 주요 공식 지원 모델과 권장 인스턴스 (2026-04 기준)**
+
 | 모델 | 크기 (활성/전체) | 권장 인스턴스 | Pre-compiled | 비고 |
 |------|-----|------------|-------------|------|
 | Llama 4 Scout (17Bx16E) | 17B 활성 / 109B 전체 (MoE) | trn2.48xlarge | 릴리스 기준 확인 | NxD 지원 — 지원 매트릭스 확인 |
@@ -495,6 +515,8 @@ AWS Neuron 공식 Model Zoo 및 NxD Inference 지원 매트릭스 기준입니�
 
 ### 7.2 양자화 지원
 
+**표 10. 양자화 포맷별 Neuron 지원 여부**
+
 | 포맷 | Neuron 지원 |
 |------|------------|
 | BF16 | 기본 |
@@ -511,6 +533,8 @@ AWS Neuron 공식 Model Zoo 및 NxD Inference 지원 매트릭스 기준입니�
 
 ### 8.1 Neuron 전용 도구
 
+**표 11. Neuron 전용 관측 도구와 사용 시점**
+
 | 도구 | 역할 | 사용 시점 |
 |-----|------|---------|
 | **neuron-ls** | 노드의 Neuron 디바이스 나열 | 초기 진단 |
@@ -519,6 +543,8 @@ AWS Neuron 공식 Model Zoo 및 NxD Inference 지원 매트릭스 기준입니�
 | **neuron-profile** | NEFF 실행 프로파일링 | 성능 최적화 |
 
 ### 8.2 Prometheus / CloudWatch 통합
+
+**그림 2. Neuron 메트릭 수집 체인 (Prometheus/CloudWatch)**
 
 ```mermaid
 flowchart LR
@@ -554,6 +580,8 @@ flowchart LR
 
 아래는 공식 Grafana 대시보드 예제(`neuron-monitor-grafana.json`)에서 실제로 사용하는 시계열 이름과 단위입니다. 정확한 라벨·시계열은 사용 중인 exporter 버전의 [neuron-monitor 사용자 가이드](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-sys-tools/neuron-monitor-user-guide.html)로 확인하세요.
 
+**표 12. 주요 Neuron 메트릭 시계열과 활용**
+
 | 메트릭 (시계열) | 설명 / 단위 | 활용 |
 |-------|------|------|
 | `neuroncore_utilization_ratio` | NeuronCore 사용률 (0~1 비율) | HPA/KEDA 트리거 |
@@ -571,6 +599,8 @@ flowchart LR
 ## 9. 한계 및 주의사항
 
 ### 9.1 기능 제약
+
+**표 13. Neuron 기능 제약 범주와 내용**
 
 | 범주 | 제약 |
 |------|------|

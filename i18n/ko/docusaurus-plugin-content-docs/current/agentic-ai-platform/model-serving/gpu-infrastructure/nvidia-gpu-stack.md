@@ -26,6 +26,8 @@ import { SpecificationTable, ComparisonTable } from '@site/src/components/tables
 
 NVIDIA GPU 소프트웨어 스택은 Kubernetes 환경에서 GPU를 운영하기 위한 계층 구조로 구성됩니다.
 
+**표 1. NVIDIA GPU 소프트웨어 스택 계층별 역할과 핵심 컴포넌트**
+
 | 계층 | 역할 | 핵심 컴포넌트 |
 |------|------|-------------|
 | **인프라 자동화** | GPU 드라이버, 런타임, 플러그인을 선언적으로 관리 | GPU Operator (ClusterPolicy CRD) |
@@ -45,6 +47,8 @@ GPU Operator는 **ClusterPolicy CRD** 하나로 GPU 스택 전체를 번들링�
 
 :::info GPU Operator v26.3.2 (2026-06 기준)
 
+**표 2. GPU Operator v26.3.2 번들 컴포넌트 버전**
+
 | 컴포넌트 | 버전 | 역할 |
 |----------|------|------|
 | GPU Operator | **v26.3.2** | GPU 스택 라이프사이클 관리 |
@@ -60,6 +64,8 @@ GPU Operator는 **ClusterPolicy CRD** 하나로 GPU 스택 전체를 번들링�
 :::
 
 ### 컴포넌트 구조
+
+**그림 1. GPU Operator ClusterPolicy 컴포넌트 구조**
 
 ```mermaid
 flowchart TB
@@ -98,12 +104,14 @@ flowchart TB
 
 ### EKS 환경별 GPU Operator 구성
 
+**표 3. EKS 환경별 GPU Operator 컴포넌트 설치 여부**
+
 | 환경 | Driver | Toolkit | Device Plugin | MIG | 비고 |
 |------|--------|---------|---------------|-----|------|
-| **EKS Auto Mode** | ❌ (AWS 자동) | ❌ (AWS 자동) | ❌ (레이블로 비활성화) | ❌ | DCGM/NFD/GFD 정상 동작 |
-| **Karpenter (Self-Managed)** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | 완전 지원 |
-| **Managed Node Group** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | 완전 지원 |
-| **Hybrid Node (온프레미스)** | ✅ (필수) | ✅ (필수) | ✅ | ✅ | GPU Operator 필수 |
+| **EKS Auto Mode** | 미설치(AWS 자동) | 미설치(AWS 자동) | 미설치(레이블로 비활성화) | 미지원 | DCGM/NFD/GFD 정상 동작 |
+| **Karpenter (Self-Managed)** | 미설치(AL2023 AMI) | 미설치(AL2023 AMI) | 설치 | 지원 | 완전 지원 |
+| **Managed Node Group** | 미설치(AL2023 AMI) | 미설치(AL2023 AMI) | 설치 | 지원 | 완전 지원 |
+| **Hybrid Node (온프레미스)** | 설치(필수) | 설치(필수) | 설치 | 지원 | GPU Operator 필수 |
 
 :::caution AMI별 GPU Driver 제약
 - **AL2023 / Bottlerocket**: GPU 드라이버가 AMI에 사전 설치. `driver`와 `toolkit` 모두 `enabled: false` 필수
@@ -212,6 +220,8 @@ NVIDIA DCGM(Data Center GPU Manager)은 GPU 상태를 수집하고 Prometheus로
 <Tabs>
   <TabItem value="daemonset" label="DaemonSet (권장)" default>
 
+**표 4. DCGM Exporter DaemonSet 배포 방식 특성**
+
 | 항목 | 내용 |
 |------|------|
 | **리소스 효율** | 노드당 1개 인스턴스 — 오버헤드 최소 |
@@ -221,6 +231,8 @@ NVIDIA DCGM(Data Center GPU Manager)은 GPU 상태를 수집하고 Prometheus로
 
   </TabItem>
   <TabItem value="sidecar" label="Sidecar (특수 용도)">
+
+**표 5. DCGM Exporter Sidecar 배포 방식 특성**
 
 | 항목 | 내용 |
 |------|------|
@@ -424,6 +436,8 @@ Pod에서는 일반 GPU 요청과 동일하게 `nvidia.com/gpu: 1`을 요청합�
 
 Dynamo는 Aggregated Serving과 Disaggregated Serving 모두 지원합니다. Disaggregated 모드에서는 Prefill(프롬프트 처리)과 Decode(토큰 생성)를 분리하여 독립 스케일링합니다.
 
+**그림 2. Dynamo Disaggregated Serving 아키텍처**
+
 ```mermaid
 flowchart TD
     CLIENT["요청"] --> ROUTER["Dynamo Router<br/>KV Cache-aware"]
@@ -463,6 +477,8 @@ flowchart TD
 
 ### 핵심 컴포넌트
 
+**표 6. Dynamo 핵심 컴포넌트와 이점**
+
 | 컴포넌트 | 역할 | 이점 |
 |----------|------|------|
 | **Disaggregated Serving** | Prefill/Decode 워커 분리 | 각 단계별 독립 스케일링, GPU 활용 극대화 |
@@ -496,6 +512,8 @@ Dynamo:   Client → Dynamo Router → Prefill Workers → (NIXL) → Decode Wor
   ]}
 />
 
+**표 7. 시나리오별 llm-d/Dynamo 추천**
+
 | 시나리오 | 추천 (경험적 지침) |
 |----------|------|
 | 기존 vLLM에 라우팅만 추가 | **llm-d** |
@@ -518,6 +536,8 @@ llm-d로 시작해서 규모가 커지면 Dynamo로 전환하는 것이 현실�
 KAI Scheduler는 NVIDIA의 **GPU-aware Kubernetes Pod 스케줄러**입니다. 기본 kube-scheduler와 달리 GPU 토폴로지(NVLink, PCIe), MIG 슬라이스, Gang Scheduling을 인식하여 최적의 Pod 배치를 결정합니다.
 
 ### 핵심 기능
+
+**표 8. KAI Scheduler 핵심 기능**
 
 | 기능 | 설명 |
 |------|------|
