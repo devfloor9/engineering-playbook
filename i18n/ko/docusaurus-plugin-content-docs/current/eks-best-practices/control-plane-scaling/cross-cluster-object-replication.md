@@ -32,6 +32,8 @@ EKS는 관리형 Cross-Cluster Object Replication 기능을 제공하지 않습�
 
 ### 이 가이드의 범위
 
+**표 1. 이 가이드가 다루는 범위와 다루지 않는 범위**
+
 | 포함 | 미포함 |
 |------|--------|
 | K8s 오브젝트 복제 (ConfigMap, Secret, CRD, RBAC 등) | 애플리케이션 데이터 복제 (DB 레플리카) |
@@ -48,6 +50,8 @@ Cross-Cluster Object Replication을 구현하는 세 가지 핵심 패턴이 있
 ### Pattern 1: API Proxy (Push 모델)
 
 중앙 라우팅 레이어가 각 클러스터의 API Server로 CRUD 요청을 직접 프록시합니다.
+
+**그림 1. API Proxy(Push 모델)의 요청 흐름**
 
 ```mermaid
 graph LR
@@ -67,6 +71,8 @@ graph LR
 ### Pattern 2: Multi-cluster Controller (Kubefed 계열)
 
 중앙 컨트롤러가 Informer 기반 List-Watch로 각 클러스터의 상태를 감시하고 CRD를 통해 동기화합니다.
+
+**그림 2. Multi-cluster Controller의 List-Watch 동기화 구조**
 
 ```mermaid
 graph TB
@@ -93,6 +99,8 @@ Kubernetes SIG에서 Kubefed(v2)는 사실상 유지보수 모드입니다. 신�
 ### Pattern 3: Agent-based Pull 모델 (권장)
 
 각 클러스터의 에이전트가 중앙 소스(Git 또는 허브 클러스터)에서 원하는 상태를 Pull하여 로컬에서 Reconcile합니다. kubelet이 Pod 스펙을 받아 로컬에서 실행하는 것과 동일한 원리입니다.
+
+**그림 3. Agent-based Pull 모델의 Reconcile 흐름**
 
 ```mermaid
 graph TB
@@ -122,6 +130,8 @@ graph TB
 
 ### 패턴 비교 종합
 
+**표 2. 세 가지 복제 패턴의 동작 방식·확장성·보안 비교**
+
 | 관점 | API Proxy | Multi-cluster Controller | Agent-based Pull |
 |------|-----------|--------------------------|-------------------|
 | **동작 방식** | 중앙 → 클러스터 Push | 중앙 Watch + CRD 동기화 | 클러스터 → 중앙 Pull |
@@ -133,6 +143,8 @@ graph TB
 | **권장 시나리오** | PoC, 소규모 | 레거시 환경 | **프로덕션 (권장)** |
 
 ### 의사결정 플로우차트
+
+**그림 4. 클러스터 수와 요구사항에 따른 패턴 선택 흐름**
 
 ```mermaid
 flowchart TD
@@ -166,6 +178,8 @@ flowchart TD
 ### Option A: GitOps (Flux / ArgoCD) — 대부분의 유스케이스에 권장
 
 Git 레포지토리를 Single Source of Truth로 사용하고, 각 클러스터의 GitOps 에이전트가 독립적으로 Pull & Reconcile합니다.
+
+**그림 5. GitOps 기반 Single Source of Truth 복제 구조**
 
 ```mermaid
 graph TB
@@ -212,6 +226,8 @@ Active 클러스터만 GitOps 에이전트를 활성화합니다. Passive 클러
 
 Management Cluster에 ArgoCD를 설치하고, ApplicationSets를 통해 여러 워크로드 클러스터에 배포합니다.
 
+**그림 6. ArgoCD Hub-and-Spoke 배포 구조**
+
 ```mermaid
 graph TB
     subgraph "Management Cluster"
@@ -239,6 +255,8 @@ graph TB
 
 **HA 구성 전략:**
 
+**표 3. Hub-and-Spoke의 HA 구성 전략 비교**
+
 | 전략 | 설명 | 적합 시나리오 |
 |------|------|---------------|
 | **Active-Passive 미러링** | 두 리전에 ArgoCD를 배포하되, Passive는 컨트롤러를 비활성화. 페일오버 시 수동 Scale-Up | DR 요건이 낮은 환경 |
@@ -260,6 +278,8 @@ ArgoCD ApplicationSets의 `Cluster Generator`를 사용하면 ArgoCD에 등록�
 
 **장단점:**
 
+**표 4. Custom Controller 방식의 장점과 단점**
+
 | 장점 | 단점 |
 |------|------|
 | 관심사 분리가 명확 | 추가 운영 오버헤드 |
@@ -273,6 +293,8 @@ ArgoCD ApplicationSets의 `Cluster Generator`를 사용하면 ArgoCD에 등록�
 
 ### 비교 테이블
 
+**표 5. Active-Active와 Active-Passive 구성의 관점별 비교**
+
 | 관점 | Active-Active | Active-Passive |
 |------|---------------|----------------|
 | **오브젝트 동기화** | 양쪽 클러스터가 동일 Git 소스에서 독립 Pull | Active만 Reconcile, Passive는 대기 |
@@ -283,6 +305,8 @@ ArgoCD ApplicationSets의 `Cluster Generator`를 사용하면 ArgoCD에 등록�
 | **적합 시나리오** | 멀티 리전 HA, 글로벌 로드밸런싱 | DR, 비용 민감 HA |
 
 ### 워크로드 유형별 권장 모드
+
+**그림 7. 워크로드 유형에 따른 Active-Active/Active-Passive 권장 모드**
 
 ```mermaid
 graph LR
@@ -316,6 +340,8 @@ graph LR
 
 오브젝트 복제만으로는 완전한 Cross-Cluster HA를 달성할 수 없습니다. 다음 도구를 조합하여 전체 스택을 구성합니다.
 
+**표 6. Cross-Cluster HA 스택을 구성하는 보조 도구와 역할**
+
 | 도구 | 역할 | 비고 |
 |------|------|------|
 | **Flux / ArgoCD** | K8s 오브젝트 복제 (GitOps) | 핵심 복제 메커니즘 |
@@ -326,6 +352,8 @@ graph LR
 | **Crossplane / ACK** | AWS 리소스 정의 동기화 | IaC를 K8s 오브젝트로 관리 |
 
 ### 도구 조합 아키텍처
+
+**그림 8. GitOps·Velero·Route 53를 결합한 전체 스택 구조**
 
 ```mermaid
 graph TB
@@ -369,6 +397,8 @@ graph TB
 
 EKS 멀티 클러스터 관리 영역에서 아직 관리형 서비스로 제공되지 않는 기능들이 있습니다.
 
+**표 7. 아직 관리형으로 제공되지 않는 기능과 대안**
+
 | 영역 | 현재 상태 | 대안 |
 |------|-----------|------|
 | **관리형 ClusterSets** | 미출시 | RAM(Resource Access Manager)으로 Cross-Account 그룹핑 |
@@ -385,6 +415,8 @@ EKS 멀티 클러스터 관리 영역에서 아직 관리형 서비스로 제공
 ## 7. 실전 권장 조합
 
 단일 클러스터 의존성을 제거하기 위한 최종 권장 도구 조합입니다.
+
+**표 8. 목적별 최종 권장 도구와 구성 방식**
 
 | 목적 | 권장 도구 | 구성 방식 |
 |------|-----------|-----------|

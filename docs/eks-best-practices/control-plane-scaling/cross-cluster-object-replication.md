@@ -32,6 +32,8 @@ EKS does not provide managed Cross-Cluster Object Replication. Therefore, you mu
 
 ### Scope of This Guide
 
+**Table 1. What this guide covers and does not cover**
+
 | Included | Not Included |
 |----------|-------------|
 | K8s object replication (ConfigMap, Secret, CRD, RBAC, etc.) | Application data replication (DB replicas) |
@@ -48,6 +50,8 @@ There are three core patterns for implementing Cross-Cluster Object Replication.
 ### Pattern 1: API Proxy (Push Model)
 
 A central routing layer directly proxies CRUD requests to each cluster's API Server.
+
+**Figure 1. Request flow of the API Proxy (Push model)**
 
 ```mermaid
 graph LR
@@ -67,6 +71,8 @@ graph LR
 ### Pattern 2: Multi-cluster Controller (Kubefed-style)
 
 A central controller monitors each cluster's state via Informer-based List-Watch and synchronizes through CRDs.
+
+**Figure 2. List-Watch synchronization structure of the Multi-cluster Controller**
 
 ```mermaid
 graph TB
@@ -93,6 +99,8 @@ Kubefed (v2) is effectively in maintenance mode by the Kubernetes SIG. It is not
 ### Pattern 3: Agent-based Pull Model (Recommended)
 
 Agents in each cluster pull the desired state from a central source (Git or hub cluster) and reconcile locally. This follows the same principle as kubelet receiving Pod specs and running them locally.
+
+**Figure 3. Reconcile flow of the Agent-based Pull model**
 
 ```mermaid
 graph TB
@@ -122,6 +130,8 @@ graph TB
 
 ### Pattern Comparison Summary
 
+**Table 2. Operation, scalability, and security comparison of the three replication patterns**
+
 | Aspect | API Proxy | Multi-cluster Controller | Agent-based Pull |
 |--------|-----------|--------------------------|-------------------|
 | **Operation** | Central → Cluster Push | Central Watch + CRD Sync | Cluster → Central Pull |
@@ -133,6 +143,8 @@ graph TB
 | **Recommended For** | PoC, small scale | Legacy environments | **Production (recommended)** |
 
 ### Decision Flowchart
+
+**Figure 4. Pattern selection flow by cluster count and requirements**
 
 ```mermaid
 flowchart TD
@@ -166,6 +178,8 @@ flowchart TD
 ### Option A: GitOps (Flux / ArgoCD) — Recommended for Most Use Cases
 
 Uses a Git repository as the Single Source of Truth, with GitOps agents in each cluster independently pulling and reconciling.
+
+**Figure 5. GitOps-based Single Source of Truth replication structure**
 
 ```mermaid
 graph TB
@@ -212,6 +226,8 @@ Only the Active cluster has its GitOps agent enabled. The Passive cluster keeps 
 
 Install ArgoCD on a Management Cluster and deploy to multiple workload clusters via ApplicationSets.
 
+**Figure 6. ArgoCD Hub-and-Spoke deployment structure**
+
 ```mermaid
 graph TB
     subgraph "Management Cluster"
@@ -239,6 +255,8 @@ graph TB
 
 **HA Strategies:**
 
+**Table 3. HA strategy comparison for Hub-and-Spoke**
+
 | Strategy | Description | Suitable Scenario |
 |----------|-------------|-------------------|
 | **Active-Passive Mirroring** | Deploy ArgoCD in two regions; Passive keeps controllers disabled. Manual Scale-Up during failover | Environments with low DR requirements |
@@ -260,6 +278,8 @@ When fine-grained control over object replication is needed, develop a dedicated
 
 **Pros and Cons:**
 
+**Table 4. Pros and cons of the Custom Controller approach**
+
 | Pros | Cons |
 |------|------|
 | Clear separation of concerns | Additional operational overhead |
@@ -273,6 +293,8 @@ When fine-grained control over object replication is needed, develop a dedicated
 
 ### Comparison Table
 
+**Table 5. Comparison of Active-Active and Active-Passive configurations by aspect**
+
 | Aspect | Active-Active | Active-Passive |
 |--------|---------------|----------------|
 | **Object Sync** | Both clusters independently pull from same Git source | Only Active reconciles; Passive stands by |
@@ -283,6 +305,8 @@ When fine-grained control over object replication is needed, develop a dedicated
 | **Suitable Scenario** | Multi-region HA, global load balancing | DR, cost-sensitive HA |
 
 ### Recommended Mode by Workload Type
+
+**Figure 7. Recommended Active-Active/Active-Passive mode by workload type**
 
 ```mermaid
 graph LR
@@ -316,6 +340,8 @@ graph LR
 
 Object replication alone cannot achieve complete Cross-Cluster HA. Combine the following tools to build the full stack.
 
+**Table 6. Supporting tools and roles that make up the Cross-Cluster HA stack**
+
 | Tool | Role | Notes |
 |------|------|-------|
 | **Flux / ArgoCD** | K8s object replication (GitOps) | Core replication mechanism |
@@ -326,6 +352,8 @@ Object replication alone cannot achieve complete Cross-Cluster HA. Combine the f
 | **Crossplane / ACK** | AWS resource definition sync | Manage IaC as K8s objects |
 
 ### Tool Combination Architecture
+
+**Figure 8. Full stack structure combining GitOps, Velero, and Route 53**
 
 ```mermaid
 graph TB
@@ -369,6 +397,8 @@ graph TB
 
 There are features in the EKS multi-cluster management space that are not yet available as managed services.
 
+**Table 7. Features not yet available as managed services, and their alternatives**
+
 | Area | Current State | Alternative |
 |------|---------------|-------------|
 | **Managed ClusterSets** | Not released | RAM (Resource Access Manager) for Cross-Account grouping |
@@ -385,6 +415,8 @@ Until these features are released, the GitOps + supporting tool stack combinatio
 ## 7. Recommended Production Combinations
 
 Final recommended tool combinations for eliminating single-cluster dependency.
+
+**Table 8. Final recommended tools and configurations by purpose**
 
 | Purpose | Recommended Tool | Configuration |
 |---------|------------------|---------------|
