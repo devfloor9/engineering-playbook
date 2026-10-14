@@ -28,12 +28,6 @@ const SCOPE = {
     tags: 'Tags', feed: 'Feed'},
 };
 
-const EXCLUDED_REASON = {
-  ko: {no: 'Bedrock 미제공', no_glm: 'Bedrock 미제공, GLM 5.3으로 대체', X: '가중치 공개 여부 미확인', G: '어느 그룹에도 속하지 않음'},
-  en: {no: 'Not on Bedrock', no_glm: 'Not on Bedrock; GLM 5.3 measured instead', X: 'open-weight status not verified',
-    G: 'neither group'},
-};
-
 const GROUP_METRICS = [
   {key: 'cost_usd', ko: '비용(run당)', en: 'Cost per run', f: usd},
   {key: 'output_tokens', ko: '출력 토큰', en: 'Output tokens', f: int},
@@ -91,27 +85,25 @@ const TEXT = {
     ].join('\n'),
     scatter: '차트: 모델별 run당 비용 중앙값(가로, 로그 눈금)과 run 시간 중앙값(세로)입니다. 같은 값이 아래 "모델별 결과" 표에 있습니다.',
     matrix: '차트: 모델별 run당 비용, run 시간, 출력 토큰, 전체 토큰, LLM 요청의 5회 최소–최대 범위와 중앙값입니다. 중앙값과 범위는 바로 아래 표에, run별 값은 `src/data/ralph-loop-bedrock.json`에 있습니다.',
-    same: '차트: 같은 pi 하네스로 실행한 공개 run의 Bedrock 단가 환산 비용, 이번 실측 비용, 빌더 몫 비용입니다. 공개 run이 있는 모델: '
-      + data.models.filter(m => m.published_pi_run).map(m => `${m.name} 공개 ${usd(m.published_pi_run.cost_usd)} → 이번 ${usd(m.stats.cost_usd.med)}`).join(', ') + '.',
     card: m => `- **${m.name}** (${data.group_labels[m.group].ko} · ${m.vendor}, run당 ${usd(m.stats.cost_usd.med)}): ${m.note.ko}`,
     method: () => [
       '다이어그램: 측정 방식',
       `- 과제: ${M.task.spec} 백엔드(${M.task.stack.join(', ')}). 구현 범위: ${M.task.scope.map(s => SCOPE.ko[s] || s).join(', ')}.`,
       `- 완주 조건(둘 다 충족): 빌더가 \`.ralph-done\`을 만들고, 공식 Hurl 채점이 ${M.grader.hurl_files}개 파일(요청 ${M.grader.requests}개)을 모두 통과합니다. 채점에 실패하면 \`.ralph-done\`을 지우고 다음 반복을 진행합니다.`,
-      '- 한 번의 반복: 빌더(원 리포트 프롬프트로 구현, 2회차부터 REVIEW.md 먼저 읽기) → 검증자(Hurl 테스트를 직접 실행하고 REVIEW.md 작성) → 채점(원 리포트 기준으로 완주 판정). 미완주면 새 세션으로 다음 반복을 진행하며, 저장소만 이어집니다. 빌더와 검증자는 같은 모델입니다.',
+      '- 한 번의 반복: 빌더(PROMPT-en.md로 구현, 2회차부터 REVIEW.md 먼저 읽기) → 검증자(Hurl 테스트를 직접 실행하고 REVIEW.md 작성) → 채점(공식 Hurl 테스트로 완주 판정). 미완주면 새 세션으로 다음 반복을 진행하며, 저장소만 이어집니다. 빌더와 검증자는 같은 모델입니다.',
       `- 가드레일: 반복 상한 ${M.limits.iterations_max}회, run 시간 상한 ${Math.round(M.limits.run_cap_sec / 60)}분, 멈춤 감지 ${M.limits.stall_sec}초, 비용 한도 run $${M.limits.cost_cap_usd.run} · 모델 $${M.limits.cost_cap_usd.model} · 전체 $${int(M.limits.cost_cap_usd.total)}.`,
       `- 격리와 실행: 에이전트 세션·채점마다 Docker 컨테이너 1개(${M.container.mem_gb} GB, CPU ${M.container.cpus}개, 프로세스 ${int(M.container.pids)}개). Bedrock 전용 단기 API 키(최대 ${M.credentials.token_ttl_min}분, ${M.credentials.refresh_min}분마다 갱신)만 넘기고 AWS 액세스 키는 넘기지 않았습니다. 최대 ${M.limits.parallel_models}개 모델을 병렬로, 한 모델의 ${M.limits.runs_per_model}회는 차례로 실행했습니다.`,
       `- 하네스: ${M.harness.agent} ${M.harness.version}, ${M.harness.api}, thinking ${M.harness.thinking}, 영어 프롬프트.`,
     ].join('\n'),
     lineup: () => {
       const f = data.models.filter(m => m.group === 'F'), c = data.models.filter(m => m.group === 'C');
-      const badge = m => (data.lineup.retention_required.includes(m.key) ? ' (데이터 보존 aws_review 필요)'
-        : data.lineup.not_in_reference.includes(m.key) ? ' (원 리포트에 없음)' : '');
+      const badge = m => (data.lineup.retention_required.includes(m.key) ? ' (데이터 보존 aws_review 필요)' : '');
+      const nm = data.lineup.not_measured, cat = data.lineup.catalog;
       return [
-        '다이어그램: 비교 대상 모델과 제외 사유. 모두 us-east-1에서 미국 교차 리전 추론 프로필(`us.` 모델 ID)로 호출했고, 2026-10-12에 모델 카드·계정 권한·실제 호출 3단계로 확인했습니다.',
+        '다이어그램: 측정한 모델. 모두 us-east-1에서 미국 교차 리전 추론 프로필(`us.` 모델 ID)로 호출했고, 2026-10-12에 모델 카드·계정 권한·실제 호출 3단계로 확인했습니다.',
         `- 그룹 1 프론티어, 실측 ${f.length}개: ${f.map(m => m.name + badge(m)).join(', ')}`,
         `- 그룹 2 중국 오픈웨이트, 실측 ${c.length}개: ${c.map(m => m.name + badge(m)).join(', ')}`,
-        `- 제외 ${data.lineup.excluded.length}개: ${data.lineup.excluded.map(x => `${x.name}(${x.vendor}; ${EXCLUDED_REASON.ko[x.availability]}, ${EXCLUDED_REASON.ko[x.class]})`).join(', ')}`,
+        `- 측정 범위: us-east-1에서 호출할 수 있는 텍스트 생성 모델 중 ${f.length + c.length}개를 측정했습니다. Bedrock에는 이 밖에도 ${nm.map(x => x.name).join('·')} 등의 텍스트 생성 모델이 있지만 이번 측정에는 포함하지 않았습니다(${cat.checked} 기준).`,
       ].join('\n');
     },
     tokens: () => [
@@ -153,27 +145,25 @@ const TEXT = {
     ].join('\n'),
     scatter: 'Chart: median cost per run (horizontal, log scale) against median run time (vertical) for each model. The same values are in the "Results by model" table below.',
     matrix: 'Chart: minimum–maximum range and median over five runs of cost per run, run time, output tokens, total tokens and LLM requests for each model. Medians and ranges are in the table below; per-run values are in `src/data/ralph-loop-bedrock.json`.',
-    same: 'Chart: re-priced cost of the published pi run, this measurement\'s cost and the builder-only cost for each model. Models with a published run: '
-      + data.models.filter(m => m.published_pi_run).map(m => `${m.name} published ${usd(m.published_pi_run.cost_usd)} → this ${usd(m.stats.cost_usd.med)}`).join(', ') + '.',
     card: m => `- **${m.name}** (${data.group_labels[m.group].en} · ${m.vendor}, ${usd(m.stats.cost_usd.med)} per run): ${m.note.en}`,
     method: () => [
       'Diagram: how each run works',
       `- Task: ${M.task.spec} backend (${M.task.stack.join(', ')}). Scope: ${M.task.scope.map(s => SCOPE.en[s] || s).join(', ')}.`,
       `- Completion (both must hold): the builder creates \`.ralph-done\`, and the official Hurl grader passes all ${M.grader.hurl_files} files (${M.grader.requests} requests). If grading fails, the harness deletes \`.ralph-done\` and runs another iteration.`,
-      '- One iteration: builder (implements from the reference prompt; from iteration 2 it reads REVIEW.md first) → verifier (runs the Hurl tests itself and writes REVIEW.md) → grader (decides completion with the reference criteria). If not complete, the next iteration starts in a new session; only the repository carries over. Builder and verifier use the same model.',
+      '- One iteration: builder (implements from PROMPT-en.md; from iteration 2 it reads REVIEW.md first) → verifier (runs the Hurl tests itself and writes REVIEW.md) → grader (decides completion with the official Hurl tests). If not complete, the next iteration starts in a new session; only the repository carries over. Builder and verifier use the same model.',
       `- Guardrails: up to ${M.limits.iterations_max} iterations, ${Math.round(M.limits.run_cap_sec / 60)}-minute run cap, ${M.limits.stall_sec}-second stall watchdog, cost caps $${M.limits.cost_cap_usd.run} per run · $${M.limits.cost_cap_usd.model} per model · $${int(M.limits.cost_cap_usd.total)} total.`,
       `- Isolation and execution: one Docker container per agent session and per grading pass (${M.container.mem_gb} GB, ${M.container.cpus} CPUs, ${int(M.container.pids)} processes). Containers received only a Bedrock-only short-term API key (max ${M.credentials.token_ttl_min} min, refreshed every ${M.credentials.refresh_min} min), no AWS access keys. Up to ${M.limits.parallel_models} models ran in parallel; the ${M.limits.runs_per_model} runs of one model ran in sequence.`,
       `- Harness: ${M.harness.agent} ${M.harness.version}, ${M.harness.api}, thinking ${M.harness.thinking}, English prompts.`,
     ].join('\n'),
     lineup: () => {
       const f = data.models.filter(m => m.group === 'F'), c = data.models.filter(m => m.group === 'C');
-      const badge = m => (data.lineup.retention_required.includes(m.key) ? ' (requires data retention aws_review)'
-        : data.lineup.not_in_reference.includes(m.key) ? ' (not in the reference report)' : '');
+      const badge = m => (data.lineup.retention_required.includes(m.key) ? ' (requires data retention aws_review)' : '');
+      const nm = data.lineup.not_measured, cat = data.lineup.catalog;
       return [
-        'Diagram: models compared and why others were excluded. All were called in us-east-1 through US cross-Region inference profiles (`us.` model IDs), checked on 2026-10-12 in three steps: model cards, account permissions and a live call.',
+        'Diagram: models measured. All were called in us-east-1 through US cross-Region inference profiles (`us.` model IDs), checked on 2026-10-12 in three steps: model cards, account permissions and a live call.',
         `- Group 1 frontier, measured (${f.length}): ${f.map(m => m.name + badge(m)).join(', ')}`,
         `- Group 2 Chinese open-weight, measured (${c.length}): ${c.map(m => m.name + badge(m)).join(', ')}`,
-        `- Excluded (${data.lineup.excluded.length}): ${data.lineup.excluded.map(x => `${x.name} (${x.vendor}; ${EXCLUDED_REASON.en[x.availability]}; ${EXCLUDED_REASON.en[x.class]})`).join(', ')}`,
+        `- Scope: ${f.length + c.length} of the text-generation models callable in us-east-1 were measured. Bedrock also offers other text-generation models, e.g. ${nm.map(x => x.name).join(', ')}, which were not included (checked ${cat.checked}).`,
       ].join('\n');
     },
     tokens: () => [
@@ -214,7 +204,6 @@ function ralphRenderers(renderer) {
     RalphKpiStrip: () => t().kpi(data.highlights),
     RalphCostTimeScatter: () => t().scatter,
     RalphMetricMatrix: () => t().matrix,
-    RalphSameModelChart: () => t().same,
     RalphModelCards: () => data.models.map(m => t().card(m)).join('\n'),
     RalphMethodFlow: () => t().method(),
     RalphLineupMap: () => t().lineup(),
@@ -227,7 +216,7 @@ function ralphRenderers(renderer) {
 
 const RALPH_FILES = {
   RalphKpiStrip: 'KpiStrip.js', RalphCostTimeScatter: 'CostTimeScatter.js', RalphMetricMatrix: 'MetricMatrix.js',
-  RalphSameModelChart: 'SameModelChart.js', RalphModelCards: 'ModelCards.js', RalphMethodFlow: 'MethodFlow.js',
+  RalphModelCards: 'ModelCards.js', RalphMethodFlow: 'MethodFlow.js',
   RalphLineupMap: 'LineupMap.js', RalphTokenMix: 'TokenMix.js', RalphRoleSplit: 'RoleSplit.js',
   RalphGroupCompare: 'GroupCompare.js', RalphPriceLadder: 'PriceLadder.js',
 };

@@ -1,11 +1,11 @@
 ---
 title: "Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measured with a Coding-Agent Ralph Loop"
 description: Measured report that ran a RealWorld backend implementation task in a Ralph loop five times on each of 14 models in Amazon Bedrock us-east-1 and compares completion, tokens, cost and LLM requests
-created: "2026-10-13"
+created: "2026-10-14"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: devfloor9
-reading_time: 48
+reading_time: 44
 tags:
   - benchmark
   - bedrock
@@ -20,15 +20,11 @@ sidebar_position: 9
 category: benchmark
 ---
 
-import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphSameModelChart, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
+import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
 import DataTableFrame from '@site/src/components/DataTableFrame';
 
 :::info Reference Benchmark
-This benchmark was built with reference to the [Ralph loop completion by model](https://roboco.io/coding-agent-benchmark/) report by Jung Do Hyun (정도현, Roboco) and its
-[public repository](https://github.com/roboco-io/coding-agent-benchmark).
-The task (a RealWorld backend implementation), the completion criteria, the structure of the Ralph-loop harness and the Hurl tests used for grading follow the reference report.
-Running on Amazon Bedrock in us-east-1, the two-agent builder/verifier setup, five runs per model and costs at Bedrock prices were decided for this report.
-The numbers here are therefore not the reference report's results, nor values obtained under the same conditions.
+This benchmark was built with reference to the [Ralph loop completion by model](https://roboco.io/coding-agent-benchmark/) report by Jung Do Hyun (정도현, Roboco).
 :::
 
 :::info Measurement Status
@@ -54,7 +50,7 @@ This report measures, on Amazon Bedrock, how many tokens, how much money and how
 
 <RalphMethodFlow />
 
-- **Difference from the reference report**: pi 0.87.1 sends a thinking format that Bedrock rejects for Claude Haiku 5.5, so `haiku-5` was added to two model-name lists in the pi bundle. Requests to the other models are unaffected.
+- **One fix in the pi bundle**: pi 0.87.1 sends a thinking format that Bedrock rejects for Claude Haiku 5.5, so `haiku-5` was added to two model-name lists in the pi bundle. Requests to the other models are unaffected.
 - **Thinking setting**: medium. Claude models receive it as adaptive thinking with effort=medium; for the other models pi sends no reasoning field, so the model default applies.
 
 <details>
@@ -63,9 +59,9 @@ This report measures, on Amazon Bedrock, how many tokens, how much money and how
 - **Completed**: a run that passed the official grader. Medians and minimum–maximum ranges use completed runs only.
 - **Tokens** [fact]: the usage Bedrock reported in each response, summed over all builder and verifier requests. Input means uncached input tokens; output includes reasoning tokens. Cache reads and cache writes are counted separately.
 - **Cost** [calculated]: token counts times the prices under "Prices applied". Cache writes use the 5-minute cache price, the Bedrock default when, as with pi, no cache lifetime is specified.
-- **Ralph iterations**: the number of iterations in which the builder ran, the same definition as the reference report's.
+- **Ralph iterations**: the number of iterations in which the builder ran.
 - **LLM requests**: the number of responses the model returned (model-level "turns"), builder and verifier combined.
-- **Run time**: from the start to the end of a run, including the builder and verifier sessions and grading. The reference report's elapsed time covers the agent session only, so the definitions differ.
+- **Run time**: from the start to the end of a run, including the builder and verifier sessions and grading.
 
 </details>
 
@@ -73,8 +69,10 @@ This report measures, on Amazon Bedrock, how many tokens, how much money and how
 
 <RalphLineupMap />
 
-- **Open-weight status** [source]: the Bedrock model cards describe Kimi K3 as an "open-weight model" and GLM 5.3 as an "open weight text generation model". GLM 5.3 is not in the reference report; it was added from the same family because the reference report's glm-5.3-flash is not offered on Bedrock.
+- **Open-weight status** [source]: the Bedrock model cards describe Kimi K3 as an "open-weight model" and GLM 5.3 as an "open weight text generation model".
 - **Claude Fable 5.1** [fact]: it can be called only when the account's us-east-1 data retention mode is `aws_review` or stronger. It ran after the account owner changed the mode from `inherit` to `aws_review` (2026-10-13 04:25:43 UTC).
+
+- **Scope** [fact]: 14 of the text-generation models callable on Amazon Bedrock in us-east-1 were measured. Bedrock also offers other text-generation models, e.g. Claude Fable 5, Claude Opus 4.7, GPT-5.6 Terra, gpt-oss-120b, Grok 4.7, DeepSeek V3.2, Qwen3 Coder Next, MiniMax M2.5, Kimi K2.5, GLM 5, which were not included ([Bedrock documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html), checked 2026-10-14).
 
 <details>
 <summary>What the data retention setting changes</summary>
@@ -140,17 +138,6 @@ Switch metrics to compare the range of the five runs (bar) and the median (tick)
 
 <RalphGroupCompare />
 
-### Comparison with published runs of the same model [calculated]
-
-Published single-agent runs that the reference report ran with the same pi harness were re-priced at Bedrock prices and compared with this measurement's medians (builder plus verifier).
-
-<RalphSameModelChart />
-
-- Claude Opus 5.5, Claude Sonnet 5.5, Claude Haiku 5.5 and GPT-6 Sol matched the re-priced published runs within ±10% even with the verifier's cost added, because their builder share alone was 0.86–0.95× the published run.
-- GPT-6.1 Sol: 20,621 output tokens against 13,251 in the published run, so the cost was about 1.6× higher.
-- Kimi K3: 39,505 output tokens against 18,667 in the published run, so the cost was about 1.9× higher.
-- The other models were not compared because their published runs used another harness (Claude Code, Codex) or have no token records. The published baseline for GLM 5.3, $0.544, borrows glm-5.3-flash tokens [estimate].
-
 ### Model overview
 
 <RalphModelCards />
@@ -196,9 +183,9 @@ These amounts are reported token counts multiplied by prices. The actual bill mu
 ## Limitations
 
 1. **One task, five runs per model.** Rankings are observations for this task and setup. Even within one model the most expensive run cost up to about 2.7× the cheapest (GPT-6 Luna).
-2. **The setup differs from the reference report.** It ran one agent per model in different harnesses; here every model ran as builder plus verifier on pi and Bedrock Converse, so the verifier adds tokens and cost.
+2. **The setup is a two-agent builder/verifier run.** Every model ran as builder plus verifier on pi and Bedrock Converse, so tokens and cost include the verifier's share.
 3. **The first attempt was discarded.** Running without containers on one host, agents issued host-wide commands such as `pkill -f` and `fuser -k` that could stop other runs' servers, so everything was rerun in isolated containers.
-4. **The verifier checked the server port more strictly than the original criteria.** Its prompt requires the `PORT` environment variable, which the completion rule does not; completion is unaffected.
+4. **The verifier checked the server port more strictly than the completion rule.** Its prompt requires the `PORT` environment variable, which the completion rule does not; completion is unaffected.
 5. **Some sessions self-terminated (exit 143).** pi receives the prompt as a command-line argument, so an agent that runs `pkill -f` with words from its prompt also kills itself. The prompts were not changed mid-experiment to keep runs comparable.
 6. **The verifier's effect cannot be determined (not verified).** There is no control group without a verifier.
 7. **Group 2 has 2 models.** Its group value is weak evidence.
@@ -210,14 +197,14 @@ These amounts are reported token counts multiplied by prices. The actual bill mu
 
 - **Tool versions**: pi coding agent 0.87.1 (one fix for Haiku 5.5), hurl 8.0.1, Node 22.23.3, Docker images based on Amazon Linux 2023
 - **Settings**: thinking medium, English prompts, up to 30 iterations, 1,200-second run cap, 300-second stall watchdog, 5 runs per model
-- **Prompts**: the builder used `PROMPT-en.md` from the reference repository unchanged; the verifier prompt was written for this report.
+- **Prompts**: the builder used `PROMPT-en.md` unchanged; the verifier prompt was written for this report.
 - **Per-run values**: expand a model row in the "Results by model" chart to see each of the five runs. The same values are in `src/data/ralph-loop-bedrock.json` (`runs`) in this repository.
-- **Harness scripts and raw data** (session records, per-run metrics, aggregate files) are not included in this repository. The basic harness structure is in the [reference repository](https://github.com/roboco-io/coding-agent-benchmark).
+- **Harness scripts and raw data** (session records, per-run metrics, aggregate files) are not included in this repository. The task, the builder prompt and the grading Hurl tests are in the [public repository](https://github.com/roboco-io/coding-agent-benchmark).
 
 ## References
 
-- Jung Do Hyun (정도현, Roboco), [Ralph loop completion by model](https://roboco.io/coding-agent-benchmark/) (reference report, checked 2026-10-12 15:40 UTC)
-- [roboco-io/coding-agent-benchmark](https://github.com/roboco-io/coding-agent-benchmark) (the reference report's harness, prompts and grading Hurl tests)
+- Jung Do Hyun (정도현, Roboco), [Ralph loop completion by model](https://roboco.io/coding-agent-benchmark/) (reference, checked 2026-10-12 15:40 UTC)
+- [roboco-io/coding-agent-benchmark](https://github.com/roboco-io/coding-agent-benchmark) (the task, the builder prompt and the grading Hurl tests)
 - [Amazon Bedrock pricing](https://aws.amazon.com/bedrock/pricing/)
 - [Amazon Bedrock User Guide: Data retention](https://docs.aws.amazon.com/bedrock/latest/userguide/data-retention.html)
 - [RealWorld backend API specification](https://realworld-docs.netlify.app/specifications/backend/endpoints/)

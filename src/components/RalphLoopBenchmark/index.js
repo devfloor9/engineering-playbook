@@ -3,7 +3,6 @@
 export {default as RalphKpiStrip} from './KpiStrip';
 export {default as RalphModelCards} from './ModelCards';
 export {default as RalphCostTimeScatter} from './CostTimeScatter';
-export {default as RalphSameModelChart} from './SameModelChart';
 export {default as RalphMetricMatrix} from './MetricMatrix';
 export {default as RalphMethodFlow} from './MethodFlow';
 export {default as RalphLineupMap} from './LineupMap';

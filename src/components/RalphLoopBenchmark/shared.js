@@ -24,8 +24,8 @@ export function useLang() {
 }
 
 // Every visible UI string the package needs, in both locales. Keys consumed by
-// agents B and C (CostTimeScatter, SameModelChart, MetricMatrix) are included
-// here too so those components resolve against one table.
+// CostTimeScatter and MetricMatrix are included here too so those components
+// resolve against one table.
 const STRINGS = {
   ko: {
     // KPI strip
@@ -47,9 +47,6 @@ const STRINGS = {
     chineseOpenWeight: '중국 오픈웨이트',
     logScale: '로그 스케일',
     perRun: '실행당',
-    publishedRun: '공개된 실행',
-    thisRun: '이번 실행',
-    builderOnly: '빌더만',
     source: '출처',
     showData: '데이터 보기',
     model: '모델',
@@ -68,17 +65,11 @@ const STRINGS = {
     verifierCostShare: '검증자 비용 비중',
     of: '중',
     rankOf: '위 / 전체',
-    // chart labels consumed by CostTimeScatter / SameModelChart (agents B, C)
+    // chart labels consumed by CostTimeScatter
     scatterTitle: '모델별 실행당 비용과 실행 시간',
     scatterDesc: '가로축은 실행당 비용(로그 스케일), 세로축은 실행 시간(분)이며, 점은 중앙값입니다.',
     axisCost: '실행당 비용 (USD, 로그 스케일)',
     axisMinutes: '실행 시간 (분)',
-    dumbbellTitle: '공개된 pi 실행 대비 이번 측정 비용',
-    dumbbellDesc: '모델별로 공개된 단일 에이전트 pi 실행 비용, 이번 측정의 중앙값 비용, 빌더만의 중앙값을 비교합니다.',
-    dumbbellPublished: '공개된 실행',
-    dumbbellMedian: '이번 실행 (중앙값)',
-    dumbbellBuilder: '빌더만 (중앙값)',
-    dumbbellAxis: '실행당 비용 (USD)',
   },
   en: {
     completedRuns: 'Completed',
@@ -98,9 +89,6 @@ const STRINGS = {
     chineseOpenWeight: 'Chinese open-weight',
     logScale: 'Log scale',
     perRun: 'per run',
-    publishedRun: 'Published run',
-    thisRun: 'This run',
-    builderOnly: 'Builder only',
     source: 'Source',
     showData: 'Show data',
     model: 'Model',
@@ -118,17 +106,11 @@ const STRINGS = {
     verifierCostShare: 'Verifier cost share',
     of: 'of',
     rankOf: 'of',
-    // chart labels consumed by CostTimeScatter / SameModelChart (agents B, C)
+    // chart labels consumed by CostTimeScatter
     scatterTitle: 'Cost per run vs. run time by model',
     scatterDesc: 'Horizontal axis is cost per run (log scale), vertical axis is run minutes; each point is the median.',
     axisCost: 'Cost per run (USD, log scale)',
     axisMinutes: 'Run minutes',
-    dumbbellTitle: 'Published pi run vs. this measurement',
-    dumbbellDesc: 'Per model, compares the published single-agent pi run cost, this measurement\u2019s median cost, and the builder-only median.',
-    dumbbellPublished: 'Published run',
-    dumbbellMedian: 'This run (median)',
-    dumbbellBuilder: 'Builder only (median)',
-    dumbbellAxis: 'Cost per run (USD)',
   },
 };
 

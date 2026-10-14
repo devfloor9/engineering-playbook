@@ -166,62 +166,57 @@
    "refresh_min": 10
   }
  },
- "reference_report": {
-  "conditions": 28,
-  "models": 19,
-  "runs": 117
- },
  "lineup": {
-  "excluded": [
-   {
-    "name": "DeepSeek V4-Pro",
-    "vendor": "DeepSeek",
-    "class": "X",
-    "availability": "no",
-    "use": "skip"
-   },
-   {
-    "name": "DeepSeek V4.1-Flash",
-    "vendor": "DeepSeek",
-    "class": "X",
-    "availability": "no",
-    "use": "skip"
-   },
-   {
-    "name": "qwen3.8-max",
-    "vendor": "Alibaba (Qwen)",
-    "class": "X",
-    "availability": "no",
-    "use": "skip"
-   },
-   {
-    "name": "qwen3.8-27b",
-    "vendor": "Alibaba (Qwen)",
-    "class": "X",
-    "availability": "no",
-    "use": "skip"
-   },
-   {
-    "name": "glm-5.3-flash",
-    "vendor": "Z.AI",
-    "class": "X",
-    "availability": "no_glm",
-    "use": "skip_glm"
-   },
-   {
-    "name": "gemini-3.8-flash",
-    "vendor": "Google",
-    "class": "G",
-    "availability": "no",
-    "use": "skip"
-   }
-  ],
   "retention_required": [
    "fable51"
   ],
-  "not_in_reference": [
-   "glm53"
-  ]
+  "not_measured": [
+   {
+    "name": "Claude Fable 5",
+    "vendor": "Anthropic"
+   },
+   {
+    "name": "Claude Opus 4.7",
+    "vendor": "Anthropic"
+   },
+   {
+    "name": "GPT-5.6 Terra",
+    "vendor": "OpenAI"
+   },
+   {
+    "name": "gpt-oss-120b",
+    "vendor": "OpenAI"
+   },
+   {
+    "name": "Grok 4.7",
+    "vendor": "xAI"
+   },
+   {
+    "name": "DeepSeek V3.2",
+    "vendor": "DeepSeek"
+   },
+   {
+    "name": "Qwen3 Coder Next",
+    "vendor": "Qwen"
+   },
+   {
+    "name": "MiniMax M2.5",
+    "vendor": "MiniMax"
+   },
+   {
+    "name": "Kimi K2.5",
+    "vendor": "Moonshot AI"
+   },
+   {
+    "name": "GLM 5",
+    "vendor": "Z.AI"
+   }
+  ],
+  "catalog": {
+   "checked": "2026-10-14",
+   "region": "us-east-1",
+   "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html"
+  }
  },
  "verdicts": {
   "gate_pass": 69,
@@ -335,11 +330,6 @@
    "verifier_cost_share": 0.1489,
    "cache_read_token_share": 0.907,
    "cache_read_cost_share": 0.1752,
-   "published_pi_run": {
-    "experiment": "EXP-030",
-    "cost_usd": 0.896,
-    "output_tokens": 18990
-   },
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
     "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
@@ -443,11 +433,6 @@
    "verifier_cost_share": 0.1222,
    "cache_read_token_share": 0.8807,
    "cache_read_cost_share": 0.141,
-   "published_pi_run": {
-    "experiment": "EXP-032",
-    "cost_usd": 0.282,
-    "output_tokens": 12223
-   },
    "note": {
     "ko": "5회차는 첫 번째 반복에서 빌더가 자기 프로세스까지 종료했고(exit 143), 두 번째 반복에서 완주했습니다. 2·3회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다.",
     "en": "Run 5: in iteration 1 the builder killed its own process (exit 143); it completed in iteration 2. Runs 2, 3: the server listened on another port than `PORT`, so the verifier said FAIL, but official grading passed."
@@ -551,11 +536,6 @@
    "verifier_cost_share": 0.0801,
    "cache_read_token_share": 0.9311,
    "cache_read_cost_share": 0.3404,
-   "published_pi_run": {
-    "experiment": "EXP-038",
-    "cost_usd": 0.067,
-    "output_tokens": 54120
-   },
    "note": {
     "ko": "4회차는 첫 번째 반복이 완료 선언 없이 끝났고(채점 0/13 파일), 두 번째 반복에서 완주했습니다. pi 0.87.1이 Haiku 5.5에 맞지 않는 thinking 형식을 보내 Bedrock이 요청을 거부하므로, pi 번들의 모델 이름 목록 두 곳에 `haiku-5`를 추가해 실행했습니다.",
     "en": "Run 4: iteration 1 ended without a completion claim (grader 0/13 files); it completed in iteration 2. pi 0.87.1 sends a thinking format that Bedrock rejects for Haiku 5.5, so `haiku-5` was added to two model-name lists in the pi bundle."
@@ -659,7 +639,6 @@
    "verifier_cost_share": 0.146,
    "cache_read_token_share": 0.9264,
    "cache_read_cost_share": 0.1175,
-   "published_pi_run": null,
    "note": {
     "ko": "계정의 us-east-1 데이터 보존 모드를 `aws_review`로 바꾼 뒤, 다른 13개 모델의 실행이 끝나고 약 4시간 18분 뒤에 단독으로 실행했습니다. 5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
     "en": "Ran alone, about 4 h 18 min after the other 13 models finished, once the account's us-east-1 data retention mode had been set to `aws_review`. All five runs completed in the first iteration, and the verifier said PASS every time."
@@ -763,7 +742,6 @@
    "verifier_cost_share": 0.1014,
    "cache_read_token_share": 0.9435,
    "cache_read_cost_share": 0.4038,
-   "published_pi_run": null,
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다. 3회차 비용이 중앙값의 약 1.9배였습니다(LLM 요청 91회, 반복 1회).",
     "en": "All five runs completed in the first iteration, and the verifier said PASS every time. Run 3 cost about 1.9× the median (91 LLM requests, 1 iteration)."
@@ -867,7 +845,6 @@
    "verifier_cost_share": 0.0522,
    "cache_read_token_share": 0.9678,
    "cache_read_cost_share": 0.5525,
-   "published_pi_run": null,
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
     "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
@@ -971,7 +948,6 @@
    "verifier_cost_share": 0.0661,
    "cache_read_token_share": 0.954,
    "cache_read_cost_share": 0.4872,
-   "published_pi_run": null,
    "note": {
     "ko": "3회차 검증자 세션이 자기 프로세스까지 종료해(exit 143) 판정이 남지 않았습니다. 공식 채점은 통과했습니다.",
     "en": "Run 3: the verifier session killed its own process (exit 143) and left no verdict; the run still passed official grading."
@@ -1075,11 +1051,6 @@
    "verifier_cost_share": 0.1048,
    "cache_read_token_share": 0.9228,
    "cache_read_cost_share": 0.2244,
-   "published_pi_run": {
-    "experiment": "EXP-034",
-    "cost_usd": 0.332,
-    "output_tokens": 13251
-   },
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
     "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
@@ -1183,7 +1154,6 @@
    "verifier_cost_share": 0.0796,
    "cache_read_token_share": 0.9331,
    "cache_read_cost_share": 0.3893,
-   "published_pi_run": null,
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
     "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
@@ -1287,11 +1257,6 @@
    "verifier_cost_share": 0.1604,
    "cache_read_token_share": 0.9323,
    "cache_read_cost_share": 0.3973,
-   "published_pi_run": {
-    "experiment": "EXP-030",
-    "cost_usd": 0.298,
-    "output_tokens": 7599
-   },
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다.",
     "en": "All five runs completed in the first iteration, and the verifier said PASS every time."
@@ -1395,7 +1360,6 @@
    "verifier_cost_share": 0.2463,
    "cache_read_token_share": 0.9289,
    "cache_read_cost_share": 0.4034,
-   "published_pi_run": null,
    "note": {
     "ko": "3회차: 첫 번째 반복에서 빌더가 `npm run dev`를 포그라운드로 실행해 세션이 멈췄고, 300초 멈춤 감지로 종료됐습니다. 두 번째 반복 뒤 채점은 13개 파일 중 5개만 통과했고, 세 번째 반복에서 완주했습니다. 1회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다. 3회차 비용이 중앙값의 약 2.5배였습니다(LLM 요청 113회, 반복 3회).",
     "en": "Run 3: In iteration 1 the builder ran `npm run dev` in the foreground and the session hung until the 300-second stall watchdog ended it. After iteration 2 the grader passed 5 of 13 files; the run completed in iteration 3. Run 1: the server listened on another port than `PORT`, so the verifier said FAIL, but official grading passed. Run 3 cost about 2.5× the median (113 LLM requests, 3 iterations)."
@@ -1499,7 +1463,6 @@
    "verifier_cost_share": 0.2396,
    "cache_read_token_share": 0.9045,
    "cache_read_cost_share": 0.3081,
-   "published_pi_run": null,
    "note": {
     "ko": "2·4회차는 서버가 `PORT` 환경 변수 대신 다른 포트에서 떠서 검증자가 FAIL을 냈지만, 공식 채점은 통과했습니다.",
     "en": "Runs 2, 4: the server listened on another port than `PORT`, so the verifier said FAIL, but official grading passed."
@@ -1603,11 +1566,6 @@
    "verifier_cost_share": 0.0859,
    "cache_read_token_share": 0.9386,
    "cache_read_cost_share": 0.3612,
-   "published_pi_run": {
-    "experiment": "EXP-029",
-    "cost_usd": 0.749,
-    "output_tokens": 18667
-   },
    "note": {
     "ko": "5회 모두 첫 반복에서 완주했고, 검증자도 5회 모두 PASS를 냈습니다. 3회차에서 Bedrock 스트림 오류가 2번 났고, pi가 자동으로 다시 요청해 이어졌습니다. 모델 카드는 Converse에서 명시적 프롬프트 캐싱을 제공하지 않는다고 하지만, Bedrock은 캐시 읽기·쓰기 토큰을 보고했습니다(적용 방식 확인 불가).",
     "en": "All five runs completed in the first iteration, and the verifier said PASS every time. Run 3 hit 2 transient Bedrock stream errors; pi retried automatically. Its model card says explicit prompt caching is not offered through Converse, yet Bedrock reported cache-read and cache-write tokens (mechanism not verified)."
@@ -1711,7 +1669,6 @@
    "verifier_cost_share": 0.0448,
    "cache_read_token_share": 0.9591,
    "cache_read_cost_share": 0.681,
-   "published_pi_run": null,
    "note": {
     "ko": "4회차: 첫 번째 반복에서 빌더가 테스트용 node 서버를 포그라운드로 띄운 채 멈췄고, 300초 멈춤 감지로 종료됐습니다. 두 번째 반복은 20분 상한에 걸려 `.ralph-done`을 만들기 전에 끝났습니다. 상한 직후 채점에서 저장소는 13개 파일을 모두 통과했지만, 완주 규칙(`.ralph-done` + 13개 파일 통과)에 따라 미완주로 집계했습니다. 2회차 검증자 세션이 자기 프로세스까지 종료해(exit 143) 판정이 남지 않았습니다. 공식 채점은 통과했습니다.",
     "en": "Run 4: In iteration 1 the builder started a node test server in the foreground and hung; the 300-second stall watchdog ended the session. Iteration 2 hit the 20-minute run cap before the builder created `.ralph-done`. Grading right after the cap passed all 13 files, but under the completion rule (`.ralph-done` plus 13 passing files) the run counts as incomplete. Run 2: the verifier session killed its own process (exit 143) and left no verdict; the run still passed official grading."

@@ -24,9 +24,9 @@ const LABELS = {
     // Band b
     loopHeading: '한 번의 Ralph 루프 반복',
     steps: [
-      {name: '빌더', sub: '원 리포트 프롬프트로 구현, 2회차부터 REVIEW.md 먼저 읽기'},
+      {name: '빌더', sub: 'PROMPT-en.md로 구현, 2회차부터 REVIEW.md 먼저 읽기'},
       {name: '검증자', sub: 'Hurl 테스트를 직접 실행하고 REVIEW.md 작성, 다른 파일은 수정 안 함'},
-      {name: '채점', sub: '원 리포트 기준으로 완주 판정'},
+      {name: '채점', sub: `공식 Hurl 테스트 ${M.grader.hurl_files}개 파일·요청 ${M.grader.requests}개로 완주 판정`},
     ],
     loopBack: '미완주 → 다음 반복(새 세션, 저장소만 이어짐)',
     loopCaption: '빌더와 검증자는 같은 모델',
@@ -42,8 +42,8 @@ const LABELS = {
       `실행: 최대 ${M.limits.parallel_models}개 모델 병렬, 한 모델의 ${M.limits.runs_per_model}회 실행은 순차`,
       `하네스: ${M.harness.agent} ${M.harness.version} · ${M.harness.api} · thinking ${M.harness.thinking} · 영어 프롬프트`,
     ],
-    srcPre: '원 리포트의 과제·채점 기준과 이 보고서의 실행 설정',
-    srcLink: '원 저장소',
+    srcPre: '과제·채점 기준: RealWorld 명세와 공개 Hurl 테스트 \u00b7 실행 설정: 이 보고서',
+    srcLink: '공개 저장소',
     and: '그리고',
   },
   en: {
@@ -59,9 +59,9 @@ const LABELS = {
     taskNote: 'If grading fails, the harness deletes .ralph-done and runs another iteration',
     loopHeading: 'One Ralph-loop iteration',
     steps: [
-      {name: 'Builder', sub: 'Implements from the reference prompt; from iteration 2 it reads REVIEW.md first'},
+      {name: 'Builder', sub: 'Implements from PROMPT-en.md; from iteration 2 it reads REVIEW.md first'},
       {name: 'Verifier', sub: 'Runs the Hurl tests itself and writes REVIEW.md; edits nothing else'},
-      {name: 'Grader', sub: 'Decides completion with the reference criteria'},
+      {name: 'Grader', sub: `Decides completion with the official Hurl tests (${M.grader.hurl_files} files, ${M.grader.requests} requests)`},
     ],
     loopBack: 'Not complete \u2192 next iteration (new session; only the repository carries over)',
     loopCaption: 'Builder and verifier use the same model',
@@ -76,8 +76,8 @@ const LABELS = {
       `Execution: up to ${M.limits.parallel_models} models in parallel; the ${M.limits.runs_per_model} runs of one model in sequence`,
       `Harness: ${M.harness.agent} ${M.harness.version} \u00b7 ${M.harness.api} \u00b7 thinking ${M.harness.thinking} \u00b7 English prompts`,
     ],
-    srcPre: 'Task and grading from the reference report; run settings from this report',
-    srcLink: 'reference repository',
+    srcPre: 'Task and grading: the RealWorld specification and the public Hurl tests \u00b7 run settings: this report',
+    srcLink: 'public repository',
     and: 'AND',
   },
 };
