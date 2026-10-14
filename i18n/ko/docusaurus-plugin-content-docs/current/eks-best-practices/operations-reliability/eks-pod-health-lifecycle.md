@@ -51,6 +51,8 @@ Pod의 헬스체크와 종료 처리는 서비스 가용성의 서로 다른 부
 
 초기화, 헬스체크, 요청 처리, 종료 처리를 나누어 확인합니다. 상세 조건과 설정 예제는 각 문서에 있습니다.
 
+**그림 1. Pod 라이프사이클 흐름**
+
 ```mermaid
 flowchart TD
     A[Init Container 및 앱 시작] --> B[Startup Probe]
