@@ -161,7 +161,7 @@ In Kubernetes 1.21+, service account tokens are **valid for 1 hour by default** 
 - Projected Service Account Tokens expire after 1 hour by default
 - kubelet rotates tokens automatically, but applications that read the token file once and cache it will keep using the expired token
 
-**Minimum Required SDK Versions:**
+**Table 1. Minimum SDK version per language that supports automatic token rotation**
 
 | Language | SDK | Minimum Version |
 |------|-----|----------|
@@ -211,6 +211,8 @@ aws eks describe-addon --cluster-name <cluster-name> --addon-name <addon-name>
 aws eks update-addon --cluster-name <cluster-name> --addon-name <addon-name> \
   --addon-version <version> --resolve-conflicts PRESERVE
 ```
+
+**Table 2. Common error patterns and diagnosis/resolution by major Add-on**
 
 | Add-on | Common Error Patterns | Diagnosis | Resolution |
 |--------|-------------------|----------|----------|
@@ -298,7 +300,7 @@ aws eks describe-cluster --name <cluster-name> \
   --query 'cluster.accessConfig.authenticationMode' --output text
 ```
 
-**Authentication mode options:**
+**Table 3. EKS authentication modes with descriptions and recommended use cases**
 
 | Mode | Description | Recommended Use |
 |------|------|--------------|

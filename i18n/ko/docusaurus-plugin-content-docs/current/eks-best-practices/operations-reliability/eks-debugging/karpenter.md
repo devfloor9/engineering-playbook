@@ -30,6 +30,8 @@ Karpenter는 EKS의 차세대 오토스케일러로, NodePool/NodeClaim 기반�
 
 아래 개념도는 정상적으로 초기화된 노드의 프로비저닝과 중단 경로를 보여 줍니다. `status.conditions`의 항목을 그대로 나열한 상태도는 아닙니다. [초기화 검사](https://karpenter.sh/v1.14/concepts/nodeclaims/)에는 Node Ready 상태, startup taint 제거, 요청한 리소스 등록 여부 등이 포함됩니다. 만료 시간은 이 경로와 별개로 NodeClaim 생성 시점부터 계산합니다.
 
+**그림 1. NodeClaim 프로비저닝과 중단 경로 개념도**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Pending: Pod Unschedulable
@@ -80,6 +82,8 @@ kubectl describe pod <pod-name>
 ```
 
 #### 진단 플로우차트
+
+**그림 2. Karpenter 진단 플로우차트**
 
 ```mermaid
 flowchart TD
@@ -202,6 +206,8 @@ spec:
 Consolidation은 노드를 제거하거나 더 저렴한 용량으로 교체할 수 있습니다. 아래 개념도는 Pod 변경 후 안정화를 기다리는 시간과 노드 수명에 따른 만료를 구분합니다.
 
 ### Consolidation 동작 흐름
+
+**그림 3. Consolidation 동작 흐름**
 
 ```mermaid
 flowchart TD
@@ -342,6 +348,8 @@ spec:
 
 [v1.14.1 구현](https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go#L262-L301)은 초기화된 관리 대상 노드 중 `InstanceTerminating` 노드를 제외하고 계산합니다. NotReady이거나 삭제 표시가 있는 노드는 한 번씩 차감하며, 남은 허용 수는 0보다 작아지지 않습니다.
 
+**표 1. Consolidation Policy별 동작과 사용 시점**
+
 | Policy | 동작 | 언제 사용? |
 |--------|------|----------|
 | **WhenEmpty** | workload Pod가 없는 노드를 통합 대상으로 고려 | 비용보다 안정성 우선, stateful 워크로드 |
@@ -350,6 +358,8 @@ spec:
 ## Spot 중단 처리
 
 ### Spot 중단 흐름
+
+**그림 4. Spot 중단 처리 흐름**
 
 ```mermaid
 sequenceDiagram

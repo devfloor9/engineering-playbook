@@ -45,6 +45,8 @@ This document clarifies the mechanism differences between K8s Probes and ALB/NLB
 
 Kubernetes Probes are health checks executed independently by **kubelet** on each node.
 
+**Table 1. Kubernetes Probe types with executor, target, and behavior on failure**
+
 | Probe Type | Executor | Target | Behavior on Failure |
 |-----------|----------|----------|-------------|
 | **readinessProbe** | kubelet | Container | **Removed** from Service Endpoints (Pod still alive) |
@@ -60,6 +62,8 @@ Kubernetes Probes are health checks executed independently by **kubelet** on eac
 
 ALB/NLB Health Checks managed by AWS Load Balancer Controller (LBC) run independently at the **AWS infrastructure level**.
 
+**Table 2. ALB/NLB Health Check types with executor, target, and behavior on failure**
+
 | Health Check Type | Executor | Target | Behavior on Failure |
 |------------------|----------|----------|-------------|
 | **ALB Target Group HC** | ALB | HTTP(S) endpoint | **Deregistered** from Target Group (independent of Pod state) |
@@ -73,6 +77,8 @@ ALB/NLB Health Checks managed by AWS Load Balancer Controller (LBC) run independ
 ### 2.3 Ingress-NGINX Health Checks
 
 The Ingress-NGINX Controller performs health checks at the **nginx upstream** level.
+
+**Table 3. Ingress-NGINX Health Check types with executor, target, and behavior on failure**
 
 | Health Check Type | Executor | Target | Behavior on Failure |
 |------------------|----------|----------|-------------|
@@ -88,6 +94,8 @@ The Ingress-NGINX Controller performs health checks at the **nginx upstream** le
 ## 3. Timing Comparison Table
 
 The following table compares default timings, executors, and failure behavior for each Health Check.
+
+**Table 4. Default timing comparison across K8s Probe, ALB, NLB, and Ingress-NGINX by setting**
 
 | Setting | K8s Probe | ALB Health Check | NLB Health Check | Ingress-NGINX |
 |------|----------|-----------------|-----------------|---------------|
@@ -129,7 +137,7 @@ The following table compares default timings, executors, and failure behavior fo
    - ALB → Pod CIDR traffic is blocked
    - kubelet checks from inside the node (passes), ALB checks externally (fails)
 
-**Diagnosis flow:**
+**Figure 1. 503 Service Unavailable diagnosis flow**
 
 ```mermaid
 flowchart TD
@@ -248,7 +256,7 @@ terminationGracePeriodSeconds > deregistration_delay + preStop_duration + app_sh
 Example: `deregistration_delay=15s`, `preStop=10s`, `app_shutdown=5s`
 → `terminationGracePeriodSeconds=40s` or more
 
-**Diagnosis flow:**
+**Figure 2. 502 Bad Gateway (during Pod termination) diagnosis flow**
 
 ```mermaid
 flowchart TD
@@ -370,7 +378,7 @@ T+30s  ALB starts sending traffic to the new Pod
 Issue: during T+10s ~ T+30s, traffic reaches the new Pod before it is ready → 503
 ```
 
-**Diagnosis flow:**
+**Figure 3. Transient 503 during rolling update diagnosis flow**
 
 ```mermaid
 flowchart TD
@@ -447,7 +455,7 @@ spec:
 **Root cause:**
 NLB sends traffic to **all nodes**, but `externalTrafficPolicy: Local` has **only nodes with matching Pods** respond.
 
-**Behavior:**
+**Table 5. externalTrafficPolicy behavior for Client IP preservation, Health Check, and traffic distribution**
 
 | externalTrafficPolicy | Client IP preserved | Health Check | Traffic distribution |
 |----------------------|---------------|-------------|-----------|
@@ -708,6 +716,8 @@ Example:
 ```
 
 ### 5.3 Timing Optimization Matrix
+
+**Table 6. Recommended timing parameter matrix by workload type**
 
 | Workload Type | readinessProbe period | ALB HC interval | minReadySeconds | terminationGracePeriodSeconds |
 |-------------|----------------------|----------------|-----------------|------------------------------|

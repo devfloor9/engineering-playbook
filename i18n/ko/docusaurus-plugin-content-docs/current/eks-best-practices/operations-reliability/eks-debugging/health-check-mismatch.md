@@ -45,6 +45,8 @@ Kubernetes Probe와 Load Balancer/Ingress Controller의 Health Check는 **독립
 
 Kubernetes Probe는 **kubelet**이 각 노드에서 독립적으로 실행하는 헬스 체크입니다.
 
+**표 1. Kubernetes Probe 유형별 실행 주체와 체크 대상, 실패 시 동작**
+
 | Probe 유형 | 실행 주체 | 체크 대상 | 실패 시 동작 |
 |-----------|----------|----------|-------------|
 | **readinessProbe** | kubelet | 컨테이너 | Service Endpoints에서 **제거** (Pod는 살아있음) |
@@ -60,6 +62,8 @@ Kubernetes Probe는 **kubelet**이 각 노드에서 독립적으로 실행하는
 
 AWS Load Balancer Controller(LBC)가 관리하는 ALB/NLB Health Check는 **AWS 인프라 레벨**에서 독립적으로 실행됩니다.
 
+**표 2. ALB/NLB Health Check 유형별 실행 주체와 체크 대상, 실패 시 동작**
+
 | Health Check 유형 | 실행 주체 | 체크 대상 | 실패 시 동작 |
 |------------------|----------|----------|-------------|
 | **ALB Target Group HC** | ALB | HTTP(S) endpoint | Target Group에서 **deregister** (Pod 상태와 무관) |
@@ -73,6 +77,8 @@ AWS Load Balancer Controller(LBC)가 관리하는 ALB/NLB Health Check는 **AWS 
 ### 2.3 Ingress-NGINX Health Check
 
 Ingress-NGINX Controller는 **nginx upstream** 레벨에서 헬스 체크를 수행합니다.
+
+**표 3. Ingress-NGINX Health Check 유형별 실행 주체와 체크 대상, 실패 시 동작**
 
 | Health Check 유형 | 실행 주체 | 체크 대상 | 실패 시 동작 |
 |------------------|----------|----------|-------------|
@@ -88,6 +94,8 @@ Ingress-NGINX Controller는 **nginx upstream** 레벨에서 헬스 체크를 수
 ## 3. 타이밍 비교표
 
 다음 표는 각 Health Check의 기본 타이밍과 체크 주체, 실패 시 동작을 비교합니다.
+
+**표 4. K8s Probe·ALB·NLB·Ingress-NGINX의 설정별 기본 타이밍 비교**
 
 | 설정 | K8s Probe | ALB Health Check | NLB Health Check | Ingress-NGINX |
 |------|----------|-----------------|-----------------|---------------|
@@ -129,7 +137,7 @@ Ingress-NGINX Controller는 **nginx upstream** 레벨에서 헬스 체크를 수
    - ALB → Pod CIDR 트래픽 차단
    - kubelet은 노드 내부에서 체크 (통과), ALB는 외부에서 체크 (실패)
 
-**진단 플로우:**
+**그림 1. 503 Service Unavailable 진단 플로우**
 
 ```mermaid
 flowchart TD
@@ -248,7 +256,7 @@ terminationGracePeriodSeconds > deregistration_delay + preStop_duration + app_sh
 예시: `deregistration_delay=15s`, `preStop=10s`, `app_shutdown=5s`
 → `terminationGracePeriodSeconds=40s` 이상
 
-**진단 플로우:**
+**그림 2. 502 Bad Gateway(Pod 종료 중) 진단 플로우**
 
 ```mermaid
 flowchart TD
@@ -370,7 +378,7 @@ T+30s  ALB가 새 Pod로 트래픽 전송 시작
 문제: T+10s ~ T+30s 구간에서 새 Pod 준비 전 트래픽 → 503
 ```
 
-**진단 플로우:**
+**그림 3. Rolling Update 중 일시적 503 진단 플로우**
 
 ```mermaid
 flowchart TD
@@ -447,12 +455,12 @@ spec:
 **근본 원인:**
 NLB는 **모든 노드**에 트래픽 전송하지만, `externalTrafficPolicy: Local`은 **Pod가 있는 노드**만 응답
 
-**동작 방식:**
+**표 5. externalTrafficPolicy 설정별 Client IP 보존·Health Check·트래픽 분배 동작**
 
 | externalTrafficPolicy | Client IP 보존 | Health Check | 트래픽 분배 |
 |----------------------|---------------|-------------|-----------|
-| **Cluster (기본)** | ❌ (SNAT) | 모든 노드 healthy | 균등 분배 → 노드 간 hop 발생 |
-| **Local** | ✅ | Pod 있는 노드만 healthy | 불균등 분배 (Pod 수에 비례) |
+| **Cluster (기본)** | 미보존 (SNAT) | 모든 노드 healthy | 균등 분배 → 노드 간 hop 발생 |
+| **Local** | 보존 | Pod 있는 노드만 healthy | 불균등 분배 (Pod 수에 비례) |
 
 **문제 상황:**
 
@@ -708,6 +716,8 @@ terminationGracePeriodSeconds = deregistration_delay + preStop_sleep + app_shutd
 ```
 
 ### 5.3 타이밍 최적화 매트릭스
+
+**표 6. 워크로드 유형별 타이밍 파라미터 권장값 매트릭스**
 
 | 워크로드 유형 | readinessProbe period | ALB HC interval | minReadySeconds | terminationGracePeriodSeconds |
 |-------------|----------------------|----------------|-----------------|------------------------------|

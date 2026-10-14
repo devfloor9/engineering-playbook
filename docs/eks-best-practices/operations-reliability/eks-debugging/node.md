@@ -56,6 +56,8 @@ The aws-auth ConfigMap must contain the **IAM Role ARN** (`arn:aws:iam::ACCOUNT:
 
 ## Node NotReady Decision Tree
 
+**Figure 1. Node NotReady diagnosis decision tree**
+
 ```mermaid
 flowchart TD
     NR["`**Node NotReady**`"] --> CHECK_INST{"`Check EC2
@@ -131,6 +133,8 @@ SSM access requires the node IAM Role to have the `AmazonSSMManagedInstanceCore`
 # Check node status
 kubectl describe node <node-name>
 ```
+
+**Table 1. Resource pressure Conditions with threshold, diagnostic command, and resolution**
 
 | Condition | Threshold | Diagnostic Command | Resolution |
 |-----------|--------|-----------|----------|
@@ -252,6 +256,8 @@ The [Node Readiness Controller](https://github.com/kubernetes-sigs/node-readines
 
 In traditional Kubernetes, workloads are scheduled immediately when a node reaches `Ready` state. However, many times the node is not actually fully ready:
 
+**Table 2. Symptoms and impact of incomplete components in Ready state**
+
 | Incomplete Component | Symptoms | Impact |
 |---|---|---|
 | GPU driver/firmware loading | `nvidia-smi` failure, Pod `CrashLoopBackOff` | GPU workload failures |
@@ -262,6 +268,8 @@ In traditional Kubernetes, workloads are scheduled immediately when a node reach
 ### How Node Readiness Controller Works
 
 The Node Readiness Controller **declaratively manages custom taints**, deferring workload scheduling until all infrastructure requirements are satisfied:
+
+**Figure 2. Node Readiness Controller scheduling deferral flow**
 
 ```mermaid
 flowchart LR
@@ -336,6 +344,8 @@ kubectl get namespace <ns> -o jsonpath='{.metadata.labels.elbv2\.k8s\.aws/pod-re
 ```
 
 :::tip Comparing Readiness Features
+
+**Table 3. Comparison of Readiness features by target, control, and status**
 
 | Feature | Target | Control | Status |
 |------|-----------|-----------|------|
