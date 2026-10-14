@@ -23,6 +23,8 @@ sidebar_label: 03. Scenarios
 
 ## 1. Overview of the 11 Scenarios
 
+**Table 1. Data mix, URL, and primary persona of the 11 scenarios**
+
 | # | Scenario | In-house Data | External Data | URL | Primary Persona |
 |---|---|---|---|---|---|
 | **S1** | Natural-language semantic search | SKU · ABO · in-house reviews | Social posts | `/semantic-search` | P1, P2 |
@@ -33,25 +35,31 @@ sidebar_label: 03. Scenarios
 | **S6** | External signal fusion | In-house GMV (BU · country) | All 4 | `/signals` | P2, P3 |
 | **S7** | Omnichannel member journey | Store → ABO direct → subscription → re-signup | (none) | `/journey` | P4 |
 | **S8** | Marketing consent · PII guardrails | Consent · compliance | (none) | `/compliance` | P4, P5 |
-| **S9-A** ⭐ | **ABO organization visualization + performance tracking** | ABO tree · PV/BV · level | (none) | `/abo-tree` | P1 |
-| **S10-A** ⭐ | **Subscription lifetime analysis** | Subscription · event history | (none) | `/subscription` | P4 |
-| **S11-A** ⭐ | **Direct-selling law, minors, HFF advertising compliance** | Compliance · consent | RegulatorySignal | `/regulatory` | P5 |
+| **S9-A** | **ABO organization visualization + performance tracking** | ABO tree · PV/BV · level | (none) | `/abo-tree` | P1 |
+| **S10-A** | **Subscription lifetime analysis** | Subscription · event history | (none) | `/subscription` | P4 |
+| **S11-A** | **Direct-selling law, minors, HFF advertising compliance** | Compliance · consent | RegulatorySignal | `/regulatory` | P5 |
 
 ---
 
 ## 2. Persona × Scenario Matrix
 
+In each cell, "Yes" means the department primarily uses that scenario; a blank cell means it is not a primary scenario for that department.
+
+**Table 2. Primary scenarios used by each department**
+
 | Department | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 | S9-A | S10-A | S11-A |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| **P1 ABO Field** | ⭐ | ⭐ |  |  | ⭐ |  |  |  | ⭐ |  |  |
-| **P2 CMI** |  | ⭐ |  | ⭐ |  | ⭐ |  |  |  |  |  |
-| **P3 D&A** |  | ⭐ | ⭐ |  |  | ⭐ |  |  |  |  |  |
-| **P4 CX** |  | ⭐ |  |  |  |  | ⭐ | ⭐ |  | ⭐ |  |
-| **P5 Compliance** |  | ⭐ |  |  |  |  |  | ⭐ |  |  | ⭐ |
+| **P1 ABO Field** | Yes | Yes |  |  | Yes |  |  |  | Yes |  |  |
+| **P2 CMI** |  | Yes |  | Yes |  | Yes |  |  |  |  |  |
+| **P3 D&A** |  | Yes | Yes |  |  | Yes |  |  |  |  |  |
+| **P4 CX** |  | Yes |  |  |  |  | Yes | Yes |  | Yes |  |
+| **P5 Compliance** |  | Yes |  |  |  |  |  | Yes |  |  | Yes |
 
 ---
 
 ## 3. Per-scenario Data Mix (Summary)
+
+**Table 3. Summary of core data and techniques per scenario**
 
 | # | Core Data |
 |---|---|
@@ -96,6 +104,8 @@ sidebar_label: 03. Scenarios
 ---
 
 ## 5. PoC Timeline (8 weeks)
+
+**Table 4. Week-by-week work schedule for the 8-week PoC**
 
 | Week | Work |
 |---|---|

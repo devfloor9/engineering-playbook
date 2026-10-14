@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-A. Regulatory
 ---
 
-> **AMWAY differentiator** ⭐ — The biggest risk in the global direct-selling business is regulation. Combine multi-country regulatory signals + automated ad-text review + minor guards.
+> **AMWAY differentiator** — The biggest risk in the global direct-selling business is regulation. Combine multi-country regulatory signals + automated ad-text review + minor guards.
 
 ## 1. URL & Personas
 - `/regulatory` · P5 (Compliance & Regulatory)
@@ -33,6 +33,9 @@ sidebar_label: S11-A. Regulatory
 - Persona = P5 (fixed)
 
 ## 4. Data Mix
+
+**Table 1. Compliance review data mix (source)**
+
 | Data | Source |
 |---|---|
 | Bedrock Guardrails | AWS |
@@ -42,6 +45,8 @@ sidebar_label: S11-A. Regulatory
 | AuditLog | DynamoDB |
 
 ## 5. Review Checklist
+
+**Table 2. Ad-review checklist by country and regulation**
 
 | Category | Review Items |
 |---|---|

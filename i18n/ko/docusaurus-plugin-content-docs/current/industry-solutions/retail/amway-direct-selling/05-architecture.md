@@ -22,6 +22,8 @@ sidebar_label: 05. Architecture
 
 ## 1. 아키텍처 개요
 
+**그림 1. AMWAY PoC 단일 아키텍처 개요 (Edge·App·AI·Semantic·External)**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -67,6 +69,8 @@ graph TB
 
 ## 2. AMWAY 특화 컴포넌트
 
+**표 1. AMWAY 특화 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **Neptune (700K edges)** | ABO Tree 깊이 5단 쿼리 (`*1..5` openCypher) — LG H&H 500K 대비 +40% |
@@ -91,6 +95,8 @@ graph TB
 
 ## 4. 보안·거버넌스 (AMWAY 강화)
 
+**표 2. 보안·거버넌스 항목과 구현**
+
 | 항목 | 구현 |
 |---|---|
 | 인증 | Cognito + Lambda@Edge JWT |
@@ -102,6 +108,8 @@ graph TB
 ---
 
 ## 5. 비용 (8주 PoC)
+
+**표 3. 8주 PoC 비용 추정**
 
 | 항목 | 추정 |
 |---|---|
@@ -115,6 +123,8 @@ graph TB
 ---
 
 ## 6. PoC 마일스톤 (8주)
+
+**표 4. 8주 PoC 마일스톤 주차별 작업**
 
 | 주차 | 작업 |
 |---|---|

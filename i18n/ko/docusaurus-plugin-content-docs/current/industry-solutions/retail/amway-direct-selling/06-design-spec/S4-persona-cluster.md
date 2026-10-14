@@ -21,6 +21,8 @@ sidebar_label: S4. Persona & Cluster
 
 ## 2. 라이프스타일 페르소나 5종
 
+**표 1. 라이프스타일 페르소나 5종과 핵심 시그널**
+
 | 페르소나 | 핵심 시그널 |
 |---|---|
 | 헬스 인플루언서 | Nutrilite 정기구독·인스타 게시·Diamond ABO 비중 |

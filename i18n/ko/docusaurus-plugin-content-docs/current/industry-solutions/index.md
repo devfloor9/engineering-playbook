@@ -57,6 +57,8 @@ sidebar_label: Industry Solutions
 
 ## 설계 원칙
 
+**표 1. Industry Solutions 설계 원칙과 의미**
+
 | 원칙 | 의미 |
 |---|---|
 | **공개 정보 기반** | 고객사 비공개 자료 의존 X — 누구나 검증 가능 |

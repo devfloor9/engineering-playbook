@@ -22,6 +22,8 @@ sidebar_label: 05. Architecture
 
 ## 1. Architecture Overview
 
+**Figure 1. AMWAY PoC single-architecture overview (Edge, App, AI, Semantic, External)**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -67,6 +69,8 @@ graph TB
 
 ## 2. AMWAY-specific Components
 
+**Table 1. AMWAY-specific components and their roles**
+
 | Component | Role |
 |---|---|
 | **Neptune (700K edges)** | ABO tree 5-level depth queries (`*1..5` openCypher) — +40% vs. LG H&H's 500K |
@@ -91,6 +95,8 @@ graph TB
 
 ## 4. Security & Governance (AMWAY-enhanced)
 
+**Table 2. Security and governance items and their implementation**
+
 | Item | Implementation |
 |---|---|
 | Authentication | Cognito + Lambda@Edge JWT |
@@ -102,6 +108,8 @@ graph TB
 ---
 
 ## 5. Cost (8-week PoC)
+
+**Table 3. Cost estimate for the 8-week PoC**
 
 | Item | Estimate |
 |---|---|
@@ -115,6 +123,8 @@ graph TB
 ---
 
 ## 6. PoC Milestones (8 weeks)
+
+**Table 4. Week-by-week work for the 8-week PoC milestones**
 
 | Week | Work |
 |---|---|

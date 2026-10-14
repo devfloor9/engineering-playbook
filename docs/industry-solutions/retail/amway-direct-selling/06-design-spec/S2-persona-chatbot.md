@@ -29,6 +29,8 @@ sidebar_label: S2. Persona Chatbot
 
 ## 4. 12 Tools
 
+**Table 1. The 12 tools the chatbot invokes autonomously and their descriptions**
+
 | Tool | Description |
 |---|---|
 | `semantic_search` | OpenSearch BM25 + KNN + Rerank (multilingual) |
@@ -45,6 +47,9 @@ sidebar_label: S2. Persona Chatbot
 | `pii_mask` | PII masking |
 
 ## 5. Per-persona Variations
+
+**Table 2. Per-persona system prompt keywords and primary tools**
+
 | P | system prompt keywords | Primary tools |
 |---|---|---|
 | P1 | ABO · Sponsor · Downline · PV/BV | abo_tree_query, campaign_simulator |

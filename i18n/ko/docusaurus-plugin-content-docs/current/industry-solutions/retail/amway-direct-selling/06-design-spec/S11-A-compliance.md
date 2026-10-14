@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-A. Regulatory
 ---
 
-> **AMWAY 차별 포인트** ⭐ — 글로벌 직접판매 사업의 가장 큰 리스크는 규제. 다국가 규제 시그널 + 광고 텍스트 자동 검수 + 미성년 가드.
+> **AMWAY 차별 포인트** — 글로벌 직접판매 사업의 가장 큰 리스크는 규제. 다국가 규제 시그널 + 광고 텍스트 자동 검수 + 미성년 가드.
 
 ## 1. URL · 페르소나
 - `/regulatory` · P5 (Compliance & Regulatory)
@@ -33,6 +33,9 @@ sidebar_label: S11-A. Regulatory
 - 페르소나 = P5 고정
 
 ## 4. 데이터 믹스
+
+**표 1. 컴플라이언스 검수 데이터 믹스 (출처)**
+
 | 데이터 | 출처 |
 |---|---|
 | Bedrock Guardrails | AWS |
@@ -42,6 +45,8 @@ sidebar_label: S11-A. Regulatory
 | AuditLog | DynamoDB |
 
 ## 5. 검수 체크리스트
+
+**표 2. 국가·규제별 광고 검수 체크리스트**
 
 | 카테고리 | 검수 항목 |
 |---|---|

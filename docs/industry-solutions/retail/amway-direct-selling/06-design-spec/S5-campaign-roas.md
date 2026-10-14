@@ -23,6 +23,9 @@ sidebar_label: S5. Campaign ROAS
 - SMS · email · KakaoTalk/Line · Instagram ads · in-house store banners · ABO direct sale (Sponsor) · catalog · influencer
 
 ## 3. Data Mix
+
+**Table 1. Campaign ROAS data mix (source)**
+
 | Data | Source |
 |---|---|
 | Historical campaigns | Snowflake CAMPAIGN_MART |

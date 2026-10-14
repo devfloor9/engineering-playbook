@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-A. ABO Tree
 ---
 
-> **AMWAY differentiator** ⭐ — Explore and analyze performance for the ABO organization tree, the core asset of multi-level direct selling, up to a depth of 5 levels on a single screen.
+> **AMWAY differentiator** — Explore and analyze performance for the ABO organization tree, the core asset of multi-level direct selling, up to a depth of 5 levels on a single screen.
 
 ## 1. URL & Personas
 - `/abo-tree` · P1 (ABO Field), P4 (CX)
@@ -33,6 +33,9 @@ sidebar_label: S9-A. ABO Tree
 - Display toggles: PV (Personal Volume) / BV (Business Volume) / activity
 
 ## 4. Data Mix
+
+**Table 1. ABO tree visualization data mix (source)**
+
 | Data | Source |
 |---|---|
 | ABO nodes | Neptune (~50K) |

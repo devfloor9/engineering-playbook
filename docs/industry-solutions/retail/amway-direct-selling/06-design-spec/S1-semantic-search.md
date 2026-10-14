@@ -29,6 +29,9 @@ sidebar_label: S1. Semantic Search
 - Persona switcher
 
 ## 4. Data Mix
+
+**Table 1. Semantic search data mix (source and use)**
+
 | Data | Source | Use |
 |---|---|---|
 | In-house SKUs | OpenSearch `idx_product` | BM25 + KNN |
@@ -49,10 +52,13 @@ sidebar_label: S1. Semantic Search
 ## 6. Output UI
 - Three columns: SKU cards / ABO · Customer cards / external review cards
 - 1-hop KG (cytoscape.js)
-- Cohort badge: 🟢 real / 🟡 synth / 🔵 external
+- Cohort badge: Green real / Yellow synth / Blue external
 - Result count + response time
 
 ## 7. Per-department Variations
+
+**Table 2. Suggested queries per persona**
+
 | Persona | Suggested Query |
 |---|---|
 | P1 | "Diamond candidate ABO recommendations" |

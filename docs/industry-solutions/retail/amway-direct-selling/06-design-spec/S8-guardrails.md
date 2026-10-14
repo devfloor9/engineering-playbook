@@ -21,6 +21,8 @@ sidebar_label: S8. Guardrails
 
 ## 2. Active Policies
 
+**Table 1. Active guardrail policies and their actions**
+
 | Policy | Action |
 |---|---|
 | Violence · hate · sexual · misinformation (Bedrock 4 topics) | Block |

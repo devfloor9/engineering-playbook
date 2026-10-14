@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. Data Volume
 
+**Table 1. Volume per PoC data item**
+
 | Item | Volume |
 |---|---|
 | In-house ABOs (PII masked) | N = 1,000 |
@@ -34,11 +36,13 @@ Total ≈ ~700K Neptune edges
 
 ## 2. cohort_tag
 
+**Table 2. cohort_tag values, meaning, and UI badge color**
+
 | Value | Meaning | UI Badge |
 |---|---|---|
-| `real` | PII-masked in-house data | 🟢 |
-| `synth` | Synthetic ABO tree and subscriptions | 🟡 |
-| `external` | Social, weather, FX, regulatory | 🔵 |
+| `real` | PII-masked in-house data | Green |
+| `synth` | Synthetic ABO tree and subscriptions | Yellow |
+| `external` | Social, weather, FX, regulatory | Blue |
 
 ---
 
@@ -88,6 +92,8 @@ def gen_abo_tree(root_id, depth_max=5, branching=3):
 
 ## 5. Subscription Seasonality and Churn Patterns
 
+**Table 3. Subscription weighting by season/event**
+
 | Season / Event | Weighting |
 |---|---|
 | End of quarter | Subscription renewals +20% |
@@ -103,6 +109,8 @@ Churn signatures:
 ---
 
 ## 6. Data Ingestion Pipeline
+
+**Figure 1. Data ingestion pipeline for the real, synth, and external cohorts**
 
 ```mermaid
 graph LR

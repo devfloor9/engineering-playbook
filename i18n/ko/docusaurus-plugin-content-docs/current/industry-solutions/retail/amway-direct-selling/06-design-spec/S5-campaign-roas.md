@@ -23,6 +23,9 @@ sidebar_label: S5. Campaign ROAS
 - SMS · 이메일 · 카톡/Line · 인스타 광고 · 자사몰 배너 · ABO 직판 (Sponsor) · 카탈로그 · 인플루언서
 
 ## 3. 데이터 믹스
+
+**표 1. 캠페인 ROAS 데이터 믹스 (출처)**
+
 | 데이터 | 출처 |
 |---|---|
 | 과거 캠페인 | Snowflake CAMPAIGN_MART |

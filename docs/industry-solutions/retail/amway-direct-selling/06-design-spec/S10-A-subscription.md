@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-A. Subscription
 ---
 
-> **AMWAY differentiator** ⭐ — Nutrilite and Artistry subscriptions are core to AMWAY revenue. Automatically detect the signup → renewal → pause → cancel state machine and churn-risk signatures.
+> **AMWAY differentiator** — Nutrilite and Artistry subscriptions are core to AMWAY revenue. Automatically detect the signup → renewal → pause → cancel state machine and churn-risk signatures.
 
 ## 1. URL & Personas
 - `/subscription` · P4 (CX), P1 (ABO Field)
@@ -33,6 +33,9 @@ sidebar_label: S10-A. Subscription
 - Persona switcher
 
 ## 4. Data Mix
+
+**Table 1. Subscription analysis data mix (source)**
+
 | Data | Source |
 |---|---|
 | Subscription node | Neptune (~10K active + ~5K cancelled) |
@@ -42,6 +45,8 @@ sidebar_label: S10-A. Subscription
 | Re-signup after cancellation | SubscriptionEvent type='start' |
 
 ## 5. Churn Signatures (z-score based)
+
+**Table 2. Churn signatures and their definitions**
 
 | Signature | Definition |
 |---|---|

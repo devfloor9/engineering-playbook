@@ -21,6 +21,8 @@ sidebar_label: S3. Insight Cards
 
 ## 2. 카드 프리셋
 
+**표 1. 인사이트 카드 프리셋과 데이터**
+
 | 카드 | 데이터 |
 |---|---|
 | 월별 BU GMV (Nutrition/Beauty/Home) | OrderTransaction × Category × Month |
@@ -31,6 +33,8 @@ sidebar_label: S3. Insight Cards
 | 규제 발효 후 영향 | RegulatorySignal annotation |
 
 ## 3. 페르소나별 코멘트 차이
+
+**표 2. 동일 카드(월별 BU GMV)에 대한 페르소나별 코멘트 차이**
 
 | P | 동일 카드 (월별 BU GMV) 코멘트 |
 |---|---|

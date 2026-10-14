@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-A. ABO Tree
 ---
 
-> **AMWAY 차별 포인트** ⭐ — 다단계 직접판매의 핵심 자산인 ABO 조직 트리를 단일 화면에서 깊이 5단까지 탐색·성과 분석.
+> **AMWAY 차별 포인트** — 다단계 직접판매의 핵심 자산인 ABO 조직 트리를 단일 화면에서 깊이 5단까지 탐색·성과 분석.
 
 ## 1. URL · 페르소나
 - `/abo-tree` · P1 (ABO Field), P4 (CX)
@@ -33,6 +33,9 @@ sidebar_label: S9-A. ABO Tree
 - 표시 토글: PV(Personal Volume) / BV(Business Volume) / 활성도
 
 ## 4. 데이터 믹스
+
+**표 1. ABO 트리 시각화 데이터 믹스 (출처)**
+
 | 데이터 | 출처 |
 |---|---|
 | ABO 노드 | Neptune (~50K) |

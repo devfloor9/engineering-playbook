@@ -22,6 +22,8 @@ sidebar_label: 02. Ontology
 
 ## 1. Overview of the 25 Classes
 
+**Figure 1. The 25 KG classes organized into five groups (customer, product, transaction, channel, operations)**
+
 ```mermaid
 graph LR
     subgraph 고객["Customer / Member (5)"]
@@ -67,6 +69,8 @@ graph LR
 
 ### 2.1 ABO + Customer + Sponsor + DownlineLink (Organization Tree)
 
+**Table 1. Key attributes and primary relationships of the organization-tree classes**
+
 | Class | Key Attributes | Primary Relationships |
 |---|---|---|
 | **ABO** | abo_id · level (Founders Platinum / Diamond / Founders Diamond / EDC / EC ...) · joined_at · country · pv · bv · cohort_tag | -[SPONSORED_BY]→ Sponsor · -[BELONGS_TO]→ Persona |
@@ -77,12 +81,16 @@ graph LR
 
 ### 2.2 Subscription (Recurring Subscriptions)
 
+**Table 2. Key attributes and primary relationships of the subscription classes**
+
 | Class | Key Attributes | Primary Relationships |
 |---|---|---|
 | **Subscription** | sub_id · plan (monthly / quarterly) · sku_list · auto_renew · paused_at · cancelled_at | -[OF]→ ABO|Customer · -[INCLUDES]→ Product |
 | **SubscriptionEvent** | event_id · type (start / renew / pause / cancel) · at | -[ON]→ Subscription |
 
 ### 2.3 RegulatorySignal (Direct-selling Regulations)
+
+**Table 3. Attributes of the regulatory-signal class**
 
 | Class | Attributes |
 |---|---|
@@ -91,6 +99,8 @@ graph LR
 ---
 
 ## 3. Key Relationship Example (ABO Tree + Subscription)
+
+**Figure 2. Key relationship example centered on the ABO tree and subscriptions**
 
 ```mermaid
 graph LR
@@ -155,6 +165,8 @@ RETURN count(a) AS minor_abo_count
 
 ## 5. cohort_tag Segmentation
 
+**Table 4. cohort_tag values and their meaning**
+
 | Value | Meaning |
 |---|---|
 | `real` | PII-masked in-house data (N = 1,000 ABOs + 5,000 customers) |
@@ -164,6 +176,8 @@ RETURN count(a) AS minor_abo_count
 ---
 
 ## 6. OpenSearch Indexes
+
+**Table 5. Documents and analyzers per OpenSearch index**
 
 | Index | Documents | Analyzer |
 |---|---|---|

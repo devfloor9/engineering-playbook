@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-A. Subscription
 ---
 
-> **AMWAY 차별 포인트** ⭐ — Nutrilite·Artistry 정기구독은 AMWAY 매출의 핵심. 가입→갱신→일시정지→해지 state machine과 해지 위험 시그너처를 자동 탐지.
+> **AMWAY 차별 포인트** — Nutrilite·Artistry 정기구독은 AMWAY 매출의 핵심. 가입→갱신→일시정지→해지 state machine과 해지 위험 시그너처를 자동 탐지.
 
 ## 1. URL · 페르소나
 - `/subscription` · P4 (CX), P1 (ABO Field)
@@ -33,6 +33,9 @@ sidebar_label: S10-A. Subscription
 - 페르소나 스위처
 
 ## 4. 데이터 믹스
+
+**표 1. 정기구독 분석 데이터 믹스 (출처)**
+
 | 데이터 | 출처 |
 |---|---|
 | Subscription 노드 | Neptune (~10K 활성 + ~5K 해지) |
@@ -42,6 +45,8 @@ sidebar_label: S10-A. Subscription
 | 해지 후 재가입 | SubscriptionEvent type='start' |
 
 ## 5. 해지 시그너처 (z-score 기반)
+
+**표 2. 해지 시그너처와 정의**
 
 | 시그너처 | 정의 |
 |---|---|

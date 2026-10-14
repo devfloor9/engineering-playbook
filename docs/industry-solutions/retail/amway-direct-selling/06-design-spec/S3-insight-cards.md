@@ -21,6 +21,8 @@ sidebar_label: S3. Insight Cards
 
 ## 2. Card Presets
 
+**Table 1. Insight card presets and their data**
+
 | Card | Data |
 |---|---|
 | Monthly BU GMV (Nutrition / Beauty / Home) | OrderTransaction × Category × Month |
@@ -31,6 +33,8 @@ sidebar_label: S3. Insight Cards
 | Impact after regulatory enactment | RegulatorySignal annotation |
 
 ## 3. Per-persona Commentary Differences
+
+**Table 2. Per-persona commentary differences on the same card (Monthly BU GMV)**
 
 | P | Comment on the same card (Monthly BU GMV) |
 |---|---|

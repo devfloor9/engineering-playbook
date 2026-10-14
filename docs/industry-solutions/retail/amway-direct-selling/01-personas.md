@@ -22,6 +22,8 @@ sidebar_label: 01. Personas
 
 ## At a Glance
 
+**Table 1. Mission, key KPIs, and primary scenarios of the five department personas**
+
 | Code | Department | Mission | Key KPIs | Primary Scenarios |
 |---|---|---|---|---|
 | **P1** | ABO Field Marketing | ABO recruitment · Upline performance · subscription expansion | New ABOs / Upline ROI / subscription reactivation rate | S1 · S2 · S5 · **S9-A** |
@@ -65,6 +67,8 @@ sidebar_label: 01. Personas
 ---
 
 ## How the Persona Switcher Affects the UI
+
+**Table 2. Per-persona UI changes (sidebar, cards, chatbot prompt, guardrails)**
 
 | UI Element | P1 | P2 | P3 | P4 | P5 |
 |---|---|---|---|---|---|

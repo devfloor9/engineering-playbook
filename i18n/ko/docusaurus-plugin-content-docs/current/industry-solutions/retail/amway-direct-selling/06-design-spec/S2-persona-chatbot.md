@@ -29,6 +29,8 @@ sidebar_label: S2. Persona Chatbot
 
 ## 4. 도구 12종
 
+**표 1. 챗봇이 자율 호출하는 12종 도구와 설명**
+
 | 도구명 | 설명 |
 |---|---|
 | `semantic_search` | OpenSearch BM25+KNN+Rerank (다국어) |
@@ -45,6 +47,9 @@ sidebar_label: S2. Persona Chatbot
 | `pii_mask` | PII 마스킹 |
 
 ## 5. 페르소나별 변형
+
+**표 2. 페르소나별 system prompt 키워드와 주 도구**
+
 | P | system prompt 키워드 | 주 도구 |
 |---|---|---|
 | P1 | ABO·Sponsor·Downline·PV/BV | abo_tree_query, campaign_simulator |

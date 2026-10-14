@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. 데이터 규모
 
+**표 1. PoC 데이터 항목별 규모**
+
 | 항목 | 규모 |
 |---|---|
 | 자사 ABO (PII 마스킹) | N=1,000 |
@@ -34,11 +36,13 @@ sidebar_label: 04. Data Sources
 
 ## 2. cohort_tag
 
+**표 2. cohort_tag 값·의미·UI 배지 색상**
+
 | 값 | 의미 | UI 배지 |
 |---|---|---|
-| `real` | PII 마스킹 자사 실데이터 | 🟢 |
-| `synth` | 합성 ABO Tree·구독 | 🟡 |
-| `external` | 소셜·기상·환율·규제 | 🔵 |
+| `real` | PII 마스킹 자사 실데이터 | 초록 |
+| `synth` | 합성 ABO Tree·구독 | 노랑 |
+| `external` | 소셜·기상·환율·규제 | 파랑 |
 
 ---
 
@@ -88,6 +92,8 @@ def gen_abo_tree(root_id, depth_max=5, branching=3):
 
 ## 5. 정기구독 시즌·해지 패턴
 
+**표 3. 정기구독 시즌/이벤트별 가중**
+
 | 시즌/이벤트 | 가중 |
 |---|---|
 | 분기말 | 정기구독 갱신 +20% |
@@ -103,6 +109,8 @@ def gen_abo_tree(root_id, depth_max=5, branching=3):
 ---
 
 ## 6. 데이터 적재 파이프라인
+
+**그림 1. real·synth·external 코호트의 데이터 적재 파이프라인**
 
 ```mermaid
 graph LR

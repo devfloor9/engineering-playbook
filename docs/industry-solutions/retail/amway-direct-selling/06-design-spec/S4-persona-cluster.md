@@ -21,6 +21,8 @@ sidebar_label: S4. Persona & Cluster
 
 ## 2. Five Lifestyle Personas
 
+**Table 1. The five lifestyle personas and their core signals**
+
 | Persona | Core Signals |
 |---|---|
 | Health Influencer | Nutrilite subscription · Instagram posts · share of Diamond ABOs |

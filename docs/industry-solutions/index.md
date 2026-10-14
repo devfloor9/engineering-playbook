@@ -57,6 +57,8 @@ All Industry Solutions leverage the following shared assets:
 
 ## Design Principles
 
+**Table 1. Industry Solutions design principles and their meaning**
+
 | Principle | Meaning |
 |---|---|
 | **Public-information based** | No dependency on customer-confidential materials — anyone can verify |

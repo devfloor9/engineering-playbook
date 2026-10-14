@@ -22,6 +22,8 @@ sidebar_label: 02. Ontology
 
 ## 1. 25 클래스 개요
 
+**그림 1. 25개 KG 클래스의 5개 그룹 구성 (고객·상품·거래·채널·운영)**
+
 ```mermaid
 graph LR
     subgraph 고객["고객/회원 (5)"]
@@ -67,6 +69,8 @@ graph LR
 
 ### 2.1 ABO + Customer + Sponsor + DownlineLink (조직 트리)
 
+**표 1. 조직 트리 클래스의 핵심 속성과 주요 관계**
+
 | 클래스 | 핵심 속성 | 주요 관계 |
 |---|---|---|
 | **ABO** | abo_id · level (Founders Platinum / Diamond / Founders Diamond / EDC / EC ...) · joined_at · country · pv · bv · cohort_tag | -[SPONSORED_BY]→ Sponsor · -[BELONGS_TO]→ Persona |
@@ -77,12 +81,16 @@ graph LR
 
 ### 2.2 Subscription (정기구독)
 
+**표 2. 정기구독 클래스의 핵심 속성과 주요 관계**
+
 | 클래스 | 핵심 속성 | 주요 관계 |
 |---|---|---|
 | **Subscription** | sub_id · plan (월/분기) · sku_list · auto_renew · paused_at · cancelled_at | -[OF]→ ABO|Customer · -[INCLUDES]→ Product |
 | **SubscriptionEvent** | event_id · type (start/renew/pause/cancel) · at | -[ON]→ Subscription |
 
 ### 2.3 RegulatorySignal (직접판매 규제)
+
+**표 3. 규제 시그널 클래스의 속성**
 
 | 클래스 | 속성 |
 |---|---|
@@ -91,6 +99,8 @@ graph LR
 ---
 
 ## 3. 핵심 관계 예시 (ABO 트리 + 구독)
+
+**그림 2. ABO 트리와 정기구독을 중심으로 한 핵심 관계 예시**
 
 ```mermaid
 graph LR
@@ -155,6 +165,8 @@ RETURN count(a) AS minor_abo_count
 
 ## 5. cohort_tag 분리
 
+**표 4. cohort_tag 값과 의미**
+
 | 값 | 의미 |
 |---|---|
 | `real` | PII 마스킹 자사 실데이터 (N=1,000 ABO + 5,000 Customer) |
@@ -164,6 +176,8 @@ RETURN count(a) AS minor_abo_count
 ---
 
 ## 6. OpenSearch 인덱스
+
+**표 5. OpenSearch 인덱스별 도큐먼트와 분석기**
 
 | 인덱스 | 도큐먼트 | 분석기 |
 |---|---|---|

@@ -21,6 +21,8 @@ sidebar_label: S6. External Signals
 
 ## 2. Four External Signals
 
+**Table 1. The four external signals and their sources**
+
 | Type | Sources |
 |---|---|
 | Social | Global Instagram · Reddit · X · Korea Naver · China Weibo · Xiaohongshu |
