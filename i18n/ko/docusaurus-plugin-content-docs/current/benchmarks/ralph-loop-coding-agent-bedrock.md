@@ -3,9 +3,9 @@ title: "Foundation Model별 토큰 비용 비교: 코딩 에이전트 랄프 루
 description: RealWorld 백엔드 구현 과제를 랄프 루프로 Amazon Bedrock us-east-1의 14개 모델에서 5회씩 실행하고, 완주 여부와 토큰·비용·LLM 요청 수를 비교한 실측 보고서
 created: "2026-10-13"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 29
+reading_time: 27
 tags:
   - benchmark
   - bedrock
@@ -20,14 +20,11 @@ sidebar_position: 9
 category: benchmark
 ---
 
-import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphSameModelChart, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
+import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
 import DataTableFrame from '@site/src/components/DataTableFrame';
 
 :::info 참고한 벤치마크
-이 벤치마크는 로보코(Roboco) 정도현님의 [랄프 루프 모델별 완주 비교](https://roboco.io/coding-agent-benchmark/) 리포트와 [공개 저장소](https://github.com/roboco-io/coding-agent-benchmark)를 참고해 만들었습니다.
-과제(RealWorld 백엔드 구현), 완주 기준, 랄프 루프 하네스의 구조, 채점에 쓰는 Hurl 테스트는 원 리포트를 따랐습니다.
-Amazon Bedrock us-east-1에서의 실행, 빌더·검증자 2-에이전트 구성, 모델당 5회 반복, Bedrock 단가 기준 비용 계산은 이 보고서에서 정했습니다.
-따라서 이 보고서의 수치는 원 리포트의 결과가 아니며, 원 리포트와 같은 조건에서 얻은 값도 아닙니다.
+이 벤치마크는 로보코(Roboco) 정도현님의 [랄프 루프 모델별 완주 비교](https://roboco.io/coding-agent-benchmark/) 리포트를 참고해 만들었습니다.
 :::
 
 :::info 측정 상태
@@ -53,7 +50,7 @@ Amazon Bedrock us-east-1에서의 실행, 빌더·검증자 2-에이전트 구�
 
 <RalphMethodFlow />
 
-- **원 리포트와 다른 점**: pi 0.87.1은 Claude Haiku 5.5에 맞지 않는 thinking 형식을 보내 Bedrock이 요청을 거부합니다. 그래서 pi 번들의 모델 이름 목록 두 곳에 `haiku-5`를 추가했고, 다른 모델의 요청에는 영향이 없습니다.
+- **pi 번들 수정 1곳**: pi 0.87.1은 Claude Haiku 5.5에 맞지 않는 thinking 형식을 보내 Bedrock이 요청을 거부합니다. 그래서 pi 번들의 모델 이름 목록 두 곳에 `haiku-5`를 추가했고, 다른 모델의 요청에는 영향이 없습니다.
 - **사고(thinking) 설정**: medium으로 두었습니다. Claude 모델에는 adaptive thinking(effort=medium)으로 전달되고, 다른 모델에는 pi가 reasoning 필드를 보내지 않아 모델 기본값이 적용됩니다.
 
 <details>
@@ -62,9 +59,9 @@ Amazon Bedrock us-east-1에서의 실행, 빌더·검증자 2-에이전트 구�
 - **완주**: 공식 채점을 통과한 run입니다. 중앙값과 최소·최대는 완주한 run만으로 계산합니다.
 - **토큰** [사실]: Bedrock이 응답마다 보고한 사용량을 빌더·검증자의 모든 요청에 걸쳐 더한 값입니다. 입력은 캐시가 적용되지 않은 입력 토큰이고, 출력에는 추론 토큰이 포함됩니다. 캐시 읽기와 캐시 쓰기는 따로 셉니다.
 - **비용** [계산]: 토큰 수에 "적용 단가"의 단가를 곱한 값입니다. 캐시 쓰기는 5분 캐시 단가로 계산했습니다. pi가 캐시 유지 시간을 지정하지 않으면 Bedrock 기본값이 5분이기 때문입니다.
-- **랄프 반복**: 빌더가 실행된 반복 횟수입니다. 원 리포트의 반복 횟수와 정의가 같습니다.
+- **랄프 반복**: 빌더가 실행된 반복 횟수입니다.
 - **LLM 요청**: 모델이 돌려준 응답 수로, 모델 수준의 "턴"에 해당합니다. 빌더와 검증자를 합친 값입니다.
-- **run 시간**: run 시작부터 끝까지의 시간으로 빌더·검증자 세션과 채점을 포함합니다. 원 리포트의 소요 시간은 에이전트 세션 시간이라 정의가 다릅니다.
+- **run 시간**: run 시작부터 끝까지의 시간으로 빌더·검증자 세션과 채점을 포함합니다.
 
 </details>
 
@@ -72,8 +69,10 @@ Amazon Bedrock us-east-1에서의 실행, 빌더·검증자 2-에이전트 구�
 
 <RalphLineupMap />
 
-- **오픈웨이트 확인** [출처]: Kimi K3와 GLM 5.3의 Bedrock 모델 카드는 두 모델을 각각 "open-weight model", "open weight text generation model"이라고 적고 있습니다. GLM 5.3은 원 리포트에 없는 모델로, 원 리포트의 glm-5.3-flash가 Bedrock에서 제공되지 않아 같은 계열에서 추가했습니다.
+- **오픈웨이트 확인** [출처]: Kimi K3와 GLM 5.3의 Bedrock 모델 카드는 두 모델을 각각 "open-weight model", "open weight text generation model"이라고 적고 있습니다.
 - **Claude Fable 5.1** [사실]: 계정의 us-east-1 데이터 보존 모드가 `aws_review` 이상이어야 호출됩니다. 계정 소유자가 `inherit`에서 `aws_review`로 바꾼 뒤(2026-10-13 04:25:43 UTC) 실행했습니다.
+
+- **측정 범위** [출처]: Amazon Bedrock us-east-1에서 호출할 수 있는 텍스트 생성 모델 중 14개를 측정했습니다. Bedrock에는 이 밖에도 Claude Fable 5·Claude Opus 4.7·GPT-5.6 Terra·gpt-oss-120b·Grok 4.7·DeepSeek V3.2·Qwen3 Coder Next·MiniMax M2.5·Kimi K2.5·GLM 5 등의 텍스트 생성 모델이 있지만 이번 측정에는 포함하지 않았습니다([Bedrock 문서](https://docs.aws.amazon.com/bedrock/latest/userguide/models-region-compatibility.html) 2026-10-14 기준).
 
 <details>
 <summary>데이터 보존 설정이 미치는 영향</summary>
@@ -139,17 +138,6 @@ Amazon Bedrock us-east-1에서의 실행, 빌더·검증자 2-에이전트 구�
 
 <RalphGroupCompare />
 
-### 같은 모델의 공개 run과 비교 [계산]
-
-원 리포트가 같은 pi 하네스로 실행한 공개 run(에이전트 하나)의 토큰을 Bedrock 단가로 환산해, 이번 실측(빌더+검증자) 중앙값과 비교했습니다.
-
-<RalphSameModelChart />
-
-- 4개 모델(Claude Opus 5.5, Claude Sonnet 5.5, Claude Haiku 5.5, GPT-6 Sol)은 검증자 비용이 더해졌는데도 공개 run 환산값과 ±10% 안에서 같았습니다. 빌더 몫만 보면 공개 run의 0.86~0.95배였기 때문입니다.
-- GPT-6.1 Sol: 출력 토큰이 20,621개로 공개 run(13,251개)보다 많아, 비용이 약 1.6배였습니다.
-- Kimi K3: 출력 토큰이 39,505개로 공개 run(18,667개)보다 많아, 비용이 약 1.9배였습니다.
-- 나머지 모델은 공개 run이 다른 하네스(Claude Code, Codex)를 썼거나 토큰 기록이 없어 비교하지 않았습니다. GLM 5.3의 공개 기준값 $0.544는 glm-5.3-flash의 토큰을 빌려 쓴 [추정]입니다.
-
 ### 모델별 개요
 
 <RalphModelCards />
@@ -195,9 +183,9 @@ Amazon Bedrock us-east-1에서의 실행, 빌더·검증자 2-에이전트 구�
 ## 한계와 해석 주의
 
 1. **과제 하나, 모델당 5회입니다.** 순위는 이 과제와 이 구성에서 관측한 결과입니다. 같은 모델에서도 가장 비싼 run이 가장 싼 run의 최대 약 2.7배(GPT-6 Luna)였습니다.
-2. **원 리포트와 구성이 다릅니다.** 원 리포트는 모델마다 다른 하네스로 에이전트 하나를 실행했고, 여기서는 모든 모델을 pi와 Bedrock Converse에서 빌더+검증자로 실행했습니다. 그래서 검증자 몫만큼 토큰과 비용이 늘어납니다.
+2. **빌더와 검증자 2-에이전트 구성입니다.** 모든 모델을 pi와 Bedrock Converse에서 빌더+검증자로 실행했습니다. 그래서 토큰과 비용에는 검증자 몫이 포함됩니다.
 3. **1차 실행은 폐기했습니다.** 컨테이너 없이 호스트에서 동시에 실행했더니 에이전트가 `pkill -f`, `fuser -k` 같은 호스트 전체 명령으로 다른 run의 서버를 멈출 수 있었습니다. 그래서 격리 컨테이너로 다시 실행했습니다.
-4. **검증자가 서버 포트를 원래 기준보다 엄격하게 봤습니다.** 검증자 프롬프트의 `PORT` 환경 변수 요구는 원래 완주 기준에 없으며, 완주 판정에는 영향이 없습니다.
+4. **검증자가 서버 포트를 완주 기준보다 엄격하게 봤습니다.** 검증자 프롬프트의 `PORT` 환경 변수 요구는 완주 기준에 없으며, 완주 판정에는 영향이 없습니다.
 5. **자기 종료 세션(exit 143)이 있었습니다.** pi는 프롬프트를 명령줄 인자로 받기 때문에, 에이전트가 프롬프트 안의 문구로 `pkill -f`를 실행하면 자기 자신도 종료됩니다. 비교를 위해 실행 도중 프롬프트는 바꾸지 않았습니다.
 6. **검증자의 효과는 판단할 수 없습니다(확인 불가).** 검증자 없는 비교군이 없습니다.
 7. **그룹 2는 모델이 2개입니다.** 그룹 대표값의 신뢰도가 낮습니다.
@@ -209,14 +197,14 @@ Amazon Bedrock us-east-1에서의 실행, 빌더·검증자 2-에이전트 구�
 
 - **도구 버전**: pi coding agent 0.87.1(Haiku 5.5용 수정 1곳), hurl 8.0.1, Node 22.23.3, Docker 이미지 기반 Amazon Linux 2023
 - **설정값**: 사고 설정 medium, 영어 프롬프트, 반복 상한 30회, run 시간 상한 1,200초, 멈춤 감지 300초, 모델당 5회
-- **프롬프트**: 빌더는 원 저장소의 `PROMPT-en.md`를 그대로 썼고, 검증자 프롬프트는 이 보고서에서 새로 썼습니다.
+- **프롬프트**: 빌더는 `PROMPT-en.md`를 그대로 썼고, 검증자 프롬프트는 이 보고서에서 새로 썼습니다.
 - **run별 수치**: "모델별 결과" 차트에서 모델 행을 펼치면 5회 각각의 값이 나옵니다. 같은 값이 이 저장소의 `src/data/ralph-loop-bedrock.json`(`runs` 항목)에 있습니다.
-- **하네스 스크립트와 원 데이터**(세션 기록, run별 지표, 집계 파일)는 이 저장소에 포함하지 않았습니다. 하네스의 기본 구조는 [원 저장소](https://github.com/roboco-io/coding-agent-benchmark)에 있습니다.
+- **하네스 스크립트와 원 데이터**(세션 기록, run별 지표, 집계 파일)는 이 저장소에 포함하지 않았습니다. 과제·빌더 프롬프트·채점용 Hurl 테스트는 [공개 저장소](https://github.com/roboco-io/coding-agent-benchmark)에 있습니다.
 
 ## 참고 자료
 
-- 로보코(Roboco) 정도현, [랄프 루프 모델별 완주 비교](https://roboco.io/coding-agent-benchmark/) (원 리포트, 2026-10-12 15:40 UTC 확인)
-- [roboco-io/coding-agent-benchmark](https://github.com/roboco-io/coding-agent-benchmark) (원 리포트의 하네스, 프롬프트, 채점용 Hurl 테스트)
+- 로보코(Roboco) 정도현, [랄프 루프 모델별 완주 비교](https://roboco.io/coding-agent-benchmark/) (참고한 리포트, 2026-10-14 05:27 UTC 확인)
+- [roboco-io/coding-agent-benchmark](https://github.com/roboco-io/coding-agent-benchmark) (과제, 빌더 프롬프트, 채점용 Hurl 테스트)
 - [Amazon Bedrock 요금](https://aws.amazon.com/bedrock/pricing/)
 - [Amazon Bedrock 사용자 가이드: Data retention](https://docs.aws.amazon.com/bedrock/latest/userguide/data-retention.html)
 - [RealWorld 백엔드 API 명세](https://realworld-docs.netlify.app/specifications/backend/endpoints/)
