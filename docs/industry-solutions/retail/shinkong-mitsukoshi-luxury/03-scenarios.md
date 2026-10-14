@@ -38,17 +38,17 @@ Scenarios marked "(specialized)" in the table are the scenarios added specifical
 
 ## Persona Matrix
 
-"Used" means the department primarily uses that scenario; a blank cell means it does not.
+"Yes" means the department primarily uses that scenario; a blank cell means it does not.
 
 **Table 2. Scenarios used per department**
 
 | Department | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 | S9-M | S10-M | S11-M |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| P1 | Used | Used |  |  | Used |  |  |  |  |  |  |
-| P2 |  | Used |  | Used |  | Used |  |  | Used |  |  |
-| P3 |  | Used | Used |  |  | Used |  |  |  |  |  |
-| P4 |  | Used |  |  |  |  | Used | Used |  |  | Used |
-| P5 | Used | Used |  |  |  |  |  |  |  | Used |  |
+| P1 | Yes | Yes |  |  | Yes |  |  |  |  |  |  |
+| P2 |  | Yes |  | Yes |  | Yes |  |  | Yes |  |  |
+| P3 |  | Yes | Yes |  |  | Yes |  |  |  |  |  |
+| P4 |  | Yes |  |  |  |  | Yes | Yes |  |  | Yes |
+| P5 | Yes | Yes |  |  |  |  |  |  |  | Yes |  |
 
 ---
 
