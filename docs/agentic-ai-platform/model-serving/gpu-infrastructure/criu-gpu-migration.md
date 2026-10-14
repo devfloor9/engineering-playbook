@@ -35,6 +35,8 @@ EC2 Spot stop/terminate notices are normally issued about two minutes before int
 
 ### Limitations of Existing Alternatives
 
+**Table 1. What existing Spot-interruption alternatives preserve and their remaining constraints**
+
 | Alternative | What it preserves | Remaining constraint |
 |---|---|---|
 | Warm replica | Separate ready serving capacity | Spare throughput, failure domains, cost |
@@ -54,6 +56,8 @@ The earlier April description was reviewed against public sources on 2026-09-18.
 
 This is a conceptual integration, not a standard automatic Kubernetes GPU migration controller.
 
+**Figure 1. Conceptual integration of CRIU, cuda-checkpoint, and the kubelet checkpoint API**
+
 ```mermaid
 flowchart TB
     APP[LLM process and distributed state] --> CRIU[CRIU host process checkpoint]
@@ -67,6 +71,8 @@ flowchart TB
 ```
 
 ### Core Component Maturity
+
+**Table 2. Established scope and operator-pinned items for CRIU-related core components**
 
 | Component | Established scope | Operator must pin |
 |---|---|---|
@@ -122,6 +128,8 @@ Every scenario awaits operational evidence. Location or instance name alone does
 
 ### Scenario-specific Feasibility
 
+**Table 3. Documentation assessment and required evidence per EKS migration scenario**
+
 | Scenario | Documentation assessment | Required evidence |
 |---|---|---|
 | Same host | Candidate for verification | Artifact survival, process/device restoration |
@@ -151,6 +159,8 @@ An AZ boundary neither inherently prohibits CRIU nor guarantees seconds-long NIX
 Choose a recovery strategy using service SLOs, redundant capacity, cache compatibility, and operability. No fixed recovery time or zero downtime is guaranteed.
 
 ### Alternative Comparison Table
+
+**Table 4. Conditions to verify per recovery strategy**
 
 | Strategy | Condition to verify |
 |---|---|

@@ -23,6 +23,8 @@ AWS Neuron is a software stack for running training and inference workloads on A
 
 This document covers the Neuron software stack, Device Plugin, Karpenter configuration, and inference framework selection criteria for operating Trainium2/Inferentia2 instances on EKS. For NVIDIA GPU-based stacks, refer to [NVIDIA GPU Stack](./nvidia-gpu-stack.md); for overall node type selection, see [EKS GPU Node Strategy](./eks-gpu-node-strategy.md).
 
+**Table 1. Role and core components by Neuron stack layer**
+
 | Layer | Role | Core Components |
 |-------|------|----------------|
 | **Infrastructure Automation** | Neuron driver, runtime, Device Plugin | aws-neuron-dkms, neuron-device-plugin |
@@ -57,6 +59,8 @@ Some Foundation Models served by Bedrock (Claude, Llama, Titan, etc.) run intern
 
 ### 1.2 Suitable/Unsuitable Workloads
 
+**Table 2. Suitable, caution-required, and unsuitable Neuron workloads**
+
 | Category | Workloads |
 |----------|-----------|
 | **Suitable** | Standard Llama/Mistral/Qwen-family inference, large-scale long-term operations, FP8/BF16-based serving, Bedrock-style governance |
@@ -77,6 +81,8 @@ This is the Neuron instance lineup as of April 2026 based on AWS official produc
 
 ### 2.1 Inference-Only Instances (Inferentia2)
 
+**Table 3. Inferentia2 inference-only instance specifications**
+
 | Instance | Chips | NeuronCore | Total Accelerator Memory | vCPU | Memory | Network |
 |----------|-------|-----------|-------------------------|------|--------|---------|
 | inf2.xlarge | 1× Inferentia2 | 2 | 32 GB | 4 | 16 GB | Up to 15 Gbps |
@@ -85,6 +91,8 @@ This is the Neuron instance lineup as of April 2026 based on AWS official produc
 | inf2.48xlarge | 12× Inferentia2 | 24 | 384 GB | 192 | 768 GB | 100 Gbps |
 
 ### 2.2 Training/Inference Dual-Purpose Instances (Trainium1/Trainium2)
+
+**Table 4. Trainium1/Trainium2 training/inference dual-purpose instance specifications**
 
 | Instance | Chips | NeuronCore | Total Accelerator Memory | vCPU | Memory | Network |
 |----------|-------|-----------|-------------------------|------|--------|---------|
@@ -106,6 +114,8 @@ This is the Neuron instance lineup as of April 2026 based on AWS official produc
 ## 3. Neuron SDK 2.x Stack Architecture
 
 ### 3.1 Layer Structure
+
+**Figure 1. Neuron SDK 2.x stack layer structure**
 
 ```mermaid
 flowchart TB
@@ -154,6 +164,8 @@ flowchart TB
 ```
 
 ### 3.2 Core Components
+
+**Table 5. Neuron SDK core components and deployment form**
 
 | Component | Description | Deployment Form |
 |-----------|-------------|-----------------|
@@ -235,6 +247,8 @@ Starting with Neuron SDK 2.20 (2024-09), the `aws.amazon.com/neurondevice` resou
 
 When requesting Neuron resources in Pod specs, choose one of two units:
 
+**Table 6. Neuron resource request units and when to use them**
+
 | Resource | Meaning | When to Use |
 |----------|---------|-------------|
 | `aws.amazon.com/neuron` | Neuron chip/device unit (Trainium2 chips in trn2; all cores on the device) | When chip/device-level allocation is clear |
@@ -296,6 +310,8 @@ tolerations:
 ```
 
 ### 4.4 AMI Selection
+
+**Table 7. AMI options for Neuron nodes and recommended use**
 
 | AMI | Neuron Driver | Recommended Use |
 |-----|--------------|-----------------|
@@ -448,6 +464,8 @@ HuggingFace maintains a TGI fork based on **optimum-neuron**. HuggingFace models
 
 ### 6.4 Framework Comparison
 
+**Table 8. Neuron inference framework comparison**
+
 | Aspect | NxD Inference | vLLM Neuron backend | TGI Neuron fork |
 |------|--------------|--------------------|-----------------| 
 | **Maintainer** | AWS Official | vLLM community + AWS contributions | HuggingFace + AWS contributions |
@@ -475,6 +493,8 @@ Based on AWS Neuron official Model Zoo and NxD Inference support matrix. For the
 
 ### 7.1 Major Officially Supported Models (as of April 2026)
 
+**Table 9. Major officially supported models and recommended instances (as of April 2026)**
+
 | Model | Size (active / total) | Recommended Instance | Pre-compiled | Notes |
 |------|-----|------------|-------------|------|
 | Llama 4 Scout (17Bx16E) | 17B active / 109B total (MoE) | trn2.48xlarge | Check release status | NxD support — check support matrix |
@@ -493,6 +513,8 @@ Based on AWS Neuron official Model Zoo and NxD Inference support matrix. For the
 
 ### 7.2 Quantization Support
 
+**Table 10. Neuron support by quantization format**
+
 | Format | Neuron Support |
 |------|------------|
 | BF16 | Default |
@@ -509,6 +531,8 @@ Based on AWS Neuron official Model Zoo and NxD Inference support matrix. For the
 
 ### 8.1 Neuron-Specific Tools
 
+**Table 11. Neuron-specific observability tools and when to use them**
+
 | Tool | Role | When to Use |
 |-----|------|---------|
 | **neuron-ls** | List Neuron devices on the node | Initial diagnosis |
@@ -517,6 +541,8 @@ Based on AWS Neuron official Model Zoo and NxD Inference support matrix. For the
 | **neuron-profile** | Profile NEFF execution | Performance optimization |
 
 ### 8.2 Prometheus / CloudWatch Integration
+
+**Figure 2. Neuron metric collection chain (Prometheus/CloudWatch)**
 
 ```mermaid
 flowchart LR
@@ -552,6 +578,8 @@ For detailed AMP/AMG configuration, refer to [Monitoring & Observability Setup](
 
 The series names and units below are those actually used by the official Grafana dashboard example (`neuron-monitor-grafana.json`). Verify the exact labels and series for your exporter version in the [neuron-monitor user guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/tools/neuron-sys-tools/neuron-monitor-user-guide.html).
 
+**Table 12. Key Neuron metric series and usage**
+
 | Metric (series) | Description / Unit | Usage |
 |-------|------|------|
 | `neuroncore_utilization_ratio` | NeuronCore utilization (0–1 ratio) | HPA/KEDA trigger |
@@ -569,6 +597,8 @@ The series names and units below are those actually used by the official Grafana
 ## 9. Limitations and Considerations
 
 ### 9.1 Feature Constraints
+
+**Table 13. Neuron feature constraint categories and details**
 
 | Category | Constraint |
 |------|------|
