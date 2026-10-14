@@ -22,6 +22,8 @@ sidebar_label: 02. Ontology
 
 ## 1. 25 클래스 개요
 
+**그림 1. 25 클래스 그룹 구성**
+
 ```mermaid
 graph LR
     subgraph 고객["고객/회원 (5)"]
@@ -67,6 +69,8 @@ graph LR
 
 ### 2.1 고객/회원 (5)
 
+**표 1. 고객/회원 클래스 속성과 관계**
+
 | 클래스 | 핵심 속성 | 주요 관계 |
 |---|---|---|
 | **Customer** | customer_id · gender · age_band · region · signup_date · cohort_tag(real/synth) | -[BELONGS_TO]→ Household · -[HAS_MEMBERSHIP]→ Membership |
@@ -76,6 +80,8 @@ graph LR
 | **Segment** | segment_id · definition · dynamic_query · snapshot_date | -[INCLUDES]→ Customer |
 
 ### 2.2 상품/카탈로그 (5)
+
+**표 2. 상품/카탈로그 클래스 속성과 관계**
 
 | 클래스 | 핵심 속성 | 주요 관계 |
 |---|---|---|
@@ -87,6 +93,8 @@ graph LR
 
 ### 2.3 거래/행동 (5)
 
+**표 3. 거래/행동 클래스 속성과 관계**
+
 | 클래스 | 핵심 속성 | 주요 관계 |
 |---|---|---|
 | **OrderTransaction** (자사몰) | order_id · total_amount · channel(web/app) · order_at | -[BY]→ Customer · -[CONTAINS]→ Product |
@@ -97,6 +105,8 @@ graph LR
 
 ### 2.4 채널/캠페인 (5)
 
+**표 4. 채널/캠페인 클래스 속성과 관계**
+
 | 클래스 | 핵심 속성 | 주요 관계 |
 |---|---|---|
 | **Channel** | channel_id · name(자사몰·이마트·롯데마트·올리브영·CU·GS25·QSR) · type | -[HOSTS]→ Transaction |
@@ -106,6 +116,8 @@ graph LR
 | **Coupon** | coupon_id · value · expires_at · redeemed_at | -[ISSUED_TO]→ Customer · -[FROM]→ Campaign |
 
 ### 2.5 운영/외부 (5)
+
+**표 5. 운영/외부 클래스 속성과 관계**
 
 | 클래스 | 핵심 속성 | 주요 관계 |
 |---|---|---|
@@ -118,6 +130,8 @@ graph LR
 ---
 
 ## 3. 핵심 관계 (예상 ~500K edges)
+
+**그림 2. 클래스 간 핵심 관계**
 
 ```mermaid
 graph LR
@@ -209,17 +223,21 @@ ORDER BY date
 
 ## 5. cohort_tag 분리 전략
 
+**표 6. cohort_tag 값별 의미와 UI 배지**
+
 | 값 | 의미 | UI 배지 |
 |---|---|---|
-| `real` | PII 마스킹 실데이터 (N=500~5K) | 🟢 실데이터 |
-| `synth` | 합성 데이터 (49.5K) | 🟡 합성 |
-| `external` | 외부 데이터 (소셜·기상·경제·경쟁사) | 🔵 외부 |
+| `real` | PII 마스킹 실데이터 (N=500~5K) | 실데이터 |
+| `synth` | 합성 데이터 (49.5K) | 합성 |
+| `external` | 외부 데이터 (소셜·기상·경제·경쟁사) | 외부 |
 
 쿼리에서 항상 `WHERE cohort_tag IN (...)`. 캠페인 발송 도구는 `real` 회원에만.
 
 ---
 
 ## 6. OpenSearch 인덱스 매핑
+
+**표 7. OpenSearch 인덱스별 분석기와 임베딩**
 
 | 인덱스 | 도큐먼트 | 분석기 | 임베딩 |
 |---|---|---|---|

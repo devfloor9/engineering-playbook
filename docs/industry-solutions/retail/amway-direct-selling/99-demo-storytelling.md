@@ -22,13 +22,15 @@ sidebar_label: 99. Demo Storytelling
 
 ## 0. Pre-demo Preparation (5 minutes, outside the slot)
 
+**Table 1. Pre-demo checklist items**
+
 | Check | Item |
 |---|---|
-| ✅ | All Top-5 scenarios respond within 1 minute |
-| ✅ | Confirm 5 personas |
-| ✅ | cohort_tag badges |
-| ✅ | Multilingual chatbot responses (English and Korean simultaneously) |
-| ✅ | RegulatorySignal is live |
+| Done | All Top-5 scenarios respond within 1 minute |
+| Done | Confirm 5 personas |
+| Done | cohort_tag badges |
+| Done | Multilingual chatbot responses (English and Korean simultaneously) |
+| Done | RegulatorySignal is live |
 
 ---
 
@@ -51,13 +53,13 @@ Four key messages:
 - Input: "Vegan protein + new ABO in their 30s + Instagram +20%"
 - Result: SKU (Nutrilite Plant Protein) + ABO + external reviews (Reddit · Instagram)
 
-### Step 2 — S9-A ABO Organization Visualization ⭐ (5 minutes)
+### Step 2 — S9-A ABO Organization Visualization (5 minutes)
 - Persona: P1
 - Input: "5-level Downline for one Diamond-level ABO"
 - Result: cytoscape tree + PV/BV · level color coding + Sponsor performance
 - Emphasis: **"AMWAY's unique core asset — a view you cannot get at other companies."**
 
-### Step 3 — S10-A Subscription Lifetime ⭐ (5 minutes)
+### Step 3 — S10-A Subscription Lifetime (5 minutes)
 - Persona: P4 (CX)
 - Input: "Nutrilite subscription 12-month retention + Top 100 at risk of churn"
 - Result: State-machine Sankey + retention curve + win-back campaign simulation
@@ -68,7 +70,7 @@ Four key messages:
 - P5 → Same query → "Concurrent regulatory-violation check + recommended guards"
 - Emphasis: "Same data, different perspective, different action."
 
-### Step 5 — S11-A Compliance ⭐ (3 minutes)
+### Step 5 — S11-A Compliance (3 minutes)
 - Persona: P5
 - Input: "Boost immunity with Nutrilite — doctors recommend it!" (high-risk ad)
 - Result: MFDS · FDA violations highlighted + recommended revisions (Korean and English concurrently)
@@ -79,7 +81,7 @@ Four key messages:
 ## 3. Governance & Data Trust (3 minutes)
 
 ### 3.1 cohort_tag Segmentation (30 seconds)
-- 🟢 real (N = 1K ABOs + 5K customers) / 🟡 synth (49.5K tree) / 🔵 external (4 sources)
+- real (N = 1K ABOs + 5K customers) / synth (49.5K tree) / external (4 sources)
 
 ### 3.2 Guardrails (1 minute)
 - Automatic blocking when consent is missing
@@ -98,6 +100,8 @@ Four key messages:
 
 ### 4.2 Proposed Next Steps (2 minutes)
 
+**Table 2. Phases, durations, and deliverables**
+
 | Phase | Duration | Deliverables |
 |---|---|---|
 | Discovery | 2 weeks | ABO data inventory + multi-country regulatory mapping |
@@ -109,6 +113,8 @@ Four key messages:
 
 ## 5. Frequently Asked Q&A
 
+**Table 3. Frequently asked questions and answers**
+
 | Question | Answer |
 |---|---|
 | Is ABO tree depth of 5 levels sufficient? | Optional extension to 7 levels; Neptune r6g.xlarge is recommended. |
@@ -119,6 +125,8 @@ Four key messages:
 ---
 
 ## 6. Backup Procedures
+
+**Table 4. Responses to demo failure situations**
 
 | Failure | Response |
 |---|---|

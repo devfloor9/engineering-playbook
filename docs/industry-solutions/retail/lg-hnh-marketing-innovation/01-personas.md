@@ -22,6 +22,8 @@ sidebar_label: 01. Personas
 
 ## At a Glance
 
+**Table 1. 5-department persona summary**
+
 | Code | Department | Mission | Core KPIs | Primary Scenarios |
 |---|---|---|---|---|
 | **P1** | Brand Marketer | Own-brand campaign ROAS · New product launch | ROAS / CTR / New product adoption rate | S1 · S2 · S5 |
@@ -41,6 +43,8 @@ sidebar_label: 01. Personas
 - **Data perspective**: Channel × Campaign × Segment × Brand
 
 ### KPIs
+**Table 2. P1 Brand Marketer KPI definitions**
+
 | Metric | Definition |
 |---|---|
 | ROAS | Campaign revenue ÷ Campaign cost |
@@ -68,6 +72,8 @@ sidebar_label: 01. Personas
 - **Data perspective**: Cohort × Behavior × External signals (social · trends · competitors)
 
 ### KPIs
+**Table 3. P2 Consumer & Trend Insights KPI definitions**
+
 | Metric | Definition |
 |---|---|
 | LTV | Cumulative purchase amount over 12/24 months |
@@ -94,6 +100,8 @@ sidebar_label: 01. Personas
 - **Data perspective**: Model performance × Data quality × Pipeline health
 
 ### KPIs
+**Table 4. P3 D&A · MarTech KPI definitions**
+
 | Metric | Definition |
 |---|---|
 | Model accuracy | Per recommendation/prediction/classification model |
@@ -120,6 +128,8 @@ sidebar_label: 01. Personas
 - **Data perspective**: Tier × Payment × Channel × Time
 
 ### KPIs
+**Table 5. P4 CRM · LG Members KPI definitions**
+
 | Metric | Definition |
 |---|---|
 | Tier conversion rate | Regular → Silver → Gold → VIP |
@@ -146,6 +156,8 @@ sidebar_label: 01. Personas
 - **Data perspective**: Brand × Category × Channel × Time
 
 ### KPIs
+**Table 6. P5 MD · Channel Sales KPI definitions**
+
 | Metric | Definition |
 |---|---|
 | Channel GMV | Per-channel revenue |
@@ -164,6 +176,8 @@ sidebar_label: 01. Personas
 ---
 
 ## How the Persona Switcher Affects the UI
+
+**Table 7. UI changes by persona**
 
 | UI Element | P1 | P2 | P3 | P4 | P5 |
 |---|---|---|---|---|---|

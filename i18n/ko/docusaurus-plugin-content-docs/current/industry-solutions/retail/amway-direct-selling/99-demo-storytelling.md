@@ -22,13 +22,15 @@ sidebar_label: 99. Demo Storytelling
 
 ## 0. 시연 전 준비 (5분, 시간 외)
 
+**표 1. 시연 전 확인 항목**
+
 | 체크 | 내용 |
 |---|---|
-| ✅ | Top-5 모두 1분 내 응답 |
-| ✅ | 페르소나 5개 확인 |
-| ✅ | cohort_tag 배지 |
-| ✅ | 다국어 (영·한 동시) 챗봇 응답 |
-| ✅ | RegulatorySignal 라이브 |
+| 완료 | Top-5 모두 1분 내 응답 |
+| 완료 | 페르소나 5개 확인 |
+| 완료 | cohort_tag 배지 |
+| 완료 | 다국어 (영·한 동시) 챗봇 응답 |
+| 완료 | RegulatorySignal 라이브 |
 
 ---
 
@@ -51,13 +53,13 @@ sidebar_label: 99. Demo Storytelling
 - 입력: "비건 프로틴 + 30대 신규 ABO + 인스타 +20%"
 - 결과: SKU(Nutrilite Plant Protein) + ABO + 외부 후기 (Reddit·인스타)
 
-### Step 2 — S9-A ABO 조직 시각화 ⭐ (5분)
+### Step 2 — S9-A ABO 조직 시각화 (5분)
 - 페르소나: P1
 - 입력: "Diamond 등급 ABO 1명의 5단 Downline"
 - 결과: cytoscape 트리 + PV/BV·등급 색상 + Sponsor 성과
 - 강조: **"AMWAY만의 핵심 자산 — 다른 회사에서 못 보는 화면"**
 
-### Step 3 — S10-A 정기구독 라이프타임 ⭐ (5분)
+### Step 3 — S10-A 정기구독 라이프타임 (5분)
 - 페르소나: P4 (CX)
 - 입력: "Nutrilite 정기구독 12개월 retention + 해지 위험 TOP 100"
 - 결과: state machine Sankey + retention curve + 회복 캠페인 시뮬
@@ -68,7 +70,7 @@ sidebar_label: 99. Demo Storytelling
 - P5 → 같은 질의 → "규제 위반 위험 동시 검수 + 가드 제안"
 - 강조: "동일 데이터, 다른 시각, 다른 액션"
 
-### Step 5 — S11-A 컴플라이언스 ⭐ (3분)
+### Step 5 — S11-A 컴플라이언스 (3분)
 - 페르소나: P5
 - 입력: "Nutrilite로 면역력 강화 — 의사들이 추천!" (위험 광고)
 - 결과: 식약처·FDA 위반 강조 + 권장 수정안 (한·영 동시)
@@ -79,7 +81,7 @@ sidebar_label: 99. Demo Storytelling
 ## 3. 거버넌스·데이터 신뢰성 (3분)
 
 ### 3.1 cohort_tag 분리 (30초)
-- 🟢 real (N=1K ABO + 5K Customer) / 🟡 synth (49.5K Tree) / 🔵 external (4종)
+- real (N=1K ABO + 5K Customer) / synth (49.5K Tree) / external (4종)
 
 ### 3.2 가드레일 (1분)
 - 동의 미수신 자동 차단
@@ -98,6 +100,8 @@ sidebar_label: 99. Demo Storytelling
 
 ### 4.2 다음 단계 제안 (2분)
 
+**표 2. 단계별 기간과 산출물**
+
 | 단계 | 기간 | 산출물 |
 |---|---|---|
 | Discovery | 2주 | ABO 데이터 인벤토리 + 다국가 규제 매핑 |
@@ -109,6 +113,8 @@ sidebar_label: 99. Demo Storytelling
 
 ## 5. Q&A 자주 나오는 질문
 
+**표 3. 자주 나오는 질문과 답변**
+
 | 질문 | 답변 |
 |---|---|
 | ABO Tree 깊이 5단 충분? | 옵션 7단까지 확장 가능, Neptune r6g.xlarge 권장 |
@@ -119,6 +125,8 @@ sidebar_label: 99. Demo Storytelling
 ---
 
 ## 6. 백업 시 대응
+
+**표 4. 시연 실패 상황별 대응**
 
 | 실패 | 대응 |
 |---|---|

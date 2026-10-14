@@ -17,7 +17,7 @@ A working demonstration that integrates the ABO (Amway Business Owner) multi-lev
 
 ---
 
-## 🚀 Interactive Demo
+## Interactive Demo
 
 > <strong><a href="/engineering-playbook/demo/amway/" target="_blank" rel="noopener noreferrer">👉 Open Demo Page (new window)</a></strong>
 
@@ -26,6 +26,8 @@ Switch between 11 scenarios in the sidebar to interact with the core UI: ABO org
 ---
 
 ## 1. One-line PoC Summary
+
+**Table 1. PoC summary by axis**
 
 | Axis | Content |
 |---|---|
@@ -38,6 +40,8 @@ Switch between 11 scenarios in the sidebar to interact with the core UI: ABO org
 ---
 
 ## 2. AMWAY Business Structure (Public Information)
+
+**Table 2. Key brands by category**
 
 | Category | Key Brands |
 |---|---|
@@ -52,6 +56,8 @@ Channels: in-house e-commerce (amway.com) · ABO direct selling · catalog · mo
 
 ## 3. Persona Switcher Across 5 Departments
 
+**Table 3. KPIs by department persona**
+
 | Code | Department | KPI |
 |---|---|---|
 | **P1** | ABO Field Marketing | ABO recruitment · Upline ROI · subscriptions |
@@ -64,6 +70,8 @@ Channels: in-house e-commerce (amway.com) · ABO direct selling · catalog · mo
 
 ## 4. 11 Scenarios (One-line Summary)
 
+**Table 4. Data mix per scenario**
+
 | # | Scenario | Data Mix |
 |---|---|---|
 | **S1** | Natural-language semantic search | SKU · ABO · in-house reviews + external social posts |
@@ -74,13 +82,15 @@ Channels: in-house e-commerce (amway.com) · ABO direct selling · catalog · mo
 | **S6** | External signal fusion (4 types) | In-house GMV × 4 external signals |
 | **S7** | Omnichannel member journey | In-house store → ABO direct sale → re-subscription |
 | **S8** | Marketing consent, PII, and minor guardrails | Bedrock Guardrails + direct-selling regulations |
-| **S9-A** ⭐ | **ABO organization visualization + performance tracking** | ABO tree + PV/BV + level |
-| **S10-A** ⭐ | **Subscription lifetime analysis** | Subscription rotation, churn, auto-redelivery |
-| **S11-A** ⭐ | **Direct-selling law, minors, health functional food advertising compliance** | Direct-selling regulations + ad guards |
+| **S9-A** (specialized) | **ABO organization visualization + performance tracking** | ABO tree + PV/BV + level |
+| **S10-A** (specialized) | **Subscription lifetime analysis** | Subscription rotation, churn, auto-redelivery |
+| **S11-A** (specialized) | **Direct-selling law, minors, health functional food advertising compliance** | Direct-selling regulations + ad guards |
 
 ---
 
 ## 5. AWS Stack (Common)
+
+**Table 5. AWS components by layer**
 
 | Layer | Component |
 |---|---|
@@ -98,13 +108,15 @@ Channels: in-house e-commerce (amway.com) · ABO direct selling · catalog · mo
 
 ## 6. Top-5 Demo Flow (30 minutes)
 
+**Table 6. Top-5 demo order and time allocation**
+
 | Order | Scenario | Demo Point | Time |
 |---|---|---|---|
 | 1 | **S1** Natural-language search | "Vegan protein + new ABO in their 30s" | 4 min |
-| 2 | **S9-A** ⭐ ABO organization visualization | Five-level Downline tree for a Diamond-level ABO | 5 min |
-| 3 | **S10-A** ⭐ Subscription lifetime | 6-month churn signature + automated win-back campaign | 5 min |
+| 2 | **S9-A** (specialized) ABO organization visualization | Five-level Downline tree for a Diamond-level ABO | 5 min |
+| 3 | **S10-A** (specialized) Subscription lifetime | 6-month churn signature + automated win-back campaign | 5 min |
 | 4 | **S2** Persona chatbot | "Upline revisit recommendation" P1 vs P5 (Compliance) | 5 min |
-| 5 | **S11-A** ⭐ Compliance | Demonstration of blocking a minor's ABO sign-up attempt | 3 min |
+| 5 | **S11-A** (specialized) Compliance | Demonstration of blocking a minor's ABO sign-up attempt | 3 min |
 
 Details: [99. Demo Storytelling](./99-demo-storytelling.md)
 

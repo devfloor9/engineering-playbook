@@ -22,6 +22,8 @@ sidebar_label: 03. Scenarios
 
 ## 1. 8-Scenario Overview
 
+**Table 1. Data and primary persona per scenario**
+
 | # | Scenario | First-Party Data | External Data | URL | Primary Persona |
 |---|---|---|---|---|---|
 | **S1** | Natural-language semantic search | SKU · Member · First-party reviews | Olive Young · X reviews (social) | `/semantic-search` | P1, P5 |
@@ -38,6 +40,8 @@ sidebar_label: 03. Scenarios
 ## 2. 14 Patterns → Compressed Mapping to 8 Scenarios
 
 > Among the 14-scenario pool that frequently appears in ontology + Agentic AI PoC patterns, the 8 most directly relevant to LG H&H marketing innovation have been selected and redefined.
+
+**Table 2. Mapping of 14 patterns to 8 scenarios**
 
 | Original Pattern | LG H&H Mapping | Notes |
 |---|---|---|
@@ -61,6 +65,9 @@ sidebar_label: 03. Scenarios
 ## 3. Per-Scenario Data Mix Details
 
 ### S1 — Natural-Language Semantic Search
+
+**Table 3. S1 Natural-language semantic search data mix**
+
 | Data | Source | Use |
 |---|---|---|
 | First-party SKU | OpenSearch `idx_product` | BM25 + KNN |
@@ -74,6 +81,9 @@ sidebar_label: 03. Scenarios
 12 tools invoked autonomously (see S2 design spec). All scenarios' tools are unified-invoked through this chatbot.
 
 ### S3 — Category · BU Insight Cards
+
+**Table 4. S3 Category · BU insight cards data mix**
+
 | Data | Source | Use |
 |---|---|---|
 | GMV (BU × Category × Month) | Snowflake / Neptune | line/bar chart |
@@ -82,6 +92,9 @@ sidebar_label: 03. Scenarios
 | **Competitor new products** | Public appearances → `CompetitorSignal` | annotation |
 
 ### S4 — Persona Matching + Clustering
+
+**Table 5. S4 Persona matching + clustering data mix**
+
 | Data | Source | Use |
 |---|---|---|
 | RFM features | Neptune | KMeans input |
@@ -89,6 +102,9 @@ sidebar_label: 03. Scenarios
 | **Social personas** | Instagram · Olive Young review keywords → `SocialSignal` | LLM labeling reinforcement |
 
 ### S5 — Omnichannel Campaign ROAS
+
+**Table 6. S5 Omnichannel campaign ROAS data mix**
+
 | Data | Source | Use |
 |---|---|---|
 | Past campaigns | Snowflake CAMPAIGN_MART | Bayesian prior |
@@ -97,6 +113,9 @@ sidebar_label: 03. Scenarios
 | **Search trends** | Naver · Google → `SocialSignal` | Separate non-campaign effects |
 
 ### S6 — External Signal Fusion
+
+**Table 7. S6 External signal fusion data mix**
+
 | Data | Source | Use |
 |---|---|---|
 | First-party GMV | Snowflake / Neptune | y-axis |
@@ -106,6 +125,9 @@ sidebar_label: 03. Scenarios
 | **Competitor** | `CompetitorSignal` | annotation / comparison |
 
 ### S7 — Omnichannel Member Journey
+
+**Table 8. S7 Omnichannel member journey data mix**
+
 | Data | Source | Use |
 |---|---|---|
 | Owned mall SearchEvent / CartEvent / OrderTransaction | Neptune | Timeline |
@@ -114,6 +136,9 @@ sidebar_label: 03. Scenarios
 | Coupon / ReviewRating | Neptune | Timeline |
 
 ### S8 — Guardrails
+
+**Table 9. S8 Guardrails data mix**
+
 | Data | Source | Use |
 |---|---|---|
 | Bedrock Guardrails | AWS | Input · output guards |
@@ -124,13 +149,15 @@ sidebar_label: 03. Scenarios
 
 ## 4. Persona × Scenario Matrix
 
+**Table 10. Primary scenario matrix by department**
+
 | Department | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 |
 |---|---|---|---|---|---|---|---|---|
-| **P1 Brand Marketer** | star | star |  |  | star |  |  |  |
-| **P2 Insights** |  | star |  | star |  | star |  |  |
-| **P3 D&A · MarTech** |  | star | star |  |  | star |  |  |
-| **P4 CRM · LG Members** |  | star |  |  |  |  | star | star |
-| **P5 MD · Channel Sales** | star | star |  |  | star |  |  |  |
+| **P1 Brand Marketer** | Primary scenario | Primary scenario |  |  | Primary scenario |  |  |  |
+| **P2 Insights** |  | Primary scenario |  | Primary scenario |  | Primary scenario |  |  |
+| **P3 D&A · MarTech** |  | Primary scenario | Primary scenario |  |  | Primary scenario |  |  |
+| **P4 CRM · LG Members** |  | Primary scenario |  |  |  |  | Primary scenario | Primary scenario |
+| **P5 MD · Channel Sales** | Primary scenario | Primary scenario |  |  | Primary scenario |  |  |  |
 
 ---
 
@@ -161,6 +188,8 @@ sidebar_label: 03. Scenarios
 ---
 
 ## 6. PoC Schedule (8 weeks)
+
+**Table 11. Work and scenarios by week**
 
 | Week | Work | Scenarios |
 |---|---|---|

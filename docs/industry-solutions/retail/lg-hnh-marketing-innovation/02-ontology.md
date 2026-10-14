@@ -22,6 +22,8 @@ sidebar_label: 02. Ontology
 
 ## 1. 25-Class Overview
 
+**Figure 1. 25-class group composition**
+
 ```mermaid
 graph LR
     subgraph Customers["Customers/Members (5)"]
@@ -67,6 +69,8 @@ graph LR
 
 ### 2.1 Customer/Member (5)
 
+**Table 1. Customer/Member class attributes and relationships**
+
 | Class | Key Attributes | Key Relationships |
 |---|---|---|
 | **Customer** | customer_id · gender · age_band · region · signup_date · cohort_tag(real/synth) | -[BELONGS_TO]→ Household · -[HAS_MEMBERSHIP]→ Membership |
@@ -76,6 +80,8 @@ graph LR
 | **Segment** | segment_id · definition · dynamic_query · snapshot_date | -[INCLUDES]→ Customer |
 
 ### 2.2 Product/Catalog (5)
+
+**Table 2. Product/Catalog class attributes and relationships**
 
 | Class | Key Attributes | Key Relationships |
 |---|---|---|
@@ -87,6 +93,8 @@ graph LR
 
 ### 2.3 Transaction/Behavior (5)
 
+**Table 3. Transaction/Behavior class attributes and relationships**
+
 | Class | Key Attributes | Key Relationships |
 |---|---|---|
 | **OrderTransaction** (owned mall) | order_id · total_amount · channel(web/app) · order_at | -[BY]→ Customer · -[CONTAINS]→ Product |
@@ -97,6 +105,8 @@ graph LR
 
 ### 2.4 Channel/Campaign (5)
 
+**Table 4. Channel/Campaign class attributes and relationships**
+
 | Class | Key Attributes | Key Relationships |
 |---|---|---|
 | **Channel** | channel_id · name(Owned mall · Emart · Lotte Mart · Olive Young · CU · GS25 · QSR) · type | -[HOSTS]→ Transaction |
@@ -106,6 +116,8 @@ graph LR
 | **Coupon** | coupon_id · value · expires_at · redeemed_at | -[ISSUED_TO]→ Customer · -[FROM]→ Campaign |
 
 ### 2.5 Operations/External (5)
+
+**Table 5. Operations/External class attributes and relationships**
 
 | Class | Key Attributes | Key Relationships |
 |---|---|---|
@@ -118,6 +130,8 @@ graph LR
 ---
 
 ## 3. Key Relationships (estimated ~500K edges)
+
+**Figure 2. Key relationships between classes**
 
 ```mermaid
 graph LR
@@ -209,17 +223,21 @@ ORDER BY date
 
 ## 5. cohort_tag Separation Strategy
 
+**Table 6. cohort_tag values with meaning and UI badge**
+
 | Value | Meaning | UI Badge |
 |---|---|---|
-| `real` | PII-masked real data (N=500~5K) | Green real |
-| `synth` | Synthetic data (49.5K) | Yellow synth |
-| `external` | External data (social · weather · economy · competitor) | Blue external |
+| `real` | PII-masked real data (N=500~5K) | real |
+| `synth` | Synthetic data (49.5K) | synth |
+| `external` | External data (social · weather · economy · competitor) | external |
 
 Queries always use `WHERE cohort_tag IN (...)`. Campaign-send tools only target `real` members.
 
 ---
 
 ## 6. OpenSearch Index Mapping
+
+**Table 7. Analyzer and embedding per OpenSearch index**
 
 | Index | Document | Analyzer | Embedding |
 |---|---|---|---|

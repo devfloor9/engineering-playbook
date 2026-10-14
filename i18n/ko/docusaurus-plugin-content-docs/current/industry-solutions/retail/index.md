@@ -24,28 +24,28 @@ LG생활건강 **3 BU(Beauty + HDB + Refreshment) 통합** 마케팅 혁신 PoC.
 - **8 시나리오**: 시맨틱 검색·페르소나 챗봇·인사이트 카드·페르소나 매칭·캠페인 ROAS·외부 시그널 융합·옴니채널 여정·가드레일
 - **차별점**: 3 BU 통합 + 외부 4종 시그널 (소셜·기상·경제·경쟁사)
 
-### [AMWAY Direct Selling Innovation PoC](./amway-direct-selling/index.md) ⭐
+### [AMWAY Direct Selling Innovation PoC](./amway-direct-selling/index.md)
 AMWAY 글로벌 직접판매 — Nutrilite·Artistry·Amway Home + ABO/IBO 다단계 조직 + 정기구독.
 
 - **5 부서**: ABO Field Marketing / Consumer Insights / D&A·MarTech / CX (CRM) / Compliance & Regulatory
 - **11 시나리오**: 공통 8 + 특화 3 — **ABO 조직 시각화 + 정기구독 라이프타임 + 직접판매 컴플라이언스**
 - **차별점**: ABO Tree 5단 깊이 + 다국어 (Cohere multilingual) + FTC·방판법·식약처 규제
 
-### [Shinkong Mitsukoshi Luxury Retail PoC](./shinkong-mitsukoshi-luxury/index.md) ⭐
+### [Shinkong Mitsukoshi Luxury Retail PoC](./shinkong-mitsukoshi-luxury/index.md)
 新光三越 대만 1위 백화점 — 19점포 + 입점 럭셔리 700+ + VIP 멤버십 + 외국인 면세.
 
 - **5 부서**: 마케팅·캠페인 / 고객 인사이트 / 데이터·디지털 / VIP·멤버십 / MD·매장 운영
 - **11 시나리오**: 공통 8 + 특화 3 — **외국인 관광객 면세 추천 + 럭셔리 브랜드 SOV + VIP 라운지 컨시어지**
 - **차별점**: 다국어 (번체중·일본어) + 환율(JPY/USD/HKD) + 관광 시그널
 
-### [Momo eCommerce & Live Innovation PoC](./momo-ecommerce/index.md) ⭐
+### [Momo eCommerce & Live Innovation PoC](./momo-ecommerce/index.md)
 富邦媒(momo.com) 대만 1위 이커머스 — 라이브 커머스 + 24시간 배송 + 방대 SKU.
 
 - **5 부서**: 마케팅 (앱·캠페인) / 카테고리·트렌드 / 검색·추천·MarTech / CS·CRM / 물류·MD
 - **11 시나리오**: 공통 8 + 특화 3 — **라이브 커머스 어트리뷰션 + 자체 물류 SLA + 추천 다양성·롱테일**
 - **차별점**: Kinesis 라이브 이벤트 + TimeStream 배송 SLA + 추천 다양성 모니터
 
-### [Uni-President BU Integration PoC](./uni-president-bu-integration/index.md) ⭐
+### [Uni-President BU Integration PoC](./uni-president-bu-integration/index.md)
 統一企業 종합 식품·유통 그룹 — 7-Eleven Taiwan + 까르푸 + Starbucks + 식품 제조 + OPENPOINT 1,400만.
 
 - **5 부서**: 통합 마케팅 (BU 가로) / 소비자·트렌드 인사이트 / D&A 플랫폼 / 멤버십·OPENPOINT / 제조·물류·점포
@@ -55,6 +55,8 @@ AMWAY 글로벌 직접판매 — Nutrilite·Artistry·Amway Home + ABO/IBO 다�
 ---
 
 ## 공통 가치 제안
+
+**표 1. 공통 가치 제안 항목별 설명**
 
 | 가치 | 설명 |
 |---|---|
@@ -68,6 +70,8 @@ AMWAY 글로벌 직접판매 — Nutrilite·Artistry·Amway Home + ABO/IBO 다�
 ---
 
 ## 산업·도메인 매핑
+
+**표 2. 도메인별 적용 가능 리테일**
 
 | 도메인 | 적용 가능 |
 |---|---|
