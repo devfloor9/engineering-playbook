@@ -92,6 +92,8 @@ The identifiers below are selected [official AI RMF Core subcategories](https://
 
 ## AI RMF 1.0 and the Generative AI Profile {#nist-ai-rmf-10--11-major-changes}
 
+**Table 1. Role and use of AI RMF 1.0, 600-1, and the Playbook**
+
 | Resource | Role | Use |
 |---|---|---|
 | AI RMF 1.0, January 2023 | Defines the four functions, categories, and subcategories | Design system-specific risk activities and evidence records |

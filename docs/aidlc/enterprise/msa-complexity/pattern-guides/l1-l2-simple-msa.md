@@ -28,6 +28,8 @@ AIDLC application guide for simple services through synchronous MSA with relativ
 
 **AIDLC Application:**
 
+**Figure 1. AIDLC application flow for Level 1 simple CRUD**
+
 ```mermaid
 graph LR
     A[Requirements] --> B[Lightweight Ontology]
@@ -73,11 +75,11 @@ relationships:
 
 ### Harness Checklist
 
-- ✅ API contract verification
-- ✅ Data validation (input/output)
-- ✅ Basic unit tests
-- ✅ Integration tests (with DB)
-- ⬜ Distributed transaction verification (not needed)
+- Include: API contract verification
+- Include: Data validation (input/output)
+- Include: Basic unit tests
+- Include: Integration tests (with DB)
+- Exclude: Distributed transaction verification (not needed)
 
 ### Application Strategy
 
@@ -95,6 +97,8 @@ relationships:
 - Distributed DB, but synchronous transactions
 
 **AIDLC Application:**
+
+**Figure 2. AIDLC application flow for Level 2 synchronous MSA orchestration**
 
 ```mermaid
 graph LR
@@ -146,11 +150,11 @@ serviceContracts:
 
 ### Harness Checklist
 
-- ✅ Service contract verification (OpenAPI/gRPC)
-- ✅ Inter-service integration tests
-- ✅ Timeout + retry policies
-- ✅ Circuit breaker verification
-- ⬜ Compensating transactions (not yet needed)
+- Include: Service contract verification (OpenAPI/gRPC)
+- Include: Inter-service integration tests
+- Include: Timeout + retry policies
+- Include: Circuit breaker verification
+- Exclude: Compensating transactions (not yet needed)
 
 ### Application Strategy
 

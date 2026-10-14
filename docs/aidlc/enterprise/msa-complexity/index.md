@@ -39,6 +39,8 @@ AIDLC is not uniformly applicable to all projects. The application approach must
 
 ### AIDLC Application Differences
 
+**Table 1. AIDLC application, ontology, and harness level by complexity**
+
 | Complexity | AIDLC Application | Ontology Level | Harness Level |
 |--------|----------------|--------------|------------|
 | **Simple CRUD** | Full immediate adoption | Lightweight schema | Basic Quality Gate |
@@ -57,6 +59,8 @@ Evaluate **Technical Complexity** and **Organizational Readiness** on two axes t
 
 ### Axis 1: Technical Complexity
 
+**Table 2. Technical complexity levels (L1-L5): description, characteristics, examples**
+
 | Level | Description | Characteristics | Examples |
 |-------|------|------|------|
 | **L1** | Single Service CRUD | - Single DB<br/>- Synchronous API<br/>- Simple transactions | User management service |
@@ -67,6 +71,8 @@ Evaluate **Technical Complexity** and **Organizational Readiness** on two axes t
 
 ### Axis 2: Organizational Readiness
 
+**Table 3. Organizational readiness levels (A-D): description, characteristics, checklist**
+
 | Level | Description | Characteristics | Checklist |
 |-------|------|------|-----------|
 | **A** | No Champion | - No AIDLC experience<br/>- No DDD experience<br/>- No ontology understanding | ☐ AIDLC training required<br/>☐ POC project needed |
@@ -75,6 +81,8 @@ Evaluate **Technical Complexity** and **Organizational Readiness** on two axes t
 | **D** | Org Standard | - Organization-wide AIDLC standard<br/>- Ontology reuse library<br/>- Harness templates | ☐ Org standard docs<br/>☐ Reusable assets |
 
 ### Difficulty Matrix (Recommended Application Strategy)
+
+**Figure 1. Recommended application strategy matrix by technical complexity and organizational readiness**
 
 ```mermaid
 graph TB
@@ -132,14 +140,16 @@ graph TB
 ```
 
 **Color Legend:**
-- 🟢 **Green (Ready):** Full AIDLC application recommended
-- 🟡 **Yellow (Caution):** Phased adoption or expert support required
-- 🔴 **Red (High Risk):** High risk, proceed after sufficient preparation
-- ⛔ **Red (Not Recommended):** Improve organizational readiness first
+- **Green (Ready):** Full AIDLC application recommended
+- **Yellow (Caution):** Phased adoption or expert support required
+- **Red (High Risk):** High risk, proceed after sufficient preparation
+- **Red (Not Recommended):** Improve organizational readiness first
 
 ## Go/No-Go Decision Tree
 
 Flowchart for deciding whether to apply AIDLC to a project.
+
+**Figure 2. Go/No-Go decision tree for whether to apply AIDLC**
 
 ```mermaid
 graph TB
@@ -180,7 +190,7 @@ graph TB
 
 ### Decision Criteria
 
-#### ✅ Go (Proceed Immediately)
+#### Go (Proceed Immediately)
 
 **Conditions:**
 - Technical Complexity ≤ L3 AND Organizational Readiness ≥ B
@@ -191,7 +201,7 @@ graph TB
 - Write ontology/harness
 - Agent-based code generation
 
-#### ⚠️ Partial (Phased Approach)
+#### Partial (Phased Approach)
 
 **Conditions:**
 - Technical Complexity ≤ L2 AND Organizational Readiness = A
@@ -204,7 +214,7 @@ graph TB
 - Secure expert support
 - Phased AIDLC adoption
 
-#### 🛑 No-Go (Do Not Proceed)
+#### No-Go (Do Not Proceed)
 
 **Conditions:**
 - Technical Complexity ≥ L4 AND Organizational Readiness ≤ A
@@ -217,7 +227,9 @@ graph TB
 
 ### Risk Assessment Matrix
 
-| Risk Factor | High 🔴 | Medium 🟡 | Low 🟢 |
+**Table 4. High/Medium/Low criteria by risk factor**
+
+| Risk Factor | High | Medium | Low |
 |-----------|---------|---------|---------|
 | **Technical Complexity** | L4-5 | L2-3 | L1 |
 | **Organizational Readiness** | A (No experience) | B-C (Some experience) | D (Org standard) |
@@ -226,9 +238,9 @@ graph TB
 | **Timeline Pressure** | < 3 months | 3-6 months | 6+ months |
 
 **Overall Risk Assessment:**
-- 3+ 🔴: No-Go
-- 1-2 🔴: Partial (phased approach)
-- 0 🔴: Go
+- 3+ High: No-Go
+- 1-2 High: Partial (phased approach)
+- 0 High: Go
 
 ## Detailed Guides
 

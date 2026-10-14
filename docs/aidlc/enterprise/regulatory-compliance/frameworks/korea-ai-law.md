@@ -144,6 +144,8 @@ post_market_monitoring:
 
 **PIPA** and **Korea AI Basic Act** are **mutually complementary**:
 
+**Table 1. Item-by-item comparison of PIPA and the Korea AI Basic Act**
+
 | Item | PIPA | Korea AI Basic Act |
 |------|------|-----------|
 | **Scope** | Overall personal information processing | AI system-specific |

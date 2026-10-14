@@ -26,6 +26,8 @@ AI Agent가 프로덕션에 배포되면, **시스템이 정상 응답하는가*
 
 기존 APM(Application Performance Monitoring)은 HTTP 성공률, 응답 시간, 에러율 등 **시스템 지표**를 중심으로 설계되었습니다. 그러나 Agent는 다음과 같은 이유로 추가 메트릭이 필요합니다:
 
+**표 1. 전통 APM 지표와 Agent 품질 지표의 격차**
+
 | 전통 APM | Agent 품질 지표 | 격차 |
 |---------|----------------|------|
 | HTTP 200 OK | 올바른 답변 여부 | 요청 성공 ≠ 결과 품질 |
@@ -35,6 +37,8 @@ AI Agent가 프로덕션에 배포되면, **시스템이 정상 응답하는가*
 | N/A | Tool-call accuracy | 잘못된 도구 호출은 시스템 에러가 아님 |
 
 ### 1.2 사용자 지각 품질 vs 시스템 지표
+
+**그림 1. 동일 응답에 대한 시스템 관점과 사용자 관점의 차이**
 
 ```mermaid
 flowchart LR
@@ -69,6 +73,8 @@ Agent의 실제 품질은 **사용자가 원하는 작업을 정확히 수행했
 
 사용자가 요청한 작업이 완료되었는가를 측정합니다.
 
+**표 2. 과제 성공(Task Success) 메트릭의 정의와 측정 방법**
+
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
 | **Task success rate** | 성공한 대화 세션 비율 | 자동 평가(goal attainment) + HITL 샘플링(10%) |
@@ -100,6 +106,8 @@ trace.score(
 
 Agent가 올바른 도구를 정확히 호출하는지 측정합니다.
 
+**표 3. Tool Use 정확성 메트릭의 정의와 측정 방법**
+
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
 | **Tool-call accuracy** | 올바른 도구를 호출한 비율 | (정확한 도구 호출 수) / (전체 도구 호출 수) |
@@ -128,6 +136,8 @@ span.score(
 ### 2.3 품질·안전
 
 답변 품질과 안전 위반 여부를 측정합니다.
+
+**표 4. 품질·안전 메트릭의 정의와 측정 방법**
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -172,6 +182,8 @@ if gateway_response.status == "blocked_pii":
 
 Agent 운영 비용과 리소스 효율을 측정합니다.
 
+**표 5. 비용·효율 메트릭의 정의와 측정 방법**
+
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
 | **Cost per interaction** | 세션당 평균 비용 (USD) | Σ(input_tokens × price_in + output_tokens × price_out) |
@@ -212,6 +224,8 @@ if cache_hit:
 ### 2.5 사용자 경험
 
 사용자 체감 품질을 측정합니다.
+
+**표 6. 사용자 경험 메트릭의 정의와 측정 방법**
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
@@ -258,6 +272,8 @@ if confidence_score < 0.7:
 
 Agent 서비스의 안정성을 측정합니다.
 
+**표 7. 시스템 신뢰성 메트릭의 정의와 측정 방법**
+
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
 | **Availability** | 서비스 가용 시간 비율 | (uptime) / (total time) |
@@ -279,6 +295,8 @@ Error budget: 5% → 월 36시간 장애 허용
 ### 3.1 Span Hierarchy
 
 Agent 실행 흐름을 다음과 같은 계층으로 표현합니다:
+
+**그림 2. Agent 실행의 Span 계층 구조**
 
 ```mermaid
 flowchart TB
@@ -423,6 +441,8 @@ GenAI 규약의 정본은 2026년 5월 [`semantic-conventions-genai`](https://gi
 
 **핵심 attribute**:
 
+**표 8. GenAI Semantic Conventions 핵심 attribute와 예시·설명**
+
 | Attribute | 예시 | 설명 |
 |-----------|------|------|
 | `gen_ai.provider.name` | `openai` | GenAI 제공자 (`gcp.gen_ai`, `gcp.vertex_ai` 등) |
@@ -549,6 +569,8 @@ Error Budget Burn Rate (Task Success SLO: 95%)
 
 ### 6.1 이상 패턴 예시
 
+**표 9. 이상 유형별 탐지 규칙과 대응 액션**
+
 | 이상 유형 | 탐지 규칙 | 대응 액션 |
 |----------|----------|-----------|
 | **Guardrails rate 급증** | 3σ 초과 (rolling 1시간) | PagerDuty P2, 프롬프트 검토 |
@@ -661,6 +683,8 @@ Actions:
 ### 7.1 Inception: Baseline 정의
 
 프로젝트 초기에 목표 KPI를 정의합니다.
+
+**표 10. Inception 단계 KPI의 목표치와 현재 Baseline**
 
 | KPI | Target (90일 후) | Baseline (현재) |
 |-----|------------------|-----------------|

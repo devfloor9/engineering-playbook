@@ -29,6 +29,8 @@ AIDLC(AI-Driven Development Lifecycle)는 **Intent → Unit → Bolt** 모델로
 
 AIDLC 가이드는 독자의 역할과 관심사에 따라 4개 트랙으로 구성됩니다.
 
+**그림 1. AIDLC 가이드의 4개 트랙과 트랙 간 관계**
+
 ```mermaid
 flowchart TB
     subgraph METHOD["방법론"]
@@ -76,6 +78,8 @@ flowchart TB
 ```
 
 ## 독자별 학습 경로
+
+**표 1. 역할별 추천 학습 경로**
 
 | 역할 | 추천 경로 |
 |------|----------|

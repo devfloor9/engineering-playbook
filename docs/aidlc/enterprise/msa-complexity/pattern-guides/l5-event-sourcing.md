@@ -27,6 +27,8 @@ The highest complexity architectural pattern requiring expert support and sophis
 
 ## AIDLC Application
 
+**Figure 1. AIDLC application flow for Level 5 Event Sourcing & CQRS**
+
 ```mermaid
 graph TB
     A[Requirements] --> B[DDD + Event Storming]
@@ -107,13 +109,13 @@ invariants:
 
 ## Harness Checklist
 
-- ✅ Event schema verification (version management)
-- ✅ Projection verification (Read Model consistency)
-- ✅ Event replay tests
-- ✅ Snapshot strategy verification
-- ✅ Event migration harness
-- ✅ Idempotency harness
-- ✅ Distributed tracing
+- Include: Event schema verification (version management)
+- Include: Projection verification (Read Model consistency)
+- Include: Event replay tests
+- Include: Snapshot strategy verification
+- Include: Event migration harness
+- Include: Idempotency harness
+- Include: Distributed tracing
 
 ## Harness Implementation Examples
 

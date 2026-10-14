@@ -23,6 +23,8 @@ category: aidlc
 
 AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) defaults to **conditional (adaptive) execution rather than fixed workflows**. Where traditional SDLC stages were "always sequential," AIDLC **selects and reorders only necessary stages** based on project characteristics, codebase state, and requirement complexity.
 
+**Figure 1. Conditional stage selection flow of Adaptive Execution**
+
 ```mermaid
 graph TB
     START([User Request]) --> WD[Workspace Detection]
@@ -73,6 +75,8 @@ graph TB
 
 **Purpose**: Determine whether the current workspace is **Greenfield** (new) or **Brownfield** (existing codebase).
 
+**Figure 2. Workspace Detection flow for Greenfield/Brownfield/Hybrid classification**
+
 ```mermaid
 flowchart LR
     WD[Workspace Detection] --> CHECK1{Codebase<br/>exists?}
@@ -112,6 +116,8 @@ flowchart LR
 - Greenfield (no code)
 - User explicitly stated "rewrite from scratch, ignore existing"
 
+**Figure 3. Reverse Engineering flow for code analysis and domain extraction**
+
 ```mermaid
 flowchart TB
     RE[Reverse Engineering Start] --> RE1[Code structure analysis<br/>entry points & modules]
@@ -132,11 +138,15 @@ flowchart TB
 
 **Three Execution Depth Levels:**
 
+**Table 1. Requirements Analysis depth levels: criteria, included elements, estimated duration**
+
 | Level | Application Criteria | Included Elements | Estimated Duration |
 |-------|---------------------|-------------------|-------------------|
 | **Minimal** | Bug fixes · Simple refactoring | FR list, impact scope | 10-20 minutes |
 | **Standard** | New features · Feature extensions | FR, NFR, Acceptance Criteria, dependencies | 1-3 hours |
 | **Comprehensive** | New services · Architecture changes | Standard + Risk Analysis, Compliance, Performance Model | Half day-1 day |
+
+**Figure 4. Requirements Analysis depth selection flow by complexity assessment**
 
 ```mermaid
 flowchart LR
@@ -170,6 +180,8 @@ flowchart LR
 - Pure infrastructure/backend changes (users don't directly perceive)
 - DevOps automation (CI/CD pipeline improvements, etc.)
 - Data migration
+
+**Figure 5. User Stories generation decision and authoring flow**
 
 ```mermaid
 flowchart TB
@@ -228,6 +240,8 @@ flowchart TB
 - UI changes only
 - Configuration changes
 
+**Figure 6. Application Design execution decision and design-artifact flow**
+
 ```mermaid
 flowchart TB
     WP[Workflow Plan] --> CHECK{New component<br/>service layer<br/>needed?}
@@ -254,6 +268,8 @@ flowchart TB
 
 **Skip Condition**:
 - Single function · single file modification → enter Construction immediately (1 Unit auto-generated)
+
+**Figure 7. Units Generation decomposition into Units of Work and their dependencies**
 
 ```mermaid
 flowchart LR
@@ -285,6 +301,8 @@ flowchart LR
 ## 3. Construction Phase: Per-Unit Loop
 
 Each Unit of Work has an internal loop that **executes 5 sub-stages sequentially**.
+
+**Figure 8. Construction Phase per-Unit loop of 5 sub-stages**
 
 ```mermaid
 flowchart LR
@@ -385,6 +403,8 @@ resources:
 
 ## 4. Summary Table: Execution and Skip Conditions by Stage
 
+**Table 2. Mandatory status, execution conditions, skip conditions, and average duration by stage**
+
 | Stage | Mandatory? | Execution Condition | Skip Condition | Avg Duration |
 |-------|-----------|---------------------|----------------|--------------|
 | **Workspace Detection** | Mandatory | Every session | - | 1-2 min |
@@ -400,6 +420,8 @@ resources:
 
 ## 5. Mapping to engineering-playbook Intent/Unit/Bolt
 
+**Table 3. Mapping between engineering-playbook terms and official AIDLC stages**
+
 | engineering-playbook Term | Position in Official AIDLC | Mapping Description |
 |--------------------------|----------------------------|---------------------|
 | **Intent** | Input + artifacts of Stage 1-3 (Workspace Detection → Requirements Analysis) | Intent is synthesis of User Request + Requirements Document |
@@ -407,6 +429,8 @@ resources:
 | **Bolt** | Full Construction Phase (5 sub-stages) single execution | Short iteration replacing Sprint |
 
 **Visual Mapping:**
+
+**Figure 9. Visual mapping of official AIDLC stages to Intent/Unit/Bolt**
 
 ```mermaid
 flowchart TB

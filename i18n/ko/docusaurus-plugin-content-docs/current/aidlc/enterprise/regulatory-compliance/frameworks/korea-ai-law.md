@@ -144,6 +144,8 @@ post_market_monitoring:
 
 **PIPA (Personal Information Protection Act)**와 AI 기본법은 **상호 보완**:
 
+**표 1. PIPA와 AI 기본법의 항목별 비교**
+
 | 항목 | PIPA | AI 기본법 |
 |------|------|-----------|
 | **적용 대상** | 개인정보 처리 전반 | AI 시스템 특화 |
