@@ -26,6 +26,9 @@ The reviewed API references are Langfuse v3.0.0 observations API v1, Airflow 3.1
 ## Langfuse OTel → S3 Parquet
 
 Application instrumentation produces OTel traces/generations. A vLLM request or server metric alone does not automatically produce a complete Langfuse trace. Langfuse v3 stores traces/observations in ClickHouse and separate transactional data in PostgreSQL. The adapter below uses the authenticated public observations API rather than an assumed internal database schema.
+
+**Figure 1. Processing flow from Langfuse OTel traces to S3 Parquet training data**
+
 ```mermaid
 flowchart LR
     APP[Instrumented application<br/>vLLM client]
@@ -101,6 +104,8 @@ s3://<training-bucket>/trace-candidates/<dataset-sha256>/
 - **Approval lifetime**: Unapproved data is not retained in a `consent=false` training partition. Approval is rechecked before export, evaluation and output. A separate lifecycle procedure must propagate later revocations to S3 objects/versions, Glue partitions, candidate data and derived training artifacts.
 
 ### Apache Iceberg vs Hudi
+
+**Table 1. Feature comparison of Apache Iceberg and Apache Hudi**
 
 | Feature | Apache Iceberg | Apache Hudi |
 |---------|---------------|-------------|
@@ -1058,6 +1063,8 @@ if __name__ == "__main__":
 ### Cost Example
 
 These prices are **hypothetical arithmetic inputs**, not provider quotes. Three nodes running ten hours each per day at an assumed $1.00 per node-hour cost `3 × 10 × $1.00 = $30/day`, or `$10,950/year` for 365 identical days. Replace replica counts and operating hours with actual execution records.
+
+**Table 2. Cost items, units, and the scope of this example**
 
 | Cost item | Unit | Scope in this example |
 |-----------|------|-----------------------|

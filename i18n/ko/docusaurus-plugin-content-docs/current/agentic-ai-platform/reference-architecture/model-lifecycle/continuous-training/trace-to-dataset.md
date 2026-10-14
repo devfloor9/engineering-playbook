@@ -26,6 +26,9 @@ Continuous Training Pipeline의 **Trace 수집 → Reward 레이블링** 단계�
 ## Langfuse OTel → S3 Parquet
 
 애플리케이션 계측이 OTel trace/generation을 생성합니다. vLLM 서버의 메트릭이나 요청만으로 완전한 Langfuse trace가 자동 생성된다고 가정하지 않습니다. Langfuse v3의 trace/observation 저장소는 ClickHouse이며 PostgreSQL은 별도 transactional data를 보관합니다. 아래 어댑터는 내부 DB 스키마 대신 인증된 public observations API를 사용합니다.
+
+**그림 1. Langfuse OTel trace에서 S3 Parquet 학습 데이터까지의 처리 흐름**
+
 ```mermaid
 flowchart LR
     APP[Instrumented application<br/>vLLM client]
@@ -101,6 +104,8 @@ s3://<training-bucket>/trace-candidates/<dataset-sha256>/
 - **승인 수명**: 미승인 데이터를 `consent=false` 학습 파티션에 보관하지 않습니다. 새 승인 상태를 export·평가·출력 직전에 재확인합니다. 이후 철회에 따른 S3 객체/버전, Glue partition, 후보 데이터와 파생 학습 산출물의 삭제는 별도 수명주기 절차가 담당합니다.
 
 ### Apache Iceberg vs Hudi
+
+**표 1. Apache Iceberg와 Apache Hudi의 특징 비교**
 
 | 특징 | Apache Iceberg | Apache Hudi |
 |------|---------------|-------------|
@@ -1058,6 +1063,8 @@ if __name__ == "__main__":
 ### 비용 예시
 
 아래 가격은 공급자 견적이 아닌 **가상의 산술 입력**입니다. 3개 node를 각각 하루 10시간 사용하고 node-hour당 $1.00을 가정하면 compute 비용은 `3 × 10 × $1.00 = $30/일`, 동일 조건 365일은 `$10,950/년`입니다. 배포 YAML의 실제 replica 수와 가동 시간은 실행 기록으로 대체해야 합니다.
+
+**표 2. 비용 항목별 계산 단위와 이 예제의 범위**
 
 | 비용 항목 | 계산 단위 | 이 예제의 범위 |
 |-----------|-----------|----------------|

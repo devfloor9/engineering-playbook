@@ -23,6 +23,9 @@ import Figure from '@site/src/components/Figure';
 Implementation guides for platform engineers deploying and operating the Agentic AI Platform. Choose the relevant area, then check its environment requirements and validation steps. Design decisions are covered in the [platform architecture](../design-architecture/foundations/agentic-platform-architecture.md).
 
 :::info Documentation vs Reference Architecture
+
+**Table 1. Focus, audience, and deliverables of Documentation vs Reference Architecture**
+
 | Aspect | Documentation | Reference Architecture |
 |--------|--------------|----------------------|
 | **Focus** | Architecture concepts, design principles, technology comparison | Production deployment procedures, manifests, verification |
@@ -50,6 +53,8 @@ Prerequisites for deploying the Reference Architecture.
 ### Tools
 
 Check the tool versions and cluster compatibility specified by the deployment chapter. Record installed versions with the validation results.
+
+**Table 2. Tools used for deployment and their purpose**
 
 | Tool | Purpose |
 |------|---------|
@@ -89,6 +94,8 @@ The diagram shows six runtime layers, three shared planes, the Knowledge Feature
 
 The diagram below shows the 6 areas of the Reference Architecture and the deployment sequence.
 
+**Figure 1. The six areas of the Reference Architecture and the deployment sequence**
+
 ```mermaid
 graph TB
     subgraph "1. GPU Infrastructure"
@@ -125,6 +132,8 @@ The Reference Architecture is configured in the following order. Each phase depe
 
 Configure the EKS cluster and GPU node groups. Covers differences between Auto Mode and Standard Mode, and considerations when installing GPU Operator.
 
+**Table 3. Phase 1 GPU infrastructure setup items and details**
+
 | Item | Details |
 |------|---------|
 | EKS Version | A version supported by the selected deployment guide and add-ons |
@@ -135,6 +144,8 @@ Configure the EKS cluster and GPU node groups. Covers differences between Auto M
 ### Phase 2: Model Deployment
 
 Serve large open-source models with vLLM. Covers custom image building, S3 model caching, and considerations for multi-node deployment.
+
+**Table 4. Phase 2 model deployment items and details**
 
 | Item | Details |
 |------|---------|
@@ -147,6 +158,8 @@ Serve large open-source models with vLLM. Covers custom image building, S3 model
 
 Configure the 2-Tier inference gateway based on kgateway + Bifrost/LiteLLM. Includes Complexity-based Cascade Routing, Semantic Caching, and Guardrails.
 
+**Table 5. Phase 3 inference gateway items and details**
+
 | Item | Details |
 |------|---------|
 | L1 Gateway | kgateway (Gateway API, mTLS, rate limiting) |
@@ -157,6 +170,8 @@ Configure the 2-Tier inference gateway based on kgateway + Bifrost/LiteLLM. Incl
 ### Phase 4: Monitoring and Observability
 
 Configure the monitoring stack based on Prometheus + AMP + AMG + Langfuse.
+
+**Table 6. Phase 4 monitoring and observability items and details**
 
 | Item | Details |
 |------|---------|
@@ -169,6 +184,8 @@ Configure the monitoring stack based on Prometheus + AMP + AMG + Langfuse.
 
 Configure LoRA Fine-tuning and Cascade Routing pipelines.
 
+**Table 7. Phase 5 pipeline items and details**
+
 | Item | Details |
 |------|---------|
 | Fine-tuning | LoRA adapter training → S3 storage → vLLM hot-reload |
@@ -178,6 +195,8 @@ Configure LoRA Fine-tuning and Cascade Routing pipelines.
 ### Phase 6: Coding Tool Integration
 
 Connect AI coding tools such as Aider and Cline to self-hosted models.
+
+**Table 8. Phase 6 coding tool integration items and details**
 
 | Item | Details |
 |------|---------|
@@ -202,6 +221,8 @@ Choose Spot according to interruption tolerance as well as price. Inference serv
 
 Use standard tools from the CNCF and Kubernetes ecosystem wherever possible.
 
+**Table 9. Standard tools and alternatives by area**
+
 | Area | Standard Tool | Alternative |
 |------|--------------|-------------|
 | GPU Scheduling | Karpenter / MNG | Auto Mode NodePool |
@@ -214,6 +235,8 @@ Use standard tools from the CNCF and Kubernetes ecosystem wherever possible.
 ### 4. Layered Cost Optimization
 
 Effects depend on traffic, cache-hit rate, quality criteria, and operating hours. Do not add percentage savings across techniques. Compare total cost per successful request and SLOs under the same conditions.
+
+**Figure 2. Cost optimization review sequence**
 
 ```mermaid
 graph TD

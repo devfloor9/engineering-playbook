@@ -25,6 +25,8 @@ sidebar_label: Custom Model Pipeline
 
 SaaS-based AI coding tools (e.g., Kiro, GitHub Copilot) offer a quick start, but they hit fundamental limitations in enterprise environments.
 
+**Table 1. Constraint comparison: SaaS vs self-hosted pipeline**
+
 | Constraint | SaaS (Kiro, etc.) | Self-hosted Pipeline |
 |-----------|-------------------|---------------------|
 | **LoRA Fine-tuning** | Not possible | Domain-specific adapter training |
@@ -38,6 +40,8 @@ The **Base Model + LoRA adapter** pattern serves multiple domain-specialized mod
 :::
 
 ### End-to-End Pipeline Flow
+
+**Figure 1. End-to-end training, serving, and monitoring pipeline flow**
 
 ```mermaid
 graph LR
@@ -84,6 +88,8 @@ This section covers how to implement LoRA Fine-tuning and Multi-LoRA hot-swap de
 
 **QLoRA** (Quantized LoRA) trains only the LoRA adapter while keeping the base model quantized to INT4. This dramatically reduces GPU requirements compared to full fine-tuning.
 
+**Table 2. GPU, VRAM, training time, and cost by training method**
+
 | Model | Full Fine-tuning | LoRA | QLoRA |
 |-------|-----------------|------|-------|
 | **Llama-3.3-70B** | H100×32 (impractical) | H100×8 | **H100×4** |
@@ -106,7 +112,7 @@ Prepare training data as input-output pairs in JSONL format.
 }
 ```
 
-**Data Collection Strategy:**
+**Table 3. Training-data sources, transformation methods, and expected volume**
 
 | Source | Transformation Method | Expected Data Volume |
 |--------|----------------------|---------------------|
@@ -167,6 +173,8 @@ trainer = SFTTrainer(
 trainer.train()
 ```
 
+**Table 4. Strengths and best fit of the NeMo and Unsloth training frameworks**
+
 | Framework | Strengths | Best For |
 |-----------|----------|---------|
 | **NeMo** | Multi-node distributed training, official NVIDIA support | H100 cluster available, large-scale training |
@@ -204,6 +212,8 @@ Recording training metrics (loss, accuracy) alongside adapter paths in MLflow le
 
 Leveraging vLLM's Multi-LoRA feature, you can load multiple LoRA adapters simultaneously on top of a single base model to serve customized responses per customer.
 
+**Figure 2. Multi-LoRA adapter serving architecture on a single base model**
+
 ```mermaid
 graph TD
     G[Bifrost Gateway] --> V[vLLM Server]
@@ -232,7 +242,7 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
   --max-lora-rank 16
 ```
 
-**Key Options:**
+**Table 5. Key vLLM Multi-LoRA options and their defaults**
 
 | Option | Description | Default |
 |--------|------------|---------|
@@ -303,7 +313,7 @@ trace = langfuse.trace(
 )
 ```
 
-**Monthly Cost Billing Example:**
+**Table 6. Example per-customer monthly requests, tokens, GPU time, and cost**
 
 | Customer | Requests | Tokens | GPU Time | Cost |
 |----------|---------|---------|----------|------|
@@ -320,6 +330,8 @@ For implementation details, see [Agent Monitoring](../../operations-mlops/observ
 ### Cascade Architecture
 
 The example below assumes that 70% of requests can be routed to a small model (SLM) while meeting the quality gate. This is an input assumption, not a measured result; evaluate the request-complexity distribution and SLM response quality before applying it.
+
+**Figure 3. Complexity-based SLM/LLM Cascade routing architecture**
 
 ```mermaid
 graph LR
@@ -451,6 +463,8 @@ spec:
 
 Trained adapters must pass multiple evaluations before deployment.
 
+**Table 8. LoRA adapter evaluation methods, purposes, tools, and automation**
+
 | Evaluation Method | Purpose | Tool | Automation |
 |------------------|---------|------|-----------|
 | **RAGAS** | RAG accuracy (faithfulness, relevancy) | ragas | CI/CD integration |
@@ -472,7 +486,7 @@ Before deploying a new adapter version, compare performance using LLM tracing sy
 
 For implementation examples, see [Agent Monitoring - A/B Testing](../../operations-mlops/observability/agent-monitoring.md).
 
-**A/B Test Comparison Metrics:**
+**Table 9. LoRA A/B test comparison metrics and measurement methods**
 
 | Metric | Measurement | Meaning |
 |--------|------------|---------|
@@ -488,12 +502,16 @@ For implementation examples, see [Agent Monitoring - A/B Testing](../../operatio
 
 ## Phased Implementation Roadmap
 
+**Table 10. Components, timeline, cost, and key actions by phase**
+
 | Phase | Timeline | Components | Cost (USD) | Key Actions |
 |-------|----------|-----------|-----------|------------|
 | **1** | Immediate | Base Model + Steering | $8,900/mo (GPU) | vLLM deployment, Bifrost + Langfuse integration |
 | **2** | 1-2 weeks | + VectorRAG | +infra | Milvus deployment, internal document embedding |
 | **3** | 2-4 weeks | + SLM Cascade | +$500/mo | SLM deployment, Bifrost cascade configuration |
 | **4** | 1-2 months | + LoRA Fine-tuning | +$2K (one-time) | Training data collection → QLoRA → Evaluation → Multi-LoRA deployment |
+
+**Figure 4. Custom model pipeline implementation roadmap Gantt chart**
 
 ```mermaid
 gantt
@@ -528,6 +546,8 @@ The ratio `$750,000 ÷ $2,000 = 375` uses only training cost as its denominator,
 ## References
 
 ### Official Documentation
+
+**Table 11. Official documentation references and links**
 
 | Resource | Link |
 |----------|------|

@@ -34,6 +34,8 @@ This design trains a model on SageMaker, then loads the approved model files int
 
 ### Overall Architecture Overview
 
+**Figure 1. Overall architecture of SageMaker training, shared storage, and EKS serving**
+
 ```mermaid
 flowchart LR
     subgraph SageMaker["SageMaker Training"]
@@ -178,6 +180,8 @@ Use the run-level `service_account`; do not use legacy `task.apply(use_aws_secre
 ### Centralized Model Management
 
 Recording approval in Registry does not make EKS enforce it automatically. The lifecycle and approval flow below are application policy. Distinguish deployment behavior supplied by SageMaker project templates from your EKS deployer. Pin an approved **versioned package ARN** in the release and re-check its state immediately before deployment. Revoking approval does not automatically recall existing Pods or restore routing.
+
+**Figure 2. Model lifecycle, approval process, and deployment-target flow**
 
 ```mermaid
 flowchart LR
@@ -571,6 +575,8 @@ storage:
     delete_after_days: 365
 ```
 
+**Table 1. Cost-optimization checklist items and their actual implementation points**
+
 | Item | Actual implementation point |
 |---|---|
 | Training Spot, time limits, checkpoints | Estimator `use_spot_instances`, `max_wait`, `max_run`, `checkpoint_s3_uri`, `checkpoint_local_path`; the training program implements checkpoint restore |
@@ -637,6 +643,8 @@ Read every page and retain `Estimated`, currency and the inclusive-start/exclusi
 ## Multi-Region Deployment Pattern
 
 ### Global Model Deployment Architecture
+
+**Figure 3. Multi-region S3 replication and per-region EKS serving architecture**
 
 ```mermaid
 flowchart TB
@@ -792,6 +800,8 @@ def deploy_regions(package_arn, release, approved_targets, loader_image, verifie
 ## Model Monitoring and Drift Detection
 
 ### Unified Monitoring Architecture
+
+**Figure 4. Unified monitoring architecture of data collection, storage, monitoring jobs, and alerting**
 
 ```mermaid
 flowchart LR

@@ -240,6 +240,8 @@ backendRefs:
 
 승격용 신선도에는 다음 gauge도 필요합니다. 신뢰할 수 있는 exporter/reconciler가 **예상 producer 목록 전체**와 수집 상태를 확인한 뒤, 각 `namespace`, `rollout`, `track`에 대해 하나의 권위 있는 시계열 집합을 내보냅니다.
 
+**표 1. 승격 신선도 판단에 쓰는 커스텀 gauge와 값의 의미**
+
 | 커스텀 gauge | 값의 의미 |
 |---|---|
 | `model_last_request_observation_timestamp_seconds` | 필요한 각 producer의 마지막 유효 요청 관측 시각 중 가장 오래된 Unix 시각(초) |
@@ -746,7 +748,7 @@ training_runs['cost_per_0.01_improvement'] = training_runs['cost_usd'] / (traini
 print(training_runs)
 ```
 
-**결과 예시:**
+**표 2. 반복별 GPU 시간·비용과 faithfulness 개선량 결과 예시**
 
 | iteration | gpu_hours | cost_usd | faithfulness_delta | gpu_hours_per_0.01 | cost_per_0.01 |
 |-----------|-----------|----------|-------------------|-------------------|--------------|
@@ -807,6 +809,8 @@ groups:
 ```
 
 ### 주간/월간 Cadence 권장
+
+**표 3. 주기별 지속 학습 액션과 목표**
 
 | 주기 | 액션 | 목표 |
 |------|------|------|

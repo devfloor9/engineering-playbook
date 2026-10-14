@@ -87,7 +87,7 @@ spec:
 
 **Symptom**: `Provider not found` or `Model not found` errors
 
-**Causes and Solutions**:
+**Table 1. Cause and solution per Provider/Model error message**
 
 | Error Message | Cause | Solution |
 |--------------|-------|----------|
@@ -254,7 +254,7 @@ kubectl logs -l app=langfuse-web -n observability --tail=30 | grep -i otlp
 kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
 ```
 
-**Checklist**:
+**Table 2. OTel trace integration check items and correct values**
 
 | Check Item | Correct Value |
 |-----------|---------------|

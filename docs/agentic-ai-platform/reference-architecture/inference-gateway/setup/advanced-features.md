@@ -34,6 +34,8 @@ The components in this document assume [Basic Deployment](./basic-deployment.md)
 
 LLM Classifier is a **Python FastAPI-based lightweight router** that operates behind kgateway. It receives OpenAI-compatible requests from clients (Aider, Cline, etc.), analyzes prompt content, and automatically proxies to weak (SLM) or strong (LLM) backends.
 
+**Figure 1. Prompt-based weak/strong backend routing flow of the LLM Classifier**
+
 ```mermaid
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
@@ -296,6 +298,8 @@ In production, do not expose NLB directly; configure **CloudFront + WAF/Shield**
 
 ### Architecture
 
+**Figure 2. Request path through the CloudFront + WAF/Shield security layer**
+
 ```mermaid
 graph LR
     Client["Client<br/>(Aider/Cline/SDK)"] --> CF["CloudFront<br/>+ WAF/Shield"]
@@ -443,7 +447,7 @@ aws wafv2 create-web-acl \
   }'
 ```
 
-WAF Rule Configuration:
+**Table 1. WAF rules with purpose and configuration**
 
 | Rule | Purpose | Configuration |
 |------|---------|---------------|
@@ -578,6 +582,8 @@ Before: Client → NLB (HTTP, public) → kgateway → Bifrost → vLLM
 After: Client → CloudFront (HTTPS, WAF/Shield) → NLB (HTTPS, CF only) → kgateway → Bifrost → vLLM
 ```
 
+**Table 2. Protocol and security per connection-path segment**
+
 | Segment | Protocol | Security |
 |---------|----------|----------|
 | Client → CloudFront | HTTPS (TLS 1.2+) | WAF rules + Shield Standard + Rate Limit |
@@ -597,6 +603,8 @@ For Semantic Caching concepts, similarity threshold design, cache key structure,
 
 Major options organized based on official documentation and repositories. Features change rapidly, so always verify official documentation at deployment time.
 
+**Table 3. License, backend, and trade-offs of Semantic Caching implementation tools**
+
 | Tool | License | Backend | Key Advantages | Limitations | Official Resources |
 |------|---------|---------|----------------|-------------|-------------------|
 | **GPTCache** | OSS (MIT) | Redis / Milvus / FAISS / SQLite | Various backends, rich adapters, specialized for Semantic Cache from the start | Release frequency decreased after 2024, community-driven vs. LangChain/LiteLLM | [GitHub](https://github.com/zilliztech/GPTCache) |
@@ -607,6 +615,8 @@ Major options organized based on official documentation and repositories. Featur
 | **LangCache (Redis Labs)** | Managed SaaS (Redis Enterprise) | Redis Enterprise | Fully managed, includes embedding model·governance (GA H2 2025) | Enterprise only, region constraints, cost | [Redis LangCache](https://redis.io/langcache/) |
 
 ### 3.2 Tool Selection Decision Tree
+
+**Figure 3. Decision tree for selecting a Semantic Caching tool**
 
 ```mermaid
 flowchart TD
@@ -631,6 +641,8 @@ flowchart TD
 ```
 
 ### 3.3 Scenario-Based Recommendations
+
+**Table 4. Recommended combinations and rationale by operating scenario**
 
 | Scenario | Recommended Combination | Reason |
 |----------|------------------------|--------|

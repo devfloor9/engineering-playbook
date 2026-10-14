@@ -34,6 +34,8 @@ SageMaker에서 모델을 학습한 뒤, 승인된 모델 파일을 EKS로 가�
 
 ### 전체 아키텍처 개요
 
+**그림 1. SageMaker 학습·공유 스토리지·EKS 서빙의 전체 아키텍처**
+
 ```mermaid
 flowchart LR
     subgraph SageMaker["SageMaker 학습"]
@@ -178,6 +180,8 @@ KFP 제출의 `service_account`를 사용하고 legacy `task.apply(use_aws_secre
 ### 중앙 집중식 모델 관리
 
 Registry에 승인 상태를 기록해도 EKS가 자동으로 이를 강제하지 않습니다. 아래 수명 주기와 승인 흐름은 애플리케이션 정책입니다. SageMaker 제공 project template의 승인 후 배포 동작과 EKS 배포 코드를 구분합니다. EKS에서는 승인된 **특정 버전 ARN**을 릴리스에 고정하고 배포 직전에 상태를 다시 확인해야 합니다. 승인 취소 이후의 기존 Pod 회수나 라우팅 복구도 별도 제어 절차입니다.
+
+**그림 2. 모델 라이프사이클·승인 프로세스·배포 타겟의 흐름**
 
 ```mermaid
 flowchart LR
@@ -571,6 +575,8 @@ storage:
     delete_after_days: 365
 ```
 
+**표 1. 비용 최적화 체크리스트 항목과 실제 구현 지점**
+
 | 항목 | 실제 구현 지점 |
 |---|---|
 | 학습 Spot·시간 제한·체크포인트 | Estimator의 `use_spot_instances`, `max_wait`, `max_run`, `checkpoint_s3_uri`, `checkpoint_local_path`; 학습 코드가 체크포인트 복구를 구현 |
@@ -637,6 +643,8 @@ def scoped_costs(ce, *, start, end, service, usage_types=None, tag=None):
 ## 멀티 리전 배포 패턴
 
 ### 글로벌 모델 배포 아키텍처
+
+**그림 3. 멀티 리전 S3 복제와 리전별 EKS 서빙 아키텍처**
 
 ```mermaid
 flowchart TB
@@ -792,6 +800,8 @@ def deploy_regions(package_arn, release, approved_targets, loader_image, verifie
 ## 모델 모니터링 및 드리프트 탐지
 
 ### 통합 모니터링 아키텍처
+
+**그림 4. 데이터 수집·저장·모니터링 작업·알림의 통합 모니터링 아키텍처**
 
 ```mermaid
 flowchart LR
