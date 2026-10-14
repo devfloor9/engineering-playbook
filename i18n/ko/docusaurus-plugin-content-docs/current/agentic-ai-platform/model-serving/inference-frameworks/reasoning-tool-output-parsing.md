@@ -53,6 +53,8 @@ sidebar_position: 6
 
 모델 출력이 사용자 화면에 도달하기까지 다섯 층이 각자 경계를 해석합니다. 한 층만 다른 층과 어긋나도 누출이 생깁니다.
 
+**그림 1. 모델 출력이 사용자 화면에 도달하기까지 경계를 해석하는 다섯 층**
+
 ```mermaid
 flowchart LR
     M["1. 모델<br/>학습된 태그·채널"] --> T["2. Chat template<br/>프롬프트 렌더링<br/>enable_thinking"]
@@ -62,6 +64,8 @@ flowchart LR
     style P fill:#fff3e0,stroke:#f57c00
     style A fill:#e3f2fd,stroke:#1976d2
 ```
+
+**표 1. 출력 경계를 정하는 다섯 층과 어긋날 때의 대표 증상**
 
 | 층 | 경계를 정하는 요소 | 어긋날 때의 대표 증상 |
 |---|---|---|
@@ -74,6 +78,8 @@ flowchart LR
 ## 모델 계열별 출력 형식
 
 아래 표는 vLLM [Reasoning Outputs](https://docs.vllm.ai/en/latest/features/reasoning_outputs.html)·[Tool Calling](https://docs.vllm.ai/en/latest/features/tool_calling.html) 문서와 SGLang [Reasoning Parser](https://docs.sglang.io/advanced_features/separate_reasoning.html) 문서를 기준으로 정리했습니다(2026-10-06 확인). 빈 칸(–)은 해당 문서 표에 항목이 없다는 뜻이며 지원하지 않는다는 뜻은 아닙니다.
+
+**표 2. 모델 계열별 추론 경계 표기와 reasoning·tool-call 파서**
 
 | 모델 계열 | 추론 경계 표기 | thinking 기본값과 전환 방법 | vLLM reasoning parser | SGLang reasoning parser | vLLM tool-call parser |
 |---|---|---|---|---|---|
@@ -154,6 +160,8 @@ vLLM과 SGLang은 reasoning 구간에는 문법 제한을 걸지 않고, 추론 
 
 추론 종료 경계를 놓치면 문법 제한이 걸리지 않은 출력이 HTTP 200으로 정상 반환됩니다. vLLM에는 이 계열의 결함이 여러 모델·실행 모드에서 반복 보고되어 있습니다(상태는 2026-10-06 확인).
 
+**표 3. 추론 종료 경계 감지 실패로 문법 제한이 누락된 vLLM 이슈**
+
 | 이슈 | 현상 | 상태 |
 |---|---|---|
 | [#34650](https://github.com/vllm-project/vllm/issues/34650)·[#43388](https://github.com/vllm-project/vllm/issues/43388) | MTP·speculative decoding·async scheduling에서 `</think>`를 놓쳐 JSON 문법이 끝까지 적용되지 않음. 코드 펜스나 앞부분 잡음이 붙음 | 수정 PR #44297·#44993 머지, v0.27.0부터 포함 |
@@ -229,6 +237,8 @@ gpt-oss는 도구 호출 사이의 추론을 다음 샘플링에 되돌려 줘�
 
 출력 교정 계층(remediation layer)은 구조적 원인을 제거한 뒤 남는 확률적 누출을 처리합니다. 검증·복구·재시도를 맡는 프록시나 라이브러리는 오픈소스에서도 반복해서 등장하는 패턴입니다. 위치는 세 곳 중에서 고릅니다.
 
+**표 4. 출력 교정 계층을 둘 수 있는 세 위치의 장점과 제약**
+
 | 위치 | 장점 | 제약 |
 |---|---|---|
 | LLM API Gateway(Tier 2②) | 모든 애플리케이션에 일관 적용, 지표를 한곳에서 수집 | 애플리케이션별 스키마·도메인 규칙을 알기 어려움 |
@@ -294,6 +304,8 @@ thinking을 끈 상태에서 `<thinking>` 같은 내부 XML 태그를 출력에 
 6. **클라이언트 경로 확인** — 엔진 직접 응답과 게이트웨이·클라이언트 경유 응답을 비교해 필드 이름 변환이나 `if/elif` 처리로 손실·혼입되는지 봅니다.
 
 ## 트러블슈팅
+
+**표 5. 출력 무결성 증상별 원인·조치·확인 방법**
 
 | 증상 | 원인 | 조치 | 확인 방법 |
 |---|---|---|---|

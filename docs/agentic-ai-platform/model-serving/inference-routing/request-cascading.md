@@ -28,11 +28,15 @@ This document covers the implementation approaches (LLM Classifier, LiteLLM, vLL
 
 ### Three Cascading Patterns
 
+**Table 1. Description, implementation, and use case of the three cascading patterns**
+
 | Pattern | Description | Implementation | Use Case |
 |------|------|------|----------|
 | **1. Weight-based** | Distribute traffic across backends by fixed ratio | kgateway `backendRef weight` | A/B testing, gradual model migration |
 | **2. Fallback-based** | Retry on error against the next backend in a provider-defined priority/failover order | Provider-specific failover (e.g., LiteLLM `fallbacks`, Bifrost provider routing). Gateway API `backendRefs` weights + HTTPRoute retries do **not** by themselves define a cheap→frontier model order | Availability improvement, rate limit avoidance |
 | **3. Intelligent routing** | Auto-select model after request analysis | **LLM Classifier** / LiteLLM / vLLM Semantic Router | Cost optimization, quality maintenance |
+
+**Figure 1. Request flow of the three cascading patterns**
 
 ```mermaid
 flowchart TB
@@ -78,6 +82,8 @@ Intelligent cascade routing analyzes request complexity and auto-routes to appro
 
 **LLM Classifier** is a Python FastAPI-based lightweight router that directly analyzes prompt content to auto-select SLM/LLM. It runs as a standalone HTTP service behind kgateway and proxies to backend vLLM instances; clients use only a single endpoint (`/v1`). Note that this is a plain OpenAI-compatible HTTP proxy — it is **not** an Envoy External Processing (ext_proc) processor. Envoy `ext_proc` is a bidirectional gRPC stream protocol (`ProcessingRequest`/`ProcessingResponse`), so integrating this classifier as an ext_proc filter would require implementing that gRPC interface rather than a REST endpoint.
 
+**Figure 2. LLM Classifier-based request routing architecture**
+
 ```mermaid
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
@@ -93,7 +99,7 @@ graph LR
     style LF fill:#9c27b0,stroke:#333,color:#fff
 ```
 
-**Classification Criteria:**
+**Table 2. LLM Classifier weak/strong classification criteria**
 
 | Criteria | weak (SLM) | strong (LLM) |
 |------|-----------|-------------|
@@ -149,6 +155,8 @@ Standard OpenAI-compatible clients (Aider, Cline, etc.) only configure **a singl
 #### Bifrost Self-hosted Cascade Limitations
 
 We attempted to use Bifrost for self-hosted vLLM cascade but switched to **LLM Classifier**. The limitations below are what we observed in our own setup against the pinned Bifrost docs (routing-rules.mdx at commit `a9937c9`); they are our deployment constraints, not a statement that Bifrost cannot serve multiple self-hosted backends (custom providers and aliases exist).
+
+**Table 3. Bifrost cascade deployment constraints observed in our setup**
 
 | Limitation (as observed in our setup) | Description |
 |------|------|
@@ -236,6 +244,8 @@ The service accepts OpenAI-compatible requests and proxies to the backend based 
 
 ### Cascade Routing Implementation Selection Guide
 
+**Table 4. Recommended cascade routing approach by environment**
+
 | Environment | Recommended Approach | Reason |
 |------|----------|------|
 | **Self-hosted vLLM (Aider/Cline)** | **LLM Classifier** | Direct prompt analysis, single endpoint, no client modification |
@@ -248,6 +258,8 @@ The service accepts OpenAI-compatible requests and proxies to the backend based 
 Try **cheap -> balanced -> frontier** models progressively based on complexity.
 
 **Complexity Classification Criteria** (illustrative model/price mapping — the per-1M input/output prices below are example placeholders, not a dated quote from a provider price page; confirm current pricing before using them):
+
+**Table 5. Conditions, recommended models, and example prices by complexity**
 
 | Complexity | Conditions | Recommended Model | Input / Output ($/1M) |
 |--------|------|----------|-----------|
@@ -283,6 +295,8 @@ A GPU node is billed per node-hour whether it serves 30% or 100% of requests, so
 
 **Implementation Location Priority**: Gateway > IDE > Client
 
+**Table 6. Advantages and suitable environment by routing implementation location**
+
 | Location | Advantages | Suitable Environment |
 |------|------|----------|
 | **Gateway (LLM Classifier)** | Prompt analysis, central control, no client modification | Self-hosted **(Recommended)** |
@@ -298,6 +312,8 @@ A GPU node is billed per node-hour whether it serves 30% or 100% of requests, so
 
 **RouteLLM** is an open-source LLM routing framework developed by LMSYS. Its Matrix Factorization (MF) router scores each prompt against learned model-capability embeddings and routes between a strong and a weak model. This is a **different algorithm** from our rule-based LLM Classifier (keywords + character length + user turns); the two are compared below, not combined.
 
+**Figure 3. Branch flow of the RouteLLM Matrix Factorization router**
+
 ```mermaid
 graph TD
     Req[Request] --> MF[RouteLLM MF Router<br/>embedding score + confidence]
@@ -310,6 +326,8 @@ graph TD
     style LLM fill:#e53935,stroke:#333,color:#fff
     style SLM fill:#76b900,stroke:#333,color:#000
 ```
+
+**Table 7. RouteLLM vs. our LLM Classifier**
 
 | Item | RouteLLM (Research) | LLM Classifier (our rule-based router) |
 |------|----------------|---------------------|

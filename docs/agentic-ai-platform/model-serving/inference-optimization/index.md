@@ -43,6 +43,8 @@ All documents in this category are listed below. Gateway configuration and model
 
 Compare before and after against the service SLO and the same request set. There is no universal target for the metrics below.
 
+**Table 1. What to inspect and conditions to record for each inference performance metric**
+
 | Metric | What to inspect | Conditions to record |
 |--------|-----------------|----------------------|
 | **TTFT** | Request-start to first-token latency distribution | Queue-time inclusion, input length, concurrency |
@@ -58,6 +60,8 @@ Compare before and after against the service SLO and the same request set. There
 
 Separate node management from ownership of GPU software. GPU count or model size alone does not determine the node-management approach.
 
+**Table 2. Management boundary and detailed checks by EKS GPU deployment model**
+
 | Approach | Management boundary | Detailed checks |
 |----------|---------------------|-----------------|
 | EKS Auto Mode | EKS manages the GPU driver and device plugin | Available features and support for user-installed components |
@@ -67,6 +71,8 @@ Separate node management from ownership of GPU software. GPU count or model size
 Check DRA support against both Kubernetes version and capacity provisioning. The current [EKS NVIDIA device guide](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html) distinguishes Karpenter static capacity, managed node groups, and self-managed nodes while excluding Auto Mode. See [GPU node strategy](../gpu-infrastructure/eks-gpu-node-strategy.md) for selection criteria.
 
 ### GPU Instance Selection Matrix
+
+**Table 3. Evaluation criteria for each GPU instance selection decision**
 
 | Decision | Evaluation criteria |
 |----------|---------------------|
@@ -87,6 +93,8 @@ The [accelerated AMI guide](https://docs.aws.amazon.com/eks/latest/userguide/ml-
 
 ### Decision Flow
 
+**Figure 1. Inference deployment selection flow by model scale**
+
 ```mermaid
 flowchart TD
     accTitle: Choosing an inference deployment
@@ -104,6 +112,8 @@ flowchart TD
 ### 3-Tier Recommended Configuration
 
 These are evaluation stages, not fixed specifications tied to parameter counts.
+
+**Table 4. Condition and next guide for each 3-Tier deployment stage**
 
 | Stage | Condition | Next guide |
 |-------|-----------|------------|

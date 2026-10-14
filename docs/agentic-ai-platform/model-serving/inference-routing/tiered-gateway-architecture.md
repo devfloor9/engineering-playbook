@@ -33,6 +33,8 @@ The gateway layer corresponds to **Layer 5 (Gateway & Routing)** of the [platfor
 
 The following terms are used across the platform. Instead of the ambiguous "Inference Gateway", in-cluster routing and LLM API proxying are **explicitly distinguished**.
 
+**Table 1. Gateway layer names, roles, and representative implementations**
+
 | Layer | Name | Role | Representative Implementations |
 |-------|------|------|-------------------------------|
 | **Tier 1** | Ingress / North-South Gateway | External traffic ingress, TLS termination, path routing, auth, rate limiting | AWS LBC · Cilium · NGINX GF · Envoy Gateway · kGateway · Kong |
@@ -53,6 +55,8 @@ The "Representative Implementations" column lists **examples of products that pe
 In this guide, the `Agent Data Plane` (agentgateway) handles tool calls, communication between agents, and stateful sessions. Tier 1–2 determine where model requests go, while this function handles MCP/A2A connections and sessions. MCP/A2A can also use HTTP as a transport, so this is a distinction between responsibilities, not transport protocols. It is not another tier that every request must pass through in sequence.
 
 ## Overall Structure
+
+**Figure 1. Tiered gateway layers and their backend connections**
 
 ```mermaid
 flowchart TB
@@ -99,6 +103,8 @@ flowchart TB
 ## How to Fill Each Layer
 
 Solution selection, detailed comparison, and deployment procedures for each layer are covered in dedicated documents. This table is a **map of what to read where**.
+
+**Table 2. Solution that fills each layer and its detailed reference**
 
 | Layer | What fills it | Detailed reference |
 |-------|---------------|--------------------|

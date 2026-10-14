@@ -27,7 +27,7 @@ import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
 vLLM is a high-performance LLM inference engine. Its PagedAttention algorithm reduces the KV cache over-reservation that the original vLLM authors measured at 60-80% of memory in prior serving systems, and its Continuous Batching reported a 2-24x throughput improvement over the HuggingFace Transformers and TGI baselines in the June 2023 vLLM benchmark (the exact factor depends on model, hardware, and workload). Major companies including Meta, Mistral AI, Cohere, and IBM use it in production environments, and it provides an OpenAI-compatible API for easy migration of existing applications.
 
-> **📌 Current Version**: vLLM v0.24+ / v0.25.x (as of 2026-07)
+> **Current Version**: vLLM v0.24+ / v0.25.x (as of 2026-07)
 
 ### Why vLLM Became the Standard
 

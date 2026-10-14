@@ -28,11 +28,15 @@ sidebar_label: Request Cascading
 
 ### Cascading 패턴 3가지
 
+**표 1. Cascading 3가지 패턴의 설명·구현·사용 사례**
+
 | 패턴 | 설명 | 구현 | 사용 사례 |
 |------|------|------|----------|
 | **1. Weight 기반** | 고정 비율로 백엔드 간 트래픽 분배 | kgateway `backendRef weight` | A/B 테스트, 점진적 모델 마이그레이션 |
 | **2. Fallback 기반** | 오류 시 프로바이더가 정의한 우선순위/failover 순서의 다음 백엔드로 재시도 | 프로바이더별 failover(예: LiteLLM `fallbacks`, Bifrost provider routing). Gateway API `backendRefs` weight와 HTTPRoute retry만으로는 cheap→frontier 모델 순서를 **정의하지 못함** | 가용성 향상, rate limit 회피 |
 | **3. 지능형 라우팅** | 요청 분석 후 자동 모델 선택 | **LLM Classifier** / LiteLLM 커스텀 전략 / vLLM Semantic Router | 비용 최적화, 품질 유지 |
+
+**그림 1. Cascading 3가지 패턴의 요청 흐름**
 
 ```mermaid
 flowchart TB
@@ -78,6 +82,8 @@ flowchart TB
 
 **LLM Classifier**는 Python FastAPI 기반의 경량 라우터로, 프롬프트 내용을 직접 분석하여 SLM/LLM을 자동 선택합니다. kgateway 뒤에서 독립 HTTP 서비스로 동작하며 백엔드 vLLM 인스턴스로 프록시하고, 클라이언트는 단일 엔드포인트(`/v1`)만 사용합니다. 이 라우터는 OpenAI 호환 HTTP 프록시이며, Envoy External Processing(ext_proc) 프로세서가 **아닙니다**. Envoy `ext_proc`는 양방향 gRPC 스트림 프로토콜(`ProcessingRequest`/`ProcessingResponse`)이므로, 이 classifier를 ext_proc 필터로 연동하려면 REST 엔드포인트가 아니라 해당 gRPC 인터페이스를 구현해야 합니다.
 
+**그림 2. LLM Classifier 기반 요청 라우팅 구조**
+
 ```mermaid
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
@@ -93,7 +99,7 @@ graph LR
     style LF fill:#9c27b0,stroke:#333,color:#fff
 ```
 
-**분류 기준:**
+**표 2. LLM Classifier의 weak/strong 분류 기준**
 
 | 기준 | weak (SLM) | strong (LLM) |
 |------|-----------|-------------|
@@ -148,6 +154,8 @@ def classify(messages: list[dict]) -> str:
 #### Bifrost 자체 호스팅 Cascade 한계
 
 Bifrost를 자체 호스팅 vLLM cascade에 사용하려 했으나 **LLM Classifier로 전환**했습니다. 아래 한계는 pinned Bifrost 문서(routing-rules.mdx, 커밋 `a9937c9`)에 비추어 자체 환경에서 관찰한 배포 제약이며, Bifrost가 여러 자체 호스팅 백엔드를 제공할 수 없다는 뜻이 아닙니다(custom provider와 alias가 존재합니다).
+
+**표 3. 자체 환경에서 관찰한 Bifrost cascade 배포 제약**
 
 | 한계 (자체 환경 관찰) | 설명 |
 |------|------|
@@ -235,6 +243,8 @@ similarity_threshold: 0.85
 
 ### Cascade Routing 구현 방법 선택 가이드
 
+**표 4. 환경별 권장 Cascade Routing 접근**
+
 | 환경 | 권장 접근 | 이유 |
 |------|----------|------|
 | **자체 호스팅 vLLM (Aider/Cline)** | **LLM Classifier** | 프롬프트 직접 분석, 단일 엔드포인트, 클라이언트 수정 불필요 |
@@ -247,6 +257,8 @@ similarity_threshold: 0.85
 복잡도에 따라 **cheap -> balanced -> frontier** 모델을 단계적으로 시도합니다.
 
 **복잡도 분류 기준** (예시용 모델·가격 매핑 — 아래 1M 토큰당 입력/출력 가격은 프로바이더 가격 페이지의 특정 시점 인용이 아니라 예시 placeholder입니다. 사용 전 현재 가격을 확인하세요):
+
+**표 5. 복잡도별 조건·권장 모델·예시 가격**
 
 | 복잡도 | 조건 | 권장 모델 | 입력 / 출력 ($/1M) |
 |--------|------|----------|-----------|
@@ -282,6 +294,8 @@ GPU 노드는 요청의 30%를 처리하든 100%를 처리하든 노드 가동 �
 
 **구현 위치 우선순위**: Gateway > IDE > 클라이언트
 
+**표 6. 라우팅 구현 위치별 장점과 적합 환경**
+
 | 위치 | 장점 | 적합 환경 |
 |------|------|----------|
 | **Gateway (LLM Classifier)** | 프롬프트 분석, 중앙 통제, 클라이언트 무수정 | 자체 호스팅 **(권장)** |
@@ -297,6 +311,8 @@ GPU 노드는 요청의 30%를 처리하든 100%를 처리하든 노드 가동 �
 
 **RouteLLM**은 LMSYS가 개발한 오픈소스 LLM 라우팅 프레임워크입니다. Matrix Factorization(MF) 라우터가 각 프롬프트를 학습된 모델 역량 임베딩에 대해 점수화하여 strong/weak 모델 사이를 라우팅합니다. 이는 규칙 기반 LLM Classifier(키워드 + 문자 길이 + 사용자 턴 수)와는 **다른 알고리즘**이며, 아래 표는 둘을 결합한 것이 아니라 비교한 것입니다.
 
+**그림 3. RouteLLM Matrix Factorization 라우터의 분기 흐름**
+
 ```mermaid
 graph TD
     Req[요청] --> MF[RouteLLM MF 라우터<br/>임베딩 점수 + 신뢰도]
@@ -309,6 +325,8 @@ graph TD
     style LLM fill:#e53935,stroke:#333,color:#fff
     style SLM fill:#76b900,stroke:#333,color:#000
 ```
+
+**표 7. RouteLLM과 자체 LLM Classifier 비교**
 
 | 항목 | RouteLLM (연구) | LLM Classifier (자체 규칙 기반) |
 |------|----------------|---------------------|

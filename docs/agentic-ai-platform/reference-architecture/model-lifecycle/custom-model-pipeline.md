@@ -3,9 +3,9 @@ title: Custom Model Pipeline Guide
 description: Building a domain-optimized model serving pipeline with LoRA Fine-tuning, Multi-LoRA Hot-swap, and SLM Cascade Routing
 created: "2026-04-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-14
   author: devfloor9
-reading_time: 19
+reading_time: 21
 tags:
   - lora
   - fine-tuning
@@ -32,7 +32,7 @@ SaaS-based AI coding tools (e.g., Kiro, GitHub Copilot) offer a quick start, but
 | **LoRA Fine-tuning** | Not possible | Domain-specific adapter training |
 | **Data Sovereignty** | Code sent externally | Stays within VPC |
 | **Model Selection** | Limited to provided models | Free choice of open-source models |
-| **Cost Control** | Fixed per-token pricing | 66% savings possible with SLM Cascade |
+| **Cost Control** | Fixed per-token pricing | Measure Cascade effects from request mix, routing quality, and per-model cost |
 | **Per-customer Optimization** | Shared general-purpose model | Multi-LoRA for customer-specific specialization |
 
 :::info Core Strategy
@@ -329,7 +329,7 @@ For implementation details, see [Agent Monitoring](../../operations-mlops/observ
 
 ### Cascade Architecture
 
-Sending every request to a large model (LLM) is wasteful. 70% of requests can be handled adequately by a small model (SLM).
+The example below assumes that 70% of requests can be routed to a small model (SLM) while meeting the quality gate. This is an input assumption, not a measured result; evaluate the request-complexity distribution and SLM response quality before applying it.
 
 **Figure 3. Complexity-based SLM/LLM Cascade routing architecture**
 
@@ -345,18 +345,18 @@ graph LR
     style LLM fill:#e74c3c
 ```
 
-### Cost Analysis
+### Assumption-Based Cost Example
 
-**Table 7. Monthly cost, accuracy, and savings of SLM-only, LLM-only, and Cascade configurations**
+This table uses a simplified model in which monthly cost scales linearly with the share of requests. Given assumed monthly costs of $500 for the SLM and $8,900 for the LLM, the Cascade cost is `0.7 × $500 + 0.3 × $8,900 = $3,020`. Self-hosted costs may not scale linearly because idle GPUs and minimum capacity remain allocated, and quality must be measured separately for routed requests.
 
-| | SLM Only | LLM Only | **Cascade (70:30)** |
+| | SLM Only | LLM Only | **Cascade (Assumed 70:30)** |
 |---|---|---|---|
-| **Monthly Cost** | $500 | $8,900 | **$3,020** |
-| **Accuracy** | 70% | 95% | **92%** |
-| **Cost Savings** | - | - | **66%** |
+| **Assumed Monthly Cost** | $500 | $8,900 | **$3,020** |
+| **Quality** | Measure on the workload | Measure on the workload | Re-evaluate after routing |
+| **Calculated Difference** | - | - | **$5,880/month (about 66%) below LLM-only** |
 
-:::tip ROI Calculation
-Adopting Cascade saves $5,880/month ($70,560/year). Setup takes only 1-2 days, making it **immediately worthwhile**.
+:::tip Validate Before Adoption
+The approximately 66% figure is the result of the inputs and linear cost model above, not a measured savings rate. Include the observed request mix, routing errors, quality gates, minimum GPU capacity, idle time, operations labor, and observability costs in an adoption decision.
 :::
 
 ### Bifrost Cascade Config
@@ -532,12 +532,13 @@ gantt
         Evaluation + Deploy  :p4c, after p4b, 7d
 ```
 
-:::tip Return on Investment (ROI)
-Upon completing Phase 4:
-- **COBOL→Java migration**: 10,000 modules × 1.5 hours saved = **15,000 hours saved** (~$750K)
-- **LoRA training cost**: $2,000 (one-time)
-- **Monthly operational savings**: $5,880 (Cascade effect)
-- **ROI: 375×**
+:::tip Assumption-Based Benefit Calculation
+The following inputs illustrate a calculation method; they are not measured outcomes.
+- **COBOL→Java migration**: 10,000 modules × 1.5 hours × $50/hour = **$750,000 worth of time**
+- **LoRA training cost**: **$2,000** (one-time assumption)
+- **Cascade cost difference**: **$5,880/month** under the earlier linear cost model
+
+The ratio `$750,000 ÷ $2,000 = 375` uses only training cost as its denominator, so it is not a complete return-on-investment figure. An actual ROI calculation must include data preparation, evaluation, idle GPU capacity, operations labor, and incident response, and must measure migration-time savings separately from the Cascade cost difference.
 :::
 
 ---

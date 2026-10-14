@@ -32,6 +32,8 @@ import {
 
 EKS 환경에서 GPU 리소스를 관리하는 전략은 크게 세 가지 축으로 구성됩니다.
 
+**표 1. GPU 리소스 관리의 세 가지 축**
+
 | 축 | 핵심 질문 | 주요 기술 |
 |---|---|---|
 | **프로비저닝** | 어떤 GPU 노드를 언제 생성하는가? | Karpenter, EKS Auto Mode, Managed Node Group |
@@ -242,6 +244,8 @@ DRA 코어는 K8s 1.34에서 GA(`resource.k8s.io/v1`, 기본 활성화)되었고
 
 DRA는 **선언적 리소스 요청**(ResourceClaim)과 **할당 결정**을 분리하며, 할당 결정은 드라이버가 아니라 `kube-scheduler`가 내립니다. DRA 드라이버의 역할은 각 노드가 제공하는 것을 ResourceSlice로 **발행(publish)**하고, Pod가 바인딩된 뒤 노드에서 디바이스를 **준비(prepare)**하는 것입니다. 스케줄러는 Pod의 ResourceClaim(예: "H100 GPU 1개, MIG 3g.20gb 프로필")을 발행된 슬라이스와 CEL로 평가해 할당을 ResourceClaim status에 기록합니다. API 오브젝트 모델과 CEL 매칭의 일반 원리는 [Kubernetes DRA — 핵심 모델](../../../eks-best-practices/resource-cost/kubernetes-dra.md#dra-핵심-모델)을 참조하세요. 아래는 EKS에서 노드 스케일아웃이 결합된 이 순서를 보여줍니다. 0에서의 스케일아웃은 아직 생성되지 않은 노드가 발행할 디바이스를 오토스케일러가 시뮬레이션할 수 있는지에 추가로 의존합니다([노드 프로비저닝 호환성](#노드-프로비저닝-호환성) 참조).
 
+**그림 1. DRA GPU 할당과 노드 스케일아웃 흐름**
+
 ```mermaid
 flowchart LR
     DRV[노드의 DRA Driver] -->|발행| RS[ResourceSlice<br/>노드 용량]
@@ -276,13 +280,15 @@ flowchart LR
 
 AWS의 EKS 디바이스 관리 가이드는 **정적으로 프로비저닝된(static)** 용량(이미 존재하는 노드)과 **동적으로 프로비저닝된(dynamic)** 용량(요청 시 생성되는 노드)을 구분합니다. 고정한 날짜 기준으로, DRA는 정적 용량에서는 동작하지만 동적 Karpenter 생성 용량이나 EKS Auto Mode에서는 동작하지 않는다고 명시합니다.
 
+**표 2. 노드 프로비저닝 방식별 DRA 지원 현황**
+
 | 노드 프로비저닝 | 기존(정적) 노드에서의 DRA | DRA 기반 스케일업(새 노드) | 비고 |
 |---|---|---|---|
-| **Managed Node Group** | ✅ 지원 | ⚠️ DRA 시뮬레이션을 갖춘 Cluster Autoscaler(CA 1.34+)로만 가능. DRA 드라이버 설치와 ResourceSlice 시뮬레이션 가능 여부 필요 | Pod는 기존 적격 노드에 배치됨. 0→스케일업은 새 노드가 발행할 디바이스를 오토스케일러가 시뮬레이션할 수 있어야 함 |
-| **Self-Managed Node Group** | ✅ 지원 | ⚠️ MNG와 동일한 CA 의존성 | 노드·드라이버 수동 구성 필요 |
-| **Self-managed Karpenter v1.14.0+** | ✅ `ignoreDRARequests=false`로 기존 노드에 스케줄링 | ❌ AWS에서 0→스케일아웃은 아직 검증된 경로 아님 | 코어 v1.14.0이 DRA allocator 포함([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113))하지만, AWS provider가 아직 생성되지 않은 인스턴스의 template device를 채우지 않으므로 DRA 요청만으로 새 GPU 노드를 프로비저닝하는 것은 미검증. [Karpenter DRA 범위](#karpenter-dra-활성화-파라미터-v1140) 참조 |
-| **Self-managed Karpenter v1.13 이하** | ❌ 미지원 | ❌ 미지원 | `spec.resourceClaims` 있는 Pod를 skip ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)) |
-| **EKS Auto Mode** | ❌ 미지원 | ❌ 미지원 | AWS 현행 가이드가 Auto Mode의 DRA 미지원을 명시. AWS가 내부 Karpenter 버전을 공개하지 않으므로, 추정된 버전 임계값이 아니라 AWS의 지원 명시로 이해해야 함 |
+| **Managed Node Group** | 지원 | 조건부: DRA 시뮬레이션을 갖춘 Cluster Autoscaler(CA 1.34+)로만 가능. DRA 드라이버 설치와 ResourceSlice 시뮬레이션 가능 여부 필요 | Pod는 기존 적격 노드에 배치됨. 0→스케일업은 새 노드가 발행할 디바이스를 오토스케일러가 시뮬레이션할 수 있어야 함 |
+| **Self-Managed Node Group** | 지원 | 조건부: MNG와 동일한 CA 의존성 | 노드·드라이버 수동 구성 필요 |
+| **Self-managed Karpenter v1.14.0+** | 지원: `ignoreDRARequests=false`로 기존 노드에 스케줄링 | 미지원: AWS에서 0→스케일아웃은 아직 검증된 경로 아님 | 코어 v1.14.0이 DRA allocator 포함([PR #3113](https://github.com/kubernetes-sigs/karpenter/pull/3113))하지만, AWS provider가 아직 생성되지 않은 인스턴스의 template device를 채우지 않으므로 DRA 요청만으로 새 GPU 노드를 프로비저닝하는 것은 미검증. [Karpenter DRA 범위](#karpenter-dra-활성화-파라미터-v1140) 참조 |
+| **Self-managed Karpenter v1.13 이하** | 미지원 | 미지원 | `spec.resourceClaims` 있는 Pod를 skip ([PR #2384](https://github.com/kubernetes-sigs/karpenter/pull/2384)) |
+| **EKS Auto Mode** | 미지원 | 미지원 | AWS 현행 가이드가 Auto Mode의 DRA 미지원을 명시. AWS가 내부 Karpenter 버전을 공개하지 않으므로, 추정된 버전 임계값이 아니라 AWS의 지원 명시로 이해해야 함 |
 :::
 
 **버전별 동작 차이:**
@@ -298,6 +304,8 @@ DRA allocator는 코어 Karpenter v1.14.0에 병합되었고, 이를 포함한 A
 ### Karpenter DRA 활성화 파라미터 (v1.14.0+)
 
 Karpenter v1.14.0+는 DRA allocator 코드를 내장하지만, **컨트롤러가 기본적으로 DRA 요청을 무시**하도록 배포됩니다. self-managed Karpenter가 GPU 노드로 스케줄링할 때 DRA 요청을 반영하게 하려면 아래 파라미터를 명시적으로 설정해야 합니다. 이는 DRA 인식 **스케줄링**을 켜는 것이며, AWS에서 DRA 요청만으로 새 GPU 노드를 직접 프로비저닝할 수 있는지는 별개의 현재 미검증 기능입니다(AWS provider가 노드 생성 전 시뮬레이션에 필요한 template device를 채우지 않습니다).
+
+**표 3. Karpenter DRA 활성화 파라미터 (v1.14.0+)**
 
 | 계층 | 파라미터 | 기본값 | DRA 사용 시 설정 |
 |---|---|---|---|
@@ -333,6 +341,8 @@ Karpenter 업그레이드 가이드의 "DRA는 additive하며 기존 NodePool �
 ### DRA 스택 전체 파라미터 (3계층)
 
 DRA로 GPU를 사용하려면 **노드 프로비저닝(Karpenter) + 클러스터 DRA 활성화 + NVIDIA DRA 드라이버** 세 계층의 파라미터가 모두 충족되어야 합니다.
+
+**표 4. DRA 스택 3계층 파라미터**
 
 | 계층 | 파라미터 | 기본값 | DRA 사용 시 설정 |
 |---|---|---|---|
@@ -384,6 +394,8 @@ NVIDIA DRA 드라이버(`nvidia-dra-driver-gpu`)는 **GPU 할당**(`resources.gp
 
 GPU 워크로드의 오토스케일링은 **2단계 체인**으로 동작합니다.
 
+**그림 2. KEDA Pod 스케일링과 노드 스케일링 2단계 체인**
+
 ```mermaid
 flowchart LR
     M[GPU 메트릭<br/>DCGM/vLLM] --> KEDA[KEDA]
@@ -433,6 +445,8 @@ spec:
 ### Disaggregated Serving 스케일링 기준
 
 Prefill과 Decode를 분리 운영하는 경우, 각 역할의 병목 시그널이 다릅니다.
+
+**표 5. Prefill과 Decode의 병목 시그널과 스케일 기준**
 
 | | Prefill | Decode |
 |---|---|---|
@@ -492,6 +506,8 @@ LLM 메트릭 (KV Cache, TTFT, Queue)
 
 아래 범위는 **측정값이 아니라 계획용 참고치**입니다. 실제 절감은 기준 인스턴스 구성, 활용률, 리전, 약정 조건에 따라 달라지므로, "어디를 볼지"의 출발점으로 삼고 자신의 On-Demand 기준선과 비교해 측정하세요.
 
+**표 6. Karpenter 기반 4대 비용 최적화 전략**
+
 | 전략 | 핵심 메커니즘 | On-Demand 대비 참고 절감 | 적용 대상 |
 |------|-------------|----------|----------|
 | **Spot 인스턴스 우선** | `capacity-type: spot` + 다양한 인스턴스 타입 지정 | Spot 비중에 대해 최대 ~60-90% (리전/용량에 따라 변동) | 중단 허용 추론(stateless) 워크로드 |
@@ -512,6 +528,8 @@ LLM 메트릭 (KV Cache, TTFT, Queue)
 ### LLMOps 비용 거버넌스
 
 인프라 비용과 함께 **토큰 레벨 비용**도 추적해야 완전한 비용 가시성을 확보할 수 있습니다.
+
+**그림 3. 인프라·애플리케이션 레이어 비용 추적 구성**
 
 ```mermaid
 flowchart LR

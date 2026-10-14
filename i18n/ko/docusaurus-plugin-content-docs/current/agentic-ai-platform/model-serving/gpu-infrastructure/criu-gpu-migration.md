@@ -35,6 +35,8 @@ EC2 Spot의 stop/terminate 알림은 통상 중단 약 2분 전에 제공되지�
 
 ### 기존 대안의 한계
 
+**표 1. Spot 중단 대응 기존 대안이 보존하는 것과 남는 제약**
+
 | 대안 | 보존하는 것 | 남는 제약 |
 |---|---|---|
 | Warm replica | 이미 준비된 별도 서빙 용량 | 여유 처리량·장애 도메인·비용 검증 |
@@ -54,6 +56,8 @@ CRIU는 지원되는 Linux 프로세스 상태를 저장합니다. GPU 상태는
 
 다음은 개념 연결입니다. 자동 동작하는 표준 Kubernetes GPU migration controller를 뜻하지 않습니다.
 
+**그림 1. CRIU·cuda-checkpoint·kubelet checkpoint API 개념 연결**
+
 ```mermaid
 flowchart TB
     APP[LLM process and distributed state] --> CRIU[CRIU host process checkpoint]
@@ -67,6 +71,8 @@ flowchart TB
 ```
 
 ### 핵심 컴포넌트 성숙도
+
+**표 2. CRIU 관련 핵심 컴포넌트의 확인 범위와 운영자 고정 항목**
 
 | 컴포넌트 | 확인된 범위 | 운영자가 고정할 항목 |
 |---|---|---|
@@ -122,6 +128,8 @@ source/target의 kernel, AMI, CUDA runtime, driver, utility, CRIU, runtime 및 G
 
 ### 시나리오별 실현 가능성
 
+**표 3. EKS 마이그레이션 시나리오별 문서상 판단과 필요한 증거**
+
 | 시나리오 | 문서상 판단 | 필요한 증거 |
 |---|---|---|
 | 동일 host | 검증 후보 | 종료 후 artifact 보존·process/장치 복원 |
@@ -151,6 +159,8 @@ AZ 경계만으로 CRIU가 금지되거나 NIXL 전송이 수 초에 완료된�
 복구 전략은 서비스 SLO, 중복 용량, cache 호환성과 운영 가능성으로 선택합니다. 고정된 복구 시간이나 무중단을 보장하지 않습니다.
 
 ### 대안 비교표
+
+**표 4. 복구 전략별 확인할 조건**
 
 | 전략 | 확인할 조건 |
 |---|---|

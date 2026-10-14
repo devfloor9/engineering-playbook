@@ -38,6 +38,8 @@ LMCache mitigates both limitations by moving the KV cache to a layer outside the
 
 LMCache sits between the serving engine and the routing layer, handling KV cache storage and lookup. Its position in the overall inference infrastructure corresponds to L5 (cache layer) in the layered tuning model of the [Inference Infrastructure Overview](../index.md).
 
+**Figure 1. LMCache's position on the inference path and its GPU/CPU/disk storage tiers**
+
 ```mermaid
 flowchart LR
     REQ["Request<br/>(includes prefix)"] --> ENGINE["Serving Engine<br/>(vLLM)"]
@@ -103,6 +105,8 @@ Below vLLM 0.20.0, `LMCacheMPConnector` always resolves to vLLM's bundled connec
 
 The main server flags are as follows.
 
+**Table 1. LMCache server main flags with defaults and roles**
+
 | Flag | Default | Role |
 |------|---------|------|
 | `--l1-size-gb` | (required) | L1 cache pool size (GB) |
@@ -129,6 +133,8 @@ lmcache server --l1-size-gb 100 --eviction-policy LRU \
 
 The main adapter `type` values are as follows.
 
+**Table 2. Adapter `type` values by L2 storage backend category**
+
 | Category | `type` values |
 |----------|---------------|
 | Local filesystem / block | `fs`, `fs_native`, `nixl_store`, `nixl_store_dynamic`, `raw_block`, `dax` |
@@ -149,6 +155,8 @@ The L1/L2 in LMCache MP mode are **internal tier names within the LMCache server
 
 The official deployment guide recommends a **DaemonSet + Deployment pattern**, not a sidecar. One LMCache server per node (DaemonSet) is shared by multiple vLLM Pods (Deployment) on the same node.
 
+**Table 3. Key configuration items of the DaemonSet deployment pattern**
+
 | Item | Detail |
 |------|--------|
 | `hostNetwork: true` | Used by the official DaemonSet pattern **for service discovery**. vLLM Pods find the server via `status.hostIP`, not Service DNS. It is independent of the IPC transfer mechanism, so removing the `/dev/shm` requirement below does not by itself remove the `hostNetwork` requirement |
@@ -158,6 +166,8 @@ The official deployment guide recommends a **DaemonSet + Deployment pattern**, n
 ### Requirements by Transfer Path
 
 `--supported-transfer-mode` determines which transfer paths the server loads.
+
+**Table 4. Transfer modes with path and use**
 
 | Mode | Path | Use |
 |------|------|-----|
@@ -184,6 +194,8 @@ For the per-profile constraints, see the workload-security section of [Security 
 ## Relationship with Adjacent Technologies
 
 LMCache does not operate in isolation; it is used together with other inference optimization technologies.
+
+**Table 5. Relationship between LMCache and adjacent inference optimization technologies**
 
 | Technology | Relationship | Notes |
 |------|------|------|

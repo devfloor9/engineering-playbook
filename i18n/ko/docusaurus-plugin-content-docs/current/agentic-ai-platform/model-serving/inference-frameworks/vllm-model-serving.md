@@ -27,7 +27,7 @@ import SpecificationTable from '@site/src/components/tables/SpecificationTable';
 
 vLLM은 PagedAttention 알고리즘으로 KV cache의 과다 예약(over-reservation)을 줄이는 고성능 LLM 추론 엔진입니다. vLLM 저자들은 기존 서빙 시스템에서 메모리의 60-80%가 과다 예약·단편화로 낭비된다고 측정했으며, 연속 배칭(Continuous Batching)은 2023년 6월 vLLM 벤치마크에서 HuggingFace Transformers·TGI 기준 대비 2-24배의 처리량 향상을 보고했습니다(정확한 배수는 모델·하드웨어·워크로드에 따라 다릅니다). Meta, Mistral AI, Cohere, IBM 등 주요 기업들이 프로덕션 환경에서 활용하고 있으며, OpenAI 호환 API를 제공하여 기존 애플리케이션의 마이그레이션이 용이합니다.
 
-> **📌 현재 버전**: vLLM v0.24+ / v0.25.x (2026-07 기준)
+> **현재 버전**: vLLM v0.24+ / v0.25.x (2026-07 기준)
 
 ### 왜 vLLM이 표준이 되었나
 

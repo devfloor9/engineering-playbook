@@ -30,6 +30,8 @@ EKS에서 GPU 워크로드를 운영할 때 노드 타입 선택은 운영 복�
 
 AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 
+**표 1. EKS GPU 워크로드용 4가지 노드 타입**
+
 | 노드 타입 | 설명 |
 |-----------|------|
 | **EKS Auto Mode** | AWS가 전체 노드 라이프사이클을 관리 (GPU 드라이버 사전 설치) |
@@ -50,6 +52,8 @@ AWS EKS는 GPU 워크로드를 위해 4가지 노드 타입을 제공합니다:
 ## 노드 타입별 특성 비교
 
 ### 기능 비교 테이블
+
+**표 2. 노드 타입별 기능 비교**
 
 | 특성 | Auto Mode | Karpenter | Managed Node Group | Hybrid Node |
 |------|-----------|-----------|-------------------|-------------|
@@ -282,6 +286,8 @@ Karpenter는 Auto Mode의 자동 스케일링 장점을 유지하면서, GPU Ope
 
 하나의 EKS 클러스터에서 Auto Mode + Karpenter + Hybrid Node를 동시에 운영합니다.
 
+**그림 1. Auto Mode·Karpenter·Hybrid Node 3-노드 타입 공존 아키텍처**
+
 ```mermaid
 flowchart TB
     Users[Users /<br/>Applications]
@@ -321,6 +327,8 @@ flowchart TB
 
 ### 워크로드별 노드 배치 전략
 
+**표 3. 워크로드 유형별 노드 배치와 GPU Operator 필요 여부**
+
 | 워크로드 유형 | 노드 타입 (예시) | GPU Operator | 이유 |
 |--------------|-----------|--------------|------|
 | **시스템 컴포넌트** | Auto Mode | 불필요 | CPU 전용, GPU 스택 없음 |
@@ -335,6 +343,8 @@ flowchart TB
 ### DRA 워크로드를 위한 MNG 하이브리드
 
 DRA(Dynamic Resource Allocation)는 Kubernetes 1.34에서 GA가 되었으며, Device Plugin을 넘어서는 속성 기반 디바이스 선택, 토폴로지 인식 할당, 디바이스 공유를 제공합니다. EKS 문서 기준(2026-09), **EKS에서 DRA는 EKS managed node group, self-managed 노드, 그리고 정적(static) 용량 프로비저닝을 사용하는 Karpenter에서 지원됩니다(K8s 1.33+, 1.34+ 권장). EKS Auto Mode나 동적 프로비저닝 Karpenter 용량에서는 현재 미지원입니다.** 업스트림 Karpenter는 provider v1.14.0부터 DRA 요청 처리(`ignoreDRARequests`)를 추가했지만, 이는 Karpenter가 DRA 클레임을 어떻게 스케줄링하는지를 다룰 뿐 동적 Karpenter 프로비저닝을 EKS에서 지원되는 DRA 용량 유형으로 만들지는 않습니다. DRA 디바이스는 GPU Operator와 별개인 NVIDIA DRA 드라이버가 게시합니다. 프로비저닝 방식별 호환성 표와 활성화 파라미터는 [GPU 리소스 관리 — 노드 프로비저닝 호환성](./gpu-resource-management.md#노드-프로비저닝-호환성)을 참조하세요.
+
+**그림 2. DRA 워크로드를 위한 MNG 하이브리드 구성**
 
 ```mermaid
 flowchart TB
@@ -361,6 +371,8 @@ flowchart TB
     style CA fill:#326ce5
 ```
 
+**표 4. DRA·일반 GPU·비GPU 워크로드별 할당 방식과 스케일링**
+
 | 워크로드 | 노드 타입 | GPU 할당 방식 | 스케일링 |
 |---|---|---|---|
 | DRA 워크로드 (llm-d, P6e-GB200) | **Managed Node Group** | ResourceClaim (DRA) | Cluster Autoscaler |
@@ -372,6 +384,8 @@ flowchart TB
 ### 모델 크기별 권장 노드 전략
 
 아래 표는 측정된 사이징이 아니라 **출발점 추정치**입니다. 실제 GPU 메모리와 활용률은 가중치 dtype(FP16/FP8/INT4), 컨텍스트 길이, 배치 크기, 동시성에 따라 달라지므로 운영 전 서빙 엔진으로 검증하세요. 참고로 Meta Llama 3 공식 패밀리는 8B와 70B 크기로 제공되며(공식 "Llama 3 13B"는 없음), 13B–30B 행에는 해당 범위의 다른 모델을 사용합니다.
+
+**표 5. 모델 크기별 후보 노드와 근거**
 
 | 모델 크기 | 예시 | 후보 노드 | 근거 (측정으로 검증) |
 |---|---|---|---|
@@ -388,6 +402,8 @@ flowchart TB
 
 7B 모델 8개 복제본 서빙을 목표로 가정하면:
 
+**표 6. 7B 모델 8개 복제본의 전체 GPU 대 MIG 4분할 청구 비교 (가정 예시)**
+
 | 구성 | 7B 모델 복제본 | 사용 GPU | 청구 p5.48xlarge 인스턴스 | 월 청구 비용 |
 |---|---|---|---|---|
 | 전체 GPU 할당 (복제본당 GPU 1개) | 8 | 1 인스턴스의 8개 중 8개 | 1 | ~$40,000 |
@@ -402,6 +418,8 @@ flowchart TB
 ### 현시점 최적 구성 (2026-04)
 
 대부분의 LLM 서빙 환경에서는 DRA가 아직 필수가 아닙니다. Device Plugin + MIG 조합으로 GPU 분할과 토폴로지 배치를 충분히 커버할 수 있으며, Karpenter의 빠른 스케일아웃이 MNG + Cluster Autoscaler보다 LLM 서빙 SLO에 유리합니다.
+
+**그림 3. Karpenter + GPU Operator 기반 현시점 최적 구성 (2026-04)**
 
 ```mermaid
 flowchart TB
@@ -436,6 +454,8 @@ flowchart TB
 ```
 
 소형 모델 NodePool은 g6e(NVIDIA L40S)를 사용합니다. L40S는 MIG 지원 GPU가 **아니므로**(MIG는 A100/H100/H200/B200 등 Ampere 이상 데이터센터 GPU에서만 지원), `nvidia.com/mig-3g.40gb` 같은 MIG 리소스를 요청할 수 없고 전체 L40S GPU나 time-slicing을 사용합니다. 또한 KV 캐시 점유율과 TTFT는 DCGM 카운터가 아니라 **추론 서버**(예: vLLM) 메트릭이며, DCGM은 GPU 수준 텔레메트리(활용률, 전력, 프레임버퍼 메모리)를 노출합니다. KEDA는 두 신호원을 각각의 exporter로부터 받아 스케일링합니다.
+
+**표 7. Karpenter + Device Plugin과 MNG + DRA 비교**
 
 | 기준 | Karpenter + Device Plugin | MNG + DRA |
 |---|---|---|
@@ -481,6 +501,8 @@ flowchart TB
 
 ### DRA 전환 시점
 
+**표 8. DRA 전환이 필요한 조건**
+
 | 조건 | 전환 필요 |
 |---|---|
 | P6e-GB200 UltraServer 도입 | Multi-Node NVLink(MNNVL) ComputeDomain에 필요 (DRA 전용); GB200에서의 일반 GPU 할당 자체는 DRA를 요구하지 않음 |
@@ -507,6 +529,8 @@ EKS GPU 노드 전략은 전통적으로 NVIDIA GPU (p/g 시리즈) 중심으로
 
 아래 비교는 측정된 벤치마크가 아니라 **방향성 가이드**입니다. "Day-1"과 "포팅 지연"은 특정 모델에 대한 보장이 아니라 일반적 생태계 패턴을 설명하며, TCO/토큰당 비용 행은 모델·활용률·현재 가격에 따라 달라지므로 자신의 워크로드에 대해 검증할 가설로 다루세요.
 
+**표 9. NVIDIA GPU와 AWS Neuron 선택 기준 비교**
+
 | 기준 | NVIDIA GPU (p5/p5en/p6/g6e) | AWS Neuron (trn2/inf2) |
 |------|---------------------------|---------------------|
 | **모델 생태계 최신성** | 신규 오픈 모델은 대개 CUDA에서 먼저 동작하나, 모델별로 호환 서빙 백엔드/커널이 여전히 필요 | AWS 포팅 주기 지연 가능 (몇 주~몇 달); 특정 모델의 Neuron 지원 확인 필요 |
@@ -520,6 +544,8 @@ EKS GPU 노드 전략은 전통적으로 NVIDIA GPU (p/g 시리즈) 중심으로
 | **하이브리드(온프레미스)** | Hybrid Node 로 가능 | EC2 전용 (온프레미스 옵션 없음) |
 
 ### 선택 플로우
+
+**그림 4. NVIDIA GPU와 AWS Neuron 선택 플로우**
 
 ```mermaid
 flowchart TD
@@ -559,6 +585,8 @@ flowchart TD
 ---
 
 ## 노드 전략 의사결정 플로우차트
+
+**그림 5. GPU 워크로드 노드 타입 의사결정 플로우차트**
 
 ```mermaid
 flowchart TD
@@ -603,6 +631,8 @@ flowchart TD
 지역성/소유권 확인(`Q0`)은 대형 모델뿐 아니라 모든 GPU 워크로드에 대해 평가합니다: 데이터 주권 요구나 기존 온프레미스 GPU 자산이 있으면 모델 크기와 무관하게 Hybrid Node를 가리킵니다. 이후 모델 크기 분기는 전체 범위(70B+, 30B–65B, 13B–30B, 7B 이하)를 다루며, 70B 미만의 모든 크기에서는 크기별로 단일 노드 타입을 가정하지 않고 MIG/fractional 공유가 필요한지에 따라 결정합니다.
 
 ### 의사결정 요약 테이블
+
+**표 10. 질문별 권장 노드 타입과 GPU Operator 필요 여부**
 
 | 질문 | 권장 노드 타입 | GPU Operator |
 |------|---------------|--------------|

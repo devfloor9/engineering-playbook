@@ -28,6 +28,8 @@ LLM 추론 엔진의 성능은 대부분 KV cache(Key-Value Cache)를 얼마나 
 
 vLLM은 널리 사용되는 오픈소스 LLM 추론 엔진입니다. 아래 표의 "보고된 효과" 열은 각 수치가 측정된 출처와 조건을 함께 명시합니다. 효과의 크기는 모델·하드웨어·워크로드와 활성화한 기능 조합에 따라 달라지며, 각 수치는 서로 더할 수 없고 임의의 배포 환경에서 보장되지 않습니다.
 
+**표 1. vLLM 기술별 보고된 효과와 동작 원리**
+
 | 기술 | 보고된 효과 (출처·조건) | 동작 원리 |
 |------|---------|------|
 | **PagedAttention** | [vLLM 공개 발표](https://blog.vllm.ai/2023/06/20/vllm.html)는 기존 서빙 시스템이 단편화와 과다 예약으로 KV cache 메모리의 60–80%를 낭비하며 PagedAttention이 그 낭비를 4% 미만으로 줄인다고 보고합니다. 이는 전체 메모리를 60–80% 줄인다는 의미가 아니라 낭비분을 줄인다는 의미입니다. | 각 시퀀스의 KV cache를 고정 크기의 비연속 블록으로 저장하고 블록 테이블로 매핑하는, OS 가상 메모리 페이징과 유사한 방식 |
@@ -52,6 +54,8 @@ KV cache 크기는 위 토큰당 항과 캐시된 전체 토큰 수(시퀀스 �
 
 **정밀도별 가중치 단독 추정치.** 아래 수치는 가중치만 계산한 추정치(`파라미터 수 × 파라미터당 바이트`)로, 전체 VRAM이 아니라 하한값입니다. 활성화·프레임워크 오버헤드·KV cache 풀이 그 위에 더해지기 때문입니다. MoE 모델은 토큰당 일부만 활성화되더라도 가중치 추정에는 총 파라미터 수를 사용합니다.
 
+**표 2. 정밀도별 파라미터당 바이트와 70B·32B 가중치 추정치**
+
 | 정밀도 | 파라미터당 바이트 | 70B 가중치만 | 32B 가중치만 |
 |--------|---------------|---------|---------|
 | FP32 | 4 | 280GB | 128GB |
@@ -60,6 +64,8 @@ KV cache 크기는 위 토큰당 항과 캐시된 전체 토큰 수(시퀀스 �
 | INT4 | 0.5 | 35GB | 16GB |
 
 ### 병렬화 전략 선택 기준
+
+**그림 1. 모델 크기와 MoE 여부에 따른 병렬화 전략 선택 흐름**
 
 ```mermaid
 flowchart TD
@@ -82,6 +88,8 @@ flowchart TD
 **모델 크기별 구성 예시:**
 
 아래 행은 검증된 용량 수치가 아니라 참고용 출발점입니다. 필요한 GPU 수는 정확한 체크포인트와 양자화, 목표로 하는 컨텍스트 길이·동시성(KV cache 풀을 결정), 남겨둘 여유 공간에 따라 달라집니다. 각 배포는 위 메모리 산식과 자체 벤치마크로 산정하십시오. Expert Parallelism(EP)은 vLLM의 실험적 기능으로 `--enable-expert-parallel`로 명시적으로 활성화해야 하며 보통 데이터 병렬화와 함께 사용합니다(`EP_SIZE = TP × DP`). MoE 모델이라고 자동 적용되지 않습니다([vLLM EP 배포 문서](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment.html)).
+
+**표 3. 모델 크기별 GPU 구성과 병렬화 설정 예시**
 
 | 모델 예시 | 총/활성 파라미터 | 정밀도 | GPU 구성 예시 | 병렬화(명시 설정 필요) |
 |-----------|---------|--------|---------|--------|
@@ -114,6 +122,8 @@ vllm serve Qwen/Qwen3-32B-FP8 \
 
 양자화는 "모델 정밀도를 낮추는 대신 메모리 사용량을 줄이는" 기법입니다([vLLM 양자화 가이드](https://docs.vllm.ai/en/latest/features/quantization/)). 아래 절감치는 BF16/FP16 대비 가중치 비트 산술값(예: 8비트 ≈ 가중치 바이트 절반, 4비트 ≈ 1/4)이며, 활성화와 KV cache 풀을 포함한 전체 GPU 메모리의 실측 절감치가 아니고 고정된 품질·속도 순위도 아닙니다. 품질과 처리량은 구체적인 변형·모델·백엔드에 따라 달라지고, 각 형식은 특정 하드웨어에서만 지원됩니다. vLLM은 아키텍처별 지원 매트릭스(Volta/Turing/Ampere/Ada/Hopper, AMD, Intel, CPU)를 공개하므로 선택 전에 확인하십시오.
 
+**표 4. 양자화 형식별 가중치 비트 용량과 도입 전 확인 사항**
+
 | 양자화 | BF16 대비 가중치 비트 용량 | 도입 전 확인 사항 |
 |--------|----------|------------|
 | **FP8 (W8A8)** | 가중치 바이트 약 ½ | Ada/Hopper(및 AMD)부터 지원. 모델별로 품질 측정 필요 |
@@ -134,6 +144,8 @@ vllm serve Qwen/Qwen3-32B-FP8 \
 llm-d와 NVIDIA Dynamo는 각 vLLM Pod의 KV cache 상태를 인식하여, 동일한 prefix를 가진 요청을 이미 해당 KV cache를 보유한 Pod로 라우팅합니다.
 
 다음 흐름은 설정된 EPP 플러그인의 동작을 단순화한 예시입니다. 캐시가 있는 Pod도 부하에 따라 선택되지 않을 수 있습니다.
+
+**그림 2. prefix 재사용과 부하 점수에 따른 KV cache 인지 라우팅 흐름**
 
 ```mermaid
 sequenceDiagram
@@ -174,6 +186,8 @@ KV cache 인지 라우팅에서 **라우팅 결정 자체는 모델 추론이 �
 
 각 효과의 방향은 예측 가능하지만 크기는 prefix 히트율·prefix 길이·모델·하드웨어·부하에 따라 달라지므로, 아래 표는 보장된 백분율이 아니라 조건부 효과를 제시합니다. 공표된 단일 추정치는 llm-d의 것으로, prefix-cache 인지 라우팅이 round-robin 대비 **출력 처리량 3×, TTFT 2× 개선**을 보였고 이는 Llama 3.1 70B·4× AMD MI300X에서 측정되었습니다([llm-d README, Performance Highlights](https://github.com/llm-d/llm-d/blob/v0.8.1/README.md)). 그 밖의 수치는 워크로드별로 다르므로 직접 측정하십시오.
 
+**표 5. 시나리오별 KV Cache-Aware Routing의 TTFT·프리필 연산·처리량 효과(정성적)**
+
 | 시나리오 | TTFT | GPU 프리필 연산 | 처리량 | 유의점 |
 |---------|----------|-------------|-----------|--------|
 | 공유 시스템 프롬프트(높은 히트율) | 낮아짐(공유 prefix 프리필 생략) | 감소 | 증가 | 캐시 보유 Pod가 과부하가 아닐 때만 |
@@ -183,6 +197,8 @@ KV cache 인지 라우팅에서 **라우팅 결정 자체는 모델 추론이 �
 ### llm-d vs NVIDIA Dynamo 비교
 
 두 프로젝트 모두 KV Cache-aware 라우팅을 제공하지만 접근 방식이 다릅니다. llm-d는 [v0.8.1 (2026-06-26)](https://github.com/llm-d/llm-d/releases/tag/v0.8.1) 기준으로 검토했으며, 해당 태그의 README는 아직 v0.7 기능 셋을 설명합니다. Dynamo 열은 [v1.2.1](https://github.com/ai-dynamo/dynamo/tree/v1.2.1) 기준입니다. 캐시를 보유한 Pod로 요청을 보내는 동작과 Pod 간 KV 전송·오프로딩은 별도 설정입니다.
+
+**표 6. llm-d v0.8.1과 NVIDIA Dynamo v1.2.x의 항목별 비교**
 
 | 항목 | llm-d v0.8.1 | NVIDIA Dynamo v1.2.x |
 |------|------------|-------------------|
@@ -207,6 +223,8 @@ KV cache 인지 라우팅에서 **라우팅 결정 자체는 모델 추론이 �
 ### Gateway 아키텍처: llm-d 배포 구성
 
 아래 구성은 [llm-d v0.8.1 Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md)의 단일 Gateway 예시입니다. 실선은 트래픽·ext-proc 호출, 점선은 설정 참조입니다. InferencePool(`inference.networking.k8s.io/v1`)은 Pod 선택과 EPP 연결을, 선택적 InferenceObjective(`llm-d.ai/v1alpha2`)는 요청 우선순위를 정의합니다. 구 `InferenceModel`을 워크로드 정의로 사용하지 않습니다. 이미지·replica·GPU 요청은 워크로드에서 설정하며 수치는 설명용입니다.
+
+**그림 3. llm-d v0.8.1 단일 Gateway·EPP·워크로드 배포 구성**
 
 ```mermaid
 flowchart TB

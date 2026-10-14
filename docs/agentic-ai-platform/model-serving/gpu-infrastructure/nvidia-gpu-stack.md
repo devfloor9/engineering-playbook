@@ -26,6 +26,8 @@ import { SpecificationTable, ComparisonTable } from '@site/src/components/tables
 
 The NVIDIA GPU software stack is organized in a layered structure for operating GPUs in Kubernetes environments.
 
+**Table 1. Role and core components by NVIDIA GPU software stack layer**
+
 | Layer | Role | Core Component |
 |-------|------|---------------|
 | **Infrastructure Automation** | Declaratively manage GPU drivers, runtimes, and plugins | GPU Operator (ClusterPolicy CRD) |
@@ -45,6 +47,8 @@ GPU Operator is an orchestration layer that bundles the entire GPU stack under a
 
 :::info GPU Operator v25.10.1 (as of 2026-03)
 
+**Table 2. GPU Operator v25.10.1 bundled component versions**
+
 | Component | Version | Role |
 |-----------|---------|------|
 | GPU Operator | **v25.10.1** | GPU stack lifecycle management |
@@ -60,6 +64,8 @@ GPU Operator is an orchestration layer that bundles the entire GPU stack under a
 :::
 
 ### Component Structure
+
+**Figure 1. GPU Operator ClusterPolicy component structure**
 
 ```mermaid
 flowchart TB
@@ -98,12 +104,14 @@ flowchart TB
 
 ### GPU Operator Configuration per EKS Environment
 
+**Table 3. GPU Operator component installation by EKS environment**
+
 | Environment | Driver | Toolkit | Device Plugin | MIG | Notes |
 |-------------|--------|---------|---------------|-----|-------|
-| **EKS Auto Mode** | ❌ (AWS auto) | ❌ (AWS auto) | ❌ (disabled via label) | ❌ | DCGM/NFD/GFD work normally |
-| **Karpenter (Self-Managed)** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | Full support |
-| **Managed Node Group** | ❌ (AL2023 AMI) | ❌ (AL2023 AMI) | ✅ | ✅ | Full support |
-| **Hybrid Node (On-premises)** | ✅ (required) | ✅ (required) | ✅ | ✅ | GPU Operator required |
+| **EKS Auto Mode** | Not installed (AWS auto) | Not installed (AWS auto) | Not installed (disabled via label) | Not supported | DCGM/NFD/GFD work normally |
+| **Karpenter (Self-Managed)** | Not installed (AL2023 AMI) | Not installed (AL2023 AMI) | Installed | Supported | Full support |
+| **Managed Node Group** | Not installed (AL2023 AMI) | Not installed (AL2023 AMI) | Installed | Supported | Full support |
+| **Hybrid Node (On-premises)** | Installed (required) | Installed (required) | Installed | Supported | GPU Operator required |
 
 :::caution AMI-specific GPU Driver Constraints
 - **AL2023 / Bottlerocket**: GPU driver pre-installed in AMI. Both `driver` and `toolkit` must be `enabled: false`
@@ -212,6 +220,8 @@ NVIDIA DCGM (Data Center GPU Manager) is a monitoring engine that collects GPU s
 <Tabs>
   <TabItem value="daemonset" label="DaemonSet (Recommended)" default>
 
+**Table 4. DCGM Exporter DaemonSet deployment characteristics**
+
 | Item | Details |
 |------|---------|
 | **Resource Efficiency** | 1 instance per node — minimal overhead |
@@ -221,6 +231,8 @@ NVIDIA DCGM (Data Center GPU Manager) is a monitoring engine that collects GPU s
 
   </TabItem>
   <TabItem value="sidecar" label="Sidecar (Special Use)">
+
+**Table 5. DCGM Exporter Sidecar deployment characteristics**
 
 | Item | Details |
 |------|---------|
@@ -422,6 +434,8 @@ Pods request `nvidia.com/gpu: 1` as usual. Time-Slicing **oversubscribes** the G
 
 Dynamo supports both Aggregated Serving and Disaggregated Serving. In Disaggregated mode, Prefill (prompt processing) and Decode (token generation) are separated for independent scaling.
 
+**Figure 2. Dynamo Disaggregated Serving architecture**
+
 ```mermaid
 flowchart TD
     CLIENT["Request"] --> ROUTER["Dynamo Router<br/>KV Cache-aware"]
@@ -461,6 +475,8 @@ flowchart TD
 
 ### Core Components
 
+**Table 6. Dynamo core components and benefits**
+
 | Component | Role | Benefit |
 |-----------|------|---------|
 | **Disaggregated Serving** | Separate Prefill/Decode workers | Independent per-phase scaling, maximize GPU utilization |
@@ -494,6 +510,8 @@ Dynamo:   Client → Dynamo Router → Prefill Workers → (NIXL) → Decode Wor
   ]}
 />
 
+**Table 7. Recommended llm-d/Dynamo choice by scenario**
+
 | Scenario | Recommendation (heuristic) |
 |----------|---------------|
 | Add routing to existing vLLM | **llm-d** |
@@ -516,6 +534,8 @@ Starting with llm-d and transitioning to Dynamo as scale grows is practical. Bot
 KAI Scheduler is NVIDIA's **GPU-aware Kubernetes Pod scheduler**. Unlike the default kube-scheduler, it recognizes GPU topology (NVLink, PCIe), MIG slices, and Gang Scheduling to determine optimal Pod placement.
 
 ### Core Features
+
+**Table 8. KAI Scheduler core features**
 
 | Feature | Description |
 |---------|-------------|
