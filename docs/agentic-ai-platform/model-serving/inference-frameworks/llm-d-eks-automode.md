@@ -5,7 +5,7 @@ created: "2026-02-10"
 last_update:
   date: 2026-10-14
   author: devfloor9
-reading_time: 45
+reading_time: 47
 tags:
   - eks
   - llm-d
@@ -41,9 +41,9 @@ import {
 
 ## Overview
 
-llm-d is an Apache 2.0-licensed Kubernetes-native distributed inference stack led by Red Hat. It combines the vLLM inference engine, an Inference Gateway connecting a compatible proxy to an EPP, and Kubernetes Gateway API to provide intelligent inference routing for large language models.
+llm-d is an Apache 2.0-licensed Kubernetes-native distributed inference stack and a CNCF sandbox project founded by Red Hat, Google Cloud, IBM Research, CoreWeave and NVIDIA. It combines the vLLM inference engine, an Inference Gateway connecting a compatible proxy to an EPP, and Kubernetes Gateway API to provide intelligent inference routing for large language models.
 
-While existing vLLM deployments rely on simple Round-Robin load balancing, llm-d delivers intelligent routing that is KV cache state-aware, forwarding requests with identical prefixes to Pods that already hold the corresponding KV cache. This significantly reduces Time To First Token (TTFT) and saves GPU computation.
+A load balancer that ignores cache state, such as round-robin, spreads requests that share a prefix across vLLM Pods, so each Pod can reuse only the prefixes it has computed itself. llm-d's endpoint picker (EPP) instead scores each candidate Pod: the optimized-baseline configuration combines a prefix-cache scorer, which estimates how much of the request's prefix each Pod can reuse, with load-aware scorers for KV cache utilization and queue size. When traffic shares long reusable prefixes, this can shorten Time To First Token (TTFT) and save prefill computation; the gain depends on how much of the traffic shares reusable prefixes, on load and on the configured scorer weights. For llm-d's published comparison with round-robin and its conditions, see [KV Cache Optimization](../inference-optimization/kv-cache-optimization.md#kv-cache-aware-routing).
 
 :::tip Production Deployment Guide
 For llm-d EKS deployment design and cluster preparation, see the [Custom Model Deployment Guide](../../reference-architecture/model-lifecycle/custom-model-deployment.md).
@@ -328,7 +328,7 @@ llm-d and NVIDIA Dynamo both provide LLM inference routing/scheduling but with d
 
 | Item | llm-d | NVIDIA Dynamo |
 |------|-------|---------------|
-| **Lead** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
+| **Governance** | CNCF sandbox project (Apache 2.0), founded by Red Hat, Google Cloud, IBM Research, CoreWeave and NVIDIA | NVIDIA (Apache 2.0) |
 | **Architecture** | Aggregated + Disaggregated | Aggregated + Disaggregated (equal support) |
 | **KV Cache Transfer** | NIXL (TCP supported; IB/RoCE/EFA recommended) | NIXL (TCP supported; IB/RoCE/EFA recommended) |
 | **KV Cache Indexing** | Prefix-aware routing | Flash Indexer (radix tree-based) |
@@ -457,10 +457,10 @@ EKS Auto Mode's managed Karpenter supports p6-b200.48xlarge as of 2026-04-10. "D
 
 **Table 8. GPU instance Service Quotas and example account-level values**
 
-| Quota Name | Applicable Instances | Default |
-|-----------|---------------------|---------|
-| Running On-Demand P instances | p4d, p4de, p5, p5en | 384 |
-| Running On-Demand G and VT instances | g5, g6, g6e | **64** |
+| Quota Name | Applicable Instances | AWS Default | Applied Value Example (one account) |
+|-----------|---------------------|-------------|------------------------------------|
+| Running On-Demand P instances | p4d, p4de, p5, p5en | **0 vCPU** | 384 (EC2 raises quotas automatically with usage) |
+| Running On-Demand G and VT instances | g5, g6, g6e | **0 vCPU** | 64 (EC2 raises quotas automatically with usage) |
 
 :::caution G Instance Quota Trap
 When setting `instance-category: [g, p]` together in GPU NodePool, Karpenter may try G-type instances first. To use P-type only, explicitly specify `instance-category: [p]`.

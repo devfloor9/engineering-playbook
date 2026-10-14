@@ -5,7 +5,7 @@ created: "2026-02-05"
 last_update:
   date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 54
+reading_time: 55
 tags:
   - gpu
   - karpenter
@@ -417,30 +417,45 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: llm-serving-scaler
+  namespace: llm-serving            # same namespace as the target Deployment
 spec:
   scaleTargetRef:
     name: llm-serving
   minReplicaCount: 2
   maxReplicaCount: 10
+  fallback:                         # replica count to hold while a trigger keeps failing
+    failureThreshold: 3
+    replicas: 4
   triggers:
-    # KV Cache saturation — most sensitive signal for LLM serving
+    # KV cache usage: a 0-1 ratio; model_name is the --served-model-name value
     - type: prometheus
+      metricType: Value
       metadata:
-        query: avg(vllm:kv_cache_usage_perc{model="exaone"})
-        threshold: "80"
-    # Waiting request count
+        serverAddress: http://<prometheus-host>:9090
+        query: avg(vllm:kv_cache_usage_perc{namespace="llm-serving", model_name="exaone"})
+        threshold: "0.8"
+        ignoreNullValues: "false"
+    # Waiting requests per replica
     - type: prometheus
+      metricType: AverageValue
       metadata:
-        query: sum(vllm:num_requests_waiting{model="exaone"})
+        serverAddress: http://<prometheus-host>:9090
+        query: sum(vllm:num_requests_waiting{namespace="llm-serving", model_name="exaone"})
         threshold: "10"
-    # TTFT SLO violation approaching
+        ignoreNullValues: "false"
+    # p95 TTFT in seconds for the workload
     - type: prometheus
+      metricType: Value
       metadata:
+        serverAddress: http://<prometheus-host>:9090
         query: |
           histogram_quantile(0.95,
-            rate(vllm_time_to_first_token_seconds_bucket[5m]))
+            sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{namespace="llm-serving", model_name="exaone"}[5m])))
         threshold: "2"
+        ignoreNullValues: "false"
 ```
+
+`serverAddress` and authentication, the vLLM metric names and labels, single-series queries, the handling of empty results and the choice between `Value` and `AverageValue` are explained in [GPU Autoscaling Operations — KEDA Scaling Configuration](../inference-optimization/gpu-autoscaling-operations.md#keda-scaling-configuration). The thresholds are starting points to tune against your SLOs and load tests.
 
 ### Disaggregated Serving Scaling Criteria
 
@@ -467,7 +482,7 @@ When operating Prefill and Decode separately, the bottleneck signals differ for 
 
 ### DRA Workload Scale-out
 
-DRA workload node scale-out is configured with **self-managed Karpenter v1.14.0+ (`ignoreDRARequests=false`)** or **MNG + Cluster Autoscaler**. EKS Auto Mode cannot bump its internal Karpenter version, so the latter is required there. The flow below shows the MNG + Cluster Autoscaler + KEDA combination.
+For DRA workloads that must add nodes, the documented path at the pinned date is **MNG + Cluster Autoscaler (CA 1.34+)** with the DRA driver installed (see [Node Provisioning Compatibility](#node-provisioning-compatibility)). Self-managed Karpenter v1.14.0+ with `ignoreDRARequests=false` accounts for DRA requests when scheduling onto existing nodes, but provisioning new GPU nodes from DRA requests is not a verified path on AWS, and EKS Auto Mode does not support DRA per current AWS guidance. The flow below shows the MNG + Cluster Autoscaler + KEDA combination.
 
 ```
 LLM Metrics (KV Cache, TTFT, Queue)

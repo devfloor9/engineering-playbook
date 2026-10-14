@@ -6,7 +6,7 @@ created: "2026-04-03"
 last_update:
   date: 2026-10-14
   author: devfloor9
-reading_time: 30
+reading_time: 35
 tags:
   - inference
   - optimization
@@ -71,30 +71,52 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: llm-inference-scaler
+  namespace: llm-serving            # same namespace as the target Deployment
 spec:
   scaleTargetRef:
     name: vllm-deployment
   minReplicaCount: 2
   maxReplicaCount: 8
+  fallback:                         # replica count to hold while a trigger keeps failing
+    failureThreshold: 3
+    replicas: 4
   triggers:
-    # 1. KV Cache saturation — most sensitive signal
+    # 1. KV cache usage: vllm:kv_cache_usage_perc is a 0-1 ratio (1 = 100%)
     - type: prometheus
+      metricType: Value             # compare the workload average itself with the threshold
       metadata:
-        query: avg(vllm:kv_cache_usage_perc)
-        threshold: "80"
-    # 2. Number of waiting requests
+        serverAddress: http://<prometheus-host>:9090
+        query: avg(vllm:kv_cache_usage_perc{namespace="llm-serving", model_name="Qwen/Qwen3-32B"})
+        threshold: "0.8"
+        ignoreNullValues: "false"   # report an empty result as an error instead of 0
+    # 2. Waiting requests: AverageValue divides the total by the replica count
     - type: prometheus
+      metricType: AverageValue
       metadata:
-        query: sum(vllm:num_requests_waiting)
+        serverAddress: http://<prometheus-host>:9090
+        query: sum(vllm:num_requests_waiting{namespace="llm-serving", model_name="Qwen/Qwen3-32B"})
         threshold: "10"
-    # 3. TTFT SLO violation proximity
+        ignoreNullValues: "false"
+    # 3. p95 TTFT in seconds, reduced to one series for the workload
     - type: prometheus
+      metricType: Value
       metadata:
+        serverAddress: http://<prometheus-host>:9090
         query: |
           histogram_quantile(0.95,
-            rate(vllm_time_to_first_token_seconds_bucket[5m]))
+            sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{namespace="llm-serving", model_name="Qwen/Qwen3-32B"}[5m])))
         threshold: "2"
+        ignoreNullValues: "false"
 ```
+
+The example depends on the following trigger contract (KEDA v2.18, vLLM v0.23.0):
+
+- **Endpoint and authentication**: `serverAddress` is required. For Amazon Managed Service for Prometheus, use the workspace query endpoint (`https://aps-workspaces.<region>.amazonaws.com/workspaces/<workspace-id>`) with `awsRegion` and an `authenticationRef` to a `TriggerAuthentication` that uses `podIdentity.provider: aws`, as shown in the [KEDA Prometheus scaler documentation](https://keda.sh/docs/2.18/scalers/prometheus/).
+- **Metric names and labels**: vLLM exports `vllm:`-prefixed series labeled with `model_name` (the served model name) and `engine`. The `namespace` label is added by the scrape configuration (for example a ServiceMonitor or PodMonitor), not by vLLM, so match the labels your Prometheus actually stores.
+- **One series per query**: KEDA returns an error when a query yields more than one element. `avg`, `sum` and `histogram_quantile` over buckets summed `by (le)` reduce each result to one series.
+- **Missing metrics**: by default KEDA reads an empty result as `0`, which looks like an idle workload. With `ignoreNullValues: "false"` an empty result is a scaler error, and after `failureThreshold` consecutive failures KEDA scales to the `fallback` replica count.
+- **Target type**: `metricType` defaults to `AverageValue`, which divides the query result by the current replica count. That suits a total such as waiting requests, but a ratio (KV cache usage) or a latency (TTFT) is compared as a workload value with `Value`.
+- **Thresholds**: `0.8`, `10` and `2` seconds are starting points; tune them against your SLOs and load tests.
 
 ### Disaggregated Serving Scaling Criteria
 
@@ -360,21 +382,21 @@ The "fast" case for NVMe local cache applies only when already-downloaded weight
 
 Core limitations identified during GLM-5 (744B MoE) and Kimi K2.5 (1T MoE) deployments.
 
-#### p6-b200 Not Supported
+#### p6-b200 Support Added {#p6-b200-not-supported}
 
-As of April 2026, EKS Auto Mode's managed Karpenter **cannot provision p6-b200.48xlarge**. NodePool validation passes but actual NodeClaim creation fails with `NoCompatibleInstanceTypes` error.
+Before 2026-04-10, EKS Auto Mode's managed Karpenter could not provision p6-b200.48xlarge: NodePool validation passed, but NodeClaim creation failed with a `NoCompatibleInstanceTypes` error. The [EKS Auto Mode change log](https://docs.aws.amazon.com/eks/latest/userguide/auto-change.html) lists p6-b200, p6-b300, p5e, p5en and trn2 among the instance types supported from **2026-04-10**. Regional capacity and Capacity Block availability can still limit provisioning; see the [instance support matrix](../inference-frameworks/llm-d-eks-automode.md#eks-auto-mode-gpu-instance-support-status-verified-202604).
 
 #### GPU Instance Capacity Acquisition
 
-p5.48xlarge frequently has InsufficientCapacity in Seoul/Tokyo regions. **Available in us-east-2 (Ohio) Spot for $13-15/hr** (85% reduction vs On-Demand $98/hr).
+The following are point-in-time observations from April 2026 deployments in one account, without stored artifacts; treat them as unverified and expect no availability guarantee. p5.48xlarge On-Demand requests in Seoul and Tokyo returned InsufficientCapacity, and Spot capacity was acquired in us-east-2 (Ohio) at an observed $13–15/hr. Against the $55.04/hr On-Demand example rate in [llm-d on EKS Auto Mode — Cost Optimization](../inference-frameworks/llm-d-eks-automode.md#cost-optimization), that is about 73–76% lower. Check current On-Demand and Spot prices and capacity for your Region and Availability Zones before planning on them.
 
 **Table 4. p5.48xlarge On-Demand/Spot pricing by region with Spot price**
 
 | Region | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot Price |
 |------|---------------------|-----------------|----------|
-| ap-northeast-2 (Seoul) | InsufficientCapacity | Unconfirmed | — |
-| ap-northeast-1 (Tokyo) | InsufficientCapacity | Unconfirmed | — |
-| **us-east-2 (Ohio)** | Variable availability | **Available** | **$13~15/hr** |
+| ap-northeast-2 (Seoul) | InsufficientCapacity (observed 2026-04) | Unconfirmed | — |
+| ap-northeast-1 (Tokyo) | InsufficientCapacity (observed 2026-04) | Unconfirmed | — |
+| **us-east-2 (Ohio)** | Availability varies | Acquired (observed 2026-04) | $13–15/hr (observed) |
 
 #### GPU Operator Conflict
 
@@ -429,12 +451,12 @@ EC2 vCPU quotas are separated by instance bucket, requiring caution.
 
 **Table 7. GPU-instance vCPU quota types with defaults and cautions**
 
-| Quota | Applicable Instances | Default | Caution |
+| Quota | Applicable Instances | AWS Default | Caution |
 |------|------------|--------|---------|
-| Running On-Demand P instances | p4d, p5, p5en | 384 | Can have 2 p5.48xlarge (192 vCPU each) |
-| Running On-Demand G and VT instances | g5, g6, g6e | **64** | Cannot even have 1 g6e.48xlarge → quota increase required |
+| Running On-Demand P instances | p4d, p5, p5en | 0 vCPU | New accounts start at 0 — request an increase before provisioning (for example, 2 × p5.48xlarge = 384 vCPU) |
+| Running On-Demand G and VT instances | g5, g6, g6e | 0 vCPU | New accounts start at 0 — request an increase before provisioning (one g6e.48xlarge = 192 vCPU) |
 
-Setting `instance-category: [g, p]` together in GPU NodePool may cause Karpenter to try G types first, hitting the G quota (64 vCPU). If only P types are needed, specify explicitly.
+EC2 raises On-Demand quotas automatically based on usage, so the value applied to an existing account can differ from the default; check Service Quotas for your account and Region. Setting `instance-category: [g, p]` together in GPU NodePool may cause Karpenter to try G types first, hitting the G and VT quota applied to your account (64 vCPU in the account these examples come from). If only P types are needed, specify explicitly.
 
 ## References
 

@@ -5,7 +5,7 @@ created: "2026-03-16"
 last_update:
   date: 2026-10-14
   author: devfloor9
-reading_time: 56
+reading_time: 57
 tags:
   - eks
   - gpu
@@ -154,7 +154,7 @@ A custom NodeClass (`kind: NodeClass`, `eks.amazonaws.com/v1`) is itself configu
 
 ### 3.3 Large GPU Instance Support Status (Verified 2026-04)
 
-Auto Mode large GPU instance support status confirmed during GLM-5 (744B MoE) deployment. p5.48xlarge Spot provisioning was successful, but p5en/p6 have current limitations.
+These observations come from a GLM-5 (744B MoE) deployment in early April 2026 and have no stored artifacts; revalidate them before relying on them. p5.48xlarge Spot provisioning succeeded, while p5en and p6 could not be used at that time. The [EKS Auto Mode change log](https://docs.aws.amazon.com/eks/latest/userguide/auto-change.html) lists p5e, p5en, p6-b200 and p6-b300 among the instance types supported from 2026-04-10, so the April limitation does not describe current official support; regional capacity can still limit provisioning.
 
 **Detailed Support Status**: See [EKS Auto Mode GPU Instance Support Status](../inference-frameworks/llm-d-eks-automode.md#eks-auto-mode-gpu-instance-support-status-verified-202604)
 
