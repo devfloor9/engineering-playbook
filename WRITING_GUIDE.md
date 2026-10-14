@@ -55,7 +55,7 @@
 
 ## 8. 검사와 검증
 
-- 구조 검사: `node node_modules/.bin/aidocready lint <한국어 파일 또는 디렉터리> --format json --config .aidocready.profile.json`. 한국어 정본이 검사 대상입니다. aidocready 0.3.0은 한국어 캡션 문법(`표 N.`, `그림 N.`)만 인식하므로 영어 번역에는 캡션 경고가 남습니다. 이는 도구의 한계이며 영어 캡션은 2절의 형식을 따르면 됩니다.
+- 구조 검사: `node node_modules/.bin/aidocready lint <한국어 파일 또는 디렉터리> --format json --config .aidocready.profile.json`. 한국어 정본이 검사 대상입니다. aidocready 0.3.0은 한국어 캡션 문법(`표 N.`, `그림 N.`)만 인식하므로 영어 번역에는 캡션 경고가 남습니다. 이는 도구의 한계이며 영어 캡션은 2절의 형식을 따르면 됩니다. 또한 이 도구는 이미지만 그림으로 세고 Mermaid 다이어그램은 세지 않으므로, 이미지와 Mermaid를 한 번호 체계로 매기는 2절 규칙과 그림 번호 연속성 검사(`ADR-CAPTION-SEQUENCE`)가 맞지 않습니다. 팀 프로파일은 이 규칙을 Suggestion으로 두고, 번호 연속성은 PR 검증 단계에서 별도로 확인합니다.
 - 사실 보존 검사: 문체를 고친 뒤 수정 전후의 수치·URL·코드·링크 대상이 같은지 대조합니다(크루 도구 `fact_diff.py`, 또는 `git diff`를 읽으면서 수치와 링크가 사라지지 않았는지 직접 확인).
 - 기존 테스트: `test:links`, `test:ssr`, `test:metadata`, `test:llm-wiki`를 포함한 빌드 전 테스트와 전체 빌드(`validate-links` 포함)가 PR에서 통과해야 합니다.
 - 메타데이터: 본문 내용을 바꾼 문서는 `node scripts/update-doc-metadata.js --kind content --date YYYY-MM-DD --apply <파일…>`로 `last_update`와 `reading_time`을 갱신합니다. 캡션 추가·글리프 치환·번호 수정처럼 내용이 바뀌지 않은 경우는 `--kind presentation`을 쓰며, 이 경우 메타데이터는 바뀌지 않습니다.
