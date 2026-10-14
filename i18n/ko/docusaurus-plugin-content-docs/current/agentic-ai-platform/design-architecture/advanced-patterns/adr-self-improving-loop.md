@@ -3,7 +3,7 @@ title: ADR — Self-Improving Agent Loop 도입 의사결정
 description: Self-Improving Agent Loop(자가학습 강화 파이프라인)를 실 운영에 도입하기 전 합의해야 할 원칙·스코프·책임·롤백 경계를 정리한 Architecture Decision Record
 created: "2026-04-19"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: YoungJoon Jeong
 reading_time: 14
 tags:
@@ -125,7 +125,7 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autoresearch 담론을 엔터프�
 - **모델 버전**: 롤백을 위해 최근 3세대 weight을 registry에 보관하는 것을 **기본 롤백 정책으로 제안**합니다. 다만 "삭제 금지"는 무조건이 아닙니다. 모델이 침해(compromise)되었거나, 라이선스가 해지·변경되었거나(예: [Llama 4 Community License](https://github.com/meta-llama/llama-models/blob/main/models/llama4/LICENSE)의 이용 조건·Acceptable Use Policy 위반 소지), 보안상 폐기(revocation)가 필요한 경우에는 **승인된 대체 버전을 확보한 뒤** 해당 weight을 삭제·격리할 수 있습니다.
 - **Reward 모델 버전**: 최근 5회분을 유지하는 것을 제안합니다.
 - **라우터 classifier 버전**: 최근 10회분을 유지하는 것을 제안합니다.
-- Canary 실패 시 이전 세대로의 복귀 시간을 Game day로 주기적으로 측정합니다. 복귀 시간은 registry에 버전이 존재한다는 사실만으로 보장되지 않으며, **weight 로드·워밍업(모델 적재, KV 캐시·컴파일 워밍업)까지 포함한 실제 서비스 복구 시점**으로 측정합니다. **5분 내 자동 복귀**는 측정으로 검증·조정해야 할 목표값이며, 측정 전까지는 확정 보장값으로 서술하지 않습니다.
+- Canary 실패 시 이전 세대로의 복귀 시간을 Game day로 주기적으로 측정합니다. 복귀 시간은 registry에 버전이 존재한다는 사실만으로 보장되지 않으며, **weight 로드·워밍업(모델 적재, KV cache·컴파일 워밍업)까지 포함한 실제 서비스 복구 시점**으로 측정합니다. **5분 내 자동 복귀**는 측정으로 검증·조정해야 할 목표값이며, 측정 전까지는 확정 보장값으로 서술하지 않습니다.
 
 **근거**: 자가 학습 루프에서 가장 흔한 실패 모드는 "어제는 좋았는데 오늘은 나빠졌다" 패턴입니다. 빠른 복귀 경로가 없으면 운영 리스크가 과도합니다.
 
