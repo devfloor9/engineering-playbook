@@ -37,6 +37,8 @@ Check an instance's Nitro version in the **`Hypervisor` column of the Platform s
 
 ## Per-Generation Networking Changes
 
+**Table 1. Key networking changes by Nitro generation**
+
 | Generation | Key changes | Example instances |
 |------------|-------------|-------------------|
 | **v6** | Up to 400 Gbps per network card. Idle TCP established timeout reduced 432,000s → **350s**. Traffic Mirroring not supported | M8i·C8i·R8i, M8g, P6-B200, G7 |
@@ -64,6 +66,8 @@ Nitro instances use ENA for enhanced networking and NVMe block devices for stora
 ### Minimum Kernel Versions by Distribution
 
 Some distributions require a minimum kernel version for optimal ENA feature performance.
+
+**Table 2. ENA minimum kernel version by distribution**
 
 | Distribution | Minimum kernel |
 |--------------|----------------|
@@ -100,6 +104,8 @@ Network performance on Nitro instances can be adjusted via ENA driver module par
 
 #### ENA Driver Module Parameter
 
+**Table 3. ENA driver module parameters**
+
 | Item | Description | Method |
 |------|-------------|--------|
 | `enable_frag_bypass` | Fragment proxy mode that bypasses the egress fragment PPS limit (1024). Useful for workloads with frequent fragmentation from exceeding MTU | At driver load: `sudo insmod ena.ko enable_frag_bypass=1` |
@@ -135,6 +141,8 @@ sysctl -w net.ipv4.tcp_keepalive_probes=5
 #### Workload-Specific General Kernel Parameters
 
 AWS does not provide a single recommended value for the following sysctls; raise them per workload when the corresponding kernel events surfaced by NMA (`ApproachingKernelPidMax`, `ApproachingMaxOpenFiles`, `ConntrackExceededKernel`) or ethtool drop metrics are observed.
+
+**Table 4. sysctl parameters and their tuning triggers**
 
 | Parameter | Trigger (NMA event, etc.) |
 |-----------|---------------------------|

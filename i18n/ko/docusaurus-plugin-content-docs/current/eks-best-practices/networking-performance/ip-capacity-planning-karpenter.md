@@ -48,6 +48,8 @@ Security Groups for Pods는 Auto Mode에서 지원되지 않습니다. `podSubne
 
 노드 한 대에서 IP가 소비되는 경로는 두 갈래입니다. 일반 Pod는 primary ENI와 secondary ENI의 secondary IP(또는 prefix)를 받고, SGP를 지정한 Pod는 trunk ENI에 붙은 branch ENI의 primary IP를 하나 받습니다. 어느 쪽이든 서브넷의 가용 IP와 VPC의 NAU 카운터를 함께 소비합니다.
 
+**그림 1. 노드 한 대의 IP 소비 경로**
+
 ```mermaid
 flowchart TB
     subgraph NODE["워커 노드 1대"]
@@ -91,6 +93,8 @@ NAU는 서브넷 주소 수와 별도의 자원 집계입니다. 현재 VPC 문�
 ### 인스턴스 크기에 따른 차이
 
 다음 표는 일반 Pod 2,000개의 **Pod용 secondary IP 풀만** 비교하는 가정입니다. 모든 Pod가 hostNetwork·SGP를 사용하지 않고 `WARM_IP_TARGET=2`이며, `MINIMUM_IP_TARGET`은 각 행의 최대 Pod 수(100·33·16)에 맞췄습니다. 61대인 행은 48대에 33개, 13대에 32개를 배치합니다. node·추가 ENI의 primary IP는 표의 수치에 더해야 합니다.
+
+**표 1. 인스턴스 크기별 Pod용 secondary IP 풀 비교**
 
 | 크기 | Pod 배치 | 노드 | 풀 IP | 유휴 IP |
 |---|---|---|---|---|
@@ -241,6 +245,8 @@ SGP가 없는 NodePool에는 Prefix Delegation을 켜서 ENI 슬롯 효율과 EC
 - DR로 소형 노드 수백 대가 한 번에 뜨면 API 서버 부하가 커집니다. 스케일 스텝을 나누고, 필요하면 컨트롤 플레인 용량을 사전에 협의합니다.
 
 ## 트러블슈팅
+
+**표 2. IP 용량 관련 증상과 조치**
 
 | 증상 | 원인 | 조치 | 확인 방법 |
 |---|---|---|---|

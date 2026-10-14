@@ -48,6 +48,8 @@ Auto Mode does not support Security Groups for Pods. Configure `podSubnetSelecto
 
 IPs leave a node along two paths. Regular Pods take secondary IPs (or prefixes) on the primary and secondary ENIs; Pods with an SGP take the primary IP of a branch ENI attached to the trunk ENI. Both paths draw down the subnet's free addresses and the VPC's NAU counter.
 
+**Figure 1. IP consumption paths on a single node**
+
 ```mermaid
 flowchart TB
     subgraph NODE["One worker node"]
@@ -91,6 +93,8 @@ When dozens of clusters share a single VPC, the NAU quota can be reached while s
 ### Effect of instance size
 
 The following example compares only the **secondary-IP pool for exactly 2,000 ordinary Pods**. All Pods exclude hostNetwork and SGP, `WARM_IP_TARGET=2`, and `MINIMUM_IP_TARGET` equals each row's maximum Pod count (100, 33 or 16). The 61-node row places 33 Pods on 48 nodes and 32 on 13 nodes. Add node and additional-ENI primary addresses to the table's totals.
+
+**Table 1. Secondary-IP pool by instance size**
 
 | Size | Pod placement | Nodes | Pool IPs | Unused IPs |
 |---|---|---|---|---|
@@ -241,6 +245,8 @@ Options for the case where large instances cannot be obtained.
 - Hundreds of small nodes arriving at once during DR put load on the API server. Stage the scale-out and, where needed, arrange control plane capacity in advance.
 
 ## Troubleshooting
+
+**Table 2. IP capacity symptoms and actions**
 
 | Symptom | Cause | Action | How to verify |
 |---|---|---|---|

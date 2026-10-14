@@ -95,6 +95,8 @@ This guide covers Gateway API architecture, comparison of 6 major implementation
 
 ### 2.1 EOL Timeline
 
+**Figure 1. NGINX Ingress Controller EOL and migration timeline**
+
 ```mermaid
 gantt
     title NGINX Ingress Controller EOL and Migration Timeline
@@ -132,12 +134,16 @@ gantt
 <Tabs>
   <TabItem value="attack-overview" label="Attack Overview" default>
 
+  **Figure 2. IngressNightmare (CVE-2025-1974) attack overview**
+
   ![IngressNightmare attack overview](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
 
   *An unauthenticated remote code execution (RCE) attack vector targeting the Ingress NGINX Controller inside a Kubernetes cluster. External and internal attackers take over the controller pod via a Malicious Admission Review, gaining access to all pods in the cluster. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
   </TabItem>
   <TabItem value="architecture" label="Controller Architecture">
+
+  **Figure 3. Ingress NGINX Controller internal architecture and attack surface**
 
   ![Ingress NGINX Controller internal architecture](/img/infrastructure-optimization/ingress-nginx-controller-architecture.png)
 
@@ -394,6 +400,8 @@ spec:
 
 ### 3.1 Gateway API Architecture
 
+**Figure 4. Gateway API role-based model**
+
 ![Gateway API role-based model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/gateway-roles.png)
 
 *Source: [Kubernetes Gateway API official documentation](https://gateway-api.sigs.k8s.io/) — three roles (Infrastructure Provider, Cluster Operator, Application Developer) manage GatewayClass, Gateway, and HTTPRoute respectively*
@@ -408,6 +416,8 @@ The Gateway API separates responsibilities across the following layered structur
 
 <Tabs>
   <TabItem value="overview" label="Role Overview" default>
+
+  **Figure 5. Gateway API resource model layered structure**
 
   ![Gateway API resource model — Source: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
@@ -755,6 +765,8 @@ This compares how the 8 major features used in the NGINX Ingress Controller are 
 
 The implementation of the following 8 features as YAML examples per implementation is provided in a separate cookbook document. This guide focuses on comparison and selection; refer to the cookbook for actual manifests.
 
+**Table 1. The eight features provided in the cookbook and their standard status**
+
 | # | Feature | Standard? |
 |---|---------|-----------|
 | 1 | Authentication (Basic Auth replacement) | Per-implementation |
@@ -773,6 +785,8 @@ The YAML manifests for each feature across AWS LBC, Cilium, NGINX GF, Envoy Gate
 ### 4.8 Solution Selection Decision Tree
 
 The following decision tree helps select the optimal solution for an organization.
+
+**Figure 6. Implementation selection decision tree**
 
 ```mermaid
 flowchart TD

@@ -42,6 +42,8 @@ East-West traffic faces the following challenges with default Kubernetes network
 
 The optimization strategies in this guide are expected to provide the following improvements:
 
+**Table 1. Expected improvements by optimization strategy (planning assumptions, not measurements)**
+
 | Item | Improvement |
 |------|----------|
 | Network latency | Same-AZ routing with Topology Aware Routing, achieving sub-ms p99 latency |
@@ -70,6 +72,8 @@ East-West traffic requires different optimization approaches at the transport la
 
 ### Required Tools
 
+**Table 2. Required tools and versions**
+
 | Tool | Version | Purpose |
 |------|------|------|
 | kubectl | 1.27+ | Manage cluster resources |
@@ -79,6 +83,8 @@ East-West traffic requires different optimization approaches at the transport la
 | AWS Load Balancer Controller | 2.6+ | Integrate ALBs/NLBs when required |
 
 ### Environment Requirements
+
+**Table 3. Environment requirements**
 
 | Item | Requirement |
 |------|----------|
@@ -94,6 +100,8 @@ East-West traffic requires different optimization approaches at the transport la
 ### Architecture Overview: Single-Cluster Traffic Paths
 
 The following diagram compares the ClusterIP and internal ALB paths:
+
+**Figure 1. Single-cluster traffic paths: ClusterIP vs internal ALB**
 
 ```mermaid
 graph TB
@@ -132,6 +140,8 @@ graph TB
 :::
 
 ### Multi-Cluster Connectivity Options
+
+**Figure 2. Multi-cluster connectivity options**
 
 ```mermaid
 graph LR
@@ -466,6 +476,8 @@ The [Service Mesh Comparison Guide](./service-mesh/index.md) covers the choice a
 
 **Performance overhead (Istio 1.30):**
 
+**Table 4. Istio 1.30 sidecar performance overhead**
+
 | Metric | Value |
 |--------|------|
 | CPU per sidecar | ~0.2 vCPU (at 1000 rps) |
@@ -636,6 +648,8 @@ kubectl get pods -l app=my-app -o wide | awk '{print $7}' | sort | uniq -c
 ### Monitoring: Internal ALB
 
 Monitor services that use ALBs with CloudWatch metrics:
+
+**Table 5. Internal ALB CloudWatch monitoring metrics and thresholds**
 
 | Metric | Target | Warning | Critical |
 |--------|------|------|------|

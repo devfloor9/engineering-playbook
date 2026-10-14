@@ -41,6 +41,8 @@ Each Pod receives a VPC IP. Security groups apply to ENIs, NACLs apply to subnet
 **High-performance networking with eBPF**<br/>
 Cilium implements packet forwarding and Service handling with eBPF in the Linux kernel. Improvement over iptables depends on traffic, rule count, instance type, and configuration; this document does not contain a measured comparison.
 
+**Figure 1. iptables-based vs eBPF-based packet processing paths**
+
 ```mermaid
 graph TB
     subgraph "Traditional iptables"
@@ -72,6 +74,8 @@ Consider ENI mode for EC2 nodes that need VPC IPs and native routing. The previo
 ## 2. Architecture Overview
 
 The architecture combining Cilium ENI mode and Gateway API consists of the following components.
+
+**Figure 2. Architecture combining Cilium ENI mode and Gateway API**
 
 ```mermaid
 graph LR
@@ -181,6 +185,8 @@ graph LR
 - Prometheus metric export
 
 ### Four Stages of Traffic Flow
+
+**Figure 3. Four stages of traffic flow from NLB through the eBPF TPROXY**
 
 ```mermaid
 sequenceDiagram
@@ -1060,6 +1066,8 @@ The following tuning options aim to maximize performance in Cilium ENI mode.
 
 ### Benefits of NLB + Cilium Envoy
 
+**Figure 4. Traditional ALB path vs NLB + Cilium Envoy path**
+
 ```mermaid
 graph TB
     subgraph "Traditional ALB"
@@ -1598,6 +1606,8 @@ spec:
 
 ### Hybrid Environment Support
 
+**Figure 5. Hybrid environment connecting on-premises and cloud nodes**
+
 ```mermaid
 graph TB
     subgraph "On-Premises Data Center"
@@ -1684,6 +1694,8 @@ The AWS VPC CNI **runs only on EC2 instances inside a VPC**. When on-premises GP
 
 There are three main approaches to CNI configuration in a hybrid node environment.
 
+**Table 1. Comparison of hybrid node CNI configurations**
+
 | Category | VPC CNI + Calico | VPC CNI + Cilium | Cilium Only (requires separate validation) |
 |------|-----------------|-----------------|-------------------|
 | Cloud node CNI | VPC CNI | VPC CNI | Cilium on standard EC2 nodes; excludes Auto Mode |
@@ -1726,6 +1738,8 @@ Using Cilium as the CNI and supporting InferencePool in Cilium Gateway are separ
 
 llm-d's [v0.8.1 Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md) can also handle ordinary Services and InferencePools through a single compatible Gateway. The EPP is an endpoint selection service, not a second Gateway.
 
+**Figure 6. Topology adding a compatible inference Gateway and llm-d EPP to the existing ingress**
+
 ```mermaid
 flowchart TB
     subgraph Edge["Existing ingress - optional"]
@@ -1754,6 +1768,8 @@ flowchart TB
 ```
 
 ### 9.3 Alternative architectures
+
+**Table 2. Comparison of alternative architectures for inference Gateway integration**
 
 | Option | Configuration | Selection Criteria / Trade-offs |
 |------|------|----------------------|

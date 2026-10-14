@@ -37,6 +37,8 @@ Nitro System은 가상화 오버헤드를 전용 하드웨어로 오프로드하
 
 ## 세대별 네트워크 변경 사항
 
+**표 1. Nitro 세대별 주요 네트워크 변경 사항**
+
 | 세대 | 주요 변경 | 대표 인스턴스 |
 |------|-----------|--------------|
 | **v6** | 네트워크 카드당 최대 400Gbps. 유휴 TCP established 타임아웃 432,000초 → **350초**로 단축. Traffic Mirroring 미지원 | M8i·C8i·R8i, M8g, P6-B200, G7 |
@@ -64,6 +66,8 @@ Nitro 인스턴스는 향상된 네트워킹에 ENA를, 스토리지 볼륨에 N
 ### 배포판별 최소 커널 버전
 
 ENA 기능의 최적 성능을 위해 일부 배포판은 최소 커널 버전을 요구합니다.
+
+**표 2. 배포판별 ENA 최소 커널 버전**
 
 | 배포판 | 최소 커널 |
 |--------|-----------|
@@ -100,6 +104,8 @@ Nitro 인스턴스의 네트워크 성능은 ENA 드라이버 모듈 파라미�
 
 #### ENA 드라이버 모듈 파라미터
 
+**표 3. ENA 드라이버 모듈 파라미터**
+
 | 항목 | 설명 | 적용 방법 |
 |------|------|-----------|
 | `enable_frag_bypass` | egress fragment의 PPS 제한(1024)을 우회하는 fragment proxy mode. MTU 초과로 단편화가 잦은 워크로드에 유효 | 드라이버 로드 시 `sudo insmod ena.ko enable_frag_bypass=1` |
@@ -135,6 +141,8 @@ sysctl -w net.ipv4.tcp_keepalive_probes=5
 #### 워크로드별 일반 커널 파라미터
 
 다음 sysctl은 AWS가 단일 권장값을 제공하지 않으며, NMA가 노출하는 커널 이벤트(`ApproachingKernelPidMax`, `ApproachingMaxOpenFiles`, `ConntrackExceededKernel`)나 ethtool 드롭 메트릭이 관찰될 때 워크로드에 맞게 상향합니다.
+
+**표 4. sysctl 파라미터와 조정 계기**
 
 | 파라미터 | 조정 계기 (NMA 이벤트 등) |
 |----------|---------------------------|

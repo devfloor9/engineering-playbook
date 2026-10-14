@@ -31,7 +31,7 @@ While the [Gateway API Adoption Guide](../gateway-api-adoption-guide/index.md) c
 
 The intended audience is platform engineers with mTLS, L7 traffic control, or service-level observability requirements, and organizations evaluating alternatives due to the AWS App Mesh end of support. Post-adoption latency and cost optimization is covered separately in [East-West Traffic Optimization](../east-west-traffic-best-practice.md).
 
-**TL;DR**
+**Table 1. Recommended service mesh solution by situation (TL;DR)**
 
 | Situation | Recommended solution |
 |-----------|---------------------|
@@ -73,6 +73,8 @@ AWS App Mesh reaches end of support on September 30, 2026. App Mesh resources be
 ## Solutions Compared and Data Plane Architectures
 
 A service mesh's performance and operational characteristics are determined by its data plane architecture. The four solutions represent four distinct approaches.
+
+**Figure 1. Data plane architecture comparison of the four solutions**
 
 ```mermaid
 flowchart TB
@@ -141,6 +143,8 @@ Amazon VPC Lattice is strictly a **managed application networking service** rath
 
 ## Feature Comparison Matrix
 
+**Table 2. Service mesh feature comparison matrix**
+
 | Item | Istio (Ambient) | Cilium Service Mesh | Linkerd | VPC Lattice |
 |------|----------------|--------------------|---------| ------------|
 | Current stable version | 1.30 | 1.19 | 2.20 (BEL) | Managed (no version) |
@@ -188,6 +192,8 @@ VPC Lattice has no in-cluster overhead, but adds a network hop through the AWS d
 
 ### AWS Cost Perspective
 
+**Table 3. Cost characteristics of self-managed mesh vs VPC Lattice**
+
 | Item | Self-managed mesh (Istio · Cilium · Linkerd) | VPC Lattice |
 |------|---------------------------------------------|-------------|
 | Billing model | EC2 compute for proxies and control plane | Per-service hourly + per-GB processing + per-request |
@@ -199,6 +205,8 @@ Workloads with few services and heavy traffic tend to favor self-managed; enviro
 ## Operational Complexity and EKS Integration
 
 ### Installation and Upgrade Paths
+
+**Table 4. Installation and upgrade characteristics by solution**
 
 | Solution | Installation | Upgrade characteristics |
 |----------|-------------|------------------------|
@@ -226,6 +234,8 @@ Practical configuration of mesh-based resilience patterns — circuit breakers, 
 
 ### Decision Tree
 
+**Figure 2. Service mesh selection decision tree**
+
 ```mermaid
 flowchart TD
     start["Service mesh need confirmed<br/>(mTLS · L7 control · observability)"] --> q1{"Using<br/>App Mesh?"}
@@ -249,6 +259,8 @@ flowchart TD
 
 ### Recommended Combinations by Scenario
 
+**Table 5. Recommended solution and rationale by scenario**
+
 | Scenario | Recommendation | Rationale |
 |----------|---------------|-----------|
 | Small team, 10–30 services, automatic mTLS is the main goal | Linkerd | Minimal configuration, lowest learning curve. BEL production is free for companies under 50 employees |
@@ -259,6 +271,8 @@ flowchart TD
 | App Mesh exit (stay managed) | VPC Lattice | AWS official migration path |
 
 ### For Multi-Cluster Requirements
+
+**Table 6. Characteristics of multi-cluster connectivity options**
 
 | Option | Characteristics |
 |--------|----------------|

@@ -41,6 +41,8 @@ Cilium ENI 모드는 AWS의 Elastic Network Interface를 직접 활용하여 파
 **eBPF 기반 고성능 네트워킹**<br/>
 Cilium은 Linux 커널의 eBPF로 패킷 전달과 Service 처리를 구현합니다. iptables 대비 개선 폭은 트래픽, 규칙 수, 인스턴스와 구성에 따라 달라지며 이 문서에는 이를 측정한 벤치마크가 없습니다.
 
+**그림 1. iptables 기반과 eBPF 기반 패킷 처리 경로 비교**
+
 ```mermaid
 graph TB
     subgraph "Traditional iptables"
@@ -72,6 +74,8 @@ ENI 모드는 VPC IP와 네이티브 라우팅이 필요한 EC2 노드에서 고
 ## 2. 아키텍처 오버뷰
 
 Cilium ENI 모드와 Gateway API를 결합한 아키텍처는 다음과 같이 구성됩니다.
+
+**그림 2. Cilium ENI 모드와 Gateway API 결합 아키텍처**
 
 ```mermaid
 graph LR
@@ -181,6 +185,8 @@ graph LR
 - Prometheus 메트릭 내보내기
 
 ### 트래픽 흐름 4단계
+
+**그림 3. NLB에서 eBPF TPROXY를 거치는 트래픽 흐름 4단계**
 
 ```mermaid
 sequenceDiagram
@@ -1060,6 +1066,8 @@ Cilium ENI 모드에서 최대 성능을 달성하기 위한 튜닝 방법입니
 
 ### NLB + Cilium Envoy 조합 이점
 
+**그림 4. 기존 ALB 경로와 NLB + Cilium Envoy 경로 비교**
+
 ```mermaid
 graph TB
     subgraph "Traditional ALB"
@@ -1598,6 +1606,8 @@ spec:
 
 ### 하이브리드 환경 지원
 
+**그림 5. 온프레미스와 클라우드를 연결하는 하이브리드 환경 구성**
+
 ```mermaid
 graph TB
     subgraph "On-Premises Data Center"
@@ -1684,6 +1694,8 @@ AWS VPC CNI는 **VPC 내부의 EC2 인스턴스에서만 동작**합니다. EKS 
 
 하이브리드 노드 환경에서 CNI를 구성하는 방법은 크게 세 가지입니다.
 
+**표 1. 하이브리드 노드 CNI 구성 방식 비교**
+
 | 구분 | VPC CNI + Calico | VPC CNI + Cilium | Cilium Only (별도 검증 필요) |
 |------|-----------------|-----------------|-------------------|
 | 클라우드 노드 CNI | VPC CNI | VPC CNI | 일반 EC2 노드의 Cilium; Auto Mode 제외 |
@@ -1724,6 +1736,8 @@ Cilium을 CNI로 사용하는 것과 Cilium Gateway에서 InferencePool을 지�
 
 llm-d의 [v0.8.1 Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md)는 단일 호환 Gateway에서 일반 Service와 InferencePool을 처리할 수도 있습니다. EPP는 엔드포인트 선택 서비스이며 두 번째 Gateway가 아닙니다.
 
+**그림 6. 기존 ingress에 호환 inference Gateway와 llm-d EPP를 추가하는 토폴로지**
+
 ```mermaid
 flowchart TB
     subgraph Edge["Existing ingress - optional"]
@@ -1752,6 +1766,8 @@ flowchart TB
 ```
 
 ### 9.3 대안 아키텍처 비교
+
+**표 2. inference Gateway 통합 대안 아키텍처 비교**
 
 | 옵션 | 구성 | 선택 조건 / trade-off |
 |------|------|----------------------|

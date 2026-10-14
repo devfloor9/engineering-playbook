@@ -122,6 +122,8 @@ kubectl get gatewayclass cilium
 
 ## 2. 5-Phase Migration Process
 
+**Figure 1. Five-phase migration process flow**
+
 ```mermaid
 flowchart LR
     P1[Phase 1<br/>Preparation]
