@@ -48,6 +48,8 @@ Langfuse Helm 배포, Redis/ClickHouse 구성, kgateway sub-path 라우팅, Bifr
 
 ### 2.1 Trace 구조
 
+**그림 1. 하나의 사용자 질문이 만드는 Trace와 Span 구조**
+
 ```mermaid
 flowchart TB
     subgraph Trace["Trace: User Question"]
@@ -77,6 +79,8 @@ flowchart TB
 ```
 
 ### 2.2 주요 개념 정의
+
+**표 1. LLMOps Observability 주요 개념 정의**
 
 | 개념 | 설명 |
 |------|------|
@@ -133,19 +137,23 @@ flowchart TB
 
 ### 3.4 솔루션 비교 테이블
 
+아래 표의 기능별 수준(높음·중간·낮음)은 측정값이 아니라 저자의 정성적 평가입니다.
+
+**표 2. Langfuse·LangSmith·Helicone 기능 비교**
+
 | 기능 | Langfuse | LangSmith | Helicone |
 |------|----------|-----------|----------|
 | **라이선스** | MIT (오픈소스) | Proprietary | Proprietary (셀프호스트 가능) |
 | **셀프호스트** | 완전 지원 | 엔터프라이즈만 | 지원 |
-| **Tracing** | ★★★★★ | ★★★★★ | ★★★ |
-| **Prompt Management** | ★★★★★ (버전, A/B) | ★★★★ (Hub) | ★★ (단순 저장) |
-| **Evaluation** | ★★★★★ (Pipeline) | ★★★★★ | ★ (없음) |
-| **Cost Tracking** | ★★★★★ | ★★★★ | ★★★★ |
-| **LangChain 통합** | ★★★★ | ★★★★★ | ★★★ |
-| **프레임워크 중립성** | ★★★★★ | ★★★ | ★★★★★ |
-| **Gateway 기능** | 없음 | 없음 | ★★★★★ |
+| **Tracing** | 높음 | 높음 | 중간 |
+| **Prompt Management** | 높음 (버전, A/B) | 높음 (Hub) | 낮음 (단순 저장) |
+| **Evaluation** | 높음 (Pipeline) | 높음 | 없음 |
+| **Cost Tracking** | 높음 | 높음 | 높음 |
+| **LangChain 통합** | 높음 | 높음 | 중간 |
+| **프레임워크 중립성** | 높음 | 중간 | 높음 |
+| **Gateway 기능** | 없음 | 없음 | 높음 |
 | **스케일 한계** | 무제한 (셀프호스트) | 플랜 제한 | 플랜 제한 |
-| **데이터 주권** | ★★★★★ | ★★ | ★★★★ |
+| **데이터 주권** | 높음 | 낮음 | 높음 |
 
 ### 3.5 AWS 네이티브 관측성: CloudWatch Generative AI Observability
 
@@ -172,6 +180,8 @@ Langfuse v3.x(Self-hosted 데이터 주권)와 CloudWatch Gen AI Observability(A
 4. **고급 평가 파이프라인**: Ragas 같은 전문 프레임워크 통합, CI/CD 회귀 테스트 자동화
 
 ### 4.2 추천 조합: kgateway + Bifrost (Gateway) + Langfuse (Observability)
+
+**그림 2. kgateway·Bifrost·Langfuse 하이브리드 아키텍처**
 
 ```mermaid
 flowchart TB
@@ -229,6 +239,8 @@ flowchart TB
 
 ### 4.3 Helicone 단독 vs Bifrost+Langfuse 비교
 
+**표 3. Helicone 단독과 Bifrost+Langfuse 조합의 비교**
+
 | 측면 | Helicone 단독 | Bifrost + Langfuse |
 |------|---------------|---------------------|
 | **통합 복잡도** | 매우 낮음 (URL 변경만) | 중간 (SDK 통합 필요) |
@@ -254,6 +266,8 @@ Langfuse는 LLM 특화 Observability를 제공하지만, 전체 애플리케이�
 
 GenAI semantic conventions의 `gen_ai.*` 속성과 Langfuse 전용 `langfuse.*` 속성을 구분합니다. 아래 Langfuse 열은 수집 후의 의미를 설명하며, SDK 메서드의 인자 이름을 정의하지 않습니다.
 
+**표 4. OTel GenAI·Langfuse 전용 Span 속성 매핑**
+
 | 구분 | Span 속성 | Langfuse에서의 의미 |
 |---|---|---|
 | GenAI | `gen_ai.request.model` | 요청 모델명 |
@@ -267,6 +281,8 @@ GenAI semantic conventions의 `gen_ai.*` 속성과 Langfuse 전용 `langfuse.*` 
 속성 이름과 타입은 [GenAI attribute registry](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md)와 [Langfuse OTel property mapping](https://langfuse.com/integrations/native/opentelemetry#property-mapping)을 대조하세요. GenAI 규약은 발전 중이므로 계측·수집기·대시보드의 규약 버전을 함께 관리합니다. 비용 내역은 Langfuse에 명시적으로 전달하는 값이며 GenAI 표준의 자동 계산 결과가 아닙니다. 입력·출력 본문에는 민감한 데이터가 포함될 수 있으므로 수집 범위를 정하고 필요한 마스킹을 적용하세요.
 
 ### 5.3 Grafana Tempo + Langfuse 조합
+
+**그림 3. OTEL Collector를 통한 Grafana Tempo와 Langfuse 동시 전송**
 
 ```mermaid
 flowchart LR
@@ -301,6 +317,8 @@ Langfuse Evaluation은 세 가지 방식을 지원합니다:
 
 ### 6.2 평가 메트릭
 
+**표 5. 평가 메트릭의 범위·설명·평가 방법**
+
 | 메트릭 | 범위 | 설명 | 평가 방법 |
 |--------|------|------|-----------|
 | **Faithfulness** | 0-1 | 응답이 제공된 컨텍스트에 충실한가? | LLM-as-Judge |
@@ -318,6 +336,8 @@ Ragas는 RAG 시스템 전용 평가 프레임워크로, Langfuse와 통합하�
 ---
 
 ## 7. 시나리오별 추천
+
+**표 6. 시나리오별 추천 솔루션과 이유**
 
 | 시나리오 | 추천 솔루션 | 이유 |
 |----------|-------------|------|

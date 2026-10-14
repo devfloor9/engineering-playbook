@@ -23,6 +23,8 @@ category: genai-aiml
 
 이 문서는 vLLM 기반 추론 풀의 캐시·용량·지연·라우팅 지표를 연결하여 조사할 원인을 좁히는 방법을 설명합니다. HTTP 성공, 응답 전달 완료, 출력 형식 충족, 내용의 정확도를 별도 결과로 관리합니다. 대상 독자는 추론 엔진과 게이트웨이의 메트릭·트레이스를 운영하는 플랫폼 팀입니다. 인프라 지표를 품질 점수로 대체하거나, 동시 발생만으로 원인을 확정하지 않습니다.
 
+**표 1. 관련 문서의 범위와 이 문서와의 관계**
+
 | 문서 | 범위 | 이 문서와의 관계 |
 |---|---|---|
 | [Agent 모니터링 및 운영](./agent-monitoring.md) | 트레이스·점수 저장과 운영 | 수집 기반 |
@@ -42,6 +44,8 @@ Preemption은 실행 중인 요청을 대기 상태로 되돌려 나중에 재�
 
 ## 3. 7층 시맨틱 지표 체계 {#metric-layers}
 
+**표 2. 7층 시맨틱 지표 체계의 질문·주요 신호·해석의 한계**
+
 | 층 | 질문 | 주요 신호 | 해석의 한계 |
 |---|---|---|---|
 | L0 계약·가용성 | 요청과 스트림이 완료됐는가 | HTTP 상태, 프로토콜 완료, 오류·취소, `up` | 내용 정확도는 측정하지 않음 |
@@ -57,6 +61,8 @@ TTFT(Time to First Token)는 요청 후 첫 토큰을 받을 때까지의 시간
 ITL 히스토그램에는 토큰 사이의 간격이 각각 들어가므로 긴 응답이 더 많은 표본을 만듭니다. 요청별 평균 TPOT 히스토그램에는 요청마다 평균값 하나가 들어갑니다. 두 히스토그램은 같은 요청 집합에서도 가중치가 다르므로 동일한 지표처럼 섞지 않습니다.
 
 다음 화살표는 분석 순서이며 계층 사이의 인과관계를 뜻하지 않습니다.
+
+**그림 1. 지표 계층을 잇는 분석 순서**
 
 ```mermaid
 flowchart TB
@@ -139,6 +145,8 @@ sum by (cluster, namespace, model_name) (
 
 로컬 prefix 캐시는 고정 TTL 대신 free queue의 축출 정책을 사용합니다. 다음 지표는 `v0.26.0`에서 `--kv-cache-metrics`로 활성화하고 `--kv-cache-metrics-sample`로 표본율을 지정합니다. 기본값은 비활성·0.01이며 `--disable-log-stats`가 설정되어 있으면 동작하지 않습니다([ObservabilityConfig](https://github.com/vllm-project/vllm/blob/v0.26.0/vllm/config/observability.py)).
 
+**표 3. KV 블록 잔존 관련 히스토그램과 측정값·제한**
+
 | 히스토그램 | 측정값 | 제한 |
 |---|---|---|
 | `vllm:kv_block_idle_before_evict_seconds` | 마지막 touch부터 축출까지 | 다음 요청에 보장되는 잔존 시간 아님 |
@@ -160,6 +168,8 @@ TTFT 증가와 히트율 하락이 겹치면 prefill·대기열·입력 길이·
 ### 5.2 라우팅 {#routing}
 
 EPP(Endpoint Picker)는 같은 풀 내 endpoint 선택을 담당하며, 모델 선택을 수행하는 LLM API Gateway와 구분합니다. 최신 프로젝트 분리와 사용 이미지의 지표 계약을 확인합니다. 아래는 llm-d-router `v0.10.0`의 명칭입니다. `inference_pool_*`, `inference_extension_*`, `inference_objective_*` 등의 legacy alias를 새 이름과 더하면 중복 집계됩니다([공식 카탈로그](https://github.com/llm-d/llm-d-router/blob/v0.10.0/docs/metrics.md)).
+
+**표 4. EPP 라우팅 지표와 함께 확인할 항목**
 
 | 지표 | 용도 | 함께 확인할 것 |
 |---|---|---|
@@ -195,6 +205,8 @@ and on (cluster, namespace, model_name)
 )
 ```
 
+**표 5. 출력 품질 프록시와 조사 대상·단정할 수 없는 것**
+
 | 프록시 | 조사할 현상 | 단정할 수 없는 것 |
 |---|---|---|
 | `length` 증가 | `max_tokens` 또는 모델 길이 한도, 부하 테스트 설정 | 모든 `length` 응답이 과제 실패라는 판정 |
@@ -215,6 +227,8 @@ and on (cluster, namespace, model_name)
 ### 7.1 점수 스키마 {#score-schema}
 
 아래 이름은 이 가이드가 제안하는 애플리케이션 점수이며 Langfuse 내장 점수나 vLLM 메트릭이 아닙니다. `unknown`, `skipped`, evaluator 오류를 실패 0과 구분하고, 평가 대상 수·완료 수·누락 수를 함께 저장합니다.
+
+**표 6. 애플리케이션 품질 점수 스키마와 판정 계약**
 
 | 점수 | 값 | 판정 계약 |
 |---|---|---|
@@ -243,6 +257,8 @@ Langfuse는 NUMERIC, BOOLEAN, CATEGORICAL 점수를 지원합니다. 최신 Metr
 
 분모를 일치시키기 전에는 전체 HTTP 성공률에서 sampled judge 합격률을 빼지 않습니다.
 
+**표 7. 전달·평가 커버리지·합격 비율의 분모와 의미**
+
 | 비율 | 분모 | 의미 |
 |---|---|---|
 | HTTP 성공률 | 대상 논리 요청 전체 | 상태 코드 기준 |
@@ -261,6 +277,8 @@ Langfuse는 NUMERIC, BOOLEAN, CATEGORICAL 점수를 지원합니다. 최신 Metr
 ## 8. 판정 매트릭스 {#decision-matrix}
 
 아래 조합은 원인 확정 규칙이 아니라 조사 우선순위입니다. 예시 임계값은 워크로드 기준으로 조정합니다.
+
+**표 8. 관측 조합별 가설과 다음 확인·조치**
 
 | 관측 조합 | 가설 | 다음 확인·조치 |
 |---|---|---|
@@ -308,6 +326,8 @@ and on (cluster, namespace, pod, engine)
 ```
 
 0.5, 초당 조회 토큰 1, 지속 시간 10분은 모두 예시입니다. 시리즈가 사라지면 이 조건은 발화하지 않으므로 별도 수집·설정 누락 경보가 필요합니다.
+
+**표 9. 경보 후보와 필요한 조건·제한**
 
 | 경보 후보 | 필요한 조건 | 제한 |
 |---|---|---|

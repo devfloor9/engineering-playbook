@@ -58,6 +58,8 @@ This document is intended for platform operators, MLOps engineers, and AI develo
 
 Langfuse v3.162.0+ consists of the following components:
 
+**Figure 1. Langfuse v3 stack and storage composition**
+
 ```mermaid
 flowchart TB
     subgraph Clients["AI Applications"]
@@ -94,6 +96,8 @@ flowchart TB
 ```
 
 ### AMP/AMG Integrated Data Flow
+
+**Figure 2. Data flow from metric sources to AMP and AMG**
 
 ```mermaid
 flowchart TB
@@ -132,6 +136,8 @@ flowchart TB
 
 ### Monitoring Data Layers
 
+**Table 1. Collection tools and visible items by monitoring data layer**
+
 | Layer | Collection Tool | Metric Pattern | Visible Items |
 |-------|----------------|---------------|---------------|
 | **LLM Inference** | Langfuse | trace, generation | Token usage, cost, TTFT, per-user patterns |
@@ -147,6 +153,8 @@ flowchart TB
 Defines the key metrics to track in Agentic AI applications.
 
 ### Metric Categories
+
+**Figure 3. Key monitoring metric categories (latency, tokens, errors, traces)**
 
 ```mermaid
 flowchart TB
@@ -273,6 +281,8 @@ tenant_monthly_budget_usd
 
 ### Alert Threshold Design
 
+**Table 2. Alert conditions, severity, and duration**
+
 | Alert | Condition | Severity | Duration |
 |-------|----------|----------|----------|
 | **Agent High Latency** | P99 latency > 10s | Warning | 5 min |
@@ -313,6 +323,8 @@ Track LLM usage costs by the following criteria:
 - **Per-time**: Peak time analysis, cost trends
 
 ### Per-Model Cost Reference (2026-04 baseline)[^1]
+
+**Table 3. Input/output pricing and features by model tier**
 
 | Tier | Model | Input ($/1M tok) | Output ($/1M tok) | Features |
 |------|-------|----------------|----------------|----------|

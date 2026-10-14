@@ -30,6 +30,8 @@ Ragas (RAG Assessment) is an open-source framework that evaluates Retrieval-Augm
 
 RAG systems consist of multiple components (retrieval, generation, context processing), making it difficult to measure overall quality:
 
+**Figure 1. RAG pipeline stages and the evaluation metric for each stage**
+
 ```mermaid
 flowchart LR
     Q[Question]
@@ -445,6 +447,8 @@ print(f"Metrics: {result['metrics']}")
 <CostComparison />
 
 ### Per-Metric Improvement Directions
+
+**Figure 2. Improvement directions when each metric scores low**
 
 ```mermaid
 flowchart TB

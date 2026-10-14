@@ -35,6 +35,8 @@ In enterprise LLM platforms, FinOps (Financial Operations) consists of three pil
 
 LLM operational costs have distinct characteristics compared to traditional cloud infrastructure:
 
+**Table 1. Cost characteristics of traditional infrastructure vs. LLM platform**
+
 | Characteristic | Traditional Infrastructure | LLM Platform |
 |------|------------|-----------|
 | **Cost Unit** | CPU·Memory·Storage per hour | Input/Output token count |
@@ -46,6 +48,8 @@ LLM operational costs have distinct characteristics compared to traditional clou
 Agentic AI applications can consume **10x or more tokens per request** due to tool invocation loops and context accumulation, making cost prediction difficult.
 
 ### 1.2 Three Pillars of FinOps
+
+**Figure 1. Stage flow of the three FinOps pillars (visibility, optimization, accountability)**
 
 ```mermaid
 flowchart LR
@@ -117,6 +121,8 @@ When an agent resends previous conversation and tool results in the next call, t
 
 ### 2.3 Cost Mitigation Strategies
 
+**Table 2. Agentic cost mitigation strategies by effect and implementation location**
+
 | Strategy | Effect | Implementation Location |
 |------|------|----------|
 | **Max iterations limit** | Cap loop count (e.g., 10 times) | Agent framework configuration |
@@ -130,6 +136,8 @@ When an agent resends previous conversation and tool results in the next call, t
 ## 3. Metering Pipeline Architecture
 
 ### 3.1 Data Flow
+
+**Figure 2. Metering pipeline data flow (request, usage events, billing)**
 
 ```mermaid
 flowchart TB
@@ -241,6 +249,8 @@ Key operational mechanics:
 
 ### 4.1 Definition and Differences
 
+**Table 3. Showback vs. Chargeback by purpose, accounting, and adoption**
+
 | Item | Showback | Chargeback |
 |------|---------|-----------|
 | **Purpose** | Cost visibility and awareness | Actual cost allocation (accounting treatment) |
@@ -281,6 +291,8 @@ Immediately blocking service when budget exhausted can interrupt **business-crit
 
 ### 5.1 Policy Matrix
 
+**Table 4. Budget policy types by trigger, action, UX impact, and risk**
+
 | Policy Type | Trigger Condition | Action | UX Impact | Risk |
 |----------|-----------|------|---------|--------|
 | **Soft Budget — Alert Only** | 80% of monthly budget consumed | Slack/Email alert, service continues | None | Budget overrun possible |
@@ -292,6 +304,8 @@ Immediately blocking service when budget exhausted can interrupt **business-crit
 ### 5.2 Fallback Strategy (Budget Cascade)
 
 Configuring **Cascade Routing** to automatically switch from expensive to cheaper models on budget overrun enables cost control without service interruption.
+
+**Figure 3. Cascade Routing tier transitions by budget state**
 
 ```mermaid
 flowchart LR
@@ -320,6 +334,8 @@ Cascade Routing is used not only for cost reduction but also for availability (f
 
 Apply differentiated budget priorities by environment and workload.
 
+**Table 5. Priority levels by environment, budget allocation, and overrun action**
+
 | Priority | Environment | Monthly Budget Allocation | Action on Overrun |
 |----------|------|-------------|-------------|
 | **P0 — Critical** | Production customer-facing | 70% | Continue allowing (separate alert) |
@@ -340,6 +356,8 @@ Apply differentiated budget priorities by environment and workload.
 ### 6.2 LLM Cost and FOCUS Mapping (assumption)
 
 FOCUS currently standardizes GPU and compute instance costs, but **token-based LLM billing does not yet have explicit mapping** (as of 2026-08, assumption). The following proposes mapping LLM metering to FOCUS columns:
+
+**Table 6. Proposed mapping of FOCUS columns to LLM metering (assumption)**
 
 | FOCUS Column | LLM Metering Mapping (Proposal) | Example Value |
 |-----------|----------------------|---------|
@@ -362,6 +380,8 @@ Whether FOCUS v1.4 standard explicitly addresses LLM token billing must be verif
 For **PromQL query implementation** of cost metrics, refer to the [Agent Monitoring — Cost Tracking](../observability/agent-monitoring.md#6-cost-tracking) section. Only concepts are summarized here.
 
 ### 7.1 Tracked Metrics
+
+**Table 7. Tracked cost metrics with definitions and tracking criteria**
 
 | Metric | Definition | Tracking Criteria |
 |--------|------|----------|
