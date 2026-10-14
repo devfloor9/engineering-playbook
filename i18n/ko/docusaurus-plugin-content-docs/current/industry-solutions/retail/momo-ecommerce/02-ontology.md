@@ -16,6 +16,8 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
+**표 1. Knowledge Graph 25개 클래스의 그룹별 구성**
+
 | 그룹 | 클래스 |
 |---|---|
 | **고객/회원** | Customer · Membership · Household · Persona · **LiveViewer** (라이브 시청 이벤트 단위) |
@@ -27,26 +29,40 @@ sidebar_label: 02. Ontology
 ## Momo 특화 클래스
 
 ### LiveStream (라이브 방송)
+
+**표 2. LiveStream 클래스의 속성**
+
 | 속성 |
 |---|
 | stream_id · host · start_at · end_at · concurrent_peak · sku_list |
 
 ### LiveStreamPurchase
+
+**표 3. LiveStreamPurchase 클래스의 속성**
+
 | 속성 |
 |---|
 | txn_id · stream_id · viewer_id · sku · timestamp · time_offset_from_pin |
 
 ### DeliverySLA
+
+**표 4. DeliverySLA 클래스의 속성**
+
 | 속성 |
 |---|
 | order_id · region · promised_at · actual_at · delay_min · fulfillment_center_id |
 
 ### LongTailSKU
+
+**표 5. LongTailSKU 클래스의 속성**
+
 | 속성 |
 |---|
 | sku · monthly_sales · category_avg · longtail_score |
 
 ## 핵심 관계
+
+**그림 1. 라이브·배송·롱테일 중심 클래스 간 핵심 관계**
 
 ```mermaid
 graph LR
@@ -85,6 +101,9 @@ ORDER BY breaches DESC
 ```
 
 ## 인덱스
+
+**표 6. OpenSearch 인덱스와 분석기**
+
 | 인덱스 | 분석기 |
 |---|---|
 | `idx_product` | Smartcn |

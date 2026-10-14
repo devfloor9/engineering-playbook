@@ -21,6 +21,8 @@ sidebar_label: S3. Insight Cards
 
 ## 2. Card Presets
 
+**Table 1. Insight card presets and their data sources**
+
 | Card | Data |
 |---|---|
 | Top-30 Category GMV (monthly) | OrderTransaction × Category |
@@ -31,6 +33,8 @@ sidebar_label: S3. Insight Cards
 | Heavy-rain impact (delivery) | WeatherSignal × DeliverySLA |
 
 ## 3. Per-Persona Commentary
+
+**Table 2. Per-persona commentary on the same Live GMV card**
 
 | P | Same Card (Live GMV) |
 |---|---|

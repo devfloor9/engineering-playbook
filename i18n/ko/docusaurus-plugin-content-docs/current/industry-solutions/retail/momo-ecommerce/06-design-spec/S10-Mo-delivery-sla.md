@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-Mo. Delivery SLA
 ---
 
-> **Momo 차별 포인트** ⭐ — 자체 물류(momo Fast)의 24시간 배송 약속 위반률을 권역·시간대·외기온 결합 분석.
+> **Momo 차별 포인트** — 자체 물류(momo Fast)의 24시간 배송 약속 위반률을 권역·시간대·외기온 결합 분석.
 
 ## 1. URL · 페르소나
 - `/delivery-sla` · P5 (물류·MD)
@@ -25,6 +25,9 @@ sidebar_label: S10-Mo. Delivery SLA
 > P5 — 북부 fulfillment center 24시간 약속 위반률 + 폭우 영향 + 다음 날 발주 가이드를 한 화면에.
 
 ## 3. 데이터 믹스
+
+**표 1. 배송 SLA 분석에 사용하는 데이터와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | DeliverySLA 로그 | TimeStream (~250K) |

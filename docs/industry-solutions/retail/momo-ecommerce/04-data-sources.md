@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. Data Scale
 
+**Table 1. Scale of each PoC data item**
+
 | Item | Scale |
 |---|---|
 | In-house members | N=5,000 (PII masked) |
@@ -31,6 +33,8 @@ sidebar_label: 04. Data Sources
 → ~800K Neptune edges
 
 ## 2. cohort_tag
+
+**Table 2. cohort_tag values and their meanings**
 
 | Value | Meaning |
 |---|---|
@@ -66,6 +70,8 @@ def gen_live_session():
 
 ## 5. Delivery-SLA Seasonal and Weather Impact
 
+**Table 3. Impact of seasonal and weather events on delivery SLA**
+
 | Event | Impact |
 |---|---|
 | Typhoon (heavy rain) | 24-hour SLA breach rate +60% |
@@ -73,6 +79,8 @@ def gen_live_session():
 | Lunar New Year (春節) | Delivery -3 days (full shutdown) |
 
 ## 6. Ingestion Pipeline
+
+**Figure 1. Ingestion pipeline for in-house, synthetic, and external data**
 
 ```mermaid
 graph LR

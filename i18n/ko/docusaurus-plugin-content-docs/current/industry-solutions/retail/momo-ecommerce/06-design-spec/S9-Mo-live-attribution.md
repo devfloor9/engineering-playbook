@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-Mo. Live Attribution
 ---
 
-> **Momo 차별 포인트** ⭐ — 라이브 방송 시청·핀·구매 이벤트를 Kinesis로 실시간 수집해 진행자·SKU·시간대별 어트리뷰션.
+> **Momo 차별 포인트** — 라이브 방송 시청·핀·구매 이벤트를 Kinesis로 실시간 수집해 진행자·SKU·시간대별 어트리뷰션.
 
 ## 1. URL · 페르소나
 - `/live-attribution` · P1 (마케팅)
@@ -25,6 +25,9 @@ sidebar_label: S9-Mo. Live Attribution
 > P1 — 어제 19시 라이브 방송 1시간 — 시청자 5만, 장바구니 8천, 구매 3천 명, GMV 1.2억. 진행자별·SKU별·시간대별 효과 한 화면에.
 
 ## 3. 데이터 믹스
+
+**표 1. 라이브 어트리뷰션에 사용하는 데이터와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | LiveStream 메타 | Neptune |

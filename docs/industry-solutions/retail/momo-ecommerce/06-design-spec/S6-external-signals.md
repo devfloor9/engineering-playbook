@@ -18,6 +18,8 @@ sidebar_label: S6. External Signals
 
 ## 1. 4 External Sources
 
+**Table 1. The four fused external signal types and their sources**
+
 | Type | Source |
 |---|---|
 | Social | Dcard · Xiaohongshu · Instagram · X |

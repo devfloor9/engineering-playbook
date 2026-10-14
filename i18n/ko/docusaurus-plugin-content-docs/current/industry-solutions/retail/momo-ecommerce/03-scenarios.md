@@ -16,6 +16,8 @@ tags:
 sidebar_label: 03. Scenarios
 ---
 
+**표 1. 공통 8개와 Momo 특화 3개를 합한 11개 시나리오 매핑**
+
 | # | 시나리오 | URL | 주 페르소나 |
 |---|---|---|---|
 | S1 | 자연어 시맨틱 검색 | `/semantic-search` | P1, P3 |
@@ -26,9 +28,9 @@ sidebar_label: 03. Scenarios
 | S6 | 외부 시그널 융합 | `/signals` | P2 |
 | S7 | 옴니채널 회원 여정 | `/journey` | P4 |
 | S8 | 마케팅 동의·PII 가드레일 | `/compliance` | P4 |
-| **S9-Mo** ⭐ | 라이브 커머스 방송 효과 어트리뷰션 | `/live-attribution` | P1 |
-| **S10-Mo** ⭐ | 자체 물류 배송 SLA + 발주 최적화 | `/delivery-sla` | P5 |
-| **S11-Mo** ⭐ | 모바일 앱 추천·검색 다양성 | `/recommendation-diversity` | P3 |
+| **S9-Mo** (Momo 특화) | 라이브 커머스 방송 효과 어트리뷰션 | `/live-attribution` | P1 |
+| **S10-Mo** (Momo 특화) | 자체 물류 배송 SLA + 발주 최적화 | `/delivery-sla` | P5 |
+| **S11-Mo** (Momo 특화) | 모바일 앱 추천·검색 다양성 | `/recommendation-diversity` | P3 |
 
 ## Top-5 시연 (30분)
 

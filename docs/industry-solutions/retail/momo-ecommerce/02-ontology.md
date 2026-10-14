@@ -16,6 +16,8 @@ tags:
 sidebar_label: 02. Ontology
 ---
 
+**Table 1. The 25 Knowledge Graph classes grouped by domain**
+
 | Group | Classes |
 |---|---|
 | **Customer/Member** | Customer · Membership · Household · Persona · **LiveViewer** (live viewing event unit) |
@@ -27,26 +29,40 @@ sidebar_label: 02. Ontology
 ## Momo-Specific Classes
 
 ### LiveStream (Live Broadcast)
+
+**Table 2. Attributes of the LiveStream class**
+
 | Attributes |
 |---|
 | stream_id · host · start_at · end_at · concurrent_peak · sku_list |
 
 ### LiveStreamPurchase
+
+**Table 3. Attributes of the LiveStreamPurchase class**
+
 | Attributes |
 |---|
 | txn_id · stream_id · viewer_id · sku · timestamp · time_offset_from_pin |
 
 ### DeliverySLA
+
+**Table 4. Attributes of the DeliverySLA class**
+
 | Attributes |
 |---|
 | order_id · region · promised_at · actual_at · delay_min · fulfillment_center_id |
 
 ### LongTailSKU
+
+**Table 5. Attributes of the LongTailSKU class**
+
 | Attributes |
 |---|
 | sku · monthly_sales · category_avg · longtail_score |
 
 ## Key Relationships
+
+**Figure 1. Key relationships among the live, delivery, and long-tail classes**
 
 ```mermaid
 graph LR
@@ -85,6 +101,9 @@ ORDER BY breaches DESC
 ```
 
 ## Indexes
+
+**Table 6. OpenSearch indexes and their analyzers**
+
 | Index | Analyzer |
 |---|---|
 | `idx_product` | Smartcn |

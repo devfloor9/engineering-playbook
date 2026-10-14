@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-Mo. Delivery SLA
 ---
 
-> **Momo differentiation point** ⭐ — Analyzes in-house logistics (momo Fast) 24-hour delivery promise breach rate combined with region, time slot, and outdoor weather.
+> **Momo differentiation point** — Analyzes in-house logistics (momo Fast) 24-hour delivery promise breach rate combined with region, time slot, and outdoor weather.
 
 ## 1. URL · Persona
 - `/delivery-sla` · P5 (Logistics · MD)
@@ -25,6 +25,9 @@ sidebar_label: S10-Mo. Delivery SLA
 > P5 — Northern fulfillment-center 24-hour promise breach rate + heavy-rain impact + next-day ordering guidance on a single screen.
 
 ## 3. Data Mix
+
+**Table 1. Data and sources used for delivery SLA analysis**
+
 | Data | Source |
 |---|---|
 | DeliverySLA logs | TimeStream (~250K) |

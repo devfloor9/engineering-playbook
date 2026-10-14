@@ -18,6 +18,8 @@ sidebar_label: S4. Persona & Cluster
 
 ## 1. 라이프스타일 5종
 
+**표 1. 라이프스타일 페르소나 5종과 식별 시그널**
+
 | 페르소나 | 시그널 |
 |---|---|
 | 라이브 즉흥 구매 | LiveStreamPurchase 비중 高 · 시청 시간 高 |

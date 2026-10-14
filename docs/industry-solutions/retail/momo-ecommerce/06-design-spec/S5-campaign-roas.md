@@ -23,6 +23,9 @@ sidebar_label: S5. Campaign ROAS
 - App push · KakaoTalk/Line · Live broadcasts · TV home-shopping · SNS ads · Messenger · Influencers
 
 ## 3. Data Mix
+
+**Table 1. Data and sources used for campaign ROAS analysis**
+
 | Data | Source |
 |---|---|
 | Past campaigns | Snowflake or in-house mart |

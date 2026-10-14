@@ -20,6 +20,8 @@ sidebar_label: 05. Architecture
 
 ## 1. 아키텍처
 
+**그림 1. Momo PoC의 AWS 단일 아키텍처**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -61,6 +63,8 @@ graph TB
 
 ## 2. 특화 컴포넌트
 
+**표 1. Momo 특화 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **Kinesis Data Streams** | 라이브 방송 시청·핀 이벤트 실시간 수집 (S9-Mo) |
@@ -69,6 +73,9 @@ graph TB
 | **Cohere multilingual** | 다국어 임베딩 |
 
 ## 3. 비용 (8주 PoC)
+
+**표 2. 8주 PoC 월간 비용 추정**
+
 | 항목 | 추정 |
 |---|---|
 | Bedrock + Cohere | $1.8K/월 |

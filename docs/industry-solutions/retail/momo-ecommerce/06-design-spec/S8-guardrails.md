@@ -17,6 +17,9 @@ sidebar_label: S8. Guardrails
 ---
 
 ## Active Policies
+
+**Table 1. Active guardrail policies and their enforcement actions**
+
 | Policy | Action |
 |---|---|
 | Violence · Hate · Sexual · Misinformation | Block |

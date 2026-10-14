@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-Mo. Recommendation Diversity
 ---
 
-> **Momo differentiation point** ⭐ — Monitors recommendation diversity and long-tail exposure so that the massive SKU asset stays discoverable in the mobile app.
+> **Momo differentiation point** — Monitors recommendation diversity and long-tail exposure so that the massive SKU asset stays discoverable in the mobile app.
 
 ## 1. URL · Persona
 - `/recommendation-diversity` · P3 (Search · Recommendation · MarTech)
@@ -25,6 +25,9 @@ sidebar_label: S11-Mo. Recommendation Diversity
 > P3 — Track recommendation diversity score, new-product exposure ratio, and long-tail SKU exposure rate by category, segment, and time slot.
 
 ## 3. Data Mix
+
+**Table 1. Data and sources used for recommendation diversity analysis**
+
 | Data | Source |
 |---|---|
 | Product (LongTailSKU flag) | Neptune |
@@ -33,6 +36,8 @@ sidebar_label: S11-Mo. Recommendation Diversity
 | User behavior (exploration vs purchase) | CartEvent + SearchEvent |
 
 ## 4. Metrics
+
+**Table 2. Recommendation diversity metrics and their definitions**
 
 | Metric | Definition |
 |---|---|

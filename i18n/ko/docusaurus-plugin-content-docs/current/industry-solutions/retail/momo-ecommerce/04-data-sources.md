@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. 데이터 규모
 
+**표 1. PoC 데이터 항목별 규모**
+
 | 항목 | 규모 |
 |---|---|
 | 자사 회원 | N=5,000 (PII 마스킹) |
@@ -31,6 +33,8 @@ sidebar_label: 04. Data Sources
 → ~800K Neptune edges
 
 ## 2. cohort_tag
+
+**표 2. cohort_tag 값과 의미**
 
 | 값 | 의미 |
 |---|---|
@@ -66,6 +70,8 @@ def gen_live_session():
 
 ## 5. 배송 SLA 시즌·기상 영향
 
+**표 3. 시즌·기상 이벤트가 배송 SLA에 주는 영향**
+
 | 이벤트 | 영향 |
 |---|---|
 | 태풍 (폭우) | 24시간 SLA 위반률 +60% |
@@ -73,6 +79,8 @@ def gen_live_session():
 | 春節 | 배송 -3일 (전체 휴무) |
 
 ## 6. 적재 파이프라인
+
+**그림 1. 자사·합성·외부 데이터 적재 파이프라인**
 
 ```mermaid
 graph LR

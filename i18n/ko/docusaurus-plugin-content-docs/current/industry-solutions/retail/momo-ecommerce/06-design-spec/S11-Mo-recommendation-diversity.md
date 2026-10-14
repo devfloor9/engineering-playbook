@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-Mo. Recommendation Diversity
 ---
 
-> **Momo 차별 포인트** ⭐ — 방대한 SKU 자산이 모바일 앱에서 발견되도록 추천 다양성 + 롱테일 노출을 모니터.
+> **Momo 차별 포인트** — 방대한 SKU 자산이 모바일 앱에서 발견되도록 추천 다양성 + 롱테일 노출을 모니터.
 
 ## 1. URL · 페르소나
 - `/recommendation-diversity` · P3 (검색·추천·MarTech)
@@ -25,6 +25,9 @@ sidebar_label: S11-Mo. Recommendation Diversity
 > P3 — 추천 결과의 다양성 점수, 신상 노출 비율, 롱테일 SKU 노출률을 카테고리·세그먼트·시간대별로 추적.
 
 ## 3. 데이터 믹스
+
+**표 1. 추천 다양성 분석에 사용하는 데이터와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | Product (LongTailSKU 플래그) | Neptune |
@@ -33,6 +36,8 @@ sidebar_label: S11-Mo. Recommendation Diversity
 | 사용자 행동 (탐색 vs 구매) | CartEvent + SearchEvent |
 
 ## 4. 메트릭
+
+**표 2. 추천 다양성 메트릭과 정의**
 
 | 메트릭 | 정의 |
 |---|---|

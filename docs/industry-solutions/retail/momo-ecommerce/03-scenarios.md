@@ -16,6 +16,8 @@ tags:
 sidebar_label: 03. Scenarios
 ---
 
+**Table 1. The 11 scenarios — 8 common plus 3 Momo-specific**
+
 | # | Scenario | URL | Primary Persona |
 |---|---|---|---|
 | S1 | Natural-language semantic search | `/semantic-search` | P1, P3 |
@@ -26,9 +28,9 @@ sidebar_label: 03. Scenarios
 | S6 | External signal fusion | `/signals` | P2 |
 | S7 | Omnichannel member journey | `/journey` | P4 |
 | S8 | Marketing consent · PII guardrails | `/compliance` | P4 |
-| **S9-Mo** ⭐ | Live-commerce broadcast attribution | `/live-attribution` | P1 |
-| **S10-Mo** ⭐ | In-house logistics delivery SLA + Ordering optimization | `/delivery-sla` | P5 |
-| **S11-Mo** ⭐ | Mobile-app recommendation · Search diversity | `/recommendation-diversity` | P3 |
+| **S9-Mo** (Momo-specific) | Live-commerce broadcast attribution | `/live-attribution` | P1 |
+| **S10-Mo** (Momo-specific) | In-house logistics delivery SLA + Ordering optimization | `/delivery-sla` | P5 |
+| **S11-Mo** (Momo-specific) | Mobile-app recommendation · Search diversity | `/recommendation-diversity` | P3 |
 
 ## Top-5 Demo (30 minutes)
 

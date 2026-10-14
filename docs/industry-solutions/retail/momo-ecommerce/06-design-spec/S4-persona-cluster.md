@@ -18,6 +18,8 @@ sidebar_label: S4. Persona & Cluster
 
 ## 1. Five Lifestyle Personas
 
+**Table 1. Five lifestyle personas and their identifying signals**
+
 | Persona | Signals |
 |---|---|
 | Live impulse buyer | High LiveStreamPurchase share · High viewing time |

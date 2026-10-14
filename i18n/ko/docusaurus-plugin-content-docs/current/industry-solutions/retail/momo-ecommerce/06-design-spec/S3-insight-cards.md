@@ -21,6 +21,8 @@ sidebar_label: S3. Insight Cards
 
 ## 2. 카드 프리셋
 
+**표 1. 인사이트 카드 프리셋과 데이터 소스**
+
 | 카드 | 데이터 |
 |---|---|
 | 카테고리 GMV TOP 30 (월별) | OrderTransaction × Category |
@@ -31,6 +33,8 @@ sidebar_label: S3. Insight Cards
 | 폭우 영향 (배송) | WeatherSignal × DeliverySLA |
 
 ## 3. 페르소나별 코멘트
+
+**표 2. 같은 라이브 GMV 카드에 대한 페르소나별 코멘트**
 
 | P | 동일 카드 (라이브 GMV) |
 |---|---|

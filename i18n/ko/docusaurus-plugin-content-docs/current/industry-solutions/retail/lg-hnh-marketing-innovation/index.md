@@ -17,15 +17,17 @@ sidebar_label: Overview
 
 ---
 
-## 🚀 인터랙티브 데모
+## 인터랙티브 데모
 
-> <strong><a href="/engineering-playbook/demo/lg-hnh/" target="_blank" rel="noopener noreferrer">👉 데모 페이지 열기 (새 창)</a></strong>
+> <strong><a href="/engineering-playbook/demo/lg-hnh/" target="_blank" rel="noopener noreferrer">데모 페이지 열기 (새 창)</a></strong>
 
 8 시나리오를 사이드바에서 전환하며 페르소나 스위처·차트·KG 그래프·SSE 챗봇 트레이스·Swimlane 타임라인 등 핵심 UI 패턴을 직접 체험할 수 있습니다.
 
 ---
 
 ## 1. PoC 한 줄 요약
+
+**표 1. PoC의 대상·범위·방법·산출·차별점 요약**
 
 | 축 | 내용 |
 |---|---|
@@ -39,6 +41,8 @@ sidebar_label: Overview
 
 ## 2. 3 BU 통합 (공개 정보 기준)
 
+**표 2. 3개 BU의 주요 브랜드와 핵심 채널**
+
 | BU | 주요 브랜드 | 핵심 채널 |
 |---|---|---|
 | **Beauty** | 후 / 숨37 / 오휘 / 빌리프 / CNP / VDL / 더페이스샵 | 면세점 · 백화점 · 자사몰 · 올리브영 · 쿠팡 |
@@ -50,6 +54,8 @@ sidebar_label: Overview
 ---
 
 ## 3. 5 부서 페르소나 (스위처)
+
+**표 3. 5개 부서 페르소나와 KPI**
 
 | 코드 | 부서 | KPI |
 |---|---|---|
@@ -64,6 +70,8 @@ sidebar_label: Overview
 ---
 
 ## 4. 8 시나리오 (한 줄 요약)
+
+**표 4. 8개 시나리오와 데이터 믹스**
 
 | # | 시나리오 | 데이터 믹스 (자사 + 외부) |
 |---|---|---|
@@ -82,6 +90,8 @@ sidebar_label: Overview
 
 ## 5. 외부 데이터 4종 (공개 정보 기반)
 
+**표 5. 외부 데이터 4종과 예시 출처**
+
 | 종류 | 예시 출처 |
 |---|---|
 | **소셜 트렌드** | 네이버·구글 트렌드 / X / 인스타그램 / 쇼츠·티스토리 / 올리브영 리뷰 |
@@ -92,6 +102,8 @@ sidebar_label: Overview
 ---
 
 ## 6. AWS Stack (단일 안)
+
+**표 6. 레이어별 AWS 컴포넌트**
 
 | 레이어 | 컴포넌트 |
 |---|---|
@@ -110,6 +122,8 @@ sidebar_label: Overview
 ---
 
 ## 7. Top-5 시연 흐름 (30분)
+
+**표 7. Top-5 시연 순서와 시간 배분**
 
 | 순서 | 시나리오 | 시연 포인트 | 시간 |
 |---|---|---|---|

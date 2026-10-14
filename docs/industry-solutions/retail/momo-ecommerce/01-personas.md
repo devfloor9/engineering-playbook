@@ -16,6 +16,8 @@ tags:
 sidebar_label: 01. Personas
 ---
 
+**Table 1. Mission, KPI, and primary scenarios of the five department personas**
+
 | Code | Department | Mission | KPI | Primary Scenarios |
 |---|---|---|---|---|
 | **P1** | Marketing (App · Campaign) | App traffic · Campaign ROAS · Live inflow | App ROAS / Live concurrent viewers · Conversion | S1·S2·S5·**S9-Mo** |

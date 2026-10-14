@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-Mo. Live Attribution
 ---
 
-> **Momo differentiation point** ⭐ — Live-broadcast viewing, pin, and purchase events are ingested in real time via Kinesis for per-host, per-SKU, and per-time-slot attribution.
+> **Momo differentiation point** — Live-broadcast viewing, pin, and purchase events are ingested in real time via Kinesis for per-host, per-SKU, and per-time-slot attribution.
 
 ## 1. URL · Persona
 - `/live-attribution` · P1 (Marketing)
@@ -25,6 +25,9 @@ sidebar_label: S9-Mo. Live Attribution
 > P1 — Yesterday's 19:00 live broadcast (1 hour) — 50K viewers, 8K carts, 3K purchases, 120M NTD GMV. Per-host, per-SKU, and per-time-slot effect on a single screen.
 
 ## 3. Data Mix
+
+**Table 1. Data and sources used for live attribution**
+
 | Data | Source |
 |---|---|
 | LiveStream metadata | Neptune |

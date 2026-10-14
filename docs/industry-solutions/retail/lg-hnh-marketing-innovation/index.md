@@ -19,13 +19,15 @@ It shows how five departments in LG H&H's Marketing Innovation Division could us
 
 ## Interactive Demo
 
-> <strong><a href="/engineering-playbook/demo/lg-hnh/" target="_blank" rel="noopener noreferrer">👉 Open Demo Page (new window)</a></strong>
+> <strong><a href="/engineering-playbook/demo/lg-hnh/" target="_blank" rel="noopener noreferrer">Open Demo Page (new window)</a></strong>
 
 Switch between the 8 scenarios in the sidebar to directly experience core UI patterns such as the persona switcher, charts, KG graphs, SSE chatbot traces, and Swimlane timelines.
 
 ---
 
 ## 1. PoC One-Line Summary
+
+**Table 1. Summary of the PoC's audience, scope, method, output, and differentiator**
 
 | Axis | Content |
 |---|---|
@@ -39,6 +41,8 @@ Switch between the 8 scenarios in the sidebar to directly experience core UI pat
 
 ## 2. 3 BU Integration (based on public information)
 
+**Table 2. Key brands and core channels of the three BUs**
+
 | BU | Key Brands | Core Channels |
 |---|---|---|
 | **Beauty** | The History of Whoo / Su:m37 / OHUI / belif / CNP / VDL / THE FACE SHOP | Duty-free · Department store · Owned mall · Olive Young · Coupang |
@@ -50,6 +54,8 @@ Switch between the 8 scenarios in the sidebar to directly experience core UI pat
 ---
 
 ## 3. 5-Department Personas (Switcher)
+
+**Table 3. The five department personas and their KPIs**
 
 | Code | Department | KPI |
 |---|---|---|
@@ -64,6 +70,8 @@ Switch between the 8 scenarios in the sidebar to directly experience core UI pat
 ---
 
 ## 4. 8 Scenarios (One-Line Summary)
+
+**Table 4. The eight scenarios and their data mixes**
 
 | # | Scenario | Data Mix (first-party + external) |
 |---|---|---|
@@ -82,6 +90,8 @@ Detailed mapping: [03. Scenarios](./03-scenarios.md)
 
 ## 5. 4 External Data Types (based on public information)
 
+**Table 5. The four external data types and example sources**
+
 | Type | Example Sources |
 |---|---|
 | **Social trends** | Naver · Google Trends / X / Instagram / Shorts · Tistory / Olive Young reviews |
@@ -92,6 +102,8 @@ Detailed mapping: [03. Scenarios](./03-scenarios.md)
 ---
 
 ## 6. AWS Stack (Single Plan)
+
+**Table 6. AWS components by layer**
 
 | Layer | Component |
 |---|---|
@@ -110,6 +122,8 @@ Details: [05. Architecture](./05-architecture.md)
 ---
 
 ## 7. Top-5 Demo Flow (30 minutes)
+
+**Table 7. Top-5 demo order and time allocation**
 
 | Order | Scenario | Demo Highlight | Time |
 |---|---|---|---|

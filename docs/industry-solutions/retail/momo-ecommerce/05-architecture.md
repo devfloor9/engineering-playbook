@@ -20,6 +20,8 @@ sidebar_label: 05. Architecture
 
 ## 1. Architecture
 
+**Figure 1. Momo PoC single AWS architecture**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -61,6 +63,8 @@ graph TB
 
 ## 2. Specialized Components
 
+**Table 1. Momo-specific components and their roles**
+
 | Component | Role |
 |---|---|
 | **Kinesis Data Streams** | Real-time ingestion of live-broadcast viewing and pin events (S9-Mo) |
@@ -69,6 +73,9 @@ graph TB
 | **Cohere multilingual** | Multilingual embeddings |
 
 ## 3. Cost (8-week PoC)
+
+**Table 2. Estimated monthly cost for the 8-week PoC**
+
 | Item | Estimate |
 |---|---|
 | Bedrock + Cohere | $1.8K/month |
