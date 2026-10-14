@@ -401,7 +401,7 @@ repo/
 | Time | Deployment Ratio | Monitoring |
 |------|-----------------|------------|
 | D+0 14:00 | Start Canary 5% | CloudWatch dashboard real-time |
-| D+0 16:00 | Error rate 0.8% ✅ | Expand to 25% |
+| D+0 16:00 | Error rate 0.8% — gate passed | Expand to 25% |
 | D+0 20:00 | Error rate 1.2% — gate failed | Hold at 25%; investigate |
 | D+1 10:00 | Error rate 0.9% — error gate only | Verify other gates/approval before 50%, then consider 100% |
 | D+1 14:00 | **Error rate 5.2% — recovery action needed** | Request rollback after configured detector/policy authorization |
