@@ -23,6 +23,9 @@ import Figure from '@site/src/components/Figure';
 Agentic AI Platform을 배포하고 운영하는 플랫폼 엔지니어를 위한 구현 가이드입니다. 필요한 영역의 문서를 먼저 선택한 뒤, 환경별 요구사항과 검증 절차를 확인하세요. 설계 결정의 배경은 [플랫폼 아키텍처](../design-architecture/foundations/agentic-platform-architecture.md)에서 다룹니다.
 
 :::info Documentation vs Reference Architecture
+
+**표 1. Documentation과 Reference Architecture의 초점·독자·산출물 비교**
+
 | 구분 | Documentation | Reference Architecture |
 |------|--------------|----------------------|
 | **초점** | 아키텍처 개념, 설계 원칙, 기술 비교 | 실전 배포 절차, 매니페스트, 검증 |
@@ -50,6 +53,8 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 ### 도구
 
 배포 문서에 지정된 도구 버전과 클러스터 호환성을 확인합니다. 설치된 버전은 검증 기록에 남깁니다.
+
+**표 2. 배포에 사용하는 도구와 용도**
 
 | 도구 | 용도 |
 |------|------|
@@ -89,6 +94,8 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 
 아래 다이어그램은 Reference Architecture의 6개 영역과 배포 순서를 보여줍니다.
 
+**그림 1. Reference Architecture의 6개 영역과 배포 순서**
+
 ```mermaid
 graph TB
     subgraph "1. GPU 인프라"
@@ -125,6 +132,8 @@ Reference Architecture는 아래 순서대로 구성합니다. 각 단계는 이
 
 EKS 클러스터와 GPU 노드 그룹을 구성합니다. Auto Mode와 Standard Mode의 차이, GPU Operator 설치 시 주의사항을 포함합니다.
 
+**표 3. Phase 1 GPU 인프라 구성 항목과 세부사항**
+
 | 항목 | 세부사항 |
 |------|---------|
 | EKS 버전 | 선택한 배포 가이드와 애드온이 지원하는 버전 |
@@ -135,6 +144,8 @@ EKS 클러스터와 GPU 노드 그룹을 구성합니다. Auto Mode와 Standard 
 ### Phase 2: 모델 배포
 
 대형 오픈소스 모델을 vLLM으로 서빙합니다. 커스텀 이미지 빌드, S3 모델 캐시, 멀티노드 배포 시 주의사항을 다룹니다.
+
+**표 4. Phase 2 모델 배포 항목과 세부사항**
 
 | 항목 | 세부사항 |
 |------|---------|
@@ -147,6 +158,8 @@ EKS 클러스터와 GPU 노드 그룹을 구성합니다. Auto Mode와 Standard 
 
 kgateway + Bifrost/LiteLLM 기반 2-Tier 추론 게이트웨이를 구성합니다. Complexity-based Cascade Routing, Semantic Caching, Guardrails를 포함합니다.
 
+**표 5. Phase 3 추론 게이트웨이 항목과 세부사항**
+
 | 항목 | 세부사항 |
 |------|---------|
 | L1 게이트웨이 | kgateway (Gateway API, mTLS, rate limiting) |
@@ -157,6 +170,8 @@ kgateway + Bifrost/LiteLLM 기반 2-Tier 추론 게이트웨이를 구성합니�
 ### Phase 4: 모니터링 및 Observability
 
 Prometheus + AMP + AMG + Langfuse 기반 모니터링 스택을 구성합니다.
+
+**표 6. Phase 4 모니터링 및 Observability 항목과 세부사항**
 
 | 항목 | 세부사항 |
 |------|---------|
@@ -169,6 +184,8 @@ Prometheus + AMP + AMG + Langfuse 기반 모니터링 스택을 구성합니다.
 
 LoRA Fine-tuning 및 Cascade Routing 파이프라인을 구성합니다.
 
+**표 7. Phase 5 파이프라인 항목과 세부사항**
+
 | 항목 | 세부사항 |
 |------|---------|
 | Fine-tuning | LoRA 어댑터 학습 → S3 저장 → vLLM 핫로드 |
@@ -178,6 +195,8 @@ LoRA Fine-tuning 및 Cascade Routing 파이프라인을 구성합니다.
 ### Phase 6: 코딩 도구 연동
 
 Aider, Cline 등 AI 코딩 도구를 자체 호스팅 모델에 연결합니다.
+
+**표 8. Phase 6 코딩 도구 연동 항목과 세부사항**
 
 | 항목 | 세부사항 |
 |------|---------|
@@ -202,6 +221,8 @@ Spot 사용 여부는 가격뿐 아니라 중단 시 서비스가 견딜 수 있
 
 가능한 한 CNCF 및 Kubernetes 생태계의 표준 도구를 사용합니다.
 
+**표 9. 영역별 표준 도구와 대안**
+
 | 영역 | 표준 도구 | 대안 |
 |------|----------|------|
 | GPU 스케줄링 | Karpenter / MNG | Auto Mode NodePool |
@@ -214,6 +235,8 @@ Spot 사용 여부는 가격뿐 아니라 중단 시 서비스가 견딜 수 있
 ### 4. 비용 최적화 계층화
 
 각 기법의 효과는 트래픽, 캐시 적중률, 품질 기준, 운영 시간에 따라 달라집니다. 절감률을 단순 합산하지 말고 성공 요청당 총비용과 SLO를 같은 조건에서 비교합니다.
+
+**그림 2. 비용 최적화 검토 순서**
 
 ```mermaid
 graph TD

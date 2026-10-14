@@ -24,6 +24,8 @@ This document covers the **hands-on deployment procedures** for integrated monit
 
 ## Monitoring Architecture Overview
 
+**Figure 1. Integrated monitoring data flow architecture**
+
 ```mermaid
 graph LR
     subgraph "EKS Cluster"
@@ -47,7 +49,7 @@ graph LR
     style BF fill:#2ecc71
 ```
 
-**Data Flow Summary**:
+**Table 1. Collection path and purpose by data type**
 
 | Data | Path | Purpose |
 |------|------|---------|
@@ -312,6 +314,8 @@ If the `langfuse-worker` Pod is in CrashLoopBackOff, a **missing Redis password*
 
 The Langfuse Helm chart installs MinIO as built-in S3 storage by default, but AWS S3 + KMS is recommended for production.
 
+**Table 2. MinIO vs AWS S3 + KMS by availability, encryption, authentication, and backup**
+
 | | MinIO (Default) | AWS S3 + KMS (Recommended) |
 |---|---|---|
 | **Availability** | Single Pod | 99.999999999% (11 nines) |
@@ -446,7 +450,7 @@ OTel plugin configuration in Bifrost's config.json.
 }
 ```
 
-**Key Considerations**:
+**Table 3. Correct and incorrect values per OTel setting**
 
 | Setting | Correct Value | Incorrect Value |
 |---------|--------------|----------------|
@@ -496,6 +500,8 @@ kgateway rewrites `/api/public/otel` to `/api/public/otel/v1/traces`.
 
 :::tip Direct In-Cluster vs Through kgateway
 
+**Table 4. collector_url and URLRewrite requirement by transmission method**
+
 | Method | collector_url | URLRewrite Required |
 |--------|---------------|---------------------|
 | Direct in-cluster | `http://langfuse-web.langfuse.svc:3000/api/public/otel/v1/traces` | No |
@@ -522,6 +528,8 @@ POST /api/public/otel/v1/traces
 ---
 
 ## 6. Recommended PromQL Query Reference
+
+**Table 5. Recommended PromQL queries and their purpose by metric**
 
 | Metric | PromQL | Purpose |
 |--------|--------|---------|

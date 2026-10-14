@@ -535,12 +535,14 @@ openai-gpt-4o            (hyphen instead of slash — error)
 
 ### 5.2 IDE/Coding Tool Compatibility
 
+**Table 1. model-field transmission and Bifrost compatibility by IDE/coding tool**
+
 | Tool | model Field Transmission | Bifrost Compatible | Configuration Method |
 |------|--------------------------|-------------------|---------------------|
-| **Cline** | Passed as-is | ✅ | Model ID: `openai/glm-5` |
-| **Continue.dev** | Passed as-is | ✅ | model: `openai/glm-5` |
-| **Aider** | LiteLLM prefix removal | ⚠️ double-prefix needed | `openai/openai/glm-5` |
-| **Cursor** | Self-validation rejects | ❌ | Rejects model names with `/` |
+| **Cline** | Passed as-is | Supported | Model ID: `openai/glm-5` |
+| **Continue.dev** | Passed as-is | Supported | model: `openai/glm-5` |
+| **Aider** | LiteLLM prefix removal | Conditional (double-prefix needed) | `openai/openai/glm-5` |
+| **Cursor** | Self-validation rejects | Not supported | Rejects model names with `/` |
 
 ### 5.3 Aider Connection Example
 

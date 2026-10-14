@@ -553,12 +553,14 @@ openai-gpt-4o            (슬래시 대신 하이픈 — 오류)
 
 ### 5.2 IDE/코딩 도구 호환성
 
+**표 1. IDE·코딩 도구별 model 필드 전달과 Bifrost 호환성**
+
 | 도구 | model 필드 전달 | Bifrost 호환 | 설정 방법 |
 |------|----------------|-------------|----------|
-| **Cline** | 그대로 전달 | ✅ | Model ID: `openai/glm-5` |
-| **Continue.dev** | 그대로 전달 | ✅ | model: `openai/glm-5` |
-| **Aider** | LiteLLM prefix 제거 | ⚠️ double-prefix 필요 | `openai/openai/glm-5` |
-| **Cursor** | 자체 검증 | ⚠️ | `provider/model` 포맷 지원하나 비카탈로그 모델명 간헐적 거부 이슈 |
+| **Cline** | 그대로 전달 | 지원 | Model ID: `openai/glm-5` |
+| **Continue.dev** | 그대로 전달 | 지원 | model: `openai/glm-5` |
+| **Aider** | LiteLLM prefix 제거 | 조건부(double-prefix 필요) | `openai/openai/glm-5` |
+| **Cursor** | 자체 검증 | 조건부 | `provider/model` 포맷 지원하나 비카탈로그 모델명 간헐적 거부 이슈 |
 
 ### 5.3 Aider 연결 예시
 

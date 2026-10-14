@@ -24,12 +24,14 @@ To leverage AI coding tools in enterprise environments, three factors must be co
 
 ### Why Self-Hosting Integration Is Needed
 
+**Table 1. Constraint comparison between SaaS and self-hosting**
+
 | Constraint | SaaS (Kiro, Copilot) | Self-Hosting |
 |------------|---------------------|--------------|
 | **Data sovereignty** | Check service data handling and contracts | Validate VPC, external calls, and access policy |
-| **Customization** | Only provided models | ✅ LoRA Fine-tuning |
+| **Customization** | Only provided models | LoRA Fine-tuning supported |
 | **Cost control** | Service-specific subscription/usage billing | Verify capacity, routing, and actual billing |
-| **Observability** | Limited | ✅ Full Langfuse control |
+| **Observability** | Limited | Full Langfuse control supported |
 
 :::tip Core Strategy
 Deploy an **LLM Classifier** behind kgateway so clients use a single endpoint (`/v1`), and SLM (Qwen3-4B) or LLM (GLM-5) is automatically selected based on prompt content. Track routing, execution, and costs with Langfuse. Assess savings from measured model quality, request mix, fallback, and actual billed capacity.
@@ -43,12 +45,14 @@ Deploy an **LLM Classifier** behind kgateway so clients use a single endpoint (`
 
 Using an **LLM Classifier**, all clients connect to a **single endpoint**, and SLM/LLM is automatically selected based on prompt content. No manual model selection needed.
 
+**Table 2. LLM Classifier compatibility and configuration by coding tool**
+
 | Tool | LLM Classifier Compatible | Configuration |
 |------|--------------------------|--------------|
-| **Aider** | ✅ | `OPENAI_API_BASE=http://<NLB>/v1 aider --model openai/auto` |
-| **Cline** | ✅ | Model: `auto`, Base URL: `http://<NLB>/v1` |
-| **Continue.dev** | ✅ | model: `auto`, apiBase: `http://<NLB>/v1` |
-| **Cursor** | ✅ | No `/` needed in model name — use `auto` |
+| **Aider** | Supported | `OPENAI_API_BASE=http://<NLB>/v1 aider --model openai/auto` |
+| **Cline** | Supported | Model: `auto`, Base URL: `http://<NLB>/v1` |
+| **Continue.dev** | Supported | model: `auto`, apiBase: `http://<NLB>/v1` |
+| **Cursor** | Supported | No `/` needed in model name — use `auto` |
 
 :::tip Compatibility Improvement over Bifrost
 The `provider/model` format (`openai/glm-5`) and Aider double-prefix trick (`openai/openai/glm-5`) required when routing through Bifrost are **completely unnecessary**. Cursor can also be used without model name `/` restrictions.
@@ -112,14 +116,16 @@ Settings -> API Provider -> OpenAI Compatible
 
 ### 3.1 LLM Classifier vs Bifrost
 
+**Table 3. Routing characteristics of LLM Classifier vs Bifrost**
+
 | Item | **LLM Classifier (Recommended)** | **Bifrost** |
 |------|--------------------------------|------------|
 | **Suitable for** | Self-hosted vLLM cascade | External provider integration (OpenAI/Anthropic) |
 | **Model name format** | `auto` (arbitrary value OK) | `provider/model` required |
-| **Prompt analysis** | ✅ Direct body access | ❌ CEL can only access headers |
-| **Multi-backend** | ✅ WEAK/STRONG URL separation | ❌ Single base_url per provider |
-| **Aider compatible** | ✅ No tricks needed | ⚠️ Double-prefix required |
-| **Cursor compatible** | ✅ | ❌ Slash not allowed |
+| **Prompt analysis** | Supported (direct body access) | Not supported (CEL can only access headers) |
+| **Multi-backend** | Supported (WEAK/STRONG URL separation) | Not supported (single base_url per provider) |
+| **Aider compatible** | Supported (no tricks needed) | Conditional (double-prefix required) |
+| **Cursor compatible** | Supported | Not supported (slash not allowed) |
 | **Image size** | ~50MB | ~100MB |
 
 :::info When to Use Bifrost
@@ -157,17 +163,19 @@ In April 2026, [Kiro IDE began natively supporting GLM-5](https://kiro.dev/chang
 
 ### Feature Comparison
 
+**Table 4. Feature comparison between Kiro Hosted and self-hosting**
+
 | | **Kiro Hosted** | **Self-Hosting (EKS + vLLM)** |
 |---|---|---|
 | **Infrastructure** | Kiro/AWS managed | Self-operated (EKS + GPU nodes) |
 | **Cost** | Actual subscription and credit consumption | Billed node hours plus infrastructure and operations |
-| **LoRA Fine-tuning** | ❌ Not available | ✅ Domain-specific customization |
+| **LoRA Fine-tuning** | Not available | Supported (domain-specific customization) |
 | **Data sovereignty** | Check service data handling and contracts | Design and validate data paths and access policy |
 | **Compliance** | Verify service scope and customer responsibilities | Implement controls and prepare audit evidence |
-| **Observability** | Kiro dashboard | ✅ Full Langfuse + AMP/AMG control |
-| **Gateway** | None | ✅ Bifrost (guardrails, caching) |
-| **Steering/Spec** | ✅ Native | Separate implementation needed |
-| **Custom endpoints** | ❌ Kiro model list only | ✅ Freely configurable |
+| **Observability** | Kiro dashboard | Full Langfuse + AMP/AMG control supported |
+| **Gateway** | None | Supported (Bifrost — guardrails, caching) |
+| **Steering/Spec** | Native support | Separate implementation needed |
+| **Custom endpoints** | Not available (Kiro model list only) | Supported (freely configurable) |
 | **Getting started** | Immediate | High difficulty |
 
 :::tip When Self-Hosting Is Needed
@@ -191,6 +199,8 @@ Compare the **total cost of completed work under the same quality, latency, and 
 
 ### 5.1 Billing Units and Inputs[^1] {#51-per-token-cost-as-of-2026-04-17}
 
+**Table 5. Billing unit to verify and inputs needed for comparison by approach**
+
 | Approach | Billing unit to verify | Inputs needed for comparison |
 |----------|------------------------|------------------------------|
 | Bedrock On-Demand | Input/output tokens and other units for the selected model, region, and inference mode | Actual tokens, cache treatment, retries, and additional features |
@@ -203,6 +213,8 @@ Verify the selected configuration against [Bedrock pricing](https://aws.amazon.c
 ### 5.2 Self-Hosting Fixed Costs
 
 A simplified monthly model is `C_self(Q) = F + v × Q`, where `F` is the configuration's fixed monthly cost, `v` is its incremental cost per request, and `Q` is the number of comparable completed requests. Adding nodes changes `F`; recalculate within each capacity range.
+
+**Table 6. Self-hosting cost categories and what to include**
 
 | Cost category | Include |
 |---------------|---------|
@@ -217,6 +229,8 @@ Reducing Pods does not reduce GPU charges if the nodes continue running. Busines
 
 **Assumptions**: API cost `c_api = $0.0026/request`, self-hosting fixed cost `F = $8,900/month`, and incremental cost `v = $0.0004/request`. The API rate uses hypothetical input/output rates of $1/$3.20 per million tokens and 1,000 input/500 output tokens per request. These are not product prices.
 
+**Table 7. Arithmetic cost comparison of API vs self-hosting by monthly request volume (USD)**
+
 | Monthly completed requests `Q` | API: `0.0026 × Q` | Self-hosting: `8,900 + 0.0004 × Q` |
 |-------------------------------|------------------|----------------------------------|
 | 50,000 | $130 | $8,920 |
@@ -229,6 +243,8 @@ This is an arithmetic example, not evidence that the assumed capacity serves eac
 ### 5.4 Break-Even Points
 
 Within the same capacity range, `Q_break_even = F / (c_api − v)` applies only when `c_api > v`. The assumptions above give approximately **4,045,455 requests/month**. Recalculate when additional nodes, availability requirements, discounts/commitments, or token distributions change. When `c_api ≤ v`, this simplified model has no cost crossover in favor of self-hosting.
+
+**Figure 1. Cost comparison decision sequence**
 
 ```mermaid
 graph LR
@@ -246,6 +262,8 @@ Available features depend on the provider, model, engine, and version. Check the
 
 ### 6.1 Optimization Options Comparison
 
+**Table 8. Effect to verify and cost/quality boundaries by optimization option**
+
 | Optimization | Effect to verify | Cost and quality boundaries |
 |--------------|------------------|-----------------------------|
 | **Business-hours operation** | Reduced billed node hours | Include loading, reserve capacity, and off-hours service |
@@ -256,6 +274,8 @@ Available features depend on the provider, model, engine, and version. Check the
 | **Multi-LoRA sharing** | Shared base capacity for supported models | Verify adapter memory, concurrency, and tenant isolation |
 
 ### 6.2 Cascade Routing Architecture (LLM Classifier)
+
+**Figure 2. Cascade Routing architecture based on the LLM Classifier**
 
 ```mermaid
 graph LR
@@ -295,6 +315,8 @@ Model-server prefix caching and cache-aware request scheduling are separate conf
 
 First verify LoRA support for the selected base model and serving engine. Supported configurations can share base-model capacity, but adapter memory and concurrency prevent assuming cost falls in inverse proportion to tenant count.
 
+**Figure 3. Multi-LoRA adapter sharing structure**
+
 ```mermaid
 graph TD
     G[Gateway] --> V[Supported model server]
@@ -309,6 +331,8 @@ Validate adapter-selection authorization, concurrent load, loading/eviction, and
 ---
 
 ## Selection Criteria Summary
+
+**Table 9. Comparison criteria by requirement**
 
 | Requirement | Compare |
 |-------------|---------|
@@ -353,6 +377,8 @@ These stages describe work order, not measured delivery times. Set milestones an
 ## References
 
 ### Official Documentation
+
+**Table 10. Reference resources and links**
 
 | Resource | Link |
 |----------|------|

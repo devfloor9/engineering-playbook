@@ -24,6 +24,8 @@ sidebar_label: 모니터링
 
 ## 모니터링 아키텍처 개요
 
+**그림 1. 통합 모니터링 데이터 흐름 아키텍처**
+
 ```mermaid
 graph LR
     subgraph "EKS Cluster"
@@ -47,7 +49,7 @@ graph LR
     style BF fill:#2ecc71
 ```
 
-**데이터 흐름 요약**:
+**표 1. 데이터 종류별 수집 경로와 용도**
 
 | 데이터 | 경로 | 용도 |
 |--------|------|------|
@@ -312,6 +314,8 @@ kubectl set env deploy/langfuse-worker deploy/langfuse-web -n langfuse \
 
 Langfuse Helm 차트는 기본적으로 MinIO를 내장 S3로 설치하지만, 프로덕션에서는 AWS S3 + KMS를 권장합니다.
 
+**표 2. MinIO와 AWS S3 + KMS의 가용성·암호화·인증·백업 비교**
+
 | | MinIO (기본) | AWS S3 + KMS (권장) |
 |---|---|---|
 | **가용성** | 단일 Pod | 99.999999999% (11 nines) |
@@ -446,7 +450,7 @@ Bifrost config.json의 OTel 플러그인 설정입니다.
 }
 ```
 
-**핵심 주의사항**:
+**표 3. OTel 설정 항목별 올바른 값과 잘못된 값**
 
 | 설정 항목 | 올바른 값 | 잘못된 값 |
 |----------|----------|----------|
@@ -496,6 +500,8 @@ kgateway가 `/api/public/otel` → `/api/public/otel/v1/traces`로 리라이트�
 
 :::tip 클러스터 내부 직접 전송 vs kgateway 경유
 
+**표 4. 전송 방식별 collector_url과 URLRewrite 필요 여부**
+
 | 방식 | collector_url | URLRewrite 필요 |
 |------|---------------|----------------|
 | 내부 직접 | `http://langfuse-web.langfuse.svc:3000/api/public/otel/v1/traces` | 불필요 |
@@ -522,6 +528,8 @@ POST /api/public/otel/v1/traces
 ---
 
 ## 6. 추천 PromQL 쿼리 테이블
+
+**표 5. 메트릭별 추천 PromQL 쿼리와 용도**
 
 | 메트릭 | PromQL | 용도 |
 |--------|--------|------|

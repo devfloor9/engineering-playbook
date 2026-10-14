@@ -37,6 +37,8 @@ sidebar_position: 2
 
 LLM Classifier는 kgateway 뒤에서 동작하는 **Python FastAPI 기반 경량 라우터**입니다. 클라이언트(Aider, Cline 등)의 OpenAI 호환 요청을 받아 프롬프트 내용을 분석하고, weak(SLM) 또는 strong(LLM) 백엔드로 자동 프록시합니다.
 
+**그림 1. LLM Classifier의 프롬프트 기반 weak/strong 백엔드 라우팅 흐름**
+
 ```mermaid
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
@@ -406,6 +408,8 @@ across-model 거버넌스(예산·멀티프로바이더·semantic cache)가 필�
 
 ### 아키텍처
 
+**그림 2. CloudFront + WAF/Shield 보안 레이어의 요청 경로**
+
 ```mermaid
 graph LR
     Client["Client<br/>(Aider/Cline/SDK)"] --> CF["CloudFront<br/>+ WAF/Shield"]
@@ -553,7 +557,7 @@ aws wafv2 create-web-acl \
   }'
 ```
 
-WAF 규칙 구성:
+**표 1. WAF 규칙별 용도와 설정**
 
 | 규칙 | 용도 | 설정 |
 |------|------|------|
@@ -682,6 +686,8 @@ curl -s -o /dev/null -w "%{http_code}" \
 변경 후: Client → CloudFront (HTTPS, WAF/Shield) → NLB (HTTPS, CF만 허용) → kgateway → Bifrost → vLLM
 ```
 
+**표 2. 연결 경로 구간별 프로토콜과 보안**
+
 | 구간 | 프로토콜 | 보안 |
 |------|---------|------|
 | Client → CloudFront | HTTPS (TLS 1.2+) | WAF 규칙 + Shield Standard + Rate Limit |
@@ -701,6 +707,8 @@ Semantic Caching의 개념, 유사도 임계값 설계, 캐시 키 구조, 관�
 
 공식 문서와 레포지토리 기준으로 정리한 주요 옵션입니다. 기능이 빠르게 변경되므로 배포 시점에 공식 문서를 다시 확인하세요.
 
+**표 3. Semantic Caching 구현 도구의 라이선스·백엔드·장단점 비교**
+
 | 도구 | 라이선스 | 백엔드 | 주요 장점 | 한계 | 공식 자료 |
 |------|----------|--------|---------|------|----------|
 | **GPTCache** | OSS (MIT) | Redis / Milvus / FAISS / SQLite | 다양한 백엔드, 어댑터 풍부, 초기부터 Semantic Cache에 특화 | 2024 이후 릴리스 빈도 감소, LangChain/LiteLLM에 비해 커뮤니티 주도 | [GitHub](https://github.com/zilliztech/GPTCache) |
@@ -711,6 +719,8 @@ Semantic Caching의 개념, 유사도 임계값 설계, 캐시 키 구조, 관�
 | **LangCache (Redis)** | 관리형 SaaS (Redis Cloud) | Redis Cloud | 완전관리형, 임베딩 모델·거버넌스 포함, Free 30MB 데이터베이스 포함 | Public Preview (2025-09~, 2026-07 현재 GA 아님), 리전 제약 | [Redis LangCache](https://redis.io/docs/latest/develop/ai/context-engine/langcache/) |
 
 ### 4.2 도구 선택 결정 트리
+
+**그림 3. Semantic Caching 도구 선택 결정 트리**
 
 ```mermaid
 flowchart TD
@@ -735,6 +745,8 @@ flowchart TD
 ```
 
 ### 4.3 시나리오별 추천
+
+**표 4. 운영 시나리오별 추천 조합과 이유**
 
 | 시나리오 | 추천 조합 | 이유 |
 |----------|----------|------|

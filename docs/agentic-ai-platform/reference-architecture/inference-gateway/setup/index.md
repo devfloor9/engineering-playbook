@@ -104,6 +104,8 @@ Common issues and solutions during deployment and operations.
 
 ### Quick Start (Development/Test Environment)
 
+**Figure 1. Quick-start learning path (Basic Deployment → Troubleshooting)**
+
 ```mermaid
 graph LR
     A[Basic Deployment] --> B[Troubleshooting]
@@ -119,6 +121,8 @@ graph LR
 ---
 
 ### Production Configuration (Complete Pipeline)
+
+**Figure 2. Production configuration learning path (Basic Deployment → Advanced Features → Troubleshooting)**
 
 ```mermaid
 graph LR

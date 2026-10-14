@@ -87,7 +87,7 @@ spec:
 
 **증상**: `Provider not found` 또는 `Model not found` 에러
 
-**원인과 해결**:
+**표 1. Provider/Model 에러 메시지별 원인과 해결**
 
 | 에러 메시지 | 원인 | 해결 |
 |------------|------|------|
@@ -269,7 +269,7 @@ kubectl logs -l app=langfuse-web -n observability --tail=30 | grep -i otlp
 kubectl logs -n kgateway-system -l app=kgateway --tail=30 | grep "otel"
 ```
 
-**체크리스트**:
+**표 2. OTel trace 연동 확인 항목과 올바른 값**
 
 | 확인 항목 | 올바른 값 |
 |----------|----------|
