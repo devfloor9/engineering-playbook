@@ -68,6 +68,8 @@ Training: Increase probability of preferred responses ↑, decrease non-preferre
 
 ### Selection Criteria
 
+**Table 1. Recommended GRPO/DPO method and rationale by situation**
+
 | Situation | Recommended Method | Reason |
 |-----------|-------------------|--------|
 | **Can generate diverse responses** | GRPO | Higher data efficiency through ranking |
@@ -307,6 +309,8 @@ Volcano Gang Scheduling:
 ```
 
 ## Cost Example
+
+**Table 2. Example training time and cost by resource spec**
 
 | Resource | Spec | Hourly Cost | Training Time (1 epoch) | Total Cost |
 |----------|------|-------------|------------------------|------------|

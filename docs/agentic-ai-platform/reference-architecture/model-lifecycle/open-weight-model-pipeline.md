@@ -43,6 +43,8 @@ Adopting a new open-weight model involves recurring work: downloading weights, v
 
 The architecture must satisfy the following seven-stage requirements.
 
+**Table 1. Requirements and key acceptance criteria for each of the seven pipeline stages**
+
 | # | Stage | Requirement | Key Acceptance Criteria |
 |---|-------|-------------|-------------------------|
 | 1 | Intake | Detect new models through HuggingFace leaderboard scans, PFRs, and customer requests | Start the pipeline only after passing a human approval gate |
@@ -61,6 +63,8 @@ The architecture must satisfy the following seven-stage requirements.
 - The organization has an SME group comprising the platform team and ML engineers to approve model onboarding.
 
 ## 3. Overall Architecture
+
+**Figure 1. Overall architecture of the open-weight model onboarding pipeline**
 
 ```mermaid
 flowchart TD
@@ -103,6 +107,8 @@ flowchart TD
 The entire pipeline is expressed as a single Argo Workflows DAG, with gates G1–G3 implemented as suspend steps. The workflow waits indefinitely at each gate and proceeds when an approver resumes it.
 
 ### Stage-to-Tool Mapping
+
+**Table 2. Orchestration, core tools, and artifacts by stage**
 
 | Stage | Orchestration | Core Tools | Artifacts |
 |-------|---------------|------------|-----------|
@@ -202,6 +208,8 @@ A simple comparison is sufficient for the decision logic: `abs(reproduced_score 
 
 **(c) Performance profiling by instance type.** Choose candidate instances based on model size, for example g6e.xlarge/g6e.12xlarge/inf2.8xlarge for an 8B model and the p5en family for 70B+ models, then run a genai-perf concurrency sweep for each instance type. Normalize the results along three dimensions.
 
+**Table 3. Calculation and purpose of the three performance-profiling normalization dimensions**
+
 | Dimension | Calculation | Purpose |
 |-----------|-------------|---------|
 | Throughput | output tok/s ÷ GPU count | Normalized comparison across instances |
@@ -252,6 +260,8 @@ Set an upper limit on the suspend wait time, for example four hours, and use org
 
 Generate performs no new measurements. It renders deployment guides for four targets from a single finalized model profile using templates.
 
+**Table 4. Deployment form and profile values included in the guide, by target**
+
 | Target | Deployment Form | Profile Values Included in the Guide |
 |--------|-----------------|--------------------------------------|
 | SageMaker | LMI (Large Model Inference) container + Endpoint | Recommended instance and serving settings such as `OPTION_TENSOR_PARALLEL_DEGREE` |
@@ -275,6 +285,8 @@ Separating templates from profiles allows a shared change, such as a vLLM versio
 ### 4.6 Capacity — Automatic Global Spot Capacity Acquisition
 
 GPU capacity has the longest lead time and highest likelihood of failure among pipeline resources. Design on the assumption that ICE (InsufficientCapacityError) occurs regularly for large instances such as the p5en and p6 families.
+
+**Figure 2. Automatic global spot capacity acquisition flow**
 
 ```mermaid
 flowchart TD
@@ -300,6 +312,8 @@ Implementation elements:
 
 The principle that agents validate and humans approve is enforced through three gates.
 
+**Table 5. Timing, approval scope, approver, and implementation of the three human approval gates**
+
 | Gate | Timing | Approval Scope | Approver | Implementation |
 |------|--------|----------------|----------|----------------|
 | G1 | Immediately after Intake | Start onboarding, which begins incurring GPU costs | Platform team | Approve and merge the draft profile PR |
@@ -311,6 +325,8 @@ The principle that agents validate and humans approve is enforced through three 
 - If an automated step between gates fails, retry from the point of failure rather than returning to the gate. Use Argo Workflows retryStrategy and cache completed steps when resubmitting the workflow.
 
 ## 5. Mapping to the Seven-Stage Requirements
+
+**Table 6. How this architecture satisfies each of the seven-stage requirements**
 
 | Requirement | How This Architecture Satisfies It |
 |-------------|-----------------------------------|

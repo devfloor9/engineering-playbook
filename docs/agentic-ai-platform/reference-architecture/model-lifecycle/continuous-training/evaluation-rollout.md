@@ -240,6 +240,8 @@ The following is a **custom exporter contract** for this document. `model_eval_f
 
 Promotion freshness also requires these gauges. A trusted exporter/reconciler checks the **entire expected producer inventory** and collection health, then emits one authoritative series set for each `namespace`, `rollout` and `track`.
 
+**Table 1. Custom gauges used for promotion-freshness decisions and their meaning**
+
 | Custom gauge | Meaning of the value |
 |---|---|
 | `model_last_request_observation_timestamp_seconds` | Oldest Unix timestamp, in seconds, among the last valid request observations of all required producers |
@@ -746,7 +748,7 @@ training_runs['cost_per_0.01_improvement'] = training_runs['cost_usd'] / (traini
 print(training_runs)
 ```
 
-**Example Results:**
+**Table 2. Example results of GPU hours, cost, and faithfulness improvement per iteration**
 
 | iteration | gpu_hours | cost_usd | faithfulness_delta | gpu_hours_per_0.01 | cost_per_0.01 |
 |-----------|-----------|----------|-------------------|-------------------|--------------|
@@ -807,6 +809,8 @@ This is a panel-query specification for the rules above, not an importable Grafa
 ```
 
 ### Recommended Weekly/Monthly Cadence
+
+**Table 3. Continuous-training actions and goals by cycle**
 
 | Cycle | Action | Goal |
 |-------|--------|------|

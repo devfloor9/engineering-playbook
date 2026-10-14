@@ -51,6 +51,8 @@ Model specifications and versions change quickly. The model examples in this doc
 
 Commercial APIs and self-hosting incur cost in different ways.
 
+**Table 1. Pricing structure: commercial API vs self-hosting**
+
 | Aspect | Commercial API | Self-hosting (EKS + vLLM) |
 |------|----------|----------------------|
 | Cost model | Per-token (metered) | Per-GPU-hour fixed cost |
@@ -101,6 +103,8 @@ HuggingFace hosts many third-party quantized checkpoints. Using weights without 
 
 Data sovereignty requirements are a spectrum rather than a single threshold. The [AI Platform Decision Framework](../../design-architecture/platform-selection/ai-platform-decision-framework.md) breaks them into four levels.
 
+**Table 2. Inference location and recommended approach by sovereignty level**
+
 | Sovereignty Level | Inference Location | Recommended Approach |
 |----------|----------|----------|
 | Public | No region constraint | Commercial API / AWS Native |
@@ -139,10 +143,14 @@ Meeting sovereignty requirements incurs additional cost. Decisions must quantify
 
 Placing token economics (monthly inference volume) and data sovereignty requirements on two axes organizes deployment forms into four quadrants.
 
+**Table 3. Deployment-form matrix by volume and sovereignty requirement**
+
 | | Low Sovereignty Requirement | High Sovereignty Requirement |
 |---|---------------|---------------|
 | **Low Volume** | Commercial API (fastest to start) | In-region self-hosting (small scale) or hybrid |
 | **High Volume** | Hybrid (Cascade) or cost-driven self-hosting | In-region / air-gapped self-hosting |
+
+**Figure 1. Deployment-form decision across volume and sovereignty axes**
 
 ```mermaid
 quadrantChart
@@ -167,6 +175,8 @@ For customer-meeting discovery questions, use the checklist in [AI Platform Deci
 ## Reference Architecture Summary
 
 The standard form that satisfies both sovereignty and cost is in-region EKS-hosted vLLM self-hosting.
+
+**Figure 2. Reference architecture for in-region EKS-hosted vLLM self-hosting**
 
 ```mermaid
 flowchart LR
