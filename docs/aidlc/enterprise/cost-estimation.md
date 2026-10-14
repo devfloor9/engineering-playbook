@@ -62,6 +62,8 @@ In fixed-price bidding, cost reduction leads to bidder margin increase, but issu
 
 **Example: ₩5B Project**
 
+**Table 1. Proposal, effort, margin, and issuer value by AIDLC scenario for a ₩5B project**
+
 | Scenario | Approach | Proposal | Actual Effort | Bidder Margin | Issuer Value |
 |---------|----------|--------|----------|-------------|------------|
 | Traditional Method | No AIDLC | ₩5B | ₩5B | ₩1B (20%) | Meet basic requirements |
@@ -146,6 +148,8 @@ AIDLC adoption doesn't always bring cost reduction only. The following factors i
 
 #### Initial Investment
 
+**Table 2. AIDLC adoption initial investment items by scale and cost**
+
 | Item | Scale | Cost |
 |------|------|------|
 | Ontology design | 2-4 weeks (1 architect + 0.5 domain expert) | ₩50-100M |
@@ -182,6 +186,8 @@ Break-even point comes faster with larger projects. This is because AIDLC produc
 
 ### 3.1 Small Project (Under ₩1B)
 
+**Table 3. Traditional vs AIDLC cost and savings rate for a small project**
+
 | Item | Traditional Cost | AIDLC Cost | Savings Rate |
 |------|------------|-----------|--------|
 | Total MM | 50 MM | 40 MM | 20% |
@@ -201,6 +207,8 @@ Break-even point comes faster with larger projects. This is because AIDLC produc
 
 ### 3.2 Medium Project (₩1-5B)
 
+**Table 4. Traditional vs AIDLC cost and savings rate for a medium project**
+
 | Item | Traditional Cost | AIDLC Cost | Savings Rate |
 |------|------------|-----------|--------|
 | Total MM | 250 MM | 175 MM | 30% |
@@ -219,6 +227,8 @@ Break-even point comes faster with larger projects. This is because AIDLC produc
 - Actively adopt AI review automation
 
 ### 3.3 Large Project (₩5B+)
+
+**Table 5. Traditional vs AIDLC cost and savings rate for a large project**
 
 | Item | Traditional Cost | AIDLC Cost | Savings Rate |
 |------|------------|-----------|--------|
@@ -244,6 +254,8 @@ Complex programs with multiple bundled projects achieve additional effects throu
 
 **Example: Bank Next-Gen System (₩30B, 3 years)**
 
+**Table 6. Traditional vs AIDLC cost and savings rate by phase for the bank next-gen system**
+
 | Phase | Traditional Cost | AIDLC Cost | Savings Rate |
 |------|------------|-----------|--------|
 | Phase 1 (Accounting) | ₩10B | ₩6.8B (-32%) | 32% |
@@ -264,6 +276,8 @@ Ontology is AIDLC's core investment item. Quantifying initial investment vs long
 
 ### 4.1 Initial Investment
 
+**Table 7. Ontology initial investment activities by effort and cost**
+
 | Activity | Effort | Cost (₩10M/month basis) |
 |------|------|------------------------|
 | Domain analysis | 1 week (1 architect) | ₩2.5M |
@@ -282,6 +296,8 @@ According to McKinsey research "The economic potential of generative AI" (2023),
 
 Hamel & Patil (2024) "The Strawberry Manifesto" experimental data:
 
+**Table 8. Error rate, total cost, and improvement by feedback loop and ontology condition**
+
 | Condition | Error Rate (Day 31) | Total Cost | Improvement |
 |------|----------------|---------|--------|
 | No Feedback Loop (Baseline) | 8.3% | $25K | - |
@@ -299,6 +315,8 @@ With ontology, AI self-corrects in domain context, reducing error rate **7x**.
 
 When AI generates domain-accurate code based on ontology, reviewers focus on business logic verification.
 
+**Table 9. Review time and savings rate by review item with and without ontology**
+
 | Review Item | Without Ontology | With Ontology | Savings Rate |
 |----------|--------------|--------------|--------|
 | Domain consistency verification | 30 min | 5 min | 83% |
@@ -315,6 +333,8 @@ For medium projects with 500 PRs:
 ### 4.3 Ontology Maintenance Costs
 
 Ontology is not static. Continuous updates needed as requirements change.
+
+**Table 10. Ontology maintenance activities by frequency and monthly effort**
 
 | Activity | Frequency | Effort/time | Monthly Effort |
 |------|------|---------|---------|
@@ -366,6 +386,8 @@ Actual case introduced in Hamel & Patil (2024) "The Strawberry Manifesto":
 
 ### 5.2 Harness Introduction Effects
 
+**Table 11. Runtime stability metrics and improvement with and without harness**
+
 | Metric | Without Harness | With Harness | Improvement |
 |------|------------|------------|--------|
 | Runtime failure rate | 15/week | 3/week | 80% ↓ |
@@ -378,6 +400,8 @@ Actual case introduced in Hamel & Patil (2024) "The Strawberry Manifesto":
 - 80% failure reduction with harness: **₩160M savings**
 
 ### 5.3 Harness Investment Costs
+
+**Table 12. Harness investment items by effort and cost**
 
 | Item | Effort | Cost |
 |------|------|------|
@@ -395,6 +419,8 @@ Actual case introduced in Hamel & Patil (2024) "The Strawberry Manifesto":
 AIDLC supports both cloud APIs like Claude/GPT and open weight models like GLM/Qwen. TCO varies significantly based on choice.
 
 ### 6.1 Cloud API Costs
+
+**Table 13. Cloud API token prices and context size by model**
 
 | Model | Input Token Price | Output Token Price | Context Size |
 |------|--------------|--------------|--------------|
@@ -426,6 +452,8 @@ AIDLC supports both cloud APIs like Claude/GPT and open weight models like GLM/Q
 ### 6.2 Self-Hosting Costs
 
 **Infrastructure**: EKS + GPU nodes (vLLM-based)
+
+**Table 14. Self-hosting components by spec and monthly cost**
 
 | Component | Spec | Monthly Cost |
 |----------|------|---------|
@@ -460,6 +488,8 @@ GPT-3.5 Turbo: $0.006/request
 ### 6.3 Hybrid Strategy
 
 In practice, cloud API + self-hosting hybrid is optimal:
+
+**Table 15. Model selection and rationale by task type**
 
 | Task Type | Model Selection | Reason |
 |----------|----------|------|
@@ -520,6 +550,8 @@ Core metrics for measuring AIDLC adoption effects.
 
 Based on McKinsey "The economic potential of generative AI" (2023):
 
+**Table 16. Productivity improvement and ROI period benchmark by industry**
+
 | Industry | Productivity Improvement | ROI Period | Note |
 |------|-----------|---------|------|
 | Software Development | 35-45% | 3-6 months | Code generation focus |
@@ -553,6 +585,8 @@ This expression is vague and unmeasurable. Issuers want specific numbers.
 ### 8.2 Risk Mitigation Strategy
 
 AIDLC adoption entails new risks. Specify mitigation strategies in proposal.
+
+**Table 17. AIDLC adoption risks with mitigation strategy and responsible party**
 
 | Risk | Mitigation Strategy | Responsibility |
 |--------|----------|------|

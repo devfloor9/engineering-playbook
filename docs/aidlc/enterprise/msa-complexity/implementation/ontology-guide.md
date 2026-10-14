@@ -19,6 +19,8 @@ Recommended ontology levels and writing guidelines organized by complexity.
 
 ## Ontology Levels by Complexity
 
+**Table 1. Ontology level, included elements, and example file by complexity level**
+
 | Complexity | Ontology Level | Included Elements | Example File |
 |--------|--------------|-----------|----------|
 | **L1** | Lightweight Schema | - Entity definitions<br/>- Attributes<br/>- Basic invariants | `ontology/user-schema.yaml` |

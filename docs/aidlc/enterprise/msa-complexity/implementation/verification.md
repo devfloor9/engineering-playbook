@@ -103,6 +103,8 @@ jobs:
 
 ### Pass Criteria
 
+**Table 1. Quality gate minimum requirement and recommended target by item**
+
 | Item | Minimum Requirement | Recommended Target |
 |------|-------------|----------|
 | **Ontology Coverage** | 90% | 100% |

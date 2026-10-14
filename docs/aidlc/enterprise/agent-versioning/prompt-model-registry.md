@@ -227,17 +227,21 @@ After evaluation and approval, map `PROD` to that ARN in the application configu
 
 ## Comparison Table
 
+The High/Medium levels in the 'AIDLC Suitability' row are the author's qualitative assessment.
+
+**Table 1. Feature support comparison across prompt registry tools**
+
 | Feature | Langfuse | PromptLayer | Braintrust | Bedrock PM |
 |---------|----------|-------------|------------|------------|
 | **Deployment Method** | Self-hosted | SaaS | SaaS | AWS Managed |
-| **Version Control** | ✅ | ✅ | ✅ | ✅ |
-| **Labels/Alias** | ✅ | ✅ | ❌ | Application-owned version-ARN mapping |
-| **Visual Diff** | Basic | ✅ | ✅ | ❌ |
-| **Approval Workflow** | ❌ | ✅ | ❌ | ❌(Implement with IAM) |
-| **A/B Experiments** | Manual | ✅ | ✅ | Manual |
-| **Auto Evaluation Integration** | Possible (trace-based) | ❌ | ✅ | Possible (Lambda) |
-| **Data Sovereignty** | ✅ | ❌ | ❌ | ✅(Within region) |
-| **AIDLC Suitability** | **⭐ High** | Medium (SaaS) | High (Eval-focused) | High (Bedrock only) |
+| **Version Control** | Supported | Supported | Supported | Supported |
+| **Labels/Alias** | Supported | Supported | Not supported | Application-owned version-ARN mapping |
+| **Visual Diff** | Basic | Supported | Supported | Not supported |
+| **Approval Workflow** | Not supported | Supported | Not supported | Not supported (implement with IAM) |
+| **A/B Experiments** | Manual | Supported | Supported | Manual |
+| **Auto Evaluation Integration** | Possible (trace-based) | Not supported | Supported | Possible (Lambda) |
+| **Data Sovereignty** | Supported | Not supported | Not supported | Supported (within region) |
+| **AIDLC Suitability** | High | Medium (SaaS) | High (Eval-focused) | High (Bedrock only) |
 
 **AIDLC Recommendation**: **Langfuse** (self-hosted requirement) or **AWS Bedrock PM** (when using Bedrock). PromptLayer/Braintrust if SaaS is allowed.
 

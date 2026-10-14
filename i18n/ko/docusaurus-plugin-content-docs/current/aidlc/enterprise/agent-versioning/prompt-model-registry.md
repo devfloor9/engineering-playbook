@@ -227,17 +227,21 @@ def snapshot_prompt(bedrock, prompt_arn, *, description, client_token):
 
 ## 비교표
 
+'AIDLC 적합성' 행의 높음·중간 수준은 작성자의 정성적 평가입니다.
+
+**표 1. 프롬프트 레지스트리 도구별 기능 지원 비교**
+
 | 기능 | Langfuse | PromptLayer | Braintrust | Bedrock PM |
 |------|----------|-------------|------------|------------|
 | **배포 방식** | Self-hosted | SaaS | SaaS | AWS Managed |
-| **버전 관리** | ✅ | ✅ | ✅ | ✅ |
-| **라벨/Alias** | ✅ | ✅ | ❌ | 애플리케이션의 버전 ARN 매핑 |
-| **Visual Diff** | 기본 | ✅ | ✅ | ❌ |
-| **승인 워크플로** | ❌ | ✅ | ❌ | ❌(IAM으로 구현) |
-| **A/B 실험** | 수동 | ✅ | ✅ | 수동 |
-| **자동 평가 연동** | 가능(trace 기반) | ❌ | ✅ | 가능(Lambda) |
-| **데이터 주권** | ✅ | ❌ | ❌ | ✅(리전 내) |
-| **AIDLC 적합성** | **⭐ 높음** | 중간(SaaS) | 높음(Eval 중심) | 높음(Bedrock 전용) |
+| **버전 관리** | 지원 | 지원 | 지원 | 지원 |
+| **라벨/Alias** | 지원 | 지원 | 미지원 | 애플리케이션의 버전 ARN 매핑 |
+| **Visual Diff** | 기본 | 지원 | 지원 | 미지원 |
+| **승인 워크플로** | 미지원 | 지원 | 미지원 | 미지원(IAM으로 구현) |
+| **A/B 실험** | 수동 | 지원 | 지원 | 수동 |
+| **자동 평가 연동** | 가능(trace 기반) | 미지원 | 지원 | 가능(Lambda) |
+| **데이터 주권** | 지원 | 미지원 | 미지원 | 지원(리전 내) |
+| **AIDLC 적합성** | 높음 | 중간(SaaS) | 높음(Eval 중심) | 높음(Bedrock 전용) |
 
 **AIDLC 권장**: **Langfuse**(self-hosted 요구사항) 또는 **AWS Bedrock PM**(Bedrock 사용 시). PromptLayer/Braintrust는 SaaS 허용 시.
 

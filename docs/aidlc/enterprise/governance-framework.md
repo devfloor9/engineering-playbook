@@ -55,6 +55,8 @@ Systematic governance framework enables:
 
 AIDLC adopts a 3-layer governance model: Enterprise-System-Project.
 
+**Figure 1. Inheritance structure of the enterprise-system-project 3-layer governance model**
+
 ```mermaid
 graph TB
     subgraph Layer1["Layer 1: Enterprise Standards<br/>(Enterprise Policy)"]
@@ -351,6 +353,8 @@ In enterprise environments, the following data cannot be transmitted to external
 
 Handle sensitive tasks with on-premises open weight models, general tasks with cloud APIs.
 
+**Figure 2. On-premises and cloud hybrid model routing by task sensitivity**
+
 ```mermaid
 graph LR
     DEV[Developer]
@@ -384,6 +388,8 @@ graph LR
 ### Data Classification System
 
 Restrict AI tool usage according to organizational data classification policy.
+
+**Table 1. Data classification levels with definition, allowed AI tools, and example**
 
 | Data Classification | Definition | Allowed AI Tools | Example |
 |------------|------|-------------|------|

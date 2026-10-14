@@ -27,6 +27,8 @@ The most frequently encountered challenges in enterprise AIDLC adoption:
 
 ## Structure
 
+**Table 1. Enterprise adoption track document structure and target audience**
+
 | Order | Document | Target Audience |
 |------|------|----------|
 | 1 | [Adoption Strategy](./adoption-strategy.md) | Executives, PM, Delivery Managers |

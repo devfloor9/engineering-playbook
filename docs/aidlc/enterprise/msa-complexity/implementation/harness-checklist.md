@@ -20,6 +20,8 @@ Required and optional harnesses organized by pattern.
 
 ## Required Harnesses by Pattern
 
+**Table 1. Required and optional harnesses with priority by MSA pattern**
+
 | Pattern | Required Harnesses | Optional Harnesses | Priority |
 |------|-----------|-----------|---------|
 | **L1: CRUD** | - API contract verification<br/>- Basic unit tests<br/>- Integration tests | - Performance tests<br/>- Security scans | P0 |

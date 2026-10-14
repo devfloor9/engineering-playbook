@@ -24,6 +24,8 @@ Use the **Golden Dataset** in [AIDLC Evaluation Framework](../../toolchain/evalu
 
 **Workflow**:
 
+**Figure 1. Deployment workflow with regression detection integration**
+
 ```mermaid
 graph LR
     A[Prompt Change] --> B[Staging Deployment]
@@ -127,6 +129,8 @@ An absent alert or empty comparison vector is not a pass. Separate health checks
 ### Change Approval Workflow
 
 The following roles and thresholds are a **proposed organizational policy**, not official AI-DLC stage definitions. Retain the official approval checkpoints and separately configure reviewer authority and exception approval. The inspected [v0.1.7 Operations rules](https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/aidlc-rules/aws-aidlc-rule-details/operations/operations.md) are a placeholder for future operational stages.
+
+**Table 1. Change approval workflow checkpoints, approvers, and criteria by stage**
 
 | Stage | Checkpoint | Approver | Criteria |
 |-------|-----------|----------|----------|
@@ -306,6 +310,8 @@ The inspected [Langfuse caching documentation](https://langfuse.com/docs/prompt-
 
 **Proposed audit-evidence policy:** the seven-, three- and one-year periods below are examples for review, not verified statutory duties. Determine the actual jurisdiction, record class and approved organizational policy, including authority, access/deletion, legal holds and cost. This document makes no new legal determination.
 
+**Table 2. Audit evidence record location and retention period by item (example)**
+
 | Item | Record Location | Retention Period |
 |------|----------------|------------------|
 | Prompt Version | Langfuse DB + separately configured archive | 7 years |
@@ -389,6 +395,8 @@ repo/
 ### Operations Phase
 
 **Progressive rollout and regression detection (hypothetical scenario):** promotion depends on traffic volume, P99, error rate and human approval, not the clock alone. The 3%/5% error thresholds and 15-/30-minute persistence windows are different policies; the error-rate detector and routing need their own implementation.
+
+**Table 3. Deployment ratio and monitoring actions over time in the hypothetical progressive rollout**
 
 | Time | Deployment Ratio | Monitoring |
 |------|-----------------|------------|
