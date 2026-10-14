@@ -61,6 +61,8 @@ aws eks start-insights-refresh \
 
 CloudWatch Observability 애드온(`amazon-cloudwatch-observability`)은 v2.2.1-eksbuild.1 이상에서 하이브리드 노드와 호환됩니다. 온프레미스 노드의 메트릭·로그를 클라우드 노드와 동일한 CloudWatch 화면으로 통합하되, 하이브리드 특화 제약 세 가지를 반영해야 합니다.
 
+**표 1. Container Insights 하이브리드 특화 제약과 대응**
+
 | 항목 | 내용 | 대응 |
 |------|------|------|
 | IMDS 부재 | 하이브리드 노드에는 EC2 Instance Metadata Service가 없어 **노드 레벨 메트릭이 수집되지 않음** (클러스터·워크로드·Pod·컨테이너 레벨은 정상) | 노드 레벨은 Prometheus Node Exporter(하이브리드 호환 애드온)로 보완 |
@@ -144,6 +146,8 @@ hubble observe --verdict DROPPED --last 100
 
 관측 스택을 AMP(또는 자체 Prometheus) + Grafana로 단일화하면, 성격이 다른 네 계열의 메트릭을 하나의 화면에서 상관 분석할 수 있습니다.
 
+**표 2. 통합 대시보드의 패널 계열별 데이터 소스와 관측 대상**
+
 | 패널 계열 | 데이터 소스 | 관측 대상 |
 |-----------|------------|----------|
 | Pod 네트워크 플로우 (eBPF) | Hubble 메트릭 (`hubble_*`) | 온프렘 Pod 간·크로스 네트워크 플로우, 드롭, DNS 실패 |
@@ -156,6 +160,8 @@ hubble observe --verdict DROPPED --last 100
 ## Network Flow Monitor 적용성 분석
 
 CloudWatch Network Flow Monitor(NFM)는 eBPF(`bpf_sock_ops`) 기반 경량 에이전트로 TCP 플로우의 재전송·RTT·전송량을 수집하고, EKS 콘솔의 Container Network Observability(서비스 맵·플로우 테이블)를 구동하는 서비스입니다. 하이브리드 클러스터 적용성을 판정하면 다음과 같습니다.
+
+**표 3. Network Flow Monitor 하이브리드 적용성 판정**
 
 | 판정 축 | 내용 | 판정 |
 |---------|------|------|

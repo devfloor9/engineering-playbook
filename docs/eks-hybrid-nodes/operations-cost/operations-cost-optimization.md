@@ -48,6 +48,8 @@ sudo nodeadm debug --config-source file://nodeconfig.yaml
 
 A hybrid cluster has three observation layers.
 
+**Table 1. The three hybrid cluster observation layers and their tools**
+
 | Layer | Observation Targets | Tools |
 |------|----------|------|
 | Nodes and workloads | Hybrid node status, Pod metrics | Prometheus/AMP (ADOT), CloudWatch Observability add-on |

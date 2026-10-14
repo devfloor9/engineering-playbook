@@ -35,6 +35,8 @@ For organizations with scarce internal IPAM address space, the first question is
 
 Adopting the Gateway reduces the ranges that must be registered and routed in the on-premises network as follows.
 
+**Table 1. On-prem routing and firewall registration scope before and after Gateway adoption**
+
 | Item | Without Gateway (full routing) | With Gateway |
 |------|--------------------------|--------------|
 | Node CIDR on-prem routing | Required | **Required (unchanged)** |
@@ -52,6 +54,8 @@ A VPC CIDR cannot be shrunk or changed after creation (only secondary CIDRs can 
 
 **Rationale for the practical recommendation (/25 to /24)**: control plane ENIs alone do not make a complete cluster.
 
+**Table 2. IP consumers that drive VPC sizing and their approximate demand**
+
 | Consumer | Required IPs (approx.) | Notes |
 |-----------|---------------------|------|
 | Control plane ENI subnets ×2 | /28 ×2 (32) | Includes headroom for new ENI creation and replacement during upgrades |
@@ -65,6 +69,8 @@ A VPC CIDR cannot be shrunk or changed after creation (only secondary CIDRs can 
 The decisive factor is that on cloud nodes the VPC CNI consumes a VPC IP per Pod. Running just a few webhooks, CoreDNS, and monitoring agents can require dozens of IPs per node.
 
 **Worked example (two AZs, in subnet blocks)**: the VPC size is only settled once the consumers above are laid out as actual subnet blocks. The example below assumes a topology with dedicated subnets for the control plane ENIs, the cloud nodes, and the endpoints. AWS reserves five addresses in every subnet, so a /28 has 11 usable IPs and a /27 has 27.
+
+**Table 3. Address worked example by subnet block for a two-AZ topology**
 
 | Subnet (one per AZ × 2) | Block per AZ | Addresses across 2 AZs | Holds |
 |-----------|-----------|---------------|------|

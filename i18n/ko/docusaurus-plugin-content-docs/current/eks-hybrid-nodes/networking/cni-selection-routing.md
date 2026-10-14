@@ -30,6 +30,8 @@ category: hybrid-multicloud
 > "Cilium is the AWS-supported Container Networking Interface (CNI) for Amazon EKS Hybrid Nodes. You must install a CNI for hybrid nodes to become ready to serve workloads. Hybrid nodes appear with status `Not Ready` until a CNI is running."
 > — [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html)
 
+**표 1. CNI별 하이브리드 노드 지원 여부와 특징**
+
 | CNI | 하이브리드 노드 지원 | 비고 |
 |-----|--------------------|------|
 | Amazon VPC CNI | **비호환** | `eks.amazonaws.com/compute-type: hybrid` 레이블에 anti-affinity가 기본 구성되어 하이브리드 노드에 스케줄되지 않음 |
@@ -91,6 +93,8 @@ helm install cilium oci://public.ecr.aws/eks/cilium/cilium \
 
 Pod 레벨 inbound가 필요한 환경([기능표](../overview-architecture/hybrid-nodes-fundamentals.md#node-대역-필수-pod-대역-선택-원칙))에서 Pod CIDR을 도달 가능하게 만드는 방식은 세 가지입니다.
 
+**표 2. Pod CIDR 라우팅 3가지 방식의 적합 환경·요건·특징**
+
 | 방식 | 적합 환경 | 요건 | 특징 |
 |------|----------|------|------|
 | BGP 동적 라우팅 (권장) | 노드 증감이 잦은 중·대규모 | BGP 지원 라우터, ASN·피어링 협의 | 노드별 Pod CIDR 슬라이스를 자동 광고 — 증설 시 라우터 변경 불필요 |
@@ -120,6 +124,8 @@ helm upgrade cilium oci://public.ecr.aws/eks/cilium/cilium \
 :::
 
 ### 2. BGP CRD 3종 구성
+
+**표 3. Cilium BGP Control Plane CRD 3종의 역할과 핵심 필드**
 
 | CRD | 역할 | 핵심 필드 |
 |-----|------|----------|

@@ -83,6 +83,8 @@ helm install nvidia-device-plugin nvdp/nvidia-device-plugin \
 
 On-premises GPU servers carry single-site risks: hardware failure, power loss, and circuit disconnection. Defining a Karpenter (or EKS Auto Mode) GPU NodePool inside the AWS VPC at **zero nodes in steady state** creates a fallback layer where pending Pods automatically launch cloud GPU nodes when on-premises GPU capacity is lost.
 
+**Figure 1. Three-tier fallback flow from on-premises GPU to cloud and Bedrock**
+
 ```mermaid
 flowchart LR
     subgraph ONPREM["On-premises (Tier 1 — steady state)"]
@@ -180,6 +182,8 @@ The operating sequence is as follows.
 5. After on-premises recovery: once workloads are moved back on-prem, `consolidation` automatically reclaims the idle cloud GPU nodes.
 
 ### Design Verification Items
+
+**Table 1. Fallback design checklist and detail**
 
 | Item | Detail |
 |------|--------|

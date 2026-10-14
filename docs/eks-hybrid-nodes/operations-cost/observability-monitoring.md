@@ -61,6 +61,8 @@ Pairing Cluster Insights (the control plane's perspective) with `nodeadm debug` 
 
 The CloudWatch Observability add-on (`amazon-cloudwatch-observability`) is compatible with hybrid nodes from v2.2.1-eksbuild.1. It unifies on-premises node metrics and logs into the same CloudWatch views as cloud nodes, but three hybrid-specific constraints must be accounted for.
 
+**Table 1. Hybrid-specific Container Insights constraints and handling**
+
 | Item | Detail | Handling |
 |------|--------|----------|
 | No IMDS | Hybrid nodes have no EC2 Instance Metadata Service, so **node-level metrics are not collected** (cluster, workload, Pod, and container levels work normally) | Supplement node level with Prometheus Node Exporter (a hybrid-compatible add-on) |
@@ -145,6 +147,8 @@ hubble observe --verdict DROPPED --last 100
 
 Consolidating the observability stack onto AMP (or self-managed Prometheus) + Grafana allows four families of metrics of different natures to be correlated on a single screen.
 
+**Table 2. Data source and observation target by unified dashboard panel family**
+
 | Panel family | Data source | Observation target |
 |--------------|------------|--------------------|
 | Pod network flows (eBPF) | Hubble metrics (`hubble_*`) | On-prem Pod-to-Pod and cross-network flows, drops, DNS failures |
@@ -157,6 +161,8 @@ For example, in an "inference latency spike" scenario, comparing GPU utilization
 ## Network Flow Monitor Applicability Analysis
 
 CloudWatch Network Flow Monitor (NFM) is a service built on a lightweight eBPF (`bpf_sock_ops`) agent that collects TCP flow retransmissions, RTT, and throughput, and powers the EKS console's Container Network Observability (service map and flow table). Assessing its applicability to hybrid clusters yields the following.
+
+**Table 3. Network Flow Monitor applicability assessment for hybrid nodes**
 
 | Assessment axis | Detail | Verdict |
 |-----------------|--------|---------|

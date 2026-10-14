@@ -31,6 +31,8 @@ Exposing workloads running on hybrid nodes outside the cluster requires differen
 > "The decision to use NLB or Cilium is based on the source of application traffic. If application traffic originates from an AWS Region, AWS recommends using AWS NLB and the AWS Load Balancer Controller. If application traffic originates from the local on-premises or edge environment, AWS recommends using Cilium's built-in load balancing capabilities."
 > — [Configure Services of type LoadBalancer for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-load-balancing.html)
 
+**Table 1. Recommended load balancing path and prerequisites by traffic origin**
+
 | Traffic origin | Recommended path | Prerequisites |
 |----------------|-----------------|---------------|
 | AWS Region (or internet via the Region) | NLB/ALB + AWS Load Balancer Controller (IP targets) | Pod CIDR reachable from AWS (full BGP routing or Gateway) |
@@ -69,6 +71,8 @@ Three configuration cautions apply.
 ## Path 2: Cilium Built-In LB (On-Premises-Originating)
 
 On-premises local traffic can be handled by Cilium's built-in capabilities without separate load balancer infrastructure. Three features divide the responsibilities.
+
+**Table 2. Roles of the three Cilium built-in load balancing features**
 
 | Feature | Role | Notes |
 |---------|------|-------|

@@ -27,6 +27,8 @@ Unlike managed node groups, the entire Kubernetes version upgrade process for hy
 
 ## Upgrade Strategy: Node Replacement vs In-Place
 
+**Table 1. Method and suitable environment for node replacement vs in-place upgrade strategies**
+
 | Strategy | Method | Suitable environment |
 |----------|--------|---------------------|
 | Node replacement (cutover, blue-green) — **officially recommended** | Join new nodes initialized at the target version, migrate workloads, then remove old-version nodes with `nodeadm uninstall` and `kubectl delete node` | Environments with spare hardware or virtualization-based node provisioning |
@@ -37,6 +39,8 @@ The official guide recommends node replacement (cutover) when spare capacity is 
 ## How nodeadm upgrade Works: The 4-Phase Process
 
 `nodeadm upgrade` is an in-place replacement operation executed on the node, proceeding internally in four phases.
+
+**Figure 1. The four-phase in-place replacement process of nodeadm upgrade**
 
 ```mermaid
 flowchart LR
@@ -121,6 +125,8 @@ For air-gapped deployment systems that require version pinning, use a versioned 
 
 `nodeadm upgrade` fetches EKS artifacts (kubelet, etc.), but **OS-layer dependencies such as containerd, ca-certificates, and kernel modules are handled by the OS package manager (yum/dnf, apt)**. For an upgrade not to fail midway in an internet-blocked environment, both paths must resolve inside the internal network.
 
+**Table 2. Default source and air-gapped handling by download target for air-gapped upgrades**
+
 | Download target | Default source | Air-gapped handling |
 |-----------------|---------------|---------------------|
 | EKS node artifacts (kubelet, etc.) | `hybrid-assets.eks.amazonaws.com` | Internal artifact repository mirror, or proxy allowance limited to this domain |
@@ -171,6 +177,8 @@ sudo apt-get update   # verify all enabled sources resolve to the internal mirro
 The private mirror is not needed only at upgrade time — it is the permanent supply path for OS security patches. Establish mirror sync cadence, GPG key management, and the mirror's own availability as an operational practice before planning the upgrade.
 
 ## Upgrade Runbook (Per Node)
+
+**Table 3. Per-node upgrade runbook steps, tasks, and verification**
 
 | Step | Task | Verification |
 |------|------|--------------|

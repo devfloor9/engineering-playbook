@@ -28,6 +28,8 @@ This document covers GPU workload architecture and high-performance networking c
 
 Registering existing GPU servers (such as DGX systems) as hybrid nodes allows fixed-cost assets to serve as the primary inference tier, combined with cloud GPUs (Spot) and Amazon Bedrock as burst and fallback tiers.
 
+**Table 1. Infrastructure, cost, and role by three-tier hybrid inference tier**
+
 | Tier | Infrastructure | Cost Structure | Role |
 |------|--------|---------|------|
 | 1 | On-Prem Hybrid Node (DGX) | Fixed cost (already owned) | Baseline traffic (always active) |
