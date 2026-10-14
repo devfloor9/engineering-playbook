@@ -30,27 +30,27 @@ vLLM은 널리 사용되는 오픈소스 LLM 추론 엔진입니다. 아래 표�
 
 | 기술 | 보고된 효과 (출처·조건) | 동작 원리 |
 |------|---------|------|
-| **PagedAttention** | [vLLM 공개 발표](https://blog.vllm.ai/2023/06/20/vllm.html)는 기존 서빙 시스템이 단편화와 과다 예약으로 KV 캐시 메모리의 60–80%를 낭비하며 PagedAttention이 그 낭비를 4% 미만으로 줄인다고 보고합니다. 이는 전체 메모리를 60–80% 줄인다는 의미가 아니라 낭비분을 줄인다는 의미입니다. | 각 시퀀스의 KV 캐시를 고정 크기의 비연속 블록으로 저장하고 블록 테이블로 매핑하는, OS 가상 메모리 페이징과 유사한 방식 |
+| **PagedAttention** | [vLLM 공개 발표](https://blog.vllm.ai/2023/06/20/vllm.html)는 기존 서빙 시스템이 단편화와 과다 예약으로 KV cache 메모리의 60–80%를 낭비하며 PagedAttention이 그 낭비를 4% 미만으로 줄인다고 보고합니다. 이는 전체 메모리를 60–80% 줄인다는 의미가 아니라 낭비분을 줄인다는 의미입니다. | 각 시퀀스의 KV cache를 고정 크기의 비연속 블록으로 저장하고 블록 테이블로 매핑하는, OS 가상 메모리 페이징과 유사한 방식 |
 | **Continuous Batching** | 같은 발표는 LLaMA-7B/13B(A10G/A100, ShareGPT 트래픽) 기준으로 HuggingFace Transformers 대비 최대 24×, TGI 대비 2.2–3.5× 높은 종단 간 처리량을 보고합니다. 이는 배칭 단독 효과가 아니라 전체 시스템 결과입니다. | 배치 전체가 끝나기를 기다리지 않고 반복(iteration) 단위로 요청을 추가·제거 |
-| **FP8 KV Cache** | KV 캐시를 FP8로 저장하면 KV 캐시 용량이 약 절반으로 줄어 더 많은 토큰을 담을 수 있습니다. 모델 가중치나 전체 GPU 메모리를 절반으로 줄이는 것은 아닙니다([vLLM Quantized KV Cache](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache.html)). | KV 캐시 텐서를 FP8(`fp8_e4m3`/`fp8_e5m2`)로, per-tensor 또는 per-head 스케일로 저장 |
-| **Prefix Caching** | 프롬프트 prefix를 공유하는 요청의 TTFT와 프리필 연산을 줄입니다. 개선 폭은 히트율과 prefix 길이에 따라 달라지며 고정 배수가 아닙니다. | 공유 prefix의 이미 계산된 KV 캐시 블록을 재사용(해시 기반, 전체 블록만) |
+| **FP8 KV Cache** | KV cache를 FP8로 저장하면 KV cache 용량이 약 절반으로 줄어 더 많은 토큰을 담을 수 있습니다. 모델 가중치나 전체 GPU 메모리를 절반으로 줄이는 것은 아닙니다([vLLM Quantized KV Cache](https://docs.vllm.ai/en/latest/features/quantization/quantized_kvcache.html)). | KV cache 텐서를 FP8(`fp8_e4m3`/`fp8_e5m2`)로, per-tensor 또는 per-head 스케일로 저장 |
+| **Prefix Caching** | 프롬프트 prefix를 공유하는 요청의 TTFT와 프리필 연산을 줄입니다. 개선 폭은 히트율과 prefix 길이에 따라 달라지며 고정 배수가 아닙니다. | 공유 prefix의 이미 계산된 KV cache 블록을 재사용(해시 기반, 전체 블록만) |
 | **Speculative Decoding** | vLLM 문서는 이를 정성적 지연 최적화로 설명하며 그 효과가 "모델 계열·트래픽 패턴·하드웨어·샘플링 설정에 따라 달라진다"고 명시합니다([method-selection guide](https://docs.vllm.ai/en/latest/features/speculative_decoding/)). 고정 배수는 공표되지 않았습니다. | 드래프트 제안기가 여러 토큰을 예측하고 대상 모델이 한 스텝에서 검증 |
 | **Chunked Prefill** | 프리필 지연과 디코드 처리량을 맞바꿉니다. 균형점은 청크 크기와 트래픽에 따라 달라집니다. | 긴 프리필을 청크로 나눠 동일 배치의 디코드 스텝과 혼합 |
 
 ### GPU 메모리 계산
 
-모델 배포 전 GPU 메모리를 정확히 계획해야 합니다. 프로세스 전체 메모리는 모델 가중치, 프레임워크·활성화 오버헤드, 그리고 동시 처리 중인 모든 시퀀스를 담는 KV 캐시 풀의 합입니다.
+모델 배포 전 GPU 메모리를 정확히 계획해야 합니다. 프로세스 전체 메모리는 모델 가중치, 프레임워크·활성화 오버헤드, 그리고 동시 처리 중인 모든 시퀀스를 담는 KV cache 풀의 합입니다.
 
 ```
-프로세스 전체 GPU 메모리 ≈ 모델 가중치 + 비torch 메모리 + PyTorch 활성화 + KV 캐시 풀
+프로세스 전체 GPU 메모리 ≈ 모델 가중치 + 비torch 메모리 + PyTorch 활성화 + KV cache 풀
 
-토큰당 KV 캐시 = 2(K·V) × 레이어 수 × num_kv_heads × head_dim × 요소당 바이트
-KV 캐시 풀 ≈ 토큰당 KV 캐시 × (실행 배치의 시퀀스 길이 총합)
+토큰당 KV cache = 2(K·V) × 레이어 수 × num_kv_heads × head_dim × 요소당 바이트
+KV cache 풀 ≈ 토큰당 KV cache × (실행 배치의 시퀀스 길이 총합)
 ```
 
-KV 캐시 크기는 위 토큰당 항과 캐시된 전체 토큰 수(시퀀스 길이 × 동시성)에 비례하며, 고정된 "× 배치 크기" 배수가 아닙니다. GQA나 MLA(예: Kimi K2.5의 MLA)를 쓰는 모델은 `num_kv_heads` 항이 훨씬 작아, 전체 헤드 수만 보고 추정하는 것보다 KV 캐시가 작습니다.
+KV cache 크기는 위 토큰당 항과 캐시된 전체 토큰 수(시퀀스 길이 × 동시성)에 비례하며, 고정된 "× 배치 크기" 배수가 아닙니다. GQA나 MLA(예: Kimi K2.5의 MLA)를 쓰는 모델은 `num_kv_heads` 항이 훨씬 작아, 전체 헤드 수만 보고 추정하는 것보다 KV cache가 작습니다.
 
-**정밀도별 가중치 단독 추정치.** 아래 수치는 가중치만 계산한 추정치(`파라미터 수 × 파라미터당 바이트`)로, 전체 VRAM이 아니라 하한값입니다. 활성화·프레임워크 오버헤드·KV 캐시 풀이 그 위에 더해지기 때문입니다. MoE 모델은 토큰당 일부만 활성화되더라도 가중치 추정에는 총 파라미터 수를 사용합니다.
+**정밀도별 가중치 단독 추정치.** 아래 수치는 가중치만 계산한 추정치(`파라미터 수 × 파라미터당 바이트`)로, 전체 VRAM이 아니라 하한값입니다. 활성화·프레임워크 오버헤드·KV cache 풀이 그 위에 더해지기 때문입니다. MoE 모델은 토큰당 일부만 활성화되더라도 가중치 추정에는 총 파라미터 수를 사용합니다.
 
 | 정밀도 | 파라미터당 바이트 | 70B 가중치만 | 32B 가중치만 |
 |--------|---------------|---------|---------|
@@ -81,7 +81,7 @@ flowchart TD
 
 **모델 크기별 구성 예시:**
 
-아래 행은 검증된 용량 수치가 아니라 참고용 출발점입니다. 필요한 GPU 수는 정확한 체크포인트와 양자화, 목표로 하는 컨텍스트 길이·동시성(KV 캐시 풀을 결정), 남겨둘 여유 공간에 따라 달라집니다. 각 배포는 위 메모리 산식과 자체 벤치마크로 산정하십시오. Expert Parallelism(EP)은 vLLM의 실험적 기능으로 `--enable-expert-parallel`로 명시적으로 활성화해야 하며 보통 데이터 병렬화와 함께 사용합니다(`EP_SIZE = TP × DP`). MoE 모델이라고 자동 적용되지 않습니다([vLLM EP 배포 문서](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment.html)).
+아래 행은 검증된 용량 수치가 아니라 참고용 출발점입니다. 필요한 GPU 수는 정확한 체크포인트와 양자화, 목표로 하는 컨텍스트 길이·동시성(KV cache 풀을 결정), 남겨둘 여유 공간에 따라 달라집니다. 각 배포는 위 메모리 산식과 자체 벤치마크로 산정하십시오. Expert Parallelism(EP)은 vLLM의 실험적 기능으로 `--enable-expert-parallel`로 명시적으로 활성화해야 하며 보통 데이터 병렬화와 함께 사용합니다(`EP_SIZE = TP × DP`). MoE 모델이라고 자동 적용되지 않습니다([vLLM EP 배포 문서](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment.html)).
 
 | 모델 예시 | 총/활성 파라미터 | 정밀도 | GPU 구성 예시 | 병렬화(명시 설정 필요) |
 |-----------|---------|--------|---------|--------|
@@ -104,15 +104,15 @@ vllm serve Qwen/Qwen3-32B-FP8 \
 
 플래그 의미(주석을 명령 밖으로 빼내어, 각 백슬래시 뒤에 바로 개행이 오게 하여 라인 연속이 끊기지 않도록 합니다):
 
-- `--gpu-memory-utilization=0.95` — vLLM이 각 GPU 메모리 중 **모델 실행기(executor) 전체**(가중치·활성화·KV 캐시 풀 합계)에 사용할 비율이며, KV 캐시 전용 비율이 아닙니다. 기본값은 v0.19에서 `0.9`, v0.24에서 `0.92`입니다([v0.19 `cache.py`](https://github.com/vllm-project/vllm/blob/v0.19.0/vllm/config/cache.py), [v0.24 `cache.py`](https://github.com/vllm-project/vllm/blob/v0.24.0/vllm/config/cache.py)). KV 캐시 풀은 가중치와 오버헤드를 제외한 나머지입니다.
-- `--max-model-len=32768` — 최대 시퀀스 길이. 단일 시퀀스의 KV 캐시가 커질 수 있는 상한을 정합니다.
-- `--enable-prefix-caching` — 공유 prefix의 KV 캐시 블록을 재사용(KV 캐시 설정상 기본 활성화).
-- `--kv-cache-dtype=fp8` — **KV 캐시**를 FP8로 저장하여 KV 캐시 용량만 약 절반으로 줄입니다. 가중치 정밀도나 전체 메모리는 바꾸지 않습니다.
+- `--gpu-memory-utilization=0.95` — vLLM이 각 GPU 메모리 중 **모델 실행기(executor) 전체**(가중치·활성화·KV cache 풀 합계)에 사용할 비율이며, KV cache 전용 비율이 아닙니다. 기본값은 v0.19에서 `0.9`, v0.24에서 `0.92`입니다([v0.19 `cache.py`](https://github.com/vllm-project/vllm/blob/v0.19.0/vllm/config/cache.py), [v0.24 `cache.py`](https://github.com/vllm-project/vllm/blob/v0.24.0/vllm/config/cache.py)). KV cache 풀은 가중치와 오버헤드를 제외한 나머지입니다.
+- `--max-model-len=32768` — 최대 시퀀스 길이. 단일 시퀀스의 KV cache가 커질 수 있는 상한을 정합니다.
+- `--enable-prefix-caching` — 공유 prefix의 KV cache 블록을 재사용(KV cache 설정상 기본 활성화).
+- `--kv-cache-dtype=fp8` — **KV cache**를 FP8로 저장하여 KV cache 용량만 약 절반으로 줄입니다. 가중치 정밀도나 전체 메모리는 바꾸지 않습니다.
 - `--enable-auto-tool-choice` / `--tool-call-parser=hermes` — Tool calling 자동 지원과 파서 선택.
 
 ### 양자화 전략 비교
 
-양자화는 "모델 정밀도를 낮추는 대신 메모리 사용량을 줄이는" 기법입니다([vLLM 양자화 가이드](https://docs.vllm.ai/en/latest/features/quantization/)). 아래 절감치는 BF16/FP16 대비 가중치 비트 산술값(예: 8비트 ≈ 가중치 바이트 절반, 4비트 ≈ 1/4)이며, 활성화와 KV 캐시 풀을 포함한 전체 GPU 메모리의 실측 절감치가 아니고 고정된 품질·속도 순위도 아닙니다. 품질과 처리량은 구체적인 변형·모델·백엔드에 따라 달라지고, 각 형식은 특정 하드웨어에서만 지원됩니다. vLLM은 아키텍처별 지원 매트릭스(Volta/Turing/Ampere/Ada/Hopper, AMD, Intel, CPU)를 공개하므로 선택 전에 확인하십시오.
+양자화는 "모델 정밀도를 낮추는 대신 메모리 사용량을 줄이는" 기법입니다([vLLM 양자화 가이드](https://docs.vllm.ai/en/latest/features/quantization/)). 아래 절감치는 BF16/FP16 대비 가중치 비트 산술값(예: 8비트 ≈ 가중치 바이트 절반, 4비트 ≈ 1/4)이며, 활성화와 KV cache 풀을 포함한 전체 GPU 메모리의 실측 절감치가 아니고 고정된 품질·속도 순위도 아닙니다. 품질과 처리량은 구체적인 변형·모델·백엔드에 따라 달라지고, 각 형식은 특정 하드웨어에서만 지원됩니다. vLLM은 아키텍처별 지원 매트릭스(Volta/Turing/Ampere/Ada/Hopper, AMD, Intel, CPU)를 공개하므로 선택 전에 확인하십시오.
 
 | 양자화 | BF16 대비 가중치 비트 용량 | 도입 전 확인 사항 |
 |--------|----------|------------|
@@ -159,7 +159,7 @@ sequenceDiagram
 ```
 
 :::note 라우팅 결정과 추론(inference)은 별개의 작업
-KV 캐시 인지 라우팅에서 **라우팅 결정 자체는 모델 추론이 아닙니다.** 이 경로에는 서로 다른 세 가지 메커니즘이 관여하며, 하나의 컴포넌트가 전부 수행하지 않습니다.
+KV cache 인지 라우팅에서 **라우팅 결정 자체는 모델 추론이 아닙니다.** 이 경로에는 서로 다른 세 가지 메커니즘이 관여하며, 하나의 컴포넌트가 전부 수행하지 않습니다.
 
 - **토큰화와 블록 키 생성**: 프롬프트를 토큰화하고 고정 크기 블록 단위로 해시 키를 만듭니다. vLLM의 Automatic Prefix Caching은 `hash(부모 블록 해시, 블록 토큰, LoRA ID·멀티모달·cache salt 등 추가값)` 형태로 전체 블록에 대해서만 키를 계산하며, 모델 forward pass가 없습니다([vLLM Automatic Prefix Caching 설계](https://github.com/vllm-project/vllm/blob/v0.24.0/docs/design/prefix_caching.md)).
 - **인덱스(producer) 유지**: Gateway API Inference Extension에서는 스케줄링 이전에 "approximate prefix cache data producer"가 어느 Pod가 어떤 prefix 블록을 캐시했는지에 대한 매칭 정보(`PrefixCacheMatchInfo`)를 준비합니다.
