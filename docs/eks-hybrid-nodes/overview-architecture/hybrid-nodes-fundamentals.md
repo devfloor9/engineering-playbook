@@ -46,6 +46,8 @@ EKS Hybrid Nodes is a capability that connects physical servers or virtual machi
 
 ### Deployment Option Comparison
 
+**Table 1. Comparison of on-premises Kubernetes deployment options**
+
 | Item | EKS Hybrid Nodes | AWS Outposts (local clusters) | Amazon EKS Anywhere | Self-managed K8s |
 |------|-----------------|--------------|---------------------|----------------|
 | Control plane location | AWS Region (managed) | Outposts rack (managed) | On-premises (customer-operated) | On-premises (customer-operated) |
@@ -63,6 +65,8 @@ EKS Hybrid Nodes fits environments where "the equipment already exists and the g
 ### Two Definitions of Air-Gap Environments
 
 In highly regulated environments such as finance and the public sector, the term "closed network" often refers to two environments of very different natures. Whether EKS Hybrid Nodes is supported depends entirely on this distinction, so determine which one applies to your environment before starting the design.
+
+**Table 2. The two air-gap environments and their support status**
 
 | Aspect | Disconnected Air-Gap (physically isolated network) | Private Air-gapped VPC (private closed network) |
 |--------|---------------------------------------------------|------------------------------------------------|
@@ -88,6 +92,8 @@ Once all four paths are in place, communication completes over the private path 
 
 Hybrid nodes carry a wider customer responsibility scope than cloud nodes. Use the following boundaries when finalizing the operating organization and role division.
 
+**Table 3. AWS and customer responsibilities for hybrid nodes by area**
+
 | Area | AWS responsibility | Customer responsibility |
 |------|--------------------|-------------------------|
 | Control plane | API server and etcd operations, availability (SLA), control plane version upgrades and patches | Deciding to initiate cluster version upgrades |
@@ -101,6 +107,8 @@ For cloud nodes (managed node groups), AWS **builds patched versions of the EKS 
 ### Pricing Model
 
 EKS Hybrid Nodes applies tiered billing based on vCPU-hours of hybrid nodes. The unit price decreases as monthly cumulative usage increases. Billing starts when a node joins the cluster and stops when it is removed, and the tiers apply to the **aggregate monthly vCPU-hours in the same AWS Region within the account** (aggregated across accounts in the organization when AWS Organizations consolidated billing is used). The unit prices below are from the official pricing page (verified 2026-10-13); they can change by Region and over time, so confirm actual costs against the pricing page or an AWS quote.
+
+**Table 4. Tiered unit prices by monthly cumulative vCPU-hour range**
 
 | Monthly cumulative vCPU-hours (range) | Unit price ($/vCPU-hr) |
 |-------------------|-----------------|
@@ -117,6 +125,8 @@ The official pricing page states that **if you intend to run hybrid nodes on mac
 For example, assuming the public tier prices apply directly, running one 224-vCPU server (DGX H200 class) continuously for 730 hours per month produces about 163,520 vCPU-hr (224 × 730). All of it falls in tier 1 ($0.020), so the estimate is about $3,270. Running 10 servers (1,635,200 vCPU-hr per month) applies $0.020 to the first 576,000, $0.014 to the next 576,000, and $0.010 to the remaining 483,200, for a total of about $24,416, or about $2,441.60 per node on average. This amount is an EKS management-fee estimate; hardware purchase, power, and colocation costs are separate. EKS cluster fees and cloud node (EC2) charges apply as usual. Cost optimization strategies leveraging the billing structure are covered in [Operations and Cost Optimization](../operations-cost/operations-cost-optimization.md).
 
 ### System Requirements
+
+**Table 5. Hybrid node system requirements**
 
 | Item | Requirement |
 |------|----------|
@@ -140,6 +150,8 @@ The operating systems in the table above are the ones the official documentation
 ### Architecture: A Single Cluster with the VPC as Hub
 
 In the EKS Hybrid Nodes architecture, the VPC acts as the network hub. The EKS control plane attaches ENIs (Elastic Network Interfaces) to the subnets specified at cluster creation, and all traffic crossing the cloud boundary transits this VPC. On-premises and the VPC are connected via Direct Connect, Site-to-Site VPN, or a self-managed VPN, and the VPC-side attachment point is typically a VGW (Virtual Private Gateway) or TGW (Transit Gateway).
+
+**Figure 1. Single-cluster architecture with the VPC as hub**
 
 ```mermaid
 flowchart LR
@@ -204,6 +216,8 @@ The IAM credentials used by the node are issued via SSM hybrid activation or IAM
 
 Two remote CIDR ranges are provided at cluster creation.
 
+**Table 6. Meaning and allocator of the RemoteNodeNetwork and RemotePodNetwork fields**
+
 | Field | Meaning | Allocated by |
 |------|------|----------|
 | `RemoteNodeNetwork` | IP range of the hybrid node machines | On-premises network |
@@ -262,6 +276,8 @@ The conclusion is **Node CIDR required, Pod CIDR recommended (optional)**.
 
 However, if any of the following capabilities is needed, Pod CIDR routing (or the Gateway) becomes effectively mandatory.
 
+**Table 7. Capabilities that require Pod CIDR routing and the reason**
+
 | Capability requiring Pod CIDR routing | Reason |
 |------|------|
 | Running webhooks on hybrid nodes (AWS Load Balancer Controller, cert-manager, etc.) | The API server initiates direct connections to the webhook Pod IP |
@@ -306,6 +322,8 @@ In addition to the RFC 1918 private ranges, the CGNAT range is officially suppor
 
 > "Be within one of the following `IPv4` RFC-1918 ranges: `10.0.0.0/8`, `172.16.0.0/12`, or `192.168.0.0/16`, **or within the CGNAT range defined by RFC 6598: `100.64.0.0/10`**."
 > — [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html)
+
+**Table 8. IP ranges allowed for remote networks and their standards**
 
 | Range | Standard | RemoteNodeNetwork | RemotePodNetwork |
 |------|------|-------------------|------------------|

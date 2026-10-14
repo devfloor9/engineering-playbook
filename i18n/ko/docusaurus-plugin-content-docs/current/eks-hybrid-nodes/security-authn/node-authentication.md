@@ -27,6 +27,8 @@ category: hybrid-multicloud
 
 ## 동작 방식 비교
 
+**표 1. SSM hybrid activation과 IAM Roles Anywhere 동작 비교**
+
 | 항목 | SSM hybrid activation | IAM Roles Anywhere |
 |------|----------------------|--------------------|
 | 인증 기반 | activation code/ID로 등록된 SSM 관리형 인스턴스 | X.509 인증서 (사설 CA 신뢰 앵커) |
@@ -150,6 +152,8 @@ aws eks list-access-entries --cluster-name my-hybrid-cluster
 ## Hybrid Nodes IAM Role 최소 권한
 
 Hybrid Nodes IAM role에는 다음 권한이 필요합니다. 공식 문서가 명시하는 최소 구성이며, 워크로드용 권한을 이 role에 추가하지 않습니다.
+
+**표 2. Hybrid Nodes IAM role 최소 권한과 미부여 시 대안**
 
 | 권한 | 용도 | 미부여 시 대안 |
 |------|------|---------------|

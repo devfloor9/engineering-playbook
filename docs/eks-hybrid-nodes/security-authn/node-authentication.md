@@ -27,6 +27,8 @@ Hybrid nodes have no EC2 instance profile, so an IAM credential provider for on-
 
 ## How They Work: Comparison
 
+**Table 1. SSM hybrid activation versus IAM Roles Anywhere behavior**
+
 | Item | SSM hybrid activation | IAM Roles Anywhere |
 |------|----------------------|--------------------|
 | Authentication basis | SSM managed instance registered with an activation code/ID | X.509 certificates (private CA trust anchor) |
@@ -153,6 +155,8 @@ aws eks list-access-entries --cluster-name my-hybrid-cluster
 ## Hybrid Nodes IAM Role Minimum Permissions
 
 The Hybrid Nodes IAM role requires the following permissions. This is the minimum configuration stated in the official documentation; do not add workload permissions to this role.
+
+**Table 2. Hybrid Nodes IAM role minimum permissions and alternatives if not granted**
 
 | Permission | Purpose | Alternative if not granted |
 |------------|---------|---------------------------|

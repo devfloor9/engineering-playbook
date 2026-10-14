@@ -46,6 +46,8 @@ EKS Hybrid Nodes는 온프레미스·엣지 인프라의 물리 서버 또는 �
 
 ### 배포 옵션 비교
 
+**표 1. 온프레미스 Kubernetes 배포 옵션 비교**
+
 | 항목 | EKS Hybrid Nodes | AWS Outposts (로컬 클러스터) | Amazon EKS Anywhere | 자체 구축 K8s |
 |------|-----------------|--------------|---------------------|----------------|
 | 컨트롤 플레인 위치 | AWS 리전 (관리형) | Outposts 랙 (관리형) | 온프레미스 (고객 운영) | 온프레미스 (고객 운영) |
@@ -63,6 +65,8 @@ EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담�
 ### 에어갭(Air-Gap) 환경의 두 가지 정의
 
 금융·공공 등 규제가 엄격한 환경에서 "폐쇄망"이라는 용어는 성격이 다른 두 환경을 함께 지칭하는 경우가 많습니다. EKS Hybrid Nodes의 지원 여부는 이 구분에 따라 완전히 달라지므로, 설계 착수 전에 자사 환경이 어느 쪽인지 먼저 판정해야 합니다.
+
+**표 2. 두 가지 에어갭 환경과 지원 여부**
 
 | 구분 | Disconnected Air-Gap (물리적 차단망) | Private Air-gapped VPC (사설 폐쇄망) |
 |------|-------------------------------------|-------------------------------------|
@@ -88,6 +92,8 @@ EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담�
 
 하이브리드 노드는 클라우드 노드보다 고객 책임 범위가 넓습니다. 운영 조직·역할 분담을 확정할 때 다음 경계를 기준으로 합니다.
 
+**표 3. 하이브리드 노드의 영역별 AWS·고객 책임 분담**
+
 | 영역 | AWS 책임 | 고객 책임 |
 |------|----------|----------|
 | 컨트롤 플레인 | API server·etcd 운영, 가용성(SLA), 컨트롤 플레인 버전 업그레이드·패치 | 클러스터 버전 업그레이드 개시 결정 |
@@ -101,6 +107,8 @@ EKS Hybrid Nodes는 "장비는 이미 있고, 컨트롤 플레인 운영 부담�
 ### 요금 모델
 
 EKS Hybrid Nodes는 하이브리드 노드의 vCPU-시간 기준 티어드 과금을 적용합니다. 월 누적 사용량이 증가할수록 단가가 낮아집니다. 과금은 노드가 클러스터에 조인한 시점에 시작되어 제거될 때 중단되며, 티어는 **같은 AWS 리전·같은 계정(AWS Organizations 통합 결제 시 조직 내 계정 합산)의 월 누적 vCPU-시간**에 적용됩니다. 아래 단가는 공식 요금 페이지(2026-10-13 확인) 기준이며, 리전·시점에 따라 달라질 수 있으므로 실제 비용은 요금 페이지 또는 AWS 견적으로 확인해야 합니다.
+
+**표 4. 월 누적 vCPU-시간 구간별 티어드 단가**
 
 | 월 누적 vCPU-hours (구간) | 단가 ($/vCPU-hr) |
 |-------------------|-----------------|
@@ -117,6 +125,8 @@ EKS Hybrid Nodes는 하이브리드 노드의 vCPU-시간 기준 티어드 과�
 예를 들어 공개 티어 단가를 그대로 적용한다는 전제로 224 vCPU 서버(DGX H200급) 1대를 월 730시간 상시 운영하면 약 163,520 vCPU-hr(224 × 730)이 발생합니다. 전량이 1티어($0.020)에 들어가므로 산정치는 약 $3,270입니다. 10대(월 1,635,200 vCPU-hr) 운영 시 첫 576,000은 $0.020, 다음 576,000은 $0.014, 나머지 483,200은 $0.010이 적용되어 합계 약 $24,416, 노드당 평균 약 $2,441.60으로 산정됩니다. 이 금액은 EKS 관리 비용 산정치이며 하드웨어 구매·전력·상면 비용은 별도입니다. EKS 클러스터 자체 요금과 클라우드 노드(EC2) 요금은 기존과 동일하게 부과됩니다. 과금 구조를 활용한 비용 최적화 전략은 [운영과 비용 최적화](../operations-cost/operations-cost-optimization.md)에서 다룹니다.
 
 ### 시스템 요구 사항
+
+**표 5. 하이브리드 노드 시스템 요구 사항**
 
 | 항목 | 요구 사항 |
 |------|----------|
@@ -140,6 +150,8 @@ EKS Hybrid Nodes는 하이브리드 노드의 vCPU-시간 기준 티어드 과�
 ### 아키텍처: VPC를 허브로 하는 단일 클러스터
 
 EKS Hybrid Nodes 아키텍처에서 VPC는 네트워크 허브 역할을 수행합니다. EKS 컨트롤 플레인은 클러스터 생성 시 지정한 서브넷에 ENI(Elastic Network Interface)를 연결하고, 클라우드 경계를 넘는 모든 트래픽은 이 VPC를 경유합니다. 온프레미스와 VPC는 Direct Connect, Site-to-Site VPN, 또는 자체 VPN으로 연결하며, VPC 측 연결점은 통상 VGW(Virtual Private Gateway) 또는 TGW(Transit Gateway)입니다.
+
+**그림 1. VPC를 허브로 하는 단일 클러스터 구조**
 
 ```mermaid
 flowchart LR
@@ -204,6 +216,8 @@ spec:
 
 클러스터 생성 시 두 가지 원격 대역을 입력합니다.
 
+**표 6. RemoteNodeNetwork와 RemotePodNetwork 필드의 의미와 할당 주체**
+
 | 필드 | 의미 | 할당 주체 |
 |------|------|----------|
 | `RemoteNodeNetwork` | 하이브리드 노드 머신의 IP 대역 | 온프레미스 네트워크 |
@@ -262,6 +276,8 @@ EKS Control Plane ─► webhook Pod IP(10.85.1.23:8443) ─► ???
 
 다만 다음 기능 중 하나라도 필요하면 Pod 대역 라우팅(또는 Gateway)이 사실상 필수가 됩니다.
 
+**표 7. Pod CIDR 라우팅을 요구하는 기능과 사유**
+
 | Pod CIDR 라우팅이 필요한 기능 | 사유 |
 |------|------|
 | 하이브리드 노드에서 웹훅 실행 (AWS Load Balancer Controller, cert-manager 등) | API server가 webhook Pod IP로 직접 연결 개시 |
@@ -306,6 +322,8 @@ Gateway는 Cilium CNI의 VTEP(VXLAN Tunnel Endpoint) 기능을 활용합니다. 
 
 > "Be within one of the following `IPv4` RFC-1918 ranges: `10.0.0.0/8`, `172.16.0.0/12`, or `192.168.0.0/16`, **or within the CGNAT range defined by RFC 6598: `100.64.0.0/10`**."
 > — [Prepare networking for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-networking.html)
+
+**표 8. 원격 대역으로 허용되는 IP 범위와 표준**
 
 | 대역 | 표준 | RemoteNodeNetwork | RemotePodNetwork |
 |------|------|-------------------|------------------|

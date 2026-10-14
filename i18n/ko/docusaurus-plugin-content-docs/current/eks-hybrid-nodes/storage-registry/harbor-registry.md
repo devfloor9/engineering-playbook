@@ -362,6 +362,8 @@ Pod의 nodeName이 의도한 Hybrid Node인지, imageID가 예상 digest인지, 
 
 #### 일반적인 문제와 해결 방법
 
+**표 1. 통합 중 증상별 우선 확인 항목**
+
 | 증상 | 먼저 확인할 항목 |
 | --- | --- |
 | ImagePullBackOff | 이벤트의 DNS·TLS·401/403·이미지 없음 구분; 같은 namespace의 Secret과 ServiceAccount, 실제 이미지 경로 |
@@ -427,6 +429,8 @@ scrape_configs:
 기본 `/metrics`의 exporter 자료와 `comp=core`, `comp=registry` 자료는 다릅니다. 필요한 경우 `comp=jobservice`도 별도 수집합니다. 활성화된 버전의 응답과 metric type·label을 확인한 뒤 alert를 만듭니다.
 
 #### 주요 모니터링 지표
+
+**표 2. 확인하려는 동작별 모니터링 자료**
 
 | 확인하려는 동작 | 자료 |
 | --- | --- |

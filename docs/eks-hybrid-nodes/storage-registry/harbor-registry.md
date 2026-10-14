@@ -362,6 +362,8 @@ Verify the Pod's nodeName, expected imageID digest and a fresh pull through the 
 
 #### Common Issues and Solutions
 
+**Table 1. First checks by symptom during integration**
+
 | Symptom | First checks |
 | --- | --- |
 | ImagePullBackOff | Separate DNS, TLS, 401/403 and missing-image events; check the same-namespace Secret/ServiceAccount and actual image path |
@@ -427,6 +429,8 @@ scrape_configs:
 Exporter data at `/metrics` differs from `comp=core` and `comp=registry`. Add `comp=jobservice` where needed. Inspect the selected version's responses, metric types and labels before defining alerts.
 
 #### Key Monitoring Metrics
+
+**Table 2. Monitoring evidence by behavior to verify**
 
 | Behavior | Evidence |
 | --- | --- |
