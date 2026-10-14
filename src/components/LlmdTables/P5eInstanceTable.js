@@ -7,7 +7,7 @@ const P5eInstanceTable = () => {
   const isKo = i18n.currentLocale === 'ko';
   const specs = [{
     label: 'GPU',
-    value: '8× NVIDIA H200 141GB HBM3'
+    value: '8× NVIDIA H200 141GB HBM3e'
   }, {
     label: isKo ? 'GPU 메모리' : 'GPU Memory',
     value: isKo ? '총 1,128GB' : '1,128GB total'

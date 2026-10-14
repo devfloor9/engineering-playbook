@@ -9,17 +9,17 @@ const KVCacheEffectsTable = () => {
     metric: isKo ? 'TTFT (Time To First Token)' : 'TTFT (Time To First Token)',
     cacheMiss: isKo ? '높음 (전체 prefill 필요)' : 'High (full prefill required)',
     cacheHit: isKo ? '낮음 (prefill 스킵)' : 'Low (prefill skipped)',
-    improvement: isKo ? '50-80% 단축' : '50-80% reduction'
+    improvement: isKo ? 'prefix 재사용 시 단축 (실측 필요)' : 'Reduced on prefix reuse (benchmark-dependent)'
   }, {
     metric: isKo ? 'GPU 연산량' : 'GPU Computation',
     cacheMiss: isKo ? '전체 prompt 처리' : 'Full prompt processing',
     cacheHit: isKo ? '새로운 토큰만 처리' : 'Only new tokens processed',
-    improvement: isKo ? '연산 절약' : 'Computation savings'
+    improvement: isKo ? '재사용된 prefix 연산 절약' : 'Saves recompute on reused prefix'
   }, {
     metric: isKo ? '처리량 (Throughput)' : 'Throughput',
     cacheMiss: isKo ? '기본' : 'Baseline',
     cacheHit: isKo ? '향상' : 'Improved',
-    improvement: isKo ? '1.5-3x 향상' : '1.5-3x improvement'
+    improvement: isKo ? 'prefix 재사용 비율에 따라 향상 (실측 필요)' : 'Improves with prefix-reuse ratio (benchmark-dependent)'
   }];
   return <div style={{
     maxWidth: '100%',
@@ -71,7 +71,7 @@ const KVCacheEffectsTable = () => {
               borderBottom: '2px solid var(--ifm-color-emphasis-200)',
               minWidth: '160px'
             }}>
-                {isKo ? 'Cache Miss (기존 방식)' : 'Cache Miss (Traditional)'}
+                {isKo ? 'Cache Miss (prefix 재사용 없음)' : 'Cache miss (no prefix reuse)'}
               </th>
               <th style={{
               padding: '12px 16px',

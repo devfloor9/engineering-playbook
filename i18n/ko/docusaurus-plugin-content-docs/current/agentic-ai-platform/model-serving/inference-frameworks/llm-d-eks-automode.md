@@ -3,9 +3,9 @@ title: llm-d 기반 EKS 분산 추론 가이드
 description: llm-d 아키텍처 개념, KV Cache-aware 라우팅, Disaggregated Serving, EKS Auto Mode 통합 전략
 created: "2026-02-10"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 27
 tags:
   - eks
   - llm-d
@@ -147,7 +147,7 @@ InferencePool은 이 워크로드의 Pod 레이블을 선택합니다. Inference
 <Qwen3SpecsTable />
 
 :::info Qwen3-32B 선정 배경
-Qwen3-32B는 위 Optimized Baseline 예제의 기본 모델이며, Apache 2.0 라이선스로 상업적 사용이 자유롭습니다. BF16 기준 약 65GB VRAM이 필요하여 TP=2 (2x GPU)로 H100 80GB에서 안정적으로 서빙할 수 있습니다.
+Qwen3-32B는 위 Optimized Baseline 예제의 기본 모델이며, Apache 2.0 라이선스로 상업적 사용이 자유롭습니다. 32.8B BF16 가중치는 약 66GB(32.8B × 2바이트)를 차지하며, KV cache와 런타임 버퍼는 그 위에 추가 VRAM을 필요로 합니다. TP=2로 H100 80GB 2장을 사용하면 합산 약 160GB가 되어 KV cache 여유가 생기지만, 해당 구성이 특정 워크로드를 안정적으로 서빙하는지는 가중치 용량만이 아니라 컨텍스트 길이, 동시성, 서빙 엔진, 그리고 실측한 지연·처리량 목표에 따라 달라집니다.
 :::
 
 ---
@@ -205,15 +205,15 @@ sequenceDiagram
 
 **장점:**
 
-- **GPU 드라이버 자동 관리**: NVIDIA GPU 드라이버를 AWS가 자동으로 설치하고 업데이트
-- **NodeClass 자동 선택**: `default` NodeClass를 사용하면 Auto Mode가 최적의 AMI와 드라이버 버전을 자동 선택
-- **운영 단순화**: 드라이버 설치, CUDA 버전 관리, 드라이버 호환성 검증 등의 운영 부담 제거
-- **GPU Operator 설치 가능**: Device Plugin만 레이블로 비활성화, DCGM/NFD/GFD 정상 동작
+- **GPU 드라이버 자동 관리**: Auto Mode GPU 노드에서 NVIDIA 호스트 드라이버와 NVIDIA container toolkit를 AWS가 설치하고 업데이트합니다
+- **NodeClass 자동 선택**: `default` NodeClass를 사용하면 Auto Mode가 최적의 AMI와 드라이버 버전을 자동 선택합니다
+- **운영 단순화**: 호스트 드라이버 설치와 버전 관리 부담을 제거합니다. 다만 각 애플리케이션 이미지의 CUDA/런타임(컨테이너 안에 포함된 CUDA 유저스페이스, 예: vLLM 이미지)이 AWS 관리형 호스트 드라이버 및 대상 GPU 아키텍처와 호환되는지 검증할 필요까지 없애 주지는 않습니다
+- **GPU Operator 설치 가능**: Auto Mode 노드의 NVIDIA 드라이버, container toolkit, device plugin은 AWS가 관리하므로 GPU Operator는 `driver.enabled=false`, `toolkit.enabled=false`로 설치하고, 레이블 `nvidia.com/gpu.deploy.device-plugin: "false"`로 해당 노드에서 device plugin을 띄우지 않습니다(아래 전환 시 주의사항 참고). DCGM Exporter, NFD, GFD는 정상 동작합니다
 
 **제한사항:**
 
 - **MIG/Time-Slicing 제한**: Auto Mode가 관리하는 NVIDIA device plugin 설정은 사용자가 변경할 수 없습니다. NodeClass 자체가 read-only라는 의미는 아닙니다.
-- **커스텀 AMI 불가**: 특정 CUDA 버전이나 드라이버 핀 필요 시 대응 불가
+- **커스텀 AMI 불가**: 특정 호스트 드라이버나 CUDA 드라이버 버전을 핀할 수 없습니다. 드라이버 핀이 필요한 애플리케이션은 드라이버를 직접 소유하는 노드 유형(Managed Node Group 또는 자체 관리 노드)을 사용해야 합니다
 
 ### Auto Mode vs Karpenter + GPU Operator 비교
 
@@ -234,9 +234,10 @@ Auto Mode는 GPU 드라이버 관리 부담 없이 대형 모델 서빙에 적�
 :::
 
 :::danger llm-d + DRA 사용 시 Karpenter 버전 제약
-llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경우, Karpenter 버전과 배포 방식에 따라 지원 여부가 갈립니다.
-- **Self-managed Karpenter v1.14.0+**: DRA를 지원합니다 (AWS Provider v1.14.0이 코어 v1.14.0의 DRA allocator 포함, consumable capacity·partitionable devices 지원). v1.13 이하는 `spec.resourceClaims` Pod를 skip합니다.
-- **EKS Auto Mode**: 현재 DRA 미지원 — AWS 관리형 내부 Karpenter라 사용자가 v1.14+로 올릴 수 없습니다. Auto Mode 사용 시 **Managed Node Group + Cluster Autoscaler**가 권장 방식입니다.
+llm-d ModelService가 DRA (ResourceClaim) 방식으로 GPU를 요청하는 경우, 지원 여부는 EKS Kubernetes 버전과 노드 프로비저닝 방식에 따라 갈립니다. [EKS device management 가이드](https://docs.aws.amazon.com/eks/latest/userguide/device-management.html)에 따르면 DRA는 Kubernetes 1.34에서 정식 출시(GA)된 기능입니다.
+- **지원되는 노드 경로**: AWS는 DRA를 EKS 1.33+(1.34+ 권장)에서, 그리고 **Karpenter의 정적 용량 프로비저닝(static NodePool)**, **EKS Managed Node Group**, 또는 DRA 드라이버를 실행하는 **자체 관리 노드**에서만 사용할 수 있다고 문서화합니다.
+- **미지원**: DRA는 **현재 EKS Auto Mode와 호환되지 않으며**, **Karpenter가 용량을 동적으로 프로비저닝하는 경우에도 호환되지 않습니다**. Auto Mode에서 DRA 워크로드가 필요하면 **Managed Node Group**(또는 자체 관리 노드 / 정적 Karpenter NodePool)을 사용합니다.
+- **드라이버 공존 제약**: 동일 디바이스 유형의 DRA 드라이버와 device plugin을 같은 노드에서 동시에 실행해서는 안 됩니다.
 
 상세: [EKS GPU 노드 전략 — DRA 워크로드를 위한 MNG 하이브리드](../gpu-infrastructure/eks-gpu-node-strategy.md#dra-워크로드를-위한-mng-하이브리드)
 :::
@@ -284,12 +285,14 @@ flowchart LR
     style Decode fill:#76b900,stroke:#333
 ```
 
-| 단계 | 특성 | 최적화 방향 |
+| 단계 | 특성 | 일반적 튜닝 (워크로드별) |
 |------|------|-----------|
-| **Prefill** | 프롬프트 전체를 한 번에 처리 (compute-bound) | GPU 컴퓨팅 집중, 높은 TP |
-| **Decode** | 토큰을 하나씩 자동회귀 생성 (memory-bound) | GPU 메모리 집중, 낮은 TP |
+| **Prefill** | 프롬프트 전체를 한 번에 처리 (compute-bound) | prefill 지연 목표에 맞춰 병렬화 선택. llm-d 예제는 prefill TP=1 사용 |
+| **Decode** | 토큰을 하나씩 자동회귀 생성 (memory-bound) | KV cache 용량과 decode 처리량에 맞춰 병렬화 선택. llm-d 예제는 decode TP=5 사용 |
 
-**NIXL (NVIDIA Inference Xfer Library)**: Dynamo, llm-d, production-stack, aibrix 등 대부분의 프로젝트가 사용하는 공통 KV 전송 엔진. GPU 간 직접 통신(NVLink/RDMA)으로 KV cache를 초고속 전송합니다.
+TP 값은 단계 역할로 고정되지 않습니다. [llm-d P/D disaggregation 예제](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/well-lit-paths/foundations/pd-disaggregation.md)는 prefill을 TP=1, decode를 TP=5로 실행합니다. TP는 모델·하드웨어·실측 목표에 따라 선택합니다.
+
+**NIXL (NVIDIA Inference Xfer Library)**: Dynamo, llm-d, production-stack, aibrix 등 여러 프로젝트가 사용하는 공통 KV 전송 라이브러리입니다. NIXL은 UCX 기반 전송으로 KV 블록을 이동하며 **TCP를 지원**하지만, 프로덕션에서는 고대역폭 네트워크(InfiniBand, RoCE, EFA)가 권장됩니다. 달성 가능한 전송 속도와 오버헤드는 NIXL만이 아니라 실제 물리 인터커넥트와 토폴로지에 따라 달라지며, TCP 경로는 동작하는 폴백으로 남습니다.
 
 ### EKS Auto Mode에서의 Disaggregated Serving
 
@@ -313,7 +316,7 @@ llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하�
 |------|-------|---------------|
 | **주도** | Red Hat (Apache 2.0) | NVIDIA (Apache 2.0) |
 | **아키텍처** | Aggregated + Disaggregated | Aggregated + Disaggregated (동등 지원) |
-| **KV cache 전송** | NIXL (네트워크도 지원) | NIXL (NVLink/RDMA 초고속) |
+| **KV cache 전송** | NIXL (TCP 지원; IB/RoCE/EFA 권장) | NIXL (TCP 지원; IB/RoCE/EFA 권장) |
 | **KV cache 인덱싱** | Prefix-aware 라우팅 | Flash Indexer (radix tree 기반) |
 | **라우팅** | Gateway API + Envoy EPP | Dynamo Router + 자체 EPP (Gateway API 통합) |
 | **Pod 스케줄링** | K8s 기본 스케줄러 | KAI Scheduler (GPU-aware Pod 배치) |
@@ -324,12 +327,12 @@ llm-d와 NVIDIA Dynamo는 모두 LLM 추론 라우팅/스케줄링을 제공하�
 
 :::tip 선택 가이드
 - **EKS Auto Mode + 빠른 시작**: llm-d (GPU Operator 선택사항)
-- **소규모~중규모 (GPU 16개 이하)**: llm-d
-- **대규모 (GPU 16개+), 최대 처리량**: Dynamo (Flash Indexer + Planner)
-- **긴 컨텍스트 (128K+)**: Dynamo (3-tier KV cache: GPU->CPU->SSD)
+- **K8s 네이티브·경량 스택**: llm-d
+- **대규모에서 최대 처리량**: Dynamo (Flash Indexer + Planner)
+- **다단계 KV cache 오프로드(GPU->CPU->SSD)가 필요한 긴 컨텍스트**: Dynamo가 KVBM으로 제공. 컨텍스트 길이와 지연 목표에 맞춰 평가
 - **K8s Gateway API 표준 준수**: llm-d
 
-llm-d와 Dynamo는 상호보완적 관계입니다. 두 프로젝트는 NIXL(KV 전송 라이브러리)과 Gateway API를 공유하는 독립 병렬 스택이며, llm-d는 NIXL을 KV cache 전송에 활용합니다. llm-d로 시작하여 규모가 커지면 Dynamo로 전환하는 것이 현실적입니다.
+llm-d와 Dynamo는 상호보완적 관계입니다. 두 프로젝트는 NIXL(KV 전송 라이브러리)과 Gateway API를 공유하는 독립 병렬 스택이며, llm-d는 NIXL을 KV cache 전송에 활용합니다. llm-d로 시작하여 요구사항이 커지면 Dynamo로 전환하는 것이 현실적이지만, 특정 GPU 수 자체가 전환을 강제하지는 않습니다. 구성된 기능과 실측 요구사항을 비교해 결정합니다.
 :::
 
 ### 마이그레이션 경로
@@ -363,18 +366,20 @@ flowchart LR
     style PLAN fill:#e91e63,color:#fff
 ```
 
-**단계별 전환 경로:**
+**단계별 전환 경로 (필수 순서가 아닌 선택적 설계):**
 
-| Phase | 구성 | 적합 대상 |
+아래 단계는 예시 구성이며 반드시 순서대로 밟아야 하는 요구사항이 아닙니다. GPU 수가 많다고 해서 후속 단계가 강제되거나 최대 성능이 보장되는 것은 아닙니다. 워크로드의 격리·스케줄링·DRA 요구사항에 맞춰 구성을 선택합니다.
+
+| Phase | 구성 | 예시 적합 대상 |
 |-------|------|----------|
-| **Phase 1** | Auto Mode + llm-d | PoC, 개발 환경, GPU 16개 이하 |
-| **Phase 1.5** | Auto Mode + GPU Operator + llm-d | 모니터링/스케줄링 강화 |
+| **Phase 1** | Auto Mode + llm-d | PoC, 개발 환경 |
+| **Phase 1.5** | Auto Mode + GPU Operator + llm-d | 모니터링/스케줄링 오퍼랜드 추가 |
 | **Phase 2a** | Karpenter + llm-d Disaggregated | 중규모 프로덕션, MIG 활용 |
-| **Phase 2b** | MNG + DRA + llm-d | P6e-GB200, DRA 필수 환경 |
-| **Phase 3** | Karpenter + Dynamo | 대규모 (GPU 16개+), 최대 성능 |
+| **Phase 2b** | MNG + DRA + llm-d | DRA 필수 환경 |
+| **Phase 3** | Karpenter + Dynamo | Dynamo 고유 기능(Flash Indexer, Planner) |
 
 :::caution 전환 시 주의사항
-Auto Mode와 Karpenter 자체 관리는 동일 클러스터에서 혼용이 가능합니다. Phase 1.5에서 GPU Operator Device Plugin 충돌을 방지하려면 Helm 설치 시 `devicePlugin.enabled=false`로 설정하거나, ClusterPolicy에서 `daemonsets.nodeSelector`/`affinity`로 Auto Mode 노드(`eks.amazonaws.com/compute-type: auto`)를 제외합니다. NodePool 레이블 방식(`nvidia.com/gpu.deploy.device-plugin: "false"`)은 GPU Operator가 레이블을 `true`로 덮어쓰므로 동작하지 않습니다.
+Auto Mode와 Karpenter 자체 관리는 동일 클러스터에서 혼용이 가능합니다. Phase 1.5에서는 GPU Operator의 device plugin이 AWS 관리형 Auto Mode 노드의 device plugin과 충돌하지 않도록, 해당 노드에서 GPU Operator device plugin을 띄우지 않습니다. [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)에서 검토된 구성처럼 Auto Mode NodePool 템플릿에 레이블 `nvidia.com/gpu.deploy.device-plugin: "false"`를 지정합니다. GPU Operator는 `nvidia.com/gpu.deploy.*` 레이블이 없거나 값이 비어 있을 때만 레이블을 붙이므로, 이미 있는 `false` 값을 그대로 두고 해당 노드에서 이 오퍼랜드를 배포하지 않습니다([`addGPUStateLabels`](https://github.com/NVIDIA/gpu-operator/blob/fbe793082611bfdba1621b614edefdd3461bf14d/controllers/state_manager.go)). ClusterPolicy에는 이 용도로 쓸 수 있는 컴포넌트별 또는 공통 DaemonSet `nodeSelector`/`affinity` 필드가 없습니다. 대신 `devicePlugin.enabled=false`로 설치하면 모든 노드에서 device plugin이 꺼지므로, 클러스터의 어떤 노드도 GPU Operator의 device plugin에 의존하지 않을 때만 사용합니다.
 :::
 
 ---
@@ -394,7 +399,7 @@ Auto Mode와 Karpenter 자체 관리는 동일 클러스터에서 혼용이 가�
 <CostOptimizationTable />
 
 :::warning 비용 주의
-p5.48xlarge는 시간당 $55.04 (us-west-2 On-Demand 기준, 2025-06 AWS 가격 인하 반영)입니다. 2대 운영 시 **월 약 $79,258** (720h 기준) ~ **$80,360** (730h 기준)입니다. 테스트 완료 후 반드시 리소스를 정리하세요.
+예시 요금으로 p5.48xlarge us-west-2 On-Demand는 시간당 약 $55.04입니다(2025-06 EC2 GPU 가격 인하 반영 — [공지](https://aws.amazon.com/about-aws/whats-new/2025/06/pricing-usage-model-ec2-instances-nvidia-gpus/)는 P5에 대해 특정 요금이 아니라 최대 45% 인하를 명시하므로, 현재 수치는 EC2 가격 페이지에서 확인하세요). 2대 운영 시 약 $55.04 × 2 × 720h = **월 $79,258** (720h 기준) ~ $55.04 × 2 × 730h = **월 $80,360** (730h 기준)입니다. 이는 EC2 인스턴스 비용만 포함하며, EKS Auto Mode 관리 요금, EBS 볼륨, 데이터 전송 등은 별도입니다. 테스트 완료 후 반드시 리소스를 정리하세요.
 :::
 
 ---
@@ -403,28 +408,28 @@ p5.48xlarge는 시간당 $55.04 (us-west-2 On-Demand 기준, 2025-06 AWS 가격 
 
 ### 인스턴스 지원 매트릭스
 
-| 인스턴스 타입 | GPU | VRAM (총합) | Auto Mode 지원 | 검증 상태 |
+| 인스턴스 타입 | GPU | VRAM (총합) | Auto Mode 지원 | 관측 사항 |
 |-------------|-----|-----------|---------------|----------|
-| g5.xlarge~48xlarge | A10G | 24~192GB | 정상 | 프로비저닝 확인 |
-| g6.xlarge~48xlarge | L4 | 24~192GB | 정상 | 프로비저닝 확인 |
-| g6e.xlarge~48xlarge | L40S | 48~384GB | 정상 | 프로비저닝 확인 |
-| p4d.24xlarge | A100 40GB x 8 | 320GB | 정상 | dry-run 확인 |
-| p5.48xlarge | H100 80GB x 8 | 640GB | 정상 | **Spot 프로비저닝 확인** (us-east-2) |
-| p5en.48xlarge | H200 141GB x 8 | 1,128GB | 제한적 | dry-run 통과, offering 매칭 실패 가능 |
-| **p6-b200.48xlarge** | **B200 180GB x 8** | **1,440GB** | **정상 (2026-04-10부터 공식 지원)** | **NodePool `instance-family: p6-b200` 명시 필요** |
+| g5.xlarge~48xlarge | A10G | 24~192GB | 지원 | 프로비저닝 관측 |
+| g6.xlarge~48xlarge | L4 | 24~192GB | 지원 | 프로비저닝 관측 |
+| g6e.xlarge~48xlarge | L40S | 48~384GB | 지원 | 프로비저닝 관측 |
+| p4d.24xlarge | A100 40GB x 8 | 320GB | 지원 | dry-run만 수행 (API admission 검증일 뿐 프로비저닝 보장 아님) |
+| p5.48xlarge | H100 80GB x 8 | 640GB | 지원 | Spot 프로비저닝 관측 (us-east-2) |
+| p5en.48xlarge | H200 141GB x 8 | 1,128GB | 지원 | dry-run 통과, 용량/offering 매칭은 실패 가능 |
+| **p6-b200.48xlarge** | **B200 180GB x 8** | **1,440GB** | **지원 (2026-04-10부터)** | **NodePool requirements에 `eks.amazonaws.com/instance-family: p6-b200` 명시 필요; 리전별 B200·Capacity Block 가용성에 따라 프로비저닝 제한 가능** |
 
 :::info p6-b200 인스턴스 지원 (2026-04-10+)
-EKS Auto Mode는 2026-04-10부터 **p6-b200.48xlarge를 공식 지원**합니다. NodePool requirements에서 `eks.amazonaws.com/instance-family: p6-b200`으로 명시해야 하며, 리전별 B200 용량 및 Capacity Block 가용성에 따라 실제 프로비저닝이 제한될 수 있습니다.
+EKS Auto Mode의 관리형 Karpenter는 2026-04-10부터 p6-b200.48xlarge를 지원합니다. 위 "dry-run" 항목은 Kubernetes dry-run admission 경로가 요청을 검증했음을 의미하며, dry-run은 API admission을 검증할 뿐 실제 용량 프로비저닝을 보장하지 않습니다. 리전별 B200 용량과 Capacity Block 가용성에 따라 실제 프로비저닝은 제한될 수 있습니다.
 :::
 
 ### 리전별 GPU 용량 가용성
 
 | 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot 가격 |
 |------|---------------------|-----------------|----------|
-| ap-northeast-2 (서울) | InsufficientCapacity | 미확인 | -- |
-| **us-east-2 (Ohio)** | 가용성 변동 | **확보 성공** | **$13~15/hr** |
+| ap-northeast-2 (서울) | InsufficientCapacity (미검증) | 미확인 | -- |
+| **us-east-2 (Ohio)** | 가용성 변동 | 확보 (미검증) | $13~15/hr (관측치) |
 
-**Spot 가격 비교 (us-east-2, 2026-04 기준)**: p5 인스턴스는 Spot으로 약 73~76% 비용 절감이 가능합니다 (On-Demand $55.04/hr 대비 Spot $13~15/hr 관측치 기준). 상세 가격표는 [GPU 리소스 관리 — 비용 최적화 전략](../gpu-infrastructure/gpu-resource-management.md#비용-최적화-전략)를 참조하세요.
+**Spot 가격 비교 (us-east-2, 2026-04 기준)**: 이 값들은 저장된 로그가 없는 시점 관측치이므로 미검증으로 간주하며, 향후 가용성을 보장하지 않습니다. $55.04/hr On-Demand 예시 대비 관측된 Spot $13~15/hr은 (55.04-15)/55.04 = 72.75% ~ (55.04-13)/55.04 = 76.38%, 즉 약 **73~76%** 절감에 해당하며 90%대 상한이 아닙니다. 상세 가격표는 [GPU 리소스 관리 — 비용 최적화 전략](../gpu-infrastructure/gpu-resource-management.md#비용-최적화-전략)를 참조하세요.
 
 ### GPU 쿼타 주의사항
 

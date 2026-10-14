@@ -7,16 +7,16 @@ const ModelLoadingTable = () => {
   const isKo = i18n.currentLocale === 'ko';
   const methods = [{
     method: isKo ? 'HuggingFace Hub (최초)' : 'HuggingFace Hub (initial)',
-    expectedTime: isKo ? '10-20분' : '10-20 min',
-    notes: isKo ? '네트워크 속도에 따라 다름' : 'Varies by network speed'
+    expectedTime: isKo ? '가장 느림' : 'Slowest',
+    notes: isKo ? '전체 가중치 다운로드 + 로드. 모델 크기와 인터넷 대역폭에 비례' : 'Full weight download + load; scales with model size and internet bandwidth'
   }, {
-    method: isKo ? 'S3 캐시' : 'S3 Cache',
-    expectedTime: isKo ? '3-5분' : '3-5 min',
-    notes: isKo ? '같은 리전 S3에서 로딩' : 'Loading from same-region S3'
+    method: isKo ? 'S3 캐시 (같은 리전)' : 'S3 Cache (same region)',
+    expectedTime: isKo ? '중간' : 'Faster',
+    notes: isKo ? '같은 리전 S3에서 로드, 인터넷 다운로드 생략. S3 처리량에 의존' : 'Loads from same-region S3, skipping internet download; depends on S3 throughput'
   }, {
     method: isKo ? '노드 로컬 캐시' : 'Node Local Cache',
-    expectedTime: isKo ? '1-2분' : '1-2 min',
-    notes: isKo ? '동일 노드 재배포 시' : 'When redeploying on the same node'
+    expectedTime: isKo ? '가장 빠름' : 'Fastest',
+    notes: isKo ? '동일 노드 재배포 시 가중치가 로컬 디스크에 존재. 로컬 디스크 I/O와 GPU 로드 시간만 소요' : 'Weights already on local disk when redeploying on the same node; only local disk I/O and GPU load remain'
   }];
   return <div style={{
     maxWidth: '800px',
@@ -32,7 +32,7 @@ const ModelLoadingTable = () => {
       fontWeight: '600',
       fontSize: '16px'
     }}>
-        {isKo ? '모델 로딩 방식별 예상 시간' : 'Expected Time by Model Loading Method'}
+        {isKo ? '모델 로딩 방식별 상대 속도' : 'Relative Speed by Model Loading Method'}
       </div>
 
       <div style={{
@@ -67,7 +67,7 @@ const ModelLoadingTable = () => {
               borderBottom: '2px solid var(--ifm-color-emphasis-200)',
               minWidth: '120px'
             }}>
-                {isKo ? '예상 시간' : 'Expected Time'}
+                {isKo ? '상대 속도' : 'Relative Speed'}
               </th>
               <th style={{
               padding: '12px 16px',

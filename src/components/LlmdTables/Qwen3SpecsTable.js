@@ -16,13 +16,13 @@ const Qwen3SpecsTable = () => {
     value: 'Apache 2.0'
   }, {
     label: isKo ? '정밀도' : 'Precision',
-    value: 'BF16 (~65GB VRAM)'
+    value: isKo ? 'BF16 (가중치 약 66GB, KV·런타임 별도)' : 'BF16 (~66GB weights; KV cache and runtime extra)'
   }, {
     label: isKo ? '컨텍스트' : 'Context',
-    value: isKo ? '최대 32,768 토큰' : 'Up to 32,768 tokens'
+    value: isKo ? '네이티브 32,768 토큰, YaRN으로 최대 131,072 토큰' : '32,768 tokens native; up to 131,072 with YaRN'
   }, {
     label: isKo ? '특징' : 'Features',
-    value: isKo ? 'llm-d 공식 기본 모델, 다국어 지원 우수, 오픈소스 LLM 중 최고 인기' : 'Official default model for llm-d, excellent multilingual support, most popular among open-source LLMs'
+    value: isKo ? 'Optimized Baseline 레시피의 기본 모델, 다국어(100개 이상 언어) 지원' : 'Default model in the Optimized Baseline recipe; multilingual support (100+ languages)'
   }];
   return <div style={{
     maxWidth: '700px',
