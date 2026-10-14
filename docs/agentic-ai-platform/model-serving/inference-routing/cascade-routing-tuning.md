@@ -36,6 +36,8 @@ Evaluate cost, quality, and availability together. Workload owners must approve 
 
 ### SLO Examples (GLM-5 + Qwen3-4B Environment)
 
+**Table 1. Cascade Routing tuning metric definitions and required evidence for approval**
+
 | Metric | Definition | Required evidence |
 |---|---|---|
 | TTFT p95/p99 | Seconds from gateway receipt to first response token | Histograms by model/input length; separate total stream duration |
@@ -131,6 +133,8 @@ Classification quality, execution routing, and user feedback are different obser
 
 ### Misroute Definition
 
+**Table 2. Exact decision condition by misroute type**
+
 | Type | Exact condition |
 |---|---|
 | FN | classifier_result=weak, required_tier=strong |
@@ -210,6 +214,8 @@ Sort requests within a pseudonymous session by UTC timestamp and use total_secon
 ## Keyword·Length·Turn 3-dim Tuning Playbook
 
 ### Weekly Tuning Cycle (4 stages)
+
+**Figure 1. Weekly tuning cycle of trace collection, labeling, metric calculation, and keyword PR**
 
 ```mermaid
 flowchart LR

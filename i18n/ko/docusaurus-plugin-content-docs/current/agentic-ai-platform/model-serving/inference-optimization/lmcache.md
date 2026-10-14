@@ -38,6 +38,8 @@ LMCache는 KV cache를 GPU 밖 계층으로 옮겨 이 두 제약을 완화합�
 
 LMCache는 서빙 엔진과 라우팅 계층 사이에서 KV cache 저장·조회를 담당합니다. 추론 인프라 전체 구조에서의 위치는 [추론 인프라 개요](../index.md)의 레이어드 튜닝 모델 L5(캐시 계층)에 해당합니다.
 
+**그림 1. LMCache의 추론 경로상 위치와 GPU·CPU·디스크 저장 계층**
+
 ```mermaid
 flowchart LR
     REQ["요청<br/>(prefix 포함)"] --> ENGINE["서빙 엔진<br/>(vLLM)"]
@@ -103,6 +105,8 @@ vLLM 0.20.0 미만에서는 `LMCacheMPConnector`가 항상 vLLM 내장 커넥터
 
 주요 서버 플래그는 다음과 같습니다.
 
+**표 1. LMCache 서버 주요 플래그와 기본값·역할**
+
 | 플래그 | 기본값 | 역할 |
 |--------|--------|------|
 | `--l1-size-gb` | (필수) | L1 캐시 풀 크기 (GB) |
@@ -129,6 +133,8 @@ lmcache server --l1-size-gb 100 --eviction-policy LRU \
 
 주요 어댑터 `type`은 다음과 같습니다.
 
+**표 2. L2 저장 백엔드 분류별 어댑터 `type` 값**
+
 | 분류 | `type` 값 |
 |------|-----------|
 | 로컬 파일시스템·블록 | `fs`, `fs_native`, `nixl_store`, `nixl_store_dynamic`, `raw_block`, `dax` |
@@ -149,6 +155,8 @@ LMCache MP 모드의 L1·L2는 **LMCache 서버 내부의 계층 명칭**으로,
 
 공식 배포 가이드는 sidecar가 아니라 **DaemonSet + Deployment 패턴**을 권장합니다. 노드당 LMCache 서버 하나(DaemonSet)를 같은 노드의 여러 vLLM Pod(Deployment)가 공유하는 구조입니다.
 
+**표 3. DaemonSet 배포 패턴의 주요 설정 항목과 내용**
+
 | 항목 | 내용 |
 |------|------|
 | `hostNetwork: true` | 공식 DaemonSet 패턴이 **서비스 디스커버리 용도**로 사용. vLLM Pod은 Service DNS가 아니라 `status.hostIP`로 서버를 찾음. IPC 전송 방식과는 독립적인 선택이므로, 아래 `/dev/shm` 제거만으로는 `hostNetwork` 요구가 사라지지 않음 |
@@ -158,6 +166,8 @@ LMCache MP 모드의 L1·L2는 **LMCache 서버 내부의 계층 명칭**으로,
 ### 전송 경로별 요구사항
 
 `--supported-transfer-mode`가 서버에 어떤 전송 경로를 적재할지 결정합니다.
+
+**표 4. 전송 모드별 경로와 용도**
 
 | 모드 | 경로 | 용도 |
 |------|------|------|
@@ -184,6 +194,8 @@ LMCache MP 모드의 L1·L2는 **LMCache 서버 내부의 계층 명칭**으로,
 ## 인접 기술과의 관계
 
 LMCache는 단독으로 동작하지 않고 다른 추론 최적화 기술과 함께 쓰입니다.
+
+**표 5. LMCache와 인접 추론 최적화 기술의 관계**
 
 | 기술 | 관계 | 비고 |
 |------|------|------|

@@ -33,6 +33,8 @@ For GPU cost optimization (Spot·Consolidation·time-based scheduling), see [EKS
 
 LLM serving configures Pod scaling and Node scaling in two stages.
 
+**Figure 1. Two-tier structure of KEDA Pod scaling and Karpenter node scaling**
+
 ```mermaid
 flowchart TB
     subgraph Metrics["Metrics Sources"]
@@ -98,6 +100,8 @@ spec:
 
 Prefill and Decode have different bottleneck signals.
 
+**Table 1. Scaling signals and GPU characteristics for the Prefill and Decode stages**
+
 | | Prefill | Decode |
 |---|---|---|
 | **Bottleneck Signal** | TTFT increase, input queue backlog | TPS decrease, KV Cache saturation |
@@ -126,6 +130,8 @@ DRA is a Kubernetes feature made generally available in Kubernetes 1.34. Based o
 Large model (744GB+) weight download is the most common Cold Start bottleneck in LLM serving. Downloading hundreds of GB from HuggingFace Hub frequently fails due to network instability, timeouts, and disk shortage.
 
 #### Problem Types and Responses
+
+**Table 2. Model-download failure types with symptoms and responses**
 
 | Problem | Symptoms | Response |
 |------|------|------|
@@ -337,6 +343,8 @@ To genuinely download once and share, use cross-node shared storage (`ReadWriteM
 :::tip Download Method Comparison (qualitative)
 This table compares the **design characteristics** of each method, not measured benchmarks. Actual time depends heavily on model size, instance network bandwidth, concurrency, and cache state (first download vs. restart), so measure it in your own environment. The "Charges" column lists only billable items — even when the transfer itself is free, S3 storage/requests, EFS/FSx provisioning, and instance runtime are billed separately.
 
+**Table 3. Model-download methods compared by transfer path, cache state, and billable items**
+
 | Method | Transfer Path | Cache State | Billable Items |
 |------|--------------|-------------|----------------|
 | HF Hub Direct | External → Pod | First download | Instance runtime (no transfer fee), high timeout risk |
@@ -359,6 +367,8 @@ As of April 2026, EKS Auto Mode's managed Karpenter **cannot provision p6-b200.4
 #### GPU Instance Capacity Acquisition
 
 p5.48xlarge frequently has InsufficientCapacity in Seoul/Tokyo regions. **Available in us-east-2 (Ohio) Spot for $13-15/hr** (85% reduction vs On-Demand $98/hr).
+
+**Table 4. p5.48xlarge On-Demand/Spot pricing by region with Spot price**
 
 | Region | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot Price |
 |------|---------------------|-----------------|----------|
@@ -383,6 +393,8 @@ For Karpenter's drain, consolidation, and termination behavior, see the [Karpent
 
 ### Serving Framework Compatibility
 
+**Table 5. vLLM and SGLang support versions and notes by model**
+
 | Model | vLLM Support | SGLang Support | Notes |
 |------|---------|-----------|------|
 | Qwen3-32B | Supported (vllm≥0.8.5) | Supported (sglang≥0.4.6.post1) | llm-d default model, Apache-2.0 |
@@ -398,6 +410,8 @@ Per its model card, GLM-5-FP8 is supported by both vLLM (v0.19.0+) and SGLang (v
 
 Storage performance drives large model (hundreds of GB) weight-loading time. The sequential-read figures below are **approximate observed values** that vary by environment; where a service publishes a limit (such as EFS), read the published limit and the actual throughput separately.
 
+**Table 6. Sequential-read performance, multi-node sharing, and recommended scenario by storage**
+
 | Storage | Sequential Read (approx.) | Multi-node Sharing | Recommended Scenario |
 |---------|---------|------------|------------|
 | **NVMe emptyDir** | ~3,500 MB/s (varies by instance) | Node-independent | p5 built-in NVMe, best for local re-reads |
@@ -412,6 +426,8 @@ For large models such as GLM-5-FP8 (hundreds of GB of FP8 weights) and Kimi K2.5
 ### GPU Quota Pitfall
 
 EC2 vCPU quotas are separated by instance bucket, requiring caution.
+
+**Table 7. GPU-instance vCPU quota types with defaults and cautions**
 
 | Quota | Applicable Instances | Default | Caution |
 |------|------------|--------|---------|

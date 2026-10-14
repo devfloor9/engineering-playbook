@@ -28,6 +28,8 @@ LLM inference engine performance largely depends on how efficiently KV cache (Ke
 
 vLLM is a widely adopted open-source LLM inference engine. The table below describes each technology's mechanism; the "Reported effect" column cites the condition under which a published number was measured, because the magnitude depends on model, hardware, workload and the combination of features enabled. The numbers are not additive and are not guaranteed for an arbitrary deployment.
 
+**Table 1. vLLM technology reported effects and mechanisms**
+
 | Technology | Reported effect (with source and condition) | Mechanism |
 |------|---------|------|
 | **PagedAttention** | The original [vLLM announcement](https://blog.vllm.ai/2023/06/20/vllm.html) reports that existing serving systems waste 60–80% of KV-cache memory to fragmentation and over-reservation, and that PagedAttention cuts that waste to under 4%. The reduction is in wasted memory, not a 60–80% cut of total memory. | Stores each sequence's KV cache in fixed-size, non-contiguous blocks mapped through a block table, analogous to OS virtual-memory paging |
@@ -52,6 +54,8 @@ The KV-cache size scales with the per-token term above and with the total number
 
 **Raw weight estimate by precision.** The figures below are the weights-only estimate (`parameters × bytes-per-parameter`); they are a lower bound on required VRAM, not total VRAM, because activations, framework overhead and the KV-cache pool are added on top. For a mixture-of-experts model, use the total parameter count for the weight estimate even though only a subset is activated per token.
 
+**Table 2. Bytes per parameter and 70B/32B weights-only estimates by precision**
+
 | Precision | Bytes per Parameter | 70B weights only | 32B weights only |
 |--------|---------------|---------|---------|
 | FP32 | 4 | 280GB | 128GB |
@@ -60,6 +64,8 @@ The KV-cache size scales with the per-token term above and with the total number
 | INT4 | 0.5 | 35GB | 16GB |
 
 ### Parallelization Strategy Selection Criteria
+
+**Figure 1. Parallelization strategy selection flow by model size and MoE status**
 
 ```mermaid
 flowchart TD
@@ -82,6 +88,8 @@ flowchart TD
 **Example Configurations by Model Size:**
 
 These rows are illustrative starting points, not validated capacity figures. The required GPU count depends on the exact checkpoint and quantization, the context length and concurrency you target (which set the KV-cache pool), and the headroom you leave; size each deployment against the memory arithmetic above and your own benchmark. Expert Parallelism (EP) is an experimental vLLM feature that must be enabled explicitly with `--enable-expert-parallel` and is normally combined with data parallelism (`EP_SIZE = TP × DP`); it is not automatic for MoE models ([vLLM EP deployment](https://docs.vllm.ai/en/latest/serving/expert_parallel_deployment.html)).
+
+**Table 3. Example GPU configuration and parallelism settings by model size**
 
 | Model Example | Total / Active Params | Precision | Example GPU Configuration | Parallelism (must be configured) |
 |-----------|---------|--------|---------|--------|
@@ -114,6 +122,8 @@ Flag meanings (comments are kept out of the command so each backslash is immedia
 
 Quantization "trades off model precision for smaller memory footprint" ([vLLM quantization guide](https://docs.vllm.ai/en/latest/features/quantization/)). The savings below are the weight-bit arithmetic relative to BF16/FP16 (for example 8-bit weights ≈ half the weight bytes, 4-bit ≈ a quarter); they are not a measured reduction of total GPU memory, which also includes activations and the KV-cache pool, and they are not a fixed quality or speed ranking. Quality and throughput depend on the specific variant, model and backend, and each format is only supported on specific hardware — vLLM publishes a per-architecture support matrix (Volta/Turing/Ampere/Ada/Hopper, AMD, Intel, CPU) that you should check before choosing one.
 
+**Table 4. Weight-bit footprint and pre-adoption checks by quantization format**
+
 | Quantization | Weight-bit footprint vs BF16 | What to verify before adopting |
 |--------|----------|------------|
 | **FP8 (W8A8)** | ~½ the weight bytes | Supported from Ada/Hopper (and AMD) only; measure quality on your model |
@@ -134,6 +144,8 @@ Existing vLLM deployments rely on simple Round-Robin load balancing. When reques
 llm-d and NVIDIA Dynamo recognize the KV cache state of each vLLM Pod and route requests with identical prefixes to Pods that already hold the corresponding KV cache.
 
 This flow is a simplified example of configured EPP plugins. A Pod with cached prefixes may still lose selection because of load.
+
+**Figure 2. KV cache-aware routing flow by prefix reuse and load score**
 
 ```mermaid
 sequenceDiagram
@@ -174,6 +186,8 @@ In both cases the **final workload on the selected Pod is LLM inference**. "Is t
 
 The direction of each effect is predictable, but the magnitude depends on prefix-hit rate, prefix length, model, hardware and load, so the table gives conditional effects rather than guaranteed percentages. The one published point estimate comes from llm-d: **3× higher output throughput and 2× faster TTFT** with prefix-cache-aware routing versus round-robin, measured on Llama 3.1 70B on 4× AMD MI300X ([llm-d README, Performance Highlights](https://github.com/llm-d/llm-d/blob/v0.8.1/README.md)). Treat other numbers as workload-specific and measure them yourself.
 
+**Table 5. KV Cache-Aware Routing effects on TTFT, prefill compute, and throughput by scenario (qualitative)**
+
 | Scenario | TTFT | GPU prefill compute | Throughput | Caveat |
 |---------|----------|-------------|-----------|--------|
 | Shared system prompt (high hit rate) | Lower (prefill of the shared prefix is skipped) | Reduced | Higher | Only while the cached Pod is not overloaded |
@@ -183,6 +197,8 @@ The direction of each effect is predictable, but the magnitude depends on prefix
 ### llm-d vs NVIDIA Dynamo Comparison
 
 Both projects provide KV Cache-aware routing but with different approaches. The llm-d review is pinned to [v0.8.1 (2026-06-26)](https://github.com/llm-d/llm-d/releases/tag/v0.8.1); note that the README at that tag still describes the v0.7 feature set. The Dynamo column is pinned to [v1.2.1](https://github.com/ai-dynamo/dynamo/tree/v1.2.1). Routing to a Pod that holds cached prefixes is separate from configuring KV transfer or offloading across Pods.
+
+**Table 6. Item-by-item comparison of llm-d v0.8.1 and NVIDIA Dynamo v1.2.x**
 
 | Item | llm-d v0.8.1 | NVIDIA Dynamo v1.2.x |
 |------|------------|-------------------|
@@ -207,6 +223,8 @@ These are starting points, not a mandatory migration path; validate against your
 ### Gateway Architecture: llm-d Deployment Configuration
 
 This is a single-Gateway example of [llm-d v0.8.1 Gateway Mode](https://github.com/llm-d/llm-d/blob/v0.8.1/docs/architecture/core/router/proxy.md). Solid lines show traffic/ext-proc calls; dotted lines show configuration references. InferencePool (`inference.networking.k8s.io/v1`) selects Pods and connects the EPP; optional InferenceObjective (`llm-d.ai/v1alpha2`) defines request priority. The historical `InferenceModel` is not a workload definition. Images, replicas, and GPU requests belong in the workload; the counts are illustrative.
+
+**Figure 3. llm-d v0.8.1 single-Gateway, EPP, and workload deployment**
 
 ```mermaid
 flowchart TB

@@ -36,6 +36,8 @@ sidebar_position: 3
 
 ### SLO 예시 (GLM-5 + Qwen3-4B 환경)
 
+**표 1. Cascade Routing 튜닝 지표별 정의와 승인에 필요한 증거**
+
 | 지표 | 정의 | 승인에 필요한 증거 |
 |---|---|---|
 | TTFT p95/p99 | 게이트웨이 요청 수신부터 첫 응답 토큰까지, 초 | 모델·입력 길이별 histogram, stream 완료 지연과 분리 |
@@ -131,6 +133,8 @@ def classify_v7(messages: list[dict]) -> str:
 
 ### Misroute 정의
 
+**표 2. Misroute 유형별 정확한 판정 조건**
+
 | 유형 | 정확한 조건 |
 |---|---|
 | FN | classifier_result=weak, required_tier=strong |
@@ -210,6 +214,8 @@ GROUP BY classifier_version;
 ## 키워드·길이·턴수 3-dim 튜닝 플레이북
 
 ### 주간 튜닝 사이클 (4단계)
+
+**그림 1. Trace 수집·라벨링·지표 계산·키워드 PR의 주간 튜닝 사이클**
 
 ```mermaid
 flowchart LR

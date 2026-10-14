@@ -39,6 +39,8 @@ In large-scale LLM services, user queries are often **semantically identical but
 
 Savings depend on **user query repetitiveness**, **domain** (FAQ/customer support/code generation), and **prompt structure**. The figures below are **illustrative planning ranges, not measurements from a specific published benchmark** — the public implementations and vendor blogs that discuss semantic caching report different numbers under different models, datasets, and cost accounting, so they cannot be combined into one authoritative band. Treat these as starting hypotheses and establish your own numbers through **progressive rollout** and A/B evaluation before relying on them.
 
+**Table 1. Operation policy and illustrative savings range by similarity threshold**
+
 | Similarity Threshold | Operation Policy | Illustrative Savings Range | Characteristics |
 |---------------------|------------------|------------------------|----------------|
 | **0.95 (Strict)** | Cache only nearly identical queries | lower | Very low false positive risk, strict quality requirements |
@@ -58,6 +60,8 @@ The above figures are **rough ranges** based on public materials. Not all domain
 LLM inference pipelines have **3 different cache layers**. Each operates at different positions, stores different units, and has different cost impacts. A semantic cache **complements rather than replaces** the other two layers.
 
 ### 3-Layer Cache Flow
+
+**Figure 1. Request flow across the Gateway and the Semantic/Prompt/KV three-layer cache**
 
 ```mermaid
 flowchart LR
@@ -80,6 +84,8 @@ flowchart LR
 ```
 
 ### Layer-by-Layer Comparison
+
+**Table 2. KV, Prompt, and Semantic cache compared by operation location, storage unit, and cost impact**
 
 | Aspect | KV Cache (vLLM PagedAttention) | Prompt Cache (Anthropic/OpenAI managed) | Semantic Cache (Gateway level) |
 |--------|--------------------------------|----------------------------------------|-------------------------------|
@@ -110,6 +116,8 @@ Prefix reuse exists in two forms — **provider-managed** (OpenAI/Anthropic prom
 
 ### Threshold Trade-offs
 
+**Figure 2. Trade-off between HIT rate and false-answer risk by similarity threshold**
+
 ```mermaid
 graph LR
     A[0.70 Aggressive] -->|High HIT rate| B[High false answer risk]
@@ -122,6 +130,8 @@ graph LR
 ```
 
 ### Threshold Selection Criteria
+
+**Table 3. Suitable and unsuitable workloads by similarity threshold**
 
 | Threshold | Suitable Workloads | Unsuitable Workloads | Notes |
 |-----------|-------------------|---------------------|-------|
@@ -202,6 +212,8 @@ Also bind any request or authorization state that changes the answer, or a cache
 
 ### Multi-tenant Namespace Strategy
 
+**Table 4. Namespace pattern and purpose by multi-tenant isolation layer**
+
 | Layer | Namespace Pattern Example | Isolation Purpose |
 |-------|--------------------------|-------------------|
 | **Organization / Tenant** | `cache:{tenantId}:*` | Data isolation, audit boundaries |
@@ -242,6 +254,8 @@ Attach these attributes to each request trace. In Langfuse, **tags** are strings
 
 Visualize the following with Langfuse custom dashboards or Prometheus + Grafana. The expressions below are **conceptual definitions, not executable PromQL or Langfuse queries** — translate them to the metric names and query language of the backend you use.
 
+**Table 5. Recommended dashboard panels for cache observability with target values**
+
 | Panel | Concept (not literal query) | Target Value |
 |-------|--------------|--------------|
 | **Overall HIT Rate** | HITs ÷ total cache lookups | 15-40% (workload-specific; not a target to force) |
@@ -256,6 +270,8 @@ Define `tokens_saved` explicitly before reporting it: it is an **estimate**, typ
 ### Alert Rules
 
 The thresholds below are **proposed starting values, not validated limits**. Before alerting on them, establish a per-workload baseline and confirm each rule against your traffic mix, request rate, and the sample size (denominator) behind the metric — a hit-rate comparison is unstable when the window has few lookups. In particular, a high absolute hit rate (e.g., 70%) is **not by itself** abnormal: it is expected for highly repetitive FAQ traffic. Treat these as triggers to **investigate**, correlated with the false-positive proxy and labeled quality outcomes, not as direct evidence of a root cause.
+
+**Table 6. Cache quality and performance alert rules (starting values) with items to investigate**
 
 | Alert | Condition (starting point) | Severity | Investigate |
 |-------|-----------|----------|----------|
@@ -306,6 +322,8 @@ For Bifrost/LiteLLM OTel transmission configuration, follow existing [LLMOps Obs
 ## 8. Domain-specific Application Patterns
 
 Even with the same semantic cache engine, **key composition, thresholds, and TTL** vary significantly by domain.
+
+**Table 7. Domain-specific application patterns for threshold, TTL, and key composition**
 
 | Domain | Threshold | TTL | Characteristics |
 |--------|-----------|-----|----------------|

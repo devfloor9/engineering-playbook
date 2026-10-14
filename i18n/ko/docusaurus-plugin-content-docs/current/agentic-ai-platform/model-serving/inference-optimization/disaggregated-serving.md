@@ -31,6 +31,8 @@ LLM 추론은 입력을 처리하는 Prefill과 이후 토큰을 생성하는 De
 
 LLM 추론은 두 가지 근본적으로 다른 연산 단계로 구성됩니다.
 
+**표 1. Prefill/Decode 단계의 특성과 병목 자원 비교**
+
 | 단계 | 특성 | 흔한 병목 자원 | 크기를 정할 때 확인할 항목 |
 |------|------|------|---------|
 | **Prefill** | 입력 프롬프트 처리 | 특히 긴 입력에서의 연산 처리량 | 입력 길이, 배치 구성, 연산 능력, 모델 메모리 |
@@ -43,6 +45,8 @@ LLM 추론은 두 가지 근본적으로 다른 연산 단계로 구성됩니다
 ### 분리 아키텍처
 
 그림은 가능한 자원 배치와 KV 전송 방향을 보여줍니다. 서빙 프레임워크는 Prefill/Decode 선택, KV 메타데이터 전달, 응답 스트림도 조정해야 하며, 이 제어·응답 경로는 그림에서 생략했습니다. 이 배치는 뒤에 나오는 GLM-5 배포 구성이 아닙니다.
+
+**그림 1. Prefill/Decode 분리 아키텍처와 NIXL KV 전송 방향**
 
 ```mermaid
 flowchart LR
@@ -182,6 +186,8 @@ containers:
 
 이 예제의 TP=8은 각 pipeline stage의 연산을 GPU 8개에 나누고, PP=2는 모델의 layer를 두 stage로 나눕니다. 두 stage가 함께 하나의 모델 복제본으로 요청을 처리합니다.
 
+**그림 2. LWS Leader/Worker 2노드 결합 TP/PP 복제본 구성**
+
 ```mermaid
 graph LR
     subgraph "LWS (replicas=1, size=2)"
@@ -194,6 +200,8 @@ graph LR
 ```
 
 ### LWS vs Ray 비교
+
+**표 2. LWS + vLLM `mp`와 Ray 런타임 vLLM의 운영 항목 비교**
 
 | 항목 | LWS + vLLM `mp` | Ray 런타임을 사용하는 vLLM |
 |------|-----------|-----------|

@@ -31,6 +31,8 @@ This document explains two configurations. **Disaggregated Serving** runs prefil
 
 LLM inference consists of two fundamentally different computational stages.
 
+**Table 1. Prefill/Decode stage characteristics and limiting resources**
+
 | Stage | Characteristics | Common limiting resource | Sizing considerations |
 |------|------|------|---------|
 | **Prefill** | Process the input prompt | Compute throughput, especially for long inputs | Input length, batching, available compute and model memory |
@@ -43,6 +45,8 @@ When prefill for a long input overlaps another request's decode in the same Pod,
 ### Separation Architecture
 
 The diagram shows one possible allocation and the direction of KV transfer. The serving framework must also coordinate prefill/decode selection, KV metadata and the response stream; those control and response paths are omitted. This layout is not the GLM-5 deployment later in this document.
+
+**Figure 1. Prefill/Decode separation architecture and NIXL KV transfer direction**
 
 ```mermaid
 flowchart LR
@@ -182,6 +186,8 @@ containers:
 
 Here, TP=8 divides each pipeline stage's computation across eight GPUs, while PP=2 divides the model layers between two stages. Both stages serve requests together as one model replica.
 
+**Figure 2. LWS leader/worker two-node coupled TP/PP replica**
+
 ```mermaid
 graph LR
     subgraph "LWS (replicas=1, size=2)"
@@ -194,6 +200,8 @@ graph LR
 ```
 
 ### LWS vs Ray Comparison
+
+**Table 2. Operational comparison of LWS + vLLM `mp` and vLLM on a Ray runtime**
 
 | Item | LWS + vLLM `mp` | vLLM with a Ray runtime |
 |------|-----------|-----------|

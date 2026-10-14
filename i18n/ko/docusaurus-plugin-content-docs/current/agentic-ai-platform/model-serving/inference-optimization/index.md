@@ -43,6 +43,8 @@ import DocCardList from '@theme/DocCardList';
 
 서비스별 SLO와 동일한 요청 집합을 기준으로 전후를 비교합니다. 아래 지표에 공통으로 적용되는 보편적 목표값은 없습니다.
 
+**표 1. 추론 성능 지표별 확인 내용과 함께 기록할 조건**
+
 | 지표 | 확인할 내용 | 함께 기록할 조건 |
 |------|-----------|----------------|
 | **TTFT** | 요청 시작부터 첫 토큰까지의 지연 분포 | 대기 시간 포함 여부, 입력 길이, 동시성 |
@@ -58,6 +60,8 @@ import DocCardList from '@theme/DocCardList';
 
 노드 관리 방식과 GPU 소프트웨어의 관리 주체를 먼저 구분합니다. GPU 개수나 모델 크기로 노드 관리 방식을 자동 결정하지 않습니다.
 
+**표 2. EKS GPU 배포 모델별 관리 경계와 상세 확인 항목**
+
 | 방식 | 관리 경계 | 상세 확인 |
 |------|----------|----------|
 | EKS Auto Mode | EKS가 GPU 드라이버와 Device Plugin을 관리 | 제공 기능과 사용자 설치 구성요소의 지원 범위 |
@@ -67,6 +71,8 @@ import DocCardList from '@theme/DocCardList';
 DRA 지원 여부는 Kubernetes 버전과 용량 프로비저닝 방식에 따라 확인합니다. 현재 [EKS NVIDIA 장치 관리 안내](https://docs.aws.amazon.com/eks/latest/userguide/device-management-nvidia.html)는 Auto Mode를 제외하고 Karpenter 정적 용량, MNG, 자체 관리 노드를 구분합니다. 세부 선택 기준은 [GPU 노드 전략](../gpu-infrastructure/eks-gpu-node-strategy.md)을 참고하세요.
 
 ### GPU 인스턴스 선택 매트릭스
+
+**표 3. GPU 인스턴스 선택 결정 항목별 검토 기준**
 
 | 결정 항목 | 검토 기준 |
 |----------|----------|
@@ -87,6 +93,8 @@ Auto Mode가 관리하는 구성요소를 별도 GPU Operator가 중복 관리�
 
 ### 의사결정 플로우
 
+**그림 1. 모델 규모별 추론 배포 방식 선택 흐름**
+
 ```mermaid
 flowchart TD
     accTitle: 추론 배포 방식 선택
@@ -104,6 +112,8 @@ flowchart TD
 ### 3-Tier 권장 구성
 
 다음은 검토 순서입니다. 특정 파라미터 수에 대응하는 고정 사양이 아닙니다.
+
+**표 4. 3-Tier 배포 단계별 적용 조건과 다음 문서**
 
 | 단계 | 적용 조건 | 다음 문서 |
 |------|----------|----------|
