@@ -46,6 +46,8 @@ Examples are design and review material for an existing EKS environment. Set the
 
 ### Required Tools
 
+**Table 1. Required cost-management tools, with scope and purpose**
+
 | Tool | Scope | Purpose |
 |------|-------|---------|
 | kubectl | Supported version skew with the API server | Resource inspection |
@@ -92,6 +94,8 @@ Separate cost analysis from the controllers that implement approved changes.
 
 This is a conceptual flow. Alertmanager notifications do not directly change Karpenter policies. An implemented, approved GitOps/IaC integration must deliver policy changes; Karpenter provisions capacity through EC2 APIs.
 
+**Figure 1. Conceptual flow of the EKS cost monitoring system**
+
 ```mermaid
 graph TB
     A[Workload metrics] --> B[Prometheus]
@@ -113,6 +117,8 @@ graph TB
 ### 3-Layer Cost Allocation Model
 
 Define separate allocation policies for shared control-plane, networking, and observability costs. Pod EC2 allocation costs are not the total cluster bill.
+
+**Figure 2. Three-layer cost allocation model — from AWS bill to namespace**
 
 ```mermaid
 graph LR
@@ -147,6 +153,8 @@ Identify cost management activities the organization can repeat and the owner of
 
 This is an internal assessment example. Do not assign fixed allocation accuracy or automation percentages to FinOps stages.
 
+**Table 2. FinOps maturity stages — activities and evidence (internal assessment example)**
+
 | Stage | Activity | Evidence |
 |-------|----------|----------|
 | Crawl | Inspect costs and identify owners | Monthly bills and missing tags |
@@ -168,6 +176,8 @@ This is an internal assessment example. Do not assign fixed allocation accuracy 
 Fix the billing scope and cost basis before comparing tools.
 
 #### Cost Components
+
+**Table 3. EKS cost components — calculation basis and review points**
 
 | Cost component | Calculation basis | Review |
 |----------------|-------------------|--------|
@@ -301,6 +311,8 @@ Creating an alert ConfigMap alone does not wire an integration. Implement the al
 
 #### Tool Selection Guide
 
+**Table 4. Cost tools — primary use, cost review, and integration requirements**
+
 | Tool | Primary use | Cost review | Integration requirements |
 |------|-------------|-------------|--------------------------|
 | SCAD + Athena | Billing-based AWS Pod allocation | Query, storage, and collection charges | Billing opt-in and CUR 2.0 |
@@ -404,6 +416,8 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100
 ```
 
 #### Production NodePool Strategy
+
+**Table 5. Production NodePool strategy — example requirements and workload conditions**
 
 | Pool | Example requirements | Workload conditions |
 |------|----------------------|---------------------|
@@ -700,6 +714,8 @@ Evaluate GPU costs using device count, runtime, model fit, and interruption reco
 
 ### GPU Cost Savings Stack
 
+**Table 6. GPU cost-saving strategies — cost mechanism and validation**
+
 | Strategy | Cost mechanism | Validation |
 |----------|----------------|------------|
 | Spot | Changes execution rate | Retry, model reload, and recovery costs |
@@ -849,6 +865,8 @@ if __name__ == "__main__":
 
 #### 4. Verification Checklist
 
+**Table 7. Verification checklist by milestone — checks and evidence**
+
 | Milestone | Checks | Evidence |
 |-----------|--------|----------|
 | 30 days | Visibility, allocation, data quality, alerts | Missing-data list, billing reconciliation, alert tests |
@@ -996,6 +1014,8 @@ Cost optimization combines allocation models, observations, and controlled chang
 ### Key Takeaways
 
 First define the billing basis and cost owners, then establish visibility through SCAD or a Kubernetes allocation tool. Review requests, node policies, and purchase options, measuring actual cost and SLO changes. Neither rightsizing output nor a disruption budget guarantees billing savings.
+
+**Table 8. Cost-management execution phases — activities and deliverables**
 
 | Stage | Activity | Deliverable |
 |-------|----------|-------------|

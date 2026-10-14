@@ -33,6 +33,8 @@ EKS의 확장은 메트릭 수집, 복제본 결정, 스케줄링, 노드 프로
 
 각 접근법은 서로 다른 지연 구간을 줄입니다.
 
+**표 1. 스케일링 접근법별 작동 방식·남는 지연·적합한 조건**
+
 | 접근법 | 작동 방식 | 남는 지연 | 적합한 조건 |
 | --- | --- | --- | --- |
 | 반응형 | KEDA/HPA → Karpenter | 관측·제어 루프·노드 시작 | 예측 불가능한 수요 |
@@ -170,6 +172,8 @@ AWS 통합·운영 단순성이 중요하면 CloudWatch를, PromQL·수집 제�
 
 각 계층의 시작·종료 이벤트를 추적합니다. 다음 흐름에서 기존 여유 용량이 있으면 NodeClaim/EC2 경로를 건너뛸 수 있지만 이미지·애플리케이션 준비 시간은 남습니다.
 
+**그림 1. 스케일링 지연의 레이어별 시작·종료 흐름**
+
 ```mermaid
 flowchart LR
     Signal[Demand signal] --> Metric[Metric available]
@@ -296,6 +300,8 @@ spec:
 
 실측값은 다음 형식으로 수집합니다. 이 문서에는 검증된 운영 benchmark dataset이 없으므로 클러스터 수·요청 수·100% 가용성 수치를 측정 결과로 제시하지 않습니다.
 
+**표 2. 스케일링 지연 지표의 시작·종료 구간과 분리 조건**
+
 | 지표 | 시작 → 종료 | 분리할 조건 |
 | --- | --- | --- |
 | 탐지 지연 | 부하 증가 → 조회 가능한 메트릭 | 수집 경로·주기 |
@@ -375,6 +381,8 @@ API 처리량이 병목인지 확인한 뒤 control plane 용량을 선택합니
 
 tier는 [공식 기능 설명](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)과 [가격표](https://aws.amazon.com/eks/pricing/)를 기준으로 선택합니다. 임의의 Pod 수나 월 $350, 고정 10배 성능을 기준으로 삼지 않습니다.
 
+**표 3. EKS 컨트롤 플레인 tier 비교 — Standard와 Provisioned**
+
 | 기준 | Standard | Provisioned |
 | --- | --- | --- |
 | 용량 방식 | AWS 관리형 자동 확장 | 선택한 tier의 사전 용량 |
@@ -418,6 +426,8 @@ aws eks describe-update --name "$CLUSTER_NAME" --update-id "$UPDATE_ID"
 ### Overprovisioning 전체 동작 흐름
 
 pause Pod가 선점되면 Deployment가 대체 Pod를 생성하고, Pending pause Pod를 위해 Karpenter가 다시 용량을 확보할 수 있습니다. 반복적인 확장·축소가 생기는지 관찰하고 consolidation/PDB/affinity와 함께 조정합니다.
+
+**그림 2. Overprovisioning 동작 흐름 — pause Pod 선점과 재확보**
 
 ```mermaid
 flowchart LR
@@ -585,6 +595,8 @@ Setu는 별도 프로젝트로 평가하며 Kueue 또는 Karpenter의 기본 내
 ### Setu 아키텍처 및 동작 원리
 
 Workload의 AdmissionCheck가 Pending인 동안 컨트롤러가 NodeClaim을 생성하고 필요한 조건을 확인한 후 admission을 승인합니다. 큐 대기 시간과 노드 프로비저닝 시간이 겹칠 수 있지만 EC2 준비 시간을 삭제하거나 총 시간을 무조건 줄이지는 않습니다.
+
+**그림 3. Setu 아키텍처 — AdmissionCheck와 NodeClaim 프로비저닝 흐름**
 
 ```mermaid
 flowchart LR
@@ -852,6 +864,8 @@ Auto Mode는 AWS가 관리하는 노드 OS와 Karpenter 기반 컴퓨팅 관리�
 ### Auto Mode vs Self-managed 상세 비교
 
 운영 책임과 확장 API를 기준으로 비교합니다.
+
+**표 4. EKS Auto Mode와 자체 운영 Karpenter의 비교**
 
 | 항목 | EKS Auto Mode | 자체 운영 Karpenter |
 | --- | --- | --- |
@@ -1323,6 +1337,8 @@ zonal shift는 장애 도메인 회피를 돕지만 다른 AZ의 EC2 용량, 데
 ## 확장 방식별 검증 항목 {#종합-스케일링-벤치마크-비교표}
 
 실측 자료가 없는 보편적 수치 비교를 다음 평가표로 대체합니다. 같은 workload·AMI/image digest·requests·부하·리전과 cache 조건에서 반복 측정하고 p50/p95/p99, 실패율, 노드 시간 및 전체 비용을 보고합니다.
+
+**표 5. 확장 방식별 검증할 이점과 비용·제약**
 
 | 선택 | 검증할 이점 | 비용/제약 |
 | --- | --- | --- |

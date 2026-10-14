@@ -216,6 +216,8 @@ eksctl create cluster -f auto-mode-cluster.yaml
 
 #### 2.5.2 Auto Mode vs 수동 관리 비교 {#252-auto-mode-vs-수동-관리-비교}
 
+**표 1. EKS Auto Mode와 수동 관리의 책임 분담 비교**
+
 | 책임 | 수동 관리 | Auto Mode |
 |---|---|---|
 | 노드 용량 | Karpenter 또는 node group 구성 | 관리형 컴퓨팅과 NodePool 제약 |
@@ -437,6 +439,8 @@ print(weighted_quantile([(100, 0), (200, 24), (400, 48)], .95))
 
 ##### 4가지 추천값 계산 방법 {#4가지-추천값-계산-방법}
 
+**표 2. VPA 추천값 상태 필드의 의미와 사용**
+
 | 상태 필드 | 의미 | 사용 |
 |---|---|---|
 | lowerBound | 하한 estimator 결과 | 업데이트 판단 범위; 최소 보장 아님 |
@@ -619,13 +623,13 @@ updatePolicy:
 
 VPA와 HPA를 함께 사용할 때는 충돌을 방지해야 합니다.
 
-#### 충돌 시나리오 (❌ 금지) {#충돌-시나리오--금지}
+#### 충돌 시나리오 (금지) {#충돌-시나리오--금지}
 
 CPU utilization HPA는 사용량을 request로 나눕니다. VPA가 같은 CPU request를 바꾸면 HPA의 분모가 달라져 제어 루프가 상호 영향을 줍니다. 반드시 무한 루프가 발생하는 것은 아니지만 부하별 안정성 검증 없이 조합하지 않습니다. 다음 절의 Off 또는 자원·메트릭 분리 패턴을 사용합니다.
 
 [VPA 1.4.0 FAQ](https://github.com/kubernetes/autoscaler/blob/vertical-pod-autoscaler-1.4.0/vertical-pod-autoscaler/docs/faq.md)
 
-#### 패턴 1: VPA Off + HPA (✅ 권장) {#패턴-1-vpa-off--hpa--권장}
+#### 패턴 1: VPA Off + HPA (권장) {#패턴-1-vpa-off--hpa--권장}
 
 ```yaml
 # ✅ 올바른 설정: VPA는 권장만, HPA로 스케일링
@@ -690,7 +694,7 @@ spec:
 3. Deployment 매니페스트에 수동 반영
 4. HPA가 부하에 따라 수평 확장
 
-#### 패턴 2: VPA Memory + HPA CPU (✅ 권장) {#패턴-2-vpa-memory--hpa-cpu--권장}
+#### 패턴 2: VPA Memory + HPA CPU (권장) {#패턴-2-vpa-memory--hpa-cpu--권장}
 
 ```yaml
 # ✅ 메트릭 분리: VPA는 Memory, HPA는 CPU
@@ -744,7 +748,7 @@ spec:
 - HPA가 부하에 따라 수평 확장 (Horizontal)
 - CPU request 분모의 직접 충돌을 줄이나 Memory·성능 변화의 간접 영향은 검증 필요
 
-#### 패턴 3: VPA + HPA + Custom Metrics (✅ 고급) {#패턴-3-vpa--hpa--custom-metrics--고급}
+#### 패턴 3: VPA + HPA + Custom Metrics (고급) {#패턴-3-vpa--hpa--custom-metrics--고급}
 
 ```yaml
 # ✅ HPA는 커스텀 메트릭 사용
@@ -861,7 +865,7 @@ spec:
       selectPolicy: Min                # 더 작은 값 선택 (보수적)
 ```
 
-**파라미터 설명:**
+**표 3. VPA 파라미터 설명과 권장값**
 
 | 파라미터 | 설명 | 권장값 |
 |---------|------|--------|
@@ -1409,6 +1413,8 @@ resources:
 
 5단계 체계적 Right-Sizing 프로세스:
 
+**그림 1. 5단계 Right-Sizing 프로세스**
+
 ```mermaid
 graph TB
     A[1단계: 베이스라인 수립] --> B[2단계: VPA Off 모드 배포]
@@ -1800,6 +1806,8 @@ spec:
 
 #### 리소스 효율성 비교 {#리소스-효율성-비교}
 
+**표 4. 리소스 효율성 비교 항목과 측정·해석 방법**
+
 | 비교 항목 | 측정 방법 | 해석 |
 |---|---|---|
 | admission 지연 | 제출부터 admission까지 | node bootstrap 비용과 분리 |
@@ -2010,6 +2018,8 @@ sum by (namespace, pod, container) (
 
 ### 8.3 Right-Sizing 절감 효과 {#83-right-sizing-절감-효과}
 
+**표 5. Right-Sizing 변경별 검증 대상과 비용 확인 방법**
+
 | 변경 | 기대하는 검증 대상 | 비용 확인 |
 |---|---|---|
 | requests 조정 | SLO 유지, 배치 개선 | 실제 제거된 node-hours |
@@ -2032,6 +2042,8 @@ Cost Explorer와 비교할 때 UTC 기간, 비용 지표(예: amortized cost), �
 [Kubecost documentation](https://www.ibm.com/docs/en/kubecost) · [AWS Cost Explorer](https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html)
 
 #### 8.4.2 Goldilocks vs Kubecost 도구 비교 {#842-goldilocks-vs-kubecost-도구-비교}
+
+**표 6. Right-Sizing 도구 비교 — Goldilocks와 Kubecost**
 
 | 구분 | Goldilocks | Kubecost |
 |---|---|---|
@@ -2112,6 +2124,8 @@ for name, cost in monthly.items():
 
 
 ### 리소스 설정 체크리스트 {#리소스-설정-체크리스트}
+
+**표 7. 리소스 설정 체크리스트 — 확인 내용과 판단 기준**
 
 | 항목 | 확인 내용 | 판단 기준 |
 |---|---|---|

@@ -36,6 +36,8 @@ Troubleshooting procedures (centered on kubectl commands) are covered in [Networ
 
 VPC CNI is not a single binary. It consists of two components with different roles.
 
+**Table 1. The two VPC CNI components — execution model and role**
+
 | Component | Execution model | Role |
 |---|---|---|
 | CNI plugin binary (`aws-cni`) | Invoked by kubelet on every Pod create/delete | Network wiring such as creating veth pairs and configuring routing rules |
@@ -48,6 +50,8 @@ In secondary-IP mode, address capacity depends on the instance type's ENI count 
 ## Architecture: L3 Routed Mode Datapath
 
 VPC CNI does not create an L2 bridge inside the node. It uses L3 routed mode: a veth pair per Pod, with packets forwarded purely through static routes and policy routing (`ip rule`).
+
+**Figure 1. VPC CNI L3 routed-mode datapath**
 
 ```mermaid
 flowchart LR
@@ -96,6 +100,8 @@ The host-side veth interface name is generated deterministically: the `eni` pref
 
 Different routing tables are used depending on the direction of traffic.
 
+**Table 2. Routing table and behavior by traffic direction**
+
 | Direction | Table used | Behavior |
 |---|---|---|
 | VPC → Pod (ingress) | main table | Delivered via the `Pod IP/32 → host veth` host route |
@@ -108,6 +114,8 @@ The reason egress needs per-ENI tables is that response packets from an IP assig
 ### Warm Pool: Three Target Variables
 
 ipamd pre-reserves spare IPs (the warm pool) so it can respond to Pod creation requests immediately. The pool size is determined by a combination of three absolute-value target variables.
+
+**Table 3. The three target variables that determine warm pool size**
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -144,6 +152,8 @@ As a result, lowering the warm targets or scaling down the node never breaks a r
 
 VPC CNI v1.14.0+ supports Kubernetes NetworkPolicy natively, with enforcement split into two layers.
 
+**Figure 2. NetworkPolicy enforcement — controller and eBPF agent split**
+
 ```mermaid
 flowchart TB
     NP["NetworkPolicy<br/>(user-defined)"] --> NPC["Network Policy Controller<br/>(EKS control plane, AWS-managed)"]
@@ -164,6 +174,8 @@ The operational implications are as follows.
 ## Operational Considerations
 
 ### Observation Points
+
+**Table 4. ipamd and network observation points, with what each shows**
 
 | Point | Description |
 |---|---|
