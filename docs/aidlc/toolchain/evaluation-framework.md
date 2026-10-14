@@ -29,6 +29,8 @@ This document proposes Inner/Middle/Outer Loops for quick development checks, CI
 
 ### 1.1 SDLC TDD vs AIDLC Evaluation-driven
 
+**Table 1. Comparison of deterministic-component tests and stochastic-component evaluation**
+
 | Aspect | Tests for deterministic components | Evaluation of stochastic components |
 |------|----------------------|-----------------------|
 | Output | Function results under controlled inputs/state | Responses that can vary for the same input |
@@ -56,6 +58,8 @@ Code checks and agent-quality evaluation remain complementary; a judge score can
 
 These three layers are a **repository design proposal** for balancing cost, speed and coverage, distinct from the official Inception/Construction/Operations phases. Ten–twenty or hundreds of cases are starting examples to adjust for the data distribution, failure cost and statistical objective.
 
+**Figure 1. Evaluation scope and data flow of the Inner/Middle/Outer Loops**
+
 ```mermaid
 flowchart LR
     Dev[Developer Workstation] --> Inner[Inner Loop<br/>Immediate Feedback<br/>10-20 Samples]
@@ -80,6 +84,8 @@ flowchart LR
 Team-specific datasets alone make it difficult to compare overall AIDLC capabilities. **Public benchmarks** provide an external reference.
 
 ### 2.1 Coding Agent Specialized Benchmarks
+
+**Table 2. Scale and focus of coding agent specialized benchmarks**
 
 | Benchmark | Scale | Focus | State of the Art as of April 2026 | URL |
 |---------|------|------|------------------|-----|
@@ -113,6 +119,8 @@ A SWE-bench Verified pass rate measures issue resolution on the selected 500 iss
 
 These benchmarks are difficult to apply directly to coding agents, but serve as an initial filter for model selection.
 
+**Table 3. General LLM and reasoning benchmarks used as an initial model-selection filter**
+
 | Benchmark | Focus | Considerations |
 |---------|------|---------|
 | **MMLU-Pro** | Expert knowledge/reasoning across 14 domains with up to ten answer choices | The 80%+ convergence claim needs dated model/prompt/evaluation-revision evidence and is unverified here |
@@ -139,6 +147,8 @@ URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](http
 
 The following comparison focuses on the AIDLC Middle Loop: CI integration and connections to production.
 
+**Table 4. Metrics, CI integration, strengths, and limitations by evaluation tool**
+
 | Tool | License | Main Metrics | CI Integration | Production Sampling | Strengths | Limitations |
 |------|---------|-----------|-------------|----------------|------|------|
 | **Ragas v0.2+** | Apache 2.0 | faithfulness, context_precision, context_recall, answer_relevancy, noise_sensitivity | Python SDK, GH Actions, CodeBuild | Official support through Langfuse/Phoenix integration | Most mature for RAG evaluation, with extensive references | LLM-as-judge invocation costs |
@@ -162,6 +172,8 @@ The following comparison focuses on the AIDLC Middle Loop: CI integration and co
 > Example combination: Ragas for domain RAG quality, Inspect AI for selected safety/capability tasks, and aidlc-evaluator for workflow/artifact comparisons. Braintrust and Langfuse can separately support experimentation/observability. A combination is not evidence of validation or a universal adoption pattern.
 
 ### 3.2 Core Ragas v0.2+ Metrics
+
+**Table 5. Meaning and calculation of core Ragas v0.2+ metrics**
 
 | Metric | Meaning | Calculation Summary |
 |-------|------|-------------|
@@ -294,6 +306,8 @@ jobs:
 
 ## 5. Evaluation Across AIDLC Phases
 
+**Figure 2. Placement of evaluation items across AIDLC phases with data feedback**
+
 ```mermaid
 flowchart LR
     INC[Inception<br/>Requirements and Design] --> CON[Construction<br/>Implementation and Testing]
@@ -332,6 +346,8 @@ flowchart LR
 
 ### 5.4 Stage Transition Gate Checklist
 
+**Table 6. Required conditions and evaluation tools by stage transition**
+
 | Transition | Required Conditions | Evaluation Tools |
 |------|----------|---------|
 | Inception → Construction | Requirements coverage ≥ 95%; measurable acceptance criteria; AIDLC Common Rules compliance | aidlc-evaluator + manual review |
@@ -358,6 +374,8 @@ The 95% coverage threshold and other conditions are **organizational policy exam
 
 ### 6.3 Example Threshold Gates
 
+**Table 7. Example lower bounds and gate actions by metric**
+
 | Metric | Lower Bound | Action |
 |------|------|------|
 | Faithfulness | < 0.90 | Block PR |
@@ -378,6 +396,8 @@ The 95% coverage threshold and other conditions are **organizational policy exam
 ### 6.5 Distinguishing Drift Types
 
 Production quality degradation falls into three broad categories, each with a different response path.
+
+**Table 8. Signals, example causes, and initial response by drift type**
 
 | Drift Type | Signal | Example Cause | Initial Response |
 |-----------|------|--------|---------|
@@ -471,6 +491,8 @@ def evaluation_cache_key(*, tenant_id, trace, spec):
 
 Team size alone does not determine monthly cost. Calculate the following cost components using the actual call volumes in section 7.4.
 
+**Table 9. Evaluation tool combinations and cost components by team size**
+
 | Team Size | Combination | Cost Components |
 |--------|------|----------------|
 | Small (&lt;5 people) | Locally run Ragas + Langfuse OSS + smaller judge | Judge/embedding calls + self-hosting |
@@ -502,6 +524,8 @@ For a real budget, apply the provider's billing token categories and prices, acc
 ## 8. Production Sampling Architecture
 
 The following reference architecture implements the **trace → asynchronous evaluation → dashboard** flow in production.
+
+**Figure 3. Reference architecture for asynchronous evaluation of production traces**
 
 ```mermaid
 flowchart LR

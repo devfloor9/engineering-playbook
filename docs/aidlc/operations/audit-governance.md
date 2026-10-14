@@ -28,6 +28,8 @@ Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/t
 
 ### 1.1 Regulatory Requirements
 
+**Table 1. Audit requirements, retention periods, and AIDLC relevance by regulation**
+
 | Regulation | Audit Requirement | Retention Period | AIDLC Relevance |
 |-----------|------------------|------------------|----------------|
 | **Korea Electronic Financial Supervision Regulations** | Complete IT change & access history | 5 years | All AIDLC stage approval & decision history |
@@ -38,6 +40,8 @@ Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/t
 | **GDPR (EU)** | Personal data decision rationale | Case by case | Ontology decisions, data processing design |
 
 ### 1.2 AIDLC-Specific Audit Challenges
+
+**Figure 1. Additional elements that AI decision auditing must record**
 
 ```mermaid
 graph LR
@@ -85,6 +89,8 @@ AIDLC System:
 ### 2.1 Stage Transition Approval Pattern
 
 Each stage transition in AIDLC is protected by **explicit approval gates**.
+
+**Figure 2. Decision flow of the stage transition approval gate**
 
 ```mermaid
 flowchart LR
@@ -152,7 +158,8 @@ All NFRs are measurable and major risks have been identified.
 
 Regulated industries require **stage transitions cannot proceed with single approval**.
 
-**Multi-Approval Matrix Example (Finance):**
+**Table 2. Multi-approval matrix example by stage transition for the finance industry**
+
 | Stage Transition | Primary | Secondary | Tertiary | Additional Requirements |
 |-----------------|---------|-----------|----------|------------------------|
 | Requirements → User Stories | Architect | - | - | Simple review |
@@ -193,6 +200,8 @@ auto_block_conditions:
 ## 3. Audit Log Format
 
 ### 3.1 Event Type Classification
+
+**Figure 3. Classification scheme for audit events by type**
 
 ```mermaid
 graph TB
@@ -512,6 +521,8 @@ aidlc audit verify-artifacts --session sess-20260315-payment-api-v2
 
 AIDLC Audit Log is not a **subset** of [Observability Stack](./observability-stack.md) but a **higher governance layer**.
 
+**Figure 4. Layer relationship between the Audit Log and the observability stack**
+
 ```mermaid
 graph TB
     AUDIT[AIDLC Audit Log<br/>Decision Level]
@@ -533,7 +544,8 @@ graph TB
     style OBS fill:#2ecc71,color:#fff
 ```
 
-**Role Division:**
+**Table 3. Role division between the Audit Log and Observability**
+
 | Item | Audit Log | Observability |
 |------|-----------|---------------|
 | Target | AIDLC decisions & approvals | Runtime events |
@@ -547,6 +559,8 @@ The **quality gates** of [Harness Engineering](../methodology/harness-engineerin
 
 - Quality events detected by Harness → recorded in Audit Log
 - Audit Log Checkpoint Approval failure history → input for Harness rule improvement
+
+**Figure 5. Bidirectional integration sequence of Harness quality gates and the Audit Log**
 
 ```mermaid
 sequenceDiagram
@@ -566,6 +580,8 @@ sequenceDiagram
 ### 6.3 Mapping to Common Rules
 
 This document operationalizes the following AIDLC [Common Rules](../methodology/common-rules.md):
+
+**Table 4. Implementation location in this document by Common Rule**
 
 | Common Rule | This Document Implementation |
 |-------------|--------------|

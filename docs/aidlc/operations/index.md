@@ -19,6 +19,8 @@ AgenticOps uses AI agents to turn production telemetry into operational decision
 
 AIDLC describes how software is developed; AgenticOps describes how operational evidence informs its maintenance and improvement. Constraints in the [ontology](/docs/aidlc/methodology/ontology-engineering) guide agent decisions. The **Outer Loop** returns findings from production to the people and processes that revise those constraints.
 
+**Figure 1. Feedback flow between AIDLC development and AgenticOps operations**
+
 ```mermaid
 flowchart LR
     DEV["AIDLC<br/>Development"] -->|Deploy| PROD["Production<br/>Operations"]
@@ -33,6 +35,8 @@ flowchart LR
 ## Structure
 
 Reading in the order **1 → 2 → 3** allows you to follow the entire journey from data-based construction to autonomous operations realization.
+
+**Table 1. AgenticOps track document structure and core questions**
 
 | Order | Document | Core Question |
 |------|------|----------|

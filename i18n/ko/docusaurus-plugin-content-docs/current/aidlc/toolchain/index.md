@@ -19,6 +19,8 @@ AIDLC [방법론](/docs/aidlc/methodology)을 실제 프로젝트에서 구현�
 
 ## 구성
 
+**표 1. AIDLC 도구별 핵심 내용과 대상 독자**
+
 | 문서 | 핵심 내용 | 대상 독자 |
 |------|----------|----------|
 | [AI 코딩 에이전트](./ai-coding-agents.md) | Kiro Spec-Driven 개발, Q Developer, 에이전트 비교 | 개발자, 테크 리드 |
@@ -27,6 +29,8 @@ AIDLC [방법론](/docs/aidlc/methodology)을 실제 프로젝트에서 구현�
 | [기술 로드맵](./technology-roadmap.md) | Build-vs-Wait 결정 매트릭스, 투자 계획 | CTO, 엔터프라이즈 아키텍트 |
 
 ## 도구 선택 의사결정
+
+**그림 1. 데이터 레지던시와 코딩 에이전트 선택에 따른 도구 결정 흐름**
 
 ```mermaid
 flowchart TD
