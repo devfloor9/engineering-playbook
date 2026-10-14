@@ -17,7 +17,7 @@ Momo (富邦媒 / momo.com)'s millions of SKUs, TV home-shopping and live commer
 
 ---
 
-## 🚀 Interactive Demo
+## Interactive Demo
 
 > <strong><a href="/engineering-playbook/demo/momo/" target="_blank" rel="noopener noreferrer">👉 Open the demo page (new window)</a></strong>
 
@@ -26,6 +26,8 @@ Hands-on with 11 scenarios plus the core UIs for live-commerce attribution, deli
 ---
 
 ## 1. PoC One-Line Summary
+
+**Table 1. PoC target departments, data, approach, and differentiators**
 
 | Axis | Content |
 |---|---|
@@ -38,6 +40,8 @@ Hands-on with 11 scenarios plus the core UIs for live-commerce attribution, deli
 
 ## 2. Business Structure (Public Information)
 
+**Table 2. momo.com business structure (public information)**
+
 | Axis | Content |
 |---|---|
 | Channels | Mobile app (#1 traffic in TW) · Web · TV home-shopping · Live broadcasts · Line/KakaoTalk |
@@ -48,6 +52,8 @@ Hands-on with 11 scenarios plus the core UIs for live-commerce attribution, deli
 ---
 
 ## 3. Five-Department Personas
+
+**Table 3. Five department personas and KPIs**
 
 | Code | Department | KPI |
 |---|---|---|
@@ -61,6 +67,10 @@ Hands-on with 11 scenarios plus the core UIs for live-commerce attribution, deli
 
 ## 4. 11 Scenarios Summary
 
+Scenarios marked "(Momo-specialized)" in the table are the scenarios added specifically for momo.com.
+
+**Table 4. 11 scenarios and their data mix**
+
 | # | Scenario | Data Mix |
 |---|---|---|
 | **S1** | Natural-language semantic search | SKU + Member + Live review + External |
@@ -71,9 +81,9 @@ Hands-on with 11 scenarios plus the core UIs for live-commerce attribution, deli
 | **S6** | External signal fusion | 4 sources (Social · Weather · Economy · Competitor) |
 | **S7** | Omnichannel member journey | App → Live → TV → Re-purchase |
 | **S8** | Marketing consent · PII guardrails | Bedrock Guardrails + Ad-copy review |
-| **S9-Mo** ⭐ | **Live-commerce broadcast attribution** | Viewer → Cart → Purchase funnel |
-| **S10-Mo** ⭐ | **In-house logistics delivery SLA + Order optimization** | 24-hour promise vs measured |
-| **S11-Mo** ⭐ | **Mobile-app recommendation · Search diversity** | Diversity · New-product exposure · Long-tail |
+| **S9-Mo** (Momo-specialized) | **Live-commerce broadcast attribution** | Viewer → Cart → Purchase funnel |
+| **S10-Mo** (Momo-specialized) | **In-house logistics delivery SLA + Order optimization** | 24-hour promise vs measured |
+| **S11-Mo** (Momo-specialized) | **Mobile-app recommendation · Search diversity** | Diversity · New-product exposure · Long-tail |
 
 ---
 
@@ -85,12 +95,14 @@ Same as LG H&H + live-stream attribution (Kinesis), delivery SLA (TimeStream), ~
 
 ## 6. Top-5 Demo (30 minutes)
 
+**Table 5. Top-5 demo order and duration**
+
 | Order | Scenario | Time |
 |---|---|---|
 | 1 | **S1** Semantic search | 4 min |
-| 2 | **S9-Mo** ⭐ Live commerce attribution | 5 min |
-| 3 | **S10-Mo** ⭐ Delivery SLA + ordering | 4 min |
-| 4 | **S11-Mo** ⭐ Recommendation diversity | 5 min |
+| 2 | **S9-Mo** (Momo-specialized) Live commerce attribution | 5 min |
+| 3 | **S10-Mo** (Momo-specialized) Delivery SLA + ordering | 4 min |
+| 4 | **S11-Mo** (Momo-specialized) Recommendation diversity | 5 min |
 | 5 | **S2** Persona chatbot | 4 min |
 
 ---

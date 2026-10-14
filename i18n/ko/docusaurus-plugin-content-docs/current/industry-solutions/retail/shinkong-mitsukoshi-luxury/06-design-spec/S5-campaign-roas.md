@@ -23,6 +23,8 @@ sidebar_label: S5. Campaign ROAS
 - DM 카탈로그 · SMS · 카톡/Line · 소홍서 · 인스타 · 일본 트위터 · 점포 디스플레이 · 인플루언서
 
 ## 3. 데이터 믹스
+**표 1. 캠페인 ROAS 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | 과거 캠페인 (週年慶/SS/FW) | CAMPAIGN_MART |

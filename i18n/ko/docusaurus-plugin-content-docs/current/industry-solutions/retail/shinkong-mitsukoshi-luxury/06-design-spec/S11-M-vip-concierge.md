@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-M. VIP Concierge
 ---
 
-> **Mitsukoshi 차별 포인트** ⭐ — VIP 회원 1:1 컨시어지 경험을 Bedrock + Memory로 자동화.
+> **Mitsukoshi 차별 포인트** — VIP 회원 1:1 컨시어지 경험을 Bedrock + Memory로 자동화.
 
 ## 1. URL · 페르소나
 - `/vip-concierge` · P4 (VIP·멤버십)
@@ -27,6 +27,8 @@ sidebar_label: S11-M. VIP Concierge
 > Black 회원 → 챗봇이 개인 컨시어지 톤 ("○○님께서 좋아하실 만한 SS 신상이 信義점에 입고됐습니다") 응답.
 
 ## 3. 데이터 믹스
+**표 1. VIP 컨시어지 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | Membership (Black/Platinum/Gold) | Neptune |
@@ -35,6 +37,8 @@ sidebar_label: S11-M. VIP Concierge
 | 자사 리뷰 + 외부 후기 | OpenSearch |
 
 ## 4. 등급별 혜택 (공개 일반 표현)
+
+**표 2. VIP 등급별 핵심 혜택**
 
 | 등급 | 핵심 |
 |---|---|

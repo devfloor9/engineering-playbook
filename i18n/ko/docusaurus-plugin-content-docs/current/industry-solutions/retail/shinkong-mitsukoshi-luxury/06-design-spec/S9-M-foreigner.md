@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-M. Foreigner Tax Refund
 ---
 
-> **Mitsukoshi 차별 포인트** ⭐ — 백화점 매출의 큰 비중을 차지하는 외국인 관광객(특히 일본)을 국적·환율·관광 데이터로 분석.
+> **Mitsukoshi 차별 포인트** — 백화점 매출의 큰 비중을 차지하는 외국인 관광객(특히 일본)을 국적·환율·관광 데이터로 분석.
 
 ## 1. URL · 페르소나
 - `/foreigner` · P2 (인사이트), P1 (마케팅)
@@ -27,6 +27,8 @@ sidebar_label: S9-M. Foreigner Tax Refund
 > P1 — 환율 변동에 따라 어느 국적 관광객을 타겟할지 자동 추천.
 
 ## 3. 데이터 믹스
+**표 1. 외국인 면세 추천 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | Foreigner | Neptune (~500 real + 합성) |

@@ -24,6 +24,8 @@ sidebar_label: S1. Semantic Search
 - P5: "信義점 1F LV 인기 SKU + 일본인 후기" → 매대 진열 인사이트
 
 ## 3. 데이터 믹스
+**표 1. 검색 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | 입점 SKU | OpenSearch `idx_product` (Smartcn) |

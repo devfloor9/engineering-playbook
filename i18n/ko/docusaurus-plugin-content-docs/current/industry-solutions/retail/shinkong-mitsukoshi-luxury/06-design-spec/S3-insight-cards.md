@@ -21,6 +21,8 @@ sidebar_label: S3. Insight Cards
 
 ## 2. 카드 프리셋
 
+**표 1. 인사이트 카드 프리셋과 데이터**
+
 | 카드 | 데이터 |
 |---|---|
 | 월별 점포 GMV | POSTransaction × Store |
@@ -31,6 +33,8 @@ sidebar_label: S3. Insight Cards
 | 週年慶 캠페인 효과 | Campaign × Touchpoint × Order |
 
 ## 3. 페르소나별 코멘트
+
+**표 2. 동일 카드에 대한 페르소나별 코멘트**
 
 | P | 동일 카드 (점포 GMV) |
 |---|---|

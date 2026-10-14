@@ -21,6 +21,8 @@ sidebar_label: S4. Persona & Cluster
 
 ## 2. 5 Lifestyle Personas
 
+**Table 1. Five lifestyle personas and their signals**
+
 | Persona | Signals |
 |---|---|
 | Luxury collector | Regular purchases of LV/Hermes/Chanel · Black tier |

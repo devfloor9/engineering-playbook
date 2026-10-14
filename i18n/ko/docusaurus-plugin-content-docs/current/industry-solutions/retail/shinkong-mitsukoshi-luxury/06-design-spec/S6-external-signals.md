@@ -21,6 +21,8 @@ sidebar_label: S6. External Signals
 
 ## 2. 외부 시그널 4종 (Mitsukoshi 특화)
 
+**표 1. 외부 시그널 4종과 출처**
+
 | 종류 | 출처 |
 |---|---|
 | 소셜 | 소홍서·Dcard·인스타·일본 트위터·홍콩 페북 |

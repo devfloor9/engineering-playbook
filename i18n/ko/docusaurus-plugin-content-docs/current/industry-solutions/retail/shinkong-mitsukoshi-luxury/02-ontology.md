@@ -22,6 +22,8 @@ sidebar_label: 02. Ontology
 
 ## 1. 25 클래스
 
+**표 1. KG 25 클래스 그룹과 소속 클래스**
+
 | 그룹 | 클래스 |
 |---|---|
 | **고객/회원** | Customer · Membership(skm-member) · **Foreigner** (여권·국적·환율) · Persona · Segment |
@@ -36,11 +38,15 @@ sidebar_label: 02. Ontology
 
 ### 2.1 Foreigner (외국인 관광객)
 
+**표 2. Foreigner 클래스 속성**
+
 | 속성 |
 |---|
 | foreigner_id (마스킹) · 여권 국적 (JP/HK/SG/MY/...) · 입국일 · TaxRefund 신청 여부 · 환율 적용 |
 
 ### 2.2 Boutique (점포 내 매장)
+
+**표 3. Boutique 클래스 속성**
 
 | 속성 |
 |---|
@@ -48,11 +54,15 @@ sidebar_label: 02. Ontology
 
 ### 2.3 TaxRefundTransaction (면세 거래)
 
+**표 4. TaxRefundTransaction 클래스 속성**
+
 | 속성 |
 |---|
 | txn_id · foreigner_id · txn_amount (원화/대만달러/일본엔) · refund_amount · refund_method |
 
 ### 2.4 TourismSignal (관광 시그널)
+
+**표 5. TourismSignal 클래스 속성**
 
 | 속성 |
 |---|
@@ -61,6 +71,8 @@ sidebar_label: 02. Ontology
 ---
 
 ## 3. 핵심 관계
+
+**그림 1. KG 핵심 클래스 간 관계**
 
 ```mermaid
 graph LR
@@ -125,6 +137,8 @@ RETURN c.customer_id, collect(b.name)[..5] AS preferred_brands
 
 ## 5. cohort_tag
 
+**표 6. cohort_tag 값과 의미**
+
 | 값 | 의미 |
 |---|---|
 | `real` | PII 마스킹 회원 (N=2K Customer + 500 Foreigner) |
@@ -134,6 +148,8 @@ RETURN c.customer_id, collect(b.name)[..5] AS preferred_brands
 ---
 
 ## 6. OpenSearch 인덱스
+
+**표 7. OpenSearch 인덱스별 분석기**
 
 | 인덱스 | 분석기 |
 |---|---|

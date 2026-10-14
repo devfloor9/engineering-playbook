@@ -23,6 +23,8 @@ sidebar_label: S5. Campaign ROAS
 - DM catalog · SMS · KakaoTalk / Line · Xiaohongshu · Instagram · Japanese Twitter · in-store display · influencers
 
 ## 3. Data Mix
+**Table 1. Campaign ROAS data mix and sources**
+
 | Data | Source |
 |---|---|
 | Past campaigns (Anniversary Sale / SS / FW) | CAMPAIGN_MART |

@@ -16,7 +16,7 @@ tags:
 sidebar_label: S11-M. VIP Concierge
 ---
 
-> **Mitsukoshi differentiation point** ⭐ — Automate the 1:1 concierge experience for VIP members with Bedrock + Memory.
+> **Mitsukoshi differentiation point** — Automate the 1:1 concierge experience for VIP members with Bedrock + Memory.
 
 ## 1. URL · Personas
 - `/vip-concierge` · P4 (VIP & Membership)
@@ -27,6 +27,8 @@ sidebar_label: S11-M. VIP Concierge
 > Black member → chatbot responds in personal concierge tone ("Mr./Ms. ○○, an SS new release that you may enjoy has arrived at the Xinyi store").
 
 ## 3. Data Mix
+**Table 1. VIP concierge data mix and sources**
+
 | Data | Source |
 |---|---|
 | Membership (Black/Platinum/Gold) | Neptune |
@@ -35,6 +37,8 @@ sidebar_label: S11-M. VIP Concierge
 | First-party reviews + external reviews | OpenSearch |
 
 ## 4. Tier Benefits (general public expression)
+
+**Table 2. Core benefits by VIP tier**
 
 | Tier | Core |
 |---|---|

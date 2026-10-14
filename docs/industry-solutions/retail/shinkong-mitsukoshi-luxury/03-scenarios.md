@@ -16,6 +16,10 @@ tags:
 sidebar_label: 03. Scenarios
 ---
 
+Scenarios marked "(specialized)" in the table are the scenarios added specifically for Mitsukoshi.
+
+**Table 1. 11 scenarios mapped to data, URL, and primary persona**
+
 | # | Scenario | First-party Data | External Data | URL | Primary Persona |
 |---|---|---|---|---|---|
 | **S1** | Natural-language semantic search | Product, members, first-party reviews | Xiaohongshu, Dcard reviews | `/semantic-search` | P1, P5 |
@@ -26,21 +30,25 @@ sidebar_label: 03. Scenarios
 | **S6** | External signal fusion | First-party GMV | 4 types (including tourism) | `/signals` | P2, P3 |
 | **S7** | Omnichannel member journey | Online → store → duty-free → repeat visit | (none) | `/journey` | P4 |
 | **S8** | Marketing consent / PII guardrails | Compliance | (none) | `/compliance` | P4 |
-| **S9-M** ⭐ | **Foreign tourist behavior analysis + duty-free recommendation** | Foreigner, TaxRefund | FX, tourism | `/foreigner` | P2 |
-| **S10-M** ⭐ | **Luxury brand SOV + counter occupancy** | Boutique × Brand × Store | Competitors | `/brand-sov` | P5 |
-| **S11-M** ⭐ | **VIP tier lounge concierge** | Black/Platinum/Gold + concierge history | (none) | `/vip-concierge` | P4 |
+| **S9-M** (specialized) | **Foreign tourist behavior analysis + duty-free recommendation** | Foreigner, TaxRefund | FX, tourism | `/foreigner` | P2 |
+| **S10-M** (specialized) | **Luxury brand SOV + counter occupancy** | Boutique × Brand × Store | Competitors | `/brand-sov` | P5 |
+| **S11-M** (specialized) | **VIP tier lounge concierge** | Black/Platinum/Gold + concierge history | (none) | `/vip-concierge` | P4 |
 
 ---
 
 ## Persona Matrix
 
+"Used" means the department primarily uses that scenario; a blank cell means it does not.
+
+**Table 2. Scenarios used per department**
+
 | Department | S1 | S2 | S3 | S4 | S5 | S6 | S7 | S8 | S9-M | S10-M | S11-M |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| P1 | ⭐ | ⭐ |  |  | ⭐ |  |  |  |  |  |  |
-| P2 |  | ⭐ |  | ⭐ |  | ⭐ |  |  | ⭐ |  |  |
-| P3 |  | ⭐ | ⭐ |  |  | ⭐ |  |  |  |  |  |
-| P4 |  | ⭐ |  |  |  |  | ⭐ | ⭐ |  |  | ⭐ |
-| P5 | ⭐ | ⭐ |  |  |  |  |  |  |  | ⭐ |  |
+| P1 | Used | Used |  |  | Used |  |  |  |  |  |  |
+| P2 |  | Used |  | Used |  | Used |  |  | Used |  |  |
+| P3 |  | Used | Used |  |  | Used |  |  |  |  |  |
+| P4 |  | Used |  |  |  |  | Used | Used |  |  | Used |
+| P5 | Used | Used |  |  |  |  |  |  |  | Used |  |
 
 ---
 
@@ -70,6 +78,9 @@ sidebar_label: 03. Scenarios
 ---
 
 ## PoC Schedule (8 weeks)
+
+**Table 3. Tasks by week over the 8-week PoC**
+
 | Week | Task |
 |---|---|
 | 1-2 | Data ingestion (first-party + 49.5K synthetic + external) |

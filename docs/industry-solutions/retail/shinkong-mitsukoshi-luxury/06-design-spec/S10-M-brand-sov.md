@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-M. Brand SOV
 ---
 
-> **Mitsukoshi differentiation point** ⭐ — Analyze counter occupancy and SOV (Share of Voice) of 700+ tenant brands by 19 stores, floors, and seasons.
+> **Mitsukoshi differentiation point** — Analyze counter occupancy and SOV (Share of Voice) of 700+ tenant brands by 19 stores, floors, and seasons.
 
 ## 1. URL · Personas
 - `/brand-sov` · P5 (MD & Store Operations)
@@ -25,6 +25,8 @@ sidebar_label: S10-M. Brand SOV
 > P5 — Compare counter GMV and turnover for LV vs Hermes on the 1F of Xinyi store + analyze 4-week impact after SS-season new releases hit the display.
 
 ## 3. Data Mix
+**Table 1. Brand SOV data mix and sources**
+
 | Data | Source |
 |---|---|
 | Boutique × Brand × Store | Neptune (~3K Boutique) |

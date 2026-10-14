@@ -24,6 +24,8 @@ sidebar_label: S1. Semantic Search
 - P5: "Popular SKUs of LV on the 1F of Xinyi store + Japanese reviews" → counter merchandising insight
 
 ## 3. Data Mix
+**Table 1. Search data mix and sources**
+
 | Data | Source |
 |---|---|
 | Tenant SKU | OpenSearch `idx_product` (Smartcn) |

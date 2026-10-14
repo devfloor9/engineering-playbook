@@ -16,6 +16,8 @@ tags:
 sidebar_label: 01. Personas
 ---
 
+**Table 1. Five department personas mapped to mission, KPI, and primary scenarios**
+
 | Code | Department | Mission | KPI | Primary Scenarios |
 |---|---|---|---|---|
 | **P1** | Marketing & Campaigns | Anniversary Sale, new products, foreigner acquisition | Campaign ROAS / Foreigner share | S1, S2, S5 |
@@ -54,6 +56,8 @@ sidebar_label: 01. Personas
 ---
 
 ## UI Impact
+
+**Table 2. UI elements reflected per persona**
 
 | Element | P1 | P2 | P3 | P4 | P5 |
 |---|---|---|---|---|---|

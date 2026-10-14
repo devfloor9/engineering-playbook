@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. Data Volume
 
+**Table 1. Volume by data item**
+
 | Item | Volume |
 |---|---|
 | First-party members | N=2,000 + Foreigner N=500 |
@@ -30,6 +32,8 @@ sidebar_label: 04. Data Sources
 → ~550K Neptune edges
 
 ## 2. cohort_tag
+
+**Table 2. cohort_tag values and meanings**
 
 | Value | Meaning |
 |---|---|
@@ -58,6 +62,8 @@ sidebar_label: 04. Data Sources
 
 ## 4. Season / Event Weighting
 
+**Table 3. Demand weighting by season and event**
+
 | Event | Weighting |
 |---|---|
 | Anniversary Sale (週年慶, Sep–Oct) | Luxury +50%, duty-free +80% |
@@ -66,6 +72,8 @@ sidebar_label: 04. Data Sources
 | Japan GW (May) / Hong Kong summer break | Foreigner duty-free +60% |
 
 ## 5. Data Ingestion Pipeline
+
+**Figure 1. Data ingestion pipeline**
 
 ```mermaid
 graph LR

@@ -22,6 +22,8 @@ sidebar_label: 02. Ontology
 
 ## 1. 25 Classes
 
+**Table 1. KG 25 class groups and member classes**
+
 | Group | Classes |
 |---|---|
 | **Customer / Member** | Customer · Membership (skm-member) · **Foreigner** (passport, nationality, FX) · Persona · Segment |
@@ -36,11 +38,15 @@ sidebar_label: 02. Ontology
 
 ### 2.1 Foreigner (Foreign Tourist)
 
+**Table 2. Foreigner class attributes**
+
 | Attributes |
 |---|
 | foreigner_id (masked) · passport nationality (JP/HK/SG/MY/...) · entry date · TaxRefund applied · FX rate applied |
 
 ### 2.2 Boutique (In-store Counter)
+
+**Table 3. Boutique class attributes**
 
 | Attributes |
 |---|
@@ -48,11 +54,15 @@ sidebar_label: 02. Ontology
 
 ### 2.3 TaxRefundTransaction (Duty-free Transaction)
 
+**Table 4. TaxRefundTransaction class attributes**
+
 | Attributes |
 |---|
 | txn_id · foreigner_id · txn_amount (KRW / TWD / JPY) · refund_amount · refund_method |
 
 ### 2.4 TourismSignal (Tourism Signal)
+
+**Table 5. TourismSignal class attributes**
 
 | Attributes |
 |---|
@@ -61,6 +71,8 @@ sidebar_label: 02. Ontology
 ---
 
 ## 3. Key Relationships
+
+**Figure 1. Relationships among the KG's key classes**
 
 ```mermaid
 graph LR
@@ -125,6 +137,8 @@ RETURN c.customer_id, collect(b.name)[..5] AS preferred_brands
 
 ## 5. cohort_tag
 
+**Table 6. cohort_tag values and meanings**
+
 | Value | Meaning |
 |---|---|
 | `real` | PII-masked members (N=2K Customer + 500 Foreigner) |
@@ -134,6 +148,8 @@ RETURN c.customer_id, collect(b.name)[..5] AS preferred_brands
 ---
 
 ## 6. OpenSearch Indices
+
+**Table 7. OpenSearch indices and their analyzers**
 
 | Index | Analyzer |
 |---|---|

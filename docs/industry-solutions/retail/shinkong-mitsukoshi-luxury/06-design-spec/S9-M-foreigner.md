@@ -16,7 +16,7 @@ tags:
 sidebar_label: S9-M. Foreigner Tax Refund
 ---
 
-> **Mitsukoshi differentiation point** ⭐ — Analyze foreign tourists (especially Japanese) who account for a major share of department store revenue, using nationality, FX, and tourism data.
+> **Mitsukoshi differentiation point** — Analyze foreign tourists (especially Japanese) who account for a major share of department store revenue, using nationality, FX, and tourism data.
 
 ## 1. URL · Personas
 - `/foreigner` · P2 (insights), P1 (marketing)
@@ -27,6 +27,8 @@ sidebar_label: S9-M. Foreigner Tax Refund
 > P1 — Automatically recommend which nationality of tourist to target based on FX fluctuations.
 
 ## 3. Data Mix
+**Table 1. Foreigner duty-free recommendation data mix and sources**
+
 | Data | Source |
 |---|---|
 | Foreigner | Neptune (~500 real + synthetic) |

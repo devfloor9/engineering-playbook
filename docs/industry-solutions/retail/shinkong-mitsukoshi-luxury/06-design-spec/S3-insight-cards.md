@@ -21,6 +21,8 @@ sidebar_label: S3. Insight Cards
 
 ## 2. Card Presets
 
+**Table 1. Insight card presets and data**
+
 | Card | Data |
 |---|---|
 | Monthly store GMV | POSTransaction × Store |
@@ -31,6 +33,8 @@ sidebar_label: S3. Insight Cards
 | Anniversary Sale campaign impact | Campaign × Touchpoint × Order |
 
 ## 3. Persona Commentary
+
+**Table 2. Per-persona commentary on the same card**
 
 | P | Same card (store GMV) |
 |---|---|

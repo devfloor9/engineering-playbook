@@ -16,7 +16,7 @@ tags:
 sidebar_label: S10-M. Brand SOV
 ---
 
-> **Mitsukoshi 차별 포인트** ⭐ — 700+ 입점 브랜드의 매대 점유와 SOV(Share of Voice)를 19점포·층·시즌 단위로 분석.
+> **Mitsukoshi 차별 포인트** — 700+ 입점 브랜드의 매대 점유와 SOV(Share of Voice)를 19점포·층·시즌 단위로 분석.
 
 ## 1. URL · 페르소나
 - `/brand-sov` · P5 (MD·매장 운영)
@@ -25,6 +25,8 @@ sidebar_label: S10-M. Brand SOV
 > P5 — 信義점 1F의 LV vs Hermes 매대 GMV·회전율을 비교 + SS 시즌 신상 진열 후 4주 영향 분석.
 
 ## 3. 데이터 믹스
+**표 1. 브랜드 SOV 데이터 믹스와 출처**
+
 | 데이터 | 출처 |
 |---|---|
 | Boutique × Brand × Store | Neptune (~3K Boutique) |

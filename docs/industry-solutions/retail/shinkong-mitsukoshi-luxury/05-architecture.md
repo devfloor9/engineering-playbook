@@ -20,6 +20,8 @@ sidebar_label: 05. Architecture
 
 ## 1. Architecture
 
+**Figure 1. Mitsukoshi AWS single architecture**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -57,6 +59,8 @@ graph TB
 
 ## 2. Specialized Components
 
+**Table 1. Mitsukoshi specialized components and their roles**
+
 | Component | Role |
 |---|---|
 | **OpenSearch (Smartcn + Kuromoji)** | Traditional Chinese + Japanese morphological analysis + KNN |
@@ -66,6 +70,8 @@ graph TB
 
 ## 3. Security & Governance
 
+**Table 2. Security and governance items and implementation**
+
 | Item | Implementation |
 |---|---|
 | Authentication | Cognito + Lambda@Edge JWT |
@@ -74,6 +80,8 @@ graph TB
 | Guardrails | 4 topics + duty-free regulations + advertising expressions |
 
 ## 4. Cost (8-week PoC)
+
+**Table 3. 8-week PoC cost estimate**
 
 | Item | Estimate |
 |---|---|

@@ -21,6 +21,8 @@ sidebar_label: S6. External Signals
 
 ## 2. 4 External Signals (Mitsukoshi-specific)
 
+**Table 1. The four external signals and their sources**
+
 | Type | Source |
 |---|---|
 | Social | Xiaohongshu · Dcard · Instagram · Japanese Twitter · Hong Kong Facebook |

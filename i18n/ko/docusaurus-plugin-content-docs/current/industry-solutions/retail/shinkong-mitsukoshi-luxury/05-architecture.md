@@ -20,6 +20,8 @@ sidebar_label: 05. Architecture
 
 ## 1. 아키텍처
 
+**그림 1. Mitsukoshi AWS 단일 아키텍처**
+
 ```mermaid
 graph TB
     subgraph Edge
@@ -57,6 +59,8 @@ graph TB
 
 ## 2. 특화 컴포넌트
 
+**표 1. Mitsukoshi 특화 컴포넌트와 역할**
+
 | 컴포넌트 | 역할 |
 |---|---|
 | **OpenSearch (Smartcn + Kuromoji)** | 번체중 + 일본어 형태소 + KNN |
@@ -66,6 +70,8 @@ graph TB
 
 ## 3. 보안·거버넌스
 
+**표 2. 보안·거버넌스 항목과 구현**
+
 | 항목 | 구현 |
 |---|---|
 | 인증 | Cognito + Lambda@Edge JWT |
@@ -74,6 +80,8 @@ graph TB
 | 가드레일 | 4 토픽 + 면세 규정 + 광고 표현 |
 
 ## 4. 비용 (8주 PoC)
+
+**표 3. 8주 PoC 비용 추정**
 
 | 항목 | 추정 |
 |---|---|

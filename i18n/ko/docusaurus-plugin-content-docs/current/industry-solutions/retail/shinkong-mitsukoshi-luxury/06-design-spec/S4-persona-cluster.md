@@ -21,6 +21,8 @@ sidebar_label: S4. Persona & Cluster
 
 ## 2. 라이프스타일 5종
 
+**표 1. 라이프스타일 페르소나 5종과 시그널**
+
 | 페르소나 | 시그널 |
 |---|---|
 | 럭셔리 콜렉터 | LV·Hermes·Chanel 정기 구매 · Black 등급 |

@@ -18,6 +18,8 @@ sidebar_label: 04. Data Sources
 
 ## 1. 데이터 규모
 
+**표 1. 데이터 항목별 규모**
+
 | 항목 | 규모 |
 |---|---|
 | 자사 회원 | N=2,000 + Foreigner N=500 |
@@ -30,6 +32,8 @@ sidebar_label: 04. Data Sources
 → ~550K Neptune edges
 
 ## 2. cohort_tag
+
+**표 2. cohort_tag 값과 의미**
 
 | 값 | 의미 |
 |---|---|
@@ -58,6 +62,8 @@ sidebar_label: 04. Data Sources
 
 ## 4. 시즌·이벤트 가중
 
+**표 3. 시즌·이벤트별 수요 가중**
+
 | 이벤트 | 가중 |
 |---|---|
 | 週年慶 (가을 9~10월) | 럭셔리 +50%, 면세 +80% |
@@ -66,6 +72,8 @@ sidebar_label: 04. Data Sources
 | 일본 GW (5월) / 홍콩 暑期 | 외국인 면세 +60% |
 
 ## 5. 데이터 적재 파이프라인
+
+**그림 1. 데이터 적재 파이프라인**
 
 ```mermaid
 graph LR
