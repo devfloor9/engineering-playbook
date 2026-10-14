@@ -23,6 +23,8 @@ Performance reports and measurement plans for EKS. Check each report's evidence 
 
 ## Networking
 
+**Table 1. Networking benchmark reports and validation status**
+
 | # | Report | Status |
 |---|--------|--------|
 | 1 | [VPC CNI vs Cilium Network Performance Comparison](./cni-performance-comparison.md) | Summaries reviewed; raw logs and reproduction pending |
@@ -30,23 +32,29 @@ Performance reports and measurement plans for EKS. Check each report's evidence 
 
 ## AI/ML Inference
 
+**Table 2. AI/ML inference benchmark reports and validation status**
+
 | # | Report | Status |
 |---|--------|--------|
 | 3 | [Llama 4 Serving Comparison: Specifications and Validation Plan](./ai-ml-workload.md) | Specifications reviewed; performance/cost measurements pending |
-| 4 | [Inference Platform: AgentCore vs EKS Self-Built](./agentcore-vs-eks-inference.md) | 📋 Planned |
-| 5 | [NVIDIA Dynamo Inference Benchmark](./dynamo-inference-benchmark.md) | 🆕 New |
+| 4 | [Inference Platform: AgentCore vs EKS Self-Built](./agentcore-vs-eks-inference.md) | Planned |
+| 5 | [NVIDIA Dynamo Inference Benchmark](./dynamo-inference-benchmark.md) | New |
 
 ## Infrastructure & Operations
 
+**Table 3. Infrastructure and operations benchmark reports and validation status**
+
 | # | Report | Status |
 |---|--------|--------|
-| 6 | [Infrastructure Performance](./infrastructure-performance.md) | 🔜 Upcoming |
-| 7 | [Hybrid Infrastructure](./hybrid-infrastructure.md) | 🔜 Upcoming |
-| 8 | [Security & Operations](./security-operations.md) | 🔜 Upcoming |
+| 6 | [Infrastructure Performance](./infrastructure-performance.md) | Upcoming |
+| 7 | [Hybrid Infrastructure](./hybrid-infrastructure.md) | Upcoming |
+| 8 | [Security & Operations](./security-operations.md) | Upcoming |
 
 ## AI Agents
 
 Measurements of AI coding agents run on Amazon Bedrock, not in an EKS environment.
+
+**Table 4. AI agent benchmark reports and validation status**
 
 | # | Report | Status |
 |---|--------|--------|

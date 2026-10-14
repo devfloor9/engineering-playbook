@@ -36,6 +36,8 @@ Choosing a CNI involves IP allocation and routing as well as service load balanc
 
 These settings come from `cluster.yaml` and `run-all-scenarios.sh`. They describe the intended setup; they do not establish the effective environment of the stored runs.
 
+**Table 1. Declared test-environment configuration and interpretation notes**
+
 | Item | Recorded configuration | Interpretation |
 | --- | --- | --- |
 | Cluster | EKS 1.31, `ap-northeast-2`, `cni-bench` | Historical experiment input, not a current version recommendation |
@@ -48,6 +50,8 @@ A new experiment should also record the kernel, ENA driver, AMI, MTU, CNI and ku
 ## Test Scenarios
 
 The runner requests the following configurations. Status output confirming the active data paths is unavailable.
+
+**Table 2. IP allocation, service processing and additional settings across the five scenarios**
 
 | Scenario | IP allocation and routing | Service processing | Additional settings |
 | --- | --- | --- | --- |
@@ -73,11 +77,15 @@ VPC CNI IP allocation and kube-proxy Service forwarding have different responsib
 
 The Cilium agent configures networking and policy on each node. The operator performs cluster-level work, including IPAM operations for applicable modes. This existing conceptual diagram explains component roles; it does not prove which features were enabled in the experiment.
 
+**Figure 1. Conceptual Cilium agent and operator component architecture**
+
 ![Conceptual Cilium component architecture](/img/benchmarks/cilium-arch.png)
 
 #### Cilium eBPF Packet Path
 
 eBPF programs perform forwarding and policy work at selected hooks. Socket load balancing, host routing, tunneling and L7 proxy use affect the actual path. The diagram below is a **historical Cilium 1.13-era reference**. It is not an exact execution trace for the 1.16.5 experiment or a current release.
+
+**Figure 2. Historical Cilium 1.13-era eBPF packet path between endpoints**
 
 ![Historical Cilium 1.13-era endpoint packet path](/img/benchmarks/cilium_bpf_endpoint.svg)
 
@@ -85,11 +93,15 @@ eBPF programs perform forwarding and policy work at selected hooks. Socket load 
 
 Native routing lets the underlying network route Pod traffic without tunnel encapsulation. ENI IPAM allocates Pod addresses through AWS ENIs; these are separate concepts. VPC routes, security groups, return paths and MTU must also support the intended communication.
 
+**Figure 3. Conceptual Cilium native routing (ENI mode)**
+
 ![Conceptual Cilium native routing](/img/benchmarks/cilium_native_routing.png)
 
 #### Cilium ENI IPAM Architecture
 
 ENI IPAM depends on AWS API permissions, available subnet addresses and instance ENI/IP limits. Setting chart options does not establish that these permissions and network prerequisites exist.
+
+**Figure 4. Conceptual Cilium ENI IPAM architecture**
 
 ![Conceptual Cilium ENI IPAM architecture](/img/benchmarks/cilium_eni_arch.png)
 
@@ -104,6 +116,8 @@ A→B changes the CNI and encapsulation, B→C changes Service processing, C→D
 `workloads.yaml` deploys iperf3 sender/receiver Pods and HTTP clients/servers. CPU requests, server replicas and Service endpoint placement can affect results. Separate same-node, cross-node and cross-AZ runs, and preserve actual Pod IPs and node names.
 
 ### Measured Metrics
+
+**Table 3. What `run-benchmark.sh` does for each metric and what it represents**
 
 | Metric | What `run-benchmark.sh` does | What it represents |
 | --- | --- | --- |
@@ -139,6 +153,8 @@ Mean TCP RTT and HTTP p99 measure different things. Multiplying this RTT by an a
 
 #### UDP Packet Loss Rate
 
+**Table 4. Stored UDP packet loss rate by scenario**
+
 | Scenario | Stored loss rate |
 | --- | --- |
 | A | 20.39% |
@@ -154,6 +170,8 @@ The loss differences are recorded; their causes are not established. Compare sen
 <HttpPerformanceChart />
 
 The 5,000-QPS target runs contain the following values. A run that misses the requested rate must not be described as successfully serving 5,000 QPS.
+
+**Table 5. Achieved QPS and p99 per scenario for the 5,000-QPS target runs**
 
 | Scenario | Achieved QPS | p99 (ms) |
 | --- | --- | --- |
@@ -198,6 +216,8 @@ Compare policy capabilities and Service processing against official feature docu
 The clearest findings are incorrect metric labels, confusion between D and E, and mismatches between the intended configuration and the narrative. Repeatability and the causes of performance differences remain unverified.
 
 ### Recommended Configuration by Workload
+
+**Table 6. What to compare for each required behavior**
 
 | Required behavior | What to compare |
 | --- | --- |

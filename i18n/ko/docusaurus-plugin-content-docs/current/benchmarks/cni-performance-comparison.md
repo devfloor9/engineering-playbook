@@ -36,6 +36,8 @@ CNI 선택에는 IP 할당과 라우팅뿐 아니라 서비스 부하 분산, �
 
 저장소의 `cluster.yaml`과 `run-all-scenarios.sh`가 선언하는 환경입니다. 선언된 값이 당시 실행 환경과 일치하는지는 별도로 확인해야 합니다.
 
+**표 1. 저장소가 선언한 테스트 환경 설정과 해석 시 주의점**
+
 | 항목 | 기록된 설정 | 해석 시 주의점 |
 | --- | --- | --- |
 | 클러스터 | EKS 1.31, `ap-northeast-2`, `cni-bench` | 과거 실험 설정이며 현재 권장 버전이 아님 |
@@ -48,6 +50,8 @@ CNI 선택에는 IP 할당과 라우팅뿐 아니라 서비스 부하 분산, �
 ## 테스트 시나리오
 
 다음은 스크립트가 **의도한 설정**입니다. 실제로 활성화된 데이터 경로를 증명하는 상태 출력은 남아 있지 않습니다.
+
+**표 2. 5개 시나리오의 IP 할당·서비스 처리·추가 설정**
 
 | 시나리오 | IP 할당·라우팅 | 서비스 처리 | 추가 설정 |
 | --- | --- | --- | --- |
@@ -73,11 +77,15 @@ VPC CNI의 IP 할당과 kube-proxy의 Service 전달은 서로 다른 역할입�
 
 Cilium agent는 노드에서 네트워크와 정책을 구성하고, operator는 선택한 모드에 따라 IPAM 같은 클러스터 범위 작업을 수행합니다. 아래 그림은 구성 요소를 이해하기 위한 기존 개념도이며 이 실험에서 각 기능이 활성화되었다는 증거는 아닙니다.
 
+**그림 1. Cilium agent와 operator 구성 요소 개념도**
+
 ![Cilium 구성 요소의 개념도](/img/benchmarks/cilium-arch.png)
 
 #### Cilium eBPF 패킷 경로
 
 eBPF 프로그램은 선택된 hook에서 전달·정책 처리를 수행합니다. socket LB, host routing, 터널, L7 프록시 사용 여부에 따라 실제 경로가 달라집니다. 아래 자료는 **Cilium 1.13 계열의 역사적 경로도**입니다. 1.16.5 실험이나 현재 릴리스의 정확한 호출 순서로 사용하지 않습니다.
+
+**그림 2. Cilium 1.13 계열 endpoint 간 eBPF 패킷 경로 참고도**
 
 ![Cilium 1.13 계열 endpoint 간 패킷 경로 참고도](/img/benchmarks/cilium_bpf_endpoint.svg)
 
@@ -85,11 +93,15 @@ eBPF 프로그램은 선택된 hook에서 전달·정책 처리를 수행합니�
 
 Native routing은 Pod 트래픽을 터널로 감싸지 않고 하부 네트워크가 라우팅하도록 구성하는 방식입니다. ENI IPAM은 AWS ENI에서 Pod IP를 확보하는 방식으로, 두 개념이 같은 것은 아닙니다. VPC 경로, 보안 그룹, 반환 경로와 MTU가 함께 맞아야 통신할 수 있습니다.
 
+**그림 3. Cilium native routing (ENI 모드) 개념도**
+
 ![Cilium native routing 개념도](/img/benchmarks/cilium_native_routing.png)
 
 #### Cilium ENI IPAM 아키텍처
 
 ENI IPAM은 AWS API 권한과 서브넷의 주소 여유, 인스턴스별 ENI·IP 한도에 영향을 받습니다. 차트 옵션만 설정하면 권한과 네트워크가 자동으로 준비된다고 가정해서는 안 됩니다.
+
+**그림 4. Cilium ENI IPAM 아키텍처 개념도**
 
 ![Cilium ENI IPAM 개념도](/img/benchmarks/cilium_eni_arch.png)
 
@@ -104,6 +116,8 @@ A→B는 CNI와 캡슐화 방식, B→C는 Service 처리, C→D는 IPAM·라우
 `workloads.yaml`은 iperf3 송수신 Pod와 HTTP 부하 발생기·서버를 배포합니다. CPU 요청량, 서버 복제 수, Service endpoint 배치가 네트워크 결과에 영향을 줄 수 있습니다. 재실험 시 같은 노드·다른 노드·다른 가용 영역을 별도 항목으로 나누고 실제 Pod IP와 nodeName을 보존합니다.
 
 ### 측정 메트릭
+
+**표 3. 측정 항목별 `run-benchmark.sh` 동작과 해석 범위**
 
 | 항목 | `run-benchmark.sh`의 동작 | 해석 범위 |
 | --- | --- | --- |
@@ -139,6 +153,8 @@ A→B는 CNI와 캡슐화 방식, B→C는 Service 처리, C→D는 IPAM·라우
 
 #### UDP 패킷 손실률
 
+**표 4. 시나리오별 저장된 UDP 패킷 손실률**
+
 | 시나리오 | 저장된 손실률 |
 | --- | --- |
 | A | 20.39% |
@@ -154,6 +170,8 @@ A→B는 CNI와 캡슐화 방식, B→C는 Service 처리, C→D는 IPAM·라우
 <HttpPerformanceChart />
 
 목표 5,000 QPS 실행의 저장값은 다음과 같습니다. 목표에 못 미치는 처리량을 5,000 QPS가 처리되었다고 표현하지 않습니다.
+
+**표 5. 목표 5,000 QPS 실행의 시나리오별 달성 QPS와 p99**
 
 | 시나리오 | 달성 QPS | p99 (ms) |
 | --- | --- | --- |
@@ -198,6 +216,8 @@ E는 여러 옵션을 동시에 바꾸므로 개별 기여도를 구할 수 없�
 남아 있는 자료로 가장 분명하게 확인되는 문제는 측정 지표의 잘못된 이름, D와 E 값의 혼동, 선언된 설정과 본문 설명의 불일치입니다. 성능 수치의 반복성이나 원인은 아직 검증되지 않았습니다.
 
 ### 워크로드별 권장 구성
+
+**표 6. 필요한 동작별로 비교할 항목**
 
 | 필요한 동작 | 비교할 항목 |
 | --- | --- |

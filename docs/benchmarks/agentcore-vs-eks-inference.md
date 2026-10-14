@@ -35,6 +35,8 @@ This plan compares runtime hosting, model serving and gateways independently, th
 
 ## Comparison Targets
 
+**Table 1. Per-experiment variables and decisions for separating the three layers**
+
 | Experiment | Variable | Controls | Decision evidence |
 | --- | --- | --- | --- |
 | R: Agent execution | AgentCore Runtime / the same agent hosted on EKS | Framework, code, model backend, tools and requests | Startup, waiting, execution, recovery and session behavior |
@@ -44,6 +46,8 @@ This plan compares runtime hosting, model serving and gateways independently, th
 Comparing a managed model with a different open-weight model is a separate **product-selection experiment**. Different models have different quality and compute requirements; their results do not isolate runtime performance.
 
 ### Architecture Configuration
+
+**Figure 1. Independent runtime (R) and gateway (G) experiment configuration**
 
 ```mermaid
 flowchart LR
@@ -65,6 +69,8 @@ R and G are independent experiments, not a mandatory chain containing every box.
 
 LiteLLM and Bifrost are candidates for G. AgentCore Gateway also supports model-based inference routing and belongs in the candidate set. Similar feature names do not establish equivalent authentication, licensing, backend or streaming behavior. The table below is a **test contract for each candidate**, not a verified product support matrix.
 
+**Table 2. Test contract and acceptance conditions for each LLM gateway candidate**
+
 | Capability to test | Acceptance condition |
 | --- | --- |
 | API and streaming | Preserve the selected model's input, error, tool-call, cancellation and stream-completion semantics |
@@ -84,6 +90,8 @@ Compare the same backend directly and through each gateway. Match network distan
 
 ## AgentCore Provided Scope
 
+**Table 3. AgentCore layer responsibilities and conditions still to verify**
+
 | Layer | Responsibility and reviewed support | Conditions still to verify |
 | --- | --- | --- |
 | AgentCore Runtime | Hosts agent code, including frameworks such as LangGraph and Strands | Code, permissions, sessions, networking, versions and operating policy |
@@ -97,6 +105,8 @@ Custom Model Import is a separate Bedrock feature, not a model server built into
 
 ## Validation Questions
 
+**Table 4. Validation questions and the experiment and evidence that answer each**
+
 | Question | Experiment and evidence |
 | --- | --- |
 | Does the same agent produce equivalent outcomes in both environments? | R: outputs, tool calls, session recovery and quality evaluation |
@@ -109,6 +119,8 @@ Custom Model Import is a separate Bedrock feature, not a model server built into
 ## Test Environment
 
 Before execution, freeze the following in one manifest referenced by both language reports.
+
+**Table 5. Items to freeze in the pre-execution manifest and their recorded values**
 
 | Item | Required record |
 | --- | --- |
@@ -166,6 +178,8 @@ Replay the same arrival trace and verify that the load generator achieves it. Se
 
 ## Measured Metrics
 
+**Table 6. Metric definitions and reporting conditions**
+
 | Metric | Definition and reporting condition |
 | --- | --- |
 | TTFT | Client request start to first valid output token; explicitly define connection/authentication/queue inclusion |
@@ -186,6 +200,8 @@ Report run counts, duration, distributions and uncertainty. Latency calculated o
 Include the EKS control plane, required nodes/always-on replicas, storage, load balancers and observability infrastructure. Add the applicable capacity charges for Runtime Instances or reserved/minimum capacity when selected. Do not use unsupported constants such as “Langfuse $100” without deployment size and pricing evidence.
 
 ### Variable Costs
+
+**Table 7. Cost basis for each variable-cost layer**
 
 | Layer | Cost basis |
 | --- | --- |
@@ -211,6 +227,8 @@ Cost per million output tokens = total cost * 1,000,000 / valid output tokens
 Count overlapping items only once. A lower cost per token or request does not necessarily mean a lower monthly total. Annotate replica growth and changes to discounts, caching or batching. Do not mix future pricing terms with those available on the review date.
 
 ## Decision Flowchart
+
+**Figure 2. Decision flow from candidate screening to final selection**
 
 ```mermaid
 flowchart TD

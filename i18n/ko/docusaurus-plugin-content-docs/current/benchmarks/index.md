@@ -21,6 +21,8 @@ EKS 환경의 성능 보고서와 측정 계획을 모았습니다. 각 보고�
 
 ## 네트워킹
 
+**표 1. 네트워킹 벤치마크 보고서와 검증 상태**
+
 | # | 보고서 | 상태 |
 |---|--------|------|
 | 1 | [VPC CNI vs Cilium 네트워크 성능 비교](./cni-performance-comparison.md) | 요약 기록 검토 / 원본 로그·재현 검증 대기 |
@@ -28,23 +30,29 @@ EKS 환경의 성능 보고서와 측정 계획을 모았습니다. 각 보고�
 
 ## AI/ML 추론
 
+**표 2. AI/ML 추론 벤치마크 보고서와 검증 상태**
+
 | # | 보고서 | 상태 |
 |---|--------|------|
 | 3 | [Llama 4 서빙 비교: 사양과 검증 계획](./ai-ml-workload.md) | 사양 검토 / 성능·비용 실측 대기 |
-| 4 | [추론 플랫폼: AgentCore vs EKS 자체 구축](./agentcore-vs-eks-inference.md) | 📋 계획 |
-| 5 | [NVIDIA Dynamo 추론 벤치마크](./dynamo-inference-benchmark.md) | 🆕 신규 |
+| 4 | [추론 플랫폼: AgentCore vs EKS 자체 구축](./agentcore-vs-eks-inference.md) | 계획 |
+| 5 | [NVIDIA Dynamo 추론 벤치마크](./dynamo-inference-benchmark.md) | 신규 |
 
 ## 인프라 & 운영
 
+**표 3. 인프라·운영 벤치마크 보고서와 검증 상태**
+
 | # | 보고서 | 상태 |
 |---|--------|------|
-| 6 | [인프라 성능](./infrastructure-performance.md) | 🔜 예정 |
-| 7 | [하이브리드 인프라](./hybrid-infrastructure.md) | 🔜 예정 |
-| 8 | [보안 및 운영](./security-operations.md) | 🔜 예정 |
+| 6 | [인프라 성능](./infrastructure-performance.md) | 예정 |
+| 7 | [하이브리드 인프라](./hybrid-infrastructure.md) | 예정 |
+| 8 | [보안 및 운영](./security-operations.md) | 예정 |
 
 ## AI 에이전트
 
 Amazon Bedrock에서 실행한 AI 코딩 에이전트 측정입니다. EKS 환경에서 측정한 결과가 아닙니다.
+
+**표 4. AI 에이전트 벤치마크 보고서와 검증 상태**
 
 | # | 보고서 | 상태 |
 |---|--------|------|

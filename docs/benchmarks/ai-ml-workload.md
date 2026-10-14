@@ -35,6 +35,8 @@ The repository does not contain raw requests, repeated-run results or a pinned e
 
 The candidate specifications are listed below. Aggregate accelerator memory alone does not establish model compatibility or performance.
 
+**Table 1. Accelerator configuration and network specification by candidate instance**
+
 | Candidate | Accelerators | Accelerator memory | Network specification |
 | --- | --- | --- | --- |
 | A: p5.48xlarge | Eight H100 GPUs | 8 × 80GB = 640GB | Up to 3,200Gbps |
@@ -48,6 +50,8 @@ Sources: [P5][p5], [P4][p4], [G6e][g6e], [Trn2][trn2] and [Inf2][inf2]. Units fo
 Before execution, pin account/region/AZ, EKS/OS/driver versions, node count, image digest, model revision, precision, TP/EP placement and maximum context length. Input 512/output 128 tokens is an **initial proposal**; test long inputs and the service's actual request distribution separately. Record weight downloads, compilation and warm-up separately from steady-state inference.
 
 ## Test Model
+
+**Table 2. Official model specifications for Llama 4 Scout and Maverick**
 
 | Item | Llama 4 Scout | Llama 4 Maverick |
 | --- | --- | --- |
@@ -64,6 +68,8 @@ Source: [Meta model card][model-card]. Weight estimates use B = 10⁹ parameters
 
 MoE selects part of the expert computation for each token. Llama 4 uses a shared expert plus **one routed expert** selected by the router. Describing this as selecting two of the 16 routed experts is incorrect.[^routing]
 
+**Figure 1. Shared expert and routed expert selection in the Llama 4 MoE layer**
+
 ```mermaid
 flowchart LR
     T["Token entering the MoE layer"] --> S["Shared expert"]
@@ -78,6 +84,8 @@ Fewer active parameters do not eliminate storage for the other experts' weights.
 The April 2025 [vLLM Llama 4 announcement][vllm-llama4] describes eight-H100 examples with 1M context for Scout BF16 and roughly 430K for Maverick **FP8**. These are historical configuration examples, not universal runtime limits or results reproduced by this repository.
 
 ## Measurements and Result Status {#benchmark-results}
+
+**Table 3. Current status and evidence needed for each measurement item**
 
 | Item | Current status | Evidence needed |
 | --- | --- | --- |
@@ -122,6 +130,8 @@ Record pricing region/date/purchase option and replica count. State whether node
 
 ### GPU vs Custom Silicon Trade-offs
 
+**Table 4. Decisions to verify when comparing GPUs and custom silicon**
+
 | Decision | What to verify |
 | --- | --- |
 | Model fit | Checkpoint, operators, precision and multimodal inputs supported by the selected backend |
@@ -141,6 +151,8 @@ The [MetaShuffling article][metashuffling] describes a particular MoE kernel imp
 ## Workload Decision Criteria {#recommendations-by-workload}
 
 ### Scenario Selection Guide
+
+**Table 5. First requirement to check for each workload**
 
 | Workload | First requirement to check |
 | --- | --- |

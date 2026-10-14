@@ -39,6 +39,8 @@ For EKS deployment of this benchmark, see the [NVIDIA GPU Stack Guide](/docs/age
 
 ### EKS Cluster Specifications
 
+**Table 1. EKS cluster deployment candidate configuration**
+
 | Item | Configuration |
 |------|------|
 | **EKS version and node management** | Select a supported version and either Auto Mode or a separate node group before execution |
@@ -53,6 +55,8 @@ Auto Mode manages NVIDIA drivers and the device plugin; do not install duplicate
 
 ### Software Stack
 
+**Table 2. Software stack components and versions to record**
+
 | Component | Version |
 |----------|------|
 | **NVIDIA Dynamo** | Selected release, chart and image digest |
@@ -64,6 +68,8 @@ Auto Mode manages NVIDIA drivers and the device plugin; do not install duplicate
 Do not assemble independently selected latest versions. Check the combination in the [Dynamo compatibility matrix][compatibility], validate model loading and short requests in the selected image, then fill these fields in the run record.
 
 ### Test Model
+
+**Table 3. Parameters and architecture of the Qwen3 models under test**
 
 | Model | Parameters | Active Parameters | Precision | Architecture |
 |------|---------|-------------|--------|---------|
@@ -113,6 +119,8 @@ This plan uses [AIPerf][aiperf] to construct four workload families. These are n
 
 Incrementally increases concurrent requests while measuring TTFT, TPS, and Throughput.
 
+**Table 4. Concurrency Sweep workload parameters**
+
 | Parameter | Value |
 |---------|---|
 | Concurrency | 1, 2, 4, 8, 16, 32, 64 |
@@ -125,6 +133,8 @@ Incrementally increases concurrent requests while measuring TTFT, TPS, and Throu
 ### 2. Multi-turn Conversation
 
 Measures KV cache reuse effects in multi-turn conversation scenarios.
+
+**Table 5. Multi-turn Conversation workload parameters**
 
 | Parameter | Value |
 |---------|---|
@@ -139,6 +149,8 @@ Measures KV cache reuse effects in multi-turn conversation scenarios.
 
 Measure performance stability across sequence length distributions. If the selected AIPerf version does not directly support a distribution, generate a dataset with a fixed seed and record requested and actual output lengths.
 
+**Table 6. Sequence Distribution workload parameters**
+
 | Parameter | Value |
 |---------|---|
 | Distribution Types | Uniform, Zipf, Lognormal |
@@ -151,6 +163,8 @@ Measure performance stability across sequence length distributions. If the selec
 ### 4. Prefix Cache
 
 Vary the proportion of requests sharing a prefix and measure TTFT and actual cache reuse. Input prefix overlap is not the server cache hit rate: capacity, eviction and routing can still produce misses.
+
+**Table 7. Prefix Cache workload parameters**
 
 | Parameter | Value |
 |---------|---|
@@ -174,6 +188,8 @@ Results data will be updated after benchmark execution.
 
 #### Concurrency Sweep Results
 
+**Table 8. Concurrency Sweep expected result structure (pending measurement)**
+
 | Concurrency | Aggregated TTFT p50 | Disagg TTFT p50 | Aggregated TPS | Disagg TPS |
 |--------|--------------------:|----------------:|---------------:|-----------:|
 | 1 | - | - | - | - |
@@ -184,6 +200,8 @@ Results data will be updated after benchmark execution.
 
 #### Prefix Cache Effect
 
+**Table 9. Prefix Cache effect expected result structure (pending measurement)**
+
 | Hit Ratio | Aggregated TTFT | Disagg TTFT | Improvement |
 |-----------|----------------:|------------:|-------:|
 | 0% | - | - | - |
@@ -191,6 +209,8 @@ Results data will be updated after benchmark execution.
 | 100% | - | - | - |
 
 #### Cost Efficiency
+
+**Table 10. Cost efficiency expected result structure (pending measurement)**
 
 | Configuration | GPU Cost ($/hr) | Throughput (tok/s) | $/1M tokens |
 |------|---------------:|------------------:|-----------:|
@@ -263,6 +283,8 @@ Recommendations will be written based on actual measurement results.
 :::
 
 ### Hypotheses to Test {#expected-recommendation-scenarios}
+
+**Table 11. Hypothesis and evidence to collect for each scenario**
 
 | Scenario | Hypothesis | Evidence to collect |
 |---------|----------|------|
