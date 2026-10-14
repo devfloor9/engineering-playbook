@@ -3,9 +3,9 @@ title: Knowledge Feature Store 확장
 description: 전통 Feature Store에 온톨로지·Knowledge Graph를 통합하여 환각 감소·근거 추적·도메인 엔터티 활용을 강화하는 3-plane 설계
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 19
 tags:
   - feature-store
   - knowledge-graph
@@ -215,22 +215,26 @@ Feast online store는 entity key별 최신 feature만 보관하며 임의 과거
 
 ### Write 파이프라인 예제
 
-아래 의사 코드는 저장소별 adapter가 구현해야 할 계약입니다. backend transaction 안에서 event version 검사·mutation·deduplication marker를 함께 적용해야 하며 Kafka offset을 commit한 사실만으로 세 저장소의 완료를 보장할 수 없습니다.
+아래 의사 코드는 저장소별 adapter가 구현해야 할 계약입니다. backend transaction 안에서 event version 검사·mutation·deduplication marker를 함께 적용해야 하며 Kafka offset을 commit한 사실만으로 세 저장소의 완료를 보장할 수 없습니다. 공개 상태의 고유성 키는 `(tenant, source, entity_id, source_version)`으로 두고, 각 이벤트의 identity는 `(event_id, tenant, source, entity_id, source_version, schema_version, operation, payload)`에 대한 변경 불가 envelope digest에 묶습니다. digest가 같은 정확한 재시도는 저장된 결과를 재사용할 수 있지만, 이미 적용된 version을 재사용하는 서로 다른 envelope은 history를 덮어쓰거나 ack-pending을 반복하지 않고 격리(quarantine)해야 합니다.
 
 ```text
 event = {tenant, source, entity_id, event_id, source_version,
          schema_version, event_time, ingestion_time, operation, payload}
 validate_schema_and_authority(event)
+envelope_digest = digest(tenant, source, entity_id, source_version,
+                         schema_version, operation, payload)
 for plane in required_planes(event):
   begin plane transaction or equivalent conditional write
-    marker = read marker for (tenant, source, event_id)
+    marker = read marker for (tenant, source, entity_id, source_version)
     if marker exists:
-      verify the stored payload digest matches this event
-      version_to_ack = marker.version
+      if marker.envelope_digest != envelope_digest:
+        quarantine as version-identity conflict; stop (do not loop ack-pending)
+      version_to_ack = marker.version        # exact retry: reuse stored result
     else:
-      if source_version is older: reject stale mutation
+      if source_version is older than the applied version: reject stale mutation
+      if source_version equals the applied version: quarantine as equal-version conflict
       apply parameterized upsert or versioned tombstone
-      persist event_id/source_version, payload digest and provenance with mutation
+      persist (entity_id, source_version), envelope_digest and provenance with mutation
       version_to_ack = source_version
   commit plane write
   wait for version_to_ack to be visible to that plane's read path
@@ -239,7 +243,7 @@ for plane in required_planes(event):
 if every required plane acknowledges this exact generation:
   conditionally publish its manifest without replacing a newer generation
 commit/advance source progress only under the durable replay contract
-on failure: retry idempotently; quarantine poison events; reconcile gaps
+on failure: retry idempotently; quarantine poison and conflicting events; reconcile gaps
 ```
 
 graph adapter는 parameter binding과 unique entity/edge key를 사용합니다. vector adapter는 동일 document/version을 중복 insert하지 않도록 upsert/delete를 구현합니다. 중간 실패 후 재처리해도 이미 완료된 plane을 손상시키지 않아야 합니다. 삭제 tombstone은 모든 plane에 전파되고 오래된 retry가 데이터를 되살리지 못해야 합니다. 서로 다른 원천 source의 version은 직접 비교하지 말고 conflict policy를 적용합니다.
@@ -249,6 +253,8 @@ graph adapter는 parameter binding과 unique entity/edge key를 사용합니다.
 | Fixture | 입력·장애 순서 | 기대 결과 |
 |---|---|---|
 | 중복 | v1, 같은 event_id의 v1 재전달 | entity/edge/document 중복 없음, publication v1 한 개 |
+| 동일 version 충돌 | v1 Premium 후 같은 source_version이지만 VIP payload의 다른 event | 두 번째를 동일 version 충돌로 거부·격리, 공개된 v1 Premium은 변경 없음 |
+| 재시도 시 envelope 충돌 | v1 후 v1의 marker 키를 재사용하지만 envelope digest가 다른 재전달 | version-identity 충돌로 격리, 덮어쓰기 없음, ack-pending 반복 없음 |
 | 역순 | v2 후 v1 | v2 유지, v1로 퇴행하지 않음 |
 | 부분 실패 | v1 공개 후 v2의 vector writer 실패 | publication은 v1, v2 혼합 읽기 금지; retry 완료 후 v2 |
 | acknowledgment 저장 전 장애 | v2 mutation·marker 저장 후 프로세스 중단 | retry가 marker로 쓰기 중복을 방지하고 visibility·acknowledgment 확인을 재개한 뒤 남은 plane 처리 |

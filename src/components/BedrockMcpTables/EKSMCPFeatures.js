@@ -7,7 +7,7 @@ const EKSMCPFeatures = () => {
   const isKo = i18n.currentLocale === 'ko';
   const features = [{
     feature: isKo ? 'Pod 로그 조회' : 'Pod Log Retrieval',
-    description: isKo ? '특정 Pod의 로그를 실시간 스트리밍' : 'Real-time streaming of specific Pod logs',
+    description: isKo ? '시간·라인·바이트 범위로 제한된 Pod 로그 조회 (get_pod_logs)' : 'Bounded Pod log retrieval by time/line/byte limits (get_pod_logs)',
     color: '#4285f4'
   }, {
     feature: isKo ? 'K8s 이벤트 조회' : 'K8s Event Retrieval',

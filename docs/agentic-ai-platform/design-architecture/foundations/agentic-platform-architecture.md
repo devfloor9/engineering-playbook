@@ -3,9 +3,9 @@ title: Agentic AI Platform Architecture
 description: Overall system architecture of a production-grade Agentic AI Platform — 6 runtime layers and 3 cross-cutting planes
 created: "2026-02-05"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: devfloor9
-reading_time: 59
+reading_time: 81
 tags:
   - architecture
   - agentic-ai
@@ -36,11 +36,11 @@ This document is intended for solution architects, platform engineers, and DevOp
 
 Earlier layer models placed concerns such as evaluation, drift detection, and feedback across multiple layers, blurring responsibility boundaries. This architecture clearly distinguishes two kinds of building blocks.
 
-- **Runtime Layer**: Six layers stacked bottom-up along the path a user request travels. Requests flow top-down (Layer 6 → Layer 1), and the platform is built bottom-up (Layer 1 → Layer 6).
+- **Runtime Layer**: Six layers that group the request-processing functions by responsibility. The layer number denotes the abstraction level of each responsibility (Layer 1 infrastructure → Layer 6 experience); it does not mean a request flows one-way in numeric order. A real request enters at Layer 6, descends to the Layer 5 gateway and the Layer 4 Agent, and when inference is needed it goes **back through the Layer 5 gateway** to call Layer 2 model serving — a loop rather than a strict top-down path (see [Data Flow](#data-flow) below for the exact path). The platform is built bottom-up (Layer 1 → Layer 6).
 - **Cross-cutting Plane**: Three concerns that do not belong to any single layer but **span all layers vertically**. Observability & evaluation, governance/safety/sovereignty, and model lifecycle fall into this category.
 
 :::tip Why separate into planes
-Quality evaluation (RAGAS), drift detection, feedback collection, and Guardrails are not functions of a single layer but **concerns that operate across all layers**. Placing them as separate layers causes the same function to be described redundantly in multiple layers, dispersing responsibility. Separating them into planes makes "where inference happens (layer)" and "how it is observed, controlled, and improved (plane)" orthogonal. This distinction takes the same approach as Chip Huyen's *AI Engineering* (2025) 3-tier (Infrastructure / Model / Application) model, the FTI (Feature–Training–Inference) pipeline pattern, and the cross-cutting operational perspective of the AWS Well-Architected Generative AI Lens.
+Quality evaluation (RAGAS), drift detection, feedback collection, and Guardrails are not functions of a single layer but **concerns that operate across all layers**. Placing them as separate layers causes the same function to be described redundantly in multiple layers, dispersing responsibility. Separating them into planes makes "where inference happens (layer)" and "how it is observed, controlled, and improved (plane)" orthogonal. The specific decomposition into 6 runtime layers and 3 cross-cutting planes is a design choice of this document, not a verbatim copy of a published reference model. It shares the **problem framing (separation of concerns and cross-cutting operations)** with Chip Huyen's *AI Engineering* (2025) Infrastructure / Model / Application 3-tier model, the FTI (Feature–Training–Inference) pipeline pattern, and the cross-cutting operational perspective of the AWS Well-Architected Generative AI Lens. However, the number and boundaries of the layers and planes do not map one-to-one onto those sources, so consult the originals for the precise correspondence.
 :::
 
 ---
@@ -180,7 +180,7 @@ flowchart TB
     subgraph Orchestration["Orchestration · Scheduling"]
         KARP["Karpenter<br/>(node provisioning)"]
         KUEUE["Kueue<br/>(job queuing · quota)"]
-        DRA["DRA · MIG<br/>(fine-grained partitioning)"]
+        DRA["DRA / MIG / Time-Slicing<br/>(device allocation · partitioning)"]
     end
 
     subgraph Telemetry["Monitoring · Optimization"]
@@ -190,7 +190,9 @@ flowchart TB
     end
 
     GPU & NEURON --> KARP
-    KARP --> KUEUE --> DRA
+    KARP -->|supply nodes| KUEUE
+    KUEUE -->|place admitted jobs| DRA
+    DRA -->|allocate devices| GPU
     GPU --> DCGM
     NEURON --> NMON
     DRA --> TOPO
@@ -200,14 +202,26 @@ flowchart TB
     style Telemetry fill:#e1f5ff
 ```
 
+Karpenter (node supply), Kueue (job admission/quota), and device allocation (DRA/MIG/Time-Slicing) are **independent control responsibilities**, not a single serial pipeline. Karpenter supplies nodes, Kueue admits jobs within quota, and the device-allocation layer assigns accelerators to admitted Pods. The three are configured and operated independently.
+
 | Functional Area | Responsibility | Key Components |
 |-----------------|----------------|----------------|
 | **Accelerated Compute** | Provide accelerators for LLM/non-LLM inference and training | NVIDIA GPU, AWS Trainium2/Inferentia2 |
 | **Node Orchestration** | Workload-driven dynamic node provisioning, Spot usage | Karpenter, Cluster Autoscaler |
 | **Job Scheduling** | GPU job queuing, per-team quota, fair sharing | Kueue, KAI Scheduler |
-| **GPU Partitioning** | Fine-grained partitioning of a single GPU across workloads | DRA, MIG, Time-Slicing |
+| **GPU Partitioning** | Share a single GPU across workloads (isolation level differs by mechanism, see below) | MIG, Time-Slicing, DRA |
 | **Accelerator Monitoring** | Real-time tracking of utilization, temperature, memory, power | DCGM Exporter, Neuron Monitor |
 | **Performance Optimization** | Topology-aware placement, high-speed networking | NVLink/NVSwitch-aware scheduling, EFA |
+
+:::warning GPU partitioning mechanisms differ in isolation level
+MIG, Time-Slicing, and DRA all let multiple workloads use a single GPU, but they provide different isolation, so they must not be treated as equivalent.
+
+- **MIG (Multi-Instance GPU)**: A **hardware partitioning** feature available only on supported NVIDIA GPUs (such as A100 and H100). It physically partitions the GPU so each instance gets dedicated memory, compute, and cache paths, providing **memory and performance isolation** between instances.
+- **Time-Slicing**: Multiple workloads **time-share** one GPU in turns. It does not isolate memory, so one workload can over-consume memory or affect another's performance. It suits low-risk sharing where hardware isolation is not required.
+- **DRA (Dynamic Resource Allocation)**: A Kubernetes **device request/allocation mechanism**, not a partitioning scheme in itself. Depending on the driver, it is used to flexibly request and assign MIG partitions or Time-Slicing shares.
+
+Therefore, when regulatory compliance or strong tenant isolation is required, choose a mechanism that provides hardware isolation such as MIG, and use Time-Slicing only on the premise that it does not isolate memory.
+:::
 
 **Why a separate layer:**
 
@@ -262,17 +276,17 @@ The layer that provides the data, knowledge, and memory used by agents and the R
 Converts documents into embedding vectors for storage and provides relevant context via similarity search upon agent requests.
 
 **Design Considerations:**
-- **Multi-tenant isolation**: Data separation per tenant using Partition Keys
+- **Multi-tenant isolation**: Partition Keys **physically separate** data per tenant. However, a Partition Key is only a data-placement mechanism, not access control, so you must also enforce **tenant-ID authorization at the query layer** (restricting each tenant to its own partition) to prevent cross-tenant reads.
 - **Index strategy**: High-performance Approximate Nearest Neighbor search with HNSW index
 - **Hybrid search**: Improved search quality by combining Dense Vector + Sparse Vector (BM25)
 
 #### Knowledge / Feature Store
 
-Manages input features and domain knowledge used for ML model training and inference. It guarantees identical feature definitions at training and inference time to prevent training-serving skew; combining ontology and knowledge graphs reduces RAG hallucination and enables provenance tracking.
+Manages input features and domain knowledge used for ML model training and inference. Sharing the **same feature definition** at training and inference time is a necessary condition for reducing training-serving skew, but it does not by itself eliminate skew: you also need point-in-time-correct joins to prevent label leakage, plus consistency of feature versions, materialization timing, and values between the online and offline stores. Combining ontology and knowledge graphs **can help** with provenance tracking and reducing RAG hallucination, but the effect depends on graph quality, coverage, and retrieval design, so it must be confirmed by evaluation.
 
 ```
 Online Store (Redis/DynamoDB)
-  └─ Low-latency feature lookup (< 10ms) · for real-time inference
+  └─ Low-latency feature lookup · for real-time inference (target latency depends on backend, data size, and network; e.g. single-digit ms must be verified by measurement)
 
 Offline Store (S3 Parquet)
   └─ Large-scale feature storage · for batch training
@@ -322,18 +336,22 @@ flowchart LR
 | **Tool Execution** | Asynchronous execution of registered tools via MCP protocol |
 | **Memory Management** | Combines short-term memory (session) with long-term memory (vector DB) |
 | **Inter-Agent Communication** | Multi-agent collaboration via A2A protocol |
-| **Error Recovery** | Automatic retry and fallback for failed tasks |
+| **Error Recovery** | Retry and fallback for failed tasks (policy differs by action and idempotency, see below) |
 
 #### Tool Registry
 
-Centrally manages tools available to agents in a declarative manner. Each tool is exposed as an MCP server, allowing agents to invoke them via the standard protocol.
+Centrally manages tools available to agents in a declarative manner. Tools are exposed through **MCP servers**, and a single MCP server typically exposes **multiple tools** (tools and servers are not 1:1). Agents invoke these tools via the standard MCP protocol. Targets that do not speak MCP directly — such as external REST/gRPC APIs — are wrapped as MCP tools by an **adapter**. Separately, **A2A (Agent-to-Agent) is a distinct protocol from MCP**, used to delegate work between agents. The "A2A Tools" row below denotes an adapter that wraps an A2A call behind the MCP tool interface; it does not mean A2A is a sub-feature of MCP.
 
 | Tool Type | Purpose | Example |
 |-----------|---------|---------|
-| **API Tools** | External REST/gRPC service calls | CRM lookup, order processing |
+| **API Tools** | External REST/gRPC service calls (exposed as MCP tools via an adapter) | CRM lookup, order processing |
 | **Search Tools** | Vector DB search, document search | RAG context augmentation |
 | **Code Execution** | Code execution in sandbox environments | Data analysis, calculations |
-| **A2A Tools** | Delegating tasks to other agents | Specialist agent collaboration |
+| **A2A Tools** | Delegating tasks to other agents (A2A protocol exposed via an adapter) | Specialist agent collaboration |
+
+:::warning Automatic retry assumes idempotent external actions
+"Automatic retry on failure" is safe for **idempotent actions** such as lookups, but applying it as-is to **non-idempotent actions with side effects** (payments, orders, message sends) can cause duplicate execution. It is especially risky in **uncertain-commit** situations where the request was sent but the response was lost. For each tool, therefore, define (1) an idempotency key or a retry-safety flag, (2) reconciliation/confirmation lookups for non-idempotent actions, and (3) a resume contract based on a durable checkpoint — and declare retry-eligibility per action.
+:::
 
 :::info Detailed Guides
 For Kagent-based Kubernetes agent management, see [Kagent](../../operations-mlops/observability/kagent-kubernetes-agents.md); for AWS Native AgentCore-based agent operations, see [AWS Native Platform](../platform-selection/aws-native-agentic-platform.md).
@@ -377,19 +395,24 @@ flowchart LR
     style External fill:#f0e1ff
 ```
 
-**Routing Strategies:**
+**Routing Strategies:** The benefits below (latency, cost savings, etc.) depend on traffic, cache hit rate, and model mix, so treat them as **policies to verify by measurement** before and after adoption.
 
 | Strategy | Description |
 |----------|-------------|
 | **Model-based routing** | Distributes to appropriate model backends based on request headers/parameters |
-| **KV Cache-aware routing** | Minimizes TTFT by considering LLM Prefix Cache state |
-| **Cascade routing** | Tries low-cost model first → automatically switches to high-performance model on failure |
+| **KV Cache-aware routing** | Can reduce TTFT when the Prefix Cache hits (no effect on a cache miss); benefit scales with hit rate |
+| **Cascade routing** | Tries low-cost model first → switches to high-performance model **on quality-threshold miss or failure**. The definition of "failure" (quality threshold / error) must be stated |
 | **Weight-based routing** | Traffic ratio splitting for Canary/Blue-Green deployments |
 | **Fallback** | Automatic failover to alternative provider on outage (Circuit Breaker) |
 
 #### Cost Guardrails
 
-Sets cost limits per request, per agent, and per tenant. On exceeding the monthly budget, automatically falls back to a low-cost model or sends alerts to prevent cost spikes. (Policy enforcement itself integrates with the governance plane.)
+Sets cost limits per request, per agent, and per tenant. Cost control must be **distinguished by enforcement strength**.
+
+- **Hard stop**: When a ceiling must be respected, reserve the estimated cost **before** processing the request (preflight reservation) and reject the request if the remaining budget is insufficient. Falling back to a cheaper model or only sending an alert **after** the budget is already exceeded **cannot prevent further charges**.
+- **Soft alert / fallback**: Allows overshoot while switching to a cheaper model or sending an alert. In this case, define the allowed overshoot range as well; it does not guarantee a cost ceiling.
+
+(Policy enforcement itself integrates with the governance plane.)
 
 Operational details for Layer 5 are covered in the following documents.
 
@@ -449,7 +472,13 @@ Quantitatively measures RAG/Agent quality. Rather than a single layer, it compre
 
 #### Drift Detection
 
-Detects input data distribution change (data drift) and output quality degradation (concept drift). Uses thresholds such as PSI > 0.25 and KL Divergence > 0.1, and on exceeding them triggers retraining in the model lifecycle plane.
+Drift must be distinguished by type, and different metrics detect different things.
+
+- **Covariate (data) drift**: A change in the input distribution P(X). Metrics such as PSI and KL Divergence detect **input-distribution change**; example thresholds are PSI > 0.25 and KL Divergence > 0.1 (these are proposed values to calibrate to your data, window, and features).
+- **Concept drift**: A change in the **relationship** P(Y\|X) between inputs and outputs itself. PSI/KL, which look only at the input distribution, cannot directly identify concept drift; it must be judged from a change in prediction quality once ground truth arrives.
+- **Quality degradation**: A drop in output-quality metrics such as RAGAS or Agent success rate. This can arise not only from concept drift but from prompt, retrieval (RAG), tool, or model causes.
+
+A threshold breach is therefore **a starting point for diagnosis, not an immediate retraining trigger**. Diagnose the cause (prompt/retrieval/tool/model) first, and only trigger retraining in the model lifecycle plane through an authorized procedure when weight retraining is judged necessary. A PSI/KL threshold breach alone does not prove that weight retraining is required.
 
 :::info Detailed Guides
 For Langfuse-based agent monitoring, see [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md); for an LLMOps tool comparison, see [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md); for RAG evaluation, see [Ragas Evaluation](../../operations-mlops/governance/ragas-evaluation.md).
@@ -477,14 +506,14 @@ Enforces OIDC/JWT authentication, role-based access control, per-tool invocation
 
 #### Data Sovereignty · Region Enforcement
 
-Organizations with data sovereignty requirements (finance, public sector, regulated industries) must confine inference, training, and data storage within specific geographic boundaries. This platform meets sovereignty through the following means.
+Organizations with data sovereignty requirements (finance, public sector, regulated industries) must confine inference, training, and data storage within specific geographic boundaries. Each means below controls **only a specific boundary**, so an organization must first identify the required processing, storage, telemetry, and control-plane boundaries and all profiled destinations, then combine them. This table shows **what each means controls and the residual flow it leaves**, not a blanket claim that the platform "meets sovereignty" automatically.
 
-| Means | Description | Applied At |
-|-------|-------------|-----------|
-| **SCP Region Enforcement** | Deny APIs in unapproved regions via AWS Organizations SCP | Account/OU boundary |
-| **Bedrock Geographic CRIS** | Keep inference within a geographic boundary via Geographic cross-Region inference | Layer 5 → External AI |
-| **In-country Self-hosting** | Self-host models in an in-country region or on-premises | Layer 1·2 |
-| **Hybrid** | Combine on-premises/in-country + cloud via EKS Hybrid Nodes | Layer 1 |
+| Means | What it controls | What it does NOT control (residual flow) | Applied At |
+|-------|------|------|-----------|
+| **SCP Region Enforcement** | Denies the **API call endpoint** in unapproved Regions via `aws:RequestedRegion` | Restricts only the endpoint Region; the Region where a service processes data internally follows the service's behavior | Account/OU boundary |
+| **Bedrock Geographic CRIS** | Keeps inference **within a geography** (e.g. US, EU, APAC) | A geography spans multiple Regions/countries, so it **does not guarantee in-country** processing; insufficient for single-country requirements | Layer 5 → External AI |
+| **In-country Self-hosting** | Keeps model inference/weights in a specific **in-country Region or on-premises** | Side flows such as logs, metrics, and the management plane need separate control | Layer 1·2 |
+| **Hybrid (EKS Hybrid Nodes)** | Places the data plane (workloads) on-premises/in-country | The **control plane (the EKS-managed part) remains AWS-hosted**, so it is not full on-premises isolation | Layer 1 |
 
 :::info Detailed Guides
 For SCP region enforcement policies, Bedrock Geographic cross-Region inference, and EKS Hybrid Nodes-based hybrid/sovereign deployment patterns, see [Sovereign & Hybrid Deployment](../platform-selection/sovereign-hybrid-deployment.md) and the [AI Platform Selection Guide](../platform-selection/ai-platform-decision-framework.md). For the Guardrails technology stack, see [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md); for compliance mapping (SOC2·ISMS-P), see [Compliance Framework](../../operations-mlops/governance/compliance-framework.md).
@@ -512,28 +541,28 @@ graph LR
 
 #### Continuous Training (CT) Scheduler
 
-Automatically runs retraining on drift detection (observability plane). Supports schedule-based (Cron) or event-based (drift threshold exceeded) triggers.
+Can run retraining on drift detection (observability plane). Supports schedule-based (Cron) or event-based (drift threshold exceeded) triggers. The specific numbers in the trigger conditions below are unvalidated **proposed values (examples)**; calibrate them to your data before use, and run retraining only on approved training data through a prespecified experiment procedure.
 
-**Trigger conditions:**
+**Trigger conditions (proposed values, calibration required):**
 - Schedule-based: `0 0 * * 0` (every Sunday)
-- Drift-based: PSI > 0.25 or KL Divergence > 0.1
+- Drift-based: PSI > 0.25 or KL Divergence > 0.1 (an input-distribution-change signal — diagnose the cause before retraining)
 - Quality degradation: Agent Success Rate < 85% sustained for 7 days
 
 #### Evaluation Gate
 
-A gate that validates model quality before deployment. Automatically measures Accuracy, RAGAS metrics, and Guardrails pass rate, blocking deployment if quality thresholds are not met. New models are canary-deployed at 10%, then regression is judged via a statistical test (Mann-Whitney U test, p < 0.05), with automatic rollback on regression.
+A gate that validates model quality before deployment. Automatically measures Accuracy, RAGAS metrics, and Guardrails pass rate, blocking deployment if quality thresholds are not met. New models are canary-deployed (e.g. 10%), then judged for regression against prespecified metrics, direction, and effect size. A statistical test suited to comparing metric distributions (e.g. the Mann-Whitney U test) may be used, but an arbitrary `p < 0.05` alone does not prove the presence or absence of regression; define the test direction, effect size, power, and a multiple-comparison policy as well. On a confirmed regression, roll back (the canary percentage and thresholds are proposed values).
 
 #### Feedback Loop
 
-Recycles production feedback (user ratings, corrections, A/B test results) into training data.
+Recycles production feedback (user ratings, corrections, A/B test results) into training data. In preference learning (e.g. DPO), treat the **original bad answer as the rejected sample and the user's validated correction as the chosen sample**. The "hard negative" in the pseudocode below refers to constructing this rejected/chosen pair; it does not mean training on the corrected (good) answer as a negative example. Also keep recycled data separate from the evaluation holdout to prevent data leakage.
 
 ```
 Positive Feedback (thumbs up)
-  → Add to training dataset as positive example
+  → Add to training dataset as a chosen example
 
 Negative Feedback (thumbs down)
-  → If user provides correction: add as hard negative
-  → If no correction: filter from training dataset
+  → If user provides a correction: form a preference pair (original = rejected, correction = chosen)
+  → If no correction: filter out of the training dataset
 ```
 
 :::info Detailed Guides
@@ -578,17 +607,24 @@ graph LR
     A["LLM Tracing<br/>(observability plane)"] -->|detect quality regression| B["Eval Gate<br/>(lifecycle plane)"]
     B -->|confirm with statistical test| C["Alert System<br/>(observability plane)"]
     C -->|execute rollback policy| D["Model Registry<br/>(Layer 2)"]
-    D -->|retrieve last stable version| E["Gateway<br/>(Layer 5)"]
-    E -->|atomic model swap| F["Production Restored"]
+    D -->|select last stable version<br/>(control plane)| CTRL["Deployment Controller<br/>(Layer 2)"]
+    CTRL -->|rolling redeploy · check readiness| POD["Serving Pods<br/>(Layer 2)"]
+    POD -->|shift traffic once ready| E["Gateway<br/>(Layer 5)"]
+    E -->|user-traffic cutover| F["Production Restored"]
 ```
 
 **Flow description:**
 1. The observability plane detects a RAGAS score drop
-2. The lifecycle plane's Eval Gate runs a Mann-Whitney U test for statistical significance
-3. On p-value < 0.05, the Alert System executes the rollback policy
-4. The Layer 2 Model Registry retrieves the last stable version
-5. The Layer 5 Gateway performs an atomic model swap within 5 minutes
-6. Production recovery complete
+2. The lifecycle plane's Eval Gate confirms significance with a statistical test (test direction, effect size, and power defined in advance)
+3. If judged a significant regression, the Alert System executes the rollback policy
+4. **Control plane**: the Layer 2 Model Registry selects the last stable version (a registry stage transition is a metadata change, not a traffic cutover in itself)
+5. **Deploy/readiness**: a Deployment Controller rolling-redeploys the previous version and checks pod readiness, draining, in-flight requests, and cache/state compatibility
+6. **Traffic cutover**: once the new pods are ready, the Layer 5 Gateway shifts user traffic
+7. Recovery complete
+
+:::note "5 minutes" is a recovery objective to be verified by measurement
+"Atomic swap within 5 minutes" is an unverified **recovery objective**; the actual time depends on model loading, pod readiness, cache warming, and capacity. Control-plane version selection, rolling pod readiness, and user-traffic cutover are **separate steps**, and none is instantaneous or atomic. To claim a recovery time as a number, measure it with observed rollback fixtures.
+:::
 
 ### A/B Testing → Production
 
@@ -603,14 +639,14 @@ graph LR
     E -->|mark as production| F["Gateway<br/>(Layer 5)"]
 ```
 
-**Flow description:**
+**Flow description:** The numbers below (50:50, n, p, improvement) are **proposed example gates**; before the experiment, prespecify the randomization unit, metric direction, effect size, power, and multiple-comparison policy.
 1. Layer 4 (Agent Runtime) runs the two A/B variants
-2. Layer 5 (Gateway) splits requests 50:50
-3. The observability plane's Experiment Tracking collects per-variant metrics (n = 1000+)
-4. The observability plane's Statistical Analysis runs a Mann-Whitney U test
-5. On p < 0.05 AND average metric improvement > 5%, the winner is selected
+2. Layer 5 (Gateway) splits requests (e.g. 50:50). State the **randomization unit** (request/session/user); it determines whether samples are independent or paired
+3. The observability plane's Experiment Tracking collects per-variant metrics (size the sample via a power analysis; e.g. n ≥ 1000 is a proposed value)
+4. The observability plane's Statistical Analysis runs a test suited to comparing metric distributions (e.g. the Mann-Whitney U test). This test asks whether the two distributions differ; it does not directly test "mean improvement"
+5. Select the winner only when a significant difference in the prespecified direction (e.g. p < 0.05) **and** a practically meaningful effect size (e.g. improvement > 5%) both hold (numbers are proposed gates)
 6. The lifecycle plane marks the winner variant as production in the Layer 2 Model Registry
-7. Layer 5 (Gateway) routes 100% of traffic to the winner
+7. Layer 5 (Gateway) shifts traffic to the winner
 
 ---
 
@@ -618,18 +654,20 @@ graph LR
 
 ### Namespace Structure
 
-Namespaces are separated by function for separation of concerns and security.
+Namespaces are separated by function for separation of concerns and security, and each namespace applies **least privilege (Pod Security Standards)** by default. Pod Security's `privileged` is an "unrestricted" policy that allows known privilege escalations and can bypass container isolation, so you must not set serving and training namespaces to `privileged` merely because they use GPUs. Ordinary GPU model Pods can run without host privilege at `baseline` (or an exception tailored to the device-plugin requirement), and **only the privileged components that genuinely need host access** — drivers, system operators — are separated out as narrow exceptions.
 
 | Namespace | Layer / Plane | Components | Pod Security | GPU |
 |-----------|---------------|-----------|-------------|-----|
-| **ai-infra** | Layer 1 | GPU Operator, Karpenter, Kueue, DCGM Exporter | privileged | Required |
-| **ai-inference** | Layer 2 | LLM Serving Engine, Triton, Model Registry | privileged | Required |
+| **ai-infra** | Layer 1 | GPU Operator, Karpenter, Kueue, DCGM Exporter | baseline (privileged exception only for host-access components such as GPU drivers / device plugins) | Required |
+| **ai-inference** | Layer 2 | LLM Serving Engine, Triton, Model Registry | baseline (serving Pods need no host privilege; document only backend-specific device-access exceptions) | Required |
 | **ai-data** | Layer 3 | Vector DB, Cache, Knowledge/Feature Store | baseline | - |
 | **ai-agents** | Layer 4 | Agent Runtime, Tool Registry, A2A | baseline | - |
 | **ai-gateway** | Layer 5 | Inference Gateway, Auth, A/B Router | restricted | - |
 | **observability** | Observability plane | Tracing, Metrics, RAGAS, Drift Detection | baseline | - |
 | **ai-governance** | Governance plane | Guardrails, Policy, Regression Detection | baseline | - |
-| **ai-training** | Lifecycle plane | Training Pipeline, CT Scheduler, Eval Gate | privileged | Required |
+| **ai-training** | Lifecycle plane | Training Pipeline, CT Scheduler, Eval Gate | baseline (narrow privileged exception only for Pods that need it, e.g. distributed-training communication) | Required |
+
+Here "privileged" refers to the Pod Security Standards **policy level (a relaxation of the namespace admission policy)**, which is distinct from a container's `securityContext.privileged: true` flag. Where possible, grant only the minimum per-component privileges needed (specific devices/capabilities) instead of relaxing the policy.
 
 Layer 6 (Experience & Channels) is exposed via the Ingress/ALB in front of ai-gateway and external channel connectors, without a dedicated namespace.
 
@@ -688,15 +726,15 @@ flowchart LR
     style L3 fill:#e1ffe1
 ```
 
-**Agent-Specific Security Considerations:**
+**Agent-Specific Security Considerations:** The items below are **measured mitigations**, not guarantees that they "block" an attack on their own. Define each item's failure behavior (fail-closed/open) and verify its effectiveness by evaluation.
 
-- **Prompt injection defense**: Block malicious prompts with an input validation layer (Guardrails)
-- **Tool execution permission limits**: Declaratively define callable tools per agent, applying the principle of least privilege
-- **PII leakage prevention**: Block sensitive information exposure through output filtering
+- **Prompt injection mitigation**: An input validation layer (Guardrails) **can filter out a substantial fraction** of malicious prompts, but LLM-based filters are bypassable, so do not assume complete blocking. Keep authorization, tool-broker controls, and egress restrictions as **separate controls outside the filter**.
+- **Tool execution permission limits**: Declaratively define callable tools per agent and apply least privilege. This is enforced at the **tool-broker/authorization layer**, not by an LLM output filter.
+- **PII leakage mitigation**: Output filtering **reduces** sensitive-information exposure but does not guarantee complete blocking, so pair it with data access controls and egress restrictions.
 - **Execution time limits**: Timeout and maximum step count settings to prevent agent infinite loops
 
 :::danger Security Notice
-- Always enable mTLS in production environments
+- Identify internal vs external communication segments and apply mTLS **to the actual endpoints** (it is not applied uniformly to every call, and external provider APIs may terminate TLS differently). A Guardrails server such as NeMo Guardrails has no built-in authentication, TLS, or rate limiting, so **reinforce it at an external layer** such as the gateway or service mesh.
 - Store API keys and tokens in Secrets Manager
 - Perform regular security audits and patch vulnerabilities
 :::
@@ -726,7 +764,8 @@ sequenceDiagram
     VectorDB-->>Agent: 5. Return relevant documents
     Agent->>Gateway: 6. Inference request
     Gateway->>LLM: 7. Routing (Cascade · Fallback)
-    LLM-->>Agent: 8. Generated response
+    LLM-->>Gateway: 8. Generated response
+    Gateway-->>Agent: 8-1. Return response (observe · filter · meter cost)
     end
 
     Agent->>Trace: 9. Record trace · cost

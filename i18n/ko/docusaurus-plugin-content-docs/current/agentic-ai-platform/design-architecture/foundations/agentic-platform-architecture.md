@@ -3,9 +3,9 @@ title: Agentic AI Platform 아키텍처
 description: 프로덕션급 Agentic AI 플랫폼의 전체 시스템 아키텍처 — 6개 런타임 레이어와 3개 횡단 플레인 설계
 created: "2026-02-05"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 33
+reading_time: 43
 tags:
   - architecture
   - agentic-ai
@@ -36,11 +36,11 @@ Agentic AI 플랫폼은 에이전트가 모델과 도구를 호출해 작업을 
 
 기존 레이어 모델은 평가, 드리프트 감지, 피드백 같은 관심사를 여러 레이어에 중복 배치하여 책임 경계가 모호했습니다. 본 아키텍처는 이를 두 종류의 구성 요소로 명확히 구분합니다.
 
-- **런타임 레이어(Runtime Layer)**: 사용자 요청이 처리되는 경로를 따라 아래에서 위로 쌓이는 6개 계층입니다. 요청은 위(Layer 6)에서 아래(Layer 1)로 흐르고, 플랫폼은 아래(Layer 1)에서 위로 구축됩니다.
+- **런타임 레이어(Runtime Layer)**: 요청 처리에 참여하는 기능을 책임별로 묶은 6개 계층입니다. 레이어 번호는 책임의 추상화 수준(Layer 1 인프라 → Layer 6 경험)을 나타낼 뿐, 요청이 번호 순서대로 한 방향으로만 흐른다는 뜻은 아닙니다. 실제 요청은 Layer 6에서 진입해 Layer 5 게이트웨이와 Layer 4 Agent로 내려간 뒤, 추론이 필요하면 **다시 Layer 5 게이트웨이를 거쳐** Layer 2 모델 서빙을 호출하는 되돌이(loop) 구조를 가집니다(자세한 경로는 아래 [데이터 플로우](#데이터-플로우) 참조). 플랫폼은 아래(Layer 1)에서 위로 구축됩니다.
 - **횡단 플레인(Cross-cutting Plane)**: 특정 레이어에 속하지 않고 **모든 레이어를 수직으로 관통**하는 3개 관심사입니다. 관측성·평가, 거버넌스·안전·주권, 모델 라이프사이클이 여기에 해당합니다.
 
 :::tip 왜 플레인으로 분리하는가
-품질 평가(RAGAS), 드리프트 감지, 피드백 수집, Guardrails는 단일 레이어의 기능이 아니라 **전 레이어에 걸쳐 작동하는 관심사**입니다. 이를 별도 레이어로 두면 같은 기능이 여러 레이어에 중복 기술되어 책임이 분산됩니다. 플레인으로 분리하면 "어디서 추론하는가(레이어)"와 "어떻게 관측·통제·개선하는가(플레인)"가 직교(orthogonal)하게 정리됩니다. 이 구분은 Chip Huyen의 *AI Engineering*(2025) 3-tier(Infrastructure / Model / Application) 모델과 FTI(Feature–Training–Inference) 파이프라인 패턴, AWS Well-Architected Generative AI Lens의 전 계층을 관통하는 운영 관점과 동일한 접근입니다.
+품질 평가(RAGAS), 드리프트 감지, 피드백 수집, Guardrails는 단일 레이어의 기능이 아니라 **전 레이어에 걸쳐 작동하는 관심사**입니다. 이를 별도 레이어로 두면 같은 기능이 여러 레이어에 중복 기술되어 책임이 분산됩니다. 플레인으로 분리하면 "어디서 추론하는가(레이어)"와 "어떻게 관측·통제·개선하는가(플레인)"가 직교(orthogonal)하게 정리됩니다. 6개 런타임 레이어와 3개 횡단 플레인이라는 구체적 분해는 본 문서가 채택한 설계이며, 공개된 참조 모델을 그대로 옮긴 것이 아닙니다. 이 분해는 Chip Huyen의 *AI Engineering*(2025)이 제시하는 Infrastructure / Model / Application 3계층, FTI(Feature–Training–Inference) 파이프라인 패턴, AWS Well-Architected Generative AI Lens의 전 계층을 관통하는 운영 관점과 **문제의식(관심사 분리와 횡단 운영)이 유사**합니다. 다만 레이어·플레인 개수와 경계가 이들 자료와 일대일로 대응하지는 않으므로, 정확한 대응 관계는 원문을 함께 확인하시기 바랍니다.
 :::
 
 ---
@@ -180,7 +180,7 @@ flowchart TB
     subgraph Orchestration["오케스트레이션 · 스케줄링"]
         KARP["Karpenter<br/>(노드 프로비저닝)"]
         KUEUE["Kueue<br/>(작업 큐잉 · 쿼터)"]
-        DRA["DRA · MIG<br/>(세밀 분할)"]
+        DRA["DRA / MIG / Time-Slicing<br/>(디바이스 할당 · 분할)"]
     end
 
     subgraph Telemetry["모니터링 · 최적화"]
@@ -190,7 +190,9 @@ flowchart TB
     end
 
     GPU & NEURON --> KARP
-    KARP --> KUEUE --> DRA
+    KARP -->|노드 공급| KUEUE
+    KUEUE -->|승인된 작업 배치| DRA
+    DRA -->|디바이스 할당| GPU
     GPU --> DCGM
     NEURON --> NMON
     DRA --> TOPO
@@ -200,14 +202,26 @@ flowchart TB
     style Telemetry fill:#e1f5ff
 ```
 
+Karpenter(노드 공급), Kueue(작업 승인·쿼터), 디바이스 할당(DRA/MIG/Time-Slicing)은 **서로 다른 제어 책임**이며, 하나의 직렬 파이프라인이 아닙니다. Karpenter는 노드를 공급하고, Kueue는 쿼터 안에서 작업을 승인하며, 디바이스 할당 계층은 승인된 Pod에 가속기를 배정합니다. 세 책임은 독립적으로 설정·운영됩니다.
+
 | 기능 영역 | 책임 | 주요 컴포넌트 |
 |----------|------|-------------|
 | **가속 컴퓨팅** | LLM·비-LLM 추론/학습용 가속기 제공 | NVIDIA GPU, AWS Trainium2/Inferentia2 |
 | **노드 오케스트레이션** | 워크로드 기반 동적 노드 프로비저닝, Spot 활용 | Karpenter, Cluster Autoscaler |
 | **작업 스케줄링** | GPU 작업 큐잉, 팀별 쿼터, 공정 분배 | Kueue, KAI Scheduler |
-| **GPU 분할** | 단일 GPU를 다중 워크로드로 세밀 분할 | DRA, MIG, Time-Slicing |
+| **GPU 분할** | 단일 GPU를 다중 워크로드에서 사용하도록 분할 (방식별 격리 수준 상이, 아래 참조) | MIG, Time-Slicing, DRA |
 | **가속기 모니터링** | 사용률·온도·메모리·전력 실시간 추적 | DCGM Exporter, Neuron Monitor |
 | **성능 최적화** | 토폴로지 인식 배치, 고속 네트워크 | NVLink/NVSwitch 인지 스케줄링, EFA |
+
+:::warning GPU 분할 방식의 격리 수준은 서로 다릅니다
+MIG, Time-Slicing, DRA는 모두 "단일 GPU를 다중 워크로드가 쓰도록" 하지만, 제공하는 격리 수준이 다르므로 등가로 취급해서는 안 됩니다.
+
+- **MIG(Multi-Instance GPU)**: 지원되는 NVIDIA GPU(예: A100·H100)에서만 사용 가능한 **하드웨어 파티셔닝**입니다. GPU를 물리적으로 분할해 각 인스턴스에 전용 메모리·연산·캐시 경로를 할당하므로 인스턴스 간 **메모리·성능 격리**를 제공합니다.
+- **Time-Slicing**: 하나의 GPU를 여러 워크로드가 **시분할(time-share)**로 번갈아 사용합니다. 메모리를 격리하지 않으므로 한 워크로드가 메모리를 과점하거나 다른 워크로드의 성능에 영향을 줄 수 있습니다. 하드웨어 격리가 필요 없는 저위험 공유에 적합합니다.
+- **DRA(Dynamic Resource Allocation)**: Kubernetes의 **디바이스 요청·할당 메커니즘**이며 그 자체가 분할 방식은 아닙니다. 드라이버에 따라 MIG 파티션이나 Time-Slicing 공유를 유연하게 요청·배정하는 데 사용됩니다.
+
+따라서 규제 준수나 테넌트 간 강한 격리가 필요하면 MIG처럼 하드웨어 격리를 제공하는 방식을 선택해야 하며, Time-Slicing은 메모리 격리가 없다는 점을 전제로 사용해야 합니다.
+:::
 
 **왜 별도 레이어인가:**
 
@@ -264,19 +278,19 @@ Agent와 RAG 파이프라인이 사용하는 데이터·지식·메모리를 제
 문서를 임베딩 벡터로 변환하여 저장하고, Agent 요청 시 유사도 검색으로 관련 컨텍스트를 제공합니다.
 
 **설계 고려사항:**
-- **멀티 테넌트 격리**: Partition Key로 테넌트별 데이터 분리
+- **멀티 테넌트 격리**: Partition Key로 테넌트별 데이터를 **물리적으로 분리**합니다. 다만 Partition Key 자체는 데이터 배치 수단일 뿐 접근 통제가 아니므로, 테넌트가 자신의 파티션만 조회하도록 **쿼리 계층에서 테넌트 ID를 강제하는 인가(authorization)**를 함께 적용해야 교차 테넌트 조회를 막을 수 있습니다.
 - **인덱스 전략**: HNSW 인덱스로 고성능 Approximate Nearest Neighbor 검색
 - **하이브리드 검색**: Dense Vector + Sparse Vector (BM25) 결합으로 검색 품질 향상
 
 #### Knowledge / Feature Store
 
-ML 모델 학습과 추론에 사용되는 입력 특성(feature)과 도메인 지식을 관리합니다. 학습 시와 추론 시 동일한 특성 정의를 보장하여 training-serving skew를 방지하며, 온톨로지·지식 그래프를 결합하면 RAG 환각을 줄이고 근거 추적이 가능해집니다.
+ML 모델 학습과 추론에 사용되는 입력 특성(feature)과 도메인 지식을 관리합니다. 학습 시와 추론 시 **동일한 특성 정의(feature definition)**를 공유하는 것은 training-serving skew를 줄이기 위한 필요 조건이지만, 그것만으로 skew가 사라지지는 않습니다. 시점 정합성(point-in-time correctness)을 지키는 조인으로 라벨 누수(label leakage)를 방지하고, 특성 버전·구체화(materialization) 시점·온라인/오프라인 저장소 간 값 일치를 함께 보장해야 합니다. 온톨로지·지식 그래프를 결합하면 RAG 답변의 근거 추적을 돕고 환각을 줄이는 데 **기여할 수 있으나**, 그 효과는 그래프 품질·커버리지와 검색 설계에 따라 달라지므로 평가로 확인해야 합니다.
 
 **아키텍처:**
 
 ```
 Online Store (Redis/DynamoDB)
-  └─ 저지연 특성 조회 (< 10ms) · 실시간 추론용
+  └─ 저지연 특성 조회 · 실시간 추론용 (목표 지연은 백엔드·데이터 규모·네트워크에 좌우되며, 예: 한 자릿수 ms는 측정으로 검증해야 함)
 
 Offline Store (S3 Parquet)
   └─ 대용량 특성 저장 · 배치 학습용
@@ -326,18 +340,22 @@ flowchart LR
 | **도구 실행** | MCP 프로토콜로 등록된 도구를 비동기 실행 |
 | **메모리 관리** | 단기 메모리(세션)와 장기 메모리(벡터 DB) 결합 |
 | **Agent 간 통신** | A2A 프로토콜로 멀티 에이전트 협업 |
-| **오류 복구** | 실패한 작업의 자동 재시도 및 폴백 |
+| **오류 복구** | 실패한 작업의 재시도 및 폴백 (동작·멱등성에 따라 정책을 구분, 아래 참조) |
 
 #### Tool Registry
 
-에이전트가 사용할 수 있는 도구를 중앙에서 선언적으로 관리합니다. 각 도구는 MCP 서버로 노출되어 Agent가 표준 프로토콜로 호출합니다.
+에이전트가 사용할 수 있는 도구를 중앙에서 선언적으로 관리합니다. 도구는 **MCP 서버**를 통해 노출되며, 하나의 MCP 서버는 보통 **여러 도구(tool)**를 제공합니다(도구와 서버는 1:1이 아닙니다). Agent는 MCP 표준 프로토콜로 이 도구들을 호출합니다. 외부 REST/gRPC API처럼 MCP를 직접 지원하지 않는 대상은 **어댑터**가 MCP 도구로 감싸 노출합니다. 한편 **A2A(Agent-to-Agent)는 MCP와 별개의 프로토콜**로, Agent 간 작업 위임에 사용됩니다. 아래 표의 "A2A 도구"는 A2A 호출을 MCP 도구 인터페이스로 감싼 어댑터를 가리키며, A2A가 MCP의 하위 기능이라는 뜻은 아닙니다.
 
 | 도구 유형 | 용도 | 예시 |
 |----------|------|------|
-| **API 도구** | 외부 REST/gRPC 서비스 호출 | CRM 조회, 주문 처리 |
+| **API 도구** | 외부 REST/gRPC 서비스 호출 (어댑터가 MCP 도구로 노출) | CRM 조회, 주문 처리 |
 | **검색 도구** | 벡터 DB 검색, 문서 검색 | RAG 컨텍스트 보강 |
 | **코드 실행** | 샌드박스 환경에서 코드 실행 | 데이터 분석, 계산 |
-| **A2A 도구** | 다른 Agent에 작업 위임 | 전문 Agent 협업 |
+| **A2A 도구** | 다른 Agent에 작업 위임 (A2A 프로토콜을 어댑터로 노출) | 전문 Agent 협업 |
+
+:::warning 자동 재시도는 외부 동작의 멱등성을 전제합니다
+"실패 시 자동 재시도"는 **조회처럼 멱등(idempotent)한 동작**에는 안전하지만, 결제·주문·메시지 발송처럼 **부수효과가 있는 비멱등 동작**에는 그대로 적용하면 중복 실행을 일으킬 수 있습니다. 특히 요청은 전송됐으나 응답이 유실된 **커밋 불확실(uncertain commit)** 상황에서는 단순 재시도가 위험합니다. 따라서 도구별로 (1) 멱등 키 또는 재시도 안전성 표시, (2) 비멱등 동작에 대한 조정(reconciliation)·확인 조회, (3) 지속적(durable) 체크포인트에 기반한 재개 계약을 정의하고, 재시도 가능 여부를 동작 단위로 선언해야 합니다.
+:::
 
 :::info 상세 가이드
 Kagent 기반 Kubernetes Agent 관리는 [Kagent](../../operations-mlops/observability/kagent-kubernetes-agents.md), AWS Native AgentCore 기반 Agent 운영은 [AWS Native 플랫폼](../platform-selection/aws-native-agentic-platform.md)을 참조하세요.
@@ -381,19 +399,24 @@ flowchart LR
     style External fill:#f0e1ff
 ```
 
-**라우팅 전략:**
+**라우팅 전략:** 아래 전략들의 효과(지연·비용 절감 등)는 트래픽·캐시 적중률·모델 구성에 따라 달라지므로, 도입 전후 측정으로 검증해야 하는 **정책**으로 다룹니다.
 
 | 전략 | 설명 |
 |------|------|
 | **모델 기반 라우팅** | 요청 헤더/파라미터에 따라 적절한 모델 백엔드로 분배 |
-| **KV Cache-aware 라우팅** | LLM의 Prefix Cache 상태를 고려하여 TTFT 최소화 |
-| **Cascade 라우팅** | 저비용 모델 우선 시도 → 실패 시 고성능 모델로 자동 전환 |
+| **KV Cache-aware 라우팅** | Prefix Cache 적중 시 TTFT를 줄일 수 있음(캐시 미스 시 효과 없음). 적중률에 비례하는 효과 |
+| **Cascade 라우팅** | 저비용 모델 우선 시도 → **품질 기준 미달 또는 실패 시** 고성능 모델로 전환. "실패"의 판정 기준(품질 임계·오류)을 명시해야 함 |
 | **가중치 기반 라우팅** | Canary/Blue-Green 배포를 위한 트래픽 비율 분할 |
 | **Fallback** | Provider 장애 시 대체 Provider로 자동 전환 (Circuit Breaker) |
 
 #### Cost Guardrails
 
-요청별, Agent별, 테넌트별 비용 한도를 설정합니다. 월간 예산 초과 시 자동으로 저비용 모델로 폴백하거나, 알림을 발송하여 비용 폭증을 방지합니다. (정책 강제 자체는 거버넌스 플레인과 연동)
+요청별, Agent별, 테넌트별 비용 한도를 설정합니다. 비용 통제는 **강제 수준에 따라 두 가지로 구분**해야 합니다.
+
+- **하드 스톱(hard stop)**: 한도를 반드시 지켜야 하는 경우, 요청 처리 **이전에** 예상 비용을 예약(preflight reservation)하고 잔여 예산이 없으면 요청을 거부합니다. 이미 예산을 초과한 뒤 저비용 모델로 폴백하거나 알림만 보내는 방식은 **추가 과금을 막지 못합니다**.
+- **소프트 알림(soft alert)·폴백**: 초과를 허용하되 저비용 모델로 전환하거나 알림을 보내는 방식입니다. 이때 허용되는 초과분(overshoot) 범위를 함께 정의해야 하며, 비용 상한을 보장하지는 않습니다.
+
+(정책 강제 자체는 거버넌스 플레인과 연동)
 
 Layer 5의 운영 상세는 다음 문서에서 다룹니다.
 
@@ -453,7 +476,13 @@ RAG·Agent 품질을 정량 측정합니다. 단일 레이어가 아니라 데�
 
 #### Drift Detection
 
-입력 데이터 분포 변화(data drift)와 출력 품질 저하(concept drift)를 감지합니다. PSI > 0.25, KL Divergence > 0.1 등을 임계값으로 사용하며, 임계값 초과 시 모델 라이프사이클 플레인의 재학습을 트리거합니다.
+드리프트는 종류를 구분해야 하며, 지표에 따라 감지할 수 있는 대상이 다릅니다.
+
+- **공변량 드리프트(covariate/data drift)**: 입력 분포 P(X)의 변화입니다. PSI, KL Divergence 같은 지표는 **입력 분포 변화**를 감지하며, 예시 임계값으로 PSI > 0.25, KL Divergence > 0.1을 둘 수 있습니다(값은 제안 기준이며 데이터·윈도·특성에 맞게 보정해야 함).
+- **개념 드리프트(concept drift)**: 입력과 출력의 **관계** P(Y\|X) 자체가 변하는 것입니다. 입력 분포만 보는 PSI/KL로는 개념 드리프트를 직접 식별할 수 없고, 정답(ground truth)이 도착한 뒤의 예측 품질 변화로 판단해야 합니다.
+- **품질 저하(quality degradation)**: RAGAS·Agent 성공률 등 출력 품질 지표의 하락입니다. 이는 개념 드리프트뿐 아니라 프롬프트·검색(RAG)·도구·모델 등 여러 원인에서 비롯될 수 있습니다.
+
+따라서 임계값 초과는 **재학습을 바로 트리거하는 신호가 아니라 진단의 출발점**입니다. 원인(프롬프트/검색/도구/모델)을 먼저 진단하고, 가중치 재학습이 필요하다고 판단될 때에만 승인된 절차로 모델 라이프사이클 플레인의 재학습을 트리거합니다. PSI/KL 임계값 초과만으로 가중치 재학습이 필요함이 증명되지는 않습니다.
 
 :::info 상세 가이드
 Langfuse 기반 Agent 모니터링은 [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md), LLMOps 도구 비교는 [LLMOps Observability](../../operations-mlops/observability/llmops-observability.md), RAG 평가는 [Ragas 평가](../../operations-mlops/governance/ragas-evaluation.md)를 참조하세요.
@@ -481,14 +510,14 @@ OIDC/JWT 인증, 역할 기반 접근 제어, 도구별 호출 권한 제한, �
 
 #### 데이터 주권 · 리전 강제 (Sovereignty)
 
-데이터 주권 요구가 있는 조직(금융·공공·규제 산업)은 추론·학습·데이터 저장을 특정 지리 경계 내로 강제해야 합니다. 본 플랫폼은 다음 수단으로 주권을 충족합니다.
+데이터 주권 요구가 있는 조직(금융·공공·규제 산업)은 추론·학습·데이터 저장을 특정 지리 경계 내로 강제해야 합니다. 아래 수단들은 각각 **서로 다른 경계만 통제**하므로, 조직은 처리·저장·텔레메트리·컨트롤 플레인별로 요구되는 경계와 프로파일링되는 모든 목적지를 먼저 식별한 뒤 조합해야 합니다. 이 표는 "플랫폼이 주권을 자동으로 충족한다"가 아니라 **각 수단이 통제하는 범위와 남는 흐름(residual flow)**을 보여줍니다.
 
-| 수단 | 설명 | 적용 위치 |
-|------|------|----------|
-| **SCP 리전 강제** | AWS Organizations SCP로 승인되지 않은 리전의 API를 거부 | 계정·OU 경계 |
-| **Bedrock Geographic CRIS** | Geographic cross-Region inference로 지리 경계 내 추론 유지 | Layer 5 → External AI |
-| **In-country 자체 호스팅** | in-country 리전 또는 온프레미스에서 모델 자체 호스팅 | Layer 1·2 |
-| **하이브리드** | EKS Hybrid Nodes로 온프레미스·in-country + 클라우드 조합 | Layer 1 |
+| 수단 | 통제하는 범위 | 통제하지 못하는 범위(잔여 흐름) | 적용 위치 |
+|------|------|------|----------|
+| **SCP 리전 강제** | `aws:RequestedRegion`으로 승인되지 않은 리전의 **API 호출 엔드포인트**를 거부 | 엔드포인트 리전만 제한할 뿐, 서비스 내부에서 데이터가 처리되는 리전은 서비스 동작에 따름 | 계정·OU 경계 |
+| **Bedrock Geographic CRIS** | 추론을 **지리(geography, 예: US·EU·APAC) 경계 내**로 유지 | 지리는 여러 리전·국가를 포함하므로 **in-country(단일 국가)를 보장하지 않음**. 국가 단위 요구에는 부족 | Layer 5 → External AI |
+| **In-country 자체 호스팅** | 모델 추론·가중치를 특정 **국가 리전 또는 온프레미스**에 유지 | 로그·메트릭·관리 플레인 등 부수 흐름은 별도 통제 필요 | Layer 1·2 |
+| **하이브리드(EKS Hybrid Nodes)** | 데이터 플레인(워크로드)을 온프레미스·in-country에 배치 | **컨트롤 플레인(EKS 관리 영역)은 AWS 리전에서 호스팅**되므로 완전한 온프레미스 격리가 아님 | Layer 1 |
 
 :::info 상세 가이드
 SCP 리전 강제 정책, Bedrock Geographic cross-Region inference, EKS Hybrid Nodes 기반 하이브리드·주권 배포 패턴은 [소버린 & 하이브리드 배포](../platform-selection/sovereign-hybrid-deployment.md)와 [AI 플랫폼 선택 가이드](../platform-selection/ai-platform-decision-framework.md)를 참조하세요. Guardrails 기술 스택은 [AI Gateway Guardrails](../../operations-mlops/governance/ai-gateway-guardrails.md), 컴플라이언스 매핑(SOC2·ISMS-P)은 [컴플라이언스 프레임워크](../../operations-mlops/governance/compliance-framework.md)를 참조하세요.
@@ -516,28 +545,28 @@ graph LR
 
 #### Continuous Training (CT) Scheduler
 
-데이터 드리프트 감지(관측성 플레인) 시 자동으로 재학습을 실행합니다. 예약 기반(Cron) 또는 이벤트 기반(드리프트 임계값 초과) 트리거를 지원합니다.
+데이터 드리프트 감지(관측성 플레인) 시 재학습을 실행할 수 있습니다. 예약 기반(Cron) 또는 이벤트 기반(드리프트 임계값 초과) 트리거를 지원합니다. 아래 트리거 조건의 구체적 수치는 검증되지 않은 **제안값(예시)**이며, 실제 적용 전에 조직 데이터로 보정하고, 재학습은 승인된 학습 데이터와 사전 등록된(prespecified) 실험 절차를 거쳐야 합니다.
 
-**트리거 조건:**
+**트리거 조건(제안값, 보정 필요):**
 - 예약 기반: `0 0 * * 0` (매주 일요일)
-- 드리프트 기반: PSI > 0.25 또는 KL Divergence > 0.1
+- 드리프트 기반: PSI > 0.25 또는 KL Divergence > 0.1 (입력 분포 변화 신호 — 재학습 전 원인 진단 필요)
 - 품질 저하: Agent Success Rate < 85% 지속 7일
 
 #### Evaluation Gate
 
-배포 전 모델 품질을 검증하는 게이트입니다. Accuracy, RAGAS 메트릭, Guardrails 통과율을 자동 측정하며, 품질 임계값 미달 시 배포를 차단합니다. 신규 모델은 10% canary 배포 후 통계적 검정(Mann-Whitney U test, p < 0.05)으로 회귀를 판단하고, 회귀 탐지 시 자동 롤백합니다.
+배포 전 모델 품질을 검증하는 게이트입니다. Accuracy, RAGAS 메트릭, Guardrails 통과율을 자동 측정하며, 품질 임계값 미달 시 배포를 차단합니다. 신규 모델은 canary 배포(예: 10%) 후 사전 등록된 지표·방향·효과 크기 기준으로 회귀 여부를 판단합니다. 통계 검정은 지표 분포 비교에 적합한 방법(예: Mann-Whitney U test)을 사용할 수 있으나, 임의의 `p < 0.05`만으로 "회귀 있음/없음"이 증명되지는 않습니다. 검정 방향·효과 크기·검정력(power)·다중 비교 보정을 함께 정의해야 하며, 회귀가 확인되면 롤백합니다(canary 비율·임계값은 제안값).
 
 #### Feedback Loop
 
-프로덕션 피드백(사용자 평가, 수정 사항, A/B 테스트 결과)을 학습 데이터로 환류합니다.
+프로덕션 피드백(사용자 평가, 수정 사항, A/B 테스트 결과)을 학습 데이터로 환류합니다. 선호 학습(예: DPO)에서는 **원래의 나쁜 답변을 거부(rejected) 샘플로, 사용자가 제공한 검증된 수정 답변을 채택(chosen) 샘플로** 다루어야 합니다. 아래 의사코드의 "hard negative"는 이 거부/채택 쌍 구성을 가리키며, 수정된 올바른 답변 자체를 부정 예시로 학습한다는 뜻이 아닙니다. 또한 환류된 데이터는 평가용 홀드아웃(holdout)과 분리해 데이터 누수를 막아야 합니다.
 
 ```
 Positive Feedback (thumbs up)
-  → Add to training dataset as positive example
+  → chosen(채택) 예시로 학습 데이터셋에 추가
 
 Negative Feedback (thumbs down)
-  → If user provides correction: add as hard negative
-  → If no correction: filter from training dataset
+  → 사용자가 수정 제공: (원답변=rejected, 수정답변=chosen) 선호 쌍 구성
+  → 수정 없음: 학습 데이터셋에서 제외(필터)
 ```
 
 :::info 상세 가이드
@@ -581,17 +610,24 @@ graph LR
     A["LLM Tracing<br/>(관측성 플레인)"] -->|품질 회귀 감지| B["Eval Gate<br/>(라이프사이클 플레인)"]
     B -->|통계 검정 확인| C["Alert System<br/>(관측성 플레인)"]
     C -->|롤백 정책 실행| D["Model Registry<br/>(Layer 2)"]
-    D -->|이전 안정 버전 조회| E["Gateway<br/>(Layer 5)"]
-    E -->|원자적 모델 교체| F["Production Restored"]
+    D -->|이전 안정 버전 선택<br/>(컨트롤 플레인)| CTRL["Deployment Controller<br/>(Layer 2)"]
+    CTRL -->|롤링 재배포 · readiness 확인| POD["Serving Pods<br/>(Layer 2)"]
+    POD -->|준비 완료 후 트래픽 전환| E["Gateway<br/>(Layer 5)"]
+    E -->|사용자 트래픽 컷오버| F["Production Restored"]
 ```
 
 **플로우 설명:**
 1. 관측성 플레인이 RAGAS 점수 하락을 감지
-2. 라이프사이클 플레인의 Eval Gate가 Mann-Whitney U test로 통계적 유의성 검정
-3. p-value < 0.05 확인 시 Alert System이 롤백 정책 실행
-4. Layer 2 Model Registry에서 마지막 안정 버전 조회
-5. Layer 5 Gateway가 5분 내 원자적 모델 교체
-6. 프로덕션 복구 완료
+2. 라이프사이클 플레인의 Eval Gate가 통계 검정으로 유의성을 확인(검정 방향·효과 크기·검정력을 사전 정의)
+3. 유의한 회귀로 판단되면 Alert System이 롤백 정책 실행
+4. **컨트롤 플레인**: Layer 2 Model Registry에서 마지막 안정 버전을 선택(레지스트리의 스테이지 전환은 메타데이터 변경이며, 그 자체가 트래픽 전환은 아님)
+5. **배포·준비**: Deployment Controller가 이전 버전으로 롤링 재배포하고 pod readiness·드레이닝·진행 중 요청·캐시/상태 호환성을 확인
+6. **트래픽 컷오버**: 새 pod가 준비된 뒤 Layer 5 Gateway가 사용자 트래픽을 전환
+7. 복구 완료
+
+:::note 5분은 측정으로 검증해야 할 목표(objective)입니다
+"5분 내 원자적 교체"는 아직 검증되지 않은 **복구 목표**이며, 실제 소요 시간은 모델 로딩·pod 준비·캐시 워밍·용량 확보에 좌우됩니다. 컨트롤 플레인의 버전 선택, 롤링 pod 준비, 사용자 트래픽 컷오버는 **별개의 단계**이고 어느 것도 즉시·원자적이지 않습니다. 복구 시간을 수치로 주장하려면 관측된 롤백 픽스처(fixture)로 측정해야 합니다.
+:::
 
 ### A/B Testing → Production
 
@@ -606,14 +642,14 @@ graph LR
     E -->|프로덕션 표시| F["Gateway<br/>(Layer 5)"]
 ```
 
-**플로우 설명:**
+**플로우 설명:** 아래 수치(50:50, n, p, 개선율)는 **제안 예시 기준**이며, 실험 전 랜덤화 단위·지표 방향·효과 크기·검정력·다중 비교 정책을 사전 등록해야 합니다.
 1. Layer 4 (Agent Runtime)가 A/B 두 variant를 실행
-2. Layer 5 (Gateway)가 요청을 50:50으로 분배
-3. 관측성 플레인의 Experiment Tracking이 variant별 메트릭 수집 (n = 1000 이상)
-4. 관측성 플레인의 Statistical Analysis가 Mann-Whitney U test 실행
-5. p < 0.05 AND 평균 메트릭 개선 > 5% 시 승자 선정
+2. Layer 5 (Gateway)가 요청을 분배(예: 50:50). **랜덤화 단위**(요청/세션/사용자)를 명시해야 하며, 단위에 따라 독립·대응(paired) 표본 여부가 달라짐
+3. 관측성 플레인의 Experiment Tracking이 variant별 메트릭 수집(표본 크기는 검정력 분석으로 산정; 예: n ≥ 1000은 제안값)
+4. 관측성 플레인의 Statistical Analysis가 지표 분포 비교에 적합한 검정(예: Mann-Whitney U test)을 실행. 이 검정은 두 분포가 다른지를 보며, "평균 개선"을 직접 검정하지 않음
+5. 사전 정의한 지표 방향으로 유의한 차이(예: p < 0.05)와 실질적 효과 크기(예: 개선 > 5%)를 **함께** 만족할 때 승자 선정(수치는 제안 게이트)
 6. 라이프사이클 플레인이 Layer 2 Model Registry에 승자 variant를 프로덕션으로 표시
-7. Layer 5 (Gateway)가 100% 트래픽을 승자로 라우팅
+7. Layer 5 (Gateway)가 트래픽을 승자로 전환
 
 ---
 
@@ -621,18 +657,20 @@ graph LR
 
 ### 네임스페이스 구성
 
-관심사 분리와 보안을 위해 기능별로 네임스페이스를 분리합니다.
+관심사 분리와 보안을 위해 기능별로 네임스페이스를 분리하고, 각 네임스페이스에는 **최소 권한(Pod Security Standards)**을 기본값으로 적용합니다. Pod Security의 `privileged`는 "제약이 없는(unrestricted)" 정책으로 알려진 권한 상승을 허용하고 컨테이너 격리를 우회할 수 있으므로, GPU를 쓴다는 이유만으로 서빙·학습 전체를 `privileged`로 두어서는 안 됩니다. 일반 GPU 모델 Pod는 호스트 특권 없이 `baseline`(또는 디바이스 플러그인 요구에 맞춘 예외) 수준으로 동작할 수 있으며, 드라이버·시스템 오퍼레이터 등 **호스트 접근이 실제로 필요한 특권 컴포넌트만** 좁은 예외로 분리합니다.
 
 | 네임스페이스 | 레이어 / 플레인 | 컴포넌트 | Pod Security | GPU |
 |-------------|---------------|---------|-------------|-----|
-| **ai-infra** | Layer 1 | GPU Operator, Karpenter, Kueue, DCGM Exporter | privileged | 필요 |
-| **ai-inference** | Layer 2 | LLM Serving Engine, Triton, Model Registry | privileged | 필요 |
+| **ai-infra** | Layer 1 | GPU Operator, Karpenter, Kueue, DCGM Exporter | baseline (단, GPU 드라이버/디바이스 플러그인 등 호스트 접근 컴포넌트만 privileged 예외) | 필요 |
+| **ai-inference** | Layer 2 | LLM Serving Engine, Triton, Model Registry | baseline (서빙 Pod는 호스트 특권 불필요; 백엔드별 디바이스 접근 예외만 문서화) | 필요 |
 | **ai-data** | Layer 3 | Vector DB, Cache, Knowledge/Feature Store | baseline | - |
 | **ai-agents** | Layer 4 | Agent Runtime, Tool Registry, A2A | baseline | - |
 | **ai-gateway** | Layer 5 | Inference Gateway, Auth, A/B Router | restricted | - |
 | **observability** | 관측성 플레인 | Tracing, Metrics, RAGAS, Drift Detection | baseline | - |
 | **ai-governance** | 거버넌스 플레인 | Guardrails, Policy, Regression Detection | baseline | - |
-| **ai-training** | 라이프사이클 플레인 | Training Pipeline, CT Scheduler, Eval Gate | privileged | 필요 |
+| **ai-training** | 라이프사이클 플레인 | Training Pipeline, CT Scheduler, Eval Gate | baseline (분산 학습 통신 등 필요한 Pod만 좁은 특권 예외) | 필요 |
+
+여기서 "privileged"는 Pod Security Standards의 **정책 수준(네임스페이스 승인 정책의 완화)**을 뜻하며, 컨테이너의 `securityContext.privileged: true` 플래그와는 구분됩니다. 가능하면 정책 완화 대신 컴포넌트별로 필요한 최소 권한(특정 디바이스·capability)만 부여하세요.
 
 Layer 6(Experience & Channels)은 별도 네임스페이스 없이 ai-gateway 앞단의 Ingress/ALB와 외부 채널 연동으로 노출됩니다.
 
@@ -691,15 +729,15 @@ flowchart LR
     style L3 fill:#e1ffe1
 ```
 
-**Agent 특화 보안 고려사항:**
+**Agent 특화 보안 고려사항:** 아래 항목은 **측정된 완화책(mitigation)**이며, 단독으로 공격을 "차단"한다고 보장하지 않습니다. 각 항목은 실패 시 동작(fail-closed/open)을 정의하고, 효과를 평가로 검증해야 합니다.
 
-- **프롬프트 인젝션 방어**: 입력 검증 레이어(Guardrails)로 악의적 프롬프트 차단
-- **도구 실행 권한 제한**: Agent별 호출 가능 도구를 선언적으로 정의, 최소 권한 원칙 적용
-- **PII 유출 방지**: 출력 필터링으로 민감 정보 노출 차단
+- **프롬프트 인젝션 완화**: 입력 검증 레이어(Guardrails)로 악의적 프롬프트의 **상당 부분을 걸러낼 수 있으나**, LLM 기반 필터는 우회 가능하므로 완전 차단을 전제하지 않습니다. 인가(authorization)·도구 브로커 통제·이그레스(egress) 제한을 **필터 바깥의 별도 통제**로 유지해야 합니다.
+- **도구 실행 권한 제한**: Agent별 호출 가능 도구를 선언적으로 정의하고 최소 권한을 적용합니다. 이는 LLM 출력 필터가 아니라 **도구 브로커·인가 계층**에서 강제합니다.
+- **PII 유출 완화**: 출력 필터링으로 민감 정보 노출을 **줄이지만** 완전 차단은 보장하지 않으므로, 데이터 접근 통제·이그레스 제한과 병행합니다.
 - **실행 시간 제한**: Agent 무한 루프 방지를 위한 타임아웃 및 최대 스텝 수 설정
 
 :::danger 보안 주의사항
-- 프로덕션 환경에서는 반드시 mTLS를 활성화하세요
+- 내부·외부 통신 구간을 식별하여 **실제 엔드포인트에 맞게** mTLS를 적용하세요(모든 호출에 일괄 적용되는 것은 아니며, 외부 Provider API는 TLS 종단 방식이 다를 수 있음). NeMo Guardrails 등 Guardrails 서버 자체에는 인증·TLS·레이트 제한이 내장되어 있지 않으므로, 게이트웨이·서비스 메시 등 **외부 계층에서 보강**해야 합니다.
 - API 키와 토큰은 Secrets Manager에 저장하세요
 - 정기적으로 보안 감사를 수행하고 취약점을 패치하세요
 :::
@@ -729,7 +767,8 @@ sequenceDiagram
     VectorDB-->>Agent: 5. 관련 문서 반환
     Agent->>Gateway: 6. 추론 요청
     Gateway->>LLM: 7. 라우팅 (Cascade · Fallback)
-    LLM-->>Agent: 8. 생성된 응답
+    LLM-->>Gateway: 8. 생성된 응답
+    Gateway-->>Agent: 8-1. 응답 반환 (관측·필터·비용 집계)
     end
 
     Agent->>Trace: 9. Trace · 비용 기록

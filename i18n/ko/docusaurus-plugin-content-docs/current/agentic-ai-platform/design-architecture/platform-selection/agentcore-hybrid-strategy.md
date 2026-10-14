@@ -3,7 +3,7 @@ title: AgentCore 하이브리드 전략
 description: Bedrock AgentCore 매니지드 서비스와 EKS 기반 self-hosted 에이전트를 결합한 하이브리드 전략 의사결정·패턴 카탈로그
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 17
 tags:
@@ -118,7 +118,7 @@ S3 resource policy(bucket policy), role identity policy, KMS key policy는 별�
 
 ### 패턴 (a): 애플리케이션 Router-front {#패턴-a-router-front-agentcore-gatewayself-hosted}
 
-AgentCore Gateway는 도구를 MCP 인터페이스로 연결합니다. 일반 inference 요청의 복잡도 분류와 모델 선택은 애플리케이션 router의 책임입니다. 모델을 선택하는 문자열을 반환해도 실제 Runtime 배포의 model 설정은 바뀌지 않습니다. 허용된 runtime ARN/endpoint별로 agent model 설정을 명시하거나 검증된 payload 계약을 구현합니다.
+AgentCore Gateway는 agentic 트래픽의 매니지드 진입점입니다. 도구를 MCP 인터페이스로 연결하고, passthrough target으로 다른 agent·HTTP 서비스(A2A 트래픽 포함)를 중계하며, model 기반 라우팅 endpoint로 여러 model provider에 대한 inference 요청을 라우팅할 수 있습니다([AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html), 2026-10-13 확인). 이 설계는 별도의 선택으로, 복잡도 분류와 model·품질 정책을 Gateway의 기본 라우팅이 아니라 애플리케이션 router에 두어 해당 정책을 팀이 소유·검증하는 코드에 유지합니다. 어느 경우든 model을 선택하는 문자열을 반환해도 실제 Runtime 배포의 model 설정은 바뀌지 않습니다. 허용된 runtime ARN/endpoint별로 agent model 설정을 명시하거나 검증된 payload 계약을 구현합니다.
 
 ### 패턴 (b): Escalation (Qwen3 Self→AgentCore Reasoning)
 

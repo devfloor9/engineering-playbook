@@ -14,7 +14,7 @@ const SovereigntySpectrum = () => {
   }, {
     level: isKo ? 'In-country' : 'In-country',
     control: isKo ? '중간' : 'Medium',
-    ops: isKo ? '낮음 (Geo CRIS + SCP)' : 'Low (Geo CRIS + SCP)',
+    ops: isKo ? '낮음 (Geo CRIS + SCP, 국가 단위 목적지 확인 필요)' : 'Low (Geo CRIS + SCP; verify country-level destinations)',
     workload: isKo ? '국내 금융, 공공 클라우드' : 'Domestic finance, public cloud'
   }, {
     level: isKo ? 'Hybrid' : 'Hybrid',

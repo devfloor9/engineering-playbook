@@ -3,9 +3,9 @@ title: Technical Challenges of Agentic AI Workloads
 description: 5 key challenges faced when operating Agentic AI workloads
 created: "2026-02-05"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-13
   author: devfloor9
-reading_time: 32
+reading_time: 40
 tags:
   - genai
   - agentic-ai
@@ -35,9 +35,9 @@ Using one model for every request keeps deployment and operations simpler. First
 
 | Limitation Area | Problem Organizations Face | Platform Response |
 |----------------|--------------------------|-------------------|
-| **Cost** | Token pricing for 70B+ models can reach tens of millions of won per month at high traffic volumes, and the same cost applies to simple tasks like tool calls and formatting within agents. Research shows that **40-70% of agent LLM calls can be replaced by SLMs**. | **Bifrost 2-Tier routing** separates simple calls to self-hosted SLMs, routing only complex reasoning to LLMs |
-| **Performance · Latency** | Large models have long response latency (TTFT), degrading user experience in real-time customer service (AICC) and conversational agents. Domain-specific SLMs can deliver **10x faster responses** for the same tasks. | **3-Tier Orchestration** — Tier 1 (SLM direct) is ~50ms, Tier 2 (LLM) is used only for complex reasoning |
-| **Information Accuracy** | LLM hallucination is a structural characteristic, and it is critical in tasks requiring accuracy such as billing calculations and terms verification. Transformer architecture has inherent limitations in complex arithmetic and logical operations. | **Tool Delegation** — Arithmetic is delegated to rule engines, fact verification to Knowledge Graphs. LLMs focus only on natural language understanding |
+| **Cost** | Token pricing for 70B+ models can reach tens of millions of won per month at high traffic volumes, and the same cost applies to simple tasks like tool calls and formatting within agents. An NVIDIA Research position paper analyzes three open-source agents (MetaGPT, Open Operator, Cradle) and **estimates that 40-70% of agent LLM calls could be replaced by SLMs** (these are per-case-study estimates that you should validate by measurement on your own workload). | **Bifrost 2-Tier routing** separates simple calls to self-hosted SLMs, routing only complex reasoning to LLMs |
+| **Performance · Latency** | Large models have long response latency (TTFT), which can degrade user experience in real-time customer service (AICC) and conversational agents. Smaller domain-specific SLMs are generally lower-latency, but the actual improvement depends on model, hardware, and task, so compare them by measuring on the same request set. | **3-Tier Orchestration** — Tier 1 (SLM direct) for simple, repetitive work; Tier 2 (LLM) for complex reasoning. Set each tier's latency target from measured values |
+| **Information Accuracy** | LLM hallucination is a structural characteristic, and it is critical in tasks requiring accuracy such as billing calculations and terms verification. Transformer architecture has inherent limitations in complex arithmetic and logical operations. | **Tool Delegation** — a mitigation that delegates arithmetic to rule engines and fact verification to Knowledge Graphs. Tool accuracy still depends on correct data, authorization, and validation; it is not guaranteed automatically |
 | **Governance · Security** | Risks of sensitive data (PII/PHI) leaking to external LLM APIs, audit trails for autonomous agent actions, team-level access control and budget management are all required. | **NeMo Guardrails** (I/O filtering) + **LangGraph HITL** (human approval gates) + **Langfuse** (audit trails) |
 
 ### Operating Functions That Models Can Share {#infrastructure-optimization-direction-of-superintelligence-research-companies-and-k8s-ecosystem}
@@ -50,11 +50,11 @@ The following Kubernetes features and projects address these operating responsib
 
 | K8s AI Feature | Version | Role | Significance for Multi-Model Ecosystem |
 |---------------|---------|------|---------------------------------------|
-| **DRA** (Dynamic Resource Allocation) | 1.31 Beta | Fine-grained GPU allocation at MIG level | SLMs on MIG partitions, LLMs on full GPUs — coexisting in a single cluster |
+| **DRA** (Dynamic Resource Allocation) | 1.34 GA (stable from 1.35+) | Core API for claim-based, fine-grained requests and allocation of devices such as GPUs | SLMs and LLMs request different GPU configurations and coexist in one cluster. MIG-level partitioning is allocated through DRA only when the NVIDIA driver and device support it |
 | **Gateway API + Inference Extension** | 2025 | Standardized routing for LLM inference requests | Intelligent routing based on KV Cache state, per-model traffic distribution |
-| **Kueue** | GA | AI workload queuing and scheduling | Fair GPU resource distribution for training/inference, per-team quotas |
-| **LeaderWorkerSet** | 1.31 | Distributed inference/training workload pattern | K8s-native management of Tensor Parallel distributed inference for 70B+ models |
-| **KAI Scheduler** | 2025 | GPU-aware Pod scheduling | Optimal placement considering GPU topology (NVLink, NVSwitch) |
+| **Kueue** | v0.18.x (v1beta2 API) | AI workload queuing and scheduling | Fair GPU resource distribution for training/inference, per-team quotas |
+| **LeaderWorkerSet** | v0.9 (separate kubernetes-sigs project, independent of the Kubernetes core version) | Distributed inference/training workload pattern | K8s-native management of Tensor Parallel distributed inference for 70B+ models |
+| **KAI Scheduler** | 2025 | GPU-aware Pod scheduling | Placement that considers GPU topology (NVLink, NVSwitch); placement quality depends on topology and constraint configuration |
 
 These features solve different problems. Identify whether you need resource allocation, workload queueing, or inference request routing, then check that the cluster and serving engine support the chosen configuration.
 
@@ -130,17 +130,19 @@ GPUs are the **most expensive resource** in the Agentic AI Platform. Appropriate
 
 **Why it's difficult:**
 
-- **High cost**: GPU instances are 10-100x more expensive than CPU (~$55/hr for p5.48xlarge H100 x8 in us-east-1; $55-$92/hr by region)
+- **High cost**: GPU instances are often tens of times more expensive than CPU instances (the multiple depends on which instances you compare). For example, a p5.48xlarge (H100 x8) is about $55/hr on-demand in us-east-1 (based on 2025 public pricing; varies by region, commitment, and purchase option) and can be higher in other regions.
 - **Varied model sizes**: GPU memory requirements vary dramatically from 3B parameter models to 70B+
-- **Dynamic workloads**: Inference traffic fluctuates by more than 10x depending on time of day
+- **Dynamic workloads**: Inference traffic can fluctuate significantly by time of day, with the range differing per service
 - **Idle waste**: Low utilization after GPU provisioning leads to massive cost waste
 - **Multi-tenancy**: Multiple models and teams must share limited GPUs
 
-| Model Size | GPU Requirements | Cost Pressure |
+The table below shows **illustrative scenarios**; parameter count alone does not determine hardware or sharing safety. Actual requirements depend on weight precision (FP16/INT8/INT4), KV cache, context length and concurrency, available hardware capacity, and isolation needs. Estimate weight memory roughly as `parameter count × bytes per precision`. For example, a 70B model in FP16 needs about `70 × 2 = 140 GB` for weights alone, which exceeds a single 80 GB H100 and therefore needs multiple GPUs; KV cache and runtime overhead add to this. The cost ranges below are examples derived from the pricing assumption above.
+
+| Example Model Size | Example GPU Configuration | Example Cost Range (per hour) |
 |-----------|-----------------|--------------|
-| 70B+ parameters | Full GPU (H100/A100) x8 | $30-$92/hr |
-| 7B-30B parameters | 1-2 GPUs or MIG partition | $1-$10/hr |
-| Under 3B parameters | Time-Slicing or shared GPU | $0.5-$2/hr |
+| 70B+ parameters (FP16) | Weights ~140 GB+ → sharded across multiple GPUs (H100/A100) | $30-$92 |
+| 7B-30B parameters | 1-2 GPUs, or a MIG partition where the hardware supports it | $1-$10 |
+| Under 3B parameters | Time-Slicing or shared GPU (after checking isolation/interference needs) | $0.5-$2 |
 
 ---
 
@@ -181,7 +183,7 @@ An agent can return `200 OK` with an incorrect answer. In addition to status cod
 **Why it's difficult:**
 
 - **Non-deterministic output**: Different outputs for the same input make traditional testing/monitoring insufficient, and changing a single word in a prompt can cause cascading failures
-- **No visibility into "successful failures"**: Traditional o11y only tells you a request succeeded — not whether the response was correct, nor whether you are losing money per user
+- **No visibility into "successful failures"**: Relying on status- and latency-centric baseline metrics tells you a request succeeded, but not whether the response was correct or whether you are losing money per user. Seeing that requires adding metrics that measure output quality and cost
 - **Token cost tracking**: Must dual-track infrastructure costs (GPU) and application costs (tokens), and cost attribution by model/feature/tool is hard
 - **Multi-step debugging**: Identifying bottlenecks/failure points in complex chains where agents call multiple tools is challenging
 - **Prompt quality drift**: Quality that was fine locally slowly degrades in production, and usually users notice first
@@ -208,14 +210,16 @@ Use observed results to guide the next change. Turn failed executions into evalu
 
 Evaluation runs and failure collection can be automated. The responsible team defines the criteria, interprets results, and specifies where training, deployment, or exceptions require approval. An improved score alone should not trigger an automatic production deployment.
 
-| Observability Area | Traditional Applications | LLM Applications |
+The table below contrasts what traditional application observability measures by default with what LLM applications must **additionally instrument**. Existing APM tools already support distributed tracing, custom metrics, and cost dashboards, so "traditional" here means model-evaluation metrics are not part of the default setup — not that these capabilities are impossible.
+
+| Observability Area | Traditional Applications (default setup) | What LLM Applications Add |
 |-------------------|------------------------|-----------------|
-| What is measured | "Did it run" (status, latency) | "Did it do it correctly" (output accuracy) |
-| Cost tracking | Infrastructure costs only | Dual tracking: infra + token, attribution by tool/model |
-| Debugging | Request-response logs | Multi-step Agent Trace + lineage |
-| Quality monitoring | Error rate, latency | Faithfulness, Relevance, Hallucination, drift |
-| Budget management | Resource-based | Per-model/per-team token budgets |
-| Improvement method | Manual hotfix | Observe→Evaluate→Improve loop (evaluation-based) |
+| What is measured | "Did it run" (status, latency) | Add "did it do it correctly" (output accuracy) |
+| Cost tracking | Infrastructure-cost focused | Add dual tracking: infra + token, attribution by tool/model |
+| Debugging | Request-response logs, distributed traces | Add multi-step Agent Trace + lineage |
+| Quality monitoring | Error rate, latency | Add Faithfulness, Relevance, Hallucination, drift |
+| Budget management | Resource-based | Add per-model/per-team token budgets |
+| Improvement method | Hotfix and deploy | Reinforce with the Observe→Evaluate→Improve loop (evaluation-based) |
 
 **Tool selection**: Before comparing Langfuse, LangSmith, Helicone, and integration with an existing APM, identify the call records, prompt management, and evaluation features you need. Compare supported features and collection costs for the intended configuration. See [LLMOps Observability Tool Comparison](../../operations-mlops/observability/llmops-observability.md) for the detailed comparison and integration options.
 
@@ -232,7 +236,7 @@ In Agentic AI systems, agents **autonomously invoke tools and interact with exte
 - **Tool integration standardization**: Need standards for safely connecting diverse external systems (DBs, APIs, files) to agents
 - **Multi-agent communication**: Safe and efficient communication protocols needed when multiple agents collaborate
 - **State management**: State persistence, recovery, and checkpointing needed for long-running agents
-- **Scaling**: Agent workloads are CPU-based but have irregular traffic patterns, making efficient scaling difficult
+- **Scaling**: Agent orchestration nodes are typically CPU-based with irregular traffic patterns, making efficient scaling difficult. However, when the runtime performs local inference or calls GPU-backed tools, you must also plan for GPU resources (for example, the Instances compute type of Amazon Bedrock AgentCore Runtime supports GPU-accelerated workloads)
 
 ```mermaid
 flowchart TD
@@ -268,12 +272,12 @@ Beyond simply deploying models, the **entire model lifecycle** (training → eva
 **Why it's difficult:**
 
 - **Model version management**: Managing diverse artifacts including foundation models, fine-tuned models, and adapters (LoRA)
-- **Distributed training infrastructure**: Large-scale model fine-tuning requires multi-node GPU clusters and high-speed networking (EFA)
+- **Distributed training infrastructure**: Full-parameter fine-tuning of large models can require multi-node GPU clusters and high-speed networking (EFA). In contrast, parameter-efficient methods such as LoRA sharply reduce trainable parameters and GPU memory (the LoRA paper reports roughly a 10,000x reduction in trainable parameters and about a 3x reduction in GPU memory for GPT-3 175B), so a smaller configuration can suffice. Actual requirements depend on the chosen training method, precision, and model/hardware
 - **Evaluation pipelines**: Must automatically evaluate model quality and set deployment gates
 - **Safe deployment**: Minimize service impact during model updates with Canary/Blue-Green deployment
 - **Hybrid environments**: Model transfer and synchronization between on-premises and cloud GPUs
 - **RAG data pipelines**: Continuous update pipelines for document processing, embedding generation, and vector storage
-- **Feedback loops**: Continuous improvement systems that incorporate production tracing data into retraining
+- **Feedback loops**: Continuous improvement systems that incorporate production tracing data into retraining (reusing trace data for retraining requires first confirming data-use rights and consent scope)
 
 ```mermaid
 flowchart LR
@@ -303,13 +307,13 @@ We present two approaches to solving these 5 challenges:
 
 These two approaches are **complementary** and can be combined based on workload characteristics.
 
-| Criteria | AWS Native | EKS-Based Open Architecture |
+| Criteria | AWS Native (Bedrock / AgentCore) | EKS-Based Open Architecture |
 |----------|-----------|---------------------------|
-| GPU management | Not required (serverless) | Karpenter auto-provisioning |
-| Model selection | Bedrock-supported models | All open weight models |
-| Operational burden | Minimal | Medium (reduced with Auto Mode) |
-| Cost optimization | Usage-based pricing | Fine-grained control: Spot, Consolidation |
-| Customization | Limited | Full flexibility |
+| GPU management | Serverless microVMs need no GPU management, but when you need GPU acceleration or long-running sessions, choose the AgentCore Runtime Instances compute type (AWS-managed EC2 in your account) to handle capacity | Karpenter auto-provisioning |
+| Model selection | Models supported by Bedrock; AgentCore Runtime can also call external APIs (Claude, Gemini, OpenAI, etc.) | Open weight models — but check each model's license (e.g., the Llama 4 Community License's 700M-MAU clause and acceptable-use policy) and serving-engine compatibility |
+| Operational burden | Relatively low (managed) | Medium (reduced with Auto Mode) |
+| Cost optimization | Consumption-based pricing | Fine-grained control (Spot, Consolidation) offers savings opportunities, but actual savings depend on workload and operational maturity |
+| Customization | Within what the service exposes | Comparatively high flexibility (within license and engine constraints) |
 
 :::tip Which approach to choose?
 - **Quick start, focus on agent logic**: AWS Native Platform

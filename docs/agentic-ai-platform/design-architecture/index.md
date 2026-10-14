@@ -3,9 +3,9 @@ title: Design & Architecture
 description: Architecture design, technical challenges, and AWS Native and EKS-based implementation approaches for the Agentic AI Platform
 created: "2026-03-06"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
-reading_time: 3
+reading_time: 2
 tags:
   - architecture
   - design
@@ -26,7 +26,7 @@ Start with the platform architecture and its technical challenges, then compare 
     to="/docs/agentic-ai-platform/design-architecture/foundations"
     icon="🏗️"
     title="Platform Foundations"
-    description="Understand the fundamentals of the Agentic AI Platform through the 6 runtime layers + 3 cross-cutting planes platform blueprint, 5 key challenges, and Knowledge Feature Store concept."
+    description="Understand the fundamentals of the Agentic AI Platform through the 6 runtime layers + 3 cross-cutting planes platform blueprint and 5 key challenges."
     color="#667eea"
   />
   <DocCard

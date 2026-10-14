@@ -3,7 +3,7 @@ title: AgentCore Hybrid Strategy
 description: Decision framework and pattern catalog for combining Bedrock AgentCore managed service with EKS-based self-hosted agents in hybrid deployment
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: YoungJoon Jeong
 reading_time: 26
 tags:
@@ -118,7 +118,7 @@ These patterns are application implementation contracts, not automatic AgentCore
 
 ### Pattern (a): Application Router-front {#pattern-a-router-front-agentcore-gatewayself-hosted}
 
-AgentCore Gateway exposes tools through MCP. Complexity classification and model selection for inference belong to the application router. Returning a model name does not change a deployed Runtime’s model configuration. Map approved runtime ARNs/endpoints to configured agent models or implement a validated payload contract.
+AgentCore Gateway is a managed entry point for agentic traffic: it exposes tools through MCP, fronts other agents and HTTP services through passthrough targets (including A2A traffic), and can route inference requests across model providers through its model-based routing endpoint ([AgentCore Gateway](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/gateway.html), retrieved 2026-10-13). This design is a separate choice: it assigns complexity classification and model/quality policy to an application router rather than to Gateway's native routing, so that policy stays in code the team owns and tests. Either way, returning a model-name string does not change a deployed Runtime's model configuration. Map approved runtime ARNs/endpoints to configured agent models or implement a validated payload contract.
 
 ### Pattern (b): Escalation (Qwen3 Self→AgentCore Reasoning)
 

@@ -3,9 +3,9 @@ title: Knowledge Feature Store Expansion
 description: 3-plane design integrating ontology and Knowledge Graph into traditional Feature Store to reduce hallucinations, enable provenance tracking, and enhance domain entity utilization
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-13
   author: devfloor9
-reading_time: 27
+reading_time: 29
 tags:
   - feature-store
   - knowledge-graph
@@ -215,22 +215,26 @@ If a store keeps only the latest values, reject this query mode or use a version
 
 ### Write Pipeline Example
 
-The following pseudocode defines the contract each storage adapter must implement. Within each backend transaction, combine event-version checks, mutation, and deduplication markers. A committed Kafka offset alone does not establish completion in all three stores.
+The following pseudocode defines the contract each storage adapter must implement. Within each backend transaction, combine event-version checks, mutation, and deduplication markers. Treat `(tenant, source, entity_id, source_version)` as the uniqueness key for published state, and bind each event's identity to an immutable envelope digest over `(event_id, tenant, source, entity_id, source_version, schema_version, operation, payload)`. An exact retry (same digest) may reuse the stored result; a conflicting envelope that reuses an already-applied version must be quarantined rather than overwriting history or looping ack-pending. A committed Kafka offset alone does not establish completion in all three stores.
 
 ```text
 event = {tenant, source, entity_id, event_id, source_version,
          schema_version, event_time, ingestion_time, operation, payload}
 validate_schema_and_authority(event)
+envelope_digest = digest(tenant, source, entity_id, source_version,
+                         schema_version, operation, payload)
 for plane in required_planes(event):
   begin plane transaction or equivalent conditional write
-    marker = read marker for (tenant, source, event_id)
+    marker = read marker for (tenant, source, entity_id, source_version)
     if marker exists:
-      verify the stored payload digest matches this event
-      version_to_ack = marker.version
+      if marker.envelope_digest != envelope_digest:
+        quarantine as version-identity conflict; stop (do not loop ack-pending)
+      version_to_ack = marker.version        # exact retry: reuse stored result
     else:
-      if source_version is older: reject stale mutation
+      if source_version is older than the applied version: reject stale mutation
+      if source_version equals the applied version: quarantine as equal-version conflict
       apply parameterized upsert or versioned tombstone
-      persist event_id/source_version, payload digest and provenance with mutation
+      persist (entity_id, source_version), envelope_digest and provenance with mutation
       version_to_ack = source_version
   commit plane write
   wait for version_to_ack to be visible to that plane's read path
@@ -239,7 +243,7 @@ for plane in required_planes(event):
 if every required plane acknowledges this exact generation:
   conditionally publish its manifest without replacing a newer generation
 commit/advance source progress only under the durable replay contract
-on failure: retry idempotently; quarantine poison events; reconcile gaps
+on failure: retry idempotently; quarantine poison and conflicting events; reconcile gaps
 ```
 
 Graph adapters use bound parameters and unique entity/edge keys. Vector adapters implement upsert/delete without duplicate document versions. Replay after partial failure must preserve completed planes. Propagate deletion tombstones across every plane and prevent old retries from resurrecting data. Do not directly compare version numbers from different sources; apply an explicit conflict policy.
@@ -249,6 +253,8 @@ Run these fixtures for synthetic tenant test-a and entity customer-001. Each row
 | Fixture | Input/failure sequence | Expected result |
 |---|---|---|
 | Duplicate | v1, redelivery of v1 with the same event_id | No duplicate entity/edge/document; one v1 publication |
+| Equal-version conflict | v1 Premium, then a different event with the same source_version but VIP payload | Reject/quarantine the second as an equal-version conflict; published v1 Premium is unchanged |
+| Conflicting envelope on retry | v1, then a redelivery reusing v1's marker key with a different envelope digest | Quarantine as a version-identity conflict; no overwrite, no ack-pending loop |
 | Out of order | v2 followed by v1 | Retain v2; no regression to v1 |
 | Partial failure | Publish v1, fail the vector writer for v2 | Keep v1 published; no mixed-v2 read; publish v2 after successful replay |
 | Crash before acknowledgment | Persist v2 mutation and marker, then stop the process | Replay reuses the marker, rechecks visibility, records the acknowledgment, and continues through remaining planes |

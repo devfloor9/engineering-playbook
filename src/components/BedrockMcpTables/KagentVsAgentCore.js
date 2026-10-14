@@ -10,21 +10,21 @@ const KagentVsAgentCore = () => {
     kagent: isKo ? 'EKS Pod' : 'EKS Pod',
     agentcore: isKo ? 'AWS 관리형 런타임' : 'AWS Managed Runtime'
   }, {
-    item: isKo ? '모델 선택' : 'Model Selection',
-    kagent: isKo ? '자유 (vLLM, 외부 API)' : 'Flexible (vLLM, external API)',
-    agentcore: isKo ? 'Bedrock 모델' : 'Bedrock Models'
+    item: isKo ? '모델 엔드포인트' : 'Model Endpoint',
+    kagent: isKo ? '자유 선택 (vLLM 자체 호스팅, 외부 API 등)' : 'Your choice (self-hosted vLLM, external APIs, etc.)',
+    agentcore: isKo ? '모든 모델 공급자 호출 가능 (Bedrock 포함)' : 'Any model provider, including Bedrock'
   }, {
     item: isKo ? '도구 프로토콜' : 'Tool Protocol',
-    kagent: isKo ? '커스텀 CRD' : 'Custom CRD',
-    agentcore: isKo ? 'MCP 표준' : 'MCP Standard'
+    kagent: isKo ? 'MCP 및 커스텀 CRD 구성' : 'MCP plus custom CRD configuration',
+    agentcore: isKo ? 'MCP (Gateway 경유)' : 'MCP (via Gateway)'
   }, {
     item: isKo ? '스케일링' : 'Scaling',
     kagent: 'Karpenter/HPA',
-    agentcore: isKo ? '자동 스케일링' : 'Auto-scaling'
+    agentcore: isKo ? '서버리스 자동 스케일링' : 'Serverless auto-scaling'
   }, {
-    item: isKo ? '비용' : 'Cost',
-    kagent: isKo ? 'GPU 인프라 비용' : 'GPU Infrastructure Cost',
-    agentcore: isKo ? 'API 호출 비용' : 'API Call Cost'
+    item: isKo ? '비용 구성' : 'Cost Basis',
+    kagent: isKo ? '클러스터 컴퓨트(GPU 포함) 비용 + 운영' : 'Cluster compute (incl. GPU) + operations',
+    agentcore: isKo ? '런타임 컴퓨트 + 모델/API 호출 비용' : 'Runtime compute + model/API call charges'
   }, {
     item: isKo ? '적합한 경우' : 'Best For',
     kagent: isKo ? 'GPU 보유, 커스텀 모델' : 'GPU availability, custom models',
