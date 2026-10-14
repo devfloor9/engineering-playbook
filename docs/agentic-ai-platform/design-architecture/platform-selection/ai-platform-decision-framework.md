@@ -49,6 +49,8 @@ Before reading this document, refer to the following:
 
 This document groups AWS AI services into 4 tiers by role. This is this guide's classification, not an AWS-defined product hierarchy; each tier represents a complementary responsibility (model access, development environment, operations, infrastructure). The tiers are not maturity stages you must pass through in order — they are building blocks you combine based on requirements. For example, you can use Tier 1 Bedrock inference together with Tier 4 EKS self-hosting without any maturity progression.
 
+**Figure 1. AWS AI service landscape grouped into four tiers by role**
+
 ```mermaid
 graph TB
     subgraph Tier1["Tier 1: Consumption — Model Access"]
@@ -100,6 +102,8 @@ graph TB
 
 ### Key Differentiators
 
+**Table 1. Key differentiators of SageMaker Unified Studio**
+
 | Feature | Description | Improvement vs Previous |
 |---------|-------------|------------------------|
 | **Unified IDE** | JupyterLab + SQL Editor + No-code Interface | Data+ML integration vs SageMaker Studio Classic |
@@ -109,6 +113,8 @@ graph TB
 | **Unified Compute** | Manage training, notebooks, pipelines in single environment | Prevent resource fragmentation |
 
 ### Positioning: When to Choose?
+
+**Figure 2. Decision flow for whether to choose SageMaker Unified Studio**
 
 ```mermaid
 flowchart LR
@@ -142,6 +148,8 @@ For detailed cost comparison between self-hosting and Bedrock (break-even points
 ## Decision Flowchart
 
 A decision flow you can use in customer meetings. Find the optimal approach by answering key questions.
+
+**Figure 3. Decision flowchart for selecting a platform approach**
 
 ```mermaid
 flowchart TD
@@ -197,6 +205,8 @@ Actual customer situations are complex, and hybrid is one design you choose base
 
 The flowchart above used workload, volume, and capability as criteria, but in regulated industries **data sovereignty** acts as a hard constraint that takes precedence over all other criteria. Sovereignty requirements appear on a Public → In-country → Hybrid → Air-gapped spectrum; the stronger the requirement, the lower the managed-service dependency and the larger the share of self-hosting/on-premises.
 
+**Table 2. Inference location and recommended approach by sovereignty level**
+
 | Sovereignty Level | Inference Location | Recommended Approach |
 |-------------------|--------------------|--------------------|
 | **Public** | No region constraint | AWS Native |
@@ -219,6 +229,8 @@ Starting points and expansion paths vary based on the customer's current AI/ML m
 The durations below are initial planning inputs for stage-specific work. Define milestones such as API integration, pilot operation, and production acceptance before estimating a schedule from team readiness.
 
 <MaturityPathTable />
+
+**Figure 4. Activities by level in the AI platform maturity journey**
 
 ```mermaid
 journey
@@ -252,6 +264,8 @@ The following four examples separate service responsibilities. Validate fit agai
 
 ### Pattern 1: Bedrock + EKS SLM (Cascade Routing)
 
+**Figure 5. Pattern 1 — Cascade Routing between Bedrock and an EKS SLM**
+
 ```mermaid
 flowchart LR
     Client --> GW["kgateway"]
@@ -273,6 +287,8 @@ flowchart LR
 
 ### Pattern 2: SageMaker Training + EKS Serving
 
+**Figure 6. Pattern 2 — Split of SageMaker training and EKS serving**
+
 ```mermaid
 flowchart LR
     Dev["SageMaker<br/>Unified Studio"] -->|"Training complete"| S3["S3<br/>Model artifacts"]
@@ -292,6 +308,8 @@ flowchart LR
 ---
 
 ### Pattern 3: AgentCore + Self-Hosted Models
+
+**Figure 7. Pattern 3 — AgentCore runtime combined with self-hosted models**
 
 ```mermaid
 flowchart LR
@@ -328,6 +346,8 @@ This pattern is chosen by large enterprises to meet different requirements acros
 ## Cost Simulation Summary
 
 Monthly request count alone does not determine the best option or its cost. Collect the following inputs for the same task set and service requirements.
+
+**Table 3. Inputs to collect and conditions to verify per option for cost comparison**
 
 | Option | Inputs to collect | Conditions to verify |
 |--------|-------------------|----------------------|

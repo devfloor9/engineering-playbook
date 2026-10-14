@@ -71,6 +71,8 @@ AWS Native, SageMaker Unified Studio, EKS 오픈 아키텍처, 하이브리드�
 
 EKS 클러스터 구성은 **두 개의 독립된 레이어**로 나뉩니다.
 
+**그림 1. EKS 컨트롤 플레인과 데이터 플레인 구성 옵션**
+
 ```mermaid
 flowchart TD
     subgraph ControlPlane["컨트롤 플레인 (API Server, etcd, Scheduler)"]
@@ -103,6 +105,8 @@ flowchart TD
 
 #### PCP 티어 스펙 (K8s v1.30–v1.33 기준) {#pcp-티어-스펙}
 
+**표 1. PCP 티어별 용량 상한과 추가 비용**
+
 | Tier | API 동시성 (seats) | Pod 스케줄링 | etcd DB | SLA | 티어 추가 비용 |
 |------|:-----------------:|:----------:|:------:|:---:|-----:|
 | **Standard** | 동적 (AWS 자동 조정) | 동적 | 8GB | 99.95% (5분 간격) | 티어 추가 비용 없음 |
@@ -120,6 +124,8 @@ PCP 티어는 **Kubernetes 컨트롤 플레인 메트릭**을 기반으로 선�
 :::
 
 **주요 모니터링 메트릭** (아래 임계값은 각 티어 상한에 여유(headroom)를 둔 **예시 운영 정책**이며, 워크로드로 검증한 뒤 조정해야 합니다):
+
+**표 2. PCP 티어 선택을 위한 주요 모니터링 메트릭과 예시 판단 기준**
 
 | 메트릭 | Prometheus 쿼리 | 예시 판단 기준 |
 |--------|----------------|----------|
@@ -157,6 +163,8 @@ Karpenter v1.10+ (GA since v1.0, 2024-08), NodePool 설정, GPU 인스턴스 비
 ### EKS Auto Mode: 자동화 범위
 
 **EKS Auto Mode**는 Karpenter(컴퓨트 오토스케일링), Pod·서비스 네트워킹, 로컬 DNS, 블록 스토리지, GPU 지원 등을 **별도 설치하는 애드온이 아니라 핵심(core) 구성 요소로 내장**하여 관리합니다. 아래 다이어그램의 각 항목은 사용자가 개별 애드온으로 설치·업그레이드하는 대상이 아니라 Auto Mode가 노드 수준에서 제공하는 기능입니다.
+
+**그림 2. EKS Auto Mode가 내장하는 핵심 기능**
 
 ```mermaid
 flowchart TD
@@ -240,6 +248,8 @@ EKS Auto Mode 위에서 Agentic AI 플랫폼의 모든 주요 컴포넌트를 �
 
 EKS에서 Agent 워크플로우는 다음으로 구성됩니다:
 
+**그림 3. EKS 기반 Agent 워크플로우 구성 요소**
+
 ```mermaid
 flowchart LR
     subgraph "Agent Ready Apps"
@@ -312,6 +322,8 @@ GPU Pod 보안 정책, Network Policy, IAM, MIG 격리 및 GPU 트러블슈팅 �
 
 아래 다이어그램에서 **"관리형 EKS Capability"** 블록(ACK·kro·Argo CD)만 AWS 공식 EKS Capability이며, AI/Data/App 그룹은 이 아키텍처가 워크로드를 설명하기 위해 구성한 자체 분류로 공식 Capability가 아닙니다.
 
+**그림 4. EKS Capability와 워크로드 그룹 구성**
+
 ```mermaid
 graph TB
     subgraph "이 아키텍처의 구성"
@@ -361,6 +373,8 @@ graph TB
 ### ACK (AWS Controllers for Kubernetes)
 
 **ACK**는 Kubernetes Custom Resource를 통해 AWS 서비스를 직접 프로비저닝하고 관리합니다. **EKS Capability로 완전관리형으로 활성화**하거나 Helm 차트로 직접 설치할 수 있습니다.
+
+**그림 5. ACK 컨트롤러의 AWS 리소스 프로비저닝 흐름**
 
 ```mermaid
 graph LR
@@ -412,6 +426,8 @@ spec:
 
 **KRO**는 여러 Kubernetes 리소스와 AWS 리소스를 **하나의 추상화된 단위로 조합**하여 복잡한 인프라를 단순하게 배포합니다.
 
+**그림 6. KRO ResourceGroup으로 묶는 리소스 구성**
+
 ```mermaid
 graph TB
     subgraph "KRO ResourceGroup"
@@ -461,6 +477,8 @@ spec:
 
 **Argo Workflows**와 **Argo CD**를 결합하면 AI 모델의 학습, 평가, 배포까지 **전체 MLOps 파이프라인을 GitOps 방식으로 자동화**할 수 있습니다.
 
+**그림 7. Argo 기반 GitOps ML 파이프라인**
+
 ```mermaid
 graph LR
     subgraph "GitOps Pipeline"
@@ -489,6 +507,8 @@ graph LR
 ```
 
 ### ACK + KRO + ArgoCD 통합 아키텍처
+
+**그림 8. ACK·KRO·Argo CD 통합 배포 아키텍처**
 
 ```mermaid
 graph TB
@@ -547,6 +567,8 @@ graph TB
 
 ### 점진적 여정: AWS Native → Auto Mode → EKS Capability
 
+**그림 9. AWS Native에서 EKS Capability로 이어지는 점진적 확장 경로**
+
 ```mermaid
 graph LR
     START["AWS Native<br/>(Bedrock + AgentCore)"]
@@ -575,6 +597,8 @@ graph LR
 ### EKS Auto Mode GPU 제약사항과 하이브리드 전략
 
 EKS Auto Mode는 일반 워크로드와 기본 GPU 추론에 최적이지만, GPU 고급 기능에는 제약이 있습니다.
+
+**표 3. 워크로드 유형별 EKS Auto Mode 적합성**
 
 | 워크로드 유형 | Auto Mode 적합성 | 이유 |
 |---|---|---|
@@ -677,6 +701,8 @@ spec:
 </Tabs>
 
 ### 규모 확장 시 참고 문서
+
+**표 4. 규모 확장 시 참고할 영역별 문서**
 
 | 영역 | 문서 | 내용 |
 |------|------|------|

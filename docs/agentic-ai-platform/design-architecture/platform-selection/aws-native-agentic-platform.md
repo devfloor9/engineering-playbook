@@ -27,6 +27,8 @@ AWS managed services can reduce the infrastructure your team operates directly. 
 
 The AWS Agentic AI stack consists of three pillars.
 
+**Table 1. The three pillars of the AWS Agentic AI stack**
+
 | Pillar | Service | Role |
 |--------|---------|------|
 | **Foundation** | Amazon Bedrock | Model access, RAG, guardrails, prompt caching |
@@ -40,6 +42,8 @@ This document covers the **Agent development optimization approach** provided by
 ### Challenge Resolution Mapping
 
 How the 5 key challenges covered in [Technical Challenges](../foundations/agentic-ai-challenges.md) are addressed with the AWS Native approach:
+
+**Table 2. AWS Native solutions for the five challenges**
 
 | Challenge | AWS Native Solution |
 |-----------|-------------------|
@@ -58,6 +62,8 @@ Separate the operations a managed service handles from your team's responsibilit
 ## AWS Agentic AI Service Architecture
 
 ### 3-Pillar Architecture
+
+**Figure 1. AWS Agentic AI 3-Pillar architecture**
 
 ```mermaid
 graph TB
@@ -102,6 +108,8 @@ graph TB
 Amazon Bedrock provides the **foundational infrastructure** for the Agentic AI Platform. It offers single API access to over 100 foundation models, with managed support for RAG, guardrails, and prompt caching.
 
 ### Key Features
+
+**Table 3. Amazon Bedrock key features with scope and prerequisites**
 
 | Feature | Description | Scope and prerequisites |
 |---------|-------------|-----------|
@@ -187,6 +195,8 @@ agent = Agent(
 
 ### Strands SDK Key Characteristics
 
+**Table 4. Key characteristics of the Strands Agents SDK**
+
 | Characteristic | Description |
 |---------------|-------------|
 | **Apache 2.0** | Free for commercial use, forkable |
@@ -207,6 +217,8 @@ AgentCore is a platform that provides **capabilities for production Agent operat
 #### 1. Runtime — Serverless Agent Deployment
 
 AgentCore Runtime provides an isolated execution environment. On the default serverless compute type it runs each session in a **Firecracker MicroVM**; it can also run on the **Instances** compute type (managed EC2 capacity provisioned in your account via a capacity provider), which has a different isolation and billing model.
+
+**Table 5. AgentCore Runtime specifications by compute type**
 
 | Item | Specification |
 |------|--------------|
@@ -229,6 +241,8 @@ agentcore deploy --target default -y
 
 A managed memory service that enables Agents to remember conversation context and user preferences.
 
+**Table 6. AgentCore Memory types and usage examples**
+
 | Memory Type | Description | Usage Example |
 |------------|-------------|---------------|
 | **Short-term Memory** | In-session conversation history | Referencing previous questions in multi-turn conversations |
@@ -244,6 +258,8 @@ AgentCore Gateway **automatically converts REST APIs to MCP protocol** and uses 
 Even with 300 tools registered, the Gateway analyzes the user request and delivers only the 4 relevant tools to the Agent. This saves LLM context window and improves tool selection accuracy.
 :::
 
+**Table 7. Key features of AgentCore Gateway**
+
 | Feature | Description |
 |---------|-------------|
 | **REST → MCP Conversion** | Automatically wraps existing REST APIs as MCP tools |
@@ -252,6 +268,8 @@ Even with 300 tools registered, the Gateway analyzes the user request and delive
 | **Auth Propagation** | Safely propagates user authentication to tools |
 
 #### 4. Identity — Delegated Authentication
+
+**Table 8. Key features of AgentCore Identity**
 
 | Feature | Description |
 |---------|-------------|
@@ -279,6 +297,8 @@ Requirement: "Mask PII before calling external APIs"
 → Verify the redaction with tests, including paths that do not pass through the Gateway
 ```
 
+**Table 9. Characteristics of AgentCore Policy**
+
 | Characteristic | Description |
 |---------------|-------------|
 | **Natural Language Input** | Non-developers can draft authorization rules |
@@ -288,6 +308,8 @@ Requirement: "Mask PII before calling external APIs"
 
 #### 6. Observability — Integrated Monitoring
 
+**Table 10. Key features of AgentCore Observability**
+
 | Feature | Description |
 |---------|-------------|
 | **CloudWatch Integration** | AgentCore emits default service metrics to CloudWatch; full agent/tool/token traces require enabling CloudWatch Transaction Search and emitting spans (for example via the ADOT instrumentation). Alarms are configured per metric. |
@@ -296,6 +318,8 @@ Requirement: "Mask PII before calling external APIs"
 | **Cost Dashboard** | Per-model, per-Agent, per-session cost views built from the emitted telemetry |
 
 #### 7. Evaluation — Continuous Quality Monitoring
+
+**Table 11. Key features of AgentCore Evaluation**
 
 | Feature | Description |
 |---------|-------------|
@@ -310,6 +334,8 @@ Requirement: "Mask PII before calling external APIs"
 ## Architecture Patterns
 
 ### Build → Deploy → Operate Workflow
+
+**Figure 2. Build → Deploy → Operate workflow**
 
 ```mermaid
 graph LR
@@ -340,6 +366,8 @@ graph LR
 
 Suitable for Agents performing single tasks such as FAQ, billing lookup, and status checks.
 
+**Figure 3. Simple Agent pattern composition**
+
 ```mermaid
 graph LR
     User["User"] --> Runtime["AgentCore Runtime"]
@@ -356,6 +384,8 @@ graph LR
 ### Complex Agent Pattern (Multi-step)
 
 Suitable for Agents that call multiple tools sequentially/in parallel and branch based on intermediate results.
+
+**Figure 4. Complex Agent pattern (multi-step) composition**
 
 ```mermaid
 graph TD
@@ -426,6 +456,8 @@ result = graph("Write a Q1 2026 market trends report")  # returns a GraphResult
 The practical deployment methods for the AWS Native Agentic AI Platform consist of three approaches:
 
 ### Deployment Methods Overview
+
+**Table 12. Comparison of AWS Native Agentic AI deployment methods**
 
 | Approach | Tool | Suitable Scenario |
 |----------|------|------------------|
@@ -512,6 +544,8 @@ The results below are only cited where a public primary source is available. Fig
 
 ### Yanolja: AIOps Automation
 
+**Table 13. Summary of the Yanolja AIOps automation case**
+
 | Item | Details |
 |------|---------|
 | **Challenge** | Automatically analyze and resolve infrastructure operations issues |
@@ -521,6 +555,8 @@ The results below are only cited where a public primary source is available. Fig
 | **Reference** | [AWS Technology Blog](https://aws.amazon.com/ko/blogs/tech/yanolja-aiops-strands-agent-on-agentcore/) |
 
 ### Amazon Devices: Manufacturing Agent (illustrative) {#amazon-devices-manufacturing-agent}
+
+**Table 14. Summary of the Amazon Devices manufacturing Agent case (illustrative)**
 
 | Item | Details |
 |------|---------|
@@ -537,6 +573,8 @@ The cost of an AgentCore-based platform follows a **pay-as-you-go** serverless m
 
 ### Billing Model
 
+**Table 15. Billing model by service for the AgentCore platform**
+
 | Service | Billing Basis | Characteristics |
 |---------|--------------|----------------|
 | **Bedrock Inference** | Input/output token count | On-demand or provisioned throughput options |
@@ -546,6 +584,8 @@ The cost of an AgentCore-based platform follows a **pay-as-you-go** serverless m
 | **Prompt Caching** | Cache reads are discounted; cache writes may be charged | For Claude on Bedrock the cache-read discount reaches **up to ~90%** on cached input tokens; the exact rate depends on the model and only applies to cache hits, not to every request |
 
 ### Operational Cost Savings
+
+**Table 16. Operational cost savings points of the AWS Native approach**
 
 | Area | Savings Factor |
 |------|---------------|
@@ -672,6 +712,8 @@ EKS-based self-hosted Agents and Bedrock AgentCore can be used together:
 AgentCore supports inter-Agent collaboration via MCP/A2A:
 
 <MultiAgentPatterns />
+
+**Figure 5. Master and specialist agent orchestration composition**
 
 ```mermaid
 flowchart TB

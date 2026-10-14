@@ -49,6 +49,8 @@ AI 플랫폼 구축 경로는 크게 3가지로 나뉩니다:
 
 이 문서는 AWS AI 서비스를 역할에 따라 4개의 Tier로 묶어 설명합니다. 이는 AWS가 규정한 제품 계층이 아니라 이 가이드의 분류이며, 각 Tier는 보완적 책임(모델 액세스·개발 환경·운영·인프라)을 나타냅니다. Tier는 반드시 순서대로 거쳐야 하는 성숙도 단계가 아니라 요건에 따라 조합하는 구성 요소로, 예를 들어 Tier 1 Bedrock 추론과 Tier 4 EKS 자체 호스팅을 성숙도 진행 없이 함께 쓸 수 있습니다.
 
+**그림 1. 역할별 4개 Tier로 묶은 AWS AI 서비스 랜드스케이프**
+
 ```mermaid
 graph TB
     subgraph Tier1["Tier 1: 소비 — 모델 액세스"]
@@ -100,6 +102,8 @@ graph TB
 
 ### 핵심 차별점
 
+**표 1. SageMaker Unified Studio의 핵심 차별점**
+
 | 기능 | 설명 | 기존 대비 개선 |
 |------|------|--------------|
 | **통합 IDE** | JupyterLab + SQL 편집기 + 노코드 인터페이스 | SageMaker Studio Classic 대비 데이터+ML 통합 |
@@ -109,6 +113,8 @@ graph TB
 | **통합 컴퓨팅** | 학습, 노트북, 파이프라인을 단일 환경에서 관리 | 리소스 파편화 방지 |
 
 ### 포지셔닝: 언제 선택하는가?
+
+**그림 2. SageMaker Unified Studio 선택 여부 판단 흐름**
 
 ```mermaid
 flowchart LR
@@ -142,6 +148,8 @@ SageMaker Unified Studio는 **개발 환경(Tier 2)**입니다. Bedrock(추론)�
 ## 의사결정 플로우차트
 
 고객 미팅에서 활용할 수 있는 의사결정 흐름입니다. 핵심 질문에 답하면서 최적 접근을 찾아갑니다.
+
+**그림 3. 플랫폼 접근 선택을 위한 의사결정 플로우차트**
 
 ```mermaid
 flowchart TD
@@ -197,6 +205,8 @@ flowchart TD
 
 앞의 플로우차트는 워크로드·볼륨·역량을 기준으로 했지만, 규제 산업에서는 **데이터 주권(Sovereignty)**이 다른 모든 기준에 우선하는 하드 제약으로 작용합니다. 주권 요구는 Public → In-country → Hybrid → Air-gapped 스펙트럼으로 나타나며, 요구 강도가 높을수록 매니지드 의존도는 낮아지고 자체 호스팅·온프레미스 비중이 커집니다.
 
+**표 2. 주권 수준별 추론 위치와 권장 접근**
+
 | 주권 수준 | 추론 위치 | 권장 접근 |
 |----------|----------|----------|
 | **Public** | 리전 제약 없음 | AWS Native |
@@ -219,6 +229,8 @@ SCP 리전 강제 정책, Bedrock Geographic cross-Region inference, EKS Hybrid 
 아래 기간은 단계별 작업 범위를 논의하기 위한 초기 계획값입니다. API 연결, 시범 운영, 운영 승인처럼 완료 기준을 먼저 정하고 팀의 준비 상태에 따라 다시 산정합니다.
 
 <MaturityPathTable />
+
+**그림 4. AI 플랫폼 성숙도 여정의 레벨별 활동**
 
 ```mermaid
 journey
@@ -252,6 +264,8 @@ journey
 
 ### 패턴 1: Bedrock + EKS SLM (Cascade Routing)
 
+**그림 5. 패턴 1 — Bedrock과 EKS SLM의 Cascade Routing 구성**
+
 ```mermaid
 flowchart LR
     Client --> GW["kgateway"]
@@ -273,6 +287,8 @@ flowchart LR
 
 ### 패턴 2: SageMaker 학습 + EKS 서빙
 
+**그림 6. 패턴 2 — SageMaker 학습과 EKS 서빙 분리 구성**
+
 ```mermaid
 flowchart LR
     Dev["SageMaker<br/>Unified Studio"] -->|"학습 완료"| S3["S3<br/>모델 아티팩트"]
@@ -292,6 +308,8 @@ flowchart LR
 ---
 
 ### 패턴 3: AgentCore + 자체 모델
+
+**그림 7. 패턴 3 — AgentCore 런타임과 자체 모델 조합**
 
 ```mermaid
 flowchart LR
@@ -328,6 +346,8 @@ flowchart LR
 ## 비용 시뮬레이션 요약
 
 월 요청량만으로 최적 옵션이나 비용을 결정할 수 없습니다. 다음 입력을 같은 작업 집합과 서비스 수준에서 수집해 비교합니다.
+
+**표 3. 비용 비교를 위한 옵션별 수집 입력과 확인 조건**
 
 | 비교 대상 | 수집할 입력 | 확인할 조건 |
 |-----------|-------------|-------------|
