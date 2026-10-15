@@ -3,9 +3,9 @@ title: AIDLC Adaptive Execution
 description: AIDLC 공식 Adaptive Workflows — 조건부 stage 실행 decision tree, Inception 7단계와 Construction per-unit 루프 해설
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 14
 tags:
   - aidlc
   - adaptive-execution
@@ -57,14 +57,16 @@ graph TB
 ```
 
 **핵심 메시지:**
-- **Workspace Detection** 과 **Workflow Planning** 은 **필수** (항상 실행)
-- **Reverse Engineering · User Stories · Application Design** 은 **조건부** (프로젝트 특성에 따라 실행/스킵)
-- **Requirements Analysis** 와 **Units Generation** 은 거의 항상 실행되나 **깊이(Minimal/Standard/Comprehensive)** 가 조정됨
 
-:::info AWS Labs 공식 설명
-> "AIDLC is adaptive rather than prescriptive. Each stage's execution is conditional on the workspace state and user needs, allowing teams to skip stages that aren't relevant to their specific project."
->
-> — [AWS Labs AIDLC Workflows, v0.1.7](https://github.com/awslabs/aidlc-workflows)
+v0.1.7 의 `common/process-overview.md` 는 항상 실행하는 stage 와 조건부 stage 를 다음과 같이 구분합니다.
+
+- **항상 실행(ALWAYS)**: Workspace Detection, Requirements Analysis(깊이 조정), Workflow Planning, Code Generation(Unit 별), Build and Test
+- **조건부(CONDITIONAL)**: Reverse Engineering, User Stories, Application Design, Units Generation, 그리고 Unit 별 설계 stage 인 Functional Design · NFR Requirements · NFR Design · Infrastructure Design
+
+Requirements Analysis 는 조건부가 아니라 항상 실행하되 깊이(Minimal/Standard/Comprehensive)만 조정합니다. Units Generation 은 조건부 stage 입니다. 아래 2절의 Decision Tree 는 Inception 단계만 다루므로, Code Generation·Build and Test 는 3절 Construction 단계에서 설명합니다.
+
+:::info 출처
+위 구분은 AWS Labs AIDLC Workflows v0.1.7 의 [`common/process-overview.md`](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common/process-overview.md) 에 명시된 stage 분류를 그대로 옮긴 것입니다. 해당 문서는 "stage 는 가치가 있을 때만 실행되며 각 phase 는 독립적으로 평가된다"는 원칙을 제시합니다.
 :::
 
 ---
@@ -75,28 +77,26 @@ graph TB
 
 **목적**: 현재 워크스페이스가 **Greenfield**(신규) 인지 **Brownfield**(기존 코드베이스 존재) 인지 판별.
 
-**그림 2. Workspace Detection 의 Greenfield/Brownfield/Hybrid 판별 흐름**
+**그림 2. Workspace Detection 의 Greenfield/Brownfield 판별 흐름**
 
 ```mermaid
 flowchart LR
-    WD[Workspace Detection] --> CHECK1{코드베이스<br/>존재?}
-    CHECK1 -->|Empty or<br/>README only| GREEN[Greenfield]
-    CHECK1 -->|Source code<br/>found| CHECK2{Git history?}
-    CHECK2 -->|Yes| BROWN[Brownfield]
-    CHECK2 -->|No| HYBRID[Hybrid<br/>외부 코드 임포트]
+    WD[Workspace Detection] --> CHECK1{기존 코드<br/>존재?}
+    CHECK1 -->|Empty or<br/>README only| GREEN[Greenfield<br/>brownfield=false]
+    CHECK1 -->|Source code<br/>found| BROWN[Brownfield<br/>brownfield=true]
 
     style GREEN fill:#2ecc71,color:#fff
     style BROWN fill:#ff9900,color:#fff
-    style HYBRID fill:#9b59b6,color:#fff
 ```
 
-**실행 조건**: 항상 실행 (모든 AIDLC 세션의 시작점)
+**실행 조건**: 항상 실행 (모든 AIDLC 세션의 시작점). v0.1.7 의 `inception/workspace-detection.md` 는 이 단계를 "정보 제공 전용이며 사용자 승인 없이 자동 진행"으로 규정합니다. 판별 결과는 Greenfield 와 Brownfield 두 가지뿐이며 `brownfield` 불리언 플래그로 기록합니다. "Hybrid" 유형이나 Git 이력 기반 분기는 v0.1.7 규격에 없습니다.
 
-**산출물**: `.aidlc/workspace.md`
+**산출물**: `aidlc-docs/aidlc-state.md`
 ```markdown
-## Workspace Detection Result
+# AI-DLC State Tracking
 
-**Type**: Brownfield
+## Project Information
+**Project Type**: Brownfield
 **Primary Language**: TypeScript (72%), Go (18%), YAML (10%)
 **Framework**: Next.js 14 (detected from package.json)
 **Infrastructure**: EKS 1.35 (detected from k8s/ directory)
@@ -109,7 +109,7 @@ flowchart LR
 **목적**: 기존 코드베이스에서 **암묵적 요구사항·도메인 모델·아키텍처 제약**을 역공학으로 추출.
 
 **실행 조건**:
-- Workspace Detection 이 **Brownfield** 또는 **Hybrid** 인 경우
+- Workspace Detection 이 **Brownfield** 인 경우
 - 사용자가 "기존 시스템 확장" 을 명시한 경우
 
 **스킵 조건**:
@@ -164,8 +164,8 @@ flowchart LR
     style COMP fill:#e74c3c,color:#fff
 ```
 
-**스킵 조건**:
-- User Request 가 이미 FR/NFR 구조로 제공된 경우 (Content Validation 만 실행)
+**깊이 조정 조건**:
+- User Request 가 이미 FR/NFR 구조로 제공된 경우에도 stage 자체는 생략하지 않습니다. v0.1.7 의 `inception/requirements-analysis.md` 는 이 stage 를 "항상 실행하되 깊이만 조정"으로 규정하며, 완전성 분석(Step 5)·답변 대기 게이트(Step 6)·사용자 승인(Step 9)은 그대로 수행합니다. 이 경우 초안 작성 깊이가 Minimal 로 낮아질 뿐, 검증과 승인은 생략되지 않습니다.
 
 ### 2.4 Stage 4: User Stories (조건부)
 
@@ -176,10 +176,12 @@ flowchart LR
 - **협업 컨텍스트** 가 중요한 경우 (여러 팀·역할이 관여)
 - **비즈니스 맥락** 을 명확히 해야 하는 경우 (이해관계자 설명 필요)
 
-**스킵 조건**:
+**스킵 조건** (단순한 경우에 한함):
 - 순수 인프라·백엔드 변경 (사용자가 직접 인지하지 않음)
 - DevOps 자동화 (CI/CD 파이프라인 개선 등)
 - 데이터 마이그레이션
+
+위 항목은 스킵을 자동으로 보장하지 않습니다. v0.1.7 의 `inception/user-stories.md` 는 스킵 전에 사용자·운영자 영향 평가(Step 1 "Validate User Stories Need", 필수)를 먼저 수행하도록 규정하며, "확신이 서지 않으면 User Stories 를 포함하라"를 기본 규칙으로 둡니다. 인프라·DevOps 변경이라도 내부 사용자나 운영 워크플로에 영향이 있으면 스킵하지 않습니다.
 
 **그림 5. User Stories 생성 여부 판단과 스토리 작성 흐름**
 
@@ -280,12 +282,14 @@ flowchart LR
     UNITS --> U2[Unit 2:<br/>KakaoPay Integration]
     UNITS --> U3[Unit 3:<br/>TossPayments Integration]
 
-    U1 -.depends on.-> U2
-    U1 -.depends on.-> U3
+    U2 -.depends on.-> U1
+    U3 -.depends on.-> U1
 
     style UG fill:#326ce5,color:#fff
     style UNITS fill:#2ecc71,color:#fff
 ```
+
+점선 화살표 `A -.depends on.-> B` 는 "A 가 B 에 의존한다"를 뜻합니다. KakaoPay·TossPayments 통합(U2·U3)이 공통 어댑터 인터페이스(U1)에 의존하므로, 인터페이스를 먼저 완성한 뒤 두 통합을 병렬로 구현합니다.
 
 **산출물**: `.aidlc/units/` 디렉터리
 ```
@@ -300,23 +304,25 @@ flowchart LR
 
 ## 3. Construction Phase: Per-Unit Loop
 
-각 Unit of Work 는 **5 sub-stage 를 순차 실행**하는 내부 루프를 가집니다.
+각 Unit of Work 는 v0.1.7 의 `common/process-overview.md` 가 정의하는 Construction 단계를 거칩니다. Construction 은 Unit 별 설계 stage 4개(Functional Design, NFR Requirements, NFR Design, Infrastructure Design)와 Code Generation, Build and Test 로 구성됩니다. 설계 stage 4개는 **조건부(CONDITIONAL)**로 Unit 복잡도에 따라 실행·생략되며, Code Generation 과 Build and Test 만 **항상 실행(ALWAYS)**됩니다.
 
-**그림 8. Construction Phase 의 Unit별 5개 sub-stage 실행 루프**
+**그림 8. Construction Phase 의 Unit별 stage 실행 흐름 (설계 4단계는 조건부, 생성·빌드는 필수)**
 
 ```mermaid
 flowchart LR
     UNIT[Unit of Work] --> FD[Functional<br/>Design]
-    FD --> NFR[NFR<br/>Specification]
-    NFR --> INFRA[Infrastructure<br/>Design]
+    FD --> NFRA[NFR<br/>Requirements]
+    NFRA --> NFRD[NFR<br/>Design]
+    NFRD --> INFRA[Infrastructure<br/>Design]
     INFRA --> CG[Code<br/>Generation]
     CG --> BT[Build<br/>& Test]
     BT --> DONE([Unit<br/>Complete])
-    BT -.fail.-> CG
+    CG -.다음 Unit.-> FD
 
     style UNIT fill:#326ce5,color:#fff
     style DONE fill:#2ecc71,color:#fff
-    style BT fill:#e74c3c,color:#fff
+    style CG fill:#2ecc71,color:#fff
+    style BT fill:#2ecc71,color:#fff
 ```
 
 ### 3.1 Sub-stage 1: Functional Design
@@ -344,7 +350,7 @@ flowchart LR
 
 ### 3.2 Sub-stage 2: NFR Specification
 
-**목적**: 해당 Unit 의 **비기능 요구사항** 을 측정 가능한 형태로 정의.
+**목적**: 해당 Unit 의 **비기능 요구사항** 을 측정 가능한 형태로 정의. v0.1.7 규격에서는 이 작업이 NFR Requirements(요구사항 식별·기술 스택 선택)와 NFR Design(NFR 패턴·논리 컴포넌트 반영) 두 stage 로 나뉩니다.
 
 **산출물 예시:**
 ```markdown
@@ -403,18 +409,20 @@ resources:
 
 ## 4. Stage 별 실행 조건·스킵 조건 요약표
 
-**표 2. 7개 Stage별 필수 여부·실행 조건·스킵 조건·평균 소요**
+아래 "예시 소요" 열은 측정값이 아니라 계획 수립용 예시 범위입니다. 실제 소요는 프로젝트 규모·팀·도구에 따라 달라집니다.
 
-| Stage | 필수 여부 | 실행 조건 | 스킵 조건 | 평균 소요 |
+**표 2. 7개 Stage별 필수 여부·실행 조건·스킵 조건·예시 소요**
+
+| Stage | 필수 여부 | 실행 조건 | 스킵 조건 | 예시 소요 |
 |-------|----------|----------|----------|----------|
 | **Workspace Detection** | 필수 | 모든 세션 | - | 1-2분 |
 | **Reverse Engineering** | 조건부 | Brownfield | Greenfield | 30분-2시간 |
-| **Requirements Analysis** | 거의 필수 | 항상 (깊이 조정) | User Request 가 이미 FR/NFR 구조 | 10분-1일 |
-| **User Stories** | 조건부 | 사용자 임팩트·협업·비즈니스 맥락 | 순수 인프라·DevOps 변경 | 30분-3시간 |
+| **Requirements Analysis** | 필수 (깊이 조정) | 항상 (깊이 조정) | 생략 불가, 깊이만 조정 | 10분-1일 |
+| **User Stories** | 조건부 | 사용자 임팩트·협업·비즈니스 맥락 | 영향 평가 후 단순 변경에 한함 | 30분-3시간 |
 | **Workflow Planning** | 필수 | 모든 세션 | - | 15-30분 |
 | **Application Design** | 조건부 | 새 컴포넌트·서비스 계층 | 기존 서비스 내 변경 | 1시간-1일 |
 | **Units Generation** | 조건부 | Multi-file · Multi-service | 단일 원자 변경 | 15분-2시간 |
-| **Construction (per Unit)** | 필수 | 모든 Unit | - | Unit 당 1시간-1일 |
+| **Construction (per Unit)** | 조건부 설계 + 필수 생성·빌드 | 모든 Unit | - | Unit 당 1시간-1일 |
 
 ---
 
@@ -512,6 +520,8 @@ workspace_detection (5min, 레거시 복잡도 분석)
 ```
 
 ### 6.4 시나리오 D: DevOps 자동화 (CI/CD 개선)
+
+아래 흐름의 `[SKIP ...]` 는 자동 결정이 아니라 평가 결과입니다. Reverse Engineering 스킵은 기존 코드 검토로 역공학이 불필요함을 확인한 뒤, User Stories 스킵은 내부 사용자·운영자 영향 평가(2.4절 참조) 뒤, Application Design 스킵은 기존 파이프라인 구조를 재검토한 뒤 선택합니다.
 
 ```
 workspace_detection (1min)

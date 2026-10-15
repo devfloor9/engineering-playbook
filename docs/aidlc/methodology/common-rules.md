@@ -3,9 +3,9 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC official 11 common rules explained — Question Format through Audit Logging with enterprise adoption guide
 created: "2026-04-18"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: devfloor9
-reading_time: 23
+reading_time: 30
 tags:
   - aidlc
   - common-rules
@@ -17,18 +17,20 @@ sidebar_position: 6
 category: aidlc
 ---
 
-The `aws-aidlc-rule-details/common/` directory in AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) defines **11 rules that all stages must comply with**. These rules govern how AI agents and humans collaborate across Inception → Construction → Operations phases, ensuring **reproducibility, auditability, and safety** of outcomes.
+The `aws-aidlc-rule-details/common/` directory in AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) v0.1.7 contains 11 rule files (`ascii-diagram-standards`, `content-validation`, `depth-levels`, `error-handling`, `overconfidence-prevention`, `process-overview`, `question-format-guide`, `session-continuity`, `terminology`, `welcome-message`, `workflow-changes`). These files govern how AI agents and humans collaborate across Inception → Construction → Operations phases.
 
-This document explains each rule using a "What / Why / How" three-tier structure, with practical tips for enterprise environments.
+This document explains the content of those official files as **11 rules regrouped by theme** from an enterprise perspective. This regrouped list (the table in Section 1 below) does not map one-to-one to the official file names. For example, "Checkpoint Approval", "Audit Logging", "No Duplication", "Methodology First", and "Reproducible" do not exist as same-named files in the official `common/`; they are thematic categories this document uses to explain reproducibility, auditability, and safety. Each rule is explained with a "What / Why / How" three-tier structure, with practical tips for enterprise environments.
 
 ---
 
-## 1. Overview: 11 Common Rules
+## 1. Overview: 11 Rules Regrouped by Theme {#1-overview-11-common-rules}
+
+The table and diagram below are not a listing of the official `common/` files but a **thematic regrouping** this document arranges into three categories: interaction, quality, and governance.
 
 ```mermaid
 graph TB
     subgraph Interaction["Interaction Rules"]
-        Q["Question Format<br/>A-E + [Answer]:"]
+        Q["Question Format<br/>letter + Other + [Answer]:"]
         OP["Overconfidence Prevention"]
         WC["Workflow Changes"]
     end
@@ -58,7 +60,7 @@ graph TB
 | # | Rule | Category | Core Value |
 |---|------|----------|-----------|
 | 1 | Question Format | Interaction | Enforce structured Q&A format |
-| 2 | Content Validation | Quality | Validate requirements & responses |
+| 2 | Content Validation | Quality | Syntax-validate generated content before writing files |
 | 3 | Error Handling | Quality | Standardized exception handling |
 | 4 | Overconfidence Prevention | Interaction | Control AI confidence levels |
 | 5 | Session Continuity | Governance | Preserve context across sessions |
@@ -78,10 +80,10 @@ The Common Rules define a shared process for questions, approvals, validation, a
 ## 2. Rule 1: Question Format
 
 ### What
-AI agents must always use **A-E multiple choice + `[Answer]:` tag** format when asking humans questions.
+AI agents must always use **letter choices (A, B, C …) + `[Answer]:` tag** format when asking humans questions. v0.1.7's `common/question-format-guide.md` mandates "Other" as the **last option on every question** and keeps meaningful options within a range of **minimum 2 + Other, maximum 5 + Other**. Do not invent filler options just to fill slots.
 
 ### Why
-- **Reproducibility**: Free-form answers vary by model and session. Multiple choice eliminates interpretation ambiguity
+- **Reproducibility**: Free-form answers vary by model and session. Letter choices eliminate interpretation ambiguity
 - **Speed**: Humans don't need to write long responses. Single-letter selection moves things forward
 - **Auditability**: Structured Q&A pairs enable audit logs and replay
 
@@ -111,8 +113,8 @@ Or when free-form context is needed:
 ```
 
 ### Enterprise Adoption Tips
-- Keep **5 options or fewer** per question. More causes decision fatigue
-- Standardize option D as "most common default", option E as "Other"
+- Keep meaningful options to **at most 5 + Other** per question. More causes decision fatigue
+- Always make the last option "Other (please specify)" to guarantee a free-form path
 - Copy question blocks to PR descriptions or Slack channels for **team consensus before writing `[Answer]:`**
 
 ---
@@ -120,18 +122,32 @@ Or when free-form context is needed:
 ## 3. Rule 2: Content Validation
 
 ### What
-AI must run **self-validation checklists** on all generated artifacts (Requirements Documents, Design Documents, Code, etc.) and **explicitly report failures** to humans.
+The official rule defined in v0.1.7's `common/content-validation.md` is to **syntax-validate** generated content (ASCII diagrams, Mermaid, JSON, YAML, Markdown) **before** writing files, to prevent parsing errors. On validation failure, switch to a text fallback, do not block the workflow, and inform the user that simplified content was used.
 
 ### Why
-- AI often produces omissions, contradictions, or hallucinations
-- Humans lack time to exhaustively review every artifact
-- AI self-validation as first-line filter reduces human review burden
+- Invalid Mermaid/YAML/JSON breaks artifact files so later stages cannot read them
+- Checking syntax before writing prevents parsing errors without rework
+- Providing a text alternative for complex visuals preserves information even when rendering fails
 
 ### How
 
-**Self-Validation Checklist Example (Requirements Document):**
+The official rule's pre-creation validation checklist:
 ```markdown
-## Content Validation Report
+## Pre-Creation Validation Checklist
+- [ ] Validate embedded code blocks (Mermaid, JSON, YAML)
+- [ ] Check special character escaping
+- [ ] Verify markdown syntax correctness
+- [ ] Test content parsing compatibility
+- [ ] Include fallback content for complex elements
+```
+
+### Enterprise Adoption Tips
+
+The items below (this guide's additions) are not part of the official Content Validation rule; they are organization-level **separate quality gates** proposed by this guide. Keep them distinct from the official rule (syntax validation and fallback).
+
+An example self-validation report that reports requirement completeness (missing/contradictory FR/NFR) to humans:
+```markdown
+## Content Validation Report (organizational extension example)
 
 - [x] All functional requirements include Acceptance Criteria
 - [x] Non-functional requirements (NFRs) specify measurable metrics (P99 latency, availability, etc.)
@@ -144,10 +160,9 @@ AI must run **self-validation checklists** on all generated artifacts (Requireme
 **Action Required**: User confirmation and rewrite needed
 ```
 
-### Enterprise Adoption Tips
-- Store **validation checklists for each artifact type** in ontology or organizational extensions
-- Add `aidlc-validate` step to CI pipeline to auto-post reports as PR comments
-- Auto-create GitHub Issues for failed items and block Checkpoint Approval until resolved
+- Store requirement-validation checklists for each artifact type in ontology or organizational extensions
+- Add an organization's own `aidlc-validate` step to the CI pipeline to post reports as PR comments
+- Auto-create GitHub Issues for failed items and block the approval gate until resolved
 
 ---
 
@@ -234,14 +249,14 @@ GSI design may not be optimal.
 ### Enterprise Adoption Tips
 - **Low confidence (< 50%) responses automatically pause at Checkpoint Approval gates**
 - Track confidence distribution statistics to identify AI improvement priorities
-- Regulated industries (finance, healthcare): auto-adopt only High confidence, require human approval for Medium/Low
+- Confidence is a value the AI declares about itself, so do not use it as grounds for auto-adoption. In regulated industries (finance, healthcare), critical decisions require human approval regardless of the declared confidence
 
 ---
 
 ## 6. Rule 5: Session Continuity
 
 ### What
-Persist AIDLC session state so that **previous context (questions, answers, artifacts) can be fully restored** when sessions are interrupted and resumed.
+Persist AIDLC session state so that **persisted context (questions, answers, artifacts) can be reloaded** when sessions are interrupted and resumed. v0.1.7's `common/session-continuity.md` specifies that on resume you first read `aidlc-docs/aidlc-state.md` and then reload the previous stages' artifacts. What is restored is the file-persisted state, answers, and artifacts; the model's live reasoning state (context window) is not restored.
 
 ### Why
 - Enterprise projects span multiple days and teams
@@ -250,7 +265,7 @@ Persist AIDLC session state so that **previous context (questions, answers, arti
 
 ### How
 
-**Session State File (`.aidlc/session.md`):**
+**Session State File (`aidlc-docs/aidlc-state.md`):**
 ```markdown
 # AIDLC Session State
 
@@ -263,14 +278,14 @@ Persist AIDLC session state so that **previous context (questions, answers, arti
 
 | Stage | Status | Artifacts | Approved By | Approved At |
 |-------|--------|-----------|-------------|-------------|
-| workspace_detection | complete | `.aidlc/workspace.md` | yjeong | 2026-04-17T09:15:00Z |
+| workspace_detection | complete | `aidlc-docs/aidlc-state.md` | yjeong | 2026-04-17T09:15:00Z |
 | requirements_analysis | complete | `requirements.md` | yjeong | 2026-04-17T11:00:00Z |
 | user_stories | complete | `user-stories.md` | yjeong | 2026-04-17T14:00:00Z |
 | workflow_planning | in_progress | - | - | - |
 
 ## Pending Questions
 
-Q3. Authentication method (A-E) — Asked at 2026-04-18T10:30:00Z, awaiting answer
+Q3. Authentication method — Asked at 2026-04-18T10:30:00Z, awaiting answer
 ```
 
 ### Enterprise Adoption Tips
@@ -321,10 +336,10 @@ Prevent AI from **arbitrarily adding, skipping, or modifying workflow steps**. C
 ## 8. Rule 7: Checkpoint Approval
 
 ### What
-Require **explicit human approval** at each stage transition (e.g., requirements_analysis → user_stories).
+Require **explicit human approval** at the completion of major stages. There is no single official "Checkpoint Approval" rule file in `common/`; approval is defined individually within each stage's rules. In v0.1.7, Requirements Analysis and User Stories each have explicit approval steps after producing artifacts (e.g., Steps 13 and 21 "Wait for Explicit Approval" in `inception/user-stories.md`), whereas Workspace Detection is defined as "proceeds automatically with no approval." The approval boundaries therefore differ by stage, and "approval at every transition" is a generalization.
 
 ### Why
-- Reverting after stage transitions is difficult (non-reversible)
+- Reverting a stage is itself possible, but the downstream artifacts already produced must be reworked. For example, reverting to requirements_analysis requires updating the subsequent user_stories and design artifacts
 - Approval functions as both **quality gate + governance evidence**
 - Concrete implementation of human-in-the-loop principle
 
@@ -377,7 +392,7 @@ Record all AIDLC events (questions, answers, approvals, errors) in audit logs us
 ### How
 
 **Audit Log Format (`audit.md`):**
-```markdown
+````markdown
 ## Event: Checkpoint Approval Granted
 
 **Event ID**: evt-2026-04-18-042
@@ -412,16 +427,16 @@ A. DynamoDB
 B. Aurora PostgreSQL
 ...
 ```
-```
+````
 
 **Audit Log Principles:**
-1. **Append-only**: Never modify existing logs
+1. **Append-only (authoring policy)**: The writer never modifies existing logs and only appends new events. This is an operational policy; technical tamper-resistance is enforced by the storage configuration below
 2. **Original preservation**: Store **original text** from users and AI, not AI interpretations/summaries
 3. **ISO 8601 timestamps**: Millisecond precision + UTC notation
 4. **Artifact hashing**: SHA-256 for integrity verification
 
 ### Enterprise Adoption Tips
-- Store audit logs in **S3 + Object Lock** (WORM) to prevent tampering
+- An append-only authoring policy alone cannot prevent edits or deletions, so enforce tamper-resistance with write-once storage such as **S3 + Object Lock (WORM)**
 - Retention policies: minimum 7 years for finance, 10 years for healthcare
 - Detailed specs at [Audit & Governance Logging](../operations/audit-governance.md)
 
@@ -434,8 +449,8 @@ B. Aurora PostgreSQL
 
 ### Why
 - Duplication leads to inconsistency (updating one place creates contradictions)
-- AI agents learning from duplicated information increase hallucination
-- Maintenance costs explode
+- Contradictory artifacts leave both humans and AI unsure which value is correct
+- When the same information lives in several places, every copy must be updated together on each change, raising maintenance effort
 
 ### How
 
@@ -526,14 +541,17 @@ For identical inputs (Workspace state · Requirements · question responses), **
 4. **Fixed seed** (supported models) — Identical seed → identical output
 
 **Reproducibility Test:**
+
+The `aidlc run` below is not an official CLI but an example runner an organization builds to wrap AIDLC execution. "90%+ identical" is only meaningful when the measurement criterion is defined. The example below compares the output Markdown line by line and computes similarity as the share of unchanged lines. An organization should choose and document its own criterion (token-level, semantic, etc.).
+
 ```bash
-# Run 3 times with identical input, then diff artifacts
+# Run 3 times with identical input, then diff artifacts (aidlc run is an org's own runner example)
 aidlc run --input requirements.md --session test-1
 aidlc run --input requirements.md --session test-2
 aidlc run --input requirements.md --session test-3
 
+# Line-level comparison: treat >= 90% unchanged lines as a reproduction pass
 diff .aidlc/test-1/requirements.md .aidlc/test-2/requirements.md
-# Expected: 90%+ identical
 ```
 
 ### Enterprise Adoption Tips
@@ -574,7 +592,9 @@ gantt
 
 ### 13.3 Tool/Platform Implementation Status (as of 2026-04) {#133-toolplatform-implementation-status-as-of-202604}
 
-| Platform | Rules 1-4 | Rules 5-8 | Rules 9-11 | Notes |
+The Full/Partial/Limited values below are not measured conformance scores but **unverified estimates** as of 2026-04. They are not backed by versioned setup evidence, so verify them directly on the relevant version of each tool before using them for an adoption decision. Each cell may differ for a specific setup or version.
+
+| Platform | Rules 1-4 | Rules 5-8 | Rules 9-11 | Notes (unverified estimate) |
 |----------|-----------|-----------|------------|-------|
 | **Kiro** | Full | Full | Full | Spec-Driven built-in |
 | **Claude Code** | Full | Full | Partial | reproducibility lacks seed support |

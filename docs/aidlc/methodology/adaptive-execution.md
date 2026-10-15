@@ -3,9 +3,9 @@ title: AIDLC Adaptive Execution
 description: AIDLC official Adaptive Workflows — conditional stage execution decision tree, Inception 7-stage and Construction per-unit loop explained
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 16
+reading_time: 23
 tags:
   - aidlc
   - adaptive-execution
@@ -57,14 +57,16 @@ graph TB
 ```
 
 **Key Messages:**
-- **Workspace Detection** and **Workflow Planning** are **mandatory** (always executed)
-- **Reverse Engineering · User Stories · Application Design** are **conditional** (executed/skipped based on project characteristics)
-- **Requirements Analysis** and **Units Generation** nearly always execute but **depth (Minimal/Standard/Comprehensive) adjusts**
 
-:::info AWS Labs Official Statement
-> "AIDLC is adaptive rather than prescriptive. Each stage's execution is conditional on the workspace state and user needs, allowing teams to skip stages that aren't relevant to their specific project."
->
-> — [AWS Labs AIDLC Workflows, v0.1.7](https://github.com/awslabs/aidlc-workflows)
+The v0.1.7 `common/process-overview.md` partitions always-executed and conditional stages as follows:
+
+- **ALWAYS executed**: Workspace Detection, Requirements Analysis (adaptive depth), Workflow Planning, Code Generation (per-unit), Build and Test
+- **CONDITIONAL**: Reverse Engineering, User Stories, Application Design, Units Generation, and the per-unit design stages Functional Design, NFR Requirements, NFR Design, and Infrastructure Design
+
+Requirements Analysis is not conditional — it always executes and only its depth (Minimal/Standard/Comprehensive) adapts. Units Generation is a conditional stage. The decision tree in Section 2 below covers only the Inception stages; Code Generation and Build and Test are explained in Section 3 (Construction).
+
+:::info Source
+This partition is taken directly from the stage classification stated in [`common/process-overview.md`](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common/process-overview.md) of AWS Labs AIDLC Workflows v0.1.7. That document states the principle that "phases execute only when they add value" and that "each phase is independently evaluated."
 :::
 
 ---
@@ -75,28 +77,26 @@ graph TB
 
 **Purpose**: Determine whether the current workspace is **Greenfield** (new) or **Brownfield** (existing codebase).
 
-**Figure 2. Workspace Detection flow for Greenfield/Brownfield/Hybrid classification**
+**Figure 2. Workspace Detection flow for Greenfield/Brownfield classification**
 
 ```mermaid
 flowchart LR
-    WD[Workspace Detection] --> CHECK1{Codebase<br/>exists?}
-    CHECK1 -->|Empty or<br/>README only| GREEN[Greenfield]
-    CHECK1 -->|Source code<br/>found| CHECK2{Git history?}
-    CHECK2 -->|Yes| BROWN[Brownfield]
-    CHECK2 -->|No| HYBRID[Hybrid<br/>external code import]
+    WD[Workspace Detection] --> CHECK1{Existing code<br/>present?}
+    CHECK1 -->|Empty or<br/>README only| GREEN[Greenfield<br/>brownfield=false]
+    CHECK1 -->|Source code<br/>found| BROWN[Brownfield<br/>brownfield=true]
 
     style GREEN fill:#2ecc71,color:#fff
     style BROWN fill:#ff9900,color:#fff
-    style HYBRID fill:#9b59b6,color:#fff
 ```
 
-**Execution Condition**: Always executed (starting point of all AIDLC sessions)
+**Execution Condition**: Always executed (starting point of all AIDLC sessions). v0.1.7's `inception/workspace-detection.md` defines this stage as "informational only, proceeds automatically with no user approval." The classification yields only two types, Greenfield and Brownfield, recorded in a `brownfield` boolean flag. There is no "Hybrid" type and no Git-history branch in the v0.1.7 specification.
 
-**Artifact**: `.aidlc/workspace.md`
+**Artifact**: `aidlc-docs/aidlc-state.md`
 ```markdown
-## Workspace Detection Result
+# AI-DLC State Tracking
 
-**Type**: Brownfield
+## Project Information
+**Project Type**: Brownfield
 **Primary Language**: TypeScript (72%), Go (18%), YAML (10%)
 **Framework**: Next.js 14 (detected from package.json)
 **Infrastructure**: EKS 1.35 (detected from k8s/ directory)
@@ -109,7 +109,7 @@ flowchart LR
 **Purpose**: Extract **implicit requirements, domain models, and architectural constraints** from existing codebase through reverse engineering.
 
 **Execution Conditions**:
-- Workspace Detection resulted in **Brownfield** or **Hybrid**
+- Workspace Detection resulted in **Brownfield**
 - User explicitly stated "extending existing system"
 
 **Skip Conditions**:
@@ -164,8 +164,8 @@ flowchart LR
     style COMP fill:#e74c3c,color:#fff
 ```
 
-**Skip Condition**:
-- User Request already provided in FR/NFR structure (only Content Validation executed)
+**Depth Adjustment Condition**:
+- Even when the User Request is already provided in FR/NFR structure, the stage itself is not skipped. v0.1.7's `inception/requirements-analysis.md` defines this stage as "always executes; detail level adapts," and the completeness analysis (Step 5), the await-answers gate (Step 6), and user approval (Step 9) still run. In this case only the drafting depth drops to Minimal — validation and approval are not skipped.
 
 ### 2.4 Stage 4: User Stories (Conditional)
 
@@ -176,10 +176,12 @@ flowchart LR
 - **Collaboration context** is important (multiple teams/roles involved)
 - **Business context** needs clarification (stakeholder explanation required)
 
-**Skip Conditions**:
+**Skip Conditions** (simple cases only):
 - Pure infrastructure/backend changes (users don't directly perceive)
 - DevOps automation (CI/CD pipeline improvements, etc.)
 - Data migration
+
+These items do not guarantee a skip automatically. v0.1.7's `inception/user-stories.md` requires a mandatory user/operator impact assessment first (Step 1 "Validate User Stories Need") and sets "when in doubt, include user stories" as the default rule. Even an infrastructure or DevOps change is not skipped if it affects internal users or operational workflows.
 
 **Figure 5. User Stories generation decision and authoring flow**
 
@@ -280,12 +282,14 @@ flowchart LR
     UNITS --> U2[Unit 2:<br/>KakaoPay Integration]
     UNITS --> U3[Unit 3:<br/>TossPayments Integration]
 
-    U1 -.depends on.-> U2
-    U1 -.depends on.-> U3
+    U2 -.depends on.-> U1
+    U3 -.depends on.-> U1
 
     style UG fill:#326ce5,color:#fff
     style UNITS fill:#2ecc71,color:#fff
 ```
+
+The dashed arrow `A -.depends on.-> B` means "A depends on B." The KakaoPay and TossPayments integrations (U2·U3) depend on the shared adapter interface (U1), so the interface is completed first and the two integrations are then implemented in parallel.
 
 **Artifact**: `.aidlc/units/` directory
 ```
@@ -300,23 +304,25 @@ flowchart LR
 
 ## 3. Construction Phase: Per-Unit Loop
 
-Each Unit of Work has an internal loop that **executes 5 sub-stages sequentially**.
+Each Unit of Work goes through the Construction stages defined in v0.1.7's `common/process-overview.md`. Construction consists of four per-unit design stages (Functional Design, NFR Requirements, NFR Design, Infrastructure Design) plus Code Generation and Build and Test. The four design stages are **CONDITIONAL** — executed or skipped per unit based on complexity — while only Code Generation and Build and Test are **ALWAYS** executed.
 
-**Figure 8. Construction Phase per-Unit loop of 5 sub-stages**
+**Figure 8. Construction Phase per-Unit stage flow (the four design stages are conditional; generation and build are mandatory)**
 
 ```mermaid
 flowchart LR
     UNIT[Unit of Work] --> FD[Functional<br/>Design]
-    FD --> NFR[NFR<br/>Specification]
-    NFR --> INFRA[Infrastructure<br/>Design]
+    FD --> NFRA[NFR<br/>Requirements]
+    NFRA --> NFRD[NFR<br/>Design]
+    NFRD --> INFRA[Infrastructure<br/>Design]
     INFRA --> CG[Code<br/>Generation]
     CG --> BT[Build<br/>& Test]
     BT --> DONE([Unit<br/>Complete])
-    BT -.fail.-> CG
+    CG -.Next Unit.-> FD
 
     style UNIT fill:#326ce5,color:#fff
     style DONE fill:#2ecc71,color:#fff
-    style BT fill:#e74c3c,color:#fff
+    style CG fill:#2ecc71,color:#fff
+    style BT fill:#2ecc71,color:#fff
 ```
 
 ### 3.1 Sub-stage 1: Functional Design
@@ -344,7 +350,7 @@ flowchart LR
 
 ### 3.2 Sub-stage 2: NFR Specification
 
-**Purpose**: Define the Unit's **non-functional requirements** in measurable form.
+**Purpose**: Define the Unit's **non-functional requirements** in measurable form. In the v0.1.7 specification this work is split into two stages: NFR Requirements (identify NFRs and select the tech stack) and NFR Design (incorporate NFR patterns and logical components).
 
 **Artifact Example:**
 ```markdown
@@ -403,18 +409,20 @@ resources:
 
 ## 4. Summary Table: Execution and Skip Conditions by Stage
 
-**Table 2. Mandatory status, execution conditions, skip conditions, and average duration by stage**
+The "Illustrative Duration" column below is not a measured average but a planning-example range. Actual duration varies with project size, team, and tooling.
 
-| Stage | Mandatory? | Execution Condition | Skip Condition | Avg Duration |
+**Table 2. Mandatory status, execution conditions, skip conditions, and illustrative duration by stage**
+
+| Stage | Mandatory? | Execution Condition | Skip Condition | Illustrative Duration |
 |-------|-----------|---------------------|----------------|--------------|
 | **Workspace Detection** | Mandatory | Every session | - | 1-2 min |
 | **Reverse Engineering** | Conditional | Brownfield | Greenfield | 30 min-2 hrs |
-| **Requirements Analysis** | Nearly mandatory | Always (depth adjusted) | User Request already in FR/NFR structure | 10 min-1 day |
-| **User Stories** | Conditional | User impact·collaboration·business context | Pure infra·DevOps changes | 30 min-3 hrs |
+| **Requirements Analysis** | Mandatory (depth adjusted) | Always (depth adjusted) | Not skippable, depth only | 10 min-1 day |
+| **User Stories** | Conditional | User impact·collaboration·business context | Simple changes only, after impact assessment | 30 min-3 hrs |
 | **Workflow Planning** | Mandatory | Every session | - | 15-30 min |
 | **Application Design** | Conditional | New component·service layer | Changes within existing service | 1 hr-1 day |
 | **Units Generation** | Conditional | Multi-file · Multi-service | Single atomic change | 15 min-2 hrs |
-| **Construction (per Unit)** | Mandatory | Every Unit | - | 1 hr-1 day per Unit |
+| **Construction (per Unit)** | Conditional design + mandatory generation·build | Every Unit | - | 1 hr-1 day per Unit |
 
 ---
 
@@ -512,6 +520,8 @@ Total Duration: 3-6 months
 ```
 
 ### 6.4 Scenario D: DevOps Automation (CI/CD Improvement)
+
+The `[SKIP ...]` markers below are not automatic decisions but assessment outcomes. The Reverse Engineering skip follows a review of existing code confirming reverse engineering is unnecessary; the User Stories skip follows an internal user/operator impact assessment (see Section 2.4); the Application Design skip follows a review of the existing pipeline structure.
 
 ```
 workspace_detection (1min)
