@@ -3,9 +3,9 @@ title: EKS 기능과 Probe 통합
 description: EKS 기능별 Probe 통합 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 7
 tags:
   - eks
   - kubernetes
@@ -322,11 +322,13 @@ Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플�
 
 **표 2. Provisioned Control Plane 티어별 성능 특성과 적합 워크로드**
 
-| 티어 | API 동시성 | Pod 스케줄링 속도 | 최대 노드 수 | Probe 처리 보장 | 적합 워크로드 |
-|------|----------|---------------|------------|--------------|-------------|
-| **XL** | 높음 | ~500 Pods/min | 1,000 | 99.9% < 100ms | AI Training, HPC |
-| **2XL** | 매우 높음 | ~1,000 Pods/min | 2,500 | 99.9% < 80ms | 대규모 배치 |
-| **4XL** | 초고속 | ~2,000 Pods/min | 5,000 | 99.9% < 50ms | 초대규모 ML |
+| 티어 | API 동시성 | 최대 노드 수 | 적합 워크로드 |
+|------|----------|------------|-------------|
+| **XL** | 높음 | 1,000 | AI Training, HPC |
+| **2XL** | 매우 높음 | 2,500 | 대규모 배치 |
+| **4XL** | 초고속 | 5,000 | 초대규모 ML |
+
+티어별 Pod 스케줄링 처리량과 Probe 응답 지연 보장치는 공식 출처가 확인되지 않아 이 표에 수치로 제시하지 않습니다. 실제 성능은 대상 환경에서 측정해 확인해야 합니다.
 
 **그림 2. Standard와 Provisioned Control Plane의 부하 처리 비교**
 
@@ -420,8 +422,8 @@ spec:
 - **문제**: 1,000개의 GPU 노드에서 동시에 수백 개의 Training Pod 시작 시, Standard Control Plane에서 API Server 응답 지연 발생
 - **해결**: Provisioned Control Plane XL 티어 사용
 - **결과**:
-  - Pod 스케줄링 시간 70% 단축 (평균 45초 → 13초)
-  - Readiness Probe 타임아웃 99.8% 감소
+  - Pod 스케줄링 시간 단축
+  - Readiness Probe 타임아웃 감소
   - Training Job 시작 안정성 향상
 
 **Cost vs Performance 고려사항:**

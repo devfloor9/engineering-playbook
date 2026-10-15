@@ -3,9 +3,9 @@ title: EKS features and probes
 description: Explore examples of integrating probes with EKS features.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 12
+reading_time: 13
 tags:
   - eks
   - kubernetes
@@ -322,11 +322,13 @@ Provisioned Control Plane (announced in November 2025) ensures predictable, high
 
 **Table 2. Performance characteristics and suitable workloads by Provisioned Control Plane tier**
 
-| Tier | API Concurrency | Pod Scheduling Rate | Maximum Nodes | Probe Processing Guarantee | Suitable Workloads |
-|------|----------|---------------|------------|--------------|-------------|
-| **XL** | High | ~500 Pods/min | 1,000 | 99.9% < 100ms | AI Training, HPC |
-| **2XL** | Very high | ~1,000 Pods/min | 2,500 | 99.9% < 80ms | Large-scale batch processing |
-| **4XL** | Ultra-fast | ~2,000 Pods/min | 5,000 | 99.9% < 50ms | Massive-scale ML |
+| Tier | API Concurrency | Maximum Nodes | Suitable Workloads |
+|------|----------|------------|-------------|
+| **XL** | High | 1,000 | AI Training, HPC |
+| **2XL** | Very high | 2,500 | Large-scale batch processing |
+| **4XL** | Ultra-fast | 5,000 | Massive-scale ML |
+
+Per-tier Pod scheduling throughput and probe latency guarantees are not given as figures in this table because no official source for them could be confirmed. Measure actual performance in your target environment.
 
 **Figure 2. Load handling comparison between Standard and Provisioned Control Plane**
 
@@ -420,8 +422,8 @@ spec:
 - **Problem**: When hundreds of Training Pods start simultaneously across 1,000 GPU nodes, API Server responses are delayed on the Standard Control Plane
 - **Solution**: Use the Provisioned Control Plane XL tier
 - **Results**:
-  - 70% reduction in Pod scheduling time (average 45 seconds → 13 seconds)
-  - 99.8% reduction in Readiness Probe timeouts
+  - Reduced Pod scheduling time
+  - Fewer Readiness Probe timeouts
   - Improved Training Job startup reliability
 
 **Cost vs. performance considerations:**
