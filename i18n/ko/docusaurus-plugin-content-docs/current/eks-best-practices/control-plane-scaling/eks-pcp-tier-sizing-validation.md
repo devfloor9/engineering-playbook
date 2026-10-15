@@ -1,11 +1,11 @@
 ---
 title: EKS PCP 티어 사이징 & 성능 검증 가이드
-description: PCP 티어별 상세 파라미터, APF seat 산정 공식, 대규모 클러스터 사이징 예시, ClusterLoader2 성능 검증 방법론, 고객 사례
+description: PCP 티어별 상세 파라미터, APF seat 산정 공식, 대규모 클러스터 사이징 예시, ClusterLoader2 성능 검증 방법론, 공개 AWS 벤치마크 맥락과 가상 사이징 예시
 created: "2026-04-07"
 last_update:
-  date: "2026-06-28"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 45
+reading_time: 27
 tags:
   - eks
   - pcp
@@ -35,7 +35,6 @@ sidebar_position: 2
 
 ## 1. PCP 사양과 사이징 근거 {#1-pcp-티어-스팩-기준-및-practical-오브젝트-수량}
 
-<a id="확인된-고객-사례"></a>
 <a id="클러스터-규모에-대한-중요-참고사항"></a>
 <a id="단일-클러스터-스케일링의-주요-병목"></a>
 

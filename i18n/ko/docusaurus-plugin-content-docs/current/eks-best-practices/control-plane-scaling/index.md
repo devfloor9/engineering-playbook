@@ -3,9 +3,9 @@ title: Control Plane & 확장
 description: EKS Control Plane 동작 원리, CRD 스케일링 전략, 멀티 클러스터 고가용성 아키텍처
 created: "2026-03-24"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 2
+reading_time: 1
 tags:
   - eks
   - control-plane
@@ -36,7 +36,7 @@ EKS Control Plane의 내부 동작을 이해하고, CRD 기반 플랫폼의 안�
     to="/docs/eks-best-practices/control-plane-scaling/eks-pcp-tier-sizing-validation"
     icon="📐"
     title="PCP Tier Sizing & Validation"
-    description="PCP 티어별 상세 파라미터, APF seat 산정 공식, 10K 노드 사이징 예시, ClusterLoader2 성능 검증 방법론, 고객 사례"
+    description="PCP 티어별 상세 파라미터, APF seat 산정 공식, 10K 노드 사이징 예시, ClusterLoader2 성능 검증 방법론"
     color="#e8710a"
   />
   <DocCard

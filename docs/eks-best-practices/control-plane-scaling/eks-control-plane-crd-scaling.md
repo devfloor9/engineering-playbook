@@ -3,9 +3,9 @@ title: EKS Control Plane Deep Dive — CRD at Scale Comprehensive Guide
 description: Understand EKS Control Plane internals and learn Provisioned Control Plane usage, monitoring strategies, and CRD design best practices for stable scaling of CRD-based platforms
 created: "2026-03-24"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 41
+reading_time: 49
 tags:
   - eks
   - kubernetes
@@ -65,7 +65,7 @@ etcd is the distributed key-value store that holds all Kubernetes state, includi
 | Characteristic | Description | CRD Impact |
 |------|------|---------|
 | **DB Size Limit** | Standard tier: 8GB; Provisioned tier: 16GB | More CRD objects increase database size |
-| **Request Size Limit** | Maximum of 1.5MB per object | CRs with large specs can approach the limit |
+| **Request Size Limit** | The whole serialized object (metadata/spec/status) in a single request is about 1.5 MiB (etcd's default request limit) | A large CR can approach the limit by its whole serialized size, not just its spec |
 | **Watch Stream** | Propagates changes in real time | Each additional watch from a CRD controller increases load |
 | **RAFT Consensus** | Writes require agreement from a majority | Write-heavy CRD patterns introduce latency |
 
@@ -144,12 +144,12 @@ The [official tier specifications](https://docs.aws.amazon.com/eks/latest/usergu
 | etcd Event Sharding | Unavailable | Available (separates event objects into a dedicated etcd partition) |
 | 99.99% SLA | 99.95% | 99.99% |
 
-:::tip Why Provisioned for CRD Platforms
-**etcd database size** is the first limit reached by CRD-based platforms. The Standard tier's 8GB limit can be exhausted quickly in environments with many CRD objects. Provisioned tiers double the capacity to 16GB, and Event Sharding can isolate the load from event objects.
+:::tip When to Consider a Provisioned Tier for CRD Platforms
+AWS recommends Standard mode for most workloads, and using CRDs alone does not require a paid tier. Consider a Provisioned tier for a CRD-based platform when Standard's 8GB etcd limit, the performance variability of auto-scaling, or the 99.95% SLA fails to meet your measured demand and SLOs. Provisioned tiers raise etcd to 16GB and isolate event-object load with Event Sharding, but base any decision to move up on results measured under representative peak load and on total cost.
 :::
 
 :::info Detailed Sizing Guidance
-For Kubernetes parameters by tier (API server inflight requests and scheduler QPS), the APF seat calculation formula, a 10K-node sizing example, customer examples, and ClusterLoader2 performance validation, refer to the **[PCP Tier Sizing & Performance Validation Guide](./eks-pcp-tier-sizing-validation)**.
+For Kubernetes parameters by tier (API server inflight requests and scheduler QPS), the APF seat calculation formula, a 10K-node sizing example, and ClusterLoader2 performance validation, refer to the **[PCP Tier Sizing & Performance Validation Guide](./eks-pcp-tier-sizing-validation)**.
 :::
 
 ### 3.5 CLI/API Usage {#36-cliapi-usage}
@@ -160,14 +160,14 @@ For Kubernetes parameters by tier (API server inflight requests and scheduler QP
 aws eks create-cluster --name prod \
   --role-arn arn:aws:iam::012345678910:role/eks-service-role \
   --resources-vpc-config subnetIds=subnet-xxx,securityGroupIds=sg-xxx \
-  --control-plane-scaling-config tier=XL
+  --control-plane-scaling-config tier=tier-xl
 ```
 
 **Change the tier of an existing cluster:**
 
 ```bash
 aws eks update-cluster-config --name example \
-  --control-plane-scaling-config tier=XL
+  --control-plane-scaling-config tier=tier-xl
 ```
 
 **Check update progress:**
@@ -184,7 +184,7 @@ aws eks describe-cluster --name example
 # The response includes the controlPlaneScalingConfig.tier field
 ```
 
-> **Note:** The CLI flag syntax (`--control-plane-scaling-config tier=XL`) may vary by AWS CLI version. Refer to the [AWS CLI Command Reference - EKS](https://docs.aws.amazon.com/cli/latest/reference/eks/) for the current syntax.
+> **Note:** The `tier` value of `--control-plane-scaling-config` is an API enum and accepts only `standard`, `tier-xl`, `tier-2xl`, `tier-4xl`, and `tier-8xl`. The display tier names used in the specification tables (XL, 2XL, and so on) differ from the API values (tier-xl, tier-2xl, and so on), so pass the API value on the CLI. Refer to the [AWS CLI Command Reference - EKS](https://docs.aws.amazon.com/cli/latest/reference/eks/) for the current syntax and accepted values.
 
 ### 3.6 PCP Cluster Properties {#37-pcp-cluster-properties}
 
@@ -210,17 +210,17 @@ etcd is the most important area of impact.
 |---------|---------|-------|
 | **DB Size Growth** | CRD objects occupy etcd storage | High |
 | **Watch Stream Load** | CRD controllers create watch streams, increasing etcd gRPC load | High |
-| **Request Size** | Individual CRD objects can approach the 1.5MB limit | Medium |
+| **Request Size** | An individual CR's whole serialized size can approach the ~1.5 MiB request limit | Medium |
 | **List Call Cost** | CRDs use JSON encoding rather than protobuf, creating a performance bottleneck | High |
 
 **etcd database size limits by PCP tier:**
 
 **Table 7. etcd DB size limit and per-object limit by PCP tier**
 
-| Tier | DB Size Limit | Per-Object Limit |
+| Tier | DB Size Limit | Per-Request Size Limit |
 |------|-----------|--------------|
-| Standard | 8GB | 1.5MB (cannot be changed) |
-| Provisioned (XL and above) | 16GB | 1.5MB (cannot be changed) |
+| Standard | 8GB | ~1.5 MiB (etcd default request limit, cannot be changed) |
+| Provisioned (XL and above) | 16GB | ~1.5 MiB (etcd default request limit, cannot be changed) |
 
 ### 4.2 Impact on API Server
 
@@ -270,9 +270,9 @@ EKS provides **four dimensions of observability** for the control plane:
 │ ① CloudWatch         │ ② Prometheus         │ ③ Control Plane      │ ④ Cluster           │
 │   Vended Metrics     │   Metrics Endpoint   │   Logging            │   Insights          │
 ├──────────────────────┼──────────────────────┼──────────────────────┼─────────────────────┤
-│ AWS/EKS namespace    │ KCM/KSH/etcd         │ API/Audit/           │ Upgrade readiness   │
-│ (automatic, free)    │ (Prometheus-         │ Auth/CM/Sched        │ Health issues       │
-│                      │ compatible K8s API)  │ (CloudWatch Logs)    │ Addon compatibility │
+│ AWS/EKS namespace    │ KCM/KSH/etcd         │ API/Audit/           │ Upgrade insights    │
+│ (automatic, free)    │ (Prometheus-         │ Auth/CM/Sched        │ Configuration       │
+│                      │ compatible K8s API)  │ (CloudWatch Logs)    │ Rollback readiness  │
 ├──────────────────────┼──────────────────────┼──────────────────────┼─────────────────────┤
 │ v1.28+, automatic    │ v1.28+, manual       │ All versions         │ All versions, auto  │
 └──────────────────────┴──────────────────────┴──────────────────────┴─────────────────────┘
@@ -366,12 +366,14 @@ rules:
 
 | Metric | Source | Description |
 |--------|------|------|
-| `workqueue_depth` | KCM | Work queue depth per controller; indicates CRD controller load |
-| `workqueue_adds_total` | KCM | Total items added to the queue |
-| `workqueue_retries_total` | KCM | Retry count; indicates CRD controller error rates |
+| `workqueue_depth` | KCM | Work queue depth per core Kubernetes controller (limited to the built-in control loops KCM runs) |
+| `workqueue_adds_total` | KCM | Total items added to core-controller queues |
+| `workqueue_retries_total` | KCM | Retry count for core controllers (error signal for built-in control loops) |
 | `scheduler_pending_pods` | KSH | Number of pending Pods |
-| `scheduler_scheduling_duration_seconds` | KSH | Scheduling latency |
+| `scheduler_scheduling_attempt_duration_seconds` | KSH | Latency of a single scheduling attempt (end-to-end SLI is `scheduler_pod_scheduling_sli_duration_seconds`) |
 | `apiserver_flowcontrol_current_executing_seats` | API Server | Currently executing seats by APF; indicates the impact of CRD List requests |
+
+The `workqueue_*` metrics above cover only the core Kubernetes control loops that KCM runs (deployments, nodes, endpoints, and so on); they do not include operators you install (custom controllers). Scrape the queue depth, retry, and reconcile metrics of each installed controller separately from the `/metrics` endpoint it exposes (controller-runtime based).
 
 **Amazon Managed Prometheus (AMP) integration:**
 
@@ -405,13 +407,17 @@ aws eks update-cluster-config --name my-cluster \
 **Example CloudWatch Logs Insights query to analyze CRD-related API call patterns:**
 
 ```sql
--- Analyze CRD-related API call patterns
+-- Analyze API call patterns for specific custom resource instances
+-- (requestURI has the form /apis/<group>/<version>/.../<plural>; replace group/plural with your CRD's)
+-- For more accurate analysis, prefer audit logs
 fields @timestamp, userAgent, verb, requestURI
-| filter requestURI like /customresourcedefinitions/
+| filter requestURI like /\/apis\/example\.com\/v1\/.*\/widgets/
 | stats count(*) by verb, userAgent
 | sort count(*) desc
 | limit 20
 ```
+
+> A `requestURI like /customresourcedefinitions/` filter matches only CRD definition (schema) management calls, not the actual instance traffic that arrives under each custom resource's own group and plural. To see the workload under analysis, specify the relevant group and plural as above.
 
 ### 5.4 Cluster Insights
 
@@ -421,10 +427,9 @@ EKS Cluster Insights automatically scans clusters to detect potential issues and
 
 | Category | Description | Frequency |
 |---------|------|------|
-| Upgrade Insights | Detects items that could cause issues during a Kubernetes version upgrade | Every 24 hours + manual |
-| Configuration Insights | Detects cluster configuration errors | Every 24 hours + manual |
-| Addon Compatibility | Checks whether EKS add-ons are compatible with the next Kubernetes version | Every 24 hours |
-| Cluster Health Issues | Reports current cluster health issues | Every 24 hours |
+| Upgrade Insights | Detects issues that could affect Kubernetes version upgrade readiness | Every 24 hours + manual |
+| Configuration Insights | Detects EKS Hybrid Nodes configuration issues (control plane-to-webhook communication, exec/logs, and more) | Every 24 hours + manual |
+| Rollback Readiness Insights | Checks rollback readiness within 7 days of an upgrade (includes API compatibility, add-on compatibility, cluster health, and more) | 24 hours after an upgrade + manual |
 
 ```bash
 aws eks list-insights --cluster-name my-cluster
@@ -467,8 +472,8 @@ EKS Console → Select cluster → Observability tab
 
 ### 6.1 Minimize Object Size
 
-- Keep each CR instance's **spec as small as possible**, within the etcd 1.5MB request limit.
-- Move large data into **ConfigMaps or external storage references**.
+- Keep each CR instance's whole serialized size (metadata/spec/status) small. etcd's default request limit is about 1.5 MiB and applies to the entire object carried in a request, not the spec alone.
+- Move large data into **external storage references**. ConfigMaps are stored in etcd and have their own data limit (about 1 MiB), so they do not relieve etcd capacity; use them only for small configuration and reference external storage (such as S3 or a database) for large data.
 - Include only necessary information in the status field; keep history and log data externally.
 
 ### 6.2 Manage CRD Count
@@ -483,15 +488,15 @@ EKS Console → Select cluster → Observability tab
 
 | Pattern | Correct Usage | Usage to Avoid |
 |------|-----------|-------------|
-| **Watch resourceVersion** | Use `resourceVersion` correctly | Do not use `resourceVersion=""` (retrieves the full list again) |
+| **Watch resourceVersion** | Use an appropriate `resourceVersion` with a continue token on restart or recovery | Repeatedly re-listing the full set at the most recent state (`resourceVersion=""`), which raises apiserver and etcd load (though `resourceVersion=""` is legitimate for an initial list or a most-recent read) |
 | **List Calls** | Always use **pagination** | Retrieving the entire list in one call |
 | **Informer** | Use the client-go **SharedInformer** pattern | Creating independent watches for each controller |
 | **Reconnection** | Apply **exponential backoff** when a watch disconnects | Reconnecting immediately (thundering herd) |
 
 ### 6.4 Keep Kubernetes Versions Current
 
-- **Kubernetes 1.33+** supports **Streaming List**, significantly improving large-scale List performance.
-- Use the latest Kubernetes version where possible to benefit from control plane performance improvements.
+- Two distinct features reduce the apiserver memory cost of large Lists. One is **watch-list (WatchList)**, where an informer receives its initial list over WATCH instead of LIST; it reached beta in Kubernetes 1.32 but is disabled by default. The other is **streaming collection encoding**, which streams the response in chunks and was introduced as compatible default behavior in Kubernetes 1.33. The two features have different client/server versions and feature-gate requirements.
+- Use the latest Kubernetes version where possible to benefit from control plane performance improvements, but confirm whether the feature you intend to use is enabled by default in that version and whether your client supports it.
 
 ### 6.5 Cluster Architecture Recommendations
 
@@ -540,7 +545,7 @@ Do not use unsupported industry averages for QPS, object counts, or latency by n
 :::info How to Measure
 - **Actual etcd usage**: CloudWatch `etcd_mvcc_db_total_size_in_use_in_bytes`; distinguish it from physical file size
 - **API QPS**: Rate of `apiserver_request_total` (separate by verb where possible)
-- **429 throttling**: `apiserver_request_total{code="429"}`; investigate immediately if nonzero
+- **429 throttling**: `increase(apiserver_request_total{code="429"}[5m])`; judge current throttling by the increase over a stated window. A raw Prometheus counter stays nonzero forever after the first event, so an "investigate if nonzero" test cannot detect current throttling. A Prometheus cumulative counter and a CloudWatch period `Sum` have different meanings.
 - **Watch connections**: `apiserver_longrunning_requests{verb="WATCH"}`; proportional to controller and node counts
 - **Reconciliation rate**: Rate of `controller_runtime_reconcile_total` for each controller
 :::
@@ -578,7 +583,7 @@ Integrated Monitoring Architecture
 │
 [2] Prometheus Endpoint (manual configuration)
 │   → AMP Agentless Scraper or self-hosted Prometheus
-│   → Monitor CRD controllers with KCM workqueue metrics
+│   → Monitor core control loops with KCM workqueue metrics (scrape installed controllers from their own /metrics)
 │   → Configure Grafana dashboards
 │
 [3] Control Plane Logging (manual enablement)
@@ -598,7 +603,7 @@ Integrated Monitoring Architecture
 |------|------|---------|
 | **Phase 1: Basic Setup** | 1 week | Configure CloudWatch alarms and enable control plane logging (audit + controllerManager) |
 | **Phase 2: Prometheus Integration** | 2 weeks | Configure AMP Scraper, collect KCM/KSH metrics, and create Grafana dashboards |
-| **Phase 3: PCP Adoption** | 1 week | Analyze the workload profile and select an appropriate PCP tier (XL or above recommended) |
+| **Phase 3: PCP Adoption** | 1 week | Analyze the workload profile and select a mode/tier based on measured demand and SLOs (Standard is sufficient for most; consider a Provisioned tier when it is not) |
 | **Phase 4: Optimization** | Ongoing | Use Cluster Insights, adjust tiers based on monitoring data, and tune CRD controllers |
 
 ### 7.6 Summary of Responses to Key Challenges {#75-summary-of-responses-to-key-challenges}
@@ -643,7 +648,7 @@ Integrated Monitoring Architecture
 
 **etcd:**
 - [etcd Performance Best Practices](https://etcd.io/docs/v3.5/op-guide/performance/)
-- [etcd System Limits (1.5MB)](https://etcd.io/docs/v3.5/dev-guide/limit/)
+- [etcd System Limits (~1.5 MiB per request)](https://etcd.io/docs/v3.5/dev-guide/limit/)
 
 **Monitoring:**
 - [Grafana Dashboard: EKS Control Plane](https://grafana.com/grafana/dashboards/21192-eks-control-plane/)
