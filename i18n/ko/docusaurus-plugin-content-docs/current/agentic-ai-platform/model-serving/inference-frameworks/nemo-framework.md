@@ -381,7 +381,7 @@ flowchart LR
 | 최적화 기법 | 메모리 영향 | 속도 영향 | 설명 |
 |------------|-----------|----------|------|
 | **FP8 양자화** | 가중치 저장 절반(BF16→FP8) | 조건부 향상 | Hopper(SM90)·Ada Lovelace(SM89) 지원, Ampere(A100) 미지원 |
-| **PagedAttention** | KV 캐시 단편화 감소 | - | KV Cache 동적 메모리 관리 |
+| **PagedAttention** | KV cache 단편화 감소 | - | KV Cache 동적 메모리 관리 |
 | **In-flight Batching** | - | 처리량 향상 | 연속 배치 처리 |
 | **Kernel Fusion** | - | 커널 호출 오버헤드 감소 | 연산 커널 융합 |
 
@@ -399,7 +399,7 @@ from tensorrt_llm.llmapi import QuantConfig, KvCacheConfig
 from tensorrt_llm.quantization import QuantAlgo
 
 # TensorRT-LLM 0.17: 길이·배치 한계는 BuildConfig,
-# 양자화는 QuantConfig, KV 캐시는 KvCacheConfig로 전달
+# 양자화는 QuantConfig, KV cache는 KvCacheConfig로 전달
 build_config = BuildConfig(
     max_input_len=4096,
     max_seq_len=6144,       # 입력 + 출력 길이 합
@@ -413,7 +413,7 @@ llm = LLM(
     model="/models/llama-finetuned-hf",
     build_config=build_config,
     quant_config=quant_config,
-    kv_cache_config=KvCacheConfig(),   # PagedAttention(KV 캐시) 설정
+    kv_cache_config=KvCacheConfig(),   # PagedAttention(KV cache) 설정
     enable_chunked_prefill=True,       # 0.17의 올바른 인자 이름
 )
 
