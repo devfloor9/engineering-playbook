@@ -3,9 +3,9 @@ title: 역할 재정의
 description: AIDLC 엔터프라이즈 - role-composition
 created: "2026-04-07"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 12
 tags:
   - aidlc
   - enterprise
@@ -45,7 +45,7 @@ graph LR
 
 ## AIDLC 역할 전환
 
-AIDLC 방법론에서는 역할이 근본적으로 재정의됩니다:
+이 가이드는 AIDLC 방법론에 맞춰 다음과 같은 역할 매핑을 제안합니다. 아래 표는 전통적 역할을 어떤 책임으로 옮길 수 있는지 보여주는 예시이며, 확정된 표준이 아니라 조직이 상황에 맞게 조정할 출발점입니다.
 
 | 전통적 역할 | AIDLC 역할 | 변화 내용 |
 |------------|-----------|---------|
@@ -68,7 +68,7 @@ AIDLC 방법론에서는 역할이 근본적으로 재정의됩니다:
 #### 도구
 - 온톨로지 시각화 도구 (Neo4j Bloom, GraphXR)
 - 의도 명세 템플릿 (YAML/JSON schema)
-- 비즈니스 룰 엔진 (Drools, DMN)
+- 비즈니스 룰 엔진 (Drools)과 의사결정 표기 표준 (DMN 표기법)
 
 ### 온톨로지 스튜어드
 
@@ -166,9 +166,12 @@ graph TD
     A[Primary LLM] -->|Generate Code| B[Output Gate]
     C[Verification LLM] -->|Cross-check| B
     D[Static Analysis] -->|Scan| B
-    B -->|All Gates Pass| E[Deploy]
+    B -->|All Gates Pass| G[Human Checkpoint Approval]
+    G -->|Approved| E[Deploy]
     B -->|Any Gate Fails| F[Reject & Alert]
 ```
+
+자동 게이트의 통과 결과는 배포를 자동으로 승인하지 않습니다. 모든 게이트를 통과하더라도 담당자가 Human Checkpoint에서 결과를 확인하고 승인을 기록해야 배포가 진행됩니다. 즉 게이트는 사람의 승인 판단에 입력되는 자문 신호입니다.
 
 ### 전통적 개발자와의 차이
 
@@ -252,12 +255,14 @@ AIDLC 도입으로 팀 구성 비율이 근본적으로 변화합니다.
 | QA 7명 (14%) | AI 검증자 10명 (20%) |
 | 보안 3명 (6%) | Shift-Left 보안 9명 (18%) |
 
-**변화 해석**:
-- 개발자 30명 → 하네스 엔지니어 20명: **33% 인력 감축** 또는 **동일 인력으로 50% 더 많은 기능 개발**
-- 보안 3명 → 9명: Shift-Left로 인력 3배 증가, 하지만 프로젝트 말미 재작업 비용 90% 감축
+**변화 해석** (아래 인원·비율·절감 수치는 측정값이 아니라 역할 재배치를 설명하기 위한 계획 가정·예시입니다):
+- 개발자 30명 → 하네스 엔지니어 20명: 역할 재배치 자체는 인원 변화를 뜻하지 않습니다. 예시 가정에서 이 재배치를 **33% 인력 감축**으로 쓸 수도, **동일 인력으로 약 50% 더 많은 기능 개발**로 쓸 수도 있으며(두 값 모두 예시 목표치), 실제 결과는 조직·프로젝트에 따라 다릅니다.
+- 보안 3명 → 9명: Shift-Left로 인력을 늘리는 예시 구성입니다. "재작업 비용 90% 감축"은 아래 Shift-Left 절의 NIST 참고에 근거한 예시 목표치입니다.
 - 온톨로지 스튜어드 6명: 복잡한 도메인 온톨로지 관리 (금융, 의료, 물류 통합)
 
 ### 비용 효과
+
+아래 표의 비용·절감 수치는 측정값이 아니라 계획 수립용 예시 가정입니다. 역할 재배치 자체와는 별개이며, 실제 비용은 조직·인건비·프로젝트 범위에 따라 달라지므로 각 조직이 자체 데이터로 검증해야 합니다.
 
 | 프로젝트 규모 | 전통적 비용 | AIDLC 비용 | 절감 효과 |
 |------------|----------|-----------|---------|
@@ -306,6 +311,8 @@ gantt
     배포            :2026-03-31, 5d
 ```
 
+위 일정에서 "AI 코드 생성"과 "연속 보안 검증"은 같은 60일 구간(2026-01-31~2026-03-31)에 의도적으로 겹칩니다. 보안 검증을 코드 생성 이후로 미루지 않고 생성과 동시에 진행해 취약점을 즉시 발견하려는 Shift-Left의 핵심이기 때문입니다. 배포(2026-03-31)는 두 작업이 끝나는 시점에 시작합니다.
+
 **효과**:
 - 보안 정책이 하네스에 내장 → 코드 생성 시점부터 보안 규칙 적용
 - 연속 보안 검증 → 취약점을 즉시 발견하고 자동 수정
@@ -336,7 +343,12 @@ security_harness:
     trigger: ai_generates_sql_query
     checks:
       - type: static_analysis
-        tools: [semgrep, sqlmap]
+        tools: [semgrep]
+      # sqlmap은 정적 분석 도구가 아니라 동적 SQL 인젝션 공격 도구이므로,
+      # 반드시 소유·테스트 권한이 확인된 대상에서만 별도 단계로 실행합니다.
+      - type: dynamic_test
+        tools: [sqlmap]
+        authorized_target_required: true
       - type: parameterized_query_validation
         enforce: true
       - type: input_sanitization
@@ -347,7 +359,7 @@ security_harness:
 
 ## 팀 토폴로지 패턴
 
-AIDLC 조직은 Team Topologies (Matthew Skelton, Manuel Pais) 패턴을 따릅니다:
+AIDLC 조직 구성은 Team Topologies (Matthew Skelton, Manuel Pais) 패턴을 참고해 다음과 같이 적용(응용)할 수 있습니다:
 
 ### Stream-Aligned Team
 
