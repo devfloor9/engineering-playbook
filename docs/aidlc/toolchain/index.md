@@ -17,6 +17,8 @@ This section covers tools and technology stacks for implementing the AIDLC [meth
 
 ## Structure
 
+**Table 1. Key content and target audience by AIDLC tool**
+
 | Document | Key Content | Target Audience |
 |----------|-------------|----------------|
 | [AI Coding Agents](./ai-coding-agents.md) | Kiro Spec-Driven development, Q Developer, agent comparison | Developers, Tech Leads |
@@ -25,6 +27,8 @@ This section covers tools and technology stacks for implementing the AIDLC [meth
 | [Technology Roadmap](./technology-roadmap.md) | Build-vs-Wait decision matrix, investment planning | CTO, Enterprise Architects |
 
 ## Tool Selection Decision Flow
+
+**Figure 1. Tool decision flow by data residency and coding agent selection**
 
 ```mermaid
 flowchart TD

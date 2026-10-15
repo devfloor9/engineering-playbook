@@ -23,6 +23,8 @@ category: aidlc
 
 AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 **고정 워크플로가 아닌 조건부(adaptive) 실행**을 기본으로 합니다. 전통적 SDLC 의 단계가 "항상 순차 실행" 이었다면, AIDLC 는 프로젝트 특성·코드베이스 상태·요구사항 복잡도에 따라 **필요한 stage 만 선택·재정렬**합니다.
 
+**그림 1. Adaptive Execution 의 조건부 stage 선택 흐름**
+
 ```mermaid
 graph TB
     START([User Request]) --> WD[Workspace Detection]
@@ -73,6 +75,8 @@ graph TB
 
 **목적**: 현재 워크스페이스가 **Greenfield**(신규) 인지 **Brownfield**(기존 코드베이스 존재) 인지 판별.
 
+**그림 2. Workspace Detection 의 Greenfield/Brownfield/Hybrid 판별 흐름**
+
 ```mermaid
 flowchart LR
     WD[Workspace Detection] --> CHECK1{코드베이스<br/>존재?}
@@ -112,6 +116,8 @@ flowchart LR
 - Greenfield (코드 없음)
 - 사용자가 "새로 작성, 기존 무시" 를 명시한 경우
 
+**그림 3. Reverse Engineering 의 코드 분석·도메인 추출 흐름**
+
 ```mermaid
 flowchart TB
     RE[Reverse Engineering Start] --> RE1[코드 구조 분석<br/>엔트리포인트·모듈]
@@ -132,11 +138,15 @@ flowchart TB
 
 **실행 깊이 3가지 레벨:**
 
+**표 1. Requirements Analysis 실행 깊이 레벨별 적용 조건·포함 요소·예상 소요**
+
 | 레벨 | 적용 조건 | 포함 요소 | 예상 소요 |
 |------|----------|----------|----------|
 | **Minimal** | 버그 수정 · 단순 리팩터링 | FR 목록, 영향 범위 | 10-20분 |
 | **Standard** | 신규 기능 · 기존 기능 확장 | FR, NFR, Acceptance Criteria, 의존성 | 1-3시간 |
 | **Comprehensive** | 신규 서비스 · 아키텍처 변경 | Standard + Risk Analysis, Compliance, Performance Model | 반나절-1일 |
+
+**그림 4. 복잡도 평가에 따른 Requirements Analysis 깊이 선택 흐름**
 
 ```mermaid
 flowchart LR
@@ -170,6 +180,8 @@ flowchart LR
 - 순수 인프라·백엔드 변경 (사용자가 직접 인지하지 않음)
 - DevOps 자동화 (CI/CD 파이프라인 개선 등)
 - 데이터 마이그레이션
+
+**그림 5. User Stories 생성 여부 판단과 스토리 작성 흐름**
 
 ```mermaid
 flowchart TB
@@ -228,6 +240,8 @@ flowchart TB
 - UI 변경만
 - 설정 변경
 
+**그림 6. Application Design 실행 여부 판단과 설계 산출물 흐름**
+
 ```mermaid
 flowchart TB
     WP[Workflow Plan] --> CHECK{새 컴포넌트<br/>서비스 계층<br/>필요?}
@@ -254,6 +268,8 @@ flowchart TB
 
 **스킵 조건**:
 - 단일 함수 · 단일 파일 수정 → 즉시 Construction 진입 (1개 Unit 자동 생성)
+
+**그림 7. Units Generation 의 Unit of Work 분해와 의존 관계**
 
 ```mermaid
 flowchart LR
@@ -285,6 +301,8 @@ flowchart LR
 ## 3. Construction Phase: Per-Unit Loop
 
 각 Unit of Work 는 **5 sub-stage 를 순차 실행**하는 내부 루프를 가집니다.
+
+**그림 8. Construction Phase 의 Unit별 5개 sub-stage 실행 루프**
 
 ```mermaid
 flowchart LR
@@ -385,6 +403,8 @@ resources:
 
 ## 4. Stage 별 실행 조건·스킵 조건 요약표
 
+**표 2. 7개 Stage별 필수 여부·실행 조건·스킵 조건·평균 소요**
+
 | Stage | 필수 여부 | 실행 조건 | 스킵 조건 | 평균 소요 |
 |-------|----------|----------|----------|----------|
 | **Workspace Detection** | 필수 | 모든 세션 | - | 1-2분 |
@@ -400,6 +420,8 @@ resources:
 
 ## 5. engineering-playbook Intent/Unit/Bolt 와의 매핑
 
+**표 3. engineering-playbook 용어와 공식 AIDLC 단계의 매핑**
+
 | engineering-playbook 용어 | 공식 AIDLC 상 위치 | 매핑 설명 |
 |---------------------------|---------------------|----------|
 | **Intent** | Stage 1-3 (Workspace Detection → Requirements Analysis) 의 입력 + 산출물 | Intent 는 User Request + Requirements Document 의 종합 |
@@ -407,6 +429,8 @@ resources:
 | **Bolt** | Construction Phase 전체 (5 sub-stage) 1회 실행 | Sprint 를 대체하는 짧은 반복 |
 
 **시각적 매핑:**
+
+**그림 9. 공식 AIDLC 단계와 Intent/Unit/Bolt 의 시각적 매핑**
 
 ```mermaid
 flowchart TB

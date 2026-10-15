@@ -23,6 +23,8 @@ sidebar_label: Deployment Strategies
 
 **Concept**: The new model receives actual production traffic, but responses are not delivered to users. Only the old model's responses are returned, and new model outputs are collected only for logging/evaluation.
 
+**Figure 1. Request flow of Shadow Testing**
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -390,6 +392,8 @@ Automatic rollback when CloudWatch alarm (`LLMErrorRate > threshold`) fires.
 ---
 
 ## Deployment Strategy Comparison
+
+**Table 1. Comparison of deployment strategies by risk, validation speed, cost, and rollback speed**
 
 | Strategy | Risk | Validation Speed | Cost | User Feedback | Rollback Speed |
 |----------|------|------------------|------|---------------|----------------|

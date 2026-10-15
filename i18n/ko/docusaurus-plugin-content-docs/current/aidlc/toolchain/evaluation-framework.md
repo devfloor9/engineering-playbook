@@ -29,6 +29,8 @@ AI-DLC(AI-Driven Development Lifecycle)에서는 일반 소프트웨어 테스�
 
 ### 1.1 SDLC TDD vs AIDLC Evaluation-driven
 
+**표 1. 결정적 구성요소 테스트와 확률적 구성요소 평가의 비교**
+
 | 구분 | 결정적 구성요소 테스트 | 확률적 구성요소 평가 |
 |------|----------------------|-----------------------|
 | 산출물 성격 | 통제된 상태·입력의 함수 결과 | 동일 입력에도 달라질 수 있는 응답 분포 |
@@ -56,6 +58,8 @@ CI는 기존의 빌드·단위·통합·보안 테스트를 유지하면서 평�
 
 아래 세 계층은 비용·속도·coverage를 조절하는 **저장소의 설계 제안**이며 공식 Inception/Construction/Operations 단계와 다릅니다. 10–20개나 수백 개라는 수치는 출발점 예시이며 데이터 분포·실패 비용·통계적 목표로 조정합니다.
 
+**그림 1. Inner/Middle/Outer Loop의 평가 범위와 데이터 흐름**
+
 ```mermaid
 flowchart LR
     Dev[개발자 로컬] --> Inner[Inner Loop<br/>즉시 피드백<br/>10-20개 샘플]
@@ -80,6 +84,8 @@ flowchart LR
 AIDLC 에서 팀별 데이터셋만으로는 전체 역량을 비교하기 어렵습니다. **공개 벤치마크** 는 외부 레퍼런스 역할을 합니다.
 
 ### 2.1 코딩 Agent 전문 벤치마크
+
+**표 2. 코딩 Agent 전문 벤치마크의 규모와 초점 비교**
 
 | 벤치마크 | 규모 | 초점 | 2026-04 SOTA 영역 | URL |
 |---------|------|------|------------------|-----|
@@ -113,6 +119,8 @@ SWE-bench Verified의 통과율은 선택한 500개 issue, harness revision, 생
 
 코딩 Agent 에는 직접 쓰기 어렵지만, 모델 선정 시 1차 필터로 사용됩니다.
 
+**표 3. 모델 선정 1차 필터로 쓰는 일반 LLM·추론 벤치마크**
+
 | 벤치마크 | 초점 | 주의사항 |
 |---------|------|---------|
 | **MMLU-Pro** | 14개 분야, 최대 10개 선택지의 전문 지식·추론 문제 | 80%+ 수렴 주장은 날짜·모델·prompt·평가 revision 증거가 필요하며 여기서는 미검증 |
@@ -139,6 +147,8 @@ URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](http
 
 상세 비교는 AIDLC Middle Loop 관점(CI 통합, 프로덕션 연계) 에서 정리합니다.
 
+**표 4. 평가 도구별 메트릭·CI 통합·강점과 한계 비교**
+
 | 도구 | 라이선스 | 주요 메트릭 | CI 통합 방식 | 프로덕션 샘플링 | 강점 | 한계 |
 |------|---------|-----------|-------------|----------------|------|------|
 | **Ragas v0.2+** | Apache 2.0 | faithfulness, context_precision, context_recall, answer_relevancy, noise_sensitivity | Python SDK, GH Actions, CodeBuild | 공식 지원 (Langfuse/Phoenix 연동) | RAG 평가에서 가장 성숙, 레퍼런스 풍부 | LLM-as-judge 호출 비용 |
@@ -162,6 +172,8 @@ URL: [metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks](http
 > 조합 예: Ragas(도메인 RAG 품질) + Inspect AI(선택한 safety/capability 과제) + aidlc-evaluator(workflow·산출물 비교). Braintrust와 Langfuse는 별도 실험·관찰 도구 조합으로 검토할 수 있습니다. 조합 자체는 검증이나 보편적 채택률의 증거가 아닙니다.
 
 ### 3.2 Ragas v0.2+ 핵심 메트릭
+
+**표 5. Ragas v0.2+ 핵심 메트릭의 의미와 계산 방식**
 
 | 메트릭 | 의미 | 계산 방식 요약 |
 |-------|------|-------------|
@@ -294,6 +306,8 @@ jobs:
 
 ## 5. AIDLC 단계별 평가 배치
 
+**그림 2. AIDLC 단계별 평가 항목 배치와 데이터 피드백**
+
 ```mermaid
 flowchart LR
     INC[Inception<br/>요구사항·설계] --> CON[Construction<br/>구현·테스트]
@@ -332,6 +346,8 @@ flowchart LR
 
 ### 5.4 Stage Transition Gate 체크리스트
 
+**표 6. 단계 전환별 필수 조건과 평가 도구**
+
 | 전환 | 필수 조건 | 평가 도구 |
 |------|----------|---------|
 | Inception → Construction | 요구사항 coverage ≥ 95 % · Acceptance 기준 측정 가능 · AIDLC Common Rules 적합 | aidlc-evaluator + 수동 리뷰 |
@@ -358,6 +374,8 @@ flowchart LR
 
 ### 6.3 임계값 게이트 예시
 
+**표 7. 지표별 임계값 하한과 게이트 동작 예시**
+
 | 지표 | 하한 | 동작 |
 |------|------|------|
 | Faithfulness | < 0.90 | PR 블록 |
@@ -378,6 +396,8 @@ flowchart LR
 ### 6.5 Drift 유형 구분
 
 프로덕션에서 관측되는 품질 저하는 크게 세 종류이며, 대응 경로가 다릅니다.
+
+**표 8. Drift 유형별 신호·원인과 1차 대응**
 
 | Drift 유형 | 신호 | 원인 예 | 1차 대응 |
 |-----------|------|--------|---------|
@@ -471,6 +491,8 @@ def evaluation_cache_key(*, tenant_id, trace, spec):
 
 팀 규모만으로 월 비용을 정할 수 없습니다. 아래 조합별 비용 항목을 7.4 의 실제 호출량과 함께 계산합니다.
 
+**표 9. 팀 규모별 평가 도구 조합과 비용 산정 항목**
+
 | 팀 규모 | 조합 | 비용 산정 항목 |
 |--------|------|----------------|
 | 소규모 (&lt;5명) | Ragas 로컬 실행 + Langfuse OSS + 소형 judge | Judge/embedding 호출 + 자체 호스팅 |
@@ -502,6 +524,8 @@ Judge 비용(USD/월) ≈
 ## 8. 프로덕션 샘플링 아키텍처
 
 실제 운영 환경에서 **trace → 비동기 평가 → 대시보드** 흐름을 권장 참조 아키텍처로 정리합니다.
+
+**그림 3. 프로덕션 trace의 비동기 평가 참조 아키텍처**
 
 ```mermaid
 flowchart LR

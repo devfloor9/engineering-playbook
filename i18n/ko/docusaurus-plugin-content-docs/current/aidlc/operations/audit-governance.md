@@ -26,6 +26,8 @@ AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0
 
 ### 1.1 규제 요구사항
 
+**표 1. 규제별 감사 요구와 보존 기간, AIDLC 관련성**
+
 | 규제 | 감사 요구 | 보존 기간 | AIDLC 관련성 |
 |------|----------|----------|--------------|
 | **전자금융감독규정 (KR)** | IT 변경·접근 이력 완전 기록 | 5년 | AIDLC 전체 stage 승인·결정 이력 |
@@ -36,6 +38,8 @@ AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0
 | **GDPR (EU)** | 개인정보 의사결정 근거 | Case by case | 온톨로지 결정, 데이터 처리 설계 |
 
 ### 1.2 AIDLC 특유의 감사 과제
+
+**그림 1. AI 의사결정 감사에서 추가로 기록해야 하는 요소**
 
 ```mermaid
 graph LR
@@ -83,6 +87,8 @@ AIDLC 시스템:
 ### 2.1 Stage 전환 승인 패턴
 
 AIDLC 의 각 stage 간 전환은 **명시적 승인 게이트** 로 보호됩니다.
+
+**그림 2. Stage 전환 승인 게이트의 판정 흐름**
 
 ```mermaid
 flowchart LR
@@ -150,7 +156,8 @@ E. **Defer** — 결정 보류 (기한 명시 필수)
 
 규제 산업은 **단일 승인으로 stage 전환 불가** 를 요구합니다.
 
-**다중 승인 매트릭스 예시 (금융):**
+**표 2. 금융 산업의 Stage 전환별 다중 승인 매트릭스 예시**
+
 | Stage 전환 | Primary | Secondary | Tertiary | 추가 요구 |
 |-----------|---------|-----------|----------|----------|
 | Requirements → User Stories | Architect | - | - | 단순 검토 |
@@ -191,6 +198,8 @@ auto_block_conditions:
 ## 3. Audit Log 포맷
 
 ### 3.1 이벤트 타입 분류
+
+**그림 3. 감사 이벤트의 유형별 분류 체계**
 
 ```mermaid
 graph TB
@@ -510,6 +519,8 @@ aidlc audit verify-artifacts --session sess-20260315-payment-api-v2
 
 AIDLC Audit Log 는 [관찰성 스택](./observability-stack.md) 의 **서브셋** 이 아닌 **상위 거버넌스 레이어** 입니다.
 
+**그림 4. Audit Log와 관찰성 스택의 계층 관계**
+
 ```mermaid
 graph TB
     AUDIT[AIDLC Audit Log<br/>의사결정 레벨]
@@ -531,7 +542,8 @@ graph TB
     style OBS fill:#2ecc71,color:#fff
 ```
 
-**역할 분담:**
+**표 3. Audit Log와 Observability의 역할 분담**
+
 | 항목 | Audit Log | Observability |
 |------|-----------|---------------|
 | 대상 | AIDLC 의사결정 · 승인 | 런타임 이벤트 |
@@ -545,6 +557,8 @@ graph TB
 
 - 하네스가 검출한 품질 이벤트 → Audit Log 에 기록
 - Audit Log 의 Checkpoint Approval 실패 이력 → 하네스 규칙 개선 입력
+
+**그림 5. 하네스 품질 게이트와 Audit Log의 양방향 통합 시퀀스**
 
 ```mermaid
 sequenceDiagram
@@ -564,6 +578,8 @@ sequenceDiagram
 ### 6.3 Common Rules 와의 매핑
 
 본 문서의 구현은 AIDLC [Common Rules](../methodology/common-rules.md) 중 다음을 운영화한 것:
+
+**표 4. Common Rule별 본 문서 구현 위치**
 
 | Common Rule | 본 문서 구현 |
 |-------------|--------------|

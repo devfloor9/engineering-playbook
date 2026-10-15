@@ -28,6 +28,8 @@ When AI Agents are deployed to production, **system health alone cannot determin
 
 Traditional APM (Application Performance Monitoring) is designed around **system metrics** such as HTTP success rate, response time, and error rate. However, Agents require additional metrics for the following reasons:
 
+**Table 1. Gap between traditional APM metrics and Agent quality metrics**
+
 | Traditional APM | Agent Quality Metric | Gap |
 |----------------|---------------------|-----|
 | HTTP 200 OK | Correct answer | Request success ≠ Result quality |
@@ -37,6 +39,8 @@ Traditional APM (Application Performance Monitoring) is designed around **system
 | N/A | Tool-call accuracy | Wrong tool call is not a system error |
 
 ### 1.2 Perceived Quality vs System Metrics
+
+**Figure 1. System-side versus user-side view of the same response**
 
 ```mermaid
 flowchart LR
@@ -71,6 +75,8 @@ Agent quality is ultimately judged by **whether it accurately performed the user
 
 Measures whether the user's requested task was completed.
 
+**Table 2. Task Success metrics: definition and measurement method**
+
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
 | **Task success rate** | Percentage of successful conversation sessions | Automated eval (goal attainment) + HITL sampling (10%) |
@@ -102,6 +108,8 @@ trace.score(
 
 Measures whether the Agent correctly calls the right tools.
 
+**Table 3. Tool Use accuracy metrics: definition and measurement method**
+
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
 | **Tool-call accuracy** | Percentage of correct tool calls | (Correct tool calls) / (Total tool calls) |
@@ -130,6 +138,8 @@ span.score(
 ### 2.3 Quality & Safety
 
 Measures answer quality and safety violations.
+
+**Table 4. Quality and safety metrics: definition and measurement method**
 
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
@@ -174,6 +184,8 @@ if gateway_response.status == "blocked_pii":
 
 Measures Agent operational cost and resource efficiency.
 
+**Table 5. Cost and efficiency metrics: definition and measurement method**
+
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
 | **Cost per interaction** | Average cost per session (USD) | Σ(input_tokens × price_in + output_tokens × price_out) |
@@ -214,6 +226,8 @@ if cache_hit:
 ### 2.5 User Experience
 
 Measures user-perceived quality.
+
+**Table 6. User experience metrics: definition and measurement method**
 
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
@@ -260,6 +274,8 @@ if confidence_score < 0.7:
 
 Measures Agent service stability.
 
+**Table 7. System reliability metrics: definition and measurement method**
+
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
 | **Availability** | Service uptime ratio | (uptime) / (total time) |
@@ -281,6 +297,8 @@ Error budget: 5% → 36 hours outage allowed per month
 ### 3.1 Span Hierarchy
 
 Agent execution flow is represented with the following hierarchy:
+
+**Figure 2. Span hierarchy of Agent execution**
 
 ```mermaid
 flowchart TB
@@ -425,6 +443,8 @@ The GenAI conventions were split into the [`semantic-conventions-genai`](https:/
 
 **Core attributes**:
 
+**Table 8. Core GenAI Semantic Conventions attributes with examples and descriptions**
+
 | Attribute | Example | Description |
 |-----------|---------|-------------|
 | `gen_ai.provider.name` | `openai` | GenAI provider (`gcp.gen_ai`, `gcp.vertex_ai`, etc.) |
@@ -551,6 +571,8 @@ Error Budget Burn Rate (Task Success SLO: 95%)
 
 ### 6.1 Anomaly Pattern Examples
 
+**Table 9. Detection rules and response actions by anomaly type**
+
 | Anomaly Type | Detection Rule | Response Action |
 |--------------|----------------|-----------------|
 | **Guardrails rate spike** | Exceeds 3σ (rolling 1 hour) | PagerDuty P2, prompt review |
@@ -663,6 +685,8 @@ Actions:
 ### 7.1 Inception: Define Baseline
 
 Define target KPIs at project initiation.
+
+**Table 10. Inception-stage KPI targets and current baseline**
 
 | KPI | Target (after 90d) | Baseline (Current) |
 |-----|-------------------|-------------------|

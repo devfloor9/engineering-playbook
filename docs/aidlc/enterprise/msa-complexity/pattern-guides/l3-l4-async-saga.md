@@ -29,6 +29,8 @@ Intermediate to advanced complexity patterns covering event-driven architecture 
 
 **AIDLC Application:**
 
+**Figure 1. AIDLC application flow for Level 3 async event-driven MSA**
+
 ```mermaid
 graph LR
     A[Requirements] --> B[Event Storming]
@@ -85,11 +87,11 @@ invariants:
 
 ### Harness Checklist
 
-- ✅ Event schema verification (Avro, Protobuf)
-- ✅ Idempotency harness (duplicate event handling)
-- ✅ Event ordering verification
-- ✅ Eventually Consistent tests (eventual state verification)
-- ✅ Dead Letter Queue handling
+- Include: Event schema verification (Avro, Protobuf)
+- Include: Idempotency harness (duplicate event handling)
+- Include: Event ordering verification
+- Include: Eventually Consistent tests (eventual state verification)
+- Include: Dead Letter Queue handling
 
 ### Application Strategy
 
@@ -108,6 +110,8 @@ invariants:
 - Complex failure scenarios
 
 **AIDLC Application:**
+
+**Figure 2. AIDLC application flow for Level 4 Saga + compensating transactions**
 
 ```mermaid
 graph TB
@@ -185,12 +189,12 @@ saga:
 
 ### Harness Checklist
 
-- ✅ Saga step-by-step verification
-- ✅ Compensating transaction verification (rollback scenarios)
-- ✅ Timeout harness (prevent infinite wait)
-- ✅ Retry policy verification
-- ✅ Circuit breaker
-- ✅ Distributed tracing (OpenTelemetry)
+- Include: Saga step-by-step verification
+- Include: Compensating transaction verification (rollback scenarios)
+- Include: Timeout harness (prevent infinite wait)
+- Include: Retry policy verification
+- Include: Circuit breaker
+- Include: Distributed tracing (OpenTelemetry)
 
 ### Harness Implementation Example
 

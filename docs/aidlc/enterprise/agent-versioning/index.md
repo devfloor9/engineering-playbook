@@ -21,6 +21,8 @@ sidebar_label: Agent Versioning
 
 In traditional software, change management targets code, configuration, and infrastructure changes. Agent systems add **probabilistic components**:
 
+**Table 1. Change management comparison between traditional and agentic systems**
+
 | Change Type | Traditional System | Agentic System |
 |-------------|-------------------|----------------|
 | **Output Determinism** | Same input → Same output | Same input → Probability distribution |

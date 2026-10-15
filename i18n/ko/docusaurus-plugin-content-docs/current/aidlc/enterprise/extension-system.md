@@ -28,6 +28,8 @@ AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 공�
 
 AIDLC 는 **방법론 코어(stable)** 와 **조직 규칙(variable)** 을 명확히 분리합니다.
 
+**그림 1. AIDLC Core와 Extension System의 구조 분리**
+
 ```mermaid
 graph TB
     subgraph Core["AIDLC Core (stable)"]
@@ -55,6 +57,8 @@ graph TB
 - **`opt-in.md` 파일의 존재·내용이 활성화 여부를 결정**
 
 ### 1.2 Extension 도입 효과
+
+**표 1. Extension 도입 효과별 설명과 예시**
 
 | 효과 | 설명 | 예시 |
 |------|------|------|
@@ -418,6 +422,8 @@ diff .aidlc/baseline/ .aidlc/pilot/
 
 ### 6.1 Extension Lifecycle
 
+**그림 2. Extension 생애주기 상태 전이**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Proposed: 팀 제안
@@ -464,6 +470,8 @@ registry:
 ### 6.3 Extension 모니터링 지표
 
 Extension 이 실제로 가치를 제공하는지 측정:
+
+**표 2. Extension 모니터링 지표별 측정 방법과 목표**
 
 | 지표 | 측정 방법 | 목표 |
 |------|----------|------|

@@ -21,6 +21,8 @@ AgenticOps는 AI 에이전트가 운영 중 수집한 데이터를 바탕으로 
 
 AIDLC는 소프트웨어를 개발하는 과정을, AgenticOps는 운영에서 얻은 근거를 유지보수와 개선에 반영하는 과정을 설명합니다. [온톨로지](/docs/aidlc/methodology/ontology-engineering)의 제약은 에이전트의 판단 기준이 됩니다. **Outer Loop**는 운영에서 발견한 문제를 그 제약을 수정하는 사람과 절차에 전달하는 흐름입니다.
 
+**그림 1. AIDLC 개발과 AgenticOps 운영의 피드백 흐름**
+
 ```mermaid
 flowchart LR
     DEV["AIDLC<br/>개발"] -->|배포| PROD["프로덕션<br/>운영"]
@@ -35,6 +37,8 @@ flowchart LR
 ## 구성
 
 **1 → 2 → 3** 순서로 읽으면 데이터 기반 구축부터 자율 운영 실현까지의 전체 여정을 따라갈 수 있습니다.
+
+**표 1. AgenticOps 트랙 문서 구성과 핵심 질문**
 
 | 순서 | 문서 | 핵심 질문 |
 |------|------|----------|

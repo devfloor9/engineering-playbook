@@ -28,6 +28,8 @@ AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) provides 
 
 AIDLC clearly separates the **stable methodology core** from **variable organizational rules**.
 
+**Figure 1. Structural separation of AIDLC Core and the Extension System**
+
 ```mermaid
 graph TB
     subgraph Core["AIDLC Core (stable)"]
@@ -55,6 +57,8 @@ graph TB
 - **Presence and content of `opt-in.md` file determines activation**
 
 ### 1.2 Extension Benefits
+
+**Table 1. Extension adoption benefits with description and example**
 
 | Benefit | Description | Example |
 |---------|-------------|---------|
@@ -418,6 +422,8 @@ diff .aidlc/baseline/ .aidlc/pilot/
 
 ### 6.1 Extension Lifecycle
 
+**Figure 2. Extension lifecycle state transitions**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Proposed: Team proposal
@@ -464,6 +470,8 @@ registry:
 ### 6.3 Extension Monitoring Metrics
 
 Measure whether Extensions actually provide value:
+
+**Table 2. Extension monitoring metrics with measurement method and target**
 
 | Metric | Measurement Method | Target |
 |--------|-------------------|---------|

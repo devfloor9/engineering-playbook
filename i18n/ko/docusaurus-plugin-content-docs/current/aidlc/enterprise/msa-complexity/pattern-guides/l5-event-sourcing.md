@@ -27,6 +27,8 @@ sidebar_position: 3
 
 ## AIDLC 적용 방법
 
+**그림 1. Level 5 Event Sourcing & CQRS의 AIDLC 적용 흐름**
+
 ```mermaid
 graph TB
     A[요구사항] --> B[DDD + Event Storming]
@@ -107,13 +109,13 @@ invariants:
 
 ## 하네스 체크리스트
 
-- ✅ 이벤트 스키마 검증 (버전 관리)
-- ✅ 프로젝션 검증 (Read Model 일관성)
-- ✅ 이벤트 리플레이 테스트
-- ✅ Snapshot 전략 검증
-- ✅ 이벤트 마이그레이션 하네스
-- ✅ 멱등성 하네스
-- ✅ 분산 추적
+- 적용: 이벤트 스키마 검증 (버전 관리)
+- 적용: 프로젝션 검증 (Read Model 일관성)
+- 적용: 이벤트 리플레이 테스트
+- 적용: Snapshot 전략 검증
+- 적용: 이벤트 마이그레이션 하네스
+- 적용: 멱등성 하네스
+- 적용: 분산 추적
 
 ## 하네스 구현 예시
 

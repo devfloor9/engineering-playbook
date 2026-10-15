@@ -21,6 +21,8 @@ AIDLC (AI-Driven Development Lifecycle) organizes AI-assisted requirements analy
 
 The AIDLC guide is organized into 4 tracks based on the reader's role and interests.
 
+**Figure 1. The four tracks of the AIDLC guide and their relationships**
+
 ```mermaid
 flowchart TB
     subgraph METHOD["Methodology"]
@@ -68,6 +70,8 @@ flowchart TB
 ```
 
 ## Learning Path by Role
+
+**Table 1. Recommended learning path by role**
 
 | Role | Recommended Path |
 |------|----------|

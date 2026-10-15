@@ -27,6 +27,8 @@ sidebar_label: 방법론
 
 방법론 트랙은 4개의 핵심 문서로 구성되며, 순서대로 읽으면 AIDLC의 전체 이론 체계를 이해할 수 있습니다.
 
+**그림 1. 방법론 트랙 4개 문서의 읽기 순서와 관계**
+
 ```mermaid
 flowchart LR
     P["10대 원칙<br/>Intent · Unit · Bolt"] --> O["온톨로지<br/>WHAT + WHEN"]
@@ -40,17 +42,19 @@ flowchart LR
     style D fill:#9b59b6,color:#fff
 ```
 
+**표 1. 방법론 트랙 문서 구성과 각 문서의 핵심 질문**
+
 | 순서 | 문서 | 핵심 질문 |
 |------|------|----------|
 | 1 | [10대 원칙과 실행 모델](./principles-and-model.md) | AIDLC는 무엇이고, 어떻게 동작하는가? (공식 5대 원칙 + Intent/Unit/Bolt 매핑) |
-| 2 | [온톨로지 엔지니어링](./ontology-engineering.md) 🧩 | AI가 생성하는 코드의 **정확성**을 어떻게 보장하는가? (확장) |
-| 3 | [하네스 엔지니어링](./harness-engineering.md) 🧩 | AI 실행의 **안전성**을 어떻게 아키텍처로 강제하는가? (확장) |
+| 2 | [온톨로지 엔지니어링](./ontology-engineering.md) (확장) | AI가 생성하는 코드의 **정확성**을 어떻게 보장하는가? (확장) |
+| 3 | [하네스 엔지니어링](./harness-engineering.md) (확장) | AI 실행의 **안전성**을 어떻게 아키텍처로 강제하는가? (확장) |
 | 4 | [DDD 통합](./ddd-integration.md) | 비즈니스 도메인을 AI가 이해하는 설계로 어떻게 변환하는가? |
-| 5 | [Common Rules](./common-rules.md) ⭐ | 공식 AIDLC 11개 공통 규칙은 무엇이며 어떻게 적용하는가? |
-| 6 | [Adaptive Execution](./adaptive-execution.md) ⭐ | 공식 Inception 7 stage 와 Construction per-Unit 루프는 언제·어떻게 실행되는가? |
+| 5 | [Common Rules](./common-rules.md) (공식) | 공식 AIDLC 11개 공통 규칙은 무엇이며 어떻게 적용하는가? |
+| 6 | [Adaptive Execution](./adaptive-execution.md) (공식) | 공식 Inception 7 stage 와 Construction per-Unit 루프는 언제·어떻게 실행되는가? |
 
-> ⭐ AWS Labs 공식 AIDLC 정합성 문서  
-> 🧩 engineering-playbook 독자 확장 (엔터프라이즈 신뢰성)
+> (공식) AWS Labs 공식 AIDLC 정합성 문서  
+> (확장) engineering-playbook 독자 확장 (엔터프라이즈 신뢰성)
 
 ## 다른 트랙과의 관계
 

@@ -29,6 +29,8 @@ sidebar_position: 2
 
 **AIDLC 적용 방법:**
 
+**그림 1. Level 3 비동기 이벤트 기반 MSA의 AIDLC 적용 흐름**
+
 ```mermaid
 graph LR
     A[요구사항] --> B[이벤트 스토밍]
@@ -85,11 +87,11 @@ invariants:
 
 ### 하네스 체크리스트
 
-- ✅ 이벤트 스키마 검증 (Avro, Protobuf)
-- ✅ 멱등성 하네스 (중복 이벤트 처리)
-- ✅ 이벤트 순서 검증
-- ✅ Eventually Consistent 테스트 (Eventual 상태 검증)
-- ✅ Dead Letter Queue 처리
+- 적용: 이벤트 스키마 검증 (Avro, Protobuf)
+- 적용: 멱등성 하네스 (중복 이벤트 처리)
+- 적용: 이벤트 순서 검증
+- 적용: Eventually Consistent 테스트 (Eventual 상태 검증)
+- 적용: Dead Letter Queue 처리
 
 ### 적용 전략
 
@@ -108,6 +110,8 @@ invariants:
 - 복잡한 실패 시나리오
 
 **AIDLC 적용 방법:**
+
+**그림 2. Level 4 Saga + 보상 트랜잭션의 AIDLC 적용 흐름**
 
 ```mermaid
 graph TB
@@ -185,12 +189,12 @@ saga:
 
 ### 하네스 체크리스트
 
-- ✅ Saga 단계별 검증
-- ✅ 보상 트랜잭션 검증 (롤백 시나리오)
-- ✅ 타임아웃 하네스 (무한 대기 방지)
-- ✅ 재시도 정책 검증
-- ✅ 서킷 브레이커
-- ✅ 분산 추적 (OpenTelemetry)
+- 적용: Saga 단계별 검증
+- 적용: 보상 트랜잭션 검증 (롤백 시나리오)
+- 적용: 타임아웃 하네스 (무한 대기 방지)
+- 적용: 재시도 정책 검증
+- 적용: 서킷 브레이커
+- 적용: 분산 추적 (OpenTelemetry)
 
 ### 하네스 구현 예시
 

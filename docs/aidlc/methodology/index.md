@@ -19,6 +19,8 @@ This track explains how AIDLC organizes collaboration between people and AI duri
 
 The methodology track consists of 4 core documents. Reading them in order will help you understand the entire theoretical framework of AIDLC.
 
+**Figure 1. Reading order and relationships of the four methodology-track documents**
+
 ```mermaid
 flowchart LR
     P["10 Principles<br/>Intent · Unit · Bolt"] --> O["Ontology<br/>WHAT + WHEN"]
@@ -31,6 +33,8 @@ flowchart LR
     style H fill:#e74c3c,color:#fff
     style D fill:#9b59b6,color:#fff
 ```
+
+**Table 1. Methodology-track document structure and the core question of each document**
 
 | Order | Document | Core Question |
 |------|------|----------|
