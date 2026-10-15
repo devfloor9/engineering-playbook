@@ -3,9 +3,9 @@ title: 컨테이너 이미지와 시작 시간
 description: 이미지 빌드, 프리풀, 시작 시간 비교를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 3
 tags:
   - eks
   - kubernetes
@@ -75,14 +75,23 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# 프로덕션 의존성만 복사
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+# 애플리케이션 소스를 먼저 복사한 뒤, 빌더의 프로덕션 의존성으로 덮어씁니다.
+# (아래 .dockerignore로 로컬 node_modules가 컨텍스트에 포함되지 않도록 합니다.)
 COPY --chown=nodejs:nodejs . .
+# 프로덕션 의존성만 복사(빌더 산출물로 node_modules 확정)
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 
 USER nodejs
 
 EXPOSE 8080
 CMD ["node", "server.js"]
+```
+
+빌드 컨텍스트의 로컬 `node_modules`가 빌더의 프로덕션 전용 의존성을 덮어쓰지 않도록, `.dockerignore`로 제외합니다.
+
+```text
+# .dockerignore
+node_modules
 ```
 
 **최적화 팁:**
@@ -101,7 +110,7 @@ COPY pom.xml .
 RUN mvn dependency:go-offline
 
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -Dmaven.jar.finalName=app
 
 # 실행 스테이지
 FROM eclipse-temurin:21-jre-alpine
@@ -110,7 +119,9 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
+# 단일 산출물 이름을 지정해 복사합니다. 와일드카드(`*.jar`)는 Maven이 jar를
+# 둘 이상 생성하면(plain + repackaged 등) 대상이 모호해져 실패할 수 있습니다.
+COPY --from=builder /app/target/app.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-Xms512m", "-Xmx1g", "-jar", "app.jar"]
@@ -129,13 +140,24 @@ metadata:
   name: default
 spec:
   amiFamily: AL2
+  # v1beta1 EC2NodeClass는 subnetSelectorTerms, securityGroupSelectorTerms,
+  # 그리고 role 또는 instanceProfile 중 하나가 필수입니다.
+  role: "KarpenterNodeRole-cluster"
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "cluster"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "cluster"
   userData: |
     #!/bin/bash
     # 자주 사용하는 이미지 프리풀
-    docker pull myapp/backend:v2.1.0
-    docker pull myapp/frontend:v1.5.3
-    docker pull redis:7-alpine
-    docker pull postgres:16-alpine
+    # EKS 최적화 AMI는 Docker가 아니라 containerd를 사용하므로 docker가 없습니다.
+    # containerd용 ctr(또는 crictl)로 이미지를 받습니다.
+    ctr -n k8s.io images pull docker.io/myapp/backend:v2.1.0
+    ctr -n k8s.io images pull docker.io/myapp/frontend:v1.5.3
+    ctr -n k8s.io images pull docker.io/library/redis:7-alpine
+    ctr -n k8s.io images pull docker.io/library/postgres:16-alpine
 ```
 
 #### DaemonSet으로 이미지 프리풀 {#daemonset으로-이미지-프리풀}
@@ -157,12 +179,13 @@ spec:
     spec:
       initContainers:
       # 프리풀할 이미지마다 init container 추가
+      # scratch/distroless 이미지에는 셸(sh)이 없으므로 command를 지정하지 않습니다.
+      # 이미지가 노드에 당겨진 것 자체가 프리풀 완료를 의미하며, init container는
+      # 이미지의 기본 ENTRYPOINT로 즉시 완료되거나 pause 컨테이너로 대체합니다.
       - name: prepull-backend
         image: myapp/backend:v2.1.0
-        command: ["sh", "-c", "echo 'Image pulled'"]
       - name: prepull-frontend
         image: myapp/frontend:v1.5.3
-        command: ["sh", "-c", "echo 'Image pulled'"]
       containers:
       - name: pause
         image: registry.k8s.io/pause:3.9

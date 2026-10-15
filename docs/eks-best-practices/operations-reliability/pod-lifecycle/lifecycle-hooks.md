@@ -3,9 +3,9 @@ title: Pod lifecycle hooks
 description: Review the execution flow and examples for PostStart and PreStop.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 4
+reading_time: 5
 tags:
   - eks
   - kubernetes
@@ -27,9 +27,9 @@ Lifecycle hooks execute custom logic at specific points in a container's lifecyc
 The PostStart hook runs immediately after a container is created.
 
 **Characteristics:**
-- Runs **asynchronously** with the container's ENTRYPOINT
+- Runs **concurrently** with the container's ENTRYPOINT
 - The container is terminated if the hook fails
-- The container enters the `Running` state without waiting for the hook to complete
+- The container does not transition to the `Running` state until the hook completes; a hook that runs too long or hangs delays the transition to `Running`
 
 ```yaml
 apiVersion: v1
@@ -91,12 +91,18 @@ spec:
             sleep 5
 
             # 2. Save application state
-            curl -X POST http://localhost:8080/admin/save-state
+            #    Use a transfer deadline (--max-time) and failure handling (-f) so a
+            #    hung or failing save still proceeds within terminationGracePeriodSeconds.
+            curl -sf --max-time 10 -X POST http://localhost:8080/admin/save-state \
+              || echo "save-state failed or timed out; proceeding"
 
-            # 3. Flush logs
-            kill -USR1 1  # Send the USR1 signal to the application
+            # 3. Flush logs: USR1 has no standard meaning; it is application-defined.
+            #    (Valid only if the app implements USR1 as a log flush.)
+            kill -USR1 1
 
-            # 4. Send SIGTERM (PID 1)
+            # 4. Send SIGTERM (PID 1): kubelet sends SIGTERM after preStop completes,
+            #    so this manual send is usually redundant; use it only to force an
+            #    immediate stop.
             kill -TERM 1
   terminationGracePeriodSeconds: 60
 ```
@@ -109,7 +115,7 @@ spec:
 
 ### Hook Execution Mechanisms {#53-hook-실행-메커니즘}
 
-Kubernetes executes hooks through two mechanisms.
+Kubernetes executes hook handlers through three mechanisms. In addition to the `exec` and `httpGet` handlers in the table below, it also provides a `sleep` handler that pauses the container for a specified duration.
 
 **Table 1. Hook execution mechanisms: advantages and disadvantages**
 
@@ -117,6 +123,7 @@ Kubernetes executes hooks through two mechanisms.
 |----------|------|------|------|
 | **exec** | Execute commands inside the container | Access to the container filesystem | High overhead |
 | **httpGet** | Send an HTTP GET request | Network-based and lightweight | The application must support HTTP |
+| **sleep** | Pause the container for a specified duration | No external command or endpoint needed | Only a fixed delay (cannot wait on a condition) |
 
 #### exec Hook Example {#exec-hook-예시}
 

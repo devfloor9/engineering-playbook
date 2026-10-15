@@ -3,7 +3,7 @@ title: AI 기반 Probe 최적화
 description: 관측 데이터와 AI를 활용하는 Probe 최적화 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 5
 tags:
@@ -76,23 +76,21 @@ Kiro는 AWS의 AI 기반 운영 도구로, MCP(Model Context Protocol) 서버를
 
 **설치 및 설정:**
 
+:::note 예시 명령에 대한 안내
+아래 블록은 설정 흐름을 개념적으로 보여주는 예시입니다. `brew install aws/tap/kiro`를 비롯한 명령과 `kiro mcp add` / `kiro agent create` 플래그는 현재 공식 Kiro CLI 문서에 그대로 존재하는 명령이 아니므로, 실제 설치 방법과 명령어는 [Kiro 설치 문서](https://kiro.dev/docs/getting-started/installation)와 [CLI 명령 레퍼런스](https://kiro.dev/docs/reference/cli-commands)에서 확인한 뒤 사용합니다.
+:::
+
 ```bash
-# Kiro CLI 설치 (macOS)
-brew install aws/tap/kiro
-
-# EKS MCP Server 설정
-kiro mcp add eks \
-  --server-type eks \
-  --cluster-name production-eks \
-  --region ap-northeast-2
-
-# Probe 최적화 에이전트 활성화
-kiro agent create probe-optimizer \
-  --type eks-health-check \
-  --auto-remediate true
+# (예시) Kiro CLI를 설치합니다. 실제 설치 명령은 공식 설치 문서를 따릅니다.
+# EKS MCP Server를 설정합니다(예시).
+# Probe 최적화 에이전트를 활성화합니다(예시).
 ```
 
 **Probe 실패 자동 진단 워크플로우:**
+
+:::note 데이터 소스별 MCP 서버·권한 범위
+아래 워크플로우의 단계가 참조하는 데이터 소스는 각각 다른 MCP 서버와 권한을 요구합니다. `getPodLogs`와 `getKubernetesEvents`는 EKS MCP 서버가 제공하는 읽기 범위의 기능에 해당하지만, CloudWatch 지표(`getCloudWatchMetrics`)와 네트워크 관측성(`getNetworkObservability`)은 EKS MCP 서버의 기본 도구가 아니며 별도의 서버·IAM 권한 구성이 필요합니다. 하나의 MCP 설정만으로 모든 데이터 소스와 쓰기 작업이 자동으로 열리지는 않으므로, 사용하려는 도구마다 제공 서버와 읽기/쓰기 권한을 확인합니다.
+:::
 
 ```yaml
 # Kiro Agent 설정 - Probe 실패 자동 대응
@@ -121,6 +119,10 @@ spec:
             dimensions:
               - name: PodName
                 value: ${event.podName}
+              - name: Namespace
+                value: ${event.namespace}
+              - name: ClusterName
+                value: production-eks
             period: 300
         - getNetworkObservability:
             podName: ${event.podName}
@@ -214,6 +216,10 @@ spec:
               Context: ${context}
 ```
 
+:::warning 자동 변경(auto-remediate)은 프로덕션 가드레일 없이는 비프로덕션 예시로만 사용
+위 `auto-remediate` 단계는 모델 신뢰도(`confidence: ">0.8"`)만으로 프로덕션 Deployment를 패치합니다. 출력 스키마 검증, 권장값의 상·하한 범위, 변경 후 독립적인 성공 확인, 자동 롤백, 프로덕션 변경에 대한 사람 승인 같은 가드레일이 구현되어 있지 않으므로, 이 블록을 그대로 프로덕션 지침으로 적용하지 않습니다. 프로덕션에서는 이러한 가드레일을 갖추거나, 변경 적용 전 운영자 승인을 거치는 Suggest Mode로 운용합니다.
+:::
+
 **실제 사용 예시 - Probe 타임아웃 자동 최적화:**
 
 ```bash
@@ -271,7 +277,13 @@ kind: Deployment
 metadata:
   name: myapp
 spec:
+  selector:
+    matchLabels:
+      app: myapp
   template:
+    metadata:
+      labels:
+        app: myapp
     spec:
       containers:
       - name: app
@@ -380,14 +392,18 @@ spec:
         - probeType: liveness
           errorPattern: "connection refused"
           timing: "after deployment"
-      rootCause: "NetworkPolicy not allowing kubelet access"
+      rootCause: "NetworkPolicy가 노드(kubelet)에서 오는 프로브 트래픽을 차단"
       solution:
+        # kubelet 프로브는 Pod가 아니라 노드에서 발생하므로 Pod/Namespace
+        # 셀렉터로는 안정적으로 매칭되지 않습니다. 노드 CIDR을 ipBlock으로
+        # 허용하고, 대상 Pod와 포트로 범위를 좁힙니다.
         - action: updateNetworkPolicy
           allowFrom:
-            - podSelector: {}  # Allow from all pods in namespace
-            - namespaceSelector:
-                matchLabels:
-                  name: kube-system
+            - ipBlock:
+                cidr: ${cluster.nodeCIDR}  # 예: 노드 서브넷 CIDR
+          ports:
+            - protocol: TCP
+              port: ${probe.port}
       confidence: 0.92
       resolvedCount: 34
       lastSeen: "2026-02-08"

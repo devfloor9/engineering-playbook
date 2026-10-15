@@ -3,9 +3,9 @@ title: Pod 종료 시퀀스
 description: 종료 요청부터 컨테이너 종료까지의 흐름을 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - eks
   - kubernetes
@@ -68,17 +68,19 @@ sequenceDiagram
 
 **타이밍 세부 사항:**
 
+아래 타이밍은 `terminationGracePeriodSeconds: 60`과 preStop `sleep 5`를 가정한 예시이며, 실제 시각은 설정한 grace period와 preStop 대기 시간에 따라 달라집니다.
+
 1. **T+0초**: `kubectl delete pod` 또는 롤링 업데이트로 Pod 삭제 요청
-2. **T+0초**: API Server가 Pod 상태를 `Terminating`으로 변경
+2. **T+0초**: API Server가 Pod에 `deletionTimestamp`를 설정(`kubectl`에서는 `Terminating`으로 표시됨)
 3. **T+0초**: **비동기적으로** 두 작업 동시 시작:
    - Endpoint Controller가 Service Endpoints에서 Pod IP 제거
    - kubelet이 preStop Hook 실행
 4. **T+0~5초**: preStop Hook의 `sleep 5` 실행 (Endpoints 제거 대기)
-5. **T+5초**: preStop Hook이 `kill -TERM 1` 실행 → SIGTERM 전송
+5. **T+5초**: preStop Hook 완료 후 kubelet이 컨테이너 런타임에 PID 1로 SIGTERM 전송을 요청
 6. **T+5초**: 애플리케이션이 SIGTERM 수신, Graceful Shutdown 시작
 7. **T+5~60초**: 애플리케이션이 진행 중인 요청 완료, 정리 작업 수행
 8. **T+60초**: `terminationGracePeriodSeconds` 도달 시 SIGKILL (강제 종료)
 
 :::tip preStop sleep이 필요한 이유
-Endpoint 제거와 preStop Hook 실행은 **비동기**로 발생합니다. preStop에 5초 sleep을 추가하면, Endpoint Controller와 kube-proxy가 iptables를 업데이트하여 새로운 트래픽이 종료 중인 Pod으로 유입되지 않도록 보장합니다. 이 패턴 없이는 종료 중인 Pod으로 트래픽이 계속 전송되어 502/503 에러가 발생할 수 있습니다.
+Endpoint 제거와 preStop Hook 실행은 **비동기**로 발생합니다. preStop에 sleep을 두면(예: 5초), Endpoint Controller와 kube-proxy가 iptables를 업데이트할 시간을 벌어 새로운 트래픽이 종료 중인 Pod으로 유입될 가능성을 줄입니다. 다만 고정된 5초가 전파 완료를 보장하지는 않으며, 필요한 지연 시간은 EndpointSlice와 kube-proxy의 갱신 지연에 따라 더 크거나 작을 수 있으므로 환경에 맞게 조정합니다. 이 패턴 없이는 종료 중인 Pod으로 트래픽이 계속 전송되어 502/503 에러가 발생할 수 있습니다.
 :::

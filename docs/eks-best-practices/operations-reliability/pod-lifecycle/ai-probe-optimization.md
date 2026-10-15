@@ -3,9 +3,9 @@ title: AI-assisted probe optimization
 description: Review probe optimization examples that use observability data and AI.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 6
+reading_time: 9
 tags:
   - eks
   - kubernetes
@@ -76,23 +76,21 @@ Kiro is an AI-powered operations tool from AWS that interacts with AWS resources
 
 **Installation and configuration:**
 
+:::note About the example commands
+The block below illustrates the configuration flow conceptually. Commands such as `brew install aws/tap/kiro` and the `kiro mcp add` / `kiro agent create` flags are not literal commands in the current official Kiro CLI documentation, so confirm the real installation method and command syntax in the [Kiro installation docs](https://kiro.dev/docs/getting-started/installation) and the [CLI command reference](https://kiro.dev/docs/reference/cli-commands) before using them.
+:::
+
 ```bash
-# Install the Kiro CLI (macOS)
-brew install aws/tap/kiro
-
-# Configure the EKS MCP Server
-kiro mcp add eks \
-  --server-type eks \
-  --cluster-name production-eks \
-  --region ap-northeast-2
-
-# Enable the Probe optimization agent
-kiro agent create probe-optimizer \
-  --type eks-health-check \
-  --auto-remediate true
+# (Example) Install the Kiro CLI. Follow the official installation docs for the real command.
+# Configure the EKS MCP Server (example).
+# Enable the Probe optimization agent (example).
 ```
 
 **Automatic Probe failure diagnosis workflow:**
+
+:::note MCP server and permission scope per data source
+The data sources referenced by the steps below require different MCP servers and permissions. `getPodLogs` and `getKubernetesEvents` map to read-scoped capabilities of the EKS MCP server, but CloudWatch metrics (`getCloudWatchMetrics`) and network observability (`getNetworkObservability`) are not default EKS MCP server tools and need a separate server and IAM permissions. A single MCP configuration does not automatically expose every data source or write action, so confirm the providing server and the read/write permission for each tool you use.
+:::
 
 ```yaml
 # Kiro Agent configuration - automatic response to Probe failures
@@ -121,6 +119,10 @@ spec:
             dimensions:
               - name: PodName
                 value: ${event.podName}
+              - name: Namespace
+                value: ${event.namespace}
+              - name: ClusterName
+                value: production-eks
             period: 300
         - getNetworkObservability:
             podName: ${event.podName}
@@ -214,6 +216,10 @@ spec:
               Context: ${context}
 ```
 
+:::warning Treat auto-remediate as a non-production illustration without guardrails
+The `auto-remediate` step above patches a production Deployment based only on a model confidence score (`confidence: ">0.8"`). It implements no output-schema validation, no bounds on recommended values, no independent post-change success check, no automatic rollback, and no human approval for production changes, so do not apply this block as production guidance as-is. In production, add these guardrails or run in a Suggest Mode that requires operator approval before any change is applied.
+:::
+
 **Usage example - automatic Probe timeout optimization:**
 
 ```bash
@@ -271,7 +277,13 @@ kind: Deployment
 metadata:
   name: myapp
 spec:
+  selector:
+    matchLabels:
+      app: myapp
   template:
+    metadata:
+      labels:
+        app: myapp
     spec:
       containers:
       - name: app
@@ -380,14 +392,18 @@ spec:
         - probeType: liveness
           errorPattern: "connection refused"
           timing: "after deployment"
-      rootCause: "NetworkPolicy not allowing kubelet access"
+      rootCause: "NetworkPolicy blocks probe traffic originating from the node (kubelet)"
       solution:
+        # kubelet probes originate from the node, not from pods, so pod/namespace
+        # selectors do not reliably match them. Allow the node CIDR via ipBlock and
+        # scope the rule to the target pod and port.
         - action: updateNetworkPolicy
           allowFrom:
-            - podSelector: {}  # Allow from all pods in namespace
-            - namespaceSelector:
-                matchLabels:
-                  name: kube-system
+            - ipBlock:
+                cidr: ${cluster.nodeCIDR}  # e.g. the node subnet CIDR
+          ports:
+            - protocol: TCP
+              port: ${probe.port}
       confidence: 0.92
       resolvedCount: 34
       lastSeen: "2026-02-08"

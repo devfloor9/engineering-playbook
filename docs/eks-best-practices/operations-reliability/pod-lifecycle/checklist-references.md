@@ -3,9 +3,9 @@ title: Deployment checklist and references
 description: Review pre-deployment checks and the complete reference list.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 7
+reading_time: 8
 tags:
   - eks
   - kubernetes
@@ -30,11 +30,11 @@ category: operations
 |------|----------|---------|
 | **Startup Probe** | Configure a startup probe for applications with slow startup (30+ seconds) | High |
 | **Liveness Probe** | Check internal state only, excluding external dependencies | Required |
-| **Readiness Probe** | Check readiness to receive traffic, including external dependencies | Required |
+| **Readiness Probe** | Check readiness to receive traffic. Include external dependencies only when they are per-replica (exclude dependencies shared by all replicas, which cause correlated failures) | Required |
 | **Probe timing** | Verify that failureThreshold × periodSeconds is appropriate | Medium |
 | **Probe paths** | Separate `/healthz` (liveness) and `/ready` (readiness) | High |
-| **ALB health checks** | Verify that the path matches the readiness probe | High |
-| **Pod Readiness Gates** | Enable when using an ALB/NLB | Medium |
+| **ALB health checks** | Verify the ALB health-check path is a valid health endpoint (it need not match the readiness probe path) | High |
+| **Pod Readiness Gates** | Use with IP target mode or namespaces where the readiness gate is injected | Medium |
 
 #### Graceful Shutdown {#graceful-shutdown}
 
@@ -42,7 +42,7 @@ category: operations
 
 | Item | Check | Priority |
 |------|----------|---------|
-| **preStop Hook** | Add `sleep 5` to wait for endpoint removal | Required |
+| **preStop Hook** | Add a `sleep` to wait for endpoint propagation (e.g. 5s; tune to EndpointSlice/kube-proxy update latency) | Required |
 | **SIGTERM handling** | Implement a SIGTERM handler in the application | Required |
 | **terminationGracePeriodSeconds** | Configure to account for preStop + shutdown time (30-120 seconds) | Required |
 | **Connection Draining** | Implement cleanup logic for HTTP Keep-Alive and WebSocket connections | High |
@@ -67,9 +67,9 @@ category: operations
 
 | Item | Check | Priority |
 |------|----------|---------|
-| **PodDisruptionBudget** | Configure minAvailable or maxUnavailable | Required |
+| **PodDisruptionBudget** | Configure minAvailable or maxUnavailable for multi-replica stateless services (singletons, batch, and leader-elected workloads are exceptions) | Required |
 | **Topology Spread** | Configure distribution across multiple AZs | High |
-| **Replica count** | At least 2 (3+ in production) | Required |
+| **Replica count** | At least 2 for stateless HA services (3+ in production). Does not apply to singletons/stateful/batch; also consider node capacity limits | Required |
 | **Affinity/Anti-Affinity** | Prevent placement on the same node | Medium |
 
 ### Related Documents {#72-관련-문서}

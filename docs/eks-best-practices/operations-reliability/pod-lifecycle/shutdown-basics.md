@@ -3,9 +3,9 @@ title: Pod termination sequence
 description: Review the flow from a termination request to container shutdown.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 3
+reading_time: 4
 tags:
   - eks
   - kubernetes
@@ -68,17 +68,19 @@ sequenceDiagram
 
 **Timing details:**
 
+These timings assume `terminationGracePeriodSeconds: 60` and a preStop `sleep 5`; the actual times scale with the configured grace period and preStop wait.
+
 1. **T+0 seconds**: Pod deletion is requested through `kubectl delete pod` or a rolling update
-2. **T+0 seconds**: The API Server changes the Pod status to `Terminating`
+2. **T+0 seconds**: The API Server sets the Pod's `deletionTimestamp` (shown by `kubectl` as `Terminating`)
 3. **T+0 seconds**: Two operations start concurrently and **asynchronously**:
    - The Endpoint Controller removes the Pod IP from Service Endpoints
    - kubelet executes the preStop hook
 4. **T+0~5 seconds**: The preStop hook runs `sleep 5` (waiting for Endpoints removal)
-5. **T+5 seconds**: The preStop hook runs `kill -TERM 1` → sends SIGTERM
+5. **T+5 seconds**: After preStop completes, kubelet requests the container runtime to send SIGTERM to PID 1
 6. **T+5 seconds**: The application receives SIGTERM and starts graceful shutdown
 7. **T+5~60 seconds**: The application completes in-flight requests and performs cleanup
 8. **T+60 seconds**: SIGKILL (forced termination) is sent when `terminationGracePeriodSeconds` is reached
 
 :::tip Why preStop sleep is necessary
-Endpoint removal and preStop hook execution occur **asynchronously**. Adding a 5-second sleep to preStop allows the Endpoint Controller and kube-proxy to update iptables, ensuring that new traffic does not reach the terminating Pod. Without this pattern, traffic may continue to reach the terminating Pod and cause 502/503 errors.
+Endpoint removal and preStop hook execution occur **asynchronously**. Adding a sleep to preStop (e.g. 5 seconds) buys time for the Endpoint Controller and kube-proxy to update iptables, which reduces the chance that new traffic reaches the terminating Pod. A fixed 5 seconds does not guarantee that propagation has completed, though: the delay actually needed depends on EndpointSlice and kube-proxy update latency and may be larger or smaller, so tune it to your environment. Without this pattern, traffic may continue to reach the terminating Pod and cause 502/503 errors.
 :::
