@@ -3,9 +3,9 @@ title: LLMOps Observability Comparison Guide
 description: LLMOps observability tool comparison — Langfuse·LangSmith·Helicone·CloudWatch selection criteria and hybrid architecture (for Langfuse operations, see Agent Monitoring)
 created: "2026-03-16"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 22
+reading_time: 28
 tags:
   - eks
   - observability
@@ -78,6 +78,8 @@ flowchart TB
     style H fill:#76b900,stroke:#333
 ```
 
+The token counts, costs ($0.0024, $0.0285), and quality scores (Faithfulness 0.92, Relevancy 0.88) in the figure above are illustrative values that show the trace and span structure; they are not measured values.
+
 ### 2.2 Key Concept Definitions
 
 **Table 1. Key LLMOps Observability concept definitions**
@@ -118,22 +120,24 @@ flowchart TB
 - Evaluator library: Pre-defined evaluators, comparison mode
 - Annotation queue: Team collaboration, RLHF data source
 
-**Advantages**: Deep LangChain integration, managed service, integration within 5 minutes
+**Advantages**: Tight integration with LangChain and LangGraph makes chain-tracing setup simple, and it is a managed service that requires no infrastructure operation.
 
-**Disadvantages**: LangChain dependency, cloud-only (enterprise only for self-hosted), per-trace billing
+**Disadvantages**: It is designed around the LangChain ecosystem, so the benefits are reduced with other frameworks or custom code. The default offering is managed cloud; self-hosting is available on the enterprise plan. Billing is per trace.
 
 ### 3.3 Helicone
 
 **Rust-based high-performance LLM Gateway + Observability integrated solution**
 
 **Core Features**:
-- Zero-code integration: Automatic tracking with just OpenAI endpoint URL change
+- Integration method: Point an OpenAI-compatible SDK's base URL at the Helicone AI Gateway and add your Helicone API key in the Authorization header, and requests are logged automatically. Model calls use either Helicone credits or your own provider keys (BYOK).
 - Built-in gateway features: Rate limiting, caching, retries, load balancing
 - Real-time cost dashboard
 
-**Advantages**: Ultra-fast integration (URL change only), high performance (Rust, &lt;10ms latency), built-in gateway features
+**Advantages**: Integration is simple using only the SDK base URL and an API key, with built-in gateway features. Helicone's own benchmark describes the latency its proxy adds as negligible relative to direct calls (see the source below for the measurement conditions).
 
-**Disadvantages**: Lack of prompt management/evaluation pipeline, limited nested span tracking
+**Disadvantages**: It does not run evaluation orchestration itself; instead it ingests and analyzes evaluation scores reported from external frameworks, and nested span tracking is limited.
+
+For integration requirements see the Helicone [Quickstart](https://docs.helicone.ai/getting-started/quick-start), and for the proxy latency benchmark see the [Latency Impact](https://docs.helicone.ai/references/latency-affect) page (both verified 2026-10-15). The latency benchmark measured 500 requests with the `text-ada-001` model; absolute latency depends on the workload and network.
 
 ### 3.4 Solution Comparison Table
 
@@ -143,11 +147,11 @@ The per-feature levels (High, Medium, Low) in the table below are the author's q
 
 | Feature | Langfuse | LangSmith | Helicone |
 |---------|----------|-----------|----------|
-| **License** | MIT (open-source) | Proprietary | Proprietary (self-hosted available) |
+| **License** | MIT (open-source; `/ee` enterprise modules under a separate commercial license) | Proprietary | Apache-2.0 (open-source, self-hosted available) |
 | **Self-hosted** | Full support | Enterprise only | Supported |
 | **Tracing** | High | High | Medium |
-| **Prompt Management** | High (Version, A/B) | High (Hub) | Low (Simple storage) |
-| **Evaluation** | High (Pipeline) | High | None |
+| **Prompt Management** | High (Version, A/B) | High (Hub) | Supported (versioning) |
+| **Evaluation** | High (Pipeline) | High | Score ingestion (reports external-framework results) |
 | **Cost Tracking** | High | High | High |
 | **LangChain Integration** | High | High | Medium |
 | **Framework Neutrality** | High | Medium | High |
@@ -233,8 +237,8 @@ flowchart TB
 
 **Benefits**:
 - **Gateway Responsibility Separation**: kgateway (Envoy based) handles traffic management, authentication, rate limiting; Bifrost handles provider routing and caching
-- **Observability Specialization**: Langfuse handles tracing, evaluation, and prompt management
-- **Complete Self-hosted**: All components run on EKS
+- **Observability Specialization**: Langfuse handles tracing, evaluation, and prompt management. Langfuse also runs a Worker that processes events asynchronously and an object store (S3-compatible) that persists events and large inputs/outputs.
+- **Self-hosted gateway and observability components**: The gateway and observability application components run on EKS. External model services such as OpenAI, Anthropic, and Amazon Bedrock remain external dependencies, shown as External LLM in the figure.
 - **Scalability**: Scale each layer independently
 
 ### 4.3 Helicone Standalone vs Bifrost+Langfuse Comparison
@@ -244,8 +248,8 @@ flowchart TB
 | Aspect | Helicone Standalone | Bifrost + Langfuse |
 |--------|---------------------|---------------------|
 | **Integration Complexity** | Very low (URL change only) | Medium (SDK integration needed) |
-| **Prompt Management** | Limited (storage only) | Strong (version, A/B testing) |
-| **Evaluation Pipeline** | None | Full support (Ragas integration) |
+| **Prompt Management** | Supported (versioning) | Strong (version, A/B testing) |
+| **Evaluation Pipeline** | Score ingestion (reports external-framework results) | Full support (Ragas integration) |
 | **Chain Tracking** | Limited | Perfect (nested spans) |
 | **Scalability** | Gateway/Observability combined | Independent scaling |
 | **Suitable Scenario** | MVP, simple API calls | Enterprise, complex chains |
@@ -323,7 +327,7 @@ Langfuse Evaluation supports three methods:
 |--------|-------|-------------|-------------------|
 | **Faithfulness** | 0-1 | Is response faithful to provided context? | LLM-as-Judge |
 | **Answer Relevancy** | 0-1 | Is response relevant to question? | Ragas (embedding similarity) |
-| **Context Precision** | 0-1 | Is retrieved context relevant to question? | Ragas |
+| **Context Precision** | 0-1 | Are relevant contexts ranked near the top? (rank-weighted) | Ragas |
 | **Context Recall** | 0-1 | Is ground truth included in retrieved context? | Ragas |
 | **Toxicity** | 0-1 | Does response contain harmful content? | Detoxify library |
 | **Latency** | ms | Response generation latency | Auto-collected |
@@ -342,7 +346,7 @@ Ragas is a RAG system-specific evaluation framework that integrates with Langfus
 | Scenario | Recommended Solution | Reason |
 |----------|----------------------|--------|
 | **LangChain/LangGraph Centric Development** | LangSmith | Native LangChain integration, full chain tracking with one line of code |
-| **Data Sovereignty Required (Finance/Healthcare)** | Langfuse (self-hosted) | Store all data in own infrastructure, GDPR/HIPAA compliance |
+| **Data Sovereignty Required (Finance/Healthcare)** | Langfuse (self-hosted) | Direct control over where telemetry is stored and how it is configured. GDPR/HIPAA and similar compliance must be determined per deployment, and outbound data flows to external evaluators and model providers must also be reviewed |
 | **Quick Start (MVP/PoC)** | Helicone | Immediate tracking with URL change only, built-in gateway features |
 | **Prompt Engineering Team Operations** | Langfuse | Prompt version management, A/B testing, dataset + automated evaluation |
 | **Enterprise Hybrid** | Bifrost + Langfuse | Gateway/Observability responsibility separation, independent scaling |
@@ -353,9 +357,9 @@ Ragas is a RAG system-specific evaluation framework that integrates with Langfus
 
 ## 8. Summary
 
-1. **LLMOps Observability is Essential**: Traditional APM does not support token cost, prompt quality, and chain tracking for LLM workloads.
+1. **LLMOps Observability is Essential**: HTTP latency and error telemetry from an APM alone is not enough to judge token cost, prompt quality, and chain tracking for LLM workloads; add LLM-specific instrumentation and evaluation as well.
 2. **Three Major Solutions**: Langfuse (open-source, self-hosted, evaluation pipeline), LangSmith (LangChain optimized, managed), Helicone (proxy-based, Gateway+Observability integration)
-3. **Hybrid Architecture Recommendation**: Bifrost (Gateway) + Langfuse (Observability) combination is optimal for enterprise environments
+3. **Hybrid Architecture Recommendation**: Under the assumptions of separating gateway and observability responsibilities and needing data sovereignty and independent scaling, the Bifrost (Gateway) + Langfuse (Observability) combination is useful for enterprise environments.
 4. **OpenTelemetry Integration**: Connect existing APM and LLMOps observability with unified dashboard
 5. **Evaluation Pipeline**: Automated/manual quality evaluation using LLM-as-Judge, Ragas, Annotation Queue
 
