@@ -8,13 +8,13 @@ const PipelineComponents = () => {
   const components = [{
     name: 'Kubeflow Pipelines',
     role: isKo ? 'ML 워크플로우 오케스트레이션' : 'ML Workflow Orchestration',
-    stack: 'Argo Workflows, Tekton',
+    stack: isKo ? 'Argo Workflows (기본), Tekton (별도 선택 백엔드)' : 'Argo Workflows (default), Tekton (separately selected backend)',
     color: '#ff6b6b',
     bgColor: 'var(--ifm-color-emphasis-100)'
   }, {
     name: 'MLflow',
     role: isKo ? '실험 추적, 모델 레지스트리' : 'Experiment Tracking, Model Registry',
-    stack: 'MLflow Tracking Server, S3 Backend',
+    stack: isKo ? 'MLflow Tracking Server, S3 아티팩트 스토어' : 'MLflow Tracking Server, S3 Artifact Store',
     color: '#4ecdc4',
     bgColor: 'var(--ifm-color-emphasis-100)'
   }, {
