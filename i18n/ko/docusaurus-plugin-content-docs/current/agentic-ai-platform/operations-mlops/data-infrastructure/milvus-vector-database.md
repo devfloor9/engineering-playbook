@@ -3,9 +3,9 @@ title: Milvus 벡터 데이터베이스 통합
 description: Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법
 created: "2026-02-05"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 13
 tags:
   - milvus
   - vector-database
@@ -86,7 +86,6 @@ flowchart TB
         RC[Root]
         QC[Query]
         DC[Data]
-        IC[Index]
     end
 
     subgraph WRK["Workers"]
@@ -102,11 +101,11 @@ flowchart TB
     end
 
     SDK & REST --> P
-    P --> RC & QC & DC & IC
+    P --> RC & QC & DC
 
     QC --> QN
     DC --> DN
-    IC --> IN
+    DC --> IN
 
     RC --> E
     QN --> M
@@ -118,6 +117,8 @@ flowchart TB
     style IN fill:#e53935,stroke:#333
     style M fill:#ff9900,stroke:#333
 ```
+
+Milvus 2.3 이후 Index 조정 기능은 DataCoord에 통합되어 별도 IndexCoord가 없으므로, 위 그림에서는 DataCoord가 Index Node의 인덱스 작업을 함께 조정합니다.
 
 ### 컴포넌트 역할
 
@@ -156,8 +157,8 @@ MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습
 
 **S3 통합 고려사항:**
 - IRSA(IAM Roles for Service Accounts)를 사용한 권한 관리
-- S3 버킷 정책: GetObject, PutObject, DeleteObject, ListBucket 권한 필요
-- S3 Express One Zone: 단일 AZ 제한, 고성능 요구 시 권장
+- 범용 S3 버킷 정책: `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, `s3:ListBucket` 권한 필요
+- S3 Express One Zone(디렉터리 버킷)은 범용 S3와 권한·엔드포인트 모델이 다릅니다. 세션 기반 인증을 위해 `s3express:CreateSession` 권한이 추가로 필요하고, 범용 리전 엔드포인트가 아니라 가용 영역(AZ) 단위 존(zonal) 엔드포인트를 사용하며, S3 Express 디렉터리 버킷 API를 지원하는 클라이언트(또는 Milvus/MinIO 버전)여야 합니다. 또한 디렉터리 버킷은 단일 AZ에 위치하므로 가용성 요구사항을 함께 검토합니다.
 
 :::info 상세 배포 가이드
 Milvus 배포 상세 절차, Helm values 설정, S3 IAM 정책 예제는 [Milvus 공식 Helm 차트 문서](https://milvus.io/docs/install_cluster-helm.md)를 참조하세요.
@@ -257,7 +258,7 @@ vectorstore = Milvus.from_documents(
         "port": "19530",
     },
     collection_name="langchain_docs",
-    drop_old=True,
+    drop_old=True,  # 주의: 기존 langchain_docs 컬렉션을 삭제 후 재생성합니다(데이터 손실). 일회용 데모 컬렉션에만 사용하고, 운영 데이터에는 False로 두어 재사용하세요.
 )
 
 # 유사도 검색
@@ -273,7 +274,7 @@ for doc in docs:
 ### LlamaIndex 통합 예제
 
 ```python
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings, StorageContext
 from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.embeddings.openai import OpenAIEmbedding
 
@@ -285,14 +286,19 @@ vector_store = MilvusVectorStore(
     uri="http://milvus-proxy.ai-data.svc.cluster.local:19530",
     collection_name="llamaindex_docs",
     dim=1536,
-    overwrite=True,
+    overwrite=True,  # 주의: 기존 llamaindex_docs 컬렉션을 덮어씁니다(데이터 손실). 일회용 데모 컬렉션에만 사용하고, 운영 데이터에는 False로 두어 재사용하세요.
 )
+
+# StorageContext로 벡터 스토어를 명시적으로 연결합니다.
+# vector_store를 from_documents에 직접 넘기지 않고 StorageContext로 전달해야
+# 인덱스가 기본 StorageContext가 아닌 Milvus에 저장/조회됩니다.
+storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
 # 문서 로드 및 인덱싱
 documents = SimpleDirectoryReader("./documents").load_data()
 index = VectorStoreIndex.from_documents(
     documents,
-    vector_store=vector_store,
+    storage_context=storage_context,
 )
 
 # 쿼리 엔진 생성
@@ -376,10 +382,12 @@ results = collection.search(
 
 ### 하이브리드 검색 (벡터 + 키워드)
 
+아래 예제는 밀집(dense) 벡터 요청 하나만 구성한 스캐폴딩이며, 그대로 실행하면 밀집 검색만 수행합니다. 실제 벡터+키워드 하이브리드 검색을 하려면 (1) 스키마에 Sparse-BM25 필드를 추가하고, (2) 해당 필드에 희소 벡터를 색인·삽입한 뒤, (3) 두 번째 `AnnSearchRequest`(희소/BM25)를 만들어 `reqs`에 함께 넣어야 RRF 융합이 동작합니다. Sparse-BM25 전문 검색은 Milvus 2.5+(v2.5.0, 2024-12-23)에서 지원합니다.
+
 ```python
 from pymilvus import AnnSearchRequest, RRFRanker
 
-# 벡터 검색 요청
+# 밀집(dense) 벡터 검색 요청
 vector_search = AnnSearchRequest(
     data=[query_embedding],
     anns_field="embedding",
@@ -387,10 +395,8 @@ vector_search = AnnSearchRequest(
     limit=20
 )
 
-# 키워드 검색을 위한 BM25 스코어 (내장 Sparse-BM25 full-text search)
-# Milvus 2.5+ 에서 지원 (v2.5.0, 2024-12-23)
-
-# RRF(Reciprocal Rank Fusion)로 결과 병합
+# 밀집 요청만 전달하므로 아래는 밀집 검색입니다.
+# 하이브리드로 확장하려면 희소/BM25용 두 번째 AnnSearchRequest를 reqs에 추가하세요.
 results = collection.hybrid_search(
     reqs=[vector_search],
     ranker=RRFRanker(k=60),
@@ -417,9 +423,9 @@ Milvus는 공식 백업 도구(`milvus-backup`)를 제공하여 컬렉션 데이
 
 **DR 전략:**
 - **크로스 리전 S3 복제**: 백업 데이터를 다른 AWS 리전으로 자동 복제
-- **복구 시간 목표(RTO)**: S3 복제 지연 + Milvus 클러스터 프로비저닝 시간
-- **복구 시점 목표(RPO)**: 백업 주기에 따라 결정 (일반적으로 6-24시간)
-- **자동화**: CronJob을 사용한 주기적 백업 및 동기화
+- **복구 시간 목표(RTO)**: 복원 리허설로 검증한 목표값으로 정의합니다. 전체 복구 시간에는 S3 복제 지연뿐 아니라 백업 복원(import), 인덱스 재빌드·로드, 데이터 검증 시간이 모두 포함됩니다.
+- **복구 시점 목표(RPO)**: 성공적으로 복제가 완료된 가장 오래된 백업의 나이로 결정됩니다. 따라서 RPO는 백업 주기와 복제 지연에 의해 결정되며, 주간 백업을 허용하면 최악의 경우 RPO가 1주를 넘을 수 있습니다. 6~24시간 수준의 RPO가 필요하면 백업 주기를 그에 맞춰 하루 수회로 단축해야 합니다.
+- **자동화**: CronJob을 사용한 주기적 백업 및 동기화, 복원 리허설 정기 수행
 
 :::info 상세 백업 가이드
 백업 도구 설치, 설정 파일 작성, CronJob 구성 등 상세 절차는 [Milvus 백업 및 복원 가이드](https://milvus.io/docs/milvus_backup_cli.md)를 참조하세요.

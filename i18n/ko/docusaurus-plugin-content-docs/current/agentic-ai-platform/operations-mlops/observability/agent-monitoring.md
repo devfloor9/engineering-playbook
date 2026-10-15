@@ -3,9 +3,9 @@ title: AI Agent 모니터링 및 운영
 description: Langfuse 기반 Agent 모니터링 운영 전용 문서 — 모니터링 아키텍처·핵심 메트릭·PromQL·알림·비용 추적 (도구 비교는 LLMOps Observability 문서 참조)
 created: "2026-02-05"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 12
 tags:
   - eks
   - langfuse
@@ -56,7 +56,7 @@ Agentic AI 애플리케이션은 복잡한 추론 체인과 다양한 도구 호
 
 ### Langfuse 아키텍처 개요
 
-Langfuse v3 (2024-12+)는 다음 컴포넌트로 구성됩니다. v3는 ClickHouse+Redis+S3 아키텍처로, v2 대비 셀프호스팅 복잡도가 증가했습니다:
+Langfuse v3(2024-12 stable 이후)는 다음 컴포넌트로 구성됩니다. v3는 Postgres(트랜잭션 데이터)·ClickHouse(트레이스/옵저베이션/스코어 OLAP)·Redis(큐/캐시)·S3(원본 이벤트 업로드) 아키텍처로, v2 대비 셀프호스팅 복잡도가 증가했습니다:
 
 **그림 1. Langfuse v3 스택과 스토리지 구성**
 
@@ -69,26 +69,30 @@ flowchart TB
     end
 
     subgraph Langfuse["Langfuse 스택"]
-        WEB[Web UI<br/>Next.js]
-        API[API Server<br/>tRPC]
+        WEB[Web UI/API<br/>Next.js]
         WORKER[Background<br/>Worker]
     end
 
     subgraph Storage["스토리지"]
-        PG[(PostgreSQL<br/>메타데이터)]
-        REDIS[(Redis<br/>캐시/큐)]
-        S3[S3<br/>Blob]
+        PG[(PostgreSQL<br/>트랜잭션 메타데이터)]
+        CH[(ClickHouse<br/>트레이스/옵저베이션/스코어 OLAP)]
+        REDIS[(Redis<br/>큐/캐시)]
+        S3[S3<br/>원본 이벤트/Blob]
     end
 
-    AGENT1 -->|트레이스| API
-    AGENT2 -->|트레이스| API
-    AGENTN -->|트레이스| API
-    WEB -->|조회| API
-    API --> PG
-    API --> REDIS
+    AGENT1 -->|트레이스 수집| WEB
+    AGENT2 -->|트레이스 수집| WEB
+    AGENTN -->|트레이스 수집| WEB
+
+    WEB -->|원본 이벤트 적재| S3
+    WEB -->|수집 큐| REDIS
+    WEB --> PG
+    WEB -->|조회/분석| CH
+
+    REDIS -->|큐 소비| WORKER
+    WORKER -->|원본 읽기| S3
+    WORKER -->|트레이스/옵저베이션 적재| CH
     WORKER --> PG
-    WORKER --> REDIS
-    WORKER -->|아티팩트| S3
 
     style Clients fill:#ffd93d
     style Langfuse fill:#4285f4
@@ -217,41 +221,52 @@ avg(DCGM_FI_DEV_GPU_UTIL)
 # 노드별 GPU 활용도
 avg(DCGM_FI_DEV_GPU_UTIL) by (Hostname)
 
-# GPU 메모리 사용률
-avg(DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE * 100) by (gpu)
+# GPU 메모리 사용률 (%) — 분모를 used+free로 두어 0~100% 범위를 보장
+# FB_USED/FB_FREE는 free가 0에 가까워지면 100%를 초과하므로 사용하지 않습니다.
+# gpu(또는 MIG 사용 시 GPU_I_ID) 레이블로 디바이스별 집계하며, 예약 메모리는 used에 포함됩니다.
+avg(
+  DCGM_FI_DEV_FB_USED
+  / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE)
+  * 100
+) by (gpu)
 ```
 
 ### vLLM 메트릭
 
 ```prometheus
-# 전체 TPS (초당 생성 토큰)
-rate(vllm_generation_tokens_total[5m])
+# vLLM v1 엔진 메트릭은 모두 vllm: 접두사와 model_name 레이블을 사용합니다.
+# 아래 쿼리는 인스턴스별 값을 합산한 플릿(fleet) 집계이며,
+# 인스턴스별로 보려면 by (model_name) 대신 by (model_name, instance)로 묶습니다.
+
+# 전체 TPS (초당 생성 토큰, 플릿 합산)
+sum(rate(vllm:generation_tokens_total[5m]))
 
 # 모델별 TPS
-sum(rate(vllm_generation_tokens_total[5m])) by (model)
+sum(rate(vllm:generation_tokens_total[5m])) by (model_name)
 
-# TTFT P99 (Time to First Token)
-histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))
+# TTFT P99 (Time to First Token, 플릿 집계)
+histogram_quantile(0.99, sum(rate(vllm:time_to_first_token_seconds_bucket[5m])) by (le))
 
 # TTFT P95
-histogram_quantile(0.95, rate(vllm:time_to_first_token_seconds_bucket[5m]))
+histogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[5m])) by (le))
 
 # E2E 지연 P99
-histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))
+histogram_quantile(0.99, sum(rate(vllm:e2e_request_latency_seconds_bucket[5m])) by (le))
 
-# 배치 크기 평균
-avg(vllm_num_requests_running)
+# 배치 크기 평균 (실행 중 요청 수, 인스턴스별 게이지의 평균)
+avg(vllm:num_requests_running)
 ```
 
 ### Gateway 메트릭
 
 ```prometheus
-# 5xx 에러율 (%)
-rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]) 
-/ 
-rate(envoy_http_downstream_rq_total[5m]) * 100
+# 5xx 에러율 (%) — 분자와 분모를 같은 다운스트림 요청 모집단으로 맞춥니다.
+sum(rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]))
+/
+sum(rate(envoy_http_downstream_rq_xx[5m])) * 100
 
-# 업스트림 헬스 체크 실패율
+# 업스트림 커넥션 실패 건수(rate) — 신규 연결 수립 실패 카운터이며,
+# 액티브 헬스 체크 실패와는 다른 지표입니다(헬스 체크는 envoy_cluster_health_check_failure 계열).
 sum(rate(envoy_cluster_upstream_cx_connect_fail[5m])) by (envoy_cluster_name)
 ```
 
@@ -390,33 +405,36 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 - **테넌트별**: 테넌트/팀별 일일 토큰 사용량 및 예산 대비 사용률
 - **시간별**: 피크 시간대 분석, 비용 추세
 
-### 모델별 비용 참조 (2026-04 기준)[^1]
+### 모델별 비용 참조 (2026-10 기준 공개 단가 스냅샷)[^1] {#모델별-비용-참조-2026-04-기준1}
+
+아래 표는 각 공급자 공개 pricing 페이지의 표준(비배치) 단가를 2026-10 시점에 정리한 참조 스냅샷입니다. 단가는 수시로 바뀌므로 실제 산정 전에 각주의 공식 페이지에서 다시 확인하세요. 과거 특정일(예: 2026-04-17)의 값이 필요하면 당시 스냅샷을 별도로 확보해야 하며, 현재 값으로 과거 값을 대체하지 않습니다.
 
 **표 4. 티어별 모델의 입력·출력 단가와 특징**
 
 | Tier | 모델 | 입력 ($/1M tok) | 출력 ($/1M tok) | 특징 |
 |------|------|----------------|----------------|------|
-| **Frontier** | Claude Opus 4.7 / 4.8 | $5 | $25 | 최고 품질 추론 |
-| **Frontier** | GPT-4.1 / o3 | $2 | $8 | 복잡한 reasoning (o3는 2025-06 80% 인하, GPT-5로 승계) |
+| **Frontier** | Claude Opus 4.7 | $5 | $25 | 최고 품질 추론 |
+| **Frontier** | GPT-4.1 | $2 | $8 | 복잡한 reasoning (OpenAI 표준 단가) |
+| **Frontier** | o3 | 공식 페이지 확인 | 공식 페이지 확인 | 추론 전용 모델, GPT-5 계열로 승계(단가는 공식 페이지 확인) |
 | **Frontier** | Gemini 2.5 Pro | $1.25 | $5 | 멀티모달 강화 |
 | **Balanced** | Claude Sonnet 4.6 | $3 | $15 | 품질-비용 균형 |
 | **Balanced** | GPT-4.1 mini | $0.40 | $1.60 | 빠른 추론 |
 | **Balanced** | Gemini 2.5 Flash | $0.10 | $0.40 | 높은 처리량 |
 | **Fast/Cheap** | Claude Haiku 4.5 | $0.80 | $4 | 간단한 작업 |
-| **Fast/Cheap** | GPT-4.1 nano / o4-mini | $0.15 | $0.60 | 초저비용 |
+| **Fast/Cheap** | GPT-4.1 nano | $0.10 | $0.40 | 초저비용 |
 | **Fast/Cheap** | Gemini 2.5 Flash-Lite | $0.05 | $0.20 | 최소 지연 |
 | **Open-weight** | DeepSeek V3.1 | Self-hosted | Self-hosted | 오픈 라이선스 |
 | **Open-weight** | Llama 4 Scout | Self-hosted | Self-hosted | Meta 공식 |
 | **Open-weight** | Qwen3-32B | Self-hosted | Self-hosted | Alibaba Cloud (Qwen3 최대 dense 모델) |
 
-[^1]: 2026-04-17 기준. 최신 가격은 공식 pricing 페이지를 참조하세요: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
+[^1]: 각 공급자 공식 pricing 페이지에서 최신 단가를 확인하세요: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
 
 :::tip 비용 최적화 팁
 
 1. **모델 선택 최적화**: 간단한 작업에는 저렴한 모델(GPT-4.1 nano, Haiku 4.5, Gemini 2.5 Flash-Lite) 사용
 2. **프롬프트 최적화**: 불필요한 컨텍스트 제거로 입력 토큰 절감
-3. **캐싱 활용**: 반복적인 쿼리에 대한 응답 캐싱 (Prompt Caching, Semantic Caching)
-4. **Cascade Routing**: 저비용 모델 우선 시도 후 실패 시 고성능 모델로 Fallback — 66% 비용 절감 가능
+3. **캐싱 활용**: 반복 쿼리의 결과를 재사용합니다. Prompt Caching은 동일 프리픽스의 입력 토큰 재처리 비용을 줄이는 재사용이고, Semantic Caching은 유사 질의에 저장된 응답을 그대로 반환해 모델 호출 자체를 생략하는 방식으로, 둘은 비용 절감 메커니즘이 다릅니다.
+4. **Cascade Routing**: 저비용 모델을 먼저 시도하고 실패 시 고성능 모델로 Fallback합니다. 절감률은 두 모델의 단가 차이와 저비용 모델이 처리하는 비율(처리 성공률)에 따라 달라집니다. 예를 들어 쿼리의 70%를 입력·출력 단가가 1/10인 저비용 모델이 처리하면 전체 비용은 단일 고성능 모델 대비 약 37%(= 0.7×0.1 + 0.3×1.0)로, 약 63% 절감하는 계산 예시가 됩니다. 실제 절감률은 트래픽 구성과 성공률에 따라 달라지므로 측정값이 아닌 예시입니다.
 5. **Open-weight 모델**: 자체 호스팅 시 DeepSeek V3.1, Llama 4, Qwen3로 고정 비용 전환
 :::
 

@@ -11,7 +11,7 @@ const MonitoringMetricsTable = () => {
     threshold: '< 100ms'
   }, {
     metric: 'milvus_querynode_search_nq',
-    description: isKo ? '초당 검색 쿼리 수' : 'Queries per second',
+    description: isKo ? '검색 요청의 nq 합계(검색된 벡터 수) — 초당 요청 수(QPS)와 다름, rate()로 집계' : 'Sum of search request nq (vectors searched) — not QPS; aggregate with rate()',
     threshold: isKo ? '모니터링' : 'Monitor'
   }, {
     metric: 'milvus_datanode_flush_duration',
