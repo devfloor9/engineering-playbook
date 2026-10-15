@@ -3,7 +3,7 @@ title: Probe patterns by workload
 description: Review examples for REST, gRPC, batch, JVM, and AI workloads.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
 reading_time: 12
 tags:
@@ -513,6 +513,8 @@ EKS supports Windows nodes based on Windows Server 2019/2022. Probes behave diff
 | **Memory overhead** | Low (50-100MB) | High (200-500MB) | Requires increased resource requests |
 | **Probe timeout** | Typically 1-5 seconds | 3-10 seconds recommended | Account for Windows I/O latency |
 
+The cold-start time and memory-overhead figures in Table 1 are experiential values, not official specifications; measure them in your own environment.
+
 #### Probe Configuration Example for Windows Workloads {#windows-워크로드-probe-설정-예시}
 
 **IIS/.NET Framework application:**
@@ -818,7 +820,7 @@ sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-ap
 :::warning Windows Container Limitations
 - **Image size**: Windows images are several GB (Linux images are tens of MB).
 - **Licensing costs**: Windows Server licensing costs apply (included in EC2 instance costs).
-- **Node boot time**: Windows nodes boot slowly (5-10 minutes).
+- **Node boot time**: Windows nodes boot slowly (5-10 minutes; an experiential figure, so measure it in your own environment).
 - **Privileged containers**: Windows does not support Linux's `privileged` mode.
 - **HostProcess containers**: Supported starting with Windows Server 2022 (1.22+).
 :::

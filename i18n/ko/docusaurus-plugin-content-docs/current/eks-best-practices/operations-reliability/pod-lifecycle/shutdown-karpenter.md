@@ -3,9 +3,9 @@ title: Karpenter와 Node Drain
 description: 노드 교체 및 축소 과정에서 Pod 종료를 점검합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 7
 tags:
   - eks
   - kubernetes
@@ -83,7 +83,7 @@ PodDisruptionBudget이 너무 엄격하면 (예: `minAvailable`이 replica 수�
 
 **개요:**
 
-AWS Application Recovery Controller(ARC)와 Karpenter의 통합(2025년 발표)은 Availability Zone(AZ) 장애 시 자동으로 워크로드를 다른 AZ로 이동시키는 고가용성 패턴을 제공합니다. 이를 통해 AZ 장애 또는 Gray Failure 상황에서도 Graceful Shutdown을 보장하며 서비스 중단을 최소화할 수 있습니다.
+AWS Application Recovery Controller(ARC)와 Karpenter의 통합([AWS Containers 블로그](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/) 2026년 2월 10일 게시 기준)은 Availability Zone(AZ) 장애 시 자동으로 워크로드를 다른 AZ로 이동시키는 고가용성 패턴을 제공합니다. 이를 통해 AZ 장애 또는 Gray Failure 상황에서도 Graceful Shutdown을 보장하며 서비스 중단을 최소화할 수 있습니다.
 
 **ARC Zonal Shift란:**
 
@@ -380,6 +380,8 @@ Gray Failure는 완전한 장애가 아닌 성능 저하 상태로, 감지가 �
 | 디스크 I/O 저하 | EBS CloudWatch Metrics | Karpenter 노드 교체 |
 | API Server 응답 지연 | Control Plane Metrics | Provisioned Control Plane 자동 스케일링 |
 
+표 2의 지연·손실 범위는 예시 범위이며, 실제 감지 임계값은 워크로드와 환경에 맞게 정해야 합니다.
+
 **테스트 및 검증:**
 
 ```bash
@@ -495,7 +497,7 @@ helm install aws-node-termination-handler \
 3. 노드의 모든 Pod을 Drain
 4. Pod의 `terminationGracePeriodSeconds` 내에 Graceful Shutdown 완료
 
-**권장 terminationGracePeriodSeconds:**
+**권장 terminationGracePeriodSeconds (예시 범위):**
 - 일반 웹 서비스: 30-60초
 - 장기 실행 작업 (배치, ML 추론): 90-120초
 - 최대 2분 이내로 설정 (Spot 경고 시간 고려)

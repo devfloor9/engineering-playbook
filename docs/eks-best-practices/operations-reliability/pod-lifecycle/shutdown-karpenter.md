@@ -3,9 +3,9 @@ title: Karpenter and node drain
 description: Review Pod termination during node replacement and scale-down.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 10
+reading_time: 11
 tags:
   - eks
   - kubernetes
@@ -83,7 +83,7 @@ If a PodDisruptionBudget is too strict (for example, `minAvailable` equals the r
 
 **Overview:**
 
-The integration of AWS Application Recovery Controller (ARC) and Karpenter, announced in 2025, provides a high-availability pattern that automatically moves workloads to other Availability Zones (AZs) when an AZ fails. This ensures graceful shutdown and minimizes service disruption during AZ failures or gray failures.
+The integration of AWS Application Recovery Controller (ARC) and Karpenter (as described in the [AWS Containers blog post](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/) published on February 10, 2026) provides a high-availability pattern that automatically moves workloads to other Availability Zones (AZs) when an AZ fails. This ensures graceful shutdown and minimizes service disruption during AZ failures or gray failures.
 
 **About ARC Zonal Shift:**
 
@@ -380,6 +380,8 @@ A gray failure is a state of degraded performance rather than a complete failure
 | Degraded disk I/O | EBS CloudWatch Metrics | Karpenter node replacement |
 | API Server response latency | Control Plane Metrics | Automatic scaling of the Provisioned Control Plane |
 
+The latency and loss ranges in Table 2 are example ranges; set the actual detection thresholds to match your workload and environment.
+
 **Testing and validation:**
 
 ```bash
@@ -495,7 +497,7 @@ helm install aws-node-termination-handler \
 3. Drain all Pods on the node
 4. Complete graceful shutdown within the Pod's `terminationGracePeriodSeconds`
 
-**Recommended terminationGracePeriodSeconds:**
+**Recommended terminationGracePeriodSeconds (example ranges):**
 - Standard web services: 30-60 seconds
 - Long-running tasks (batch jobs, ML inference): 90-120 seconds
 - Set to no more than 2 minutes (accounting for the Spot warning period)
