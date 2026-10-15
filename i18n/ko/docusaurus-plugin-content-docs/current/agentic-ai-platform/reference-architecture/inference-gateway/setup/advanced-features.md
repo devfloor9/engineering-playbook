@@ -3,7 +3,7 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-14
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -55,8 +55,8 @@ graph LR
 ```
 
 **주요 특징:**
-- 클라이언트는 `model: "auto"` (또는 임의 모델명)로 요청 — 모델 선택을 인식하지 못함
-- 키워드 매칭 + 토큰 길이 + 대화 턴 수 기반 분류
+- 클라이언트는 `model: "auto"` (또는 임의 모델명)로 요청하며, 프록시가 이를 선택된 백엔드의 served model name으로 다시 써서 전달
+- 키워드 매칭 + 입력 문자 길이 + 대화 턴 수 기반 분류
 - Langfuse OTel SDK로 직접 trace 전송
 - 50MB 미만 컨테이너 이미지 (FastAPI + httpx)
 
@@ -64,11 +64,22 @@ graph LR
 
 ```python
 """LLM Classifier — 프롬프트 기반 자동 모델 라우팅"""
-import os, httpx
-from fastapi import FastAPI, Request
+import os, contextlib, httpx
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
 
-app = FastAPI()
+# 요청 간 재사용하는 단일 장수명 AsyncClient. 스트리밍 응답 이터레이터보다
+# 오래 살아 있어야 하므로 핸들러 안에서 `async with`로 열지 않는다. 그렇게 하면
+# StreamingResponse 본문을 읽기 전에 클라이언트(및 커넥션 풀)가 닫힌다.
+# 애플리케이션 종료 시 한 번만 닫는다.
+client = httpx.AsyncClient(timeout=300)
+
+@contextlib.asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    await client.aclose()
+
+app = FastAPI(lifespan=lifespan)
 
 # --- 분류 설정 ---
 STRONG_KEYWORDS = [
@@ -76,49 +87,100 @@ STRONG_KEYWORDS = [
     "refactor", "architect", "design", "analyze", "optimize", "debug",
     "migration", "complex", "performance", "security", "review",
 ]
-TOKEN_THRESHOLD = 500
+# 토큰이 아니라 문자 수 기준 휴리스틱이다. 토큰 예산으로 오해하지 않도록 이름을 명시한다.
+CHAR_THRESHOLD = 500
 TURN_THRESHOLD = 5
 
 # --- 백엔드 설정 ---
+# 각 티어는 (base URL, served model name) 쌍에 대응한다. served model name은
+# 백엔드가 기동된 모델 id(vLLM `--served-model-name`)이며, 프록시가 클라이언트의
+# `model` 필드를 이 값으로 다시 써서 `model: "auto"`가 백엔드가 수용하는
+# 모델로 실제로 해석되도록 한다.
 WEAK_URL = os.getenv("WEAK_BACKEND", "http://qwen3-serving:8000")
 STRONG_URL = os.getenv("STRONG_BACKEND", "http://glm5-serving:8000")
+WEAK_MODEL = os.getenv("WEAK_MODEL", "qwen3-4b")
+STRONG_MODEL = os.getenv("STRONG_MODEL", "glm-5")
+
+def _text(content) -> str:
+    """OpenAI 메시지 content를 평탄화: 문자열이거나 {type, text} 파트 배열
+    (배열 형태는 멀티모달 클라이언트가 사용)."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return " ".join(
+            part.get("text", "")
+            for part in content
+            if isinstance(part, dict) and part.get("type") == "text"
+        )
+    return ""
 
 def classify(messages: list[dict]) -> str:
     """프롬프트 내용 분석 → weak / strong 결정"""
-    content = " ".join(
-        m.get("content", "") for m in messages if m.get("content")
-    )
+    content = " ".join(_text(m.get("content")) for m in messages if m.get("content"))
     lower = content.lower()
     # 1. 키워드 매칭
     if any(kw in lower for kw in STRONG_KEYWORDS):
         return "strong"
-    # 2. 입력 길이
-    if len(content) > TOKEN_THRESHOLD:
+    # 2. 입력 길이(토큰이 아니라 문자 수)
+    if len(content) > CHAR_THRESHOLD:
         return "strong"
     # 3. 대화 턴 수
     if len(messages) > TURN_THRESHOLD:
         return "strong"
     return "weak"
 
-@app.api_route("/v1/{path:path}", methods=["POST"])
+# 문서의 `GET /v1/models` 스모크 체크가 405가 아니라 백엔드에 도달하도록 GET이
+# 필요하다. POST는 chat/completion 요청을 전달한다.
+@app.api_route("/v1/{path:path}", methods=["GET", "POST"])
 async def proxy(path: str, request: Request):
+    # GET(예: /v1/models)은 분류할 프롬프트가 없으므로 weak 백엔드로 전달하고
+    # 상태 코드와 본문을 그대로 중계한다.
+    if request.method == "GET":
+        resp = await client.get(f"{WEAK_URL}/v1/{path}", params=request.query_params)
+        return Response(
+            content=resp.content,
+            status_code=resp.status_code,
+            media_type=resp.headers.get("content-type"),
+        )
+
     body = await request.json()
     messages = body.get("messages", [])
     tier = classify(messages)
-    backend = STRONG_URL if tier == "strong" else WEAK_URL
+    backend, model = (
+        (STRONG_URL, STRONG_MODEL) if tier == "strong" else (WEAK_URL, WEAK_MODEL)
+    )
+    # 클라이언트가 보낸 model(예: "auto")을 백엔드의 served model name으로 다시 쓴다.
+    # 그렇지 않으면 백엔드가 알 수 없는 model id로 거부한다.
+    body["model"] = model
     target = f"{backend}/v1/{path}"
 
-    async with httpx.AsyncClient(timeout=300) as client:
-        if body.get("stream"):
-            req = client.build_request("POST", target, json=body)
-            resp = await client.send(req, stream=True)
-            return StreamingResponse(
-                resp.aiter_bytes(),
-                status_code=resp.status_code,
-                headers=dict(resp.headers),
-            )
-        resp = await client.post(target, json=body)
-        return resp.json()
+    if body.get("stream"):
+        req = client.build_request("POST", target, json=body)
+        resp = await client.send(req, stream=True)
+
+        async def relay_body():
+            # 다운스트림 이터레이터가 정상 완료되거나 호출자 취소 또는 예외로 닫히면
+            # 업스트림 응답도 함께 닫는다.
+            try:
+                async for chunk in resp.aiter_bytes():
+                    yield chunk
+            finally:
+                await resp.aclose()
+
+        return StreamingResponse(
+            relay_body(),
+            status_code=resp.status_code,
+            headers={"content-type": resp.headers.get("content-type", "text/event-stream")},
+        )
+
+    resp = await client.post(target, json=body)
+    # 파싱한 JSON을 200으로 조용히 반환하지 않고 업스트림 상태 코드와 본문을
+    # 그대로 전파한다. 업스트림 4xx/5xx는 호출자에게 전달되어야 한다.
+    return Response(
+        content=resp.content,
+        status_code=resp.status_code,
+        media_type=resp.headers.get("content-type"),
+    )
 ```
 
 :::tip Langfuse OTel 연동
@@ -239,7 +301,7 @@ LLM 추론은 수십 초가 소요될 수 있습니다. `timeouts.request`와 `b
 
 ### 1.6 Aider/Cline 연결
 
-LLM Classifier를 사용하면 **모든 클라이언트가 단일 엔드포인트**로 접속합니다. 모델명은 임의값이 가능합니다 (Classifier가 무시하고 프롬프트 기반으로 분류).
+LLM Classifier를 사용하면 **모든 클라이언트가 단일 엔드포인트**로 접속합니다. 들어온 모델명은 라우팅에 영향을 주지 않으며(Classifier는 프롬프트 내용으로 라우팅), 프록시가 이를 선택된 백엔드의 served model name으로 다시 씁니다.
 
 #### Aider
 
