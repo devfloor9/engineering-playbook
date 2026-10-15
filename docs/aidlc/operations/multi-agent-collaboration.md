@@ -3,9 +3,9 @@ title: Multi-Agent Collaboration Patterns
 description: Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor patterns and LangGraph/CrewAI/AutoGen/Strands Agents SDK implementation
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 36
+reading_time: 40
 tags:
   - multi-agent
   - orchestrator
@@ -72,7 +72,7 @@ flowchart LR
     style W3 fill:#326ce5,color:#fff
 ```
 
-- **Representative Implementations**: LangGraph Supervisor, Strands Agents Graph, OpenAI Agents SDK Handoff.
+- **Representative Implementations**: LangGraph Supervisor, Strands Agents Graph. In these, the orchestrator invokes workers and collects/synthesizes their results. OpenAI Agents SDK Handoff differs: it transfers control to the next agent (control transfer), so the orchestrator does not synthesize results afterward.
 - **Best For**: Clearly classifiable domains (SQL / code / search), fixed worker pools.
 - **Caution**: Orchestrator easily becomes bottleneck. Fan-out parallelizable sub-tasks with `asyncio.gather` etc.
 
@@ -103,7 +103,7 @@ flowchart TD
 
 Send the same question independently to N agents (or models) and conclude by majority vote or weighted average.
 
-- **Techniques**: Self-consistency, Mixture-of-Agents (MoA), majority voting, weighted ensemble.
+- **Techniques**: Self-consistency, majority voting, weighted ensemble. Mixture-of-Agents (MoA) is not a vote but layered aggregation, where an aggregator LLM in a later layer synthesizes the outputs of the previous layer; treat it separately from voting.
 - **Best For**: Math problems, classification tasks, RAG answer verification with high hallucination risk.
 - **Cost**: Exactly N times. Many cases report Haiku × 5 ensemble achieving higher accuracy than Opus × 1.
 - **Implementation Tip**: Secure diversity by setting different temperatures per agent or using different prompt templates.
@@ -146,7 +146,7 @@ All agents record observations and intermediate results in central storage (blac
 
 - **Storage**: Redis, Postgres (LangGraph checkpointer), DynamoDB, or file system.
 - **Best For**: Long sessions (hours+), async collaboration, environments with frequent agent join/leave.
-- **Caution**: Race conditions — guarantee consistency with optimistic locking, version numbers, or event sourcing.
+- **Caution**: Race conditions — when multiple agents update the same field concurrently, serialize updates with an atomic compare-and-set (conditional write) gated on a version number. Optimistic locking, version numbers, and event sourcing are ways to implement that conditional write; listing them alone does not make the update atomic.
 
 ---
 
@@ -156,10 +156,10 @@ All agents record observations and intermediate results in central storage (blac
 |----------|-----------|------|---------|---------|
 | **LangGraph** | StateGraph + Node | Python/JS | Supervisor, Swarm, Conditional routing | MIT |
 | **CrewAI** | Crew + Agent + Task | Python | Sequential / Hierarchical / Consensus | MIT |
-| **AutoGen (v0.4+)** | ConversableAgent + GroupChat | Python | Conversation + Workflow | Apache 2.0 |
+| **AutoGen (v0.4+)** | ConversableAgent + GroupChat | Python | Conversation + Workflow | MIT |
 | **Strands Agents SDK** | Agent + Graph (Python) | Python | Orchestrator, Handoff | Apache 2.0 |
 | **OpenAI Agents SDK** | Agent + Handoff | Python/TS | Orchestrator-Worker, Handoff | Apache 2.0 |
-| **Amazon Bedrock AgentCore** | Agent + Action Group | AWS SDK | Managed, MCP native | AWS managed |
+| **Amazon Bedrock AgentCore** | Runtime + Memory + Gateway + Identity | AWS SDK | Managed, MCP native | AWS managed |
 
 ### 3.1 LangGraph
 
@@ -183,7 +183,7 @@ GA-level SDK released by OpenAI in March 2025 as Swarm successor. Can compose ne
 
 ### 3.6 Amazon Bedrock AgentCore
 
-Provides managed Action Group, Knowledge Base, Guardrails, Memory on top of Agents for Bedrock. MCP native support facilitates external tool integration, suitable for regulated industries with multi-agent execution within IAM/VPC boundaries.
+Amazon Bedrock AgentCore provides modular services — Runtime (session isolation, serverless scaling), Memory, Gateway, Identity, and Observability — for operating custom agents built with any framework (LangGraph, CrewAI, Strands, etc.) and foundation model in production. It is a different service from Agents for Amazon Bedrock, the managed product that composes agents declaratively via Action Groups and Knowledge Bases. MCP native support facilitates external tool integration, suitable for regulated industries with multi-agent execution within IAM/VPC boundaries.
 
 :::tip Framework Selection Guide
 - **Rapid Prototyping**: CrewAI or OpenAI Agents SDK
@@ -196,6 +196,7 @@ Provides managed Action Group, Knowledge Base, Guardrails, Memory on top of Agen
 
 ```python
 # LangGraph — Supervisor routes to either Researcher or Coder
+from typing import Literal, TypedDict
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import create_react_agent
 from langchain_anthropic import ChatAnthropic
@@ -204,14 +205,20 @@ llm = ChatAnthropic(model="claude-sonnet-4-5")
 researcher = create_react_agent(llm, tools=[web_search], name="researcher")
 coder = create_react_agent(llm, tools=[execute_python], name="coder")
 
-def supervisor(state):
+class RouterState(TypedDict):
+    input: str
+    next: Literal["researcher", "coder"]
+
+def supervisor(state: RouterState):
     decision = llm.invoke([
         {"role": "system", "content": "Route to 'researcher' or 'coder'. Reply with one word."},
         {"role": "user", "content": state["input"]},
     ]).content.strip().lower()
-    return {"next": decision}
+    # Constrain the free-form LLM output to the allowed labels; fall back on a mismatch
+    route = decision if decision in ("researcher", "coder") else "researcher"
+    return {"next": route}
 
-graph = StateGraph(dict)
+graph = StateGraph(RouterState)
 graph.add_node("supervisor", supervisor)
 graph.add_node("researcher", researcher)
 graph.add_node("coder", coder)
@@ -234,8 +241,10 @@ coder = Agent(role="Coder", goal="Implement features", backstory="...")
 reviewer = Agent(role="Reviewer", goal="Code review", backstory="...")
 
 crew = Crew(agents=[coder, reviewer],
-            tasks=[Task(description="Implement auth endpoint", agent=coder),
-                   Task(description="Review and feedback", agent=reviewer)],
+            tasks=[Task(description="Implement auth endpoint", agent=coder,
+                        expected_output="Auth endpoint code that passes tests"),
+                   Task(description="Review and feedback", agent=reviewer,
+                        expected_output="Review comments with a list of requested changes")],
             manager_agent=manager,
             process=Process.hierarchical)
 result = crew.kickoff()
@@ -267,9 +276,9 @@ result = await Runner.run(triage, input="I was charged twice for this invoice.")
 | Shared Memory | Everyone reads/writes central storage | LangGraph `StateGraph`, Redis/Postgres |
 | Message Passing | Agent communication via message queue only | AutoGen GroupChat, AWS SQS |
 | Blackboard | Event sourcing + subscription | Kafka, EventBridge |
-| Handoff Context | Context passed at call time, separated thereafter | OpenAI Agents SDK, Strands Handoff |
+| Handoff Context | Context passed at call time; by default propagates full conversation history | OpenAI Agents SDK, Strands Handoff |
 
-In production, **Shared Memory + Handoff Context** combination is most common. Common state (user requests, accumulated results) in shared state, agent-specific work instructions in handoff payload.
+In production, **Shared Memory + Handoff Context** combination is most common. Common state (user requests, accumulated results) in shared state, agent-specific work instructions in handoff payload. Note that OpenAI Agents SDK and Strands handoffs by default propagate the prior conversation history to the next agent, so you must set explicit input filters to scope the context.
 
 ### 4.2 Conflict Resolution Strategies
 
@@ -340,7 +349,7 @@ Consistently assign the following attributes to each span. These form the basis 
 - **Failure Rate**: `status=error` spans by `agent.name`Aggregate
 
 :::tip OpenTelemetry Integration
-Langfuse v3.xoperates as OTel native collector. Using `traceparent` W3C standard in apps connects to AWS X-Ray, Datadog, Grafana Tempo as single trace.
+Langfuse v3.x operates as an OTel native collector. To connect as a single trace, instrument the app with the OpenTelemetry SDK, configure an OTLP exporter pointing at the Langfuse ingestion endpoint, and propagate the `traceparent` W3C context across service boundaries. Configured this way, it correlates by the same trace ID with other OTel-compatible backends such as AWS X-Ray, Datadog, and Grafana Tempo.
 :::
 
 ---
@@ -349,9 +358,9 @@ Langfuse v3.xoperates as OTel native collector. Using `traceparent` W3C standard
 
 ### 6.1 Cost Increase Factors
 
-- **Agent Count N**: Cost is linear to N. Voting is exactly N times.
-- **Round Count R**: Debate 2-3rounds basis cost × 2~3 times.
-- **Context Accumulation**: Previous responses accumulate in context as rounds progress, input token cost increases nonlinearly.
+- **Agent Count N**: Cost is linear in N only under the assumption of fixed calls and tokens per agent. Voting is exactly N times when each agent is called once.
+- **Round Count R**: Debate 2-3 rounds basis cost × 2~3 times.
+- **Context Accumulation**: Previous responses accumulate in context as rounds progress, so input token cost increases nonlinearly; the linear assumption above does not hold once per-round context grows.
 - **Tool Call Chain**: tool-use responses also enter LLM again, incurring cost.
 
 ### 6.2 Cost Optimization Checklist
@@ -368,8 +377,10 @@ Langfuse v3.xoperates as OTel native collector. Using `traceparent` W3C standard
 ### 6.3 Latency Optimization
 
 - **Streaming Handoff**: Next agent starts processing from first token (speculative execution).
-- **Fan-out then first-wins**: NSimultaneous requests to N agents, use first reliable response to arrive.
+- **Fan-out then first-wins**: N simultaneous requests to N agents, use first reliable response to arrive.
 - **Prewarming**: Keep frequently-used agents in idle state (session cache).
+
+Because streaming handoff and fan-out start downstream processing before the response is complete, any side-effecting action (writes, external calls, resource changes) must be gated to run only after the arguments are fully received and validated. Otherwise an irreversible action may execute first on incomplete or invalid arguments.
 
 ---
 
@@ -444,7 +455,7 @@ Opusfor Monitor would be monthly $1,000+ spike. Tiering alone 95% cost reduction
 
 ### 8.3 Handoff Contract
 
-Payload passed between agents is strictly defined with JSON Schema.
+The structure of the payload passed between agents is defined with JSON Schema; the block below is a concrete instance that conforms to that schema. Keep the schema (field types, required-ness) separate from the actual values passed.
 
 ```json
 {
@@ -467,7 +478,7 @@ Payload passed between agents is strictly defined with JSON Schema.
 }
 ```
 
-This schema maps 1:1 to `Incident`, `Resource`, `Action` entities, ensuring vocabulary consistency between agents.
+This schema maps 1:1 to `Incident`, `Resource`, `Action` entities, ensuring vocabulary consistency between agents. Fields like `requires_human_approval` and `risk_level`, however, are self-asserted by the sending agent and must not be trusted as-is. Whether human approval is required, and the authorization to perform an action, must be decided by a policy at the receiving trust boundary (gateway/policy engine) rather than by a payload field, and that policy must also authorize the actual action (`proposed_action`).
 
 ### 8.4 Results (3 Months Operation)
 
@@ -496,9 +507,9 @@ A → B → A → B → ... Ping-pong. Each agent judges it is not their role an
 
 ### 9.3 Voting Without Consensus
 
-Even number agents for Voting configuration → tie → cannot process.
+Failing to reach a majority happens not only with an even number of agents tying, but also with an odd number when all responses differ (no majority) or some agents abstain.
 
-- **Solution**: odd number Agent configure, or tiebreaker Agent separate designate.
+- **Solution**: An odd configuration or a tiebreaker only resolves ties. To also handle no-majority and abstentions, define a default behavior — such as falling back to a judge agent or escalating to a human — independent of whether the agent count is odd or even.
 
 ### 9.4 Shared State Race Condition
 
@@ -516,7 +527,7 @@ Agent internal LLM calls appear in trace but inter-agent handoffs separated into
 
 Injection contained in user input passed as-is from one agent to next and interpreted as system command.
 
-- **Solution**: Sanitize input at Gateway layer, pass inter-agent handoff payload only as user/tool role not system role.
+- **Solution**: Sanitize input at Gateway layer, pass inter-agent handoff payload only as user/tool role not system role. Role tagging alone, however, is not sufficient: the authority to call a given tool or access given data must be enforced by the gateway/runtime as a separate policy, not inferred from the role of the transferred message.
 
 ---
 

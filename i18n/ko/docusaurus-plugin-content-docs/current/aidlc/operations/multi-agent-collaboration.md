@@ -3,9 +3,9 @@ title: Multi-Agent Collaboration Patterns
 description: Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor 패턴과 LangGraph/CrewAI/AutoGen/Strands Agents SDK 구현
 created: "2026-04-18"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 23
 tags:
   - multi-agent
   - orchestrator
@@ -68,7 +68,7 @@ flowchart LR
     style W3 fill:#326ce5,color:#fff
 ```
 
-- **대표 구현**: LangGraph Supervisor, Strands Agents Graph, OpenAI Agents SDK Handoff.
+- **대표 구현**: LangGraph Supervisor, Strands Agents Graph. 이들은 오케스트레이터가 워커를 호출하고 결과를 수집·합성하는 방식입니다. OpenAI Agents SDK의 Handoff는 제어권을 다음 에이전트로 넘기는 라우팅(control transfer)이므로 오케스트레이터가 결과를 다시 합성하지 않는다는 점이 다릅니다.
 - **적합**: 명확히 분류 가능한 도메인 (SQL / 코드 / 검색), 고정된 워커 풀.
 - **주의**: 오케스트레이터가 병목이 되기 쉬움. 병렬 실행 가능한 sub-task는 `asyncio.gather` 등으로 fan-out.
 
@@ -99,7 +99,7 @@ flowchart TD
 
 같은 질문을 N개 에이전트(또는 모델)에게 독립적으로 보내고 다수결 또는 가중 평균으로 결론을 냅니다.
 
-- **기법**: Self-consistency, Mixture-of-Agents (MoA), majority voting, weighted ensemble.
+- **기법**: Self-consistency, majority voting, weighted ensemble. Mixture-of-Agents(MoA)는 다수결이 아니라 여러 에이전트의 출력을 다음 층의 aggregator LLM이 종합하는 계층형 집계(layered aggregation) 방식으로, 투표와 구분해 다룹니다.
 - **적합**: 수학 문제, 분류 태스크, hallucination 리스크가 큰 RAG 답변 검증.
 - **비용**: 정확히 N배. Haiku × 5 앙상블이 Opus × 1보다 높은 정확도를 보이는 사례가 다수 보고됨.
 - **구현 팁**: 각 에이전트의 temperature를 다르게 설정하거나 서로 다른 프롬프트 템플릿을 사용해 다양성 확보.
@@ -142,7 +142,7 @@ Planner 에이전트가 전체 실행 계획을 먼저 수립하고, Executor �
 
 - **저장소**: Redis, Postgres (LangGraph checkpointer), DynamoDB, 또는 파일 시스템.
 - **적합**: 장기 세션(수시간 이상), 비동기 협업, 에이전트 합류·이탈이 빈번한 환경.
-- **주의**: 경쟁 조건(race condition) — 낙관적 잠금, 버전 번호, 또는 이벤트 소싱으로 일관성 보장.
+- **주의**: 경쟁 조건(race condition) — 동일 필드를 여러 에이전트가 동시에 갱신할 때는 버전 번호를 조건으로 하는 원자적 compare-and-set(조건부 쓰기)으로 갱신을 직렬화해야 합니다. 낙관적 잠금, 버전 번호, 이벤트 소싱은 이 조건부 쓰기를 구현하는 수단이며, 나열만으로 갱신이 원자적이 되지는 않습니다.
 
 ---
 
@@ -152,10 +152,10 @@ Planner 에이전트가 전체 실행 계획을 먼저 수립하고, Executor �
 |----------|-----------|------|---------|---------|
 | **LangGraph** | StateGraph + Node | Python/JS | Supervisor, Swarm, Conditional routing | MIT |
 | **CrewAI** | Crew + Agent + Task | Python | Sequential / Hierarchical / Consensus | MIT |
-| **AutoGen (v0.4+)** | ConversableAgent + GroupChat | Python | Conversation + Workflow | Apache 2.0 |
+| **AutoGen (v0.4+)** | ConversableAgent + GroupChat | Python | Conversation + Workflow | MIT |
 | **Strands Agents SDK** | Agent + Graph (Python) | Python | Orchestrator, Handoff | Apache 2.0 |
 | **OpenAI Agents SDK** | Agent + Handoff | Python/TS | Orchestrator-Worker, Handoff | Apache 2.0 |
-| **Amazon Bedrock AgentCore** | Agent + Action Group | AWS SDK | Managed, MCP native | AWS managed |
+| **Amazon Bedrock AgentCore** | Runtime + Memory + Gateway + Identity | AWS SDK | Managed, MCP native | AWS managed |
 
 ### 3.1 LangGraph
 
@@ -179,7 +179,7 @@ OpenAI가 2025년 3월 Swarm 후속으로 공개한 GA 수준 SDK입니다. `Age
 
 ### 3.6 Amazon Bedrock AgentCore
 
-Agents for Bedrock 위에 Action Group, Knowledge Base, Guardrails, Memory를 관리형으로 제공합니다. MCP native 지원으로 외부 툴 통합이 용이하며, IAM·VPC 경계 안에서 멀티 에이전트 실행이 가능해 규제 산업에 적합합니다.
+Amazon Bedrock AgentCore는 어떤 프레임워크(LangGraph, CrewAI, Strands 등)와 파운데이션 모델로 만든 커스텀 에이전트든 프로덕션에서 운영하도록 Runtime(세션 격리·서버리스 스케일링), Memory, Gateway, Identity, Observability 같은 모듈형 서비스를 제공합니다. 이는 액션 그룹과 Knowledge Base로 에이전트를 선언형으로 구성하는 관리형 제품인 Agents for Amazon Bedrock과는 다른 서비스입니다. MCP native 지원으로 외부 툴 통합이 용이하며, IAM·VPC 경계 안에서 멀티 에이전트 실행이 가능해 규제 산업에 적합합니다.
 
 :::tip 프레임워크 선택 가이드
 - **빠른 프로토타입**: CrewAI 또는 OpenAI Agents SDK
@@ -192,6 +192,7 @@ Agents for Bedrock 위에 Action Group, Knowledge Base, Guardrails, Memory를 �
 
 ```python
 # LangGraph — Supervisor가 Researcher/Coder 중 하나로 라우팅
+from typing import Literal, TypedDict
 from langgraph.graph import StateGraph, END
 from langgraph.prebuilt import create_react_agent
 from langchain_anthropic import ChatAnthropic
@@ -200,14 +201,20 @@ llm = ChatAnthropic(model="claude-sonnet-4-5")
 researcher = create_react_agent(llm, tools=[web_search], name="researcher")
 coder = create_react_agent(llm, tools=[execute_python], name="coder")
 
-def supervisor(state):
+class RouterState(TypedDict):
+    input: str
+    next: Literal["researcher", "coder"]
+
+def supervisor(state: RouterState):
     decision = llm.invoke([
         {"role": "system", "content": "Route to 'researcher' or 'coder'. Reply with one word."},
         {"role": "user", "content": state["input"]},
     ]).content.strip().lower()
-    return {"next": decision}
+    # 자유 형식 LLM 출력을 허용된 라벨로 제약: 미매칭은 기본값으로 처리
+    route = decision if decision in ("researcher", "coder") else "researcher"
+    return {"next": route}
 
-graph = StateGraph(dict)
+graph = StateGraph(RouterState)
 graph.add_node("supervisor", supervisor)
 graph.add_node("researcher", researcher)
 graph.add_node("coder", coder)
@@ -230,8 +237,10 @@ coder = Agent(role="Coder", goal="기능 구현", backstory="...")
 reviewer = Agent(role="Reviewer", goal="코드 리뷰", backstory="...")
 
 crew = Crew(agents=[coder, reviewer],
-            tasks=[Task(description="인증 엔드포인트 구현", agent=coder),
-                   Task(description="리뷰 및 피드백", agent=reviewer)],
+            tasks=[Task(description="인증 엔드포인트 구현", agent=coder,
+                        expected_output="테스트를 통과하는 인증 엔드포인트 코드"),
+                   Task(description="리뷰 및 피드백", agent=reviewer,
+                        expected_output="수정 요청 목록이 포함된 리뷰 코멘트")],
             manager_agent=manager,
             process=Process.hierarchical)
 result = crew.kickoff()
@@ -263,9 +272,9 @@ result = await Runner.run(triage, input="인보이스가 두 번 청구됐어요
 | Shared Memory | 중앙 저장소를 모두가 읽고 씀 | LangGraph `StateGraph`, Redis/Postgres |
 | Message Passing | 에이전트 간 메시지 큐로만 통신 | AutoGen GroupChat, AWS SQS |
 | Blackboard | 이벤트 소싱 + 구독 | Kafka, EventBridge |
-| Handoff Context | 호출 시점에 컨텍스트 전달, 이후 분리 | OpenAI Agents SDK, Strands Handoff |
+| Handoff Context | 호출 시점에 컨텍스트 전달. 기본값은 전체 대화 히스토리 전파 | OpenAI Agents SDK, Strands Handoff |
 
-실무에서는 **Shared Memory + Handoff Context**를 조합하는 방식이 가장 흔합니다. 공통 상태(사용자 요청, 누적 결과)는 shared state에, 에이전트별 작업 지시는 handoff payload에 담습니다.
+실무에서는 **Shared Memory + Handoff Context**를 조합하는 방식이 가장 흔합니다. 공통 상태(사용자 요청, 누적 결과)는 shared state에, 에이전트별 작업 지시는 handoff payload에 담습니다. 단, OpenAI Agents SDK·Strands의 핸드오프는 기본적으로 이전 대화 히스토리를 다음 에이전트에 그대로 전파하므로, 컨텍스트 범위를 좁히려면 입력 필터(input filter)를 명시적으로 지정해야 합니다.
 
 ### 4.2 충돌 해결 전략
 
@@ -336,7 +345,7 @@ Trace: user-request-<uuid>
 - **실패율**: `status=error` span을 `agent.name`으로 집계
 
 :::tip OpenTelemetry 연동
-Langfuse v3.x는 OTel native 수집기로 동작합니다. 앱에서 `traceparent` W3C 표준을 사용하면 AWS X-Ray, Datadog, Grafana Tempo와도 단일 trace로 연결됩니다.
+Langfuse v3.x는 OTel native 수집기로 동작합니다. 단일 trace로 연결하려면 앱에 OpenTelemetry SDK로 계측을 설정하고, OTLP exporter를 Langfuse 수집 엔드포인트로 보내도록 구성한 뒤, 서비스 경계에서 `traceparent` W3C 컨텍스트를 전파해야 합니다. 이렇게 구성하면 AWS X-Ray, Datadog, Grafana Tempo 같은 다른 OTel 호환 백엔드와도 같은 trace ID로 상관(correlation)됩니다.
 :::
 
 ---
@@ -345,9 +354,9 @@ Langfuse v3.x는 OTel native 수집기로 동작합니다. 앱에서 `traceparen
 
 ### 6.1 비용 증가 요인
 
-- **에이전트 수 N**: 비용은 N에 선형. Voting은 정확히 N배.
+- **에이전트 수 N**: 에이전트당 호출 수와 토큰이 고정이라는 전제에서만 비용이 N에 선형입니다. Voting은 에이전트마다 1회 호출이면 정확히 N배입니다.
 - **라운드 수 R**: Debate 2-3라운드 기준 비용 × 2~3배.
-- **컨텍스트 누적**: 라운드가 지날수록 이전 응답이 컨텍스트에 쌓여 input token 비용 비선형 증가.
+- **컨텍스트 누적**: 라운드가 지날수록 이전 응답이 컨텍스트에 쌓여 input token 비용이 비선형으로 증가하므로, 위의 선형 가정은 라운드 간 컨텍스트가 늘어나는 경우에는 성립하지 않습니다.
 - **툴 호출 체인**: tool-use 응답도 다시 LLM에 들어가 비용 발생.
 
 ### 6.2 비용 최적화 체크리스트
@@ -366,6 +375,8 @@ Langfuse v3.x는 OTel native 수집기로 동작합니다. 앱에서 `traceparen
 - **Streaming 핸드오프**: 첫 토큰부터 다음 에이전트가 처리 시작 (speculative execution).
 - **Fan-out 후 first-wins**: N개 에이전트에 동시 요청, 가장 먼저 도착한 신뢰 가능한 응답 사용.
 - **Prewarming**: 자주 쓰는 에이전트는 idle 상태로 유지 (세션 캐시).
+
+Streaming 핸드오프와 fan-out은 응답이 완성되기 전에 다운스트림 처리를 시작하므로, 부작용이 있는 동작(쓰기, 외부 호출, 리소스 변경)은 반드시 인자가 완전히 수신·검증된 뒤에만 실행하도록 게이트해야 합니다. 그렇지 않으면 미완성·무효한 인자로 비가역적 작업이 먼저 수행될 수 있습니다.
 
 ---
 
@@ -440,7 +451,7 @@ Opus를 Monitor에 썼다면 월 $1,000+ 로 급증. 티어링만으로 95% 비�
 
 ### 8.3 핸드오프 계약 (Handoff Contract)
 
-각 에이전트 간 전달되는 payload는 JSON Schema로 엄격히 정의합니다.
+각 에이전트 간 전달되는 payload의 구조는 JSON Schema로 정의하고, 아래는 그 스키마를 따르는 구체적인 인스턴스 예시입니다. 스키마(필드 타입·필수 여부)와 실제 전달되는 값은 구분해야 합니다.
 
 ```json
 {
@@ -463,7 +474,7 @@ Opus를 Monitor에 썼다면 월 $1,000+ 로 급증. 티어링만으로 95% 비�
 }
 ```
 
-이 스키마는 [온톨로지](/docs/aidlc/methodology/ontology-engineering)의 `Incident`, `Resource`, `Action` 엔티티와 1:1 매핑되어, 에이전트 간 어휘 일관성을 보장합니다.
+이 스키마는 [온톨로지](/docs/aidlc/methodology/ontology-engineering)의 `Incident`, `Resource`, `Action` 엔티티와 1:1 매핑되어, 에이전트 간 어휘 일관성을 보장합니다. 다만 `requires_human_approval`이나 `risk_level` 같은 필드는 보내는 에이전트가 스스로 선언한 값이므로 그대로 신뢰하면 안 됩니다. 사람 승인 필요 여부와 동작 수행 권한은 payload 필드가 아니라 수신 측 신뢰 경계(gateway/policy engine)의 정책으로 판정하고, 실제 액션(`proposed_action`)의 인가도 그 정책이 결정해야 합니다.
 
 ### 8.4 결과 (3개월 운영)
 
@@ -492,9 +503,9 @@ A → B → A → B → ... 핑퐁. 각 에이전트가 자신의 역할이 아�
 
 ### 9.3 합의 없는 Voting
 
-짝수 에이전트로 Voting 구성 → 동률 → 처리 불가.
+과반을 얻지 못하는 상황은 짝수 에이전트의 동률뿐 아니라, 홀수 구성에서도 응답이 모두 다르거나(과반 없음) 일부가 기권(abstention)할 때 발생합니다.
 
-- **해결**: 홀수 에이전트 구성, 또는 tiebreaker 에이전트 별도 지정.
+- **해결**: 홀수 구성이나 tiebreaker 지정은 동률만 해소합니다. 과반 미달·기권까지 처리하려면 판정 에이전트(judge)로의 폴백이나 사람 에스컬레이션 같은 기본 동작을 에이전트 수의 홀짝과 무관하게 정의해 두어야 합니다.
 
 ### 9.4 공유 상태 레이스 컨디션
 
@@ -512,7 +523,7 @@ A → B → A → B → ... 핑퐁. 각 에이전트가 자신의 역할이 아�
 
 사용자 입력에 포함된 injection이 한 에이전트에서 다음 에이전트로 그대로 전달되며 시스템 명령으로 해석됨.
 
-- **해결**: Gateway 레이어에서 입력 sanitize, 에이전트 간 핸드오프 payload는 system 역할이 아닌 user/tool 역할로만 전달.
+- **해결**: Gateway 레이어에서 입력 sanitize, 에이전트 간 핸드오프 payload는 system 역할이 아닌 user/tool 역할로만 전달. 다만 역할 태깅만으로는 충분하지 않습니다. 어떤 툴을 호출하고 어떤 데이터에 접근할 수 있는지의 권한은 전달된 메시지의 역할에서 추론하지 말고, gateway/런타임이 별도 정책으로 강제해야 합니다.
 
 ---
 
