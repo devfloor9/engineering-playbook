@@ -3,9 +3,9 @@ title: 트러블슈팅 가이드
 description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
 created: "2026-04-18"
 last_update:
-  date: 2026-09-21
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 11
 tags:
   - troubleshooting
   - debugging
@@ -38,12 +38,18 @@ kubectl logs -n kgateway-system -l app=kgateway --tail=50
 
 **일반적 원인**:
 - HTTPRoute의 `parentRefs.namespace`가 Gateway 네임스페이스와 불일치
-- ReferenceGrant가 누락되어 크로스 네임스페이스 접근 불가
+- Gateway 리스너의 `allowedRoutes`가 HTTPRoute의 네임스페이스를 허용하지 않아 라우트가 attach되지 않음
+- ReferenceGrant가 누락되어 크로스 네임스페이스 백엔드 참조 불가
 - `hostnames` 필드가 요청의 Host 헤더와 불일치
 
 **해결 방법**:
 
-1. **parentRefs 확인**:
+1. **parent 상태 먼저 확인**: HTTPRoute의 `status.parents` 조건에서 `Accepted`와 `ResolvedRefs`가 모두 `True`인지 확인합니다. `Accepted=False`이면 리스너 attach(네임스페이스/hostname) 문제이고, `ResolvedRefs=False`이면 백엔드 참조(ReferenceGrant 포함) 문제입니다.
+```bash
+kubectl get httproute <route> -n <ns> -o jsonpath='{.status.parents[*].conditions[*].type}{"\n"}{.status.parents[*].conditions[*].status}'
+```
+
+2. **parentRefs 확인**:
 ```yaml
 # HTTPRoute에서 Gateway 네임스페이스 명시
 spec:
@@ -52,7 +58,21 @@ spec:
       namespace: ai-gateway  # Gateway가 있는 네임스페이스
 ```
 
-2. **ReferenceGrant 생성**:
+3. **리스너 allowedRoutes에서 라우트 네임스페이스 허용**: HTTPRoute가 Gateway와 다른 네임스페이스에 있으면, Gateway 리스너가 해당 네임스페이스의 라우트를 허용해야 attach됩니다. ReferenceGrant는 리스너 attach가 아니라 크로스 네임스페이스 백엔드 참조에만 적용되므로 둘을 혼동하지 않습니다.
+```yaml
+# Gateway 리스너
+spec:
+  listeners:
+    - name: http
+      allowedRoutes:
+        namespaces:
+          from: Selector  # 또는 All
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: ai-gateway  # HTTPRoute가 있는 네임스페이스
+```
+
+4. **ReferenceGrant 생성** (백엔드가 다른 네임스페이스일 때만):
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
@@ -69,7 +89,7 @@ spec:
       kind: Service
 ```
 
-3. **hostnames 검증**:
+5. **hostnames 검증**:
 ```bash
 # 요청 시 Host 헤더 확인
 curl -v http://<NLB_ENDPOINT>/v1/models
@@ -119,7 +139,7 @@ spec:
 }
 ```
 
-**OTel 플러그인 올바른 설정**:
+**OTel 플러그인 올바른 설정**: `trace_type`은 `genai_extension`을 사용합니다(레거시 `otel` 값은 더 이상 사용하지 않습니다).
 
 ```json
 {
@@ -129,7 +149,7 @@ spec:
       "name": "otel",
       "config": {
         "service_name": "bifrost",
-        "trace_type": "genai_extension",  # v1.5.0+ 필수 (레거시 "otel"은 제거됨)
+        "trace_type": "genai_extension",
         "protocol": "http",
         "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
         "headers": {
@@ -155,8 +175,9 @@ spec:
 ```bash
 # vLLM 서버 시작 시
 vllm serve zai-org/GLM-5-FP8 \
-  --served-model-name=glm-5 \  # 하이픈 포함, Bifrost 전달 이름과 일치
+  --served-model-name=glm-5 \
   --tensor-parallel-size=8
+# --served-model-name은 Bifrost가 전달하는 이름(glm-5)과 일치해야 합니다
 ```
 
 **클라이언트 요청**:
@@ -172,7 +193,7 @@ response = client.chat.completions.create(
 )
 ```
 
-**커스텀 이름 매핑이 필요한 경우**, Bifrost v1.5.0+의 모델 alias 기능을 사용하세요:
+**커스텀 이름 매핑이 필요한 경우**, Bifrost v1.5.0+의 모델 alias 기능을 사용합니다. 아래 설정은 `glm-5` 요청을 vLLM의 `glm5-prod`로 매핑합니다.
 
 ```json
 {
@@ -181,7 +202,7 @@ response = client.chat.completions.create(
       "keys": [{
         "name": "local-vllm",
         "aliases": {
-          "glm-5": "glm5-prod"  # glm-5 요청 → vLLM의 glm5-prod로 매핑
+          "glm-5": "glm5-prod"
         }
       }]
     }
@@ -199,7 +220,9 @@ response = client.chat.completions.create(
 
 **원인**: Next.js 정적 자산 경로 (`/_next/*`)가 Langfuse로 라우팅되지 않음
 
-**해결**: [기본 배포 섹션 2.3](./basic-deployment.md#langfuse-sub-path-라우팅-urlrewrite)의 HTTPRoute에서 `/_next`, `/api/auth`, `/api/public`, `/icon.svg` 경로도 Langfuse로 라우팅 추가
+**권장**: 가능하면 Langfuse를 서브 경로가 아닌 전용 호스트네임(예: `langfuse.example.com`)으로 노출합니다. 서브 경로 라우팅은 아래 경로들이 다른 애플리케이션의 루트 API/정적 경로와 충돌할 수 있고, Langfuse를 서브 경로에서 올바로 서빙하려면 라우팅만으로는 부족합니다. 빌드 타임 base path(`NEXTAUTH_URL`/base path 설정), 인증 콜백 URL, 헬스 프로브 경로까지 서브 경로에 맞춰 구성한 뒤 로그인·화면 이동·정적 자산 로드를 모두 확인해야 합니다.
+
+**서브 경로를 유지해야 하는 경우의 해결**: [기본 배포 섹션 2.3](./basic-deployment.md#langfuse-sub-path-라우팅-urlrewrite)의 HTTPRoute에서 `/_next`, `/api/auth`, `/api/public`, `/icon.svg` 경로도 Langfuse로 라우팅 추가
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -292,15 +315,17 @@ echo "<BASE64_STRING>" | base64 -d
 
 **Langfuse 엔드포인트 직접 테스트**:
 
+빈 `resourceSpans` 요청은 엔드포인트 도달성과 인증 수용 여부만 확인합니다(200은 연결·인증 성공을 뜻할 뿐, 트레이스가 실제로 저장·표시되는지는 검증하지 않습니다). 트레이스 미표시 증상을 재현하려면 알려진 trace/span ID와 타임스탬프를 가진 유효한 합성 span을 전송한 뒤, Langfuse UI에서 해당 trace가 수집·표시되는지 확인합니다.
+
 ```bash
-# Langfuse Pod 내부에서 직접 OTLP 전송 테스트
+# 연결·인증 확인 전용: Langfuse Pod 내부에서 직접 OTLP 전송 테스트
 kubectl exec -it -n observability <langfuse-web-pod> -- curl -v \
   -H "Authorization: Basic <BASE64(pk:sk)>" \
   -H "x-langfuse-ingestion-version: 4" \
   -H "Content-Type: application/json" \
   -d '{"resourceSpans":[]}' \
   http://localhost:3000/api/public/otel/v1/traces
-# 예상: 200 OK
+# 예상: 연결·인증 성공 시 200 (저장·표시 여부는 유효한 span으로 별도 확인)
 ```
 
 상세 설정은 [Langfuse OTel 연동](../../integrations/monitoring-observability-setup.md)을 참조하세요.
@@ -410,22 +435,44 @@ aws logs tail /aws-wafv2/cloudfront/inference-gateway-waf --follow
 # 2. NLB SG 확인
 aws ec2 describe-security-groups --group-ids ${CF_RESTRICTED_SG_ID}
 
-# 3. CloudFront → NLB 직접 테스트 (Pod 내부에서)
+# 3. 오리진(NLB) 직접 도달성 테스트 (Pod 내부에서 — CloudFront/WAF를 거치지 않음)
+#    이 요청은 Pod에서 NLB로 직접 가므로 CloudFront와 WAF를 우회합니다.
+#    또한 -H "Host:"는 애플리케이션 Host 헤더만 바꿀 뿐 TLS SNI를 그 이름으로 설정하지 않습니다.
 kubectl exec -it -n kgateway-system <kgateway-pod> -- curl -v \
   -H "Host: <CF_DOMAIN>" \
   https://<NLB_DNS>/v1/models
+
+# CloudFront 경로 자체를 검증하려면 CloudFront 도메인으로 요청하고
+# 인증서/SNI가 일치하도록 --resolve 등으로 SNI를 명시합니다.
+# curl -v https://<CF_DOMAIN>/v1/models
 ```
 
 **해결**:
 
-1. **WAF 규칙 조정** (일시적으로 Count 모드로 전환하여 트래픽 분석):
+1. **WAF 규칙 조정** (특정 규칙을 일시적으로 Count 모드로 전환하여 트래픽 분석):
+
+   기본 동작(`DefaultAction`)을 `Allow`로 바꾸면 매칭 규칙이 아니라 ACL 전체의 기본 처리가 허용으로 바뀌어 보호가 사라질 수 있습니다. 또한 `update-web-acl`은 전체 구성을 교체하므로 `Name`, `VisibilityConfig`, `Rules`를 모두 다시 전달해야 합니다. 분석이 필요한 규칙만 Count로 바꾸려면, 먼저 현재 구성과 `LockToken`을 읽어 보존한 뒤 해당 규칙에만 `OverrideAction: Count`(규칙 그룹) 또는 룰 그룹 참조의 `RuleActionOverrides`를 적용하고, 분석이 끝나면 원래 구성으로 되돌립니다.
+
 ```bash
+# 1) 현재 ACL 전체 구성과 LockToken을 읽어 백업
+aws wafv2 get-web-acl --scope CLOUDFRONT --region us-east-1 \
+  --id <WEB_ACL_ID> --name <WEB_ACL_NAME> > webacl-backup.json
+LOCK_TOKEN=$(jq -r '.LockToken' webacl-backup.json)
+
+# 2) 백업에서 Rules/VisibilityConfig를 가져와, 분석 대상 규칙(그룹)만
+#    OverrideAction 또는 RuleActionOverrides로 Count 처리한 Rules를 작성
+#    (DefaultAction과 나머지 규칙은 그대로 유지)
+
+# 3) 전체 구성을 다시 전달하여 업데이트 (Name/VisibilityConfig/Rules 필수)
 aws wafv2 update-web-acl \
-  --scope CLOUDFRONT \
-  --region us-east-1 \
-  --id <WEB_ACL_ID> \
-  --lock-token <LOCK_TOKEN> \
-  --default-action '{"Allow":{}}'
+  --scope CLOUDFRONT --region us-east-1 \
+  --id <WEB_ACL_ID> --name <WEB_ACL_NAME> \
+  --default-action "$(jq -c '.WebACL.DefaultAction' webacl-backup.json)" \
+  --visibility-config "$(jq -c '.WebACL.VisibilityConfig' webacl-backup.json)" \
+  --rules file://rules-count-override.json \
+  --lock-token ${LOCK_TOKEN}
+
+# 4) 롤백: 다시 get-web-acl로 최신 LockToken을 받아 백업 Rules로 복원
 ```
 
 2. **NLB SG에 CloudFront Prefix List 추가**:
@@ -471,13 +518,19 @@ TURN_THRESHOLD = 5     # 3-10 범위 실험
 
 **A/B 테스트 구성** (점진적 롤아웃):
 
+아래 HTTPRoute는 `parentRefs`로 Gateway에 attach되어야 동작하며, 백엔드(`llm-classifier`, `bifrost-service`)가 라우트와 다른 네임스페이스에 있으면 섹션 1의 `allowedRoutes`/ReferenceGrant 구성이 필요합니다. 또한 `llm-classifier` 백엔드로 트래픽을 보내는 구성은 분류기가 요청을 받아 그대로 추론 API로 전달하는 HTTP 프록시여야 유효합니다. 분류기가 프록시가 아니라면 이 가중치 분할은 그대로 적용할 수 없습니다.
+
 ```yaml
 # 트래픽 분할: 50% LLM Classifier, 50% 직접 라우팅
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: ab-test-route
+  namespace: ai-inference  # 백엔드 Service가 있는 네임스페이스
 spec:
+  parentRefs:
+    - name: unified-gateway
+      namespace: ai-gateway  # Gateway가 있는 네임스페이스
   rules:
     - matches:
         - path:
@@ -502,14 +555,19 @@ spec:
 
 ### Q2: config.json 변경 후 즉시 반영 안 됨
 
-**A**: Bifrost는 시작 시 config.json을 SQLite에 저장합니다. 변경 시 Pod 재시작 필요:
+**A**: Bifrost는 시작 시 config.json을 SQLite에 저장하므로, 설정을 바꾸면 Pod가 다시 시작되어야 반영됩니다. 레이블로 매칭되는 Pod를 한꺼번에 `delete`하면 가용성에 영향을 줄 수 있습니다. Deployment라면 롤링 재시작을 사용하고, 준비 상태를 확인한 뒤 문제가 생기면 롤백합니다. 단일 복제본이거나 SQLite를 로컬 볼륨에 두는 경우에는 재시작 중 짧은 중단이 불가피하므로 유지보수 시간대에 수행합니다.
+
 ```bash
-kubectl delete pod -l app=bifrost -n ai-external
+# Deployment 롤링 재시작 (가용성 유지)
+kubectl rollout restart deployment/bifrost -n ai-external
+kubectl rollout status deployment/bifrost -n ai-external   # 준비 상태 확인
+# 문제 시 롤백
+kubectl rollout undo deployment/bifrost -n ai-external
 ```
 
 ### Q3: Langfuse 트레이스가 느리게 도착함
 
-**A**: Langfuse는 비동기 배치 처리를 사용합니다. 트레이스 도착까지 10-30초 소요 정상. 실시간 확인이 필요하면 Langfuse 로그를 직접 확인하세요:
+**A**: Langfuse는 비동기 배치 처리를 사용하므로 트레이스가 전송 직후 바로 표시되지 않습니다. 도착까지의 지연은 OTel exporter의 배치/플러시 주기, Langfuse 수집 큐 적체, 버전에 따라 달라지므로 고정된 "정상 범위"로 단정할 수 없습니다. 특정 환경에서 관찰된 지연(예: 수 초에서 수십 초)은 그 환경의 설정과 부하에 대한 예시일 뿐이며, 실제 값은 배치 설정과 큐 상태를 기준으로 측정해야 합니다. 실시간 확인이 필요하면 Langfuse 로그를 직접 확인하세요:
 ```bash
 kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 ```

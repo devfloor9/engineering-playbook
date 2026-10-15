@@ -3,9 +3,9 @@ title: Troubleshooting Guide
 description: Common issues and solutions during Inference Gateway deployment and operations
 created: "2026-04-18"
 last_update:
-  date: 2026-09-21
+  date: 2026-10-15
   author: devfloor9
-reading_time: 10
+reading_time: 18
 tags:
   - troubleshooting
   - debugging
@@ -38,12 +38,18 @@ kubectl logs -n kgateway-system -l app=kgateway --tail=50
 
 **Common Causes**:
 - HTTPRoute's `parentRefs.namespace` doesn't match Gateway namespace
-- ReferenceGrant missing, preventing cross-namespace access
+- The Gateway listener's `allowedRoutes` does not permit the HTTPRoute's namespace, so the route does not attach
+- ReferenceGrant missing, preventing cross-namespace backend reference
 - `hostnames` field doesn't match request's Host header
 
 **Solutions**:
 
-1. **Verify parentRefs**:
+1. **Check parent status first**: In the HTTPRoute's `status.parents` conditions, confirm that both `Accepted` and `ResolvedRefs` are `True`. `Accepted=False` indicates a listener attachment problem (namespace/hostname); `ResolvedRefs=False` indicates a backend reference problem (including ReferenceGrant).
+```bash
+kubectl get httproute <route> -n <ns> -o jsonpath='{.status.parents[*].conditions[*].type}{"\n"}{.status.parents[*].conditions[*].status}'
+```
+
+2. **Verify parentRefs**:
 ```yaml
 # Specify Gateway namespace in HTTPRoute
 spec:
@@ -52,7 +58,21 @@ spec:
       namespace: ai-gateway  # Namespace where Gateway resides
 ```
 
-2. **Create ReferenceGrant**:
+3. **Authorize the route namespace in the listener's allowedRoutes**: When the HTTPRoute lives in a different namespace than the Gateway, the Gateway listener must allow routes from that namespace for the route to attach. ReferenceGrant applies to cross-namespace backend references, not to listener attachment, so do not conflate the two.
+```yaml
+# Gateway listener
+spec:
+  listeners:
+    - name: http
+      allowedRoutes:
+        namespaces:
+          from: Selector  # or All
+          selector:
+            matchLabels:
+              kubernetes.io/metadata.name: ai-gateway  # Namespace where HTTPRoute resides
+```
+
+4. **Create ReferenceGrant** (only when the backend is in another namespace):
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
@@ -69,7 +89,7 @@ spec:
       kind: Service
 ```
 
-3. **Validate hostnames**:
+5. **Validate hostnames**:
 ```bash
 # Check Host header in request
 curl -v http://<NLB_ENDPOINT>/v1/models
@@ -119,7 +139,7 @@ spec:
 }
 ```
 
-**Correct OTel Plugin Configuration**:
+**Correct OTel Plugin Configuration**: Set `trace_type` to `genai_extension` (the legacy `otel` value is no longer used).
 
 ```json
 {
@@ -129,7 +149,7 @@ spec:
       "name": "otel",
       "config": {
         "service_name": "bifrost",
-        "trace_type": "genai_extension",  # required as of v1.5.0+ (legacy "otel" was removed)
+        "trace_type": "genai_extension",
         "protocol": "http",
         "collector_url": "http://langfuse-web.langfuse.svc.cluster.local:3000/api/public/otel/v1/traces",
         "headers": {
@@ -148,15 +168,16 @@ spec:
 
 **Symptom**: Requested with `openai/glm-5` but vLLM returns `model not found`
 
-**Cause**: Bifrost normalizes model names by removing hyphens (`glm-5` → `glm5`).
+**Cause**: Bifrost strips only the provider prefix and passes the model name through unchanged (`openai/glm-5` → `glm-5` is sent to vLLM). An error occurs when vLLM's `--served-model-name` does not match.
 
-**Solution**: Match vLLM's `--served-model-name` to the normalized name.
+**Solution**: Match vLLM's `--served-model-name` to the requested model name.
 
 ```bash
 # When starting vLLM server
 vllm serve zai-org/GLM-5-FP8 \
-  --served-model-name=glm5 \  # Name without hyphens
+  --served-model-name=glm-5 \
   --tensor-parallel-size=8
+# --served-model-name must match the name Bifrost forwards (glm-5)
 ```
 
 **Client Request**:
@@ -165,16 +186,31 @@ from openai import OpenAI
 
 client = OpenAI(base_url="http://<NLB_ENDPOINT>/v1", api_key="dummy")
 
-# Bifrost normalizes glm-5 → glm5, so vLLM must serve as glm5
+# Bifrost strips the openai/ prefix → glm-5 is sent to vLLM
 response = client.chat.completions.create(
-    model="openai/glm-5",  # Use original name in request
+    model="openai/glm-5",
     messages=[{"role": "user", "content": "Hello"}]
 )
 ```
 
-:::info Bifrost Model Alias Feature
-Bifrost model alias feature has been requested in [#1058](https://github.com/maximhq/bifrost/issues/1058), but remains unimplemented as of 2026.04.
-:::
+**If you need a custom name mapping**, use the Bifrost v1.5.0+ model alias feature. The configuration below maps a `glm-5` request to vLLM's `glm5-prod`.
+
+```json
+{
+  "providers": {
+    "openai": {
+      "keys": [{
+        "name": "local-vllm",
+        "aliases": {
+          "glm-5": "glm5-prod"
+        }
+      }]
+    }
+  }
+}
+```
+
+See the [Bifrost Aliasing Models documentation](https://docs.getbifrost.ai/providers/aliasing-models) for details.
 
 ---
 
@@ -184,7 +220,9 @@ Bifrost model alias feature has been requested in [#1058](https://github.com/max
 
 **Cause**: Next.js static asset paths (`/_next/*`) not routed to Langfuse
 
-**Solution**: In the HTTPRoute from [Basic Deployment Section 2.3](./basic-deployment.md#langfuse-sub-path-routing-urlrewrite), add routing for `/_next`, `/api/auth`, `/api/public`, `/icon.svg` paths to Langfuse
+**Recommended**: Where possible, expose Langfuse on a dedicated hostname (for example `langfuse.example.com`) rather than a sub-path. The paths below are root paths that can collide with other applications' root API/static paths, and routing alone does not serve Langfuse correctly under a sub-path. You must also configure the build-time base path (`NEXTAUTH_URL`/base path settings), the auth callback URL, and the health probe paths for the sub-path, then verify login, in-app navigation, and static asset loading.
+
+**Solution when a sub-path must be kept**: In the HTTPRoute from [Basic Deployment Section 2.3](./basic-deployment.md#langfuse-sub-path-routing-urlrewrite), add routing for `/_next`, `/api/auth`, `/api/public`, `/icon.svg` paths to Langfuse
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -277,15 +315,17 @@ echo "<BASE64_STRING>" | base64 -d
 
 **Test Langfuse Endpoint Directly**:
 
+An empty `resourceSpans` request only checks endpoint reachability and auth acceptance (a 200 means the connection and authorization succeeded; it does not verify that a trace is actually stored and displayed). To reproduce the missing-trace symptom, send a valid synthetic span with known trace/span IDs and timestamps, then confirm in the Langfuse UI that the trace is ingested and displayed.
+
 ```bash
-# Test direct OTLP transmission from inside Langfuse Pod
+# Connectivity/auth check only: direct OTLP transmission from inside Langfuse Pod
 kubectl exec -it -n observability <langfuse-web-pod> -- curl -v \
   -H "Authorization: Basic <BASE64(pk:sk)>" \
   -H "x-langfuse-ingestion-version: 4" \
   -H "Content-Type: application/json" \
   -d '{"resourceSpans":[]}' \
   http://localhost:3000/api/public/otel/v1/traces
-# Expected: 200 OK
+# Expected: 200 on connection/auth success (verify storage/display separately with a valid span)
 ```
 
 For detailed configuration, refer to [Langfuse OTel Integration](../../integrations/monitoring-observability-setup.md).
@@ -309,8 +349,8 @@ kubectl logs -n kgateway-system <pod-name> --previous
 ```
 
 **Common Causes**:
-- Gateway API CRDs not installed or version mismatch
-- GatewayClass's `parametersRef` references non-existent GatewayClassConfig
+- Gateway API CRDs or kgateway CRDs (`kgateway-crds` chart) not installed, or version mismatch
+- Gateway's `spec.infrastructure.parametersRef` references a non-existent `GatewayParameters`
 - Resource shortage (CPU/Memory)
 
 **Solutions**:
@@ -321,9 +361,9 @@ kubectl get crd | grep gateway
 # Expected: gatewayclasses.gateway.networking.k8s.io, gateways.gateway.networking.k8s.io, httproutes.gateway.networking.k8s.io
 ```
 
-2. **Verify GatewayClassConfig Exists**:
+2. **Verify GatewayParameters Exists** (when referenced):
 ```bash
-kubectl get gatewayclassconfig -A
+kubectl get gatewayparameters -A
 ```
 
 3. **Increase Resources**:
@@ -361,7 +401,7 @@ spec:
         fsGroup: 1000  # Required!
       containers:
       - name: bifrost
-        image: bifrost/bifrost:v2.0.0
+        image: maximhq/bifrost:v1.5.16  # Check hub.docker.com/r/maximhq/bifrost for the latest tag
         args: ["-app-dir", "/app/data"]
         volumeMounts:
         - name: bifrost-data
@@ -395,22 +435,44 @@ aws logs tail /aws-wafv2/cloudfront/inference-gateway-waf --follow
 # 2. Check NLB SG
 aws ec2 describe-security-groups --group-ids ${CF_RESTRICTED_SG_ID}
 
-# 3. Test CloudFront → NLB directly (from inside Pod)
+# 3. Direct origin (NLB) reachability test (from inside Pod — bypasses CloudFront/WAF)
+#    This request goes straight from the Pod to the NLB, so CloudFront and WAF are bypassed.
+#    Also, -H "Host:" only changes the application Host header; it does not set TLS SNI to that name.
 kubectl exec -it -n kgateway-system <kgateway-pod> -- curl -v \
   -H "Host: <CF_DOMAIN>" \
   https://<NLB_DNS>/v1/models
+
+# To verify the CloudFront path itself, send the request to the CloudFront domain
+# and specify a certificate/SNI-compatible connection (e.g. with --resolve).
+# curl -v https://<CF_DOMAIN>/v1/models
 ```
 
 **Solutions**:
 
-1. **Adjust WAF Rules** (temporarily switch to Count mode to analyze traffic):
+1. **Adjust WAF Rules** (temporarily switch specific rules to Count mode to analyze traffic):
+
+   Changing the `DefaultAction` to `Allow` changes the ACL's default handling to allow — not the matching rules to Count — and can remove protections. `update-web-acl` also replaces the entire configuration, so you must resend `Name`, `VisibilityConfig`, and `Rules`. To switch only the rules you need into Count, first read and preserve the current configuration and `LockToken`, apply `OverrideAction: Count` (for a rule group) or `RuleActionOverrides` on the referenced rule group to those rules only, and restore the original configuration when analysis is done.
+
 ```bash
+# 1) Read the full ACL configuration and LockToken, and back them up
+aws wafv2 get-web-acl --scope CLOUDFRONT --region us-east-1 \
+  --id <WEB_ACL_ID> --name <WEB_ACL_NAME> > webacl-backup.json
+LOCK_TOKEN=$(jq -r '.LockToken' webacl-backup.json)
+
+# 2) From the backup, take Rules/VisibilityConfig and build a Rules set
+#    with only the target rule(s)/group set to Count via OverrideAction or
+#    RuleActionOverrides (keep DefaultAction and all other rules unchanged)
+
+# 3) Re-apply the full configuration (Name/VisibilityConfig/Rules required)
 aws wafv2 update-web-acl \
-  --scope CLOUDFRONT \
-  --region us-east-1 \
-  --id <WEB_ACL_ID> \
-  --lock-token <LOCK_TOKEN> \
-  --default-action '{"Allow":{}}'
+  --scope CLOUDFRONT --region us-east-1 \
+  --id <WEB_ACL_ID> --name <WEB_ACL_NAME> \
+  --default-action "$(jq -c '.WebACL.DefaultAction' webacl-backup.json)" \
+  --visibility-config "$(jq -c '.WebACL.VisibilityConfig' webacl-backup.json)" \
+  --rules file://rules-count-override.json \
+  --lock-token ${LOCK_TOKEN}
+
+# 4) Rollback: get-web-acl again for the latest LockToken and restore the backup Rules
 ```
 
 2. **Add CloudFront Prefix List to NLB SG**:
@@ -455,13 +517,19 @@ TURN_THRESHOLD = 5     # Experiment within 3-10 range
 
 **A/B Test Configuration** (gradual rollout):
 
+The HTTPRoute below only works once it attaches to a Gateway via `parentRefs`, and if the backends (`llm-classifier`, `bifrost-service`) are in a different namespace than the route, the `allowedRoutes`/ReferenceGrant setup from Section 1 is required. Sending traffic to the `llm-classifier` backend is only valid if the classifier is an HTTP proxy that receives the request and forwards it to the inference API unchanged. If the classifier is not a proxy, this weighted split cannot be applied as-is.
+
 ```yaml
 # Split traffic: 50% LLM Classifier, 50% direct routing
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: ab-test-route
+  namespace: ai-inference  # Namespace where the backend Services reside
 spec:
+  parentRefs:
+    - name: unified-gateway
+      namespace: ai-gateway  # Namespace where Gateway resides
   rules:
     - matches:
         - path:
@@ -486,21 +554,26 @@ spec:
 
 ### Q2: config.json Changes Not Reflected Immediately
 
-**A**: Bifrost stores config.json to SQLite at startup. Pod restart required when changed:
+**A**: Bifrost stores config.json to SQLite at startup, so a configuration change takes effect only after the Pod restarts. Deleting all label-matching Pods at once can affect availability. For a Deployment, use a rolling restart, confirm readiness, and roll back if there is a problem. With a single replica, or when SQLite is on a local volume, a brief interruption during restart is unavoidable, so perform it during a maintenance window.
+
 ```bash
-kubectl delete pod -l app=bifrost -n ai-external
+# Rolling restart of the Deployment (preserves availability)
+kubectl rollout restart deployment/bifrost -n ai-external
+kubectl rollout status deployment/bifrost -n ai-external   # confirm readiness
+# Roll back if there is a problem
+kubectl rollout undo deployment/bifrost -n ai-external
 ```
 
 ### Q3: Langfuse Traces Arriving Slowly
 
-**A**: Langfuse uses asynchronous batch processing. 10-30 seconds delay for trace arrival is normal. If real-time verification needed, check Langfuse logs directly:
+**A**: Langfuse uses asynchronous batch processing, so a trace is not displayed immediately after it is sent. The arrival delay depends on the OTel exporter's batch/flush interval, Langfuse ingestion-queue backlog, and version, so it cannot be stated as a fixed "normal range." A delay observed in a particular environment (for example, a few seconds to tens of seconds) is only an example for that environment's settings and load; the actual value must be measured against your batch settings and queue state. If you need real-time verification, check Langfuse logs directly:
 ```bash
 kubectl logs -l app=langfuse-web -n observability --tail=20 -f
 ```
 
 ### Q4: Speed Difference Between Direct NLB Access vs CloudFront Routing?
 
-**A**: CloudFront routing adds approximately 10-50ms additional latency due to TLS termination + WAF inspection. Recommended to accept as security tradeoff in production.
+**A**: AWS WAF inspection is typically on the order of single-digit milliseconds, and CloudFront edge TLS termination can actually reduce client-to-edge latency. The added latency from an extra hop on a cache miss varies by situation, so the actual latency must be measured per workload. In production, using CloudFront + WAF is recommended given the security tradeoff.
 
 ### Q5: Why Is Bifrost double-prefix Trick Necessary?
 
