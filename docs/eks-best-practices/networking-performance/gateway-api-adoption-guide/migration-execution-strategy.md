@@ -3,7 +3,7 @@ title: Migration Execution Strategy
 description: Gateway API migration 5-Phase strategy, CRD installation, step-by-step execution guide, validation scripts, and troubleshooting
 created: "2026-02-14"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
 reading_time: 12
 tags:
@@ -98,7 +98,7 @@ kubectl get gatewayclass nginx
 **Envoy Gateway**
 
 ```bash
-# Install Envoy Gateway
+# Install Envoy Gateway (installs the controller and CRDs only; no GatewayClass)
 helm install eg oci://docker.io/envoyproxy/gateway-helm \
   --version v1.3.0 \
   --namespace envoy-gateway-system \
@@ -106,6 +106,18 @@ helm install eg oci://docker.io/envoyproxy/gateway-helm \
 
 # Verify the installation
 kubectl get pods -n envoy-gateway-system
+
+# Create an explicit GatewayClass (controllerName is the fixed Envoy Gateway controller value)
+kubectl apply -f - <<'EOF'
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy-gateway
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+EOF
+
+# Check that it is Accepted
 kubectl get gatewayclass envoy-gateway
 ```
 
@@ -204,15 +216,16 @@ flowchart LR
 # Export all Ingress resources
 kubectl get ingress -A -o json > ingress-inventory.json
 
-# Summarize key information
+# Summarize key information (also handles a defaultBackend-only Ingress with no rules)
 cat ingress-inventory.json | jq -r '
   .items[] |
   {
     namespace: .metadata.namespace,
     name: .metadata.name,
-    class: .spec.ingressClassName,
-    hosts: [.spec.rules[].host],
-    paths: [.spec.rules[].http.paths[].path],
+    class: (.spec.ingressClassName // .metadata.annotations["kubernetes.io/ingress.class"] // null),
+    hosts: [.spec.rules[]?.host],
+    paths: [.spec.rules[]?.http.paths[]?.path],
+    defaultBackend: (.spec.defaultBackend != null),
     tls: (.spec.tls != null)
   }
 ' > ingress-summary.json
@@ -221,7 +234,8 @@ cat ingress-inventory.json | jq -r '
 echo "=== Ingress Statistics ==="
 echo "Total Ingress: $(cat ingress-inventory.json | jq '.items | length')"
 echo "With TLS: $(cat ingress-inventory.json | jq '[.items[] | select(.spec.tls != null)] | length')"
-echo "Unique Hosts: $(cat ingress-inventory.json | jq -r '[.items[].spec.rules[].host] | unique | length')"
+echo "With defaultBackend: $(cat ingress-inventory.json | jq '[.items[] | select(.spec.defaultBackend != null)] | length')"
+echo "Unique Hosts: $(cat ingress-inventory.json | jq -r '[.items[].spec.rules[]?.host] | unique | length')"
 ```
 
 **Step 1.2: Map features from NGINX Ingress to Gateway API**
@@ -328,20 +342,21 @@ curl -v http://poc.dev.example.com/
 **Step 2.3: Benchmark performance in the PoC environment**
 
 ```bash
-# k6 load test script
+# k6 load test script (VU-based concurrency workload, not a fixed arrival-rate capacity benchmark)
 cat <<EOF > poc-benchmark.js
 import http from 'k6/http';
 import { check } from 'k6';
 
 export let options = {
   stages: [
-    { duration: '2m', target: 100 },  // Ramp up to 100 VUs
+    { duration: '2m', target: 100 },  // Ramp up to 100 concurrent VUs
     { duration: '5m', target: 100 },  // Hold for 5 minutes
     { duration: '2m', target: 0 },    // Ramp down
   ],
   thresholds: {
     'http_req_duration': ['p(95)<200'],  // P95 latency below 200ms
-    'http_req_failed': ['rate<0.01'],     // Error rate below 1%
+    'http_req_failed': ['rate<0.01'],     // Transport failure rate below 1%
+    'checks': ['rate>0.99'],              // Pass rate of correctness checks such as status 200 (without a threshold, a failing check does not fail the run)
   },
 };
 
@@ -723,8 +738,12 @@ chmod +x validate-httproute.sh
 # Inspect controller logs
 kubectl logs -n kube-system deployment/aws-load-balancer-controller --tail=100 -f
 
-# Identify the Gateway's underlying NLB
-kubectl get gateway <name> -n <namespace> -o jsonpath='{.metadata.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-name}'
+# Read the assigned load-balancer address (NLB DNS name) from the Gateway status
+kubectl get gateway <name> -n <namespace> -o jsonpath='{.status.addresses[0].value}'
+
+# Resolve the NLB ARN from that DNS name
+aws elbv2 describe-load-balancers \
+  --query "LoadBalancers[?DNSName=='<gateway-address>'].LoadBalancerArn" --output text
 
 # Check NLB target group health
 aws elbv2 describe-target-health --target-group-arn <arn>
@@ -739,16 +758,16 @@ kubectl describe httproute <name> -n <namespace>
 # Cilium Operator logs
 kubectl logs -n kube-system deployment/cilium-operator --tail=100 -f
 
-# Dump the Envoy configuration
-kubectl exec -n kube-system ds/cilium -- cilium envoy config dump > envoy-config.json
+# Dump the Envoy configuration from inside the agent Pod (the agent CLI is cilium-dbg)
+kubectl exec -n kube-system ds/cilium -c cilium-agent -- cilium-dbg envoy admin config > envoy-config.json
 
-# Inspect the HTTPRoute routing table
-kubectl exec -n kube-system ds/cilium -- cilium service list
+# List L4 Services/load balancers (this is not the L7 HTTPRoute routing table)
+kubectl exec -n kube-system ds/cilium -c cilium-agent -- cilium-dbg service list
 
 # Monitor Gateway-related flows
 hubble observe --protocol http --port 443
 
-# Check Gateway status
+# Check Gateway status (host CLI)
 cilium status --wait
 ```
 
@@ -774,11 +793,16 @@ kubectl logs -n nginx-gateway deployment/nginx-gateway -f | grep "HTTP/1.1"
 # Envoy Gateway controller logs
 kubectl logs -n envoy-gateway-system deployment/envoy-gateway --tail=100 -f
 
-# Envoy Proxy logs (data plane)
-kubectl logs -n envoy-gateway-system deployment/envoy-<gateway-name> --tail=100 -f
+# Resolve the actual data-plane Deployment name via owning-gateway labels (<gw-ns>/<gw-name> is the target Gateway)
+ENVOY_DEPLOYMENT=$(kubectl get deploy -n envoy-gateway-system \
+  --selector=gateway.envoyproxy.io/owning-gateway-namespace=<gw-ns>,gateway.envoyproxy.io/owning-gateway-name=<gw-name> \
+  -o jsonpath='{.items[0].metadata.name}')
 
-# Forward the Envoy admin interface port
-kubectl port-forward -n envoy-gateway-system deployment/envoy-<gateway-name> 19000:19000
+# Envoy Proxy logs (data plane)
+kubectl logs -n envoy-gateway-system "deployment/${ENVOY_DEPLOYMENT}" --tail=100 -f
+
+# Forward the Envoy admin interface port (admin listens on localhost:19000)
+kubectl port-forward -n envoy-gateway-system "deployment/${ENVOY_DEPLOYMENT}" 19000:19000
 
 # Open http://localhost:19000 in a browser to inspect stats and configuration
 
@@ -804,7 +828,7 @@ kubectl get pods -n <namespace> -l <selector>
 # Inspect network policies for traffic blocking
 kubectl get networkpolicies -n <namespace>
 
-# Inspect events from the last 10 minutes
+# Inspect the latest 20 events (sorted by lastTimestamp)
 kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20
 ```
 

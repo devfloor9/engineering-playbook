@@ -3,7 +3,7 @@ title: 마이그레이션 실행 전략
 description: Gateway API 마이그레이션 5-Phase 전략, CRD 설치, 단계별 실행 가이드, 검증 스크립트, 트러블슈팅
 created: "2026-02-14"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -98,7 +98,7 @@ kubectl get gatewayclass nginx
 **Envoy Gateway**
 
 ```bash
-# Envoy Gateway 설치
+# Envoy Gateway 설치 (컨트롤러와 CRD만 설치되며 GatewayClass는 포함되지 않음)
 helm install eg oci://docker.io/envoyproxy/gateway-helm \
   --version v1.3.0 \
   --namespace envoy-gateway-system \
@@ -106,6 +106,18 @@ helm install eg oci://docker.io/envoyproxy/gateway-helm \
 
 # 설치 확인
 kubectl get pods -n envoy-gateway-system
+
+# GatewayClass를 명시적으로 생성 (controllerName은 Envoy Gateway 컨트롤러 값 고정)
+kubectl apply -f - <<'EOF'
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: envoy-gateway
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+EOF
+
+# Accepted 상태 확인
 kubectl get gatewayclass envoy-gateway
 ```
 
@@ -204,15 +216,16 @@ flowchart LR
 # 모든 Ingress 리소스 목록 추출
 kubectl get ingress -A -o json > ingress-inventory.json
 
-# 주요 정보 요약
+# 주요 정보 요약 (rules가 없는 defaultBackend 전용 Ingress도 처리)
 cat ingress-inventory.json | jq -r '
   .items[] |
   {
     namespace: .metadata.namespace,
     name: .metadata.name,
-    class: .spec.ingressClassName,
-    hosts: [.spec.rules[].host],
-    paths: [.spec.rules[].http.paths[].path],
+    class: (.spec.ingressClassName // .metadata.annotations["kubernetes.io/ingress.class"] // null),
+    hosts: [.spec.rules[]?.host],
+    paths: [.spec.rules[]?.http.paths[]?.path],
+    defaultBackend: (.spec.defaultBackend != null),
     tls: (.spec.tls != null)
   }
 ' > ingress-summary.json
@@ -221,7 +234,8 @@ cat ingress-inventory.json | jq -r '
 echo "=== Ingress Statistics ==="
 echo "Total Ingress: $(cat ingress-inventory.json | jq '.items | length')"
 echo "With TLS: $(cat ingress-inventory.json | jq '[.items[] | select(.spec.tls != null)] | length')"
-echo "Unique Hosts: $(cat ingress-inventory.json | jq -r '[.items[].spec.rules[].host] | unique | length')"
+echo "With defaultBackend: $(cat ingress-inventory.json | jq '[.items[] | select(.spec.defaultBackend != null)] | length')"
+echo "Unique Hosts: $(cat ingress-inventory.json | jq -r '[.items[].spec.rules[]?.host] | unique | length')"
 ```
 
 **Step 1.2: 기능 매핑 (NGINX Ingress → Gateway API)**
@@ -328,20 +342,21 @@ curl -v http://poc.dev.example.com/
 **Step 2.3: 성능 벤치마크 (PoC 환경)**
 
 ```bash
-# k6 부하 테스트 스크립트
+# k6 부하 테스트 스크립트 (VU 기반 동시성 워크로드이며 고정 도착률 용량 벤치마크가 아님)
 cat <<EOF > poc-benchmark.js
 import http from 'k6/http';
 import { check } from 'k6';
 
 export let options = {
   stages: [
-    { duration: '2m', target: 100 },  // 100 VU까지 램프업
+    { duration: '2m', target: 100 },  // 동시 VU 100까지 램프업
     { duration: '5m', target: 100 },  // 5분간 유지
     { duration: '2m', target: 0 },    // 램프다운
   ],
   thresholds: {
     'http_req_duration': ['p(95)<200'],  // P95 레이턴시 200ms 미만
-    'http_req_failed': ['rate<0.01'],     // 에러율 1% 미만
+    'http_req_failed': ['rate<0.01'],     // 전송 실패율 1% 미만
+    'checks': ['rate>0.99'],              // status 200 등 정합성 체크 통과율 (threshold가 없으면 체크 실패는 run을 실패시키지 않음)
   },
 };
 
@@ -723,8 +738,12 @@ chmod +x validate-httproute.sh
 # 컨트롤러 로그 확인
 kubectl logs -n kube-system deployment/aws-load-balancer-controller --tail=100 -f
 
-# Gateway의 실제 NLB 확인
-kubectl get gateway <name> -n <namespace> -o jsonpath='{.metadata.annotations.service\.beta\.kubernetes\.io/aws-load-balancer-name}'
+# Gateway status에서 할당된 LB 주소(NLB DNS 이름) 확인
+kubectl get gateway <name> -n <namespace> -o jsonpath='{.status.addresses[0].value}'
+
+# 위 DNS 이름으로 NLB를 조회해 ARN 확인
+aws elbv2 describe-load-balancers \
+  --query "LoadBalancers[?DNSName=='<gateway-address>'].LoadBalancerArn" --output text
 
 # NLB의 Target Group 상태 확인
 aws elbv2 describe-target-health --target-group-arn <arn>
@@ -739,16 +758,16 @@ kubectl describe httproute <name> -n <namespace>
 # Cilium Operator 로그
 kubectl logs -n kube-system deployment/cilium-operator --tail=100 -f
 
-# Envoy 구성 덤프
-kubectl exec -n kube-system ds/cilium -- cilium envoy config dump > envoy-config.json
+# 에이전트 Pod 안의 Envoy 구성 덤프 (에이전트 CLI는 cilium-dbg)
+kubectl exec -n kube-system ds/cilium -c cilium-agent -- cilium-dbg envoy admin config > envoy-config.json
 
-# HTTPRoute 라우팅 테이블 확인
-kubectl exec -n kube-system ds/cilium -- cilium service list
+# L4 Service/로드밸런서 목록 (L7 HTTPRoute 라우팅 테이블이 아님)
+kubectl exec -n kube-system ds/cilium -c cilium-agent -- cilium-dbg service list
 
 # 플로우 모니터링 (Gateway 관련)
 hubble observe --protocol http --port 443
 
-# Gateway 상태 확인
+# Gateway 상태 확인 (호스트 CLI)
 cilium status --wait
 ```
 
@@ -774,11 +793,16 @@ kubectl logs -n nginx-gateway deployment/nginx-gateway -f | grep "HTTP/1.1"
 # Envoy Gateway 컨트롤러 로그
 kubectl logs -n envoy-gateway-system deployment/envoy-gateway --tail=100 -f
 
-# Envoy Proxy 로그 (데이터플레인)
-kubectl logs -n envoy-gateway-system deployment/envoy-<gateway-name> --tail=100 -f
+# Gateway 소유 라벨로 실제 데이터플레인 Deployment 이름 조회 (<gw-ns>/<gw-name>은 대상 Gateway)
+ENVOY_DEPLOYMENT=$(kubectl get deploy -n envoy-gateway-system \
+  --selector=gateway.envoyproxy.io/owning-gateway-namespace=<gw-ns>,gateway.envoyproxy.io/owning-gateway-name=<gw-name> \
+  -o jsonpath='{.items[0].metadata.name}')
 
-# Envoy 관리 인터페이스 포트 포워딩
-kubectl port-forward -n envoy-gateway-system deployment/envoy-<gateway-name> 19000:19000
+# Envoy Proxy 로그 (데이터플레인)
+kubectl logs -n envoy-gateway-system "deployment/${ENVOY_DEPLOYMENT}" --tail=100 -f
+
+# Envoy 관리 인터페이스 포트 포워딩 (admin은 localhost에서 19000 수신)
+kubectl port-forward -n envoy-gateway-system "deployment/${ENVOY_DEPLOYMENT}" 19000:19000
 
 # 브라우저에서 http://localhost:19000 접속하여 stats, config 확인
 
@@ -804,7 +828,7 @@ kubectl get pods -n <namespace> -l <selector>
 # 네트워크 정책 확인 (트래픽 차단 여부)
 kubectl get networkpolicies -n <namespace>
 
-# 이벤트 확인 (최근 10분)
+# 이벤트 확인 (lastTimestamp 정렬 후 최신 20건)
 kubectl get events -n <namespace> --sort-by='.lastTimestamp' | tail -20
 ```
 
