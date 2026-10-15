@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 15
 tags:
   - ddd
   - domain-driven-design
@@ -510,18 +510,20 @@ Mob Construction은 전통적인 Pair Programming을 AI로 확장한 것입니�
 |------|-----------------|----------------------|
 | **참여자** | 2명 (Driver + Navigator) | N명 + AI Agent |
 | **역할** | 1명 코딩, 1명 리뷰 | N명 검증, AI가 코딩 |
-| **속도** | 1x (사람 속도) | 10-50x (AI 속도) |
+| **속도** | 사람 속도 | AI가 코드를 생성하므로 더 빠를 수 있음 (배수는 미검증) |
 | **병렬성** | 순차 작업 | 다중 Unit 병렬 |
 | **지식 전파** | 2명만 학습 | 전체 팀 동시 학습 |
+
+위 표의 속도 비교는 상대적 경향을 나타내며, 구체적인 배수는 측정값이 아니라 미검증 가정입니다. 실제 향상 폭은 작업 성격·팀 구성·검증 비용에 따라 달라집니다.
 
 ---
 
 ## 5. Brownfield (기존 시스템) 접근
 
-기존 시스템에 기능 추가나 리팩터링을 수행하는 경우, Construction 단계에 **추가 스텝**이 필요합니다.
+기존 시스템에 기능을 추가하거나 리팩터링하는 경우에 선택할 수 있는 방법론적 접근을 설명합니다. 아래 역공학 흐름은 Construction 단계에 새로 추가되는 별도의 태그된 스텝이 아니라, 기존 코드를 DDD 모델로 끌어올리는 방법에 대한 논의입니다. 팀 상황에 따라 적용 여부를 선택합니다.
 
 :::warning Brownfield 전략: 최적화 우선
-새로 만들기보다 **기존 시스템 최적화**를 우선합니다. AI가 레거시 코드를 DDD 모델로 역공학하여 점진적 리팩터링을 수행합니다.
+새로 만들기보다 **기존 시스템 최적화**를 우선하는 선택지입니다. AI가 레거시 코드를 DDD 모델로 역공학하여 점진적 리팩터링을 지원합니다.
 :::
 
 ### 5.1 역공학 프로세스
@@ -600,9 +602,11 @@ DDD의 Ubiquitous Language는 팀 내 소통을 위한 **비형식적 합의**�
 |------|--------------------------|-------------|
 | **정의** | 자연어 합의 | 기계 해석 가능 스키마 |
 | **주 대상** | 사람 (팀 내 소통) | AI + 사람 |
-| **검증** | 코드 리뷰 시 수동 | 자동 검증 (프롬프트 시점) |
+| **검증** | 코드 리뷰 시 수동 | 검증기·도메인 경계를 정의한 경우 프롬프트 시점 검증 가능 |
 | **진화** | 문서화 지연 | 스키마 버전 관리 |
 | **예시** | "결제는 생성, 완료, 실패 상태를 가진다" | `Payment.status: enum(CREATED, COMPLETED, FAILED)` |
+
+위 표에서 "프롬프트 시점 검증"은 스키마에 대해 검증기(validator)와 도메인 경계가 정의되어 있을 때만 성립합니다. 그런 검증기가 없으면 스키마는 AI에 전달되는 맥락일 뿐 강제되는 제약이 아닙니다.
 
 ### 6.2 온톨로지 엔지니어링 워크플로우
 
@@ -685,14 +689,14 @@ Kiro 워크플로우:
 
 ### 8.2 Amazon Q Developer의 실시간 검증
 
-**Amazon Q Developer**는 2025년 1월 31일 발표된 **실시간 코드 실행 기능**을 통해 DDD 구현을 즉시 검증합니다.
+**Amazon Q Developer**는 2025년 1월 31일 발표된 **빌드·테스트 자동 실행 기능**을 통해 DDD 구현을 검증합니다. 이 기능은 프로젝트에 빌드·테스트 명령이 구성되어 있고(예: Devfile로 실행할 명령을 지정), 실행 가능한 테스트가 존재할 때 동작합니다.
 
 ```
 전통 방식:
   AI가 코드 생성 → 개발자가 수동 빌드 → 테스트 실패 발견 → 수정 반복
 
 Q Developer:
-  AI가 코드 생성 → 자동 빌드 → 자동 테스트 → 실패 시 즉시 재생성
+  AI가 코드 생성 → 자동 빌드 → 자동 테스트 → 실패 시 코드 수정 반복 후 리뷰 요청
 ```
 
 이는 AIDLC의 **Loss Function**을 Construction 단계에서 조기 작동시켜 오류를 하류로 전파하지 않는 핵심 메커니즘입니다.
@@ -715,7 +719,7 @@ Notification Bounded Context → Notification Service
 Analytics Bounded Context → Analytics Service
 ```
 
-AI가 requirements.md를 분석하여 Bounded Context를 자동 식별하고, 각 Context를 독립적인 EKS Deployment로 매핑합니다.
+AI가 requirements.md를 분석하여 Bounded Context를 자동 식별합니다. Bounded Context는 도메인 모델의 경계일 뿐이며, 이를 배포 단위로 어떻게 실체화할지는 별개의 결정입니다. EKS Deployment로 서비스별 매핑하는 것은 가능한 하나의 토폴로지이고, 모놀리식 배포나 다른 런타임도 선택할 수 있습니다.
 
 ### 9.2 Context Mapping 패턴
 
@@ -770,7 +774,8 @@ AI가 requirements.md를 분석하여 Bounded Context를 자동 식별하고, �
 
 **📚 참고 자료**
 
-- AWS Labs AI-DLC Research: [arxiv.org/abs/2501.03604](https://arxiv.org/abs/2501.03604)
+- AWS, "AI-Driven Development Life Cycle: Reimagining Software Engineering" (AWS DevOps Blog): [aws.amazon.com/blogs/devops/ai-driven-development-life-cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
+- AWS Labs, AI-DLC Workflows: [github.com/awslabs/aidlc-workflows](https://github.com/awslabs/aidlc-workflows)
 - Eric Evans, "Domain-Driven Design" (2003)
 - Vaughn Vernon, "Implementing Domain-Driven Design" (2013)
 - Chris Richardson, "Microservices Patterns" (2018)

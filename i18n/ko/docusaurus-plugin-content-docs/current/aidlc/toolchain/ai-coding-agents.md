@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 21
 tags:
   - aidlc
   - ai-coding-agents
@@ -204,7 +204,7 @@ requirements.md → design.md → tasks.md → 코드 생성 → 검증
 **Spec-Driven**: Kiro가 `requirements.md`를 분석 → `design.md` 생성 → `tasks.md` 분해 → 코드 자동 생성 → 검증까지 일관된 Context Memory로 연결
 :::
 
-Spec-Driven 방식은 전체 맥락을 유지하며 요구사항 변경 시 영향 범위를 자동으로 추적할 수 있습니다. DDD(Domain-Driven Design) 통합 패턴은 [DDD 통합](../methodology/ddd-integration.md)을 참조하세요.
+Spec-Driven 방식은 전체 맥락을 유지하므로, 요구사항이 바뀔 때 영향 범위를 추적하는 작업을 도구가 보조할 수 있습니다. 추적은 자동으로 완결되지 않으며, 산출물이 동기화된 상태에서 사람이 결과를 확인해야 합니다. DDD(Domain-Driven Design) 통합 패턴은 [DDD 통합](../methodology/ddd-integration.md)을 참조하세요.
 
 ### 2.3 MCP 네이티브 아키텍처
 
@@ -232,17 +232,17 @@ Kiro: "현재 워크로드 분석"
 
 ### 2.4 오픈 웨이트 모델 지원
 
-Kiro는 Claude 외에 오픈 웨이트 모델(Llama 4 Behemoth, Mixtral 8x22B, DeepSeek R1 등)을 지원하여 다음 이점을 제공합니다:
+Kiro는 Claude 외에 오픈 웨이트 모델(Llama 3.1 405B, Mixtral 8x22B, DeepSeek R1 등)을 지원하여 다음 이점을 제공합니다:
 
 - **비용 최적화** — 단순 코드 생성 태스크는 소형 모델로 처리 (토큰 비용 1/10)
 - **특수 도메인 확장** — 금융, 의료 등 도메인별 파인튜닝 모델 활용
-- **온프레미스 배포** — 민감 데이터를 외부로 전송하지 않고 EKS 클러스터 내에서 추론
+- **온프레미스 배포** — 모델을 EKS 클러스터 내에서 자체 호스팅하여 추론하는 경우, 추론 데이터를 외부로 전송하지 않습니다. 이 데이터 경계는 자체 호스팅 추론 경로에만 적용되며, 외부 호스팅 모델을 호출할 때는 해당하지 않습니다.
 
 오픈 웨이트 모델 배포 전략은 [오픈 웨이트 모델](./open-weight-models.md)을 참조하세요.
 
 ## 3. Amazon Q Developer — 실시간 빌드 및 테스트
 
-AWS는 2025년 1월 31일 **Amazon Q Developer의 실시간 코드 실행 기능**을 발표했습니다. 이는 AI가 코드를 생성한 후 **자동으로 빌드하고 테스트를 실행하여 결과를 검증**한 뒤 개발자에게 제시하는 혁신적 접근입니다.
+AWS는 2025년 1월 31일 **Amazon Q Developer의 빌드·테스트 자동 실행 기능**을 발표했습니다. 이는 AI가 코드를 생성한 후 **자동으로 빌드하고 테스트를 실행하여 결과를 검증**한 뒤 개발자에게 제시하는 접근입니다. 이 기능은 프로젝트에 실행할 빌드·테스트 명령이 구성되어 있고(예: Devfile로 명령 지정) 실행 가능한 테스트가 있을 때 동작합니다.
 
 AIDLC Construction 단계에서 **Loss Function을 조기에 작동**시켜 오류를 하류로 전파하지 않는 핵심 메커니즘입니다.
 
@@ -262,6 +262,8 @@ Q Developer 실시간 실행:
 
 **핵심 메커니즘**
 
+이 자동 빌드·테스트는 프로젝트에 빌드·테스트 명령이 구성되어 있고(예: Devfile로 실행 명령 지정) 실행 가능한 테스트가 존재할 때 동작합니다.
+
 1. **자동 빌드 파이프라인**
    - 프로젝트의 빌드 도구(Maven, Gradle, npm, pip 등)를 자동 실행
    - 컴파일 오류, 의존성 충돌을 즉시 감지
@@ -273,7 +275,7 @@ Q Developer 실시간 실행:
    - 기존 테스트 커버리지를 유지하며 새 코드 추가
 
 3. **개발자 리뷰 전 검증**
-   - 개발자가 코드를 받을 때 **이미 빌드와 테스트가 통과한 상태**
+   - 자동 수정이 성공하면 개발자는 **빌드와 테스트가 통과한 코드**를 받습니다. 자동 수정이 반복 후에도 실패하면, 에이전트는 통과한 코드가 아니라 실패 내용과 미해결 오류를 개발자에게 그대로 전달합니다.
    - 개발자는 비즈니스 로직과 설계 검토에 집중 (Loss Function 역할)
    - "코드가 작동하는가?"가 아닌 "올바른 코드인가?"를 검증
 
@@ -289,8 +291,9 @@ Q Developer는 Kubernetes YAML 및 애플리케이션 코드의 보안 취약점
 
 **자동 수정 제안 예시**
 
+Q Developer가 감지한 문제 매니페스트:
+
 ```yaml
-# Q Developer가 감지한 문제
 apiVersion: v1
 kind: Pod
 metadata:
@@ -302,8 +305,11 @@ spec:
       securityContext:
         runAsUser: 0  # ⚠️ Root 권한 사용
         privileged: true  # ⚠️ Privileged 모드
+```
 
-# Q Developer가 제안하는 수정
+Q Developer가 제안하는 수정 매니페스트:
+
+```yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -345,9 +351,12 @@ Q Developer 실시간 실행:
     → [AI] 자동 빌드·테스트 (30초)
     → [AI] 오류 감지 및 자동 수정 (1분)
     → [개발자] Loss Function 검증 (10분)
-    → [Argo CD] 자동 배포
-  총 소요 시간: 15-20분
+    → [개발자/승인 게이트] 배포 승인
+    → [Argo CD] 승인된 변경 동기화 배포
+  총 소요 시간: 15-20분 (예시이며 작업 규모에 따라 달라짐)
 ```
+
+위 시간은 실측값이 아니라 흐름을 보여주기 위한 예시입니다. 배포는 Loss Function 검증과 승인 게이트를 통과한 뒤에만 진행되며, 검증 없이 자동 배포되지 않습니다.
 
 :::tip AIDLC에서 Q Developer의 가치
 Q Developer의 실시간 실행은 AIDLC의 핵심 원칙인 **"Minimize Stages, Maximize Flow"**를 구현합니다. 코드 생성 → 빌드 → 테스트 → 검증의 각 단계를 자동화하여 핸드오프를 제거하고, 개발자는 **의사결정(Loss Function)**에만 집중합니다. 이것이 기존 SDLC의 주/월 단위 주기를 AIDLC의 시간/일 단위 주기로 단축하는 핵심 메커니즘입니다.
@@ -413,6 +422,8 @@ AI 코딩 에이전트를 CI/CD 파이프라인에 통합하여 **Quality Gate �
 
 ### 6.1 GitHub Actions 통합
 
+아래 워크플로에서 `aws/amazon-q-developer-action@v1` 과 그 입력(scan-type·auto-fix·action: build-and-test)은 **실제로 게시된 액션이 아니라, 보안 스캔과 빌드·테스트 단계를 어디에 배치하는지 보여주는 예시(의사 설정)**입니다. 실제 파이프라인에서는 사용 중인 Q Developer CLI/통합의 현재 문서에 있는 명령으로 바꾸고, `kube-linter` 처럼 외부 도구는 잡에서 먼저 설치해야 합니다.
+
 ```yaml
 # .github/workflows/aidlc-construction.yml
 name: AIDLC Construction Quality Gate
@@ -426,7 +437,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 1. Q Developer 보안 스캔
+      # 1. Q Developer 보안 스캔 (의사 설정 — 실제 명령으로 대체)
       - name: Q Developer Security Scan
         uses: aws/amazon-q-developer-action@v1
         with:
@@ -434,14 +445,18 @@ jobs:
           source-path: .
           auto-fix: true  # 자동 수정 제안 적용
 
-      # 2. 실시간 빌드 및 테스트
+      # 2. 실시간 빌드 및 테스트 (의사 설정 — 실제 명령으로 대체)
       - name: Q Developer Build & Test
         uses: aws/amazon-q-developer-action@v1
         with:
           action: build-and-test
           test-coverage-threshold: 80
 
-      # 3. Kubernetes manifest 검증
+      # 3. Kubernetes manifest 검증 (kube-linter 설치 후 실행)
+      - name: Install kube-linter
+        run: |
+          curl -sSL https://github.com/stackrox/kube-linter/releases/latest/download/kube-linter-linux.tar.gz | tar xz
+          sudo mv kube-linter /usr/local/bin/
       - name: K8s Manifest Security Check
         run: |
           kube-linter lint deploy/ --config .kube-linter.yaml
@@ -454,6 +469,8 @@ jobs:
 
 ### 6.2 Argo CD 통합
 
+Argo CD의 `syncPolicy.automated` 는 `targetRevision` 이 가리키는 리비전으로 동기화할 뿐, "Quality Gate 통과 시에만"이라는 조건을 스스로 강제하지 않습니다. 게이트를 실제로 반영하려면 Quality Gate를 통과한 커밋 SHA로 `targetRevision` 을 고정하거나, 승인된 리비전만 기록하는 별도 승격(promotion) 단계를 두어야 합니다.
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -464,7 +481,8 @@ spec:
   project: default
   source:
     repoURL: https://github.com/org/payment-service
-    targetRevision: main
+    # Quality Gate를 통과해 검증된 커밋 SHA로 고정 (브랜치가 아닌 검증된 리비전에 바인딩)
+    targetRevision: 2f1a9c4e8b7d6a5c4b3a2918f7e6d5c4b3a21908
     path: deploy/
   destination:
     server: https://kubernetes.default.svc
@@ -475,7 +493,6 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-    # Quality Gate 통과 시에만 동기화
     retry:
       limit: 3
       backoff:
@@ -489,8 +506,8 @@ spec:
 1. **PR 생성** — 개발자가 Kiro 생성 코드를 PR로 제출
 2. **보안 스캔** — Q Developer가 Kubernetes manifest, 애플리케이션 코드 스캔
 3. **빌드·테스트** — Q Developer가 자동 빌드 및 테스트 실행
-4. **검증 통과** — 모든 검사 통과 시 Argo CD가 자동 동기화
-5. **배포 완료** — EKS 클러스터에 배포, Application Signals 자동 활성화
+4. **검증 통과** — 모든 CI 검사(보안 스캔·빌드·테스트)가 통과하면 Argo CD가 해당 리비전을 동기화 대상으로 받아들임. 이는 CI 통과를 뜻하며, 롤아웃 완료와는 별개입니다.
+5. **롤아웃 결과 확인** — Argo CD가 EKS 클러스터에 리소스를 적용하고, Pod가 Ready/Healthy 가 될 때 롤아웃이 완료됩니다. Application Signals 는 자동으로 켜지지 않으며, 애플리케이션에 계측(instrumentation) 설정을 적용해 두어야 지표가 수집됩니다.
 
 이 워크플로우는 [하네스 엔지니어링](../methodology/harness-engineering.md)의 핵심 구현 패턴입니다.
 
@@ -503,8 +520,10 @@ spec:
 | 프로젝트 규모 | 권장 에이전트 | 이유 |
 |--------------|--------------|------|
 | 소규모 (1-5 마이크로서비스) | Amazon Q Developer | IDE 통합, 빠른 피드백, 보안 스캔 |
-| 중규모 (5-20 마이크로서비스) | Kiro + Q Developer | Spec-Driven 일관성, Q Developer 실시간 검증 |
-| 대규모 (20+ 마이크로서비스) | Kiro + 오픈 웨이트 모델 | 비용 최적화, 도메인 특화 모델 활용 |
+| 중규모 (6-20 마이크로서비스) | Kiro + Q Developer | Spec-Driven 일관성, Q Developer 실시간 검증 |
+| 대규모 (21+ 마이크로서비스) | Kiro + 오픈 웨이트 모델 | 비용 최적화, 도메인 특화 모델 활용 |
+
+위 규모 구간은 서로 겹치지 않도록 나누었습니다. 규모 외에도 규제 민감도(금융·의료 등 규제 데이터 처리 여부)와 기존 스택과의 호환성(AWS 중심인지 멀티클라우드인지)을 함께 고려해 선택합니다. 예를 들어 서비스가 소수여도 규제 데이터를 다루면 온프레미스 추론이 가능한 조합을 우선합니다.
 
 ### 7.2 도메인별
 
@@ -531,11 +550,13 @@ spec:
 | 10,000 - 100,000 요청 | Kiro + Claude (단순 태스크는 소형 모델) | ~$200-500 |
 | > 100,000 요청 | Kiro + 오픈 웨이트 모델 (EKS 자체 호스팅) | ~$100-300 (인프라 비용) |
 
+위 금액은 측정값이 아니라 예시입니다. 요청당 토큰 양, 사용 모델, 리전, 자체 호스팅 인프라 구성에 따라 크게 달라지므로, 실제 비용은 각 전략의 토큰 사용량과 가격을 조직 환경에 대입해 산정해야 합니다. 오픈 웨이트 자체 호스팅 비용은 추론 인프라의 전제에 따라 달라집니다.
+
 ## 8. 실전 적용 패턴
 
 ### 8.1 하이브리드 전략
 
-대부분의 팀은 **Amazon Q Developer + Kiro 하이브리드**가 최적입니다:
+AWS 중심으로 작업하는 많은 팀에서는 **Amazon Q Developer + Kiro 하이브리드**가 효과적인 선택지입니다:
 
 1. **개발 초기** — Q Developer로 빠른 프로토타이핑, 실시간 피드백
 2. **설계 확정 후** — Kiro Spec-Driven으로 일관성 있는 구현
@@ -564,12 +585,12 @@ Kiro는 이 온톨로지를 기반으로 `design.md`와 코드를 생성하며, 
 
 ### 8.3 지속적 학습
 
-AI 코딩 에이전트는 팀의 코드 리뷰 피드백을 학습하여 점진적으로 개선됩니다:
+AI 코딩 에이전트는 팀의 피드백을 **프롬프트 맥락(컨텍스트)에 반영**하여 결과를 개선할 수 있습니다. 아래 1~3번은 모델 가중치를 바꾸지 않고 에이전트가 참조하는 맥락(규칙·온톨로지·MCP)을 갱신하는 것이며, 모델 가중치를 실제로 바꾸는 것은 4번 파인튜닝뿐입니다. 즉 "에이전트가 피드백으로 스스로 학습한다"는 표현은 1~3번에는 맞지 않습니다.
 
-1. **코드 리뷰 피드백** — PR 코멘트를 통해 팀의 코딩 컨벤션 학습
-2. **온톨로지 업데이트** — 새로운 도메인 개념이 추가되면 `ontology.md` 갱신
-3. **MCP 서버 확장** — 새로운 인프라 서비스가 추가되면 MCP 서버 통합
-4. **파인튜닝** — 팀 코드베이스로 오픈 웨이트 모델 파인튜닝 (선택적)
+1. **코드 리뷰 피드백** — PR 코멘트에서 팀의 코딩 컨벤션을 정리해 규칙 문서·프롬프트 맥락에 반영
+2. **온톨로지 업데이트** — 새로운 도메인 개념이 추가되면 `ontology.md` 갱신 (맥락 갱신)
+3. **MCP 서버 확장** — 새로운 인프라 서비스가 추가되면 MCP 서버 통합 (맥락 갱신)
+4. **파인튜닝** — 팀 코드베이스로 오픈 웨이트 모델 파인튜닝 — 모델 가중치를 바꾸는 유일한 단계 (선택적)
 
 ## 참고 자료
 

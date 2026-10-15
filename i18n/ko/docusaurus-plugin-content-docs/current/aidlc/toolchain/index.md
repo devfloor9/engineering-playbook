@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - aidlc
   - toolchain
@@ -30,13 +30,13 @@ AIDLC [방법론](/docs/aidlc/methodology)을 실제 프로젝트에서 구현�
 
 ## 도구 선택 의사결정
 
-**그림 1. 데이터 레지던시와 코딩 에이전트 선택에 따른 도구 결정 흐름**
+**그림 1. 추론 데이터 처리 경계와 코딩 에이전트 선택에 따른 도구 결정 흐름**
 
 ```mermaid
 flowchart TD
-    START["AIDLC 도구 선택"] --> Q1{"데이터 레지던시<br/>요구사항?"}
-    Q1 -->|있음| OW["오픈 웨이트 모델<br/>온프레미스 배포"]
-    Q1 -->|없음| Q2{"코딩 에이전트<br/>선택"}
+    START["AIDLC 도구 선택"] --> Q1{"추론 데이터가 경계 밖으로<br/>나갈 수 없는가?<br/>(처리 경계)"}
+    Q1 -->|"그렇다 (경계 내 처리 필요)"| OW["오픈 웨이트 모델<br/>온프레미스 배포"]
+    Q1 -->|"아니다 (저장 레지던시만 요구)"| Q2{"코딩 에이전트<br/>선택"}
     Q2 -->|"Spec-Driven 개발"| KIRO["Kiro"]
     Q2 -->|"실시간 코드 지원"| QD["Q Developer"]
     Q2 -->|"두 가지 모두"| BOTH["Kiro + Q Developer"]
@@ -47,3 +47,5 @@ flowchart TD
     style KIRO fill:#76b900,color:#fff
     style QD fill:#76b900,color:#fff
 ```
+
+위 분기는 "데이터 레지던시"를 단순히 있음/없음으로 묻지 않고, **추론 데이터 처리 경계**와 **데이터 저장 레지던시**를 구분합니다. 추론 과정에서 데이터가 경계(온프레미스·특정 VPC 등) 밖으로 나갈 수 없다면 자체 호스팅 오픈 웨이트 모델을 선택합니다. 저장 위치만 특정 리전으로 제한하면 되고 처리 자체는 관리형 서비스로 가능한 경우에는, 데이터 저장 리전을 지정한 채 Kiro·Q Developer 등 관리형 코딩 에이전트를 사용할 수 있습니다.

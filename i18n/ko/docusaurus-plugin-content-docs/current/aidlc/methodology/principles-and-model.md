@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 22
 tags:
   - aidlc
   - principles
@@ -226,23 +226,23 @@ AI가 생성한 Units:
 
 **Sprint의 AI 재정의**
 
-전통적 Sprint는 2-4주 단위의 고정 주기였습니다. AIDLC에서 Bolt는 **AI의 빠른 실행 속도에 맞춘 시간/일 단위의 짧은 반복**입니다.
+전통적 Sprint는 한 달 이하의 고정 길이 주기이며, 증분(Increment)은 Sprint 안에서 적어도 한 번 전달되고 더 자주 전달될 수도 있습니다(출처: [Scrum Guide](https://scrumguides.org/scrum-guide.html)). AIDLC에서 Bolt는 **AI의 빠른 실행 속도에 맞춘 시간/일 단위의 짧은 반복**입니다.
 
 **Sprint vs Bolt 비교:**
 ```
 Sprint (전통적)                   Bolt (AIDLC)
 ━━━━━━━━━━━━━━                  ━━━━━━━━━━━━━━
-2-4주 고정 주기                    시간/일 단위 유연 주기
+한 달 이하 고정 길이 주기          시간/일 단위 유연 주기
 Planning → Daily → Review         AI 제안 → 검증 → 실행 → 검증
 사람이 태스크 분해                 AI가 태스크 자동 분해
 수동 코드 작성                     AI 코드 생성 + 사람 검증
-Sprint 끝에 배포                   완료 즉시 배포 (GitOps)
+Sprint 중 증분 전달 (완료 시)      완료 즉시 배포 (GitOps)
 ```
 
 Bolt는 **완료 조건이 명확한 최소 배포 단위**입니다. Kubernetes Deployment, Helm Release, Terraform Module 등 실제 인프라 구성 요소와 1:1 매핑됩니다.
 
 :::tip Context Memory와 추적성
-모든 산출물(Intent, Unit, Domain Design, Logical Design, Deployment Unit)은 **Context Memory**로 저장되어 AI가 라이프사이클 전체에서 참조합니다. 산출물 간 양방향 추적(Domain Model ↔ User Story ↔ 테스트 계획)이 보장되어, AI가 항상 정확한 맥락에서 작업합니다.
+모든 산출물(Intent, Unit, Domain Design, Logical Design, Deployment Unit)은 **Context Memory**로 저장되어 AI가 라이프사이클 전체에서 참조합니다. 산출물 간 양방향 추적(Domain Model ↔ User Story ↔ 테스트 계획)은 산출물이 서로 동기화된 상태로 유지될 때 성립하며, 이때 AI가 더 정확한 맥락에서 작업할 수 있습니다.
 :::
 
 ---
@@ -270,7 +270,7 @@ AI: Level 1 Plan 생성 ◀──── 사람: 검증 · 수정
 
 ### 4.1 Loss Function으로서의 사람 검증
 
-머신러닝에서 Loss Function은 모델의 예측과 실제 값의 차이를 측정하여 학습을 유도합니다. AIDLC에서 사람 검증은 동일한 역할을 합니다.
+머신러닝에서 Loss Function은 모델의 예측과 실제 값의 차이를 측정하여 학습을 유도합니다. AIDLC의 사람 검증은 이와 비슷한 역할을 하는 것으로 비유합니다(§2.1의 비유 설명 참조). 이는 산출물에 대한 피드백을 뜻하며, 정답과의 거리를 수학적으로 계산하는 연산은 아닙니다.
 
 **Loss Function 계층:**
 
@@ -300,7 +300,7 @@ AI: Level 1 Plan 생성 ◀──── 사람: 검증 · 수정
 └─────────────────────────────────────────────┘
 ```
 
-각 단계의 Loss가 작으면 다음 단계로 진행하고, Loss가 크면 해당 단계를 재실행합니다. 이는 **오류의 하류 전파를 방지**하여 전체 품질을 보장합니다.
+각 단계의 Loss가 작으면 다음 단계로 진행하고, Loss가 크면 해당 단계를 재실행합니다. 이는 **오류가 하류로 전파되는 것을 줄이는** 방식이며, 검토가 품질을 높이는 데 기여할 뿐 결과의 정확성을 증명하거나 보장하지는 않습니다.
 
 ### 4.2 적응형 워크플로우
 
@@ -341,7 +341,7 @@ AWS Labs 공식 저장소는 Inception → Construction → Operations 3단계�
 | **Operations** | Placeholder (stage 정의만 존재) | **AgenticOps 트랙** — AI 에이전트 기반 자율 운영, 관찰성·예측·자동 대응, 온톨로지 Outer Loop 피드백 | [AgenticOps](../operations/index.md) · [관찰성 스택](../operations/observability-stack.md) · [예측 운영](../operations/predictive-operations.md) · [자율 대응](../operations/autonomous-response.md) |
 
 :::tip AgenticOps 확장의 가치
-공식 AIDLC 가 Operations 단계를 플레이스홀더로 둔 이유는 운영 영역이 **조직별 관찰성 스택·규제 환경·SRE 성숙도에 따라 크게 달라지기 때문**입니다. engineering-playbook 의 AgenticOps 트랙은 AWS 기반 엔터프라이즈 환경(EKS · CloudWatch · ADOT · Application Signals · MCP)을 전제로 한 참조 구현을 제공합니다.
+engineering-playbook 은 공식 AIDLC 가 Operations 단계를 플레이스홀더로 둔 이유를, 운영 영역이 **조직별 관찰성 스택·규제 환경·SRE 성숙도에 따라 크게 달라지기 때문**으로 해석합니다(공식 저장소가 명시한 근거가 아니라 이 문서의 추정입니다). engineering-playbook 의 AgenticOps 트랙은 AWS 기반 엔터프라이즈 환경(EKS · CloudWatch · ADOT · Application Signals · MCP)을 전제로 한 참조 구현을 제공합니다.
 :::
 
 <AidlcPhaseMapping />
@@ -443,7 +443,7 @@ graph LR
 
 ## 6. 신뢰성 보장: 온톨로지 × 하네스
 
-AI 생성 코드의 신뢰성을 체계적으로 보장하기 위해, AIDLC는 **온톨로지**와 **하네스 엔지니어링** 두 축의 신뢰성 프레임워크를 도입합니다.
+AI 생성 코드의 신뢰성을 높이기 위해, engineering-playbook 은 공식 AIDLC 를 확장한 제안으로 **온톨로지**와 **하네스 엔지니어링** 두 축의 신뢰성 프레임워크를 도입합니다. 이는 공식 AIDLC 방법론의 필수 구성이 아니라 이 가이드가 제안하는 확장이며, 신뢰성을 보장한다기보다 개선하는 것을 목표로 합니다.
 
 ```mermaid
 graph LR
@@ -473,7 +473,7 @@ graph LR
 - **[하네스 엔지니어링](./harness-engineering.md)** — 온톨로지가 정의한 제약을 아키텍처적으로 검증하고 강제하는 구조. "에이전트가 어려운 게 아니라, 하네스가 어렵다"는 2026년의 핵심 교훈입니다. 하네스의 검증 결과는 온톨로지의 진화를 촉진합니다.
 
 :::tip 신뢰성 프레임워크의 핵심
-온톨로지와 하네스는 **독립적으로 동작하지 않습니다**. 온톨로지가 "무엇을 검증할지"를 정의하면, 하네스가 "어떻게 검증할지"를 구현합니다. 하네스의 검증 결과는 다시 온톨로지의 진화를 유도하여, **자기 개선하는 신뢰성 시스템**을 구성합니다.
+온톨로지와 하네스는 **독립적으로 동작하지 않습니다**. 온톨로지가 "무엇을 검증할지"를 정의하면, 하네스가 "어떻게 검증할지"를 구현합니다. 하네스의 검증 결과는 다시 온톨로지의 진화를 유도하여, **신뢰성을 점진적으로 개선하는 것을 목표로 하는 시스템**을 구성합니다.
 :::
 
 ---
@@ -481,6 +481,8 @@ graph LR
 ## 7. 도입 로드맵
 
 AIDLC는 단계적으로 도입하여 조직의 성숙도를 점진적으로 높입니다.
+
+아래 각 Phase의 기간(2-4주, 1-2개월 등)과 성공 지표(80% 이상, 30% 이상 등)는 측정값이 아니라 조직이 상황에 맞게 조정할 예시 값입니다. 실제 기간과 목표치는 팀 규모, 기존 자동화 수준, 도메인 제약에 따라 다르게 설정합니다.
 
 ```
 Phase 1: AI 코딩 도구 도입

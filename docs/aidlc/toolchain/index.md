@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 2
+reading_time: 3
 tags:
   - scope:nav
 sidebar_label: Tools & Implementation
@@ -28,13 +28,13 @@ This section covers tools and technology stacks for implementing the AIDLC [meth
 
 ## Tool Selection Decision Flow
 
-**Figure 1. Tool decision flow by data residency and coding agent selection**
+**Figure 1. Tool decision flow by inference-data processing boundary and coding agent selection**
 
 ```mermaid
 flowchart TD
-    START["AIDLC Tool Selection"] --> Q1{"Data Residency<br/>Requirements?"}
-    Q1 -->|Yes| OW["Open-Weight Models<br/>On-Premises Deployment"]
-    Q1 -->|No| Q2{"Coding Agent<br/>Selection"}
+    START["AIDLC Tool Selection"] --> Q1{"Must inference data stay<br/>within the boundary?<br/>(processing boundary)"}
+    Q1 -->|"Yes (in-boundary processing)"| OW["Open-Weight Models<br/>On-Premises Deployment"]
+    Q1 -->|"No (storage residency only)"| Q2{"Coding Agent<br/>Selection"}
     Q2 -->|"Spec-Driven Development"| KIRO["Kiro"]
     Q2 -->|"Real-time Code Support"| QD["Q Developer"]
     Q2 -->|"Both"| BOTH["Kiro + Q Developer"]
@@ -45,3 +45,5 @@ flowchart TD
     style KIRO fill:#76b900,color:#fff
     style QD fill:#76b900,color:#fff
 ```
+
+This branch does not ask about "data residency" as a simple yes/no; it distinguishes the **inference-data processing boundary** from **data-storage residency**. If data cannot leave the boundary (on-premises, a specific VPC, etc.) during inference, choose a self-hosted open-weight model. If only the storage location must be confined to a specific region while processing can run on managed services, you can use a managed coding agent such as Kiro or Q Developer while pinning the data-storage region.

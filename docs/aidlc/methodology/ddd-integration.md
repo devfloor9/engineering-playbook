@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 24
+reading_time: 26
 tags:
   - ddd
   - domain-driven-design
@@ -513,18 +513,20 @@ Mob Construction is traditional Pair Programming extended with AI.
 |------|-----------------|----------------------|
 | **Participants** | 2 (Driver + Navigator) | N people + AI Agent |
 | **Roles** | 1 codes, 1 reviews | N people validate, AI codes |
-| **Speed** | 1x (human speed) | 10-50x (AI speed) |
+| **Speed** | Human speed | Can be faster since AI generates code (multiplier unvalidated) |
 | **Parallelism** | Sequential work | Multiple Units parallel |
 | **Knowledge Transfer** | Only 2 learn | Entire team learns simultaneously |
+
+The speed comparison above indicates a relative tendency; the specific multiplier is an unvalidated assumption, not a measured value. The actual improvement depends on the nature of the work, team composition, and validation cost.
 
 ---
 
 ## 5. Brownfield (Existing System) Approach
 
-When adding features or refactoring existing systems, the Construction phase requires **additional steps**.
+This section describes a methodology approach you may choose when adding features to or refactoring existing systems. The reverse-engineering flow below is not an additional tagged step inserted into the Construction phase; it is a discussion of how to lift existing code into DDD models. Adopt it based on your team's situation.
 
 :::warning Brownfield Strategy: Optimize First
-Prioritize **optimizing existing systems** over building new. AI reverse-engineers legacy code into DDD models for gradual refactoring.
+This is an option that prioritizes **optimizing existing systems** over building new. AI reverse-engineers legacy code into DDD models to support gradual refactoring.
 :::
 
 ### 5.1 Reverse Engineering Process
@@ -603,9 +605,11 @@ DDD's Ubiquitous Language is an **informal agreement** for team communication. I
 |------|--------------------------|-------------|
 | **Definition** | Natural language agreement | Machine-interpretable schema |
 | **Primary Target** | Humans (team communication) | AI + Humans |
-| **Validation** | Manual during code review | Automatic (at prompt time) |
+| **Validation** | Manual during code review | Validation at prompt time when a validator and domain boundary are defined |
 | **Evolution** | Documentation lag | Schema version control |
 | **Example** | "Payments have created, completed, failed states" | `Payment.status: enum(CREATED, COMPLETED, FAILED)` |
+
+In the table above, "validation at prompt time" holds only when a validator and domain boundary are defined for the schema. Without such a validator, the schema is only context passed to the AI, not an enforced constraint.
 
 ### 6.2 Ontology Engineering Workflow
 
@@ -688,14 +692,14 @@ Kiro Workflow:
 
 ### 8.2 Amazon Q Developer's Real-Time Validation
 
-**Amazon Q Developer** announced in February 2025 immediately validates DDD implementation through **real-time code execution**.
+**Amazon Q Developer** announced on January 31, 2025 validates DDD implementation through **automatic build and test execution**. This capability works when the project has build and test commands configured (for example, specifying the commands to run via a Devfile) and runnable tests exist.
 
 ```
 Traditional Approach:
   AI generates code → Developer manually builds → Discovers test failures → Repeat fixes
 
 Q Developer:
-  AI generates code → Auto-build → Auto-test → Immediate regeneration on failure
+  AI generates code → Auto-build → Auto-test → Iterate code fixes on failure, then request review
 ```
 
 This is a core mechanism that activates AIDLC's **Loss Function** early in the Construction phase, preventing downstream error propagation.
@@ -718,7 +722,7 @@ Notification Bounded Context → Notification Service
 Analytics Bounded Context → Analytics Service
 ```
 
-AI analyzes requirements.md to auto-identify Bounded Contexts, mapping each Context to independent EKS Deployments.
+AI analyzes requirements.md to auto-identify Bounded Contexts. A Bounded Context is only a boundary of the domain model; how it is realized as a deployment unit is a separate decision. Mapping each service to an independent EKS Deployment is one possible topology, but a monolithic deployment or a different runtime are also valid choices.
 
 ### 9.2 Context Mapping Patterns
 
@@ -773,7 +777,8 @@ Refer to the [MSA Complexity](../enterprise/msa-complexity/index.md) document fo
 
 **📚 References**
 
-- AWS Labs AI-DLC Research: [arxiv.org/abs/2501.03604](https://arxiv.org/abs/2501.03604)
+- AWS, "AI-Driven Development Life Cycle: Reimagining Software Engineering" (AWS DevOps Blog): [aws.amazon.com/blogs/devops/ai-driven-development-life-cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
+- AWS Labs, AI-DLC Workflows: [github.com/awslabs/aidlc-workflows](https://github.com/awslabs/aidlc-workflows)
 - Eric Evans, "Domain-Driven Design" (2003)
 - Vaughn Vernon, "Implementing Domain-Driven Design" (2013)
 - Chris Richardson, "Microservices Patterns" (2018)
