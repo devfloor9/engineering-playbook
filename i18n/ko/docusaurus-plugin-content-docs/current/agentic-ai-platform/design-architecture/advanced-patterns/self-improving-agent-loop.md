@@ -36,6 +36,8 @@ Andrej Karpathy는 2026년 3월 [autoresearch](https://github.com/karpathy/autor
 3. **Self-Supervised Loop**: 에이전트 자체 성공·실패 데이터를 축적하고 재학습하여 매 iteration의 신규 인간 라벨링 의존도를 낮춤
 4. **Compound Growth(보장이 아니라 기대)**: 더 강해진 모델이 더 유용한 trace를 생성해 더 강한 모델을 학습시키기를 기대하는 것이며, 특정 배포에서 실제로 선순환이 성립하는지는 가정이 아니라 측정으로 확인해야 하는 문제입니다
 
+**그림 1. autoresearch 루프의 rollout·성공 판정·선호 학습·재배포 순환**
+
 ```mermaid
 graph LR
     A[Base Model] -->|Rollout| B[Tool Calls + Reasoning]
@@ -63,6 +65,8 @@ graph LR
 
 Karpathy의 이상론을 기업 환경에 적용하려면 다음 제약을 고려해야 합니다:
 
+**표 1. 엔터프라이즈 환경에서 self-improving loop 적용 시 제약과 해결 방향**
+
 | 제약 | 설명 | 해결 방향 |
 |------|------|----------|
 | **데이터 거버넌스** | 프로덕션 trace에 PII, 기밀 정보 포함 가능 | Presidio PII 스캐너, k-anonymity, consent 추적 |
@@ -80,6 +84,8 @@ Self-improving loop는 **"완전 자동화"가 아니라 "인간 감독 하의 �
 ## 5-Stage Loop 아키텍처
 
 ### 전체 아키텍처 다이어그램
+
+**그림 2. 5-stage 루프의 Rollout·Score·Filter·Train·Deploy 단계 구성**
 
 ```mermaid
 graph TB
@@ -452,12 +458,16 @@ def build_preference_pairs(traces):
 
 **학습 방법 선택 가이드**:
 
+수렴 안정성 등급(매우 높음/높음/중간/낮음)은 측정값이 아니라 작성자의 질적 평가입니다.
+
+**표 2. 선호 학습 방법별 데이터 요구량·연산량·수렴 안정성 비교**
+
 | 방법 | 데이터 요구량 | GPU-hours (대략적 범위) | 수렴 안정성 | 적합 시나리오 |
 |------|-------------|---------------------|------------|-------------|
-| **GRPO** | 1k+ pairs | 수십 GPU-hours | ⭐⭐⭐ | 초기 self-improvement, 빠른 iteration |
-| **DPO** | 5k+ pairs | 수~수십 GPU-hours | ⭐⭐⭐⭐ | 충분한 데이터 확보 후, 안정적 학습 |
-| **RLAIF** | 10k+ pairs + reward model | 수십~수백 GPU-hours | ⭐⭐ | 복잡한 reward 모델링 필요 시 |
-| **RFT** | 10k+ high-quality traces | 최저 (SFT 수준) | ⭐⭐⭐⭐⭐ | Supervised 학습 가능한 golden dataset 확보 시 |
+| **GRPO** | 1k+ pairs | 수십 GPU-hours | 중간 | 초기 self-improvement, 빠른 iteration |
+| **DPO** | 5k+ pairs | 수~수십 GPU-hours | 높음 | 충분한 데이터 확보 후, 안정적 학습 |
+| **RLAIF** | 10k+ pairs + reward model | 수십~수백 GPU-hours | 낮음 | 복잡한 reward 모델링 필요 시 |
+| **RFT** | 10k+ high-quality traces | 최저 (SFT 수준) | 매우 높음 | Supervised 학습 가능한 golden dataset 확보 시 |
 
 :::note GPU-hours 수치는 환경 의존적
 위 범위는 7B-8B 모델 기준 대략적 추정입니다. 실제 소요 시간은 모델 크기, 데이터셋 크기, 하드웨어 구성, 하이퍼파라미터에 따라 크게 달라집니다. DPO 7B 전체 파인튜닝은 16×A100에서 2-4시간(Zephyr-7B 실측) 수준이며, 이는 약 32-64 GPU-hours에 해당합니다.
@@ -774,6 +784,8 @@ for exp in experiments:
 
 **데이터 플로우**:
 
+**그림 3. Langfuse trace를 S3 Iceberg 테이블로 적재하는 ETL·PII 게이트 흐름**
+
 ```mermaid
 graph LR
     A[Langfuse<br/>PostgreSQL] -->|Hourly Export| B[Lambda<br/>ETL Job]
@@ -1080,6 +1092,8 @@ from trl import SFTTrainer, SFTConfig
 
 아래 표는 비교할 **차원**과 질적 경향을 나열한 것이며 실측 결과가 아닙니다. 이전 초안이 여기에 넣었던 GPU-hour·비용 수치는 출처가 없고 내부적으로 모순되었습니다(예: "5k pairs 기준"과 RLAIF/RFT의 10k 최소 데이터 병기, RFT가 "최저"이면서 DPO보다 비싼 표기). 정량적 랭킹을 공개하기 전에 자체 데이터·하드웨어로 각 방법을 실행하고 run·config·데이터셋·하드웨어를 보고하십시오.
 
+**표 3. 선호 학습 방법별 비교 차원과 질적 경향 (실측 결과 아님)**
+
 | 차원 | GRPO | DPO | RLAIF | RFT |
 |--------|------|-----|-------|-----|
 | **최소 데이터(계획 가정)** | ~1k pairs | ~5k pairs | ~10k pairs + reward model | ~10k high-quality traces |
@@ -1309,6 +1323,8 @@ else:
 
 **투자 비용 (월간, 가정 — 모든 수치는 검증 대상 계획 추정치)**:
 
+**표 4. 월간 투자 비용 항목별 추정치 (검증 대상 계획 가정)**
+
 | 항목 | 비용 (USD) | 비고 |
 |------|-----------|------|
 | **GPU 학습** | $5,500 | 주간 DPO 학습 ≈ run당 $1,376 × 4 (위 비용 추정 참조) |
@@ -1319,6 +1335,8 @@ else:
 | **총계** | **$7,000** | 월간 운영 비용 (위 행 합계) |
 
 **예상 효과 (예시 목표치, 실측 결과 아님)**:
+
+**표 5. 메트릭별 Before/After 예시 목표치 (실측 결과 아님)**
 
 | 메트릭 | Before | After | 변화 |
 |--------|--------|-------|--------|
@@ -1400,13 +1418,17 @@ WHERE event_type = 'model_deployed'
 
 **필요 역량**:
 
+필수도 등급(매우 높음/높음/중간)은 측정값이 아니라 작성자의 질적 평가입니다.
+
+**표 6. self-improving loop 운영에 필요한 역량별 필수도와 격차 해소 방안**
+
 | 역량 | 필수도 | 현재 수준 | 격차 해소 방안 |
 |------|--------|----------|--------------|
-| **RL 전문성** | ⭐⭐⭐ | - | 외부 컨설팅 or 채용 |
-| **MLOps 성숙도** | ⭐⭐⭐⭐ | - | CI/CD 파이프라인 구축 |
-| **LLM 평가 경험** | ⭐⭐⭐ | - | Ragas/Langfuse 교육 |
-| **프로덕션 운영** | ⭐⭐⭐⭐⭐ | - | SRE 팀 협업 |
-| **데이터 거버넌스** | ⭐⭐⭐⭐ | - | Legal/Compliance 팀 연계 |
+| **RL 전문성** | 중간 | - | 외부 컨설팅 or 채용 |
+| **MLOps 성숙도** | 높음 | - | CI/CD 파이프라인 구축 |
+| **LLM 평가 경험** | 중간 | - | Ragas/Langfuse 교육 |
+| **프로덕션 운영** | 매우 높음 | - | SRE 팀 협업 |
+| **데이터 거버넌스** | 높음 | - | Legal/Compliance 팀 연계 |
 
 **최소 팀 구성**:
 - ML Engineer (RL 경험) × 1
@@ -1418,18 +1440,18 @@ WHERE event_type = 'model_deployed'
 ### Go/No-Go 기준
 
 **Go (진행) 조건**:
-- ✅ 월 $4k 예산 확보
-- ✅ 최소 3개월 production trace 축적 (>2k traces)
-- ✅ Golden dataset 준비 (>100 samples)
-- ✅ MLOps 파이프라인 구축 (CI/CD, monitoring)
-- ✅ Legal/Compliance 승인 (PII 처리, consent)
-- ✅ RL/MLOps 전문성 확보 (내부 or 외부)
+- 월 $4k 예산 확보
+- 최소 3개월 production trace 축적 (>2k traces)
+- Golden dataset 준비 (>100 samples)
+- MLOps 파이프라인 구축 (CI/CD, monitoring)
+- Legal/Compliance 승인 (PII 처리, consent)
+- RL/MLOps 전문성 확보 (내부 or 외부)
 
 **No-Go (중단) 조건**:
-- ❌ 데이터 부족 (&lt;1k traces)
-- ❌ 팀 역량 부족 (RL 전문성 없음)
-- ❌ Compliance 미해결 (PII 처리 방안 없음)
-- ❌ ROI 부정적 (비용 > 예상 효과)
+- 데이터 부족 (&lt;1k traces)
+- 팀 역량 부족 (RL 전문성 없음)
+- Compliance 미해결 (PII 처리 방안 없음)
+- ROI 부정적 (비용 > 예상 효과)
 
 **Phase별 의사결정**:
 

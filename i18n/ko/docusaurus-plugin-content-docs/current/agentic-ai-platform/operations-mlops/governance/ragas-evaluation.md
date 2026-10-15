@@ -30,6 +30,8 @@ Ragas(RAG Assessment)는 RAG(Retrieval-Augmented Generation) 파이프라인을 
 
 RAG 시스템은 여러 컴포넌트(검색, 생성, 컨텍스트 처리)로 구성되어 있어 전체 품질을 측정하기 어렵습니다:
 
+**그림 1. RAG 파이프라인 단계와 단계별 평가 지표**
+
 ```mermaid
 flowchart LR
     Q[질문]
@@ -434,17 +436,19 @@ print(f"Metrics: {result['metrics']}")
 
 **Bedrock RAG Evaluation 장점:**
 
-- ✅ Bedrock 모델과 네이티브 통합
-- ✅ S3 기반 대규모 배치 평가
-- ✅ CloudWatch 자동 메트릭 게시
-- ✅ IAM 기반 접근 제어
-- ✅ 별도 인프라 불필요
+- Bedrock 모델과 네이티브 통합
+- S3 기반 대규모 배치 평가
+- CloudWatch 자동 메트릭 게시
+- IAM 기반 접근 제어
+- 별도 인프라 불필요
 
 **비용 비교 (1000개 평가 기준):**
 
 <CostComparison />
 
 ### 메트릭별 개선 방향
+
+**그림 2. 메트릭별 점수가 낮을 때의 개선 방향**
 
 ```mermaid
 flowchart TB

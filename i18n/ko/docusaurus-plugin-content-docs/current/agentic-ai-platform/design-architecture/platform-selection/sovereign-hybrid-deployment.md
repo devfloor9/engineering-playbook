@@ -44,6 +44,8 @@ import { SovereigntySpectrum } from '@site/src/components/DecisionFrameworkTable
 위 스펙트럼 표에서 In-country 수준을 "낮음(Geo CRIS + SCP)"으로 표기한 것은 수준 간 상대적 운영 부담에 대한 **설계 판단**입니다. 다만 지리(Geo) CRIS는 요청이 지리 경계 내 다른 국가 리전으로도 라우팅될 수 있으므로, 국내 금융·공공처럼 **국가 단위 residency**가 필요한 경우에는 Geo CRIS만으로 충족되지 않습니다. 사용하려는 모델과 source 리전에 맞는 **국가 프로파일 또는 국내 단일 리전 엔드포인트의 destination·데이터 흐름을 검증**한 뒤 적용하세요(수단 2 참조).
 :::
 
+**그림 1. 데이터 주권 스펙트럼의 네 단계**
+
 ```mermaid
 flowchart LR
     PUBLIC["Public Region<br/>일반 리전 자유 사용"]
@@ -63,6 +65,8 @@ flowchart LR
 
 아래 표는 네 가지 대표 패턴을 비교한 것으로, 서로 수렴해 가는 단계가 아니라 요구에 따라 선택하는 설계 **선택지**입니다. "권장 접근"은 이 가이드가 제안하는 조합이며, 실제 적용 가능 여부는 각 수단의 전제조건(아래 수단 1~3)과 조직의 규제 범위를 검증한 뒤 결정해야 합니다.
 
+**표 1. 주권 수준별 데이터 경계와 제안 접근**
+
 | 수준 | 데이터 경계 | 제안 접근 | 대표 사례 |
 |------|-----------|----------|----------|
 | **Public** | 리전 제약 없음 | AWS Native (Bedrock + AgentCore) | 일반 SaaS, 내부 생산성 도구 |
@@ -77,6 +81,8 @@ flowchart LR
 ---
 
 ## 의사결정 플로우차트
+
+**그림 2. 주권 요구에서 배포 방식으로 이어지는 의사결정 흐름**
 
 ```mermaid
 flowchart TD
@@ -166,6 +172,8 @@ SCP의 적용 범위와 한계를 함께 이해해야 합니다.
 
 아래는 **승인 리전을 2개(`ap-northeast-2` 서울, `ap-northeast-1` 도쿄)로 둔 예시 정책**이며, 조직마다 승인 리전·예외 서비스·예외 역할을 다르게 설정해야 합니다. 그대로 복사하지 말고 각 요소를 조직 요구에 맞게 검증하세요.
 
+**표 2. 리전 거부 SCP 구성 요소와 주의점**
+
 | 요소 | 역할 | 주의 |
 |------|------|------|
 | `Effect: Deny` + `aws:RequestedRegion` | 승인 리전 외로 향하는 요청 거부 | Deny가 걸리지 않는다고 해서 자동으로 허용되는 것은 아닙니다. 실제 허용은 각 계정 IAM 정책이 결정합니다 |
@@ -203,6 +211,8 @@ AWS Control Tower를 사용하는 조직은 직접 SCP를 작성하는 대신 **
 
 매니지드 모델(Bedrock)을 쓰면서도 데이터 residency를 **지리 경계 수준에서** 지키려면 **Geographic cross-Region inference(CRIS)**를 사용합니다. 요청을 단일 리전이 아니라 **지정된 지리 경계(US, EU, APAC 등) 내 리전들로** 분산하여 처리량을 높입니다. 공식 문서에 따르면 데이터는 원래 상주하던 리전에 남지만, **입력 프롬프트와 출력 결과가 추론 중 소스 리전 밖(같은 지리 경계 내 destination 리전)으로 이동할 수 있고, 남용 탐지(abuse detection)를 위해 저장되는 범위에서는 destination 리전에 저장**됩니다. 따라서 "지리 경계를 벗어나지 않음"은 **국가 단위 residency와 다릅니다**. 리전 간 전송은 AWS 보안 네트워크에서 암호화됩니다.
 
+**그림 3. APAC 지리 경계 내 cross-Region inference 라우팅**
+
 ```mermaid
 flowchart LR
     AGENT["Agent / Gateway<br/>(Layer 5)"]
@@ -221,6 +231,8 @@ flowchart LR
     style APAC fill:#fff4e1
     style PROFILE fill:#ff9900,color:#fff
 ```
+
+**표 3. Geographic cross-Region inference의 특성**
 
 | 특성 | 설명 |
 |------|------|
@@ -242,6 +254,8 @@ Geographic CRIS는 ① inference profile ARN, ② 소스 리전의 foundation mo
 :::warning 전제: AWS 리전에 대한 상시 연결이 허용되어야 합니다
 EKS Hybrid Nodes는 컨트롤 플레인이 AWS 리전에 있고, 노드와 컨트롤 플레인 사이에 **신뢰할 수 있는 상시 네트워크 연결(Site-to-Site VPN, Direct Connect 등)**이 필요합니다. 공식 문서는 Hybrid Nodes가 **단절·간헐(DDIL) 환경에는 적합하지 않다**고 명시하므로, in-country 클라우드 연결조차 허용되지 않는(air-gapped) 요구에는 Hybrid Nodes가 아니라 로컬 컨트롤 플레인 방식(수단 요약표 참조)을 사용하세요. 또한 온프레미스에 GPU를 둔다는 사실만으로 입출력이 경계를 벗어나지 않음이 보장되지는 않습니다. 아래 표의 egress 항목을 함께 통제해야 합니다.
 :::
+
+**그림 4. EKS Hybrid Nodes 기반 온프레미스·클라우드 분리 배치**
 
 ```mermaid
 flowchart TB
@@ -266,6 +280,8 @@ flowchart TB
     style DATA fill:#232f3e,color:#fff
 ```
 
+**표 4. 하이브리드 구성 요소의 배치와 이유**
+
 | 구성 요소 | 배치 | 이유 |
 |----------|------|------|
 | EKS Control Plane | AWS in-country 리전 | 관리형 운영, 패치·HA 위임 (리전 연결 필요) |
@@ -284,6 +300,8 @@ EKS Hybrid Nodes 구성, 온프레미스 GPU 편입, 네트워킹 요구사항�
 
 ## 주권 수준별 권장 구성 요약
 
+**표 5. 주권 수준별 추론·데이터·리전 통제 권장 구성**
+
 | 주권 수준 | 추론 | 데이터·모델 | 리전 통제 | 핵심 수단 |
 |----------|------|-----------|----------|----------|
 | **Public** | Bedrock (글로벌/지리 CRIS) | 리전 제약 없음 | 선택 | AWS Native |
@@ -297,6 +315,8 @@ EKS Hybrid Nodes 구성, 온프레미스 GPU 편입, 네트워킹 요구사항�
 ## 컴플라이언스 매핑
 
 데이터 주권 수단은 규제 요구와 직접 연결됩니다.
+
+**표 6. 규제별 핵심 요구와 대응 수단**
 
 | 규제 | 핵심 요구 | 대응 수단 |
 |------|----------|----------|

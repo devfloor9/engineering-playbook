@@ -36,6 +36,8 @@ In March 2026 Andrej Karpathy published [autoresearch](https://github.com/karpat
 3. **Self-Supervised Loop**: accumulate the agent's own success/failure data and retrain, reducing reliance on fresh human labels
 4. **Compound Growth (aspiration, not a guarantee)**: the hope is that a stronger model generates more useful traces that train a still-stronger model; whether this compounds in a given deployment is an empirical question, not an assumption
 
+**Figure 1. The autoresearch loop: rollout, success judgment, preference tuning, and redeployment**
+
 ```mermaid
 graph LR
     A[Base Model] -->|Rollout| B[Tool Calls + Reasoning]
@@ -63,6 +65,8 @@ graph LR
 
 Applying Karpathy's idealism to enterprise environments requires considering these constraints:
 
+**Table 1. Constraints and solution directions when applying a self-improving loop in enterprise environments**
+
 | Constraint | Description | Solution Direction |
 |------|------|----------|
 | **Data Governance** | Production traces may contain PII, confidential information | Presidio PII scanner, k-anonymity, consent tracking |
@@ -80,6 +84,8 @@ Self-improving loop should be interpreted as **"automated reinforcement under hu
 ## 5-Stage Loop Architecture
 
 ### Overall Architecture Diagram
+
+**Figure 2. The five stages of the loop: Rollout, Score, Filter, Train, and Deploy**
 
 ```mermaid
 graph TB
@@ -438,12 +444,16 @@ def build_preference_pairs(traces):
 
 **Training Method Selection Guide**:
 
+The convergence-stability levels (Very high/High/Medium/Low) are the author's qualitative assessment, not measurements.
+
+**Table 2. Data requirement, compute, and convergence stability by preference-tuning method**
+
 | Method | Data Requirement | GPU-hours (hypothetical, 7B–8B) | Convergence Stability | Suitable Scenario |
 |------|-------------|---------------------|------------|-------------|
-| **GRPO** | 1k+ pairs | tens of GPU-hours | ⭐⭐⭐ | Initial self-improvement, fast iteration |
-| **DPO** | 5k+ pairs | tens of GPU-hours | ⭐⭐⭐⭐ | Stable learning after sufficient data |
-| **RLAIF** | 10k+ pairs + reward model | tens–hundreds of GPU-hours | ⭐⭐ | When complex reward modeling needed |
-| **RFT** | 10k+ high-quality traces | lowest (SFT level) | ⭐⭐⭐⭐⭐ | When golden dataset for supervised learning available |
+| **GRPO** | 1k+ pairs | tens of GPU-hours | Medium | Initial self-improvement, fast iteration |
+| **DPO** | 5k+ pairs | tens of GPU-hours | High | Stable learning after sufficient data |
+| **RLAIF** | 10k+ pairs + reward model | tens–hundreds of GPU-hours | Low | When complex reward modeling needed |
+| **RFT** | 10k+ high-quality traces | lowest (SFT level) | Very high | When golden dataset for supervised learning available |
 
 :::note GPU-hours are environment-dependent
 The ranges above are rough estimates for 7B–8B models, not measurements from this design. Actual time depends heavily on model size, dataset size, hardware, and hyperparameters. As one published data point, full DPO fine-tuning of a 7B model took 2–4 hours on 16×A100 (Zephyr-7B), i.e. roughly 32–64 GPU-hours.
@@ -760,6 +770,8 @@ for exp in experiments:
 
 **Data Flow**:
 
+**Figure 3. ETL and PII-gate flow loading Langfuse traces into an S3 Iceberg table**
+
 ```mermaid
 graph LR
     A[Langfuse<br/>PostgreSQL] -->|Hourly Export| B[Lambda<br/>ETL Job]
@@ -1066,6 +1078,8 @@ from trl import SFTTrainer, SFTConfig
 
 The table below lists the **dimensions** to compare and their qualitative tendencies; it is not a measured result. The GPU-hour and cost figures that earlier drafts placed here were unsourced and internally inconsistent (e.g. a "5k pairs baseline" alongside 10k-pair minimums for RLAIF/RFT, and RFT shown as both "lowest" and costlier than DPO). Before publishing any quantitative ranking, run the methods on your own data and hardware and report the runs, configs, dataset, and hardware.
 
+**Table 3. Comparison dimensions and qualitative tendencies by preference-tuning method (not measured results)**
+
 | Dimension | GRPO | DPO | RLAIF | RFT |
 |--------|------|-----|-------|-----|
 | **Minimum data (planning assumption)** | ~1k pairs | ~5k pairs | ~10k pairs + reward model | ~10k high-quality traces |
@@ -1295,6 +1309,8 @@ Reusing the same golden set to tune the reward function and then to report its c
 
 **Investment Cost (monthly, hypothetical — all figures are planning estimates to validate)**:
 
+**Table 4. Monthly investment cost estimates by item (planning assumptions to validate)**
+
 | Item | Cost (USD) | Note |
 |------|-----------|------|
 | **GPU Training** | $5,500 | Weekly DPO training ≈ $1,376/run × 4 (see Cost Estimate above) |
@@ -1305,6 +1321,8 @@ Reusing the same golden set to tune the reward function and then to report its c
 | **Total** | **$7,000** | Monthly operational cost (sum of the rows above) |
 
 **Expected Effect (illustrative targets, not measured results)**:
+
+**Table 5. Illustrative Before/After targets by metric (not measured results)**
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
@@ -1386,13 +1404,17 @@ WHERE event_type = 'model_deployed'
 
 **Required Capabilities**:
 
+The necessity levels (Very high/High/Medium) are the author's qualitative assessment, not measurements.
+
+**Table 6. Necessity and gap-closure plan by capability required to operate the self-improving loop**
+
 | Capability | Necessity | Current Level | Gap Closure Plan |
 |------|--------|----------|--------------|
-| **RL Expertise** | ⭐⭐⭐ | - | External consulting or hiring |
-| **MLOps Maturity** | ⭐⭐⭐⭐ | - | Build CI/CD pipeline |
-| **LLM Evaluation Experience** | ⭐⭐⭐ | - | Ragas/Langfuse training |
-| **Production Operations** | ⭐⭐⭐⭐⭐ | - | SRE team collaboration |
-| **Data Governance** | ⭐⭐⭐⭐ | - | Link with Legal/Compliance team |
+| **RL Expertise** | Medium | - | External consulting or hiring |
+| **MLOps Maturity** | High | - | Build CI/CD pipeline |
+| **LLM Evaluation Experience** | Medium | - | Ragas/Langfuse training |
+| **Production Operations** | Very high | - | SRE team collaboration |
+| **Data Governance** | High | - | Link with Legal/Compliance team |
 
 **Minimum Team Composition**:
 - ML Engineer (RL experience) × 1
@@ -1404,18 +1426,18 @@ WHERE event_type = 'model_deployed'
 ### Go/No-Go Criteria
 
 **Go (Proceed) Conditions**:
-- ✅ $4k monthly budget secured
-- ✅ Minimum 3 months production trace accumulation (&gt;2k traces)
-- ✅ Golden dataset prepared (&gt;100 samples)
-- ✅ MLOps pipeline established (CI/CD, monitoring)
-- ✅ Legal/Compliance approval (PII handling, consent)
-- ✅ Secure RL/MLOps expertise (internal or external)
+- $4k monthly budget secured
+- Minimum 3 months production trace accumulation (&gt;2k traces)
+- Golden dataset prepared (&gt;100 samples)
+- MLOps pipeline established (CI/CD, monitoring)
+- Legal/Compliance approval (PII handling, consent)
+- Secure RL/MLOps expertise (internal or external)
 
 **No-Go (Stop) Conditions**:
-- ❌ Insufficient data (&lt;1k traces)
-- ❌ Insufficient team capability (no RL expertise)
-- ❌ Unresolved compliance (no PII handling plan)
-- ❌ Negative ROI (cost &gt; expected effect)
+- Insufficient data (&lt;1k traces)
+- Insufficient team capability (no RL expertise)
+- Unresolved compliance (no PII handling plan)
+- Negative ROI (cost &gt; expected effect)
 
 **Phase-by-Phase Decision**:
 

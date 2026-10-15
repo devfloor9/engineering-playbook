@@ -49,6 +49,8 @@ Quality evaluation (RAGAS), drift detection, feedback collection, and Guardrails
 
 The Agentic AI Platform consists of **6 runtime layers** and **3 cross-cutting planes** that span them. Each layer has clear responsibilities and enables independent scaling and operation through loose coupling.
 
+**Figure 1. Overall system architecture of 6 runtime layers and 3 cross-cutting planes**
+
 ```mermaid
 flowchart TD
     subgraph Planes["Cross-cutting Planes (span all layers)"]
@@ -148,6 +150,8 @@ flowchart TD
 
 The previous version used 8 layers, but evaluation, drift, feedback, and Guardrails were duplicated across multiple layers. The model has been reorganized into 6 layers + 3 planes as follows.
 
+**Table 1. Mapping between the former 8-layer model and the current 6 layers + 3 planes**
+
 | Former (8-layer) | Current (6 layers + 3 planes) |
 |------------------|-------------------------------|
 | Layer 1: Client & Feedback | Layer 6: Experience & Channels (Feedback → lifecycle plane) |
@@ -169,6 +173,8 @@ The six layers are described in reverse request order (bottom-most infrastructur
 ### Layer 1: AI Infrastructure
 
 The bottom-most layer responsible for **accelerated compute resources and their operation**. Accelerators such as GPU·Trainium·Inferentia are the most expensive resources in Agentic AI, so beyond simple provisioning, orchestration, monitoring, and performance optimization must be integrated into a single layer. This layer operates as a combination of many components and provides a stable accelerated-compute abstraction to the layer above (Layer 2, model serving).
+
+**Figure 2. Accelerated compute, orchestration, and telemetry in Layer 1 AI Infrastructure**
 
 ```mermaid
 flowchart TB
@@ -203,6 +209,8 @@ flowchart TB
 ```
 
 Karpenter (node supply), Kueue (job admission/quota), and device allocation (DRA/MIG/Time-Slicing) are **independent control responsibilities**, not a single serial pipeline. Karpenter supplies nodes, Kueue admits jobs within quota, and the device-allocation layer assigns accelerators to admitted Pods. The three are configured and operated independently.
+
+**Table 2. Responsibility and key components by functional area in Layer 1 AI Infrastructure**
 
 | Functional Area | Responsibility | Key Components |
 |-----------------|----------------|----------------|
@@ -306,6 +314,8 @@ For the 3-plane design of the ontology-based Knowledge Feature Store, see [Knowl
 
 The layer where AI agents execute. Each agent runs as an independent container, with its lifecycle managed by a workflow engine.
 
+**Figure 3. Agent Pod and connected services in Layer 4 Agent Runtime**
+
 ```mermaid
 flowchart LR
     subgraph AgentPod["Agent Pod"]
@@ -330,6 +340,8 @@ flowchart LR
     style Services fill:#fff4e1
 ```
 
+**Table 3. Features and descriptions provided by the Agent Runtime**
+
 | Feature | Description |
 |---------|-------------|
 | **State Management** | Maintains conversation context and task state, checkpointing |
@@ -341,6 +353,8 @@ flowchart LR
 #### Tool Registry
 
 Centrally manages tools available to agents in a declarative manner. Tools are exposed through **MCP servers**, and a single MCP server typically exposes **multiple tools** (tools and servers are not 1:1). Agents invoke these tools via the standard MCP protocol. Targets that do not speak MCP directly — such as external REST/gRPC APIs — are wrapped as MCP tools by an **adapter**. Separately, **A2A (Agent-to-Agent) is a distinct protocol from MCP**, used to delegate work between agents. The "A2A Tools" row below denotes an adapter that wraps an A2A call behind the MCP tool interface; it does not mean A2A is a sub-feature of MCP.
+
+**Table 4. Tool types managed by the Tool Registry, with purpose and examples**
 
 | Tool Type | Purpose | Example |
 |-----------|---------|---------|
@@ -362,6 +376,8 @@ For Kagent-based Kubernetes agent management, see [Kagent](../../operations-mlop
 ### Layer 5: Gateway & Routing
 
 The layer that intelligently routes model inference requests. It unifies self-hosted models (Layer 2) and external AI providers into a single endpoint.
+
+**Figure 4. 2-Tier gateway request flow in Layer 5 Gateway & Routing**
 
 ```mermaid
 flowchart LR
@@ -397,6 +413,8 @@ flowchart LR
 
 **Routing Strategies:** The benefits below (latency, cost savings, etc.) depend on traffic, cache hit rate, and model mix, so treat them as **policies to verify by measurement** before and after adoption.
 
+**Table 5. Routing strategies and their behavior in the Layer 5 gateway**
+
 | Strategy | Description |
 |----------|-------------|
 | **Model-based routing** | Distributes to appropriate model backends based on request headers/parameters |
@@ -429,6 +447,8 @@ For the 2-Tier Gateway architecture (kgateway + Bifrost), Cascade Routing tuning
 ### Layer 6: Experience & Channels
 
 The top-most layer where users and external systems enter the platform. It exposes agent capabilities through various channels (API, SDK, Web UI, messenger/contact channels).
+
+**Table 6. Entry points of Layer 6 Experience & Channels, with description and use**
 
 | Entry Point | Description | Use |
 |-------------|-------------|-----|
@@ -508,6 +528,8 @@ Enforces OIDC/JWT authentication, role-based access control, per-tool invocation
 
 Organizations with data sovereignty requirements (finance, public sector, regulated industries) must confine inference, training, and data storage within specific geographic boundaries. Each means below controls **only a specific boundary**, so an organization must first identify the required processing, storage, telemetry, and control-plane boundaries and all profiled destinations, then combine them. This table shows **what each means controls and the residual flow it leaves**, not a blanket claim that the platform "meets sovereignty" automatically.
 
+**Table 7. Control scope and residual flow by data-sovereignty / region-enforcement means**
+
 | Means | What it controls | What it does NOT control (residual flow) | Applied At |
 |-------|------|------|-----------|
 | **SCP Region Enforcement** | Denies the **API call endpoint** in unapproved Regions via `aws:RequestedRegion` | Restricts only the endpoint Region; the Region where a service processes data internally follows the service's behavior | Account/OU boundary |
@@ -528,6 +550,8 @@ Owns the closed loop that continuously improves models based on production feedb
 #### Training Pipeline Orchestration
 
 Automates training workflows with Kubeflow Pipelines or Argo Workflows. Defines data validation → preprocessing → training → evaluation → registration stages as a DAG. Training workloads share the accelerated compute of Layer 1 AI Infrastructure.
+
+**Figure 5. Training pipeline DAG and quality gate in the FMOps plane**
 
 ```mermaid
 graph LR
@@ -579,6 +603,8 @@ Shows how runtime layers and cross-cutting planes interact to form a complete FM
 
 The full loop where production feedback triggers retraining and a new model is deployed. The lifecycle plane and observability plane span the runtime layers.
 
+**Figure 6. The Feedback → Training → Serving loop, from feedback collection through retraining and canary deployment**
+
 ```mermaid
 graph LR
     A["Agent Runtime<br/>(Layer 4)"] -->|collect feedback| B["Feedback Loop<br/>(lifecycle plane)"]
@@ -601,6 +627,8 @@ graph LR
 ### Evaluation → Rollback Path
 
 The path that detects quality regression and automatically rolls back. The observability plane detects and the lifecycle plane responds.
+
+**Figure 7. The Evaluation → Rollback path, from quality-regression detection through traffic cutover**
 
 ```mermaid
 graph LR
@@ -630,6 +658,8 @@ graph LR
 
 The path that experiments with two Agent/Model variants and deploys the winner to production.
 
+**Figure 8. The A/B Testing → Production path, from two-variant experiment through promoting the winner to production**
+
 ```mermaid
 graph LR
     A["Agent Variants A/B<br/>(Layer 4)"] -->|Gateway routing| B["Experiment Tracking<br/>(observability plane)"]
@@ -656,6 +686,8 @@ graph LR
 
 Namespaces are separated by function for separation of concerns and security, and each namespace applies **least privilege (Pod Security Standards)** by default. Pod Security's `privileged` is an "unrestricted" policy that allows known privilege escalations and can bypass container isolation, so you must not set serving and training namespaces to `privileged` merely because they use GPUs. Ordinary GPU model Pods can run without host privilege at `baseline` (or an exception tailored to the device-plugin requirement), and **only the privileged components that genuinely need host access** — drivers, system operators — are separated out as narrow exceptions.
 
+**Table 8. Layer/plane, components, Pod Security, and GPU requirement by namespace**
+
 | Namespace | Layer / Plane | Components | Pod Security | GPU |
 |-----------|---------------|-----------|-------------|-----|
 | **ai-infra** | Layer 1 | GPU Operator, Karpenter, Kueue, DCGM Exporter | baseline (privileged exception only for host-access components such as GPU drivers / device plugins) | Required |
@@ -679,6 +711,8 @@ Layer 6 (Experience & Channels) is exposed via the Ingress/ALB in front of ai-ga
 
 Each component can be horizontally scaled independently.
 
+**Table 9. Horizontal scaling trigger and method by component**
+
 | Component | Layer | Scaling Trigger | Method |
 |-----------|-------|----------------|--------|
 | GPU Nodes | Layer 1 | Pending Pods, GPU request volume | Karpenter Node Auto-provisioning |
@@ -699,6 +733,8 @@ Supports multi-tenancy through a combination of namespace isolation, resource qu
 ## Security Architecture
 
 The Agentic AI Platform applies a **3-layer security model** covering external access, internal communication, and data protection.
+
+**Figure 9. The 3-layer security model: external access, internal communication, and data protection**
 
 ```mermaid
 flowchart LR
@@ -745,6 +781,8 @@ flowchart LR
 
 The complete flow of how user requests are processed through the platform.
 
+**Figure 10. The data-flow sequence of a user request processed across the layers**
+
 ```mermaid
 sequenceDiagram
     participant Client as Client<br/>(L6)
@@ -781,6 +819,8 @@ sequenceDiagram
 
 ### Key Monitoring Areas
 
+**Table 10. Target metrics and purpose by monitoring area**
+
 | Area | Target Metrics | Purpose |
 |------|---------------|---------|
 | **Agent Performance** | Request count, P50/P99 latency, error rate, step count | Agent performance tracking |
@@ -801,6 +841,8 @@ sequenceDiagram
 ---
 
 ## Platform Requirements
+
+**Table 11. Required capability and description by layer/plane**
 
 | Area | Layer / Plane | Required Capability | Description |
 |------|---------------|-------------------|-------------|

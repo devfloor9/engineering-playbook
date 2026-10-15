@@ -25,6 +25,8 @@ sidebar_label: Agentic Playbook
 
 ### 왜 필요한가?
 
+**표 1. 에이전트 정의 방식의 단계별 특징과 문제점**
+
 | 단계 | 특징 | 문제점 |
 |------|------|--------|
 | **단순 프롬프트** | "코드 리뷰해줘" | 재현 불가, 감사 불가, 책임 소재 불명확 |
@@ -45,6 +47,8 @@ sidebar_label: Agentic Playbook
 5. **컴플라이언스 태깅**: SOC2, ISO27001 매핑
 
 ## 2. Kiro Steering vs Agentic Playbook
+
+**표 2. Kiro Steering/Spec과 Agentic Playbook 비교**
 
 | 항목 | Kiro Steering/Spec | Agentic Playbook |
 |------|-------------------|-----------------|
@@ -185,6 +189,8 @@ spec:
 
 Playbook의 각 컴포넌트를 실제 기술 스택으로 구현하는 방법:
 
+**표 3. Playbook 컴포넌트별 구현 기술과 플랫폼 레이어 매핑**
+
 | Playbook 컴포넌트 | 기존 기술 | Agentic AI Platform 레이어 | 비고 |
 |------------------|----------|--------------------------|------|
 | **워크플로우 정의** | LangGraph / CrewAI / AutoGen | L2 Orchestration | 멀티 에이전트 협업 |
@@ -199,6 +205,8 @@ Playbook의 각 컴포넌트를 실제 기술 스택으로 구현하는 방법:
 | **LoRA 어댑터** | vLLM + HuggingFace PEFT | L1 Model Serving | 모델 특화 |
 
 ### 기술 스택 다이어그램
+
+**그림 1. Playbook 기술 스택 레이어 구성**
 
 ```mermaid
 graph TB
@@ -242,6 +250,8 @@ graph TB
 ## 5. 승인 게이트 패턴
 
 승인 게이트는 **폭발 반경(Blast Radius)** — 에이전트 행동이 잘못되었을 때 영향이 미치는 범위 — 을 기준으로 선택합니다. 게이트 유형을 나열식으로 고르는 것이 아니라, 액션의 위험도를 먼저 분류하고 그에 맞는 게이트를 매핑합니다.
+
+**표 4. 폭발 반경 등급별 액션 예시와 권장 승인 게이트**
 
 | 폭발 반경 등급 | 액션 예시 | 실패 시 영향 | 권장 게이트 |
 |--------------|----------|------------|------------|
@@ -313,6 +323,8 @@ graph TB
 
 ### 감사 로그 아키텍처
 
+**그림 2. 감사 로그 수집·보관·분석 아키텍처**
+
 ```mermaid
 graph LR
     Request[API 요청] --> Playbook[Playbook 실행]
@@ -349,6 +361,8 @@ spec:
 
 ### 감사 로그 보존 정책
 
+**표 5. 로그 유형별 보존 기간과 스토리지 정책**
+
 | 로그 유형 | 보존 기간 | 스토리지 | 검색 방법 |
 |----------|----------|---------|---------|
 | **실시간 추적** | 7일 | Langfuse (PostgreSQL) | Langfuse UI |
@@ -366,6 +380,8 @@ spec:
 ## 7. 검증 프레임워크
 
 Playbook 배포 전 품질 게이트:
+
+**그림 3. Playbook 배포 전 품질 게이트 파이프라인**
 
 ```mermaid
 graph LR
@@ -531,6 +547,8 @@ spec:
 ```
 
 ### 3. 배포 파이프라인
+
+**그림 4. GitOps 배포 파이프라인 흐름**
 
 ```mermaid
 graph LR

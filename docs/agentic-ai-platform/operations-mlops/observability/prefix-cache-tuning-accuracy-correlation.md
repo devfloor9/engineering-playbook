@@ -44,6 +44,8 @@ Task difficulty, turn position, prompt changes, routing, timeouts, and numerical
 
 ### 3.1 Three Cached-Ratio Definitions {#cached-ratio}
 
+**Table 1. Three cached-ratio definitions with denominator, interpretation, and limitation**
+
 | Definition | Unit and denominator | Interpretation | Limitation |
 |---|---|---|---|
 | Engine hit ratio | Sum of `rate(prefix_cache_hits_total)` / sum of `rate(prefix_cache_queries_total)` | Local hit tokens among queried tokens | Not request-based; preempted re-queries use separate statistics |
@@ -95,6 +97,8 @@ Cache matching uses final token IDs and relevant keys. Check physical `block_siz
 
 A user conversation turn is not equivalent to every LLM observation in a session. Define `turn_index` after distinguishing tool calls, parallel branches, and retries. Separate consecutive request start times (`start_gap_s`) from the interval between previous completion and next start (`idle_gap_s`). Do not assign a simple sequential idle gap to parallel or incomplete requests.
 
+**Table 2. Turn-gap and residency histograms with sampling limitations**
+
 | Histogram | Meaning | Sampling limitation |
 |---|---|---|
 | `vllm:kv_block_idle_before_evict_seconds` | Last touch to eviction | Not a session TTL |
@@ -108,6 +112,8 @@ Turn-gap p95 and eviction-idle p50 describe different objects. Comparing them ca
 ### 3.3 Preemption {#preemption}
 
 `vllm:num_preemptions_total` counts preemption events, not unique affected requests. A request can be preempted multiple times. Separate additional computation and delay on resumption from quality outcomes.
+
+**Table 3. Preemption paths with validation questions and evidence needed**
 
 | Path | Validation question | Evidence needed |
 |---|---|---|
@@ -124,6 +130,8 @@ Use the [score schema](./llm-serving-optimization-monitoring.md#score-schema), w
 Report both overall incomplete-delivery rates and content quality among completed responses. Excluding incomplete responses conditions on completion and can introduce selection bias. If a difference disappears after exclusion, that does not establish truncation as its sole cause.
 
 ## 4. Cache-Tuning Controls {#tuning-levers}
+
+**Table 4. Cache-tuning controls with intended change and side effects to validate**
 
 | Control | Intended change | Side effects and conditions to validate |
 |---|---|---|
@@ -151,6 +159,8 @@ A statistically nonsignificant difference does not establish non-inferiority or 
 Where possible, use randomized canaries drawn from the same task distribution or paired comparisons on a fixed dataset. Splitting a session across arms interferes with history and caching, so choose an assignment unit such as the session. Record shared-engine cache and queue interference as well. Separate pools can reduce interference but require control of resource differences. Concurrent deployment alone does not remove these confounders.
 
 ### 5.2 Data Unit and Joins {#data-join}
+
+**Table 5. Data fields for joins with source and contract**
 
 | Field | Source | Contract |
 |---|---|---|
@@ -184,6 +194,8 @@ Join windows overlapping the request's processing interval and record scrape spa
 
 For exploratory correlations, consider model, task type, template, input length, turn position, time, and load. If prompt version is the treatment, do not stratify it away and remove the treatment contrast. Compare old and new versions on the same tasks or input set while matching other conditions. Equal token counts do not establish equal content or difficulty.
 
+**Table 6. Exploratory variables with illustrative bins and results to report together**
+
 | Exploratory variable | Illustrative bins | Report together |
 |---|---|---|
 | `cached_ratio` | 0 / (0, 0.5] / (0.5, 0.9] / (0.9, 1] | Scores, pass rates, incomplete rates, sample counts, missingness |
@@ -194,6 +206,8 @@ Requests clustered within sessions, templates, or time periods can make independ
 
 The table below is a **decision-logic example** with a two-percentage-point margin and a preselected confidence level. Intervals are supplied for illustration; they were not calculated from real samples.
 
+**Table 7. Non-inferiority decision-logic example by delta confidence interval**
+
 | Confidence interval for delta | Lower bound versus −2 pp | Quality gate |
 |---|---|---|
 | [−0.8 pp, +0.4 pp] | Above the limit | Non-inferiority satisfied under the defined criterion |
@@ -201,6 +215,8 @@ The table below is a **decision-logic example** with a two-percentage-point marg
 | [−5 pp, −3 pp] | Entire interval below the limit | Evidence of regression; evaluate hold or rollback criteria |
 
 ### 5.4 Interpretation {#interpretation}
+
+**Table 8. Observations with possible explanations and follow-up**
 
 | Observation | Possible explanation | Follow-up |
 |---|---|---|

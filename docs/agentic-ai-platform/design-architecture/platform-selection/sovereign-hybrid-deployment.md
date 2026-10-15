@@ -44,6 +44,8 @@ Data sovereignty requirements are not a single criterion but a **continuous spec
 In the spectrum table above, labeling In-country as "Low (Geo CRIS + SCP)" is a **design judgment** about relative operational effort across levels. Note, however, that Geographic (Geo) CRIS may route requests to other-country Regions within the same geographic boundary, so for use cases that require **country-level residency** (e.g., domestic finance/public sector), Geo CRIS alone does not satisfy the requirement. Verify the destinations and data flows of a **country-specific profile or a single in-country Region endpoint** for the exact model and source Region before adopting it (see Means 2).
 :::
 
+**Figure 1. The four stages of the data sovereignty spectrum**
+
 ```mermaid
 flowchart LR
     PUBLIC["Public Region<br/>General region, free use"]
@@ -63,6 +65,8 @@ flowchart LR
 
 The table below compares four representative patterns. They are design **choices** selected according to requirements, not stages that converge on one another. "Recommended Approach" is the combination this guide proposes; whether it actually applies must be decided after verifying each means' prerequisites (Means 1–3 below) and your organization's regulatory scope.
 
+**Table 1. Data boundary and proposed approach by sovereignty level**
+
 | Level | Data Boundary | Proposed Approach | Representative Case |
 |-------|---------------|---------------------|---------------------|
 | **Public** | No region constraint | AWS Native (Bedrock + AgentCore) | General SaaS, internal productivity tools |
@@ -77,6 +81,8 @@ Fully air-gapped carries a high operational burden and is chosen by relatively f
 ---
 
 ## Decision Flowchart
+
+**Figure 2. Decision flow from a sovereignty requirement to a deployment approach**
 
 ```mermaid
 flowchart TD
@@ -166,6 +172,8 @@ The key is to apply a `Deny` effect with an `aws:RequestedRegion` condition, whi
 
 The following is an **illustrative policy with two approved regions (`ap-northeast-2` Seoul, `ap-northeast-1` Tokyo)**; each organization must set its own approved regions, excepted services, and exception roles. Do not copy it verbatim — verify each element against your requirements.
 
+**Table 2. Region deny SCP elements and their caveats**
+
 | Element | Role | Caveat |
 |---------|------|--------|
 | `Effect: Deny` + `aws:RequestedRegion` | Deny requests directed outside approved regions | The absence of a Deny is not an automatic Allow. Effective access is decided by each account's IAM policy |
@@ -203,6 +211,8 @@ Organizations using AWS Control Tower can enable the **Region deny control** (at
 
 To maintain data residency **at the geographic-boundary level** while using managed models (Bedrock), use **Geographic cross-Region inference (CRIS)**. It distributes requests across **regions within a designated geographic boundary (US, EU, APAC, etc.)** rather than a single region, increasing throughput. Per the official docs, your data remains in the regions where it originally resides, but **your input prompts and output results may move outside the source region (to destination regions within the same geographic boundary) during inference, and to the extent data is stored for abuse detection, your input prompts and output results are stored in the destination region**. "Does not leave the geographic boundary" is therefore **not the same as country-level residency**. Inter-region traffic is encrypted over Amazon's secure network.
 
+**Figure 3. Cross-Region inference routing within the APAC geographic boundary**
+
 ```mermaid
 flowchart LR
     AGENT["Agent / Gateway<br/>(Layer 5)"]
@@ -221,6 +231,8 @@ flowchart LR
     style APAC fill:#fff4e1
     style PROFILE fill:#ff9900,color:#fff
 ```
+
+**Table 3. Characteristics of Geographic cross-Region inference**
 
 | Characteristic | Description |
 |----------------|-------------|
@@ -242,6 +254,8 @@ When data gravity is high (large vision/log data) or sensitive models must be pi
 :::warning Prerequisite: persistent connectivity to an AWS Region must be permitted
 EKS Hybrid Nodes keeps the control plane in an AWS region and requires a **reliable, persistent network connection (Site-to-Site VPN, Direct Connect, etc.)** between the nodes and the control plane. The official docs state that Hybrid Nodes **is not a fit for disconnected, disrupted, intermittent, or limited (DDIL) environments**, so for requirements that do not even permit in-country cloud connectivity (air-gapped), use a local control-plane approach (see the summary table) rather than Hybrid Nodes. Also, placing GPUs on-premises alone does not guarantee that inputs/outputs never leave the boundary — you must also control the egress items in the table below.
 :::
+
+**Figure 4. On-premises/cloud split placement with EKS Hybrid Nodes**
 
 ```mermaid
 flowchart TB
@@ -266,6 +280,8 @@ flowchart TB
     style DATA fill:#232f3e,color:#fff
 ```
 
+**Table 4. Placement and rationale for hybrid components**
+
 | Component | Placement | Reason |
 |-----------|-----------|--------|
 | EKS Control Plane | AWS in-country region | Managed operations, patching/HA delegated (requires region connectivity) |
@@ -284,6 +300,8 @@ For EKS Hybrid Nodes configuration, on-premises GPU incorporation, and networkin
 
 ## Recommended Configuration Summary by Sovereignty Level
 
+**Table 5. Recommended inference, data, and region-control configuration by sovereignty level**
+
 | Sovereignty Level | Inference | Data·Models | Region Control | Key Means |
 |-------------------|-----------|-------------|----------------|-----------|
 | **Public** | Bedrock (global/geo CRIS) | No region constraint | Optional | AWS Native |
@@ -297,6 +315,8 @@ For EKS Hybrid Nodes configuration, on-premises GPU incorporation, and networkin
 ## Compliance Mapping
 
 Map each data sovereignty control to the regulatory requirement it is intended to support.
+
+**Table 6. Key requirement and corresponding means by regulation**
 
 | Regulation | Key Requirement | Corresponding Means |
 |------------|-----------------|---------------------|

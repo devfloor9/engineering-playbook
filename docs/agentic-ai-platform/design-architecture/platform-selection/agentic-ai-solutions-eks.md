@@ -71,6 +71,8 @@ For a 5-axis comparison of AWS Native, SageMaker Unified Studio, EKS open archit
 
 EKS cluster configuration is divided into **two independent layers**.
 
+**Figure 1. EKS control plane and data plane configuration options**
+
 ```mermaid
 flowchart TD
     subgraph ControlPlane["Control Plane (API Server, etcd, Scheduler)"]
@@ -103,6 +105,8 @@ flowchart TD
 
 #### PCP Tier Specifications (K8s v1.30–v1.33) {#pcp-tier-specifications}
 
+**Table 1. PCP tier capacity limits and added cost**
+
 | Tier | API Concurrency (seats) | Pod Scheduling | etcd DB | SLA | Added Tier Cost |
 |------|:-----------------:|:----------:|:------:|:---:|-----:|
 | **Standard** | Dynamic (AWS auto-adjusted) | Dynamic | 8GB | 99.95% (5-min intervals) | No added tier cost |
@@ -120,6 +124,8 @@ PCP tier should be selected based on **Kubernetes control plane metrics**.
 :::
 
 **Key Monitoring Metrics** (the thresholds below are **example operating policies** that leave headroom below each tier's limit; validate and adjust them against your workload):
+
+**Table 2. Key monitoring metrics and example criteria for PCP tier selection**
 
 | Metric | Prometheus Query | Example Judgment Criterion |
 |--------|----------------|----------|
@@ -157,6 +163,8 @@ For Karpenter v1.2+ GA features, NodePool configuration, GPU instance comparison
 ### EKS Auto Mode: Complete Automation
 
 **EKS Auto Mode** manages Karpenter (compute autoscaling), Pod and service networking, local DNS, block storage, and GPU support as **built-in core components rather than separately installed add-ons**. Each item in the diagram below is not something you install and upgrade as an individual add-on, but a capability Auto Mode provides at the node level.
+
+**Figure 2. Core features built into EKS Auto Mode**
 
 ```mermaid
 flowchart TD
@@ -238,6 +246,8 @@ Separates traffic management and model routing with 2-Tier Gateway architecture:
 
 Agent workflows on EKS consist of:
 
+**Figure 3. Components of an EKS-based agent workflow**
+
 ```mermaid
 flowchart LR
     subgraph "Agent Ready Apps"
@@ -310,6 +320,8 @@ For GPU Pod security policies, Network Policy, IAM, MIG isolation, and GPU troub
 
 In the diagram below, only the **"Managed EKS Capability"** block (ACK, kro, Argo CD) consists of official AWS EKS Capabilities; the AI/Data/App groups are this architecture's own classification of workloads for explanation and are not official capabilities.
 
+**Figure 4. EKS Capability and workload group composition**
+
 ```mermaid
 graph TB
     subgraph "This Architecture's Composition"
@@ -359,6 +371,8 @@ For deployment guide, refer to [Argo Workflows Official Documentation](https://a
 ### ACK (AWS Controllers for Kubernetes)
 
 **ACK** directly provisions and manages AWS services through Kubernetes Custom Resources. It can be **enabled as a fully managed EKS Capability or installed yourself via a Helm chart**.
+
+**Figure 5. ACK controller provisioning flow for AWS resources**
 
 ```mermaid
 graph LR
@@ -410,6 +424,8 @@ spec:
 
 **KRO** **combines multiple Kubernetes resources and AWS resources into one abstracted unit** to deploy complex infrastructure simply.
 
+**Figure 6. Resources grouped by a KRO ResourceGroup**
+
 ```mermaid
 graph TB
     subgraph "KRO ResourceGroup"
@@ -459,6 +475,8 @@ spec:
 
 Combining **Argo Workflows** and **Argo CD** enables **full MLOps pipeline automation in GitOps style** from AI model training, evaluation, to deployment.
 
+**Figure 7. Argo-based GitOps ML pipeline**
+
 ```mermaid
 graph LR
     subgraph "GitOps Pipeline"
@@ -487,6 +505,8 @@ graph LR
 ```
 
 ### ACK + KRO + ArgoCD Integration Architecture
+
+**Figure 8. Integrated ACK, KRO, and Argo CD deployment architecture**
 
 ```mermaid
 graph TB
@@ -545,6 +565,8 @@ graph TB
 
 ### Progressive Journey: AWS Native → Auto Mode → EKS Capability
 
+**Figure 9. Progressive expansion path from AWS Native to EKS Capability**
+
 ```mermaid
 graph LR
     START["AWS Native<br/>(Bedrock + AgentCore)"]
@@ -573,6 +595,8 @@ graph LR
 ### EKS Auto Mode GPU Limitations and Hybrid Strategy
 
 EKS Auto Mode is optimal for general workloads and basic GPU inference, but has limitations for advanced GPU features.
+
+**Table 3. EKS Auto Mode suitability by workload type**
 
 | Workload Type | Auto Mode Suitability | Reason |
 |---|---|---|
@@ -675,6 +699,8 @@ For deployment guide, refer to [Reference Architecture](../../reference-architec
 </Tabs>
 
 ### Reference Documents for Scaling
+
+**Table 4. Reference documents by area for scaling**
 
 | Area | Document | Content |
 |------|------|------|

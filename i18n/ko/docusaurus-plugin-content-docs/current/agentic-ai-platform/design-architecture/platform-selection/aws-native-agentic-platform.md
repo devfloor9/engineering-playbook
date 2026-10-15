@@ -27,6 +27,8 @@ AWS 관리형 서비스를 사용하면 팀이 직접 운영해야 하는 인프
 
 AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
 
+**표 1. AWS Agentic AI 스택의 3개 축(Pillar)**
+
 | Pillar | 서비스 | 역할 |
 |--------|--------|------|
 | **기반(Foundation)** | Amazon Bedrock | 모델 액세스, RAG, 가드레일, 프롬프트 캐싱 |
@@ -40,6 +42,8 @@ AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
 ### 도전과제 해결 매핑
 
 [기술적 도전과제](../foundations/agentic-ai-challenges.md)에서 다룬 5가지 핵심 과제를 AWS Native 접근으로 해결하는 방법:
+
+**표 2. 5가지 도전과제별 AWS Native 해결 방안**
 
 | 도전과제 | AWS Native 해결 방안 |
 |---------|---------------------|
@@ -58,6 +62,8 @@ AWS Agentic AI 스택은 세 개의 축(Pillar)으로 구성됩니다.
 ## AWS Agentic AI 서비스 아키텍처
 
 ### 3-Pillar 아키텍처
+
+**그림 1. AWS Agentic AI 3-Pillar 아키텍처**
 
 ```mermaid
 graph TB
@@ -102,6 +108,8 @@ graph TB
 Amazon Bedrock은 Agentic AI 플랫폼의 **기반 인프라**를 제공합니다. 100개 이상의 파운데이션 모델에 단일 API로 접근하고, RAG, 가드레일, 프롬프트 캐싱까지 매니지드로 지원합니다.
 
 ### 핵심 기능
+
+**표 3. Amazon Bedrock 핵심 기능과 범위·전제조건**
 
 | 기능 | 설명 | 범위와 전제조건 |
 |------|------|----------|
@@ -187,6 +195,8 @@ agent = Agent(
 
 ### Strands SDK 핵심 특성
 
+**표 4. Strands Agents SDK의 핵심 특성**
+
 | 특성 | 설명 |
 |------|------|
 | **Apache 2.0** | 상업적 사용 자유, 포크 가능 |
@@ -207,6 +217,8 @@ AgentCore는 **Agent의 프로덕션 운영에 필요한 모든 것**을 매니�
 #### 1. Runtime — 서버리스 Agent 배포
 
 AgentCore Runtime은 격리된 실행 환경을 제공합니다. 기본 서버리스 컴퓨트 유형에서는 각 세션을 **Firecracker MicroVM**으로 실행하며, 계정 내에 매니지드 EC2 용량을 프로비저닝하는 **Instances** 컴퓨트 유형(capacity provider 사용)으로도 실행할 수 있는데 이 유형은 격리·과금 모델이 다릅니다.
+
+**표 5. AgentCore Runtime 컴퓨트 유형별 사양**
 
 | 항목 | 사양 |
 |------|------|
@@ -229,6 +241,8 @@ agentcore deploy --target default -y
 
 Agent가 대화 컨텍스트와 사용자 선호를 기억하도록 하는 매니지드 메모리 서비스입니다.
 
+**표 6. AgentCore Memory 유형과 활용 예시**
+
 | 메모리 유형 | 설명 | 활용 예시 |
 |------------|------|----------|
 | **단기 메모리** | 세션 내 대화 기록 | 멀티턴 대화에서 이전 질문 참조 |
@@ -244,6 +258,8 @@ AgentCore Gateway는 **REST API를 MCP 프로토콜로 자동 변환**하고, �
 Agent에 300개의 도구가 등록되어 있어도 Gateway가 사용자 요청을 분석하여 관련 있는 4개 도구만 Agent에 전달합니다. 이를 통해 LLM 컨텍스트 윈도우를 절약하고 도구 선택 정확도를 높입니다.
 :::
 
+**표 7. AgentCore Gateway의 주요 기능**
+
 | 기능 | 설명 |
 |------|------|
 | **REST → MCP 변환** | 기존 REST API를 MCP 도구로 자동 래핑 |
@@ -252,6 +268,8 @@ Agent에 300개의 도구가 등록되어 있어도 Gateway가 사용자 요청�
 | **인증 전파** | 사용자 인증 정보를 도구까지 안전하게 전달 |
 
 #### 4. Identity — 위임 인증
+
+**표 8. AgentCore Identity의 주요 기능**
 
 | 기능 | 설명 |
 |------|------|
@@ -279,6 +297,8 @@ PII 마스킹·레다크션은 **페이로드 변형**으로 별개의 관심사
 → Gateway를 거치지 않는 경로를 포함해 레다크션을 테스트로 검증
 ```
 
+**표 9. AgentCore Policy의 특성**
+
 | 특성 | 설명 |
 |------|------|
 | **자연어 입력** | 비개발자도 인가 규칙 초안 작성 가능 |
@@ -288,6 +308,8 @@ PII 마스킹·레다크션은 **페이로드 변형**으로 별개의 관심사
 
 #### 6. Observability — 통합 모니터링
 
+**표 10. AgentCore Observability의 주요 기능**
+
 | 기능 | 설명 |
 |------|------|
 | **CloudWatch 통합** | AgentCore는 기본 서비스 메트릭을 CloudWatch로 전송합니다. 에이전트/도구/토큰 트레이스 전체를 수집하려면 CloudWatch Transaction Search를 활성화하고 스팬을 계측(예: ADOT 계측)해야 하며, 알람은 메트릭별로 구성합니다. |
@@ -296,6 +318,8 @@ PII 마스킹·레다크션은 **페이로드 변형**으로 별개의 관심사
 | **비용 대시보드** | 전송된 텔레메트리로 구성한 모델별·Agent별·세션별 비용 뷰 |
 
 #### 7. Evaluation — 지속적 품질 모니터링
+
+**표 11. AgentCore Evaluation의 주요 기능**
 
 | 기능 | 설명 |
 |------|------|
@@ -310,6 +334,8 @@ PII 마스킹·레다크션은 **페이로드 변형**으로 별개의 관심사
 ## 아키텍처 패턴
 
 ### Build → Deploy → Operate 워크플로우
+
+**그림 2. Build → Deploy → Operate 워크플로우**
 
 ```mermaid
 graph LR
@@ -340,6 +366,8 @@ graph LR
 
 FAQ, 빌링 조회, 상태 확인 등 단일 작업을 수행하는 Agent에 적합합니다.
 
+**그림 3. 단순 Agent 패턴 구성**
+
 ```mermaid
 graph LR
     User["사용자"] --> Runtime["AgentCore Runtime"]
@@ -356,6 +384,8 @@ graph LR
 ### 복잡 Agent 패턴 (멀티스텝)
 
 여러 도구를 순차/병렬로 호출하고, 중간 결과에 따라 분기하는 Agent에 적합합니다.
+
+**그림 4. 복잡 Agent 패턴(멀티스텝) 구성**
 
 ```mermaid
 graph TD
@@ -426,6 +456,8 @@ result = graph("2026년 1분기 시장 동향 보고서를 작성해줘")  # Gra
 AWS Native Agentic AI Platform의 실전 배포 방법은 다음 세 가지 접근으로 구성됩니다:
 
 ### 배포 방법 개요
+
+**표 12. AWS Native Agentic AI 배포 방법 비교**
 
 | 접근 | 도구 | 적합 시나리오 |
 |------|------|--------------|
@@ -510,6 +542,8 @@ Resources:
 
 ### 야놀자: AIOps 자동화
 
+**표 13. 야놀자 AIOps 자동화 사례 요약**
+
 | 항목 | 내용 |
 |------|------|
 | **과제** | 인프라 운영 이슈 자동 분석 및 해결 |
@@ -519,6 +553,8 @@ Resources:
 | **참고** | [AWS 기술 블로그](https://aws.amazon.com/ko/blogs/tech/yanolja-aiops-strands-agent-on-agentcore/) |
 
 ### Amazon Devices: 제조 Agent (예시) {#amazon-devices-제조-agent}
+
+**표 14. Amazon Devices 제조 Agent 사례 요약(예시)**
 
 | 항목 | 내용 |
 |------|------|
@@ -535,6 +571,8 @@ AgentCore 기반 플랫폼의 비용은 **사용한 만큼만 과금**되는 서
 
 ### 과금 체계
 
+**표 15. AgentCore 플랫폼의 서비스별 과금 체계**
+
 | 서비스 | 과금 기준 | 특징 |
 |--------|----------|------|
 | **Bedrock 추론** | 입력/출력 토큰 수 | 온디맨드, 프로비저닝 처리량 선택 가능 |
@@ -544,6 +582,8 @@ AgentCore 기반 플랫폼의 비용은 **사용한 만큼만 과금**되는 서
 | **Prompt Caching** | 캐시 읽기는 할인, 캐시 쓰기는 과금될 수 있음 | Bedrock의 Claude 기준 캐시 읽기 할인은 캐시된 입력 토큰에 대해 **최대 약 90%**이며, 정확한 비율은 모델에 따라 다르고 모든 요청이 아니라 캐시 히트에만 적용 |
 
 ### 운영 비용 절감 포인트
+
+**표 16. AWS Native 접근의 운영 비용 절감 포인트**
 
 | 영역 | 절감 요소 |
 |------|----------|
@@ -670,6 +710,8 @@ EKS 기반 Self-hosted Agent와 Bedrock AgentCore를 함께 활용할 수 있습
 AgentCore는 MCP/A2A를 통한 에이전트 간 협업을 지원합니다:
 
 <MultiAgentPatterns />
+
+**그림 5. 마스터·전문 에이전트 오케스트레이션 구성**
 
 ```mermaid
 flowchart TB

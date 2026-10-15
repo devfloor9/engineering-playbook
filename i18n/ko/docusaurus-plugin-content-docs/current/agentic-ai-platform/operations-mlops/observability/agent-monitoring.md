@@ -58,6 +58,8 @@ Agentic AI 애플리케이션은 복잡한 추론 체인과 다양한 도구 호
 
 Langfuse v3 (2024-12+)는 다음 컴포넌트로 구성됩니다. v3는 ClickHouse+Redis+S3 아키텍처로, v2 대비 셀프호스팅 복잡도가 증가했습니다:
 
+**그림 1. Langfuse v3 스택과 스토리지 구성**
+
 ```mermaid
 flowchart TB
     subgraph Clients["AI 애플리케이션"]
@@ -94,6 +96,8 @@ flowchart TB
 ```
 
 ### AMP/AMG 통합 데이터 흐름
+
+**그림 2. 메트릭 수집원에서 AMP·AMG로 이어지는 데이터 흐름**
 
 ```mermaid
 flowchart TB
@@ -132,6 +136,8 @@ flowchart TB
 
 ### 모니터링 데이터 계층
 
+**표 1. 모니터링 데이터 계층별 수집 도구와 확인 항목**
+
 | 계층 | 수집 도구 | 메트릭 패턴 | 확인 가능 항목 |
 |------|----------|-----------|--------------|
 | **LLM 추론** | Langfuse | trace, generation | 토큰 사용량, 비용, TTFT, 사용자별 패턴 |
@@ -147,6 +153,8 @@ flowchart TB
 Agentic AI 애플리케이션에서 추적해야 할 핵심 메트릭을 정의합니다.
 
 ### 메트릭 카테고리
+
+**그림 3. 핵심 모니터링 메트릭 카테고리(지연·토큰·오류·트레이스)**
 
 ```mermaid
 flowchart TB
@@ -273,6 +281,8 @@ tenant_monthly_budget_usd
 
 ### 알림 임계값 설계
 
+**표 2. 알림별 조건·심각도·지속 시간**
+
 | 알림 | 조건 | 심각도 | 지속 시간 |
 |------|------|--------|----------|
 | **Agent High Latency** | P99 지연 > 10초 | Warning | 5분 |
@@ -303,6 +313,8 @@ tenant_monthly_budget_usd
 ## 6. Cascade Fallback 전략
 
 Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 시에도 무중단 서비스를 유지할 수 있습니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
+
+**그림 4. Self-hosted 장애 시 Bedrock으로 전환하는 Cascade 폴백 흐름**
 
 ```mermaid
 flowchart LR
@@ -349,6 +361,8 @@ routing_rules:
 
 ### 가용성·비용 관점 비교
 
+**표 3. Self-hosted 단독과 Cascade 구성의 가용성·비용 비교**
+
 | 관점 | Self-hosted 단독 | Cascade (Self-hosted + Bedrock) |
 |------|----------------|-------------------------------|
 | **가용성** | GPU 장애 시 서비스 중단 | Bedrock 폴백으로 무중단 |
@@ -377,6 +391,8 @@ LLM 사용 비용을 다음 기준으로 추적합니다:
 - **시간별**: 피크 시간대 분석, 비용 추세
 
 ### 모델별 비용 참조 (2026-04 기준)[^1]
+
+**표 4. 티어별 모델의 입력·출력 단가와 특징**
 
 | Tier | 모델 | 입력 ($/1M tok) | 출력 ($/1M tok) | 특징 |
 |------|------|----------------|----------------|------|

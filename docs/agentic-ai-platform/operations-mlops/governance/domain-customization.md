@@ -31,6 +31,8 @@ Provides a 3-stage strategy for **optimizing general-purpose LLMs for specific d
 
 Apply domain specialization in three stages: **Steering → RAG → LoRA**. Steering supplies explicit coding instructions; RAG retrieves relevant internal documents for the prompt; LoRA adapts the model through training on domain data. The sections below explain what each stage adds.
 
+**Figure 1. Domain specialization 3-layer application order and cost**
+
 ```mermaid
 graph TD
     L1[Layer 1: Steering] --> L2[Layer 2: RAG]
@@ -134,14 +136,16 @@ For detailed LoRA training and deployment pipeline implementation, see [Custom M
 
 ## Required Layers by Scenario
 
+**Table 1. Suitability of each layer and recommended combination by requirement**
+
 | Requirement | Layer 1 (Steering) | Layer 2 (RAG) | Layer 3 (LoRA) | Recommended Combination |
 |---------|-------------------|--------------|---------------|----------|
-| **Coding conventions** | ✅ Sufficient | △ Excessive | ❌ Unnecessary | **Layer 1** |
-| **Internal API usage** | △ Insufficient | ✅ Required | ❌ Unnecessary | **Layer 1 + 2** |
-| **Domain terminology** | ❌ Limited | △ Supplementary | ✅ Required | **Layer 2 + 3** |
-| **SOC2 procedures** | ✅ Playbook sufficient | ❌ Unnecessary | ❌ Unnecessary | **Layer 1** |
-| **Consistent code style** | △ Basic only | △ Supplementary | ✅ Most effective | **Layer 1 + 3** |
-| **Legacy migration patterns** | ❌ Impossible | △ Example provision | ✅ Core | **Layer 2 + 3** |
+| **Coding conventions** | Sufficient | Excessive | Unnecessary | **Layer 1** |
+| **Internal API usage** | Insufficient | Required | Unnecessary | **Layer 1 + 2** |
+| **Domain terminology** | Limited | Supplementary | Required | **Layer 2 + 3** |
+| **SOC2 procedures** | Playbook sufficient | Unnecessary | Unnecessary | **Layer 1** |
+| **Consistent code style** | Basic only | Supplementary | Most effective | **Layer 1 + 3** |
+| **Legacy migration patterns** | Impossible | Example provision | Core | **Layer 2 + 3** |
 
 :::tip Cost vs Effect
 - **Layer 1 only**: Free, 60% improvement
@@ -156,6 +160,8 @@ For detailed LoRA training and deployment pipeline implementation, see [Custom M
 VectorRAG is a **document retrieval-based** domain specialization approach.
 
 ### Architecture
+
+**Figure 2. VectorRAG architecture**
 
 ```mermaid
 graph LR
@@ -220,6 +226,8 @@ GraphRAG is a **knowledge graph-based** domain specialization approach. It expli
 
 ### Architecture
 
+**Figure 3. GraphRAG architecture**
+
 ```mermaid
 graph TD
     Q["Question: Loan approval conditions?"] --> P[Parsing]
@@ -251,6 +259,8 @@ CREATE (credit)-[:VERIFIED_BY]->(cbService:Service {name: "CB Inquiry"})
 ```
 
 ### VectorRAG + GraphRAG Hybrid
+
+**Figure 4. VectorRAG + GraphRAG hybrid configuration**
 
 ```mermaid
 graph LR
@@ -290,6 +300,8 @@ Question: "Can a customer with credit score 550 get a mortgage loan?"
 
 #### Effect Comparison by Layer
 
+**Table 2. Accuracy, consistency, and cost comparison by layer for COBOL→Java migration**
+
 | Approach | Accuracy | Consistency | Cost | Notes |
 |--------|--------|--------|------|------|
 | **Steering only** | 60% | Low | Free | Syntax correct but financial logic errors |
@@ -301,6 +313,8 @@ Question: "Can a customer with credit score 550 get a mortgage loan?"
 **Assumptions**:
 - 10,000 modules to migrate
 - Developer hourly rate: $50/hr
+
+**Table 3. Time per module, total time, and total cost by migration method (assumption-based estimate)**
 
 | Method | Time/Module | Total Time | Total Cost | Notes |
 |------|----------|---------|---------|------|
@@ -435,6 +449,8 @@ When an SI company **operates multiple customers on the same platform**, per-cus
 
 #### Per-Customer Configuration
 
+**Table 4. Per-customer model, LoRA, and RAG configuration for multi-customer operations**
+
 | Customer | Domain | Base Model | LoRA | RAG |
 |------|--------|-----------|------|-----|
 | **Bank A** | Core banking | GLM-5-32B | Bank-Core | Bank-API |
@@ -455,6 +471,8 @@ Continuously validate the quality of domain-specialized models. Follow these eva
 ---
 
 ## Phase-by-Phase Adoption Roadmap
+
+**Table 5. Duration, configuration, effect, and cost by adoption phase**
 
 | Phase | Duration | Configuration | Effect | Cost |
 |-------|----------|--------------|--------|------|

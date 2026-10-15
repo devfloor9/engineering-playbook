@@ -42,6 +42,8 @@ In Agentic AI systems, vector databases perform the following roles:
 - **Context provision**: Provide relevant information to LLMs to reduce hallucination
 - **Long-term memory**: Store agent conversation history and learned content
 
+**Figure 1. RAG request processing flow**
+
 ```mermaid
 flowchart LR
     Q[User<br/>Query]
@@ -66,6 +68,8 @@ flowchart LR
 ## 2. Milvus Cluster Architecture
 
 ### Distributed Architecture Components
+
+**Figure 2. Milvus distributed architecture components**
 
 ```mermaid
 flowchart TB

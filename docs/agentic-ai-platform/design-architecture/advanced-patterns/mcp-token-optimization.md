@@ -45,6 +45,8 @@ The three cases below use different tool sets, processed data, and methodologies
 
 Token overhead increases costs across three dimensions.
 
+**Table 1. Three dimensions in which token overhead increases cost**
+
 | Dimension | Impact | Quantitative Example |
 |------|------|----------|
 | **Input Token Cost** | Tool definitions transmitted per request | Claude Sonnet 4.5: $3/M tokens → 100k tool definitions = $0.30/request |
@@ -54,6 +56,8 @@ Token overhead increases costs across three dimensions.
 ---
 
 ## Architecture: 4 Optimization Techniques
+
+**Figure 1. Data flow of the four token-optimization techniques applied to a user request**
 
 ```mermaid
 flowchart TB
@@ -155,6 +159,8 @@ The key corrections to this pseudocode are as follows. Catalog (lazy) entries st
 
 ### Trade-offs
 
+**Table 2. Advantages and disadvantages of Progressive Discovery**
+
 | Advantages | Disadvantages |
 |------|------|
 | Removes detailed schemas from initial context (reduction magnitude varies by tool set composition) | Added round-trip for schema retrieval per tool call increases latency |
@@ -181,6 +187,8 @@ In other words, the reduction comes not from deleting parameters but from moving
 ### Performance by Compression Strength
 
 Atlassian measurement for the GitHub MCP server (94 tools). The token counts below refer to the **tool-description volume exposed in the initial prompt**; full schemas are returned separately at lookup time.
+
+**Table 3. Initial-exposure tokens and reduction rate by compression strength (GitHub MCP server, 94 tools, Atlassian measurement)**
 
 | Compression Strength | Initial-Exposure Tokens | Reduction Rate | Note (description detail) |
 |----------|--------|-------|------|
@@ -224,6 +232,8 @@ Cloudflare's "Code Mode" runs the **LLM-generated code** in an isolated sandbox 
 ([Source](https://blog.cloudflare.com/code-mode-mcp/))
 
 ### Trade-offs
+
+**Table 4. Advantages and disadvantages of Code Execution**
 
 | Advantages | Disadvantages |
 |------|------|
@@ -272,6 +282,8 @@ A **literal string like `<cache_breakpoint />` does not activate any provider's 
 
 ### Static vs. Dynamic Classification Criteria
 
+**Table 5. Examples of static and dynamic tools and their placement relative to the cache breakpoint**
+
 | Tool Type | Example | Placement Position |
 |---------|------|----------|
 | **Static** | `search_kb`, `create_ticket`, `get_weather` | **Before** cache breakpoint |
@@ -292,6 +304,8 @@ Assuming all 100k static-tool tokens are **read from cache**, at the Sonnet 4.5 
 The [Tiered Gateway Architecture](../../model-serving/inference-routing/tiered-gateway-architecture.md) separates model request routing in Tier 1–2 from the Agent Data Plane's handling of tool calls, MCP/A2A connections, and stateful sessions. MCP/A2A can also use HTTP as a transport; the distinction is the responsibility each component owns.
 
 Token optimization applies at the following layers.
+
+**Table 6. Token-optimization responsibility and implementation method by gateway layer**
 
 | Layer | Optimization Responsibility | Implementation Method |
 |------|------------|----------|

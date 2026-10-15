@@ -25,6 +25,8 @@ Use cache, capacity, latency, and routing metrics to investigate a vLLM inferenc
 
 This guide is for teams operating inference engines, gateways, metrics, and traces. Infrastructure metrics help locate problems, but content quality requires separate evaluation. Two measurements can change at the same time without one causing the other.
 
+**Table 1. Related documents, their scope, and relationship to this document**
+
 | Document | Scope | Relationship |
 |---|---|---|
 | [Agent Monitoring and Operations](./agent-monitoring.md) | Trace and score storage and operations | Collection foundation |
@@ -44,6 +46,8 @@ Preemption returns a running request to a waiting state for later resumption. It
 
 ## 3. Seven Semantic Metric Layers {#metric-layers}
 
+**Table 2. Seven semantic metric layers with questions, main signals, and limits**
+
 | Layer | Question | Main signals | Limits |
 |---|---|---|---|
 | L0 Contract and availability | Did the request and stream complete? | HTTP status, protocol completion, errors, cancellation, `up` | Does not measure content accuracy |
@@ -59,6 +63,8 @@ TTFT (Time to First Token) is the time from a request to its first output token.
 An ITL histogram records individual token gaps, so longer responses contribute more observations. A histogram of per-request mean TPOT records one mean for each request. These histograms have different weighting even for the same request set and should not be treated as the same metric.
 
 The arrows below show an analysis sequence, not causal relationships between layers.
+
+**Figure 1. Analysis sequence connecting the metric layers**
 
 ```mermaid
 flowchart TB
@@ -141,6 +147,8 @@ Append-only multi-turn input can increase reuse opportunities, but hit ratio nee
 
 Local prefix caching uses free-queue eviction rather than a fixed TTL. In `v0.26.0`, enable the following metrics with `--kv-cache-metrics` and select the sampling rate with `--kv-cache-metrics-sample`. Defaults are disabled and 0.01, respectively. They require log stats, so `--disable-log-stats` must not be set ([ObservabilityConfig](https://github.com/vllm-project/vllm/blob/v0.26.0/vllm/config/observability.py)).
 
+**Table 3. KV block residency histograms with measurement and limitation**
+
 | Histogram | Measurement | Limitation |
 |---|---|---|
 | `vllm:kv_block_idle_before_evict_seconds` | Last touch to eviction | Not a residency guarantee for the next request |
@@ -162,6 +170,8 @@ When TTFT rises as hit ratio falls, investigate prefill, queues, input length, a
 ### 5.2 Routing {#routing}
 
 The EPP (Endpoint Picker) selects endpoints within a pool. Distinguish this from model selection in an LLM API Gateway. Check the current project split and the metric contract of the deployed image. The following names are from llm-d-router `v0.10.0`. Adding their legacy `inference_pool_*`, `inference_extension_*`, or `inference_objective_*` aliases would double-count values ([official catalog](https://github.com/llm-d/llm-d-router/blob/v0.10.0/docs/metrics.md)).
+
+**Table 4. EPP routing metrics and additional checks**
 
 | Metric | Purpose | Additional checks |
 |---|---|---|
@@ -197,6 +207,8 @@ and on (cluster, namespace, model_name)
 )
 ```
 
+**Table 5. Output quality proxies with investigation targets and unsupported conclusions**
+
 | Proxy | Investigation | Unsupported conclusion |
 |---|---|---|
 | Rising `length` | `max_tokens`, model length limits, load-generator settings | Every `length` response failed its task |
@@ -217,6 +229,8 @@ The reasoning leak rate and tool-call parse failure rate are collected from resp
 ### 7.1 Score Schema {#score-schema}
 
 These are proposed application scores, not built-in Langfuse scores or vLLM metrics. Keep `unknown`, `skipped`, and evaluator errors separate from failure 0. Store eligible, evaluated, and missing counts alongside scores.
+
+**Table 6. Application quality score schema and contracts**
 
 | Score | Value | Contract |
 |---|---|---|
@@ -243,6 +257,8 @@ Measure evaluation calls, tokens, cost, errors, and latency; exclude evaluator t
 
 Do not subtract a sampled judge pass rate from the overall HTTP success rate before aligning their denominators.
 
+**Table 7. Delivery, evaluation coverage, and acceptance rates by denominator and meaning**
+
 | Rate | Denominator | Meaning |
 |---|---|---|
 | HTTP success | All eligible logical requests | Status-code result |
@@ -261,6 +277,8 @@ Before changing configuration, define acceptable quality degradation, evaluation
 ## 8. Decision Matrix {#decision-matrix}
 
 These combinations prioritize investigation rather than establish causes. Adapt illustrative thresholds to the workload.
+
+**Table 8. Observed combinations with hypotheses and next checks or actions**
 
 | Observed combination | Hypothesis | Next check or action |
 |---|---|---|
@@ -308,6 +326,8 @@ and on (cluster, namespace, pod, engine)
 ```
 
 The ratio 0.5, one queried token per second, and a ten-minute hold period are illustrative. Missing series will not trigger this condition; add separate checks for missing scraping and configuration telemetry.
+
+**Table 9. Alert candidates with required evidence and limitations**
 
 | Alert candidate | Required evidence | Limitation |
 |---|---|---|

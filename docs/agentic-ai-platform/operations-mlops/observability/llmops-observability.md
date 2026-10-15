@@ -48,6 +48,8 @@ For practical configuration including Langfuse Helm deployment, Redis/ClickHouse
 
 ### 2.1 Trace Structure
 
+**Figure 1. Trace and span structure produced by a single user question**
+
 ```mermaid
 flowchart TB
     subgraph Trace["Trace: User Question"]
@@ -77,6 +79,8 @@ flowchart TB
 ```
 
 ### 2.2 Key Concept Definitions
+
+**Table 1. Key LLMOps Observability concept definitions**
 
 | Concept | Description |
 |---------|-------------|
@@ -133,19 +137,23 @@ flowchart TB
 
 ### 3.4 Solution Comparison Table
 
+The per-feature levels (High, Medium, Low) in the table below are the author's qualitative assessment, not measured values.
+
+**Table 2. Feature comparison of Langfuse, LangSmith, and Helicone**
+
 | Feature | Langfuse | LangSmith | Helicone |
 |---------|----------|-----------|----------|
 | **License** | MIT (open-source) | Proprietary | Proprietary (self-hosted available) |
 | **Self-hosted** | Full support | Enterprise only | Supported |
-| **Tracing** | ★★★★★ | ★★★★★ | ★★★ |
-| **Prompt Management** | ★★★★★ (Version, A/B) | ★★★★ (Hub) | ★★ (Simple storage) |
-| **Evaluation** | ★★★★★ (Pipeline) | ★★★★★ | ★ (None) |
-| **Cost Tracking** | ★★★★★ | ★★★★ | ★★★★ |
-| **LangChain Integration** | ★★★★ | ★★★★★ | ★★★ |
-| **Framework Neutrality** | ★★★★★ | ★★★ | ★★★★★ |
-| **Gateway Features** | None | None | ★★★★★ |
+| **Tracing** | High | High | Medium |
+| **Prompt Management** | High (Version, A/B) | High (Hub) | Low (Simple storage) |
+| **Evaluation** | High (Pipeline) | High | None |
+| **Cost Tracking** | High | High | High |
+| **LangChain Integration** | High | High | Medium |
+| **Framework Neutrality** | High | Medium | High |
+| **Gateway Features** | None | None | High |
 | **Scale Limits** | Unlimited (self-hosted) | Plan limits | Plan limits |
-| **Data Sovereignty** | ★★★★★ | ★★ | ★★★★ |
+| **Data Sovereignty** | High | Low | High |
 
 ### 3.5 AWS Native Observability: CloudWatch Generative AI Observability
 
@@ -172,6 +180,8 @@ Enterprise environments have complex requirements:
 4. **Advanced Evaluation Pipeline**: Integration with specialized frameworks like Ragas, CI/CD regression test automation
 
 ### 4.2 Recommended Combination: kgateway + Bifrost (Gateway) + Langfuse (Observability)
+
+**Figure 2. kgateway, Bifrost, and Langfuse hybrid architecture**
 
 ```mermaid
 flowchart TB
@@ -229,6 +239,8 @@ flowchart TB
 
 ### 4.3 Helicone Standalone vs Bifrost+Langfuse Comparison
 
+**Table 3. Comparison of Helicone standalone and the Bifrost+Langfuse combination**
+
 | Aspect | Helicone Standalone | Bifrost + Langfuse |
 |--------|---------------------|---------------------|
 | **Integration Complexity** | Very low (URL change only) | Medium (SDK integration needed) |
@@ -254,6 +266,8 @@ Langfuse provides LLM-specific observability, but overall application context is
 
 Distinguish the `gen_ai.*` semantic-convention attributes from Langfuse-specific `langfuse.*` attributes. The Langfuse column describes the ingested meaning, not SDK method parameter names.
 
+**Table 4. OTel GenAI and Langfuse-specific span attribute mapping**
+
 | Namespace | Span attribute | Meaning in Langfuse |
 |---|---|---|
 | GenAI | `gen_ai.request.model` | Requested model name |
@@ -267,6 +281,8 @@ Distinguish the `gen_ai.*` semantic-convention attributes from Langfuse-specific
 Check names and types against the [GenAI attribute registry](https://github.com/open-telemetry/semantic-conventions-genai/blob/0c87594975195608dc91b3f702e250a7b240c151/docs/registry/attributes/gen-ai.md) and [Langfuse OTel property mapping](https://langfuse.com/integrations/native/opentelemetry#property-mapping). GenAI conventions are evolving, so manage their version across instrumentation, collectors, and dashboards. Cost details are values supplied to Langfuse, not an automatically calculated GenAI standard attribute. Define the collection scope and redaction policy before recording potentially sensitive input or output content.
 
 ### 5.3 Grafana Tempo + Langfuse Combination
+
+**Figure 3. Simultaneous export to Grafana Tempo and Langfuse via the OTEL Collector**
 
 ```mermaid
 flowchart LR
@@ -301,6 +317,8 @@ Langfuse Evaluation supports three methods:
 
 ### 6.2 Evaluation Metrics
 
+**Table 5. Evaluation metrics by range, description, and method**
+
 | Metric | Range | Description | Evaluation Method |
 |--------|-------|-------------|-------------------|
 | **Faithfulness** | 0-1 | Is response faithful to provided context? | LLM-as-Judge |
@@ -318,6 +336,8 @@ Ragas is a RAG system-specific evaluation framework that integrates with Langfus
 ---
 
 ## 7. Recommendations by Scenario
+
+**Table 6. Recommended solution and rationale by scenario**
 
 | Scenario | Recommended Solution | Reason |
 |----------|----------------------|--------|

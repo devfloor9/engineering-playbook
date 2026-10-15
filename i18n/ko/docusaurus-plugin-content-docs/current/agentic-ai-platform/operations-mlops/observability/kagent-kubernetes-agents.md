@@ -69,6 +69,8 @@ import { SolutionsComparisonTable } from '@site/src/components/KagentTables';
 
 Kagent는 Kubernetes Operator 패턴을 따르며, Controller, CRD, Webhook으로 구성됩니다.
 
+**그림 1. Kagent Operator 아키텍처(Control Plane·CRD·관리 리소스·런타임)**
+
 ```mermaid
 flowchart TB
     subgraph CP["Control Plane"]
@@ -121,6 +123,8 @@ import { ComponentsTable } from '@site/src/components/KagentTables';
 <ComponentsTable />
 
 ### 컴포넌트 상호작용
+
+**그림 2. Agent CRD 생성부터 Pod 스케줄링까지의 컴포넌트 상호작용**
 
 ```mermaid
 sequenceDiagram
@@ -239,7 +243,7 @@ spec:
 
 Tool은 독립 CRD가 아니라 Agent spec의 `tools: []Tool` 배열로 정의됩니다. 도구 유형은 `McpServer` 또는 `Agent` 두 가지입니다 (kagent v1alpha2 API).
 
-**주요 필드:**
+**표 1. Tool 유형별 주요 필드와 예시**
 
 | 필드 | 설명 | 예시 |
 |------|------|------|
@@ -251,7 +255,7 @@ Tool은 독립 CRD가 아니라 Agent spec의 `tools: []Tool` 배열로 정의�
 
 Memory는 v1alpha2에서 독립 CRD가 아닌 Agent spec의 `memory: MemorySpec` 필드로 통합되었습니다.
 
-**주요 기능:**
+**표 2. Memory(Agent spec 필드)의 주요 기능**
 
 | 기능 | 설명 |
 |------|------|
@@ -263,7 +267,7 @@ Memory는 v1alpha2에서 독립 CRD가 아닌 Agent spec의 `memory: MemorySpec`
 
 Workflow CRD를 사용하여 멀티 에이전트 워크플로우를 정의합니다.
 
-**핵심 구조:**
+**표 3. Workflow CRD의 핵심 스펙 필드**
 
 | 필드 | 설명 |
 |------|------|
@@ -283,6 +287,8 @@ Workflow CRD를 사용하여 멀티 에이전트 워크플로우를 정의합니
 복잡한 작업을 여러 에이전트가 협업하여 처리하는 워크플로우를 정의합니다.
 
 ### 에이전트 간 통신 패턴
+
+**그림 3. Orchestrator·Worker·Communication 계층의 에이전트 간 통신**
 
 ```mermaid
 flowchart TB
@@ -313,6 +319,8 @@ flowchart TB
 
 ### 오케스트레이션 패턴
 
+**표 4. 멀티 에이전트 오케스트레이션 패턴과 적합한 경우**
+
 | 패턴 | 설명 | 적합한 경우 |
 |------|------|-----------|
 | **순차 파이프라인** | 단계별 순차 실행, 이전 단계 출력이 다음 입력 | 데이터 처리, ETL |
@@ -322,6 +330,8 @@ flowchart TB
 | **라우팅** | 입력 내용에 따라 다른 에이전트로 분기 | 문의 분류, 전문 영역 분배 |
 
 ### 워크플로우 예시: 리서치 리포트
+
+**그림 4. 리서치 리포트 생성 워크플로우의 에이전트 단계**
 
 ```mermaid
 flowchart LR
@@ -343,6 +353,8 @@ flowchart LR
 ```
 
 워크플로우 실행 상태는 `WorkflowRun` CRD를 통해 추적합니다:
+
+**표 5. WorkflowRun 실행 상태와 의미**
 
 | 상태 | 설명 |
 |------|------|
@@ -370,6 +382,8 @@ Agent CRD 생성
 
 ### 업데이트 전략
 
+**표 6. Agent 업데이트 전략과 권장 시나리오**
+
 | 전략 | 설명 | 권장 시나리오 |
 |------|------|-------------|
 | **롤링 업데이트** | 기본 전략. Pod를 점진적으로 교체 | 일반적인 설정 변경 |
@@ -377,6 +391,8 @@ Agent CRD 생성
 | **블루-그린** | 두 버전을 동시 운영 후 트래픽 전환 | 무중단 마이그레이션 |
 
 ### 스케일링 전략
+
+**표 7. 스케일링 메트릭과 임계값 예시**
 
 | 메트릭 | 설명 | 임계값 예시 |
 |--------|------|-----------|
@@ -397,6 +413,8 @@ Agent 실행 트레이스는 Langfuse, LangSmith, CloudWatch Generative AI Obser
 - **CloudWatch**: [AWS Generative AI Observability](https://docs.aws.amazon.com/cloudwatch/)
 
 ### 핵심 알림 규칙
+
+**표 8. Agent 핵심 알림 규칙과 조건·심각도**
 
 | 알림 | 조건 | 심각도 |
 |------|------|--------|

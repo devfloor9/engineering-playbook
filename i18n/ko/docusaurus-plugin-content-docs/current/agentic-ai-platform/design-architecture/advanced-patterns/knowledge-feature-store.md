@@ -38,6 +38,8 @@ Feature Store는 entity key별 feature serving에 초점을 둡니다. 관계 tr
 
 아래 구조는 논리적 데이터 흐름입니다. 각 저장소는 독립 commit 경계를 갖습니다.
 
+**그림 1. KFS 3-plane의 논리적 데이터 흐름**
+
 ```mermaid
 flowchart TB
     SOURCE[Canonical source and transactional outbox] --> EVENTS[Versioned events]
@@ -53,6 +55,8 @@ flowchart TB
 ```
 
 ### 각 Plane의 역할
+
+**표 1. 3-plane별 책임과 별도 검증 조건**
 
 | Plane | 책임 | 별도 검증 조건 |
 |---|---|---|
@@ -122,6 +126,8 @@ property graph adapter는 HAS_CONTRACT→kfs:hasContract, USES_DEVICE→kfs:uses
 
 ### 관리형 vs 오픈소스 옵션
 
+**표 2. plane 역할별 관리형·오픈소스 저장소 옵션과 구분 기준**
+
 | 역할 | 옵션 | 구분 |
 |---|---|---|
 | Transactional graph/RDF | Neptune Database, 적합한 자체 호스팅 저장소 | Neptune Database의 RDF/SPARQL과 property graph API를 구분 |
@@ -137,6 +143,8 @@ Neptune Analytics를 “용량 프로비저닝 없는 RDF store”로 설명하�
 ### 벡터 검색 + 그래프 확장
 
 검색·entity resolution·권한 필터·graph expansion·문서 합성·rerank를 모두 적용해야 합니다. 확장한 entity를 최종 context에 넣지 않으면 graph expansion을 수행했다는 것만으로 답변 근거가 늘지 않습니다.
+
+**그림 2. 벡터 검색과 그래프 확장을 결합한 RAG 검색 흐름**
 
 ```mermaid
 flowchart TB
@@ -182,6 +190,8 @@ return contexts, source_ids, document_versions, retrieval_generation
 
 원천 DB transaction과 outbox를 함께 commit하고 CDC가 versioned event를 전달하도록 설계합니다. source DB의 commit/partition 순서를 기록하고 multi-source 전역 순서를 가정하지 않습니다. 각 writer의 저장 성공과 검색 가능 상태를 분리해 확인합니다.
 
+**그림 3. CDC 기반 projection write와 publication 흐름**
+
 ```mermaid
 flowchart TB
     DB[Source transaction and outbox] --> CDC[CDC event log]
@@ -196,6 +206,8 @@ flowchart TB
 ```
 
 ### Offline Batch vs Online Stream
+
+**표 3. Batch·Stream·결합 방식의 장점과 검증할 위험**
 
 | 방식 | 장점 | 검증할 위험 |
 |---|---|---|
@@ -249,6 +261,8 @@ on failure: retry idempotently; quarantine poison and conflicting events; reconc
 graph adapter는 parameter binding과 unique entity/edge key를 사용합니다. vector adapter는 동일 document/version을 중복 insert하지 않도록 upsert/delete를 구현합니다. 중간 실패 후 재처리해도 이미 완료된 plane을 손상시키지 않아야 합니다. 삭제 tombstone은 모든 plane에 전파되고 오래된 retry가 데이터를 되살리지 못해야 합니다. 서로 다른 원천 source의 version은 직접 비교하지 말고 conflict policy를 적용합니다.
 
 이 fixture는 합성 tenant `test-a`, entity `customer-001` 하나로 실행합니다. 각 행은 독립 초기 상태에서 시작합니다. v1은 Premium upsert, v2는 VIP upsert, v3은 delete입니다. 세 plane은 version history를 보존하는 시험 구성을 가정하며 이를 지원하지 않는 adapter는 일관된 generation 모드를 거부해야 합니다. 이는 기대 결과이며 실행 결과는 아닙니다.
+
+**표 4. Write 장애 fixture별 입력 순서와 기대 결과**
 
 | Fixture | 입력·장애 순서 | 기대 결과 |
 |---|---|---|

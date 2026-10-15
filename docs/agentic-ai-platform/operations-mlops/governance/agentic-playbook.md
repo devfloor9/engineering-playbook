@@ -25,6 +25,8 @@ An **Agentic Playbook** describes an agent workflow as configuration: the steps 
 
 ### Why Is It Needed?
 
+**Table 1. Characteristics and problems of each agent definition stage**
+
 | Stage | Characteristics | Problems |
 |-------|----------------|----------|
 | **Simple prompt** | "Review this code" | Not reproducible, not auditable, unclear accountability |
@@ -45,6 +47,8 @@ An **Agentic Playbook** describes an agent workflow as configuration: the steps 
 5. **Compliance tagging**: SOC2, ISO27001 mapping
 
 ## 2. Kiro Steering vs Agentic Playbook
+
+**Table 2. Kiro Steering/Spec vs Agentic Playbook comparison**
 
 | Item | Kiro Steering/Spec | Agentic Playbook |
 |------|-------------------|-----------------|
@@ -185,6 +189,8 @@ spec:
 
 How to implement each Playbook component with actual technology stack:
 
+**Table 3. Playbook component implementation technology and platform layer mapping**
+
 | Playbook Component | Existing Technology | Agentic AI Platform Layer | Notes |
 |-------------------|-------------------|--------------------------|-------|
 | **Workflow definition** | LangGraph / CrewAI / AutoGen | L2 Orchestration | Multi-agent collaboration |
@@ -199,6 +205,8 @@ How to implement each Playbook component with actual technology stack:
 | **LoRA adapters** | vLLM + HuggingFace PEFT | L1 Model Serving | Model specialization |
 
 ### Technology Stack Diagram
+
+**Figure 1. Playbook technology stack layer composition**
 
 ```mermaid
 graph TB
@@ -242,6 +250,8 @@ graph TB
 ## 5. Approval Gate Patterns
 
 Approval gates are selected based on **blast radius** — the scope of impact when an agent action goes wrong. Rather than picking gate types from a list, first classify the action's risk level and map it to the appropriate gate.
+
+**Table 4. Action examples and recommended approval gate by blast radius class**
 
 | Blast Radius Class | Action Examples | Impact on Failure | Recommended Gate |
 |--------------------|-----------------|-------------------|------------------|
@@ -313,6 +323,8 @@ Requires manual approval only under specific conditions:
 
 ### Audit Log Architecture
 
+**Figure 2. Audit log collection, storage, and analysis architecture**
+
 ```mermaid
 graph LR
     Request[API Request] --> Playbook[Playbook Execution]
@@ -349,6 +361,8 @@ spec:
 
 ### Audit Log Retention Policy
 
+**Table 5. Retention period and storage policy by log type**
+
 | Log Type | Retention Period | Storage | Search Method |
 |----------|-----------------|---------|--------------|
 | **Real-time traces** | 7 days | Langfuse (PostgreSQL) | Langfuse UI |
@@ -366,6 +380,8 @@ spec:
 ## 7. Validation Framework
 
 Quality gates before Playbook deployment:
+
+**Figure 3. Pre-deployment quality gate pipeline for Playbooks**
 
 ```mermaid
 graph LR
@@ -531,6 +547,8 @@ spec:
 ```
 
 ### 3. Deployment Pipeline
+
+**Figure 4. GitOps deployment pipeline flow**
 
 ```mermaid
 graph LR

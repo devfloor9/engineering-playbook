@@ -69,6 +69,8 @@ This document is intended for Kubernetes administrators, platform engineers, and
 
 Kagent follows the Kubernetes Operator pattern, consisting of Controller, CRDs, and Webhooks.
 
+**Figure 1. Kagent Operator architecture (control plane, CRDs, managed resources, runtime)**
+
 ```mermaid
 flowchart TB
     subgraph CP["Control Plane"]
@@ -121,6 +123,8 @@ import { ComponentsTable } from '@site/src/components/KagentTables';
 <ComponentsTable />
 
 ### Component Interaction
+
+**Figure 2. Component interaction from Agent CRD creation to Pod scheduling**
 
 ```mermaid
 sequenceDiagram
@@ -239,7 +243,7 @@ spec:
 
 The Tool CRD defines tools available to agents. Tool types include `api`, `retrieval`, `code`, and `human`.
 
-**Key fields:**
+**Table 1. Key Tool CRD fields and examples**
 
 | Field | Description | Example |
 |-------|-------------|---------|
@@ -254,7 +258,7 @@ The Tool CRD defines tools available to agents. Tool types include `api`, `retri
 
 Memory configuration for storing agent conversation context and state.
 
-**Key features:**
+**Table 2. Key Memory CRD features**
 
 | Feature | Description |
 |---------|-------------|
@@ -267,7 +271,7 @@ Memory configuration for storing agent conversation context and state.
 
 Define multi-agent workflows using the Workflow CRD.
 
-**Core structure:**
+**Table 3. Core Workflow CRD spec fields**
 
 | Field | Description |
 |-------|-------------|
@@ -287,6 +291,8 @@ Define multi-agent workflows using the Workflow CRD.
 Define workflows where multiple agents collaborate to handle complex tasks.
 
 ### Inter-Agent Communication Patterns
+
+**Figure 3. Inter-agent communication across orchestrator, worker, and communication layers**
 
 ```mermaid
 flowchart TB
@@ -317,6 +323,8 @@ flowchart TB
 
 ### Orchestration Patterns
 
+**Table 4. Multi-agent orchestration patterns and suitable use cases**
+
 | Pattern | Description | Suitable For |
 |---------|-------------|-------------|
 | **Sequential Pipeline** | Step-by-step sequential execution, previous step output feeds next input | Data processing, ETL |
@@ -326,6 +334,8 @@ flowchart TB
 | **Routing** | Branch to different agents based on input content | Inquiry classification, domain distribution |
 
 ### Workflow Example: Research Report
+
+**Figure 4. Agent stages in the research report generation workflow**
 
 ```mermaid
 flowchart LR
@@ -347,6 +357,8 @@ flowchart LR
 ```
 
 Workflow execution status is tracked via `WorkflowRun` CRD:
+
+**Table 5. WorkflowRun execution states and meaning**
 
 | Status | Description |
 |--------|-------------|
@@ -374,6 +386,8 @@ Agent CRD Creation
 
 ### Update Strategies
 
+**Table 6. Agent update strategies and recommended scenarios**
+
 | Strategy | Description | Recommended Scenario |
 |----------|-------------|---------------------|
 | **Rolling Update** | Default strategy. Progressively replace Pods | General config changes |
@@ -381,6 +395,8 @@ Agent CRD Creation
 | **Blue-Green** | Run two versions simultaneously, switch traffic | Zero-downtime migration |
 
 ### Scaling Strategies
+
+**Table 7. Scaling metrics and threshold examples**
 
 | Metric | Description | Threshold Example |
 |--------|-------------|------------------|
@@ -401,6 +417,8 @@ Deployment guides:
 - **CloudWatch**: [AWS Generative AI Observability](https://docs.aws.amazon.com/cloudwatch/)
 
 ### Key Alert Rules
+
+**Table 8. Agent key alert rules with conditions and severity**
 
 | Alert | Condition | Severity |
 |-------|----------|----------|
