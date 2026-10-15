@@ -3,9 +3,9 @@ title: EKS Debugging Guide
 description: Comprehensive troubleshooting guide for systematically diagnosing and resolving application and infrastructure issues in Amazon EKS environments
 created: "2026-02-10"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 17
+reading_time: 19
 tags:
   - eks
   - kubernetes
@@ -235,12 +235,12 @@ aws arc-zonal-shift start-zonal-shift \
 The maximum duration of a Zonal Shift is **3 days** and can be extended. Starting a shift blocks new traffic to Pods running on nodes in that AZ, so first verify that other AZs have sufficient capacity.
 :::
 
-:::danger Zonal Shift Only Blocks Traffic
-ARC Zonal Shift **only changes Load Balancer / Service-level traffic routing**.
+:::danger Scope of a Zonal Shift
+EKS-native ARC Zonal Shift changes Load Balancer / Service-level traffic routing and, at the same time, **cordons the nodes in that AZ to block new Pod scheduling** and suspends Availability Zone rebalancing for Managed Node Groups. It does not, however, evict running Pods or terminate nodes.
 
 <ZonalShiftImpactTable />
 
-AZ settings for Karpenter NodePools and ASGs (Managed Node Groups) are not updated automatically. Therefore, complete AZ evacuation requires additional actions:
+AZ settings (subnet lists) for Karpenter NodePools and ASGs (Managed Node Groups) are not updated automatically. Therefore, complete AZ evacuation requires the following complementary actions:
 
 1. **Start Zonal Shift** → Block new traffic (automatic)
 2. **Drain nodes in that AZ** → Move existing Pods

@@ -3,9 +3,9 @@ title: EKS 디버깅 가이드
 description: Amazon EKS 환경에서 애플리케이션 및 인프라 문제를 체계적으로 진단하고 해결하기 위한 종합 트러블슈팅 가이드
 created: "2026-02-10"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 11
+reading_time: 13
 tags:
   - eks
   - kubernetes
@@ -233,12 +233,12 @@ aws arc-zonal-shift start-zonal-shift \
 Zonal Shift의 최대 지속 시간은 **3일**이며 연장 가능합니다. Shift를 시작하면 해당 AZ의 노드에서 실행 중인 Pod으로의 새로운 트래픽이 차단되므로, 다른 AZ에 충분한 용량이 있는지 먼저 확인하세요.
 :::
 
-:::danger Zonal Shift는 트래픽만 차단합니다
-ARC Zonal Shift는 **Load Balancer / Service 레벨의 트래픽 라우팅만 변경**합니다.
+:::danger Zonal Shift의 영향 범위
+EKS 네이티브 ARC Zonal Shift는 Load Balancer / Service 레벨의 트래픽 라우팅을 변경하는 동시에, **해당 AZ의 노드를 cordon하여 새 Pod 스케줄링을 차단**하고 Managed Node Group의 AZ rebalancing을 중단합니다. 다만 실행 중인 Pod을 축출하거나 노드를 종료하지는 않습니다.
 
 <ZonalShiftImpactTable />
 
-Karpenter NodePool, ASG(Managed Node Group)의 AZ 설정은 자동으로 업데이트되지 않습니다. 따라서 완전한 AZ 대피를 위해서는 추가 작업이 필요합니다:
+Karpenter NodePool, ASG(Managed Node Group)의 AZ 설정(서브넷 목록)은 자동으로 업데이트되지 않습니다. 따라서 완전한 AZ 대피를 위해서는 아래 보완 작업이 필요합니다:
 
 1. **Zonal Shift 시작** → 새 트래픽 차단 (자동)
 2. **해당 AZ 노드 drain** → 기존 Pod 이동

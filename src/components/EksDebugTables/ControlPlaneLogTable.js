@@ -1,11 +1,11 @@
 import React from 'react';
 
 const logs = [
-  { type: 'api', component: 'kube-apiserver', stream: 'kube-apiserver-audit-*', purpose: 'API 요청/응답 기록', color: '#3b82f6' },
+  { type: 'api', component: 'kube-apiserver', stream: 'kube-apiserver-*', purpose: 'API 요청/응답 기록', color: '#3b82f6' },
   { type: 'audit', component: 'kube-apiserver-audit', stream: 'kube-apiserver-audit-*', purpose: '감사 로그 (누가, 무엇을, 언제)', color: '#8b5cf6' },
   { type: 'authenticator', component: 'aws-iam-authenticator', stream: 'authenticator-*', purpose: 'IAM 인증 이벤트', color: '#059669' },
   { type: 'controllerManager', component: 'kube-controller-manager', stream: 'kube-controller-manager-*', purpose: '컨트롤러 동작 로그', color: '#ea580c' },
-  { type: 'scheduler', component: 'kube-scheduler', stream: 'scheduler-*', purpose: '스케줄링 결정 및 실패', color: '#ca8a04' },
+  { type: 'scheduler', component: 'kube-scheduler', stream: 'kube-scheduler-*', purpose: '스케줄링 결정 및 실패', color: '#ca8a04' },
 ];
 
 export default function ControlPlaneLogTable() {

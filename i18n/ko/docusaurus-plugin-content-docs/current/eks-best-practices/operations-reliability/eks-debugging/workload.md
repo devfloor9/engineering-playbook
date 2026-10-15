@@ -3,7 +3,7 @@ title: 워크로드 디버깅
 description: EKS 워크로드 문제 진단 및 해결 가이드 - Pod 상태별 디버깅, 배포 실패 패턴, Probe 설정
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 7
 tags:
@@ -47,9 +47,11 @@ flowchart TD
     liveness probe 확인
     앱 설정/의존성 점검`"]
 
-    STATUS -->|OOMKilled| OOM{"`메모리 초과`"}
-    OOM --> OOM_FIX["`메모리 limits 증가
-    앱 메모리 누수 점검
+    STATUS -->|OOMKilled| OOM{"`메모리 초과
+    (컨테이너 limit vs 노드 압박)`"}
+    OOM --> OOM_FIX["`컨테이너 limit 초과: 메모리 limit 증가/누수 점검
+    노드 메모리 압박(MemoryPressure)/축출: node 조건 확인
+    requests 대비 노드 용량 점검
     JVM heap 설정 확인`"]
 
     STATUS -->|Running but not Ready| READY{"`Readiness 실패`"}
@@ -280,6 +282,7 @@ spec:
     configMap:
       name: app-config
 
+---
 # ✅ 좋은 예: subPath 제거 → 자동 업데이트 가능
 apiVersion: v1
 kind: Pod

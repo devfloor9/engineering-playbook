@@ -1,11 +1,11 @@
 import React from 'react';
 
 const issues = [
-  { code: 'SUBNET_NOT_FOUND', msg: '클러스터 서브넷이 삭제됨', recoverable: 'warn', fix: '새 서브넷 연결 필요' },
-  { code: 'SECURITY_GROUP_NOT_FOUND', msg: '클러스터 보안그룹이 삭제됨', recoverable: 'warn', fix: '보안그룹 재생성' },
+  { code: 'SUBNET_NOT_FOUND', msg: '클러스터 서브넷이 삭제됨', recoverable: 'warn', fix: 'update-cluster-config --resources-vpc-config로 서브넷 재지정' },
+  { code: 'SECURITY_GROUP_NOT_FOUND', msg: '클러스터 보안그룹이 삭제됨', recoverable: 'warn', fix: 'update-cluster-config --resources-vpc-config로 보안그룹 재지정' },
   { code: 'IP_NOT_AVAILABLE', msg: '서브넷에 IP 부족', recoverable: 'ok', fix: '서브넷 추가/확장' },
   { code: 'VPC_NOT_FOUND', msg: 'VPC가 삭제됨', recoverable: 'no', fix: '클러스터 재생성 필요' },
-  { code: 'ASSUME_ROLE_ACCESS_DENIED', msg: '클러스터 IAM Role 권한 문제', recoverable: 'ok', fix: 'IAM 정책 수정' },
+  { code: 'ASSUME_ROLE_ACCESS_DENIED', msg: '클러스터 IAM Role assume 실패', recoverable: 'ok', fix: 'Role trust policy(eks.amazonaws.com)와 연결된 권한 정책을 각각 점검' },
   { code: 'KMS_KEY_DISABLED', msg: 'Secrets 암호화 KMS 키 비활성화', recoverable: 'ok', fix: 'KMS 키 재활성화' },
   { code: 'KMS_KEY_NOT_FOUND', msg: 'KMS 키 삭제됨', recoverable: 'no', fix: '복구 불가' },
 ];

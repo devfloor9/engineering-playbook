@@ -3,9 +3,9 @@ title: Workload Debugging
 description: Guide to diagnosing EKS workload issues - Pod state-based debugging, deployment failure patterns, probe configuration
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 10
+reading_time: 11
 tags:
   - eks
   - kubernetes
@@ -46,9 +46,11 @@ flowchart TD
     Review liveness probe
     Review app config/dependencies`"]
 
-    STATUS -->|OOMKilled| OOM{"`Memory exceeded`"}
-    OOM --> OOM_FIX["`Increase memory limits
-    Inspect app for memory leaks
+    STATUS -->|OOMKilled| OOM{"`Memory exceeded
+    (container limit vs node pressure)`"}
+    OOM --> OOM_FIX["`Container limit exceeded: increase memory limit / inspect leaks
+    Node memory pressure (MemoryPressure)/eviction: check node conditions
+    Check requests vs node capacity
     Review JVM heap settings`"]
 
     STATUS -->|Running but not Ready| READY{"`Readiness failure`"}
@@ -279,6 +281,7 @@ spec:
     configMap:
       name: app-config
 
+---
 # Good: remove subPath to enable auto-update
 apiVersion: v1
 kind: Pod
