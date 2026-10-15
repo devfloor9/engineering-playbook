@@ -3,9 +3,9 @@ title: Node-Level Debugging
 description: Guide to diagnosing and resolving EKS node issues
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 11
+reading_time: 16
 tags:
   - eks
   - kubernetes
@@ -32,7 +32,7 @@ Nodes can fail to join a cluster for a variety of reasons. The following are the
 5. **VPC DNS settings issue** — `enableDnsHostnames` or `enableDnsSupport` disabled
 6. **STS regional endpoint disabled** — IAM authentication fails due to failed STS calls
 7. **Instance profile ARN registered in aws-auth instead of the node IAM Role ARN** — aws-auth must contain only the Role ARN
-8. **Missing `eks:kubernetes.io/cluster-name` tag** (self-managed nodes) — EKS does not recognize the node as cluster-owned
+8. **Missing `kubernetes.io/cluster/<cluster-name> = owned` tag** (self-managed nodes) — EKS does not recognize the node as cluster-owned
 
 **Diagnostic commands:**
 
@@ -124,7 +124,7 @@ crictl logs <container-id>
 ```
 
 :::info SSM Access Prerequisites
-SSM access requires the node IAM Role to have the `AmazonSSMManagedInstanceCore` policy attached. This is included by default in EKS Managed Node Groups; when using a custom AMI, verify that the SSM Agent is installed.
+SSM access is optional. To use it, attach the `AmazonSSMManagedInstanceCore` policy (or equivalent permissions) to the node IAM Role yourself; it is not included by default in EKS Managed Node Groups. The policies required on the EKS node role are `AmazonEKSWorkerNodePolicy` and `AmazonEC2ContainerRegistryPullOnly`. When using a custom AMI, also verify that the SSM Agent is installed.
 :::
 
 ## Diagnosing and Resolving Resource Pressure
@@ -136,11 +136,11 @@ kubectl describe node <node-name>
 
 **Table 1. Resource pressure Conditions with threshold, diagnostic command, and resolution**
 
-| Condition | Threshold | Diagnostic Command | Resolution |
+| Condition | Default threshold (kubelet hard eviction) | Diagnostic Command | Resolution |
 |-----------|--------|-----------|----------|
-| **DiskPressure** | Available disk < 10% | `df -h` (after SSM) | `crictl rmi --prune` to remove unused images; `crictl rm` to delete stopped containers |
-| **MemoryPressure** | Available memory < 100Mi | `free -m` (after SSM) | Evict low-priority Pods, adjust memory requests/limits, replace the node |
-| **PIDPressure** | Available PIDs < 5% | `ps aux \| wc -l` (after SSM) | Increase `kernel.pid_max`; identify and restart containers leaking PIDs |
+| **DiskPressure** | `nodefs.available` < 10%, `imagefs.available` < 15% (each `inodesFree` < 5%) | `df -h` and `df -i` for disk/inode usage, `du -sh /var/lib/*` to find what is consuming space (after SSM) | First identify what fills the disk (images, container logs, writable layers, or inodes); then if images are the cause run `crictl rmi --prune`, or if stopped containers are the cause run `crictl rm` |
+| **MemoryPressure** | `memory.available` < 100Mi | `free -m` (after SSM) | Evict low-priority Pods, adjust memory requests/limits, replace the node |
+| **PIDPressure** | No built-in kubelet percentage default (inactive unless `pid.available` is configured; the 5% below is an example setting) | `ps aux \| wc -l` (after SSM) | Increase `kernel.pid_max`; identify and restart containers leaking PIDs |
 
 ## Karpenter Node Provisioning Debugging
 
@@ -164,7 +164,7 @@ kubectl describe ec2nodeclass <nodeclass-name>
 ```
 
 :::warning Karpenter v1 API Changes
-Karpenter v1.2+ renamed `Provisioner` → `NodePool` and `AWSNodeTemplate` → `EC2NodeClass`. Migration is required when coming from v0.x configurations. Also update the API group to `karpenter.sh/v1`.
+The resource renames `Provisioner` → `NodePool` and `AWSNodeTemplate` → `EC2NodeClass` were first introduced in Karpenter v0.32 (beta) as the `v1beta1` API, and promoted to the stable `karpenter.sh/v1` API in v1.0. Migration is required when coming from the v0.x alpha APIs (`Provisioner`, `AWSNodeTemplate`). Also update the API group to `karpenter.sh/v1`.
 :::
 
 ## Managed Node Group Error Codes
@@ -274,7 +274,7 @@ The Node Readiness Controller **declaratively manages custom taints**, deferring
 ```mermaid
 flowchart LR
     A[Node provisioned] --> B[kubelet Ready]
-    B --> C[Apply custom taints<br/>node.readiness/gpu=NotReady:NoSchedule<br/>node.readiness/cni=NotReady:NoSchedule]
+    B --> C[Apply custom taints<br/>readiness.k8s.io/gpu-not-ready=NotReady:NoSchedule<br/>readiness.k8s.io/network-not-ready=NotReady:NoSchedule]
     C --> D{Check health signals}
     D -->|GPU ready| E[Remove GPU taint]
     D -->|CNI ready| F[Remove CNI taint]
@@ -284,6 +284,10 @@ flowchart LR
     G -->|No| D
 ```
 
+:::warning Bootstrap scheduling race
+Because the flow above applies the taint after `kubelet Ready`, a short window exists between the node becoming Ready and the taint being applied, during which Pods can still be scheduled. To eliminate this race, register the node with the taint from the start using kubelet `--register-with-taints` (the controller removes it once conditions are met), or hold scheduling on the Pod side with `schedulingGates`.
+:::
+
 ### Debugging Checklist
 
 If a node is `Ready` but Pods are not scheduling:
@@ -292,11 +296,11 @@ If a node is `Ready` but Pods are not scheduling:
 # 1. Check custom readiness taints on the node
 kubectl get node <node-name> -o jsonpath='{.spec.taints}' | jq .
 
-# 2. Filter node.readiness-related taints
+# 2. Filter readiness.k8s.io-related taints
 kubectl get nodes -o json | jq '
   .items[] |
-  select(.spec.taints // [] | any(.key | startswith("node.readiness"))) |
-  {name: .metadata.name, taints: [.spec.taints[] | select(.key | startswith("node.readiness"))]}
+  select(.spec.taints // [] | any(.key | startswith("readiness.k8s.io/"))) |
+  {name: .metadata.name, taints: [.spec.taints[] | select(.key | startswith("readiness.k8s.io/"))]}
 '
 
 # 3. Check mismatch between Pod tolerations and node taints
@@ -331,7 +335,7 @@ kubectl get pods -o json | jq '
 
 ### Related Feature: Pod Readiness Gates (AWS LB Controller)
 
-The AWS Load Balancer Controller uses the `elbv2.k8s.aws/pod-readiness-gate-inject` annotation to delay a Pod's transition to `Ready` until ALB/NLB target registration is complete:
+The AWS Load Balancer Controller injects a readiness gate into Pods in a namespace when that namespace carries the `elbv2.k8s.aws/pod-readiness-gate-inject=enabled` label. The gate holds the Pod's transition to `Ready` until the ALB/NLB target becomes `Healthy`, not merely registered:
 
 ```bash
 # Check Readiness Gate status
@@ -356,7 +360,7 @@ kubectl get namespace <ns> -o jsonpath='{.metadata.labels.elbv2\.k8s\.aws/pod-re
 
 ## Using eks-node-viewer
 
-[eks-node-viewer](https://github.com/awslabs/eks-node-viewer) is a terminal tool that visualizes node resource usage in real time.
+[eks-node-viewer](https://github.com/awslabs/eks-node-viewer) is a terminal tool that visualizes the scheduled pod resource requests against the node's allocatable capacity (and cost). It shows requests versus capacity, not real-time resource utilization.
 
 ```bash
 # Default usage (CPU view)
