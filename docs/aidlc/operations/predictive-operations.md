@@ -3,9 +3,9 @@ title: Predictive Operations
 description: ML-based predictive scaling and anomaly detection — Karpenter+AI, CloudWatch Anomaly Detection, AI Right-Sizing
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 14
+reading_time: 25
 tags:
   - aidlc
   - operations
@@ -86,6 +86,8 @@ Representative ML models for predicting EKS workload traffic patterns:
 - **Trend-focused**: ARIMA
 - **Complex non-linear patterns**: LSTM
 
+The Prophet/ARIMA/LSTM models here forecast future load values and feed preemptive scaling. They serve a different purpose from the anomaly-detection bands of CloudWatch Anomaly Detection described in Section 4. Anomaly-detection bands learn a metric's normal range and judge whether the current value falls outside it; they do not forecast future values. Use the bands for anomaly alerting and the forecast models for preemptive scaling, keeping the two uses distinct.
+
 ### 2.3 Implementation Pattern
 
 ```python
@@ -108,14 +110,21 @@ def predict_scaling(metrics_df, forecast_hours=2):
     future = model.make_future_dataframe(periods=forecast_hours * 12, freq='5min')
     forecast = model.predict(future)
 
-    return forecast[['ds', 'yhat', 'yhat_upper', 'yhat_lower']]
+    # make_future_dataframe includes the training window, so select only the
+    # future rows (after the last training timestamp) for preemptive scaling.
+    last_train_ts = df['ds'].max()
+    future_forecast = forecast[forecast['ds'] > last_train_ts]
+    return future_forecast[['ds', 'yhat', 'yhat_upper', 'yhat_lower']]
 
-def calculate_required_pods(predicted_rps, pod_capacity_rps=100):
-    """Calculate required Pod count based on predicted RPS"""
-    # Use upper bound (yhat_upper) for safety margin
+def calculate_required_pods(forecast_df, pod_capacity_rps=100):
+    """Calculate required Pod count from the validated future forecast upper bound (yhat_upper)"""
+    # Use the max upper bound (yhat_upper) over the horizon for safety margin
+    predicted_rps = forecast_df['yhat_upper'].max()
     required = int(predicted_rps / pod_capacity_rps) + 1
     return max(required, 2)
 ```
+
+> **Precondition**: The calculation above is trustworthy only after the model passes validation on a holdout window (for example, checking an error metric such as MAPE). Wiring an unvalidated forecast directly into scaling can cause under- or over-provisioning.
 
 **Automation Pattern**:
 - Run predictions every 15 minutes with CronJob
@@ -201,12 +210,16 @@ description: "For Karpenter preemptive node provisioning"
 2. Increase Placeholder Pod replicas
 3. Karpenter detects Pending Pods and provisions nodes
 4. When actual traffic arrives, HPA creates actual Pods
-5. Placeholder Pods evicted immediately due to low priority
-6. Pods scheduled immediately as nodes already ready
+5. Placeholder Pods are evicted due to low priority, and actual Pods are scheduled onto the freed nodes
+6. Because nodes are prepared in advance, the node-provisioning delay disappears, but the time for container image pull, application startup, and passing the readiness probe remains. Application warmup (cache priming, connection-pool initialization, and so on) must therefore complete before real traffic is served.
+
+To run this pattern in production, also define the following. First, set a scale-down condition for when the reserve Pods (replicas) are reduced again after the predicted traffic passes, so idle reserve capacity does not keep incurring cost. Second, cap the maximum node capacity that preemptive provisioning can acquire with the Karpenter NodePool `limits` (CPU/memory), so a prediction error does not drive unbounded node growth. Third, align the Placeholder Pod resource requests with the real workload so the reserved nodes can actually hold the real Pods.
 
 ### 3.3 ARC + Karpenter Integration (AZ Failure Auto-Evacuation)
 
 **ARC (Application Recovery Controller)** automatically detects AZ failures and moves traffic to healthy AZs. Integration with Karpenter enables **node-level auto-recovery**.
+
+In the flow below, the step ARC performs directly as a documented feature is the Route 53 Zonal Shift (removing the failed AZ from DNS responses). The subsequent steps — adding a node taint, Pending Pods appearing, Karpenter provisioning a replacement node, and draining AZ-A nodes — are not ARC's built-in behavior; they are a custom integration (for example, an event-driven controller or automation script) that you must build to react to the Zonal Shift signal. Read the two parts as distinct.
 
 ```mermaid
 sequenceDiagram
@@ -217,8 +230,10 @@ sequenceDiagram
     participant Karp as Karpenter
     participant AZ_B as AZ-B (Healthy)
 
+    Note over AZ_A,R53: ARC built-in behavior
     AZ_A->>ARC: Readiness Check Failed
     ARC->>R53: Zonal Shift (AZ-A OUT)
+    Note over ARC,AZ_B: Custom integration (user-built)
     ARC->>K8s: Add Node Taint
     K8s->>Karp: Pending Pod Occurred
     Karp->>AZ_B: Provision Replacement Node
@@ -246,12 +261,12 @@ aws cloudwatch put-anomaly-detector \
 
 ### 4.2 EKS Application Patterns
 
-**Key Metrics**:
-- `pod_cpu_utilization`: CPU utilization (detect spikes outside normal patterns)
-- `pod_memory_utilization`: Early memory leak detection
-- `pod_network_rx_bytes`: Abnormal network traffic detection
-- `pod_restart_count`: Restart pattern anomaly detection
-- `node_cpu_utilization`: Node-level bottleneck detection
+**Key Metrics** (CloudWatch `ContainerInsights` namespace):
+- `pod_cpu_utilization`: Pod CPU utilization (%), relative to node CPU capacity (`pod_cpu_usage_total / node_cpu_limit`). Detects spikes outside normal patterns
+- `pod_memory_utilization`: Pod memory utilization (%), relative to node memory capacity (`pod_memory_working_set / node_memory_limit`). Early memory leak detection
+- `pod_network_rx_bytes`: Bytes per second received over the network by the pod. Abnormal network traffic detection
+- `pod_number_of_container_restarts`: Cumulative count of container restarts in the pod. Restart pattern anomaly detection
+- `node_cpu_utilization`: Node CPU utilization (%), `node_cpu_usage_total / node_cpu_limit`. Node-level bottleneck detection
 
 ### 4.3 Anomaly Detection-Based Alarms
 
@@ -283,10 +298,11 @@ aws cloudwatch put-metric-alarm \
   --alarm-actions "arn:aws:sns:ap-northeast-2:ACCOUNT_ID:ops-alerts"
 ```
 
-**Advantages**:
-- Significant False Positive reduction vs fixed thresholds
-- Automatic learning of periodicity (daily/weekly patterns)
-- Automatic adaptation to seasonal changes
+**Characteristics**:
+- Unlike fixed thresholds, the alarm compares against a learned normal-range band, so for workloads with periodicity it tends to reduce false positives. The amount of reduction depends on the workload pattern and the band width (standard-deviation multiplier) and is not a guaranteed figure.
+- Learns daily/weekly periodicity and seasonal changes and reflects them in the band.
+
+The example alarm above fires when `Period` 300-second data points exceed the band for `evaluation-periods` 3 consecutive times (about 15 minutes). The alarm only **detects and notifies**: it delivers a notification via the SNS action but does not itself perform any action such as scaling or restarting. If automatic action is needed, build separate automation (Lambda, EventBridge, and so on) that receives the notification.
 
 ---
 
@@ -297,20 +313,22 @@ aws cloudwatch put-metric-alarm \
 CloudWatch Container Insights analyzes actual Pod resource usage patterns to recommend appropriate sizing.
 
 ```promql
-# Compare actual CPU usage vs requests
-avg(rate(container_cpu_usage_seconds_total{namespace="payment"}[1h]))
+# Compare actual CPU usage vs requests (aggregate to the same per-pod population)
+sum(rate(container_cpu_usage_seconds_total{namespace="payment"}[1h]))
   by (pod)
-/ avg(kube_pod_container_resource_requests{resource="cpu", namespace="payment"})
+/ sum(kube_pod_container_resource_requests{resource="cpu", namespace="payment"})
   by (pod)
 * 100
 
-# Compare actual Memory usage vs requests
-avg(container_memory_working_set_bytes{namespace="payment"})
+# Compare actual Memory usage vs requests (aggregate to the same per-pod population)
+sum(container_memory_working_set_bytes{namespace="payment"})
   by (pod)
-/ avg(kube_pod_container_resource_requests{resource="memory", namespace="payment"})
+/ sum(kube_pod_container_resource_requests{resource="memory", namespace="payment"})
   by (pod)
 * 100
 ```
+
+The numerator (actual usage) is per pod while the denominator (requests) is per container, so aggregate both vectors to a per-pod total with `sum ... by (pod)` to match populations. For a per-container ratio, aggregate both sides `by (pod, container)`. Grouping with `avg` distorts the ratio in multi-container Pods depending on the container count, so use `sum`.
 
 ### 5.2 VPA + ML-Based Auto Right-Sizing
 
@@ -350,20 +368,22 @@ Starting with Kubernetes 1.33, **In-Place Pod Vertical Scaling** entering Beta r
 - Possible service interruption during restart
 
 **In-Place Resize Solution**:
-- Dynamically adjust resources of running Pods
+- Dynamically adjust resources of running Pods without recreating the Pod
 - Real-time cgroup limit changes
-- Increase/decrease resources without restart
-- No restart needed when maintaining QoS Class
+- In many cases resources are adjusted without a container restart, but depending on the kind of change and the container's `resizePolicy` a container restart may still be required (for example, a memory decrease). Even then the Pod itself is not recreated; only the container restarts inside the same Pod.
+- In other words, "avoiding Pod recreation" and "avoiding container restart" are separate. In-Place Resize always guarantees the former, while the latter is conditional.
+
+The table below shows the Kubernetes upstream maturity stages of In-Place Pod Vertical Scaling (Feature Gate `InPlacePodVerticalScaling`). The "Stable" row for 1.35 and later and the EKS dates below are projections as of 2026-10-15 based on public roadmaps, not confirmed schedules. Confirm actual support against the Kubernetes KEP-1287 and EKS release notes.
 
 | Kubernetes Version | Status | Feature Gate | Notes |
 |----------------|------|--------------|------|
 | 1.27 | Alpha | `InPlacePodVerticalScaling` | Experimental |
 | 1.33 | Beta | Default enabled | Production testing recommended |
-| 1.35+ | Stable (expected) | Default enabled | Safe production use |
+| 1.35+ | Stable (expected) | Default enabled | Projected per upstream roadmap |
 
-**EKS Support**:
-- **EKS 1.33** (expected April 2026): Beta activation available
-- **EKS 1.35** (expected November 2026): Stable support
+**EKS Support** (projected as of 2026-10-15, not confirmed):
+- **EKS 1.33** (expected around April 2026): Beta activation available
+- **EKS 1.35** (expected around November 2026): Stable support expected
 
 **VPA Automatic In-Place Resize**:
 
@@ -372,6 +392,7 @@ apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
   name: payment-service-vpa
+  namespace: payment
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -389,7 +410,7 @@ spec:
           cpu: "4"
           memory: 8Gi
         controlledResources: ["cpu", "memory"]
-        mode: Auto
+        mode: Auto  # Enables autoscaling for this container (Auto or Off)
 ```
 
 **Operation Flow**:
@@ -406,8 +427,8 @@ graph TD
 
 **Constraints**:
 - CPU can be resized freely
-- Memory increase possible, decrease requires restart when QoS Class changes
-- QoS Class changes (Guaranteed ↔ Burstable ↔ BestEffort) require restart
+- Memory can be both increased and decreased, but depending on the container's `resizePolicy` a memory decrease may require a container restart
+- A Pod's QoS class (Guaranteed/Burstable/BestEffort) is fixed at creation time and cannot be changed. An In-Place Resize request that would change the QoS class is rejected; changing the QoS class requires creating a replacement Pod, not merely a container restart
 
 :::warning VPA Cautions (K8s 1.34 and below)
 In K8s 1.34 and below, VPA `Auto` mode restarts Pods to adjust resources. For StatefulSets or restart-sensitive workloads, recommend using `Off` mode to check recommendations only and apply manually. VPA and HPA conflicts can occur when simultaneously using the same metrics (CPU/Memory).
