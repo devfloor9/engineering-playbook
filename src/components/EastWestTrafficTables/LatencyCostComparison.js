@@ -94,7 +94,7 @@ const LatencyCostComparison = () => {
         fontSize: '14px',
         opacity: 0.9
       }}>
-          {isKo ? 'East-West 트래픽 경로별 성능·비용 정량 비교' : 'Quantitative performance & cost comparison by traffic path'}
+          {isKo ? 'East-West 트래픽 경로별 성능·비용 상대 비교(측정값이 아닌 가정 기반 순위, 1=낮음~5=높음)' : 'Relative performance/cost ranking by traffic path (assumed, not measured; 1=low to 5=high)'}
         </div>
       </div>
 
@@ -112,7 +112,7 @@ const LatencyCostComparison = () => {
         borderBottom: '2px solid var(--ifm-color-emphasis-200)',
         background: 'var(--ifm-background-surface-color)'
       }}>
-          {[isKo ? '옵션' : 'Option', isKo ? '지연 특성 / 비용 구조' : 'Latency / Cost', isKo ? '지연' : 'Latency', isKo ? '비용' : 'Cost'].map((h, i) => <div key={i} style={{
+          {[isKo ? '옵션' : 'Option', isKo ? '지연 특성 / 비용 구조' : 'Latency / Cost', isKo ? '지연(상대)' : 'Latency (rel.)', isKo ? '비용(상대)' : 'Cost (rel.)'].map((h, i) => <div key={i} style={{
           padding: '10px 12px',
           fontWeight: '600',
           fontSize: '11px',

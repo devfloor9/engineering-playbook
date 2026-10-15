@@ -3,9 +3,9 @@ title: CoreDNS Monitoring and Performance Optimization Complete Guide
 description: Systematically monitor and optimize CoreDNS performance in Amazon EKS. Includes Prometheus metrics, TTL tuning, monitoring architecture, and real-world troubleshooting cases
 created: "2025-05-20"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 15
+reading_time: 45
 tags:
   - eks
   - coredns
@@ -36,7 +36,7 @@ CoreDNS exposes **Prometheus-format metrics** with `prometheus :9153` in the Cor
 
 Metric names follow the current [forward](https://coredns.io/plugins/forward/) and [cache](https://coredns.io/plugins/cache/) references. Replace `coredns_forward_requests_total` and `coredns_forward_responses_total` with the proxy histogram's `_count`, and derive cache misses from requests minus hits. Check which metrics your running CoreDNS version exposes.
 
-Beyond these, additional metrics such as **request/response size** (`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO bit presence** (`coredns_dns_do_requests_total`), and **plugin-specific metrics** are available. For example, the **Forward plugin** provides upstream query time (`coredns_proxy_request_duration_seconds{proxy_name="forward"}`), and the **kubernetes plugin** provides API update latency (`coredns_kubernetes_dns_programming_duration_seconds`).
+Beyond these, additional metrics such as **request/response size** (`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO bit presence** (`coredns_dns_do_requests_total`), and **plugin-specific metrics** are available. For example, the **Forward plugin** provides upstream query time (`coredns_proxy_request_duration_seconds{proxy_name="forward"}`), and the **kubernetes plugin** provides DNS programming-propagation latency (`coredns_kubernetes_dns_programming_duration_seconds`). The latter is an SLI measuring how long an endpoint change takes to propagate into DNS records, and it is currently recorded only for `headless_with_selector` services. Use the separate `rest_client_request_duration_seconds` metric for the time the kubernetes plugin spends calling the Kubernetes API.
 
 ### Key Metric Meanings and Usage
 
@@ -103,7 +103,7 @@ First verify the Corefile `prometheus` listener, Service ports, and labels. If a
 Enable `log` or `errors` plugins as needed. Use **Fluent Bit** or **Fluentd** DaemonSets to collect CoreDNS stdout/stderr logs and export to CloudWatch Logs.
 
 :::warning Log Collection Caution
-Avoid excessive logging overhead. Set **metadata caching** (`Kube_Meta_Cache_TTL=60`) and reduce unnecessary field collection.
+Avoid excessive logging overhead. The Kubernetes metadata cache (`Kube_Meta_Cache_TTL`) in agents such as Fluent Bit reuses a lookup result for the TTL duration. The default `0` does not disable caching; it means no TTL expiry, whereas a finite value such as `60` forces expiry and re-lookup on that interval, trading metadata freshness against API load. `Kube_Meta_Cache_TTL=60` is a trial value in this guide; tune it to the workload along with reducing unnecessary field collection.
 :::
 
 ### Visualization and Dashboards

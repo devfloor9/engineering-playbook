@@ -3,9 +3,9 @@ title: CoreDNS 모니터링과 성능 최적화 완벽 가이드
 description: Amazon EKS의 CoreDNS 성능을 체계적으로 모니터링하고 최적화하는 방법. Prometheus 메트릭, TTL 튜닝, 모니터링 아키텍처, 실제 문제 해결 사례 포함
 created: "2025-05-20"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 32
 tags:
   - eks
   - coredns
@@ -36,7 +36,7 @@ CoreDNS는 Corefile의 `prometheus :9153` 설정으로 **Prometheus 형식의 �
 
 메트릭 이름은 [forward 플러그인](https://coredns.io/plugins/forward/)과 [cache 플러그인](https://coredns.io/plugins/cache/)의 현재 레퍼런스를 기준으로 합니다. 기존 `coredns_forward_requests_total`·`coredns_forward_responses_total`은 proxy histogram의 `_count`로, `coredns_cache_misses_total`은 requests − hits로 대체합니다. 실행 중인 CoreDNS 버전에서 노출 여부를 확인하세요.
 
-이 외에도 **요청/응답 크기**(`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO 비트 설정 여부**(`coredns_dns_do_requests_total`) 등의 메트릭이 제공되며, CoreDNS에 로드된 **플러그인별 추가 메트릭**도 존재할 수 있습니다. 예를 들어 **Forward 플러그인**을 통한 업스트림 질의 시간(`coredns_proxy_request_duration_seconds{proxy_name="forward"}`)이나 **kubernetes 플러그인**의 API 업데이트 지연(`coredns_kubernetes_dns_programming_duration_seconds`) 등이 있습니다.
+이 외에도 **요청/응답 크기**(`coredns_dns_request_size_bytes`, `...response_size_bytes`), **DO 비트 설정 여부**(`coredns_dns_do_requests_total`) 등의 메트릭이 제공되며, CoreDNS에 로드된 **플러그인별 추가 메트릭**도 존재할 수 있습니다. 예를 들어 **Forward 플러그인**을 통한 업스트림 질의 시간(`coredns_proxy_request_duration_seconds{proxy_name="forward"}`)이나 **kubernetes 플러그인**의 DNS 프로그래밍 전파 지연(`coredns_kubernetes_dns_programming_duration_seconds`) 등이 있습니다. 뒤 메트릭은 엔드포인트 변경이 DNS 레코드로 반영되기까지의 전파 지연을 재는 SLI이며, 현재 `headless_with_selector` 유형 서비스에만 기록됩니다. kubernetes 플러그인이 Kubernetes API를 호출하는 데 걸린 시간은 별도의 `rest_client_request_duration_seconds`로 확인합니다.
 
 ### 주요 메트릭 의미 및 활용
 
@@ -106,12 +106,12 @@ Amazon EKS에서는 CoreDNS의 Prometheus 메트릭을 수집하기 위해 **두
 CoreDNS의 **쿼리 로그와 에러 로그**는 성능 문제를 진단하거나 보안 모니터링(예: 특정 도메인에 대한 폭주 조회) 측면에서 유용한 정보원입니다. 필요에 따라 `log` 또는 `errors` 플러그인을 활성화할 수 있으며, 현재 Corefile에서 활성화 여부를 확인합니다. **실무에서는** CoreDNS Pod의 표준 출력(stdout/stderr)에 기록되는 로그를 수집하기 위해 **Fluent Bit**이나 **Fluentd**를 DaemonSet으로 운용하여 CloudWatch Logs로 내보내는 패턴이 흔합니다.
 
 :::warning 로그 수집 주의사항
-과도한 로그 수집으로 인한 부하를 피하기 위해 필요 수준으로만 로그를 남기는 것이 중요합니다. EKS 모범 사례에서는 Fluent Bit 등 에이전트가 Kubernetes API를 반복 조회하지 않도록 **메타데이터 캐싱**을 설정하고 (`Kube_Meta_Cache_TTL=60` 등) 불필요한 필드 수집을 줄이는 것을 권장합니다.
+과도한 로그 수집으로 인한 부하를 피하기 위해 필요 수준으로만 로그를 남기는 것이 중요합니다. Fluent Bit 등 에이전트의 Kubernetes 메타데이터 캐시(`Kube_Meta_Cache_TTL`)는 조회 결과를 TTL 동안 재사용하는 설정입니다. 기본값 `0`은 캐시를 비활성화하는 것이 아니라 TTL 만료를 두지 않는다는 뜻이며, `60`처럼 유한한 값은 그 주기로 만료·재조회를 강제하므로 메타데이터 신선도와 API 부하 사이의 절충입니다. `Kube_Meta_Cache_TTL=60`은 이 가이드의 시험값이며, 불필요한 필드 수집을 줄이는 것과 함께 워크로드에 맞게 조정하세요.
 :::
 
 ### 시각화 및 대시보드
 
-수집된 CoreDNS 메트릭은 **Grafana**를 통해 모니터링 대시보드로 시각화하는 것이 일반적입니다. Amazon Managed Grafana(AMG)는 AMP나 CloudWatch와 네이티브 통합되어 데이터 소스로 활용할 수 있고, **IAM 연동 SSO**로 접근을 제어할 수 있습니다. Grafana에서 CoreDNS 대시보드를 구축할 때, **요청률(QPS), 응답 지연(histogram), 오류율(rcode 분포), 캐시 히트율** 등의 패널을 구성합니다.
+수집된 CoreDNS 메트릭은 **Grafana**를 통해 모니터링 대시보드로 시각화하는 것이 일반적입니다. Amazon Managed Grafana(AMG)는 AMP나 CloudWatch와 네이티브 통합되어 데이터 소스로 활용할 수 있습니다. 워크스페이스 사용자 인증은 IAM Identity Center 또는 SAML 자격 증명 공급자로 수행하며, 이는 Grafana가 AMP·CloudWatch 같은 데이터 소스에 접근할 때 사용하는 AWS IAM 역할과는 별개입니다. Grafana에서 CoreDNS 대시보드를 구축할 때, **요청률(QPS), 응답 지연(histogram), 오류율(rcode 분포), 캐시 히트율** 등의 패널을 구성합니다.
 
 ### 알람/Alerting
 
@@ -240,8 +240,8 @@ groups:
 
 1. **NodeLocal DNSCache** (DaemonSet 형태)로 노드 로컬에서 캐시하여 RTT 단축
    - nodelocaldns 메트릭도 Prometheus에 수집해 CoreDNS와 비교
-2. **CloudWatch Container Insights** (EKS 전용)
-   - CloudWatch 에이전트의 Prometheus 수집 설정과 수집 비용을 확인하여 CoreDNS 메트릭을 전송합니다.
+2. **CloudWatch Container Insights**
+   - CloudWatch 에이전트의 Prometheus 수집 설정과 수집 비용을 확인하여 CoreDNS 메트릭을 전송합니다. 이 아티클은 EKS 사용 사례를 다루지만, Container Insights의 Prometheus 수집 자체는 EKS 전용 기능이 아닙니다.
 
 ## 참고 자료 {#primary-sources}
 

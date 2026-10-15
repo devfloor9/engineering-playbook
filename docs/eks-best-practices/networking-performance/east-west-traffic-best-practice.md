@@ -3,9 +3,9 @@ title: "East-West Traffic Optimization: Balancing Performance and Cost"
 description: Deep optimization strategies for minimizing inter-service communication latency and reducing cross-AZ costs in EKS. Covers Topology Aware Routing, InternalTrafficPolicy, Cilium ClusterMesh, AWS VPC Lattice, and Istio multi-cluster
 created: "2026-02-04"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 46
+reading_time: 55
 tags:
   - eks
   - networking
@@ -46,8 +46,8 @@ The optimization strategies in this guide are expected to provide the following 
 
 | Item | Improvement |
 |------|----------|
-| Network latency | Same-AZ routing with Topology Aware Routing, achieving sub-ms p99 latency |
-| Cost savings | Approximately $100 saved at 10 TB/month by eliminating cross-AZ traffic |
+| Network latency | Prefers same-AZ routing with Topology Aware Routing. Targets sub-ms p99 assuming same-AZ 1-hop paths (measure per workload) |
+| Cost savings | Reducing cross-AZ traffic lowers transfer charges. See the cost simulation below for an example at 10 TB/month with both-end billing |
 | Operational simplicity | Optimize service-to-service communication with ClusterIP, without load balancers |
 | DNS performance | NodeLocal DNSCache reduces DNS lookup latency from several milliseconds to sub-ms |
 | Scalability | A consistent path to multi-cluster and multi-account environments |
@@ -80,7 +80,7 @@ East-West traffic requires different optimization approaches at the transport la
 | eksctl | 0.170+ | Create and manage EKS clusters |
 | AWS CLI | 2.x | Inspect AWS resources |
 | Helm | 3.12+ | Deploy charts, such as NodeLocal DNSCache |
-| AWS Load Balancer Controller | 2.6+ | Integrate ALBs/NLBs when required |
+| AWS Load Balancer Controller | 2.6+ for Ingress/Service, 2.14+ for Gateway API | Integrate ALBs/NLBs when required |
 
 ### Environment Requirements
 
@@ -120,7 +120,7 @@ graph TB
     PodA1 -->|"① ClusterIP<br/>kube-proxy NAT<br/>1 hop, sub-ms"| PodB1
     PodA1 -.->|"② ALB path<br/>2 hops, +2-3ms"| ALB_ENI_A
     ALB_ENI_A -.->|"LB distribution"| PodB1
-    ALB_ENI_A -.->|"May cross AZs<br/>+$0.01/GB"| PodB2
+    ALB_ENI_A -.->|"May target another AZ"| PodB2
 
     PodA2 -->|"① ClusterIP<br/>+ Topology Hints<br/>Prefers zone locality"| PodB2
 
@@ -137,6 +137,7 @@ graph TB
 - **ClusterIP path**: Pod → kube-proxy (iptables/IPVS NAT) → target Pod (1 hop)
 - **Internal ALB path**: Pod → AZ-local ALB ENI → target Pod (2 hops)
 - Topology Aware Routing can improve zone locality; hints and fallback behavior do not guarantee same-AZ routing
+- Traffic through an internal ALB within the same VPC is not separately charged cross-AZ data transfer. ALB cost comes from hourly and LCU charges, which differ from the inter-AZ transfer charge ($0.01/GB in each direction) on the direct ClusterIP path when Pods span multiple AZs
 :::
 
 ### Multi-Cluster Connectivity Options
@@ -191,7 +192,7 @@ Performance and cost vary with the connectivity method used between services:
 
 When using an internal load balancer, the differences between instance mode and IP mode affect traffic paths:
 
-- **Instance mode**: LB → NodePort → kube-proxy → Pod. The kube-proxy on the node receiving the NodePort traffic forwards packets to a node in another AZ that hosts the target Pod, **creating cross-AZ communication**
+- **Instance mode**: LB → NodePort → kube-proxy → Pod. If the target Pod is on a node in another AZ, the kube-proxy on the node receiving the NodePort traffic forwards packets to that node, which **can create cross-AZ communication**. When the target Pod is on the same node or in the same AZ, traffic may be forwarded locally
 - **IP mode**: LB → Pod IP directly, bypassing an intermediate node. IP targeting alone does not guarantee same-AZ routing; load balancer cross-zone configuration and target availability still determine AZ selection.
 
 :::warning Instance Mode Considerations
@@ -381,14 +382,17 @@ Alternatively, use a Helm chart:
 helm repo add deliveryhero https://charts.deliveryhero.io/
 helm install node-local-dns deliveryhero/node-local-dns \
   --namespace kube-system \
-  --set config.localDnsIp=169.254.20.10
+  --version 2.9.2 \
+  --set config.dnsServer=172.20.0.10 \
+  --set config.localDns=169.254.20.25
 ```
 
 **How NodeLocal DNSCache works:**
 
 ```yaml
-# Configure each Pod's /etc/resolv.conf to point to the local cache
-# nameserver 169.254.20.10 (NodeLocal DNS IP)
+# In IPVS mode, each Pod's /etc/resolv.conf points to the configured local cache IP
+# nameserver <configured NodeLocal DNS IP> (upstream manifest example 169.254.20.10; DeliveryHero chart default 169.254.20.25)
+# In iptables mode, the kube-dns Service IP remains and NodeLocal DNS can also listen on it
 # Cache frequently queried DNS records within the node
 ```
 
@@ -420,7 +424,7 @@ metadata:
     service.beta.kubernetes.io/aws-load-balancer-type: external
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
     service.beta.kubernetes.io/aws-load-balancer-scheme: internal
-    # Disable cross-zone load balancing to keep traffic AZ-local
+    # Disable cross-zone load balancing: constrain the NLB-to-target leg within the registered AZ
     service.beta.kubernetes.io/aws-load-balancer-attributes: load_balancing.cross_zone.enabled=false
 spec:
   type: LoadBalancer
@@ -432,6 +436,8 @@ spec:
       targetPort: 8080
       protocol: TCP
 ```
+
+`load_balancing.cross_zone.enabled=false` and the IP target type constrain only the **NLB-to-target leg** to the registered AZ. They do not control the **client-to-NLB leg**: the NLB frontend's default zonal DNS affinity is 0%, so a client does not necessarily select an NLB node in its own AZ. To extend AZ locality to the client-to-NLB leg, enable zonal DNS affinity, but evaluate it together with its failover and load-imbalance tradeoffs.
 
 **Internal ALB (Ingress resource):**
 
@@ -474,16 +480,17 @@ The [Service Mesh Comparison Guide](./service-mesh/index.md) covers the choice a
 - **Transparent mTLS**: Mutual TLS encryption without application code changes
 - **Advanced traffic management**: Retries, timeouts, circuit breakers, and canary deployments
 
-**Performance overhead (Istio 1.30):**
+**Performance overhead (Istio 1.24 official benchmark):**
 
-**Table 4. Istio 1.30 sidecar performance overhead**
+The resource figures below are the Istio 1.24 measurements reported in the official Istio performance documentation, for a single sidecar proxy at 1000 rps with a 1 KB payload per request and 2 worker threads. Latency was measured in the same document at 500–1500 rps with mutual TLS, 4 client connections, and 2 proxy workers; it varies with load rather than being a single fixed value. The official document does not generalize a throughput-impact figure, so it is not included in the table below. Re-measure with the workload in a real environment.
+
+**Table 4. Istio 1.24 sidecar performance overhead (official benchmark)**
 
 | Metric | Value |
 |--------|------|
-| CPU per sidecar | ~0.2 vCPU (at 1000 rps) |
-| Memory per sidecar | ~60 MB (at 1000 rps) |
-| Additional latency (p99) | ~5ms (two proxy traversals: client + server) |
-| Performance impact | Average throughput reduction of 5–10% |
+| CPU per sidecar | ~0.2 vCPU (1 KB, 1000 rps, 2 workers) |
+| Memory per sidecar | ~60 MB (1 KB, 1000 rps, 2 workers) |
+| Additional latency (p99) | Measured across 500–1500 rps, two proxy traversals (client + server) |
 
 :::warning Istio Adoption Considerations
 
@@ -544,12 +551,14 @@ Amazon VPC Lattice is a fully managed application networking service that provid
 
 ```yaml
 # Integrate with Lattice through Kubernetes Gateway API
+# A Gateway with gatewayClassName amazon-vpc-lattice maps by name to a separately managed service network.
+# The lattice-vpc-association annotation is not a substitute for creating/associating that service network.
+# Simple path: set the controller's DEFAULT_SERVICE_NETWORK environment variable to name a default service network.
+# Alternatively, provision a service network explicitly, associate it with the VPC, and match its name to the Gateway.
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
   name: my-lattice-gateway
-  annotations:
-    application-networking.k8s.aws/lattice-vpc-association: "true"
 spec:
   gatewayClassName: amazon-vpc-lattice
   listeners:
@@ -557,6 +566,8 @@ spec:
       protocol: HTTP
       port: 80
 ```
+
+After applying it, verify the route status (Programmed/Accepted) and the DNS name assigned to the Gateway, and confirm that the controller's IAM permissions and network prerequisites (VPC, security groups) are satisfied.
 
 **Pricing model:** $0.025/hour per service + $0.025/GB + $0.10 per million requests
 **Suitable for:** Dozens or more microservices distributed across multiple accounts with centralized security controls
@@ -607,7 +618,7 @@ spec:
 
 ### Cost Simulation for 10 TB/Month of East-West Traffic
 
-Assumptions: An EKS cluster spanning 3 AZs in the same Region, using 10,240 GB of total service-to-service traffic for the illustrative calculation (approximately 10 TB)
+Assumptions: An EKS cluster spanning 3 AZs in the same Region, using 10,240 GB of total service-to-service traffic for the illustrative calculation (approximately 10 TB). Inter-AZ data transfer is charged $0.01/GB at both the sending and receiving ends, so the crossed bytes are billed at $0.02/GB round trip. If a default ClusterIP sends about 66% of traffic across AZs, that is 10,240 GB × 0.666 × $0.02 ≈ **$136.53**; reducing it to about 30% with Topology Hints gives 10,240 GB × 0.30 × $0.02 ≈ **$61.44**. The figures below are examples under these assumptions and vary with request volume, LCU, and regional rates.
 
 <CostSimulation />
 
@@ -636,13 +647,17 @@ kubectl get endpointslices -n production -l kubernetes.io/service-name=my-servic
 ```
 
 ```bash
-# Check whether Pods are evenly distributed across AZs
-kubectl get pods -l app=my-app -o wide | awk '{print $7}' | sort | uniq -c
+# Check whether Pods are evenly distributed across AZs (by actual zone label, not node hostname)
+kubectl get pods -n production -l app=my-app -o json | \
+  jq -r '.items[] | .spec.nodeName' | \
+  while read node; do
+    kubectl get node "$node" -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}{"\n"}'
+  done | sort | uniq -c
 
 # Expected output:
-# 2 ip-10-0-1-xxx.ap-northeast-2.compute.internal  (AZ-a)
-# 2 ip-10-0-2-xxx.ap-northeast-2.compute.internal  (AZ-b)
-# 2 ip-10-0-3-xxx.ap-northeast-2.compute.internal  (AZ-c)
+# 2 ap-northeast-2a
+# 2 ap-northeast-2b
+# 2 ap-northeast-2c
 ```
 
 ### Monitoring: Internal ALB
@@ -653,18 +668,24 @@ Monitor services that use ALBs with CloudWatch metrics:
 
 | Metric | Target | Warning | Critical |
 |--------|------|------|------|
-| `TargetResponseTime` | Below 100ms | 100-300ms | Above 300ms |
+| `TargetResponseTime` (seconds, p99) | Below 0.1s | 0.1-0.3s | Above 0.3s |
 | `HTTPCode_ELB_5XX_Count` | 0 | 1-10/min | Above 10/min |
 | `HTTPCode_Target_5XX_Count` | 0 | 1-5/min | Above 5/min |
-| `ActiveConnectionCount` | Normal range | 80% of capacity | 90% of capacity |
+| `ActiveConnectionCount` (count, sum) | Within workload baseline | Above baseline | Approaching measured saturation |
+
+`TargetResponseTime` is reported in seconds in CloudWatch and evaluated with a percentile statistic such as p99. `ActiveConnectionCount` is an absolute count of active connections and has no fixed ALB capacity percentage. Set thresholds such as 80% and 90% from a saturation point measured for the specific workload or from a contractual limit.
 
 ```bash
 # Analyze the causes of 5xx errors in ALB access logs
-# Use the error_reason field to identify 502/504 root causes
+# Prerequisite: configure ALB access-log delivery to CloudWatch Logs (enable delivery + permissions).
+#      Traditional ALB access logs are delivered to S3; this command assumes CloudWatch Logs delivery.
+#      For S3 delivery, query with Athena. Confirm the actual field names in the log schema before writing a query.
 aws logs filter-log-events \
   --log-group-name /aws/alb/my-internal-alb \
   --filter-pattern "elb_status_code=5*"
 ```
+
+ALB access logs carry request-handling and target-error information, but not every 502/504 root cause is identified by a single log field. Check target health, target application logs, and connection timeouts together.
 
 ### Monitoring: ClusterIP (Without a Load Balancer)
 
@@ -675,12 +696,34 @@ ClusterIP Services do not have ELB metrics, so separate instrumentation is requi
 - **Application level**: 5xx counts through Prometheus/OpenTelemetry
 
 ```yaml
+# Service that exposes metrics: it must carry the metadata label the ServiceMonitor
+# selects and a port named 'metrics' (the earlier my-service only has app=my-app as a
+# selector and an http port, so it is not selected)
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service-metrics
+  namespace: production
+  labels:
+    app: my-app          # Label the ServiceMonitor matches with matchLabels
+spec:
+  selector:
+    app: my-app
+  ports:
+    - name: metrics      # Matches ServiceMonitor endpoints.port
+      port: 9090
+      targetPort: 9090
+---
 # Example Prometheus ServiceMonitor
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: my-service-monitor
+  namespace: production
 spec:
+  namespaceSelector:
+    matchNames:
+      - production
   selector:
     matchLabels:
       app: my-app
@@ -693,16 +736,18 @@ spec:
 ### Cross-AZ Cost Monitoring
 
 ```bash
-# Check Regional Data Transfer costs in the AWS Cost and Usage Report
+# Check Regional Data Transfer costs in Cost Explorer
+# get-cost-and-usage is the Cost Explorer API (not CUR); End is exclusive, so use 2026-03-01 to include all of February.
+# USAGE_TYPE values are region-specific; validate against actual billing dimensions.
 aws ce get-cost-and-usage \
-  --time-period Start=2026-02-01,End=2026-02-28 \
+  --time-period Start=2026-02-01,End=2026-03-01 \
   --granularity MONTHLY \
   --metrics "BlendedCost" \
   --filter '{"Dimensions":{"Key":"USAGE_TYPE","Values":["APN2-DataTransfer-Regional-Bytes"]}}'
 ```
 
 :::tip Using Kubecost
-Kubecost can visualize cross-AZ traffic costs by namespace. The `RegionalDataTransferCost` metric identifies which service-to-service interactions generate the highest cross-AZ costs.
+Kubecost can visualize cross-AZ traffic costs by namespace. `RegionalDataTransferCost` is not a standard metric name provided by Kubecost/OpenCost, so if you use it, define the collector or query that produces it. The OpenCost-documented `kubecost_network_zone_egress_cost` is a unit price (USD/GiB), so multiply it by measured transfer bytes and aggregate to obtain actual cross-AZ spend.
 :::
 
 ---
@@ -740,13 +785,16 @@ During the transition from EC2 to EKS, a gradual cutover using an internal ALB i
 **Stage 2: Serve traffic from EC2 and EKS simultaneously**
 
 ```yaml
-# Configure two target groups on the internal ALB
-# EC2 Instance TG + EKS Pod TG (AWS LB Controller)
-# Use weighted listener rules for gradual cutover (for example, 90/10)
+# Prerequisites (outside TargetGroupBinding scope): create the two external target groups
+# (EC2 Instance TG and EKS Pod TG), the ALB with weighted listener rules (for example, 90/10),
+# and the IAM permissions to register and manage the target groups first.
+# TargetGroupBinding only binds an existing targetGroupARN to the referenced Service below;
+# it does not create the weighted routing itself. Keep it in the referenced Service's namespace.
 apiVersion: elbv2.k8s.aws/v1beta1
 kind: TargetGroupBinding
 metadata:
   name: my-service-tgb
+  namespace: production        # Same namespace as the referenced Service (my-service)
 spec:
   serviceRef:
     name: my-service
@@ -757,13 +805,13 @@ spec:
 
 **Stage 3: Remove the ALB after moving 100% to EKS**
 
-After the service has fully migrated to EKS, remove the ALB and return to ClusterIP to eliminate ongoing ALB charges.
+Remove the ALB only after confirming all of the following. First, confirm that every caller can reach the target through ClusterIP (in-cluster DNS) and that traffic has fully migrated to EKS. Confirm that the L7 routing, WAF, TLS termination, and security-group behavior the ALB provided are no longer needed or are replaced at another layer. Once these conditions hold, remove the ALB and return to ClusterIP to eliminate ongoing ALB charges. Perform the removal reversibly and in stages: keep the listener weights at 100% EKS and observe for a period, then delete the ALB only if no issues arise, keeping a rollback path (restore the weights or a procedure to recreate the ALB).
 
 :::tip Core Migration Principles
 
 - **Steady state**: Use ClusterIP for the lowest cost and latency
 - **Transition**: Use an internal ALB for dual EC2/EKS routing with weighted target groups
-- **After cutover**: Remove the ALB to eliminate the cost line item entirely
+- **After cutover**: After confirming caller reachability through ClusterIP and replacement of required L7/security behavior, remove the ALB to eliminate the cost line item (keep a rollback path)
 :::
 
 ---
@@ -828,15 +876,16 @@ kubectl get endpoints my-local-service -o yaml
 3. Alternatively, remove InternalTrafficPolicy and switch to Topology Aware Routing at the AZ level
 
 ```yaml
-# Alternative: Switch to Topology Aware Routing
+# Alternative: change internalTrafficPolicy on the failing Service (my-local-service) directly.
+# Do not create a new Service; change the policy on the same name/namespace to Cluster or remove it.
+# kubectl -n production patch svc my-local-service -p '{"spec":{"internalTrafficPolicy":"Cluster"}}'
 apiVersion: v1
 kind: Service
 metadata:
-  name: my-service
-  annotations:
-    service.kubernetes.io/topology-mode: Auto
+  name: my-local-service
+  namespace: production
 spec:
-  # Remove internalTrafficPolicy: Local
+  internalTrafficPolicy: Cluster   # Change from Local to Cluster (use Topology Aware Routing for AZ-level locality)
   selector:
     app: my-app
   ports:
@@ -844,6 +893,8 @@ spec:
       port: 80
       targetPort: 8080
 ```
+
+After the change, run `kubectl -n production get endpoints my-local-service` to verify that endpoints expanded to all nodes.
 
 ### Issue: Cross-AZ Costs Do Not Decrease
 
@@ -893,7 +944,8 @@ kubectl exec -it test-pod -- nslookup google.com
 
 # Inspect resolv.conf
 kubectl exec -it test-pod -- cat /etc/resolv.conf
-# Verify that the nameserver is 169.254.20.10 (the NodeLocal IP)
+# IPVS mode: verify the nameserver is the configured NodeLocal IP
+# iptables mode: a retained kube-dns Service IP can be normal (NodeLocal DNS also listens on it)
 ```
 
 :::danger Production Considerations
@@ -912,7 +964,7 @@ When changing network settings in production, use a **canary deployment**, start
 
 - ClusterIP + Topology Aware Routing + NodeLocal DNSCache
 - Add InternalTrafficPolicy(Local) when required
-- At 10 TB/month, save approximately $98 compared with ALB and $400+ compared with VPC Lattice
+- Under the cost simulation assumptions above (10 TB/month, both-end billing), an internal ALB is about $98/month (hourly + LCU) and VPC Lattice is $274+/month (720h, 1 service, per-request charges extra), so the ClusterIP path is lower
 
 **2. L4 reliability and static IP requirements**
 
@@ -921,7 +973,7 @@ When changing network settings in production, use a **canary deployment**, start
 
 **3. L7 routing, WAF, and per-method gRPC control**
 
-- Internal ALB + K8s Gateway API
+- Internal ALB + K8s Gateway API (ALB Gateway API routing requires AWS Load Balancer Controller 2.14+ and the Gateway API CRDs; the Ingress examples work with 2.6+)
 - Deploy only on required paths to avoid increasing LCU consumption
 
 **4. Enterprise-wide Zero Trust and multi-cluster environments**
@@ -940,7 +992,7 @@ When changing network settings in production, use a **canary deployment**, start
 Review the following after implementation:
 
 - [ ] Enable Topology Aware Routing and verify EndpointSlice hints
-- [ ] Ensure even AZ distribution with Pod Topology Spread Constraints
+- [ ] Schedule Pods to prefer AZ distribution with Pod Topology Spread Constraints (full even distribution is not guaranteed, subject to scale-in, capacity, and failure-domain constraints)
 - [ ] Deploy NodeLocal DNSCache and verify improved DNS response times
 - [ ] Set up a cross-AZ cost monitoring dashboard with Kubecost or CUR
 - [ ] Identify unnecessary internal load balancers and evaluate a switch to ClusterIP
@@ -955,7 +1007,7 @@ Review the following after implementation:
 3. [AWS ELB Best Practices - Latency Optimization](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/application-load-balancers.html)
 4. [AWS Network Load Balancer](https://aws.amazon.com/elasticloadbalancing/network-load-balancer/)
 5. [AWS VPC Lattice Pricing](https://aws.amazon.com/vpc/lattice/pricing/)
-6. [Istio 1.30 Performance and Scalability](https://istio.io/latest/docs/ops/deployment/performance-and-scalability/)
+6. [Istio Performance and Scalability (Istio 1.24 summary)](https://istio.io/latest/docs/ops/deployment/performance-and-scalability/)
 7. [Kubernetes NodeLocal DNSCache](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/)
 8. [Kubernetes Topology Aware Routing](https://kubernetes.io/docs/concepts/services-networking/topology-aware-routing/)
 9. [Cilium ClusterMesh Documentation](https://docs.cilium.io/en/stable/network/clustermesh/)
