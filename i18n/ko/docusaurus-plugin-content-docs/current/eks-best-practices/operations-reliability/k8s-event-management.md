@@ -3,9 +3,9 @@ title: Kubernetes 이벤트 보존과 AI Agent 조회 아키텍처
 description: EKS Kubernetes 이벤트의 1시간 TTL 제약과 export 파이프라인 설계, EKS·CloudWatch MCP 서버 기반 AI Agent 조회 아키텍처를 다룹니다.
 created: "2026-07-14"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 12
+reading_time: 13
 tags:
   - eks
   - kubernetes
@@ -89,9 +89,11 @@ flowchart LR
 | 방식 | 수집 대상 | 특징 | 적합한 경우 |
 |------|----------|------|------------|
 | **CloudWatch Observability add-on (Container Insights)** | 컨테이너/호스트/데이터플레인 로그 | 관리형 add-on, Fluent Bit 기반 | CloudWatch 중심 스택 |
-| **kubernetes-event-exporter** | Event 객체 전체 | 속성 기반 필터·라우팅, leader election HA, 20개 이상 sink | 이벤트 전용 파이프라인 |
+| **kubernetes-event-exporter** | 추가 시점의 신규 Event 객체(업데이트·삭제는 무시) | 속성 기반 필터·라우팅, leader election HA, 20개 이상 sink | 이벤트 전용 파이프라인 |
 | **ADOT / OTel Collector (`k8sobjects` receiver)** | Event 포함 K8s 객체 | 기존 OTel 파이프라인에 통합 | OTel 표준화 환경 |
 | **자체 watcher (aws-samples/eks-event-watcher)** | 선택한 이벤트 | Kubernetes API watch 기반 커스텀 | 특수 필터링 요구 |
+
+kubernetes-event-exporter의 watcher는 OnAdd 이벤트만 처리하고 OnUpdate·OnDelete는 무시하므로, 기존 이벤트의 count가 증가해도 다시 내보내지 않습니다. 따라서 수집 대상은 "Event 객체 전체"가 아니라 추가 시점에 관측된 신규 이벤트입니다.
 
 :::caution Container Insights의 기본 수집 범위
 표준 Container Insights의 Fluent Bit DaemonSet이 기본 수집하는 것은 `/aws/containerinsights/{cluster}/application`(컨테이너 로그), `/host`(호스트 로그), `/dataplane`(kubelet 등 데이터플레인 로그)입니다. **Event 객체(`kubectl get events`)는 기본 수집 대상이 아닙니다.** "Container Insights로 이벤트를 저장 중"이라면 별도의 이벤트 수집 설정이 실제로 존재하는지, 어느 로그 그룹에 쌓이는지 먼저 확인해야 합니다.
@@ -102,11 +104,11 @@ kubernetes-event-exporter는 이벤트 파이프라인의 사실상 커뮤니티
 ```yaml
 # kubernetes-event-exporter 구성 예시 (Loki sink)
 logLevel: info
-kubeQPS: 100          # 대규모 클러스터에서 이벤트 유실 방지
+kubeQPS: 100          # 클라이언트 QPS를 높여 API 스로틀링을 줄임
 kubeBurst: 500
 maxEventAgeSeconds: 60
 leaderElection:
-  enabled: true        # HA 배포 시 중복 전송 방지
+  enabled: true        # 활성 레플리카를 하나로 유지해 레플리카 간 중복 전송을 방지
 receivers:
   - name: "loki"
     loki:
@@ -141,7 +143,7 @@ CloudWatch에 이미 이벤트가 쌓이고 있다면 Loki로 재전송(CloudWat
 
 ### EKS MCP 서버와 CloudWatch MCP 서버의 역할 분담
 
-AWS는 fully managed EKS MCP 서버(2025년 11월 발표, preview)와 CloudWatch MCP 서버를 제공합니다. 두 서버는 조회 대상이 다르므로 장애 분석 Agent에는 함께 연결하는 것이 표준 구성입니다.
+AWS는 fully managed EKS MCP 서버(2025년 11월 발표, preview)와 CloudWatch MCP 서버(awslabs 오픈소스)를 제공합니다. EKS MCP 서버는 AWS가 호스팅하는 관리형 엔드포인트로 서비스가 SigV4로 인증하는 반면, CloudWatch MCP 서버는 사용자가 직접 실행하며 로컬 자격 증명으로 CloudWatch API 호출을 서명합니다. 두 서버는 조회 대상이 다르므로 장애 분석 Agent에는 함께 연결하는 것이 표준 구성입니다.
 
 **표 3. EKS MCP 서버와 CloudWatch MCP 서버의 조회 대상 비교**
 
@@ -149,7 +151,7 @@ AWS는 fully managed EKS MCP 서버(2025년 11월 발표, preview)와 CloudWatch
 |------|-------------|-------------------|
 | 관점 | 클러스터·K8s 리소스의 **현재 상태** | 축적된 로그·메트릭·알람 **히스토리** |
 | 핵심 도구 | `get_k8s_events`, `get_pod_logs`, `list_k8s_resources`, `get_cloudwatch_logs`, `get_eks_insights` | Alarm 기반 트러블슈팅, Log Analyzer(이상·에러 패턴), Metric Definition Analyzer, Alarm Recommendations |
-| 인증 | AWS IAM (SigV4), CloudTrail 감사 | AWS IAM (SigV4) |
+| 인증 | AWS IAM (SigV4), CloudTrail 감사 | 로컬 자격 증명으로 CloudWatch API를 SigV4 서명(자체 실행) |
 | 접근 제어 | IAM 권한 단위 분리(`eks-mcp:CallReadOnlyTool` / `CallPrivilegedTool`), `AmazonEKSMCPReadOnlyAccess` 관리형 정책 | 읽기 중심 도구 구성 |
 
 :::warning EKS MCP 서버의 `get_k8s_events`는 보존 솔루션이 아님
@@ -158,13 +160,13 @@ AWS는 fully managed EKS MCP 서버(2025년 11월 발표, preview)와 CloudWatch
 
 ### MCP가 없는 저장소의 연동
 
-OpenSearch, Loki 등 MCP 서버가 제공되지 않는 저장소는 Strands Agents SDK 등으로 쿼리 API(LogQL, OpenSearch DSL)를 감싼 커스텀 툴을 구현해 Agent에 노출합니다. 저장소가 무엇이든 MCP 또는 툴 인터페이스로 표준화하면 저장소 교체 시 Agent 코드 변경을 최소화할 수 있습니다.
+OpenSearch는 opensearch-mcp-server-py, Loki는 Grafana의 mcp-grafana처럼 공식 MCP 서버가 제공되는 저장소가 늘고 있습니다. 공식 MCP 서버가 없는 저장소는 Strands Agents SDK 등으로 쿼리 API(LogQL, OpenSearch DSL)를 감싼 커스텀 툴을 구현해 Agent에 노출합니다. 저장소가 무엇이든 MCP 또는 툴 인터페이스로 표준화하면 저장소 교체 시 Agent 코드 변경을 최소화할 수 있습니다.
 
 ## 권장 아키텍처 패턴
 
 ### 패턴 A: 최소 변경 (CloudWatch 중심)
 
-Container Insights를 이미 사용 중인 환경에서 파이프라인 추가 없이 시작하는 구성입니다.
+Container Insights를 이미 사용 중인 환경에서 기존 CloudWatch 대상을 재사용하되, 이벤트 수집기는 별도로 필요한 구성입니다.
 
 ```
 이벤트 수집기 → CloudWatch Logs → CloudWatch MCP + EKS MCP → AI Agent
@@ -219,7 +221,7 @@ fields @timestamp
 | sort cnt desc
 ```
 
-1시간 이전 타임스탬프의 이벤트가 조회되면 export 파이프라인이 정상 동작하는 것입니다. 최근 1시간 데이터만 존재한다면 라이브 API 조회 결과이거나 파이프라인이 최근에 시작된 것이므로 수집기 설정을 점검합니다.
+1시간 이전 타임스탬프의 이벤트가 조회되면 파이프라인이 과거 이벤트를 보관했음을 시사합니다. 다만 오래된 레코드 하나는 적어도 하나의 이벤트가 저장되었다는 사실만 보여줄 뿐, 수집기의 현재 상태나 완전성을 증명하지는 않습니다. 현재 수집 상태와 누락 여부는 수집기 메트릭(watch lag·에러)으로 확인해야 합니다. 최근 1시간 데이터만 존재한다면 라이브 API 조회 결과이거나 파이프라인이 최근에 시작된 것이므로 수집기 설정을 점검합니다.
 
 ## 결론
 

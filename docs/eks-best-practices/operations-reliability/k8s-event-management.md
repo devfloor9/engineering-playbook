@@ -3,9 +3,9 @@ title: Kubernetes Event Retention and AI Agent Query Architecture
 description: Covers the 1-hour TTL constraint of EKS Kubernetes events, export pipeline design, and AI Agent query architecture based on the EKS and CloudWatch MCP servers.
 created: "2026-07-14"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 20
+reading_time: 23
 tags:
   - eks
   - kubernetes
@@ -89,9 +89,11 @@ flowchart LR
 | Method | Collection Target | Characteristics | Best Fit |
 |------|----------|------|------------|
 | **CloudWatch Observability add-on (Container Insights)** | Container/host/dataplane logs | Managed add-on, Fluent Bit based | CloudWatch-centric stack |
-| **kubernetes-event-exporter** | All Event objects | Attribute-based filtering/routing, leader election HA, 20+ sinks | Dedicated event pipeline |
+| **kubernetes-event-exporter** | New Event objects on add (updates/deletes ignored) | Attribute-based filtering/routing, leader election HA, 20+ sinks | Dedicated event pipeline |
 | **ADOT / OTel Collector (`k8sobjects` receiver)** | K8s objects including Events | Integrates into existing OTel pipelines | OTel-standardized environments |
 | **Custom watcher (aws-samples/eks-event-watcher)** | Selected events | Custom, based on Kubernetes API watch | Special filtering requirements |
+
+The kubernetes-event-exporter watcher processes `OnAdd` events only and ignores `OnUpdate` and `OnDelete`, so a count increment on an existing event is not re-exported. The collection target is therefore the new events observed at add time, not "all Event objects."
 
 :::caution Default Collection Scope of Container Insights
 What the standard Container Insights Fluent Bit DaemonSet collects by default is `/aws/containerinsights/{cluster}/application` (container logs), `/host` (host logs), and `/dataplane` (dataplane logs such as kubelet). **Event objects (`kubectl get events`) are not collected by default.** If the claim is "events are being stored via Container Insights," first verify that a separate event collection setup actually exists and which log group it writes to.
@@ -102,11 +104,11 @@ kubernetes-event-exporter is the de facto community standard for event pipelines
 ```yaml
 # kubernetes-event-exporter configuration example (Loki sink)
 logLevel: info
-kubeQPS: 100          # prevents event loss in large clusters
+kubeQPS: 100          # raises client QPS to reduce API throttling
 kubeBurst: 500
 maxEventAgeSeconds: 60
 leaderElection:
-  enabled: true        # prevents duplicate delivery in HA deployments
+  enabled: true        # keeps a single active replica to avoid duplicate sends across replicas
 receivers:
   - name: "loki"
     loki:
@@ -141,7 +143,7 @@ If events are already accumulating in CloudWatch, re-shipping them to Loki (Clou
 
 ### Division of Roles Between the EKS MCP Server and the CloudWatch MCP Server
 
-AWS provides a fully managed EKS MCP server (announced November 2025, preview) and a CloudWatch MCP server. The two servers query different targets, so connecting both is the standard configuration for an incident analysis Agent.
+AWS provides a fully managed EKS MCP server (announced November 2025, preview) and a CloudWatch MCP server (an awslabs open-source server). The EKS MCP server is an AWS-hosted managed endpoint that authenticates with service SigV4, whereas the CloudWatch MCP server is run by the user and signs CloudWatch API calls with local credentials. The two servers query different targets, so connecting both is the standard configuration for an incident analysis Agent.
 
 **Table 3. Query targets of the EKS MCP server vs the CloudWatch MCP server**
 
@@ -149,7 +151,7 @@ AWS provides a fully managed EKS MCP server (announced November 2025, preview) a
 |------|-------------|-------------------|
 | Perspective | **Current state** of cluster and K8s resources | **History** of accumulated logs, metrics, alarms |
 | Key tools | `get_k8s_events`, `get_pod_logs`, `list_k8s_resources`, `get_cloudwatch_logs`, `get_eks_insights` | Alarm Based Troubleshooting, Log Analyzer (anomaly/error patterns), Metric Definition Analyzer, Alarm Recommendations |
-| Authentication | AWS IAM (SigV4), CloudTrail auditing | AWS IAM (SigV4) |
+| Authentication | AWS IAM (SigV4), CloudTrail auditing | Signs CloudWatch API calls with local credentials (SigV4, self-run) |
 | Access control | IAM permission separation (`eks-mcp:CallReadOnlyTool` / `CallPrivilegedTool`), `AmazonEKSMCPReadOnlyAccess` managed policy | Read-oriented tool composition |
 
 :::warning `get_k8s_events` on the EKS MCP Server Is Not a Retention Solution
@@ -158,13 +160,13 @@ AWS provides a fully managed EKS MCP server (announced November 2025, preview) a
 
 ### Integrating Stores Without an MCP Server
 
-For stores without a provided MCP server, such as OpenSearch and Loki, implement custom tools that wrap the query API (LogQL, OpenSearch DSL) using the Strands Agents SDK or similar, and expose them to the Agent. Whatever the store, standardizing on an MCP or tool interface minimizes Agent code changes when the store is replaced.
+For stores without a provided MCP server, implement custom tools that wrap the query API (LogQL, OpenSearch DSL) using the Strands Agents SDK or similar, and expose them to the Agent. The set of stores with an official MCP server is growing — OpenSearch ships `opensearch-mcp-server-py` and Grafana ships `mcp-grafana` (which covers Loki), for example. Whatever the store, standardizing on an MCP or tool interface minimizes Agent code changes when the store is replaced.
 
 ## Recommended Architecture Patterns
 
 ### Pattern A: Minimal Change (CloudWatch-Centric)
 
-A configuration for starting without adding a pipeline in environments already using Container Insights.
+A configuration that reuses the existing CloudWatch destination in environments already using Container Insights, but still requires a separate event collector.
 
 ```
 Event collector → CloudWatch Logs → CloudWatch MCP + EKS MCP → AI Agent
@@ -219,7 +221,7 @@ fields @timestamp
 | sort cnt desc
 ```
 
-If events with timestamps older than 1 hour are returned, the export pipeline is working correctly. If only the last hour of data exists, the result is either a live API query or the pipeline started recently, so inspect the collector configuration.
+If events with timestamps older than 1 hour are returned, it suggests the pipeline retained older events. A single old record only shows that at least one old event was stored, not the current health or completeness of the collector; verify current collection state and gaps with collector metrics (watch lag, errors). If only the last hour of data exists, the result is either a live API query or the pipeline started recently, so inspect the collector configuration.
 
 ## Summary
 

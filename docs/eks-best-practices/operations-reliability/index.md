@@ -3,9 +3,9 @@ title: Operations & Reliability
 description: Best practices for stable EKS cluster operations including GitOps, troubleshooting, high availability, and Pod lifecycle management
 created: "2026-03-25"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 4
+reading_time: 3
 tags:
   - eks
   - operations
@@ -41,6 +41,13 @@ A practical guide for stable EKS cluster operations. Covers GitOps-based operati
     title="EKS Node Monitoring Agent"
     description="Automatic node health detection, architecture, deployment strategies, and best practices"
     color="#4a90d9"
+  />
+  <DocCard
+    to="/docs/eks-best-practices/operations-reliability/network-flow-monitor"
+    icon="🛰️"
+    title="Network Flow Monitor"
+    description="eBPF sock_ops-based TCP flow observation, K8s enrichment, EKS add-on deployment, and three-layer diagnosis"
+    color="#2a9d8f"
   />
   <DocCard
     to="/docs/eks-best-practices/operations-reliability/eks-debugging"

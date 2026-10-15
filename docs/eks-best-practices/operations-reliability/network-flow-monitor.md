@@ -3,9 +3,9 @@ title: "How Network Flow Monitor Works: TCP Observation with eBPF sock_ops"
 description: The Network Flow Monitor agent's TCP callbacks, userspace aggregation, Kubernetes metadata, OTLP publishing, and EKS troubleshooting.
 created: "2026-08-04"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 21
 tags:
   - eks
   - network-flow-monitor
@@ -131,7 +131,7 @@ Three timers drive the main loop. The principal options and defaults are:
 
 The agent converts `NfmReport` to an OpenTelemetry `ExportMetricsServiceRequest` protobuf, compresses it with gzip, signs it with **SigV4 using the service name `networkflowmonitor`**, and POSTs it to `https://networkflowmonitorreports.<region>.api.aws/publish`. See [publisher_endpoint.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/publisher_endpoint.rs). A response other than HTTP 200 increments `failed_reports`, which is included in a later report. A log entry containing `HTTP request complete, status:200 ... publisher_endpoint` confirms a successful publishing request.
 
-The source also supports other destinations. `--prometheus-workspace-id` selects an Amazon Managed Service for Prometheus remote-write endpoint. Building with the `open-metrics` feature exposes a local Prometheus scrape server.
+The source also supports other destinations. `--prometheus-workspace-id` selects an Amazon Managed Service for Prometheus remote-write endpoint. Building with the `open-metrics` feature compiles the local Prometheus scrape-server capability, but exposing it also requires setting the runtime `--open-metrics` flag, which defaults to off.
 
 ## EKS Deployment and Operations
 
