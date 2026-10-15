@@ -1,7 +1,7 @@
 ---
 title: Storage Debugging
 description: Guide to diagnosing EKS storage issues - EBS/EFS CSI Driver, PVC mount failures
-created: "2026-04-21"
+created: "2026-04-07"
 last_update:
   date: "2026-06-30"
   author: devfloor9

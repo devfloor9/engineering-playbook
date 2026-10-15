@@ -1,7 +1,7 @@
 ---
 title: EKS Performance Benchmark Reports
 description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations, AI Agents
-created: "2026-02-11"
+created: "2026-02-09"
 last_update:
   date: 2026-10-13
   author: devfloor9
