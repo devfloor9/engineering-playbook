@@ -3,9 +3,9 @@ title: Harness Engineering
 description: The second axis of AIDLC reliability — Harness design that architecturally enforces AI execution safety
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: devfloor9
-reading_time: 16
+reading_time: 22
 tags:
   - aidlc
   - harness
@@ -23,13 +23,17 @@ sidebar_label: Harness Engineering
 
 import { QualityGates } from '@site/src/components/AidlcTables';
 
+:::info Extension concept (engineering-playbook's own content)
+Ontology and harness engineering are not part of the [official AWS Labs AIDLC methodology](https://github.com/awslabs/aidlc-workflows); they are engineering-playbook's own extension content. They reflect DDD and 2026 agentic-AI best practices to strengthen enterprise AI reliability. When applying official AIDLC, this axis can be adopted optionally.
+:::
+
 > "Agents aren't hard, harnesses are" — NxCode, 2026
 
 ## Overview
 
-**Harness engineering** builds the checks and execution limits around agent work. It turns domain constraints from the ontology into validation rules and adds controls such as retry budgets, timeouts, output gates, and circuit breakers. The 2026 example below illustrates the engineering work involved:
+**Harness engineering** builds the checks and execution limits around agent work. It turns domain constraints from the ontology into validation rules and adds controls such as retry budgets, timeouts, output gates, and circuit breakers. The 2026 quote below illustrates why harness design matters and comes from one reported project:
 
-> When OpenAI Codex generated 1 million lines of code, human engineers wrote 0 lines. The engineer's role has shifted from **writing code to designing harnesses**.
+> When OpenAI Codex generated 1 million lines of code, human engineers wrote 0 lines (an illustrative figure from one reported case, not a measurement representative of every setting). The engineer's role has shifted from **writing code to designing harnesses**.
 
 ```mermaid
 graph LR
@@ -66,14 +70,14 @@ Many teams use "guardrails" and "harness" interchangeably, but they are **fundam
 
 | Aspect | Guardrails | Harness |
 |------|---------------------|----------------|
-| **Scope** | Runtime input/output filtering | Entire architecture design |
-| **Role** | PII masking, prompt injection defense | Retry budgets, timeouts, output gates, circuit breakers |
+| **Scope** | Runtime input/output filtering plus dialog, retrieval, and tool-execution constraints | Entire architecture design |
+| **Role** | Beyond input/output filtering (PII masking, prompt injection defense): constraints at the dialog, retrieval, and tool-execution stages | Retry budgets, timeouts, output gates, circuit breakers |
 | **Timing** | During execution | From design time |
 | **Failure Mode** | Block individual requests | Protect entire system |
 | **Examples** | Bedrock Guardrails, NeMo Guardrails | AIDLC Quality Gates, Independent validation agents |
 
 **Key Difference:**
-- **Guardrails** are "filters that block bad inputs" — e.g., prompt injection detection, PII masking
+- **Guardrails** are "controls that filter risk not only at input/output but also at the dialog, retrieval, and tool-execution stages" — e.g., prompt injection detection, PII masking, tool-call restriction
 - **Harness** is "architecture that constrains AI to operate safely" — e.g., preventing 847 retries, blocking cost runaway
 
 ---
@@ -179,16 +183,18 @@ circuit_breaker:
 **Pattern:**
 ```yaml
 retry_budget:
-  max_attempts: 3            # Maximum 3 retries
+  max_attempts: 3            # Maximum 3 retries per single operation
   backoff: exponential       # Exponential backoff
   max_backoff: 30s          # Maximum 30 second wait
-  budget_limit: 10          # Allow 10 retries per hour
+  budget_limit: 10          # Hourly cap on total retries
 ```
 
-**Fintech Runaway Prevention:**
-- ✅ 847 retries → Limited to 3
+`max_attempts` caps how many times one failed operation is retried, while `budget_limit` caps the total number of retries allowed per hour across operations. The two values bound different scopes, so they are used together. A cost ceiling is enforced not by retry counts but by the amounts in the Cost Limit pattern (section 7 below).
+
+**Fintech Runaway Prevention (with the configuration above):**
+- ✅ 847 retries → Limited to 3 per operation
 - ✅ Immediate retries → Exponential backoff (1s, 2s, 4s)
-- ✅ $2,200 cost → Maximum $50 limit
+- ✅ $2,200 cost → Blocked by the Cost Limit pattern's $10/hour and $100/day ceilings
 
 ---
 
@@ -205,9 +211,11 @@ timeout:
 ```
 
 **Application Cases:**
-- LLM inference (abort after 30 seconds)
+- LLM inference (stop waiting after 30 seconds)
 - Code generation (5 minute total limit)
-- Test execution (terminate after 1 minute idle)
+- Test execution (stop waiting after 1 minute idle)
+
+A timeout only bounds how long the caller waits; by itself it does not stop in-flight work or reverse side effects that have already occurred. To actually halt the work you need an explicit cancellation signal, and to undo data already written you need separate compensation handling, both designed alongside the timeout.
 
 ---
 
@@ -223,11 +231,14 @@ output_gate:
     - schema_validation     # JSON schema validation
     - pii_detection        # PII detection and masking
     - toxicity_filter      # Harmful content filtering
+    - completeness_check   # Required-field and body completeness (needs separate implementation)
   action_on_failure: reject # Reject output on failure
 ```
 
+The `syntax_check`, `schema_validation`, `pii_detection`, and `toxicity_filter` validators above check only syntax, schema, sensitive data, and toxicity, so they cannot judge whether an email body is incomplete in business terms. To block incomplete emails you must implement a separate validator such as `completeness_check` that explicitly checks required fields and body-completion conditions, and add it to the output gate.
+
 **Fintech Runaway Prevention:**
-- ✅ 14 incomplete emails → Blocked at output gate
+- ✅ 14 incomplete emails → Blocked at the output gate once a completeness validator is added
 - ✅ Prevent PII exposure
 - ✅ Filter harmful content
 
@@ -277,6 +288,8 @@ cost_limit:
   alert_threshold: 0.80    # Alert at 80% threshold
 ```
 
+The YAML for patterns 5–7 (PII masking, prompt injection defense, cost limit) only declares configuration keys and thresholds; it does not act on its own. These settings take effect only when backed by an enforcing implementation: a masking engine that actually redacts, a detector that identifies injection attempts, and metering that aggregates usage to block or alert at the thresholds.
+
 ---
 
 ## Quality Gates — End-to-End Quality Assurance
@@ -318,15 +331,24 @@ Traditional code review relies on lint rules and static analysis, but **AI-based
 ```go
 // ❌ Violation: Direct Entity modification outside Aggregate
 func UpdateUserEmail(userID string, email string) error {
-    user, _ := userRepo.FindByID(userID)
+    user, err := userRepo.FindByID(userID)
+    if err != nil {
+        return err
+    }
     user.Email = email  // ❌ Direct Entity modification
     return userRepo.Save(user)
 }
 
-// ✅ Recommended: Modification through Aggregate method
+// ✅ Recommended: Modify through Aggregate method, then persist
 func UpdateUserEmail(userID string, email string) error {
-    user, _ := userRepo.FindByID(userID)
-    return user.ChangeEmail(email)  // ✅ Use Aggregate method
+    user, err := userRepo.FindByID(userID)
+    if err != nil {
+        return err
+    }
+    if err := user.ChangeEmail(email); err != nil {  // ✅ Use Aggregate method
+        return err
+    }
+    return userRepo.Save(user)  // ✅ Persist the change to the repository
 }
 ```
 
@@ -341,7 +363,7 @@ func UpdateUserEmail(userID string, email string) error {
 - Structured logging (JSON format, include contextual fields)
 
 **4. Security**
-- Authentication: JWT (prohibit HS256, use RS256)
+- Authentication: JWT (this project's policy requires RS256 and prohibits HS256. HS256 is also a valid algorithm; choosing asymmetric signing is an organizational policy to reduce the risk of a leaked shared secret.)
 - Sensitive information: Retrieve from AWS Secrets Manager
 - SQL queries: Use Prepared Statements (prohibit string concatenation)
 
@@ -385,6 +407,8 @@ graph LR
 1. **Use different agents** — Code generation ≠ Test generation
 2. **Use different models** — GPT-4 generation → Claude validation
 3. **Human validation** — Humans give final approval for core logic
+
+Switching the validator to a different agent or model reduces the bias it shared with the generator. A different validator is not by itself a guarantee of correctness, however. Independent validation holds only when there is an independent test oracle (a basis for the expected result) or specification separate from the generation process; swapping the model alone can still miss errors when both models share the same misunderstanding.
 
 ---
 

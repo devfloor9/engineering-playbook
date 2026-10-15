@@ -3,9 +3,9 @@ title: 온톨로지 엔지니어링
 description: AIDLC 신뢰성의 첫 번째 축 — Typed World Model로 AI 환각을 방지하고 도메인 정확성을 보장하는 온톨로지 접근법 (engineering-playbook 확장 콘텐츠)
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 15
 tags:
   - aidlc
   - ontology
@@ -62,16 +62,16 @@ DDD의 Aggregate, Entity, Value Object, Domain Event는 온톨로지의 **기본
 ### 2.2 온톨로지가 해결하는 문제
 
 **1. 환각 방지**
-- 모든 도메인 개념이 명시적으로 정의되어 AI가 임의로 해석할 여지 제거
-- 엔티티 간 관계가 형식화되어 존재하지 않는 연결을 생성할 수 없음
+- 온톨로지에 명시한 도메인 개념에 한해 AI가 임의로 해석할 여지를 줄임
+- 온톨로지에 형식화한 엔티티 간 관계에 한해, 정의되지 않은 연결의 생성을 탐지하고 거부할 수 있음
 
 **2. 도메인 정확성 보장**
-- 불변 조건(invariant)이 온톨로지에 인코딩되어 위반 시 자동 탐지
-- 도메인 이벤트의 전이 경로가 명시되어 잘못된 상태 전환 차단
+- 온톨로지에 인코딩한 불변 조건(invariant)에 한해, 검증기가 실행될 때 위반을 탐지
+- 명시한 도메인 이벤트 전이 경로에 한해, 정의되지 않은 상태 전환을 차단
 
 **3. 컨텍스트 일관성**
 - 온톨로지가 AI 에이전트의 컨텍스트 윈도우에 주입되어 모든 생성 작업의 기준이 됨
-- 세션 간, 에이전트 간 동일한 도메인 이해 보장
+- 세션 간, 에이전트 간 동일한 도메인 이해를 돕는 공통 기준 제공
 
 ### 2.3 실전 증거
 
@@ -95,8 +95,8 @@ domain_ontology:
       description: "결제 처리의 트랜잭션 경계"
       invariants:
         - "amount는 0보다 커야 한다"
-        - "status 전이: CREATED → PROCESSING → COMPLETED | FAILED"
-        - "FAILED 상태에서 재시도는 최대 2회"
+        - "status 전이: CREATED → PROCESSING → COMPLETED | FAILED, 그리고 FAILED → PROCESSING (재시도)"
+        - "FAILED 상태에서 PROCESSING으로의 재시도 전이는 최대 2회"
       entities:
         - PaymentMethod:
             type: "enum"
@@ -138,7 +138,7 @@ domain_ontology:
 
 ### 3.2 Knowledge Source 계층
 
-온톨로지 구축 시 지식 소스의 신뢰도를 계층화하여 관리합니다.
+온톨로지 구축 시 지식 소스의 신뢰도를 계층화하여 관리합니다. 아래 계층은 소스 유형별 일반적 신뢰도를 가늠하는 휴리스틱이며, 절대적 순위가 아닙니다.
 
 | 우선순위 | 소스 | 예시 | 신뢰도 | 활용 방식 |
 |---------|------|------|--------|----------|
@@ -146,6 +146,8 @@ domain_ontology:
 | **2** | 프로젝트 GitHub 이슈/릴리스 | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | 높음 | 개발자 간 사실 교환 |
 | **3** | 공식 문서 | docs.nvidia.com, docs.aws.amazon.com | 중간 | 일반론, 업데이트 지연 가능 |
 | **4** | 블로그/튜토리얼 | Medium, AWS Blog | 낮음 | 특정 시점의 스냅샷 |
+
+신뢰도는 소스 범주만으로 일괄 결정되지 않습니다. 같은 공식 문서라도 특정 사양·API 계약에 대해서는 가장 권위 있는 근거일 수 있고, 구현 코드라도 오래된 버전이면 현재 사실과 다를 수 있습니다. 따라서 권위는 각 주장(claim)과 대상 버전 단위로 판단하고, 위 계층은 우선 확인 순서를 정하는 출발점으로만 사용합니다.
 
 :::caution 실전 교훈: 공식 문서만으로는 부족하다
 온톨로지 구축 시 **공식 문서(Official Documentation)만 참조하면 AI는 "논리적으로 그럴듯한 추론"을 "검증된 사실"로 혼동**합니다.
@@ -156,6 +158,8 @@ domain_ontology:
 - **결과**: "기술적 불가능"이라는 잘못된 전제가 문서 전체로 전파되어 12개 이상의 비교표와 아키텍처 권장사항이 모두 틀림
 
 **원칙**: AI가 생성한 기술 문서는 반드시 **실제 구현 코드와 교차 검증(cross-validation)**해야 합니다. 공식 문서의 "할 수 없다"는 "아직 문서화되지 않았다"일 수 있습니다.
+
+**정정된 사실**: GPU Operator는 EKS Auto Mode에서 실행할 수 있습니다. [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288)(2026-03-20 병합)이 GPU Operator를 Auto Mode와 Bottlerocket에서 동작하도록 수정했습니다. 핵심은 Auto Mode가 GPU 드라이버를 관리하므로 GPU Operator의 드라이버 설치 구성 요소는 끄고, 나머지 구성 요소(디바이스 플러그인 등)는 그대로 사용한다는 점입니다. 정확한 설정 값은 해당 PR의 구성 파일을 기준으로 확인해야 합니다.
 :::
 
 ### 3.3 규칙 템플릿 계층
@@ -201,18 +205,21 @@ rule_templates:
 graph TD
     subgraph Inner["Inner Loop (분 단위)"]
         GEN["AI 코드 생성"] --> TEST["테스트/하네스 실행"]
-        TEST -->|"실패: 온톨로지 제약 위반"| REFINE["온톨로지 제약 정제"]
+        TEST -->|"실패: 온톨로지 제약 위반"| IREV["사람 승인 게이트"]
+        IREV -->|"승인"| REFINE["온톨로지 제약 정제"]
         REFINE --> GEN
     end
 
     subgraph Middle["Middle Loop (일 단위)"]
         PR["PR 리뷰"] --> METRIC["메트릭 수집"]
-        METRIC -->|"반복 패턴 발견"| SCHEMA["온톨로지 스키마 갱신"]
+        METRIC -->|"반복 패턴 발견"| MREV["사람 승인 게이트"]
+        MREV -->|"승인"| SCHEMA["온톨로지 스키마 갱신"]
         SCHEMA --> PR
     end
 
     subgraph Outer["Outer Loop (주 단위)"]
-        OBS["운영 관찰성<br/>(AIOps)"] -->|"인시던트/SLO 위반"| REDESIGN["도메인 온톨로지<br/>구조 재설계"]
+        OBS["운영 관찰성<br/>(AIOps)"] -->|"인시던트/SLO 위반"| OREV["사람 승인 게이트"]
+        OREV -->|"승인"| REDESIGN["도메인 온톨로지<br/>구조 재설계"]
         REDESIGN --> SPEC["Spec 개선"]
         SPEC --> OBS
     end
@@ -252,16 +259,23 @@ def test_negative_amount():
     with pytest.raises(ValueError):
         create_payment(-100, "customer-123")
     # AssertionError: ValueError not raised
+```
 
-# 온톨로지 제약 추가
+테스트 실패 후 온톨로지에 다음 제약을 추가합니다.
+
+```yaml
 invariants:
   - "amount > 0"
+```
 
+추가한 제약을 반영해 AI가 코드를 재생성합니다. 아래는 생략 부호(`...`)를 포함한 코드 조각이며, 전체 구현이 아닙니다.
+
+```python
 # AI 재생성 코드 (2차 시도)
 def create_payment(amount: float, customer_id: str):
     if amount <= 0:
         raise ValueError("결제 금액은 0보다 커야 합니다")
-    payment = Payment(...)
+    payment = Payment(...)  # 생략: 1차 시도와 동일한 필드로 생성
     return payment
 ```
 
@@ -322,7 +336,7 @@ aggregates:
 
 ### 5.1 Knowledge Graph as Constraint Satisfaction Harness
 
-온톨로지를 Knowledge Graph로 구체화하면 **SemanticForge 패턴**을 적용할 수 있습니다. Knowledge Graph가 constraint satisfaction 하네스 역할을 하여 AI가 생성하는 코드의 논리적/구조적 환각을 원천 차단합니다.
+온톨로지를 Knowledge Graph로 구체화하면 **SemanticForge 패턴**을 적용할 수 있습니다. Knowledge Graph가 constraint satisfaction 하네스 역할을 하여, AI가 생성하는 코드의 논리적·구조적 환각을 탐지하고 걸러 낼 수 있습니다. 아래 예시는 로컬 그래프로 개념을 보여주는 것이며, 환각을 완전히 차단한다는 보장은 아닙니다. 정량적 효과는 [SemanticForge 연구](https://arxiv.org/html/2511.07584v1)의 평가 결과를 별도로 참조해야 합니다.
 
 ```mermaid
 graph LR
@@ -373,14 +387,17 @@ payment.amount = -100  # 제약 위반
 
 # SemanticForge가 Knowledge Graph를 쿼리하여 검증
 query = """
-MATCH (p:Aggregate {name: "Payment"})-[:INVARIANT]->(m:ValueObject {name: "Money"})
-WHERE m.rule CONTAINS "amount > 0"
-RETURN m.rule
+MATCH (p:Aggregate {name: "Payment"})-[r:INVARIANT]->(m:ValueObject {name: "Money"})
+WHERE r.rule CONTAINS "amount > 0"
+RETURN r.rule
 """
+# 위 쿼리는 제약 규칙이 그래프에 등록되어 있는지만 조회합니다.
+# 'amount = -100'이 'amount > 0'을 위반하는지 판단하는 것은 그래프 조회가 아니라
+# 조회한 규칙 문자열을 해석·평가하는 별도의 검증 로직이 수행합니다.
 # 제약 위반 탐지 → AI에게 재생성 요청
 ```
 
-**효과**: AI가 Knowledge Graph에 인코딩된 제약을 위반하는 코드를 생성할 수 없음.
+**효과**: Knowledge Graph에 인코딩된 제약을 기준으로, AI가 생성한 코드의 위반을 탐지해 재생성을 요청할 수 있습니다. 이는 검증기가 다루는 제약에 한한 것이며, 위반을 원천적으로 불가능하게 만든다는 뜻은 아닙니다.
 
 ### 5.3 참고 자료
 
@@ -457,8 +474,8 @@ Kiro Spec의 `requirements.md`에 온톨로지를 직접 포함하여 AI 에이�
 #### Payment
 - **Invariants:**
   - amount는 0보다 커야 한다
-  - status 전이: CREATED → PROCESSING → COMPLETED | FAILED
-  - FAILED 상태에서 재시도는 최대 2회
+  - status 전이: CREATED → PROCESSING → COMPLETED | FAILED, 그리고 FAILED → PROCESSING (재시도)
+  - FAILED 상태에서 PROCESSING으로의 재시도 전이는 최대 2회
 
 - **Entities:**
   - PaymentMethod: enum[CARD, BANK, WALLET]
@@ -483,7 +500,7 @@ Kiro Spec의 `requirements.md`에 온톨로지를 직접 포함하여 AI 에이�
 
 ### 7.2 온톨로지 기반 코드 생성
 
-Kiro AI 에이전트는 이 온톨로지를 컨텍스트 윈도우에 주입하여:
+Kiro AI 에이전트는 이 온톨로지를 컨텍스트 윈도우에 주입합니다. 온톨로지를 스펙에 포함하면 생성·테스트·리뷰 단계에 제약을 안내하는 맥락이 제공됩니다. 다만 아래의 "자동 준수"·"자동 탐지"는 주입만으로 보장되지 않으며, 제약을 실제로 강제·검사하는 별도의 검증기가 있어야 성립합니다.
 
 1. **코드 생성 시**: 엔티티 관계와 invariant를 자동 준수
    ```go
@@ -532,10 +549,12 @@ Kiro AI 에이전트는 이 온톨로지를 컨텍스트 윈도우에 주입하�
 
 ### 8.2 생산성 지표
 
+아래 수치는 측정 조건과 출처가 공개된 실측값이 아니라, 온톨로지 적용 전후의 개선 방향을 보여 주기 위한 예시입니다. 실제 수치는 환경에 따라 달라집니다.
+
 | 지표 | 온톨로지 미적용 | 온톨로지 적용 | 개선율 |
 |------|---------------|-------------|--------|
 | **PR 리뷰 시간** | 평균 45분 | 평균 18분 | 60% 감소 |
-| **테스트 커버리지** | 68% | 89% | 31%p 증가 |
+| **테스트 커버리지** | 68% | 89% | 21%p 증가 |
 | **프로덕션 인시던트** | 월 12건 | 월 2건 | 83% 감소 |
 | **평균 수정 시간** | 2.3일 | 0.4일 | 83% 감소 |
 
@@ -618,7 +637,7 @@ graph LR
 
 ### 10.1 AIDLC 신뢰성 듀얼 축
 
-온톨로지는 **WHAT + WHEN**(도메인 제약 정의)을 담당하며, **HOW**(검증 메커니즘)는 [하네스 엔지니어링](./harness-engineering.md)이 담당합니다. 두 축의 협력으로 AI 생성 코드의 신뢰성을 보장합니다.
+온톨로지는 **WHAT + WHEN**(도메인 제약 정의)을 담당하며, **HOW**(검증 메커니즘)는 [하네스 엔지니어링](./harness-engineering.md)이 담당합니다. 두 축이 함께 작동하면 AI 생성 코드의 신뢰성을 높이는 데 도움이 됩니다. 다만 이 두 축은 공식 AIDLC에 포함되지 않은 engineering-playbook의 선택적 확장이며, 신뢰성은 검증기 구현과 운영 조건에 따라 달라집니다.
 
 ```mermaid
 graph LR
