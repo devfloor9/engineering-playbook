@@ -54,13 +54,18 @@ const QualityGates = () => {
   }, {
     condition: isKo ? '성능 회귀' : 'Performance Regression',
     autoApprove: isKo ? 'P99 < SLO 목표' : 'P99 < SLO Target',
-    manualReview: isKo ? 'P99 > SLO 목표' : 'P99 > SLO Target',
+    manualReview: isKo ? 'P99 ≥ SLO 목표' : 'P99 ≥ SLO Target',
     severity: 'high'
   }, {
     condition: isKo ? '변경 범위' : 'Change Scope',
     autoApprove: isKo ? '< 500줄' : '< 500 lines',
     manualReview: isKo ? '≥ 500줄' : '≥ 500 lines',
     severity: 'medium'
+  }, {
+    condition: isKo ? '스캔 데이터 누락' : 'Missing Scan Data',
+    autoApprove: isKo ? '해당 없음' : 'N/A',
+    manualReview: isKo ? '스캔 미실행 또는 결과 없음 시 기본값' : 'Default when a scan did not run or returned no data',
+    severity: 'high'
   }];
   const styles = {
     container: {

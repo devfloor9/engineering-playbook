@@ -3,9 +3,9 @@ title: Cost Effectiveness Framework
 description: Quantifying AIDLC Cost Effectiveness — RFP Estimation Model, Ontology/Harness ROI, Open Weight TCO Comparison
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 39
+reading_time: 45
 tags:
   - aidlc
   - enterprise
@@ -27,10 +27,12 @@ The Korean SI market is dominated by fixed-price bidding. Issuers present detail
 **Traditional Estimation Formula**:
 
 ```
-Total Cost = Σ(MM by Role × Monthly Rate × Duration)
+Total Cost = Σ(MM by Role × Monthly Rate)
          + Infrastructure Cost
          + Risk Buffer (10-20%)
 ```
+
+Here MM (man-months) already includes the duration of involvement, so the monthly rate is not multiplied by duration again.
 
 Problems arising with AIDLC adoption:
 
@@ -66,7 +68,7 @@ In fixed-price bidding, cost reduction leads to bidder margin increase, but issu
 
 | Scenario | Approach | Proposal | Actual Effort | Bidder Margin | Issuer Value |
 |---------|----------|--------|----------|-------------|------------|
-| Traditional Method | No AIDLC | ₩5B | ₩5B | ₩1B (20%) | Meet basic requirements |
+| Traditional Method | No AIDLC | ₩5B | ₩4B | ₩1B (20%) | Meet basic requirements |
 | Emphasize Cost Reduction | Apply AIDLC | ₩4B (-20%) | ₩3.2B | ₩0.8B (20%) | Meet basic requirements |
 | Emphasize Quality Improvement | Apply AIDLC | ₩5B | ₩3.5B | ₩1.5B (30%) | High quality + additional features |
 | Balance | Apply AIDLC | ₩4.5B (-10%) | ₩3.3B | ₩1.2B (27%) | Basic + partial high quality |
@@ -79,7 +81,7 @@ In most cases, the **balance scenario** is most realistic. Issuers realize cost 
 
 ### 2.1 Phase-by-Phase Cost Reduction Structure
 
-AIDLC produces differentiated effects across RUP-based 4 phases:
+AIDLC produces differentiated effects across the official three phases (Inception, Construction, Operations). The effort and savings figures below are illustrative scenario assumptions for explanation, not measured results from a specific customer.
 
 #### Inception Phase
 
@@ -100,15 +102,13 @@ AIDLC produces differentiated effects across RUP-based 4 phases:
 - Ontology structures domain knowledge for repeated reuse
 - AI immediately proposes reference architecture patterns
 
-#### Elaboration Phase
-
-Traditional methods consume much time on prototype development and architecture verification. AIDLC has AI rapidly generate prototypes and automatically verify domain accuracy based on ontology.
-
-**Cost Reduction**: Approximately 30-40%
-
 #### Construction Phase
 
 This phase concentrates 60-70% of project costs. It's AIDLC's core value delivery point.
+
+##### Prototype and architecture verification (formerly Elaboration) {#elaboration-phase}
+
+The prototype development and architecture verification that traditional methods separate into an Elaboration phase also belong here. AIDLC has AI rapidly generate prototypes and automatically verify domain accuracy based on ontology.
 
 **Traditional Method**:
 - Developers write specification → code → unit test → review → fix
@@ -128,7 +128,7 @@ This phase concentrates 60-70% of project costs. It's AIDLC's core value deliver
 - AI-generated code quality varies for complex business logic
 - Review effort decreases, but ontology accuracy verification effort added
 
-#### Transition (Operations) Phase
+#### Operations Phase {#transition-operations-phase}
 
 **Traditional Method**:
 - Manual deployment checklist
@@ -148,6 +148,8 @@ AIDLC adoption doesn't always bring cost reduction only. The following factors i
 
 #### Initial Investment
 
+Dollar-denominated costs are converted at ₩1,350/$ (illustrative rate as of 2026-10-15).
+
 **Table 2. AIDLC adoption initial investment items by scale and cost**
 
 | Item | Scale | Cost |
@@ -155,10 +157,10 @@ AIDLC adoption doesn't always bring cost reduction only. The following factors i
 | Ontology design | 2-4 weeks (1 architect + 0.5 domain expert) | ₩50-100M |
 | Initial harness engineering setup | 1-2 weeks (2 DevOps) | ₩20-40M |
 | AIDLC training | 10 developers × 1 week | ₩30M |
-| AI tool licensing (first 3 months) | Claude Team 10 people × $30 × 3 months | ₩10M |
-| **Total** | | **₩110-180M** |
+| AI tool licensing (first 3 months) | Claude Team 10 people × $30/month × 3 months = $900 | ≈₩1.2M |
+| **Total** | | **≈₩102-172M** |
 
-For medium projects (₩2B), initial investment ratio is **5.5-9%**. This cost is concentrated during the first Bolt cycle (2-4 weeks), after which savings accumulate.
+For medium projects (₩2B), initial investment ratio is approximately **5.1-8.6%**. This cost is concentrated during the first Bolt cycle (2-4 weeks), after which savings accumulate.
 
 #### Ongoing Costs
 
@@ -286,7 +288,7 @@ Ontology is AIDLC's core investment item. Quantifying initial investment vs long
 | Ontology documentation | 1 week (1 technical writer) | ₩2M |
 | **Total** | **4 weeks** | **₩9.5M** |
 
-For medium projects (₩2B), this is **4.75%** initial investment.
+For medium projects (₩2B), this is **0.475%** initial investment.
 
 ### 4.2 Long-Term Effects
 
@@ -294,7 +296,7 @@ According to McKinsey research "The economic potential of generative AI" (2023),
 
 #### Error Rate Reduction
 
-Hamel & Patil (2024) "The Strawberry Manifesto" experimental data:
+Illustrative figures (a hypothetical scenario, not measured data) used to explain the importance of the feedback loop emphasized in Hamel Husain, "A Field Guide to Rapidly Improving AI Products" (2025):
 
 **Table 8. Error rate, total cost, and improvement by feedback loop and ontology condition**
 
@@ -334,6 +336,8 @@ For medium projects with 500 PRs:
 
 Ontology is not static. Continuous updates needed as requirements change.
 
+MM (man-months) is converted at a uniform 1 MM = 160 hours (20 days/month × 8 hours).
+
 **Table 10. Ontology maintenance activities by frequency and monthly effort**
 
 | Activity | Frequency | Effort/time | Monthly Effort |
@@ -341,16 +345,16 @@ Ontology is not static. Continuous updates needed as requirements change.
 | Add new entities | Weekly | 2 hours | 8 hours |
 | Modify relationships | Bi-weekly | 1 hour | 2 hours |
 | Add validation rules | Bi-weekly | 1 hour | 2 hours |
-| **Total** | | | **12 hours/month (0.3 MM)** |
+| **Total** | | | **12 hours/month (0.075 MM)** |
 
-6-month project maintenance cost: **1.8 MM (approximately ₩30M)**
+6-month project maintenance cost: 72 hours = **0.45 MM (approximately ₩4.5M)**
 
 **Net ROI Calculation**:
 - Initial investment: ₩9.5M
-- Maintenance (6 months): ₩30M
-- Total investment: **₩39.5M**
+- Maintenance (6 months): ₩4.5M
+- Total investment: **₩14M**
 - Effect (error savings + review savings): ₩255M + ₩30M = **₩285M**
-- **Net ROI: 621%**
+- **Net ROI: 1,936%**
 
 ---
 
@@ -360,7 +364,7 @@ Harness automates feedback loop between AI and operating environment. Without ha
 
 ### 5.1 Cost of Harness Absence: Fintech Runaway Case
 
-Actual case introduced in Hamel & Patil (2024) "The Strawberry Manifesto":
+An illustrative scenario (not a documented real case) for the lack-of-feedback-loop problem discussed in Hamel Husain, "A Field Guide to Rapidly Improving AI Products" (2025):
 
 **Scenario**: AI Agent develops email reminder feature for fintech app
 
@@ -425,7 +429,7 @@ AIDLC supports both cloud APIs like Claude/GPT and open weight models like GLM/Q
 | Model | Input Token Price | Output Token Price | Context Size |
 |------|--------------|--------------|--------------|
 | Claude Sonnet 4.0 | $3/MTok | $15/MTok | 200K |
-| GPT-4.1 | $5/MTok | $15/MTok | 128K |
+| GPT-4.1 | $2/MTok | $8/MTok | ~1M |
 | GPT-3.5 Turbo | $0.5/MTok | $1.5/MTok | 16K |
 
 **Medium Project Usage Estimate** (6 months, 10 developers):
@@ -434,10 +438,10 @@ AIDLC supports both cloud APIs like Claude/GPT and open weight models like GLM/Q
 - Average output tokens: 1,000 (code generation)
 - Monthly tokens: (20,000 × 2,000) + (20,000 × 1,000) = 60 MTok
 
-**Monthly Cost**:
-- Claude Sonnet 4.0: (40 MTok × $3) + (20 MTok × $15) = **$420** (approximately ₩5.5M)
-- GPT-4.1: (40 MTok × $5) + (20 MTok × $15) = **$500** (approximately ₩6.5M)
-- 6-month total: **$2,520-$3,000** (approximately ₩33-39M)
+**Monthly Cost** (dollar amounts converted at ₩1,350/$, illustrative rate as of 2026-10-15):
+- Claude Sonnet 4.0: (40 MTok × $3) + (20 MTok × $15) = **$420** (approximately ₩0.57M)
+- GPT-4.1: (40 MTok × $2) + (20 MTok × $8) = **$240** (approximately ₩0.32M)
+- 6-month total: **$1,440-$2,520** (approximately ₩1.9-3.4M)
 
 **Advantages**:
 - No initial cost
@@ -457,7 +461,7 @@ AIDLC supports both cloud APIs like Claude/GPT and open weight models like GLM/Q
 
 | Component | Spec | Monthly Cost |
 |----------|------|---------|
-| GPU instance | p5.48xlarge (H200×8) Spot | $20,000 (approximately ₩26M) |
+| GPU instance | p5.48xlarge (H100×8) Spot | $20,000 (approximately ₩26M) |
 | Storage | 1TB EBS gp3 | $100 (approximately ₩1.3M) |
 | Network | Data transfer | $200 (approximately ₩2.6M) |
 | Operations personnel | 0.5 MLOps engineer | $5,000 (approximately ₩6.5M) |
@@ -470,20 +474,23 @@ AIDLC supports both cloud APIs like Claude/GPT and open weight models like GLM/Q
 Point where cloud API cost exceeds self-hosting:
 
 ```
+Average tokens per request = 2,000 input + 1,000 output (per the §6.1 usage model)
 Monthly requests = $25,300 / (average cost per request)
 
-Claude Sonnet 4.0: $0.09/request
-→ 281,111 requests/month (140 developer scale)
+Claude Sonnet 4.0: (2,000×$3 + 1,000×$15)/1M = $0.021/request
+→ ~1,204,762 requests/month (~600 developer scale at 2,000 requests/developer/month)
 
-GPT-3.5 Turbo: $0.006/request
-→ 4,216,667 requests/month (2,100 developer scale)
+GPT-3.5 Turbo: (2,000×$0.5 + 1,000×$1.5)/1M = $0.0025/request
+→ ~10,120,000 requests/month (~5,060 developer scale)
 ```
 
 **Conclusion**:
-- Small projects (10 developers): Cloud API advantageous
-- Medium projects (50 developers): Depends on situation
-- Large projects (100+ developers): Self-hosting advantageous
-- Confidential projects: Self-hosting mandatory
+
+Hosting choice is not decided by developer count alone; weigh it together with data-control requirements, latency requirements, and measured request volume. The tendencies below assume the break-even calculation above and should be recomputed with each organization's measured request volume.
+
+- Request volume below the break-even point with no restriction on external data transmission: cloud API advantageous
+- Request volume above the break-even point: self-hosting advantageous
+- Confidential projects where external data transmission is prohibited: self-hosting or an isolated deployment is required regardless of request volume
 
 ### 6.3 Hybrid Strategy
 
@@ -498,7 +505,7 @@ In practice, cloud API + self-hosting hybrid is optimal:
 | Code review | GPT-4.1 (cloud) | Deep analysis needed |
 | Unit test generation | GLM-4 (self-hosted) | Mass generation |
 
-**Cost Optimization Effect**:
+**Cost Optimization Effect** (illustrative estimate, not a measured result; varies with task mix and request volume):
 - 60% cloud API usage reduction
 - 40% self-hosting efficiency improvement
 - Total cost **30-40% savings**
@@ -572,15 +579,18 @@ Korean SI market sets **20-30% range** as realistic goal similar to financial se
 This expression is vague and unmeasurable. Issuers want specific numbers.
 
 **Correct Approach**:
-> "We optimize costs as follows by applying AIDLC methodology:
+
+The figures below are forecasts and targets at proposal time, presented separately from contractually committed deliverables. A proposal should state which items are binding commitments and which are targets.
+
+> "By applying AIDLC methodology, we target the following cost optimization (forecasts/targets):
 > 
-> 1. **44% Inception Phase Reduction**: 9 weeks → 5 weeks with AI requirements analysis
-> 2. **40% Construction Phase Acceleration**: 400% developer productivity improvement with ontology-based code auto-generation
-> 3. **50% Operations Cost Reduction**: 73% MTTR reduction with AI Agent autonomous incident response
+> 1. **44% Inception Phase reduction target**: 9 weeks → 5 weeks with AI requirements analysis
+> 2. **40% Construction Phase acceleration target**: developer productivity gains from ontology-based code auto-generation
+> 3. **50% Operations cost reduction target**: shorter MTTR from AI Agent autonomous incident response
 > 
-> Total proposal: ₩4.5B (10% reduction vs traditional method)
+> Total proposal: ₩4.5B (10% reduction vs traditional method) — this amount is the binding contractual commitment.
 > 
-> However, ₩150M initial AIDLC investment is included, which will create ₩285M error reduction effect throughout the project (90% net ROI)."
+> A ₩150M initial AIDLC investment is included, targeting approximately ₩285M in error-reduction effect across the project (net ROI approximately 90%, subject to recomputation against measured results)."
 
 ### 8.2 Risk Mitigation Strategy
 
@@ -654,7 +664,7 @@ Also reference methodology guides to prepare for actual implementation:
 ## References
 
 - McKinsey Global Institute. "The economic potential of generative AI: The next productivity frontier." 2023.
-- Hamel, Jeremy & Patil, DJ. "The Strawberry Manifesto: How to Build AI Products That Work in the Real World." 2024.
+- Husain, Hamel. "A Field Guide to Rapidly Improving AI Products." 2025. (https://hamel.dev/blog/posts/field-guide/)
 - Forsgren, Nicole et al. "Accelerate: The Science of Lean Software and DevOps." 2018. (DORA metrics source)
 - AWS. "Building Generative AI applications using Amazon Bedrock." 2024.
 - DeepLearning.AI. "Building and Evaluating Advanced RAG Applications." Andrew Ng. 2024.

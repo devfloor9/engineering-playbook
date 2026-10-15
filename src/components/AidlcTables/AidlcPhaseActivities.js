@@ -153,7 +153,7 @@ const AidlcPhaseActivities = () => {
   return <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>🔨 {isKo ? 'AIDLC 단계별 활동' : 'AIDLC Phase Activities'}</h2>
-        <p style={styles.subtitle}>{isKo ? '각 단계의 주요 활동, AI 도구, 산출물' : 'Key activities, AI tools, and outputs for each phase'}</p>
+        <p style={styles.subtitle}>{isKo ? '각 단계의 주요 활동, AI 도구, 산출물 (도구-활동 매핑은 예시이며, 도구·버전별 기능을 검증한 것은 아닙니다)' : 'Key activities, AI tools, and outputs for each phase (tool-to-activity mappings are illustrative, not a verified per-tool/version capability claim)'}</p>
       </div>
       <div style={styles.phasesContainer}>
         {phases.map((phase, idx) => <div key={idx} style={styles.phaseSection}>
