@@ -3,9 +3,9 @@ title: Automated Deployment and Management Pipeline Architecture for Open-Weight
 description: An architecture that automates open-weight model onboarding through a seven-stage pipeline, from HuggingFace leaderboard scanning and benchmark reproduction to instance performance profiling, deployment guide generation for multiple targets, and global Spot capacity acquisition, with human involvement at approval gates
 created: "2026-07-28"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 39
+reading_time: 48
 tags:
   - mlops
   - argo-workflows
@@ -126,23 +126,29 @@ The entire pipeline is expressed as a single Argo Workflows DAG, with gates G1�
 
 There are two detection sources.
 
-**(a) Leaderboard and release scans.** An Argo Events Calendar EventSource triggers a scanner Job periodically, for example every six hours. The scanner collects the following through the huggingface_hub API.
+**(a) Leaderboard and release scans.** An Argo Events Calendar EventSource triggers a scanner Job periodically, for example every six hours. The following is an illustrative skeleton showing the huggingface_hub API, not production code. A real scanner must fill in the creation-time, parameter-count, safetensors, and license checks marked in the comments, and pin the code to the huggingface_hub version it uses. The example below follows the current `list_models` contract (verified 2026-10-15, [huggingface_hub HfApi reference](https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api)).
 
 ```python
 from huggingface_hub import HfApi
 
 api = HfApi()
-# Top trending text-generation models created within the last seven days
+# Top trending text-generation models (sort value is snake_case 'trending_score';
+# the current API has no direction argument — it sorts descending by default)
 candidates = api.list_models(
     filter="text-generation",
-    sort="trendingScore",
-    direction=-1,
+    sort="trending_score",
     limit=50,
 )
 for m in candidates:
     info = api.model_info(m.id, files_metadata=True)
-    # Gate criteria: open weights, license, parameter count, safetensors availability
-    if info.gated or info.card_data.license not in ALLOWED_LICENSES:
+    card = info.card_data or {}        # card_data may be missing, so guard it
+    license = card.get("license")
+    # Gate criteria must check all four explicitly:
+    #  - created_at is within the last seven days (list_models does not filter by creation time)
+    #  - parameter count (e.g. params_b) is within range
+    #  - siblings contain a *.safetensors file
+    #  - the license is in the allowed list
+    if info.gated or license not in ALLOWED_LICENSES:
         continue
     emit_candidate(info)
 ```
@@ -157,7 +163,7 @@ Public leaderboards such as the Open LLM Leaderboard provide result datasets thr
 # profiles/qwen3-8b.yaml — Model Profile (SSOT)
 model:
   id: Qwen/Qwen3-8B
-  revision: main            # Pin to a commit SHA after passing Validate
+  revision: <commit-sha>    # Resolve and pin a commit SHA/checksum before Validate
   license: apache-2.0
   params_b: 8.2
 intake:
@@ -171,11 +177,13 @@ profiles: []                 # Populated with profiling results by instance type
 serving: {}                  # Populated with optimal settings from CI/CD sweeps
 ```
 
-**G1 gate.** Approving and merging the draft PR constitutes approval to begin onboarding. CODEOWNERS enforces the approver group, and unapproved PRs do not trigger the pipeline. The scanner automatically rejects gated models and models with disallowed licenses before creating a PR, while logging the reason for rejection.
+Resolve and record the model revision as a commit SHA (and weight checksums) before Validate, and use that pinned revision from mirroring and testing onward. Leaving the revision as a mutable `main` and pinning a SHA only after the run can attribute results to weights different from those actually fetched. Use the pinned revision identically for all later artifacts and approval records.
+
+**G1 gate.** Approving and merging the draft PR constitutes approval to begin onboarding. A CODEOWNERS file by itself only requests a review from the listed owners and does not block the merge, so enforce approval with a protected-branch rule or repository ruleset that requires review from Code Owners. Bind an authenticated automation principal and RBAC so that only the approved immutable profile can resume/release the pipeline. Suspend/resume is a pause primitive and does not by itself prove that the required PR review actually occurred. The scanner automatically rejects gated models and models with disallowed licenses before creating a PR, while logging the reason for rejection.
 
 ### 4.2 Validate — Model Loading, Benchmark Reproduction, and Performance Profiling
 
-Validate consists of three independent checks. If any check fails, the failure reason is recorded in the profile and the stage stops.
+Validate consists of three independent checks. If any check fails, the failure reason is recorded in the profile, and the profile is held (as an exception) at G2 rather than advancing to Generate/Publish. What stops here is the promotion of a failed profile to the next stage; other independent experiments, measurements, and report generation can still continue (see the Failure modes in section 6).
 
 **(a) Model loading smoke test.** Mirror the weights to S3, limiting direct downloads from HF to one, then start the server with the target framework and check the following.
 
@@ -185,7 +193,11 @@ kubectl rollout status deploy/${MODEL}-validate --timeout=30m
 curl -sf http://${SVC}:8000/v1/models | jq -e '.data[0].id'
 
 # 2) One actual inference request — check that the greedy output is nonempty
-curl -sf http://${SVC}:8000/v1/chat/completions -d '{
+#    (the vLLM OpenAI-compatible chat endpoint requires application/json, so set
+#     the Content-Type header; curl -d defaults to form encoding and is rejected)
+curl -sf http://${SVC}:8000/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
   "model": "'"${MODEL}"'",
   "messages": [{"role": "user", "content": "What is 2+2?"}],
   "temperature": 0, "max_tokens": 16
@@ -206,17 +218,17 @@ A simple comparison is sufficient for the decision logic: `abs(reproduced_score 
 - **Reproduction failure does not mean immediate rejection.** Published scores are sensitive to evaluation prompts, few-shot counts, and scoring methods. On failure, retry automatically once after replacing the harness version and task configuration with those specified in the model card. If reproduction still fails, submit the result to G2 with a "not reproducible" flag. The decision is handed to a person; the pipeline does not pass it on its own.
 - **Quantized variants need separate profiles.** FP8 and INT4 variants are expected to score differently from the original, so define a separate tolerance for degradation relative to the original, for example −2 percentage points.
 
-**(c) Performance profiling by instance type.** Choose candidate instances based on model size, for example g6e.xlarge/g6e.12xlarge/inf2.8xlarge for an 8B model and the p5en family for 70B+ models, then run a genai-perf concurrency sweep for each instance type. Normalize the results along three dimensions.
+**(c) Performance profiling by instance type.** Choose candidate instances based on model size, but separate the implementation lanes by accelerator type. The NVIDIA GPU lane serves on the CUDA/vLLM GPU stack, for example g6e.xlarge/g6e.12xlarge for an 8B model and the p5en family for 70B+ models. The AWS Neuron lane uses non-NVIDIA accelerators such as inf2.8xlarge (Inferentia2), so it must go through the Neuron SDK runtime and model compilation (for example transformers-neuronx or the vLLM Neuron backend) and first confirm that the model is supported on Neuron. Run a genai-perf concurrency sweep per lane, then normalize the results along three dimensions.
 
 **Table 3. Calculation and purpose of the three performance-profiling normalization dimensions**
 
 | Dimension | Calculation | Purpose |
 |-----------|-------------|---------|
-| Throughput | output tok/s ÷ GPU count | Normalized comparison across instances |
+| Throughput | successful output tok/s over the measurement window ÷ accelerator count (state NVIDIA GPU count or Neuron core/chip count per lane) | Normalized comparison across instances |
 | Latency | TTFT p50/p99, ITL p50/p99 | SLA assessment |
-| Cost | (Hourly instance price ÷ 3600) ÷ (total tok/s) × 10⁶ = $/1M tokens | Select recommended instances for deployment guides |
+| Compute cost | (sum of hourly prices for all billed nodes in the measurement ÷ 3600) ÷ (successful output tok/s over the measurement window) × 10⁶ = $/1M tokens | Select recommended instances for deployment guides |
 
-For the cost dimension, record both the Spot price at execution time (EC2 DescribeSpotPriceHistory) and the On-Demand price. Profiling results provide the basis for the recommended instances in the Generate stage.
+Compute throughput and cost from the same "successful output tokens over the measurement window" so the two dimensions share a numerator. The cost dimension sums the hourly price of every node billed during the measurement (all nodes for a multi-node run) and is a **compute-only active cost**; it excludes idle, startup, weight-load, load-generator, and surrounding-service costs. Compute full deployment TCO separately from this value. For the cost dimension, record both the Spot price at execution time (EC2 DescribeSpotPriceHistory) and the On-Demand price. Profiling results provide the basis for the recommended instances in the Generate stage.
 
 ### 4.3 CI/CD — Sweeps, Comparisons, Reports, and SME Intervention
 
@@ -250,7 +262,7 @@ An exhaustive search of 3×2×3×2=36 combinations wastes GPU time. The default 
 
 1. `argo resume` — proceed with the proposed next round.
 2. Override parameters, then resume — modify the search space, for example excluding TP=4 or adding INT4.
-3. `argo stop` — end early and generate a report from the results collected so far.
+3. `argo stop` — end early. `argo stop` does not run a later normal report step; it runs only exit handlers (onExit), so the "generate a report and clean up from the results collected so far" work must be placed in an onExit exit handler.
 
 Set an upper limit on the suspend wait time, for example four hours, and use organizational policy to determine whether the workflow automatically follows the default path or stops when that limit is exceeded. Waiting indefinitely while holding GPU nodes wastes capacity, so always include a step to scale in validation nodes before entering suspend.
 
@@ -303,10 +315,11 @@ flowchart TD
 
 Implementation elements:
 
-- **Spot Placement Score API**: Query the likelihood of acquiring Spot capacity, on a scale of 1–10, for each Region and instance combination. Send workloads to higher-scoring Regions instead of retrying indefinitely in low-scoring Regions.
+- **Spot Placement Score API**: Query the likelihood of acquiring Spot capacity, on a scale of 1–10, for each Region and instance combination. This score is only a recommendation, not an acquisition result, and does not guarantee available capacity or a given interruption risk ([AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html), verified 2026-10-15). When you specify instance types, fewer than three different types make Amazon EC2 return a deliberately low score, so querying GPUs per family or per single instance can misclassify available capacity as unavailable. Query at least three compatible instance types together, and after sending workloads to higher-scoring Regions, still verify real acquisition separately.
 - **Prerequisites for moving across Regions**: Configure Cross-Region Replication (CRR) for the S3 bucket containing weights, and prepare validation clusters in multiple Regions, either as persistent clusters in each Region or clusters created on demand. Validation workloads keep state only in profiles (Git) and S3, making Region migration inexpensive. Preserving this property is a design principle.
 - **Separate acquisition strategies by use case**: For validation and sweeps lasting hours to days, use Spot → Capacity Block. For production serving, combine Spot and On-Demand capacity with KEDA schedules for business-hour scaling and ODCRs.
 - **Karpenter configuration**: Allow multiple instance families such as p5e/p5en/p6 in the NodePool and enable `capacity-type: [spot, on-demand]`, delegating node-level fallback to Karpenter. The pipeline handles Region-level fallback.
+- **Capacity Block targeting**: A Capacity Block is not acquired by opening spot/on-demand in a NodePool. You must find and purchase an available Capacity Block offering in a supported instance type and Region (with a start time up to eight weeks in the future), then launch instances that target that reservation ([AWS docs](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html), verified 2026-10-15). Treat the purchase as a budget-approval step separate from opening spot/on-demand.
 
 ### 4.7 Human Gate — Approval Gate Design
 
@@ -322,7 +335,7 @@ The principle that agents validate and humans approve is enforced through three 
 
 - Send approval requests through Slack/email when a gate is reached, including the report summary and accumulated costs in the message.
 - Record every approval in PR review history to provide an audit trail. Approval through a chat button alone is insufficient.
-- If an automated step between gates fails, retry from the point of failure rather than returning to the gate. Use Argo Workflows retryStrategy and cache completed steps when resubmitting the workflow.
+- If an automated step between gates fails, retry from the point of failure rather than returning to the gate. Resubmission alone does not reuse the outputs of completed steps, so cache completed-step results with Argo Workflows memoization keyed on immutable inputs and configure retries with retryStrategy. Preserve the failed/incomplete status rather than overwriting it from the cache.
 
 ## 5. Mapping to the Seven-Stage Requirements
 
@@ -346,7 +359,7 @@ The principle that agents validate and humans approve is enforced through three 
 
 **Security.** Inject HF tokens and registry credentials through External Secrets Operator. Before publication, verify the integrity of downloaded weights through checksums and confirm the presence of license files. Deny execution of third-party model code (`trust_remote_code`) by default; models that require it must receive explicit approval at G1.
 
-**Failure modes.** The three most common failures are (1) GPU ICE, handled by the Capacity fallback chain; (2) benchmark reproduction failure, handled by one automatic retry followed by a human decision; and (3) OOM, handled by failing only the affected sweep combination and continuing. Handle all three through isolation, recording, and continuation rather than stopping the entire pipeline.
+**Failure modes.** The three most common failures are (1) GPU ICE, handled by the Capacity fallback chain; (2) benchmark reproduction failure, handled by one automatic retry followed by a human decision; and (3) OOM, handled by failing only the affected sweep combination and continuing. Handle all three through isolation, recording, and continuation rather than stopping the entire pipeline. "Continuation" here means continuing independent experiments, combinations, and report generation; it does not mean promoting a failed profile to Generate/Publish. A profile that could not complete validation because of reproduction failure or exhausted capacity is held (as an exception) at G2 and is not advanced to the next stage.
 
 ## 7. Conclusions (Summary)
 

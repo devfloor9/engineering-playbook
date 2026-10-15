@@ -3,9 +3,9 @@ title: 오픈 웨이트 모델 자동 배포·관리 파이프라인 아키텍�
 description: HuggingFace 리더보드 스캔부터 벤치마크 재현, 인스턴스별 성능 프로파일링, 멀티 타깃 배포 가이드 생성, 글로벌 스팟 캐파 확보까지 — 오픈 웨이트 모델 온보딩을 7단계 파이프라인으로 자동화하고 사람은 승인 게이트에만 개입하는 아키텍처를 제시합니다
 created: "2026-07-28"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 19
+reading_time: 23
 tags:
   - mlops
   - argo-workflows
@@ -126,23 +126,29 @@ flowchart TD
 
 감지 소스는 두 가지입니다.
 
-**(a) 리더보드·릴리스 스캔.** Argo Events의 Calendar EventSource가 주기적(예: 6시간)으로 스캐너 Job을 트리거합니다. 스캐너는 huggingface_hub API로 다음을 수집합니다.
+**(a) 리더보드·릴리스 스캔.** Argo Events의 Calendar EventSource가 주기적(예: 6시간)으로 스캐너 Job을 트리거합니다. 다음은 huggingface_hub API 사용법을 보이기 위한 예시 골격이며, 운영 코드가 아닙니다. 실제 스캐너는 아래 주석으로 표시한 생성 시각·파라미터 수·safetensors·라이선스 판정을 채워야 합니다. 코드는 사용하는 huggingface_hub 버전에 맞춰 고정(pin)합니다. 아래 예시는 현재 `list_models` 계약에 맞춰 작성했습니다(2026-10-15 확인, [huggingface_hub HfApi 레퍼런스](https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api)).
 
 ```python
 from huggingface_hub import HfApi
 
 api = HfApi()
-# 최근 7일 내 생성·트렌딩 상위 text-generation 모델
+# 트렌딩 상위 text-generation 모델 (sort 값은 snake_case 'trending_score',
+# 현재 API에는 direction 인자가 없음 — 기본적으로 내림차순 정렬)
 candidates = api.list_models(
     filter="text-generation",
-    sort="trendingScore",
-    direction=-1,
+    sort="trending_score",
     limit=50,
 )
 for m in candidates:
     info = api.model_info(m.id, files_metadata=True)
-    # 게이트 조건: 오픈 웨이트 여부, 라이선스, 파라미터 수, safetensors 존재
-    if info.gated or info.card_data.license not in ALLOWED_LICENSES:
+    card = info.card_data or {}        # card_data가 없을 수 있으므로 가드
+    license = card.get("license")
+    # 게이트 조건은 아래 네 가지를 모두 명시적으로 검사해야 함:
+    #  - created_at가 최근 7일 이내인지 (list_models는 생성 시각으로 필터하지 않음)
+    #  - params_b 등 파라미터 수가 범위 내인지
+    #  - siblings에 *.safetensors 파일이 있는지
+    #  - 라이선스가 허용 목록에 있는지
+    if info.gated or license not in ALLOWED_LICENSES:
         continue
     emit_candidate(info)
 ```
@@ -157,7 +163,7 @@ Open LLM Leaderboard 등 공개 리더보드는 결과 데이터셋을 HF Datase
 # profiles/qwen3-8b.yaml — 모델 프로파일 (SSOT)
 model:
   id: Qwen/Qwen3-8B
-  revision: main            # Validate 통과 시 커밋 SHA로 고정
+  revision: <commit-sha>    # Validate 전에 커밋 SHA/체크섬으로 해석·고정
   license: apache-2.0
   params_b: 8.2
 intake:
@@ -171,11 +177,13 @@ profiles: []                 # 인스턴스별 프로파일링 결과가 채움
 serving: {}                  # CI/CD 스윕의 최적 설정이 채움
 ```
 
-**G1 게이트.** 초안 PR의 승인·머지가 곧 온보딩 착수 승인입니다. CODEOWNERS로 승인자 그룹을 강제하고, 미승인 PR은 파이프라인을 트리거하지 않습니다. 라이선스 비허용·게이티드 모델은 스캐너가 PR 생성 전에 자동 탈락시키되, 탈락 사유를 로그로 남깁니다.
+모델 revision은 Validate 전에 커밋 SHA(및 웨이트 체크섬)로 해석·기록하고, 미러링·테스트부터 이 고정된 revision을 사용합니다. revision을 가변 `main`으로 두고 실행 후에 SHA를 고정하면, 실제로 가져온 웨이트와 다른 버전에 결과가 귀속될 수 있습니다. 고정한 revision은 이후 모든 산출물과 승인 기록에 동일하게 사용합니다.
+
+**G1 게이트.** 초안 PR의 승인·머지가 곧 온보딩 착수 승인입니다. CODEOWNERS 파일만으로는 지정 소유자에게 리뷰를 요청할 뿐 머지를 막지 못하므로, 보호 브랜치 규칙 또는 리포지토리 룰셋에 "code owner 리뷰 필수(require review from Code Owners)"를 설정해 승인을 강제합니다. 승인된 불변 프로파일에서만 파이프라인을 resume/release하도록, 인증된 자동화 주체와 RBAC 바인딩을 함께 둡니다. suspend/resume은 일시정지 프리미티브일 뿐 필수 PR 리뷰가 실제로 이뤄졌음을 보증하지는 않습니다. 라이선스 비허용·게이티드 모델은 스캐너가 PR 생성 전에 자동 탈락시키되, 탈락 사유를 로그로 남깁니다.
 
 ### 4.2 Validate — 로드 검증, 벤치마크 재현, 성능 프로파일링
 
-Validate는 세 개의 독립 판정으로 구성되며, 하나라도 실패하면 프로파일에 실패 사유를 기록하고 중단합니다.
+Validate는 세 개의 독립 판정으로 구성됩니다. 하나라도 실패하면 프로파일에 실패 사유를 기록하고, 해당 프로파일을 Generate/Publish로 진행시키지 않은 채 G2에서 보류(예외) 처리합니다. 이때 중단되는 것은 "실패한 프로파일의 다음 단계 승격"이며, 서로 독립적인 다른 실험·측정과 리포트 생성은 계속 진행할 수 있습니다(6절 실패 모드 참조).
 
 **(a) 모델 로드 스모크 테스트.** 웨이트를 S3에 미러링(HF 직접 다운로드는 1회로 제한)한 뒤, 대상 프레임워크로 서버를 기동해 다음을 확인합니다.
 
@@ -185,7 +193,11 @@ kubectl rollout status deploy/${MODEL}-validate --timeout=30m
 curl -sf http://${SVC}:8000/v1/models | jq -e '.data[0].id'
 
 # 2) 실제 추론 1건 — greedy 출력이 비어있지 않은지 확인
-curl -sf http://${SVC}:8000/v1/chat/completions -d '{
+#    (vLLM OpenAI 호환 chat 엔드포인트는 application/json을 요구하므로
+#     Content-Type 헤더를 명시; curl -d는 기본값이 form 인코딩이라 거부됨)
+curl -sf http://${SVC}:8000/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
   "model": "'"${MODEL}"'",
   "messages": [{"role": "user", "content": "What is 2+2?"}],
   "temperature": 0, "max_tokens": 16
@@ -206,17 +218,17 @@ lm_eval --model local-completions \
 - **재현 실패 ≠ 즉시 탈락.** 공개 점수는 평가 프롬프트·few-shot 수·채점 방식에 민감합니다. 실패 시 자동 재시도(harness 버전·태스크 설정을 모델 카드 명시값으로 교체) 1회 후, 그래도 실패하면 G2 게이트에 "재현 불가" 플래그와 함께 상정합니다. 판정을 사람에게 넘기는 것이지 파이프라인이 임의로 통과시키지 않습니다.
 - **양자화 변형은 별도 프로파일.** FP8·INT4 변형은 원본과 점수가 다른 것이 정상이므로, 원본 대비 열화 허용치(예: -2%p)를 별도 기준으로 둡니다.
 
-**(c) 인스턴스별 성능 프로파일링.** 모델 크기로 후보 인스턴스 집합을 결정하고(예: 8B → g6e.xlarge/g6e.12xlarge/inf2.8xlarge, 70B+ → p5en 계열), 인스턴스 타입별로 genai-perf 동시성 스윕을 실행합니다. 결과는 3개 축으로 정규화합니다.
+**(c) 인스턴스별 성능 프로파일링.** 모델 크기로 후보 인스턴스 집합을 결정하되, 가속기 종류별로 구현 레인을 분리합니다. NVIDIA GPU 레인은 g6e.xlarge/g6e.12xlarge(8B)와 p5en 계열(70B+)처럼 CUDA·vLLM GPU 스택으로 서빙합니다. AWS Neuron 레인은 inf2.8xlarge(Inferentia2)처럼 NVIDIA GPU가 아닌 가속기를 쓰므로, Neuron SDK 런타임과 모델 컴파일(예: transformers-neuronx 또는 vLLM Neuron 백엔드)을 거치고 해당 모델이 Neuron에서 지원되는지 먼저 확인해야 합니다. 레인별로 genai-perf 동시성 스윕을 실행하고, 결과는 3개 축으로 정규화합니다.
 
 **표 3. 성능 프로파일링 3개 정규화 축의 산출식과 용도**
 
 | 축 | 산출식 | 용도 |
 |----|-------|------|
-| 처리량 | output tok/s ÷ GPU 수 | 인스턴스 간 정규화 비교 |
+| 처리량 | 측정 창 내 성공 output tok/s ÷ 가속기 수 (NVIDIA GPU 수 또는 Neuron 코어/칩 수를 레인별로 명시) | 인스턴스 간 정규화 비교 |
 | 지연 | TTFT p50/p99, ITL p50/p99 | SLA 판정 |
-| 비용 | (인스턴스 시간당 단가 ÷ 3600) ÷ (총 tok/s) × 10⁶ = $/1M tokens | 배포 가이드의 권장 인스턴스 선정 |
+| 컴퓨트 비용 | (측정에 과금된 전체 노드의 시간당 단가 합 ÷ 3600) ÷ (측정 창 내 성공 output tok/s) × 10⁶ = $/1M tokens | 배포 가이드의 권장 인스턴스 선정 |
 
-비용 축의 시간당 단가는 실행 시점의 Spot 가격(EC2 DescribeSpotPriceHistory)과 On-Demand 단가를 모두 기록합니다. 프로파일링 결과가 곧 Generate 단계의 "권장 인스턴스" 근거가 됩니다.
+처리량과 비용은 동일하게 "측정 창 내 성공한 output 토큰" 기준으로 계산해 두 축의 분자를 일치시킵니다. 비용 축은 측정에 과금된 노드(멀티 노드면 모든 노드)의 단가를 합산한 **컴퓨트 전용 활성 비용**이며, 유휴·기동·웨이트 로드·부하 생성기·주변 서비스 비용은 포함하지 않습니다. 전체 배포 TCO는 이 값과 별도로 산정합니다. 비용 축의 시간당 단가는 실행 시점의 Spot 가격(EC2 DescribeSpotPriceHistory)과 On-Demand 단가를 모두 기록합니다. 프로파일링 결과가 곧 Generate 단계의 "권장 인스턴스" 근거가 됩니다.
 
 ### 4.3 CI/CD — 스윕·비교·리포트와 SME 개입
 
@@ -250,7 +262,7 @@ sweep:
 
 1. `argo resume` — 제안된 다음 라운드 그대로 진행
 2. 파라미터 오버라이드 후 resume — 탐색 공간 수정 (예: TP=4 제외, INT4 추가)
-3. `argo stop` — 조기 종료 후 현재까지 결과로 리포트 생성
+3. `argo stop` — 조기 종료. `argo stop`은 이후 정상 리포트 스텝을 실행하지 않고 종료 핸들러(onExit)만 실행하므로, "현재까지 결과로 리포트 생성·정리"는 반드시 onExit 종료 핸들러에 배치해야 합니다.
 
 suspend 대기 시간에 상한(예: 4시간)을 두고, 초과 시 기본 경로로 자동 진행할지 중단할지는 조직 정책으로 정합니다. GPU 노드를 점유한 채 무기한 대기하면 캐파 낭비가 되므로, suspend 진입 전에 검증용 노드를 축소(scale-in)하는 스텝을 반드시 포함합니다.
 
@@ -303,10 +315,11 @@ flowchart TD
 
 구현 요소는 다음과 같습니다.
 
-- **Spot Placement Score API**: 리전·인스턴스 조합별 스팟 확보 가능성(1~10)을 사전 조회합니다. 점수가 낮은 리전에서 무한 재시도하는 대신, 점수 상위 리전으로 워크로드를 보냅니다.
+- **Spot Placement Score API**: 리전·인스턴스 조합별 스팟 확보 가능성(1~10)을 사전 조회합니다. 이 점수는 확보 결과가 아니라 권장(recommendation)일 뿐이며, 실제 가용 용량이나 중단 위험을 보장하지 않습니다([AWS 문서](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html), 2026-10-15 확인). 또한 인스턴스 유형을 지정할 때 서로 다른 유형이 3개 미만이면 Amazon EC2가 의도적으로 낮은 점수를 반환하므로, 패밀리/단일 인스턴스 단위로 GPU를 조회하면 가용한 용량도 "불가"로 오분류될 수 있습니다. 따라서 호환 인스턴스 유형을 3개 이상으로 묶어 조회하고, 점수가 높은 리전으로 워크로드를 보낸 뒤에도 실제 확보 성공 여부를 별도로 확인합니다.
 - **리전 간 이동의 전제**: 웨이트 S3 버킷의 크로스 리전 복제(CRR)와, 검증 클러스터의 다중 리전 준비(리전별 상시 클러스터 또는 필요 시 생성)가 선행되어야 합니다. 검증 워크로드는 상태가 프로파일(Git)과 S3에만 있으므로 리전 이동 비용이 낮습니다 — 이 속성을 유지하는 것이 설계 원칙입니다.
 - **용도별 확보 전략 분리**: 검증·스윕(수 시간~수 일)은 Spot → Capacity Block 순서, 프로덕션 서빙은 Spot + On-Demand 혼합에 KEDA 스케줄(업무 시간 스케일)과 ODCR을 조합합니다.
 - **Karpenter 설정**: NodePool에 인스턴스 패밀리를 복수 허용(p5e/p5en/p6 등)하고 `capacity-type: [spot, on-demand]`를 함께 열어, 노드 단위 폴백은 Karpenter에 위임합니다. 리전 단위 폴백만 파이프라인이 담당합니다.
+- **Capacity Block 타기팅**: Capacity Block은 NodePool에 spot/on-demand를 여는 것으로 확보되지 않습니다. 지원되는 인스턴스 유형·리전에서 가용한 Capacity Block 오퍼링을 조회·구매하고(미래 시작 시각은 최대 8주 이내), 그 예약을 대상으로 지정해 인스턴스를 기동해야 합니다([AWS 문서](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-capacity-blocks.html), 2026-10-15 확인). 구매는 spot/on-demand 개방과 별개의 예산 승인 단계로 다룹니다.
 
 ### 4.7 Human gate — 승인 게이트 설계
 
@@ -322,7 +335,7 @@ flowchart TD
 
 - 게이트 도달 시 Slack/이메일로 승인 요청을 발송하고, 요청 메시지에 리포트 요약과 비용 누계를 포함합니다.
 - 모든 승인은 PR 리뷰 기록으로 남아 감사 추적(audit trail)이 됩니다. 채팅 버튼 승인만으로 처리하지 않습니다.
-- 게이트 간 자동 진행 구간에서 실패하면 해당 게이트로 되돌아가는 것이 아니라, 실패 지점부터 재시도합니다(Argo Workflows retryStrategy + 워크플로 재제출 시 완료 스텝 캐시).
+- 게이트 간 자동 진행 구간에서 실패하면 해당 게이트로 되돌아가는 것이 아니라, 실패 지점부터 재시도합니다. 재제출만으로는 완료된 스텝의 출력이 자동으로 재사용되지 않으므로, 불변 입력을 키로 하는 Argo Workflows memoization으로 완료 스텝 결과를 캐시하고 retryStrategy로 재시도를 구성합니다. 실패·미완료 상태는 캐시로 덮어쓰지 않고 그대로 보존합니다.
 
 ## 5. 7단계 요건 충족 매핑
 
@@ -346,7 +359,7 @@ flowchart TD
 
 **보안.** HF 토큰·레지스트리 자격증명은 External Secrets Operator로 주입하고, 다운로드한 웨이트는 공개 전 무결성(체크섬)과 라이선스 파일 존재를 검증합니다. 서드파티 모델 코드 실행(`trust_remote_code`)은 기본 거부하고, 필요한 모델은 G1에서 명시 승인 항목으로 다룹니다.
 
-**실패 모드.** 가장 흔한 실패는 (1) GPU ICE — Capacity 폴백 체인이 흡수, (2) 벤치마크 재현 실패 — 자동 재시도 1회 후 사람 판정, (3) OOM — 스윕 매트릭스에서 해당 조합만 실패 처리하고 계속 진행, 세 가지입니다. 셋 모두 파이프라인 중단이 아니라 격리·기록·계속 원칙으로 처리합니다.
+**실패 모드.** 가장 흔한 실패는 (1) GPU ICE — Capacity 폴백 체인이 흡수, (2) 벤치마크 재현 실패 — 자동 재시도 1회 후 사람 판정, (3) OOM — 스윕 매트릭스에서 해당 조합만 실패 처리하고 계속 진행, 세 가지입니다. 셋 모두 전체 파이프라인을 멈추는 대신 격리·기록·계속 원칙으로 처리합니다. 다만 "계속"은 서로 독립적인 실험·조합과 리포트 생성을 이어가는 것이지, 실패한 프로파일을 Generate/Publish로 승격시킨다는 뜻이 아닙니다. 재현 실패나 용량 소진으로 검증을 완료하지 못한 프로파일은 G2에서 보류(예외) 처리하고, 다음 단계로 진행시키지 않습니다.
 
 ## 7. 결론 (Summary)
 
