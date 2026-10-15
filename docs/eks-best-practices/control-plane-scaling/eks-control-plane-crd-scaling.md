@@ -60,6 +60,8 @@ Key points:
 
 etcd is the distributed key-value store that holds all Kubernetes state, including Pods, Services, and CRD objects. The following characteristics make it a key control plane performance bottleneck:
 
+**Table 1. etcd characteristics and their impact on CRD operations**
+
 | Characteristic | Description | CRD Impact |
 |------|------|---------|
 | **DB Size Limit** | Standard tier: 8GB; Provisioned tier: 16GB | More CRD objects increase database size |
@@ -108,12 +110,16 @@ PCP provisions the selected tier’s capacity in advance. Actual API throughput 
 
 ### 3.2 Two Operating Modes
 
+**Table 2. Differences between Standard and Provisioned operating modes**
+
 | Mode | Description |
 |------|------|
 | **Standard** (dynamic mode) | Existing behavior: scales automatically with load and scales down conservatively when load decreases |
 | **Provisioned** (provisioned mode) | Customers select XL, 2XL, 4XL, or 8XL. There is no automatic transition between tiers; an administrator changes the tier or configures separate automation |
 
 ### 3.3 Tier Specifications and Pricing
+
+**Table 3. etcd capacity, SLA, and hourly price by PCP tier**
 
 | Tier | etcd DB | SLA | Hourly Price |
 |------|---------|-----|----------|
@@ -128,6 +134,8 @@ PCP provisions the selected tier’s capacity in advance. Actual API throughput 
 The [official tier specifications](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html) give Standard an 8 GB etcd limit and XL, 2XL, 4XL, and 8XL the same 16 GB limit. GB follows the official documentation’s unit. Raising a Provisioned tier does not increase etcd capacity. Check the Kubernetes-version-specific API concurrency and scheduling settings.
 
 ### 3.4 Features Available Only in Provisioned Tiers
+
+**Table 4. Features available in Standard versus Provisioned (XL and above)**
 
 | Feature | Standard | XL and Above |
 |------|----------|--------|
@@ -180,6 +188,8 @@ aws eks describe-cluster --name example
 
 ### 3.6 PCP Cluster Properties {#37-pcp-cluster-properties}
 
+**Table 5. PCP-related cluster properties**
+
 | Property | Description |
 |------|------|
 | `controlPlaneScalingConfig.tier` | Currently provisioned tier (Standard/XL/2XL/4XL/8XL) |
@@ -194,6 +204,8 @@ Operating a CRD-based platform requires an accurate understanding of its control
 
 etcd is the most important area of impact.
 
+**Table 6. Factors by which CRDs affect etcd, and their impact**
+
 | Factor | Mechanism | Impact |
 |---------|---------|-------|
 | **DB Size Growth** | CRD objects occupy etcd storage | High |
@@ -202,6 +214,8 @@ etcd is the most important area of impact.
 | **List Call Cost** | CRDs use JSON encoding rather than protobuf, creating a performance bottleneck | High |
 
 **etcd database size limits by PCP tier:**
+
+**Table 7. etcd DB size limit and per-object limit by PCP tier**
 
 | Tier | DB Size Limit | Per-Object Limit |
 |------|-----------|--------------|
@@ -219,6 +233,8 @@ CRD-related API server performance issues include:
 ### 4.3 Mapping Symptoms to Causes
 
 The following diagram maps operational symptoms to their causes:
+
+**Figure 1. Mapping control plane symptoms to their root causes**
 
 ```mermaid
 flowchart LR
@@ -268,6 +284,8 @@ For clusters running Kubernetes 1.28 or later, key control plane metrics are aut
 
 **Key vended metrics:**
 
+**Table 8. Key CloudWatch vended metrics by component and priority**
+
 | Component | Metric | Description | Priority |
 |---------|--------|------|-------|
 | API Server | `apiserver_request_total` | Total API requests | Essential |
@@ -281,6 +299,8 @@ For clusters running Kubernetes 1.28 or later, key control plane metrics are aut
 | Scheduler | `scheduler_schedule_attempts_UNSCHEDULABLE` | Unschedulable attempts | Recommended |
 
 **Tier utilization metrics:**
+
+**Table 9. Metrics for monitoring PCP tier utilization**
 
 | Metric | Description | Usage |
 |--------|------|------|
@@ -342,6 +362,8 @@ rules:
 
 **KCM/KSH metrics particularly useful for CRD operations:**
 
+**Table 10. KCM/KSH metrics useful for CRD operations**
+
 | Metric | Source | Description |
 |--------|------|------|
 | `workqueue_depth` | KCM | Work queue depth per controller; indicates CRD controller load |
@@ -362,6 +384,8 @@ EKS Console → Observability tab → Add scraper → Select AMP Workspace
 ### 5.3 Control Plane Logging
 
 EKS can export five types of control plane logs to CloudWatch Logs:
+
+**Table 11. Control plane log types and CRD use cases**
 
 | Log Type | Description | CRD Use Case |
 |---------|------|------------|
@@ -392,6 +416,8 @@ fields @timestamp, userAgent, verb, requestURI
 ### 5.4 Cluster Insights
 
 EKS Cluster Insights automatically scans clusters to detect potential issues and provide recommendations:
+
+**Table 12. Cluster Insights categories and scan frequency**
 
 | Category | Description | Frequency |
 |---------|------|------|
@@ -425,6 +451,8 @@ EKS Console → Select cluster → Observability tab
 
 ### 5.6 Monitoring Channel Comparison
 
+**Table 13. Monitoring channels compared by cost, setup, data type, and PCP support**
+
 | Channel | Cost | Setup | Data Type | PCP Support |
 |------|------|------|----------|---------|
 | CloudWatch Vended Metrics | Free (AWS/EKS) | Automatic (v1.28+) | Key Kubernetes metrics (time series) | Includes tier usage metrics |
@@ -450,6 +478,8 @@ EKS Console → Select cluster → Observability tab
 - Remove unused CRDs.
 
 ### 6.3 Optimize Controllers
+
+**Table 14. Correct and discouraged usage by CRD controller pattern**
 
 | Pattern | Correct Usage | Usage to Avoid |
 |------|-----------|-------------|
@@ -481,6 +511,8 @@ EKS Console → Select cluster → Observability tab
 
 Do not select a tier from node count alone. Narrow the candidates using the conditions below, then validate API latency, APF seat utilization, and scheduling rate under representative peak load.
 
+**Table 15. PCP mode/tier candidates by validation condition**
+
 | Validation Condition | Mode/Tier to Consider | Check |
 |---|---|---|
 | Standard meets latency and throughput targets with sufficient etcd headroom | Standard | Default choice for most use cases |
@@ -491,6 +523,8 @@ Do not select a tier from node count alone. Narrow the candidates using the cond
 ### 7.2 Control Plane Metrics Reference by Scale {#control-plane-metrics-reference-by-scale}
 
 Do not use unsupported industry averages for QPS, object counts, or latency by node count to select a tier. Separate published capacity limits from operating targets measured for your own workload.
+
+**Table 16. Measurement and decision basis for each control plane metric**
 
 | Metric | Measurement | Decision Basis |
 |---|---|---|
@@ -521,6 +555,8 @@ These are **illustrative operating thresholds**, not AWS default alarms. For the
 ### 7.3 Key Alarm Configuration
 
 The following thresholds and durations are operating examples. For one-minute CloudWatch metrics, use `Sum` for request/scheduling counts and `Maximum` for etcd usage. Do not interpret missing data as zero usage. Tune these examples to your SLOs and normal load.
+
+**Table 17. Key alarm thresholds, severity, and response actions (operating examples)**
 
 | Alarm Name | Metric | Threshold | Severity | Response |
 |---------|--------|-------|-------|---------|
@@ -556,6 +592,8 @@ Integrated Monitoring Architecture
 
 ### 7.5 Phased Adoption Roadmap {#74-phased-adoption-roadmap}
 
+**Table 18. Phased monitoring and PCP adoption roadmap**
+
 | Phase | Duration | Main Activities |
 |------|------|---------|
 | **Phase 1: Basic Setup** | 1 week | Configure CloudWatch alarms and enable control plane logging (audit + controllerManager) |
@@ -564,6 +602,8 @@ Integrated Monitoring Architecture
 | **Phase 4: Optimization** | Ongoing | Use Cluster Insights, adjust tiers based on monitoring data, and tune CRD controllers |
 
 ### 7.6 Summary of Responses to Key Challenges {#75-summary-of-responses-to-key-challenges}
+
+**Table 19. EKS capabilities and CRD design responses by key challenge**
 
 | Challenge | EKS Capabilities | CRD Design Response |
 |------|-----------|------------|

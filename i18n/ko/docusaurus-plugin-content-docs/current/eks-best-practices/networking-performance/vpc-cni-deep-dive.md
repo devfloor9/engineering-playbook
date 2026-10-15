@@ -36,6 +36,8 @@ Amazon VPC CNI(amazon-vpc-cni-k8s)는 EKS의 기본 네트워크 플러그인입
 
 VPC CNI는 단일 바이너리가 아니라 역할이 다른 두 컴포넌트로 구성됩니다.
 
+**표 1. VPC CNI를 구성하는 두 컴포넌트의 실행 형태와 역할**
+
 | 컴포넌트 | 실행 형태 | 역할 |
 |---|---|---|
 | CNI 플러그인 바이너리 (`aws-cni`) | kubelet이 Pod 생성/삭제 시마다 호출 | veth pair 생성, 라우팅 규칙 설정 등 네트워크 배선 |
@@ -48,6 +50,8 @@ CNI 바이너리는 Pod가 뜰 때 로컬 ipamd에 gRPC로 IP 할당을 요청�
 ## 아키텍처: L3 Routed Mode 데이터패스
 
 VPC CNI는 노드 내부에 L2 브리지를 만들지 않습니다. Pod마다 veth pair를 만들고 정적 라우팅과 정책 라우팅(`ip rule`)만으로 패킷을 전달하는 L3 routed mode를 사용합니다.
+
+**그림 1. VPC CNI의 L3 Routed Mode 데이터패스**
 
 ```mermaid
 flowchart LR
@@ -96,6 +100,8 @@ default via 169.254.1.1 dev eth0
 
 트래픽 방향에 따라 서로 다른 라우팅 테이블이 사용됩니다.
 
+**표 2. 트래픽 방향별 라우팅 테이블과 동작**
+
 | 방향 | 사용 테이블 | 동작 |
 |---|---|---|
 | VPC → Pod (ingress) | main 테이블 | `Pod IP/32 → host veth` 호스트 라우트로 전달 |
@@ -108,6 +114,8 @@ egress에 ENI별 테이블이 필요한 이유는 보조 ENI에 할당된 IP의 
 ### Warm Pool: 3개의 타깃 변수
 
 ipamd는 Pod 생성 요청에 즉시 응답하기 위해 여유 IP를 미리 확보(warm pool)합니다. 풀 크기는 세 개의 절대치 타깃 변수 조합으로 결정됩니다.
+
+**표 3. Warm Pool 크기를 결정하는 세 타깃 변수**
 
 | 변수 | 기본값 | 의미 |
 |---|---|---|
@@ -144,6 +152,8 @@ ipamd는 30초 주기로 초과분 IP/ENI 반납을 시도하지만, 이 축소 
 
 VPC CNI v1.14.0+는 Kubernetes NetworkPolicy를 네이티브로 지원하며, 적용 구조는 두 계층으로 분리됩니다.
 
+**그림 2. NetworkPolicy 적용 구조 — 컨트롤러와 eBPF 에이전트의 분업**
+
 ```mermaid
 flowchart TB
     NP["NetworkPolicy<br/>(사용자 정의)"] --> NPC["Network Policy Controller<br/>(EKS 컨트롤 플레인, AWS 관리)"]
@@ -164,6 +174,8 @@ flowchart TB
 ## 운영 고려사항
 
 ### 관측 지점
+
+**표 4. ipamd·네트워크 관측 지점과 확인 내용**
 
 | 지점 | 내용 |
 |---|---|

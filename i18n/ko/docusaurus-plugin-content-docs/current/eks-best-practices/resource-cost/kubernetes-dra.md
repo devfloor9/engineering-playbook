@@ -33,6 +33,8 @@ DRA(Dynamic Resource Allocation)는 GPU 전용 기능이 아니라, Kubernetes�
 
 Kubernetes의 기존 확장 리소스 모델(Device Plugin)은 디바이스를 `nvidia.com/gpu: 1`처럼 **불투명한 정수 카운터**로만 표현합니다. 이 모델은 단순하고 안정적이지만, 다음 요구를 표현할 수 없습니다.
 
+**표 1. Device Plugin 모델이 표현할 수 없는 요구**
+
 | 한계 | 설명 |
 |---|---|
 | **정적 등록** | 노드 시작 시 디바이스 수가 고정. 런타임 재구성(파티셔닝 변경 등) 불가 |
@@ -49,6 +51,8 @@ DRA는 이 한계를 해결하기 위해 디바이스의 **속성과 용량을 �
 
 DRA는 `resource.k8s.io/v1` API 그룹의 네 가지 오브젝트로 구성됩니다.
 
+**표 2. DRA의 네 가지 API 오브젝트와 역할**
+
 | 오브젝트 | 생성 주체 | 역할 |
 |---|---|---|
 | **DeviceClass** | 클러스터 관리자 / 드라이버 | 디바이스 카테고리 정의 (예: `gpu.nvidia.com`, `mrdma.google.com`). 공통 선택 조건·설정 포함 |
@@ -57,6 +61,8 @@ DRA는 `resource.k8s.io/v1` API 그룹의 네 가지 오브젝트로 구성됩�
 | **ResourceClaimTemplate** | 워크로드 운영자 | Pod마다 ResourceClaim을 자동 생성하는 템플릿 (Deployment 등 다중 복제본에 사용) |
 
 ### 할당 흐름
+
+**그림 1. DRA 디바이스 할당 흐름**
 
 ```mermaid
 flowchart LR
@@ -96,6 +102,8 @@ spec:
 
 ### 버전 히스토리
 
+**표 3. Kubernetes 버전별 DRA 상태**
+
 | K8s 버전 | 상태 | 비고 |
 |---|---|---|
 | 1.26 | Alpha | classic DRA (KEP-3063, 이후 폐기) |
@@ -109,6 +117,8 @@ spec:
 ## DRA가 다루는 리소스 유형
 
 DRA의 확장점은 드라이버입니다. 벤더·프로젝트가 자신의 디바이스용 드라이버를 작성해 ResourceSlice를 발행하면, 스케줄러는 디바이스 종류를 구분하지 않고 동일한 매칭 로직으로 할당합니다.
+
+**표 4. DRA가 다루는 리소스 유형과 대표 드라이버**
 
 | 리소스 유형 | 대표 드라이버 | 대상 디바이스 | 성숙도 (2026.07) |
 |---|---|---|---|
@@ -155,6 +165,8 @@ NVIDIA DRA 드라이버의 ComputeDomain 서브시스템은 Multi-Node NVLink로
 
 Device Plugin 모델로는 표현할 수 없는 DRA 고유 기능들입니다. 코어 GA(1.34) 이후에도 개별 기능은 성숙도가 다르므로 도입 전 확인이 필요합니다.
 
+**표 5. DRA 고유 고급 기능과 성숙도**
+
 | 기능 | 설명 | 성숙도 (K8s 1.36 기준) |
 |---|---|---|
 | **Prioritized list** (`firstAvailable`) | "H100 우선, 없으면 A100" 같은 대체 순위 요청 | Stable (1.36) |
@@ -170,6 +182,8 @@ Device Plugin 모델로는 표현할 수 없는 DRA 고유 기능들입니다. �
 
 ### 클러스터 요건
 
+**표 6. DRA 도입을 위한 클러스터 요건**
+
 | 항목 | 요건 |
 |---|---|
 | Kubernetes 버전 | 1.34+ (DRA 코어 GA·기본 활성화). EKS 1.34/1.35는 `resource.k8s.io/v1` 자동 서빙 |
@@ -179,6 +193,8 @@ Device Plugin 모델로는 표현할 수 없는 DRA 고유 기능들입니다. �
 | Beta 기능 사용 시 | 해당 feature gate·API 그룹 활성화 (EKS는 컨트롤 플레인 관리형이므로 지원 범위 확인 필요) |
 
 ### Device Plugin vs DRA 판단 기준
+
+**표 7. 상황별 Device Plugin과 DRA 선택 기준**
 
 | 상황 | 권장 |
 |---|---|

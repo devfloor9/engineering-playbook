@@ -73,6 +73,8 @@ Security governance goes beyond technical controls — it embeds organizational 
 
 ## Architecture Patterns
 
+**Figure 1. EKS Defense in Depth security architecture**
+
 ```mermaid
 graph TB
     subgraph External["External Access"]
@@ -160,6 +162,8 @@ Compliance requires integrating technical implementation with organizational pro
 
 In EKS environments, compliance requirements map to technical controls.
 
+**Table 1. EKS implementation for each compliance requirement**
+
 | Requirement | Implementation |
 |-------------|----------------|
 | Access control | AWS IAM + Kubernetes RBAC (Access Entry, Pod Identity) |
@@ -184,6 +188,8 @@ Incident response follows a repeatable procedure: detection → analysis → con
 ## Security Roadmap 2025
 
 ### Latest Security Features (AWS re:Invent 2025)
+
+**Table 2. Latest re:Invent 2025 security features, status, and impact**
 
 | Feature | Status | Impact |
 |---------|--------|--------|

@@ -29,6 +29,8 @@ import TabItem from '@theme/TabItem';
 
 이 쿡북은 다음 8가지 기능을 AWS Native(LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway별로 구현하는 방법을 다룹니다. URL Rewrite와 헤더 조작은 Gateway API v1 표준 기능으로 모든 구현체에서 동일하게 작동합니다.
 
+**표 1. 쿡북에서 다루는 8가지 기능과 표준 여부**
+
 | # | 기능 | 표준 여부 |
 |---|------|----------|
 | 1 | 인증 (Basic Auth 대체) | 구현체별 상이 |

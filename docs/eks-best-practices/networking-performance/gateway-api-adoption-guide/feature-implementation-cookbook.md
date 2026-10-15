@@ -29,6 +29,8 @@ This document is a deep-dive guide for the [Gateway API Adoption Guide](/docs/ek
 
 This cookbook covers how to implement the following 8 features for AWS Native (LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, and kGateway. URL Rewrite and header manipulation are Gateway API v1 standard features that work identically across all implementations.
 
+**Table 1. The eight features covered in this cookbook and their standard status**
+
 | # | Feature | Standard? |
 |---|---------|-----------|
 | 1 | Authentication (Basic Auth replacement) | Per-implementation |

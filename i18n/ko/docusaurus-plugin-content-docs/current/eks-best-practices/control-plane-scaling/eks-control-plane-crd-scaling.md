@@ -60,6 +60,8 @@ EKS Control Plane (AWS 관리형)
 
 etcd는 Kubernetes의 모든 상태(Pod, Service, CRD 오브젝트 등)를 저장하는 분산 키-값 저장소입니다. Control Plane 성능의 핵심 병목이 되는 이유:
 
+**표 1. etcd 특성과 CRD 운영에 미치는 영향**
+
 | 특성 | 설명 | CRD 영향 |
 |------|------|---------|
 | **DB Size 한도** | Standard 티어 8GB, Provisioned 티어 16GB | CRD 오브젝트가 많을수록 DB 크기 증가 |
@@ -108,12 +110,16 @@ PCP는 선택한 티어의 용량을 선제적으로 확보합니다. 실제 API
 
 ### 3.2 두 가지 운영 모드
 
+**표 2. Standard와 Provisioned 운영 모드의 차이**
+
 | 모드 | 설명 |
 |------|------|
 | **Standard** (동적 모드) | 기존과 동일. 자동으로 부하에 따라 스케일링. 부하 감소 시 보수적으로 스케일다운 |
 | **Provisioned** (프로비저닝 모드) | 고객이 XL/2XL/4XL/8XL 중 원하는 티어를 선택. 티어 간 자동 전환은 없으며, 관리자가 변경하거나 별도의 자동화를 구성해야 함 |
 
 ### 3.3 티어별 사양 및 가격
+
+**표 3. PCP 티어별 etcd 용량·SLA·시간당 가격**
 
 | 티어 | etcd DB | SLA | 시간당 가격 |
 |------|---------|-----|----------|
@@ -128,6 +134,8 @@ PCP는 선택한 티어의 용량을 선제적으로 확보합니다. 실제 API
 [공식 티어 사양](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)에 따르면 Standard의 etcd 한도는 8 GB, XL·2XL·4XL·8XL은 모두 16 GB입니다. GB 표기는 공식 문서의 단위를 따릅니다. Provisioned 내에서 티어를 높여도 etcd 용량은 증가하지 않습니다. API 동시 처리 seat와 스케줄링 설정은 Kubernetes 버전별 사양을 확인하세요.
 
 ### 3.4 Provisioned 티어에서만 사용 가능한 기능
+
+**표 4. Standard와 Provisioned(XL 이상)에서 사용 가능한 기능 비교**
 
 | 기능 | Standard | XL 이상 |
 |------|----------|--------|
@@ -180,6 +188,8 @@ aws eks describe-cluster --name example
 
 ### 3.6 PCP 관련 클러스터 속성 {#37-pcp-관련-클러스터-속성}
 
+**표 5. PCP 관련 클러스터 속성**
+
 | 속성 | 설명 |
 |------|------|
 | `controlPlaneScalingConfig.tier` | 현재 프로비저닝된 티어 (Standard/XL/2XL/4XL/8XL) |
@@ -192,6 +202,8 @@ CRD 기반 플랫폼을 운영할 때 Control Plane에 미치는 영향을 정�
 
 ### 4.1 etcd에 대한 영향 (가장 중요)
 
+**표 6. CRD가 etcd에 미치는 영향 요인과 영향도**
+
 | 영향 요인 | 메커니즘 | 영향도 |
 |---------|---------|-------|
 | **DB Size 증가** | CRD 오브젝트가 etcd 저장소를 점유 | 높음 |
@@ -200,6 +212,8 @@ CRD 기반 플랫폼을 운영할 때 Control Plane에 미치는 영향을 정�
 | **List Call 비용** | CRD는 JSON 인코딩을 사용 (protobuf 아님) → 성능 병목 | 높음 |
 
 **etcd DB Size 제한 (PCP 티어별):**
+
+**표 7. PCP 티어별 etcd DB Size 한도와 단일 오브젝트 제한**
 
 | 티어 | DB Size 한도 | 단일 오브젝트 제한 |
 |------|-----------|--------------|
@@ -217,6 +231,8 @@ CRD 관련 API Server 성능 이슈:
 ### 4.3 증상별 원인 매핑
 
 실제 운영 환경에서 발생하는 증상과 그 원인을 매핑하면 다음과 같습니다:
+
+**그림 1. Control Plane 증상과 근본 원인 매핑**
 
 ```mermaid
 flowchart LR
@@ -268,6 +284,8 @@ K8s 1.28 이상 클러스터에서 추가 비용 없이 자동으로 CloudWatch 
 
 **주요 Vended Metrics:**
 
+**표 8. 컴포넌트별 주요 CloudWatch Vended Metrics와 중요도**
+
 | 컴포넌트 | 메트릭 | 설명 | 중요도 |
 |---------|--------|------|-------|
 | API Server | `apiserver_request_total` | 총 API 요청 수 | 필수 |
@@ -281,6 +299,8 @@ K8s 1.28 이상 클러스터에서 추가 비용 없이 자동으로 CloudWatch 
 | Scheduler | `scheduler_schedule_attempts_UNSCHEDULABLE` | 스케줄 불가 수 | 권장 |
 
 **티어 사용량 모니터링 메트릭:**
+
+**표 9. PCP 티어 사용량 모니터링에 쓰는 메트릭**
 
 | 메트릭 | 설명 | 활용 |
 |--------|------|------|
@@ -342,6 +362,8 @@ rules:
 
 **CRD 운영에 특히 유용한 KCM/KSH 메트릭:**
 
+**표 10. CRD 운영에 유용한 KCM/KSH 메트릭**
+
 | 메트릭 | 소스 | 설명 |
 |--------|------|------|
 | `workqueue_depth` | KCM | 컨트롤러별 작업 큐 깊이 — CRD 컨트롤러 부하 확인 |
@@ -362,6 +384,8 @@ EKS Console → Observability 탭 → Add scraper → AMP Workspace 선택
 ### 5.3 Control Plane Logging
 
 EKS는 5가지 Control Plane 로그를 CloudWatch Logs로 내보낼 수 있습니다:
+
+**표 11. Control Plane 로그 유형과 CRD 활용 사례**
 
 | 로그 유형 | 설명 | CRD 활용 사례 |
 |---------|------|------------|
@@ -392,6 +416,8 @@ fields @timestamp, userAgent, verb, requestURI
 ### 5.4 Cluster Insights
 
 EKS Cluster Insights는 자동으로 클러스터를 스캔하여 잠재적 문제를 탐지하고 권장사항을 제공합니다:
+
+**표 12. Cluster Insights 카테고리와 점검 주기**
 
 | 카테고리 | 설명 | 주기 |
 |---------|------|------|
@@ -425,6 +451,8 @@ EKS Console → Cluster 선택 → Observability 탭
 
 ### 5.6 모니터링 채널 비교표
 
+**표 13. 모니터링 채널별 비용·설정·데이터 유형·PCP 지원 비교**
+
 | 채널 | 비용 | 설정 | 데이터 유형 | PCP 지원 |
 |------|------|------|----------|---------|
 | CloudWatch Vended Metrics | 무료 (AWS/EKS) | 자동 (v1.28+) | 핵심 K8s 메트릭 (시계열) | 티어 사용량 메트릭 포함 |
@@ -450,6 +478,8 @@ EKS Console → Cluster 선택 → Observability 탭
 - 사용하지 않는 CRD는 반드시 정리
 
 ### 6.3 컨트롤러 최적화
+
+**표 14. CRD 컨트롤러 패턴별 올바른 사용법과 피해야 할 사용법**
 
 | 패턴 | 올바른 사용법 | 피해야 할 사용법 |
 |------|-----------|-------------|
@@ -481,6 +511,8 @@ EKS Console → Cluster 선택 → Observability 탭
 
 노드 수만으로 티어를 결정하지 않습니다. 아래는 후보를 좁히는 조건이며, 대표 피크 부하에서 API 지연·APF seat 사용량·스케줄링 속도를 검증해 선택합니다.
 
+**표 15. 검증 조건에 따른 PCP 모드/티어 후보**
+
 | 검증 조건 | 검토할 모드/티어 | 확인 사항 |
 |---|---|---|
 | Standard에서 목표 지연과 처리량을 충족하고 etcd 여유가 충분함 | Standard | 대부분의 사용 사례에 대한 기본 선택 |
@@ -491,6 +523,8 @@ EKS Console → Cluster 선택 → Observability 탭
 ### 7.2 규모별 컨트롤 플레인 메트릭 참고치
 
 노드 수별 QPS·오브젝트 수·지연 시간의 산업 평균을 티어 선택 기준으로 사용하지 않습니다. 공개된 용량 한도와 자체 워크로드에서 측정한 운영 기준을 구분하세요.
+
+**표 16. 컨트롤 플레인 메트릭별 측정 기준과 판단 기준**
 
 | 메트릭 | 측정 기준 | 판단 기준 |
 |---|---|---|
@@ -521,6 +555,8 @@ EKS Console → Cluster 선택 → Observability 탭
 ### 7.3 핵심 알람 설정
 
 다음 임계값과 지속 시간은 운영 예시입니다. CloudWatch의 1분 주기 지표를 기준으로 요청·스케줄링 건수는 `Sum`, etcd 사용량은 `Maximum`을 사용하며, 누락 데이터를 정상 사용량 0으로 간주하지 않습니다. 자체 SLO와 정상 부하를 바탕으로 조정하세요.
+
+**표 17. 핵심 알람의 임계값·심각도·대응 액션(운영 예시)**
 
 | 알람 이름 | 메트릭 | 임계값 | 심각도 | 대응 액션 |
 |---------|--------|-------|-------|---------|
@@ -556,6 +592,8 @@ EKS Console → Cluster 선택 → Observability 탭
 
 ### 7.5 단계별 도입 로드맵 {#74-단계별-도입-로드맵}
 
+**표 18. 단계별 모니터링·PCP 도입 로드맵**
+
 | 단계 | 기간 | 주요 활동 |
 |------|------|---------|
 | **Phase 1: 기본 설정** | 1주 | CloudWatch 알람 설정, Control Plane Logging 활성화 (audit + controllerManager) |
@@ -564,6 +602,8 @@ EKS Console → Cluster 선택 → Observability 탭
 | **Phase 4: 최적화** | 지속 | Cluster Insights 활용, 모니터링 데이터 기반 티어 조정, CRD 컨트롤러 튜닝 |
 
 ### 7.6 최종 요약 — 주요 과제별 대응 전략 {#75-최종-요약--주요-과제별-대응-전략}
+
+**표 19. 주요 과제별 EKS 기능 활용과 CRD 설계 대응**
 
 | 과제 | EKS 기능 활용 | CRD 설계 대응 |
 |------|-----------|------------|

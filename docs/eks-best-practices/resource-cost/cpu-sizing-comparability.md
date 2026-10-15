@@ -50,6 +50,8 @@ Benchmark harness implementation and load tool deployment are out of scope; for 
 
 CPU utilization changes meaning as it passes from physical hardware up to the Pod-level observation. Other workloads, settings, and the scheduler intervene at each layer, so the CPU% seen at the top does not reflect the state of the layers below. Observation starts at the bottom of this stack: the kernel records throttling and stall time per cgroup in `cpu.stat` and `cpu.pressure`, the cAdvisor built into the kubelet exposes those values as metrics, and Prometheus or CloudWatch only collect them.
 
+**Figure 1. Layered structure of CPU utilization from physical core to Pod observation**
+
 ```mermaid
 flowchart TB
     PC["Physical core<br/>(shared LLC and memory bandwidth, NUMA)"] --> VCPU["vCPU<br/>(logical CPU or physical core by instance type)"]
@@ -79,6 +81,8 @@ Fix the CPU% denominator first: CPU-seconds per elapsed second, utilization rela
 ## Comparable KPIs
 
 To compare sizes and generations, measure workload outcomes under identical conditions instead of utilization.
+
+**Table 1. Comparable workload KPIs and what each tells you**
 
 | KPI | Definition | What it tells you |
 |---|---|---|
@@ -118,6 +122,8 @@ Scheduling wait is a different signal from throttling: time spent in the run que
 ### Ratios and minimum size
 
 Plan placement using both the Pod's CPU and memory requests and the node's available capacity. The ratios below are starting examples in vCPU:GiB. Check the actual instance specification, DaemonSet and system reservations, and workload measurements before choosing values. The table does not imply that every service needs a two-vCPU minimum.
+
+**Table 2. CPU:memory ratio and candidate instance families by Pod profile (review example)**
 
 | Pod profile | CPU:mem ratio | Candidate family | Example CPU request | QoS and policy |
 |---|---|---|---|---|
@@ -276,6 +282,8 @@ For each (instance-size x generation) target NodePool:
 - eBPF requirements depend on the tool and build. CO-RE tools may require BTF, while traditional BCC tools can compile against kernel headers using LLVM/Clang. Check the selected `bcc`/`bpftrace` or [Inspektor Gadget](https://www.inspektor-gadget.io/) version's kernel, permissions and collection overhead.
 
 ## Troubleshooting
+
+**Table 3. CPU sizing troubleshooting — symptom, cause, action, and verification**
 
 | Symptom | Cause | Action | How to verify |
 |---|---|---|---|

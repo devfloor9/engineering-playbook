@@ -33,6 +33,8 @@ First evaluate traffic predictability, synchronous response requirements, tolera
 
 Each approach reduces a different part of the latency path.
 
+**Table 1. Scaling approaches — mechanism, remaining latency, and suitable conditions**
+
 | Approach | Mechanism | Remaining latency | Suitable conditions |
 | --- | --- | --- | --- |
 | Reactive | KEDA/HPA → Karpenter | Observation, control loops, node startup | Unpredictable demand |
@@ -182,6 +184,8 @@ Evaluate CloudWatch when AWS integration and operational simplicity dominate; ev
 
 Track start/end events at each layer. Existing spare capacity can bypass the NodeClaim/EC2 path in this flow, but image and application readiness time remain.
 
+**Figure 1. Layer-by-layer start/end flow of scaling latency**
+
 ```mermaid
 flowchart LR
     Signal[Demand signal] --> Metric[Metric available]
@@ -310,6 +314,8 @@ Use KEDA scalers for demand such as queues, streams, or external request rate th
 
 Collect measured values in the following format. This document has no validated production benchmark dataset, so cluster counts, request volumes, and 100% availability figures are not presented as measured results.
 
+**Table 2. Scaling-latency metrics — start/end spans and conditions to separate**
+
 | Metric | Start → end | Conditions to separate |
 | --- | --- | --- |
 | Detection latency | Load increase → queryable metric | Collection path and cadence |
@@ -389,6 +395,8 @@ Choose control-plane capacity after establishing whether API throughput is the b
 
 Choose a tier using the [official feature documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html) and [pricing](https://aws.amazon.com/eks/pricing/), not arbitrary Pod counts, $350/month, or a fixed 10× performance claim.
 
+**Table 3. EKS control-plane tier comparison — Standard and Provisioned**
+
 | Criterion | Standard | Provisioned |
 | --- | --- | --- |
 | Capacity model | AWS-managed automatic scaling | Preallocated capacity for selected tier |
@@ -432,6 +440,8 @@ Run pause Pods below the priority of real workloads. When capacity is needed, th
 ### End-to-End Overprovisioning Workflow
 
 When pause Pods are preempted, their Deployment recreates them, and Karpenter may replenish capacity for the Pending replacements. Watch for churn and tune consolidation, PDBs, and affinity together.
+
+**Figure 2. End-to-end overprovisioning workflow — pause-Pod preemption and replenishment**
 
 ```mermaid
 flowchart LR
@@ -599,6 +609,8 @@ Creating multiple NodeClaims is not a single atomic Kubernetes API transaction. 
 ### Setu Architecture and Operation
 
 While a Workload’s AdmissionCheck is Pending, the controller creates NodeClaims and approves admission after checking the required conditions. Queue waiting and provisioning can overlap, but this does not remove EC2 readiness time or guarantee a shorter total.
+
+**Figure 3. Setu architecture — AdmissionCheck and NodeClaim provisioning flow**
 
 ```mermaid
 flowchart LR
@@ -866,6 +878,8 @@ Auto Mode provides an AWS-managed node OS and Karpenter-based compute management
 ### Detailed Auto Mode vs Self-managed Comparison
 
 Compare operational responsibilities and extension APIs.
+
+**Table 4. EKS Auto Mode versus self-managed Karpenter**
 
 | Item | EKS Auto Mode | Self-managed Karpenter |
 | --- | --- | --- |
@@ -1337,6 +1351,8 @@ Zonal shift helps avoid an impaired fault domain but does not guarantee EC2 capa
 ## Validation Criteria Across Scaling Approaches {#comprehensive-scaling-benchmark-comparison}
 
 Use this evaluation matrix instead of universal numeric comparisons without measurements. Repeat tests with the same workload, AMI/image digests, requests, load, Region, and cache conditions; report p50/p95/p99, failure rate, node-hours, and total cost.
+
+**Table 5. Benefits to validate and costs/constraints by scaling option**
 
 | Choice | Benefit to validate | Cost/constraint |
 | --- | --- | --- |

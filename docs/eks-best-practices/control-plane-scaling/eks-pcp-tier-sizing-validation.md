@@ -50,6 +50,8 @@ No customer evidence is used here. A benchmark claim requires a public source an
 
 The following values come from the **2026-09-18 review of the AWS user guide**, including its distinction between EKS v1.30–v1.33 and v1.34 and later. The guide defines tier attributes as underlying configuration; achieved throughput depends on workload behavior. In particular, its scheduling attribute does not guarantee Pod readiness at that rate. [Source: tier specifications and capacity versus performance][pcp].
 
+**Table 1. Public PCP tier specifications by Kubernetes version**
+
 | Tier | API seats: EKS v1.30–v1.33 | API seats: EKS v1.34+ | Scheduling attribute (pods/s) | Database size (GB, AWS notation) |
 |---|---:|---:|---:|---:|
 | XL | 1,700 | 2,000 | 167 | 16 |
@@ -71,6 +73,8 @@ When APF is enabled, upstream Kubernetes combines the two inflight limits into a
 <a id="cluster-db-size-etcd"></a>
 
 ### 1.4 Units and measurement scope {#14-what-each-metric-actually-means}
+
+**Table 2. Meaning and sizing consequence of each unit**
 
 | Quantity | Meaning | Sizing consequence |
 |---|---|---|
@@ -104,6 +108,8 @@ Assume 10,000 nodes with 100 Pods each, giving `10,000 × 100 = 1,000,000 Pods`.
 
 #### Step 1: Keep payload bookkeeping separate from database sizing {#step-1-etcd-db-size-estimation}
 
+**Table 3. Assumed payload groups, counts, and subtotals (example)**
+
 | Assumed payload group | Count | Assumed bytes each | Payload subtotal (bytes) |
 |---|---:|---:|---:|
 | Pods | 1,000,000 | 1,500 | 1,500,000,000 |
@@ -120,6 +126,8 @@ Replace that extrapolation with a measurement: load representative objects in an
 
 For request class `i`, define `w_i` as the mean integral of occupied seats over execution time, in seat-seconds/request. The planning model is `mean seats = Σ(requests/s_i × w_i)`. Queue waiting is not execution-seat occupancy; end-to-end latency is therefore not a direct substitute for `w_i`.
 
+**Table 4. Mean seat occupancy by assumed request class (example)**
+
 | Assumed request class | Requests/s | Seats during execution | Execution seconds/request | Mean seats |
 |---|---:|---:|---:|---:|
 | Simple requests | 1,000 | 1 | 0.05 | 50 |
@@ -131,6 +139,8 @@ For example, `2 × (5 × 0.20) = 2 seats`. These fixed weights and durations are
 #### Step 3: Budget scheduling time explicitly {#step-3-scheduling-throughput-requirement-estimation}
 
 Assume exactly **3,333 affected nodes × 100 Pods = 333,300 Pods** need placement. This is approximately one third of the example cluster, not an exact division of 10,000 nodes. Use `required rate = affected Pods / scheduling budget in seconds`.
+
+**Table 5. Required scheduling rate and candidates by assumed recovery objective (example)**
 
 | Assumed recovery objective | Time reserved for other work | Scheduling budget (s) | Required rate (pods/s) | Scheduling-only candidate at 100% of attribute | Scheduling-only candidate at 80% |
 |---|---:|---:|---:|---|---|
@@ -169,6 +179,8 @@ peak in-use database bytes / applicable quota bytes <= u
 
 This is a screening model. It assumes representative measurements, complete collection, and offered demand not hidden by throttling. Passing it still requires the workload validation in section 3. A different headroom policy changes the candidate set; record the policy before calculating.
 
+**Table 6. Seat and scheduling budgets per tier at an 80% utilization target**
+
 | Tier | Seat budget: v1.30–v1.33 at 80% | Seat budget: v1.34+ at 80% | Scheduling budget at 80% (pods/s) |
 |---|---:|---:|---:|
 | XL | 1,360 | 1,600 | 133.6 |
@@ -179,6 +191,8 @@ This is a screening model. It assumes representative measurements, complete coll
 All four tiers share the 16 GB database attribute; moving from XL to 8XL does not enlarge it. The model's database fraction is at most 0.8 for every candidate. Arithmetic `16 × 0.8 = 12.8` retains the specification's GB notation, but operator checks must compare measured bytes against the applicable quota bytes. Standard is assessed separately by measurement; no fixed Standard throughput is invented.
 
 For an independent **scheduling-only boundary check with `u = 1`**, the smallest listed candidate is:
+
+**Table 7. Smallest listed candidate by required scheduling rate**
 
 | Required rate R (pods/s) | Smallest listed candidate |
 |---|---|
@@ -213,6 +227,8 @@ Standard mode scales control plane capacity automatically. Provisioned mode prea
 
 The [AWS launch post, published 2025-11-27][launch], reports the following **test scenario**:
 
+**Table 8. Standard and 4XL test scenario scale reported in the AWS launch post**
+
 | Resource | Standard test | 4XL test |
 |---|---:|---:|
 | Nodes | 5,000 | 40,000 |
@@ -244,6 +260,8 @@ Use a test configuration that models the target resource mix and churn. A generi
 
 ### 3.2 Test scenarios {#32-test-scenario-types}
 
+**Table 9. Controlled inputs and recorded evidence by validation scenario**
+
 | Scenario | Input to control | Evidence to record |
 |---|---|---|
 | Baseline | Steady object inventory and request mix | Seats, database bytes, latency, successful scheduling |
@@ -274,6 +292,8 @@ Before an operator runs a test, record the AWS account/profile/region, cluster/c
 
 The [pinned Kubernetes SLO framework][slos] includes the following objectives under its configuration and workload prerequisites:
 
+**Table 10. Kubernetes upstream SLO objectives by scope**
+
 | Upstream scope | Objective |
 |---|---|
 | Single-object mutating calls and resource-scoped non-streaming reads | P99 ≤ 1 s |
@@ -288,6 +308,8 @@ The API objectives exclude virtual/aggregated resources and CRDs as stated by th
 ### 3.6 Collection paths and valid statistics {#36-key-monitoring-metrics--availability-by-collection-path}
 
 [CloudWatch basic EKS metrics][cw] are published in `AWS/EKS` for Kubernetes v1.28+ at one-minute frequency. The table uses the documented statistics. Additional collection, storage, logs, and alarms have their own configuration and cost considerations.
+
+**Table 11. Valid statistic and interpretation for each CloudWatch metric used in collection**
 
 | CloudWatch metric | Statistic | Interpretation |
 |---|---|---|
@@ -380,6 +402,8 @@ When audit logging is already available, correlate completed requests from the i
 Requests to `customresourcedefinitions` concern definitions; custom resource instance traffic uses the custom API group/resource. A query matching only the definition endpoint cannot characterize CR traffic. Inspect sanitized aggregate results without publishing raw request bodies or private identities. [Source: control plane monitoring guidance][monitoring].
 
 ### 3.10 Interpret bottlenecks before increasing capacity {#310-api-vs-etcd-bottleneck-identification}
+
+**Table 12. Next investigation and capacity implication by observed bottleneck**
 
 | Observation | Next investigation | Capacity implication |
 |---|---|---|

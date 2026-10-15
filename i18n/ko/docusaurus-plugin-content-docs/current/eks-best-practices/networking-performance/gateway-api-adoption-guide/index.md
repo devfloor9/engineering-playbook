@@ -95,6 +95,8 @@ Gateway API 도입을 검토하는 대표적인 상황은 기존 Ingress 컨트�
 
 ### 2.1 EOL 타임라인
 
+**그림 1. NGINX Ingress Controller EOL 및 마이그레이션 타임라인**
+
 ```mermaid
 gantt
     title NGINX Ingress Controller EOL 및 마이그레이션 타임라인
@@ -132,12 +134,16 @@ gantt
 <Tabs>
   <TabItem value="attack-overview" label="공격 개요" default>
 
+  **그림 2. IngressNightmare(CVE-2025-1974) 공격 개요**
+
   ![IngressNightmare 공격 개요](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
 
   *Kubernetes 클러스터 내 Ingress NGINX Controller를 대상으로 한 비인증 원격 코드 실행(RCE) 공격 벡터. 외부 및 내부 공격자가 Malicious Admission Review를 통해 컨트롤러 Pod를 장악하고, 클러스터 내 전체 Pod에 접근 가능. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
   </TabItem>
   <TabItem value="architecture" label="컨트롤러 아키텍처">
+
+  **그림 3. Ingress NGINX Controller 내부 아키텍처와 공격 표면**
 
   ![Ingress NGINX Controller 내부 아키텍처](/img/infrastructure-optimization/ingress-nginx-controller-architecture.png)
 
@@ -197,6 +203,8 @@ Gateway API는 NGINX Ingress의 구조적 취약점을 근본적으로 해결합
 
 NGINX Ingress는 annotations에 임의 문자열을 주입할 수 있어 심각한 보안 위험을 초래합니다:
 
+**그림 4. NGINX Ingress annotation을 통한 임의 설정 주입 경로**
+
 ```mermaid
 flowchart LR
     subgraph nginx["NGINX Ingress 공격 경로"]
@@ -236,6 +244,8 @@ annotations:
 <TabItem value="gateway" label="✅ Gateway API 구조적 해결">
 
 **1. 3-Tier 역할 분리로 Snippets 원천 차단**
+
+**그림 5. Gateway API의 3-Tier 역할 분리**
 
 ```mermaid
 flowchart TB
@@ -297,6 +307,8 @@ rules:
 
 OpenAPI 스키마로 모든 필드를 사전 정의하여 임의 설정 주입이 원천적으로 불가능합니다:
 
+**그림 6. OpenAPI 스키마 기반 HTTPRoute 검증 흐름**
+
 ```mermaid
 flowchart LR
     subgraph gw["Gateway API 검증 흐름"]
@@ -331,6 +343,8 @@ spec:
 **3. Policy Attachment 패턴으로 안전한 확장**
 
 확장 기능을 별도의 Policy 리소스로 분리하여 RBAC으로 접근을 제어합니다:
+
+**그림 7. 별도 Policy 리소스로 분리한 확장 기능과 RBAC 접근 제어**
 
 ```mermaid
 flowchart TB
@@ -394,6 +408,8 @@ spec:
 
 ### 3.1 Gateway API 아키텍처
 
+**그림 8. Gateway API 역할 기반 모델**
+
 ![Gateway API 역할 기반 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/gateway-roles.png)
 
 *출처: [Kubernetes Gateway API 공식 문서](https://gateway-api.sigs.k8s.io/) — 3개의 역할(Infrastructure Provider, Cluster Operator, Application Developer)이 각각 GatewayClass, Gateway, HTTPRoute를 관리*
@@ -408,6 +424,8 @@ Gateway API는 다음과 같은 계층 구조로 책임을 분리합니다:
 
 <Tabs>
   <TabItem value="overview" label="역할 개요" default>
+
+  **그림 9. Gateway API 리소스 모델 계층 구조**
 
   ![Gateway API 리소스 모델 — 출처: gateway-api.sigs.k8s.io](https://gateway-api.sigs.k8s.io/images/resource-model.png)
 
@@ -502,6 +520,8 @@ Gateway API의 6가지 핵심 이점을 시각적 다이어그램과 YAML 예제
 
 <Tabs>
   <TabItem value="overview" label="배포 흐름도" default>
+
+**그림 10. Gateway API 기본 리소스 배포 흐름**
 
 ```mermaid
 flowchart LR
@@ -755,6 +775,8 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 
 다음 8가지 기능을 6개 구현체별 YAML 예제로 구현하는 방법은 별도 쿡북 문서로 제공합니다. 본 가이드는 비교·선정에 집중하고, 실제 매니페스트는 쿡북에서 참조하세요.
 
+**표 1. 쿡북에서 제공하는 8가지 기능과 표준 여부**
+
 | # | 기능 | 표준 여부 |
 |---|------|----------|
 | 1 | 인증 (Basic Auth 대체) | 구현체별 상이 |
@@ -774,6 +796,8 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 ### 4.8 경로 선택 의사결정 트리
 
 다음 의사결정 트리를 통해 조직에 최적의 솔루션을 선택할 수 있습니다.
+
+**그림 11. 구현체 선택 의사결정 트리**
 
 ```mermaid
 flowchart TD

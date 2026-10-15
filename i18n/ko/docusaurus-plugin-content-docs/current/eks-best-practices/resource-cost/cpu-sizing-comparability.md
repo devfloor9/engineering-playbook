@@ -50,6 +50,8 @@ requests와 limits의 의미, CFS bandwidth throttling이 cgroup에서 동작하
 
 CPU 사용률은 물리 하드웨어에서 Pod 관측치까지 여러 층을 거치며 의미가 바뀝니다. 각 층에서 다른 워크로드, 설정, 스케줄러가 개입하기 때문에 맨 위에서 본 CPU%는 아래 층의 상태를 그대로 보여 주지 않습니다. 관측은 이 구조의 아래쪽에서 시작합니다. 커널이 cgroup별 `cpu.stat`과 `cpu.pressure`에 스로틀과 대기 시간을 기록하고, kubelet에 내장된 cAdvisor가 그 값을 메트릭으로 노출하며, Prometheus나 CloudWatch는 그것을 수집할 뿐입니다.
 
+**그림 1. 물리 코어에서 Pod 관측치까지 CPU 사용률의 계층 구조**
+
 ```mermaid
 flowchart TB
     PC["물리 코어<br/>(LLC·메모리 대역폭 공유, NUMA)"] --> VCPU["vCPU<br/>(타입별 논리 CPU 또는 물리 코어)"]
@@ -79,6 +81,8 @@ flowchart TB
 ## 비교 가능한 KPI
 
 크기와 세대를 비교할 때는 사용률 대신 같은 조건에서 측정한 워크로드 결과를 씁니다.
+
+**표 1. 비교 가능한 워크로드 KPI와 비교에서의 의미**
 
 | KPI | 정의 | 비교에서의 의미 |
 |---|---|---|
@@ -118,6 +122,8 @@ flowchart TB
 ### 비율과 최소 크기
 
 Pod의 CPU·메모리 요청량과 노드의 가용 용량을 함께 보며 배치를 계획합니다. 아래 비율은 vCPU:GiB 단위의 검토 예시입니다. 실제 인스턴스 제원, DaemonSet과 시스템 예약량, 워크로드 측정치를 확인해 값을 정합니다. 모든 서비스에 2 vCPU 하한이 필요하다는 의미는 아닙니다.
+
+**표 2. Pod 프로파일별 CPU:메모리 비율과 검토할 인스턴스 패밀리(검토 예시)**
 
 | Pod 프로파일 | CPU:mem 비율 | 검토할 패밀리 | CPU 요청량 예시 | QoS·정책 |
 |---|---|---|---|---|
@@ -276,6 +282,8 @@ For each (instance-size x generation) target NodePool:
 - eBPF 도구의 요구사항은 배포 방식마다 다릅니다. CO-RE 기반 도구는 BTF를 요구할 수 있고, 전통적인 BCC 도구는 커널 헤더와 LLVM/Clang을 이용해 컴파일할 수 있습니다. 선택한 `bcc`/`bpftrace` 또는 [Inspektor Gadget](https://www.inspektor-gadget.io/) 버전의 커널·권한·수집 오버헤드를 확인합니다.
 
 ## 트러블슈팅
+
+**표 3. CPU 사이징 트러블슈팅 — 증상·원인·조치·확인 방법**
 
 | 증상 | 원인 | 조치 | 확인 방법 |
 |---|---|---|---|

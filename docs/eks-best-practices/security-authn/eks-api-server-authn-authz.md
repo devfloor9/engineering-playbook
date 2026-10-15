@@ -36,12 +36,14 @@ For each caller, choose an **authentication (AuthN)** method to establish its id
 
 The table compares credentials presented to the Kubernetes API. **EKS Pod Identity and IRSA provide AWS credentials**, rather than a separate Kubernetes API authentication method. See [EKS access control](https://docs.aws.amazon.com/eks/latest/userguide/cluster-auth.html).
 
+**Table 1. EKS API Server authentication methods, use cases, and recommendation**
+
 | # | Authentication Method | Suitable Use Cases | Recommendation |
 |---|---------|---------------|-------|
-| ① | **IAM** (aws-iam-authenticator) | Systems running on AWS infrastructure and kubectl users | ⭐⭐⭐ Preferred approach |
-| ② | **Kubernetes Service Account Token** | In-cluster automation and CI/CD pipelines | ⭐⭐ Also usable by external systems |
-| ③ | **External OIDC Identity Provider** | Enterprise IdP integration (Okta, Azure AD, Google, and others) | ⭐⭐⭐ Best suited to enterprise SSO integration |
-| ④ | **x509 Client Certificate** | Legacy systems requiring certificate-based authentication | ⭐ Limited use (no CRL support) |
+| ① | **IAM** (aws-iam-authenticator) | Systems running on AWS infrastructure and kubectl users | Preferred approach |
+| ② | **Kubernetes Service Account Token** | In-cluster automation and CI/CD pipelines | Also usable by external systems |
+| ③ | **External OIDC Identity Provider** | Enterprise IdP integration (Okta, Azure AD, Google, and others) | Best suited to enterprise SSO integration |
+| ④ | **x509 Client Certificate** | Legacy systems requiring certificate-based authentication | Limited use (no CRL support) |
 
 ---
 
@@ -183,11 +185,13 @@ CONFIG_MAP → API_AND_CONFIG_MAP → API
     (one-way; rollback is not supported)
 ```
 
+**Table 2. Access Entry and ConfigMap availability by Authentication Mode**
+
 | Mode | Access Entry API | aws-auth ConfigMap | Recommendation |
 |-----|:---:|:---:|------|
-| `CONFIG_MAP` | ❌ Unavailable | ✅ Used | Legacy |
-| `API_AND_CONFIG_MAP` | ✅ Available | ✅ Used | ⭐ During migration |
-| `API` | ✅ Available | ❌ Ignored | ⭐⭐ Target state |
+| `CONFIG_MAP` | Unavailable | Used | Legacy |
+| `API_AND_CONFIG_MAP` | Available | Used | During migration |
+| `API` | Available | Ignored | Target state |
 
 ### Migration Steps
 
@@ -219,6 +223,8 @@ Authentication Mode changes are **one-way**. After switching to `API`, rollback 
 EKS Auto Mode delegates cluster infrastructure management to AWS and introduces important differences in authentication and authorization.
 
 ### Auto Mode Authentication Characteristics
+
+**Table 3. Authentication characteristics with and without Auto Mode**
 
 | Item | EKS Without Auto Mode | Auto Mode |
 |-----|:---:|:---:|
@@ -275,6 +281,8 @@ The table is a **representative subset**, not the full catalog. AWS also provide
 ```bash
 aws eks list-access-policies
 ```
+
+**Table 4. Representative EKS managed access policies and use cases**
 
 | Policy Name | Description | Use Case |
 |-----------|------|------------|
@@ -335,6 +343,8 @@ Permissions from access policies and Kubernetes RBAC form a **union**. Adding a 
 
 ## 6. Comprehensive Architecture
 
+**Figure 1. Comprehensive EKS API Server authentication/authorization architecture by caller type**
+
 ```mermaid
 flowchart TB
     subgraph External["External AWS Systems"]
@@ -388,6 +398,8 @@ flowchart TB
 
 ### Access Path Summary
 
+**Table 5. Authentication/authorization methods by caller type**
+
 | Caller Type | Authentication | Authorization | Examples |
 |-----------|---------|---------|-----|
 | External systems on AWS infrastructure | IAM Role → Access Entry | Access Policy (namespace scope) | CI/CD, monitoring, automation |
@@ -398,6 +410,8 @@ flowchart TB
 ---
 
 ## 7. Security Best Practices Checklist
+
+**Table 6. Specific actions by security principle**
 
 | Principle | Specific Action |
 |-----|----------|

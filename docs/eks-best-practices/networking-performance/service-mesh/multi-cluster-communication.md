@@ -50,6 +50,8 @@ This document covers **East-West (service-to-service) communication across clust
 
 Most of the multi-cluster East-West architecture decision follows from the answers to five requirements. The full question list is in [Appendix A](#appendix-a-requirement-confirmation-questions).
 
+**Table 1. Five deciding questions and their forks in the road**
+
 | # | Deciding question | Fork in the road |
 |---|-------------------|------------------|
 | 1 | **Protocol** — Is cross-cluster traffic HTTP/gRPC, or raw TCP/UDP (database protocols, message brokers, custom binary)? | A large raw TCP/UDP share makes the L7-centric Lattice a candidate for reconsideration. Lattice supports HTTP/HTTPS, gRPC, and TCP (TLS passthrough) but with TCP-path constraints (see [Section 6](#6-trade-offs-and-cautions)). UDP is not supported |
@@ -67,6 +69,8 @@ Most of the multi-cluster East-West architecture decision follows from the answe
 ## 3. Mapping Istio Features to Alternatives
 
 What each Istio multi-cluster feature becomes in each alternative:
+
+**Table 2. Mapping Istio multi-cluster features to each alternative**
 
 | Istio feature | VPC Lattice + Gateway API Controller | Cilium ClusterMesh | Istio multi-primary (keep) | Reference: Linkerd / Consul |
 |---------------|--------------------------------------|--------------------|----------------------------|------------------------------|
@@ -106,7 +110,7 @@ Pods send traffic to the Lattice data plane on the link-local range (`169.254.17
 
 Authentication and authorization use IAM auth policies. Using the session tags issued by EKS Pod Identity (`eks-cluster-name`, `kubernetes-namespace`, `kubernetes-pod-name`) as conditions enables **ABAC authorization at cluster, namespace, or pod granularity**. With IAM auth enabled, requests must be SigV4-signed — either natively in the SDK or via a signing proxy (e.g., an Envoy sidecar injected solely for signing).
 
-**Four-axis assessment.**
+**Table 3. VPC Lattice four-axis assessment (functionality, stability, operability, cost)**
 
 | Axis | Assessment | Evidence (verified 2026-07-16) |
 |------|------------|-------------------------------|
@@ -134,7 +138,7 @@ Authentication and authorization use IAM auth policies. Using the session tags i
 
 With no proxy hop, traffic is **direct pod-to-pod**, giving the lowest data-plane overhead and latency of any candidate. The prerequisites are strict, however — non-overlapping PodCIDRs across all clusters, direct node IP reachability (VPC peering or TGW), the same datapath mode everywhere, and upfront cluster ID (1–255)/name design (changing them later requires restarting all workloads). All per upstream documentation (verified 2026-07-16).
 
-**Four-axis assessment.**
+**Table 4. Cilium ClusterMesh four-axis assessment (functionality, stability, operability, cost)**
 
 | Axis | Assessment | Evidence (verified 2026-07-16) |
 |------|------------|-------------------------------|
@@ -164,7 +168,7 @@ With no proxy hop, traffic is **direct pod-to-pod**, giving the lowest data-plan
 
 **Commercial management planes (e.g., Tetrate Service Bridge)** add central governance, multi-tenancy, and support SLAs to multi-cluster Istio. That is lever (a), "change the operator" — but **istiod still runs inside each cluster**. The control-plane failure domain and upgrade burden remain in customer clusters, which is structurally different from a managed service like Lattice (per Tetrate product documentation; exact architectural wording needs verification).
 
-**Four-axis assessment.**
+**Table 5. Istio multi-primary four-axis assessment (functionality, stability, operability, cost)**
 
 | Axis | Assessment | Evidence (verified 2026-07-16) |
 |------|------------|-------------------------------|
@@ -186,6 +190,8 @@ Both retain a "customer-operated control plane + sidecar (Linkerd) or agent (Con
 
 Mesh options (Istio single-network, Cilium ClusterMesh, Linkerd flat mode) **presuppose L3 reachability** between clusters.
 
+**Table 6. L3 underlay comparison — VPC Peering vs Transit Gateway**
+
 | Item | VPC Peering | Transit Gateway |
 |------|-------------|-----------------|
 | Topology | 1:1 (no transitive routing) | Hub-and-spoke (aggregates N VPCs) |
@@ -205,15 +211,21 @@ AWS App Mesh support ends on September 30, 2026, and new onboarding has been blo
 
 ### 4.7 Four-Axis Summary
 
+The "strength/limitation" split and the operability verdicts below are the author's qualitative summary of the evidence in each candidate's section above, not quantitative scores.
+
+**Table 7. Four-axis summary across the three candidate architectures**
+
 | Axis | VPC Lattice + GW API Controller | Cilium ClusterMesh | Istio multi-primary |
 |------|--------------------------------|--------------------|--------------------|
-| **Functionality** | ◎ HTTP/gRPC, IAM authorization, account boundaries / △ TCP constraints, no UDP, no mesh observability | ◎ All protocols, lowest latency / △ Cross-cluster L7 expressiveness, no SPIFFE mutual auth | ◎ Highest expressiveness everywhere, multi-cloud / △ None (on features alone, the strongest) |
+| **Functionality** | Strengths HTTP/gRPC, IAM authorization, account boundaries / Limitations TCP constraints, no UDP, no mesh observability | Strengths all protocols, lowest latency / Limitations cross-cluster L7 expressiveness, no SPIFFE mutual auth | Strengths highest expressiveness everywhere, multi-cloud / Limitations none (on features alone, the strongest) |
 | **Stability** | AWS-managed data plane, minimal customer components. Quota ceilings are the practical risk | Mature kernel datapath. But CNI = mesh, so the largest blast radius | Longest production record. But every stability precondition (CA, gateways, skew) is customer-kept |
-| **Operability** | ◎ **The only candidate with the control plane outside the cluster** | △ CNI replacement + three self-operated components; not AWS-supported | ✕ N istiods + N×(N−1) remote secrets + gateways. Commercial support only mitigates |
+| **Operability** | Favorable: **the only candidate with the control plane outside the cluster** | Limited: CNI replacement + three self-operated components; not AWS-supported | Strongly unfavorable: N istiods + N×(N−1) remote secrets + gateways. Commercial support only mitigates |
 | **Cost** | Pay-as-you-go (hourly + GB + requests). Favorable at small-to-medium traffic; simulate at high volume. No L3 cost | Free software + L3 charges + dedicated headcount. Favorable at high traffic | Free software + sidecar resources + gateway/L3 charges + **highest headcount** |
 | **Environment it suits** | HTTP/gRPC-centric, multi-account/VPC, minimal ops staffing | Cilium already in place, TCP/UDP required, lowest latency, dedicated networking team | SPIFFE mTLS audit requirement, multi-cloud full mesh, dedicated platform team |
 
 ## 5. Decision Tree
+
+**Figure 1. Decision tree for selecting a multi-cluster East-West architecture**
 
 ```mermaid
 flowchart TD

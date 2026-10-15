@@ -226,6 +226,8 @@ eksctl create cluster -f auto-mode-cluster.yaml
 
 #### 2.5.2 Auto Mode vs. Manual Management Comparison {#252-auto-mode-vs-manual-management-comparison}
 
+**Table 1. Responsibility split between EKS Auto Mode and manual management**
+
 | Responsibility | Self-managed | Auto Mode |
 |---|---|---|
 | Node capacity | Configure Karpenter or node groups | Managed compute and NodePool constraints |
@@ -451,6 +453,8 @@ print(weighted_quantile([(100, 0), (200, 24), (400, 48)], .95))
 
 ##### Calculation of the Four Recommendation Values {#calculation-of-the-four-recommendation-values}
 
+**Table 2. VPA recommendation status fields — meaning and use**
+
 | Status field | Meaning | Use |
 |---|---|---|
 | lowerBound | Lower estimator output | Update range; not a guaranteed minimum |
@@ -633,13 +637,13 @@ updatePolicy:
 
 Conflicts must be prevented when using VPA and HPA together.
 
-#### Conflict Scenario (❌ Prohibited) {#conflict-scenario--prohibited}
+#### Conflict Scenario (Prohibited) {#conflict-scenario--prohibited}
 
 CPU-utilization HPA divides usage by requests. If VPA changes those CPU requests, the denominator changes and the control loops interact. An infinite loop is not inevitable, but the combination needs stability testing under load. Use Off or resource/metric separation as described below.
 
 [VPA 1.4.0 FAQ](https://github.com/kubernetes/autoscaler/blob/vertical-pod-autoscaler-1.4.0/vertical-pod-autoscaler/docs/faq.md)
 
-#### Pattern 1: VPA Off + HPA (✅ Recommended) {#pattern-1-vpa-off--hpa--recommended}
+#### Pattern 1: VPA Off + HPA (Recommended) {#pattern-1-vpa-off--hpa--recommended}
 
 ```yaml
 # ✅ Correct configuration: VPA only recommends; HPA handles scaling
@@ -704,7 +708,7 @@ spec:
 3. Manually incorporate them into Deployment manifests
 4. HPA scales horizontally according to load
 
-#### Pattern 2: VPA Memory + HPA CPU (✅ Recommended) {#pattern-2-vpa-memory--hpa-cpu--recommended}
+#### Pattern 2: VPA Memory + HPA CPU (Recommended) {#pattern-2-vpa-memory--hpa-cpu--recommended}
 
 ```yaml
 # ✅ Separate metrics: Memory for VPA, CPU for HPA
@@ -758,7 +762,7 @@ spec:
 - HPA scales horizontally according to load (Horizontal)
 - Reduces direct CPU-request denominator interaction; validate indirect memory/performance effects
 
-#### Pattern 3: VPA + HPA + Custom Metrics (✅ Advanced) {#pattern-3-vpa--hpa--custom-metrics--advanced}
+#### Pattern 3: VPA + HPA + Custom Metrics (Advanced) {#pattern-3-vpa--hpa--custom-metrics--advanced}
 
 ```yaml
 # ✅ HPA uses custom metrics
@@ -875,7 +879,7 @@ spec:
       selectPolicy: Min                # Select the smaller value (conservative)
 ```
 
-**Parameter descriptions:**
+**Table 3. VPA parameter descriptions and recommended values**
 
 | Parameter | Description | Recommended value |
 |---------|------|--------|
@@ -1423,6 +1427,8 @@ resources:
 
 A systematic five-step right-sizing process:
 
+**Figure 1. Five-step right-sizing process**
+
 ```mermaid
 graph TB
     A[Step 1: Establish a baseline] --> B[Step 2: Deploy VPA in Off mode]
@@ -1814,6 +1820,8 @@ spec:
 
 #### Resource Efficiency Comparison {#resource-efficiency-comparison}
 
+**Table 4. Resource efficiency comparison items — measurement and interpretation**
+
 | Comparison | Measurement | Interpretation |
 |---|---|---|
 | Admission delay | Submission to admission | Separate from node bootstrap cost |
@@ -2024,6 +2032,8 @@ sum by (namespace, pod, container) (
 
 ### 8.3 Right-Sizing Savings {#83-right-sizing-savings}
 
+**Table 5. Right-sizing changes — validation target and cost evidence**
+
 | Change | Validation target | Cost evidence |
 |---|---|---|
 | Adjust requests | Retained SLOs, improved placement | Node-hours actually removed |
@@ -2046,6 +2056,8 @@ Align UTC windows, cost metric (for example amortized cost), accounts/regions/ta
 [Kubecost documentation](https://www.ibm.com/docs/en/kubecost) · [AWS Cost Explorer](https://docs.aws.amazon.com/cost-management/latest/userguide/ce-what-is.html)
 
 #### 8.4.2 Goldilocks vs. Kubecost Tool Comparison {#842-goldilocks-vs-kubecost-tool-comparison}
+
+**Table 6. Right-sizing tool comparison — Goldilocks and Kubecost**
 
 | Area | Goldilocks | Kubecost |
 |---|---|---|
@@ -2126,6 +2138,8 @@ for name, cost in monthly.items():
 
 
 ### Resource Configuration Checklist {#resource-configuration-checklist}
+
+**Table 7. Resource configuration checklist — checks and decision basis**
 
 | Item | Check | Decision basis |
 |---|---|---|
