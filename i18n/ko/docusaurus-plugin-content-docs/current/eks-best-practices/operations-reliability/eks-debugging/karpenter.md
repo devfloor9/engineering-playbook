@@ -3,9 +3,9 @@ title: Karpenter 심화 디버깅
 description: Karpenter 오토스케일러 심화 디버깅 가이드
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 10
 tags:
   - eks
   - karpenter
@@ -124,7 +124,10 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep 
 아래 예시는 [Karpenter v1.14.1 CRD](https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml)를 기준으로 NodePool의 일부 필드를 보여 줍니다. 기존 NodePool에 반영할 때는 `spec.template.spec.nodeClassRef` 등 생략된 설정을 유지합니다. `30s`는 Pod 변경 후 통합을 검토하기까지 기다리는 시간의 예시입니다. 통합이 30초 안에 완료된다는 의미는 아닙니다.
 
 ```yaml
-# NodePool: 다양한 인스턴스 타입 추가 (Spot 용량 확보)
+# NodePool: 호환되는 GPU 인스턴스 타입 다양화 (g5.2xlarge 용량 부족 대응)
+# 에러가 GPU 패밀리(g5.2xlarge)에서 발생했으므로, 대체 타입도 워크로드가 요구하는
+# GPU 수·아키텍처를 만족하는 GPU 인스턴스여야 합니다. CPU 전용 타입으로 대체하면
+# GPU 워크로드가 스케줄링되지 않습니다.
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -140,10 +143,10 @@ spec:
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - c6i.2xlarge
-            - c6i.4xlarge
-            - c6a.2xlarge   # ← AMD 인스턴스도 포함
-            - c7i.2xlarge   # ← 최신 세대 추가
+            - g5.2xlarge
+            - g5.4xlarge    # ← 같은 g5 패밀리의 더 큰 크기
+            - g6.2xlarge    # ← 최신 세대 GPU(동일 아키텍처 계열) 추가
+            - g6.4xlarge
         - key: topology.kubernetes.io/zone
           operator: In
           values:
@@ -357,6 +360,10 @@ spec:
 
 ## Spot 중단 처리
 
+Spot 중단 처리를 사용하려면 선행 조건이 필요합니다. Karpenter의 interruption 처리는 EC2가 보내는 중단·리밸런스 이벤트를 받는 **SQS 큐**(그리고 해당 이벤트를 큐로 보내는 EventBridge 규칙)와, Karpenter 컨트롤러가 그 큐를 읽을 수 있는 **IAM 권한**, 그리고 interruption 큐가 설정된 **Karpenter 컨트롤러**가 모두 있어야 동작합니다. 이 선행 조건이 없으면 아래 흐름은 시작되지 않습니다.
+
+Spot 중단은 EC2가 용량을 회수하는 **비자발적(involuntary) 중단**입니다. 자발적 중단에 적용하는 NodePool `disruption.budgets`(Drift·Consolidation·Expiration 등)는 Spot 회수를 늦추지 못하며, EC2는 2분 경고 후 budget과 무관하게 인스턴스를 종료합니다. 따라서 대체 노드가 준비되는 시간이나 복구 완료 시각은 보장되지 않습니다. Karpenter는 경고를 받으면 즉시 cordon·drain하고 대체 노드를 시작하지만, 신규 용량 확보 자체가 Spot 가용성에 달려 있습니다.
+
 ### Spot 중단 흐름
 
 **그림 4. Spot 중단 처리 흐름**
@@ -398,7 +405,7 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep interruptio
 ### Spot 중단 대응 전략
 
 ```yaml
-# NodePool: Spot Interruption Budget
+# NodePool: 자발적 중단 budget (Spot 비자발적 회수에는 적용되지 않음)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -411,9 +418,10 @@ spec:
           operator: In
           values: ["spot", "on-demand"]  # ← Spot 부족 시 On-Demand 폴백
   disruption:
-    # Spot 중단 시 동시 교체 제한
+    # 아래 budget은 Drifted·Underutilized·Empty 등 자발적 중단의 동시 교체만 제한합니다.
+    # Spot interruption은 비자발적이므로 이 budget으로 늦출 수 없습니다.
     budgets:
-      - nodes: "20%"  # 전체 노드의 20%까지만 동시 중단
+      - nodes: "20%"  # 자발적 중단 시 전체 노드의 20%까지만 동시 중단
         reasons:
           - Drifted
           - Underutilized
@@ -536,28 +544,33 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep "interrupti
 ### CloudWatch Logs Insights 쿼리
 
 ```sql
-# Karpenter 로그를 CloudWatch에 전송한 경우
+# Karpenter 로그를 CloudWatch에 전송한 경우 (CloudWatch Logs Insights는 # 주석을 지원합니다)
 
-# 1. 인스턴스 타입별 프로비저닝 실패율
+# 1. 인스턴스 타입별 프로비저닝 실패 이벤트 수
 fields @timestamp, instanceType, err
 | filter @message like /could not launch/
 | stats count() by instanceType
 | sort count desc
 
-# 2. Consolidation으로 절감된 노드 수
+# 2. 시간대별 deprovisioning(통합) 이벤트 수
+#    이는 '제거된 노드 수'일 뿐이며, 순 절감 노드 수는 아닙니다.
+#    순 절감 수는 같은 구간의 생성(launched) 이벤트와 비교해야 산출됩니다.
 fields @timestamp, nodeclaim, reason
 | filter @message like /deprovisioning/
-| stats count() by bin(1h)
+| stats count() as deprovisioning_events by bin(1h)
 
-# 3. Spot 중단 빈도
+# 3. 시간대별 Spot 중단 이벤트 수
 fields @timestamp, node
 | filter @message like /spot interruption/
 | stats count() by bin(1h)
 
-# 4. 노드 시작 시간 (프로비저닝 성능)
+# 4. 노드 생성(launched nodeclaim) 이벤트 수
+#    Karpenter 로그에는 @duration 필드가 없으므로 프로비저닝 소요 시간을
+#    단일 로그로 계산할 수 없습니다. 소요 시간은 nodeclaim 생성 시각과
+#    등록(registered/initialized) 시각을 상관시켜 산출해야 합니다.
 fields @timestamp, nodeclaim, instance-type
 | filter @message like /launched nodeclaim/
-| stats avg(@duration) by instance-type
+| stats count() by instance-type
 ```
 
 ## 진단 명령어 모음
@@ -658,7 +671,8 @@ kubectl port-forward -n karpenter svc/karpenter 8080:8080
 - [ ] PDB가 과도하게 제약적인가?
 - [ ] Pod의 `terminationGracePeriodSeconds`가 충분한가? (2분 이내)
 - [ ] On-Demand 폴백이 설정되어 있는가?
-- [ ] 새 노드가 시작되기 전에 기존 노드가 종료되었는가? (버짓 설정 확인)
+- [ ] interruption 큐(SQS)·EventBridge 규칙·IAM 권한이 설정되어 Karpenter가 중단 경고를 수신하는가?
+- [ ] 대체 노드를 띄울 Spot/On-Demand 용량이 확보되는가? (Spot 회수는 비자발적이며 budget으로 지연되지 않습니다. 복구 시각은 보장되지 않습니다.)
 
 ### Drift 교체가 너무 빠름/느림
 
@@ -673,13 +687,15 @@ kubectl port-forward -n karpenter svc/karpenter 8080:8080
 ### 다중 NodePool 전략
 
 ```yaml
+# Karpenter는 weight가 높은 NodePool을 먼저 평가합니다.
+# 따라서 Spot을 우선 사용하려면 general-spot의 weight를 general-on-demand보다 높게 둡니다.
 # 1. 일반 워크로드 (Spot 우선)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: general-spot
 spec:
-  weight: 10  # ← 우선순위 낮음 (Spot 우선 사용)
+  weight: 50  # ← 우선순위 높음 (Spot 먼저 평가)
   template:
     spec:
       requirements:
@@ -693,7 +709,7 @@ kind: NodePool
 metadata:
   name: general-on-demand
 spec:
-  weight: 50  # ← 우선순위 높음 (Spot 부족 시)
+  weight: 10  # ← 우선순위 낮음 (Spot 용량 부족 시 폴백)
   template:
     spec:
       requirements:
