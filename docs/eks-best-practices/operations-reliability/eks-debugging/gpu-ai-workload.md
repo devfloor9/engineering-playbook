@@ -1,7 +1,7 @@
 ---
 title: GPU/AI Workload Debugging
 description: Debugging guide for GPU/AI workloads on EKS
-created: "2026-04-21"
+created: "2026-04-07"
 last_update:
   date: 2026-10-13
   author: devfloor9

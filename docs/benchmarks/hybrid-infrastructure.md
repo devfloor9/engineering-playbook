@@ -1,7 +1,7 @@
 ---
 title: Hybrid Infrastructure Benchmark
 description: Hybrid cloud infrastructure network and storage performance benchmark
-created: "2026-02-11"
+created: "2026-02-09"
 last_update:
   date: 2026-09-19
   author: devfloor9

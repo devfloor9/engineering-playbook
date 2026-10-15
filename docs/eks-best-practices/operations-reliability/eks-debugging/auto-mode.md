@@ -1,7 +1,7 @@
 ---
 title: EKS Auto Mode Debugging
 description: Debugging guide for EKS Auto Mode environments
-created: "2026-04-21"
+created: "2026-04-07"
 last_update:
   date: "2026-06-30"
   author: devfloor9

@@ -1,7 +1,7 @@
 ---
 title: "Llama 4 Serving Comparison: Specifications and Validation Plan"
 description: Official GPU, Trainium2 and Inferentia2 specifications, Llama 4 model requirements, and a plan for measuring performance and cost
-created: "2026-02-10"
+created: "2026-02-09"
 last_update:
   date: 2026-09-19
   author: devfloor9

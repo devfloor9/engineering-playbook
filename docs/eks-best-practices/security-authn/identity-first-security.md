@@ -1,7 +1,7 @@
 ---
 title: Identity-First Security Architecture
 description: Zero-trust access control based on EKS Pod Identity and IRSA migration guide
-created: "2026-02-11"
+created: "2026-02-09"
 last_update:
   date: "2026-06-30"
   author: devfloor9

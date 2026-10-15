@@ -1,7 +1,7 @@
 ---
 title: MSA Complexity Guide (Enterprise)
 description: Diagnose MSA difficulty as Level 1-5 in enterprise environments and provide integrated pattern-specific guides, harnesses, and verification
-created: "2026-04-19"
+created: "2026-04-18"
 last_update:
   date: "2026-06-30"
   author: devfloor9
