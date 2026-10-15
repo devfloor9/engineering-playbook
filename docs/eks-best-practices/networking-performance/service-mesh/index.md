@@ -3,9 +3,9 @@ title: EKS Service Mesh Comparison Guide — Istio, Cilium, Linkerd, VPC Lattice
 description: Compares data plane architecture, mTLS, L7 policy, observability, performance overhead, and operational complexity of major service mesh solutions on EKS, with workload-specific selection criteria
 created: "2026-07-15"
 last_update:
-  date: "2026-07-15"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 18
+reading_time: 38
 tags:
   - service-mesh
   - istio
@@ -49,7 +49,7 @@ A service mesh provides the following capabilities for service-to-service commun
 
 - **mTLS / Zero-Trust**: Enforces mutual authentication and transport encryption at the platform layer. This is the standard means of satisfying end-to-end encryption requirements in regulated environments such as ISMS-P and PCI-DSS.
 - **L7 traffic control**: Declaratively manages weighted traffic splitting (canary), header-based routing, retries, timeouts, and circuit breakers per service.
-- **Observability**: Collects golden-signal metrics (latency, traffic, errors, saturation) and distributed traces between services without instrumentation code.
+- **Observability**: Collects golden-signal metrics (latency, traffic, errors, saturation) and proxy-level trace spans between services without application instrumentation code. However, end-to-end distributed traces that span multiple services are only complete when the application propagates trace-context headers (e.g., W3C `traceparent`) to the next hop, so that part requires instrumentation.
 
 ### When a Service Mesh Is Not Needed
 
@@ -121,7 +121,7 @@ Cilium (current stable 1.19) absorbs mesh functionality into the CNI layer. L4 p
 
 - **mTLS works differently**: Instead of TLS handshakes in Envoy-based meshes, node-to-node transport encryption uses WireGuard or IPsec, and authentication is handled via SPIFFE-based mutual authentication. If regulatory requirements demand "per-service mTLS evidence," verify the audit interpretation in advance.
 - **Prerequisite**: The cluster CNI must be Cilium. On EKS this means replacing VPC CNI with Cilium ENI mode; see [Cilium ENI Mode + Gateway API Deep Dive](../gateway-api-adoption-guide/cilium-eni-gateway-api.md) for details.
-- If Cilium is already your CNI, enabling Hubble observability and L7 policy provides most mesh capabilities without additional components.
+- If Cilium is already your CNI, enabling Hubble observability and L7 policy gives you a substantial part of L4/L7 mesh capabilities without additional components. However, service-identity-based mutual authentication and transport encryption must each be enabled separately from Hubble and L7 policy. Cilium's official documentation (v1.19) states that mutual authentication requires SPIFFE/SPIRE integration (a SPIRE server deployed via the Helm option or your own), requires encryption (WireGuard/IPsec) to also be enabled, and that this feature is still **beta** with incomplete items remaining on its roadmap. Enable these features individually and verify their beta/support limitations before concluding that Cilium satisfies the mesh's identity and encryption requirements.
 
 ### Linkerd — Lightweight Rust Proxy
 
@@ -138,7 +138,7 @@ Amazon VPC Lattice is strictly a **managed application networking service** rath
 
 - The data plane is built into AWS infrastructure, so there are no proxies or agents in the cluster. It natively crosses VPC and account boundaries.
 - Authentication and authorization use IAM policies (SigV4 signing) — certificate management disappears, but request signing may require SDK or proxy configuration.
-- In Kubernetes, it is managed declaratively through Gateway API resources (HTTPRoute) via the [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/) — effectively a managed implementation of the GAMMA pattern.
+- In Kubernetes, it is managed declaratively through Gateway API resources (HTTPRoute) via the [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/). The controller's published conformance report covers the Gateway profile; GAMMA (mesh) profile conformance, which uses Service as the parent, is not asserted here absent a pinned conformance report.
 - Particularly advantageous in heterogeneous environments requiring integration with ECS, Lambda, and EC2 beyond EKS.
 
 ## Feature Comparison Matrix
@@ -150,13 +150,13 @@ Amazon VPC Lattice is strictly a **managed application networking service** rath
 | Current stable version | 1.30 | 1.19 | 2.20 (BEL) | Managed (no version) |
 | Data plane | ztunnel (L4) + waypoint (L7) | eBPF + per-node Envoy | Rust sidecar | AWS managed |
 | Sidecar | Not required | Not required | Required (Native Sidecar) | Not required |
-| mTLS | Automatic (SPIFFE certificates) | WireGuard/IPsec + mutual auth | Automatic (zero config) | IAM + SigV4 |
+| Transport encryption / identity auth | Automatic mTLS (SPIFFE workload certs) | WireGuard/IPsec transport encryption + SPIFFE mutual auth | Automatic mTLS (zero config) | TLS transport + IAM/SigV4 request auth (not workload-cert mTLS) |
 | L7 routing / traffic splitting | HTTPRoute · VirtualService | HTTPRoute · CiliumEnvoyConfig | HTTPRoute | HTTPRoute (Lattice rules) |
 | Retry / timeout / circuit breaker | Full support | Supported (via Envoy) | Supported (2.20: rate-limit-aware LB) | Retry/timeout (limited circuit breaking) |
 | Fault injection | Native | Limited | Limited | AWS FIS integration |
 | Observability | Kiali · Jaeger · Prometheus | Hubble (Service Map) | Viz dashboard | CloudWatch · X-Ray |
 | Multi-cluster | Supported (high complexity) | ClusterMesh | Supported (BEL) | Native (VPC/account boundaries) |
-| GAMMA support | Full support | HTTPRoute → Service | HTTPRoute-based | Gateway API Controller |
+| GAMMA support | Full support | HTTPRoute → Service | HTTPRoute-based | Gateway API Controller (Gateway profile; GAMMA unconfirmed) |
 | EKS installation path | Helm / istioctl | Helm / Cilium CLI (CNI replacement) | Helm / linkerd CLI | AWS Gateway API Controller |
 | License / governance | Apache-2.0, CNCF Graduated | Apache-2.0, CNCF Graduated | Apache-2.0 (stable via BEL) | AWS service (pay-as-you-go) |
 
@@ -166,7 +166,7 @@ For detailed GAMMA (Gateway API for Mesh) support status, see [GAMMA Initiative]
 
 The same "mTLS support" is implemented at different layers.
 
-- **Istio · Linkerd**: Express service identity via per-workload X.509 certificates (SPIFFE IDs). Certificate rotation is automatic, but trust anchor (root CA) rotation is an operational task — Linkerd 2.20 automated it.
+- **Istio · Linkerd**: Express service identity via per-workload X.509 certificates (SPIFFE IDs). Certificate rotation is automatic, but trust anchor (root CA) rotation is an operational task — in Linkerd, automatic trust-anchor rotation is not a built-in capability of every 2.20 installation; it is provided when you deploy and configure the Buoyant Enterprise for Linkerd (BEL) trust-rotation operator. On open-source (OSS) installations it remains a manual procedure.
 - **Cilium**: Separates transport encryption (WireGuard/IPsec) from identity authentication. Kernel-level encryption has the lowest overhead, but differs in nature from audit requirements that demand per-TLS-session evidence.
 - **VPC Lattice**: Handles service-to-service authorization with TLS termination + IAM policy evaluation, sharing the same authorization model with non-Kubernetes services (Lambda, EC2).
 
@@ -174,7 +174,7 @@ The same "mTLS support" is implemented at different layers.
 
 ### Data Plane Overhead
 
-The general overhead ordering is as follows (lower is better):
+The ordering below is an **untested hypothesis** expected from the architecture (kernel eBPF vs node proxy vs sidecar), not a benchmark measured under matched equivalent-feature conditions (encryption, L7 processing, etc.). Because each solution handles a different security/L7 path, the actual ranking can change with topology, features, and packet size, and should not be taken as a settled result until equivalent-feature measurements exist (assuming lower is better):
 
 ```
 eBPF (Cilium) < node proxy (Istio Ambient L4) ≈ lightweight sidecar (Linkerd) < Envoy sidecar (Istio Sidecar)
@@ -187,7 +187,7 @@ VPC Lattice has no in-cluster overhead, but adds a network hop through the AWS d
 ### Resource and Node Density Impact
 
 - **Sidecar mode**: Pod count × proxy resources consumes node capacity. In high-Pod-density clusters this drives node scale-out.
-- **Ambient · Cilium**: Fixed per-node cost (ztunnel/Envoy DaemonSet), predictable regardless of Pod density.
+- **Ambient · Cilium**: The number of proxy instances is fixed per node (ztunnel/Envoy DaemonSet), so instances do not grow in proportion to Pod count. A fixed instance count does not mean fixed resource usage, however. ztunnel CPU/memory varies with the number of connections, traffic volume, and telemetry it handles, and the waypoint that performs Ambient's L7 processing is a separately deployed and scaled component that consumes additional resources.
 - **Linkerd**: A sidecar, but tens of MB per proxy — lower than Envoy.
 
 ### AWS Cost Perspective
@@ -197,7 +197,7 @@ VPC Lattice has no in-cluster overhead, but adds a network hop through the AWS d
 | Item | Self-managed mesh (Istio · Cilium · Linkerd) | VPC Lattice |
 |------|---------------------------------------------|-------------|
 | Billing model | EC2 compute for proxies and control plane | Per-service hourly + per-GB processing + per-request |
-| Cost characteristics | Fixed regardless of traffic (resource-based) | Proportional to traffic (pay-as-you-go) |
+| Cost characteristics | Based on provisioned capacity, but proxy CPU/network utilization and scaling vary with traffic volume and features used | Proportional to traffic (pay-as-you-go) |
 | Hidden costs | Ops staffing, upgrades, incident response | Processing charges can surge at high traffic volume |
 
 Workloads with few services and heavy traffic tend to favor self-managed; environments with many services and accounts with distributed traffic tend to favor Lattice. For interaction with cross-AZ data charges, see [East-West Traffic Optimization](../east-west-traffic-best-practice.md).
@@ -212,7 +212,7 @@ Workloads with few services and heavy traffic tend to favor self-managed; enviro
 |----------|-------------|------------------------|
 | Istio | Helm or istioctl | Canary control plane upgrades (revisions) recommended; Ambient updates ztunnel/waypoint sequentially |
 | Cilium | Helm / Cilium CLI — **replaces the CNI** | Requires the same caution as CNI upgrades; recommended for new clusters |
-| Linkerd | Helm / linkerd CLI | Trust anchor rotation is the main event (automated in 2.20) |
+| Linkerd | Helm / linkerd CLI | Trust anchor rotation is the main event (automated with the BEL operator configured; manual on OSS) |
 | VPC Lattice | Gateway API Controller (Helm) | AWS manages the data plane; only the controller is updated |
 
 ### Control Plane Operational Burden
@@ -220,11 +220,11 @@ Workloads with few services and heavy traffic tend to favor self-managed; enviro
 - **Istio**: Requires operating Istiod, learning CRDs (VirtualService, DestinationRule, etc.), and tracking behavioral changes across versions. Highest operational burden of the four, but also the most commercial support options (Solo.io, Tetrate, etc.).
 - **Cilium**: CNI and mesh are a single component, so there is no separate mesh control plane. However, Cilium itself is the cluster networking single point of failure, so CNI operating expertise is a prerequisite.
 - **Linkerd**: Simple control plane and small CRD surface — the gentlest learning curve.
-- **VPC Lattice**: No control plane to operate. In exchange, you depend on AWS service quotas and feature release cadence.
+- **VPC Lattice**: AWS operates the managed Lattice control and data planes, so you do not operate a mesh control plane yourself. However, you still install and upgrade the AWS Gateway API Controller on the Kubernetes side, and IAM authorization policies, routing, service quotas, and application access policies remain your operational responsibility.
 
 ### Kubernetes Native Sidecar and Lifecycle
 
-Kubernetes 1.29+ Native Sidecar (initContainer `restartPolicy: Always`) structurally resolves the chronic issues of sidecar-based meshes — proxies starting after the app or terminating before it, dropping traffic. Linkerd 2.20 adopted it as the default; Istio sidecar mode also supports it. For detailed patterns such as sidecar termination in Job workloads, see [EKS Pod Health Checks & Lifecycle Management](../../operations-reliability/eks-pod-health-lifecycle.md).
+Kubernetes 1.29+ Native Sidecar (initContainer `restartPolicy: Always`) corrects the start/termination ordering behind the chronic issues of sidecar-based meshes — proxies starting after the app or terminating before it, dropping traffic. Ordering alone does not guarantee that the proxy is ready to serve traffic, however. Kubernetes advances to the next step once the sidecar container's process starts, so to hold app startup until the proxy is actually ready you must gate readiness with a startup probe. On termination, graceful shutdown handling is still required to avoid dropped connections. Linkerd 2.20 adopted Native Sidecar as the default; Istio sidecar mode also supports it. For detailed patterns such as sidecar termination in Job workloads, see [EKS Pod Health Checks & Lifecycle Management](../../operations-reliability/eks-pod-health-lifecycle.md).
 
 ### Combining with Resilience Patterns
 
@@ -284,7 +284,7 @@ A detailed four-axis (functionality/stability/operability/cost) comparison of th
 
 ## Summary
 
-Service mesh selection on EKS is determined not by "the best mesh" but by the organization's CNI strategy, operational capability, and account topology. Data planes have diverged from sidecars to node proxies (Ambient), the kernel (eBPF), and managed services (Lattice) — for new adoption, there is no longer a reason to default to sidecar mode. Organizations on App Mesh must complete migration before end of support on September 30, 2026. Quantitative performance benchmarks of the four solutions are planned as a separate future benchmark document.
+Service mesh selection on EKS is determined not by "the best mesh" but by the organization's CNI strategy, operational capability, and account topology. Data planes have diverged from sidecars to node proxies (Ambient), the kernel (eBPF), and managed services (Lattice) — for new adoption, default away from sidecar mode first unless the supported topology, platform, or required features call for it. Organizations on App Mesh must complete migration before end of support on September 30, 2026. Quantitative performance benchmarks of the four solutions are planned as a separate future benchmark document.
 
 ## References
 

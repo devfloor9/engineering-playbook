@@ -3,9 +3,9 @@ title: EKS 멀티클러스터 East-West 통신 — Istio는 여전히 유효한�
 description: EKS 멀티클러스터 환경의 East-West(서비스 간) 통신을 위해 Istio 멀티클러스터, Cilium ClusterMesh, Amazon VPC Lattice 아키텍처를 기능·안정성·운영편의성·비용 4개 축으로 비교하고, 각 아키텍처가 적합한 환경과 Istio 마이그레이션 경로를 제시합니다
 created: "2026-07-16"
 last_update:
-  date: "2026-07-16"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 28
+reading_time: 33
 tags:
   - service-mesh
   - multi-cluster
@@ -106,7 +106,7 @@ sidebar_position: 2
        · Gateway API Controller가 K8s 리소스 ↔ Lattice 리소스 동기화
 ```
 
-Pod는 link-local 대역(`169.254.171.0/24`)의 Lattice 데이터 플레인으로 트래픽을 보내며, 클러스터 보안 그룹에 Lattice 관리형 prefix list 인바운드 허용만 추가하면 됩니다. 두 VPC가 **동일한 CIDR을 사용해도 통신이 성립**하며, 이는 AWS 공식 블로그의 데모로 검증된 동작입니다([참고 자료](#8-참고-자료) 2번, 확인 2026-07-16).
+Pod는 link-local 대역(`169.254.171.0/24`)의 Lattice 데이터 플레인으로 트래픽을 보냅니다. AWS 공식 블로그 데모는 기본 구성을 가정하므로 "클러스터 보안 그룹에 Lattice 관리형 prefix list 인바운드 허용만 추가"하면 통신이 성립한다고 설명하지만, 이는 그 데모의 기본 가정에 한정됩니다. 실제 환경에서는 노드·Pod에 적용된 보안 그룹(Security Groups for Pods 포함)의 인바운드/아웃바운드, 클라이언트 측 egress, 서비스 네트워크와 VPC의 연결(association) 규칙, 라우팅, 컨트롤러 IAM 권한, 서명된 애플리케이션 접근까지 함께 전제 조건으로 확인해야 합니다. 두 VPC가 **동일한 CIDR을 사용해도 통신이 성립**하며, 이는 AWS 공식 블로그의 데모로 검증된 동작입니다([참고 자료](#8-참고-자료) 2번, 확인 2026-07-16).
 
 인증·인가는 IAM auth policy로 처리합니다. EKS Pod Identity가 발급하는 세션 태그(`eks-cluster-name`, `kubernetes-namespace`, `kubernetes-pod-name`)를 조건으로 사용하면 **클러스터·네임스페이스·Pod 단위 ABAC 인가**가 가능합니다. IAM 인증을 켜면 요청은 SigV4 서명이 필요하며, SDK 서명 또는 서명 프록시(예: Envoy 사이드카를 서명 전용으로 주입) 중 하나를 선택합니다.
 
@@ -136,7 +136,7 @@ Pod는 link-local 대역(`169.254.171.0/24`)의 Lattice 데이터 플레인으�
         전제: 비중복 PodCIDR + 노드 간 직접 IP 도달성 + 동일 datapath 모드
 ```
 
-프록시 홉 없이 **Pod-to-Pod 직통**이므로 데이터 플레인 오버헤드와 지연이 후보 중 가장 낮습니다. 다만 전제 조건이 엄격합니다 — 전 클러스터 비중복 PodCIDR, 노드 간 직접 IP 도달성(VPC peering 또는 TGW), 전 클러스터 동일 datapath 모드, 클러스터 ID(1–255)·이름 사전 설계(사후 변경 시 전체 워크로드 재시작 필요). 모두 upstream 공식 문서 기준입니다(확인 2026-07-16).
+프록시 홉 없이 **Pod-to-Pod 직통** 경로이므로 중간 프록시를 거치는 후보보다 데이터 플레인 오버헤드와 지연이 낮을 잠재적 이점이 있습니다. 다만 이는 매칭된 벤치마크로 측정된 순위가 아니며, 실제 지연은 토폴로지, 전송 암호화(WireGuard/IPsec)·L7 처리 활성화 여부, 패킷 크기에 따라 달라지므로 동일 조건 측정으로 확인해야 합니다. 다만 전제 조건이 엄격합니다 — 전 클러스터 비중복 PodCIDR, 노드 간 직접 IP 도달성(VPC peering 또는 TGW), 전 클러스터 동일 datapath 모드, 클러스터 ID(1–255)·이름 사전 설계(사후 변경 시 전체 워크로드 재시작 필요). 모두 upstream 공식 문서 기준입니다(확인 2026-07-16).
 
 **표 4. Cilium ClusterMesh의 4축(기능·안정성·운영편의성·비용) 평가**
 
@@ -217,7 +217,7 @@ AWS App Mesh는 2026년 9월 30일 지원이 종료되며, 2024년 9월 24일부
 
 | 축 | VPC Lattice + GW API Controller | Cilium ClusterMesh | Istio multi-primary |
 |----|--------------------------------|--------------------|--------------------|
-| **기능** | 강점 HTTP/gRPC·IAM 인가·계정 경계 / 제약 순수 TCP 제약·UDP 불가·메시 관측성 없음 | 강점 전 프로토콜·최저 지연 / 제약 클러스터 간 L7 표현력·SPIFFE 상호 인증 불가 | 강점 전 항목 최고 표현력·멀티클라우드 / 제약 없음 (기능만 보면 최강) |
+| **기능** | 강점 HTTP/gRPC·IAM 인가·계정 경계 / 제약 순수 TCP 제약·UDP 불가·메시 관측성 없음 | 강점 전 프로토콜·프록시 홉 없는 직통(지연 이점은 측정 전제) / 제약 클러스터 간 L7 표현력·SPIFFE 상호 인증 불가 | 강점 전 항목 최고 표현력·멀티클라우드 / 제약 없음 (기능만 보면 최강) |
 | **안정성** | AWS 관리형 데이터 플레인, 고객 관리 컴포넌트 최소. quota 상한이 실질 리스크 | 커널 datapath 성숙. 단 CNI=메시라 장애 반경 최대 | 프로덕션 이력 최장. 단 안정성 전제(CA·게이트웨이·skew)를 전부 고객이 유지 |
 | **운영편의성** | 유리: **컨트롤 플레인이 클러스터 밖에 있는 유일한 후보** | 제약: CNI 교체 + 3종 컴포넌트 자체 운영, AWS 공식 지원 아님 | 크게 불리: N개 istiod + N×(N−1) remote secret + 게이트웨이. 상용 지원으로 완화만 가능 |
 | **비용** | 종량제(시간+GB+요청). 소~중 트래픽에 유리, 대용량은 시뮬레이션 필수. L3 연결 비용 없음 | SW 무료 + L3 연결 요금 + 전담 인력. 대용량 트래픽에 유리 | SW 무료 + 사이드카 리소스 + 게이트웨이·L3 요금 + **최대 인력 비용** |
@@ -236,7 +236,9 @@ flowchart TD
     q1 -->|"예 (DB·브로커·커스텀 프로토콜)"| q2{"CNI가 이미 Cilium<br/>(또는 전환 확정)?"}
     q1 -->|"아니오 (HTTP/gRPC 중심)"| q4
     q2 -->|예| cilium["Cilium ClusterMesh<br/>+ L3 연결 (peering/TGW)"]
-    q2 -->|아니오| q3{"전 구간 SPIFFE mTLS<br/>또는 멀티클라우드 요건?"}
+    q2 -->|아니오| q2u{"UDP 트래픽이<br/>포함되는가?"}
+    q2u -->|"예 (UDP)"| udp["UDP 지원 라우팅 데이터패스 필요<br/>(Istio 프록시·Lattice TLS passthrough로 대체 불가)<br/>— Cilium ClusterMesh 또는 L3 라우팅 설계"]
+    q2u -->|"아니오 (TCP만)"| q3{"전 구간 SPIFFE mTLS<br/>또는 멀티클라우드 요건?"}
     q3 -->|예| istio["Istio multi-primary 유지<br/>(운영 부담 크면 상용 지원 검토)"]
     q3 -->|아니오| tcp_lattice["TCP는 Lattice TLS passthrough로<br/>수용 가능한지 PoC 검증<br/>(불가 시 Istio 유지)"]
     q4{"전 구간 SPIFFE mTLS가<br/>감사 요건으로 명문화?"} -->|예| istio
@@ -247,6 +249,7 @@ flowchart TD
     style lattice fill:#fff3e0,stroke:#e65100
     style cilium fill:#e8f5e9,stroke:#2e7d32
     style istio fill:#e3f2fd,stroke:#1565c0
+    style udp fill:#e8f5e9,stroke:#2e7d32
 ```
 
 **권장안 요약:**
@@ -254,6 +257,7 @@ flowchart TD
 - **기본 권장**: HTTP/gRPC 중심 멀티클러스터라면 VPC Lattice + Gateway API Controller로 메시 없이 통신 요건을 충족하고, 컨트롤 플레인 운영을 제거합니다.
 - **Istio 유지가 정답인 경우**: 전 구간 SPIFFE mTLS 감사 요건, 멀티클라우드 full mesh, 고급 L7 제어가 사업 요구일 때. 이때 운영 부담은 상용 지원(레버 a)과 Ambient 전환(레버 b, 단 멀티클러스터 Ambient는 Beta — PoC 전제)으로 완화합니다.
 - **Cilium ClusterMesh는 조건부**: Cilium CNI 기보유 + TCP/UDP + 전담 역량이 모두 갖춰진 경우에만.
+- **UDP는 TCP와 분리해 판단**: Istio는 UDP를 프록시하지 않고 프록시 전용 게이트웨이로 UDP가 통과하지 못하며, Lattice는 UDP를 지원하지 않습니다(TLS passthrough는 TCP 전용). 따라서 클러스터 간 UDP 트래픽은 Istio 프록시나 Lattice로 대체할 수 없고, Cilium ClusterMesh처럼 UDP를 라우팅하는 데이터패스나 별도의 L3 라우팅 경로가 필요합니다.
 
 단일 클러스터 내 메시 선택 기준은 [서비스 메시 비교 가이드](./index.md)로 위임합니다.
 
@@ -264,7 +268,7 @@ flowchart TD
 - **L7 중심 서비스라는 점.** Lattice는 HTTP/HTTPS·gRPC와 TCP(TLS passthrough)를 지원하지만, TLS passthrough에는 제약이 있습니다 — 커스텀 도메인(SNI 매칭) 필수, 기본 규칙만 허용(경로·헤더 라우팅 불가), TCP 타깃 그룹으로만 포워딩, **연결 수명 10분 상한**, auth policy는 익명 주체만 지원(확인 2026-07-16). 장수명 TCP 연결(DB 커넥션 풀, 스트리밍)이 있다면 이 상한이 실질적 차단 요인일 수 있으므로 PoC에서 반드시 검증합니다. UDP는 미지원입니다.
 - **전 구간 SPIFFE mTLS 요건이면 재검토.** Lattice의 보안 모델은 "TLS 종단 + IAM 요청 인가"입니다. 감사 요건이 "워크로드 간 X.509 상호 인증 증적"을 문자 그대로 요구하면 Lattice 단독으로는 충족이 어렵습니다. 컴플라이언스 담당과 요건 문구의 해석을 먼저 합의해야 합니다.
 - **메시급 관측성 부재.** Kiali 수준의 실시간 토폴로지 그래프·서비스 간 골든 시그널 자동 수집은 없습니다. CloudWatch 메트릭·액세스 로그와 X-Ray 조합으로 대체 가능한지 관측성 요건을 먼저 정의합니다.
-- **quota 설계.** 서비스 네트워크는 VPC당 1개만 연결 가능(조정 불가), auth policy 10 KB 상한, 리스너당 규칙 10개(조정 가능) 등 아키텍처에 영향을 주는 한도가 있습니다. 서비스 수·규칙 수 전망을 quota와 대조한 뒤 설계를 확정합니다.
+- **quota 설계.** 서비스 네트워크는 VPC에 직접(association) 1개만 연결 가능(조정 불가)하지만, 서비스 네트워크 VPC 엔드포인트(service-network VPC endpoint)를 사용하면 한 VPC에서 여러 서비스 네트워크에 연결할 수 있습니다(엔드포인트별 설계·비용이 추가됨). 그 외 auth policy 10 KB 상한, 리스너당 규칙 10개(조정 가능) 등 아키텍처에 영향을 주는 한도가 있습니다. 서비스 수·규칙 수 전망을 quota와 대조한 뒤 설계를 확정합니다.
 - **요금 시뮬레이션.** 처리량 $0.025/GB는 크로스 AZ 요금($0.01/GB×양방향)보다 높습니다. 트래픽이 매우 큰 소수 경로는 Lattice를 우회(동일 클러스터 배치, 직접 연결)하는 하이브리드 설계가 비용 효율적일 수 있습니다.
 
 **Cilium ClusterMesh를 선택하기 전에:**

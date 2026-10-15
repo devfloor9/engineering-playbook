@@ -3,9 +3,9 @@ title: AWS Nitro 아키텍처와 성능 튜닝
 description: AWS Nitro System의 구성 요소와 v2~v6 세대별 네트워크 변경 사항, 그리고 EKS 노드에서 요구되는 ENA 드라이버·커널 버전과 PPS/CPS 중심 성능 튜닝 전략을 다룹니다.
 created: "2026-06-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 16
 tags:
   - eks
   - networking
@@ -41,7 +41,7 @@ Nitro System은 가상화 오버헤드를 전용 하드웨어로 오프로드하
 
 | 세대 | 주요 변경 | 대표 인스턴스 |
 |------|-----------|--------------|
-| **v6** | 네트워크 카드당 최대 400Gbps. 유휴 TCP established 타임아웃 432,000초 → **350초**로 단축. Traffic Mirroring 미지원 | M8i·C8i·R8i, M8g, P6-B200, G7 |
+| **v6** | 네트워크 카드당 최대 400Gbps. 유휴 TCP established 타임아웃 432,000초 → **350초**로 단축. Traffic Mirroring 미지원 | M8i·C8i·R8i, P6-B200, G7 |
 | **v5** | 카드당 최대 200Gbps. Traffic Mirroring 미지원 | M8g·C8g·R8g, Trn2, P5en, P6e-GB200 |
 | **v4** | GPU·Trainium 계열 100Gbps, 그 외 최대 170Gbps. **ENA Express** 지원, 일부 타입 RDMA read/write(EFA) 지원. Traffic Mirroring 지원 | M7i·C7i·R7i, M7g, Inf2, Trn1, P5, G6 |
 | **v3** | 카드당 최대 100Gbps. **전송 중 암호화(encryption in transit)**. Traffic Mirroring 지원 | C5n, R5n, P4d, G4dn, Inf1 |
@@ -77,7 +77,7 @@ ENA 기능의 최적 성능을 위해 일부 배포판은 최소 커널 버전�
 | Ubuntu | 20.04 (5.4.0-1025-aws) |
 | Debian | 11 (5.10.0) |
 
-Amazon Linux 2023과 Bottlerocket은 Nitro v4 이상의 ENA 기능을 기본 지원하므로 별도 커널 튜닝이 필요하지 않습니다. EKS 노드는 가능하면 Amazon Linux 2023 또는 Bottlerocket 기반 AMI를 사용하는 것이 드라이버·커널 관리 부담을 줄이는 방법입니다.
+Amazon Linux 2023과 Bottlerocket은 Nitro v4 이상의 ENA 기능과 드라이버를 기본 번들로 지원하므로, ENA 기능 자체는 추가 설치 없이 바로 사용할 수 있습니다. 다만 이는 ENA 기능·드라이버 호환성에 한정된 이야기이며, 모든 워크로드에서 별도의 커널 튜닝이 전혀 필요 없다는 뜻은 아닙니다. 아래 커널 파라미터 절에서 다루듯 워크로드별 sysctl·큐 조정과 그 효과 측정은 여전히 필요합니다. EKS 노드는 가능하면 Amazon Linux 2023 또는 Bottlerocket 기반 AMI를 사용하는 것이 드라이버·커널 관리 부담을 줄이는 방법입니다.
 
 ### Graviton(arm64) 추가 요건
 
@@ -110,7 +110,7 @@ Nitro 인스턴스의 네트워크 성능은 ENA 드라이버 모듈 파라미�
 |------|------|-----------|
 | `enable_frag_bypass` | egress fragment의 PPS 제한(1024)을 우회하는 fragment proxy mode. MTU 초과로 단편화가 잦은 워크로드에 유효 | 드라이버 로드 시 `sudo insmod ena.ko enable_frag_bypass=1` |
 
-fragment proxy mode는 BQL과 동시 활성 시 성능 제약이 발생할 수 있으므로 함께 사용하지 않습니다. 세부 옵션은 ENA Linux 드라이버 README와 Best Practices 가이드를 참조합니다.
+fragment proxy mode는 BQL과 동시 활성 시 성능 제약이 발생할 수 있으므로 함께 사용하지 않습니다. 또한 `enable_frag_bypass`는 ENI 어태치의 기준 드라이버인 2.2.9보다 나중에 추가된 기능으로, ENA Linux 드라이버 **2.13.3 이상**에서만 제공됩니다(2.13.3 릴리스에서 Fragment bypass 지원 추가). 2.13.3 미만 드라이버에 이 파라미터를 적용하면 로드가 실패할 수 있으므로, 적용 전 `modinfo ena | grep enable_frag_bypass`로 현재 모듈이 이 파라미터를 지원하는지 확인합니다. 세부 옵션은 ENA Linux 드라이버 README와 Best Practices 가이드를 참조합니다.
 
 #### ENA 큐 및 링 버퍼 (ethtool)
 
@@ -138,6 +138,8 @@ sysctl -w net.ipv4.tcp_keepalive_intvl=30
 sysctl -w net.ipv4.tcp_keepalive_probes=5
 ```
 
+위 값은 조정 방향을 보여주는 예시이며, 그대로 사용하기 전에 세 가지를 확인해야 합니다. 첫째, 이 sysctl은 소켓에서 keepalive가 켜져 있을 때만 효과가 있습니다. 애플리케이션이 소켓에 `SO_KEEPALIVE`를 설정하지 않으면 커널 keepalive 주기를 아무리 짧게 잡아도 프로브가 나가지 않아 장시간 유휴 연결이 보호되지 않습니다. 둘째, 호스트 네임스페이스에서 바꾼 sysctl이 이미 실행 중인 Pod의 네트워크 네임스페이스에 자동 반영되는 것은 아니므로, 적용 후 대상 Pod 안에서 실제 값(`cat /proc/sys/net/ipv4/tcp_keepalive_time`)을 확인합니다. 셋째, 주기는 워크로드가 겪는 실제 ENI/연결 추적 타임아웃(Nitro v6의 350초 등)보다 짧은지 실측으로 검증합니다.
+
 #### 워크로드별 일반 커널 파라미터
 
 다음 sysctl은 AWS가 단일 권장값을 제공하지 않으며, NMA가 노출하는 커널 이벤트(`ApproachingKernelPidMax`, `ApproachingMaxOpenFiles`, `ConntrackExceededKernel`)나 ethtool 드롭 메트릭이 관찰될 때 워크로드에 맞게 상향합니다.
@@ -160,11 +162,11 @@ EKS 워커 노드에서 위 커널 파라미터를 영구 적용할 때는 노�
 - **Pod 단위**: Pod `securityContext.sysctls`(namespaced sysctl) 또는 init container의 privileged 설정
 - **DaemonSet**: 노드 전역 sysctl이 필요하면 부팅 시 적용하는 node-tuning DaemonSet
 
-`net.core.*`, `net.ipv4.tcp_*` 같은 노드 전역(non-namespaced) 파라미터는 Pod `securityContext`로 설정할 수 없으므로 노드 부트스트랩 계층에서 적용해야 합니다.
+sysctl이 Pod 수준에서 설정 가능한지는 파라미터가 네트워크 네임스페이스로 격리(namespaced)되는지에 따라 다르므로 일괄적으로 "노드 전역이라 Pod로 설정 불가"라고 볼 수 없습니다. 네임스페이스로 격리되는 sysctl만 Pod `securityContext.sysctls`로 설정할 수 있고, 그중 안전 목록(safe set)에 든 것은 추가 설정 없이, 그 밖의 것은 kubelet의 `--allowed-unsafe-sysctls` 허용이 선행되어야 합니다. 예를 들어 TCP keepalive 계열(`net.ipv4.tcp_keepalive_time`·`tcp_keepalive_intvl`·`tcp_keepalive_probes`)은 Kubernetes 1.29부터 safe set에 포함되어 Pod 단위로 설정할 수 있고, `net.core.somaxconn`은 네임스페이스 격리 대상이지만 unsafe로 분류되어 허용 설정이 필요합니다. 반면 진짜로 노드 전역(non-namespaced)인 파라미터(예: `net.core.rmem_max`·`net.ipv4.tcp_mem` 등 다수)는 Pod `securityContext`로 설정할 수 없으므로 노드 부트스트랩 계층에서 적용합니다. 따라서 각 파라미터마다 커널·Kubernetes 버전, safe/unsafe 여부, `hostNetwork` 제약을 확인해 필요 이상으로 노드 전역을 privileged로 바꾸지 않도록 합니다.
 
 :::
 
-성능 지표는 ENA 드라이버가 노출하는 ethtool 메트릭(`bw_in/out_allowance_exceeded`, `pps_allowance_exceeded`, `conntrack_allowance_exceeded`, `conntrack_allowance_available` 등)으로 모니터링합니다. 이 값이 0이 아니면 해당 allowance가 한계에 도달했음을 의미하며, 커널 튜닝 또는 상위 Nitro 세대 인스턴스로의 전환을 검토합니다.
+성능 지표는 ENA 드라이버가 노출하는 ethtool 메트릭으로 모니터링하되, 메트릭의 성격을 구분해야 합니다. `bw_in/out_allowance_exceeded`·`pps_allowance_exceeded`·`conntrack_allowance_exceeded`는 드라이버 리셋 이후 누적되는 카운터로, 값이 0이 아니라는 것만으로 지금 사고가 진행 중임을 뜻하지는 않으며 일정 구간(window) 동안의 증가분을 봐야 합니다. 반면 `conntrack_allowance_available`은 추적 가능한 연결 중 아직 남은 용량을 나타내는 게이지이므로, 값이 양수라는 것은 용량이 남아 있다는 뜻이지 소진을 뜻하지 않습니다. 이 값이 0에 가까워지거나 `*_exceeded` 카운터가 구간 내 증가하면 해당 allowance가 한계에 도달하고 있음을 의미하며, 커널 튜닝 또는 상위 Nitro 세대 인스턴스로의 전환을 검토합니다.
 
 ### EKS 관점의 연계 신호
 

@@ -3,9 +3,9 @@ title: AWS Nitro Architecture and Performance Tuning
 description: AWS Nitro System components, per-generation (v2–v6) networking changes, ENA driver/kernel requirements on EKS nodes, and PPS/CPS-focused performance tuning strategies
 created: "2026-06-19"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 23
+reading_time: 28
 tags:
   - eks
   - networking
@@ -41,7 +41,7 @@ Check an instance's Nitro version in the **`Hypervisor` column of the Platform s
 
 | Generation | Key changes | Example instances |
 |------------|-------------|-------------------|
-| **v6** | Up to 400 Gbps per network card. Idle TCP established timeout reduced 432,000s → **350s**. Traffic Mirroring not supported | M8i·C8i·R8i, M8g, P6-B200, G7 |
+| **v6** | Up to 400 Gbps per network card. Idle TCP established timeout reduced 432,000s → **350s**. Traffic Mirroring not supported | M8i·C8i·R8i, P6-B200, G7 |
 | **v5** | Up to 200 Gbps per card. Traffic Mirroring not supported | M8g·C8g·R8g, Trn2, P5en, P6e-GB200 |
 | **v4** | 100 Gbps for GPU/Trainium families, up to 170 Gbps otherwise. **ENA Express** support, RDMA read/write (EFA) on select types. Traffic Mirroring supported | M7i·C7i·R7i, M7g, Inf2, Trn1, P5, G6 |
 | **v3** | Up to 100 Gbps per card. **Encryption in transit**. Traffic Mirroring supported | C5n, R5n, P4d, G4dn, Inf1 |
@@ -77,7 +77,7 @@ Some distributions require a minimum kernel version for optimal ENA feature perf
 | Ubuntu | 20.04 (5.4.0-1025-aws) |
 | Debian | 11 (5.10.0) |
 
-Amazon Linux 2023 and Bottlerocket support Nitro v4+ ENA features by default, requiring no separate kernel tuning. Where possible, use Amazon Linux 2023 or Bottlerocket-based AMIs for EKS nodes to reduce driver/kernel management overhead.
+Amazon Linux 2023 and Bottlerocket bundle Nitro v4+ ENA features and drivers by default, so the ENA features themselves are usable out of the box with no extra installation. This is limited to ENA feature/driver compatibility, however, and does not mean no workload needs any separate kernel tuning. As the kernel-parameter section below covers, workload-specific sysctl/queue tuning and measuring its effect are still required. Where possible, use Amazon Linux 2023 or Bottlerocket-based AMIs for EKS nodes to reduce driver/kernel management overhead.
 
 ### Additional Graviton (arm64) Requirements
 
@@ -110,7 +110,7 @@ Network performance on Nitro instances can be adjusted via ENA driver module par
 |------|-------------|--------|
 | `enable_frag_bypass` | Fragment proxy mode that bypasses the egress fragment PPS limit (1024). Useful for workloads with frequent fragmentation from exceeding MTU | At driver load: `sudo insmod ena.ko enable_frag_bypass=1` |
 
-Do not use fragment proxy mode together with BQL, as this can constrain performance. For detailed options, refer to the ENA Linux driver README and Best Practices guide.
+Do not use fragment proxy mode together with BQL, as this can constrain performance. Also, `enable_frag_bypass` is a feature added later than the 2.2.9 baseline driver required for ENI attachment, and is available only in ENA Linux driver **2.13.3 or later** (the 2.13.3 release added Fragment bypass support). Applying this parameter on a driver older than 2.13.3 can fail to load, so before applying it verify the current module supports the parameter with `modinfo ena | grep enable_frag_bypass`. For detailed options, refer to the ENA Linux driver README and Best Practices guide.
 
 #### ENA Queues and Ring Buffers (ethtool)
 
@@ -138,6 +138,8 @@ sysctl -w net.ipv4.tcp_keepalive_intvl=30
 sysctl -w net.ipv4.tcp_keepalive_probes=5
 ```
 
+These values are illustrative of the direction to tune; verify three things before using them as-is. First, these sysctls take effect only when keepalive is enabled on the socket. If the application does not set `SO_KEEPALIVE` on its sockets, no probes are sent no matter how short the kernel keepalive interval is, so long-idle connections are not protected. Second, a sysctl changed in the host namespace is not automatically applied to the network namespaces of already-running Pods, so after applying it verify the effective value inside the target Pod (`cat /proc/sys/net/ipv4/tcp_keepalive_time`). Third, confirm by measurement that the interval is shorter than the actual ENI/connection-tracking timeout the workload experiences (such as Nitro v6's 350s).
+
 #### Workload-Specific General Kernel Parameters
 
 AWS does not provide a single recommended value for the following sysctls; raise them per workload when the corresponding kernel events surfaced by NMA (`ApproachingKernelPidMax`, `ApproachingMaxOpenFiles`, `ConntrackExceededKernel`) or ethtool drop metrics are observed.
@@ -160,11 +162,11 @@ When permanently applying the above kernel parameters on EKS worker nodes, confi
 - **Per-Pod**: Pod `securityContext.sysctls` (namespaced sysctls), or a privileged init container
 - **DaemonSet**: a node-tuning DaemonSet that applies node-global sysctls at boot when needed
 
-Node-global (non-namespaced) parameters such as `net.core.*` and `net.ipv4.tcp_*` cannot be set via Pod `securityContext` and must be applied at the node bootstrap layer.
+Whether a sysctl can be set at the Pod level depends on whether the parameter is isolated per network namespace (namespaced), so it is wrong to assume blanketly that "node-global parameters cannot be set from a Pod." Only namespaced sysctls can be set via Pod `securityContext.sysctls`; those in the safe set require no extra configuration, while the rest require the kubelet's `--allowed-unsafe-sysctls` to permit them first. For example, the TCP keepalive family (`net.ipv4.tcp_keepalive_time`, `tcp_keepalive_intvl`, `tcp_keepalive_probes`) is in the safe set as of Kubernetes 1.29 and can be set per Pod, while `net.core.somaxconn` is namespaced but classified as unsafe and needs the allow setting. Genuinely node-global (non-namespaced) parameters (such as `net.core.rmem_max`, `net.ipv4.tcp_mem`, and many others) cannot be set via Pod `securityContext` and must be applied at the node bootstrap layer. Classify each parameter by kernel/Kubernetes version, safe/unsafe status, and `hostNetwork` constraints so you avoid making node globals privileged more than necessary.
 
 :::
 
-Monitor performance indicators via the ethtool metrics exposed by the ENA driver (`bw_in/out_allowance_exceeded`, `pps_allowance_exceeded`, `conntrack_allowance_exceeded`, `conntrack_allowance_available`, etc.). A non-zero value means the corresponding allowance hit its limit — consider kernel tuning or moving to a higher Nitro-generation instance.
+Monitor performance indicators via the ethtool metrics exposed by the ENA driver, distinguishing their nature. `bw_in/out_allowance_exceeded`, `pps_allowance_exceeded`, and `conntrack_allowance_exceeded` are counters cumulative since the driver reset, so a non-zero value alone does not prove an incident is in progress — look at the increase over a window. In contrast, `conntrack_allowance_available` is a gauge reporting the remaining trackable-connection capacity, so a positive value means capacity remains, not exhaustion. When this gauge approaches 0 or the `*_exceeded` counters increase within a window, the corresponding allowance is reaching its limit — consider kernel tuning or moving to a higher Nitro-generation instance.
 
 ### EKS-Perspective Correlation Signals
 
