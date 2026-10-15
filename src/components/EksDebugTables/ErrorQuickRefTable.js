@@ -15,8 +15,8 @@ const errors = [
   { id: 12, pattern: 'connection refused', cause: 'Service Endpoint 없음, 포트 불일치', fix: 'kubectl get endpoints, selector 및 포트 확인', cat: 'network' },
   { id: 13, pattern: 'Evicted', cause: '노드 리소스 압박 (DiskPressure 등)', fix: '노드 디스크 정리, Pod resource requests 조정', cat: 'node' },
   { id: 14, pattern: 'FailedScheduling: Insufficient cpu/memory', cause: '클러스터 용량 부족', fix: 'Karpenter NodePool limits 증가, 노드 추가', cat: 'node' },
-  { id: 15, pattern: 'Terminating (stuck)', cause: 'Finalizer 미완료, preStop hook 지연', fix: 'Finalizer 확인, 필요시 --force --grace-period=0', cat: 'workload' },
-  { id: 16, pattern: 'Back-off pulling image', cause: '이미지 크기 큰 경우 pull 타임아웃', fix: '이미지 최적화, ECR 같은 리전 레지스트리 사용', cat: 'workload' },
+  { id: 15, pattern: 'Terminating (stuck)', cause: 'Finalizer 미완료, preStop hook 지연', fix: 'Finalizer/프로세스 먼저 조사. --force --grace-period=0은 API 객체만 제거하며 프로세스 종료·finalizer 정리를 보장하지 않음(최후 수단)', cat: 'workload' },
+  { id: 16, pattern: 'Back-off pulling image', cause: '잘못된 이미지 이름/태그, 레지스트리 인증 실패(imagePullSecrets/ECR 권한), 큰 이미지 pull 타임아웃', fix: '이미지 이름/태그와 레지스트리 인증 확인, 이미지 최적화, ECR 같은 리전 레지스트리 사용', cat: 'workload' },
   { id: 17, pattern: 'readiness probe failed', cause: '앱 시작 지연, 헬스체크 엔드포인트 오류', fix: 'startupProbe 추가, probe 타임아웃 조정', cat: 'workload' },
   { id: 18, pattern: 'Too many pods', cause: '노드당 최대 Pod 수 초과', fix: 'max-pods 설정 확인, Prefix Delegation 활성화', cat: 'node' },
 ];

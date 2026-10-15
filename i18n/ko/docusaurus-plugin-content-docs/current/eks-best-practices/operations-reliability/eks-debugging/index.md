@@ -20,7 +20,7 @@ category: observability-monitoring
 
 import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, ClusterHealthTable, NodeGroupErrorTable, ErrorQuickRefTable } from '@site/src/components/EksDebugTables';
 
-> **📌 기준 환경**: EKS 1.33+, kubectl 1.30+, AWS CLI v2
+> **📌 기준 환경**: EKS 1.32+, kubectl(명시한 EKS 마이너 ±1 이내, [버전 차이 정책](https://kubernetes.io/releases/version-skew-policy/)), AWS CLI v2
 
 ## 1. 개요
 
@@ -103,6 +103,10 @@ kubectl get nodes
 
 # 비정상 Pod 확인
 kubectl get pods --all-namespaces | grep -v Running | grep -v Completed
+# 주의: phase 기준 필터는 Running이지만 Ready가 아닌 Pod(0/1)과 CrashLoopBackOff를 놓칠 수 있습니다.
+# READY 컬럼과 재시작 횟수까지 함께 확인합니다.
+kubectl get pods --all-namespaces --no-headers | \
+  awk '$3=="CrashLoopBackOff" || ($3=="Running" && $2 !~ /^([0-9]+)\/\1$/) {print}'
 ```
 
 #### 2분: 스코프 판별
@@ -128,7 +132,8 @@ kubectl describe pod <pod-name> -n <namespace>
 # 이전 컨테이너 로그 (CrashLoopBackOff인 경우)
 kubectl logs <pod-name> -n <namespace> --previous
 
-# 리소스 사용량 확인
+# 리소스 사용량 확인 (kubectl top은 Metrics Server 필요, EKS에 기본 설치되지 않음)
+# 설치: https://github.com/kubernetes-sigs/metrics-server
 kubectl top nodes
 kubectl top pods -n <namespace> --sort-by=cpu
 ```
@@ -176,11 +181,11 @@ flowchart TD
 ### AZ 장애 감지
 
 :::warning AWS Health API 요구사항
-`aws health describe-events` API는 **AWS Business 또는 Enterprise Support** 플랜에서만 사용 가능합니다. Support 플랜이 없는 경우 [AWS Health Dashboard 콘솔](https://health.aws.amazon.com/health/home)에서 직접 확인하거나, EventBridge 규칙으로 Health 이벤트를 캡처하세요.
+`aws health describe-events` API는 **Business, Enterprise On-Ramp, Enterprise Support** 플랜에서 사용 가능합니다(Developer 플랜 제외). Support 플랜이 없는 경우 [AWS Health Dashboard 콘솔](https://health.aws.amazon.com/health/home)에서 직접 확인하거나, EventBridge 규칙으로 Health 이벤트를 캡처하세요.
 :::
 
 ```bash
-# AWS Health API로 EKS/EC2 관련 이벤트 확인 (Business/Enterprise Support 플랜 필요)
+# AWS Health API로 EKS/EC2 관련 이벤트 확인 (Business/Enterprise On-Ramp/Enterprise Support 플랜 필요)
 aws health describe-events \
   --filter '{"services":["EKS","EC2"],"eventStatusCodes":["open"]}' \
   --region us-east-1
@@ -197,7 +202,13 @@ aws events put-rule \
     }
   }'
 
-# AZ별 비정상 Pod 집계 (노드에 스케줄링된 Pod만 대상)
+# put-rule만으로는 이벤트가 전달되지 않습니다. 알림/처리를 위해 대상(SNS/Lambda/SQS 등)을 연결해야 합니다.
+aws events put-targets \
+  --rule "aws-health-eks-events" \
+  --targets "Id"="1","Arn"="arn:aws:sns:us-east-1:<account-id>:eks-health-notifications"
+
+# AZ별 영향받은 노드 수 집계 (sort -u로 노드명을 중복 제거하므로 Pod 수가 아니라 영향받은 노드 수를 셉니다)
+# 참고: phase!=Running 필터는 Running이지만 Ready가 아닌 Pod는 제외합니다.
 kubectl get pods --all-namespaces -o json | jq -r '
   .items[] |
   select(.status.phase != "Running" and .status.phase != "Succeeded") |
@@ -252,6 +263,9 @@ for node in $(kubectl get nodes -l topology.kubernetes.io/zone=us-east-1a -o nam
 done
 
 # 2. Karpenter NodePool에서 해당 AZ 일시 제외 (requirements 수정)
+# 주의: --type=merge는 requirements 배열 전체를 교체하므로 기존 arch/capacity-type 등 다른 제약이 사라집니다.
+#       기존 requirements를 먼저 조회해 zone 제약만 바꾼 전체 집합을 다시 적용하세요.
+#       kubectl get nodepool default -o jsonpath='{.spec.template.spec.requirements}'
 kubectl patch nodepool default --type=merge -p '{
   "spec": {"template": {"spec": {"requirements": [
     {"key": "topology.kubernetes.io/zone", "operator": "In", "values": ["us-east-1b", "us-east-1c"]}
@@ -267,17 +281,30 @@ Zonal Shift 해제 후에는 위 변경사항을 원복해야 합니다.
 ### CloudWatch 이상 탐지
 
 ```bash
-# Pod 재시작 횟수에 대한 Anomaly Detection 알람 설정
+# 1. put-anomaly-detector는 알람이 아니라 이상 탐지 모델(밴드)만 생성합니다.
+#    pod_number_of_container_restarts는 PodName 차원이 필요하므로 포함합니다.
 aws cloudwatch put-anomaly-detector \
   --single-metric-anomaly-detector '{
     "Namespace": "ContainerInsights",
     "MetricName": "pod_number_of_container_restarts",
     "Dimensions": [
       {"Name": "ClusterName", "Value": "<cluster-name>"},
-      {"Name": "Namespace", "Value": "production"}
+      {"Name": "Namespace", "Value": "production"},
+      {"Name": "PodName", "Value": "<pod-name>"}
     ],
     "Stat": "Average"
   }'
+
+# 2. 실제 경보는 ANOMALY_DETECTION_BAND를 참조하는 put-metric-alarm으로 생성합니다.
+aws cloudwatch put-metric-alarm \
+  --alarm-name "pod-restarts-anomaly" \
+  --comparison-operator GreaterThanUpperThreshold \
+  --evaluation-periods 1 \
+  --threshold-metric-id ad1 \
+  --metrics '[
+    {"Id":"m1","MetricStat":{"Metric":{"Namespace":"ContainerInsights","MetricName":"pod_number_of_container_restarts","Dimensions":[{"Name":"ClusterName","Value":"<cluster-name>"},{"Name":"Namespace","Value":"production"},{"Name":"PodName","Value":"<pod-name>"}]},"Period":300,"Stat":"Average"},"ReturnData":true},
+    {"Id":"ad1","Expression":"ANOMALY_DETECTION_BAND(m1, 2)","ReturnData":true}
+  ]'
 ```
 
 ### 인시던트 대응 에스컬레이션 매트릭스
@@ -380,7 +407,7 @@ kubectl uncordon <node-name>
 | 메트릭 쿼리 | Prometheus / Grafana | PromQL 기반 메트릭 분석 |
 | 분산 트레이싱 | [ADOT](https://aws-otel.github.io/docs/introduction) / [OpenTelemetry](https://opentelemetry.io/docs/) | 요청 경로 추적 |
 | 클러스터 보안 점검 | kube-bench | CIS Benchmark 기반 보안 스캔 |
-| YAML 매니페스트 검증 | kubeval / kubeconform | 배포 전 매니페스트 검증 |
+| YAML 매니페스트 검증 | kubeconform (권장) / kubeval(더 이상 유지보수되지 않음) | 배포 전 매니페스트 검증 |
 | Karpenter 디버깅 | Karpenter controller logs | 노드 프로비저닝 문제 진단 |
 | IAM 디버깅 | AWS IAM Policy Simulator | IAM 권한 검증 |
 
@@ -413,8 +440,8 @@ sudo bash eks-log-collector.sh
 **S3 업로드:**
 
 ```bash
-# 수집된 로그를 S3에 직접 업로드
-sudo bash eks-log-collector.sh --upload s3://my-bucket/
+# 스크립트에는 업로드 옵션이 없습니다. 생성된 아카이브를 aws s3 cp로 업로드하세요.
+aws s3 cp /var/log/eks_*.tar.gz s3://my-bucket/
 ```
 
 :::tip AWS Support 활용

@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 11
+reading_time: 13
 tags:
   - eks
   - kubernetes
@@ -59,11 +59,11 @@ flowchart TD
     Check dependent services`"]
 
     STATUS -->|Terminating| TERM{"`Termination delay`"}
-    TERM --> TERM_FIX["`Check finalizers
+    TERM --> TERM_FIX["`Investigate finalizers/process first
     Review preStop hook
-    Force delete:
-    kubectl delete pod --force
-    --grace-period=0`"]
+    Force delete is a last resort:
+    --force removes only the API object
+    (no guarantee the process stopped)`"]
 
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style PEND_RES fill:#34a853,stroke:#2a8642,color:#fff
@@ -124,7 +124,7 @@ kubectl debug node/<node-name> -it --image=ubuntu
 ```
 
 :::tip kubectl debug vs SSM
-`kubectl debug node/` works even on nodes without SSM Agent installed. To access the host network namespace, add `--profile=sysadmin`.
+`kubectl debug node/` works even on nodes without SSM Agent installed. The default debugging Pod already shares the host IPC/Network/PID namespaces but is not privileged, so some operations (for example `chroot /host`) are restricted. If you need a privileged profile (including host namespaces), add `--profile=sysadmin`. This grants a privileged profile; it is not a host-network-only switch.
 :::
 
 ## Patterns: Deployed but Not Working
@@ -181,8 +181,8 @@ flowchart TD
 |------|------|----------|
 | **readinessProbe path ≠ actual endpoint** | Probe returns 404 Not Found | Align with the app's actual health check path (`/health`, `/healthz`, `/ready`, etc.) |
 | **initialDelaySeconds < app startup time** | Probe runs before app is ready → failure | Spring Boot/JVM apps often need 30s+. Increase initialDelaySeconds or use a startupProbe |
-| **No startupProbe** | Slow apps repeatedly restart | Add a startupProbe to allow initial startup time (up to failureThreshold × periodSeconds) |
-| **Health check depends on external services** | When DB fails, all Pods become Ready=false | readinessProbe should only assess the Pod itself (exclude DB connectivity) |
+| **No startupProbe (when used with a livenessProbe)** | Slow apps hit the livenessProbe before they are ready and restart repeatedly (a liveness/restart issue, not readiness) | Add a startupProbe to allow initial startup time (up to failureThreshold × periodSeconds) |
+| **Health check depends on external services** | When DB fails, all Pods become Ready=false | A readinessProbe usually assesses only the Pod itself and excludes hard external dependencies (such as the DB). Consider including such a dependency only when the Pod genuinely cannot serve requests without it |
 
 #### Resolution Example
 
@@ -250,6 +250,8 @@ The ConfigMap or Secret was updated but not reflected in the Pod.
 | **volumeMount + subPath** | No | N/A | Pod restart required |
 | **envFrom / env** | No | N/A | Pod restart required |
 
+Here "auto-update" means the kubelet refreshes the mounted file contents within its sync period (about 1–2 minutes). For the application to pick up the change, it must re-read the file (or be restarted); an app that reads the file only once will not reflect the change even after the kubelet updates it.
+
 ```bash
 # Check ConfigMap contents
 kubectl get cm <configmap-name> -o yaml
@@ -272,6 +274,7 @@ metadata:
 spec:
   containers:
   - name: app
+    image: my-app:latest
     volumeMounts:
     - name: config
       mountPath: /etc/app/config.yaml
@@ -290,6 +293,7 @@ metadata:
 spec:
   containers:
   - name: app
+    image: my-app:latest
     volumeMounts:
     - name: config
       mountPath: /etc/app  # mount the entire directory
@@ -317,7 +321,7 @@ kind: Deployment
 metadata:
   name: app
   annotations:
-    reloader.stakater.com/auto: "true"  # watch all ConfigMaps/Secrets
+    reloader.stakater.com/auto: "true"  # watch only the ConfigMaps/Secrets referenced by this Deployment (not all of them)
     # or only specific resources:
     # configmap.reloader.stakater.com/reload: "app-config,common-config"
 spec:
@@ -360,7 +364,7 @@ kubectl top pods  # failure here indicates a metrics-server issue
 |------|------|------|
 | `TARGETS` shows `<unknown>` | metrics-server not installed or failing | Install metrics-server and verify status |
 | `unable to get metrics` | Metric collection from Pods fails | Check Pod resource requests (without requests, CPU utilization cannot be computed) |
-| `current replicas above Deployment.spec.replicas` | minReplicas > Deployment replicas | Ensure HPA minReplicas ≤ Deployment replicas |
+| `current replicas above Deployment.spec.replicas` | Informational message (not a failure). HPA owns the replica count, so when minReplicas exceeds the current Deployment replicas, HPA scales up to it | No action needed. HPA reconciles replicas to within `[minReplicas, maxReplicas]` |
 | Scale-up followed by immediate scale-down | stabilizationWindow not set | Configure `behavior.scaleDown.stabilizationWindowSeconds` (default 300s) |
 | `invalid metrics` | Custom metrics source error | Check Prometheus Adapter configuration |
 
@@ -413,7 +417,7 @@ spec:
 :::warning HPA Prerequisites
 1. **metrics-server must be installed**: not installed by default on EKS clusters.
 2. **Pod resource requests required**: requests are needed to compute CPU/memory utilization.
-3. **Deployment replicas ≥ HPA minReplicas**
+3. **metrics-server and resource requests are prerequisites**: once the two conditions above are met, HPA reconciles replicas to within `[minReplicas, maxReplicas]`. A minReplicas greater than the current Deployment replicas is normal, and HPA scales up to it.
 :::
 
 ### Pattern 4: Sidecar Ordering Issues

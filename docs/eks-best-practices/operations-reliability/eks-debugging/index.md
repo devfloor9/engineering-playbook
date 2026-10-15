@@ -22,7 +22,7 @@ import { IncidentEscalationTable, ZonalShiftImpactTable, ControlPlaneLogTable, C
 
 # EKS Debugging Guide
 
-> **Baseline environment**: EKS 1.32+, kubectl 1.30+, AWS CLI v2
+> **Baseline environment**: EKS 1.32+, kubectl (within ±1 minor of the EKS minor, per the [version skew policy](https://kubernetes.io/releases/version-skew-policy/)), AWS CLI v2
 
 ## 1. Overview
 
@@ -105,6 +105,10 @@ kubectl get nodes
 
 # Check abnormal Pods
 kubectl get pods --all-namespaces | grep -v Running | grep -v Completed
+# Note: phase-based filters can miss Running-but-unready Pods (0/1) and CrashLoopBackOff.
+# Also inspect the READY column and restart counts.
+kubectl get pods --all-namespaces --no-headers | \
+  awk '$3=="CrashLoopBackOff" || ($3=="Running" && $2 !~ /^([0-9]+)\/\1$/) {print}'
 ```
 
 #### 2 minutes: Scope determination
@@ -130,7 +134,8 @@ kubectl describe pod <pod-name> -n <namespace>
 # Previous container logs (for CrashLoopBackOff)
 kubectl logs <pod-name> -n <namespace> --previous
 
-# Check resource usage
+# Check resource usage (kubectl top requires Metrics Server, not installed by default on EKS)
+# Install: https://github.com/kubernetes-sigs/metrics-server
 kubectl top nodes
 kubectl top pods -n <namespace> --sort-by=cpu
 ```
@@ -178,11 +183,11 @@ flowchart TD
 ### AZ Failure Detection
 
 :::warning AWS Health API Requirements
-The `aws health describe-events` API is only available on **AWS Business or Enterprise Support** plans. Without a Support plan, check directly from the [AWS Health Dashboard console](https://health.aws.amazon.com/health/home) or capture Health events via EventBridge rules.
+The `aws health describe-events` API is available on **Business, Enterprise On-Ramp, and Enterprise Support** plans (Developer plan excluded). Without a Support plan, check directly from the [AWS Health Dashboard console](https://health.aws.amazon.com/health/home) or capture Health events via EventBridge rules.
 :::
 
 ```bash
-# Check EKS/EC2-related events via AWS Health API (Business/Enterprise Support plan required)
+# Check EKS/EC2-related events via AWS Health API (Business/Enterprise On-Ramp/Enterprise Support plan required)
 aws health describe-events \
   --filter '{"services":["EKS","EC2"],"eventStatusCodes":["open"]}' \
   --region us-east-1
@@ -199,7 +204,13 @@ aws events put-rule \
     }
   }'
 
-# Aggregate abnormal Pods by AZ (only Pods scheduled to nodes)
+# put-rule alone delivers nothing. Attach a target (SNS/Lambda/SQS, etc.) for notification/processing.
+aws events put-targets \
+  --rule "aws-health-eks-events" \
+  --targets "Id"="1","Arn"="arn:aws:sns:us-east-1:<account-id>:eks-health-notifications"
+
+# Count affected nodes per AZ (sort -u deduplicates node names, so this counts affected nodes, not Pods)
+# Note: the phase!=Running filter excludes Running-but-unready Pods.
 kubectl get pods --all-namespaces -o json | jq -r '
   .items[] |
   select(.status.phase != "Running" and .status.phase != "Succeeded") |
@@ -254,6 +265,9 @@ for node in $(kubectl get nodes -l topology.kubernetes.io/zone=us-east-1a -o nam
 done
 
 # 2. Temporarily exclude the AZ from the Karpenter NodePool (modify requirements)
+# Caution: --type=merge replaces the entire requirements array, discarding existing arch/capacity-type and other constraints.
+#          Read the existing requirements first and re-apply the full set with only the zone constraint changed.
+#          kubectl get nodepool default -o jsonpath='{.spec.template.spec.requirements}'
 kubectl patch nodepool default --type=merge -p '{
   "spec": {"template": {"spec": {"requirements": [
     {"key": "topology.kubernetes.io/zone", "operator": "In", "values": ["us-east-1b", "us-east-1c"]}
@@ -269,17 +283,30 @@ After the Zonal Shift is lifted, the above changes must be reverted.
 ### CloudWatch Anomaly Detection
 
 ```bash
-# Configure an Anomaly Detection alarm for Pod restart counts
+# 1. put-anomaly-detector only creates the anomaly detection model (band), not an alarm.
+#    pod_number_of_container_restarts requires the PodName dimension, so include it.
 aws cloudwatch put-anomaly-detector \
   --single-metric-anomaly-detector '{
     "Namespace": "ContainerInsights",
     "MetricName": "pod_number_of_container_restarts",
     "Dimensions": [
       {"Name": "ClusterName", "Value": "<cluster-name>"},
-      {"Name": "Namespace", "Value": "production"}
+      {"Name": "Namespace", "Value": "production"},
+      {"Name": "PodName", "Value": "<pod-name>"}
     ],
     "Stat": "Average"
   }'
+
+# 2. Create the actual alarm with put-metric-alarm referencing the ANOMALY_DETECTION_BAND.
+aws cloudwatch put-metric-alarm \
+  --alarm-name "pod-restarts-anomaly" \
+  --comparison-operator GreaterThanUpperThreshold \
+  --evaluation-periods 1 \
+  --threshold-metric-id ad1 \
+  --metrics '[
+    {"Id":"m1","MetricStat":{"Metric":{"Namespace":"ContainerInsights","MetricName":"pod_number_of_container_restarts","Dimensions":[{"Name":"ClusterName","Value":"<cluster-name>"},{"Name":"Namespace","Value":"production"},{"Name":"PodName","Value":"<pod-name>"}]},"Period":300,"Stat":"Average"},"ReturnData":true},
+    {"Id":"ad1","Expression":"ANOMALY_DETECTION_BAND(m1, 2)","ReturnData":true}
+  ]'
 ```
 
 ### Incident Response Escalation Matrix
@@ -382,7 +409,7 @@ kubectl uncordon <node-name>
 | Metric queries | Prometheus / Grafana | PromQL-based metric analysis |
 | Distributed tracing | [ADOT](https://aws-otel.github.io/docs/introduction) / [OpenTelemetry](https://opentelemetry.io/docs/) | Request path tracing |
 | Cluster security scanning | kube-bench | CIS Benchmark-based security scan |
-| YAML manifest validation | kubeval / kubeconform | Pre-deployment manifest validation |
+| YAML manifest validation | kubeconform (recommended) / kubeval (no longer maintained) | Pre-deployment manifest validation |
 | Karpenter debugging | Karpenter controller logs | Diagnose node provisioning issues |
 | IAM debugging | AWS IAM Policy Simulator | Validate IAM permissions |
 
@@ -415,8 +442,8 @@ Collected logs are saved in a compressed archive following the format `/var/log/
 **S3 upload:**
 
 ```bash
-# Upload collected logs directly to S3
-sudo bash eks-log-collector.sh --upload s3://my-bucket/
+# The script has no upload option. Upload the generated archive with aws s3 cp.
+aws s3 cp /var/log/eks_*.tar.gz s3://my-bucket/
 ```
 
 :::tip Leveraging AWS Support

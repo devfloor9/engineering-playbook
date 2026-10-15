@@ -1,12 +1,12 @@
 import React from 'react';
 
 const errors = [
-  { code: 'AccessDenied', cause: '노드 IAM Role에 필요한 권한 부족', fix: 'eks:node-manager ClusterRole/ClusterRoleBinding 확인 및 복구', severity: 'high' },
+  { code: 'AccessDenied', cause: 'eks:node-manager ClusterRole/ClusterRoleBinding 등 노드 관리용 Kubernetes RBAC 객체가 삭제/변경됨', fix: '삭제된 eks:node-manager ClusterRole/ClusterRoleBinding 등 RBAC 리소스 복구(노드 IAM 권한이 아니라 K8s RBAC 문제)', severity: 'high' },
   { code: 'AmiIdNotFound', cause: 'Launch Template의 AMI ID가 존재하지 않음', fix: '유효한 EKS optimized AMI ID로 업데이트', severity: 'med' },
-  { code: 'AutoScalingGroupNotFound', cause: 'ASG가 삭제되었거나 존재하지 않음', fix: '노드 그룹 삭제 후 재생성', severity: 'high' },
+  { code: 'AutoScalingGroupNotFound', cause: 'ASG가 삭제되었거나 존재하지 않음', fix: '동일한 이름/설정으로 ASG 재생성 시 복구될 수 있음(먼저 시도). 안 되면 노드 그룹 삭제 후 재생성', severity: 'high' },
   { code: 'ClusterUnreachable', cause: '노드가 EKS API 서버에 연결 불가', fix: 'VPC 설정, 보안그룹, 엔드포인트 접근성 확인', severity: 'high' },
-  { code: 'Ec2SecurityGroupNotFound', cause: '지정된 보안그룹이 삭제됨', fix: '올바른 보안그룹 생성 후 노드그룹 재구성', severity: 'med' },
-  { code: 'Ec2LaunchTemplateNotFound', cause: 'Launch Template이 삭제됨', fix: '새 Launch Template 생성 후 노드그룹 업데이트', severity: 'med' },
+  { code: 'Ec2SecurityGroupNotFound', cause: '지정된 보안그룹이 삭제됨', fix: '노드 그룹의 보안그룹 참조는 변경 불가(불변). 삭제된 리소스는 다른 SG로 대체되지 않으므로 보통 노드 그룹 재생성 필요', severity: 'med' },
+  { code: 'Ec2LaunchTemplateNotFound', cause: 'Launch Template이 삭제됨', fix: '삭제된 Launch Template ID는 복원되지 않음. 버전 업데이트는 동일 템플릿 계보에만 적용되므로 보통 노드 그룹 재생성 필요', severity: 'med' },
   { code: 'Ec2LaunchTemplateVersionMismatch', cause: 'Launch Template 버전 불일치', fix: '노드그룹이 참조하는 버전 확인 및 수정', severity: 'low' },
   { code: 'IamInstanceProfileNotFound', cause: '인스턴스 프로파일이 존재하지 않음', fix: 'IAM 인스턴스 프로파일 재생성', severity: 'med' },
   { code: 'IamNodeRoleNotFound', cause: '노드 IAM Role이 삭제됨', fix: 'IAM Role 재생성 후 필요 정책 연결', severity: 'high' },
