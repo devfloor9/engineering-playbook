@@ -21070,6 +21070,137 @@
         "https://redis.io/docs/latest/develop/ai/redisvl/user_guide/how_to_guides/llmcache/"
       ],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-chit-003",
+      "package": "agentic-design-serving",
+      "id": "ADS-CHIT-003",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "On the English and Korean cache-hit strategy, KV cache optimization and llm-d on EKS Auto Mode pages, round-robin routing is no longer said to neutralize prefix-cache reuse or to be what every existing vLLM deployment uses. The pages now separate two mechanisms: Automatic Prefix Caching is kept per vLLM instance (enabled by default in the vLLM v0.25.0 engine configuration) and reuses an earlier request's KV blocks regardless of how the request was routed, while the load balancer decides which instance's cache a request can use. A cache-unaware policy such as round-robin therefore dilutes locality, because each replica that receives a prefix computes it once and keeps it alongside other traffic, rather than eliminating reuse; the extent depends on the number of replicas and distinct prefixes, the cache capacity and the configured traffic distribution. The llm-d overview names round-robin as the baseline of llm-d's published comparison and makes the benefit conditional on reusable prefixes, load and the scorers of the optimized-baseline configuration (a prefix-cache scorer with KV-cache-utilization and queue-size scorers), and the KV cache page describes llm-d and NVIDIA Dynamo as estimating or tracking which Pods hold a prefix and weighing that against load.",
+      "recorded_on": "2026-10-15",
+      "reviewed_revision": "54671928f40bb6d24322b80c04e822d09b906b47",
+      "source_commits": [
+        "54671928f40bb6d24322b80c04e822d09b906b47"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/cache-hit-strategy.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/cache-hit-strategy.md",
+        "docs/agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/kv-cache-optimization.md",
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; every Korean and English occurrence of the finding was corrected in the same commit.",
+        "The offline suite passed on the source commit with no failures: 758 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the new KEDA trigger check, and gateway conformance; one pre-existing skip) and 249 Python example and harness tests.",
+        "The source commit is the correction rebased onto main 56d742b6, which already carried the table-caption and glyph changes of the AI Doc Ready pass (PR #155 onward) on the same six pages; three caption-versus-table-header overlaps were resolved by keeping both. On that commit the full English and Korean site build (693 s, no broken links or anchors), llms.txt and LLM wiki exports succeeded; the LLM wiki component and parity tests passed 183 and 151 tests against the built HTML; link validation found no issues in 3,227 internal links; and every heading anchor the 12 changed pages published at 56d742b6 is still present. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.0/docs/features/automatic_prefix_caching.md",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.0/vllm/config/cache.py",
+        "https://raw.githubusercontent.com/llm-d/llm-d-router/v0.9.0/pkg/epp/framework/plugins/scheduling/scorer/prefix/README.md",
+        "https://raw.githubusercontent.com/llm-d/llm-d/v0.8.1/guides/optimized-baseline/README.md",
+        "https://raw.githubusercontent.com/llm-d/llm-d/v0.8.1/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-ads-gpuops-001",
+      "package": "agentic-design-serving",
+      "id": "ADS-GPUOPS-001",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The KEDA ScaledObject examples on the English and Korean GPU autoscaling operations and GPU resource management pages omitted the required Prometheus serverAddress, compared the 0-1 ratio vllm:kv_cache_usage_perc with a threshold of 80, queried a non-existent vllm_time_to_first_token_seconds_bucket series and a model label that vLLM does not export, left the queries unscoped, let the TTFT quantile return one series per label set, and relied on the default AverageValue target for a ratio and a latency. Each trigger now sets serverAddress (the autoscaling page explains the Amazon Managed Service for Prometheus workspace endpoint, awsRegion and a pod-identity TriggerAuthentication), queries the exported vllm: series scoped by vLLM's model_name label and a namespace label added by the scrape configuration, reduces every query to one series (avg, sum, and histogram_quantile over buckets summed by le), compares the KV cache ratio (threshold 0.8) and p95 TTFT with metricType Value and waiting requests with AverageValue, and sets ignoreNullValues to false with a fallback replica count, so that a missing metric is reported as a scaler error instead of being read as 0. A new document-example test, keda-vllm-triggers.test.cjs, checks these fields in all four examples and that the Korean and English manifests are identical.",
+      "recorded_on": "2026-10-15",
+      "reviewed_revision": "54671928f40bb6d24322b80c04e822d09b906b47",
+      "source_commits": [
+        "54671928f40bb6d24322b80c04e822d09b906b47"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+        "docs/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md",
+        "scripts/tests/document-examples/keda-vllm-triggers.test.cjs"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; every Korean and English occurrence of the finding was corrected in the same commit.",
+        "The offline suite passed on the source commit with no failures: 758 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the new KEDA trigger check, and gateway conformance; one pre-existing skip) and 249 Python example and harness tests.",
+        "The source commit is the correction rebased onto main 56d742b6, which already carried the table-caption and glyph changes of the AI Doc Ready pass (PR #155 onward) on the same six pages; three caption-versus-table-header overlaps were resolved by keeping both. On that commit the full English and Korean site build (693 s, no broken links or anchors), llms.txt and LLM wiki exports succeeded; the LLM wiki component and parity tests passed 183 and 151 tests against the built HTML; link validation found no issues in 3,227 internal links; and every heading anchor the 12 changed pages published at 56d742b6 is still present. External URLs were not checked.",
+        "The new keda-vllm-triggers document-example test passed for both pages in both locales, and it failed when any one of the original defects was reintroduced: the threshold 80, the model label, the underscore TTFT series name, an unaggregated histogram, a missing serverAddress, AverageValue for the KV cache ratio, or ignoreNullValues set to true."
+      ],
+      "primary_urls": [
+        "https://keda.sh/docs/2.18/scalers/prometheus/",
+        "https://keda.sh/docs/2.18/reference/scaledobject-spec/",
+        "https://raw.githubusercontent.com/kedacore/keda/v2.18.0/pkg/scalers/prometheus_scaler.go",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/v1/metrics/loggers.py",
+        "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.0/vllm/v1/metrics/loggers.py"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. The new test checks selected fields offline; it does not run the queries against a Prometheus server or exercise KEDA and HPA scaling."
+    },
+    {
+      "record_id": "2026-09-19-ads-gpuops-012",
+      "package": "agentic-design-serving",
+      "id": "ADS-GPUOPS-012",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The English GPU autoscaling operations page said that EKS Auto Mode cannot provision p6-b200.48xlarge as of April 2026, which contradicts the EKS Auto Mode change log entry of 2026-04-10 that the Korean page already reflected, and both locales presented one account's regional capacity and Spot observations as available capacity; the English text also computed an 85% saving against a $98/hr On-Demand rate. Both locales now describe the p6-b200 limitation as history before 2026-04-10, cite the change log entry that lists p6-b200, p6-b300, p5e, p5en and trn2 as newly supported, note that regional capacity and Capacity Block availability can still limit provisioning, and label the Seoul, Tokyo and us-east-2 observations as unverified April 2026 point-in-time values; the observed $13-15/hr Spot price is compared with the dated $55.04/hr On-Demand example rate used on the llm-d page (about 73-76% lower), and the unsourced 44% price-cut figure is removed from the Korean page. On the EKS GPU node strategy page the English text no longer calls the April p5en/p6 observation a current limitation, and both locales date it to early April 2026 and distinguish it from the support added on 2026-04-10. The renamed English heading keeps its previous anchor.",
+      "recorded_on": "2026-10-15",
+      "reviewed_revision": "54671928f40bb6d24322b80c04e822d09b906b47",
+      "source_commits": [
+        "54671928f40bb6d24322b80c04e822d09b906b47"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+        "docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; every Korean and English occurrence of the finding was corrected in the same commit.",
+        "The offline suite passed on the source commit with no failures: 758 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the new KEDA trigger check, and gateway conformance; one pre-existing skip) and 249 Python example and harness tests.",
+        "The source commit is the correction rebased onto main 56d742b6, which already carried the table-caption and glyph changes of the AI Doc Ready pass (PR #155 onward) on the same six pages; three caption-versus-table-header overlaps were resolved by keeping both. On that commit the full English and Korean site build (693 s, no broken links or anchors), llms.txt and LLM wiki exports succeeded; the LLM wiki component and parity tests passed 183 and 151 tests against the built HTML; link validation found no issues in 3,227 internal links; and every heading anchor the 12 changed pages published at 56d742b6 is still present. External URLs were not checked.",
+        "The renamed English heading keeps its published anchor #p6-b200-not-supported."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/awsdocs/amazon-eks-user-guide/mainline/latest/ug/automode/auto-change.adoc",
+        "https://docs.aws.amazon.com/eks/latest/userguide/auto-change.html",
+        "https://aws.amazon.com/about-aws/whats-new/2025/06/pricing-usage-model-ec2-instances-nvidia-gpus/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. The capacity and Spot observations remain point-in-time values without stored artifacts; they are labeled unverified rather than removed."
+    },
+    {
+      "record_id": "2026-09-19-ads-gpuops-017",
+      "package": "agentic-design-serving",
+      "id": "ADS-GPUOPS-017",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The English GPU autoscaling operations and llm-d on EKS Auto Mode pages listed 384 and 64 vCPU as the default Running On-Demand P and G-and-VT instance quotas, and the Korean autoscaling page still called 64 vCPU the G quota without scope. The EC2 instance type quota table lists a default of 0 vCPU for both quotas and states that EC2 raises On-Demand quotas automatically based on usage. Both pages now give 0 vCPU as the AWS default, present 384 and 64 vCPU as values applied to one account, tell readers to check Service Quotas for their account and Region, and show the vCPU a request needs (two p5.48xlarge are 384 vCPU and one g6e.48xlarge is 192 vCPU, per the EC2 accelerated computing specifications).",
+      "recorded_on": "2026-10-15",
+      "reviewed_revision": "54671928f40bb6d24322b80c04e822d09b906b47",
+      "source_commits": [
+        "54671928f40bb6d24322b80c04e822d09b906b47"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-optimization/gpu-autoscaling-operations.md",
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/llm-d-eks-automode.md"
+      ],
+      "verification": [
+        "Re-checked against the primary sources listed in primary_urls before editing; every Korean and English occurrence of the finding was corrected in the same commit.",
+        "The offline suite passed on the source commit with no failures: 758 Node.js tests (tag pages, document tools, LLM wiki components, link validation, SSR Unicode, metadata, document examples including the new KEDA trigger check, and gateway conformance; one pre-existing skip) and 249 Python example and harness tests.",
+        "The source commit is the correction rebased onto main 56d742b6, which already carried the table-caption and glyph changes of the AI Doc Ready pass (PR #155 onward) on the same six pages; three caption-versus-table-header overlaps were resolved by keeping both. On that commit the full English and Korean site build (693 s, no broken links or anchors), llms.txt and LLM wiki exports succeeded; the LLM wiki component and parity tests passed 183 and 151 tests against the built HTML; link validation found no issues in 3,227 internal links; and every heading anchor the 12 changed pages published at 56d742b6 is still present. External URLs were not checked."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/ec2/latest/instancetypes/ec2-instance-quotas.html",
+        "https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
     }
   ]
 }

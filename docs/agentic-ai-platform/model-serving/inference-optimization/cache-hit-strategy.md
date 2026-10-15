@@ -3,9 +3,9 @@ title: Cache-Hit Strategy
 description: Unifying the three layers of inference caching (KV/prefix, exact-response, semantic) into a single decision framework with hit-rate targets, measurement points, and tuning levers for each layer.
 created: "2026-06-25"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 16
 tags:
   - caching
   - kv-cache
@@ -74,7 +74,7 @@ This ordering is the design this document chooses. Exact matching (the exact-res
 Prefix cache reuses prefill for requests that share the same system prompt or common context. The levers that raise the hit rate are as follows.
 
 - **Prompt structure alignment**: Fixing the invariant part (system prompts and few-shot examples) at the front of the request lengthens the prefix-match segment.
-- **KV cache-aware routing**: Sends requests sharing the same prefix to the Pod holding the cache. Round-Robin neutralizes this cache (see [Limitations of Conventional L7 Gateways](../index.md#limitations-of-conventional-l7-gateways)).
+- **KV cache-aware routing**: Sends requests that share a prefix to a Pod that is likely to hold it. Prefix caching is kept per vLLM instance, so round-robin does not disable it: a request still hits when its replica has served the same prefix before and the blocks are still cached. Round-robin dilutes locality instead, because each replica that receives a prefix has to compute it once and then keep it cached alongside other traffic. How much reuse is lost depends on the number of replicas and distinct prefixes, the cache capacity and the traffic distribution you actually configure (see [Limitations of Conventional L7 Gateways](../index.md#limitations-of-conventional-l7-gateways)).
 - **Shared KV layer (LMCache)**: Extends the cache outside the GPU, allowing reuse across Pods and nodes (see [LMCache](./lmcache.md)).
 
 For detailed behavior, see [KV Cache Optimization](./kv-cache-optimization.md).

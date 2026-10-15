@@ -5,7 +5,7 @@ created: "2026-04-03"
 last_update:
   date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 21
 tags:
   - inference
   - optimization
@@ -71,30 +71,52 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: llm-inference-scaler
+  namespace: llm-serving            # 대상 Deployment와 같은 namespace
 spec:
   scaleTargetRef:
     name: vllm-deployment
   minReplicaCount: 2
   maxReplicaCount: 8
+  fallback:                         # 트리거가 계속 실패하는 동안 유지할 replica 수
+    failureThreshold: 3
+    replicas: 4
   triggers:
-    # 1. KV Cache 포화 — 가장 민감한 시그널
+    # 1. KV cache 사용률: vllm:kv_cache_usage_perc는 0~1 비율 (1 = 100%)
     - type: prometheus
+      metricType: Value             # 워크로드 평균값 자체를 임계값과 비교
       metadata:
-        query: avg(vllm:kv_cache_usage_perc)
-        threshold: "80"
-    # 2. 대기 중인 요청 수
+        serverAddress: http://<prometheus-host>:9090
+        query: avg(vllm:kv_cache_usage_perc{namespace="llm-serving", model_name="Qwen/Qwen3-32B"})
+        threshold: "0.8"
+        ignoreNullValues: "false"   # 빈 결과를 0이 아니라 오류로 보고
+    # 2. 대기 중인 요청 수: AverageValue는 합계를 replica 수로 나눠 비교
     - type: prometheus
+      metricType: AverageValue
       metadata:
-        query: sum(vllm:num_requests_waiting)
+        serverAddress: http://<prometheus-host>:9090
+        query: sum(vllm:num_requests_waiting{namespace="llm-serving", model_name="Qwen/Qwen3-32B"})
         threshold: "10"
-    # 3. TTFT SLO 위반 근접
+        ignoreNullValues: "false"
+    # 3. p95 TTFT(초), 워크로드 전체를 하나의 시계열로 집계
     - type: prometheus
+      metricType: Value
       metadata:
+        serverAddress: http://<prometheus-host>:9090
         query: |
           histogram_quantile(0.95,
-            rate(vllm_time_to_first_token_seconds_bucket[5m]))
+            sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{namespace="llm-serving", model_name="Qwen/Qwen3-32B"}[5m])))
         threshold: "2"
+        ignoreNullValues: "false"
 ```
+
+이 예시는 다음 트리거 계약을 전제로 합니다(KEDA v2.18, vLLM v0.23.0 기준).
+
+- **엔드포인트와 인증**: `serverAddress`는 필수입니다. Amazon Managed Service for Prometheus를 쓴다면 워크스페이스 쿼리 엔드포인트(`https://aps-workspaces.<region>.amazonaws.com/workspaces/<workspace-id>`)와 `awsRegion`을 지정하고, `podIdentity.provider: aws`를 쓰는 `TriggerAuthentication`을 `authenticationRef`로 연결합니다([KEDA Prometheus scaler 문서](https://keda.sh/docs/2.18/scalers/prometheus/)의 예시 참조).
+- **메트릭 이름과 레이블**: vLLM은 `vllm:` 접두사가 붙은 시계열을 `model_name`(서빙 모델 이름)과 `engine` 레이블로 내보냅니다. `namespace` 레이블은 vLLM이 아니라 스크레이프 설정(예: ServiceMonitor, PodMonitor)이 붙이므로, Prometheus에 실제로 저장된 레이블에 맞추세요.
+- **쿼리당 시계열 하나**: 쿼리 결과가 두 개 이상이면 KEDA는 오류를 반환합니다. `avg`, `sum`, 그리고 `by (le)`로 합친 버킷에 대한 `histogram_quantile`은 결과를 시계열 하나로 줄입니다.
+- **메트릭 누락**: KEDA는 기본적으로 빈 결과를 `0`으로 읽으므로, 메트릭이 사라지면 유휴 워크로드처럼 보입니다. `ignoreNullValues: "false"`로 두면 빈 결과가 scaler 오류가 되고, `failureThreshold`번 연속 실패하면 KEDA가 `fallback`의 replica 수로 맞춥니다.
+- **목표 유형**: `metricType`의 기본값 `AverageValue`는 쿼리 결과를 현재 replica 수로 나눠 비교합니다. 대기 요청처럼 합계인 값에는 맞지만, 비율(KV cache 사용률)이나 지연 시간(TTFT)은 `Value`로 워크로드 값 자체를 비교합니다.
+- **임계값**: `0.8`, `10`, `2`초는 출발점입니다. SLO와 부하 테스트 결과에 맞춰 조정하세요.
 
 ### Disaggregated Serving 스케일링 기준
 
@@ -363,19 +385,19 @@ GLM-5(744B MoE)와 Kimi K2.5(1T MoE) 배포 과정에서 확인된 제약사항�
 
 #### p6-b200 지원 추가
 
-2026년 4월 초(2026-04-10 이전) 기준 EKS Auto Mode의 managed Karpenter는 p6-b200.48xlarge를 프로비저닝할 수 없었으나, **2026-04-10부터 지원이 추가되었습니다**. 현재 p6-b200, p6-b300, p5e, p5en, trn2 등이 공식 지원 인스턴스 목록에 포함되어 있습니다.
+2026-04-10 이전에는 EKS Auto Mode의 managed Karpenter가 p6-b200.48xlarge를 프로비저닝할 수 없었습니다. NodePool 검증은 통과했지만 NodeClaim 생성이 `NoCompatibleInstanceTypes` 오류로 실패했습니다. [EKS Auto Mode 변경 기록](https://docs.aws.amazon.com/eks/latest/userguide/auto-change.html)은 p6-b200, p6-b300, p5e, p5en, trn2 등을 **2026-04-10**부터 지원하는 인스턴스 유형으로 기록합니다. 리전별 용량과 Capacity Block 가용성에 따라 프로비저닝은 여전히 제한될 수 있습니다([인스턴스 지원 매트릭스](../inference-frameworks/llm-d-eks-automode.md#eks-auto-mode-gpu-인스턴스-지원-현황-202604-검증) 참조).
 
 #### GPU 인스턴스 용량 확보
 
-서울/도쿄 리전에서 p5.48xlarge는 InsufficientCapacity가 빈번합니다. **us-east-2 (Ohio) Spot에서 $13-15/hr로 확보 가능**합니다 (On-Demand $55.04/hr 대비 약 73-76% 절감, 2025년 6월 P5 가격 44% 인하 반영). 상세한 GPU 비용 절감 전략은 [EKS 비용 관리 — GPU 워크로드 비용 최적화](/docs/eks-best-practices/resource-cost/cost-management)를 참조하세요.
+아래는 2026년 4월 한 계정에서 배포하며 관측한 시점 값이고, 저장된 로그가 없으므로 미검증으로 간주하며 가용성을 보장하지 않습니다. 서울과 도쿄에서는 p5.48xlarge On-Demand 요청이 InsufficientCapacity를 반환했고, us-east-2 (Ohio)에서는 Spot 용량을 관측 가격 $13~15/hr에 확보했습니다. [llm-d on EKS Auto Mode — 비용 최적화](../inference-frameworks/llm-d-eks-automode.md#비용-최적화)의 On-Demand 예시 요금 $55.04/hr와 비교하면 약 73~76% 낮은 값입니다. 계획에 반영하기 전에 사용할 리전과 가용 영역의 현재 On-Demand·Spot 가격과 용량을 확인하세요. 상세한 GPU 비용 절감 전략은 [EKS 비용 관리 — GPU 워크로드 비용 최적화](/docs/eks-best-practices/resource-cost/cost-management)를 참조하세요.
 
-**표 4. 리전별 p5.48xlarge On-Demand/Spot 가격과 Spot 절감률**
+**표 4. 리전별 p5.48xlarge On-Demand/Spot 가용성과 Spot 가격 관측치**
 
-| 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot 절감률 |
+| 리전 | p5.48xlarge On-Demand | p5.48xlarge Spot | Spot 가격 |
 |------|---------------------|-----------------|----------|
-| ap-northeast-2 (서울) | InsufficientCapacity | 미확인 | — |
-| ap-northeast-1 (도쿄) | InsufficientCapacity | 미확인 | — |
-| **us-east-2 (Ohio)** | $55.04/hr | **$13~15/hr** | **약 73~76%** |
+| ap-northeast-2 (서울) | InsufficientCapacity (2026-04 관측) | 미확인 | — |
+| ap-northeast-1 (도쿄) | InsufficientCapacity (2026-04 관측) | 미확인 | — |
+| **us-east-2 (Ohio)** | 가용성 변동 | 확보 (2026-04 관측) | $13~15/hr (관측치) |
 
 #### GPU Operator 충돌
 
@@ -433,9 +455,9 @@ EC2 vCPU 쿼터가 인스턴스 버킷별로 분리되어 있어 주의가 필�
 | 쿼타 | 적용 인스턴스 | AWS 기본값 | 주의사항 |
 |------|------------|--------|---------|
 | Running On-Demand P instances | p4d, p5, p5en | 0 vCPU | 신규 계정은 0 — 사전 쿼터 증가 필요 (예: p5.48xlarge 2대 = 384 vCPU) |
-| Running On-Demand G and VT instances | g5, g6, g6e | 0 vCPU | 신규 계정은 0 — 사전 쿼터 증가 필요 |
+| Running On-Demand G and VT instances | g5, g6, g6e | 0 vCPU | 신규 계정은 0 — 사전 쿼터 증가 필요 (예: g6e.48xlarge 1대 = 192 vCPU) |
 
-GPU NodePool에 `instance-category: [g, p]`를 함께 설정하면, Karpenter가 G 타입을 먼저 시도하여 G 쿼터(64 vCPU)에 걸릴 수 있습니다. P 타입만 필요하면 명시적으로 지정해야 합니다.
+EC2는 사용량에 따라 On-Demand 쿼터를 자동으로 올리므로, 기존 계정에 적용된 값은 기본값과 다를 수 있습니다. 계정과 리전의 Service Quotas에서 확인하세요. GPU NodePool에 `instance-category: [g, p]`를 함께 설정하면, Karpenter가 G 타입을 먼저 시도하여 계정에 적용된 G and VT 쿼터(이 예시를 얻은 계정에서는 64 vCPU)에 걸릴 수 있습니다. P 타입만 필요하면 명시적으로 지정해야 합니다.
 
 ## 참고 자료
 

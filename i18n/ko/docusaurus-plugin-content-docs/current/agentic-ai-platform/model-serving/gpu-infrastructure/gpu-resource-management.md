@@ -5,7 +5,7 @@ created: "2026-02-05"
 last_update:
   date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 31
+reading_time: 32
 tags:
   - gpu
   - karpenter
@@ -417,30 +417,45 @@ apiVersion: keda.sh/v1alpha1
 kind: ScaledObject
 metadata:
   name: llm-serving-scaler
+  namespace: llm-serving            # 대상 Deployment와 같은 namespace
 spec:
   scaleTargetRef:
     name: llm-serving
   minReplicaCount: 2
   maxReplicaCount: 10
+  fallback:                         # 트리거가 계속 실패하는 동안 유지할 replica 수
+    failureThreshold: 3
+    replicas: 4
   triggers:
-    # KV Cache 포화 — LLM 서빙의 가장 민감한 시그널
+    # KV cache 사용률: 0~1 비율. model_name은 --served-model-name 값
     - type: prometheus
+      metricType: Value
       metadata:
-        query: avg(vllm:kv_cache_usage_perc{model="exaone"})
-        threshold: "80"
-    # 대기 중인 요청 수
+        serverAddress: http://<prometheus-host>:9090
+        query: avg(vllm:kv_cache_usage_perc{namespace="llm-serving", model_name="exaone"})
+        threshold: "0.8"
+        ignoreNullValues: "false"
+    # replica당 대기 중인 요청 수
     - type: prometheus
+      metricType: AverageValue
       metadata:
-        query: sum(vllm:num_requests_waiting{model="exaone"})
+        serverAddress: http://<prometheus-host>:9090
+        query: sum(vllm:num_requests_waiting{namespace="llm-serving", model_name="exaone"})
         threshold: "10"
-    # TTFT SLO 위반 근접
+        ignoreNullValues: "false"
+    # 워크로드의 p95 TTFT(초)
     - type: prometheus
+      metricType: Value
       metadata:
+        serverAddress: http://<prometheus-host>:9090
         query: |
           histogram_quantile(0.95,
-            rate(vllm_time_to_first_token_seconds_bucket[5m]))
+            sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{namespace="llm-serving", model_name="exaone"}[5m])))
         threshold: "2"
+        ignoreNullValues: "false"
 ```
+
+`serverAddress`와 인증, vLLM 메트릭 이름과 레이블, 시계열 하나로 줄이는 쿼리, 빈 결과 처리, `Value`와 `AverageValue`의 선택은 [GPU 오토스케일링 운영 — KEDA 스케일링 구성](../inference-optimization/gpu-autoscaling-operations.md#keda-스케일링-구성)에서 설명합니다. 임계값은 SLO와 부하 테스트 결과에 맞춰 조정할 출발점입니다.
 
 ### Disaggregated Serving 스케일링 기준
 
@@ -467,7 +482,7 @@ Prefill과 Decode를 분리 운영하는 경우, 각 역할의 병목 시그널�
 
 ### DRA 워크로드의 스케일아웃
 
-DRA 워크로드의 노드 스케일아웃은 **self-managed Karpenter v1.14.0+(`ignoreDRARequests=false`)** 또는 **MNG + Cluster Autoscaler**로 구성합니다. EKS Auto Mode는 내부 Karpenter 버전을 올릴 수 없어 후자가 필요합니다. 아래는 MNG + Cluster Autoscaler + KEDA 조합의 흐름입니다.
+노드를 추가해야 하는 DRA 워크로드에는, 고정한 날짜 기준으로 DRA 드라이버를 설치한 **MNG + Cluster Autoscaler(CA 1.34+)** 가 문서화된 방식입니다([노드 프로비저닝 호환성](#노드-프로비저닝-호환성) 참조). self-managed Karpenter v1.14.0+를 `ignoreDRARequests=false`로 설정하면 기존 노드로 스케줄링할 때 DRA 요청을 반영하지만, DRA 요청만으로 새 GPU 노드를 프로비저닝하는 것은 AWS에서 검증된 경로가 아니며, EKS Auto Mode는 AWS 현행 가이드 기준으로 DRA를 지원하지 않습니다. 아래는 MNG + Cluster Autoscaler + KEDA 조합의 흐름입니다.
 
 ```
 LLM 메트릭 (KV Cache, TTFT, Queue)

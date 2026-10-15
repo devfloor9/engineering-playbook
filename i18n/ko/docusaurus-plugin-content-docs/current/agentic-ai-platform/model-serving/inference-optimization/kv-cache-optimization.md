@@ -137,11 +137,11 @@ vllm serve Qwen/Qwen3-32B-FP8 \
 
 ### 기존 문제: Round-Robin의 한계
 
-기존 vLLM 배포는 단순 Round-Robin 로드 밸런싱에 의존합니다. 동일한 시스템 프롬프트를 사용하는 요청이 매번 다른 Pod로 분산되면, 각 Pod에서 동일한 프리필 연산을 반복 수행합니다. 이는 GPU 연산 낭비이자 TTFT 증가의 원인입니다.
+여기에는 두 가지 메커니즘이 관여합니다. 하나의 vLLM 인스턴스 안에서는 Automatic Prefix Caching(vLLM v0.25.0 엔진 설정에서 기본 활성화. 사용하는 버전의 `--enable-prefix-caching` 설정을 확인하세요)이, 요청이 어떤 경로로 들어왔든 같은 prefix를 가진 이전 요청의 KV 블록을 재사용합니다. 인스턴스 사이에서는 로드 밸런서가 요청이 어느 인스턴스의 캐시를 쓸 수 있을지를 결정합니다. Round-Robin(아래 llm-d 비교의 기준선)이나 무작위 엔드포인트 선택처럼 캐시 상태를 고려하지 않는 방식은 같은 시스템 프롬프트를 쓰는 요청을 서로 다른 Pod로 보냅니다. 그러면 각 Pod는 그 prefill을 한 번씩 계산한 뒤에야 재사용할 수 있고, 캐시된 블록은 각 Pod의 KV cache에서 다른 트래픽과 공간을 다툽니다. 이로 인한 추가 prefill 연산과 TTFT 증가는 replica 수와 서로 다른 prefix의 수가 많을수록 커지고, 소수의 긴 prefix가 모든 replica에 계속 남아 있으면 작아집니다.
 
 ### 해결: KV cache 상태 인식 라우팅
 
-llm-d와 NVIDIA Dynamo는 각 vLLM Pod의 KV cache 상태를 인식하여, 동일한 prefix를 가진 요청을 이미 해당 KV cache를 보유한 Pod로 라우팅합니다.
+llm-d와 NVIDIA Dynamo는 엔드포인트 선택에 캐시 인식을 더합니다. 요청의 prefix를 어느 Pod가 보유하고 있는지 추정하거나 추적하고 이를 부하와 함께 고려하므로, 같은 prefix를 가진 요청이 그 prefix를 재사용할 수 있는 Pod로 갈 가능성이 높아집니다.
 
 다음 흐름은 설정된 EPP 플러그인의 동작을 단순화한 예시입니다. 캐시가 있는 Pod도 부하에 따라 선택되지 않을 수 있습니다.
 

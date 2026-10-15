@@ -154,7 +154,7 @@ GPU Operator 설치는 가능하지만, Auto Mode의 **관리형 AMI와 OS는 �
 
 ### 대형 GPU 인스턴스 지원 현황 (2026-04 검증 시점 기준, 재검증 필요)
 
-GLM-5 (744B MoE) 배포 과정에서 확인한 Auto Mode의 대형 GPU 인스턴스 지원 현황입니다. p5.48xlarge는 Spot 프로비저닝이 확인되었으나, p5en/p6는 2026-04 검증 시점에서 제약이 있었습니다 (재검증 필요).
+2026년 4월 초 GLM-5 (744B MoE) 배포 과정에서 관측한 Auto Mode의 대형 GPU 인스턴스 지원 현황이며, 저장된 로그가 없으므로 활용하기 전에 재검증해야 합니다. 당시 p5.48xlarge는 Spot 프로비저닝이 확인되었으나, p5en/p6는 사용할 수 없었습니다. [EKS Auto Mode 변경 기록](https://docs.aws.amazon.com/eks/latest/userguide/auto-change.html)은 p5e, p5en, p6-b200, p6-b300 등을 2026-04-10부터 지원하는 인스턴스 유형으로 기록하므로, 4월의 제약은 현재의 공식 지원 범위를 나타내지 않습니다. 리전별 용량에 따라 프로비저닝은 여전히 제한될 수 있습니다.
 
 **상세 지원 현황**: [EKS Auto Mode GPU 인스턴스 지원 현황](../inference-frameworks/llm-d-eks-automode.md#eks-auto-mode-gpu-인스턴스-지원-현황-202604-검증) 참조
 

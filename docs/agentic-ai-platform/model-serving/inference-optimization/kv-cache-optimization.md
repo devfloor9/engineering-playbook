@@ -5,7 +5,7 @@ created: "2026-04-03"
 last_update:
   date: 2026-10-14
   author: devfloor9
-reading_time: 28
+reading_time: 30
 tags:
   - inference
   - optimization
@@ -137,11 +137,11 @@ Pick a variant by matching your target hardware to vLLM's support matrix and by 
 
 ### Existing Problem: Round-Robin Limitations
 
-Existing vLLM deployments rely on simple Round-Robin load balancing. When requests using the same system prompt are distributed to different Pods each time, identical prefill operations are repeatedly executed in each Pod. This wastes GPU computation and increases TTFT.
+Two mechanisms are involved. Inside one vLLM instance, Automatic Prefix Caching (enabled by default in the vLLM v0.25.0 engine configuration; check `--enable-prefix-caching` for the version you run) reuses the KV blocks of an earlier request that shares a prefix, regardless of how the request reached that instance. Across instances, the load balancer decides which instance's cache a request can use. A policy that ignores cache state, such as round-robin (the baseline in the llm-d comparison below) or random endpoint selection, sends requests that share a system prompt to different Pods. Each Pod then computes that prefill once before it can reuse it, and the cached blocks compete with other traffic for each Pod's KV cache. The extra prefill work and the resulting TTFT increase grow with the number of replicas and distinct prefixes, and shrink when a few long prefixes stay resident on every replica.
 
 ### Solution: KV Cache State-Aware Routing
 
-llm-d and NVIDIA Dynamo recognize the KV cache state of each vLLM Pod and route requests with identical prefixes to Pods that already hold the corresponding KV cache.
+llm-d and NVIDIA Dynamo add cache awareness to endpoint selection: they estimate or track which Pods hold a request's prefix and weigh that against load, so requests that share a prefix tend to reach a Pod that can reuse it.
 
 This flow is a simplified example of configured EPP plugins. A Pod with cached prefixes may still lose selection because of load.
 

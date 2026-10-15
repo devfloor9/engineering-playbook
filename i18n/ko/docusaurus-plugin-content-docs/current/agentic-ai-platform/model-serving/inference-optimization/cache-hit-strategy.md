@@ -3,9 +3,9 @@ title: 캐시 히트 전략
 description: KV/prefix·응답(Exact-Response)·semantic 3계층 추론 캐시를 하나의 의사결정 프레임으로 통합하고, 계층별 히트율 목표와 측정 지점, 튜닝 레버를 정리
 created: "2026-06-25"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 8
 tags:
   - caching
   - kv-cache
@@ -74,7 +74,7 @@ flowchart TB
 Prefix cache는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 요청의 prefill을 재사용합니다. 히트율을 높이는 레버는 다음과 같습니다.
 
 - **프롬프트 구조 정렬**: 변하지 않는 부분(시스템 프롬프트·few-shot 예시)을 요청 앞쪽에 고정하면 prefix 일치 구간이 길어집니다.
-- **KV cache-aware 라우팅**: 같은 prefix를 가진 요청을 캐시 보유 Pod로 보냅니다. Round-Robin은 이 캐시를 무력화합니다([기존 L7 게이트웨이의 한계](../index.md#기존-l7-게이트웨이의-한계)).
+- **KV cache-aware 라우팅**: 같은 prefix를 가진 요청을 그 prefix를 보유했을 가능성이 높은 Pod로 보냅니다. Prefix cache는 vLLM 인스턴스마다 따로 유지되므로 Round-Robin이 캐시를 무력화하지는 않습니다. 요청이 도착한 replica가 같은 prefix를 이전에 처리했고 그 블록이 아직 캐시에 남아 있으면 히트가 납니다. 대신 Round-Robin은 캐시 지역성을 떨어뜨립니다. prefix를 받은 replica마다 그 prefix를 한 번씩 계산해야 하고, 계산한 블록을 다른 트래픽과 함께 캐시에 유지해야 하기 때문입니다. 재사용이 얼마나 줄어드는지는 replica 수, 서로 다른 prefix의 수, 캐시 용량, 실제로 설정한 트래픽 분배 방식에 따라 달라집니다([기존 L7 게이트웨이의 한계](../index.md#기존-l7-게이트웨이의-한계)).
 - **공유 KV 계층(LMCache)**: GPU 밖으로 캐시를 확장해 Pod·노드를 넘어 재사용합니다([LMCache](./lmcache.md)).
 
 상세 동작은 [KV Cache 최적화](./kv-cache-optimization.md)를 참조하세요.
