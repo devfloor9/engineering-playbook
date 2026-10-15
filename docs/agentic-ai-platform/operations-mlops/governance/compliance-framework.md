@@ -3,9 +3,9 @@ title: Enterprise Compliance Framework
 description: Compliance guide mapping SOC2, ISO27001, Electronic Financial Supervisory Regulation (전자금융감독규정), and ISMS-P to AI operations
 created: "2026-04-04"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 14
+reading_time: 20
 tags:
   - compliance
   - soc2
@@ -68,8 +68,10 @@ SOC2 (Service Organization Control 2) is a global standard for verifying cloud s
 
 ### CC6: Access Control Implementation Example
 
+The example below attaches an IAM role to the Pod using IRSA (IAM Roles for Service Accounts), which annotates the ServiceAccount with `eks.amazonaws.com/role-arn`. EKS Pod Identity uses the `pod-identity-agent` add-on and a Pod Identity association instead of this annotation, so a ServiceAccount carrying this annotation is using IRSA, not Pod Identity. The Kubernetes RBAC Role/RoleBinding below is Kubernetes resource-level authorization that only permits `get`/`list` on KServe `inferenceservices`; it does not authenticate or authorize model-endpoint invocation (inference calls) itself. Model-endpoint access control must be configured separately from this RBAC, through call-path authentication/authorization such as gateway API keys or token validation.
+
 ```yaml
-# EKS Pod Identity + RBAC-based model API access control
+# IRSA (IAM Roles for Service Accounts) + Kubernetes RBAC: resource-level authorization example
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -107,20 +109,20 @@ Record all inference requests as auditable traces. For implementation methods, s
 
 ## ISO27001 Annex A ↔ AI Operations Mapping
 
-ISO27001 is the international standard for Information Security Management Systems (ISMS). Annex A defines 114 control items.
+ISO27001 is the international standard for Information Security Management Systems (ISMS). The current ISO/IEC 27001:2022 Annex A reorganizes controls into 93 controls across 4 themes (the 2013 edition's 114 controls expired with the 2025-10-31 transition deadline).
 
-### ISO27001 Control Mapping Table
+### ISO27001:2022 Control Mapping Table {#iso27001-control-mapping-table}
 
-**Table 3. ISO27001 Annex A control mapping to AI operations implementation and technology stack**
+**Table 3. ISO27001:2022 Annex A control mapping to AI operations implementation and technology stack**
 
-| Annex A | Control Area | AI Operations Implementation | Technology Stack |
+| Annex A | Control Area (2022 edition) | AI Operations Implementation | Technology Stack |
 |---------|-------------|---------------------------|-----------------|
-| **A.8** | Asset management | Model registry + LoRA adapter management | **ECR + MLflow Model Registry** |
-| **A.9** | Access control | API Key management + RBAC + Multi-tenant isolation | **kgateway + Pod Identity** |
-| **A.12** | Operational security | Logging + Monitoring + Backup | **CloudTrail + AMP/AMG + S3** |
-| **A.14** | System development security | Playbook CI/CD + Automated code review | **ArgoCD + Guardrails API** |
-| **A.16** | Information security incident management | Automatic detection + Automatic response | **Alerts + Playbook rollback** |
-| **A.17** | Business continuity | Multi-AZ deployment + Autoscaling | **EKS + Karpenter** |
+| **A.5.9, A.8.1** | Asset management (organizational/technological controls) | Model registry + LoRA adapter management | **ECR + MLflow Model Registry** |
+| **A.5.15-5.18, A.8.2-8.5** | Access control (organizational/technological controls) | API Key management + RBAC + Multi-tenant isolation | **kgateway + Pod Identity** |
+| **A.8.15-8.16** | Operational security logging (technological controls) | Logging + Monitoring + Backup | **CloudTrail + AMP/AMG + S3** |
+| **A.8.25-8.31** | Development security (technological controls) | Playbook CI/CD + Automated code review | **ArgoCD + Guardrails API** |
+| **A.5.24-5.28** | Incident management (organizational controls) | Automatic detection + Automatic response | **Alerts + Playbook rollback** |
+| **A.5.29-5.30, A.8.14** | Business continuity (organizational/technological controls) | Multi-AZ deployment + Autoscaling | **EKS + Karpenter** |
 
 ### A.14 Implementation: Playbook CI/CD Pipeline
 
@@ -274,12 +276,17 @@ def check_compliance(playbook_path):
 
 ### S3 Lifecycle Policy Example
 
+The rule below scopes transitions and expiration to inference-trace objects only by specifying the `inference-traces/` prefix in `Filter`. Without a `Filter`, the expiration rule applies to the entire bucket and could delete other data classes after 1095 days (3 years) — including API call logs that must be retained for 5 years. Separate each data class by prefix and keep a distinct rule matching that class's retention period. Also validate this rule against the target bucket's versioning and Object Lock settings before applying it, to confirm expiration does not delete versions or objects that must be retained.
+
 ```json
 {
   "Rules": [
     {
       "Id": "inference-trace-lifecycle",
       "Status": "Enabled",
+      "Filter": {
+        "Prefix": "inference-traces/"
+      },
       "Transitions": [
         {
           "Days": 90,
@@ -301,7 +308,7 @@ def check_compliance(playbook_path):
 :::warning Ensuring Audit Data Integrity
 - **S3 Object Lock**: Prevent deletion (WORM mode)
 - **CloudTrail Validation**: Verify tampering with `aws cloudtrail validate-logs`
-- **Immutable Trace**: Traces in LLM tracing systems are immutable after creation (e.g., Langfuse)
+- **Distinguish operational telemetry from audit evidence**: Traces in LLM tracing systems such as Langfuse are mutable, deletable operational telemetry and are not immutable (WORM) audit evidence by themselves. To use them as audit evidence, export the traces to a separate store with retention and tamper protection applied — for example, an S3 Object Lock bucket, or integrity guaranteed through CloudTrail digests.
 :::
 
 ---

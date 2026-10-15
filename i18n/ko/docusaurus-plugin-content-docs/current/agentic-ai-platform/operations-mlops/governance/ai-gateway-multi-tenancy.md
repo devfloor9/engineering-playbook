@@ -3,9 +3,9 @@ title: AI Gateway 멀티테넌시 전략
 description: LLM Gateway 레벨 멀티테넌시 전략 — LiteLLM virtual key 계층 모델과 Kong Consumer 정책 비교, 예산 강제, 테넌트 격리 3단 모델(게이트웨이·데이터·관측)
 created: "2026-08-11"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 15
 tags:
   - litellm
   - kong
@@ -136,8 +136,8 @@ Kong의 가장 강력한 기능은 **토큰 단위 Rate Limiting**입니다. 전
 | `completion_tokens` | 생성 토큰만 | 출력 비용 제어 |
 | `cost` | (입력 토큰 × 입력 단가 + 출력 토큰 × 출력 단가) / 1M | 실제 달러 비용 기반 제한 |
 
-:::warning 토큰 비용은 다음 요청에서 반영
-LLM이 응답을 생성해야 토큰 수를 알 수 있으므로, 토큰 비용은 **다음 요청**에서 반영됩니다. 즉, 이미 예산을 초과한 요청은 완료되고 그 다음 요청이 차단됩니다. 이는 모든 토큰 인지 Rate Limiting의 근본적 제약입니다.
+:::warning 응답 기반 토큰 비용은 다음 요청에서 반영
+완성(completion) 토큰 수는 LLM이 응답을 생성한 뒤에야 확정되므로, 응답에서 사용량을 집계하는 플러그인 모드에서는 토큰 비용이 **다음 요청**에서 반영됩니다. 즉, 이미 예산을 초과한 요청은 완료되고 그 다음 요청이 차단됩니다. 이 제약은 응답 기반 사용량 집계 방식에 한정됩니다. 입력(prompt) 토큰은 요청 시점에 셀 수 있으므로, prompt-token 카운팅이나 사전 추정·예약(reservation) 전략을 쓰면 완성 이전에 한도를 강제할 수 있습니다.
 :::
 
 ### Kong과 LiteLLM의 본질적 차이
@@ -157,7 +157,7 @@ LLM이 응답을 생성해야 토큰 수를 알 수 있으므로, 토큰 비용�
 
 ## 4. 선택 기준: LiteLLM vs Kong (택일)
 
-:::danger Kong + LiteLLM 조합 아키텍처 금지
+:::note 검증 범위: Kong + LiteLLM 조합 미검증
 이 가이드는 단일 게이트웨이를 선택하기 위한 대안으로 LiteLLM과 Kong을 비교합니다. 두 제품을 결합한 구성을 검증한 레퍼런스는 이 문서에 포함되어 있지 않으므로, 아래 선택 기준은 각 제품을 개별 게이트웨이로 사용하는 경우를 다룹니다.
 :::
 
@@ -244,27 +244,27 @@ collection_name = f"embeddings_{tenant_id}"
 milvus_client.create_collection(collection_name)
 ```
 
-**캐시 키 네임스페이스**: semantic cache의 캐시 키는 `tenant_id`를 prefix로 포함해야 합니다. 상세 설계는 [Semantic Caching 전략 — 캐시 키 설계와 멀티테넌시](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-캐시-키-설계와-멀티테넌시)를 참조하세요.
+**캐시 키 네임스페이스**: semantic cache의 캐시 키는 `tenant_id`를 prefix로 포함해야 합니다. 다만 키 prefix는 **네임스페이싱**일 뿐 인가가 아닙니다. 접근 자체는 요청자의 인증된 신원에 묶인 테넌트 범위 조회(테넌트별 인덱스·강제된 테넌트 필터)로 통제해야 하며, prefix만으로 완전한 격리가 성립하지는 않습니다. 상세 설계는 [Semantic Caching 전략 — 캐시 키 설계와 멀티테넌시](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-캐시-키-설계와-멀티테넌시)를 참조하세요.
 
 ```python
-# pseudo-code: Redis 캐시 키 네임스페이스
+# pseudo-code: Redis 캐시 키 네임스페이스 (네임스페이싱일 뿐, 인가는 별도)
 cache_key = f"cache:{tenant_id}:{language}:{embedding_hash}"
 ```
 
-**Row-level 격리**: 관계형 DB(PostgreSQL 등)에서 프롬프트·응답 로그를 저장할 때는 **Row-level Security (RLS)** 로 테넌트 간 격리를 강제합니다.
+**Row-level 격리**: 관계형 DB(PostgreSQL 등)에서 프롬프트·응답 로그를 저장할 때는 **Row-level Security (RLS)** 로 테넌트 간 격리를 강제합니다. RLS가 실제로 강제되려면 테이블에 `ENABLE ROW LEVEL SECURITY`와 함께 `FORCE ROW LEVEL SECURITY`를 적용하고, 애플리케이션은 테이블 소유자나 superuser가 아닌 역할로 접속해야 합니다(소유자·superuser는 기본적으로 RLS를 우회). 또한 정책이 참조하는 현재 테넌트 식별자는 인증된 세션에서 설정한 값이어야 하며, 클라이언트가 임의로 바꿀 수 없어야 합니다.
 
 ### ③ 관측 격리
 
-**팀별 트레이스 라우팅**: Langfuse 또는 LangSmith에서 테넌트별로 트레이스를 분리하여 한 팀이 다른 팀의 프롬프트·응답을 볼 수 없도록 합니다.
+**팀별 트레이스 라우팅**: 테넌트 간 열람 격리는 메타데이터 태깅만으로 보장되지 않습니다. 아래 스니펫은 트레이스에 `tenant_id`를 태깅할 뿐이며, 같은 프로젝트를 조회할 수 있는 사용자는 태그와 무관하게 다른 팀의 프롬프트·응답을 볼 수 있습니다. 실제 격리는 각 테넌트를 Langfuse(또는 LangSmith)의 **별도 프로젝트·클라이언트**에 매핑하고, 인증된 요청마다 해당 테넌트의 프로젝트 자격증명을 선택하며, 열람 권한을 프로젝트 범위의 리더 역할로 제한해야 성립합니다. 프로젝트 단위 역할·권한은 에디션(셀프 호스팅 플랜, 상용 티어)에 따라 제공 범위가 다르므로, 사용 중인 에디션이 프로젝트 범위 리더 역할을 지원하는지 확인하세요.
 
 ```python
-# pseudo-code: Langfuse 테넌트별 프로젝트
+# pseudo-code: Langfuse 테넌트별 프로젝트 — 아래는 '태깅'일 뿐 격리가 아님
 langfuse_context.update_current_observation(
     metadata={"tenant_id": tenant_id, "team": team_name}
 )
 ```
 
-**대시보드 권한**: Grafana·CloudWatch 대시보드는 팀별로 필터링된 뷰를 제공합니다. `tenant_id` 레이블로 메트릭을 분리하고, 대시보드 권한은 IAM 또는 Grafana 조직 단위로 제어합니다.
+**대시보드 권한**: Grafana·CloudWatch 대시보드의 팀별 필터는 보여주는 화면만 바꿀 뿐 접근 자체를 제한하지 않습니다. `tenant_id` 레이블 필터는 표현(presentation) 계층이므로, 실제 접근 통제는 테넌트별로 범위가 제한된 데이터 소스 자격증명과 백엔드 인가(쿼리 시점에 테넌트 범위를 강제하는 데이터 소스·쿼리 권한)로 구현해야 합니다. 이때 Grafana 조직·폴더 단위 권한(어떤 대시보드를 보는가)과 데이터 소스 권한(어떤 데이터를 조회하는가)을 구분해 설정합니다.
 
 ---
 

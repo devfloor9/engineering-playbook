@@ -3,9 +3,9 @@ title: 엔터프라이즈 컴플라이언스 프레임워크
 description: SOC2, ISO27001, 전자금융감독규정, ISMS-P를 AI 운영에 매핑하는 컴플라이언스 가이드
 created: "2026-04-04"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 10
 tags:
   - compliance
   - soc2
@@ -68,8 +68,10 @@ SOC2(Service Organization Control 2)는 클라우드 서비스의 보안, 가용
 
 ### CC6: 접근 제어 구현 예시
 
+아래 예시는 ServiceAccount에 `eks.amazonaws.com/role-arn` 애너테이션을 붙이는 IRSA(IAM Roles for Service Accounts) 방식으로 Pod에 IAM 역할을 연결합니다. EKS Pod Identity는 이 애너테이션 대신 `pod-identity-agent` 애드온과 Pod Identity 연결(association)을 사용하므로, 아래 애너테이션을 쓰는 경우 Pod Identity가 아니라 IRSA입니다. 또한 아래 Kubernetes RBAC Role/RoleBinding은 KServe `inferenceservices` 리소스의 `get`/`list` 조회만 허가하는 Kubernetes 리소스 수준 인가이며, 모델 엔드포인트 호출(추론 요청) 자체를 인증·인가하지는 않습니다. 모델 엔드포인트 접근 제어는 아래 RBAC와 별도로 게이트웨이 API Key 또는 토큰 검증 같은 호출 경로 인증·인가를 구성해야 합니다.
+
 ```yaml
-# EKS Pod Identity + RBAC 기반 모델 API 접근 제어
+# IRSA(IAM Roles for Service Accounts) + Kubernetes RBAC: 리소스 수준 인가 예시
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -274,12 +276,17 @@ def check_compliance(playbook_path):
 
 ### S3 Lifecycle 정책 예시
 
+아래 규칙은 `Filter`에 `inference-traces/` 접두사를 지정하여 전환·만료가 추론 트레이스 객체에만 적용되도록 범위를 한정합니다. `Filter` 없이 적용하면 만료 규칙이 버킷 전체에 적용되어 5년 보관이 필요한 API 호출 로그 등 다른 데이터 분류까지 1095일(3년) 후 삭제될 수 있으므로, 데이터 분류별로 접두사를 분리하고 각 분류의 보관 기간에 맞는 별도 규칙을 둡니다. 또한 이 규칙을 적용하기 전에 대상 버킷의 버저닝과 Object Lock 설정을 확인하여, 만료가 보존해야 하는 버전·객체를 삭제하지 않는지 검증합니다.
+
 ```json
 {
   "Rules": [
     {
       "Id": "inference-trace-lifecycle",
       "Status": "Enabled",
+      "Filter": {
+        "Prefix": "inference-traces/"
+      },
       "Transitions": [
         {
           "Days": 90,
@@ -301,7 +308,7 @@ def check_compliance(playbook_path):
 :::warning 감사 데이터 무결성 보장
 - **S3 Object Lock**: 삭제 방지 (WORM 모드)
 - **CloudTrail 검증**: `aws cloudtrail validate-logs`로 변조 검증
-- **Immutable Trace**: LLM 트레이싱 시스템에서 트레이스는 생성 후 수정 불가 (Langfuse 등)
+- **운영 텔레메트리와 감사 증적 구분**: Langfuse 같은 LLM 트레이싱 시스템의 트레이스는 수정·삭제가 가능한 운영 텔레메트리이며 그 자체로는 변경 불가(WORM) 감사 증적이 아닙니다. 감사 증적으로 쓰려면 트레이스를 S3 Object Lock 버킷으로 내보내거나 CloudTrail 다이제스트로 무결성을 보장하는 등, 보존 기간과 변조 방지가 적용된 별도 저장소로 내보내 보관해야 합니다.
 :::
 
 ---
