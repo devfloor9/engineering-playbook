@@ -3,9 +3,9 @@ title: 코딩 도구 연동 & 비용 분석
 description: Aider, Cline, Continue.dev 연동 + Bedrock vs Kiro vs 자체 호스팅 비용 비교
 created: "2026-04-06"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 17
 tags:
   - aider
   - cline
@@ -55,10 +55,14 @@ AI 코딩 도구를 엔터프라이즈 환경에서 활용하려면 **IDE 연동
 | **Cursor** | 지원 | 모델명에 `/` 불필요 — `auto` 사용 |
 
 :::tip Bifrost 대비 호환성 개선
-Bifrost 경유 시 필요했던 `provider/model` 포맷 (`openai/glm-5`)과 Aider double-prefix 트릭 (`openai/openai/glm-5`)이 **완전히 불필요**합니다. Cursor도 모델명 `/` 제약 없이 사용 가능합니다.
+LLM Classifier를 쓰면 Bifrost 경유 시 흔히 쓰던 `provider/model` 포맷(`openai/glm-5`)과 Aider double-prefix 트릭(`openai/openai/glm-5`)이 **불필요**합니다. Bifrost에서도 정적 모델 별칭을 설정하면 짧은 이름을 쓸 수 있으므로 이는 제품의 절대적 제약이 아니라 LLM Classifier의 기본 동작이 더 단순한 경우입니다.
 :::
 
 ### 2.2 Aider 연결 예시
+
+:::warning 엔드포인트 보안 경계
+아래 예시의 `http://<NLB>/v1` + `API Key: dummy`는 격리된 로컬·사설망 테스트를 전제로 한 설정입니다. 자체 호스팅만으로 코드가 격리되는 것은 아닙니다. 프로덕션에서는 HTTPS와 게이트웨이의 실제 인증을 적용하고, 도달 가능 범위를 승인된 네트워크로 제한해야 합니다. 특히 Cursor처럼 자사 백엔드를 경유해 외부에서 엔드포인트에 접근해야 하는 도구는 평문 HTTP·더미 키를 그대로 노출하면 안 됩니다.
+:::
 
 [Aider](https://aider.chat)는 Git-aware 코드 수정 + 자동 커밋을 지원하는 오픈소스 CLI 도구입니다.
 
@@ -85,7 +89,7 @@ aider --model openai/auto
 
 ### 2.3 Continue.dev 설정 예시
 
-Continue.dev는 VSCode/JetBrains용 AI 코딩 어시스턴트입니다.
+Continue.dev는 VSCode/JetBrains용 AI 코딩 어시스턴트입니다. 아래는 레거시 `config.json` 형식 예시입니다. 최신 Continue는 `config.yaml` 형식을 사용하므로, 사용 중인 Continue 버전이 지원하는 형식을 문서에서 확인한 뒤 적용합니다. 레거시 블록 자체가 무효라는 뜻은 아니며, 지원 버전에서는 그대로 동작합니다.
 
 ```json
 {
@@ -121,11 +125,11 @@ Settings -> API Provider -> OpenAI Compatible
 | 항목 | **LLM Classifier (권장)** | **Bifrost** |
 |------|--------------------------|------------|
 | **적합 환경** | 자체 호스팅 vLLM cascade | 외부 프로바이더 통합 (OpenAI/Anthropic) |
-| **모델명 포맷** | `auto` (임의값 가능) | `provider/model` 강제 |
+| **모델명 포맷** | `auto` (임의값 가능) | 기본은 `provider/model`이나, 정적 모델 별칭으로 짧은 이름을 `provider/model`에 매핑 가능 |
 | **프롬프트 분석** | 가능(body 직접 접근) | 조건부(body 직접 접근 불가, 단 Complexity Router의 complexity_tier로 프롬프트 기반 라우팅 가능) |
-| **멀티 백엔드** | 가능(WEAK/STRONG URL 분리) | 불가(provider당 단일 base_url) |
-| **Aider 호환** | 지원(트릭 불필요) | 조건부(double-prefix 필요) |
-| **Cursor 호환** | 지원 | 불가(슬래시 불가) |
+| **멀티 백엔드** | 가능(WEAK/STRONG URL 분리) | 조건부(custom provider 인스턴스를 여러 개 두어 각각 별도 base_url 지정 가능) |
+| **Aider 호환** | 지원(트릭 불필요) | 조건부(별칭 미사용 시 double-prefix 필요할 수 있음) |
+| **Cursor 호환** | 지원 | 조건부(별칭으로 슬래시 회피 가능, 단 Cursor는 자사 백엔드를 경유하므로 공개적으로 도달 가능한 엔드포인트 필요) |
 | **이미지 크기** | ~50MB | ~100MB |
 
 :::info Bifrost는 언제 사용하나?
@@ -359,7 +363,7 @@ graph TD
 
 ### Phase 2: 비용 최적화 {#phase-2-비용-최적화-1주}
 - [ ] SLM 배포 (g6.xlarge)
-- [ ] Bifrost Cascade 설정
+- [ ] LLM Classifier cascade 라우팅 설정 (섹션 3 기준; 자체 호스팅 cascade는 LLM Classifier가 담당)
 - [ ] Semantic Caching 활성화
 
 ### Phase 3: 도메인 특화 {#phase-3-도메인-특화-2-4주}

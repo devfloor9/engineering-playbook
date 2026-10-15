@@ -3,9 +3,9 @@ title: Open-Weight Model Deployment Guide
 description: A customer-facing decision guide for evaluating and choosing self-hosted open-weight LLM deployment from the perspectives of token economics and data sovereignty.
 created: "2026-06-26"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 30
 tags:
   - open-weight
   - token-economics
@@ -55,20 +55,20 @@ Commercial APIs and self-hosting incur cost in different ways.
 
 | Aspect | Commercial API | Self-hosting (EKS + vLLM) |
 |------|----------|----------------------|
-| Cost model | Per-token (metered) | Per-GPU-hour fixed cost |
-| Volume sensitivity | Scales linearly with usage | Volume-independent (within capacity) |
-| Initial cost | None | GPU and operations setup |
-| Marginal cost | Incurred per request | Approaches 0 (within capacity) |
+| Cost model | Per-token (metered) | Per-GPU-hour fixed cost + per-request variable cost |
+| Volume sensitivity | Scales linearly with usage | Fixed cost dominates within capacity; recalculate at each node-addition range |
+| Initial cost | Service setup and integration cost | GPU and operations setup |
+| Marginal cost | Incurred per request | Low within capacity, but not zero (power, operations, variable costs) |
 
-Commercial APIs are advantageous at low volume, while self-hosting yields a lower effective per-token cost once a certain volume is exceeded. The crossover is the break-even point.
+Commercial APIs are often advantageous at low volume, while self-hosting can yield a lower effective per-token cost once a certain volume is exceeded. When a crossover exists, that point is the break-even; depending on unit price, quality, capacity, and variable costs, there may be no crossover at all.
 
 ### Break-Even Analysis
 
-Detailed break-even simulations (cost tables by monthly request volume; Cascade and Spot savings) are covered in [Coding Tools Cost Analysis](./coding-tools-cost-analysis.md). Only the core baselines are summarized here.
+Detailed break-even simulations (cost tables by monthly request volume; Cascade and Spot savings) are covered in [Coding Tools Cost Analysis](./coding-tools-cost-analysis.md). Those break-even figures are a hypothetical example assuming specific unit prices and fixed costs, not a universal crossover that applies to every situation. Only the core baselines are summarized here.
 
-- The break-even between commercial APIs and 24/7 self-hosting forms at the scale of several million requests per month.
-- Applying Cascade Routing (simple requests to SLM, complex requests only to large models) significantly lowers the break-even volume.
-- Operating only during business hours (8 hours/day) or using Spot instances lowers the fixed cost itself.
+- Under the linked example's assumptions, the break-even between commercial APIs and 24/7 self-hosting forms at the scale of several million requests per month. The actual crossover depends on unit price, quality, capacity, and variable costs, and may not exist at all.
+- Cascade Routing (simple requests to SLM, complex requests only to large models) can lower the break-even volume when quality and latency are held equal. However, in a fixed-cost structure where both model pools run continuously, spend can instead increase, so verify against actual node hours.
+- Operating only during business hours (8 hours/day) or using Spot instances can lower the fixed cost itself, but factor in model loading time, reserve capacity, and off-hours service requirements.
 
 When applying this logic to open-weight models in general, the variables are **model throughput** and **GPU requirements**. Higher throughput on the same GPU budget yields a lower per-token cost.
 
@@ -89,7 +89,7 @@ In self-hosting, inference performance optimization directly lowers per-token un
 - **Quantization**: FP8 and INT4 weights reduce required GPU memory and GPU count. However, quality loss is possible, so workload-specific validation is required. The credibility of official checkpoints versus community-quantized versions must be distinguished (see warning below).
 - **vLLM engine tuning**: PagedAttention, FP8 KV cache, prefix caching, chunked prefill, and Multi-Token Prediction (MTP)-based speculative decoding raise throughput. `--gpu-memory-utilization`, `--max-num-batched-tokens`, `--max-num-seqs`, and `--max-model-len` are the key flags that tune concurrency and memory usage. For details on these concepts, see [vLLM Model Serving](../../model-serving/inference-frameworks/vllm-model-serving.md).
 - **Local NVMe storage**: Using instance store (NVMe SSD) as a model cache speeds up cold start and KV offload. Availability depends on the node provisioning method (see the infrastructure section below).
-- **EFA (Elastic Fabric Adapter)**: Determines node-to-node KV transfer bandwidth in multi-node distributed inference. No effect on single-node inference (which uses NVLink/NVSwitch within the node).
+- **EFA (Elastic Fabric Adapter)**: In tensor/pipeline-parallel (TP/PP) distributed inference, EFA carries all inter-node communication, including collective, activation, and KV transfer. Physical bandwidth alone does not determine end-to-end KV transfer performance; the engine, topology, and scheduling also matter. For single-node inference, the intra-node interconnect governs performance, and whether NVLink/NVSwitch is present depends on the chosen instance, so do not assume every single node has it.
 
 :::caution Verify community-quantized checkpoints
 HuggingFace hosts many third-party quantized checkpoints. Using weights without verifying source, calibration, and licensing in production carries quality and security risks. Prefer the model provider's official quantized version when possible, and adopt community-quantized versions only after internal evaluation.
@@ -108,19 +108,19 @@ Data sovereignty requirements are a spectrum rather than a single threshold. The
 | Sovereignty Level | Inference Location | Recommended Approach |
 |----------|----------|----------|
 | Public | No region constraint | Commercial API / AWS Native |
-| In-country | Pinned to in-country region | Region enforcement + in-region self-hosting |
+| In-country | Pinned to in-country region | Region enforcement + in-region managed service (e.g. Bedrock with in-region processing) or in-region self-hosting |
 | Hybrid | On-premises + in-country | EKS Hybrid Nodes + self-hosting |
-| Air-gapped | Fully isolated | On-premises EKS only |
+| Air-gapped | Fully isolated (disconnected) | EKS Anywhere or another disconnected-capable Kubernetes distribution + mirrored dependencies (managed EKS/Hybrid Nodes require AWS control-plane connectivity and are not air-gapped) |
 
-The stronger the requirement, the lower the managed-service dependence and the larger the share of self-hosting and on-premises. For SCP region enforcement and EKS Hybrid Nodes implementation, see [Sovereign & Hybrid Deployment](../../design-architecture/platform-selection/sovereign-hybrid-deployment.md).
+The stronger the requirement, the lower the managed-service dependence and the larger the share of self-hosting and on-premises. However, a region-residency requirement such as "pinned to in-country region" must be distinguished from a requirement that the customer operate the infrastructure itself. Apply the concrete legal/contractual control requirements first; if an in-region managed service satisfies them (for example, Bedrock with in-region processing), the condition can be met without self-hosting. For SCP region enforcement and EKS Hybrid Nodes implementation, see [Sovereign & Hybrid Deployment](../../design-architecture/platform-selection/sovereign-hybrid-deployment.md).
 
-### What Self-Hosting Guarantees
+### What Self-Hosting Lets You Control {#what-self-hosting-guarantees}
 
-Self-hosting open-weight models offers the following for sovereignty requirements.
+Self-hosting open-weight models does not automatically "guarantee" sovereignty requirements. Deployment location alone does not remove external paths; the architecture can still include external clients, observability systems, embeddings/judges/fallbacks, and configured model-access paths. Treat the following as controls to implement and verify.
 
-- **In-boundary processing of data and inference**: Prompts, outputs, and embeddings never leave controlled VPCs and regions.
-- **No external transmission**: Inference traffic does not go to external model providers, so the data egress path itself is removed.
-- **Auditability**: Inference traces and access logs are kept in-house systems to address audit requirements.
+- **In-boundary processing of data and inference (control)**: Map the end-to-end data path of prompts, outputs, and embeddings, and confirm there is no point where it leaves the controlled VPC/region.
+- **Blocking external paths (control)**: Set egress policy, authentication, and network boundaries so inference traffic does not leave, and explicitly review observability, fallback, and external-model-access paths.
+- **Auditability (control)**: Keep inference traces and access logs in in-house systems, and confirm with evidence that the boundaries hold in the actual deployment.
 
 ### Application of Korean Regulations
 
@@ -197,8 +197,8 @@ Details of the deployment implementation (image build, S3 caching, multi-node Le
 The GPU-node provisioning method determines the achievable range of performance optimization. The following are constraints verified against primary sources.
 
 - **Local NVMe**: EKS Auto Mode does not support a CSI driver that exposes instance store as a Pod volume, and the NodeClass `ephemeralStorage` configures an EBS volume. The standard Karpenter `EC2NodeClass` can use `instanceStorePolicy: RAID0` to RAID0 local NVMe ([EKS Auto Mode NodeClass](https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html)).
-- **EFA**: EKS Auto Mode supports the EFA device plugin, but per-device `efa-only` interface configuration is unsupported as of this writing. Maximum-bandwidth configuration is possible only via `networkInterfaces` on the standard Karpenter `EC2NodeClass` (Karpenter v1.11+). p5.48xlarge and p5en.48xlarge support 32 network cards and 3,200 Gbps ([Manage EFA devices on Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html), [Maximize network bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html)).
-- **Conclusion**: Single-node inference can be served with EKS Auto Mode. High-performance multi-node deployments that exploit local NVMe and maximum EFA bandwidth require the standard Karpenter node pool.
+- **EFA**: EKS Auto Mode supports statically configuring `interfaceType: efa-only` interfaces via the NodeClass `advancedNetworking.networkInterfaces`, in addition to the EFA device plugin. The standard Karpenter `EC2NodeClass` `networkInterfaces` (Karpenter v1.11+) and launch-template paths for managed/self-managed nodes also support EFA configuration, so the premise that maximum-bandwidth configuration is possible only via standard Karpenter does not hold as of this writing. The number of network cards differs by instance: p5.48xlarge supports 32 and p5en.48xlarge supports 16 network cards, and both instances have an aggregate network bandwidth of 3,200 Gbps ([Static Network Interface Configuration](https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html), [Manage EFA devices on Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html), [Maximize network bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html)).
+- **Conclusion**: Single-node inference can be served with EKS Auto Mode. EFA-based multi-node distributed inference can be configured on Auto Mode via `advancedNetworking.networkInterfaces` (efa-only). The one remaining gap is exposing local NVMe instance store as a Pod volume, which Auto Mode does not support; use the standard Karpenter node pool when that requirement exists.
 
 :::info GPU instance pricing
 p5en.48xlarge (8×H200, 1,128 GiB GPU memory, EFAv3 3,200 Gbps) is available in the Tokyo (ap-northeast-1) region ([AWS News](https://aws.amazon.com/blogs/aws/new-amazon-ec2-p5en-instances-with-nvidia-h200-tensor-core-gpus-and-efav3-networking/)). On-Demand pricing is reported around $63/hr in us-east-1 and around $79/hr in Tokyo. Prices change frequently; for actual figures, see the [AWS official pricing page](https://aws.amazon.com/ec2/instance-types/p5/).

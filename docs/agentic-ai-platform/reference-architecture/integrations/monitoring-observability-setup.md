@@ -3,9 +3,9 @@ title: Monitoring & Observability Setup Guide
 description: Hands-on setup guide for integrated monitoring with Prometheus to AMP, AMG, Langfuse, and Bifrost OTel
 created: "2026-04-06"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: devfloor9
-reading_time: 15
+reading_time: 25
 tags:
   - monitoring
   - langfuse
@@ -35,7 +35,7 @@ graph LR
         BF -->|OTel traces| KGW2[kgateway URLRewrite]
         KGW2 -->|/api/public/otel/v1/traces| LF[Langfuse]
         VLLM -->|/metrics scrape| PROM[Prometheus]
-        BF -->|:9090/metrics| PROM
+        BF -->|metrics scrape| PROM
         PROM -->|remote-write<br/>Pod Identity| AMP[AMP]
     end
 
@@ -115,6 +115,16 @@ The command above registers an association between the prepared IAM role and a c
 
 ### 2.4 Key Prometheus Helm Values
 
+`additionalScrapeConfigs` is not a top-level key in the kube-prometheus-stack chart; it is a field under `prometheus.prometheusSpec`. Placed at the top level, the chart ignores it, so nest it inside `prometheusSpec` as below. The `${AMP_WORKSPACE_ID}` in the remoteWrite URL must be substituted with the real workspace endpoint before Helm reads the file. Substitute the `$AMP_WORKSPACE_ID` confirmed in 2.1, then apply.
+
+```bash
+# Substitute the $AMP_WORKSPACE_ID confirmed in 2.1 into the values file
+envsubst '${AMP_WORKSPACE_ID}' < values-eks.yaml.tpl > values-eks.yaml
+
+# Verify the substitution (the remote_write URL should contain the real workspace ID)
+grep remote_write values-eks.yaml
+```
+
 ```yaml
 # values-eks.yaml
 prometheus:
@@ -131,46 +141,68 @@ prometheus:
     serviceMonitorSelector: {}
     serviceMonitorNamespaceSelector: {}
 
+    # Scrape targets (field under prometheusSpec)
+    additionalScrapeConfigs:
+      # vLLM metrics
+      - job_name: 'vllm'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [ai-inference]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: vllm
+            action: keep
+        metrics_path: /metrics
+
+      # DCGM Exporter (GPU metrics)
+      - job_name: 'dcgm-exporter'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [monitoring]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: dcgm-exporter
+            action: keep
+
+      # kgateway metrics
+      - job_name: 'kgateway'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [kgateway-system]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: kgateway
+            action: keep
+        metrics_path: /metrics
+
+      # Bifrost metrics (the BF -> Prometheus path in the architecture diagram)
+      # Confirm the metrics listener port, Pod label, and auth/TLS requirements of
+      # your actual Bifrost deployment and adjust the values below (port and
+      # metrics_path vary by environment).
+      - job_name: 'bifrost'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [ai-gateway]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: bifrost
+            action: keep
+
   serviceAccount:
     name: prometheus-kube-prometheus-prometheus
     # No annotations needed when using Pod Identity (unlike IRSA)
+```
 
-# Scrape targets
-additionalScrapeConfigs:
-  # vLLM metrics
-  - job_name: 'vllm'
-    kubernetes_sd_configs:
-      - role: pod
-        namespaces:
-          names: [ai-inference]
-    relabel_configs:
-      - source_labels: [__meta_kubernetes_pod_label_app]
-        regex: vllm
-        action: keep
-    metrics_path: /metrics
+After applying with Helm, verify that the scrape jobs actually made it into the rendered configuration.
 
-  # DCGM Exporter (GPU metrics)
-  - job_name: 'dcgm-exporter'
-    kubernetes_sd_configs:
-      - role: pod
-        namespaces:
-          names: [monitoring]
-    relabel_configs:
-      - source_labels: [__meta_kubernetes_pod_label_app]
-        regex: dcgm-exporter
-        action: keep
-
-  # kgateway metrics
-  - job_name: 'kgateway'
-    kubernetes_sd_configs:
-      - role: pod
-        namespaces:
-          names: [kgateway-system]
-    relabel_configs:
-      - source_labels: [__meta_kubernetes_pod_label_app]
-        regex: kgateway
-        action: keep
-    metrics_path: /metrics
+```bash
+# Check scrape jobs in the rendered Prometheus configuration
+kubectl get secret -n monitoring prometheus-kube-prometheus-prometheus \
+  -o jsonpath='{.data.prometheus\.yaml\.gz}' | base64 -d | gunzip | grep -A2 'job_name'
 ```
 
 ### 2.5 Install Prometheus via Helm
@@ -246,12 +278,20 @@ Make sure to set `sigV4AuthType` to **`ec2_iam_role`**. The value `workspace-iam
 
 ### 3.4 Grant IAM Identity Center User Permissions
 
+`aws grafana update-permissions` does not accept flat flags (`--user-id`, `--user-type`, `--permissions-type`). Use `--update-instruction-batch`, whose entries carry `action` (ADD/REVOKE), `role` (ADMIN/EDITOR/VIEWER), and `users` (id/type), together with `--workspace-id`.
+
 ```bash
 aws grafana update-permissions \
-  --user-id "<IAM Identity Center user-id>" \
-  --user-type "SSO_USER" \
-  --permissions-type "ADMIN" \
   --workspace-id $AMG_WORKSPACE_ID \
+  --update-instruction-batch '[
+    {
+      "action": "ADD",
+      "role": "ADMIN",
+      "users": [
+        {"id": "<IAM Identity Center user-id>", "type": "SSO_USER"}
+      ]
+    }
+  ]' \
   --region ap-northeast-2
 ```
 
@@ -261,6 +301,8 @@ aws grafana update-permissions \
 
 ### 4.1 Helm Installation
 
+The Langfuse community Helm chart uses different value structures across versions. Chart v2.0.0 installs Langfuse v4 by default and replaces the Bitnami sub-charts with OSS alternatives. For reproducible deployments, pin the chart version with `--version` and use the v2 chart value keys (`langfuse.deployment.replicas`, `langfuse.ingress.enabled`, and the datastore `*.deploy` toggles). The v1.x (Bitnami-based) chart uses different keys such as `postgresql.enabled`, so verify the value schema of the chart version you install before running it.
+
 ```bash
 # Add Langfuse Helm repository
 helm repo add langfuse https://langfuse.github.io/langfuse-helm
@@ -269,16 +311,18 @@ helm repo update
 # Create namespace
 kubectl create namespace langfuse
 
-# Install Langfuse via Helm (includes PostgreSQL + ClickHouse + Redis)
+# Install Langfuse (pinned chart version, includes PostgreSQL + ClickHouse + Redis)
 helm install langfuse langfuse/langfuse \
   --namespace langfuse \
-  --set postgresql.enabled=true \
-  --set postgresql.auth.password="secure-password" \
-  --set clickhouse.enabled=true \
-  --set redis.enabled=true \
-  --set ingress.enabled=false \
-  --set replicaCount=2
+  --version 2.0.0 \
+  --set postgres.deploy=true \
+  --set clickhouse.deploy=true \
+  --set redis.deploy=true \
+  --set langfuse.ingress.enabled=false \
+  --set langfuse.deployment.replicas=2
 ```
+
+The chart README states the minimum datastore versions for v4 as ClickHouse 25.12 or later (26.4 recommended), PostgreSQL 16 recommended, and Redis 7.2 recommended. To use a different Langfuse release, override `langfuse.image.tag` explicitly.
 
 :::info EBS CSI Driver Required
 Langfuse's PostgreSQL and ClickHouse require persistent storage.
@@ -292,36 +336,42 @@ kubectl get storageclass
 ```
 :::
 
-### 4.2 Inject Redis Password (Prevent Worker CrashLoopBackOff)
+### 4.2 Configure the Redis Password (Prevent Worker CrashLoopBackOff) {#42-inject-redis-password-prevent-worker-crashloopbackoff}
 
-The Bitnami Valkey chart creates the Secret key as `valkey-password`, but the Langfuse Helm chart does not automatically include the password in the Worker's `REDIS_CONNECTION_STRING`.
+The Langfuse Helm chart does not automatically include the password in the Worker's Redis connection string, which can leave the `langfuse-worker` Pod in CrashLoopBackOff. Rather than copying the secret imperatively with `kubectl set env` (that setting is lost when you re-apply the chart), declare the Redis connection and authentication in the chart values so they reference the secret Redis created. Check the Redis/connection value keys for the chart version you use in its README, then inject the password through a `secretKeyRef` pointing at the existing secret key, not as plaintext.
 
-```bash
-# Retrieve Redis password
-REDIS_PW=$(kubectl get secret langfuse-redis -n langfuse \
-  -o jsonpath='{.data.valkey-password}' | base64 -d)
-
-# Inject into both Web and Worker
-kubectl set env deploy/langfuse-worker deploy/langfuse-web -n langfuse \
-  REDIS_CONNECTION_STRING="redis://default:${REDIS_PW}@langfuse-redis-primary:6379/0"
+```yaml
+# Declare the Redis connection in the values file (confirm key names in the chart version docs)
+# Reference the secret the Redis chart created via secretKeyRef, not a plaintext password
+redis:
+  deploy: true
+  auth:
+    existingSecret: langfuse-redis
+    existingSecretPasswordKey: valkey-password
 ```
 
-:::warning Worker CrashLoopBackOff Root Cause
-If the `langfuse-worker` Pod is in CrashLoopBackOff, a **missing Redis password** is the most common cause. Manually inject it using the command above.
-:::
+If the Worker is still in CrashLoopBackOff after this, do not assume a missing password; diagnose the actual cause first.
+
+```bash
+# Check the actual error in the Worker logs
+kubectl logs -n langfuse -l app.kubernetes.io/component=worker --tail=50
+```
 
 ### 4.3 Migrating from MinIO to S3 + KMS (Recommended)
 
-The Langfuse Helm chart installs MinIO as built-in S3 storage by default, but AWS S3 + KMS is recommended for production.
+The Langfuse Helm chart installs MinIO as built-in S3 storage by default, but AWS S3 + KMS is recommended for production. The steps below are an example of configuring the event-upload store as S3 for a new deployment; they do not include a complete migration of data from a running MinIO instance (per-store configuration, data copy and verification, rollback checks).
 
-**Table 2. MinIO vs AWS S3 + KMS by availability, encryption, authentication, and backup**
+**Table 2. MinIO vs AWS S3 + KMS by durability, availability, encryption, authentication, and backup**
 
-| | MinIO (Default) | AWS S3 + KMS (Recommended) |
+| Property | MinIO (Default) | AWS S3 + KMS (Recommended) |
 |---|---|---|
-| **Availability** | Single Pod | 99.999999999% (11 nines) |
-| **Encryption** | None | SSE-KMS (automatic encryption) |
+| **Durability** | Single Pod (no replication) | 99.999999999% (11 nines) durability |
+| **Availability** | Single Pod | Multi-AZ S3 availability (see the S3 Standard storage SLA) |
+| **Encryption** | Not set in the example below | SSE-KMS (set as default encryption in the example) |
 | **Authentication** | Access Key (environment variable) | Pod Identity (no keys required) |
-| **Backup** | Manual | S3 versioning + Lifecycle |
+| **Backup/Recovery** | Manual | S3 versioning enabled in the example (Lifecycle configured separately) |
+
+The 11 nines figure is S3's durability, which is distinct from availability. The encryption and versioning rows above refer to what the "S3 + KMS Configuration Steps" example below actually sets; a Lifecycle policy is not included in the example, so configure it separately if needed.
 
 #### S3 + KMS Configuration Steps
 
@@ -374,7 +424,12 @@ aws eks create-pod-identity-association \
   --service-account langfuse \
   --role-arn arn:aws:iam::<ACCOUNT_ID>:role/langfuse-s3-access
 
-# 4. Update Langfuse environment variables (remove MinIO, switch to S3)
+# 4. Configure the Langfuse event-upload target as S3 (fresh configuration)
+# The settings below cover only the event-upload store. Other stores such as
+# media-upload and batch-export must each be configured separately, and this
+# does not include copying, verifying, or rolling back data already stored in
+# MinIO. The kubectl set env below is a temporary application; keep the
+# permanent setting in the chart values file and re-apply.
 kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
   LANGFUSE_S3_EVENT_UPLOAD_BUCKET="langfuse-traces-<ACCOUNT_ID>" \
   LANGFUSE_S3_EVENT_UPLOAD_REGION="<REGION>" \
@@ -400,16 +455,16 @@ kubectl set env deploy/langfuse-web deploy/langfuse-worker -n langfuse \
 
 ### 4.4 NEXTAUTH_URL Configuration
 
-`NEXTAUTH_URL` must be set to the actual accessible URL. Leaving it as the default `localhost:3000` will cause an infinite redirect loop during login.
+`NEXTAUTH_URL` must be set to the actual accessible URL. Leaving it as the default `localhost:3000` will cause an infinite redirect loop during login. For production, use a dedicated HTTPS host (for example, `https://langfuse.example.com`). To serve it behind a sub-path (`/langfuse`), you must align the build, authentication, and health-check paths to support a Next.js custom base path; otherwise static assets and authentication callbacks are prone to break. Use the plaintext HTTP sub-path example below only for isolated local testing.
 
 ```bash
-# When accessing via kgateway sub-path
-kubectl set env deploy/langfuse-web -n langfuse \
-  NEXTAUTH_URL="http://<NLB_ENDPOINT>/langfuse"
-
-# When accessing via a separate domain
+# Recommended: access over HTTPS on a dedicated domain
 kubectl set env deploy/langfuse-web -n langfuse \
   NEXTAUTH_URL="https://langfuse.example.com"
+
+# Local testing only: plaintext HTTP access via a kgateway sub-path
+kubectl set env deploy/langfuse-web -n langfuse \
+  NEXTAUTH_URL="http://<NLB_ENDPOINT>/langfuse"
 ```
 
 ### 4.5 kgateway Sub-path Routing
@@ -460,14 +515,14 @@ OTel plugin configuration in Bifrost's config.json.
 
 ### 5.2 kgateway URLRewrite (When Routing Externally)
 
-When Bifrost sends OTel traces to Langfuse through kgateway, URLRewrite is required.
+When Bifrost sends OTel traces to Langfuse through kgateway, URLRewrite is required. Because the `langfuse-web` backend is deployed in the `langfuse` namespace in Section 4, place the HTTPRoute in the same `langfuse` namespace so the backendRef does not cross namespaces. If it must live in a different namespace, create a ReferenceGrant in the backend (`langfuse`) namespace to explicitly allow the cross-namespace reference. Separately, verify that the Gateway's `allowedRoutes` permits this HTTPRoute's namespace.
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: langfuse-otel-route
-  namespace: observability
+  namespace: langfuse
 spec:
   parentRefs:
     - name: unified-gateway
@@ -492,7 +547,7 @@ spec:
 
 In this case, the `collector_url` in Bifrost config uses the kgateway endpoint:
 
-```json
+```text
 "collector_url": "http://api.example.com/api/public/otel"
 ```
 
@@ -536,17 +591,20 @@ POST /api/public/otel/v1/traces
 | GPU Utilization | `avg(DCGM_FI_DEV_GPU_UTIL)` | GPU activity |
 | GPU Memory Usage | `avg(DCGM_FI_DEV_FB_USED / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE) * 100) by (gpu)` | VRAM usage |
 | GPU Temperature | `DCGM_FI_DEV_GPU_TEMP` | Overheating monitoring |
-| vLLM TPS | `rate(vllm:request_success_total[5m])` | Inference throughput |
+| vLLM Request Rate | `rate(vllm:request_success_total[5m])` | Completed requests per second (requests/s) |
+| vLLM Output Token Throughput | `rate(vllm:generation_tokens_total[5m])` | Generated tokens per second (tokens/s) |
 | vLLM TTFT p99 | `histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))` | Time to first token |
 | vLLM E2E p99 | `histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))` | End-to-end request latency |
 | vLLM Batch Size | `avg(vllm_num_requests_running)` | Concurrent inference count |
-| kgateway RPS | `sum(rate(envoy_http_downstream_rq_total[5m])) by (route)` | Requests per second |
-| kgateway 5xx Error Rate | `sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_http_downstream_rq_total[5m])) * 100` | Error rate (%) |
-| kgateway p99 Latency | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, route))` | Gateway latency |
+| kgateway RPS | `sum(rate(envoy_cluster_upstream_rq_total[5m])) by (envoy_cluster_name)` | Requests per second per upstream cluster |
+| kgateway 5xx Error Rate | `sum(rate(envoy_cluster_upstream_rq_xx{envoy_response_code_class="5"}[5m])) / sum(rate(envoy_cluster_upstream_rq_total[5m])) * 100` | Upstream error rate (%) |
+| kgateway Upstream p99 Latency | `histogram_quantile(0.99, sum(rate(envoy_cluster_upstream_rq_time_bucket[5m])) by (le, envoy_cluster_name))` | Upstream response latency (ms; distinct from end-to-end gateway latency) |
 | Bifrost Request Rate | `rate(bifrost_requests_total[5m])` | Gateway request rate |
 | Active Connections | `sum(envoy_cluster_upstream_cx_active) by (upstream_cluster)` | Active connections per backend |
 
 ### Alert Rule Examples
+
+The default `ruleSelector` in kube-prometheus-stack only selects PrometheusRule objects carrying the Helm release label (`release: <release-name>`). The example below assumes the release was installed as `prometheus` in 2.5 and adds the `release: prometheus` label. If you use a different release name, change the value, or deliberately set `prometheus.prometheusSpec.ruleSelector`/`ruleSelectorNilUsesHelmValues` in the values. After applying, verify the rules are actually selected.
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -554,6 +612,8 @@ kind: PrometheusRule
 metadata:
   name: vllm-gpu-alerts
   namespace: monitoring
+  labels:
+    release: prometheus
 spec:
   groups:
     - name: gpu-alerts
@@ -638,18 +698,23 @@ kubectl rollout restart statefulset prometheus-kube-prometheus-prometheus -n mon
 2. SigV4 Auth Details -> Change Auth Type to **`ec2_iam_role`**
 3. Save & Test
 
-Or fix via API:
+Or fix via API. A data source PUT replaces the entire configuration, so sending only a partial body drops required fields such as `name`, `type`, `url`, `access`, and `secureJsonData`. Read the existing configuration first, then PUT a complete body with only `sigV4AuthType` changed. The example below uses the UID-based endpoint (`/api/datasources/uid/<UID>`); AMG exposes a Grafana 9-series compatible API (verify your workspace's Grafana version in the console).
+
 ```bash
-curl -X PUT "https://${GRAFANA_ENDPOINT}/api/datasources/<DS_ID>" \
+# 1. Fetch the existing data source by UID and save it
+DS=$(curl -s "https://${GRAFANA_ENDPOINT}/api/datasources/uid/<DS_UID>" \
+  -H "Authorization: Bearer ${GRAFANA_TOKEN}")
+
+# 2. Build a complete body with only jsonData.sigV4AuthType changed (preserve the rest)
+BODY=$(echo "$DS" | jq '.jsonData.sigV4Auth = true
+  | .jsonData.sigV4AuthType = "ec2_iam_role"
+  | .jsonData.sigV4Region = "ap-northeast-2"')
+
+# 3. PUT the complete body
+curl -X PUT "https://${GRAFANA_ENDPOINT}/api/datasources/uid/<DS_UID>" \
   -H "Authorization: Bearer ${GRAFANA_TOKEN}" \
   -H "Content-Type: application/json" \
-  -d '{
-    "jsonData": {
-      "sigV4Auth": true,
-      "sigV4AuthType": "ec2_iam_role",
-      "sigV4Region": "ap-northeast-2"
-    }
-  }'
+  -d "$BODY"
 ```
 
 ### 7.3 Langfuse Worker CrashLoopBackOff (Redis)
@@ -666,14 +731,7 @@ kubectl run -it --rm redis-test --image=redis:7 --restart=Never -n langfuse -- \
   redis-cli -h langfuse-redis-primary -a $(kubectl get secret langfuse-redis -n langfuse -o jsonpath='{.data.valkey-password}' | base64 -d) ping
 ```
 
-**Resolution**:
-```bash
-REDIS_PW=$(kubectl get secret langfuse-redis -n langfuse \
-  -o jsonpath='{.data.valkey-password}' | base64 -d)
-
-kubectl set env deploy/langfuse-worker deploy/langfuse-web -n langfuse \
-  REDIS_CONNECTION_STRING="redis://default:${REDIS_PW}@langfuse-redis-primary:6379/0"
-```
+**Resolution**: As in Section 4.2, declare the Redis connection and authentication (`secretKeyRef`) in the chart values and re-apply the chart. Copying the secret directly with `kubectl set env` is lost when the chart is re-applied, so use it only for a temporary check and keep the permanent setting in the values file.
 
 ### 7.4 Langfuse S3 500 (Missing MinIO Secret)
 
