@@ -32,7 +32,6 @@ Amazon EKS 운영과 AI 플랫폼 구축을 위한 문서입니다. 해결할 �
 - [AIDLC](./aidlc/index.md): AI 기반 개발 방법론과 실행 과정
 - [EKS Hybrid Nodes](./eks-hybrid-nodes/index.md): 하이브리드 인프라 설계와 운영
 - [ROSA](./rosa/index.md): OpenShift on AWS 가이드
-- [Industry Solutions](./industry-solutions/index.md): 산업별 활용 시나리오
 - [Benchmarks](./benchmarks/index.md): 성능·비용 비교 자료
 
 ## 읽기 순서

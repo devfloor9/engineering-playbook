@@ -23,7 +23,6 @@ Practical engineering references for AWS, Kubernetes, and AI platforms: design d
 | [ROSA](docs/rosa/index.md) | Red Hat OpenShift on AWS installation, security, and operations |
 | [AIDLC](docs/aidlc/index.md) | AI Development Lifecycle methods, tooling, enterprise adoption, and AgenticOps |
 | [Benchmarks](docs/benchmarks/index.md) | Infrastructure and inference comparisons, measurement conditions, and evaluation methods |
-| [Industry Solutions](docs/industry-solutions/index.md) | Retail scenarios and demonstration patterns |
 
 Examples have different levels of validation. Read each guide's prerequisites, release scope, measurement conditions, and verification status before applying it. Calculated examples and proposed architectures are distinct from measured deployment results. Operator acceptance remains open for the cascade-routing, GPU-migration, and hybrid/KFS work tracked in [#5](https://github.com/devfloor9/engineering-playbook/issues/5), [#7](https://github.com/devfloor9/engineering-playbook/issues/7), and [#4](https://github.com/devfloor9/engineering-playbook/issues/4).
 
@@ -67,7 +66,7 @@ For implementation code, see [AI on EKS](https://github.com/devfloor9/ai-on-eks)
 | [llm-wiki/manifest.json](https://devfloor9.github.io/engineering-playbook/llm-wiki/manifest.json) | Per-page metadata, Markdown URLs, source provenance, and content-coverage information |
 | [llm-wiki/index.md](https://devfloor9.github.io/engineering-playbook/llm-wiki/index.md) | Links to component-aware Markdown pages grouped by domain |
 
-The LLM Wiki exports English pages from six technical domains plus the root introduction. Industry Solutions and sales material are excluded. Articles in either language provide link copying and access to the AI guide.
+The LLM Wiki exports English pages from six technical domains plus the root introduction. Sales material is excluded. Articles in either language provide link copying and access to the AI guide.
 
 Supported static components export their text, table rows, navigation targets, and diagram equivalents from repository sources. Unknown runtime content is identified by an export note and a link to the web page. Inspect `content_coverage`, `rendered_sources`, and `omission_details` in the manifest; a clean snapshot does not imply support for arbitrary MDX. Interactive controls and animations are not reproduced.
 
@@ -88,7 +87,6 @@ docs/                                  # Default-locale (English) documents, ser
 ├── rosa/
 ├── aidlc/
 ├── benchmarks/
-├── industry-solutions/
 └── sales/                             # Separate from the technical LLM exports
 i18n/ko/docusaurus-plugin-content-docs/current/
                                        # Korean authoring source (served under /ko/)

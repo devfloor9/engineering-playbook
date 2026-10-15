@@ -32,7 +32,6 @@ Documentation for operating Amazon EKS and building AI platforms. Start with the
 - [AIDLC](./aidlc/index.md): AI-assisted development methods and workflows
 - [EKS Hybrid Nodes](./eks-hybrid-nodes/index.md): hybrid infrastructure design and operations
 - [ROSA](./rosa/index.md): OpenShift on AWS guides
-- [Industry Solutions](./industry-solutions/index.md): industry use cases
 - [Benchmarks](./benchmarks/index.md): performance and cost comparisons
 
 ## Reading order
