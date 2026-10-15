@@ -3,9 +3,9 @@ title: Audit & Governance Logging
 description: AIDLC Checkpoint Approval 게이트와 ISO 8601 기반 감사 로그 — 규제 산업을 위한 AIDLC 감사 추적 구현 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 9
 tags:
   - aidlc
   - audit
@@ -74,10 +74,12 @@ AIDLC 시스템:
   - User Request 원본
   - AI 가 제시한 5지선다 옵션 원본
   - 사용자 응답 `[Answer]: A` 원본
-  - 사용된 모델 (`claude-opus-4-7` 버전, temperature 0, seed 42)
+  - 사용된 모델과 호출 파라미터 (`claude-opus-4-*` 버전, temperature 0 등)
   - 활성화된 Extension 목록
   - 산출물 SHA-256 해시
-  → 동일 입력 재실행 시 동일 결과 생성 가능
+  → 모델 버전과 파라미터를 기록하면 결정 맥락을 재구성하고 유사하게 재실행할 수 있음
+    (단, LLM 출력은 비트 단위로 결정적이지 않으며, Bedrock·Anthropic Claude는 seed 파라미터를
+    제공하지 않으므로 동일 입력이라도 동일 산출을 보장하지 못함)
 ```
 
 ---
@@ -164,7 +166,9 @@ E. **Defer** — 결정 보류 (기한 명시 필수)
 | User Stories → Workflow Planning | Architect | PM | - | - |
 | Workflow Planning → Application Design | Architect | Security Lead | - | 위협 모델 필수 |
 | Application Design → Units Generation | Architect | Security Lead | Compliance | 규제 매핑 필수 |
-| Construction → Production Deploy | Architect | Security Lead | Compliance + SRE | 4인 승인 |
+| Construction → Production Deploy | Architect | Security Lead | Compliance + SRE | 4인 전원 승인 |
+
+각 전환의 정족수는 해당 행에 나열된 승인자 수와 같습니다. 예를 들어 Requirements → User Stories는 Architect 1인, Construction → Production Deploy는 Architect·Security Lead·Compliance·SRE 4인 전원의 승인이 필요합니다. 승인은 이름뿐 아니라 §3.4의 KMS 서명으로 바인딩하며, 서명 검증에 쓰는 KMS 키(또는 신원 공급자 계정)가 명시된 승인자에게 매핑되어야 유효합니다. 서명되지 않았거나 신원이 매핑되지 않은 승인은 정족수에 포함하지 않습니다.
 
 ### 2.4 자동 차단 조건
 
@@ -237,7 +241,7 @@ event:
   stage: requirements_analysis
   event_type: question_asked
   actor:
-    type: [human | ai_agent | system]
+    type: human                               # 허용 값: human | ai_agent | system
     id: yjeong@example.com
   sequence_number: 42                         # 세션 내 순서 보장
 
@@ -330,6 +334,10 @@ event:
   signatures:
     method: "AWS KMS sign-verify"
     key_id: "arn:aws:kms:us-east-2:...:key/xxx"
+    # 서명 대상(canonical content): 아래 세 값을 정규화해 연결한 바이트열의 SHA-256
+    #   content_hash + "|" + gate.id + "|" + actor.id
+    signed_content: "sha256(abc123...|gate-2026-04-18-042|architect@example.com)"
+    signer_identity: architect@example.com    # key_id 사용 주체가 이 승인자와 매핑됨
     signature: "base64..."
 ```
 
@@ -432,9 +440,11 @@ audit_manifest:
       covered_controls: [Section 404]
 ```
 
+manifest의 `worm_enabled`, `retention`, `chain_of_custody` 는 상태를 기술하는 메타데이터일 뿐 그 자체로 강제력이 없습니다. 실제 강제는 저장소 측 설정이 담당합니다. `worm_enabled`/`retention` 은 S3 Object Lock의 보존 모드(Compliance 또는 Governance)와 보존 기간으로 적용하고, 삭제·덮어쓰기 금지는 버킷 정책으로 보강합니다. manifest 값과 실제 Object Lock 설정이 일치하는지는 §7.1 체크리스트와 월 1회 무결성 검증에서 확인합니다.
+
 ### 4.3 Hash Chain 구조
 
-각 이벤트는 이전 이벤트의 해시를 포함하여 **변조 방지 체인** 을 구성:
+각 이벤트는 이전 이벤트의 해시를 포함하여 **변조 탐지 체인** 을 구성:
 
 ```yaml
 event:
@@ -449,6 +459,8 @@ event:
 # 2. next_event.previous_event_hash == this event.content_hash
 # 3. 체인이 깨지면 변조 탐지
 ```
+
+해시 체인 자체만으로는 변조를 막지 못합니다. 로그 전체를 보유한 주체는 체인을 처음부터 다시 계산할 수 있기 때문입니다. 체인이 변조 탐지로 기능하려면 독립적으로 보호되는 기준점(anchor)에 묶어야 합니다. 예를 들어 S3 Object Lock(WORM)으로 보관하거나, 주기적으로 체인 헤드를 KMS로 서명한 체크포인트를 남기거나, 외부 타임스탬프 기관에 체인 헤드를 등록하는 방법이 있습니다.
 
 ---
 
@@ -596,9 +608,9 @@ sequenceDiagram
 
 ### 7.1 Audit 인프라 구축
 
-- [ ] S3 버킷 + Object Lock (WORM) 활성화
-- [ ] KMS 키 생성 (감사 로그 전용, 7년 이상 회전 없음)
-- [ ] Glacier Deep Archive 연계 (7년 후 자동 이동)
+- [ ] S3 버킷 + Object Lock (WORM) 활성화 — 7년 보존은 Object Lock 보존 기간으로 설정
+- [ ] KMS 키 생성 (감사 로그 전용) — 자동 키 회전은 켜 두어도 되며, 이전 키 버전이 보존되므로 과거 로그를 계속 복호화할 수 있음
+- [ ] Glacier Deep Archive 연계 (7년 보존 수명주기에 따라 자동 이동)
 - [ ] CloudTrail Data Events 로 S3 접근 로깅
 - [ ] VPC Endpoint 로 S3 접근 경로 격리
 

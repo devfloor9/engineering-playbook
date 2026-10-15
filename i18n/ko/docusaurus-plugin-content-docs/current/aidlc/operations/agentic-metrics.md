@@ -3,9 +3,9 @@ title: AgenticOps 메트릭 — 운영 중 관측할 Agent KPI
 description: task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate 등 Agent 운영 KPI와 Langfuse·OTel 스키마
 created: "2026-04-18"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 13
 tags:
   - metrics
   - kpi
@@ -83,8 +83,10 @@ Agent의 실제 품질은 **사용자가 원하는 작업을 정확히 수행했
 
 **예시 (고객 지원 Agent)**:
 
+아래 예시는 Langfuse Python SDK v2 계열의 `trace()`/`score()` API를 사용합니다. SDK v3는 OpenTelemetry 기반 span과 `create_score()` 호출로 API가 바뀌었으므로, 실제 적용 시에는 사용하는 SDK 버전을 고정하고 해당 버전의 API를 확인해야 합니다. 또한 `task_success` 값(0.0/1.0)은 세션 결과를 별도 평가 로직(규칙 또는 LLM-as-Judge)으로 판정한 뒤 기록하는 점수이며, SDK가 자동으로 산출하지 않습니다.
+
 ```python
-# Langfuse 자동 평가 예시
+# Langfuse 자동 평가 예시 (SDK v2 API)
 from langfuse import Langfuse
 langfuse = Langfuse()
 
@@ -94,10 +96,10 @@ trace = langfuse.trace(
     metadata={"intent": "refund_request", "channel": "web"}
 )
 
-# 세션 종료 시 평가
+# 세션 종료 시 별도 평가 로직으로 성공 여부를 판정해 기록
 trace.score(
     name="task_success",
-    value=1.0,  # 0.0 = 실패, 1.0 = 성공
+    value=1.0,  # 0.0 = 실패, 1.0 = 성공 (별도 평가 결과)
     comment="Refund processed and confirmation sent"
 )
 ```
@@ -141,29 +143,40 @@ span.score(
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
-| **Hallucination rate** | 근거 없는 정보 생성 비율 | Ragas Faithfulness / SelfCheckGPT |
+| **Context faithfulness** | 제공된 컨텍스트에 근거한 답변 비율(컨텍스트 이탈 측정) | Ragas Faithfulness (0.0~1.0) |
+| **Factual-error rate** | 외부 사실과 어긋나는 답변 비율 | 사실 확인 레퍼런스 대조(사람 또는 LLM-as-Judge) |
+| **Detector-flag rate** | 환각 탐지기가 표시(flag)한 응답 비율 | SelfCheckGPT 등 탐지기 플래그 수 / 전체 응답 수 |
 | **Guardrails violation rate** | 입출력 차단 발생 비율 | input/output filter block count |
 | **Toxicity incidence** | 유해 콘텐츠 생성 비율 | Perspective API / OpenAI Moderation |
 
+세 지표는 서로 다른 현상을 측정합니다. Context faithfulness는 답변이 주어진 컨텍스트를 벗어났는지를(RAG의 근거 이탈), factual-error rate는 외부 사실과의 불일치를, detector-flag rate는 탐지기가 의심스럽다고 표시한 비율을 나타냅니다. 하나의 "hallucination rate"로 합쳐 보고하면 원인별 대응이 어려우므로 구분해 측정합니다.
+
 **Hallucination 측정 예시 (Ragas Faithfulness)**:
+
+`evaluate()`는 데이터셋 전체에 대한 집계 결과를 돌려주므로, `result["faithfulness"]`는 특정 trace 하나의 점수가 아니라 데이터셋 평균입니다. 개별 trace에 점수를 기록하려면 샘플별 점수를 꺼내 각 trace에 바인딩하고, 데이터셋 평균은 평가 실행(run) 단위로 따로 기록합니다.
 
 ```python
 from ragas.metrics import faithfulness
 from ragas import evaluate
 
-# RAG Agent 평가
+# RAG Agent 평가 (데이터셋 단위)
 result = evaluate(
     dataset=test_dataset,
     metrics=[faithfulness],
     llm=ChatOpenAI(model="gpt-4o-mini")
 )
 
-# Faithfulness 점수 → Langfuse에 기록
-trace.score(
-    name="faithfulness",
-    value=result["faithfulness"],  # 0.0~1.0
-    comment=f"Context: {len(context)} chars, Answer: {len(answer)} chars"
-)
+# 1) 샘플별 점수를 해당 trace에 기록
+scores_df = result.to_pandas()
+for row, trace_id in zip(scores_df.itertuples(), trace_ids):
+    langfuse.score(
+        trace_id=trace_id,
+        name="faithfulness",
+        value=float(row.faithfulness),  # 0.0~1.0, 샘플 단위
+    )
+
+# 2) 데이터셋 평균은 평가 실행(run) 단위로 기록
+dataset_mean = float(scores_df["faithfulness"].mean())
 ```
 
 **Guardrails violation 측정**:
@@ -204,8 +217,8 @@ generation = trace.generation(
         "output": 80,
         "total": 1280,
         "input_cost": 0.012,   # $10 / 1M tokens
-        "output_cost": 0.024,  # $30 / 1M tokens
-        "total_cost": 0.036
+        "output_cost": 0.0024,  # $30 / 1M tokens
+        "total_cost": 0.0144
     }
 )
 ```
@@ -229,9 +242,11 @@ if cache_hit:
 
 | 메트릭 | 정의 | 측정 방법 |
 |--------|------|----------|
-| **Time to First Token (TTFT)** | 첫 응답까지 소요 시간 | streaming 시작 시각 - 요청 시각 |
-| **Task-length quartiles** | 작업 복잡도 분포 | METR Task Standard 기반 분류 |
+| **Time to First Token (TTFT)** | 첫 콘텐츠 토큰까지 소요 시간 | 첫 비어 있지 않은 콘텐츠 토큰 수신 시각 - 요청 시각 |
+| **Task-length quartiles** | 작업 소요 시간(또는 단계 수)의 사분위 분포 | 완료된 세션의 소요 시간을 수집해 Q1/Q2(중앙값)/Q3 경계로 구분 |
 | **Escalation rate** | 인간 핸드오프 비율 | (human handoff count) / (total sessions) |
+
+TTFT는 첫 번째 스트리밍 청크가 아니라 **처음으로 비어 있지 않은 콘텐츠 토큰**을 받은 시점으로 측정합니다. 많은 스트리밍 API는 첫 청크로 role 델타나 빈 문자열을 보내므로, 이를 콘텐츠로 세면 TTFT가 실제보다 짧게 나옵니다. Task-length 사분위는 TTFT와 별개로, 완료된 세션의 소요 시간(또는 추론 단계 수) 분포를 Q1·Q2·Q3 경계로 나눠 정의하며, METR Task Standard는 작업 유형을 분류하는 기준으로 참고합니다.
 
 **TTFT 측정 예시**:
 
@@ -243,6 +258,9 @@ request_time = time.time()
 first_token_time = None
 
 async for chunk in llm_stream():
+    # role 델타나 빈 청크는 건너뛰고 첫 콘텐츠 토큰만 측정
+    if not chunk.content:
+        continue
     if first_token_time is None:
         first_token_time = time.time()
         ttft_ms = (first_token_time - request_time) * 1000
@@ -284,9 +302,11 @@ Agent 서비스의 안정성을 측정합니다.
 **SLO 예시 (Task success rate)**:
 
 ```
-Target SLO: Task success rate ≥ 95% (30일 기준)
-Error budget: 5% → 월 36시간 장애 허용
+Target SLO: Task success rate ≥ 95% (30일, 세션 기준)
+Error budget: 5% of sessions → 월 10만 세션이면 실패 5,000 세션 허용
 ```
+
+이 SLO는 세션(이벤트) 기준이므로 error budget도 세션 수로 소진합니다. "5% = 월 36시간 장애"처럼 시간 기준 가용성 예산으로 환산하면 기준이 섞입니다. 시간 기준 예산이 필요하면 SLO 자체를 가용 시간(availability) 기준으로 정의해야 합니다.
 
 ---
 
@@ -400,8 +420,8 @@ flowchart TB
         "output": 80,
         "total": 1280,
         "input_cost": 0.012,
-        "output_cost": 0.024,
-        "total_cost": 0.036
+        "output_cost": 0.0024,
+        "total_cost": 0.0144
       },
       "metadata": {
         "temperature": 0.7,
@@ -508,6 +528,8 @@ with tracer.start_as_current_span("agent_run") as span:
 
 **Grafana Panel 설정**:
 
+아래 PromQL이 참조하는 `langfuse_trace_score_total`은 Langfuse가 기본으로 노출하는 메트릭이 아닙니다. Langfuse의 score 데이터를 Prometheus로 내보내는 커스텀 익스포터(또는 recording rule)를 먼저 구성해야 이 쿼리가 동작합니다.
+
 ```promql
 # Task success rate (30일 평균)
 sum(rate(langfuse_trace_score_total{name="task_success", value="1"}[30d]))
@@ -549,10 +571,10 @@ Guardrails Violation Rate (7일)
 ### 5.3 SLO 대시보드
 
 ```
-Error Budget Burn Rate (Task Success SLO: 95%)
+Error Budget Burn Rate (Availability SLO: 95%)
 ┌────────────────────────────────────────────────────┐
 │ Current SLI: 96.2%                                 │
-│ Error Budget: 5% → 36h/month                      │
+│ Error Budget: 5% of 720h → 36h/month              │
 │ Consumed: 12.5h (34.7%)                            │
 │ Remaining: 23.5h (65.3%)                           │
 │                                                    │
@@ -586,15 +608,23 @@ Error Budget Burn Rate (Task Success SLO: 95%)
 # 예시: Guardrails violation rate 이상 탐지
 import numpy as np
 
-def detect_anomaly(current_rate, historical_rates, threshold_sigma=3):
+def detect_anomaly(current_rate, historical_rates, threshold_sigma=3, min_samples=14):
     """
     Args:
         current_rate: 현재 시간대 violation rate
-        historical_rates: 과거 7일 동일 시간대 rates
+        historical_rates: 과거 동일 시간대 rates
         threshold_sigma: 표준편차 배수 임계값
+        min_samples: 통계적 판단에 필요한 최소 표본 수
     """
+    # baseline이 부족하거나 분산이 0/비정상이면 판단하지 않음
+    if historical_rates is None or len(historical_rates) < min_samples:
+        return {"anomaly": False, "reason": "insufficient baseline"}
+
     baseline_mean = np.mean(historical_rates)
     baseline_std = np.std(historical_rates)
+
+    if not np.isfinite(baseline_std) or baseline_std == 0:
+        return {"anomaly": False, "reason": "zero or non-finite std"}
 
     z_score = (current_rate - baseline_mean) / baseline_std
 
@@ -610,7 +640,8 @@ def detect_anomaly(current_rate, historical_rates, threshold_sigma=3):
 
 # 실시간 모니터링 예시
 current_rate = 0.08  # 8% violation rate
-historical = [0.02, 0.021, 0.019, 0.022, 0.018, 0.023, 0.020]  # 과거 7일
+historical = [0.02, 0.021, 0.019, 0.022, 0.018, 0.023, 0.020,
+              0.021, 0.019, 0.022, 0.020, 0.018, 0.021, 0.019]  # 과거 14개 표본
 
 result = detect_anomaly(current_rate, historical)
 if result["anomaly"]:
@@ -628,9 +659,13 @@ import boto3
 import requests
 
 def lambda_handler(event, context):
-    alarm_name = event["detail"]["alarmName"]
-    metric = event["detail"]["metric"]
-    value = event["detail"]["state"]["value"]
+    # CloudWatch Alarm State Change EventBridge 스키마
+    detail = event["detail"]
+    alarm_name = detail["alarmName"]
+    state_value = detail["state"]["value"]        # OK | ALARM | INSUFFICIENT_DATA
+    state_reason = detail["state"]["reason"]
+    # 알람이 평가한 메트릭 이름 (단일 메트릭 알람)
+    metric = detail["configuration"]["metrics"][0]["metricStat"]["metric"]["name"]
 
     # PagerDuty Events API v2
     payload = {
@@ -642,8 +677,8 @@ def lambda_handler(event, context):
             "source": "cloudwatch",
             "custom_details": {
                 "metric": metric,
-                "current_value": value,
-                "threshold": event["detail"]["threshold"]
+                "state": state_value,
+                "reason": state_reason
             }
         }
     }
@@ -652,7 +687,9 @@ def lambda_handler(event, context):
         "https://events.pagerduty.com/v2/enqueue",
         json=payload
     )
-    return {"statusCode": 200, "body": "Alert sent"}
+    # 전송 성공 여부 확인 후 반환
+    response.raise_for_status()
+    return {"statusCode": response.status_code, "body": "Alert sent"}
 ```
 
 **Slack 알림 예시**:
@@ -696,7 +733,7 @@ Actions:
 
 ### 7.2 Construction: CI 회귀 게이트
 
-각 PR에서 메트릭 회귀를 자동 감지합니다.
+각 PR에서 메트릭 회귀를 자동 감지합니다. 메트릭마다 좋은 방향이 다르므로(성공률·정확도는 높을수록, hallucination·비용은 낮을수록 좋음) 단일 임계값 대신 메트릭별 임계값과 방향을 지정합니다.
 
 ```yaml
 # .github/workflows/agent-quality-gate.yml
@@ -715,10 +752,14 @@ jobs:
 
       - name: Check metrics regression
         run: |
+          # thresholds.yml에 메트릭별 허용 변화와 방향을 선언
+          #   task_success_rate: {direction: higher_is_better, max_drop: 0.03}
+          #   hallucination_rate: {direction: lower_is_better, max_increase: 0.02}
+          #   cost_per_interaction: {direction: lower_is_better, max_increase: 0.10}
           python scripts/check_regression.py \
             --baseline metrics/baseline.json \
             --current metrics/current.json \
-            --threshold 0.05  # 5% 이상 하락 시 fail
+            --thresholds metrics/thresholds.yml
 ```
 
 ### 7.3 Operations: 실시간 경보

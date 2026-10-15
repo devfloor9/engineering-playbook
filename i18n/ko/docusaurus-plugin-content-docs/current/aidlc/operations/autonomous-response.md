@@ -3,9 +3,9 @@ title: 자율 대응
 description: AI Agent 기반 자율 인시던트 대응 — Strands/Kagent 통합, Chaos Engineering + AI, 온톨로지 피드백 루프
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 12
 tags:
   - aidlc
   - operations
@@ -60,7 +60,7 @@ AIOps의 핵심은 **사람이 의도(Intent)와 가드레일을 정의하고, �
 - 운영 시나리오를 Spec으로 선언적 정의
 - 시스템이 프로그래머틱하게 실행
 - 적합: 반복적 배포, 정형화된 운영 절차
-- 핵심: Spec 한 번 정의 → 반복 실행 무비용
+- 핵심: Spec 한 번 정의 → 재사용 시 작성 비용은 거의 없음(실행마다 컴퓨팅·API 비용은 발생)
 
 **Agent-Driven (Autonomous)**
 - AI Agent가 이벤트 감지 → 컨텍스트 수집 → 자율 대응
@@ -137,10 +137,13 @@ graph TD
 
 ### 3.3 Kagent 자동 인시던트 대응
 
-**Kagent**는 Kubernetes Native AI Agent로, CRD를 통해 자동 대응을 정의합니다.
+**Kagent**은 Kubernetes Native AI Agent로, CRD를 통해 자동 대응을 정의합니다. 아래 매니페스트는 예시이며, `apiVersion`은 설치한 kagent 버전의 CRD와 일치시켜야 하고(버전에 따라 스키마가 달라짐), `model`에는 사용 리전에서 활성화한 실제 Bedrock 모델 ID를 지정해야 합니다.
+
+systemPrompt에 적은 수치·조치 한도(HPA ±50%, replicas 50% 이상 영향 시 에스컬레이션, StatefulSet 변경 등)는 모델에게 주는 지침일 뿐이며 모델이 지키지 않을 수 있습니다. 정량적 한도와 금지 조치는 모델 밖에서 강제해야 합니다. 예를 들어 Kubernetes RBAC로 허용 동작을 제한하고, OPA/Gatekeeper나 Kyverno 같은 admission 정책으로 변경 폭(예: replica 변경 비율)과 대상(StatefulSet·NetworkPolicy)을 차단합니다.
 
 ```yaml
 # Kagent: 자동 인시던트 대응 에이전트
+# apiVersion은 설치한 kagent 버전의 CRD에 맞춰 지정 (스키마는 버전별로 다름)
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
@@ -150,7 +153,7 @@ spec:
   description: "EKS 인시던트 자동 대응 에이전트"
   modelConfig:
     provider: bedrock
-    model: anthropic.claude-sonnet
+    model: anthropic.claude-3-5-sonnet-20241022-v2:0  # 리전에서 활성화한 실제 Bedrock 모델 ID
     region: ap-northeast-2
   systemPrompt: |
     당신은 EKS 인시던트 대응 에이전트입니다.
@@ -200,18 +203,31 @@ spec:
 
 ### 3.4 Strands Agent SOP: 복합 장애 대응
 
-**Strands**는 Python 기반 OSS Agent 프레임워크로, SOP(Standard Operating Procedure)를 코드로 정의합니다.
+**Strands**는 Python 기반 OSS Agent 프레임워크로, 운영 절차(SOP, Standard Operating Procedure)를 시스템 프롬프트로 정의합니다. 아래 예시는 Strands Agents SDK의 실제 API를 따릅니다. 도구는 `@tool` 데코레이터로 직접 정의하며(`eks_tool` 등은 여기서 사용자가 구현해야 할 자리표시자입니다), 운영 절차는 `sop=`가 아니라 `system_prompt=`로 전달합니다. 실제 적용 시에는 SDK 버전을 고정하고 해당 버전의 API를 확인하세요.
 
 ```python
 # Strands Agent: 복합 장애 자동 대응
-from strands import Agent
-from strands.tools import eks_tool, cloudwatch_tool, slack_tool, jira_tool
+from strands import Agent, tool
+
+# 도구는 @tool 로 직접 정의 (아래는 자리표시자 — 실제 구현 필요)
+@tool
+def eks_tool(action: str) -> dict:
+    ...
+@tool
+def cloudwatch_tool(query: str) -> dict:
+    ...
+@tool
+def slack_tool(message: str) -> dict:
+    ...
+@tool
+def jira_tool(summary: str) -> dict:
+    ...
 
 incident_agent = Agent(
     name="complex-incident-handler",
-    model="bedrock/anthropic.claude-sonnet",
+    model="bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0",
     tools=[eks_tool, cloudwatch_tool, slack_tool, jira_tool],
-    sop="""
+    system_prompt="""
     ## 복합 장애 대응 SOP
 
     ### Phase 1: 상황 파악 (30초 이내)
@@ -227,21 +243,21 @@ incident_agent = Agent(
     4. 의존 서비스 상태 확인
 
     ### Phase 3: 자동 대응
-    원인별 자동 조치:
+    원인별 자동 조치(조치 전 각 원인의 상관 근거를 먼저 확인):
 
     **배포 관련 장애:**
-    - 최근 10분 이내 배포 존재 → 자동 롤백
+    - 최근 10분 이내 배포가 있고, 그 배포 시점 이후 에러가 시작된 상관관계가 확인되면 → 자동 롤백
     - 롤백 후 상태 확인 → 정상화되면 완료
 
     **리소스 부족:**
-    - CPU/Memory > 90% → HPA 조정 또는 Karpenter 노드 추가
+    - CPU/Memory > 90% 이고 포화가 지속(일시 스파이크가 아님)으로 확인되면 → HPA 조정 또는 Karpenter 노드 추가
     - Disk > 85% → 불필요 로그/이미지 정리
 
     **의존 서비스 장애:**
-    - RDS 연결 실패 → 연결 풀 설정 확인, 필요시 재시작
+    - RDS 연결 실패가 애플리케이션 에러와 시간적으로 일치하면 → 연결 풀 설정 확인, 필요시 재시작
     - SQS 지연 → DLQ 확인, 소비자 스케일아웃
 
-    **원인 불명:**
+    **원인 불명 또는 상관 근거 부족:**
     - 사람에게 에스컬레이션
     - 수집된 모든 데이터를 Slack에 공유
 
@@ -339,11 +355,14 @@ kind: Job
 metadata:
   name: update-knowledge-base
 spec:
+  backoffLimit: 3                 # 실패 시 재시도 횟수
   template:
     spec:
+      restartPolicy: Never        # Job Pod는 Never 또는 OnFailure 필수
       containers:
         - name: learner
           image: my-registry/incident-learner:latest
+          command: ["python", "/app/learn.py"]
           env:
             - name: INCIDENT_ID
               value: "INC-2026-04-07-001"
@@ -507,12 +526,11 @@ chaos_analyzer = Agent(
     "eks-payment-pods": {
       "resourceType": "aws:eks:pod",
       "selectionMode": "COUNT(2)",
-      "resourceTags": {
-        "app": "payment-service"
-      },
       "parameters": {
         "clusterIdentifier": "my-cluster",
-        "namespace": "payment"
+        "namespace": "payment",
+        "selectorType": "labelSelector",
+        "selectorValue": "app=payment-service"
       }
     }
   },
@@ -521,8 +539,8 @@ chaos_analyzer = Agent(
       "actionId": "aws:eks:pod-delete",
       "parameters": {
         "kubernetesServiceAccount": "fis-experiment-role",
-        "maxPodsToDelete": "2",
-        "podDeletionMode": "one-at-a-time"
+        "duration": "PT1M",
+        "gracePeriod": "30"
       },
       "targets": {
         "Pods": "eks-payment-pods"
@@ -542,9 +560,11 @@ chaos_analyzer = Agent(
 }
 ```
 
+`aws:eks:pod` 타깃은 리소스 ARN이나 태그로 지정할 수 없고, 반드시 `clusterIdentifier`·`namespace`와 `selectorType`/`selectorValue` 같은 리소스 파라미터로 지정합니다. 삭제할 Pod 수는 액션 파라미터가 아니라 타깃의 `selectionMode`(`COUNT(2)` 등)로 제한합니다.
+
 **안전 장치**:
-- **PodDisruptionBudget** 준수: 최소 가용성 보장
-- **stopConditions**: SLO 위반 시 자동 중단
+- **PodDisruptionBudget**: 일반적인 자발적 중단에는 최소 가용성 기준으로 쓰이지만, FIS `aws:eks:pod-delete`는 PDB를 준수하지 않으므로 PDB만으로 가용성이 보장되지 않습니다. 영향 범위는 `selectionMode`로 제한해야 합니다.
+- **stopConditions**: SLO 위반 시 추가 장애 주입을 중단합니다(이미 발생한 영향을 즉시 복구하지는 않음).
 - **점진적 확장**: 1개 → 10% → 25% 단계별 확장
 
 :::tip Chaos Engineering + AI 피드백 루프
@@ -625,6 +645,8 @@ spec:
 <AiopsMaturityModel />
 
 ### 성숙도 레벨과 자율 대응
+
+아래 5단계(Level 0-4) 모델은 외부 표준이 아니라 이 문서가 제안하는 분류입니다. 각 레벨의 구현 방법 예시는 위 `AiopsMaturityModel` 컴포넌트의 정의와 일치시킵니다.
 
 | 레벨 | 자율 대응 수준 | 구현 방법 |
 |------|-------------|----------|
