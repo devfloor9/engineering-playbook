@@ -3,9 +3,9 @@ title: LLM FinOps — Chargeback and Cost Allocation
 description: LLM platform FinOps methodology — token metering, showback/chargeback strategies, agentic cost models, budget policies, and gateway integration
 created: 2026-08-11
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 26
+reading_time: 36
 tags:
   - finops
   - chargeback
@@ -88,32 +88,45 @@ flowchart LR
 
 ### 2.1 Token Flow Model
 
-The basic unit of LLM cost is **session-level cost**. The total cost of a single session (N request-response pairs) is determined by the following factors:
+The basic unit of LLM cost is **session-level cost**. The total cost of a single session (N request-response pairs) is determined by the following factors. Input tokens split into **uncached input**, **cache write**, and **cache read** categories, each with its own price. Therefore cache is not treated as a single `(1 - R_cache)` factor on the whole cost; instead, each category's token count is multiplied by its own price and summed.
 
 ```
-C_session = Σ (C_input * T_in + C_output * T_out) * (1 - R_cache)
+C_session = Σ ( C_in_uncached * T_in_uncached
+              + C_cache_write * T_cache_write
+              + C_cache_read  * T_cache_read
+              + C_output      * T_out )
 
 Where:
-  C_input  = Input token unit price ($/1M tokens)
-  C_output = Output token unit price ($/1M tokens, typically 2~5x input)
-  T_in     = Input tokens per turn
-  T_out    = Output tokens per turn
-  R_cache  = Cache hit rate (0~1, prompt caching·semantic caching)
-  Σ        = Sum of all LLM calls within session (user turns + agent internal loops)
+  C_in_uncached  = Uncached input token unit price ($/1M tokens)
+  C_cache_write  = Cache-write token unit price ($/1M tokens)
+  C_cache_read   = Cache-read token unit price ($/1M tokens, usually lower than uncached input)
+  C_output       = Output token unit price ($/1M tokens, typically 2~5x input)
+  T_*            = Tokens per turn in each category
+  Σ              = Sum of all LLM calls within session (user turns + agent internal loops)
 ```
 
+The formula above covers token charges only. The following costs must be summed separately from the token formula.
+
+- **Semantic response reuse**: When a cached response is returned for an identical or similar request, that call incurs no token cost, so exclude the reused call from the token total.
+- **Cache storage cost**: Storage retention for prompt caches and semantic caches may be billed separately, independent of token prices.
+- **Non-token charges**: Request fees and non-token-unit charges (images, audio, etc.) are added outside this formula.
+
 ### 2.2 Agentic-Specific Risk: Context Compounding Effect
+
+The token figures below are not a specific measurement but an example chosen to illustrate context accumulation. Each call splits into **newly added input** (user and tool results) and **accumulated prior conversation history**.
 
 **General Chat** (single turn):
 - Turn 1: User prompt 500 tokens → Model response 200 tokens
 - Total cost: (500 * C_in + 200 * C_out) × 1 time
 
-**Agentic Loop** (3 tool invocations):
-- Turn 1: Prompt 500 + previous context 0 = 500 → Response 200 (tool call request)
-- Turn 2: Prompt 500 + Turn 1 context 700 = 1,200 → Response 300 (tool call request)
-- Turn 3: Prompt 500 + Turn 1~2 context 2,000 = 2,500 → Response 300 (tool call request)
-- Turn 4: Prompt 500 + Turn 1~3 context 4,800 = 5,300 → Final response 400
-- **Total input tokens: 9,500 (19x single turn)**
+**Agentic Loop** (3 tool invocations, example figures):
+- Turn 1: New input 500 + accumulated history 0 = 500 → Response 200 (tool call request)
+- Turn 2: New input 500 + accumulated history 700 = 1,200 → Response 300 (tool call request)
+- Turn 3: New input 500 + accumulated history 2,000 = 2,500 → Response 300 (tool call request)
+- Turn 4: New input 500 + accumulated history 4,800 = 5,300 → Final response 400
+- **Total input tokens: 9,500 (19x single turn in this example)**
+
+Each turn adds new input (500) linearly, but the accumulated history is re-included in every call, so per-call input grows. The 19x value follows from the example assumptions above; the actual multiplier depends on the new-input size and the history length.
 
 :::warning Cost Runaway Risk
 When an agent resends previous conversation and tool results in the next call, the same content appears in the input tokens of several calls. As the conversation grows, both the number of calls and the input size per call can increase. To calculate cost, sum each call's input/output tokens and account for cache usage. Loop count alone does not determine a session's cost.
@@ -214,23 +227,29 @@ LiteLLM automatically calculates token counts and costs from request/response me
 }
 ```
 
-**Cost Query API**:
+**Cost Query API** (authenticate with a scope-limited read-only key):
 ```bash
 # Query spend logs (period filter, summarize=true by default)
-curl "https://litellm.example.com/spend/logs?start_date=2026-08-01&end_date=2026-08-31"
+# Large results must be paginated with page/page_size and all pages summed for a complete total.
+curl -H "Authorization: Bearer $LITELLM_READONLY_KEY" \
+  "https://litellm.example.com/spend/logs?start_date=2026-08-01&end_date=2026-08-31&page=1&page_size=1000"
 
 # Daily user activity (breakdown by model·provider·key)
-curl "https://litellm.example.com/user/daily/activity?start_date=2026-08-01&end_date=2026-08-31"
+curl -H "Authorization: Bearer $LITELLM_READONLY_KEY" \
+  "https://litellm.example.com/user/daily/activity?start_date=2026-08-01&end_date=2026-08-31&page=1&page_size=1000"
 ```
 
 **Chargeback Report** (Enterprise — `group_by` supports `team`/`customer`):
 ```bash
 # Period billing report by team or customer
-curl "https://litellm.example.com/global/spend/report?start_date=2026-08-01&end_date=2026-08-31&group_by=customer"
+curl -H "Authorization: Bearer $LITELLM_READONLY_KEY" \
+  "https://litellm.example.com/global/spend/report?start_date=2026-08-01&end_date=2026-08-31&group_by=customer"
 ```
 
+Before using a report as an actual bill, verify the following. First, restrict the query key to least privilege so it can read only that tenant and period. Second, make the time boundary explicit (month start 00:00 to month end 23:59:59 in a fixed timezone) and handle pagination, so a truncated report is not mistaken for a complete bill. Third, record the version and date of the price map the report applied, and reconcile it against the provider's actually issued invoice before using it for allocation.
+
 :::tip LiteLLM Spend Tracking Details
-LiteLLM maintains a built-in model cost map with official pricing for 100+ models and automatically reflects provider-specific pricing changes such as Bedrock tiers and Vertex AI PayGo. Detailed documentation: [LiteLLM Cost Tracking](https://docs.litellm.ai/docs/proxy/cost_tracking)
+LiteLLM maintains a built-in model cost map with pricing for many models and reflects provider price changes, but the timing of updates and the set of included models vary by version. Built-in prices may differ from your organization's actual contracted rates, so reconcile the price map of the version you run against the provider's official pricing and invoices before billing. Detailed documentation: [LiteLLM Cost Tracking](https://docs.litellm.ai/docs/proxy/cost_tracking)
 :::
 
 #### Kong Metering & Billing Plugin
@@ -297,9 +316,11 @@ Immediately blocking service when budget exhausted can interrupt **business-crit
 |----------|-----------|------|---------|--------|
 | **Soft Budget — Alert Only** | 80% of monthly budget consumed | Slack/Email alert, service continues | None | Budget overrun possible |
 | **Soft Budget — Visual Warning** | 90% of monthly budget consumed | Warning banner in UI, service continues | Warning message only | Budget overrun possible |
-| **Hard Budget — Block** | 100% of monthly budget consumed | Reject requests (HTTP 429) | Service interruption | Business impact |
+| **Hard Budget — Block** | 100% of monthly budget consumed | Reject requests (gateway-specific error, e.g., LiteLLM `budget_exceeded`, Bifrost 402; HTTP status code varies by product) | Service interruption | Business impact |
 | **Hard Budget — Fallback** | 100% of monthly budget consumed | Downgrade to cheaper model (e.g., Opus → Haiku) | Response quality may degrade | User experience degradation |
 | **Dynamic Budget — Priority** | 100% of monthly budget consumed | Allow only high-priority requests (e.g., prod > dev) | Dev environment blocked | Dev productivity loss |
+
+The Hard Budget block above works **only when a spend-tracking store (DB) is configured** so the gateway can accumulate and query spend. Also, because budget checks are per request, this is not a universal hard cap that stops exactly at 100%; requests processed after the check point or concurrent requests can **overshoot** the budget. The returned error status varies by gateway, as noted in the info callout above.
 
 ### 5.2 Fallback Strategy (Budget Cascade)
 
@@ -359,15 +380,18 @@ FOCUS currently standardizes GPU and compute instance costs, but **token-based L
 
 **Table 6. Proposed mapping of FOCUS columns to LLM metering (assumption)**
 
-| FOCUS Column | LLM Metering Mapping (Proposal) | Example Value |
-|-----------|----------------------|---------|
-| `ServiceName` | LLM service name | "LLM Inference Platform" |
-| `ResourceId` | Model resource ID | "claude-sonnet-4.6" |
-| `UsageQuantity` | Input + output token sum | 15000 |
-| `PricingUnit` | Pricing unit | "1M tokens" |
-| `PricingQuantity` | Pricing unit quantity | 0.015 (= 15000 / 1M) |
-| `BilledCost` | Billed cost | 0.045 USD |
-| `Tags` | Tenant·Team·Project tags | `{"tenant": "abc", "team": "data-science"}` |
+| FOCUS Column | LLM Metering Mapping (Proposal) | Example Value (input) | Example Value (output) |
+|-----------|----------------------|---------|---------|
+| `ServiceName` | LLM service name | "LLM Inference Platform" | "LLM Inference Platform" |
+| `ResourceId` | Model resource ID | "claude-sonnet-4.6" | "claude-sonnet-4.6" |
+| `SkuId` | Token category (input/output) | "input-tokens" | "output-tokens" |
+| `UsageQuantity` | Tokens per category | 10000 | 5000 |
+| `PricingUnit` | Pricing unit | "1M tokens" | "1M tokens" |
+| `PricingQuantity` | Pricing unit quantity | 0.010 (= 10000 / 1M) | 0.005 (= 5000 / 1M) |
+| `BilledCost` | Billed cost per category | 0.030 USD | 0.015 USD |
+| `Tags` | Tenant·Team·Project tags | `{"tenant": "abc"}` | `{"tenant": "abc"}` |
+
+Because input and output have different unit prices, they are split into per-category rows rather than combined into a single `UsageQuantity`. The total billed cost is the sum of the two rows' `BilledCost` (e.g., 0.045 USD). If a single row is required, instead of putting the token sum in `UsageQuantity`, state an organization-defined blended rate and record how it was derived.
 
 :::info Factual Boundary
 Whether FOCUS v1.4 standard explicitly addresses LLM token billing must be verified directly in the official specification document. The above mapping is a proposal applying the general `UsageQuantity` concept to tokens.
@@ -399,11 +423,13 @@ sum(increase(llm_cost_dollars_total[24h]))
 # Daily cost per tenant
 sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)
 
-# Budget utilization (monthly)
+# Budget utilization (rolling 30-day telemetry, not calendar month)
 sum(increase(llm_cost_dollars_total[30d])) by (tenant_id)
 / on(tenant_id) group_left
 tenant_monthly_budget_usd
 ```
+
+`[30d]` is a rolling window looking back 30 days from query time; it does not align with a calendar month (month start to month end). If you need calendar-aligned month-to-date, use an aggregation anchored to the month start, and use this telemetry value as the billing/allocation denominator only after reconciling it against the provider invoice.
 
 :::tip Detailed PromQL Queries
 For actual PromQL, ServiceMonitor configuration, and Grafana dashboard JSON, refer to the **Cost Metrics** section in [Agent Monitoring](../observability/agent-monitoring.md).
@@ -418,6 +444,8 @@ For actual PromQL, ServiceMonitor configuration, and Grafana dashboard JSON, ref
 - [ ] All LLM requests attach `tenant_id`, `user_id` metadata
 - [ ] Verify metering events stored in TSDB (ClickHouse/PostgreSQL)
 - [ ] Configure Redis cache for real-time aggregation (optional)
+- [ ] Verify metering-event completeness and deduplication (reconcile actual call count against stored event count; dedup duplicate events from retries)
+- [ ] Map `tenant_id`/`user_id` from a trusted source (the gateway's authenticated subject), not from client-supplied values that can be altered
 
 ### 8.2 Cost Visibility
 - [ ] Display per-tenant, per-model daily costs on Grafana dashboard
@@ -434,6 +462,7 @@ For actual PromQL, ServiceMonitor configuration, and Grafana dashboard JSON, ref
 - [ ] Phase 2 (Showback) report auto-generation script (monthly CSV/PDF)
 - [ ] Phase 3 (Soft Chargeback) finance system integration (if applicable)
 - [ ] Phase 4 (Hard Chargeback) budget policy gateway integration (if applicable)
+- [ ] Reconcile against the provider invoice before actual allocation (confirm the difference between internal aggregates and the invoice, then allocate)
 
 ### 8.5 Budget Policy
 - [ ] Set monthly budget per tenant (initial value: estimated from observation data)
@@ -451,7 +480,7 @@ For actual PromQL, ServiceMonitor configuration, and Grafana dashboard JSON, ref
 
 ## 9. Conclusion
 
-LLM FinOps consists of four stages: token metering, cost visibility, budget policy, and chargeback. Agentic AI applications experience super-linear cost growth due to multi-turn context accumulation, making **loop limits**, **intermediate summarization**, and **budget-based Cascade Routing** essential.
+LLM FinOps consists of four stages: token metering, cost visibility, budget policy, and chargeback. Agentic AI applications can experience super-linear cost growth due to multi-turn context accumulation, so apply **loop limits**, **intermediate summarization**, and **budget-based Cascade Routing** selectively according to workload characteristics. Each control has tradeoffs: loop limits can cut off work before completion, intermediate summarization can degrade response quality through context loss, and Cascade Routing can lower quality when it switches to a cheaper model. Conversely, for workloads where spending or capability policy requires a firm cap, keep the hard-stop (request rejection) option.
 
 Adoption order should follow **Visibility (dashboard) → Showback (report) → Soft Chargeback (accounting integration) → Hard Chargeback (budget blocking)** phases. Hard Chargeback should be operated with **fallback policies** considering production workload interruption risks.
 
@@ -473,4 +502,4 @@ For cost tracking PromQL implementation, refer to [Agent Monitoring](../observab
 - [Agent Monitoring](../observability/agent-monitoring.md) — Cost tracking PromQL query canonical
 - [Request Cascading](../../model-serving/inference-routing/request-cascading.md) — Cost-saving routing strategies
 - [AI Gateway Guardrails](./ai-gateway-guardrails.md) — Budget exhaustion blocking policies
-- [AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) — Tenant isolation and budget policies (in parallel development)
+- [AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) — Tenant isolation and budget policies

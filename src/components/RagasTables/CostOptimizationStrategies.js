@@ -12,7 +12,7 @@ const CostOptimizationStrategies = () => {
     color: '#4285f4'
   }, {
     strategy: isKo ? '캐싱' : 'Caching',
-    description: isKo ? '동일한 질문-답변 쌍은 캐싱하여 재사용' : 'Cache and reuse identical question-answer pairs',
+    description: isKo ? '질문·답변·검색 컨텍스트·reference·모델·파라미터가 모두 같은 평가만 재사용' : 'Reuse only when question, answer, retrieved contexts, reference, model, and parameters all match',
     savings: '30-50%',
     color: '#34a853'
   }, {
@@ -45,7 +45,7 @@ const CostOptimizationStrategies = () => {
       fontWeight: '600',
       fontSize: '16px'
     }}>
-        {isKo ? '💰 비용 최적화 전략' : '💰 Cost Optimization Strategies'}
+        {isKo ? '💰 비용 최적화 전략 (절감률은 예시 가정, 환경별 측정 필요)' : '💰 Cost Optimization Strategies (savings are illustrative assumptions; measure in your environment)'}
       </div>
 
       <div style={{

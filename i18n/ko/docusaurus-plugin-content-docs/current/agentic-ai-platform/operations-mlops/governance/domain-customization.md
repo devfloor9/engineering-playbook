@@ -3,9 +3,9 @@ title: 도메인 특화 (LoRA + RAG)
 description: LoRA Fine-tuning, VectorRAG, GraphRAG로 기술 도메인 코드 품질을 높이는 가이드 — FSI SI 실전 시나리오 포함
 created: "2026-04-04"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 10
 tags:
   - lora
   - rag
@@ -99,8 +99,8 @@ graph TD
 
 **예시**:
 ```python
-from langchain.vectorstores import Milvus
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_milvus import Milvus
+from langchain_openai import OpenAIEmbeddings
 
 # 1. 내부 API 문서 임베딩
 embeddings = OpenAIEmbeddings()
@@ -110,13 +110,22 @@ vectorstore = Milvus.from_documents(
     connection_args={"host": "milvus.cluster.local", "port": 19530}
 )
 
-# 2. 질문과 관련된 문서 검색
+# 2. 문서 갱신·삭제로 색인 최신성 유지
+#    - 변경된 문서는 doc_id(pk)로 삭제 후 재삽입하여 중복을 막습니다.
+vectorstore.delete(ids=changed_doc_ids)
+vectorstore.add_documents(updated_api_docs)
+#    - 삭제된 원본 문서는 색인에서도 제거합니다.
+vectorstore.delete(ids=removed_doc_ids)
+
+# 3. 질문과 관련된 문서 검색
 query = "사용자 인증 API 호출 방법은?"
 docs = vectorstore.similarity_search(query, k=3)
 
-# 3. 검색 결과 + 질문을 LLM에 전달
+# 4. 검색 결과 + 질문을 LLM에 전달
 prompt = f"Context: {docs}\n\nQuestion: {query}"
 ```
+
+문서를 추가만 하고 변경·삭제를 반영하지 않으면 색인이 오래된 내용을 돌려주므로, 수집(ingest) 외에 갱신·삭제·색인 최신성 유지를 함께 운영해야 합니다.
 
 ### Layer 3: LoRA (1-2개월)
 
@@ -136,7 +145,9 @@ Kiro IDE는 2026년 4월부터 GLM-5를 네이티브 지원하며 즉시 사용 
 
 ## 시나리오별 필요 레이어 테이블
 
-**표 1. 요구사항별 각 레이어의 적합성과 권장 조합**
+아래 표의 적합성 판정과 비용 대비 효과 수치는 측정값이 아니라 레이어 선택을 돕기 위한 계획용 예시 가정입니다. 실제 적합성과 개선 폭은 대상 작업과 평가 대상 통제 항목에 따라 달라지므로, 도입 전 자체 환경에서 측정해야 합니다.
+
+**표 1. 요구사항별 각 레이어의 적합성과 권장 조합 (예시 가정)**
 
 | 요구사항 | Layer 1 (Steering) | Layer 2 (RAG) | Layer 3 (LoRA) | 권장 조합 |
 |---------|-------------------|--------------|---------------|----------|
@@ -147,10 +158,11 @@ Kiro IDE는 2026년 4월부터 GLM-5를 네이티브 지원하며 즉시 사용 
 | **일관된 코드 스타일** | 기본만 | 보조 | 가장 효과적 | **Layer 1 + 3** |
 | **레거시 전환 패턴** | 불가능 | 예시 제공 | 핵심 | **Layer 2 + 3** |
 
-:::tip 비용 대비 효과
-- **Layer 1만**: 무료, 60% 개선
-- **Layer 1 + 2**: 인프라 비용, 80% 개선
-- **Layer 1 + 2 + 3**: $2,000, **95% 개선**
+:::tip 비용 대비 효과 (예시 가정, 측정값 아님)
+개선 폭 수치는 특정 작업·데이터에 대한 측정 결과가 아니라 레이어 조합을 비교하기 위한 가정값입니다.
+- **Layer 1만**: 무료, 개선 폭 예시 60%
+- **Layer 1 + 2**: 인프라 비용, 개선 폭 예시 80%
+- **Layer 1 + 2 + 3**: $2,000, 개선 폭 예시 **95%**
 :::
 
 ---
@@ -362,11 +374,15 @@ graph LR
 | **LLM (+ LoRA)** | 30분 | 5,000시간 | $250,000 + $2,000 | **절감: $748,000** |
 
 **ROI**:
-- LoRA 학습 비용: $2,000
-- 절감 비용: $748,000
-- **ROI: 374배**
+- LoRA 학습 비용(투자 분모): $2,000
+- 절감 비용(기준선 대비): $748,000
+- **ROI: 374배 (가정 기반, 관측된 LoRA ROI 아님)**
+
+이 수치는 위 가정(10,000 모듈, 시급 $50, 모듈당 소요 시간)을 전제로 한 가상 계산이며, 측정된 결과가 아닙니다. 기준선은 "수동 전환" 대비이고, 투자 분모는 LoRA 학습 비용 $2,000만 포함합니다. 추론(인퍼런스) 비용, 운영 비용, 결과물 검토·수정 비용은 분모에서 제외되어 있으므로 실제 ROI는 이보다 낮습니다. 정확도 95%도 가정값입니다.
 
 :::tip 실전 예시
+아래 COBOL과 Java는 변환 결과를 보여주기 위한 예시(의사코드)이며, 특정 COBOL 방언에 대해 동작 보존이 검증된 변환이 아닙니다. COBOL 조각이 불완전하므로 실제 전환에서는 대상 방언과 전체 동작 계약을 명시한 뒤 검증해야 합니다.
+
 **입력 (COBOL)**:
 ```cobol
 PERFORM CALC-INTEREST
@@ -416,9 +432,9 @@ public class LoanService {
 
 2. **RAG로 프레임워크 API 문서 검색**
    ```python
-   # Devon API 문서 임베딩
-   docs = ["DevonController 사용법", "DevonService 트랜잭션 처리", ...]
-   vectorstore.add_documents(docs)
+   # Devon API 문서 임베딩 (문자열은 add_texts, Document 객체는 add_documents)
+   texts = ["DevonController 사용법", "DevonService 트랜잭션 처리", ...]
+   vectorstore.add_texts(texts)
    ```
 
 3. **Steering으로 컨벤션 강제**
@@ -429,8 +445,10 @@ public class LoanService {
 
 #### 효과
 
-- **사내 프레임워크 코드 생성 정확도**: 95%
-- **신입 개발자 온보딩 시간**: 3개월 → 1개월
+아래 수치는 측정값이 아니라 도입 목표를 보여주는 예시입니다.
+
+- **사내 프레임워크 코드 생성 정확도**: 목표 예시 95%
+- **신입 개발자 온보딩 시간**: 예시 3개월 → 1개월
 
 ---
 
@@ -441,7 +459,7 @@ public class LoanService {
 #### 학습 데이터 예시
 
 ```json
-{"input": "대출 승인 API", "output": "@AuditLog(regulation = \"은행업감독규정 제35조\")\n@AccessControl(level = AccessLevel.CRITICAL)\npublic TransferResult executeTransfer(TransferRequest req) {\n    validateTransactionLimit(req); // 전감규 34조\n    fdsService.checkAnomalySync(req); // FDS 연동\n    ...\n}"}
+{"input": "대출 승인 API", "output": "@AuditLog(regulation = \"은행업감독규정 제35조\")\n@AccessControl(level = AccessLevel.CRITICAL)\npublic LoanDecision approveLoan(LoanRequest req) {\n    validateTransactionLimit(req); // 전감규 34조\n    fdsService.checkAnomalySync(req); // FDS 연동\n    ...\n}"}
 ```
 
 #### 자동 생성 결과
@@ -484,7 +502,9 @@ public class LoanController {
 
 ### 시나리오 4: 멀티 고객 운영
 
-SI 회사가 **여러 고객을 동일 플랫폼에서 운영**할 때, 고객별 LoRA 어댑터를 핫스왑합니다.
+SI 회사가 **여러 고객을 동일 플랫폼에서 운영**할 때, 고객별 LoRA 어댑터를 핫스왑합니다. 아래 표의 `GLM-5-32B`는 특정 공개 모델이 아니라 자체 호스팅 기반 모델을 가정한 예시 이름이므로, 실제 적용 시 사용하는 베이스 모델명으로 바꿔야 합니다.
+
+어댑터 라우팅은 고객별로 다른 LoRA 가중치를 선택하는 메커니즘일 뿐, 그 자체로 테넌트 인가(authorization)나 격리(isolation) 경계가 되지 않습니다. 고객 간 데이터·요청 격리는 인증·인가, 네임스페이스·네트워크 분리 등 별도의 통제로 보장해야 합니다.
 
 #### 고객별 구성
 
@@ -492,9 +512,9 @@ SI 회사가 **여러 고객을 동일 플랫폼에서 운영**할 때, 고객�
 
 | 고객 | 도메인 | Base Model | LoRA | RAG |
 |------|--------|-----------|------|-----|
-| **A은행** | 원장 시스템 | GLM-5-32B | 은행-원장 | 은행-API |
-| **B증권** | 주문 체결 | GLM-5-32B | 증권-주문 | 증권-API |
-| **C보험** | 계약 관리 | GLM-5-32B | 보험-계약 | 보험-API |
+| **A은행** | 원장 시스템 | GLM-5-32B (예시) | 은행-원장 | 은행-API |
+| **B증권** | 주문 체결 | GLM-5-32B (예시) | 증권-주문 | 증권-API |
+| **C보험** | 계약 관리 | GLM-5-32B (예시) | 보험-계약 | 보험-API |
 
 **Multi-LoRA 배포 및 고객별 라우팅 구현**은 [커스텀 모델 파이프라인 — LoRA 학습·배포 파이프라인](../../reference-architecture/model-lifecycle/custom-model-pipeline.md)을 참조하세요.
 

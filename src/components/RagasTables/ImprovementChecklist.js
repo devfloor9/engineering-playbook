@@ -18,7 +18,7 @@ const ImprovementChecklist = () => {
   }, {
     problem: 'Context Recall < 0.6',
     cause: isKo ? '관련 문서 누락' : 'Missing relevant docs',
-    solution: isKo ? 'k값 증가, 지식 베이스 보강' : 'Increase k, use hybrid search',
+    solution: isKo ? 'k값 증가, 하이브리드 검색 적용' : 'Increase k, apply hybrid search',
     color: '#ff6b6b'
   }, {
     problem: 'Answer Relevancy < 0.7',

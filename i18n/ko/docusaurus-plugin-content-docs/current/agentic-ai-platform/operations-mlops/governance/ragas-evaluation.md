@@ -3,9 +3,9 @@ title: Ragas RAG 평가 프레임워크
 description: Ragas를 활용한 RAG 파이프라인 품질 평가 및 지속적 개선 방법
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 14
 tags:
   - ragas
   - rag
@@ -68,13 +68,15 @@ flowchart LR
 
 ### Ragas vs AWS Bedrock RAG Evaluation
 
-:::tip AWS Bedrock RAG Evaluation GA
-AWS Bedrock RAG Evaluation은 **2025년 3월 GA**되었습니다. Bedrock 네이티브 통합으로 별도 설정 없이 RAG 평가를 수행할 수 있습니다.
+:::tip AWS Bedrock RAG Evaluation
+AWS Bedrock는 지식 베이스(RAG) 평가를 네이티브로 제공하지만, 자동으로 되는 것은 아니고 다음 준비가 필요합니다. 평가 데이터셋(S3의 JSONL), Bedrock이 데이터셋·S3·지식 베이스에 접근하도록 위임하는 IAM 서비스 역할(`roleArn`), 결과를 저장할 S3 출력 위치(`outputDataConfig`), 그리고 판정(evaluator) 모델을 지정해야 합니다.
+
+평가 작업은 두 유형이 있습니다. **자동(automated) 평가**는 지정한 evaluator 모델이 메트릭을 채점하고, **휴먼(human) 평가**는 사람 작업자가 평가합니다. 지원되는 메트릭과 작업 유형, 리전은 버전에 따라 다르므로 도입 전 Bedrock 콘솔·API 문서를 확인하세요.
 :::
 
 <RagasVsBedrockComparison />
 
-**AWS Bedrock RAG Evaluation 메트릭:**
+**AWS Bedrock RAG Evaluation 메트릭 (아래는 선택한 비교용 하위 집합):**
 
 - **Context Relevance**: 검색된 컨텍스트가 질문과 관련있는지
 - **Coverage**: 답변이 질문의 모든 측면을 다루는지
@@ -406,32 +408,70 @@ AWS Bedrock RAG Evaluation을 사용하면 Bedrock 네이티브 통합으로 더
 ```python
 import boto3
 
-bedrock = boto3.client('bedrock-agent-runtime')
+# 평가 작업은 데이터플레인(bedrock-agent-runtime)이 아닌 컨트롤플레인(bedrock) API로 생성합니다.
+bedrock = boto3.client('bedrock')
 
-# RAG 평가 실행
-response = bedrock.evaluate_rag(
-    evaluationJobName='rag-eval-2026-02-13',
-    evaluationDatasetLocation={
-        's3Uri': 's3://my-bucket/eval-dataset.jsonl'
+# RAG 평가 작업 생성 (CreateEvaluationJob)
+# - applicationType=RagEvaluation, evaluationConfig.automated로 메트릭과 RAG 소스를 지정
+# - roleArn: Bedrock이 데이터셋·S3에 접근하도록 위임하는 IAM 서비스 역할 (필수)
+# - inferenceConfig: 평가 대상 응답 생성기(knowledge base 또는 모델)
+# - evaluator 모델(판정 모델)은 응답 생성기와 별개로 지정
+response = bedrock.create_evaluation_job(
+    jobName='rag-eval-2026-02-13',
+    applicationType='RagEvaluation',
+    roleArn='arn:aws:iam::111122223333:role/BedrockEvaluationRole',
+    evaluationConfig={
+        'automated': {
+            'datasetMetricConfigs': [{
+                'taskType': 'QuestionAndAnswer',
+                'dataset': {
+                    'name': 'rag-eval-dataset',
+                    'datasetLocation': {'s3Uri': 's3://my-bucket/eval-dataset.jsonl'},
+                },
+                'metricNames': [
+                    'Builtin.ContextRelevance',
+                    'Builtin.Correctness',
+                    'Builtin.Faithfulness',
+                ],
+            }],
+            'evaluatorModelConfig': {
+                'bedrockEvaluatorModels': [
+                    # 판정(evaluator) 모델: 응답을 생성한 모델과 구분됩니다.
+                    {'modelIdentifier': 'anthropic.claude-sonnet-4-5-20250929-v1:0'},
+                ],
+            },
+        },
     },
-    evaluationMetrics=[
-        'CONTEXT_RELEVANCE',
-        'COVERAGE',
-        'CORRECTNESS',
-        'FAITHFULNESS'
-    ],
-    modelId='anthropic.claude-sonnet-4-5-20250929-v1:0',  # 또는 cross-region inference profile: us.anthropic.claude-sonnet-4-5-20250929-v1:0
-    outputDataConfig={
-        's3Uri': 's3://my-bucket/eval-results/'
-    }
+    inferenceConfig={
+        'ragConfigs': [{
+            'knowledgeBaseConfig': {
+                'retrieveAndGenerateConfig': {
+                    'type': 'KNOWLEDGE_BASE',
+                    'knowledgeBaseConfiguration': {
+                        'knowledgeBaseId': 'KB1234567',
+                        'modelArn': 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+                    },
+                },
+            },
+        }],
+    },
+    outputDataConfig={'s3Uri': 's3://my-bucket/eval-results/'},
 )
 
-job_id = response['evaluationJobId']
+job_arn = response['jobArn']
 
-# 평가 결과 조회
-result = bedrock.get_evaluation_job(evaluationJobId=job_id)
-print(f"Status: {result['status']}")
-print(f"Metrics: {result['metrics']}")
+# 평가 작업 상태 폴링 (GetEvaluationJob)
+import time
+while True:
+    result = bedrock.get_evaluation_job(jobIdentifier=job_arn)
+    status = result['status']  # InProgress | Completed | Failed | Stopped 등
+    print(f"Status: {status}")
+    if status != 'InProgress':
+        break
+    time.sleep(30)
+
+# 메트릭 결과물은 outputDataConfig의 S3 경로에서 읽습니다 (API 응답에 점수가 담기지 않음).
+print("Results written to: s3://my-bucket/eval-results/")
 ```
 
 **Bedrock RAG Evaluation 장점:**
