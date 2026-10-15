@@ -37,6 +37,8 @@ The comparison should answer specific engineering questions:
 
 ### Representative architectures
 
+**Table 1. Request path and distinctions to test for each representative Gateway API implementation**
+
 | Implementation | Control plane and actual request path | Distinctions to test |
 | --- | --- | --- |
 | **AWS Load Balancer Controller** | A controller configures managed **ALB L7** or **NLB L4** routing | AWS integration, ACM certificates, managed scaling. ALB and NLB are separate paths; controller CPU is not load balancer CPU |
@@ -52,6 +54,8 @@ The table follows [project architecture references](#architecture-sources). Feat
 
 ### Evidence levels
 
+**Table 2. Status in this report and what each evidence type establishes**
+
 | Evidence | Status in this report | What it establishes |
 | --- | --- | --- |
 | Upstream conformance | Pinned YAML reanalysis complete | API behavior reported for that version and profile |
@@ -62,6 +66,8 @@ The table follows [project architecture references](#architecture-sources). Feat
 ## 2. Test Environment Design
 
 ### Compare equivalent traffic paths
+
+**Figure 1. Managed edge, in-cluster proxy, and CNI/mesh traffic path comparison**
 
 ```mermaid
 flowchart LR
@@ -83,6 +89,8 @@ Where a common entry layer is used, keep that layer, target mode, and AZ placeme
 
 ### Record before execution
 
+**Table 3. Required records to pin before execution, by area**
+
 | Area | Required records |
 | --- | --- |
 | Environment | AWS account/profile/region, dedicated cluster/namespace, Kubernetes/OS/kernel/CPU architecture, node types/count/AZs, CNI/MTU/kube-proxy mode |
@@ -98,6 +106,8 @@ Select and pin measurement versions after checking compatibility at deployment t
 ### Pass feature checks first
 
 Verify the `GatewayClass → Gateway → Route → Backend` relationship and applicable `observedGeneration`, `Accepted`, `Programmed`, and `ResolvedRefs` conditions. Correlate requests and backend IDs to establish that responses actually traversed the Gateway under test. Calling an echo endpoint alone does not verify a Gateway.
+
+**Table 4. Requests, expected behavior, and distinctions for each feature test group**
 
 | Test group | Requests and expected behavior | Distinctions to verify |
 | --- | --- | --- |
@@ -159,6 +169,8 @@ AI-service SSE needs its own client that verifies first event, progressive deliv
 
 ## 4. Measured Metrics
 
+**Table 5. Metric units and definitions with their boundaries**
+
 | Metric | Unit | Definition and boundary |
 | --- | --- | --- |
 | Arrivals/completions/successes | operations/s or requests/s | Separate scheduled, started, completed, successful, failed, timed-out, interrupted, and dropped work; declare requests per iteration |
@@ -182,6 +194,8 @@ We pinned `kubernetes-sigs/gateway-api` commit `112584e6624e32a9c9ec6a818a735506
 
 The following six members share **Gateway API v1.4.0 / experimental / default**. HTTP/gRPC/TLS numbers are **passed Core test counts** in the respective Gateway profiles; each has zero Core failures and skips.
 
+**Table 6. Passed Core counts and interpretation boundaries for the v1.4.0 experimental cohort**
+
 | Implementation and reported version | HTTP / gRPC / TLS Core | Interpretation boundary |
 | --- | --- | --- |
 | Envoy Gateway `v1.6.0` | 33 / 13 / 11 | Report predates reference-release publication; not independent verification of the final image |
@@ -197,6 +211,8 @@ Common Core success does not imply identical Extended support. NGF declares `HTT
 
 Keep the following supplemental records separate because their path, API version, or mode differs.
 
+**Table 7. Core results and comparison boundaries for supplemental evidence with differing paths or versions**
+
 | Separate evidence | Reported Core result | Comparison boundary |
 | --- | --- | --- |
 | VPC Lattice controller `v2.0.1`, API v1.4.0 | HTTP 10 passed / 23 skipped, `partial` | Managed service-network path |
@@ -209,6 +225,8 @@ Missing v1.4.0 LBC/KIC reports in the selected tree mean `not_verified`. A `part
 ### Locally executed validation
 
 The prior execution report records the run at **2026-09-19 00:08 UTC**. Pinned Python 3.13.15 and k6 2.2.0 images ran on an arm64 Docker VM with 10 CPUs and 8,217,317,376 bytes RAM, shared with three existing containers. The backend was limited to 1 CPU/256 MiB and the generator to 1 CPU/512 MiB, using an internal network only. These are declared limits, not utilization measurements. The published artifacts omit the original Docker info/inspect and before/after inventories, so actual limit enforcement, isolation and cleanup were not independently reverified.
+
+**Table 8. Observed result and outcome for each local fixture check**
 
 | Check | Observed result | Outcome |
 | --- | --- | --- |
@@ -224,6 +242,8 @@ The first two nominal runs observed 26 requests against 25 planned, or 104%. The
 [Raw execution records, exit codes, and the hash manifest](https://github.com/devfloor9/engineering-playbook/tree/main/scripts/benchmarks/gateway-api-benchmark/results/local-20260919) retain per-run timing statistics. The historical Python probe incorrectly retains the k6 digest in `generator_image`. New configuration generation sets both the Python version and image digest; the evidence README records the erratum without changing old raw files or hashes. The k6 artifacts are summaries rather than request-level latency data, so their percentiles cannot be independently recomputed. Five-second fixture timings are not product performance plots or rankings. These runs did not test a Gateway, TLS, gRPC/SSE, Kubernetes state, or resource utilization.
 
 ### Installed implementation measurements pending
+
+**Table 9. Feature and performance measurement status and prerequisites by target**
 
 | Target | Feature measurements | Performance/efficiency | Prerequisites |
 | --- | --- | --- | --- |
@@ -254,6 +274,8 @@ python3 scripts/benchmarks/gateway-api-benchmark/run-local.py \
 The [kit README][kit] describes pinned images, output formats, limits, and individual commands. `cases.routes.example.json` is an unmeasured feature-contract example and deploys no Gateway. Review its expectations against the actual configuration and add resource-status evidence before use.
 
 ### EKS execution stages
+
+**Table 10. Deliverable and completion criterion for each EKS execution stage**
 
 | Stage | Deliverable | Completion criterion |
 | --- | --- | --- |

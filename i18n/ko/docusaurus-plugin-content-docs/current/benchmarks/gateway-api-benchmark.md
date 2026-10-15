@@ -37,6 +37,8 @@ Gateway API 구현체를 선택할 때는 API 지원 범위뿐 아니라 실제 
 
 ### 대표 구현체의 아키텍처
 
+**표 1. 대표 Gateway API 구현체의 요청 경로와 비교 특징**
+
 | 구현체 | 제어 영역과 실제 요청 경로 | 비교에서 드러내야 할 특징 |
 | --- | --- | --- |
 | **AWS Load Balancer Controller** | 컨트롤러가 구성하는 관리형 **ALB(L7)** 또는 **NLB(L4)** | AWS 통합, ACM 인증서, 관리형 확장. ALB·NLB는 별도 경로이며 컨트롤러 CPU가 로드밸런서 CPU를 뜻하지 않음 |
@@ -52,6 +54,8 @@ Gateway API 구현체를 선택할 때는 API 지원 범위뿐 아니라 실제 
 
 ### 증거 수준
 
+**표 2. 증거 유형별 이번 보고서의 상태와 판단 범위**
+
 | 증거 | 이번 보고서의 상태 | 판단할 수 있는 범위 |
 | --- | --- | --- |
 | 업스트림 적합성 | 고정 커밋의 YAML 재분석 완료 | 해당 버전·프로파일이 보고한 API 동작 |
@@ -62,6 +66,8 @@ Gateway API 구현체를 선택할 때는 API 지원 범위뿐 아니라 실제 
 ## 2. 테스트 환경 설계
 
 ### 트래픽 경로별 비교
+
+**그림 1. 관리형 edge·클러스터 내 프록시·CNI/mesh 트래픽 경로 비교**
 
 ```mermaid
 flowchart LR
@@ -83,6 +89,8 @@ flowchart LR
 
 ### 실행 전에 고정할 항목
 
+**표 3. 실행 전에 고정할 영역별 필수 기록 항목**
+
 | 영역 | 필수 기록 |
 | --- | --- |
 | 환경 | AWS 계정·프로필·리전, 전용 클러스터·namespace, Kubernetes/OS/커널/CPU 아키텍처, 노드 종류·수·AZ, CNI·MTU·kube-proxy 모드 |
@@ -98,6 +106,8 @@ flowchart LR
 ### 기능 시험을 먼저 통과하기
 
 `GatewayClass → Gateway → Route → Backend` 연결과 관련 리소스의 `observedGeneration`, `Accepted`, `Programmed`, `ResolvedRefs` 등 해당 조건을 확인합니다. 성공 응답이 **시험 중인 Gateway를 거쳤는지** backend ID와 요청 상관관계로 검증합니다. 단순 echo 주소 호출은 Gateway 검증이 아닙니다.
+
+**표 4. 기능 시험군별 요청·기대 결과와 확인할 차이**
 
 | 시험군 | 요청·기대 결과 | 확인할 차이 |
 | --- | --- | --- |
@@ -159,6 +169,8 @@ AI 서비스의 SSE도 첫 이벤트·점진적 전달·중단/완료를 검증�
 
 ## 4. 측정 지표
 
+**표 5. 측정 지표의 단위와 정의·주의점**
+
 | 지표 | 단위 | 정의·주의점 |
 | --- | --- | --- |
 | 도착·완료·성공 | operations/s 또는 requests/s | 예약·시작·완료·성공·실패·timeout·중단·누락을 별도 집계; iteration당 요청 수 명시 |
@@ -182,6 +194,8 @@ CPU·메모리 지표의 의미는 [cAdvisor 정의](https://github.com/google/c
 
 아래 6개는 모두 **Gateway API v1.4.0 / experimental / default** 코호트입니다. HTTP·gRPC·TLS의 숫자는 각각 Gateway 프로파일의 **통과한 Core 테스트 수**이며 실패·skip은 모두 0입니다.
 
+**표 6. v1.4.0 experimental 코호트의 구현체별 Core 통과 수와 해석 범위**
+
 | 구현체와 보고된 버전 | HTTP / gRPC / TLS Core | 해석 범위 |
 | --- | --- | --- |
 | Envoy Gateway `v1.6.0` | 33 / 13 / 11 | 보고 시각이 참조 릴리스 공개보다 빠름; 최종 이미지 검증으로 확대하지 않음 |
@@ -197,6 +211,8 @@ CPU·메모리 지표의 의미는 [cAdvisor 정의](https://github.com/google/c
 
 다음 자료는 경로나 API 버전·모드가 달라 별도로 표시합니다.
 
+**표 7. 경로·버전이 다른 별도 자료의 Core 결과와 비교 한계**
+
 | 별도 자료 | 보고된 Core 결과 | 비교 한계 |
 | --- | --- | --- |
 | VPC Lattice controller `v2.0.1`, API v1.4.0 | HTTP 10 통과 / 23 skip, `partial` | 관리형 서비스 네트워크 경로 |
@@ -209,6 +225,8 @@ CPU·메모리 지표의 의미는 [cAdvisor 정의](https://github.com/google/c
 ### 직접 실행한 로컬 검증
 
 기존 실행 보고서에 기록된 시각은 **2026-09-19 00:08 UTC**입니다. Docker arm64 VM(10 CPU, RAM 8,217,317,376 bytes, 기존 컨테이너 3개와 공유)에서 Python 3.13.15와 k6 2.2.0의 고정 이미지를 사용했습니다. 백엔드는 1 CPU/256 MiB, 생성기는 1 CPU/512 MiB로 제한했고 내부 네트워크만 사용했습니다. 이 값들은 선언된 실행 제한이며 사용량 측정치가 아닙니다. 공개 자료에는 당시 Docker info/inspect와 정리 전후 원본 목록이 없어 제한의 실제 적용·격리·정리는 독립적으로 재확인하지 못했습니다.
+
+**표 8. 로컬 fixture 검증별 관측 결과와 판정**
 
 | 검증 | 관측 결과 | 판정 |
 | --- | --- | --- |
@@ -224,6 +242,8 @@ CPU·메모리 지표의 의미는 [cAdvisor 정의](https://github.com/google/c
 [원시 실행 결과·종료 코드·해시 manifest](https://github.com/devfloor9/engineering-playbook/tree/main/scripts/benchmarks/gateway-api-benchmark/results/local-20260919)에 개별 실행의 지연 통계도 보존했습니다. 기존 Python probe의 `generator_image` 필드에는 k6 digest가 잘못 남아 있습니다. 키트의 새 설정 생성은 Python 버전과 이미지 digest를 함께 기록하도록 수정했고, 과거 원본·해시는 고치지 않고 결과 README에 정오표를 남겼습니다. k6 자료는 요청별 지연 원본이 아닌 summary여서 백분위수를 독립적으로 재산출할 수 없습니다. 5초짜리 fixture 응답 시간을 제품 성능 그래프나 순위로 사용하지 않습니다. 이 시험에는 Gateway, TLS, gRPC/SSE, Kubernetes 상태 및 자원 사용량 실측이 포함되지 않았습니다.
 
 ### 실제 구현체 측정 대기
+
+**표 9. 구현체별 기능·성능 실측 상태와 필요한 조건**
 
 | 대상 | 기능 실측 | 성능·효율 실측 | 필요한 조건 |
 | --- | --- | --- | --- |
@@ -254,6 +274,8 @@ python3 scripts/benchmarks/gateway-api-benchmark/run-local.py \
 [키트 README][kit]는 고정 이미지, 출력 형식, 제한과 개별 명령을 설명합니다. `cases.routes.example.json`은 미측정 상태의 기능 계약 예제이며 Gateway를 배포하지 않습니다. 실제 설정에 맞춰 기대값을 검토하고 리소스 상태 증거를 추가해야 합니다.
 
 ### EKS 실측 단계
+
+**표 10. EKS 실측 단계별 산출물과 완료 기준**
 
 | 단계 | 산출물 | 완료 기준 |
 | --- | --- | --- |

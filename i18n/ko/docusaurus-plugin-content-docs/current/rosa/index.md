@@ -15,7 +15,7 @@ category: rosa
 
 ROSA는 AWS에서 실행되는 관리형 OpenShift 서비스입니다. AWS는 기반 클라우드 인프라를, Red Hat은 OpenShift 플랫폼과 노드 운영체제의 수명주기를 관리합니다. 고객은 애플리케이션, 데이터, 접근 권한과 워커 용량을 관리합니다. 이 섹션은 Classic 데모 설치 기록과 관리자 접근 제어 설계를 다룹니다.
 
-## 📚 주요 문서 (구현 순서)
+## 주요 문서 (구현 순서)
 
 ### 1단계: 클러스터 설치 및 구성
 
@@ -25,13 +25,15 @@ ROSA는 AWS에서 실행되는 관리형 OpenShift 서비스입니다. AWS는 �
 
 [ROSA 콘솔 접근 제어](./rosa-security-compliance.md)에서 기업 IdP 연동, MFA, 로그인 위치 제한과 권한 검증을 설계합니다. 구현 및 심사 완료 사례가 아니라, 검증할 통제 항목을 정리한 설계 문서입니다.
 
-## 🎯 학습 목표
+## 학습 목표
 
 두 문서를 읽으면 관리형 서비스가 담당하는 작업과 고객이 준비해야 할 작업을 구분할 수 있습니다. 설치 문서에서는 계정·네트워크·역할을 확인하고, 접근 제어 문서에서는 AWS, Red Hat 관리 콘솔, OpenShift 클러스터의 인증과 권한을 각각 검증합니다. 마이그레이션 및 다중 리전 복구는 아래의 설계 고려사항이며, 이 섹션에서 실행한 결과는 아닙니다.
 
-## 🏗️ 아키텍처 패턴
+## 아키텍처 패턴
 
 [ROSA 아키텍처 문서](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html)는 HCP와 Classic을 구분합니다. HCP는 Red Hat AWS 계정에 컨트롤 플레인을 두고 고객 VPC의 워커와 PrivateLink로 통신합니다. 전용 인프라 노드 없이 워커에서 플랫폼 구성요소도 실행합니다. Classic은 컨트롤 플레인·인프라·워커 노드를 고객 AWS 계정에 둡니다.
+
+**그림 1. HCP와 Classic의 노드 배치 비교**
 
 ```mermaid
 flowchart TB
@@ -58,7 +60,9 @@ flowchart TB
 
 두 방식 모두 노드가 어느 계정에 있는지와 누가 노드 운영체제를 관리하는지는 다른 질문입니다. 고객은 ROSA CLI나 OpenShift Cluster Manager의 지원되는 인터페이스로 machine pool의 용량을 조절합니다. 노드 운영체제를 임의로 변경하는 자체 관리 EC2 방식으로 해석하지 마세요.
 
-## 🔧 주요 기술 및 도구
+## 주요 기술 및 도구
+
+**표 1. ROSA 주요 도구·구성요소의 역할과 구분할 점**
 
 | 도구 또는 구성요소 | 역할 | 구분할 점 |
 | --- | --- | --- |
@@ -70,7 +74,7 @@ flowchart TB
 | Hybrid Cloud Console / OpenShift Cluster Manager | 조직과 클러스터 관리 | 클러스터 API의 RBAC를 대신하지 않음 |
 | 이미지 레지스트리 | 노드 런타임에 컨테이너 이미지 제공 | Quay는 선택지이며, HCC가 이미지 소비자가 아님 |
 
-## 💡 핵심 개념
+## 핵심 개념
 
 ### ROSA의 특징
 
@@ -92,7 +96,7 @@ Hybrid Cloud Console의 OpenShift Cluster Manager는 조직의 클러스터 목�
 
 애플리케이션의 외부 접근에는 OpenShift Ingress와 Route, Pod 간 접근 제한에는 NetworkPolicy를 검토합니다. 프라이빗 API 접근, 온프레미스 연결, DNS와 egress도 별도로 설계합니다. Service Mesh는 선택적인 추가 구성으로, 설치만으로 인증·암호화 정책이 애플리케이션에 적용되었다고 판단하지 않습니다.
 
-## 💼 사용 사례
+## 사용 사례
 
 ### 엔터프라이즈 마이그레이션
 
@@ -106,9 +110,11 @@ STS, IdP, MFA, 암호화와 감사 로그를 요구 통제에 연결하고 설�
 
 ROSA는 AWS에서 실행됩니다. 온프레미스나 다른 클라우드의 OpenShift와 연결하려면 네트워크·ID·배포·데이터 운영을 함께 설계합니다. 클라우드 버스팅이나 리전 간 복구에는 별도의 용량 확보, 상태 복제와 트래픽 전환이 필요합니다.
 
-## 📊 ROSA vs EKS vs 온프레미스 OpenShift
+## ROSA vs EKS vs 온프레미스 OpenShift
 
 선택 시 아래 기준을 같은 워크로드·가용성·지원 요구사항에 적용합니다. 보안 수준, 총비용, 배포 속도는 서비스 이름만으로 순위를 정할 수 없습니다. 관리 범위는 [ROSA 아키텍처](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html), [Amazon EKS 개요](https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html), [자체 관리 OpenShift 가이드](https://www.redhat.com/en/resources/self-managed-openshift-subscription-guide)를 기준으로 확인합니다.
+
+**표 2. ROSA·EKS·온프레미스 OpenShift 선택 기준 비교**
 
 | 확인 기준 | ROSA | EKS | 온프레미스 OpenShift |
 |------|------|-----|----------------|
@@ -121,7 +127,7 @@ ROSA는 AWS에서 실행됩니다. 온프레미스나 다른 클라우드의 Ope
 | **하이브리드 배치** | AWS 에서 운영되는 ROSA 와 외부 OpenShift 환경의 연동 설계 | [EKS Hybrid Nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-overview.html)는 온프레미스·엣지 노드를 AWS 컨트롤 플레인에 연결; 안정적인 연결 필요 | 온프레미스 클러스터와 외부 환경의 연결·운영 설계 |
 | **다른 클라우드 배치** | ROSA 는 AWS 서비스; 다른 클라우드의 OpenShift 는 별도 배치·지원 범위 확인 | Hybrid Nodes 를 다른 클라우드 인프라에서 실행하는 것은 지원하지 않음 | 대상 클라우드의 OpenShift 지원 플랫폼·구독·관리 도구 확인 |
 
-## 🚀 배포 패턴
+## 배포 패턴
 
 ### 1. 단일 클러스터 배포
 
@@ -144,7 +150,7 @@ Primary-region application and data
 
 복제 지연과 일관성, RPO·RTO, 장애 판정, 쓰기 충돌 방지와 되돌리기 절차를 정한 뒤 복구 시험으로 확인합니다. [공동 책임 문서](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-responsibilities.html)는 애플리케이션·데이터 백업과 여러 클러스터의 DNS·로드 밸런싱 관리를 고객 책임으로 설명합니다.
 
-## 🔗 관련 카테고리
+## 관련 카테고리
 
 - [EKS Hybrid Nodes](/docs/eks-hybrid-nodes) - 하이브리드 환경 관리
 - [보안 & 거버넌스](/docs/eks-best-practices/security-authn) - EKS 보안 거버넌스 베스트 프랙티스

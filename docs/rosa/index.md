@@ -35,6 +35,8 @@ Use these documents to separate managed-service duties from customer preparation
 
 The [ROSA architecture guide](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html) distinguishes HCP from Classic. HCP places the control plane in Red Hat's AWS account and connects to workers in the customer's VPC through PrivateLink. Platform components also run on workers, without dedicated infrastructure nodes. Classic places control-plane, infrastructure, and worker nodes in the customer's AWS account.
 
+**Figure 1. Node placement in HCP versus Classic**
+
 ```mermaid
 flowchart TB
     subgraph HCP["ROSA with hosted control planes"]
@@ -61,6 +63,8 @@ flowchart TB
 Account ownership and operating-system management are separate responsibilities. Customers adjust machine-pool capacity through supported ROSA CLI or OpenShift Cluster Manager interfaces. This does not imply unrestricted operating-system changes as with self-managed EC2 nodes.
 
 ## Key Technologies
+
+**Table 1. Role and boundary of key ROSA tools and components**
 
 | Tool or component | Role | Boundary |
 | --- | --- | --- |
@@ -111,6 +115,8 @@ ROSA runs on AWS. Connecting it to OpenShift on premises or in another cloud req
 ## ROSA vs EKS vs On-Premises OpenShift
 
 Apply these criteria to the same workload, availability, and support requirements. Service names alone do not establish rankings for security, total cost, or deployment speed. Check management boundaries against the [ROSA architecture](https://docs.aws.amazon.com/rosa/latest/userguide/rosa-architecture-models.html), [Amazon EKS overview](https://docs.aws.amazon.com/eks/latest/userguide/what-is-eks.html), and [self-managed OpenShift guide](https://www.redhat.com/en/resources/self-managed-openshift-subscription-guide).
+
+**Table 2. Selection criteria across ROSA, EKS, and on-premises OpenShift**
 
 | Selection Criterion | ROSA | EKS | On-Premises OpenShift |
 |------|------|-----|----------------|

@@ -101,6 +101,8 @@ Switch metrics to compare the range of the five runs (bar) and the median (tick)
 
 <RalphMetricMatrix />
 
+**Table 1. Completion, cost, tokens, requests, and time by model (medians over completed runs)**
+
 <DataTableFrame minWidth="60rem">
 
 | Group | Model | Completed | Cost per run (USD) | Output tokens | Total tokens | LLM requests | Ralph iterations | Run time (min) |
@@ -171,6 +173,8 @@ Switch metrics to compare the range of the five runs (bar) and the median (tick)
 - For Anthropic and OpenAI models the US cross-Region price is 10% above the global cross-Region price. The public Price List API's us-east-1 data (published 2026-10-10) had no entries for these models.
 
 ## Spend [calculated]
+
+**Table 2. Cost of counted and discarded runs (reported tokens × price)**
 
 | Item | Cost (reported tokens × price) | Notes |
 |---|---|---|

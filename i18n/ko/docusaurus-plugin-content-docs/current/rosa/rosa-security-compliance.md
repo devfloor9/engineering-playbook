@@ -31,6 +31,8 @@ category: rosa
 
 ## 현재 이해도
 
+**표 1. 접근 대상별 인증·권한과 별도 확인 사항**
+
 | 접근 대상 | 인증 및 권한 | 별도로 확인할 사항 |
 | --- | --- | --- |
 | AWS 콘솔·API | AWS의 연동 로그인과 IAM | ROSA 관련 AWS 자원에 대한 역할·정책 |
@@ -65,6 +67,8 @@ ROSA 클러스터는 [지원되는 OAuth IdP](https://docs.aws.amazon.com/rosa/l
 
 관리자는 HCC에 로그인할 때 별도로 등록한 기업 IdP를 사용합니다. IdP는 설정된 MFA·로그인 정책을 평가하고 HCC에 인증 결과를 전달합니다. 이후 요청한 관리 작업은 OCM 권한으로 판단합니다. OpenShift API에 직접 접근할 때는 클러스터의 로그인과 RBAC를 다시 적용합니다.
 
+**그림 1. 관리자 로그인 시 IdP·OCM·클러스터 인증 흐름**
+
 ```mermaid
 sequenceDiagram
     participant A as Administrator
@@ -84,6 +88,8 @@ sequenceDiagram
 
 ### 전체 아키텍처
 
+**그림 2. 세 접근 경로별 ID 연동 구성**
+
 ```mermaid
 flowchart LR
     A["Administrator"]
@@ -102,6 +108,8 @@ flowchart LR
 점선은 각각의 ID 연동을 나타냅니다. 하나의 연동 설정이 나머지 두 경로의 접근 제어를 자동으로 구성하지 않습니다.
 
 ## 필요 응답 사항
+
+**표 2. 확인할 질문과 필요한 근거**
 
 | 확인할 질문 | 필요한 근거 |
 | --- | --- |
