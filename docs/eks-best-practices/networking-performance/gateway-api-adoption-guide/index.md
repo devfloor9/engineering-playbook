@@ -3,9 +3,9 @@ title: "Gateway API Adoption Guide: From NGINX Ingress to Next-Generation Traffi
 description: NGINX Ingress Controller EOL response, tiered gateways for agentic workloads, Gateway API architecture, GAMMA Initiative, AWS Native vs open source solution comparison (AWS LBC, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong), Cilium ENI integration, migration strategy and benchmark plans
 created: "2026-02-14"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 71
+reading_time: 78
 tags:
   - eks
   - gateway-api
@@ -119,12 +119,12 @@ gantt
 
 **Key events in detail:**
 
-- **March 2025**: IngressNightmare (CVE-2025-1974) discovered — an arbitrary NGINX config injection vulnerability via Snippets annotations that accelerated retirement discussions in the Kubernetes SIG Network
+- **March 2025**: IngressNightmare disclosed — a cluster of vulnerabilities letting an unauthenticated attacker with pod-network access run remote code in the ingress-nginx controller pod via its admission webhook. It is an attack chain combining config-injection flaws (CVE-2025-1097, CVE-2025-1098, CVE-2025-24514) with the admission-webhook RCE (CVE-2025-1974), and it accelerated retirement discussions in the Kubernetes SIG Network. Fixed in v1.11.5 and v1.12.1
 - **November 2025**: Kubernetes SIG Network officially announced the retirement of the NGINX Ingress Controller, citing insufficient maintainers (1-2) and Gateway API maturity as the main reasons
 - **March 2026**: Official EOL — security patches and bug fixes cease completely. Continued production use after this date risks compliance violations
 
 :::danger Mandatory Action
-**After March 2026, the NGINX Ingress Controller receives no security vulnerability patches.** To maintain PCI-DSS, SOC 2, and ISO 27001 compliance, migration to a Gateway API-based solution is required.
+**After March 2026, the community ingress-nginx controller receives no security patches.** Standards such as PCI-DSS, SOC 2, and ISO 27001 require not running unsupported software in production, so migrate to a supported Ingress controller or a Gateway API implementation. This is not a requirement to adopt any specific technology.
 :::
 
 ### 2.2 Security Vulnerability Analysis
@@ -138,7 +138,7 @@ gantt
 
   ![IngressNightmare attack overview](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
 
-  *An unauthenticated remote code execution (RCE) attack vector targeting the Ingress NGINX Controller inside a Kubernetes cluster. External and internal attackers take over the controller pod via a Malicious Admission Review, gaining access to all pods in the cluster. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
+  *An unauthenticated remote code execution (RCE) attack vector targeting the Ingress NGINX Controller inside a Kubernetes cluster. An attacker with pod-network access runs code in the controller pod via a malicious Admission Review; in a default install this exposes the cluster-wide Secrets the controller can access. Subsequent lateral movement depends on the credentials obtained, RBAC permissions, and network reachability. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
   </TabItem>
   <TabItem value="architecture" label="Controller Architecture">
@@ -187,12 +187,12 @@ spec:
 <RiskAssessmentTable locale="en" />
 
 :::warning If You Are Currently Operating
-For existing NGINX Ingress environments, applying an admission controller policy that immediately prohibits the use of the `nginx.ingress.kubernetes.io/configuration-snippet` and `nginx.ingress.kubernetes.io/server-snippet` annotations is recommended.
+To address IngressNightmare as a whole, upgrade ingress-nginx to v1.11.5 or v1.12.1 (or later) and isolate the admission-webhook endpoint from network access outside the Kubernetes API server (the key mitigation for the admission-webhook RCE, CVE-2025-1974). For the config-injection flaws (CVE-2025-1097/1098/24514), restricting the `nginx.ingress.kubernetes.io/configuration-snippet` and `nginx.ingress.kubernetes.io/server-snippet` annotations via an admission policy is also recommended. Because the controller is end-of-maintenance, plan migration to a supported controller or a Gateway API implementation as well.
 :::
 
 ### 2.3 Structural Resolution Through Gateway API
 
-The Gateway API fundamentally resolves the structural vulnerabilities of NGINX Ingress.
+The Gateway API reduces the structural vulnerabilities of NGINX Ingress through typed fields and per-resource ownership separation. However, ExtensionRef and implementation-specific extensions (such as snippets) remain supported, so RBAC/admission policies and the security of the implementation itself are still prerequisites.
 
 <ArchitectureComparisonTable locale="en" />
 
@@ -267,7 +267,7 @@ flowchart TB
     style app fill:#43a047,color:#fff
 ```
 
-Each team manages resources only within its own permission scope — arbitrary config injection paths are eliminated at the source.
+Each team is separated to manage resources only within its own permission scope. The Role/ClusterRole below are illustrative fragments showing permission scope; to apply them in practice you also need a RoleBinding or ClusterRoleBinding that binds each to its target subject (ServiceAccount/group).
 
 ```yaml
 # Infrastructure team: manages GatewayClass (cluster-level permission)
@@ -305,7 +305,7 @@ rules:
 
 **2. Structural Validation Based on CRD Schema**
 
-Predefining all fields with an OpenAPI schema makes arbitrary config injection fundamentally impossible:
+Predefining fields with an OpenAPI schema means core routing resources cannot carry arbitrary config outside the schema. However, configuration paths via ExtensionRef or implementation-specific extensions still remain and must be controlled with RBAC and implementation security:
 
 **Figure 6. HTTPRoute validation flow based on the OpenAPI schema**
 
@@ -323,7 +323,7 @@ flowchart LR
 ```
 
 ```yaml
-# ✅ Gateway API — only schema-validated fields used
+# ✅ Gateway API — schema-validated field example (partial fragment: real use needs metadata.name and parentRefs)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 spec:
@@ -357,8 +357,8 @@ flowchart TB
     subgraph policy_detail["Policy Contents"]
         direction LR
         l7["L7 security policy"]
-        rate["Rate Limiting<br/>(100 req/s)"]
-        method["HTTP Method restriction<br/>(GET /api/*)"]
+        method["HTTP method/path restriction<br/>(GET /api/*)"]
+        header["header-based filter"]
     end
 
     policy --> policy_detail
@@ -368,11 +368,14 @@ flowchart TB
 ```
 
 ```yaml
-# Apply L7 security policy with Cilium's CiliumNetworkPolicy
+# Apply L7 (HTTP) access control with Cilium's CiliumNetworkPolicy
+# Note: CiliumNetworkPolicy http rules support method/path/header matching and
+# have no request rate-limit field. For rate limiting, use an implementation-specific
+# mechanism such as an Envoy-based L7 policy separately.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: api-rate-limiting
+  name: api-l7-access
 spec:
   endpointSelector:
     matchLabels:
@@ -389,8 +392,6 @@ spec:
         http:
         - method: "GET"
           path: "/api/.*"
-          rateLimit:
-            requestsPerSecond: 100
 ```
 
 </TabItem>
@@ -398,7 +399,7 @@ spec:
 
 :::info Active Community Support
 - **15+ production implementations**: AWS, Google Cloud, Cilium, Envoy, NGINX, Istio, and more
-- **Regular quarterly releases**: GA resources included as of v1.4.0
+- **Regular quarterly releases**: GA resources included as of v1.5.1
 - **Official CNCF project**: development led by the Kubernetes SIG Network
 :::
 
@@ -498,7 +499,7 @@ The Gateway API separates responsibilities across the following layered structur
   </TabItem>
 </Tabs>
 
-### 3.3 GA Status (v1.4.0)
+### 3.3 GA Status (v1.5.1) {#33-ga-status-v140}
 
 The Gateway API is divided into a Standard Channel and an Experimental Channel, with maturity differing per resource:
 
@@ -554,14 +555,15 @@ Gateway API resources are deployed separately by role. The infrastructure team m
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: aws-network-load-balancer
+  name: aws-alb-gateway-class
 spec:
-  controllerName: aws.gateway.networking.k8s.io
-  description: "AWS Network Load Balancer with PrivateLink support"
+  controllerName: gateway.k8s.aws/alb
+  description: "AWS Application Load Balancer (L7) for HTTPRoute/GRPCRoute"
   parametersRef:
-    group: elbv2.k8s.aws
-    kind: TargetGroupPolicy
-    name: nlb-performance-profile
+    group: gateway.k8s.aws
+    kind: LoadBalancerConfiguration
+    name: alb-gateway-config
+    namespace: gateway-system
 ```
 
   </TabItem>
@@ -575,33 +577,41 @@ kind: Gateway
 metadata:
   name: production-gateway
   namespace: gateway-system
-  annotations:
-    # AWS NLB-specific annotations
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
 spec:
-  gatewayClassName: aws-network-load-balancer
+  gatewayClassName: aws-alb-gateway-class
+  # ALB settings are specified via LoadBalancerConfiguration, not Service annotations.
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: alb-gateway-config
   listeners:
-  # HTTP Listener (automatic HTTPS redirect)
+  # HTTP Listener (HTTPS redirect via a separate HTTPRoute RequestRedirect filter, see Step 3)
   - name: http
     protocol: HTTP
     port: 80
 
-  # HTTPS Listener (ACM certificate)
+  # HTTPS Listener (ACM certificate is set in LoadBalancerConfiguration)
   - name: https
     protocol: HTTPS
     port: 443
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - kind: Secret
-        name: acm-certificate
-        namespace: gateway-system
     allowedRoutes:
       namespaces:
         from: All  # allow HTTPRoutes from all namespaces
+---
+# LoadBalancerConfiguration — sets ALB scheme/type and the ACM certificate (ARN)
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: alb-gateway-config
+  namespace: gateway-system
+spec:
+  scheme: internet-facing
+  listenerConfigurations:
+    - protocolPort: HTTPS:443
+      # certificateRefs (Secret) is not supported by the LBC ALB Gateway.
+      # Specify the ACM certificate by ARN, or let it be discovered via listener/route hostname.
+      defaultCertificate: <ACM certificate ARN>
 ```
 
   </TabItem>
@@ -652,6 +662,24 @@ spec:
         path:
           type: ReplacePrefixMatch
           replacePrefixMatch: /v1/api
+---
+# Redirect requests arriving on the HTTP listener to HTTPS (explicit route, not automatic)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http-to-https-redirect
+  namespace: production-app
+spec:
+  parentRefs:
+  - name: production-gateway
+    namespace: gateway-system
+    sectionName: http
+  rules:
+  - filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        statusCode: 301
 ```
 
   </TabItem>
@@ -659,22 +687,23 @@ spec:
 
 **ReferenceGrant (cross-namespace reference)**
 
+Attaching an HTTPRoute to a Gateway (route attachment) is authorized by the Gateway's `allowedRoutes`, not by a ReferenceGrant (see `from: All` in Step 2). A ReferenceGrant authorizes an HTTPRoute to reference a **backend (Service) or certificate in another namespace**. The example below lets an HTTPRoute in `production-app` reference a Service in `backend-ns` as a backendRef.
+
 ```yaml
-# Allow the Gateway in the gateway-system namespace to be referenced from other namespaces
+# Allow an HTTPRoute in production-app to reference Services in backend-ns
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
-  name: allow-httproutes-from-all
-  namespace: gateway-system
+  name: allow-routes-to-backend-ns
+  namespace: backend-ns
 spec:
   from:
   - group: gateway.networking.k8s.io
     kind: HTTPRoute
     namespace: production-app
   to:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: production-gateway
+  - group: ""
+    kind: Service
 ```
 
   </TabItem>
@@ -691,8 +720,8 @@ kubectl apply -f httproute.yaml
 
 # Check Gateway status
 kubectl get gateway production-gateway -n gateway-system
-# NAME                  CLASS                        ADDRESS          PROGRAMMED   AGE
-# production-gateway    aws-network-load-balancer    a1b2c3.elb.aws   True         5m
+# NAME                  CLASS                   ADDRESS          PROGRAMMED   AGE
+# production-gateway    aws-alb-gateway-class   a1b2c3.elb.aws   True         5m
 
 # Check HTTPRoute status
 kubectl get httproute backend-api -n production-app
@@ -765,9 +794,9 @@ This compares how the 8 major features used in the NGINX Ingress Controller are 
 <CostComparisonTable locale="en" />
 
 :::tip Cost Optimization Tips
-- **If 3+ WAF features are needed**, AWS Native is cost-effective. Multiple rules can be bundled and managed in a single WebACL
-- **If only 1-2 are needed**, they can be implemented at no additional cost in open source solutions (Cilium, Envoy Gateway)
-- **For performance-sensitive workloads**, open source is advantageous. There is no WAF rule evaluation latency, as processing happens at the kernel/eBPF level
+- **If you run several WAF rules**, bundling them in a single WebACL (AWS Native) can be operationally convenient. Cost advantage, however, depends not only on rule count but also on traffic volume (per-request billing) and operational effort, and must be estimated per environment
+- **Open source solutions (Cilium, Envoy Gateway)** can implement policies at no extra billing, but you must also account for self-operation cost (nodes, upgrades, monitoring)
+- **For performance-sensitive workloads**, Cilium's L3/L4 packet forwarding runs in the kernel via eBPF, giving low latency. HTTP (L7) routing and policy, however, are handled by a user-space proxy such as Envoy/NGINX, which is not the same as kernel processing. Measure the latency of each path separately under the actual configuration and load
 - **When using a Lambda Authorizer**, watch for p99 latency spikes due to cold starts. Review Provisioned Concurrency settings
 :::
 

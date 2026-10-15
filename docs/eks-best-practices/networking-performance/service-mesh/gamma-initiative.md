@@ -5,7 +5,7 @@ created: "2026-02-14"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 9
+reading_time: 11
 tags:
   - gateway-api
   - gamma
@@ -56,13 +56,13 @@ flowchart LR
 
 ## Core Goals & Mesh Configuration Patterns
 
-<GammaInfographic />
+<GammaInfographic locale="en" />
 
 ## GAMMA Support Status
 
 The following shows GAMMA support status across major service mesh implementations. For a detailed comparison of architecture, features, and operations, see the [Service Mesh Comparison Guide](./index.md).
 
-<GammaSupportTable />
+<GammaSupportTable locale="en" />
 
 :::tip GAMMA in AWS Environments
 In AWS environments, the **AWS Gateway API Controller** exposes VPC Lattice through the Gateway API (ACK is a separate controller that manages AWS resources and is not the Gateway API controller). This is a Gateway-parent HTTPRoute integration, however, which is distinct from GAMMA mesh-profile conformance (where a Service is the parent). Classifying VPC Lattice as GAMMA GA requires a pinned mesh conformance report first.
@@ -95,7 +95,7 @@ spec:
 ```
 
 ### 3. Role-Based Separation
-Clear responsibility separation — infra teams manage Gateways, dev teams manage HTTPRoutes — applies equally to mesh traffic.
+For ingress (North-South), infra teams manage Gateways and dev teams manage HTTPRoutes. For mesh (East-West), Routes bind directly to a Service rather than a Gateway, so the team that owns a Service (the producer) manages the Routes attached to it while the calling team (the consumer) manages its outbound Routes. In both cases, namespaces and Kubernetes RBAC separate access to each resource.
 
 ### 4. Vendor Neutrality
 Multiple mesh implementations can be managed with the same API, preventing vendor lock-in.

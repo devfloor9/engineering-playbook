@@ -98,7 +98,7 @@ spec:
 
 ### 3. 역할 기반 분리
 
-인프라 팀은 Gateway를, 개발 팀은 HTTPRoute를 관리하는 명확한 책임 분리가 메시 트래픽에도 동일하게 적용됩니다.
+인그레스(North-South)에서는 인프라 팀이 Gateway를, 개발 팀이 HTTPRoute를 관리합니다. 메시(East-West)에서는 Route가 Gateway가 아니라 Service에 직접 바인딩되므로, Service를 소유한 팀(프로듀서)이 해당 Service로 들어오는 Route를, 호출하는 팀(컨슈머)이 나가는 Route를 관리합니다. 두 경우 모두 네임스페이스와 Kubernetes RBAC으로 리소스 접근 권한을 분리합니다.
 
 ### 4. 벤더 중립성
 

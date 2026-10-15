@@ -3,9 +3,9 @@ title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 �
 description: NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획
 created: "2026-02-14"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 43
+reading_time: 47
 tags:
   - eks
   - gateway-api
@@ -119,12 +119,12 @@ gantt
 
 **주요 이벤트 상세:**
 
-- **2025년 3월**: IngressNightmare (CVE-2025-1974) 발견 — Snippets 어노테이션을 통한 임의 NGINX 설정 주입 취약점으로 Kubernetes SIG Network의 retirement 논의가 가속화됨
+- **2025년 3월**: IngressNightmare 공개 — Pod 네트워크에 접근 가능한 비인증 공격자가 ingress-nginx admission 웹훅을 악용해 컨트롤러 Pod에서 원격 코드를 실행하는 취약점 묶음입니다. 설정 주입 취약점(CVE-2025-1097, CVE-2025-1098, CVE-2025-24514)과 admission 웹훅 RCE(CVE-2025-1974)를 결합한 공격 체인이며, Kubernetes SIG Network의 retirement 논의를 가속화했습니다. v1.11.5 및 v1.12.1에서 수정되었습니다
 - **2025년 11월**: Kubernetes SIG Network에서 NGINX Ingress Controller의 공식 retirement 발표. 유지보수 인력 부족(1-2명의 메인테이너)과 Gateway API 성숙도를 주요 이유로 명시
 - **2026년 3월**: 공식 EOL — 보안 패치 및 버그 수정 완전 중단. 이후 운영 환경 사용 시 컴플라이언스 위반 가능성
 
 :::danger 필수 대응 사항
-**2026년 3월 이후 NGINX Ingress Controller 사용 시 보안 취약점 패치가 제공되지 않습니다.** PCI-DSS, SOC 2, ISO 27001 등 보안 인증 유지를 위해서는 반드시 Gateway API 기반 솔루션으로 전환해야 합니다.
+**2026년 3월 이후 커뮤니티 ingress-nginx 컨트롤러에는 보안 패치가 제공되지 않습니다.** PCI-DSS, SOC 2, ISO 27001 등은 지원되지 않는 소프트웨어를 운영 환경에 두지 않도록 요구하므로, 지원되는 Ingress 컨트롤러 또는 Gateway API 구현체로 이전해야 합니다. 특정 기술 선택을 강제하는 요구사항은 아닙니다.
 :::
 
 ### 2.2 보안 취약점 분석
@@ -138,7 +138,7 @@ gantt
 
   ![IngressNightmare 공격 개요](/img/infrastructure-optimization/ingressnightmare-attack-overview.png)
 
-  *Kubernetes 클러스터 내 Ingress NGINX Controller를 대상으로 한 비인증 원격 코드 실행(RCE) 공격 벡터. 외부 및 내부 공격자가 Malicious Admission Review를 통해 컨트롤러 Pod를 장악하고, 클러스터 내 전체 Pod에 접근 가능. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
+  *Kubernetes 클러스터 내 Ingress NGINX Controller를 대상으로 한 비인증 원격 코드 실행(RCE) 공격 벡터. Pod 네트워크에 접근 가능한 공격자가 악성 Admission Review로 컨트롤러 Pod에서 코드를 실행하면, 기본 설치에서 컨트롤러가 접근할 수 있는 클러스터 전역 Secret이 노출됩니다. 이후 수평 이동 범위는 탈취한 자격 증명, RBAC 권한, 네트워크 도달성에 따라 달라집니다. (Source: [Wiz Research](https://www.wiz.io/blog/ingress-nginx-kubernetes-vulnerabilities))*
 
   </TabItem>
   <TabItem value="architecture" label="컨트롤러 아키텍처">
@@ -187,12 +187,12 @@ spec:
 <RiskAssessmentTable />
 
 :::warning 현재 운영 중이라면
-기존 NGINX Ingress 환경에서는 `nginx.ingress.kubernetes.io/configuration-snippet` 및 `nginx.ingress.kubernetes.io/server-snippet` 어노테이션 사용을 즉시 금지하는 admission controller 정책 적용을 권장합니다.
+IngressNightmare 전체에 대응하려면 ingress-nginx를 v1.11.5 또는 v1.12.1 이상으로 업그레이드하고, admission 웹훅 엔드포인트를 Kubernetes API 서버 외의 네트워크 접근으로부터 격리해야 합니다(admission 웹훅 RCE인 CVE-2025-1974의 핵심 완화책). 설정 주입 계열(CVE-2025-1097/1098/24514) 대응으로는 `nginx.ingress.kubernetes.io/configuration-snippet` 및 `nginx.ingress.kubernetes.io/server-snippet` 어노테이션 사용을 admission 정책으로 제한하는 것이 함께 권장됩니다. 유지보수가 종료된 컨트롤러이므로 지원되는 컨트롤러나 Gateway API 구현체로의 이전을 함께 계획하세요.
 :::
 
 ### 2.3 취약점의 구조적 해결을 위한 Gateway API 도입
 
-Gateway API는 NGINX Ingress의 구조적 취약점을 근본적으로 해결합니다.
+Gateway API는 타입이 정의된 필드와 리소스 단위 소유권 분리로 NGINX Ingress의 구조적 취약점을 줄입니다. 다만 ExtensionRef와 구현체별 확장(스니펫 등)은 여전히 지원되므로, RBAC·admission 정책과 구현체 자체의 보안이 함께 전제되어야 합니다.
 
 <ArchitectureComparisonTable />
 
@@ -267,7 +267,7 @@ flowchart TB
     style app fill:#43a047,color:#fff
 ```
 
-각 팀은 자신의 권한 범위 내에서만 리소스를 관리 — 임의 설정 주입 경로가 원천 차단됩니다.
+각 팀은 자신의 권한 범위 내에서만 리소스를 관리하도록 분리합니다. 아래 Role/ClusterRole은 권한 범위를 보여주는 예시 조각이며, 실제로 적용하려면 각 대상 주체(ServiceAccount/그룹)에 연결하는 RoleBinding 또는 ClusterRoleBinding이 추가로 필요합니다.
 
 ```yaml
 # 인프라 팀: GatewayClass 관리 (클러스터 레벨 권한)
@@ -305,7 +305,7 @@ rules:
 
 **2. CRD 스키마 기반 구조적 검증**
 
-OpenAPI 스키마로 모든 필드를 사전 정의하여 임의 설정 주입이 원천적으로 불가능합니다:
+OpenAPI 스키마로 필드를 사전 정의하므로, 코어 라우팅 리소스에서는 스키마에 없는 임의 설정을 넣을 수 없습니다. 단, ExtensionRef나 구현체별 확장을 통한 설정 경로는 별도로 남아 있어 RBAC과 구현체 보안으로 통제해야 합니다:
 
 **그림 6. OpenAPI 스키마 기반 HTTPRoute 검증 흐름**
 
@@ -323,7 +323,7 @@ flowchart LR
 ```
 
 ```yaml
-# ✅ Gateway API — 스키마 검증된 필드만 사용
+# ✅ Gateway API — 스키마 검증된 필드 예시 (일부 조각: 실제 적용 시 metadata.name과 parentRefs 필요)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 spec:
@@ -357,8 +357,8 @@ flowchart TB
     subgraph policy_detail["Policy 적용 내용"]
         direction LR
         l7["L7 보안 정책"]
-        rate["Rate Limiting<br/>(100 req/s)"]
-        method["HTTP Method 제한<br/>(GET /api/*)"]
+        method["HTTP Method/경로 제한<br/>(GET /api/*)"]
+        header["헤더 기반 필터"]
     end
 
     policy --> policy_detail
@@ -368,11 +368,14 @@ flowchart TB
 ```
 
 ```yaml
-# Cilium의 CiliumNetworkPolicy로 L7 보안 정책 적용
+# Cilium의 CiliumNetworkPolicy로 L7(HTTP) 접근 제어 적용
+# 참고: CiliumNetworkPolicy의 http 규칙은 method/path/header 매칭을 지원하며,
+# 요청 속도 제한(rate limit) 필드는 제공하지 않습니다. 속도 제한이 필요하면
+# Envoy 기반 L7 정책 등 구현체별 메커니즘을 별도로 사용해야 합니다.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: api-rate-limiting
+  name: api-l7-access
 spec:
   endpointSelector:
     matchLabels:
@@ -389,8 +392,6 @@ spec:
         http:
         - method: "GET"
           path: "/api/.*"
-          rateLimit:
-            requestsPerSecond: 100
 ```
 
 </TabItem>
@@ -398,7 +399,7 @@ spec:
 
 :::info 활발한 커뮤니티 지원
 - **15개 이상의 프로덕션 구현체**: AWS, Google Cloud, Cilium, Envoy, NGINX, Istio 등
-- **분기별 정규 릴리스**: v1.4.0 기준 GA 리소스 포함
+- **분기별 정규 릴리스**: v1.5.1 기준 GA 리소스 포함
 - **CNCF 공식 프로젝트**: Kubernetes SIG Network 주도 개발
 :::
 
@@ -498,7 +499,7 @@ Gateway API는 다음과 같은 계층 구조로 책임을 분리합니다:
   </TabItem>
 </Tabs>
 
-### 3.3 GA 현황 (v1.4.0)
+### 3.3 GA 현황 (v1.5.1) {#33-ga-현황-v140}
 
 Gateway API는 Standard Channel과 Experimental Channel로 나뉘며, 리소스별 성숙도가 다릅니다:
 
@@ -554,14 +555,15 @@ Gateway API 리소스는 역할별로 분리 배포됩니다. 인프라 팀이 G
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
-  name: aws-network-load-balancer
+  name: aws-alb-gateway-class
 spec:
-  controllerName: aws.gateway.networking.k8s.io
-  description: "AWS Network Load Balancer with PrivateLink support"
+  controllerName: gateway.k8s.aws/alb
+  description: "AWS Application Load Balancer (L7) for HTTPRoute/GRPCRoute"
   parametersRef:
-    group: elbv2.k8s.aws
-    kind: TargetGroupPolicy
-    name: nlb-performance-profile
+    group: gateway.k8s.aws
+    kind: LoadBalancerConfiguration
+    name: alb-gateway-config
+    namespace: gateway-system
 ```
 
   </TabItem>
@@ -575,33 +577,41 @@ kind: Gateway
 metadata:
   name: production-gateway
   namespace: gateway-system
-  annotations:
-    # AWS NLB 전용 어노테이션
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
 spec:
-  gatewayClassName: aws-network-load-balancer
+  gatewayClassName: aws-alb-gateway-class
+  # ALB 설정은 Service 어노테이션이 아니라 LoadBalancerConfiguration으로 지정합니다.
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: alb-gateway-config
   listeners:
-  # HTTP Listener (자동 HTTPS 리다이렉트)
+  # HTTP Listener (별도 HTTPRoute의 RequestRedirect 필터로 HTTPS 리다이렉트, Step 3 참조)
   - name: http
     protocol: HTTP
     port: 80
 
-  # HTTPS Listener (ACM 인증서)
+  # HTTPS Listener (ACM 인증서는 LoadBalancerConfiguration에서 지정)
   - name: https
     protocol: HTTPS
     port: 443
-    tls:
-      mode: Terminate
-      certificateRefs:
-      - kind: Secret
-        name: acm-certificate
-        namespace: gateway-system
     allowedRoutes:
       namespaces:
         from: All  # 모든 네임스페이스의 HTTPRoute 허용
+---
+# LoadBalancerConfiguration — ALB scheme/타입, ACM 인증서(ARN)를 설정
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: alb-gateway-config
+  namespace: gateway-system
+spec:
+  scheme: internet-facing
+  listenerConfigurations:
+    - protocolPort: HTTPS:443
+      # certificateRefs(Secret)는 LBC ALB Gateway에서 지원되지 않습니다.
+      # ACM 인증서는 ARN으로 지정하거나 리스너/라우트 hostname으로 자동 탐색합니다.
+      defaultCertificate: <ACM 인증서 ARN>
 ```
 
   </TabItem>
@@ -652,6 +662,24 @@ spec:
         path:
           type: ReplacePrefixMatch
           replacePrefixMatch: /v1/api
+---
+# HTTP 리스너로 들어온 요청을 HTTPS로 리다이렉트 (자동이 아니라 별도 라우트로 지정)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: http-to-https-redirect
+  namespace: production-app
+spec:
+  parentRefs:
+  - name: production-gateway
+    namespace: gateway-system
+    sectionName: http
+  rules:
+  - filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        statusCode: 301
 ```
 
   </TabItem>
@@ -659,22 +687,23 @@ spec:
 
 **ReferenceGrant (크로스 네임스페이스 참조)**
 
+HTTPRoute가 Gateway에 붙는 것(route attachment)은 ReferenceGrant가 아니라 Gateway의 `allowedRoutes`로 허용합니다(Step 2의 `from: All`). ReferenceGrant는 HTTPRoute가 **다른 네임스페이스의 백엔드(Service)나 인증서**를 참조할 때 그 참조를 허용하는 용도입니다. 아래 예시는 `production-app`의 HTTPRoute가 `backend-ns`의 Service를 backendRef로 참조하도록 허용합니다.
+
 ```yaml
-# gateway-system 네임스페이스의 Gateway를 다른 네임스페이스에서 참조 허용
+# backend-ns의 Service를 production-app의 HTTPRoute가 참조하도록 허용
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
-  name: allow-httproutes-from-all
-  namespace: gateway-system
+  name: allow-routes-to-backend-ns
+  namespace: backend-ns
 spec:
   from:
   - group: gateway.networking.k8s.io
     kind: HTTPRoute
     namespace: production-app
   to:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: production-gateway
+  - group: ""
+    kind: Service
 ```
 
   </TabItem>
@@ -691,8 +720,8 @@ kubectl apply -f httproute.yaml
 
 # Gateway 상태 확인
 kubectl get gateway production-gateway -n gateway-system
-# NAME                  CLASS                        ADDRESS          PROGRAMMED   AGE
-# production-gateway    aws-network-load-balancer    a1b2c3.elb.aws   True         5m
+# NAME                  CLASS                   ADDRESS          PROGRAMMED   AGE
+# production-gateway    aws-alb-gateway-class   a1b2c3.elb.aws   True         5m
 
 # HTTPRoute 상태 확인
 kubectl get httproute backend-api -n production-app
@@ -765,9 +794,9 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 <CostComparisonTable />
 
 :::tip 비용 최적화 팁
-- **WAF 기능이 3개 이상 필요하면** AWS Native가 비용 대비 효율적입니다. 단일 WebACL에 여러 규칙을 묶어 관리할 수 있습니다
-- **1-2개만 필요하면** 오픈소스 솔루션(Cilium, Envoy Gateway)에서 추가 비용 없이 구현 가능합니다
-- **성능 민감 워크로드**는 오픈소스가 유리합니다. WAF 규칙 평가 지연 없이 커널/eBPF 레벨에서 처리됩니다
+- **WAF 규칙을 여러 개 운영한다면** 단일 WebACL에 규칙을 묶어 관리하는 AWS Native가 운영상 편리할 수 있습니다. 다만 비용 우위는 규칙 수만이 아니라 트래픽량(요청당 과금)과 운영 공수까지 포함해 각 환경에서 산정해야 합니다
+- **오픈소스 솔루션(Cilium, Envoy Gateway)**은 추가 과금 없이 정책을 구현할 수 있으나, 자체 운영 비용(노드, 업그레이드, 모니터링)을 함께 고려해야 합니다
+- **성능 민감 워크로드**에서는 Cilium의 L3/L4 패킷 전달이 eBPF로 커널에서 처리되어 지연이 낮습니다. 반면 HTTP(L7) 라우팅과 정책은 Envoy/NGINX 같은 사용자 공간 프록시가 처리하므로 커널 처리와 동일하지 않습니다. 두 경로의 지연은 실제 구성과 부하에서 각각 측정해야 합니다
 - **Lambda Authorizer 사용 시** 콜드스타트로 인한 p99 지연 급증에 주의하세요. Provisioned Concurrency 설정을 검토하세요
 :::
 

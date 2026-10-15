@@ -9,7 +9,7 @@ const data = {
     { nginx: 'annotations: rate-limit', gateway: 'Policy Attachment (구현체별 상이)', notes: '표준화 진행 중', status: 'in-progress' },
     { nginx: 'annotations: cors-*', gateway: 'Policy Attachment', notes: '표준화 진행 중', status: 'in-progress' },
     { nginx: 'annotations: auth-*', gateway: 'Policy Attachment 또는 외부 인증', notes: 'OAuth2-Proxy 등 권장', status: 'external' },
-    { nginx: 'annotations: ssl-redirect', gateway: 'Gateway TLS 리스너 자동 처리', notes: '자동화됨', status: 'automated' },
+    { nginx: 'annotations: ssl-redirect', gateway: 'HTTP 리스너 + HTTPRoute RequestRedirect 필터', notes: '별도 리다이렉트 라우트 필요(자동 아님)', status: 'external' },
   ],
   en: [
     { nginx: 'host: example.com', gateway: 'HTTPRoute.spec.hostnames', notes: 'Direct mapping', status: 'direct' },
@@ -19,7 +19,7 @@ const data = {
     { nginx: 'annotations: rate-limit', gateway: 'Policy Attachment (varies by implementation)', notes: 'Standardization in progress', status: 'in-progress' },
     { nginx: 'annotations: cors-*', gateway: 'Policy Attachment', notes: 'Standardization in progress', status: 'in-progress' },
     { nginx: 'annotations: auth-*', gateway: 'Policy Attachment or external auth', notes: 'OAuth2-Proxy etc. recommended', status: 'external' },
-    { nginx: 'annotations: ssl-redirect', gateway: 'Gateway TLS listener auto-handling', notes: 'Automated', status: 'automated' },
+    { nginx: 'annotations: ssl-redirect', gateway: 'HTTP listener + HTTPRoute RequestRedirect filter', notes: 'Requires a separate redirect route (not automatic)', status: 'external' },
   ],
 };
 
