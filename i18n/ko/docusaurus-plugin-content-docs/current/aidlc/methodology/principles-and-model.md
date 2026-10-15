@@ -3,7 +3,7 @@ title: AIDLC 10대 원칙과 실행 모델
 description: AIDLC의 핵심 철학과 Intent → Unit → Bolt 실행 모델 — AWS Labs 공식 용어 매핑 포함
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 21
 tags:
@@ -111,13 +111,13 @@ AI는 코드를 생성하기 전에 **전체 아키텍처를 제안**하고, 개
 
 #### 2. Integration of Design Techniques (설계 기법 내장)
 
-Scrum에서 DDD/BDD/TDD는 "팀이 알아서 선택"하는 옵션이었습니다. AIDLC는 이들을 **방법론의 필수 코어**로 내장합니다.
+Scrum에서 DDD/BDD/TDD는 "팀이 알아서 선택"하는 옵션이었습니다. 이 가이드는 이들을 AIDLC에 적용할 **기본 플레이버로 선택해 권장**합니다.
 
 - **DDD (Domain-Driven Design)** — AI가 비즈니스 로직을 Aggregate, Entity, Value Object로 자동 모델링합니다. [온톨로지 엔지니어링](./ontology-engineering.md)과 결합하여 도메인 지식을 구조화합니다.
 - **BDD (Behavior-Driven Development)** — AI가 Given-When-Then 시나리오를 생성하여 비즈니스 행동을 명확히 합니다.
 - **TDD (Test-Driven Development)** — AI가 테스트를 먼저 작성하고, 테스트를 통과하는 최소 코드를 생성합니다.
 
-이들은 선택이 아닌 **AI가 코드를 생성하는 표준 워크플로우**입니다.
+이들은 AIDLC 자체가 강제하는 요소가 아니라, 이 가이드가 AI 코드 생성의 일관성을 위해 권장하는 설계 기법 조합입니다.
 
 #### 3. Minimize Stages, Maximize Flow (단계 최소화, 흐름 극대화)
 

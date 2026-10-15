@@ -3,7 +3,7 @@ title: "Level 5: Event Sourcing & CQRS"
 description: Level 5 분산 트랜잭션 + CQRS + Event Sourcing 패턴 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -24,6 +24,8 @@ sidebar_position: 3
 - 이벤트 저장소 (Event Store)
 - 복잡한 프로젝션 (Read Model)
 - 이벤트 리플레이
+
+CQRS, 이벤트 소싱, 분산 트랜잭션은 서로 독립적인 설계 선택이므로 반드시 함께 적용할 필요는 없습니다. L5는 이들이 함께 나타날 때의 복잡도를 다루지만, 프로젝트에 따라 일부만 선택할 수 있습니다.
 
 ## AIDLC 적용 방법
 
@@ -87,8 +89,9 @@ events:
 
 eventStore:
   partitionKey: accountId
+  sequenceKey: aggregateSequence   # accountId별 단조 증가 시퀀스
   snapshotStrategy: every 100 events
-  retentionPolicy: 7 years
+  retentionPolicy: 7 years   # 어떤 프로젝션이든 리플레이해야 하는 가장 오래된 지점(스냅샷 기준)까지 보존해야 함
 
 projections:
   AccountBalanceView:
@@ -103,19 +106,25 @@ projections:
 
 invariants:
   - Balance cannot be negative
-  - Events must be ordered by timestamp
+  - Events must be ordered by per-aggregate sequence number (not wall-clock timestamp)
   - TransactionId must be unique (idempotency)
 ```
 
 ## 하네스 체크리스트
 
-- 적용: 이벤트 스키마 검증 (버전 관리)
-- 적용: 프로젝션 검증 (Read Model 일관성)
-- 적용: 이벤트 리플레이 테스트
-- 적용: Snapshot 전략 검증
-- 적용: 이벤트 마이그레이션 하네스
-- 적용: 멱등성 하네스
-- 적용: 분산 추적
+L5의 필수·선택 하네스 집합은 [하네스 체크리스트](../implementation/harness-checklist.md)의 표 1 L5 행과 동일합니다.
+
+**필수 하네스:**
+
+- 이벤트 스키마 검증 (버전 관리)
+- 프로젝션 검증 (Read Model 일관성)
+- 이벤트 리플레이 테스트
+- 이벤트 마이그레이션 하네스
+
+**선택 하네스:**
+
+- Snapshot 전략 검증
+- 성능 테스트
 
 ## 하네스 구현 예시
 
@@ -151,7 +160,7 @@ def test_projection_consistency():
 # harness/idempotency_test.py
 def test_duplicate_event_handling():
     """동일 이벤트를 여러 번 받아도 결과가 동일한지 검증"""
-    event = OrderCreatedEvent(orderId="123", ...)
+    event = OrderCreatedEvent(orderId="123", userId="U1", items=[])
 
     # 첫 번째 처리
     result1 = event_handler.handle(event)
@@ -177,9 +186,9 @@ def test_duplicate_event_handling():
 
 ## SemanticForge 패턴
 
-Level 5 프로젝트는 [온톨로지 엔지니어링](../../../methodology/ontology-engineering.md)의 SemanticForge 패턴을 적용합니다.
+Level 5 프로젝트는 [온톨로지 엔지니어링](../../../methodology/ontology-engineering.md)의 SemanticForge 패턴을 적용합니다. 아래는 L5 전용으로 제안하는 적용 방식이며, SemanticForge 자체 정의가 아니라 이벤트 소싱에 대한 제안된 유추입니다.
 
-**핵심 특징:**
+**제안된 유추 (L5 전용):**
 - 이벤트 = 도메인 지식의 원자 단위
 - Knowledge Graph로 이벤트 간 관계 표현
 - 프로젝션 = Knowledge Graph 쿼리

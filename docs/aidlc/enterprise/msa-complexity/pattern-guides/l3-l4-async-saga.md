@@ -3,7 +3,7 @@ title: "Level 3-4: Async Events & Saga"
 description: Application guide for Level 3 async event-driven MSA and Level 4 Saga + compensating transaction patterns
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
 reading_time: 5
 tags:
@@ -58,7 +58,9 @@ graph LR
 events:
   OrderCreated:
     schema:
+      eventId: string
       orderId: string
+      sequence: long
       userId: string
       items: list<OrderItem>
       createdAt: timestamp
@@ -67,18 +69,22 @@ events:
     consumers:
       - InventoryService (deduct stock)
       - NotificationService (send notification)
-    idempotencyKey: orderId
-    ordering: strict (by orderId)
+    idempotencyKey: eventId
+    partitionKey: orderId
+    ordering: monotonic sequence per partition (orderId)
 
   OrderConfirmed:
     schema:
+      eventId: string
       orderId: string
+      sequence: long
       confirmedAt: timestamp
     producers:
       - PaymentService
     consumers:
       - ShippingService
-    idempotencyKey: orderId
+    idempotencyKey: eventId
+    partitionKey: orderId
 
 invariants:
   - OrderCreated must precede OrderConfirmed
@@ -166,6 +172,7 @@ saga:
       compensation: refundPayment
       timeout: 5s
       retryPolicy: none
+      onUnknownOutcome: reconcile
 
   failureScenarios:
     - scenario: FlightReservationFailed
@@ -181,10 +188,16 @@ saga:
         - cancelHotelReservation
         - cancelFlightReservation
 
+    - scenario: PaymentUnknown
+      description: Charge outcome is uncertain (e.g. timeout). Reconcile by querying payment status, then decide to complete or compensate.
+      action:
+        - queryPaymentStatus
+        - if confirmed success, complete; if confirmed failure, cancelHotelReservation + cancelFlightReservation
+
   invariants:
     - All compensations must be idempotent
     - Compensation order is reverse of execution order
-    - Saga timeout = sum of step timeouts + buffer
+    - Saga timeout = sum of (step timeout x max retries) + compensation time + buffer
 ```
 
 ### Harness Checklist
@@ -214,12 +227,12 @@ def test_saga_compensation():
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
 
-    # 3. Payment failure simulation
+    # 3. On payment failure the saga triggers compensation automatically
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
 
-    # 4. Compensating transaction verification
-    saga.compensate()
+    # 4. Verify the compensation the orchestrator ran on failure
+    assert saga.status == "compensated"
     assert not hotel_service.is_reserved("hotel456")  # cancelled
     assert not flight_service.is_reserved("flight123")  # cancelled
 ```

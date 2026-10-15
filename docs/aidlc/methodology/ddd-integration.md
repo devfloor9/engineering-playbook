@@ -3,9 +3,9 @@ title: DDD Integration — Essential Core in AI-Driven Development
 description: Why DDD is an essential core in AIDLC — AI-driven development from domain design to logical design
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 22
+reading_time: 24
 tags:
   - ddd
   - domain-driven-design
@@ -21,26 +21,26 @@ sidebar_label: DDD Integration
 category: aidlc
 ---
 
-> **Key Message**: In AIDLC, DDD is not optional but a built-in element of the methodology. AI automatically models business logic according to DDD principles, and teams validate and adjust.
+> **Key Message**: This guide selects DDD as a methodology flavor to apply within AIDLC and recommends it as a default element. AI models business logic according to DDD principles, and teams validate and adjust. DDD is not an inherent mandatory core of AIDLC itself but an option this guide recommends.
 
 ---
 
-## 1. Why DDD is an Essential Core of AIDLC
+## 1. Why This Guide Recommends DDD {#1-why-ddd-is-an-essential-core-of-aidlc}
 
 In traditional Scrum, DDD (Domain-Driven Design) was a **team choice**. If architects preferred DDD, they adopted it; otherwise, they proceeded with transaction scripts or layered architecture. The choice of design technique depended on team capability and preference.
 
-In AIDLC, the situation is fundamentally different.
+This guide selects and recommends DDD/BDD/TDD as default flavors to apply within AIDLC. This does not mean the AIDLC methodology itself mandates them; it is the combination of design techniques this guide chooses in order to gain consistency in AI-driven code generation.
 
 ```
-Traditional SDLC                          AIDLC
+Traditional SDLC                          This guide's AIDLC application
 ━━━━━━━━━━━━━━                      ━━━━━━━━━━━━━━━━━━━
-Design techniques are team choice          DDD/BDD/TDD built into methodology
+Design techniques are team choice          DDD/BDD/TDD recommended as default flavors
 Architects manually model                  AI models automatically, team validates
 Design docs gradually drift from code      Spec → Code consistency auto-maintained
 Domain knowledge exists only in heads      Formalized as ontology, understood by AI
 ```
 
-### 1.1 Why is DDD Built-In
+### 1.1 Why DDD is Recommended {#11-why-is-ddd-built-in}
 
 AI performs best with structured patterns. DDD provides clear vocabulary and rules for organizing business logic into **Aggregate, Entity, Value Object, Domain Event**. This acts as consistent guardrails when AI transforms requirements into code.
 
@@ -96,7 +96,7 @@ Mob Elaboration is a requirements refinement session where Product Owner, develo
 
 ### 2.2 Kiro Spec-Driven Inception
 
-Kiro systematizes Mob Elaboration deliverables as **Spec files**. It structures the entire process from natural language requirements to code.
+Kiro systematizes Mob Elaboration deliverables as **Spec files**. It structures the entire process from natural language requirements to code. The `requirements.md → design.md → tasks.md` flow below is the output structure this guide pins to the AIDLC Vibe workflow; it does not necessarily match the file names and stages used by Kiro's own built-in Spec feature. Verify each tool's actual Spec behavior against that tool's current documentation.
 
 ```mermaid
 graph LR
@@ -127,9 +127,11 @@ graph LR
 ## Non-Functional Requirements
 - P99 latency: < 200ms
 - Availability: 99.95%
-- Auto-scaling: 2-20 Pods
+- Auto-scaling: 3-20 Pods (minimum 3, HPA max 20)
 - EKS 1.35+ compatibility
 ```
+
+The design above assumes an EKS 1.35+ cluster with the ACK controllers (DynamoDB, SQS), Karpenter, and HPA already installed.
 
 **design.md**:
 
@@ -143,7 +145,7 @@ graph LR
 - Domain Event: PaymentCreated, PaymentCompleted, PaymentFailed
 
 ## Infrastructure Configuration
-- EKS Deployment (3 replicas min)
+- EKS Deployment (replicas: 3, HPA max 20)
 - ACK DynamoDB Table (on-demand)
 - ACK SQS Queue (FIFO)
 - HPA (CPU 70%, Memory 80%)
@@ -197,6 +199,8 @@ graph LR
 ### 2.3 MCP-Based Real-Time Context Collection
 
 Kiro is MCP native, collecting real-time infrastructure state through AWS Hosted MCP servers during the Inception phase.
+
+The calls and responses below are illustrative of the interaction; the actual tool names, schemas, and response formats of each MCP server follow the documentation of the server version you use.
 
 ```
 [Kiro + MCP Interaction]
@@ -258,13 +262,14 @@ graph LR
 
 ```go
 // Aggregate
+// The DynamoDB partition key maps to TransactionID (the "transactionId" attribute), matching the Table CRD keySchema HASH key.
 type Payment struct {
-    TransactionID string
-    Amount        Money
-    Status        PaymentStatus
-    Customer      Customer
-    Method        PaymentMethod
-    Events        []DomainEvent
+    TransactionID string        `dynamodbav:"transactionId"` // partition key (HASH)
+    Amount        Money         `dynamodbav:"amount"`
+    Status        PaymentStatus `dynamodbav:"status"`
+    Customer      Customer      `dynamodbav:"customer"`
+    Method        PaymentMethod `dynamodbav:"method"`
+    Events        []DomainEvent `dynamodbav:"-"` // not persisted (separated into the outbox)
 }
 
 // Value Object
@@ -332,8 +337,8 @@ metadata:
   name: payment-events
 spec:
   queueName: payment-service-events.fifo
-  fifoQueue: true
-  contentBasedDeduplication: true
+  fifoQueue: "true"
+  contentBasedDeduplication: "true"
   tags:
     DomainEvent: PaymentCreated,PaymentCompleted,PaymentFailed
 ```
@@ -353,18 +358,25 @@ type DynamoDBPaymentRepository struct {
 }
 
 func (r *DynamoDBPaymentRepository) Save(ctx context.Context, p *Payment) error {
-    item, _ := attributevalue.MarshalMap(p)
-    _, err := r.client.PutItem(ctx, &dynamodb.PutItemInput{
-        TableName: aws.String("payment-service"),
-        Item:      item,
-    })
-
-    // Publish Domain Events
-    for _, event := range p.Events {
-        publishToSQS(event)
+    item, err := attributevalue.MarshalMap(p)
+    if err != nil {
+        return err
     }
 
-    return err
+    // Write the aggregate and its domain events in one transaction (outbox pattern)
+    outboxItems := marshalOutbox(p.Events)
+    _, err = r.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+        TransactItems: append([]types.TransactWriteItem{
+            {Put: &types.Put{TableName: aws.String("payment-service"), Item: item}},
+        }, outboxItems...),
+    })
+    if err != nil {
+        // On persistence failure, return without publishing (state and events commit or fail together)
+        return err
+    }
+
+    // Publishing is done asynchronously from the outbox (a separate relay guarantees retries)
+    return nil
 }
 ```
 
@@ -465,9 +477,12 @@ events:
       amount: decimal
       currency: string
       timestamp: ISO8601
-    consumers:
-      - notification-unit  # Subscribed by Notification team
-      - analytics-unit     # Subscribed by Analytics team
+    # A single SQS queue does not fan out to multiple consumers, so publish to an
+    # SNS topic (or EventBridge) and subscribe a per-consumer SQS queue.
+    publishTo: sns:payment-events-topic
+    subscribers:
+      - notification-unit  # subscribes its own queue payment-events-notification
+      - analytics-unit     # subscribes its own queue payment-events-analytics
 ```
 
 AI auto-generates integration tests based on this spec.
@@ -478,8 +493,10 @@ func TestPaymentNotificationIntegration(t *testing.T) {
     payment := CreatePayment(amount)
     payment.Complete()
 
-    // Verify event received from SQS
-    event := sqsClient.ReceiveMessage("payment-events.fifo")
+    // Receive from the notification-specific queue and deserialize into a typed event
+    msg := sqsClient.ReceiveMessage("payment-events-notification")
+    var event PaymentCompletedEvent
+    require.NoError(t, json.Unmarshal([]byte(msg.Body), &event))
     assert.Equal(t, "PaymentCompleted", event.Type)
 
     // Verify Notification Unit sent email

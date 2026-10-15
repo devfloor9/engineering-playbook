@@ -3,9 +3,9 @@ title: AI Coding Agents
 description: AI Coding Agents for AIDLC Construction Phase — Kiro Spec-Driven Development, Q Developer, Agent Comparison
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 21
+reading_time: 24
 tags:
   - aidlc
   - ai-coding-agents
@@ -40,7 +40,7 @@ Amazon Q Developer and Kiro use **Anthropic Claude** models by default, and Kiro
 
 ### 2.1 Spec-Driven Inception
 
-Kiro systematizes Inception phase outputs into **Spec files**, structuring the entire process from natural language requirements to code.
+Kiro systematizes Inception phase outputs into **Spec files**, structuring the entire process from natural language requirements to code. The `requirements.md → design.md → tasks.md` flow below is the output structure this guide pins to the AIDLC Vibe workflow; it does not necessarily match the file names and stages used by Kiro's own built-in Spec feature. Verify each tool's actual Spec behavior against that tool's current documentation.
 
 ```
 requirements.md → design.md → tasks.md → code generation → validation
@@ -61,9 +61,11 @@ requirements.md → design.md → tasks.md → code generation → validation
 ## Non-Functional Requirements
 - P99 latency: < 200ms
 - Availability: 99.95%
-- Auto-scaling: 2-20 Pods
+- Auto-scaling: 3-20 Pods (minimum 3, HPA max 20)
 - EKS 1.35+ compatible
 ```
+
+The design above assumes an EKS 1.35+ cluster with the ACK controllers (DynamoDB, SQS), Karpenter, and HPA already installed.
 
 **design.md**
 
@@ -71,7 +73,7 @@ requirements.md → design.md → tasks.md → code generation → validation
 # Payment Service Architecture
 
 ## Infrastructure Configuration
-- EKS Deployment (3 replicas min)
+- EKS Deployment (replicas: 3, HPA max 20)
 - ACK DynamoDB Table (on-demand)
 - ACK SQS Queue (FIFO)
 - HPA (CPU 70%, Memory 80%)
@@ -131,6 +133,8 @@ The Spec-Driven approach maintains the full context and can automatically track 
 ### 2.3 MCP Native Architecture
 
 Kiro is designed MCP (Model Context Protocol) native, collecting **real-time infrastructure state** via AWS Hosted MCP servers during the Inception phase.
+
+The calls and responses below are illustrative of the interaction; the actual tool names, schemas, and response formats of each MCP server follow the documentation of the server version you use.
 
 ```
 [Kiro + MCP Interaction]
@@ -477,7 +481,7 @@ When providing Kiro with ontology built during the Inception phase, it generates
 ## Business Rules
 - When creating Payment, Order.status must be "confirmed"
 - Payment.amount must match Order.total_amount
-- On Payment failure, send to SQS retry queue (max 3 times)
+- Only on a clearly-failed Payment, send to the SQS retry queue with an idempotency key (max 3 times); on an unknown outcome such as a timeout, reconcile by querying payment status instead of retrying
 ```
 
 Kiro generates `design.md` and code based on this ontology, ensuring domain term consistency.

@@ -3,9 +3,9 @@ title: "Level 1-2: 단순 CRUD & 동기 MSA"
 description: Level 1 단순 CRUD 서비스와 Level 2 동기 MSA 오케스트레이션 패턴 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 2
+reading_time: 3
 tags:
   - msa
   - aidlc
@@ -50,6 +50,8 @@ graph LR
 
 **예시 온톨로지:**
 
+아래 `invariants` 항목은 실행 가능한 제약 구문이 아니라 도메인 맥락을 사람이 읽도록 적은 예시 표기입니다. 실제 검증 규칙은 서비스의 스키마·검증 코드로 구현합니다.
+
 ```yaml
 # ontology/user-service.yaml
 entities:
@@ -83,7 +85,7 @@ relationships:
 
 ### 적용 전략
 
-- Full AIDLC 즉시 적용 가능
+- 도메인·데이터 위험이 낮은 경우 Full AIDLC 즉시 적용 가능 (단, 금융·의료·개인정보 등 규제·민감 도메인의 단순 CRUD 서비스는 더 무거운 하네스와 리뷰 경로가 필요)
 - Agent 기반 코드 생성 활용
 - 온톨로지는 스키마 정의 수준으로 충분
 - 하네스는 기본 Quality Gate로 시작
@@ -94,7 +96,7 @@ relationships:
 - 다수의 독립 서비스
 - REST/gRPC 동기 호출
 - 오케스트레이터 패턴 (주문 서비스가 재고/결제 호출)
-- 분산 DB, 하지만 동기 트랜잭션
+- 분산 DB를 쓰며, 동기 호출로 오케스트레이션하지만 서비스 간 원자적(ACID) 트랜잭션은 제공하지 않음 (서비스 간 일관성은 L2에서도 Saga/아웃박스가 필요)
 
 **AIDLC 적용 방법:**
 
@@ -147,6 +149,8 @@ serviceContracts:
     timeout: 5s
     retryPolicy: exponentialBackoff(3)
 ```
+
+`PaymentService.processPayment`처럼 돈이 움직이는 호출을 재시도할 때는 멱등성 키를 함께 전달해, 멱등하거나 명확히 실패한 결과에 대해서만 재시도합니다. 타임아웃처럼 성공 여부가 불확실한(unknown) 결과는 맹목적으로 재시도하지 말고, 결제 상태를 조회해 확정(reconcile)한 뒤 처리해야 합니다.
 
 ### 하네스 체크리스트
 

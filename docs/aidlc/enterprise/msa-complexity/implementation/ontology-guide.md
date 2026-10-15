@@ -3,9 +3,9 @@ title: Ontology Writing Guide
 description: Ontology depth and writing guidelines by MSA complexity level
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 4
+reading_time: 5
 tags:
   - ontology
   - aidlc
@@ -40,6 +40,8 @@ Entity and relationship definitions
 - Define basic invariants
 
 ### Example
+
+The `invariants` entries below are illustrative domain notation written for human readers, not an executable constraint syntax. The actual validation rules are implemented in each service's schema and validation code.
 
 ```yaml
 # Entity definitions
@@ -109,15 +111,15 @@ eventStore:
 # Projections
 projections:
   AccountBalanceView:
-    source: [AccountOpened, MoneyDeposited]
+    source: [AccountOpened, MoneyDeposited, MoneyWithdrawn]
     target: read_db.account_balance
 ```
 
 ## SemanticForge Pattern (L5 Only)
 
-Level 5 projects apply the SemanticForge pattern from [Ontology Engineering](../../../methodology/ontology-engineering.md).
+Level 5 projects apply the SemanticForge pattern from [Ontology Engineering](../../../methodology/ontology-engineering.md). The mappings below are proposed analogies for applying it to event sourcing at L5, not the SemanticForge definition itself.
 
-**Key Features:**
+**Proposed analogies (L5 only):**
 - Event = atomic unit of domain knowledge
 - Express event relationships as Knowledge Graph
 - Projection = Knowledge Graph query

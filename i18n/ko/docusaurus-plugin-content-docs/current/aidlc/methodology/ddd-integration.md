@@ -3,9 +3,9 @@ title: DDD 통합 — AI 주도 개발에서의 필수 코어
 description: AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 14
 tags:
   - ddd
   - domain-driven-design
@@ -21,26 +21,26 @@ sidebar_label: DDD 통합
 category: aidlc
 ---
 
-> **핵심 메시지**: AIDLC에서 DDD는 선택사항이 아닌 방법론의 내장 요소입니다. AI가 비즈니스 로직을 자동으로 DDD 원칙에 따라 모델링하고, 팀이 이를 검증·조정합니다.
+> **핵심 메시지**: 이 가이드는 AIDLC에 적용할 방법론 플레이버로 DDD를 선택하며, DDD를 기본 적용 요소로 권장합니다. AI가 비즈니스 로직을 DDD 원칙에 따라 모델링하고, 팀이 이를 검증·조정합니다. DDD는 AIDLC 자체에 내재된 필수 요소가 아니라 이 가이드가 권장하는 선택지입니다.
 
 ---
 
-## 1. DDD가 AIDLC의 필수 코어인 이유
+## 1. 이 가이드가 DDD를 권장하는 이유 {#1-ddd가-aidlc의-필수-코어인-이유}
 
 전통적인 Scrum에서 DDD(Domain-Driven Design)는 **팀 선택사항**이었습니다. 아키텍트가 DDD를 선호하면 도입하고, 그렇지 않으면 트랜잭션 스크립트나 레이어드 아키텍처로 진행했습니다. 설계 기법의 선택은 팀의 역량과 선호에 달려 있었습니다.
 
-AIDLC에서는 상황이 근본적으로 다릅니다.
+이 가이드는 AIDLC에 DDD/BDD/TDD를 기본 플레이버로 선택해 권장합니다. 이는 AIDLC 방법론 자체가 이들을 강제한다는 뜻이 아니라, AI 주도 코드 생성에서 일관성을 얻기 위해 이 가이드가 택한 설계 기법 조합입니다.
 
 ```
-전통적 SDLC                          AIDLC
+전통적 SDLC                          이 가이드의 AIDLC 적용
 ━━━━━━━━━━━━━━                      ━━━━━━━━━━━━━━━━━━━
-설계 기법은 팀 선택                     DDD/BDD/TDD를 방법론에 내장
+설계 기법은 팀 선택                     DDD/BDD/TDD를 기본 플레이버로 권장
 아키텍트가 수동 모델링                  AI가 자동 모델링, 팀이 검증
 설계 문서는 코드와 점진적 이탈           Spec → Code 일관성 자동 유지
 도메인 지식이 사람 머리에만 존재         온톨로지로 형식화되어 AI가 이해
 ```
 
-### 1.1 왜 DDD가 내장되는가
+### 1.1 왜 DDD를 권장하는가 {#11-왜-ddd가-내장되는가}
 
 AI는 구조화된 패턴에서 최고의 성능을 발휘합니다. DDD는 비즈니스 로직을 **Aggregate, Entity, Value Object, Domain Event**로 체계화하는 명확한 어휘와 규칙을 제공합니다. 이는 AI가 요구사항을 코드로 변환할 때 일관된 가이드레일 역할을 합니다.
 
@@ -93,7 +93,7 @@ Mob Elaboration은 Product Owner, 개발자, QA가 한 방에 모여 AI와 협�
 
 ### 2.2 Kiro Spec-Driven Inception
 
-Kiro는 Mob Elaboration의 산출물을 **Spec 파일**로 체계화합니다. 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다.
+Kiro는 Mob Elaboration의 산출물을 **Spec 파일**로 체계화합니다. 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다. 아래 `requirements.md → design.md → tasks.md` 흐름은 이 가이드가 AIDLC Vibe 워크플로에 맞춰 고정한 산출물 구조이며, Kiro의 기본 Spec 기능이 사용하는 파일 이름·단계와 반드시 동일하지는 않습니다. 각 도구의 실제 Spec 동작은 해당 도구의 최신 문서로 확인해야 합니다.
 
 ```mermaid
 graph LR
@@ -124,9 +124,11 @@ graph LR
 ## 비기능 요구사항
 - P99 지연 시간: < 200ms
 - 가용성: 99.95%
-- 자동 스케일링: 2-20 Pod
+- 자동 스케일링: 3-20 Pod (최소 3, HPA 상한 20)
 - EKS 1.35+ 호환
 ```
+
+위 설계는 EKS 1.35+ 클러스터, ACK 컨트롤러(DynamoDB·SQS), Karpenter, HPA가 미리 설치되어 있다는 전제를 둡니다.
 
 **design.md**:
 
@@ -140,7 +142,7 @@ graph LR
 - Domain Event: PaymentCreated, PaymentCompleted, PaymentFailed
 
 ## 인프라 구성
-- EKS Deployment (3 replicas min)
+- EKS Deployment (replicas: 3, HPA 상한 20)
 - ACK DynamoDB Table (on-demand)
 - ACK SQS Queue (FIFO)
 - HPA (CPU 70%, Memory 80%)
@@ -194,6 +196,8 @@ graph LR
 ### 2.3 MCP 기반 실시간 컨텍스트 수집
 
 Kiro는 MCP 네이티브로, Inception 단계에서 AWS Hosted MCP 서버를 통해 실시간 인프라 상태를 수집합니다.
+
+아래 호출과 응답은 상호작용 방식을 보여주는 예시이며, 실제 MCP 서버의 도구 이름·스키마·응답 형식은 사용하는 서버 버전의 문서를 따릅니다.
 
 ```
 [Kiro + MCP 상호작용]
@@ -255,13 +259,14 @@ graph LR
 
 ```go
 // Aggregate
+// DynamoDB 파티션 키는 TransactionID("transactionId" 속성)로 매핑되며, Table CRD의 keySchema HASH 키와 일치합니다.
 type Payment struct {
-    TransactionID string
-    Amount        Money
-    Status        PaymentStatus
-    Customer      Customer
-    Method        PaymentMethod
-    Events        []DomainEvent
+    TransactionID string        `dynamodbav:"transactionId"` // 파티션 키 (HASH)
+    Amount        Money         `dynamodbav:"amount"`
+    Status        PaymentStatus `dynamodbav:"status"`
+    Customer      Customer      `dynamodbav:"customer"`
+    Method        PaymentMethod `dynamodbav:"method"`
+    Events        []DomainEvent `dynamodbav:"-"` // 영속화 대상 아님(아웃박스로 분리)
 }
 
 // Value Object
@@ -329,8 +334,8 @@ metadata:
   name: payment-events
 spec:
   queueName: payment-service-events.fifo
-  fifoQueue: true
-  contentBasedDeduplication: true
+  fifoQueue: "true"
+  contentBasedDeduplication: "true"
   tags:
     DomainEvent: PaymentCreated,PaymentCompleted,PaymentFailed
 ```
@@ -350,18 +355,25 @@ type DynamoDBPaymentRepository struct {
 }
 
 func (r *DynamoDBPaymentRepository) Save(ctx context.Context, p *Payment) error {
-    item, _ := attributevalue.MarshalMap(p)
-    _, err := r.client.PutItem(ctx, &dynamodb.PutItemInput{
-        TableName: aws.String("payment-service"),
-        Item:      item,
-    })
-
-    // Domain Event 발행
-    for _, event := range p.Events {
-        publishToSQS(event)
+    item, err := attributevalue.MarshalMap(p)
+    if err != nil {
+        return err
     }
 
-    return err
+    // Aggregate와 Domain Event를 하나의 트랜잭션으로 함께 기록 (아웃박스 패턴)
+    outboxItems := marshalOutbox(p.Events)
+    _, err = r.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+        TransactItems: append([]types.TransactWriteItem{
+            {Put: &types.Put{TableName: aws.String("payment-service"), Item: item}},
+        }, outboxItems...),
+    })
+    if err != nil {
+        // 영속화 실패 시 이벤트를 발행하지 않고 반환 (상태와 이벤트가 함께 커밋되거나 함께 실패)
+        return err
+    }
+
+    // 발행은 아웃박스에서 비동기로 수행 (별도 relay가 재시도 보장)
+    return nil
 }
 ```
 
@@ -462,9 +474,12 @@ events:
       amount: decimal
       currency: string
       timestamp: ISO8601
-    consumers:
-      - notification-unit  # Notification팀이 구독
-      - analytics-unit     # Analytics팀이 구독
+    # 단일 SQS 큐는 다수 소비자로 팬아웃되지 않으므로, SNS 토픽(또는 EventBridge)으로
+    # 발행하고 소비자별 SQS 큐를 구독시킵니다.
+    publishTo: sns:payment-events-topic
+    subscribers:
+      - notification-unit  # 전용 큐 payment-events-notification 구독
+      - analytics-unit     # 전용 큐 payment-events-analytics 구독
 ```
 
 AI가 이 사양을 기반으로 통합 테스트를 자동 생성합니다.
@@ -475,8 +490,10 @@ func TestPaymentNotificationIntegration(t *testing.T) {
     payment := CreatePayment(amount)
     payment.Complete()
 
-    // SQS에서 이벤트 수신 확인
-    event := sqsClient.ReceiveMessage("payment-events.fifo")
+    // Notification 전용 큐에서 메시지를 수신하고 타입을 지정해 역직렬화
+    msg := sqsClient.ReceiveMessage("payment-events-notification")
+    var event PaymentCompletedEvent
+    require.NoError(t, json.Unmarshal([]byte(msg.Body), &event))
     assert.Equal(t, "PaymentCompleted", event.Type)
 
     // Notification Unit이 이메일 발송했는지 확인

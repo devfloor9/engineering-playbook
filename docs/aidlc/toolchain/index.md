@@ -3,7 +3,7 @@ title: AIDLC Tools & Implementation
 description: Tools that enable AIDLC — AI Coding Agents, Open-Weight Models, EKS Automation, Technology Roadmap
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
 reading_time: 2
 tags:
@@ -21,7 +21,7 @@ This section covers tools and technology stacks for implementing the AIDLC [meth
 
 | Document | Key Content | Target Audience |
 |----------|-------------|----------------|
-| [AI Coding Agents](./ai-coding-agents.md) | Kiro Spec-Driven development, Q Developer, agent comparison | Developers, Tech Leads |
+| [AI Coding Agents](./ai-coding-agents.md) | Spec-Driven development on the AIDLC Vibe workflow, Q Developer, agent comparison | Developers, Tech Leads |
 | [Open-Weight Models](./open-weight-models.md) | On-premises deployment, cloud vs self-hosting TCO, data residency | Architects, Security Officers |
 | [EKS Declarative Automation](./eks-declarative-automation.md) | Managed Argo CD, ACK, KRO, Gateway API | Developers, DevOps |
 | [Technology Roadmap](./technology-roadmap.md) | Build-vs-Wait decision matrix, investment planning | CTO, Enterprise Architects |

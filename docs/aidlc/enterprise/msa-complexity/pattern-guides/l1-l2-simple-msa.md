@@ -3,9 +3,9 @@ title: "Level 1-2: Simple CRUD & Synchronous MSA"
 description: Application guide for Level 1 simple CRUD services and Level 2 synchronous MSA orchestration patterns
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 4
+reading_time: 6
 tags:
   - msa
   - aidlc
@@ -50,6 +50,8 @@ graph LR
 
 **Example Ontology:**
 
+The `invariants` entries below are illustrative domain notation written for human readers, not an executable constraint syntax. The actual validation rules are implemented in the service's schema and validation code.
+
 ```yaml
 # ontology/user-service.yaml
 entities:
@@ -83,7 +85,7 @@ relationships:
 
 ### Application Strategy
 
-- Full AIDLC can be applied immediately
+- Full AIDLC can be applied immediately when domain and data risk is low (even an L1 CRUD service in a regulated or sensitive domain such as finance, healthcare, or PII needs the heavier harness and review path)
 - Leverage agent-based code generation
 - Ontology at schema definition level is sufficient
 - Start with basic Quality Gate harness
@@ -94,7 +96,7 @@ relationships:
 - Multiple independent services
 - REST/gRPC synchronous calls
 - Orchestrator pattern (order service calls inventory/payment)
-- Distributed DB, but synchronous transactions
+- Distributed DB, orchestrated by synchronous calls but with no atomic (ACID) transaction across services (cross-service consistency still needs sagas/outbox even at L2)
 
 **AIDLC Application:**
 
@@ -147,6 +149,8 @@ serviceContracts:
     timeout: 5s
     retryPolicy: exponentialBackoff(3)
 ```
+
+When retrying a money-moving call such as `PaymentService.processPayment`, pass an idempotency key and retry only on idempotent or clearly-failed outcomes. An unknown outcome (such as a timeout) must not be retried blindly; query the payment status to reconcile it before deciding.
 
 ### Harness Checklist
 

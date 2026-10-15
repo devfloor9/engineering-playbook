@@ -3,7 +3,7 @@ title: 하네스 체크리스트
 description: MSA 패턴별 필수 하네스와 구현 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 2
 tags:
@@ -38,7 +38,7 @@ sidebar_position: 2
 # harness/idempotency_test.py
 def test_duplicate_event_handling():
     """동일 이벤트를 여러 번 받아도 결과가 동일한지 검증"""
-    event = OrderCreatedEvent(orderId="123", ...)
+    event = OrderCreatedEvent(orderId="123", userId="U1", items=[])
 
     # 첫 번째 처리
     result1 = event_handler.handle(event)
@@ -69,12 +69,12 @@ def test_saga_compensation():
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
 
-    # 3. Payment 실패 시뮬레이션
+    # 3. Payment 실패 시 Saga가 자동으로 보상을 트리거
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
 
-    # 4. 보상 트랜잭션 검증
-    saga.compensate()
+    # 4. 오케스트레이터가 실패 시 실행한 보상 트랜잭션 검증
+    assert saga.status == "compensated"
     assert not hotel_service.is_reserved("hotel456")  # 취소됨
     assert not flight_service.is_reserved("flight123")  # 취소됨
 ```
@@ -85,6 +85,7 @@ def test_saga_compensation():
 # harness/projection_test.py
 def test_projection_consistency():
     """이벤트 소싱 프로젝션이 정확한지 검증"""
+    # AccountBalanceView.source = [AccountOpened, MoneyDeposited, MoneyWithdrawn]
     # 1. 이벤트 생성
     events = [
         AccountOpenedEvent(accountId="A1", balance=1000),

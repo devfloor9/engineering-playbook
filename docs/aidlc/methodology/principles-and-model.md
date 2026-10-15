@@ -3,7 +3,7 @@ title: AIDLC 10 Principles and Execution Model
 description: Core philosophy of AIDLC and the Intent → Unit → Bolt execution model
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: devfloor9
 reading_time: 29
 tags:
@@ -83,13 +83,13 @@ AI proposes the **entire architecture** before generating code, and developers v
 
 #### 2. Integration of Design Techniques
 
-In Scrum, DDD/BDD/TDD were "optional choices for teams." AIDLC embeds them as **essential cores of the methodology**.
+In Scrum, DDD/BDD/TDD were "optional choices for teams." This guide **selects and recommends them as default flavors** to apply within AIDLC.
 
 - **DDD (Domain-Driven Design)** — AI automatically models business logic into Aggregate, Entity, Value Object. Combined with [Ontology Engineering](./ontology-engineering.md) to structure domain knowledge.
 - **BDD (Behavior-Driven Development)** — AI generates Given-When-Then scenarios to clarify business behaviors.
 - **TDD (Test-Driven Development)** — AI writes tests first, then generates minimal code to pass tests.
 
-These are not choices but **standard workflows for AI code generation**.
+These are not mandated by AIDLC itself; they are the combination of design techniques this guide recommends for consistency in AI code generation.
 
 #### 3. Minimize Stages, Maximize Flow
 

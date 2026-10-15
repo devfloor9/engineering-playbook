@@ -3,7 +3,7 @@ title: Harness Checklist
 description: Required harnesses and implementation guide by MSA pattern
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
 reading_time: 4
 tags:
@@ -38,7 +38,7 @@ Required and optional harnesses organized by pattern.
 # harness/idempotency_test.py
 def test_duplicate_event_handling():
     """Verify identical results when receiving same event multiple times"""
-    event = OrderCreatedEvent(orderId="123", ...)
+    event = OrderCreatedEvent(orderId="123", userId="U1", items=[])
 
     # First processing
     result1 = event_handler.handle(event)
@@ -69,12 +69,12 @@ def test_saga_compensation():
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
 
-    # 3. Payment failure simulation
+    # 3. On payment failure the saga triggers compensation automatically
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
 
-    # 4. Compensating transaction verification
-    saga.compensate()
+    # 4. Verify the compensation the orchestrator ran on failure
+    assert saga.status == "compensated"
     assert not hotel_service.is_reserved("hotel456")  # cancelled
     assert not flight_service.is_reserved("flight123")  # cancelled
 ```
@@ -85,6 +85,7 @@ def test_saga_compensation():
 # harness/projection_test.py
 def test_projection_consistency():
     """Verify event sourcing projection accuracy"""
+    # AccountBalanceView.source = [AccountOpened, MoneyDeposited, MoneyWithdrawn]
     # 1. Create events
     events = [
         AccountOpenedEvent(accountId="A1", balance=1000),

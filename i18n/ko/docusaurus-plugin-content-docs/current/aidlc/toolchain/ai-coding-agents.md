@@ -3,9 +3,9 @@ title: AI 코딩 에이전트
 description: AIDLC Construction 단계의 AI 코딩 에이전트 — 공식 지원 7개 플랫폼, Kiro Spec-Driven 개발, Q Developer, 에이전트 비교
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 18
 tags:
   - aidlc
   - ai-coding-agents
@@ -116,7 +116,7 @@ Amazon Q Developer와 Kiro는 **Anthropic Claude** 모델을 기본으로 사용
 
 ### 2.1 Spec-Driven Inception
 
-Kiro는 Inception 단계의 산출물을 **Spec 파일**로 체계화하여, 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다.
+Kiro는 Inception 단계의 산출물을 **Spec 파일**로 체계화하여, 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다. 아래 `requirements.md → design.md → tasks.md` 흐름은 이 가이드가 AIDLC Vibe 워크플로에 맞춰 고정한 산출물 구조이며, Kiro의 기본 Spec 기능이 사용하는 파일 이름·단계와 반드시 동일하지는 않습니다. 각 도구의 실제 Spec 동작은 해당 도구의 최신 문서로 확인해야 합니다.
 
 ```
 requirements.md → design.md → tasks.md → 코드 생성 → 검증
@@ -137,9 +137,11 @@ requirements.md → design.md → tasks.md → 코드 생성 → 검증
 ## 비기능 요구사항
 - P99 레이턴시: < 200ms
 - 가용성: 99.95%
-- 자동 스케일링: 2-20 Pod
+- 자동 스케일링: 3-20 Pod (최소 3, HPA 상한 20)
 - EKS 1.35+ 호환
 ```
+
+위 설계는 EKS 1.35+ 클러스터, ACK 컨트롤러(DynamoDB·SQS), Karpenter, HPA가 미리 설치되어 있다는 전제를 둡니다.
 
 **design.md**
 
@@ -147,7 +149,7 @@ requirements.md → design.md → tasks.md → 코드 생성 → 검증
 # Payment Service 아키텍처
 
 ## 인프라 구성
-- EKS Deployment (3 replicas min)
+- EKS Deployment (replicas: 3, HPA 상한 20)
 - ACK DynamoDB Table (on-demand)
 - ACK SQS Queue (FIFO)
 - HPA (CPU 70%, Memory 80%)
@@ -207,6 +209,8 @@ Spec-Driven 방식은 전체 맥락을 유지하며 요구사항 변경 시 영�
 ### 2.3 MCP 네이티브 아키텍처
 
 Kiro는 MCP(Model Context Protocol) 네이티브로 설계되어, Inception 단계에서 AWS Hosted MCP 서버를 통해 **실시간 인프라 상태를 수집**합니다.
+
+아래 호출과 응답은 상호작용 방식을 보여주는 예시이며, 실제 MCP 서버의 도구 이름·스키마·응답 형식은 사용하는 서버 버전의 문서를 따릅니다.
 
 ```
 [Kiro + MCP 상호작용]
@@ -553,7 +557,7 @@ Inception 단계에서 구축한 온톨로지를 Kiro에게 제공하면, **도�
 ## 비즈니스 규칙
 - Payment 생성 시 Order.status가 "confirmed"여야 함
 - Payment.amount는 Order.total_amount와 일치해야 함
-- Payment 실패 시 SQS 재시도 큐로 전송 (max 3회)
+- Payment가 명확히 실패한 경우에만 멱등성 키와 함께 SQS 재시도 큐로 전송 (max 3회); 타임아웃 등 결과가 불확실한 경우는 재시도 대신 결제 상태 조회(reconcile) 후 처리
 ```
 
 Kiro는 이 온톨로지를 기반으로 `design.md`와 코드를 생성하며, 도메인 용어의 일관성을 보장합니다.
