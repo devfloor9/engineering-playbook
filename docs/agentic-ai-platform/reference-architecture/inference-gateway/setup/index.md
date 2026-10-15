@@ -53,7 +53,7 @@ The complete request flow of an EKS-based production inference pipeline. CloudFr
 - **L1 — across-model proxy / governance**: Bifrost (or the LLM Classifier) abstracts external/internal models and provides cascade, cost tracking, and semantic cache. It decides "which *model*." → [Basic Deployment](./basic-deployment.md) · [Advanced Features](./advanced-features.md)
 - **L2 — within-model KV-aware routing**: the Gateway API Inference Extension (InferencePool + EPP) selects a Pod based on vLLM metrics (KV cache and load). It decides "which *Pod*." → [Advanced Features: Inference Extension](./advanced-features.md#inference-extension)
 
-The two layers are not exclusive and can be used together (L1 → L2 → vLLM). For the layer definitions and selection criteria, refer to [Routing Strategy](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분).
+The two layers are not exclusive and can be used together (L1 → L2 → vLLM). For the layer definitions and selection criteria, refer to [Routing Strategy](../../../model-serving/inference-routing/routing-strategy.md#two-routing-layers--keep-them-distinct).
 
 :::note About the reference architecture diagram
 The diagram below is a **target (reference) architecture** that includes L1 (Bifrost), L2 (llm-d EPP), and observability all together. An actual deployment selects and composes the two paths above; when KV-aware (L2) is needed, follow the InferencePool + EPP procedure in the [Inference Extension section](./advanced-features.md#inference-extension).

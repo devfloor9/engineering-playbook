@@ -357,7 +357,7 @@ https://<AMG_ENDPOINT>               → Grafana (Separate managed service)
 
 ## 2. Gateway API Inference Extension (InferencePool + EPP) {#inference-extension}
 
-Where the LLM Classifier and Bifrost decide "which **model**" (L1, across-model), the **Gateway API Inference Extension (GIE)** decides "which **Pod**" (L2, within-model) from vLLM real-time metrics (KV cache location and load). kgateway (Envoy-based) delegates each request to the **EPP (Endpoint Picker)** via `ext-proc` to pick the optimal Pod within an InferencePool. For the layer definitions and selection criteria, see [Routing Strategy — The two routing layers](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분).
+Where the LLM Classifier and Bifrost decide "which **model**" (L1, across-model), the **Gateway API Inference Extension (GIE)** decides "which **Pod**" (L2, within-model) from vLLM real-time metrics (KV cache location and load). kgateway (Envoy-based) delegates each request to the **EPP (Endpoint Picker)** via `ext-proc` to pick the optimal Pod within an InferencePool. For the layer definitions and selection criteria, see [Routing Strategy — The two routing layers](../../../model-serving/inference-routing/routing-strategy.md#two-routing-layers--keep-them-distinct).
 
 :::info Version and status
 GIE reached v1.0.0 GA in 2025-09, and InferencePool is `inference.networking.k8s.io/v1`. The EPP code was consolidated into llm-d, and the policy CRD (`InferenceObjective`) lives in llm-d (`llm-d.ai/v1alpha2`, alpha). The GIE repository owns the InferencePool API and the Endpoint Picker Protocol. ([GIE docs](https://gateway-api-inference-extension.sigs.k8s.io/))
