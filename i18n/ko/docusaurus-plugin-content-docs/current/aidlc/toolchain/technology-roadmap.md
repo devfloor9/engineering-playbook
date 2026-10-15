@@ -3,9 +3,9 @@ title: 기술 로드맵
 description: AIDLC 기술 투자 의사결정 — Build-vs-Wait 매트릭스, 도구 성숙도 평가, 6/12/18개월 호라이즌
 created: "2026-04-07"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 18
 tags:
   - aidlc
   - toolchain
@@ -41,9 +41,11 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 
 ### 1.2 2026년 기술 환경 특징
 
+아래 버전은 2026년 2분기를 기준으로 한 시점 스냅샷이며, 두 언어 문서에 동일하게 유지합니다. 실제 버전은 시점에 따라 달라지므로 도입 시 각 프로젝트의 릴리스 노트로 재확인하세요.
+
 **성숙한 기술:**
-- Kubernetes (v1.36 GA, DRA 1.34 GA)
-- vLLM (v0.22+ / v0.23.x, PagedAttention v2)
+- Kubernetes (v1.35 기준, DRA는 v1.34에서 GA)
+- vLLM (v0.18+, PagedAttention v2)
 - GitOps (Argo CD, Flux CD)
 - ACK (50+ AWS 서비스 GA)
 - Gateway API (v1.2 GA)
@@ -52,10 +54,9 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 - MCP (Model Context Protocol) 서버 생태계 (50+ 오픈소스 서버)
 - AI 코딩 에이전트 (Kiro, Q Developer, Cursor, Windsurf)
 - Kubernetes 오퍼레이터 (KRO, Kagent)
-- 분산 추론 엔진 (llm-d v0.7+, Dynamo v1.x)
+- 분산 추론 엔진 (llm-d v0.5+, Dynamo v1.x)
 
 **초기 단계:**
-- Strands Agents SDK (Early Access)
 - Bedrock AgentCore (Preview)
 - Kagent (Early, 커뮤니티 주도)
 
@@ -75,15 +76,16 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 | **Gateway API + LBC v3** | GA | ✅ 즉시 도입 | ExtProc 지원, AI Gateway 구축 기반. 대안: Istio + EnvoyFilter |
 | **MCP Servers** | 서버별 상이 | 🟡 선택적 도입 | 도구별 성숙도 차이 큼. 실험 후 안정화된 것만 도입. [MCP Registry](https://registry.modelcontextprotocol.io) 참조 |
 | **Kagent** | Early | 🟠 실험 단계 | K8s AI Agent 자동화. 프로덕션 적용 전 충분한 테스트 필요. 대안: kubectl + 스크립트 |
-| **Strands Agents SDK** | GA | ✅ 커스텀 에이전트 시 | Bedrock Agents + CDK 기반. 대안: LangGraph, CrewAI |
-| **vLLM** | v0.22+ / v0.23.x (Mature) | ✅ 데이터 레지던시 시 | 오픈 웨이트 모델 서빙. 대안: TensorRT-LLM, SGLang |
-| **llm-d** | v0.7+ (GA) | 🟡 고급 사용자 | Disaggregated Serving, NIXL KV 전송. 대안: Ray Serve, vLLM multi-instance |
+| **Strands Agents SDK** | GA | ✅ 커스텀 에이전트 시 | 모델·공급자에 독립적인 오픈소스 에이전트 SDK. Bedrock AgentCore(관리형 런타임)·CDK 배포와는 별개. 대안: LangGraph, CrewAI |
+| **vLLM** | v0.18+ (Mature) | ✅ 데이터 레지던시 시 | 오픈 웨이트 모델 서빙. 대안: TensorRT-LLM, SGLang |
+| **llm-d** | v0.5+ (GA) | 🟡 고급 사용자 | Disaggregated Serving, NIXL KV 전송. 대안: Ray Serve, vLLM multi-instance |
 | **Dynamo** | v1.x (GA) | 🟡 고급 사용자 | NVIDIA 엔터프라이즈 추론 플랫폼. 대안: vLLM, TensorRT-LLM |
 | **Langfuse** | v3.x (GA) | ✅ 즉시 도입 | Self-hosted 관찰성. 대안: LangSmith (SaaS), Helicone |
 | **Ragas** | v0.2+ (GA) | ✅ 즉시 도입 | AI Agent 평가 프레임워크. 대안: PromptFoo, TruLens |
 
 :::info 성숙도 범례
-- **GA**: 프로덕션 사용 가능, API 안정성 보장
+아래 등급은 세 가지 축(출시 단계, 기능 완성도, 벤더 지원 정책)을 하나로 묶은 개략적 지표입니다. 실제 판단 시에는 세 축을 분리해 확인하세요. 예를 들어 GA라도 특정 기능은 미리보기일 수 있고, 지원 정책은 벤더·플랜마다 다릅니다.
+- **GA**: 출시 단계가 정식(General Availability), API 안정성 보장
 - **Early**: 기능은 작동하나 API 변경 가능성 있음
 - **Preview**: AWS 프리뷰 서비스, 실험 용도
 :::
@@ -107,7 +109,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 - **대안**: GitHub Copilot(범용), Cursor(AI-first IDE)
 
 #### Managed Argo CD
-- **성숙도**: GA (2024년 re:Invent 발표)
+- **성숙도**: GA (EKS의 Argo CD Capability로 2025년 re:Invent에서 발표)
 - **강점**: EKS 네이티브, AWS 관리형, IAM 통합
 - **약점**: 벤더 종속(AWS 전용), 커뮤니티 플러그인 일부 미지원
 - **권장**: 신규 EKS 클러스터는 Managed Argo CD 우선 검토
@@ -117,7 +119,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 - **성숙도**: 서버별 차이 큼 (50+ 서버 중 20여 개 안정)
 - **강점**: 표준화된 컨텍스트 전달, 50+ 오픈소스 서버
 - **약점**: 서버 품질 편차 큼, 프로덕션 보안 검증 필요
-- **권장**: 안정성 검증된 서버만 도입 (예: `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-github`)
+- **권장**: `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-github` 등은 MCP 프로젝트가 제공하는 참조·예제 서버이며, 벤더가 지원하는 제품이 아닙니다. 프로덕션에 쓰려면 인증·권한·네트워크 제한을 추가해 하드닝한 뒤, 안정성을 검증한 서버만 도입합니다.
 - **대안**: 직접 API 통합 (MCP 없이)
 
 MCP 서버 검색: [MCP Registry](https://registry.modelcontextprotocol.io)
@@ -133,7 +135,7 @@ MCP 서버 검색: [MCP Registry](https://registry.modelcontextprotocol.io)
 
 ## 3. Build-vs-Wait 결정 매트릭스
 
-다음 2x2 매트릭스는 **비즈니스 긴급도**와 **기술 성숙도**를 기준으로 도구 도입 전략을 제시합니다.
+다음 2x2 매트릭스는 **비즈니스 긴급도**(세로축)와 **기술 성숙도**(가로축, 성숙 → 초기)를 기준으로 도구 도입 전략을 제시합니다. 두 축은 함께 적용되며, 아래 사분면별 도구 배치는 고정된 결론이 아니라 **예시**입니다. 긴급도는 조직의 비즈니스 상황에 따라, 성숙도는 평가 시점에 따라 달라지므로, 섹션 8.2의 절차대로 조직별 매트릭스를 직접 작성해 배치를 확정하세요.
 
 ```mermaid
 graph TD
@@ -149,7 +151,7 @@ graph TD
         subgraph low_urgency["<b>낮은 긴급도</b>"]
             direction LR
             quadrant3["<b>🟡 모니터링</b><br/>- Gateway API<br/>- Langfuse<br/>- Ragas<br/>→ 커뮤니티 동향 추적"]
-            quadrant4["<b>🔴 대기</b><br/>- Strands Agents (Early Access)<br/>- Bedrock AgentCore (Preview)<br/>→ GA 전환 대기"]
+            quadrant4["<b>🔴 대기</b><br/>- Bedrock AgentCore (Preview)<br/>→ GA 전환 대기"]
         end
     end
 
@@ -186,7 +188,7 @@ graph TD
 - **특징**: Preview/Early Access 단계, 비즈니스 긴급도 낮음
 - **접근법**: GA 전환 시점까지 대기, 벤치마킹만 진행
 - **리스크**: 낮음 (대기 비용 < 조기 도입 리스크)
-- **예시 도구**: Strands Agents (Early Access), Bedrock AgentCore (Preview)
+- **예시 도구**: Bedrock AgentCore (Preview)
 
 ---
 
@@ -287,6 +289,12 @@ AIDLC 도구 선택 시 **벤더 종속 리스크**와 **이식성(Portability)*
 | **vLLM** | 🟢 낮음 (오픈소스) | ✅ TensorRT-LLM, SGLang | 높음 (OpenAI 호환 API) |
 | **Langfuse** | 🟢 낮음 (오픈소스) | ✅ LangSmith, Helicone | 높음 (OTel 표준) |
 
+위 "이식성 높음" 평가는 표준 인터페이스로 교체할 수 있는 **부분 집합**에 한정됩니다. 그 범위를 벗어난 벤더 전용 기능은 재작성이 필요합니다.
+- **vLLM**: OpenAI 호환 `chat/completions`·`completions` API를 쓰는 경우에 한해 TensorRT-LLM·SGLang로 교체 가능하며, vLLM 고유 서버 플래그·확장은 포함되지 않습니다.
+- **Gateway API / KRO**: Kubernetes 표준 CRD·API만 사용할 때 이식 가능하며, 특정 구현체의 어노테이션·확장은 포함되지 않습니다.
+- **Langfuse**: OpenTelemetry 표준 트레이스·메트릭에 한해 이식 가능하며, Langfuse 전용 SDK 호출은 포함되지 않습니다.
+- **ACK → 다른 IaC**: ACK는 AWS 리소스를 Kubernetes CRD로 관리하므로, Crossplane·Terraform로 옮기려면 (1) 각 CRD가 나타내는 AWS 리소스를 식별하고, (2) 대상 도구의 리소스 정의로 다시 작성하며, (3) 기존 리소스를 삭제·재생성 없이 대상 도구 상태로 임포트(예: `terraform import`)하고, (4) GitOps 조정 루프를 ACK에서 대상 컨트롤러로 전환하는 단계가 필요합니다.
+
 ### 5.1 벤더 종속 완화 전략
 
 #### 멀티 클라우드 준비 (Multi-Cloud Ready)
@@ -323,8 +331,8 @@ AIDLC 도구 선택 시 **벤더 종속 리스크**와 **이식성(Portability)*
 
 **예상 투자:**
 - 초기 구축: 2~3개월
-- 연간 라이선스: $0 (오픈소스 + AWS 관리형)
-- 인프라 비용: ~$500/월 (Langfuse 호스팅)
+- 연간 라이선스: $0 (오픈소스 도구 및 AWS 관리형 서비스의 라이선스 비용 자체는 없음)
+- 인프라 비용: Langfuse 호스팅 ~$500/월에 더해, AWS 관리형 서비스(Bedrock 토큰 사용량, EKS·Managed Argo CD·ACK 등)의 사용량 과금이 별도로 발생합니다. 사용량은 워크로드에 따라 달라지므로 조직 트래픽으로 산정하세요.
 
 **ROI 예상:**
 - 개발 속도 30% 향상 (Q Developer)
@@ -396,10 +404,9 @@ AIDLC 도구 선택 시 **벤더 종속 리스크**와 **이식성(Portability)*
 ### 7.4 리스크 평가
 - [ ] 벤더 종속 리스크가 수용 가능한가?
 - [ ] 대안이 존재하는가? (Exit 전략)
-- [ ] 보안/컴플라이언스 요구사항을 충족하는가?
 
 :::tip 의사결정 프레임워크
-위 체크리스트에서 **80% 이상 Yes**면 즉시 도입, **50~80%**면 PoC 후 결정, **50% 미만**이면 대기 권장.
+**보안/컴플라이언스 요구사항 충족은 투표 대상이 아닌 필수 통과 조건(pass/fail 게이트)입니다.** 이 조건을 충족하지 못하면 다른 항목의 점수와 무관하게 도입을 보류합니다. 이 게이트를 통과한 경우에만 나머지 체크리스트의 "Yes" 비율로 판단합니다: **80% 이상**이면 즉시 도입, **50~79%**면 PoC 후 결정, **50% 미만**이면 대기 권장.
 :::
 
 ---
@@ -415,13 +422,15 @@ AIDLC 도구 선택 시 **벤더 종속 리스크**와 **이식성(Portability)*
 
 ### 8.2 실천 가이드
 
+이 섹션의 성숙도·벤더 상태 평가(섹션 3의 "Early Access", "Preview" 등 포함)와 아래 3개월 PoC·분기별 재검토 정책은 2026년 2분기 시점의 **이 저장소의 제안**이며, 벤더가 보증한 로드맵이나 확정된 조직 정책이 아닙니다. 실제 상태와 일정은 각 벤더 공지와 조직 사정으로 확인·조정하세요.
+
 1. **현재 상태 평가**: [섹션 2](#2-현재-도구-성숙도-평가-2026-q2-기준)의 도구 목록에서 조직이 이미 사용 중인 것 체크
 2. **긴급도 × 성숙도 매트릭스 작성**: [섹션 3](#3-build-vs-wait-결정-매트릭스)의 템플릿을 활용하여 조직별 맞춤 매트릭스 작성
 3. **6개월 투자 계획 수립**: [섹션 4.1](#41-phase-1-기반-구축-6개월)의 Phase 1 활동을 조직 우선순위에 맞게 조정
-4. **PoC 실행**: 즉시 도입 사분면에 속한 도구부터 3개월 PoC 시작
+4. **PoC 실행**: 즉시 도입 사분면에 속한 도구부터 3개월 PoC 시작(제안 기준)
 
 :::info 분기별 재평가
-AIDLC 도구 생태계는 빠르게 변화합니다. **분기마다 이 문서를 재검토**하여 성숙도 평가를 업데이트하세요.
+AIDLC 도구 생태계는 빠르게 변화합니다. 이 저장소는 **분기마다 이 문서를 재검토**하여 성숙도 평가를 업데이트할 것을 제안합니다.
 :::
 
 ---
