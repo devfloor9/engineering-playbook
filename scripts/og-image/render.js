@@ -55,7 +55,6 @@ const CATEGORY_THEME = {
   'hybrid-infrastructure': { label: 'HYBRID INFRASTRUCTURE', accent: BRAND_ACCENT },
   rosa: { label: 'ROSA', accent: BRAND_ACCENT },
   benchmarks: { label: 'BENCHMARKS', accent: BRAND_ACCENT },
-  'industry-solutions': { label: 'INDUSTRY SOLUTIONS', accent: BRAND_ACCENT },
   sales: { label: 'SALES', accent: BRAND_ACCENT },
   __root__: { label: 'ENGINEERING PLAYBOOK', accent: BRAND_ACCENT },
 };
