@@ -3,9 +3,9 @@ title: EU AI Act — High-Risk AI System Regulation
 description: EU AI Act risk classification, High-risk AI obligations, GPAI provider duties, and AIDLC integration guide
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 8
+reading_time: 12
 tags:
   - eu-ai-act
   - compliance
@@ -20,9 +20,10 @@ sidebar_label: EU AI Act
 **EU AI Act** is the world's first comprehensive AI regulation, adopted in May 2024 and **enforced in phases starting from 2026**.
 
 **Enforcement Timeline:**
-- **February 2025**: Prohibited AI systems enforcement begins
-- **August 2026**: General Purpose AI (GPAI) provider obligations apply
-- **August 2027**: High-risk AI system obligations fully enforced
+- **February 2025**: Prohibited AI systems enforcement begins (Art. 5)
+- **August 2025**: General Purpose AI (GPAI) provider obligations apply (Arts. 53-55)
+- **August 2026**: General application of the Regulation and Annex III high-risk AI system obligations apply
+- **August 2027**: High-risk AI systems embedded in Annex I product-safety-regulated products apply
 
 ---
 
@@ -32,10 +33,12 @@ EU AI Act classifies AI systems into **4 risk tiers**:
 
 | Risk Tier | Definition | Examples | Regulatory Level |
 |-----------|------|------|----------|
-| **Prohibited** | Unacceptable risk | Social credit scoring, real-time remote biometric identification (except law enforcement) | **Banned** |
+| **Prohibited** | Unacceptable risk | Social credit scoring, real-time remote biometric identification in public spaces (only narrow, pre-authorised law-enforcement exceptions) | **Banned** |
 | **High-risk** | High risk | Recruitment tools, credit scoring, critical infrastructure management | **Strict obligations** |
-| **Limited risk** | Limited risk | Chatbots, emotion recognition | **Transparency obligations** |
+| **Limited risk** | Limited risk | Chatbots, emotion recognition (some uses) | **Transparency obligations** |
 | **Minimal risk** | Minimal risk | Spam filters, AI games | **Self-regulation** |
+
+The biometric row above is a summary. The Art. 5 ban on real-time remote biometric identification is not a blanket carve-out but a prohibition with only narrow, pre-authorised law-enforcement exceptions. Emotion recognition is also treated differently by use: emotion recognition in the workplace and in education is prohibited under Art. 5, and only other uses fall under Limited risk with transparency obligations.
 
 **Code Generation AI (AIDLC target) Classification:**
 - **Limited risk**: Developers aware of AI-generated code → transparency obligations
@@ -59,16 +62,17 @@ EU AI Act classifies AI systems into **4 risk tiers**:
 - Documentation of system design, development, testing
 - Must be submittable to auditing authorities
 
-### 4. Automated Logging (Art. 12)
-- Traceability of all decisions
-- Log retention period: minimum 6 months
+### 4. Automated Logging (Art. 12, Art. 19) {#4-automated-logging-art-12}
+- Art. 12: automatic recording of events (logs) over the system's lifetime to ensure traceability
+- Art. 19: retention of the automatically generated logs under the provider's control for at least 6 months (unless a longer period is set by other law)
 
 ### 5. Transparency (Art. 13)
-- Inform users of AI usage
+- Provide deployers the information needed to use and interpret the system
 - Explainable outputs
 
 ### 6. Human Oversight (HITL) (Art. 14)
-- Critical decisions require human final approval
+- Art. 14 requires effective human oversight — enabling people to understand, monitor, and intervene in, stop, or override the system. The Article does not uniformly mandate prior final approval of every critical decision.
+- As a stronger internal rule, this guide requires a human to give final approval on critical decisions.
 - Override authority guaranteed
 
 ### 7. Accuracy, Robustness, Cybersecurity (Art. 15)
@@ -79,11 +83,10 @@ EU AI Act classifies AI systems into **4 risk tiers**:
 
 ## GPAI (General Purpose AI) Provider Obligations
 
-**Articles 52-53**: Obligations for general-purpose model providers like Claude, GPT-4
+**Articles 53-55**: Obligations for general-purpose AI (GPAI) model providers like Claude, GPT-4 (Art. 51 defines the systemic-risk classification criteria and Art. 52 the classification procedure)
 
-- **Transparency Reports**: Disclose training data, energy consumption
-- **Copyright Compliance**: Specify training data sources
-- **Systemic Risk** (advanced GPAI, exceeding 10^25 FLOP): Risk assessment and mitigation obligations
+- **All GPAI providers (Art. 53)**: draw up the model's technical documentation and make it available to the AI Office and national competent authorities on request; provide downstream providers who integrate the model into their own systems the information and documentation they need to do so; put a copyright-compliance policy in place; and publish a sufficiently detailed summary of the training data
+- **Systemic-risk GPAI providers (Art. 55, e.g. exceeding 10^25 FLOP)**: in addition to the above, carry out model evaluation and adversarial testing, assess and mitigate systemic risks, track and report serious incidents, and ensure cybersecurity protection
 
 ---
 
@@ -93,7 +96,7 @@ EU AI Act classifies AI systems into **4 risk tiers**:
 |----------|--------|
 | Use of prohibited AI | **35M€** or **7% of global annual turnover** (whichever is higher) |
 | High-risk AI obligation violation | **15M€** or **3% of turnover** |
-| Providing inaccurate information | **7.5M€** or **1.5% of turnover** |
+| Providing inaccurate information | **7.5M€** or **1% of turnover** |
 
 ---
 
@@ -143,12 +146,14 @@ flowchart LR
 - [ ] Auto-generation of technical documentation (design, development, testing docs)
 - [ ] Audit log implementation (record all AI decisions)
 - [ ] Robustness testing (adversarial attacks, boundary cases)
-- [ ] Transparency labeling on AI-generated code (`# AI-GENERATED: Claude 3.7 Sonnet`)
+- [ ] Record a provenance comment on AI-generated code (`# AI-GENERATED: ...`)
+
+The `# AI-GENERATED` comment at the top of source code is provenance metadata for tracking where the code came from; by itself it does not satisfy an EU AI Act transparency duty. The regulatory transparency of Art. 13 (information to deployers) and Art. 50 (transparency to users) is met by disclosing to users that they are interacting with, or receiving output from, an AI system, and is not substituted by an in-code comment.
 
 ### Operations Stage Checklist
 
 - [ ] Post-market monitoring (continuous production performance tracking)
-- [ ] Report serious incidents within 15 days (Art. 73)
+- [ ] Serious-incident reporting by providers of high-risk AI systems (Art. 73): without undue delay, generally within 15 days / within 2 days for a widespread infringement or an Art. 3(49)(b) serious incident / within 10 days where a death is involved
 - [ ] Human oversight process operation (critical decision approval)
 
 ---

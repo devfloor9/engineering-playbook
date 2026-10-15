@@ -3,7 +3,7 @@ title: AI 규제 컴플라이언스 프레임워크
 description: EU AI Act, NIST AI RMF, ISO/IEC 42001, 한국 AI 기본법 4개 프레임워크의 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: devfloor9
 reading_time: 6
 tags:
@@ -20,7 +20,7 @@ sidebar_label: Regulatory Compliance
 
 2026년 현재, 글로벌 기업은 **여러 지역의 AI 규제를 동시에 준수**해야 하는 복잡한 환경에 직면했습니다:
 
-- **EU**: AI Act (2024 채택, 2026-2027 단계적 적용 시작)
+- **EU**: AI Act (2024 채택, 2025-2027 단계적 적용: 금지 조항 2025년 2월, GPAI 의무 2025년 8월, 일반·고위험 2026년 8월, Annex I 고위험 2027년 8월)
 - **미국**: NIST AI RMF 1.0 (자발적 프레임워크), 적용되는 연방·기관별 조달 정책, 주별 개별 규제
 - **한국**: AI 기본법 (2026 시행 예정)
 - **국제 표준**: ISO/IEC 42001:2023 (AI Management System 인증)
@@ -83,7 +83,7 @@ graph TB
 **AIDLC 적용:**
 - **Inception**: Risk Tier 분류, 위험 관리 계획
 - **Construction**: 기술 문서 자동 생성, 감사 로그, Robustness 테스트
-- **Operations**: Post-market monitoring, 사고 보고 (15일 이내)
+- **Operations**: Post-market monitoring, 사고 보고 (Art. 73, 일반 15일/중대 2일/사망 10일)
 
 [상세 가이드 →](./frameworks/eu-ai-act.md)
 
@@ -147,7 +147,7 @@ graph TB
 | **기술 문서** | Art. 11 (문서화) | GOVERN 1.4 | A.8.1 (문서), A.10.6 (기록) | - |
 | **성능 모니터링** | Art. 15 (정확성) | MEASURE 2.3 / 2.4 | A.11.1 (성능 메트릭) | - |
 | **사후 모니터링** | Art. 72 (post-market) | MANAGE 4.1 | A.10.10 (지속 모니터링) | 사후 관리 의무 |
-| **사고 보고** | Art. 73 (15일 이내) | MANAGE 4.3 | A.10.11 (사고 대응) | 중대 사고 보고 |
+| **사고 보고** | Art. 73 (지체 없이·일반 15일/광범위·중대 2일/사망 10일, 고위험 제공자) | MANAGE 4.3 | A.10.11 (사고 대응) | 중대 사고 보고 |
 | **보안** | Art. 15 (사이버보안) | MEASURE 2.7 | A.12.* (보안 10개) | ISMS-P 연계 |
 | **공급망 관리** | - | GOVERN 6.1 / MANAGE 3.1 | A.13.* (타사 6개) | - |
 

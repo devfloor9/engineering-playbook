@@ -3,9 +3,9 @@ title: 거버넌스 프레임워크
 description: AIDLC 엔터프라이즈 - governance-framework
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 11
 tags:
   - aidlc
   - enterprise
@@ -53,7 +53,7 @@ AI 코딩 에이전트가 개발 워크플로우의 핵심 도구가 되면서 �
 
 ## 3층 거버넌스 모델
 
-AIDLC는 전사-시스템-프로젝트 3층 거버넌스 모델을 채택합니다.
+이 플레이북은 AIDLC 위에 전사-시스템-프로젝트 3층 거버넌스 모델을 얹어 확장합니다. 이 3층 구조는 AIDLC 방법론 자체의 구성 요소가 아니라, 전사 확산을 위해 이 플레이북이 제안하는 로컬 확장입니다.
 
 **그림 1. 전사·시스템·프로젝트 3층 거버넌스 모델의 상속 구조**
 
@@ -288,7 +288,7 @@ You are working on an e-commerce order management service.
   "systemMessage": "You are an AI assistant for order-management-service. Follow JPA N+1 prevention rules and 5-second transaction timeout.",
   "models": [
     {
-      "title": "Claude 3.7 Sonnet",
+      "title": "Claude Sonnet 4.6",
       "provider": "anthropic",
       "model": "Claude Sonnet 4.6"
     }
@@ -333,6 +333,8 @@ jobs:
           python scripts/check-policy-inheritance.py
 ```
 
+위 워크플로우가 호출하는 `scripts/validate-steering-schema.py`와 `scripts/check-policy-inheritance.py`는 이 플레이북이 제공하는 스크립트가 아니라, 각 조직이 자체 스키마와 상속 규칙에 맞춰 구현해야 하는 자리표시자(placeholder)입니다.
+
 **버전 관리**
 - 스티어링 파일에 `version` 필드 명시
 - 호환되지 않는 변경 시 메이저 버전 증가
@@ -361,8 +363,8 @@ graph LR
     CLS[AI Classifier]
 
     subgraph CLOUD["클라우드 (AWS Bedrock)"]
-        CLAUDE[Claude 3.7 Sonnet]
-        GPT[GPT-4 Turbo]
+        CLAUDE[Claude Sonnet 4.6]
+        GPT[GPT-4.1]
     end
 
     subgraph ONPREM["온프레미스 (EKS)"]
@@ -410,6 +412,8 @@ data_classification:
     - gpt-*      # 클라우드 AI 금지
 ```
 
+위 그림의 작업 유형 라우팅(민감/일반)과 데이터 분류 표는 어떤 작업을 어디로 보낼지에 대한 분류 기준일 뿐이며, 그 자체로는 정책을 강제하지 않습니다. 실제 강제는 AI Classifier와 모델 게이트웨이 같은 라우팅 경계에서 이뤄져야 합니다. 즉 요청을 보낼 때 데이터 분류 레벨을 판정하고, 해당 레벨의 `allowed_models`/`forbidden_models` 목록에 따라 금지 모델로 가는 호출을 게이트웨이에서 차단해야 작업 유형 라벨과 무관하게 민감 데이터가 클라우드 모델로 전송되지 않습니다.
+
 ### 레지던시 정책
 
 데이터 레지던시 규제가 있는 국가(예: EU, 중국)에서는 데이터가 해당 지역을 벗어나지 않도록 보장합니다.
@@ -451,13 +455,14 @@ residency_policy:
 **투명성: AI 생성 코드 표시**
 ```python
 # 코드 상단에 자동 주석 삽입
-# AI-GENERATED: Claude 3.7 Sonnet (2026-04-07)
+# AI-GENERATED: Claude Sonnet 4.6 (2026-04-07)
 # PROMPT: "주문 생성 API 엔드포인트 구현"
 # REVIEW: @senior-developer (2026-04-07)
 
 @app.post("/orders")
 def create_order(order: OrderCreate):
-    # 생성된 코드...
+    # 생성된 코드 (실제 구현으로 대체)
+    return create_order_service(order)
 ```
 
 **설명가능성: 의사결정 추적**
@@ -471,7 +476,7 @@ def create_order(order: OrderCreate):
     - src/models/order.py
     - src/schemas/order.py
   output_file: src/api/orders.py
-  reviewer: @senior-developer
+  reviewer: "@senior-developer"
   approved: true
 ```
 
@@ -521,12 +526,19 @@ risk_assessment:
   "user": "devfloor9",
   "action": "code_generation",
   "model": "Claude Sonnet 4.6",
-  "prompt": "주문 생성 API 엔드포인트 구현",
+  "prompt_summary": "주문 생성 API 엔드포인트 구현 (원문 프롬프트는 별도 접근 통제 저장소에 보관)",
   "input_files": ["src/models/order.py", "src/schemas/order.py"],
   "output_file": "src/api/orders.py",
   "lines_generated": 87,
-  "reviewer": "@senior-developer",
-  "review_status": "approved",
+  "artifact": {
+    "commit_sha": "a1b2c3d4e5f6",
+    "content_hash": "sha256:9f2c…"
+  },
+  "review": {
+    "reviewer": "@senior-developer",
+    "status": "approved",
+    "approved_artifact_hash": "sha256:9f2c…"
+  },
   "quality_gate": {
     "passed": true,
     "code_coverage": 85.3,
@@ -535,6 +547,8 @@ risk_assessment:
   }
 }
 ```
+
+승인(`review.status`)은 반드시 리뷰한 산출물의 해시(`approved_artifact_hash`)에 묶어 기록합니다. 승인 뒤 코드가 바뀌면 `content_hash`가 달라지므로 승인이 무효임을 자동으로 판별할 수 있어, 승인이 특정 커밋·산출물이 아닌 모호한 상태에 걸리는 문제를 막습니다. 프롬프트 원문은 민감 정보(개인정보, 내부 식별자)를 포함할 수 있으므로 감사 로그에는 요약(`prompt_summary`)만 남기고, 원문은 접근이 통제되는 별도 저장소에 보관하거나 보존 기간이 지나면 삭제합니다.
 
 **로그 저장소**
 - 로컬: `.aidlc/audit-log.jsonl` (Git에 커밋)
@@ -559,7 +573,8 @@ panels:
   - title: Quality Gate 통과율
     query: |
       SELECT 
-        COUNT(CASE WHEN quality_gate.passed = true THEN 1 END) * 100.0 / COUNT(*) AS pass_rate
+        COUNT(CASE WHEN quality_gate.passed = true THEN 1 END) * 100.0
+          / NULLIF(COUNT(*), 0) AS pass_rate
       FROM audit_log
       WHERE timestamp > now() - interval '30 days'
     target: 95%
@@ -583,6 +598,8 @@ panels:
       GROUP BY model
 ```
 
+각 패널의 분모는 모두 집계 창(위 예시는 최근 30일) 안에서 `audit_log`에 기록된 코드 생성 건수입니다. 통과율은 그 창의 생성 건수를 분모로, Quality Gate를 통과한 건수를 분자로 계산하므로, 창 안에 기록이 없으면 분모가 0이 되어 나눗셈이 정의되지 않습니다. 이를 막기 위해 `NULLIF(COUNT(*), 0)`로 분모가 0일 때 결과를 NULL(해당 없음)로 처리하며, 대시보드는 NULL을 0%가 아니라 "데이터 없음"으로 표시해야 합니다.
+
 ### 주기적 보고
 
 경영진/규제 기관에 제출할 보고서를 자동 생성합니다.
@@ -603,13 +620,19 @@ from datetime import datetime, timedelta
 def generate_monthly_report():
     logs = load_audit_logs(last_30_days=True)
 
+    pass_rate = calculate_pass_rate(logs)
+    vulnerabilities = sum(log["quality_gate"]["vulnerabilities"] for log in logs)
+
+    # 실제 측정값에서 컴플라이언스 상태를 도출 (임계값은 조직 정책에 맞춰 조정)
+    compliant = pass_rate is not None and pass_rate >= 95.0 and vulnerabilities == 0
+
     report = {
         "period": f"{datetime.now().strftime('%Y-%m')}",
         "total_generations": len(logs),
-        "quality_gate_pass_rate": calculate_pass_rate(logs),
-        "vulnerabilities_detected": sum(log["quality_gate"]["vulnerabilities"] for log in logs),
+        "quality_gate_pass_rate": pass_rate,
+        "vulnerabilities_detected": vulnerabilities,
         "models_used": count_by_model(logs),
-        "compliance_status": "COMPLIANT"
+        "compliance_status": "COMPLIANT" if compliant else "NON_COMPLIANT"
     }
 
     with open(f"reports/governance-{datetime.now().strftime('%Y-%m')}.json", "w") as f:

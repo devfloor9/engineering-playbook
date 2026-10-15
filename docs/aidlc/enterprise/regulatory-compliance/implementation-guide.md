@@ -3,9 +3,9 @@ title: Regulatory Compliance Implementation Guide
 description: Practical implementation guide and phased adoption roadmap for integrating regulatory requirements into AIDLC process
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 7
+reading_time: 6
 tags:
   - compliance
   - implementation
@@ -86,7 +86,7 @@ quality_gates:
   - gate: independent_review
     enabled: true
     reviewers:
-      - @senior-developer
+      - "@senior-developer"
     min_approvals: 1
     failure_action: block_merge
 
@@ -175,7 +175,7 @@ post_market_monitoring:
       - accuracy: "> 95%"
       - latency_p99: "< 500ms"
     alert_threshold: 0.90  # Alert when below 90%
-    incident_report_sla: 15d  # Report within 15 days (Art. 73)
+    incident_report_sla: 15d  # Art. 73: 15 days generally / 2 days widespread or severe / 10 days where a death is involved
 
   # NIST AI RMF: MANAGE-3.1
   nist_ai_rmf:
@@ -287,7 +287,7 @@ def add_transparency_marker(code: str, metadata: dict) -> str:
 # .aidlc/logging/audit-trail.yaml
 audit_trail:
   storage: "elasticsearch"
-  retention: 6m  # EU AI Act Art. 12 (minimum 6 months)
+  retention: 6m  # EU AI Act Art. 19 (automatically generated logs retained for at least 6 months)
 
   events:
     - event: "code_generation_request"

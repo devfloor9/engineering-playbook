@@ -3,9 +3,9 @@ title: 규제 컴플라이언스 구현 가이드
 description: AIDLC 프로세스에 규제 요구사항을 통합하는 실전 구현 가이드 및 단계별 Adoption 로드맵
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 4
+reading_time: 3
 tags:
   - compliance
   - implementation
@@ -86,7 +86,7 @@ quality_gates:
   - gate: independent_review
     enabled: true
     reviewers:
-      - @senior-developer
+      - "@senior-developer"
     min_approvals: 1
     failure_action: block_merge
 
@@ -175,7 +175,7 @@ post_market_monitoring:
       - accuracy: "> 95%"
       - latency_p99: "< 500ms"
     alert_threshold: 0.90  # 90% 미만 시 알림
-    incident_report_sla: 15d  # 15일 이내 보고 (Art. 73)
+    incident_report_sla: 15d  # Art. 73: 일반 15일/광범위·중대 2일/사망 10일
 
   # NIST AI RMF: MANAGE-3.1
   nist_ai_rmf:
@@ -287,7 +287,7 @@ def add_transparency_marker(code: str, metadata: dict) -> str:
 # .aidlc/logging/audit-trail.yaml
 audit_trail:
   storage: "elasticsearch"
-  retention: 6m  # EU AI Act Art. 12 (최소 6개월)
+  retention: 6m  # EU AI Act Art. 19 (자동 생성 로그 최소 6개월 보존)
 
   events:
     - event: "code_generation_request"

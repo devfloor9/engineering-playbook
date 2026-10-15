@@ -3,7 +3,7 @@ title: AI Regulatory Compliance Framework
 description: "AIDLC integration guide for 4 frameworks: EU AI Act, NIST AI RMF, ISO/IEC 42001, and Korea AI Basic Act"
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
 reading_time: 12
 tags:
@@ -20,7 +20,7 @@ sidebar_label: Regulatory Compliance
 
 As of 2026, global enterprises face a complex environment requiring **simultaneous compliance with AI regulations across multiple jurisdictions**:
 
-- **EU**: AI Act (adopted 2024, phased enforcement begins 2026-2027)
+- **EU**: AI Act (adopted 2024, phased application 2025-2027: prohibitions Feb 2025, GPAI obligations Aug 2025, general application and Annex III high-risk Aug 2026, Annex I high-risk Aug 2027)
 - **United States**: NIST AI RMF 1.0 (voluntary framework), applicable federal and agency procurement policies, state-level regulations
 - **Korea**: AI Framework Act (AI 기본법, enforcement expected 2026)
 - **International Standard**: ISO/IEC 42001:2023 (AI Management System certification)
@@ -83,7 +83,7 @@ graph TB
 **AIDLC Application:**
 - **Inception**: Risk Tier classification, risk management plan
 - **Construction**: Auto-generation of technical documentation, audit logs, robustness testing
-- **Operations**: Post-market monitoring, incident reporting (within 15 days)
+- **Operations**: Post-market monitoring, incident reporting (Art. 73; 15 days generally / 2 days severe / 10 days where a death is involved)
 
 [Detailed Guide →](./frameworks/eu-ai-act.md)
 
@@ -147,7 +147,7 @@ graph TB
 | **Technical Documentation** | Art. 11 (documentation) | GOVERN 1.4 | A.8.1 (docs), A.10.6 (records) | - |
 | **Performance Monitoring** | Art. 15 (accuracy) | MEASURE 2.3 / 2.4 | A.11.1 (performance metrics) | - |
 | **Post-Market Monitoring** | Art. 72 (post-market) | MANAGE 4.1 | A.10.10 (continuous monitoring) | Post-deployment mgmt obligation |
-| **Incident Reporting** | Art. 73 (within 15 days) | MANAGE 4.3 | A.10.11 (incident response) | Major incident reporting |
+| **Incident Reporting** | Art. 73 (without undue delay; generally 15 days / 2 days widespread or severe / 10 days where a death is involved; high-risk providers) | MANAGE 4.3 | A.10.11 (incident response) | Major incident reporting |
 | **Security** | Art. 15 (cybersecurity) | MEASURE 2.7 | A.12.* (10 security controls) | ISMS-P integration |
 | **Supply Chain Management** | - | GOVERN 6.1 / MANAGE 3.1 | A.13.* (6 third-party controls) | - |
 

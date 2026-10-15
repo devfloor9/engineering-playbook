@@ -3,9 +3,9 @@ title: Governance Framework
 description: AIDLC Enterprise Governance — 3-Layer Model, Steering File Automation, Data Sovereignty, AI Act Compliance
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 21
+reading_time: 24
 tags:
   - aidlc
   - enterprise
@@ -53,7 +53,7 @@ Systematic governance framework enables:
 
 ## 3-Layer Governance Model
 
-AIDLC adopts a 3-layer governance model: Enterprise-System-Project.
+This playbook extends AIDLC with a 3-layer governance model: Enterprise-System-Project. This 3-layer structure is not part of the AIDLC methodology itself; it is a local extension this playbook proposes for enterprise-wide rollout.
 
 **Figure 1. Inheritance structure of the enterprise-system-project 3-layer governance model**
 
@@ -288,7 +288,7 @@ You are working on an e-commerce order management service.
   "systemMessage": "You are an AI assistant for order-management-service. Follow JPA N+1 prevention rules and 5-second transaction timeout.",
   "models": [
     {
-      "title": "Claude 3.7 Sonnet",
+      "title": "Claude Sonnet 4.6",
       "provider": "anthropic",
       "model": "Claude Sonnet 4.6"
     }
@@ -333,6 +333,8 @@ jobs:
           python scripts/check-policy-inheritance.py
 ```
 
+The `scripts/validate-steering-schema.py` and `scripts/check-policy-inheritance.py` scripts invoked by this workflow are not provided by this playbook; they are placeholders each organization must implement against its own schema and inheritance rules.
+
 **Version Management**
 - Specify `version` field in steering file
 - Increment major version for incompatible changes
@@ -361,8 +363,8 @@ graph LR
     CLS[AI Classifier]
 
     subgraph CLOUD["Cloud (AWS Bedrock)"]
-        CLAUDE[Claude 3.7 Sonnet]
-        GPT[GPT-4 Turbo]
+        CLAUDE[Claude Sonnet 4.6]
+        GPT[GPT-4.1]
     end
 
     subgraph ONPREM["On-Premises (EKS)"]
@@ -410,6 +412,8 @@ data_classification:
     - gpt-*      # Prohibit cloud AI
 ```
 
+The task-type routing (sensitive/general) in the diagram above and the data classification table are only criteria for deciding where a task should go; by themselves they do not enforce the policy. Enforcement must happen at the routing boundary — the AI Classifier and the model gateway. The gateway must determine the data classification level of each request and block calls to forbidden models according to that level's `allowed_models`/`forbidden_models` lists, so that sensitive data cannot reach cloud models regardless of the task-type label.
+
 ### Residency Policy
 
 Ensure data doesn't leave region in countries with data residency regulations (e.g., EU, China).
@@ -451,13 +455,14 @@ Korea's AI Act (effective 2026) requires:
 **Transparency: Mark AI-Generated Code**
 ```python
 # Auto-insert comment at top of code
-# AI-GENERATED: Claude 3.7 Sonnet (2026-04-07)
+# AI-GENERATED: Claude Sonnet 4.6 (2026-04-07)
 # PROMPT: "Implement order creation API endpoint"
 # REVIEW: @senior-developer (2026-04-07)
 
 @app.post("/orders")
 def create_order(order: OrderCreate):
-    # Generated code...
+    # Generated code (replace with the actual implementation)
+    return create_order_service(order)
 ```
 
 **Explainability: Decision Tracking**
@@ -471,7 +476,7 @@ def create_order(order: OrderCreate):
     - src/models/order.py
     - src/schemas/order.py
   output_file: src/api/orders.py
-  reviewer: @senior-developer
+  reviewer: "@senior-developer"
   approved: true
 ```
 
@@ -521,12 +526,19 @@ Log all AI operations for traceability.
   "user": "devfloor9",
   "action": "code_generation",
   "model": "Claude Sonnet 4.6",
-  "prompt": "Implement order creation API endpoint",
+  "prompt_summary": "Implement order creation API endpoint (full prompt kept in a separate access-controlled store)",
   "input_files": ["src/models/order.py", "src/schemas/order.py"],
   "output_file": "src/api/orders.py",
   "lines_generated": 87,
-  "reviewer": "@senior-developer",
-  "review_status": "approved",
+  "artifact": {
+    "commit_sha": "a1b2c3d4e5f6",
+    "content_hash": "sha256:9f2c…"
+  },
+  "review": {
+    "reviewer": "@senior-developer",
+    "status": "approved",
+    "approved_artifact_hash": "sha256:9f2c…"
+  },
   "quality_gate": {
     "passed": true,
     "code_coverage": 85.3,
@@ -535,6 +547,8 @@ Log all AI operations for traceability.
   }
 }
 ```
+
+Record the approval (`review.status`) bound to the hash of the reviewed artifact (`approved_artifact_hash`). If the code changes after approval, its `content_hash` changes, so the approval can be automatically detected as void — this prevents an approval from attaching to an ambiguous state rather than a specific commit/artifact. Because a raw prompt may contain sensitive information (personal data, internal identifiers), keep only a summary (`prompt_summary`) in the audit log and store the full prompt in a separate access-controlled store, or delete it once the retention period lapses.
 
 **Log Storage**
 - Local: `.aidlc/audit-log.jsonl` (committed to Git)
@@ -559,7 +573,8 @@ panels:
   - title: Quality Gate Pass Rate
     query: |
       SELECT 
-        COUNT(CASE WHEN quality_gate.passed = true THEN 1 END) * 100.0 / COUNT(*) AS pass_rate
+        COUNT(CASE WHEN quality_gate.passed = true THEN 1 END) * 100.0
+          / NULLIF(COUNT(*), 0) AS pass_rate
       FROM audit_log
       WHERE timestamp > now() - interval '30 days'
     target: 95%
@@ -583,6 +598,8 @@ panels:
       GROUP BY model
 ```
 
+The denominator of each panel is the number of code-generation records in `audit_log` within the aggregation window (30 days in the example above). The pass rate divides the records that passed the Quality Gate by the total records in that window, so when the window has no records the denominator is 0 and the division is undefined. To prevent this, `NULLIF(COUNT(*), 0)` turns a zero denominator into NULL (not applicable), and the dashboard should render NULL as "no data" rather than 0%.
+
 ### Periodic Reporting
 
 Auto-generate reports for submission to executives/regulatory agencies.
@@ -603,13 +620,19 @@ from datetime import datetime, timedelta
 def generate_monthly_report():
     logs = load_audit_logs(last_30_days=True)
 
+    pass_rate = calculate_pass_rate(logs)
+    vulnerabilities = sum(log["quality_gate"]["vulnerabilities"] for log in logs)
+
+    # Derive compliance status from the measured metrics (tune thresholds to org policy)
+    compliant = pass_rate is not None and pass_rate >= 95.0 and vulnerabilities == 0
+
     report = {
         "period": f"{datetime.now().strftime('%Y-%m')}",
         "total_generations": len(logs),
-        "quality_gate_pass_rate": calculate_pass_rate(logs),
-        "vulnerabilities_detected": sum(log["quality_gate"]["vulnerabilities"] for log in logs),
+        "quality_gate_pass_rate": pass_rate,
+        "vulnerabilities_detected": vulnerabilities,
         "models_used": count_by_model(logs),
-        "compliance_status": "COMPLIANT"
+        "compliance_status": "COMPLIANT" if compliant else "NON_COMPLIANT"
     }
 
     with open(f"reports/governance-{datetime.now().strftime('%Y-%m')}.json", "w") as f:
