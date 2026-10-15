@@ -3,7 +3,7 @@ title: Inference Gateway 배포 가이드
 description: kgateway 기반 Inference Gateway의 단계별 배포 가이드 (기본/고급/트러블슈팅)
 created: "2026-04-18"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 9
 tags:
@@ -75,7 +75,7 @@ EKS 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다.
 - ReferenceGrant를 통한 크로스 네임스페이스 접근
 - Bifrost Gateway Mode 구성 (config.json + PVC)
 - provider/model 포맷 및 IDE 호환성 (Aider, Cline, Continue.dev)
-- SQLite 초기화 절차 (config.json 변경 시)
+- config.json 변경 반영 절차 (재시작 기반 리컨실, 저장된 설정 보존)
 
 **학습 시간:** 30분 | **배포 시간:** 45분
 

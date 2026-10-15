@@ -3,9 +3,9 @@ title: Reference Architecture
 description: Production deployment and configuration reference architecture for the Agentic AI Platform
 created: "2026-04-06"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 18
+reading_time: 28
 tags:
   - reference-architecture
   - deployment
@@ -74,7 +74,7 @@ Check the tool versions and cluster compatibility specified by the deployment ch
 
 The diagram shows six runtime layers, three shared planes, the Knowledge Feature Store, and serving/fine-tuning paths. The six deployment areas below describe implementation stages, not matching runtime-layer numbers.
 
-<Figure title="Platform architecture" description="The original architecture diagram shows request processing and shared control areas. Use the source link below to inspect detailed connections on a larger canvas." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">Open source diagram</a>}>
+<Figure title="Platform architecture" description="The original architecture diagram shows request processing and shared control areas. The iframe and the source link below load the file from the repository's main branch (static/Agentic AI Platform(...).drawio) directly, so it is not version-pinned and may diverge from the snapshot described in this article as main changes. What this article describes is a 2026-09 snapshot. Use the source link below to inspect detailed connections on a larger canvas." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">Open source diagram</a>}>
 <iframe
   src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"
   width="100%"
@@ -150,9 +150,11 @@ Serve large open-source models with vLLM. Covers custom image building, S3 model
 | Item | Details |
 |------|---------|
 | Serving Engine | vLLM (custom image) |
-| Model Cache | S3 → s5cmd → NVMe emptyDir |
+| Model Cache | S3 → s5cmd → node ephemeral storage (emptyDir). To back it with instance-store NVMe, configure the node to bootstrap/mount the NVMe and validate capacity (see note below) |
 | Parallelism | Tensor Parallelism (single node recommended) |
 | Validation | OpenAI-compatible API endpoint |
+
+`emptyDir` uses the node's default ephemeral storage (the root disk) and does not automatically select instance-store NVMe. To back the cache with NVMe, format and mount the instance-store NVMe during node bootstrap, configure kubelet's `--root-dir` (or the emptyDir path) to use that mount, and then validate the capacity against the model size. Without this, the model cache is bound by the root disk capacity.
 
 ### Phase 3: Inference Gateway
 
@@ -225,12 +227,14 @@ Use standard tools from the CNCF and Kubernetes ecosystem wherever possible.
 
 | Area | Standard Tool | Alternative |
 |------|--------------|-------------|
-| GPU Scheduling | Karpenter / MNG | Auto Mode NodePool |
+| Node provisioning | Karpenter / MNG | Auto Mode NodePool |
 | Model Serving | vLLM | SGLang, llm-d |
 | AI Gateway | Bifrost / LiteLLM | OpenClaw, Helicone |
 | Metrics | Prometheus + AMP | CloudWatch |
 | LLM Observability | Langfuse | Helicone, LangSmith |
-| Distributed Training | LeaderWorkerSet (LWS) | KubeRay |
+| Multi-node serving deployment | LeaderWorkerSet (LWS) | KubeRay |
+
+The roles in the table are distinct. Karpenter and MNG **provision nodes**, which differs from the GPU Pod scheduling that places GPU Pods onto nodes. LeaderWorkerSet (LWS) is an API for **inference serving deployment across multiple nodes** (multi-host serving), not a distributed-**training** orchestration tool. The AI gateway alternative OpenClaw is an agent-assistant gateway that assumes a trusted operator/team boundary, so confirm its scope before treating it as a drop-in replacement for a general multi-provider inference-governance proxy.
 
 ### 4. Layered Cost Optimization
 
@@ -260,5 +264,5 @@ For concepts and architecture design, refer to the following documents:
 ---
 
 :::tip Feedback
-This Reference Architecture is continuously updated based on production deployment experience. If you have improvement suggestions or additional use cases, please open an issue.
+The verification environment of the examples and your actual production environment can differ. Record the reproduction conditions together with the verification results, and please open an issue for anything that needs correction.
 :::
