@@ -19,6 +19,8 @@ sidebar_label: 스토리지
 
 ## 스토리지 디버깅 Decision Tree
 
+**그림 1. 스토리지 디버깅 Decision Tree**
+
 ```mermaid
 flowchart TD
     STOR_ISSUE["`**스토리지 문제 감지**`"] --> PVC_STATUS{"`PVC 상태 확인
@@ -76,6 +78,8 @@ kubectl describe sa ebs-csi-controller-sa -n kube-system
 ```
 
 ### EBS CSI Driver 에러 패턴
+
+**표 1. EBS CSI Driver 에러 메시지별 원인과 해결 방법**
 
 | 에러 메시지 | 원인 | 해결 방법 |
 |-------------|------|----------|
@@ -321,6 +325,8 @@ kubectl get pvc -n <namespace>
 # PV 상태 확인
 kubectl get pv
 ```
+
+**표 2. PVC 상태별 의미와 조치**
 
 | PVC 상태 | 의미 | 조치 |
 |----------|------|------|

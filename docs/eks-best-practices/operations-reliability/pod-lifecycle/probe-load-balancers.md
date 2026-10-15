@@ -24,6 +24,8 @@ When using AWS Load Balancer Controller, synchronize ALB/NLB health checks with 
 
 ### ALB Target Group Health Checks vs. Readiness Probes {#alb-target-group-헬스체크-vs-readiness-probe}
 
+**Table 1. ALB/NLB health checks compared with Kubernetes Readiness Probes**
+
 | Aspect | ALB/NLB Health Check | Kubernetes Readiness Probe |
 |------|-----------------|---------------------------|
 | **Executed by** | AWS Load Balancer | kubelet |
@@ -35,6 +37,8 @@ When using AWS Load Balancer Controller, synchronize ALB/NLB health checks with 
 ### Health Check Timing Synchronization Strategy {#헬스체크-타이밍-동기화-전략}
 
 During a rolling update, operations proceed in the following order:
+
+**Figure 1. Pod creation and termination timing with load balancer health checks during a rolling update**
 
 ```mermaid
 sequenceDiagram
@@ -158,6 +162,8 @@ AWS Load Balancer Controller v2.14+ integrates natively with Kubernetes Gateway 
 
 #### Gateway API vs. Ingress Health Check Comparison {#gateway-api-vs-ingress-헬스체크-비교}
 
+**Table 2. Health check capabilities of Ingress compared with Gateway API**
+
 | Aspect | Ingress | Gateway API |
 |------|---------|-------------|
 | **Health check configuration location** | Service/Ingress annotation | HealthCheckPolicy CRD |
@@ -167,6 +173,8 @@ AWS Load Balancer Controller v2.14+ integrates natively with Kubernetes Gateway 
 | **Weighted canary deployments** | Difficult or unavailable | Native HTTPRoute support |
 
 #### Gateway API Architecture and Health Checks {#gateway-api-아키텍처와-헬스체크}
+
+**Figure 2. Gateway API components and HealthCheckPolicy application structure**
 
 ```mermaid
 flowchart TB
@@ -349,6 +357,8 @@ kubectl get pod -n production -l app=api-v1 \
 ```
 
 #### Health Check Transition Checklist for Migrating from Ingress to Gateway API {#ingress에서-gateway-api로-마이그레이션-시-헬스체크-전환-체크리스트}
+
+**Table 3. Step-by-step health check verification items when migrating from Ingress to Gateway API**
 
 | Step | Ingress | Gateway API | Verification |
 |------|---------|-------------|----------|

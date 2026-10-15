@@ -501,6 +501,8 @@ EKS supports Windows nodes based on Windows Server 2019/2022. Probes behave diff
 
 #### Differences in Probe Behavior Between Windows and Linux {#windows-vs-linux-probe-동작-차이}
 
+**Table 1. Probe behavior differences and their impact between Windows and Linux containers**
+
 | Item | Linux containers | Windows containers | Impact |
 |------|---------------|-----------------|------|
 | **Container runtime** | containerd | containerd (1.6+) | Same runtime, different OS layer |

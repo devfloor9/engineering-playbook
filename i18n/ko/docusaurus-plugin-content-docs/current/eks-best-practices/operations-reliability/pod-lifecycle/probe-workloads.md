@@ -501,6 +501,8 @@ EKS는 Windows Server 2019/2022 기반 Windows 노드를 지원하며, Windows �
 
 #### Windows vs Linux Probe 동작 차이 {#windows-vs-linux-probe-동작-차이}
 
+**표 1. Windows와 Linux 컨테이너의 Probe 동작 차이와 영향**
+
 | 항목 | Linux 컨테이너 | Windows 컨테이너 | 영향 |
 |------|---------------|-----------------|------|
 | **컨테이너 런타임** | containerd | containerd (1.6+) | 동일한 런타임, 다른 OS 레이어 |

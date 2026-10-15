@@ -337,6 +337,8 @@ spec:
 
 ### Workflow diagram {#워크플로우-다이어그램}
 
+**Figure 1. Node Readiness Controller operation workflow**
+
 ```mermaid
 sequenceDiagram
     participant Node as New node
@@ -385,6 +387,8 @@ sequenceDiagram
 
 The Kubernetes readiness mechanism now forms a complete 3-layer structure:
 
+**Table 1. Three-layer readiness mechanism: scope, action on failure and use case**
+
 | Layer | Mechanism | Scope | Action on failure | Use case |
 |------|---------|------|-------------|----------|
 | **1. Container** | Readiness Probe | Health checks inside the container | Remove Service Endpoint | Check application readiness |
@@ -429,7 +433,7 @@ spec:
       # - Scheduled only on nodes without taints
 ```
 
-**Traffic acceptance checklist:**
+**Figure 2. Readiness verification flow from Pod creation to traffic acceptance**
 
 ```mermaid
 flowchart TD

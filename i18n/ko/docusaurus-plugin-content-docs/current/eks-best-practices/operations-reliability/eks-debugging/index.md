@@ -30,6 +30,8 @@ EKS 운영 중 발생하는 문제는 컨트롤 플레인, 노드, 네트워크,
 
 ### EKS 디버깅 레이어
 
+**그림 1. EKS 디버깅 레이어 구조**
+
 ```mermaid
 flowchart TB
     subgraph "EKS 디버깅 레이어"
@@ -70,6 +72,8 @@ flowchart TB
 ### 디버깅 접근 방법론
 
 EKS 문제 진단에는 두 가지 접근 방식이 있습니다.
+
+**표 1. Top-down과 Bottom-up 디버깅 접근 방식 비교**
 
 | 접근 방식 | 설명 | 적합한 상황 |
 |-----------|------|------------|
@@ -130,6 +134,8 @@ kubectl top pods -n <namespace> --sort-by=cpu
 ```
 
 ### 스코프 판별 Decision Tree
+
+**그림 2. 문제 스코프 판별 Decision Tree**
 
 ```mermaid
 flowchart TD
@@ -363,6 +369,8 @@ kubectl uncordon <node-name>
 
 ### 추천 도구 매트릭스
 
+**표 2. 시나리오별 추천 디버깅 도구**
+
 | 시나리오 | 도구 | 설명 |
 |---------|------|------|
 | 네트워크 디버깅 | [netshoot](https://github.com/nicolaka/netshoot) | 네트워크 도구 모음 컨테이너 |
@@ -418,6 +426,8 @@ AWS Support case를 제출할 때 이 로그 파일을 첨부하면 지원 엔�
 ## 상세 디버깅 가이드
 
 아래 링크를 통해 각 레이어의 상세한 디버깅 가이드를 확인할 수 있습니다:
+
+**표 3. 레이어별 상세 디버깅 가이드 문서**
 
 | 문서 | 설명 | 주요 내용 |
 |------|------|----------|

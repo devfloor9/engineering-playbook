@@ -30,6 +30,8 @@ Karpenter is the next-generation autoscaler for EKS, delivering fast and efficie
 
 This conceptual flow shows provisioning and disruption for a node that initializes normally. It is not a literal list of `status.conditions`. [Initialization checks](https://karpenter.sh/v1.14/concepts/nodeclaims/) include Node readiness, startup-taint removal and registration of requested resources. Expiration is calculated independently from the NodeClaim's creation time.
 
+**Figure 1. NodeClaim provisioning and disruption conceptual flow**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Pending: Pod Unschedulable
@@ -80,6 +82,8 @@ kubectl describe pod <pod-name>
 ```
 
 #### Diagnosis Flowchart
+
+**Figure 2. Karpenter diagnosis flowchart**
 
 ```mermaid
 flowchart TD
@@ -202,6 +206,8 @@ spec:
 Consolidation can remove nodes or replace them with lower-priced capacity. The following conceptual flow separates the stabilization wait from node-age expiration.
 
 ### Consolidation Flow
+
+**Figure 3. Consolidation flow**
 
 ```mermaid
 flowchart TD
@@ -342,6 +348,8 @@ Outside this interval the budget is inactive, so this explicit list supplies no 
 
 The [v1.14.1 implementation](https://github.com/kubernetes-sigs/karpenter/blob/6e7eab7a0f485d7225eb98995fad9b66c79b322b/pkg/controllers/disruption/helpers.go#L262-L301) counts initialized managed nodes, excluding `InstanceTerminating` nodes. It subtracts nodes that are NotReady **or** marked for deletion, counting each once. The remaining allowance cannot be negative.
 
+**Table 1. Consolidation Policy behavior and when to use each**
+
 | Policy | Behavior | When to Use |
 |--------|------|----------|
 | **WhenEmpty** | Consider nodes without workload Pods for consolidation | Stability over cost; stateful workloads |
@@ -350,6 +358,8 @@ The [v1.14.1 implementation](https://github.com/kubernetes-sigs/karpenter/blob/6
 ## Spot Interruption Handling
 
 ### Spot Interruption Flow
+
+**Figure 4. Spot interruption handling flow**
 
 ```mermaid
 sequenceDiagram

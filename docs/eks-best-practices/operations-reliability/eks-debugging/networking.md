@@ -19,6 +19,8 @@ sidebar_label: Networking
 
 ## Networking Debugging Workflow
 
+**Figure 1. Networking debugging workflow**
+
 ```mermaid
 flowchart TD
     NET_ISSUE["`**Network issue detected**`"] --> CHECK_CNI{"`VPC CNI
@@ -302,6 +304,8 @@ kubectl get pods -l app=web -o wide
 ```
 
 ### Common Service Issues
+
+**Table 1. Common Service issues with symptom, check, and resolution**
 
 | Symptom | Check | Resolution |
 |------|----------|------|

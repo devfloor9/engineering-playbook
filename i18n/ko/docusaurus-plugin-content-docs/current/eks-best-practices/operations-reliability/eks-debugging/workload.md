@@ -19,6 +19,8 @@ sidebar_label: 워크로드
 
 ## Pod 상태별 디버깅 플로우차트
 
+**그림 1. Pod 상태별 디버깅 플로우차트**
+
 ```mermaid
 flowchart TD
     START["`**Pod 이상 감지**`"] --> STATUS{"`Pod 상태 확인
@@ -142,6 +144,8 @@ kubectl describe pod api-server-xxx | grep -A 10 "Readiness probe failed"
 
 #### 진단 플로우차트
 
+**그림 2. Probe 실패 진단 플로우차트**
+
 ```mermaid
 flowchart TD
     NOTREADY["`Pod 0/1 Ready`"] --> CHECK_PROBE{"`readinessProbe
@@ -169,6 +173,8 @@ flowchart TD
 ```
 
 #### 일반적인 원인
+
+**표 1. readinessProbe 실패의 일반적인 원인과 해결 방법**
 
 | 원인 | 증상 | 해결 방법 |
 |------|------|----------|
@@ -235,11 +241,13 @@ ConfigMap 또는 Secret을 업데이트했지만 Pod에 반영되지 않는 경�
 
 #### 동작 방식 비교
 
+**표 2. ConfigMap/Secret 마운트 방식별 자동 업데이트 지원 여부**
+
 | 마운트 방식 | 자동 업데이트 | 반영 시간 | 비고 |
 |-------------|--------------|----------|------|
-| **volumeMount (일반)** | ✅ 자동 업데이트 | 1-2분 (kubelet sync 주기) | 권장 방식 |
-| **volumeMount + subPath** | ❌ 업데이트 안 됨 | N/A | Pod 재시작 필수 |
-| **envFrom / env** | ❌ 업데이트 안 됨 | N/A | Pod 재시작 필수 |
+| **volumeMount (일반)** | 지원 | 1-2분 (kubelet sync 주기) | 권장 방식 |
+| **volumeMount + subPath** | 미지원 | N/A | Pod 재시작 필수 |
+| **envFrom / env** | 미지원 | N/A | Pod 재시작 필수 |
 
 ```bash
 # ConfigMap 업데이트 확인
@@ -343,6 +351,8 @@ kubectl top pods  # 이 명령어가 실패하면 metrics-server 문제
 ```
 
 #### HPA 미작동 원인 및 해결
+
+**표 3. HPA 미작동 증상별 원인과 해결 방법**
 
 | 증상 | 원인 | 해결 |
 |------|------|------|
@@ -639,6 +649,8 @@ spec:
 :::
 
 ## Pod 상태별 진단 플로우차트
+
+**그림 3. Pod 상태별 진단 플로우차트**
 
 ```mermaid
 flowchart TD

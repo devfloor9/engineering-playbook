@@ -40,6 +40,8 @@ This document focuses on scheduling patterns at the **Pod level**. For cluster-w
 
 ### Why Scheduling Matters
 
+**Table 1. Incorrect vs. correct scheduling by scenario**
+
 | Scenario | Incorrect Scheduling | Correct Scheduling |
 |---------|----------------|----------------|
 | **Failure isolation** | Co-located replicas share exposure to that node's failure | Anti-affinity reduces direct co-location exposure; dependency failures require separate assessment |
@@ -55,6 +57,8 @@ This document focuses on scheduling patterns at the **Pod level**. For cluster-w
 ### 2.1 Scheduling Process
 
 The Kubernetes scheduler places Pods on nodes through a 3-phase process:
+
+**Figure 1. The Kubernetes scheduler's 3-phase Pod placement process**
 
 ```mermaid
 flowchart TB
@@ -128,6 +132,8 @@ If a Pod remains `Pending`, inspect the Events section with `kubectl describe po
 
 ### 2.2 Factors That Affect Scheduling
 
+**Table 2. Factors that affect scheduling, with type, phase, and enforcement**
+
 | Factor | Type | Affected Phase | Enforcement | Primary Use Case |
 |------|------|-----------|--------|---------------|
 | **Node Selector** | Pod | Filtering | Hard | Specify a particular node type (GPU, ARM) |
@@ -190,6 +196,8 @@ Node Affinity extends Node Selector to express complex logical conditions and pr
 
 #### Required vs Preferred
 
+**Table 3. Node Affinity Required vs. Preferred types**
+
 | Type | Behavior | When to Use |
 |------|------|----------|
 | `requiredDuringSchedulingIgnoredDuringExecution` | Conditions must be met (Hard) | When placement on specific nodes is mandatory |
@@ -200,6 +208,8 @@ Node Affinity extends Node Selector to express complex logical conditions and pr
 :::
 
 #### Operator Types
+
+**Table 4. Node Affinity operator types with descriptions and examples**
 
 | Operator | Description | Example |
 |--------|------|------|
@@ -452,6 +462,8 @@ spec:
 
 **topologyKey Explained:**
 
+**Table 5. Spread scope and description by topologyKey value**
+
 | topologyKey | Scope | Description |
 |-------------|------|------|
 | `kubernetes.io/hostname` | Node | Place on the same node (strongest co-location) |
@@ -497,6 +509,8 @@ spec:
 ### 4.2 Pod Anti-Affinity
 
 Pod anti-affinity restricts placement or prefers separation so that Pods matching a selector do not gather on the same node or in the same AZ. The diagram shows a possible placement across three domains. Actual placement depends on candidate nodes and other constraints; shared dependencies such as a database can still fail. Hard AZ anti-affinity requires admission settings that permit that topology key.
+
+**Figure 2. Pod Anti-Affinity example spread across three domains**
 
 ```mermaid
 flowchart TB
@@ -611,6 +625,8 @@ spec:
 
 #### Criteria for Choosing Hard vs Soft
 
+**Table 6. Criteria for choosing Hard vs. Soft: recommendation and reason by scenario**
+
 | Scenario | Recommendation | Reason |
 |---------|------|------|
 | Enough eligible hostnames and capacity | Consider Hard | At most one matching Pod per hostname; rollout surge also needs headroom |
@@ -620,6 +636,8 @@ spec:
 | Rapid scaling required | Review constraints and capacity together | Soft alone does not guarantee placement or eliminate Pending |
 
 ### 4.3 Affinity/Anti-Affinity vs Topology Spread Comparison
+
+**Table 7. Pod Anti-Affinity vs. Topology Spread Constraints**
 
 | Comparison | Pod Anti-Affinity | Topology Spread Constraints |
 |----------|-------------------|----------------------------|
@@ -868,6 +886,8 @@ spec:
 
 ##### Pattern Comparison
 
+**Table 8. Topology Spread settings and complexity by pattern, with recommended replica count**
+
 | Pattern | maxSkew | minDomains | whenUnsatisfiable | Additional Constraints | Complexity | Recommended Replica Count |
 |------|---------|------------|-------------------|----------|--------|----------------|
 | **Pattern 1: Basic Multi-AZ** | 1 | - | DoNotSchedule | None | Low | 3~12 |
@@ -876,6 +896,8 @@ spec:
 | **Pattern 4: Multiple Spread Constraints** | 1, 2 | 3 | Mixed | Concurrent AZ constraint and hostname preference | High | 15+ |
 
 ##### Troubleshooting: Causes of Topology Spread Failures
+
+**Table 9. Symptoms, causes, and resolutions for Topology Spread failures**
 
 | Symptom | Cause | Resolution |
 |------|------|----------|
@@ -983,6 +1005,8 @@ Taints belong to nodes and tolerations belong to Pods. The scheduler blocks or d
 - **Toleration**: Applied to a Pod (for example, "I tolerate GPU nodes")
 
 ### 5.1 Taint Effects
+
+**Table 10. Behavior, impact on existing Pods, and use by Taint effect**
 
 | Effect | Behavior | Impact on Existing Pods | When to Use |
 |--------|------|--------------|----------|
@@ -1165,6 +1189,8 @@ spec:
 
 The following Kubernetes node-condition taints and default tolerations also apply in EKS. The [official taint and toleration guide](https://v1-34.docs.kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/) distinguishes placement restrictions from eviction.
 
+**Table 11. Default EKS node-condition Taints with applicability and handling**
+
 | Taint | Applies To | Effect | Handling |
 |-------|----------|------|----------|
 | `node.kubernetes.io/not-ready` | Ready=False | NoExecute | Default admission adds 300 seconds for ordinary Pods; DaemonSet controller adds an indefinite toleration |
@@ -1229,6 +1255,8 @@ The key differences between Cluster Autoscaler and Karpenter are **how they prov
 ##### Behavior Comparison
 
 The table below compares the two controllers' **mechanisms and configuration constraints**. Provisioning speed, node-ready time and cost-savings percentage depend on workload, AMI, Region and capacity conditions, so this guide does not assert them without measurement. When you need numbers, measure trigger→capacity→node registration→Pod binding→workload readiness separately under identical conditions.
+
+**Table 12. Cluster Autoscaler vs. Karpenter mechanisms and configuration constraints**
 
 | Comparison | Cluster Autoscaler | Karpenter |
 |----------|-------------------|-----------|
@@ -1361,6 +1389,8 @@ spec:
 
 **Conversion Guide:**
 
+**Table 13. Conversion guide from ASG settings to Karpenter NodePool fields**
+
 | ASG Setting | NodePool Field | Notes |
 |---------|--------------|------|
 | LaunchTemplate instance types | `requirements[instance-type]` | A broader range is recommended (cost optimization) |
@@ -1454,6 +1484,8 @@ spec:
 Karpenter natively supports Topology Spread Constraints, but existing configurations must be revalidated.
 
 **Validation Points:**
+
+**Table 14. Topology Spread revalidation items during Karpenter migration**
 
 | Item | What to Check |
 |------|----------|
@@ -1595,6 +1627,8 @@ kubectl --context "$CONTEXT" get pods -A -o json > migration-pods.json
 kubectl --context "$CONTEXT" get nodes -o json > migration-nodes.json
 ```
 
+**Table 15. Required content and decisions for migration retirement records**
+
 | Retirement record | Required content and decision |
 |---|---|
 | Ownership inventory | Join Node provider IDs to dated EC2/ASG and EKS managed-node-group inventories. Record explicit instance IDs, ASG names, managed node group identities and remaining Pod owners; unresolved joins block retirement. |
@@ -1714,11 +1748,13 @@ The basic concepts of PDB and its interaction with Karpenter are covered in the 
 
 **Voluntary vs. involuntary disruptions:**
 
+**Table 16. PDB applicability and response by voluntary vs. involuntary disruption type**
+
 | Disruption type | Examples | PDB applies | Response |
 |----------|------|---------|----------|
-| **Voluntary: Eviction API** | Default `kubectl drain`, node upgrades/consolidation that use the Eviction API | ✅ Constrains eviction requests | Configure PDB |
-| **Voluntary: controller rollout/direct deletion** | Deployment or StatefulSet rolling updates, direct Pod deletion | ❌ Does not constrain the operation; unavailable Pods count against the budget | Configure rollout strategy/readiness; avoid direct deletion |
-| **Involuntary** | Node crashes, OOM kills, hardware failures, AZ failures | ❌ Does not prevent disruption; unavailable Pods count against the budget | Increase replicas, Anti-Affinity |
+| **Voluntary: Eviction API** | Default `kubectl drain`, node upgrades/consolidation that use the Eviction API | Applies (constrains eviction requests) | Configure PDB |
+| **Voluntary: controller rollout/direct deletion** | Deployment or StatefulSet rolling updates, direct Pod deletion | Does not apply (does not constrain the operation; unavailable Pods count against the budget) | Configure rollout strategy/readiness; avoid direct deletion |
+| **Involuntary** | Node crashes, OOM kills, hardware failures, AZ failures | Does not apply (does not prevent disruption; unavailable Pods count against the budget) | Increase replicas, Anti-Affinity |
 
 ### 6.2 Advanced PDB Strategies
 
@@ -1818,6 +1854,8 @@ spec:
     matchLabels:
       app: worker
 ```
+
+**Table 17. Concurrent evictions allowed by replica count in a percentage-based PDB**
 
 | Replica count | maxUnavailable: "25%" | Concurrent evictions allowed |
 |-----------|---------------------|------------------|
@@ -1972,6 +2010,8 @@ description: "High priority for mission-critical services"
 
 **Key properties:**
 
+**Table 18. Key PriorityClass properties and recommended values**
+
 | Property | Description | Recommended value |
 |------|------|--------|
 | `value` | Priority value (integer) | 0 ~ 1,000,000,000 |
@@ -2037,6 +2077,8 @@ description: "Batch jobs, non-critical background tasks"
 
 These five classes are the **single canonical priority scheme** used throughout sections 6 and 7 of this document. Apply the mapping below consistently to names, comments, tables, and workload examples.
 
+**Table 19. PriorityClass names, values, and roles in the 5-tier priority scheme**
+
 | Name | value | Role |
 |------|-------|------|
 | `platform-critical` | 999999000 | Platform-critical components (DNS, CNI, monitoring) |
@@ -2095,6 +2137,8 @@ A Job Pod may use only `Never` or `OnFailure` for `restartPolicy`; the Deploymen
 ### 7.3 Understanding Preemption Behavior
 
 Preemption frees resources by evicting lower-priority Pods when a higher-priority Pod cannot be scheduled.
+
+**Figure 3. Preemption flow for a higher-priority Pod**
 
 ```mermaid
 flowchart TB
@@ -2193,6 +2237,8 @@ PriorityClass influences scheduling/preemption and kubelet pressure eviction; Qo
 
 Kubernetes automatically assigns a QoS Class based on a Pod's resource requests and limits.
 
+**Table 20. Admission conditions and CPU/memory-pressure behavior by QoS Class**
+
 | QoS Class | Conditions after admission | CPU behavior | Memory-pressure consideration | Typical use |
 |-----------|------|-------------|-------------------|------------|
 | **Guaranteed** | Every container has positive CPU and memory requests and limits, equal for each resource | A CPU limit can throttle usage | Requests affect ranking; eviction and OOM are still possible | Carefully sized critical workloads |
@@ -2239,6 +2285,8 @@ kubectl get pods -n production \
 #### Recommended Combination Matrix
 
 The following matrix is a workload policy sketch; the "Priority policy" column uses the PriorityClass names from the canonical scheme in section 7.2. The table does not rank measured survival or cost.
+
+**Table 21. Recommended QoS and Priority combination matrix**
 
 | Combination | Priority policy (class) | QoS | Scheduling consideration | Memory-pressure consideration | Example workloads |
 |------|----------|-----|-----------------|-------------|------|
@@ -2509,6 +2557,8 @@ spec:
 
 The diagram describes kubelet **memory-pressure eviction**, not the kernel OOM killer or a container exceeding its memory limit. Kubelet first attempts node-level resource reclamation; if Pod eviction is needed, it ranks candidates using the affected resource.
 
+**Figure 4. kubelet eviction order during memory pressure**
+
 ```mermaid
 flowchart TD
     A["Memory-pressure threshold met"]
@@ -2593,6 +2643,8 @@ evictionMaxPodGracePeriod: 60
 ```
 
 **Eviction threshold descriptions:**
+
+**Table 22. Meaning and merge-example values of kubelet eviction thresholds**
 
 | Setting | Meaning | Value in the merge example |
 |------|------|--------|
@@ -2731,6 +2783,8 @@ kubectl describe node <node-name> | grep -A 10 "Non-terminated Pods"
 
 #### Troubleshooting: QoS + Priority Combination Issues
 
+**Table 23. Symptoms, causes, and resolutions for QoS + Priority combination issues**
+
 | Symptom | Cause | Resolution |
 |------|------|----------|
 | Guaranteed Pod is OOM-killed | limits are too low | Profile memory and increase limits |
@@ -2780,6 +2834,8 @@ helm install descheduler descheduler/descheduler \
 ```
 
 **CronJob vs. Deployment mode:**
+
+**Table 24. Descheduler CronJob mode vs. Deployment mode**
 
 | Mode | Execution interval | Resource usage | Recommended environment |
 |------|----------|------------|----------|
@@ -2981,17 +3037,19 @@ data:
 
 ### 8.4 Descheduler vs. Karpenter Consolidation
 
+**Table 25. Descheduler vs. Karpenter Consolidation features**
+
 | Feature | Descheduler | Karpenter Consolidation |
 |------|------------|------------------------|
 | **Purpose** | Pod relocation (balancing) | Node removal (cost savings) |
 | **Scope** | Pod level | Node level |
 | **Execution interval** | CronJob (e.g., 15 minutes) | Continuous monitoring (real time) |
 | **Strategies** | Various strategies (6+) | Empty / Underutilized nodes |
-| **Respects PDB** | ✅ Yes | ✅ Yes |
-| **Adds/removes nodes** | ❌ No | ✅ Yes |
-| **Cluster Autoscaler compatibility** | ✅ Yes | N/A (alternative) |
+| **Respects PDB** | Yes | Yes |
+| **Adds/removes nodes** | No | Yes |
+| **Cluster Autoscaler compatibility** | Yes | N/A (alternative) |
 | **Main use cases** | Resolving imbalance and Affinity violations | Cost optimization, node consolidation |
-| **Can be used together** | ✅ Can run alongside Karpenter | ✅ Can run alongside Descheduler |
+| **Can be used together** | Can run alongside Karpenter | Can run alongside Descheduler |
 
 :::tip Recommended Combination: Descheduler + Karpenter
 Descheduler specializes in Pod relocation, while Karpenter specializes in node management. The two tools complement each other when used together:
@@ -3213,6 +3271,8 @@ kubectl get pdb -A
 
 **Benefits of the combination:**
 
+**Table 26. Benefits of combining Descheduler and Karpenter**
+
 | Benefit | Description |
 |------|------|
 | **Automatic balancing** | Descheduler automatically resolves resource imbalance |
@@ -3228,6 +3288,8 @@ kubectl get pdb -A
 ### 9.1 Scheduling Configuration Matrix by Workload Type
 
 The following table summarizes recommended scheduling settings for various workload types.
+
+**Table 27. Recommended scheduling configuration matrix by workload type**
 
 | Workload Type | Node Selector/Affinity | Pod Anti-Affinity | Topology Spread | Taints/Tolerations | PriorityClass | PDB | Additional Considerations |
 |-------------|----------------------|-------------------|-----------------|-------------------|---------------|-----|-------------|
@@ -3442,6 +3504,8 @@ spec:
 
 In the table below, `GPU Slice` is the fraction of compute (SM) resources the profile uses, which can differ from the memory fraction. The resource name each profile exposes (`nvidia.com/mig-<profile>`) and the actual partition result depend on the GPU model, driver version, and the device plugin's MIG strategy. Other GPU models (A100-80GB, A30, H100, and so on) have different memory capacities and available profile sets, so these values cannot be applied as-is.
 
+**Table 28. Compute and memory fractions and use cases by A100-40GB MIG profile**
+
 | MIG Profile | Compute (SM) fraction | Memory | Use Case |
 |-------------|-----------|--------|----------|
 | `mig-1g.5gb` | 1/7 | 5GB | Small-scale inference |
@@ -3454,6 +3518,8 @@ In the table below, `GPU Slice` is the fraction of compute (SM) resources the pr
 In Kubernetes 1.34+, Dynamic Resource Allocation (DRA) provides more flexible allocation of specialized resources such as GPUs.
 
 **Benefits of DRA:**
+
+**Table 29. Traditional Device Plugin vs. DRA**
 
 | Traditional Approach (Device Plugin) | DRA (K8s 1.34+) |
 |-------------------------|----------------|
@@ -3528,13 +3594,15 @@ AI/ML training and inference have significantly different requirements, so each 
 
 **Training vs. inference comparison:**
 
+**Table 30. Scheduling requirements for AI training vs. inference**
+
 | Comparison | Training | Inference |
 |----------|----------------|-----------------|
 | **GPU requirements** | Large scale (4-8+ GPUs) | Small scale (1-2 GPUs) or Inferentia |
 | **Execution time** | Long-running (hours to days) | Low latency (ms to seconds) |
 | **Workload type** | Batch job (Job) | Always-on service (Deployment) |
 | **Instance types** | g5, p4d, p5 (NVIDIA) | g5 (small scale), inf2 (Inferentia), c7g (Graviton) |
-| **Spot usage** | ✅ Supported (checkpointing required) | ⚠️ Use with caution (high availability required) |
+| **Spot usage** | Supported (checkpointing required) | Conditional (use with caution when high availability is required) |
 | **PriorityClass** | `standard-priority` | `high-priority` |
 | **PDB** | `maxUnavailable: 1` (allows restarts) | `minAvailable: 2` (ensures availability) |
 | **Scheduling strategy** | Soft Anti-Affinity (prefer distribution) | Hard Anti-Affinity (fault isolation) |
@@ -3635,6 +3703,8 @@ Karpenter's behavior depends on what you compare it to. The table below compares
 
 **Limitations of reactive dynamic provisioning (for gang-scheduling workloads):**
 
+**Table 31. Reactive dynamic provisioning limits for gang scheduling**
+
 | Issue | Description | Impact |
 |------|------|------|
 | **Partial allocation risk** | 4 nodes with 4 GPUs each are required, but only 2 are successfully provisioned | 2 nodes remain idle, wasting costs |
@@ -3646,6 +3716,8 @@ Karpenter's behavior depends on what you compare it to. The table below compares
 Setu bridges Kueue's **AdmissionCheck** and Karpenter's **NodeClaim v1 API** to **proactively** provision all required nodes before workload admission.
 
 **Workflow:**
+
+**Figure 5. Setu's pre-admission provisioning workflow**
 
 ```mermaid
 sequenceDiagram
@@ -3670,6 +3742,8 @@ sequenceDiagram
 **Pre-admission readiness gate and scheduling safety:**
 
 Setu's core behavior is a **pre-admission readiness gate**: it holds Kueue workload admission until all required NodeClaims reach the Ready state. This is a readiness gate that checks node readiness before admission, not a distributed transaction or a gang scheduler. NodeClaims are created sequentially; if some fail, Setu runs a compensating cleanup that deletes the NodeClaims it already created, and the retry and cleanup can consume time and capacity or ultimately fail. Pod placement (scheduling) onto nodes is a separate step that happens after admission.
+
+**Table 32. Reactive dynamic provisioning vs. Setu + Kueue by scenario**
 
 | Scenario | Reactive dynamic provisioning | Setu + Kueue |
 |---------|---------------|-------------|
@@ -3790,6 +3864,8 @@ spec:
 
 **Comparison: Traditional Karpenter vs. Setu + Kueue:**
 
+**Table 33. Traditional Karpenter vs. Setu + Kueue by stage**
+
 | Stage | Traditional Karpenter | Setu + Kueue |
 |------|---------------|-------------|
 | **Job submission** | Immediately creates Pods (Pending) | Kueue manages the Job as a Workload (awaiting admission) |
@@ -3800,12 +3876,14 @@ spec:
 
 **Recommended use cases:**
 
+**Table 34. Setu suitability and reason by workload type**
+
 | Workload Type | Setu Suitability | Reason |
 |-------------|--------------|------|
 | **Large-scale distributed training** (16+ GPUs) | Optional, after evaluation | Pre-provisioning can reduce idle time from partial allocation, but a high GPU count alone does not make Setu mandatory. Choose it as an architecture after compatibility and workload validation. |
-| **Small-scale training** (1-4 GPUs) | ⚠️ Optional | Limited benefit relative to overhead |
-| **Single-GPU inference** | ❌ Not required | Reactive Karpenter is sufficient |
-| **Batch processing** (CPU workloads) | ⚠️ Optional | Useful when cost efficiency is the goal |
+| **Small-scale training** (1-4 GPUs) | Conditional (optional) | Limited benefit relative to overhead |
+| **Single-GPU inference** | Not required | Reactive Karpenter is sufficient |
+| **Batch processing** (CPU workloads) | Conditional (optional) | Useful when cost efficiency is the goal |
 
 :::info Setu Maturity and Version Requirements
 Setu is a **community project that connects Kueue workload queuing with Karpenter node provisioning, and its status at the time of writing is Alpha** (the project README states "Alpha — Functional and E2E-tested on AWS EKS. Use in non-production environments first."). Project-reported compatibility is not the same as review-verified behavior or production support.
@@ -3948,15 +4026,19 @@ spec:
 
 **Cost optimization strategy summary:**
 
+**Table 35. Instance types, Spot usage, and recommended strategy by workload**
+
 | Workload | Instance Types | Spot Usage | Recommended Strategy |
 |---------|-------------|----------|----------|
-| **Large-scale training** | g5.12xlarge, p4d.24xlarge | ✅ Supported | Spot + Checkpointing + Spot Interruption Handler |
-| **Small-scale training** | g5.2xlarge, g5.4xlarge | ✅ Supported | Mix of Spot 70% + On-Demand 30% |
-| **High-performance inference** | g5.xlarge, g5.2xlarge | ❌ Not recommended | On-Demand + Savings Plans |
-| **Lightweight inference** | inf2.xlarge, c7g.xlarge | ❌ Not recommended | On-Demand or Reserved Instances |
-| **Batch inference** | g5.xlarge | ✅ Supported | Spot + retry logic |
+| **Large-scale training** | g5.12xlarge, p4d.24xlarge | Supported | Spot + Checkpointing + Spot Interruption Handler |
+| **Small-scale training** | g5.2xlarge, g5.4xlarge | Supported | Mix of Spot 70% + On-Demand 30% |
+| **High-performance inference** | g5.xlarge, g5.2xlarge | Not recommended | On-Demand + Savings Plans |
+| **Lightweight inference** | inf2.xlarge, c7g.xlarge | Not recommended | On-Demand or Reserved Instances |
+| **Batch inference** | g5.xlarge | Supported | Spot + retry logic |
 
 ### 9.2 Scheduling Decision Flowchart
+
+**Figure 6. Scheduling decision flowchart**
 
 ```mermaid
 flowchart TB
@@ -4071,6 +4153,8 @@ EKS runs the control plane in one of two modes. The default is **Standard mode**
 
 Each Provisioned tier is defined by the following four control-plane attributes; it does not set a node-count limit. The values below vary by Kubernetes version (v1.30–v1.33 are lower). Always confirm the values for your version in the current [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html).
 
+**Table 36. Control-plane capacity attributes and SLA by Provisioned tier**
+
 | Tier | API request concurrency (seats) | Pod scheduling rate (pods/sec) | Cluster database (etcd) size | SLA (1-minute intervals) |
 |------|---------------------------------|--------------------------------|------------------------------|--------------------------|
 | **XL** | 2,000 | 167 | 16 GB | 99.99% |
@@ -4143,6 +4227,8 @@ spec:
 
 Provisioned Control Plane is optimized for scenarios that simultaneously schedule thousands of GPU Pods for AI/ML training workloads.
 
+**Figure 7. Provisioned Control Plane scheduling for AI/ML training workloads**
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -4179,6 +4265,8 @@ sequenceDiagram
 
 The following are general starting points based on workload characteristics; determine the actual tier by load-testing with the [tier utilization metrics](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html). The selection criterion is control-plane load (API concurrency, scheduler QPS, etcd usage), not node count.
 
+**Table 37. Recommended mode/tier and reason by use case**
+
 | Use Case | Recommended Mode/Tier | Reason |
 |----------|----------------------|------|
 | **General web applications** | Standard mode (no Provisioned) | Automatic scaling is sufficient |
@@ -4205,6 +4293,8 @@ Built-in `general-purpose` uses On-Demand `amd64` capacity. Spot requires a suit
 Standalone Karpenter uses `karpenter.k8s.aws/EC2NodeClass`, while Auto Mode uses `eks.amazonaws.com/NodeClass`. Check that each NodePool refers to the correct kind of NodeClass when applying the examples.
 
 **How Auto Mode affects scheduling:**
+
+**Table 38. Manual approach vs. EKS Auto Mode node provisioning**
 
 | Feature | Traditional Approach (Manual) | Auto Mode |
 |------|---------------|----------|
@@ -4297,14 +4387,16 @@ spec:
 
 Auto Mode automates node provisioning, but the following scheduling settings **must still be configured explicitly**:
 
+**Table 39. Scheduling settings still required in Auto Mode**
+
 | Setting | Automated by Auto Mode? | Description |
 |------|---------------------|------|
-| **Resource Requests/Limits** | ❌ Configuration required | Workload resource requirements must be specified |
-| **Topology Spread** | ⚠️ Explicit policy for application requirements | Default scheduler behavior does not establish the application's required AZ distribution |
-| **Pod Anti-Affinity** | ❌ Configuration required | Distribution of replicas of the same app must be specified |
-| **PDB** | ❌ Configuration required | The app is responsible for ensuring minimum availability |
-| **PriorityClass** | ❌ Configuration required | The app is responsible for priority |
-| **Taints/Tolerations** | ⚠️ Specialized nodes only | Must be specified for specialized workloads such as GPUs |
+| **Resource Requests/Limits** | Not automated (configuration required) | Workload resource requirements must be specified |
+| **Topology Spread** | Conditional (explicit policy for application requirements) | Default scheduler behavior does not establish the application's required AZ distribution |
+| **Pod Anti-Affinity** | Not automated (configuration required) | Distribution of replicas of the same app must be specified |
+| **PDB** | Not automated (configuration required) | The app is responsible for ensuring minimum availability |
+| **PriorityClass** | Not automated (configuration required) | The app is responsible for priority |
+| **Taints/Tolerations** | Conditional (specialized nodes only) | Must be specified for specialized workloads such as GPUs |
 
 **Recommended scheduling pattern for Auto Mode:**
 
@@ -4376,6 +4468,8 @@ spec:
 
 Auto Mode internally provides autoscaling similar to Karpenter and respects PDBs.
 
+**Figure 8. Auto Mode, PDB, and Karpenter interaction flow**
+
 ```mermaid
 flowchart TB
     subgraph "Auto Mode Environment"
@@ -4416,6 +4510,8 @@ EKS ARC zonal shift reduces supported traffic toward an impaired AZ. It cordons 
 - Before shifting, remaining-AZ replicas, CoreDNS, capacity and dependencies must be able to carry the load. Check the LB resource's ARC settings, target type and endpoint-consumption path as well. The NodePool below assumes an existing `default` EC2NodeClass with the regional networking, image and permissions resolved; a resource name does not enable ARC.
 
 **Supported traffic changes and independent Karpenter behavior:**
+
+**Figure 9. Independent behavior of ARC Zonal Shift and Karpenter**
 
 ```mermaid
 sequenceDiagram
@@ -4606,6 +4702,8 @@ data:
 
 **Boundaries to verify for AZ impairment:**
 
+**Table 40. PDB, Topology Spread, and capacity-path boundaries to verify for AZ impairment**
+
 | Scenario | PDB Role | Topology Spread | Capacity and Control Path | Result to Verify |
 |---------|---------|----------------|---------------|----------|
 | **Complete AZ failure** | Constrains voluntary Eviction only | Review Soft spread and remaining Hard constraints | Pre-existing replicas/capacity in remaining AZs and enabled ARC paths | Measure endpoint transition and service SLOs |
@@ -4621,6 +4719,8 @@ Container Network Observability provides granular network metrics to analyze the
 **Correlation between Pod placement and network performance:**
 
 The table below shows only relative tendencies by placement pattern. Absolute latency values and prices depend on the workload/protocol, the region/AZ path, the measurement method and percentile, and the pricing in effect on a given date, so no fixed numbers are stated here. Measure actual latency directly, and confirm data transfer charges against the current [AWS data transfer pricing](https://aws.amazon.com/ec2/pricing/on-demand/), stating the service, direction, region pair, date, billing tier, and any applicable exemptions.
+
+**Table 41. Relative network latency and Cross-AZ charge by Pod placement pattern**
 
 | Pod Placement Pattern | Relative Network Latency | Cross-AZ Data Transfer Charge | Use Case |
 |-------------|------------------|------------------------------|----------|
@@ -4739,6 +4839,8 @@ data:
 3. **Analyze inter-Pod communication** → validate service-mesh routing and health configuration
 4. **Detect latency spikes** → an operator or separate automation evaluates cause and readiness before deciding on an ARC traffic shift for supported resources
 
+**Figure 10. Decision flow after detecting Cross-AZ traffic**
+
 ```mermaid
 flowchart TB
     subgraph "Container Network Observability"
@@ -4824,6 +4926,8 @@ spec:
 
 The table below is illustrative arithmetic under stated assumptions, not measured results. The figures hold only under the stated unit and pricing assumptions, and no measured evidence attributes the change to Pod affinity.
 
+**Table 42. Assumption-based arithmetic example of cost savings from network observability**
+
 | Item | Before Optimization | After Optimization | Change under the assumptions |
 |------|---------------------|--------------------|------------------------------|
 | Cross-AZ traffic | 1 TB/month | 0.2 TB/month | 80% reduction under the chosen unit convention |
@@ -4852,6 +4956,8 @@ The rule objects demonstrate the API contract. They are not a complete runnable 
 
 The scheduler evaluates resources, taints, affinity, topology and other constraints. `Ready=True` alone does not prove that every workload-specific dependency is usable; the following are possible initialization gaps, not measured failure results.
 
+**Table 43. Scenario, node state, and result when judging by Ready=True alone**
+
 | Scenario | Node State | Actual Situation | Result |
 |---------|---------|----------|------|
 | **CNI plugin not ready** | `Ready` | Calico/Cilium Pod starting | Pod network connection failure |
@@ -4866,6 +4972,8 @@ NRC uses the `NodeReadinessRule` CRD (`readiness.node.x-k8s.io/v1alpha1`) as fol
 1. **Condition-based taint management**: Reconcile a rule's taint using its required Node Conditions.
 2. **Blocks ordinary scheduling**: A `NoSchedule` guard blocks new Pods without a matching toleration; it does not evict existing Pods.
 3. **Conditional taint removal**: Remove that rule's taint when its conditions match. Other guards and scheduler constraints must still permit placement.
+
+**Figure 11. Node Readiness Controller taint management and scheduling-block flow**
 
 ```mermaid
 sequenceDiagram
@@ -4894,6 +5002,8 @@ sequenceDiagram
 **Two enforcement modes:**
 
 NRC operates in two modes, each with a different effect on scheduling safety:
+
+**Table 44. The two enforcement modes of the Node Readiness Controller**
 
 | Mode | Behavior | Scheduling Impact | Use Case |
 |------|---------|-------------|----------|
@@ -4962,6 +5072,8 @@ spec:
 
 Kubernetes can control scheduling safety at both the Pod and node levels:
 
+**Table 45. schedulingGates vs. NodeReadinessRule**
+
 | Comparison | `schedulingGates` (Pod Level) | `NodeReadinessRule` (Node Level) |
 |----------|------------------------------|--------------------------------|
 | **Control target** | Scheduling of a specific Pod | Scheduling eligibility of matching nodes for Pods that do not tolerate the guard |
@@ -4998,6 +5110,8 @@ spec:
 **Karpenter + NRC integration pattern:**
 
 In environments that use Karpenter for dynamic node provisioning, NRC provides the following workflow:
+
+**Figure 12. Pod- and node-level scheduling safety combining Karpenter and NRC**
 
 ```mermaid
 flowchart TB
@@ -5122,6 +5236,8 @@ Use the following checklist to verify scheduling settings before production depl
 
 #### Basic Scheduling (All Workloads)
 
+**Table 46. Basic scheduling checklist (all workloads)**
+
 | Item | Description | Check |
 |------|------|------|
 | **Configure Resource Requests** | Specify CPU and memory requests for all containers | [ ] |
@@ -5131,6 +5247,8 @@ Use the following checklist to verify scheduling settings before production depl
 | **Image Pull Policy** | Production: `IfNotPresent` or `Always` | [ ] |
 
 #### High Availability (Critical Workloads)
+
+**Table 47. High-availability checklist (critical workloads)**
 
 | Item | Description | Check |
 |------|------|------|
@@ -5143,6 +5261,8 @@ Use the following checklist to verify scheduling settings before production depl
 
 #### Resource Optimization
 
+**Table 48. Resource-optimization checklist**
+
 | Item | Description | Check |
 |------|------|------|
 | **Use Spot nodes** | Allow Spot nodes for restartable workloads | [ ] |
@@ -5152,6 +5272,8 @@ Use the following checklist to verify scheduling settings before production depl
 | **Karpenter integration** | Configure disruption budgets | [ ] |
 
 #### Specialized Workloads
+
+**Table 49. Specialized-workload checklist**
 
 | Item | Description | Check |
 |------|------|------|

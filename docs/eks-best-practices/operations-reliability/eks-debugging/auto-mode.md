@@ -27,6 +27,8 @@ EKS Auto Mode is an operational model in which AWS fully manages node provisioni
 
 ## Auto Mode vs Standard Mode Differences
 
+**Table 1. Item-by-item differences and debugging impact between Standard Mode and Auto Mode**
+
 | Item | Standard Mode | Auto Mode | Debugging Impact |
 |------|---------------|-----------|------------|
 | **Node management** | User (MNG/Karpenter) | AWS-managed (NodePool) | Check state via NodePool CRD; EC2 API access is limited |
@@ -41,6 +43,8 @@ EKS Auto Mode is an operational model in which AWS fully manages node provisioni
 ## NodePool Architecture
 
 Auto Mode node lifecycle:
+
+**Figure 1. Auto Mode node lifecycle flow**
 
 ```mermaid
 flowchart LR
@@ -110,6 +114,8 @@ kubectl describe nodeclaim <nodeclaim-name>
 
 ### NodeClaim State Transitions
 
+**Figure 2. NodeClaim state transition diagram**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Pending: NodePool created
@@ -170,6 +176,8 @@ spec:
 ## Storage Debugging
 
 ### Auto Mode Storage Constraints
+
+**Table 2. Storage support differences between Standard Mode and Auto Mode by storage type**
 
 | Storage Type | Standard Mode | Auto Mode | Constraints |
 |--------------|---------------|-----------|----------|
@@ -277,6 +285,8 @@ Auto Mode automatically manages the GPU Driver. Installing the GPU Operator caus
 
 To run GPU workloads in Auto Mode, **add an MNG** for a hybrid configuration:
 
+**Figure 3. Hybrid configuration of Auto Mode and MNG with scheduling paths**
+
 ```mermaid
 flowchart TB
     subgraph "EKS Cluster (Hybrid)"
@@ -383,6 +393,8 @@ For detailed GPU debugging, see [GPU/AI Workload Debugging](./gpu-ai-workload.md
 ## Hybrid Configuration (Auto Mode + MNG)
 
 ### When Is Hybrid Needed?
+
+**Table 3. Auto Mode-only suitability and hybrid necessity by scenario**
 
 | Scenario | Auto Mode Only | Hybrid (Auto Mode + MNG) |
 |---------|---------------|----------------------------|

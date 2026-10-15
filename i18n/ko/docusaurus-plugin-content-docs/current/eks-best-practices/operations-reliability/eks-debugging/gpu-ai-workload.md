@@ -30,6 +30,8 @@ EKS에서 GPU 기반 AI 워크로드를 운영할 때 발생하는 일반적인 
 
 GPU 문제 발생 시 다음 순서로 진단합니다:
 
+**그림 1. GPU 문제 진단 순서 흐름도**
+
 ```mermaid
 flowchart TD
     A[GPU 문제 발생] --> B{nvidia-smi 실행 가능?}
@@ -93,6 +95,8 @@ kubectl get pods -A -o json | jq '.items[] | select(.spec.containers[].resources
 ## CUDA/NCCL 에러 패턴
 
 GPU 워크로드에서 발생하는 일반적인 CUDA XID 에러와 조치 방법:
+
+**표 1. 주요 CUDA XID 에러 코드별 의미·원인·조치**
 
 | XID | 의미 | 원인 | 조치 |
 |-----|------|------|------|
@@ -163,6 +167,8 @@ vLLM에서 메모리 부족은 두 가지 원인이 있습니다:
 # Reserved for KV cache: 26.77 GiB  # ← 이 값이 너무 적으면 긴 컨텍스트 처리 불가
 # Reserved for activation: 8.00 GiB
 ```
+
+**표 2. vLLM 메모리 부족 증상별 원인과 조치**
 
 | 증상 | 원인 | 조치 |
 |------|------|------|

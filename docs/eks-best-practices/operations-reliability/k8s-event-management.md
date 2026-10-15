@@ -49,6 +49,8 @@ Amazon EventBridge `aws.eks` source events only deliver EKS service events (add-
 
 To make events queryable by an AI Agent, design collection (export), storage (durable store), and query (query interface) as separate layers.
 
+**Figure 1. Three-layer pipeline for event collection, storage and query**
+
 ```mermaid
 flowchart LR
     subgraph K8S["EKS Cluster"]
@@ -81,6 +83,8 @@ flowchart LR
 ```
 
 ## Collection Layer: Export Options Compared
+
+**Table 1. Event export options: collection target and best fit**
 
 | Method | Collection Target | Characteristics | Best Fit |
 |------|----------|------|------------|
@@ -121,6 +125,8 @@ route:
 
 Choose the store based on "how the events will be queried."
 
+**Table 2. Stores by query pattern, retention cost and MCP integration**
+
 | Store | Query Pattern | Retention Cost | MCP Integration |
 |--------|----------|----------|---------|
 | **CloudWatch Logs** | Logs Insights queries, pattern analysis | Medium (reduce via S3 export) | Directly supported by CloudWatch MCP and EKS MCP |
@@ -136,6 +142,8 @@ If events are already accumulating in CloudWatch, re-shipping them to Loki (Clou
 ### Division of Roles Between the EKS MCP Server and the CloudWatch MCP Server
 
 AWS provides a fully managed EKS MCP server (announced November 2025, preview) and a CloudWatch MCP server. The two servers query different targets, so connecting both is the standard configuration for an incident analysis Agent.
+
+**Table 3. Query targets of the EKS MCP server vs the CloudWatch MCP server**
 
 | Aspect | EKS MCP Server | CloudWatch MCP Server |
 |------|-------------|-------------------|

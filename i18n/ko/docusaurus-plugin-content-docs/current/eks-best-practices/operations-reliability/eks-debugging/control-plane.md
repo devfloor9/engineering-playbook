@@ -161,7 +161,7 @@ Kubernetes 1.21+에서 서비스 어카운트 토큰은 **기본 1시간 유효*
 - 프로젝티드 서비스 어카운트 토큰(Projected Service Account Token)은 기본 1시간 만료
 - kubelet이 토큰을 자동 갱신하지만, 애플리케이션이 파일에서 토큰을 한 번만 읽고 캐싱하면 만료된 토큰을 계속 사용
 
-**필요한 최소 SDK 버전:**
+**표 1. 토큰 자동 갱신을 지원하는 언어별 최소 SDK 버전**
 
 | 언어 | SDK | 최소 버전 |
 |------|-----|----------|
@@ -211,6 +211,8 @@ aws eks describe-addon --cluster-name <cluster-name> --addon-name <addon-name>
 aws eks update-addon --cluster-name <cluster-name> --addon-name <addon-name> \
   --addon-version <version> --resolve-conflicts PRESERVE
 ```
+
+**표 2. 주요 Add-on별 에러 패턴과 진단·해결 방법**
 
 | Add-on | 일반적인 에러 패턴 | 진단 방법 | 해결 방법 |
 |--------|-------------------|----------|----------|
@@ -298,7 +300,7 @@ aws eks describe-cluster --name <cluster-name> \
   --query 'cluster.accessConfig.authenticationMode' --output text
 ```
 
-**인증 모드 종류:**
+**표 3. EKS 인증 모드별 설명과 권장 사용 사례**
 
 | 모드 | 설명 | 권장 사용 사례 |
 |------|------|--------------|

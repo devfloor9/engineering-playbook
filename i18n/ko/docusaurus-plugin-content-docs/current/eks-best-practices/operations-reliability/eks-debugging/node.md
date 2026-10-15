@@ -56,6 +56,8 @@ aws-auth ConfigMap에는 인스턴스 프로파일 ARN (`arn:aws:iam::ACCOUNT:in
 
 ## Node NotReady Decision Tree
 
+**그림 1. Node NotReady 진단 Decision Tree**
+
 ```mermaid
 flowchart TD
     NR["`**Node NotReady**`"] --> CHECK_INST{"`EC2 인스턴스
@@ -131,6 +133,8 @@ SSM 접속을 위해서는 노드의 IAM Role에 `AmazonSSMManagedInstanceCore` 
 # 노드 상태 확인
 kubectl describe node <node-name>
 ```
+
+**표 1. 리소스 압박 Condition별 임계값·진단 명령어·해결 방법**
 
 | Condition | 임계값 | 진단 명령어 | 해결 방법 |
 |-----------|--------|-----------|----------|
@@ -252,6 +256,8 @@ eksctl upgrade nodegroup --cluster=<cluster-name> --name=<nodegroup-name>
 
 기존 Kubernetes에서는 노드가 `Ready` 상태가 되면 즉시 워크로드가 스케줄링됩니다. 하지만 실제로는 아직 준비가 완료되지 않은 경우가 많습니다:
 
+**표 2. Ready 상태에서 미완료 구성 요소별 증상과 영향**
+
 | 미완료 구성 요소 | 증상 | 영향 |
 |---|---|---|
 | GPU 드라이버/펌웨어 로딩 중 | `nvidia-smi` 실패, Pod `CrashLoopBackOff` | GPU 워크로드 실패 |
@@ -262,6 +268,8 @@ eksctl upgrade nodegroup --cluster=<cluster-name> --name=<nodegroup-name>
 ### Node Readiness Controller 동작 원리
 
 Node Readiness Controller는 **커스텀 taint를 선언적으로 관리**하여, 모든 인프라 요구사항이 충족될 때까지 워크로드 스케줄링을 지연시킵니다:
+
+**그림 2. Node Readiness Controller 스케줄링 지연 흐름**
 
 ```mermaid
 flowchart LR
@@ -336,6 +344,8 @@ kubectl get namespace <ns> -o jsonpath='{.metadata.labels.elbv2\.k8s\.aws/pod-re
 ```
 
 :::tip Readiness 기능 비교
+
+**표 3. Readiness 관련 기능별 적용 대상·제어 방식·상태 비교**
 
 | 기능 | 적용 대상 | 제어 방식 | 상태 |
 |------|-----------|-----------|------|

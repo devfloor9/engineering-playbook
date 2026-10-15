@@ -32,6 +32,8 @@ The commands provide diagnostic and remediation examples. Replace cluster, names
 
 ### EKS Debugging Layers
 
+**Figure 1. EKS debugging layer structure**
+
 ```mermaid
 flowchart TB
     subgraph "EKS Debugging Layers"
@@ -72,6 +74,8 @@ flowchart TB
 ### Debugging Approach Methodology
 
 Two approaches are available for EKS problem diagnosis.
+
+**Table 1. Comparison of Top-down and Bottom-up debugging approaches**
 
 | Approach | Description | Suitable Situations |
 |-----------|------|------------|
@@ -132,6 +136,8 @@ kubectl top pods -n <namespace> --sort-by=cpu
 ```
 
 ### Scope Determination Decision Tree
+
+**Figure 2. Problem scope determination decision tree**
 
 ```mermaid
 flowchart TD
@@ -365,6 +371,8 @@ kubectl uncordon <node-name>
 
 ### Recommended Tool Matrix
 
+**Table 2. Recommended debugging tools by scenario**
+
 | Scenario | Tool | Description |
 |---------|------|------|
 | Network debugging | [netshoot](https://github.com/nicolaka/netshoot) | Container bundled with networking tools |
@@ -420,6 +428,8 @@ Attaching this log file when submitting an AWS Support case enables support engi
 ## Detailed Debugging Guides
 
 Use the following links to view detailed debugging guides for each layer:
+
+**Table 3. Detailed debugging guide documents by layer**
 
 | Document | Description | Key Topics |
 |------|------|----------|

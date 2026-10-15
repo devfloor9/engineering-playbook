@@ -24,6 +24,8 @@ AWS Fargate is a serverless compute engine that runs Pods without node managemen
 
 ### Architecture comparison: Fargate vs EC2 vs Auto Mode {#fargate-vs-ec2-vs-auto-mode-아키텍처-비교}
 
+**Figure 1. Pod execution structure of EC2 node groups, Fargate, and EKS Auto Mode**
+
 ```mermaid
 flowchart TB
     subgraph EC2["EC2 Managed Node Group"]
@@ -148,6 +150,8 @@ A PDB limits disruptions admitted through the Eviction API. Direct Pod deletion 
 
 Measure startup in separate stages: scheduling and compute preparation, image pull, and application initialization after the container starts. A startup probe checks application initialization while the container is running, so earlier provisioning and image-pull time are outside its budget.
 
+**Table 1. What to inspect at each Fargate Pod startup stage**
+
 | Stage | What to inspect |
 |------|-----------------|
 | **Scheduling and compute preparation** | Pod events and scheduling time, Fargate profile and subnet configuration |
@@ -190,6 +194,8 @@ spec:
 ### Sidecar patterns for Fargate without DaemonSet support {#fargate-daemonset-미지원으로-인한-사이드카-패턴}
 
 When an application on Fargate needs an agent, use a supported sidecar or separate collector. EKS provides a Fluent Bit log router for collecting container standard output logs.
+
+**Table 2. Logging, metric, security, and network capabilities compared between EC2 and Fargate**
 
 | Capability | EC2 | Fargate |
 |------|-----|---------|
@@ -266,6 +272,8 @@ Application system metrics reach Container Insights through an [ADOT collection 
 
 Set the termination budget from the time needed to move traffic and finish work already in progress. `preStop` consumes the same grace period, so leave time for the application to handle its stop signal after the wait.
 
+**Table 3. Items to reflect in the termination budget**
+
 | Item to inspect | Contribution to the termination budget |
 |-----------|-------------------------|
 | **Traffic transition** | Time for EndpointSlice and load-balancer target state to propagate |
@@ -319,6 +327,8 @@ See the [Pod termination sequence](https://kubernetes.io/docs/concepts/workloads
 
 ### Comparison of Fargate, EC2, and Auto Mode from a probe perspective {#fargate-vs-ec2-vs-auto-mode-비교표-probe-관점}
 
+**Table 4. EC2, Fargate, and Auto Mode compared from a probe and termination perspective**
+
 | Item | EC2 Managed Node Group | Fargate | EKS Auto Mode |
 |------|------------------------|---------|---------------|
 | **Node management** | User manages node-group configuration and updates | AWS-managed | AWS-managed |
@@ -339,6 +349,8 @@ The [Auto Mode configuration guide](https://docs.aws.amazon.com/eks/latest/userg
 **Conditions to check before choosing:**
 
 A batch job or a burst of traffic alone does not determine the platform. First check support for the required OS, architecture, storage and agents, then measure capacity and cost for compatible candidates using the same workload. The diagram lists conditions to check for each candidate. A per-Pod compute boundary does not establish network isolation or application availability.
+
+**Figure 2. Flow of conditions to check for each platform candidate**
 
 ```mermaid
 flowchart TD

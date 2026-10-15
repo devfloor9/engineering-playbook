@@ -32,6 +32,8 @@ CloudWatch Network Flow Monitor(NFM)는 워크로드 관점의 네트워크 성�
 
 에이전트를 보기 전에 데이터가 도달하는 백엔드의 개념을 정리합니다.
 
+**표 1. Network Flow Monitor 백엔드 구성 요소와 역할**
+
 | 구성 요소 | 역할 |
 |---|---|
 | Scope | 관측 대상 계정 집합. Organizations 사용 시 최대 100개 계정까지 확장 |
@@ -42,6 +44,8 @@ CloudWatch Network Flow Monitor(NFM)는 워크로드 관점의 네트워크 성�
 NHI가 이 서비스의 차별점입니다. "우리 앱 문제인가, AWS 네트워크 문제인가"라는 장애 대응의 첫 분기 질문에 AWS 측 판정을 제공합니다. 단, NHI 산정의 내부 알고리즘은 공개되어 있지 않으며, RTT 지표는 항상 계산되는 값이 아니어서 희소(sparse)할 수 있다고 공식 문서에 명시되어 있습니다.
 
 ## 아키텍처: 전체 데이터 경로
+
+**그림 1. 노드 agent부터 백엔드까지의 전체 데이터 경로**
 
 ```mermaid
 flowchart TB
@@ -69,6 +73,8 @@ eBPF 프로그램은 `BPF_PROG_TYPE_SOCK_OPS` 타입 하나뿐이며 cgroup v2�
 
 [sock_ops_handler.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-common/src/sock_ops_handler.rs)의 `handle_socket_event()` 기준으로, 처리되는 콜백과 기록 값은 다음과 같습니다.
 
+**표 2. sock_ops 콜백별로 기록되는 값**
+
 | sock_ops 콜백 | 기록되는 값 |
 |---|---|
 | `TCP_CONNECT_CB` | 신규 소켓 등록(client), `connect_attempts` 증가, 연결 시작 시각 |
@@ -91,6 +97,8 @@ eBPF 프로그램은 `BPF_PROG_TYPE_SOCK_OPS` 타입 하나뿐이며 cgroup v2�
 ### 타이머 기반 메인 루프
 
 메인 루프는 세 개의 타이머로 구동됩니다. 주요 옵션과 기본값:
+
+**표 3. 메인 루프 주요 옵션과 기본값**
 
 | 옵션 | 기본값 | 의미 |
 |---|---|---|
@@ -141,6 +149,8 @@ aws eks create-addon --cluster-name <CLUSTER> \
 ### 리소스 이름 불일치 주의
 
 add-on·네임스페이스·DaemonSet의 이름이 미묘하게 달라 오진의 단골 원인이 됩니다.
+
+**표 4. add-on·네임스페이스·DaemonSet 리소스 이름**
 
 | 리소스 | 이름 |
 |---|---|

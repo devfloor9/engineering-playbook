@@ -26,6 +26,8 @@ Graceful shutdown is a pattern that safely completes in-flight requests and stop
 
 Pod termination in Kubernetes follows this sequence.
 
+**Figure 1. Sequence from Pod termination request to container termination**
+
 ```mermaid
 sequenceDiagram
     participant User as User/System

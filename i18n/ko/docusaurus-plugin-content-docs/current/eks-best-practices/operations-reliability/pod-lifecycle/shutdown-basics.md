@@ -26,6 +26,8 @@ Graceful Shutdown은 Pod 종료 시 진행 중인 요청을 안전하게 완료�
 
 Kubernetes에서 Pod 종료는 다음 순서로 진행됩니다.
 
+**그림 1. Pod 종료 요청부터 컨테이너 종료까지의 시퀀스**
+
 ```mermaid
 sequenceDiagram
     participant User as 사용자/시스템

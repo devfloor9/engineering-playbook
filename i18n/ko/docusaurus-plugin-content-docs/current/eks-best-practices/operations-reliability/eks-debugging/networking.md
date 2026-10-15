@@ -19,6 +19,8 @@ sidebar_label: 네트워킹
 
 ## 네트워킹 디버깅 워크플로우
 
+**그림 1. 네트워킹 디버깅 워크플로우**
+
 ```mermaid
 flowchart TD
     NET_ISSUE["`**네트워크 문제 감지**`"] --> CHECK_CNI{"`VPC CNI
@@ -302,6 +304,8 @@ kubectl get pods -l app=web -o wide
 ```
 
 ### 일반적인 Service 문제
+
+**표 1. 일반적인 Service 문제의 증상·확인 사항·해결**
 
 | 증상 | 확인 사항 | 해결 |
 |------|----------|------|

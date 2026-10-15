@@ -111,6 +111,8 @@ spec:
 
 Kubernetes executes hooks through two mechanisms.
 
+**Table 1. Hook execution mechanisms: advantages and disadvantages**
+
 | Mechanism | Description | Advantages | Disadvantages |
 |----------|------|------|------|
 | **exec** | Execute commands inside the container | Access to the container filesystem | High overhead |

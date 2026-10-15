@@ -135,7 +135,7 @@ data:
     }
 ```
 
-**진단 워크플로우:**
+**그림 1. Readiness Probe 실패 시 네트워크·애플리케이션 원인 진단 워크플로우**
 
 ```mermaid
 flowchart TD
@@ -196,7 +196,7 @@ spec:
 EOF
 ```
 
-**주요 Control Plane 메트릭:**
+**표 1. 주요 Control Plane 메트릭과 Probe 연관성**
 
 | 메트릭 | 설명 | Probe 연관성 | 임계값 예시 |
 |--------|------|-------------|------------|
@@ -320,7 +320,7 @@ spec:
 
 Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플레인 용량으로 예측 가능한 고성능 Kubernetes 운영을 보장합니다. 대규모 클러스터에서 Probe 요청이 API Server 성능 저하의 영향을 받지 않도록 합니다.
 
-**티어별 성능 특성:**
+**표 2. Provisioned Control Plane 티어별 성능 특성과 적합 워크로드**
 
 | 티어 | API 동시성 | Pod 스케줄링 속도 | 최대 노드 수 | Probe 처리 보장 | 적합 워크로드 |
 |------|----------|---------------|------------|--------------|-------------|
@@ -328,7 +328,7 @@ Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플�
 | **2XL** | 매우 높음 | ~1,000 Pods/min | 2,500 | 99.9% < 80ms | 대규모 배치 |
 | **4XL** | 초고속 | ~2,000 Pods/min | 5,000 | 99.9% < 50ms | 초대규모 ML |
 
-**Standard vs Provisioned Control Plane:**
+**그림 2. Standard와 Provisioned Control Plane의 부하 처리 비교**
 
 ```mermaid
 graph LR
@@ -522,7 +522,7 @@ spec:
               key: health-token
 ```
 
-**GuardDuty 탐지 시나리오:**
+**그림 3. GuardDuty의 헬스체크 위조 탐지와 자동 대응 시나리오**
 
 ```mermaid
 flowchart TD

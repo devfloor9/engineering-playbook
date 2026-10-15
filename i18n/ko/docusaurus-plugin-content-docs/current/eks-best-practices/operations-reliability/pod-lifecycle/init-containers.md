@@ -31,6 +31,8 @@ category: operations
 
 아래 그림은 재시도가 허용된 경우입니다. 완료된 이전 Init Container로 돌아가지 않고 실패한 컨테이너를 다시 실행합니다. Pod 재생성 등으로 초기화가 다시 실행될 수 있으므로 작업은 반복 실행에 안전해야 합니다.
 
+**그림 1. 재시도가 허용된 Init Container 실행 흐름**
+
 ```mermaid
 flowchart LR
     START[Pod 생성] --> INIT1[Init Container 1]
@@ -303,6 +305,8 @@ spec:
 ### Init Container vs Sidecar Container (Kubernetes 1.29+) {#43-init-container-vs-sidecar-container-kubernetes-129}
 
 Native Sidecar는 Kubernetes 1.29부터 기본 활성화된 `SidecarContainers` 기능을 사용합니다. `initContainers`의 `restartPolicy: Always` 컨테이너는 시작된 뒤 계속 실행되며 다음 초기화 단계로 진행할 수 있습니다.
+
+**표 1. Init Container와 Sidecar Container(1.29+) 특성 비교**
 
 | 특성 | Init Container | Sidecar Container (1.29+) |
 |------|---------------|---------------------------|

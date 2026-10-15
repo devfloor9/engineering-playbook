@@ -27,6 +27,8 @@ Resiliency is the ability to maintain service and recover when components fail. 
 
 ### Failure Domain Hierarchy
 
+**Figure 1. Mapping of failure scopes to response strategies and impact ranges**
+
 ```mermaid
 graph TB
     subgraph "Failure Domain Hierarchy"
@@ -81,6 +83,8 @@ graph TB
 
 An organization's resiliency can be classified into 4 levels, enabling gradual improvement from its current level.
 
+**Table 1. Four resiliency maturity levels with core capabilities, complexity and cost impact**
+
 | Level | Stage | Core Capabilities | Implementation Items | Complexity | Cost Impact |
 |-------|------|-----------|-----------|--------|-----------|
 | **1** | Basic | Pod-level resiliency | Probe configuration, PDB, Graceful Shutdown, resource Limits | Low | Minimal |
@@ -101,6 +105,8 @@ Multi-AZ deployment is a foundational and powerful strategy for EKS resiliency. 
 ### Pod Topology Spread Constraints
 
 Topology Spread Constraints compare matching Pods in the same namespace across eligible topology domains. `minDomains` (K8s 1.24 alpha → 1.30 GA) controls the global minimum used for a hard constraint: when fewer eligible domains exist, that minimum becomes zero. It does not create capacity or guarantee placement in that many AZs.
+
+**Table 2. Pod Topology Spread Constraints parameters and recommended values**
 
 | Parameter | Description | Recommended Value |
 |----------|------|--------|
@@ -216,6 +222,8 @@ When a new node is provisioned in a Multi-AZ environment, it may not be fully pr
 
 [Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller) is a separately installed controller, not an EKS built-in readiness guarantee. Pin its controller and CRD together (this example uses v0.1.1 semantics). Pre-register the matching bootstrap `NoSchedule` taints before ordinary workloads can schedule, and provide trusted reporters for each required Node condition. Installing a GPU/CNI/CSI/security component does not automatically publish those custom conditions. Rules, node selection and required-condition statuses must match the pinned CRD; do not copy newer `main` fields into v0.1.1.
 
+**Figure 2. Node Readiness Controller bootstrap taint clearing and scheduling flow**
+
 ```mermaid
 flowchart TD
     NP["Provision node with bootstrap NoSchedule taints"] --> NR["Node Ready: necessary, not sufficient"]
@@ -293,6 +301,8 @@ strategy:
 
 :::tip Readiness Feature Selection Guide
 
+**Table 3. Readiness features by requirement and applicable level**
+
 | Requirement | Recommended Feature | Level |
 |----------|-----------|-----------|
 | Configured node prerequisites before placement | Node Readiness Controller plus reporters/bootstrap taints | Node |
@@ -305,6 +315,8 @@ strategy:
 ### AZ Avoidance Deployment Strategy (ARC Zonal Shift)
 
 AWS Application Recovery Controller (ARC) Zonal Shift supports operator/API-requested traffic and placement changes away from one AZ. EKS has supported the integration since November 2024. Zonal Autoshift is separately enabled AWS-managed automation with practice-run prerequisites; a custom Health/EventBridge/Lambda workflow is another implementation, not an automatically installed EKS feature. EKS Zonal Shift cordons affected nodes and adjusts supported traffic handling; it does not itself evict existing Pods or terminate nodes.
+
+**Figure 3. Traffic and placement adjustment paths for manual Zonal Shift and Zonal Autoshift**
 
 ```mermaid
 flowchart LR
@@ -406,6 +418,8 @@ allowVolumeExpansion: true
 
 **EFS Cross-AZ alternative**: EFS Regional stores data across multiple AZs; EFS One Zone stores data in one AZ and is exposed to loss of that AZ. For a Regional recovery design, configure reachable mount targets in the surviving AZs, security groups, DNS and client/application retry behavior. Choosing EFS alone does not prove continuous access during a fault.
 
+**Table 4. AZ dependency and failure behavior by storage type**
+
 | Storage | AZ Dependency | Failure Behavior | Suitable Workloads |
 |----------|-----------|-------------|----------------|
 | EBS (gp3) | Pinned to a single AZ | Inaccessible during an AZ failure | Databases, stateful applications |
@@ -469,6 +483,8 @@ Cell-Based Architecture is an advanced resiliency pattern recommended by the AWS
 
 A cell is a service unit designed to operate independently. Limiting cross-cell dependencies reduces fault propagation, but shared routing, identity, networks, deployments or data services can still cause correlated failures. Validate those boundaries rather than assuming every cell failure is isolated.
 
+**Figure 4. Control Plane and Data Plane layout of a cell-based architecture**
+
 ```mermaid
 flowchart TB
     subgraph "Control Plane"
@@ -524,6 +540,8 @@ flowchart TB
 4. **Scalability**: As demand grows, add new cells instead of expanding existing cells
 
 ### Implementing Cells in EKS
+
+**Table 5. Namespace-based vs cluster-based cells: isolation, complexity and cost**
 
 | Implementation Approach | Namespace-Based Cell | Cluster-Based Cell |
 |-----------|-------------------|------------------|
@@ -623,6 +641,8 @@ Implements cell routing through header-based routing in Istio VirtualService. Th
 
 ### Blast Radius Isolation Strategies
 
+**Table 6. Blast radius isolation strategies with isolation boundary and use case**
+
 | Strategy | Description | Isolation Boundary | Use Case |
 |------|------|-----------|-----------|
 | **Customer Partitioning** | Cell assignment based on a customer ID hash | Customer group | SaaS platforms |
@@ -670,6 +690,8 @@ Multi-Cluster and Multi-Region strategies prepare for region-level failures.
 
 ### Architecture Pattern Comparison
 
+**Table 7. Multi-Region architecture patterns: RTO/RPO dependencies, cost and complexity**
+
 | Pattern | Description | RTO dependency | RPO dependency | Cost / complexity | Suitable environments |
 |------|------|------|------|------|------|
 | **Active-Active** | Multiple regions serve traffic | Detection, routing and surviving capacity; not inherently zero | Replication lag and conflict/data-loss policy; not inherently zero | Usually more operating components; workload-dependent | Global serving with tested recovery targets |
@@ -682,6 +704,8 @@ These are design dependencies, not measured recovery values. Set explicit RTO/RP
 ### Global Accelerator + EKS
 
 AWS Global Accelerator routes new connections using client location, endpoint health and configured endpoint weights/traffic dials. The chosen endpoint need not be in the geographically nearest region. Existing connections and application/data recovery have separate behavior; endpoint health alone does not prove data correctness.
+
+**Figure 5. Routing to per-region EKS clusters through a Global Accelerator Anycast IP**
 
 ```mermaid
 flowchart TB
@@ -815,6 +839,8 @@ Application-level fault tolerance patterns must be implemented alongside infrast
 
 A PDB constrains requests that exceed the disruption budget during voluntary disruptions that use the Eviction API. This includes the default `kubectl drain` path and node upgrades or consolidation that use that API. PDBs do not constrain Deployment or StatefulSet rolling updates or direct Pod deletion.
 
+**Table 8. PodDisruptionBudget settings: behavior and suitable situations**
+
 | Setting | Behavior | Suitable Situations |
 |------|------|------------|
 | `minAvailable: 2` | Evaluate eviction admission against a minimum of 2 healthy Pods | Node drains for services with a small replica count (3-5) |
@@ -890,6 +916,8 @@ spec:
 ```
 
 **Graceful Shutdown Timing Design:**
+
+**Figure 6. Graceful shutdown termination timing and endpoint propagation sequence**
 
 ```mermaid
 sequenceDiagram
@@ -977,6 +1005,8 @@ spec:
 
 **Retry Best Practices:**
 
+**Table 9. Istio VirtualService retry settings: example interpretation and reason**
+
 | Setting | Example / interpretation | Reason |
 |------|------|------|
 | `attempts` | 3 additional retries, up to 4 total attempts | Retry load includes the initial attempt |
@@ -993,6 +1023,8 @@ Rate Limiting is a core resiliency measure alongside Circuit Breakers and retrie
 ### Resiliency Considerations for EKS Auto Mode
 
 EKS Auto Mode automates infrastructure management, but its characteristics must be considered when designing for resiliency.
+
+**Table 10. EKS Auto Mode characteristics: resiliency impact and recommended response**
 
 | Item | Auto Mode Characteristics | Resiliency Impact | Recommended Response |
 |------|---------------|---------------|---------|
@@ -1274,6 +1306,8 @@ spec:
 
 ### Chaos Engineering Tool Comparison
 
+**Table 11. AWS FIS, Litmus Chaos and Chaos Mesh: scope, failure types and cost**
+
 | Feature | AWS FIS | Litmus Chaos | Chaos Mesh |
 |------|---------|-------------|------------|
 | **Type** | Managed service | Open source (CNCF) | Open source (CNCF) |
@@ -1296,6 +1330,8 @@ Choose tools from the exact fault model, supported version and observable recove
 A Game Day is an exercise in which a team executes planned failure scenarios together to uncover weaknesses in systems and processes.
 
 **5-Phase Game Day Execution Framework:**
+
+**Figure 7. Five Game Day phases: prepare, execute, analyze, improve and repeat**
 
 ```mermaid
 flowchart LR
@@ -1410,6 +1446,8 @@ printf 'Snapshot saved. Application SLO/data evidence and action cleanup are sti
 
 The execution runbook must specify an explicit action and its recovery contract before any mutation:
 
+**Table 12. Runbook actions: approved scope and stop/restoration evidence**
+
 | Action | Approved scope and preflight | Stop / restoration evidence |
 |---|---|---|
 | Zonal evacuation | Exact cluster ARN/AZ, enabled integration, surviving-zone capacity and topology/storage checks | Record zonalShiftId and expiry; cancel only that shift when authorized. This changes traffic/placement, not AZ health, and does not itself evict Pods |
@@ -1431,6 +1469,8 @@ Use the following checklists to assess the current resiliency level and identify
 
 **Level 1 — Basic**
 
+**Table 13. Level 1 basic resiliency implementation checklist**
+
 | Item | Description | Check |
 |------|------|------|
 | Liveness/Readiness Probe configuration | Configure appropriate Probes for every Deployment | [ ] |
@@ -1441,6 +1481,8 @@ Use the following checklists to assess the current resiliency level and identify
 | Automatic restart policy | Verify restartPolicy: Always | [ ] |
 
 **Level 2 — Multi-AZ**
+
+**Table 14. Level 2 Multi-AZ resiliency implementation checklist**
 
 | Item | Description | Check |
 |------|------|------|
@@ -1453,6 +1495,8 @@ Use the following checklists to assess the current resiliency level and identify
 
 **Level 3 — Cell-Based**
 
+**Table 15. Level 3 cell-based resiliency implementation checklist**
+
 | Item | Description | Check |
 |------|------|------|
 | Cell boundary definition | Configure Namespace-based or Cluster-based cells | [ ] |
@@ -1464,6 +1508,8 @@ Use the following checklists to assess the current resiliency level and identify
 
 **Level 4 — Multi-Region**
 
+**Table 16. Level 4 Multi-Region resiliency implementation checklist**
+
 | Item | Description | Check |
 |------|------|------|
 | Multi-Region architecture design | Choose Active-Active or Active-Passive | [ ] |
@@ -1474,6 +1520,8 @@ Use the following checklists to assess the current resiliency level and identify
 | RTO/RPO measurement and validation | Validate actual recovery time/data loss against targets | [ ] |
 
 ### Cost Optimization Tips
+
+**Table 17. Cost optimization areas: strategy and measurement needed to claim savings**
 
 | Optimization Area | Strategy | Measurement needed before claiming savings |
 |-------------|------|-----------|

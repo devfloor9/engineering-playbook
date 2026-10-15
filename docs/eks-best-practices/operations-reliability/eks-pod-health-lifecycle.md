@@ -58,6 +58,8 @@ This guide covers the entire Pod lifecycle, from how Kubernetes Probes work to l
 
 Review initialization, health checks, request processing, and termination separately. Each chapter provides the detailed conditions and configuration examples.
 
+**Figure 1. Pod lifecycle flow**
+
 ```mermaid
 flowchart TD
     A[Init Container and application startup] --> B[Startup Probe]

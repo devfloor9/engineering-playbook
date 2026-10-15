@@ -30,6 +30,8 @@ This document covers common issues and solutions when operating GPU-based AI wor
 
 When a GPU issue occurs, diagnose in the following order:
 
+**Figure 1. GPU issue diagnosis order flowchart**
+
 ```mermaid
 flowchart TD
     A[GPU issue occurs] --> B{nvidia-smi runs?}
@@ -93,6 +95,8 @@ kubectl get pods -A -o json | jq '.items[] | select(.spec.containers[].resources
 ## CUDA/NCCL Error Patterns
 
 Common CUDA XID errors and remediation for GPU workloads:
+
+**Table 1. Meaning, cause, and action for major CUDA XID error codes**
 
 | XID | Meaning | Cause | Action |
 |-----|------|------|------|
@@ -163,6 +167,8 @@ Memory shortage in vLLM has two root causes:
 # Reserved for KV cache: 26.77 GiB  # ← if too low, long-context requests fail
 # Reserved for activation: 8.00 GiB
 ```
+
+**Table 2. vLLM memory shortage symptoms with cause and action**
 
 | Symptom | Cause | Action |
 |------|------|------|

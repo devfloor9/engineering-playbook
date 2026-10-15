@@ -24,6 +24,8 @@ category: operations
 
 #### Pod Health Checks {#pod-헬스체크}
 
+**Table 1. Pod health check checklist**
+
 | Item | Check | Priority |
 |------|----------|---------|
 | **Startup Probe** | Configure a startup probe for applications with slow startup (30+ seconds) | High |
@@ -36,6 +38,8 @@ category: operations
 
 #### Graceful Shutdown {#graceful-shutdown}
 
+**Table 2. Graceful Shutdown checklist**
+
 | Item | Check | Priority |
 |------|----------|---------|
 | **preStop Hook** | Add `sleep 5` to wait for endpoint removal | Required |
@@ -47,6 +51,8 @@ category: operations
 
 #### Resources and Images {#리소스-및-이미지}
 
+**Table 3. Resources and images checklist**
+
 | Item | Check | Priority |
 |------|----------|---------|
 | **Resource requests/limits** | Configure CPU/memory requests (for HPA and VPA) | Required |
@@ -56,6 +62,8 @@ category: operations
 | **non-root user** | Run containers as non-root | High |
 
 #### High Availability {#고가용성}
+
+**Table 4. High availability checklist**
 
 | Item | Check | Priority |
 |------|----------|---------|

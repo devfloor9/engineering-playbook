@@ -24,6 +24,8 @@ category: operations
 
 Kubernetes provides three types of probes to monitor Pod health.
 
+**Table 1. Purpose and behavior of the three probe types**
+
 | Probe type | Purpose | Action on failure | Activation timing |
 |-----------|------|-------------|-------------|
 | **Startup Probe** | Verify that application initialization is complete | Terminate the container and restart according to restartPolicy (when failureThreshold is reached) | Immediately after Pod startup |
@@ -66,6 +68,8 @@ A Readiness Probe checks whether a Pod is ready to receive traffic. If it fails,
 1. After the Init Container and main container start, the Startup Probe verifies that initialization is complete.
 2. The Liveness Probe determines whether to restart the container, and the Readiness Probe determines whether the Pod participates in Service Endpoints.
 3. Following a termination request, the container terminates after preStop execution, SIGTERM handling, and graceful shutdown.
+
+**Figure 1. Pod lifecycle and probe behavior flow**
 
 ```mermaid
 flowchart TB
@@ -110,6 +114,8 @@ flowchart TB
 ### Probe Mechanisms {#22-probe-메커니즘}
 
 Kubernetes supports four probe mechanisms.
+
+**Table 2. Characteristics and suitable use cases by probe mechanism**
 
 | Mechanism | Description | Advantages | Disadvantages | Suitable use cases |
 |----------|------|------|------|------------|
@@ -175,6 +181,8 @@ gRPC services must implement the [gRPC Health Checking Protocol](https://github.
 
 Probe timing parameters determine the balance between failure detection speed and stability.
 
+**Table 3. Default values and recommended ranges for probe timing parameters**
+
 | Parameter | Description | Default | Recommended range |
 |----------|------|--------|----------|
 | `initialDelaySeconds` | Wait time between container startup and the first probe | 0 | 10-30s (can be 0 when using a Startup Probe) |
@@ -195,6 +203,8 @@ Minimum recovery time = successThreshold × periodSeconds
 - `successThreshold: 2, periodSeconds: 5` → recovery is declared after at least 10 seconds (Readiness only)
 
 #### Recommended Timing by Workload {#워크로드별-권장-타이밍}
+
+**Table 4. Recommended probe timing settings by workload type**
 
 | Workload type | initialDelaySeconds | periodSeconds | failureThreshold | Rationale |
 |--------------|-------------------|---------------|-----------------|------|

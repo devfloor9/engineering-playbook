@@ -49,6 +49,8 @@ Amazon EventBridge의 `aws.eks` 소스 이벤트는 EKS 서비스 이벤트(add-
 
 이벤트를 AI Agent가 조회할 수 있게 만들려면 수집(export), 저장(durable store), 조회(query interface)를 분리해 설계합니다.
 
+**그림 1. 이벤트 수집·저장·조회 3계층 파이프라인 구조**
+
 ```mermaid
 flowchart LR
     subgraph K8S["EKS 클러스터"]
@@ -81,6 +83,8 @@ flowchart LR
 ```
 
 ## 수집 계층: Export 방식 비교
+
+**표 1. 이벤트 Export 방식별 수집 대상과 적합한 경우**
 
 | 방식 | 수집 대상 | 특징 | 적합한 경우 |
 |------|----------|------|------------|
@@ -121,6 +125,8 @@ route:
 
 저장소는 이벤트를 "어떻게 조회할 것인가"를 기준으로 선택합니다.
 
+**표 2. 저장소별 조회 패턴·보존 비용·MCP 연동**
+
 | 저장소 | 조회 패턴 | 보존 비용 | MCP 연동 |
 |--------|----------|----------|---------|
 | **CloudWatch Logs** | Logs Insights 쿼리, 패턴 분석 | 중간 (S3 export로 절감) | CloudWatch MCP, EKS MCP 직접 지원 |
@@ -136,6 +142,8 @@ CloudWatch에 이미 이벤트가 쌓이고 있다면 Loki로 재전송(CloudWat
 ### EKS MCP 서버와 CloudWatch MCP 서버의 역할 분담
 
 AWS는 fully managed EKS MCP 서버(2025년 11월 발표, preview)와 CloudWatch MCP 서버를 제공합니다. 두 서버는 조회 대상이 다르므로 장애 분석 Agent에는 함께 연결하는 것이 표준 구성입니다.
+
+**표 3. EKS MCP 서버와 CloudWatch MCP 서버의 조회 대상 비교**
 
 | 구분 | EKS MCP 서버 | CloudWatch MCP 서버 |
 |------|-------------|-------------------|

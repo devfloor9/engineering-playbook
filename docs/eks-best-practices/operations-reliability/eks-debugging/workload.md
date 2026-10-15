@@ -19,6 +19,8 @@ sidebar_label: Workload
 
 ## Pod State-Based Debugging Flowchart
 
+**Figure 1. Pod state-based debugging flowchart**
+
 ```mermaid
 flowchart TD
     START["`**Pod anomaly detected**`"] --> STATUS{"`Check Pod state
@@ -141,6 +143,8 @@ kubectl describe pod api-server-xxx | grep -A 10 "Readiness probe failed"
 
 #### Diagnosis Flowchart
 
+**Figure 2. Probe failure diagnosis flowchart**
+
 ```mermaid
 flowchart TD
     NOTREADY["`Pod 0/1 Ready`"] --> CHECK_PROBE{"`Check
@@ -168,6 +172,8 @@ flowchart TD
 ```
 
 #### Common Causes
+
+**Table 1. Common causes of readinessProbe failure and their resolutions**
 
 | Cause | Symptom | Resolution |
 |------|------|----------|
@@ -233,6 +239,8 @@ Checking DB/Redis in a Liveness Probe is an anti-pattern. When external services
 The ConfigMap or Secret was updated but not reflected in the Pod.
 
 #### Behavior Comparison
+
+**Table 2. Auto-update support by ConfigMap/Secret mount method**
 
 | Mount Method | Auto-update | Refresh Time | Notes |
 |-------------|--------------|----------|------|
@@ -342,6 +350,8 @@ kubectl top pods  # failure here indicates a metrics-server issue
 ```
 
 #### HPA Failures — Causes and Resolutions
+
+**Table 3. HPA failure symptoms with causes and resolutions**
 
 | Symptom | Cause | Resolution |
 |------|------|------|
@@ -638,6 +648,8 @@ spec:
 :::
 
 ## Pod State Diagnosis Flowchart
+
+**Figure 3. Pod state diagnosis flowchart**
 
 ```mermaid
 flowchart TD

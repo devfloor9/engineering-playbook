@@ -20,7 +20,7 @@ category: operations
 
 ## Probe Antipatterns and Pitfalls {#25-probe-안티패턴과-함정}
 
-### ❌ Antipattern 1: Including External Dependencies in a Liveness Probe {#-안티패턴-1-liveness-probe에-외부-의존성-포함}
+### Antipattern 1: Including External Dependencies in a Liveness Probe {#-안티패턴-1-liveness-probe에-외부-의존성-포함}
 
 **Problem:**
 
@@ -51,7 +51,7 @@ readinessProbe:
     port: 8080
 ```
 
-### ❌ Antipattern 2: A High initialDelaySeconds Without a Startup Probe {#-안티패턴-2-startup-probe-없이-높은-initialdelayseconds}
+### Antipattern 2: A High initialDelaySeconds Without a Startup Probe {#-안티패턴-2-startup-probe-없이-높은-initialdelayseconds}
 
 **Problem:**
 
@@ -88,7 +88,7 @@ livenessProbe:
   periodSeconds: 10
 ```
 
-### ❌ Antipattern 3: Using the Same Endpoint for Liveness and Readiness {#-안티패턴-3-liveness와-readiness에-같은-엔드포인트}
+### Antipattern 3: Using the Same Endpoint for Liveness and Readiness {#-안티패턴-3-liveness와-readiness에-같은-엔드포인트}
 
 **Problem:**
 
@@ -122,7 +122,7 @@ readinessProbe:
     port: 8080
 ```
 
-### ❌ Antipattern 4: An Overly Aggressive failureThreshold {#-안티패턴-4-너무-공격적인-failurethreshold}
+### Antipattern 4: An Overly Aggressive failureThreshold {#-안티패턴-4-너무-공격적인-failurethreshold}
 
 **Problem:**
 
@@ -151,7 +151,7 @@ livenessProbe:
   timeoutSeconds: 5
 ```
 
-### ❌ Antipattern 5: An Excessively Long timeoutSeconds {#-안티패턴-5-과도하게-긴-timeoutseconds}
+### Antipattern 5: An Excessively Long timeoutSeconds {#-안티패턴-5-과도하게-긴-timeoutseconds}
 
 **Problem:**
 

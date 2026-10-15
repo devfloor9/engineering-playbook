@@ -19,6 +19,8 @@ sidebar_label: Storage
 
 ## Storage Debugging Decision Tree
 
+**Figure 1. Storage debugging decision tree**
+
 ```mermaid
 flowchart TD
     STOR_ISSUE["`**Storage issue detected**`"] --> PVC_STATUS{"`Check PVC status
@@ -76,6 +78,8 @@ kubectl describe sa ebs-csi-controller-sa -n kube-system
 ```
 
 ### EBS CSI Driver Error Patterns
+
+**Table 1. EBS CSI Driver error messages with cause and resolution**
 
 | Error Message | Cause | Resolution |
 |-------------|------|----------|
@@ -321,6 +325,8 @@ kubectl get pvc -n <namespace>
 # Check PV status
 kubectl get pv
 ```
+
+**Table 2. PVC status with meaning and action**
 
 | PVC Status | Meaning | Action |
 |----------|------|------|

@@ -32,6 +32,8 @@ The agent is open source ([aws/network-flow-monitor-agent](https://github.com/aw
 
 The backend uses the following concepts.
 
+**Table 1. Network Flow Monitor backend components and roles**
+
 | Component | Role |
 |---|---|
 | Scope | The set of accounts to observe. An AWS Organizations scope can include up to 100 accounts. |
@@ -42,6 +44,8 @@ The backend uses the following concepts.
 NHI supplies AWS's assessment of network health during an incident. Its internal calculation is not public. The official documentation also notes that RTT is not available for every observation and can be sparse.
 
 ## Architecture: The Data Path
+
+**Figure 1. End-to-end data path from the node agent to the backend**
 
 ```mermaid
 flowchart TB
@@ -69,6 +73,8 @@ The agent attaches one `BPF_PROG_TYPE_SOCK_OPS` program to cgroup v2 ([nfm-bpf/s
 
 The following table summarizes `handle_socket_event()` in [sock_ops_handler.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-common/src/sock_ops_handler.rs).
 
+**Table 2. Values recorded per sock_ops callback**
+
 | sock_ops callback | Recorded values |
 |---|---|
 | `TCP_CONNECT_CB` | Registers a new client socket, increments `connect_attempts`, and records the connection start time. |
@@ -91,6 +97,8 @@ The following table summarizes `handle_socket_event()` in [sock_ops_handler.rs](
 ### Timer-Driven Main Loop
 
 Three timers drive the main loop. The principal options and defaults are:
+
+**Table 3. Main loop principal options and defaults**
 
 | Option | Default | Purpose |
 |---|---|---|
@@ -141,6 +149,8 @@ aws eks create-addon --cluster-name <CLUSTER> \
 ### Resource Names
 
 The add-on, namespace, and DaemonSet have slightly different names.
+
+**Table 4. Resource names for the add-on, namespace and DaemonSet**
 
 | Resource | Name |
 |---|---|

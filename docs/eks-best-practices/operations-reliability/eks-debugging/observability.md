@@ -21,6 +21,8 @@ import { IncidentEscalationTable, ZonalShiftImpactTable } from '@site/src/compon
 
 ## Observability Stack Architecture
 
+**Figure 1. Observability stack architecture**
+
 ```mermaid
 flowchart TB
     subgraph "Data Sources"
@@ -255,6 +257,8 @@ kubectl describe otelcol -n $NAMESPACE $COLLECTOR_NAME
 
 ### Common ADOT Issues
 
+**Table 1. Common ADOT issues with symptom, cause, and resolution**
+
 | Symptom | Cause | Resolution |
 |------|------|----------|
 | Operator Pod `CrashLoopBackOff` | CertManager not installed | ADOT operator requires CertManager for webhook certificates. `kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml` |
@@ -274,6 +278,8 @@ AMP remote write, X-Ray, and CloudWatch each require different IAM permissions. 
 ### Incident Detection Strategy Overview
 
 To detect incidents quickly in EKS environments, a 4-layer pipeline of **data source → collection → analysis & detection → alerting & response** must be systematically configured. The layers must connect cohesively to minimize MTTD (Mean Time To Detect).
+
+**Figure 2. Four-layer incident detection pipeline**
 
 ```mermaid
 flowchart TB
@@ -359,6 +365,8 @@ flowchart TB
 
 #### Four-Layer Architecture
 
+**Table 2. Role and core components of each layer in the four-layer architecture**
+
 | Layer | Role | Core Components |
 |---|---|---|
 | **Data Sources** | Generate all observable signals in the cluster | Control Plane Logs, Data Plane Logs, Metrics, Traces |
@@ -371,6 +379,8 @@ flowchart TB
 #### Option A: AWS-Native Stack (Small to Medium Clusters)
 
 An architecture centered on AWS managed services to minimize operational overhead.
+
+**Table 3. Components and purpose per layer for the AWS-managed-centered configuration (Option A)**
 
 | Layer | Component | Purpose |
 |---|---|---|
@@ -437,6 +447,8 @@ Fluent Bit uses more than 10× less memory than Fluentd (~10MB vs ~100MB). Deplo
 #### Option B: Open-Source-Based Stack (Large / Multi-Cluster)
 
 An architecture combining open-source tools with AWS managed services for scalability and flexibility at scale.
+
+**Table 4. Components and purpose per layer for the open-source and AWS-managed hybrid configuration (Option B)**
 
 | Layer | Component | Purpose |
 |---|---|---|
@@ -588,6 +600,8 @@ aws logs put-metric-filter \
 
 Classify organizational detection capability into four levels to diagnose the current level and define a roadmap to the next.
 
+**Table 5. Incident detection maturity levels with stage, detection method, tools, and target MTTD**
+
 | Level | Stage | Detection Method | Tools | Target MTTD |
 |---|---|---|---|---|
 | Level 1 | Basic | Manual monitoring + basic alarms | CloudWatch Alarms | < 30 min |
@@ -624,6 +638,8 @@ Apply auto-remediation to production only after thorough testing. Incorrect auto
 ### Recommended Alert Channel Matrix
 
 Set appropriate alert channels and response SLAs by severity to prevent alert fatigue and focus on important incidents.
+
+**Table 6. Alert channels, response SLA, and examples by incident severity**
 
 | Severity | Alert Channels | Response SLA | Examples |
 |---|---|---|---|

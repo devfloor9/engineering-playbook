@@ -27,6 +27,8 @@ category: observability-monitoring
 
 ### Failure Domain 계층 구조
 
+**그림 1. 장애 범위 계층과 대응 전략, 영향 범위의 대응 관계**
+
 ```mermaid
 graph TB
     subgraph "Failure Domain 계층"
@@ -81,6 +83,8 @@ graph TB
 
 조직의 레질리언시 수준을 4단계로 분류하고, 현재 위치에서 점진적으로 발전시켜 나갈 수 있습니다.
 
+**표 1. 레질리언시 성숙도 4단계와 단계별 핵심 역량·복잡성·비용 영향**
+
 | Level | 단계 | 핵심 역량 | 구현 항목 | 복잡성 | 비용 영향 |
 |-------|------|-----------|-----------|--------|-----------|
 | **1** | 기본 (Basic) | Pod 수준 복원력 | Probe 설정, PDB, Graceful Shutdown, 리소스 Limits | 낮음 | 최소 |
@@ -101,6 +105,8 @@ Multi-AZ 배포는 EKS 레질리언시의 가장 기본적이면서도 강력한
 ### Pod Topology Spread Constraints
 
 Topology Spread Constraints는 같은 namespace에서 selector에 일치하는 Pod 수를 적격 토폴로지 도메인별로 비교합니다. `minDomains`(K8s 1.24 alpha → 1.30 GA)는 hard 제약의 전역 최솟값 계산에 사용되며, 적격 도메인이 이 값보다 적으면 전역 최솟값을 0으로 취급합니다. 용량을 생성하거나 지정한 수의 AZ 배치를 보장하는 설정은 아닙니다.
+
+**표 2. Pod Topology Spread Constraints 파라미터와 권장값**
 
 | 파라미터 | 설명 | 권장값 |
 |----------|------|--------|
@@ -216,6 +222,8 @@ Multi-AZ 환경에서 새 노드가 프로비저닝될 때, 노드가 `Ready` �
 
 [Node Readiness Controller](https://github.com/kubernetes-sigs/node-readiness-controller)는 별도로 설치하는 controller이며 EKS 내장 readiness 보장 기능이 아닙니다. Controller와 CRD 버전을 함께 고정하세요(이 예제의 기준은 v0.1.1). 일반 워크로드가 스케줄링되기 전에 규칙과 일치하는 bootstrap `NoSchedule` taint를 등록하고, 각 필수 Node condition을 보고하는 신뢰할 수 있는 reporter를 구성해야 합니다. GPU/CNI/CSI/보안 구성 요소 설치만으로 커스텀 condition이 자동 보고되지는 않습니다. Rule·node 선택·필수 condition 상태는 고정된 CRD와 일치해야 하며 최신 `main` 필드를 v0.1.1에 혼용하지 마세요.
 
+**그림 2. Node Readiness Controller의 bootstrap taint 해제와 스케줄링 흐름**
+
 ```mermaid
 flowchart TD
     NP["Provision node with bootstrap NoSchedule taints"] --> NR["Node Ready: necessary, not sufficient"]
@@ -293,6 +301,8 @@ strategy:
 
 :::tip Readiness 기능 선택 가이드
 
+**표 3. 요구사항별 Readiness 기능과 적용 레벨**
+
 | 요구사항 | 추천 기능 | 적용 레벨 |
 |----------|-----------|-----------|
 | 배치 전 구성된 노드 필수 조건 확인 | Node Readiness Controller와 reporter/bootstrap taint | Node |
@@ -305,6 +315,8 @@ strategy:
 ### AZ 회피 배포 전략 (ARC Zonal Shift)
 
 AWS Application Recovery Controller(ARC) Zonal Shift는 운영자/API 요청에 따라 특정 AZ를 피하도록 트래픽과 배치를 조정합니다. EKS 연동은 2024년 11월부터 지원됩니다. Zonal Autoshift는 practice run 전제가 있는 별도 활성화 대상 AWS 관리 자동화입니다. Health/EventBridge/Lambda 구성은 별도의 사용자 구현이며 EKS가 자동 설치하는 기능이 아닙니다. EKS Zonal Shift는 해당 노드를 cordon하고 지원되는 트래픽 처리를 조정하지만 기존 Pod를 직접 eviction하거나 노드를 종료하지는 않습니다.
+
+**그림 3. 수동 Zonal Shift와 Zonal Autoshift의 트래픽·배치 조정 경로**
 
 ```mermaid
 flowchart LR
@@ -406,6 +418,8 @@ allowVolumeExpansion: true
 
 **EFS Cross-AZ 대안**: EFS Regional은 여러 AZ에 데이터를 저장하지만 EFS One Zone은 한 AZ에 저장하므로 해당 AZ 손실의 영향을 받습니다. Regional 복구 설계에는 생존 AZ의 접근 가능한 mount target·security group·DNS·클라이언트/애플리케이션 재시도 동작이 필요합니다. EFS 선택만으로 장애 중 연속 접근이 검증되지는 않습니다.
 
+**표 4. 스토리지 유형별 AZ 종속성과 장애 시 동작**
+
 | 스토리지 | AZ 종속성 | 장애 시 동작 | 적합한 워크로드 |
 |----------|-----------|-------------|----------------|
 | EBS (gp3) | 단일 AZ 고정 | AZ 장애 시 접근 불가 | 데이터베이스, 상태 저장 앱 |
@@ -469,6 +483,8 @@ Cell-Based Architecture는 AWS Well-Architected Framework에서 권장하는 고
 
 Cell은 독립적으로 동작하도록 설계한 서비스 단위입니다. Cell 간 의존성을 줄이면 장애 전파를 줄일 수 있지만 공유 routing·identity·network·배포·데이터 서비스는 여전히 상관된 장애를 일으킬 수 있습니다. 모든 Cell 장애가 격리된다고 가정하지 말고 경계를 검증해야 합니다.
 
+**그림 4. Cell 기반 아키텍처의 Control Plane과 Data Plane 구성**
+
 ```mermaid
 flowchart TB
     subgraph "Control Plane"
@@ -524,6 +540,8 @@ flowchart TB
 4. **확장성(Scalability)**: 수요 증가 시 기존 Cell 확장이 아닌 새 Cell 추가
 
 ### EKS에서의 Cell 구현
+
+**표 5. Namespace 기반 Cell과 Cluster 기반 Cell의 격리·복잡성·비용 비교**
 
 | 구현 방식 | Namespace 기반 Cell | Cluster 기반 Cell |
 |-----------|-------------------|------------------|
@@ -623,6 +641,8 @@ Istio VirtualService의 header-based 라우팅을 사용하여 Cell 라우팅을
 
 ### Blast Radius 격리 전략
 
+**표 6. Blast Radius 격리 전략별 격리 기준과 사용 사례**
+
 | 전략 | 설명 | 격리 기준 | 사용 사례 |
 |------|------|-----------|-----------|
 | **Customer Partitioning** | 고객 ID 해시 기반 Cell 배정 | 고객 그룹 | SaaS 플랫폼 |
@@ -670,6 +690,8 @@ Cell Architecture는 강력한 격리를 제공하지만, 운영 복잡성과 �
 
 ### 아키텍처 패턴 비교
 
+**표 7. Multi-Region 아키텍처 패턴별 RTO/RPO 결정 요소와 비용·복잡성**
+
 | 패턴 | 설명 | RTO 결정 요소 | RPO 결정 요소 | 비용 / 복잡성 | 적합한 환경 |
 |------|------|------|------|------|------|
 | **Active-Active** | 여러 리전에서 트래픽 처리 | 감지·routing·생존 용량; 본질적으로 0이 아님 | 복제 지연·충돌/손실 정책; 본질적으로 0이 아님 | 보통 운영 구성 요소 증가; 워크로드별 상이 | 복구 목표를 검증한 글로벌 서빙 |
@@ -682,6 +704,8 @@ Cell Architecture는 강력한 격리를 제공하지만, 운영 복잡성과 �
 ### Global Accelerator + EKS
 
 AWS Global Accelerator는 client 위치·endpoint health·구성된 endpoint weight/traffic dial을 이용해 새 연결을 routing합니다. 선택된 endpoint가 지리적으로 가장 가까운 리전에 있을 필요는 없습니다. 기존 연결과 애플리케이션/데이터 복구는 별도 동작이며 endpoint health만으로 데이터 정합성이 입증되지는 않습니다.
+
+**그림 5. Global Accelerator Anycast IP를 통한 리전별 EKS 클러스터 라우팅**
 
 ```mermaid
 flowchart TB
@@ -815,6 +839,8 @@ Istio 1.22+에서는 `networking.istio.io/v1`과 `networking.istio.io/v1beta1` �
 
 PDB는 Eviction API를 사용하는 자발적 중단에서 중단 예산을 초과하는 요청을 제한합니다. 기본 `kubectl drain`이나 이 API를 사용하는 노드 업그레이드·통합이 해당합니다. Deployment·StatefulSet의 롤링 업데이트와 Pod 직접 삭제는 PDB로 제한되지 않습니다.
 
+**표 8. PodDisruptionBudget 설정별 동작과 적합한 상황**
+
 | 설정 | 동작 | 적합한 상황 |
 |------|------|------------|
 | `minAvailable: 2` | 최소 healthy Pod 2개 기준으로 Eviction 허용 여부 판단 | replica 수가 적은 서비스 (3-5개)의 노드 Drain |
@@ -890,6 +916,8 @@ spec:
 ```
 
 **Graceful Shutdown 타이밍 설계:**
+
+**그림 6. Graceful Shutdown 종료 타이밍과 엔드포인트 전파 시퀀스**
 
 ```mermaid
 sequenceDiagram
@@ -977,6 +1005,8 @@ spec:
 
 **Retry Best Practices:**
 
+**표 9. Istio VirtualService 재시도 설정별 예시 해석과 이유**
+
 | 설정 | 예시 / 해석 | 이유 |
 |------|------|------|
 | `attempts` | 추가 retry 3회, 최초 요청 포함 최대 4회 | 최초 요청도 부하 계산에 포함 |
@@ -993,6 +1023,8 @@ Rate Limiting은 Circuit Breaker, Retry와 함께 레질리언시의 핵심 요�
 ### EKS Auto Mode 환경의 레질리언시 고려사항
 
 EKS Auto Mode는 인프라 관리를 자동화하지만, 레질리언시 설계에서 고려해야 할 특성이 있습니다.
+
+**표 10. EKS Auto Mode 특성별 레질리언시 영향과 권장 대응**
 
 | 항목 | Auto Mode 특성 | 레질리언시 영향 | 권장 대응 |
 |------|---------------|---------------|---------|
@@ -1274,6 +1306,8 @@ spec:
 
 ### Chaos Engineering 도구 비교
 
+**표 11. AWS FIS·Litmus Chaos·Chaos Mesh의 범위·장애 유형·비용 비교**
+
 | 특성 | AWS FIS | Litmus Chaos | Chaos Mesh |
 |------|---------|-------------|------------|
 | **유형** | 관리형 서비스 | 오픈소스 (CNCF) | 오픈소스 (CNCF) |
@@ -1296,6 +1330,8 @@ spec:
 Game Day는 팀이 함께 모여 계획된 장애 시나리오를 실행하고, 시스템과 프로세스의 취약점을 발견하는 연습입니다.
 
 **5단계 Game Day 실행 프레임워크:**
+
+**그림 7. Game Day 준비·실행·분석·개선·반복 5단계 흐름**
 
 ```mermaid
 flowchart LR
@@ -1410,6 +1446,8 @@ printf 'Snapshot saved. Application SLO/data evidence and action cleanup are sti
 
 실행 런북에는 변경 전에 명시적 action과 복구 조건이 있어야 합니다.
 
+**표 12. 런북 action별 승인 범위와 중단·복원 근거**
+
 | Action | 승인 범위와 사전 확인 | 중단 / 복원 근거 |
 |---|---|---|
 | Zonal evacuation | 정확한 cluster ARN/AZ, 활성화된 연동, 생존 AZ 용량과 topology/storage 확인 | zonalShiftId·만료 시점 기록; 승인 시 해당 shift만 취소. AZ health가 아닌 traffic/placement를 바꾸며 Pod를 직접 eviction하지 않음 |
@@ -1429,6 +1467,8 @@ printf 'Snapshot saved. Application SLO/data evidence and action cleanup are sti
 
 **Level 1 — 기본 (Basic)**
 
+**표 13. Level 1 기본 레질리언시 구현 체크리스트**
+
 | 항목 | 설명 | 확인 |
 |------|------|------|
 | Liveness/Readiness Probe 설정 | 모든 Deployment에 적절한 Probe 구성 | [ ] |
@@ -1439,6 +1479,8 @@ printf 'Snapshot saved. Application SLO/data evidence and action cleanup are sti
 | 자동 재시작 정책 | restartPolicy: Always 확인 | [ ] |
 
 **Level 2 — Multi-AZ**
+
+**표 14. Level 2 Multi-AZ 레질리언시 구현 체크리스트**
 
 | 항목 | 설명 | 확인 |
 |------|------|------|
@@ -1451,6 +1493,8 @@ printf 'Snapshot saved. Application SLO/data evidence and action cleanup are sti
 
 **Level 3 — Cell-Based**
 
+**표 15. Level 3 Cell 기반 레질리언시 구현 체크리스트**
+
 | 항목 | 설명 | 확인 |
 |------|------|------|
 | Cell 경계 정의 | Namespace 또는 Cluster 기반 Cell 구성 | [ ] |
@@ -1462,6 +1506,8 @@ printf 'Snapshot saved. Application SLO/data evidence and action cleanup are sti
 
 **Level 4 — Multi-Region**
 
+**표 16. Level 4 Multi-Region 레질리언시 구현 체크리스트**
+
 | 항목 | 설명 | 확인 |
 |------|------|------|
 | Multi-Region 아키텍처 설계 | Active-Active 또는 Active-Passive 결정 | [ ] |
@@ -1472,6 +1518,8 @@ printf 'Snapshot saved. Application SLO/data evidence and action cleanup are sti
 | RTO/RPO 실측 및 검증 | 목표 대비 실제 복구 시간/데이터 손실 검증 | [ ] |
 
 ### 비용 최적화 팁
+
+**표 17. 비용 최적화 영역별 전략과 절감 주장에 필요한 측정**
 
 | 최적화 영역 | 전략 | 절감 주장에 필요한 측정 |
 |-------------|------|-----------|

@@ -24,6 +24,8 @@ category: operations
 
 Kubernetes는 세 가지 유형의 Probe를 제공하여 Pod의 상태를 모니터링합니다.
 
+**표 1. 세 가지 Probe 유형의 목적과 동작 비교**
+
 | Probe 유형 | 목적 | 실패 시 동작 | 활성화 타이밍 |
 |-----------|------|-------------|-------------|
 | **Startup Probe** | 애플리케이션 초기화 완료 확인 | 컨테이너 종료 및 restartPolicy에 따른 재시작 (failureThreshold 도달 시) | Pod 시작 직후 |
@@ -66,6 +68,8 @@ Readiness Probe는 Pod이 트래픽을 받을 준비가 되었는지 확인합�
 1. Init Container와 메인 컨테이너가 시작된 뒤 Startup Probe가 초기화 완료를 확인합니다.
 2. Liveness Probe는 재시작 여부를, Readiness Probe는 Service Endpoint 참여 여부를 판단합니다.
 3. 종료 요청 후 preStop과 SIGTERM 처리, Graceful Shutdown을 거쳐 컨테이너가 종료됩니다.
+
+**그림 1. Pod 라이프사이클과 Probe 동작 흐름**
 
 ```mermaid
 flowchart TB
@@ -110,6 +114,8 @@ flowchart TB
 ### Probe 메커니즘 {#22-probe-메커니즘}
 
 Kubernetes는 네 가지 Probe 메커니즘을 지원합니다.
+
+**표 2. Probe 메커니즘별 특징과 적합한 상황 비교**
 
 | 메커니즘 | 설명 | 장점 | 단점 | 적합한 상황 |
 |----------|------|------|------|------------|
@@ -175,6 +181,8 @@ gRPC 서비스는 [gRPC Health Checking Protocol](https://github.com/grpc/grpc/b
 
 Probe의 타이밍 파라미터는 장애 감지 속도와 안정성 간의 균형을 결정합니다.
 
+**표 3. Probe 타이밍 파라미터의 기본값과 권장 범위**
+
 | 파라미터 | 설명 | 기본값 | 권장 범위 |
 |----------|------|--------|----------|
 | `initialDelaySeconds` | 컨테이너 시작 후 첫 Probe까지 대기 시간 | 0 | 10-30s (Startup Probe 사용 시 0 가능) |
@@ -195,6 +203,8 @@ Probe의 타이밍 파라미터는 장애 감지 속도와 안정성 간의 균�
 - `successThreshold: 2, periodSeconds: 5` → 최소 10초 후 복구 판정 (Readiness만)
 
 #### 워크로드별 권장 타이밍 {#워크로드별-권장-타이밍}
+
+**표 4. 워크로드 유형별 권장 Probe 타이밍 설정**
 
 | 워크로드 유형 | initialDelaySeconds | periodSeconds | failureThreshold | 이유 |
 |--------------|-------------------|---------------|-----------------|------|

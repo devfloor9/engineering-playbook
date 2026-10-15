@@ -28,6 +28,8 @@ Auto Mode manages compute provisioning and scaling, node OS management, networki
 
 ### How Auto Mode Characteristics Affect Probes {#auto-mode-특성이-probe에-미치는-영향}
 
+**Table 1. How Auto Mode characteristics affect probes and the application criteria**
+
 | Consideration | Data to Check | Application Criteria |
 |---|---|---|
 | Instance and architecture diversity | Distribution of initialization times in each supported environment | A startupProbe budget that accommodates normal cold starts |
@@ -38,6 +40,8 @@ Auto Mode manages compute provisioning and scaling, node OS management, networki
 `failureThreshold × periodSeconds` is an approximation used to set the startupProbe budget. Also account for `initialDelaySeconds`, probe execution time, and scheduling. The `terminationGracePeriodSeconds` countdown **includes preStop execution time**. A new, full grace period does not start after preStop completes.
 
 ### Probe Checklist for Auto Mode Environments {#auto-mode-환경-probe-체크리스트}
+
+**Table 2. Probe configuration checklist for Auto Mode environments**
 
 | Item | Check |
 |---|---|
@@ -136,6 +140,8 @@ Verify the AZs and instances available for the NodePool to select, subnet IPs, a
 ### Handling Automatic Eviction for OS Patching in Auto Mode {#auto-mode-환경의-os-패치-자동-eviction-대응}
 
 The following is a **conceptual diagram of the Pod termination path** during voluntary node replacement. The order of replacement node creation, eviction, and rescheduling may vary depending on the reason for replacement and controller behavior.
+
+**Figure 1. Conceptual diagram of the Pod termination path during voluntary node replacement**
 
 ```mermaid
 sequenceDiagram

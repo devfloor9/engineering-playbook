@@ -27,6 +27,8 @@ EKS Auto Mode는 노드 프로비저닝, 네트워킹, 스토리지를 AWS가 �
 
 ## Auto Mode vs Standard Mode 차이점
 
+**표 1. Standard Mode와 Auto Mode의 항목별 차이와 디버깅 영향**
+
 | 항목 | Standard Mode | Auto Mode | 디버깅 영향 |
 |------|---------------|-----------|------------|
 | **노드 관리** | 사용자 (MNG/Karpenter) | AWS 관리 (NodePool) | NodePool CRD로 상태 확인, EC2 API 제한적 |
@@ -41,6 +43,8 @@ EKS Auto Mode는 노드 프로비저닝, 네트워킹, 스토리지를 AWS가 �
 ## NodePool 아키텍처
 
 Auto Mode의 노드 라이프사이클:
+
+**그림 1. Auto Mode 노드 라이프사이클 흐름**
 
 ```mermaid
 flowchart LR
@@ -110,6 +114,8 @@ kubectl describe nodeclaim <nodeclaim-name>
 
 ### NodeClaim 상태 전이
 
+**그림 2. NodeClaim 상태 전이 다이어그램**
+
 ```mermaid
 stateDiagram-v2
     [*] --> Pending: NodePool 생성
@@ -171,6 +177,8 @@ spec:
 
 ### Auto Mode 스토리지 제약
 
+**표 2. 스토리지 타입별 Standard Mode와 Auto Mode 지원 차이**
+
 | 스토리지 타입 | Standard Mode | Auto Mode | 제약 사항 |
 |--------------|---------------|-----------|----------|
 | **gp3** | EBS CSI 설치 필요 | 내장 지원 | 기본 제공, 별도 설정 불필요 |
@@ -230,8 +238,8 @@ kubectl edit configmap -n kube-system aws-node
 
 **제약 사항:**
 
-- ✅ 지원: ENI 자동 할당, Security Group for Pods, IPv6
-- ❌ 미지원: Custom CIDR 블록, Prefix Delegation 비활성화, ENI 수동 관리
+- 지원: ENI 자동 할당, Security Group for Pods, IPv6
+- 미지원: Custom CIDR 블록, Prefix Delegation 비활성화, ENI 수동 관리
 
 ### Pod 네트워크 문제
 
@@ -276,6 +284,8 @@ Auto Mode는 GPU Driver를 자동 관리합니다. GPU Operator를 설치하면 
 ### 하이브리드 구성 (권장)
 
 Auto Mode에서 GPU 워크로드를 실행하려면 **MNG를 추가**하여 하이브리드로 구성합니다:
+
+**그림 3. Auto Mode와 MNG 하이브리드 구성과 스케줄링 경로**
 
 ```mermaid
 flowchart TB
@@ -362,35 +372,37 @@ spec:
 
 ### 지원되는 기능
 
-- ✅ NodePool 기반 오토스케일링
-- ✅ Spot/On-Demand 자동 폴백
-- ✅ gp3 스토리지 기본 지원
-- ✅ VPC CNI 자동 관리 (Security Group for Pods 포함)
-- ✅ Karpenter와 유사한 Consolidation
-- ✅ Drift 감지 및 자동 교체
-- ✅ DCGM/GFD 메트릭 (GPU Operator 부분 지원)
+- NodePool 기반 오토스케일링
+- Spot/On-Demand 자동 폴백
+- gp3 스토리지 기본 지원
+- VPC CNI 자동 관리 (Security Group for Pods 포함)
+- Karpenter와 유사한 Consolidation
+- Drift 감지 및 자동 교체
+- DCGM/GFD 메트릭 (GPU Operator 부분 지원)
 
 ### 제약 사항
 
-- ❌ Custom VPC CNI 설정 불가
-- ❌ GPU Device Plugin 충돌 (MNG 하이브리드 필요)
-- ❌ io2 Block Express 미지원
-- ❌ EFS/FSx CSI는 별도 설치 필요
-- ❌ Custom CoreDNS 설정 제한
-- ❌ 노드 SSH 접근 제한 (SSM 사용)
-- ❌ EC2 인스턴스 직접 관리 불가
+- Custom VPC CNI 설정 불가
+- GPU Device Plugin 충돌 (MNG 하이브리드 필요)
+- io2 Block Express 미지원
+- EFS/FSx CSI는 별도 설치 필요
+- Custom CoreDNS 설정 제한
+- 노드 SSH 접근 제한 (SSM 사용)
+- EC2 인스턴스 직접 관리 불가
 
 ## 하이브리드 구성 (Auto Mode + MNG)
 
 ### 언제 하이브리드가 필요한가?
 
+**표 3. 시나리오별 Auto Mode 단독 적합성과 하이브리드 필요 여부**
+
 | 시나리오 | Auto Mode 단독 | 하이브리드 (Auto Mode + MNG) |
 |---------|---------------|----------------------------|
-| 일반 웹/API 서버 | ✅ 충분 | 불필요 |
-| GPU 추론/학습 | ❌ 제약 많음 | ✅ **필수** (GPU Operator) |
-| 고성능 스토리지 (io2 BE) | ❌ 미지원 | ✅ MNG에서 가능 |
-| Custom VPC CNI | ❌ 미지원 | ✅ MNG에서 가능 |
-| 특정 AMI 사용 | ❌ 제한적 | ✅ MNG Launch Template |
+| 일반 웹/API 서버 | 충분 | 불필요 |
+| GPU 추론/학습 | 제약 많음 | **필수** (GPU Operator) |
+| 고성능 스토리지 (io2 BE) | 미지원 | MNG에서 가능 |
+| Custom VPC CNI | 미지원 | MNG에서 가능 |
+| 특정 AMI 사용 | 제한적 | MNG Launch Template |
 
 ### 하이브리드 구성 예시
 

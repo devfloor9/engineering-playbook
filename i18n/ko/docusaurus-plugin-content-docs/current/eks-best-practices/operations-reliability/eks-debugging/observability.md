@@ -21,6 +21,8 @@ import { IncidentEscalationTable, ZonalShiftImpactTable } from '@site/src/compon
 
 ## 옵저버빌리티 스택 아키텍처
 
+**그림 1. 옵저버빌리티 스택 아키텍처**
+
 ```mermaid
 flowchart TB
     subgraph "데이터 소스"
@@ -255,6 +257,8 @@ kubectl describe otelcol -n $NAMESPACE $COLLECTOR_NAME
 
 ### ADOT 일반적인 문제
 
+**표 1. ADOT 일반적인 문제의 증상·원인·해결 방법**
+
 | 증상 | 원인 | 해결 방법 |
 |------|------|----------|
 | Operator Pod `CrashLoopBackOff` | CertManager 미설치 | ADOT operator의 webhook 인증서 관리에 CertManager가 필요. `kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml` |
@@ -274,6 +278,8 @@ AMP remote write, X-Ray, CloudWatch에 각각 다른 IAM 권한이 필요합니�
 ### 인시던트 디텍팅 전략 개요
 
 EKS 환경에서 인시던트를 신속하게 감지하려면 **데이터 소스 → 수집 → 분석 & 탐지 → 알림 & 대응**의 4계층 파이프라인을 체계적으로 구성해야 합니다. 각 계층이 유기적으로 연결되어야 MTTD(Mean Time To Detect)를 최소화할 수 있습니다.
+
+**그림 2. 4계층 인시던트 탐지 파이프라인**
 
 ```mermaid
 flowchart TB
@@ -359,6 +365,8 @@ flowchart TB
 
 #### 4계층 아키텍처 설명
 
+**표 2. 4계층 아키텍처의 계층별 역할과 핵심 구성 요소**
+
 | 계층 | 역할 | 핵심 구성 요소 |
 |---|---|---|
 | **데이터 소스** | 클러스터의 모든 관찰 가능한 신호를 생성 | Control Plane Logs, Data Plane Logs, Metrics, Traces |
@@ -371,6 +379,8 @@ flowchart TB
 #### Option A: AWS 네이티브 스택 (소규모~중규모 클러스터)
 
 AWS 관리형 서비스를 중심으로 구성하여 운영 부담을 최소화하는 아키텍처입니다.
+
+**표 3. AWS 관리형 중심 구성(Option A)의 계층별 구성 요소와 용도**
 
 | 계층 | 구성 요소 | 용도 |
 |---|---|---|
@@ -437,6 +447,8 @@ Fluent Bit은 Fluentd보다 메모리 사용량이 10배 이상 적습니다 (~1
 #### Option B: 오픈소스 기반 스택 (대규모 클러스터 / 멀티 클러스터)
 
 오픈소스 도구와 AWS 관리형 서비스를 조합하여 대규모 환경에서의 확장성과 유연성을 확보하는 아키텍처입니다.
+
+**표 4. 오픈소스와 AWS 관리형 혼합 구성(Option B)의 계층별 구성 요소와 용도**
 
 | 계층 | 구성 요소 | 용도 |
 |---|---|---|
@@ -588,6 +600,8 @@ aws logs put-metric-filter \
 
 조직의 인시던트 탐지 역량을 4단계로 구분하여, 현재 수준을 진단하고 다음 단계로 성장하기 위한 로드맵을 제시합니다.
 
+**표 5. 인시던트 탐지 성숙도 레벨별 단계·탐지 방식·도구·목표 MTTD**
+
 | 레벨 | 단계 | 탐지 방식 | 도구 | 목표 MTTD |
 |---|---|---|---|---|
 | Level 1 | 기본 | 수동 모니터링 + 기본 알람 | CloudWatch Alarms | < 30분 |
@@ -624,6 +638,8 @@ aws events put-rule \
 ### 권장 알림 채널 매트릭스
 
 인시던트 심각도에 따라 적절한 알림 채널과 응답 SLA를 설정하여 Alert Fatigue를 방지하고 중요한 인시던트에 집중할 수 있도록 합니다.
+
+**표 6. 인시던트 심각도별 알림 채널·응답 SLA·예시**
 
 | 심각도 | 알림 채널 | 응답 SLA | 예시 |
 |---|---|---|---|
