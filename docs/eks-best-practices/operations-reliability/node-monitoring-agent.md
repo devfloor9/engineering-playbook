@@ -3,9 +3,9 @@ title: EKS Node Monitoring Agent
 description: Architecture, deployment strategies, limitations, and best practices for the AWS EKS Node Monitoring Agent that automatically detects and reports node health issues
 created: "2025-08-26"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 26
+reading_time: 31
 tags:
   - eks
   - monitoring
@@ -37,7 +37,7 @@ NMA was designed to address these problems.
 
 - **Log-based problem detection**: Real-time analysis of system logs with pattern matching
 - **Automatic event generation**: Creates Kubernetes Events and Node Conditions upon detection
-- **CloudWatch integration**: Sends detected issues to CloudWatch for centralized monitoring
+- **CloudWatch linkage**: NMA itself surfaces issues as Node Conditions and Kubernetes Events; forwarding them to CloudWatch requires a separate collector such as the CloudWatch Observability add-on (see section 3)
 - **EKS Add-on support**: Simple installation and management
 
 :::warning Important
@@ -236,6 +236,8 @@ This lets operators run diagnostic commands in real time on a specific node.
 
 NMA provides observability through various endpoints:
 
+The following are binary CLI defaults (`main.go`); the add-on/Helm chart `values.yaml` deployment values may differ.
+
 - **Health Probe** (`:8081`): Kubernetes health checks
 - **Metrics** (`:8080`): Prometheus metrics exposure
 - **PProf** (`:8082`): Go profiling (optional)
@@ -274,6 +276,7 @@ The affinity settings in `values.yaml` restrict execution to specific node types
 - Excludes EKS Auto compute types
 - Excludes HyperPod nodes
 - Supports AMD64/ARM64 architectures only
+- Linux nodes only (no Windows support)
 
 #### 2.7.3 Permission Management
 
@@ -309,7 +312,7 @@ resources:
 
 The node health issues that NMA detects are divided into two categories by **severity**. This distinction must be understood precisely because it determines whether Node Auto Repair acts.
 
-- **Condition**: a terminal issue warranting node Replace or Reboot. When Auto Repair is enabled, a repair action is taken.
+- **Condition**: a terminal issue warranting node Replace or Reboot. When Auto Repair is enabled, a repair action is generally taken, except where the repair action is None (e.g. the DCGM rows in section 2.8.3) and subject to repair wait periods, runaway-prevention thresholds, and NoAction overrides (sections 3.2, 3.3, 3.4).
 - **Event**: a temporary or non-critical issue, or a sub-optimal node configuration. It **does not trigger an Auto Repair action** and is recorded for investigation/alerting only.
 
 Multiple detailed issues are mapped under each monitoring condition type (`ContainerRuntimeReady`, `KernelReady`, `NetworkingReady`, `StorageReady`, `AcceleratedHardwareReady`). Even within the same condition type, the severity (Condition vs. Event) differs per detailed issue.
@@ -327,7 +330,7 @@ Directly relevant to scenarios where containerd load/failure causes node problem
 | `Liveness/ReadinessProbeFailures` | Event | Probe failure detected (possible app code issue or insufficient timeout) | None |
 | `[Name]RepeatedRestart` / `ServiceFailedToStart` | Event | Frequent restarts / startup failure of a systemd unit | None |
 
-→ **Key point**: Only the level where containerd is fully broken and pods cannot terminate (`PodStuckTerminating`) is classified as a Condition and leads to node replacement. A plain container-create failure (`ContainerRuntimeFailed`) is recorded as an Event only and is not auto-remediated.
+→ **Key point**: Only the level where a pod cannot complete termination (`PodStuckTerminating`, e.g. CRI errors preventing pod state progression) is classified as a Condition and leads to node replacement. A plain container-create failure (`ContainerRuntimeFailed`) is recorded as an Event only and is not auto-remediated.
 
 #### 2.8.2 Major Kernel / Networking / Storage Issues
 
@@ -343,7 +346,7 @@ Only the representative items classified as Condition (auto-repair targets) are 
 
 `DiskPressure`, `MemoryPressure`, and `PIDPressure` are standard Kubernetes conditions, and **Node Auto Repair intentionally does not react to them.** These are more likely to indicate application behavior, workload configuration, or resource-limit issues than node-level faults, making it hard to define an appropriate default repair action. In these cases, handling is delegated to the Kubernetes [node-pressure eviction](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/) behavior.
 
-→ If containerd load **manifests as memory/disk pressure or PID exhaustion, the node is not automatically replaced.** The load must be caught as a runtime failure itself (a Condition such as `PodStuckTerminating`) for Auto Repair to act.
+→ However, when PID/memory exhaustion is caught as `ForkFailedOutOfPIDs` (a failed fork/exec call), that is a `KernelReady` Condition and **does** trigger automatic replacement (Replace). By contrast, when it surfaces only as the standard Kubernetes `DiskPressure`/`MemoryPressure`/`PIDPressure` conditions, Auto Repair does not react and the node is not automatically replaced.
 
 :::
 
@@ -434,7 +437,7 @@ Managed node groups can customize detailed behavior with `maxUnhealthyNodeThresh
 ### 5.1 Metric Collection Limits
 
 - **NMA is not a metric collection tool**: Cannot collect performance metrics (CPU, memory utilization, etc.)
-- **Log-parsing approach**: Does not use cAdvisor; purely log-analysis based
+- **Log-parsing approach**: Does not use cAdvisor metrics; primarily log/system-state analysis (also inspects non-log signals such as networking and runtime state)
 - **Prometheus endpoint**: Exposes only limited health-status metrics (port 8080)
 
 ### 5.2 Constraints When Using Alternative Backends
@@ -443,7 +446,7 @@ Managed node groups can customize detailed behavior with `maxUnhealthyNodeThresh
 
 - No native ADOT integration
 - Very limited Prometheus metric coverage
-- No configuration-change options
+- Limited configuration scope: resource requests/limits, tolerations, CLI arguments, and ConfigMap-based configuration can be tuned (sections 2.7.3, 2.7.4, 4.1, 7.1), but there is no option to change the output to a non-CloudWatch backend itself
 - Limited official documentation and support
 
 :::
@@ -480,31 +483,17 @@ Integrated monitoring stack:
 
 ### 6.2 Recommended Configuration When Using Prometheus
 
-When using NMA together with Node Exporter, the following configuration is recommended.
+When using NMA together with Node Exporter, deploy the following components with their respective roles and ports, and configure collection with a dedicated Service plus a Prometheus `ServiceMonitor`/`PodMonitor` per component.
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: monitoring-stack
-spec:
-  components:
-    - name: nma
-      purpose: "node state events"
-      port: 8080
-    - name: node-exporter
-      purpose: "detailed system metrics"
-      port: 9100
-    - name: kube-state-metrics
-      purpose: "cluster state metrics"
-      port: 8080
-```
+- **nma** — node state events, port 8080
+- **node-exporter** — detailed system metrics, port 9100
+- **kube-state-metrics** — cluster state metrics, port 8080
 
 ## 7. Cost and Performance Considerations
 
 ### 7.1 Resource Usage
 
-NMA is a very lightweight component. Based on EKS add-on / Helm chart defaults, the resource requests and limits are as follows.
+NMA is a very lightweight component. The following requests and limits are an example taken from the EKS add-on / Helm chart `values.yaml` defaults; they can change across chart/add-on versions, so confirm them against the `values.yaml` of the version you run.
 
 | Resource | requests | limits |
 |----------|----------|--------|
@@ -518,8 +507,9 @@ On NVIDIA GPU instances, a DCGM server component (`nv-hostengine`) also starts a
 | Item | Cost |
 |------|------|
 | Custom metrics | $0.30/metric/month |
-| Events | $1.00/million events |
 | Logs | $0.50/GB ingested |
+
+The Node Conditions and Kubernetes Events that NMA surfaces are, when sent to CloudWatch, ingested as logs ($/GB) and follow the logs pricing. A "$1/million events" rate applies to EventBridge custom events and does not apply directly to NMA events.
 
 ## 8. Best Practices
 
@@ -527,7 +517,7 @@ On NVIDIA GPU instances, a DCGM server component (`nv-hostengine`) also starts a
 
 1. **Phased rollout**: Dev → Staging → Production
 2. **Alert threshold tuning**: Account for each environment's characteristics
-3. **Enable auto repair cautiously**: Start with monitoring only
+3. **Enable auto repair cautiously**: On managed node groups and Karpenter, start with monitoring only (EKS Auto Mode has auto repair always on and not configurable)
 4. **Regular testing**: Monthly failure simulations
 
 ### 8.2 Integration With Other Tools

@@ -3,7 +3,7 @@ title: EKS Node Monitoring Agent
 description: AWS EKS 클러스터의 노드 상태를 자동으로 감지하고 보고하는 Node Monitoring Agent의 아키텍처, 배포 전략, 제한사항, 모범 사례를 다룹니다.
 created: "2025-08-26"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 18
 tags:
@@ -39,7 +39,7 @@ NMA는 이러한 문제들을 해결하기 위해 설계되었습니다.
 
 - **로그 기반 문제 감지**: 시스템 로그를 실시간으로 분석하여 패턴 매칭
 - **자동 이벤트 생성**: 문제 감지 시 Kubernetes Events 및 Node Conditions 자동 생성
-- **CloudWatch 통합**: 감지된 문제를 CloudWatch로 전송하여 중앙 집중식 모니터링
+- **CloudWatch 연계**: NMA 자체는 Node Condition과 Kubernetes Event로 문제를 노출하며, 이를 CloudWatch로 전송하려면 CloudWatch Observability 애드온 등 별도 수집 구성이 필요합니다(섹션 3 참조)
 - **EKS Add-on 지원**: 간편한 설치 및 관리
 
 :::warning 중요
@@ -238,6 +238,8 @@ diagnosticController := controllers.NewNodeDiagnosticController(mgr.GetClient(),
 
 NMA는 다양한 엔드포인트를 통해 관찰 가능성을 제공합니다:
 
+다음 포트는 바이너리 CLI 기본값(`main.go`)이며, 애드온/Helm 차트의 `values.yaml` 배포 값은 다를 수 있습니다.
+
 - **Health Probe** (`:8081`): Kubernetes 헬스 체크
 - **Metrics** (`:8080`): Prometheus 메트릭 노출
 - **PProf** (`:8082`): Go 프로파일링 (선택적)
@@ -276,6 +278,7 @@ metadata:
 - EKS Auto 컴퓨트 타입 제외
 - HyperPod 노드 제외
 - AMD64/ARM64 아키텍처만 지원
+- Linux 노드만 지원(Windows 미지원)
 
 #### 2.7.3 권한 관리
 
@@ -311,7 +314,7 @@ resources:
 
 NMA가 감지하는 노드 헬스 이슈는 **심각도(Severity)** 에 따라 두 종류로 구분됩니다. 이 구분은 Node Auto Repair의 동작 여부를 결정하므로 정확히 이해해야 합니다.
 
-- **Condition**: 노드 교체(Replace) 또는 재부팅(Reboot)이 필요한 종료성(terminal) 이슈. Auto Repair가 활성화된 경우 복구 액션을 수행합니다.
+- **Condition**: 노드 교체(Replace) 또는 재부팅(Reboot)이 필요한 종료성(terminal) 이슈. Auto Repair가 활성화된 경우 일반적으로 복구 액션을 수행하지만, 복구 액션이 None인 경우(예: 섹션 2.8.3의 DCGM)에는 수행하지 않으며, 복구 대기 시간·폭주 방지 임계값·NoAction 오버라이드(섹션 3.2·3.3·3.4)의 영향을 받습니다.
 - **Event**: 일시적이거나 비치명적인 이슈, 또는 차선의 노드 구성. **Auto Repair 액션을 트리거하지 않으며** 조사·알림 용도로만 기록됩니다.
 
 각 모니터링 컨디션 타입(`ContainerRuntimeReady`, `KernelReady`, `NetworkingReady`, `StorageReady`, `AcceleratedHardwareReady`) 아래에 다수의 세부 이슈가 매핑됩니다. 동일 컨디션 타입이라도 세부 이슈별로 Severity가 Condition인지 Event인지가 다릅니다.
@@ -329,7 +332,7 @@ containerd 부하·장애로 노드 문제가 발생하는 시나리오와 직�
 | `Liveness/ReadinessProbeFailures` | Event | Probe 실패 감지(앱 코드 문제 또는 타임아웃 부족 가능성) | None |
 | `[Name]RepeatedRestart` / `ServiceFailedToStart` | Event | systemd 유닛의 잦은 재시작 / 시작 실패 | None |
 
-→ **핵심**: containerd가 완전히 망가져 Pod가 종료되지 못하는 수준(`PodStuckTerminating`)만 Condition으로 분류되어 노드 교체로 이어집니다. 단순 컨테이너 생성 실패(`ContainerRuntimeFailed`)는 Event로만 기록되며 자동 복구되지 않습니다.
+→ **핵심**: Pod가 과도한 시간 동안 종료를 완료하지 못하는 수준(`PodStuckTerminating`, 예: CRI 오류로 Pod 상태 진행 불가)만 Condition으로 분류되어 노드 교체로 이어집니다. 단순 컨테이너 생성 실패(`ContainerRuntimeFailed`)는 Event로만 기록되며 자동 복구되지 않습니다.
 
 #### 2.8.2 Kernel / Networking / Storage 주요 이슈
 
@@ -345,7 +348,7 @@ Condition(자동 복구 대상)으로 분류되는 대표 항목만 정리합니
 
 `DiskPressure`, `MemoryPressure`, `PIDPressure`는 표준 Kubernetes 컨디션이며, **Node Auto Repair가 의도적으로 반응하지 않습니다.** 이들은 노드 자체 결함보다 애플리케이션 동작·워크로드 구성·리소스 한계 문제일 가능성이 높아, 적절한 기본 복구 액션을 정의하기 어렵기 때문입니다. 이 경우 Kubernetes의 [node-pressure eviction](https://kubernetes.io/docs/concepts/scheduling-eviction/node-pressure-eviction/) 동작에 위임됩니다.
 
-→ containerd 부하가 **메모리/디스크 압박이나 PID 고갈 형태로 표출되면 노드는 자동 교체되지 않습니다.** 부하가 런타임 자체 실패(`PodStuckTerminating` 등 Condition)로 잡혀야 Auto Repair가 동작합니다.
+→ 다만 PID/메모리 고갈이 `ForkFailedOutOfPIDs`(fork/exec 실패)로 잡히면 이는 `KernelReady` Condition이므로 자동 교체(Replace) 대상입니다. 반면 표준 Kubernetes `DiskPressure`/`MemoryPressure`/`PIDPressure` 형태로만 표출되면 Auto Repair가 반응하지 않으므로 노드가 자동 교체되지 않습니다.
 
 :::
 
@@ -436,7 +439,7 @@ NMA는 단독으로는 가시성(NodeCondition·이벤트 노출)만 제공합�
 ### 5.1 메트릭 수집 한계
 
 - **NMA는 메트릭 수집 도구가 아님**: 성능 메트릭(CPU, 메모리 사용률 등) 수집 불가
-- **로그 파싱 방식**: cAdvisor를 사용하지 않으며, 순수 로그 분석 기반
+- **로그 파싱 방식**: cAdvisor 메트릭을 사용하지 않으며, 주로 로그·시스템 상태 분석에 기반(네트워킹·런타임 등 비(非)로그 상태 점검도 포함)
 - **Prometheus 엔드포인트**: 제한적인 건강 상태 메트릭만 노출 (포트 8080)
 
 ### 5.2 대체 백엔드 사용 시 제약
@@ -445,7 +448,7 @@ NMA는 단독으로는 가시성(NodeCondition·이벤트 노출)만 제공합�
 
 - 네이티브 ADOT 통합 없음
 - Prometheus 메트릭 범위 매우 제한적
-- 설정 변경 옵션 부재
+- 설정 변경 범위 제한: 리소스 요청·제한, 톨러레이션, CLI 인자, ConfigMap 기반 구성 등은 조정 가능하나(섹션 2.7.3·2.7.4·4.1·7.1), 비(非)CloudWatch 백엔드로의 출력 자체를 바꾸는 옵션은 없음
 - 공식 문서 및 지원 부족
 
 :::
@@ -482,31 +485,17 @@ NMA는 단독으로는 가시성(NodeCondition·이벤트 노출)만 제공합�
 
 ### 6.2 Prometheus 사용 시 권장 구성
 
-NMA와 Node Exporter를 함께 사용할 때는 다음 구성을 권장합니다.
+NMA와 Node Exporter를 함께 사용할 때는 다음 구성 요소를 각각의 역할과 포트에 맞춰 배포하고, 각 컴포넌트에 대해 별도의 Service와 Prometheus `ServiceMonitor`/`PodMonitor`로 수집을 구성하는 것을 권장합니다.
 
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: monitoring-stack
-spec:
-  components:
-    - name: nma
-      purpose: "노드 상태 이벤트"
-      port: 8080
-    - name: node-exporter
-      purpose: "상세 시스템 메트릭"
-      port: 9100
-    - name: kube-state-metrics
-      purpose: "클러스터 상태 메트릭"
-      port: 8080
-```
+- **nma** — 노드 상태 이벤트, 포트 8080
+- **node-exporter** — 상세 시스템 메트릭, 포트 9100
+- **kube-state-metrics** — 클러스터 상태 메트릭, 포트 8080
 
 ## 7. 비용 및 성능 고려사항
 
 ### 7.1 리소스 사용량
 
-NMA는 매우 가벼운 구성 요소입니다. EKS 애드온/Helm 차트 기본값 기준 리소스 요청·제한은 다음과 같습니다.
+NMA는 매우 가벼운 구성 요소입니다. 다음 요청·제한 값은 EKS 애드온/Helm 차트의 `values.yaml` 기본값에서 가져온 예시이며, 차트·애드온 버전에 따라 달라질 수 있으므로 사용 중인 버전의 `values.yaml`로 확인해야 합니다.
 
 | 리소스 | requests | limits |
 |--------|---------|--------|
@@ -520,8 +509,9 @@ NVIDIA GPU 인스턴스에서는 DCGM 서버 컴포넌트(`nv-hostengine`)가 �
 | 항목 | 비용 |
 |------|------|
 | 커스텀 메트릭 | $0.30/metric/month |
-| 이벤트 | $1.00/million events |
 | 로그 | $0.50/GB ingested |
+
+NMA가 노출하는 Node Condition·Kubernetes Event는 CloudWatch로 수집할 경우 로그로 수집(ingestion, $/GB)되므로 로그 요금 체계를 따릅니다. $1/million events 형태의 요금은 EventBridge 커스텀 이벤트에 해당하며 NMA 이벤트에 직접 적용되지 않습니다.
 
 ## 8. 모범 사례
 
@@ -529,7 +519,7 @@ NVIDIA GPU 인스턴스에서는 DCGM 서버 컴포넌트(`nv-hostengine`)가 �
 
 1. **단계적 롤아웃**: Dev → Staging → Production
 2. **알림 임계값 조정**: 환경별 특성 고려
-3. **자동 복구 신중히 활성화**: 초기에는 모니터링만
+3. **자동 복구 신중히 활성화**: 관리형 노드그룹·Karpenter에서는 초기에 모니터링만 활성화(EKS Auto Mode는 자동 복구가 항상 켜져 있어 설정 변경 불가)
 4. **정기적인 테스트**: 월별 장애 시뮬레이션
 
 ### 8.2 다른 도구와의 통합
