@@ -30,6 +30,8 @@ EKS Hybrid Nodes can use a private network without a public internet path (IGW/N
 
 Prepare these two paths separately when configuring an "EKS endpoint."
 
+**Table 1. Privatization method for the Kubernetes API endpoint vs the EKS management API endpoint**
+
 | Aspect | Kubernetes API endpoint | EKS management API endpoint (`eks`) |
 |--------|-------------------------|-------------------------------------|
 | Callers | kubelet, kubectl, Pods | Cluster-information calls by `nodeadm` and management tools, such as DescribeCluster |
@@ -47,6 +49,8 @@ A Private-only Kubernetes API does **not** resolve exclusively through the VPC's
 ## Required Interface Endpoint Mapping
 
 Select the endpoints for the features you use. Service names omit the `com.amazonaws.<region>.` prefix. Confirm regional availability and the actual agent and SDK versions first.
+
+**Table 2. Required interface endpoints by purpose and when they apply**
 
 | Purpose | Endpoint | Applies when |
 |---------|----------|--------------|
@@ -125,6 +129,8 @@ Interface endpoints exist as ENIs in VPC subnets. Connect the following two path
 1. **DNS resolution**: Prepare both the [Resolver inbound endpoint](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-inbound-queries.html) and conditional forwarding on corporate DNS. Queries for ECR API `api.ecr.<region>.amazonaws.com`, registry `<account>.dkr.ecr.<region>.amazonaws.com`, the layer bucket under `s3.<region>.amazonaws.com`, and the actual selected credential/observability services must reach VPC Resolver. Use the cluster API's exact discovered hostname. Check wildcard/subdomain handling and conflicts with existing corporate zones when choosing the forwarding scope; do not treat every `amazonaws.com` name as the same private service. Check that the actual download path does not retain legacy global or dash-Region hosts unsupported by S3 interface endpoints. Resolve supported Regional names through Private DNS without arbitrarily rewriting signed S3 layer-URL hostnames ([S3 restrictions and DNS](https://docs.aws.amazon.com/AmazonS3/latest/userguide/privatelink-interface-endpoints.html)).
 2. **Routing**: Provide DX/VPN paths from on premises to the Resolver, service endpoint and control plane ENI subnets, and return routes from the VPC to the actual source node/Pod CIDRs. Check overlapping VPC/remote ranges, TGW/VGW attachments and route tables, security groups, NACLs and host firewalls. A private DNS answer alone does not establish connectivity.
 
+**Figure 1. DNS, API, and image-layer paths from on-premises nodes to private endpoints**
+
 ```mermaid
 flowchart LR
     subgraph ONPREM["On-premises (nodes have no internet access)"]
@@ -154,6 +160,8 @@ An S3 gateway endpoint can coexist to optimize in-VPC client costs, but it is no
 
 Allow TCP 443 on service interface endpoint security groups from the **actual source address observed on arrival**. Apply Kubernetes API TCP 443 access separately to the cluster security group.
 
+**Table 3. Endpoint ENI security group inbound rules and reasons**
+
 | Direction | Protocol/Port | Source | Reason |
 |-----------|---------------|--------|--------|
 | Inbound | TCP 443 | Required RemoteNodeNetwork ranges | Runtime image downloads, `nodeadm` and node credential agents |
@@ -165,6 +173,8 @@ For a path where CNI egress NAT applies, the Pod source can become a node addres
 ## Public Dependencies That Remain Even When Air-gapped
 
 The selected interface endpoints do not eliminate every installation or upgrade dependency. Inventory files, images, charts and packages for the actual versions, record checksums, and configure the mirror addresses used at runtime.
+
+**Table 4. Public dependencies that remain even when air-gapped, and their alternatives**
 
 | Item | Default source | Air-gapped alternative |
 |------|----------------|------------------------|
@@ -199,6 +209,8 @@ aws ecr get-login-password \
 # Independently check the installed nodeadm configuration and node identity.
 sudo nodeadm debug -c file://nodeConfig.yaml
 ```
+
+**Table 5. What each verification command establishes and does not establish**
 
 | Check | What it establishes | What it does not establish |
 |-------|---------------------|----------------------------|

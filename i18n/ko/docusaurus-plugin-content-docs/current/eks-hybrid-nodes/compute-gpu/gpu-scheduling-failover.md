@@ -83,6 +83,8 @@ helm install nvidia-device-plugin nvdp/nvidia-device-plugin \
 
 온프레미스 GPU 서버는 하드웨어 장애·전원·회선 단선의 단일 사이트 리스크를 갖습니다. AWS VPC 안에 Karpenter(또는 EKS Auto Mode) 기반 GPU NodePool을 **평시 0대**로 정의해 두면, 온프레미스 GPU 용량이 상실됐을 때 대기 중인 Pod가 클라우드 GPU 노드를 자동으로 기동시키는 폴백 계층이 됩니다.
 
+**그림 1. 온프레미스 GPU에서 클라우드·Bedrock으로 이어지는 3-Tier 폴백 흐름**
+
 ```mermaid
 flowchart LR
     subgraph ONPREM["온프레미스 (Tier 1 — 평시)"]
@@ -180,6 +182,8 @@ spec:
 5. 온프레미스 복구 후: 워크로드를 온프렘으로 재배치하면 `consolidation`이 유휴 클라우드 GPU 노드를 자동 회수합니다.
 
 ### 설계 시 검증 항목
+
+**표 1. 폴백 설계 시 점검 항목과 내용**
 
 | 항목 | 내용 |
 |------|------|

@@ -28,6 +28,8 @@ When separate teams own firewalls and network routing, deployment depends on sub
 
 ## 5-Zone Firewall Registration Structure
 
+**Table 1. The five firewall registration zones with registration point and owning team**
+
 | Zone | Registration point | Owning team (typical) |
 |----|-----------|------------------|
 | A | On-premises firewall (ongoing operations rules) | Network/Security team |
@@ -43,6 +45,8 @@ Use the following table to prepare the on-premises firewall request for ongoing 
 :::warning API server endpoint mode assumption
 The Kubernetes API server destination in the table below (the control plane ENI subnet CIDRs) assumes the cluster is configured for **private endpoint access, so that the API server resolves to private IPs**. The official documentation recommends using either private *or* public endpoint access for hybrid nodes, and notes that with "Public and Private" the API endpoint **always resolves to public IPs for hybrid nodes outside the VPC, which can prevent nodes from joining**. If you use public endpoint access, the destination is the Region's public API endpoint rather than the ENI subnet CIDRs, so before submitting the request, confirm the API server address the hybrid nodes actually resolve (via `nslookup`/`dig`) and set the destination accordingly.
 :::
+
+**Table 2. Zone A on-premises firewall ongoing operations rules (direction, port, destination)**
 
 | Direction | Protocol/Port | Source | Destination | Reason |
 |------|--------------|--------|--------|------|
@@ -69,6 +73,8 @@ Response-packet rules are omitted under the assumption that the firewall is stat
 
 EKS **automatically creates the inbound rules** for clusters with remote networks configured. Outbound relies on the SG default (allow all), so organizations that restrict outbound must register the rules below explicitly.
 
+**Table 3. Zone B AWS security group rules and who creates them**
+
 | Direction | Protocol/Port | Target | Reason | Created by |
 |------|--------------|------|------|-----------|
 | Inbound | TCP 443 | Node CIDR | kubelet → API server | Auto-created by EKS |
@@ -82,6 +88,8 @@ Two operational cautions. (1) The default SG inbound rule quota is 60; when appr
 ### Zone C: AWS Service Endpoints (Outbound Domains)
 
 Domains required **during installation and upgrades** (bake them into the OS image at build time or allow at runtime per host).
+
+**Table 4. Zone C outbound domains and ports allowed during installation and upgrades**
 
 | Component | URL | Port |
 |----------|-----|------|
@@ -143,6 +151,8 @@ Resolver endpoint IPs are also firewall targets (TCP/UDP 53), so include them in
 
 ### Zone E: Recommended Additional Rules
 
+**Table 5. Zone E recommended additional rules and reasons**
+
 | Item | Rule | Reason |
 |------|-----|------|
 | CNI-specific ports | Cilium: node-to-node UDP 8472 (VXLAN), TCP 4240 (health), ICMP echo / Calico: TCP 179 (BGP), etc. | The official documentation requires separately allowing CNI-specific ports — finalize based on each CNI's documentation |
@@ -152,6 +162,8 @@ Resolver endpoint IPs are also firewall targets (TCP/UDP 53), so include them in
 ## Handling Environments Without FQDN Wildcard Support
 
 In environments where the FQDN firewall does not support wildcards (`*.amazonaws.com`), domains must be enumerated individually. The table below shows concrete values for the us-west-2 region, and each row is **conditional on the features and authentication method you use**. For example, the STS row is only needed with IRSA and the EKS Auth row only with EKS Pod Identity. The API layer (`eks`/`api.ecr`), the image registry layer (`*.dkr.ecr`, `public.ecr.aws`), and S3 layer downloads (artifacts, SSM binaries) are distinct endpoints, so do not request them as a single bundle.
+
+**Table 6. Individual domains by purpose for environments without FQDN wildcard support (us-west-2)**
 
 | Purpose | Domain (us-west-2) |
 |------|------------------------|

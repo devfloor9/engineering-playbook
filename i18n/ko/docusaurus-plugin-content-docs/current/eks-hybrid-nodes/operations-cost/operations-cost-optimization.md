@@ -48,6 +48,8 @@ sudo nodeadm debug --config-source file://nodeconfig.yaml
 
 하이브리드 클러스터의 관측 대상은 세 계층입니다.
 
+**표 1. 하이브리드 클러스터 관측 3계층과 계층별 도구**
+
 | 계층 | 관측 대상 | 도구 |
 |------|----------|------|
 | 노드·워크로드 | 하이브리드 노드 상태, Pod 메트릭 | Prometheus/AMP(ADOT), CloudWatch Observability 애드온 |

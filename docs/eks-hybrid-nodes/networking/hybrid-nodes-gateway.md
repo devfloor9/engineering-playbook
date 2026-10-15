@@ -29,6 +29,8 @@ The Hybrid Nodes Gateway is AWS-provided, open-source gateway software that remo
 
 The Gateway leverages the VTEP (VXLAN Tunnel Endpoint) feature of the Cilium CNI. It establishes a VXLAN tunnel (`hybrid_vxlan0` interface, VNI 2, UDP 8472) between EC2 gateway nodes in the VPC and Cilium nodes on-premises, encapsulating and forwarding Pod traffic. Only UDP traffic between node IPs flows over the physical network, so the underlay (on-premises routers and VPC route tables) does not need routes for the Pod CIDR. This removes the routing exposure, but it does not provide traffic confidentiality: VXLAN only encapsulates the inner IP header and payload — it does not encrypt them. If you need confidentiality in transit, secure an encrypted transport layer such as DX MACsec or a VPN separately.
 
+**Figure 1. Gateway's VXLAN tunnel and automatic VPC route management structure**
+
 ```mermaid
 flowchart LR
     subgraph VPC["VPC 10.0.0.0/16"]
@@ -61,6 +63,8 @@ The Gateway operates through four mechanisms.
 **What the Gateway does not do** is equally clear. The Gateway is not a NAT, so it cannot resolve CIDR overlaps, and the requirements for node CIDR routing and private connectivity between the VPC and on-premises remain unchanged.
 
 ## Pre-Adoption Checklist
+
+**Table 1. Pre-adoption checklist items for the Gateway**
 
 | # | Item | Details |
 |---|------|------|
@@ -211,6 +215,8 @@ helm install eks-hybrid-nodes-gateway \
 
 For a single value, substituting the `--set` placeholder directly, as in the official AWS example, works fine.
 
+**Table 2. Required Helm installation values and caveats**
+
 | Required value | Meaning | Caveats |
 |---------|------|----------|
 | `vpcCIDR` | CIDR of the EKS cluster VPC | Must be updated if a secondary CIDR is added to the VPC |
@@ -248,6 +254,8 @@ Because the Gateway uses an active-standby model, **traffic is always handled by
 
 Low-spec t-family instances (such as t2.small) are unsuitable as gateway nodes. The gateway is the bottleneck that forwards **all** traffic between the VPC and hybrid Pods, and VXLAN encapsulation adds per-packet overhead, so an instance with low network performance (bandwidth, PPS) becomes the ceiling for all cross-network communication. The officially recommended instances are as follows.
 
+**Table 3. Officially recommended gateway instances and network performance by scale**
+
 | Scale | Instance | Network | Notes |
 |------|----------|----------|------|
 | Production (10–100 hybrid nodes, moderate traffic) | `c6in.xlarge` | Up to 30 Gbps | Network-optimized, official recommendation |
@@ -267,6 +275,8 @@ Observe actual usage with metrics (`hybrid_gateway_primary_nic_*`, `hybrid_gatew
 ### Failure Impact Scope
 
 A gateway instance failure does not mean the entire hybrid network goes down. Only cross-network Pod traffic encapsulated in VXLAN traverses the Gateway; node-level communication and on-premises internal traffic flow over paths independent of the Gateway.
+
+**Figure 2. Paths affected and unaffected by a gateway failure**
 
 ```mermaid
 flowchart TB
@@ -289,6 +299,8 @@ flowchart TB
     HN --- P1
 ```
 
+**Table 4. Whether each traffic path traverses the Gateway and the impact on leader failure**
+
 | Traffic path | Traverses the Gateway | Impact on leader failure |
 |--------------|-----------------------|--------------------------|
 | ① VPC ↔ hybrid Pods (webhook calls, east-west, NLB/ALB IP targets) | Yes — VXLAN encapsulation | Interrupted until the standby takes over (reported as 3–5s / 15–30s depending on the source; measure it) |
@@ -309,6 +321,8 @@ If even a few seconds of interruption is unacceptable, or you cannot accept thes
 ## Monitoring
 
 The gateway exposes health (`/healthz`) and readiness (`/readyz`) endpoints on port 8088, and Prometheus metrics (`/metrics`) on port 10080. The key observability metrics are as follows.
+
+**Table 5. Key Gateway observability metrics and their purpose**
 
 | Metric | Purpose |
 |--------|------|

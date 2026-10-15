@@ -27,6 +27,8 @@ category: hybrid-multicloud
 
 ## 업그레이드 전략: 노드 교체 vs In-Place
 
+**표 1. 노드 교체와 In-Place 업그레이드 전략의 방식과 적합 환경**
+
 | 전략 | 방식 | 적합 환경 |
 |------|------|----------|
 | 노드 교체 (cutover, blue-green) — **공식 권장** | 대상 버전으로 초기화한 새 노드를 조인시키고, 워크로드를 이전한 후 구버전 노드를 `nodeadm uninstall`·`kubectl delete node`로 제거 | 여유 장비 또는 가상화 기반 노드 프로비저닝이 가능한 환경 |
@@ -37,6 +39,8 @@ category: hybrid-multicloud
 ## nodeadm upgrade 동작 원리: 4단계 프로세스
 
 `nodeadm upgrade`는 노드 위에서 실행되는 in-place 교체 작업이며, 내부적으로 4단계로 진행됩니다.
+
+**그림 1. nodeadm upgrade의 4단계 in-place 교체 프로세스**
 
 ```mermaid
 flowchart LR
@@ -121,6 +125,8 @@ chmod +x nodeadm && sudo mv nodeadm /usr/local/bin/nodeadm
 
 `nodeadm upgrade`는 EKS 아티팩트(kubelet 등)를 받아오지만, containerd·ca-certificates·커널 모듈 같은 **OS 계층 의존성은 OS 패키지 매니저(yum/dnf, apt)가 담당**합니다. 인터넷이 차단된 환경에서 업그레이드가 중간에 실패하지 않으려면 두 경로 모두 내부망에서 해석되어야 합니다.
 
+**표 2. 폐쇄망 업그레이드 시 다운로드 대상별 기본 출처와 사설 미러 대응**
+
 | 다운로드 대상 | 기본 출처 | 폐쇄망 대응 |
 |--------------|----------|------------|
 | EKS 노드 아티팩트 (kubelet 등) | `hybrid-assets.eks.amazonaws.com` | 내부 아티팩트 저장소 미러 또는 해당 도메인 한정 프록시 허용 |
@@ -171,6 +177,8 @@ sudo apt-get update   # 활성화된 소스가 모두 내부 미러로 해석되
 사설 미러는 업그레이드 시점에만 필요한 것이 아니라 OS 보안 패치의 상시 공급 경로입니다. 미러 동기화 주기·GPG 키 관리·미러 자체의 가용성을 업그레이드 계획 이전에 운영 체계로 정착시킵니다.
 
 ## 업그레이드 런북 (노드 단위)
+
+**표 3. 노드 단위 업그레이드 런북 단계·작업·검증**
 
 | 단계 | 작업 | 검증 |
 |------|------|------|

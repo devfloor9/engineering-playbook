@@ -31,6 +31,8 @@ category: hybrid-multicloud
 > "The decision to use NLB or Cilium is based on the source of application traffic. If application traffic originates from an AWS Region, AWS recommends using AWS NLB and the AWS Load Balancer Controller. If application traffic originates from the local on-premises or edge environment, AWS recommends using Cilium's built-in load balancing capabilities."
 > — [Configure Services of type LoadBalancer for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-load-balancing.html)
 
+**표 1. 트래픽 발원지별 권장 로드밸런싱 경로와 전제 조건**
+
 | 트래픽 발원지 | 권장 경로 | 전제 조건 |
 |---------------|----------|----------|
 | AWS 리전 (또는 인터넷 → 리전 경유) | NLB/ALB + AWS Load Balancer Controller (IP 타겟) | Pod CIDR이 AWS에서 도달 가능 (BGP 풀 라우팅 또는 Gateway) |
@@ -69,6 +71,8 @@ alb.ingress.kubernetes.io/target-type: "ip"
 ## 경로 2: Cilium 내장 LB (온프렘 발원)
 
 온프레미스 로컬 트래픽은 별도 LB 인프라 없이 Cilium의 내장 기능으로 처리할 수 있습니다. 세 기능이 역할을 분담합니다.
+
+**표 2. Cilium 내장 로드밸런싱 3개 기능의 역할**
 
 | 기능 | 역할 | 비고 |
 |------|------|------|

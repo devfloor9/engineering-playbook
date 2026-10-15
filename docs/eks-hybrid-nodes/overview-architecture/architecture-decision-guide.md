@@ -30,6 +30,8 @@ An EKS Hybrid Nodes architecture is finalized not by a single decision but by a 
 
 ## Design Decision Map
 
+**Table 1. Key question and options for each of the six design decisions**
+
 | # | Decision | Key Question | Options | Detail Chapter |
 |---|----------|--------------|---------|----------------|
 | ① | Hybrid connectivity | What are the bandwidth, encryption, and lead-time requirements? | Direct Connect / Site-to-Site VPN / both | [Firewall & Connectivity](../networking/firewall-connectivity.md) |
@@ -40,6 +42,8 @@ An EKS Hybrid Nodes architecture is finalized not by a single decision but by a 
 | ⑥ | Workload exposure | Where does application traffic originate? | NLB/ALB IP targets / Cilium built-in LB | [Load Balancing](../networking/load-balancing.md) |
 
 The dependencies between decisions are as follows. ③ (Pod CIDR exposure) is the central decision; the choices made in ①, ②, ④, and ⑥ narrow ③'s options or create its preconditions. ⑤ (node authentication) is independent of the other decisions but determines which endpoints must be registered with the firewall, so it must be finalized before submitting the firewall request.
+
+**Figure 1. Dependencies among the six design decisions**
 
 ```mermaid
 flowchart LR
@@ -54,6 +58,8 @@ flowchart LR
 ## Decision ① Hybrid Connectivity: Direct Connect vs Site-to-Site VPN
 
 Because the control plane resides in the AWS Region, private connectivity between on-premises and the VPC is a non-negotiable requirement in every configuration, and the official guide recommends a minimum of 100Mbps bandwidth and an RTT of 200ms or less.
+
+**Table 2. Direct Connect versus Site-to-Site VPN**
 
 | Decision Axis | Direct Connect | Site-to-Site VPN |
 |---------------|----------------|------------------|
@@ -71,6 +77,8 @@ The encryption characteristics of this decision connect to decision ③. The Hyb
 
 Mixed mode — running cloud nodes (EC2) and hybrid nodes in one cluster — is the official operating pattern that bypasses Pod routing constraints by placing webhook components on cloud nodes, and it is the default recommended topology.
 
+**Table 3. Mixed mode versus hybrid-only topology**
+
 | Decision Axis | Favors Mixed Mode | Favors Hybrid-Only |
 |---------------|-------------------|--------------------|
 | Webhooks & system add-ons | Cloud-node placement enables operation without Pod CIDR routing | All worker-hosted system Pods run on-premises — Pod CIDR routing becomes effectively mandatory |
@@ -85,6 +93,8 @@ Mixed mode — running cloud nodes (EC2) and hybrid nodes in one cluster — is 
 
 "Should the Pod CIDR be exposed (routable) at the host level, or should a gateway layer be added?" is the central decision in hybrid design.
 
+**Table 4. Traffic support and trade-offs of the three Pod CIDR exposure options**
+
 | Option | Egress | Webhooks/Inbound | East-west | Trade-offs |
 |--------|--------|------------------|-----------|------------|
 | A. Full Pod CIDR routing (BGP recommended) | O | O | O | Most complete. Requires network team collaboration and BGP operations |
@@ -92,6 +102,8 @@ Mixed mode — running cloud nodes (EC2) and hybrid nodes in one cluster — is 
 | C. Hybrid Nodes Gateway | O | O | O | No on-premises Pod CIDR routing negotiation required (VPC node CIDR routes, non-overlapping address allocation, and firewalls are still required). Cilium only, no built-in encryption, gateway EC2 cost |
 
 The suitability of each option is evaluated along the following six axes.
+
+**Table 5. The six axes distinguishing full routing (A) from Gateway (C)**
 
 | Decision Axis | Favors A (Full Routing) | Favors C (Gateway) |
 |---------------|-------------------------|--------------------|
@@ -103,6 +115,8 @@ The suitability of each option is evaluated along the following six axes.
 | Additional cost | None beyond router configuration | Ongoing cost of 2 gateway EC2 instances |
 
 B (CNI NAT) leaves Pod IPs unroutable from on-premises. What this forgoes is specifically the inbound direction — traffic from the VPC and control plane to hybrid Pod IPs (webhooks, Metrics Server, and east-west from cloud-node pods); pod-to-pod east-west within the on-premises overlay and egress from pods (including calls to AWS services) remain available. B is therefore viable where no inbound-dependent add-ons are used or where those add-ons can be placed on cloud nodes, and when an inbound-dependent component such as a webhook is present it presumes mixed mode in decision ②. In environments where Calico must be retained, C is ruled out, so the choice is between A and B.
+
+**Figure 2. Decision flow for the Pod CIDR exposure options**
 
 ```mermaid
 flowchart TD

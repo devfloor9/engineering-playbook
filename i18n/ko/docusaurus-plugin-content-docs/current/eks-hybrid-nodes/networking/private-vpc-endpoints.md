@@ -30,6 +30,8 @@ category: hybrid-multicloud
 
 "EKS 엔드포인트"를 구성할 때 다음 두 경로를 각각 준비합니다.
 
+**표 1. Kubernetes API 엔드포인트와 EKS 관리 API 엔드포인트의 사설화 방법 비교**
+
 | 구분 | Kubernetes API 엔드포인트 | EKS 관리 API 엔드포인트 (`eks`) |
 |------|--------------------------|--------------------------------|
 | 호출 주체 | kubelet, kubectl, Pod | `nodeadm`·관리 도구의 클러스터 정보 조회(예: DescribeCluster) |
@@ -47,6 +49,8 @@ Private-only Kubernetes API가 **VPC의 Private Hosted Zone에서만** 해석되
 ## 필수 인터페이스 엔드포인트 매핑
 
 사용하는 기능에 해당하는 엔드포인트를 선택합니다. 서비스명은 `com.amazonaws.<region>.` 접두사를 생략했습니다. 해당 리전의 지원 여부와 에이전트·SDK 버전을 먼저 확인합니다.
+
+**표 2. 용도별 필수 인터페이스 엔드포인트와 적용 조건**
 
 | 용도 | 엔드포인트 | 적용 조건 |
 |------|-----------|-----------|
@@ -125,6 +129,8 @@ aws ec2 create-vpc-endpoint \
 1. **DNS 해석**: [Resolver inbound endpoint 구성](https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/resolver-forwarding-inbound-queries.html)과 사내 DNS의 조건부 포워딩을 모두 준비합니다. ECR API의 `api.ecr.<region>.amazonaws.com`, 레지스트리의 `<account>.dkr.ecr.<region>.amazonaws.com`, 레이어 버킷이 속하는 `s3.<region>.amazonaws.com` 및 선택한 자격 증명·관측 서비스의 실제 이름이 VPC Resolver에 도달해야 합니다. 클러스터 API는 조회된 고유 호스트 이름을 사용합니다. 포워딩 범위를 정할 때 와일드카드·하위 도메인 처리와 기존 사내 존 충돌을 확인하며, 모든 `amazonaws.com` 이름을 무조건 같은 사설 서비스로 취급하지 않습니다. S3 인터페이스가 지원하지 않는 legacy global·dash-Region 호스트가 실제 다운로드 경로에 남아 있지 않은지도 확인합니다. 서명된 S3 레이어 URL의 호스트를 임의로 바꾸지 않고, 지원되는 리전별 이름을 Private DNS로 해석합니다([S3 제약과 DNS](https://docs.aws.amazon.com/AmazonS3/latest/userguide/privatelink-interface-endpoints.html)).
 2. **라우팅**: 온프레미스에서 Resolver·서비스 엔드포인트·컨트롤 플레인 ENI 서브넷까지, 그리고 VPC에서 실제 발신 Node/Pod CIDR까지 DX/VPN 왕복 경로가 있어야 합니다. VPC와 원격 CIDR 중복, TGW/VGW 연결·라우트 테이블, 보안 그룹·NACL·호스트 방화벽도 확인합니다. DNS가 사설 IP를 반환했다는 사실만으로 연결 성공을 판단하지 않습니다.
 
+**그림 1. 온프레미스 노드에서 사설 엔드포인트로 이어지는 DNS·API·이미지 레이어 경로**
+
 ```mermaid
 flowchart LR
     subgraph ONPREM["온프레미스 (노드 인터넷 접근 없음)"]
@@ -154,6 +160,8 @@ S3 Gateway를 VPC 내부 클라이언트의 비용 최적화용으로 함께 둘
 
 서비스 인터페이스 ENI 보안 그룹에는 **도착 시점에 관측되는 실제 발신 주소**에서 TCP 443을 허용합니다. Kubernetes API의 TCP 443은 별도의 클러스터 보안 그룹에 적용합니다.
 
+**표 3. 엔드포인트 ENI 보안 그룹 inbound 규칙과 사유**
+
 | 방향 | 프로토콜/포트 | 출발지 | 사유 |
 |------|--------------|--------|------|
 | Inbound | TCP 443 | 필요한 RemoteNodeNetwork (Node CIDR) | 런타임 이미지 다운로드, `nodeadm`, 노드 자격 증명 에이전트 |
@@ -165,6 +173,8 @@ CNI egress NAT가 적용되는 **해당 경로**에서는 Pod 발신 주소가 �
 ## 폐쇄망에서도 남는 퍼블릭 의존성
 
 선택한 인터페이스 엔드포인트만으로 설치·업그레이드 의존성이 모두 사라지지는 않습니다. 실제 버전의 파일·이미지·차트·패키지 목록과 체크섬을 정하고, 실행 시 사용할 미러 주소까지 구성합니다.
+
+**표 4. 폐쇄망에서도 남는 퍼블릭 의존성과 대안**
 
 | 항목 | 기본 출처 | 폐쇄망 대안 |
 |------|----------|------------|
@@ -199,6 +209,8 @@ aws ecr get-login-password \
 # Independently check the installed nodeadm configuration and node identity.
 sudo nodeadm debug -c file://nodeConfig.yaml
 ```
+
+**표 5. 검증 명령별 확인 범위와 비확인 범위**
 
 | 검사 | 확인하는 범위 | 확인하지 않는 범위 |
 |------|---------------|-------------------|

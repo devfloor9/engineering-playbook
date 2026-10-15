@@ -30,6 +30,8 @@ Hybrid nodes remain in the `NotReady` state until a CNI is running, and the Amaz
 > "Cilium is the AWS-supported Container Networking Interface (CNI) for Amazon EKS Hybrid Nodes. You must install a CNI for hybrid nodes to become ready to serve workloads. Hybrid nodes appear with status `Not Ready` until a CNI is running."
 > — [Configure CNI for hybrid nodes](https://docs.aws.amazon.com/eks/latest/userguide/hybrid-nodes-cni.html)
 
+**Table 1. Hybrid node support and characteristics by CNI**
+
 | CNI | Hybrid node support | Notes |
 |-----|--------------------|-------|
 | Amazon VPC CNI | **Incompatible** | Configured by default with anti-affinity for the `eks.amazonaws.com/compute-type: hybrid` label, so it is never scheduled on hybrid nodes |
@@ -91,6 +93,8 @@ helm install cilium oci://public.ecr.aws/eks/cilium/cilium \
 
 In environments that require Pod-level inbound traffic ([feature table](../overview-architecture/hybrid-nodes-fundamentals.md#node-cidr-required-pod-cidr-optional-principle)), there are three ways to make the Pod CIDR reachable.
 
+**Table 2. Suitable environment, requirements, and characteristics of the three Pod CIDR routing methods**
+
 | Method | Suitable environment | Requirements | Characteristics |
 |--------|---------------------|--------------|-----------------|
 | BGP dynamic routing (recommended) | Medium-to-large environments with frequent node changes | BGP-capable router, ASN/peering coordination | Automatically advertises each node's Pod CIDR slice — no router changes needed when scaling out |
@@ -120,6 +124,8 @@ The command above is copied verbatim from the official feature-enable example an
 :::
 
 ### 2. Configure the Three BGP CRDs
+
+**Table 3. Role and key fields of the three Cilium BGP Control Plane CRDs**
 
 | CRD | Role | Key fields |
 |-----|------|-----------|
