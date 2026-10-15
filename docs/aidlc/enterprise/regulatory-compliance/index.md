@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 12
+reading_time: 13
 tags:
   - compliance
   - regulation
@@ -29,10 +29,10 @@ As of 2026, global enterprises face a complex environment requiring **simultaneo
 
 **Direct mapping** of regulatory requirements to **AIDLC process stages** enables:
 
-1. **Automatic Compliance**: Auto-execution of required controls at each stage
+1. **Traceable Control Coverage**: Traceable mapping of required controls to each stage (mapping aids compliance but does not guarantee it automatically)
 2. **Unified Audit Trail**: Single audit tracking system for all regulations
 3. **Efficient Updates**: Only modify AIDLC stage definitions when regulations change
-4. **Evidence Auto-Collection**: Automatic generation of compliance reports
+4. **Evidence Collection Support**: Supports generation of compliance reports
 
 ```mermaid
 graph TB
@@ -96,6 +96,9 @@ graph TB
 - International compatibility (interoperable with ISO/IEC 42001)
 
 **AIDLC Application:**
+
+The four Functions are iterative rather than one-time sequential stages, and GOVERN and MANAGE in particular run continuously across all stages. The mapping below shows where each Function is especially concentrated.
+
 - **Inception**: GOVERN + MAP (governance & risk identification)
 - **Construction**: MEASURE (performance, bias, robustness evaluation)
 - **Operations**: MANAGE (risk response & continuous monitoring)
@@ -120,13 +123,13 @@ graph TB
 ### Korea AI Framework Act (AI 기본법, 2026)
 
 **Key Features:**
-- Expected enforcement in H1 2026
-- Mandatory impact assessment for high-impact AI systems
+- In force since 22 January 2026
+- Advance user notification required when using high-impact or generative AI (high-impact AI also requires safety measures including an impact assessment; detailed criteria set in the enforcement decree)
 - Labeling obligation for generative AI (watermark/metadata recommended)
 - Cross-compliance with PIPA/ISMS-P
 
 **AIDLC Application:**
-- **Inception**: Impact assessment (high-impact AI determination)
+- **Inception**: Impact assessment (high-impact AI determination — by statutory domain)
 - **Construction**: Transparency labeling for AI-generated code
 - **Operations**: Post-deployment management (malfunction correction, major incident reporting)
 
@@ -213,7 +216,7 @@ import DocCardList from '@theme/DocCardList';
 
 **NIST AI RMF:**
 - [NIST AI RMF 1.0 (January 2023)](https://www.nist.gov/itl/ai-risk-management-framework)
-- [Executive Order 14110 (Federal Register)](https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence)
+- [Executive Order 14110 (Federal Register)](https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence) (rescinded January 2025; retained for historical context)
 
 **ISO/IEC 42001:**
 - [ISO/IEC 42001:2023 (ISO Store)](https://www.iso.org/standard/81230.html)

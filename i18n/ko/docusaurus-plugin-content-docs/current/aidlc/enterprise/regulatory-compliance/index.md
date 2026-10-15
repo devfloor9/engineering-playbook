@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 6
+reading_time: 7
 tags:
   - compliance
   - regulation
@@ -29,10 +29,10 @@ sidebar_label: Regulatory Compliance
 
 규제 요구사항을 **AIDLC 프로세스 단계에 직접 매핑**하면:
 
-1. **자동 준수**: 각 단계에서 필요한 controls를 자동 실행
+1. **추적 가능한 통제 커버리지**: 각 단계에서 필요한 controls를 추적 가능하게 매핑 (매핑은 준수를 돕지만 자동 보장하지는 않음)
 2. **통합 감사 로그**: 단일 감사 추적 체계로 모든 규제 대응
 3. **효율적 업데이트**: 규제 변화 시 AIDLC 단계 정의만 수정
-4. **증거 자동 수집**: 컴플라이언스 보고서 자동 생성
+4. **증거 수집 지원**: 컴플라이언스 보고서 생성 지원
 
 ```mermaid
 graph TB
@@ -96,6 +96,9 @@ graph TB
 - 국제 호환 (ISO/IEC 42001 상호 매핑 가능)
 
 **AIDLC 적용:**
+
+4개 Function은 단계별로 한 번씩 끝나는 순차 작업이 아니라 반복적이며, 특히 GOVERN과 MANAGE는 전 단계에 걸쳐 지속적으로 작동합니다. 아래 매핑은 각 Function이 어느 단계에서 특히 집중되는지를 나타냅니다.
+
 - **Inception**: GOVERN + MAP (거버넌스·위험 식별)
 - **Construction**: MEASURE (성능·편향·견고성 평가)
 - **Operations**: MANAGE (위험 대응·지속 모니터링)
@@ -120,13 +123,13 @@ graph TB
 ### 한국 AI 기본법 (2026)
 
 **핵심 특징:**
-- 2026년 상반기 시행 예정
-- 고영향 AI 시스템 사전 영향 평가 의무
+- 2026년 1월 22일 시행
+- 고영향 또는 생성형 AI 이용 시 사용자 사전 고지 의무 (고영향 AI는 영향 평가를 포함한 안전성 확보 조치, 세부 기준은 시행령)
 - 생성형 AI 표시 의무 (워터마크/메타데이터 권장)
 - PIPA/ISMS-P와 교차 준수
 
 **AIDLC 적용:**
-- **Inception**: 영향 평가 (고영향 AI 판정)
+- **Inception**: 영향 평가 (고영향 AI 판정 — 법령상 영역 기준)
 - **Construction**: AI 생성 코드 투명성 표시
 - **Operations**: 사후 관리 (오작동 시정, 중대 사고 보고)
 
@@ -213,7 +216,7 @@ import DocCardList from '@theme/DocCardList';
 
 **NIST AI RMF:**
 - [NIST AI RMF 1.0 (2023-01)](https://www.nist.gov/itl/ai-risk-management-framework)
-- [Executive Order 14110 (Federal Register)](https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence)
+- [Executive Order 14110 (Federal Register)](https://www.federalregister.gov/documents/2023/11/01/2023-24283/safe-secure-and-trustworthy-development-and-use-of-artificial-intelligence) (2025년 1월 폐지, 역사적 참고용)
 
 **ISO/IEC 42001:**
 - [ISO/IEC 42001:2023 (ISO Store)](https://www.iso.org/standard/81230.html)

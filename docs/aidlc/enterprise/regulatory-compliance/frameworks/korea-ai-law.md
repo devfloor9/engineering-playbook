@@ -3,9 +3,9 @@ title: Korea AI Basic Act — High-Impact AI Regulation and Generative AI Labeli
 description: Korea AI Basic Act's high-impact AI impact assessment, generative AI labeling obligations, PIPA/ISMS-P cross-compliance, and AIDLC integration guide
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 8
+reading_time: 9
 tags:
   - korea
   - ai-law
@@ -18,11 +18,12 @@ sidebar_label: Korea AI Basic Act
 
 ## Overview
 
-**Korea AI Framework Act (AI 기본법, Artificial Intelligence Framework Act)** is Korea's first comprehensive AI regulation law, **expected to be enforced in H1 2026**.
+**Korea AI Framework Act (AI 기본법, Artificial Intelligence Framework Act)** is Korea's first comprehensive AI regulation law, **in force since 22 January 2026**.
 
 **Legislative Background:**
 - Led by Ministry of Science and ICT
-- Expected to pass National Assembly in 2025
+- Passed the National Assembly in December 2024, promulgated January 2025, and took effect on 22 January 2026 after a one-year preparation period
+- Transparency provisions carry a grace period of at least one year, during which fact-finding and fines are suspended to reduce disruption in the field
 - References EU AI Act while adapting to Korean circumstances
 
 ---
@@ -40,9 +41,11 @@ sidebar_label: Korea AI Basic Act
 - Crime prediction and sentencing support
 
 **Obligations:**
-- Conduct pre-deployment impact assessment
-- Inform users of AI usage
-- Explain decision-making process
+- Products/services using high-impact or generative AI must notify users in advance that AI is applied (statutory duty)
+- Operators of high-impact AI must carry out safety/trust measures including an impact assessment; detailed criteria and procedures are set in the enforcement decree
+
+**Recommended Practices:**
+- Explaining the decision-making process and documenting detailed risk assessments are recommended practices that improve transparency and explainability; their precise scope follows the enforcement decree criteria
 
 ---
 
@@ -51,10 +54,13 @@ sidebar_label: Korea AI Basic Act
 **Target**: Text, image, video, code generation AI
 
 **Obligation Content:**
-- **Clearly label** AI-generated content
-- Watermark or metadata insertion recommended
+- **Clearly label** generated output delivered to users (text, image, video, etc.) as AI-generated — the target is a watermark or metadata identifiable by the end user
+- The government set differentiated criteria distinguishing generated results used solely within a service environment from those transferred externally
 
 **AIDLC Response:**
+
+The code comment below is an example of **internal provenance recording** and does not by itself discharge the user-facing labeling duty. Output delivered to users still requires a separate visible watermark/metadata label.
+
 ```python
 # AI-GENERATED: Claude 3.7 Sonnet (2026-04-18)
 # PROMPT: "Implement user authentication API endpoint"
@@ -85,9 +91,10 @@ impact_assessment:
   project: payment-service-v2
   assessment_date: 2026-04-18
 
-  # High-impact AI determination
+  # High-impact AI determination (decided per use case against the statutory high-impact domain list)
+  # Human review (final decision by developers) does not by itself exclude high-impact classification.
   high_impact: false
-  rationale: "Used as development tool, final decisions by developers"
+  rationale: "This use case does not fall within the statutory high-impact domains (life, safety, fundamental rights) — determined by domain, not by human-in-the-loop"
 
   # Risk factors
   risk_factors:
@@ -149,8 +156,8 @@ post_market_monitoring:
 | Item | PIPA | Korea AI Basic Act |
 |------|------|-----------|
 | **Scope** | Overall personal information processing | AI system-specific |
-| **Profiling** | Consent required (Art. 15) | Additional impact assessment for high-impact AI |
-| **Automated Decisions** | Right to refuse guaranteed (Art. 37-2) | Explanation obligation (AI Basic Act) |
+| **Profiling** | Lawful basis required (consent is one Art. 15 basis; other statutory bases also exist) | Additional impact assessment for high-impact AI |
+| **Automated Decisions** | Right to refuse/explain (Art. 37-2), subject to statutory conditions and exceptions | Explanation obligation (AI Basic Act) |
 | **Accountability** | Data subject rights-centered | AI system safety-centered |
 
 **AIDLC Response**: **Simultaneous compliance** with PIPA + Korea AI Basic Act required when processing personal information
