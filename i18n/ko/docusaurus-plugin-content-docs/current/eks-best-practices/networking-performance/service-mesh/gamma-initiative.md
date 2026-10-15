@@ -3,9 +3,9 @@ title: GAMMA Initiative — 서비스 메시 통합의 미래
 description: GAMMA (Gateway API for Mesh Management and Administration) 소개, East-West 트래픽 관리, 서비스 메시 통합
 created: "2026-02-14"
 last_update:
-  date: "2026-08-29"
+  date: 2026-10-15
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 2
+reading_time: 7
 tags:
   - gateway-api
   - gamma
@@ -24,7 +24,7 @@ import {
 
 **GAMMA (Gateway API for Mesh Management and Administration)**는 [Gateway API](../gateway-api-adoption-guide/index.md)를 서비스 메시 영역으로 확장한 이니셔티브입니다.
 
-- **GA 달성**: Gateway API v1.1.0 (2025년 10월)
+- **GA 달성**: Gateway API v1.1.0 (2024년 5월, 서비스 메시 지원 GA)
 - **통합 범위**: North-South (인그레스) + East-West (서비스 메시) 트래픽
 - **핵심 개념**: 기존에는 인그레스 컨트롤러와 서비스 메시가 완전히 별개의 설정 체계였으나, GAMMA는 이를 단일 API로 통합
 - **역할 기반 구성**: Gateway API의 역할 분리 원칙을 메시 트래픽에도 동일하게 적용
@@ -65,7 +65,9 @@ flowchart LR
 <GammaSupportTable />
 
 :::tip AWS 환경에서의 GAMMA
-AWS 환경에서는 **VPC Lattice + ACK**로 사이드카 없이 GAMMA 패턴을 구현할 수 있습니다. IAM 기반 mTLS, CloudWatch/X-Ray 관측성, AWS FIS를 통한 장애 주입까지 완전한 서비스 메시 기능을 관리형으로 제공합니다.
+AWS 환경에서는 **AWS Gateway API Controller**가 VPC Lattice를 Gateway API로 노출합니다(ACK는 AWS 리소스를 관리하는 별도 컨트롤러이며 Gateway API 컨트롤러가 아닙니다). 다만 이는 Gateway를 parent로 하는 HTTPRoute 통합이며, Service를 parent로 하는 GAMMA 메시 프로파일 적합성(conformance)과는 다릅니다. VPC Lattice를 GAMMA GA로 분류하려면 고정 버전의 메시 적합성 리포트를 먼저 확인해야 합니다.
+
+VPC Lattice는 TLS와 IAM/SigV4 기반 요청 인증, CloudWatch/X-Ray 관측성, AWS FIS 장애 주입을 제공합니다. IAM/SigV4는 요청 인증이며 인증서 기반 상호 TLS(mTLS)와는 다릅니다.
 :::
 
 ## GAMMA의 장점
@@ -85,10 +87,12 @@ spec:
     - kind: Gateway
       name: external-gateway
 
+---
 # 메시 (East-West)
 spec:
   parentRefs:
-    - kind: Service
+    - group: ""          # 코어 Service API 그룹 (생략 시 gateway.networking.k8s.io로 기본 설정됨)
+      kind: Service
       name: backend-service
 ```
 

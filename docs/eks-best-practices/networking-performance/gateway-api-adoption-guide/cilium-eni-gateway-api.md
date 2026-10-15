@@ -3,9 +3,9 @@ title: Cilium ENI Mode + Gateway API Deep-dive Configuration
 description: Cilium ENI mode architecture, Gateway API resource configuration, performance optimization, Hubble observability, BGP Control Plane v2 deep-dive guide
 created: "2026-02-14"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 47
+reading_time: 53
 tags:
   - eks
   - cilium
@@ -179,9 +179,10 @@ graph LR
 - IPv4 prefix delegation provides 16 addresses per /28; each prefix consumes one secondary IPv4 address slot on the ENI
 
 **7. Hubble (Observability)**
-- Real-time visibility into network flows
+- Real-time visibility into L3/L4 network flows
 - Automatic service dependency map generation
-- L7 protocol visibility (HTTP, gRPC, Kafka, DNS)
+- L7 protocol visibility (HTTP, Kafka, DNS) only where a proxy or L7 policy is enabled
+- Does not reveal payloads of end-to-end encrypted (TLS passthrough) traffic
 - Prometheus metric export
 
 ### Four Stages of Traffic Flow
@@ -213,13 +214,13 @@ sequenceDiagram
     POD-->>ENVOY: HTTP 200 OK
     ENVOY-->>C: Send response
 
-    Note over TPROXY,POD: Hubble observes every stage
+    Note over TPROXY,POD: Hubble observes L3/L4 flows (L7 where a proxy/L7 policy is enabled)
 ```
 
 **Stage 1: L4 load balancing (NLB)**
 - Receives TCP connection requests from clients
 - Selects healthy nodes based on target group health checks
-- Maintains connection affinity with a flow hash algorithm based on the 5-tuple
+- Maintains connection-level affinity with a flow hash algorithm. For TCP the hash is based on the protocol, source/destination IP, source/destination port, and the TCP sequence number; for UDP it uses the 5-tuple of protocol and source/destination IP and port
 
 **Stage 2: Transparent proxying (eBPF TPROXY)**
 - Intercepts Service traffic with eBPF and looks up connection tracking state
@@ -273,11 +274,16 @@ Total_required_IPs = (Worker_nodes × Max_Pods_per_node) + Headroom(20%)
 
 **Subnet configuration**
 - At least 1 subnet per Availability Zone (AZ)
-- Required subnet tags:
+- Cilium ENI IPAM subnet selection does not require ELB role tags. The Operator allocates ENIs in the subnet where the node runs (or the subnets you specify).
+- Subnet tags are used by the AWS Load Balancer Controller for subnet auto-discovery. Use tags appropriate to the load-balancer scheme.
   ```
+  # internet-facing load balancer subnets
+  kubernetes.io/role/elb = 1
+  # internal load balancer subnets
   kubernetes.io/role/internal-elb = 1
   kubernetes.io/cluster/<cluster-name> = shared
   ```
+- A modern Load Balancer Controller attempts reachability-based auto-discovery when tags are absent, so set tags or explicit subnet IDs when you need explicit control.
 - Both public and private subnets are supported
 - Private subnets are recommended for stronger security
 
@@ -523,7 +529,7 @@ encryption:
 # Performance optimization
 bpf:
   preallocateMaps: true
-  mapDynamicSizeRatio: 0.0025  # Use 0.25% of memory
+  mapDynamicSizeRatio: 0.0025  # Allocate 0.25% of host memory to dynamically sized maps (not total Cilium memory)
   monitorAggregation: medium
   lbMapMax: 65536  # Load balancer map size
 
@@ -542,24 +548,39 @@ API_SERVER=$(aws eks describe-cluster \
   --output text | sed 's/https:\/\///')
 
 # Install the Helm chart
+# Hubble Relay/UI must resolve their peer Service through DNS, so waiting on relay
+# readiness with --wait before CoreDNS exists creates a bootstrap cycle. Install the
+# core Cilium first without relay/ui, then enable them after CoreDNS (Step 5) is Ready.
 helm install cilium cilium/cilium \
   --version 1.19.3 \
   --namespace kube-system \
   --values cilium-values.yaml \
   --set k8sServiceHost=${API_SERVER} \
+  --set hubble.relay.enabled=false \
+  --set hubble.ui.enabled=false \
   --wait
 ```
 
-**Step 5: Install CoreDNS**
+**Step 5: Install CoreDNS and enable Hubble Relay/UI**
 
-Because `disableDefaultAddons` also skipped CoreDNS, install it as an EKS add-on after Cilium is ready.
+Because `disableDefaultAddons` also skipped CoreDNS, install it as an EKS add-on after the core Cilium is ready. CoreDNS must be Ready before Hubble Relay can resolve its peer Service through DNS.
 
 ```bash
 # Deploy CoreDNS
 aws eks create-addon --cluster-name cilium-gateway-cluster --addon-name coredns
 
-# Check CoreDNS Pods
+# Wait until CoreDNS Pods are Ready
+kubectl rollout status deployment/coredns -n kube-system --timeout=300s
 kubectl get pods -n kube-system -l k8s-app=kube-dns
+
+# Enable Hubble Relay/UI once DNS is ready
+helm upgrade cilium cilium/cilium \
+  --version 1.19.3 \
+  --namespace kube-system \
+  --reuse-values \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true \
+  --wait
 ```
 
 **Step 6: Verify the installation**
@@ -568,11 +589,16 @@ kubectl get pods -n kube-system -l k8s-app=kube-dns
 # Install the Cilium CLI (macOS)
 brew install cilium-cli
 
-# Alternatively, for Linux/macOS
+# Alternatively, for Linux/macOS (detect OS and architecture)
 CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-amd64.tar.gz{,.sha256sum}
-sudo tar xzvfC cilium-linux-amd64.tar.gz /usr/local/bin
-rm cilium-linux-amd64.tar.gz{,.sha256sum}
+GOOS=$(uname | tr '[:upper:]' '[:lower:]')   # linux or darwin
+GOARCH=amd64
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then GOARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
+# Verify the checksum before extraction
+sha256sum --check cilium-${GOOS}-${GOARCH}.tar.gz.sha256sum
+sudo tar xzvfC cilium-${GOOS}-${GOARCH}.tar.gz /usr/local/bin
+rm cilium-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
 
 # Check Cilium status (wait up to 5 minutes)
 cilium status --wait
@@ -714,7 +740,18 @@ kubectl get nodes -o name | xargs -I {} kubectl taint {} key=value:NoSchedule
 
 **Step 4: Install Cilium using the new-cluster procedure**
 
-Follow Steps 2-7 in the "New Cluster" section above.
+Follow Steps 2-4 (Gateway API CRDs, Helm repository, core Cilium) and Steps 6-7 (verification and Gateway resources) in the "New Cluster" section above. For Step 5, however, first check whether the existing cluster already has CoreDNS and branch accordingly. `aws eks create-addon` is not an upsert, so running it against an add-on that already exists fails.
+
+```bash
+# Check whether the CoreDNS add-on already exists
+if aws eks describe-addon --cluster-name <cluster-name> --addon-name coredns >/dev/null 2>&1; then
+  echo "CoreDNS add-on already exists. Skip create-addon and only verify readiness."
+else
+  aws eks create-addon --cluster-name <cluster-name> --addon-name coredns
+fi
+# Verify readiness either way
+kubectl rollout status deployment/coredns -n kube-system --timeout=300s
+```
 
 **Step 5: Restart Pods**
 
@@ -902,9 +939,9 @@ metadata:
 spec:
   controllerName: io.cilium/gateway-controller
   parametersRef:
-    group: ""
-    kind: ConfigMap
-    name: gateway-config
+    group: cilium.io
+    kind: CiliumGatewayClassConfig
+    name: production-gateway-config
     namespace: kube-system
 
 ---
@@ -914,11 +951,12 @@ kind: Gateway
 metadata:
   name: shared-gateway
   namespace: infra
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
 spec:
   gatewayClassName: production-gateway
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
   listeners:
     - name: https
       protocol: HTTPS
@@ -977,39 +1015,52 @@ spec:
         - name: team-b-service
           port: 9090
 
----
-# Allow cross-namespace references (created by the platform team)
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: allow-team-routes
-  namespace: infra
-spec:
-  from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: team-a
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: team-b
-  to:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: shared-gateway
+# Attachment of an HTTPRoute to a Gateway is governed by the Gateway's
+# allowedRoutes, so no ReferenceGrant is needed for it. Use a ReferenceGrant only
+# for genuine cross-namespace references, such as an HTTPRoute referencing a
+# Service backend in another namespace.
 ```
 
 **RBAC configuration:**
 
 ```yaml
 # rbac-platform-team.yaml
+# GatewayClass is cluster-scoped, so manage it with a ClusterRole, and scope
+# Gateway and certificate (Secret) permissions to the infra namespace.
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: gateway-infrastructure-admin
+  name: gatewayclass-admin
 rules:
   - apiGroups: ["gateway.networking.k8s.io"]
-    resources: ["gatewayclasses", "gateways"]
+    resources: ["gatewayclasses"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: platform-team-gatewayclass
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gatewayclass-admin
+subjects:
+  - kind: Group
+    name: platform-team
+    apiGroup: rbac.authorization.k8s.io
+
+---
+# Gateways and certificate Secrets are scoped to the infra namespace (no cluster-wide Secret access)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gateway-infra-admin
+  namespace: infra
+rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways"]
     verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
   - apiGroups: [""]
     resources: ["secrets"]
@@ -1017,13 +1068,14 @@ rules:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: platform-team-gateway
+  name: platform-team-gateway-infra
+  namespace: infra
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: gateway-infrastructure-admin
+  kind: Role
+  name: gateway-infra-admin
 subjects:
   - kind: Group
     name: platform-team
@@ -1150,14 +1202,15 @@ aws ec2 describe-instance-types \
 ### BPF Tuning
 
 **Enable map preallocation**<br/>
-Preallocate eBPF maps at startup instead of allocating them dynamically to eliminate latency jitter.
+Preallocate eBPF maps at startup instead of allocating them dynamically. This is a latency/memory tradeoff: it reduces runtime allocation delay at the cost of higher memory use at startup, and it does not guarantee that jitter is eliminated.
 
 ```yaml
 # cilium-values.yaml
 bpf:
   preallocateMaps: true  # Preallocate maps
 
-  # Adjust map sizes to twice the defaults
+  # The values below match the pinned 1.19.3 chart defaults. Raise them based on
+  # measurements when a larger scale is required (they are not an automatic 2x of the defaults).
   lbMapMax: 65536        # Maximum load balancer backend count
   natMax: 524288         # Maximum NAT connection tracking entries
   neighMax: 524288       # Maximum neighbor table entries
@@ -1231,11 +1284,9 @@ ip link show eth0 | grep xdp
 <InstanceTypeTable locale="en" />
 
 **Reasons to choose Graviton4 (8g series):**
-- 40% better price-performance than x86
-- 60% improvement in energy efficiency
-- eBPF JIT optimization
-- Full compatibility with Cilium
-- Graviton5 (M9g/M9gd, GA in June 2026): ~25% better performance than M8g
+- AWS states that Graviton4-based M8g instances deliver up to 30% better performance than Graviton3-based M7g instances ([M8g product page](https://aws.amazon.com/ec2/instance-types/m8g/)). This is a generation-over-generation comparison and varies by workload.
+- The eBPF JIT supports arm64, so it runs on Graviton. Cilium-specific performance gains are not measured in this document.
+- Graviton5 (M9g/M9gd, GA in June 2026): up to 25% better performance than M8g (vendor-stated)
 
 **When to choose Network Optimized instances (n series):**
 - Dedicated Gateway nodes
@@ -1265,15 +1316,23 @@ This section covers operations using Hubble, Cilium's observability tool.
 # Install the Hubble CLI
 brew install hubble
 
-# Alternatively, download it directly
+# Alternatively, download it directly (detect OS and architecture)
 HUBBLE_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/hubble/master/stable.txt)
-curl -L --remote-name-all https://github.com/cilium/hubble/releases/download/$HUBBLE_VERSION/hubble-linux-amd64.tar.gz{,.sha256sum}
-sudo tar xzvfC hubble-linux-amd64.tar.gz /usr/local/bin
+GOOS=$(uname | tr '[:upper:]' '[:lower:]')   # linux or darwin
+GOARCH=amd64
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then GOARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/hubble/releases/download/$HUBBLE_VERSION/hubble-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
+# Verify the checksum before extraction
+sha256sum --check hubble-${GOOS}-${GOARCH}.tar.gz.sha256sum
+sudo tar xzvfC hubble-${GOOS}-${GOARCH}.tar.gz /usr/local/bin
 
 # Set up port forwarding
 cilium hubble port-forward &
 
-# Stream flows in real time across all namespaces
+# Stream flows in real time across all namespaces (--follow streams live)
+hubble observe --all --follow
+
+# Query recent flows stored in the buffer (--all returns stored flows, not a live stream)
 hubble observe --all
 
 # Filter flows for a specific Pod
@@ -1315,18 +1374,19 @@ cilium hubble ui
 **L7 protocol visibility**
 
 ```bash
-# Statistics by HTTP method
+# Statistics by HTTP method (Hubble json serializes GetFlowsResponse, so use the .flow.l7.http path)
 hubble observe --protocol http --output json | \
-  jq -r '.l7.http.method' | \
+  jq -r 'select(.flow.l7.http != null) | .flow.l7.http.method' | \
   sort | uniq -c | sort -rn
 
-# HTTP response code distribution
+# HTTP response code distribution (select response records)
 hubble observe --protocol http --output json | \
-  jq -r '.l7.http.code' | \
+  jq -r 'select(.flow.l7.http.code != null) | .flow.l7.http.code' | \
   sort | uniq -c | sort -rn
 
-# Trace gRPC method calls
-hubble observe --protocol grpc
+# gRPC (HTTP/2) is not accepted by --protocol grpc in the pinned Cilium 1.19.3,
+# so filter it through the supported http filter with a path/method
+hubble observe --protocol http --http-path "/grpc.service/Method"
 
 # Kafka topic traffic
 hubble observe --protocol kafka
@@ -1361,8 +1421,10 @@ histogram_quantile(0.99, sum by (le, type, protocol, address_type) (cilium_node_
 # Requests per second (RPS)
 rate(envoy_http_downstream_rq_total[5m])
 
-# P95 response latency
-histogram_quantile(0.95, rate(envoy_http_downstream_rq_time_bucket[5m]))
+# P95 response latency (a fleet-wide percentile must sum rates by le)
+# envoy_http_downstream_rq_time_bucket is in milliseconds
+# (the preceding node_health_connectivity_latency_seconds_bucket is in seconds).
+histogram_quantile(0.95, sum by (le) (rate(envoy_http_downstream_rq_time_bucket[5m])))
 
 # 5xx error rate
 sum(rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]))
@@ -1375,6 +1437,8 @@ rate(envoy_cluster_upstream_cx_connect_fail[5m])
 # Active connection count
 envoy_http_downstream_cx_active
 ```
+
+Collecting the Envoy metrics above requires a separate Envoy scrape path. The Helm values above enable only the operator and agent ServiceMonitors and do not include an Envoy ServiceMonitor, so expose the Envoy metrics port, add the corresponding ServiceMonitor/scrape configuration, and verify the metric names against 1.19.
 
 **ENI metrics**
 
@@ -1397,15 +1461,17 @@ rate(cilium_operator_ipam_allocation_duration_seconds_count{status!="success"}[5
 **Import official dashboards**
 
 ```bash
-# Official Cilium dashboard (Grafana ID: 16611)
+# Cilium v1.12 Agent Metrics dashboard (Grafana ID: 16611)
 # In Grafana, go to Dashboards > Import and enter 16611
 
 # Alternatively, download the JSON file directly
-curl -o cilium-dashboard.json https://grafana.com/api/dashboards/16611/revisions/latest/download
+curl -o cilium-agent-dashboard.json https://grafana.com/api/dashboards/16611/revisions/latest/download
 
-# Hubble dashboard (Grafana ID: 16612)
-curl -o hubble-dashboard.json https://grafana.com/api/dashboards/16612/revisions/latest/download
+# Cilium v1.12 Operator Metrics dashboard (Grafana ID: 16612, not a Hubble dashboard)
+curl -o cilium-operator-dashboard.json https://grafana.com/api/dashboards/16612/revisions/latest/download
 ```
+
+Both dashboards are published for Cilium v1.12, so verify the panel metric names before using them with the pinned 1.19. Hubble metrics require a separate dashboard.
 
 **Key dashboard panels:**
 - Network Throughput (in/out bytes per second)
@@ -1427,6 +1493,11 @@ The Gateway examples here use instance targets; TCP instance targets preserve cl
 
 ```yaml
 # gateway-with-xff.yaml
+# This is a standalone example that only shows the target-group-attributes annotation.
+# Applying this manifest as-is to the cilium-gateway created earlier would replace its
+# listeners with a single HTTPS listener and reset allowedRoutes to the default (Same),
+# detaching the production HTTPRoutes created earlier. On a running Gateway, patch only
+# the annotation below (kubectl patch) and keep the existing listeners/allowedRoutes.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -1438,10 +1509,20 @@ spec:
       service.beta.kubernetes.io/aws-load-balancer-type: external
       service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
       service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true
+  # Keep the listeners/allowedRoutes identical to the earlier example.
   listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
     - name: https
       protocol: HTTPS
       port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
@@ -1484,11 +1565,13 @@ kubectl exec -n kube-system ds/cilium -- cilium-dbg envoy admin listeners
 # 5. Check backend endpoints
 kubectl exec -n kube-system ds/cilium -- cilium-dbg service list
 
-# 6. Check ENI allocation status
-kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.eni.available}{"\t"}{.status.ipam.used}{"\n"}{end}'
+# 6. Check ENI allocation status (.status.eni.enis is a map keyed by ENI ID; there is no 'available' field)
+#    The command below prints each node's ENI IDs and the number of IPs in use.
+kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .status.eni.enis.*}{.id}{" "}{end}{"\t"}{.status.ipam.used}{"\n"}{end}'
 
-# 7. Monitor flows for 30 seconds
+# 7. Query the last 30 seconds of flows (--since looks backward; to watch the next 30s use --follow with timeout)
 hubble observe --all --since 30s
+timeout 30 hubble observe --all --follow
 
 # 8. Verify network policies
 cilium endpoint list

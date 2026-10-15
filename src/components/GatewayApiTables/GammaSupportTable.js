@@ -3,13 +3,13 @@ import React, { useState } from 'react';
 const implementations = {
   ko: [
     {
-      name: 'AWS VPC Lattice + ACK',
-      status: '✅ GA', statusColor: '#4caf50',
+      name: 'AWS VPC Lattice (AWS Gateway API Controller)',
+      status: 'Gateway 통합 GA (메시 적합성 미검증)', statusColor: '#ff9800',
       dataPlane: 'AWS 관리형 (VPC 레벨)',
       sidecar: '❌ 불필요',
-      gamma: '✅ Gateway API via ACK',
+      gamma: 'Gateway parent HTTPRoute 통합 (Service parent 메시 적합성 아님)',
       features: {
-        mTLS: '✅ IAM + SigV4',
+        mTLS: 'IAM/SigV4 요청 인증 (mTLS 아님) + TLS',
         l7Routing: '✅ HTTPRoute',
         trafficSplit: '✅ 가중치 기반',
         retryTimeout: '✅ 네이티브',
@@ -17,7 +17,7 @@ const implementations = {
         observability: 'CloudWatch, X-Ray',
       },
       overhead: '없음 (관리형)',
-      strength: 'AWS 네이티브, 사이드카 없음, SLA 보장, ACK로 K8s CRD 관리',
+      strength: 'AWS 네이티브, 사이드카 없음, SLA 보장, AWS Gateway API Controller로 Gateway/HTTPRoute 관리',
     },
     {
       name: 'Istio Ambient Mode',
@@ -43,7 +43,7 @@ const implementations = {
       sidecar: '❌ 불필요 (eBPF)',
       gamma: '✅ HTTPRoute → Service',
       features: {
-        mTLS: '✅ WireGuard/IPsec',
+        mTLS: 'WireGuard/IPsec 암호화 (별도 상호 인증은 beta)',
         l7Routing: '✅ HTTPRoute',
         trafficSplit: '✅ 가중치 기반',
         retryTimeout: '✅ CiliumNetworkPolicy',
@@ -90,13 +90,13 @@ const implementations = {
   ],
   en: [
     {
-      name: 'AWS VPC Lattice + ACK',
-      status: '✅ GA', statusColor: '#4caf50',
+      name: 'AWS VPC Lattice (AWS Gateway API Controller)',
+      status: 'Gateway integration GA (mesh conformance unverified)', statusColor: '#ff9800',
       dataPlane: 'AWS Managed (VPC level)',
       sidecar: '❌ Not needed',
-      gamma: '✅ Gateway API via ACK',
+      gamma: 'Gateway-parent HTTPRoute integration (not Service-parent mesh conformance)',
       features: {
-        mTLS: '✅ IAM + SigV4',
+        mTLS: 'IAM/SigV4 request auth (not mTLS) + TLS',
         l7Routing: '✅ HTTPRoute',
         trafficSplit: '✅ Weight-based',
         retryTimeout: '✅ Native',
@@ -104,7 +104,7 @@ const implementations = {
         observability: 'CloudWatch, X-Ray',
       },
       overhead: 'None (managed)',
-      strength: 'AWS native, no sidecar, SLA guaranteed, K8s CRD management via ACK',
+      strength: 'AWS native, no sidecar, SLA guaranteed, Gateway/HTTPRoute managed via AWS Gateway API Controller',
     },
     {
       name: 'Istio Ambient Mode',
@@ -130,7 +130,7 @@ const implementations = {
       sidecar: '❌ Not needed (eBPF)',
       gamma: '✅ HTTPRoute → Service',
       features: {
-        mTLS: '✅ WireGuard/IPsec',
+        mTLS: 'WireGuard/IPsec encryption (separate mutual auth is beta)',
         l7Routing: '✅ HTTPRoute',
         trafficSplit: '✅ Weight-based',
         retryTimeout: '✅ CiliumNetworkPolicy',
@@ -177,13 +177,13 @@ const implementations = {
   ],
   zh: [
     {
-      name: 'AWS VPC Lattice + ACK',
-      status: '✅ GA', statusColor: '#4caf50',
+      name: 'AWS VPC Lattice (AWS Gateway API Controller)',
+      status: 'Gateway 集成 GA (网格一致性未验证)', statusColor: '#ff9800',
       dataPlane: 'AWS 托管 (VPC 级别)',
       sidecar: '❌ 无需',
-      gamma: '✅ Gateway API via ACK',
+      gamma: 'Gateway parent HTTPRoute 集成 (非 Service parent 网格一致性)',
       features: {
-        mTLS: '✅ IAM + SigV4',
+        mTLS: 'IAM/SigV4 请求认证 (非 mTLS) + TLS',
         l7Routing: '✅ HTTPRoute',
         trafficSplit: '✅ 基于权重',
         retryTimeout: '✅ 原生支持',
@@ -191,7 +191,7 @@ const implementations = {
         observability: 'CloudWatch, X-Ray',
       },
       overhead: '无 (托管型)',
-      strength: 'AWS 原生、无 Sidecar、SLA 保障、通过 ACK 管理 K8s CRD',
+      strength: 'AWS 原生、无 Sidecar、SLA 保障、通过 AWS Gateway API Controller 管理 Gateway/HTTPRoute',
     },
     {
       name: 'Istio Ambient Mode',
@@ -217,7 +217,7 @@ const implementations = {
       sidecar: '❌ 无需 (eBPF)',
       gamma: '✅ HTTPRoute → Service',
       features: {
-        mTLS: '✅ WireGuard/IPsec',
+        mTLS: 'WireGuard/IPsec 加密 (独立的双向认证为 beta)',
         l7Routing: '✅ HTTPRoute',
         trafficSplit: '✅ 基于权重',
         retryTimeout: '✅ CiliumNetworkPolicy',

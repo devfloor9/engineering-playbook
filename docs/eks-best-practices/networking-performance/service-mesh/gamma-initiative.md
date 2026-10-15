@@ -3,9 +3,9 @@ title: GAMMA Initiative — The Future of Service Mesh Integration
 description: GAMMA (Gateway API for Mesh Management and Administration) introduction, East-West traffic management, and service mesh integration
 created: "2026-02-14"
 last_update:
-  date: "2026-07-15"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 4
+reading_time: 9
 tags:
   - gateway-api
   - gamma
@@ -24,7 +24,7 @@ import {
 
 **GAMMA (Gateway API for Mesh Management and Administration)** is an initiative that extends the [Gateway API](../gateway-api-adoption-guide/index.md) into the service mesh domain.
 
-- **GA achieved**: Gateway API v1.1.0 (October 2025)
+- **GA achieved**: Gateway API v1.1.0 (May 2024, service mesh support GA)
 - **Unified scope**: North-South (ingress) + East-West (service mesh) traffic
 - **Core concept**: Previously, ingress controllers and service meshes had entirely separate configuration systems — GAMMA unifies them under a single API
 - **Role-based configuration**: Applies Gateway API's role separation principles equally to mesh traffic
@@ -65,7 +65,9 @@ The following shows GAMMA support status across major service mesh implementatio
 <GammaSupportTable />
 
 :::tip GAMMA in AWS Environments
-In AWS environments, **VPC Lattice + ACK** can implement GAMMA patterns without sidecars. Provides fully managed service mesh capabilities including IAM-based mTLS, CloudWatch/X-Ray observability, and fault injection through AWS FIS.
+In AWS environments, the **AWS Gateway API Controller** exposes VPC Lattice through the Gateway API (ACK is a separate controller that manages AWS resources and is not the Gateway API controller). This is a Gateway-parent HTTPRoute integration, however, which is distinct from GAMMA mesh-profile conformance (where a Service is the parent). Classifying VPC Lattice as GAMMA GA requires a pinned mesh conformance report first.
+
+VPC Lattice provides TLS, IAM/SigV4-based request authentication, CloudWatch/X-Ray observability, and fault injection through AWS FIS. IAM/SigV4 is request authentication and is not certificate-based mutual TLS (mTLS).
 :::
 
 ## Advantages of GAMMA
@@ -83,10 +85,12 @@ spec:
     - kind: Gateway
       name: external-gateway
 
+---
 # Mesh (East-West)
 spec:
   parentRefs:
-    - kind: Service
+    - group: ""          # Core Service API group (defaults to gateway.networking.k8s.io if omitted)
+      kind: Service
       name: backend-service
 ```
 
