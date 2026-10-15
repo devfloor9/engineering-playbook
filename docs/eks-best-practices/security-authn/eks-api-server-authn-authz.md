@@ -3,9 +3,9 @@ title: EKS API Server Authentication/Authorization Guide
 description: Authentication/Authorization best practices for Non-Standard Callers (CI/CD, monitoring, automation) accessing the EKS API Server
 created: "2026-03-24"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 23
+reading_time: 26
 tags:
   - eks
   - security
@@ -43,7 +43,7 @@ The table compares credentials presented to the Kubernetes API. **EKS Pod Identi
 | ① | **IAM** (aws-iam-authenticator) | Systems running on AWS infrastructure and kubectl users | Preferred approach |
 | ② | **Kubernetes Service Account Token** | In-cluster automation and CI/CD pipelines | Also usable by external systems |
 | ③ | **External OIDC Identity Provider** | Enterprise IdP integration (Okta, Azure AD, Google, and others) | Best suited to enterprise SSO integration |
-| ④ | **x509 Client Certificate** | Legacy systems requiring certificate-based authentication | Limited use (no CRL support) |
+| ④ | **x509 Client Certificate** | Only for exceptional cases with already-issued legacy credentials | Not a general onboarding method — EKS does not support signing API client certificates, and the provided serving signer cannot issue a new API client certificate |
 
 ---
 
@@ -57,6 +57,12 @@ The table compares credentials presented to the Kubernetes API. **EKS Pod Identi
 # 1. Set Authentication Mode to API_AND_CONFIG_MAP or API
 aws eks update-cluster-config --name <your-cluster> \
     --access-config '{"authenticationMode": "API_AND_CONFIG_MAP"}'
+
+# 1-1. The config change is asynchronous. Wait for the cluster to return to
+#      ACTIVE before continuing (creating an access entry can fail while UPDATING).
+aws eks wait cluster-active --name <your-cluster>
+# If needed, track update progress with describe-update.
+# aws eks describe-update --name <your-cluster> --update-id <update-id>
 
 # 2. Create an Access Entry for the external system's IAM role
 aws eks create-access-entry \
@@ -143,7 +149,7 @@ aws eks associate-identity-provider-config \
 ```
 
 :::warning Considerations
-- Only **one OIDC identity provider** can be associated with a cluster.
+- The number of OIDC identity providers you can associate with a cluster depends on its Kubernetes version. On **Kubernetes 1.32 or later** you can associate up to **10** providers, and the **combined size of all OIDC provider configurations must be under 12 KB**. On versions **earlier than 1.32** you can associate only **one**.
 - The issuer URL must be **publicly accessible**.
 - Manage authorization through Kubernetes RBAC (Role/ClusterRole + RoleBinding/ClusterRoleBinding).
 - **Kubernetes 1.30 and later**: The OIDC provider URL must differ from the service account issuer URL.
@@ -204,12 +210,19 @@ aws eks describe-cluster --name <your-cluster> \
 aws eks update-cluster-config --name <your-cluster> \
     --access-config '{"authenticationMode": "API_AND_CONFIG_MAP"}'
 
+# Step 2-1: Wait for the config change to finish and the cluster to become ACTIVE
+aws eks wait cluster-active --name <your-cluster>
+
 # Step 3: Migrate existing aws-auth ConfigMap entries to Access Entries
 # (Create an Access Entry for each mapRoles/mapUsers entry in aws-auth)
 
-# Step 4: Switch to API mode after all entries have been migrated
+# Step 4: Switch to API mode after all entries have been migrated (one-way; no rollback).
+#         Confirm every entry has been moved to an access entry and that the previous
+#         config change completed (cluster is ACTIVE) before switching.
+aws eks describe-cluster --name <your-cluster> --query 'cluster.status'
 aws eks update-cluster-config --name <your-cluster> \
     --access-config '{"authenticationMode": "API"}'
+aws eks wait cluster-active --name <your-cluster>
 ```
 
 :::danger One-Way Transition
@@ -419,7 +432,7 @@ flowchart TB
 | **Short-Lived Credentials** | Use projected SA tokens with the returned expiry and IAM tokens (automatic renewal); **do not use legacy SA tokens** |
 | **Audit Trail** | Enable `audit` logs in control plane logging and track access entry changes through CloudTrail |
 | **IaC Automation** | Manage access entries through CloudFormation/Terraform; avoid manually editing ConfigMaps |
-| **Regional STS** | Set `AWS_STS_REGIONAL_ENDPOINTS=regional` on external systems |
+| **Regional STS** | Configure external systems to use a regional STS endpoint and a correct region. AWS CLI v2 and modern SDKs already default to regional endpoints, so no extra setting is needed. Apply `AWS_STS_REGIONAL_ENDPOINTS=regional` only to older SDK/CLI versions that support it |
 | **Authentication Mode** | Move to `API_AND_CONFIG_MAP`, then complete migration to `API` |
 
 :::info Key Message
