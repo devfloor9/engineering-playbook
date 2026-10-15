@@ -3,9 +3,9 @@ title: Load balancer health checks
 description: Connect load balancer health checks with Pod Readiness Gates.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 7
+reading_time: 12
 tags:
   - eks
   - kubernetes
@@ -24,15 +24,17 @@ When using AWS Load Balancer Controller, synchronize ALB/NLB health checks with 
 
 ### ALB Target Group Health Checks vs. Readiness Probes {#alb-target-group-헬스체크-vs-readiness-probe}
 
-**Table 1. ALB/NLB health checks compared with Kubernetes Readiness Probes**
+**Table 1. ALB and NLB health checks compared with Kubernetes Readiness Probes**
 
-| Aspect | ALB/NLB Health Check | Kubernetes Readiness Probe |
-|------|-----------------|---------------------------|
-| **Executed by** | AWS Load Balancer | kubelet |
-| **Check target** | IP:Port in the Target Group | Pod container |
-| **Action on failure** | Remove from targets (block traffic) | Remove from Service Endpoints |
-| **Default interval** | 30 seconds | 10 seconds |
-| **Timeout** | 5 seconds | 1 second |
+| Aspect | ALB Health Check | NLB Health Check | Kubernetes Readiness Probe |
+|------|-----------------|-----------------|---------------------------|
+| **Executed by** | AWS Load Balancer | AWS Load Balancer | kubelet |
+| **Check target** | IP:Port in the Target Group | IP:Port in the Target Group | Pod container |
+| **Action on failure** | Remove from targets (block traffic) | Remove from targets (block traffic) | Remove from Service Endpoints |
+| **Default interval** | 30 seconds | 30 seconds | 10 seconds |
+| **Timeout** | 5 seconds | Protocol-dependent (10 seconds for TCP, 6 seconds for HTTP/HTTPS) | 1 second |
+
+The ALB and NLB interval/timeout values are the Elastic Load Balancing Target Group API defaults; see the [ALB](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html) and [NLB](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/target-group-health-checks.html) health check documentation for the exact values. Target groups created by the AWS Load Balancer Controller can override these values through annotations, so they may differ from the ELB API defaults.
 
 ### Health Check Timing Synchronization Strategy {#헬스체크-타이밍-동기화-전략}
 
@@ -51,9 +53,10 @@ sequenceDiagram
     Pod->>Pod: startupProbe succeeds
     Pod->>Pod: readinessProbe succeeds
     K8s->>K8s: Add to Service Endpoints
+    LB->>LB: Register to Target Group (initial state)
     LB->>Pod: Start health checks
     Note over LB,Pod: Wait for healthy threshold<br/>(e.g., 2 consecutive successes)
-    LB->>LB: Add to Target Group
+    LB->>LB: Mark target healthy
     LB->>Pod: Start sending traffic
 
     K8s->>Old: Request Pod termination
@@ -117,9 +120,9 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-### Pod Readiness Gates (Ensuring Zero-Downtime Deployments) {#pod-readiness-gates-무중단-배포-보장}
+### Pod Readiness Gates (Contributing to Zero-Downtime Deployments) {#pod-readiness-gates-무중단-배포-보장}
 
-AWS Load Balancer Controller v2.5+ supports Pod Readiness Gates, delaying the transition to the `Ready` state until the Pod is registered as an ALB/NLB target and passes health checks.
+AWS Load Balancer Controller v2.5+ supports Pod Readiness Gates, delaying the transition to the `Ready` state until the Pod is registered as an ALB/NLB target and passes health checks. This feature contributes to zero-downtime deployments but does not by itself guarantee them. The following prerequisites must also hold for it to take effect: the Namespace must have the automatic-injection label applied, the LBC version must support readiness gates, the ALB/NLB health check path and thresholds must be configured correctly, and the terminating side must drain existing connections through `preStop` and connection draining.
 
 **Enabling the feature:**
 
@@ -150,7 +153,7 @@ kubectl get pod myapp-xyz -o jsonpath='{.status.conditions}' | jq
 **Benefits:**
 - During rolling updates, the old Pod is retained until it is removed from the targets
 - The new Pod receives traffic only after passing ALB health checks
-- Fully zero-downtime deployments without traffic loss
+- When the prerequisites are met together, it greatly reduces traffic loss and contributes to zero-downtime deployments
 
 :::info Details
 For more information about Pod Readiness Gates, see the "Pod Readiness Gates" section of the [EKS High Availability Architecture Guide](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide).
@@ -158,7 +161,11 @@ For more information about Pod Readiness Gates, see the "Pod Readiness Gates" se
 
 ### Gateway API Health Check Integration (ALB Controller v2.14+) {#264-gateway-api-헬스체크-통합-alb-controller-v214}
 
-AWS Load Balancer Controller v2.14+ integrates natively with Kubernetes Gateway API v1.4, providing more advanced per-route health check mappings than Ingress.
+AWS Load Balancer Controller v2.14+ integrates with the Kubernetes Gateway API, providing more advanced per-route health check mappings than Ingress. L7 routes (HTTPRoute/GRPCRoute) are served by an ALB on v2.14.0 and later, and L4 routes (TCPRoute/UDPRoute/TLSRoute) by an NLB on v2.13.3 and later.
+
+:::warning Check before production use
+Using the LBC and Gateway API together is not yet suggested for production workloads (per the LBC v2.14 Gateway documentation). It also requires prerequisites first: install the standard Gateway API CRDs (plus the experimental CRDs if needed) and the LBC Gateway-specific CRDs, and specify the `--feature-gates=ALBGatewayAPI=true` (L7) or `NLBGatewayAPI=true` (L4) flag in the LBC deployment. By default the LBC does not reconcile Gateway API resources.
+:::
 
 #### Gateway API vs. Ingress Health Check Comparison {#gateway-api-vs-ingress-헬스체크-비교}
 
@@ -166,15 +173,15 @@ AWS Load Balancer Controller v2.14+ integrates natively with Kubernetes Gateway 
 
 | Aspect | Ingress | Gateway API |
 |------|---------|-------------|
-| **Health check configuration location** | Service/Ingress annotation | HealthCheckPolicy CRD |
+| **Health check configuration location** | Service/Ingress annotation | TargetGroupConfiguration CRD |
 | **Per-route health checks** | Limited (annotation-based) | Native support (per HTTPRoute/GRPCRoute) |
 | **L4/L7 protocol support** | HTTP/HTTPS only | Supports TCP/UDP/TLS/HTTP/GRPC |
 | **Multi-tenant role separation** | Single Ingress object | Separate Gateway (infrastructure) and Route (application) |
-| **Weighted canary deployments** | Difficult or unavailable | Native HTTPRoute support |
+| **Weighted canary deployments** | Supported via weighted forward-action annotations | Native HTTPRoute support |
 
 #### Gateway API Architecture and Health Checks {#gateway-api-아키텍처와-헬스체크}
 
-**Figure 2. Gateway API components and HealthCheckPolicy application structure**
+**Figure 2. Gateway API components and TargetGroupConfiguration application structure**
 
 ```mermaid
 flowchart TB
@@ -192,7 +199,7 @@ flowchart TB
         Service2 --> Pod2[Pods]
         Service3 --> Pod3[Pods]
 
-        Policy[HealthCheckPolicy] -.->|Apply| HTTPRoute1
+        Policy[TargetGroupConfiguration] -.->|Apply| HTTPRoute1
         Policy -.->|Apply| HTTPRoute2
     end
 
@@ -202,7 +209,7 @@ flowchart TB
 
 #### L7 Health Checks: HTTPRoute/GRPCRoute with ALB {#l7-헬스체크-httproutegrpcroute-with-alb}
 
-**HealthCheckPolicy CRD example:**
+**TargetGroupConfiguration CRD example:**
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -236,30 +243,39 @@ spec:
     - name: api-v1-service
       port: 8080
 ---
-# HealthCheckPolicy (AWS Load Balancer Controller v2.14+)
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+# TargetGroupConfiguration (AWS Load Balancer Controller v2.14+)
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: api-v1-healthcheck
   namespace: production
 spec:
-  targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/name/id
-  healthCheckConfig:
-    protocol: HTTP
-    path: /api/v1/healthz  # Per-route health checks
-    port: 8080
-    intervalSeconds: 10
-    timeoutSeconds: 5
-    healthyThresholdCount: 2
-    unhealthyThresholdCount: 2
-    matcher:
-      httpCode: "200-299"
+  targetReference:
+    name: api-v1-service
+  defaultConfiguration:
+    targetType: ip
+  routeConfigurations:
+    - routeIdentifier:
+        kind: HTTPRoute
+        namespace: production
+        name: api-v1-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: HTTP
+          healthCheckPath: /api/v1/healthz  # Per-route health checks
+          healthCheckPort: "8080"
+          healthCheckInterval: 10
+          healthCheckTimeout: 5
+          healthyThresholdCount: 2
+          unhealthyThresholdCount: 2
+          matcher:
+            httpCode: "200-299"
 ```
 
 **GRPCRoute health check example:**
 
 ```yaml
-apiVersion: gateway.networking.k8s.io/v1alpha2
+apiVersion: gateway.networking.k8s.io/v1
 kind: GRPCRoute
 metadata:
   name: grpc-service-route
@@ -277,23 +293,33 @@ spec:
     - name: grpc-backend
       port: 9090
 ---
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: grpc-healthcheck
   namespace: production
 spec:
-  targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/grpc/id
-  healthCheckConfig:
-    protocol: HTTP  # gRPC health checks use HTTP/2
-    path: /grpc.health.v1.Health/Check
-    port: 9090
-    intervalSeconds: 10
-    timeoutSeconds: 5
-    healthyThresholdCount: 2
-    unhealthyThresholdCount: 2
-    matcher:
-      grpcCode: "0"  # gRPC OK status
+  targetReference:
+    name: grpc-backend
+  defaultConfiguration:
+    targetType: ip
+    protocolVersion: GRPC
+  routeConfigurations:
+    - routeIdentifier:
+        kind: GRPCRoute
+        namespace: production
+        name: grpc-service-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: HTTP  # gRPC health checks use HTTP/2
+          healthCheckPath: /grpc.health.v1.Health/Check
+          healthCheckPort: "9090"
+          healthCheckInterval: 10
+          healthCheckTimeout: 5
+          healthyThresholdCount: 2
+          unhealthyThresholdCount: 2
+          matcher:
+            grpcCode: "0"  # gRPC OK status
 ```
 
 #### L4 Health Checks: TCPRoute/UDPRoute with NLB {#l4-헬스체크-tcprouteudproute-with-nlb}
@@ -313,20 +339,29 @@ spec:
     - name: tcp-backend
       port: 5432
 ---
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: tcp-healthcheck
   namespace: production
 spec:
-  targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/tcp/id
-  healthCheckConfig:
-    protocol: TCP  # Check TCP connectivity only
-    port: 5432
-    intervalSeconds: 30
-    timeoutSeconds: 10
-    healthyThresholdCount: 3
-    unhealthyThresholdCount: 3
+  targetReference:
+    name: tcp-backend
+  defaultConfiguration:
+    targetType: ip
+  routeConfigurations:
+    - routeIdentifier:
+        kind: TCPRoute
+        namespace: production
+        name: tcp-service-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: TCP  # Check TCP connectivity only
+          healthCheckPort: "5432"
+          healthCheckInterval: 30
+          healthCheckTimeout: 10
+          healthyThresholdCount: 3
+          unhealthyThresholdCount: 3
 ```
 
 #### Gateway API Pod Readiness Gates {#gateway-api-pod-readiness-gates}
@@ -352,8 +387,9 @@ kubectl get gateway prod-gateway -n production
 kubectl get httproute api-v1-route -n production -o yaml
 
 # Check Pod Readiness Gates
-kubectl get pod -n production -l app=api-v1 \
-  -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.conditions[?(@.type=="target-health.gateway.networking.k8s.io")].status}{"\n"}{end}'
+# The condition type the LBC injects is of the form target-health.elbv2.k8s.aws/<hash>, with a
+# per-target-group suffix, so a fixed string cannot match it; grep the condition list for that prefix.
+kubectl get pod -n production -l app=api-v1 -o yaml | grep -A 5 "target-health.elbv2.k8s.aws"
 ```
 
 #### Health Check Transition Checklist for Migrating from Ingress to Gateway API {#ingress에서-gateway-api로-마이그레이션-시-헬스체크-전환-체크리스트}
@@ -362,10 +398,10 @@ kubectl get pod -n production -l app=api-v1 \
 
 | Step | Ingress | Gateway API | Verification |
 |------|---------|-------------|----------|
-| 1. Health check path mapping | Annotation-based | HealthCheckPolicy CRD | Separate policies for each route |
+| 1. Health check path mapping | Annotation-based | TargetGroupConfiguration CRD | Separate policies for each route |
 | 2. Protocol configuration | HTTP/HTTPS only | HTTP/HTTPS/GRPC/TCP/UDP | Verify protocol type |
 | 3. Pod Readiness Gates | Namespace label | Namespace label (same) | Ensure zero-downtime deployments |
-| 4. Health check timing | Service annotation | HealthCheckPolicy | Validate interval/timeout |
+| 4. Health check timing | Service annotation | TargetGroupConfiguration | Validate interval/timeout |
 | 5. Multi-route health checks | Single route only | Independent configuration per route | Validate each route |
 
 **Migration example (Ingress → Gateway API):**
@@ -418,20 +454,28 @@ spec:
     - name: myapp
       port: 8080
 ---
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: myapp-healthcheck
 spec:
-  targetGroupARN: <auto-discovered-or-explicit>
-  healthCheckConfig:
-    protocol: HTTP
-    path: /healthz
-    port: 8080
-    intervalSeconds: 10
-    timeoutSeconds: 5
-    healthyThresholdCount: 2
-    unhealthyThresholdCount: 2
+  targetReference:
+    name: myapp
+  defaultConfiguration:
+    targetType: ip
+  routeConfigurations:
+    - routeIdentifier:
+        kind: HTTPRoute
+        name: myapp-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: HTTP
+          healthCheckPath: /healthz
+          healthCheckPort: "8080"
+          healthCheckInterval: 10
+          healthCheckTimeout: 5
+          healthyThresholdCount: 2
+          unhealthyThresholdCount: 2
 ```
 
 :::tip Gateway API Migration Strategy

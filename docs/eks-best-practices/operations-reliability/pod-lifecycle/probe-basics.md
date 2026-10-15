@@ -3,9 +3,9 @@ title: Probe types and configuration
 description: Review probe types, mechanisms, and timing together.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 10
+reading_time: 11
 tags:
   - eks
   - kubernetes
@@ -34,7 +34,7 @@ Kubernetes provides three types of probes to monitor Pod health.
 
 #### Startup Probe: Protecting Applications with Slow Startup {#startup-probe-느린-시작-앱-보호}
 
-A Startup Probe delays Liveness and Readiness Probes until the application has fully started. It is essential for applications with slow startup, such as Spring Boot applications, JVM applications, and applications that load ML models.
+A Startup Probe delays Liveness and Readiness Probes until the application has fully started. It is recommended when initialization takes longer than the Liveness Probe can tolerate through its `initialDelaySeconds` and `failureThreshold`. Applications with slow startup, such as Spring Boot applications, JVM applications, and applications that load ML models, are typical candidates; whether one is actually needed depends on the measured initialization time and the Liveness Probe configuration rather than on the framework.
 
 **How it works:**
 - Liveness and Readiness Probes remain disabled while the Startup Probe is running.
@@ -174,7 +174,7 @@ livenessProbe:
 ```
 
 :::tip gRPC Health Check Protocol
-gRPC services must implement the [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md). Use `google.golang.org/grpc/health` for Go and the `grpc-health-check` library for Java.
+gRPC services must implement the [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md). Use `google.golang.org/grpc/health` for Go and the `io.grpc:grpc-services` artifact's `io.grpc.protobuf.services.HealthStatusManager` for Java.
 :::
 
 ### Probe Timing Design {#23-probe-타이밍-설계}
@@ -189,18 +189,18 @@ Probe timing parameters determine the balance between failure detection speed an
 | `periodSeconds` | Interval between probe executions | 10 | 5-15s |
 | `timeoutSeconds` | Wait time for a probe response | 1 | 3-10s |
 | `failureThreshold` | Number of consecutive failures required to declare failure | 3 | Liveness: 3, Readiness: 1-3, Startup: 30+ |
-| `successThreshold` | Number of consecutive successes required to declare success (only Readiness can use a value of 1 or higher) | 1 | 1-2 |
+| `successThreshold` | Number of consecutive successes required to declare success (must be 1 for Liveness and Startup; only Readiness may use a value greater than 1) | 1 | 1-2 |
 
 #### Timing Design Formulas {#타이밍-설계-공식}
 
 ```
 Approximate consecutive failure detection budget = failureThreshold × periodSeconds
-Minimum recovery time = successThreshold × periodSeconds
+Approximate minimum recovery time = (successThreshold - 1) × periodSeconds (additional intervals after the first success)
 ```
 
 **Examples:**
 - `failureThreshold: 3, periodSeconds: 10` → a consecutive failure detection budget of approximately 30 seconds
-- `successThreshold: 2, periodSeconds: 5` → recovery is declared after at least 10 seconds (Readiness only)
+- `successThreshold: 2, periodSeconds: 5` → recovery is declared about 5 seconds after the first success (Readiness only)
 
 #### Recommended Timing by Workload {#워크로드별-권장-타이밍}
 

@@ -3,9 +3,9 @@ title: ALB/NLB와 Probe 통합
 description: 로드밸런서 헬스체크와 Pod Readiness Gate를 연결합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 7
 tags:
   - eks
   - kubernetes
@@ -24,15 +24,17 @@ AWS Load Balancer Controller를 사용하는 경우, ALB/NLB의 헬스체크와 
 
 ### ALB Target Group 헬스체크 vs Readiness Probe {#alb-target-group-헬스체크-vs-readiness-probe}
 
-**표 1. ALB/NLB 헬스체크와 Kubernetes Readiness Probe 비교**
+**표 1. ALB·NLB 헬스체크와 Kubernetes Readiness Probe 비교**
 
-| 구분 | ALB/NLB 헬스체크 | Kubernetes Readiness Probe |
-|------|-----------------|---------------------------|
-| **실행 주체** | AWS Load Balancer | kubelet |
-| **체크 대상** | Target Group의 IP:Port | Pod 컨테이너 |
-| **실패 시 동작** | Target에서 제거 (트래픽 차단) | Service Endpoints에서 제거 |
-| **기본 간격** | 30초 | 10초 |
-| **타임아웃** | 5초 | 1초 |
+| 구분 | ALB 헬스체크 | NLB 헬스체크 | Kubernetes Readiness Probe |
+|------|-------------|-------------|---------------------------|
+| **실행 주체** | AWS Load Balancer | AWS Load Balancer | kubelet |
+| **체크 대상** | Target Group의 IP:Port | Target Group의 IP:Port | Pod 컨테이너 |
+| **실패 시 동작** | Target에서 제거 (트래픽 차단) | Target에서 제거 (트래픽 차단) | Service Endpoints에서 제거 |
+| **기본 간격** | 30초 | 30초 | 10초 |
+| **타임아웃** | 5초 | 프로토콜에 따라 다름(TCP 10초, HTTP/HTTPS 6초) | 1초 |
+
+ALB와 NLB의 간격·타임아웃 값은 Elastic Load Balancing의 Target Group API 기본값이며, 정확한 값은 [ALB](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html) 및 [NLB](https://docs.aws.amazon.com/elasticloadbalancing/latest/network/target-group-health-checks.html) 헬스체크 문서를 참조하세요. AWS Load Balancer Controller가 생성하는 Target Group은 어노테이션으로 이 값을 재정의할 수 있어 ELB API 기본값과 다를 수 있습니다.
 
 ### 헬스체크 타이밍 동기화 전략 {#헬스체크-타이밍-동기화-전략}
 
@@ -51,9 +53,10 @@ sequenceDiagram
     Pod->>Pod: startupProbe 성공
     Pod->>Pod: readinessProbe 성공
     K8s->>K8s: Service Endpoints 추가
+    LB->>LB: Target Group에 등록 (초기 상태)
     LB->>Pod: 헬스체크 시작
     Note over LB,Pod: healthy threshold 도달 대기<br/>(예: 2회 연속 성공)
-    LB->>LB: Target Group에 추가
+    LB->>LB: Target을 healthy로 표시
     LB->>Pod: 트래픽 전송 시작
 
     K8s->>Old: Pod 종료 요청
@@ -117,9 +120,9 @@ spec:
       terminationGracePeriodSeconds: 60
 ```
 
-### Pod Readiness Gates (무중단 배포 보장) {#pod-readiness-gates-무중단-배포-보장}
+### Pod Readiness Gates (무중단 배포에 기여) {#pod-readiness-gates-무중단-배포-보장}
 
-AWS Load Balancer Controller v2.5+는 Pod Readiness Gates를 지원하여, Pod이 ALB/NLB 타겟으로 등록되고 헬스체크를 통과할 때까지 `Ready` 상태 전환을 지연시킵니다.
+AWS Load Balancer Controller v2.5+는 Pod Readiness Gates를 지원하여, Pod이 ALB/NLB 타겟으로 등록되고 헬스체크를 통과할 때까지 `Ready` 상태 전환을 지연시킵니다. 이 기능은 무중단 배포에 기여하지만, 그 자체만으로 무중단을 보장하지는 않습니다. 효과를 보려면 다음 전제 조건이 함께 충족되어야 합니다. Namespace에 자동 주입 레이블이 적용되어 있어야 하고, LBC 버전이 Readiness Gate를 지원해야 하며, ALB/NLB 헬스체크 경로와 임계값이 올바르게 설정되어 있어야 하고, 종료 측에서는 `preStop`과 연결 드레이닝으로 기존 연결을 정리해야 합니다.
 
 **활성화 방법:**
 
@@ -150,7 +153,7 @@ kubectl get pod myapp-xyz -o jsonpath='{.status.conditions}' | jq
 **장점:**
 - 롤링 업데이트 시 Old Pod이 타겟에서 제거되기 전까지 유지됨
 - New Pod이 ALB 헬스체크 통과 후에만 트래픽 수신
-- 트래픽 유실 없는 완전한 무중단 배포
+- 전제 조건이 함께 충족되면 트래픽 유실을 크게 줄여 무중단 배포에 기여
 
 :::info 상세 정보
 Pod Readiness Gates에 대한 자세한 내용은 [EKS 고가용성 아키텍처 가이드](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide)의 "Pod Readiness Gates" 섹션을 참조하세요.
@@ -158,7 +161,11 @@ Pod Readiness Gates에 대한 자세한 내용은 [EKS 고가용성 아키텍처
 
 ### Gateway API 헬스체크 통합 (ALB Controller v2.14+) {#264-gateway-api-헬스체크-통합-alb-controller-v214}
 
-AWS Load Balancer Controller v2.14+는 Kubernetes Gateway API v1.4와 네이티브 통합하여, Ingress보다 향상된 경로별 헬스체크 매핑을 제공합니다.
+AWS Load Balancer Controller v2.14+는 Kubernetes Gateway API와 통합하여, Ingress보다 향상된 경로별 헬스체크 매핑을 제공합니다. L7 라우트(HTTPRoute/GRPCRoute)는 v2.14.0 이상에서 ALB로, L4 라우트(TCPRoute/UDPRoute/TLSRoute)는 v2.13.3 이상에서 NLB로 처리됩니다.
+
+:::warning 프로덕션 사용 전 확인
+LBC의 Gateway API 통합은 아직 프로덕션 워크로드에 권장되지 않습니다(LBC v2.14 Gateway 문서 기준). 또한 사용하려면 전제 조건을 먼저 충족해야 합니다. 표준 Gateway API CRD(필요 시 experimental CRD 포함)와 LBC Gateway 전용 CRD를 설치하고, LBC 배포에 `--feature-gates=ALBGatewayAPI=true`(L7) 또는 `NLBGatewayAPI=true`(L4) 플래그를 지정해야 합니다. 기본값으로는 LBC가 Gateway API 리소스를 처리하지 않습니다.
+:::
 
 #### Gateway API vs Ingress 헬스체크 비교 {#gateway-api-vs-ingress-헬스체크-비교}
 
@@ -166,15 +173,15 @@ AWS Load Balancer Controller v2.14+는 Kubernetes Gateway API v1.4와 네이티�
 
 | 구분 | Ingress | Gateway API |
 |------|---------|-------------|
-| **헬스체크 설정 위치** | Service/Ingress annotation | HealthCheckPolicy CRD |
+| **헬스체크 설정 위치** | Service/Ingress annotation | TargetGroupConfiguration CRD |
 | **경로별 헬스체크** | 제한적 (annotation 기반) | 네이티브 지원 (HTTPRoute/GRPCRoute별) |
 | **L4/L7 프로토콜 지원** | HTTP/HTTPS만 | TCP/UDP/TLS/HTTP/GRPC 모두 지원 |
 | **멀티 테넌트 역할 분리** | 단일 Ingress 오브젝트 | Gateway(인프라)/Route(앱) 분리 |
-| **가중치 기반 카나리** | 어렵거나 불가능 | HTTPRoute 네이티브 지원 |
+| **가중치 기반 카나리** | 가중치 forward action 어노테이션으로 지원 | HTTPRoute 네이티브 지원 |
 
 #### Gateway API 아키텍처와 헬스체크 {#gateway-api-아키텍처와-헬스체크}
 
-**그림 2. Gateway API 구성 요소와 HealthCheckPolicy 적용 구조**
+**그림 2. Gateway API 구성 요소와 TargetGroupConfiguration 적용 구조**
 
 ```mermaid
 flowchart TB
@@ -192,7 +199,7 @@ flowchart TB
         Service2 --> Pod2[Pods]
         Service3 --> Pod3[Pods]
 
-        Policy[HealthCheckPolicy] -.->|적용| HTTPRoute1
+        Policy[TargetGroupConfiguration] -.->|적용| HTTPRoute1
         Policy -.->|적용| HTTPRoute2
     end
 
@@ -202,7 +209,7 @@ flowchart TB
 
 #### L7 헬스체크: HTTPRoute/GRPCRoute with ALB {#l7-헬스체크-httproutegrpcroute-with-alb}
 
-**HealthCheckPolicy CRD 예시:**
+**TargetGroupConfiguration CRD 예시:**
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -236,30 +243,39 @@ spec:
     - name: api-v1-service
       port: 8080
 ---
-# HealthCheckPolicy (AWS Load Balancer Controller v2.14+)
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+# TargetGroupConfiguration (AWS Load Balancer Controller v2.14+)
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: api-v1-healthcheck
   namespace: production
 spec:
-  targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/name/id
-  healthCheckConfig:
-    protocol: HTTP
-    path: /api/v1/healthz  # 경로별 헬스체크
-    port: 8080
-    intervalSeconds: 10
-    timeoutSeconds: 5
-    healthyThresholdCount: 2
-    unhealthyThresholdCount: 2
-    matcher:
-      httpCode: "200-299"
+  targetReference:
+    name: api-v1-service
+  defaultConfiguration:
+    targetType: ip
+  routeConfigurations:
+    - routeIdentifier:
+        kind: HTTPRoute
+        namespace: production
+        name: api-v1-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: HTTP
+          healthCheckPath: /api/v1/healthz  # 경로별 헬스체크
+          healthCheckPort: "8080"
+          healthCheckInterval: 10
+          healthCheckTimeout: 5
+          healthyThresholdCount: 2
+          unhealthyThresholdCount: 2
+          matcher:
+            httpCode: "200-299"
 ```
 
 **GRPCRoute 헬스체크 예시:**
 
 ```yaml
-apiVersion: gateway.networking.k8s.io/v1alpha2
+apiVersion: gateway.networking.k8s.io/v1
 kind: GRPCRoute
 metadata:
   name: grpc-service-route
@@ -277,23 +293,33 @@ spec:
     - name: grpc-backend
       port: 9090
 ---
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: grpc-healthcheck
   namespace: production
 spec:
-  targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/grpc/id
-  healthCheckConfig:
-    protocol: HTTP  # gRPC 헬스체크는 HTTP/2 기반
-    path: /grpc.health.v1.Health/Check
-    port: 9090
-    intervalSeconds: 10
-    timeoutSeconds: 5
-    healthyThresholdCount: 2
-    unhealthyThresholdCount: 2
-    matcher:
-      grpcCode: "0"  # gRPC OK status
+  targetReference:
+    name: grpc-backend
+  defaultConfiguration:
+    targetType: ip
+    protocolVersion: GRPC
+  routeConfigurations:
+    - routeIdentifier:
+        kind: GRPCRoute
+        namespace: production
+        name: grpc-service-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: HTTP  # gRPC 헬스체크는 HTTP/2 기반
+          healthCheckPath: /grpc.health.v1.Health/Check
+          healthCheckPort: "9090"
+          healthCheckInterval: 10
+          healthCheckTimeout: 5
+          healthyThresholdCount: 2
+          unhealthyThresholdCount: 2
+          matcher:
+            grpcCode: "0"  # gRPC OK status
 ```
 
 #### L4 헬스체크: TCPRoute/UDPRoute with NLB {#l4-헬스체크-tcprouteudproute-with-nlb}
@@ -313,20 +339,29 @@ spec:
     - name: tcp-backend
       port: 5432
 ---
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: tcp-healthcheck
   namespace: production
 spec:
-  targetGroupARN: arn:aws:elasticloadbalancing:region:account:targetgroup/tcp/id
-  healthCheckConfig:
-    protocol: TCP  # TCP 연결만 확인
-    port: 5432
-    intervalSeconds: 30
-    timeoutSeconds: 10
-    healthyThresholdCount: 3
-    unhealthyThresholdCount: 3
+  targetReference:
+    name: tcp-backend
+  defaultConfiguration:
+    targetType: ip
+  routeConfigurations:
+    - routeIdentifier:
+        kind: TCPRoute
+        namespace: production
+        name: tcp-service-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: TCP  # TCP 연결만 확인
+          healthCheckPort: "5432"
+          healthCheckInterval: 30
+          healthCheckTimeout: 10
+          healthyThresholdCount: 3
+          unhealthyThresholdCount: 3
 ```
 
 #### Gateway API Pod Readiness Gates {#gateway-api-pod-readiness-gates}
@@ -352,8 +387,9 @@ kubectl get gateway prod-gateway -n production
 kubectl get httproute api-v1-route -n production -o yaml
 
 # Pod의 Readiness Gates 확인
-kubectl get pod -n production -l app=api-v1 \
-  -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.conditions[?(@.type=="target-health.gateway.networking.k8s.io")].status}{"\n"}{end}'
+# LBC가 주입하는 조건 타입은 target-health.elbv2.k8s.aws/<해시> 형태로 타겟 그룹마다 접미사가 달라
+# 고정 문자열로는 매칭되지 않으므로, 조건 목록에서 해당 접두사를 grep으로 확인합니다.
+kubectl get pod -n production -l app=api-v1 -o yaml | grep -A 5 "target-health.elbv2.k8s.aws"
 ```
 
 #### Ingress에서 Gateway API로 마이그레이션 시 헬스체크 전환 체크리스트 {#ingress에서-gateway-api로-마이그레이션-시-헬스체크-전환-체크리스트}
@@ -362,10 +398,10 @@ kubectl get pod -n production -l app=api-v1 \
 
 | 단계 | Ingress | Gateway API | 확인 항목 |
 |------|---------|-------------|----------|
-| 1. 헬스체크 경로 매핑 | Annotation 기반 | HealthCheckPolicy CRD | 경로별 정책 분리 |
+| 1. 헬스체크 경로 매핑 | Annotation 기반 | TargetGroupConfiguration CRD | 경로별 정책 분리 |
 | 2. 프로토콜 설정 | HTTP/HTTPS만 | HTTP/HTTPS/GRPC/TCP/UDP | 프로토콜 타입 확인 |
 | 3. Pod Readiness Gates | Namespace 레이블 | Namespace 레이블 (동일) | 무중단 배포 보장 |
-| 4. 헬스체크 타이밍 | Service annotation | HealthCheckPolicy | interval/timeout 검증 |
+| 4. 헬스체크 타이밍 | Service annotation | TargetGroupConfiguration | interval/timeout 검증 |
 | 5. 멀티 경로 헬스체크 | 단일 경로만 | 경로별 독립 설정 | 각 경로 검증 |
 
 **마이그레이션 예시 (Ingress → Gateway API):**
@@ -418,20 +454,28 @@ spec:
     - name: myapp
       port: 8080
 ---
-apiVersion: elbv2.k8s.aws/v1beta1
-kind: HealthCheckPolicy
+apiVersion: gateway.k8s.aws/v1beta1
+kind: TargetGroupConfiguration
 metadata:
   name: myapp-healthcheck
 spec:
-  targetGroupARN: <auto-discovered-or-explicit>
-  healthCheckConfig:
-    protocol: HTTP
-    path: /healthz
-    port: 8080
-    intervalSeconds: 10
-    timeoutSeconds: 5
-    healthyThresholdCount: 2
-    unhealthyThresholdCount: 2
+  targetReference:
+    name: myapp
+  defaultConfiguration:
+    targetType: ip
+  routeConfigurations:
+    - routeIdentifier:
+        kind: HTTPRoute
+        name: myapp-route
+      targetGroupProps:
+        healthCheckConfig:
+          healthCheckProtocol: HTTP
+          healthCheckPath: /healthz
+          healthCheckPort: "8080"
+          healthCheckInterval: 10
+          healthCheckTimeout: 5
+          healthyThresholdCount: 2
+          unhealthyThresholdCount: 2
 ```
 
 :::tip Gateway API 마이그레이션 전략

@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 11
 tags:
   - eks
   - kubernetes
@@ -36,23 +36,7 @@ Container Network Observability(2025년 11월 발표)는 Pod 간 네트워크 �
 
 **활성화 방법:**
 
-```bash
-# VPC CNI에서 네트워크 관찰성 활성화
-kubectl set env daemonset aws-node \
-  -n kube-system \
-  ENABLE_NETWORK_OBSERVABILITY=true
-
-# 또는 ConfigMap으로 설정
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: amazon-vpc-cni
-  namespace: kube-system
-data:
-  enable-network-observability: "true"
-EOF
-```
+Container Network Observability는 EKS 콘솔, AWS CLI, 또는 EKS API로 활성화합니다. 콘솔에서 활성화하면 Network Flow Monitor(NFM)의 Scope와 Monitor 리소스가 자동 생성되고, NFM Agent EKS 애드온 설치 과정을 안내받습니다. IaC(예: Terraform)로 구성하려면 NFM Scope, NFM Monitor, NFM용 EKS 애드온을 정의하고 Pod Identity 또는 IRSA로 애드온에 권한을 부여해야 합니다. 정확한 애드온 이름과 명령 옵션은 [EKS 네트워크 관찰성 문서](https://docs.aws.amazon.com/eks/latest/userguide/network-observability.html)를 참조하세요. VPC CNI의 환경 변수나 ConfigMap으로 활성화하는 설정 키는 공식 문서에 존재하지 않습니다.
 
 **Probe 연결성 검증 예시:**
 
@@ -97,8 +81,10 @@ spec:
 
 **CloudWatch Insights 쿼리 - Probe 실패와 네트워크 지연 상관 분석:**
 
+다음 쿼리는 예시이며, `probe_result`, `probe_type`, `network_latency_ms`, `packet_loss_percent` 필드가 하나의 로그 이벤트에 함께 기록되는 경우에만 동작합니다. 이 필드들은 기본 수집 항목이 아니므로, 애플리케이션이나 수집 파이프라인에서 Probe 결과와 네트워크 메트릭을 같은 이벤트로 내보내도록 먼저 구성해야 합니다.
+
 ```sql
--- Probe 실패 시점의 네트워크 지연 확인
+-- Probe 실패 시점의 네트워크 지연 확인 (필드가 수집되는 경우)
 fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 | filter namespace = "production"
 | filter probe_result = "failed"
@@ -109,8 +95,10 @@ fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 
 **알림 설정 예시:**
 
+아래 ConfigMap은 알람 정의를 문자열로 담아둘 뿐이며, 이 ConfigMap을 적용해도 CloudWatch 알람은 생성되지 않습니다. 실제 알람은 ACK CloudWatch 컨트롤러의 `MetricAlarm` 리소스(`cloudwatch.services.k8s.aws/v1alpha1`), `aws cloudwatch put-metric-alarm`, 또는 IaC로 생성해야 합니다. 아래 JSON은 그렇게 생성할 때 사용할 파라미터의 참고 예시입니다.
+
 ```yaml
-# CloudWatch Alarm: Probe 실패와 네트워크 이상 동시 발생
+# 참고용 알람 파라미터 (ConfigMap 자체로는 알람이 생성되지 않음)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -159,7 +147,7 @@ flowchart TD
 ```
 
 :::tip Pod-to-Pod 경로 시각화
-Container Network Observability는 CloudWatch Logs Insights와 통합되어 Probe 요청의 전체 네트워크 경로를 추적할 수 있습니다. Readiness Probe가 외부 데이터베이스를 확인하는 경우, Pod → Service → Endpoint → DB Pod의 전체 경로에서 병목 구간을 식별할 수 있습니다.
+Container Network Observability의 서비스 맵과 플로우 테이블은 Pod 간 통신에 대한 집계된 플로우 메트릭(재전송, 재전송 타임아웃, 전송 데이터량)을 보여줍니다. 개별 Probe 요청을 하나씩 추적하지는 않지만, Readiness Probe가 외부 데이터베이스를 확인하는 경로에서 어느 구간의 플로우 지표가 악화되는지로 병목 구간을 좁힐 수 있습니다.
 :::
 
 ---
@@ -168,33 +156,20 @@ Container Network Observability는 CloudWatch Logs Insights와 통합되어 Prob
 
 **개요:**
 
-CloudWatch Observability Operator(2025년 12월 발표)는 EKS Control Plane 메트릭을 자동으로 수집하여, API Server 성능 저하가 Probe 응답에 미치는 영향을 사전에 감지합니다.
+CloudWatch Observability Operator는 EKS Control Plane 메트릭을 자동으로 수집하여, API Server 성능 저하가 Probe 응답에 미치는 영향을 사전에 감지합니다.
 
 **설치:**
 
-```bash
-# CloudWatch Observability Operator 설치
-kubectl apply -f https://raw.githubusercontent.com/aws-observability/aws-cloudwatch-observability-operator/main/bundle.yaml
+CloudWatch Observability는 EKS 애드온 `amazon-cloudwatch-observability`로 설치합니다. 이 애드온은 CloudWatch Agent와 Operator를 배포하며, Container Insights와 메트릭 수집을 담당합니다. 앞 예시에 있던 `aws-cloudwatch-observability-operator` 번들 매니페스트 URL과 `EKSControlPlaneMetrics` CRD는 공식 저장소에 존재하지 않으므로 사용하지 않습니다. 수집할 Control Plane 메트릭의 선택과 전송은 EKS 콘솔 또는 API의 Control Plane 모니터링 설정과 애드온 구성으로 지정합니다.
 
-# EKS Control Plane 메트릭 수집 활성화
-kubectl apply -f - <<EOF
-apiVersion: cloudwatch.aws.amazon.com/v1alpha1
-kind: EKSControlPlaneMetrics
-metadata:
-  name: production-control-plane
-  namespace: amazon-cloudwatch
-spec:
-  clusterName: production-eks
-  region: ap-northeast-2
-  metricsCollectionInterval: 60s
-  enabledMetrics:
-    - apiserver_request_duration_seconds
-    - apiserver_request_total
-    - apiserver_storage_objects
-    - etcd_request_duration_seconds
-    - rest_client_requests_total
-EOF
+```bash
+# CloudWatch Observability 애드온 설치 (EKS API)
+aws eks create-addon \
+  --cluster-name production-eks \
+  --addon-name amazon-cloudwatch-observability
 ```
+
+정확한 애드온 구성 옵션과 Control Plane 메트릭 활성화 방법은 [EKS 관찰성 대시보드 문서](https://docs.aws.amazon.com/eks/latest/userguide/observability-dashboard.html)를 참조하세요.
 
 **표 1. 주요 Control Plane 메트릭과 Probe 연관성**
 
@@ -209,32 +184,26 @@ EOF
 **Probe 타임아웃 예측 알림:**
 
 ```yaml
-apiVersion: cloudwatch.amazonaws.com/v1alpha1
-kind: Alarm
+# ACK CloudWatch 컨트롤러의 MetricAlarm 리소스
+apiVersion: cloudwatch.services.k8s.aws/v1alpha1
+kind: MetricAlarm
 metadata:
   name: apiserver-slow-probe-risk
 spec:
-  alarmName: "EKS-APIServer-SlowProbeRisk"
-  metrics:
-    - id: m1
-      metricStat:
-        metric:
-          namespace: AWS/EKS
-          metricName: apiserver_request_duration_seconds
-          dimensions:
-            - name: ClusterName
-              value: production-eks
-            - name: verb
-              value: GET
-        period: 60
-        stat: p99
-    - id: e1
-      expression: "IF(m1 > 0.5, 1, 0)"
-      label: "API Server 응답 지연 > 500ms"
+  name: "EKS-APIServer-SlowProbeRisk"
+  namespace: AWS/EKS
+  metricName: apiserver_request_duration_seconds
+  dimensions:
+    - name: ClusterName
+      value: production-eks
+    - name: verb
+      value: GET
+  period: 60
+  extendedStatistic: p99
   evaluationPeriods: 2
-  threshold: 1
+  threshold: 0.5
   comparisonOperator: GreaterThanOrEqualToThreshold
-  alarmDescription: "API Server 성능 저하로 인한 Probe 타임아웃 위험"
+  alarmDescription: "API Server 성능 저하로 인한 Probe 타임아웃 위험 (응답 지연 > 500ms)"
   alarmActions:
     - arn:aws:sns:ap-northeast-2:123456789012:eks-ops-alerts
 ```
@@ -309,7 +278,7 @@ spec:
 ```
 
 :::warning 대규모 클러스터의 API Server 부하
-1000개 이상의 노드를 가진 클러스터에서는 모든 kubelet의 Probe 요청이 API Server에 집중될 수 있습니다. `periodSeconds`를 10~15초로 늘리고, `timeoutSeconds`를 5초 이상으로 설정하여 API Server 부하를 분산시키세요. Provisioned Control Plane(Section 2.7.3)을 사용하면 이 문제를 근본적으로 해결할 수 있습니다.
+kubelet의 HTTP/TCP/exec/gRPC Probe는 노드에서 대상 Pod을 직접 호출하며 API Server를 거치지 않으므로, Probe 자체가 API Server에 부하를 집중시키지는 않습니다. 다만 대규모 클러스터에서는 kubelet의 상태 보고와 watch, 그 밖의 API 호출이 API Server 부하를 높일 수 있고, 이때 Pod 상태 업데이트가 지연되면 Probe 결과 반영이 느려질 수 있습니다. API Server에 의존하는 호출 부하가 문제가 되면 해당 호출의 주기를 조정하세요. Provisioned Control Plane은 사전 할당된 제어 플레인 용량으로 이런 API Server 부하 상황을 완화할 수 있지만, kubelet이 로컬에서 수행하는 Probe 실행 경로를 바꾸지는 않습니다(Section 2.7.3).
 :::
 
 ---
@@ -328,7 +297,7 @@ Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플�
 | **2XL** | 매우 높음 | 2,500 | 대규모 배치 |
 | **4XL** | 초고속 | 5,000 | 초대규모 ML |
 
-티어별 Pod 스케줄링 처리량과 Probe 응답 지연 보장치는 공식 출처가 확인되지 않아 이 표에 수치로 제시하지 않습니다. 실제 성능은 대상 환경에서 측정해 확인해야 합니다.
+티어별 Pod 스케줄링 처리량과 Probe 응답 지연 보장치는 공식 출처가 확인되지 않아 이 표에 수치로 제시하지 않습니다. 표의 최대 노드 수(1,000/2,500/5,000)도 공식 출처로 확인된 값이 아닌 참고용 추정치이므로, 실제 지원 규모와 성능은 대상 환경에서 측정하고 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)로 확인해야 합니다.
 
 **그림 2. Standard와 Provisioned Control Plane의 부하 처리 비교**
 
@@ -354,19 +323,21 @@ graph LR
 
 **Provisioned Control Plane 생성:**
 
+문서화된 `aws eks create-cluster` CLI에는 아래와 같은 Provisioned Control Plane 선택 플래그가 없습니다. 다음 예시는 표준 클러스터 생성 명령이며, Provisioned Control Plane 활성화 방법과 실제 옵션은 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)에서 확인하세요.
+
 ```bash
-# Provisioned Control Plane 클러스터 생성 (AWS CLI)
+# 클러스터 생성 (AWS CLI)
 aws eks create-cluster \
   --name production-provisioned \
   --region ap-northeast-2 \
   --kubernetes-version 1.32 \
   --role-arn arn:aws:iam::123456789012:role/eks-cluster-role \
-  --resources-vpc-config subnetIds=subnet-xxx,subnet-yyy,securityGroupIds=sg-zzz \
-  --control-plane-type PROVISIONED \
-  --control-plane-tier XL
+  --resources-vpc-config subnetIds=subnet-xxx,subnet-yyy,securityGroupIds=sg-zzz
 ```
 
 **대규모 Probe 최적화 예시:**
+
+Control Plane 티어는 클러스터 수준의 API 설정이며, Deployment 애너테이션으로 지정할 수 없습니다. 아래 예시는 Provisioned Control Plane 클러스터에서 짧은 Probe 간격을 사용하는 워크로드 설정이며, 애너테이션으로 티어를 바꾸는 부분은 효과가 없어 제거했습니다.
 
 ```yaml
 # AI/ML Training 클러스터 (1000+ GPU 노드)
@@ -374,9 +345,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: training-coordinator
-  annotations:
-    # Provisioned Control Plane에서 최적화된 Probe 설정
-    eks.amazonaws.com/control-plane-tier: "XL"
 spec:
   selector:
     matchLabels:
@@ -431,8 +399,8 @@ spec:
 ```yaml
 # Provisioned Control Plane 비용 최적화 전략
 # 1. 평상시: Standard Control Plane
-# 2. Training 기간: Provisioned Control Plane XL로 업그레이드
-# (현재는 클러스터 생성 시 선택, 향후 동적 변경 지원 예정)
+# 2. Training 기간: Provisioned Control Plane XL 사용
+# (티어는 클러스터 수준 설정이며, 변경 가능 여부와 절차는 EKS Provisioned Control Plane 문서에서 확인)
 ```
 
 :::tip HPC 및 대규모 배치 워크로드
@@ -478,6 +446,8 @@ aws guardduty update-detector \
 ```
 
 **Probe 엔드포인트 보안 패턴:**
+
+`httpGet.httpHeaders`의 `value`는 정적 문자열이며 환경 변수나 Secret을 참조하지 못합니다. 따라서 아래 예시의 `value: "SECRET_TOKEN_FROM_ENV"`는 그 문자열 자체를 전송할 뿐 `secretKeyRef`로 주입한 토큰 값을 보내지 않습니다. 토큰 기반 검증이 필요하면 애플리케이션이 자체적으로 토큰을 읽어 확인하거나 사이드카로 처리하고, Probe는 그 결과를 반환하는 엔드포인트를 호출하도록 구성하세요.
 
 ```yaml
 apiVersion: apps/v1
@@ -553,9 +523,9 @@ flowchart TD
     style RESPONSE fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-**실제 탐지 사례 - Cryptomining Campaign:**
+**예시 시나리오 - Cryptomining:**
 
-2025년 11월 2일부터 GuardDuty가 탐지한 크립토마이닝 캠페인에서는 공격자가 다음과 같이 헬스체크를 우회했습니다:
+참고로 인용한 AWS 블로그의 크립토마이닝 캠페인은 탈취된 IAM 자격 증명으로 EC2와 ECS를 대상으로 한 사례이며, EKS Probe/헬스체크 우회 사례가 아닙니다. 아래는 헬스체크가 공격자에게 어떻게 우회될 수 있는지를 보여주는 가상의 예시 시나리오입니다.
 
 1. 정상 컨테이너 이미지로 위장
 2. startupProbe 성공 후 악성 바이너리 다운로드
@@ -572,6 +542,7 @@ metadata:
   name: guardduty-response
   namespace: security
 data:
+  # severity 7-8은 High, 9는 Critical에 해당합니다.
   eventbridge-rule: |
     {
       "source": ["aws.guardduty"],
@@ -580,15 +551,18 @@ data:
         "service": {
           "serviceName": ["EKS"]
         },
-        "severity": [7, 8, 9]  # High, Critical
+        "severity": [7, 8, 9]
       }
     }
   lambda-action: |
     import boto3
     eks = boto3.client('eks')
 
-    def isolate_pod(cluster_name, namespace, pod_name):
+    def isolate_pod(cluster_name, namespace, pod_name, app_label):
         # NetworkPolicy로 Pod 격리
+        # podSelector는 대상 Pod에 실제로 존재하는 레이블과 일치해야 합니다.
+        # 아래 secure-api Deployment의 Pod은 app=secure-api 레이블을 가지므로
+        # 그 레이블로 선택합니다. (Pod 이름을 그대로 레이블로 쓰면 매칭되지 않습니다.)
         kubectl_command = f"""
         kubectl apply -f - <<EOF
         apiVersion: networking.k8s.io/v1
@@ -599,7 +573,7 @@ data:
         spec:
           podSelector:
             matchLabels:
-              pod: {pod_name}
+              app: {app_label}
           policyTypes:
           - Ingress
           - Egress

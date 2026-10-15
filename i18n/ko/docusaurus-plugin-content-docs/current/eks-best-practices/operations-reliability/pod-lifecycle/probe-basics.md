@@ -3,9 +3,9 @@ title: Probe 유형과 설정 기초
 description: Probe 유형, 메커니즘, 타이밍을 함께 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: "2026-09-17"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 6
 tags:
   - eks
   - kubernetes
@@ -34,7 +34,7 @@ Kubernetes는 세 가지 유형의 Probe를 제공하여 Pod의 상태를 모니
 
 #### Startup Probe: 느린 시작 앱 보호 {#startup-probe-느린-시작-앱-보호}
 
-Startup Probe는 애플리케이션이 완전히 시작될 때까지 Liveness/Readiness Probe의 실행을 지연시킵니다. Spring Boot, JVM 애플리케이션, ML 모델 로딩 등 시작이 느린 앱에 필수입니다.
+Startup Probe는 애플리케이션이 완전히 시작될 때까지 Liveness/Readiness Probe의 실행을 지연시킵니다. 초기화 시간이 Liveness Probe의 `initialDelaySeconds`와 `failureThreshold`로 감당하기 어려울 만큼 긴 경우에 권장합니다. Spring Boot, JVM 애플리케이션, ML 모델 로딩처럼 시작이 느린 앱이 대표적인 대상이며, 실제 필요 여부는 프레임워크 종류가 아니라 측정한 초기화 시간과 Liveness Probe 설정에 따라 판단합니다.
 
 **동작 원리:**
 - Startup Probe가 실행 중일 때는 Liveness/Readiness Probe가 비활성화됨
@@ -174,7 +174,7 @@ livenessProbe:
 ```
 
 :::tip gRPC Health Check Protocol
-gRPC 서비스는 [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)을 구현해야 합니다. Go는 `google.golang.org/grpc/health`, Java는 `grpc-health-check` 라이브러리를 사용하세요.
+gRPC 서비스는 [gRPC Health Checking Protocol](https://github.com/grpc/grpc/blob/master/doc/health-checking.md)을 구현해야 합니다. Go는 `google.golang.org/grpc/health`, Java는 `io.grpc:grpc-services` 아티팩트의 `io.grpc.protobuf.services.HealthStatusManager`를 사용하세요.
 :::
 
 ### Probe 타이밍 설계 {#23-probe-타이밍-설계}
@@ -189,18 +189,18 @@ Probe의 타이밍 파라미터는 장애 감지 속도와 안정성 간의 균�
 | `periodSeconds` | Probe 실행 간격 | 10 | 5-15s |
 | `timeoutSeconds` | Probe 응답 대기 시간 | 1 | 3-10s |
 | `failureThreshold` | 실패 판정까지 연속 실패 횟수 | 3 | Liveness: 3, Readiness: 1-3, Startup: 30+ |
-| `successThreshold` | 성공 판정까지 연속 성공 횟수 (Readiness만 1 이상 가능) | 1 | 1-2 |
+| `successThreshold` | 성공 판정까지 연속 성공 횟수 (Liveness/Startup은 1만 허용, Readiness만 1보다 큰 값 가능) | 1 | 1-2 |
 
 #### 타이밍 설계 공식 {#타이밍-설계-공식}
 
 ```
 연속 실패 감지 예산의 근사값 = failureThreshold × periodSeconds
-최소 복구 시간 = successThreshold × periodSeconds
+최소 복구 시간의 근사값 = (successThreshold - 1) × periodSeconds (첫 성공 이후 추가 간격)
 ```
 
 **예시:**
 - `failureThreshold: 3, periodSeconds: 10` → 약 30초의 연속 실패 감지 예산
-- `successThreshold: 2, periodSeconds: 5` → 최소 10초 후 복구 판정 (Readiness만)
+- `successThreshold: 2, periodSeconds: 5` → 첫 성공 이후 약 5초 뒤 복구 판정 (Readiness만)
 
 #### 워크로드별 권장 타이밍 {#워크로드별-권장-타이밍}
 
