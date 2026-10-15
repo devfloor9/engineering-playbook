@@ -3,7 +3,7 @@ title: Agent Versioning & Change Management
 description: Integrated change management system for enterprise agent prompts, models, deployment strategies, and governance
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
 reading_time: 9
 tags:
@@ -30,13 +30,15 @@ In traditional software, change management targets code, configuration, and infr
 | **Rollback Criteria** | Feature failures, performance degradation | Accuracy decline, increased hallucination, latency P99 |
 | **Change Unit** | Code commits, binaries | Prompt versions, model replacement, parameter tuning |
 
+Agentic systems still keep deterministic unit and integration tests. Statistical evaluation (BLEU, Exact Match, LLM-as-Judge) does not replace them; it is an additive layer that handles probabilistic output.
+
 ### Why Prompts and Models Should Be Managed Like Code
 
 1. **Prompts Are Core Logic**  
    Changing one line from "You are a financial analysis expert" → "You are a conservative investment advisor" transforms the entire output pattern.
 
 2. **Model Replacement Is Runtime Replacement**  
-   When switching GPT-4 → Claude 4.7 Sonnet, even the same prompt produces different response styles, token usage, and latency.
+   When switching GPT-4 → Claude 3.5 Sonnet, even the same prompt produces different response styles, token usage, and latency.
 
 3. **No Tracking Means No Rollback**  
    When receiving reports like "it worked yesterday but is strange today," recovery is impossible without knowing who changed which prompt and when.

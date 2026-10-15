@@ -3,9 +3,9 @@ title: 배포 전략 — Shadow·Canary·A/B·Blue-Green
 description: 점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식
 created: "2026-04-18"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 7
 tags:
   - deployment
   - canary
@@ -110,7 +110,7 @@ def get_model_for_user(user_id: str):
 - **사용자 피드백**(thumbs up/down) 비율
 - **비용**(토큰 사용량)
 
-**자동 롤백 트리거**:
+**회귀 감지 알림(탐지 전용)**:
 ```yaml
 # 예시: Prometheus AlertManager 규칙
 - alert: CanaryRegressionDetected
@@ -122,6 +122,8 @@ def get_model_for_user(user_id: str):
   annotations:
     summary: "Canary 성공률 95% 미만, 롤백 필요"
 ```
+
+이 규칙은 회귀를 감지해 알림만 발생시키며, 롤백을 직접 수행하지는 않습니다. 실제 롤백은 이 알림에 연결된 별도 조치(예: 웹훅 또는 런북)입니다.
 
 **장점**:
 - 점진적 리스크 분산
@@ -147,7 +149,7 @@ def get_model_for_user(user_id: str):
 
 **실험 설계**:
 1. **귀무가설**: "신모델과 구모델의 성능 차이가 없습니다"
-2. **대립가설**: "신모델이 conversion rate를 5% 이상 개선합니다"
+2. **대립가설**: "신모델이 conversion rate를 5%p(퍼센트 포인트) 이상 개선합니다"
 3. **샘플 크기 계산**: [AB Test Calculator](https://www.evanmiller.org/ab-testing/sample-size.html)  
    예: 베이스라인 10%, 5%p 개선 감지, 80% power → 그룹당 2,348명 필요
 4. **실험 기간**: 충분한 샘플 확보될 때까지(보통 1-4주)
@@ -155,9 +157,9 @@ def get_model_for_user(user_id: str):
 **구현 예시(Unleash)**:
 
 ```typescript
-import { UnleashClient } from 'unleash-client';
+import { Unleash } from 'unleash-client';
 
-const unleash = new UnleashClient({
+const unleash = new Unleash({
   url: 'https://unleash.example.com/api',
   appName: 'agent-service',
   customHeaders: { Authorization: 'your-token' }
@@ -206,6 +208,8 @@ print(f"p-value: {p}")  # p < 0.05 → B가 통계적으로 유의하게 우수
 
 **구현 예시(Kubernetes Service + Ingress)**:
 
+사전 조건: 각 vLLM 파드는 NVIDIA device plugin과 드라이버가 설치된 GPU 노드가 필요하며, 모델 가중치를 시작 시 다운로드하거나 마운트해 사용할 수 있어야 합니다. 아래 매니페스트는 파드당 GPU 1개를 요청하고, 모델 로딩이 끝난 뒤에만 트래픽을 받도록 readiness probe를 둡니다.
+
 ```yaml
 # blue-deployment.yaml
 apiVersion: apps/v1
@@ -226,8 +230,19 @@ spec:
     spec:
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.23.0
+        image: vllm/vllm-openai:v0.5.4
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 10
 ---
 # green-deployment.yaml (신버전)
 apiVersion: apps/v1
@@ -248,8 +263,19 @@ spec:
     spec:
       containers:
       - name: vllm
-        image: vllm/vllm-openai:v0.23.0
+        image: vllm/vllm-openai:v0.6.3
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 10
 ---
 # service.yaml (처음엔 blue 가리킴)
 apiVersion: v1
@@ -267,8 +293,9 @@ spec:
 **전환 절차**:
 1. Green 배포 완료 → Health check 확인
 2. `kubectl patch svc llm-service -p '{"spec":{"selector":{"version":"green"}}}'`
-3. 5분 모니터링 → 문제 없으면 Blue 삭제
+3. 모니터링 기간 동안 Blue를 계속 실행해 롤백 대상으로 유지
 4. 문제 발생 시 `version: blue`로 즉시 롤백
+5. 모니터링·안정화(soak) 기간이 문제 없이 끝난 뒤에만 Blue 삭제
 
 **장점**:
 - 롤백 속도 가장 빠름(초 단위)
@@ -309,7 +336,7 @@ def get_prompt_version(user_id: str, org_id: str) -> int:
 
 ```python
 # LaunchDarkly 콘솔에서 'prompt-version-financial' flag를 강제로 4로 설정
-# 코드 변경 없이 즉시 모든 사용자에게 적용됨
+# 코드 변경 없이 SDK의 flag 전파 주기 안에서(거의 실시간) 모든 사용자에게 적용됨
 ```
 
 **타게팅 규칙 예시**:
@@ -338,10 +365,14 @@ const unleash = new Unleash({
   customHeaders: { Authorization: 'token' }
 });
 
+const defaultPrompt = 'v4';  // 안전한 기본 프롬프트 버전
+
 function getPromptVariant(userId: string): string {
   const context = { userId, properties: { region: 'us-west-2' } };
   const variant = unleash.getVariant('prompt-experiment-2026-04', context);
   // variant.name: 'control', 'treatment-A', 'treatment-B'
+  // flag가 비활성이거나 payload가 없으면 기본 프롬프트로 폴백
+  if (!variant.enabled || !variant.payload) return defaultPrompt;
   return variant.payload.value;  // 실제 프롬프트 텍스트 or 버전 번호
 }
 ```
@@ -362,6 +393,7 @@ function getPromptVariant(userId: string): string {
 ```python
 import boto3
 import json
+import time
 
 appconfig = boto3.client('appconfigdata')
 
@@ -372,18 +404,26 @@ session = appconfig.start_configuration_session(
 )
 session_token = session['InitialConfigurationToken']
 
-config = appconfig.get_latest_configuration(ConfigurationToken=session_token)
-prompt_config = json.loads(config['Configuration'].read())
-
-print(prompt_config['version'])  # 예: 5
-print(prompt_config['text'])
+prompt_config = None
+# 매 GetLatestConfiguration 호출은 다음 polling에 써야 하는 새 토큰을 반환합니다.
+# 'Configuration'이 비어 있으면 "변경 없음"이므로 직전 설정을 유지합니다.
+while True:
+    response = appconfig.get_latest_configuration(ConfigurationToken=session_token)
+    session_token = response['NextPollConfigurationToken']
+    data = response['Configuration'].read()
+    if data:
+        prompt_config = json.loads(data)
+        print(prompt_config['version'])  # 예: 5
+        print(prompt_config['text'])
+    # else: 설정 변경 없음, prompt_config 유지
+    time.sleep(response.get('NextPollIntervalInSeconds', 60))
 ```
 
 **배포 전략**:
 ```json
 {
   "DeploymentStrategyId": "AppConfig.Canary10Percent20Minutes",
-  "Description": "10% 사용자에게 20분간 배포 후 확대"
+  "Description": "20분 배포 구간 동안 10% 단계로 지수(exponential) 확대 후 최종 bake 시간 적용"
 }
 ```
 
@@ -393,11 +433,13 @@ CloudWatch 알람(`LLMErrorRate > threshold`) 발생 시 자동 롤백.
 
 ## 배포 전략 비교
 
+아래 평가는 정성적이고 일반적인 기준이며, 실제 값은 구현(인프라, 트래픽 규모, 자동화 수준)에 따라 달라집니다.
+
 **표 1. 배포 전략별 리스크·검증 속도·비용·롤백 속도 비교**
 
 | 전략 | 리스크 | 검증 속도 | 비용 | 사용자 피드백 | 롤백 속도 |
 |------|-------|----------|------|-------------|----------|
-| **Shadow** | 없음 | 빠름 | 2배 | 불가 | N/A |
+| **Shadow** | 최소 | 빠름 | 2배 | 불가 | N/A |
 | **Canary** | 낮음 | 중간 | 1x | 가능 | 빠름(분) |
 | **A/B** | 중간 | 느림 | 1x | 가능 | 중간(시간) |
 | **Blue-Green** | 높음 | 빠름 | 2배(전환 중) | 가능 | 매우 빠름(초) |

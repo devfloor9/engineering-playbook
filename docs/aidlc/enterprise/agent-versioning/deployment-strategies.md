@@ -3,9 +3,9 @@ title: Deployment Strategies — Shadow·Canary·A/B·Blue-Green
 description: Progressive model replacement strategies and Feature Flag-based prompt rollout approaches
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 12
+reading_time: 14
 tags:
   - deployment
   - canary
@@ -110,7 +110,7 @@ def get_model_for_user(user_id: str):
 - **User feedback** (thumbs up/down) ratio
 - **Cost** (token usage)
 
-**Automatic Rollback Trigger**:
+**Regression Alert (detection only)**:
 ```yaml
 # Example: Prometheus AlertManager rule
 - alert: CanaryRegressionDetected
@@ -122,6 +122,8 @@ def get_model_for_user(user_id: str):
   annotations:
     summary: "Canary success rate below 95%, rollback needed"
 ```
+
+This rule only detects the regression and fires an alert; it does not perform the rollback. The actual rollback is a separate action (for example a webhook or runbook) wired to this alert.
 
 **Advantages**:
 - Progressive risk distribution
@@ -147,7 +149,7 @@ This document covers the **general principles and selection criteria** of deploy
 
 **Experiment Design**:
 1. **Null Hypothesis**: "No performance difference between new and old models"
-2. **Alternative Hypothesis**: "New model improves conversion rate by 5% or more"
+2. **Alternative Hypothesis**: "New model improves conversion rate by 5%p (percentage points) or more"
 3. **Sample Size Calculation**: [AB Test Calculator](https://www.evanmiller.org/ab-testing/sample-size.html)  
    Example: Baseline 10%, detect 5%p improvement, 80% power → 2,348 per group needed
 4. **Experiment Duration**: Until sufficient samples are collected (typically 1-4 weeks)
@@ -155,9 +157,9 @@ This document covers the **general principles and selection criteria** of deploy
 **Implementation Example (Unleash)**:
 
 ```typescript
-import { UnleashClient } from 'unleash-client';
+import { Unleash } from 'unleash-client';
 
-const unleash = new UnleashClient({
+const unleash = new Unleash({
   url: 'https://unleash.example.com/api',
   appName: 'agent-service',
   customHeaders: { Authorization: 'your-token' }
@@ -206,6 +208,8 @@ print(f"p-value: {p}")  # p < 0.05 → B is statistically significantly superior
 
 **Implementation Example (Kubernetes Service + Ingress)**:
 
+Prerequisites: each vLLM pod needs a GPU node with the NVIDIA device plugin and matching drivers installed, and the model weights must be available (downloaded at startup or mounted). The manifests below request one GPU per pod and use a readiness probe so traffic is sent only after the model has loaded.
+
 ```yaml
 # blue-deployment.yaml
 apiVersion: apps/v1
@@ -228,6 +232,17 @@ spec:
       - name: vllm
         image: vllm/vllm-openai:v0.5.4
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 10
 ---
 # green-deployment.yaml (new version)
 apiVersion: apps/v1
@@ -250,6 +265,17 @@ spec:
       - name: vllm
         image: vllm/vllm-openai:v0.6.3
         args: ["--model", "meta-llama/Llama-3.1-8B-Instruct"]
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 10
 ---
 # service.yaml (initially points to blue)
 apiVersion: v1
@@ -267,8 +293,9 @@ spec:
 **Switch Procedure**:
 1. Complete Green deployment → Check health check
 2. `kubectl patch svc llm-service -p '{"spec":{"selector":{"version":"green"}}}'`
-3. Monitor for 5 minutes → Delete Blue if no issues
+3. Keep Blue running during the monitoring window so it remains available as the rollback target
 4. If issues occur, immediately rollback with `version: blue`
+5. Delete Blue only after the monitoring/soak window closes with no issues
 
 **Advantages**:
 - Fastest rollback speed (seconds)
@@ -309,7 +336,7 @@ def get_prompt_version(user_id: str, org_id: str) -> int:
 
 ```python
 # Force 'prompt-version-financial' flag to 4 in LaunchDarkly console
-# Applied immediately to all users without code changes
+# Applied to all users within the SDK's flag-propagation interval (near-real-time), without code changes
 ```
 
 **Targeting Rule Examples**:
@@ -338,10 +365,14 @@ const unleash = new Unleash({
   customHeaders: { Authorization: 'token' }
 });
 
+const defaultPrompt = 'v4';  // Safe fallback prompt version
+
 function getPromptVariant(userId: string): string {
   const context = { userId, properties: { region: 'us-west-2' } };
   const variant = unleash.getVariant('prompt-experiment-2026-04', context);
   // variant.name: 'control', 'treatment-A', 'treatment-B'
+  // A disabled flag or a variant with no payload must fall back to the default prompt
+  if (!variant.enabled || !variant.payload) return defaultPrompt;
   return variant.payload.value;  // Actual prompt text or version number
 }
 ```
@@ -362,6 +393,7 @@ function getPromptVariant(userId: string): string {
 ```python
 import boto3
 import json
+import time
 
 appconfig = boto3.client('appconfigdata')
 
@@ -372,18 +404,26 @@ session = appconfig.start_configuration_session(
 )
 session_token = session['InitialConfigurationToken']
 
-config = appconfig.get_latest_configuration(ConfigurationToken=session_token)
-prompt_config = json.loads(config['Configuration'].read())
-
-print(prompt_config['version'])  # Example: 5
-print(prompt_config['text'])
+prompt_config = None
+# Each GetLatestConfiguration returns a new token that must be used for the next poll.
+# An empty 'Configuration' means "no change"; keep the last config in that case.
+while True:
+    response = appconfig.get_latest_configuration(ConfigurationToken=session_token)
+    session_token = response['NextPollConfigurationToken']
+    data = response['Configuration'].read()
+    if data:
+        prompt_config = json.loads(data)
+        print(prompt_config['version'])  # Example: 5
+        print(prompt_config['text'])
+    # else: configuration unchanged; keep prompt_config
+    time.sleep(response.get('NextPollIntervalInSeconds', 60))
 ```
 
 **Deployment Strategy**:
 ```json
 {
   "DeploymentStrategyId": "AppConfig.Canary10Percent20Minutes",
-  "Description": "Deploy to 10% users for 20 minutes then expand"
+  "Description": "Exponential growth with a 10% step over a 20-minute deployment window, then a final bake time"
 }
 ```
 
@@ -393,11 +433,13 @@ Automatic rollback when CloudWatch alarm (`LLMErrorRate > threshold`) fires.
 
 ## Deployment Strategy Comparison
 
+These ratings are qualitative and typical; the actual values vary by implementation (infrastructure, traffic volume, automation).
+
 **Table 1. Comparison of deployment strategies by risk, validation speed, cost, and rollback speed**
 
 | Strategy | Risk | Validation Speed | Cost | User Feedback | Rollback Speed |
 |----------|------|------------------|------|---------------|----------------|
-| **Shadow** | None | Fast | 2x | Not possible | N/A |
+| **Shadow** | Minimal | Fast | 2x | Not possible | N/A |
 | **Canary** | Low | Medium | 1x | Possible | Fast (minutes) |
 | **A/B** | Medium | Slow | 1x | Possible | Medium (hours) |
 | **Blue-Green** | High | Fast | 2x (during switch) | Possible | Very fast (seconds) |

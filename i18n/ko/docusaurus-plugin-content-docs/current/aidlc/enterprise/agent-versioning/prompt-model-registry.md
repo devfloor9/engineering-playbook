@@ -3,9 +3,9 @@ title: 프롬프트·모델 레지스트리
 description: Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management 비교 및 구축 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 13
 tags:
   - prompt-registry
   - versioning
@@ -156,7 +156,7 @@ def confirm_registry_target(client, *, prompt_name, expected_version):
 
 **단점**:
 - 런타임 배포보다는 개발·테스트 단계에 강점
-- Production rollout 기능은 약함(직접 구현 필요)
+- 프로덕션 전개는 버전 핀 고정과 환경(Environment) 단위 지정 중심이며, 비율 기반 점진 전개(canary·트래픽 분할)나 사용자·속성 단위 런타임 플래그 타게팅은 기본 제공하지 않습니다. 이런 전개가 필요하면 LaunchDarkly·Unleash·AppConfig 같은 Feature Flag 계층을 직접 연동해야 합니다.
 
 ---
 

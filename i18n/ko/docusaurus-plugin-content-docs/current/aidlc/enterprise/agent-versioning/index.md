@@ -3,7 +3,7 @@ title: Agent Versioning & Change Management
 description: 엔터프라이즈 Agent의 프롬프트·모델·배포 전략·거버넌스를 통합하는 Change Management 체계
 created: "2026-04-18"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: devfloor9
 reading_time: 4
 tags:
@@ -30,13 +30,15 @@ sidebar_label: Agent Versioning
 | **롤백 기준** | 기능 장애, 성능 저하 | 정확도 하락, 환각 증가, latency P99 |
 | **변경 단위** | 코드 커밋, 바이너리 | 프롬프트 버전, 모델 교체, 파라미터 조정 |
 
+Agentic 시스템에서도 결정적 단위·통합 테스트는 그대로 유지합니다. 통계적 평가(BLEU, Exact Match, LLM-as-Judge)는 이를 대체하는 것이 아니라, 확률적 출력에 대응해 추가로 적용하는 보완 수단입니다.
+
 ### Prompt와 Model을 코드처럼 관리해야 하는 이유
 
 1. **Prompt는 로직의 핵심**  
    "당신은 금융 분석 전문가입니다" → "당신은 보수적 투자 자문가입니다"로 한 줄 변경하면 출력 패턴 전체가 변합니다.
 
 2. **모델 교체는 런타임 교체**  
-   GPT-4 → Claude Sonnet 4.6 전환 시 동일 프롬프트도 응답 스타일, 토큰 사용량, latency가 달라집니다.
+   GPT-4 → Claude 3.5 Sonnet 전환 시 동일 프롬프트도 응답 스타일, 토큰 사용량, latency가 달라집니다.
 
 3. **변경 추적 없이는 롤백 불가**  
    "어제까지 잘 됐는데 오늘 이상해요"라는 신고를 받았을 때, 누가 어떤 프롬프트를 언제 바꿨는지 모르면 복구할 수 없습니다.
