@@ -3,9 +3,9 @@ title: 컨트롤 플레인 디버깅
 description: EKS 컨트롤 플레인 문제 진단 및 해결 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 11
 tags:
   - eks
   - kubernetes
@@ -46,8 +46,8 @@ aws eks update-cluster-config \
 fields @timestamp, @message
 | filter @logStream like /kube-apiserver-audit/
 | filter responseStatus.code >= 400
-| stats count() by responseStatus.code
-| sort count desc
+| stats count() as cnt by responseStatus.code
+| sort cnt desc
 ```
 
 ### 인증 실패 추적
@@ -74,9 +74,11 @@ fields @timestamp, @message
 ```sql
 fields @timestamp, @message
 | filter @logStream like /kube-apiserver/
-| filter @message like /throttle/ or @message like /rate limit/
+| filter @message like /throttle/ or @message like /rate limit/ or @message like /Too Many Requests/ or responseStatus.code = 429
 | stats count() by bin(5m)
 ```
+
+이 쿼리는 메시지 문자열과 HTTP 429(Too Many Requests) 응답을 함께 탐지합니다. API Priority and Fairness(APF)에 의한 거부는 로그 메시지로 드러나지 않을 수 있으므로, `apiserver_flowcontrol_rejected_requests_total` 메트릭을 보완 신호로 함께 확인합니다.
 
 ### 비인가 접근 시도 (보안 이벤트)
 
@@ -127,8 +129,9 @@ aws eks list-access-entries --cluster-name <cluster-name>
 # 1. ServiceAccount에 annotation 확인
 kubectl get sa <sa-name> -n <namespace> -o yaml
 
-# 2. Pod 내 AWS 환경변수 확인
-kubectl exec -it <pod-name> -- env | grep AWS
+# 2. Pod 내 AWS 환경변수 확인 (자격증명 값이 출력되지 않도록 설정 변수만 선택)
+kubectl exec -it <pod-name> -- env | grep -E 'AWS_(REGION|DEFAULT_REGION|ROLE_ARN|WEB_IDENTITY_TOKEN_FILE|CONTAINER_CREDENTIALS_FULL_URI|CONTAINER_CREDENTIALS_RELATIVE_URI|STS_REGIONAL_ENDPOINTS)'
+# 주의: 전체 'env | grep AWS'는 AWS_SECRET_ACCESS_KEY/AWS_SESSION_TOKEN 같은 정적 자격증명을 노출할 수 있으므로 피합니다.
 
 # 3. OIDC Provider 확인
 aws eks describe-cluster --name <cluster-name> \
@@ -149,17 +152,19 @@ aws iam get-role --role-name <role-name> \
 
 ## 서비스 어카운트 토큰 만료 (HTTP 401 Unauthorized)
 
-Kubernetes 1.21+에서 서비스 어카운트 토큰은 **기본 1시간 유효**하며, kubelet에 의해 자동 갱신됩니다. 그러나 레거시 SDK를 사용하는 경우 토큰 갱신 로직이 없어 장기 실행 워크로드에서 `401 Unauthorized` 에러가 발생할 수 있습니다.
+Kubernetes 1.21+에서 프로젝티드 서비스 어카운트 토큰은 **기본 1시간 유효**하며 kubelet이 자동 갱신합니다. EKS는 전환 편의를 위해 토큰 만료를 최대 90일까지 연장하므로, 토큰을 한 번만 읽고 캐싱하는 레거시 SDK는 즉시가 아니라 90일 경과 후 `401 Unauthorized` 에러가 발생할 수 있습니다.
 
 **증상:**
 
-- Pod이 일정 시간(보통 1시간) 후 갑자기 `HTTP 401 Unauthorized` 에러를 반환
-- 재시작 후 일시적으로 정상 동작하다가 다시 401 발생
+- Pod이 장기간(최대 90일) 실행된 뒤 갑자기 `HTTP 401 Unauthorized` 에러를 반환
+- 재시작 후 토큰을 다시 읽어 일시적으로 정상 동작하다가 다시 401 발생
 
 **원인:**
 
-- 프로젝티드 서비스 어카운트 토큰(Projected Service Account Token)은 기본 1시간 만료
-- kubelet이 토큰을 자동 갱신하지만, 애플리케이션이 파일에서 토큰을 한 번만 읽고 캐싱하면 만료된 토큰을 계속 사용
+- 프로젝티드 서비스 어카운트 토큰(Projected Service Account Token)의 기본 유효 기간은 1시간입니다.
+- 다만 EKS는 신규 시간 제한 토큰으로의 전환을 위해 토큰 만료를 **최대 90일**로 연장하며, API 서버는 90일(7,776,000초)을 초과한 토큰만 거부합니다.
+- 토큰이 1시간(경고 임계값)을 넘기면 API 서버는 감사 로그 이벤트에 `annotations.authentication.k8s.io/stale-token` 주석을 남깁니다. 따라서 1시간 직후 즉시 거부되는 것이 아니라, 토큰을 한 번만 읽고 캐싱하는 애플리케이션이 90일 경과 시점에 거부됩니다.
+- kubelet이 토큰을 자동 갱신하지만, 애플리케이션이 파일에서 토큰을 한 번만 읽고 캐싱하면 갱신된 토큰을 반영하지 못합니다.
 
 **표 1. 토큰 자동 갱신을 지원하는 언어별 최소 SDK 버전**
 
@@ -167,7 +172,7 @@ Kubernetes 1.21+에서 서비스 어카운트 토큰은 **기본 1시간 유효*
 |------|-----|----------|
 | Go | client-go | v0.15.7+ |
 | Python | kubernetes | 12.0.0+ |
-| Java | fabric8 | 5.0.0+ |
+| Java | kubernetes-client/java | 9.0.0+ |
 
 :::tip 토큰 갱신 확인
 SDK가 토큰 자동 갱신을 지원하는지 확인하세요. 지원하지 않는 경우 애플리케이션에서 주기적으로 `/var/run/secrets/kubernetes.io/serviceaccount/token` 파일을 다시 읽도록 구현해야 합니다.
@@ -195,7 +200,7 @@ kubectl logs -n kube-system -l app.kubernetes.io/name=eks-pod-identity-agent --t
 - IAM Role trust policy에 `pods.eks.amazonaws.com` 서비스 프린시펄이 있는지
 
 :::info Pod Identity vs IRSA
-Pod Identity는 IRSA보다 설정이 간단하며, cross-account 접근이 더 용이합니다. 신규 워크로드에서는 Pod Identity 사용을 권장합니다.
+Pod Identity는 IRSA보다 설정이 간단하며, cross-account 접근이 더 용이합니다. 다만 Pod Identity는 지원되는 EKS 버전과 노드 유형(Linux EC2/Managed Node Group 등, Fargate 미지원), `eks-pod-identity-agent` Add-on 설치, 그리고 Pod Identity를 인식하는 SDK 자격증명 체인 버전이 전제됩니다. 이러한 전제 조건을 충족하는 신규 워크로드에서는 Pod Identity 사용을 권장합니다.
 :::
 
 ## EKS Add-on 트러블슈팅
@@ -253,7 +258,7 @@ kubectl get sa <service-account> -n <namespace> -o jsonpath='{.metadata.annotati
 
 # 2. Pod Identity Association 확인
 aws eks list-pod-identity-associations --cluster-name $CLUSTER \
-  | jq '.associations[] | select(.serviceAccount=="<service-account>")'
+  | jq '.associations[] | select(.namespace=="<namespace>" and .serviceAccount=="<service-account>")'
 
 # 3. Pod에 환경변수가 주입되었는지 확인
 kubectl get pod <pod-name> -n <namespace> -o jsonpath='{.spec.serviceAccountName}'
@@ -306,7 +311,9 @@ aws eks describe-cluster --name <cluster-name> \
 |------|------|--------------|
 | `CONFIG_MAP` | aws-auth ConfigMap만 사용 (레거시) | 레거시 클러스터 |
 | `API` | Access Entries API만 사용 | 신규 클러스터 권장 |
-| `API_AND_CONFIG_MAP` | 두 방식 모두 허용 (기본값) | 마이그레이션 중 |
+| `API_AND_CONFIG_MAP` | 두 방식 모두 허용 | 마이그레이션 중 |
+
+기본 `authenticationMode`는 클러스터를 어떻게 생성·구성했는지에 따라 다릅니다. 콘솔에서 생성한 신규 클러스터는 `API`가 기본일 수 있고, 다른 경로로 생성한 클러스터는 `API_AND_CONFIG_MAP`일 수 있으므로, 실제 모드는 `aws eks describe-cluster`로 확인하세요. 지원되는 인증 모드는 Kubernetes 마이너 버전만이 아니라 클러스터의 플랫폼 버전과 `accessConfig` 설정에 따라 결정됩니다.
 
 **마이그레이션 가이드:**
 
@@ -314,24 +321,34 @@ aws eks describe-cluster --name <cluster-name> \
 # 1. 현재 aws-auth ConfigMap 내용 확인
 kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth-backup.yaml
 
-# 2. ConfigMap 내용을 Access Entry로 변환
+# 2. 인증 모드를 먼저 API_AND_CONFIG_MAP로 전환 (Access Entry API 활성화)
+#    create-access-entry는 API 또는 API_AND_CONFIG_MAP 모드에서만 동작합니다.
+aws eks update-cluster-config \
+  --name <cluster-name> \
+  --access-config authenticationMode=API_AND_CONFIG_MAP
+
+# 3. ConfigMap 내용을 Access Entry로 변환
 aws eks create-access-entry \
   --cluster-name <cluster-name> \
   --principal-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME \
   --type STANDARD
 
-# 3. Kubernetes RBAC 매핑 (필요 시)
+# 4. 권한 부여 (아래는 클러스터 전체 관리자 권한 예시)
 aws eks associate-access-policy \
   --cluster-name <cluster-name> \
   --principal-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME \
   --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy \
   --access-scope type=cluster
 
-# 4. 검증 후 인증 모드를 API로 전환
+# 5. 모든 Principal 검증 후 인증 모드를 API로 전환
 aws eks update-cluster-config \
   --name <cluster-name> \
   --access-config authenticationMode=API
 ```
+
+:::note 권한 매핑 주의
+4단계의 `AmazonEKSClusterAdminPolicy`(`--access-scope type=cluster`)는 Kubernetes RBAC를 그대로 옮긴 것이 아니라 **클러스터 전체 관리자 권한**을 부여합니다. 기존 aws-auth의 그룹별 권한을 보존하려면, 네임스페이스 범위(`type=namespace`)나 최소 권한에 맞는 EKS access policy를 선택하거나, Access Entry의 Kubernetes 그룹(`--kubernetes-groups`)으로 원래 RBAC 그룹에 매핑하세요.
+:::
 
 :::warning 인증 모드 변경 시 주의사항
 `CONFIG_MAP` → `API`로 전환하면 aws-auth ConfigMap이 무시됩니다. 반드시 모든 IAM Principal을 Access Entry로 마이그레이션한 후 전환하세요.
@@ -347,10 +364,11 @@ kubectl auth can-i delete pods --namespace=kube-system
 # 특정 ServiceAccount의 권한 확인
 kubectl auth can-i list secrets --as=system:serviceaccount:default:my-sa
 
-# 모든 권한 확인 (현재 사용자)
+# RBAC로부터 파생된 권한 목록 (현재 사용자)
+# 주의: can-i --list는 RBAC(Role/ClusterRole) 기반 권한만 열거하며, EKS access policy로 부여된 권한은 포함하지 않습니다.
 kubectl auth can-i --list
 
-# 특정 네임스페이스에서 모든 권한 확인
+# 특정 네임스페이스에서 RBAC 기반 권한 목록
 kubectl auth can-i --list --namespace=production
 ```
 
@@ -391,7 +409,11 @@ aws eks create-pod-identity-association \
   --service-account <service-account> \
   --role-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME
 
-# Pod 재시작 (Association은 Pod 생성 시점에 적용됨)
+# Pod 재생성으로 Association 적용 (Association은 Pod 생성 시점에 적용됨)
+# 컨트롤러(Deployment 등)가 관리하는 Pod은 rollout restart를 권장합니다.
+kubectl rollout restart deployment/<deployment-name> -n <namespace>
+# 단일 Pod을 직접 삭제하면 재생성되는 것은 컨트롤러가 관리할 때뿐이며,
+# 직접 삭제는 PodDisruptionBudget의 축출 검사를 우회합니다.
 kubectl delete pod <pod-name> -n <namespace>
 ```
 

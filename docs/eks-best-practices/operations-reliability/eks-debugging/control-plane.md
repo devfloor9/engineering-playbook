@@ -3,9 +3,9 @@ title: Control Plane Debugging
 description: Guide to diagnosing and resolving EKS control plane issues
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 10
+reading_time: 16
 tags:
   - eks
   - kubernetes
@@ -46,8 +46,8 @@ Enabling all log types increases CloudWatch Logs cost. For production, enabling 
 fields @timestamp, @message
 | filter @logStream like /kube-apiserver-audit/
 | filter responseStatus.code >= 400
-| stats count() by responseStatus.code
-| sort count desc
+| stats count() as cnt by responseStatus.code
+| sort cnt desc
 ```
 
 ### Authentication Failure Tracking
@@ -74,9 +74,11 @@ fields @timestamp, @message
 ```sql
 fields @timestamp, @message
 | filter @logStream like /kube-apiserver/
-| filter @message like /throttle/ or @message like /rate limit/
+| filter @message like /throttle/ or @message like /rate limit/ or @message like /Too Many Requests/ or responseStatus.code = 429
 | stats count() by bin(5m)
 ```
+
+This query detects both message-string matches and HTTP 429 (Too Many Requests) responses. Rejections from API Priority and Fairness (APF) may not appear as log messages, so also check the `apiserver_flowcontrol_rejected_requests_total` metric as a complementary signal.
 
 ### Unauthorized Access Attempts (Security Events)
 
@@ -127,8 +129,9 @@ aws eks list-access-entries --cluster-name <cluster-name>
 # 1. Check ServiceAccount annotations
 kubectl get sa <sa-name> -n <namespace> -o yaml
 
-# 2. Check AWS environment variables inside the Pod
-kubectl exec -it <pod-name> -- env | grep AWS
+# 2. Check AWS environment variables inside the Pod (select config vars only so credential values are not printed)
+kubectl exec -it <pod-name> -- env | grep -E 'AWS_(REGION|DEFAULT_REGION|ROLE_ARN|WEB_IDENTITY_TOKEN_FILE|CONTAINER_CREDENTIALS_FULL_URI|CONTAINER_CREDENTIALS_RELATIVE_URI|STS_REGIONAL_ENDPOINTS)'
+# Warning: a broad 'env | grep AWS' can expose static credentials such as AWS_SECRET_ACCESS_KEY/AWS_SESSION_TOKEN, so avoid it.
 
 # 3. Check the OIDC Provider
 aws eks describe-cluster --name <cluster-name> \
@@ -149,17 +152,19 @@ aws iam get-role --role-name <role-name> \
 
 ## Service Account Token Expiration (HTTP 401 Unauthorized)
 
-In Kubernetes 1.21+, service account tokens are **valid for 1 hour by default** and are automatically rotated by kubelet. However, applications using legacy SDKs lack token refresh logic, which can cause `401 Unauthorized` errors in long-running workloads.
+In Kubernetes 1.21+, projected service account tokens are **valid for 1 hour by default** and are automatically rotated by kubelet. To ease migration, EKS extends the token expiration to up to 90 days, so legacy SDKs that read the token once and cache it fail with `401 Unauthorized` errors not immediately but after the 90-day expiration.
 
 **Symptoms:**
 
-- After a certain period (typically 1 hour), Pods suddenly return `HTTP 401 Unauthorized` errors
-- After restart, operations work briefly and then 401 errors recur
+- After running for a long time (up to 90 days), Pods suddenly return `HTTP 401 Unauthorized` errors
+- After a restart the token is re-read, so operations work briefly and then 401 errors recur
 
 **Cause:**
 
-- Projected Service Account Tokens expire after 1 hour by default
-- kubelet rotates tokens automatically, but applications that read the token file once and cache it will keep using the expired token
+- The default validity of a Projected Service Account Token is 1 hour.
+- However, EKS extends the token expiration to **up to 90 days** to help transition to the new time-bound tokens, and the API server rejects only tokens older than 90 days (7,776,000 seconds).
+- Once a token passes 1 hour (the warning threshold), the API server annotates the audit log event with `annotations.authentication.k8s.io/stale-token`. So requests are not rejected right after 1 hour; an application that reads the token once and caches it is rejected at the 90-day mark.
+- kubelet rotates tokens automatically, but an application that reads the token file once and caches it will not pick up the rotated token.
 
 **Table 1. Minimum SDK version per language that supports automatic token rotation**
 
@@ -167,7 +172,7 @@ In Kubernetes 1.21+, service account tokens are **valid for 1 hour by default** 
 |------|-----|----------|
 | Go | client-go | v0.15.7+ |
 | Python | kubernetes | 12.0.0+ |
-| Java | fabric8 | 5.0.0+ |
+| Java | kubernetes-client/java | 9.0.0+ |
 
 :::tip Token Refresh Verification
 Verify that the SDK supports automatic token refresh. If not, the application must periodically re-read `/var/run/secrets/kubernetes.io/serviceaccount/token`.
@@ -195,7 +200,7 @@ kubectl logs -n kube-system -l app.kubernetes.io/name=eks-pod-identity-agent --t
 - Does the IAM Role trust policy include the `pods.eks.amazonaws.com` service principal?
 
 :::info Pod Identity vs IRSA
-Pod Identity is simpler to configure than IRSA and makes cross-account access easier. For new workloads, Pod Identity is recommended.
+Pod Identity is simpler to configure than IRSA and makes cross-account access easier. However, Pod Identity requires a supported EKS version and node type (Linux EC2/Managed Node Groups, etc.; Fargate is not supported), the `eks-pod-identity-agent` Add-on installed, and an SDK credential-chain version that recognizes Pod Identity. For new workloads that meet these prerequisites, Pod Identity is recommended.
 :::
 
 ## EKS Add-on Troubleshooting
@@ -253,7 +258,7 @@ kubectl get sa <service-account> -n <namespace> -o jsonpath='{.metadata.annotati
 
 # 2. Check Pod Identity Association
 aws eks list-pod-identity-associations --cluster-name $CLUSTER \
-  | jq '.associations[] | select(.serviceAccount=="<service-account>")'
+  | jq '.associations[] | select(.namespace=="<namespace>" and .serviceAccount=="<service-account>")'
 
 # 3. Check whether environment variables are injected into the Pod
 kubectl get pod <pod-name> -n <namespace> -o jsonpath='{.spec.serviceAccountName}'
@@ -289,7 +294,7 @@ aws eks create-pod-identity-association \
 ### Mixing aws-auth ConfigMap with EKS Access Entries
 
 **Problem:**
-- EKS 1.23+ introduces the Access Entries API which can replace aws-auth ConfigMap
+- The Access Entries API can replace the aws-auth ConfigMap; its availability depends on the cluster's supported platform version rather than a minor version alone
 - Using both mechanisms together can produce unexpected authentication behavior
 
 **Check authentication mode:**
@@ -304,9 +309,11 @@ aws eks describe-cluster --name <cluster-name> \
 
 | Mode | Description | Recommended Use |
 |------|------|--------------|
-| `CONFIG_MAP` | Uses only aws-auth ConfigMap (legacy) | EKS 1.22 and earlier |
-| `API` | Uses only Access Entries API | New clusters (EKS 1.23+) |
-| `API_AND_CONFIG_MAP` | Both mechanisms allowed (default) | During migration |
+| `CONFIG_MAP` | Uses only aws-auth ConfigMap (legacy) | Legacy clusters |
+| `API` | Uses only Access Entries API | Recommended for new clusters |
+| `API_AND_CONFIG_MAP` | Both mechanisms allowed | During migration |
+
+The default `authenticationMode` depends on how the cluster was created and configured. A new cluster created in the console may default to `API`, while a cluster created through another path may be `API_AND_CONFIG_MAP`, so check the actual mode with `aws eks describe-cluster`. Which authentication modes are supported is determined by the cluster's platform version and `accessConfig`, not by the Kubernetes minor version alone.
 
 **Migration guide:**
 
@@ -314,24 +321,34 @@ aws eks describe-cluster --name <cluster-name> \
 # 1. Back up current aws-auth ConfigMap contents
 kubectl get configmap aws-auth -n kube-system -o yaml > aws-auth-backup.yaml
 
-# 2. Convert ConfigMap entries to Access Entries
+# 2. Switch authentication mode to API_AND_CONFIG_MAP first (enables the Access Entry API)
+#    create-access-entry works only in API or API_AND_CONFIG_MAP mode.
+aws eks update-cluster-config \
+  --name <cluster-name> \
+  --access-config authenticationMode=API_AND_CONFIG_MAP
+
+# 3. Convert ConfigMap entries to Access Entries
 aws eks create-access-entry \
   --cluster-name <cluster-name> \
   --principal-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME \
   --type STANDARD
 
-# 3. Kubernetes RBAC mapping (as needed)
+# 4. Grant permissions (the example below grants cluster-wide admin)
 aws eks associate-access-policy \
   --cluster-name <cluster-name> \
   --principal-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME \
   --policy-arn arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy \
   --access-scope type=cluster
 
-# 4. After validation, switch authentication mode to API
+# 5. After validating every principal, switch authentication mode to API
 aws eks update-cluster-config \
   --name <cluster-name> \
   --access-config authenticationMode=API
 ```
+
+:::note Permission Mapping Caveat
+`AmazonEKSClusterAdminPolicy` with `--access-scope type=cluster` in step 4 does not reproduce your Kubernetes RBAC; it grants **cluster-wide admin**. To preserve the per-group permissions from aws-auth, pick a namespace-scoped (`type=namespace`) or least-privilege EKS access policy, or map to your original RBAC groups via the Access Entry Kubernetes groups (`--kubernetes-groups`).
+:::
 
 :::warning Caveats When Changing Authentication Mode
 Switching from `CONFIG_MAP` to `API` causes aws-auth ConfigMap to be ignored. Migrate every IAM Principal to Access Entries before switching.
@@ -347,10 +364,11 @@ kubectl auth can-i delete pods --namespace=kube-system
 # Check permissions for a specific ServiceAccount
 kubectl auth can-i list secrets --as=system:serviceaccount:default:my-sa
 
-# List all permissions (current user)
+# List RBAC-derived permissions (current user)
+# Note: can-i --list enumerates only RBAC (Role/ClusterRole) permissions; it does not include grants from EKS access policies.
 kubectl auth can-i --list
 
-# List all permissions in a specific namespace
+# List RBAC-derived permissions in a specific namespace
 kubectl auth can-i --list --namespace=production
 ```
 
@@ -391,7 +409,11 @@ aws eks create-pod-identity-association \
   --service-account <service-account> \
   --role-arn arn:aws:iam::ACCOUNT:role/ROLE-NAME
 
-# Restart Pod (Association applies at Pod creation time)
+# Recreate the Pod to apply the Association (Association applies at Pod creation time)
+# For controller-managed Pods (e.g., a Deployment), prefer rollout restart.
+kubectl rollout restart deployment/<deployment-name> -n <namespace>
+# Deleting a single Pod directly recreates it only when a controller manages it,
+# and a direct delete bypasses PodDisruptionBudget eviction checks.
 kubectl delete pod <pod-name> -n <namespace>
 ```
 

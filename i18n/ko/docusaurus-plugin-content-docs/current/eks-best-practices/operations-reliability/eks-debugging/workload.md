@@ -3,9 +3,9 @@ title: 워크로드 디버깅
 description: EKS 워크로드 문제 진단 및 해결 가이드 - Pod 상태별 디버깅, 배포 실패 패턴, Probe 설정
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-19
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -47,9 +47,11 @@ flowchart TD
     liveness probe 확인
     앱 설정/의존성 점검`"]
 
-    STATUS -->|OOMKilled| OOM{"`메모리 초과`"}
-    OOM --> OOM_FIX["`메모리 limits 증가
-    앱 메모리 누수 점검
+    STATUS -->|OOMKilled| OOM{"`메모리 초과
+    (컨테이너 limit vs 노드 압박)`"}
+    OOM --> OOM_FIX["`컨테이너 limit 초과: 메모리 limit 증가/누수 점검
+    노드 메모리 압박(MemoryPressure)/축출: node 조건 확인
+    requests 대비 노드 용량 점검
     JVM heap 설정 확인`"]
 
     STATUS -->|Running but not Ready| READY{"`Readiness 실패`"}
@@ -58,11 +60,11 @@ flowchart TD
     의존 서비스 상태 확인`"]
 
     STATUS -->|Terminating| TERM{"`종료 지연`"}
-    TERM --> TERM_FIX["`Finalizer 확인
+    TERM --> TERM_FIX["`Finalizer/프로세스 먼저 조사
     preStop hook 점검
-    강제 삭제:
-    kubectl delete pod --force
-    --grace-period=0`"]
+    강제 삭제는 최후 수단:
+    --force는 API 객체만 제거
+    (프로세스 종료 미보장)`"]
 
     style START fill:#ff4444,stroke:#cc3636,color:#fff
     style PEND_RES fill:#34a853,stroke:#2a8642,color:#fff
@@ -123,7 +125,7 @@ kubectl debug node/<node-name> -it --image=ubuntu
 ```
 
 :::tip kubectl debug vs SSM
-`kubectl debug node/` 는 SSM Agent가 설치되지 않은 노드에서도 사용 가능합니다. 다만, 호스트 네트워크 네임스페이스에 접근하려면 `--profile=sysadmin` 옵션을 추가하세요.
+`kubectl debug node/` 는 SSM Agent가 설치되지 않은 노드에서도 사용 가능합니다. 기본 디버깅 Pod은 이미 호스트 IPC/네트워크/PID 네임스페이스를 공유하지만 특권(privileged)은 아니어서 일부 작업(예: `chroot /host`)이 제한됩니다. 특권 프로파일(호스트 네임스페이스 포함)이 필요하면 `--profile=sysadmin` 옵션을 추가합니다. 이는 호스트 네트워크 전용 스위치가 아니라 특권 프로파일을 부여하는 옵션입니다.
 :::
 
 ## 배포는 됐는데 안 되는 패턴
@@ -180,8 +182,8 @@ flowchart TD
 |------|------|----------|
 | **readinessProbe path ≠ 실제 endpoint** | Probe가 404 Not Found 반환 | 앱의 실제 헬스체크 경로와 일치시키기 (`/health`, `/healthz`, `/ready` 등) |
 | **initialDelaySeconds < 앱 부팅 시간** | 앱이 준비되기 전에 Probe 시작 → 실패 | Spring Boot/JVM 앱은 30초 이상 필요. initialDelaySeconds 증가 또는 startupProbe 사용 |
-| **startupProbe 미사용** | 느린 앱이 반복 재시작 | startupProbe를 추가하여 초기 시작 시간 확보 (최대 failureThreshold × periodSeconds) |
-| **헬스체크에 외부 의존성 포함** | DB 장애 시 모든 Pod Ready=false | readinessProbe는 Pod 자체의 준비 상태만 확인 (DB 연결 제외) |
+| **startupProbe 미사용 (livenessProbe와 함께 쓸 때)** | 느린 앱이 준비 전 livenessProbe에 걸려 반복 재시작(readiness가 아닌 liveness/재시작 문제) | startupProbe를 추가하여 초기 시작 시간 확보 (최대 failureThreshold × periodSeconds) |
+| **헬스체크에 외부 의존성 포함** | DB 장애 시 모든 Pod Ready=false | readinessProbe는 보통 Pod 자체 준비 상태만 확인하고 하드 외부 의존성(DB 등)은 제외합니다. 단, 해당 의존성 없이는 요청을 처리할 수 없는 경우에는 포함을 고려합니다 |
 
 #### 해결 예제
 
@@ -249,6 +251,8 @@ ConfigMap 또는 Secret을 업데이트했지만 Pod에 반영되지 않는 경�
 | **volumeMount + subPath** | 미지원 | N/A | Pod 재시작 필수 |
 | **envFrom / env** | 미지원 | N/A | Pod 재시작 필수 |
 
+여기서 "자동 업데이트"는 kubelet이 sync 주기(약 1-2분) 안에 마운트된 파일 내용을 갱신한다는 의미입니다. 애플리케이션이 변경을 반영하려면 파일을 다시 읽거나(또는 재시작) 해야 하며, 파일을 한 번만 읽는 앱은 kubelet이 파일을 갱신해도 변경을 반영하지 않습니다.
+
 ```bash
 # ConfigMap 업데이트 확인
 kubectl get cm <configmap-name> -o yaml
@@ -271,6 +275,7 @@ metadata:
 spec:
   containers:
   - name: app
+    image: my-app:latest
     volumeMounts:
     - name: config
       mountPath: /etc/app/config.yaml
@@ -280,6 +285,7 @@ spec:
     configMap:
       name: app-config
 
+---
 # ✅ 좋은 예: subPath 제거 → 자동 업데이트 가능
 apiVersion: v1
 kind: Pod
@@ -288,6 +294,7 @@ metadata:
 spec:
   containers:
   - name: app
+    image: my-app:latest
     volumeMounts:
     - name: config
       mountPath: /etc/app  # 디렉토리 전체 마운트
@@ -315,7 +322,7 @@ kind: Deployment
 metadata:
   name: app
   annotations:
-    reloader.stakater.com/auto: "true"  # 모든 ConfigMap/Secret 감시
+    reloader.stakater.com/auto: "true"  # 이 Deployment가 참조하는 ConfigMap/Secret만 감시 (클러스터 전체가 아님)
     # 또는 특정 리소스만:
     # configmap.reloader.stakater.com/reload: "app-config,common-config"
 spec:
@@ -358,8 +365,8 @@ kubectl top pods  # 이 명령어가 실패하면 metrics-server 문제
 |------|------|------|
 | `TARGETS`가 `<unknown>` | metrics-server 미설치 또는 장애 | metrics-server 설치 및 상태 확인 |
 | `unable to get metrics` | Pod에서 메트릭 수집 실패 | Pod의 resource requests 설정 확인 (requests 없으면 CPU 사용률 계산 불가) |
-| `current replicas above Deployment.spec.replicas` | minReplicas > Deployment replicas | HPA minReplicas ≤ Deployment replicas |
-| 스케일업 후 즉시 스케일다운 | stabilizationWindow 미설정 | `behavior.scaleDown.stabilizationWindowSeconds` 설정 (기본 300초) |
+| `current replicas above Deployment.spec.replicas` | 정보성 메시지(장애 아님). HPA가 복제본 수를 관리하므로 minReplicas가 현재 Deployment replicas보다 크면 HPA가 그 값까지 스케일업합니다 | 조치 불필요. HPA가 복제본을 `[minReplicas, maxReplicas]` 범위로 조정합니다 |
+| 스케일업 후 즉시 스케일다운 | scaleDown stabilizationWindow를 낮은 값으로 재정의했거나 메트릭이 요동침 (`scaleDown.stabilizationWindowSeconds`의 기본값은 이미 300초이므로 미설정이 원인은 아님) | 명시적으로 낮춘 `behavior.scaleDown.stabilizationWindowSeconds`를 300초 수준으로 되돌리고, 메트릭 요동(flapping) 여부를 확인 |
 | `invalid metrics` | 커스텀 메트릭 소스 오류 | Prometheus Adapter 설정 확인 |
 
 #### 올바른 HPA 설정 예제
@@ -411,7 +418,7 @@ spec:
 :::warning HPA를 위한 필수 조건
 1. **metrics-server 설치 필수**: EKS 클러스터에 기본 설치되어 있지 않습니다.
 2. **Pod에 resource requests 설정 필수**: CPU/메모리 사용률을 계산하려면 requests 값이 필요합니다.
-3. **Deployment와 HPA minReplicas 일치**: Deployment의 replicas ≥ HPA minReplicas
+3. **metrics-server와 resource requests가 전제**: 위 두 조건이 충족되면 HPA가 복제본을 `[minReplicas, maxReplicas]` 범위로 조정합니다. minReplicas가 현재 Deployment replicas보다 커도 정상이며 HPA가 그 값까지 스케일업합니다.
 :::
 
 ### Pattern 4: Sidecar 순서 문제
@@ -440,14 +447,16 @@ spec:
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 5"]  # 앱이 먼저 종료되도록 대기
+          command: ["/bin/sh", "-c", "sleep 5"]  # 앱이 드레이닝할 시간을 확보(순서 보장은 아님)
   - name: envoy
     image: envoyproxy/envoy:v1.28
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 15"]  # Envoy는 더 오래 대기
+          command: ["/bin/sh", "-c", "sleep 15"]  # Envoy를 더 오래 대기시킴(순서 보장은 아님)
 ```
+
+preStop Hook은 컨테이너마다 Pod 종료 시점에 **동시에** 실행되고, 모든 preStop과 뒤이은 SIGTERM 처리는 하나의 `terminationGracePeriodSeconds` 안에서 끝나야 합니다. 따라서 sleep 값을 다르게 주는 것은 종료 타이밍을 한쪽으로 기울일 뿐, 앱이 Envoy보다 먼저 드레이닝을 끝낸다고 보장하지 못합니다. 순서를 보장하려면 아래의 Native Sidecar를 사용합니다.
 
 #### Kubernetes 1.29+ (Native Sidecar)
 
@@ -474,6 +483,7 @@ spec:
 - Pod 시작 시: sidecar가 먼저 시작된 후 메인 앱 시작
 - Pod 종료 시: 메인 앱이 먼저 종료되고 sidecar가 마지막에 종료
 - preStop Hook의 sleep 트릭이 불필요
+- 이 순서 보장도 Pod 하나의 `terminationGracePeriodSeconds` 안에서만 이뤄지며, 이 시간이 지나면 sidecar를 포함한 남은 컨테이너는 SIGKILL로 강제 종료됨
 :::
 
 ### Pattern 5: Timezone/Locale 이슈
@@ -503,13 +513,14 @@ spec:
     env:
     - name: TZ
       value: "Asia/Seoul"
-    # Java 앱의 경우 추가 옵션
-    - name: JAVA_OPTS
+    # Java 앱: JVM이 자동으로 읽는 JAVA_TOOL_OPTIONS 사용
+    # (JAVA_OPTS는 java 런처가 자동으로 읽지 않으며, 시작 스크립트가 넘겨줄 때만 적용됨)
+    - name: JAVA_TOOL_OPTIONS
       value: "-Duser.timezone=Asia/Seoul"
 ```
 
 :::warning 컨테이너 이미지에 tzdata 설치 필요
-일부 최소화된 이미지(distroless, alpine)는 timezone 데이터가 없습니다. Dockerfile에 `tzdata` 패키지를 설치하세요.
+alpine 같은 최소화된 이미지는 timezone 데이터가 없을 수 있어 Dockerfile에서 `tzdata`를 설치해야 합니다. 반면 distroless 베이스 이미지는 tzdata를 포함하고 있고 패키지 매니저(apk/apt)가 없으므로, 아래 설치 명령은 distroless가 아닌 alpine·debian 계열 이미지에만 적용됩니다.
 
 ```dockerfile
 # Alpine 기반
@@ -531,10 +542,13 @@ kubectl get resourcequota -n <namespace>
 # 상세 정보 (사용량/제한 비교)
 kubectl describe resourcequota -n <namespace>
 
-# 증상: Pod이 Pending 상태로 멈추고 이벤트에 "exceeded quota" 메시지
-kubectl describe pod <pod-name> -n <namespace>
+# 증상: 할당량 초과 시 컨트롤러가 Pod 생성에 실패 (admission 단계 거부이므로 Pending Pod이 생기지 않음)
+# "exceeded quota" 이벤트는 ReplicaSet/Deployment 컨트롤러에 나타나므로 ReplicaSet 또는 이벤트를 확인
+kubectl describe rs <replicaset-name> -n <namespace>
+kubectl get events -n <namespace> --field-selector reason=FailedCreate
 # Events:
 #   Warning  FailedCreate  Error creating: pods "app-xxx" is forbidden: exceeded quota: compute-quota
+# (bare Pod을 직접 생성하면 Pending 없이 즉시 거부됨)
 ```
 
 #### ResourceQuota 조정

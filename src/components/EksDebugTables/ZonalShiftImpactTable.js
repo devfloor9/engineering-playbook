@@ -3,12 +3,12 @@ import React from 'react';
 const rows = [
   { layer: 'ALB / NLB', impact: '해당 AZ Target Group에서 제거', auto: true, manual: '-', icon: '🔀' },
   { layer: 'EKS Service (kube-proxy)', impact: '해당 AZ의 Endpoint 가중치 제거', auto: true, manual: '-', icon: '🔀' },
-  { layer: '기존 노드', impact: '계속 실행됨', auto: false, manual: 'kubectl drain 으로 Pod 이동', icon: '💻' },
-  { layer: '기존 Pod', impact: '트래픽만 차단, Pod 자체는 실행 중', auto: false, manual: 'drain 시 자동 재배치', icon: '📦' },
+  { layer: '기존 노드', impact: '종료되지 않고 계속 실행되나, 해당 AZ 노드는 cordon되어 새 Pod 스케줄링이 차단됨', auto: true, manual: 'kubectl drain 으로 Pod 이동', icon: '💻' },
+  { layer: '기존 Pod', impact: 'EndpointSlice에서 제거되어 트래픽은 차단되나 Pod 자체는 종료되지 않음(축출되지 않음)', auto: true, manual: 'drain 시 자동 재배치', icon: '📦' },
   { layer: 'Karpenter NodePool', impact: 'AZ 설정 변경 없음, 해당 AZ에 새 노드 생성 가능', auto: false, manual: 'NodePool requirements 수정', icon: '⚙️' },
-  { layer: 'ASG (Managed Node Group)', impact: '서브넷 목록 변경 없음, 해당 AZ에 스케일아웃 가능', auto: false, manual: 'ASG 서브넷 수정 (콘솔/IaC)', icon: '📊' },
+  { layer: 'ASG (Managed Node Group)', impact: 'AZ rebalancing은 중단되나 서브넷 목록은 유지되어 수동 조정 필요', auto: false, manual: 'ASG 서브넷 수정 (콘솔/IaC)', icon: '📊' },
   { layer: 'EBS 볼륨', impact: 'AZ에 고정, 이동 불가', auto: false, manual: '스냅샷 → 다른 AZ에 복원', icon: '💾' },
-  { layer: 'EFS Mount Target', impact: '다른 AZ의 Mount Target 자동 사용', auto: true, manual: '-', icon: '📁' },
+  { layer: 'EFS Mount Target', impact: '신규 마운트는 리전 DNS로 다른 AZ Mount Target 사용 가능, 기존 마운트는 자동 전환 안 됨', auto: false, manual: '해당 AZ 마운트 Pod 재마운트', icon: '📁' },
 ];
 
 export default function ZonalShiftImpactTable() {
@@ -16,7 +16,7 @@ export default function ZonalShiftImpactTable() {
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: 760, margin: '0 0 1.5rem 0' }}>
       <div style={{ background: 'linear-gradient(135deg, #92400e 0%, #b45309 100%)', borderRadius: '12px 12px 0 0', padding: '1rem 1.5rem', color: 'white' }}>
         <div style={{ fontSize: '0.95rem', fontWeight: 700 }}>⚡ ARC Zonal Shift 영향 범위</div>
-        <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>Zonal Shift는 트래픽 라우팅만 변경합니다 — 각 계층별 영향 확인</div>
+        <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>Zonal Shift는 트래픽 차단과 함께 해당 AZ 노드 cordon으로 신규 스케줄링도 차단합니다 — 각 계층별 영향 확인</div>
       </div>
       <div style={{ background: 'var(--ifm-background-surface-color)', border: '1px solid var(--ifm-color-emphasis-200)', borderTop: 'none', borderRadius: '0 0 12px 12px', overflow: 'hidden' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto auto', gap: 0, fontSize: '0.72rem', fontWeight: 700, color: 'var(--ifm-color-emphasis-600)', background: 'var(--ifm-background-surface-color)', padding: '0.6rem 1rem', borderBottom: '1px solid var(--ifm-color-emphasis-200)' }}>
