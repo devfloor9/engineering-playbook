@@ -3,9 +3,9 @@ title: Observability Stack
 description: The data foundation of AIDLC Operations — building 3-Pillar observability + AI analysis layer
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 28
+reading_time: 31
 tags:
   - observability
   - adot
@@ -123,7 +123,7 @@ graph TB
 - **CloudWatch API**: AWS native integration
 
 **3. Storage Layer**:
-- **AMP**: Long-term metric storage (150 days), PromQL support
+- **AMP**: Long-term metric storage (150 days by default, configurable), PromQL support
 - **CloudWatch Logs**: Log centralization, Insights queries
 - **X-Ray**: Distributed tracing storage
 
@@ -143,7 +143,7 @@ graph TB
 <StackSelectionPatterns />
 
 :::tip ADOT (OpenTelemetry) Collection Layer
-Regardless of which backend you choose, **using ADOT as the collection layer provides freedom in backend replacement**. Since OpenTelemetry is a CNCF standard, data can be exported to most backends including Prometheus, Datadog, and Sumo Logic. This is why AWS provides OpenTelemetry as a Managed Add-on (ADOT) instead of its own agent.
+Regardless of which backend you choose, **using ADOT as the collection layer provides freedom in backend replacement**. Since OpenTelemetry is a CNCF standard, data can be exported to most backends including Prometheus, Datadog, and Sumo Logic. AWS offers ADOT as a managed collection option alongside the CloudWatch Agent, not as a replacement for it.
 :::
 
 ---
@@ -152,7 +152,7 @@ Regardless of which backend you choose, **using ADOT as the collection layer pro
 
 ### 3.1 Building on Managed Add-ons
 
-**EKS Managed Add-ons** eliminate operational complexity by having AWS manage installation, upgrades, and patches for observability agents.
+**EKS Managed Add-ons** reduce operational complexity by having AWS manage installation, patches, and version-compatibility validation for observability agents. However, add-on version upgrades must be triggered by the customer, and application-side instrumentation is not within the managed scope.
 
 | Add-on | Role | Version Example |
 |--------|------|----------|
@@ -181,18 +181,18 @@ When using ADOT Add-on:
 - Automatic OpenTelemetry Operator installation
 - Built-in AWS service authentication (SigV4)
 - AWS guarantees EKS version compatibility
-- 80% reduction in operational burden vs self-deployment
+- AWS manages installation and patching, but version upgrades are triggered by the customer
 :::
 
 ### 3.2 AMP + AMG Integration
 
 **Amazon Managed Prometheus (AMP)**:
-- 150-day long-term metric retention (60% cost savings vs self-hosted)
+- Configurable metric retention, 150 days by default, adjustable up to 1095 days (3 years) (can reduce cost vs self-hosted)
 - Full PromQL compatibility
-- Auto-scaling (unlimited throughput)
+- Auto-scales with ingestion volume, subject to service quotas (e.g., active series limits)
 
 **Amazon Managed Grafana (AMG)**:
-- Automatic management of latest Grafana v11.x
+- You choose a Grafana major version when creating a workspace (as of 2026-10, versions 9/10/12/13 are supported), and AWS manages the platform for the chosen version
 - Integrated AMP/CloudWatch/X-Ray data sources
 - Built-in SAML/SSO authentication
 
@@ -235,9 +235,11 @@ Enhanced Container Insights incurs additional costs of $50-200/month. Recommende
 
 ### 4.2 Application Signals
 
-**Zero-code instrumentation** automatically generates service maps, SLI/SLO, and call graphs for applications.
+**Auto-instrumentation** generates service maps, SLI/SLO, and call graphs without application code changes. This zero-code behavior applies only to the auto-instrumented runtimes listed below, not to cases such as Node.js that require manual instrumentation.
 
-**Supported Languages**:
+**Prerequisites**: The CloudWatch Observability add-on (or the OpenTelemetry Operator) must be installed, and the target Pod must enable injection via the annotation shown below.
+
+**Supported Languages (as of 2026-10, verify against AWS docs)**:
 - **Java**: Spring Boot, Tomcat, Jetty (auto-instrumentation)
 - **Python**: Django, Flask, FastAPI (auto-instrumentation)
 - **.NET**: ASP.NET Core (auto-instrumentation)
@@ -299,7 +301,7 @@ Question: "Which services have slower API response times today vs yesterday?"
 **Analysis Process**:
 1. **Alarm Trigger**: CloudWatch Alarm or DevOps Guru insight occurs
 2. **Context Collection**: Automatically collect related metrics, logs, traces, configuration change history
-3. **AI Analysis**: AI analyzes collected data to infer root cause
+3. **AI Analysis**: AI analyzes collected data to suggest candidate root causes (not a proven finding, but an estimate requiring human confirmation)
 4. **Timeline Generation**: Organize event sequence chronologically
 5. **Recommended Actions**: Present specific solutions
 
@@ -316,7 +318,7 @@ Question: "Which services have slower API response times today vs yesterday?"
   14:27 - Downstream order-service also affected
   14:30 - CloudWatch Alarm triggered
 
-🔍 Root Cause:
+🔍 Candidate Root Cause (needs confirmation):
   RDS instance (db.r5.large) connection count approaching
   max_connections, causing new connection creation delays
 
@@ -328,7 +330,7 @@ Question: "Which services have slower API response times today vs yesterday?"
 ```
 
 :::tip Investigation + Hosted MCP
-CloudWatch Investigations results can be queried directly in Kiro through **Hosted MCP servers**. "Any ongoing Investigations?" → MCP returns Investigation status → Kiro automatically generates response code. This is the complete **AI analysis → automated response** loop.
+CloudWatch Investigations results can be queried directly in Kiro through **Hosted MCP servers**. "Any ongoing Investigations?" → MCP returns Investigation status → Kiro generates response code. After code generation, however, human review/approval, execution, and result verification follow, so this is not a fully closed autonomous loop but a flow of **AI analysis → human confirmation → execution → verification**.
 :::
 
 ---
@@ -371,7 +373,9 @@ graph LR
 
 ### 6.2 EKS MCP Server Key Tools
 
-| Tool | Function | Usage Example |
+The tool names in the table below (`list_pods`, etc.) are illustrative pseudo-tools for explanation and do not map 1:1 to the published schema of any specific MCP server. Check the actual tool names and arguments in the documentation of the server you use (e.g., awslabs' EKS MCP and CloudWatch MCP).
+
+| Tool (illustrative) | Function | Usage Example |
 |------|------|----------|
 | **list_pods** | Query Pod list by namespace | "What's the Pod status in payment namespace?" |
 | **get_pod_logs** | Query Pod logs (tail support) | "What are the last 100 lines of payment-xxx Pod logs?" |
@@ -384,7 +388,7 @@ graph LR
 
 **Scenario: Report of "payment-service is slow"**
 
-Integrated analysis process in Kiro through MCP:
+Integrated analysis process in Kiro through MCP. The calls below (`list_pods`, etc.) reuse the illustrative tool names from 6.2 as a conceptual flow.
 
 ```
 [Kiro + MCP Integrated Analysis]
@@ -442,17 +446,22 @@ spec:
   groups:
     - name: slo.payment-service
       rules:
-        # SLI: Error rate
+        # SLI: Error rate (short 5m and long 1h windows)
         - record: sli:payment_error_rate:5m
           expr: |
             sum(rate(http_requests_total{service="payment",status=~"5.."}[5m]))
             / sum(rate(http_requests_total{service="payment"}[5m]))
+        - record: sli:payment_error_rate:1h
+          expr: |
+            sum(rate(http_requests_total{service="payment",status=~"5.."}[1h]))
+            / sum(rate(http_requests_total{service="payment"}[1h]))
 
-        # Error Budget burn rate (1-hour window)
+        # Error Budget burn rate: fire only when both the long (1h) and short (5m) windows exceed the threshold
         - alert: PaymentErrorBudgetBurn
           expr: |
-            sli:payment_error_rate:5m > (1 - 0.999) * 14.4
-          for: 5m
+            sli:payment_error_rate:1h > (1 - 0.999) * 14.4
+            and sli:payment_error_rate:5m > (1 - 0.999) * 14.4
+          for: 2m
           labels:
             severity: critical
             service: payment
@@ -477,17 +486,17 @@ aws cloudwatch put-composite-alarm \
 
 | Item | Current Problem | After Optimization |
 |------|----------|----------|
-| **Alert Frequency** | 200/day | 20-30/day (90% reduction) |
-| **False Positive** | 85% | 15% (85% accuracy) |
-| **Average Response Time** | 45 min | 5 min (90% reduction) |
+| **Alert Frequency** | 200/day | 20-30/day (~90% reduction, example) |
+| **False Positive Rate** | 85% | 15% (false-positive rate; a different metric from accuracy) |
+| **Average Response Time** | 45 min | 5 min (~90% reduction, example) |
 | **Alert Fatigue** | High (important alerts ignored) | Low (immediate response) |
 
 **Optimization Strategies**:
 - ✅ Transition to SLO-based alerts (minimize resource threshold alerts)
-- ✅ Use Composite Alarms (combine multiple conditions)
+- ✅ Use Composite Alarms (combine multiple conditions). Note that CloudWatch has service limits on how many alarms a rule expression can reference and how deeply they nest, so design the combination within those limits
 - ✅ Alert aggregation (consolidate duplicate alerts within 5-min window to 1)
 - ✅ Redefine severity levels (Critical: 50% Error Budget consumed, Warning: 20% consumed)
-- ✅ Set quiet hours (maintenance windows, deployment periods)
+- ✅ Set quiet hours (maintenance windows, deployment periods). Suppression applies per target alarm and time period, not globally, so state the suppression scope and when it lifts
 
 ### 7.5 Log Cost Optimization
 
@@ -500,16 +509,23 @@ aws cloudwatch put-composite-alarm \
 **Cost Optimization Strategies**:
 
 ```bash
-# Change log group to Infrequent Access
-aws logs put-log-group-policy \
+# Create the log group in the Infrequent Access class (the class is set at creation and cannot be changed afterward)
+aws logs create-log-group \
   --log-group-name /eks/my-cluster/application \
-  --policy-name InfrequentAccessPolicy
+  --log-group-class INFREQUENT_ACCESS
 
-# Automate S3 Export (move to S3 after 7 days)
+# S3 Export: copies (does not move) logs for the given time range to S3. --from/--to are required (epoch ms)
 aws logs create-export-task \
   --log-group-name /eks/my-cluster/application \
-  --destination-bucket eks-logs-archive \
+  --from 1704067200000 \
+  --to 1704672000000 \
+  --destination eks-logs-archive \
   --destination-prefix logs/
+
+# Set the log group's own retention separately (e.g., delete from CloudWatch after 7 days)
+aws logs put-retention-policy \
+  --log-group-name /eks/my-cluster/application \
+  --retention-in-days 7
 ```
 
 **50-node Cluster Cost Comparison**:
@@ -537,7 +553,7 @@ graph LR
     Onto -->|Improved Rules| Auto
 ```
 
-**Key Integration Points**:
+**Key Integration Points** (the following is a proposed target architecture, not an implemented closed loop):
 - **Observability → Prediction**: Learn historical telemetry patterns → predict future issues
 - **Prediction → Autonomous**: Automatically handle predicted issues (scaling, self-healing)
 - **Autonomous → Observability**: Feed response results back to observability stack

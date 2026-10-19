@@ -8,8 +8,8 @@ const ChaosExperiments = () => {
   const experiments = [{
     experiment: isKo ? 'Pod 종료' : 'Pod Termination',
     injectedFault: isKo ? '2/3 Pod 종료' : 'Terminate 2/3 pods',
-    systemReaction: isKo ? 'HPA 30초 후 복구' : 'HPA recovery after 30s',
-    aiLearning: isKo ? '"Pod 종료 → HPA 반응 패턴"' : '"Pod termination → HPA response pattern"',
+    systemReaction: isKo ? 'ReplicaSet/Deployment이 Pod 재생성 (~30초)' : 'ReplicaSet/Deployment recreates pods (~30s)',
+    aiLearning: isKo ? '"Pod 종료 → ReplicaSet 재생성 패턴"' : '"Pod termination → ReplicaSet recreation pattern"',
     color: '#ef4444'
   }, {
     experiment: isKo ? '노드 장애' : 'Node Failure',

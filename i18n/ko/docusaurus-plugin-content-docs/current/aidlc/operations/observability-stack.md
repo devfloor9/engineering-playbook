@@ -3,9 +3,9 @@ title: 관찰성 스택
 description: AIDLC Operations의 데이터 기반 — 3-Pillar 관찰성 + AI 분석 레이어 구축
 created: "2026-04-07"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 17
 tags:
   - observability
   - adot
@@ -123,7 +123,7 @@ graph TB
 - **CloudWatch API**: AWS 네이티브 통합
 
 **3. 저장 레이어 (Storage)**:
-- **AMP**: 장기 메트릭 저장 (150일), PromQL 지원
+- **AMP**: 장기 메트릭 저장 (기본 150일, 설정 가능), PromQL 지원
 - **CloudWatch Logs**: 로그 집중화, Insights 쿼리
 - **X-Ray**: 분산 트레이싱 저장
 
@@ -143,7 +143,7 @@ graph TB
 <StackSelectionPatterns />
 
 :::tip ADOT (OpenTelemetry) 수집 레이어
-어떤 백엔드를 선택하든, **ADOT를 수집 레이어로 사용하면 백엔드 교체가 자유롭습니다**. OpenTelemetry는 CNCF 표준이므로 Prometheus, Datadog, Sumo Logic 등 대부분의 백엔드로 데이터를 내보낼 수 있습니다. 이것이 AWS가 자체 에이전트 대신 OpenTelemetry를 Managed Add-on(ADOT)으로 제공하는 이유입니다.
+어떤 백엔드를 선택하든, **ADOT를 수집 레이어로 사용하면 백엔드 교체가 자유롭습니다**. OpenTelemetry는 CNCF 표준이므로 Prometheus, Datadog, Sumo Logic 등 대부분의 백엔드로 데이터를 내보낼 수 있습니다. AWS는 ADOT를 CloudWatch Agent를 대체하는 수단이 아니라 CloudWatch Agent와 함께 선택할 수 있는 관리형 수집 옵션으로 제공합니다.
 :::
 
 ---
@@ -152,7 +152,7 @@ graph TB
 
 ### 3.1 Managed Add-ons 기반 구축
 
-**EKS Managed Add-ons**는 AWS가 관찰성 에이전트의 설치·업그레이드·패치를 관리하여 운영 복잡성을 제거합니다.
+**EKS Managed Add-ons**는 AWS가 관찰성 에이전트의 설치, 패치, 버전 호환성 검증을 관리하여 운영 복잡성을 줄입니다. 다만 add-on 버전 업그레이드는 사용자가 직접 트리거해야 하며, 애플리케이션 측 계측(instrumentation)은 관리 범위에 포함되지 않습니다.
 
 | Add-on | 역할 | 버전 예시 |
 |--------|------|----------|
@@ -181,18 +181,18 @@ ADOT Add-on 사용 시:
 - OpenTelemetry Operator 자동 설치
 - AWS 서비스 인증(SigV4) 내장
 - EKS 버전 호환성 AWS 보장
-- 자체 배포 대비 운영 부담 80% 감소
+- 설치·패치 작업은 AWS가 관리하나, 버전 업그레이드는 사용자가 직접 트리거
 :::
 
 ### 3.2 AMP + AMG 통합
 
 **Amazon Managed Prometheus (AMP)**:
-- 150일 메트릭 장기 보관 (자체 구축 대비 60% 비용 절감)
+- 메트릭 보관 기간은 설정 가능하며 기본 150일, 최대 1095일(3년)까지 조정 (자체 구축 대비 비용 절감 가능)
 - PromQL 완전 호환
-- 자동 스케일링 (처리량 무제한)
+- 수집량에 따라 자동 스케일링하되 서비스 할당량(active series 등)이 적용됨
 
 **Amazon Managed Grafana (AMG)**:
-- Grafana v11.x 최신 버전 자동 관리
+- Grafana 메이저 버전을 선택해 워크스페이스를 생성하며(2026-10 기준 9/10/12/13 지원), 선택한 버전의 플랫폼을 AWS가 관리
 - AMP/CloudWatch/X-Ray 데이터소스 통합
 - SAML/SSO 인증 내장
 
@@ -235,9 +235,11 @@ Enhanced Container Insights는 월 $50-200 수준의 추가 비용 발생. 개�
 
 ### 4.2 Application Signals
 
-**Zero-code 계측**으로 애플리케이션의 서비스 맵, SLI/SLO, 호출 그래프를 자동 생성합니다.
+자동 계측(auto-instrumentation)을 적용하면 애플리케이션 코드 변경 없이 서비스 맵, SLI/SLO, 호출 그래프를 생성합니다. 이는 아래 자동 계측 대상 런타임에 한해 코드 변경이 없다는 의미이며, Node.js처럼 수동 계측이 필요한 경우에는 해당하지 않습니다.
 
-**지원 언어**:
+**사전 조건**: CloudWatch Observability add-on(또는 OpenTelemetry Operator)이 설치되어 있어야 하며, 대상 Pod에 아래 annotation을 추가해 인젝션을 활성화해야 합니다.
+
+**지원 언어 (2026-10 기준, AWS 문서 확인 필요)**:
 - **Java**: Spring Boot, Tomcat, Jetty (자동 계측)
 - **Python**: Django, Flask, FastAPI (자동 계측)
 - **.NET**: ASP.NET Core (자동 계측)
@@ -299,7 +301,7 @@ spec:
 **분석 프로세스**:
 1. **알림 트리거**: CloudWatch Alarm 또는 DevOps Guru 인사이트 발생
 2. **컨텍스트 수집**: 관련 메트릭, 로그, 트레이스, 구성 변경 이력 자동 수집
-3. **AI 분석**: 수집된 데이터를 AI가 분석하여 근본 원인 추론
+3. **AI 분석**: 수집된 데이터를 AI가 분석하여 근본 원인 후보를 제시 (확정이 아니라 사람이 확인해야 하는 추정)
 4. **타임라인 생성**: 이벤트 발생 순서를 시간대별로 정리
 5. **권장 조치**: 구체적인 해결 방안 제시
 
@@ -316,7 +318,7 @@ spec:
   14:27 - 다운스트림 order-service도 영향 받기 시작
   14:30 - CloudWatch Alarm 트리거
 
-🔍 근본 원인:
+🔍 근본 원인 후보 (확인 필요):
   RDS 인스턴스(db.r5.large)의 연결 수가 max_connections에
   근접하여 새 연결 생성이 지연됨
 
@@ -328,7 +330,7 @@ spec:
 ```
 
 :::tip Investigation + Hosted MCP
-CloudWatch Investigations 결과를 **Hosted MCP 서버**를 통해 Kiro에서 직접 조회할 수 있습니다. "현재 진행 중인 Investigation이 있어?" → MCP가 Investigation 상태 반환 → Kiro가 자동으로 대응 코드 생성. 이것이 **AI 분석 → 자동 대응**의 완전한 루프입니다.
+CloudWatch Investigations 결과를 **Hosted MCP 서버**를 통해 Kiro에서 직접 조회할 수 있습니다. "현재 진행 중인 Investigation이 있어?" → MCP가 Investigation 상태 반환 → Kiro가 대응 코드 생성. 다만 코드 생성 이후에는 사람의 검토·승인, 실행, 결과 검증 단계가 이어지므로, 이는 완전히 닫힌 자동 대응 루프가 아니라 **AI 분석 → 사람 확인 → 실행 → 검증**으로 이어지는 흐름입니다.
 :::
 
 ---
@@ -371,7 +373,9 @@ graph LR
 
 ### 6.2 EKS MCP 서버 주요 도구
 
-| 도구 | 기능 | 사용 예시 |
+아래 표의 도구 이름(`list_pods` 등)은 개념 설명을 위한 예시(의사 도구)이며 특정 MCP 서버의 실제 스키마와 1:1로 일치하지 않습니다. 실제 도구 이름과 인자는 사용하는 서버(예: awslabs의 EKS MCP·CloudWatch MCP) 문서에서 확인해야 합니다.
+
+| 도구(예시) | 기능 | 사용 예시 |
 |------|------|----------|
 | **list_pods** | 네임스페이스별 Pod 목록 조회 | "payment namespace의 Pod 상태는?" |
 | **get_pod_logs** | Pod 로그 조회 (tail 지원) | "payment-xxx Pod의 최근 100줄 로그는?" |
@@ -384,7 +388,7 @@ graph LR
 
 **시나리오: "payment-service가 느립니다"는 보고**
 
-Kiro에서 MCP를 통해 통합 분석하는 과정:
+Kiro에서 MCP를 통해 통합 분석하는 과정입니다. 아래 호출(`list_pods` 등)은 6.2의 예시 도구 이름을 그대로 사용한 개념 흐름입니다.
 
 ```
 [Kiro + MCP 통합 분석]
@@ -442,17 +446,22 @@ spec:
   groups:
     - name: slo.payment-service
       rules:
-        # SLI: 에러율
+        # SLI: 에러율 (단기 5분, 장기 1시간 윈도우)
         - record: sli:payment_error_rate:5m
           expr: |
             sum(rate(http_requests_total{service="payment",status=~"5.."}[5m]))
             / sum(rate(http_requests_total{service="payment"}[5m]))
+        - record: sli:payment_error_rate:1h
+          expr: |
+            sum(rate(http_requests_total{service="payment",status=~"5.."}[1h]))
+            / sum(rate(http_requests_total{service="payment"}[1h]))
 
-        # Error Budget 소진율 (1시간 윈도우)
+        # Error Budget 소진율: 장기(1시간)·단기(5분) 윈도우가 모두 임계치를 넘을 때만 발화
         - alert: PaymentErrorBudgetBurn
           expr: |
-            sli:payment_error_rate:5m > (1 - 0.999) * 14.4
-          for: 5m
+            sli:payment_error_rate:1h > (1 - 0.999) * 14.4
+            and sli:payment_error_rate:5m > (1 - 0.999) * 14.4
+          for: 2m
           labels:
             severity: critical
             service: payment
@@ -477,17 +486,17 @@ aws cloudwatch put-composite-alarm \
 
 | 항목 | 현재 문제 | 최적화 후 |
 |------|----------|----------|
-| **알림 빈도** | 일 200개 | 일 20-30개 (90% 감소) |
-| **False Positive** | 85% | 15% (정확도 85%) |
-| **평균 대응 시간** | 45분 | 5분 (90% 단축) |
+| **알림 빈도** | 일 200개 | 일 20-30개 (약 90% 감소, 예시) |
+| **False Positive 비율** | 85% | 15% (오탐 비율; 정확도와는 다른 지표) |
+| **평균 대응 시간** | 45분 | 5분 (약 90% 단축, 예시) |
 | **알림 피로도** | 높음 (중요 알림 무시) | 낮음 (즉시 대응) |
 
 **최적화 전략**:
 - ✅ SLO 기반 알림으로 전환 (리소스 임계값 알림 최소화)
-- ✅ Composite Alarm 활용 (다중 조건 결합)
+- ✅ Composite Alarm 활용 (다중 조건 결합). 단, 규칙 식에 포함할 수 있는 알람 수와 중첩에는 CloudWatch 서비스 한도가 있으므로 결합 범위를 그 한도 안에서 설계
 - ✅ 알림 집계 (5분 윈도우 내 동일 알림 1건으로 통합)
 - ✅ 심각도 레벨 재정의 (Critical: Error Budget 50% 소진, Warning: 20% 소진)
-- ✅ 무음 시간대 설정 (유지보수 윈도우, 배포 시간대)
+- ✅ 무음 시간대 설정 (유지보수 윈도우, 배포 시간대). 억제는 전역이 아니라 대상 알람·기간 단위로 적용되므로 억제 범위와 해제 시점을 명시
 
 ### 7.5 로그 비용 최적화
 
@@ -500,16 +509,23 @@ aws cloudwatch put-composite-alarm \
 **비용 최적화 전략**:
 
 ```bash
-# 로그 그룹을 Infrequent Access로 변경
-aws logs put-log-group-policy \
+# 로그 그룹을 Infrequent Access 클래스로 생성 (클래스는 생성 시 지정하며 이후 변경 불가)
+aws logs create-log-group \
   --log-group-name /eks/my-cluster/application \
-  --policy-name InfrequentAccessPolicy
+  --log-group-class INFREQUENT_ACCESS
 
-# S3 Export 자동화 (7일 후 S3로 이동)
+# S3 Export: 지정한 기간의 로그를 S3로 복사 (이동이 아님). --from/--to는 필수(epoch ms)
 aws logs create-export-task \
   --log-group-name /eks/my-cluster/application \
-  --destination-bucket eks-logs-archive \
+  --from 1704067200000 \
+  --to 1704672000000 \
+  --destination eks-logs-archive \
   --destination-prefix logs/
+
+# 로그 그룹 자체의 보관 기간은 별도로 설정 (예: 7일 후 CloudWatch에서 삭제)
+aws logs put-retention-policy \
+  --log-group-name /eks/my-cluster/application \
+  --retention-in-days 7
 ```
 
 **50 노드 클러스터 비용 비교**:
@@ -537,7 +553,7 @@ graph LR
     Onto -->|개선된 규칙| Auto
 ```
 
-**핵심 통합 지점**:
+**핵심 통합 지점** (아래는 구현 완료된 폐루프가 아니라 지향하는 목표 아키텍처입니다):
 - **관찰성 → 예측**: 과거 텔레메트리 패턴 학습 → 미래 이슈 예측
 - **예측 → 자율**: 예측된 이슈를 자동으로 처리 (스케일링, 자가 치유)
 - **자율 → 관찰성**: 대응 결과를 다시 관찰성 스택으로 피드백

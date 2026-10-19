@@ -3,9 +3,9 @@ title: AgenticOps Metrics — Agent KPIs for Operations Monitoring
 description: Agent operations KPIs including task success rate, tool-call accuracy, hallucination rate, cost per interaction, escalation rate, and Langfuse·OTel schema
 created: "2026-04-18"
 last_update:
-  date: "2026-09-13"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 22
 tags:
   - metrics
   - kpi
@@ -85,8 +85,10 @@ Measures whether the user's requested task was completed.
 
 **Example (Customer Support Agent)**:
 
+The example below uses the Langfuse Python SDK v2 `trace()`/`score()` API. SDK v3 changed the API to OpenTelemetry-based spans and `create_score()`, so pin the SDK version you use and confirm its API before applying this. Also, the `task_success` value (0.0/1.0) is a score recorded after a separate evaluation step (rule-based or LLM-as-Judge) judges the session outcome; the SDK does not compute it automatically.
+
 ```python
-# Langfuse automated evaluation example
+# Langfuse automated evaluation example (SDK v2 API)
 from langfuse import Langfuse
 langfuse = Langfuse()
 
@@ -96,10 +98,10 @@ trace = langfuse.trace(
     metadata={"intent": "refund_request", "channel": "web"}
 )
 
-# Evaluate at session end
+# At session end, a separate evaluation step judges and records success
 trace.score(
     name="task_success",
-    value=1.0,  # 0.0 = failure, 1.0 = success
+    value=1.0,  # 0.0 = failure, 1.0 = success (from a separate evaluation)
     comment="Refund processed and confirmation sent"
 )
 ```
@@ -143,29 +145,40 @@ Measures answer quality and safety violations.
 
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
-| **Hallucination rate** | Percentage of unfounded information | Ragas Faithfulness / SelfCheckGPT |
+| **Context faithfulness** | Share of answers grounded in the provided context (context-adherence measure) | Ragas Faithfulness (0.0~1.0) |
+| **Factual-error rate** | Share of answers that contradict external facts | Fact-check against reference (human or LLM-as-Judge) |
+| **Detector-flag rate** | Share of responses flagged by a hallucination detector | SelfCheckGPT and similar detector flags / total responses |
 | **Guardrails violation rate** | Input/output filter block rate | input/output filter block count |
 | **Toxicity incidence** | Harmful content generation rate | Perspective API / OpenAI Moderation |
 
+These three metrics measure different phenomena. Context faithfulness captures whether an answer strays from the given context (RAG grounding), factual-error rate captures disagreement with external facts, and detector-flag rate captures the share flagged as suspicious by a detector. Reporting them as a single "hallucination rate" obscures the cause, so measure them separately.
+
 **Hallucination Measurement Example (Ragas Faithfulness)**:
+
+`evaluate()` returns an aggregate over the whole dataset, so `result["faithfulness"]` is the dataset mean, not the score of a single trace. To record per-trace scores, extract each sample's score and bind it to its trace, and record the dataset mean separately at the evaluation-run level.
 
 ```python
 from ragas.metrics import faithfulness
 from ragas import evaluate
 
-# RAG Agent evaluation
+# RAG Agent evaluation (dataset level)
 result = evaluate(
     dataset=test_dataset,
     metrics=[faithfulness],
     llm=ChatOpenAI(model="gpt-4o-mini")
 )
 
-# Record Faithfulness score to Langfuse
-trace.score(
-    name="faithfulness",
-    value=result["faithfulness"],  # 0.0~1.0
-    comment=f"Context: {len(context)} chars, Answer: {len(answer)} chars"
-)
+# 1) Record per-sample scores on their traces
+scores_df = result.to_pandas()
+for row, trace_id in zip(scores_df.itertuples(), trace_ids):
+    langfuse.score(
+        trace_id=trace_id,
+        name="faithfulness",
+        value=float(row.faithfulness),  # 0.0~1.0, per sample
+    )
+
+# 2) Record the dataset mean at the evaluation-run level
+dataset_mean = float(scores_df["faithfulness"].mean())
 ```
 
 **Guardrails Violation Measurement**:
@@ -206,8 +219,8 @@ generation = trace.generation(
         "output": 80,
         "total": 1280,
         "input_cost": 0.012,   # $10 / 1M tokens
-        "output_cost": 0.024,  # $30 / 1M tokens
-        "total_cost": 0.036
+        "output_cost": 0.0024,  # $30 / 1M tokens
+        "total_cost": 0.0144
     }
 )
 ```
@@ -231,9 +244,11 @@ Measures user-perceived quality.
 
 | Metric | Definition | Measurement Method |
 |--------|-----------|-------------------|
-| **Time to First Token (TTFT)** | Time to first response | streaming start time - request time |
-| **Task-length quartiles** | Task complexity distribution | METR Task Standard-based classification |
+| **Time to First Token (TTFT)** | Time to first content token | first non-empty content token time - request time |
+| **Task-length quartiles** | Quartile distribution of task duration (or step count) | Collect completed-session durations and split at Q1/Q2(median)/Q3 boundaries |
 | **Escalation rate** | Human handoff ratio | (human handoff count) / (total sessions) |
+
+Measure TTFT at the **first non-empty content token**, not the first streaming chunk. Many streaming APIs send a role delta or empty string as the first chunk, so counting it as content makes TTFT look shorter than it is. Task-length quartiles are defined separately from TTFT by splitting the distribution of completed-session durations (or reasoning-step counts) at the Q1, Q2, and Q3 boundaries; the METR Task Standard is referenced as a basis for classifying task types.
 
 **TTFT Measurement Example**:
 
@@ -245,6 +260,9 @@ request_time = time.time()
 first_token_time = None
 
 async for chunk in llm_stream():
+    # Skip role deltas and empty chunks; measure only the first content token
+    if not chunk.content:
+        continue
     if first_token_time is None:
         first_token_time = time.time()
         ttft_ms = (first_token_time - request_time) * 1000
@@ -286,9 +304,11 @@ Measures Agent service stability.
 **SLO Example (Task success rate)**:
 
 ```
-Target SLO: Task success rate ≥ 95% (30-day window)
-Error budget: 5% → 36 hours outage allowed per month
+Target SLO: Task success rate ≥ 95% (30-day window, per session)
+Error budget: 5% of sessions → at 100k sessions/month, 5,000 failed sessions allowed
 ```
+
+This SLO is session- (event-) based, so the error budget is spent in sessions. Converting it to a time-availability budget such as "5% = 36 hours of outage" mixes the two bases. If a time-based budget is needed, define the SLO itself as a time-availability SLO.
 
 ---
 
@@ -402,8 +422,8 @@ Quality evaluation is recorded as `score` events:
         "output": 80,
         "total": 1280,
         "input_cost": 0.012,
-        "output_cost": 0.024,
-        "total_cost": 0.036
+        "output_cost": 0.0024,
+        "total_cost": 0.0144
       },
       "metadata": {
         "temperature": 0.7,
@@ -510,6 +530,8 @@ with tracer.start_as_current_span("agent_run") as span:
 
 **Grafana Panel Configuration**:
 
+The `langfuse_trace_score_total` metric referenced by the PromQL below is not exposed by Langfuse by default. You must first set up a custom exporter (or recording rule) that exports Langfuse score data to Prometheus for this query to work.
+
 ```promql
 # Task success rate (30-day average)
 sum(rate(langfuse_trace_score_total{name="task_success", value="1"}[30d]))
@@ -551,10 +573,10 @@ Guardrails Violation Rate (7d)
 ### 5.3 SLO Dashboard
 
 ```
-Error Budget Burn Rate (Task Success SLO: 95%)
+Error Budget Burn Rate (Availability SLO: 95%)
 ┌────────────────────────────────────────────────────┐
 │ Current SLI: 96.2%                                 │
-│ Error Budget: 5% → 36h/month                      │
+│ Error Budget: 5% of 720h → 36h/month              │
 │ Consumed: 12.5h (34.7%)                            │
 │ Remaining: 23.5h (65.3%)                           │
 │                                                    │
@@ -588,15 +610,23 @@ Error Budget Burn Rate (Task Success SLO: 95%)
 # Example: Guardrails violation rate anomaly detection
 import numpy as np
 
-def detect_anomaly(current_rate, historical_rates, threshold_sigma=3):
+def detect_anomaly(current_rate, historical_rates, threshold_sigma=3, min_samples=14):
     """
     Args:
         current_rate: Current time period violation rate
-        historical_rates: Past 7 days same time period rates
+        historical_rates: Same time period rates from history
         threshold_sigma: Standard deviation multiple threshold
+        min_samples: Minimum samples required for a statistical decision
     """
+    # Do not judge if the baseline is insufficient or variance is zero/non-finite
+    if historical_rates is None or len(historical_rates) < min_samples:
+        return {"anomaly": False, "reason": "insufficient baseline"}
+
     baseline_mean = np.mean(historical_rates)
     baseline_std = np.std(historical_rates)
+
+    if not np.isfinite(baseline_std) or baseline_std == 0:
+        return {"anomaly": False, "reason": "zero or non-finite std"}
 
     z_score = (current_rate - baseline_mean) / baseline_std
 
@@ -612,7 +642,8 @@ def detect_anomaly(current_rate, historical_rates, threshold_sigma=3):
 
 # Real-time monitoring example
 current_rate = 0.08  # 8% violation rate
-historical = [0.02, 0.021, 0.019, 0.022, 0.018, 0.023, 0.020]  # Past 7 days
+historical = [0.02, 0.021, 0.019, 0.022, 0.018, 0.023, 0.020,
+              0.021, 0.019, 0.022, 0.020, 0.018, 0.021, 0.019]  # 14 past samples
 
 result = detect_anomaly(current_rate, historical)
 if result["anomaly"]:
@@ -630,9 +661,13 @@ import boto3
 import requests
 
 def lambda_handler(event, context):
-    alarm_name = event["detail"]["alarmName"]
-    metric = event["detail"]["metric"]
-    value = event["detail"]["state"]["value"]
+    # CloudWatch Alarm State Change EventBridge schema
+    detail = event["detail"]
+    alarm_name = detail["alarmName"]
+    state_value = detail["state"]["value"]        # OK | ALARM | INSUFFICIENT_DATA
+    state_reason = detail["state"]["reason"]
+    # Metric evaluated by the alarm (single-metric alarm)
+    metric = detail["configuration"]["metrics"][0]["metricStat"]["metric"]["name"]
 
     # PagerDuty Events API v2
     payload = {
@@ -644,8 +679,8 @@ def lambda_handler(event, context):
             "source": "cloudwatch",
             "custom_details": {
                 "metric": metric,
-                "current_value": value,
-                "threshold": event["detail"]["threshold"]
+                "state": state_value,
+                "reason": state_reason
             }
         }
     }
@@ -654,7 +689,9 @@ def lambda_handler(event, context):
         "https://events.pagerduty.com/v2/enqueue",
         json=payload
     )
-    return {"statusCode": 200, "body": "Alert sent"}
+    # Verify delivery before returning success
+    response.raise_for_status()
+    return {"statusCode": response.status_code, "body": "Alert sent"}
 ```
 
 **Slack Alert Example**:
@@ -698,7 +735,7 @@ Define target KPIs at project initiation.
 
 ### 7.2 Construction: CI Regression Gate
 
-Automatically detect metric regressions in each PR.
+Automatically detect metric regressions in each PR. Because the good direction differs per metric (success rate and accuracy are better when higher; hallucination and cost are better when lower), specify per-metric thresholds and directions instead of one blanket threshold.
 
 ```yaml
 # .github/workflows/agent-quality-gate.yml
@@ -717,10 +754,14 @@ jobs:
 
       - name: Check metrics regression
         run: |
+          # Declare per-metric tolerance and direction in thresholds.yml
+          #   task_success_rate: {direction: higher_is_better, max_drop: 0.03}
+          #   hallucination_rate: {direction: lower_is_better, max_increase: 0.02}
+          #   cost_per_interaction: {direction: lower_is_better, max_increase: 0.10}
           python scripts/check_regression.py \
             --baseline metrics/baseline.json \
             --current metrics/current.json \
-            --threshold 0.05  # Fail if decline > 5%
+            --thresholds metrics/thresholds.yml
 ```
 
 ### 7.3 Operations: Real-time Alerting
