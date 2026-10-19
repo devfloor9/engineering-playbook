@@ -3,9 +3,9 @@ title: 하네스 엔지니어링
 description: AIDLC 신뢰성의 두 번째 축 — AI 실행의 안전성을 아키텍처적으로 강제하는 하네스 설계 (engineering-playbook 확장 콘텐츠)
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 11
 tags:
   - aidlc
   - harness
@@ -31,9 +31,9 @@ import { QualityGates } from '@site/src/components/AidlcTables';
 
 ## 개요
 
-**하네스 엔지니어링(Harness Engineering)**은 AI가 만든 결과를 검사하고, 실행 범위를 제한하는 구조를 설계하는 일입니다. 온톨로지에 정의한 업무 규칙을 검사 조건으로 옮기고, 재시도와 실행 시간의 한계를 정합니다.
+**하네스 엔지니어링(Harness Engineering)**은 AI가 만든 결과를 검사하고, 실행 범위를 제한하는 구조를 설계하는 일입니다. 온톨로지에 정의한 업무 규칙을 검사 조건으로 옮기고, 재시도와 실행 시간의 한계를 정합니다. 아래 2026년 인용은 하네스 설계가 왜 필요한지 보여주는 예시이며, 특정 프로젝트에서 보고된 사례입니다.
 
-> OpenAI Codex가 100만 줄의 코드를 생성할 때, 인간 엔지니어가 작성한 코드는 0줄이었습니다. 엔지니어의 역할은 **코드를 쓰는 것이 아니라 하네스를 설계하는 것**으로 전환되었습니다.
+> OpenAI Codex가 100만 줄의 코드를 생성할 때, 인간 엔지니어가 작성한 코드는 0줄이었습니다(한 보고 사례의 예시이며, 모든 환경을 대표하는 측정값은 아닙니다). 엔지니어의 역할은 **코드를 쓰는 것이 아니라 하네스를 설계하는 것**으로 전환되었습니다.
 
 ```mermaid
 graph LR
@@ -70,14 +70,14 @@ graph LR
 
 | 구분 | 가드레일(Guardrails) | 하네스(Harness) |
 |------|---------------------|----------------|
-| **범위** | 런타임 입출력 필터링 | 아키텍처 전체 설계 |
-| **역할** | PII 마스킹, 프롬프트 인젝션 방어 | 재시도 예산, 타임아웃, 출력 게이트, 서킷 브레이커 |
+| **범위** | 런타임 입출력 필터링과 대화·검색·도구 실행 단계의 제약 | 아키텍처 전체 설계 |
+| **역할** | 입출력 필터링(PII 마스킹, 프롬프트 인젝션 방어)뿐 아니라 대화, 검색(retrieval), 도구 실행 단계의 제약 | 재시도 예산, 타임아웃, 출력 게이트, 서킷 브레이커 |
 | **시점** | 실행 중 | 설계 시점부터 |
 | **실패 모드** | 개별 요청 차단 | 시스템 전체 보호 |
 | **예시** | Bedrock Guardrails, NeMo Guardrails | AIDLC Quality Gates, 독립 검증 에이전트 |
 
 **핵심 차이:**
-- **가드레일**은 "나쁜 입력을 막는 필터" — 예: 프롬프트 인젝션 탐지, PII 마스킹
+- **가드레일**은 "입출력뿐 아니라 대화·검색·도구 실행 단계에서 위험을 걸러 내는 제어" — 예: 프롬프트 인젝션 탐지, PII 마스킹, 도구 호출 제한
 - **하네스**는 "AI가 안전하게 동작하도록 제약하는 아키텍처" — 예: 재시도 847번 방지, 비용 폭주 차단
 
 ---
@@ -183,16 +183,18 @@ circuit_breaker:
 **패턴:**
 ```yaml
 retry_budget:
-  max_attempts: 3            # 최대 3회 재시도
+  max_attempts: 3            # 단일 작업당 최대 3회 재시도
   backoff: exponential       # 지수 백오프
   max_backoff: 30s          # 최대 30초 대기
-  budget_limit: 10          # 시간당 10회 재시도 허용
+  budget_limit: 10          # 시간당 전체 재시도 횟수 상한
 ```
 
-**Fintech Runaway 방지:**
-- ✅ 847번 재시도 → 3번으로 제한
+`max_attempts`는 하나의 작업이 실패했을 때 그 작업을 다시 시도하는 횟수의 상한이고, `budget_limit`은 여러 작업에 걸쳐 시간당 허용하는 재시도 총량입니다. 두 값은 서로 다른 범위를 제한하므로 함께 사용합니다. 비용 상한은 재시도 횟수가 아니라 아래 7번 비용 제한(Cost Limit) 패턴의 금액 설정으로 강제합니다.
+
+**Fintech Runaway 방지 (위 설정 적용 시):**
+- ✅ 847번 재시도 → 작업당 3회로 제한
 - ✅ 즉시 재시도 → 지수 백오프 (1s, 2s, 4s)
-- ✅ $2,200 비용 → 최대 $50 제한
+- ✅ $2,200 비용 → 비용 제한 패턴의 시간당 $10·일일 $100 상한으로 차단
 
 ---
 
@@ -209,9 +211,11 @@ timeout:
 ```
 
 **적용 사례:**
-- LLM 추론 (30초 초과 시 중단)
+- LLM 추론 (30초 초과 시 대기 중단)
 - 코드 생성 (전체 5분 제한)
-- 테스트 실행 (Idle 1분 초과 시 종료)
+- 테스트 실행 (Idle 1분 초과 시 대기 종료)
+
+타임아웃은 호출 측이 기다리는 시간을 제한할 뿐, 그 자체로 진행 중인 작업을 멈추거나 이미 발생한 부분적 부수 효과를 되돌리지는 않습니다. 실제로 작업을 중단하려면 명시적인 취소(cancellation) 신호를, 이미 쓰인 데이터를 되돌리려면 별도의 보상(compensation) 처리를 함께 설계해야 합니다.
 
 ---
 
@@ -227,11 +231,14 @@ output_gate:
     - schema_validation     # JSON 스키마 검증
     - pii_detection        # PII 탐지 및 마스킹
     - toxicity_filter      # 유해 콘텐츠 필터
+    - completeness_check   # 필수 필드·본문 완결성 검증(별도 구현 필요)
   action_on_failure: reject # 실패 시 출력 거부
 ```
 
+위에 나열한 `syntax_check`·`schema_validation`·`pii_detection`·`toxicity_filter`는 구문, 스키마, 민감 정보, 유해성만 검사하므로 "이메일 본문이 업무적으로 불완전한지"는 판단하지 못합니다. 불완전한 이메일을 차단하려면 필수 필드와 본문 완결 조건을 명시적으로 검사하는 `completeness_check` 같은 검증기를 별도로 구현해 출력 게이트에 추가해야 합니다.
+
 **Fintech Runaway 방지:**
-- ✅ 불완전 이메일 14개 → 출력 게이트에서 차단
+- ✅ 불완전 이메일 14개 → 완결성 검증기를 추가하면 출력 게이트에서 차단
 - ✅ PII 노출 방지
 - ✅ 유해 콘텐츠 필터링
 
@@ -281,6 +288,8 @@ cost_limit:
   alert_threshold: 0.80    # 80% 도달 시 알림
 ```
 
+5~7번 패턴의 YAML(PII 마스킹, 프롬프트 인젝션 방어, 비용 제한)은 설정 키와 임계값을 선언한 구성 계약일 뿐이며 그 자체로 동작하지 않습니다. 실제로 마스킹을 수행하는 엔진, 인젝션을 탐지하는 검출기, 사용량을 집계해 임계값에서 차단·알림을 발생시키는 미터링 구현이 있어야 이 설정이 효력을 가집니다.
+
 ---
 
 ## Quality Gates — 전 단계 품질 보증
@@ -320,15 +329,24 @@ Inception          Construction          Operations
 ```go
 // ❌ 위반: Aggregate 외부에서 Entity 직접 수정
 func UpdateUserEmail(userID string, email string) error {
-    user, _ := userRepo.FindByID(userID)
+    user, err := userRepo.FindByID(userID)
+    if err != nil {
+        return err
+    }
     user.Email = email  // ❌ Entity 직접 수정
     return userRepo.Save(user)
 }
 
-// ✅ 권장: Aggregate 메서드를 통한 수정
+// ✅ 권장: Aggregate 메서드로 수정 후 저장
 func UpdateUserEmail(userID string, email string) error {
-    user, _ := userRepo.FindByID(userID)
-    return user.ChangeEmail(email)  // ✅ Aggregate 메서드 사용
+    user, err := userRepo.FindByID(userID)
+    if err != nil {
+        return err
+    }
+    if err := user.ChangeEmail(email); err != nil {  // ✅ Aggregate 메서드 사용
+        return err
+    }
+    return userRepo.Save(user)  // ✅ 변경을 저장소에 영속화
 }
 ```
 
@@ -343,7 +361,7 @@ func UpdateUserEmail(userID string, email string) error {
 - 구조화된 로깅 (JSON 형식, contextual fields 포함)
 
 **4. 보안**
-- 인증: JWT (HS256 금지, RS256 사용)
+- 인증: JWT (이 프로젝트 정책은 RS256을 요구하며 HS256을 금지합니다. HS256도 유효한 알고리즘이지만, 공유 비밀 유출 위험을 줄이기 위한 조직 정책으로 비대칭 서명을 택한 것입니다.)
 - 민감 정보: AWS Secrets Manager에서 조회
 - SQL 쿼리: Prepared Statement 사용 (문자열 연결 금지)
 
@@ -387,6 +405,8 @@ graph LR
 1. **다른 에이전트 사용** — 코드 생성 ≠ 테스트 생성
 2. **다른 모델 사용** — GPT-4 생성 → Claude 검증
 3. **사람 검증** — 핵심 로직은 사람이 최종 승인
+
+검증자를 다른 에이전트·모델로 바꾸면 생성자와 공유하던 편향은 줄어듭니다. 그러나 검증자가 다르다는 사실 자체가 정확성을 보장하지는 않습니다. 독립 검증이 성립하려면 생성 과정과 분리된 독립적인 테스트 오라클(기대 결과의 근거)이나 명세가 있어야 하며, 단지 모델만 교체해서는 두 모델이 같은 오해를 공유할 때 오류를 놓칠 수 있습니다.
 
 ---
 

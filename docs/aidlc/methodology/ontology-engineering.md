@@ -3,9 +3,9 @@ title: Ontology Engineering
 description: The first axis of AIDLC reliability — An ontology approach to prevent AI hallucination and ensure domain accuracy through a Typed World Model
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: devfloor9
-reading_time: 25
+reading_time: 31
 tags:
   - aidlc
   - ontology
@@ -13,6 +13,10 @@ tags:
   - scope:methodology
 sidebar_label: Ontology Engineering
 ---
+
+:::info Extension concept (engineering-playbook's own content)
+Ontology and harness engineering are not part of the [official AWS Labs AIDLC methodology](https://github.com/awslabs/aidlc-workflows); they are engineering-playbook's own extension content. They reflect DDD and 2026 agentic-AI best practices to strengthen enterprise AI reliability. When applying official AIDLC, this axis can be adopted optionally.
+:::
 
 > "Prompt engineering is ontology engineering" — 2026 AI Community Consensus
 
@@ -58,16 +62,16 @@ The failure patterns below share a domain-modeling problem: entities, relationsh
 ### 2.2 Problems Solved by Ontology
 
 **1. Preventing Hallucination**
-- All domain concepts are explicitly defined, eliminating room for AI to interpret arbitrarily
-- Relationships between entities are formalized, preventing creation of non-existent connections
+- For the domain concepts explicitly defined in the ontology, it reduces the room for AI to interpret arbitrarily
+- For the entity relationships formalized in the ontology, it can detect and reject the creation of undefined connections
 
 **2. Ensuring Domain Accuracy**
-- Invariants are encoded in ontology for automatic detection of violations
-- Transition paths of domain events are specified, blocking incorrect state transitions
+- For the invariants encoded in the ontology, a validator detects violations when it runs
+- For the specified domain-event transition paths, undefined state transitions are blocked
 
 **3. Context Consistency**
 - Ontology is injected into AI agent's context window, becoming the baseline for all generation tasks
-- Ensures same domain understanding across sessions and agents
+- Provides a shared reference that helps keep domain understanding consistent across sessions and agents
 
 ### 2.3 Real-World Evidence
 
@@ -91,8 +95,8 @@ domain_ontology:
       description: "Transaction boundary for payment processing"
       invariants:
         - "amount must be greater than 0"
-        - "status transition: CREATED → PROCESSING → COMPLETED | FAILED"
-        - "Maximum 2 retries from FAILED state"
+        - "status transition: CREATED → PROCESSING → COMPLETED | FAILED, and FAILED → PROCESSING (retry)"
+        - "Maximum 2 retry transitions from FAILED to PROCESSING"
       entities:
         - PaymentMethod:
             type: "enum"
@@ -134,7 +138,7 @@ domain_ontology:
 
 ### 3.2 Knowledge Source Hierarchy
 
-When building ontology, manage knowledge source reliability in tiers.
+When building ontology, manage knowledge source reliability in tiers. The tiers below are a heuristic for gauging the general reliability of each source type, not an absolute ranking.
 
 | Priority | Source | Example | Reliability | Usage Method |
 |---------|------|------|--------|----------|
@@ -142,6 +146,8 @@ When building ontology, manage knowledge source reliability in tiers.
 | **2** | Project GitHub issues/releases | NVIDIA/KAI-Scheduler, ai-dynamo/dynamo | High | Fact exchange between developers |
 | **3** | Official documentation | docs.nvidia.com, docs.aws.amazon.com | Medium | General theory, may have update delays |
 | **4** | Blogs/tutorials | Medium, AWS Blog | Low | Snapshot at specific point in time |
+
+Reliability is not decided by source category alone. The same official documentation can be the most authoritative basis for a particular spec or API contract, while implementation code from an outdated version can disagree with current facts. Assess authority per claim and per target version, and use the tiers above only as a starting point for deciding what to check first.
 
 :::caution Real-World Lesson: Official Documentation Alone is Insufficient
 When building ontology, **referencing only Official Documentation causes AI to confuse "logically plausible reasoning" with "verified facts"**.
@@ -152,6 +158,8 @@ When building ontology, **referencing only Official Documentation causes AI to c
 - **Result**: False premise of "technical impossibility" propagated throughout docs, corrupting 12+ comparison tables and architecture recommendations
 
 **Principle**: AI-generated technical documentation must always be **cross-validated with actual implementation code**. Official docs saying "cannot do" may mean "not yet documented".
+
+**Corrected fact**: The GPU Operator can run on EKS Auto Mode. [awslabs/ai-on-eks PR #288](https://github.com/awslabs/ai-on-eks/pull/288) (merged 2026-03-20) fixed the GPU Operator to run on Auto Mode and Bottlerocket. The key point is that because Auto Mode manages the GPU driver, the GPU Operator's driver-installation component is disabled while the remaining components (device plugin and others) are used as is. Confirm the exact settings against that PR's configuration files.
 :::
 
 ### 3.3 Rule Template Hierarchy
@@ -197,18 +205,21 @@ Ontology is not a static schema defined once and done. It's a **living model tha
 graph TD
     subgraph Inner["Inner Loop (minute cadence)"]
         GEN["AI Code Generation"] --> TEST["Test/Harness Execution"]
-        TEST -->|"Failure: Ontology Constraint Violation"| REFINE["Refine Ontology Constraints"]
+        TEST -->|"Failure: Ontology Constraint Violation"| IREV["Human Approval Gate"]
+        IREV -->|"Approve"| REFINE["Refine Ontology Constraints"]
         REFINE --> GEN
     end
 
     subgraph Middle["Middle Loop (day cadence)"]
         PR["PR Review"] --> METRIC["Metric Collection"]
-        METRIC -->|"Pattern Discovery"| SCHEMA["Update Ontology Schema"]
+        METRIC -->|"Pattern Discovery"| MREV["Human Approval Gate"]
+        MREV -->|"Approve"| SCHEMA["Update Ontology Schema"]
         SCHEMA --> PR
     end
 
     subgraph Outer["Outer Loop (week cadence)"]
-        OBS["Operations Observability<br/>(AIOps)"] -->|"Incident/SLO Violation"| REDESIGN["Domain Ontology<br/>Structure Redesign"]
+        OBS["Operations Observability<br/>(AIOps)"] -->|"Incident/SLO Violation"| OREV["Human Approval Gate"]
+        OREV -->|"Approve"| REDESIGN["Domain Ontology<br/>Structure Redesign"]
         REDESIGN --> SPEC["Spec Improvement"]
         SPEC --> OBS
     end
@@ -248,16 +259,23 @@ def test_negative_amount():
     with pytest.raises(ValueError):
         create_payment(-100, "customer-123")
     # AssertionError: ValueError not raised
+```
 
-# Add ontology constraint
+After the test fails, add the following constraint to the ontology.
+
+```yaml
 invariants:
   - "amount > 0"
+```
 
+Reflecting the added constraint, the AI regenerates the code. The snippet below contains an ellipsis (`...`) and is a fragment, not a complete implementation.
+
+```python
 # AI-regenerated code (2nd attempt)
 def create_payment(amount: float, customer_id: str):
     if amount <= 0:
         raise ValueError("Payment amount must be greater than 0")
-    payment = Payment(...)
+    payment = Payment(...)  # Elided: constructed with the same fields as the 1st attempt
     return payment
 ```
 
@@ -318,7 +336,7 @@ aggregates:
 
 ### 5.1 Knowledge Graph as Constraint Satisfaction Harness
 
-When concretizing ontology as a Knowledge Graph, the **SemanticForge pattern** can be applied. The Knowledge Graph acts as a constraint satisfaction harness, blocking logical/structural hallucinations in AI-generated code at the source.
+When concretizing ontology as a Knowledge Graph, the **SemanticForge pattern** can be applied. The Knowledge Graph acts as a constraint satisfaction harness that can detect and flag logical and structural hallucinations in AI-generated code. The example below illustrates the concept with a local graph; it is not a guarantee that hallucinations are blocked entirely. For quantitative effects, consult the evaluation results in the [SemanticForge research](https://arxiv.org/html/2511.07584v1) separately.
 
 ```mermaid
 graph LR
@@ -369,14 +387,17 @@ payment.amount = -100  # Constraint violation
 
 # SemanticForge queries Knowledge Graph for validation
 query = """
-MATCH (p:Aggregate {name: "Payment"})-[:INVARIANT]->(m:ValueObject {name: "Money"})
-WHERE m.rule CONTAINS "amount > 0"
-RETURN m.rule
+MATCH (p:Aggregate {name: "Payment"})-[r:INVARIANT]->(m:ValueObject {name: "Money"})
+WHERE r.rule CONTAINS "amount > 0"
+RETURN r.rule
 """
+# This query only looks up whether the constraint rule is registered in the graph.
+# Deciding whether 'amount = -100' violates 'amount > 0' is done not by the graph lookup
+# but by separate validation logic that interprets and evaluates the retrieved rule string.
 # Constraint violation detected → Request AI to regenerate
 ```
 
-**Effect**: AI cannot generate code that violates constraints encoded in the Knowledge Graph.
+**Effect**: Against the constraints encoded in the Knowledge Graph, violations in AI-generated code can be detected and a regeneration requested. This is limited to the constraints the validator handles and does not mean violations are made impossible at the source.
 
 ### 5.3 References
 
@@ -453,8 +474,8 @@ Include ontology directly in Kiro Spec's `requirements.md` so AI agents recogniz
 #### Payment
 - **Invariants:**
   - amount must be greater than 0
-  - status transition: CREATED → PROCESSING → COMPLETED | FAILED
-  - Maximum 2 retries from FAILED state
+  - status transition: CREATED → PROCESSING → COMPLETED | FAILED, and FAILED → PROCESSING (retry)
+  - Maximum 2 retry transitions from FAILED to PROCESSING
 
 - **Entities:**
   - PaymentMethod: enum[CARD, BANK, WALLET]
@@ -479,7 +500,7 @@ Include ontology directly in Kiro Spec's `requirements.md` so AI agents recogniz
 
 ### 7.2 Ontology-Based Code Generation
 
-Kiro AI agent injects this ontology into the context window to:
+Kiro AI agent injects this ontology into the context window. Embedding the ontology in the spec provides context that guides the generation, test, and review stages. The "automatic compliance" and "automatic detection" described below are not guaranteed by injection alone; they hold only when a separate validator actually enforces and checks the constraints.
 
 1. **During code generation**: Automatically comply with entity relationships and invariants
    ```go
@@ -528,10 +549,12 @@ Kiro AI agent injects this ontology into the context window to:
 
 ### 8.2 Productivity Metrics
 
+The figures below are not measured values with published conditions and sources; they are illustrative examples meant to show the direction of improvement before and after applying ontology. Actual figures vary by environment.
+
 | Metric | Without Ontology | With Ontology | Improvement |
 |------|---------------|-------------|--------|
 | **PR Review Time** | Average 45 min | Average 18 min | 60% reduction |
-| **Test Coverage** | 68% | 89% | 31%p increase |
+| **Test Coverage** | 68% | 89% | 21%p increase |
 | **Production Incidents** | 12/month | 2/month | 83% reduction |
 | **Average Fix Time** | 2.3 days | 0.4 days | 83% reduction |
 
@@ -614,7 +637,7 @@ graph LR
 
 ### 10.1 AIDLC Reliability Dual Axes
 
-Ontology handles **WHAT + WHEN** (domain constraint definition), while **HOW** (verification mechanism) is handled by [Harness Engineering](./harness-engineering.md). Collaboration between the two axes ensures reliability of AI-generated code.
+Ontology handles **WHAT + WHEN** (domain constraint definition), while **HOW** (verification mechanism) is handled by [Harness Engineering](./harness-engineering.md). When the two axes work together, they help improve the reliability of AI-generated code. These two axes are an optional engineering-playbook extension not included in official AIDLC, and reliability still depends on the validator implementation and operating conditions.
 
 ```mermaid
 graph LR
