@@ -3,9 +3,9 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 18
 tags:
   - llm-classifier
   - inference-extension
@@ -494,14 +494,17 @@ graph LR
 
 ```bash
 # 1. ACM 인증서 요청 (NLB 리전 — us-east-2)
+# 인증서 도메인은 HTTPRoute hostname(api.example.com)과 일치시킵니다.
+# 실제 소유 도메인으로 교체하되, 아래 CloudFront·NLB·HTTPRoute 전 구간에서
+# 같은 호스트명을 사용해야 TLS 검증과 Host 라우팅이 일관됩니다.
 aws acm request-certificate \
-  --domain-name "api.your-company.com" \
+  --domain-name "api.example.com" \
   --validation-method DNS \
   --region us-east-2
 
 # 2. DNS 검증 완료 후 ARN 확인
 export NLB_CERT_ARN=$(aws acm list-certificates --region us-east-2 \
-  --query "CertificateSummaryList[?DomainName=='api.your-company.com'].CertificateArn" \
+  --query "CertificateSummaryList[?DomainName=='api.example.com'].CertificateArn" \
   --output text)
 ```
 
@@ -551,6 +554,14 @@ aws ec2 authorize-security-group-ingress \
   --group-id ${CF_RESTRICTED_SG_ID} \
   --ip-permissions "IpProtocol=tcp,FromPort=443,ToPort=443,PrefixListIds=[{PrefixListId=${CF_PREFIX_LIST_ID}}]"
 ```
+:::
+
+:::warning 이 배포만 식별하는 Origin 접근 제어 추가
+CloudFront Managed Prefix List는 **CloudFront 전체 플릿의 IP 대역**만 허용할 뿐, "이 배포"를 인증하지 않습니다. 같은 플릿의 다른 CloudFront 배포(다른 계정 포함)도 NLB에 도달할 수 있으므로, 플릿 IP 필터링과 이 배포의 인증을 구분해야 합니다. AWS 공식 예시는 ALB에 커스텀 헤더를 검증하는 방식을 쓰지만, 이 설계는 NLB를 쓰므로 **실제 HTTP를 종단하는 kgateway 계층**에서 동등한 검증을 구현해야 합니다.
+
+1. CloudFront `OriginCustomHeaders`에 배포 전용 비밀 헤더(예: `X-Origin-Verify: <무작위 토큰>`)를 추가합니다. 토큰은 Secrets Manager 등으로 관리하고 주기적으로 교체합니다.
+2. kgateway HTTPRoute 또는 정책에서 해당 헤더 값이 일치하지 않는 요청을 거부합니다(헤더 매치 조건 또는 ext-proc/필터). 이렇게 해야 "CloudFront 플릿의 어떤 요청"이 아니라 "이 배포가 보낸 요청"만 통과합니다.
+3. 비밀 헤더는 CloudFront→NLB 구간이 TLS로 보호될 때만 의미가 있으므로, 위 `OriginProtocolPolicy: https-only`와 함께 사용합니다.
 :::
 
 ### 3.2 WAF WebACL 생성
@@ -679,6 +690,14 @@ LLM 추론 API(`/v1/chat/completions`)는 **POST 요청**이므로 CloudFront에
 **주의**: `CachePolicyId`와 레거시 `ForwardedValues`는 **동시에 지정할 수 없습니다**(CloudFront API가 거부). 관리형 정책을 쓰면 `ForwardedValues` 블록은 넣지 않습니다. Langfuse 정적 자산(`/_next/*`)만 캐시 혜택을 받습니다.
 :::
 
+:::warning Origin 호스트·인증서·라우팅 호스트 일치
+위 예시의 Origin `DomainName`은 NLB의 원시 DNS 이름(`${NLB_DNS}`)이지만, NLB의 ACM 인증서 CN은 `api.example.com`이고 HTTPRoute `hostnames`도 `api.example.com`입니다. `OriginProtocolPolicy: https-only`로 CloudFront가 Origin에 TLS를 맺을 때 원시 NLB DNS 이름을 SNI/Host로 사용하면 인증서 CN과 불일치해 검증에 실패합니다. 다음을 맞추세요.
+
+1. Origin `DomainName`을 인증서 CN과 같은 전용 Origin 호스트명(`api.example.com`을 NLB로 가리키는 DNS 레코드)으로 지정하거나, `OriginCustomHeaders`로 `Host: api.example.com`을 전달하고 CloudFront Origin SNI가 같은 이름을 쓰도록 구성합니다.
+2. HTTPRoute `hostnames`(`api.example.com`)와 전달되는 `Host` 헤더가 같아야 kgateway가 의도한 라우트로 매칭합니다.
+3. CloudFront→NLB(viewer→origin)와 NLB→kgateway 두 TLS/HTTP 홉을 각각 검증합니다: `curl --resolve api.example.com:443:<CF_IP>`로 뷰어 측을, Origin 측은 NLB 인증서 체인 확인으로 점검합니다.
+:::
+
 ### 3.4 Shield Standard
 
 CloudFront 배포에는 **AWS Shield Standard가 자동으로 적용**됩니다 (추가 비용 없음). L3/L4 DDoS 방어가 포함됩니다.
@@ -729,10 +748,15 @@ curl -s -o /dev/null -w "%{http_code}" \
   "https://${CF_DOMAIN}/v1/models?id=1%20OR%201=1"
 # 예상: 403 (WAF 차단)
 
-# 3. Rate Limit 확인 (2000 req/5min 초과)
-for i in $(seq 1 100); do
+# 3. Rate Limit 동작 확인 (사전 승인된 제한된 테스트)
+# 프로덕션 2000 req/5min을 실제로 초과시키지 말고, 전용 테스트용 WebACL에
+# 낮은 임계값(예: 10 req/5min)을 임시로 적용한 뒤 그 임계값을 넘기는지만
+# 확인합니다. 아래 루프는 그 테스트 임계값(10) 기준으로 429/403 전환을
+# 관측하기 위한 것이며, 프로덕션 2000 한도를 입증하지 않습니다.
+# (부하 테스트는 반드시 사전 승인과 테스트 전용 환경에서 수행)
+for i in $(seq 1 20); do
   curl -s -o /dev/null -w "%{http_code}\n" \
-    https://${CF_DOMAIN}/v1/models &
+    https://${CF_DOMAIN}/v1/models
 done
 
 # 4. NLB 직접 접근 차단 확인 (SG가 CF prefix만 허용)

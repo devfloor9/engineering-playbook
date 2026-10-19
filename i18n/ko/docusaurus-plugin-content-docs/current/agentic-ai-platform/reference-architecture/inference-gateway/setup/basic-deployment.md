@@ -3,9 +3,9 @@ title: 기본 배포
 description: kgateway 설치, HTTPRoute 설정, Bifrost Gateway Mode 구성
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 12
 tags:
   - kgateway
   - bifrost
@@ -173,7 +173,27 @@ spec:
   to:
     - group: ""
       kind: Service
+---
+# ai-external 네임스페이스의 Bifrost Service 접근 허용
+# (2.2 bifrost-route가 ai-external의 bifrost-service를 backend로 참조하므로 필요)
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-to-bifrost
+  namespace: ai-external
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: ai-gateway
+  to:
+    - group: ""
+      kind: Service
 ```
+
+:::note allowedRoutes와 backend 접근은 다릅니다
+Gateway의 `allowedRoutes.namespaces.from: All`은 **어느 네임스페이스의 HTTPRoute가 이 Gateway에 attach**할 수 있는지만 허용합니다. HTTPRoute가 **다른 네임스페이스의 Service를 backend로 참조**하는 것은 별개이며, 대상 Service가 있는 네임스페이스에 `ReferenceGrant`가 있어야 합니다. 위에서 `ai-inference`·`observability`·`ai-external` 세 네임스페이스에 각각 ReferenceGrant를 둔 이유입니다. ReferenceGrant를 생략하면 HTTPRoute는 attach되지만 backend 참조가 거부되어 라우팅이 실패합니다. 라우트와 backend를 같은 네임스페이스에 두면 ReferenceGrant 없이도 동작합니다.
+:::
 
 ---
 
@@ -237,6 +257,15 @@ spec:
 ### 2.3 Langfuse Sub-path 라우팅 (URLRewrite) {#langfuse-sub-path-라우팅-urlrewrite}
 
 Langfuse (Next.js)는 `/`에서 서빙하므로, `/langfuse` prefix로 접근하려면 URLRewrite가 필요합니다. Langfuse 아키텍처 및 배포 상세는 [Langfuse 배포 가이드](../../integrations/monitoring-observability-setup.md)를 참조하세요.
+
+:::caution 서브패스보다 전용 호스트/루트를 권장
+`/langfuse` 서브패스에 URLRewrite로 `/`를 매핑하는 방식은 Next.js 앱이 절대 경로(`/`)로 생성한 링크·정적 자산·`NEXTAUTH_URL`·API 호출과 어긋나기 쉬운 알려진 취약 구성입니다. 가능하면 다음을 우선합니다.
+
+1. Langfuse를 **전용 호스트명**(예: `langfuse.example.com`)의 루트(`/`)로 서빙합니다. 리라이트가 없어 가장 안정적입니다.
+2. 서브패스가 꼭 필요하면 Langfuse를 빌드 시점에 `NEXT_PUBLIC_BASE_PATH`(및 그에 맞춘 `NEXTAUTH_URL`)로 서브패스를 인지하도록 빌드합니다.
+
+위 URLRewrite 구성은 네비게이션·인증 리다이렉트·정적 자산·공개 API 흐름을 **모두 테스트해 통과하기 전까지는 미검증**으로 취급합니다.
+:::
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
@@ -466,7 +495,9 @@ metadata:
   name: bifrost
   namespace: ai-external
 spec:
-  replicas: 3
+  replicas: 1                 # SQLite는 단일 writer만 안전하므로 단일 레플리카로 고정
+  strategy:
+    type: Recreate            # RWO PVC를 다음 Pod가 받으려면 이전 Pod가 먼저 종료되어야 함
   selector:
     matchLabels:
       app: bifrost
@@ -532,6 +563,14 @@ spec:
 
 :::warning fsGroup: 1000 필수
 Bifrost 컨테이너는 UID 1000으로 실행됩니다. `securityContext.fsGroup: 1000`을 설정하지 않으면 PVC 쓰기 권한 오류가 발생합니다.
+:::
+
+:::warning 단일 레플리카 전제 (SQLite + RWO)
+위 구성은 `ReadWriteOnce` PVC 하나에 SQLite 기반 config store를 두므로 **단일 레플리카 전용**입니다. `ReadWriteOnce` 볼륨은 한 노드에만 마운트되고, SQLite는 여러 writer가 같은 파일을 공유하면 손상되므로, `replicas`를 2 이상으로 올리면 안 됩니다(스케줄링 실패 또는 DB 손상). 접근 모드를 `ReadWriteMany`로 바꿔도 SQLite 공유가 안전해지지는 않습니다.
+
+여러 레플리카가 필요하면 다음 중 하나를 택합니다.
+1. config store를 외부 DB(예: Bifrost가 지원하는 PostgreSQL)로 분리해 상태를 공유 가능한 백엔드로 옮깁니다.
+2. 파일 전용 모드(`config_store.enabled: false`, 6절 참조)로 각 Pod가 ConfigMap에서 복사한 **읽기 전용 config를 독립적으로** 보유하게 하고 런타임 쓰기를 제거합니다.
 :::
 
 ---
@@ -661,14 +700,18 @@ export NLB_ENDPOINT=$(kubectl get gateway unified-gateway -n ai-gateway \
 echo "NLB Endpoint: ${NLB_ENDPOINT}"
 
 # 4. vLLM 직접 접근 테스트 (vllm-route 사용 시)
-curl -s http://${NLB_ENDPOINT}/v1/models | jq .
+# HTTPRoute hostnames가 api.example.com이므로 Host 헤더를 명시해야 라우팅됩니다.
+curl -s -H "Host: api.example.com" http://${NLB_ENDPOINT}/v1/models | jq .
 
 # 5. Bifrost 경유 테스트 (bifrost-route 사용 시)
-curl -s http://${NLB_ENDPOINT}/v1/models | jq .
+curl -s -H "Host: api.example.com" http://${NLB_ENDPOINT}/v1/models | jq .
 
 # 6. Langfuse 접근 테스트
-curl -s -o /dev/null -w "%{http_code}" http://${NLB_ENDPOINT}/langfuse/
-# 예상: 200
+# /langfuse 는 URLRewrite로 / 에 매핑되며, Langfuse 홈이 로그인으로
+# 리다이렉트하므로 바로 200이 아닐 수 있습니다(일반적으로 302 또는 307).
+curl -s -o /dev/null -w "%{http_code}" \
+  -H "Host: api.example.com" http://${NLB_ENDPOINT}/langfuse/
+# 예상: 200 또는 로그인 리다이렉트(302/307)
 ```
 
 ---

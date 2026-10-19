@@ -3,9 +3,9 @@ title: Inference Gateway Deployment Guide
 description: Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)
 created: "2026-04-18"
 last_update:
-  date: "2026-09-22"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 10
+reading_time: 13
 tags:
   - inference-gateway
   - kgateway
@@ -48,7 +48,16 @@ This guide consists of 3 documents. Learn sequentially or reference specific sec
 
 ## Production Inference Pipeline Reference Architecture
 
-Complete request flow of production inference pipeline based on EKS Auto Mode. CloudFront (WAF/Shield) → NLB → kgateway ExtProc analyzes prompts to determine LLM routing, passes through Bifrost governance layer and llm-d KV Cache-aware routing to deliver requests to optimal models.
+The complete request flow of an EKS-based production inference pipeline. CloudFront (WAF/Shield) → NLB → kgateway receives inbound traffic, after which you compose one of two routing paths **by purpose**.
+
+- **L1 — across-model proxy / governance**: Bifrost (or the LLM Classifier) abstracts external/internal models and provides cascade, cost tracking, and semantic cache. It decides "which *model*." → [Basic Deployment](./basic-deployment.md) · [Advanced Features](./advanced-features.md)
+- **L2 — within-model KV-aware routing**: the Gateway API Inference Extension (InferencePool + EPP) selects a Pod based on vLLM metrics (KV cache and load). It decides "which *Pod*." → [Advanced Features: Inference Extension](./advanced-features.md#inference-extension)
+
+The two layers are not exclusive and can be used together (L1 → L2 → vLLM). For the layer definitions and selection criteria, refer to [Routing Strategy](../../../model-serving/inference-routing/routing-strategy.md#two-routing-layers--keep-them-distinct).
+
+:::note About the reference architecture diagram
+The diagram below is a **target (reference) architecture** that includes L1 (Bifrost), L2 (llm-d EPP), and observability all together. An actual deployment selects and composes the two paths above; when KV-aware (L2) is needed, follow the InferencePool + EPP procedure in the [Inference Extension section](./advanced-features.md#inference-extension).
+:::
 
 <InferencePipelineDiagram />
 
@@ -66,7 +75,7 @@ Configure kgateway + HTTPRoute + Bifrost behind a single NLB endpoint to complet
 - Cross-namespace access via ReferenceGrant
 - Bifrost Gateway Mode configuration (config.json + PVC)
 - provider/model format and IDE compatibility (Aider, Cline, Continue.dev)
-- SQLite initialization procedure (when config.json changes)
+- config.json change procedure (restart-based reconciliation, preserves stored config)
 
 **Learning Time:** 30 min | **Deployment Time:** 45 min
 
@@ -147,7 +156,7 @@ Verify the following before proceeding with all deployment stages.
 
 ### Required
 
-- [x] EKS cluster (K8s 1.32+, DRA 1.35 GA)
+- [x] EKS cluster (K8s 1.33+ recommended; core DRA (Dynamic Resource Allocation) reached GA in K8s 1.34)
 - [x] kubectl installed with cluster access
 - [x] Helm 3.x installed
 - [x] vLLM or llm-d based model serving Pods deployed

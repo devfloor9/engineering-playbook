@@ -3,9 +3,9 @@ title: Advanced Features
 description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
 created: "2026-04-06"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-15
   author: devfloor9
-reading_time: 19
+reading_time: 30
 tags:
   - llm-classifier
   - cloudfront
@@ -355,7 +355,113 @@ https://<AMG_ENDPOINT>               → Grafana (Separate managed service)
 
 ---
 
-## 2. CloudFront + WAF/Shield Security Layer {#cloudfront-waf}
+## 2. Gateway API Inference Extension (InferencePool + EPP) {#inference-extension}
+
+Where the LLM Classifier and Bifrost decide "which **model**" (L1, across-model), the **Gateway API Inference Extension (GIE)** decides "which **Pod**" (L2, within-model) from vLLM real-time metrics (KV cache location and load). kgateway (Envoy-based) delegates each request to the **EPP (Endpoint Picker)** via `ext-proc` to pick the optimal Pod within an InferencePool. For the layer definitions and selection criteria, see [Routing Strategy — The two routing layers](../../../model-serving/inference-routing/routing-strategy.md#two-routing-layers--keep-them-distinct).
+
+:::info Version and status
+GIE reached v1.0.0 GA in 2025-09, and InferencePool is `inference.networking.k8s.io/v1`. The EPP code was consolidated into llm-d, and the policy CRD (`InferenceObjective`) lives in llm-d (`llm-d.ai/v1alpha2`, alpha). The GIE repository owns the InferencePool API and the Endpoint Picker Protocol. ([GIE docs](https://gateway-api-inference-extension.sigs.k8s.io/))
+:::
+
+### 2.1 Install CRDs
+
+Install GIE CRDs such as InferencePool from the release manifest.
+
+```bash
+# Check the latest release tag: github.com/kubernetes-sigs/gateway-api-inference-extension/releases
+export IGW_RELEASE=v1.5.0
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api-inference-extension/releases/download/${IGW_RELEASE}/manifests.yaml
+```
+
+### 2.2 Deploy InferencePool + EPP (Helm)
+
+The official GIE Helm chart **installs EPP and InferencePool together**. Select vLLM Pods with `modelServers.matchLabels`.
+
+```bash
+export IGW_CHART_VERSION=${IGW_RELEASE}
+export POOL_NAME=glm5-pool
+
+helm install ${POOL_NAME} \
+  oci://registry.k8s.io/gateway-api-inference-extension/charts/inferencepool \
+  --version ${IGW_CHART_VERSION} \
+  --namespace ai-inference \
+  --set inferencePool.modelServers.matchLabels.app=glm5-serving \
+  --set provider.name=none   # none for kgateway/Envoy-family; specify the provider for GKE/Istio etc.
+```
+
+:::note provider.name
+Set `provider.name` to match the gateway implementation. kgateway is Envoy-family, so leave it as `none` with no separate provider integration, deploy only InferencePool/EPP, then reference the InferencePool as a backend in the HTTPRoute below. Confirm the exact value and options against the deployment-time [GIE v1.5.0 InferencePool chart values](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/charts/inferencepool/values.yaml).
+:::
+
+The InferencePool the chart creates has the following form (for reference when authoring directly — fields follow `inference.networking.k8s.io/v1`):
+
+```yaml
+apiVersion: inference.networking.k8s.io/v1
+kind: InferencePool
+metadata:
+  name: glm5-pool
+  namespace: ai-inference
+spec:
+  selector:
+    matchLabels:
+      app: glm5-serving       # vLLM Pod label
+  targetPorts:
+    - number: 8000            # vLLM container port (not targetPortNumber)
+  endpointPickerRef:           # EPP service reference (not extensionRef)
+    name: glm5-pool-epp
+    port:
+      number: 9002
+    failureMode: FailClose     # FailOpen | FailClose (default)
+```
+
+### 2.3 HTTPRoute → InferencePool
+
+Make the HTTPRoute's `backendRefs` point to an **InferencePool** (group `inference.networking.k8s.io`) instead of a Service. Use instead of direct vLLM routing from basic deployment.
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: inferencepool-route
+  namespace: ai-inference
+spec:
+  parentRefs:
+    - name: unified-gateway
+      namespace: ai-gateway
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1/
+      backendRefs:
+        - group: inference.networking.k8s.io
+          kind: InferencePool
+          name: glm5-pool
+      timeouts:
+        request: 300s
+        backendRequest: 300s
+```
+
+### 2.4 Verification
+
+```bash
+# InferencePool status — confirm Accepted=True, ResolvedRefs=True
+kubectl get inferencepool glm5-pool -n ai-inference -o yaml
+
+# Check EPP Pod/Service
+kubectl get pods,svc -n ai-inference -l app.kubernetes.io/name=inferencepool
+
+# Routing test (EPP selects a Pod KV-aware)
+curl -s http://<NLB_ENDPOINT>/v1/models | jq .
+```
+
+:::tip Using it together with L1
+If you need across-model governance (budget, multi-provider, semantic cache), place L1 (Bifrost/LiteLLM/LLM Classifier) in front and this InferencePool+EPP (L2) behind for KV-aware Pod selection, composing `L1 → InferencePool(EPP) → vLLM`. If you serve only a single self-hosted model, `kgateway → InferencePool(EPP) → vLLM` without L1 is sufficient.
+:::
+
+---
+
+## 3. CloudFront + WAF/Shield Security Layer {#cloudfront-waf}
 
 In production, do not expose NLB directly; configure **CloudFront + WAF/Shield** at the front to perform DDoS defense, request filtering, and TLS termination.
 
@@ -379,20 +485,24 @@ graph LR
     style KGW fill:#10b981,color:#fff
 ```
 
-### 2.1 Configure NLB TLS Listener
+### 3.1 Configure NLB TLS Listener {#21-configure-nlb-tls-listener}
 
 Convert existing HTTP Gateway to HTTPS. Requires ACM certificate.
 
 ```bash
 # 1. Request ACM certificate (NLB region — us-east-2)
+# Match the certificate domain to the HTTPRoute hostname (api.example.com).
+# Replace with your own owned domain, but use the same hostname across
+# CloudFront, NLB, and HTTPRoute so TLS validation and Host routing stay
+# consistent.
 aws acm request-certificate \
-  --domain-name "api.your-company.com" \
+  --domain-name "api.example.com" \
   --validation-method DNS \
   --region us-east-2
 
 # 2. Confirm ARN after DNS validation complete
 export NLB_CERT_ARN=$(aws acm list-certificates --region us-east-2 \
-  --query "CertificateSummaryList[?DomainName=='api.your-company.com'].CertificateArn" \
+  --query "CertificateSummaryList[?DomainName=='api.example.com'].CertificateArn" \
   --output text)
 ```
 
@@ -444,7 +554,15 @@ aws ec2 authorize-security-group-ingress \
 ```
 :::
 
-### 2.2 Create WAF WebACL
+:::warning Add distribution-specific origin access control
+The CloudFront Managed Prefix List only allows **the IP ranges of the entire CloudFront fleet**; it does not authenticate "this distribution." Other CloudFront distributions on the same fleet (including other accounts) can also reach the NLB, so fleet IP filtering must be distinguished from authenticating this distribution. The AWS reference example validates a custom header on an ALB, but this design uses an NLB, so you must implement equivalent validation at **the kgateway layer that actually terminates HTTP**.
+
+1. Add a distribution-specific secret header (e.g. `X-Origin-Verify: <random token>`) via CloudFront `OriginCustomHeaders`. Manage the token in Secrets Manager or similar and rotate it periodically.
+2. In a kgateway HTTPRoute or policy, reject requests whose header value does not match (a header-match condition or an ext-proc/filter). This lets through only "requests sent by this distribution," not "any request from the CloudFront fleet."
+3. The secret header is only meaningful when the CloudFront→NLB hop is TLS-protected, so use it together with `OriginProtocolPolicy: https-only` above.
+:::
+
+### 3.2 Create WAF WebACL {#22-create-waf-webacl}
 
 ```bash
 # Create WAF WebACL (CloudFront must be in us-east-1)
@@ -518,7 +636,7 @@ aws wafv2 create-web-acl \
 | **RateLimit** | Per-IP request limit | 2,000 req/5min (adjustable) |
 | **KnownBadInputsRuleSet** | Block Log4j, known malicious patterns | AWS Managed |
 
-### 2.3 Create CloudFront Distribution
+### 3.3 Create CloudFront Distribution {#23-create-cloudfront-distribution}
 
 ```bash
 # Confirm NLB DNS name
@@ -552,15 +670,7 @@ aws cloudfront create-distribution \
       },
       \"CachePolicyId\": \"4135ea2d-6df8-44a3-9df3-4b5a84be39ad\",
       \"OriginRequestPolicyId\": \"216adef6-5c7f-47e4-b989-5492eafa07d3\",
-      \"Compress\": true,
-      \"ForwardedValues\": {
-        \"QueryString\": true,
-        \"Cookies\": {\"Forward\": \"none\"},
-        \"Headers\": {
-          \"Quantity\": 3,
-          \"Items\": [\"Authorization\", \"Content-Type\", \"X-Api-Key\"]
-        }
-      }
+      \"Compress\": true
     },
     \"Enabled\": true,
     \"WebACLId\": \"${WAF_ACL_ARN}\",
@@ -572,11 +682,21 @@ aws cloudfront create-distribution \
   }"
 ```
 
-:::tip Cache Policy
-LLM inference API (`/v1/chat/completions`) is **POST request** so not cached in CloudFront. Use `CachingDisabled` policy (`4135ea2d-...`) and `AllOriginRequestPolicy` (`216adef6-...`) to forward all headers to Origin. Only Langfuse static assets (`/_next/*`) benefit from caching.
+:::tip Cache Policy (managed policies — cannot be combined with ForwardedValues)
+LLM inference API (`/v1/chat/completions`) is a **POST request** so it is not cached in CloudFront. Using the managed `CachingDisabled` cache policy (`4135ea2d-6df8-44a3-9df3-4b5a84be39ad`) and the managed `AllViewer` origin request policy (`216adef6-5c7f-47e4-b989-5492eafa07d3`) forwards all headers, query strings, and cookies to the origin.
+
+**Note**: `CachePolicyId` and the legacy `ForwardedValues` **cannot be specified at the same time** (the CloudFront API rejects it). When you use the managed policies, do not include a `ForwardedValues` block. Only Langfuse static assets (`/_next/*`) benefit from caching.
 :::
 
-### 2.4 Shield Standard
+:::warning Align origin host, certificate, and routing host
+In the example above the origin `DomainName` is the NLB's raw DNS name (`${NLB_DNS}`), but the NLB's ACM certificate CN is `api.example.com` and the HTTPRoute `hostnames` is also `api.example.com`. With `OriginProtocolPolicy: https-only`, if CloudFront uses the raw NLB DNS name as the SNI/Host when establishing TLS to the origin, it will not match the certificate CN and validation fails. Align the following.
+
+1. Set the origin `DomainName` to a dedicated origin hostname that matches the certificate CN (a DNS record pointing `api.example.com` at the NLB), or forward `Host: api.example.com` via `OriginCustomHeaders` and configure the CloudFront origin SNI to use the same name.
+2. The HTTPRoute `hostnames` (`api.example.com`) and the forwarded `Host` header must match so kgateway routes to the intended route.
+3. Validate both the CloudFront→NLB (viewer→origin) and NLB→kgateway TLS/HTTP hops separately: use `curl --resolve api.example.com:443:<CF_IP>` for the viewer side and verify the NLB certificate chain for the origin side.
+:::
+
+### 3.4 Shield Standard {#24-shield-standard}
 
 CloudFront distributions automatically include **AWS Shield Standard** (no additional cost). Includes L3/L4 DDoS defense.
 
@@ -586,7 +706,7 @@ For large-scale services, consider Shield Advanced upgrade ($3,000/month):
 - WAF cost exemption
 - Cost protection (refund for scaling costs due to DDoS)
 
-### 2.5 Change Client Endpoints
+### 3.5 Change Client Endpoints {#25-change-client-endpoints}
 
 After deployment, access via CloudFront domain:
 
@@ -615,7 +735,7 @@ client = OpenAI(
 )
 ```
 
-### 2.6 Verification
+### 3.6 Verification {#26-verification}
 
 ```bash
 # 1. Verify CloudFront → NLB → kgateway path
@@ -626,10 +746,16 @@ curl -s -o /dev/null -w "%{http_code}" \
   "https://${CF_DOMAIN}/v1/models?id=1%20OR%201=1"
 # Expected: 403 (WAF blocked)
 
-# 3. Verify Rate Limit (exceed 2000 req/5min)
-for i in $(seq 1 100); do
+# 3. Verify Rate Limit behavior (bounded, pre-authorized test)
+# Do not actually exceed the production 2000 req/5min limit. Temporarily apply
+# a low threshold (e.g. 10 req/5min) on a dedicated test-only WebACL and check
+# only whether that threshold trips. The loop below observes the 429/403
+# transition against that test threshold (10); it does not demonstrate the
+# production 2000 limit.
+# (Run load tests only in a pre-authorized, test-only environment.)
+for i in $(seq 1 20); do
   curl -s -o /dev/null -w "%{http_code}\n" \
-    https://${CF_DOMAIN}/v1/models &
+    https://${CF_DOMAIN}/v1/models
 done
 
 # 4. Verify NLB direct access blocked (SG allows only CF prefix)
@@ -638,7 +764,7 @@ curl -s -o /dev/null -w "%{http_code}" \
 # Expected: timeout (direct access blocked)
 ```
 
-### 2.7 Connection Path Summary
+### 3.7 Connection Path Summary {#27-connection-path-summary}
 
 ```
 Before: Client → NLB (HTTP, public) → kgateway → Bifrost → vLLM
@@ -656,13 +782,13 @@ After: Client → CloudFront (HTTPS, WAF/Shield) → NLB (HTTPS, CF only) → kg
 
 ---
 
-## 3. Semantic Caching Implementation Options (Advanced) {#semantic-caching-implementation-options-advanced}
+## 4. Semantic Caching Implementation Options (Advanced) {#semantic-caching-implementation-options-advanced}
 
 :::info Concepts and Design Principles
 For Semantic Caching concepts, similarity threshold design, cache key structure, and observability strategies, refer to [Semantic Caching Strategy](../../../model-serving/inference-optimization/semantic-caching-strategy.md). This section covers tool comparisons and deployment configurations for actual implementation.
 :::
 
-### 3.1 Implementation Tool Comparison (2026-04 baseline)
+### 4.1 Implementation Tool Comparison (2026-04 baseline) {#31-implementation-tool-comparison-2026-04-baseline}
 
 Major options organized based on official documentation and repositories. Features change rapidly, so always verify official documentation at deployment time.
 
@@ -674,10 +800,10 @@ Major options organized based on official documentation and repositories. Featur
 | **Redis Semantic Cache (RedisVL)** | OSS (MIT) | Redis Stack / Redis 8+ | Reuse existing Redis infrastructure, native `SemanticCache` class, built-in vector search | Application must configure embedding pipeline and TTL policies directly | [RedisVL — Semantic Cache](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/how_to_guides/llmcache/) |
 | **Portkey** | SaaS + Self-host (OSS Gateway, Apache 2.0) | Built-in store / Redis | Gateway all-in-one (routing/guardrails/cache integrated), multi-tenant with Virtual Keys | Advanced features depend on managed plans, self-host configuration complex | [Portkey Semantic Cache](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic) |
 | **Helicone** | OSS (Apache 2.0) / SaaS | ClickHouse (observability) + Redis/S3 (cache) | Observability·logging and cache integrated, low latency with Rust gateway | Self-host full stack has many dependencies, cache defaults to exact-match (Semantic is advanced feature) | [Helicone Caching](https://docs.helicone.ai/features/advanced-usage/caching) |
-| **Bifrost + Redis** | OSS (Apache 2.0) + OSS Redis | Redis | Low latency with Go, customize cache keys with CEL Rules, reuse existing Bifrost deployment | Semantic Cache itself requires direct plugin/sidecar configuration | [Bifrost Documentation](https://www.getmaxim.ai/bifrost/docs) |
-| **LangCache (Redis Labs)** | Managed SaaS (Redis Enterprise) | Redis Enterprise | Fully managed, includes embedding model·governance (GA H2 2025) | Enterprise only, region constraints, cost | [Redis LangCache](https://redis.io/langcache/) |
+| **Bifrost** | OSS (Apache 2.0) | Redis | Low latency with Go, customize cache keys with routing rules, reuse existing Bifrost deployment, native semantic_cache plugin (direct + semantic modes) | Requires v1.5.0+, vector store configuration (Redis/Weaviate/Qdrant/Pinecone) | [Bifrost Semantic Caching](https://docs.getbifrost.ai/features/semantic-caching) |
+| **LangCache (Redis)** | Managed SaaS (Redis Cloud) | Redis Cloud | Fully managed, includes embedding model·governance, Free 30MB database included | Public Preview (2025-09~, not GA as of 2026-07), region constraints | [Redis LangCache](https://redis.io/docs/latest/develop/ai/context-engine/langcache/) |
 
-### 3.2 Tool Selection Decision Tree
+### 4.2 Tool Selection Decision Tree {#32-tool-selection-decision-tree}
 
 **Figure 3. Decision tree for selecting a Semantic Caching tool**
 
@@ -703,7 +829,7 @@ flowchart TD
     style R5 fill:#ffd93d,stroke:#333,color:#000
 ```
 
-### 3.3 Scenario-Based Recommendations
+### 4.3 Scenario-Based Recommendations {#33-scenario-based-recommendations}
 
 **Table 4. Recommended combinations and rationale by operating scenario**
 
@@ -715,7 +841,7 @@ flowchart TD
 | **Initial PoC / prototype** | LiteLLM + Redis (`cache: true`) | Activate with 1-2 lines of configuration, fast validation |
 | **Strong open source constraint** | GPTCache + Milvus | No vendor lock-in, free backend choice |
 
-### 3.4 Gateway Integration Patterns
+### 4.4 Gateway Integration Patterns {#34-gateway-integration-patterns}
 
 #### LiteLLM
 
@@ -746,66 +872,62 @@ litellm_settings:
 
 For detailed options, refer to [LiteLLM Caching documentation](https://docs.litellm.ai/docs/proxy/caching).
 
-#### Bifrost + RedisVL Sidecar
+#### Bifrost Native Semantic Cache {#bifrost--redisvl-sidecar}
 
-Bifrost itself only supports exact-match cache, so implement semantic cache in two ways.
+Bifrost v1.5.0+ provides a native `semantic_cache` plugin that supports both direct (hash, exact-match) mode and semantic (embedding-similarity) mode. You can enable it with config.json settings alone, without a separate proxy or sidecar.
 
-**Method A: Python proxy frontend** — Deploy lightweight FastAPI proxy using RedisVL `SemanticCache` class in front of Bifrost
-
-```python
-from redisvl.extensions.session_manager import SemanticCache
-from fastapi import FastAPI, Request
-import httpx
-
-app = FastAPI()
-
-cache = SemanticCache(
-    name="llm_cache",
-    redis_url="redis://redis-service:6379",
-    distance_threshold=0.15,  # 1 - similarity (0.85 similarity = 0.15 distance)
-)
-
-@app.post("/v1/{path:path}")
-async def proxy(path: str, request: Request):
-    body = await request.json()
-    query = body["messages"][-1]["content"]
-    
-    # Semantic Cache lookup
-    cached = cache.check(prompt=query)
-    if cached:
-        return {"choices": [{"message": {"content": cached[0]["response"]}}]}
-    
-    # MISS → Bifrost call
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(f"http://bifrost:8080/v1/{path}", json=body)
-        result = resp.json()
-    
-    # Store response
-    cache.store(prompt=query, response=result["choices"][0]["message"]["content"])
-    return result
-```
-
-**Method B: CEL Rules header-based branching** — Use Bifrost CEL Rules to route only requests with `x-cache-enabled: true` header via Redis
+**config.json example (Redis backend)**:
 
 ```json
 {
   "plugins": [
     {
       "enabled": true,
-      "name": "cel_rules",
+      "name": "semantic_cache",
       "config": {
-        "rules": [
-          {
-            "condition": "request.header['x-cache-enabled'] == 'true'",
-            "action": "route",
-            "target": "redis-semantic-proxy"
-          }
-        ]
+        "provider": "openai",
+        "embedding_model": "text-embedding-3-small",
+        "dimension": 1536,
+        "threshold": 0.8,
+        "vector_store": {
+          "type": "redis",
+          "url": "redis://redis-service:6379"
+        }
       }
     }
   ]
 }
 ```
+
+**Key configuration items**:
+- `provider`: embedding model provider (openai, anthropic, bedrock, etc.)
+- `embedding_model`: embedding model name
+- `dimension`: embedding dimension (text-embedding-3-small is 1536). Setting `dimension: 1` enables exact-match-only mode
+- `threshold`: similarity threshold (0.8 = cache hit when ≥ 80% similar)
+- `vector_store.type`: redis, weaviate, qdrant, pinecone, valkey supported
+
+It can also be toggled on from Settings → Caching in the Web UI.
+
+**Exact-match-only mode** (no embedding, speed first):
+```json
+{
+  "plugins": [
+    {
+      "enabled": true,
+      "name": "semantic_cache",
+      "config": {
+        "dimension": 1,
+        "vector_store": {
+          "type": "redis",
+          "url": "redis://redis-service:6379"
+        }
+      }
+    }
+  ]
+}
+```
+
+For detailed configuration, refer to the [Bifrost Semantic Caching documentation](https://docs.getbifrost.ai/features/semantic-caching).
 
 #### Portkey
 
@@ -857,7 +979,7 @@ curl https://oai.helicone.ai/v1/chat/completions \
 
 Semantic mode is an advanced feature, verify in [Helicone Caching documentation](https://docs.helicone.ai/features/advanced-usage/caching).
 
-### 3.5 Cache Key Design Example (YAML)
+### 4.5 Cache Key Design Example (YAML) {#35-cache-key-design-example-yaml}
 
 Pseudo-code example for generating cache keys in actual implementation.
 
@@ -876,7 +998,7 @@ redis_key: "cache:org-12345:ko:glm-5:a3f2e1b:c9d8e7f"
 # Vector DB searches embedding similarity → on HIT above threshold, retrieves response with redis_key
 ```
 
-### 3.6 Pre-Deployment Checklist
+### 4.6 Pre-Deployment Checklist {#36-pre-deployment-checklist}
 
 - [ ] Set initial threshold to 0.90 (conservative start)
 - [ ] Document TTL policies (apply differentially by domain)

@@ -3,9 +3,9 @@ title: Reference Architecture
 description: Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처
 created: "2026-04-06"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: devfloor9
-reading_time: 18
+reading_time: 20
 tags:
   - reference-architecture
   - deployment
@@ -74,7 +74,7 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 
 플랫폼의 6개 런타임 레이어와 3개 공통 플레인, Knowledge Feature Store, 모델 서빙·파인튜닝 경로를 보여줍니다. 아래 배포 순서의 6개 영역은 구현 단계이며, 런타임 레이어 번호와 대응하지 않습니다.
 
-<Figure title="플랫폼 전체 구조" description="요청 처리 경로와 공통 제어 영역을 보여주는 원본 아키텍처 그림입니다. 큰 화면에서 세부 연결을 확인하려면 아래 원본 링크를 사용하세요." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">원본 그림 열기</a>}>
+<Figure title="플랫폼 전체 구조" description="요청 처리 경로와 공통 제어 영역을 보여주는 원본 아키텍처 그림입니다. iframe과 아래 원본 링크는 저장소의 main 브랜치 파일(static/Agentic AI Platform(...).drawio)을 직접 불러오므로 버전이 고정되지 않으며, main이 갱신되면 이 글에 설명된 스냅샷과 달라질 수 있습니다. 이 문서가 설명하는 내용은 2026-09 기준 스냅샷입니다. 큰 화면에서 세부 연결을 확인하려면 아래 원본 링크를 사용하세요." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">원본 그림 열기</a>}>
 <iframe
   src="https://viewer.diagrams.net/?highlight=0000ff&nav=1&title=Agentic%20AI%20Platform&url=https%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio"
   width="100%"
@@ -150,9 +150,11 @@ EKS 클러스터와 GPU 노드 그룹을 구성합니다. Auto Mode와 Standard 
 | 항목 | 세부사항 |
 |------|---------|
 | 서빙 엔진 | vLLM (커스텀 이미지) |
-| 모델 캐시 | S3 → s5cmd → NVMe emptyDir |
+| 모델 캐시 | S3 → s5cmd → 노드 임시 스토리지(emptyDir). instance-store NVMe로 받으려면 노드가 NVMe를 부트스트랩/마운트하도록 구성하고 용량을 검증해야 함(아래 설명 참조) |
 | 병렬화 | Tensor Parallelism (단일 노드 권장) |
 | 검증 | OpenAI-compatible API 엔드포인트 |
+
+`emptyDir`은 노드의 기본 임시 스토리지(루트 디스크)를 사용하며, 자동으로 instance-store NVMe를 선택하지 않습니다. NVMe로 캐시를 받으려면 노드 부트스트랩에서 instance-store NVMe를 포맷·마운트하고 kubelet의 `--root-dir`(또는 emptyDir 경로)이 그 마운트를 쓰도록 구성한 뒤, 모델 크기 대비 용량을 검증해야 합니다. 구성하지 않으면 모델 캐시는 루트 디스크 용량에 묶입니다.
 
 ### Phase 3: 추론 게이트웨이
 
@@ -225,12 +227,14 @@ Spot 사용 여부는 가격뿐 아니라 중단 시 서비스가 견딜 수 있
 
 | 영역 | 표준 도구 | 대안 |
 |------|----------|------|
-| GPU 스케줄링 | Karpenter / MNG | Auto Mode NodePool |
+| 노드 프로비저닝 | Karpenter / MNG | Auto Mode NodePool |
 | 모델 서빙 | vLLM | SGLang, llm-d |
 | AI 게이트웨이 | Bifrost / LiteLLM | OpenClaw, Helicone |
 | 메트릭 | Prometheus + AMP | CloudWatch |
 | LLM Observability | Langfuse | Helicone, LangSmith |
-| 분산 학습 | LeaderWorkerSet (LWS) | KubeRay |
+| 멀티노드 서빙 배포 | LeaderWorkerSet (LWS) | KubeRay |
+
+표의 역할은 서로 구분됩니다. Karpenter·MNG는 **노드를 프로비저닝**하는 도구이며, GPU Pod를 노드에 배치하는 Pod 스케줄링과는 다릅니다. LeaderWorkerSet(LWS)은 여러 노드에 걸친 **추론 서빙 배포**(멀티호스트 서빙)를 위한 API이며, 분산 **학습** 오케스트레이션 도구가 아닙니다. AI 게이트웨이 대안의 OpenClaw는 신뢰된 운영자·팀 경계를 전제로 한 에이전트 어시스턴트 게이트웨이이므로, 일반적인 멀티프로바이더 추론 거버넌스 프록시의 기본 대체재로 간주하기 전에 적용 범위를 확인해야 합니다.
 
 ### 4. 비용 최적화 계층화
 
