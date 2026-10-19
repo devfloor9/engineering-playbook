@@ -3,9 +3,9 @@ title: GPU/AI Workload Debugging
 description: Debugging guide for GPU/AI workloads on EKS
 created: "2026-04-07"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-15
   author: devfloor9
-reading_time: 9
+reading_time: 18
 tags:
   - eks
   - gpu
@@ -62,10 +62,15 @@ flowchart TD
 ### Check nvidia-smi
 
 ```bash
-# Connect to the GPU node and check
+# Start a debug Pod on the GPU node. The Pod created by `kubectl debug node/...` accesses the
+# host namespaces (PID/network) and host filesystem (`/host`), but the container can see GPU
+# devices only if the NVIDIA runtime/driver is configured on the node.
+# (This needs cluster-admin privileges; run it only as a pre-authorized action.)
 kubectl debug node/<gpu-node-name> -it --image=nvidia/cuda:12.2.0-base-ubuntu22.04
-# Inside the container
-nvidia-smi
+
+# Inside the container: first verify GPU device access, then run nvidia-smi
+ls -l /host/dev/nvidia*        # check the host GPU device nodes
+nvidia-smi                     # if accessible, output looks like below
 
 # Example output (normal)
 +-----------------------------------------------------------------------------+
@@ -77,6 +82,11 @@ nvidia-smi
 |   0  NVIDIA H100 80G...  On   | 00000000:10:1C.0 Off |                    0 |
 | N/A   32C    P0    68W / 700W |      0MiB / 81559MiB |      0%      Default |
 +-------------------------------+----------------------+----------------------+
+
+# If nvidia-smi does not run or reports no devices, do not conclude a driver failure from this
+# single command; inspect the node's driver/runtime configuration as well.
+# Always clean up the debug Pod afterward.
+kubectl delete pod -n default node-debugger-<gpu-node-name>-<suffix>
 ```
 
 ### Check GPU Resources
@@ -94,21 +104,30 @@ kubectl get pods -A -o json | jq '.items[] | select(.spec.containers[].resources
 
 ## CUDA/NCCL Error Patterns
 
-Common CUDA XID errors and remediation for GPU workloads:
+Common CUDA XID errors on GPU workloads, with their meaning and a first-level classification. The exact meaning and severity of an XID can depend on the driver and firmware version, so before acting, confirm the XID's meaning against your driver version and the [NVIDIA XID Errors documentation](https://docs.nvidia.com/deploy/xid-errors/index.html). The "Action class" below is not a command to run directly; it points to where the error fits in the staged recovery procedure that follows.
 
-**Table 1. Meaning, cause, and action for major CUDA XID error codes**
+**Table 1. Meaning and first-level action class for major CUDA XID error codes**
 
-| XID | Meaning | Cause | Action |
+| XID | Meaning | Cause (typical) | Action class |
 |-----|------|------|------|
-| 13 | Graphics Engine Exception | Kernel execution error | Update driver, check CUDA version |
-| 31 | GPU memory page fault | Invalid memory access | Update driver, validate memory allocation |
-| 43 | GPU stopped responding | GPU unresponsive | Node restart required |
-| 45 | Preemptive cleanup | Context switch error | Update driver |
-| 48 | Double bit ECC error | Hardware memory defect | **Node replacement required** (permanent defect) |
-| 62 | Internal micro-controller error | Firmware error | Reinstall driver, restart node |
-| 74 | NVLink error | GPU-to-GPU communication failure | Check NVLink topology and cabling |
-| 79 | GPU has fallen off the bus | PCIe communication loss | **Node replacement required** (hardware defect) |
-| 94 | Contained/Uncontained error | Memory integrity error | Check ECC mode, consider node replacement |
+| 13 | Graphics Engine Exception | Kernel execution error | Application level (check driver/CUDA version, then retry) |
+| 31 | GPU memory page fault | Invalid memory access | Application level (inspect memory-access code/version) |
+| 43 | GPU stopped responding | GPU unresponsive | Node level (authorized drain, then reset/reboot) |
+| 45 | Preemptive cleanup | Context switch error | Application level |
+| 48 | Double bit ECC error | Hardware memory defect | Hardware escalation (possible permanent defect) |
+| 62 | Internal micro-controller error | Firmware error | Node level (check driver/firmware, then reset) |
+| 74 | NVLink error | GPU-to-GPU communication failure | Node level → hardware escalation if persistent |
+| 79 | GPU has fallen off the bus | PCIe communication loss | Hardware escalation (possible hardware defect) |
+| 94 | Contained/Uncontained error | Memory integrity error | Node level → hardware escalation if recurring |
+
+**Staged recovery procedure (action class → actual action):**
+
+1. **Preserve evidence**: before acting, collect `dmesg`/`nvidia-smi -q`/XID logs and the time, node, and GPU identifier. Replacing a node destroys this evidence.
+2. **Application level**: restart only the workload (or Pod) and confirm driver/CUDA version alignment. Do not touch the whole node.
+3. **Node level (authorization required)**: if it recurs, cordon and drain the node, then perform a GPU reset (`nvidia-smi --gpu-reset`) or node reboot through an approved procedure. This is an operation that typically requires authorization.
+4. **Hardware escalation**: if a permanent ECC/PCIe/NVLink defect is suspected, follow the ownership model before replacing a node arbitrarily. For managed nodes (EKS-managed AMI/instances), AWS owns the hardware and AMI, so handle it through EC2 instance health checks/replacement and the support path rather than a self-managed swap.
+
+Cloud/AMI ownership model: if the node is managed (EKS-optimized AMI, Auto Mode, etc.), the party responsible for driver, AMI, and hardware replacement may differ from you. Before "replacing a node," confirm who owns the component and handle it through that path.
 
 ### How to Check XID Errors
 
@@ -142,16 +161,17 @@ env:
 **Common NCCL failure causes:**
 
 1. **Network connectivity issues**
-   - Security Group must allow all traffic within the same SG
-   - Verify Pod-to-Pod communication: `kubectl exec -it <pod> -- nc -zv <target-pod-ip> 12345`
+   - NCCL workers need both TCP bootstrap (rendezvous) and data transport between them. If the nodes/Pods share a Security Group, add **self-referencing ingress/egress** on that SG, but scope the port range to the ports NCCL and EFA actually use rather than opening everything.
+   - Verify connectivity against a **port that is actually listening and a known path**, not an arbitrary port. For example, when the master listens on `MASTER_PORT`, check the bootstrap path with `kubectl exec -it <pod> -- nc -zv <master-pod-ip> <MASTER_PORT>` (an arbitrary port like `12345` with no listener yields nothing meaningful).
 
 2. **EFA misconfiguration** (p4d, p5 instances)
-   - EFA Device Plugin must be installed
-   - Check `vpc.amazonaws.com/efa` resource requests
+   - Confirm the EFA Device Plugin is installed and the `vpc.amazonaws.com/efa` resource request is present.
+   - A resource request alone does not prove EFA is in use, so validate the EFA path with an EFA/NCCL test (e.g. `fi_info -p efa` to confirm the provider, the `NET/OFI ... EFA` selection message in NCCL logs, or nccl-tests).
 
-3. **Mismatch between GPU count and Tensor Parallel size**
-   - vLLM: `--tensor-parallel-size` must match the Pod's GPU count
-   - PyTorch DDP: `WORLD_SIZE` env var must match actual GPU count
+3. **Mismatch between GPU count and parallelism settings** (the following assumes single-node Tensor Parallel only, or one-process-per-GPU DDP)
+   - vLLM: `--tensor-parallel-size` must match the **local GPU count assigned to that Pod**. When Pipeline/Data Parallel are also used across nodes, TP is the per-node GPU count and total parallelism is TP×PP×DP, counted separately.
+   - PyTorch DDP: `WORLD_SIZE` is the **global** worker count, while the local rank count is the per-node GPU count. Confusing the two causes rendezvous failures.
+   - Model constraints: the Tensor Parallel size must divide the model's attention-head count (for example, with 64 heads, TP ∈ {2,4,8,16,32,64}); also confirm the model supports the chosen parallel layout.
 
 ## vLLM Debugging
 
@@ -160,12 +180,14 @@ env:
 Memory shortage in vLLM has two root causes:
 
 ```python
-# Check vLLM startup logs
+# Hypothetical calculation in the shape of vLLM startup logs (not a measured value)
 # GPU memory utilization: 0.90
 # Total GPU memory: 80.00 GiB
+# → Budget available to vLLM: 0.90 × 80.00 = 72.00 GiB
 # Reserved for model weights: 45.23 GiB
-# Reserved for KV cache: 26.77 GiB  # ← if too low, long-context requests fail
 # Reserved for activation: 8.00 GiB
+# → Left for KV cache: 72.00 - 45.23 - 8.00 = 18.77 GiB (runtime overhead such as CUDA graphs is separate)
+#   If this is too low, long-context requests fail.
 ```
 
 **Table 2. vLLM memory shortage symptoms with cause and action**
@@ -175,9 +197,11 @@ Memory shortage in vLLM has two root causes:
 | OOM during model load | Model is larger than GPU memory | Use larger GPU, apply quantization (AWQ, GPTQ) |
 | "No available blocks" during inference | KV cache capacity shortage | Increase `gpu_memory_utilization` (0.9→0.95) |
 | Short requests succeed, long requests fail | KV cache shortage | Reduce `max_model_len`, reduce `max_num_batched_tokens` |
-| Random OOM, hard to reproduce | Fragmentation | Restart server, increase `swap_space` |
+| Random OOM, hard to reproduce | Fragmentation | Restart server; lower `gpu_memory_utilization` to leave headroom |
 
 ### vLLM Parameter Tuning
+
+The example below targets vLLM **0.6.x (the V0 engine)**. `swap_space` swaps KV blocks to CPU in V0; its behavior and meaning changed in the V1 engine, so confirm whether the flag applies in the vLLM release you run. On V1, diagnose model weights, KV, activation, and CUDA-graph memory independently.
 
 ```yaml
 args:
@@ -187,7 +211,7 @@ args:
   - --max-model-len=8192           # max context length; determines KV cache size
   - --max-num-batched-tokens=8192  # batched tokens; balances throughput/latency
   - --max-num-seqs=256            # concurrent sequences
-  - --swap-space=4                # CPU memory swap (GiB)
+  - --swap-space=4                # (V0 only) CPU memory swap (GiB)
 ```
 
 **Tuning guide:**
@@ -260,16 +284,25 @@ kubectl logs -n gpu-operator nvidia-device-plugin-daemonset-<pod-id>
 
 ## GPUs on EKS Auto Mode
 
-:::warning Auto Mode GPU Constraints
-EKS Auto Mode manages the GPU Driver automatically, so **GPU Operator must not be installed**.
-Use the AWS-managed driver but disable the Device Plugin.
+:::info GPU support in Auto Mode
+EKS Auto Mode **directly manages the NVIDIA and Neuron kernel drivers and device plugins as built-in components** (see the [EKS Auto Mode documentation](https://docs.aws.amazon.com/eks/latest/userguide/automode.html)). Therefore, **do not install the NVIDIA GPU Operator on Auto Mode nodes** — it conflicts with the drivers and device plugins Auto Mode manages. A GPU workload that requests the `nvidia.com/gpu` resource causes Auto Mode to provision an appropriate GPU instance.
 :::
 
-### Auto Mode GPU Configuration
+### When to Use MNG + GPU Operator
+
+Install the GPU Operator on a separate managed node group (MNG) only when you have a **concrete requirement** that Auto Mode's built-in GPU support does not meet — for example, a specific driver/CUDA version combination Auto Mode does not provide, fine-grained DCGM metrics, or a custom Operator configuration. "We need GPUs" alone is satisfied by Auto Mode.
+
+When building an MNG hybrid, follow these rules:
+
+- Pin the MNG node AMI and the GPU Operator version explicitly to ensure compatibility (use a combination you have validated).
+- Keep **one owner per component** (driver, device plugin). Separate Auto Mode and MNG nodes with taints/labels, and scope the GPU Operator ClusterPolicy operands with nodeSelector/affinity so they are not scheduled onto Auto Mode nodes.
+- Because Auto Mode already manages the driver, disable any device plugin on the MNG Operator that would overlap Auto Mode nodes.
+
+### Auto Mode + MNG Hybrid Example {#auto-mode-gpu-configuration}
 
 ```yaml
-# When installing GPU Operator on MNG (Auto Mode + MNG hybrid)
-# Device Plugin must be disabled in ClusterPolicy
+# GPU Operator ClusterPolicy for the MNG only (scoped so it does not apply to Auto Mode nodes)
+# The nodeSelector below is an example of restricting operands to a label applied only to MNG nodes.
 apiVersion: nvidia.com/v1
 kind: ClusterPolicy
 metadata:
@@ -280,7 +313,7 @@ spec:
   driver:
     enabled: true
   devicePlugin:
-    enabled: false  # ← prevents conflict with Auto Mode
+    enabled: false  # ← avoid conflict with the device plugin Auto Mode manages
   dcgm:
     enabled: true
   gfd:
@@ -291,15 +324,14 @@ spec:
 
 **Auto Mode + GPU workload patterns:**
 
-1. **Pure Auto Mode (not recommended)**
-   - Many GPU workload constraints
-   - Cannot install custom drivers
+1. **Use Auto Mode directly (recommended)**
+   - A `nvidia.com/gpu` request alone has Auto Mode provision the GPU node and manage the driver and plugins.
+   - No separate Operator to install, so operational overhead is lowest.
 
-2. **Hybrid (Auto Mode + MNG)**
-   - Auto Mode: general workloads
-   - MNG (GPU): dedicated to GPU workloads
-   - Install GPU Operator on MNG with `devicePlugin=false`
-   - Separate via Taint: `nvidia.com/gpu=true:NoSchedule`
+2. **Hybrid (Auto Mode + MNG)** — only when the "when to use MNG" conditions above apply
+   - Auto Mode: general workloads and standard GPU workloads
+   - MNG (GPU): dedicated to GPU workloads with specific needs Auto Mode does not meet
+   - Pin AMI/Operator versions; separate via taint: `nvidia.com/gpu=true:NoSchedule`
 
 See [Auto Mode Debugging](./auto-mode.md) for details.
 
@@ -353,15 +385,27 @@ nc -zv <target-pod-ip> 12345
 aws ec2 describe-security-groups --group-ids <sg-id>
 
 # === NCCL test ===
-# NCCL all-reduce test (multi-GPU)
-kubectl exec -it <pod-name> -- python -c "
-import torch
-import torch.distributed as dist
-dist.init_process_group(backend='nccl')
-tensor = torch.ones(1).cuda()
-dist.all_reduce(tensor)
-print(f'Success: {tensor.item()}')
-"
+# Do not attach to a running training Pod; run this isolated as a separate diagnostic Job.
+# Each process owns one GPU (single node, N GPUs: torchrun --nproc_per_node=N),
+# and the all_reduce(SUM) result must equal the number of participating processes (world size).
+# For multi-node, run torchrun on each node with --nnodes / --node_rank / --master_addr.
+cat > /tmp/nccl_check.py <<'PY'
+import os, datetime, torch, torch.distributed as dist
+# rendezvous/ranks are injected by torchrun via LOCAL_RANK/RANK/WORLD_SIZE/MASTER_ADDR
+dist.init_process_group(backend="nccl",
+                        timeout=datetime.timedelta(seconds=60))  # bound to avoid a hang
+local_rank = int(os.environ["LOCAL_RANK"])
+torch.cuda.set_device(local_rank)                                # process-to-GPU mapping
+t = torch.ones(1, device=f"cuda:{local_rank}")
+dist.all_reduce(t, op=dist.ReduceOp.SUM)
+world = dist.get_world_size()
+assert int(t.item()) == world, f"expected {world}, got {t.item()}"
+if dist.get_rank() == 0:
+    print(f"OK: all_reduce sum = {int(t.item())} (= world size {world})")
+dist.destroy_process_group()                                     # teardown
+PY
+# Single-node example (set N = GPU count on nproc_per_node)
+kubectl exec -it <diagnostic-pod> -- torchrun --nproc_per_node=<N> /tmp/nccl_check.py
 ```
 
 ## Checklist by Problem

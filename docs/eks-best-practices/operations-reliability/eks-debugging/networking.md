@@ -3,9 +3,9 @@ title: Networking Debugging
 description: Guide to diagnosing EKS networking issues - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 10
+reading_time: 18
 tags:
   - eks
   - kubernetes
@@ -96,11 +96,13 @@ kubectl get daemonset aws-node -n kube-system -o yaml | grep ENABLE_PREFIX_DELEG
 ```
 
 :::tip What Is Prefix Delegation?
-In the default mode, each ENI receives individual secondary IPs. Enabling Prefix Delegation assigns a /28 prefix (16 IPs) per ENI, allowing 16x more Pods on the same ENI.
+In the default mode, each ENI receives individual secondary IPs. Enabling Prefix Delegation assigns a /28 prefix (16 IPs) per ENI, increasing the number of Pod IPs a single ENI can supply.
 
-**Example**: c5.xlarge instance
-- Default mode: up to 58 Pods (4 ENIs × 15 IPs - 1)
-- Prefix Delegation: up to 110 Pods (4 ENIs × 16 prefixes × 16 IPs)
+The address capacity supplied by ENIs and IPs is distinct from the `maxPods` cap the kubelet allows on a node. The default AMI computes the ENI-based `maxPods` as `(number of ENIs × (IPs per ENI − 1)) + 2`; the trailing `+ 2` accounts for the VPC CNI and kube-proxy, which do not consume a Pod IP (see [How maxPods is determined](https://docs.aws.amazon.com/eks/latest/userguide/choosing-instance-type.html#determine-max-pods)).
+
+**Example**: c5.xlarge instance (4 ENIs, 15 IPs per ENI)
+- Default-mode ENI-based `maxPods` = (4 × (15 − 1)) + 2 = 58
+- Enabling Prefix Delegation lets each ENI supply far more Pod IPs through multiple /28 prefixes, so address capacity grows substantially. However, on managed node groups without a custom AMI, EKS enforces `maxPods` at 110 for instances with fewer than 30 vCPUs and 250 for instances with more, so the Pods a node actually accepts do not exceed that cap.
 :::
 
 :::caution Temporary Changes vs. Persistent Configuration
@@ -149,13 +151,25 @@ kubectl rollout restart deployment coredns -n kube-system
 
 ### CoreDNS OOM Issues
 
-When CoreDNS is OOMKilled, DNS resolution fails across the cluster.
+When one CoreDNS Pod is OOMKilled, only the queries it was handling are affected; if other healthy replicas remain, resolution continues partially. DNS resolution fails effectively cluster-wide only when all replicas are repeatedly OOMKilled. Before raising memory, first measure the number of healthy endpoints, the restart/OOM history, the query load, and cache behavior to decide whether this is a partial or total outage and whether memory is actually the cause.
 
 ```bash
-# Check CoreDNS memory usage
-kubectl top pods -n kube-system -l k8s-app=kube-dns
+# Check healthy CoreDNS endpoints and replica status
+kubectl get endpoints kube-dns -n kube-system
+kubectl get pods -n kube-system -l k8s-app=kube-dns -o wide
 
-# Increase CoreDNS memory limits
+# Check restart/OOM history
+kubectl describe pods -n kube-system -l k8s-app=kube-dns | grep -iE 'restart|oomkilled|last state'
+
+# Check memory usage and query load
+kubectl top pods -n kube-system -l k8s-app=kube-dns
+# Use CoreDNS metrics (coredns_dns_requests_total, cache hit ratio, etc.) to assess query volume and cache behavior
+```
+
+Adjust limits only when measurements show memory is the actual bottleneck. Note that CoreDNS on EKS is owned by the managed add-on, so changes made directly to the Deployment can be reverted during add-on reconciliation. Apply persistent changes through the add-on's configuration values, and if query load is the cause, adjust the replica count or distribute caching with NodeLocal DNSCache.
+
+```bash
+# When measurements show memory is the bottleneck, adjust CoreDNS memory limits (values are a measurement-based example)
 kubectl set resources deployment coredns -n kube-system \
   --limits=memory=300Mi --requests=memory=100Mi
 ```
@@ -165,7 +179,7 @@ kubectl set resources deployment coredns -n kube-system \
 - Repeated queries due to missing DNS caching
 - Malicious DNS amplification attacks
 
-**Resolution**: Increase memory + use NodeLocal DNSCache
+**Resolution**: Confirm the cause by measurement, then choose the applicable action among adjusting memory, adjusting replicas, or using NodeLocal DNSCache
 :::
 
 ### ndots:5 Issue and Resolutions
@@ -179,12 +193,14 @@ kubectl exec <pod-name> -- cat /etc/resolv.conf
 # search default.svc.cluster.local svc.cluster.local cluster.local
 # options ndots:5
 
-# Problem: resolving api.example.com triggers 5 queries in sequence
+# With ndots:5, names with fewer than 5 dots are first tried against the search list.
+# Based on the search list above (3 entries), the lookup order for api.example.com (2 dots) is, for example:
 # 1. api.example.com.default.svc.cluster.local (fail)
 # 2. api.example.com.svc.cluster.local (fail)
 # 3. api.example.com.cluster.local (fail)
-# 4. api.example.com.ec2.internal (fail)
-# 5. api.example.com (succeed)
+# 4. api.example.com (succeed)
+# The actual packet count varies with the resolver implementation, simultaneous A/AAAA lookups, and cache state,
+# so this is an illustrative order derived from the search list, not a guaranteed fixed number of queries.
 ```
 
 #### Resolution 1: Adjust ndots Value
@@ -213,18 +229,26 @@ curl https://api.example.com.  # ← trailing dot forces immediate external DNS 
 
 #### Resolution 3: Use NodeLocal DNSCache
 
-NodeLocal DNSCache provides per-node DNS caching, reducing load on CoreDNS.
+NodeLocal DNSCache provides per-node DNS caching, reducing load on CoreDNS. The upstream manifest contains placeholders such as `__PILLAR__DNS__DOMAIN__`, `__PILLAR__DNS__SERVER__`, and `__PILLAR__LOCAL__DNS__`, so do not apply it as-is: substitute the cluster domain (default `cluster.local`), the kube-dns service ClusterIP, and the local listen address the node will use, then apply it. Because the substituted values and the kubelet `--cluster-dns` setting depend on the kube-proxy mode (iptables/ipvs), follow the procedure in the [Kubernetes NodeLocal DNSCache documentation](https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/).
 
 ```bash
-# Install NodeLocal DNSCache
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/kubernetes/master/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
+# Download the manifest from a pinned release tag instead of master, then substitute placeholders and review
+curl -fsSL -o nodelocaldns.yaml \
+  https://raw.githubusercontent.com/kubernetes/kubernetes/v1.31.0/cluster/addons/dns/nodelocaldns/nodelocaldns.yaml
+# Substitute <cluster-domain>, <kube-dns-cluster-ip>, <node-local-address> with your environment values
+sed -i "s/__PILLAR__DNS__DOMAIN__/cluster.local/g; s/__PILLAR__DNS__SERVER__/<kube-dns-cluster-ip>/g; s/__PILLAR__LOCAL__DNS__/<node-local-address>/g" nodelocaldns.yaml
+
+# Apply the substituted manifest
+kubectl apply -f nodelocaldns.yaml
 
 # Verify installation
 kubectl get pods -n kube-system -l k8s-app=node-local-dns
 ```
 
+Before applying, confirm the nodes are Linux nodes that accept the DaemonSet and that the kube-dns service ClusterIP and the local listen address do not conflict with the node network. To roll back, remove the DaemonSet with `kubectl delete -f nodelocaldns.yaml`, and restore the kubelet `--cluster-dns` or NodeLocal address to their original values if you changed them.
+
 :::info VPC DNS Throttling Limits
-The VPC DNS resolver has a limit of **1,024 packets/sec per ENI**. For large clusters, NodeLocal DNSCache is essential to reduce VPC DNS calls.
+Traffic each network interface can send to the Amazon-provided Route 53 Resolver is capped at **1,024 packets per second per network interface** (see [Amazon VPC quotas](https://docs.aws.amazon.com/vpc/latest/userguide/amazon-vpc-limits.html#vpc-limits-dns)). This allowance applies per interface and is shared across the lookups of every Pod using that interface. The limit is measured in packets, not DNS queries, so a single query can consume multiple packets when retries or TCP fallback occur. Measure the actual per-interface traffic and the node networking mode to decide on NodeLocal DNSCache adoption, replica placement, and application lookup patterns.
 :::
 
 ## Service Debugging
@@ -256,14 +280,21 @@ kubectl get pods --show-labels
 # web-abc     1/1     Running   app=web,ver=v1  ← label is typo "ver"
 ```
 
-**Resolution**: Align Service selector with Pod labels
+**Resolution**: Correct the Pod's typo label (`ver`) to the intended `version` key so it matches the Service selector. Keep the selector at the intended `version=v1`; the Pod label is the side that is wrong.
 
 ```bash
-# Option 1: modify Service selector
-kubectl patch svc web-service -p '{"spec":{"selector":{"app":"web","ver":"v1"}}}'
+# Option 1: fix the label in the controller (e.g., Deployment) Pod template and roll it out
+# Changing ver to version in spec.template.metadata.labels makes new Pods carry the correct label
+kubectl patch deployment web -p '{"spec":{"template":{"metadata":{"labels":{"version":"v1"}}}}}'
+kubectl rollout status deployment web
+# Do not leave the typo key (ver) in the selector; if needed, restore the selector to the intended value:
+kubectl patch svc web-service -p '{"spec":{"selector":{"app":"web","version":"v1"}}}'
 
-# Option 2: modify Pod label (update Deployment template and redeploy)
-kubectl set labels pod web-abc version=v1 --overwrite
+# Option 2: temporarily relabel a single Pod for an immediate check (not a permanent fix; the controller reverts it)
+kubectl label pod web-abc version=v1 --overwrite
+
+# After the change, verify the Pod is registered in the EndpointSlice
+kubectl get endpointslices -l kubernetes.io/service-name=web-service
 ```
 
 #### Pattern 2: port vs targetPort Mismatch
@@ -283,12 +314,19 @@ spec:
 ```
 
 ```bash
-# Check the port the Pod actually listens on
+# containerPort is only a declared value, so inspect the socket the Pod actually listens on
+kubectl exec <pod-name> -- ss -ltnp
+# Or confirm the real bind port in the application config/logs
+# Declared containerPort (for reference only)
 kubectl get pod <pod-name> -o jsonpath='{.spec.containers[*].ports[*].containerPort}'
-# 9090  ← actual is 9090 but Service is set to 8080
+# Example: the application listens on 9090 but the Service targetPort is set to 8080
 
-# Fix Service targetPort
+# Align the Service targetPort with the port the backend actually listens on
+# port is the Service port clients reach; targetPort is the port the backend Pod receives on — they are distinct values
 kubectl patch svc web-service -p '{"spec":{"ports":[{"port":80,"targetPort":9090}]}}'
+
+# When using a load balancer, the health-check port is the Service NodePort or the Pod port
+# depending on the target type (instance/ip) and configuration, so align it separately from targetPort
 ```
 
 #### Pattern 3: Endpoints Check
@@ -368,18 +406,28 @@ The two YAMLs above differ by one indentation level and result in completely dif
 
 ### Debugging NetworkPolicy Blocking
 
+A NetworkPolicy takes effect only when a CNI enforces it. On EKS with the VPC CNI, the add-on's NetworkPolicy feature must be enabled; otherwise policies are declared but do not control traffic. First confirm enforcement is on and that policy and namespace labels match as intended, then test both a flow that should be allowed and a flow that should be denied.
+
 ```bash
-# List all NetworkPolicies
-kubectl get networkpolicy -n <namespace>
+# Confirm VPC CNI NetworkPolicy enforcement is enabled
+kubectl get daemonset aws-node -n kube-system \
+  -o jsonpath='{.spec.template.spec.containers[*].args}' | tr ',' '\n' | grep -i network-policy
 
-# NetworkPolicies applied to a specific Pod
-kubectl describe pod <pod-name> -n <namespace>
+# Check that applied policies and their selectors match the namespace/Pod labels
+kubectl get networkpolicy -n <namespace> -o yaml
+kubectl get ns <namespace> --show-labels
+kubectl get pods -n <namespace> --show-labels
 
-# Test whether a NetworkPolicy blocks traffic
-kubectl run -it --rm debug --image=nicolaka/netshoot --restart=Never -- bash
-# Inside:
-curl -v http://<target-service>.<namespace>.svc.cluster.local
+# Allowed-flow test: reach the target from a source workload carrying the labels the policy permits
+kubectl exec -n <namespace> deploy/<allowed-client> -- \
+  curl -sS -m 5 http://<target-service>.<namespace>.svc.cluster.local:<port>/
+
+# Denied-flow test: reach it from a source workload the policy does not permit (failure is expected)
+kubectl exec -n <namespace> deploy/<denied-client> -- \
+  curl -sS -m 5 http://<target-service>.<namespace>.svc.cluster.local:<port>/
 ```
+
+An ad-hoc debug Pod may not carry the labels, direction, or ports the policy selectors expect, which makes results easy to misread. Where possible, test with the identity (labels) of the controller-managed workloads for the intended direction (ingress/egress) and ports.
 
 #### Missing Allow Rules After Default Deny
 
@@ -419,7 +467,7 @@ spec:
 ```
 
 :::warning Default Deny Requires Care
-Applying a Default Deny NetworkPolicy blocks all traffic not explicitly allowed. Before applying to production, write all necessary Allow rules and validate in a test environment.
+The `default-deny-ingress` above lists only `Ingress` in `policyTypes`, so it **blocks ingress only** and does not restrict egress. To control egress or DNS, you must define and test a separate `Egress` policy; and because blocking all egress also blocks DNS to kube-dns, be sure to include a DNS allow rule. Also, the `podSelector: {app: frontend}` in `allow-from-frontend` has no `namespaceSelector`, so the rule refers only to frontend Pods **within the same `production` namespace**. To allow frontend in other namespaces, add a `namespaceSelector`. Before applying to production, write all necessary Allow rules and validate both ingress and egress flows in a test environment.
 :::
 
 ## Using netshoot
