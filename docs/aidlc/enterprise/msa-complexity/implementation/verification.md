@@ -3,9 +3,9 @@ title: Verification Methodology
 description: Verification methods to ensure quality when applying AIDLC in complex MSA
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 6
+reading_time: 8
 tags:
   - verification
   - testing
@@ -30,9 +30,11 @@ Methods to ensure quality when applying AIDLC in complex MSA environments.
 
 ### Harness Verification
 
+Here "failure scenarios" refers not to arbitrary faults but to the failure types explicitly enumerated in the target system's fault model (for example, service timeouts, duplicate or lost messages, partial commits, network partitions). Record that types absent from the fault model are out of verification scope.
+
 - [ ] **Coverage:** Are all required harnesses implemented?
 - [ ] **Automation:** Are harnesses integrated into CI/CD?
-- [ ] **Failure Scenarios:** Are all failure scenarios tested?
+- [ ] **Failure Scenarios:** Are all failure types enumerated in the documented fault model tested?
 - [ ] **Performance:** Is harness execution time reasonable?
 
 ### Deployment Verification
@@ -81,7 +83,7 @@ jobs:
 
 ## Expert Review
 
-**Complexity L4-5 requires expert review**
+**For complexity L4-5, expert review is a deployment-blocking gate.** Deployment cannot proceed until a designated expert (L4-5) completes the review below and records approval; this is the same pass criterion as the "Expert Review (L4-5) Required" row in the Quality Gate table above.
 
 ### Review Checklist
 
@@ -112,6 +114,8 @@ jobs:
 | **Required Harness Implementation** | 100% | - |
 | **Code Review Approval** | Required | - |
 | **Expert Review (L4-5)** | Required | - |
+
+These thresholds relate to the `aidlc-cli quality-gate --threshold 80` call in the CI/CD example above as follows. `--threshold 80` is the lower bound for the gate's **composite score** (80%), while the table's "Ontology Coverage" and "Harness Success Rate" are the **lower bounds of the individual metrics** that make up that composite score. "Required Harness Implementation 100%" means every harness classified as P0/P1 in the [Harness Checklist](./harness-checklist.md) must be implemented; P2 and below map to the recommended target. The three values measure different things, so they are not merged into a single number.
 
 ### Action on Failure
 

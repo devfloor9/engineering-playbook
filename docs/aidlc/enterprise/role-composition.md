@@ -3,9 +3,9 @@ title: Role Composition
 description: Team Structure and Role Changes in the AIDLC Era — Harness Engineer, Ontology Steward, AI Verifier
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 24
+reading_time: 26
 tags:
   - aidlc
   - enterprise
@@ -45,7 +45,7 @@ graph LR
 
 ## AIDLC Role Transformation
 
-In AIDLC methodology, roles are fundamentally redefined:
+This guide proposes the following role mapping for the AIDLC methodology. The table below is an illustrative example of how traditional roles can shift in responsibility; it is a starting point for organizations to adapt, not an established standard.
 
 | Traditional Role | AIDLC Role | Change Content |
 |------------|-----------|---------|
@@ -68,7 +68,7 @@ In AIDLC methodology, roles are fundamentally redefined:
 #### Tools
 - Ontology visualization tools (Neo4j Bloom, GraphXR)
 - Intent specification templates (YAML/JSON schema)
-- Business rule engines (Drools, DMN)
+- Business rule engines (Drools) and decision standards (DMN notation)
 
 ### Ontology Steward
 
@@ -166,9 +166,12 @@ graph TD
     A[Primary LLM] -->|Generate Code| B[Output Gate]
     C[Verification LLM] -->|Cross-check| B
     D[Static Analysis] -->|Scan| B
-    B -->|All Gates Pass| E[Deploy]
+    B -->|All Gates Pass| G[Human Checkpoint Approval]
+    G -->|Approved| E[Deploy]
     B -->|Any Gate Fails| F[Reject & Alert]
 ```
+
+Passing the automated gates does not by itself authorize deployment. Even when all gates pass, a responsible person must review the results at the Human Checkpoint and record approval before deployment proceeds. The gates are therefore advisory inputs to that human approval decision.
 
 ### Differences from Traditional Developer
 
@@ -252,12 +255,14 @@ AIDLC adoption fundamentally changes team composition ratios.
 | QA 7 (14%) | AI Verifier 10 (20%) |
 | Security 3 (6%) | Shift-Left Security 9 (18%) |
 
-**Change Interpretation**:
-- 30 developers → 20 harness engineers: **33% workforce reduction** or **50% more features with same workforce**
-- 3 security → 9: Shift-Left triples personnel, but reduces project-end rework cost by 90%
+**Change Interpretation** (the headcount, ratio, and savings figures below are planning assumptions/examples to illustrate role redistribution, not measured results):
+- 30 developers → 20 harness engineers: Role redistribution by itself does not imply a headcount change. In this example assumption the redistribution could be framed as a **33% workforce reduction** or as **about 50% more features with the same workforce** (both are example targets); actual results vary by organization and project.
+- 3 security → 9: An example composition that increases headcount via Shift-Left. The "90% rework-cost reduction" is an example target based on the NIST reference in the Shift-Left section below.
 - 6 ontology stewards: Manage complex domain ontology (finance, healthcare, logistics integration)
 
 ### Cost Effectiveness
+
+The cost and savings figures in the table below are planning-stage example assumptions, not measured results. They are separate from role redistribution itself, and actual costs vary by organization, labor rates, and project scope, so each organization should validate them with its own data.
 
 | Project Scale | Traditional Cost | AIDLC Cost | Savings |
 |------------|----------|-----------|---------|
@@ -306,6 +311,8 @@ gantt
     Deployment              :2026-03-31, 5d
 ```
 
+In the schedule above, "AI Code Generation" and "Continuous Security Verification" intentionally overlap over the same 60-day window (2026-01-31 to 2026-03-31). This is the core of Shift-Left: security verification runs concurrently with code generation rather than being deferred until afterward, so vulnerabilities are detected immediately. Deployment (2026-03-31) begins when both activities complete.
+
 **Effects**:
 - Security policies embedded in harness → Apply security rules from code generation point
 - Continuous security verification → Immediately detect and auto-fix vulnerabilities
@@ -336,7 +343,12 @@ security_harness:
     trigger: ai_generates_sql_query
     checks:
       - type: static_analysis
-        tools: [semgrep, sqlmap]
+        tools: [semgrep]
+      # sqlmap is a dynamic SQL-injection exploitation tool, not static analysis,
+      # so it runs only as a separate step against a target you are authorized to test.
+      - type: dynamic_test
+        tools: [sqlmap]
+        authorized_target_required: true
       - type: parameterized_query_validation
         enforce: true
       - type: input_sanitization
@@ -347,7 +359,7 @@ security_harness:
 
 ## Team Topology Patterns
 
-AIDLC organizations follow Team Topologies (Matthew Skelton, Manuel Pais) patterns:
+This staffing adapts Team Topologies patterns (Matthew Skelton, Manuel Pais):
 
 ### Stream-Aligned Team
 
