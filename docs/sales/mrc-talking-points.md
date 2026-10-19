@@ -101,7 +101,7 @@ GCP and Azure offer similar services. AWS's differentiator is that **the full LL
 
 ### Q6. What can I get from the event?
 
-You can see **practical guides on AI infrastructure architecture and agent applications** all in one day. Capacity is 200, so CTO/VP-level networking opportunities are also provided. Two tracks are ready to start a PoC immediately after the event.
+The event presented **practical guides on AI infrastructure architecture and agent applications** in a single day. It was run with a capacity of 200, which also provided CTO/VP-level networking opportunities. Two tracks were prepared so that a PoC could continue after the event.
 
 ### Q7. How does the PoC proceed?
 
