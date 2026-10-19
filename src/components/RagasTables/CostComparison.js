@@ -16,12 +16,12 @@ const CostComparison = () => {
     complexity: isKo ? '중간' : 'Medium',
     color: '#34a853'
   }, {
-    method: 'Bedrock RAG Eval (Claude 3 Sonnet)',
+    method: isKo ? 'Bedrock RAG Eval (상위 티어 evaluator 모델)' : 'Bedrock RAG Eval (higher-tier evaluator model)',
     cost: '$20-40',
     complexity: isKo ? '낮음' : 'Low',
     color: '#fbbc04'
   }, {
-    method: 'Bedrock RAG Eval (Claude 3 Haiku)',
+    method: isKo ? 'Bedrock RAG Eval (하위 티어 evaluator 모델)' : 'Bedrock RAG Eval (lower-tier evaluator model)',
     cost: '$5-15',
     complexity: isKo ? '낮음' : 'Low',
     color: '#4285f4'
@@ -40,7 +40,7 @@ const CostComparison = () => {
       fontWeight: '600',
       fontSize: '16px'
     }}>
-        {isKo ? '비용 비교 (1000개 평가 기준)' : 'Cost Comparison (Based on 1000 Evaluations)'}
+        {isKo ? '비용 비교 (1000개 평가 기준, 예시 범위 · 토큰·모델 버전별 실측 필요)' : 'Cost Comparison (per 1000 evaluations; illustrative ranges, measure per tokens and model version)'}
       </div>
 
       <div style={{

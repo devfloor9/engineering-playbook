@@ -3,9 +3,9 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 35
+reading_time: 41
 tags:
   - guardrails
   - pii
@@ -105,7 +105,7 @@ flowchart LR
 | **Audit Log** | Cross-cutting | Record all violation events, SIEM integration | Async |
 
 :::tip Output Guard for Streaming Responses
-In SSE/chunked streaming, you must **buffer token by token** and validate at each complete sentence boundary. Bedrock Guardrails and Portkey support chunk-level filtering in streaming mode.
+In SSE/chunked streaming, buffer the output to a protocol/sentence boundary and withhold each chunk from the client until it passes the Output Guard. That is, blocking the release of a chunk until the check completes is the prerequisite for preventing PII leakage. Asynchronous detection that analyzes already-released chunks after the fact can only stop later chunks; it cannot unsend PII that has already left for the client. Bedrock Guardrails and Portkey support chunk-level filtering in streaming mode.
 :::
 
 ---
@@ -155,8 +155,20 @@ In Korean enterprises, **locale-specific recognizers** for resident registration
 
 ```python
 # pseudo-code: Presidio Korean recognizer custom registration
-from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer
+from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer, RecognizerRegistry
+from presidio_analyzer.nlp_engine import NlpEngineProvider
+from presidio_analyzer.predefined_recognizers import (
+    EmailRecognizer, PhoneRecognizer, CreditCardRecognizer,
+)
 from presidio_anonymizer import AnonymizerEngine
+
+# Prerequisite 1: explicitly configure an NLP engine that supports Korean.
+# Install a spaCy Korean model (e.g., ko_core_news_lg) and map it in the
+# provider so that language="ko" analysis works.
+nlp_engine = NlpEngineProvider(nlp_configuration={
+    "nlp_engine_name": "spacy",
+    "models": [{"lang_code": "ko", "model_name": "ko_core_news_lg"}],
+}).create_engine()
 
 # Resident registration number: 6 digits - 7 digits (first 6 = birth date)
 rrn_pattern = Pattern(
@@ -164,10 +176,13 @@ rrn_pattern = Pattern(
     regex=r"\b\d{6}[-\s]?[1-4]\d{6}\b",
     score=0.9,
 )
+# Context strings must match the surrounding Korean input text to boost scores,
+# so they stay in Korean even in this English document.
 rrn_recognizer = PatternRecognizer(
     supported_entity="KR_RRN",
     patterns=[rrn_pattern],
-    context=["resident", "registration number", "resident number"],
+    context=["주민", "등록번호", "주민번호"],
+    supported_language="ko",
 )
 
 # Business registration number: 3-2-5
@@ -179,12 +194,25 @@ brn_pattern = Pattern(
 brn_recognizer = PatternRecognizer(
     supported_entity="KR_BRN",
     patterns=[brn_pattern],
-    context=["business", "registration number"],
+    context=["사업자", "등록번호"],
+    supported_language="ko",
 )
 
-analyzer = AnalyzerEngine()
-analyzer.registry.add_recognizer(rrn_recognizer)
-analyzer.registry.add_recognizer(brn_recognizer)
+# Prerequisite 2: EMAIL_ADDRESS/PHONE_NUMBER/CREDIT_CARD default recognizers are
+# registered only for English ("en"), so register them explicitly with
+# supported_language="ko" to use them in ko analysis.
+registry = RecognizerRegistry()
+registry.add_recognizer(rrn_recognizer)
+registry.add_recognizer(brn_recognizer)
+registry.add_recognizer(EmailRecognizer(supported_language="ko"))
+registry.add_recognizer(PhoneRecognizer(supported_language="ko"))
+registry.add_recognizer(CreditCardRecognizer(supported_language="ko"))
+
+analyzer = AnalyzerEngine(
+    nlp_engine=nlp_engine,
+    registry=registry,
+    supported_languages=["ko"],
+)
 
 anonymizer = AnonymizerEngine()
 
@@ -209,17 +237,37 @@ import boto3
 
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
-resp = bedrock.apply_guardrail(
-    guardrailIdentifier="gr-pii-kr-prod",
-    guardrailVersion="1",
-    source="INPUT",  # or "OUTPUT"
-    content=[{"text": {"text": user_prompt, "qualifiers": ["guard_content"]}}],
-)
+# Do not hardcode the guardrail identifier/version; inject them from configuration
+# (environment variables / secrets).
+def apply_guard(user_prompt: str, guardrail_id: str, guardrail_version: str):
+    resp = bedrock.apply_guardrail(
+        guardrailIdentifier=guardrail_id,   # real Guardrail ID or ARN
+        guardrailVersion=guardrail_version,
+        source="INPUT",  # or "OUTPUT"
+        content=[{"text": {"text": user_prompt, "qualifiers": ["guard_content"]}}],
+    )
 
-if resp["action"] == "GUARDRAIL_INTERVENED":
+    if resp["action"] != "GUARDRAIL_INTERVENED":
+        # No intervention: pass the input through unchanged.
+        return {"decision": "allow", "content": user_prompt}
+
+    # Intervention occurred: inspect assessments to distinguish "block" from "mask".
+    # If a content/topic/word policy returns BLOCKED, stop the application path and
+    # never forward the raw input (user_prompt) downstream.
+    blocked = False
+    for assessment in resp.get("assessments", []):
+        # Check the item action of each policy (topicPolicy, contentPolicy, wordPolicy, etc.)
+        for policy in assessment.values():
+            for item in policy.get("filters", policy.get("topics", [])):
+                if item.get("action") == "BLOCKED":
+                    blocked = True
+    if blocked:
+        return {"decision": "block", "content": None}
+
+    # If not blocked, only remediation such as PII anonymization was applied.
+    # Forward only the deliberately accepted, sanitized result.
     sanitized = resp["outputs"][0]["text"]
-else:
-    sanitized = user_prompt
+    return {"decision": "redact", "content": sanitized}
 ```
 
 :::tip Advantages of ApplyGuardrail
@@ -228,8 +276,10 @@ else:
 
 ### 4.3 Guardrails AI `DetectPII` Validator
 
+`DetectPII` must be downloaded separately from the Guardrails Hub after installing the `guardrails-ai` package (`guardrails hub install hub://guardrails/detect_pii`), and it runs local inference based on Microsoft Presidio internally. It therefore requires Presidio and its NLP model (such as spaCy) dependencies to be installed as well. The Hub validator's package path and signature can change across versions, so before applying it, confirm the import path and arguments against the installed version's documentation and pin the version.
+
 ```python
-# pseudo-code: Guardrails AI Hub - DetectPII
+# pseudo-code: Guardrails AI Hub - DetectPII (requires guardrails-ai install + hub install detect_pii)
 from guardrails import Guard
 from guardrails.hub import DetectPII
 
@@ -363,6 +413,24 @@ flowchart LR
 **kgateway Configuration Example**:
 
 ```yaml
+# Step 1: Define the GatewayExtension CRD (configure the gRPC service, fail behavior, and timeout via ExtProcProvider)
+apiVersion: gateway.kgateway.dev/v1alpha1
+kind: GatewayExtension
+metadata:
+  name: guardrails-extproc
+  namespace: ai-platform
+spec:
+  type: ExtProc
+  extProc:
+    grpcService:
+      backendRef:
+        name: guardrails
+        namespace: ai-platform
+        port: 9000
+    failOpen: false               # Reject requests on Guardrails failure (fail-closed)
+    messageTimeout: 2s            # Message processing timeout
+---
+# Step 2: Reference it from the TrafficPolicy via extensionRef (only processingMode is set on the TrafficPolicy)
 apiVersion: gateway.kgateway.dev/v1alpha1
 kind: TrafficPolicy
 metadata:
@@ -370,19 +438,16 @@ metadata:
   namespace: ai-platform
 spec:
   targetRefs:
-    - kind: HTTPRoute
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
       name: llm-route
   extProc:
-    - name: guardrails-input
-      grpcService:
-        host: guardrails.ai-platform.svc.cluster.local
-        port: 9000
-      processingMode:
-        requestHeaderMode: SEND
-        requestBodyMode: BUFFERED
-        responseBodyMode: STREAMED  # Streaming response chunk-level inspection
-      failureModeAllow: false       # Reject requests on Guardrails failure (fail-closed)
-      timeout: 2s
+    extensionRef:
+      name: guardrails-extproc
+      namespace: ai-platform
+    processingMode:
+      requestBodyMode: BUFFERED
+      responseBodyMode: STREAMED  # Streaming response chunk-level inspection
 ```
 
 :::warning Fail-closed vs Fail-open
@@ -399,7 +464,6 @@ package guardrails
 
 import (
     "context"
-    "github.com/maximhq/bifrost/core/plugin"
     "github.com/maximhq/bifrost/core/schemas"
 )
 
@@ -408,28 +472,46 @@ type GuardrailsPlugin struct {
     llamaGuard  LlamaGuardClient
 }
 
-func (p *GuardrailsPlugin) PreHook(ctx context.Context, req *schemas.BifrostRequest) (*schemas.BifrostRequest, error) {
+func (p *GuardrailsPlugin) PreLLMHook(ctx *schemas.BifrostContext, req *schemas.BifrostRequest) (*schemas.BifrostRequest, *schemas.LLMPluginShortCircuit, error) {
+    // 0. nil/empty-message guard: if there is no last user message, pass through
+    if req == nil || len(req.Messages) == 0 {
+        return req, nil, nil
+    }
+    last := len(req.Messages) - 1
     // 1. PII redaction via Presidio
-    redacted, err := p.presidioCall(ctx, req.Input.Text)
+    redacted, err := p.presidioCall(ctx, req.Messages[last].Content)
     if err != nil {
-        return nil, err
+        return nil, nil, err
     }
     // 2. Llama Guard 3 injection/toxicity classify
     verdict, err := p.llamaGuard.Classify(ctx, redacted)
     if err != nil {
-        return nil, err
+        return nil, nil, err
     }
     if verdict.Unsafe {
-        return nil, plugin.ErrBlocked(verdict.Category)
+        // Policy denial blocks the request: return LLMPluginShortCircuit (distinct from the plugin-fault err)
+        return nil, &schemas.LLMPluginShortCircuit{
+            Response: &schemas.BifrostResponse{
+                Content: "Request blocked by guardrails: " + verdict.Category,
+            },
+        }, nil
     }
-    req.Input.Text = redacted
-    return req, nil
+    // Normal: continue the request (return the modified req, shortCircuit nil)
+    req.Messages[last].Content = redacted
+    return req, nil, nil
 }
 
-func (p *GuardrailsPlugin) PostHook(ctx context.Context, resp *schemas.BifrostResponse) (*schemas.BifrostResponse, error) {
-    // Output Guard: PII scrub on model response
-    scrubbed, _ := p.presidioCall(ctx, resp.Output.Text)
-    resp.Output.Text = scrubbed
+func (p *GuardrailsPlugin) PostLLMHook(ctx context.Context, req *schemas.LLMRequest, resp *schemas.LLMResponse) (*schemas.LLMResponse, error) {
+    // nil/streaming-response guard: if there is no body to remediate, return as-is
+    if resp == nil || resp.Content == "" {
+        return resp, nil
+    }
+    // Output Guard: PII scrub on model response — do not swallow a redaction failure, propagate it
+    scrubbed, err := p.presidioCall(ctx, resp.Content)
+    if err != nil {
+        return nil, err
+    }
+    resp.Content = scrubbed
     return resp, nil
 }
 ```
@@ -447,13 +529,14 @@ For detailed design, refer to [Inference Gateway Routing](../../model-serving/in
 
 ### 7.1 Guardrails Event Schema
 
-Track violation history by attaching **safety_violation** tags to Langfuse observation or span metadata.
+Track violation history by attaching **safety_violation** tags to Langfuse observation or span metadata. The example below uses the `@observe` decorator contract of the legacy Langfuse Python SDK v2 (`langfuse.decorators`, `langfuse<3`). SDK v3 is OpenTelemetry-based with a different API, so pin a single version rather than mixing the two contracts. By default `@observe` captures the function's input and output verbatim, so at a Guardrails boundary turn off automatic capture with `capture_input=False, capture_output=False` and record only the approved masked result and policy metadata explicitly. Retain traces recorded this way only in a store with defined access controls (restricted reader roles) and a retention period.
 
 ```python
-# pseudo-code: Record violation as Langfuse OTel attribute
+# pseudo-code: Record violation as Langfuse OTel attribute (legacy SDK v2: langfuse<3)
 from langfuse.decorators import observe, langfuse_context
 
-@observe()
+# capture_input/output=False: disable automatic raw input/output capture (no raw storage at the boundary)
+@observe(capture_input=False, capture_output=False)
 def handle_request(user_prompt: str):
     verdict = input_guard(user_prompt)
     if verdict.blocked:
@@ -519,7 +602,7 @@ Article numbers below are based on publicly available regulations and subject to
 |---------------|------|-----------------|
 | **Article 15** Collection/use | Consent-based collection, prohibition of use beyond purpose | Block non-purpose PII at input guard, reject requests beyond purpose |
 | **Article 23** Sensitive information | Separate consent for sensitive info like ideology/beliefs/health | Llama Guard 3 category mapping + sensitive info-specific redaction policy |
-| **Article 24** Unique identification information | Restrictions on processing resident registration numbers, etc. | Presidio `KR_RRN` recognizer + mandatory masking before processing |
+| **Article 24 / Article 24-2** Unique identification info / resident registration number | Restrictions on processing unique identification info (Art. 24), restrictions on processing resident registration numbers (Art. 24-2) | The legal basis and purpose-minimization for processing must be secured separately; the Presidio `KR_RRN` recognizer + masking is only a technical safeguard, and masking itself does not authorize processing |
 | **Article 29** Security measures | Encryption, access log retention | Retain all Guardrails events in CloudTrail/Langfuse for 3+ years |
 | **Article 30** Processing policy disclosure | Disclose processing purpose/items, etc. | Document Guardrails policy + ensure audit traceability |
 
@@ -561,7 +644,7 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 ### 9.1 Input Guard
 - [ ] Add Korean entities (resident registration number, business registration number) to PII recognizer
 - [ ] Reduce false positives with Luhn checksum validation
-- [ ] Periodically update jailbreak/injection pattern DB (Rebuff vector store or Lakera feed)
+- [ ] Periodically update the jailbreak/injection pattern DB. Rebuff is slow-maintenance, prototype-grade (see the §3 comparison table), so in production use a maintained commercial/OSS detector (e.g., the Lakera feed), or use the Rebuff vector store only when you fork and own it with a stated update/evaluation plan
 - [ ] Sanitize zero-width characters, HTML comments
 
 ### 9.2 Gateway Policy
@@ -587,7 +670,7 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 - [ ] Retain violation events for 3+ years (ISMS-P, Electronic Financial Supervision Regulation)
 
 ### 9.6 Compliance
-- [ ] Network-separated environment: Adopt self-hosted OSS combination (NeMo + Presidio + Llama Guard)
+- [ ] Network-separated environment: Adopt self-hosted OSS combination (NeMo + Presidio + Llama Guard). State the assumptions explicitly — each component's outbound egress blocked (no-egress), pinned versions and required model dependencies (Llama Guard GPU weights, Presidio NLP models, etc.), and anonymous-usage-telemetry disabled — and keep anonymous usage telemetry distinct from prompt-content export, controlling so that the latter does not occur
 - [ ] Document Guardrails controls during Privacy Impact Assessment (PIA)
 - [ ] Manage Guardrails policy change history with Git PR
 

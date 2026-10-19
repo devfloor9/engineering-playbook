@@ -3,9 +3,9 @@ title: Domain Specialization (LoRA + RAG)
 description: Guide to improving technical domain coding quality with LoRA Fine-tuning, VectorRAG, and GraphRAG — including FSI SI production scenarios
 created: "2026-04-04"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: devfloor9
-reading_time: 15
+reading_time: 21
 tags:
   - lora
   - rag
@@ -99,8 +99,8 @@ graph TD
 
 **Example**:
 ```python
-from langchain.vectorstores import Milvus
-from langchain.embeddings import OpenAIEmbeddings
+from langchain_milvus import Milvus
+from langchain_openai import OpenAIEmbeddings
 
 # 1. Embed internal API documentation
 embeddings = OpenAIEmbeddings()
@@ -110,13 +110,22 @@ vectorstore = Milvus.from_documents(
     connection_args={"host": "milvus.cluster.local", "port": 19530}
 )
 
-# 2. Search for relevant documents
+# 2. Keep the index fresh by updating/deleting documents
+#    - For changed docs, delete by doc_id (pk) and re-insert to avoid duplicates.
+vectorstore.delete(ids=changed_doc_ids)
+vectorstore.add_documents(updated_api_docs)
+#    - Remove deleted source documents from the index as well.
+vectorstore.delete(ids=removed_doc_ids)
+
+# 3. Search for relevant documents
 query = "How to call user authentication API?"
 docs = vectorstore.similarity_search(query, k=3)
 
-# 3. Pass search results + query to LLM
+# 4. Pass search results + query to LLM
 prompt = f"Context: {docs}\n\nQuestion: {query}"
 ```
+
+If you only add documents and never reflect changes or deletions, the index returns stale content, so operate update, deletion, and index-freshness maintenance alongside ingestion.
 
 ### Layer 3: LoRA (1-2 months)
 
@@ -136,7 +145,9 @@ For detailed LoRA training and deployment pipeline implementation, see [Custom M
 
 ## Required Layers by Scenario
 
-**Table 1. Suitability of each layer and recommended combination by requirement**
+The suitability ratings and the cost-vs-effect figures in the table below are not measurements but illustrative planning assumptions to help choose layers. Actual suitability and improvement depend on the target task and the controls being assessed, so measure them in your own environment before adoption.
+
+**Table 1. Suitability of each layer and recommended combination by requirement (illustrative assumptions)**
 
 | Requirement | Layer 1 (Steering) | Layer 2 (RAG) | Layer 3 (LoRA) | Recommended Combination |
 |---------|-------------------|--------------|---------------|----------|
@@ -147,10 +158,11 @@ For detailed LoRA training and deployment pipeline implementation, see [Custom M
 | **Consistent code style** | Basic only | Supplementary | Most effective | **Layer 1 + 3** |
 | **Legacy migration patterns** | Impossible | Example provision | Core | **Layer 2 + 3** |
 
-:::tip Cost vs Effect
-- **Layer 1 only**: Free, 60% improvement
-- **Layer 1 + 2**: Infrastructure cost, 80% improvement
-- **Layer 1 + 2 + 3**: $2,000, **95% improvement**
+:::tip Cost vs Effect (illustrative assumptions, not measured)
+The improvement figures are not measured results for a specific task or dataset; they are assumptions for comparing layer combinations.
+- **Layer 1 only**: Free, illustrative improvement 60%
+- **Layer 1 + 2**: Infrastructure cost, illustrative improvement 80%
+- **Layer 1 + 2 + 3**: $2,000, illustrative improvement **95%**
 :::
 
 ---
@@ -184,23 +196,60 @@ graph LR
 Integrates with **Layer 5: Knowledge Feature Store** of the LG U+ Agentic AI Platform for vector search.
 
 ```yaml
-apiVersion: feast.dev/v1alpha1
+apiVersion: feast.dev/v1
 kind: FeatureStore
 metadata:
   name: knowledge-feature-store
+  namespace: ai-platform
 spec:
-  online_store:
-    type: milvus
-    connection:
+  feastProject: knowledge_feature_store
+  services:
+    onlineStore:
+      persistence:
+        store:
+          type: milvus
+          secretRef:
+            name: milvus-connection
+---
+# Manage Milvus connection details via a Secret (feature_store.yaml format)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: milvus-connection
+  namespace: ai-platform
+type: Opaque
+stringData:
+  feature_store.yaml: |
+    project: knowledge_feature_store
+    provider: local
+    online_store:
+      type: milvus
       host: milvus.cluster.local
       port: 19530
-  entities:
-  - name: api_doc
-    value_type: STRING
-  features:
-  - name: api_embedding
-    dtype: FLOAT_LIST
-    dimensions: 1536  # OpenAI ada-002
+```
+
+**Entities and features are defined in a Feast feature repo (Python definitions + `feast apply`), not in the CR**:
+
+```python
+# features.py - deployed with feast apply
+from feast import Entity, FeatureView, Field
+from feast.types import String, Array, Float64
+
+# Entity definition
+api_doc = Entity(
+    name="api_doc",
+    join_keys=["doc_id"],
+    value_type=String
+)
+
+# Feature definition
+api_embedding_view = FeatureView(
+    name="api_embeddings",
+    entities=[api_doc],
+    schema=[
+        Field(name="api_embedding", dtype=Array(Float64)),
+    ],
+)
 ```
 
 ### Data Flow
@@ -323,11 +372,15 @@ Question: "Can a customer with credit score 550 get a mortgage loan?"
 | **LLM (+ LoRA)** | 30 min | 5,000 hrs | $250,000 + $2,000 | **Savings: $748,000** |
 
 **ROI**:
-- LoRA training cost: $2,000
-- Cost savings: $748,000
-- **ROI: 374x**
+- LoRA training cost (investment denominator): $2,000
+- Cost savings (vs. baseline): $748,000
+- **ROI: 374x (hypothetical, not an observed LoRA ROI)**
+
+This figure is a hypothetical calculation based on the assumptions above (10,000 modules, $50/hr, time per module); it is not a measured result. The baseline is "manual migration," and the investment denominator includes only the $2,000 LoRA training cost. Inference costs, operations costs, and review/rework costs for the output are excluded from the denominator, so the real ROI is lower. The 95% accuracy is also an assumption.
 
 :::tip Production Example
+The COBOL and Java below are an illustrative example (pseudocode) showing a conversion result; they are not a conversion verified to preserve behavior for a specific COBOL dialect. Because the COBOL fragment is incomplete, a real migration must specify the target dialect and the complete behavior contract and then verify it.
+
 **Input (COBOL)**:
 ```cobol
 PERFORM CALC-INTEREST
@@ -377,9 +430,9 @@ In SI environments using proprietary frameworks (Samsung SDS Devon, LG CNS Anyfr
 
 2. **RAG searches framework API documentation**
    ```python
-   # Embed Devon API documentation
-   docs = ["DevonController usage", "DevonService transaction handling", ...]
-   vectorstore.add_documents(docs)
+   # Embed Devon API documentation (use add_texts for strings, add_documents for Document objects)
+   texts = ["DevonController usage", "DevonService transaction handling", ...]
+   vectorstore.add_texts(texts)
    ```
 
 3. **Steering enforces conventions**
@@ -390,8 +443,10 @@ In SI environments using proprietary frameworks (Samsung SDS Devon, LG CNS Anyfr
 
 #### Effect
 
-- **Internal framework code generation accuracy**: 95%
-- **Junior developer onboarding time**: 3 months → 1 month
+The figures below are not measurements but illustrative adoption targets.
+
+- **Internal framework code generation accuracy**: target example 95%
+- **Junior developer onboarding time**: example 3 months → 1 month
 
 ---
 
@@ -402,7 +457,7 @@ Automatically reflects financial regulations (Electronic Financial Supervisory R
 #### Training Data Example
 
 ```json
-{"input": "Loan approval API", "output": "@AuditLog(regulation = \"Banking Supervision Regulation Article 35\")\n@AccessControl(level = AccessLevel.CRITICAL)\npublic TransferResult executeTransfer(TransferRequest req) {\n    validateTransactionLimit(req); // Article 34\n    fdsService.checkAnomalySync(req); // FDS integration\n    ...\n}"}
+{"input": "Loan approval API", "output": "@AuditLog(regulation = \"Banking Supervision Regulation Article 35\")\n@AccessControl(level = AccessLevel.CRITICAL)\npublic LoanDecision approveLoan(LoanRequest req) {\n    validateTransactionLimit(req); // Article 34\n    fdsService.checkAnomalySync(req); // FDS integration\n    ...\n}"}
 ```
 
 #### Auto-Generated Result
@@ -445,7 +500,9 @@ When regulations change:
 
 ### Scenario 4: Multi-Customer Operations
 
-When an SI company **operates multiple customers on the same platform**, per-customer LoRA adapters are hot-swapped.
+When an SI company **operates multiple customers on the same platform**, per-customer LoRA adapters are hot-swapped. The `GLM-5-32B` in the table below is not a specific public model but an example name standing for a self-hosted base model, so replace it with the base model you actually use.
+
+Adapter routing is only the mechanism that selects a different LoRA weight set per customer; by itself it is not a tenant authorization or isolation boundary. Data and request isolation between customers must be guaranteed by separate controls such as authentication/authorization and namespace/network separation.
 
 #### Per-Customer Configuration
 
@@ -453,9 +510,9 @@ When an SI company **operates multiple customers on the same platform**, per-cus
 
 | Customer | Domain | Base Model | LoRA | RAG |
 |------|--------|-----------|------|-----|
-| **Bank A** | Core banking | GLM-5-32B | Bank-Core | Bank-API |
-| **Securities B** | Order execution | GLM-5-32B | Securities-Order | Securities-API |
-| **Insurance C** | Contract management | GLM-5-32B | Insurance-Contract | Insurance-API |
+| **Bank A** | Core banking | GLM-5-32B (example) | Bank-Core | Bank-API |
+| **Securities B** | Order execution | GLM-5-32B (example) | Securities-Order | Securities-API |
+| **Insurance C** | Contract management | GLM-5-32B (example) | Insurance-Contract | Insurance-API |
 
 For Multi-LoRA deployment and per-customer routing implementation, see [Custom Model Pipeline — LoRA Training & Deployment Pipeline](../../reference-architecture/model-lifecycle/custom-model-pipeline.md).
 

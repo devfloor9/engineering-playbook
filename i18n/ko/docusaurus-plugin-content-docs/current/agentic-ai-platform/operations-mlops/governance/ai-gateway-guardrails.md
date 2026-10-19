@@ -3,9 +3,9 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 23
 tags:
   - guardrails
   - pii
@@ -105,7 +105,7 @@ flowchart LR
 | **Audit Log** | 횡단 관점 | 모든 위반 이벤트 기록, SIEM 연동 | 비동기 |
 
 :::tip 스트리밍 응답의 Output Guard
-SSE/chunked streaming에서는 **토큰 단위로 버퍼링**하여 완결된 문장 경계마다 검증해야 합니다. Bedrock Guardrails, Portkey는 스트리밍 모드에서 chunk-level filtering을 지원합니다.
+SSE/chunked streaming에서는 출력을 프로토콜·문장 경계 단위로 버퍼링하고, 해당 조각은 Output Guard 검사를 통과하기 전까지 클라이언트로 내보내지 않아야 합니다. 즉 검사가 끝날 때까지 조각 공개를 보류(blocking)하는 것이 PII 유출을 막는 전제입니다. 반면 이미 공개된 조각을 사후에 분석하는 비동기 판정은 이후 조각만 중단할 수 있을 뿐, 이미 클라이언트로 나간 PII를 되돌릴 수 없습니다. Bedrock Guardrails, Portkey는 스트리밍 모드에서 chunk-level filtering을 지원합니다.
 :::
 
 ---
@@ -155,8 +155,20 @@ SSE/chunked streaming에서는 **토큰 단위로 버퍼링**하여 완결된 �
 
 ```python
 # pseudo-code: Presidio 한국어 recognizer 커스텀 등록
-from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer
+from presidio_analyzer import AnalyzerEngine, Pattern, PatternRecognizer, RecognizerRegistry
+from presidio_analyzer.nlp_engine import NlpEngineProvider
+from presidio_analyzer.predefined_recognizers import (
+    EmailRecognizer, PhoneRecognizer, CreditCardRecognizer,
+)
 from presidio_anonymizer import AnonymizerEngine
+
+# 전제 1: 한국어를 지원하는 NLP 엔진을 명시적으로 구성합니다.
+# spaCy 한국어 모델(ko_core_news_lg 등)을 설치한 뒤 provider에 매핑해야
+# language="ko" 분석이 동작합니다.
+nlp_engine = NlpEngineProvider(nlp_configuration={
+    "nlp_engine_name": "spacy",
+    "models": [{"lang_code": "ko", "model_name": "ko_core_news_lg"}],
+}).create_engine()
 
 # 주민등록번호: 6자리-7자리 (앞 6자리 = 생년월일)
 rrn_pattern = Pattern(
@@ -168,6 +180,7 @@ rrn_recognizer = PatternRecognizer(
     supported_entity="KR_RRN",
     patterns=[rrn_pattern],
     context=["주민", "등록번호", "주민번호"],
+    supported_language="ko",
 )
 
 # 사업자등록번호: 3-2-5
@@ -180,11 +193,24 @@ brn_recognizer = PatternRecognizer(
     supported_entity="KR_BRN",
     patterns=[brn_pattern],
     context=["사업자", "등록번호"],
+    supported_language="ko",
 )
 
-analyzer = AnalyzerEngine()
-analyzer.registry.add_recognizer(rrn_recognizer)
-analyzer.registry.add_recognizer(brn_recognizer)
+# 전제 2: EMAIL_ADDRESS/PHONE_NUMBER/CREDIT_CARD는 기본 recognizer가
+# 영어("en")에만 등록되므로, ko 분석에서도 쓰려면 supported_language="ko"로
+# registry에 명시적으로 등록합니다.
+registry = RecognizerRegistry()
+registry.add_recognizer(rrn_recognizer)
+registry.add_recognizer(brn_recognizer)
+registry.add_recognizer(EmailRecognizer(supported_language="ko"))
+registry.add_recognizer(PhoneRecognizer(supported_language="ko"))
+registry.add_recognizer(CreditCardRecognizer(supported_language="ko"))
+
+analyzer = AnalyzerEngine(
+    nlp_engine=nlp_engine,
+    registry=registry,
+    supported_languages=["ko"],
+)
 
 anonymizer = AnonymizerEngine()
 
@@ -209,17 +235,36 @@ import boto3
 
 bedrock = boto3.client("bedrock-runtime", region_name="us-east-1")
 
-resp = bedrock.apply_guardrail(
-    guardrailIdentifier="gr-pii-kr-prod",
-    guardrailVersion="1",
-    source="INPUT",  # or "OUTPUT"
-    content=[{"text": {"text": user_prompt, "qualifiers": ["guard_content"]}}],
-)
+# guardrail 식별자/버전은 하드코딩하지 말고 설정(환경 변수·시크릿)에서 주입합니다.
+def apply_guard(user_prompt: str, guardrail_id: str, guardrail_version: str):
+    resp = bedrock.apply_guardrail(
+        guardrailIdentifier=guardrail_id,   # 실제 Guardrail ID 또는 ARN
+        guardrailVersion=guardrail_version,
+        source="INPUT",  # or "OUTPUT"
+        content=[{"text": {"text": user_prompt, "qualifiers": ["guard_content"]}}],
+    )
 
-if resp["action"] == "GUARDRAIL_INTERVENED":
+    if resp["action"] != "GUARDRAIL_INTERVENED":
+        # 개입 없음: 입력을 그대로 통과시킵니다.
+        return {"decision": "allow", "content": user_prompt}
+
+    # 개입 발생: assessments를 검사하여 '차단'과 '마스킹'을 구분합니다.
+    # content/topic/word policy가 BLOCKED를 반환하면 애플리케이션 경로를 중단하고,
+    # 원문(user_prompt)을 절대 하류로 전달하지 않습니다.
+    blocked = False
+    for assessment in resp.get("assessments", []):
+        # 각 policy(topicPolicy, contentPolicy, wordPolicy 등)의 항목 action 확인
+        for policy in assessment.values():
+            for item in policy.get("filters", policy.get("topics", [])):
+                if item.get("action") == "BLOCKED":
+                    blocked = True
+    if blocked:
+        return {"decision": "block", "content": None}
+
+    # 차단이 아니면 PII 익명화 등 교정만 적용된 경우입니다.
+    # 의도적으로 수용한 교정 결과(sanitized)만 전달합니다.
     sanitized = resp["outputs"][0]["text"]
-else:
-    sanitized = user_prompt
+    return {"decision": "redact", "content": sanitized}
 ```
 
 :::tip ApplyGuardrail의 장점
@@ -228,8 +273,10 @@ else:
 
 ### 4.3 Guardrails AI `DetectPII` Validator
 
+`DetectPII`는 `guardrails-ai` 패키지 설치 후 Guardrails Hub에서 별도로 내려받아야 하며(`guardrails hub install hub://guardrails/detect_pii`), 내부적으로 Microsoft Presidio 기반 로컬 추론을 수행합니다. 따라서 Presidio와 그 NLP 모델(spaCy 등) 의존성을 함께 설치해야 동작합니다. Hub 검증기의 패키지 경로·시그니처는 버전에 따라 달라질 수 있으므로, 적용 전에 설치된 버전의 문서로 import 경로와 인자를 확인하고 버전을 고정하세요.
+
 ```python
-# pseudo-code: Guardrails AI Hub - DetectPII
+# pseudo-code: Guardrails AI Hub - DetectPII (guardrails-ai 설치 + hub install detect_pii 필요)
 from guardrails import Guard
 from guardrails.hub import DetectPII
 
@@ -388,7 +435,8 @@ metadata:
   namespace: ai-platform
 spec:
   targetRefs:
-    - kind: HTTPRoute
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
       name: llm-route
   extProc:
     extensionRef:
@@ -422,8 +470,13 @@ type GuardrailsPlugin struct {
 }
 
 func (p *GuardrailsPlugin) PreLLMHook(ctx *schemas.BifrostContext, req *schemas.BifrostRequest) (*schemas.BifrostRequest, *schemas.LLMPluginShortCircuit, error) {
+    // 0. nil/빈 메시지 방어: 마지막 사용자 메시지가 없으면 그대로 통과
+    if req == nil || len(req.Messages) == 0 {
+        return req, nil, nil
+    }
+    last := len(req.Messages) - 1
     // 1. PII redaction via Presidio
-    redacted, err := p.presidioCall(ctx, req.Messages[len(req.Messages)-1].Content)
+    redacted, err := p.presidioCall(ctx, req.Messages[last].Content)
     if err != nil {
         return nil, nil, err
     }
@@ -433,7 +486,7 @@ func (p *GuardrailsPlugin) PreLLMHook(ctx *schemas.BifrostContext, req *schemas.
         return nil, nil, err
     }
     if verdict.Unsafe {
-        // 요청 차단: LLMPluginShortCircuit 반환
+        // 정책 위반으로 요청 차단: LLMPluginShortCircuit 반환 (플러그인 오류 err와 구분)
         return nil, &schemas.LLMPluginShortCircuit{
             Response: &schemas.BifrostResponse{
                 Content: "Request blocked by guardrails: " + verdict.Category,
@@ -441,13 +494,20 @@ func (p *GuardrailsPlugin) PreLLMHook(ctx *schemas.BifrostContext, req *schemas.
         }, nil
     }
     // 정상: 요청 계속 진행 (수정된 req 반환, shortCircuit nil)
-    req.Messages[len(req.Messages)-1].Content = redacted
+    req.Messages[last].Content = redacted
     return req, nil, nil
 }
 
 func (p *GuardrailsPlugin) PostLLMHook(ctx context.Context, req *schemas.LLMRequest, resp *schemas.LLMResponse) (*schemas.LLMResponse, error) {
-    // Output Guard: PII scrub on model response
-    scrubbed, _ := p.presidioCall(ctx, resp.Content)
+    // nil/스트리밍 응답 방어: 교정할 본문이 없으면 그대로 반환
+    if resp == nil || resp.Content == "" {
+        return resp, nil
+    }
+    // Output Guard: PII scrub on model response — 교정 실패는 삼키지 않고 전파
+    scrubbed, err := p.presidioCall(ctx, resp.Content)
+    if err != nil {
+        return nil, err
+    }
     resp.Content = scrubbed
     return resp, nil
 }
@@ -466,13 +526,14 @@ func (p *GuardrailsPlugin) PostLLMHook(ctx context.Context, req *schemas.LLMRequ
 
 ### 7.1 Guardrails 이벤트 스키마
 
-Langfuse observation 또는 span 메타데이터에 **safety_violation** 태그를 부착하여 위반 이력을 추적합니다.
+Langfuse observation 또는 span 메타데이터에 **safety_violation** 태그를 부착하여 위반 이력을 추적합니다. 아래 예시는 레거시 Langfuse Python SDK v2(`langfuse.decorators`, `langfuse<3`)의 `@observe` 데코레이터 계약을 사용합니다. SDK v3는 OpenTelemetry 기반으로 API가 다르므로, 두 계약을 섞지 말고 하나의 버전으로 고정해 사용합니다. `@observe`는 기본적으로 함수 입력·출력을 원문 그대로 캡처하므로, Guardrails 경계에서는 `capture_input=False, capture_output=False`로 자동 캡처를 끄고, 승인된 마스킹 결과와 정책 메타데이터만 명시적으로 기록합니다. 이렇게 기록한 트레이스는 접근 권한(열람 역할 제한)과 보존 기간을 정의한 저장소에만 보관합니다.
 
 ```python
-# pseudo-code: Langfuse OTel 속성으로 violation 기록
+# pseudo-code: Langfuse OTel 속성으로 violation 기록 (레거시 SDK v2: langfuse<3)
 from langfuse.decorators import observe, langfuse_context
 
-@observe()
+# capture_input/output=False: 원문 입력·출력 자동 캡처 비활성화 (경계에서 원문 저장 금지)
+@observe(capture_input=False, capture_output=False)
 def handle_request(user_prompt: str):
     verdict = input_guard(user_prompt)
     if verdict.blocked:
@@ -538,7 +599,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 |---------------|------|-----------------|
 | **제15조** 수집·이용 | 동의 기반 수집, 목적 외 이용 금지 | Input Guard에서 수집 목적 외 PII 차단, 목적 초과 요청 거부 |
 | **제23조** 민감정보 | 사상·신념·건강 등 민감정보 별도 동의 | Llama Guard 3 카테고리 매핑 + 민감정보 전용 redaction 정책 |
-| **제24조** 고유식별정보 | 주민등록번호 등 처리 제한 | Presidio `KR_RRN` recognizer + 처리 전 마스킹 필수 |
+| **제24조·제24조의2** 고유식별정보·주민등록번호 | 고유식별정보 처리 제한(제24조), 주민등록번호 처리 제한(제24조의2) | 처리의 법적 근거·목적 최소화는 별도로 확보해야 하며, Presidio `KR_RRN` recognizer + 마스킹은 기술적 안전조치일 뿐 마스킹 자체가 처리를 허용하지 않음 |
 | **제29조** 안전조치 | 암호화, 접근기록 보관 | 모든 Guardrails 이벤트 CloudTrail/Langfuse 3년 이상 보관 |
 | **제30조** 처리방침 공개 | 처리 목적·항목 등 공개 | Guardrails 정책 문서화 + 감사 추적 가능성 확보 |
 
@@ -580,7 +641,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 ### 9.1 Input Guard
 - [ ] PII recognizer에 한국어 entity (주민등록번호, 사업자등록번호) 추가
 - [ ] Luhn 체크섬 등 검증으로 false positive 감소
-- [ ] Jailbreak/injection 패턴 DB 주기 업데이트 (Rebuff vector store or Lakera feed)
+- [ ] Jailbreak/injection 패턴 DB 주기 업데이트. Rebuff는 유지보수가 느린 프로토타입 수준이므로(§3 비교 표 참조), 운영에서는 유지보수되는 상용·OSS 탐지기(예: Lakera feed)를 쓰거나, Rebuff를 직접 포크해 소유하고 업데이트·평가 계획을 명시한 경우에만 vector store를 사용
 - [ ] Zero-width 문자, HTML 주석 sanitize
 
 ### 9.2 Gateway Policy
@@ -606,7 +667,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 - [ ] 위반 이벤트 3년 이상 보관 (ISMS-P, 전자금융감독규정)
 
 ### 9.6 컴플라이언스
-- [ ] 망분리 환경: OSS 자체 호스팅 조합 채택 (NeMo + Presidio + Llama Guard)
+- [ ] 망분리 환경: OSS 자체 호스팅 조합 채택 (NeMo + Presidio + Llama Guard). 각 구성요소의 외부 송신 차단(no-egress), 고정 버전과 필요한 모델 의존성(Llama Guard GPU 가중치, Presidio NLP 모델 등), 익명 사용량 텔레메트리 비활성화 설정을 전제로 명시하고, 익명 사용량 텔레메트리와 프롬프트 본문 외부 전송을 구분해 후자가 발생하지 않도록 통제
 - [ ] 개인정보 영향평가(PIA) 시 Guardrails 통제 문서화
 - [ ] Guardrails 정책 변경 이력 Git PR 기반 관리
 

@@ -3,9 +3,9 @@ title: LLM FinOps — Chargeback 및 비용 배부
 description: LLM 플랫폼 FinOps 방법론 — 토큰 메터링, showback/chargeback 전략, 에이전틱 비용 모델, 예산 정책 및 게이트웨이 통합
 created: 2026-08-11
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 18
 tags:
   - finops
   - chargeback
@@ -88,32 +88,45 @@ flowchart LR
 
 ### 2.1 토큰 플로우 모델
 
-LLM 비용의 기본 단위는 **session-level cost** 입니다. 단일 세션(요청-응답 쌍 N개)의 총 비용은 다음 요소로 결정됩니다:
+LLM 비용의 기본 단위는 **session-level cost** 입니다. 단일 세션(요청-응답 쌍 N개)의 총 비용은 다음 요소로 결정됩니다. 입력 토큰은 캐시 적용 여부에 따라 **캐시 미적용 입력**, **캐시 쓰기(cache write)**, **캐시 읽기(cache read)**로 나뉘며, 각각 단가가 다릅니다. 따라서 캐시를 전체 비용에 곱하는 단일 `(1 - R_cache)` 계수로 다루지 않고, 범주별 토큰 수에 각 단가를 곱해 합산합니다.
 
 ```
-C_session = Σ (C_input * T_in + C_output * T_out) * (1 - R_cache)
+C_session = Σ ( C_in_uncached * T_in_uncached
+              + C_cache_write * T_cache_write
+              + C_cache_read  * T_cache_read
+              + C_output      * T_out )
 
 여기서:
-  C_input  = 입력 토큰 단가 ($/1M tokens)
-  C_output = 출력 토큰 단가 ($/1M tokens, 일반적으로 입력 대비 2~5배)
-  T_in     = 턴당 입력 토큰 수
-  T_out    = 턴당 출력 토큰 수
-  R_cache  = 캐시 히트율 (0~1, 프롬프트 캐싱·semantic 캐싱)
-  Σ        = 세션 내 모든 LLM 호출 합계 (사용자 턴 + 에이전트 내부 루프)
+  C_in_uncached  = 캐시 미적용 입력 토큰 단가 ($/1M tokens)
+  C_cache_write  = 캐시 쓰기 토큰 단가 ($/1M tokens)
+  C_cache_read   = 캐시 읽기 토큰 단가 ($/1M tokens, 보통 미적용 입력보다 낮음)
+  C_output       = 출력 토큰 단가 ($/1M tokens, 일반적으로 입력 대비 2~5배)
+  T_*            = 각 범주의 턴당 토큰 수
+  Σ              = 세션 내 모든 LLM 호출 합계 (사용자 턴 + 에이전트 내부 루프)
 ```
 
+위 식은 토큰 과금만 다룹니다. 다음 비용은 토큰 식과 별도로 합산해야 합니다.
+
+- **시맨틱 응답 재사용**: 동일·유사 요청에 캐시된 응답을 반환하면 해당 호출의 토큰 비용은 발생하지 않으므로, 재사용된 호출을 토큰 합계에서 제외합니다.
+- **캐시 저장 비용**: 프롬프트 캐시·시맨틱 캐시의 저장소 유지 비용은 토큰 단가와 무관하게 별도 과금될 수 있습니다.
+- **비토큰 과금**: 요청 수수료, 이미지·오디오 등 비토큰 단위 과금은 위 식 밖에서 더합니다.
+
 ### 2.2 에이전틱 고유 위험: 컨텍스트 복리 효과
+
+아래 토큰 수치는 특정 측정값이 아니라 컨텍스트 누적을 보여주기 위해 임의로 고른 예시입니다. 각 호출은 **새로 추가되는 입력**(사용자·도구 결과)과 **누적된 이전 대화 이력**으로 나뉩니다.
 
 **일반 채팅** (단일 턴):
 - 턴 1: 사용자 프롬프트 500 토큰 → 모델 응답 200 토큰
 - 총 비용: (500 * C_in + 200 * C_out) × 1회
 
-**에이전틱 루프** (도구 호출 3회):
-- 턴 1: 프롬프트 500 + 이전 컨텍스트 0 = 500 → 응답 200 (도구 호출 요청)
-- 턴 2: 프롬프트 500 + 턴 1 컨텍스트 700 = 1,200 → 응답 300 (도구 호출 요청)
-- 턴 3: 프롬프트 500 + 턴 1~2 컨텍스트 2,000 = 2,500 → 응답 300 (도구 호출 요청)
-- 턴 4: 프롬프트 500 + 턴 1~3 컨텍스트 4,800 = 5,300 → 최종 응답 400
-- **총 입력 토큰: 9,500 (단일 턴 대비 19배)**
+**에이전틱 루프** (도구 호출 3회, 예시 수치):
+- 턴 1: 신규 입력 500 + 누적 이력 0 = 500 → 응답 200 (도구 호출 요청)
+- 턴 2: 신규 입력 500 + 누적 이력 700 = 1,200 → 응답 300 (도구 호출 요청)
+- 턴 3: 신규 입력 500 + 누적 이력 2,000 = 2,500 → 응답 300 (도구 호출 요청)
+- 턴 4: 신규 입력 500 + 누적 이력 4,800 = 5,300 → 최종 응답 400
+- **총 입력 토큰: 9,500 (이 예시에서 단일 턴 대비 19배)**
+
+턴마다 신규 입력(500)은 선형으로 더해지지만, 누적 이력이 매 호출에 다시 포함되어 호출당 입력이 커집니다. 19배라는 값은 위 예시 가정에서 나온 결과이며, 실제 배수는 신규 입력 크기와 이력 길이에 따라 달라집니다.
 
 :::warning 비용 폭주 리스크
 에이전트가 이전 대화와 도구 결과를 다음 호출에 다시 보내면, 같은 내용이 여러 호출의 입력 토큰에 포함됩니다. 대화가 길어질수록 호출 횟수뿐 아니라 호출당 입력 크기도 커져 총 토큰 사용량이 빠르게 늘 수 있습니다. 비용을 계산할 때는 각 호출의 입력·출력 토큰과 캐시 적용 여부를 합산하세요. 루프 횟수만으로 세션 비용을 정할 수는 없습니다.
@@ -214,23 +227,29 @@ LiteLLM은 요청/응답 메타데이터에서 토큰 수와 비용을 자동 �
 }
 ```
 
-**비용 조회 API**:
+**비용 조회 API** (스코프가 제한된 읽기 전용 키로 인증):
 ```bash
 # 지출 로그 조회 (기간 필터, summarize=true 기본)
-curl "https://litellm.example.com/spend/logs?start_date=2026-08-01&end_date=2026-08-31"
+# 큰 결과는 page/page_size로 페이지네이션하여 모든 페이지를 합산해야 전체 집계가 됩니다.
+curl -H "Authorization: Bearer $LITELLM_READONLY_KEY" \
+  "https://litellm.example.com/spend/logs?start_date=2026-08-01&end_date=2026-08-31&page=1&page_size=1000"
 
 # 사용자별 일일 사용량 (모델·프로바이더·키 단위 분해)
-curl "https://litellm.example.com/user/daily/activity?start_date=2026-08-01&end_date=2026-08-31"
+curl -H "Authorization: Bearer $LITELLM_READONLY_KEY" \
+  "https://litellm.example.com/user/daily/activity?start_date=2026-08-01&end_date=2026-08-31&page=1&page_size=1000"
 ```
 
 **chargeback 리포트** (Enterprise — `group_by`는 `team`/`customer` 지원):
 ```bash
 # 팀별 또는 고객별 기간 청구 리포트
-curl "https://litellm.example.com/global/spend/report?start_date=2026-08-01&end_date=2026-08-31&group_by=customer"
+curl -H "Authorization: Bearer $LITELLM_READONLY_KEY" \
+  "https://litellm.example.com/global/spend/report?start_date=2026-08-01&end_date=2026-08-31&group_by=customer"
 ```
 
+리포트를 실제 청구서로 쓰기 전에 다음을 확인해야 합니다. 첫째, 조회 키는 해당 테넌트·기간만 읽을 수 있는 최소 권한으로 제한합니다. 둘째, 기간 경계(월초 00:00 ~ 월말 23:59:59, 타임존 고정)와 페이지네이션을 명시해, 잘림이 있는 리포트를 완결된 청구서로 오인하지 않습니다. 셋째, 리포트가 적용한 단가 맵의 버전과 날짜를 기록하고, 프로바이더가 실제 발행한 인보이스와 대조(reconciliation)한 뒤에만 배부에 사용합니다.
+
 :::tip LiteLLM Spend Tracking 상세
-LiteLLM은 100개 이상 모델의 공식 단가를 내장한 model cost map을 유지하며, Bedrock 티어, Vertex AI PayGo 등 프로바이더별 가격 변동도 자동 반영합니다. 상세 문서: [LiteLLM Cost Tracking](https://docs.litellm.ai/docs/proxy/cost_tracking)
+LiteLLM은 다수 모델의 단가를 내장한 model cost map을 유지하며 프로바이더 가격 변동을 반영하지만, 반영 시점과 포함 모델 범위는 버전에 따라 다릅니다. 내장 단가가 조직의 실제 계약 단가와 다를 수 있으므로, 청구 전에 사용 중인 버전의 단가 맵을 프로바이더 공식 가격·인보이스와 대조하세요. 상세 문서: [LiteLLM Cost Tracking](https://docs.litellm.ai/docs/proxy/cost_tracking)
 :::
 
 #### Kong Metering & Billing Plugin
@@ -297,9 +316,11 @@ Kong의 [Metering & Billing 플러그인](https://developer.konghq.com/plugins/m
 |----------|-----------|------|---------|--------|
 | **Soft Budget — 알림만** | 월 예산 80% 소진 | Slack/이메일 알림, 서비스 계속 | 없음 | 예산 초과 가능 |
 | **Soft Budget — 시각적 경고** | 월 예산 90% 소진 | UI에 경고 배너, 서비스 계속 | 경고 메시지만 | 예산 초과 가능 |
-| **Hard Budget — 차단** | 월 예산 100% 소진 | 요청 거부 (HTTP 429) | 서비스 중단 | 비즈니스 임팩트 |
+| **Hard Budget — 차단** | 월 예산 100% 소진 | 요청 거부 (게이트웨이별 오류, 예: LiteLLM `budget_exceeded`, Bifrost 402; HTTP 상태 코드는 제품마다 다름) | 서비스 중단 | 비즈니스 임팩트 |
 | **Hard Budget — 폴백** | 월 예산 100% 소진 | 저가 모델로 다운그레이드 (예: Opus → Haiku) | 응답 품질 저하 가능 | 사용자 경험 저하 |
 | **Dynamic Budget — 우선순위** | 월 예산 100% 소진 | 고우선순위 요청만 허용 (예: prod > dev) | 개발 환경 차단 | 개발 생산성 저하 |
+
+위 Hard Budget 차단은 게이트웨이가 지출을 누적·조회할 수 있는 **지출 추적 저장소(DB)가 구성되어 있을 때만** 동작합니다. 또한 예산 검사는 요청 단위로 이루어지므로 100%에 정확히 멈추는 보편적 하드 캡이 아니라, 검사 시점 이후에 처리되는 요청이나 동시 요청으로 예산을 **초과(overshoot)**할 수 있습니다. 반환되는 오류 상태는 위 info 노트와 같이 게이트웨이마다 다릅니다.
 
 ### 5.2 폴백 전략 (Budget Cascade)
 
@@ -359,15 +380,18 @@ FOCUS는 현재 GPU·컴퓨트 인스턴스 비용을 표준화하지만, **토�
 
 **표 6. FOCUS 컬럼과 LLM 메터링 매핑 제안(가정)**
 
-| FOCUS 컬럼 | LLM 메터링 매핑 (제안) | 예시 값 |
-|-----------|----------------------|---------|
-| `ServiceName` | LLM 서비스 이름 | "LLM Inference Platform" |
-| `ResourceId` | 모델 리소스 ID | "claude-sonnet-4.6" |
-| `UsageQuantity` | 입력+출력 토큰 합계 | 15000 |
-| `PricingUnit` | 가격 단위 | "1M tokens" |
-| `PricingQuantity` | 가격 적용 단위 수량 | 0.015 (= 15000 / 1M) |
-| `BilledCost` | 청구 비용 | 0.045 USD |
-| `Tags` | 테넌트·팀·프로젝트 태그 | `{"tenant": "abc", "team": "data-science"}` |
+| FOCUS 컬럼 | LLM 메터링 매핑 (제안) | 예시 값 (입력) | 예시 값 (출력) |
+|-----------|----------------------|---------|---------|
+| `ServiceName` | LLM 서비스 이름 | "LLM Inference Platform" | "LLM Inference Platform" |
+| `ResourceId` | 모델 리소스 ID | "claude-sonnet-4.6" | "claude-sonnet-4.6" |
+| `SkuId` | 토큰 범주 (입력/출력) | "input-tokens" | "output-tokens" |
+| `UsageQuantity` | 범주별 토큰 수 | 10000 | 5000 |
+| `PricingUnit` | 가격 단위 | "1M tokens" | "1M tokens" |
+| `PricingQuantity` | 가격 적용 단위 수량 | 0.010 (= 10000 / 1M) | 0.005 (= 5000 / 1M) |
+| `BilledCost` | 범주별 청구 비용 | 0.030 USD | 0.015 USD |
+| `Tags` | 테넌트·팀·프로젝트 태그 | `{"tenant": "abc"}` | `{"tenant": "abc"}` |
+
+입력과 출력은 단가가 다르므로 하나의 `UsageQuantity`로 합치지 않고 범주별 행으로 분리합니다. 합계 청구 비용은 두 행의 `BilledCost` 합(예: 0.045 USD)입니다. 단일 행으로 표현해야 한다면 `UsageQuantity`에 토큰 합계를 넣는 대신, 조직이 정의한 혼합 단가(blended rate)를 명시하고 그 산출 근거를 함께 기록해야 합니다.
 
 :::info 사실 경계
 FOCUS v1.4 표준이 LLM 토큰 과금을 명시적으로 다루는지 여부는 공식 스펙 문서를 직접 확인해야 합니다. 위 매핑은 일반적인 `UsageQuantity` 개념을 토큰에 적용한 제안입니다.
@@ -399,11 +423,13 @@ sum(increase(llm_cost_dollars_total[24h]))
 # 테넌트별 일별 비용
 sum(increase(llm_cost_dollars_total[24h])) by (tenant_id)
 
-# 예산 대비 사용률 (월간)
+# 예산 대비 사용률 (롤링 30일 텔레메트리, 역월 아님)
 sum(increase(llm_cost_dollars_total[30d])) by (tenant_id)
 / on(tenant_id) group_left
 tenant_monthly_budget_usd
 ```
+
+`[30d]`는 쿼리 시점부터 과거 30일을 보는 롤링 윈도우이며, 달력상의 역월(月初~월말)과 일치하지 않습니다. 역월 기준 월중 누계(month-to-date)가 필요하면 월초로 정렬된 집계를 사용하고, 이 텔레메트리 값은 프로바이더 인보이스와 대조한 뒤에만 청구·배부의 분모로 사용하세요.
 
 :::tip PromQL 상세 쿼리
 실제 PromQL, ServiceMonitor 구성, Grafana 대시보드 JSON은 [Agent 모니터링](../observability/agent-monitoring.md)의 **비용 메트릭** 섹션을 참조하세요.
@@ -418,6 +444,8 @@ tenant_monthly_budget_usd
 - [ ] 모든 LLM 요청에 `tenant_id`, `user_id` 메타데이터 부착
 - [ ] 메터링 이벤트가 TSDB (ClickHouse/PostgreSQL)에 저장되는지 확인
 - [ ] 실시간 집계를 위한 Redis 캐시 구성 (선택)
+- [ ] 측정 이벤트 완전성·중복 제거 검증 (실제 호출 수와 저장 이벤트 수 대조, 재시도로 인한 중복 이벤트 dedup)
+- [ ] `tenant_id`·`user_id`를 신뢰 가능한 출처(게이트웨이 인증 주체)에서 매핑 (클라이언트가 임의로 바꾼 값 사용 금지)
 
 ### 8.2 비용 가시성
 - [ ] Grafana 대시보드에 테넌트별·모델별 일일 비용 표시
@@ -434,6 +462,7 @@ tenant_monthly_budget_usd
 - [ ] Phase 2 (Showback) 리포트 자동 생성 스크립트 (월별 CSV/PDF)
 - [ ] Phase 3 (Soft Chargeback) 재무 시스템 연동 (해당 시)
 - [ ] Phase 4 (Hard Chargeback) 예산 정책 Gateway 통합 (해당 시)
+- [ ] 실제 배부 전 프로바이더 인보이스와 대조 (내부 집계 금액과 인보이스 차액 확인 후 배부)
 
 ### 8.5 예산 정책
 - [ ] 테넌트별 월 예산 설정 (초기값: 관측 데이터 기반 추정)
@@ -451,7 +480,7 @@ tenant_monthly_budget_usd
 
 ## 9. 결론
 
-LLM FinOps는 토큰 메터링, 비용 가시화, 예산 정책, chargeback 4단계로 구성됩니다. 에이전틱 AI 애플리케이션은 멀티턴 컨텍스트 누적으로 인해 비용이 초선형으로 증가하므로, **루프 제한**, **중간 요약**, **예산 기반 Cascade Routing**이 필수입니다.
+LLM FinOps는 토큰 메터링, 비용 가시화, 예산 정책, chargeback 4단계로 구성됩니다. 에이전틱 AI 애플리케이션은 멀티턴 컨텍스트 누적으로 인해 비용이 초선형으로 증가할 수 있으므로, **루프 제한**, **중간 요약**, **예산 기반 Cascade Routing**을 워크로드 특성에 맞게 선택적으로 적용합니다. 각 통제에는 트레이드오프가 있습니다. 루프 제한은 완결 전 작업을 끊을 수 있고, 중간 요약은 맥락 손실로 응답 품질을 떨어뜨릴 수 있으며, Cascade Routing은 저가 모델로 전환하면서 품질이 낮아질 수 있습니다. 반대로 지출·역량 정책상 상한을 반드시 지켜야 하는 워크로드에서는 하드 차단(요청 거부) 옵션을 유지해야 합니다.
 
 도입 순서는 **Visibility (대시보드) → Showback (리포트) → Soft Chargeback (회계 연동) → Hard Chargeback (예산 차단)** 단계를 권장하며, Hard Chargeback은 프로덕션 워크로드 중단 리스크를 고려하여 **폴백 정책**과 함께 운영해야 합니다.
 
@@ -473,4 +502,4 @@ LLM FinOps는 토큰 메터링, 비용 가시화, 예산 정책, chargeback 4단
 - [Agent 모니터링](../observability/agent-monitoring.md) — 비용 추적 PromQL 쿼리 canonical
 - [Request Cascading](../../model-serving/inference-routing/request-cascading.md) — 비용 절감 라우팅 전략
 - [AI Gateway Guardrails](./ai-gateway-guardrails.md) — 예산 초과 시 차단 정책
-- [AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) — 테넌트 격리 및 예산 정책 (병렬 작성 중)
+- [AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) — 테넌트 격리 및 예산 정책

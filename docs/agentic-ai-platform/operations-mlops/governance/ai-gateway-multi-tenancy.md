@@ -3,9 +3,9 @@ title: AI Gateway Multi-Tenancy Strategy
 description: LLM Gateway-level multi-tenancy strategy — LiteLLM virtual key hierarchical model vs Kong Consumer policy comparison, budget enforcement, 3-tier tenant isolation (gateway, data, observability)
 created: "2026-08-11"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: devfloor9
-reading_time: 24
+reading_time: 29
 tags:
   - litellm
   - kong
@@ -136,8 +136,8 @@ Kong's most powerful feature is **token-level Rate Limiting**. Traditional reque
 | `completion_tokens` | Generated tokens only | Output cost control |
 | `cost` | (input tokens × input price + output tokens × output price) / 1M | Real dollar cost-based limiting |
 
-:::warning Token Cost Reflected in Next Request
-Since the LLM must generate a response to know the token count, token costs are reflected in the **next request**. That is, a request that already exceeded the budget completes, and the following request is blocked. This is a fundamental constraint of all token-aware Rate Limiting.
+:::warning Response-Derived Token Cost Reflected in Next Request
+Completion token counts are only known after the LLM generates a response, so in a plugin mode that aggregates usage from the response, token costs are reflected in the **next request**. That is, a request that already exceeded the budget completes, and the following request is blocked. This limitation is specific to response-derived usage aggregation. Input (prompt) tokens can be counted at request time, so prompt-token counting or pre-request estimate/reservation strategies can enforce a limit before completion.
 :::
 
 ### Fundamental Differences Between Kong and LiteLLM
@@ -157,7 +157,7 @@ Since the LLM must generate a response to know the token count, token costs are 
 
 ## 4. Selection Criteria: LiteLLM vs Kong (Either/Or) {#4-selection-criteria-litellm-vs-kong}
 
-:::danger Kong + LiteLLM Combined Architecture Prohibited
+:::note Scope: Kong + LiteLLM Combination Not Evaluated
 This guide evaluates LiteLLM and Kong as alternatives for a single gateway. It does not provide a validated reference for combining them, so the selection criteria below compare one gateway at a time.
 :::
 
@@ -244,27 +244,27 @@ collection_name = f"embeddings_{tenant_id}"
 milvus_client.create_collection(collection_name)
 ```
 
-**Cache Key Namespace**: semantic cache keys must include `tenant_id` as a prefix. For detailed design, see [Semantic Caching Strategy — Cache Key Design and Multi-Tenancy](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-cache-key-design-and-multi-tenancy).
+**Cache Key Namespace**: semantic cache keys must include `tenant_id` as a prefix. A key prefix, however, is **namespacing**, not authorization. Access itself must be controlled by tenant-scoped lookups bound to the requester's authenticated identity (tenant-scoped indexes and enforced tenant filters); a prefix alone does not establish complete isolation. For detailed design, see [Semantic Caching Strategy — Cache Key Design and Multi-Tenancy](../../model-serving/inference-optimization/semantic-caching-strategy.md#5-cache-key-design-and-multi-tenancy).
 
 ```python
-# pseudo-code: Redis cache key namespace
+# pseudo-code: Redis cache key namespace (namespacing only; authorization is separate)
 cache_key = f"cache:{tenant_id}:{language}:{embedding_hash}"
 ```
 
-**Row-level Isolation**: When storing prompt/response logs in relational DBs (PostgreSQL, etc.), enforce tenant isolation with **Row-level Security (RLS)**.
+**Row-level Isolation**: When storing prompt/response logs in relational DBs (PostgreSQL, etc.), enforce tenant isolation with **Row-level Security (RLS)**. For RLS to actually be enforced, apply `FORCE ROW LEVEL SECURITY` together with `ENABLE ROW LEVEL SECURITY` on the table, and have the application connect with a role that is neither the table owner nor a superuser (owners and superusers bypass RLS by default). The current tenant identifier the policy references must also be set in the authenticated session and must not be changeable arbitrarily by the client.
 
 ### ③ Observability Isolation
 
-**Team-level Trace Routing**: Separate traces per tenant in Langfuse or LangSmith so one team cannot view another team's prompts and responses.
+**Team-level Trace Routing**: Isolation of viewing across tenants is not ensured by metadata tagging alone. The snippet below only tags traces with `tenant_id`; any user who can query the same project can see other teams' prompts and responses regardless of the tag. Real isolation requires mapping each tenant to its own **Langfuse (or LangSmith) project/client**, selecting that tenant's project credentials on each authenticated request, and restricting viewing to project-scoped reader roles. Project-level roles and permissions vary by edition (self-hosted plan, commercial tier), so confirm whether your edition supports project-scoped reader roles.
 
 ```python
-# pseudo-code: Langfuse per-tenant projects
+# pseudo-code: Langfuse per-tenant projects — the below is 'tagging' only, not isolation
 langfuse_context.update_current_observation(
     metadata={"tenant_id": tenant_id, "team": team_name}
 )
 ```
 
-**Dashboard Permissions**: Grafana and CloudWatch dashboards provide team-filtered views. Separate metrics by `tenant_id` label, and control dashboard permissions through IAM or Grafana organization units.
+**Dashboard Permissions**: Team-filtered views in Grafana and CloudWatch dashboards only change what is displayed; they do not restrict access itself. The `tenant_id` label filter is a presentation-layer concern, so actual access control must be implemented with tenant-scoped data source credentials and backend authorization (data source and query permissions that enforce the tenant scope at query time). Configure Grafana organization/folder permissions (which dashboards a user sees) separately from data source permissions (which data a user can query).
 
 ---
 

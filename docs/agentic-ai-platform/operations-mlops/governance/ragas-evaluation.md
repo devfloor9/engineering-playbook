@@ -3,9 +3,9 @@ title: Ragas RAG Evaluation Framework
 description: RAG pipeline quality evaluation and continuous improvement using Ragas
 created: "2026-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 23
+reading_time: 24
 tags:
   - ragas
   - rag
@@ -68,13 +68,15 @@ flowchart LR
 
 ### Ragas vs AWS Bedrock RAG Evaluation
 
-:::tip AWS Bedrock RAG Evaluation GA
-AWS Bedrock RAG Evaluation became **GA in March 2025**. With Bedrock native integration, RAG evaluation can be performed without additional setup.
+:::tip AWS Bedrock RAG Evaluation
+AWS Bedrock provides knowledge base (RAG) evaluation natively, but it is not automatic and requires the following setup. You must supply an evaluation dataset (JSONL in S3), an IAM service role (`roleArn`) that Bedrock assumes to access the dataset, S3, and the knowledge base, an S3 output location (`outputDataConfig`) for results, and an evaluator (judge) model.
+
+There are two job types. **Automated evaluation** has the specified evaluator model score the metrics, while **human evaluation** uses human workers. Supported metrics, job types, and Regions vary by version, so check the Bedrock console and API documentation before adoption.
 :::
 
 <RagasVsBedrockComparison />
 
-**AWS Bedrock RAG Evaluation Metrics:**
+**AWS Bedrock RAG Evaluation Metrics (the following is a selected subset for comparison):**
 
 - **Context Relevance**: Whether retrieved context is relevant to the question
 - **Coverage**: Whether the answer covers all aspects of the question
@@ -406,32 +408,70 @@ AWS Bedrock RAG Evaluation provides simpler evaluation with Bedrock native integ
 ```python
 import boto3
 
-bedrock = boto3.client('bedrock-agent-runtime')
+# Evaluation jobs are created with the control-plane (bedrock) API, not the data plane (bedrock-agent-runtime).
+bedrock = boto3.client('bedrock')
 
-# Run RAG evaluation
-response = bedrock.evaluate_rag(
-    evaluationJobName='rag-eval-2026-02-13',
-    evaluationDatasetLocation={
-        's3Uri': 's3://my-bucket/eval-dataset.jsonl'
+# Create a RAG evaluation job (CreateEvaluationJob)
+# - applicationType=RagEvaluation; evaluationConfig.automated specifies metrics and the RAG source
+# - roleArn: required IAM service role Bedrock assumes to access the dataset and S3
+# - inferenceConfig: the response generator being evaluated (knowledge base or model)
+# - the evaluator (judge) model is specified separately from the response generator
+response = bedrock.create_evaluation_job(
+    jobName='rag-eval-2026-02-13',
+    applicationType='RagEvaluation',
+    roleArn='arn:aws:iam::111122223333:role/BedrockEvaluationRole',
+    evaluationConfig={
+        'automated': {
+            'datasetMetricConfigs': [{
+                'taskType': 'QuestionAndAnswer',
+                'dataset': {
+                    'name': 'rag-eval-dataset',
+                    'datasetLocation': {'s3Uri': 's3://my-bucket/eval-dataset.jsonl'},
+                },
+                'metricNames': [
+                    'Builtin.ContextRelevance',
+                    'Builtin.Correctness',
+                    'Builtin.Faithfulness',
+                ],
+            }],
+            'evaluatorModelConfig': {
+                'bedrockEvaluatorModels': [
+                    # Evaluator (judge) model: distinct from the model that generated the response.
+                    {'modelIdentifier': 'anthropic.claude-sonnet-4-5-20250929-v1:0'},
+                ],
+            },
+        },
     },
-    evaluationMetrics=[
-        'CONTEXT_RELEVANCE',
-        'COVERAGE',
-        'CORRECTNESS',
-        'FAITHFULNESS'
-    ],
-    modelId='anthropic.claude-3-sonnet-20240229-v1:0',
-    outputDataConfig={
-        's3Uri': 's3://my-bucket/eval-results/'
-    }
+    inferenceConfig={
+        'ragConfigs': [{
+            'knowledgeBaseConfig': {
+                'retrieveAndGenerateConfig': {
+                    'type': 'KNOWLEDGE_BASE',
+                    'knowledgeBaseConfiguration': {
+                        'knowledgeBaseId': 'KB1234567',
+                        'modelArn': 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+                    },
+                },
+            },
+        }],
+    },
+    outputDataConfig={'s3Uri': 's3://my-bucket/eval-results/'},
 )
 
-job_id = response['evaluationJobId']
+job_arn = response['jobArn']
 
-# Query evaluation results
-result = bedrock.get_evaluation_job(evaluationJobId=job_id)
-print(f"Status: {result['status']}")
-print(f"Metrics: {result['metrics']}")
+# Poll the evaluation job status (GetEvaluationJob)
+import time
+while True:
+    result = bedrock.get_evaluation_job(jobIdentifier=job_arn)
+    status = result['status']  # InProgress | Completed | Failed | Stopped, etc.
+    print(f"Status: {status}")
+    if status != 'InProgress':
+        break
+    time.sleep(30)
+
+# Metric artifacts are read from the outputDataConfig S3 path (scores are not returned in the API response).
+print("Results written to: s3://my-bucket/eval-results/")
 ```
 
 **Bedrock RAG Evaluation Advantages:**
