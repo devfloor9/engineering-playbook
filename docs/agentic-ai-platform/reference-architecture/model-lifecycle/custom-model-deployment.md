@@ -3,9 +3,9 @@ title: Custom Model Deployment Guide
 description: Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience
 created: "2026-04-04"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: devfloor9
-reading_time: 32
+reading_time: 40
 tags:
   - deployment
   - glm-5
@@ -39,14 +39,14 @@ Evaluate the following criteria when choosing a model to deploy.
 
 ### Example: Key Features of GLM-5.1
 
-- **GLM-5.1 = Same weights as GLM-5**: Only additional post-training RL for coding tasks
+- **GLM-5.1**: Shares the GLM-5 architecture with additional coding/agentic post-training (not identical weights)
 - **744B MoE (40B active)**: 8 out of 256 experts activated per token
-- **HuggingFace**: `zai-org/GLM-5-FP8`
+- **HuggingFace**: `zai-org/GLM-5.1-FP8` (BF16: `zai-org/GLM-5.1`)
 - **License**: MIT License
 - **Context**: 200K tokens supported
-- **Performance**:
-  - #1 open-source model on Agentic Coding benchmarks (55.00 points)
-  - SWE-bench 77.8% (vs. GPT-4.1 62.3%)
+- **Performance** (per model card):
+  - LiveBench Agentic Coding 55.00 points
+  - SWE-bench Verified 77.8% (GPT-4.1 54.6%)
 
 :::tip Why We Chose GLM-5.1
 It has an MIT license allowing commercial use and outperforms OpenAI GPT-4o on Agentic Coding tasks. Its SWE-bench score of 77.8% demonstrates particular strength in code generation and bug-fixing tasks.
@@ -65,17 +65,17 @@ With an LLM Classifier, clients send requests to a single endpoint (`/v1`), and 
 | Precision | FP8 |
 | Model Size | ~704GB (weights) |
 | Required VRAM | ~744GB (single-node loading) |
-| Minimum GPUs | 8x H200 (1,128GB) or 8x B200 (1,536GB) |
+| Minimum GPUs | 8x H200 (1,128GB) or 8x B200 (1,432GB) |
 
 ## GPU Instance Selection Matrix
 
-The most critical decision when deploying large models is the GPU instance type. Select instances based on the model's VRAM requirements.
+The most critical decision when deploying large models is the GPU instance type. Select instances based on the model's VRAM requirements. The Spot prices below are example values that vary by lookup time, Availability Zone, and Region; confirm the actual price with `aws ec2 describe-spot-price-history` before deploying.
 
-| Instance | GPU | VRAM | 744B Single Node? | PP=2 Multi-node | Spot Price (us-east-2) | Recommendation |
+| Instance | GPU | VRAM | 744B Single Node? | PP=2 Multi-node | Spot Price example (us-east-2) | Recommendation |
 |---------|-----|------|-------------------|--------------|---------------------|--------|
 | p5.48xlarge | H100×8 | 640GB | ❌ (744GB > 640GB) | ⚠️ vLLM deadlock | $12/hr | ⚠️ |
 | p5en.48xlarge | H200×8 | 1,128GB | ✅ | ✅ (unnecessary) | $12/hr | ✅ Optimal |
-| p6-b200.48xlarge | B200×8 | 1,536GB | ✅ | ✅ (unnecessary) | $18/hr | ✅ Headroom |
+| p6-b200.48xlarge | B200×8 | 1,432GB | ✅ | ✅ (unnecessary) | ~$35/hr | ✅ Headroom |
 
 :::warning Caution When Using Instances with Insufficient VRAM
 If the model's VRAM requirement exceeds the instance VRAM, PP (Pipeline Parallelism) multi-node is required. However, due to vLLM V1 engine multi-node PP deadlock issues (see Section 6), stable deployment is difficult. **We recommend selecting an instance with sufficient VRAM for single-node deployment.**
@@ -107,12 +107,11 @@ The choice between EKS Auto Mode and Standard Mode depends on the GPU instance t
 
 | Mode | p5.48xlarge | p5en.48xlarge | p6-b200.48xlarge | Stability |
 |------|------------|---------------|------------------|--------|
-| Auto Mode | ✅ | ❌ NoCompatibleInstanceTypes | ❌ Unsupported | ⚠️ |
-| Auto Mode + MNG Hybrid | ✅ | ✅ (MNG may be delayed/fail) | ✅ (MNG may be delayed/fail) | ⚠️ |
+| Auto Mode | ✅ | ✅ | ✅ | ✅ |
 | Standard Mode + MNG | ✅ | ✅ | ✅ | ✅ Most stable |
 
-:::caution Auto Mode Limitations with Latest GPU Instances
-As of April 2026, EKS Auto Mode supports p5.48xlarge but returns `NoCompatibleInstanceTypes` for p5en.48xlarge and p6-b200.48xlarge. Auto Mode + MNG hybrid is possible, but MNG creation may be delayed or fail.
+:::info Auto Mode GPU Instance Support (updated 2026-04-10)
+As of 2026-04-10, EKS Auto Mode officially supports the latest accelerated instances including p5en, p6-b200, p6-b300, p5e, and trn2. p5, p5en, and p6 are all usable with Auto Mode. Before 2026-04-10, Auto Mode returned `NoCompatibleInstanceTypes` for p5en.48xlarge and p6-b200.48xlarge, so Standard Mode + MNG was required at that time.
 :::
 
 ### Recommended: Standard Mode + MNG
@@ -219,17 +218,21 @@ initContainers:
     mountPath: /opt/vllm/.local
 ```
 
+:::warning This Fragment Does Not Work on Its Own
+The fragment above installs packages only in the initContainer, so the main vLLM container shares the install only if you also: (1) pin `image` to a reproducible digest/tag instead of `:nightly`; (2) mount the `vllm-python-packages` volume into the main container at the same path and set `PYTHONPATH` to include it; and (3) match the Python version and ABI between the initContainer and the main container so the installed packages load. If any of the three is missing, the install is not shared.
+:::
+
 ## Model Cache Strategy (S3 → NVMe)
 
-Downloading large models (hundreds of GB) takes a very long time. An efficient caching strategy is essential.
+Downloading large models (hundreds of GB) takes a very long time. An efficient caching strategy is essential. The download times below are estimates that vary with the measurement basis (model size, network bandwidth, node count); measure the actual values in your environment. Also distinguish two kinds of persistence: NVMe emptyDir is node-local storage tied to the Pod lifecycle, so it is re-downloaded when the Pod is rescheduled, whereas EFS is a shared persistent filesystem that survives independently of any node.
 
-| Strategy | Download Time | Multi-node Sync | Cost | Complexity | Recommendation |
+| Strategy | Download Time (est.) | Multi-node Sharing / Persistence | Cost | Complexity | Recommendation |
 |----------|-------------|----------------|-----|--------|--------|
-| HuggingFace Hub Direct | ~45min (per node) | ❌ Each node independent | Free (bandwidth) | Low | ⚠️ |
-| S3 + init container `aws s3 sync` | ~30min (per node) | ⚠️ Timing mismatch possible | S3 storage + transfer | Medium | ✅ |
-| S3 + init container `s5cmd` | ~15min (per node) | ⚠️ Timing mismatch possible | S3 storage + transfer | Medium | ✅ Optimal |
-| EFS | ~60min (per node) | ✅ Shared filesystem | EFS storage + throughput | High | ⚠️ |
-| NVMe emptyDir (pre-download required) | Instant | ✅ (S3 sync first) | S3 transfer only | High | ✅ |
+| HuggingFace Hub Direct | ~45min (per node) | ❌ Each node independent, non-persistent | Free (bandwidth) | Low | ⚠️ |
+| S3 + init container `aws s3 sync` | ~30min (per node) | ⚠️ Node-local, timing mismatch possible | S3 storage + transfer | Medium | ✅ |
+| S3 + init container `s5cmd` | ~15min (per node) | ⚠️ Node-local, timing mismatch possible | S3 storage + transfer | Medium | ✅ Optimal |
+| EFS | ~60min (per node) | ✅ Shared persistent filesystem | EFS storage + throughput | High | ⚠️ |
+| NVMe emptyDir (pre-download required) | Instant | ⚠️ Node-local, Pod-lifecycle (S3 sync first) | S3 transfer only | High | ✅ |
 
 ### Recommended: S3 Pre-upload → s5cmd → NVMe emptyDir
 
@@ -286,8 +289,7 @@ spec:
     image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/vllm-glm5:nightly
     command: ["vllm", "serve"]
     args:
-      - "zai-org/GLM-5-FP8"
-      - "--download-dir=/mnt/models"
+      - "/mnt/models/glm5-fp8"  # Serve the pre-staged local directory directly
       - "--tensor-parallel-size=8"
       - "--enforce-eager"
       - "--trust-remote-code"
@@ -297,9 +299,16 @@ spec:
   volumes:
   - name: model-cache
     emptyDir:
-      medium: ""  # NVMe (p5en provides 4TB NVMe)
+      # emptyDir uses the node's ephemeral storage. sizeLimit only caps usage; it does not
+      # allocate or guarantee NVMe. To hold the model (~704GB) + images + logs, the node's
+      # ephemeral storage must actually be backed by NVMe (e.g. p5en's 4TB) with enough capacity.
+      medium: ""
       sizeLimit: 800Gi
 ```
+
+:::note This Block Is a Partial Fragment
+The YAML above shows only the download/cache path and is not deployable as-is. The main vllm container is missing `resources.limits.nvidia.com/gpu: 8` and the compatible GPU node/driver prerequisites. For the complete deployment manifest, see the "Complete Single-node Deployment YAML Example" section below.
+:::
 
 :::tip s5cmd vs aws s3 sync
 `s5cmd` is a high-performance S3 client written in Go that is 3-4x faster than `aws s3 sync`. With `--numworkers 16` for parallel downloads, you can download a 704GB model in ~15 minutes.
@@ -382,11 +391,11 @@ When downloading directly from HuggingFace Hub, each node downloads independentl
 | Attempt | Method | Result | Notes |
 |---------|--------|--------|-------|
 | 1. Extend timeout | `VLLM_ENGINE_READY_TIMEOUT_S=1800` (30 min) | Reduced Worker crash frequency, deadlock persists | Not a root fix |
-| 2. Force eager mode | `--enforce-eager` | ❌ Not applied | LWS LeaderWorkerSet failed to pass vLLM args properly |
+| 2. Force eager mode | `--enforce-eager` | ❌ Not applied | Eager mode was not reflected at runtime (root cause undetermined; no evidence it was an LWS arg-passing problem) |
 | 3. S3 pre-download | S3 + s5cmd | Improved timing, deadlock persists | Download was faster but sync issue remained |
 | 4. Extend NCCL timeout | `NCCL_TIMEOUT=1800` | No effect | Issue was engine timeout, not NCCL timeout |
 | 5. Distributed timeout | `VLLM_DISTRIBUTED_TIMEOUT=1800` | ❌ Variable not recognized | No such variable in vLLM code |
-| 6. Ray mode | `--engine-use-ray` | ❌ Complex Kubernetes + Ray integration | Requires Ray cluster setup |
+| 6. Ray mode | `--distributed-executor-backend ray` | ❌ Complex Kubernetes + Ray integration | Requires Ray cluster setup (the older `--engine-use-ray` flag was removed in v0.6+) |
 
 :::caution Conclusion: vLLM V1 Multi-node PP is Unstable as of April 2026
 The vLLM V1 engine's non-Ray multi-node Pipeline Parallelism is not suitable for production environments as of April 2026. Leader-Worker synchronization is incomplete, and deadlocks occur frequently when torch.compile is enabled.
@@ -442,6 +451,10 @@ helm install ray-cluster kuberay/ray-cluster \
 When multi-node deployment is necessary, use LeaderWorkerSet (LWS). While the deadlock issue existed, the LWS multi-node networking itself worked successfully.
 
 ### LWS LeaderWorkerSet Definition
+
+:::warning Pin the Runtime Image
+The example below uses the `:nightly` tag, but in a multi-node run the Leader and Worker must execute the same build, so pin it to a reproducible digest/version tag for real deployments. If different nightly builds are pulled on different nodes, ABI/kernel mismatches can reproduce the deadlock.
+:::
 
 ```yaml
 apiVersion: leaderworkerset.x-k8s.io/v1
@@ -554,10 +567,10 @@ echo $LWS_LEADER_ADDRESS
 
 #### 4. Worker Port Separation
 
-The Leader used port 8000 and the Worker used port 8001 to prevent conflicts.
+The Leader used port 8000 and the Worker used port 8001. The Leader and Worker are separate Pods with their own IPs, so the same port would not collide. The separation therefore distinguishes roles (the Leader's serving endpoint vs. the Worker's internal port) rather than preventing a conflict.
 
 :::tip restartPolicy: Default
-`restartPolicy: Default` restarts only the Worker Pod while keeping the Leader running. This improves stability by avoiding full group restarts for transient Worker failures.
+`restartPolicy: Default` restarts only the Worker Pod while keeping the Leader running. This avoids a full group restart for a transient Worker failure, but it carries a tradeoff for a distributed engine. Restarting only the Worker can leave the distributed-group state on the Leader out of sync with the restarted Worker, which may require re-initialization or deadlock. For failures that break the consistency of the whole distributed group, a group-level restart can be safer, so choose the failed-Pod policy by failure type.
 :::
 
 ## K8s Service Naming Pitfall
@@ -616,7 +629,7 @@ spec:
 Now the environment variables Kubernetes generates are `GLM5_SERVING_*`, which do not conflict with vLLM.
 
 :::caution K8s Automatic Environment Variable Generation Rules
-Kubernetes converts Service names into environment variables in the format `<NAME>_<PORT>_`. Avoid common prefixes like `vllm-`, `llm-`, and `model-`.
+Kubernetes generates service-link environment variables for each Service in the same namespace. The format is `<SVCNAME>_SERVICE_HOST`, `<SVCNAME>_SERVICE_PORT`, and the `<SVCNAME>_PORT_<port>_TCP*` family; names are uppercased and hyphens (`-`) become underscores (`_`). So a Service name starting with `vllm-` produces `VLLM_...` variables, which vLLM misreads as its own `VLLM_` configuration prefix. The root fix is to set `enableServiceLinks: false` on the Pod to turn off service-link injection entirely; if that is not an option, use a Service name that does not start with `VLLM_`.
 :::
 
 ## GPU Operator + Auto Mode Conflict
@@ -651,9 +664,13 @@ nvidia-device-plugin-daemonset-abcde   0/1     CrashLoopBackOff   5          3m
 
 ### Solution: devicePlugin.enabled=false
 
+The configuration below applies **only to EKS Auto Mode**. Auto Mode ships a built-in Device Plugin, so you disable the GPU Operator's Device Plugin and install only the monitoring components (DCGM, GFD, etc.). Pin the chart version and values for reproducibility.
+
 ```bash
-# Reinstall GPU Operator (disable Device Plugin)
+# Install GPU Operator (Auto Mode: use the built-in Device Plugin)
+# Pin --version to a supported chart version at deploy time (check with: helm search repo nvidia/gpu-operator --versions).
 helm upgrade --install gpu-operator nvidia/gpu-operator \
+  --version <GPU_OPERATOR_CHART_VERSION> \
   --namespace gpu-operator \
   --create-namespace \
   --set devicePlugin.enabled=false \
@@ -663,7 +680,13 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
   --set nodeStatusExporter.enabled=true
 ```
 
-Now only DCGM, GFD (GPU Feature Discovery), and Node Status Exporter run, while the Device Plugin uses the Auto Mode built-in version. For the full GPU Operator architecture and component details, see [NVIDIA GPU Stack](../../model-serving/gpu-infrastructure/nvidia-gpu-stack.md).
+Now only DCGM, GFD (GPU Feature Discovery), and Node Status Exporter run, while the Device Plugin uses the Auto Mode built-in version.
+
+:::caution Standard Mode / eksctl MNG Is Different
+A Managed Node Group created in Standard Mode (for example an Ubuntu AMI via eksctl) has no built-in Device Plugin. Leaving `devicePlugin.enabled=false` there means GPUs are never exposed as allocatable resources, so you must enable the GPU Operator's Device Plugin or install a separate NVIDIA Device Plugin. Device Plugin ownership differs between Auto Mode (built-in) and Standard Mode (installed yourself).
+:::
+
+For the full GPU Operator architecture and component details, see [NVIDIA GPU Stack](../../model-serving/gpu-infrastructure/nvidia-gpu-stack.md).
 
 ```bash
 # Confirm GPUs are properly recognized
@@ -823,8 +846,8 @@ spec:
         image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/vllm-glm5:nightly
         command: ["vllm", "serve"]
         args:
-          - "zai-org/GLM-5-FP8"
-          - "--download-dir=/mnt/models"
+          - "/mnt/models/glm5-fp8"  # Serve the pre-staged local directory (config/tokenizer/weights) directly
+          - "--served-model-name=glm-5"
           - "--tensor-parallel-size=8"
           - "--enforce-eager"
           - "--trust-remote-code"

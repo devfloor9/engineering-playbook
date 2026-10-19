@@ -3,9 +3,9 @@ title: Continuous Training Pipeline
 description: Langfuse trace를 자동 학습 데이터로 승격해 GRPO/DPO preference tuning과 Canary 배포까지 연결하는 EKS 기반 5단계 파이프라인 개요.
 created: "2026-04-18"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: devfloor9
-reading_time: 6
+reading_time: 7
 tags:
   - continuous-training
   - mlops
@@ -29,12 +29,14 @@ Continuous Training Pipeline은 운영 중 수집한 추론 기록을 학습 데
 
 프로덕션 피드백에는 정적 학습 데이터셋에 없던 작업, 용어, 실패 유형이 드러날 수 있습니다. 이 중 학습에 적합한 피드백을 골라 새 학습 예제로 사용합니다. 이후 모델을 평가해 해당 작업의 성능이 실제로 나아졌는지 확인해야 합니다.
 
-| 문제 | 기존 방식 | Continuous Training |
+아래 표의 수치는 측정값이 아니라 두 방식의 차이를 보여주는 예시 시나리오입니다. "피드백 반영" 기간은 데이터 수집 지연이 아니라 검토·승인을 거친 모델 반영까지의 기간을 뜻합니다. 또한 Continuous Training의 "비용" 칸은 수동 라벨링을 없앤다는 의미일 뿐, 자동 Judge(LLM 채점)와 데이터 큐레이션 자체에도 추론·운영 비용이 듭니다.
+
+| 문제 | 기존 방식 (예시) | Continuous Training (예시) |
 |------|----------|---------------------|
 | **데이터 수집** | 수동 라벨링 (월 1회) | 자동 trace 수집 (실시간) |
-| **피드백 반영** | 3-6개월 | 1주일 |
-| **품질 개선** | 신규 데이터셋 대기 | 사용자 피드백 즉시 반영 |
-| **비용** | 라벨링 $10K/월 | Reward Model 자동화 |
+| **피드백 반영** | 3-6개월 | 검토·승인 후 1주일 수준 |
+| **품질 개선** | 신규 데이터셋 대기 | 선별된 사용자 피드백 반영 |
+| **비용** | 수동 라벨링 비용 | 자동 Judge·큐레이션 비용 (수동 라벨링 대체) |
 
 :::tip 설계 문서 연계
 이 문서는 [Self-Improving Agent Loop](../../../design-architecture/advanced-patterns/self-improving-agent-loop.md)의 5단계 아키텍처를 EKS에서 구현하는 방법을 다룹니다. 설계 배경과 전략적 의사결정은 설계 문서를 참조하세요.
@@ -79,11 +81,13 @@ flowchart LR
     S3 --> JUDGE
     RAGAS --> SCORE
     JUDGE --> SCORE
-    SCORE --> GRPO
+    SCORE --> DATAGATE{{Data Gate<br/>+ Training Approval}}
+    DATAGATE -->|Approved| GRPO
     GRPO --> CKPT
     CKPT --> EVAL
-    EVAL -->|Pass| CANARY
-    EVAL -->|Fail| GRPO
+    EVAL -->|Pass| APPROVE{{Deploy Approval}}
+    APPROVE -->|Approved| CANARY
+    EVAL -->|Fail| DATAGATE
     CANARY -->|7d OK| PROD
     CANARY -->|Regression| REGISTRY
     PROD --> REGISTRY
@@ -99,9 +103,9 @@ flowchart LR
 
 1. **Trace → Dataset**: Langfuse 프로덕션 추론 로그를 학습 데이터로 전환
 2. **Reward Labeling**: Ragas + LLM Judge로 trace 품질을 0-1점으로 스코어링
-3. **GRPO/DPO**: 고득점 trace는 선호(preference), 저득점은 비선호로 학습
+3. **Preference Tuning**: 두 경로를 상황에 맞게 선택합니다. DPO는 같은 프롬프트의 선호/비선호 응답을 쌍으로 묶어 선호 쪽 확률을 높입니다. GRPO는 같은 프롬프트에 대한 여러 응답(그룹)을 생성해 그룹 내 상대 reward로 정규화한 advantage로 정책을 학습합니다. 세부 계약과 코드는 [GRPO/DPO 학습 Job](./grpo-dpo-training.md)을 참조하세요.
 4. **Eval Gate**: 학습 후 품질 Threshold 검증
-5. **Canary → 100%**: 점진적 트래픽 증가, 회귀 시 즉시 롤백
+5. **Canary → 100%**: 트래픽을 단계적으로 늘리고, 회귀가 감지되면 라우팅 컨트롤러(kgateway/HTTPRoute)가 트래픽을 직전에 승인된 안정 모델 버전으로 되돌립니다. 복구 목표(감지~전환 시간)는 측정해 정의해야 하며, 이 트래픽 전환은 MLflow Registry에 버전을 기록하는 작업과는 별개입니다. 롤백 액션의 구체 계약은 [Eval Gate · Registry · KPI](./evaluation-rollout.md)를 참조하세요.
 
 ## 하위 문서
 

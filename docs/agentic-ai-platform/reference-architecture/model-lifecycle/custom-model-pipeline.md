@@ -3,9 +3,9 @@ title: Custom Model Pipeline Guide
 description: Building a domain-optimized model serving pipeline with LoRA Fine-tuning, Multi-LoRA Hot-swap, and SLM Cascade Routing
 created: "2026-04-06"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-15
   author: devfloor9
-reading_time: 21
+reading_time: 30
 tags:
   - lora
   - fine-tuning
@@ -90,10 +90,10 @@ This section covers how to implement LoRA Fine-tuning and Multi-LoRA hot-swap de
 
 **Table 2. GPU, VRAM, training time, and cost by training method**
 
-| Model | Full Fine-tuning | LoRA | QLoRA |
+| Model | Full Fine-tuning | LoRA (FP16) | QLoRA (INT4) |
 |-------|-----------------|------|-------|
-| **Llama-3.3-70B** | H100×32 (impractical) | H100×8 | **H100×4** |
-| **VRAM** | 280 GB | 80 GB | **40 GB** |
+| **Llama-3.3-70B** | H100×16+ (impractical) | H100×2-4 | **H100×1** |
+| **VRAM** | ~840 GB (BF16+AdamW) | ~142-180 GB | **~40 GB** |
 | **Training Time** | - | 5 days | **2-3 days** |
 | **Cost** | - | $8,000 | **$2,000** |
 
@@ -147,7 +147,9 @@ python train_lora.py \
 
 #### Unsloth (2× Faster Training)
 
-An open-source library that doubles LoRA/QLoRA training speed on a single node while reducing memory usage by up to 50%.
+An open-source library that speeds up LoRA/QLoRA training on a single node by up to 2× while reducing VRAM usage by up to 70% (per Unsloth's own benchmark).
+
+The code below is a fragment that shows only model loading and adapter configuration. To run it, you must additionally import `SFTTrainer` from `trl`, load a JSONL dataset into `train_dataset`, and define a data formatting function and an `SFTConfig` (batch size, learning rate, number of steps, etc.). Pin the unsloth and trl versions you use for reproducibility.
 
 ```python
 from unsloth import FastLanguageModel
@@ -185,18 +187,25 @@ trainer.train()
 Trained LoRA adapters are stored in S3 with version management via MLflow.
 
 ```bash
-# Adapter storage structure
+# Adapter storage structure (per-version directories)
 s3://model-registry/
   └── lora-adapters/
       ├── bank-ledger/
-      │   ├── v1.0/adapter_model.safetensors
-      │   ├── v1.1/adapter_model.safetensors
-      │   └── latest -> v1.1
+      │   ├── v1.0/
+      │   │   ├── adapter_model.safetensors
+      │   │   ├── adapter_config.json   # base_model_name_or_path, r, lora_alpha, etc.
+      │   │   └── metadata.json         # compatible base-model revision, training commit
+      │   └── v1.1/
+      │       ├── adapter_model.safetensors
+      │       ├── adapter_config.json
+      │       └── metadata.json
       ├── stock-order/
       │   └── v1.0/adapter_model.safetensors
       └── insurance-contract/
           └── v1.0/adapter_model.safetensors
 ```
+
+S3 has no symlinks, so which version is `latest` is expressed by a pointer that the application or the MLflow registry maintains (for example a version tag recorded in `latest.json`, or MLflow's `latest` stage). The serving side resolves this pointer to load the corresponding version directory and uses `adapter_config.json` and `metadata.json` to confirm compatibility with the base-model revision.
 
 :::tip MLflow Integration
 Recording training metrics (loss, accuracy) alongside adapter paths in MLflow lets you track which dataset and hyperparameter combinations are optimal.
@@ -249,28 +258,30 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 | `--enable-lora` | Enable Multi-LoRA | `false` |
 | `--lora-modules` | Register adapters as `name=path` | - |
 | `--max-lora-rank` | Maximum LoRA rank | 16 |
-| `--max-loras` | Maximum adapters loaded simultaneously | 1 |
-| `--max-cpu-loras` | Number of adapters cached in CPU memory | - |
+| `--max-loras` | Maximum adapters loaded on the GPU together in a batch | 1 |
+| `--max-cpu-loras` | Number of adapters cached in CPU memory (awaiting GPU load) | - |
 
 :::caution Hot-swap Considerations
-vLLM loads adapters into GPU memory at request time. Using more adapters than `--max-loras` causes **swap latency** (hundreds of ms). Set `--max-loras` to match the number of frequently used adapters.
+`--max-loras` is the number of adapters that can be on the GPU together within one batch, while `--max-cpu-loras` is the number of adapters cached in CPU memory. When a requested adapter is not resident on the GPU, it must be swapped in from the CPU cache or storage, which adds latency. The size of this swap latency depends on the adapter's rank and size and on the storage location; it is not a measured value, so measure it on your workload and set `--max-loras` to match the number of frequently used adapters.
 :::
 
 #### Specifying Adapters in Requests
 
-Make requests via the OpenAI-compatible API and specify the LoRA name in `extra_body`.
+Make requests via the OpenAI-compatible API and pass the adapter name registered with `--lora-modules` as `model`. vLLM's OpenAI-compatible Multi-LoRA selects the adapter by the `model` value, so passing the base model ID would serve the base model rather than the adapter.
 
 ```python
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct",
+    model="bank-ledger",  # adapter name registered via --lora-modules
     messages=[{"role": "user", "content": "Convert this COBOL ledger code to Java"}],
-    extra_body={"lora_name": "bank-ledger"}
 )
+
+# Confirm the request was served by the intended adapter via the model field.
+assert response.model == "bank-ledger"
 ```
 
 #### Per-customer Routing (Bifrost + X-Customer-Domain Header)
 
-Use kgateway's HTTPRoute for HTTP header-based per-customer LoRA adapter routing.
+Use kgateway's HTTPRoute for HTTP header-based per-customer backend routing. The example below shows only the routing rule that sends requests carrying the `X-Customer-Domain: bank` header to `vllm-svc`.
 
 ```yaml
 # kgateway HTTPRoute - Per-customer LoRA routing
@@ -279,6 +290,8 @@ kind: HTTPRoute
 metadata:
   name: lora-routing
 spec:
+  parentRefs:
+  - name: agentic-gateway   # Gateway this route attaches to (defined separately)
   rules:
   - matches:
     - headers:
@@ -289,8 +302,8 @@ spec:
       port: 8000
 ```
 
-:::tip Routing Flow
-Client (Aider/Cline) → Sets `X-Customer-Domain: bank` header → kgateway → Bifrost → vLLM (auto-maps to `lora_name=bank-ledger`)
+:::caution A header match alone does not select the adapter
+The HTTPRoute above only sends the request to `vllm-svc`; it does not translate the `X-Customer-Domain` header into `model=bank-ledger` (the registered adapter name). Completing per-customer adapter selection requires three more pieces. First, attach this route to an actual Gateway via `parentRefs`. Second, write an explicit rule in Bifrost or the backend that maps the header value to the registered adapter name (`model`) — the `model=<adapter name>` rule from CPIPE-005. Third, add authorization that maps the caller's trusted identity to the corresponding customer domain, so an arbitrary client cannot request another customer's adapter.
 :::
 
 #### Per-customer Inference Tracking and Cost Billing
@@ -298,28 +311,35 @@ Client (Aider/Cline) → Sets `X-Customer-Domain: bank` header → kgateway → 
 Track each customer's inference requests with an LLM tracing system to monitor per-adapter performance and bill monthly costs.
 
 ```python
-from langfuse import Langfuse
+# langfuse>=3.0 (OpenTelemetry-based SDK). The legacy langfuse.trace() was removed.
+from langfuse import observe, get_client
 
-langfuse = Langfuse()
+langfuse = get_client()
 
-trace = langfuse.trace(
-    name="inference",
-    user_id="customer-bank-A",
-    metadata={
-        "lora": "bank-ledger",
-        "model": "glm-5-32b",
-        "domain": "ledger"
-    }
-)
+@observe(name="inference")
+def run_inference(prompt: str):
+    response = client.chat.completions.create(
+        model="bank-ledger",
+        messages=[{"role": "user", "content": prompt}],
+    )
+    # Record measured token usage and trace attributes on the current observation.
+    langfuse.update_current_trace(
+        user_id="customer-bank-A",
+        metadata={"lora": "bank-ledger", "model": "glm-5", "domain": "ledger"},
+    )
+    langfuse.update_current_generation(usage_details=response.usage)
+    return response
 ```
 
-**Table 6. Example per-customer monthly requests, tokens, GPU time, and cost**
+**Table 6. Example per-customer monthly requests, tokens, GPU time, and cost allocation**
 
-| Customer | Requests | Tokens | GPU Time | Cost |
+| Customer | Requests | Tokens | GPU Time | Cost (allocation example) |
 |----------|---------|---------|----------|------|
 | **Bank A** | 100,000 | 500M | 50 hours | $2,500 |
 | **Securities B** | 50,000 | 250M | 25 hours | $1,250 |
 | **Insurance C** | 30,000 | 150M | 15 hours | $750 |
+
+The costs in the table above are not measured actual charges; they illustrate an allocation method. Allocate cost by measuring each customer's GPU time and multiplying by a GPU-hour rate your organization sets, and record that rate and the measurement period so the allocation can be reconciled against actual billing.
 
 For implementation details, see [Agent Monitoring](../../operations-mlops/observability/agent-monitoring.md) and [LLM Tracing Deployment](../integrations/monitoring-observability-setup.md).
 
@@ -387,8 +407,8 @@ The approximately 66% figure is the result of the inputs and linear cost model a
 }
 ```
 
-:::caution Bifrost Cascade Limitations
-Bifrost's current cascade routing operates at the **provider level** and does not support automatic routing based on request complexity. It works with simple weight-based distribution or fallback conditions (5xx, latency exceeded). Complexity-based routing must be implemented with llm-d or custom logic.
+:::info Bifrost Complexity Router (supported since 2026-06)
+Bifrost supports the Complexity Router starting with the governance plugin v1.5.19, released on 2026-06-12. It automatically classifies requests into SIMPLE/MEDIUM/COMPLEX/REASONING tiers and exposes the tier through the `complexity_tier` CEL variable for use in routing rules. Only the tier classification is automatic; you must author the routing rules yourself. See the [Bifrost Complexity Router guide](https://docs.getbifrost.ai/features/governance/complexity-router).
 :::
 
 ### SLM Deployment YAML
@@ -413,7 +433,7 @@ spec:
         node.kubernetes.io/instance-type: g6.xlarge
       containers:
       - name: vllm
-        image: vllm/vllm-openai:latest
+        image: vllm/vllm-openai:v0.23.0  # pin the tag (do not use :latest)
         command: ["vllm", "serve"]
         args:
           - "meta-llama/Llama-3.1-8B-Instruct"
@@ -447,10 +467,13 @@ spec:
     protocol: TCP
 ```
 
-:::info g6.xlarge Instance Specs
+:::info g6.xlarge Instance Specs and Prerequisites
 - GPU: 1× NVIDIA L4 (24GB VRAM)
-- Cost: ~$0.31/hr (On-Demand), ~$0.09/hr (Spot)
+- Cost: ~$0.805/hr (On-Demand), ~$0.19-0.49/hr (Spot, region-dependent). Confirm against the official AWS pricing page for your deployment region.
 - Sufficient for serving 8B models
+- `meta-llama/Llama-3.1-8B-Instruct` is a gated model that requires access approval, so a HuggingFace token (`HF_TOKEN` environment variable or secret) and model-use approval must be in place first.
+- To avoid re-downloading the model on every restart, mount a persistent volume (PVC) for the model cache at `/root/.cache/huggingface`.
+- To fit the KV cache and concurrent requests within 24GB VRAM, tune `--max-model-len` and `--gpu-memory-utilization` for your workload. The 32768-token setting above may need to be lowered depending on required concurrency.
 :::
 
 - Reference: [Cost Threshold Analysis](../integrations/coding-tools-cost-analysis.md#5-cost-threshold-analysis-bedrock-vs-kiro-vs-self-hosting)
@@ -482,7 +505,7 @@ Minimum criteria for adapter deployment:
 
 ### LoRA A/B Testing
 
-Before deploying a new adapter version, compare performance using LLM tracing system tags for A/B testing. Recording the `lora` version in request metadata as a tag allows per-adapter performance comparison in the dashboard.
+Before deploying a new adapter version, compare performance using LLM tracing system tags for A/B testing. Recording the `lora` version in request metadata as a tag allows per-adapter performance comparison in the dashboard. For the comparison to be valid, assign the same request distribution to both versions (or send the same requests to both) and measure quality with the same evaluation criteria; otherwise workload differences are misread as metric differences.
 
 For implementation examples, see [Agent Monitoring - A/B Testing](../../operations-mlops/observability/agent-monitoring.md).
 
@@ -492,7 +515,7 @@ For implementation examples, see [Agent Monitoring - A/B Testing](../../operatio
 |--------|------------|---------|
 | Accuracy | SWE-bench / domain tests | Code conversion correctness |
 | Latency | LLM tracing p50/p95 | Response speed |
-| Token Efficiency | output_tokens / input_tokens | Answer conciseness |
+| Output/input length ratio | output_tokens / input_tokens | Ratio of output to input length (not standalone efficiency) |
 | User Satisfaction | Annotation Score | Real user evaluation |
 
 - Reference: [RAGAS Evaluation Framework](../../operations-mlops/governance/ragas-evaluation.md)

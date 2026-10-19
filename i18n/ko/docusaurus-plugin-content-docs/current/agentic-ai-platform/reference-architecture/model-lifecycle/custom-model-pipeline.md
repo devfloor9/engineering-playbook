@@ -3,9 +3,9 @@ title: 커스텀 모델 파이프라인 구축 가이드
 description: LoRA Fine-tuning, Multi-LoRA 핫스왑, SLM Cascade Routing으로 도메인별 최적화된 모델 서빙 파이프라인 구축
 created: "2026-04-06"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 16
 tags:
   - lora
   - fine-tuning
@@ -149,6 +149,8 @@ python train_lora.py \
 
 단일 노드에서 LoRA/QLoRA 학습 속도를 최대 2배 높이고 VRAM 사용량을 최대 70%까지 절감하는 오픈소스 라이브러리입니다 (Unsloth 자사 벤치마크 기준).
 
+아래 코드는 모델 로딩과 어댑터 구성만 보여주는 발췌 조각입니다. 실제로 실행하려면 `trl`에서 `SFTTrainer`를 import하고, JSONL 데이터셋을 로드해 `train_dataset`을 준비하며, 데이터 포맷팅 함수와 `SFTConfig`(배치 크기, 학습률, 스텝 수 등)를 추가로 정의해야 합니다. 사용하는 unsloth와 trl 버전은 재현성을 위해 고정하세요.
+
 ```python
 from unsloth import FastLanguageModel
 
@@ -185,18 +187,25 @@ trainer.train()
 학습된 LoRA 어댑터는 S3에 저장하고, MLflow로 버전을 관리합니다.
 
 ```bash
-# 어댑터 저장 구조
+# 어댑터 저장 구조 (버전별 디렉터리)
 s3://model-registry/
   └── lora-adapters/
       ├── bank-ledger/
-      │   ├── v1.0/adapter_model.safetensors
-      │   ├── v1.1/adapter_model.safetensors
-      │   └── latest -> v1.1
+      │   ├── v1.0/
+      │   │   ├── adapter_model.safetensors
+      │   │   ├── adapter_config.json   # base_model_name_or_path, r, lora_alpha 등
+      │   │   └── metadata.json         # 호환 기본 모델 revision, 학습 커밋
+      │   └── v1.1/
+      │       ├── adapter_model.safetensors
+      │       ├── adapter_config.json
+      │       └── metadata.json
       ├── stock-order/
       │   └── v1.0/adapter_model.safetensors
       └── insurance-contract/
           └── v1.0/adapter_model.safetensors
 ```
+
+S3에는 심볼릭 링크가 없으므로, 어떤 버전이 `latest`인지는 애플리케이션이나 MLflow 레지스트리가 관리하는 포인터(예: `latest.json`에 기록한 버전 태그 또는 MLflow의 `latest` 스테이지)로 표현합니다. 서빙 측은 이 포인터를 조회해 해당 버전 디렉터리를 로드하며, `adapter_config.json`과 `metadata.json`으로 기본 모델 revision과의 호환성을 확인합니다.
 
 :::tip MLflow 연동
 MLflow에 학습 메트릭(loss, accuracy)과 어댑터 경로를 함께 기록하면, 어떤 데이터셋과 하이퍼파라미터 조합이 최적인지 추적할 수 있습니다.
@@ -249,28 +258,30 @@ vllm serve meta-llama/Llama-3.3-70B-Instruct \
 | `--enable-lora` | Multi-LoRA 활성화 | `false` |
 | `--lora-modules` | `이름=경로` 형태로 어댑터 등록 | - |
 | `--max-lora-rank` | 최대 LoRA rank | 16 |
-| `--max-loras` | 동시 로드 가능한 최대 어댑터 수 | 1 |
-| `--max-cpu-loras` | CPU 메모리에 캐시할 어댑터 수 | - |
+| `--max-loras` | 한 배치에서 GPU에 동시 적재하는 최대 어댑터 수 | 1 |
+| `--max-cpu-loras` | CPU 메모리에 캐시할 어댑터 수(GPU 적재 대기분) | - |
 
 :::caution 핫스왑 주의사항
-vLLM은 요청 시점에 어댑터를 GPU 메모리로 로드합니다. `--max-loras`보다 많은 어댑터를 사용하면 **스왑 지연 시간**(수백ms)가 발생합니다. 자주 사용하는 어댑터 수에 맞게 `--max-loras`를 설정하세요.
+`--max-loras`는 한 배치에서 GPU에 동시에 올릴 수 있는 어댑터 수이고, `--max-cpu-loras`는 CPU 메모리에 캐시해 두는 어댑터 수입니다. 요청된 어댑터가 GPU에 올라와 있지 않으면 CPU 캐시나 저장소에서 교체(swap)해야 하므로 추가 지연이 발생합니다. 교체 지연의 크기는 어댑터 rank와 크기, 저장 위치에 따라 달라지며 측정값이 아니므로, 실제 워크로드에서 측정해 자주 쓰는 어댑터 수에 맞게 `--max-loras`를 설정하세요.
 :::
 
 #### 요청 시 어댑터 지정
 
-OpenAI 호환 API로 요청하며, `extra_body`에 LoRA 이름을 지정합니다.
+OpenAI 호환 API로 요청하며, `--lora-modules`로 등록한 어댑터 이름을 `model`에 지정합니다. vLLM의 OpenAI 호환 Multi-LoRA는 `model` 값으로 어댑터를 선택하므로, 기본 모델 ID를 넣으면 어댑터가 아닌 기본 모델이 응답합니다.
 
 ```python
 response = client.chat.completions.create(
-    model="meta-llama/Llama-3.3-70B-Instruct",
+    model="bank-ledger",  # --lora-modules로 등록한 어댑터 이름
     messages=[{"role": "user", "content": "COBOL 원장 코드를 Java로 변환해줘"}],
-    extra_body={"lora_name": "bank-ledger"}
 )
+
+# 응답이 의도한 어댑터로 처리됐는지 model 필드로 확인합니다.
+assert response.model == "bank-ledger"
 ```
 
 #### 고객별 라우팅 (Bifrost + X-Customer-Domain 헤더)
 
-kgateway의 HTTPRoute를 사용하여 HTTP 헤더 기반으로 고객별 LoRA 어댑터를 라우팅합니다.
+kgateway의 HTTPRoute를 사용하여 HTTP 헤더 기반으로 고객별 백엔드 라우팅을 구성합니다. 아래 예시는 `X-Customer-Domain: bank` 헤더가 있는 요청을 `vllm-svc`로 보내는 라우팅 규칙만 보여줍니다.
 
 ```yaml
 # kgateway HTTPRoute - 고객별 LoRA 라우팅
@@ -279,6 +290,8 @@ kind: HTTPRoute
 metadata:
   name: lora-routing
 spec:
+  parentRefs:
+  - name: agentic-gateway   # 이 라우트를 연결할 Gateway (별도 정의 필요)
   rules:
   - matches:
     - headers:
@@ -289,8 +302,8 @@ spec:
       port: 8000
 ```
 
-:::tip 라우팅 흐름
-클라이언트(Aider/Cline) → `X-Customer-Domain: bank` 헤더 설정 → kgateway → Bifrost → vLLM (`lora_name=bank-ledger` 자동 매핑)
+:::caution 헤더 매칭만으로는 어댑터가 선택되지 않습니다
+위 HTTPRoute는 요청을 `vllm-svc`로 보내기만 할 뿐, `X-Customer-Domain` 헤더를 `model=bank-ledger`(등록된 어댑터 이름)로 변환하지 않습니다. 고객별 어댑터 선택을 완성하려면 세 가지가 추가로 필요합니다. 첫째, 이 라우트를 `parentRefs`로 실제 Gateway에 연결해야 합니다. 둘째, Bifrost 또는 백엔드에서 헤더 값을 등록된 어댑터 이름(`model`)으로 매핑하는 규칙을 명시적으로 작성해야 합니다(CPIPE-005의 `model=어댑터이름` 규칙). 셋째, 요청자의 신뢰할 수 있는 신원을 해당 고객 도메인에 매핑하는 인가가 있어야 임의의 클라이언트가 다른 고객의 어댑터를 지정하지 못합니다.
 :::
 
 #### 고객별 추론 추적 및 비용 청구
@@ -298,28 +311,35 @@ spec:
 각 고객의 추론 요청을 LLM 트레이싱 시스템으로 추적하여 LoRA 어댑터별 성능을 모니터링하고 월별 비용을 청구합니다.
 
 ```python
-from langfuse import Langfuse
+# langfuse>=3.0 (OpenTelemetry 기반 SDK). 레거시 langfuse.trace()는 제거됨
+from langfuse import observe, get_client
 
-langfuse = Langfuse()
+langfuse = get_client()
 
-trace = langfuse.trace(
-    name="inference",
-    user_id="customer-bank-A",
-    metadata={
-        "lora": "bank-ledger",
-        "model": "glm-5-32b",
-        "domain": "ledger"
-    }
-)
+@observe(name="inference")
+def run_inference(prompt: str):
+    response = client.chat.completions.create(
+        model="bank-ledger",
+        messages=[{"role": "user", "content": prompt}],
+    )
+    # 측정된 토큰 사용량과 추적 속성을 현재 observation에 기록합니다.
+    langfuse.update_current_trace(
+        user_id="customer-bank-A",
+        metadata={"lora": "bank-ledger", "model": "glm-5", "domain": "ledger"},
+    )
+    langfuse.update_current_generation(usage_details=response.usage)
+    return response
 ```
 
-**표 6. 고객별 월별 요청·토큰·GPU 시간·비용 청구 예시**
+**표 6. 고객별 월별 요청·토큰·GPU 시간·비용 배분 예시**
 
-| 고객 | 요청 수 | 토큰 수 | GPU 시간 | 비용 |
+| 고객 | 요청 수 | 토큰 수 | GPU 시간 | 비용(배분 예시) |
 |------|---------|---------|----------|------|
 | **A은행** | 100,000 | 500M | 50시간 | $2,500 |
 | **B증권** | 50,000 | 250M | 25시간 | $1,250 |
 | **C보험** | 30,000 | 150M | 15시간 | $750 |
+
+위 표의 비용은 측정된 실제 청구액이 아니라 배분 방식을 보여주는 예시입니다. 고객별 GPU 시간을 측정한 뒤 조직이 정한 GPU 시간당 단가를 곱해 비용을 배분하며, 그 단가와 측정 기간을 함께 기록해야 실제 청구와 대조할 수 있습니다.
 
 구현 방법은 [Agent 모니터링](../../operations-mlops/observability/agent-monitoring.md) 및 [LLM 트레이싱 배포](../integrations/monitoring-observability-setup.md)를 참조하세요.
 
@@ -413,7 +433,7 @@ spec:
         node.kubernetes.io/instance-type: g6.xlarge
       containers:
       - name: vllm
-        image: vllm/vllm-openai:latest
+        image: vllm/vllm-openai:v0.23.0  # 태그 고정(:latest 사용 금지)
         command: ["vllm", "serve"]
         args:
           - "meta-llama/Llama-3.1-8B-Instruct"
@@ -447,10 +467,13 @@ spec:
     protocol: TCP
 ```
 
-:::info g6.xlarge 인스턴스 스펙
+:::info g6.xlarge 인스턴스 스펙과 사전 조건
 - GPU: NVIDIA L4 1개 (24GB VRAM)
-- 비용: ~$0.805/hr (On-Demand), ~$0.19-0.49/hr (Spot, 지역별)
+- 비용: ~$0.805/hr (On-Demand), ~$0.19-0.49/hr (Spot, 지역별). AWS 공식 가격 페이지에서 배포 리전 기준으로 확인하세요.
 - 8B 모델 서빙에 충분한 사양
+- `meta-llama/Llama-3.1-8B-Instruct`는 접근 승인이 필요한 게이트 모델이므로, HuggingFace 토큰(`HF_TOKEN` 환경 변수나 시크릿)과 모델 사용 승인이 선행되어야 합니다.
+- 반복 재시작 시 다운로드를 피하려면 모델 캐시용 영구 볼륨(PVC)을 `/root/.cache/huggingface`에 마운트하는 것이 좋습니다.
+- 24GB VRAM 안에서 KV 캐시와 동시 요청 수를 맞추려면 `--max-model-len`과 `--gpu-memory-utilization`을 워크로드에 맞게 조정하세요. 위 32768 토큰 설정은 동시 처리량에 따라 더 낮춰야 할 수 있습니다.
 :::
 
 - 참조: [비용 Threshold 분석](../integrations/coding-tools-cost-analysis.md#비용-threshold-분석-bedrock-vs-kiro-vs-자체-호스팅)
@@ -482,7 +505,7 @@ spec:
 
 ### LoRA A/B 테스트
 
-새로운 어댑터 버전을 배포하기 전, LLM 트레이싱 시스템의 태그 기능을 활용한 A/B 테스트로 성능을 비교합니다. 요청 메타데이터에 `lora` 버전을 태그로 기록하면 대시보드에서 어댑터별 성능을 비교할 수 있습니다.
+새로운 어댑터 버전을 배포하기 전, LLM 트레이싱 시스템의 태그 기능을 활용한 A/B 테스트로 성능을 비교합니다. 요청 메타데이터에 `lora` 버전을 태그로 기록하면 대시보드에서 어댑터별 성능을 비교할 수 있습니다. 비교가 유효하려면 두 버전에 같은 분포의 요청을 할당하고(또는 같은 요청을 양쪽에 보내고) 같은 평가 기준으로 품질을 측정해야 하며, 그렇지 않으면 워크로드 차이가 지표 차이로 잘못 해석됩니다.
 
 구현 예시는 [Agent 모니터링 - A/B 테스트](../../operations-mlops/observability/agent-monitoring.md)를 참조하세요.
 
@@ -492,7 +515,7 @@ spec:
 |--------|----------|------|
 | 정확도 | SWE-bench / 도메인 테스트 | 코드 변환 정확성 |
 | 지연 시간 | LLM 트레이싱 p50/p95 | 응답 속도 |
-| 토큰 효율 | output_tokens / input_tokens | 답변 간결성 |
+| 출력/입력 길이 비 | output_tokens / input_tokens | 출력 대비 입력 길이 비율(단독으로는 효율이 아님) |
 | 사용자 만족도 | Annotation Score | 실제 사용자 평가 |
 
 - 참조: [RAGAS 평가 프레임워크](../../operations-mlops/governance/ragas-evaluation.md)
