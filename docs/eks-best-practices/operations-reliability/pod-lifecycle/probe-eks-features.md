@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 13
+reading_time: 20
 tags:
   - eks
   - kubernetes
@@ -36,23 +36,7 @@ Container Network Observability (announced in November 2025) provides detailed n
 
 **Enabling the feature:**
 
-```bash
-# Enable network observability in VPC CNI
-kubectl set env daemonset aws-node \
-  -n kube-system \
-  ENABLE_NETWORK_OBSERVABILITY=true
-
-# Alternatively, configure through a ConfigMap
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: amazon-vpc-cni
-  namespace: kube-system
-data:
-  enable-network-observability: "true"
-EOF
-```
+Enable Container Network Observability from the EKS console, the AWS CLI, or the EKS API. Enabling it in the console automatically creates the Network Flow Monitor (NFM) Scope and Monitor resources and guides you through installing the NFM Agent EKS add-on. For IaC (such as Terraform), define the NFM Scope, NFM Monitor, and the NFM EKS add-on, and grant the add-on permissions through Pod Identity or IRSA. See the [EKS network observability documentation](https://docs.aws.amazon.com/eks/latest/userguide/network-observability.html) for the exact add-on name and command options. The VPC CNI does not expose an environment variable or ConfigMap key for enabling this feature.
 
 **Probe connectivity validation example:**
 
@@ -97,8 +81,10 @@ spec:
 
 **CloudWatch Insights query - correlate probe failures with network latency:**
 
+The following query is illustrative and works only when the `probe_result`, `probe_type`, `network_latency_ms`, and `packet_loss_percent` fields are emitted together in a single log event. These fields are not collected by default, so you must first configure your application or collection pipeline to emit the probe result and network metrics in the same event.
+
 ```sql
--- Check network latency at the time of probe failures
+-- Check network latency at the time of probe failures (when the fields are collected)
 fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 | filter namespace = "production"
 | filter probe_result = "failed"
@@ -109,8 +95,10 @@ fields @timestamp, pod_name, probe_type, network_latency_ms, packet_loss_percent
 
 **Alert configuration example:**
 
+The ConfigMap below only stores the alarm definition as a string; applying it does not create a CloudWatch alarm. Create the actual alarm with the ACK CloudWatch controller's `MetricAlarm` resource (`cloudwatch.services.k8s.aws/v1alpha1`), `aws cloudwatch put-metric-alarm`, or IaC. The JSON below is a reference for the parameters you would use when creating it that way.
+
 ```yaml
-# CloudWatch Alarm: concurrent probe failures and network anomalies
+# Reference alarm parameters (the ConfigMap alone does not create an alarm)
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -159,7 +147,7 @@ flowchart TD
 ```
 
 :::tip Pod-to-Pod Path Visualization
-Container Network Observability integrates with CloudWatch Logs Insights to trace the entire network path of probe requests. When a Readiness Probe checks an external database, bottlenecks can be identified along the full Pod → Service → Endpoint → DB Pod path.
+The service map and flow table in Container Network Observability show aggregated flow metrics (retransmissions, retransmission timeouts, and data transferred) for Pod-to-Pod communication. They do not trace individual probe requests one by one, but they help narrow down where a bottleneck lies by showing which flow metrics degrade along the path a Readiness Probe uses to reach an external database.
 :::
 
 ---
@@ -168,33 +156,20 @@ Container Network Observability integrates with CloudWatch Logs Insights to trac
 
 **Overview:**
 
-CloudWatch Observability Operator (announced in December 2025) automatically collects EKS Control Plane metrics to proactively detect how API Server performance degradation affects probe responses.
+CloudWatch Observability Operator automatically collects EKS Control Plane metrics to proactively detect how API Server performance degradation affects probe responses.
 
 **Installation:**
 
-```bash
-# Install CloudWatch Observability Operator
-kubectl apply -f https://raw.githubusercontent.com/aws-observability/aws-cloudwatch-observability-operator/main/bundle.yaml
+Install CloudWatch Observability through the EKS add-on `amazon-cloudwatch-observability`. This add-on deploys the CloudWatch Agent and operator and handles Container Insights and metrics collection. The `aws-cloudwatch-observability-operator` bundle manifest URL and the `EKSControlPlaneMetrics` CRD shown in earlier drafts do not exist in the official repositories, so they are not used. Choose which Control Plane metrics to collect and send through the EKS console or API Control Plane monitoring settings and the add-on configuration.
 
-# Enable EKS Control Plane metrics collection
-kubectl apply -f - <<EOF
-apiVersion: cloudwatch.aws.amazon.com/v1alpha1
-kind: EKSControlPlaneMetrics
-metadata:
-  name: production-control-plane
-  namespace: amazon-cloudwatch
-spec:
-  clusterName: production-eks
-  region: ap-northeast-2
-  metricsCollectionInterval: 60s
-  enabledMetrics:
-    - apiserver_request_duration_seconds
-    - apiserver_request_total
-    - apiserver_storage_objects
-    - etcd_request_duration_seconds
-    - rest_client_requests_total
-EOF
+```bash
+# Install the CloudWatch Observability add-on (EKS API)
+aws eks create-addon \
+  --cluster-name production-eks \
+  --addon-name amazon-cloudwatch-observability
 ```
+
+See the [EKS observability dashboard documentation](https://docs.aws.amazon.com/eks/latest/userguide/observability-dashboard.html) for the exact add-on configuration options and how to enable Control Plane metrics.
 
 **Table 1. Key Control Plane metrics and their relationship to probes**
 
@@ -209,32 +184,26 @@ EOF
 **Predictive probe timeout alerts:**
 
 ```yaml
-apiVersion: cloudwatch.amazonaws.com/v1alpha1
-kind: Alarm
+# MetricAlarm resource of the ACK CloudWatch controller
+apiVersion: cloudwatch.services.k8s.aws/v1alpha1
+kind: MetricAlarm
 metadata:
   name: apiserver-slow-probe-risk
 spec:
-  alarmName: "EKS-APIServer-SlowProbeRisk"
-  metrics:
-    - id: m1
-      metricStat:
-        metric:
-          namespace: AWS/EKS
-          metricName: apiserver_request_duration_seconds
-          dimensions:
-            - name: ClusterName
-              value: production-eks
-            - name: verb
-              value: GET
-        period: 60
-        stat: p99
-    - id: e1
-      expression: "IF(m1 > 0.5, 1, 0)"
-      label: "API Server response latency > 500ms"
+  name: "EKS-APIServer-SlowProbeRisk"
+  namespace: AWS/EKS
+  metricName: apiserver_request_duration_seconds
+  dimensions:
+    - name: ClusterName
+      value: production-eks
+    - name: verb
+      value: GET
+  period: 60
+  extendedStatistic: p99
   evaluationPeriods: 2
-  threshold: 1
+  threshold: 0.5
   comparisonOperator: GreaterThanOrEqualToThreshold
-  alarmDescription: "Risk of probe timeouts due to API Server performance degradation"
+  alarmDescription: "Risk of probe timeouts due to API Server performance degradation (response latency > 500ms)"
   alarmActions:
     - arn:aws:sns:ap-northeast-2:123456789012:eks-ops-alerts
 ```
@@ -309,7 +278,7 @@ spec:
 ```
 
 :::warning API Server Load in Large Clusters
-In clusters with 1000 or more nodes, probe requests from all kubelets can concentrate on the API Server. Increase `periodSeconds` to 10~15 seconds and set `timeoutSeconds` to at least 5 seconds to distribute API Server load. Provisioned Control Plane (Section 2.7.3) can fundamentally address this issue.
+A kubelet's HTTP/TCP/exec/gRPC probes call the target Pod directly from the node and do not go through the API Server, so the probes themselves do not concentrate load on the API Server. In large clusters, however, kubelet status reporting, watches, and other API calls can raise API Server load, and if Pod status updates are delayed as a result, probe results can take longer to be reflected. If the load from API-Server-dependent calls becomes a problem, adjust the interval of those calls. A Provisioned Control Plane can ease such API Server load with its preallocated control plane capacity, but it does not change the local path on which the kubelet executes probes (Section 2.7.3).
 :::
 
 ---
@@ -328,7 +297,7 @@ Provisioned Control Plane (announced in November 2025) ensures predictable, high
 | **2XL** | Very high | 2,500 | Large-scale batch processing |
 | **4XL** | Ultra-fast | 5,000 | Massive-scale ML |
 
-Per-tier Pod scheduling throughput and probe latency guarantees are not given as figures in this table because no official source for them could be confirmed. Measure actual performance in your target environment.
+Per-tier Pod scheduling throughput and probe latency guarantees are not given as figures in this table because no official source for them could be confirmed. The Maximum Nodes figures (1,000/2,500/5,000) are also indicative estimates rather than values confirmed against an official source, so measure the actual supported scale and performance in your target environment and confirm them against the [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html).
 
 **Figure 2. Load handling comparison between Standard and Provisioned Control Plane**
 
@@ -354,19 +323,21 @@ graph LR
 
 **Creating a Provisioned Control Plane:**
 
+The documented `aws eks create-cluster` CLI does not accept the Provisioned Control Plane selection flags shown below. The following example is a standard cluster-creation command; see the [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html) for how to enable a Provisioned Control Plane and for the actual options.
+
 ```bash
-# Create a Provisioned Control Plane cluster (AWS CLI)
+# Create a cluster (AWS CLI)
 aws eks create-cluster \
   --name production-provisioned \
   --region ap-northeast-2 \
   --kubernetes-version 1.32 \
   --role-arn arn:aws:iam::123456789012:role/eks-cluster-role \
-  --resources-vpc-config subnetIds=subnet-xxx,subnet-yyy,securityGroupIds=sg-zzz \
-  --control-plane-type PROVISIONED \
-  --control-plane-tier XL
+  --resources-vpc-config subnetIds=subnet-xxx,subnet-yyy,securityGroupIds=sg-zzz
 ```
 
 **Large-scale probe optimization example:**
+
+Control-plane tier is a cluster-level API setting and cannot be set with a Deployment annotation. The example below configures a workload with short probe intervals on a Provisioned Control Plane cluster; the annotation that attempted to set the tier has been removed because it has no effect.
 
 ```yaml
 # AI/ML Training cluster (1000+ GPU nodes)
@@ -374,9 +345,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: training-coordinator
-  annotations:
-    # Optimized probe settings for Provisioned Control Plane
-    eks.amazonaws.com/control-plane-tier: "XL"
 spec:
   selector:
     matchLabels:
@@ -431,8 +399,8 @@ spec:
 ```yaml
 # Provisioned Control Plane cost optimization strategy
 # 1. Normal operation: Standard Control Plane
-# 2. During training: upgrade to Provisioned Control Plane XL
-# (Currently selected at cluster creation; dynamic changes are planned for the future)
+# 2. During training: use Provisioned Control Plane XL
+# (The tier is a cluster-level setting; check whether and how it can be changed in the EKS Provisioned Control Plane documentation)
 ```
 
 :::tip HPC and Large-Scale Batch Workloads
@@ -478,6 +446,8 @@ aws guardduty update-detector \
 ```
 
 **Probe endpoint security pattern:**
+
+The `value` of an `httpGet.httpHeaders` entry is a static string and cannot reference an environment variable or Secret. The `value: "SECRET_TOKEN_FROM_ENV"` in the example below therefore sends that literal string, not the token injected through `secretKeyRef`. If you need token-based verification, have the application read and check the token itself (or handle it in a sidecar) and have the probe call an endpoint that returns the result.
 
 ```yaml
 apiVersion: apps/v1
@@ -553,9 +523,9 @@ flowchart TD
     style RESPONSE fill:#34a853,stroke:#2a8642,color:#fff
 ```
 
-**Real-world detection case - Cryptomining Campaign:**
+**Illustrative scenario - Cryptomining:**
 
-In a cryptomining campaign detected by GuardDuty starting on November 2, 2025, attackers bypassed health checks as follows:
+For reference, the cryptomining campaign in the cited AWS blog targeted EC2 and ECS using compromised IAM credentials; it is not an EKS probe/health-check bypass case. The following is a hypothetical, illustrative scenario of how an attacker could bypass health checks:
 
 1. Disguised the workload as a legitimate container image
 2. Downloaded a malicious binary after startupProbe succeeded
@@ -572,6 +542,7 @@ metadata:
   name: guardduty-response
   namespace: security
 data:
+  # severity 7-8 corresponds to High, and 9 to Critical.
   eventbridge-rule: |
     {
       "source": ["aws.guardduty"],
@@ -580,15 +551,18 @@ data:
         "service": {
           "serviceName": ["EKS"]
         },
-        "severity": [7, 8, 9]  # High, Critical
+        "severity": [7, 8, 9]
       }
     }
   lambda-action: |
     import boto3
     eks = boto3.client('eks')
 
-    def isolate_pod(cluster_name, namespace, pod_name):
+    def isolate_pod(cluster_name, namespace, pod_name, app_label):
         # Isolate the Pod with a NetworkPolicy
+        # The podSelector must match a label that actually exists on the target Pod.
+        # The secure-api Deployment's Pods carry app=secure-api, so select by that
+        # label. (Using the Pod name as a label would match nothing.)
         kubectl_command = f"""
         kubectl apply -f - <<EOF
         apiVersion: networking.k8s.io/v1
@@ -599,7 +573,7 @@ data:
         spec:
           podSelector:
             matchLabels:
-              pod: {pod_name}
+              app: {app_label}
           policyTypes:
           - Ingress
           - Egress

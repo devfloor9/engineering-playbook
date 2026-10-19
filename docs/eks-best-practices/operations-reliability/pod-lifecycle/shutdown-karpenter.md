@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 11
+reading_time: 13
 tags:
   - eks
   - kubernetes
@@ -68,15 +68,18 @@ spec:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
     # Disruption budget: limit concurrent node disruptions
+    # Scheduled budgets must include a duration alongside schedule to be valid
     budgets:
     - nodes: "20%"
       schedule: "0 9-17 * * MON-FRI"  # 20% during business hours
+      duration: 1h
     - nodes: "50%"
       schedule: "0 0-8,18-23 * * *"   # 50% outside business hours
+      duration: 1h
 ```
 
 :::warning Interaction between PDB and Karpenter
-If a PodDisruptionBudget is too strict (for example, `minAvailable` equals the replica count), Karpenter cannot drain nodes. Set the PDB to `minAvailable: replica - 1` or `maxUnavailable: 1` so that at least 1 Pod can move.
+If a PodDisruptionBudget is too strict (for example, `minAvailable` equals the replica count), Karpenter cannot drain nodes. For stateless workloads with multiple replicas, set the PDB to `maxUnavailable: 1` or `minAvailable: replica - 1` so that at least 1 Pod can move. However, for a singleton (replica count 1) `replica - 1` is 0, which allows all availability to be lost, and for quorum- or SLO-bound services it can drop below the required floor. For those workloads, increase the replica count or size the PDB to the real minimum number of Pods you must keep available.
 :::
 
 ### AZ evacuation pattern with ARC + Karpenter integration {#343-arc--karpenter-통합-az-대피-패턴}
@@ -93,7 +96,7 @@ Zonal Shift automatically shifts traffic from an AZ to other healthy AZs when a 
 
 | Component | Role | Behavior |
 |----------|------|------|
-| **ARC Zonal Autoshift** | Automatically detect AZ failures and decide when to shift traffic | Automatic shift based on CloudWatch Alarms |
+| **ARC Zonal Autoshift** | Automatically detect AZ failures and decide when to shift traffic | Autoshift shifts traffic based on AWS-managed telemetry; customer CloudWatch alarms are used for manual Zonal Shift or practice runs |
 | **Karpenter** | Provision nodes in a new AZ | Create nodes in healthy AZs according to NodePool configuration |
 | **AWS Load Balancer** | Control traffic routing | Remove targets in the affected AZ |
 | **PodDisruptionBudget** | Ensure availability during Pod relocation | Maintain the minimum number of available Pods |
@@ -112,18 +115,18 @@ sequenceDiagram
 
     Note over AZ_A: Detect AZ performance degradation<br/>(network latency, packet loss)
 
-    AZ_A->>ARC: Trigger CloudWatch Alarm
-    ARC->>ARC: Decide to perform Zonal Shift
+    AZ_A->>ARC: Observed as impaired via AWS-managed telemetry
+    ARC->>ARC: Decide to perform Autoshift
     ARC->>LB: Start removing AZ-A targets
 
     par Karpenter node provisioning
-        ARC->>Karpenter: Cordon AZ-A nodes
+        Karpenter->>Karpenter: Cordon AZ-A nodes
         Karpenter->>AZ_B: Provision new nodes
         AZ_B->>Karpenter: Node Ready
     and Pod rescheduling
         Karpenter->>Pod_Old: Pod Eviction (Graceful)
         Pod_Old->>Pod_Old: Execute preStop hook
-        Pod_Old->>Pod_Old: Receive SIGTERM
+        Pod_Old->>Pod_Old: Receive SIGTERM (kubelet)
         Pod_Old->>Pod_Old: Graceful Shutdown
         Note over Pod_Old: Complete in-flight requests<br/>(terminationGracePeriodSeconds)
     end
@@ -146,10 +149,6 @@ sequenceDiagram
 
 ```bash
 # Enable Zonal Autoshift on the load balancer
-aws arc-zonal-shift create-autoshift-observer-notification-configuration \
-  --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef
-
-# Configure Zonal Autoshift
 aws arc-zonal-shift update-zonal-autoshift-configuration \
   --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef \
   --zonal-autoshift-status ENABLED
@@ -185,6 +184,8 @@ spec:
         values:
         - on-demand  # On-Demand is recommended for AZ failure recovery
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 ---
 apiVersion: karpenter.k8s.aws/v1
@@ -200,7 +201,10 @@ spec:
   securityGroupSelectorTerms:
   - tags:
       karpenter.sh/discovery: "production-eks"
-  # Automatically detect AZ failures
+  # v1 EC2NodeClass requires amiSelectorTerms (alias is used on its own)
+  amiSelectorTerms:
+  - alias: al2023@latest
+  # Enforce IMDSv2: require tokens, limit the hop limit
   metadataOptions:
     httpTokens: required
     httpPutResponseHopLimit: 2
@@ -283,6 +287,8 @@ spec:
 
 **4. CloudWatch Alarm - detect AZ performance degradation:**
 
+The following ConfigMap only holds an example alarm definition; applying it does not create a CloudWatch alarm. Create the alarm separately with `aws cloudwatch put-metric-alarm` or IaC. The metric uses the real `AWS/EC2` `StatusCheckFailed`, and the alarm action targets a CloudWatch-supported destination such as an SNS topic.
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -290,22 +296,23 @@ metadata:
   name: az-health-monitoring
   namespace: monitoring
 data:
+  # Example alarm definition (create separately via put-metric-alarm/IaC)
   cloudwatch-alarm: |
     {
-      "AlarmName": "AZ-A-NetworkLatency-High",
-      "MetricName": "NetworkLatency",
+      "AlarmName": "AZ-A-StatusCheckFailed-High",
+      "MetricName": "StatusCheckFailed",
       "Namespace": "AWS/EC2",
-      "Statistic": "Average",
+      "Statistic": "Maximum",
       "Period": 60,
       "EvaluationPeriods": 3,
-      "Threshold": 100,
-      "ComparisonOperator": "GreaterThanThreshold",
+      "Threshold": 1,
+      "ComparisonOperator": "GreaterThanOrEqualToThreshold",
       "Dimensions": [
         {"Name": "AvailabilityZone", "Value": "ap-northeast-2a"}
       ],
-      "AlarmDescription": "Increased AZ-A network latency - trigger Zonal Shift",
+      "AlarmDescription": "AZ-A status checks failing - notify operators and review Zonal Shift",
       "AlarmActions": [
-        "arn:aws:arc-zonal-shift:ap-northeast-2:123456789012:autoshift-observer-notification"
+        "arn:aws:sns:ap-northeast-2:123456789012:az-health-alerts"
       ]
     }
 ```
@@ -378,7 +385,7 @@ A gray failure is a state of degraded performance rather than a complete failure
 | Increased network latency (50-200ms) | Container Network Observability | Istio Outlier Detection → reroute traffic |
 | Intermittent packet loss (1-5%) | CloudWatch Network Metrics | Trigger ARC Zonal Shift |
 | Degraded disk I/O | EBS CloudWatch Metrics | Karpenter node replacement |
-| API Server response latency | Control Plane Metrics | Automatic scaling of the Provisioned Control Plane |
+| API Server response latency | Control Plane Metrics | Standard Control Plane auto-scales; or administrator upgrades to a Provisioned Control Plane tier |
 
 The latency and loss ranges in Table 2 are example ranges; set the actual detection thresholds to match your workload and environment.
 
@@ -386,34 +393,28 @@ The latency and loss ranges in Table 2 are example ranges; set the actual detect
 
 ```bash
 # Simulate an AZ failure (Chaos Engineering)
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: az-failure-test
-  namespace: chaos
-data:
-  experiment: |
-    # 1. Add a taint to all nodes in AZ-A (simulate an AZ failure)
-    kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
-      az-failure=true:NoSchedule
+# Run the commands directly. Wrapping them in a ConfigMap only stores the text; it never executes.
 
-    # 2. Verify that Karpenter creates new nodes in AZ-B and AZ-C
-    kubectl get nodes -l topology.kubernetes.io/zone=ap-northeast-2b,ap-northeast-2c
+# 1. Add a taint to all nodes in AZ-A (simulate an AZ failure)
+kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
+  az-failure=true:NoSchedule
 
-    # 3. Monitor Pod relocation
-    kubectl get pods -o wide --watch
+# 2. Verify that Karpenter creates new nodes in AZ-B and AZ-C
+# A comma means AND, so use a set-based selector to OR the two zones
+kubectl get nodes -l 'topology.kubernetes.io/zone in (ap-northeast-2b,ap-northeast-2c)'
 
-    # 4. Verify PDB compliance (maintain minAvailable)
-    kubectl get pdb critical-api-pdb
+# 3. Monitor Pod relocation
+kubectl get pods -o wide --watch
 
-    # 5. Check graceful shutdown logs
-    kubectl logs <pod-name> --previous
+# 4. Verify PDB compliance (maintain minAvailable)
+kubectl get pdb critical-api-pdb
 
-    # 6. Recover (remove the taint)
-    kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
-      az-failure-
-EOF
+# 5. Check graceful shutdown logs
+kubectl logs <pod-name> --previous
+
+# 6. Recover (remove the taint)
+kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
+  az-failure-
 ```
 
 **Monitoring dashboard:**
@@ -433,7 +434,7 @@ data:
           "title": "Pod distribution by AZ",
           "targets": [
             {
-              "expr": "count(kube_pod_info) by (node, zone)"
+              "expr": "count(kube_pod_info * on(node) group_left(label_topology_kubernetes_io_zone) kube_node_labels) by (label_topology_kubernetes_io_zone)"
             }
           ]
         },
@@ -476,7 +477,7 @@ Although AZ evacuation is automated, validate it through regular Chaos Engineeri
 
 ### Handling the 2-minute Spot instance warning {#spot-인스턴스-2분-경고-처리}
 
-AWS Spot instances send a warning 2 minutes before termination. Handle this warning to ensure graceful shutdown.
+AWS Spot instances send a warning 2 minutes before termination. Handling this warning improves the chance of graceful shutdown within the 2-minute notice. The 2 minutes are not a guaranteed ceiling, so you cannot assume termination always completes within that window.
 
 **Install AWS Node Termination Handler:**
 
@@ -500,6 +501,6 @@ helm install aws-node-termination-handler \
 **Recommended terminationGracePeriodSeconds (example ranges):**
 - Standard web services: 30-60 seconds
 - Long-running tasks (batch jobs, ML inference): 90-120 seconds
-- Set to no more than 2 minutes (accounting for the Spot warning period)
+- Set to no more than 2 minutes (accounting for the Spot warning period). Values near or above 2 minutes may not complete before the instance is reclaimed, so keep the grace period shorter than the notice window with room for preStop and drain time.
 
 ---

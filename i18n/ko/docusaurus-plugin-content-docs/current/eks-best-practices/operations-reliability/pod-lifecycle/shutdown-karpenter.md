@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 8
 tags:
   - eks
   - kubernetes
@@ -68,15 +68,18 @@ spec:
     consolidationPolicy: WhenEmptyOrUnderutilized
     consolidateAfter: 5m
     # Disruption budget: 동시 중단 노드 제한
+    # schedule를 쓰는 예약 budget에는 duration을 함께 지정해야 유효합니다
     budgets:
     - nodes: "20%"
       schedule: "0 9-17 * * MON-FRI"  # 업무 시간 20%
+      duration: 1h
     - nodes: "50%"
       schedule: "0 0-8,18-23 * * *"   # 비업무 시간 50%
+      duration: 1h
 ```
 
 :::warning PDB와 Karpenter 상호작용
-PodDisruptionBudget이 너무 엄격하면 (예: `minAvailable`이 replica 수와 같음) Karpenter가 노드를 drain할 수 없습니다. PDB는 `minAvailable: replica - 1` 또는 `maxUnavailable: 1`로 설정하여 최소 1개 Pod은 이동 가능하도록 하세요.
+PodDisruptionBudget이 너무 엄격하면 (예: `minAvailable`이 replica 수와 같음) Karpenter가 노드를 drain할 수 없습니다. 여러 replica를 가진 무상태 워크로드라면 `maxUnavailable: 1` 또는 `minAvailable: replica - 1`로 설정하여 최소 1개 Pod이 이동할 여유를 둡니다. 단, replica가 1개인 싱글턴은 `replica - 1`이 0이 되어 가용성이 전부 사라질 수 있고, 쿼럼이나 SLO가 있는 서비스는 그 요구 수준을 밑돌 수 있으므로, 이런 워크로드는 replica 수를 늘리거나 실제로 유지해야 하는 최소 가용 수에 맞춰 PDB를 설정해야 합니다.
 :::
 
 ### ARC + Karpenter 통합 AZ 대피 패턴 {#343-arc--karpenter-통합-az-대피-패턴}
@@ -93,7 +96,7 @@ Zonal Shift는 특정 AZ에서 발생한 장애나 성능 저하를 감지했을
 
 | 컴포넌트 | 역할 | 동작 |
 |----------|------|------|
-| **ARC Zonal Autoshift** | AZ 장애 자동 감지 및 트래픽 전환 결정 | CloudWatch Alarms 기반 자동 Shift |
+| **ARC Zonal Autoshift** | AZ 장애 자동 감지 및 트래픽 전환 결정 | AWS 관리형 상태 신호(telemetry)에 따라 Autoshift가 트래픽을 전환하며, 고객 CloudWatch Alarm은 수동 Zonal Shift나 연습 실행(practice run)에 사용 |
 | **Karpenter** | 새 AZ에 노드 프로비저닝 | NodePool 설정에 따라 정상 AZ에 노드 생성 |
 | **AWS Load Balancer** | 트래픽 라우팅 제어 | 장애 AZ의 Target 제거 |
 | **PodDisruptionBudget** | Pod 이동 시 가용성 보장 | 최소 가용 Pod 수 유지 |
@@ -112,18 +115,18 @@ sequenceDiagram
 
     Note over AZ_A: AZ 성능 저하 감지<br/>(네트워크 지연, 패킷 손실)
 
-    AZ_A->>ARC: CloudWatch Alarm 트리거
-    ARC->>ARC: Zonal Shift 결정
+    AZ_A->>ARC: AWS 관리형 telemetry로 AZ 손상 관측
+    ARC->>ARC: Autoshift 전환 결정
     ARC->>LB: AZ-A Target 제거 시작
 
     par Karpenter 노드 프로비저닝
-        ARC->>Karpenter: AZ-A 노드 Cordon
+        Karpenter->>Karpenter: AZ-A 노드 Cordon
         Karpenter->>AZ_B: 새 노드 프로비저닝
         AZ_B->>Karpenter: 노드 Ready
     and Pod 재스케줄링
         Karpenter->>Pod_Old: Pod Eviction (Graceful)
         Pod_Old->>Pod_Old: preStop Hook 실행
-        Pod_Old->>Pod_Old: SIGTERM 수신
+        Pod_Old->>Pod_Old: SIGTERM 수신 (kubelet)
         Pod_Old->>Pod_Old: Graceful Shutdown
         Note over Pod_Old: 진행 중인 요청 완료<br/>(terminationGracePeriodSeconds)
     end
@@ -146,10 +149,6 @@ sequenceDiagram
 
 ```bash
 # Load Balancer에 Zonal Autoshift 활성화
-aws arc-zonal-shift create-autoshift-observer-notification-configuration \
-  --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef
-
-# Zonal Autoshift 설정
 aws arc-zonal-shift update-zonal-autoshift-configuration \
   --resource-identifier arn:aws:elasticloadbalancing:ap-northeast-2:123456789012:loadbalancer/app/production-alb/1234567890abcdef \
   --zonal-autoshift-status ENABLED
@@ -185,6 +184,8 @@ spec:
         values:
         - on-demand  # AZ 장애 대응은 On-Demand 권장
       nodeClassRef:
+        group: karpenter.k8s.aws
+        kind: EC2NodeClass
         name: default
 ---
 apiVersion: karpenter.k8s.aws/v1
@@ -200,7 +201,10 @@ spec:
   securityGroupSelectorTerms:
   - tags:
       karpenter.sh/discovery: "production-eks"
-  # AZ 장애 시 자동 감지
+  # v1 EC2NodeClass는 amiSelectorTerms가 필요합니다 (alias 사용 시 단독 지정)
+  amiSelectorTerms:
+  - alias: al2023@latest
+  # IMDSv2 강제: 토큰 필수, hop limit 제한
   metadataOptions:
     httpTokens: required
     httpPutResponseHopLimit: 2
@@ -283,6 +287,8 @@ spec:
 
 **4. CloudWatch Alarm - AZ 성능 저하 감지:**
 
+다음 ConfigMap은 알람 정의를 예시로 담아둔 것이며, 그대로 적용해도 CloudWatch 알람이 생성되지는 않습니다. 실제로는 `aws cloudwatch put-metric-alarm` 또는 IaC로 알람을 만들어야 합니다. 지표는 실존하는 `AWS/EC2`의 `StatusCheckFailed`를 사용하고, 알람 동작은 SNS 주제처럼 CloudWatch가 지원하는 대상을 지정합니다.
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -290,22 +296,23 @@ metadata:
   name: az-health-monitoring
   namespace: monitoring
 data:
+  # 예시 알람 정의 (put-metric-alarm/IaC로 별도 생성 필요)
   cloudwatch-alarm: |
     {
-      "AlarmName": "AZ-A-NetworkLatency-High",
-      "MetricName": "NetworkLatency",
+      "AlarmName": "AZ-A-StatusCheckFailed-High",
+      "MetricName": "StatusCheckFailed",
       "Namespace": "AWS/EC2",
-      "Statistic": "Average",
+      "Statistic": "Maximum",
       "Period": 60,
       "EvaluationPeriods": 3,
-      "Threshold": 100,
-      "ComparisonOperator": "GreaterThanThreshold",
+      "Threshold": 1,
+      "ComparisonOperator": "GreaterThanOrEqualToThreshold",
       "Dimensions": [
         {"Name": "AvailabilityZone", "Value": "ap-northeast-2a"}
       ],
-      "AlarmDescription": "AZ-A 네트워크 지연 증가 - Zonal Shift 트리거",
+      "AlarmDescription": "AZ-A 상태 검사 실패 - 운영자 알림 및 Zonal Shift 검토",
       "AlarmActions": [
-        "arn:aws:arc-zonal-shift:ap-northeast-2:123456789012:autoshift-observer-notification"
+        "arn:aws:sns:ap-northeast-2:123456789012:az-health-alerts"
       ]
     }
 ```
@@ -378,7 +385,7 @@ Gray Failure는 완전한 장애가 아닌 성능 저하 상태로, 감지가 �
 | 네트워크 지연 증가 (50-200ms) | Container Network Observability | Istio Outlier Detection → 트래픽 우회 |
 | 간헐적 패킷 손실 (1-5%) | CloudWatch Network Metrics | ARC Zonal Shift 트리거 |
 | 디스크 I/O 저하 | EBS CloudWatch Metrics | Karpenter 노드 교체 |
-| API Server 응답 지연 | Control Plane Metrics | Provisioned Control Plane 자동 스케일링 |
+| API Server 응답 지연 | Control Plane Metrics | Standard Control Plane은 자동 스케일링; 또는 관리자가 Provisioned Control Plane 티어 선택 |
 
 표 2의 지연·손실 범위는 예시 범위이며, 실제 감지 임계값은 워크로드와 환경에 맞게 정해야 합니다.
 
@@ -386,34 +393,28 @@ Gray Failure는 완전한 장애가 아닌 성능 저하 상태로, 감지가 �
 
 ```bash
 # AZ 장애 시뮬레이션 (Chaos Engineering)
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: az-failure-test
-  namespace: chaos
-data:
-  experiment: |
-    # 1. AZ-A의 모든 노드에 Taint 추가 (AZ 장애 시뮬레이션)
-    kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
-      az-failure=true:NoSchedule
+# 아래 명령을 직접 실행합니다. ConfigMap으로 감싸면 텍스트만 저장되고 실행되지 않습니다.
 
-    # 2. Karpenter가 AZ-B, AZ-C에 새 노드 생성 확인
-    kubectl get nodes -l topology.kubernetes.io/zone=ap-northeast-2b,ap-northeast-2c
+# 1. AZ-A의 모든 노드에 Taint 추가 (AZ 장애 시뮬레이션)
+kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
+  az-failure=true:NoSchedule
 
-    # 3. Pod 이동 모니터링
-    kubectl get pods -o wide --watch
+# 2. Karpenter가 AZ-B, AZ-C에 새 노드 생성 확인
+# 콤마는 AND로 해석되므로 두 zone을 OR로 조회하려면 set 기반 선택자를 씁니다
+kubectl get nodes -l 'topology.kubernetes.io/zone in (ap-northeast-2b,ap-northeast-2c)'
 
-    # 4. PDB 준수 확인 (minAvailable 유지)
-    kubectl get pdb critical-api-pdb
+# 3. Pod 이동 모니터링
+kubectl get pods -o wide --watch
 
-    # 5. Graceful Shutdown 로그 확인
-    kubectl logs <pod-name> --previous
+# 4. PDB 준수 확인 (minAvailable 유지)
+kubectl get pdb critical-api-pdb
 
-    # 6. 복구 (Taint 제거)
-    kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
-      az-failure-
-EOF
+# 5. Graceful Shutdown 로그 확인
+kubectl logs <pod-name> --previous
+
+# 6. 복구 (Taint 제거)
+kubectl taint nodes -l topology.kubernetes.io/zone=ap-northeast-2a \
+  az-failure-
 ```
 
 **모니터링 대시보드:**
@@ -433,7 +434,7 @@ data:
           "title": "AZ별 Pod 분포",
           "targets": [
             {
-              "expr": "count(kube_pod_info) by (node, zone)"
+              "expr": "count(kube_pod_info * on(node) group_left(label_topology_kubernetes_io_zone) kube_node_labels) by (label_topology_kubernetes_io_zone)"
             }
           ]
         },
@@ -476,7 +477,7 @@ AZ 대피는 자동화되지만, 정기적인 Chaos Engineering 테스트로 검
 
 ### Spot 인스턴스 2분 경고 처리 {#spot-인스턴스-2분-경고-처리}
 
-AWS Spot 인스턴스는 종료 2분 전에 경고를 보냅니다. 이를 처리하여 Graceful Shutdown을 보장합니다.
+AWS Spot 인스턴스는 종료 2분 전에 경고를 보냅니다. 이 경고를 처리하면 2분의 통지 시간 안에서 Graceful Shutdown이 완료될 가능성을 높일 수 있습니다. 다만 2분은 보장된 상한이 아니므로, 이 시간 안에 종료가 끝난다고 단정할 수는 없습니다.
 
 **AWS Node Termination Handler 설치:**
 
@@ -500,6 +501,6 @@ helm install aws-node-termination-handler \
 **권장 terminationGracePeriodSeconds (예시 범위):**
 - 일반 웹 서비스: 30-60초
 - 장기 실행 작업 (배치, ML 추론): 90-120초
-- 최대 2분 이내로 설정 (Spot 경고 시간 고려)
+- 최대 2분 이내로 설정 (Spot 경고 시간 고려). 2분에 가깝거나 그 이상인 값은 인스턴스 회수 전에 종료가 끝나지 않을 수 있으므로, 통지 시간보다 짧게 잡아 preStop과 drain 시간까지 포함해 여유를 둡니다.
 
 ---

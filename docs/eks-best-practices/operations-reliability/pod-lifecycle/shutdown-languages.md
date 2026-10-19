@@ -3,9 +3,9 @@ title: SIGTERM handling by language
 description: Review application shutdown handling examples.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - eks
   - kubernetes
@@ -127,7 +127,7 @@ server:
 
 spring:
   lifecycle:
-    timeout-per-shutdown-phase: 50s  # Maximum wait time
+    timeout-per-shutdown-phase: 50s  # Maximum wait time per shutdown phase (not the total shutdown time; does not bound a synchronous ContextClosedEvent listener)
 management:
   endpoints:
     web:
@@ -225,11 +225,13 @@ import (
     "net/http"
     "os"
     "os/signal"
+    "sync/atomic"
     "syscall"
     "time"
 )
 
-var isShuttingDown = false
+// Read by concurrent HTTP handler goroutines and written by main, so synchronize with atomic
+var isShuttingDown atomic.Bool
 
 func main() {
     // Configure the HTTP server
@@ -241,7 +243,7 @@ func main() {
     })
 
     mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-        if isShuttingDown {
+        if isShuttingDown.Load() {
             w.WriteHeader(http.StatusServiceUnavailable)
             fmt.Fprintln(w, "shutting down")
             return
@@ -251,7 +253,7 @@ func main() {
     })
 
     mux.HandleFunc("/api/data", func(w http.ResponseWriter, r *http.Request) {
-        if isShuttingDown {
+        if isShuttingDown.Load() {
             w.WriteHeader(http.StatusServiceUnavailable)
             return
         }
@@ -278,7 +280,7 @@ func main() {
     <-quit
 
     log.Println("Graceful shutdown initiated")
-    isShuttingDown = true
+    isShuttingDown.Store(true)
 
     // Graceful shutdown with timeout
     ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
@@ -337,6 +339,21 @@ import threading
 
 app = Flask(__name__)
 is_shutting_down = False
+# Count in-flight requests so shutdown can drain them
+inflight_lock = threading.Lock()
+inflight_requests = 0
+
+@app.before_request
+def _track_inflight_start():
+    global inflight_requests
+    with inflight_lock:
+        inflight_requests += 1
+
+@app.teardown_request
+def _track_inflight_end(exc=None):
+    global inflight_requests
+    with inflight_lock:
+        inflight_requests -= 1
 
 @app.route('/healthz')
 def healthz():
@@ -357,9 +374,18 @@ def api_data():
 def graceful_shutdown(signum, frame):
     global is_shutting_down
     print(f"Signal {signum} received, starting graceful shutdown")
+    # 1. Stop admitting new requests: readiness returns 503 so the load balancer stops traffic
     is_shutting_down = True
 
-    # Cleanup tasks (for example, close database connections)
+    # 2. Wait for in-flight requests to finish (up to 50 seconds)
+    deadline = time.time() + 50
+    while time.time() < deadline:
+        with inflight_lock:
+            if inflight_requests == 0:
+                break
+        time.sleep(0.5)
+
+    # 3. Cleanup tasks (for example, close database connections)
     # db.close()
 
     print("Graceful shutdown completed")
@@ -372,6 +398,8 @@ signal.signal(signal.SIGINT, graceful_shutdown)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
 ```
+
+In production, use a WSGI server such as Gunicorn instead of the Flask development server (`app.run`). Gunicorn's master receives SIGTERM and shuts workers down gracefully at the worker level. The handler above is a development-server-level example; with Gunicorn, let `--graceful-timeout` and the worker shutdown behavior handle draining, and keep the application focused on flipping readiness and running cleanup tasks.
 
 **Deployment configuration:**
 

@@ -3,7 +3,7 @@ title: 언어별 SIGTERM 처리
 description: 애플리케이션의 종료 처리 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 1
 tags:
@@ -127,7 +127,7 @@ server:
 
 spring:
   lifecycle:
-    timeout-per-shutdown-phase: 50s  # 최대 대기 시간
+    timeout-per-shutdown-phase: 50s  # 종료 단계(phase)별 최대 대기 시간(전체 종료 시간이 아니며, 동기 ContextClosedEvent 리스너는 제한하지 않음)
 management:
   endpoints:
     web:
@@ -225,11 +225,13 @@ import (
     "net/http"
     "os"
     "os/signal"
+    "sync/atomic"
     "syscall"
     "time"
 )
 
-var isShuttingDown = false
+// 여러 HTTP 핸들러 고루틴이 읽고 main이 쓰므로 atomic으로 동기화합니다
+var isShuttingDown atomic.Bool
 
 func main() {
     // HTTP 서버 설정
@@ -241,7 +243,7 @@ func main() {
     })
 
     mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
-        if isShuttingDown {
+        if isShuttingDown.Load() {
             w.WriteHeader(http.StatusServiceUnavailable)
             fmt.Fprintln(w, "shutting down")
             return
@@ -251,7 +253,7 @@ func main() {
     })
 
     mux.HandleFunc("/api/data", func(w http.ResponseWriter, r *http.Request) {
-        if isShuttingDown {
+        if isShuttingDown.Load() {
             w.WriteHeader(http.StatusServiceUnavailable)
             return
         }
@@ -278,7 +280,7 @@ func main() {
     <-quit
 
     log.Println("Graceful shutdown initiated")
-    isShuttingDown = true
+    isShuttingDown.Store(true)
 
     // Graceful shutdown with timeout
     ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
@@ -337,6 +339,21 @@ import threading
 
 app = Flask(__name__)
 is_shutting_down = False
+# 진행 중 요청 수를 세어 drain에 사용합니다
+inflight_lock = threading.Lock()
+inflight_requests = 0
+
+@app.before_request
+def _track_inflight_start():
+    global inflight_requests
+    with inflight_lock:
+        inflight_requests += 1
+
+@app.teardown_request
+def _track_inflight_end(exc=None):
+    global inflight_requests
+    with inflight_lock:
+        inflight_requests -= 1
 
 @app.route('/healthz')
 def healthz():
@@ -357,9 +374,18 @@ def api_data():
 def graceful_shutdown(signum, frame):
     global is_shutting_down
     print(f"Signal {signum} received, starting graceful shutdown")
+    # 1. 새 요청 거부: readiness가 503을 반환해 로드밸런서가 트래픽을 끊습니다
     is_shutting_down = True
 
-    # 정리 작업 (예: DB 연결 종료)
+    # 2. 진행 중인 요청이 끝날 때까지 대기 (최대 50초)
+    deadline = time.time() + 50
+    while time.time() < deadline:
+        with inflight_lock:
+            if inflight_requests == 0:
+                break
+        time.sleep(0.5)
+
+    # 3. 정리 작업 (예: DB 연결 종료)
     # db.close()
 
     print("Graceful shutdown completed")
@@ -372,6 +398,8 @@ signal.signal(signal.SIGINT, graceful_shutdown)
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
 ```
+
+프로덕션에서는 Flask 개발 서버(`app.run`) 대신 Gunicorn 같은 WSGI 서버를 사용하며, 이때 SIGTERM은 Gunicorn 마스터가 받아 워커 단위로 graceful하게 종료합니다. 위 핸들러는 개발 서버 수준의 예시이며, Gunicorn을 쓸 때는 `--graceful-timeout`과 워커 종료 동작에 drain을 맡기고 애플리케이션은 readiness 전환과 정리 작업에 집중합니다.
 
 **Deployment 설정:**
 
