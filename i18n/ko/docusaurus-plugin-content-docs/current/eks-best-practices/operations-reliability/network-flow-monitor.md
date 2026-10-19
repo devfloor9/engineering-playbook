@@ -3,9 +3,9 @@ title: "Network Flow Monitor 동작 원리: eBPF sock_ops 기반 TCP 관측"
 description: CloudWatch Network Flow Monitor 에이전트의 내부 동작을 해부합니다. eBPF sock_ops 콜백 수집, 유저스페이스 집계와 Kubernetes enrichment, OTLP 전송 경로, EKS add-on 배포와 데이터 미표시 3계층 진단
 created: "2026-08-04"
 last_update:
-  date: "2026-08-04"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 14
 tags:
   - eks
   - network-flow-monitor
@@ -89,7 +89,7 @@ eBPF 프로그램은 `BPF_PROG_TYPE_SOCK_OPS` 타입 하나뿐이며 cgroup v2�
 
 ### 샘플링과 권한 축소
 
-- **샘플링은 신규 소켓의 입구에서만** 적용됩니다(`NFM_CONTROL` 맵의 `sampling_interval`, CONNECT/PASSIVE_ESTABLISHED 시점). 일단 추적 대상이 된 소켓의 이벤트는 하나도 버리지 않으므로, flow별 통계의 내적 일관성이 보장됩니다.
+- **샘플링은 신규 소켓의 입구에서만** 적용됩니다(`NFM_CONTROL` 맵의 `sampling_interval`, CONNECT/PASSIVE_ESTABLISHED 시점). 일단 추적 대상이 된 소켓의 이후 이벤트는 해당 소켓의 통계에 계속 반영됩니다.
 - 에이전트는 privileged로 시작하지만 eBPF 로드가 끝나면 `CAP_SYS_ADMIN`·`CAP_PERFMON`·`CAP_NET_ADMIN`을 스스로 드롭하고 BPF 맵 읽기에 필요한 **`CAP_BPF`만 유지**합니다([lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs)의 `drop_capabilities`).
 
 ## Deep Dive: 유저스페이스 — 집계·enrichment·전송
@@ -131,7 +131,7 @@ EKS 콘솔의 service map이 가능한 이유가 이 로직입니다([kubernetes
 
 `NfmReport`는 OpenTelemetry `ExportMetricsServiceRequest` protobuf로 변환된 뒤 gzip 압축, **SigV4 서명(서비스명 `networkflowmonitor`)** 을 거쳐 `https://networkflowmonitorreports.<region>.api.aws/publish`로 POST됩니다([publisher_endpoint.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/reports/publisher_endpoint.rs)). 응답이 200이 아니면 `failed_reports` 카운터를 올려 다음 리포트에 실어 보냅니다. 따라서 에이전트 로그의 `HTTP request complete, status:200 ... publisher_endpoint`가 **publish 정상의 결정적 증거**입니다.
 
-CloudWatch 콘솔 대신 자체 관측 스택을 쓰는 경로도 코드에 준비되어 있습니다. `--prometheus-workspace-id`를 지정하면 Amazon Managed Service for Prometheus의 remote write 엔드포인트로 직접 전송하고, `open-metrics` feature를 켜면 로컬 Prometheus 스크레이프 서버를 노출합니다.
+CloudWatch 콘솔 대신 자체 관측 스택을 쓰는 경로도 코드에 준비되어 있습니다. `--prometheus-workspace-id`를 지정하면 Amazon Managed Service for Prometheus의 remote write 엔드포인트로 직접 전송합니다. `open-metrics` feature로 빌드하면 로컬 Prometheus 스크레이프 서버 기능이 컴파일되지만, 실제로 노출하려면 런타임 `--open-metrics` 플래그(기본값 off)도 켜야 합니다.
 
 ## EKS 배포와 운영 고려사항
 
@@ -182,7 +182,7 @@ flow 데이터가 콘솔에 보이지 않을 때 원인은 세 계층 중 하나
 2. **Scope 계층** — 해당 계정이 NFM Scope에 포함되어 있는가. Scope가 없으면 데이터가 수집되어도 Workload insights 쿼리가 라우팅되지 않음
 3. **Monitor 계층** — 보려는 flow의 local/remote 리소스 쌍을 커버하는 Monitor가 존재하는가. Monitor는 EKS 클러스터를 local resource로 지정할 수 있음
 
-`--kubernetes-metadata`가 켜져 있어도 service map이 비어 있다면 enrichment 실패 가능성이 있습니다. 에이전트 로그의 `Flow enrichment completed.` 메시지가 watcher 정상 동작의 시그널입니다.
+`--kubernetes-metadata`가 켜져 있어도 service map이 비어 있다면 enrichment 실패 가능성이 있습니다. 에이전트 로그의 `Flow enrichment completed.` 메시지는 enrichment 패스가 한 번 끝났다는 의미일 뿐, watcher가 정상이라거나 실제로 flow가 enrich되었다는 것을 보장하지는 않습니다(enriched_flows가 0이거나 watcher 에러가 있어도 출력됩니다).
 
 ## 결론
 

@@ -3,9 +3,9 @@ title: GitOps 기반 EKS 클러스터 운영
 description: 대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps 아키텍처, KRO/ACK 활용 방법, 멀티클러스터 관리 전략 및 자동화 기법을 다룹니다.
 created: "2025-02-09"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 12
 tags:
   - eks
   - gitops
@@ -53,15 +53,18 @@ ArgoCD는 **EKS Capability**로 제공됩니다. 기존 EKS Add-on과 달리, EK
 ```bash
 # EKS Capability로 ArgoCD 생성
 aws eks create-capability \
+  --capability-name my-argocd \
   --cluster-name my-cluster \
-  --capability-type ARGOCD \
-  --role-arn arn:aws:iam::123456789012:role/eks-argocd-capability-role
+  --type ARGOCD \
+  --role-arn arn:aws:iam::123456789012:role/eks-argocd-capability-role \
+  --delete-propagation-policy RETAIN
 ```
 
 **주요 차이점 (Add-on vs Capability):**
 - **Add-on**: 클러스터 내부에서 실행, 사용자가 리소스 관리
-- **Capability**: AWS 관리 계정에서 실행, 제로 운영 오버헤드
+- **Capability**: AWS 관리 계정에서 실행, 컨트롤 플레인 운영 부담 감소(설치·업그레이드·패치·HA·스케일링을 AWS가 관리)
 - AWS Identity Center 통합 SSO, Secrets Manager·ECR·CodeConnections 네이티브 연동
+- 단, RBAC·Identity Center 매핑, 시크릿, 리포지토리 연결, Application/ApplicationSet 구성은 사용자가 계속 관리합니다
 :::
 
 **2. Infrastructure as Code 전략**
@@ -105,6 +108,7 @@ sequenceDiagram
     participant Argo as ArgoCD Server
     participant AS as ApplicationSets
     participant KRO as KRO Controller
+    participant ACK as ACK Controllers
     participant OPA as OPA Gatekeeper
     participant ESO as External Secrets
     participant EKS as EKS Clusters
@@ -123,43 +127,45 @@ sequenceDiagram
 
     alt Application 배포
         Argo->>AS: 9a. ApplicationSet 동기화
-        AS->>AS: 10a. 클러스터별 매니페스트 생성
-        AS->>OPA: 11a. 정책 검증
-        OPA-->>AS: 12a. 검증 결과
+        AS->>AS: 10a. 클러스터별 Application 생성
+        Argo->>OPA: 11a. 어드미션 단계 정책 검증
+        OPA-->>Argo: 12a. 검증 결과
         alt 정책 통과
-            AS->>ESO: 13a. Secret 요청
+            Argo->>ESO: 13a. ExternalSecret 적용
             ESO->>AWS: 14a. Secrets Manager 조회
             AWS-->>ESO: 15a. Secret 반환
-            ESO-->>AS: 16a. Secret 주입
-            AS->>EKS: 17a. 매니페스트 적용
-            EKS-->>AS: 18a. 배포 상태
+            ESO-->>EKS: 16a. Secret 생성/주입
+            Argo->>EKS: 17a. 매니페스트 적용
+            EKS-->>Argo: 18a. 배포 상태
         else 정책 위반
             OPA->>Mon: 13b. 정책 위반 알림
             OPA->>Dev: 14b. 배포 차단 알림
         end
     else Infrastructure 변경
         Argo->>KRO: 9b. KRO 리소스 동기화
-        KRO->>KRO: 10b. 리소스 검증
-        KRO->>AWS: 11b. AWS API 호출
-        AWS-->>KRO: 12b. 리소스 생성/수정
-        KRO->>EKS: 13b. 상태 업데이트
+        KRO->>KRO: 10b. 리소스 그래프 전개
+        KRO->>ACK: 11b. ACK 리소스 생성
+        ACK->>AWS: 12b. AWS API 호출
+        AWS-->>ACK: 13c. 리소스 생성/수정
+        ACK->>EKS: 13b. 상태 업데이트
     end
 
     EKS->>Mon: 19. 메트릭/로그 전송
     Mon->>Mon: 20. 이상 감지
 
     alt 이상 감지됨
-        Mon->>Argo: 21. 롤백 트리거
-        Argo->>EKS: 22. 이전 버전 배포
-        Mon->>Dev: 23. 알림 발송
+        Mon->>Dev: 21. 이상 알림 발송
+        Note over Argo,EKS: 자동 롤백은 Argo Rollouts·Flagger 같은<br/>프로그레시브 딜리버리 컨트롤러나 Argo CD self-heal로 수행
     end
 
-    loop Health Check (30초마다)
+    loop Health Check (Argo CD 동기화 주기)
         Argo->>EKS: 상태 확인
         EKS-->>Argo: 동기화 상태
         Argo->>Mon: 동기화 메트릭
     end
 ```
+
+위 다이어그램의 복구 흐름에서 모니터링이 Argo CD에 롤백을 직접 지시하지는 않습니다. Argo CD는 Git을 단일 진실 공급원으로 삼아 동기화 상태를 맞추므로, 지표 악화 시 자동 롤백이 필요하면 Argo Rollouts나 Flagger 같은 프로그레시브 딜리버리 컨트롤러의 분석·롤백 규칙을 함께 구성하거나, Argo CD의 self-heal로 Git 상태로 되돌리는 방식을 사용합니다.
 
 ## 멀티클러스터 관리 전략
 
@@ -188,25 +194,26 @@ ArgoCD ApplicationSets는 멀티클러스터 환경에서 일관된 배포를 �
 
 ### EKS 클러스터 업그레이드 자동화
 
-Blue/Green 배포 패턴을 사용하여 무중단 클러스터 업그레이드를 구현합니다.
+Blue/Green 배포 패턴은 신규 클러스터로 트래픽을 옮겨 업그레이드하는 예시 절차이며, 아래 단계만으로 무중단이 보장되지는 않습니다. 상태 저장 워크로드의 데이터 마이그레이션, 기존 연결의 드레이닝, 신규 클러스터의 용량 확보, 롤백 준비가 전제되어야 하며, 이들이 충족되지 않으면 전환 중 다운타임이나 데이터 유실이 발생할 수 있습니다.
 
 **준비 단계**
 
 - 새 클러스터 프로비저닝 (KRO)
 - Addon 호환성 검증
 - 보안 정책 동기화
+- 상태 저장 워크로드의 상태·데이터 마이그레이션 계획과 신규 클러스터 용량 확보
 
 **마이그레이션 단계**
 
 - 워크로드 점진적 이동
-- 트래픽 가중치 조정 (0% → 100%)
-- 실시간 모니터링
+- 트래픽 가중치 조정 (0% → 100%)과 기존 연결 드레이닝
+- 실시간 모니터링과 롤백 기준 정의
 
 **검증 및 완료**
 
 - 자동화된 smoke test
 - 성능 메트릭 비교
-- 구 클러스터 제거
+- 트래픽이 신규 클러스터로 완전히 수렴하고 롤백이 더 이상 필요 없음을 확인한 뒤 구 클러스터 제거
 
 ## 보안 및 거버넌스
 
@@ -265,7 +272,7 @@ AWS Secrets Manager와 함께 사용하면 조직의 보안 정책을 효과적�
 
 ```yaml
 apiVersion: kro.run/v1alpha1
-kind: ResourceGroup
+kind: ResourceGraphDefinition
 metadata:
   name: eks-cluster-us-east-1-prod
 spec:
@@ -303,8 +310,9 @@ spec:
         metadata:
           name: ${schema.spec.clusterName}-nodegroup
         spec:
-          clusterName: ${schema.spec.clusterName}
-          nodegroupName: ${schema.spec.clusterName}-ng-01
+          # cluster 리소스를 참조해 클러스터 생성이 끝난 뒤 노드 그룹을 만들도록 KRO가 순서를 정합니다
+          clusterName: ${cluster.spec.name}
+          name: ${schema.spec.clusterName}-ng-01
           instanceTypes:
             - c7i.8xlarge
           scalingConfig:
@@ -312,6 +320,19 @@ spec:
             maxSize: 50
             desiredSize: 10
           amiType: AL2023_x86_64_STANDARD
+```
+
+위 `ResourceGraphDefinition`은 `EKSClusterStack`이라는 새 API(CRD)를 클러스터에 등록할 뿐이며, 실제 클러스터와 노드 그룹을 만들려면 생성된 kind의 커스텀 리소스 인스턴스를 별도로 적용해야 합니다.
+
+```yaml
+apiVersion: kro.run/v1alpha1
+kind: EKSClusterStack
+metadata:
+  name: us-east-1-prod
+spec:
+  clusterName: us-east-1-prod
+  region: us-east-1
+  version: "1.32"
 ```
 
 ## EKS Capabilities: 완전 관리형 플랫폼 기능 (re:Invent 2025)
@@ -328,10 +349,11 @@ AWS re:Invent 2025에서 발표된 **EKS Capabilities**는 Kubernetes 네이티�
 
 ### EKS Capability for Argo CD 주요 특징
 
-**운영 오버헤드 제로:**
+**컨트롤 플레인 운영 부담 감소:**
 - AWS가 설치, 업그레이드, 패치, HA, 스케일링을 모두 관리
 - Argo CD 컨트롤러, Redis, Application Controller 관리 불필요
 - 자동 백업 및 재해 복구
+- 애플리케이션/ApplicationSet 정의, RBAC, 시크릿, 리포지토리 연결은 사용자가 계속 구성
 
 **Hub-and-Spoke 아키텍처:**
 - 전용 허브 클러스터에서 Argo CD Capability 생성
@@ -372,26 +394,34 @@ AWS re:Invent 2025에서 발표된 **EKS Capabilities**는 Kubernetes 네이티�
 ```bash
 # Argo CD Capability 생성
 aws eks create-capability \
+  --capability-name prod-argocd \
   --cluster-name prod-hub-cluster \
-  --capability-type ARGOCD \
+  --type ARGOCD \
   --role-arn arn:aws:iam::123456789012:role/eks-argocd-role \
+  --delete-propagation-policy RETAIN \
   --configuration '{
-    "identityCenterConfig": {
-      "instanceArn": "arn:aws:sso:::instance/ssoins-xxxxxxxxx"
+    "argoCd": {
+      "awsIdc": {
+        "idcInstanceArn": "arn:aws:sso:::instance/ssoins-xxxxxxxxx"
+      }
     }
   }'
 
 # ACK Capability 생성
 aws eks create-capability \
+  --capability-name prod-ack \
   --cluster-name prod-hub-cluster \
-  --capability-type ACK \
-  --role-arn arn:aws:iam::123456789012:role/eks-ack-role
+  --type ACK \
+  --role-arn arn:aws:iam::123456789012:role/eks-ack-role \
+  --delete-propagation-policy RETAIN
 
 # kro Capability 생성
 aws eks create-capability \
+  --capability-name prod-kro \
   --cluster-name prod-hub-cluster \
-  --capability-type KRO \
-  --role-arn arn:aws:iam::123456789012:role/eks-kro-role
+  --type KRO \
+  --role-arn arn:aws:iam::123456789012:role/eks-kro-role \
+  --delete-propagation-policy RETAIN
 ```
 
 ## ArgoCD v3 업데이트 (GA)
@@ -414,10 +444,11 @@ ArgoCD v3.x GA (현재 v3.3+)의 주요 개선 사항은 다음과 같습니다:
 
 ArgoCD v2.x에서 v3로의 마이그레이션:
 
-1. v2.13으로 먼저 업그레이드 (호환성 확인)
-2. 사용 중단 API 확인 및 업데이트
-3. v3.x에서 기능 테스트 (현재 v3.3+ 안정)
-4. 프로덕션 업그레이드 실행
+1. v2.13으로 먼저 업그레이드해 호환성을 확인합니다.
+2. v2.14까지 마이너 업그레이드를 진행하며 각 버전의 업그레이드 노트와 사용 중단 API를 확인합니다.
+3. v3.0은 메이저 릴리스로 하위 호환이 깨지는 변경이 있으므로, 업그레이드 전에 [v2.14 → v3.0 업그레이드 노트](https://github.com/argoproj/argo-cd/blob/release-3.3/docs/operator-manual/upgrading/2.14-3.0.md)의 breaking change(RBAC·로깅·설정 기본값 변화 등)를 검토하고 disaster recovery 가이드로 Argo CD 설정을 백업합니다.
+4. v3.x에서 기능을 테스트합니다(현재 v3.3+ 안정).
+5. 프로덕션 업그레이드를 실행합니다.
 
 :::info ArgoCD v3 GA
 ArgoCD v3.x는 GA 상태이며 프로덕션 환경에서 사용 가능합니다. 현재 최신 버전은 v3.3+입니다.
