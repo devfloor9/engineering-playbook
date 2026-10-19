@@ -3,9 +3,9 @@ title: MRC 토킹포인트 - Modern Agentic Applications Day
 description: 2026.4.9 Modern Agentic Applications Day 고객 초대를 위한 MRC(Marketing Representative for Customers) 세일즈 피치 가이드
 created: "2026-03-19"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 11
 tags:
   - sales
   - gtm
@@ -17,25 +17,29 @@ sidebar_label: MRC 토킹포인트
 
 > **핵심 테제**: "디지털 전환에 성공한 기업이 Agentic AI도 잘 합니다."
 
+:::note
+이 문서는 2026년 4월 9일에 진행한 Modern Agentic Applications Day의 초대·발표 스크립트를 보관한 자료입니다. 당시 행사 운영 기준으로 작성되었으며, 현재 신규 등록이나 잔여 좌석을 안내하지 않습니다.
+:::
+
 ---
 
 ## 1. 30초 엘리베이터 피치 (전화용)
 
-> AI 에이전트 운영에는 대규모 언어 모델(LLM)을 실행하는 인프라와 에이전트·외부 도구를 연결하는 환경이 필요합니다. **EKS에서 GPU Operator와 vLLM으로 모델을 실행하는 구성**, **Bedrock AgentCore와 Hosted MCP로 에이전트를 운영하는 구성**을 살펴봅니다. 4월 9일 Modern Agentic Applications Day에서 비용 최적화부터 AgentOps(에이전트 운영)까지 알아보세요. **200명 한정**입니다.
+> AI 에이전트 운영에는 모델을 직접 실행하거나 호스팅형 모델 API로 접근하는 방법과 에이전트·외부 도구를 연결하는 환경이 필요합니다. **EKS에서 GPU Operator와 vLLM으로 모델을 실행하는 구성**, **Bedrock AgentCore와 Hosted MCP로 에이전트를 운영하는 구성**을 살펴봅니다. 4월 9일 Modern Agentic Applications Day에서 비용 최적화부터 AgentOps(에이전트 운영)까지 알아보세요. **정원은 200명으로 운영했습니다.**
 
 ---
 
 ## 2. 2분 요약 (미팅 오프닝용)
 
-2026년, 엔터프라이즈 80%가 AI 에이전트 도입을 계획하고 있습니다. 하지만 대부분의 기업이 간과하는 사실이 있습니다 — **AI 에이전트는 수십 개의 마이크로서비스(LLM 서빙, 벡터DB, 게이트웨이, 모니터링)의 조합**이라는 것입니다. 컨테이너 오케스트레이션 없이는 프로덕션 운영이 불가능합니다.
+최근 많은 기업이 AI 에이전트 도입을 계획하고 있습니다. 하지만 대부분의 기업이 간과하는 사실이 있습니다 — **AI 에이전트는 수십 개의 마이크로서비스(LLM 서빙, 벡터DB, 게이트웨이, 모니터링)의 조합**이라는 것입니다. 여러 서비스를 함께 배포하고 운영하려면 컨테이너 오케스트레이션이 중요한 기반이 됩니다.
 
 AWS는 이 도전을 2개 트랙으로 해결합니다:
 
 1. **Modern Agentic Infra**: EKS는 LLMOps를 완벽하게 지원하는 관리형 Kubernetes입니다. GPU Operator와 run.ai로 GPU 리소스를 효율적으로 관리하고, vLLM + llm-d로 자체 LLM을 서빙합니다. MIG 파티셔닝과 Karpenter 자동 스케일링을 결합하여 **비용 최적화와 운영 안정성을 동시에 달성**합니다. Hybrid Nodes로 온프레미스도 EKS로 통합 관리하며, 50 req/s 기준 월 $4,900 수준으로 운영 가능합니다.
 
-2. **Modern Agentic Apps**: AWS가 제공하는 다양한 매니지드 에이전트 생태계를 활용할 수 있습니다. **Bedrock AgentCore**로 에이전트 런타임을 매니지드로 운영하고, **Hosted MCP 서버**로 에이전트-도구 연결을 표준화하며, **DevOps Agent** 같은 매니지드 에이전트로 인프라 운영까지 자동화합니다. 셀프호스팅 15+ Pod를 매니지드로 전환하여 운영 복잡도를 80% 줄입니다.
+2. **Modern Agentic Apps**: AWS가 제공하는 매니지드 에이전트 생태계를 활용할 수 있습니다. **Bedrock AgentCore**는 에이전트 런타임의 실행·확장을 매니지드로 담당하고, **Hosted MCP 서버**는 에이전트-도구 연결을 표준화하며, **DevOps Agent** 같은 매니지드 에이전트는 인프라 운영 작업을 지원합니다. 이때도 모델 선택, 권한, 애플리케이션 코드, 평가, 운영 책임은 고객에게 남으며, 매니지드 에이전트는 작업을 직접 실행하기도 하고 조치를 권고하기도 합니다. 셀프호스팅 Pod를 매니지드로 전환하면 직접 운영해야 하는 구성 요소가 줄어듭니다(절감 폭은 전환 범위에 따라 다릅니다).
 
-**4월 9일 Modern Agentic Applications Day**에서 이 2개 트랙의 Deep Dive 세션과 실제 구축 사례를 한 번에 확인하실 수 있습니다. 행사 후에는 **Modern Agentic Infra / Modern Agentic Apps** 2개 트랙의 PoC를 바로 시작할 수 있습니다. 200명 한정이라 빠른 등록을 권합니다.
+**4월 9일 Modern Agentic Applications Day**에서 이 2개 트랙의 Deep Dive 세션과 실제 구축 사례를 한 번에 확인할 수 있는 행사였습니다. 행사 후에는 **Modern Agentic Infra / Modern Agentic Apps** 2개 트랙의 PoC를 이어서 진행할 수 있도록 구성했습니다. 정원은 200명으로 운영했습니다.
 
 ---
 
@@ -77,7 +81,7 @@ AWS는 이 도전을 2개 트랙으로 해결합니다:
 
 ### Q1. AI 에이전트랑 기존 챗봇이랑 뭐가 다른가요?
 
-챗봇은 미리 정의된 규칙이나 단순 Q&A만 처리합니다. **AI 에이전트는 자율적으로 도구를 사용하고, 의사결정을 내리며, 멀티스텝 작업을 실행**합니다. 예를 들어 "이번 달 매출 보고서를 만들어줘"라는 요청에 데이터 조회 → 분석 → 시각화 → 보고서 생성까지 자율적으로 수행합니다.
+규칙 기반 챗봇은 미리 정의된 규칙이나 단순 Q&A를 처리합니다(LLM 기반 대화형 시스템은 더 폭넓은 응답이 가능합니다). **AI 에이전트는 여기서 더 나아가 자율적으로 도구를 사용하고, 의사결정을 내리며, 멀티스텝 작업을 실행**합니다. 예를 들어 "이번 달 매출 보고서를 만들어줘"라는 요청에 데이터 조회 → 분석 → 시각화 → 보고서 생성까지 자율적으로 수행합니다.
 
 ### Q2. 우리는 아직 컨테이너도 안 했는데요?
 
@@ -89,11 +93,11 @@ Modern Agentic Infra 트랙이 바로 그 시작점입니다. **EKS 기반 컨�
 
 ### Q4. Bedrock만 쓰면 되는 거 아닌가요?
 
-Bedrock은 좋은 시작점이지만, **자체 모델 서빙(vLLM), 커스텀 에이전트 로직, 하이브리드 구성**이 필요한 경우 EKS 기반 플랫폼이 필수입니다. AWS의 강점은 둘을 조합할 수 있다는 것입니다 — **AgentCore**로 에이전트 런타임을 매니지드로 운영하면서, **Hosted MCP 서버**로 자사 도구와 연결하고, 필요한 모델은 EKS 위 vLLM에서 직접 서빙할 수 있습니다.
+Bedrock은 좋은 시작점입니다. **자체 모델 서빙(vLLM), 커스텀 에이전트 로직, 하이브리드 구성**이나 GPU 리소스 제어, 기존 Kubernetes 운영 환경과의 통합이 필요한 경우 EKS 기반 플랫폼이 유리합니다. 요구사항에 따라 Bedrock 단독 구성이나 다른 실행 환경도 적합할 수 있습니다. AWS의 강점은 둘을 조합할 수 있다는 것입니다 — **AgentCore**로 에이전트 런타임을 매니지드로 운영하면서, **Hosted MCP 서버**로 자사 도구와 연결하고, 필요한 모델은 EKS 위 vLLM에서 직접 서빙할 수 있습니다.
 
 ### Q5. GCP/Azure 대비 AWS 장점이 뭔가요?
 
-GCP, Azure도 유사한 서비스를 제공합니다. AWS의 차별점은 **LLMOps 전체 스택이 EKS 위에서 통합**된다는 것입니다. GPU Operator, run.ai, vLLM, Karpenter로 **모델 서빙 인프라**를 구성하고, AgentCore + Hosted MCP + DevOps Agent로 **에이전트 운영**을 자동화합니다. 또한 EKS는 99.99% SLA의 전용 컨트롤 플레인(PCP)을 유일하게 제공합니다.
+GCP, Azure도 유사한 서비스를 제공합니다. AWS의 차별점은 **LLMOps 전체 스택이 EKS 위에서 통합**된다는 것입니다. GPU Operator, run.ai, vLLM, Karpenter로 **모델 서빙 인프라**를 구성하고, AgentCore + Hosted MCP + DevOps Agent로 **에이전트 운영**을 자동화합니다. 또한 EKS는 Provisioned Control Plane(PCP)에서 99.99% SLA를 제공하며, 표준 컨트롤 플레인의 99.95% SLA보다 높습니다.
 
 ### Q6. 행사에서 뭘 얻을 수 있나요?
 
@@ -105,11 +109,11 @@ GCP, Azure도 유사한 서비스를 제공합니다. AWS의 차별점은 **LLMO
 - **Modern Agentic Infra**: EKS + GPU Operator + vLLM PoC → 2주 PoC → 프로덕션 로드맵
 - **Modern Agentic Apps**: Bedrock AgentCore + Hosted MCP PoC → 에이전트 구축 및 운영 자동화
 
-행사 참석 고객에게 우선 PoC 기회를 제공합니다.
+행사 참석 고객에게는 PoC 참여 기회를 우선 안내하며, 실제 진행 여부는 대상 요건, SA 지원 가능 여부, 내부 승인에 따라 결정됩니다.
 
 ### Q8. 보안/규제 문제는 어떻게 해결하나요?
 
-**EKS Pod Identity**로 세밀한 접근 제어, **Hybrid Nodes**로 데이터 주권 보장, Private Subnets + VPC 격리로 네트워크 보안을 확보합니다. 금융/의료 규제 환경에서의 구축 사례를 행사에서 공유합니다.
+**EKS Pod Identity**로 세밀한 접근 제어, **Hybrid Nodes**로 온프레미스에 워크로드와 데이터를 배치하는 구성, Private Subnets + VPC 격리로 네트워크 보안을 확보합니다. 데이터 주권이나 규제 준수 여부는 고객별 데이터 흐름과 적용 규정을 함께 검토해야 판단할 수 있습니다. 금융/의료 규제 환경에서의 구축 사례를 행사에서 공유합니다.
 
 ### Q9. 기존 Kubernetes 클러스터가 있는데 AI 워크로드 추가 가능한가요?
 
@@ -125,13 +129,13 @@ GCP, Azure도 유사한 서비스를 제공합니다. AWS의 차별점은 **LLMO
 
 | 비교 항목 | AWS (EKS) | GCP (GKE) | Azure (AKS) |
 |-----------|-----------|-----------|-------------|
-| **컨트롤 플레인** | PCP 전용 (99.99% SLA) | 공유 (99.95% SLA) | 공유 (99.95% SLA) |
+| **컨트롤 플레인** | Provisioned Control Plane (99.99% SLA) | 공유 (99.95% SLA) | 공유 (99.95% SLA) |
 | **데이터 플레인 자동화** | Auto Mode + Karpenter | Autopilot + NAP | NAP (Node Auto-provisioning) |
 | **AI 에이전트 런타임** | AgentCore (MCP 네이티브) | Vertex AI Agent Builder | Azure AI Agent Service |
-| **GPU 최적화** | Karpenter + MIG/DRA (Karpenter v1.14+ DRA 지원) | MIG 지원 + GKE NAP | MIG 지원 |
+| **GPU 최적화** | Karpenter + MIG, DRA(Karpenter v1.14+, 관리형 노드 그룹·자체 관리 노드에서 지원, Auto Mode는 미지원, Kubernetes 1.34+ 필요) | MIG 지원 + GKE NAP | MIG 지원 |
 | **AI 전용 칩** | Inferentia2, Trainium | TPU v5e/v5p | Maia 100 (제한적) |
 | **마이그레이션** | Transform (K8s 통합) | Migrate to Containers | Azure Migrate |
-| **GPU 인스턴스** | H100, L40S, Inferentia2, Trainium | H100, A100, L4, L40S | H100, A100, MI300X |
+| **가속기 인스턴스(예시)** | GPU: H100, L40S / 자체 설계 가속기: Inferentia2, Trainium | H100, A100, L4, L40S | H100, A100, MI300X |
 
 :::tip 핵심 차별화 메시지
 GCP/Azure도 유사 서비스를 제공하지만, AWS는 **EKS 위에서 LLMOps 전체 스택(GPU Operator, run.ai, vLLM, Karpenter)이 통합**되고, **AgentCore + Hosted MCP + DevOps Agent로 매니지드 에이전트 생태계**를 제공하는 점에서 차별화됩니다.
@@ -158,7 +162,7 @@ GCP/Azure도 유사 서비스를 제공하지만, AWS는 **EKS 위에서 LLMOps 
 | 운영 자동화 | DevOps Agent 연계, 모니터링, CI/CD 구성 | 1주 |
 
 :::info 행사 참석 고객 혜택
-행사 참석 고객에게 **PoC 우선 배정** 및 **AWS SA 전담 지원**을 제공합니다.
+행사 참석 고객에게는 **PoC 우선 안내**와 **AWS SA 지원**을 제공할 수 있습니다. 실제 배정과 지원 범위는 대상 요건, 인력 가용성, 내부 승인에 따라 결정되며, 각 트랙에서 2주 PoC는 4주 전체 여정의 한 단계입니다. 이 과정은 프로덕션 준비 완료를 보장하지 않습니다.
 :::
 
 ---
@@ -168,9 +172,9 @@ GCP/Azure도 유사 서비스를 제공하지만, AWS는 **EKS 위에서 LLMOps 
 | 항목 | 내용 |
 |------|------|
 | **행사명** | Modern Agentic Applications Day |
-| **일시** | 2026년 4월 9일 (수) |
+| **일시** | 2026년 4월 9일 (목) |
 | **장소** | 센터필드 18층 |
-| **규모** | 200명 한정 |
+| **규모** | 200명 (정원 운영) |
 | **대상** | CTO, VP Engineering, 플랫폼 엔지니어링 리더, IT 의사결정자 |
 | **핵심 세션** | Modern Agentic Infra / Modern Agentic Apps |
 | **후속 프로그램** | 2개 PoC 트랙 (Agentic Infra / Agentic Apps) |
@@ -178,6 +182,6 @@ GCP/Azure도 유사 서비스를 제공하지만, AWS는 **EKS 위에서 LLMOps 
 :::tip 초대 시 강조 포인트
 - "디지털 전환의 다음 단계가 궁금하시다면"
 - "AI 인프라 비용이 걱정되신다면 — GPU 75% 절감 사례를 공유합니다"
-- "200명 한정이라 빠른 등록을 권합니다"
-- "행사 후 바로 PoC를 시작할 수 있습니다"
+- "정원 200명 규모로 운영한 행사입니다"
+- "행사 후 PoC로 이어지는 트랙을 안내합니다"
 :::
