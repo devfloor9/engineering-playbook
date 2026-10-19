@@ -3,9 +3,9 @@ title: Cross-Cluster Object Replication (HA) Architecture Guide
 description: Architecture patterns and decision guide for achieving high availability through object replication in EKS multi-cluster environments
 created: "2026-03-24"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 18
+reading_time: 24
 tags:
   - eks
   - multi-cluster
@@ -90,10 +90,10 @@ graph TB
 
 - **How it works**: Central controller monitors and synchronizes each cluster's state
 - **Pros**: Dynamic cluster discovery, federation policies
-- **Cons**: Watch event overflow at ~10+ clusters, Informer cache size limits, plaintext credential storage risk
+- **Cons**: Depending on the implementation, the central controller's watch events and Informer cache grow with the number of clusters and objects, so measure the limit at your target scale (for example, tens of clusters). Concentrating credentials centrally enlarges the blast radius, so control it with encryption and a secret store.
 
 :::warning Kubefed Project Status
-Kubefed (v2) is effectively in maintenance mode by the Kubernetes SIG. It is not recommended for new projects.
+The Kubefed (v2) repository was moved under the `kubernetes-retired` organization and archived (read-only) on April 25, 2023. This is a stronger end-of-life state than maintenance mode, so it is not recommended for new projects.
 :::
 
 ### Pattern 3: Agent-based Pull Model (Recommended)
@@ -135,9 +135,9 @@ graph TB
 | Aspect | API Proxy | Multi-cluster Controller | Agent-based Pull |
 |--------|-----------|--------------------------|-------------------|
 | **Operation** | Central → Cluster Push | Central Watch + CRD Sync | Cluster → Central Pull |
-| **Scalability** | Low (proportional to connections) | Medium (~10 clusters) | High (hundreds of clusters) |
+| **Scalability** | Low (proportional to connections) | Implementation- and workload-dependent (central watch/cache load grows with cluster count) | Up to hundreds of clusters depending on implementation (each cluster pulls independently) |
 | **Complexity** | Low | High | Medium |
-| **Security** | Weak (many credentials) | Weak (plaintext storage) | Strong (agent local permissions) |
+| **Security** | Uses many credentials centrally | Control the blast radius of centralized credentials with encryption and a secret store | Agents use only local permissions, so the blast radius is small |
 | **Fault Isolation** | Low | Medium | High |
 | **Drift Detection** | None | Partial | Built-in |
 | **Recommended For** | PoC, small scale | Legacy environments | **Production (recommended)** |
@@ -216,7 +216,7 @@ graph TB
 
 **Active-Active Configuration:**
 
-Both clusters independently pull from the same Git repo. DNS (Route 53) distributes traffic, and if one cluster fails, the remaining cluster immediately handles all traffic.
+Both clusters independently pull from the same Git repo. DNS (Route 53) distributes traffic, and if one cluster fails, Route 53 changes its DNS answers after health evaluation to route traffic to the remaining cluster. The actual failover time depends on the health-detection interval, DNS TTL and client/resolver caching, the remaining cluster's reserved capacity, and application/data readiness, so measure it rather than assuming it is immediate.
 
 **Active-Passive Configuration:**
 
@@ -260,7 +260,7 @@ graph TB
 | Strategy | Description | Suitable Scenario |
 |----------|-------------|-------------------|
 | **Active-Passive Mirroring** | Deploy ArgoCD in two regions; Passive keeps controllers disabled. Manual Scale-Up during failover | Environments with low DR requirements |
-| **Active-Active Sync Windows** | Two ArgoCD instances sync during non-overlapping time windows (Sync Windows feature) | Active-Active requiring conflict prevention |
+| **Active-Active Sync Windows** | Restrict two ArgoCD instances to sync only during non-overlapping time windows with Sync Windows. Sync Windows only gate when sync may run and allow manual overrides, so guarantee write-conflict prevention with a single writer per object or explicit ownership/fencing | Active-Active that needs to separate sync time windows |
 
 :::info ApplicationSets Generator
 Using ArgoCD ApplicationSets' `Cluster Generator`, applications can be automatically deployed to all clusters registered with ArgoCD. When a new cluster is added, replication starts immediately without additional configuration.
@@ -298,8 +298,8 @@ When fine-grained control over object replication is needed, develop a dedicated
 | Aspect | Active-Active | Active-Passive |
 |--------|---------------|----------------|
 | **Object Sync** | Both clusters independently pull from same Git source | Only Active reconciles; Passive stands by |
-| **Failover Time** | Near-zero (both already serving) | Minutes (Passive activation required) |
-| **Conflict Resolution** | Write conflicts possible — prevention via Sync Windows needed | No conflicts — single writer |
+| **Failover Time** | Depends on health detection, DNS TTL, client caching, and reserved capacity (can be short when both already serve, but measure it) | Minutes (Passive activation required) |
+| **Conflict Resolution** | Write conflicts possible — prevent them with a single writer per object or explicit ownership/fencing (Sync Windows only gate when sync runs) | No conflicts — single writer |
 | **Operational Complexity** | High (object IDs, DNS, state synchronization) | Low (standard failover model) |
 | **Cost** | High (full capacity on both sides) | Low (Passive can run at reduced capacity) |
 | **Suitable Scenario** | Multi-region HA, global load balancing | DR, cost-sensitive HA |
@@ -347,7 +347,7 @@ Object replication alone cannot achieve complete Cross-Cluster HA. Combine the f
 | **Flux / ArgoCD** | K8s object replication (GitOps) | Core replication mechanism |
 | **Route 53** | DNS-based failover/load balancing | Health Check + Failover Routing |
 | **Global Accelerator** | Anycast IP-based global routing | For multi-region Active-Active |
-| **Velero** | Stateful object backup/restore (PV, etcd) | Combined with S3 Cross-Region Replication |
+| **Velero** | Backup/restore of Kubernetes API objects plus volume data (provider snapshots or filesystem backup) | Not an etcd snapshot backup. Cross-region recovery needs a snapshot copy/restore or data mover; S3 CRR alone does not complete a PV restore |
 | **External Secrets Operator** | Secret synchronization | AWS Secrets Manager → both clusters |
 | **Crossplane / ACK** | AWS resource definition sync | Manage IaC as K8s objects |
 
@@ -401,13 +401,13 @@ There are features in the EKS multi-cluster management space that are not yet av
 
 | Area | Current State | Alternative |
 |------|---------------|-------------|
-| **Managed ClusterSets** | Not released | RAM (Resource Access Manager) for Cross-Account grouping |
+| **Managed ClusterSets** | Not released | No single feature replaces cluster-inventory grouping; manage the cluster list with GitOps tooling or your own cluster registry (RAM is limited to supported shareable resource types and is not an EKS cluster-inventory grouping mechanism) |
 | **Built-in Cross-Cluster Replication** | Not released | GitOps (Flux/ArgoCD) |
 | **Multi-Region EKS Cluster** | Not released | Independent clusters per region + GitOps sync |
-| **Managed ArgoCD** | In development | Self-managed ArgoCD installation |
+| **Managed ArgoCD** | Available as the EKS Capability for Argo CD (fully managed GitOps) | Syncs the Git-declared desired state; it is not automatic live-object replication |
 
 :::tip Practical Approach
-Until these features are released, the GitOps + supporting tool stack combination is the most mature and proven approach. Already about 10% of EKS customers have adopted GitOps based on Flux/ArgoCD.
+Until these features are released, the GitOps + supporting tool stack combination is the most mature and proven approach. Many EKS customers have adopted GitOps based on Flux/ArgoCD.
 :::
 
 ---

@@ -3,9 +3,9 @@ title: EKS Control Plane Deep Dive — CRD at Scale 종합 가이드
 description: EKS Control Plane 동작 원리를 이해하고, CRD 기반 플랫폼을 안정적으로 확장하기 위한 Provisioned Control Plane 활용법, 모니터링 전략, CRD 설계 베스트 프랙티스
 created: "2026-03-24"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 28
 tags:
   - eks
   - kubernetes
@@ -42,7 +42,7 @@ CRD(Custom Resource Definition) 기반 플랫폼을 EKS 위에서 운영할 때,
 
 EKS의 Control Plane은 AWS가 관리하는 전용 VPC 내에서 실행됩니다. 고객의 워커 노드와는 분리된 독립적인 인프라입니다.
 
-```
+```text
 EKS Control Plane (AWS 관리형)
 ├── kube-apiserver (최소 2개, 다중 AZ 분산)
 ├── kube-controller-manager
@@ -65,7 +65,7 @@ etcd는 Kubernetes의 모든 상태(Pod, Service, CRD 오브젝트 등)를 저�
 | 특성 | 설명 | CRD 영향 |
 |------|------|---------|
 | **DB Size 한도** | Standard 티어 8GB, Provisioned 티어 16GB | CRD 오브젝트가 많을수록 DB 크기 증가 |
-| **요청 크기 제한** | 단일 오브젝트 최대 1.5MB | 큰 spec을 가진 CR이 한도에 근접 가능 |
+| **요청 크기 제한** | 단일 요청의 직렬화된 오브젝트 전체(metadata/spec/status)가 약 1.5 MiB(etcd 기본 요청 한도) | 큰 CR이 spec뿐 아니라 전체 직렬화 크기로 한도에 근접 가능 |
 | **Watch Stream** | 변경 사항을 실시간으로 전파 | CRD 컨트롤러가 Watch를 추가할수록 부하 증가 |
 | **RAFT 합의** | 쓰기 시 과반수 합의 필요 | 쓰기가 많은 CRD 패턴에서 지연 발생 |
 
@@ -144,12 +144,12 @@ PCP는 선택한 티어의 용량을 선제적으로 확보합니다. 실제 API
 | etcd Event Sharding | 불가 | 가능 (이벤트 객체를 별도 etcd 파티션으로 분리) |
 | 99.99% SLA | 99.95% | 99.99% |
 
-:::tip CRD 플랫폼에 Provisioned 티어를 권장하는 이유
-CRD 기반 플랫폼에서 가장 먼저 한계에 도달하는 것은 **etcd DB Size**입니다. Standard 티어의 8GB 한도는 CRD 오브젝트가 많은 환경에서 금방 소진됩니다. Provisioned 티어는 16GB로 2배 확장되며, Event Sharding을 통해 이벤트 객체의 부하도 분리할 수 있습니다.
+:::tip CRD 플랫폼에서 Provisioned 티어를 검토하는 조건
+AWS는 대부분의 워크로드에 Standard 모드를 권장하며, CRD를 사용한다는 이유만으로 유료 티어가 필요하지는 않습니다. CRD 기반 플랫폼에서 Standard의 8GB etcd 한도, 자동 스케일링의 성능 변동, 또는 99.95% SLA가 측정된 수요·SLO를 충족하지 못할 때 Provisioned 티어를 검토합니다. Provisioned 티어는 etcd를 16GB로 늘리고 Event Sharding으로 이벤트 객체 부하를 분리하지만, 상향 여부는 대표 피크 부하에서 측정한 결과와 총비용으로 판단합니다.
 :::
 
 :::info 상세 사이징이 필요하신가요?
-티어별 K8s 파라미터 (API Server inflight, Scheduler QPS), APF seat 산정 공식, 10K 노드 사이징 예시, 실제 고객 사례, ClusterLoader2 성능 검증 방법은 **[PCP 티어 사이징 & 성능 검증 가이드](./eks-pcp-tier-sizing-validation)**를 참조하세요.
+티어별 K8s 파라미터 (API Server inflight, Scheduler QPS), APF seat 산정 공식, 10K 노드 사이징 예시, ClusterLoader2 성능 검증 방법은 **[PCP 티어 사이징 & 성능 검증 가이드](./eks-pcp-tier-sizing-validation)**를 참조하세요.
 :::
 
 ### 3.5 CLI/API 사용법 {#36-cliapi-사용법}
@@ -160,14 +160,14 @@ CRD 기반 플랫폼에서 가장 먼저 한계에 도달하는 것은 **etcd DB
 aws eks create-cluster --name prod \
   --role-arn arn:aws:iam::012345678910:role/eks-service-role \
   --resources-vpc-config subnetIds=subnet-xxx,securityGroupIds=sg-xxx \
-  --control-plane-scaling-config tier=XL
+  --control-plane-scaling-config tier=tier-xl
 ```
 
 **기존 클러스터 티어 변경:**
 
 ```bash
 aws eks update-cluster-config --name example \
-  --control-plane-scaling-config tier=XL
+  --control-plane-scaling-config tier=tier-xl
 ```
 
 **업데이트 진행 확인:**
@@ -184,7 +184,7 @@ aws eks describe-cluster --name example
 # Response에 controlPlaneScalingConfig.tier 필드 포함
 ```
 
-> **참고:** CLI 플래그 형식(`--control-plane-scaling-config tier=XL`)은 AWS CLI 버전에 따라 변경될 수 있습니다. 최신 명령 형식은 [AWS CLI Command Reference - EKS](https://docs.aws.amazon.com/cli/latest/reference/eks/)를 확인하세요.
+> **참고:** `--control-plane-scaling-config`의 `tier` 값은 API 열거형이며 `standard`, `tier-xl`, `tier-2xl`, `tier-4xl`, `tier-8xl`만 허용합니다. 사양 표에 쓰는 티어 표시 이름(XL, 2XL 등)과 API 값(tier-xl, tier-2xl 등)은 다르므로, CLI에는 API 값을 입력해야 합니다. 최신 명령 형식과 허용 값은 [AWS CLI Command Reference - EKS](https://docs.aws.amazon.com/cli/latest/reference/eks/)를 확인하세요.
 
 ### 3.6 PCP 관련 클러스터 속성 {#37-pcp-관련-클러스터-속성}
 
@@ -208,17 +208,17 @@ CRD 기반 플랫폼을 운영할 때 Control Plane에 미치는 영향을 정�
 |---------|---------|-------|
 | **DB Size 증가** | CRD 오브젝트가 etcd 저장소를 점유 | 높음 |
 | **Watch Stream 부하** | CRD 컨트롤러가 Watch 스트림을 생성하여 etcd gRPC 부하 증가 | 높음 |
-| **Request Size** | 개별 CRD 오브젝트가 1.5MB 제한에 근접 가능 | 중간 |
+| **Request Size** | 개별 CR의 직렬화된 전체 크기가 약 1.5 MiB 요청 한도에 근접 가능 | 중간 |
 | **List Call 비용** | CRD는 JSON 인코딩을 사용 (protobuf 아님) → 성능 병목 | 높음 |
 
 **etcd DB Size 제한 (PCP 티어별):**
 
 **표 7. PCP 티어별 etcd DB Size 한도와 단일 오브젝트 제한**
 
-| 티어 | DB Size 한도 | 단일 오브젝트 제한 |
+| 티어 | DB Size 한도 | 단일 요청 크기 제한 |
 |------|-----------|--------------|
-| Standard | 8GB | 1.5MB (변경 불가) |
-| Provisioned (XL 이상) | 16GB | 1.5MB (변경 불가) |
+| Standard | 8GB | 약 1.5 MiB (etcd 기본 요청 한도, 변경 불가) |
+| Provisioned (XL 이상) | 16GB | 약 1.5 MiB (etcd 기본 요청 한도, 변경 불가) |
 
 ### 4.2 API Server에 대한 영향
 
@@ -261,7 +261,7 @@ flowchart LR
 
 EKS는 Control Plane에 대한 **4가지 차원의 Observability**를 제공합니다:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                 EKS Control Plane Observability                      │
 ├──────────────────┬──────────────────┬────────────────┬──────────────┤
@@ -270,9 +270,9 @@ EKS는 Control Plane에 대한 **4가지 차원의 Observability**를 제공합�
 │                  │    Endpoint      │    Logging     │              │
 ├──────────────────┼──────────────────┼────────────────┼──────────────┤
 │ AWS/EKS 네임스페이스│ KCM/KSH/etcd    │ API/Audit/     │ Upgrade      │
-│ (자동, 무료)       │ (Prometheus      │ Auth/CM/Sched  │ Readiness    │
-│                  │  호환 K8s API)    │ (CloudWatch    │ Health Issues│
-│                  │                  │  Logs)         │ Addon Compat │
+│ (자동, 무료)       │ (Prometheus      │ Auth/CM/Sched  │ Configuration│
+│                  │  호환 K8s API)    │ (CloudWatch    │ Rollback     │
+│                  │                  │  Logs)         │ Readiness    │
 ├──────────────────┼──────────────────┼────────────────┼──────────────┤
 │ v1.28+ 자동       │ v1.28+ 수동      │ 모든 버전        │ 모든 버전 자동 │
 └──────────────────┴──────────────────┴────────────────┴──────────────┘
@@ -366,18 +366,20 @@ rules:
 
 | 메트릭 | 소스 | 설명 |
 |--------|------|------|
-| `workqueue_depth` | KCM | 컨트롤러별 작업 큐 깊이 — CRD 컨트롤러 부하 확인 |
-| `workqueue_adds_total` | KCM | 큐에 추가된 총 항목 수 |
-| `workqueue_retries_total` | KCM | 재시도 횟수 — CRD 컨트롤러 오류율 파악 |
+| `workqueue_depth` | KCM | 코어 Kubernetes 컨트롤러별 작업 큐 깊이 (KCM이 실행하는 내장 컨트롤 루프 한정) |
+| `workqueue_adds_total` | KCM | 코어 컨트롤러 큐에 추가된 총 항목 수 |
+| `workqueue_retries_total` | KCM | 코어 컨트롤러 재시도 횟수 (내장 컨트롤 루프의 오류 지표) |
 | `scheduler_pending_pods` | KSH | 대기 중인 Pod 수 |
-| `scheduler_scheduling_duration_seconds` | KSH | 스케줄링 지연 시간 |
+| `scheduler_scheduling_attempt_duration_seconds` | KSH | 스케줄링 시도 1회의 지연 시간(e2e SLI는 `scheduler_pod_scheduling_sli_duration_seconds`) |
 | `apiserver_flowcontrol_current_executing_seats` | API Server | APF별 현재 실행 시트 — CRD List 요청 영향 확인 |
+
+위 `workqueue_*` 메트릭은 KCM이 실행하는 코어 Kubernetes 컨트롤 루프(배포, 노드, 엔드포인트 등)만 포함하며, 사용자가 설치한 오퍼레이터(custom controller)는 포함하지 않습니다. 설치한 컨트롤러의 큐 깊이·재시도·reconcile 지표는 각 컨트롤러가 노출하는 `/metrics`(controller-runtime 기반)에서 별도로 스크래핑해야 합니다.
 
 **Amazon Managed Prometheus (AMP) 통합:**
 
 EKS의 **Agentless Collector (Poseidon)**를 사용하면, 클러스터에 Prometheus를 설치하지 않고도 Control Plane 메트릭을 AMP 워크스페이스로 자동 수집할 수 있습니다.
 
-```
+```text
 EKS Console → Observability 탭 → Add scraper → AMP Workspace 선택
 ```
 
@@ -405,13 +407,17 @@ aws eks update-cluster-config --name my-cluster \
 **CloudWatch Logs Insights 쿼리 예시 — CRD 관련 API 호출 패턴 분석:**
 
 ```sql
--- CRD 관련 API 호출 패턴 분석
+-- 특정 커스텀 리소스 인스턴스에 대한 API 호출 패턴 분석
+-- (requestURI는 /apis/<group>/<version>/.../<plural> 형태; 아래 group/plural를 실제 CRD에 맞게 바꾸세요)
+-- 더 정확한 분석에는 audit 로그 사용을 권장합니다
 fields @timestamp, userAgent, verb, requestURI
-| filter requestURI like /customresourcedefinitions/
+| filter requestURI like /\/apis\/example\.com\/v1\/.*\/widgets/
 | stats count(*) by verb, userAgent
 | sort count(*) desc
 | limit 20
 ```
+
+> `requestURI like /customresourcedefinitions/` 필터는 CRD 정의(스키마) 관리 호출만 매칭하며, 각 커스텀 리소스가 속한 그룹·plural로 들어오는 실제 인스턴스 트래픽은 잡지 못합니다. 분석 대상 워크로드를 보려면 위처럼 해당 그룹·plural를 지정하세요.
 
 ### 5.4 Cluster Insights
 
@@ -421,10 +427,9 @@ EKS Cluster Insights는 자동으로 클러스터를 스캔하여 잠재적 문�
 
 | 카테고리 | 설명 | 주기 |
 |---------|------|------|
-| Upgrade Insights | K8s 버전 업그레이드 시 문제가 될 수 있는 항목 탐지 | 24시간 + 수동 |
-| Configuration Insights | 클러스터 구성 오류 탐지 | 24시간 + 수동 |
-| Addon Compatibility | EKS Addon이 다음 K8s 버전과 호환되는지 확인 | 24시간 |
-| Cluster Health Issues | 현재 클러스터 건강 상태 이슈 | 24시간 |
+| Upgrade Insights | Kubernetes 버전 업그레이드 준비 상태에 영향을 줄 수 있는 문제 탐지 | 24시간 + 수동 |
+| Configuration Insights | EKS Hybrid Nodes 구성 문제(컨트롤 플레인-웹훅 통신, exec/logs 등) 탐지 | 24시간 + 수동 |
+| Rollback Readiness Insights | 업그레이드 후 7일 이내 롤백 준비 상태 점검(API 호환성, 애드온 호환성, 클러스터 상태 등 포함) | 업그레이드 후 24시간 + 수동 |
 
 ```bash
 aws eks list-insights --cluster-name my-cluster
@@ -435,7 +440,7 @@ aws eks describe-insight --cluster-name my-cluster --id <insight-id>
 
 EKS Console에는 통합 Observability Dashboard가 포함되어 있습니다:
 
-```
+```text
 EKS Console → Cluster 선택 → Observability 탭
 ├── Health and Performance Summary (요약 카드)
 ├── Cluster Health Issues (건강 이슈 목록)
@@ -467,8 +472,8 @@ EKS Console → Cluster 선택 → Observability 탭
 
 ### 6.1 오브젝트 크기 최소화
 
-- 각 CR 인스턴스의 **spec 크기를 가능한 작게 유지** (etcd 1.5MB 요청 제한)
-- 대용량 데이터는 **ConfigMap이나 외부 저장소 참조로 분리**
+- 각 CR 인스턴스의 직렬화된 전체 크기(metadata/spec/status)를 작게 유지합니다. etcd 기본 요청 한도는 약 1.5 MiB이며 spec만이 아니라 요청에 담기는 오브젝트 전체에 적용됩니다
+- 대용량 데이터는 **외부 저장소 참조로 분리**합니다. ConfigMap은 etcd에 그대로 저장되고 자체 데이터 한도(약 1 MiB)가 있어 etcd 용량을 줄여주지 않으므로, 작은 설정에만 쓰고 큰 데이터에는 외부 저장소(S3, 데이터베이스 등)를 참조합니다
 - status 필드도 필요한 정보만 포함 — 히스토리나 로그성 데이터는 외부로
 
 ### 6.2 CRD 수 관리
@@ -483,15 +488,15 @@ EKS Console → Cluster 선택 → Observability 탭
 
 | 패턴 | 올바른 사용법 | 피해야 할 사용법 |
 |------|-----------|-------------|
-| **Watch resourceVersion** | `resourceVersion`을 올바르게 사용 | `resourceVersion=""` 사용 금지 (전체 목록 재조회) |
+| **Watch resourceVersion** | 재시작·복구 시 continue 토큰과 함께 적절한 `resourceVersion`을 사용 | 전체 목록을 매번 가장 최신 상태(`resourceVersion=""`)로 반복 조회해 apiserver·etcd 부하를 키우는 패턴 (초기 목록/최신 조회 용도로는 정당) |
 | **List 호출** | 반드시 **페이지네이션** 사용 | 전체 List를 한 번에 조회 |
 | **Informer** | client-go의 **SharedInformer** 패턴 사용 | 각 컨트롤러가 독립적으로 Watch 생성 |
 | **재연결** | Watch가 끊겼을 때 **Exponential Backoff** 적용 | 즉시 재연결 시도 (thundering herd) |
 
 ### 6.4 K8s 버전 최신 유지
 
-- **K8s 1.33+**에서 **Streaming List** 지원으로 대규모 List 성능이 크게 개선
-- 가능하면 최신 K8s 버전을 사용하여 Control Plane 성능 개선 혜택을 받을 것
+- 대규모 List의 apiserver 메모리 부담을 줄이는 기능은 두 가지로 구분됩니다. 하나는 informer가 LIST 대신 WATCH로 초기 목록을 받는 **watch-list(WatchList)**로, Kubernetes 1.32에서 베타가 되었으나 기본값은 비활성(off)입니다. 다른 하나는 응답을 청크 단위로 흘려보내는 **streaming collection 인코딩**으로, Kubernetes 1.33에서 호환 가능한 기본 동작으로 도입되었습니다. 두 기능은 클라이언트·서버 버전과 feature gate 조건이 서로 다릅니다
+- 가능하면 최신 K8s 버전을 사용하여 Control Plane 성능 개선 혜택을 받되, 사용하려는 기능이 해당 버전에서 기본 활성인지와 클라이언트 지원 여부를 확인합니다
 
 ### 6.5 클러스터 아키텍처 권장사항
 
@@ -540,7 +545,7 @@ EKS Console → Cluster 선택 → Observability 탭
 :::info 측정 방법
 - **etcd 실제 사용량**: CloudWatch `etcd_mvcc_db_total_size_in_use_in_bytes`; 물리 파일 크기와 구분
 - **API QPS**: `apiserver_request_total` rate (verb별 분리 권장)
-- **429 Throttle**: `apiserver_request_total{code="429"}` — 0이 아니면 즉시 조사
+- **429 Throttle**: `increase(apiserver_request_total{code="429"}[5m])` — 일정 구간의 증가량으로 현재 스로틀링을 판단합니다. 원시 Prometheus 카운터는 과거 이벤트 이후 계속 0이 아니므로 "0이 아니면 조사"는 현재 상태를 가려냅니다. CloudWatch의 기간 합계(period Sum)와 Prometheus 누적 카운터는 의미가 다릅니다
 - **Watch 연결**: `apiserver_longrunning_requests{verb="WATCH"}` — 컨트롤러/노드 수에 비례
 - **Reconcile 속도**: 각 컨트롤러의 `controller_runtime_reconcile_total` rate
 :::
@@ -569,7 +574,7 @@ EKS Console → Cluster 선택 → Observability 탭
 
 ### 7.4 통합 모니터링 스택 권장 {#73-통합-모니터링-스택-권장}
 
-```
+```text
 통합 모니터링 아키텍처
 │
 [1] CloudWatch Vended Metrics (자동)
@@ -578,7 +583,7 @@ EKS Console → Cluster 선택 → Observability 탭
 │
 [2] Prometheus Endpoint (수동 구성)
 │   → AMP Agentless Scraper 또는 Self-hosted Prometheus
-│   → KCM workqueue 메트릭으로 CRD 컨트롤러 모니터링
+│   → KCM workqueue 메트릭으로 코어 컨트롤 루프 모니터링(설치한 컨트롤러는 각 /metrics에서 별도 수집)
 │   → Grafana 대시보드 구성
 │
 [3] Control Plane Logging (수동 활성화)
@@ -598,7 +603,7 @@ EKS Console → Cluster 선택 → Observability 탭
 |------|------|---------|
 | **Phase 1: 기본 설정** | 1주 | CloudWatch 알람 설정, Control Plane Logging 활성화 (audit + controllerManager) |
 | **Phase 2: Prometheus 통합** | 2주 | AMP Scraper 구성, KCM/KSH 메트릭 수집, Grafana 대시보드 |
-| **Phase 3: PCP 적용** | 1주 | 워크로드 프로파일 분석 후 적정 PCP 티어 선택 (XL 이상 권장) |
+| **Phase 3: PCP 적용** | 1주 | 워크로드 프로파일 분석 후 측정된 수요·SLO에 맞는 모드/티어 선택(대부분 Standard로 충분하며, 부족할 때 Provisioned 티어 검토) |
 | **Phase 4: 최적화** | 지속 | Cluster Insights 활용, 모니터링 데이터 기반 티어 조정, CRD 컨트롤러 튜닝 |
 
 ### 7.6 최종 요약 — 주요 과제별 대응 전략 {#75-최종-요약--주요-과제별-대응-전략}
@@ -643,7 +648,7 @@ EKS Console → Cluster 선택 → Observability 탭
 
 **etcd:**
 - [etcd Performance Best Practices](https://etcd.io/docs/v3.5/op-guide/performance/)
-- [etcd System Limits (1.5MB)](https://etcd.io/docs/v3.5/dev-guide/limit/)
+- [etcd System Limits (요청 약 1.5 MiB)](https://etcd.io/docs/v3.5/dev-guide/limit/)
 
 **모니터링:**
 - [Grafana Dashboard: EKS Control Plane](https://grafana.com/grafana/dashboards/21192-eks-control-plane/)

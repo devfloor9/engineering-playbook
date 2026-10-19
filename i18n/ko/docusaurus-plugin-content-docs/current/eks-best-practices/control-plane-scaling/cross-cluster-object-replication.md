@@ -3,9 +3,9 @@ title: Cross-Cluster Object Replication (HA) 아키텍처 가이드
 description: EKS 멀티 클러스터 환경에서 오브젝트 복제를 통한 고가용성 아키텍처 패턴과 의사결정 가이드
 created: "2026-03-24"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 13
 tags:
   - eks
   - multi-cluster
@@ -90,10 +90,10 @@ graph TB
 
 - **동작**: 중앙 컨트롤러가 각 클러스터 상태를 감시하고 동기화
 - **장점**: 동적 클러스터 디스커버리, Federation 정책 적용 가능
-- **한계**: ~10개 이상 클러스터에서 Watch 이벤트 오버플로, Informer 캐시 크기 제한, 자격 증명 평문 저장 위험
+- **한계**: 구현에 따라 중앙 컨트롤러의 Watch 이벤트와 Informer 캐시가 클러스터·오브젝트 수에 비례해 늘어나므로, 대상 규모(예: 수십 개 클러스터)에서 한계를 측정해야 합니다. 중앙에 자격 증명을 모으면 노출 범위(blast radius)가 커지므로 암호화·시크릿 스토어로 통제해야 합니다
 
 :::warning Kubefed 프로젝트 상태
-Kubernetes SIG에서 Kubefed(v2)는 사실상 유지보수 모드입니다. 신규 프로젝트에서는 권장하지 않습니다.
+Kubefed(v2) 저장소는 `kubernetes-retired` 조직 아래로 옮겨져 2023년 4월 25일에 아카이브(읽기 전용)되었습니다. 유지보수 모드보다 더 종료된 상태이므로 신규 프로젝트에서는 채택하지 않는 것을 권장합니다.
 :::
 
 ### Pattern 3: Agent-based Pull 모델 (권장)
@@ -135,9 +135,9 @@ graph TB
 | 관점 | API Proxy | Multi-cluster Controller | Agent-based Pull |
 |------|-----------|--------------------------|-------------------|
 | **동작 방식** | 중앙 → 클러스터 Push | 중앙 Watch + CRD 동기화 | 클러스터 → 중앙 Pull |
-| **확장성** | 낮음 (연결 수 비례) | 중간 (~10 클러스터) | 높음 (수백 클러스터) |
+| **확장성** | 낮음 (연결 수 비례) | 구현·워크로드에 따라 측정 (중앙 Watch/캐시 부하가 클러스터 수에 비례) | 구현에 따라 수백 클러스터까지 (각 클러스터 독립 Pull) |
 | **복잡도** | 낮음 | 높음 | 중간 |
-| **보안** | 취약 (다수 자격 증명) | 취약 (평문 저장) | 강함 (에이전트 로컬 권한) |
+| **보안** | 다수 자격 증명을 중앙에서 사용 | 중앙 집중 자격 증명의 노출 범위를 암호화·시크릿 스토어로 통제 | 에이전트가 로컬 권한만 사용해 노출 범위가 작음 |
 | **장애 격리** | 낮음 | 중간 | 높음 |
 | **Drift Detection** | 없음 | 부분적 | 내장 |
 | **권장 시나리오** | PoC, 소규모 | 레거시 환경 | **프로덕션 (권장)** |
@@ -216,7 +216,7 @@ graph TB
 
 **Active-Active 구성:**
 
-두 클러스터 모두 동일한 Git 레포에서 독립적으로 Pull합니다. DNS(Route 53)로 트래픽을 분산하며, 한 클러스터 장애 시 나머지 클러스터가 즉시 전체 트래픽을 처리합니다.
+두 클러스터 모두 동일한 Git 레포에서 독립적으로 Pull합니다. DNS(Route 53)로 트래픽을 분산하며, 한 클러스터 장애 시 Route 53이 상태 평가 후 DNS 응답을 변경해 나머지 클러스터로 트래픽을 보냅니다. 실제 전환 시간은 상태 감지 주기, DNS TTL과 클라이언트·리졸버 캐시, 남은 클러스터의 예비 용량, 애플리케이션·데이터 준비 상태에 따라 달라지므로 "즉시"로 단정하지 않고 측정해야 합니다.
 
 **Active-Passive 구성:**
 
@@ -260,7 +260,7 @@ graph TB
 | 전략 | 설명 | 적합 시나리오 |
 |------|------|---------------|
 | **Active-Passive 미러링** | 두 리전에 ArgoCD를 배포하되, Passive는 컨트롤러를 비활성화. 페일오버 시 수동 Scale-Up | DR 요건이 낮은 환경 |
-| **Active-Active Sync Windows** | 두 ArgoCD 인스턴스가 겹치지 않는 시간대에 Sync 수행 (Sync Windows 기능) | 충돌 방지가 필요한 Active-Active |
+| **Active-Active Sync Windows** | 두 ArgoCD 인스턴스가 겹치지 않는 시간대에만 Sync를 실행하도록 Sync Windows로 제한. Sync Windows는 Sync 실행 시점만 통제하고 수동 override를 허용하므로, 쓰기 충돌 방지는 오브젝트별 단일 Writer나 명시적 소유권·펜싱으로 보장 | 동기화 시간대를 분리하려는 Active-Active |
 
 :::info ApplicationSets Generator
 ArgoCD ApplicationSets의 `Cluster Generator`를 사용하면 ArgoCD에 등록된 모든 클러스터에 자동으로 애플리케이션을 배포할 수 있습니다. 새 클러스터 추가 시 별도 설정 없이 즉시 복제가 시작됩니다.
@@ -298,8 +298,8 @@ ArgoCD ApplicationSets의 `Cluster Generator`를 사용하면 ArgoCD에 등록�
 | 관점 | Active-Active | Active-Passive |
 |------|---------------|----------------|
 | **오브젝트 동기화** | 양쪽 클러스터가 동일 Git 소스에서 독립 Pull | Active만 Reconcile, Passive는 대기 |
-| **페일오버 시간** | 거의 0 (양쪽 이미 서빙 중) | 수 분 (Passive 활성화 필요) |
-| **충돌 해결** | Write 충돌 가능 — Sync Windows 등으로 방지 필요 | 충돌 없음 — Writer가 하나 |
+| **페일오버 시간** | 상태 감지·DNS TTL·클라이언트 캐시·예비 용량에 따라 달라짐 (양쪽이 이미 서빙 중이면 짧아질 수 있으나 측정 필요) | 수 분 (Passive 활성화 필요) |
+| **충돌 해결** | Write 충돌 가능 — 오브젝트별 단일 Writer나 명시적 소유권·펜싱으로 방지 (Sync Windows는 Sync 시점만 통제) | 충돌 없음 — Writer가 하나 |
 | **운영 복잡도** | 높음 (오브젝트 ID, DNS, 상태 동기화) | 낮음 (표준 페일오버 모델) |
 | **비용** | 높음 (양쪽 풀 용량 운영) | 낮음 (Passive 축소 운영 가능) |
 | **적합 시나리오** | 멀티 리전 HA, 글로벌 로드밸런싱 | DR, 비용 민감 HA |
@@ -347,7 +347,7 @@ graph LR
 | **Flux / ArgoCD** | K8s 오브젝트 복제 (GitOps) | 핵심 복제 메커니즘 |
 | **Route 53** | DNS 기반 페일오버/로드밸런싱 | Health Check + Failover Routing |
 | **Global Accelerator** | Anycast IP 기반 글로벌 라우팅 | 멀티 리전 Active-Active 시 |
-| **Velero** | Stateful 오브젝트 백업/복원 (PV, etcd) | S3 Cross-Region Replication 연계 |
+| **Velero** | Kubernetes API 오브젝트 백업/복원과 볼륨 데이터(프로바이더 스냅샷 또는 파일시스템 백업) | etcd 스냅샷 백업이 아님. 리전 간 복구는 스냅샷 복사/복원 또는 데이터 무버가 필요하며 S3 CRR만으로 PV 복원이 완료되지 않음 |
 | **External Secrets Operator** | Secret 동기화 | AWS Secrets Manager → 양쪽 클러스터 |
 | **Crossplane / ACK** | AWS 리소스 정의 동기화 | IaC를 K8s 오브젝트로 관리 |
 
@@ -401,10 +401,10 @@ EKS 멀티 클러스터 관리 영역에서 아직 관리형 서비스로 제공
 
 | 영역 | 현재 상태 | 대안 |
 |------|-----------|------|
-| **관리형 ClusterSets** | 미출시 | RAM(Resource Access Manager)으로 Cross-Account 그룹핑 |
+| **관리형 ClusterSets** | 미출시 | 클러스터 인벤토리 그룹핑을 대체하는 단일 기능은 없음. GitOps 도구나 자체 클러스터 레지스트리로 클러스터 목록을 관리 (RAM은 지원되는 공유 리소스 유형에 한정되며 EKS 클러스터 인벤토리 그룹핑 수단이 아님) |
 | **Built-in Cross-Cluster Replication** | 미출시 | GitOps (Flux/ArgoCD) |
 | **Multi-Region EKS 클러스터** | 미출시 | 리전별 독립 클러스터 + GitOps 동기화 |
-| **관리형 ArgoCD** | 개발 중 | 자체 ArgoCD 설치/운영 |
+| **관리형 ArgoCD** | EKS Capability for Argo CD로 제공(완전관리형 GitOps) | Git 선언 상태를 동기화하는 방식이며, 라이브 오브젝트를 자동 복제하는 기능은 아님 |
 
 :::tip 현실적 접근
 위 기능들이 출시될 때까지, GitOps + 보조 도구 스택 조합이 가장 성숙하고 검증된 접근법입니다. 많은 EKS 고객이 Flux/ArgoCD 기반 GitOps를 채택하고 있습니다.

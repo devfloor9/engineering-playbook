@@ -3,9 +3,9 @@ title: Security & Governance
 description: EKS security governance best practices covering API Server authentication/authorization, Identity-First security, policy management, supply chain security, threat detection, and compliance
 created: "2026-03-24"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 11
+reading_time: 18
 tags:
   - eks
   - security
@@ -116,15 +116,18 @@ graph TB
     end
 
     Users --> IdP
-    IdP --> API
-    API --> WAF
-    WAF --> Shield
+    IdP --> CP
+    Users --> API
+    WAF --> API
+    WAF --> NLB
+    Shield --> API
     Shield --> NLB
+    API --> VPC
     NLB --> VPC
     VPC --> SG
-    SG --> CP
+    SG --> NACL
     CP --> RBAC
-    RBAC --> NetworkPolicy
+    CP --> NetworkPolicy
     CP --> IRSA
     IRSA --> KMS
     Secrets --> CP
@@ -142,6 +145,8 @@ graph TB
     style Monitoring fill:#ff6d00
 ```
 
+Figure 1 shows two distinct paths together. AWS WAF and AWS Shield are protections attached to application-ingress/data-plane resources (supported targets such as API Gateway and the Network Load Balancer), not independently chained intermediate hops. A user's access to the EKS Kubernetes API does not traverse this application-ingress path; it goes through IdP authentication directly to the Control Plane, and RBAC and Network Policy are separate mechanisms that govern Control Plane authorization and data-plane Pod-to-Pod communication, respectively.
+
 ## Security Domains
 
 The security architecture consists of five layers: cluster, network, workload, secrets, and data.
@@ -152,7 +157,7 @@ The security architecture consists of five layers: cluster, network, workload, s
 
 **Workload security** enforces the Restricted level of Pod Security Standards to block root execution, restrict host network access, and drop dangerous capabilities. Container images are scanned in the CI/CD pipeline to block vulnerabilities upfront, and policies enforce the use of signed images from approved registries only. Policy enforcement automation is covered in [Policy Management with Kyverno](./kyverno-policy-management.md), and image signing/SBOM in [Container Supply Chain Security](./supply-chain-security.md).
 
-**Secrets management** integrates AWS Secrets Manager with External Secrets Operator for centralized management. Secrets are kept in an external secret store instead of being stored directly as Kubernetes Secrets, with automatic rotation and periodic synchronization minimizing exposure risk. See [GitOps-based EKS Cluster Operations](../operations-reliability/gitops-cluster-operation.md) for the secrets management architecture in GitOps environments.
+**Secrets management** integrates AWS Secrets Manager with External Secrets Operator for centralized management. The source of truth for secrets is the external secret store, and External Secrets Operator synchronizes those values into Kubernetes Secrets. Because the resulting Kubernetes Secrets are stored in etcd, you must keep etcd encryption and RBAC access control in place for those copies as well. Automatic rotation and periodic synchronization reduce drift from the source and exposure risk. See [GitOps-based EKS Cluster Operations](../operations-reliability/gitops-cluster-operation.md) for the secrets management architecture in GitOps environments.
 
 **Data security** includes encryption for both data at rest and in transit. EBS volumes are protected at the block level with KMS-based encryption, and etcd transparently encrypts Kubernetes configuration data through AWS KMS integration. Data in transit is encrypted with TLS/mTLS; HTTPS is enforced at the ingress level with certificates automatically renewed by Cert Manager.
 
@@ -193,7 +198,7 @@ Incident response follows a repeatable procedure: detection → analysis → con
 
 | Feature | Status | Impact |
 |---------|--------|--------|
-| GuardDuty Extended Threat Detection | GA | Enhanced container threat detection (EKS Protection required, Runtime Monitoring recommended) |
+| GuardDuty Extended Threat Detection | GA | Enhanced container threat detection (requires at least one of EKS Protection or Runtime Monitoring; enabling both recommended) |
 | IAM Policy Autopilot | GA | Open source available (re:Invent 2025, awslabs/iam-policy-autopilot) |
 | EKS Pod Identity | GA | Replaces/complements IRSA |
 | Security Hub Analytics | GA | Real-time risk quantification |

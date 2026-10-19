@@ -3,9 +3,9 @@ title: Kubernetes DRA — Dynamic Resource Allocation Framework
 description: A framework guide covering the DRA core model (DeviceClass, ResourceClaim, ResourceSlice), resource types beyond GPUs (NICs, interconnects, FPGAs), and adoption criteria
 created: "2026-07-18"
 last_update:
-  date: "2026-07-19"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 25
 tags:
   - dra
   - kubernetes
@@ -37,10 +37,10 @@ Kubernetes' existing extended resource model (Device Plugin) represents devices 
 
 | Limitation | Description |
 |---|---|
-| **Static registration** | Device count is fixed at node startup. No runtime reconfiguration (e.g., changing partitioning) |
-| **Whole-unit allocation** | Devices are allocated only in their entirety. Partial allocation and sharing cannot be expressed |
+| **Opaque integer interface** | Devices are exposed only as integer extended resources such as `nvidia.com/gpu: 1`. The Device Plugin's ListAndWatch streams device lists and health changes, so the quantity itself is updated at runtime, but allocation constraints such as changing partitioning cannot be expressed through an integer counter |
+| **Sharing not expressible in the core API** | The integer extended-resource API itself cannot natively express shared ResourceClaims. This does not make physical partial allocation or sharing impossible — the NVIDIA Device Plugin provides sharing via MIG resources, time-slicing, and MPS (isolation levels differ by method) |
 | **No attribute-based selection** | Requests like "a GPU with 80GB+ memory" or "an RDMA-capable NIC" are impossible |
-| **No multi-resource coordination** | Relationships between devices — "1 GPU + 1 NIC on the same NUMA node" — cannot be expressed |
+| **Limited scheduler-level cross-device constraints** | The kubelet Topology Manager can align device-plugin NUMA hints at the node-local level, but relationships between devices — "1 GPU + 1 NIC on the same NUMA node" — cannot be expressed as a scheduler-visible constraint |
 | **Per-device-type implementations** | GPUs, NICs, and FPGAs each require a separate Device Plugin and counter scheme |
 
 DRA solves these limitations by having drivers **declare device attributes and capacity as structured data**, which workloads then **select with CEL (Common Expression Language) expressions**. This approach is called structured parameters (KEP-4381), and it allows the scheduler to simulate allocation without depending on vendor drivers.
@@ -81,7 +81,7 @@ flowchart LR
 3. kube-scheduler computes the allocation and selects a node using ResourceSlice data alone — no driver call happens at this point, which is the essence of structured parameters.
 4. kubelet delegates preparation to the node driver plugin, which injects the device into the container via a CDI (Container Device Interface) spec.
 
-ResourceClaim example — requesting "1 GPU with at least 80GB of memory" by attribute.
+ResourceClaimTemplate example — requesting "1 GPU with at least 80Gi of memory" by attribute (`80Gi` is a binary unit of roughly 85.9 GB, so a nominal 80 GB device can be excluded from matching). The `device.capacity` key in the selector below must be verified against the actual capacity key your driver publishes.
 
 ```yaml
 apiVersion: resource.k8s.io/v1
@@ -174,9 +174,9 @@ These are DRA-specific capabilities that the Device Plugin model cannot express.
 | **Partitionable devices** | Drivers dynamically create and advertise partitions (e.g., MIG) — the scheduler understands the physical-device-to-partition relationship | Beta (1.36) |
 | **Consumable capacity** | Multiple ResourceClaims share one device's capacity — Claims share a device the way Pods share node resources | Beta (1.36) |
 | **Device taints/tolerations** | The device-level version of node taints — mark specific devices for repair or isolation | Beta (1.36) |
-| **Device binding conditions** | The scheduler waits for fabric-attached devices to become ready before binding | Beta (1.35) |
+| **Device binding conditions** | The scheduler waits for fabric-attached devices to become ready before binding | Beta (1.36) |
 
-Of these, **multi-heterogeneous-resource coordination** matters most in practice. Requesting a GPU and a NIC in a single ResourceClaim with a "same PCIe switch / same NUMA node" constraint aligns GPU and NIC placement and eliminates communication bottlenecks in distributed training and inference. This was impossible under the Device Plugin scheme, where the GPU plugin and the SR-IOV plugin were unaware of each other.
+Of these, **multi-heterogeneous-resource coordination** matters most in practice. Requesting a GPU and a NIC in a single ResourceClaim with a "same PCIe switch / same NUMA node" constraint reduces the specified topology mismatch and can relieve GPU/NIC-alignment communication bottlenecks in distributed training and inference (the actual performance gain must be measured per workload, and not every communication bottleneck is eliminated). Under the Device Plugin scheme the kubelet Topology Manager can also align devices node-locally, but because the GPU plugin and the SR-IOV plugin are unaware of each other, this coordination could not be expressed as a scheduler-visible cross-device constraint.
 
 ## Adoption Criteria and Prerequisites
 
@@ -189,7 +189,7 @@ Of these, **multi-heterogeneous-resource coordination** matters most in practice
 | Kubernetes version | 1.34+ (DRA core GA, enabled by default). EKS 1.34/1.35 serves `resource.k8s.io/v1` automatically |
 | Container runtime | CDI support (containerd 1.7+ / CRI-O 1.23+) |
 | DRA driver | Deploy the vendor driver for the target device (GPU: NVIDIA DRA driver, NIC: DraNet, etc.) |
-| Node autoscaling | Karpenter v1.14.0+ (`ignoreDRARequests=false`) or MNG + Cluster Autoscaler — see [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-dra-enablement-parameters-v1140) |
+| Node provisioning | DRA drivers are supported with Karpenter static capacity provisioning, EKS managed node groups, and self-managed nodes (AWS recommendation, K8s 1.34+). DRA is not currently supported with Karpenter dynamically provisioned capacity, and `ignoreDRARequests` only bypasses DRA during scheduling simulation rather than acting as a switch that enables DRA support — see [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-dra-enablement-parameters-v1140) |
 | When using beta features | Enable the relevant feature gates and API groups (EKS control plane is managed, so check supported scope) |
 
 ### Device Plugin vs DRA Decision Criteria
@@ -204,9 +204,9 @@ Of these, **multi-heterogeneous-resource coordination** matters most in practice
 | Aligned placement of heterogeneous devices such as GPU + NIC | DRA (impossible with Device Plugin) |
 | Managing RDMA/Multi-NIC as schedulable resources | DRA + DraNet |
 | Multi-Node NVLink (GB200 NVL72, etc.) | DRA required (ComputeDomain) |
-| Using EKS Auto Mode | DRA currently unavailable — internal Karpenter is below v1.14. See [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#node-provisioning-compatibility) |
+| Using EKS Auto Mode | DRA currently unavailable (per AWS documentation). See [GPU Resource Management](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#node-provisioning-compatibility) |
 
-Migration can proceed incrementally. To avoid the Device Plugin and DRA driver double-advertising the same devices, switch per workload group; for GPUs, the turning point is when you flip GPU Operator's `devicePlugin.enabled=false`.
+Migration can proceed incrementally. However, if the Device Plugin and the DRA driver advertise the same physical devices on the same node, the GPU can be silently oversubscribed, so switching per workload group alone is not sufficient. Separate the node groups, or uninstall/disable the original Device Plugin on a node before enabling its DRA replacement there. For GPUs, flipping GPU Operator's `devicePlugin.enabled=false` is that turning point.
 
 ## Summary
 

@@ -3,7 +3,7 @@ title: Control Plane & Scaling
 description: EKS Control Plane internals, CRD scaling strategies, and multi-cluster high availability architecture
 created: "2026-03-24"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-15
   author: devfloor9
 reading_time: 2
 tags:
@@ -26,13 +26,20 @@ Understand EKS Control Plane internals and learn strategies for stable scaling o
 
 ---
 
-<DocCardGrid columns={2}>
+<DocCardGrid columns={3}>
   <DocCard
     to="/docs/eks-best-practices/control-plane-scaling/eks-control-plane-crd-scaling"
     icon="🎛️"
     title="EKS Control Plane & CRD at Scale"
     description="Control Plane internals, VAS auto-scaling, Provisioned Control Plane, CRD impact analysis, and monitoring strategies"
     color="#4a90d9"
+  />
+  <DocCard
+    to="/docs/eks-best-practices/control-plane-scaling/eks-pcp-tier-sizing-validation"
+    icon="📐"
+    title="PCP Tier Sizing & Validation"
+    description="Detailed PCP tier parameters, the APF seat calculation formula, a 10K-node sizing example, and ClusterLoader2 performance validation methodology"
+    color="#e8710a"
   />
   <DocCard
     to="/docs/eks-best-practices/control-plane-scaling/cross-cluster-object-replication"

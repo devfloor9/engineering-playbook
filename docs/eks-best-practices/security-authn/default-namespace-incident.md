@@ -3,9 +3,9 @@ title: EKS Default Namespace Deletion Incident Response Guide
 description: Root cause analysis, recovery procedures, and prevention strategies for Control Plane access loss caused by deleting the default namespace in an EKS cluster.
 created: "2025-01-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 26
+reading_time: 39
 tags:
   - eks
   - security
@@ -20,15 +20,15 @@ category: security-compliance
 ## 1. Overview (TL;DR)
 
 :::danger Critical Alert
-Deleting the default namespace in an EKS cluster blocks all access to the Control Plane. kubectl commands will not work, and recovery is not possible through Velero or etcd backups. The default namespace is a critical cluster resource that must be protected from deletion. It is strongly recommended to use Admission Controllers or other access control mechanisms to manage it carefully.
+This document assumes the exceptional situation in which the `default` namespace has actually been deleted; it is an incident-response and hypothesis-check guide. In an ordinary cluster, Kubernetes' built-in `NamespaceLifecycle` admission plugin rejects deletion requests for the `default`, `kube-system`, and `kube-public` namespaces, so `kubectl delete ns default` being rejected is the expected behavior under a normal configuration. Therefore, observing a kubectl connection failure does not by itself prove the default namespace was deleted — diagnose network, authentication, and API health first. If deletion did occur in an environment where admission controls were weakened, the in-cluster `kubernetes` Service is deleted along with it, which can remove the **in-cluster** path to the API Server. The external API endpoint that EKS provides to kubectl is managed separately from this in-cluster Service. To prevent recurrence, strongly consider protecting critical resources with an Admission Controller or other access controls.
 :::
 
-- **Root Cause**: Deleting the `default` namespace also deletes the `kubernetes` Service
-- **Impact Scope**: API Server access lost → Complete cluster management failure → Service outage (if prolonged)
-- **Recovery Method**: **Must open an AWS Support case** (Severity: Critical)
+- **Assumed incident**: The `default` namespace is deleted in an environment with weakened admission controls, taking the in-cluster `kubernetes` Service with it
+- **Impact scope (if the incident occurs)**: Loss of the in-cluster components' API Server path → degraded in-cluster management → service impact (if prolonged)
+- **Recovery method**: First confirm the cause with the diagnosis below; open an **AWS Support case** only if an authorized operator cannot recover
 
 :::tip Recovery Summary
-Open a Critical case with AWS Support, and add your Account Team and WWSO Specialist as CC on the ticket for expedited recovery.
+First confirm the cause with the diagnosis procedure below (network, authentication, API health, and whether the namespace was actually deleted). Only if an authorized operator cannot recover using the EKS access API or existing creator permissions, open a case with AWS Support and add your Account Team and WWSO Specialist as CC on the ticket to request recovery.
 :::
 
 ---
@@ -42,7 +42,7 @@ The `default` namespace is not merely a default space for deploying user workloa
 **Critical resources in the default namespace**:
 
 :::warning Caution
-The kubernetes Service is the only path for accessing the API Server from within the cluster. If this Service is deleted, all Kubernetes components lose the ability to communicate with the Control Plane.
+The `kubernetes` Service is the ClusterIP path used to reach the API Server from **within** the cluster. If this Service is deleted, in-cluster clients (for example, components using ServiceAccount tokens) may be unable to reach the Control Plane over the ClusterIP. However, the external API endpoint that EKS provides to kubectl and the AWS CLI is managed separately from this in-cluster Service, so external reachability must be checked independently.
 :::
 
 ### 2.2 Failure Mechanism
@@ -86,23 +86,24 @@ When the API Server endpoint disappears and the state persists, cascading effect
 flowchart TD
     A["kubernetes Service deleted"] --> B["kubelet cannot communicate with API Server"]
     B --> C["Node Lease renewal failure<br/>(kube-node-lease)"]
-    C --> D["After 40 seconds: Node status NotReady"]
-    D --> E["After 5 minutes: Taints automatically added"]
-    E --> F["node.kubernetes.io/not-ready:NoExecute"]
-    E --> G["node.kubernetes.io/unreachable:NoExecute"]
-    F --> H["Pod eviction candidates"]
-    G --> H
+    C --> D["Heartbeat grace elapses (default ~50s; version/config dependent)"]
+    D --> E["Node Ready condition becomes Unknown"]
+    E --> F["Node Controller adds taints<br/>(when API access remains)"]
+    F --> G["node.kubernetes.io/not-ready:NoExecute"]
+    F --> H["node.kubernetes.io/unreachable:NoExecute"]
+    G --> I["Pods become eviction candidates after the default NoExecute toleration (default 300s)"]
+    H --> I
 
     style A fill:#ff6b6b,color:#fff
     style D fill:#ff8c42,color:#fff
-    style E fill:#ff8c42,color:#fff
-    style H fill:#cc0000,color:#fff
+    style F fill:#ff8c42,color:#fff
+    style I fill:#cc0000,color:#fff
 ```
 
 **Node state changes over time**:
 
 :::warning Important
-In this situation, the Control Plane itself is inaccessible, so the Node Controller cannot actually update node states or add taints. As a result, the entire cluster enters a "frozen" state where existing running Pods continue to operate, but new scheduling or state changes are impossible.
+The transitions above describe node-disconnection behavior when the Control Plane's API Server is operating and the Node Controller can update node state. Conversely, if the Control Plane itself is inaccessible or non-operational, the Node Controller cannot update node state or add taints at all, so the taint/eviction transitions above do not occur. In that case, existing running Pods keep operating on their nodes, but new scheduling and state changes are not reflected. Diagnose the two cases separately.
 :::
 
 ### Service Impact in Frozen State
@@ -121,8 +122,8 @@ When the cluster enters a frozen state, **existing workloads continue to operate
 :::danger Particularly Dangerous Scenarios
 
 - Service discovery failure due to DNS cache expiration or TLS certificate expiration causing communication loss
-- If a Pod is OOMKilled or crashes, **restart is impossible**
-- If a node fails, **all workloads on that node are lost**
+- If a Pod is OOMKilled or crashes, the container is **restarted locally** per its restartPolicy as long as the node is healthy and kubelet is running. However, while API access is lost, creating/replacing Pods or rescheduling onto other nodes does not happen
+- If a node fails, **all workloads on that node are lost** (they cannot be rescheduled onto other nodes)
 - ALB/NLB Target Group updates impossible, leading to **traffic routing failures**
 
 The impact scope expands over time, so it is critical to **contact AWS Support as quickly as possible**.
@@ -197,9 +198,17 @@ If the cluster appears ACTIVE in the AWS Console or CLI but kubectl commands do 
 
 ### Step 2: Open AWS Support Case
 
-Failures caused by `default` namespace deletion can **only be recovered through AWS Support**. Open a case immediately.
+If the diagnosis confirms that an authorized operator cannot recover, recovery through AWS Support is required. In that case, open a case immediately.
 
 ### 2-1. Case Information
+
+Prepare the following before opening a case.
+
+- Cluster name, Region, AWS account ID, Kubernetes version
+- Service: Elastic Kubernetes Service (EKS)
+- Category: Cluster Issue
+- Severity: a value matching the demonstrated business impact (the highest severity is available if your subscribed plan supports it)
+- Impact scope, occurrence time, and the diagnosis results already gathered (record them in the 2-2 template below)
 
 ### 2-2. Case Body Template
 
@@ -241,7 +250,7 @@ This is a production environment requiring urgent recovery.
 3. Select **Technical**
 4. Service: Select **Elastic Kubernetes Service (EKS)**
 5. Category: Select **Cluster Issue**
-6. Severity: Select **Critical - Business-critical system down** (only available with Enterprise Support plan)
+6. Severity: Select a severity that matches the demonstrated business impact. The highest severity (e.g., "Business-critical system down") is available with Business Support or higher, Enterprise Support, and Unified Operations plans (plan coverage can change, so verify the current conditions of your subscribed plan). Choose severity by actual impact, not by plan type
 7. Paste the template above into the body
 8. Select **Phone** in Contact options (for faster response)
 9. Click **Submit**
@@ -316,6 +325,14 @@ If you know a WWSO EKS Specialist, contact them directly. Contacting a specialis
 
 ### 3-4. Contact Checklist
 
+Confirm the following items are complete.
+
+- Recorded the Support case ID
+- Contacted the Account Team (Account Manager) with the case ID
+- Contacted a WWSO EKS Specialist if one is known
+- Added the Account Team/Specialist as CC on the case Correspondence
+- Listed an urgently reachable contact in the case
+
 ### Step 4: Post-Recovery Verification
 
 Once the `default` namespace is recovered through AWS Support, verify that the cluster is functioning normally.
@@ -386,6 +403,13 @@ kubectl delete pod test-pod -n default
 ```
 
 **Verification Checklist**:
+
+- Does `kubectl cluster-info` respond normally
+- Is the `default` namespace in Active state
+- Does the `kubernetes` Service (ClusterIP such as 10.100.0.1) exist
+- Are all nodes in Ready state
+- Are the coredns, kube-proxy, and aws-node Pods in kube-system Running
+- Do the `default`, `kube-system`, `kube-public`, and `kube-node-lease` namespaces all exist
 
 ### Step 5: Workload Inspection
 
@@ -465,11 +489,11 @@ kubectl logs <pod-name> -n <namespace> --tail=100
 ### 5-5. Workload Inspection Checklist
 
 :::tip
-Jobs or CronJobs may have failed during the incident period. Manually re-run them if necessary.
+Jobs or CronJobs may not have completed during the incident period. The command below selects Jobs with zero succeeded Pods (including Jobs that are still active or newly created), so do not treat its output as "failed Jobs." Before re-running, check each Job's Failed condition, `status.failed`, and completion status to avoid duplicate work.
 :::
 
 ```bash
-# Check failed Jobs
+# List Jobs with zero succeeded Pods (selects unfinished/zero-success Jobs, not failed Jobs)
 kubectl get jobs --all-namespaces --field-selector status.successful=0
 ```
 
@@ -484,7 +508,7 @@ kubectl get jobs --all-namespaces --field-selector status.successful=0
 Beyond the `default` namespace, there are system namespaces whose deletion would have fatal impacts on the cluster. These namespaces must never be deleted.
 
 :::danger Critical Warning
-Deleting the default and kube-system namespaces makes kubectl access itself impossible, preventing manual recovery. Recovery must be done through AWS Support.
+If the `default` and `kube-system` namespaces are actually deleted, kubectl access becomes difficult and manual recovery is limited. When only access is blocked (e.g., a corrupted aws-auth), try to recover using creator permissions or an EKS access entry; only for namespace deletion that cannot be recovered through these paths is recovery through AWS Support required.
 :::
 
 **Detailed roles of each namespace**:
@@ -515,9 +539,19 @@ The `kube-system` namespace contains essential components for cluster operations
 
 ### EKS Core Add-ons
 
+- CoreDNS: Handles in-cluster DNS name resolution.
+- kube-proxy: Implements Service ClusterIPs as node network rules.
+- Amazon VPC CNI (aws-node): The networking plugin that assigns VPC IPs to Pods.
+
 ### EKS Storage Components
 
+- Amazon EBS CSI Driver: Provisions PersistentVolumes backed by EBS volumes.
+- Amazon EFS CSI Driver: Mounts EFS file systems as PersistentVolumes (when used).
+
 ### Networking and Load Balancing Components
+
+- AWS Load Balancer Controller: Provisions ALB/NLB from Ingress/Service (when installed).
+- CoreDNS, kube-proxy, and VPC CNI together form the networking path alongside the Add-ons above.
 
 :::tip
 Components managed as EKS Add-ons (CoreDNS, kube-proxy, VPC CNI, EBS CSI Driver) can be recovered by reinstalling the Add-on through the AWS Console or CLI.
@@ -527,15 +561,25 @@ Components managed as EKS Add-ons (CoreDNS, kube-proxy, VPC CNI, EBS CSI Driver)
 # Check EKS Add-on status
 aws eks list-addons --cluster-name <cluster-name>
 
-# Add-on reinstallation example (CoreDNS)
+# Before recovery, check whether the add-on resource already exists
+aws eks describe-addon --cluster-name <cluster-name> --addon-name coredns
+
+# Create only when the add-on does not exist (an existing add-on returns ResourceInUseException)
 aws eks create-addon \
+  --cluster-name <cluster-name> \
+  --addon-name coredns
+
+# For an existing add-on, repair/update with update-addon.
+# --resolve-conflicts OVERWRITE resolves configuration conflicts; it does not convert
+# create into update, and it can overwrite existing user configuration, so use with care.
+aws eks update-addon \
   --cluster-name <cluster-name> \
   --addon-name coredns \
   --resolve-conflicts OVERWRITE
 ```
 
 :::warning Caution
-The above recovery method can only be used when the kube-system namespace exists and kubectl access is available. If the namespace itself has been deleted, AWS Support is required.
+The `aws eks` commands above are AWS API calls targeting EKS managed add-ons, so they can run without kubectl access. However, if the `kube-system` namespace where the add-on is deployed has itself been deleted, recovering the add-on alone will not resolve it, and AWS Support is required.
 :::
 
 ### 4.3 Cluster-Scoped Resources
@@ -546,7 +590,7 @@ Cluster-scoped resources that do not belong to any namespace can also affect the
 
 :::warning Particularly Dangerous ClusterRole/ClusterRoleBindings
 
-- `system:node` / `system:node` binding: Deletion causes **all nodes to lose communication with API Server**
+- `system:node` ClusterRole: Kubernetes documents this role as compatibility for pre-1.8 upgrades, and its default binding is None. On modern clusters, node permissions are granted by the **Node authorizer** for the kubelet's node identity (`system:node:<nodeName>`, group `system:nodes`), so deleting this role/binding does not by itself cut off all nodes. Node access depends on the cluster's Node authorizer being enabled and its RBAC configuration
 - `system:kube-controller-manager`: Deletion causes **controller manager to stop operating**
 - `system:kube-scheduler`: Deletion causes **Pod scheduling to stop**
 :::
@@ -636,9 +680,9 @@ Choose based on your team's tech stack and policy complexity. For simple resourc
 
 Adopting GitOps and KRMOps (Kubernetes Resource Model Operations) based operational practices enables declarative management of cluster resources and rapid recovery from unintended changes.
 
-### EKS Auto Mode ArgoCD Capability
+### Managing Critical Resources with Argo CD {#eks-auto-mode-argocd-capability}
 
-EKS Auto Mode provides ArgoCD out of the box, making it easy to start GitOps-based operations.
+You can manage critical resources declaratively with Argo CD. Argo CD can be installed and operated yourself (self-managed) or used as managed Argo CD provided as an EKS Capability that you explicitly enable. EKS Capabilities, including managed Argo CD, are resources you create and enable individually — they are not automatically included when the cluster is created. The self-managed Argo CD example below deploys to the in-cluster target (`https://kubernetes.default.svc`). When using managed Argo CD to deploy to another cluster, use the registered target cluster's ARN as the destination, not `kubernetes.default.svc`.
 
 ```yaml
 # ArgoCD Application example - Critical resource management
@@ -694,9 +738,11 @@ spec:
 **Composite Resource Orchestration with KRO**:
 
 ```yaml
-# KRO ResourceGroup example - Application stack definition
+# KRO ResourceGraphDefinition example (kro.run/v1alpha1) - Application stack definition
+# The following is an abbreviated scaffold showing only key fields; required Deployment/Service
+# fields are omitted, so it is not runnable as-is.
 apiVersion: kro.run/v1alpha1
-kind: ResourceGroup
+kind: ResourceGraphDefinition
 metadata:
   name: web-application
 spec:
@@ -715,12 +761,12 @@ spec:
           name: ${schema.spec.name}
         spec:
           replicas: ${schema.spec.replicas}
-          # ... omitted
+          # ... omitted (selector, template, and other required fields)
     - id: service
       template:
         apiVersion: v1
         kind: Service
-        # ... omitted
+        # ... omitted (selector, ports, and other required fields)
 ```
 
 **Benefits of KRMOps**:
@@ -744,7 +790,7 @@ EKS Access Entry overcomes the limitations of `aws-auth` ConfigMap and provides 
 The existing `aws-auth` ConfigMap approach has the following risks:
 
 :::warning Caution
-If the aws-auth ConfigMap is deleted or corrupted, all IAM-based authentication fails, making cluster access impossible. Recovery also requires AWS Support in this case.
+If the `aws-auth` ConfigMap is deleted or corrupted, authentication fails for the IAM identities mapped by that ConfigMap. However, not every IAM identity loses access. The cluster creator's permissions exist outside the `aws-auth` ConfigMap, and when the caller has the required IAM permissions, the EKS access API (access entries) can restore access without Kubernetes API access. Request recovery from AWS Support only when access cannot be restored through these paths.
 :::
 
 ### Transitioning to EKS Access Entry
@@ -786,17 +832,31 @@ aws eks associate-access-policy \
 
 **Benefits of EKS Access Entry**:
 
+- Manages access through the AWS API, reducing the lockout risk from a corrupted `aws-auth` ConfigMap.
+- Can be managed declaratively with CloudFormation/Terraform and tracked via CloudTrail.
+- Access scope can be limited to a namespace or cluster scope to apply least privilege.
+
 **Pre-defined Access Policies**:
+
+- `AmazonEKSClusterAdminPolicy`: Cluster-wide administrator permissions
+- `AmazonEKSAdminPolicy`: Namespace administrator permissions
+- `AmazonEKSEditPolicy`: Resource create/modify permissions
+- `AmazonEKSViewPolicy`: Read-only permissions
 
 :::tip Recommendations
 
-1. **New clusters**: Use only EKS Access Entry from the start (`--bootstrap-cluster-creator-admin-permissions` option)
+1. **New clusters**: To use only EKS Access Entry from the start, set `authenticationMode=API` within `--access-config` at cluster creation to select API-only access mode. Whether to grant creator admin permissions is decided separately by the `bootstrapClusterCreatorAdminPermissions` field (default `true`) in the same `--access-config`; that field by itself does not change the authentication mode
 2. **Existing clusters**: Gradually migrate to Access Entry, then remove `aws-auth` ConfigMap dependency
 3. **Least privilege principle**: Use namespace-scoped permissions instead of cluster-wide permissions
 4. **Emergency recovery account**: Set up a separate IAM Role with cluster admin permissions via Access Entry to prepare for lockout situations
 :::
 
 **Migration Checklist**:
+
+- Checked the current Authentication Mode and switched to `API_AND_CONFIG_MAP`
+- Created an Access Entry for each mapRoles/mapUsers entry in `aws-auth`
+- Pre-configured a cluster-admin Access Entry on an emergency recovery IAM Role
+- Verified all entries were migrated before finally switching to `API` mode
 
 **References**:
 
@@ -810,7 +870,7 @@ aws eks associate-access-policy \
 ### 6.1 Key Takeaways
 
 :::danger Core Message
-Deleting the default or kube-system namespaces makes kubectl access itself impossible, preventing manual recovery. Recovery is only possible through AWS Support.
+If the `default` or `kube-system` namespaces are actually deleted, taking the in-cluster `kubernetes` Service and system components with them, kubectl access becomes difficult and manual recovery is limited. However, a kubectl access failure does not by itself mean the namespace was deleted, so first diagnose network, authentication, and API health; when only access is blocked (e.g., a corrupted aws-auth), try to recover using creator permissions or an EKS access entry. Only when recovery through these paths is not possible should you request recovery from AWS Support.
 :::
 
 ### 6.2 References
