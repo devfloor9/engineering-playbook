@@ -3,9 +3,9 @@ title: Node Readiness Controller
 description: Review configuration for managing node infrastructure readiness.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 12
+reading_time: 16
 tags:
   - eks
   - kubernetes
@@ -29,7 +29,7 @@ The existing Kubernetes node `Ready` condition provides only a simple binary sta
 **Key benefits:**
 - **Granular node status control**: Manage the readiness of each infrastructure component independently
 - **Automated taint management**: Automatically apply a NoSchedule taint when conditions are not met
-- **Flexible monitoring modes**: Support for bootstrap-only, continuous monitoring, and dry-run modes
+- **Flexible enforcement modes**: Use `enforcementMode` to choose bootstrap-only (`bootstrap-only`) or continuous monitoring (`continuous`), and the separate `dryRun: true` option to validate behavior without applying actual taints
 - **Selective enforcement**: Use nodeSelector to apply rules only to specific node groups
 
 **API information:**
@@ -57,9 +57,9 @@ Checks conditions only during node initialization and stops monitoring once they
 - Verify container image pre-pull completion
 - Wait for the initial security scan to complete
 
-#### Dry-run mode - safe validation {#3-dry-run-모드---안전한-검증}
+#### Dry-run - safe validation {#3-dry-run-모드---안전한-검증}
 
-Simulates rule behavior without applying actual taints. This is useful for validating rules before production deployment.
+Setting the `dryRun: true` option simulates rule behavior without applying actual taints. `dryRun` is a boolean field separate from `enforcementMode`, and the evaluation results are recorded in the rule's `status.dryRunResults`. This is useful for validating rules before production deployment.
 
 **Use cases:**
 - Test new NodeReadinessRules
@@ -79,7 +79,6 @@ apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
   name: network-readiness-rule
-  namespace: kube-system
 spec:
   # Node conditions to check
   conditions:
@@ -88,7 +87,7 @@ spec:
 
   # Taint to apply when conditions are not met
   taint:
-    key: "readiness.k8s.io/acme.com/network-unavailable"
+    key: "readiness.k8s.io/network-unavailable"
     effect: "NoSchedule"
     value: "pending"
 
@@ -107,6 +106,8 @@ spec:
 3. NRC checks the condition and removes the taint
 4. Pod scheduling is enabled (subsequent CNI status changes are ignored)
 
+Because NRC applies the taint after the node is registered (or `Ready`), a short race window exists between the node coming up and the taint being applied, during which Pods can be scheduled. To close this window, register the node with the taint from the start using kubelet `--register-with-taints` and let NRC remove it once the condition is met.
+
 #### Continuous monitoring of GPU nodes {#gpu-노드-continuous-모니터링}
 
 ```yaml
@@ -114,7 +115,6 @@ apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
   name: gpu-driver-readiness
-  namespace: kube-system
 spec:
   conditions:
     - type: "nvidia.com/gpu-driver-ready"
@@ -150,7 +150,6 @@ apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
   name: ebs-csi-readiness
-  namespace: kube-system
 spec:
   conditions:
     - type: "ebs.csi.aws.com/VolumeAttachReady"
@@ -176,7 +175,6 @@ apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
   name: test-custom-condition
-  namespace: kube-system
 spec:
   conditions:
     - type: "example.com/CustomHealthCheck"
@@ -187,8 +185,9 @@ spec:
     effect: "NoSchedule"
     value: "testing"
 
-  # Log actions without applying taints
-  enforcementMode: "dry-run"
+  # Log actions without applying taints (a boolean separate from enforcementMode)
+  dryRun: true
+  enforcementMode: "continuous"
 
   nodeSelector:
     matchLabels:
@@ -208,7 +207,6 @@ apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
   name: vpc-cni-readiness
-  namespace: kube-system
 spec:
   conditions:
     - type: "vpc.amazonaws.com/CNIReady"
@@ -218,6 +216,10 @@ spec:
     effect: "NoSchedule"
     value: "vpc-cni-initializing"
   enforcementMode: "bootstrap-only"
+  # nodeSelector is a required field in the CRD
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker: ""
 ```
 
 **Set the condition in the VPC CNI DaemonSet:**
@@ -237,7 +239,7 @@ initContainers:
     done
 
     # Set the Node Condition
-    kubectl patch node $NODE_NAME --type=json -p='[
+    kubectl patch node $NODE_NAME --subresource=status --type=json -p='[
       {
         "op": "add",
         "path": "/status/conditions/-",
@@ -255,6 +257,17 @@ initContainers:
     valueFrom:
       fieldRef:
         fieldPath: spec.nodeName
+  # Mount the host path that the until loop checks (/host/etc/cni/net.d)
+  volumeMounts:
+  - name: cni-net-dir
+    mountPath: /host/etc/cni/net.d
+    readOnly: true
+# Declare the host-path volume under the DaemonSet spec.template.spec.volumes
+volumes:
+- name: cni-net-dir
+  hostPath:
+    path: /etc/cni/net.d
+    type: Directory
 ```
 
 #### NVIDIA driver readiness on GPU nodes {#2-gpu-노드-nvidia-드라이버-준비}
@@ -268,7 +281,6 @@ apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
   name: nvidia-gpu-readiness
-  namespace: kube-system
 spec:
   conditions:
     - type: "nvidia.com/gpu-driver-ready"
@@ -289,15 +301,16 @@ spec:
 ```go
 // Health check logic in the NVIDIA Device Plugin
 func updateNodeCondition(nodeName string) error {
-    // Check GPU driver status
-    version, err := nvml.SystemGetDriverVersion()
-    if err != nil {
+    // Check GPU driver status (go-nvml returns an nvml.Return code, not an error)
+    version, ret := nvml.SystemGetDriverVersion()
+    if ret != nvml.SUCCESS {
         return setCondition(nodeName, "nvidia.com/gpu-driver-ready", "False")
     }
+    log.Printf("NVIDIA driver version: %s", version)
 
     // Check Device Plugin status
-    devices, err := nvml.DeviceGetCount()
-    if err != nil || devices == 0 {
+    devices, ret := nvml.DeviceGetCount()
+    if ret != nvml.SUCCESS || devices == 0 {
         return setCondition(nodeName, "nvidia.com/gpu-device-plugin-ready", "False")
     }
 
@@ -308,10 +321,12 @@ func updateNodeCondition(nodeName string) error {
 }
 ```
 
+The `nvml.DeviceGetCount()` call above only confirms that the driver can see GPUs. It does not prove that the Kubernetes device plugin has registered with kubelet and is advertising the `nvidia.com/gpu` resource. The `gpu-device-plugin-ready` condition is more accurately judged by whether `nvidia.com/gpu` capacity appears in the node's allocatable (that is, kubelet registration has completed).
+
 #### Node Problem Detector integration {#3-node-problem-detector-통합}
 
 **Problem:**
-Kubernetes does not automatically block Pod scheduling when a node experiences hardware errors, kernel deadlocks, or network issues.
+Kubernetes automatically taints nodes for some conditions to block scheduling. For example, `DiskPressure` applies the `node.kubernetes.io/disk-pressure` taint and `NetworkUnavailable` applies `node.kubernetes.io/network-unavailable`. However, arbitrary custom conditions reported by Node Problem Detector (such as `KernelDeadlock`) are not automatically acted on by Kubernetes, so those conditions must be handled by NRC.
 
 **Solution:**
 ```yaml
@@ -319,7 +334,6 @@ apiVersion: readiness.node.x-k8s.io/v1alpha1
 kind: NodeReadinessRule
 metadata:
   name: node-problem-detector-readiness
-  namespace: kube-system
 spec:
   conditions:
     - type: "KernelDeadlock"
@@ -333,6 +347,10 @@ spec:
     effect: "NoSchedule"
     value: "true"
   enforcementMode: "continuous"
+  # nodeSelector is a required field in the CRD
+  nodeSelector:
+    matchLabels:
+      node-role.kubernetes.io/worker: ""
 ```
 
 ### Workflow diagram {#워크플로우-다이어그램}
@@ -385,7 +403,7 @@ sequenceDiagram
 
 ### Relationship to Pod readiness {#pod-readiness와의-관계}
 
-The Kubernetes readiness mechanism now forms a complete 3-layer structure:
+The Kubernetes readiness mechanism now spans three layers — container, Pod, and node:
 
 **Table 1. Three-layer readiness mechanism: scope, action on failure and use case**
 
@@ -395,7 +413,7 @@ The Kubernetes readiness mechanism now forms a complete 3-layer structure:
 | **2. Pod** | Readiness Gate | External conditions at the Pod level | Remove Service Endpoint | Integrate ALB/NLB health checks |
 | **3. Node** | Node Readiness Controller | Node infrastructure conditions | Block Pod scheduling (taint) | Check CNI, GPU, and storage readiness |
 
-**Integrated scenario - complete traffic safety:**
+**Integrated scenario - layered traffic-safety coverage:**
 
 ```yaml
 apiVersion: apps/v1
@@ -468,30 +486,24 @@ flowchart TD
 #### Install Node Readiness Controller {#1-node-readiness-controller-설치}
 
 ```bash
-# Install with Helm
-helm repo add node-readiness-controller https://node-readiness-controller.sigs.k8s.io
-helm repo update
-
+# Install with Helm (the official chart is published to an OCI registry; requires Helm 3.8+)
 helm install node-readiness-controller \
-  node-readiness-controller/node-readiness-controller \
-  --namespace kube-system \
-  --create-namespace
+  oci://registry.k8s.io/node-readiness-controller/charts/node-readiness-controller \
+  --version <chart-version> \
+  --namespace nrr-system --create-namespace
 
-# Or install with Kustomize
+# Or install from source with Kustomize
 kubectl apply -k https://github.com/kubernetes-sigs/node-readiness-controller/config/default
 ```
 
 #### Verify installation {#2-설치-확인}
 
 ```bash
-# Check controller Pod status
-kubectl get pods -n kube-system -l app=node-readiness-controller
+# Check controller Pod status (the standard deployment namespace is nrr-system)
+kubectl get pods -n nrr-system -l control-plane=controller-manager
 
 # Check the CRD
 kubectl get crd nodereadinessrules.readiness.node.x-k8s.io
-
-# Apply a sample rule
-kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/main/examples/basic-rule.yaml
 
 # List rules
 kubectl get nodereadinessrules -A
@@ -503,8 +515,8 @@ kubectl get nodereadinessrules -A
 # Check conditions on a specific node
 kubectl get node <node-name> -o jsonpath='{.status.conditions}' | jq
 
-# Filter for a specific condition
-kubectl get node <node-name> -o jsonpath='{.status.conditions[?(@.type=="CNIReady")]}' | jq
+# Filter for a specific condition (rules use the qualified type vpc.amazonaws.com/CNIReady)
+kubectl get node <node-name> -o jsonpath='{.status.conditions[?(@.type=="vpc.amazonaws.com/CNIReady")]}' | jq
 
 # Check taints on all nodes
 kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
@@ -515,22 +527,22 @@ kubectl get nodes -o custom-columns=NAME:.metadata.name,TAINTS:.spec.taints
 #### When a taint is not removed {#taint가-제거되지-않는-경우}
 
 ```bash
-# 1. Check NodeReadinessRule events
-kubectl describe nodereadinessrule <rule-name> -n kube-system
+# 1. Check NodeReadinessRule events (NRR is a cluster-scoped resource)
+kubectl describe nodereadinessrule <rule-name>
 
 # 2. Check node condition status
 kubectl get node <node-name> -o yaml | grep -A 10 conditions
 
 # 3. Check controller logs
-kubectl logs -n kube-system -l app=node-readiness-controller --tail=100
+kubectl logs -n nrr-system -l control-plane=controller-manager --tail=100
 
 # 4. Set a condition manually (for testing)
-kubectl patch node <node-name> --type=json -p='[
+kubectl patch node <node-name> --subresource=status --type=json -p='[
   {
     "op": "add",
     "path": "/status/conditions/-",
     "value": {
-      "type": "CNIReady",
+      "type": "vpc.amazonaws.com/CNIReady",
       "status": "True",
       "lastTransitionTime": "'$(date -u +"%Y-%m-%dT%H:%M:%SZ")'",
       "reason": "ManualSet",
@@ -544,17 +556,17 @@ kubectl patch node <node-name> --type=json -p='[
 
 ```bash
 # Change an existing rule to dry-run
-kubectl patch nodereadinessrule <rule-name> -n kube-system \
+kubectl patch nodereadinessrule <rule-name> \
   --type=merge \
-  -p '{"spec":{"enforcementMode":"dry-run"}}'
+  -p '{"spec":{"dryRun":true}}'
 
 # Check behavior in controller logs
-kubectl logs -n kube-system -l app=node-readiness-controller -f | grep "dry-run"
+kubectl logs -n nrr-system -l control-plane=controller-manager -f | grep "dry-run"
 
-# Restore the original mode after testing
-kubectl patch nodereadinessrule <rule-name> -n kube-system \
+# Disable dry-run after testing
+kubectl patch nodereadinessrule <rule-name> \
   --type=merge \
-  -p '{"spec":{"enforcementMode":"continuous"}}'
+  -p '{"spec":{"dryRun":false}}'
 ```
 
 :::info Alpha feature considerations
@@ -572,8 +584,8 @@ Node Readiness Controller is currently at alpha version v0.1.1. Before applying 
 4. **Monitoring and alerts**: Collect taint application/removal events in CloudWatch or Prometheus, and configure alerts for taints that remain in place for a long time.
 :::
 
-:::warning Potential conflicts with PDBs
-When Node Readiness Controller applies a taint, new Pods are not created on that node. If taints are applied to multiple nodes simultaneously and the PodDisruptionBudget is strict, workload placement across the entire cluster may be blocked. Review PDB policies when designing rules.
+:::warning Interaction with PDBs
+When Node Readiness Controller applies a `NoSchedule` taint, new Pods that do not tolerate it are not scheduled onto that node (Pods already running there remain). If taints are applied to many nodes at once, the reduced schedulable capacity can delay Pod placement across the cluster. Separately, a PodDisruptionBudget constrains how many Pods may be disrupted at once during voluntary disruptions (drain, eviction), not initial placement, so a strict PDB slows node replacement and draining. Review both node capacity and PDB policies when designing rules.
 :::
 
 ### References {#참조-자료}

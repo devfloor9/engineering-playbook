@@ -3,9 +3,9 @@ title: 배포 체크리스트와 참고 자료
 description: 배포 전 점검 항목과 전체 참고 자료를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 4
+reading_time: 5
 tags:
   - eks
   - kubernetes
@@ -30,11 +30,11 @@ category: operations
 |------|----------|---------|
 | **Startup Probe** | 시작이 느린 앱(30초+)에 Startup Probe 설정 | 높음 |
 | **Liveness Probe** | 외부 의존성 제외, 내부 상태만 확인 | 필수 |
-| **Readiness Probe** | 외부 의존성 포함, 트래픽 수신 준비 확인 | 필수 |
+| **Readiness Probe** | 트래픽 수신 준비 확인. 외부 의존성은 복제본마다 독립적일 때만 포함(모든 복제본이 공유하는 의존성은 상관 장애를 유발하므로 제외) | 필수 |
 | **Probe 타이밍** | failureThreshold × periodSeconds가 적절한지 확인 | 중간 |
 | **Probe 경로** | `/healthz` (liveness), `/ready` (readiness) 분리 | 높음 |
-| **ALB 헬스체크** | Readiness Probe와 경로 일치 확인 | 높음 |
-| **Pod Readiness Gates** | ALB/NLB 사용 시 활성화 | 중간 |
+| **ALB 헬스체크** | ALB 헬스체크 경로가 유효한 상태 엔드포인트인지 확인(Readiness Probe 경로와 반드시 같을 필요는 없음) | 높음 |
+| **Pod Readiness Gates** | IP 타겟 모드 또는 readiness gate가 주입된 네임스페이스에서 사용 | 중간 |
 
 #### Graceful Shutdown {#graceful-shutdown}
 
@@ -42,7 +42,7 @@ category: operations
 
 | 항목 | 확인 사항 | 우선순위 |
 |------|----------|---------|
-| **preStop Hook** | `sleep 5` 추가로 Endpoint 제거 대기 | 필수 |
+| **preStop Hook** | `sleep`로 Endpoint 전파 대기(예: 5초, EndpointSlice/kube-proxy 갱신 지연에 맞게 조정) | 필수 |
 | **SIGTERM 처리** | 애플리케이션에 SIGTERM 핸들러 구현 | 필수 |
 | **terminationGracePeriodSeconds** | preStop + Shutdown 시간 고려하여 설정 (30-120초) | 필수 |
 | **Connection Draining** | HTTP Keep-Alive, WebSocket 연결 정리 로직 | 높음 |
@@ -67,9 +67,9 @@ category: operations
 
 | 항목 | 확인 사항 | 우선순위 |
 |------|----------|---------|
-| **PodDisruptionBudget** | minAvailable 또는 maxUnavailable 설정 | 필수 |
+| **PodDisruptionBudget** | 다중 복제본 무상태 서비스에 minAvailable 또는 maxUnavailable 설정(단일 복제본·배치·리더 선출 워크로드는 예외) | 필수 |
 | **Topology Spread** | Multi-AZ 분산 설정 | 높음 |
-| **Replica 수** | 최소 2개 이상 (프로덕션 3개+) | 필수 |
+| **Replica 수** | 무상태 HA 서비스는 최소 2개(프로덕션 3개+). 싱글턴·스테이트풀·배치는 해당 안 되며 노드 용량 제약도 고려 | 필수 |
 | **Affinity/Anti-Affinity** | 동일 노드 배치 방지 | 중간 |
 
 ### 관련 문서 {#72-관련-문서}

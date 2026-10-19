@@ -3,7 +3,7 @@ title: Container images and startup time
 description: Review image builds, pre-pulling, and startup time comparisons.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
 reading_time: 5
 tags:
@@ -75,14 +75,23 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Copy only production dependencies
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
+# Copy the application source first, then overwrite with the builder's prod deps.
+# (The .dockerignore below keeps a local node_modules out of the build context.)
 COPY --chown=nodejs:nodejs . .
+# Copy only production dependencies (node_modules fixed from the builder output)
+COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 
 USER nodejs
 
 EXPOSE 8080
 CMD ["node", "server.js"]
+```
+
+To keep a local `node_modules` in the build context from overwriting the builder's production-only dependencies, exclude it with `.dockerignore`.
+
+```text
+# .dockerignore
+node_modules
 ```
 
 **Optimization tips:**
@@ -101,7 +110,7 @@ COPY pom.xml .
 RUN mvn dependency:go-offline
 
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests -Dmaven.jar.finalName=app
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
@@ -110,7 +119,9 @@ RUN addgroup -S spring && adduser -S spring -G spring
 USER spring:spring
 
 WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
+# Copy a single named artifact. The wildcard (`*.jar`) becomes ambiguous and can
+# fail when Maven emits more than one jar (e.g. the plain + repackaged jar).
+COPY --from=builder /app/target/app.jar app.jar
 
 EXPOSE 8080
 ENTRYPOINT ["java", "-Xms512m", "-Xmx1g", "-jar", "app.jar"]
@@ -129,13 +140,24 @@ metadata:
   name: default
 spec:
   amiFamily: AL2
+  # A v1beta1 EC2NodeClass requires subnetSelectorTerms, securityGroupSelectorTerms,
+  # and exactly one of role or instanceProfile.
+  role: "KarpenterNodeRole-cluster"
+  subnetSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "cluster"
+  securityGroupSelectorTerms:
+    - tags:
+        karpenter.sh/discovery: "cluster"
   userData: |
     #!/bin/bash
     # Pre-pull frequently used images
-    docker pull myapp/backend:v2.1.0
-    docker pull myapp/frontend:v1.5.3
-    docker pull redis:7-alpine
-    docker pull postgres:16-alpine
+    # EKS-optimized AMIs run containerd, not Docker, so docker is not present.
+    # Use containerd's ctr (or crictl) to pull images.
+    ctr -n k8s.io images pull docker.io/myapp/backend:v2.1.0
+    ctr -n k8s.io images pull docker.io/myapp/frontend:v1.5.3
+    ctr -n k8s.io images pull docker.io/library/redis:7-alpine
+    ctr -n k8s.io images pull docker.io/library/postgres:16-alpine
 ```
 
 #### Image Pre-Pulling with a DaemonSet {#daemonset으로-이미지-프리풀}
@@ -157,12 +179,13 @@ spec:
     spec:
       initContainers:
       # Add an init container for each image to pre-pull
+      # scratch/distroless images have no shell (sh), so do not set a command.
+      # The image being pulled onto the node is itself the pre-pull; the init
+      # container completes immediately via the image's default ENTRYPOINT.
       - name: prepull-backend
         image: myapp/backend:v2.1.0
-        command: ["sh", "-c", "echo 'Image pulled'"]
       - name: prepull-frontend
         image: myapp/frontend:v1.5.3
-        command: ["sh", "-c", "echo 'Image pulled'"]
       containers:
       - name: pause
         image: registry.k8s.io/pause:3.9

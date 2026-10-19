@@ -3,9 +3,9 @@ title: 노드 레벨 디버깅
 description: EKS 노드 문제 진단 및 해결 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 11
 tags:
   - eks
   - kubernetes
@@ -32,7 +32,7 @@ import { NodeGroupErrorTable } from '@site/src/components/EksDebugTables';
 5. **VPC DNS 설정 문제** — `enableDnsHostnames`, `enableDnsSupport`가 비활성화됨
 6. **STS 리전 엔드포인트가 비활성화됨** — IAM 인증 시 STS 호출 실패
 7. **인스턴스 프로파일 ARN을 노드 IAM Role ARN 대신 aws-auth에 등록** — aws-auth에는 Role ARN만 등록해야 함
-8. **`eks:kubernetes.io/cluster-name` 태그 누락** (자체관리형 노드) — EKS가 노드를 클러스터 소속으로 인식하지 못함
+8. **`kubernetes.io/cluster/<cluster-name> = owned` 태그 누락** (자체관리형 노드) — EKS가 노드를 클러스터 소속으로 인식하지 못함
 
 **진단 명령어:**
 
@@ -124,7 +124,7 @@ crictl logs <container-id>
 ```
 
 :::info SSM 접속 사전 요구사항
-SSM 접속을 위해서는 노드의 IAM Role에 `AmazonSSMManagedInstanceCore` 정책이 연결되어 있어야 합니다. EKS 관리형 노드 그룹에서는 기본 포함되지만, 커스텀 AMI를 사용하는 경우 SSM Agent 설치를 확인하세요.
+SSM 접속은 선택 사항이며, 사용하려면 노드의 IAM Role에 `AmazonSSMManagedInstanceCore` 정책(또는 동등한 권한)을 직접 연결해야 합니다. 이 정책은 EKS 관리형 노드 그룹에 기본 포함되지 않습니다. EKS 노드 역할에 필수인 정책은 `AmazonEKSWorkerNodePolicy`와 `AmazonEC2ContainerRegistryPullOnly`입니다. 커스텀 AMI를 사용하는 경우 SSM Agent 설치도 확인하세요.
 :::
 
 ## 리소스 압박 진단 및 해결
@@ -136,11 +136,11 @@ kubectl describe node <node-name>
 
 **표 1. 리소스 압박 Condition별 임계값·진단 명령어·해결 방법**
 
-| Condition | 임계값 | 진단 명령어 | 해결 방법 |
+| Condition | 기본 임계값 (kubelet hard eviction) | 진단 명령어 | 해결 방법 |
 |-----------|--------|-----------|----------|
-| **DiskPressure** | 사용 가능 디스크 < 10% | `df -h` (SSM 접속 후) | `crictl rmi --prune` 으로 미사용 이미지 정리, `crictl rm` 으로 중지된 컨테이너 삭제 |
-| **MemoryPressure** | 사용 가능 메모리 < 100Mi | `free -m` (SSM 접속 후) | 저우선순위 Pod 축출, 메모리 requests/limits 조정, 노드 교체 |
-| **PIDPressure** | 사용 가능 PID < 5% | `ps aux \| wc -l` (SSM 접속 후) | `kernel.pid_max` 증가, PID leak 원인 컨테이너 식별 및 재시작 |
+| **DiskPressure** | `nodefs.available` < 10%, `imagefs.available` < 15% (각 `inodesFree` < 5%) | `df -h`·`df -i` 로 디스크/inode 확인, `du -sh /var/lib/*` 로 사용처 식별 (SSM 접속 후) | 무엇이 디스크를 차지하는지(이미지, 컨테이너 로그, 쓰기 레이어, inode) 먼저 확인한 뒤, 이미지가 원인이면 `crictl rmi --prune`, 중지된 컨테이너가 원인이면 `crictl rm` |
+| **MemoryPressure** | `memory.available` < 100Mi | `free -m` (SSM 접속 후) | 저우선순위 Pod 축출, 메모리 requests/limits 조정, 노드 교체 |
+| **PIDPressure** | kubelet 기본 백분율 임계값 없음 (`pid.available` 미설정 시 비활성, 아래 5%는 예시 설정값) | `ps aux \| wc -l` (SSM 접속 후) | `kernel.pid_max` 증가, PID leak 원인 컨테이너 식별 및 재시작 |
 
 ## Karpenter 노드 프로비저닝 디버깅
 
@@ -164,7 +164,7 @@ kubectl describe ec2nodeclass <nodeclass-name>
 ```
 
 :::warning Karpenter v1 API 변경사항
-Karpenter v1.0(v1 API)부터 `Provisioner` → `NodePool`, `AWSNodeTemplate` → `EC2NodeClass`로 변경되었습니다(최신 v1.13+). 기존 v0.x 설정을 사용 중이라면 마이그레이션이 필요합니다. API 그룹도 `karpenter.sh/v1`로 업데이트하세요.
+`Provisioner` → `NodePool`, `AWSNodeTemplate` → `EC2NodeClass` 리소스 이름 변경은 Karpenter v0.32(베타)에서 `v1beta1` API로 처음 도입되었고, v1.0에서 안정 버전인 `karpenter.sh/v1` API로 승격되었습니다. 기존 v0.x의 알파 API(`Provisioner`, `AWSNodeTemplate`) 설정을 사용 중이라면 마이그레이션이 필요합니다. API 그룹도 `karpenter.sh/v1`로 업데이트하세요.
 :::
 
 ## Managed Node Group 에러 코드
@@ -274,7 +274,7 @@ Node Readiness Controller는 **커스텀 taint를 선언적으로 관리**하여
 ```mermaid
 flowchart LR
     A[노드 프로비저닝] --> B[kubelet Ready]
-    B --> C[커스텀 Taint 부여<br/>node.readiness/gpu=NotReady:NoSchedule<br/>node.readiness/cni=NotReady:NoSchedule]
+    B --> C[커스텀 Taint 부여<br/>readiness.k8s.io/gpu-not-ready=NotReady:NoSchedule<br/>readiness.k8s.io/network-not-ready=NotReady:NoSchedule]
     C --> D{헬스 시그널 확인}
     D -->|GPU 준비 완료| E[GPU Taint 제거]
     D -->|CNI 준비 완료| F[CNI Taint 제거]
@@ -284,6 +284,10 @@ flowchart LR
     G -->|No| D
 ```
 
+:::warning 부트스트랩 스케줄링 레이스
+위 흐름처럼 `kubelet Ready` 이후에 Taint를 부여하면, 노드가 Ready가 된 시점과 Taint가 적용되는 시점 사이에 Pod이 스케줄될 수 있는 짧은 창이 생깁니다. 이 레이스를 없애려면 kubelet의 `--register-with-taints`로 노드 등록 시점부터 Taint를 걸어 두고 조건이 충족되면 컨트롤러가 제거하도록 하거나, Pod 측 `schedulingGates`로 스케줄링을 함께 보류하세요.
+:::
+
 ### 디버깅 체크리스트
 
 노드가 `Ready`인데 Pod가 스케줄링되지 않는 경우:
@@ -292,11 +296,11 @@ flowchart LR
 # 1. 노드의 커스텀 readiness taint 확인
 kubectl get node <node-name> -o jsonpath='{.spec.taints}' | jq .
 
-# 2. node.readiness 관련 taint 필터링
+# 2. readiness.k8s.io 관련 taint 필터링
 kubectl get nodes -o json | jq '
   .items[] |
-  select(.spec.taints // [] | any(.key | startswith("node.readiness"))) |
-  {name: .metadata.name, taints: [.spec.taints[] | select(.key | startswith("node.readiness"))]}
+  select(.spec.taints // [] | any(.key | startswith("readiness.k8s.io/"))) |
+  {name: .metadata.name, taints: [.spec.taints[] | select(.key | startswith("readiness.k8s.io/"))]}
 '
 
 # 3. Pod의 tolerations와 노드 taint 불일치 확인
@@ -331,7 +335,7 @@ kubectl get pods -o json | jq '
 
 ### 관련 기능: Pod Readiness Gates (AWS LB Controller)
 
-AWS Load Balancer Controller는 `elbv2.k8s.aws/pod-readiness-gate-inject` 어노테이션을 통해 Pod가 ALB/NLB 타겟 등록이 완료될 때까지 `Ready` 상태 전환을 지연시킵니다:
+AWS Load Balancer Controller는 네임스페이스에 `elbv2.k8s.aws/pod-readiness-gate-inject=enabled` 라벨을 지정하면 해당 네임스페이스의 Pod에 readiness gate를 주입합니다. 이 gate는 ALB/NLB 타겟이 등록을 넘어 `Healthy` 상태가 될 때까지 Pod의 `Ready` 상태 전환을 지연시킵니다:
 
 ```bash
 # Readiness Gate 상태 확인
@@ -356,7 +360,7 @@ kubectl get namespace <ns> -o jsonpath='{.metadata.labels.elbv2\.k8s\.aws/pod-re
 
 ## eks-node-viewer 사용법
 
-[eks-node-viewer](https://github.com/awslabs/eks-node-viewer)는 노드의 리소스 사용률을 터미널에서 실시간으로 시각화하는 도구입니다.
+[eks-node-viewer](https://github.com/awslabs/eks-node-viewer)는 노드에 스케줄된 Pod의 리소스 요청량(request)을 노드의 할당 가능 용량(allocatable) 및 비용과 함께 터미널에서 시각화하는 도구입니다. 실제 리소스 사용률(utilization)이 아니라 요청 대비 용량을 보여줍니다.
 
 ```bash
 # 기본 사용 (CPU 기준)

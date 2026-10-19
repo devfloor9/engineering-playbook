@@ -3,9 +3,9 @@ title: Probe antipatterns
 description: Examine unnecessary restarts and incorrect health check configurations.
 created: "2026-02-12"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 3
+reading_time: 4
 tags:
   - eks
   - kubernetes
@@ -66,7 +66,7 @@ livenessProbe:
 
 **Consequences:**
 - Even if the application starts in 30 seconds, it has no health checks for another 90 seconds.
-- A crash during startup can remain undetected for up to 2 minutes.
+- If the process exits outright (a crash), the kubelet restarts the container regardless of the liveness initialDelay; only a process that hangs without exiting goes undetected for up to 2 minutes until the initialDelay elapses.
 
 **Correct configuration:**
 
@@ -88,7 +88,7 @@ livenessProbe:
   periodSeconds: 10
 ```
 
-### Antipattern 3: Using the Same Endpoint for Liveness and Readiness {#-안티패턴-3-liveness와-readiness에-같은-엔드포인트}
+### Antipattern 3: Sharing an Endpoint That Checks External Dependencies for Liveness and Readiness {#-안티패턴-3-liveness와-readiness에-같은-엔드포인트}
 
 **Problem:**
 
@@ -106,7 +106,7 @@ readinessProbe:
 
 **Consequences:**
 - If `/health` checks external dependencies, Liveness failures cause unnecessary restarts.
-- Unclear separation of responsibilities makes debugging difficult.
+- Sharing an endpoint that checks only internal health is fine, but the unclear separation of responsibilities makes debugging difficult.
 
 **Correct configuration:**
 
@@ -147,7 +147,7 @@ livenessProbe:
     path: /healthz
     port: 8080
   periodSeconds: 10
-  failureThreshold: 3  # Restart after 30 seconds (3 x 10s)
+  failureThreshold: 3  # Detect failure after ~30s (3 x 10s) of consecutive failures, then restart
   timeoutSeconds: 5
 ```
 
@@ -165,8 +165,7 @@ livenessProbe:
 ```
 
 **Consequences:**
-- The probe blocks for 30 seconds, delaying the next probe execution.
-- Failure detection becomes slower.
+- A healthy probe returns quickly, but a slow or hung target can take up to 30 seconds to time out, slowing failure detection by that much.
 
 **Correct configuration:**
 
