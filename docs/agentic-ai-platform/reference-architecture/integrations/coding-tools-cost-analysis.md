@@ -3,9 +3,9 @@ title: Coding Tool Integration & Cost Analysis
 description: Aider, Cline, Continue.dev integration + Bedrock vs Kiro vs self-hosting cost comparison
 created: "2026-04-06"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 28
+reading_time: 33
 tags:
   - aider
   - cline
@@ -55,10 +55,14 @@ Using an **LLM Classifier**, all clients connect to a **single endpoint**, and S
 | **Cursor** | Supported | No `/` needed in model name — use `auto` |
 
 :::tip Compatibility Improvement over Bifrost
-The `provider/model` format (`openai/glm-5`) and Aider double-prefix trick (`openai/openai/glm-5`) required when routing through Bifrost are **completely unnecessary**. Cursor can also be used without model name `/` restrictions.
+With the LLM Classifier, the `provider/model` format (`openai/glm-5`) and the Aider double-prefix trick (`openai/openai/glm-5`) commonly used when routing through Bifrost are **unnecessary**. Bifrost can also accept short names once a static model alias is configured, so this is not an absolute product restriction but a case where the LLM Classifier's default behavior is simpler.
 :::
 
 ### 2.2 Aider Connection Example
+
+:::warning Endpoint Security Boundary
+The `http://<NLB>/v1` plus `API Key: dummy` in the examples below assume an isolated local or private-network test setup. Self-hosting alone does not isolate your code. In production, use HTTPS with the gateway's real authentication and restrict reachability to authorized networks. In particular, tools such as Cursor that reach the endpoint externally through their own backend must not expose a plaintext HTTP endpoint with a dummy key.
+:::
 
 [Aider](https://aider.chat) is an open-source CLI tool supporting Git-aware code editing + auto-commit.
 
@@ -85,7 +89,7 @@ When requesting with `model: "auto"`, the LLM Classifier analyzes prompt content
 
 ### 2.3 Continue.dev Configuration Example
 
-Continue.dev is an AI coding assistant for VSCode/JetBrains.
+Continue.dev is an AI coding assistant for VSCode/JetBrains. The block below is the legacy `config.json` format. Recent Continue uses the `config.yaml` format, so verify which format your Continue version supports in its documentation before applying. This does not mean the legacy block is intrinsically invalid; it works on the versions that support it.
 
 ```json
 {
@@ -121,11 +125,11 @@ Settings -> API Provider -> OpenAI Compatible
 | Item | **LLM Classifier (Recommended)** | **Bifrost** |
 |------|--------------------------------|------------|
 | **Suitable for** | Self-hosted vLLM cascade | External provider integration (OpenAI/Anthropic) |
-| **Model name format** | `auto` (arbitrary value OK) | `provider/model` required |
-| **Prompt analysis** | Supported (direct body access) | Not supported (CEL can only access headers) |
-| **Multi-backend** | Supported (WEAK/STRONG URL separation) | Not supported (single base_url per provider) |
-| **Aider compatible** | Supported (no tricks needed) | Conditional (double-prefix required) |
-| **Cursor compatible** | Supported | Not supported (slash not allowed) |
+| **Model name format** | `auto` (arbitrary value OK) | Defaults to `provider/model`, but a static model alias can map a short name to `provider/model` |
+| **Prompt analysis** | Supported (direct body access) | Conditional (CEL cannot read the raw body, but the Complexity Router exposes `complexity_tier` for prompt-based routing) |
+| **Multi-backend** | Supported (WEAK/STRONG URL separation) | Conditional (multiple custom-provider instances supported, each with its own base_url) |
+| **Aider compatible** | Supported (no tricks needed) | Conditional (double-prefix may be needed without an alias) |
+| **Cursor compatible** | Supported | Conditional (an alias avoids the slash, but Cursor routes through its backend, so it needs a publicly reachable endpoint) |
 | **Image size** | ~50MB | ~100MB |
 
 :::info When to Use Bifrost
@@ -359,7 +363,7 @@ These stages describe work order, not measured delivery times. Set milestones an
 
 ### Phase 2: Cost Optimization {#phase-2-cost-optimization-1-week}
 - [ ] Deploy SLM (g6.xlarge)
-- [ ] Configure Bifrost Cascade
+- [ ] Configure LLM Classifier cascade routing (per Section 3; the LLM Classifier owns the self-hosted cascade)
 - [ ] Enable Semantic Caching
 
 ### Phase 3: Domain Specialization {#phase-3-domain-specialization-2-4-weeks}

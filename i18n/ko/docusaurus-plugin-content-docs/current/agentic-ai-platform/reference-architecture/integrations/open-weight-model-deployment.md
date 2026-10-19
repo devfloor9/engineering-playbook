@@ -3,9 +3,9 @@ title: 오픈웨이트 모델 배포 가이드
 description: 토큰 이코노믹스와 데이터 주권 관점에서 오픈웨이트 LLM 자체 배포를 평가하고 결정하기 위한 고객용 의사결정 가이드
 created: "2026-06-26"
 last_update:
-  date: "2026-06-28"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 14
 tags:
   - open-weight
   - token-economics
@@ -55,20 +55,20 @@ sidebar_label: 오픈웨이트 모델 배포
 
 | 구분 | 상용 API | 자체 배포(EKS + vLLM) |
 |------|----------|----------------------|
-| 비용 모델 | 토큰당 종량제(per-token) | GPU 시간당 고정비 |
-| 볼륨 민감도 | 사용량에 선형 비례 | 볼륨 무관(용량 한도 내) |
-| 초기 비용 | 없음 | GPU·운영 셋업 |
-| 한계 비용 | 요청마다 발생 | 0에 수렴(용량 내) |
+| 비용 모델 | 토큰당 종량제(per-token) | GPU 시간당 고정비 + 요청당 변동비 |
+| 볼륨 민감도 | 사용량에 선형 비례 | 용량 한도 내에서는 고정비가 지배, 노드 증설 구간마다 재계산 |
+| 초기 비용 | 서비스 설정·연동 비용 | GPU·운영 셋업 |
+| 한계 비용 | 요청마다 발생 | 용량 내에서는 낮으나 0은 아님(전력·운영·변동비 포함) |
 
-상용 API는 저볼륨에서 유리하고, 자체 배포는 일정 볼륨을 넘으면 토큰당 실효 단가가 낮아집니다. 교차점이 손익분기입니다.
+상용 API는 저볼륨에서 유리한 경우가 많고, 자체 배포는 일정 볼륨을 넘으면 토큰당 실효 단가가 낮아질 수 있습니다. 교차점이 존재할 때 그 지점이 손익분기이며, 단가·품질·용량·변동비 조건에 따라 교차점이 없을 수도 있습니다.
 
 ### 손익분기 분석
 
-손익분기의 상세 시뮬레이션(월 요청량별 비용표, Cascade·Spot 절감 효과)은 [코딩 도구 비용 분석](./coding-tools-cost-analysis.md)에 정리되어 있습니다. 핵심 기준선만 요약하면 다음과 같습니다.
+손익분기의 상세 시뮬레이션(월 요청량별 비용표, Cascade·Spot 절감 효과)은 [코딩 도구 비용 분석](./coding-tools-cost-analysis.md)에 정리되어 있습니다. 그 분석의 손익분기 수치는 특정 단가·고정비를 가정한 예시이며, 모든 상황에 적용되는 보편적 교차점이 아닙니다. 핵심 기준선만 요약하면 다음과 같습니다.
 
-- 상용 API 대비 자체 배포 24/7 운영의 손익분기는 월 수백만 요청 규모에서 형성됩니다.
-- Cascade Routing(단순 요청은 SLM, 복잡 요청만 대형 모델)을 적용하면 손익분기 볼륨이 크게 낮아집니다.
-- 업무시간(8시간/일)만 운영하거나 Spot 인스턴스를 쓰면 고정비 자체가 내려갑니다.
+- 연결된 예시의 가정에서는 상용 API 대비 자체 배포 24/7 운영의 손익분기가 월 수백만 요청 규모에서 형성됩니다. 실제 교차점은 단가·품질·용량·변동비에 따라 달라지며, 교차점이 존재하지 않을 수도 있습니다.
+- Cascade Routing(단순 요청은 SLM, 복잡 요청만 대형 모델)은 품질·지연이 동등하게 유지될 때 손익분기 볼륨을 낮출 수 있습니다. 다만 두 모델 풀을 각각 상시 운영하는 고정비 구조에서는 오히려 지출이 늘 수 있으므로 실제 노드시간으로 검증합니다.
+- 업무시간(8시간/일)만 운영하거나 Spot 인스턴스를 쓰면 고정비 자체가 내려갈 수 있으나, 모델 적재 시간·예비 용량·비업무시간 서비스 요구를 함께 반영합니다.
 
 오픈웨이트 모델 일반에 이 로직을 적용할 때 변수는 **모델 처리량**과 **GPU 요구량**입니다. 같은 GPU 예산에서 처리량이 높을수록 토큰당 단가가 낮아집니다.
 
@@ -89,7 +89,7 @@ AIDLC 관점의 TCO 산정 프레임은 [엔터프라이즈 비용 추정](../..
 - **양자화(Quantization)**: FP8·INT4 가중치는 필요한 GPU 메모리와 GPU 수를 줄입니다. 다만 품질 손실 가능성이 있어 워크로드별 검증이 필요합니다. 공식 체크포인트와 커뮤니티 양자화본의 신뢰성은 구분해야 합니다(아래 주의 참조).
 - **vLLM 엔진 튜닝**: PagedAttention, FP8 KV cache, prefix caching, chunked prefill, Multi-Token Prediction(MTP) 기반 speculative decoding이 처리량을 높입니다. `--gpu-memory-utilization`, `--max-num-batched-tokens`, `--max-num-seqs`, `--max-model-len`은 동시성과 메모리 사용을 조정하는 핵심 플래그입니다. 개념 상세는 [vLLM 모델 서빙](../../model-serving/inference-frameworks/vllm-model-serving.md)을 참조합니다.
 - **로컬 NVMe 스토리지**: 인스턴스 스토어(NVMe SSD)를 모델 캐시로 쓰면 콜드 스타트와 KV 오프로드가 빨라집니다. 노드 프로비저닝 방식에 따라 사용 가능 여부가 갈립니다(아래 인프라 항목).
-- **EFA(Elastic Fabric Adapter)**: 멀티노드 분산 추론에서 노드 간 KV 전송 대역폭을 결정합니다. 단일노드 추론에는 영향이 없습니다(노드 내부는 NVLink/NVSwitch 사용).
+- **EFA(Elastic Fabric Adapter)**: 텐서·파이프라인 병렬(TP/PP) 분산 추론에서 노드 간 collective·activation·KV 전송 등 모든 노드 간 통신을 담당합니다. 물리 대역폭만으로 end-to-end KV 전송 성능이 결정되는 것은 아니며, 엔진·토폴로지·스케줄링이 함께 작용합니다. 단일노드 추론에서는 노드 내부 인터커넥트가 성능을 좌우하는데, NVLink/NVSwitch 탑재 여부는 선택한 인스턴스에 따라 다르므로 모든 단일 노드가 이를 갖춘다고 가정하지 않습니다.
 
 :::caution 커뮤니티 양자화본 검증
 HuggingFace에는 서드파티가 올린 양자화 체크포인트가 다수 존재합니다. 출처·캘리브레이션·라이선스를 확인하지 않은 가중치를 프로덕션에 사용하면 품질·보안 리스크가 있습니다. 가능하면 모델 제공자의 공식 양자화본을 우선 사용하고, 커뮤니티 양자화본은 자체 평가 후 채택합니다.
@@ -108,19 +108,19 @@ HuggingFace에는 서드파티가 올린 양자화 체크포인트가 다수 존
 | 주권 수준 | 추론 위치 | 권장 접근 |
 |----------|----------|----------|
 | Public | 리전 제약 없음 | 상용 API / AWS Native |
-| In-country | 국내 리전 고정 | 리전 강제 + in-region 자체 배포 |
+| In-country | 국내 리전 고정 | 리전 강제 + in-region 매니지드 서비스(예: 리전 내 처리를 지원하는 Bedrock) 또는 in-region 자체 배포 |
 | Hybrid | 온프레미스 + in-country | EKS Hybrid Nodes + 자체 배포 |
-| Air-gapped | 완전 격리 | 온프레미스 EKS 전용 |
+| Air-gapped | 완전 격리(연결 차단) | EKS Anywhere 등 연결 차단 환경을 지원하는 Kubernetes 배포판 + 의존성 미러링 (매니지드 EKS/Hybrid Nodes는 AWS 컨트롤 플레인 연결이 필요하므로 air-gapped가 아님) |
 
-요구 강도가 높을수록 매니지드 의존도는 낮아지고 자체 배포·온프레미스 비중이 커집니다. SCP 리전 강제와 EKS Hybrid Nodes 구현은 [소버린 & 하이브리드 배포](../../design-architecture/platform-selection/sovereign-hybrid-deployment.md)를 참조합니다.
+요구 강도가 높을수록 매니지드 의존도는 낮아지고 자체 배포·온프레미스 비중이 커집니다. 다만 "국내 리전 고정" 같은 리전 레지던시 요구는 고객이 직접 인프라를 운영해야 한다는 뜻과 구분해야 합니다. 적용되는 법적·계약적 통제 요건을 먼저 확인하고, 그 요건을 리전 내 매니지드 서비스가 충족한다면(예: 리전 내 처리를 지원하는 Bedrock) 자체 배포 없이도 조건을 만족할 수 있습니다. SCP 리전 강제와 EKS Hybrid Nodes 구현은 [소버린 & 하이브리드 배포](../../design-architecture/platform-selection/sovereign-hybrid-deployment.md)를 참조합니다.
 
-### 자체 배포가 보장하는 것
+### 자체 배포로 통제할 수 있는 것 {#자체-배포가-보장하는-것}
 
-오픈웨이트 모델의 자체 배포는 주권 요구에 다음을 제공합니다.
+오픈웨이트 모델의 자체 배포는 주권 요구를 자동으로 "보장"하지 않습니다. 배포 위치만으로 외부 경로가 사라지는 것은 아니며, 아키텍처에는 여전히 외부 클라이언트, 관측 시스템, 임베딩·판정기·fallback, 설정된 모델 접근 경로가 남을 수 있습니다. 따라서 다음을 구현하고 검증해야 할 통제 항목으로 다룹니다.
 
-- **데이터·추론의 경계 내 처리**: 프롬프트·출력·임베딩이 통제된 VPC와 리전을 벗어나지 않습니다.
-- **외부 미전송**: 추론 트래픽이 외부 모델 제공자로 나가지 않으므로, 데이터 반출 경로 자체가 제거됩니다.
-- **감사 가능성**: 추론 트레이스·접근 로그를 자체 시스템에 보관해 감사 요구에 대응합니다.
+- **데이터·추론의 경계 내 처리(통제)**: 프롬프트·출력·임베딩의 end-to-end 데이터 경로를 그려 통제된 VPC·리전을 벗어나는 지점이 없는지 확인합니다.
+- **외부 경로 차단(통제)**: egress 정책·인증·네트워크 경계를 설정해 추론 트래픽이 외부로 나가지 않도록 하고, 관측·fallback·외부 모델 접근 경로를 명시적으로 점검합니다.
+- **감사 가능성(통제)**: 추론 트레이스·접근 로그를 자체 시스템에 보관하고, 실제 배포에서 경계가 지켜지는지 증거로 확인합니다.
 
 ### 한국 규제 적용
 
@@ -197,8 +197,8 @@ flowchart LR
 GPU 노드 프로비저닝 방식은 성능 최적화 가능 범위를 좌우합니다. 다음은 1차 출처로 확인된 제약입니다.
 
 - **로컬 NVMe**: EKS Auto Mode는 인스턴스 스토어를 파드 볼륨으로 노출하는 CSI 드라이버를 지원하지 않으며, NodeClass의 `ephemeralStorage`는 EBS 볼륨을 구성합니다. 표준 Karpenter `EC2NodeClass`는 `instanceStorePolicy: RAID0`로 로컬 NVMe를 RAID0 구성할 수 있습니다([EKS Auto Mode NodeClass](https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html)).
-- **EFA**: EKS Auto Mode는 EFA device plugin을 지원하지만, per-device `efa-only` 인터페이스 구성은 작성 시점 기준 미지원입니다. 최대 대역폭 구성은 표준 Karpenter `EC2NodeClass`의 `networkInterfaces`(Karpenter v1.11+)로만 가능합니다. p5.48xlarge·p5en.48xlarge는 32개 네트워크 카드와 3,200 Gbps를 지원합니다([Manage EFA devices on Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html), [Maximize network bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html)).
-- **결론**: 단일노드 추론은 EKS Auto Mode로 충분합니다. 로컬 NVMe와 EFA 최대 대역폭을 활용하는 고성능 멀티노드 배포는 표준 Karpenter 노드풀이 필요합니다.
+- **EFA**: EKS Auto Mode는 EFA device plugin과 함께 NodeClass의 `advancedNetworking.networkInterfaces`로 `interfaceType: efa-only` 인터페이스를 정적으로 구성하는 것을 지원합니다. 표준 Karpenter `EC2NodeClass`의 `networkInterfaces`(Karpenter v1.11+)와 관리형·자체 관리 노드의 launch template 경로도 EFA 구성을 지원하므로, 최대 대역폭 구성이 표준 Karpenter로만 가능하다는 전제는 현재 기준으로는 성립하지 않습니다. 네트워크 카드 수는 인스턴스마다 다릅니다. p5.48xlarge는 32개, p5en.48xlarge는 16개의 네트워크 카드를 지원하며, 두 인스턴스 모두 집계 네트워크 대역폭은 3,200 Gbps입니다([Static Network Interface Configuration](https://docs.aws.amazon.com/eks/latest/userguide/create-node-class.html), [Manage EFA devices on Amazon EKS](https://docs.aws.amazon.com/eks/latest/userguide/device-management-efa.html), [Maximize network bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-acc-inst-types.html)).
+- **결론**: 단일노드 추론은 EKS Auto Mode로 충분합니다. EFA 기반 멀티노드 분산 추론은 Auto Mode의 `advancedNetworking.networkInterfaces`(efa-only)로 구성할 수 있습니다. 다만 로컬 NVMe 인스턴스 스토어를 파드 볼륨으로 노출하는 구성은 Auto Mode가 지원하지 않으므로, 이 요구가 있으면 표준 Karpenter 노드풀을 사용합니다.
 
 :::info GPU 인스턴스 가격
 p5en.48xlarge(8×H200, 1,128 GiB GPU 메모리, EFAv3 3,200 Gbps)는 도쿄(ap-northeast-1) 리전에 제공됩니다([AWS News](https://aws.amazon.com/blogs/aws/new-amazon-ec2-p5en-instances-with-nvidia-h200-tensor-core-gpus-and-efav3-networking/)). On-Demand 단가는 us-east-1 약 $63/hr, 도쿄 약 $79/hr 수준으로 집계됩니다. 가격은 수시 변동하므로 실제 값은 [AWS 공식 가격 페이지](https://aws.amazon.com/ec2/instance-types/p5/)에서 확인해야 합니다.
