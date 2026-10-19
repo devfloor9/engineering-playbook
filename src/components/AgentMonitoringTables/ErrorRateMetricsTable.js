@@ -8,19 +8,19 @@ const ErrorRateMetricsTable = () => {
   const metrics = [{
     metric: 'agent_errors_total',
     description: isKo ? '에이전트 오류 총합' : 'Total agent errors',
-    threshold: isKo ? '오류율 > 5%' : 'Error rate > 5%'
+    threshold: isKo ? '5분 오류율 > 5%' : 'Error rate > 5% over 5m'
   }, {
     metric: 'llm_rate_limit_errors_total',
     description: 'Rate Limit ' + (isKo ? '오류' : 'errors'),
-    threshold: isKo ? '분당 10회 이상' : '> 10 per minute'
+    threshold: isKo ? '5분간 10건 이상' : '> 10 over 5m'
   }, {
     metric: 'tool_execution_errors_total',
     description: isKo ? '도구 실행 오류' : 'Tool execution errors',
-    threshold: isKo ? '오류율 > 10%' : 'Error rate > 10%'
+    threshold: isKo ? '5분 오류율 > 10%' : 'Error rate > 10% over 5m'
   }, {
     metric: 'agent_timeout_total',
     description: isKo ? '타임아웃 발생' : 'Timeout occurrences',
-    threshold: isKo ? '분당 5회 이상' : '> 5 per minute'
+    threshold: isKo ? '5분간 5건 이상' : '> 5 over 5m'
   }];
   return <div style={{
     maxWidth: '900px',

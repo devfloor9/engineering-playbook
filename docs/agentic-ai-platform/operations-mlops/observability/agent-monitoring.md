@@ -3,9 +3,9 @@ title: AI Agent Monitoring and Operations
 description: Langfuse-based agent monitoring operations — monitoring architecture, key metrics, PromQL, alerting, and cost tracking (for tool comparison, see LLMOps Observability)
 created: "2026-02-05"
 last_update:
-  date: 2026-09-21
+  date: 2026-10-15
   author: devfloor9
-reading_time: 15
+reading_time: 22
 tags:
   - eks
   - langfuse
@@ -56,7 +56,7 @@ This document is intended for platform operators, MLOps engineers, and AI develo
 
 ### Langfuse Architecture Overview
 
-Langfuse v3.162.0+ consists of the following components:
+Langfuse v3 (2024-12 stable and later) consists of the following components. v3 uses a Postgres (transactional data), ClickHouse (OLAP for traces/observations/scores), Redis (queue/cache), and S3 (raw event uploads) architecture, which increased self-hosting complexity compared to v2:
 
 **Figure 1. Langfuse v3 stack and storage composition**
 
@@ -69,26 +69,30 @@ flowchart TB
     end
 
     subgraph Langfuse["Langfuse Stack"]
-        WEB[Web UI<br/>Next.js]
-        API[API Server<br/>tRPC]
+        WEB[Web UI/API<br/>Next.js]
         WORKER[Background<br/>Worker]
     end
 
     subgraph Storage["Storage"]
-        PG[(PostgreSQL<br/>Metadata)]
-        REDIS[(Redis<br/>Cache/Queue)]
-        S3[S3<br/>Blob]
+        PG[(PostgreSQL<br/>Transactional metadata)]
+        CH[(ClickHouse<br/>Traces/observations/scores OLAP)]
+        REDIS[(Redis<br/>Queue/cache)]
+        S3[S3<br/>Raw events/Blob]
     end
 
-    AGENT1 -->|Traces| API
-    AGENT2 -->|Traces| API
-    AGENTN -->|Traces| API
-    WEB -->|Query| API
-    API --> PG
-    API --> REDIS
+    AGENT1 -->|Trace ingest| WEB
+    AGENT2 -->|Trace ingest| WEB
+    AGENTN -->|Trace ingest| WEB
+
+    WEB -->|Raw event upload| S3
+    WEB -->|Ingestion queue| REDIS
+    WEB --> PG
+    WEB -->|Query/analytics| CH
+
+    REDIS -->|Queue consume| WORKER
+    WORKER -->|Read raw events| S3
+    WORKER -->|Write traces/observations| CH
     WORKER --> PG
-    WORKER --> REDIS
-    WORKER -->|Artifacts| S3
 
     style Clients fill:#ffd93d
     style Langfuse fill:#4285f4
@@ -217,41 +221,52 @@ avg(DCGM_FI_DEV_GPU_UTIL)
 # Per-node GPU utilization
 avg(DCGM_FI_DEV_GPU_UTIL) by (Hostname)
 
-# GPU memory utilization
-avg(DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_FREE * 100) by (gpu)
+# GPU memory utilization (%) — divide by used+free to keep the range 0-100%
+# FB_USED/FB_FREE exceeds 100% as free approaches 0, so it is not used.
+# Aggregate per device with the gpu label (or GPU_I_ID when using MIG); reserved memory counts as used.
+avg(
+  DCGM_FI_DEV_FB_USED
+  / (DCGM_FI_DEV_FB_USED + DCGM_FI_DEV_FB_FREE)
+  * 100
+) by (gpu)
 ```
 
 ### vLLM Metrics
 
 ```prometheus
-# Overall TPS (tokens generated per second)
-rate(vllm_generation_tokens_total[5m])
+# vLLM v1 engine metrics all use the vllm: prefix and a model_name label.
+# The queries below are fleet aggregates summed across instances;
+# to view per instance, group by (model_name, instance) instead of by (model_name).
+
+# Overall TPS (tokens generated per second, fleet sum)
+sum(rate(vllm:generation_tokens_total[5m]))
 
 # Per-model TPS
-sum(rate(vllm_generation_tokens_total[5m])) by (model)
+sum(rate(vllm:generation_tokens_total[5m])) by (model_name)
 
-# TTFT P99 (Time to First Token)
-histogram_quantile(0.99, rate(vllm_time_to_first_token_seconds_bucket[5m]))
+# TTFT P99 (Time to First Token, fleet aggregate)
+histogram_quantile(0.99, sum(rate(vllm:time_to_first_token_seconds_bucket[5m])) by (le))
 
 # TTFT P95
-histogram_quantile(0.95, rate(vllm_time_to_first_token_seconds_bucket[5m]))
+histogram_quantile(0.95, sum(rate(vllm:time_to_first_token_seconds_bucket[5m])) by (le))
 
 # E2E Latency P99
-histogram_quantile(0.99, rate(vllm_e2e_request_latency_seconds_bucket[5m]))
+histogram_quantile(0.99, sum(rate(vllm:e2e_request_latency_seconds_bucket[5m])) by (le))
 
-# Average batch size
-avg(vllm_num_requests_running)
+# Average batch size (running requests; mean of the per-instance gauge)
+avg(vllm:num_requests_running)
 ```
 
 ### Gateway Metrics
 
 ```prometheus
-# 5xx error rate (%)
-rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]) 
-/ 
-rate(envoy_http_downstream_rq_total[5m]) * 100
+# 5xx error rate (%) — numerator and denominator share the same downstream request population.
+sum(rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]))
+/
+sum(rate(envoy_http_downstream_rq_xx[5m])) * 100
 
-# Upstream health check failure rate
+# Upstream connection failure count (rate) — a counter of failed new connection attempts,
+# distinct from active health-check failures (health checks use the envoy_cluster_health_check_failure family).
 sum(rate(envoy_cluster_upstream_cx_connect_fail[5m])) by (envoy_cluster_name)
 ```
 
@@ -310,7 +325,75 @@ tenant_monthly_budget_usd
 
 ---
 
-## 6. Cost Tracking
+## 6. Cascade Fallback Strategy
+
+When self-hosted models (vLLM/llm-d) are overloaded or failing, configuring Cascade Routing that automatically falls back to Amazon Bedrock managed models keeps the service running without interruption even during GPU failures or Spot interruptions. Bifrost (or LiteLLM) acts as the gateway and switches requests to Bedrock on response failures or timeouts.
+
+**Figure 4. Cascade fallback flow switching to Bedrock on self-hosted failure**
+
+```mermaid
+flowchart LR
+    C[Client App] --> BF[Bifrost Gateway]
+
+    subgraph SelfHosted["Self-Hosted (EKS)"]
+        LLMD[llm-d + vLLM<br/>Qwen3-32B / GLM-5]
+    end
+
+    subgraph Managed["AWS Managed"]
+        BR[Amazon Bedrock<br/>Claude Sonnet<br/>Nova Pro]
+    end
+
+    BF -->|"Primary: Self-hosted"| LLMD
+    BF -->|"Secondary: Fallback"| BR
+
+    LLMD -.->|"500/502/503/timeout"| BF
+    BF -.->|"Automatic switch"| BR
+
+    style BF fill:#ff9900,color:#fff
+    style LLMD fill:#326ce5,color:#fff
+    style BR fill:#ff6b6b,color:#fff
+```
+
+### Fallback Condition Configuration
+
+Bifrost configures fallback via the request body's `fallbacks` array and governance `routing_rules` (CEL expressions + weighted targets). The fallback triggers are hardcoded to retryable errors such as 5xx/429 (conditional fallback based on status code/latency/error-rate is a feature request as of 2026-05, issue #3261).
+
+```yaml
+# bifrost Helm values - governance routing_rules example
+routing_rules:
+  - name: cost-optimized-cascade
+    match: "request.model == 'qwen3-32b'"
+    targets:
+      - provider: "self-hosted"
+        model: "qwen3-32b"
+        weight: 80
+      - provider: "bedrock"
+        model: "claude-sonnet"
+        weight: 20
+    fallbacks:
+      - "bedrock/claude-sonnet"  # tried in order
+```
+
+### Availability and Cost Comparison
+
+**Table 3. Availability and cost of self-hosted-only versus a Cascade configuration**
+
+| Aspect | Self-hosted only | Cascade (Self-hosted + Bedrock) |
+|--------|------------------|---------------------------------|
+| **Availability** | Service outage on GPU failure | No interruption via Bedrock fallback |
+| **Cost** | Fixed GPU cost | Self-hosted (low cost) at steady state + Bedrock (pay-per-use) at peak |
+| **Capacity planning** | Provision GPUs for peak traffic | GPUs for base traffic only, overflow to Bedrock |
+| **Cold Start** | Several-minute delay on Spot interruption | Immediate Bedrock response |
+
+:::tip Cost optimization pattern
+A hybrid pattern that handles 80% of steady-state traffic on self-hosted and offloads 20% to Bedrock at peak reduces the need to provision GPUs for peak. Actual savings vary widely by traffic pattern (third-party estimate 30-70%) and are hard to generalize.
+:::
+
+A 3-tier Cascade (On-Prem -> Cloud -> Bedrock) that also includes an on-premises GPU farm is covered in [Hybrid GPU Workloads and SR-IOV Networking](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking); for gateway-level routing tuning, see [Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md).
+
+---
+
+## 7. Cost Tracking {#6-cost-tracking}
 
 ### Cost Tracking Concepts
 
@@ -322,39 +405,42 @@ Track LLM usage costs by the following criteria:
 - **Per-tenant**: Per-tenant/team daily token usage and budget utilization
 - **Per-time**: Peak time analysis, cost trends
 
-### Per-Model Cost Reference (2026-04 baseline)[^1]
+### Per-Model Cost Reference (public pricing snapshot as of 2026-10)[^1] {#per-model-cost-reference-2026-04-baseline1}
 
-**Table 3. Input/output pricing and features by model tier**
+The table below is a reference snapshot of each provider's public standard (non-batch) pricing taken at 2026-10. Prices change frequently, so re-check the official pages in the footnote before any actual estimate. If you need the price on a specific past date (such as 2026-04-17), capture the snapshot from that date separately; do not substitute current values for past ones.
+
+**Table 4. Input/output pricing and features by model tier**
 
 | Tier | Model | Input ($/1M tok) | Output ($/1M tok) | Features |
 |------|-------|----------------|----------------|----------|
-| **Frontier** | Claude Opus 4.7 / 4.8 | $5 | $25 | Highest quality reasoning |
-| **Frontier** | GPT-4.1 / o3 | $10 | $30 | Complex reasoning |
+| **Frontier** | Claude Opus 4.7 | $5 | $25 | Highest quality reasoning |
+| **Frontier** | GPT-4.1 | $2 | $8 | Complex reasoning (OpenAI standard pricing) |
+| **Frontier** | o3 | See official page | See official page | Reasoning-only model, succeeded by the GPT-5 line (check the official page for pricing) |
 | **Frontier** | Gemini 2.5 Pro | $1.25 | $5 | Enhanced multimodal |
 | **Balanced** | Claude Sonnet 4.6 | $3 | $15 | Quality-cost balance |
 | **Balanced** | GPT-4.1 mini | $0.40 | $1.60 | Fast inference |
 | **Balanced** | Gemini 2.5 Flash | $0.10 | $0.40 | High throughput |
 | **Fast/Cheap** | Claude Haiku 4.5 | $0.80 | $4 | Simple tasks |
-| **Fast/Cheap** | GPT-4.1 nano / o4-mini | $0.15 | $0.60 | Ultra-low cost |
+| **Fast/Cheap** | GPT-4.1 nano | $0.10 | $0.40 | Ultra-low cost |
 | **Fast/Cheap** | Gemini 2.5 Flash-Lite | $0.05 | $0.20 | Minimal latency |
 | **Open-weight** | DeepSeek V3.1 | Self-hosted | Self-hosted | Open license |
 | **Open-weight** | Llama 4 Scout | Self-hosted | Self-hosted | Meta official |
 | **Open-weight** | Qwen3-32B | Self-hosted | Self-hosted | Alibaba Cloud (largest Qwen3 dense model) |
 
-[^1]: As of 2026-04-17. For latest pricing, see official pricing pages: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
+[^1]: Check each provider's official pricing page for current prices: [OpenAI Pricing](https://openai.com/api/pricing/), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://ai.google.dev/pricing)
 
 :::tip Cost Optimization Tips
 
 1. **Model selection optimization**: Use cheaper models (GPT-4.1 nano, Haiku 4.5, Gemini 2.5 Flash-Lite) for simple tasks
 2. **Prompt optimization**: Reduce input tokens by removing unnecessary context
-3. **Caching**: Cache responses for repetitive queries (Prompt Caching, Semantic Caching)
-4. **Cascade Routing**: Try low-cost model first, fallback to high-performance model on failure — 66% cost savings possible
+3. **Caching**: Reuse results of repeated queries. Prompt Caching reuses the input-token processing of a shared prefix, whereas Semantic Caching returns a stored response for a similar query and skips the model call entirely, so the two save cost by different mechanisms.
+4. **Cascade Routing**: Try a low-cost model first and fall back to a high-performance model on failure. The savings depend on the price gap between the two models and the share of queries the low-cost model handles successfully. For example, if a low-cost model whose input/output price is one-tenth handles 70% of queries, the total cost is about 37% (= 0.7×0.1 + 0.3×1.0) of a single high-performance model, a worked example of roughly 63% savings. The actual savings vary with traffic mix and success rate, so this is an example, not a measured value.
 5. **Open-weight models**: Convert to fixed costs with DeepSeek V3.1, Llama 4, Qwen3 when self-hosting
 :::
 
 ---
 
-## 7. Operations Checklist
+## 8. Operations Checklist {#7-operations-checklist}
 
 ### Daily Checks
 
@@ -366,13 +452,13 @@ Track LLM usage costs by the following criteria:
 
 ---
 
-## 8. Monitoring Maturity Model
+## 9. Monitoring Maturity Model {#8-monitoring-maturity-model}
 
 <MaturityModelTable />
 
 ---
 
-## 9. Next Steps
+## 10. Next Steps {#9-next-steps}
 
 - [Monitoring Stack Setup Guide](../../reference-architecture/integrations/monitoring-observability-setup.md) - AMP/AMG deployment, Langfuse Helm installation, ServiceMonitor, Grafana dashboard production setup
 - [LLMOps Observability Comparison Guide](./llmops-observability.md) - In-depth comparison of Langfuse vs LangSmith vs Helicone

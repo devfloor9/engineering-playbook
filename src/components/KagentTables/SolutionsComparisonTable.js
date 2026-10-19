@@ -26,7 +26,7 @@ const SolutionsComparisonTable = () => {
   }, {
     id: 'langgraph',
     solution: isKo ? 'LangGraph Platform' : 'LangGraph Platform',
-    features: isKo ? 'Agent 워크플로우 프레임워크, 상태 관리, LangSmith 네이티브 통합' : 'Agent workflow framework, state management, LangSmith native integration',
+    features: isKo ? '오픈소스 LangGraph 프레임워크로 상태 기반 워크플로우 작성, LangGraph Platform(구 LangGraph Cloud) 런타임으로 배포·관리, LangSmith로 추적' : 'Write stateful workflows with the open-source LangGraph framework, deploy and manage on the LangGraph Platform (formerly LangGraph Cloud) runtime, trace with LangSmith',
     useCase: isKo ? '복잡한 멀티스텝 Agent, 상태 기반 워크플로우' : 'Complex multi-step agents, stateful workflows',
     color: '#f59e0b'
   }, {

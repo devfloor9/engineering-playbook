@@ -3,9 +3,9 @@ title: Kagent - Kubernetes AI Agent 관리
 description: Kagent를 활용한 Kubernetes 환경에서의 AI 에이전트 선언적 관리 아키텍처 및 오케스트레이션 패턴
 created: "2026-02-05"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 13
 tags:
   - eks
   - kagent
@@ -25,10 +25,10 @@ category: genai-aiml
 
 Kagent는 Custom Resource Definition(CRD)을 통해 에이전트, 도구, 워크플로우를 선언적으로 정의하고, Operator가 이를 자동으로 배포 및 관리합니다. Deployment, Service, ConfigMap을 직접 작성하는 대신 `Agent` CRD 하나로 모델 연결, 도구 바인딩, 스케일링 정책을 통합 관리할 수 있습니다.
 
-:::warning Kagent 프로젝트 상태
-Kagent는 현재 참조 아키텍처 및 디자인 패턴 단계이며, 공식 오픈소스 프로젝트가 아직 공개되지 않았습니다. 본 문서의 예제는 개념적 구현을 기반으로 합니다. 프로덕션 환경에서는 **Bedrock AgentCore**, **KubeAI**, **LangGraph Platform** 등 검증된 대안을 고려하세요.
+:::warning Kagent 프로젝트 상태와 이 문서의 범위
+Kagent는 Solo.io가 만든 CNCF Sandbox 오픈소스 프로젝트로, 2026-10-15 기준 최신 릴리스는 `v1.0.0-alpha13`(Apache-2.0)입니다. 즉 공개된 프로젝트이지만 아직 알파 단계이므로, API와 설치 방식이 릴리스마다 바뀔 수 있습니다. 본 문서에서 §3의 Agent/Tool/Memory 스펙은 공식 `kagent.dev/v1alpha2` API를 따르며, §2의 Operator 아키텍처 그림과 §4의 멀티 에이전트 오케스트레이션 패턴은 공식 API가 정의하지 않은 설계 제안(design proposal)으로, 구현 시 별도 컨트롤러·CRD가 필요합니다. 프로덕션 환경에서는 **Bedrock AgentCore**, **KubeAI**, **LangGraph Platform** 등 대안도 함께 검토하세요.
 
-Kagent 배포 가이드는 [Kagent 공식 문서](https://github.com/kagent-dev/kagent)를 참조하세요.
+설치·배포 가이드와 최신 API는 [Kagent 공식 문서](https://kagent.dev/docs/)와 [GitHub 저장소](https://github.com/kagent-dev/kagent)를 참조하세요.
 :::
 
 ### 대안 솔루션 비교
@@ -43,8 +43,8 @@ import { SolutionsComparisonTable } from '@site/src/components/KagentTables';
 
 - **선언적 에이전트 관리**: YAML 기반 에이전트 정의 및 배포
 - **도구 레지스트리**: 에이전트가 사용할 도구를 CRD로 중앙 관리
-- **자동 스케일링**: HPA/KEDA 통합을 통한 동적 확장
-- **멀티 에이전트 오케스트레이션**: 복잡한 워크플로우를 위한 에이전트 간 협업
+- **자동 스케일링 연계**: 별도로 설치한 HPA 또는 KEDA ScaledObject를 컨트롤러가 만든 Deployment에 연결해 동적 확장(§5 참조)
+- **멀티 에이전트 오케스트레이션**: 복잡한 워크플로우를 위한 에이전트 간 협업(설계 제안)
 - **관측성 통합**: Langfuse/LangSmith, OpenTelemetry와의 네이티브 연동
 
 :::info 대상 독자
@@ -81,15 +81,14 @@ flowchart TB
 
     subgraph CRD["CRDs"]
         A_CRD[Agent]
-        T_CRD[Tool]
-        W_CRD[Workflow]
-        M_CRD[Memory]
+        MC_CRD[ModelConfig]
+        MCP_CRD[RemoteMCPServer / MCPServer]
+        W_CRD[Workflow*]
     end
 
     subgraph RES["Managed Resources"]
         DEP[Deployments]
         SVC[Services]
-        HPA[HPA/KEDA]
         CM[ConfigMaps]
         SEC[Secrets]
     end
@@ -100,11 +99,11 @@ flowchart TB
         PN[Pod N]
     end
 
-    CTRL --> A_CRD & T_CRD & W_CRD & M_CRD
-    WH --> A_CRD & T_CRD
+    CTRL --> A_CRD & MC_CRD & MCP_CRD & W_CRD
+    WH --> A_CRD & MCP_CRD
 
-    A_CRD --> DEP & SVC & HPA & CM
-    T_CRD --> SEC
+    A_CRD --> DEP & SVC & CM
+    MCP_CRD --> SEC
 
     DEP --> P1 & P2 & PN
 
@@ -115,6 +114,8 @@ flowchart TB
     style RES fill:#ff9900,stroke:#333
     style RT fill:#76b900,stroke:#333
 ```
+
+Agent, ModelConfig, RemoteMCPServer/MCPServer는 공식 `kagent.dev/v1alpha2` API가 정의하는 CRD입니다. 도구(Tool)와 메모리(Memory)는 별도 CRD가 아니라 Agent 스펙에 포함되므로 그림에서 독립 CRD로 그리지 않았습니다. `Workflow*`의 별표는 멀티 에이전트 오케스트레이션이 공식 API에 포함되지 않은 설계 제안이며 구현 시 별도 CRD·컨트롤러가 필요함을 뜻합니다(§4 참조).
 
 ### 컴포넌트 설명
 
@@ -143,7 +144,7 @@ sequenceDiagram
 
     C->>A: Deployment 생성
     C->>A: Service 생성
-    C->>A: HPA 생성
+    C->>A: ConfigMap 생성
 
     A->>R: Pod 스케줄링
     R-->>C: 상태 보고
@@ -163,80 +164,58 @@ sequenceDiagram
 
 ### Agent CRD
 
-Agent CRD는 AI 에이전트의 모든 설정을 선언적으로 정의합니다. 아래는 핵심 스펙 구조입니다:
+Agent CRD는 AI 에이전트의 설정을 선언적으로 정의합니다. 아래는 kagent `v1alpha2` API의 Declarative Agent 핵심 스펙입니다. 모델은 인라인으로 적지 않고 별도 `ModelConfig` 리소스를 `modelConfig`로 참조하며, 도구는 `type: McpServer`로 MCP 서버의 도구를 바인딩합니다:
 
 ```yaml
-apiVersion: kagent.dev/v1alpha1
+apiVersion: kagent.dev/v1alpha2
 kind: Agent
 metadata:
   name: customer-support-agent
-  namespace: ai-agents
+  namespace: kagent
 spec:
-  # 에이전트 기본 정보
-  displayName: "고객 지원 에이전트"
   description: "고객 문의에 응답하고 티켓을 생성하는 AI 에이전트"
+  type: Declarative
+  declarative:
+    # 모델은 별도 ModelConfig 리소스를 참조합니다 (인라인 지정 아님)
+    modelConfig: default-model-config
 
-  # 모델 설정
-  model:
-    provider: openai          # openai, anthropic, bedrock, vllm
-    name: gpt-4-turbo
-    endpoint: ""              # 커스텀 엔드포인트 (vLLM 등)
-    temperature: 0.7
-    maxTokens: 4096
-    apiKeySecretRef:
-      name: openai-api-key
-      key: api-key
+    # 시스템 프롬프트
+    systemMessage: |
+      당신은 친절하고 전문적인 고객 지원 에이전트입니다.
 
-  # 시스템 프롬프트
-  systemPrompt: |
-    당신은 친절하고 전문적인 고객 지원 에이전트입니다.
+    # 사용할 도구 목록 (MCP 서버의 도구를 바인딩)
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: kagent-tool-server
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - search-knowledge-base
+            - create-ticket
+          # 파괴적 도구는 실행 전 사용자 승인을 받습니다
+          requireApproval:
+            - create-ticket
 
-  # 사용할 도구 목록
-  tools:
-    - name: search-knowledge-base
-    - name: create-ticket
+    # 메모리 (Google ADK 기반 내장 구현, pgvector 저장)
+    memory:
+      modelConfig: default-model-config   # 임베딩 ModelConfig 참조
+      ttlDays: 30                         # 기본값 15일
+```
 
-  # 메모리 설정
-  memory:
-    type: redis
-    config:
-      host: redis-master.ai-data.svc.cluster.local
-      ttl: 3600
-      maxHistory: 50
+참조하는 `ModelConfig` 리소스는 모델 공급자와 모델 ID를 정의합니다. 예를 들어 Amazon Bedrock Titan 임베딩 모델을 쓰는 경우:
 
-  # 스케일링 설정
-  scaling:
-    minReplicas: 2
-    maxReplicas: 10
-    metrics:
-      - type: cpu
-        target:
-          averageUtilization: 70
-    keda:
-      enabled: true
-      triggers:
-        - type: prometheus
-          metadata:
-            metricName: agent_active_sessions
-            threshold: "50"
-
-  # 리소스 제한
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1Gi"
-      cpu: "500m"
-
-  # 관측성 설정
-  observability:
-    tracing:
-      enabled: true
-      provider: langfuse       # langfuse, langsmith, cloudwatch (상세: ../operations-mlops/observability/llmops-observability.md)
-    metrics:
-      enabled: true
-      port: 9090
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: default-model-config
+  namespace: kagent
+spec:
+  provider: Bedrock
+  model: amazon.titan-embed-text-v2:0
+  bedrock:
+    region: us-east-1
 ```
 
 ### Tool (Agent spec 중첩 타입)
@@ -369,16 +348,17 @@ flowchart LR
 
 ### Operator가 관리하는 리소스
 
-Agent CRD를 생성하면 Controller가 다음 리소스를 자동으로 생성/관리합니다:
+Agent CRD를 생성하면 Controller가 다음 리소스를 생성/관리합니다:
 
 ```
 Agent CRD 생성
   ├── Deployment (에이전트 Pod 관리)
   ├── Service (네트워크 접근)
-  ├── HPA/KEDA ScaledObject (자동 스케일링)
   ├── ConfigMap (에이전트 설정)
   └── Secret 참조 (API 키, 인증 정보)
 ```
+
+자동 스케일링(HPA 또는 KEDA ScaledObject)은 kagent 컨트롤러가 자동으로 생성하지 않습니다. HorizontalPodAutoscaler는 metrics-server를, KEDA ScaledObject는 KEDA 오퍼레이터를 각각 별도로 설치한 뒤, 컨트롤러가 만든 Deployment를 대상으로 직접 작성해야 합니다. 아래 스케일링 전략 표는 이렇게 별도 구성한 오토스케일러에 적용할 설계 목표(design target)이며, kagent API가 제공하는 필드가 아닙니다.
 
 ### 업데이트 전략
 

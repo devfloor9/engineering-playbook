@@ -3,9 +3,9 @@ title: Milvus Vector Database Integration
 description: Deploying Milvus vector database on Amazon EKS and integrating with RAG pipelines
 created: "2026-02-05"
 last_update:
-  date: 2026-09-21
+  date: 2026-10-15
   author: devfloor9
-reading_time: 18
+reading_time: 22
 tags:
   - milvus
   - vector-database
@@ -86,7 +86,6 @@ flowchart TB
         RC[Root]
         QC[Query]
         DC[Data]
-        IC[Index]
     end
 
     subgraph WRK["Workers"]
@@ -102,11 +101,11 @@ flowchart TB
     end
 
     SDK & REST --> P
-    P --> RC & QC & DC & IC
+    P --> RC & QC & DC
 
     QC --> QN
     DC --> DN
-    IC --> IN
+    DC --> IN
 
     RC --> E
     QN --> M
@@ -118,6 +117,8 @@ flowchart TB
     style IN fill:#e53935,stroke:#333
     style M fill:#ff9900,stroke:#333
 ```
+
+Since Milvus 2.3, index coordination was consolidated into DataCoord and there is no separate IndexCoord, so in the diagram above DataCoord also coordinates the Index Nodes' index tasks.
 
 ### Component Roles
 
@@ -156,8 +157,8 @@ Using Amazon S3 directly instead of MinIO reduces operational burden. S3 Express
 
 **S3 Integration Considerations:**
 - Use IRSA (IAM Roles for Service Accounts) for permission management
-- S3 bucket policy: Requires GetObject, PutObject, DeleteObject, ListBucket permissions
-- S3 Express One Zone: Single AZ limitation, recommended for high-performance requirements
+- General-purpose S3 bucket policy: requires `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, `s3:ListBucket` permissions
+- S3 Express One Zone (directory buckets) use a different permission and endpoint model from general-purpose S3. They need the additional `s3:...` session permission `s3express:CreateSession` for session-based authorization, use zonal (availability-zone-scoped) endpoints rather than regional endpoints, and require a client (or Milvus/MinIO version) that supports the S3 Express directory-bucket API. Because a directory bucket lives in a single AZ, review HA requirements as well.
 
 :::info Detailed Deployment Guide
 For Milvus deployment procedures, Helm values configuration, and S3 IAM policy examples, see [Milvus Official Helm Chart Documentation](https://milvus.io/docs/install_cluster-helm.md).
@@ -169,9 +170,9 @@ For Milvus deployment procedures, Helm values configuration, and S3 IAM policy e
 
 <IndexComparisonTable />
 
-### SCANN Index (Milvus 2.4+)
+### SCANN Index (Milvus 2.3+) {#scann-index-milvus-24}
 
-Google's Scalable Nearest Neighbors (SCANN) index is a high-performance index added in Milvus 2.4:
+Google's Scalable Nearest Neighbors (SCANN) index is a high-performance index added in Milvus 2.3.0 (2023-08):
 
 ```python
 # Create SCANN index
@@ -257,7 +258,7 @@ vectorstore = Milvus.from_documents(
         "port": "19530",
     },
     collection_name="langchain_docs",
-    drop_old=True,
+    drop_old=True,  # Caution: drops and recreates the existing langchain_docs collection (data loss). Use only for a disposable demo collection; set False to reuse production data.
 )
 
 # Similarity search
@@ -273,7 +274,7 @@ for doc in docs:
 ### LlamaIndex Integration Example
 
 ```python
-from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings
+from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Settings, StorageContext
 from llama_index.vector_stores.milvus import MilvusVectorStore
 from llama_index.embeddings.openai import OpenAIEmbedding
 
@@ -285,14 +286,19 @@ vector_store = MilvusVectorStore(
     uri="http://milvus-proxy.ai-data.svc.cluster.local:19530",
     collection_name="llamaindex_docs",
     dim=1536,
-    overwrite=True,
+    overwrite=True,  # Caution: overwrites the existing llamaindex_docs collection (data loss). Use only for a disposable demo collection; set False to reuse production data.
 )
+
+# Wire the vector store explicitly through a StorageContext.
+# Pass the vector store via StorageContext rather than directly to from_documents,
+# so the index writes to and reads from Milvus instead of a default StorageContext.
+storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
 # Load documents and index
 documents = SimpleDirectoryReader("./documents").load_data()
 index = VectorStoreIndex.from_documents(
     documents,
-    vector_store=vector_store,
+    storage_context=storage_context,
 )
 
 # Create query engine
@@ -376,10 +382,12 @@ results = collection.search(
 
 ### Hybrid Search (Vector + Keyword)
 
+The example below builds only one dense vector request, so as written it performs dense-only search. For a true vector+keyword hybrid search you must (1) add a Sparse-BM25 field to the schema, (2) index and insert sparse vectors into that field, and (3) build a second `AnnSearchRequest` (sparse/BM25) and pass both to `reqs` so RRF fusion applies. Sparse-BM25 full-text search is supported in Milvus 2.5+ (v2.5.0, 2024-12-23).
+
 ```python
 from pymilvus import AnnSearchRequest, RRFRanker
 
-# Vector search request
+# Dense vector search request
 vector_search = AnnSearchRequest(
     data=[query_embedding],
     anns_field="embedding",
@@ -387,10 +395,8 @@ vector_search = AnnSearchRequest(
     limit=20
 )
 
-# BM25 score for keyword search (requires separate field)
-# Supported in Milvus 2.4+
-
-# Merge results with RRF (Reciprocal Rank Fusion)
+# Only the dense request is passed, so this is a dense search.
+# To make it hybrid, add a second AnnSearchRequest for sparse/BM25 to reqs.
 results = collection.hybrid_search(
     reqs=[vector_search],
     ranker=RRFRanker(k=60),
@@ -408,7 +414,7 @@ Milvus provides an official backup tool (`milvus-backup`) for backing up and res
 **Backup considerations:**
 - Backup target: Export collection data to MinIO/S3 bucket
 - Backup frequency: Daily or weekly backup recommended
-- Backup size limit: Control chunk size with `maxSegmentGroupSize` setting
+- Backup behavior control: Tune parallelism with `backup.parallelism` (copydata, backupCollection, backupSegment) and `multipartCopyThresholdMiB`. Large restores support native multi-segment restore (as of milvus-backup v0.5.10+; the `maxSegmentGroupSize` option was removed).
 - Restore strategy: Restore to same or different cluster
 
 ### Disaster Recovery Configuration
@@ -417,9 +423,9 @@ Production environments should implement disaster recovery strategy through cros
 
 **DR strategy:**
 - **Cross-region S3 replication**: Automatically replicate backup data to another AWS region
-- **Recovery Time Objective (RTO)**: S3 replication delay + Milvus cluster provisioning time
-- **Recovery Point Objective (RPO)**: Determined by backup frequency (typically 6-24 hours)
-- **Automation**: Periodic backup and synchronization using CronJob
+- **Recovery Time Objective (RTO)**: Define it as a target validated by restore drills. The full recovery time includes not only the S3 replication delay but also backup restore (import), index rebuild/load, and data validation time.
+- **Recovery Point Objective (RPO)**: Determined by the age of the oldest successfully replicated backup. The RPO is therefore driven by the backup cadence and the replication lag, so allowing weekly backups can push the worst-case RPO beyond one week. To achieve a 6-24 hour RPO, shorten the backup cadence to several times a day accordingly.
+- **Automation**: Periodic backup and synchronization using CronJob, plus regular restore drills
 
 :::info Detailed Backup Guide
 For backup tool installation, configuration file creation, CronJob setup procedures, see [Milvus Backup and Restore Guide](https://milvus.io/docs/milvus_backup_cli.md).
