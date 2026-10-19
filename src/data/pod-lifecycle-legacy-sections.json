@@ -77,7 +77,7 @@
   },
   "native-sidecar-containers-k8s-128-ga": {
     "path": "probe-workloads",
-    "title": "Native Sidecar Containers (K8s 1.28+ GA)"
+    "title": "Native Sidecar Containers (K8s 1.33 Stable)"
   },
   "246-windows-컨테이너-probe-고려사항": {
     "path": "probe-workloads",
@@ -97,7 +97,7 @@
   },
   "cloudwatch-container-insights-for-windows-2025-08": {
     "path": "probe-workloads",
-    "title": "CloudWatch Container Insights for Windows (2025-08)"
+    "title": "CloudWatch Container Insights for Windows (GA 2024-04)"
   },
   "혼합-클러스터-linux--windows-통합-모니터링-전략": {
     "path": "probe-workloads",

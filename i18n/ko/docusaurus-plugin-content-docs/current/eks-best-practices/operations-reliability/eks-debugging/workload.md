@@ -3,9 +3,9 @@ title: 워크로드 디버깅
 description: EKS 워크로드 문제 진단 및 해결 가이드 - Pod 상태별 디버깅, 배포 실패 패턴, Probe 설정
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-19
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -366,7 +366,7 @@ kubectl top pods  # 이 명령어가 실패하면 metrics-server 문제
 | `TARGETS`가 `<unknown>` | metrics-server 미설치 또는 장애 | metrics-server 설치 및 상태 확인 |
 | `unable to get metrics` | Pod에서 메트릭 수집 실패 | Pod의 resource requests 설정 확인 (requests 없으면 CPU 사용률 계산 불가) |
 | `current replicas above Deployment.spec.replicas` | 정보성 메시지(장애 아님). HPA가 복제본 수를 관리하므로 minReplicas가 현재 Deployment replicas보다 크면 HPA가 그 값까지 스케일업합니다 | 조치 불필요. HPA가 복제본을 `[minReplicas, maxReplicas]` 범위로 조정합니다 |
-| 스케일업 후 즉시 스케일다운 | stabilizationWindow 미설정 | `behavior.scaleDown.stabilizationWindowSeconds` 설정 (기본 300초) |
+| 스케일업 후 즉시 스케일다운 | scaleDown stabilizationWindow를 낮은 값으로 재정의했거나 메트릭이 요동침 (`scaleDown.stabilizationWindowSeconds`의 기본값은 이미 300초이므로 미설정이 원인은 아님) | 명시적으로 낮춘 `behavior.scaleDown.stabilizationWindowSeconds`를 300초 수준으로 되돌리고, 메트릭 요동(flapping) 여부를 확인 |
 | `invalid metrics` | 커스텀 메트릭 소스 오류 | Prometheus Adapter 설정 확인 |
 
 #### 올바른 HPA 설정 예제
@@ -447,14 +447,16 @@ spec:
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 5"]  # 앱이 먼저 종료되도록 대기
+          command: ["/bin/sh", "-c", "sleep 5"]  # 앱이 드레이닝할 시간을 확보(순서 보장은 아님)
   - name: envoy
     image: envoyproxy/envoy:v1.28
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 15"]  # Envoy는 더 오래 대기
+          command: ["/bin/sh", "-c", "sleep 15"]  # Envoy를 더 오래 대기시킴(순서 보장은 아님)
 ```
+
+preStop Hook은 컨테이너마다 Pod 종료 시점에 **동시에** 실행되고, 모든 preStop과 뒤이은 SIGTERM 처리는 하나의 `terminationGracePeriodSeconds` 안에서 끝나야 합니다. 따라서 sleep 값을 다르게 주는 것은 종료 타이밍을 한쪽으로 기울일 뿐, 앱이 Envoy보다 먼저 드레이닝을 끝낸다고 보장하지 못합니다. 순서를 보장하려면 아래의 Native Sidecar를 사용합니다.
 
 #### Kubernetes 1.29+ (Native Sidecar)
 
@@ -481,6 +483,7 @@ spec:
 - Pod 시작 시: sidecar가 먼저 시작된 후 메인 앱 시작
 - Pod 종료 시: 메인 앱이 먼저 종료되고 sidecar가 마지막에 종료
 - preStop Hook의 sleep 트릭이 불필요
+- 이 순서 보장도 Pod 하나의 `terminationGracePeriodSeconds` 안에서만 이뤄지며, 이 시간이 지나면 sidecar를 포함한 남은 컨테이너는 SIGKILL로 강제 종료됨
 :::
 
 ### Pattern 5: Timezone/Locale 이슈
@@ -510,13 +513,14 @@ spec:
     env:
     - name: TZ
       value: "Asia/Seoul"
-    # Java 앱의 경우 추가 옵션
-    - name: JAVA_OPTS
+    # Java 앱: JVM이 자동으로 읽는 JAVA_TOOL_OPTIONS 사용
+    # (JAVA_OPTS는 java 런처가 자동으로 읽지 않으며, 시작 스크립트가 넘겨줄 때만 적용됨)
+    - name: JAVA_TOOL_OPTIONS
       value: "-Duser.timezone=Asia/Seoul"
 ```
 
 :::warning 컨테이너 이미지에 tzdata 설치 필요
-일부 최소화된 이미지(distroless, alpine)는 timezone 데이터가 없습니다. Dockerfile에 `tzdata` 패키지를 설치하세요.
+alpine 같은 최소화된 이미지는 timezone 데이터가 없을 수 있어 Dockerfile에서 `tzdata`를 설치해야 합니다. 반면 distroless 베이스 이미지는 tzdata를 포함하고 있고 패키지 매니저(apk/apt)가 없으므로, 아래 설치 명령은 distroless가 아닌 alpine·debian 계열 이미지에만 적용됩니다.
 
 ```dockerfile
 # Alpine 기반
@@ -538,10 +542,13 @@ kubectl get resourcequota -n <namespace>
 # 상세 정보 (사용량/제한 비교)
 kubectl describe resourcequota -n <namespace>
 
-# 증상: Pod이 Pending 상태로 멈추고 이벤트에 "exceeded quota" 메시지
-kubectl describe pod <pod-name> -n <namespace>
+# 증상: 할당량 초과 시 컨트롤러가 Pod 생성에 실패 (admission 단계 거부이므로 Pending Pod이 생기지 않음)
+# "exceeded quota" 이벤트는 ReplicaSet/Deployment 컨트롤러에 나타나므로 ReplicaSet 또는 이벤트를 확인
+kubectl describe rs <replicaset-name> -n <namespace>
+kubectl get events -n <namespace> --field-selector reason=FailedCreate
 # Events:
 #   Warning  FailedCreate  Error creating: pods "app-xxx" is forbidden: exceeded quota: compute-quota
+# (bare Pod을 직접 생성하면 Pending 없이 즉시 거부됨)
 ```
 
 #### ResourceQuota 조정

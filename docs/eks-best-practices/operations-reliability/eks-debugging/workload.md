@@ -3,9 +3,9 @@ title: Workload Debugging
 description: Guide to diagnosing EKS workload issues - Pod state-based debugging, deployment failure patterns, probe configuration
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-19
   author: devfloor9
-reading_time: 13
+reading_time: 15
 tags:
   - eks
   - kubernetes
@@ -365,7 +365,7 @@ kubectl top pods  # failure here indicates a metrics-server issue
 | `TARGETS` shows `<unknown>` | metrics-server not installed or failing | Install metrics-server and verify status |
 | `unable to get metrics` | Metric collection from Pods fails | Check Pod resource requests (without requests, CPU utilization cannot be computed) |
 | `current replicas above Deployment.spec.replicas` | Informational message (not a failure). HPA owns the replica count, so when minReplicas exceeds the current Deployment replicas, HPA scales up to it | No action needed. HPA reconciles replicas to within `[minReplicas, maxReplicas]` |
-| Scale-up followed by immediate scale-down | stabilizationWindow not set | Configure `behavior.scaleDown.stabilizationWindowSeconds` (default 300s) |
+| Scale-up followed by immediate scale-down | scaleDown stabilization window overridden to a low value, or metrics flapping (`scaleDown.stabilizationWindowSeconds` already defaults to 300s, so an unset window is not the cause) | Restore an explicitly lowered `behavior.scaleDown.stabilizationWindowSeconds` toward 300s and check for metric flapping |
 | `invalid metrics` | Custom metrics source error | Check Prometheus Adapter configuration |
 
 #### Correct HPA Example
@@ -446,14 +446,16 @@ spec:
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 5"]  # let the app terminate first
+          command: ["/bin/sh", "-c", "sleep 5"]  # give the app time to drain (does not guarantee ordering)
   - name: envoy
     image: envoyproxy/envoy:v1.28
     lifecycle:
       preStop:
         exec:
-          command: ["/bin/sh", "-c", "sleep 15"]  # Envoy waits longer
+          command: ["/bin/sh", "-c", "sleep 15"]  # make Envoy wait longer (does not guarantee ordering)
 ```
+
+preStop hooks run **concurrently** across containers at Pod termination, and all preStop hooks plus the following SIGTERM handling must finish within the single `terminationGracePeriodSeconds`. Differing sleep values therefore only bias the termination timing; they do not guarantee that the app drains before Envoy. To guarantee ordering, use the Native Sidecar below.
 
 #### Kubernetes 1.29+ (Native Sidecar)
 
@@ -480,6 +482,7 @@ spec:
 - On Pod start: sidecar starts first, then the main app
 - On Pod termination: main app terminates first, sidecar terminates last
 - No more preStop sleep trick
+- This ordering is still bounded by the single Pod `terminationGracePeriodSeconds`; once it elapses, the remaining containers (including the sidecar) are force-killed with SIGKILL
 :::
 
 ### Pattern 5: Timezone/Locale Issues
@@ -509,13 +512,14 @@ spec:
     env:
     - name: TZ
       value: "Asia/Seoul"
-    # Additional option for Java apps
-    - name: JAVA_OPTS
+    # Java apps: use JAVA_TOOL_OPTIONS, which the JVM reads automatically
+    # (the java launcher does not read JAVA_OPTS by itself; it applies only if the startup script passes it)
+    - name: JAVA_TOOL_OPTIONS
       value: "-Duser.timezone=Asia/Seoul"
 ```
 
 :::warning Container Image Must Include tzdata
-Some minimized images (distroless, alpine) do not include timezone data. Install `tzdata` in the Dockerfile.
+Minimized images such as alpine may not include timezone data, so install `tzdata` in the Dockerfile. Distroless base images, by contrast, already ship tzdata and have no package manager (apk/apt), so the install commands below apply only to alpine and debian-family images, not to distroless.
 
 ```dockerfile
 # Alpine-based
@@ -537,10 +541,14 @@ kubectl get resourcequota -n <namespace>
 # Details (usage/limit comparison)
 kubectl describe resourcequota -n <namespace>
 
-# Symptom: Pod stuck in Pending with "exceeded quota" message
-kubectl describe pod <pod-name> -n <namespace>
+# Symptom: the controller fails to create the Pod when quota is exceeded
+# (rejected at admission, so no Pending Pod appears). The "exceeded quota" event
+# surfaces on the ReplicaSet/Deployment controller, so inspect the ReplicaSet or events.
+kubectl describe rs <replicaset-name> -n <namespace>
+kubectl get events -n <namespace> --field-selector reason=FailedCreate
 # Events:
 #   Warning  FailedCreate  Error creating: pods "app-xxx" is forbidden: exceeded quota: compute-quota
+# (a bare Pod created directly is rejected outright, with no Pending state)
 ```
 
 #### Adjusting ResourceQuota

@@ -3,9 +3,9 @@ title: 워크로드별 Probe 패턴
 description: REST, gRPC, 배치, JVM, AI 워크로드별 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-19
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 8
 tags:
   - eks
   - kubernetes
@@ -152,18 +152,20 @@ spec:
         startupProbe:
           grpc:
             port: 9090
-            service: myapp.HealthService  # 선택 사항
+            service: myapp.HealthService  # 세 Probe 모두 동일한 service를 조회해야 함
           failureThreshold: 30
           periodSeconds: 10
         livenessProbe:
           grpc:
             port: 9090
+            service: myapp.HealthService
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
           grpc:
             port: 9090
+            service: myapp.HealthService
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
@@ -265,6 +267,8 @@ spec:
       terminationGracePeriodSeconds: 120
 ```
 
+readinessProbe는 Pod을 Service Endpoint에서만 넣고 빼므로, 워커가 unready가 되어도 큐 폴링 루프나 작업 수신은 멈추지 않습니다. 대개 큐 워커는 Service를 거치지 않으므로 readiness 실패가 작업 유입을 차단하지도 않습니다. 작업 수신을 멈추려면 애플리케이션이 직접 큐 소비를 중단해야 하며, readinessProbe에 의존해서는 안 됩니다.
+
 **워커 애플리케이션 (Python):**
 
 ```python
@@ -344,7 +348,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: 외부 의존성 포함
+        # Readiness Probe: readinessState 그룹 확인 (기본값은 외부 의존성을 포함하지 않음)
         readinessProbe:
           httpGet:
             path: /actuator/health/readiness
@@ -374,6 +378,11 @@ management:
       probes:
         enabled: true
       show-details: when-authorized
+      # 외부 의존성을 readiness에 포함하려면 그룹에 명시적으로 추가합니다.
+      # (기본 readiness 그룹은 readinessState만 포함)
+      group:
+        readiness:
+          include: readinessState,db,redis
 ```
 
 ### 패턴 5: 사이드카 패턴 (Istio Proxy + 앱) {#패턴-5-사이드카-패턴-istio-proxy--앱}
@@ -417,29 +426,11 @@ spec:
             path: /ready
             port: 8080
           periodSeconds: 5
-      # Istio 사이드카 (자동 주입 시 Istio가 Probe 추가)
-      # 수동 설정 예시:
-      - name: istio-proxy
-        image: istio/proxyv2:1.22.0
-        ports:
-        - containerPort: 15090
-          name: http-envoy-prom
-        startupProbe:
-          httpGet:
-            path: /healthz/ready
-            port: 15021
-          failureThreshold: 30
-          periodSeconds: 1
-        livenessProbe:
-          httpGet:
-            path: /healthz/ready
-            port: 15021
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /healthz/ready
-            port: 15021
-          periodSeconds: 2
+      # Istio 사이드카는 수동으로 컨테이너에 추가하지 않습니다.
+      # proxyv2 이미지와 Probe만 적어서는 동작하지 않으며, 자동 주입이 생성하는
+      # 프록시 실행 인자, 디스커버리/아이덴티티 환경 변수, 토큰 볼륨, iptables/init 설정이
+      # 함께 있어야 합니다. 자동 주입(istio-injection=enabled)을 사용하거나,
+      # 직접 보조 컨테이너를 운영해야 하면 위의 Native Sidecar 예시를 사용하세요.
       terminationGracePeriodSeconds: 90
 ```
 
@@ -493,6 +484,8 @@ spec:
 3. Native Sidecar(log-collector)에 SIGTERM 전송
 4. Native Sidecar 종료
 
+이 순서 보장도 Pod 하나의 `terminationGracePeriodSeconds` 예산 안에서만 이뤄집니다. 이 시간이 지나면 kubelet은 Native Sidecar를 포함해 아직 실행 중인 컨테이너를 SIGKILL로 강제 종료하므로, 전체 종료 시퀀스가 이 예산 안에 들어오도록 유예 시간을 설정해야 합니다.
+
 이 패턴은 Istio 사이드카, 로그 수집기, 모니터링 에이전트 등 메인 앱보다 오래 살아있어야 하는 보조 컨테이너에 적합합니다.
 
 ### Windows 컨테이너 Probe 고려사항 {#246-windows-컨테이너-probe-고려사항}
@@ -518,6 +511,8 @@ EKS는 Windows Server 2019/2022 기반 Windows 노드를 지원하며, Windows �
 #### Windows 워크로드 Probe 설정 예시 {#windows-워크로드-probe-설정-예시}
 
 **IIS/.NET Framework 앱:**
+
+기본 `mcr.microsoft.com/windows/servercore/iis` 이미지는 기본 IIS 사이트를 `/`로 제공하지만 `/healthz`나 `/ready`는 제공하지 않습니다. 이 엔드포인트는 아래의 ASP.NET Core 앱에 속하며, 먼저 이미지에 빌드해 넣어야 합니다. 그래서 아래 Probe는 `/`를 가리킵니다. 전용 헬스 엔드포인트를 제공하는 이미지를 빌드했다면 liveness·readiness Probe를 그 경로로 바꾸세요.
 
 ```yaml
 apiVersion: apps/v1
@@ -561,19 +556,19 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 12  # Linux 대비 2배 (최대 60초)
           successThreshold: 1
-        # Liveness Probe: IIS 프로세스 상태
+        # Liveness Probe: IIS 프로세스 상태 (기본 이미지는 "/healthz"가 아닌 "/"를 제공)
         livenessProbe:
           httpGet:
-            path: /healthz
+            path: /
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: ASP.NET 앱 준비 상태
+        # Readiness Probe: IIS 프로세스 준비 상태 (기본 이미지는 "/ready"가 아닌 "/"를 제공)
         readinessProbe:
           httpGet:
-            path: /ready
+            path: /
             port: 80
           initialDelaySeconds: 15
           periodSeconds: 5
@@ -595,6 +590,7 @@ var builder = WebApplication.CreateBuilder(args);
 // 헬스체크 추가
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())
+    // AddSqlServer는 기본 ASP.NET Core 등록이 아니라 AspNetCore.HealthChecks.SqlServer NuGet 패키지가 제공합니다.
     .AddSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
         name: "sqlserver",
@@ -657,9 +653,9 @@ readinessProbe:
   failureThreshold: 3
 ```
 
-#### CloudWatch Container Insights for Windows (2025-08) {#cloudwatch-container-insights-for-windows-2025-08}
+#### CloudWatch Container Insights for Windows (GA 2024-04) {#cloudwatch-container-insights-for-windows-2025-08}
 
-AWS는 2025년 8월에 Windows 워크로드용 CloudWatch Container Insights 지원을 발표했습니다.
+AWS는 2024년 4월에 Windows 워크로드용 CloudWatch Container Insights 지원을 출시(GA)했습니다.
 
 **Windows 노드에 Container Insights 설치:**
 
@@ -669,7 +665,7 @@ kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cwagentconfig-windows
+  name: cwagentconfig
   namespace: amazon-cloudwatch
 data:
   cwagentconfig.json: |
@@ -704,9 +700,9 @@ kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch
 aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name node_memory_utilization \
-  --dimensions Name=ClusterName,Value=my-eks-cluster Name=NodeName,Value=windows-node-1 \
-  --start-time 2026-02-12T00:00:00Z \
-  --end-time 2026-02-12T23:59:59Z \
+  --dimensions Name=ClusterName,Value=my-eks-cluster Name=NodeName,Value=windows-node-1 Name=InstanceId,Value=i-0123456789abcdef0 \
+  --start-time $(date -u -d '3 hours ago' +%Y-%m-%dT%H:%M:%SZ) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
   --period 300 \
   --statistics Average
 
@@ -715,11 +711,13 @@ aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name pod_cpu_utilization \
   --dimensions Name=ClusterName,Value=my-eks-cluster Name=Namespace,Value=windows-workloads \
-  --start-time 2026-02-12T00:00:00Z \
-  --end-time 2026-02-12T23:59:59Z \
+  --start-time $(date -u -d '3 hours ago' +%Y-%m-%dT%H:%M:%SZ) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
   --period 60 \
   --statistics Average
 ```
+
+위 예시는 최근 구간을 조회하도록 상대 시간을 사용합니다. GetMetricStatistics는 조회 기간이 길수록 사용할 수 있는 period가 커지며(60초 period는 15일, 300초 period는 63일까지 보관된 데이터만 조회 가능), 고정된 과거 날짜를 넣으면 해당 period의 보관 기간을 넘겨 데이터가 반환되지 않을 수 있습니다.
 
 #### 혼합 클러스터 (Linux + Windows) 통합 모니터링 전략 {#혼합-클러스터-linux--windows-통합-모니터링-전략}
 
@@ -798,8 +796,8 @@ spec:
 
 **2. CloudWatch Logs Insights 통합 쿼리:**
 
-```sql
--- Linux와 Windows Pod 로그를 동시에 검색
+```text
+# Linux와 Windows Pod 로그를 동시에 검색
 fields @timestamp, kubernetes.namespace_name, kubernetes.pod_name, kubernetes.host, @message
 | filter kubernetes.labels.app = "unified-app"
 | sort @timestamp desc
@@ -810,7 +808,7 @@ fields @timestamp, kubernetes.namespace_name, kubernetes.pod_name, kubernetes.ho
 
 ```promql
 # Prometheus Query (혼합 클러스터)
-# Linux + Windows Pod CPU 사용률
+# Linux + Windows Pod가 사용 중인 CPU 코어 수 (rate()는 사용률(%)이 아니라 소비한 코어 수를 반환)
 sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-app-.*"}[5m])) by (pod, node, os)
 
 # OS별 집계
@@ -822,7 +820,7 @@ sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-ap
 - **라이선스 비용**: Windows Server 라이선스 비용 발생 (EC2 인스턴스 비용에 포함)
 - **노드 부팅 시간**: Windows 노드는 부팅이 느림 (5-10분, 경험치이며 환경별 측정 필요)
 - **특권 컨테이너**: Windows는 Linux의 `privileged` 모드 미지원
-- **HostProcess 컨테이너**: Windows Server 2022 (1.22+)부터 지원
+- **HostProcess 컨테이너**: Kubernetes 1.22부터 사용 가능하며(1.26에서 GA), Windows Server 2019 이상에서 지원
 :::
 
 :::info 참고 자료

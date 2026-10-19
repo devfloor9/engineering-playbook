@@ -3,9 +3,9 @@ title: Probe patterns by workload
 description: Review examples for REST, gRPC, batch, JVM, and AI workloads.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-19
   author: devfloor9
-reading_time: 12
+reading_time: 15
 tags:
   - eks
   - kubernetes
@@ -152,18 +152,20 @@ spec:
         startupProbe:
           grpc:
             port: 9090
-            service: myapp.HealthService  # Optional
+            service: myapp.HealthService  # all three probes must query the same service
           failureThreshold: 30
           periodSeconds: 10
         livenessProbe:
           grpc:
             port: 9090
+            service: myapp.HealthService
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
           grpc:
             port: 9090
+            service: myapp.HealthService
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 2
@@ -265,6 +267,8 @@ spec:
       terminationGracePeriodSeconds: 120
 ```
 
+A readinessProbe only adds or removes the Pod from Service endpoints, so a worker going unready does not pause its queue polling loop or job intake. Because a queue worker typically does not receive traffic through a Service, a readiness failure does not stop job intake either. To pause intake, the application itself must stop consuming from the queue; do not rely on the readinessProbe to do it.
+
 **Worker application (Python):**
 
 ```python
@@ -344,7 +348,7 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: Include external dependencies
+        # Readiness Probe: checks the readinessState group (which by default does not include external dependencies)
         readinessProbe:
           httpGet:
             path: /actuator/health/readiness
@@ -374,6 +378,11 @@ management:
       probes:
         enabled: true
       show-details: when-authorized
+      # To include external dependencies in readiness, add them to the group explicitly.
+      # (the default readiness group only includes readinessState)
+      group:
+        readiness:
+          include: readinessState,db,redis
 ```
 
 ### Pattern 5: Sidecar Pattern (Istio Proxy + Application) {#패턴-5-사이드카-패턴-istio-proxy--앱}
@@ -417,29 +426,12 @@ spec:
             path: /ready
             port: 8080
           periodSeconds: 5
-      # Istio sidecar (Istio adds probes during automatic injection)
-      # Manual configuration example:
-      - name: istio-proxy
-        image: istio/proxyv2:1.22.0
-        ports:
-        - containerPort: 15090
-          name: http-envoy-prom
-        startupProbe:
-          httpGet:
-            path: /healthz/ready
-            port: 15021
-          failureThreshold: 30
-          periodSeconds: 1
-        livenessProbe:
-          httpGet:
-            path: /healthz/ready
-            port: 15021
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /healthz/ready
-            port: 15021
-          periodSeconds: 2
+      # Do not add the Istio sidecar as a manual container.
+      # Listing only the proxyv2 image and probes does not work: it also needs the
+      # proxy startup arguments, discovery/identity environment variables, token volumes,
+      # and iptables/init setup that automatic injection generates. Use automatic injection
+      # (istio-injection=enabled), or the Native Sidecar example above if you must run a
+      # supporting container yourself.
       terminationGracePeriodSeconds: 90
 ```
 
@@ -493,6 +485,8 @@ spec:
 3. Send SIGTERM to the Native Sidecar (log-collector).
 4. Terminate the Native Sidecar.
 
+This ordering is still carried out within the single Pod `terminationGracePeriodSeconds` budget. Once it elapses, the kubelet force-kills any still-running containers, including the Native Sidecar, with SIGKILL, so set the grace period long enough for the whole sequence to complete within it.
+
 This pattern is suitable for supporting containers that must outlive the main application, such as Istio sidecars, log collectors, and monitoring agents.
 
 ### Probe Considerations for Windows Containers {#246-windows-컨테이너-probe-고려사항}
@@ -518,6 +512,8 @@ The cold-start time and memory-overhead figures in Table 1 are experiential valu
 #### Probe Configuration Example for Windows Workloads {#windows-워크로드-probe-설정-예시}
 
 **IIS/.NET Framework application:**
+
+The stock `mcr.microsoft.com/windows/servercore/iis` image serves the default IIS site at `/` but does not expose `/healthz` or `/ready`; those endpoints belong to the ASP.NET Core app shown below, which must first be built into the image. The probes below therefore point at `/`. If you build an image that serves dedicated health endpoints, point the liveness and readiness probes at them instead.
 
 ```yaml
 apiVersion: apps/v1
@@ -561,19 +557,19 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 12  # 2 times the Linux value (up to 60 seconds)
           successThreshold: 1
-        # Liveness Probe: IIS process health
+        # Liveness Probe: IIS process health (the stock image serves "/", not "/healthz")
         livenessProbe:
           httpGet:
-            path: /healthz
+            path: /
             port: 80
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        # Readiness Probe: ASP.NET application readiness
+        # Readiness Probe: IIS process readiness (the stock image serves "/", not "/ready")
         readinessProbe:
           httpGet:
-            path: /ready
+            path: /
             port: 80
           initialDelaySeconds: 15
           periodSeconds: 5
@@ -595,6 +591,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add health checks
 builder.Services.AddHealthChecks()
     .AddCheck("self", () => HealthCheckResult.Healthy())
+    // AddSqlServer is provided by the AspNetCore.HealthChecks.SqlServer NuGet package, not by the built-in ASP.NET Core registration.
     .AddSqlServer(
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection"),
         name: "sqlserver",
@@ -657,9 +654,9 @@ readinessProbe:
   failureThreshold: 3
 ```
 
-#### CloudWatch Container Insights for Windows (2025-08) {#cloudwatch-container-insights-for-windows-2025-08}
+#### CloudWatch Container Insights for Windows (GA 2024-04) {#cloudwatch-container-insights-for-windows-2025-08}
 
-AWS announced CloudWatch Container Insights support for Windows workloads in August 2025.
+AWS launched CloudWatch Container Insights support for Windows workloads in April 2024.
 
 **Installing Container Insights on Windows nodes:**
 
@@ -669,7 +666,7 @@ kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cwagentconfig-windows
+  name: cwagentconfig
   namespace: amazon-cloudwatch
 data:
   cwagentconfig.json: |
@@ -704,9 +701,9 @@ kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch
 aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name node_memory_utilization \
-  --dimensions Name=ClusterName,Value=my-eks-cluster Name=NodeName,Value=windows-node-1 \
-  --start-time 2026-02-12T00:00:00Z \
-  --end-time 2026-02-12T23:59:59Z \
+  --dimensions Name=ClusterName,Value=my-eks-cluster Name=NodeName,Value=windows-node-1 Name=InstanceId,Value=i-0123456789abcdef0 \
+  --start-time $(date -u -d '3 hours ago' +%Y-%m-%dT%H:%M:%SZ) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
   --period 300 \
   --statistics Average
 
@@ -715,11 +712,13 @@ aws cloudwatch get-metric-statistics \
   --namespace ContainerInsights \
   --metric-name pod_cpu_utilization \
   --dimensions Name=ClusterName,Value=my-eks-cluster Name=Namespace,Value=windows-workloads \
-  --start-time 2026-02-12T00:00:00Z \
-  --end-time 2026-02-12T23:59:59Z \
+  --start-time $(date -u -d '3 hours ago' +%Y-%m-%dT%H:%M:%SZ) \
+  --end-time $(date -u +%Y-%m-%dT%H:%M:%SZ) \
   --period 60 \
   --statistics Average
 ```
+
+The examples above use a relative window to query a recent range. GetMetricStatistics retention depends on the period you request (data at a 60s period is retained for 15 days, and at a 300s period for 63 days), so a fixed past date can fall outside the retention for that period and return no datapoints.
 
 #### Unified Monitoring Strategy for Mixed Clusters (Linux + Windows) {#혼합-클러스터-linux--windows-통합-모니터링-전략}
 
@@ -798,8 +797,8 @@ spec:
 
 **2. Unified CloudWatch Logs Insights query:**
 
-```sql
--- Search Linux and Windows Pod logs together
+```text
+# Search Linux and Windows Pod logs together
 fields @timestamp, kubernetes.namespace_name, kubernetes.pod_name, kubernetes.host, @message
 | filter kubernetes.labels.app = "unified-app"
 | sort @timestamp desc
@@ -810,7 +809,7 @@ fields @timestamp, kubernetes.namespace_name, kubernetes.pod_name, kubernetes.ho
 
 ```promql
 # Prometheus Query (mixed cluster)
-# Linux + Windows Pod CPU utilization
+# Linux + Windows Pod CPU cores used (rate() of this counter yields CPU cores consumed, not a utilization percentage)
 sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-app-.*"}[5m])) by (pod, node, os)
 
 # Aggregate by OS
@@ -822,7 +821,7 @@ sum(rate(container_cpu_usage_seconds_total{namespace="default", pod=~"unified-ap
 - **Licensing costs**: Windows Server licensing costs apply (included in EC2 instance costs).
 - **Node boot time**: Windows nodes boot slowly (5-10 minutes; an experiential figure, so measure it in your own environment).
 - **Privileged containers**: Windows does not support Linux's `privileged` mode.
-- **HostProcess containers**: Supported starting with Windows Server 2022 (1.22+).
+- **HostProcess containers**: Available from Kubernetes 1.22 (GA in 1.26) on Windows Server 2019 and later.
 :::
 
 :::info References

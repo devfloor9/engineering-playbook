@@ -23,7 +23,7 @@
   "windows-vs-linux-probe-동작-차이": "Differences in Probe Behavior Between Windows and Linux",
   "windows-워크로드-probe-설정-예시": "Probe Configuration Example for Windows Workloads",
   "windows-워크로드-probe-타임아웃-주의사항": "Probe Timeout Considerations for Windows Workloads",
-  "cloudwatch-container-insights-for-windows-2025-08": "CloudWatch Container Insights for Windows (2025-08)",
+  "cloudwatch-container-insights-for-windows-2025-08": "CloudWatch Container Insights for Windows (GA 2024-04)",
   "혼합-클러스터-linux--windows-통합-모니터링-전략": "Unified Monitoring Strategy for Mixed Clusters (Linux + Windows)",
   "25-probe-안티패턴과-함정": "Probe Antipatterns and Pitfalls",
   "-안티패턴-1-liveness-probe에-외부-의존성-포함": "❌ Antipattern 1: Including External Dependencies in a Liveness Probe",
