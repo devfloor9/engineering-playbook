@@ -3,9 +3,9 @@ title: Prompt & Model Registry
 description: Comparison and implementation guide for Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 24
+reading_time: 27
 tags:
   - prompt-registry
   - versioning
@@ -117,14 +117,14 @@ Next, check the version used by each application group in the rollout, along wit
 - Integrated with observability (automatically record prompt version in trace)
 
 **Disadvantages**:
-- Python SDK-centric (TypeScript SDK exists but with limited features)
-- Simple UI (shows diff but no approval workflow)
+- Both the Python SDK and the JS/TS SDK support creating and fetching prompts and changing labels (as of 2026-10-29). The code examples in this guide use the Python SDK.
+- The UI shows version diffs but has no workflow for approving changes. Protected prompt labels, which restrict changes to labels such as `production` to project admins and owners, are available only on the Pro plan (Teams add-on), the Enterprise plan and the self-hosted Enterprise Edition (as of 2026-10-29).
 
 ---
 
 ## PromptLayer
 
-[PromptLayer](https://promptlayer.com/) is a SaaS prompt registry.
+[PromptLayer](https://promptlayer.com/) is a prompt registry delivered as SaaS; on the Enterprise plan it also offers a self-hosted deployment in your own infrastructure (as of 2026-10-29).
 
 - **Version Tagging**: Git-style tags (`v1.0`, `v1.1-alpha`)
 - **Visual Diff**: Highlight word-level changes between versions
@@ -136,8 +136,8 @@ Next, check the version used by each application group in the rollout, along wit
 - Team collaboration features (comments, approval workflow)
 
 **Disadvantages**:
-- SaaS only (no on-premises)
-- Data sovereignty issues (prompts stored on external servers)
+- The default offering is SaaS; deployment in your own infrastructure (self-hosted) is Enterprise-only (as of 2026-10-29).
+- Using the SaaS raises data sovereignty issues (prompts stored on external servers).
 
 ---
 
@@ -227,23 +227,23 @@ After evaluation and approval, map `PROD` to that ARN in the application configu
 
 ## Comparison Table
 
-The High/Medium levels in the 'AIDLC Suitability' row are the author's qualitative assessment.
+The High/Medium levels in the 'AIDLC Suitability' row are the author's qualitative assessment. The Langfuse, PromptLayer and Braintrust cells in the Deployment Method, Labels/Alias, Auto Evaluation Integration and Data Sovereignty rows were checked against each product's official documentation on 2026-10-29; where a feature depends on the plan (edition), the cell names the plan. The other cells (Visual Diff, Approval Workflow, A/B Experiments) were not re-verified against a primary source (as of 2026-10-29). Product features and plan coverage change, so confirm them in the official documentation before adoption.
 
 **Table 1. Feature support comparison across prompt registry tools**
 
 | Feature | Langfuse | PromptLayer | Braintrust | Bedrock PM |
 |---------|----------|-------------|------------|------------|
-| **Deployment Method** | Self-hosted | SaaS | SaaS | AWS Managed |
+| **Deployment Method** | Self-hosted or Langfuse Cloud | SaaS (self-hosted on Enterprise) | SaaS (data-plane self-hosting on Enterprise) | AWS Managed |
 | **Version Control** | Supported | Supported | Supported | Supported |
-| **Labels/Alias** | Supported | Supported | Not supported | Application-owned version-ARN mapping |
+| **Labels/Alias** | Supported | Supported (Release Labels) | Version assignment per environment | Application-owned version-ARN mapping |
 | **Visual Diff** | Basic | Supported | Supported | Not supported |
-| **Approval Workflow** | Not supported | Supported | Not supported | Not supported (implement with IAM) |
+| **Approval Workflow** | Not supported (protected labels on higher plans) | Supported | Not supported | Not supported (implement with IAM) |
 | **A/B Experiments** | Manual | Supported | Supported | Manual |
-| **Auto Evaluation Integration** | Possible (trace-based) | Not supported | Supported | Possible (Lambda) |
-| **Data Sovereignty** | Supported | Not supported | Not supported | Supported (within region) |
+| **Auto Evaluation Integration** | Possible (trace-based) | Supported (Evals) | Supported | Possible (Lambda) |
+| **Data Sovereignty** | Supported (when self-hosted) | Not supported on SaaS (supported with Enterprise self-hosting) | Not supported on SaaS (supported with Enterprise data-plane self-hosting) | Supported (within region) |
 | **AIDLC Suitability** | High | Medium (SaaS) | High (Eval-focused) | High (Bedrock only) |
 
-**AIDLC Recommendation**: **Langfuse** (self-hosted requirement) or **AWS Bedrock PM** (when using Bedrock). PromptLayer/Braintrust if SaaS is allowed.
+**AIDLC Recommendation**: **Langfuse** (self-hosted requirement) or **AWS Bedrock PM** (when using Bedrock). Consider PromptLayer/Braintrust when SaaS is allowed or when an Enterprise-plan self-hosted deployment is available (as of 2026-10-29).
 
 ---
 

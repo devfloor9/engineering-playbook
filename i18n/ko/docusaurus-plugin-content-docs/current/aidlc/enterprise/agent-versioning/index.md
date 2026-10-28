@@ -3,9 +3,9 @@ title: Agent Versioning & Change Management
 description: 엔터프라이즈 Agent의 프롬프트·모델·배포 전략·거버넌스를 통합하는 Change Management 체계
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 4
+reading_time: 5
 tags:
   - agent-versioning
   - prompt-registry
@@ -76,7 +76,7 @@ Shadow Testing, Canary Rollout, A/B Testing, Blue-Green Deployment 등 점진적
 
 1. **모든 변경은 버전 관리**: 프롬프트, 모델, 파라미터 변경은 Git 커밋처럼 추적 가능해야 합니다.
 2. **점진적 배포**: 전체 트래픽을 한 번에 바꾸지 않습니다. Canary → 단계적 확대.
-3. **자동 회귀 감지**: Golden Dataset 평가 + 실시간 메트릭 모니터링으로 성능 저하를 즉시 탐지.
+3. **자동 회귀 감지**: Golden Dataset 평가와 실시간 메트릭 모니터링으로 성능 저하를 탐지합니다. 탐지까지 걸리는 시간은 평가 주기와 메트릭 집계 간격에 따라 정해지므로 “즉시”를 보장할 수 없습니다. 배포 후 몇 분 안에 탐지할지를 설계 목표로 정하고, 회귀를 일부러 넣은 시험으로 그 목표를 확인합니다.
 4. **빠른 롤백**: 예를 들어 “1분 이내 복구”라는 목표를 정하고 실제로 시험합니다. 라벨·설정 변경부터 애플리케이션과 트래픽의 정상화까지 측정하며, 처리 중인 작업과 대체 프롬프트도 확인합니다. 1분은 이 문서의 예시 목표입니다.
 5. **감사 증빙**: 7년은 조직 보존 정책을 검토하기 위한 예시입니다. 공통 법정 기간으로 사용하지 않습니다. [감사 증빙 정책](./governance-automation.md#감사-증빙)에서 기록별 보존 근거, 최소 수집 범위, 접근·삭제 정책과 법적 보존 의무(legal hold)를 확정합니다.
 

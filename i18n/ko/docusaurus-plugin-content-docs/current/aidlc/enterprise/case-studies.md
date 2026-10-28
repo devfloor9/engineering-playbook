@@ -3,9 +3,9 @@ title: AIDLC 도입 시나리오와 검증 계획
 description: 금융·제조·공공·Fintech의 가상 시나리오로 AIDLC 도입과 하네스 검증 계획을 구성하는 방법
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 15
 tags:
   - aidlc
   - enterprise
@@ -97,6 +97,8 @@ Before/After 표는 계산 방법을 보여 주는 가정입니다. 실제 도�
   - 온톨로지 기반 도메인 모델링
   - 점진적 마이그레이션 (Strangler Fig 패턴)
 ```
+
+위 Phase 기간(1·2·3개월)은 계획 기간이며, 합하면 1.1의 6개월 프로젝트 기간과 같습니다. 1.4의 "4.8개월 가정"은 일부 Phase가 계획보다 일찍 끝나거나 앞뒤 Phase가 겹쳐 진행된다고 가정한 설명용 값입니다. 이 시나리오는 Phase별 실제 기간과 겹치는 구간을 정하지 않았습니다.
 
 ### 1.4 정량 결과
 
