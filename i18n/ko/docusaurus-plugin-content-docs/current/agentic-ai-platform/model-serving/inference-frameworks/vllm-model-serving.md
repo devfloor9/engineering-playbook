@@ -3,7 +3,7 @@ title: vLLM 모델 서빙
 description: vLLM의 PagedAttention, 병렬화 전략, Multi-LoRA, 하드웨어 지원 아키텍처
 created: "2026-02-05"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 22
 tags:
@@ -84,7 +84,7 @@ llm = LLM(
 vLLM V1 엔진은 2025-01-27 알파로 처음 공개되었고(초기에는 `VLLM_USE_V1=1`로 선택 활성화), 이후 기본 엔진이 되었습니다. 이 문서가 다루는 v0.19.x~v0.25.x 계열에서는 기본값입니다. 주요 기능은 다음과 같습니다:
 - **Chunked Prefill**: 프리필(계산 집약적)과 디코드(메모리 집약적)를 동일 배치에서 혼합 처리
 - **FP8 KV cache**: KV cache를 FP16(요소당 2바이트) 대신 FP8(1바이트)로 저장하여 KV cache 메모리를 약 절반으로 줄이고 더 긴 컨텍스트 지원
-- **Improved Prefix Caching**: 요청 간 공통 프리픽스의 KV cache를 재사용하며, V1에서 거의 오버헤드 없이 기본 활성화됨. 처리량 향상 폭은 프리픽스 적중률에 따라 달라지며 고정값이 아닙니다.
+- **Improved Prefix Caching**: 요청 간 공통 프리픽스의 KV cache를 재사용하며, V1에서 거의 오버헤드 없이 기본 활성화됩니다. 처리량 향상 폭은 프리픽스 적중률에 따라 달라지며 고정값이 아닙니다.
 
 ## GPU 메모리 요구사항
 
@@ -186,15 +186,15 @@ GPU 개수 열은 검증된 메모리 적합성이 아니라 병렬화 *토폴�
 
 ### PP 멀티노드 제약 (V1 엔진, 2026-04) {#pp-멀티노드-제약-v1-엔진-202604}
 
-vLLM V1 엔진의 `multiproc_executor`는 NCCL TCPStore로 멀티노드 동기화를 수행한다. `VLLM_ENGINE_READY_TIMEOUT_S` 환경 변수(기본 600초, v0.25.0 `envs.py`에서 확인)는 엔진이 준비 상태가 될 때까지 기다리는 시간을 제한한다. 내부에서 관찰된 사례에서 대형 모델(744B 급) 로딩 시간이 이 타임아웃을 초과했다. 다음은 재현을 통한 원인 분석이 아니라 단일 관찰 사례이므로, **기동 준비 타임아웃**(600초 안에 로딩이 끝나지 않음)과 실제 런타임 **교착(deadlock)**을 구분해야 한다. 확보된 근거는 타임아웃 값만 확인할 뿐 원인을 분리하거나 일반적 교착을 입증하지 못한다.
+vLLM V1 엔진의 `multiproc_executor`는 NCCL TCPStore로 멀티노드 동기화를 수행합니다. `VLLM_ENGINE_READY_TIMEOUT_S` 환경 변수(기본 600초, v0.25.0 `envs.py`에서 확인)는 엔진이 준비 상태가 될 때까지 기다리는 시간을 제한합니다. 내부에서 관찰된 사례에서 대형 모델(744B 급) 로딩 시간이 이 타임아웃을 초과했습니다. 다음은 재현을 통한 원인 분석이 아니라 단일 관찰 사례이므로, **기동 준비 타임아웃**(600초 안에 로딩이 끝나지 않음)과 실제 런타임 **교착(deadlock)**을 구분해야 합니다. 확보된 근거는 타임아웃 값만 확인할 뿐 원인을 분리하거나 일반적 교착을 입증하지 못합니다.
 
 **관찰된 증상**: Leader Pod가 Worker 응답을 대기하다 timeout → Worker에서 `TCPStore Broken pipe` 에러 → 순환 재시작.
 
-**완화 방안**(각자의 버전·워크로드로 검증할 것. 어느 것도 범용 해결책으로 검증되지 않았다):
-1. **`VLLM_ENGINE_READY_TIMEOUT_S` 상향**: 매우 큰 체크포인트의 느린 로딩이 기동 중 중단되지 않도록 한다.
+**완화 방안**(각자의 버전·워크로드로 검증하세요. 어느 것도 범용 해결책으로 검증되지 않았습니다):
+1. **`VLLM_ENGINE_READY_TIMEOUT_S` 상향**: 매우 큰 체크포인트의 느린 로딩이 기동 중 중단되지 않도록 합니다.
 2. **Ray 기반 vLLM**: Ray Cluster 구성(운영 복잡도 증가).
-3. **단일 노드 배포**: H200 (141GB × 8) 또는 B200 (p6-b200.48xlarge, 180GB × 8)으로 멀티노드 PP 필요성을 제거한다.
-4. **대안 엔진**: SGLang은 멀티노드 PP를 지원한다고 알려져 있으나, 의존하기 전에 자신의 모델·토폴로지에서 안정성을 검증해야 한다.
+3. **단일 노드 배포**: H200 (141GB × 8) 또는 B200 (p6-b200.48xlarge, 180GB × 8)으로 멀티노드 PP 필요성을 제거합니다.
+4. **대안 엔진**: SGLang은 멀티노드 PP를 지원한다고 알려져 있으나, 의존하기 전에 자신의 모델·토폴로지에서 안정성을 검증해야 합니다.
 
 상세 내용은 [커스텀 모델 배포 가이드](../../reference-architecture/model-lifecycle/custom-model-deployment.md#pp-멀티노드-교착-문제-lessons-learned)를 참조하세요.
 
@@ -204,9 +204,9 @@ vLLM V1 엔진의 `multiproc_executor`는 NCCL TCPStore로 멀티노드 동기�
 
 아래의 `Pods` 메트릭(`vllm_num_requests_waiting`)은 내장 리소스 메트릭이 아니라 **커스텀 Pod 단위 메트릭**입니다. vLLM은 `/metrics` 엔드포인트에 Prometheus 텍스트 형식으로 `vllm:num_requests_waiting`을 노출하지만, HPA는 커스텀 메트릭을 `custom.metrics.k8s.io` API를 통해서만 읽습니다. 따라서 다음 YAML에는 선행 조건이 있습니다:
 
-- Prometheus 등 메트릭 파이프라인이 vLLM `/metrics` 엔드포인트를 스크랩한다.
-- 커스텀 메트릭 어댑터(예: [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter))를 설치·구성하여 `vllm_num_requests_waiting`을 `custom.metrics.k8s.io`를 통해 Pod 단위 메트릭으로 노출하고 `vllm-deployment` Pod에 매핑한다.
-- 어댑터와 매핑이 없으면 HPA가 메트릭을 읽지 못해 확장되지 않는다.
+- Prometheus 등 메트릭 파이프라인이 vLLM `/metrics` 엔드포인트를 스크랩합니다.
+- 커스텀 메트릭 어댑터(예: [prometheus-adapter](https://github.com/kubernetes-sigs/prometheus-adapter))를 설치·구성하여 `vllm_num_requests_waiting`을 `custom.metrics.k8s.io`를 통해 Pod 단위 메트릭으로 노출하고 `vllm-deployment` Pod에 매핑합니다.
+- 어댑터와 매핑이 없으면 HPA가 메트릭을 읽지 못해 확장되지 않습니다.
 
 ```yaml
 apiVersion: autoscaling/v2
@@ -307,7 +307,7 @@ Multi-LoRA 핫스왑 배포, 고객별 어댑터 라우팅, A/B 테스트, S3 �
 
 ### 양자화 (Quantization)
 
-모델 품질과 메모리 효율성의 균형을 맞춘다.
+모델 품질과 메모리 효율성의 균형을 맞춥니다.
 
 <ComparisonTable
   headers={['양자화 방식', '가중치 저장 폭', 'FP16 대비 가중치 메모리', '체크포인트/백엔드 지원', '주요 용도']}
@@ -376,13 +376,13 @@ llm = LLM(
 
 ### CUDA Graph
 
-반복적인 연산 패턴을 그래프로 캡처하여 GPU 커널 실행 오버헤드를 줄인다. vLLM V1에서 기본 활성화되어 있다.
+반복적인 연산 패턴을 그래프로 캡처하여 GPU 커널 실행 오버헤드를 줄입니다. vLLM V1에서 기본 활성화되어 있습니다.
 
 ```bash
 vllm serve model-name --enforce-eager  # CUDA Graph 비활성화 (디버깅용)
 ```
 
-CUDA Graph는 대부분의 경우 10-20% 성능 향상을 제공하지만, 동적인 시퀀스 길이 패턴에서는 오버헤드가 발생할 수 있다.
+CUDA Graph는 대부분의 경우 10-20% 성능 향상을 제공하지만, 동적인 시퀀스 길이 패턴에서는 오버헤드가 발생할 수 있습니다.
 
 ### DeepGEMM (FP8)
 

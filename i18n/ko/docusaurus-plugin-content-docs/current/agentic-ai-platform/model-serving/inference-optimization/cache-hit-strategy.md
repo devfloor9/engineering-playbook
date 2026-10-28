@@ -3,7 +3,7 @@ title: 캐시 히트 전략
 description: KV/prefix·응답(Exact-Response)·semantic 3계층 추론 캐시를 하나의 의사결정 프레임으로 통합하고, 계층별 히트율 목표와 측정 지점, 튜닝 레버를 정리
 created: "2026-06-25"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -96,7 +96,7 @@ Prefix cache는 동일 시스템 프롬프트나 공통 컨텍스트를 가진 �
 
 ## 히트율 목표와 측정
 
-캐시 효과는 측정 없이는 관리할 수 없습니다. 계층별로 적중률을 분리해 측정하고, 게이트웨이·서빙 엔진의 메트릭을 함께 봐야 합니다. 이때 적중의 **단위가 계층마다 다르다**는 점에 주의해야 합니다. KV/Prefix 캐시의 적중률은 서빙 엔진이 보고하는 **토큰 단위 prefix 적중률**(vLLM은 prefix cache hit을 토큰 기준으로 집계합니다. [vLLM v1 metrics loggers.py](https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/v1/metrics/loggers.py))이고, 응답·semantic 캐시의 적중률은 게이트웨이가 보는 **요청 단위 응답 적중률**입니다. 두 값을 같은 축에서 비교하면 안 됩니다.
+캐시 효과는 측정 없이는 관리할 수 없습니다. 계층별로 적중률을 분리해 측정하고, 게이트웨이·서빙 엔진의 메트릭을 함께 봐야 합니다. 이때 적중의 **단위가 계층마다 다르다**는 점에 주의해야 합니다. KV/prefix cache의 적중률은 서빙 엔진이 보고하는 **토큰 단위 prefix 적중률**(vLLM은 prefix cache hit을 토큰 기준으로 집계합니다. [vLLM v1 metrics loggers.py](https://raw.githubusercontent.com/vllm-project/vllm/v0.23.0/vllm/v1/metrics/loggers.py))이고, 응답·semantic 캐시의 적중률은 게이트웨이가 보는 **요청 단위 응답 적중률**입니다. 두 값을 같은 축에서 비교하면 안 됩니다.
 
 **표 2. 캐시 계층별 측정 지점·적중 단위와 제안 시작값**
 
