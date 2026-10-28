@@ -3,7 +3,7 @@ title: ADR — Self-Improving Agent Loop 도입 의사결정
 description: Self-Improving Agent Loop(자가학습 강화 파이프라인)를 실 운영에 도입하기 전 합의해야 할 원칙·스코프·책임·롤백 경계를 정리한 Architecture Decision Record
 created: "2026-04-19"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 14
 tags:
@@ -118,7 +118,6 @@ Phase 3 문서 개편에서 Andrej Karpathy의 autoresearch 담론을 엔터프�
 - **월간 GPU-hour 상한**: 환경별로 사전 승인한 **예산 상한(approved budget)**으로 지정합니다. 이는 미래 가격을 보장하는 수치가 아니라 "이 한도를 넘기면 자동 승인 없이 Train Job을 띄우지 못한다"는 운영 한도입니다. 기본 제안값은 **1,000 GPU-hour/월**이며, 금액 환산은 다음 전제에서만 유효합니다.
   - 단위 환산: 1,000 GPU-hour × (해당 리전·시점의 p5en.48xlarge Spot GPU당 단가). p5en.48xlarge는 1 인스턴스에 GPU 8개이므로 인스턴스-시간 단가를 쓸 경우 8로 나누어 GPU-hour 단가로 환산합니다.
   - Spot 가격은 리전·날짜·수요에 따라 변동하므로, 금액 상한을 명시할 때는 **조회 리전·조회 날짜·구매 옵션(Spot/On-Demand)·인스턴스 타입**을 반드시 함께 기록합니다. 조직은 배포 리전의 현재 [EC2 Spot 가격](https://aws.amazon.com/ec2/spot/pricing/)을 조회해 상한 금액을 확정합니다.
-  - 위 수치와 영어 문서의 금액 상한(≈$15K)은 산출 전제가 달라 서로 다릅니다. 금액 상한은 **각 조직이 자신의 리전·시점 가격으로 재계산해 확정**해야 하며, 본 문서는 특정 달러 금액을 보장하지 않습니다. (KO/EN 금액 불일치는 작성자가 확정 가격을 결정한 뒤 양쪽 문서를 함께 갱신해야 하는 미해결 항목입니다.)
 - **품질 하락 시 자동 중단**: Canary 배포 후 Ragas faithfulness 5%p 하락 또는 misroute rate 10%p 상승 시 자동 롤백합니다.
 - 상한 초과 예정 시 FinOps 리뷰 없이 Train Job 스케줄링이 불가능합니다.
 
