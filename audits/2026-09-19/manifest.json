@@ -89,8 +89,8 @@
   "files": [
     {
       "path": "README.md",
-      "sha256": "f66ee9a34c913c08da347e0a5f036185e249d916ed9e64fee982358c7ab3ccbb",
-      "bytes": 68693
+      "sha256": "ff9bd5d653bbd2358ad81611e426696d4cfd5c08921316064167228e8b88423f",
+      "bytes": 68835
     },
     {
       "path": "agentic-design-serving/README.md",
