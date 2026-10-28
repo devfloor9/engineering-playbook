@@ -43,7 +43,7 @@ sidebar_label: 캐시 히트 전략
 
 세 계층은 배타적이지 않습니다. 게이트웨이 레벨에서 semantic·응답 cache로 전체 추론을 회피하고, 캐시 미스 시 서빙 엔진 레벨에서 KV/prefix cache로 prefill을 줄이는 식으로 **중첩 적용**하는 것이 일반적입니다.
 
-**그림 1. 응답 캐시·Semantic 캐시·KV/Prefix 캐시를 순서대로 조회하는 중첩 흐름**
+**그림 1. 응답 캐시·semantic 캐시·KV/prefix 캐시를 순서대로 조회하는 중첩 흐름**
 
 ```mermaid
 flowchart TB
