@@ -3,9 +3,9 @@ title: 커스텀 모델 배포 가이드
 description: GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드
 created: "2026-04-04"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 19
+reading_time: 23
 tags:
   - deployment
   - glm-5
@@ -65,13 +65,13 @@ LLM Classifier를 사용하면 클라이언트가 단일 엔드포인트(`/v1`)�
 | 정밀도 | FP8 |
 | 모델 크기 | ~704GB (가중치) |
 | 필요 VRAM | ~744GB (단일 노드 로딩) |
-| 최소 GPU | H200 8개 (1,128GB) 또는 B200 8개 (1,440GB) |
+| 최소 GPU | H200 8개 (1,128GB) 또는 B200 8개 (1,432GB) |
 
 ## GPU 인스턴스 선택 매트릭스
 
-대형 모델 배포 시 가장 중요한 선택은 GPU 인스턴스 타입입니다. 모델의 VRAM 요구량을 기준으로 인스턴스를 선택합니다.
+대형 모델 배포 시 가장 중요한 선택은 GPU 인스턴스 타입입니다. 모델의 VRAM 요구량을 기준으로 인스턴스를 선택합니다. 아래 표의 Spot 가격은 조회 시점·가용 영역·리전에 따라 달라지는 예시 값이며, 실제 가격은 배포 전 `aws ec2 describe-spot-price-history`로 확인하세요.
 
-| 인스턴스 | GPU | VRAM | 744B 모델 단일노드? | PP=2 멀티노드 | Spot 가격 (us-east-2) | 권장도 |
+| 인스턴스 | GPU | VRAM | 744B 모델 단일노드? | PP=2 멀티노드 | Spot 가격 예시 (us-east-2) | 권장도 |
 |---------|-----|------|-------------------|--------------|---------------------|--------|
 | p5.48xlarge | H100×8 | 640GB | ❌ (744GB > 640GB) | ⚠️ vLLM 교착 발생 | $12/hr | ⚠️ |
 | p5en.48xlarge | H200×8 | 1,128GB | ✅ | ✅ (불필요) | $12/hr | ✅ 최적 |
@@ -111,7 +111,7 @@ EKS Auto Mode vs Standard Mode 중 어떤 것을 선택할지는 사용하려는
 | Standard Mode + MNG | ✅ | ✅ | ✅ | ✅ 가장 안정적 |
 
 :::info Auto Mode GPU 인스턴스 지원 (2026-04-10 업데이트)
-EKS Auto Mode는 2026-04-10부터 p5en, p6-b200, p6-b300, p5e, trn2 등 최신 가속 인스턴스를 공식 지원합니다. p5/p5en/p6 모두 Auto Mode에서 사용 가능합니다.
+EKS Auto Mode는 2026-04-10부터 p5en, p6-b200, p6-b300, p5e, trn2 등 최신 가속 인스턴스를 공식 지원합니다. p5/p5en/p6 모두 Auto Mode에서 사용 가능합니다. 2026-04-10 이전에는 Auto Mode가 p5en.48xlarge와 p6-b200.48xlarge에 대해 `NoCompatibleInstanceTypes`를 반환했기 때문에 당시에는 Standard Mode + MNG가 필요했습니다.
 :::
 
 ### 권장: Standard Mode + MNG
@@ -221,17 +221,21 @@ initContainers:
     mountPath: /opt/vllm/.local
 ```
 
+:::warning 이 조각만으로는 동작하지 않습니다
+위 조각은 initContainer에만 패키지를 설치하므로, 다음 조건을 함께 충족해야 메인 vLLM 컨테이너가 설치본을 공유합니다. (1) `image`를 `:nightly` 대신 재현 가능한 특정 다이제스트/태그로 고정합니다. (2) `vllm-python-packages` 볼륨을 메인 컨테이너에도 동일 경로로 마운트하고 `PYTHONPATH`가 그 경로를 포함하도록 설정합니다. (3) initContainer와 메인 컨테이너의 Python 버전·ABI가 일치해야 설치한 패키지가 로드됩니다. 셋 중 하나라도 빠지면 설치본이 공유되지 않습니다.
+:::
+
 ## 모델 캐시 전략 (S3 → NVMe)
 
-대형 모델(수백 GB)은 다운로드 시간이 매우 깁니다. 효율적인 캐시 전략이 필수입니다.
+대형 모델(수백 GB)은 다운로드 시간이 매우 깁니다. 효율적인 캐시 전략이 필수입니다. 아래 표의 다운로드 시간은 측정 기준(모델 크기, 네트워크 대역폭, 노드 수)에 따라 달라지는 추정치이며, 실제 값은 환경에서 측정해야 합니다. 또한 지속성이 서로 다른 두 종류를 구분하세요. NVMe emptyDir은 노드 로컬 저장소로 Pod 수명주기에 묶여 있어 Pod가 재스케줄되면 다시 다운로드해야 합니다. EFS는 노드와 무관하게 유지되는 공유 영구 파일시스템입니다.
 
-| 전략 | 다운로드 시간 | 멀티노드 동기화 | 비용 | 복잡도 | 권장도 |
+| 전략 | 다운로드 시간(추정) | 멀티노드 공유/지속성 | 비용 | 복잡도 | 권장도 |
 |------|-------------|----------------|-----|--------|--------|
-| HuggingFace Hub 직접 | ~45분 (노드당) | ❌ 각 노드 독립 | 무료 (대역폭) | 낮음 | ⚠️ |
-| S3 + init container `aws s3 sync` | ~30분 (노드당) | ⚠️ 타이밍 불일치 가능 | S3 저장+전송 | 중간 | ✅ |
-| S3 + init container `s5cmd` | ~15분 (노드당) | ⚠️ 타이밍 불일치 가능 | S3 저장+전송 | 중간 | ✅ 최적 |
-| EFS | ~60분 (노드당) | ✅ 공유 파일시스템 | EFS 저장+처리량 | 높음 | ⚠️ |
-| NVMe emptyDir (사전 다운로드 필수) | 즉시 | ✅ (S3 sync 선행) | S3 전송만 | 높음 | ✅ |
+| HuggingFace Hub 직접 | ~45분 (노드당) | ❌ 각 노드 독립, 비지속 | 무료 (대역폭) | 낮음 | ⚠️ |
+| S3 + init container `aws s3 sync` | ~30분 (노드당) | ⚠️ 노드 로컬, 타이밍 불일치 가능 | S3 저장+전송 | 중간 | ✅ |
+| S3 + init container `s5cmd` | ~15분 (노드당) | ⚠️ 노드 로컬, 타이밍 불일치 가능 | S3 저장+전송 | 중간 | ✅ 최적 |
+| EFS | ~60분 (노드당) | ✅ 공유 영구 파일시스템 | EFS 저장+처리량 | 높음 | ⚠️ |
+| NVMe emptyDir (사전 다운로드 필수) | 즉시 | ⚠️ 노드 로컬·Pod 수명주기 (S3 sync 선행) | S3 전송만 | 높음 | ✅ |
 
 ### 권장: S3 사전 업로드 → s5cmd → NVMe emptyDir
 
@@ -288,8 +292,7 @@ spec:
     image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/vllm-glm5:nightly
     command: ["vllm", "serve"]
     args:
-      - "zai-org/GLM-5-FP8"
-      - "--download-dir=/mnt/models"
+      - "/mnt/models/glm5-fp8"  # s5cmd로 미리 받은 로컬 디렉터리를 직접 서빙
       - "--tensor-parallel-size=8"
       - "--enforce-eager"
       - "--trust-remote-code"
@@ -299,9 +302,17 @@ spec:
   volumes:
   - name: model-cache
     emptyDir:
-      medium: ""  # NVMe (p5en은 4TB NVMe 제공)
+      # emptyDir은 노드의 ephemeral storage를 사용합니다. sizeLimit은 상한만 지정할 뿐
+      # NVMe를 할당하거나 보장하지 않습니다. 모델(약 704GB)+이미지+로그를 담으려면
+      # 노드의 ephemeral storage가 실제로 NVMe(예: p5en의 4TB)로 백킹되고 그만큼
+      # 용량이 확보돼야 합니다.
+      medium: ""
       sizeLimit: 800Gi
 ```
+
+:::note 이 블록은 부분 조각입니다
+위 YAML은 다운로드·캐시 경로를 보여주는 부분 조각이며 그대로 배포할 수 없습니다. 메인 vllm 컨테이너에 `resources.limits.nvidia.com/gpu: 8`과 호환 GPU 노드/드라이버 전제 조건이 빠져 있습니다. 완전한 배포 매니페스트는 아래 "단일 노드 배포 YAML 전체 예시" 절을 참조하세요.
+:::
 
 :::tip s5cmd vs aws s3 sync
 `s5cmd`는 Go로 작성된 고성능 S3 클라이언트로, `aws s3 sync`보다 3-4배 빠릅니다. `--numworkers 16`으로 병렬 다운로드를 활용하면 704GB 모델을 ~15분에 다운로드할 수 있습니다.
@@ -384,7 +395,7 @@ HuggingFace Hub에서 직접 다운로드하면 각 노드가 독립적으로 �
 | 시도 | 방법 | 결과 | 비고 |
 |------|------|------|------|
 | 1. 타임아웃 연장 | `VLLM_ENGINE_READY_TIMEOUT_S=1800` (30분) | Worker crash 빈도 감소, 교착 유지 | 근본 해결 아님 |
-| 2. Eager 모드 강제 | `--enforce-eager` | ❌ 적용 안 됨 | LWS LeaderWorkerSet이 vLLM args를 제대로 전달하지 못함 |
+| 2. Eager 모드 강제 | `--enforce-eager` | ❌ 적용 안 됨 | 런타임에 eager 모드가 반영되지 않음 (원인은 미확정; LWS 전달 문제로 단정할 근거 없음) |
 | 3. S3 사전 다운로드 | S3 + s5cmd | 타이밍 개선, 교착 유지 | 다운로드는 빨라졌지만 동기화 문제 여전 |
 | 4. NCCL 타임아웃 연장 | `NCCL_TIMEOUT=1800` | 효과 없음 | NCCL 타임아웃이 아닌 엔진 타임아웃 문제 |
 | 5. Distributed 타임아웃 | `VLLM_DISTRIBUTED_TIMEOUT=1800` | ❌ 환경변수 미인식 | vLLM 코드에 해당 변수 없음 |
@@ -444,6 +455,10 @@ helm install ray-cluster kuberay/ray-cluster \
 멀티노드 배포가 필요한 경우 LeaderWorkerSet (LWS)을 사용합니다. 교착 문제는 있었지만, LWS의 멀티노드 네트워킹 자체는 성공적으로 작동했습니다.
 
 ### LWS LeaderWorkerSet 정의
+
+:::warning 런타임 이미지 고정 필요
+아래 예시는 `:nightly` 태그를 사용하지만, 멀티노드에서는 Leader와 Worker가 동일한 빌드로 실행돼야 하므로 실제 배포 시 재현 가능한 특정 다이제스트/버전 태그로 고정하세요. 서로 다른 nightly 빌드가 노드마다 pull되면 ABI·커널 불일치로 교착이 재현될 수 있습니다.
+:::
 
 ```yaml
 apiVersion: leaderworkerset.x-k8s.io/v1
@@ -556,10 +571,10 @@ echo $LWS_LEADER_ADDRESS
 
 #### 4. Worker 포트 분리
 
-Leader는 8000번, Worker는 8001번 포트를 사용하여 충돌을 방지했습니다.
+Leader는 8000번, Worker는 8001번 포트를 사용했습니다. Leader와 Worker는 서로 다른 Pod이고 각자 별도 IP를 가지므로 포트가 같아도 충돌하지 않습니다. 즉 포트 분리는 충돌 방지가 아니라 역할(Leader 서빙 엔드포인트 vs Worker 내부 포트)을 구분하기 위한 선택입니다.
 
 :::tip restartPolicy: Default
-`restartPolicy: Default`는 Worker Pod만 재시작하고, Leader는 유지합니다. 이는 Worker의 일시적 장애 시 전체 그룹을 재시작하지 않아도 되므로 안정성을 높입니다.
+`restartPolicy: Default`는 Worker Pod만 재시작하고 Leader는 유지합니다. Worker의 일시적 장애 시 전체 그룹 재시작을 피할 수 있다는 장점이 있지만, 분산 엔진에서는 트레이드오프가 있습니다. Worker만 재시작하면 Leader에 남은 분산 그룹 상태가 재시작된 Worker와 어긋나 교착이나 재초기화가 필요할 수 있습니다. 분산 그룹 전체의 일관성이 깨지는 장애에서는 그룹 단위 재시작이 더 안전할 수 있으므로, 실패 Pod 정책은 장애 유형에 따라 선택해야 합니다.
 :::
 
 ## K8s Service 네이밍 주의
@@ -618,7 +633,7 @@ spec:
 이제 Kubernetes가 생성하는 환경변수는 `GLM5_SERVING_*`이므로 vLLM과 충돌하지 않습니다.
 
 :::caution K8s 환경변수 자동 생성 규칙
-Kubernetes는 Service 이름을 `<NAME>_<PORT>_` 형태로 변환하여 환경변수를 생성합니다. `vllm-`, `llm-`, `model-` 같은 일반적인 prefix는 사용을 피하세요.
+Kubernetes는 같은 네임스페이스의 각 Service에 대해 service link 환경변수를 생성합니다. 형식은 `<SVCNAME>_SERVICE_HOST`, `<SVCNAME>_SERVICE_PORT`, 그리고 `<SVCNAME>_PORT_<포트>_TCP*` 계열이며, 이름은 대문자로 변환되고 하이픈(`-`)은 밑줄(`_`)로 바뀝니다. 따라서 Service 이름이 `vllm-`로 시작하면 `VLLM_...` 환경변수가 생성되어 vLLM이 자체 설정 접두사(`VLLM_`)로 오인합니다. 근본 해결은 Pod에 `enableServiceLinks: false`를 설정해 service link 주입 자체를 끄는 것이며, 그것이 어려우면 `VLLM_`로 시작하지 않는 Service 이름을 쓰면 됩니다.
 :::
 
 ## GPU Operator + Auto Mode 충돌
@@ -653,9 +668,13 @@ nvidia-device-plugin-daemonset-abcde   0/1     CrashLoopBackOff   5          3m
 
 ### 해결: devicePlugin.enabled=false
 
+아래 설정은 **EKS Auto Mode에만** 해당합니다. Auto Mode는 Device Plugin을 내장하므로 GPU Operator의 Device Plugin을 끄고 모니터링 컴포넌트(DCGM, GFD 등)만 설치합니다. 재현성을 위해 차트 버전과 values를 고정하세요.
+
 ```bash
-# GPU Operator 재설치 (Device Plugin 비활성화)
+# GPU Operator 설치 (Auto Mode: 내장 Device Plugin 사용)
+# --version에 배포 시점의 지원 차트 버전을 고정하세요 (helm search repo nvidia/gpu-operator --versions 로 확인).
 helm upgrade --install gpu-operator nvidia/gpu-operator \
+  --version <GPU_OPERATOR_CHART_VERSION> \
   --namespace gpu-operator \
   --create-namespace \
   --set devicePlugin.enabled=false \
@@ -665,7 +684,13 @@ helm upgrade --install gpu-operator nvidia/gpu-operator \
   --set nodeStatusExporter.enabled=true
 ```
 
-이제 DCGM, GFD (GPU Feature Discovery), Node Status Exporter만 실행되며, Device Plugin은 Auto Mode의 내장 버전을 사용합니다. GPU Operator의 전체 아키텍처와 컴포넌트 상세는 [NVIDIA GPU 스택](../../model-serving/gpu-infrastructure/nvidia-gpu-stack.md)을 참조하세요.
+이제 DCGM, GFD (GPU Feature Discovery), Node Status Exporter만 실행되며, Device Plugin은 Auto Mode의 내장 버전을 사용합니다.
+
+:::caution Standard Mode / eksctl MNG는 다릅니다
+Standard Mode에서 생성한 Managed Node Group(예: Ubuntu AMI, eksctl)에는 내장 Device Plugin이 없습니다. 이 경우 `devicePlugin.enabled=false`로 두면 GPU가 할당 가능 리소스로 노출되지 않으므로, GPU Operator의 Device Plugin을 켜거나 별도 NVIDIA Device Plugin을 설치해야 합니다. Device Plugin 소유권은 Auto Mode(내장)와 Standard Mode(직접 설치)에서 서로 다릅니다.
+:::
+
+GPU Operator의 전체 아키텍처와 컴포넌트 상세는 [NVIDIA GPU 스택](../../model-serving/gpu-infrastructure/nvidia-gpu-stack.md)을 참조하세요.
 
 ```bash
 # GPU 정상 인식 확인
@@ -825,8 +850,8 @@ spec:
         image: <ACCOUNT_ID>.dkr.ecr.us-east-2.amazonaws.com/vllm-glm5:nightly
         command: ["vllm", "serve"]
         args:
-          - "zai-org/GLM-5-FP8"
-          - "--download-dir=/mnt/models"
+          - "/mnt/models/glm5-fp8"  # s5cmd로 미리 받은 로컬 디렉터리를 직접 서빙 (config/tokenizer/weights 포함)
+          - "--served-model-name=glm-5"
           - "--tensor-parallel-size=8"
           - "--enforce-eager"
           - "--trust-remote-code"

@@ -25,7 +25,7 @@ const KServeVsSeldon = () => {
     icon: '🖥️'
   }, {
     feature: isKo ? '롤백' : 'Rollback',
-    argocd: isKo ? 'Git 히스토리 기반 원클릭 롤백' : 'One-click rollback via Git history',
+    argocd: isKo ? '자동 동기화 시 Git revert로 롤백 (원클릭 아님)' : 'Rollback via Git revert when auto-sync is on (not one-click)',
     flux: isKo ? 'Git revert 기반 자동 롤백' : 'Auto rollback via Git revert',
     kubectl: isKo ? 'kubectl rollout undo (수동)' : 'kubectl rollout undo (manual)',
     icon: '⏪'

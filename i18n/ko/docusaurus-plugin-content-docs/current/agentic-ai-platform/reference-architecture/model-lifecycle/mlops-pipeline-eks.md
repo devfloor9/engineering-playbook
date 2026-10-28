@@ -3,9 +3,9 @@ title: EKS 기반 MLOps 파이프라인 구축
 description: Kubeflow + MLflow + vLLM + ArgoCD GitOps 기반 엔드투엔드 ML 라이프사이클 관리
 created: "2026-02-11"
 last_update:
-  date: 2026-09-22
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 6
+reading_time: 10
 tags:
   - mlops
   - kubeflow
@@ -224,9 +224,10 @@ def model_training(
     mlflow.set_tracking_uri(mlflow_tracking_uri)
     mlflow.set_experiment(experiment_name)
     
-    # 데이터 로드
-    X_train = pd.read_csv(f"{input_features.path}/X_train.csv").values
-    y_train = pd.read_csv(f"{input_features.path}/y_train.csv").values.ravel()
+    # 데이터 로드 (data_preparation이 저장한 train.csv에서 피처/라벨 분리)
+    train_df = pd.read_csv(f"{input_features.path}/train.csv")
+    X_train = train_df.drop(columns=["target"]).values
+    y_train = train_df["target"].values.ravel()
     
     # 모델 정의 (간단한 예시)
     class SimpleNN(nn.Module):
@@ -243,16 +244,23 @@ def model_training(
     model = SimpleNN(X_train.shape[1])
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-    
+
+    # GPU 노드에서 실행되므로 모델과 텐서를 명시적으로 디바이스로 옮깁니다.
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    X_tensor = torch.FloatTensor(X_train).to(device)
+    y_tensor = torch.FloatTensor(y_train).to(device)
+
     # MLflow 실험 시작
     with mlflow.start_run():
         mlflow.log_params({"learning_rate": learning_rate, "epochs": epochs})
-        
+        mlflow.log_param("device", str(device))
+
         # 학습 루프
         for epoch in range(epochs):
             optimizer.zero_grad()
-            outputs = model(torch.FloatTensor(X_train))
-            loss = criterion(outputs.squeeze(), torch.FloatTensor(y_train))
+            outputs = model(X_tensor)
+            loss = criterion(outputs.squeeze(), y_tensor)
             loss.backward()
             optimizer.step()
             mlflow.log_metric("train_loss", loss.item(), step=epoch)
@@ -267,6 +275,7 @@ def model_training(
 ```python
 # ml_pipeline.py
 from kfp import dsl
+from kfp import kubernetes  # kfp-kubernetes 확장 (노드 선택 등 Kubernetes 전용 기능)
 
 @dsl.pipeline(
     name="End-to-End ML Pipeline",
@@ -286,8 +295,14 @@ def ml_pipeline(
         mlflow_tracking_uri=mlflow_tracking_uri,
         experiment_name=experiment_name
     )
-    train_task.set_gpu_limit(1)
-    train_task.add_node_selector_constraint("node.kubernetes.io/instance-type", "g5.xlarge")
+    # KFP v2: 가속기 타입과 수량을 명시하고, 노드 선택은 kfp-kubernetes 확장으로 지정
+    train_task.set_accelerator_type("nvidia.com/gpu")
+    train_task.set_accelerator_limit(1)
+    kubernetes.add_node_selector(
+        train_task,
+        label_key="node.kubernetes.io/instance-type",
+        label_value="g5.xlarge",
+    )
     
     return train_task.outputs["output_model"]
 ```
@@ -395,6 +410,10 @@ spec:
     app: mlflow-server
 ```
 
+:::caution MLflow 서버의 사전 조건과 인증
+위 매니페스트는 다음 리소스가 미리 준비되어 있다고 가정합니다. 백엔드 스토어로 쓰는 PostgreSQL(`postgres-service`)과 그 자격 증명 시크릿(`mlflow-db-credentials`), 아티팩트를 저장할 S3 버킷(`s3://my-mlflow-artifacts/`), 그리고 그 버킷에 대한 `s3:GetObject`/`s3:PutObject` 권한을 범위를 좁혀 부여한 `mlflow-sa` 서비스 계정(IRSA)입니다. MLflow 서버 자체에는 내장 인증이 없으므로, 게이트웨이나 OIDC 프록시 뒤에 두어 접근을 제어해야 합니다. 또한 클라이언트가 아티팩트를 S3에 직접 쓰는지(클라이언트에 S3 권한 필요), 서버를 경유해 프록시로 쓰는지(`--serve-artifacts`, 서버에만 S3 권한 필요)를 결정해 그에 맞는 권한만 부여하세요.
+:::
+
 ---
 
 ## GitOps 배포 패턴 비교
@@ -494,6 +513,10 @@ spec:
 
 ### vLLM 모델 서빙 Deployment 예제
 
+:::note 학습 파이프라인과 서빙 예제는 서로 다른 모델입니다
+앞의 Kubeflow 파이프라인 예제는 표 형식 데이터를 다루는 소형 PyTorch 예시(SimpleNN, `model.pth`)로, 파이프라인 구조를 보여주기 위한 것입니다. 아래 vLLM 서빙 예제가 배포하는 대형 언어 모델(`Meta-Llama-3-70B-Instruct`)은 그 산출물이 아니며, 두 예제는 별개입니다. 실제로 vLLM으로 서빙할 모델을 파이프라인에서 생산하려면, 호환되는 LLM을 학습·내보내고 그 아티팩트를 Git으로 승격해 아래 매니페스트가 해당 아티팩트를 참조하도록 연결해야 합니다.
+:::
+
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -501,7 +524,7 @@ metadata:
   name: vllm-llama3-70b
   namespace: model-serving
 spec:
-  replicas: 2
+  # replicas는 HPA가 소유하므로 Deployment에 명시하지 않습니다(아래 주의사항 참조).
   selector:
     matchLabels:
       app: vllm-serving
@@ -558,6 +581,10 @@ spec:
           averageValue: "10"
 ```
 
+:::caution replicas 소유권과 커스텀 메트릭 사전 조건
+HPA(`minReplicas: 2`)가 레플리카 수를 소유하므로 Deployment에는 `replicas`를 두지 않았습니다. 만약 Deployment에 `replicas`를 명시하면서 이 매니페스트를 ArgoCD로 관리하면, ArgoCD가 Git의 값으로 되돌리고 HPA가 다시 조정하는 충돌이 반복됩니다. 그런 경우에는 ArgoCD Application에 `ignoreDifferences`로 `/spec/replicas`를 제외하세요. 또한 HPA가 쓰는 커스텀 메트릭 `vllm_requests_running`은 Pods 메트릭이므로, Prometheus Adapter(또는 동등한 custom.metrics.k8s.io 어댑터)가 이 메트릭을 노출하도록 매핑 규칙을 먼저 설정해야 합니다. vLLM 파드가 준비되려면 모델 가중치 다운로드와 로드가 끝나야 하므로, 다운로드 시간을 고려한 readinessProbe와 `--max-model-len`에 맞는 GPU 메모리가 선행 조건입니다. 그리고 `meta-llama/Meta-Llama-3-70B-Instruct`는 접근 승인이 필요한 게이트 리포지토리이므로, HuggingFace 토큰(예: 시크릿에서 주입하는 `HF_TOKEN` 환경 변수)과 모델 사용 승인이 선행되어야 합니다.
+:::
+
 ---
 
 ## Argo Workflows CI/CD 통합
@@ -589,6 +616,10 @@ flowchart LR
 ```
 
 ### Argo Workflow 예제
+
+:::caution 실행 가능한 매니페스트가 아닌 설계 스케치
+아래 Workflow는 CI/CD 단계의 구조를 보여주는 설계 스케치이며, 그대로 실행되지 않습니다. 프로덕션에서 쓰려면 다음을 추가해야 합니다. 첫째, `git-clone`과 `docker-build`는 서로 다른 파드에서 실행되므로, 복제한 소스를 넘기려면 두 단계가 공유하는 볼륨(Workflow의 `volumeClaimTemplates`로 생성한 PVC나 아티팩트 저장소)이 필요합니다. 둘째, kaniko가 레지스트리에 푸시하려면 네임스페이스 범위의 레지스트리 인증 시크릿(`/kaniko/.docker/config.json`로 마운트)이 필요합니다. 셋째, `model-validation`은 학습이 끝난 실제 산출물을 로드해 평가한 결과로 배포를 결정해야 하며, 아래의 고정 `accuracy = 0.95`는 자리표시자일 뿐 프로덕션 배포를 승인해서는 안 됩니다.
+:::
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -631,7 +662,7 @@ spec:
     
     - name: docker-build
       container:
-        image: gcr.io/kaniko-project/executor:latest
+        image: gcr.io/kaniko-project/executor:v1.24.0  # kaniko는 2025-06 아카이브됨(미유지보수). 유지되는 포크(chainguard-dev/kaniko)나 Buildah/BuildKit 검토 권장
         args:
           - --dockerfile=/workspace/Dockerfile
           - --context=/workspace
@@ -664,8 +695,11 @@ spec:
         image: python:3.10
         command: [python]
         source: |
-          # 검증 로직 (간소화)
-          accuracy = 0.95
+          # 학습이 저장한 실제 모델 아티팩트를 로드해 보류된 테스트셋으로 평가합니다.
+          # (아래는 평가 함수 호출만 표시한 발췌이며, accuracy를 상수로 두어서는 안 됩니다.)
+          from evaluate_model import load_and_evaluate  # 산출물 로드 + 홀드아웃 평가
+          accuracy = load_and_evaluate()
+          # 측정된 accuracy로만 배포를 승인합니다.
           print("passed" if accuracy >= 0.90 else "failed")
     
     - name: argocd-deployment
@@ -673,7 +707,9 @@ spec:
         image: quay.io/argoproj/argocd:v3.4.4  # 2026-06-18 릴리스 (공식 레지스트리, 패치 단위 태그 필수)
         command: [sh]
         source: |
-          argocd app sync vllm-{{workflow.parameters.model-name}} --force
+          # --force는 리소스를 삭제 후 재생성하므로 의도적으로 필요할 때만 사용합니다.
+          # 최소 권한 토큰으로 로그인하고, Git에 불변 아티팩트 태그를 승격한 뒤 동기화합니다.
+          argocd app sync vllm-{{workflow.parameters.model-name}}
           argocd app wait vllm-{{workflow.parameters.model-name}} --health
 ```
 
@@ -696,6 +732,10 @@ NodePool 구성, Spot 전략, Consolidation 정책, GPU 인스턴스 비교는 [
 ```python
 # complete_ml_workflow.py
 from kfp import dsl, compiler
+from kfp import kubernetes
+# 주의: deploy_via_argocd와 모델 평가 컴포넌트는 별도 파일에서 @dsl.component로 정의해 import해야 합니다.
+# 아래 파이프라인은 그 컴포넌트들이 존재한다고 가정한 조립(wiring) 예시입니다.
+from components import deploy_via_argocd, evaluate_model
 
 @dsl.pipeline(
     name="Production ML Pipeline",
@@ -715,14 +755,26 @@ def production_ml_pipeline(
         mlflow_tracking_uri="http://mlflow-server.mlflow.svc.cluster.local:5000",
         experiment_name=experiment_name
     )
-    training.set_gpu_limit(1)
-    training.add_node_selector_constraint("karpenter.sh/capacity-type", "spot")
-    
-    # 3. ArgoCD GitOps 배포
-    deployment = deploy_via_argocd(
-        model_name=model_name,
-        model_uri=training.outputs["output_model"].uri
+    training.set_accelerator_type("nvidia.com/gpu")
+    training.set_accelerator_limit(1)
+    kubernetes.add_node_selector(
+        training,
+        label_key="karpenter.sh/capacity-type",
+        label_value="spot",
     )
+
+    # 3. 평가 게이트: 측정된 지표가 기준을 통과할 때만 배포 단계로 진행
+    evaluation = evaluate_model(
+        input_model=training.outputs["output_model"],
+        test_dataset=data_prep.outputs["output_dataset"],
+    )
+
+    # 4. 평가 통과 시에만 ArgoCD GitOps 배포(불변 아티팩트를 Git으로 승격)
+    with dsl.If(evaluation.outputs["passed"] == True):
+        deploy_via_argocd(
+            model_name=model_name,
+            model_uri=training.outputs["output_model"].uri,
+        )
 ```
 
 ---
@@ -736,7 +788,7 @@ EKS 기반 MLOps 파이프라인은 Kubeflow, MLflow, vLLM, ArgoCD를 통합하�
 1. **Kubeflow Pipelines**: 재사용 가능한 컴포넌트 기반 ML 워크플로우
 2. **MLflow**: 실험 추적 및 모델 레지스트리로 거버넌스 강화
 3. **vLLM**: 고성능 LLM 서빙 (PagedAttention, Prefix Caching)
-4. **ArgoCD GitOps**: 선언적 배포, 자동 동기화, 원클릭 롤백
+4. **ArgoCD GitOps**: 선언적 배포와 자동 동기화. 자동 동기화가 켜져 있으면 ArgoCD가 Git 상태를 계속 재적용하므로, 롤백은 "원클릭"이 아니라 Git에서 이전 커밋으로 되돌리는(revert) 작업이거나 자동 동기화를 의도적으로 끈 뒤 수행하는 작업입니다.
 5. **Karpenter**: GPU 리소스 동적 프로비저닝으로 비용 최적화
 6. **Argo Workflows**: CI/CD 자동화로 배포 주기 단축
 
