@@ -3,7 +3,7 @@ title: ADR — Self-Improving Agent Loop Adoption Decision
 description: Architecture Decision Record documenting principles, scope, responsibilities, and rollback boundaries to be agreed upon before introducing the Self-Improving Agent Loop to production
 created: "2026-04-19"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-28
   author: devfloor9
 reading_time: 27
 tags:
@@ -118,7 +118,6 @@ Traces promoted to training data must pass the following 4 gates sequentially:
 - **Monthly GPU-hour ceiling**: Set per environment as a pre-approved **budget ceiling**. This is not a guarantee of future price but an operational limit: "beyond this cap, no Train Job runs without explicit approval." The default proposal is **1,000 GPU-hour/month**, and any monetary conversion is valid only under stated assumptions:
   - Unit conversion: 1,000 GPU-hour × (the per-GPU Spot price for p5en.48xlarge in your region and at your point in time). A p5en.48xlarge has 8 GPUs per instance, so if you use an instance-hour price, divide by 8 to get the per-GPU-hour rate.
   - Spot prices vary by region, date, and demand, so whenever you state a monetary ceiling, also record the **query region, query date, purchase option (Spot/On-Demand), and instance type**. Each organization fixes its ceiling amount from the current [EC2 Spot price](https://aws.amazon.com/ec2/spot/pricing/) in its deployment region.
-  - This figure and the monetary ceiling shown in the Korean document (≈$15K) differ because their assumptions differ. The monetary ceiling must be **recomputed and fixed by each organization using its own region/date prices**; this document does not guarantee any specific dollar amount. (The KO/EN amount mismatch is an unresolved item: the author must decide a confirmed price and then update both documents together.)
 - **Auto-halt on quality degradation**: Automatic rollback if Ragas faithfulness drops 5%p or misroute rate rises 10%p after Canary deployment.
 - Train job scheduling prohibited without FinOps review when ceiling breach imminent.
 
