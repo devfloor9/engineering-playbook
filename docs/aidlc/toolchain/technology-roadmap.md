@@ -59,7 +59,6 @@ The versions below are a point-in-time snapshot as of Q2 2026 and are kept ident
 **Early Stage:**
 - Bedrock AgentCore (Preview)
 - Kagent (Early, community-driven)
-- Kagent (Early, community-driven)
 
 ---
 

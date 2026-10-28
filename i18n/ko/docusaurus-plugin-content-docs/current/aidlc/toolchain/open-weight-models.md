@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 12
 tags:
   - aidlc
   - toolchain
@@ -64,6 +64,8 @@ graph TD
 | **DeepSeek-R1** | DeepSeek | 671B 총, 37B 활성 (MoE) | CoT 추론 특화, RL 기반 학습 | MIT | p5en.48xlarge (H200×8) |
 | **Llama 4 Scout / Maverick** | Meta | Scout 109B 총·17B 활성 (16 전문가) / Maverick 400B 총·17B 활성 (128 전문가) | 넓은 생태계, 네이티브 멀티모달 | Llama 4 Community License | p5.48xlarge (H100×8) |
 | **Mistral Large 2** | Mistral | 123B | 유럽 데이터 주권 고려 설계 | Mistral License | p4d.24xlarge (A100×8) |
+
+"권장 배포" 열은 예시 산정입니다. FP16 가중치(파라미터 수 × 2바이트)가 표기된 GPU 메모리를 넘는 행은 제공사가 공개한 8비트 체크포인트를 전제로 합니다. Qwen3-Coder 480B-A35B의 H100×8과 30B-A3B의 단일 L40S(48GB)는 Qwen이 공개한 `-FP8` 체크포인트를 전제로 하며, Llama 4 Maverick 행은 "단일 H100 호스트에서 실행 가능"하다는 Meta의 설명을 따른 것입니다. FP16으로 서빙하려면 약 2배의 메모리가 필요하며, 아래 "인프라 요구사항"을 참고하세요.
 
 ### 선택 기준
 
@@ -151,7 +153,7 @@ docker run --gpus all \
 
 **인프라 요구사항**:
 - GLM-4.5 (355B 총, 32B 활성): H100 8장 또는 H200 8장. FP16 가중치는 약 710GB(355B × 2바이트)이며, KV 캐시·활성화 메모리까지 고려하면 H200×8(약 1,128GB)가 여유 있습니다.
-- Qwen3-Coder 30B-A3B(30B 총): FP16 가중치 약 60GB로 L40S×2 또는 H100×1에서 서빙 가능합니다. 위 숫자는 가중치 하한이며 실제 요구량은 배치 크기와 컨텍스트 길이에 따라 커집니다.
+- Qwen3-Coder 30B-A3B(30B 총): FP16 가중치 약 60GB로 L40S×2 또는 H100×1에서 서빙 가능하며, 단일 L40S(48GB)에서는 가중치가 약 30GB(30B × 1바이트)인 FP8 체크포인트가 필요합니다. 위 숫자는 가중치 하한이며 실제 요구량은 배치 크기와 컨텍스트 길이에 따라 커집니다.
 - 네트워크: 추론 엔드포인트를 내부망에만 바인딩하고(위 `127.0.0.1` 바인딩 또는 전용 서브넷), 아웃바운드는 보안 그룹·방화벽으로 모델 레지스트리 등 필요한 목적지로만 제한합니다. `--trust-remote-code`는 모델 저장소의 코드를 실행하므로, 서명·체크섬으로 아티팩트 출처를 검증한 모델에만 사용합니다.
 
 **장점**:

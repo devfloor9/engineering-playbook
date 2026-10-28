@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 23
+reading_time: 24
 tags:
   - aidlc
   - toolchain
@@ -64,6 +64,8 @@ Open-weight models can be optimized for specific domains through fine-tuning, pr
 | **DeepSeek-R1** | DeepSeek | 671B total, 37B active (MoE) | CoT reasoning specialized, RL-based training | MIT | p5en.48xlarge (H200×8) |
 | **Llama 4 Scout / Maverick** | Meta | Scout 109B total·17B active (16 experts) / Maverick 400B total·17B active (128 experts) | Broad ecosystem, natively multimodal | Llama 4 Community License | p5.48xlarge (H100×8) |
 | **Mistral Large 2** | Mistral | 123B | European data sovereignty considered design | Mistral License | p4d.24xlarge (A100×8) |
+
+The "Recommended Deployment" column is an example sizing. Where FP16 weights (parameters × 2 bytes) would exceed the listed GPU memory, the cell assumes the vendor-published 8-bit checkpoint: Qwen3-Coder 480B-A35B on H100×8 and 30B-A3B on a single L40S (48GB) assume the `-FP8` checkpoints Qwen publishes, and the Llama 4 Maverick cell follows Meta's statement that it runs on a single H100 host. FP16 serving needs roughly twice the memory; see "Infrastructure Requirements" below.
 
 ### Selection Criteria
 
@@ -152,7 +154,7 @@ docker run --gpus all \
 
 **Infrastructure Requirements**:
 - GLM-4.5 (355B total, 32B active): H100×8 or H200×8. FP16 weights are about 710GB (355B × 2 bytes); including KV cache and activation memory, H200×8 (~1,128GB) leaves headroom.
-- Qwen3-Coder 30B-A3B (30B total): FP16 weights about 60GB, servable on L40S×2 or H100×1. These are weight lower bounds; actual demand grows with batch size and context length.
+- Qwen3-Coder 30B-A3B (30B total): FP16 weights about 60GB, servable on L40S×2 or H100×1; a single L40S (48GB) needs the FP8 checkpoint, whose weights are about 30GB (30B × 1 byte). These are weight lower bounds; actual demand grows with batch size and context length.
 - Network: Bind the inference endpoint to the internal network only (the `127.0.0.1` binding above or a dedicated subnet), and restrict outbound traffic with security groups/firewall to only required destinations such as the model registry. `--trust-remote-code` executes code from the model repository, so use it only on models whose artifact provenance you have verified by signature/checksum.
 
 **Advantages**:
