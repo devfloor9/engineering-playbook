@@ -3,7 +3,7 @@ title: 엔터프라이즈 AIDLC 도입 전략
 description: AIDLC 엔터프라이즈 도입 전략 — 워터폴→하이브리드 전환, 챔피언 모델, 단계별 확산 로드맵
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 11
 tags:
@@ -92,14 +92,14 @@ graph LR
 
 - 요구사항 분석: 워터폴 (산출물 형식 유지)
 - 설계: 워터폴 + **Mob Elaboration** (핵심 모듈만)
-- **개발**: **Bolt 주기** (2주 단위 Working Software 산출)
+- **개발**: **Bolt 주기** (2주 단위 Working Software 산출). 2주 주기는 이 도입 전략이 엔터프라이즈 팀에 제안하는 운영 주기이며, AI-DLC Method Definition의 Bolt(Unit을 구현하는 최소 반복 단위로 수 시간~수 일 단위로 진행)와는 다른 개념입니다([적응형 실행](../methodology/adaptive-execution.md) 참고)
 - 테스트: **Continuous Validation** (Bolt마다 시연)
 
 #### Bolt 주기 구조
 
 ```mermaid
 graph TD
-    Intent["Intent 정의<br/>(2주 Bolt 목표)"]
+    Intent["Intent 정의<br/>(2주 Bolt 목표, 엔터프라이즈 운영 주기 제안)"]
     Unit["Unit 분해<br/>(1-3일 작업)"]
     Dev["Mob Programming<br/>(Daily Unit 완료)"]
     Val["Bolt Validation<br/>(Working Demo)"]

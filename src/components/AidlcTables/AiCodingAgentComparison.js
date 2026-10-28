@@ -64,7 +64,7 @@ const AiCodingAgentComparison = () => {
   }, {
     name: 'OpenAI Codex',
     provider: 'OpenAI',
-    model: 'codex-1 (o3-mini based)',
+    model: 'codex-1 (o3-based)',
     cost: 'Included in Pro $20/mo',
     specialty: 'Multi-file Autonomous Coding',
     color: '#0891b2',

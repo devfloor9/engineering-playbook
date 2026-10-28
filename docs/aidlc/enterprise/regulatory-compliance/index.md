@@ -110,7 +110,7 @@ The four Functions are iterative rather than one-time sequential stages, and GOV
 **Key Features:**
 - International AI Management System standard (certifiable)
 - PDCA-based (Plan-Do-Check-Act cycle)
-- 72 Controls across 9 categories (Annex A)
+- 38 controls under nine control objectives, A.2 to A.10 (Annex A; checked against published secondary sources as of 2026-10-29, not the paid normative text)
 - Integrable with ISMS (ISO 27001), QMS (ISO 9001)
 
 **AIDLC Application:**
