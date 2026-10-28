@@ -56,7 +56,7 @@ The customer outcome figures in this section (conversion rate, detection accurac
 ### Financial Services (FSI)
 
 - Data sovereignty and regulatory compliance are key — **Hybrid Nodes** protect on-premises data while leveraging the EKS AI platform
-- Build real-time fraud detection agents, achieving **99.2% detection accuracy**
+- Build real-time fraud detection agents → **99.2% detection accuracy** example (not a measured customer case)
 - Safe AI operations even in financial regulatory environments — Pod Identity, encryption, and audit logs fully in place
 
 ### Gaming
@@ -67,7 +67,7 @@ The customer outcome figures in this section (conversion rate, detection accurac
 
 ### Manufacturing
 
-- Vision AI quality inspection agents — **90% defect-rate reduction** case
+- Vision AI quality inspection agents → **90% defect-rate reduction** example (not a measured customer case)
 - GPU MIG partitions one GPU across 7 workloads → **75% cost savings**
 - Unified EKS management even at the factory edge via **Hybrid Nodes**
 
