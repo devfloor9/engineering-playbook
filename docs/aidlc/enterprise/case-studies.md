@@ -3,9 +3,9 @@ title: AIDLC Adoption Scenarios and Validation Plans
 description: Illustrative financial, manufacturing, public-sector, and fintech scenarios for planning AIDLC adoption and harness validation
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 33
+reading_time: 35
 tags:
   - aidlc
   - enterprise
@@ -220,6 +220,8 @@ Strategy:
 | **Operating Cost** | KRW 32 million/month | KRW 24 million/month | **-25%** |
 | **Predictive Maintenance Accuracy** | 91.2% | 99.1% | **+7.9%p** |
 
+In these illustrative assumptions, the predictive maintenance accuracy of 99.1% falls short of the 99.5% target stated in section 2.1, so meeting the target requires further validation.
+
 **Cost Benefits:**
 - Operating cost savings: KRW 96 million annually
 - Prevented unexpected production downtime: KRW 280 million annual loss prevention
@@ -334,6 +336,8 @@ Strategy:
 | **Code Quality Variance** | ±35% by subcontractor | ±8% after integration verification | **-77%** |
 | **Security Vulnerabilities** | Average 23 per milestone | Average 4 per milestone | **-83%** |
 
+The "Security Compliance" row above refers to automated scans such as Trivy and Falco. Automated scanning speeds up evidence collection and vulnerability detection, but it does not by itself assure regulatory compliance. Compliance also requires mapping to control items, owner approval, and audit evidence.
+
 **Cost Benefits:**
 - Project cost: KRW 5 billion → assumed spending KRW 4.8 billion (**KRW 200 million savings**)
 - LLM cost savings: KRW 64.8 million annually
@@ -369,7 +373,7 @@ Strategy:
 
 **Review perspective:**
 
-> "Attempting AIDLC in large projects without governance is like sending 30 soldiers to battle without a commander."
+> The more organizations participate, the more clearly you must define the shared review criteria and the exception-approval path.
 
 ---
 
@@ -477,8 +481,8 @@ Redesign alone does not establish a cost of $8.40, zero incomplete emails, or ze
    - Verify that execution controls limit harm regardless of the initial failure cause
    - "Agents aren't hard; harnesses are"
 
-2. **Harness is Essential, Not Optional**
-   - Even for startups, 5 harness patterns are essential:
+2. **Harness Proposed as a Recommended Baseline**
+   - This guide proposes the following 5 harness patterns as a recommended baseline even for startups (not an absolute requirement; adjust to the risk of the work):
      - Retry budget
      - Timeout
      - Output gate
@@ -527,8 +531,8 @@ The following patterns and questions support review of the fictional scenarios a
 - Regression to traditional methods after 3 months
 
 **Lesson:**
-- AIDLC requires gradual adoption (Phase 1 → 2 → 3 → 4)
-- Each Phase needs 2-3 months stabilization period
+- AIDLC requires gradual adoption; the Phase 1 → 2 → 3 → 4 order is not an official standard but a sequence proposed by this guide
+- Decide each Phase's end conditions and observation period according to the scale of the work
 
 ---
 

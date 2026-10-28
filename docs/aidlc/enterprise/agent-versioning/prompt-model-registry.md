@@ -3,9 +3,9 @@ title: Prompt & Model Registry
 description: Comparison and implementation guide for Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management
 created: "2026-04-18"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 23
+reading_time: 24
 tags:
   - prompt-registry
   - versioning
@@ -156,7 +156,7 @@ Next, check the version used by each application group in the rollout, along wit
 
 **Disadvantages**:
 - Strong in development/test stages rather than runtime deployment
-- Weak production rollout features (requires direct implementation)
+- Production deployment centers on version pinning and per-environment assignment; it does not provide built-in percentage-based gradual rollout (canary/traffic splitting) or per-user/attribute runtime flag targeting. For those, you must integrate a feature-flag layer such as LaunchDarkly, Unleash, or AppConfig.
 
 ---
 

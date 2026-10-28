@@ -24,7 +24,7 @@ const ProductivityMetrics = () => {
       name: isKo ? '배포 빈도' : 'Deployment Frequency',
       before: isKo ? '주 1회' : '1x/week',
       after: isKo ? '일 5회' : '5x/day',
-      improvement: '+5x',
+      improvement: '+25x',
       positive: true
     }]
   }, {
@@ -179,7 +179,7 @@ const ProductivityMetrics = () => {
   return <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>📈 {isKo ? 'AIDLC 생산성 지표' : 'AIDLC Productivity Metrics'}</h2>
-        <p style={styles.subtitle}>{isKo ? 'AI 도입 전후 비교' : 'Before and After AI Adoption'}</p>
+        <p style={styles.subtitle}>{isKo ? '도입 전후 예시 목표치 (팀 단위 가정 기준, 실측값 아님)' : 'Illustrative before/after targets (team-level assumptions, not measured)'}</p>
       </div>
       <div style={styles.categoriesContainer}>
         {categories.map((category, idx) => <div key={idx} style={styles.categorySection}>

@@ -57,8 +57,8 @@ const DetailedMetrics = () => {
   }];
   const doraMetrics = [{
     metric: isKo ? '배포 빈도' : 'Deployment Frequency',
-    contribution: isKo ? 'Managed Argo CD + AI 자동 승인' : 'Managed Argo CD + AI Auto-approval',
-    method: isKo ? '수동 게이트 제거' : 'Remove manual gates',
+    contribution: isKo ? 'Managed Argo CD + 자동화된 배포 파이프라인' : 'Managed Argo CD + automated deployment pipeline',
+    method: isKo ? '필수 승인은 유지하되 수작업 배포 단계를 자동화' : 'Automate manual deployment steps while keeping required approvals',
     icon: '🚀'
   }, {
     metric: isKo ? '변경 리드 타임' : 'Lead Time for Changes',
@@ -224,7 +224,7 @@ const DetailedMetrics = () => {
   return <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>📊 {isKo ? '측정 지표' : 'Metrics'}</h2>
-        <p style={styles.subtitle}>{isKo ? 'AIDLC 도입 효과 측정' : 'Measuring AIDLC Adoption Impact'}</p>
+        <p style={styles.subtitle}>{isKo ? 'AIDLC 도입 효과 예시 (생산성 지표 표와는 다른 기준·기저값 사용, 실측값 아님)' : 'Illustrative AIDLC impact (uses a different scope/baseline than the Productivity Metrics table; not measured)'}</p>
       </div>
 
       <div style={styles.section}>

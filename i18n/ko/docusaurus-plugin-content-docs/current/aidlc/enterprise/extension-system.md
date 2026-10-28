@@ -3,7 +3,7 @@ title: Extension System
 description: AWS Labs AIDLC Extension System — opt-in 메커니즘으로 조직별 보안·컴플라이언스·도메인 규칙을 AIDLC 워크플로에 통합
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 5
 tags:
@@ -66,6 +66,8 @@ graph TB
 | **조직 표준화** | 팀별 표준 템플릿·체크리스트를 재사용 가능한 모듈로 분리 | 아키텍처 결정 기록(ADR) 템플릿 |
 | **점진적 도입** | 코어 방법론 먼저 도입, 조직 특화는 나중에 확장 | MVP 출시 후 Compliance 추가 |
 | **도구 독립성** | Extension 은 Markdown + YAML 로 표현되어 모든 AIDLC 플랫폼에서 동작 | Kiro · Claude Code · Cursor |
+
+위 효과는 Extension 을 적용하기만 하면 자동으로 보장되는 것이 아닙니다. 규제 대응을 포함한 각 효과는 해당 프로젝트에 적용되는 컴플라이언스 통제 항목을 먼저 정의하고, 릴리스 전에 검증 단계에서 충족 여부를 확인해야 실제로 성립합니다.
 
 ---
 
@@ -207,6 +209,8 @@ E. None (데모·PoC 용, 프로덕션 금지)
 - `[Answer]: C` → AIDLC 가 `opt-in.md` 에 security, testing, 조직 확장 추가
 
 ### 3.3 Extension 우선순위
+
+아래 우선순위 순서와 waiver(예외 승인) 프로세스는 AWS Labs 공식 규격이 아니라, 이 문서가 제안하는 로컬 운영 관례입니다. 조직은 자체 거버넌스에 맞게 조정할 수 있습니다.
 
 여러 확장에서 **충돌하는 규칙** 이 있을 경우 우선순위:
 

@@ -3,9 +3,9 @@ title: Enterprise AIDLC Adoption Strategy
 description: AIDLC Enterprise Adoption Strategy — Waterfall→Hybrid Transition, Champion Model, Phased Rollout Roadmap
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 26
+reading_time: 25
 tags:
   - aidlc
   - enterprise
@@ -151,10 +151,12 @@ Apply full Intent → Unit → Bolt cycle with comprehensive ontology/harness ut
 
 #### Success Metrics
 
-- Development speed improvement: 60-80%
-- Requirements change cost: 80% reduction
-- Deployment frequency: Weekly → Daily
-- Quality: 50% reduction in production bugs
+These values are not measurements but unvalidated targets set per project. Adjust the actual targets to the scale of the organization and the work.
+
+- Development speed improvement: 60-80% (target)
+- Requirements change cost: 80% reduction (target)
+- Deployment frequency: Weekly → Daily (target)
+- Quality: 50% reduction in production bugs (target)
 
 ---
 
@@ -166,7 +168,7 @@ Start with **existing system optimization** rather than new projects.
 
 | Factor | Greenfield (New) | Brownfield (Existing) |
 |------|------------------|------------------|
-| **Risk** | High (entire failure has clear responsibility) | Low (partial improvement, can't be worse than current state) |
+| **Risk** | High (entire failure has clear responsibility) | Generally lower (partial improvement, but regressions are still possible) |
 | **Learning Curve** | Steep (everything decided anew) | Gradual (requires understanding existing codebase) |
 | **Visibility** | Low (no deliverables until completion) | High (before/after comparison possible) |
 | **Customer Trust** | Uncertain (depends on final result) | High (rapid feedback) |
@@ -176,8 +178,8 @@ Start with **existing system optimization** rather than new projects.
 ```mermaid
 graph LR
     Small["Small Project<br/>(< ₩1B)<br/>Brownfield Optimization"]
-    Medium["Medium Project<br/>(₩1-5B)<br/>Partial Greenfield"]
-    Large["Large Project<br/>(₩5B+)<br/>Full AIDLC"]
+    Medium["Medium Project<br/>(₩1B to < ₩5B)<br/>Partial Greenfield"]
+    Large["Large Project<br/>(≥ ₩5B)<br/>Full AIDLC"]
 
     Small -->|Build Success Cases| Medium
     Medium -->|Establish Organizational Trust| Large
@@ -194,14 +196,14 @@ graph LR
 - **Duration**: 3-6 months
 - **Outcome**: Validate Bolt cycles, Mob sessions, harness automation
 
-#### Stage 2: Medium Projects (₩1-5B)
+#### Stage 2: Medium Projects (₩1B to < ₩5B) {#stage-2-medium-projects-1-5b}
 
 - **Target**: Partial rewrite of existing systems + new features
 - **Goal**: Validate hybrid model
 - **Duration**: 6-12 months
 - **Outcome**: Apply ontology, redefine roles, experiment with contract models
 
-#### Stage 3: Large Projects (₩5B+)
+#### Stage 3: Large Projects (≥ ₩5B) {#stage-3-large-projects-5b}
 
 - **Target**: Full enterprise system reconstruction
 - **Goal**: Apply AIDLC native
@@ -344,7 +346,7 @@ graph TD
 
 ## Maturity Model
 
-Evaluate organizational AIDLC application level in 4 stages.
+Evaluate organizational AIDLC application level in 4 stages. The stage breakdown and the champion counts, Bolt cadence, and Mob frequency below are not an official AIDLC standard; they are a reference rubric proposed by this guide. Adjust them to your organization.
 
 ### Level 0: Pilot
 
@@ -431,7 +433,7 @@ Evaluate organizational AIDLC application level in 4 stages.
 **Symptom**: "5 teams applying AIDLC" (actual application rate, performance unknown)
 
 **Risks**:
-- Formal application (doing Mob sessions but also maintaining code reviews → Double work)
+- Formal application (Mob sessions and the existing code-review process run as duplicated ceremony → double work. Keep required review and approval, and remove only the review steps that Mob can replace)
 - Failure to demonstrate performance → Executive support withdrawn
 - Can't learn from failures → Repeat same mistakes
 
