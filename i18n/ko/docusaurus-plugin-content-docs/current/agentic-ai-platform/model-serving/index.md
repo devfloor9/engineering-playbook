@@ -1,9 +1,9 @@
 ---
 title: 모델 서빙 & 추론 인프라
-description: GPU 인프라·추론 프레임워크·추론 최적화 계층 안내와, LLM 추론 요청 경로 전체의 계층별 튜닝 레버(인퍼런스 게이트웨이·prefill/decode 분리·KV cache-aware 라우팅·LMCache·캐시 히트 전략)를 한 장의 지도로 정리
+description: GPU 인프라·추론 프레임워크·추론 최적화 계층 안내와, LLM 추론 요청 경로 전체의 계층별 튜닝 레버(추론 게이트웨이·prefill/decode 분리·KV cache-aware 라우팅·LMCache·캐시 히트 전략)를 한 장의 지도로 정리
 created: "2026-03-06"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 15
 tags:
