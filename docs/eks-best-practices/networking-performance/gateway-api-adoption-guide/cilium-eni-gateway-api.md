@@ -3,7 +3,7 @@ title: Cilium ENI Mode + Gateway API Deep-dive Configuration
 description: Cilium ENI mode architecture, Gateway API resource configuration, performance optimization, Hubble observability, BGP Control Plane v2 deep-dive guide
 created: "2026-02-14"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 53
 tags:
@@ -932,6 +932,19 @@ The following configuration implements role separation, a key benefit of Gateway
 
 # 1. Platform team: Manage GatewayClass (cluster-admin)
 ---
+# CiliumGatewayClassConfig (cilium.io/v2alpha1, namespaced) referenced by the GatewayClass below.
+# It must exist, or the GatewayClass is not Accepted.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumGatewayClassConfig
+metadata:
+  name: production-gateway-config
+  namespace: kube-system
+spec:
+  description: "Production Gateways: LoadBalancer Service"
+  service:
+    type: LoadBalancer
+
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
@@ -1566,7 +1579,7 @@ kubectl exec -n kube-system ds/cilium -- cilium-dbg envoy admin listeners
 kubectl exec -n kube-system ds/cilium -- cilium-dbg service list
 
 # 6. Check ENI allocation status (.status.eni.enis is a map keyed by ENI ID; there is no 'available' field)
-#    The command below prints each node's ENI IDs and the number of IPs in use.
+#    The command below prints each node's ENI IDs and the in-use IP allocation map (.status.ipam.used, keyed by IP; it is a map, not a count).
 kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .status.eni.enis.*}{.id}{" "}{end}{"\t"}{.status.ipam.used}{"\n"}{end}'
 
 # 7. Query the last 30 seconds of flows (--since looks backward; to watch the next 30s use --follow with timeout)

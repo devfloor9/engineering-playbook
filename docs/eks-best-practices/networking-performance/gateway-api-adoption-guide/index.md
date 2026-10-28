@@ -3,7 +3,7 @@ title: "Gateway API Adoption Guide: From NGINX Ingress to Next-Generation Traffi
 description: NGINX Ingress Controller EOL response, tiered gateways for agentic workloads, Gateway API architecture, GAMMA Initiative, AWS Native vs open source solution comparison (AWS LBC, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong), Cilium ENI integration, migration strategy and benchmark plans
 created: "2026-02-14"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 78
 tags:
@@ -590,6 +590,9 @@ spec:
   - name: http
     protocol: HTTP
     port: 80
+    allowedRoutes:
+      namespaces:
+        from: All  # the redirect HTTPRoute in Step 3 lives in production-app, so this listener must also accept routes from other namespaces
 
   # HTTPS Listener (ACM certificate is set in LoadBalancerConfiguration)
   - name: https
@@ -797,7 +800,6 @@ This compares how the 8 major features used in the NGINX Ingress Controller are 
 - **If you run several WAF rules**, bundling them in a single WebACL (AWS Native) can be operationally convenient. Cost advantage, however, depends not only on rule count but also on traffic volume (per-request billing) and operational effort, and must be estimated per environment
 - **Open source solutions (Cilium, Envoy Gateway)** can implement policies at no extra billing, but you must also account for self-operation cost (nodes, upgrades, monitoring)
 - **For performance-sensitive workloads**, Cilium's L3/L4 packet forwarding runs in the kernel via eBPF, giving low latency. HTTP (L7) routing and policy, however, are handled by a user-space proxy such as Envoy/NGINX, which is not the same as kernel processing. Measure the latency of each path separately under the actual configuration and load
-- **When using a Lambda Authorizer**, watch for p99 latency spikes due to cold starts. Review Provisioned Concurrency settings
 :::
 
 ### 4.7 Per-Feature Implementation Code Examples

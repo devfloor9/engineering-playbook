@@ -3,7 +3,7 @@ title: Cilium ENI 모드 + Gateway API 심화 구성
 description: Cilium ENI 모드 아키텍처, Gateway API 리소스 구성, 성능 최적화, Hubble 관측성, BGP Control Plane v2 심화 가이드
 created: "2026-02-14"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 30
 tags:
@@ -932,6 +932,19 @@ Gateway API의 핵심 장점인 역할 분리를 Cilium에서 구현하는 방�
 
 # 1. 플랫폼 팀: GatewayClass 관리 (cluster-admin)
 ---
+# 아래 GatewayClass가 참조하는 CiliumGatewayClassConfig (cilium.io/v2alpha1, 네임스페이스 범위).
+# 이 객체가 없으면 GatewayClass가 Accepted 되지 않습니다.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumGatewayClassConfig
+metadata:
+  name: production-gateway-config
+  namespace: kube-system
+spec:
+  description: "Production Gateways: LoadBalancer Service"
+  service:
+    type: LoadBalancer
+
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
@@ -1566,7 +1579,7 @@ kubectl exec -n kube-system ds/cilium -- cilium-dbg envoy admin listeners
 kubectl exec -n kube-system ds/cilium -- cilium-dbg service list
 
 # 6. ENI 할당 상태 (.status.eni.enis는 ENI ID를 키로 갖는 맵이며 'available' 필드는 없음)
-#    아래는 노드별 ENI ID 목록과 사용 중 IP 수를 출력합니다.
+#    아래는 노드별 ENI ID 목록과 사용 중 IP 할당 맵(.status.ipam.used, IP를 키로 갖는 맵이며 개수가 아님)을 출력합니다.
 kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .status.eni.enis.*}{.id}{" "}{end}{"\t"}{.status.ipam.used}{"\n"}{end}'
 
 # 7. 최근 30초 플로우 조회 (--since는 과거를 조회; 앞으로 30초를 보려면 --follow를 timeout과 함께 사용)

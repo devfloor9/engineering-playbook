@@ -3,7 +3,7 @@ title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 �
 description: NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획
 created: "2026-02-14"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: YoungJoon Jeong · SiYeon Hwang
 reading_time: 47
 tags:
@@ -590,6 +590,9 @@ spec:
   - name: http
     protocol: HTTP
     port: 80
+    allowedRoutes:
+      namespaces:
+        from: All  # Step 3의 리다이렉트 HTTPRoute가 production-app 네임스페이스에 있으므로 이 리스너도 다른 네임스페이스의 라우트를 허용해야 함
 
   # HTTPS Listener (ACM 인증서는 LoadBalancerConfiguration에서 지정)
   - name: https
@@ -797,7 +800,6 @@ NGINX Ingress Controller에서 사용하던 8가지 주요 기능을 각 Gateway
 - **WAF 규칙을 여러 개 운영한다면** 단일 WebACL에 규칙을 묶어 관리하는 AWS Native가 운영상 편리할 수 있습니다. 다만 비용 우위는 규칙 수만이 아니라 트래픽량(요청당 과금)과 운영 공수까지 포함해 각 환경에서 산정해야 합니다
 - **오픈소스 솔루션(Cilium, Envoy Gateway)**은 추가 과금 없이 정책을 구현할 수 있으나, 자체 운영 비용(노드, 업그레이드, 모니터링)을 함께 고려해야 합니다
 - **성능 민감 워크로드**에서는 Cilium의 L3/L4 패킷 전달이 eBPF로 커널에서 처리되어 지연이 낮습니다. 반면 HTTP(L7) 라우팅과 정책은 Envoy/NGINX 같은 사용자 공간 프록시가 처리하므로 커널 처리와 동일하지 않습니다. 두 경로의 지연은 실제 구성과 부하에서 각각 측정해야 합니다
-- **Lambda Authorizer 사용 시** 콜드스타트로 인한 p99 지연 급증에 주의하세요. Provisioned Concurrency 설정을 검토하세요
 :::
 
 ### 4.7 기능별 구현 코드 예제
