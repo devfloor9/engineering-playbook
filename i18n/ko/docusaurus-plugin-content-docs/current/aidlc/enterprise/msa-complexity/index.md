@@ -3,7 +3,7 @@ title: MSA 복잡도 가이드 (Enterprise)
 description: 엔터프라이즈 환경에서 MSA 난이도를 Level 1-5로 진단하고 패턴별 가이드·하네스·검증을 통합 제공
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 7
 tags:
@@ -194,16 +194,16 @@ graph TB
 
 ### 의사결정 기준
 
-기술 복잡도(L1-L5)와 조직 준비도(A-D), 그리고 전문가 지원 가능 여부의 모든 조합을 아래 표에서 정확히 하나의 결과(Go/Partial/No-Go)로 매핑합니다. 모든 셀이 겹치지 않고 빠짐없이 하나의 결과를 가집니다. 전문가 지원 여부는 L4-C, L5-C, L5-D에서만 결과를 가릅니다.
+기술 복잡도(L1-L5)와 조직 준비도(A-D), 그리고 전문가 지원 가능 여부의 모든 조합을 아래 표에서 정확히 하나의 결과(Go/Partial/No-Go)로 매핑합니다. 모든 셀이 겹치지 않고 빠짐없이 하나의 결과를 가집니다. 전문가 지원 여부는 L4-C, L4-D, L5-C, L5-D에서만 결과를 가릅니다.
 
 **표 4. 기술 복잡도·조직 준비도·전문가 지원 조합별 Go/Partial/No-Go 결정**
 
 | 기술 복잡도 | 준비도 A | 준비도 B | 준비도 C | 준비도 D |
 |------------|---------|---------|---------|---------|
-| **L1** | Go | Go | Go | Go |
+| **L1** | Partial | Go | Go | Go |
 | **L2** | Partial | Go | Go | Go |
-| **L3** | No-Go | Partial | Go | Go |
-| **L4** | No-Go | Partial | 전문가 있으면 Go, 없으면 Partial | Go |
+| **L3** | Partial | Partial | Go | Go |
+| **L4** | No-Go | Partial | 전문가 있으면 Go, 없으면 Partial | 전문가 있으면 Go, 없으면 Partial |
 | **L5** | No-Go | No-Go | 전문가 있으면 Go, 없으면 Partial | 전문가 있으면 Go, 없으면 Partial |
 
 각 결과의 조치는 다음과 같습니다.

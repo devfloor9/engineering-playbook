@@ -3,7 +3,7 @@ title: MSA Complexity Guide (Enterprise)
 description: Diagnose MSA difficulty as Level 1-5 in enterprise environments and provide integrated pattern-specific guides, harnesses, and verification
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 14
 tags:
@@ -194,16 +194,16 @@ graph TB
 
 ### Decision Criteria
 
-Every combination of technical complexity (L1-L5), organizational readiness (A-D), and whether expert support is available maps to exactly one outcome (Go/Partial/No-Go) in the table below. Every cell is covered exactly once with no overlap. Expert availability only disambiguates L4-C, L5-C, and L5-D.
+Every combination of technical complexity (L1-L5), organizational readiness (A-D), and whether expert support is available maps to exactly one outcome (Go/Partial/No-Go) in the table below. Every cell is covered exactly once with no overlap. Expert availability only disambiguates L4-C, L4-D, L5-C, and L5-D.
 
 **Table 4. Go/Partial/No-Go decision by technical complexity, organizational readiness, and expert support**
 
 | Technical Complexity | Readiness A | Readiness B | Readiness C | Readiness D |
 |------------|---------|---------|---------|---------|
-| **L1** | Go | Go | Go | Go |
+| **L1** | Partial | Go | Go | Go |
 | **L2** | Partial | Go | Go | Go |
-| **L3** | No-Go | Partial | Go | Go |
-| **L4** | No-Go | Partial | Go if expert, else Partial | Go |
+| **L3** | Partial | Partial | Go | Go |
+| **L4** | No-Go | Partial | Go if expert, else Partial | Go if expert, else Partial |
 | **L5** | No-Go | No-Go | Go if expert, else Partial | Go if expert, else Partial |
 
 The action for each outcome is as follows.
