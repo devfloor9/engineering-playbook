@@ -3,9 +3,9 @@ title: DDD 통합 — AI 주도 개발에서의 필수 코어
 description: AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 15
 tags:
   - ddd
   - domain-driven-design
@@ -21,26 +21,26 @@ sidebar_label: DDD 통합
 category: aidlc
 ---
 
-> **핵심 메시지**: AIDLC에서 DDD는 선택사항이 아닌 방법론의 내장 요소입니다. AI가 비즈니스 로직을 자동으로 DDD 원칙에 따라 모델링하고, 팀이 이를 검증·조정합니다.
+> **핵심 메시지**: 이 가이드는 AIDLC에 적용할 방법론 플레이버로 DDD를 선택하며, DDD를 기본 적용 요소로 권장합니다. AI가 비즈니스 로직을 DDD 원칙에 따라 모델링하고, 팀이 이를 검증·조정합니다. DDD는 AIDLC 자체에 내재된 필수 요소가 아니라 이 가이드가 권장하는 선택지입니다.
 
 ---
 
-## 1. DDD가 AIDLC의 필수 코어인 이유
+## 1. 이 가이드가 DDD를 권장하는 이유 {#1-ddd가-aidlc의-필수-코어인-이유}
 
 전통적인 Scrum에서 DDD(Domain-Driven Design)는 **팀 선택사항**이었습니다. 아키텍트가 DDD를 선호하면 도입하고, 그렇지 않으면 트랜잭션 스크립트나 레이어드 아키텍처로 진행했습니다. 설계 기법의 선택은 팀의 역량과 선호에 달려 있었습니다.
 
-AIDLC에서는 상황이 근본적으로 다릅니다.
+이 가이드는 AIDLC에 DDD/BDD/TDD를 기본 플레이버로 선택해 권장합니다. 이는 AIDLC 방법론 자체가 이들을 강제한다는 뜻이 아니라, AI 주도 코드 생성에서 일관성을 얻기 위해 이 가이드가 택한 설계 기법 조합입니다.
 
 ```
-전통적 SDLC                          AIDLC
+전통적 SDLC                          이 가이드의 AIDLC 적용
 ━━━━━━━━━━━━━━                      ━━━━━━━━━━━━━━━━━━━
-설계 기법은 팀 선택                     DDD/BDD/TDD를 방법론에 내장
+설계 기법은 팀 선택                     DDD/BDD/TDD를 기본 플레이버로 권장
 아키텍트가 수동 모델링                  AI가 자동 모델링, 팀이 검증
 설계 문서는 코드와 점진적 이탈           Spec → Code 일관성 자동 유지
 도메인 지식이 사람 머리에만 존재         온톨로지로 형식화되어 AI가 이해
 ```
 
-### 1.1 왜 DDD가 내장되는가
+### 1.1 왜 DDD를 권장하는가 {#11-왜-ddd가-내장되는가}
 
 AI는 구조화된 패턴에서 최고의 성능을 발휘합니다. DDD는 비즈니스 로직을 **Aggregate, Entity, Value Object, Domain Event**로 체계화하는 명확한 어휘와 규칙을 제공합니다. 이는 AI가 요구사항을 코드로 변환할 때 일관된 가이드레일 역할을 합니다.
 
@@ -93,7 +93,7 @@ Mob Elaboration은 Product Owner, 개발자, QA가 한 방에 모여 AI와 협�
 
 ### 2.2 Kiro Spec-Driven Inception
 
-Kiro는 Mob Elaboration의 산출물을 **Spec 파일**로 체계화합니다. 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다.
+Kiro는 Mob Elaboration의 산출물을 **Spec 파일**로 체계화합니다. 자연어 요구사항에서 코드까지의 전체 과정을 구조화합니다. 아래 `requirements.md → design.md → tasks.md` 흐름은 이 가이드가 AIDLC Vibe 워크플로에 맞춰 고정한 산출물 구조이며, Kiro의 기본 Spec 기능이 사용하는 파일 이름·단계와 반드시 동일하지는 않습니다. 각 도구의 실제 Spec 동작은 해당 도구의 최신 문서로 확인해야 합니다.
 
 ```mermaid
 graph LR
@@ -124,9 +124,11 @@ graph LR
 ## 비기능 요구사항
 - P99 지연 시간: < 200ms
 - 가용성: 99.95%
-- 자동 스케일링: 2-20 Pod
+- 자동 스케일링: 3-20 Pod (최소 3, HPA 상한 20)
 - EKS 1.35+ 호환
 ```
+
+위 설계는 EKS 1.35+ 클러스터, ACK 컨트롤러(DynamoDB·SQS), Karpenter, HPA가 미리 설치되어 있다는 전제를 둡니다.
 
 **design.md**:
 
@@ -140,7 +142,7 @@ graph LR
 - Domain Event: PaymentCreated, PaymentCompleted, PaymentFailed
 
 ## 인프라 구성
-- EKS Deployment (3 replicas min)
+- EKS Deployment (replicas: 3, HPA 상한 20)
 - ACK DynamoDB Table (on-demand)
 - ACK SQS Queue (FIFO)
 - HPA (CPU 70%, Memory 80%)
@@ -194,6 +196,8 @@ graph LR
 ### 2.3 MCP 기반 실시간 컨텍스트 수집
 
 Kiro는 MCP 네이티브로, Inception 단계에서 AWS Hosted MCP 서버를 통해 실시간 인프라 상태를 수집합니다.
+
+아래 호출과 응답은 상호작용 방식을 보여주는 예시이며, 실제 MCP 서버의 도구 이름·스키마·응답 형식은 사용하는 서버 버전의 문서를 따릅니다.
 
 ```
 [Kiro + MCP 상호작용]
@@ -255,13 +259,14 @@ graph LR
 
 ```go
 // Aggregate
+// DynamoDB 파티션 키는 TransactionID("transactionId" 속성)로 매핑되며, Table CRD의 keySchema HASH 키와 일치합니다.
 type Payment struct {
-    TransactionID string
-    Amount        Money
-    Status        PaymentStatus
-    Customer      Customer
-    Method        PaymentMethod
-    Events        []DomainEvent
+    TransactionID string        `dynamodbav:"transactionId"` // 파티션 키 (HASH)
+    Amount        Money         `dynamodbav:"amount"`
+    Status        PaymentStatus `dynamodbav:"status"`
+    Customer      Customer      `dynamodbav:"customer"`
+    Method        PaymentMethod `dynamodbav:"method"`
+    Events        []DomainEvent `dynamodbav:"-"` // 영속화 대상 아님(아웃박스로 분리)
 }
 
 // Value Object
@@ -329,8 +334,8 @@ metadata:
   name: payment-events
 spec:
   queueName: payment-service-events.fifo
-  fifoQueue: true
-  contentBasedDeduplication: true
+  fifoQueue: "true"
+  contentBasedDeduplication: "true"
   tags:
     DomainEvent: PaymentCreated,PaymentCompleted,PaymentFailed
 ```
@@ -350,18 +355,25 @@ type DynamoDBPaymentRepository struct {
 }
 
 func (r *DynamoDBPaymentRepository) Save(ctx context.Context, p *Payment) error {
-    item, _ := attributevalue.MarshalMap(p)
-    _, err := r.client.PutItem(ctx, &dynamodb.PutItemInput{
-        TableName: aws.String("payment-service"),
-        Item:      item,
-    })
-
-    // Domain Event 발행
-    for _, event := range p.Events {
-        publishToSQS(event)
+    item, err := attributevalue.MarshalMap(p)
+    if err != nil {
+        return err
     }
 
-    return err
+    // Aggregate와 Domain Event를 하나의 트랜잭션으로 함께 기록 (아웃박스 패턴)
+    outboxItems := marshalOutbox(p.Events)
+    _, err = r.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+        TransactItems: append([]types.TransactWriteItem{
+            {Put: &types.Put{TableName: aws.String("payment-service"), Item: item}},
+        }, outboxItems...),
+    })
+    if err != nil {
+        // 영속화 실패 시 이벤트를 발행하지 않고 반환 (상태와 이벤트가 함께 커밋되거나 함께 실패)
+        return err
+    }
+
+    // 발행은 아웃박스에서 비동기로 수행 (별도 relay가 재시도 보장)
+    return nil
 }
 ```
 
@@ -462,9 +474,12 @@ events:
       amount: decimal
       currency: string
       timestamp: ISO8601
-    consumers:
-      - notification-unit  # Notification팀이 구독
-      - analytics-unit     # Analytics팀이 구독
+    # 단일 SQS 큐는 다수 소비자로 팬아웃되지 않으므로, SNS 토픽(또는 EventBridge)으로
+    # 발행하고 소비자별 SQS 큐를 구독시킵니다.
+    publishTo: sns:payment-events-topic
+    subscribers:
+      - notification-unit  # 전용 큐 payment-events-notification 구독
+      - analytics-unit     # 전용 큐 payment-events-analytics 구독
 ```
 
 AI가 이 사양을 기반으로 통합 테스트를 자동 생성합니다.
@@ -475,8 +490,10 @@ func TestPaymentNotificationIntegration(t *testing.T) {
     payment := CreatePayment(amount)
     payment.Complete()
 
-    // SQS에서 이벤트 수신 확인
-    event := sqsClient.ReceiveMessage("payment-events.fifo")
+    // Notification 전용 큐에서 메시지를 수신하고 타입을 지정해 역직렬화
+    msg := sqsClient.ReceiveMessage("payment-events-notification")
+    var event PaymentCompletedEvent
+    require.NoError(t, json.Unmarshal([]byte(msg.Body), &event))
     assert.Equal(t, "PaymentCompleted", event.Type)
 
     // Notification Unit이 이메일 발송했는지 확인
@@ -493,18 +510,20 @@ Mob Construction은 전통적인 Pair Programming을 AI로 확장한 것입니�
 |------|-----------------|----------------------|
 | **참여자** | 2명 (Driver + Navigator) | N명 + AI Agent |
 | **역할** | 1명 코딩, 1명 리뷰 | N명 검증, AI가 코딩 |
-| **속도** | 1x (사람 속도) | 10-50x (AI 속도) |
+| **속도** | 사람 속도 | AI가 코드를 생성하므로 더 빠를 수 있음 (배수는 미검증) |
 | **병렬성** | 순차 작업 | 다중 Unit 병렬 |
 | **지식 전파** | 2명만 학습 | 전체 팀 동시 학습 |
+
+위 표의 속도 비교는 상대적 경향을 나타내며, 구체적인 배수는 측정값이 아니라 미검증 가정입니다. 실제 향상 폭은 작업 성격·팀 구성·검증 비용에 따라 달라집니다.
 
 ---
 
 ## 5. Brownfield (기존 시스템) 접근
 
-기존 시스템에 기능 추가나 리팩터링을 수행하는 경우, Construction 단계에 **추가 스텝**이 필요합니다.
+기존 시스템에 기능을 추가하거나 리팩터링하는 경우에 선택할 수 있는 방법론적 접근을 설명합니다. 아래 역공학 흐름은 Construction 단계에 새로 추가되는 별도의 태그된 스텝이 아니라, 기존 코드를 DDD 모델로 끌어올리는 방법에 대한 논의입니다. 팀 상황에 따라 적용 여부를 선택합니다.
 
 :::warning Brownfield 전략: 최적화 우선
-새로 만들기보다 **기존 시스템 최적화**를 우선합니다. AI가 레거시 코드를 DDD 모델로 역공학하여 점진적 리팩터링을 수행합니다.
+새로 만들기보다 **기존 시스템 최적화**를 우선하는 선택지입니다. AI가 레거시 코드를 DDD 모델로 역공학하여 점진적 리팩터링을 지원합니다.
 :::
 
 ### 5.1 역공학 프로세스
@@ -583,9 +602,11 @@ DDD의 Ubiquitous Language는 팀 내 소통을 위한 **비형식적 합의**�
 |------|--------------------------|-------------|
 | **정의** | 자연어 합의 | 기계 해석 가능 스키마 |
 | **주 대상** | 사람 (팀 내 소통) | AI + 사람 |
-| **검증** | 코드 리뷰 시 수동 | 자동 검증 (프롬프트 시점) |
+| **검증** | 코드 리뷰 시 수동 | 검증기·도메인 경계를 정의한 경우 프롬프트 시점 검증 가능 |
 | **진화** | 문서화 지연 | 스키마 버전 관리 |
 | **예시** | "결제는 생성, 완료, 실패 상태를 가진다" | `Payment.status: enum(CREATED, COMPLETED, FAILED)` |
+
+위 표에서 "프롬프트 시점 검증"은 스키마에 대해 검증기(validator)와 도메인 경계가 정의되어 있을 때만 성립합니다. 그런 검증기가 없으면 스키마는 AI에 전달되는 맥락일 뿐 강제되는 제약이 아닙니다.
 
 ### 6.2 온톨로지 엔지니어링 워크플로우
 
@@ -668,14 +689,14 @@ Kiro 워크플로우:
 
 ### 8.2 Amazon Q Developer의 실시간 검증
 
-**Amazon Q Developer**는 2025년 1월 31일 발표된 **실시간 코드 실행 기능**을 통해 DDD 구현을 즉시 검증합니다.
+**Amazon Q Developer**는 2025년 1월 31일 발표된 **빌드·테스트 자동 실행 기능**을 통해 DDD 구현을 검증합니다. 이 기능은 프로젝트에 빌드·테스트 명령이 구성되어 있고(예: Devfile로 실행할 명령을 지정), 실행 가능한 테스트가 존재할 때 동작합니다.
 
 ```
 전통 방식:
   AI가 코드 생성 → 개발자가 수동 빌드 → 테스트 실패 발견 → 수정 반복
 
 Q Developer:
-  AI가 코드 생성 → 자동 빌드 → 자동 테스트 → 실패 시 즉시 재생성
+  AI가 코드 생성 → 자동 빌드 → 자동 테스트 → 실패 시 코드 수정 반복 후 리뷰 요청
 ```
 
 이는 AIDLC의 **Loss Function**을 Construction 단계에서 조기 작동시켜 오류를 하류로 전파하지 않는 핵심 메커니즘입니다.
@@ -698,7 +719,7 @@ Notification Bounded Context → Notification Service
 Analytics Bounded Context → Analytics Service
 ```
 
-AI가 requirements.md를 분석하여 Bounded Context를 자동 식별하고, 각 Context를 독립적인 EKS Deployment로 매핑합니다.
+AI가 requirements.md를 분석하여 Bounded Context를 자동 식별합니다. Bounded Context는 도메인 모델의 경계일 뿐이며, 이를 배포 단위로 어떻게 실체화할지는 별개의 결정입니다. EKS Deployment로 서비스별 매핑하는 것은 가능한 하나의 토폴로지이고, 모놀리식 배포나 다른 런타임도 선택할 수 있습니다.
 
 ### 9.2 Context Mapping 패턴
 
@@ -753,7 +774,8 @@ AI가 requirements.md를 분석하여 Bounded Context를 자동 식별하고, �
 
 **📚 참고 자료**
 
-- AWS Labs AI-DLC Research: [arxiv.org/abs/2501.03604](https://arxiv.org/abs/2501.03604)
+- AWS, "AI-Driven Development Life Cycle: Reimagining Software Engineering" (AWS DevOps Blog): [aws.amazon.com/blogs/devops/ai-driven-development-life-cycle](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)
+- AWS Labs, AI-DLC Workflows: [github.com/awslabs/aidlc-workflows](https://github.com/awslabs/aidlc-workflows)
 - Eric Evans, "Domain-Driven Design" (2003)
 - Vaughn Vernon, "Implementing Domain-Driven Design" (2013)
 - Chris Richardson, "Microservices Patterns" (2018)

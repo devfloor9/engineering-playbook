@@ -3,9 +3,9 @@ title: MSA Complexity Guide (Enterprise)
 description: Diagnose MSA difficulty as Level 1-5 in enterprise environments and provide integrated pattern-specific guides, harnesses, and verification
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-28
   author: devfloor9
-reading_time: 11
+reading_time: 14
 tags:
   - msa
   - aidlc
@@ -39,6 +39,8 @@ AIDLC is not uniformly applicable to all projects. The application approach must
 
 ### AIDLC Application Differences
 
+The complexity-to-application mappings in the table below, and the Go/No-Go and readiness rules that follow, are team-level heuristics (illustrative starting points) that this guide proposes, not universal thresholds. Each organization should adjust them to its own domain risk and capability.
+
 **Table 1. AIDLC application, ontology, and harness level by complexity**
 
 | Complexity | AIDLC Application | Ontology Level | Harness Level |
@@ -68,6 +70,8 @@ Evaluate **Technical Complexity** and **Organizational Readiness** on two axes t
 | **L3** | Async Event-Driven | - Event bus<br/>- Eventually Consistent<br/>- Domain events | Event-sourced order system |
 | **L4** | Saga + Compensating Transactions | - Distributed transactions<br/>- Compensation logic<br/>- Orchestration/Choreography | Travel booking Saga |
 | **L5** | Distributed Tx + CQRS + Event Sourcing | - Read/Write separation<br/>- Event store<br/>- Complex projections | Financial trading platform |
+
+CQRS, event sourcing, and distributed transactions are independent design choices that need not appear together. For example, you can apply CQRS without event sourcing, or use Saga-based distributed transactions without CQRS. The L1-L5 ordinal above is a rough proxy for overall complexity, not a dependency chain in which each level builds on the previous one.
 
 ### Axis 2: Organizational Readiness
 
@@ -190,49 +194,40 @@ graph TB
 
 ### Decision Criteria
 
+Every combination of technical complexity (L1-L5), organizational readiness (A-D), and whether expert support is available maps to exactly one outcome (Go/Partial/No-Go) in the table below. Every cell is covered exactly once with no overlap. Expert availability only disambiguates L4-C, L4-D, L5-C, and L5-D.
+
+**Table 4. Go/Partial/No-Go decision by technical complexity, organizational readiness, and expert support**
+
+| Technical Complexity | Readiness A | Readiness B | Readiness C | Readiness D |
+|------------|---------|---------|---------|---------|
+| **L1** | Partial | Go | Go | Go |
+| **L2** | Partial | Go | Go | Go |
+| **L3** | Partial | Partial | Go | Go |
+| **L4** | No-Go | Partial | Go if expert, else Partial | Go if expert, else Partial |
+| **L5** | No-Go | No-Go | Go if expert, else Partial | Go if expert, else Partial |
+
+The action for each outcome is as follows.
+
 #### Go (Proceed Immediately)
 
-**Conditions:**
-- Technical Complexity ≤ L3 AND Organizational Readiness ≥ B
-- OR Technical Complexity = L4-5 AND Organizational Readiness ≥ C AND Expert support available
-
-**Actions:**
-- Apply full AIDLC
-- Write ontology/harness
-- Agent-based code generation
+Apply full AIDLC, write the ontology and harnesses, and run agent-based code generation. Expert review is required for L4-5 Go cases.
 
 #### Partial (Phased Approach)
 
-**Conditions:**
-- Technical Complexity ≤ L2 AND Organizational Readiness = A
-- OR Technical Complexity = L3 AND Organizational Readiness ≤ B
-- OR Technical Complexity ≥ L4 AND No expert available
-
-**Actions:**
-- Run POC project first
-- Complete training program
-- Secure expert support
-- Phased AIDLC adoption
+Run a POC project first, complete the training program, secure expert support, then adopt AIDLC in phases.
 
 #### No-Go (Do Not Proceed)
 
-**Conditions:**
-- Technical Complexity ≥ L4 AND Organizational Readiness ≤ A
-- OR Technical Complexity = L5 AND Organizational Readiness ≤ B
-
-**Actions:**
-- Improve organizational readiness (training, POC)
-- Hire expert or engage consulting
-- Re-evaluate after preparation complete
+Improve organizational readiness through training and POC, hire an expert or engage consulting, then re-evaluate.
 
 ### Risk Assessment Matrix
 
-**Table 4. High/Medium/Low criteria by risk factor**
+**Table 5. High/Medium/Low criteria by risk factor**
 
 | Risk Factor | High | Medium | Low |
 |-----------|---------|---------|---------|
 | **Technical Complexity** | L4-5 | L2-3 | L1 |
-| **Organizational Readiness** | A (No experience) | B-C (Some experience) | D (Org standard) |
+| **Organizational Readiness** | A (No experience) | B (Single champion) | C-D (Team/org experience) |
 | **Data Sensitivity** | Financial, Healthcare | Personal data | Non-sensitive |
 | **Project Scale** | 20+ services | 5-20 services | 1-5 services |
 | **Timeline Pressure** | < 3 months | 3-6 months | 6+ months |

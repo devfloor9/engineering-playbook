@@ -3,9 +3,9 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC 공식 11개 공통 규칙 해설 — Question Format부터 Audit Logging까지, 엔터프라이즈 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 16
 tags:
   - aidlc
   - common-rules
@@ -17,18 +17,20 @@ sidebar_position: 6
 category: aidlc
 ---
 
-AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 의 `aws-aidlc-rule-details/common/` 디렉터리는 **모든 stage 가 공통으로 준수해야 하는 11개 규칙**을 정의합니다. 이 규칙들은 Inception → Construction → Operations 전 단계에서 AI 에이전트와 사람이 협업하는 방식을 규정하며, **결과물의 재현성·감사 가능성·안전성을 담보**합니다.
+AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) v0.1.7 의 `aws-aidlc-rule-details/common/` 디렉터리에는 11개 규칙 파일(`ascii-diagram-standards`, `content-validation`, `depth-levels`, `error-handling`, `overconfidence-prevention`, `process-overview`, `question-format-guide`, `session-continuity`, `terminology`, `welcome-message`, `workflow-changes`)이 들어 있습니다. 이 파일들은 Inception → Construction → Operations 전 단계에서 AI 에이전트와 사람이 협업하는 방식을 규정합니다.
 
-본 문서는 각 규칙을 "무엇(What) / 왜(Why) / 어떻게(How)" 3단 구조로 해설하고, 엔터프라이즈 환경에서의 적용 팁을 덧붙입니다.
+본 문서는 위 공식 파일의 내용을 엔터프라이즈 관점에서 **주제별로 재편한 11개 규칙**으로 해설합니다. 이 재편 목록(아래 1절 표)은 공식 파일 이름과 1:1로 대응하지 않습니다. 예를 들어 "Checkpoint Approval", "Audit Logging", "No Duplication", "Methodology First", "Reproducible" 는 공식 `common/` 에 같은 이름의 파일로 존재하지 않으며, 본 문서가 재현성·감사 가능성·안전성을 설명하기 위해 묶은 주제 범주입니다. 각 규칙은 "무엇(What) / 왜(Why) / 어떻게(How)" 3단 구조로 해설하고, 엔터프라이즈 환경에서의 적용 팁을 덧붙입니다.
 
 ---
 
-## 1. 개요: 11개 Common Rules
+## 1. 개요: 주제별로 재편한 11개 규칙 {#1-개요-11개-common-rules}
+
+아래 표와 다이어그램은 공식 `common/` 파일을 그대로 나열한 것이 아니라, 본 문서가 상호작용·품질·거버넌스 세 범주로 **재편한 주제 목록**입니다.
 
 ```mermaid
 graph TB
     subgraph Interaction["상호작용 규칙"]
-        Q["Question Format<br/>A-E + [Answer]:"]
+        Q["Question Format<br/>letter + Other + [Answer]:"]
         OP["Overconfidence Prevention"]
         WC["Workflow Changes"]
     end
@@ -58,7 +60,7 @@ graph TB
 | # | 규칙 | 범주 | 핵심 가치 |
 |---|------|------|----------|
 | 1 | Question Format | 상호작용 | 구조화된 질문·답변 포맷 강제 |
-| 2 | Content Validation | 품질 | 요구사항·응답 검증 |
+| 2 | Content Validation | 품질 | 파일 쓰기 전 생성 콘텐츠 구문 검증 |
 | 3 | Error Handling | 품질 | 예외 상황 표준 처리 |
 | 4 | Overconfidence Prevention | 상호작용 | AI 확신도 제어 |
 | 5 | Session Continuity | 거버넌스 | 세션 간 컨텍스트 보존 |
@@ -78,10 +80,10 @@ Common Rules는 Kiro, Q Developer, Cursor, Cline, Claude Code, GitHub Copilot �
 ## 2. 규칙 1: Question Format
 
 ### 무엇
-AI 에이전트가 사람에게 질문할 때 **항상 A-E 5지선다 + `[Answer]:` 태그** 포맷을 강제합니다.
+AI 에이전트가 사람에게 질문할 때 **항상 글자(A, B, C …) 선택지 + `[Answer]:` 태그** 포맷을 강제합니다. v0.1.7 의 `common/question-format-guide.md` 는 "Other" 를 **마지막 선택지로 반드시 포함**하고(필수), 의미 있는 선택지는 **최소 2개 + Other, 최대 5개 + Other** 범위로 두도록 규정합니다. 선택지 수를 채우기 위한 가짜 옵션은 만들지 않습니다.
 
 ### 왜
-- **재현성**: 자유 형식 답변은 모델별·세션별로 해석이 달라짐. 5지선다는 해석 모호성 제거
+- **재현성**: 자유 형식 답변은 모델별·세션별로 해석이 달라짐. 글자 선택지는 해석 모호성 제거
 - **속도**: 사람이 긴 자유 응답을 작성할 필요 없음. 한 글자 선택으로 진행
 - **감사**: 질문·답변 쌍이 구조화되어 감사 로그·재실행에 활용 가능
 
@@ -111,8 +113,8 @@ E. Other (please specify)
 ```
 
 ### 엔터프라이즈 적용 팁
-- 질문당 **5개 이하 옵션** 유지. 너무 많으면 의사결정 피로 유발
-- 옵션 D 는 "가장 일반적인 기본값", 옵션 E 는 "Other" 로 표준화
+- 의미 있는 선택지는 **최대 5개 + Other** 까지만 둡니다. 너무 많으면 의사결정 피로를 유발합니다
+- 마지막 선택지는 항상 "Other (please specify)" 로 두어 자유 응답 경로를 보장합니다
 - PR 본문·Slack 채널에 질문 블록을 복사해 **팀 합의 후 `[Answer]:` 작성**하는 패턴 권장
 
 ---
@@ -120,18 +122,32 @@ E. Other (please specify)
 ## 3. 규칙 2: Content Validation
 
 ### 무엇
-AI 가 생성한 모든 산출물(Requirements Document, Design Document, Code 등)에 대해 **자체 검증 체크리스트**를 실행하고, 실패 항목이 있으면 **사람에게 명시적으로 보고**합니다.
+v0.1.7 의 `common/content-validation.md` 가 정의하는 공식 규칙은, AI 가 파일을 쓰기 **전에** 생성한 콘텐츠(ASCII 다이어그램, Mermaid, JSON, YAML, Markdown)의 **구문을 검증**해 파싱 오류를 예방하는 것입니다. 검증에 실패하면 텍스트 대체본(fallback)으로 전환하고 워크플로를 중단하지 않으며, 간소화된 콘텐츠를 사용했음을 사용자에게 알립니다.
 
 ### 왜
-- AI 는 종종 누락·모순·hallucination 을 생성함
-- 사람이 모든 산출물을 전수 검토하기엔 시간 부족
-- AI 자체 검증을 1차 필터로 두면 사람 리뷰 부담 감소
+- 잘못된 Mermaid·YAML·JSON 은 산출물 파일을 깨뜨려 이후 단계가 읽지 못하게 만듦
+- 쓰기 전에 구문을 검사하면 파싱 오류를 재작업 없이 예방
+- 복잡한 시각 요소에 텍스트 대체본을 함께 제공하면 렌더링 실패에도 정보가 보존됨
 
 ### 어떻게
 
-**자체 검증 체크리스트 예시 (Requirements Document):**
+공식 규칙의 검증 체크리스트(파일 생성 전):
 ```markdown
-## Content Validation Report
+## Pre-Creation Validation Checklist
+- [ ] 임베드된 코드 블록(Mermaid, JSON, YAML) 구문 검증
+- [ ] 특수 문자 이스케이프 확인
+- [ ] Markdown 구문 정확성 확인
+- [ ] 콘텐츠 파싱 호환성 테스트
+- [ ] 복잡한 요소에 대한 텍스트 대체본 포함
+```
+
+### 엔터프라이즈 적용 팁
+
+아래 항목(본 가이드의 추가 제안)은 공식 Content Validation 규칙에는 없는, 조직 차원의 **별도 품질 게이트** 제안입니다. 공식 규칙(구문 검증·대체본)과 혼동하지 않도록 구분해 적용합니다.
+
+산출물의 요구사항 완전성(FR/NFR 누락·모순)을 사람에게 보고하는 자체 검증 리포트 예시:
+```markdown
+## Content Validation Report (조직 확장 예시)
 
 - [x] 모든 기능 요구사항에 Acceptance Criteria 포함
 - [x] 비기능 요구사항(NFR)에 측정 가능한 지표 명시 (P99 latency, 가용성 등)
@@ -144,10 +160,9 @@ AI 가 생성한 모든 산출물(Requirements Document, Design Document, Code �
 **Action Required**: 사용자 확인 후 재작성 필요
 ```
 
-### 엔터프라이즈 적용 팁
-- 각 산출물 유형별 **검증 체크리스트를 온톨로지 또는 조직 확장(extensions)** 에 저장
-- CI 파이프라인에 `aidlc-validate` 단계 추가해 리포트를 PR 코멘트로 자동 게시
-- 실패 항목은 GitHub Issue 자동 생성 후 해결 전까지 Checkpoint Approval 차단
+- 각 산출물 유형별 요구사항 검증 체크리스트를 온톨로지 또는 조직 확장(extensions)에 저장
+- CI 파이프라인에 조직 자체 `aidlc-validate` 단계를 추가해 리포트를 PR 코멘트로 게시
+- 실패 항목을 GitHub Issue 로 자동 생성하고 해결 전까지 승인 게이트에서 차단
 
 ---
 
@@ -234,14 +249,14 @@ GSI 설계가 최적이 아닐 수 있습니다.
 ### 엔터프라이즈 적용 팁
 - **Low confidence (< 50%) 응답은 자동으로 Checkpoint Approval 게이트에서 일시 중지**
 - Confidence 분포를 통계로 관리해 AI 개선 우선순위 식별
-- 금융·의료 등 규제 산업은 High confidence 만 자동 채택, Medium/Low 는 사람 승인 필수
+- 확신도는 AI 가 스스로 선언한 값이므로 자동 채택의 근거로 쓰지 않습니다. 금융·의료 등 규제 산업에서 중요한 결정은 선언된 확신도와 무관하게 사람의 승인을 거칩니다
 
 ---
 
 ## 6. 규칙 5: Session Continuity
 
 ### 무엇
-AIDLC 세션이 중단·재개되더라도 **이전 컨텍스트(질문·답변·산출물)를 완전히 복원**할 수 있도록 상태를 영속화합니다.
+AIDLC 세션이 중단·재개되더라도 **영속화된 컨텍스트(질문·답변·산출물)를 다시 불러올** 수 있도록 상태를 저장합니다. v0.1.7 의 `common/session-continuity.md` 는 재개 시 먼저 `aidlc-docs/aidlc-state.md` 를 읽고 이전 단계의 산출물을 다시 로드하도록 규정합니다. 복원되는 것은 파일로 저장된 상태·답변·산출물이며, 모델의 실시간 추론 상태(context window)는 복원 대상이 아닙니다.
 
 ### 왜
 - 엔터프라이즈 프로젝트는 여러 날·여러 팀에 걸쳐 실행됨
@@ -250,7 +265,7 @@ AIDLC 세션이 중단·재개되더라도 **이전 컨텍스트(질문·답변�
 
 ### 어떻게
 
-**세션 상태 파일 (`.aidlc/session.md`):**
+**세션 상태 파일 (`aidlc-docs/aidlc-state.md`):**
 ```markdown
 # AIDLC Session State
 
@@ -263,14 +278,14 @@ AIDLC 세션이 중단·재개되더라도 **이전 컨텍스트(질문·답변�
 
 | Stage | Status | Artifacts | Approved By | Approved At |
 |-------|--------|-----------|-------------|-------------|
-| workspace_detection | complete | `.aidlc/workspace.md` | yjeong | 2026-04-17T09:15:00Z |
+| workspace_detection | complete | `aidlc-docs/aidlc-state.md` | yjeong | 2026-04-17T09:15:00Z |
 | requirements_analysis | complete | `requirements.md` | yjeong | 2026-04-17T11:00:00Z |
 | user_stories | complete | `user-stories.md` | yjeong | 2026-04-17T14:00:00Z |
 | workflow_planning | in_progress | - | - | - |
 
 ## Pending Questions
 
-Q3. Authentication 방식 (A-E) — 2026-04-18T10:30:00Z 에 질문, 답변 대기 중
+Q3. Authentication 방식 — 2026-04-18T10:30:00Z 에 질문, 답변 대기 중
 ```
 
 ### 엔터프라이즈 적용 팁
@@ -321,10 +336,10 @@ AI 가 **워크플로 순서를 임의로 추가·건너뛰기·수정하지 못
 ## 8. 규칙 7: Checkpoint Approval
 
 ### 무엇
-각 stage 전환(예: requirements_analysis → user_stories) 시점에 **사람의 명시적 승인** 을 요구합니다.
+주요 stage 완료 시점에 **사람의 명시적 승인** 을 요구합니다. "Checkpoint Approval" 이라는 단일 공식 규칙 파일은 `common/` 에 없으며, 승인은 각 stage 규칙 안에 개별적으로 정의되어 있습니다. v0.1.7 에서 Requirements Analysis 와 User Stories 는 산출물 생성 후 명시적 승인 단계(예: `inception/user-stories.md` 의 Step 13·21 "Wait for Explicit Approval")를 두는 반면, Workspace Detection 은 "승인 없이 자동 진행"으로 규정됩니다. 따라서 승인 경계는 stage 마다 다르며, "모든 전환마다 승인" 은 일반화된 표현입니다.
 
 ### 왜
-- Stage 전환 후에는 이전 산출물로 되돌리기 어려움 (비가역적)
+- Stage 를 되돌리는 것 자체는 가능하지만, 이미 생성된 하위 산출물을 다시 작업해야 합니다. 예를 들어 requirements_analysis 로 되돌아가면 그 뒤의 user_stories·design 산출물을 갱신해야 합니다
 - 승인은 **품질 게이트 + 거버넌스 증거** 로 동시에 기능
 - Human in the loop 원칙의 구체적 구현
 
@@ -377,7 +392,7 @@ AIDLC 실행 중 발생한 모든 이벤트(질문, 답변, 승인, 에러)를 *
 ### 어떻게
 
 **감사 로그 포맷 (`audit.md`):**
-```markdown
+````markdown
 ## Event: Checkpoint Approval Granted
 
 **Event ID**: evt-2026-04-18-042
@@ -412,16 +427,16 @@ A. DynamoDB
 B. Aurora PostgreSQL
 ...
 ```
-```
+````
 
 **감사 로그 원칙:**
-1. **Append-only**: 기존 로그는 절대 수정 불가
+1. **Append-only (작성 정책)**: 작성 측이 기존 로그를 수정하지 않고 새 이벤트만 추가합니다. 이는 운영 규칙일 뿐이며, 기술적 변조 방지는 아래 저장소 설정으로 강제합니다
 2. **원본 보존**: AI 의 해석/요약이 아닌 사용자·AI 의 **원본 텍스트** 저장
 3. **ISO 8601 타임스탬프**: 밀리초 precision + UTC 표기
 4. **Artifact Hashing**: 산출물 SHA-256 로 무결성 검증
 
 ### 엔터프라이즈 적용 팁
-- 감사 로그는 **S3 + Object Lock** (WORM) 로 저장해 변조 방지
+- append-only 작성 정책만으로는 수정·삭제를 막지 못하므로, 변조 방지는 **S3 + Object Lock(WORM)** 처럼 쓰기 후 변경이 불가능한 저장소로 강제합니다
 - 금융권은 최소 7년, 의료는 10년 보관 정책 적용
 - 상세 규격은 [Audit & Governance Logging](../operations/audit-governance.md) 참조
 
@@ -434,8 +449,8 @@ AIDLC 산출물 간에 **동일 정보를 중복 생성하지 않습니다**. �
 
 ### 왜
 - 중복은 불일치로 이어짐 (한쪽만 업데이트되면 산출물 간 모순 발생)
-- AI 에이전트가 중복된 정보를 학습하면 환각 증가
-- 유지보수 비용 폭증
+- 모순된 산출물은 사람과 AI 모두에게 어느 값이 맞는지 혼란을 줌
+- 동일 정보가 여러 곳에 있으면 변경 시 모든 사본을 함께 고쳐야 해 유지보수 부담이 커짐
 
 ### 어떻게
 
@@ -526,14 +541,17 @@ Kiro 의 `.kiro/spec/design.md` 참조
 4. **Seed 고정** (지원 모델) — 동일 seed 시 동일 출력
 
 **재현성 테스트:**
+
+아래 `aidlc run` 은 공식 CLI 가 아니라, 조직이 AIDLC 실행을 감싸 만드는 예시 러너입니다. "90% 이상 동일" 은 측정 기준을 함께 정의해야 의미가 있습니다. 아래 예시는 산출물 Markdown 을 줄 단위로 비교해 변경되지 않은 줄의 비율로 유사도를 계산합니다. 조직은 토큰 단위·의미 단위 등 자체 기준을 선택하고 문서화해야 합니다.
+
 ```bash
-# 동일 입력으로 3회 실행 후 산출물 diff
+# 동일 입력으로 3회 실행 후 산출물 diff (aidlc run 은 조직 자체 러너 예시)
 aidlc run --input requirements.md --session test-1
 aidlc run --input requirements.md --session test-2
 aidlc run --input requirements.md --session test-3
 
+# 줄 단위 비교: 변경되지 않은 줄 비율 >= 90% 를 재현 성공으로 간주
 diff .aidlc/test-1/requirements.md .aidlc/test-2/requirements.md
-# 기대: 90% 이상 동일
 ```
 
 ### 엔터프라이즈 적용 팁
@@ -574,7 +592,9 @@ gantt
 
 ### 13.3 도구·플랫폼별 구현 상태 (2026-04 기준) {#133-도구플랫폼별-구현-상태-202604-기준}
 
-| 플랫폼 | 규칙 1-4 | 규칙 5-8 | 규칙 9-11 | 비고 |
+아래 Full/Partial/Limited 는 측정된 적합성 점수가 아니라 2026-04 시점의 **미검증 추정**입니다. 버전별 설정 증거로 뒷받침되지 않았으므로 도입 판단의 근거로 삼기 전에 각 도구의 해당 버전에서 직접 확인해야 합니다. 각 셀은 특정 설정·버전에서 달라질 수 있습니다.
+
+| 플랫폼 | 규칙 1-4 | 규칙 5-8 | 규칙 9-11 | 비고 (미검증 추정) |
 |--------|---------|---------|-----------|------|
 | **Kiro** | Full | Full | Full | Spec-Driven 기본 탑재 |
 | **Claude Code** | Full | Full | Partial | reproducibility 는 seed 미지원 |

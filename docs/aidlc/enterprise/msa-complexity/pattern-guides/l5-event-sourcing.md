@@ -3,7 +3,7 @@ title: "Level 5: Event Sourcing & CQRS"
 description: Application guide for Level 5 distributed transactions + CQRS + Event Sourcing patterns
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
 reading_time: 4
 tags:
@@ -24,6 +24,8 @@ The highest complexity architectural pattern requiring expert support and sophis
 - Event Store
 - Complex projections (Read Model)
 - Event replay
+
+CQRS, event sourcing, and distributed transactions are independent design choices, so they need not all be applied together. L5 addresses the complexity of their combination, but a given project may adopt only some of them.
 
 ## AIDLC Application
 
@@ -87,8 +89,9 @@ events:
 
 eventStore:
   partitionKey: accountId
+  sequenceKey: aggregateSequence   # monotonic sequence per accountId
   snapshotStrategy: every 100 events
-  retentionPolicy: 7 years
+  retentionPolicy: 7 years   # must cover the oldest point any projection may replay from (relative to snapshots)
 
 projections:
   AccountBalanceView:
@@ -103,19 +106,25 @@ projections:
 
 invariants:
   - Balance cannot be negative
-  - Events must be ordered by timestamp
+  - Events must be ordered by per-aggregate sequence number (not wall-clock timestamp)
   - TransactionId must be unique (idempotency)
 ```
 
 ## Harness Checklist
 
-- Include: Event schema verification (version management)
-- Include: Projection verification (Read Model consistency)
-- Include: Event replay tests
-- Include: Snapshot strategy verification
-- Include: Event migration harness
-- Include: Idempotency harness
-- Include: Distributed tracing
+The required and optional harness set for L5 is identical to the L5 row of Table 1 in the [Harness Checklist](../implementation/harness-checklist.md).
+
+**Required harnesses:**
+
+- Event schema verification (version management)
+- Projection verification (Read Model consistency)
+- Event replay tests
+- Event migration harness
+
+**Optional harnesses:**
+
+- Snapshot strategy verification
+- Performance tests
 
 ## Harness Implementation Examples
 
@@ -151,7 +160,7 @@ def test_projection_consistency():
 # harness/idempotency_test.py
 def test_duplicate_event_handling():
     """Verify identical results when receiving same event multiple times"""
-    event = OrderCreatedEvent(orderId="123", ...)
+    event = OrderCreatedEvent(orderId="123", userId="U1", items=[])
 
     # First processing
     result1 = event_handler.handle(event)
@@ -177,9 +186,9 @@ def test_duplicate_event_handling():
 
 ## SemanticForge Pattern
 
-Level 5 projects apply the SemanticForge pattern from [Ontology Engineering](../../../methodology/ontology-engineering.md).
+Level 5 projects apply the SemanticForge pattern from [Ontology Engineering](../../../methodology/ontology-engineering.md). The mappings below are proposed analogies for applying it to event sourcing at L5, not the SemanticForge definition itself.
 
-**Key Features:**
+**Proposed analogies (L5 only):**
 - Event = atomic unit of domain knowledge
 - Express event relationships as Knowledge Graph
 - Projection = Knowledge Graph query

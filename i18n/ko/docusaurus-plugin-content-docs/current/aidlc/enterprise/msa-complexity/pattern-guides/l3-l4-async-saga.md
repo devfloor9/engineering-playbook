@@ -3,7 +3,7 @@ title: "Level 3-4: 비동기 이벤트 & Saga"
 description: Level 3 비동기 이벤트 기반 MSA와 Level 4 Saga + 보상 트랜잭션 패턴 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
 reading_time: 3
 tags:
@@ -58,7 +58,9 @@ graph LR
 events:
   OrderCreated:
     schema:
+      eventId: string
       orderId: string
+      sequence: long
       userId: string
       items: list<OrderItem>
       createdAt: timestamp
@@ -67,18 +69,22 @@ events:
     consumers:
       - InventoryService (재고 차감)
       - NotificationService (알림 발송)
-    idempotencyKey: orderId
-    ordering: strict (orderId 기준)
+    idempotencyKey: eventId
+    partitionKey: orderId
+    ordering: 파티션(orderId)별 sequence 단조 증가
 
   OrderConfirmed:
     schema:
+      eventId: string
       orderId: string
+      sequence: long
       confirmedAt: timestamp
     producers:
       - PaymentService
     consumers:
       - ShippingService
-    idempotencyKey: orderId
+    idempotencyKey: eventId
+    partitionKey: orderId
 
 invariants:
   - OrderCreated must precede OrderConfirmed
@@ -166,6 +172,7 @@ saga:
       compensation: refundPayment
       timeout: 5s
       retryPolicy: none
+      onUnknownOutcome: reconcile
 
   failureScenarios:
     - scenario: FlightReservationFailed
@@ -181,10 +188,16 @@ saga:
         - cancelHotelReservation
         - cancelFlightReservation
 
+    - scenario: PaymentUnknown
+      description: 타임아웃 등으로 결제 성공 여부가 불확실한 상태. 결제 상태를 조회(reconcile)해 확정한 뒤 보상 또는 완료를 결정합니다.
+      action:
+        - queryPaymentStatus
+        - 성공으로 확정되면 완료, 실패로 확정되면 cancelHotelReservation + cancelFlightReservation
+
   invariants:
     - All compensations must be idempotent
     - Compensation order is reverse of execution order
-    - Saga timeout = sum of step timeouts + buffer
+    - Saga timeout = sum of (step timeout x max retries) + compensation time + buffer
 ```
 
 ### 하네스 체크리스트
@@ -214,12 +227,12 @@ def test_saga_compensation():
     saga.execute_step("ReserveHotel")
     assert hotel_service.is_reserved("hotel456")
 
-    # 3. Payment 실패 시뮬레이션
+    # 3. Payment 실패 시 Saga가 자동으로 보상을 트리거
     with pytest.raises(PaymentFailedException):
         saga.execute_step("ChargePayment")
 
-    # 4. 보상 트랜잭션 검증
-    saga.compensate()
+    # 4. 오케스트레이터가 실패 시 실행한 보상 트랜잭션 검증
+    assert saga.status == "compensated"
     assert not hotel_service.is_reserved("hotel456")  # 취소됨
     assert not flight_service.is_reserved("flight123")  # 취소됨
 ```

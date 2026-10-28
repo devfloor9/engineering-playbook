@@ -3,9 +3,9 @@ title: 온톨로지 작성 가이드
 description: MSA 복잡도별 온톨로지 깊이와 작성 가이드라인
 created: "2026-04-18"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 2
 tags:
   - ontology
   - aidlc
@@ -40,6 +40,8 @@ sidebar_position: 1
 - 기본 불변조건 정의
 
 ### 예시
+
+아래 `invariants` 항목은 실행 가능한 제약 구문이 아니라 도메인 맥락을 사람이 읽도록 적은 예시 표기입니다. 실제 검증 규칙은 각 서비스의 스키마·검증 코드로 구현합니다.
 
 ```yaml
 # 엔티티 정의
@@ -109,15 +111,15 @@ eventStore:
 # 프로젝션
 projections:
   AccountBalanceView:
-    source: [AccountOpened, MoneyDeposited]
+    source: [AccountOpened, MoneyDeposited, MoneyWithdrawn]
     target: read_db.account_balance
 ```
 
 ## SemanticForge 패턴 (L5 전용)
 
-Level 5 프로젝트는 [온톨로지 엔지니어링](../../../methodology/ontology-engineering.md)의 SemanticForge 패턴을 적용합니다.
+Level 5 프로젝트는 [온톨로지 엔지니어링](../../../methodology/ontology-engineering.md)의 SemanticForge 패턴을 적용합니다. 아래는 L5 전용으로 제안하는 적용 방식이며, SemanticForge 자체 정의가 아니라 이벤트 소싱에 대한 제안된 유추입니다.
 
-**핵심 특징:**
+**제안된 유추 (L5 전용):**
 - 이벤트 = 도메인 지식의 원자 단위
 - Knowledge Graph로 이벤트 간 관계 표현
 - 프로젝션 = Knowledge Graph 쿼리

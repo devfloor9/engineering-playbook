@@ -3,9 +3,9 @@ title: AIDLC 10 Principles and Execution Model
 description: Core philosophy of AIDLC and the Intent → Unit → Bolt execution model
 created: "2026-04-07"
 last_update:
-  date: 2026-10-12
+  date: 2026-10-15
   author: devfloor9
-reading_time: 29
+reading_time: 34
 tags:
   - aidlc
   - principles
@@ -83,13 +83,13 @@ AI proposes the **entire architecture** before generating code, and developers v
 
 #### 2. Integration of Design Techniques
 
-In Scrum, DDD/BDD/TDD were "optional choices for teams." AIDLC embeds them as **essential cores of the methodology**.
+In Scrum, DDD/BDD/TDD were "optional choices for teams." This guide **selects and recommends them as default flavors** to apply within AIDLC.
 
 - **DDD (Domain-Driven Design)** — AI automatically models business logic into Aggregate, Entity, Value Object. Combined with [Ontology Engineering](./ontology-engineering.md) to structure domain knowledge.
 - **BDD (Behavior-Driven Development)** — AI generates Given-When-Then scenarios to clarify business behaviors.
 - **TDD (Test-Driven Development)** — AI writes tests first, then generates minimal code to pass tests.
 
-These are not choices but **standard workflows for AI code generation**.
+These are not mandated by AIDLC itself; they are the combination of design techniques this guide recommends for consistency in AI code generation.
 
 #### 3. Minimize Stages, Maximize Flow
 
@@ -200,23 +200,23 @@ Each Unit includes:
 
 **AI Redefinition of Sprint**
 
-Traditional Sprints were fixed 2-4 week cycles. In AIDLC, a Bolt is a **short iteration at hour/day cadence matched to AI's fast execution speed**.
+Traditional Sprints are fixed-length cycles of one month or less, and an increment is delivered at least once within the Sprint and may be delivered more often (source: [Scrum Guide](https://scrumguides.org/scrum-guide.html)). In AIDLC, a Bolt is a **short iteration at hour/day cadence matched to AI's fast execution speed**.
 
 **Sprint vs Bolt Comparison:**
 ```
 Sprint (Traditional)                   Bolt (AIDLC)
 ━━━━━━━━━━━━━━                  ━━━━━━━━━━━━━━
-Fixed 2-4 week cycle                   Flexible hour/day cadence
+Fixed-length cycle of one month or less  Flexible hour/day cadence
 Planning → Daily → Review         AI proposes → Validate → Execute → Validate
 Humans decompose tasks                 AI auto-decomposes tasks
 Manual code writing                     AI code generation + human validation
-Deploy at Sprint end                   Deploy immediately on completion (GitOps)
+Increment delivered within Sprint (when Done)  Deploy immediately on completion (GitOps)
 ```
 
 A Bolt is the **minimum deployable unit with clear completion criteria**. It maps 1:1 with actual infrastructure components like Kubernetes Deployment, Helm Release, Terraform Module.
 
 :::tip Context Memory and Traceability
-All artifacts (Intent, Unit, Domain Design, Logical Design, Deployment Unit) are stored as **Context Memory** for AI to reference throughout the lifecycle. Bidirectional traceability between artifacts (Domain Model ↔ User Story ↔ Test Plan) is guaranteed, ensuring AI always works with accurate context.
+All artifacts (Intent, Unit, Domain Design, Logical Design, Deployment Unit) are stored as **Context Memory** for AI to reference throughout the lifecycle. Bidirectional traceability between artifacts (Domain Model ↔ User Story ↔ Test Plan) holds when the artifacts are kept in sync with each other, letting AI work with more accurate context.
 :::
 
 ---
@@ -244,7 +244,7 @@ AI: Generate Level 1 Plan ◀──── Human: Validate · Modify
 
 ### 4.1 Human Validation as Loss Function
 
-In machine learning, a Loss Function measures the difference between model predictions and actual values to guide learning. Human validation in AIDLC plays the same role.
+In machine learning, a Loss Function measures the difference between model predictions and actual values to guide learning. Human validation in AIDLC is used as an analogy for a similar role (see the analogy note in §2.1). It denotes feedback on an artifact, not a mathematical computation of distance from a correct answer.
 
 **Loss Function Hierarchy:**
 
@@ -277,7 +277,7 @@ In machine learning, a Loss Function measures the difference between model predi
 └─────────────────────────────────────────────┘
 ```
 
-If Loss at each stage is small, proceed to the next stage; if Loss is large, re-execute that stage. This **prevents downstream error propagation** and ensures overall quality.
+If Loss at each stage is small, proceed to the next stage; if Loss is large, re-execute that stage. This **reduces downstream error propagation**; the review contributes to higher quality but does not prove or guarantee the correctness of the result.
 
 ### 4.2 Adaptive Workflow
 
@@ -306,6 +306,20 @@ AI doesn't enforce fixed workflows by path, but provides a flexible approach tha
 ## 5. AIDLC 3-Phase Overview
 
 AIDLC consists of 3 phases: **Inception**, **Construction**, **Operations**.
+
+### 5.0 Official AWS Labs 3 Phases and engineering-playbook Expansion Mapping
+
+The official AWS Labs repository defines the three phases Inception → Construction → Operations, but Operations is currently a **placeholder (only the base stage definition exists; the detailed workflow is to be published later)**. engineering-playbook fills this gap with its **AgenticOps track**.
+
+| Official Phase | Official Definition Status (v0.1.7, 2026-04-02) | engineering-playbook Expansion | Key Documents |
+|-----------|--------------------------------------|---------------------------|----------|
+| **Inception** | Workspace Detection · Reverse Engineering · Requirements Analysis · User Stories · Workflow Planning · Application Design · Units Generation (7 stages) | Intent definition + ontology construction + DDD Strategic Design | [10 Principles](./principles-and-model.md) · [Ontology Engineering](./ontology-engineering.md) · [DDD Integration](./ddd-integration.md) |
+| **Construction** | Functional Design → NFR → Infrastructure → Code Generation → Build & Test (per Unit loop) | Bolt execution + harness engineering + Quality Gate | [Harness Engineering](./harness-engineering.md) · [AI Coding Agents](../toolchain/ai-coding-agents.md) · [EKS Declarative Automation](../toolchain/eks-declarative-automation.md) |
+| **Operations** | Placeholder (only stage definition exists) | **AgenticOps track** — AI agent-based autonomous operations, observability·prediction·automatic response, ontology Outer Loop feedback | [AgenticOps](../operations/index.md) · [Observability Stack](../operations/observability-stack.md) · [Predictive Operations](../operations/predictive-operations.md) · [Autonomous Response](../operations/autonomous-response.md) |
+
+:::tip Value of the AgenticOps Expansion
+engineering-playbook interprets the reason the official AIDLC leaves the Operations phase as a placeholder to be that the operations area **varies greatly by an organization's observability stack, regulatory environment, and SRE maturity** (this is this document's interpretation, not a reason stated by the official repository). The AgenticOps track of engineering-playbook provides a reference implementation that assumes an AWS-based enterprise environment (EKS · CloudWatch · ADOT · Application Signals · MCP).
+:::
 
 <AidlcPhaseMapping />
 
@@ -406,7 +420,7 @@ graph LR
 
 ## 6. Reliability Assurance: Ontology × Harness
 
-To systematically ensure the reliability of AI-generated code, AIDLC introduces a reliability framework with two axes: **Ontology** and **Harness Engineering**.
+To improve the reliability of AI-generated code, engineering-playbook introduces a reliability framework with two axes — **Ontology** and **Harness Engineering** — as an extension proposed on top of the official AIDLC. This is not a required part of the official AIDLC methodology but an extension this guide proposes, and it aims to improve reliability rather than guarantee it.
 
 ```mermaid
 graph LR
@@ -436,7 +450,7 @@ graph LR
 - **[Harness Engineering](./harness-engineering.md)** — A structure that architecturally validates and enforces constraints defined by ontology. "Agents aren't hard, harnesses are" is a key lesson from 2026. Harness validation results promote ontology evolution.
 
 :::tip Core of the Reliability Framework
-Ontology and Harness **do not operate independently**. When ontology defines "what to validate," harness implements "how to validate." Harness validation results in turn drive ontology evolution, creating a **self-improving reliability system**.
+Ontology and Harness **do not operate independently**. When ontology defines "what to validate," harness implements "how to validate." Harness validation results in turn drive ontology evolution, forming a **system that aims to improve reliability incrementally**.
 :::
 
 ---
@@ -444,6 +458,8 @@ Ontology and Harness **do not operate independently**. When ontology defines "wh
 ## 7. Adoption Roadmap
 
 AIDLC is adopted in phases to gradually increase organizational maturity.
+
+The durations (2-4 weeks, 1-2 months, etc.) and success metrics (80%+, 30%+, etc.) in each phase below are example values to be tuned per organization, not measured results. Set the actual durations and targets according to team size, existing automation level, and domain constraints.
 
 ```
 Phase 1: AI Coding Tool Adoption
