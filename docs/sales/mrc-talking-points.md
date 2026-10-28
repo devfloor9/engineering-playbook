@@ -3,9 +3,9 @@ title: MRC Talking Points - Modern Agentic Applications Day
 description: MRC (Marketing Representative for Customers) sales pitch guide for customer invitations to the 2026-04-09 Modern Agentic Applications Day.
 created: "2026-03-19"
 last_update:
-  date: 2026-10-19
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 23
 tags:
   - sales
   - gtm
@@ -35,7 +35,7 @@ Recently, many enterprises plan to adopt AI agents. But most companies overlook 
 
 AWS addresses this challenge on two tracks:
 
-1. **Modern Agentic Infra**: EKS is the managed Kubernetes that fully supports LLMOps. With GPU Operator and run.ai you manage GPU resources efficiently, and with vLLM + llm-d you serve your own LLMs. Combining MIG partitioning with Karpenter autoscaling **achieves cost optimization and operational stability at the same time**. With Hybrid Nodes, on-premises is also unified under EKS, operable at about $4,900/month at 50 req/s.
+1. **Modern Agentic Infra**: EKS is the managed Kubernetes that fully supports LLMOps. With GPU Operator and run.ai you manage GPU resources efficiently, and with vLLM + llm-d you serve your own LLMs. Combining MIG partitioning with Karpenter autoscaling **achieves cost optimization and operational stability at the same time**. With Hybrid Nodes, on-premises is also unified under EKS. The operating cost of about $4,900/month at 50 req/s is an illustrative figure (a hypothetical scenario, not measured data, with no defined Region, period, model, token lengths, GPU/MIG configuration, cache assumptions, SLO, or comparison baseline).
 
 2. **Modern Agentic Apps**: A managed-agent ecosystem from AWS is available. **Bedrock AgentCore** runs and scales the agent runtime as a managed service, **Hosted MCP servers** standardize agent-to-tool integration, and managed agents such as **DevOps Agent** assist with infrastructure operations tasks. The customer still owns model choice, permissions, application code, evaluation, and operations, and managed agents both take actions directly and recommend actions. Moving self-hosted Pods to managed services reduces the components you operate yourself (the reduction depends on migration scope).
 
@@ -45,10 +45,12 @@ At **Modern Agentic Applications Day on April 9**, attendees could see both trac
 
 ## 3. Industry-Specific Hooks
 
+The customer outcome figures in this section (conversion rate, detection accuracy, playtime, defect rate, cost-savings rate, operational efficiency, monthly cost) are illustrative figures for which no publishable original customer measurement was found, including the items phrased as a "case" or as "achieving" a result (primary source not verified as of 2026-10-29). Present them to customers as example targets to validate in a PoC, not as achieved results.
+
 ### E-commerce
 
-- AI recommendation agents deliver real-time per-customer personalization → **35% conversion uplift** case
-- GPU MIG + Semantic Caching operates at the level of **$4,900/month** at 50 req/s
+- AI recommendation agents deliver real-time per-customer personalization → **35% conversion uplift** example (not a measured customer case)
+- GPU MIG + Semantic Caching operating at the level of **$4,900/month** at 50 req/s is an example (a hypothetical scenario with no defined Region, model, GPU configuration, or cache hit-rate assumptions, not measured data)
 - For companies that have completed digital transformation (containers), AI transformation is the natural next step
 
 ### Financial Services (FSI)
@@ -60,8 +62,8 @@ At **Modern Agentic Applications Day on April 9**, attendees could see both trac
 ### Gaming
 
 - **AI NPC agents** deliver real-time conversational experiences — 2.5× increase in playtime
-- vLLM + llm-d delivers low-latency inference serving (TTFT shortened by 40%)
-- Stable operation even at millions of concurrent users via **Karpenter autoscaling**
+- vLLM + llm-d delivers low-latency inference serving. The 40% TTFT reduction is an external report: the llm-d project blog (2026-03-13, written by Google engineers) reports that predicted-latency based scheduling on Google Vertex AI production clusters reduced TTFT and ITL by "up to 40%"; it is not a value measured on an EKS gaming workload
+- **Karpenter autoscaling** adds and removes nodes as concurrent users change (no EKS load test validating millions of concurrent users has been verified)
 
 ### Manufacturing
 
