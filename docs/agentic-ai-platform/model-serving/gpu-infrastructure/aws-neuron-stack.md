@@ -3,9 +3,9 @@ title: AWS Neuron Stack — Trainium2/Inferentia2 on EKS
 description: Guide to Neuron SDK, Device Plugin, and NxD Inference for operating AWS custom AI accelerators (Trainium2/Inferentia2) on EKS
 created: "2026-04-17"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-28
   author: devfloor9
-reading_time: 46
+reading_time: 47
 tags:
   - trainium2
   - inferentia2
@@ -55,7 +55,7 @@ When NVIDIA H100/H200/B200 supply is tight, Trainium2 may be relatively easier t
 
 **3) Continuity with Bedrock**
 
-Some Foundation Models served by Bedrock (Claude, Llama, Titan, etc.) run internally on the Neuron stack (AWS has publicly confirmed Trainium2 use for Bedrock; AWS CMO Julia White stated in an October 2025 interview that "more than half of Bedrock runs on Trainium"). Choosing Neuron in the Bedrock → Self-hosted migration path lets you reuse **operational patterns** (monitoring, NEFF cache management, governance). However, Bedrock is a fully managed API service: its internal compiled artifacts (NEFF) are **not exposed to or exportable by customers**, so this is not a reuse of Bedrock's compiled artifacts. Moreover, NEFF is tied to batch size, TP configuration, and the Neuron SDK major version, so compiled-artifact compatibility is not guaranteed across those changes.
+Some Foundation Models served by Bedrock (Claude, Llama, Titan, etc.) run internally on the Neuron stack (AWS has publicly confirmed this: the Bedrock FAQ states Trainium2 use, and AWS CMO Julia White stated in an October 2025 interview that "more than half of Bedrock runs on Trainium"). Choosing Neuron in the Bedrock → Self-hosted migration path lets you reuse **operational patterns** (monitoring, NEFF cache management, governance). However, Bedrock is a fully managed API service: its internal compiled artifacts (NEFF) are **not exposed to or exportable by customers**, so this is not a reuse of Bedrock's compiled artifacts. Moreover, NEFF is tied to batch size, TP configuration, and the Neuron SDK major version, so compiled-artifact compatibility is not guaranteed across those changes.
 
 ### 1.2 Suitable/Unsuitable Workloads
 
@@ -506,7 +506,7 @@ Based on AWS Neuron official Model Zoo and NxD Inference support matrix. For the
 | DeepSeek V3 | 671B total (37B active) MoE | Trn2 UltraServer | Check release status | Check compilation & memory constraints |
 
 :::caution Pre-compiled column meaning and Llama 4 parameters
-- **Parameter notation**: Llama 4 is an MoE model, so activated and total parameters differ. Per Meta's official model card, Scout is 17B activated / 109B total (16 experts) and Maverick is 17B activated / 400B total (128 experts). The earlier table's "Scout 17B / Maverick 70B / Behemoth 288B+" (and the English "Scout/Maverick 8B/70B") were incorrect; Behemoth was not publicly released as of this writing.
+- **Parameter notation**: Llama 4 is an MoE model, so activated and total parameters differ. Per Meta's official model card, Scout is 17B activated / 109B total (16 experts) and Maverick is 17B activated / 400B total (128 experts). The earlier table's "Scout 17B / Maverick 70B / Behemoth 288B+" were incorrect; Behemoth was not publicly released as of this writing.
 - **Pre-compiled column**: Asserting that a model has a pre-compiled checkpoint "provided (✅)" requires evidence of the artifact path and version. Without that evidence we do not assert ✅; the column reads **"Check release status"**. Verify actual availability in the [NxD Inference support matrix](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/libraries/nxd-inference/developer_guides/model-reference.html) and Release Notes at deployment time.
 - Support differs per model × hardware × dtype × context-length combination, so this table is for reference only and does not guarantee specific version support.
 :::

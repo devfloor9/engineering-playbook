@@ -3,9 +3,9 @@ title: NVIDIA GPU Stack
 description: Architecture and EKS integration for GPU Operator, DCGM, MIG, Time-Slicing, and Dynamo
 created: "2026-03-20"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-28
   author: devfloor9
-reading_time: 34
+reading_time: 37
 tags:
   - nvidia
   - gpu-operator
@@ -45,22 +45,22 @@ This document covers the architecture and design decision criteria for each comp
 
 GPU Operator is an orchestration layer that bundles the entire GPU stack under a single **ClusterPolicy CRD**. Each component can be independently enabled/disabled, and GPU environments are automatically configured when nodes are added.
 
-:::info GPU Operator v25.10.1 (as of 2026-03)
+:::info GPU Operator v26.3.2 (as of 2026-06)
 
-**Table 2. GPU Operator v25.10.1 bundled component versions**
+**Table 2. GPU Operator v26.3.2 bundled component versions**
 
 | Component | Version | Role |
 |-----------|---------|------|
-| GPU Operator | **v25.10.1** | GPU stack lifecycle management |
-| NVIDIA Driver | **580.126.18** | GPU kernel driver |
-| DCGM | **v4.5.2** | GPU monitoring engine |
-| DCGM Exporter | **v4.5.2-4.8.1** | Prometheus metrics exposure |
-| Device Plugin | **v0.19.0** | K8s GPU resource registration |
-| GFD | **v0.19.0** | GPU node labeling |
-| MIG Manager | **v0.13.1** | MIG partition auto-management |
-| Container Toolkit (CDI) | **v1.17.5** | Container GPU runtime |
+| GPU Operator | **v26.3.2** | GPU stack lifecycle management |
+| NVIDIA Driver | **580.126.20** | GPU kernel driver |
+| DCGM | **v4.5.2-1** | GPU monitoring engine |
+| DCGM Exporter | **v4.5.3-4.8.2** | Prometheus metrics exposure |
+| Device Plugin | **v0.19.2** | K8s GPU resource registration |
+| GFD | **v0.19.2** | GPU node labeling |
+| MIG Manager | **v0.14.2** | MIG partition auto-management |
+| Container Toolkit (CDI) | **v1.19.1** | Container GPU runtime |
 
-**v25.10.1 Key New Features:** Blackwell (B200/GB200) support, HPC Job Mapping, CDMM (Coherent Driver Memory Management), CDI (Container Device Interface)
+**v26.3.2 Key New Features:** Kubernetes 1.36 support, DCGM Exporter Pod metadata fields (enablePodLabels/enablePodUID), DCGM Exporter custom annotations, NRI Plugin support for CRI-O 1.34+. Note: Blackwell GB200 NVL4 support was introduced in v26.3.0, CDI-by-default in v25.10.0, HPC Job Mapping in v25.10.x, and CDMM as a driver-level feature of the v25.3.2 era.
 :::
 
 ### Component Structure
@@ -421,13 +421,15 @@ Pods request `nvidia.com/gpu: 1` as usual. Time-Slicing **oversubscribes** the G
 
 ### Overview
 
-**NVIDIA Dynamo** is an open-source framework that optimizes datacenter-scale LLM inference. It supports vLLM, SGLang, and TensorRT-LLM as backends. In an independent benchmark (SemiAnalysis InferenceX), serving DeepSeek R1 on GB200 NVL72 with Dynamo (Disaggregated Serving + wide expert parallelism) reached up to 7x per-GPU throughput versus a B200 system without Dynamo — a comparison across different hardware, not a software-only speedup. NVIDIA's own same-hardware Disaggregated-vs-Aggregated comparison is in the 1.4x–2.5x range. Treat the 7x figure as workload- and hardware-specific, and benchmark your own configuration.
+**NVIDIA Dynamo** is an open-source framework that optimizes datacenter-scale LLM inference. It supports vLLM, SGLang, and TensorRT-LLM as backends. In an independent benchmark (SemiAnalysis InferenceX), serving DeepSeek R1 on GB200 NVL72 with Dynamo (Disaggregated Serving + wide expert parallelism) reached up to 7x per-GPU throughput versus a B200 system without Dynamo — a comparison across different hardware, not a software-only speedup. NVIDIA's own same-hardware Disaggregated-vs-Aggregated comparison is in the 1.4x–2.5x range. Treat the 7x figure as workload- and hardware-specific, and benchmark your own configuration. Flash Indexer is a global indexer for KV cache-aware routing (170M ops/s), with a reported 2x TTFT improvement in the Baseten case. NVIDIA Run:ai (acquisition completed 2024-12-30) uses KAI Scheduler (Apache 2.0, open-sourced 2025-04) as its scheduler core.
 
-:::info Dynamo v1.0 GA (2026-03)
+:::info Dynamo v1.2.x (as of 2026-06)
 - **Serving modes**: Aggregated + Disaggregated equally supported
 - **Core technologies**: Flash Indexer, NIXL, KAI Scheduler, Planner, EPP
-- **Deployment**: Kubernetes Operator + CRD (DGDR)
+- **Deployment**: Kubernetes Operator + CRD (DGDR, DGD)
+- **Latest version**: v1.2.1 (2026-06-13), multimodal serving, KV routing improvements
 - **License**: Apache 2.0
+- **Repository**: ai-dynamo/dynamo
 :::
 
 ### Core Architecture
@@ -568,6 +570,6 @@ KAI Scheduler is a scheduler that decides **which node to place Pods on**. It is
 
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
-- [NVIDIA Dynamo GitHub](https://github.com/ai-dynamo/dynamo)
+- [NVIDIA Dynamo GitHub](https://github.com/ai-dynamo/dynamo) — v1.2.x, Apache 2.0
 - [NIXL - NVIDIA Inference Transfer Library](https://github.com/ai-dynamo/nixl)
 - [KAI Scheduler](https://github.com/NVIDIA/KAI-Scheduler)

@@ -3,9 +3,9 @@ title: Semantic Caching Strategy
 description: LLM Gateway-level semantic caching strategy and implementation options comparison (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
 created: "2026-04-17"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-28
   author: devfloor9
-reading_time: 50
+reading_time: 51
 tags:
   - semantic-caching
   - caching
@@ -45,7 +45,7 @@ Savings depend on **user query repetitiveness**, **domain** (FAQ/customer suppor
 |---------------------|------------------|------------------------|----------------|
 | **0.95 (Strict)** | Cache only nearly identical queries | lower | Very low false positive risk, strict quality requirements |
 | **0.85 (Balanced)** | Allow same meaning with different expressions | moderate | Recommended default for general LLM chat/assistants |
-| **0.70 (Aggressive)** | Group related topics together | higher, but with higher false-positive risk | Only for FAQ/static KB with very high repetition |
+| **0.75 (Aggressive)** | Group related topics together | higher, but with higher false-positive risk | Only for FAQ/static KB with very high repetition |
 
 Here "savings" means the share of requests served from cache (and the token/API cost they would have incurred); the absolute percentage is workload-specific. Reference material on semantic-cache mechanics: [Redis — Semantic caching (RedisVL)](https://redis.io/docs/latest/develop/ai/redisvl/user_guide/how_to_guides/llmcache/), [Portkey Semantic Cache docs](https://docs.portkey.ai/docs/product/ai-gateway/cache-simple-and-semantic), [Helicone Caching docs](https://docs.helicone.ai/features/advanced-usage/caching), [GPTCache README](https://github.com/zilliztech/GPTCache). These sources document how the caches work; they do not jointly establish the ranges above.
 
@@ -120,7 +120,7 @@ Prefix reuse exists in two forms — **provider-managed** (OpenAI/Anthropic prom
 
 ```mermaid
 graph LR
-    A[0.70 Aggressive] -->|High HIT rate| B[High false answer risk]
+    A[0.75 Aggressive] -->|High HIT rate| B[High false answer risk]
     C[0.85 Balanced] -->|Medium HIT rate| D[Low false answer risk]
     E[0.95 Strict] -->|Low HIT rate| F[Very low false answer risk]
 

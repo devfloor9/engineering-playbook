@@ -3,7 +3,7 @@ title: Semantic Caching 전략
 description: LLM Gateway 레벨 의미 기반 캐싱 전략과 구현 옵션 비교 (GPTCache, Redis Semantic Cache, Portkey, Helicone, Bifrost+Redis)
 created: "2026-04-17"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 25
 tags:
@@ -120,7 +120,7 @@ flowchart LR
 
 ```mermaid
 graph LR
-    A[0.70 공격적] -->|HIT 률 높음| B[오답 리스크 높음]
+    A[0.75 공격적] -->|HIT 률 높음| B[오답 리스크 높음]
     C[0.85 균형] -->|HIT 률 중간| D[오답 리스크 낮음]
     E[0.95 엄격] -->|HIT 률 낮음| F[오답 리스크 매우 낮음]
 

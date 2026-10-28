@@ -3,9 +3,9 @@ title: KV Cache Optimization (vLLM Deep Dive + Cache-Aware Routing)
 description: Summary of core technologies like vLLM PagedAttention, Continuous Batching, FP8 KV Cache, and comparison of llm-d/NVIDIA Dynamo KV Cache-Aware Routing and Gateway configuration
 created: "2026-04-03"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-28
   author: devfloor9
-reading_time: 30
+reading_time: 31
 tags:
   - inference
   - optimization
@@ -276,7 +276,7 @@ flowchart TB
 
 ### Official Documentation
 - [vLLM Official Documentation](https://docs.vllm.ai) — Optimization and tuning guide
-- [vLLM GitHub](https://github.com/vllm-project/vllm) — v0.19.x release notes
+- [vLLM GitHub](https://github.com/vllm-project/vllm) — v0.23.x release notes
 - [llm-d GitHub](https://github.com/llm-d/llm-d) — K8s native distributed inference
 - [NVIDIA Dynamo](https://developer.nvidia.com/dynamo) — Distributed inference framework
 
