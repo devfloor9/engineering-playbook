@@ -3,9 +3,9 @@ title: GitOps-based EKS Cluster Operations
 description: GitOps architecture, KRO/ACK usage, multi-cluster management strategies and automation for stable large-scale EKS cluster operations
 created: "2025-02-09"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 22
+reading_time: 23
 tags:
   - eks
   - gitops
@@ -246,13 +246,13 @@ Using it together with AWS Secrets Manager implements an organization's security
 
 ## Terraform to KRO Migration Strategy {#terraform-to-kro-migration}
 
-Gradually transition from an existing Terraform environment to KRO. This approach minimizes risk while delivering value continuously.
+Gradually transition from an existing Terraform environment to KRO. This approach minimizes risk while delivering value continuously. The phase structure and durations below are an example roadmap, not values based on measurements or actual cases. KRO composes Kubernetes resources, and the AWS resources themselves are managed by ACK (AWS Controllers for Kubernetes) controllers, so the range of AWS resources KRO can manage is limited to the resources ACK supports.
 
 ### Phase 1: Pilot (2 months)
 
 - Target one cluster in the Dev environment
 - Migrate only basic resources (VPC, Subnets, Security Groups)
-- Import and verify Terraform state
+- Bring existing Terraform-created resources under management with ACK's adoption feature, and verify them
 
 ### Phase 2: Expansion (3 months)
 
@@ -263,8 +263,8 @@ Gradually transition from an existing Terraform environment to KRO. This approac
 ### Phase 3: Full Migration (4 months)
 
 - Apply sequentially to the Production environment
-- Manage all AWS resources with KRO
-- Fully remove Terraform
+- Manage the AWS resources ACK supports with KRO
+- Remove Terraform only to the extent that no resources unsupported by ACK remain
 
 ### KRO Resource Definition Example
 

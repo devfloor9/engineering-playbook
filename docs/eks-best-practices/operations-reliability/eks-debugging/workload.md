@@ -3,7 +3,7 @@ title: Workload Debugging
 description: Guide to diagnosing EKS workload issues - Pod state-based debugging, deployment failure patterns, probe configuration
 created: "2026-04-07"
 last_update:
-  date: 2026-10-19
+  date: 2026-10-29
   author: devfloor9
 reading_time: 15
 tags:
@@ -164,7 +164,7 @@ flowchart TD
     Inspect dependencies`"]
 
     CHECK_PROBE -->|Timeout too low| FIX_TIMEOUT["`Increase timeoutSeconds
-    (default 1s is too short)`"]
+    (when measured response time exceeds the 1s default)`"]
 
     style NOTREADY fill:#ff4444,stroke:#cc3636,color:#fff
     style FIX_PATH fill:#34a853,stroke:#2a8642,color:#fff
@@ -180,7 +180,7 @@ flowchart TD
 | Cause | Symptom | Resolution |
 |------|------|----------|
 | **readinessProbe path ≠ actual endpoint** | Probe returns 404 Not Found | Align with the app's actual health check path (`/health`, `/healthz`, `/ready`, etc.) |
-| **initialDelaySeconds < app startup time** | Probe runs before app is ready → failure | Spring Boot/JVM apps often need 30s+. Increase initialDelaySeconds or use a startupProbe |
+| **initialDelaySeconds < app startup time** | Probe runs before app is ready → failure | Measure the app's actual startup time and increase initialDelaySeconds or use a startupProbe. The "30s+" for Spring Boot/JVM apps is an illustrative figure, not a measured result (startup time depends on the app and its resource allocation) |
 | **No startupProbe (when used with a livenessProbe)** | Slow apps hit the livenessProbe before they are ready and restart repeatedly (a liveness/restart issue, not readiness) | Add a startupProbe to allow initial startup time (up to failureThreshold × periodSeconds) |
 | **Health check depends on external services** | When DB fails, all Pods become Ready=false | A readinessProbe usually assesses only the Pod itself and excludes hard external dependencies (such as the DB). Consider including such a dependency only when the Pod genuinely cannot serve requests without it |
 

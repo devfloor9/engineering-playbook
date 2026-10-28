@@ -3,7 +3,7 @@ title: GitOps 기반 EKS 클러스터 운영
 description: 대규모 EKS 클러스터의 안정적인 운영을 위한 GitOps 아키텍처, KRO/ACK 활용 방법, 멀티클러스터 관리 전략 및 자동화 기법을 다룹니다.
 created: "2025-02-09"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -246,13 +246,13 @@ AWS Secrets Manager와 함께 사용하면 조직의 보안 정책을 효과적�
 
 ## Terraform에서 KRO로의 마이그레이션 전략
 
-기존 Terraform 환경에서 KRO로 점진적으로 전환합니다. 이 접근 방식은 위험을 최소화하면서 가치를 지속적으로 제공합니다.
+기존 Terraform 환경에서 KRO로 점진적으로 전환합니다. 이 접근 방식은 위험을 최소화하면서 가치를 지속적으로 제공합니다. 아래 단계 구성과 기간은 예시 로드맵이며, 측정이나 실제 사례에 근거한 값이 아닙니다. KRO는 Kubernetes 리소스를 조합하는 도구이고 AWS 리소스 자체는 ACK(AWS Controllers for Kubernetes) 컨트롤러가 관리하므로, KRO로 관리할 수 있는 AWS 리소스의 범위는 ACK가 지원하는 리소스로 한정됩니다.
 
 ### Phase 1: 파일럿 (2개월)
 
 - Dev 환경 1개 클러스터 대상
 - 기본 리소스만 마이그레이션 (VPC, Subnets, Security Groups)
-- Terraform 상태 임포트 및 검증
+- Terraform이 만든 기존 리소스를 ACK의 adoption 기능으로 가져오고 검증
 
 ### Phase 2: 확대 적용 (3개월)
 
@@ -263,8 +263,8 @@ AWS Secrets Manager와 함께 사용하면 조직의 보안 정책을 효과적�
 ### Phase 3: 전체 마이그레이션 (4개월)
 
 - Production 환경 순차 적용
-- 모든 AWS 리소스 KRO 관리
-- Terraform 완전 제거
+- ACK가 지원하는 AWS 리소스를 KRO로 관리
+- ACK가 지원하지 않는 리소스가 남지 않은 범위에서만 Terraform 제거
 
 ### KRO 리소스 정의 예시
 

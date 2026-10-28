@@ -3,9 +3,9 @@ title: Kubernetes Event Retention and AI Agent Query Architecture
 description: Covers the 1-hour TTL constraint of EKS Kubernetes events, export pipeline design, and AI Agent query architecture based on the EKS and CloudWatch MCP servers.
 created: "2026-07-14"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 23
+reading_time: 24
 tags:
   - eks
   - kubernetes
@@ -27,10 +27,10 @@ An AI agent investigating an incident may need Events older than the cluster ret
 
 ### 1-Hour TTL
 
-Kubernetes Event objects are stored in etcd, and the default value of the `kube-apiserver` `--event-ttl` flag is `1h0m0s`. EKS has maintained the upstream default of 60 minutes, and because events filling up etcd degrades API server performance, EKS did not allow changing this setting for a long time ([containers-roadmap #785](https://github.com/aws/containers-roadmap/issues/785)). After 60 minutes, etcd deletes the events, so `kubectl get events` can only retrieve the most recent hour of events.
+Kubernetes Event objects are stored in etcd, and the default value of the `kube-apiserver` `--event-ttl` flag is `1h0m0s`. EKS has maintained the upstream default of 60 minutes, and because events filling up etcd degrades API server performance, EKS did not allow changing this setting for a long time ([containers-roadmap #785](https://github.com/aws/containers-roadmap/issues/785)). With the default setting, events are deleted from etcd once the 60-minute TTL passes, so `kubectl get events` can retrieve roughly the most recent hour of events. However, the TTL can be shorter depending on the cluster configuration, and according to the EKS documentation an event can persist slightly beyond the configured value when the etcd lease is renewed during control plane leader election, so one hour is not an exact lookup boundary.
 
 :::info EKS Control Plane Customization (New)
-EKS has recently started exposing some scheduler, controller manager, and API server settings through the Kubernetes control plane customization feature, which includes the event time-to-live setting ([EKS console help](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html)). However, increasing the TTL increases the number of objects stored in etcd, which can affect control plane performance, and the best-effort characteristics below still apply. TTL extension should therefore be treated as a complement to an export pipeline, not a replacement. Supported versions and API details should be verified in the latest documentation before adoption.
+EKS exposes some scheduler, controller manager, and API server settings through the Kubernetes control plane customization feature, which includes the event time-to-live setting ([EKS console help](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html)). According to the EKS User Guide, the feature is supported on clusters running Kubernetes 1.31 or later, and the API server `eventTtl` can be set in the range 10 to 60 minutes with a default of 60 minutes (as of 2026-10-29, [Advanced Kubernetes control plane configuration](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html)). This setting can therefore only shorten retention and cannot extend it beyond 60 minutes, so investigating events older than one hour requires the export pipeline described below. The supported range and default can change by version, so check the `DescribeClusterVersions` response before applying it.
 :::
 
 ### Best-Effort Data

@@ -3,9 +3,9 @@ title: "Network Flow Monitor 동작 원리: eBPF sock_ops 기반 TCP 관측"
 description: CloudWatch Network Flow Monitor 에이전트의 내부 동작을 해부합니다. eBPF sock_ops 콜백 수집, 유저스페이스 집계와 Kubernetes enrichment, OTLP 전송 경로, EKS add-on 배포와 데이터 미표시 3계층 진단
 created: "2026-08-04"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 15
 tags:
   - eks
   - network-flow-monitor
@@ -90,7 +90,7 @@ eBPF 프로그램은 `BPF_PROG_TYPE_SOCK_OPS` 타입 하나뿐이며 cgroup v2�
 ### 샘플링과 권한 축소
 
 - **샘플링은 신규 소켓의 입구에서만** 적용됩니다(`NFM_CONTROL` 맵의 `sampling_interval`, CONNECT/PASSIVE_ESTABLISHED 시점). 일단 추적 대상이 된 소켓의 이후 이벤트는 해당 소켓의 통계에 계속 반영됩니다.
-- 에이전트는 privileged로 시작하지만 eBPF 로드가 끝나면 `CAP_SYS_ADMIN`·`CAP_PERFMON`·`CAP_NET_ADMIN`을 스스로 드롭하고 BPF 맵 읽기에 필요한 **`CAP_BPF`만 유지**합니다([lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs)의 `drop_capabilities`).
+- 저장소의 Helm 차트(main 브랜치, 2026-10-29 기준)는 컨테이너를 privileged로 실행하지 않고, 모든 capability를 drop한 뒤 `BPF`·`NET_ADMIN`·`PERFMON`을 추가하며, `OPEN_METRICS`가 `on`이면 `SYS_ADMIN`·`SYS_PTRACE`도 추가합니다([daemonSet.yaml](https://github.com/aws/network-flow-monitor-agent/blob/main/charts/amazon-network-flow-monitor-agent/templates/daemonSet.yaml)). 에이전트는 eBPF 로드와 NAT resolver 초기화가 끝나면 `drop_capabilities`로 `CAP_SYS_ADMIN`·`CAP_PERFMON`·`CAP_NET_ADMIN` 세 가지를 effective·permitted·inheritable 집합에서 제거하고, BPF 맵 읽기에 필요한 `CAP_BPF`는 남깁니다([lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs)의 `drop_capabilities`). 이 함수는 위 세 가지만 제거하므로 `OPEN_METRICS`를 켠 경우의 `CAP_SYS_PTRACE`는 남으며, 드롭에 실패해도 경고 로그만 남기고 에이전트는 계속 실행됩니다. 실제로 남는 capability는 차트 값과 에이전트 버전에 따라 다르므로, 에이전트 시작 로그의 `Will operate with following effective capabilities` 줄에서 확인합니다.
 
 ## Deep Dive: 유저스페이스 — 집계·enrichment·전송
 

@@ -3,9 +3,9 @@ title: "How Network Flow Monitor Works: TCP Observation with eBPF sock_ops"
 description: The Network Flow Monitor agent's TCP callbacks, userspace aggregation, Kubernetes metadata, OTLP publishing, and EKS troubleshooting.
 created: "2026-08-04"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 22
 tags:
   - eks
   - network-flow-monitor
@@ -90,7 +90,7 @@ The following table summarizes `handle_socket_event()` in [sock_ops_handler.rs](
 ### Sampling and Capability Reduction
 
 - **Sampling is applied when a socket enters tracking**, at CONNECT or PASSIVE_ESTABLISHED, using `sampling_interval` in the `NFM_CONTROL` map. Subsequent events for a tracked socket remain part of its statistics.
-- The agent starts privileged, then drops `CAP_SYS_ADMIN`, `CAP_PERFMON`, and `CAP_NET_ADMIN` after loading eBPF. It retains **`CAP_BPF`** for BPF-map access; see `drop_capabilities` in [lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs).
+- The repository's Helm chart (main branch, as of 2026-10-29) does not run the container as privileged: it drops all capabilities, then adds `BPF`, `NET_ADMIN`, and `PERFMON`, plus `SYS_ADMIN` and `SYS_PTRACE` when `OPEN_METRICS` is `on` ([daemonSet.yaml](https://github.com/aws/network-flow-monitor-agent/blob/main/charts/amazon-network-flow-monitor-agent/templates/daemonSet.yaml)). After loading eBPF and initializing the NAT resolver, the agent's `drop_capabilities` removes exactly three capabilities, `CAP_SYS_ADMIN`, `CAP_PERFMON`, and `CAP_NET_ADMIN`, from the effective, permitted, and inheritable sets, and keeps `CAP_BPF` for BPF-map access; see `drop_capabilities` in [lib.rs](https://github.com/aws/network-flow-monitor-agent/blob/main/nfm-controller/src/lib.rs). Because the function removes only those three, `CAP_SYS_PTRACE` remains when `OPEN_METRICS` is enabled, and a failed drop only logs a warning while the agent keeps running. The capabilities that actually remain depend on the chart values and agent version, so check the `Will operate with following effective capabilities` line in the agent's startup log.
 
 ## Userspace Aggregation, Enrichment, and Publishing
 

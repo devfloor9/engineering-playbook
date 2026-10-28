@@ -3,9 +3,9 @@ title: Probe vs Health Check Mismatch Debugging
 description: Guide to diagnosing outages caused by mechanism differences and timeout mismatches between K8s Probes and ALB/NLB/Ingress Controller Health Checks
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 26
+reading_time: 27
 tags:
   - eks
   - debugging
@@ -19,6 +19,8 @@ sidebar_label: Health Check Mismatch
 ---
 
 > **Baseline environment**: EKS 1.32+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
+>
+> Kubernetes SIG Network and the Security Response Committee announced the retirement of Ingress-NGINX on 2025-11-11. According to the announcement, best-effort maintenance continued until March 2026, and after that there are no further releases, bug fixes, or fixes for security vulnerabilities. The `kubernetes/ingress-nginx` repository on GitHub is archived (as of 2026-10-29). The Ingress-NGINX content in this document is for diagnosing existing deployments; for new setups, evaluate migrating to Gateway API or another Ingress controller ([Ingress NGINX Retirement](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)).
 
 ## 1. Overview
 

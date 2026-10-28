@@ -3,9 +3,9 @@ title: Networking Debugging
 description: Guide to diagnosing EKS networking issues - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 18
+reading_time: 19
 tags:
   - eks
   - kubernetes
@@ -381,7 +381,7 @@ spec:
 
 ```yaml
 # OR logic (separated into multiple from items)
-# Allows "all Pods in alice namespace" OR "Pods with role=client across all namespaces"
+# Allows "all Pods in alice namespace" OR "Pods with role=client in the same namespace as this policy"
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -401,7 +401,7 @@ spec:
 ```
 
 :::danger AND vs OR Caution
-The two YAMLs above differ by one indentation level and result in completely different security policies. In AND logic, `namespaceSelector` and `podSelector` are inside the **same `- from` item**; in OR logic, they are **separate `- from` items**.
+The two YAMLs above differ by one indentation level and result in completely different security policies. In AND logic, `namespaceSelector` and `podSelector` are inside the **same `- from` item**; in OR logic, they are **separate `- from` items**. A peer that has only a `podSelector` and no `namespaceSelector` selects Pods only in the NetworkPolicy's own namespace. To intentionally allow `role: client` Pods from every namespace, put `namespaceSelector: {}` in the same peer; because any team's namespace can then gain access just by applying that label, record the security reason for widening the scope in a policy comment or the review record.
 :::
 
 ### Debugging NetworkPolicy Blocking
