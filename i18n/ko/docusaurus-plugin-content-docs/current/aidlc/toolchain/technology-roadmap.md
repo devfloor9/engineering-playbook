@@ -3,9 +3,9 @@ title: 기술 로드맵
 description: AIDLC 기술 투자 의사결정 — Build-vs-Wait 매트릭스, 도구 성숙도 평가, 6/12/18개월 호라이즌
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 21
 tags:
   - aidlc
   - toolchain
@@ -72,8 +72,8 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 | **Q Developer** | GA | ✅ 즉시 도입 | AWS 네이티브, 실시간 코드 생성. 대안: GitHub Copilot, Cursor |
 | **Managed Argo CD** | GA | ✅ 즉시 도입 | EKS 네이티브 GitOps. 대안: Flux CD (자체 호스팅) |
 | **ACK (AWS Controllers for Kubernetes)** | GA (50+ services) | ✅ 즉시 도입 | 선언적 AWS 리소스 관리. 대안: Crossplane |
-| **KRO (Kubernetes Resource Orchestrator)** | GA | ✅ 즉시 도입 | 복잡한 Kubernetes 리소스 그래프 자동화. 대안: Helm, Kustomize |
-| **Gateway API + LBC v3** | GA | ✅ 즉시 도입 | ExtProc 지원, AI Gateway 구축 기반. 대안: Istio + EnvoyFilter |
+| **KRO (Kubernetes Resource Orchestrator)** | EKS 관리형 Capability로 제공, API는 `v1alpha1`(업스트림 v0.9.x, 2026-10-29 기준) | ✅ 즉시 도입 | 복잡한 Kubernetes 리소스 그래프 자동화. API가 alpha 단계여서 호환성이 깨지는 변경이 있을 수 있음. 대안: Helm, Kustomize |
+| **Gateway API + LBC v3** | GA (LBC v3.0.0부터, 2026-10-29 기준) | ✅ 즉시 도입 | L7 경로는 ALB, L4 경로는 NLB로 처리. LBC 문서에 ExtProc(Envoy external processing) 지원은 없으므로, AI Gateway에 ExtProc가 필요하면 Envoy 기반 구현이 필요. 대안: Istio + EnvoyFilter |
 | **MCP Servers** | 서버별 상이 | 🟡 선택적 도입 | 도구별 성숙도 차이 큼. 실험 후 안정화된 것만 도입. [MCP Registry](https://registry.modelcontextprotocol.io) 참조 |
 | **Kagent** | Early | 🟠 실험 단계 | K8s AI Agent 자동화. 프로덕션 적용 전 충분한 테스트 필요. 대안: kubectl + 스크립트 |
 | **Strands Agents SDK** | GA | ✅ 커스텀 에이전트 시 | 모델·공급자에 독립적인 오픈소스 에이전트 SDK. Bedrock AgentCore(관리형 런타임)·CDK 배포와는 별개. 대안: LangGraph, CrewAI |
@@ -95,7 +95,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 #### Kiro (Spec-Driven 개발)
 - **성숙도**: GA (2025년 11월 17일)
 - **강점**: 요구사항 → 코드 자동 생성, MCP 통합, Git 커밋까지 완전 자동화
-- **약점**: 벤더 종속(AWS 전용), 초기 학습 곡선
+- **약점**: 도구 자체가 AWS가 제공·호스팅하는 서비스이므로 도구 사용(구독, 모델 접근)은 AWS에 의존합니다. 이 의존은 생성된 애플리케이션 코드의 이식성과는 별개입니다. 초기 학습 곡선
 - **권장**: 신규 마이크로서비스 개발부터 시작, Mob Elaboration 리추얼과 결합
 - **대안**: Cursor Composer(멀티 클라우드), Windsurf Flows(IDE 독립)
 
@@ -104,7 +104,7 @@ AIDLC 구현 시 조직이 직면하는 대표적인 질문들:
 #### Q Developer
 - **성숙도**: GA (2024년 출시, 지속 업데이트)
 - **강점**: AWS 서비스 코드 생성 최적화, IDE 통합 우수, 무료 티어 제공
-- **약점**: 비AWS 환경에서는 GitHub Copilot보다 약함
+- **약점**: 강점이 AWS 서비스 코드에 맞춰져 있습니다. 비AWS 환경에서 GitHub Copilot과의 코드 품질 차이는 같은 과제로 비교한 공개 벤치마크를 확인하지 못했으므로(2026-10-29 기준), 비AWS 작업이 많은 팀은 실제 과제로 두 도구를 비교한 뒤 선택합니다
 - **권장**: AWS 중심 조직은 표준 도구로 도입
 - **대안**: GitHub Copilot(범용), Cursor(AI-first IDE)
 
@@ -194,7 +194,9 @@ graph TD
 
 ## 4. 투자 호라이즌: 6개월 / 12개월 / 18개월
 
-다음 타임라인은 AIDLC 도입의 **단계별 투자 우선순위**를 보여줍니다.
+다음 타임라인은 AIDLC 도입의 **단계별 투자 우선순위**를 보여줍니다. 이 타임라인은 2026 Q2에 도입을 시작하는 조직을 가정한 계획 예시입니다. 간트의 기간과 상태 표시(`done`·`active`·`crit`·`milestone`)는 실제 조직의 진행 상황이 아니라 가상 일정을 보여주는 값입니다. 6/12/18개월은 착수 시점부터 각 단계의 성과를 기대하는 대략적인 투자 호라이즌이며, 단계가 겹쳐 진행되도록 잡은 예시 일정이어서 간트의 시작·종료 월과 정확히 일치하지는 않습니다.
+
+4.1~4.3의 산출물과 성공 지표 수치는 조직이 출발점으로 삼을 수 있는 예시 목표치이며, 측정값이나 벤치마크가 아닙니다. 목표로 채택하려면 지표마다 도입 전 기준값, 측정 방법과 데이터 출처, 달성 판정 기준을 먼저 정합니다. 예를 들어 배포 리드 타임은 커밋부터 프로덕션 반영까지의 시간을 CI/CD와 Argo CD 이력으로 도입 전후 같은 길이의 기간에 비교하고, 코드 생성 자동화율은 병합된 변경 중 AI가 생성한 코드의 비율을 어떻게 셀지 정의한 뒤 측정합니다.
 
 ```mermaid
 gantt
@@ -266,6 +268,13 @@ gantt
 - 예측 스케일링 정확도 85%+ (KEDA + AI)
 - 장애 자동 복구율 40%+ (Chaos + AI)
 
+운영 자동화율과 장애 자동 복구율은 AI 에이전트가 운영 환경을 바꿀 수 있는 범위를 먼저 정한 뒤에만 의미가 있습니다. Chaos Engineering 실험과 AI 자동 복구는 다음 경계 안에서 운영합니다.
+
+- 실험은 승인된 클러스터·네임스페이스와 시간대로 한정하고, 영향 범위(blast radius)를 실험 전에 정합니다.
+- 실험마다 중단 조건과 롤백 절차를 두고, Chaos Mesh 실험에는 `duration`을 지정해 실험이 스스로 끝나게 합니다.
+- AI 에이전트의 자동 조치는 사전에 허용한 조치 목록(예: Pod 재시작, 레플리카 수 조정)으로 제한하고, 그 밖의 변경(리소스 삭제, 노드 교체, 설정 변경)은 사람의 승인을 거칩니다.
+- 모든 실험과 자동 조치는 감사 로그로 남겨, 복구율 지표를 계산할 때 근거로 사용합니다.
+
 :::tip 호라이즌별 투자 우선순위
 - **6개월**: 즉시 ROI 가능한 도구 (Kiro, Q Developer, Argo CD)
 - **12개월**: 자동화 확장 (MCP, Quality Gates)
@@ -280,7 +289,7 @@ AIDLC 도구 선택 시 **벤더 종속 리스크**와 **이식성(Portability)*
 
 | 도구 | 벤더 종속 리스크 | 대안 존재 여부 | 이식성 |
 |------|-----------------|----------------|--------|
-| **Kiro** | 🔴 높음 (AWS 전용) | ✅ Cursor, Windsurf | 낮음 (spec → code 재작성 필요) |
+| **Kiro** | 🔴 높음 (도구가 AWS 호스팅 서비스) | ✅ Cursor, Windsurf | 애플리케이션 코드와 spec 파일: 높음 (Git의 소스·Markdown 파일로 남음) / 도구 워크플로: 낮음 (Kiro 고유 Spec 단계·hook·steering 설정은 다른 도구에서 재구성 필요) |
 | **Q Developer** | 🔴 높음 (AWS 전용) | ✅ GitHub Copilot, Cursor | 중간 (IDE 교체 가능) |
 | **Managed Argo CD** | 🟡 중간 (EKS 전용) | ✅ Flux CD, 자체 Argo CD | 높음 (Git 기반, K8s 표준) |
 | **ACK** | 🟡 중간 (AWS 전용) | ✅ Crossplane, Terraform | 낮음 (CRD → 다른 IaC 마이그레이션 필요) |
@@ -319,7 +328,7 @@ AIDLC 도구 선택 시 **벤더 종속 리스크**와 **이식성(Portability)*
 
 ## 6. 투자 계획 템플릿
 
-프로젝트 규모와 조직 성숙도에 따라 권장하는 도구 조합입니다.
+프로젝트 규모와 조직 성숙도에 따라 권장하는 도구 조합입니다. 각 템플릿의 예상 투자(기간, 라이선스, 인프라 비용)와 ROI 예상 수치는 계획 수립을 위한 가상의 입력값이며, 벤치마크나 실측값이 아닙니다. 조직의 실제 견적과 도입 후 측정값으로 바꿔 사용합니다.
 
 ### 6.1 소규모 팀 (5~20명, 마이크로서비스 3~10개)
 

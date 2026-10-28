@@ -3,9 +3,9 @@ title: Cost Effectiveness Framework
 description: Quantifying AIDLC Cost Effectiveness — RFP Estimation Model, Ontology/Harness ROI, Open Weight TCO Comparison
 created: "2026-04-07"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 45
+reading_time: 46
 tags:
   - aidlc
   - enterprise
@@ -292,7 +292,7 @@ For medium projects (₩2B), this is **0.475%** initial investment.
 
 ### 4.2 Long-Term Effects
 
-According to McKinsey research "The economic potential of generative AI" (2023), domain-specific AI achieved **87% accuracy vs 62%** for general AI. Ontology is the mechanism that transforms AI to domain-specific.
+A figure of **87% accuracy vs 62%** for domain-specific AI versus general AI is cited with McKinsey research "The economic potential of generative AI" (2023) as its source, but the figure could not be traced in that report (primary source not verified as of 2026-10-29). Ontology is the mechanism that transforms AI to domain-specific.
 
 #### Error Rate Reduction
 
@@ -306,10 +306,10 @@ Illustrative figures (a hypothetical scenario, not measured data) used to explai
 | Feedback Loop (AI only) | 7.9% | $28K | 5% improvement |
 | Feedback Loop + Ontology | **1.2%** | $30K | **85.5% improvement** |
 
-With ontology, AI self-corrects in domain context, reducing error rate **7x**.
+In the illustrative figures above, with ontology, AI self-corrects in domain context, reducing error rate **7x**.
 
-**Project Conversion**:
-- Medium project defect fix cost: Average ₩300M (7.5% of total cost)
+**Project Conversion** (an example calculation applying the illustrative figures above, not a measured result):
+- Medium project defect fix cost: assumed to be ₩300M (7.5% of total cost)
 - 85% error reduction with ontology: **₩255M savings**
 - ROI vs ₩9.5M ontology initial investment: **2,584%**
 
@@ -555,7 +555,7 @@ Core metrics for measuring AIDLC adoption effects.
 
 ### 7.4 Benchmark Data
 
-Based on McKinsey "The economic potential of generative AI" (2023):
+The following table shows industry figures that have been cited with McKinsey "The economic potential of generative AI" (2023) as their source. The productivity improvement rates and ROI periods in the table could not be traced in that report (primary source not verified as of 2026-10-29), so use them only as examples for planning.
 
 **Table 16. Productivity improvement and ROI period benchmark by industry**
 
@@ -565,7 +565,7 @@ Based on McKinsey "The economic potential of generative AI" (2023):
 | Financial Services | 20-30% | 6-12 months | Compliance burden |
 | Manufacturing | 15-25% | 12-18 months | Legacy system integration |
 
-Korean SI market sets **20-30% range** as realistic goal similar to financial services.
+For the Korean SI market, setting a **20-30% range**, similar to financial services, is recommended as a realistic goal. This range is an author's estimate, not a measured result.
 
 ---
 

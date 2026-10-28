@@ -3,9 +3,9 @@ title: AI Coding Agents
 description: AI Coding Agents for AIDLC Construction Phase — Kiro Spec-Driven Development, Q Developer, Agent Comparison
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 39
+reading_time: 45
 tags:
   - aidlc
   - ai-coding-agents
@@ -26,7 +26,7 @@ This document covers AI coding agent strategies for implementing design as code 
 
 ## 0. The Seven Officially Supported AIDLC Platforms
 
-AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) defines **seven officially supported platforms** on which the AIDLC methodology runs. Each platform must implement the Common Rules and the Inception/Construction workflows, and the artifact format follows the common convention.
+AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) provides setup targets (harnesses) that install one shared core (stages, agents, approval gates, audit records) into each AI coding tool. A setup target means a tool for which the repository provides installation steps and integration files; it does not mean the tool is certified as AIDLC-conformant or that the tool itself implements the Common Rules. As of 2026-10-29, the repository README (v2.11.2) lists Claude Code, Kiro CLI, Kiro IDE, Codex CLI, Cursor, opencode, and GitHub Copilot as setup targets. Sections 0.1-0.7 below keep the seven-platform grouping used when this document was written; of these, Amazon Q Developer, Cline, and AGENTS.md are not in the current README's list of setup targets. The artifact format follows the common convention regardless of the tool.
 
 ```mermaid
 graph TB
@@ -51,18 +51,18 @@ graph TB
 
 ### 0.1 Kiro
 - **AIDLC application**: Spec-Driven built in. The `requirements.md → design.md → tasks.md` file structure maps almost 1:1 to Inception artifacts. MCP native, with immediate integration to AWS Hosted MCP servers
-- **Strengths**: Full support for all 11 Common Rules. Recognizes organizational Extensions (opt-in.md). Tight integration with AWS services (EKS, DynamoDB, etc.)
+- **Strengths**: As product features, it provides the Spec feature and tight integration with AWS services (EKS, DynamoDB, etc.). The Common Rules and organizational Extensions (opt-in.md) are not built-in Kiro features; they are applied through the rule files that AIDLC Workflows installs for Kiro IDE and Kiro CLI
 - **Limits**: AWS-ecosystem-centric, so it constrains multi-cloud teams. Limited IDE choices
 
 ### 0.2 Amazon Q Developer
 - **AIDLC application**: Centered on Construction-phase real-time build/test/security scan. Combine with a separate Kiro/Claude Code for Inception
-- **Strengths**: Automatic build/test execution triggers the Loss Function immediately. Strong CodeCatalyst/GitHub Actions integration. `/transform` supports legacy migration (Java, .NET)
+- **Strengths**: Its automatic build/test execution, a product feature, can serve as the AIDLC Loss Function (feedback that catches errors right after generation). Q Developer is not in the AIDLC Workflows list of setup targets (as of 2026-10-29), so the AIDLC rules must be passed through prompts or separate rule files. Strong CodeCatalyst/GitHub Actions integration. `/transform` supports legacy migration (Java, .NET)
 - **Limits**: The Inception (requirements/design) phase needs another tool in parallel. For high-freedom experimentation/prototyping, tools like Cursor are more flexible
 
 ### 0.3 Cursor
-- **AIDLC application**: Code-context-based Spec-Driven. Part of the Common Rules can be expressed via the `.cursor/rules/` directory. Multi-file editing with the Composer feature
+- **AIDLC application**: Code-context-based Spec-Driven. AIDLC Workflows installs the `.cursor/rules/aidlc-onboarding.mdc` rule file for Cursor (as of 2026-10-29). Multi-file editing with the Composer feature
 - **Strengths**: Strong at large-scale refactoring and code comprehension. The Apply feature merges proposed code after validation. High editor UX completeness
-- **Limits**: Does not support the AIDLC Extension System → organizational rules are supplemented via manual prompts. Limited automatic audit-log generation
+- **Limits**: When this document was written, it assessed that Cursor did not support the AIDLC Extension System and had limited automatic audit-log generation. As of 2026-10-29, AIDLC Workflows includes Cursor as a setup target, so whether this assessment still holds for the current version must be checked in the repository's per-harness documentation
 
 ### 0.4 Cline
 - **AIDLC application**: A VS Code Extension-based autonomous agent. Suited to CLI-centric workflows. Its Plan Mode / Act Mode split fits Adaptive Execution well
@@ -70,21 +70,23 @@ graph TB
 - **Limits**: Lower IDE-integration UX than Cursor. No commercial support (community-dependent)
 
 ### 0.5 Claude Code
-- **AIDLC application**: Supports both CLI and IDE integration. Sub-agent-based decomposition of complex tasks. Expresses Common Rules via AGENTS.md / CLAUDE.md
+- **AIDLC application**: Supports both CLI and IDE integration. Sub-agent-based decomposition of complex tasks. Claude Code reads `CLAUDE.md` as its instruction file and can read the repository's `AGENTS.md` instead. AIDLC Workflows installs the full onboarding instructions for Claude Code in `.claude/CLAUDE.md` (as of 2026-10-29)
 - **Strengths**: Anthropic Claude models by default. Sub-agents can split Inception (planner) + Construction (executor). Smooth integration with the MCP ecosystem
 - **Limits**: Cost burden when using the Opus model. Team-wide adoption needs license/rate-limit management
 
 ### 0.6 GitHub Copilot
-- **AIDLC application**: Centered on code auto-completion. Partial Spec-Driven support via Copilot Chat + Workspace. AGENTS.md recognition expanding in Copilot Enterprise
+- **AIDLC application**: Centered on code auto-completion. Partial Spec-Driven support via Copilot Chat + Workspace. AIDLC Workflows installs the full onboarding instructions for GitHub Copilot (CLI 1.0.74 or later, VS Code 1.130 or later) in the repository root `AGENTS.md` (as of 2026-10-29)
 - **Strengths**: The broadest IDE support (VS Code · JetBrains · Neovim). Already familiar to most developers. GitHub-native integration
 - **Limits**: AIDLC Stage Transition and Checkpoint Approval concepts are not in Copilot's base features — manual operation needed. Limited prompt customization
 
 ### 0.7 AGENTS.md
 - **AIDLC application**: Rather than a platform, a **tool-independent document specification**. Describes the Common Rules, Extensions, and Stage conventions in plain text via an `AGENTS.md` file
-- **Strengths**: Any AI agent that reads `AGENTS.md` can be made to follow AIDLC rules (supported by Claude Code, Cursor, Cline). Easy Git tracking and review
+- **Strengths**: AIDLC rules can be passed to any AI agent that reads `AGENTS.md`. However, whether a tool reads this file automatically, and which file it prefers, differs by tool. As of 2026-10-29, AIDLC Workflows installs the root `AGENTS.md` as the onboarding file for GitHub Copilot, `.claude/CLAUDE.md` for Claude Code, `.kiro/steering/aidlc-onboarding.md` for Kiro, and `.cursor/rules/aidlc-onboarding.mdc` for Cursor, and adds a shared block in the root `AGENTS.md` for Kiro, Codex CLI, Cursor, and opencode. Easy Git tracking and review
 - **Limits**: Automatic execution/enforcement is impossible → the agent may ignore the file. Audit/Checkpoint requires separate tools
 
 ### 0.8 Platform Selection Summary
+
+The Full/Partial/Limited/Manual ratings in the table below are the author's assessment, made when this document was written, of how far the AIDLC rules and stages can be applied in each tool; they are not an AIDLC Workflows certification or conformance result.
 
 | Platform | AIDLC Common Rules | Inception | Construction | Audit | License | Recommended Case |
 |--------|-------------------|-----------|--------------|-------|---------|-----------|
@@ -281,17 +283,17 @@ This automatic build and test works when the project has build and test commands
 
 ### 3.2 Automatic Security Scan Fixes
 
-Q Developer automatically scans Kubernetes YAML and application code for security vulnerabilities and provides fix suggestions.
+Q Developer code reviews detect security vulnerabilities and suggest automatic fixes. As of 2026-10-29, the AWS documentation lists application languages such as Java and Python and the CloudFormation, Terraform, and AWS CDK IaC languages as supported for code reviews and automatic fixes; Kubernetes YAML manifests are not on that list. The check items and fix example below are therefore not Q Developer detection rules but examples of the security settings to check in a Kubernetes manifest. Check manifests with a separate tool such as kube-linter, or ask Q Developer chat to review them.
 
-**Kubernetes YAML Security Scan**
+**Kubernetes YAML Security Check Items (examples)**
 
 1. **Root Privilege Detection** — Detects `runAsUser: 0` or `runAsNonRoot: false`, suggests `runAsUser: 1000`, `runAsNonRoot: true`
 2. **Privileged Container Detection** — Detects `securityContext.privileged: true`, suggests explicitly adding only necessary capabilities
 3. **Missing securityContext Detection** — When Pod/Container lacks `securityContext`, suggests settings following least privilege principle
 
-**Automatic Fix Suggestion Example**
+**Fix Example**
 
-Manifest with the problem detected by Q Developer:
+Example manifest to check:
 
 ```yaml
 apiVersion: v1
@@ -307,7 +309,7 @@ spec:
         privileged: true  # ⚠️ Privileged mode
 ```
 
-Fixed manifest suggested by Q Developer:
+Example manifest fixed according to the least-privilege principle:
 
 ```yaml
 apiVersion: v1
@@ -365,6 +367,8 @@ Q Developer's real-time execution implements AIDLC's core principle of **"Minimi
 ## 4. AI Coding Agent Comparison
 
 <AiCodingAgentComparison />
+
+The models, pricing, and specialties in the comparison table above are values from when it was written; they have not all been re-checked as of 2026-10-29, so confirm them in each vendor's current pricing and model documentation before adoption. The per-area ratings (1-5) are the author's subjective assessment, not benchmark results. Two points were checked as of 2026-10-29: OpenAI introduced codex-1 as a model based on o3, so the table's "o3-mini based" label is inaccurate, and AWS has announced that support for the Amazon Q Developer IDE plugins ends on April 30, 2027.
 
 ## 5. MCP-Based Real-time Context Collection
 

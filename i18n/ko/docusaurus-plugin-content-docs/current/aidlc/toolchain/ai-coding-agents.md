@@ -3,9 +3,9 @@ title: AI 코딩 에이전트
 description: AIDLC Construction 단계의 AI 코딩 에이전트 — 공식 지원 7개 플랫폼, Kiro Spec-Driven 개발, Q Developer, 에이전트 비교
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 25
 tags:
   - aidlc
   - ai-coding-agents
@@ -26,7 +26,7 @@ AIDLC Construction 단계에서 설계를 코드로 구현하는 AI 코딩 에�
 
 ## 0. 공식 AIDLC 지원 플랫폼 7종
 
-AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 AIDLC 방법론이 동작하는 **7개 공식 지원 플랫폼** 을 정의합니다. 각 플랫폼은 Common Rules 와 Inception/Construction 워크플로를 구현해야 하며, 산출물 포맷은 공통 규약을 따릅니다.
+AWS Labs [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 는 하나의 공통 코어(단계, 에이전트, 승인 게이트, 감사 기록)를 각 AI 코딩 도구에 설치하는 설정 대상(harness)을 제공합니다. 설정 대상은 저장소가 설치 절차와 연동 파일을 제공하는 도구라는 뜻이며, 도구가 AIDLC 규칙 준수를 인증받았다거나 도구 자체가 Common Rules를 구현한다는 뜻이 아닙니다. 2026-10-29 기준 저장소 README(v2.11.2)는 Claude Code, Kiro CLI, Kiro IDE, Codex CLI, Cursor, opencode, GitHub Copilot을 설정 대상으로 나열합니다. 아래 0.1~0.7은 이 문서 작성 당시의 7개 플랫폼 구분을 유지하며, 그중 Amazon Q Developer, Cline, AGENTS.md는 현재 README의 설정 대상 목록에 없습니다. 산출물 포맷은 도구와 관계없이 공통 규약을 따릅니다.
 
 ```mermaid
 graph TB
@@ -51,18 +51,18 @@ graph TB
 
 ### 0.1 Kiro
 - **AIDLC 적용**: Spec-Driven 기본 탑재. `requirements.md → design.md → tasks.md` 파일 구조가 Inception 산출물과 거의 1:1 매핑. MCP 네이티브로 AWS Hosted MCP 서버와 즉시 연동
-- **강점**: Common Rules 11개 모두 Full 지원. 조직 Extension(opt-in.md) 인식. AWS 서비스(EKS, DynamoDB 등)와의 밀착 통합
+- **강점**: 제품 자체 기능으로 Spec 기능과 AWS 서비스(EKS, DynamoDB 등)와의 밀착 통합을 제공합니다. Common Rules와 조직 Extension(opt-in.md)은 Kiro의 내장 기능이 아니라 AIDLC Workflows가 Kiro IDE·Kiro CLI용으로 설치하는 규칙 파일로 적용됩니다
 - **한계**: AWS 생태계 중심이라 멀티클라우드 팀에는 제약. IDE 선택지 제한적
 
 ### 0.2 Amazon Q Developer
 - **AIDLC 적용**: Construction 단계의 실시간 빌드·테스트·보안 스캔 중심. Inception 은 별도 Kiro/Claude Code 등과 조합
-- **강점**: 빌드·테스트 자동 실행으로 Loss Function 즉시 작동. CodeCatalyst·GitHub Actions 통합 우수. `/transform` 으로 레거시 마이그레이션(Java, .NET) 지원
+- **강점**: 제품 기능인 빌드·테스트 자동 실행을 AIDLC의 Loss Function(생성 직후 오류를 잡는 피드백)으로 활용할 수 있습니다. AIDLC Workflows의 설정 대상 목록(2026-10-29 기준)에 Q Developer가 없으므로 AIDLC 규칙은 프롬프트나 별도 규칙 파일로 전달해야 합니다. CodeCatalyst·GitHub Actions 통합 우수. `/transform` 으로 레거시 마이그레이션(Java, .NET) 지원
 - **한계**: Inception(요구사항·설계) 단계는 다른 도구 병행 필요. 자유도 높은 실험·프로토타이핑은 Cursor 등이 더 유연
 
 ### 0.3 Cursor
-- **AIDLC 적용**: 코드 컨텍스트 기반 Spec-Driven. `.cursor/rules/` 디렉터리로 Common Rules 일부 표현 가능. Composer 기능으로 multi-file 편집
+- **AIDLC 적용**: 코드 컨텍스트 기반 Spec-Driven. AIDLC Workflows는 Cursor용으로 `.cursor/rules/aidlc-onboarding.mdc` 규칙 파일을 설치합니다(2026-10-29 기준). Composer 기능으로 multi-file 편집
 - **강점**: 대규모 리팩터링·코드 이해에 강함. Apply 기능으로 제안 코드 검증 후 병합. 에디터 UX 완성도 높음
-- **한계**: AIDLC Extension System 미지원 → 조직 규정은 수동 프롬프트로 보완. Audit Log 자동 생성 제한
+- **한계**: 이 문서는 작성 당시 Cursor가 AIDLC Extension System을 지원하지 않고 Audit Log 자동 생성이 제한된다고 평가했습니다. 2026-10-29 기준 AIDLC Workflows는 Cursor를 설정 대상으로 포함하므로, 이 평가가 현재 버전에도 맞는지는 저장소의 하네스별 문서로 확인해야 합니다
 
 ### 0.4 Cline
 - **AIDLC 적용**: VS Code Extension 기반 Autonomous Agent. CLI 중심 워크플로에 적합. Plan Mode / Act Mode 분리가 Adaptive Execution 과 잘 맞음
@@ -70,21 +70,23 @@ graph TB
 - **한계**: IDE 통합 UX 가 Cursor 대비 낮음. 상용 지원 부재 (커뮤니티 의존)
 
 ### 0.5 Claude Code
-- **AIDLC 적용**: CLI + IDE 통합 양쪽 지원. Sub-agent 기반 복잡 태스크 분해. AGENTS.md / CLAUDE.md 로 Common Rules 표현
+- **AIDLC 적용**: CLI + IDE 통합 양쪽 지원. Sub-agent 기반 복잡 태스크 분해. Claude Code는 `CLAUDE.md`를 지침 파일로 읽으며, 저장소의 `AGENTS.md`를 대신 읽을 수도 있습니다. AIDLC Workflows는 Claude Code용으로 `.claude/CLAUDE.md`에 온보딩 지침 전체를 설치합니다(2026-10-29 기준)
 - **강점**: Anthropic Claude 모델 기본값. Sub-agent 로 Inception(planner) + Construction(executor) 분리 가능. MCP 생태계와 매끄러운 연동
 - **한계**: Opus 모델 사용 시 비용 부담. 팀 전체 도입 시 라이선스·레이트리밋 관리 필요
 
 ### 0.6 GitHub Copilot
-- **AIDLC 적용**: 코드 자동완성 중심. Copilot Chat + Workspace 로 Spec-Driven 일부 지원. Copilot Enterprise 에서 AGENTS.md 인식 확장 중
+- **AIDLC 적용**: 코드 자동완성 중심. Copilot Chat + Workspace 로 Spec-Driven 일부 지원. AIDLC Workflows는 GitHub Copilot(CLI 1.0.74 이상, VS Code 1.130 이상)용 온보딩 지침 전체를 저장소 루트 `AGENTS.md`에 설치합니다(2026-10-29 기준)
 - **강점**: 가장 광범위한 IDE 지원(VS Code · JetBrains · Neovim). 대부분 개발자에게 이미 익숙. GitHub 네이티브 통합
 - **한계**: AIDLC Stage Transition 이나 Checkpoint Approval 개념은 Copilot 기본 기능에 없음 — 수동 운영 필요. 프롬프트 커스터마이징 제약
 
 ### 0.7 AGENTS.md
 - **AIDLC 적용**: 플랫폼이라기보다 **도구 독립 문서 규격**. `AGENTS.md` 파일로 Common Rules·Extension·Stage 규약을 평문으로 서술
-- **강점**: 어떤 AI 에이전트라도 `AGENTS.md` 를 읽으면 AIDLC 규칙을 따르게 할 수 있음 (Claude Code, Cursor, Cline 모두 지원). Git 추적·Review 용이
+- **강점**: `AGENTS.md`를 읽는 AI 에이전트에는 AIDLC 규칙을 전달할 수 있습니다. 다만 이 파일을 자동으로 읽는지와 어떤 파일을 우선하는지는 도구마다 다릅니다. 2026-10-29 기준 AIDLC Workflows는 GitHub Copilot에는 루트 `AGENTS.md`를, Claude Code에는 `.claude/CLAUDE.md`를, Kiro에는 `.kiro/steering/aidlc-onboarding.md`를, Cursor에는 `.cursor/rules/aidlc-onboarding.mdc`를 온보딩 파일로 설치하고, Kiro·Codex CLI·Cursor·opencode에는 루트 `AGENTS.md`의 공통 블록을 함께 둡니다. Git 추적·Review 용이
 - **한계**: 자동 실행·강제가 불가능 → 에이전트가 파일을 무시할 여지 존재. Audit/Checkpoint 는 별도 도구 필요
 
 ### 0.8 플랫폼 선택 요약표
+
+아래 표의 Full/Partial/Limited/Manual 등급은 이 문서 저자가 작성 당시 각 도구에서 AIDLC 규칙과 단계를 얼마나 적용할 수 있는지 평가한 값이며, AIDLC Workflows의 인증이나 적합성 판정이 아닙니다.
 
 | 플랫폼 | AIDLC Common Rules | Inception | Construction | Audit | 라이선스 | 추천 케이스 |
 |--------|-------------------|-----------|--------------|-------|---------|-----------|
@@ -281,17 +283,17 @@ Q Developer 실시간 실행:
 
 ### 3.2 보안 스캔 자동 수정
 
-Q Developer는 Kubernetes YAML 및 애플리케이션 코드의 보안 취약점을 자동으로 스캔하고 수정 제안을 제공합니다.
+Q Developer의 코드 리뷰는 보안 취약점을 탐지하고 자동 수정을 제안합니다. 2026-10-29 기준 AWS 문서에서 코드 리뷰와 자동 수정의 지원 대상은 Java, Python 등 애플리케이션 언어와 CloudFormation, Terraform, AWS CDK IaC이며, Kubernetes YAML 매니페스트는 지원 목록에 없습니다. 따라서 아래 점검 항목과 수정 예시는 Q Developer의 탐지 규칙이 아니라 Kubernetes 매니페스트에서 확인할 보안 설정을 보여주는 예시입니다. 매니페스트 점검은 kube-linter 같은 별도 도구로 수행하거나 Q Developer 채팅에 검토를 요청합니다.
 
-**Kubernetes YAML 보안 스캔**
+**Kubernetes YAML 보안 점검 항목 (예시)**
 
 1. **Root 권한 감지** — `runAsUser: 0` 또는 `runAsNonRoot: false` 탐지, `runAsUser: 1000`, `runAsNonRoot: true` 제안
 2. **Privileged 컨테이너 감지** — `securityContext.privileged: true` 탐지, 필요한 capabilities만 명시적으로 추가 제안
 3. **미설정 securityContext 감지** — Pod/Container에 `securityContext`가 없는 경우 최소 권한 원칙에 따른 설정 제안
 
-**자동 수정 제안 예시**
+**수정 예시**
 
-Q Developer가 감지한 문제 매니페스트:
+점검 대상 매니페스트 예시:
 
 ```yaml
 apiVersion: v1
@@ -307,7 +309,7 @@ spec:
         privileged: true  # ⚠️ Privileged 모드
 ```
 
-Q Developer가 제안하는 수정 매니페스트:
+최소 권한 원칙에 따른 수정 매니페스트 예시:
 
 ```yaml
 apiVersion: v1
@@ -365,6 +367,8 @@ Q Developer의 실시간 실행은 AIDLC의 핵심 원칙인 **"Minimize Stages,
 ## 4. AI 코딩 에이전트 비교
 
 <AiCodingAgentComparison />
+
+위 비교표의 모델·요금·전문 분야는 작성 시점의 값이며, 2026-10-29 기준으로 항목별 재확인을 마치지 못했으므로 도입 전에 각 공급사의 최신 요금·모델 문서로 확인합니다. 영역별 평점(1~5)은 이 문서 저자의 주관적 평가이며 벤치마크 측정 결과가 아닙니다. 2026-10-29 기준으로 확인한 사항은 두 가지입니다. OpenAI는 codex-1을 o3 기반 모델로 소개했으므로 표의 "o3-mini based" 표기는 정확하지 않으며, AWS는 Amazon Q Developer IDE 플러그인 지원을 2027년 4월 30일에 종료한다고 공지했습니다.
 
 ## 5. MCP 기반 실시간 컨텍스트 수집
 

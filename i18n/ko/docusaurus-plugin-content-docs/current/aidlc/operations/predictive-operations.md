@@ -3,9 +3,9 @@ title: 예측 운영
 description: ML 기반 예측 스케일링과 이상 감지 — Karpenter+AI, CloudWatch Anomaly Detection, AI Right-Sizing
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 15
 tags:
   - aidlc
   - operations
@@ -27,7 +27,7 @@ import { ScalingComparison, MLModelComparison, MaturityTable } from '@site/src/c
 
 전통적인 EKS 운영은 **반응형**입니다. HPA는 CPU/메모리가 임계값을 초과한 **후** 스케일링을 시작하므로, 트래픽 급증 시 사용자에게 이미 영향이 발생합니다.
 
-**예측 운영**은 ML 모델을 통해 트래픽 패턴을 학습하고, **증가 전에 미리 스케일아웃**하여 서비스 품질을 유지합니다.
+**예측 운영**은 ML 모델을 통해 트래픽 패턴을 학습하고, **증가 전에 미리 스케일아웃**하여 서비스 품질을 유지합니다. 이 효과는 예측이 실제 트래픽과 맞을 때에만 나타나며, 예측이 빗나가면 과소 또는 과대 프로비저닝이 생깁니다. 따라서 예측 스케일링은 반응형 스케일링을 대체하지 않고 함께 운영합니다. HPA는 CPU/메모리 외에 커스텀·외부 메트릭도 스케일링 입력으로 받을 수 있으므로, 2.3절처럼 예측값을 커스텀 메트릭으로 노출하면 HPA나 KEDA가 예측 신호와 현재 메트릭을 함께 사용할 수 있습니다.
 
 ```
 반응형 스케일링의 문제:
@@ -37,7 +37,7 @@ import { ScalingComparison, MLModelComparison, MaturityTable } from '@site/src/c
 
 예측 스케일링의 해결:
   ML 예측 (30분 전) → 사전 스케일아웃 → 실제 트래픽 도착
-  → 노드/Pod 준비 완료 → 성능 저하 없음
+  → 노드/Pod 준비 완료 → 예측이 정확하면 성능 저하 최소화
 ```
 
 ### 핵심 가치
@@ -57,6 +57,8 @@ HPA(Horizontal Pod Autoscaler)는 **현재 메트릭**에만 반응하므로 구
 
 <ScalingComparison />
 
+위 비교의 응답 시간·정확도·복잡도 판정과 아래 그림은 접근 방식의 차이를 설명하기 위한 정성적 가정이며 측정 결과가 아닙니다. 예측형과 자율형의 정확도는 예측 모델과 에이전트가 실제 워크로드에서 검증된 정도에 따라 달라집니다.
+
 ```
 [HPA 반응형]
 트래픽 ████████████████████████░░░░░░░░░
@@ -72,7 +74,7 @@ Pod 수  ██████████░░░░█████████�
 Pod 수  ██████████████████████████████████
              ↑ 사전 스케일아웃
 사용자   ✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓
-경험     (성능 저하 없음)
+경험     (예측이 정확한 경우 성능 저하 최소화)
 ```
 
 ### 2.2 시계열 예측 모델
@@ -124,7 +126,7 @@ def calculate_required_pods(forecast_df, pod_capacity_rps=100):
     return max(required, 2)
 ```
 
-> **전제**: 위 계산은 모델이 홀드아웃 구간에서 검증(예: MAPE 등 오차 지표 확인)을 통과한 뒤에만 신뢰할 수 있습니다. 검증되지 않은 예측을 그대로 스케일링에 연결하면 과소/과대 프로비저닝이 발생할 수 있습니다.
+> **전제**: 위 계산은 모델이 홀드아웃 구간에서 검증(예: MAPE 등 오차 지표 확인)을 통과한 뒤에만 신뢰할 수 있습니다. 검증되지 않은 예측을 그대로 스케일링에 연결하면 과소/과대 프로비저닝이 발생할 수 있습니다. `Prophet()`에 넣은 `changepoint_prior_scale=0.05`, `seasonality_mode='multiplicative'` 등의 값과 예측 구간 `forecast_hours=2`는 튜닝된 값이 아닌 예시 시작값입니다. 사용 전에 Prophet의 `cross_validation`으로 실제 사용할 예측 구간(horizon)에 대해 백테스트하고, `performance_metrics`의 오차 지표와 `coverage`(실제값이 `yhat_lower`~`yhat_upper` 구간에 들어간 비율로, 기본 `interval_width=0.8`이면 약 80%가 기대값)로 하이퍼파라미터와 예측 구간이 워크로드에 맞는지 확인합니다.
 
 **자동화 패턴**:
 - CronJob으로 15분마다 예측 실행
@@ -436,7 +438,7 @@ K8s 1.34 이하에서 VPA `Auto` 모드는 Pod를 재시작하여 리소스를 �
 
 ### 5.4 Right-Sizing 효과
 
-**예상 비용 절감**:
+**예상 비용 절감** (예시 수치이며 측정값이 아닙니다. 실제 절감 폭은 워크로드의 부하 변동과 현재 요청값 설정에 따라 달라집니다):
 - Over-provisioning 40-60% → 20-30%로 감소
 - 연간 클러스터 비용 30-50% 절감
 - 노드 Consolidation 효율 증가
@@ -446,6 +448,8 @@ K8s 1.34 이하에서 VPA `Auto` 모드는 Pod를 재시작하여 리소스를 �
 ## 6. 성숙도 모델
 
 <MaturityTable />
+
+이 성숙도 모델은 이 문서가 제안하는 구분이며 업계 표준 모델이 아닙니다. 위 표의 세 단계는 아래 Level 0~4를 묶어 단순화한 것으로, 반응형은 Level 0, 예측형은 Level 1~2, 자율형은 Level 3~4에 대략 대응합니다. 표의 KPI(MTTR, MTTD, 일일 알림 건수)는 단계 간 차이를 보여주기 위한 예시 목표치이며 측정값이 아닙니다.
 
 **Level 0: 반응형**
 - HPA/VPA 기본 설정
