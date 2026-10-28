@@ -120,7 +120,7 @@ Prefix reuse exists in two forms — **provider-managed** (OpenAI/Anthropic prom
 
 ```mermaid
 graph LR
-    A[0.70 Aggressive] -->|High HIT rate| B[High false answer risk]
+    A[0.75 Aggressive] -->|High HIT rate| B[High false answer risk]
     C[0.85 Balanced] -->|Medium HIT rate| D[Low false answer risk]
     E[0.95 Strict] -->|Low HIT rate| F[Very low false answer risk]
 
