@@ -3,9 +3,9 @@ title: 트러블슈팅 가이드
 description: Inference Gateway 배포 및 운영 중 발생하는 일반적인 문제와 해결 방법
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 12
 tags:
   - troubleshooting
   - debugging
@@ -114,7 +114,7 @@ spec:
 | `Provider not found: vllm` | config.json에 provider 미등록 | `vllm` provider 추가 또는 `custom_provider_config`로 임의 이름 등록 |
 | `Model not found: glm-5` | provider prefix 누락 | 요청 시 `openai/glm-5` 형태로 전송 |
 | UI에서 설정 미표시 | providers가 배열로 작성됨 | `"providers": [...]` -> `"providers": {...}` (map) |
-| OTel trace 미도착 | trace_type 오류 | 레거시 `"otel"` -> `"genai_extension"` (v1.5.0+ 필수) |
+| OTel trace 미도착 | trace_type 오류 | 레거시 `"otel"` -> `"genai_extension"` (현재 문서의 허용값은 `genai_extension`·`vercel`·`open_inference`, 2026-10-29 기준) |
 | Langfuse 403/401 | Authorization 포맷 오류 | `Basic <BASE64(public_key:secret_key)>` 확인 |
 
 **올바른 config.json 포맷**:
@@ -139,7 +139,7 @@ spec:
 }
 ```
 
-**OTel 플러그인 올바른 설정**: `trace_type`은 `genai_extension`을 사용합니다(레거시 `otel` 값은 더 이상 사용하지 않습니다).
+**OTel 플러그인 올바른 설정**: `trace_type`은 `genai_extension`을 사용합니다. 2026-10-29 기준 Bifrost OpenTelemetry 문서가 정의한 `trace_type` 허용값은 `genai_extension`, `vercel`, `open_inference`이며 `otel`은 목록에 없습니다. `otel` 값이 어느 Bifrost 릴리스에서 제거되었는지는 릴리스 노트로 확인하지 못했으므로, 사용하는 Bifrost 버전의 문서에서 허용값을 확인합니다.
 
 ```json
 {

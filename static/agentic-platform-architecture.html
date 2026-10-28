@@ -125,7 +125,7 @@
 
   <main id="main-content" role="main">
     <section class="hero animate">
-      <div class="badge"><span class="badge-dot"></span> Production Ready · E2E Verified</div>
+      <div class="badge"><span class="badge-dot"></span> Reference Architecture · Target Configuration</div>
       <h1 data-en="<span>Agentic AI Platform</span><br>Inference Pipeline"><span>Agentic AI Platform</span><br>추론 파이프라인</h1>
       <p data-en="kgateway ExtProc routing · Bifrost governance · llm-d KV Cache · Langfuse OTel">kgateway ExtProc 라우팅 · Bifrost 거버넌스 · llm-d KV Cache · Langfuse OTel</p>
     </section>
@@ -148,7 +148,7 @@
           <div class="node animate delay-2">
             <div class="node-h">
               <div class="node-icon" style="background:var(--warning);color:white;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/></svg></div>
-              <div><div class="node-title">AWS NLB <span class="tag" style="background:var(--warning)">internet-facing</span></div><div class="node-sub">Port 80 · us-east-2</div></div>
+              <div><div class="node-title">CloudFront (WAF/Shield) → AWS NLB <span class="tag" style="background:var(--warning)">internet-facing</span></div><div class="node-sub" data-en="TLS terminates at CloudFront · NLB is the CloudFront origin · us-east-2">TLS는 CloudFront에서 종료 · NLB는 CloudFront origin · us-east-2</div></div>
             </div>
           </div>
 
@@ -257,10 +257,10 @@
             <div class="gov-card llmd">
               <div class="gov-card-h">
                 <div class="gov-card-icon" style="background:var(--llmd);color:white;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/></svg></div>
-                <div class="gov-card-title">llm-d v1.0.23</div>
+                <div class="gov-card-title">llm-d</div>
               </div>
               <ul>
-                <li data-en="Prefix-aware routing (KV Cache hit 87%+)">Prefix-aware 라우팅 (KV Cache hit 87%+)</li>
+                <li data-en="Prefix-aware routing (KV Cache reuse)">Prefix-aware 라우팅 (KV Cache 재사용)</li>
                 <li data-en="Load-aware scoring (GPU utilization)">Load-aware 스코어링 (GPU 활용률)</li>
                 <li>Redis KV Cache Indexer</li>
                 <li>EPP — Endpoint Picker (ext-proc inference scheduler)</li>

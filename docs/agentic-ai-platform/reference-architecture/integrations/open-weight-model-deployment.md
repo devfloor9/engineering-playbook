@@ -3,9 +3,9 @@ title: Open-Weight Model Deployment Guide
 description: A customer-facing decision guide for evaluating and choosing self-hosted open-weight LLM deployment from the perspectives of token economics and data sovereignty.
 created: "2026-06-26"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 30
+reading_time: 31
 tags:
   - open-weight
   - token-economics
@@ -133,7 +133,7 @@ Detailed controls mapping the e-Finance Supervisory Regulation, ISMS-P, SOC2, an
 
 Meeting sovereignty requirements incurs additional cost. Decisions must quantify these.
 
-- **Region premium**: GPU instance unit prices differ by region. For example, the p5en.48xlarge On-Demand price in Tokyo (ap-northeast-1) is about 25% higher than in us-east-1 (see the infrastructure section below). Region pinning may entail unit-price increases.
+- **Region premium**: GPU instance unit prices differ by region. For example, using the illustrative unit prices in the infrastructure section below, the p5en.48xlarge On-Demand price in Tokyo (ap-northeast-1) is about 25% higher than in us-east-1. This ratio is calculated from those illustrative prices and is not a basis for current pricing. Region pinning may entail unit-price increases.
 - **Regulatory operations cost**: Audit response, evidence production, and the staffing and time imposed by deployment constraints.
 - **Opportunity cost**: The self-implementation burden incurred by giving up managed features such as Bedrock AgentCore and SageMaker.
 
@@ -201,7 +201,7 @@ The GPU-node provisioning method determines the achievable range of performance 
 - **Conclusion**: Single-node inference can be served with EKS Auto Mode. EFA-based multi-node distributed inference can be configured on Auto Mode via `advancedNetworking.networkInterfaces` (efa-only). The one remaining gap is exposing local NVMe instance store as a Pod volume, which Auto Mode does not support; use the standard Karpenter node pool when that requirement exists.
 
 :::info GPU instance pricing
-p5en.48xlarge (8×H200, 1,128 GiB GPU memory, EFAv3 3,200 Gbps) is available in the Tokyo (ap-northeast-1) region ([AWS News](https://aws.amazon.com/blogs/aws/new-amazon-ec2-p5en-instances-with-nvidia-h200-tensor-core-gpus-and-efav3-networking/)). On-Demand pricing is reported around $63/hr in us-east-1 and around $79/hr in Tokyo. Prices change frequently; for actual figures, see the [AWS official pricing page](https://aws.amazon.com/ec2/instance-types/p5/).
+p5en.48xlarge (8×H200, 1,128 GiB GPU memory, EFAv3 3,200 Gbps) is available in the Tokyo (ap-northeast-1) region ([AWS News](https://aws.amazon.com/blogs/aws/new-amazon-ec2-p5en-instances-with-nvidia-h200-tensor-core-gpus-and-efav3-networking/)). On-Demand pricing has been reported around $63/hr in us-east-1 and around $79/hr in Tokyo, but a primary price source stating the region, operating system, tenancy, purchase option and date has not been verified as of 2026-10-29. These two values are used only as illustrative unit prices to explain the regional difference. Prices change frequently; for actual figures, see the [AWS official pricing page](https://aws.amazon.com/ec2/instance-types/p5/).
 :::
 
 ---

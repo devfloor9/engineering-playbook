@@ -3,9 +3,9 @@ title: 오픈웨이트 모델 배포 가이드
 description: 토큰 이코노믹스와 데이터 주권 관점에서 오픈웨이트 LLM 자체 배포를 평가하고 결정하기 위한 고객용 의사결정 가이드
 created: "2026-06-26"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 15
 tags:
   - open-weight
   - token-economics
@@ -133,7 +133,7 @@ HuggingFace에는 서드파티가 올린 양자화 체크포인트가 다수 존
 
 주권 요구를 충족하는 데에는 추가 비용이 따릅니다. 의사결정 시 정량화해야 합니다.
 
-- **리전 프리미엄**: GPU 인스턴스 단가는 리전마다 다릅니다. 예를 들어 p5en.48xlarge On-Demand 단가는 us-east-1 대비 도쿄(ap-northeast-1)가 약 25% 높습니다(아래 인프라 항목). 국내 리전 강제는 단가 상승을 수반할 수 있습니다.
+- **리전 프리미엄**: GPU 인스턴스 단가는 리전마다 다릅니다. 예를 들어 아래 인프라 항목의 예시 단가를 그대로 쓰면 p5en.48xlarge On-Demand 단가는 us-east-1 대비 도쿄(ap-northeast-1)가 약 25% 높습니다. 이 비율은 예시 단가에서 계산한 값이며 현재 가격 근거가 아닙니다. 국내 리전 강제는 단가 상승을 수반할 수 있습니다.
 - **규제 운영 비용**: 감사 대응, 증빙 산출, 배포 제약에 따른 인력·시간.
 - **기회비용**: Bedrock AgentCore·SageMaker 등 매니지드 기능을 포기하면서 발생하는 자체 구현 부담.
 
@@ -201,7 +201,7 @@ GPU 노드 프로비저닝 방식은 성능 최적화 가능 범위를 좌우합
 - **결론**: 단일노드 추론은 EKS Auto Mode로 충분합니다. EFA 기반 멀티노드 분산 추론은 Auto Mode의 `advancedNetworking.networkInterfaces`(efa-only)로 구성할 수 있습니다. 다만 로컬 NVMe 인스턴스 스토어를 파드 볼륨으로 노출하는 구성은 Auto Mode가 지원하지 않으므로, 이 요구가 있으면 표준 Karpenter 노드풀을 사용합니다.
 
 :::info GPU 인스턴스 가격
-p5en.48xlarge(8×H200, 1,128 GiB GPU 메모리, EFAv3 3,200 Gbps)는 도쿄(ap-northeast-1) 리전에 제공됩니다([AWS News](https://aws.amazon.com/blogs/aws/new-amazon-ec2-p5en-instances-with-nvidia-h200-tensor-core-gpus-and-efav3-networking/)). On-Demand 단가는 us-east-1 약 $63/hr, 도쿄 약 $79/hr 수준으로 집계됩니다. 가격은 수시 변동하므로 실제 값은 [AWS 공식 가격 페이지](https://aws.amazon.com/ec2/instance-types/p5/)에서 확인해야 합니다.
+p5en.48xlarge(8×H200, 1,128 GiB GPU 메모리, EFAv3 3,200 Gbps)는 도쿄(ap-northeast-1) 리전에 제공됩니다([AWS News](https://aws.amazon.com/blogs/aws/new-amazon-ec2-p5en-instances-with-nvidia-h200-tensor-core-gpus-and-efav3-networking/)). On-Demand 단가는 us-east-1 약 $63/hr, 도쿄 약 $79/hr 수준으로 집계된 바 있으나, 리전·운영체제·테넌시·구매 옵션과 기준일이 표시된 1차 가격 자료를 확인하지 못했습니다(2026-10-29 기준). 이 두 값은 리전 간 차이를 설명하기 위한 예시 단가로만 사용합니다. 가격은 수시 변동하므로 실제 값은 [AWS 공식 가격 페이지](https://aws.amazon.com/ec2/instance-types/p5/)에서 확인해야 합니다.
 :::
 
 ---

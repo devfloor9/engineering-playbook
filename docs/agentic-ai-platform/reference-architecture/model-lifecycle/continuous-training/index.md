@@ -3,9 +3,9 @@ title: Continuous Training Pipeline
 description: EKS-based 5-stage pipeline that automatically promotes Langfuse traces to training data and connects GRPO/DPO preference tuning with Canary deployment.
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 12
+reading_time: 13
 tags:
   - continuous-training
   - mlops
@@ -127,8 +127,8 @@ The Continuous Training Pipeline automatically incorporates production feedback 
 
 **Key Points:**
 
-- **Cost Efficiency**: Spot instances + bi-weekly iterations → ~$4K/month
-- **Quality Improvement**: Target 1% monthly faithfulness increase
+- **Cost Efficiency**: Spot instances with bi-weekly iterations target about $4K/month. This is an author's estimate, not a measured result. The target workload, region, pricing date and cost boundary (training GPUs only, or also evaluation, storage and operations) are not defined, so recalculate it for your environment.
+- **Quality Improvement**: The target is a 1% monthly faithfulness increase. Whether this 1% is a relative increase or percentage points, and which evaluation set measures it, are not defined. Define the fixed evaluation set used by the Eval Gate and the unit first so that monthly values can be compared.
 - **Safety**: Eval Gate + gradual Canary + automatic rollback
 - **ROI**: In an illustrative scenario, the goal is to increase revenue relative to training cost (varies by workload and quality improvement).
 

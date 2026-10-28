@@ -3,7 +3,7 @@ title: Reference Architecture
 description: Agentic AI Platform 실전 배포 및 구성 레퍼런스 아키텍처
 created: "2026-04-06"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
 reading_time: 20
 tags:
@@ -72,7 +72,7 @@ Reference Architecture를 배포하기 위한 사전 요구사항입니다.
 
 ## 플랫폼 아키텍처
 
-플랫폼의 6개 런타임 레이어와 3개 횡단 플레인, Knowledge Feature Store, 모델 서빙·파인튜닝 경로를 보여줍니다. 아래 배포 순서의 6개 영역은 구현 단계이며, 런타임 레이어 번호와 대응하지 않습니다.
+플랫폼의 6개 런타임 레이어와 3개 횡단 플레인, Knowledge Feature Store, 모델 서빙·파인튜닝 경로를 보여줍니다. 아래 배포 순서의 6개 영역은 구현 단계이며, 런타임 레이어 번호와 대응하지 않습니다. 그림의 대형 모델 서빙 상자에 적힌 `Qwen3-72B`는 Qwen3 공식 모델 목록(dense 0.6B~32B, MoE 30B-A3B·235B-A22B)에 없는 식별자이므로, 특정 모델이 아니라 대형 모델 서빙 역할을 나타내는 예시 라벨로 읽어야 합니다. 실제로 배포할 모델과 리비전은 배포 환경에서 정합니다.
 
 <Figure title="플랫폼 전체 구조" description="요청 처리 경로와 공통 제어 영역을 보여주는 원본 아키텍처 그림입니다. iframe과 아래 원본 링크는 저장소의 main 브랜치 파일(static/Agentic AI Platform(...).drawio)을 직접 불러오므로 버전이 고정되지 않으며, main이 갱신되면 이 글에 설명된 스냅샷과 달라질 수 있습니다. 이 문서가 설명하는 내용은 2026-09 기준 스냅샷입니다. 큰 화면에서 세부 연결을 확인하려면 아래 원본 링크를 사용하세요." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">원본 그림 열기</a>}>
 <iframe

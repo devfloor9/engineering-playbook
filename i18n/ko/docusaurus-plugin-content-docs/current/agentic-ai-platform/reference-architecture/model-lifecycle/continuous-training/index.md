@@ -3,9 +3,9 @@ title: Continuous Training Pipeline
 description: Langfuse trace를 자동 학습 데이터로 승격해 GRPO/DPO preference tuning과 Canary 배포까지 연결하는 EKS 기반 5단계 파이프라인 개요.
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 7
+reading_time: 8
 tags:
   - continuous-training
   - mlops
@@ -127,8 +127,8 @@ Continuous Training Pipeline은 5단계 워크플로우로 프로덕션 피드�
 
 **요약 포인트:**
 
-- **비용 효율**: Spot 인스턴스 + 격주 iteration → $4K/월 수준
-- **품질 개선**: 월 1% faithfulness 증가 목표
+- **비용 효율**: Spot 인스턴스와 격주 iteration을 쓰면 월 $4K 수준을 목표로 합니다. 이 값은 저자 추정값이며 측정값이 아닙니다. 대상 워크로드, 리전, 요금 기준일, 포함하는 비용 범위(학습 GPU만인지, 평가·저장·운영 비용까지인지)는 정해져 있지 않으므로 적용 환경에서 다시 계산해야 합니다.
+- **품질 개선**: 월 1% faithfulness 증가를 목표로 합니다. 이 1%가 상대 증가율인지 %포인트인지, 어떤 평가 데이터셋으로 측정하는지는 정해져 있지 않습니다. 적용 시 Eval Gate에서 쓰는 고정 평가 데이터셋과 단위를 먼저 정의해야 월별 값을 비교할 수 있습니다.
 - **안전성**: Eval Gate + 점진 Canary + 자동 롤백
 - **ROI**: 가상 시나리오 기준, 학습 비용 대비 매출 증대를 목표로 합니다(워크로드·품질 개선폭에 따라 상이).
 

@@ -3,9 +3,9 @@ title: 커스텀 모델 배포 가이드
 description: GLM-5.1 사례 기반 — 대형 오픈소스 모델의 EKS 배포 실전 가이드
 created: "2026-04-04"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 24
 tags:
   - deployment
   - glm-5
@@ -402,7 +402,7 @@ HuggingFace Hub에서 직접 다운로드하면 각 노드가 독립적으로 �
 | 6. Ray 모드 | `--distributed-executor-backend ray` | ❌ Kubernetes + Ray 통합 복잡 | Ray cluster 구성 필요 (v0.6+ 플래그는 --engine-use-ray 제거됨) |
 
 :::caution 결론: vLLM V1 멀티노드 PP는 2026-04 기준 불안정
-vLLM V1 엔진의 non-Ray 멀티노드 Pipeline Parallelism은 2026년 4월 기준 프로덕션 환경에 적합하지 않습니다. Leader-Worker 동기화가 불완전하고, torch.compile 활성화 시 교착 발생 빈도가 높습니다.
+이 결론은 2026년 4월에 시도한 한 가지 구성에 한정됩니다. 그 구성은 GLM-5 FP8을 p5.48xlarge(H100 80GB×8) 2대에 PP=2로 나누고, LeaderWorkerSet으로 vLLM V1 엔진의 non-Ray 멀티노드 Pipeline Parallelism(`multiproc_executor`)을 실행했으며, 이미지는 vLLM nightly에 transformers v5.5를 추가한 커스텀 이미지였습니다. 이 구성에서는 위 로그처럼 Worker가 엔진 준비 타임아웃에 걸린 뒤 교착되었고, torch.compile이 활성화된 경우 교착이 더 자주 발생했으며, 위 표의 시도로는 해결되지 않았습니다. 그래서 이 구성을 프로덕션에 쓰기 어렵다고 판단했습니다. 이후 vLLM 릴리스, Ray 기반 실행, 다른 모델에서의 동작은 검증하지 않았습니다.
 :::
 
 ### 권장 대안
@@ -701,8 +701,8 @@ kubectl get nodes -l node.kubernetes.io/instance-type=p5en.48xlarge -o json | \
 }
 ```
 
-:::warning 충돌 후 GPU 노드 재생성 필요
-Device Plugin 충돌이 발생한 후에는 GPU Operator를 재설치하더라도 GPU 노드를 재생성해야 합니다:
+:::warning 충돌 후 GPU 노드 재생성이 필요한 경우
+GPU Operator를 `devicePlugin.enabled=false`로 재설치한 뒤에도 위 확인 명령에서 `nvidia.com/gpu`가 0으로 남아 있거나 GPU Operator의 Device Plugin Pod가 남아 `CrashLoopBackOff`를 반복하면, 해당 GPU 노드를 재생성합니다. 이 절차는 2026-04 GLM-5 배포 작업에서 재설치만으로 GPU 인식이 복구되지 않았을 때 사용한 방법이며, Device Plugin 충돌마다 노드 재생성이 필요한지는 확인하지 않았습니다. 재설치 후 GPU가 정상 인식되면 재생성하지 않습니다. 노드 재생성은 그 노드의 GPU 워크로드를 중단시키므로, 다른 GPU 노드로 요청을 옮기거나 중단 가능한 시간을 확보한 뒤 진행합니다:
 
 1. GPU 워크로드 삭제
 2. NodeClaim 삭제 (Auto Mode) 또는 Node drain + 종료 (Standard Mode)
@@ -928,7 +928,7 @@ spec:
 | GPU 사용량 | 131.7 GB / 143.7 GB per GPU (91.6%) |
 | 디스크 | **2TB** (모델 704GB + 여유 1.3TB) |
 | 모델 캐시 | S3 → `aws s3 sync` (병렬 50) → NVMe emptyDir |
-| vLLM | v0.23.0 + transformers v5.5.0.dev0 |
+| vLLM | v0.18.2rc1 nightly + transformers v5.5.0.dev0 (2026-04-03 실행 당시 이미지. 현재 권장 버전은 위 "vLLM 이미지 선택" 절 참조) |
 | TP | 8 (PP 불필요) |
 | max_model_len | 32,768 |
 | max_num_seqs | 64 |

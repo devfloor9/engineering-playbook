@@ -3,9 +3,9 @@ title: 고급 기능
 description: LLM Classifier, CloudFront/WAF, Semantic Caching 구성
 created: "2026-04-06"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 19
 tags:
   - llm-classifier
   - inference-extension
@@ -389,6 +389,7 @@ helm install ${POOL_NAME} \
   --version ${IGW_CHART_VERSION} \
   --namespace ai-inference \
   --set inferencePool.modelServers.matchLabels.app=glm5-serving \
+  --set inferenceExtension.failureMode=FailClose \
   --set provider.name=none   # kgateway/Envoy 계열은 none; GKE/Istio 등은 해당 provider 지정
 ```
 
@@ -396,7 +397,7 @@ helm install ${POOL_NAME} \
 `provider.name`은 게이트웨이 구현체에 맞춥니다. kgateway는 Envoy 계열이므로 별도 provider 통합 없이 `none`으로 두고 InferencePool/EPP만 배포한 뒤, 아래 HTTPRoute에서 InferencePool을 backend로 참조합니다. 정확한 값과 옵션은 [GIE v1.5.0 InferencePool chart values](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/charts/inferencepool/values.yaml)에서 배포 시점 기준으로 확인하세요.
 :::
 
-차트가 생성하는 InferencePool은 다음 형태입니다(직접 작성 시 참고 — 필드는 `inference.networking.k8s.io/v1` 기준):
+차트가 생성하는 InferencePool은 다음 형태입니다(직접 작성 시 참고 — 필드는 `inference.networking.k8s.io/v1` 기준). `failureMode`는 InferencePool API(v1)에서 지정하지 않으면 `FailClose`가 기본값이지만, GIE v1.5.0 차트는 `inferenceExtension.failureMode` 값이 없으면 `FailOpen`으로 렌더링합니다. 그래서 위 `helm install`에서 `inferenceExtension.failureMode=FailClose`를 명시했습니다:
 
 ```yaml
 apiVersion: inference.networking.k8s.io/v1
@@ -414,7 +415,7 @@ spec:
     name: glm5-pool-epp
     port:
       number: 9002
-    failureMode: FailClose     # FailOpen | FailClose(기본)
+    failureMode: FailClose     # FailOpen | FailClose (API 기본값 FailClose, v1.5.0 차트 기본값 FailOpen)
 ```
 
 ### 2.3 HTTPRoute → InferencePool
@@ -885,6 +886,13 @@ Bifrost v1.5.0+는 네이티브 `semantic_cache` 플러그인을 제공하여 di
 
 ```json
 {
+  "vector_store": {
+    "enabled": true,
+    "type": "redis",
+    "config": {
+      "addr": "redis-service:6379"
+    }
+  },
   "plugins": [
     {
       "enabled": true,
@@ -893,11 +901,7 @@ Bifrost v1.5.0+는 네이티브 `semantic_cache` 플러그인을 제공하여 di
         "provider": "openai",
         "embedding_model": "text-embedding-3-small",
         "dimension": 1536,
-        "threshold": 0.8,
-        "vector_store": {
-          "type": "redis",
-          "url": "redis://redis-service:6379"
-        }
+        "threshold": 0.8
       }
     }
   ]
@@ -909,23 +913,26 @@ Bifrost v1.5.0+는 네이티브 `semantic_cache` 플러그인을 제공하여 di
 - `embedding_model`: 임베딩 모델명
 - `dimension`: 임베딩 차원 (text-embedding-3-small은 1536). `dimension: 1`로 설정 시 exact-match 전용 모드
 - `threshold`: 유사도 임계값 (0.8 = 80% 이상 유사 시 캐시 히트)
-- `vector_store.type`: redis, weaviate, qdrant, pinecone, valkey 지원
+- `vector_store`: 플러그인 `config` 안이 아니라 config.json 최상위에 두는 저장소 설정입니다. `type`은 redis, weaviate, qdrant, pinecone을 지원하며, Valkey는 `type`을 `redis`로 두고 `config.addr`에 Valkey 엔드포인트를 지정합니다. direct 모드도 이 저장소에 항목을 저장하므로 두 모드 모두 `vector_store`가 활성화되어 있어야 합니다
 
 Web UI에서도 Settings → Caching에서 토글로 활성화 가능합니다.
 
-**Exact-match 전용 모드** (임베딩 불필요, 속도 우선):
+**Exact-match 전용 모드** (임베딩 불필요, 속도 우선). `dimension: 1`로 두고 `provider`와 `embedding_model`을 생략합니다. `provider`를 함께 지정하면 semantic 모드로 동작합니다:
 ```json
 {
+  "vector_store": {
+    "enabled": true,
+    "type": "redis",
+    "config": {
+      "addr": "redis-service:6379"
+    }
+  },
   "plugins": [
     {
       "enabled": true,
       "name": "semantic_cache",
       "config": {
-        "dimension": 1,
-        "vector_store": {
-          "type": "redis",
-          "url": "redis://redis-service:6379"
-        }
+        "dimension": 1
       }
     }
   ]

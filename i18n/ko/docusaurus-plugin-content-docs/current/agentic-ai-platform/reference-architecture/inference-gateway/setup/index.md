@@ -3,7 +3,7 @@ title: Inference Gateway 배포 가이드
 description: kgateway 기반 Inference Gateway의 단계별 배포 가이드 (기본/고급/트러블슈팅)
 created: "2026-04-18"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 9
 tags:
@@ -43,7 +43,7 @@ export const InferencePipelineDiagram = () => {
 이 문서는 kgateway + Bifrost 기반 추론 게이트웨이의 **실전 배포 절차**를 다룹니다. 아키텍처 개념과 라우팅 전략(Cascade, Semantic Router, 2-Tier 구조)은 [추론 게이트웨이 라우팅](../../../model-serving/inference-routing/routing-strategy.md)을 참조하세요.
 
 :::info 가이드 구성
-이 가이드는 3개 문서로 구성됩니다. 순차적으로 학습하거나, 필요한 섹션만 선택하여 참조하세요.
+이 가이드는 3개 문서로 구성됩니다. 순차적으로 학습하거나, 필요한 섹션만 선택하여 참조하세요. 아래에 적은 학습·배포·소요 시간은 "사전 준비 사항"이 모두 갖춰진 상태를 가정한 저자 추정값이며 측정값이 아닙니다. 시간이 지났다고 배포가 완료된 것은 아니며, 완료 여부는 각 문서의 확인 절차(리소스 상태와 추론 요청 응답 확인)로 판단합니다.
 :::
 
 ## 프로덕션 추론 파이프라인 참조 아키텍처
@@ -56,7 +56,7 @@ EKS 기반 프로덕션 추론 파이프라인의 전체 요청 흐름입니다.
 두 레이어는 배타적이지 않으며 함께 쓸 수 있습니다(L1 → L2 → vLLM). 레이어 정의와 선택 기준은 [라우팅 전략](../../../model-serving/inference-routing/routing-strategy.md#두-개의-라우팅-레이어--반드시-구분)을 참조하세요.
 
 :::note 참조 아키텍처 다이어그램 안내
-아래 다이어그램은 L1(Bifrost)·L2(llm-d EPP)·관측성을 모두 포함한 **목표(reference) 아키텍처**입니다. 실제 배포는 위 두 경로를 선택·조합하며, KV-aware(L2)가 필요한 경우 [Inference Extension 섹션](./advanced-features.md#inference-extension)의 InferencePool + EPP 절차를 따릅니다.
+아래 다이어그램은 L1(Bifrost)·L2(llm-d EPP)·관측성을 모두 포함한 **목표(reference) 아키텍처**입니다. 실제 배포는 위 두 경로를 선택·조합하며, KV-aware(L2)가 필요한 경우 [Inference Extension 섹션](./advanced-features.md#inference-extension)의 InferencePool + EPP 절차를 따릅니다. 다이어그램의 구성 요소와 상단 배지는 목표 구성을 나타내며, 이 구성 전체를 종단 간(E2E)으로 배포·검증한 기록은 이 문서에 첨부되어 있지 않습니다.
 :::
 
 <InferencePipelineDiagram />

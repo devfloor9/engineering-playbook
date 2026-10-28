@@ -3,9 +3,9 @@ title: Custom Model Deployment Guide
 description: Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience
 created: "2026-04-04"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 40
+reading_time: 42
 tags:
   - deployment
   - glm-5
@@ -401,7 +401,7 @@ When downloading directly from HuggingFace Hub, each node downloads independentl
 | 6. Ray mode | `--distributed-executor-backend ray` | ❌ Complex Kubernetes + Ray integration | Requires Ray cluster setup (the older `--engine-use-ray` flag was removed in v0.6+) |
 
 :::caution Conclusion: vLLM V1 Multi-node PP is Unstable as of April 2026
-The vLLM V1 engine's non-Ray multi-node Pipeline Parallelism is not suitable for production environments as of April 2026. Leader-Worker synchronization is incomplete, and deadlocks occur frequently when torch.compile is enabled.
+This conclusion is limited to one configuration tried in April 2026. That configuration split GLM-5 FP8 across two p5.48xlarge nodes (H100 80GB×8 each) with PP=2, ran the vLLM V1 engine's non-Ray multi-node Pipeline Parallelism (`multiproc_executor`) through LeaderWorkerSet, and used a custom image that added transformers v5.5 to vLLM nightly. In this configuration the Worker hit the engine-ready timeout and deadlocked as in the logs above, deadlocks occurred more often with torch.compile enabled, and the attempts in the table above did not resolve it. We therefore judged this configuration unsuitable for production. Behavior in later vLLM releases, with Ray-based execution, or with other models has not been verified.
 :::
 
 ### Recommended Alternatives
@@ -700,8 +700,8 @@ kubectl get nodes -l node.kubernetes.io/instance-type=p5en.48xlarge -o json | \
 }
 ```
 
-:::warning GPU Node Recreation Required After Conflict
-After a Device Plugin conflict, even after reinstalling the GPU Operator, you must recreate the GPU nodes:
+:::warning When GPU Node Recreation Is Needed After a Conflict
+If, after reinstalling the GPU Operator with `devicePlugin.enabled=false`, the check command above still shows `nvidia.com/gpu` as 0 or the GPU Operator's Device Plugin Pod remains and keeps cycling in `CrashLoopBackOff`, recreate that GPU node. This procedure is what was used in the 2026-04 GLM-5 deployment work when reinstalling alone did not restore GPU recognition; whether every Device Plugin conflict requires node recreation has not been verified. If the GPUs are recognized correctly after the reinstall, do not recreate the node. Node recreation interrupts the GPU workloads on that node, so move requests to other GPU nodes or secure a window in which interruption is acceptable before proceeding:
 
 1. Delete GPU workloads
 2. Delete NodeClaim (Auto Mode) or drain + terminate nodes (Standard Mode)
@@ -927,7 +927,7 @@ GLM-5.1 (744B MoE FP8) serving was successfully deployed with the configuration 
 | GPU Usage | 131.7 GB / 143.7 GB per GPU (91.6%) |
 | Disk | **2TB** (704GB model + 1.3TB headroom) |
 | Model Cache | S3 → `aws s3 sync` (50 parallel) → NVMe emptyDir |
-| vLLM | v0.23.0 + transformers v5.5.0.dev0 |
+| vLLM | v0.18.2rc1 nightly + transformers v5.5.0.dev0 (the image used in the 2026-04-03 run; for the current recommended version see the "vLLM Image Selection" section above) |
 | TP | 8 (PP unnecessary) |
 | max_model_len | 32,768 |
 | max_num_seqs | 64 |

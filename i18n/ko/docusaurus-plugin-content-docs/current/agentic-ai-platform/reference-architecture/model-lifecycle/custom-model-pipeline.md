@@ -3,7 +3,7 @@ title: 커스텀 모델 파이프라인 구축 가이드
 description: LoRA Fine-tuning, Multi-LoRA 핫스왑, SLM Cascade Routing으로 도메인별 최적화된 모델 서빙 파이프라인 구축
 created: "2026-04-06"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -356,8 +356,8 @@ def run_inference(prompt: str):
 ```mermaid
 graph LR
     Req[요청] --> BF[Bifrost]
-    BF -->|복잡도 낮음| SLM[SLM Llama-3.1-8B<br/>g6.xlarge ~$0.80/hr]
-    BF -->|복잡도 높음| LLM[GLM-5 744B<br/>p5en.48xlarge ~$63/hr]
+    BF -->|복잡도 낮음| SLM[SLM Llama-3.1-8B<br/>g6.xlarge]
+    BF -->|복잡도 높음| LLM[GLM-5 744B<br/>p5en.48xlarge]
     SLM --> Resp[응답]
     LLM --> Resp
     
@@ -368,6 +368,8 @@ graph LR
 ### 가정 기반 비용 계산 예시
 
 이 표는 월 비용이 처리 요청 비율에 선형 비례한다고 단순화한 예시입니다. SLM 월 비용을 $500, LLM 월 비용을 $8,900으로 가정하면 Cascade 비용은 `0.7 × $500 + 0.3 × $8,900 = $3,020`입니다. 자체 호스팅에서는 유휴 GPU와 최소 용량 때문에 비용이 선형으로 줄지 않을 수 있으며, 정확도는 요청별 평가로 별도 측정해야 합니다.
+
+$500과 $8,900은 그림 3에 적은 인스턴스 유형의 시간당 요금에서 계산한 값이 아니라 설명을 위해 정한 입력값이며, 특정 리전, 요금 기준일, 구매 옵션을 전제로 하지 않습니다. 실제 월 비용은 사용할 리전과 구매 옵션(On-Demand, Spot, Savings Plans)의 시간당 요금에 인스턴스 수와 월 가동 시간을 곱하고, 오토스케일링으로 인스턴스가 줄어드는 시간을 반영해 계산합니다. 인스턴스 1대를 한 달 내내 가동하면 월 가동 시간은 약 730시간입니다.
 
 | | SLM 단독 | LLM 단독 | **Cascade (70:30 가정)** |
 |---|---|---|---|

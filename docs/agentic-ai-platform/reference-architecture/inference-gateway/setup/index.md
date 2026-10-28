@@ -3,9 +3,9 @@ title: Inference Gateway Deployment Guide
 description: Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)
 created: "2026-04-18"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 13
+reading_time: 15
 tags:
   - inference-gateway
   - kgateway
@@ -43,7 +43,7 @@ export const InferencePipelineDiagram = () => {
 This document covers **production deployment procedures** for kgateway + Bifrost-based inference gateway. For architecture concepts and routing strategies (Cascade, Semantic Router, 2-Tier structure), refer to [Inference Gateway Routing](../../../model-serving/inference-routing/routing-strategy.md).
 
 :::info Guide Structure
-This guide consists of 3 documents. Learn sequentially or reference specific sections as needed.
+This guide consists of 3 documents. Learn sequentially or reference specific sections as needed. The learning, deployment and total times listed below are author's estimates, not measured results, and assume that everything in "Prerequisites" is already in place. Elapsed time does not mean a deployment is complete; judge completion by the checks in each document (resource status and a successful inference response).
 :::
 
 ## Production Inference Pipeline Reference Architecture
@@ -56,7 +56,7 @@ The complete request flow of an EKS-based production inference pipeline. CloudFr
 The two layers are not exclusive and can be used together (L1 → L2 → vLLM). For the layer definitions and selection criteria, refer to [Routing Strategy](../../../model-serving/inference-routing/routing-strategy.md#two-routing-layers--keep-them-distinct).
 
 :::note About the reference architecture diagram
-The diagram below is a **target (reference) architecture** that includes L1 (Bifrost), L2 (llm-d EPP), and observability all together. An actual deployment selects and composes the two paths above; when KV-aware (L2) is needed, follow the InferencePool + EPP procedure in the [Inference Extension section](./advanced-features.md#inference-extension).
+The diagram below is a **target (reference) architecture** that includes L1 (Bifrost), L2 (llm-d EPP), and observability all together. An actual deployment selects and composes the two paths above; when KV-aware (L2) is needed, follow the InferencePool + EPP procedure in the [Inference Extension section](./advanced-features.md#inference-extension). The components and the top badge in the diagram show the target configuration; no record of deploying and verifying this whole configuration end to end (E2E) is attached to this document.
 :::
 
 <InferencePipelineDiagram />
