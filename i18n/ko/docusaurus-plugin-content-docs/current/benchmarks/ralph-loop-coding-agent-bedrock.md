@@ -97,7 +97,7 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 
 ### 비용과 시간
 
-점 하나가 모델 하나입니다. 가로는 run당 비용 중앙값(로그 눈금), 세로는 run 시간 중앙값이며, 왼쪽 아래에 있을수록 싸고 빠릅니다.
+점 하나가 모델 하나입니다. 가로는 run당 비용 중앙값(로그 눈금), 세로는 run 시간 중앙값이며, 왼쪽 아래에 있을수록 싸고 빠릅니다. 테두리가 있는 점과 이를 잇는 점선은 파레토 경계로, 이 모델들보다 싸면서 동시에 빠른 모델은 없습니다. 점을 가리키거나 포커스하면 5회 실행의 범위가 표시됩니다.
 
 <RalphCostTimeScatter />
 
@@ -147,6 +147,8 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 <RalphGroupCompare />
 
 ### 모델별 개요
+
+개발사나 모델명으로 검색해 최대 3개 모델을 골라 나란히 비교합니다. 항목마다 선택한 모델 중 가장 좋은 값에 표시가 붙습니다.
 
 <RalphModelCards />
 
