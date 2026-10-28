@@ -3,7 +3,7 @@ title: NVIDIA GPU 스택
 description: GPU Operator, DCGM, MIG, Time-Slicing, Dynamo의 아키텍처와 EKS 통합
 created: "2026-03-20"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 22
 tags:
@@ -60,7 +60,7 @@ GPU Operator는 **ClusterPolicy CRD** 하나로 GPU 스택 전체를 번들링�
 | MIG Manager | **v0.14.2** | MIG 파티션 자동 관리 |
 | Container Toolkit (CDI) | **v1.19.1** | 컨테이너 GPU 런타임 |
 
-**v26.3.2 주요 신기능:** Kubernetes 1.36 지원, DCGM Exporter Pod 메타데이터 필드(enablePodLabels/enablePodUID), DCGM Exporter 커스텀 어노테이션, NRI Plugin CRI-O 1.34+ 지원. 참고: Blackwell GB200 NVL4 지원과 CDI-by-default는 v26.3.0에서, HPC Job Mapping은 v25.10.x에서, CDMM은 v25.3.2 시대 드라이버 레벨 기능에서 각각 도입되었습니다.
+**v26.3.2 주요 신기능:** Kubernetes 1.36 지원, DCGM Exporter Pod 메타데이터 필드(enablePodLabels/enablePodUID), DCGM Exporter 커스텀 어노테이션, NRI Plugin CRI-O 1.34+ 지원. 참고: Blackwell GB200 NVL4 지원은 v26.3.0에서, CDI-by-default는 v25.10.0에서, HPC Job Mapping은 v25.10.x에서, CDMM은 v25.3.2 시대 드라이버 레벨 기능에서 각각 도입되었습니다.
 :::
 
 ### 컴포넌트 구조
@@ -570,6 +570,6 @@ KAI Scheduler는 **Pod를 어떤 노드에 배치할지** 결정하는 스케줄
 
 - [NVIDIA GPU Operator Documentation](https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/)
 - [NVIDIA DCGM Exporter](https://github.com/NVIDIA/dcgm-exporter)
-- [NVIDIA Dynamo GitHub](https://github.com/ai-dynamo/dynamo) — v1.1.x, Apache 2.0
+- [NVIDIA Dynamo GitHub](https://github.com/ai-dynamo/dynamo) — v1.2.x, Apache 2.0
 - [NIXL - NVIDIA Inference Transfer Library](https://github.com/ai-dynamo/nixl)
 - [KAI Scheduler](https://github.com/NVIDIA/KAI-Scheduler)
