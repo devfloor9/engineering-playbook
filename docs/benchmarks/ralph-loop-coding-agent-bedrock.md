@@ -97,7 +97,7 @@ Each panel ranks the models on one metric, best first, using the median over com
 
 ### Cost and time
 
-Each point is one model: median cost per completed run on a log scale (horizontal) against median run time (vertical). Lower left is cheaper and faster.
+Each point is one model: median cost per completed run on a log scale (horizontal) against median run time (vertical). Lower left is cheaper and faster. The ringed points joined by the dashed step line are the Pareto frontier: no model is both cheaper and faster than these. Hover or focus a point to see its five-run range.
 
 <RalphCostTimeScatter />
 
@@ -147,6 +147,8 @@ Switch metrics to compare the range of the five runs (bar) and the median (tick)
 <RalphGroupCompare />
 
 ### Model overview
+
+Search by vendor or model name and pick up to three models to compare side by side. In each row, the best value among the selected models is marked.
 
 <RalphModelCards />
 

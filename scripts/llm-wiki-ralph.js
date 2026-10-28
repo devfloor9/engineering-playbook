@@ -41,6 +41,27 @@ function frontierCostRatio() {
   return Math.max(...costs) / Math.min(...costs);
 }
 
+// Pareto-optimal models for "lower cost AND lower run time" (same rule as the
+// CostTimeScatter component): cheapest first, a model is on the frontier when
+// it is faster than every cheaper model.
+function paretoModels() {
+  const sorted = data.models
+    .filter(m => m.stats.cost_usd.med != null && m.stats.run_minutes.med != null)
+    .sort((a, b) => a.stats.cost_usd.med - b.stats.cost_usd.med || a.stats.run_minutes.med - b.stats.run_minutes.med);
+  const out = [];
+  let fastest = Infinity;
+  for (const m of sorted) {
+    if (m.stats.run_minutes.med < fastest) {
+      out.push(m);
+      fastest = m.stats.run_minutes.med;
+    }
+  }
+  return out;
+}
+
+const paretoList = () => paretoModels().map(m => `${m.name} (${usd(m.stats.cost_usd.med)}, ${m.stats.run_minutes.med.toFixed(1)}분)`).join(', ');
+const paretoListEn = () => paretoModels().map(m => `${m.name} (${usd(m.stats.cost_usd.med)}, ${m.stats.run_minutes.med.toFixed(1)} min)`).join(', ');
+
 function tokenMixRows() {
   return data.models.map(m => {
     const s = m.stats;
@@ -83,7 +104,7 @@ const TEXT = {
       `- 전체 토큰 중 캐시 읽기 비중: ${pct(h.cache_read_token_share)}`,
       `- 총 실행 비용(계산값): ${usd2(data.totals.spend_usd.total)} (폐기한 1차 실행 ${usd2(data.totals.spend_usd.discarded_first_attempt)} 포함)`,
     ].join('\n'),
-    scatter: '차트: 모델별 run당 비용 중앙값(가로, 로그 눈금)과 run 시간 중앙값(세로)입니다. 같은 값이 아래 "모델별 결과" 표에 있습니다.',
+    scatter: () => `차트: 모델별 run당 비용 중앙값(가로, 로그 눈금)과 run 시간 중앙값(세로)입니다. 파레토 최적 모델(비용과 run 시간이 모두 더 낮은 모델이 없는 모델)은 ${paretoList()}이며, 차트는 이 모델들을 강조하고 점선으로 잇습니다. 같은 값이 아래 "모델별 결과" 표에 있습니다.`,
     matrix: '차트: 모델별 run당 비용, run 시간, 출력 토큰, 전체 토큰, LLM 요청의 5회 최소–최대 범위와 중앙값입니다. 중앙값과 범위는 바로 아래 표에, run별 값은 `src/data/ralph-loop-bedrock.json`에 있습니다.',
     card: m => `- **${m.name}** (${data.group_labels[m.group].ko} · ${m.vendor}, run당 ${usd(m.stats.cost_usd.med)}): ${m.note.ko}`,
     method: () => [
@@ -143,7 +164,7 @@ const TEXT = {
       `- Cache-read share of all tokens: ${pct(h.cache_read_token_share)}`,
       `- Total spend (calculated): ${usd2(data.totals.spend_usd.total)} (including the discarded first attempt, ${usd2(data.totals.spend_usd.discarded_first_attempt)})`,
     ].join('\n'),
-    scatter: 'Chart: median cost per run (horizontal, log scale) against median run time (vertical) for each model. The same values are in the "Results by model" table below.',
+    scatter: () => `Chart: median cost per run (horizontal, log scale) against median run time (vertical) for each model. The Pareto-optimal models (no other model is both cheaper and faster) are ${paretoListEn()}; the chart emphasizes them and joins them with a dashed line. The same values are in the "Results by model" table below.`,
     matrix: 'Chart: minimum–maximum range and median over five runs of cost per run, run time, output tokens, total tokens and LLM requests for each model. Medians and ranges are in the table below; per-run values are in `src/data/ralph-loop-bedrock.json`.',
     card: m => `- **${m.name}** (${data.group_labels[m.group].en} · ${m.vendor}, ${usd(m.stats.cost_usd.med)} per run): ${m.note.en}`,
     method: () => [
@@ -202,9 +223,14 @@ function ralphRenderers(renderer) {
   const t = () => TEXT[lang(renderer)];
   return {
     RalphKpiStrip: () => t().kpi(data.highlights),
-    RalphCostTimeScatter: () => t().scatter,
+    RalphCostTimeScatter: () => t().scatter(),
     RalphMetricMatrix: () => t().matrix,
-    RalphModelCards: () => data.models.map(m => t().card(m)).join('\n'),
+    RalphModelCards: () => [
+      lang(renderer) === 'ko'
+        ? '모델 비교 선택기: 개발사나 모델명으로 검색해 최대 3개 모델을 나란히 비교할 수 있습니다. 전체 모델과 비고:'
+        : 'Model comparison picker: search by vendor or model name and compare up to three models side by side. All models and notes:',
+      ...data.models.map(m => t().card(m)),
+    ].join('\n'),
     RalphMethodFlow: () => t().method(),
     RalphLineupMap: () => t().lineup(),
     RalphTokenMix: () => t().tokens(),
