@@ -3,9 +3,9 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
-reading_time: 41
+reading_time: 42
 tags:
   - guardrails
   - pii
@@ -120,7 +120,7 @@ In SSE/chunked streaming, buffer the output to a protocol/sentence boundary and 
 |------|------|------|------|------|----------|
 | **Guardrails AI** | Python library | Input/Output | Validator Hub (50+ validators), RAIL schema | Requires Python runtime, wrapper needed for gateway integration | Apache 2.0 |
 | **NeMo Guardrails** | Python + Colang DSL | Input/Output/Dialog | Dialog flow control with Colang, built-in self-check | Learning curve, single process | Apache 2.0 |
-| **Llama Guard 3** | Classification model (8B) | Input/Output | Model-based 14-category classification (S1~S14: MLCommons 13 + S14 Code Interpreter Abuse), multilingual | Separate GPU required, additional latency | Meta Community License |
+| **Llama Guard 3** | Classification model (8B) | Input/Output | Model-based 14-category classification (S1~S14: MLCommons 13 + S14 Code Interpreter Abuse), multilingual | Separate GPU required, additional latency | Llama 3.1 Community License Agreement |
 | **AWS Bedrock Guardrails** | Managed | Input/Output | Native Bedrock integration, contextual grounding, PII masking, non-Bedrock models usable via ApplyGuardrail API | AWS account/region dependency, custom model constraints | AWS managed |
 | **Portkey Guardrails** | Gateway plugin | Input/Output | Gateway-integrated, 40+ guards, OSS + Cloud | SaaS dependency or self-hosting operational burden | MIT (OSS) + Commercial |
 | **PromptArmor** | Enterprise SaaS | Input | Threat intelligence feed, enterprise SOC integration | Commercial proprietary | Commercial |
@@ -630,7 +630,7 @@ Among [LLM API Gateways](../../model-serving/inference-routing/tiered-gateway-ar
 | Consideration | Detail |
 |---------------|--------|
 | **Data boundary** | Prompts are sent to the gateway SaaS and its downstream model providers. If they contain PII/confidential data, redact at the Input Guard before sending, or exclude sensitive traffic from the SaaS path. |
-| **Data policy settings** | OpenRouter provides "Custom Data Policies" to restrict routing to only trusted models/providers. Verify whether it is enabled and its scope. |
+| **Data policy settings** | OpenRouter can restrict routing to trusted providers only through "Data Policy Filtering" (the per-request `provider.data_collection` field and `zdr` parameter, plus account-level privacy settings) and the Guardrails model/provider allowlist (released 2026-05). Verify whether it is enabled and its scope. |
 | **Self-hosted alternative** | In environments where external transmission is restricted (network separation, financial sector), first consider implementing the same provider abstraction with a **self-hosted gateway (Bifrost·LiteLLM)**. |
 
 :::note Factual boundary
