@@ -3,9 +3,9 @@ title: 보안 & 거버넌스
 description: EKS API Server 인증/인가, Identity-First 보안, 정책 관리, 공급망 보안, 위협 탐지, 컴플라이언스까지 EKS 보안 거버넌스 베스트 프랙티스
 created: "2026-03-24"
 last_update:
-  date: "2026-08-25"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 11
+reading_time: 10
 tags:
   - eks
   - security
@@ -116,15 +116,18 @@ graph TB
     end
 
     Users --> IdP
-    IdP --> API
-    API --> WAF
-    WAF --> Shield
+    IdP --> CP
+    Users --> API
+    WAF --> API
+    WAF --> NLB
+    Shield --> API
     Shield --> NLB
+    API --> VPC
     NLB --> VPC
     VPC --> SG
-    SG --> CP
+    SG --> NACL
     CP --> RBAC
-    RBAC --> NetworkPolicy
+    CP --> NetworkPolicy
     CP --> IRSA
     IRSA --> KMS
     Secrets --> CP
@@ -142,6 +145,8 @@ graph TB
     style Monitoring fill:#ff6d00
 ```
 
+그림 1은 서로 다른 두 경로를 함께 보여줍니다. AWS WAF와 AWS Shield는 애플리케이션 인그레스/데이터 플레인 자원(API Gateway, Network Load Balancer 등 지원 대상)에 연결되는 보호 수단이며, 독립적으로 연결되는 중간 홉이 아닙니다. 사용자의 EKS Kubernetes API 접근은 이 애플리케이션 인그레스 경로를 거치지 않고 IdP 인증을 통해 Control Plane으로 직접 이뤄지며, RBAC과 Network Policy는 각각 Control Plane의 인가와 데이터 플레인의 Pod 간 통신을 제어하는 별개의 수단입니다.
+
 ## 보안 영역
 
 보안 아키텍처는 클러스터, 네트워크, 워크로드, 시크릿, 데이터의 다섯 계층으로 구성됩니다.
@@ -152,7 +157,7 @@ graph TB
 
 **워크로드 보안**은 Pod Security Standards의 Restricted 레벨 적용으로 루트 권한 실행 차단, 호스트 네트워크 접근 제한, 위험한 Capabilities 제거를 강제합니다. 컨테이너 이미지는 CI/CD 파이프라인에서 스캔하여 취약점을 사전에 차단하고, 승인된 레지스트리의 서명된 이미지만 사용하도록 정책을 시행합니다. 정책 시행 자동화는 [Kyverno 기반 정책 관리](./kyverno-policy-management.md), 이미지 서명·SBOM은 [컨테이너 공급망 보안](./supply-chain-security.md)에서 다룹니다.
 
-**시크릿 관리**는 AWS Secrets Manager와 External Secrets Operator를 통합하여 중앙 집중식으로 관리합니다. 시크릿을 Kubernetes Secret으로 직접 저장하지 않고 외부 시크릿 스토어에 보관하며, 자동 로테이션과 주기적 동기화로 노출 위험을 최소화합니다. GitOps 환경에서의 시크릿 관리 아키텍처는 [GitOps 기반 EKS 클러스터 운영](../operations-reliability/gitops-cluster-operation.md)을 참조합니다.
+**시크릿 관리**는 AWS Secrets Manager와 External Secrets Operator를 통합하여 중앙 집중식으로 관리합니다. 시크릿의 원본(source of truth)은 외부 시크릿 스토어에 두고, External Secrets Operator가 그 값을 Kubernetes Secret으로 동기화합니다. 이렇게 생성된 Kubernetes Secret은 etcd에 저장되므로, 해당 복사본에 대해서도 etcd 암호화와 RBAC 접근 제어를 유지해야 합니다. 자동 로테이션과 주기적 동기화로 원본과의 불일치 및 노출 위험을 줄입니다. GitOps 환경에서의 시크릿 관리 아키텍처는 [GitOps 기반 EKS 클러스터 운영](../operations-reliability/gitops-cluster-operation.md)을 참조합니다.
 
 **데이터 보안**은 저장 데이터와 전송 데이터 모두의 암호화를 포함합니다. EBS 볼륨은 KMS 기반 암호화로 블록 레벨에서 보호되며, etcd는 AWS KMS 통합으로 Kubernetes 설정 데이터를 투명하게 암호화합니다. 전송 데이터는 TLS/mTLS로 암호화되고, 인그레스 레벨에서는 HTTPS를 강제하며 Cert Manager로 인증서를 자동 갱신합니다.
 
@@ -193,7 +198,7 @@ AWS 네이티브 서비스로는 SQL 인젝션·XSS 등 웹 공격을 차단하�
 
 | 기능 | 상태 | 영향도 |
 |------|------|--------|
-| GuardDuty Extended Threat Detection | GA | 컨테이너 위협 탐지 강화 (EKS Protection 필수, Runtime Monitoring 권장) |
+| GuardDuty Extended Threat Detection | GA | 컨테이너 위협 탐지 강화 (EKS Protection 또는 Runtime Monitoring 중 최소 하나 필요, 두 가지 모두 활성화 권장) |
 | IAM Policy Autopilot | GA | 오픈소스 가용 (re:Invent 2025, awslabs/iam-policy-autopilot) |
 | EKS Pod Identity | GA | IRSA 대체/보완 |
 | Security Hub Analytics | GA | 실시간 리스크 정량화 |

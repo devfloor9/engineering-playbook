@@ -3,9 +3,9 @@ title: EKS API Server 인증/인가 가이드
 description: Non-Standard Caller(CI/CD, 모니터링, 자동화)의 EKS API Server 접근을 위한 인증/인가 Best Practices
 created: "2026-03-24"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 16
 tags:
   - eks
   - security
@@ -43,7 +43,7 @@ sidebar_label: API Server AuthN/AuthZ
 | ① | **IAM** (aws-iam-authenticator) | AWS 인프라에서 실행되는 시스템, kubectl 사용자 | 최우선 권장 |
 | ② | **Kubernetes Service Account Token** | 클러스터 내부 자동화, CI/CD 파이프라인 | 외부 시스템에도 활용 가능 |
 | ③ | **외부 OIDC Identity Provider** | 기업 IdP 통합 (Okta, Azure AD, Google 등) | 기업 SSO 통합 최적 |
-| ④ | **x509 Client Certificate** | 인증서 기반 인증이 필요한 레거시 시스템 | 제한적 (CRL 미지원) |
+| ④ | **x509 Client Certificate** | 이미 발급된 레거시 자격 증명이 있는 예외적 경우에 한정 | 일반 온보딩 방법 아님 — EKS는 API 클라이언트 인증서 서명을 지원하지 않으며, 제공되는 serving signer로는 새 API 클라이언트 인증서를 발급할 수 없음 |
 
 ---
 
@@ -57,6 +57,12 @@ sidebar_label: API Server AuthN/AuthZ
 # 1. Authentication Mode를 API_AND_CONFIG_MAP 또는 API로 설정
 aws eks update-cluster-config --name <your-cluster> \
     --access-config '{"authenticationMode": "API_AND_CONFIG_MAP"}'
+
+# 1-1. 설정 변경은 비동기 작업입니다. 클러스터가 ACTIVE로 돌아올 때까지 기다린 뒤
+#      다음 단계를 진행합니다(UPDATING 중에는 Access Entry 생성이 실패할 수 있음).
+aws eks wait cluster-active --name <your-cluster>
+# 필요 시 update 진행 상태는 describe-update로 추적합니다.
+# aws eks describe-update --name <your-cluster> --update-id <update-id>
 
 # 2. 외부 시스템용 IAM Role에 대한 Access Entry 생성
 aws eks create-access-entry \
@@ -143,7 +149,7 @@ aws eks associate-identity-provider-config \
 ```
 
 :::warning 주의사항
-- 클러스터당 **OIDC Identity Provider 1개만** 연결 가능
+- 연결 가능한 OIDC Identity Provider 수는 클러스터의 Kubernetes 버전에 따릅니다. **Kubernetes 1.32 이상**에서는 최대 **10개**까지 연결할 수 있으며, 모든 OIDC Provider 설정의 **합산 크기는 12KB 미만**이어야 합니다. **1.32 미만**에서는 **1개만** 연결할 수 있습니다
 - Issuer URL은 **공개적으로 접근 가능**해야 함
 - K8s RBAC (Role/ClusterRole + RoleBinding/ClusterRoleBinding)으로 인가 관리
 - **K8s 1.30 이상**: OIDC Provider URL과 Service Account Issuer URL이 동일하면 안 됨
@@ -179,7 +185,7 @@ Access Entry를 사용하려면 반드시 Authentication Mode를 `API_AND_CONFIG
 
 ### 마이그레이션 경로
 
-```
+```text
 CONFIG_MAP → API_AND_CONFIG_MAP → API
     (단방향, 롤백 불가)
 ```
@@ -203,12 +209,19 @@ aws eks describe-cluster --name <your-cluster> \
 aws eks update-cluster-config --name <your-cluster> \
     --access-config '{"authenticationMode": "API_AND_CONFIG_MAP"}'
 
+# Step 2-1: 설정 변경이 끝나 클러스터가 ACTIVE가 될 때까지 대기
+aws eks wait cluster-active --name <your-cluster>
+
 # Step 3: 기존 aws-auth ConfigMap 항목을 Access Entry로 마이그레이션
 # (aws-auth의 각 mapRoles/mapUsers 항목에 대해 Access Entry 생성)
 
-# Step 4: 모든 마이그레이션 완료 후 API 모드로 전환
+# Step 4: 모든 마이그레이션 완료 후 API 모드로 전환 (단방향, 롤백 불가)
+#         전환 전 모든 항목이 Access Entry로 옮겨졌는지 확인하고,
+#         직전 설정 변경이 완료되어 클러스터가 ACTIVE 상태인지 확인합니다.
+aws eks describe-cluster --name <your-cluster> --query 'cluster.status'
 aws eks update-cluster-config --name <your-cluster> \
     --access-config '{"authenticationMode": "API"}'
+aws eks wait cluster-active --name <your-cluster>
 ```
 
 :::danger 주의
@@ -418,7 +431,7 @@ flowchart TB
 | **단기 자격 증명** | 반환된 만료 시간에 맞춘 Projected SA Token, IAM Token (자동 갱신), **Legacy SA Token 사용 금지** |
 | **감사 추적** | Control Plane Logging의 `audit` 로그 활성화, CloudTrail로 Access Entry 변경 추적 |
 | **IaC 자동화** | Access Entry를 CloudFormation/Terraform으로 관리, ConfigMap 수동 편집 금지 |
-| **Regional STS** | 외부 시스템에서 반드시 `AWS_STS_REGIONAL_ENDPOINTS=regional` 설정 |
+| **Regional STS** | 외부 시스템이 리전별 STS 엔드포인트와 올바른 리전을 사용하도록 구성. AWS CLI v2와 최신 SDK는 이미 리전 엔드포인트를 기본값으로 사용하므로 추가 설정이 필요 없음. `AWS_STS_REGIONAL_ENDPOINTS=regional`은 이 설정을 지원하는 구버전 SDK/CLI에만 적용 |
 | **Authentication Mode** | `API_AND_CONFIG_MAP`으로 전환 후 최종적으로 `API`로 마이그레이션 |
 
 :::info 핵심 메시지

@@ -3,9 +3,9 @@ title: EKS Pod Resource Optimization Guide
 description: CPU/Memory resource configuration, QoS classes, VPA/HPA autoscaling, and resource right-sizing strategies for Kubernetes Pods
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 90
+reading_time: 92
 tags:
   - eks
   - kubernetes
@@ -727,9 +727,11 @@ spec:
     updateMode: "Recreate"    # Automatically adjust Memory only
   resourcePolicy:
     containerPolicies:
+    - containerName: '*'    # ✅ Exclude other containers (such as sidecars) from VPA control
+      mode: "Off"
     - containerName: api
       controlledResources:
-      - memory            # ✅ Control Memory only
+      - memory            # ✅ Control Memory only for the api container
       minAllowed:
         memory: "256Mi"
       maxAllowed:
@@ -760,7 +762,7 @@ spec:
 **Benefits:**
 - VPA optimizes Memory (Vertical)
 - HPA scales horizontally according to load (Horizontal)
-- Reduces direct CPU-request denominator interaction; validate indirect memory/performance effects
+- The wildcard `mode: Off` keeps VPA from changing CPU/Memory on containers other than api (such as sidecars), preventing feedback with the Resource CPU HPA's request denominator. If the Deployment has only the api container, you can instead state a single-container prerequisite and omit the wildcard policy. Indirect memory/performance effects still require validation.
 
 #### Pattern 3: VPA + HPA + Custom Metrics (Advanced) {#pattern-3-vpa--hpa--custom-metrics--advanced}
 
@@ -883,7 +885,7 @@ spec:
 
 | Parameter | Description | Recommended value |
 |---------|------|--------|
-| `stabilizationWindowSeconds` | Wait time for metric stabilization | ScaleUp: 0-30s, ScaleDown: 300-600s |
+| `stabilizationWindowSeconds` | Window over which HPA also considers prior desired-replica recommendations (for downscale it picks the maximum over the window); not a fixed delay after a metric event | ScaleUp: 0-30s, ScaleDown: 300-600s (workload-dependent settings) |
 | `type: Percent` | Increase/decrease as a % of current replicas | ScaleUp: 100%, ScaleDown: 10-25% |
 | `type: Pods` | Increase/decrease by an absolute Pod count | Adjust based on workload size |
 | `periodSeconds` | Lookback window for scaling changes | 15-60 seconds |
@@ -908,13 +910,15 @@ For the complete architecture combining HPA and Karpenter, see the [Karpenter Au
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
+# Save the custom rule below as values.yaml and pass it with -f values.yaml so the rule is loaded
 helm install prometheus-adapter prometheus-community/prometheus-adapter \
   --namespace monitoring \
+  -f values.yaml \
   --set prometheus.url=http://prometheus-server.monitoring.svc \
   --set prometheus.port=80
 ```
 
-**Custom metric configuration:**
+**Custom metric configuration (save as `values.yaml`):**
 
 ```yaml
 # values.yaml for prometheus-adapter
@@ -1194,11 +1198,11 @@ kubectl top pods <pod-name> --containers -n production
 #### Querying the Metrics Server API Directly {#querying-the-metrics-server-api-directly}
 
 ```bash
-# CPU usage
-kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | {name: .metadata.name, cpu: .containers[0].usage.cpu}'
+# CPU usage (list every container of the Pod with its container name)
+kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | . as $p | $p.containers[] | {pod: $p.metadata.name, container: .name, cpu: .usage.cpu}'
 
-# Memory usage
-kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | {name: .metadata.name, memory: .containers[0].usage.memory}'
+# Memory usage (list every container of the Pod with its container name)
+kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | . as $p | $p.containers[] | {pod: $p.metadata.name, container: .name, memory: .usage.memory}'
 ```
 
 #### Container Insights (AWS) {#container-insights-aws}

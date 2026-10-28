@@ -3,9 +3,9 @@ title: EKS Pod 리소스 최적화 가이드
 description: Kubernetes Pod의 CPU/Memory 리소스 설정, QoS 클래스, VPA/HPA 오토스케일링, 리소스 Right-Sizing 전략
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 55
+reading_time: 56
 tags:
   - eks
   - kubernetes
@@ -713,9 +713,11 @@ spec:
     updateMode: "Recreate"    # Memory만 자동 조정
   resourcePolicy:
     containerPolicies:
+    - containerName: '*'    # ✅ 그 외 컨테이너(사이드카 등)는 VPA 제어 제외
+      mode: "Off"
     - containerName: api
       controlledResources:
-      - memory            # ✅ Memory만 제어
+      - memory            # ✅ api 컨테이너의 Memory만 제어
       minAllowed:
         memory: "256Mi"
       maxAllowed:
@@ -746,7 +748,7 @@ spec:
 **장점:**
 - VPA가 Memory 최적화 (Vertical)
 - HPA가 부하에 따라 수평 확장 (Horizontal)
-- CPU request 분모의 직접 충돌을 줄이나 Memory·성능 변화의 간접 영향은 검증 필요
+- 와일드카드 `mode: Off`로 api 외 컨테이너(사이드카 등)의 CPU·Memory를 VPA가 바꾸지 않게 하여, Resource CPU HPA의 request 분모와 충돌하는 피드백을 막습니다. api 하나만 두는 구성이면 와일드카드 정책 없이 단일 컨테이너를 전제로 둘 수도 있습니다. Memory·성능 변화의 간접 영향은 여전히 검증이 필요합니다
 
 #### 패턴 3: VPA + HPA + Custom Metrics (고급) {#패턴-3-vpa--hpa--custom-metrics--고급}
 
@@ -869,7 +871,7 @@ spec:
 
 | 파라미터 | 설명 | 권장값 |
 |---------|------|--------|
-| `stabilizationWindowSeconds` | 메트릭 안정화 대기 시간 | ScaleUp: 0-30s, ScaleDown: 300-600s |
+| `stabilizationWindowSeconds` | HPA가 과거 lookback 구간의 desired replica 추천값을 함께 고려(축소 시 해당 구간의 최댓값을 선택)하는 기간. 메트릭 이벤트 후 고정 지연이 아님 | ScaleUp: 0-30s, ScaleDown: 300-600s (워크로드별 설정값) |
 | `type: Percent` | 현재 레플리카의 %로 증감 | ScaleUp: 100%, ScaleDown: 10-25% |
 | `type: Pods` | 절대 Pod 수로 증감 | 워크로드 크기에 따라 조정 |
 | `periodSeconds` | 변경량을 추적하는 과거 구간 | 15-60초 |
@@ -894,13 +896,15 @@ HPA와 Karpenter를 함께 사용하는 전체 아키텍처는 [Karpenter 오토
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 
+# 아래 커스텀 규칙은 values.yaml로 저장한 뒤 -f values.yaml로 전달해야 적용됩니다
 helm install prometheus-adapter prometheus-community/prometheus-adapter \
   --namespace monitoring \
+  -f values.yaml \
   --set prometheus.url=http://prometheus-server.monitoring.svc \
   --set prometheus.port=80
 ```
 
-**커스텀 메트릭 설정:**
+**커스텀 메트릭 설정 (`values.yaml`로 저장):**
 
 ```yaml
 # values.yaml for prometheus-adapter
@@ -1180,11 +1184,11 @@ kubectl top pods <pod-name> --containers -n production
 #### Metrics Server API 직접 쿼리 {#metrics-server-api-직접-쿼리}
 
 ```bash
-# CPU 사용량
-kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | {name: .metadata.name, cpu: .containers[0].usage.cpu}'
+# CPU 사용량 (Pod의 모든 컨테이너를 컨테이너 이름과 함께 나열)
+kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | . as $p | $p.containers[] | {pod: $p.metadata.name, container: .name, cpu: .usage.cpu}'
 
-# Memory 사용량
-kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | {name: .metadata.name, memory: .containers[0].usage.memory}'
+# Memory 사용량 (Pod의 모든 컨테이너를 컨테이너 이름과 함께 나열)
+kubectl get --raw /apis/metrics.k8s.io/v1beta1/namespaces/production/pods | jq '.items[] | . as $p | $p.containers[] | {pod: $p.metadata.name, container: .name, memory: .usage.memory}'
 ```
 
 #### Container Insights (AWS) {#container-insights-aws}

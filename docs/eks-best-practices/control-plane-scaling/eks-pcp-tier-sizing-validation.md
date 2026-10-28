@@ -1,11 +1,11 @@
 ---
 title: EKS PCP Tier Sizing & Performance Validation Guide
-description: Detailed parameters by PCP tier, APF seat calculation formulas, large-scale cluster sizing examples, ClusterLoader2 performance validation methodology, customer case studies
+description: Detailed parameters by PCP tier, APF seat calculation formulas, large-scale cluster sizing examples, ClusterLoader2 performance validation methodology, public AWS-reported benchmark context, and hypothetical sizing examples
 created: "2026-04-07"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 47
+reading_time: 54
 tags:
   - eks
   - pcp
@@ -36,7 +36,6 @@ For architecture and CRD design context, see [EKS Control Plane & CRD at Scale](
 ## 1. PCP specifications and sizing evidence {#1-pcp-tier-specifications-and-practical-object-limits}
 
 <a id="kubernetes-upstream-and-eks-official-test-limits"></a>
-<a id="confirmed-customer-cases"></a>
 <a id="important-notes-on-cluster-scale"></a>
 <a id="key-bottlenecks-in-single-cluster-scaling"></a>
 

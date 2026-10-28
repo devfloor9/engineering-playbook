@@ -3,9 +3,9 @@ title: Kubernetes DRA — 동적 리소스 할당 프레임워크
 description: Kubernetes DRA의 핵심 모델(DeviceClass·ResourceClaim·ResourceSlice), GPU를 넘어선 리소스 유형(NIC·인터커넥트·FPGA), 도입 판단 기준을 정리한 프레임워크 가이드
 created: "2026-07-18"
 last_update:
-  date: "2026-07-19"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 14
 tags:
   - dra
   - kubernetes
@@ -37,10 +37,10 @@ Kubernetes의 기존 확장 리소스 모델(Device Plugin)은 디바이스를 `
 
 | 한계 | 설명 |
 |---|---|
-| **정적 등록** | 노드 시작 시 디바이스 수가 고정. 런타임 재구성(파티셔닝 변경 등) 불가 |
-| **전체 단위 할당** | 디바이스를 통째로만 할당. 부분 할당·공유 표현 불가 |
+| **불투명한 정수 인터페이스** | 디바이스를 `nvidia.com/gpu: 1` 같은 정수 확장 리소스로만 노출. Device Plugin의 ListAndWatch가 디바이스 목록·헬스 변화를 스트리밍하므로 수량 자체는 런타임에 갱신되지만, 파티셔닝 변경 같은 할당 제약을 정수 카운터로는 표현할 수 없음 |
+| **코어 API의 공유 표현 한계** | 정수 확장 리소스 API 자체로는 공유 ResourceClaim을 네이티브로 표현할 수 없음. 물리적 부분 할당·공유가 불가능한 것은 아니며, NVIDIA Device Plugin은 MIG 리소스·time-slicing·MPS로 공유를 제공함(격리 수준은 방식별로 다름) |
 | **속성 선택 불가** | "80GB 이상 메모리 GPU", "RDMA 지원 NIC"처럼 속성 기반 요청 불가 |
-| **멀티 리소스 조율 불가** | "GPU 1개 + 같은 NUMA 노드의 NIC 1개"처럼 디바이스 간 관계 표현 불가 |
+| **스케줄러 수준의 디바이스 간 제약 표현 한계** | kubelet Topology Manager가 디바이스 플러그인의 NUMA 힌트를 노드 로컬 수준에서 정렬할 수는 있으나, "GPU 1개 + 같은 NUMA 노드의 NIC 1개"처럼 디바이스 간 관계를 스케줄러가 인식하는 제약으로 표현할 수는 없음 |
 | **디바이스 유형별 개별 구현** | GPU·NIC·FPGA마다 별도 Device Plugin과 카운터 체계 필요 |
 
 DRA는 이 한계를 해결하기 위해 디바이스의 **속성과 용량을 구조화된 데이터로 선언**하고, 워크로드가 이를 **CEL(Common Expression Language) 표현식으로 선택**하는 모델을 도입했습니다. 이 접근을 structured parameters(KEP-4381)라고 하며, 스케줄러가 벤더 드라이버에 의존하지 않고 할당을 시뮬레이션할 수 있게 합니다.
@@ -81,7 +81,7 @@ flowchart LR
 3. kube-scheduler가 ResourceSlice 데이터만으로 할당을 계산하고 노드를 선택합니다 — 이 시점에 드라이버 호출이 없다는 점이 structured parameters의 핵심입니다.
 4. kubelet이 노드의 드라이버 플러그인에 준비를 위임하고, 드라이버는 CDI(Container Device Interface) 스팩으로 컨테이너에 디바이스를 주입합니다.
 
-ResourceClaim 예시 — "80GB 이상 메모리를 가진 GPU 1개"를 속성 기반으로 요청합니다.
+ResourceClaimTemplate 예시 — "80Gi 이상 메모리를 가진 GPU 1개"를 속성 기반으로 요청합니다(`80Gi`는 약 85.9GB의 2진 단위이며, 공칭 80GB 디바이스는 매칭에서 제외될 수 있습니다). 아래 selector의 `device.capacity` 키는 사용하는 드라이버가 발행하는 실제 용량 키에 맞춰 확인해야 합니다.
 
 ```yaml
 apiVersion: resource.k8s.io/v1
@@ -174,9 +174,9 @@ Device Plugin 모델로는 표현할 수 없는 DRA 고유 기능들입니다. �
 | **Partitionable devices** | 드라이버가 파티션(예: MIG)을 동적으로 생성·광고 — 물리 디바이스와 파티션의 관계를 스케줄러가 인식 | Beta (1.36) |
 | **Consumable capacity** | 하나의 디바이스 용량을 여러 ResourceClaim이 나눠 소비 — Pod가 노드 리소스를 공유하듯 Claim이 디바이스를 공유 | Beta (1.36) |
 | **Device taints/tolerations** | 노드 taint의 디바이스 버전 — 특정 디바이스를 수리·격리 대상으로 표시 | Beta (1.36) |
-| **Device binding conditions** | fabric-attached 디바이스가 준비될 때까지 스케줄러가 바인딩을 대기 | Beta (1.35) |
+| **Device binding conditions** | fabric-attached 디바이스가 준비될 때까지 스케줄러가 바인딩을 대기 | Beta (1.36) |
 
-이 중 **멀티 이종 리소스 동시 조율**이 실무 관점에서 가장 중요합니다. 하나의 ResourceClaim에 GPU와 NIC를 함께 요청하고 "같은 PCIe 스위치 / 같은 NUMA 노드" 제약을 걸면, 분산 학습·추론에서 GPU-NIC 정렬(alignment)로 통신 병목을 제거할 수 있습니다. Device Plugin 체계에서는 GPU 플러그인과 SR-IOV 플러그인이 서로를 알지 못해 불가능했던 구성입니다.
+이 중 **멀티 이종 리소스 동시 조율**이 실무 관점에서 가장 중요합니다. 하나의 ResourceClaim에 GPU와 NIC를 함께 요청하고 "같은 PCIe 스위치 / 같은 NUMA 노드" 제약을 걸면, 분산 학습·추론에서 지정한 토폴로지 불일치를 줄여 GPU-NIC 정렬(alignment) 관련 통신 병목을 완화할 수 있습니다(실제 성능 개선 폭은 워크로드별로 측정해야 하며, 모든 통신 병목이 제거되는 것은 아닙니다). Device Plugin 체계에서도 kubelet Topology Manager로 노드 로컬 정렬은 가능하지만, GPU 플러그인과 SR-IOV 플러그인이 서로를 인식하지 못하므로 이런 조율을 스케줄러가 인식하는 디바이스 간 제약으로 표현할 수는 없었습니다.
 
 ## 도입 판단과 전제 조건
 
@@ -189,7 +189,7 @@ Device Plugin 모델로는 표현할 수 없는 DRA 고유 기능들입니다. �
 | Kubernetes 버전 | 1.34+ (DRA 코어 GA·기본 활성화). EKS 1.34/1.35는 `resource.k8s.io/v1` 자동 서빙 |
 | 컨테이너 런타임 | CDI 지원 (containerd 1.7+ / CRI-O 1.23+) |
 | DRA 드라이버 | 대상 디바이스의 벤더 드라이버 배포 (GPU: NVIDIA DRA 드라이버, NIC: DraNet 등) |
-| 노드 오토스케일링 | Karpenter v1.14.0+ (`ignoreDRARequests=false`) 또는 MNG + Cluster Autoscaler — 상세는 [GPU 리소스 관리](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-dra-활성화-파라미터-v1140) |
+| 노드 프로비저닝 | DRA 드라이버는 Karpenter의 정적(static) 용량 프로비저닝, EKS 관리형 노드 그룹, 자체 관리 노드에서 지원됩니다(AWS 권장, K8s 1.34+). Karpenter의 동적 프로비저닝 용량에서는 현재 DRA가 지원되지 않으며, `ignoreDRARequests`는 스케줄링 시뮬레이션에서 DRA를 우회할 뿐 DRA 지원을 활성화하는 스위치가 아닙니다 — 상세는 [GPU 리소스 관리](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#karpenter-dra-활성화-파라미터-v1140) |
 | Beta 기능 사용 시 | 해당 feature gate·API 그룹 활성화 (EKS는 컨트롤 플레인 관리형이므로 지원 범위 확인 필요) |
 
 ### Device Plugin vs DRA 판단 기준
@@ -204,9 +204,9 @@ Device Plugin 모델로는 표현할 수 없는 DRA 고유 기능들입니다. �
 | GPU + NIC 등 이종 디바이스 정렬 배치 | DRA (Device Plugin으로 불가) |
 | RDMA·Multi-NIC를 스케줄링 대상으로 관리 | DRA + DraNet |
 | Multi-Node NVLink (GB200 NVL72 등) | DRA 필수 (ComputeDomain) |
-| EKS Auto Mode 사용 중 | 현재 DRA 불가 — 내부 Karpenter가 v1.14 미만. [GPU 리소스 관리](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#노드-프로비저닝-호환성) 참조 |
+| EKS Auto Mode 사용 중 | 현재 DRA 미지원(AWS 문서 기준). [GPU 리소스 관리](../../agentic-ai-platform/model-serving/gpu-infrastructure/gpu-resource-management.md#노드-프로비저닝-호환성) 참조 |
 
-마이그레이션은 점진적으로 진행할 수 있습니다. Device Plugin과 DRA 드라이버가 같은 디바이스를 이중 광고하지 않도록 워크로드 그룹 단위로 전환하는 것이 안전하며, GPU의 경우 GPU Operator의 `devicePlugin.enabled=false` 전환 시점이 분기점입니다.
+마이그레이션은 점진적으로 진행할 수 있습니다. 다만 같은 노드에서 Device Plugin과 DRA 드라이버가 동일한 물리 디바이스를 동시에 광고하면 GPU가 조용히 초과 할당(oversubscribe)될 수 있으므로, 워크로드 그룹을 나누는 것만으로는 충분하지 않습니다. 노드 그룹을 분리하거나, DRA 대체 드라이버를 활성화하기 전에 해당 노드에서 기존 Device Plugin을 제거·비활성화해야 합니다. GPU의 경우 GPU Operator의 `devicePlugin.enabled=false` 전환이 그 분기점입니다.
 
 ## 결론
 
