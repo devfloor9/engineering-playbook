@@ -38,7 +38,7 @@ const IndexComparisonTable = () => {
     searchSpeed: isKo ? '매우 빠름' : 'Very fast',
     accuracy: isKo ? '높음' : 'High',
     memoryUsage: isKo ? '중간' : 'Medium',
-    useCase: isKo ? '속도와 정확도 균형 (Milvus 2.4+)' : 'Balance of speed and accuracy (Milvus 2.4+)',
+    useCase: isKo ? '속도와 정확도 균형 (Milvus 2.3+)' : 'Balance of speed and accuracy (Milvus 2.3+)',
     color: '#f59e0b'
   }, {
     indexType: 'DISKANN',

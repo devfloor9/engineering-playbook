@@ -28,7 +28,7 @@ const ComponentRolesTable = () => {
   }, {
     component: 'MinIO/S3',
     role: isKo ? '벡터 데이터 저장' : 'Vector data storage',
-    scaling: isKo ? '무제한' : 'Unlimited'
+    scaling: isKo ? '백엔드 오브젝트 스토어 용량에 따라 확장 (용량·쿼터·AZ 제약 적용)' : 'Scales with the backing object store; subject to capacity, quota, and AZ constraints'
   }];
   return <div style={{
     maxWidth: '100%',

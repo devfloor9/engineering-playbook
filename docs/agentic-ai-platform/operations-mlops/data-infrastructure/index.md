@@ -3,9 +3,9 @@ title: Data Infrastructure
 description: Operating vector databases, embedding stores, and data layer infrastructure for Agentic AI platforms
 created: "2026-04-20"
 last_update:
-  date: "2026-07-13"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - operations
   - data-infrastructure
@@ -17,7 +17,7 @@ sidebar_label: Data Infrastructure
 
 ## Overview
 
-For RAG pipelines and long-term memory to function properly, vector search infrastructure must be operated reliably. This section covers Milvus-based vector database operations. Future documents on Feature Store operations, Knowledge Graph infrastructure, and other data layer components will be added.
+For RAG pipelines and long-term memory that rely on vector search, that vector search infrastructure must be operated reliably. Other retrieval or memory backends that do not use vector search follow their own requirements. This section covers Milvus-based vector database operations. Future documents on Feature Store operations, Knowledge Graph infrastructure, and other data layer components will be added.
 
 ### What This Section Covers
 

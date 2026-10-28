@@ -3,9 +3,9 @@ title: Kagent - Kubernetes AI Agent Management
 description: Declarative AI agent management architecture and orchestration patterns in Kubernetes using Kagent
 created: "2026-02-05"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 19
+reading_time: 24
 tags:
   - eks
   - kagent
@@ -25,10 +25,10 @@ In a multi-model ecosystem, AI agents must call multiple LLMs/SLMs, connect to t
 
 Kagent declaratively defines agents, tools, and workflows through Custom Resource Definitions (CRDs), with an Operator automatically deploying and managing them. Instead of manually writing Deployments, Services, and ConfigMaps, a single `Agent` CRD integrates model connections, tool bindings, and scaling policies.
 
-:::warning Kagent Project Status
-Kagent is currently in the reference architecture and design pattern stage, and an official open-source project has not yet been released. Examples in this document are based on conceptual implementations. For production environments, consider validated alternatives such as **Bedrock AgentCore**, **KubeAI**, or **LangGraph Platform**.
+:::warning Kagent Project Status and Scope of This Document
+Kagent is a CNCF Sandbox open-source project created by Solo.io. As of 2026-10-15 the latest release is `v1.0.0-alpha13` (Apache-2.0). The project is public but still at the alpha stage, so its API and installation method can change between releases. In this document, the Agent/Tool/Memory specs in §3 follow the official `kagent.dev/v1alpha2` API, whereas the Operator architecture diagram in §2 and the multi-agent orchestration patterns in §4 are design proposals not defined by the official API and require a separate controller and CRDs to implement. For production environments, also evaluate alternatives such as **Bedrock AgentCore**, **KubeAI**, or **LangGraph Platform**.
 
-See the [Kagent official documentation](https://github.com/kagent-dev/kagent) for deployment guides.
+For installation and deployment guides and the current API, see the [Kagent official documentation](https://kagent.dev/docs/) and the [GitHub repository](https://github.com/kagent-dev/kagent).
 :::
 
 ### Alternative Solutions Comparison
@@ -43,8 +43,8 @@ Another open-source self-improving agent runtime is **hermes-agent** (NousResear
 
 - **Declarative agent management**: YAML-based agent definition and deployment
 - **Tool registry**: Central management of tools available to agents via CRDs
-- **Auto-scaling**: Dynamic scaling through HPA/KEDA integration
-- **Multi-agent orchestration**: Inter-agent collaboration for complex workflows
+- **Auto-scaling integration**: Dynamic scaling by attaching a separately installed HPA or KEDA ScaledObject to the controller-created Deployment (see §5)
+- **Multi-agent orchestration**: Inter-agent collaboration for complex workflows (design proposal)
 - **Observability integration**: Native integration with Langfuse/LangSmith, OpenTelemetry
 
 :::info Target Audience
@@ -81,15 +81,14 @@ flowchart TB
 
     subgraph CRD["CRDs"]
         A_CRD[Agent]
-        T_CRD[Tool]
-        W_CRD[Workflow]
-        M_CRD[Memory]
+        MC_CRD[ModelConfig]
+        MCP_CRD[RemoteMCPServer / MCPServer]
+        W_CRD[Workflow*]
     end
 
     subgraph RES["Managed Resources"]
         DEP[Deployments]
         SVC[Services]
-        HPA[HPA/KEDA]
         CM[ConfigMaps]
         SEC[Secrets]
     end
@@ -100,11 +99,11 @@ flowchart TB
         PN[Pod N]
     end
 
-    CTRL --> A_CRD & T_CRD & W_CRD & M_CRD
-    WH --> A_CRD & T_CRD
+    CTRL --> A_CRD & MC_CRD & MCP_CRD & W_CRD
+    WH --> A_CRD & MCP_CRD
 
-    A_CRD --> DEP & SVC & HPA & CM
-    T_CRD --> SEC
+    A_CRD --> DEP & SVC & CM
+    MCP_CRD --> SEC
 
     DEP --> P1 & P2 & PN
 
@@ -115,6 +114,8 @@ flowchart TB
     style RES fill:#ff9900,stroke:#333
     style RT fill:#76b900,stroke:#333
 ```
+
+Agent, ModelConfig, and RemoteMCPServer/MCPServer are CRDs defined by the official `kagent.dev/v1alpha2` API. Tools and memory are not separate CRDs; they are embedded in the Agent spec, so they are not drawn as independent CRDs. The asterisk on `Workflow*` indicates that multi-agent orchestration is a design proposal not part of the official API and requires a separate CRD and controller to implement (see §4).
 
 ### Component Description
 
@@ -143,7 +144,7 @@ sequenceDiagram
 
     C->>A: Create Deployment
     C->>A: Create Service
-    C->>A: Create HPA
+    C->>A: Create ConfigMap
 
     A->>R: Pod Scheduling
     R-->>C: Status Report
@@ -152,7 +153,7 @@ sequenceDiagram
 
 ### Prerequisites
 
-- Kubernetes cluster (v1.25+)
+- Kubernetes cluster (a maintained version, v1.34+ recommended — v1.33 reached end of life on 2026-06-28)
 - kubectl CLI tool
 - Helm v3 (for Helm installation)
 - cert-manager (Webhook TLS certificate management)
@@ -163,109 +164,83 @@ sequenceDiagram
 
 ### Agent CRD
 
-The Agent CRD declaratively defines all settings for an AI agent. Below is the core spec structure:
+The Agent CRD declaratively defines the settings for an AI agent. Below is the core spec of the kagent `v1alpha2` Declarative Agent. The model is not written inline; it references a separate `ModelConfig` resource via `modelConfig`, and tools are bound from an MCP server with `type: McpServer`:
 
 ```yaml
-apiVersion: kagent.dev/v1alpha1
+apiVersion: kagent.dev/v1alpha2
 kind: Agent
 metadata:
   name: customer-support-agent
-  namespace: ai-agents
+  namespace: kagent
 spec:
-  # Agent basic info
-  displayName: "Customer Support Agent"
   description: "AI agent that responds to customer inquiries and creates tickets"
+  type: Declarative
+  declarative:
+    # The model references a separate ModelConfig resource (not inline)
+    modelConfig: default-model-config
 
-  # Model configuration
-  model:
-    provider: openai          # openai, anthropic, bedrock, vllm
-    name: gpt-4-turbo
-    endpoint: ""              # Custom endpoint (vLLM, etc.)
-    temperature: 0.7
-    maxTokens: 4096
-    apiKeySecretRef:
-      name: openai-api-key
-      key: api-key
+    # System prompt
+    systemMessage: |
+      You are a friendly and professional customer support agent.
 
-  # System prompt
-  systemPrompt: |
-    You are a friendly and professional customer support agent.
+    # Tool list (binds tools from an MCP server)
+    tools:
+      - type: McpServer
+        mcpServer:
+          name: kagent-tool-server
+          kind: RemoteMCPServer
+          apiGroup: kagent.dev
+          toolNames:
+            - search-knowledge-base
+            - create-ticket
+          # Destructive tools pause for user approval before running
+          requireApproval:
+            - create-ticket
 
-  # Tool list
-  tools:
-    - name: search-knowledge-base
-    - name: create-ticket
-
-  # Memory configuration
-  memory:
-    type: redis
-    config:
-      host: redis-master.ai-data.svc.cluster.local
-      ttl: 3600
-      maxHistory: 50
-
-  # Scaling configuration
-  scaling:
-    minReplicas: 2
-    maxReplicas: 10
-    metrics:
-      - type: cpu
-        target:
-          averageUtilization: 70
-    keda:
-      enabled: true
-      triggers:
-        - type: prometheus
-          metadata:
-            metricName: agent_active_sessions
-            threshold: "50"
-
-  # Resource limits
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "1Gi"
-      cpu: "500m"
-
-  # Observability configuration
-  observability:
-    tracing:
-      enabled: true
-      provider: langfuse       # langfuse, langsmith, cloudwatch (details: ../operations-mlops/observability/llmops-observability.md)
-    metrics:
-      enabled: true
-      port: 9090
+    # Memory (built on the Google ADK implementation, stored in pgvector)
+    memory:
+      modelConfig: default-model-config   # References the embedding ModelConfig
+      ttlDays: 30                         # Default is 15 days
 ```
 
-### Tool CRD
+The referenced `ModelConfig` resource defines the model provider and model ID. For example, to use an Amazon Bedrock Titan embedding model:
 
-The Tool CRD defines tools available to agents. Tool types include `api`, `retrieval`, `code`, and `human`.
+```yaml
+apiVersion: kagent.dev/v1alpha2
+kind: ModelConfig
+metadata:
+  name: default-model-config
+  namespace: kagent
+spec:
+  provider: Bedrock
+  model: amazon.titan-embed-text-v2:0
+  bedrock:
+    region: us-east-1
+```
 
-**Table 1. Key Tool CRD fields and examples**
+### Tool (nested type in the Agent spec) {#tool-crd}
+
+A Tool is not an independent CRD; it is defined in the Agent spec's `tools: []Tool` array. The tool type is one of `McpServer` or `Agent` (kagent v1alpha2 API).
+
+**Table 1. Key Tool fields by type with examples**
 
 | Field | Description | Example |
 |-------|-------------|---------|
-| `spec.type` | Tool type | `retrieval`, `api`, `code`, `human` |
-| `spec.description` | Description referenced by LLM for tool selection | "Search documents in knowledge base" |
-| `spec.retrieval` | Vector store connection config | Milvus, Pinecone, etc. |
-| `spec.api` | REST API call config | Endpoint, auth, timeout |
-| `spec.parameters` | Input parameter schema | name, type, required, enum |
-| `spec.output` | Output schema | JSON Schema format |
+| `type` | Tool type | `McpServer`, `Agent` |
+| `mcpServer` | MCP server reference (when `type` is McpServer) | RemoteMCPServer or MCPServer name |
+| `agent` | Reference to another Agent (when `type` is Agent) | Agent name |
 
-### Memory CRD
+### Memory (field in the Agent spec) {#memory-crd}
 
-Memory configuration for storing agent conversation context and state.
+In v1alpha2, Memory is no longer an independent CRD; it is consolidated into the Agent spec's `memory: MemorySpec` field.
 
-**Table 2. Key Memory CRD features**
+**Table 2. Key features of Memory (field in the Agent spec)**
 
 | Feature | Description |
 |---------|-------------|
-| **Session memory** | Redis/PostgreSQL-based short-term conversation history (TTL config) |
-| **Conversation compression** | LLM-based conversation summarization when threshold exceeded |
-| **Long-term memory** | Vector store-based agent experience accumulation |
-| **Memory types** | `redis`, `postgres`, `in-memory` |
+| **Embedding model reference** | References a ModelConfig resource via the `modelConfig` field |
+| **TTL setting** | Sets the memory retention period via the `ttlDays` field |
+| **Storage** | Built-in implementation based on Google ADK, stored in pgvector (redis/in-memory not selectable) |
 
 ### Workflow CRD
 
@@ -373,16 +348,17 @@ Workflow execution status is tracked via `WorkflowRun` CRD:
 
 ### Operator-Managed Resources
 
-When an Agent CRD is created, the Controller automatically creates/manages the following resources:
+When an Agent CRD is created, the Controller creates/manages the following resources:
 
 ```
 Agent CRD Creation
   ├── Deployment (agent Pod management)
   ├── Service (network access)
-  ├── HPA/KEDA ScaledObject (autoscaling)
   ├── ConfigMap (agent configuration)
   └── Secret reference (API keys, credentials)
 ```
+
+The kagent controller does not automatically create autoscaling resources (an HPA or a KEDA ScaledObject). A HorizontalPodAutoscaler requires metrics-server, and a KEDA ScaledObject requires the KEDA operator; each must be installed separately and then authored directly against the Deployment the controller created. The scaling-strategy table below is a design target to apply to such a separately configured autoscaler, not a set of fields provided by the kagent API.
 
 ### Update Strategies
 

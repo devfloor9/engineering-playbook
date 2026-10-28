@@ -11,8 +11,8 @@ const DailyChecksTable = () => {
     normalStatus: isKo ? '모든 노드 Ready' : 'All nodes Ready'
   }, {
     item: isKo ? '모델 Pod' : 'Model Pods',
-    howToCheck: '`kubectl get pods -n inference`',
-    normalStatus: isKo ? 'Running 상태' : 'Running state'
+    howToCheck: '`kubectl get pods -n <inference-ns> -o wide`',
+    normalStatus: isKo ? '예상 Pod 수가 모두 조회되고 Ready 조건 True (조회 결과가 비면 실패로 처리)' : 'Expected pods all present and Ready=True (empty result counts as failure)'
   }, {
     item: isKo ? '에러율' : 'Error Rate',
     howToCheck: isKo ? 'Grafana 대시보드' : 'Grafana dashboard',
