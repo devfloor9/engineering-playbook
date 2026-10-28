@@ -3,9 +3,9 @@ title: 마이그레이션 실행 전략
 description: Gateway API 마이그레이션 5-Phase 전략, CRD 설치, 단계별 실행 가이드, 검증 스크립트, 트러블슈팅
 created: "2026-02-14"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 9
 tags:
   - eks
   - gateway-api
@@ -655,7 +655,7 @@ helm uninstall ingress-nginx -n ingress-nginx
 ---
 
 ## 4. 검증 스크립트
-이 스크립트는 selector 기반 Service 백엔드의 HTTP/HTTPS 경로에 대한 제한된 점검입니다. Bash, jq, kubectl, curl이 필요합니다. 테스트 호스트·경로는 선택한 리스너와 Route에 맞게 명시하며, 헤더·메서드·인증 등의 추가 조건은 별도 테스트하세요. 성공 응답만으로 모든 트래픽이나 백엔드 정체성을 검증한 것은 아닙니다.
+이 스크립트는 selector 기반 Service 백엔드의 HTTP/HTTPS 경로에 대한 제한된 점검입니다. Bash, jq, kubectl, curl이 필요합니다. 테스트 호스트·경로는 선택한 리스너와 Route에 맞게 명시하며, 헤더·메서드·인증 등의 추가 조건은 별도 테스트하세요. 스크립트는 선택한 리스너의 status 조건(Accepted, Programmed, ResolvedRefs), 리스너 hostname과 Route hostnames가 프로브 호스트와 일치하는지, 리스너의 allowedRoutes가 이 HTTPRoute를 허용하는지도 확인합니다. 따라서 sectionName 없이 Gateway 전체를 가리키는 parentRef라도 선택한 리스너에 연결될 수 없는 경우는 실패로 처리합니다. allowedRoutes.namespaces.from이 Selector인 리스너는 이 스크립트가 판정하지 않으므로 실패로 처리하며, 별도로 확인해야 합니다. 성공 응답만으로 모든 트래픽이나 백엔드 정체성을 검증한 것은 아닙니다.
 
 ```bash
 #!/bin/bash
@@ -680,6 +680,23 @@ LISTENER_JSON=$(jq -ce --arg l "$LISTENER" '.spec.listeners[] | select(.name == 
 PORT=$(jq -r '.port' <<<"$LISTENER_JSON")
 PROTOCOL=$(jq -r '.protocol' <<<"$LISTENER_JSON")
 case "$PROTOCOL" in HTTP) SCHEME=http ;; HTTPS) SCHEME=https ;; *) echo "Only HTTP/HTTPS probes are supported" >&2; exit 1 ;; esac
+
+# The selected listener must be ready and must admit this HTTPRoute for the probe host:
+# listener status conditions, listener/Route hostname intersection, and allowedRoutes.
+jq -e --arg l "$LISTENER" --arg ns "$NS" --arg gns "$GW_NS" --arg h "$HOST" \
+  --argjson rh "$(jq -c '.spec.hostnames // []' <<<"$ROUTE")" '
+  def hostok($p): ($p == null) or ($p == $h) or
+    (($p | startswith("*.")) and ($h | endswith($p[1:])) and ($h | length) > ($p | length) - 1);
+  .metadata.generation as $g |
+  (.spec.listeners[] | select(.name == $l)) as $L |
+  (.status.listeners[]? | select(.name == $l)) as $S |
+  all(["Accepted", "Programmed", "ResolvedRefs"][]; . as $t |
+    any($S.conditions[]?; .type == $t and .status == "True" and (.observedGeneration // $g) == $g)) and
+  hostok($L.hostname) and (($rh | length) == 0 or any($rh[]; hostok(.))) and
+  (($L.allowedRoutes.namespaces.from // "Same") as $from | $from == "All" or ($from == "Same" and $ns == $gns)) and
+  (($L.allowedRoutes.kinds // []) | length == 0 or any(.[];
+    (.group // "gateway.networking.k8s.io") == "gateway.networking.k8s.io" and .kind == "HTTPRoute"))' <<<"$GW" >/dev/null ||
+  { echo "Listener $LISTENER is not ready or does not admit this HTTPRoute for $HOST (Selector namespaces are not evaluated)" >&2; exit 1; }
 
 # Match the intended parent and its controller, including namespace, sectionName and port.
 jq -e --arg ns "$NS" --arg gn "$GW_NAME" --arg gns "$GW_NS" --arg l "$LISTENER" \
@@ -713,7 +730,7 @@ HTTP_CODE=$(curl --silent --show-error --output /dev/null --write-out '%{http_co
   --connect-to "${HOST}:${PORT}:${ADDRESS}:${PORT}" \
   --max-time 10 "${SCHEME}://${HOST}:${PORT}${PROBE_PATH}")
 [[ "$HTTP_CODE" =~ ^[23][0-9][0-9]$ ]] || { echo "Probe failed: HTTP $HTTP_CODE" >&2; exit 1; }
-echo "Selected parent accepted/resolved; Gateway programmed; ready backends; probe HTTP $HTTP_CODE"
+echo "Selected listener ready and admits the Route; parent accepted/resolved; Gateway programmed; ready backends; probe HTTP $HTTP_CODE"
 ```
 
 **사용 예시:**

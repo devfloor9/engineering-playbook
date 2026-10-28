@@ -3,9 +3,9 @@ title: "Gateway API Adoption Guide: From NGINX Ingress to Next-Generation Traffi
 description: NGINX Ingress Controller EOL response, tiered gateways for agentic workloads, Gateway API architecture, GAMMA Initiative, AWS Native vs open source solution comparison (AWS LBC, Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway, Kong), Cilium ENI integration, migration strategy and benchmark plans
 created: "2026-02-14"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 78
+reading_time: 80
 tags:
   - eks
   - gateway-api
@@ -50,6 +50,8 @@ import {
 # Gateway API Adoption Guide
 
 > **📌 Reference Versions**: Gateway API v1.5.1, Cilium v1.19.0, EKS 1.33+, AWS LBC v3.0.0, Envoy Gateway v1.7.0
+>
+> These are the versions referenced when the guide was written, not a combination that was installed together and validated. The Gateway API CRD version each project documents also differs (as of 2026-10-29). The AWS LBC v3.0.0 release notes direct you to install the Gateway API v1.3.0 CRDs, while the Cilium v1.19 documentation and the Envoy Gateway v1.7 compatibility matrix specify Gateway API v1.4.1. Envoy Gateway v1.7 reached end of life (EOL) on 2026-08-05. Before installing, check the supported Gateway API version and support period in the compatibility documentation of the implementation you will use.
 
 ## 1. Overview
 

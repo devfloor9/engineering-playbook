@@ -3,9 +3,9 @@ title: EKS 멀티클러스터 East-West 통신 — Istio는 여전히 유효한�
 description: EKS 멀티클러스터 환경의 East-West(서비스 간) 통신을 위해 Istio 멀티클러스터, Cilium ClusterMesh, Amazon VPC Lattice 아키텍처를 기능·안정성·운영편의성·비용 4개 축으로 비교하고, 각 아키텍처가 적합한 환경과 Istio 마이그레이션 경로를 제시합니다
 created: "2026-07-16"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 33
+reading_time: 35
 tags:
   - service-mesh
   - multi-cluster
@@ -33,9 +33,9 @@ sidebar_position: 2
 
 **결론 요약:**
 
-1. 클러스터 간 통신이 **HTTP/gRPC 중심이라면 VPC Lattice + AWS Gateway API Controller가 운영 부담 대비 가장 유리**합니다. 클러스터·VPC·계정 경계를 L3 연결(VPC peering, Transit Gateway) 없이 넘고, 컨트롤 플레인과 데이터 플레인을 AWS가 관리합니다.
+1. 클러스터 간 통신이 **HTTP/gRPC 중심이라면 VPC Lattice + AWS Gateway API Controller가 운영 부담 대비 가장 유리**합니다. 클러스터·VPC·계정 경계를 L3 연결(VPC peering, Transit Gateway) 없이 넘고, Lattice 서비스의 컨트롤 플레인과 데이터 플레인을 AWS가 관리합니다. Kubernetes 리소스를 Lattice 리소스로 변환하는 AWS Gateway API Controller는 고객 클러스터 안에서 고객이 운영합니다.
 2. **Istio multi-primary는 여전히 유효하지만 조건부**입니다. 멀티클라우드·하이브리드를 포함한 full mesh, 전 구간 SPIFFE 기반 mTLS, 세밀한 L7 정책이 1순위 요구라면 Istio가 유일하게 모든 요건을 충족합니다. 대신 클러스터 수에 비례해 커지는 운영 복잡도를 감수해야 합니다.
-3. 메시 운영 부담을 낮추는 레버는 두 가지뿐입니다 — **(a) 운영 주체를 바꾸거나**(관리형·상용 지원), **(b) 아키텍처를 단순화하거나**(사이드카 제거, 메시 자체 제거). 상용 관리 플레인(예: Tetrate)은 (a)에 해당하지만 컨트롤 플레인(istiod)은 여전히 고객 클러스터 안에 남습니다. **컨트롤 플레인 자체를 고객 클러스터에서 제거하는 선택지는 AWS 관리형(VPC Lattice)뿐**입니다.
+3. 메시 운영 부담을 낮추는 레버는 두 가지뿐입니다 — **(a) 운영 주체를 바꾸거나**(관리형·상용 지원), **(b) 아키텍처를 단순화하거나**(사이드카 제거, 메시 자체 제거). 상용 관리 플레인(예: Tetrate)은 (a)에 해당하지만 컨트롤 플레인(istiod)은 여전히 고객 클러스터 안에 남습니다. 이 문서가 비교한 구성(Lattice, Cilium ClusterMesh, 클러스터마다 istiod를 두는 Istio multi-primary) 중에서 **서비스 간 트래픽의 컨트롤 플레인을 고객 클러스터 밖의 관리형 서비스로 옮기는 선택지는 AWS 관리형(VPC Lattice)뿐**입니다. 다만 이 경우에도 통합 컨트롤러(AWS Gateway API Controller)는 고객 클러스터에 남습니다. Istio도 primary-remote 구성이나 외부 컨트롤 플레인(external control plane) 구성으로 일부 클러스터에서 istiod를 뺄 수 있지만, 그 istiod는 고객이 운영하는 다른 클러스터에서 실행되므로 이 비교에서는 다루지 않았습니다.
 4. AWS App Mesh는 **2026년 9월 30일 지원 종료**로 신규 도입 대상이 아니며, 이 문서에서는 마이그레이션 출발점으로만 다룹니다.
 
 단일 클러스터 안에서의 메시 솔루션 선택은 [서비스 메시 비교 가이드](./index.md)를, 도입 후 지연·비용 최적화는 [East-West 트래픽 최적화](../east-west-traffic-best-practice.md)를 참조합니다.
@@ -54,8 +54,8 @@ sidebar_position: 2
 
 | # | 판별 질문 | 갈림길 |
 |---|-----------|--------|
-| 1 | **프로토콜** — 클러스터 간 트래픽이 HTTP/gRPC인가, 순수 TCP/UDP(DB 프로토콜, 메시지 브로커, 커스텀 바이너리)인가? | 순수 TCP/UDP 비중이 크면 L7 중심인 Lattice는 재검토 대상. Lattice는 HTTP/HTTPS·gRPC·TCP(TLS passthrough)를 지원하지만 TCP 경로에 제약이 있음([6장](#6-트레이드오프와-주의사항) 참조). UDP는 미지원 |
-| 2 | **경계** — 클러스터들이 단일 VPC인가, 멀티 VPC·멀티 계정인가? CIDR 중복이 있는가? | 멀티 계정·CIDR 중복 환경이면 L3 연결이 필요 없는 Lattice가 구조적으로 유리. 메시 계열은 L3 도달성(peering/TGW)과 비중복 CIDR이 전제 |
+| 1 | **프로토콜** — 클러스터 간 트래픽이 HTTP/gRPC인가, 순수 TCP/UDP(DB 프로토콜, 메시지 브로커, 커스텀 바이너리)인가? | 순수 TCP/UDP 비중이 크면 L7 중심인 Lattice는 재검토 대상. Lattice는 HTTP/HTTPS·gRPC·TCP(TLS passthrough)를 지원하지만 TLS passthrough 경로에 제약이 있음. 별도의 리소스 구성(resource configuration) 경로는 TCP를 연결 수명 상한 없이 지원([6장](#6-트레이드오프와-주의사항) 참조). UDP는 미지원 |
+| 2 | **경계** — 클러스터들이 단일 VPC인가, 멀티 VPC·멀티 계정인가? CIDR 중복이 있는가? | 멀티 계정·CIDR 중복 환경이면 L3 연결이 필요 없는 Lattice가 구조적으로 유리. Cilium ClusterMesh와 직접 연결 방식의 메시(Istio 단일 네트워크, Linkerd flat 모드)는 L3 도달성(peering/TGW)과 비중복 CIDR이 전제. 게이트웨이 경유 방식(Istio 멀티 네트워크, Linkerd gateway 모드)은 PodCIDR 직접 라우팅이 필요 없지만 상대 클러스터의 게이트웨이와 API 서버에는 도달할 수 있어야 함(표 2 참조) |
 | 3 | **신원·암호화 컴플라이언스** — "전 구간 워크로드 단위 mTLS(SPIFFE)"가 감사 요건인가, "전송 암호화 + 요청 단위 인가"로 충족되는가? | 전자라면 Istio가 정공법. Lattice는 TLS + IAM(SigV4) 모델, Cilium은 전송 암호화(WireGuard/IPsec)와 인증을 분리한 모델 |
 | 4 | **관측성** — Kiali 수준의 메시 토폴로지 시각화가 필수인가, 메트릭·로그·트레이스로 충분한가? | 전자라면 Istio 생태계 유지. Lattice는 CloudWatch/X-Ray, Cilium은 Hubble로 대체 |
 | 5 | **규모와 변화율** — 클러스터 수, 서비스 수, Pod churn(배포 빈도·오토스케일 진폭)이 어느 수준인가? | 클러스터 수가 늘수록 메시 계열은 컨트롤 플레인 간 동기화 부담이 비례 증가. 관리형은 quota 관리 문제로 치환됨 |
@@ -115,8 +115,8 @@ Pod는 link-local 대역(`169.254.171.0/24`)의 Lattice 데이터 플레인으�
 | 축 | 평가 | 근거 (확인 2026-07-16) |
 |----|------|------------------------|
 | 기능 | HTTP/HTTPS·gRPC 라우팅, 가중치 트래픽 분할, 커스텀 도메인, IAM 기반 세밀 인가. TCP는 TLS passthrough로 지원하되 제약 있음(6장). UDP 미지원. Kiali급 메시 관측성 없음 | Lattice FAQ·TLS 리스너 문서 |
-| 안정성 | 데이터 플레인이 AWS 인프라 내장 — 고객이 패치·장애 대응할 컴포넌트가 컨트롤러뿐. AZ당 서비스별 10 Gbps·10,000 RPS 기본 한도(상향 가능), 연결 수명 10분 상한 | Lattice quotas 문서 |
-| 운영편의성 | **4개 후보 중 유일하게 컨트롤 플레인이 클러스터 밖**. 사이드카 없음, 인증서 수명주기 관리 없음(ACM 위임), 업그레이드 대상은 경량 컨트롤러 1개. 대신 AWS quota·기능 릴리스 속도에 종속 | Gateway API Controller 배포 가이드 |
+| 안정성 | 데이터 플레인이 AWS 인프라 내장 — 고객이 패치·장애 대응할 컴포넌트가 컨트롤러뿐. AZ당 서비스별 10 Gbps·10,000 RPS 기본 한도(상향 가능), 서비스 경로의 연결 수명 10분 상한(리소스 구성 경로는 상한 없음) | Lattice quotas 문서 |
+| 운영편의성 | **4개 후보 중 유일하게 컨트롤 플레인이 클러스터 밖(관리형 서비스)**. 통합 컨트롤러는 클러스터 안에서 고객이 운영. 사이드카 없음, 인증서 수명주기 관리 없음(ACM 위임), 업그레이드 대상은 경량 컨트롤러 1개. 대신 AWS quota·기능 릴리스 속도에 종속 | Gateway API Controller 배포 가이드 |
 | 비용 | 종량제: 서비스당 $0.025/시간 + 처리량 $0.025/GB + 요청 요금(시간당 30만 건 초과분 $0.10/100만 건, us-east-1 기준). 크로스 AZ 추가 요금 없음. **트래픽이 클수록 비용이 비례 증가** — 대용량 환경은 사전 시뮬레이션 필수. 리전별 단가 상이(확인 필요) | Lattice 요금 페이지 |
 
 **적합한 환경.** 클러스터 간 트래픽이 HTTP/gRPC 중심이고, 멀티 VPC·멀티 계정 경계를 넘어야 하며, 메시 컨트롤 플레인 운영 인력을 확보하기 어려운 조직. App Mesh 이탈 조직 중 관리형 모델을 유지하려는 경우의 AWS 공식 경로이기도 합니다.
@@ -219,7 +219,7 @@ AWS App Mesh는 2026년 9월 30일 지원이 종료되며, 2024년 9월 24일부
 |----|--------------------------------|--------------------|--------------------|
 | **기능** | 강점 HTTP/gRPC·IAM 인가·계정 경계 / 제약 순수 TCP 제약·UDP 불가·메시 관측성 없음 | 강점 전 프로토콜·프록시 홉 없는 직통(지연 이점은 측정 전제) / 제약 클러스터 간 L7 표현력·SPIFFE 상호 인증 불가 | 강점 전 항목 최고 표현력·멀티클라우드 / 제약 없음 (기능만 보면 최강) |
 | **안정성** | AWS 관리형 데이터 플레인, 고객 관리 컴포넌트 최소. quota 상한이 실질 리스크 | 커널 datapath 성숙. 단 CNI=메시라 장애 반경 최대 | 프로덕션 이력 최장. 단 안정성 전제(CA·게이트웨이·skew)를 전부 고객이 유지 |
-| **운영편의성** | 유리: **컨트롤 플레인이 클러스터 밖에 있는 유일한 후보** | 제약: CNI 교체 + 3종 컴포넌트 자체 운영, AWS 공식 지원 아님 | 크게 불리: N개 istiod + N×(N−1) remote secret + 게이트웨이. 상용 지원으로 완화만 가능 |
+| **운영편의성** | 유리: **컨트롤 플레인이 클러스터 밖(관리형 서비스)에 있는 유일한 후보**. 통합 컨트롤러는 클러스터 안에 상주 | 제약: CNI 교체 + 3종 컴포넌트 자체 운영, AWS 공식 지원 아님 | 크게 불리: N개 istiod + N×(N−1) remote secret + 게이트웨이. 상용 지원으로 완화만 가능 |
 | **비용** | 종량제(시간+GB+요청). 소~중 트래픽에 유리, 대용량은 시뮬레이션 필수. L3 연결 비용 없음 | SW 무료 + L3 연결 요금 + 전담 인력. 대용량 트래픽에 유리 | SW 무료 + 사이드카 리소스 + 게이트웨이·L3 요금 + **최대 인력 비용** |
 | **적합한 환경** | HTTP/gRPC 중심, 멀티 계정/VPC, 운영 인력 최소화 | Cilium 기보유, TCP/UDP 필수, 최저 지연, 전담 네트워킹 팀 | 전 구간 SPIFFE mTLS 감사 요건, 멀티클라우드 full mesh, 전담 플랫폼 팀 |
 
@@ -240,7 +240,7 @@ flowchart TD
     q2u -->|"예 (UDP)"| udp["UDP 지원 라우팅 데이터패스 필요<br/>(Istio 프록시·Lattice TLS passthrough로 대체 불가)<br/>— Cilium ClusterMesh 또는 L3 라우팅 설계"]
     q2u -->|"아니오 (TCP만)"| q3{"전 구간 SPIFFE mTLS<br/>또는 멀티클라우드 요건?"}
     q3 -->|예| istio["Istio multi-primary 유지<br/>(운영 부담 크면 상용 지원 검토)"]
-    q3 -->|아니오| tcp_lattice["TCP는 Lattice TLS passthrough로<br/>수용 가능한지 PoC 검증<br/>(불가 시 Istio 유지)"]
+    q3 -->|아니오| tcp_lattice["TCP는 Lattice TLS passthrough 또는<br/>리소스 구성으로 수용 가능한지<br/>PoC 검증 (불가 시 Istio 유지)"]
     q4{"전 구간 SPIFFE mTLS가<br/>감사 요건으로 명문화?"} -->|예| istio
     q4 -->|아니오| q5{"멀티클라우드·온프레미스<br/>포함 full mesh 필요?"}
     q5 -->|예| istio
@@ -265,7 +265,7 @@ flowchart TD
 
 **VPC Lattice를 선택하기 전에 반드시 확인할 것:**
 
-- **L7 중심 서비스라는 점.** Lattice는 HTTP/HTTPS·gRPC와 TCP(TLS passthrough)를 지원하지만, TLS passthrough에는 제약이 있습니다 — 커스텀 도메인(SNI 매칭) 필수, 기본 규칙만 허용(경로·헤더 라우팅 불가), TCP 타깃 그룹으로만 포워딩, **연결 수명 10분 상한**, auth policy는 익명 주체만 지원(확인 2026-07-16). 장수명 TCP 연결(DB 커넥션 풀, 스트리밍)이 있다면 이 상한이 실질적 차단 요인일 수 있으므로 PoC에서 반드시 검증합니다. UDP는 미지원입니다.
+- **L7 중심 서비스라는 점.** Lattice는 HTTP/HTTPS·gRPC와 TCP(TLS passthrough)를 지원하지만, TLS passthrough에는 제약이 있습니다 — 커스텀 도메인(SNI 매칭) 필수, 기본 규칙만 허용(경로·헤더 라우팅 불가), TCP 타깃 그룹으로만 포워딩, **연결 수명 10분 상한**, auth policy는 익명 주체만 지원(확인 2026-07-16). 장수명 TCP 연결(DB 커넥션 풀, 스트리밍)이 있다면 이 상한이 실질적 차단 요인일 수 있으므로 PoC에서 반드시 검증합니다. 이 제약은 Lattice 서비스(TLS 리스너) 경로에 해당합니다. Lattice에는 이와 별개로 리소스 게이트웨이와 리소스 구성(resource configuration)을 통해 VPC 안의 TCP 리소스(IP 주소, 도메인 이름, CIDR 범위)를 다른 VPC·계정에 공유하는 경로가 있으며, 이 경로는 연결 수명 상한이 없고 유휴 제한 시간이 350초입니다(TCP keepalive로 연장 가능, 2026-10-29 기준 VPC Lattice 할당량 문서). 장수명 TCP를 이유로 Lattice를 배제하기 전에 이 경로도 검토합니다. 리소스 구성은 HTTPRoute·TLSRoute로 만드는 Lattice 서비스와 별개의 리소스이므로, AWS Gateway API Controller가 이를 자동으로 구성한다고 가정하지 말고 구성 방법을 별도로 확인해야 합니다. UDP는 미지원입니다.
 - **전 구간 SPIFFE mTLS 요건이면 재검토.** Lattice의 보안 모델은 "TLS 종단 + IAM 요청 인가"입니다. 감사 요건이 "워크로드 간 X.509 상호 인증 증적"을 문자 그대로 요구하면 Lattice 단독으로는 충족이 어렵습니다. 컴플라이언스 담당과 요건 문구의 해석을 먼저 합의해야 합니다.
 - **메시급 관측성 부재.** Kiali 수준의 실시간 토폴로지 그래프·서비스 간 골든 시그널 자동 수집은 없습니다. CloudWatch 메트릭·액세스 로그와 X-Ray 조합으로 대체 가능한지 관측성 요건을 먼저 정의합니다.
 - **quota 설계.** 서비스 네트워크는 VPC에 직접(association) 1개만 연결 가능(조정 불가)하지만, 서비스 네트워크 VPC 엔드포인트(service-network VPC endpoint)를 사용하면 한 VPC에서 여러 서비스 네트워크에 연결할 수 있습니다(엔드포인트별 설계·비용이 추가됨). 그 외 auth policy 10 KB 상한, 리스너당 규칙 10개(조정 가능) 등 아키텍처에 영향을 주는 한도가 있습니다. 서비스 수·규칙 수 전망을 quota와 대조한 뒤 설계를 확정합니다.
