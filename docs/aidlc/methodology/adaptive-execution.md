@@ -3,9 +3,9 @@ title: AIDLC Adaptive Execution
 description: AIDLC official Adaptive Workflows — conditional stage execution decision tree, Inception 7-stage and Construction per-unit loop explained
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 23
+reading_time: 24
 tags:
   - aidlc
   - adaptive-execution
@@ -348,6 +348,8 @@ flowchart LR
 - Amount in KRW integer units
 ```
 
+The amount range (min 100, max 10_000_000) and the 15-minute session limit in this artifact example are assumptions for illustration. The amount limits and payment wait time that KakaoPay actually enforces must be checked in the KakaoPay developer documentation for the API version in use. The primary source for these limits was not verified (as of 2026-10-29).
+
 ### 3.2 Sub-stage 2: NFR Specification
 
 **Purpose**: Define the Unit's **non-functional requirements** in measurable form. In the v0.1.7 specification this work is split into two stages: NFR Requirements (identify NFRs and select the tech stack) and NFR Design (incorporate NFR patterns and logical components).
@@ -434,7 +436,7 @@ The "Illustrative Duration" column below is not a measured average but a plannin
 |--------------------------|----------------------------|---------------------|
 | **Intent** | Input + artifacts of Stage 1-3 (Workspace Detection → Requirements Analysis) | Intent is synthesis of User Request + Requirements Document |
 | **Unit** | Artifacts of Stage 7 (Units Generation) | 1:1 correspondence with Unit of Work |
-| **Bolt** | Full Construction Phase (5 sub-stages) single execution | Short iteration replacing Sprint |
+| **Bolt** | No corresponding stage (an iteration unit of the AI-DLC Method Definition) | The smallest iteration that implements a Unit or a set of tasks within a Unit. A Unit is executed through one or more Bolts, so a Bolt does not correspond 1:1 to one run of the Construction Phase |
 
 **Visual Mapping:**
 
@@ -465,7 +467,7 @@ flowchart TB
     I2 -.maps to.-> INTENT
     I3 -.maps to.-> INTENT
     I7 -.maps to.-> UNIT
-    C -.maps to.-> BOLT
+    C -.carried out in one or more Bolts.-> BOLT
 
     style Official fill:#326ce5,color:#fff
     style Playbook fill:#ff9900,color:#fff

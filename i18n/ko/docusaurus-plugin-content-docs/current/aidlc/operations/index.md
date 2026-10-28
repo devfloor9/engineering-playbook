@@ -3,9 +3,9 @@ title: "AgenticOps: AI 에이전트 기반 자율 운영"
 description: AIDLC로 개발한 소프트웨어의 AI 에이전트 기반 자율 운영 — 관찰성, 예측, 자동 대응
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-29
   author: devfloor9
-reading_time: 2
+reading_time: 3
 tags:
   - aidlc
   - operations
@@ -48,7 +48,7 @@ flowchart LR
 
 ## 핵심 기반: AWS 오픈소스 전략
 
-AWS는 Kubernetes 생태계의 핵심 도구들을 Managed Add-on(22+), 관리형 오픈소스 서비스(AMP, AMG, ADOT)로 제공합니다. 이 기반 위에서 **Kiro + MCP(Model Context Protocol)**가 AgenticOps의 핵심 도구로 동작하며, AWS MCP 서버(50+ GA)를 통해 EKS 클러스터 제어, CloudWatch 메트릭 분석, 비용 최적화를 자율적으로 수행합니다.
+AWS는 Kubernetes 생태계의 핵심 도구들을 EKS 애드온으로 제공합니다(2026-10-29 기준 EKS 사용 설명서의 AWS 애드온 목록은 22개 이상). Prometheus와 Grafana는 관리형 서비스(AMP, AMG)로, OpenTelemetry는 AWS가 지원하는 배포판(ADOT, EKS 애드온으로도 설치 가능)으로 제공합니다. 이 기반 위에서 **Kiro + MCP(Model Context Protocol)**를 AgenticOps의 핵심 도구로 쓰는 구성을 제안합니다. AWS Labs MCP 저장소의 서버(2026-10-29 기준 50개 이상)는 대부분 사용자 환경에서 실행하는 오픈소스 서버이며, 일부는 AWS가 호스팅하는 관리형 서버이거나 프리뷰 또는 지원 중단 상태입니다. 에이전트는 이 서버들을 통해, 부여된 IAM 권한 범위 안에서 EKS 클러스터 조회·제어, CloudWatch 메트릭 분석, 비용 분석을 수행할 수 있습니다.
 
 ## 참고 자료
 

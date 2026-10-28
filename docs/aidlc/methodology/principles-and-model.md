@@ -3,9 +3,9 @@ title: AIDLC 10 Principles and Execution Model
 description: Core philosophy of AIDLC and the Intent → Unit → Bolt execution model
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 34
+reading_time: 35
 tags:
   - aidlc
   - principles
@@ -213,7 +213,7 @@ Manual code writing                     AI code generation + human validation
 Increment delivered within Sprint (when Done)  Deploy immediately on completion (GitOps)
 ```
 
-A Bolt is the **minimum deployable unit with clear completion criteria**. It maps 1:1 with actual infrastructure components like Kubernetes Deployment, Helm Release, Terraform Module.
+According to the Method Definition, a Bolt is **the smallest iteration in AIDLC**: a work cycle that implements a Unit or a set of tasks within a Unit (for example, some of the User Stories that belong to the Unit). A Unit is executed through one or more Bolts, which can run in parallel or sequentially. Operational artifacts such as container images, Helm Charts, and Terraform stacks belong to a separate artifact, the Deployment Unit, not to the Bolt, so there is no 1:1 correspondence rule between Bolts and infrastructure components.
 
 :::tip Context Memory and Traceability
 All artifacts (Intent, Unit, Domain Design, Logical Design, Deployment Unit) are stored as **Context Memory** for AI to reference throughout the lifecycle. Bidirectional traceability between artifacts (Domain Model ↔ User Story ↔ Test Plan) holds when the artifacts are kept in sync with each other, letting AI work with more accurate context.

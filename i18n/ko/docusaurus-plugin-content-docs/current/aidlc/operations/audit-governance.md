@@ -3,9 +3,9 @@ title: Audit & Governance Logging
 description: AIDLC Checkpoint Approval 게이트와 ISO 8601 기반 감사 로그 — 규제 산업을 위한 AIDLC 감사 추적 구현 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 10
 tags:
   - aidlc
   - audit
@@ -18,7 +18,7 @@ sidebar_position: 4
 category: aidlc
 ---
 
-AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) 중 가장 거버넌스 비중이 높은 두 규칙은 **Checkpoint Approval (규칙 7)** 과 **Audit Logging (규칙 8)** 입니다. 본 문서는 이 두 규칙을 운영 환경에서 **규제 산업(금융·의료·공공)** 의 감사 요구를 충족하도록 구현하는 실전 가이드입니다.
+AWS Labs AIDLC Workflows v0.1.7의 워크플로 규칙은 각 stage가 끝날 때 사용자의 명시적 승인을 받기 전에는 다음 stage로 진행하지 않고, 사용자 입력과 응답을 `audit.md`에 원문 그대로 기록하도록 요구합니다([AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common)와 핵심 워크플로 규칙 참조). 본 문서는 이 두 요구를 **Checkpoint Approval (규칙 7)** 과 **Audit Logging (규칙 8)** 으로 부릅니다. 규칙 번호와 "거버넌스 비중이 가장 높다"는 판단은 AWS Labs 원문이 아니라 engineering-playbook의 분류입니다. 아래의 다중 승인 매트릭스, 자동 차단 조건, KMS 서명, 저장소 구조, `aidlc audit` CLI 같은 운영 통제는 원문이 제공하지 않는 이 문서의 제안 구현이며, 이 예시를 적용하는 것만으로 **규제 산업(금융·의료·공공)** 의 감사 요구가 충족된다는 뜻은 아닙니다.
 
 ---
 
@@ -26,15 +26,17 @@ AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0
 
 ### 1.1 규제 요구사항
 
+아래 표는 규제와 AIDLC 기록의 관계를 보여 주는 예시 매핑입니다. 규제의 보존 기간은 해당 규제가 지정한 기록 범주(예: HIPAA 보안 규칙의 정책·절차 문서, SEC 규칙의 감사인 기록)에 적용되며, 모든 애플리케이션 로그나 AIDLC 결정 이력에 그대로 적용되는 법정 기간이 아닙니다. 한국 규제 행의 기간은 근거 조문을 확인하지 못한 값입니다(2026-10-29 기준). 실제 보존 기간은 조직의 법무·컴플라이언스 담당 부서가 적용 조문과 기록 범주, 기산일을 확인해 보존 정책으로 정해야 합니다.
+
 **표 1. 규제별 감사 요구와 보존 기간, AIDLC 관련성**
 
 | 규제 | 감사 요구 | 보존 기간 | AIDLC 관련성 |
 |------|----------|----------|--------------|
-| **전자금융감독규정 (KR)** | IT 변경·접근 이력 완전 기록 | 5년 | AIDLC 전체 stage 승인·결정 이력 |
-| **개인정보 보호법 (KR)** | 개인정보 처리 의사결정 이력 | 3년 | Requirements Analysis, Application Design |
-| **HIPAA (US)** | PHI 접근·처리 로그 | 6년 | 의료 도메인 모델링 결정 |
-| **SOX (US)** | 재무 시스템 변경 통제 | 7년 | Checkpoint Approval, 산출물 해시 |
-| **ISMS-P (KR)** | 정보시스템 운영 로그 | 3년 | 전체 Session 이력 |
+| **전자금융감독규정 (KR)** | IT 변경·접근 이력 완전 기록 | 5년 (근거 조문 미확인) | AIDLC 전체 stage 승인·결정 이력 |
+| **개인정보 보호법 (KR)** | 개인정보 처리 의사결정 이력 | 3년 (근거 조문 미확인) | Requirements Analysis, Application Design |
+| **HIPAA (US)** | 보안 규칙 준수를 위한 정책·절차 문서와 문서화 대상 조치·평가 기록 (45 CFR 164.316(b)) | 작성일 또는 마지막 시행일 중 늦은 날부터 6년 | 의료 도메인 모델링 결정 |
+| **SOX (US)** | 감사인의 감사·검토 기록 (SEC 규칙 17 CFR 210.2-06, 감사인 의무) | 감사·검토 종료 후 7년 | Checkpoint Approval, 산출물 해시 |
+| **ISMS-P (KR)** | 정보시스템 운영 로그 | 3년 (근거 조문 미확인) | 전체 Session 이력 |
 | **GDPR (EU)** | 개인정보 의사결정 근거 | Case by case | 온톨로지 결정, 데이터 처리 설계 |
 
 ### 1.2 AIDLC 특유의 감사 과제
@@ -471,6 +473,9 @@ event:
 **감사 시나리오**: 금융감독원 IT 점검 시 "2026년 3월 15일 결제 서비스 API 변경의 승인 경로" 요청.
 
 **AIDLC 감사 응답:**
+
+아래 `aidlc audit` 명령(§7.3 포함)은 AWS Labs AIDLC Workflows에 포함된 도구가 아니라 이 문서가 제안하는 인터페이스이며, 출력도 실행 결과가 아닌 가상 예시입니다. 실제 구현에서는 서명 검증 실패, 산출물 해시 불일치, 규제 조항 점검 미실시 같은 실패·미확인 결과도 그대로 출력해야 합니다.
+
 ```bash
 # 1. 해당 시점 세션 검색
 aidlc audit query --date 2026-03-15 --service payment-service

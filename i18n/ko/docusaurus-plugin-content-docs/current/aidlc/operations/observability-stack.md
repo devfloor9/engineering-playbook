@@ -3,9 +3,9 @@ title: 관찰성 스택
 description: AIDLC Operations의 데이터 기반 — 3-Pillar 관찰성 + AI 분석 레이어 구축
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 19
 tags:
   - observability
   - adot
@@ -218,19 +218,19 @@ AMG ← PromQL 쿼리 ← Grafana 대시보드
 
 ### 4.1 Container Insights Enhanced
 
-**EKS 1.28+**에서 Enhanced Container Insights는 **Control Plane 메트릭**을 포함한 심층 관찰성을 제공합니다.
+Enhanced Container Insights는 Pod·노드 메트릭과 함께 API server가 보고하는 **Control Plane 메트릭**을 수집합니다. **EKS 1.28+** 클러스터에서는 이와 별도로 CloudWatch가 `AWS/EKS` 네임스페이스의 기본 Control Plane 메트릭을 추가 비용 없이 제공하고, EKS가 `metrics.eks.amazonaws.com` API 그룹으로 kube-scheduler·kube-controller-manager 메트릭을 Prometheus 형식으로 노출합니다(2026-10-29 기준 AWS 문서 확인). 아래 목록은 이 경로들에서 확인할 수 있는 메트릭을 함께 보여 줍니다.
 
 **수집 메트릭 범위**:
 - **Pod 메트릭**: CPU, 메모리, 네트워크, 디스크 I/O
 - **노드 메트릭**: 리소스 사용률, Kubelet 상태
 - **Control Plane 메트릭** (EKS 1.28+):
   - **API Server**: `apiserver_request_total`, `apiserver_request_duration_seconds`
-  - **etcd**: `etcd_db_total_size_in_bytes`, `etcd_server_slow_apply_total`
-  - **Scheduler**: `scheduler_schedule_attempts_total`, `scheduler_scheduling_duration_seconds`
+  - **etcd**(API server가 보고하는 저장소 지표): `apiserver_storage_db_total_size_in_bytes`, `apiserver_storage_objects`
+  - **Scheduler**: `scheduler_schedule_attempts_total`, `scheduler_scheduling_attempt_duration_seconds`
   - **Controller Manager**: `workqueue_depth`, `workqueue_adds_total`
 
 :::warning 비용 고려사항
-Enhanced Container Insights는 월 $50-200 수준의 추가 비용 발생. 개발/스테이징에서는 기본 Container Insights, 프로덕션에서만 Enhanced 활성화 권장.
+Enhanced Container Insights는 추가 비용이 발생합니다. "월 $50-200 수준"은 저자 추정값이며 측정값이 아닙니다. 실제 비용은 노드·Pod·컨테이너 수 같은 수집 규모에 따라 달라지므로 CloudWatch 요금 페이지 기준으로 산정해야 합니다. 개발/스테이징에서는 기본 Container Insights, 프로덕션에서만 Enhanced 활성화 권장.
 :::
 
 ### 4.2 Application Signals
@@ -290,9 +290,9 @@ spec:
 → 비교 분석 쿼리 자동 생성
 ```
 
-**리전 가용성 (2025년 8월 GA)**:
-- **로컬 처리**: us-east-1, us-east-2, us-west-2, ap-northeast-1, ap-southeast-1/2, eu-central-1, eu-west-1, eu-north-1
-- **Cross-Region 처리**: ap-east-1 (Hong Kong) → US 리전으로 프롬프트 전송
+**리전 가용성 (2026-10-29 기준, CloudWatch Metrics Insights 자연어 쿼리 생성 문서)**: 이 기능은 10개 리전에서 GA이며, 기능을 쓸 수 있는 리전과 프롬프트를 처리하는 리전은 다릅니다. 데이터 위치 요구사항이 있으면 아래 처리 리전을 기준으로 판단해야 하며, Logs Insights 쿼리 생성의 처리 리전은 해당 기능의 AWS 문서에서 따로 확인해야 합니다.
+- **같은 리전에서 처리**: us-east-1, us-west-2, ap-northeast-1, eu-central-1
+- **US 리전으로 프롬프트 전송**: us-east-2·eu-west-1·eu-north-1 → us-east-1, ap-east-1 (Hong Kong)·ap-southeast-1·ap-southeast-2 → us-west-2
 
 ### 5.2 CloudWatch Investigations
 
@@ -406,7 +406,7 @@ Kiro에서 MCP를 통해 통합 분석하는 과정입니다. 아래 호출(`lis
 ```
 
 :::info 프로그래머틱 관찰성 자동화
-MCP의 핵심 가치는 **여러 데이터 소스를 단일 인터페이스로 통합**하는 것입니다. CloudWatch 메트릭, X-Ray 트레이스, EKS API, DevOps Guru 인사이트를 AI Agent가 한 번에 접근하여, 사람이 수동으로 여러 콘솔을 오가며 분석하는 것보다 빠르고 정확한 진단이 가능합니다.
+MCP의 핵심 가치는 **여러 데이터 소스를 단일 인터페이스로 통합**하는 것입니다. CloudWatch 메트릭, X-Ray 트레이스, EKS API, DevOps Guru 인사이트에 AI Agent가 한 번에 접근하면, 사람이 여러 콘솔을 오가며 분석할 때보다 진단을 빠르고 정확하게 할 수 있는 가능성이 있습니다. 실제로 빨라지고 정확해지는지는 해당 워크로드에서 진단 시간과 정확도를 측정해 확인해야 합니다.
 :::
 
 ---
@@ -415,7 +415,7 @@ MCP의 핵심 가치는 **여러 데이터 소스를 단일 인터페이스로 �
 
 ### 7.1 Alert Fatigue 문제
 
-EKS 환경에서 알림 피로는 심각한 운영 문제입니다:
+EKS 환경에서 알림 피로는 심각한 운영 문제입니다. 아래 알림 수와 비율은 예시 수치입니다(실측 데이터가 아닌 가상 시나리오). 실제 값은 클러스터의 알림 이력으로 확인해야 합니다:
 
 - **평균적인 EKS 클러스터**: 일 50-200개의 알림 발생
 - **실제 조치 필요한 알림**: 전체의 10-15%
@@ -529,6 +529,9 @@ aws logs put-retention-policy \
 ```
 
 **50 노드 클러스터 비용 비교**:
+
+아래 금액은 검증하지 않은 예시 추정값입니다(실측 데이터가 아닌 가상 시나리오). 로그 비용은 노드 수가 아니라 수집량, 압축률, 쿼리 스캔량, 보관 기간, S3 요청·저장량과 리전별 단가로 정해지므로, 최적화 전후를 비교하려면 두 경우에 같은 일일 로그 수집량을 가정해 계산해야 합니다. 범위의 양 끝을 어떻게 조합하느냐에 따라 절감률도 달라지므로 70% 이상 절감이 보장되지는 않습니다.
+
 - **최적화 전**: 월 $1,500-3,000 (CloudWatch Logs 전량)
 - **최적화 후**: 월 $400-600 (7일 CW + 장기 S3)
 - **절감액**: 월 $1,100-2,400 (70% 이상 절감)

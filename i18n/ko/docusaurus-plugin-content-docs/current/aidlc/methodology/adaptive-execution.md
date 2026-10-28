@@ -3,7 +3,7 @@ title: AIDLC Adaptive Execution
 description: AIDLC 공식 Adaptive Workflows — 조건부 stage 실행 decision tree, Inception 7단계와 Construction per-unit 루프 해설
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 14
 tags:
@@ -348,6 +348,8 @@ flowchart LR
 - 금액은 KRW 원 단위 정수
 ```
 
+위 산출물 예시의 금액 범위(min 100, max 10_000_000)와 15분 세션 제한은 설명을 위한 가정값입니다. 카카오페이가 실제로 적용하는 금액 한도와 결제 대기 시간은 사용하는 API 버전의 카카오페이 개발자 문서에서 확인해야 합니다. 해당 한도의 1차 출처는 확인하지 못했습니다(2026-10-29 기준).
+
 ### 3.2 Sub-stage 2: NFR Specification
 
 **목적**: 해당 Unit 의 **비기능 요구사항** 을 측정 가능한 형태로 정의. v0.1.7 규격에서는 이 작업이 NFR Requirements(요구사항 식별·기술 스택 선택)와 NFR Design(NFR 패턴·논리 컴포넌트 반영) 두 stage 로 나뉩니다.
@@ -434,7 +436,7 @@ resources:
 |---------------------------|---------------------|----------|
 | **Intent** | Stage 1-3 (Workspace Detection → Requirements Analysis) 의 입력 + 산출물 | Intent 는 User Request + Requirements Document 의 종합 |
 | **Unit** | Stage 7 (Units Generation) 의 산출물 | Unit of Work 와 1:1 대응 |
-| **Bolt** | Construction Phase 전체 (5 sub-stage) 1회 실행 | Sprint 를 대체하는 짧은 반복 |
+| **Bolt** | 대응 stage 없음 (AI-DLC Method Definition의 반복 단위) | Unit 또는 Unit 안의 태스크 묶음을 구현하는 가장 작은 반복입니다. 하나의 Unit은 하나 이상의 Bolt로 실행되므로 Construction Phase 1회 실행과 1:1로 대응하지 않습니다 |
 
 **시각적 매핑:**
 
@@ -465,7 +467,7 @@ flowchart TB
     I2 -.매핑.-> INTENT
     I3 -.매핑.-> INTENT
     I7 -.매핑.-> UNIT
-    C -.매핑.-> BOLT
+    C -.하나 이상의 Bolt로 수행.-> BOLT
 
     style Official fill:#326ce5,color:#fff
     style Playbook fill:#ff9900,color:#fff
