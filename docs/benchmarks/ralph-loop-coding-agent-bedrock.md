@@ -20,7 +20,7 @@ sidebar_position: 9
 category: benchmark
 ---
 
-import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
+import {RalphKpiStrip, RalphModelComparison, RalphCostTimeScatter, RalphMetricMatrix, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
 import DataTableFrame from '@site/src/components/DataTableFrame';
 
 :::info Reference Benchmark
@@ -88,6 +88,12 @@ Based on the [Bedrock User Guide: Data retention](https://docs.aws.amazon.com/be
 </details>
 
 ## Results
+
+### Model comparison
+
+Each panel ranks the models on one metric, best first, using the median over completed runs; for all three metrics, lower is better.
+
+<RalphModelComparison />
 
 ### Cost and time
 

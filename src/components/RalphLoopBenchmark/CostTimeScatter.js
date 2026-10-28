@@ -6,9 +6,86 @@ import styles from './CostTimeScatter.module.css';
 // --- Geometry (user units; the SVG scales via viewBox + width:100%). ---
 const W = 720;
 const H = 460;
-const M = {top: 24, right: 150, bottom: 56, left: 64};
+const M = {top: 24, right: 40, bottom: 56, left: 64};
 const PLOT_W = W - M.left - M.right;
 const PLOT_H = H - M.top - M.bottom;
+
+// Label metrics for the 12px monospace label font (≈0.6em advance per glyph).
+const MARKER_R = 5;
+const CHAR_W = 7.8; // 0.6em JetBrains Mono = 7.2; extra headroom for font fallback
+const LABEL_H = 14;
+const GAP = 4; // breathing room between a label box and anything else
+
+function labelBox(lx, ly, w, anchor) {
+  const x0 = anchor === 'end' ? lx - w : anchor === 'middle' ? lx - w / 2 : lx;
+  return {x0, x1: x0 + w, y0: ly - LABEL_H / 2, y1: ly + LABEL_H / 2};
+}
+
+function overlaps(a, b) {
+  return a.x0 < b.x1 + GAP && b.x0 < a.x1 + GAP && a.y0 < b.y1 + GAP && b.y0 < a.y1 + GAP;
+}
+
+// Candidate placements relative to the marker: [dx, dy, anchor].
+// Order matters: nearest, most natural positions first.
+function candidates() {
+  const d = MARKER_R + 5;
+  const v = LABEL_H / 2 + MARKER_R + 3;
+  const out = [
+    [d, 0, 'start'], [-d, 0, 'end'], [0, -v, 'middle'], [0, v, 'middle'],
+    [d - 2, -v + 2, 'start'], [d - 2, v - 2, 'start'],
+    [-d + 2, -v + 2, 'end'], [-d + 2, v - 2, 'end'],
+  ];
+  // Farther rings (these get a short connector line back to the marker).
+  for (const r of [1.8, 2.6, 3.4]) {
+    out.push([d * r, -v * r * 0.8, 'start'], [d * r, v * r * 0.8, 'start'],
+      [-d * r, -v * r * 0.8, 'end'], [-d * r, v * r * 0.8, 'end'],
+      [0, -v * r, 'middle'], [0, v * r, 'middle']);
+  }
+  return out;
+}
+
+function placeLabels(points) {
+  // Labels may run into the right margin (up to the SVG edge), not past it.
+  const bounds = {x0: M.left + 2, x1: W - 2, y0: M.top + 2, y1: M.top + PLOT_H - 2};
+  const markerBoxes = points.map((p) => ({
+    key: p.key, x0: p.cx - MARKER_R, x1: p.cx + MARKER_R, y0: p.cy - MARKER_R, y1: p.cy + MARKER_R,
+  }));
+  // Crowding = number of other markers within 60 units; most crowded first.
+  const crowd = (p) => points.filter((q) => q !== p && Math.hypot(q.cx - p.cx, q.cy - p.cy) < 60).length;
+  const order = [...points].sort((a, b) => crowd(b) - crowd(a) || a.cy - b.cy || a.cx - b.cx);
+  const taken = [];
+  const result = new Map();
+  const cands = candidates();
+  for (const p of order) {
+    const w = p.name.length * CHAR_W;
+    let best = null;
+    for (let i = 0; i < cands.length; i += 1) {
+      const [dx, dy, anchor] = cands[i];
+      const lx = p.cx + dx;
+      const ly = p.cy + dy;
+      const box = labelBox(lx, ly, w, anchor);
+      if (box.x0 < bounds.x0 || box.x1 > bounds.x1 || box.y0 < bounds.y0 || box.y1 > bounds.y1) continue;
+      if (taken.some((t) => overlaps(box, t))) continue;
+      if (markerBoxes.some((m) => m.key !== p.key && overlaps(box, m))) continue;
+      best = {lx, ly, anchor, box, far: i >= 8};
+      break;
+    }
+    if (!best) {
+      // Last resort: keep the label right of the marker, clamped into the plot.
+      const anchor = p.cx + w + 12 > bounds.x1 ? 'end' : 'start';
+      const lx = anchor === 'end' ? p.cx - 10 : p.cx + 10;
+      best = {lx, ly: p.cy, anchor, box: labelBox(lx, p.cy, w, anchor), far: false};
+    }
+    taken.push(best.box);
+    // Connector ends at the label box edge nearest the marker.
+    const connector = best.far ? {
+      x: Math.min(Math.max(p.cx, best.box.x0), best.box.x1),
+      y: Math.min(Math.max(p.cy, best.box.y0), best.box.y1),
+    } : null;
+    result.set(p.key, {...p, lx: best.lx, ly: best.ly, anchor: best.anchor, connector});
+  }
+  return points.map((p) => result.get(p.key));
+}
 
 // Vendors appear in a stable, data-driven order for the legend.
 function vendorsInOrder(models) {
@@ -122,28 +199,14 @@ export default function RalphCostTimeScatter() {
     cy: yScale(m.stats.run_minutes.med),
   }));
 
-  // --- Deterministic label collision avoidance. ---
-  // Sort by y, assign each label a target y, then push labels apart so no two
-  // overlap. Leader lines connect a label back to its point when it moved.
-  const LABEL_H = 15;
-  const labelOrder = [...points].sort((a, b) => a.cy - b.cy || a.cx - b.cx);
-  const minY = M.top + LABEL_H / 2;
-  const maxY = M.top + PLOT_H - LABEL_H / 2;
-  const placed = [];
-  let prevBottom = minY - LABEL_H;
-  for (const p of labelOrder) {
-    let ly = Math.max(p.cy, prevBottom + LABEL_H);
-    if (ly > maxY) ly = maxY;
-    placed.push({...p, ly});
-    prevBottom = ly;
-  }
-  // Second pass upward in case the clamp at maxY created overlaps.
-  for (let i = placed.length - 2; i >= 0; i -= 1) {
-    if (placed[i + 1].ly - placed[i].ly < LABEL_H) {
-      placed[i].ly = Math.max(minY, placed[i + 1].ly - LABEL_H);
-    }
-  }
-  const labelX = M.left + PLOT_W + 10;
+  // --- Deterministic direct labelling (no long leader lines). ---
+  // Each label is placed right beside its own marker. Candidate positions are
+  // tried in a fixed order (right, left, above, below, then the diagonals and
+  // farther offsets) and the first one that stays inside the plot and does not
+  // overlap an already-placed label or any marker wins. Only when a label had
+  // to move away from its marker is a short connector drawn. Labels are placed
+  // densest-first so crowded clusters get the best positions.
+  const placed = placeLabels(points);
 
   const vendors = vendorsInOrder(models);
   const groups = ['F', 'C'].filter((g) => models.some((m) => m.group === g));
@@ -264,21 +327,21 @@ export default function RalphCostTimeScatter() {
             </g>
           ))}
 
-          {/* Leader lines for labels that were pushed off their point. */}
-          {placed.map((p) => (
-            <line key={`l${p.key}`} x1={p.cx} y1={p.cy} x2={labelX - 4} y2={p.ly}
+          {/* Short connectors, only for labels displaced from their marker. */}
+          {placed.filter((p) => p.connector).map((p) => (
+            <line key={`l${p.key}`} x1={p.cx} y1={p.cy} x2={p.connector.x} y2={p.connector.y}
               className={styles.leader} />
           ))}
 
           {/* Markers. */}
           {points.map((p) => (
-            <g key={`p${p.key}`}>{marker(p, 5)}</g>
+            <g key={`p${p.key}`}>{marker(p, MARKER_R)}</g>
           ))}
 
-          {/* Labels (collision-avoided). */}
+          {/* Labels: a surface-colored halo keeps text legible over grid and whiskers. */}
           {placed.map((p) => (
-            <text key={`t${p.key}`} x={labelX} y={p.ly} className={styles.pointLabel}
-              dominantBaseline="middle">{p.name}</text>
+            <text key={`t${p.key}`} x={p.lx} y={p.ly} className={styles.pointLabel}
+              textAnchor={p.anchor} dominantBaseline="middle">{p.name}</text>
           ))}
         </svg>
       </div>

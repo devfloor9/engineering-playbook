@@ -20,7 +20,7 @@ sidebar_position: 9
 category: benchmark
 ---
 
-import {RalphKpiStrip, RalphCostTimeScatter, RalphMetricMatrix, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
+import {RalphKpiStrip, RalphModelComparison, RalphCostTimeScatter, RalphMetricMatrix, RalphModelCards, RalphMethodFlow, RalphLineupMap, RalphTokenMix, RalphRoleSplit, RalphGroupCompare, RalphPriceLadder} from '@site/src/components/RalphLoopBenchmark';
 import DataTableFrame from '@site/src/components/DataTableFrame';
 
 :::info 참고한 벤치마크
@@ -88,6 +88,12 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 </details>
 
 ## 결과
+
+### 모델 비교
+
+패널마다 지표 하나를 기준으로 완주한 run의 중앙값을 좋은 순서대로 정렬했습니다. 세 지표 모두 값이 작을수록 좋습니다.
+
+<RalphModelComparison />
 
 ### 비용과 시간
 

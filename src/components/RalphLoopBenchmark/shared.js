@@ -120,8 +120,10 @@ const STRINGS = {
  */
 export function t(lang, key) {
   const table = STRINGS[lang] || STRINGS.en;
-  if (key in table) return table[key];
-  if (key in STRINGS.en) return STRINGS.en[key];
+  // No `in` operator: scripts/llm-wiki-static.js evaluates this statically
+  // and does not support it.
+  if (table[key] !== undefined) return table[key];
+  if (STRINGS.en[key] !== undefined) return STRINGS.en[key];
   return key;
 }
 
