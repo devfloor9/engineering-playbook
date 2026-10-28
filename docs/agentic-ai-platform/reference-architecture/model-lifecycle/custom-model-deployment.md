@@ -3,7 +3,7 @@ title: Custom Model Deployment Guide
 description: Hands-on guide to deploying large open-source models on EKS, based on the GLM-5.1 experience
 created: "2026-04-04"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 40
 tags:
@@ -130,7 +130,7 @@ As of 2026-04-10, EKS Auto Mode officially supports the latest accelerated insta
 eksctl create cluster \
   --name glm5-cluster \
   --region us-east-2 \
-  --version 1.33 \
+  --version 1.35 \
   --without-nodegroup
 
 # Create p5en.48xlarge MNG
@@ -153,26 +153,29 @@ eksctl create nodegroup \
   --kubelet-extra-args "--max-pods=110"
 ```
 
-## vLLM Custom Image Build
+## vLLM Image Selection {#vllm-custom-image-build}
 
-### Problem: Latest Model Not Recognized
+### GLM-5 Support (v0.19.0+) {#problem-latest-model-not-recognized}
 
-The transformers version bundled in the standard vLLM image may not support the architecture of the model you want to deploy. In the case of GLM-5, it fails to recognize the `glm_moe_dsa` architecture.
+GLM-5 (the `glm_moe_dsa` architecture) is supported in the standard vLLM image starting with vLLM v0.19.0+ (released 2026-04-03). As of 2026-07 the latest stable version is v0.25.1, so **no custom image build is needed**.
 
 ```bash
-# Error example when running the standard vLLM image
-ValueError: Model type 'glm_moe_dsa' is not supported.
+# Check the GLM-5-capable version
+# vLLM v0.19.0 (2026-04-03): adds GLM-5 GlmMoeDsaForCausalLM support
+# includes transformers 5.x or later
 ```
 
-### Solution: Install the Latest Transformers
+:::info A custom image is needed only for deployments before February 2026
+Right after GLM-5 was released (February 2026), vLLM v0.15-v0.17 did not support GLM-5, so a custom image that installed the transformers main branch was required. The v0.19.0+ standard image can be used as-is.
+:::
 
-After confirming that the model support is included in the transformers main branch, build a custom image.
-
-#### Dockerfile
+#### Recommended Image (as of 2026-07) {#dockerfile}
 
 ```dockerfile
-FROM vllm/vllm-openai:nightly
-RUN pip install https://github.com/huggingface/transformers/archive/refs/heads/main.zip
+# Use the standard vLLM image (no custom build needed)
+FROM vllm/vllm-openai:v0.25.1
+
+# FP8 Tensor Core optimization (H100/H200/B200)
 ENV VLLM_USE_DEEP_GEMM=1
 ```
 
@@ -756,7 +759,7 @@ graph TB
 
 #### 2. EKS Cluster Configuration
 
-- [ ] Create EKS cluster (Standard Mode, Kubernetes 1.33)
+- [ ] Create EKS cluster (Standard Mode, Kubernetes 1.35)
 - [ ] Create GPU instance MNG (Spot, sufficient EBS gp3)
 - [ ] Install GPU Operator (`devicePlugin.enabled=false`)
 - [ ] Verify DCGM and GFD are working properly
@@ -920,11 +923,11 @@ GLM-5.1 (744B MoE FP8) serving was successfully deployed with the configuration 
 |------|-------|
 | Cluster | `glm5-std-us-east-2` (EKS Standard Mode, K8s 1.35) |
 | Instance | **p5en.48xlarge** (H200×8, 1,128GB VRAM) |
-| Capacity | **Spot** (~$12/hr, 84% savings vs. On-Demand $76/hr) |
+| Capacity | **Spot** (~$12/hr, about 81% savings vs. On-Demand $63.296/hr) |
 | GPU Usage | 131.7 GB / 143.7 GB per GPU (91.6%) |
 | Disk | **2TB** (704GB model + 1.3TB headroom) |
 | Model Cache | S3 → `aws s3 sync` (50 parallel) → NVMe emptyDir |
-| vLLM | v0.18.2rc1 nightly + transformers v5.5.0.dev0 |
+| vLLM | v0.23.0 + transformers v5.5.0.dev0 |
 | TP | 8 (PP unnecessary) |
 | max_model_len | 32,768 |
 | max_num_seqs | 64 |

@@ -3,7 +3,7 @@ title: Basic Deployment
 description: kgateway installation, HTTPRoute configuration, Bifrost Gateway Mode setup
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 19
 tags:
@@ -29,11 +29,11 @@ Deploy the core components of a **kgateway + Bifrost inference gateway** behind 
 ### 1.1 Install Gateway API CRDs
 
 ```bash
-# Install Gateway API standard CRDs (v1.2.0+)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
+# Install Gateway API standard CRDs (v1.5.1+)
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/standard-install.yaml
 
 # Install with experimental features (HTTPRoute filters, etc.)
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/experimental-install.yaml
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.1/experimental-install.yaml
 ```
 
 ### 1.2 Install kgateway via Helm (CRDs → main chart) {#12-install-kgateway-v222-via-helm}

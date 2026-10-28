@@ -3,7 +3,7 @@ title: GRPO/DPO Training Job
 description: Production configuration for running NeMo-RL (GRPO) and TRL (DPO) training jobs with labeled preference datasets on Karpenter Spot node pools and Volcano Gang Scheduling.
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 10
 tags:
@@ -103,12 +103,12 @@ dataset = PreferenceDataset(
 # See examples/configs/grpo_math_8B.yaml
 grpo_config = {
     'num_iterations': 1000,
-    batch_size=32,
-    learning_rate=1e-5,
-    kl_coeff=0.1,  # KL divergence penalty (keep close to the base model)
-    cliprange=0.2,
-    vf_coeff=0.5,
-)
+    'batch_size': 32,
+    'learning_rate': 1e-5,
+    'kl_coeff': 0.1,  # KL divergence penalty (keep close to the base model)
+    'cliprange': 0.2,
+    'vf_coeff': 0.5,
+}
 
 # Distributed training execution
 trainer = Trainer(

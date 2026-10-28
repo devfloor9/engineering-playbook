@@ -3,7 +3,7 @@ title: Inference Gateway Deployment Guide
 description: Step-by-step deployment guide for kgateway-based Inference Gateway (basic/advanced/troubleshooting)
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 13
 tags:
@@ -87,6 +87,7 @@ Add prompt-based automatic routing, production security layer, and Semantic Cach
 
 **Includes:**
 - LLM Classifier deployment (prompt-based SLM/LLM automatic branching)
+- **Gateway API Inference Extension (InferencePool + EPP)** — KV-aware (L2) routing
 - CloudFront + WAF/Shield security layer
 - Semantic Caching implementation options (GPTCache, RedisVL, Portkey, Helicone)
 
