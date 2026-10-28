@@ -8,6 +8,9 @@ last_update:
 reading_time: 30
 tags:
   - llm-classifier
+  - inference-extension
+  - epp
+  - inferencepool
   - cloudfront
   - waf
   - semantic-caching
