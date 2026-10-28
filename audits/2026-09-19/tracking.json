@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 1744,
-    "open": 163,
+    "source_correction_accepted": 1756,
+    "open": 151,
     "withdrawn": 284
   },
   "assignment_counts": {
@@ -5980,9 +5980,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "dcc9ad81f2f35617f38eb76f7473e545b20d160c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-adv-001"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -5991,9 +5994,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "dcc9ad81f2f35617f38eb76f7473e545b20d160c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-adv-002"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -6248,9 +6254,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "7eeb429ff6085a4ce1a122a3b29b1836efbc8467",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-basic-009"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -6682,8 +6691,11 @@
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "d825738cd9788e16cd7396e884e0ad2c57ce39f7",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-cpipe-010"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -6720,9 +6732,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "d825738cd9788e16cd7396e884e0ad2c57ce39f7",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-cpipe-013"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -6774,8 +6789,11 @@
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "50a92206d8b5fd5cd45d6db6dec74392bb0b2aac",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-ctidx-004"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -7500,9 +7518,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "7565bec6ae716626a815db504ebb8d73ed76492f",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-guard-007"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -7831,8 +7852,11 @@
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "d62ec78395868febc8e35a17031f1a0c7592443b",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-llmops-010"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -8133,8 +8157,11 @@
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "5aa54c513293df7820e3e3e0fa13aca35fef1ad2",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-mon-006"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -8297,9 +8324,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "912980fd9f643655384112c0a288591908c7fe53",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aor-monset-008"
+      ]
     },
     {
       "package": "agentic-operations",
@@ -9249,8 +9279,11 @@
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "f6d1ac9765b9534a471418a76972ae69bf679b46",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-parfit-milvus-006"
+      ]
     },
     {
       "package": "agentic-reference",
@@ -9343,9 +9376,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "f6d1ac9765b9534a471418a76972ae69bf679b46",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-parfit-milvus-013"
+      ]
     },
     {
       "package": "agentic-reference",
@@ -9533,9 +9569,12 @@
       "issue": 96,
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "9b14e39136fc8eac3982a2a8e4b056adee0b47d1",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-parfit-setup-duplicate-heading"
+      ]
     },
     {
       "package": "agentic-reference",
@@ -9802,8 +9841,11 @@
       "proposed_issue_key": "agentic-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/96",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "f79de31b98f7ccc9c309caba8ee9816bf439c399",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-parfit-trouble-002"
+      ]
     },
     {
       "package": "agentic-reference",
@@ -10193,9 +10235,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "a1e450a4af1a7f50a179213d11cd5be41ff78787",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-011"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10316,9 +10361,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "a1e450a4af1a7f50a179213d11cd5be41ff78787",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-020"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -15364,8 +15412,11 @@
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "ae435a9b3066a0dde2106607f604e1d67804313c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-199"
+      ]
     },
     {
       "package": "eks-operations",
@@ -16024,8 +16075,11 @@
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "ae435a9b3066a0dde2106607f604e1d67804313c",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hyp-ops-253"
+      ]
     },
     {
       "package": "eks-operations",
@@ -21510,8 +21564,11 @@
       "proposed_issue_key": "aidlc",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/99",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aidlc-c035"
+      ]
     },
     {
       "package": "aidlc",
@@ -21571,8 +21628,11 @@
       "proposed_issue_key": "aidlc",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/99",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "f30f656077c2b5e8d21eba79777bc854c85974db",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aidlc-c040"
+      ]
     },
     {
       "package": "aidlc",
@@ -23505,9 +23565,12 @@
       "issue": 99,
       "proposed_issue_key": "aidlc",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/99",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "7667b7021156917380b8c38ab405e64178a6e3ce",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-aidlc-c184"
+      ]
     },
     {
       "package": "aidlc",
@@ -26756,9 +26819,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "94a25ba53bad4d769f25b84f4bae6c97d72efc86",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-eo-av-karp-01"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
