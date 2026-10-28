@@ -1,0 +1,190 @@
+/* RalphModelComparison — leaderboard-style ranked bars; colors via --ep-* tokens. */
+
+.cards {
+  list-style: none;
+  margin: 0 0 var(--ep-space-4, 1rem);
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--ep-space-3, 0.75rem);
+}
+
+.card {
+  margin: 0;
+  padding: var(--ep-space-3, 0.75rem) var(--ep-space-4, 1rem);
+  border: 1px solid var(--ep-outline-variant);
+  border-radius: 8px;
+  background: var(--ep-surface-container-lowest);
+  color: var(--ep-on-surface);
+}
+
+.cardLabel {
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  color: var(--ep-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cardModel {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+.cardValue {
+  margin-top: 0.15rem;
+  font-family: var(--ep-font-mono, monospace);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: var(--ep-space-4, 1rem) var(--ep-space-5, 1.5rem);
+}
+
+.panel {
+  min-width: 0;
+}
+
+.panelTitle {
+  font-weight: 600;
+  color: var(--ep-on-surface);
+}
+
+.panelSub {
+  font-size: var(--ep-font-size-caption, 0.8rem);
+  color: var(--ep-on-surface-variant);
+  margin-bottom: var(--ep-space-2, 0.5rem);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* rank | name | bar | value — names own their column, so nothing overlaps. */
+.row {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(7.5rem, 9.5rem) minmax(2rem, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+  color: var(--ep-on-surface);
+  border-bottom: 1px solid color-mix(in srgb, var(--ep-outline-variant) 45%, transparent);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.rank {
+  font-family: var(--ep-font-mono, monospace);
+  color: var(--ep-on-surface-variant);
+  text-align: right;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.nameText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mark {
+  flex: none;
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.track {
+  display: block;
+  height: 0.6rem;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ep-outline-variant) 35%, transparent);
+  overflow: hidden;
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.value {
+  font-family: var(--ep-font-mono, monospace);
+  text-align: right;
+  white-space: nowrap;
+  min-width: 4.2rem;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ep-space-2, 0.5rem) var(--ep-space-4, 1rem);
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ep-space-2, 0.5rem);
+}
+
+.swatch {
+  display: inline-block;
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 2px;
+  border: 1px solid var(--ep-outline-variant);
+}
+
+/* Data fallback table */
+.details {
+  margin-top: var(--ep-space-3, 0.75rem);
+  font-size: var(--ep-font-size-caption, 0.875rem);
+  color: var(--ep-on-surface);
+}
+
+.details summary {
+  cursor: pointer;
+}
+
+.tableScroll {
+  margin-top: var(--ep-space-2, 0.5rem);
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ep-font-size-table, 0.9rem);
+}
+
+.table th,
+.table td {
+  padding: var(--ep-space-2, 0.5rem) var(--ep-space-3, 0.75rem);
+  border-bottom: 1px solid var(--ep-outline-variant);
+  text-align: left;
+}
+
+.num {
+  text-align: right;
+  font-family: var(--ep-font-mono, monospace);
+  white-space: nowrap;
+}
