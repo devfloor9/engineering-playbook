@@ -3,9 +3,9 @@ title: Autonomous Response
 description: AI Agent-based autonomous incident response — Strands/Kagent integration, Chaos Engineering + AI, ontology feedback loop
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 16
+reading_time: 24
 tags:
   - aidlc
   - operations
@@ -60,7 +60,7 @@ The core of AIOps is a model where **humans define Intent and guardrails, and th
 - Declaratively define operational scenarios as Specs
 - System executes programmatically
 - Suitable for: Repetitive deployments, standardized operational procedures
-- Core: Define Spec once → unlimited repeated execution
+- Core: Define Spec once → near-zero marginal authoring cost on reuse (each execution still incurs compute/API cost)
 
 **Agent-Driven (Autonomous)**
 - AI Agent detects events → collects context → autonomous response
@@ -137,10 +137,13 @@ graph TD
 
 ### 3.3 Kagent Automatic Incident Response
 
-**Kagent** is a Kubernetes Native AI Agent that defines automatic responses through CRDs.
+**Kagent** is a Kubernetes Native AI Agent that defines automatic responses through CRDs. The manifest below is an example: set `apiVersion` to match the CRD of your installed kagent version (the schema varies by version), and set `model` to a real Bedrock model ID enabled in your Region.
+
+The numeric and action limits written in the systemPrompt (HPA ±50%, escalate when 50%+ of replicas are affected, StatefulSet changes, etc.) are only guidance to the model and the model may not honor them. Quantitative limits and prohibited actions must be enforced outside the model. For example, restrict allowed verbs with Kubernetes RBAC, and block the magnitude of change (e.g., replica-change ratio) and targets (StatefulSet, NetworkPolicy) with an admission policy such as OPA/Gatekeeper or Kyverno.
 
 ```yaml
 # Kagent: Automatic incident response agent
+# Set apiVersion to the CRD of your installed kagent version (schema varies by version)
 apiVersion: kagent.dev/v1alpha1
 kind: Agent
 metadata:
@@ -150,7 +153,7 @@ spec:
   description: "EKS incident automatic response agent"
   modelConfig:
     provider: bedrock
-    model: anthropic.claude-sonnet
+    model: anthropic.claude-3-5-sonnet-20241022-v2:0  # a real Bedrock model ID enabled in the Region
     region: ap-northeast-2
   systemPrompt: |
     You are an EKS incident response agent.
@@ -200,18 +203,31 @@ spec:
 
 ### 3.4 Strands Agent SOP: Complex Failure Response
 
-**Strands** is a Python-based OSS Agent framework that defines SOPs (Standard Operating Procedures) as code.
+**Strands** is a Python-based OSS Agent framework that defines operating procedures (SOPs, Standard Operating Procedures) as a system prompt. The example below follows the real Strands Agents SDK API: define tools with the `@tool` decorator (`eks_tool` and the others here are placeholders you must implement), and pass the operating procedure via `system_prompt=`, not `sop=`. Pin the SDK version and confirm its API before applying this.
 
 ```python
 # Strands Agent: Automatic complex failure response
-from strands import Agent
-from strands.tools import eks_tool, cloudwatch_tool, slack_tool, jira_tool
+from strands import Agent, tool
+
+# Define tools with @tool (the following are placeholders — implement them)
+@tool
+def eks_tool(action: str) -> dict:
+    ...
+@tool
+def cloudwatch_tool(query: str) -> dict:
+    ...
+@tool
+def slack_tool(message: str) -> dict:
+    ...
+@tool
+def jira_tool(summary: str) -> dict:
+    ...
 
 incident_agent = Agent(
     name="complex-incident-handler",
-    model="bedrock/anthropic.claude-sonnet",
+    model="bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0",
     tools=[eks_tool, cloudwatch_tool, slack_tool, jira_tool],
-    sop="""
+    system_prompt="""
     ## Complex Failure Response SOP
 
     ### Phase 1: Situation Assessment (within 30 seconds)
@@ -227,21 +243,21 @@ incident_agent = Agent(
     4. Check dependent service status
 
     ### Phase 3: Automatic Response
-    Automatic actions by cause:
+    Automatic actions by cause (confirm the correlating evidence for each cause before acting):
 
     **Deployment-Related Failures:**
-    - If deployment exists within last 10 minutes → automatic rollback
+    - If a deployment exists within the last 10 minutes AND errors began after that deploy (correlation confirmed) → automatic rollback
     - Check status after rollback → complete if normalized
 
     **Resource Shortage:**
-    - If CPU/Memory > 90% → adjust HPA or add Karpenter nodes
+    - If CPU/Memory > 90% AND the saturation is sustained (not a transient spike) → adjust HPA or add Karpenter nodes
     - If Disk > 85% → clean unnecessary logs/images
 
     **Dependent Service Failures:**
-    - RDS connection failure → check connection pool settings, restart if needed
+    - If RDS connection failure coincides in time with application errors → check connection pool settings, restart if needed
     - SQS delays → check DLQ, scale out consumers
 
-    **Unknown Cause:**
+    **Unknown Cause or Insufficient Correlation:**
     - Escalate to human
     - Share all collected data on Slack
 
@@ -339,11 +355,14 @@ kind: Job
 metadata:
   name: update-knowledge-base
 spec:
+  backoffLimit: 3                 # retry count on failure
   template:
     spec:
+      restartPolicy: Never        # Job Pods require Never or OnFailure
       containers:
         - name: learner
           image: my-registry/incident-learner:latest
+          command: ["python", "/app/learn.py"]
           env:
             - name: INCIDENT_ID
               value: "INC-2026-04-07-001"
@@ -507,12 +526,11 @@ chaos_analyzer = Agent(
     "eks-payment-pods": {
       "resourceType": "aws:eks:pod",
       "selectionMode": "COUNT(2)",
-      "resourceTags": {
-        "app": "payment-service"
-      },
       "parameters": {
         "clusterIdentifier": "my-cluster",
-        "namespace": "payment"
+        "namespace": "payment",
+        "selectorType": "labelSelector",
+        "selectorValue": "app=payment-service"
       }
     }
   },
@@ -521,8 +539,8 @@ chaos_analyzer = Agent(
       "actionId": "aws:eks:pod-delete",
       "parameters": {
         "kubernetesServiceAccount": "fis-experiment-role",
-        "maxPodsToDelete": "2",
-        "podDeletionMode": "one-at-a-time"
+        "duration": "PT1M",
+        "gracePeriod": "30"
       },
       "targets": {
         "Pods": "eks-payment-pods"
@@ -542,9 +560,11 @@ chaos_analyzer = Agent(
 }
 ```
 
+An `aws:eks:pod` target cannot be identified by resource ARN or tags; it must be identified by resource parameters such as `clusterIdentifier`, `namespace`, and `selectorType`/`selectorValue`. The number of Pods to delete is limited by the target's `selectionMode` (e.g., `COUNT(2)`), not by an action parameter.
+
 **Safety Measures**:
-- **PodDisruptionBudget** compliance: Guarantee minimum availability
-- **stopConditions**: Automatic stop on SLO violations
+- **PodDisruptionBudget**: used as a minimum-availability bound for ordinary voluntary disruptions, but FIS `aws:eks:pod-delete` does not honor PDB, so a PDB alone does not guarantee availability. Limit the blast radius with `selectionMode`.
+- **stopConditions**: stop further fault injection on an SLO violation (they do not instantly recover impact that already occurred).
 - **Progressive expansion**: Gradual expansion from 1 → 10% → 25%
 
 :::tip Chaos Engineering + AI Feedback Loop
@@ -625,6 +645,8 @@ spec:
 <AiopsMaturityModel />
 
 ### Maturity Levels and Autonomous Response
+
+The five-level (Level 0-4) model below is this document's proposed classification, not an external standard. The implementation-method examples for each level are kept consistent with the definitions in the `AiopsMaturityModel` component above.
 
 | Level | Autonomous Response Level | Implementation Method |
 |------|-------------|----------|

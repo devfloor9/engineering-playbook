@@ -3,9 +3,9 @@ title: Audit & Governance Logging
 description: AIDLC Checkpoint Approval gates and ISO 8601-based audit logs — Implementation guide for AIDLC audit trails in regulated industries
 created: "2026-04-18"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 12
+reading_time: 17
 tags:
   - aidlc
   - audit
@@ -76,10 +76,12 @@ AIDLC System:
   - Original User Request
   - Original AI-presented 5-option choices
   - Original user response `[Answer]: A`
-  - Model used (`claude-opus-4-7` version, temperature 0, seed 42)
+  - Model used and call parameters (`claude-opus-4-*` version, temperature 0, etc.)
   - List of activated Extensions
   - Artifact SHA-256 hash
-  → Same input re-execution can generate identical results
+  → Recording the model version and parameters lets you reconstruct the decision context and
+    re-run it similarly (but LLM outputs are not bit-for-bit deterministic, and Bedrock/Anthropic
+    Claude expose no seed parameter, so identical inputs do not guarantee identical outputs)
 ```
 
 ---
@@ -166,7 +168,9 @@ Regulated industries require **stage transitions cannot proceed with single appr
 | User Stories → Workflow Planning | Architect | PM | - | - |
 | Workflow Planning → Application Design | Architect | Security Lead | - | Threat model required |
 | Application Design → Units Generation | Architect | Security Lead | Compliance | Regulatory mapping required |
-| Construction → Production Deploy | Architect | Security Lead | Compliance + SRE | 4-person approval |
+| Construction → Production Deploy | Architect | Security Lead | Compliance + SRE | All 4 approvers |
+
+The quorum for each transition equals the number of approvers listed in that row. For example, Requirements → User Stories needs one approver (Architect), while Construction → Production Deploy needs all four (Architect, Security Lead, Compliance, and SRE). Each approval is bound not just by name but by the KMS signature in §3.4, and is valid only when the KMS key (or identity-provider account) used for signature verification maps to the named approver. Approvals that are unsigned or whose identity is not mapped do not count toward the quorum.
 
 ### 2.4 Auto-Block Conditions
 
@@ -239,7 +243,7 @@ event:
   stage: requirements_analysis
   event_type: question_asked
   actor:
-    type: [human | ai_agent | system]
+    type: human                               # Allowed values: human | ai_agent | system
     id: yjeong@example.com
   sequence_number: 42                         # Sequence guarantee within session
 
@@ -332,6 +336,10 @@ event:
   signatures:
     method: "AWS KMS sign-verify"
     key_id: "arn:aws:kms:us-east-2:...:key/xxx"
+    # Canonical signed content: SHA-256 of the normalized concatenation of the three values
+    #   content_hash + "|" + gate.id + "|" + actor.id
+    signed_content: "sha256(abc123...|gate-2026-04-18-042|architect@example.com)"
+    signer_identity: architect@example.com    # the principal using key_id maps to this approver
     signature: "base64..."
 ```
 
@@ -434,9 +442,11 @@ audit_manifest:
       covered_controls: [Section 404]
 ```
 
+The manifest's `worm_enabled`, `retention`, and `chain_of_custody` are metadata that describe state; they are not enforcing by themselves. The actual enforcement is done by storage-side configuration: apply `worm_enabled`/`retention` through the S3 Object Lock retention mode (Compliance or Governance) and period, and reinforce the delete/overwrite prohibition with a bucket policy. Whether the manifest values match the actual Object Lock configuration is checked in the §7.1 checklist and the monthly integrity verification.
+
 ### 4.3 Hash Chain Structure
 
-Each event includes the hash of the previous event to form a **tamper-proof chain**:
+Each event includes the hash of the previous event to form a **tamper-evident chain**:
 
 ```yaml
 event:
@@ -451,6 +461,8 @@ event:
 # 2. next_event.previous_event_hash == this event.content_hash
 # 3. If chain breaks, tampering detected
 ```
+
+A hash chain alone does not prevent tampering, because anyone who holds the whole log can recompute the chain from the start. For the chain to work as tamper detection, it must be anchored in independently protected evidence — for example, storing it under S3 Object Lock (WORM), periodically leaving a KMS-signed checkpoint of the chain head, or registering the chain head with an external timestamp authority.
 
 ---
 
@@ -598,9 +610,9 @@ This document operationalizes the following AIDLC [Common Rules](../methodology/
 
 ### 7.1 Build Audit Infrastructure
 
-- [ ] S3 bucket + Object Lock (WORM) enable
-- [ ] KMS key creation (dedicated to audit logs, no rotation for 7+ years)
-- [ ] Glacier Deep Archive linkage (7automatic migration after 7 years)
+- [ ] S3 bucket + Object Lock (WORM) enable — set 7-year retention as the Object Lock retention period
+- [ ] KMS key creation (dedicated to audit logs) — automatic key rotation may stay enabled; old key versions are retained, so past logs remain decryptable
+- [ ] Glacier Deep Archive linkage (automatic migration per the 7-year retention lifecycle)
 - [ ] CloudTrail Data Events for S3 access logging
 - [ ] VPC Endpoint for S3 access path isolation
 
