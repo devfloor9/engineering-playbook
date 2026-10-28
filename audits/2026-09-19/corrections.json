@@ -46660,6 +46660,296 @@
       ],
       "primary_urls": [],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-01",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text claimed '80% of enterprises plan to adopt AI agents in 2026' as sourced fact; now states qualitatively that many enterprises plan to adopt AI agents, with no unsourced percentage.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "No primary survey (publisher, sample, question, year) could be confirmed, and the brief forbids attributing the figure to a retrieved secondary survey, so the unsupported number was removed and the relationship stated in words (preference order 3)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-02",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-02",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text claimed container orchestration is required ('production impossible without it') and that an EKS-based platform is 'essential'; now states container orchestration is an important foundation and EKS is advantageous for specific control/GPU/existing-Kubernetes needs while acknowledging Bedrock-only or other execution environments.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "Necessity claims are not supportable because other suitable execution environments exist; qualified to the conditions that favour EKS and aligned the Section 2 and Q4 statements (preference order 2)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-06",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-06",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO claimed Hybrid Nodes 'guarantee' (보장) data sovereignty, stronger than EN; both locales now describe Hybrid Nodes as placing workloads/data on-premises and state that data-sovereignty/compliance depends on reviewing each customer's data flows and applicable regulations.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "Workload placement is a capability; residency/compliance is a customer-specific assessment, so the guarantee wording was replaced and the two locales aligned (preference order 2)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-07",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-07",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text labelled the EKS control plane 'PCP dedicated' and claimed EKS is 'the only one to offer a 99.99% SLA dedicated control plane'; now labels it Provisioned Control Plane (99.99% SLA) and states it is higher than the 99.95% standard control plane SLA, with the unsupported 'dedicated/only one' tenancy/exclusivity claim removed.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "The AWS announcement (Mar 20, 2026) confirms PCP = Provisioned Control Plane, a 99.99% SLA (1-minute intervals) vs 99.95% standard; PCP is pre-provisioned capacity tiers, not single-tenant/dedicated, and no cross-provider 'only one' comparison is supported (preference order 1 for the figure, order 3 for the tenancy claim)."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/about-aws/whats-new/2026/03/amazon-eks-announces-sla-8xl-scaling-tier/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-08",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-08",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Table cell conflated DRA availability ('Karpenter v1.14+ supports DRA'); now states DRA is supported with Karpenter v1.14+ on managed node groups and self-managed nodes, not on EKS Auto Mode, and requires Kubernetes 1.34+.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "AWS device-management docs state DRA works with Karpenter/managed node groups/self-managed nodes and is not supported with EKS Auto Mode; karpenter.sh states DRA requires Kubernetes 1.34+. Karpenter v1.14 (Jul 11, 2026) added DRA (preference order 1)."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/device-management.html",
+        "https://karpenter.sh/docs/tasks/dra/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-09",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-09",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "A 'GPU instances' row listed 'H100, L40S, Inferentia2, Trainium' as if a complete inventory, mixing GPUs with purpose-built accelerators; the row is now 'Accelerator instances (examples)' and separates GPUs (H100, L40S) from purpose-built accelerators (Inferentia2, Trainium), labelled as examples.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "Device-class mixing and complete-inventory framing were corrected by separating the classes and marking the list as examples rather than re-deriving a verified full inventory (preference order 2)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-10",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-10",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text claimed managed agents 'automate infrastructure operations' and that migrating 15+ Pods 'reduces operational complexity by 80%'; now names what each service manages, retains customer responsibility for models/permissions/code/evaluation/operations, distinguishes advice from executed actions, and removes the unsourced 80% figure.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "The 80% figure has no source and 'complete operations' overstates managed scope; qualified the capability and removed the number (preference order 2)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-11",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-11",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text claimed 'chatbots handle only predefined rules or simple Q&A'; now scopes the comparison to a rule-based chatbot, notes LLM-based conversational systems respond more broadly, then contrasts the agent's tool use / decisions / multi-step execution.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "The blanket chatbot claim excluded LLM-based conversational systems; narrowed to a rule-based example (preference order 2)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-12",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-12",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Event date was '(Wed)/(수)' though April 9, 2026 is a Thursday, and open-registration language ('early registration recommended', '200명 한정') implied an active event; the weekday is corrected to Thursday/(목), an archival :::note marks the document as a historical speaking script, and registration/remaining-seat language is reframed as a past event (capacity operated at 200).",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "April 9, 2026 = Thursday confirmed via `date -d 2026-04-09` (Thursday); archival framing and removal of open-registration implications per the item's proposed_edit (preference order 1 for the weekday)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-13",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-13",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text promised 'PoC priority allocation and dedicated AWS SA support' and a 2-week PoC with no conditions; now makes the PoC/SA offer conditional on eligibility, staffing availability, and internal approval, distinguishes the 2-week PoC as one stage of the 4-week track, and states it does not guarantee production readiness.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "docs/sales/mrc-talking-points.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "No public terms exist for the staffing/delivery promises; qualified with publishable conditions and separated PoC phase from the overall track (preference order 2)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hr-sales-14",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-SALES-14",
+      "issue": 100,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO required 'infrastructure that runs an LLM' (self-hosting), narrower than EN 'a way to run or access models'; KO now reads 'run models directly or access them via a hosted-model API', matching EN which was already correct.",
+      "recorded_on": "2026-10-19",
+      "reviewed_revision": "2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4",
+      "source_commits": [
+        "a441d3bd6de264c4b72831001091cb38756f2dad",
+        "c6dc5b4ba330dc06ba2a24ff937fb9426f7e05e0"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/sales/mrc-talking-points.md"
+      ],
+      "verification": [
+        "Group branch fix/g100-sales-u1 merged by PR #174 (https://github.com/devfloor9/engineering-playbook/pull/174); merge commit 2491b03178e470be37f9aeb6f1dbaac2a3bd7ee4; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main.",
+        "Only the KO locale was stale; brought it to the EN meaning per the partially-divergent evidence (preference order 2). EN needed no change."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
     }
   ]
 }
