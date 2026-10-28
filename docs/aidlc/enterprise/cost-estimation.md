@@ -3,7 +3,7 @@ title: Cost Effectiveness Framework
 description: Quantifying AIDLC Cost Effectiveness — RFP Estimation Model, Ontology/Harness ROI, Open Weight TCO Comparison
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 45
 tags:
@@ -158,7 +158,7 @@ Dollar-denominated costs are converted at ₩1,350/$ (illustrative rate as of 20
 | Initial harness engineering setup | 1-2 weeks (2 DevOps) | ₩20-40M |
 | AIDLC training | 10 developers × 1 week | ₩30M |
 | AI tool licensing (first 3 months) | Claude Team 10 people × $30/month × 3 months = $900 | ≈₩1.2M |
-| **Total** | | **≈₩102-172M** |
+| **Total** | | **≈₩101-171M** |
 
 For medium projects (₩2B), initial investment ratio is approximately **5.1-8.6%**. This cost is concentrated during the first Bolt cycle (2-4 weeks), after which savings accumulate.
 

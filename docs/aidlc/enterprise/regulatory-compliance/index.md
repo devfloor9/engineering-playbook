@@ -3,7 +3,7 @@ title: AI Regulatory Compliance Framework
 description: "AIDLC integration guide for 4 frameworks: EU AI Act, NIST AI RMF, ISO/IEC 42001, and Korea AI Basic Act"
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 13
 tags:
@@ -22,7 +22,7 @@ As of 2026, global enterprises face a complex environment requiring **simultaneo
 
 - **EU**: AI Act (adopted 2024, phased application 2025-2027: prohibitions Feb 2025, GPAI obligations Aug 2025, general application and Annex III high-risk Aug 2026, Annex I high-risk Aug 2027)
 - **United States**: NIST AI RMF 1.0 (voluntary framework), applicable federal and agency procurement policies, state-level regulations
-- **Korea**: AI Framework Act (AI 기본법, enforcement expected 2026)
+- **Korea**: AI Framework Act (AI 기본법, in force since 22 January 2026)
 - **International Standard**: ISO/IEC 42001:2023 (AI Management System certification)
 
 ### Why AIDLC Integration is Essential

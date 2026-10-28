@@ -3,7 +3,7 @@ title: AI 규제 컴플라이언스 프레임워크
 description: EU AI Act, NIST AI RMF, ISO/IEC 42001, 한국 AI 기본법 4개 프레임워크의 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 7
 tags:
@@ -22,7 +22,7 @@ sidebar_label: Regulatory Compliance
 
 - **EU**: AI Act (2024 채택, 2025-2027 단계적 적용: 금지 조항 2025년 2월, GPAI 의무 2025년 8월, 일반·고위험 2026년 8월, Annex I 고위험 2027년 8월)
 - **미국**: NIST AI RMF 1.0 (자발적 프레임워크), 적용되는 연방·기관별 조달 정책, 주별 개별 규제
-- **한국**: AI 기본법 (2026 시행 예정)
+- **한국**: AI 기본법 (2026년 1월 22일 시행)
 - **국제 표준**: ISO/IEC 42001:2023 (AI Management System 인증)
 
 ### 왜 AIDLC 통합이 필요한가
