@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 989,
-    "open": 1201,
+    "source_correction_accepted": 1175,
+    "open": 1015,
     "withdrawn": 1
   },
   "assignment_counts": {
@@ -9994,9 +9994,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-auth-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10005,9 +10008,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-auth-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10016,9 +10022,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-auth-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10027,9 +10036,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-auth-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10125,9 +10137,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10136,9 +10151,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10147,9 +10165,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10158,9 +10179,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-010"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10180,9 +10204,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-012"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10191,9 +10218,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-013"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10202,9 +10232,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-014"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10213,9 +10246,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-015"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10224,9 +10260,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-016"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10235,9 +10274,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-017"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10246,9 +10288,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-018"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10257,9 +10302,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-019"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10279,9 +10327,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-021"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10290,9 +10341,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-022"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10301,9 +10355,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-023"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10312,9 +10369,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-024"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10323,9 +10383,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cb-025"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10334,9 +10397,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10345,9 +10411,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10356,9 +10425,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10367,9 +10439,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10378,9 +10453,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10389,9 +10467,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10400,9 +10481,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10411,9 +10495,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10422,9 +10509,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10433,9 +10523,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-010"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10444,9 +10537,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-011"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10455,9 +10551,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-012"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10466,9 +10565,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-013"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10477,9 +10579,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-014"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10488,9 +10593,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-015"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10499,9 +10607,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-016"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10510,9 +10621,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-017"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10521,9 +10635,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-018"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10532,9 +10649,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-019"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10543,9 +10663,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-020"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10554,9 +10677,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-021"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10565,9 +10691,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-022"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10576,9 +10705,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-023"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10587,9 +10719,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cd-024"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10598,9 +10733,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cni-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10609,9 +10747,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cni-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10620,9 +10761,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cni-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10631,9 +10775,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cni-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10642,9 +10789,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cni-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10653,9 +10803,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cni-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10664,9 +10817,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-cni-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10675,9 +10831,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10686,9 +10845,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10697,9 +10859,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10708,9 +10873,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10719,9 +10887,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10730,9 +10901,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10741,9 +10915,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10752,9 +10929,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10763,9 +10943,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10774,9 +10957,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-crd-010"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10785,9 +10971,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dns-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10796,9 +10985,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dns-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10807,9 +10999,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dns-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10818,9 +11013,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dns-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10829,9 +11027,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10840,9 +11041,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10851,9 +11055,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10862,9 +11069,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10873,9 +11083,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10884,9 +11097,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10895,9 +11111,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10906,9 +11125,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10917,9 +11139,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-dra-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10928,9 +11153,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10939,9 +11167,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10950,9 +11181,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10961,9 +11195,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10972,9 +11209,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10983,9 +11223,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -10994,9 +11237,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11005,9 +11251,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11016,9 +11265,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11027,9 +11279,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-010"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11038,9 +11293,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-011"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11049,9 +11307,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-012"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11060,9 +11321,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-013"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11071,9 +11335,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-014"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11082,9 +11349,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-015"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11093,9 +11363,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-016"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11104,9 +11377,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-017"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11115,9 +11391,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-018"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11126,9 +11405,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-019"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11137,9 +11419,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-020"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11148,9 +11433,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ew-021"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11159,9 +11447,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11170,9 +11461,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11181,9 +11475,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11192,9 +11489,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11203,9 +11503,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11214,9 +11517,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11225,9 +11531,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11236,9 +11545,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gamma-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11247,9 +11559,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11258,9 +11573,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11269,9 +11587,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11280,9 +11601,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11291,9 +11615,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11302,9 +11629,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11313,9 +11643,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11324,9 +11657,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11335,9 +11671,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11346,9 +11685,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-010"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11357,9 +11699,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-011"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11368,9 +11713,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-012"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11379,9 +11727,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-013"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11390,9 +11741,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-014"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11401,9 +11755,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-015"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11412,9 +11769,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-016"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11423,9 +11783,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-017"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11445,9 +11808,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-019"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11456,9 +11822,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-020"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11478,9 +11847,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-022"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11489,9 +11861,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-023"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11501,8 +11876,11 @@
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
       "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-gw-024"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11511,9 +11889,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-kyverno-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11522,9 +11903,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11533,9 +11917,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11544,9 +11931,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11555,9 +11945,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11566,9 +11959,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11577,9 +11973,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11588,9 +11987,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11599,9 +12001,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11610,9 +12015,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11621,9 +12029,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-010"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11632,9 +12043,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mesh-011"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11643,9 +12057,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11654,9 +12071,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11665,9 +12085,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11687,9 +12110,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11698,9 +12124,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11709,9 +12138,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11720,9 +12152,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11731,9 +12166,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "cc87d7005088909a7cd155b34f25347867e44137",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-mg-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11742,9 +12180,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-multimesh-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11764,9 +12205,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-multimesh-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11775,9 +12219,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-multimesh-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11797,9 +12244,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-multimesh-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11819,9 +12269,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nav-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11830,9 +12283,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nav-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11841,9 +12297,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nav-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11852,9 +12311,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nitro-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11863,9 +12325,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nitro-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11874,9 +12339,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nitro-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11885,9 +12353,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nitro-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11896,9 +12367,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nitro-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11907,9 +12381,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "04454f993b4eb33f1a7043f278111b582412d850",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-nitro-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11918,9 +12395,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11929,9 +12409,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11940,9 +12423,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11951,9 +12437,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11962,9 +12451,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11973,9 +12465,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11984,9 +12479,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -11995,9 +12493,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12006,9 +12507,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-009"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12017,9 +12521,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-010"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12028,9 +12535,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-011"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12039,9 +12549,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-ns-012"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12050,9 +12563,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-pcp-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12061,9 +12577,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12072,9 +12591,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12083,9 +12605,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12094,9 +12619,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12105,9 +12633,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-005"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12116,9 +12647,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-006"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12127,9 +12661,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-007"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12138,9 +12675,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-repl-008"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12149,9 +12689,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-resource-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12160,9 +12703,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-resource-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12171,9 +12717,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-resource-003"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12182,9 +12731,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-resource-004"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12193,9 +12745,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-sec-001"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12204,9 +12759,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-sec-002"
+      ]
     },
     {
       "package": "eks-platform-networking",
@@ -12215,9 +12773,12 @@
       "issue": 97,
       "proposed_issue_key": "eks-platform",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/97",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "27bbe45c5daba1e55e6001324e6cbb03b0cc5659",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-epn-sec-003"
+      ]
     },
     {
       "package": "eks-operations",
