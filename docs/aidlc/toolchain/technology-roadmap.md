@@ -3,9 +3,9 @@ title: Technology Roadmap
 description: AIDLC technology investment decision-making — Build-vs-Wait matrix, tool maturity assessment, 6/12/18-month horizons
 created: "2026-04-07"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-15
   author: devfloor9
-reading_time: 29
+reading_time: 35
 tags:
   - aidlc
   - toolchain
@@ -41,8 +41,10 @@ Use the **Urgency × Maturity Matrix** (see Section 3) to determine adoption tim
 
 ### 1.2 2026 Technology Environment Characteristics
 
+The versions below are a point-in-time snapshot as of Q2 2026 and are kept identical across both language documents. Actual versions change over time, so re-confirm against each project's release notes at adoption.
+
 **Mature Technologies:**
-- Kubernetes (v1.35 GA, includes DRA)
+- Kubernetes (v1.35 baseline; DRA reached GA in v1.34)
 - vLLM (v0.18+, PagedAttention v2)
 - GitOps (Argo CD, Flux CD)
 - ACK (50+ AWS services GA)
@@ -52,10 +54,9 @@ Use the **Urgency × Maturity Matrix** (see Section 3) to determine adoption tim
 - MCP (Model Context Protocol) server ecosystem (50+ open-source servers)
 - AI coding agents (Kiro, Q Developer, Cursor, Windsurf)
 - Kubernetes operators (KRO, Kagent)
-- Distributed inference engines (llm-d v0.5, Dynamo v1.x)
+- Distributed inference engines (llm-d v0.5+, Dynamo v1.x)
 
 **Early Stage:**
-- Strands Agents SDK (Early Access)
 - Bedrock AgentCore (Preview)
 - Kagent (Early, community-driven)
 
@@ -75,7 +76,7 @@ The following table summarizes maturity, recommendations, and alternative availa
 | **Gateway API + LBC v3** | GA | ✅ Immediate Adoption | ExtProc support, AI Gateway foundation. Alternative: Istio + EnvoyFilter |
 | **MCP Servers** | Varies by server | 🟡 Selective Adoption | Large maturity variance by tool. Adopt only stabilized ones after experimentation. See [MCP Registry](https://registry.modelcontextprotocol.io) |
 | **Kagent** | Early | 🟠 Experimental | K8s AI Agent automation. Thorough testing before production. Alternative: kubectl + scripts |
-| **Strands Agents SDK** | GA | ✅ For Custom Agents | Bedrock Agents + CDK based. Alternatives: LangGraph, CrewAI |
+| **Strands Agents SDK** | GA | ✅ For Custom Agents | Model/provider-agnostic open-source agent SDK, separate from Bedrock AgentCore (managed runtime) and CDK deployment. Alternatives: LangGraph, CrewAI |
 | **vLLM** | v0.18+ (Mature) | ✅ For Data Residency | Open-weight model serving. Alternatives: TensorRT-LLM, SGLang |
 | **llm-d** | v0.5+ (GA) | 🟡 Advanced Users | Disaggregated Serving, NIXL KV transport. Alternatives: Ray Serve, vLLM multi-instance |
 | **Dynamo** | v1.x (GA) | 🟡 Advanced Users | NVIDIA enterprise inference platform. Alternatives: vLLM, TensorRT-LLM |
@@ -83,7 +84,8 @@ The following table summarizes maturity, recommendations, and alternative availa
 | **Ragas** | v0.2+ (GA) | ✅ Immediate Adoption | AI Agent evaluation framework. Alternatives: PromptFoo, TruLens |
 
 :::info Maturity Legend
-- **GA**: Production-ready, API stability guaranteed
+The grades below are a coarse composite of three axes (release stage, feature completeness, and vendor support policy). When deciding, check the three axes separately. For example, even a GA tool may have specific features in preview, and the support policy differs by vendor and plan.
+- **GA**: Release stage is General Availability, API stability guaranteed
 - **Early**: Functionality works but API changes possible
 - **Preview**: AWS preview service, experimental use
 :::
@@ -107,7 +109,7 @@ See **[AI Coding Agents](./ai-coding-agents.md)** for details.
 - **Alternatives**: GitHub Copilot (general purpose), Cursor (AI-first IDE)
 
 #### Managed Argo CD
-- **Maturity**: GA (announced at 2024 re:Invent)
+- **Maturity**: GA (announced as the EKS Argo CD Capability at re:Invent 2025)
 - **Strengths**: EKS native, AWS managed, IAM integration
 - **Weaknesses**: Vendor lock-in (AWS only), some community plugins unsupported
 - **Recommendation**: Prioritize Managed Argo CD for new EKS clusters
@@ -117,7 +119,7 @@ See **[AI Coding Agents](./ai-coding-agents.md)** for details.
 - **Maturity**: Varies greatly by server (20+ stable out of 50+ servers)
 - **Strengths**: Standardized context passing, 50+ open-source servers
 - **Weaknesses**: Large quality variance, production security validation needed
-- **Recommendation**: Adopt only stability-verified servers (e.g., `@modelcontextprotocol/server-filesystem`, `@modelcontextprotocol/server-github`)
+- **Recommendation**: Servers such as `@modelcontextprotocol/server-filesystem` and `@modelcontextprotocol/server-github` are reference/example servers provided by the MCP project, not vendor-supported products. To use them in production, harden them with authentication, authorization, and network restrictions, then adopt only servers whose stability you have verified.
 - **Alternatives**: Direct API integration (without MCP)
 
 MCP server directory: [MCP Registry](https://registry.modelcontextprotocol.io)
@@ -133,7 +135,7 @@ MCP server directory: [MCP Registry](https://registry.modelcontextprotocol.io)
 
 ## 3. Build-vs-Wait Decision Matrix
 
-The following 2x2 matrix presents tool adoption strategies based on **business urgency** and **technology maturity**.
+The following 2x2 matrix presents tool adoption strategies based on **business urgency** (vertical axis) and **technology maturity** (horizontal axis, mature → early). Both axes apply together, and the per-quadrant tool placements below are **examples**, not fixed conclusions. Urgency varies with the organization's business situation and maturity varies with the assessment date, so create your own organization-specific matrix following the procedure in Section 8.2 to finalize placements.
 
 ```mermaid
 graph TD
@@ -149,7 +151,7 @@ graph TD
         subgraph low_urgency["<b>Low Urgency</b>"]
             direction LR
             quadrant3["<b>🟡 Monitor</b><br/>- Gateway API<br/>- Langfuse<br/>- Ragas<br/>→ Track community trends"]
-            quadrant4["<b>🔴 Wait</b><br/>- Strands Agents (Early Access)<br/>- Bedrock AgentCore (Preview)<br/>→ Wait for GA transition"]
+            quadrant4["<b>🔴 Wait</b><br/>- Bedrock AgentCore (Preview)<br/>→ Wait for GA transition"]
         end
     end
 
@@ -186,7 +188,7 @@ graph TD
 - **Characteristics**: Preview/Early Access stage, low business urgency
 - **Approach**: Wait until GA transition, conduct only benchmarking
 - **Risk**: Low (wait cost < early adoption risk)
-- **Example Tools**: Strands Agents (Early Access), Bedrock AgentCore (Preview)
+- **Example Tools**: Bedrock AgentCore (Preview)
 
 ---
 
@@ -287,6 +289,12 @@ When selecting AIDLC tools, consider **vendor lock-in risk** and **portability**
 | **vLLM** | 🟢 Low (open source) | ✅ TensorRT-LLM, SGLang | High (OpenAI-compatible API) |
 | **Langfuse** | 🟢 Low (open source) | ✅ LangSmith, Helicone | High (OTel standard) |
 
+The "High portability" ratings above apply only to the **subset** that can be swapped via a standard interface. Vendor-specific features outside that subset require a rewrite.
+- **vLLM**: Replaceable with TensorRT-LLM/SGLang only when you use the OpenAI-compatible `chat/completions`/`completions` API; vLLM-specific server flags and extensions are not included.
+- **Gateway API / KRO**: Portable only when you use Kubernetes standard CRDs/APIs; a specific implementation's annotations and extensions are not included.
+- **Langfuse**: Portable only for OpenTelemetry standard traces/metrics; Langfuse-specific SDK calls are not included.
+- **ACK → other IaC**: Since ACK manages AWS resources as Kubernetes CRDs, migrating to Crossplane/Terraform requires: (1) identifying the AWS resource each CRD represents, (2) rewriting it in the target tool's resource definitions, (3) importing existing resources into the target tool's state without delete/recreate (e.g., `terraform import`), and (4) switching the GitOps reconciliation loop from ACK to the target controller.
+
 ### 5.1 Vendor Lock-in Mitigation Strategies
 
 #### Multi-Cloud Ready
@@ -323,8 +331,8 @@ Recommended tool combinations based on project scale and organizational maturity
 
 **Expected Investment:**
 - Initial setup: 2-3 months
-- Annual licenses: $0 (open source + AWS managed)
-- Infrastructure costs: ~$500/month (Langfuse hosting)
+- Annual licenses: $0 (the open-source tools and AWS managed services carry no license fee themselves)
+- Infrastructure costs: ~$500/month for Langfuse hosting, plus separate usage charges for AWS managed services (Bedrock token usage, EKS, Managed Argo CD, ACK, etc.). Usage varies by workload, so estimate with your own traffic.
 
 **Expected ROI:**
 - 30% development speed improvement (Q Developer)
@@ -396,10 +404,9 @@ Answer the following questions before tool adoption:
 ### 7.4 Risk Assessment
 - [ ] Is vendor lock-in risk acceptable?
 - [ ] Do alternatives exist? (Exit strategy)
-- [ ] Does it meet security/compliance requirements?
 
 :::tip Decision Framework
-If **80%+ Yes** in the checklist above, immediate adoption; **50-80%**, decide after PoC; **below 50%**, wait recommended.
+**Meeting security/compliance requirements is a hard pass/fail gate, not a votable item.** If this condition is not met, defer adoption regardless of other scores. Only after passing this gate, judge by the "Yes" ratio of the remaining checklist: **80%+** for immediate adoption, **50-79%** to decide after a PoC, **below 50%** for wait recommended.
 :::
 
 ---
@@ -415,13 +422,15 @@ If **80%+ Yes** in the checklist above, immediate adoption; **50-80%**, decide a
 
 ### 8.2 Action Guide
 
+The maturity/vendor status assessments in this section (including "Early Access" and "Preview" in Section 3) and the 3-month PoC / quarterly-review policy below are **this repository's proposals** as of Q2 2026, not a vendor-guaranteed roadmap or a finalized organizational policy. Confirm and adjust actual status and timelines against each vendor's announcements and your organization's circumstances.
+
 1. **Current State Assessment**: Check tools your organization is already using from [Section 2](#2-current-tool-maturity-assessment-q2-2026) list
 2. **Create Urgency × Maturity Matrix**: Use [Section 3](#3-build-vs-wait-decision-matrix) template to create organization-specific matrix
 3. **Establish 6-Month Investment Plan**: Adjust Phase 1 activities from [Section 4.1](#41-phase-1-foundation-6-months) to organizational priorities
-4. **Execute PoC**: Start 3-month PoC with tools in immediate adoption quadrant
+4. **Execute PoC**: Start 3-month PoC with tools in immediate adoption quadrant (per this proposal)
 
 :::info Quarterly Reassessment
-The AIDLC tool ecosystem is rapidly changing. **Review this document quarterly** to update maturity assessments.
+The AIDLC tool ecosystem is rapidly changing. This repository proposes **reviewing this document quarterly** to update maturity assessments.
 :::
 
 ---
