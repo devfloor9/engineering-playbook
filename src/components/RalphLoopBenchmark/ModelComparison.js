@@ -60,10 +60,18 @@ export default function RalphModelComparison() {
   const models = data.models.filter((m) => m.stats
     && METRICS.every((x) => m.stats[x.key] && m.stats[x.key].med != null));
 
+  // Rank without Array#sort / String#localeCompare: scripts/llm-wiki-static.js
+  // renders this component statically for the LLM wiki and supports neither.
+  // A row's rank is the number of rows that order before it (value ascending,
+  // then name); model names are unique, so ranks are 0..n-1 with no ties.
+  const before = (a, b) => a.v < b.v || (a.v === b.v && a.m.name < b.m.name);
+  // First-occurrence vendor dedupe; `new Set` is not statically evaluable.
+  const allVendors = models.map((m) => m.vendor);
+  const vendors = allVendors.filter((v, i) => allVendors.indexOf(v) === i);
   const panels = METRICS.map((metric) => {
-    const rows = [...models]
-      .map((m) => ({m, v: m.stats[metric.key].med}))
-      .sort((a, b) => a.v - b.v || a.m.name.localeCompare(b.m.name));
+    const base = models.map((m) => ({m, v: m.stats[metric.key].med}));
+    const ranked = base.map((r) => ({...r, rank: base.filter((o) => before(o, r)).length}));
+    const rows = ranked.map((_, i) => ranked.find((r) => r.rank === i));
     const max = Math.max(...rows.map((r) => r.v));
     return {metric, rows, max, label: metric[lang] || metric.en};
   });
@@ -153,7 +161,7 @@ export default function RalphModelComparison() {
 
       {/* Vendor legend (color). */}
       <div className={styles.legend}>
-        {[...new Set(models.map((m) => m.vendor))].map((v) => (
+        {vendors.map((v) => (
           <span key={v} className={styles.legendItem}>
             <span className={styles.swatch} style={{background: VENDOR_COLOR[v] || 'var(--ep-chart-6)'}} />
             {v}
