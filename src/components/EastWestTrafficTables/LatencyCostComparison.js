@@ -37,7 +37,7 @@ const LatencyCostComparison = () => {
     costScore: 2
   }, {
     name: 'Istio Sidecar',
-    latency: isKo ? '~5ms 증가 (클라이언트+서버 2회 프록시)' : '~5ms added (client+server 2x proxy)',
+    latency: isKo ? '클라이언트+서버 2회 프록시 경유. p99 추가 지연은 부하에 따라 변함(Istio 1.24 공식 벤치마크: 500~1500 rps 구간 측정)' : 'Client+server 2x proxy traversal. Added p99 latency varies with load (Istio 1.24 official benchmark measured at 500-1500 rps)',
     cost: isKo ? '오픈소스, 프록시당 0.2 vCPU/60MB per 1000rps' : 'Open source, 0.2 vCPU/60MB per proxy per 1000rps',
     latencyScore: 3,
     costScore: 3

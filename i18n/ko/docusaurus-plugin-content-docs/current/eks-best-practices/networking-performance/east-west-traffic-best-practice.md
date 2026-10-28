@@ -379,8 +379,10 @@ curl -fsSLo nodelocaldns.yaml https://raw.githubusercontent.com/kubernetes/kuber
 또는 Helm 차트를 사용합니다:
 
 ```bash
-helm repo add deliveryhero https://charts.deliveryhero.io/
-helm install node-local-dns deliveryhero/node-local-dns \
+# 이 차트는 OCI 레지스트리로 배포됩니다(기존 https://charts.deliveryhero.io 인덱스는 차트 2.1.0에서
+# 멈춰 있어 2.9.x가 없습니다). Helm 3.8 이상은 OCI 참조를 지원합니다.
+# config.dnsServer는 클러스터의 kube-dns ClusterIP여야 합니다(EKS 기본값 172.20.0.10 또는 10.100.0.10).
+helm install node-local-dns oci://ghcr.io/deliveryhero/helm-charts/node-local-dns \
   --namespace kube-system \
   --version 2.9.2 \
   --set config.dnsServer=172.20.0.10 \
@@ -618,7 +620,7 @@ spec:
 
 ### 10 TB/월 East-West 트래픽 비용 시뮬레이션
 
-가정: 동일 리전 3-AZ EKS 클러스터, 설명용 계산에 서비스 간 트래픽 10,240 GB 사용 (약 10 TB). AZ 간 데이터 전송은 송신·수신 양쪽 끝에서 각각 $0.01/GB가 부과되므로, 교차 비율을 적용한 바이트에 왕복 $0.02/GB로 계산합니다. 기본 ClusterIP가 트래픽의 약 66%를 교차 AZ로 보내면 10,240 GB × 0.666 × $0.02 ≈ **$136.53**, Topology Hints로 약 30%까지 낮추면 10,240 GB × 0.30 × $0.02 ≈ **$61.44**입니다. 아래 수치는 이 가정에 따른 예시이며 요청량·LCU·리전 요금에 따라 달라집니다.
+가정: 동일 리전 3-AZ EKS 클러스터, 설명용 계산에 서비스 간 트래픽 10,240 GB 사용 (약 10 TB). AZ 간 데이터 전송은 송신·수신 양쪽 끝에서 각각 $0.01/GB가 부과되므로, 교차 비율을 적용한 바이트에 왕복 $0.02/GB로 계산합니다. 기본 ClusterIP가 트래픽의 약 3분의 2(3-AZ 균등 분산)를 교차 AZ로 보내면 10,240 GB × 2/3 × $0.02 ≈ **$136.53**, Topology Hints로 약 30%까지 낮추면 10,240 GB × 0.30 × $0.02 ≈ **$61.44**입니다. 아래 수치는 이 가정에 따른 예시이며 요청량·LCU·리전 요금에 따라 달라집니다.
 
 <CostSimulation />
 

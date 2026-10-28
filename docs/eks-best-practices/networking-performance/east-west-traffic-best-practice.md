@@ -379,8 +379,10 @@ curl -fsSLo nodelocaldns.yaml https://raw.githubusercontent.com/kubernetes/kuber
 Alternatively, use a Helm chart:
 
 ```bash
-helm repo add deliveryhero https://charts.deliveryhero.io/
-helm install node-local-dns deliveryhero/node-local-dns \
+# The chart is published to the OCI registry (the legacy https://charts.deliveryhero.io index
+# stops at chart 2.1.0 and does not contain 2.9.x). Helm 3.8+ supports OCI references.
+# config.dnsServer must be your cluster's kube-dns ClusterIP (EKS default 172.20.0.10 or 10.100.0.10).
+helm install node-local-dns oci://ghcr.io/deliveryhero/helm-charts/node-local-dns \
   --namespace kube-system \
   --version 2.9.2 \
   --set config.dnsServer=172.20.0.10 \
@@ -618,7 +620,7 @@ spec:
 
 ### Cost Simulation for 10 TB/Month of East-West Traffic
 
-Assumptions: An EKS cluster spanning 3 AZs in the same Region, using 10,240 GB of total service-to-service traffic for the illustrative calculation (approximately 10 TB). Inter-AZ data transfer is charged $0.01/GB at both the sending and receiving ends, so the crossed bytes are billed at $0.02/GB round trip. If a default ClusterIP sends about 66% of traffic across AZs, that is 10,240 GB × 0.666 × $0.02 ≈ **$136.53**; reducing it to about 30% with Topology Hints gives 10,240 GB × 0.30 × $0.02 ≈ **$61.44**. The figures below are examples under these assumptions and vary with request volume, LCU, and regional rates.
+Assumptions: An EKS cluster spanning 3 AZs in the same Region, using 10,240 GB of total service-to-service traffic for the illustrative calculation (approximately 10 TB). Inter-AZ data transfer is charged $0.01/GB at both the sending and receiving ends, so the crossed bytes are billed at $0.02/GB round trip. If a default ClusterIP sends about two-thirds of traffic across AZs (3-AZ even distribution), that is 10,240 GB × 2/3 × $0.02 ≈ **$136.53**; reducing it to about 30% with Topology Hints gives 10,240 GB × 0.30 × $0.02 ≈ **$61.44**. The figures below are examples under these assumptions and vary with request volume, LCU, and regional rates.
 
 <CostSimulation />
 

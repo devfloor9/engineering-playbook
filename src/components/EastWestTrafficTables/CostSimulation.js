@@ -15,20 +15,20 @@ const CostSimulation = () => {
     name: 'ClusterIP + Topology Hints',
     cost: '~$61',
     description: isKo ? 'cross-AZ ~30%, 양방향 $0.01/GB (10,240 GB 가정)' : 'cross-AZ ~30%, $0.01/GB each direction (10,240 GB assumed)',
-    barWidth: '15%',
+    barWidth: '22%',
     color: '#3b82f6'
-  }, {
-    name: isKo ? 'ClusterIP (기본, AZ 인식 없음)' : 'ClusterIP (default, no AZ awareness)',
-    cost: '~$137',
-    description: isKo ? 'cross-AZ ~66% (3-AZ 균등), 양방향 과금' : 'cross-AZ ~66% (3-AZ even), charged both ends',
-    barWidth: '35%',
-    color: '#f59e0b'
   }, {
     name: isKo ? 'Internal ALB 경유' : 'Via Internal ALB',
     cost: '~$98',
     description: isKo ? 'ALB 시간당 + LCU (동일 VPC는 cross-AZ 전송료 없음)' : 'ALB hourly + LCU (no cross-AZ transfer within same VPC)',
-    barWidth: '50%',
+    barWidth: '36%',
     color: '#ef4444'
+  }, {
+    name: isKo ? 'ClusterIP (기본, AZ 인식 없음)' : 'ClusterIP (default, no AZ awareness)',
+    cost: '~$137',
+    description: isKo ? 'cross-AZ ~66% (3-AZ 균등), 양방향 과금' : 'cross-AZ ~66% (3-AZ even), charged both ends',
+    barWidth: '50%',
+    color: '#f59e0b'
   }, {
     name: 'VPC Lattice',
     cost: '$274+',
