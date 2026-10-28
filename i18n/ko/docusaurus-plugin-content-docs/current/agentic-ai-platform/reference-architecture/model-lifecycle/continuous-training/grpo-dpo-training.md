@@ -3,7 +3,7 @@ title: GRPO/DPO 학습 Job
 description: 레이블링된 preference 데이터셋으로 NeMo-RL(GRPO)·TRL(DPO) 학습 Job을 Karpenter Spot 노드풀 + Volcano Gang Scheduling으로 실행하는 실전 구성.
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 6
 tags:
@@ -103,12 +103,12 @@ dataset = PreferenceDataset(
 # examples/configs/grpo_math_8B.yaml 참조
 grpo_config = {
     'num_iterations': 1000,
-    batch_size=32,
-    learning_rate=1e-5,
-    kl_coeff=0.1,  # KL divergence 페널티 (원본 모델과 너무 멀어지지 않도록)
-    cliprange=0.2,
-    vf_coeff=0.5,
-)
+    'batch_size': 32,
+    'learning_rate': 1e-5,
+    'kl_coeff': 0.1,  # KL divergence 페널티 (원본 모델과 너무 멀어지지 않도록)
+    'cliprange': 0.2,
+    'vf_coeff': 0.5,
+}
 
 # 분산 학습 실행
 trainer = Trainer(

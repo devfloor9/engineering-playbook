@@ -3,11 +3,14 @@ title: Advanced Features
 description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
 created: "2026-04-06"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: devfloor9
 reading_time: 30
 tags:
   - llm-classifier
+  - inference-extension
+  - epp
+  - inferencepool
   - cloudfront
   - waf
   - semantic-caching
@@ -40,8 +43,8 @@ LLM Classifier is a **Python FastAPI-based lightweight router** that operates be
 graph LR
     Client[Aider/Cline] --> KGW[kgateway NLB]
     KGW -->|/v1/*| CLS[LLM Classifier<br/>FastAPI :8080]
-    CLS -->|weak| SLM[Qwen3-4B<br/>L4 $0.3/hr]
-    CLS -->|strong| LLM[GLM-5 744B<br/>H200 $12/hr]
+    CLS -->|weak| SLM[Qwen3-4B<br/>L4 g6.xlarge ~$0.80/hr]
+    CLS -->|strong| LLM[GLM-5 744B<br/>8xH200 p5en.48xlarge ~$63/hr]
     CLS -->|OTel| LF[Langfuse]
     
     style KGW fill:#326ce5,stroke:#333,color:#fff
@@ -863,12 +866,16 @@ Semantic cache activation:
 litellm_settings:
   cache: true
   cache_params:
-    type: "redis-semantic-cache"
+    type: "redis-semantic"          # semantic cache type (the basic cache is "redis")
+    similarity_threshold: 0.85       # similarity threshold
+    redis_semantic_cache_embedding_model: "text-embedding-3-small"  # embedding model name defined in model_list
     host: "redis-service.default.svc.cluster.local"
     port: 6379
-    similarity_threshold: 0.85
-    embedding_model: "text-embedding-3-small"
 ```
+
+:::note Predefine the embedding model
+The `redis_semantic_cache_embedding_model` value must be the name of an embedding model registered in `model_list`. Confirm the exact parameters in the [LiteLLM Caching documentation](https://docs.litellm.ai/docs/proxy/caching) as of your deployment date.
+:::
 
 For detailed options, refer to [LiteLLM Caching documentation](https://docs.litellm.ai/docs/proxy/caching).
 
