@@ -3,7 +3,7 @@ title: Probe patterns by workload
 description: Review examples for REST, gRPC, batch, JVM, and AI workloads.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-19
+  date: 2026-10-29
   author: devfloor9
 reading_time: 15
 tags:
@@ -507,7 +507,7 @@ EKS supports Windows nodes based on Windows Server 2019/2022. Probes behave diff
 | **Memory overhead** | Low (50-100MB) | High (200-500MB) | Requires increased resource requests |
 | **Probe timeout** | Typically 1-5 seconds | 3-10 seconds recommended | Account for Windows I/O latency |
 
-The cold-start time and memory-overhead figures in Table 1 are experiential values, not official specifications; measure them in your own environment.
+The cold-start time, memory-overhead, and probe-timeout figures in Table 1 are experiential values, not official specifications; measure them in your own environment.
 
 #### Probe Configuration Example for Windows Workloads {#windows-워크로드-probe-설정-예시}
 

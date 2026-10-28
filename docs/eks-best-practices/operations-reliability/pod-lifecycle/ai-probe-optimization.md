@@ -3,9 +3,9 @@ title: AI-assisted probe optimization
 description: Review probe optimization examples that use observability data and AI.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 9
+reading_time: 15
 tags:
   - eks
   - kubernetes
@@ -92,8 +92,10 @@ The block below illustrates the configuration flow conceptually. Commands such a
 The data sources referenced by the steps below require different MCP servers and permissions. `getPodLogs` and `getKubernetesEvents` map to read-scoped capabilities of the EKS MCP server, but CloudWatch metrics (`getCloudWatchMetrics`) and network observability (`getNetworkObservability`) are not default EKS MCP server tools and need a separate server and IAM permissions. A single MCP configuration does not automatically expose every data source or write action, so confirm the providing server and the read/write permission for each tool you use.
 :::
 
+The YAML below illustrates the Probe failure response flow conceptually and is not a real Kiro API. Kiro does not provide an `Agent` resource in a `kiro.aws/v1alpha1` API group, nor the `spec.cluster`, `triggers`, and `actions` fields. Kiro custom agents are defined in local JSON or Markdown files that use fields such as `name`, `description`, `prompt`, `mcpServers`, `tools`, `resources`, `permissions`, and `hooks`, and the [agent configuration reference](https://kiro.dev/docs/custom-agents/configuration-reference/) has no field that runs an agent in response to a cluster Probe failure event (as of 2026-10-29). To implement this flow, build event collection and triggering as a separate component and configure the agent only with the relevant MCP servers and tool permissions.
+
 ```yaml
-# Kiro Agent configuration - automatic response to Probe failures
+# (Conceptual example) A hypothetical resource, not a Kiro API - automatic response to Probe failures
 apiVersion: kiro.aws/v1alpha1
 kind: Agent
 metadata:
@@ -220,7 +222,7 @@ spec:
 The `auto-remediate` step above patches a production Deployment based only on a model confidence score (`confidence: ">0.8"`). It implements no output-schema validation, no bounds on recommended values, no independent post-change success check, no automatic rollback, and no human approval for production changes, so do not apply this block as production guidance as-is. In production, add these guardrails or run in a Suggest Mode that requires operator approval before any change is applied.
 :::
 
-**Usage example - automatic Probe timeout optimization:**
+**Conversation example - automatic Probe timeout optimization:**
 
 ```bash
 # Interactive Probe optimization with Kiro
@@ -261,8 +263,10 @@ Kiro: ✅ Applied Probe Optimization
       - Recommendation recorded in tribal knowledge
 
       💡 Suggestion: Consider moving database to same VPC
-          to reduce network latency permanently.
+          as one option to reduce network latency.
 ```
+
+The conversation above is a hypothetical session, and its confidence of 92%, p99 latency of 2.8 seconds, and reduction from 12 to 0 failures per hour are illustrative figures (a hypothetical scenario, not measured data). Five minutes of observation is not enough to confirm the effect of a change, so in a real environment confirm the effect from the Probe failure trend over a longer period. Moving the database into the same VPC is one option that can reduce network latency; it is not a guarantee that the latency problem is solved permanently.
 
 ### Debugging Probe Issues with Amazon Q Developer {#amazon-q-developer를-활용한-probe-이슈-디버깅}
 
@@ -319,10 +323,14 @@ Recommendation:
 Apply Suggestions? [Yes] [No] [Explain More]
 ```
 
-**Real-time code execution validation (Amazon Q Developer):**
+The timeoutSeconds of 3-5 seconds and the 30-second threshold for adding a Startup Probe in the suggestions above are example values, not criteria that apply to every workload. One second is the Kubernetes default for `timeoutSeconds`, and running on EKS alone does not establish that one second is too short. Set the values from the application's measured response-latency distribution and startup time.
+
+**Conceptual validation flow example (Amazon Q Developer):**
+
+The block below is hypothetical output that illustrates a desired validation flow conceptually. The `q-dev validate` command does not exist. The Amazon Q Developer command-line tool has become the Kiro CLI ([Amazon Q Developer User Guide](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/command-line.html)), and the [Kiro CLI command reference](https://kiro.dev/docs/reference/cli-commands/) has no command that simulates a manifest against a cluster to estimate Probe success rates or startup and shutdown times (as of 2026-10-29). The success rate of 94%, startup time of 45 seconds, shutdown time of 25 seconds, and the recommendation of at least 60 seconds for `terminationGracePeriodSeconds` in the output are illustrative figures (a hypothetical scenario, not measured data). You can validate manifest syntax and schema with `kubectl apply --dry-run=server`.
 
 ```bash
-# Q Developer validates the Probe configuration locally
+# (Hypothetical command) Not a real Amazon Q Developer or Kiro CLI command
 $ q-dev validate deployment.yaml --cluster production-eks
 
 ✅ Syntax Valid
@@ -473,6 +481,8 @@ data:
       ]
     }
 ```
+
+This ConfigMap alone does not create a Grafana dashboard. Grafana reads this JSON only when the Grafana Helm chart's dashboard sidecar is enabled (`sidecar.dashboards.enabled`, default `false` in the grafana-community chart) and the ConfigMap carries the label the sidecar watches (default `grafana_dashboard`) (as of 2026-10-29), and each panel needs a data source and a panel type. In addition, the `kiro_*` metrics and `probe_failures_total` and `probe_failures_ai_optimized_total` are not metrics that Kiro or Kubernetes is confirmed to export by default; they are hypothetical metric names for this example, so an automation component you implement yourself must expose them. The kubelet exposes Probe results as the `prober_probe_total` counter (with `probe_type` and `result` labels) on its `/metrics/probes` endpoint.
 
 **ROI measurement example:**
 

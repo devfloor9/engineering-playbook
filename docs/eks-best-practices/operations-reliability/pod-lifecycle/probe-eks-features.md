@@ -3,9 +3,9 @@ title: EKS features and probes
 description: Explore examples of integrating probes with EKS features.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 20
+reading_time: 26
 tags:
   - eks
   - kubernetes
@@ -263,7 +263,7 @@ spec:
         "title": "API Server Latency vs. Probe Failure Rate",
         "metrics": [
           ["AWS/EKS", "apiserver_request_duration_seconds", {"stat": "p99", "label": "API Server p99 Latency"}],
-          ["ContainerInsights", "ReadinessProbeFailure", {"stat": "Sum", "yAxis": "right"}]
+          ["ContainerInsights", "ReadinessProbeFailure", "ClusterName", "production-eks", {"stat": "Sum", "yAxis": "right"}]
         ],
         "period": 60,
         "region": "ap-northeast-2",
@@ -276,6 +276,8 @@ spec:
   ]
 }
 ```
+
+`ReadinessProbeFailure` is not a metric that Container Insights collects by default. Container Insights (including enhanced observability) provides Pod status metrics such as `pod_status_ready` and `pod_container_status_waiting_reason_crash_loop_back_off`, but no probe failure count metric (as of 2026-10-29). To use this widget and the alarm example above, you must build a pipeline that collects the kubelet's `prober_probe_total` counter (`/metrics/probes`) or a similar source and publishes it to CloudWatch, and the widget must name exactly the namespace, metric name, and dimensions (for example `ClusterName`) that the pipeline publishes. CloudWatch returns only metrics whose namespace, metric name, and dimension combination match exactly.
 
 :::warning API Server Load in Large Clusters
 A kubelet's HTTP/TCP/exec/gRPC probes call the target Pod directly from the node and do not go through the API Server, so the probes themselves do not concentrate load on the API Server. In large clusters, however, kubelet status reporting, watches, and other API calls can raise API Server load, and if Pod status updates are delayed as a result, probe results can take longer to be reflected. If the load from API-Server-dependent calls becomes a problem, adjust the interval of those calls. A Provisioned Control Plane can ease such API Server load with its preallocated control plane capacity, but it does not change the local path on which the kubelet executes probes (Section 2.7.3).
@@ -297,7 +299,7 @@ Provisioned Control Plane (announced in November 2025) ensures predictable, high
 | **2XL** | Very high | 2,500 | Large-scale batch processing |
 | **4XL** | Ultra-fast | 5,000 | Massive-scale ML |
 
-Per-tier Pod scheduling throughput and probe latency guarantees are not given as figures in this table because no official source for them could be confirmed. The Maximum Nodes figures (1,000/2,500/5,000) are also indicative estimates rather than values confirmed against an official source, so measure the actual supported scale and performance in your target environment and confirm them against the [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html).
+Per-tier probe latency guarantees are not given as figures in this table because no official source for them exists. The AWS documentation defines the tiers (XL, 2XL, 4XL, 8XL) by four attributes: API request concurrency (seats), Pod scheduling rate (pods/sec), cluster database size, and SLA; maximum node count is not a tier attribute. On EKS 1.34 and later, the API request concurrency of XL, 2XL, 4XL, and 8XL is 2,000, 4,000, 8,000, and 16,000 seats respectively (1,700, 3,400, 6,800, and 13,600 seats on 1.30-1.33), the Pod scheduling rate is 167, 283, 400, and 400 pods/sec, the database size is 16GB, and the SLA is 99.99% (as of 2026-10-29). The Maximum Nodes figures in the table (1,000/2,500/5,000) are indicative estimates rather than values confirmed against an official source. The AWS documentation also states that actual performance depends on workload patterns and configuration, so measure the actual supported scale and performance in your target environment and confirm them against the [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html).
 
 **Figure 2. Load handling comparison between Standard and Provisioned Control Plane**
 
@@ -385,14 +387,16 @@ spec:
           timeoutSeconds: 2
 ```
 
-**Use case: AI/ML Training cluster**
+**Use case (hypothetical scenario): AI/ML Training cluster**
 
 - **Problem**: When hundreds of Training Pods start simultaneously across 1,000 GPU nodes, API Server responses are delayed on the Standard Control Plane
 - **Solution**: Use the Provisioned Control Plane XL tier
-- **Results**:
+- **Expected effects**:
   - Reduced Pod scheduling time
   - Fewer Readiness Probe timeouts
   - Improved Training Job startup reliability
+
+This case is a hypothetical scenario rather than a measured case, and the effects above are expected effects to be verified, not observed results. Because kubelet probes do not go through the API Server, fewer Readiness Probe timeouts can be expected only when the dependency the probe checks is affected by API Server latency. Confirm the effects by fixing the node count, the number of Pods started at once, and the chosen tier, and measuring against Standard mode.
 
 **Cost vs. performance considerations:**
 
@@ -413,12 +417,11 @@ Provisioned Control Plane is optimized for workloads that start thousands of Pod
 
 **Overview:**
 
-GuardDuty Extended Threat Detection (EKS support: June 2025) detects anomalous access patterns at probe endpoints to identify attacks in which malicious workloads bypass or manipulate health checks.
+GuardDuty Extended Threat Detection (EKS support: June 2025) correlates signals from EKS audit logs, container runtime behavior, and AWS API activity with existing GuardDuty findings, and generates a multi-stage attack as a single Critical attack sequence finding (`AttackSequence:EKS/CompromisedCluster`). To use it for EKS, you must enable at least one of EKS Protection or Runtime Monitoring (with the EKS add-on). The AWS documentation does not describe probe endpoint access patterns or health check spoofing as detection targets ([Extended Threat Detection](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty-extended-threat-detection.html), as of 2026-10-29), so a malicious workload that looks healthy to its health checks is detected from these audit log, runtime, and API signals, not from probe responses.
 
 **Key features:**
 - Correlation of EKS audit logs + runtime behavior + malware execution + AWS API activity
 - AI/ML-based detection of multi-stage attack sequences
-- Identification of anomalous access patterns at probe endpoints
 - Automatic detection of malicious workloads such as cryptomining
 
 **Enabling the feature:**
@@ -494,7 +497,7 @@ spec:
               key: health-token
 ```
 
-**Figure 3. GuardDuty health check spoofing detection and automated response scenario**
+**Figure 3. Hypothetical scenario of GuardDuty correlated detection and automated response after a malicious Pod deployment**
 
 ```mermaid
 flowchart TD
@@ -533,6 +536,8 @@ For reference, the cryptomining campaign in the cited AWS blog targeted EC2 and 
 4. GuardDuty detected abnormal network traffic + CPU usage patterns
 
 **Automated response after detection:**
+
+The ConfigMap below stores an EventBridge rule pattern and a Lambda code skeleton as strings for reference; applying it does not run any response. An actual automated response requires deploying an EventBridge rule that matches GuardDuty Finding events and a Lambda function registered as its target. The Lambda function needs an IAM role that has been granted cluster access (for example through an EKS access entry) and client code that uses those credentials to call the Kubernetes API and create the NetworkPolicy. The `isolate_pod` function below only builds a kubectl command string and does not run it. In addition, `"severity": [7, 8, 9]` in the rule pattern matches only those exact values, so findings with fractional severities such as 7.5 do not match (the example pattern in the GuardDuty documentation lists the fractional values too; see [Creating an EventBridge rule](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings_eventbridge.html)).
 
 ```yaml
 # EventBridge Rule: GuardDuty Finding → Lambda → Pod isolation

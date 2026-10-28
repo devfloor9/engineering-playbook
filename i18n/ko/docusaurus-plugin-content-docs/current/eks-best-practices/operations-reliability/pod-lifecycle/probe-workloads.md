@@ -3,7 +3,7 @@ title: 워크로드별 Probe 패턴
 description: REST, gRPC, 배치, JVM, AI 워크로드별 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-19
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 8
 tags:
@@ -506,7 +506,7 @@ EKS는 Windows Server 2019/2022 기반 Windows 노드를 지원하며, Windows �
 | **메모리 오버헤드** | 낮음 (50-100MB) | 높음 (200-500MB) | 리소스 요청 증가 필요 |
 | **Probe 타임아웃** | 일반적으로 1-5초 | 3-10초 권장 | Windows I/O 지연 고려 |
 
-표 1의 콜드 스타트 시간과 메모리 오버헤드 수치는 공식 사양이 아닌 경험치이므로, 환경별 측정이 필요합니다.
+표 1의 콜드 스타트 시간, 메모리 오버헤드, Probe 타임아웃 수치는 공식 사양이 아닌 경험치이므로, 환경별 측정이 필요합니다.
 
 #### Windows 워크로드 Probe 설정 예시 {#windows-워크로드-probe-설정-예시}
 

@@ -3,9 +3,9 @@ title: 컨테이너 이미지와 시작 시간
 description: 이미지 빌드, 프리풀, 시작 시간 비교를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 4
 tags:
   - eks
   - kubernetes
@@ -49,10 +49,12 @@ USER 65534:65534
 ENTRYPOINT ["/main"]
 ```
 
-**결과:**
+**결과 예시:**
 - 빌드 이미지: 300MB+
 - 최종 이미지: 5-10MB
 - 시작 시간: 1초 미만
+
+위 값은 예시 수치이며 측정값이 아닙니다. 빌드 이미지와 최종 이미지의 크기, 시작 시간은 애플리케이션 코드와 의존성, 기반 이미지, 시작 시간을 재는 기준에 따라 달라지므로 자체 이미지로 측정합니다.
 
 #### Node.js 애플리케이션 {#nodejs-애플리케이션}
 
