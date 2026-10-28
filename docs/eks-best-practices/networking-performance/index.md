@@ -3,7 +3,7 @@ title: Networking & Performance Optimization
 description: Best practices for DNS optimization, East-West traffic, and Gateway API adoption in EKS environments
 created: "2026-03-24"
 last_update:
-  date: "2026-06-26"
+  date: 2026-10-15
   author: devfloor9
 reading_time: 3
 tags:
@@ -27,10 +27,17 @@ A practical guide to maximizing network performance in EKS clusters. Covers DNS 
 
 <DocCardGrid columns={2}>
   <DocCard
+    to="/docs/eks-best-practices/networking-performance/vpc-cni-deep-dive"
+    icon="🔌"
+    title="VPC CNI Deep Dive"
+    description="L3 routed-mode datapath, ipamd warm pool, Prefix Delegation, IP cooldown, and eBPF NetworkPolicy architecture"
+    color="#2a9d8f"
+  />
+  <DocCard
     to="/docs/eks-best-practices/networking-performance/gateway-api-adoption-guide"
     icon="🌐"
     title="Gateway API Adoption Guide"
-    description="NGINX Ingress Controller EOL response, Gateway API architecture, GAMMA Initiative, Cilium ENI + Gateway API deep dive, and migration strategy"
+    description="Community ingress-nginx project end-of-life (EOL) response, Gateway API architecture, GAMMA Initiative, Cilium ENI + Gateway API deep dive, and migration strategy"
     color="#667eea"
   />
   <DocCard
@@ -53,5 +60,12 @@ A practical guide to maximizing network performance in EKS clusters. Covers DNS 
     title="East-West Traffic Optimization"
     description="Inter-service communication optimization, Topology Aware Routing, and multi-cluster traffic management"
     color="#34a853"
+  />
+  <DocCard
+    to="/docs/eks-best-practices/networking-performance/nitro-architecture-performance-tuning"
+    icon="⚙️"
+    title="Nitro Architecture & Tuning"
+    description="Per-generation network changes across Nitro v2–v6, ENA driver and kernel requirements, and PPS/CPS performance tuning"
+    color="#ff6b35"
   />
 </DocCardGrid>

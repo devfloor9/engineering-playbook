@@ -3,9 +3,9 @@ title: "VPC CNI 동작 원리: 데이터패스·IPAM·NetworkPolicy"
 description: Amazon VPC CNI의 내부 동작을 세 축으로 해부합니다. L3 routed mode 데이터패스(veth·ip rule·169.254.1.1), ipamd의 warm pool·Prefix Delegation·IP 쿨다운 알고리즘, eBPF 기반 NetworkPolicy 아키텍처
 created: "2026-08-04"
 last_update:
-  date: "2026-09-19"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 18
 tags:
   - eks
   - vpc-cni
@@ -40,10 +40,10 @@ VPC CNI는 단일 바이너리가 아니라 역할이 다른 두 컴포넌트로
 
 | 컴포넌트 | 실행 형태 | 역할 |
 |---|---|---|
-| CNI 플러그인 바이너리 (`aws-cni`) | kubelet이 Pod 생성/삭제 시마다 호출 | veth pair 생성, 라우팅 규칙 설정 등 네트워크 배선 |
+| CNI 플러그인 바이너리 (`aws-cni`) | kubelet의 Pod 생성/삭제 요청을 받은 CRI 런타임(containerd 등)이 호출 | veth pair 생성, 라우팅 규칙 설정 등 네트워크 배선 |
 | ipamd (`aws-node` DaemonSet) | 노드당 상주 데몬 | ENI attach/detach, 보조 IP 풀 관리, EC2 API 호출 |
 
-CNI 바이너리는 Pod가 뜰 때 로컬 ipamd에 gRPC로 IP 할당을 요청하고, ipamd는 미리 확보해 둔 warm pool에서 즉시 IP를 반환합니다. EC2 API 호출(ENI 생성·IP 할당)은 Pod 생성 경로에서 분리되어 백그라운드에서 비동기로 수행됩니다. Pod 기동 지연이 EC2 API 지연에 좌우되지 않는 이유가 이 분리 구조입니다.
+Pod 생성 경로는 `kubelet → CRI 런타임 → CNI 바이너리 → ipamd` 순서로 이어집니다. Kubernetes 1.24에서 dockershim이 제거된 뒤로 kubelet은 CNI를 직접 호출하지 않고 CRI 런타임(containerd 등)에 Pod 샌드박스 생성을 위임하며, 네트워크 배선 시점에 CRI 런타임이 CNI 바이너리를 호출합니다. CNI 바이너리는 로컬 ipamd에 gRPC로 IP 할당을 요청하고, ipamd는 미리 확보해 둔 warm pool에서 IP를 반환합니다. EC2 API 호출(ENI 생성·IP 할당)은 Pod 생성 경로에서 분리되어 백그라운드에서 비동기로 수행됩니다. 이렇게 네트워크 배선과 IPAM이 분리되어 있어, warm pool에 여유가 있는 한 Pod 기동 지연이 EC2 API 지연에 좌우되지 않습니다. 다만 이 빠른 경로는 warm pool에 여유 IP가 있을 때만 성립합니다. 풀이 비어 있으면 ipamd는 즉시 반환하지 못하고 오류를 반환하며, 새 ENI/IP를 EC2 API로 확보하는 느린 보충 경로로 진입합니다. 이 보충 경로는 EC2 API 지연에 노출되고, EC2 API 스로틀링이 발생하면 Pod 기동이 더 지연될 수 있습니다.
 
 기본 secondary-IP 모드의 주소 용량은 인스턴스 타입의 ENI 수와 ENI당 보조 IP 수로 결정됩니다. ENI 4개 × ENI당 IP 15개인 인스턴스라면 Pod에 할당할 보조 IP는 `4 × (15 - 1) = 56`개입니다. [VPC CNI의 권장 `max-pods` 계산식](https://github.com/aws/amazon-vpc-cni-k8s#setup)의 `+ 2`는 별도 Pod IP를 소비하지 않는 `hostNetwork` Pod를 위한 수량이므로, 결과인 58은 Pod 수 설정값이며 Pod IP 58개를 뜻하지 않습니다. 실제 수용량에는 kubelet 설정과 워크로드 리소스 요구량도 영향을 줍니다.
 
@@ -96,7 +96,7 @@ default via 169.254.1.1 dev eth0
 
 ### 호스트 쪽: veth 이름 규칙과 이중 라우팅
 
-호스트 쪽 veth 인터페이스 이름은 `eni` 접두사(기본값, `AWS_VPC_K8S_CNI_VETHPREFIX`로 변경 가능) 뒤에 네트워크 이름·Pod 식별자·인터페이스 이름을 SHA-1 해시한 값의 앞 11자를 붙여 결정적으로 생성됩니다(`networkutils.GeneratePodHostVethName`). 즉 `eni3a52ce78d95` 같은 이름에서 Pod를 역추적하려면 해시 입력을 재계산하거나 `ip addr` 라우팅 엔트리와 대조합니다.
+호스트 쪽 veth 인터페이스 이름은 `eni` 접두사(기본값, `AWS_VPC_K8S_CNI_VETHPREFIX`로 변경 가능) 뒤에 `네임스페이스.Pod이름`(보조 인터페이스인 경우 Pod 이름에 인터페이스 인덱스가 덧붙음)을 SHA-1 해시한 값의 앞 11자를 붙여 결정적으로 생성됩니다(`networkutils.GeneratePodHostVethName`). 즉 `eni3a52ce78d95` 같은 이름에서 Pod를 역추적하려면 해시 입력을 재계산하거나 `ip route`의 `Pod IP/32 → host veth` 엔트리와 대조합니다.
 
 트래픽 방향에 따라 서로 다른 라우팅 테이블이 사용됩니다.
 
@@ -107,7 +107,9 @@ default via 169.254.1.1 dev eth0
 | VPC → Pod (ingress) | main 테이블 | `Pod IP/32 → host veth` 호스트 라우트로 전달 |
 | Pod → VPC (egress) | ENI별 테이블 | `ip rule`이 Pod IP를 소스 기준으로 매칭해 해당 IP가 속한 ENI의 라우팅 테이블로 보내고, 그 테이블의 기본 경로가 서브넷 게이트웨이를 가리킴 |
 
-egress에 ENI별 테이블이 필요한 이유는 보조 ENI에 할당된 IP의 응답 패킷이 반드시 같은 ENI로 나가야 하기 때문입니다. VPC는 소스 IP와 ENI의 매핑을 검증하므로, primary ENI의 기본 경로로 내보내면 스푸핑으로 간주되어 폐기됩니다.
+egress에 ENI별 테이블이 필요한 이유는 보조 ENI에 할당된 IP의 응답 패킷이 반드시 같은 ENI로 나가야 하기 때문입니다. VPC는 소스 IP와 ENI의 매핑을 검증하므로, 보조 IP가 자신의 소스 주소를 그대로 유지한 채 다른 ENI(예: primary ENI)로 나가면 스푸핑으로 간주되어 폐기됩니다. 이 소스 기반 `ip rule`은 드라이버가 보조 ENI용 비(非)main 라우팅 테이블에만 추가하므로, primary ENI에 할당된 IP의 트래픽에는 적용되지 않습니다.
+
+이 소스 기반 매칭은 패킷이 자신의 소스 IP를 그대로 유지하는 경우에 해당합니다. VPC 외부(off-VPC)로 나가는 트래픽은 기본적으로 외부 SNAT이 소스 주소를 노드 primary IP로 바꾸므로, 이 경우에는 primary 인터페이스로 나갈 수 있습니다. `AWS_VPC_K8S_CNI_EXTERNALSNAT=true`나 커스텀 네트워킹처럼 SNAT 동작을 바꾸는 설정에서는 이 경로가 달라집니다.
 
 ## Deep Dive: IPAM — ipamd의 풀 관리 알고리즘
 
@@ -142,32 +144,34 @@ Pod가 삭제되면 그 IP는 즉시 할당 가능 상태로 돌아가지 않고
 
 쿨다운이 필요한 이유는 Kubernetes의 비동기성입니다. Pod 삭제 후에도 kube-proxy가 각 노드의 iptables/IPVS 규칙에서 해당 IP를 제거하기까지 시간이 걸립니다. 쿨다운 없이 IP를 새 Pod에 즉시 재할당하면, 아직 갱신되지 않은 규칙을 통해 이전 Service의 트래픽이 새 Pod로 유입될 수 있습니다. 값을 0으로 설정하는 것은 지원되지만 공식 문서가 강하게 비권장하며, 반대로 지나치게 크게 잡으면 가용 IP가 쿨다운에 묶여 EC2 API 호출이 늘어납니다. Pod churn이 큰 워크로드에서는 초당 Pod 삭제율 × 쿨다운 기간만큼의 IP가 상시 쿨다운 상태에 있다는 점을 warm pool 사이징에 반영해야 합니다.
 
-### 풀 축소: 살아있는 Pod IP는 절대 회수하지 않음
+### 풀 축소: 미할당 여유분만 반납하고 할당된 IP는 보호 {#풀-축소-살아있는-pod-ip는-절대-회수하지-않음}
 
 ipamd는 30초 주기로 초과분 IP/ENI 반납을 시도하지만, 이 축소 경로는 **비강제(non-force) 삭제**만 수행합니다. 데이터스토어에서 IP를 제거할 때 해당 IP가 Pod에 할당되어 있으면 삭제가 거부됩니다(`ipamd.go`의 `tryUnassignIPFromENI` — "Don't force the delete, since a freeable IP might have been assigned to a pod"). 강제 삭제는 EC2 API로 해당 보조 IP가 이미 인스턴스에서 detach되었음을 재확인한 reconcile 경로에서만 발생합니다.
 
-따라서 warm 타깃을 줄이거나 노드 축소가 일어나도 실행 중인 Pod의 연결이 IPAM 때문에 끊기는 일은 없습니다. 반납 대상은 언제나 미할당 여유분입니다.
+따라서 정상적인 풀 축소에서 warm 타깃을 줄이면 반납 대상은 언제나 미할당 여유분이며, 할당된 IP는 이 경로에서 회수되지 않습니다. 다만 이 불변식은 정상적인 풀 축소 경로에 한정됩니다. 노드 자체의 스케일 다운, reconcile가 ENI를 detach로 판정하는 경우, ENI가 비정상 분리되거나 다른 장애가 겹치는 경우까지 모든 상황에서 실행 중인 Pod의 연결이 유지된다는 보장은 아닙니다.
 
 ## Deep Dive: NetworkPolicy — 컨트롤러와 eBPF 에이전트의 분업
 
-VPC CNI v1.14.0+는 Kubernetes NetworkPolicy를 네이티브로 지원하며, 적용 구조는 두 계층으로 분리됩니다.
+VPC CNI v1.14.0+는 Kubernetes NetworkPolicy를 네이티브로 지원하며, 적용 구조는 두 계층으로 분리됩니다. 다만 이 적용은 기본값으로 켜져 있지 않고 명시적으로 활성화해야 합니다(`ENABLE_NETWORK_POLICY=true` 또는 애드온 설정의 `enableNetworkPolicy`). 신규로 만든 EKS 클러스터는 필요한 구성 요소가 기본 설치되지만, 정책 적용(enforcement) 자체는 opt-in입니다.
+
+활성화한 뒤에도 Pod 기동 시점의 동작은 모드에 따라 다릅니다. 기본값인 standard 모드에서는 노드 에이전트가 eBPF 정책을 적용하기 전까지 Pod가 default-allow 상태로 시작하므로, 정책이 완전히 적용되기까지 짧은 허용 창(window)이 존재합니다. strict 모드(`NETWORK_POLICY_ENFORCING_MODE=strict`)는 정책이 설정되기 전 트래픽을 차단해 이 창을 없애지만, 초기 연결 지연 같은 트레이드오프가 있습니다. 적용 전제로는 Linux 노드(Fargate·Windows 미지원)와 지원 커널의 eBPF가 필요합니다.
 
 **그림 2. NetworkPolicy 적용 구조 — 컨트롤러와 eBPF 에이전트의 분업**
 
 ```mermaid
 flowchart TB
     NP["NetworkPolicy<br/>(사용자 정의)"] --> NPC["Network Policy Controller<br/>(EKS 컨트롤 플레인, AWS 관리)"]
-    NPC -->|"정책 해석 결과 발행"| PE["PolicyEndpoints CRD"]
+    NPC -->|"정책 해석 결과 발행"| PE["PolicyEndpoint 객체<br/>(해석된 커스텀 리소스)"]
     PE --> NPA["aws-network-policy-agent<br/>(노드 DaemonSet)"]
     NPA -->|"eBPF 프로그램 attach"| VETH["Pod host veth 인터페이스"]
 ```
 
-- **Network Policy Controller** — EKS 컨트롤 플레인에서 AWS가 관리 운영합니다. NetworkPolicy의 셀렉터를 실제 Pod IP 집합으로 해석(resolve)해 그 결과를 `PolicyEndpoints` CRD로 발행합니다.
-- **aws-network-policy-agent** — 각 노드의 DaemonSet으로, `PolicyEndpoints`를 watch하여 정책을 **Pod의 host veth에 attach한 eBPF 프로브**로 적용합니다. iptables 체인을 만들지 않으므로 정책 수가 늘어도 규칙 순회 비용이 선형 증가하지 않습니다.
+- **Network Policy Controller** — EKS 컨트롤 플레인에서 AWS가 관리 운영합니다. NetworkPolicy의 셀렉터를 실제 Pod IP 집합으로 해석(resolve)해 그 결과를 `PolicyEndpoint` 커스텀 리소스 객체로 발행합니다. `PolicyEndpoint`는 종류(kind)를 정의하는 단일 CRD이고, 컨트롤러가 정책마다 쓰는 것은 그 CRD의 인스턴스인 `PolicyEndpoint` 객체입니다.
+- **aws-network-policy-agent** — 각 노드의 DaemonSet으로, `PolicyEndpoint` 객체를 watch하여 정책을 **Pod의 host veth에 attach한 eBPF 프로브**로 적용합니다. iptables 체인을 만들지 않으므로 정책 수가 늘어도 규칙 순회 비용이 선형 증가하지 않습니다.
 
 운영 관점의 함의는 다음과 같습니다.
 
-- 정책 적용 상태의 1차 확인 대상은 NetworkPolicy 오브젝트가 아니라 **`PolicyEndpoints` CRD** — 컨트롤러의 해석 결과가 여기까지 왔는지가 분기점
+- 정책 적용 상태의 1차 확인 대상은 NetworkPolicy 오브젝트가 아니라 컨트롤러가 발행한 **`PolicyEndpoint` 객체** — 컨트롤러의 해석 결과가 여기까지 왔는지가 분기점
 - 커널 레벨 DENY는 노드 에이전트가 제공하는 CLI(`aws-eks-na-cli`)와 정책 이벤트 로그로 관측
 - 적용 범위 제약: Pod의 `eth0`만 대상이며 host networking Pod, Windows 노드, Fargate에는 적용되지 않음
 
@@ -200,7 +204,7 @@ VPC CNI는 Pod IP를 VPC 서브넷에서 직접 소비하므로 서브넷 사이
 
 ## 결론
 
-VPC CNI는 오버레이 없이 VPC 네이티브 IP를 Pod에 직접 부여하는 L3 routed mode CNI입니다. 데이터패스는 더미 게이트웨이(169.254.1.1)와 정적 ARP, 방향별 이중 라우팅 테이블로 구성되며 L2 브리지가 존재하지 않습니다. IPAM은 ipamd가 warm 타깃 절대치(`WARM_ENI_TARGET`/`WARM_IP_TARGET`/`MINIMUM_IP_TARGET`) 기반으로 풀을 유지하고, 30초 IP 쿨다운과 비강제 축소로 실행 중인 Pod를 보호합니다. NetworkPolicy는 컨트롤 플레인의 컨트롤러가 `PolicyEndpoints` CRD로 정책을 해석하고 노드의 eBPF 에이전트가 host veth에서 적용하는 2계층 구조입니다.
+VPC CNI는 오버레이 없이 VPC 네이티브 IP를 Pod에 직접 부여하는 L3 routed mode CNI입니다. 데이터패스는 더미 게이트웨이(169.254.1.1)와 정적 ARP, 방향별 이중 라우팅 테이블로 구성되며 L2 브리지가 존재하지 않습니다. IPAM은 ipamd가 warm 타깃 절대치(`WARM_ENI_TARGET`/`WARM_IP_TARGET`/`MINIMUM_IP_TARGET`) 기반으로 풀을 유지하고, 30초 IP 쿨다운과 비강제 축소로 실행 중인 Pod를 보호합니다. NetworkPolicy는 컨트롤 플레인의 컨트롤러가 정책을 해석해 `PolicyEndpoint` 객체로 발행하고 노드의 eBPF 에이전트가 host veth에서 적용하는 2계층 구조입니다.
 
 ## 참고 자료
 

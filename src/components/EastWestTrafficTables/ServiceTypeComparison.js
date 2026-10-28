@@ -31,7 +31,7 @@ const ServiceTypeComparison = () => {
     name: 'Internal ALB',
     badge: 'L7',
     badgeColor: '#8b5cf6',
-    behavior: isKo ? 'AWS ALB Controller, L7 동작, IP 모드 전용' : 'AWS ALB Controller, L7 operation, IP mode only',
+    behavior: isKo ? 'AWS ALB Controller, L7 동작, instance/IP 모드 지원(이 설계에서는 IP 모드 권장)' : 'AWS ALB Controller, L7 operation, supports instance and IP modes (IP mode recommended here)',
     pros: isKo ? 'L7 기능(경로 라우팅, WAF, gRPC), Cross-Zone 무료' : 'L7 features (path routing, WAF, gRPC), free cross-zone',
     cons: isKo ? 'ALB 시간당 + LCU 비용, 수~수십ms 추가 지연' : 'ALB hourly + LCU cost, ms-level added latency'
   }];

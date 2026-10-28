@@ -3,9 +3,9 @@ title: "How VPC CNI Works: Datapath, IPAM, and NetworkPolicy"
 description: Dissects the internals of Amazon VPC CNI along three axes. The L3 routed mode datapath (veth, ip rule, 169.254.1.1), ipamd's warm pool, Prefix Delegation, and IP cooldown algorithms, and the eBPF-based NetworkPolicy architecture
 created: "2026-08-04"
 last_update:
-  date: "2026-09-19"
+  date: 2026-10-15
   author: YoungJoon Jeong · Kyumin Park
-reading_time: 27
+reading_time: 33
 tags:
   - eks
   - vpc-cni
@@ -40,10 +40,10 @@ VPC CNI is not a single binary. It consists of two components with different rol
 
 | Component | Execution model | Role |
 |---|---|---|
-| CNI plugin binary (`aws-cni`) | Invoked by kubelet on every Pod create/delete | Network wiring such as creating veth pairs and configuring routing rules |
+| CNI plugin binary (`aws-cni`) | Invoked by the CRI runtime (such as containerd) in response to kubelet's Pod create/delete request | Network wiring such as creating veth pairs and configuring routing rules |
 | ipamd (`aws-node` DaemonSet) | Long-running daemon, one per node | ENI attach/detach, secondary IP pool management, EC2 API calls |
 
-When a Pod starts, the CNI binary requests an IP from the local ipamd over gRPC, and ipamd immediately returns one from the warm pool it has already reserved. EC2 API calls (ENI creation, IP allocation) are decoupled from the Pod creation path and run asynchronously in the background. This separation is why Pod startup latency is not tied to EC2 API latency.
+The Pod creation path runs in the order `kubelet → CRI runtime → CNI binary → ipamd`. Since dockershim was removed in Kubernetes 1.24, kubelet no longer invokes CNI directly; it delegates Pod sandbox creation to the CRI runtime (such as containerd), which invokes the CNI binary at the network-wiring step. The CNI binary then requests an IP from the local ipamd over gRPC, and ipamd returns one from the warm pool it has already reserved. EC2 API calls (ENI creation, IP allocation) are decoupled from the Pod creation path and run asynchronously in the background. Because network wiring and IPAM are separated this way, Pod startup latency is not tied to EC2 API latency as long as the warm pool has spare capacity. This fast path holds only when the warm pool has spare IPs. If the pool is empty, ipamd cannot return immediately and instead returns an error, entering the slower replenish path that acquires a new ENI/IP through the EC2 API. That replenish path is exposed to EC2 API latency, and EC2 API throttling can delay Pod startup further.
 
 In secondary-IP mode, address capacity depends on the instance type's ENI count and secondary IPs per ENI. An instance with 4 ENIs and 15 IPs per ENI has `4 × (15 - 1) = 56` secondary IPs available for Pods. The `+ 2` in the [VPC CNI recommended `max-pods` formula](https://github.com/aws/amazon-vpc-cni-k8s#setup) accounts for `hostNetwork` Pods that do not consume separate Pod IPs. Its result, 58, is a Pod-count setting, not 58 Pod IPs. Kubelet configuration and workload resource requirements also constrain actual capacity.
 
@@ -96,7 +96,7 @@ default via 169.254.1.1 dev eth0
 
 ### Host Side: veth Naming Rules and Dual Routing
 
-The host-side veth interface name is generated deterministically: the `eni` prefix (the default, configurable via `AWS_VPC_K8S_CNI_VETHPREFIX`) followed by the first 11 characters of the SHA-1 hash of the network name, Pod identifier, and interface name (`networkutils.GeneratePodHostVethName`). To trace a name like `eni3a52ce78d95` back to a Pod, you either recompute the hash input or cross-reference it with the `ip addr` routing entries.
+The host-side veth interface name is generated deterministically: the `eni` prefix (the default, configurable via `AWS_VPC_K8S_CNI_VETHPREFIX`) followed by the first 11 characters of the SHA-1 hash of `namespace.podName` (with an interface index appended to the Pod name for secondary interfaces) (`networkutils.GeneratePodHostVethName`). To trace a name like `eni3a52ce78d95` back to a Pod, you either recompute the hash input or cross-reference it with the `Pod IP/32 → host veth` entries in `ip route`.
 
 Different routing tables are used depending on the direction of traffic.
 
@@ -107,7 +107,9 @@ Different routing tables are used depending on the direction of traffic.
 | VPC → Pod (ingress) | main table | Delivered via the `Pod IP/32 → host veth` host route |
 | Pod → VPC (egress) | Per-ENI table | `ip rule` matches on the Pod IP as the source, sends the packet to the routing table of the ENI that owns that IP, and that table's default route points to the subnet gateway |
 
-The reason egress needs per-ENI tables is that response packets from an IP assigned to a secondary ENI must leave through that same ENI. The VPC validates the mapping between source IP and ENI, so a packet sent out via the primary ENI's default route is treated as spoofing and dropped.
+The reason egress needs per-ENI tables is that response packets from an IP assigned to a secondary ENI must leave through that same ENI. The VPC validates the mapping between source IP and ENI, so if a secondary IP keeps its own source address and leaves through a different ENI (for example the primary ENI), it is treated as spoofing and dropped. The driver adds this source-based `ip rule` only for a secondary ENI's non-main routing table, so it does not apply to traffic from IPs assigned to the primary ENI.
+
+This source-based matching applies when a packet keeps its own source IP. Traffic leaving the VPC (off-VPC) is, by default, source-NATed so that external SNAT rewrites the source to the node's primary IP; in that case it can leave through the primary interface. Settings that change SNAT behavior, such as `AWS_VPC_K8S_CNI_EXTERNALSNAT=true` or custom networking, alter this path.
 
 ## Deep Dive: IPAM — ipamd's Pool Management Algorithm
 
@@ -142,32 +144,34 @@ When a Pod is deleted, its IP does not immediately return to the assignable stat
 
 The cooldown exists because of Kubernetes' asynchronous nature. After a Pod is deleted, it takes time for kube-proxy to remove that IP from the iptables/IPVS rules on every node. If the IP were reassigned to a new Pod immediately with no cooldown, traffic for the old Service could flow into the new Pod through rules that have not yet been updated. Setting the value to 0 is supported but strongly discouraged by the official documentation; conversely, setting it too high ties up available IPs in cooldown and increases EC2 API calls. For workloads with heavy Pod churn, warm pool sizing must account for the fact that (Pod deletions per second × cooldown period) IPs are in cooldown at any given time.
 
-### Pool Shrinking: Live Pod IPs Are Never Reclaimed
+### Pool Shrinking: Only Unassigned Spare Is Reclaimed, Allocated IPs Are Protected {#pool-shrinking-live-pod-ips-are-never-reclaimed}
 
 ipamd attempts to return surplus IPs/ENIs every 30 seconds, but this shrink path performs only **non-force deletion**. When removing an IP from the datastore, the deletion is refused if that IP is assigned to a Pod (`tryUnassignIPFromENI` in `ipamd.go` — "Don't force the delete, since a freeable IP might have been assigned to a pod"). Forced deletion happens only on the reconcile path, after confirming through the EC2 API that the secondary IP has already been detached from the instance.
 
-As a result, lowering the warm targets or scaling down the node never breaks a running Pod's connectivity because of IPAM. What gets returned is always unassigned spare capacity.
+As a result, during a normal pool shrink, lowering the warm targets returns only unassigned spare capacity, and allocated IPs are not reclaimed on this path. This invariant is limited to the normal pool-shrink path, however. It is not a guarantee that a running Pod's connectivity is preserved in every situation — node scale-down, a reconcile that judges an ENI as detached, an abnormally detached ENI, or other failures can still break connectivity.
 
 ## Deep Dive: NetworkPolicy — Division of Labor Between Controller and eBPF Agent
 
-VPC CNI v1.14.0+ supports Kubernetes NetworkPolicy natively, with enforcement split into two layers.
+VPC CNI v1.14.0+ supports Kubernetes NetworkPolicy natively, with enforcement split into two layers. Enforcement is not on by default, however, and must be enabled explicitly (`ENABLE_NETWORK_POLICY=true`, or `enableNetworkPolicy` in the add-on configuration). Newly created EKS clusters install the required components by default, but policy enforcement itself is opt-in.
+
+Even after it is enabled, behavior at Pod startup depends on the mode. In the default standard mode, a Pod starts in a default-allow state until the node agent has applied the eBPF policy, so there is a brief allow window before the policy is fully in effect. Strict mode (`NETWORK_POLICY_ENFORCING_MODE=strict`) removes this window by blocking traffic before the policy is configured, at the cost of trade-offs such as added initial connection latency. Enforcement requires Linux nodes (Fargate and Windows are not supported) and eBPF on a supported kernel.
 
 **Figure 2. NetworkPolicy enforcement — controller and eBPF agent split**
 
 ```mermaid
 flowchart TB
     NP["NetworkPolicy<br/>(user-defined)"] --> NPC["Network Policy Controller<br/>(EKS control plane, AWS-managed)"]
-    NPC -->|"publishes resolved policy"| PE["PolicyEndpoints CRD"]
+    NPC -->|"publishes resolved policy"| PE["PolicyEndpoint objects<br/>(resolved custom resources)"]
     PE --> NPA["aws-network-policy-agent<br/>(node DaemonSet)"]
     NPA -->|"attaches eBPF program"| VETH["Pod host veth interface"]
 ```
 
-- **Network Policy Controller** — Managed and operated by AWS on the EKS control plane. It resolves NetworkPolicy selectors into the actual set of Pod IPs and publishes the result as `PolicyEndpoints` CRDs.
-- **aws-network-policy-agent** — A DaemonSet on each node that watches `PolicyEndpoints` and enforces policies as **eBPF probes attached to the Pod's host veth**. Because it creates no iptables chains, rule traversal cost does not grow linearly as the number of policies increases.
+- **Network Policy Controller** — Managed and operated by AWS on the EKS control plane. It resolves NetworkPolicy selectors into the actual set of Pod IPs and publishes the result as `PolicyEndpoint` custom resource objects. `PolicyEndpoint` is a single CRD that defines the kind; what the controller writes per policy are instances of that CRD — `PolicyEndpoint` objects.
+- **aws-network-policy-agent** — A DaemonSet on each node that watches `PolicyEndpoint` objects and enforces policies as **eBPF probes attached to the Pod's host veth**. Because it creates no iptables chains, rule traversal cost does not grow linearly as the number of policies increases.
 
 The operational implications are as follows.
 
-- The first place to check enforcement status is not the NetworkPolicy object but the **`PolicyEndpoints` CRD** — whether the controller's resolved result has made it this far is the decision point
+- The first place to check enforcement status is not the NetworkPolicy object but the **`PolicyEndpoint` objects** the controller publishes — whether the controller's resolved result has made it this far is the decision point
 - Kernel-level DENYs are observed through the CLI provided by the node agent (`aws-eks-na-cli`) and the policy event logs
 - Scope limitations: only the Pod's `eth0` is covered; host networking Pods, Windows nodes, and Fargate are not supported
 
@@ -200,7 +204,7 @@ With `ENABLE_POD_ENI=true`, the VPC Resource Controller (on the control plane si
 
 ## Summary
 
-VPC CNI is an L3 routed mode CNI that assigns VPC-native IPs directly to Pods with no overlay. The datapath consists of a dummy gateway (169.254.1.1), static ARP, and direction-specific dual routing tables, with no L2 bridge. For IPAM, ipamd maintains the pool based on absolute warm targets (`WARM_ENI_TARGET`/`WARM_IP_TARGET`/`MINIMUM_IP_TARGET`) and protects running Pods through a 30-second IP cooldown and non-force shrinking. NetworkPolicy is a two-layer structure in which the control plane controller resolves policies into `PolicyEndpoints` CRDs and the node's eBPF agent enforces them on the host veth.
+VPC CNI is an L3 routed mode CNI that assigns VPC-native IPs directly to Pods with no overlay. The datapath consists of a dummy gateway (169.254.1.1), static ARP, and direction-specific dual routing tables, with no L2 bridge. For IPAM, ipamd maintains the pool based on absolute warm targets (`WARM_ENI_TARGET`/`WARM_IP_TARGET`/`MINIMUM_IP_TARGET`) and protects running Pods through a 30-second IP cooldown and non-force shrinking. NetworkPolicy is a two-layer structure in which the control plane controller resolves policies and publishes them as `PolicyEndpoint` objects, and the node's eBPF agent enforces them on the host veth.
 
 ## References
 

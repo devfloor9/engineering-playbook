@@ -3,9 +3,9 @@ title: EKS Multi-Cluster East-West Communication — Is Istio Still the Right Ch
 description: Compares Istio multi-cluster, Cilium ClusterMesh, and Amazon VPC Lattice architectures for East-West (service-to-service) communication across EKS clusters along four axes — functionality, stability, operability, and cost — with guidance on which environment suits each and a migration path from Istio
 created: "2026-07-16"
 last_update:
-  date: "2026-07-16"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 28
+reading_time: 63
 tags:
   - service-mesh
   - multi-cluster
@@ -106,7 +106,7 @@ Each candidate is presented as: how it works → four-axis assessment (functiona
        · Gateway API Controller syncs K8s resources ↔ Lattice resources
 ```
 
-Pods send traffic to the Lattice data plane on the link-local range (`169.254.171.0/24`); the only cluster change is allowing the Lattice managed prefix list inbound on the cluster security group. Two VPCs **communicate even with identical CIDRs** — a behavior demonstrated in the official AWS blog ([References](#8-references) item 2, verified 2026-07-16).
+Pods send traffic to the Lattice data plane on the link-local range (`169.254.171.0/24`). The official AWS blog demo assumes a default setup, so it describes "allowing the Lattice managed prefix list inbound on the cluster security group" as the only cluster change; that holds only under the demo's default assumptions. In a real environment you must also verify the inbound/outbound rules of the security groups actually applied to nodes and Pods (including Security Groups for Pods), client-side egress, service-network-to-VPC association rules, routing, controller IAM permissions, and signed application access as prerequisites. Two VPCs **communicate even with identical CIDRs** — a behavior demonstrated in the official AWS blog ([References](#8-references) item 2, verified 2026-07-16).
 
 Authentication and authorization use IAM auth policies. Using the session tags issued by EKS Pod Identity (`eks-cluster-name`, `kubernetes-namespace`, `kubernetes-pod-name`) as conditions enables **ABAC authorization at cluster, namespace, or pod granularity**. With IAM auth enabled, requests must be SigV4-signed — either natively in the SDK or via a signing proxy (e.g., an Envoy sidecar injected solely for signing).
 
@@ -136,7 +136,7 @@ Authentication and authorization use IAM auth policies. Using the session tags i
      Prereqs: non-overlapping PodCIDRs + direct node IP reachability + same datapath mode
 ```
 
-With no proxy hop, traffic is **direct pod-to-pod**, giving the lowest data-plane overhead and latency of any candidate. The prerequisites are strict, however — non-overlapping PodCIDRs across all clusters, direct node IP reachability (VPC peering or TGW), the same datapath mode everywhere, and upfront cluster ID (1–255)/name design (changing them later requires restarting all workloads). All per upstream documentation (verified 2026-07-16).
+With no proxy hop, traffic is **direct pod-to-pod**, a potential advantage in data-plane overhead and latency over candidates that traverse an intermediate proxy. This is not a ranking established by a matched benchmark, however; actual latency depends on topology, whether transport encryption (WireGuard/IPsec) and L7 processing are enabled, and packet size, so it must be confirmed by measurement under identical conditions. The prerequisites are strict, however — non-overlapping PodCIDRs across all clusters, direct node IP reachability (VPC peering or TGW), the same datapath mode everywhere, and upfront cluster ID (1–255)/name design (changing them later requires restarting all workloads). All per upstream documentation (verified 2026-07-16).
 
 **Table 4. Cilium ClusterMesh four-axis assessment (functionality, stability, operability, cost)**
 
@@ -217,7 +217,7 @@ The "strength/limitation" split and the operability verdicts below are the autho
 
 | Axis | VPC Lattice + GW API Controller | Cilium ClusterMesh | Istio multi-primary |
 |------|--------------------------------|--------------------|--------------------|
-| **Functionality** | Strengths HTTP/gRPC, IAM authorization, account boundaries / Limitations TCP constraints, no UDP, no mesh observability | Strengths all protocols, lowest latency / Limitations cross-cluster L7 expressiveness, no SPIFFE mutual auth | Strengths highest expressiveness everywhere, multi-cloud / Limitations none (on features alone, the strongest) |
+| **Functionality** | Strengths HTTP/gRPC, IAM authorization, account boundaries / Limitations TCP constraints, no UDP, no mesh observability | Strengths all protocols, direct path with no proxy hop (latency advantage subject to measurement) / Limitations cross-cluster L7 expressiveness, no SPIFFE mutual auth | Strengths highest expressiveness everywhere, multi-cloud / Limitations none (on features alone, the strongest) |
 | **Stability** | AWS-managed data plane, minimal customer components. Quota ceilings are the practical risk | Mature kernel datapath. But CNI = mesh, so the largest blast radius | Longest production record. But every stability precondition (CA, gateways, skew) is customer-kept |
 | **Operability** | Favorable: **the only candidate with the control plane outside the cluster** | Limited: CNI replacement + three self-operated components; not AWS-supported | Strongly unfavorable: N istiods + N×(N−1) remote secrets + gateways. Commercial support only mitigates |
 | **Cost** | Pay-as-you-go (hourly + GB + requests). Favorable at small-to-medium traffic; simulate at high volume. No L3 cost | Free software + L3 charges + dedicated headcount. Favorable at high traffic | Free software + sidecar resources + gateway/L3 charges + **highest headcount** |
@@ -236,7 +236,9 @@ flowchart TD
     q1 -->|"Yes (DBs, brokers, custom protocols)"| q2{"CNI already Cilium<br/>(or switch committed)?"}
     q1 -->|"No (HTTP/gRPC-centric)"| q4
     q2 -->|Yes| cilium["Cilium ClusterMesh<br/>+ L3 underlay (peering/TGW)"]
-    q2 -->|No| q3{"End-to-end SPIFFE mTLS<br/>or multi-cloud requirement?"}
+    q2 -->|No| q2u{"Does the traffic<br/>include UDP?"}
+    q2u -->|"Yes (UDP)"| udp["Needs a UDP-capable routed datapath<br/>(not substitutable by Istio proxy or Lattice TLS passthrough)<br/>— Cilium ClusterMesh or L3 routing design"]
+    q2u -->|"No (TCP only)"| q3{"End-to-end SPIFFE mTLS<br/>or multi-cloud requirement?"}
     q3 -->|Yes| istio["Keep Istio multi-primary<br/>(consider commercial support)"]
     q3 -->|No| tcp_lattice["PoC whether TCP fits<br/>Lattice TLS passthrough<br/>(else keep Istio)"]
     q4{"End-to-end SPIFFE mTLS<br/>codified as audit requirement?"} -->|Yes| istio
@@ -247,6 +249,7 @@ flowchart TD
     style lattice fill:#fff3e0,stroke:#e65100
     style cilium fill:#e8f5e9,stroke:#2e7d32
     style istio fill:#e3f2fd,stroke:#1565c0
+    style udp fill:#e8f5e9,stroke:#2e7d32
 ```
 
 **Recommendations:**
@@ -254,6 +257,7 @@ flowchart TD
 - **Default recommendation**: For HTTP/gRPC-centric multi-cluster, meet the communication requirements without a mesh via VPC Lattice + Gateway API Controller, and eliminate control-plane operations.
 - **When keeping Istio is the right answer**: end-to-end SPIFFE mTLS audit requirements, multi-cloud full mesh, or advanced L7 control as a business requirement. Mitigate the burden with commercial support (lever a) and an ambient transition (lever b — noting multi-cluster ambient is Beta, so PoC first).
 - **Cilium ClusterMesh is conditional**: only when Cilium CNI is already in place, TCP/UDP is required, and dedicated capability exists — all three.
+- **Judge UDP separately from TCP**: Istio does not proxy UDP and UDP cannot traverse its proxy-only gateways, and Lattice does not support UDP (TLS passthrough is TCP-only). Cross-cluster UDP therefore cannot be served by an Istio proxy or by Lattice; it needs a datapath that routes UDP (such as Cilium ClusterMesh) or a separate L3 routing path.
 
 Single-cluster mesh selection is delegated to the [Service Mesh Comparison Guide](./index.md).
 
@@ -264,7 +268,7 @@ Single-cluster mesh selection is delegated to the [Service Mesh Comparison Guide
 - **It is L7-centric.** Lattice supports HTTP/HTTPS, gRPC, and TCP via TLS passthrough — but passthrough carries constraints: a custom domain (SNI match) is mandatory, only the default rule is allowed (no path/header routing), forwarding must target a TCP target group, **connection lifetime is capped at 10 minutes**, and auth policies support anonymous principals only (verified 2026-07-16). Long-lived TCP connections (database connection pools, streaming) can make this cap a hard blocker — test it in the PoC. UDP is not supported.
 - **Reconsider if end-to-end SPIFFE mTLS is required.** Lattice's security model is "TLS termination + IAM request authorization." If the audit requirement literally demands "X.509 mutual authentication evidence between workloads," Lattice alone will struggle to satisfy it. Agree on the interpretation of the compliance wording with your compliance owner first.
 - **No mesh-grade observability.** There is no Kiali-level real-time topology graph or automatic golden-signal collection between services. Define your observability requirements first and check whether CloudWatch metrics/access logs plus X-Ray can substitute.
-- **Design against quotas.** Architecture-shaping limits exist: one service network per VPC (non-adjustable), a 10 KB auth-policy cap, 10 rules per listener (adjustable), and others. Check projected service and rule counts against quotas before finalizing the design.
+- **Design against quotas.** Architecture-shaping limits exist: a VPC can be directly associated with one service network (non-adjustable), but a service-network VPC endpoint lets a VPC connect to multiple service networks (with its own design and cost implications per endpoint). Others include a 10 KB auth-policy cap and 10 rules per listener (adjustable). Check projected service and rule counts against quotas before finalizing the design.
 - **Simulate pricing.** The $0.025/GB processing charge exceeds cross-AZ charges ($0.01/GB × both directions). For a few very-high-volume paths, a hybrid design that bypasses Lattice (same-cluster placement, direct connectivity) can be more cost-efficient.
 
 **Before choosing Cilium ClusterMesh:**

@@ -39,7 +39,7 @@ const ScenarioMatrix = () => {
     icon: '🔗',
     scenario: isKo ? '멀티 클러스터 (동일 계정, 낮은 운영 복잡도)' : 'Multi-cluster (same account, low ops complexity)',
     scope: isKo ? '멀티 클러스터' : 'Multi-cluster',
-    solution: isKo ? 'Cilium ClusterMesh. Pod 직접 통신, 추가 비용 없이 저지연' : 'Cilium ClusterMesh. Direct Pod communication, low latency with no extra cost',
+    solution: isKo ? 'Cilium ClusterMesh. Pod 직접 통신, 저지연. AWS 서비스 요금은 없지만 데이터 전송·컴퓨트·컨트롤 플레인 비용은 발생' : 'Cilium ClusterMesh. Direct Pod communication, low latency. No AWS service charge, but data-transfer, compute, and control-plane costs apply',
     color: '#2563eb'
   }, {
     icon: '🏢',

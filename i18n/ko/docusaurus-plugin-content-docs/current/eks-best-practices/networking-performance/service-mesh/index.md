@@ -3,9 +3,9 @@ title: EKS 서비스 메시 솔루션 비교 가이드 — Istio, Cilium, Linker
 description: EKS 환경에서 주요 서비스 메시 솔루션의 데이터 플레인 아키텍처, mTLS, L7 정책, 관측성, 성능 오버헤드, 운영 복잡도를 비교하고 워크로드별 선택 기준을 제시합니다
 created: "2026-07-15"
 last_update:
-  date: "2026-07-15"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 20
 tags:
   - service-mesh
   - istio
@@ -49,7 +49,7 @@ sidebar_position: 1
 
 - **mTLS / Zero-Trust**: 서비스 간 상호 인증과 전송 암호화를 플랫폼 계층에서 강제합니다. ISMS-P(정보보호 관리체계)·PCI-DSS 등 규제 환경에서 전 구간 암호화 요구를 충족하는 표준 수단입니다.
 - **L7 트래픽 제어**: 가중치 기반 트래픽 분할(카나리), 헤더 기반 라우팅, 재시도·타임아웃·서킷 브레이커를 서비스 단위로 선언적으로 관리합니다.
-- **관측성**: 서비스 간 골든 시그널(지연·트래픽·에러·포화도) 메트릭과 분산 트레이싱을 계측 코드 없이 수집합니다.
+- **관측성**: 서비스 간 골든 시그널(지연·트래픽·에러·포화도) 메트릭과 프록시 수준의 트레이스 스팬은 애플리케이션 계측 코드 없이 수집합니다. 다만 요청이 여러 서비스를 거치는 전 구간(end-to-end) 분산 트레이싱은 애플리케이션이 트레이스 컨텍스트 헤더(예: W3C `traceparent`)를 다음 홉으로 전파해야 완성되므로, 이 부분은 계측이 필요합니다.
 
 ### 서비스 메시가 필요 없는 경우
 
@@ -121,7 +121,7 @@ Cilium(현재 안정 버전 1.19)은 CNI 계층에서 메시 기능을 흡수하
 
 - **mTLS 방식이 다름**: Envoy 기반 메시의 TLS 핸드셰이크 대신 WireGuard 또는 IPsec으로 노드 간 전송 암호화를 제공하고, 인증은 SPIFFE 기반 상호 인증(mutual authentication)으로 처리합니다. 규제 요건이 "서비스 단위 mTLS 증적"을 요구하는 경우 감사 관점의 해석 차이를 사전 확인해야 합니다.
 - **전제 조건**: 클러스터 CNI가 Cilium이어야 합니다. EKS에서는 VPC CNI를 Cilium ENI 모드로 대체하는 구성이며, 상세 절차는 [Cilium ENI 모드 + Gateway API 심화 구성](../gateway-api-adoption-guide/cilium-eni-gateway-api.md)을 참조합니다.
-- 이미 Cilium을 CNI로 운영 중이라면 별도 메시 컴포넌트 추가 없이 Hubble 관측성·L7 정책을 활성화하는 것만으로 메시 기능 대부분을 확보합니다.
+- 이미 Cilium을 CNI로 운영 중이라면 별도 메시 컴포넌트 추가 없이 Hubble 관측성·L7 정책을 활성화하는 것만으로 L4/L7 메시 기능 상당 부분을 확보합니다. 다만 서비스 신원 기반 상호 인증(mutual authentication)과 전송 암호화는 Hubble·L7 정책과 별개로 각각 활성화해야 합니다. Cilium 공식 문서(v1.19)에서 상호 인증은 SPIFFE/SPIRE 통합(Helm 옵션으로 배포하거나 자체 SPIRE 서버 구성)을 전제로 하고, 암호화(WireGuard/IPsec)를 함께 켜야 하며, 이 기능은 아직 **베타(beta)**로 로드맵상 미완성 항목이 남아 있다고 명시합니다. 메시의 신원·암호화 요건을 Cilium으로 충족한다고 판단하기 전에 이 기능들을 개별적으로 활성화하고 베타·지원 한계를 확인해야 합니다.
 
 ### Linkerd — 경량 Rust 프록시
 
@@ -138,7 +138,7 @@ Amazon VPC Lattice는 엄밀히는 메시 제품이 아니라 **관리형 애플
 
 - 데이터 플레인이 AWS 인프라에 내장되어 클러스터 내 프록시·에이전트가 없습니다. VPC·계정 경계를 네이티브로 넘습니다.
 - 인증·인가는 IAM 정책(SigV4 서명)으로 처리합니다 — 인증서 관리가 사라지는 대신, 요청 서명을 위한 SDK/프록시 구성이 필요할 수 있습니다.
-- Kubernetes에서는 [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/)로 Gateway API 리소스(HTTPRoute)를 통해 선언적으로 관리합니다 — GAMMA 패턴의 관리형 구현에 해당합니다.
+- Kubernetes에서는 [AWS Gateway API Controller](https://www.gateway-api-controller.eks.aws.dev/)로 Gateway API 리소스(HTTPRoute)를 통해 선언적으로 관리합니다. 컨트롤러의 공개 적합성(conformance) 보고는 Gateway 프로파일을 대상으로 하며, Service를 부모로 삼는 GAMMA(메시) 프로파일 적합성은 고정된 적합성 보고로 확인되기 전까지 단정하지 않습니다.
 - EKS 외 ECS·Lambda·EC2와의 통합이 필요한 이기종 환경에서 특히 유리합니다.
 
 ## 기능 비교 매트릭스
@@ -150,13 +150,13 @@ Amazon VPC Lattice는 엄밀히는 메시 제품이 아니라 **관리형 애플
 | 현재 안정 버전 | 1.30 | 1.19 | 2.20 (BEL) | 관리형 (버전 없음) |
 | 데이터 플레인 | ztunnel(L4) + waypoint(L7) | eBPF + 노드당 Envoy | Rust 사이드카 | AWS 관리형 |
 | 사이드카 | 불필요 | 불필요 | 필요 (Native Sidecar) | 불필요 |
-| mTLS | 자동 (SPIFFE 인증서) | WireGuard/IPsec + 상호 인증 | 자동 (제로 설정) | IAM + SigV4 |
+| 전송 암호화·신원 인증 | 자동 mTLS (SPIFFE 워크로드 인증서) | WireGuard/IPsec 전송 암호화 + SPIFFE 상호 인증 | 자동 mTLS (제로 설정) | TLS 전송 + IAM/SigV4 요청 인증 (워크로드 인증서 mTLS 아님) |
 | L7 라우팅·트래픽 분할 | HTTPRoute·VirtualService | HTTPRoute·CiliumEnvoyConfig | HTTPRoute | HTTPRoute (Lattice 규칙) |
 | 재시도·타임아웃·서킷 브레이커 | 전체 지원 | 지원 (Envoy 경유) | 지원 (2.20: rate-limit 인지 LB) | 재시도·타임아웃 (서킷 브레이커 제한적) |
 | 장애 주입 | 네이티브 | 제한적 | 제한적 | AWS FIS 연동 |
 | 관측성 | Kiali·Jaeger·Prometheus | Hubble (Service Map) | Viz 대시보드 | CloudWatch·X-Ray |
 | 멀티클러스터 | 지원 (복잡도 높음) | ClusterMesh | 지원 (BEL) | 네이티브 (VPC·계정 경계) |
-| GAMMA 지원 | 완전 지원 | HTTPRoute → Service | HTTPRoute 기반 | Gateway API Controller |
+| GAMMA 지원 | 완전 지원 | HTTPRoute → Service | HTTPRoute 기반 | Gateway API Controller (Gateway 프로파일, GAMMA 미확인) |
 | EKS 설치 경로 | Helm / istioctl | Helm / Cilium CLI (CNI 교체) | Helm / linkerd CLI | AWS Gateway API Controller |
 | 라이선스·거버넌스 | Apache-2.0, CNCF Graduated | Apache-2.0, CNCF Graduated | Apache-2.0 (stable은 BEL 배포판) | AWS 서비스 (종량 과금) |
 
@@ -166,7 +166,7 @@ GAMMA(Gateway API for Mesh) 표준 관점의 상세 지원 현황은 [GAMMA Init
 
 같은 "mTLS 지원"이라도 구현 계층이 다릅니다.
 
-- **Istio·Linkerd**: 워크로드 단위 X.509 인증서(SPIFFE ID)로 서비스 신원을 표현합니다. 인증서 순환은 자동이지만 트러스트 앵커(루트 CA) 순환은 운영 과제입니다 — Linkerd 2.20은 이를 자동화했습니다.
+- **Istio·Linkerd**: 워크로드 단위 X.509 인증서(SPIFFE ID)로 서비스 신원을 표현합니다. 인증서 순환은 자동이지만 트러스트 앵커(루트 CA) 순환은 운영 과제입니다 — Linkerd에서 트러스트 앵커 순환 자동화는 모든 2.20 설치에 기본 포함되는 기능이 아니라, Buoyant Enterprise for Linkerd(BEL)의 트러스트 순환 오퍼레이터를 배포하고 구성했을 때 제공됩니다. 오픈소스(OSS) 설치에서는 수동 절차로 남습니다.
 - **Cilium**: 전송 암호화(WireGuard/IPsec)와 신원 인증을 분리합니다. 커널 레벨 암호화라 오버헤드가 가장 낮지만, TLS 세션 단위 증적이 필요한 감사 요건과는 결이 다릅니다.
 - **VPC Lattice**: TLS 종단 + IAM 정책 평가로 서비스 간 인가를 AWS 네이티브 모델로 처리합니다. Kubernetes 외부 서비스(Lambda·EC2)와 동일한 인가 모델을 공유합니다.
 
@@ -174,7 +174,7 @@ GAMMA(Gateway API for Mesh) 표준 관점의 상세 지원 현황은 [GAMMA Init
 
 ### 데이터 플레인 오버헤드
 
-일반적인 오버헤드 순서는 다음과 같습니다 (낮은 쪽이 유리):
+아래 순서는 아키텍처(커널 eBPF vs 노드 프록시 vs 사이드카)에서 기대되는 **검증되지 않은 가설**이며, 동일 기능(암호화·L7 처리 등)을 맞춘 조건에서 측정한 벤치마크가 아닙니다. 각 솔루션이 처리하는 보안·L7 경로가 서로 다르므로, 실제 순위는 토폴로지·기능·패킷 크기에 따라 달라질 수 있고 동등 기능 측정 전까지는 확정된 결과로 받아들이면 안 됩니다 (낮은 쪽이 유리하다는 가정):
 
 ```
 eBPF (Cilium) < 노드 프록시 (Istio Ambient L4) ≈ 경량 사이드카 (Linkerd) < Envoy 사이드카 (Istio Sidecar)
@@ -187,7 +187,7 @@ VPC Lattice는 클러스터 내 오버헤드가 없는 대신 AWS 데이터 플�
 ### 리소스와 노드 밀도 영향
 
 - **사이드카 모드**: Pod 수 × 프록시 리소스가 노드 가용 용량을 잠식합니다. Pod 밀도가 높은 클러스터에서는 노드 증설 요인이 됩니다.
-- **Ambient·Cilium**: 노드당 고정 비용(ztunnel/Envoy DaemonSet)이라 Pod 밀도와 무관하게 예측 가능합니다.
+- **Ambient·Cilium**: 프록시 인스턴스 수가 노드당 고정(ztunnel/Envoy DaemonSet)이므로 Pod 수에 비례해 인스턴스가 늘지는 않습니다. 다만 인스턴스 수가 고정이라는 것이 리소스 사용량까지 고정이라는 뜻은 아닙니다. ztunnel의 CPU·메모리는 처리하는 연결 수·트래픽량·텔레메트리에 따라 변하고, Ambient의 L7 처리를 담당하는 waypoint는 별도로 배포·스케일되는 구성 요소라 그만큼 추가 리소스를 소비합니다.
 - **Linkerd**: 사이드카지만 프록시당 수십 MB 수준으로 Envoy 대비 낮습니다.
 
 ### AWS 비용 관점
@@ -197,7 +197,7 @@ VPC Lattice는 클러스터 내 오버헤드가 없는 대신 AWS 데이터 플�
 | 항목 | 자체 운영 메시 (Istio·Cilium·Linkerd) | VPC Lattice |
 |------|-------------------------------------|-------------|
 | 과금 방식 | 프록시·컨트롤 플레인의 EC2 컴퓨트 비용 | 서비스당 시간 요금 + GB당 처리 요금 + 요청당 요금 |
-| 비용 특성 | 트래픽과 무관하게 고정적 (리소스 기반) | 트래픽에 비례 (종량제) |
+| 비용 특성 | 프로비저닝한 용량 기반이나, 프록시 CPU·네트워크 사용률과 스케일링이 트래픽량·사용 기능에 따라 변동 | 트래픽에 비례 (종량제) |
 | 숨은 비용 | 운영 인력·업그레이드·장애 대응 | 대용량 트래픽에서 처리 요금 급증 가능 |
 
 서비스 수가 적고 트래픽이 많은 워크로드는 자체 운영이, 서비스·계정이 많고 트래픽이 분산된 환경은 Lattice가 비용 효율적인 경향이 있습니다. 크로스-AZ 데이터 요금과의 상호작용은 [East-West 트래픽 최적화](../east-west-traffic-best-practice.md)를 참조합니다.
@@ -212,7 +212,7 @@ VPC Lattice는 클러스터 내 오버헤드가 없는 대신 AWS 데이터 플�
 |--------|------|----------------|
 | Istio | Helm 또는 istioctl | 컨트롤 플레인 canary 업그레이드(revision) 권장, Ambient는 ztunnel/waypoint 순차 갱신 |
 | Cilium | Helm / Cilium CLI — **CNI 교체 수반** | CNI 업그레이드와 동일한 신중함 필요, 신규 클러스터 도입 권장 |
-| Linkerd | Helm / linkerd CLI | 트러스트 앵커 순환이 주요 이벤트 (2.20에서 자동화) |
+| Linkerd | Helm / linkerd CLI | 트러스트 앵커 순환이 주요 이벤트 (자동화는 BEL 오퍼레이터 구성 시, OSS는 수동) |
 | VPC Lattice | Gateway API Controller (Helm) | AWS가 데이터 플레인 관리, 컨트롤러만 갱신 |
 
 ### 컨트롤 플레인 운영 부담
@@ -220,11 +220,11 @@ VPC Lattice는 클러스터 내 오버헤드가 없는 대신 AWS 데이터 플�
 - **Istio**: Istiod 운영, CRD(VirtualService·DestinationRule 등) 학습 곡선, 버전별 동작 변화 추적이 필요합니다. 4개 중 운영 부담이 가장 크지만 상용 지원 선택지(Solo.io, Tetrate 등)도 가장 많습니다.
 - **Cilium**: CNI와 메시가 단일 컴포넌트라 별도 메시 컨트롤 플레인이 없습니다. 대신 Cilium 자체가 클러스터 네트워킹의 단일 장애점이므로 CNI 운영 역량이 전제됩니다.
 - **Linkerd**: 컨트롤 플레인이 단순하고 CRD 표면적이 작아 학습 곡선이 가장 완만합니다.
-- **VPC Lattice**: 컨트롤 플레인 운영이 없습니다. 대신 AWS 서비스 한도(quota)·기능 릴리스 속도에 종속됩니다.
+- **VPC Lattice**: AWS가 관리형 Lattice 컨트롤·데이터 플레인을 운영하므로 메시 컨트롤 플레인을 직접 운영할 필요는 없습니다. 다만 고객은 Kubernetes 측 AWS Gateway API Controller를 설치·업그레이드해야 하고, IAM 인가 정책, 라우팅, 서비스 한도(quota), 애플리케이션 접근 정책은 여전히 고객의 운영 대상으로 남습니다.
 
 ### Kubernetes Native Sidecar와 수명주기
 
-Kubernetes 1.29+의 Native Sidecar(initContainer `restartPolicy: Always`)는 사이드카 기반 메시의 고질적 문제 — 앱보다 프록시가 늦게 시작하거나 먼저 종료되어 트래픽이 유실되는 문제 — 를 구조적으로 해결합니다. Linkerd 2.20은 이를 기본값으로 채택했고, Istio 사이드카 모드도 지원합니다. Job 워크로드의 사이드카 종료 처리 등 상세 패턴은 [EKS Pod 헬스체크 & 라이프사이클 관리](../../operations-reliability/eks-pod-health-lifecycle.md)를 참조합니다.
+Kubernetes 1.29+의 Native Sidecar(initContainer `restartPolicy: Always`)는 사이드카 기반 메시의 고질적 문제 — 앱보다 프록시가 늦게 시작하거나 먼저 종료되어 트래픽이 유실되는 문제 — 의 시작·종료 순서를 바로잡습니다. 다만 순서 보장만으로 프록시가 트래픽을 받을 준비(readiness)가 끝났음을 보장하지는 않습니다. Kubernetes는 사이드카 컨테이너의 프로세스가 시작되면 다음 단계로 진행하므로, 프록시가 실제로 준비될 때까지 앱 시작을 막으려면 startup probe로 준비 상태를 게이트해야 합니다. 종료 시에도 연결을 끊기지 않게 하려면 graceful shutdown 처리가 여전히 필요합니다. Linkerd 2.20은 Native Sidecar를 기본값으로 채택했고, Istio 사이드카 모드도 지원합니다. Job 워크로드의 사이드카 종료 처리 등 상세 패턴은 [EKS Pod 헬스체크 & 라이프사이클 관리](../../operations-reliability/eks-pod-health-lifecycle.md)를 참조합니다.
 
 ### 복원력 패턴과의 결합
 
@@ -284,7 +284,7 @@ flowchart TD
 
 ## 결론
 
-EKS에서 서비스 메시 선택은 "가장 좋은 메시"가 아니라 조직의 CNI 전략·운영 역량·계정 토폴로지에 따라 결정됩니다. 데이터 플레인은 사이드카에서 노드 프록시(Ambient)·커널(eBPF)·관리형(Lattice)으로 분화했고, 신규 도입이라면 사이드카 모드를 기본값으로 선택할 이유는 더 이상 없습니다. App Mesh 사용 조직은 2026년 9월 30일 지원 종료 전까지 이전을 완료해야 합니다. 4개 솔루션의 정량 성능 벤치마크는 향후 별도 벤치마크 문서로 추가할 예정입니다.
+EKS에서 서비스 메시 선택은 "가장 좋은 메시"가 아니라 조직의 CNI 전략·운영 역량·계정 토폴로지에 따라 결정됩니다. 데이터 플레인은 사이드카에서 노드 프록시(Ambient)·커널(eBPF)·관리형(Lattice)으로 분화했고, 신규 도입이라면 지원 토폴로지·플랫폼·필요 기능이 사이드카를 요구하지 않는 한 사이드카 모드를 기본값에서 제외하는 쪽을 먼저 검토합니다. App Mesh 사용 조직은 2026년 9월 30일 지원 종료 전까지 이전을 완료해야 합니다. 4개 솔루션의 정량 성능 벤치마크는 향후 별도 벤치마크 문서로 추가할 예정입니다.
 
 ## 참고 자료
 

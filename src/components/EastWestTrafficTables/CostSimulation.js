@@ -13,26 +13,26 @@ const CostSimulation = () => {
     color: '#059669'
   }, {
     name: 'ClusterIP + Topology Hints',
-    cost: '~$30',
-    description: isKo ? 'cross-AZ ~30%로 감소' : 'cross-AZ reduced to ~30%',
-    barWidth: '15%',
+    cost: '~$61',
+    description: isKo ? 'cross-AZ ~30%, 양방향 $0.01/GB (10,240 GB 가정)' : 'cross-AZ ~30%, $0.01/GB each direction (10,240 GB assumed)',
+    barWidth: '22%',
     color: '#3b82f6'
-  }, {
-    name: isKo ? 'ClusterIP (기본, AZ 인식 없음)' : 'ClusterIP (default, no AZ awareness)',
-    cost: '~$68',
-    description: isKo ? 'cross-AZ ~66% (3-AZ 균등분산)' : 'cross-AZ ~66% (3-AZ even distribution)',
-    barWidth: '35%',
-    color: '#f59e0b'
   }, {
     name: isKo ? 'Internal ALB 경유' : 'Via Internal ALB',
     cost: '~$98',
-    description: isKo ? 'ALB 시간당 + LCU + cross-AZ' : 'ALB hourly + LCU + cross-AZ',
-    barWidth: '50%',
+    description: isKo ? 'ALB 시간당 + LCU (동일 VPC는 cross-AZ 전송료 없음)' : 'ALB hourly + LCU (no cross-AZ transfer within same VPC)',
+    barWidth: '36%',
     color: '#ef4444'
   }, {
+    name: isKo ? 'ClusterIP (기본, AZ 인식 없음)' : 'ClusterIP (default, no AZ awareness)',
+    cost: '~$137',
+    description: isKo ? 'cross-AZ ~66% (3-AZ 균등), 양방향 과금' : 'cross-AZ ~66% (3-AZ even), charged both ends',
+    barWidth: '50%',
+    color: '#f59e0b'
+  }, {
     name: 'VPC Lattice',
-    cost: '$400+',
-    description: isKo ? '서비스당 시간과금 + GB당 + 요청당' : 'Per service hourly + per GB + per request',
+    cost: '$274+',
+    description: isKo ? '720h·서비스 1개·10,240 GB 기준, 요청당 과금 별도' : '720h, 1 service, 10,240 GB; per-request charges extra',
     barWidth: '100%',
     color: '#dc2626'
   }];
@@ -59,7 +59,7 @@ const CostSimulation = () => {
         fontSize: '14px',
         opacity: 0.9
       }}>
-          {isKo ? '동일 리전 3-AZ EKS 클러스터, 총 10 TB (10,240 GB) 서비스 간 트래픽 기준' : 'Same-region 3-AZ EKS cluster, 10 TB (10,240 GB) inter-service traffic'}
+          {isKo ? '동일 리전 3-AZ EKS 클러스터, 총 10 TB (10,240 GB) 서비스 간 트래픽 기준의 설명용 예시. 리전·요청량·LCU에 따라 달라집니다' : 'Illustrative example for a same-region 3-AZ EKS cluster with 10 TB (10,240 GB) inter-service traffic. Varies with region, request volume, and LCU'}
         </div>
       </div>
 

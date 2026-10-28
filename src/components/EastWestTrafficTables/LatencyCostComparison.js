@@ -37,7 +37,7 @@ const LatencyCostComparison = () => {
     costScore: 2
   }, {
     name: 'Istio Sidecar',
-    latency: isKo ? '~5ms 증가 (클라이언트+서버 2회 프록시)' : '~5ms added (client+server 2x proxy)',
+    latency: isKo ? '클라이언트+서버 2회 프록시 경유. p99 추가 지연은 부하에 따라 변함(Istio 1.24 공식 벤치마크: 500~1500 rps 구간 측정)' : 'Client+server 2x proxy traversal. Added p99 latency varies with load (Istio 1.24 official benchmark measured at 500-1500 rps)',
     cost: isKo ? '오픈소스, 프록시당 0.2 vCPU/60MB per 1000rps' : 'Open source, 0.2 vCPU/60MB per proxy per 1000rps',
     latencyScore: 3,
     costScore: 3
@@ -94,7 +94,7 @@ const LatencyCostComparison = () => {
         fontSize: '14px',
         opacity: 0.9
       }}>
-          {isKo ? 'East-West 트래픽 경로별 성능·비용 정량 비교' : 'Quantitative performance & cost comparison by traffic path'}
+          {isKo ? 'East-West 트래픽 경로별 성능·비용 상대 비교(측정값이 아닌 가정 기반 순위, 1=낮음~5=높음)' : 'Relative performance/cost ranking by traffic path (assumed, not measured; 1=low to 5=high)'}
         </div>
       </div>
 
@@ -112,7 +112,7 @@ const LatencyCostComparison = () => {
         borderBottom: '2px solid var(--ifm-color-emphasis-200)',
         background: 'var(--ifm-background-surface-color)'
       }}>
-          {[isKo ? '옵션' : 'Option', isKo ? '지연 특성 / 비용 구조' : 'Latency / Cost', isKo ? '지연' : 'Latency', isKo ? '비용' : 'Cost'].map((h, i) => <div key={i} style={{
+          {[isKo ? '옵션' : 'Option', isKo ? '지연 특성 / 비용 구조' : 'Latency / Cost', isKo ? '지연(상대)' : 'Latency (rel.)', isKo ? '비용(상대)' : 'Cost (rel.)'].map((h, i) => <div key={i} style={{
           padding: '10px 12px',
           fontWeight: '600',
           fontSize: '11px',
