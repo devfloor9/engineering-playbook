@@ -3,9 +3,9 @@ title: Karpenter In-Depth Debugging
 description: In-depth debugging guide for the Karpenter autoscaler
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 15
+reading_time: 17
 tags:
   - eks
   - karpenter
@@ -124,7 +124,10 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter --tail=100 | grep 
 The examples show selected NodePool fields from the [Karpenter v1.14.1 CRD](https://raw.githubusercontent.com/aws/karpenter-provider-aws/v1.14.1/pkg/apis/crds/karpenter.sh_nodepools.yaml). Retain omitted settings such as `spec.template.spec.nodeClassRef` when adapting an existing NodePool. Here, `30s` is an example wait after Pod changes before considering consolidation. Consolidation can take longer to complete.
 
 ```yaml
-# NodePool: add diverse instance types (secure Spot capacity)
+# NodePool: diversify compatible GPU instance types (for the g5.2xlarge capacity shortage)
+# The error occurred on a GPU family (g5.2xlarge), so alternatives must also be GPU
+# instances that satisfy the workload's GPU count and architecture. Substituting CPU-only
+# types would leave the GPU workload unschedulable.
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -140,10 +143,10 @@ spec:
         - key: node.kubernetes.io/instance-type
           operator: In
           values:
-            - c6i.2xlarge
-            - c6i.4xlarge
-            - c6a.2xlarge   # ← include AMD instances
-            - c7i.2xlarge   # ← add latest generation
+            - g5.2xlarge
+            - g5.4xlarge    # ← larger size in the same g5 family
+            - g6.2xlarge    # ← add newer-generation GPU (same architecture lineage)
+            - g6.4xlarge
         - key: topology.kubernetes.io/zone
           operator: In
           values:
@@ -357,6 +360,10 @@ The [v1.14.1 implementation](https://github.com/kubernetes-sigs/karpenter/blob/6
 
 ## Spot Interruption Handling
 
+Spot interruption handling has prerequisites. Karpenter's interruption handling works only when all of the following exist: an **SQS queue** that receives EC2 interruption and rebalance events (plus the EventBridge rules that send those events to the queue), the **IAM permissions** for the Karpenter controller to read that queue, and a **Karpenter controller** configured with the interruption queue. Without these, the flow below does not start.
+
+A Spot interruption is an **involuntary** disruption in which EC2 reclaims capacity. The NodePool `disruption.budgets` that apply to voluntary disruptions (Drift, Consolidation, Expiration, etc.) do not slow a Spot reclamation; after the 2-minute warning, EC2 terminates the instance regardless of any budget. Recovery time — the time for a replacement node to become ready — is therefore not guaranteed. Karpenter cordons and drains and launches a replacement immediately on the warning, but securing new capacity still depends on Spot availability.
+
 ### Spot Interruption Flow
 
 **Figure 4. Spot interruption handling flow**
@@ -398,7 +405,7 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep interruptio
 ### Spot Interruption Response Strategy
 
 ```yaml
-# NodePool: Spot Interruption Budget
+# NodePool: voluntary-disruption budget (does NOT apply to involuntary Spot reclamation)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
@@ -411,9 +418,10 @@ spec:
           operator: In
           values: ["spot", "on-demand"]  # ← On-Demand fallback on Spot shortage
   disruption:
-    # Limit concurrent replacements on Spot interruption
+    # The budget below limits concurrent replacements only for voluntary reasons
+    # (Drifted, Underutilized, Empty). Spot interruption is involuntary and is not slowed by it.
     budgets:
-      - nodes: "20%"  # at most 20% of all nodes at once
+      - nodes: "20%"  # at most 20% of all nodes at once, for voluntary disruptions
         reasons:
           - Drifted
           - Underutilized
@@ -536,28 +544,33 @@ kubectl logs -n karpenter -l app.kubernetes.io/name=karpenter | grep "interrupti
 ### CloudWatch Logs Insights Queries
 
 ```sql
-# If Karpenter logs are shipped to CloudWatch
+# If Karpenter logs are shipped to CloudWatch (CloudWatch Logs Insights supports # comments)
 
-# 1. Provisioning failure rate by instance type
+# 1. Provisioning failure event count by instance type
 fields @timestamp, instanceType, err
 | filter @message like /could not launch/
 | stats count() by instanceType
 | sort count desc
 
-# 2. Nodes saved by consolidation
+# 2. deprovisioning (consolidation) event count per hour
+#    This is the number of removed nodes, not the net nodes saved.
+#    Net savings require comparing against launched events in the same window.
 fields @timestamp, nodeclaim, reason
 | filter @message like /deprovisioning/
-| stats count() by bin(1h)
+| stats count() as deprovisioning_events by bin(1h)
 
-# 3. Spot interruption frequency
+# 3. Spot interruption event count per hour
 fields @timestamp, node
 | filter @message like /spot interruption/
 | stats count() by bin(1h)
 
-# 4. Node launch time (provisioning performance)
+# 4. launched nodeclaim event count
+#    Karpenter logs have no @duration field, so provisioning duration cannot be
+#    computed from a single log line. Derive it by correlating the nodeclaim's
+#    creation timestamp with its registered/initialized timestamp.
 fields @timestamp, nodeclaim, instance-type
 | filter @message like /launched nodeclaim/
-| stats avg(@duration) by instance-type
+| stats count() by instance-type
 ```
 
 ## Diagnostic Command Collection
@@ -658,7 +671,8 @@ kubectl port-forward -n karpenter svc/karpenter 8080:8080
 - [ ] Is the PDB too restrictive?
 - [ ] Is the Pod's `terminationGracePeriodSeconds` sufficient? (within 2 minutes)
 - [ ] Is an On-Demand fallback configured?
-- [ ] Was the old node terminated before the new one was launched? (check budgets)
+- [ ] Are the interruption queue (SQS), EventBridge rules, and IAM permissions configured so Karpenter receives the interruption warning?
+- [ ] Is Spot/On-Demand capacity available for a replacement node? (Spot reclamation is involuntary and is not delayed by budgets; recovery time is not guaranteed.)
 
 ### Drift Replacement Too Fast/Slow
 
@@ -673,13 +687,15 @@ An explicitly stored `budgets: []` has no NodePool budget cap and differs from o
 ### Multi-NodePool Strategy
 
 ```yaml
+# Karpenter evaluates higher-weight NodePools first.
+# To prefer Spot, give general-spot a higher weight than general-on-demand.
 # 1. General workloads (Spot preferred)
 apiVersion: karpenter.sh/v1
 kind: NodePool
 metadata:
   name: general-spot
 spec:
-  weight: 10  # ← lower priority (Spot preferred)
+  weight: 50  # ← higher priority (Spot evaluated first)
   template:
     spec:
       requirements:
@@ -693,7 +709,7 @@ kind: NodePool
 metadata:
   name: general-on-demand
 spec:
-  weight: 50  # ← higher priority (when Spot is scarce)
+  weight: 10  # ← lower priority (fallback when Spot capacity is scarce)
   template:
     spec:
       requirements:

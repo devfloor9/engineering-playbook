@@ -3,9 +3,9 @@ title: Observability and Monitoring
 description: EKS observability stack configuration and incident detection strategies - Container Insights, Prometheus, ADOT
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 16
+reading_time: 31
 tags:
   - eks
   - kubernetes
@@ -86,14 +86,18 @@ flowchart TB
 
 ## Container Insights Setup
 
+The following is a partial installation fragment. The `amazon-cloudwatch-observability` add-on deploys the CloudWatch Agent and Fluent Bit to collect metrics and logs; for those components to send data to CloudWatch, the node or service account needs an IAM identity with CloudWatch write permissions (such as `CloudWatchAgentServerPolicy`). Before using the add-on, configure these permissions through Pod Identity or IRSA, and set the collection scope (which namespaces/nodes' metrics and logs are sent) through the add-on configuration values. If you already run a separate CloudWatch Agent or Fluent Bit, reconcile them to avoid duplicate collection.
+
 ```bash
-# Install Container Insights Add-on
+# Install Container Insights Add-on (prerequisite: an IAM identity with CloudWatch write permissions)
 aws eks create-addon \
   --cluster-name <cluster-name> \
   --addon-name amazon-cloudwatch-observability
 
-# Verify installation
+# Verify installation: check not only Pod health but that telemetry actually reaches the backend
 kubectl get pods -n amazon-cloudwatch
+# Confirm Container Insights log groups and metrics are created in CloudWatch
+aws logs describe-log-groups --log-group-name-prefix "/aws/containerinsights/<cluster-name>"
 ```
 
 ## Metric Debugging: PromQL Queries
@@ -106,7 +110,7 @@ sum(rate(container_cpu_cfs_throttled_periods_total{namespace="production"}[5m]))
 ```
 
 :::info CPU Throttling Threshold
-Throttling above 25% causes performance degradation. Consider removing or increasing CPU limits. Many organizations adopt a strategy of setting only CPU requests without limits.
+The 25% used here is not a measured value but an illustrative starting threshold to tune against. Set the real threshold by measuring your workload's SLOs and the per-container correlation between throttling and latency. Removing CPU limits eliminates throttling, but when a node is oversubscribed a container can monopolize CPU, so removal is not a blanket recommendation — it trades isolation for performance. Many organizations set only CPU requests without limits, but that is a decision made together with node sizing and QoS policy.
 :::
 
 ### OOMKilled Detection
@@ -146,20 +150,24 @@ fields @timestamp, @message, kubernetes.container_name, kubernetes.pod_name
 
 ### Latency Analysis
 
+The query below extracts the integer after `latency=` or `latency:` from log messages, assuming milliseconds. If the application logs seconds or microseconds, the result units become mixed, so align the regex and units with the actual log schema.
+
 ```sql
 fields @timestamp, @message
 | filter @message like /latency|duration|elapsed/
 | parse @message /latency[=:]\s*(?<latency_ms>\d+)/
-| stats avg(latency_ms), max(latency_ms), p99(latency_ms) by bin(5m)
+| stats avg(latency_ms) as avg_ms, max(latency_ms) as max_ms, pct(latency_ms, 99) as p99_ms by bin(5m)
 ```
 
 ### Error Pattern Analysis for a Specific Pod
+
+The `count()` below is the number of **log lines** matching the pattern, not unique incidents; a single incident can emit multiple lines.
 
 ```sql
 fields @timestamp, @message
 | filter kubernetes.pod_name like /api-server/
 | filter @message like /error|Error|ERROR/
-| stats count() by bin(1m)
+| stats count() as error_log_lines by bin(1m)
 | sort bin asc
 ```
 
@@ -174,14 +182,18 @@ fields @timestamp, @message
 
 ### Container Restart Events
 
+The `count()` below is likewise the number of **log lines** in which the `Back-off restarting` message appeared, not the actual restart count. Use the `kube_pod_container_status_restarts_total` metric for the exact restart count.
+
 ```sql
 fields @timestamp, @message, kubernetes.pod_name
 | filter @message like /Back-off restarting failed container|CrashLoopBackOff/
-| stats count() by kubernetes.pod_name
-| sort count desc
+| stats count() as restart_log_lines by kubernetes.pod_name
+| sort restart_log_lines desc
 ```
 
 ## Alert Rules: PrometheusRule Example
+
+The `PrometheusRule` below has prerequisites. Exporters and scrape configuration that collect the metrics it references (such as `kube_pod_container_status_restarts_total` from kube-state-metrics, node-exporter, and similar) must exist, and the Prometheus Operator must be installed to evaluate the `PrometheusRule` custom resource. The rule is loaded only when the `ruleSelector`/`ruleNamespaceSelector` configured on the Operator's `Prometheus` resource match this rule's labels and namespace. By contrast, when you use the managed ruler of Amazon Managed Service for Prometheus (AMP), the path differs: instead of deploying a `PrometheusRule` resource to the cluster, you upload rule groups to the AMP ruler. After applying, confirm the rule is loaded and evaluated and that alerts route to Alertmanager/SNS.
 
 ```yaml
 apiVersion: monitoring.coreos.com/v1
@@ -193,13 +205,14 @@ spec:
   - name: kubernetes-pods
     rules:
     - alert: PodCrashLooping
-      expr: rate(kube_pod_container_status_restarts_total[15m]) * 60 * 5 > 0
-      for: 1h
+      # Fire when a restart occurred within the last 15 minutes and that state persists for 15 minutes (recent-restart semantics)
+      expr: increase(kube_pod_container_status_restarts_total[15m]) > 0
+      for: 15m
       labels:
         severity: warning
       annotations:
-        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} is crash looping"
-        description: "Pod {{ $labels.pod }} has been restarting over the last 15 minutes."
+        summary: "Pod {{ $labels.namespace }}/{{ $labels.pod }} container {{ $labels.container }} is crash looping"
+        description: "Container {{ $labels.container }} (Pod {{ $labels.pod }}) restarted within the last 15 minutes and the state persisted for 15 minutes."
 
     - alert: PodOOMKilled
       expr: kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} > 0
@@ -257,18 +270,21 @@ kubectl describe otelcol -n $NAMESPACE $COLLECTOR_NAME
 
 ### Common ADOT Issues
 
+It helps to separate two areas when diagnosing. The Operator area covers webhook certificates and admission/reconciliation problems; the Collector area covers pipeline configuration and actual export (backend delivery) errors. If the Operator does not come up, Collector CRs are not applied; and even when the Operator is healthy, a wrong exporter configuration or IAM permission on the Collector causes delivery alone to fail.
+
 **Table 1. Common ADOT issues with symptom, cause, and resolution**
 
 | Symptom | Cause | Resolution |
 |------|------|----------|
-| Operator Pod `CrashLoopBackOff` | CertManager not installed | ADOT operator requires CertManager for webhook certificates. `kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml` |
-| Collector fails to send to AMP | Insufficient IAM permissions | Add `aps:RemoteWrite` to IRSA/Pod Identity |
-| X-Ray traces not received | Insufficient IAM permissions | Add `xray:PutTraceSegments`, `xray:PutTelemetryRecords` to IRSA/Pod Identity |
-| CloudWatch metrics not received | Insufficient IAM permissions | Add `cloudwatch:PutMetricData` to IRSA/Pod Identity |
+| Operator Pod `CrashLoopBackOff` or webhook errors | Webhook certificate not configured | First confirm the real cause from the Operator logs and events. The ADOT operator needs a compatible certificate solution such as cert-manager for webhook certificates; if one is already installed, check its owner/version. If installation is needed, install a pinned patch of a [cert-manager release](https://github.com/cert-manager/cert-manager/releases) compatible with the cluster's Kubernetes version, after confirming CRD/webhook ownership and upgrade scope |
+| Collector fails to send to AMP (prometheusremotewrite exporter) | Insufficient IAM permissions | Add `aps:RemoteWrite` to IRSA/Pod Identity |
+| X-Ray traces not received (awsxray exporter) | Insufficient IAM permissions | Add `xray:PutTraceSegments`, `xray:PutTelemetryRecords` to IRSA/Pod Identity |
+| CloudWatch metrics not received (awsemf exporter) | Insufficient IAM permissions | Add `cloudwatch:PutMetricData` to IRSA/Pod Identity |
+| CloudWatch Logs not received (awsemf/awscloudwatchlogs exporter) | Insufficient IAM permissions | Add `logs:PutLogEvents` to IRSA/Pod Identity; if log groups/streams are auto-created, add `logs:CreateLogGroup`, `logs:CreateLogStream` |
 | Collector Pod `OOMKilled` | Insufficient resources | Increase Collector `resources.limits.memory` when collecting high volumes of traces/metrics |
 
 :::warning ADOT Permission Separation
-AMP remote write, X-Ray, and CloudWatch each require different IAM permissions. When the Collector sends data to multiple backends, ensure the IAM Role includes every required permission.
+Each configured exporter requires different AWS API permissions. AMP remote write, X-Ray, CloudWatch metrics, and CloudWatch Logs each require different permissions, so ensure the IAM Role includes the permissions for every backend the Collector sends to.
 :::
 
 ---
@@ -278,6 +294,8 @@ AMP remote write, X-Ray, and CloudWatch each require different IAM permissions. 
 ### Incident Detection Strategy Overview
 
 To detect incidents quickly in EKS environments, a 4-layer pipeline of **data source → collection → analysis & detection → alerting & response** must be systematically configured. The layers must connect cohesively to minimize MTTD (Mean Time To Detect).
+
+Each signal has a different collection path. EKS control plane logs (API Server, Audit, Authenticator, and others) are sent by EKS **directly** to CloudWatch Logs once the log types are enabled, so they do not pass through Fluent Bit. For downstream analysis, forward them from CloudWatch Logs to destinations such as OpenSearch using subscription filters. Node/application logs, by contrast, are collected by the Fluent Bit DaemonSet; metrics by the CloudWatch Agent or ADOT; and traces by ADOT — each configured separately. Kubernetes event export is yet another path. The diagram below keeps these signals distinct.
 
 **Figure 2. Four-layer incident detection pipeline**
 
@@ -329,7 +347,7 @@ flowchart TB
         On-call Notification`"]
     end
 
-    CP --> FB
+    CP --> CWL
     DP --> FB
     MT --> CWA
     MT --> ADOT
@@ -391,6 +409,8 @@ An architecture centered on AWS managed services to minimize operational overhea
 | Alerting | CloudWatch Alarms → SNS | Threshold/anomaly-based alerts |
 
 **Fluent Bit DaemonSet deployment example:**
+
+The DaemonSet below references `serviceAccountName: fluent-bit` and a `fluent-bit-config` ConfigMap, but neither is defined in this example. To deploy it for real, you also need: (1) the `amazon-cloudwatch` namespace, a `fluent-bit` ServiceAccount, and the RBAC needed to read and ship node logs; (2) an IAM identity with CloudWatch Logs write permissions (`logs:CreateLogGroup`, `logs:CreateLogStream`, `logs:PutLogEvents`) bound to the ServiceAccount via IRSA or Pod Identity; and (3) a `fluent-bit-config` ConfigMap containing the region/cluster name and the OUTPUT (cloudwatch_logs) configuration. Basing this on the EKS-provided [Fluent Bit for CloudWatch setup](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-logs-FluentBit.html) manifests gives you the ServiceAccount, RBAC, and ConfigMap together. After deployment, verify logs reach the expected CloudWatch log groups (such as `/aws/containerinsights/<cluster-name>/application`). If you already run the `amazon-cloudwatch-observability` add-on, it manages Fluent Bit, so deploying this DaemonSet separately causes duplicate collection — reconcile them so only one is in operation.
 
 ```yaml
 apiVersion: apps/v1
@@ -538,7 +558,8 @@ aws cloudwatch put-metric-alarm \
           "Namespace": "ContainerInsights",
           "MetricName": "pod_cpu_utilization",
           "Dimensions": [
-            {"Name": "ClusterName", "Value": "'$CLUSTER'"}
+            {"Name": "ClusterName", "Value": "'$CLUSTER'"},
+            {"Name": "Namespace", "Value": "production"}
           ]
         },
         "Period": 300,
@@ -553,8 +574,12 @@ aws cloudwatch put-metric-alarm \
   --alarm-actions $SNS_TOPIC_ARN
 ```
 
+:::info Matching Dimensions Between Detector and Alarm
+The example above aligns the detector and the alarm's metric m1 to use the same `ClusterName` and `Namespace=production` dimensions and the `Average` statistic. An anomaly detection model is specific to a metric and its statistic/dimension combination, so if the detector and the alarm point at different dimension sets, the alarm's band (`ad1 = ANOMALY_DETECTION_BAND(m1, 2)`) watches a different time series than the trained model. Also decide the evaluation window (`evaluation-periods`) and the missing-data behavior (`--treat-missing-data`).
+:::
+
 :::warning Anomaly Detection Training Period
-Anomaly Detection requires at least 2 weeks of training data. Use threshold-based alerts alongside it immediately after deploying new services.
+CloudWatch Anomaly Detection trains its model on **up to two weeks** of historical data, and you can enable it even without a full two weeks of data. In other words, two weeks is not a required minimum; the model is continuously re-trained as more data accumulates. Early after deployment, when there is little data, the band may be wide and less accurate, so as an operational choice it is advisable to use threshold-based alerts alongside it.
 :::
 
 #### Pattern 3: Composite Alarms
@@ -576,24 +601,26 @@ Individual alarms generate many false positives. Composite alarms that combine m
 
 #### Pattern 4: Log-Based Metric Filters
 
-Detect specific patterns in CloudWatch Logs, convert them to metrics, and set alerts.
+Detect specific patterns in CloudWatch Logs, convert them to metrics, and set alerts. The field paths in a filter pattern must match the actual log schema. The `/aws/eks/<cluster>/cluster` log group contains only control plane logs, and container termination reasons such as OOMKilled do not appear as a field in this group's audit logs — they appear in kubelet logs or Kubernetes events. So filter OOMKilled against the log group where that signal is actually collected (for example, the Container Insights application/event log groups) and that schema's fields. The audit-based filter below parses `responseStatus.code` and works only when audit logs are enabled at a sufficient level; validate it with representative matching and non-matching records before applying.
 
 ```bash
-# Convert OOMKilled events into metrics
+# OOMKilled events: filter against the log group and schema where this signal is actually collected
+# (e.g., Container Insights application/event log groups; the control plane log group has no reason field)
 aws logs put-metric-filter \
-  --log-group-name "/aws/eks/$CLUSTER/cluster" \
+  --log-group-name "<oomkilled-signal-log-group>" \
   --filter-name "OOMKilledEvents" \
   --filter-pattern '{ $.reason = "OOMKilled" || $.reason = "OOMKilling" }' \
   --metric-transformations \
     metricName=OOMKilledCount,metricNamespace=EKS/Custom,metricValue=1,defaultValue=0
 
-# Detect 403 Forbidden events (security threat)
+# 403 responses: count "denied requests" to review, not a confirmed security incident
+# (the responseStatus.code field exists only when audit logs are enabled at a sufficient level)
 aws logs put-metric-filter \
   --log-group-name "/aws/eks/$CLUSTER/cluster" \
-  --filter-name "UnauthorizedAccess" \
+  --filter-name "DeniedRequests" \
   --filter-pattern '{ $.responseStatus.code = 403 }' \
   --metric-transformations \
-    metricName=ForbiddenAccessCount,metricNamespace=EKS/Security,metricValue=1,defaultValue=0
+    metricName=DeniedRequestCount,metricNamespace=EKS/Security,metricValue=1,defaultValue=0
 ```
 
 ### Incident Detection Maturity Model
@@ -615,10 +642,10 @@ Average time from incident occurrence to detection. The goal is to continuously 
 
 ### Auto-Remediation Pattern
 
-A pattern where EventBridge and Lambda run automatic remediation actions when a specific incident is detected.
+A pattern where EventBridge and Lambda run remediation actions when a specific incident is detected. The snippet below is **only a fragment of an EventBridge rule's event pattern**; the rule alone performs no remediation. For remediation to actually happen, you must connect to this rule: (1) a Lambda function target, (2) a resource policy that lets EventBridge invoke the function, (3) IAM permissions for the function to perform the remediation actions, (4) an application-implemented dry-run and a bounded action scope, and (5) retry/idempotency handling and a validation step.
 
 ```bash
-# EventBridge rule: trigger Lambda on Pod OOMKilled detection
+# EventBridge rule (event-pattern fragment): match a Pod OOMKilled alarm state change
 aws events put-rule \
   --name "eks-oom-auto-remediation" \
   --event-pattern '{
@@ -629,6 +656,7 @@ aws events put-rule \
       "state": {"value": ["ALARM"]}
     }
   }'
+# Remediation logic runs only after you attach a Lambda target and permissions with put-targets
 ```
 
 :::danger Auto-Remediation Caution
@@ -637,9 +665,9 @@ Apply auto-remediation to production only after thorough testing. Incorrect auto
 
 ### Recommended Alert Channel Matrix
 
-Set appropriate alert channels and response SLAs by severity to prevent alert fatigue and focus on important incidents.
+The following is one example of a routing/response policy an organization defines. The channels (PagerDuty, Slack, and so on) and response SLAs (such as 15 minutes) are not universal recommendations but values set to match an organization's on-call structure and SLOs; the numbers in the table are a starting point to tune, not a fixed standard. Separating alert channels and response SLAs by severity reduces alert fatigue and helps focus on important incidents. This table is an in-article example and is distinct from the `IncidentEscalationTable` component imported at the top of the page.
 
-**Table 6. Alert channels, response SLA, and examples by incident severity**
+**Table 6. Alert channels, response SLA, and examples by incident severity (organization-defined example)**
 
 | Severity | Alert Channels | Response SLA | Examples |
 |---|---|---|---|

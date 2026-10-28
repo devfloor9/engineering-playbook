@@ -3,9 +3,9 @@ title: Probe vs Health Check Mismatch Debugging
 description: Guide to diagnosing outages caused by mechanism differences and timeout mismatches between K8s Probes and ALB/NLB/Ingress Controller Health Checks
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: devfloor9
-reading_time: 18
+reading_time: 26
 tags:
   - eks
   - debugging
@@ -54,8 +54,8 @@ Kubernetes Probes are health checks executed independently by **kubelet** on eac
 | **startupProbe** | kubelet | Container | Disables other probes until initialization completes; restart on failure |
 
 **Key characteristics:**
-- **Runs inside the Pod**: kubelet has direct access to the container
-- **Service Endpoint control**: readinessProbe failure → removed from `kubectl get endpoints`
+- **Executed by the node's kubelet**: Probes are run by each node's kubelet accessing the container directly, not from inside the Pod.
+- **Service Endpoint control**: a failing readinessProbe marks the address NotReady (EndpointSlice `conditions.ready=false`; it moves to `notReadyAddresses` in Endpoints) rather than disappearing from the whole Endpoints object — it is dropped from the ready-address list.
 - **Fast checks**: default 1s timeout, 10s interval
 
 ### 2.2 AWS Load Balancer Health Checks
@@ -66,8 +66,8 @@ ALB/NLB Health Checks managed by AWS Load Balancer Controller (LBC) run independ
 
 | Health Check Type | Executor | Target | Behavior on Failure |
 |------------------|----------|----------|-------------|
-| **ALB Target Group HC** | ALB | HTTP(S) endpoint | **Deregistered** from Target Group (independent of Pod state) |
-| **NLB Target Group HC** | NLB | TCP or HTTP | **Deregistered** from Target Group |
+| **ALB Target Group HC** | ALB | HTTP(S) endpoint | **Marked unhealthy → traffic stopped** (still registered; independent of Pod state) |
+| **NLB Target Group HC** | NLB | TCP or HTTP | **Marked unhealthy → traffic stopped** (still registered) |
 
 **Key characteristics:**
 - **External execution**: ALB/NLB sends HTTP/TCP requests to the Pod IP
@@ -93,17 +93,17 @@ The Ingress-NGINX Controller performs health checks at the **nginx upstream** le
 
 ## 3. Timing Comparison Table
 
-The following table compares default timings, executors, and failure behavior for each Health Check.
+The following table compares default timings, executors, and failure behavior for each Health Check. The defaults in each column come from different sources: the K8s Probe values are kubelet probe defaults, the ALB and NLB columns are the AWS Load Balancer Controller (LBC) annotation defaults, and the Ingress-NGINX values are nginx directive defaults. The Target Group defaults LBC creates can differ from calling the ELB API directly (for example, the raw ELB default interval for ALB `instance`/`ip` targets is 30s), so read the values below as LBC/annotation defaults.
 
-**Table 4. Default timing comparison across K8s Probe, ALB, NLB, and Ingress-NGINX by setting**
+**Table 4. Default timing comparison across K8s Probe, ALB, NLB, and Ingress-NGINX by source**
 
-| Setting | K8s Probe | ALB Health Check | NLB Health Check | Ingress-NGINX |
+| Setting | K8s Probe (kubelet) | ALB (LBC annotation) | NLB (LBC annotation) | Ingress-NGINX (nginx) |
 |------|----------|-----------------|-----------------|---------------|
 | **Default interval** | 10s | 15s | 30s | - (actual traffic) |
 | **Default timeout** | 1s | 5s | 6s | 60s (proxy_read_timeout) |
 | **Failure threshold** | 3 | 2 (unhealthy) | 3 | - |
 | **Executor** | kubelet | ALB | NLB | nginx process |
-| **Behavior on failure** | Remove from Endpoints | TG deregister | TG deregister | Remove from upstream and retry |
+| **Behavior on failure** | Remove from ready addresses | Mark unhealthy → stop traffic | Mark unhealthy → stop traffic | Remove from upstream and retry |
 | **Check path** | `/healthz` etc. | `/` or custom | TCP or HTTP | Actual request path |
 | **Configured in** | Pod spec | Service annotation | Service annotation | Ingress annotation |
 
@@ -171,11 +171,14 @@ flowchart TD
 **Resolution:**
 
 ```yaml
-apiVersion: v1
-kind: Service
+# ALB is created from an Ingress, not a Service; place alb.ingress.* annotations on the Ingress.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: my-service
+  name: my-ingress
   annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
     # Align ALB Health Check path with readinessProbe
     alb.ingress.kubernetes.io/healthcheck-path: /healthz
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
@@ -183,7 +186,26 @@ metadata:
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
 spec:
-  type: LoadBalancer
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-service
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: ClusterIP        # ClusterIP is sufficient for ALB target-type: ip
+  selector:
+    app: my-app          # must match the Deployment Pod labels
   ports:
   - port: 80
     targetPort: 8080
@@ -193,7 +215,13 @@ kind: Deployment
 metadata:
   name: my-app
 spec:
+  selector:
+    matchLabels:
+      app: my-app
   template:
+    metadata:
+      labels:
+        app: my-app       # must match the Service selector
     spec:
       containers:
       - name: app
@@ -202,7 +230,7 @@ spec:
         - containerPort: 8080
         readinessProbe:
           httpGet:
-            path: /healthz  # Match ALB HC path
+            path: /healthz  # matches ALB HC path
             port: 8080
           initialDelaySeconds: 10
           periodSeconds: 10
@@ -221,12 +249,12 @@ A mismatch between the Pod termination sequence and ALB deregistration timing se
 
 **Pod termination sequence:**
 1. `kubectl delete pod` or Rolling Update begins
-2. Pod status → `Terminating`
+2. The API server sets a `deletionTimestamp` on the Pod (`kubectl` shows `Terminating`, which is a deletion state, not a separate phase)
 3. **Two actions happen simultaneously:**
    - kubelet: run `preStop` hook → send `SIGTERM`
-   - kube-proxy: remove Pod from Endpoints (update iptables rules)
+   - The EndpointSlice/endpoints controller removes the address from Endpoints; kube-proxy then reprograms each node's iptables/IPVS rules in response
 4. Wait for `terminationGracePeriodSeconds` (default 30s)
-5. Force termination with `SIGKILL`
+5. `SIGKILL` only if the container has not exited by the end of the grace period
 
 **ALB deregistration sequence:**
 1. ALB receives the deregister Pod request from the Target Group
@@ -249,12 +277,16 @@ T+300s ALB deregistration completes
 
 **Recommended formula:**
 
+`deregistration_delay` is not a sequential step added to the Pod's grace period; it is a connection-draining period that runs **in parallel** at the load balancer. The Pod only needs to outlast the time for the LB to detect the target is unhealthy/draining (usually covered by a `sleep` in preStop) plus the time to finish in-flight requests — not the sum of all three.
+
 ```
-terminationGracePeriodSeconds > deregistration_delay + preStop_duration + app_shutdown_time
+terminationGracePeriodSeconds > preStop_sleep + app_shutdown_time
 ```
 
-Example: `deregistration_delay=15s`, `preStop=10s`, `app_shutdown=5s`
-→ `terminationGracePeriodSeconds=40s` or more
+Here `preStop_sleep` is the delay that keeps the Pod receiving traffic until the LB detects target removal, and it can be shorter than `deregistration_delay`, which proceeds separately on the LB side.
+
+Example: `preStop_sleep=15s`, `app_shutdown=5s`
+→ `terminationGracePeriodSeconds=25s` or more
 
 **Figure 2. 502 Bad Gateway (during Pod termination) diagnosis flow**
 
@@ -300,7 +332,7 @@ metadata:
 spec:
   template:
     spec:
-      terminationGracePeriodSeconds: 40  # preStop + deregistration + shutdown
+      terminationGracePeriodSeconds: 40  # preStop_sleep + app shutdown buffer (deregistration runs in parallel on the LB)
       containers:
       - name: app
         image: my-app:1.0
@@ -364,6 +396,8 @@ process.on('SIGTERM', () => {
 **Root cause:**
 K8s marks the Pod as "Ready" and begins routing traffic **before** the ALB Health Check passes.
 
+To hold a Pod as not-Ready until the ALB target is actually registered and healthy, use **Pod Readiness Gates** (the AWS Load Balancer Controller's `elbv2.k8s.aws/pod-readiness-gate-inject`). That is the mechanism that truly synchronizes ALB registration with Pod readiness. `minReadySeconds` is a **heuristic** that waits an extra fixed time after the Pod becomes Ready; it does not wait for ALB registration. Tuning it to the ALB HC cadence helps mitigate the gap but does not guarantee registration is complete.
+
 **Timing mismatch:**
 
 ```
@@ -384,7 +418,7 @@ Issue: during T+10s ~ T+30s, traffic reaches the new Pod before it is ready → 
 flowchart TD
     START[Transient 503<br/>during rolling update] --> CHECK_MINREADY{minReadySeconds<br/>set?}
 
-    CHECK_MINREADY -->|0 default| SET_MINREADY[minReadySeconds ≥<br/>ALB HC interval × threshold<br/>e.g. 15s × 2 = 30s]
+    CHECK_MINREADY -->|0 default| SET_MINREADY[Apply Pod Readiness Gate<br/>+ minReadySeconds heuristic<br/>e.g. 15s × 2 = 30s]
     CHECK_MINREADY -->|Set| CHECK_READINESS{readinessProbe<br/>strict enough?}
 
     CHECK_READINESS -->|Too lenient| STRICT_PROBE[Reduce failureThreshold<br/>to 1-2]
@@ -411,15 +445,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: my-app
+  # ALB registration sync: label the namespace/Pod with
+  # elbv2.k8s.aws/pod-readiness-gate-inject=enabled so the readiness gate is injected.
 spec:
   replicas: 4
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1  # Terminate only one at a time
-      maxSurge: 1        # Add only one at a time
-  # Key: wait for ALB Health Check to pass
-  minReadySeconds: 30  # ALB HC interval(15s) × threshold(2) = 30s
+      maxUnavailable: 1  # max Pods that may be unavailable during the update
+      maxSurge: 1        # max Pods allowed above the desired count
+  # minReadySeconds is a stabilization delay (heuristic) after a Pod becomes Ready;
+  # it does not wait for ALB registration. Registration sync is enforced by the readiness gate.
+  minReadySeconds: 30  # example value aligned to ALB HC interval(15s) × threshold(2)
   template:
     spec:
       containers:
@@ -440,7 +477,7 @@ kind: PodDisruptionBudget
 metadata:
   name: my-app-pdb
 spec:
-  minAvailable: 2  # Maintain at least 50%
+  minAvailable: 2  # protects minimum available Pods against voluntary disruption (node drain, etc.); does not control rollout ordering
   selector:
     matchLabels:
       app: my-app
@@ -453,14 +490,14 @@ spec:
 - Health Check failures with `externalTrafficPolicy: Local`
 
 **Root cause:**
-NLB sends traffic to **all nodes**, but `externalTrafficPolicy: Local` has **only nodes with matching Pods** respond.
+NLB distributes traffic per registered **node (target)**, and with `externalTrafficPolicy: Local` only nodes with matching Pods pass the Health Check and receive traffic. Per-node load is determined by the NLB's target distribution (by default, spread evenly across healthy nodes), not by the number of Pods on a node.
 
 **Table 5. externalTrafficPolicy behavior for Client IP preservation, Health Check, and traffic distribution**
 
 | externalTrafficPolicy | Client IP preserved | Health Check | Traffic distribution |
 |----------------------|---------------|-------------|-----------|
-| **Cluster (default)** | No (SNAT) | All nodes healthy | Even distribution → inter-node hops |
-| **Local** | Yes | Only nodes with Pods healthy | Uneven distribution (proportional to Pod count) |
+| **Cluster (default)** | No (SNAT) | All nodes healthy | Even across nodes → extra inter-node hops |
+| **Local** | Yes | Only nodes with Pods healthy | Spread across healthy (Pod-bearing) nodes; nodes without Pods excluded |
 
 **Problem scenario:**
 
@@ -469,7 +506,8 @@ Node 1: Pod A, Pod B → NLB HC success → receives traffic
 Node 2: No Pod → NLB HC failure → removed from TG
 Node 3: Pod C → NLB HC success → receives traffic
 
-Issue: Node 1 receives 2x the traffic (uneven)
+Issue: Nodes 1 and 3 receive similar per-node traffic, so each Pod on Node 1
+       gets less traffic than the single Pod on Node 3 (uneven Pods-per-node).
 ```
 
 **Diagnosis and resolution:**
@@ -499,8 +537,8 @@ spec:
 ```
 
 **Recommendations:**
-- **Client IP required**: `Local` + sufficient Pod count (at least one per node)
-- **Even distribution preferred**: `Cluster` + extract Client IP from the X-Forwarded-For header
+- **Client IP required**: `externalTrafficPolicy: Local` (at least one Pod per node) or NLB proxy protocol v2. `Cluster` applies SNAT and replaces the source IP with the node IP.
+- **Note**: The `X-Forwarded-For` header is injected on L7 paths such as ALB/Ingress. An NLB (L4) does not add this header, so it is not available on an NLB-only path.
 
 ### Pattern 5: Ingress-NGINX Upstream Timeout
 
@@ -510,7 +548,7 @@ spec:
 - `413 Request Entity Too Large` (file size exceeded)
 
 **Root cause:**
-Ingress-NGINX `proxy-read-timeout` (default 60s) is shorter than the backend processing time.
+Ingress-NGINX `proxy-read-timeout` (default 60s) is the inactivity timeout **between two successive read operations** from the backend, not a limit on total request processing time. nginx closes the connection if the backend sends no data for longer than 60s. A response that streams data periodically is not cut off even if total processing exceeds 60s, but a 504 occurs if the backend goes silent for more than 60s mid-processing.
 
 **Diagnosis and resolution:**
 
@@ -599,7 +637,7 @@ spec:
 
 **Principles:**
 - ALB/NLB Health Check path = readinessProbe path
-- Health Check port = Service targetPort
+- Health Check port: for IP-mode targets use the traffic port (= Service targetPort), but for instance-mode targets or an `externalTrafficPolicy: Local` NLB the check uses the node's `healthCheckNodePort`. So "HC port = targetPort" applies only to IP mode.
 - Probe timeout < ALB HC timeout (Probe detects faster)
 
 **Template:**
@@ -639,7 +677,7 @@ spec:
     rollingUpdate:
       maxUnavailable: 1
       maxSurge: 1
-  minReadySeconds: 30  # Wait for ALB HC to pass
+  minReadySeconds: 30  # stabilization delay after Ready (heuristic); use a readiness gate for ALB registration sync
   template:
     spec:
       terminationGracePeriodSeconds: 40
@@ -704,15 +742,18 @@ spec:
 
 ### 5.2 Termination Sequence Formula
 
+`deregistration_delay` runs in parallel on the load balancer, so it is not added to the Pod's grace period. The Pod only needs to outlast the `preStop_sleep` (so the LB detects target removal) plus the time to finish in-flight requests.
+
 ```
-terminationGracePeriodSeconds = deregistration_delay + preStop_sleep + app_shutdown_buffer
+terminationGracePeriodSeconds = preStop_sleep + app_shutdown_buffer
 
 Example:
-  deregistration_delay = 15s
-  preStop_sleep = 15s
-  app_shutdown_buffer = 10s (SIGTERM handling + in-flight request completion)
+  preStop_sleep = 15s          # delay so the LB detects target removal
+  app_shutdown_buffer = 10s    # SIGTERM handling + in-flight request completion
   -------------------
-  terminationGracePeriodSeconds = 40s
+  terminationGracePeriodSeconds = 25s
+
+  # deregistration_delay (e.g. 15s) proceeds separately on the LB and is not part of this sum.
 ```
 
 ### 5.3 Timing Optimization Matrix
@@ -740,15 +781,15 @@ kubectl get endpoints my-service -o wide
 # Endpoint details (check NotReadyAddresses)
 kubectl get endpoints my-service -o yaml
 
-# Check whether a specific Pod is in Endpoints
-kubectl get endpoints my-service -o json | jq '.subsets[].addresses[] | select(.ip=="10.0.1.100")'
+# Check whether a specific Pod is in Endpoints (null-safe so it works even with no ready addresses)
+kubectl get endpoints my-service -o json | jq '.subsets[]?.addresses[]? | select(.ip=="10.0.1.100")'
 ```
 
 ### 6.2 Checking ALB Target Group Status
 
 ```bash
-# Get Target Group ARN
-kubectl get targetgroupbindings -A
+# Get Target Group ARN (ARN is not shown in the default table, so use custom-columns)
+kubectl get targetgroupbindings -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,ARN:.spec.targetGroupARN
 
 # Check Target Health
 aws elbv2 describe-target-health \
@@ -763,10 +804,11 @@ aws elbv2 describe-target-health \
 ```
 
 **Key Reason codes:**
-- `Target.FailedHealthChecks`: Health Check failure
+- `Target.FailedHealthChecks`: health check failed (e.g. SG blocking, app response-code mismatch)
+- `Target.Timeout`: health check request timed out (includes the SG blocking the ALB→Pod path)
 - `Elb.RegistrationInProgress`: registration in progress
 - `Target.DeregistrationInProgress`: deregistration in progress
-- `Target.InvalidState`: Pod IP unreachable (SG issue)
+- `Target.InvalidState`: the target is in an invalid state (e.g. instance stopped/terminated). This is a target-state problem, not an SG reachability problem.
 
 ### 6.3 AWS Load Balancer Controller Logs
 
@@ -814,11 +856,11 @@ kubectl get pod my-app-7d8f9c-abcde -o json | jq '.status.podIP, .status.contain
 ### 6.6 Security Group Verification
 
 ```bash
-# Simulate ALB Health Check from inside the Pod
+# Pod-local application response check (loopback). This does not traverse the ALB-to-target network path.
 kubectl exec my-app-7d8f9c-abcde -- curl -v http://localhost:8080/healthz
 
-# Health Check from node to Pod
-NODE_IP=$(kubectl get node <node-name> -o json | jq -r '.status.addresses[] | select(.type=="InternalIP") | .address')
+# Validate the ALB SG path: request the Pod IP from the node, or use describe-target-health.
+NODE_IP=$(kubectl get node <node-name> -o json | jq -r '.status.addresses[]? | select(.type=="InternalIP") | .address')
 POD_IP=$(kubectl get pod my-app-7d8f9c-abcde -o json | jq -r '.status.podIP')
 ssh ec2-user@$NODE_IP "curl -v http://$POD_IP:8080/healthz"
 
@@ -850,7 +892,7 @@ Pre-deployment Health Check configuration review:
 - [ ] **Path alignment**: ALB/NLB Health Check path = readinessProbe path
 - [ ] **Timing design**: Probe timeout < ALB HC timeout
 - [ ] **Graceful Shutdown**: `preStop` hook + SIGTERM handler implemented
-- [ ] **Termination sequence**: `terminationGracePeriodSeconds > deregistration_delay + preStop_duration`
+- [ ] **Termination sequence**: `terminationGracePeriodSeconds > preStop_sleep + app_shutdown` (deregistration_delay runs in parallel on the LB)
 - [ ] **Rolling Update**: `minReadySeconds ≥ ALB HC interval × threshold`
 - [ ] **High availability**: PodDisruptionBudget configured (`minAvailable: 50%`)
 - [ ] **Security Group**: ALB → Pod CIDR traffic allowed

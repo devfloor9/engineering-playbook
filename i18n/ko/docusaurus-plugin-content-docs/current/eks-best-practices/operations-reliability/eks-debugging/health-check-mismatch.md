@@ -3,9 +3,9 @@ title: Probe vs Health Check 불일치 디버깅
 description: K8s Probe와 ALB/NLB/Ingress Controller Health Check의 메커니즘 차이 및 timeout 불일치로 인한 장애 진단 가이드
 created: "2026-04-07"
 last_update:
-  date: "2026-06-30"
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 17
 tags:
   - eks
   - debugging
@@ -54,8 +54,8 @@ Kubernetes Probe는 **kubelet**이 각 노드에서 독립적으로 실행하는
 | **startupProbe** | kubelet | 컨테이너 | 초기화 완료 전 다른 Probe 비활성화, 실패 시 재시작 |
 
 **핵심 특징:**
-- **Pod 내부에서 실행**: kubelet이 컨테이너에 직접 접근
-- **Service Endpoint 제어**: readinessProbe 실패 → `kubectl get endpoints` 목록에서 제거
+- **노드의 kubelet이 실행**: Probe는 Pod 내부가 아니라 각 노드의 kubelet이 컨테이너에 직접 접근해 실행합니다.
+- **Service Endpoint 제어**: readinessProbe가 실패하면 해당 주소가 NotReady로 표시됩니다(EndpointSlice의 `conditions.ready=false`, Endpoints의 `notReadyAddresses`로 이동). Endpoints 오브젝트 전체에서 사라지는 것이 아니라 ready 주소 목록에서 빠집니다.
 - **빠른 체크**: 기본 1초 timeout, 10초 간격
 
 ### 2.2 AWS Load Balancer Health Check
@@ -66,8 +66,8 @@ AWS Load Balancer Controller(LBC)가 관리하는 ALB/NLB Health Check는 **AWS 
 
 | Health Check 유형 | 실행 주체 | 체크 대상 | 실패 시 동작 |
 |------------------|----------|----------|-------------|
-| **ALB Target Group HC** | ALB | HTTP(S) endpoint | Target Group에서 **deregister** (Pod 상태와 무관) |
-| **NLB Target Group HC** | NLB | TCP or HTTP | Target Group에서 **deregister** |
+| **ALB Target Group HC** | ALB | HTTP(S) endpoint | **unhealthy로 표시 → 트래픽 중단** (등록은 유지, Pod 상태와 무관) |
+| **NLB Target Group HC** | NLB | TCP or HTTP | **unhealthy로 표시 → 트래픽 중단** (등록은 유지) |
 
 **핵심 특징:**
 - **외부에서 실행**: ALB/NLB가 Pod IP로 HTTP/TCP 요청
@@ -93,17 +93,17 @@ Ingress-NGINX Controller는 **nginx upstream** 레벨에서 헬스 체크를 수
 
 ## 3. 타이밍 비교표
 
-다음 표는 각 Health Check의 기본 타이밍과 체크 주체, 실패 시 동작을 비교합니다.
+다음 표는 각 Health Check의 기본 타이밍과 체크 주체, 실패 시 동작을 비교합니다. 각 열의 기본값은 서로 다른 출처에서 나옵니다. K8s Probe 값은 kubelet의 Probe 기본값이고, ALB·NLB 열의 값은 AWS Load Balancer Controller(LBC)가 annotation으로 설정하는 기본값이며, Ingress-NGINX 값은 nginx 지시어 기본값입니다. LBC가 생성하는 Target Group의 기본값은 ELB API를 직접 호출할 때의 기본값(예: ALB 대상 유형 `instance`/`ip`의 기본 interval 30초)과 다를 수 있으므로, 아래 값은 LBC/annotation 기준으로 읽어야 합니다.
 
-**표 4. K8s Probe·ALB·NLB·Ingress-NGINX의 설정별 기본 타이밍 비교**
+**표 4. K8s Probe·ALB·NLB·Ingress-NGINX의 설정별 기본 타이밍 비교(출처별)**
 
-| 설정 | K8s Probe | ALB Health Check | NLB Health Check | Ingress-NGINX |
+| 설정 | K8s Probe (kubelet) | ALB (LBC annotation) | NLB (LBC annotation) | Ingress-NGINX (nginx) |
 |------|----------|-----------------|-----------------|---------------|
 | **기본 interval** | 10s | 15s | 30s | - (실제 트래픽) |
 | **기본 timeout** | 1s | 5s | 6s | 60s (proxy_read_timeout) |
 | **실패 threshold** | 3 | 2 (unhealthy) | 3 | - |
 | **체크 주체** | kubelet | ALB | NLB | nginx process |
-| **실패 시 동작** | Endpoints 제거 | TG deregister | TG deregister | upstream 제거 후 재시도 |
+| **실패 시 동작** | ready 주소에서 제거 | unhealthy 표시 → 트래픽 중단 | unhealthy 표시 → 트래픽 중단 | upstream 제거 후 재시도 |
 | **체크 경로** | `/healthz` 등 | `/` 또는 커스텀 | TCP 또는 HTTP | 실제 요청 경로 |
 | **설정 위치** | Pod spec | Service annotation | Service annotation | Ingress annotation |
 
@@ -171,11 +171,14 @@ flowchart TD
 **해결책:**
 
 ```yaml
-apiVersion: v1
-kind: Service
+# ALB는 Service가 아니라 Ingress로 생성하며, alb.ingress.* annotation은 Ingress에 둡니다.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: my-service
+  name: my-ingress
   annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
     # ALB Health Check 경로를 readinessProbe와 통일
     alb.ingress.kubernetes.io/healthcheck-path: /healthz
     alb.ingress.kubernetes.io/healthcheck-interval-seconds: "15"
@@ -183,7 +186,26 @@ metadata:
     alb.ingress.kubernetes.io/healthy-threshold-count: "2"
     alb.ingress.kubernetes.io/unhealthy-threshold-count: "2"
 spec:
-  type: LoadBalancer
+  ingressClassName: alb
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: my-service
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-service
+spec:
+  type: ClusterIP        # ALB target-type: ip는 ClusterIP Service로 충분합니다.
+  selector:
+    app: my-app          # Deployment Pod 레이블과 일치해야 합니다.
   ports:
   - port: 80
     targetPort: 8080
@@ -193,7 +215,13 @@ kind: Deployment
 metadata:
   name: my-app
 spec:
+  selector:
+    matchLabels:
+      app: my-app
   template:
+    metadata:
+      labels:
+        app: my-app       # Service selector와 일치해야 합니다.
     spec:
       containers:
       - name: app
@@ -221,12 +249,12 @@ Pod 종료 시퀀스와 ALB deregistration 타이밍 불일치로 **종료 중�
 
 **Pod 종료 시퀀스:**
 1. `kubectl delete pod` 또는 Rolling Update 시작
-2. Pod status → `Terminating`
+2. API 서버가 Pod에 `deletionTimestamp`를 설정합니다(`kubectl`에는 `Terminating`으로 표시되며, 이는 별도의 phase가 아니라 삭제 진행 상태입니다).
 3. **동시에 두 가지 동작:**
    - kubelet: `preStop` hook 실행 → `SIGTERM` 전송
-   - kube-proxy: Endpoints에서 Pod 제거 (iptables 규칙 업데이트)
+   - EndpointSlice/endpoints 컨트롤러: 해당 주소를 Endpoints에서 제거하고, kube-proxy는 이 변경을 받아 각 노드의 iptables/IPVS 규칙을 다시 프로그래밍합니다.
 4. `terminationGracePeriodSeconds` (기본 30초) 대기
-5. `SIGKILL`로 강제 종료
+5. grace period가 지나도 컨테이너가 종료되지 않은 경우에만 `SIGKILL`로 강제 종료
 
 **ALB deregistration 시퀀스:**
 1. ALB가 Target Group에서 Pod 제거 요청 수신
@@ -249,12 +277,16 @@ T+300s ALB deregistration 완료
 
 **권장 설정 공식:**
 
+`deregistration_delay`는 Pod의 grace period와 순차로 더해지는 단계가 아니라, LB에서 **병렬로** 진행되는 connection draining 시간입니다. Pod는 이 전체 합이 아니라, LB가 대상을 unhealthy/draining으로 인지하는 데 걸리는 시간(일반적으로 preStop의 `sleep`으로 확보)과 그 뒤 진행 중인 요청을 마치는 시간만 버티면 됩니다.
+
 ```
-terminationGracePeriodSeconds > deregistration_delay + preStop_duration + app_shutdown_time
+terminationGracePeriodSeconds > preStop_sleep + app_shutdown_time
 ```
 
-예시: `deregistration_delay=15s`, `preStop=10s`, `app_shutdown=5s`
-→ `terminationGracePeriodSeconds=40s` 이상
+여기서 `preStop_sleep`은 LB가 대상 제거를 감지할 때까지 트래픽을 계속 받을 수 있도록 두는 지연이며, `deregistration_delay`보다 짧게 잡아도 됩니다. `deregistration_delay`는 LB 쪽에서 별도로 진행됩니다.
+
+예시: `preStop_sleep=15s`, `app_shutdown=5s`
+→ `terminationGracePeriodSeconds=25s` 이상
 
 **그림 2. 502 Bad Gateway(Pod 종료 중) 진단 플로우**
 
@@ -300,7 +332,7 @@ metadata:
 spec:
   template:
     spec:
-      terminationGracePeriodSeconds: 40  # preStop + deregistration + shutdown
+      terminationGracePeriodSeconds: 40  # preStop_sleep + app shutdown 여유 (deregistration은 LB 병렬)
       containers:
       - name: app
         image: my-app:1.0
@@ -364,6 +396,8 @@ process.on('SIGTERM', () => {
 **근본 원인:**
 ALB Health Check가 **통과하기 전에** K8s가 Pod를 "Ready" 상태로 판정하여 트래픽 전송
 
+ALB에 대상이 실제로 등록·healthy 상태가 될 때까지 Pod를 Ready로 보지 않도록 하려면 **Pod Readiness Gates**(AWS Load Balancer Controller의 `elbv2.k8s.aws/pod-readiness-gate-inject`)를 사용합니다. 이것이 ALB 등록과 Pod Ready를 실제로 동기화하는 메커니즘입니다. `minReadySeconds`는 ALB 등록을 기다리지 않고 Pod가 Ready가 된 뒤 일정 시간을 더 기다리게 하는 **휴리스틱**이며, ALB HC 주기에 맞춰 잡으면 완화에는 도움이 되지만 등록 완료를 보장하지는 않습니다.
+
 **타이밍 불일치:**
 
 ```
@@ -384,7 +418,7 @@ T+30s  ALB가 새 Pod로 트래픽 전송 시작
 flowchart TD
     START[Rolling Update 중<br/>일시적 503] --> CHECK_MINREADY{minReadySeconds<br/>설정?}
 
-    CHECK_MINREADY -->|0 (기본)| SET_MINREADY[minReadySeconds ≥<br/>ALB HC interval × threshold<br/>예: 15s × 2 = 30s]
+    CHECK_MINREADY -->|0 (기본)| SET_MINREADY[Pod Readiness Gate 적용<br/>+ minReadySeconds는 휴리스틱<br/>예: 15s × 2 = 30s]
     CHECK_MINREADY -->|설정됨| CHECK_READINESS{readinessProbe<br/>충분히 엄격?}
 
     CHECK_READINESS -->|너무 관대| STRICT_PROBE[failureThreshold 감소<br/>1-2로 설정]
@@ -411,15 +445,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: my-app
+  # ALB 등록 동기화: Readiness Gate가 주입되도록 네임스페이스/Pod에
+  # elbv2.k8s.aws/pod-readiness-gate-inject=enabled 레이블을 적용합니다.
 spec:
   replicas: 4
   strategy:
     type: RollingUpdate
     rollingUpdate:
-      maxUnavailable: 1  # 한 번에 1개씩만 종료
-      maxSurge: 1        # 한 번에 1개씩만 추가
-  # 핵심: ALB Health Check 통과 대기
-  minReadySeconds: 30  # ALB HC interval(15s) × threshold(2) = 30s
+      maxUnavailable: 1  # 업데이트 중 동시에 Unavailable 상태가 될 수 있는 Pod 최대 수
+      maxSurge: 1        # desired 수를 초과해 추가할 수 있는 Pod 최대 수
+  # minReadySeconds는 Pod가 Ready가 된 뒤 추가로 기다리는 안정화 지연(휴리스틱)이며,
+  # ALB 등록 완료를 기다리지 않습니다. 등록 동기화는 Readiness Gate로 보장합니다.
+  minReadySeconds: 30  # ALB HC interval(15s) × threshold(2)에 맞춘 예시 값
   template:
     spec:
       containers:
@@ -440,7 +477,7 @@ kind: PodDisruptionBudget
 metadata:
   name: my-app-pdb
 spec:
-  minAvailable: 2  # 최소 50% 유지
+  minAvailable: 2  # 자발적 중단(노드 drain 등)으로부터 최소 가용 Pod 수 보호. 롤아웃 순서를 제어하지는 않습니다.
   selector:
     matchLabels:
       app: my-app
@@ -453,14 +490,14 @@ spec:
 - `externalTrafficPolicy: Local` 설정 시 Health Check 실패
 
 **근본 원인:**
-NLB는 **모든 노드**에 트래픽 전송하지만, `externalTrafficPolicy: Local`은 **Pod가 있는 노드**만 응답
+NLB는 등록된 **노드(타겟)** 단위로 트래픽을 분산하며, `externalTrafficPolicy: Local`에서는 **Pod가 있는 노드만** Health Check를 통과해 트래픽을 받습니다. 노드별 부하는 노드에 떠 있는 Pod 수가 아니라 NLB의 타겟 분산 방식(기본적으로 healthy 노드에 고르게)에 따라 결정됩니다.
 
 **표 5. externalTrafficPolicy 설정별 Client IP 보존·Health Check·트래픽 분배 동작**
 
 | externalTrafficPolicy | Client IP 보존 | Health Check | 트래픽 분배 |
 |----------------------|---------------|-------------|-----------|
-| **Cluster (기본)** | 미보존 (SNAT) | 모든 노드 healthy | 균등 분배 → 노드 간 hop 발생 |
-| **Local** | 보존 | Pod 있는 노드만 healthy | 불균등 분배 (Pod 수에 비례) |
+| **Cluster (기본)** | 미보존 (SNAT) | 모든 노드 healthy | 노드 간 균등 → 노드 간 추가 hop 발생 |
+| **Local** | 보존 | Pod 있는 노드만 healthy | healthy 노드(=Pod 있는 노드) 사이에서 분산; Pod 없는 노드는 제외 |
 
 **문제 상황:**
 
@@ -469,7 +506,8 @@ NLB는 **모든 노드**에 트래픽 전송하지만, `externalTrafficPolicy: L
 노드 2: Pod 없음 → NLB HC 실패 → TG에서 제거
 노드 3: Pod C → NLB HC 성공 → 트래픽 수신
 
-문제: 노드 1이 2배 트래픽 수신 (불균등)
+문제: 노드 1과 노드 3이 노드 단위로 비슷한 트래픽을 받으므로,
+      노드 1의 Pod 2개는 노드 3의 Pod 1개보다 Pod당 적은 트래픽을 받습니다(노드당 Pod 수 불균형).
 ```
 
 **진단 및 해결:**
@@ -499,8 +537,8 @@ spec:
 ```
 
 **권장 사항:**
-- **Client IP 필요**: `Local` + 충분한 Pod 수 (노드당 최소 1개)
-- **균등 분배 우선**: `Cluster` + X-Forwarded-For 헤더로 Client IP 추출
+- **Client IP 필요**: `externalTrafficPolicy: Local`(노드당 Pod 최소 1개) 또는 NLB의 proxy protocol v2 사용. `Cluster`는 SNAT로 소스 IP가 노드 IP로 바뀝니다.
+- **참고**: `X-Forwarded-For` 헤더는 ALB/Ingress 같은 L7 경로에서 주입됩니다. NLB(L4)는 이 헤더를 추가하지 않으므로 NLB 경로에서는 사용할 수 없습니다.
 
 ### 패턴 5: Ingress-NGINX upstream timeout
 
@@ -510,7 +548,7 @@ spec:
 - `413 Request Entity Too Large` (파일 크기 초과)
 
 **근본 원인:**
-Ingress-NGINX의 `proxy-read-timeout` (기본 60초)가 백엔드 처리 시간보다 짧음
+Ingress-NGINX의 `proxy-read-timeout`(기본 60초)은 백엔드로부터 연속된 두 읽기 작업 **사이의** 무응답 허용 시간(비활성 타임아웃)이며, 요청 전체 처리 시간의 상한이 아닙니다. 백엔드가 60초 넘게 아무 데이터도 보내지 않으면 연결을 끊습니다. 주기적으로 데이터를 보내는 응답은 전체 처리가 60초를 넘어도 끊기지 않지만, 처리 중 60초 넘게 침묵하면 504가 발생합니다.
 
 **진단 및 해결:**
 
@@ -599,7 +637,7 @@ spec:
 
 **원칙:**
 - ALB/NLB Health Check 경로 = readinessProbe 경로
-- Health Check 포트 = Service targetPort
+- Health Check 포트: IP 모드 타겟에서는 트래픽 포트(= Service targetPort)를 쓰지만, instance 모드 타겟이나 `externalTrafficPolicy: Local` NLB에서는 노드의 `healthCheckNodePort`로 체크합니다. 따라서 "HC 포트 = targetPort"는 IP 모드에 한정됩니다.
 - Probe timeout < ALB HC timeout (Probe가 더 빠르게 감지)
 
 **템플릿:**
@@ -639,7 +677,7 @@ spec:
     rollingUpdate:
       maxUnavailable: 1
       maxSurge: 1
-  minReadySeconds: 30  # ALB HC 통과 대기
+  minReadySeconds: 30  # Ready 후 안정화 지연(휴리스틱). ALB 등록 동기화는 Readiness Gate 사용
   template:
     spec:
       terminationGracePeriodSeconds: 40
@@ -704,15 +742,18 @@ spec:
 
 ### 5.2 종료 시퀀스 공식
 
+`deregistration_delay`는 LB에서 병렬로 진행되므로 Pod의 grace period에 더하지 않습니다. Pod는 LB가 대상 제거를 감지하도록 두는 `preStop_sleep`과 진행 중인 요청을 마치는 시간만 버티면 됩니다.
+
 ```
-terminationGracePeriodSeconds = deregistration_delay + preStop_sleep + app_shutdown_buffer
+terminationGracePeriodSeconds = preStop_sleep + app_shutdown_buffer
 
 예시:
-  deregistration_delay = 15s
-  preStop_sleep = 15s
-  app_shutdown_buffer = 10s (SIGTERM 처리 + 진행 중 요청 완료)
+  preStop_sleep = 15s          # LB가 대상 제거를 감지하도록 두는 지연
+  app_shutdown_buffer = 10s    # SIGTERM 처리 + 진행 중 요청 완료
   -------------------
-  terminationGracePeriodSeconds = 40s
+  terminationGracePeriodSeconds = 25s
+
+  # deregistration_delay(예: 15s)는 LB 쪽에서 별도로 진행되며 위 합에 포함하지 않습니다.
 ```
 
 ### 5.3 타이밍 최적화 매트릭스
@@ -740,15 +781,15 @@ kubectl get endpoints my-service -o wide
 # Endpoints 상세 (NotReadyAddresses 확인)
 kubectl get endpoints my-service -o yaml
 
-# 특정 Pod가 Endpoints에 있는지 확인
-kubectl get endpoints my-service -o json | jq '.subsets[].addresses[] | select(.ip=="10.0.1.100")'
+# 특정 Pod가 Endpoints에 있는지 확인 (ready 주소가 없을 때도 에러 없이 동작하도록 null-safe 사용)
+kubectl get endpoints my-service -o json | jq '.subsets[]?.addresses[]? | select(.ip=="10.0.1.100")'
 ```
 
 ### 6.2 ALB Target Group 상태 확인
 
 ```bash
-# Target Group ARN 확인
-kubectl get targetgroupbindings -A
+# Target Group ARN 확인 (ARN은 기본 테이블에 표시되지 않으므로 custom-columns로 출력)
+kubectl get targetgroupbindings -A -o custom-columns=NAMESPACE:.metadata.namespace,NAME:.metadata.name,ARN:.spec.targetGroupARN
 
 # Target Health 확인
 aws elbv2 describe-target-health \
@@ -763,10 +804,11 @@ aws elbv2 describe-target-health \
 ```
 
 **주요 Reason 코드:**
-- `Target.FailedHealthChecks`: Health Check 실패
+- `Target.FailedHealthChecks`: Health Check 실패 (SG 차단·앱 응답 코드 불일치 등으로 체크 실패)
+- `Target.Timeout`: Health Check 요청이 시간 내 응답 없음 (SG로 ALB→Pod 경로가 막힌 경우 포함)
 - `Elb.RegistrationInProgress`: 등록 중
 - `Target.DeregistrationInProgress`: 해제 중
-- `Target.InvalidState`: Pod IP 도달 불가 (SG 문제)
+- `Target.InvalidState`: 대상이 유효하지 않은 상태(예: 인스턴스가 stopped/terminated). SG 도달성 문제가 아니라 대상 자체의 상태 문제입니다.
 
 ### 6.3 AWS Load Balancer Controller 로그
 
@@ -814,11 +856,11 @@ kubectl get pod my-app-7d8f9c-abcde -o json | jq '.status.podIP, .status.contain
 ### 6.6 Security Group 검증
 
 ```bash
-# Pod에서 ALB Health Check 시뮬레이션
+# Pod 로컬 애플리케이션 응답 확인 (loopback). ALB→대상 네트워크 경로는 거치지 않습니다.
 kubectl exec my-app-7d8f9c-abcde -- curl -v http://localhost:8080/healthz
 
-# 노드에서 Pod로 Health Check
-NODE_IP=$(kubectl get node <node-name> -o json | jq -r '.status.addresses[] | select(.type=="InternalIP") | .address')
+# ALB의 SG 경로 검증: 노드에서 Pod IP로 직접 요청하거나 describe-target-health로 확인합니다.
+NODE_IP=$(kubectl get node <node-name> -o json | jq -r '.status.addresses[]? | select(.type=="InternalIP") | .address')
 POD_IP=$(kubectl get pod my-app-7d8f9c-abcde -o json | jq -r '.status.podIP')
 ssh ec2-user@$NODE_IP "curl -v http://$POD_IP:8080/healthz"
 
@@ -850,7 +892,7 @@ aws ec2 describe-security-groups --group-ids sg-xxxxxxxx
 - [ ] **경로 통일**: ALB/NLB Health Check 경로 = readinessProbe 경로
 - [ ] **타이밍 설계**: Probe timeout < ALB HC timeout
 - [ ] **Graceful Shutdown**: `preStop` hook + SIGTERM 핸들러 구현
-- [ ] **종료 시퀀스**: `terminationGracePeriodSeconds > deregistration_delay + preStop_duration`
+- [ ] **종료 시퀀스**: `terminationGracePeriodSeconds > preStop_sleep + app_shutdown` (deregistration_delay는 LB에서 병렬 진행)
 - [ ] **Rolling Update**: `minReadySeconds ≥ ALB HC interval × threshold`
 - [ ] **고가용성**: PodDisruptionBudget 설정 (`minAvailable: 50%`)
 - [ ] **Security Group**: ALB → Pod CIDR 트래픽 허용
