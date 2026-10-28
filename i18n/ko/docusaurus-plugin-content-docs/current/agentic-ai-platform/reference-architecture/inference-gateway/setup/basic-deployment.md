@@ -3,7 +3,7 @@ title: 기본 배포
 description: kgateway 설치, HTTPRoute 설정, Bifrost Gateway Mode 구성
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-28
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -658,7 +658,7 @@ response = client.chat.completions.create(
 
 ## 6. config.json 변경 반영 절차
 
-Bifrost는 시작 시 config.json을 읽어 config store(SQLite)와 리컨실합니다. 현재 버전(v1.5+)은 매 시작 시 파일을 다시 읽고 엔티티별 콘텐츠 해시로 변경을 감지하므로, ConfigMap 변경 후 Pod 재시작만으로 반영됩니다.
+Bifrost는 시작 시 config.json을 읽어 config store(SQLite)와 재조정(reconcile)합니다. 현재 버전(v1.5+)은 매 시작 시 파일을 다시 읽고 엔티티별 콘텐츠 해시로 변경을 감지하므로, ConfigMap 변경 후 Pod 재시작만으로 반영됩니다.
 
 ### 변경 절차
 
@@ -666,7 +666,7 @@ Bifrost는 시작 시 config.json을 읽어 config store(SQLite)와 리컨실합
 # 1. ConfigMap 업데이트
 kubectl apply -f bifrost-gateway-config.yaml
 
-# 2. Pod 재시작 (config.json을 다시 읽어 config store에 리컨실)
+# 2. Pod 재시작 (config.json을 다시 읽어 config store에 재조정)
 kubectl rollout restart deployment/bifrost -n ai-external
 
 # 3. 재시작 완료 대기

@@ -3,7 +3,7 @@ title: Agentic AI Platform
 description: In-depth technical documentation on the architecture, deployment, and operations of the Agentic AI Platform
 created: "2025-09-11"
 last_update:
-  date: 2026-09-18
+  date: 2026-10-28
   author: devfloor9
 reading_time: 4
 tags:
@@ -40,7 +40,7 @@ Design, model serving, operations, and implementation guides for AI platforms. C
 
 This manual helps platform architects and engineers connect requirements to design decisions, deployment configuration, and operational measurements. Choose or combine managed services and EKS according to data boundaries, model control, and operating capacity. Evaluate quality, latency, and cost for the actual workload before choosing a single-model or multi-model design.
 
-The architecture chapters use **six runtime layers and three shared planes** to describe platform responsibilities. The model-serving chapters use **L0–L5 tuning layers** as a separate view of inference performance. These numbers are not a one-to-one mapping. Implementation procedures belong in Reference Architecture. A model replacement also requires checking tool calls, output formats, and evaluation results beyond API compatibility.
+The architecture chapters use **six runtime layers and three cross-cutting planes** to describe platform responsibilities. The model-serving chapters use **L0–L5 tuning layers** as a separate view of inference performance. These numbers are not a one-to-one mapping. Implementation procedures belong in Reference Architecture. A model replacement also requires checking tool calls, output formats, and evaluation results beyond API compatibility.
 
 ## Related Categories
 
