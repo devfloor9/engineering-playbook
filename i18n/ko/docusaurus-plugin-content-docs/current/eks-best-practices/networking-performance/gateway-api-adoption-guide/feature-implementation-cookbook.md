@@ -1,11 +1,11 @@
 ---
-title: "기능별 구현 쿡북: 6개 Gateway API 구현체"
+title: "기능별 구현 쿡북: 5개 Gateway API 구현체"
 description: 인증·Rate Limiting·IP 제어·URL Rewrite·헤더 조작·세션 어피니티·본문 크기 제한·커스텀 에러 페이지를 AWS LBC·Cilium·NGINX GF·Envoy Gateway·kGateway별 YAML로 구현하는 레퍼런스
 created: "2026-06-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 20
+reading_time: 28
 tags:
   - eks
   - gateway-api
@@ -27,7 +27,7 @@ import TabItem from '@theme/TabItem';
 
 ## 개요
 
-이 쿡북은 다음 8가지 기능을 AWS Native(LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway별로 구현하는 방법을 다룹니다. URL Rewrite와 헤더 조작은 Gateway API v1 표준 기능으로 모든 구현체에서 동일하게 작동합니다.
+이 쿡북은 다음 8가지 기능을 AWS Native(LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, kGateway별로 구현하는 방법을 다룹니다. URL Rewrite와 헤더 조작은 Gateway API v1 표준 기능이지만, 표준은 기능별로 Core·Extended 지원 수준을 구분하며 구현체와 버전에 따라 지원 범위가 다를 수 있습니다. 각 구현체에서 해당 필터가 지원되는지 확인한 뒤 사용합니다.
 
 **표 1. 쿡북에서 다루는 8가지 기능과 표준 여부**
 
@@ -411,16 +411,31 @@ AWS Native(LBC v3)는 게이트웨이 레벨의 네이티브 Rate Limiting을 �
 :::
 
 ```yaml
-# ALB에 WAF Rate-based Rule 연결
+# ALB에 WAF Rate-based Rule 연결 (LBC v3 Gateway)
+# WAF 연결은 Gateway 애너테이션이 아니라 LoadBalancerConfiguration의
+# spec.wafV2.webACL(ARN 문자열)로 설정하고, Gateway의
+# spec.infrastructure.parametersRef로 참조합니다.
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit/a1b2c3d4
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    # Rate limiting WAF ACL ARN
-    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit/a1b2c3d4
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -443,11 +458,8 @@ aws iam create-role \
     "Version": "2012-10-17",
     "Statement": [{
       "Effect": "Allow",
-      "Principal": { "Service": "eks.amazonaws.com" },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": { "aws:SourceAccount": "<ACCOUNT_ID>" }
-      }
+      "Principal": { "Service": "capabilities.eks.amazonaws.com" },
+      "Action": ["sts:AssumeRole", "sts:TagSession"]
     }]
   }'
 
@@ -466,13 +478,19 @@ aws iam put-role-policy \
 
 # 2. EKS 클러스터에 ACK Capability 생성
 aws eks create-capability \
+  --region <REGION> \
   --cluster-name my-eks-cluster \
-  --capability-type ACK \
-  --capability-configuration '{
-    "capabilityRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role"
-  }'
+  --capability-name my-ack \
+  --type ACK \
+  --role-arn arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role \
+  --delete-propagation-policy RETAIN
 
-# 3. CRD 등록 확인
+# 3. Capability가 ACTIVE 상태인지 확인 후 CRD 등록 확인
+aws eks describe-capability \
+  --region <REGION> \
+  --cluster-name my-eks-cluster \
+  --capability-name my-ack \
+  --query 'capability.status' --output text
 kubectl get crds | grep wafv2
 ```
 
@@ -512,8 +530,9 @@ spec:
         block: {}
       statement:
         rateBasedStatement:
-          limit: 500            # 5분간 최대 요청 수 (100~2,000,000,000)
-          aggregateKeyType: IP  # IP 기반 집계
+          limit: 500            # 평가 기간당 허용 요청 수(예시). 허용 최솟값은 10
+          evaluationWindowSec: 300  # 평가 기간: 60/120/300/600초 중 선택(기본 300초)
+          aggregateKeyType: IP  # 집계 기준의 한 예: 소스 IP별 집계
       visibilityConfig:
         sampledRequestsEnabled: true
         cloudWatchMetricsEnabled: true
@@ -529,14 +548,27 @@ spec:
 # WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
 #   kubectl get webacl rate-limit-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: <WebACL ARN>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -629,20 +661,31 @@ spec:
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
 ```yaml
+# NGINX Gateway Fabric 2.4.0에서 rate limiting은 NginxProxy가 아니라
+# RateLimitPolicy(gateway.nginx.org/v1alpha1)로 설정하고 HTTPRoute/Gateway에 연결합니다.
 apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
+kind: RateLimitPolicy
 metadata:
   name: rate-limit
+  namespace: production
 spec:
-  rateLimiting:
-    rate: 100r/s  # 초당 100 요청
-    burst: 200    # 버스트 200 요청
-    noDelay: true # 즉시 제한 적용
-    zoneSize: 10m # 메모리 존 크기
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: api-route
+  rateLimit:
+    local:
+      rules:
+        - zoneSize: 10m
+          key: "$binary_remote_addr"
+          rate: 100r/s
+          burst: 200
 ```
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
+
+`rateLimit.type: Global`은 Envoy 프로세스 로컬 제한이 아니라 클러스터 전역 제한이므로, 별도의 전역 rate-limit 서비스(기본 구현은 Redis 백엔드)를 `EnvoyGateway` 설정의 `rateLimit`에 구성해야 동작합니다. 이 백엔드 없이 정책만 적용하면 전역 제한이 적용되지 않습니다. 또한 `x-user-id`처럼 클라이언트가 임의로 보낼 수 있는 헤더를 키로 쓰면 사용자별 quota가 성립하지 않습니다. 인증 단계에서 검증·주입한 신뢰할 수 있는 헤더를 키로 사용해야 합니다.
 
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -709,15 +752,28 @@ spec:
 <TabItem value="aws" label="AWS Native" default>
 
 ```yaml
-# ALB Ingress에 WAF 연결 (LBC v3)
+# ALB에 WAF IP Allowlist 연결 (LBC v3 Gateway)
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/ip-allowlist/a1b2c3d4
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/ip-allowlist/a1b2c3d4
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -783,14 +839,27 @@ spec:
 # WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
 #   kubectl get webacl ip-allowlist-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: <WebACL ARN>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -805,6 +874,8 @@ spec:
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
+
+아래 `CiliumNetworkPolicy`는 backend Pod(`app: api-service`)로 들어오는 연결의 출발지 CIDR을 제한하는 예시입니다. L7 프록시나 Gateway를 거친 뒤 backend에서 검사하는 CIDR은 원래 외부 클라이언트 주소가 아니라 프록시·노드 주소일 수 있으므로, 원본 클라이언트를 기준으로 필터링하려면 ingress 지점의 검증된 클라이언트 IP 경계에서 적용하거나 이 정책을 실제 네트워크 피어로 한정해야 합니다. Cilium Gateway는 ingress identity를 사용하므로 HTTP 헤더의 클라이언트 주소를 검사하는 정책으로 해석하지 않습니다.
 
 ```yaml
 apiVersion: cilium.io/v2
@@ -830,22 +901,12 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
-```yaml
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
-metadata:
-  name: ip-filter
-spec:
-  ipFiltering:
-    allow:
-      - "10.0.0.0/8"
-      - "192.168.1.0/24"
-    deny:
-      - "203.0.113.0/24"  # 차단할 IP 대역
-```
+NGINX Gateway Fabric는 IP 기반 허용·차단을 `NginxProxy`의 임의 필드가 아니라 별도의 정책 리소스로 구성합니다. 해당 릴리스가 지원하는 정책(예: IP 허용·차단을 위한 `AccessPolicy`)을 `HTTPRoute`/`Gateway`에 연결하고, 규칙은 순서대로 평가되는 `action: Allow`/`Deny` 모델을 따릅니다. 필드 이름과 지원 범위는 고정한 버전에서 확인한 뒤 사용합니다. 프록시·로드밸런서 뒤에 배치하면 원본 클라이언트 IP를 복원하도록 `RewriteClientIP`를 함께 설정해야 정확한 IP 판정이 됩니다. 자세한 정책 목록은 [NGINX Gateway Fabric custom policies](https://docs.nginx.com/nginx-gateway-fabric/overview/custom-policies/)를 참조합니다.
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
+
+Envoy Gateway의 `SecurityPolicy.authorization`는 `defaultAction`(기본 동작)과 순서대로 평가되는 `rules[]`로 구성합니다. 각 규칙의 `action`은 `Allow`/`Deny`(첫 글자 대문자)이며, IP 조건은 `principal.clientCIDRs`로 지정합니다. 아래 예제는 기본 동작을 `Deny`로 두고 지정한 CIDR만 허용합니다. 프록시·로드밸런서 뒤에 배치하면 실제 프록시 체인에 맞게 신뢰할 수 있는 클라이언트 IP 탐지(`ClientTrafficPolicy`의 clientIPDetection 등)를 구성해야 원본 클라이언트 주소로 판정됩니다.
 
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -858,18 +919,13 @@ spec:
       kind: Gateway
       name: production-gateway
   authorization:
+    defaultAction: Deny
     rules:
-      - action: ALLOW
-        from:
-          - source:
-              principals:
-                - "10.0.0.0/8"
-                - "192.168.1.0/24"
-      - action: DENY
-        from:
-          - source:
-              principals:
-                - "*"
+      - action: Allow
+        principal:
+          clientCIDRs:
+            - "10.0.0.0/8"
+            - "192.168.1.0/24"
 ```
 
 </TabItem>
@@ -911,7 +967,7 @@ spec:
 ## 4. URL Rewrite
 
 :::note Gateway API 표준
-URL Rewrite는 Gateway API v1 표준 기능으로, 모든 구현체에서 동일하게 작동합니다.
+URL Rewrite는 Gateway API v1 표준 기능이지만, 경로 접두사 재작성(ReplacePrefixMatch)과 전체 경로 재작성의 지원 수준은 구현체와 버전에 따라 다를 수 있습니다. 사용 전 해당 구현체의 지원 범위를 확인합니다.
 :::
 
 ```yaml
@@ -958,7 +1014,7 @@ spec:
 ## 5. Header 조작
 
 :::note Gateway API 표준
-Header 조작은 Gateway API v1 표준 기능으로, 모든 구현체에서 동일하게 작동합니다.
+Header 조작은 Gateway API v1 표준 기능이지만, 요청·응답 헤더 수정 필터의 지원 수준은 구현체와 버전에 따라 다를 수 있습니다. 사용 전 해당 구현체의 지원 범위를 확인합니다.
 :::
 
 ```yaml
@@ -1003,14 +1059,31 @@ spec:
 <TabItem value="aws" label="AWS Native" default>
 
 ```yaml
+# LBC v3 Gateway에서 스티키니스는 HTTPRoute 애너테이션이 아니라
+# TargetGroupConfiguration(targetReference로 backend Service를 지정)의
+# targetGroupProps.targetGroupAttributes에 대상 그룹 속성(key/value)으로 설정합니다.
+apiVersion: gateway.k8s.aws/v1
+kind: TargetGroupConfiguration
+metadata:
+  name: api-service-tg-config
+  namespace: production
+spec:
+  targetReference:
+    name: api-service
+  defaultConfiguration:
+    targetGroupAttributes:
+      - key: stickiness.enabled
+        value: "true"
+      - key: stickiness.type
+        value: lb_cookie
+      - key: stickiness.lb_cookie.duration_seconds
+        value: "3600"
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: sticky-session
-  annotations:
-    aws.load-balancer.target-group.stickiness.enabled: "true"
-    aws.load-balancer.target-group.stickiness.type: "lb_cookie"
-    aws.load-balancer.target-group.stickiness.duration: "3600"
+  namespace: production
 spec:
   parentRefs:
     - name: production-gateway
@@ -1026,6 +1099,8 @@ spec:
 :::warning 제한 사항
 Cilium은 네이티브 쿠키 기반 세션 어피니티를 지원하지 않습니다. CiliumEnvoyConfig로 Envoy의 consistent hashing 또는 ring hash를 구성할 수 있습니다.
 :::
+
+아래 설정만으로는 쿠키 기반 어피니티가 실제로 성립하지 않습니다. 두 가지를 보완해야 합니다. 첫째, `RouteConfiguration`을 연결하는 listener가 없으므로 route가 트래픽 경로에 적용되지 않습니다. 트래픽을 받는 listener를 정의하고 이 route를 붙여야 합니다. 둘째, `STRICT_DNS`로 일반 ClusterIP Service(`api-service.production.svc.cluster.local`)를 가리키면 하나의 VIP로 해석되므로, ring hash가 개별 Pod로 요청을 고정하지 못합니다. 개별 endpoint로 해싱하려면 endpoint를 인식하는 EDS 디스커버리를 쓰거나 headless Service를 대상으로 해야 합니다. 또한 해시 일관성은 endpoint 집합이 바뀌면 유지되지 않으므로, 애플리케이션 수준 세션 지속성과는 구분해야 합니다.
 
 ```yaml
 apiVersion: cilium.io/v2
@@ -1148,19 +1223,32 @@ sessionPersistence:
 <TabItem value="aws" label="AWS Native" default>
 
 :::warning 제한 사항
-AWS WAF Rule을 사용하여 요청 본문 크기를 제한합니다 (Console/CloudFormation 설정).
+ALB에 연결된 AWS WAF는 요청 본문의 처음 8KiB(8,192바이트)만 검사합니다. 아래 `sizeConstraintStatement`의 `oversizeHandling: MATCH`는 8KiB를 넘는 본문을 지정한 `size` 임계값과 무관하게 매칭(차단)하므로, 이 규칙은 "10 MiB 업로드 상한"이 아니라 "검사 한도를 넘는 본문 차단"입니다. 요청 본문 전체 크기를 제한하려면 본문 전체를 수신하는 구성 요소(예: Envoy의 요청 버퍼링, NGINX의 본문 크기 설정)에서 적용해야 합니다.
 :::
 
 ```yaml
-# ALB에 WAF Body Size Limit Rule 연결
+# ALB에 WAF Body Size Limit Rule 연결 (LBC v3 Gateway)
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/body-size-limit/a1b2c3d4
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/body-size-limit/a1b2c3d4
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -1192,9 +1280,9 @@ spec:
         sizeConstraintStatement:
           fieldToMatch:
             body:
-              oversizeHandling: MATCH  # 오버사이즈 본문도 매칭
+              oversizeHandling: MATCH  # 8KiB를 넘는 본문은 크기와 무관하게 매칭(차단)
           comparisonOperator: GT
-          size: 10485760              # 10MB (바이트 단위)
+          size: 10485760              # 10 MiB(바이트 단위). WAF 본문 검사 범위와는 별개
           textTransformations:
             - priority: 0
               type: NONE
@@ -1213,14 +1301,27 @@ spec:
 # WebACL 생성 후 status.ackResourceMetadata.arn 에서 ARN 확인:
 #   kubectl get webacl body-size-limit-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: <WebACL ARN>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -1229,6 +1330,8 @@ spec:
 
 :::note 단일 WebACL로 규칙 통합
 IP Allowlist, Rate Limiting, Body Size 제한을 모두 사용한다면, 별도의 WebACL을 각각 만들 필요 없이 **하나의 WebACL에 여러 규칙을 `priority`로 구분하여 통합**할 수 있습니다. ALB당 WebACL은 하나만 연결 가능하므로 통합 관리가 필수입니다.
+
+규칙을 통합할 때는 평가 순서에 주의합니다. 허용 목록 규칙이 `action: allow`로 요청을 허용하면 그 규칙에서 평가가 종료되어 뒤 순위의 Rate Limiting·Body Size 규칙이 실행되지 않습니다. 허용된 IP에도 요청 제한·본문 검사를 적용하려면 이들 검사를 허용 규칙보다 앞 순위에 두거나, 허용 규칙이 평가를 종료하지 않도록 규칙 구조를 설계해야 합니다. 허용된 IP의 비정상 요청과 차단 대상 IP의 요청을 모두 테스트해 의도한 순서로 동작하는지 확인합니다.
 :::
 
 </TabItem>
@@ -1297,33 +1400,41 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
+NGINX Gateway Fabric에서 요청 본문 크기 상한은 `NginxProxy`의 임의 필드가 아니라 `ClientSettingsPolicy`(gateway.nginx.org/v1alpha1)의 `body.maxSize`로 설정하고 `HTTPRoute`/`Gateway`에 연결합니다. 단위가 없는 값은 바이트이며 `m`은 메가바이트를 뜻합니다.
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
+kind: ClientSettingsPolicy
 metadata:
   name: body-size-limit
+  namespace: production
 spec:
-  clientMaxBodySize: 10m  # 최대 10MB
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: api-route
+  body:
+    maxSize: 10m  # 최대 10MB
 ```
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
 
+Envoy Gateway에서 요청 본문 전체 크기 상한은 `BackendTrafficPolicy.spec.requestBuffer.limit`로 설정합니다. 지정한 크기를 넘는 요청은 버퍼링을 중단하고 HTTP 413(Content Too Large)을 반환합니다. 본문 전체를 수신한 뒤 업스트림으로 전달하므로 gRPC 스트리밍이나 WebSocket 같은 스트리밍·업그레이드 트래픽에는 사용하지 않습니다. `ClientTrafficPolicy`의 연결 버퍼나 헤더 크기 설정은 본문 전체 크기 상한이 아니므로 이 용도로 쓰지 않습니다.
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: ClientTrafficPolicy
+kind: BackendTrafficPolicy
 metadata:
   name: body-size-limit
+  namespace: production
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: production-gateway
-  http1:
-    http10Disabled: false
-    maxRequestHeadersKb: 60
-  connection:
-    bufferLimitBytes: 10485760  # 10MB
+      kind: HTTPRoute
+      name: api-route
+  requestBuffer:
+    limit: 10Mi  # 10 MiB. 초과 시 HTTP 413
 ```
 
 </TabItem>
@@ -1360,24 +1471,15 @@ spec:
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
 
+LBC v3 Gateway에서 고정 응답은 Ingress용 `alb.ingress.kubernetes.io/actions.*` 애너테이션이나 존재하지 않는 `error-503` Service로 구성하지 않습니다. HTTPRoute에 `ListenerRuleConfiguration`(gateway.k8s.aws/v1beta1)을 `ExtensionRef`로 연결하고 그 안에서 fixed-response 액션을 정의합니다. 배포 후 실제 응답 코드·본문이 의도대로 반환되는지 확인합니다.
+
 ```yaml
-# ALB의 Fixed Response 액션 사용
+# LBC v3 Gateway: ListenerRuleConfiguration fixed-response 액션
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: error-response
   namespace: production
-  annotations:
-    # ALB action annotation으로 고정 응답 구성
-    alb.ingress.kubernetes.io/actions.error-503: |
-      {
-        "type": "fixed-response",
-        "fixedResponseConfig": {
-          "contentType": "text/html",
-          "statusCode": "503",
-          "messageBody": "<html><body><h1>Service Under Maintenance</h1><p>Please try again later.</p></body></html>"
-        }
-      }
 spec:
   parentRefs:
     - name: production-gateway
@@ -1386,17 +1488,32 @@ spec:
         - path:
             type: PathPrefix
             value: /maintenance
-      backendRefs:
-        - name: error-503  # annotation에 정의된 액션 이름
-          kind: Service
-          port: 503
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.k8s.aws
+            kind: ListenerRuleConfiguration
+            name: error-503
+---
+apiVersion: gateway.k8s.aws/v1beta1
+kind: ListenerRuleConfiguration
+metadata:
+  name: error-503
+  namespace: production
+spec:
+  actions:
+    - type: fixed-response
+      fixedResponseConfig:
+        contentType: text/html
+        statusCode: "503"
+        messageBody: "<html><body><h1>Service Under Maintenance</h1><p>Please try again later.</p></body></html>"
 ```
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
 :::warning 제한 사항
-Cilium Gateway API는 네이티브 커스텀 에러 페이지를 지원하지 않습니다. 별도 에러 페이지 서비스를 배포하고 HTTPRoute에서 라우팅합니다.
+Cilium Gateway API는 업스트림이 반환하는 500/503 응답을 자동으로 가로채 바꾸는 네이티브 커스텀 에러 페이지를 지원하지 않습니다. 아래 예제는 `/error`·`/maintenance` 같은 **명시적 경로**를 에러 페이지 서비스로 라우팅하는 것이며, 임의의 백엔드 오류 응답을 교체하지는 않습니다. 백엔드 오류 응답을 자동으로 교체하려면 그 기능을 지원하는 응답 오버라이드 메커니즘(해당 구현체가 지원하는 경우)을 별도로 사용해야 합니다.
 :::
 
 ```yaml
@@ -1413,7 +1530,7 @@ spec:
     - port: 80
 
 ---
-# 에러 발생 시 error-page-service로 라우팅
+# 명시적 /error·/maintenance 경로를 error-page-service로 라우팅(백엔드 오류 응답 교체 아님)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1485,25 +1602,19 @@ spec:
       backendRefs:
         - name: error-page-service
           port: 80
-
----
-# NginxProxy로 에러 페이지 지시문 구성 (선택적)
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
-metadata:
-  name: error-pages
-spec:
-  errorPages:
-    - codes: [500, 502, 503, 504]
-      return:
-        statusCode: 503
-        body: "<html><body><h1>Service Unavailable</h1></body></html>"
 ```
+
+업스트림이 반환하는 500/502/503/504 응답 자체를 커스텀 페이지로 바꾸려면 `NginxProxy`의 임의 필드가 아니라 지원되는 메커니즘을 사용합니다. NGINX Gateway Fabric는 `SnippetsPolicy`로 `error_page`/`proxy_intercept_errors` 같은 NGINX 지시문을 주입하거나, 위처럼 명시적 경로를 에러 페이지 서비스로 라우팅합니다. 지시문 주입 범위와 필드는 고정한 버전에서 확인한 뒤 사용합니다.
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
 
+업스트림이 반환하는 500/503 응답 자체를 커스텀 페이지로 바꾸려면 `BackendTrafficPolicy.spec.responseOverride`를 사용합니다. `responseOverride`는 `match.statusCodes`로 대상 상태 코드를 지정하고 `response`로 대체 응답을 정의하는 **목록**입니다. 아래 첫 번째 예제는 500과 503 응답을 점검 페이지로 교체합니다.
+
+명시적인 `/maintenance` 경로에 고정 응답을 반환하려면 Envoy Gateway의 `HTTPRouteFilter.spec.directResponse`를 `ExtensionRef`로 연결합니다. 이는 특정 경로에 직접 응답하는 기능이며, 업스트림 오류 응답을 가로채 교체하는 것과는 다릅니다. 결함 주입(`faultInjection`)은 응답 교체가 아니라 오류·지연을 **주입**하는 객체(`abort`/`delay`)이므로 에러 페이지 용도로 쓰지 않습니다.
+
 ```yaml
+# 업스트림 500/503 응답을 점검 페이지로 교체
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
@@ -1514,16 +1625,40 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: api-route
-  faultInjection:
+  responseOverride:
     - match:
-        headers:
-          - name: x-trigger-error
-      abort:
-        httpStatus: 503
-        percentage: 100
-
+        statusCodes:
+          - type: Value
+            value: 500
+          - type: Value
+            value: 503
+      response:
+        contentType: text/html
+        body:
+          type: Inline
+          inline: |
+            <html><body><h1>Service Under Maintenance</h1><p>Please try again later.</p></body></html>
 ---
-# HTTPRoute에서 Fixed Response
+# 명시적 /maintenance 경로에 고정 응답
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: maintenance-response
+  namespace: production
+spec:
+  directResponse:
+    statusCode: 503
+    contentType: text/html
+    body:
+      type: Inline
+      inline: |
+        <html>
+        <body>
+          <h1>Service Under Maintenance</h1>
+          <p>Please try again later.</p>
+        </body>
+        </html>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1541,26 +1676,8 @@ spec:
         - type: ExtensionRef
           extensionRef:
             group: gateway.envoyproxy.io
-            kind: DirectResponse
+            kind: HTTPRouteFilter
             name: maintenance-response
-
----
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: DirectResponse
-metadata:
-  name: maintenance-response
-  namespace: production
-spec:
-  statusCode: 503
-  body:
-    type: Inline
-    inline: |
-      <html>
-      <body>
-        <h1>Service Under Maintenance</h1>
-        <p>Please try again later.</p>
-      </body>
-      </html>
 ```
 
 </TabItem>

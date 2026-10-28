@@ -3,9 +3,9 @@ title: Cilium ENI 모드 + Gateway API 심화 구성
 description: Cilium ENI 모드 아키텍처, Gateway API 리소스 구성, 성능 최적화, Hubble 관측성, BGP Control Plane v2 심화 가이드
 created: "2026-02-14"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-28
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 27
+reading_time: 30
 tags:
   - eks
   - cilium
@@ -65,7 +65,7 @@ graph TB
 ```
 
 **네이티브 라우팅 (오버레이 오버헤드 제거)**<br/>
-VXLAN이나 Geneve와 같은 오버레이 캡슐화를 사용하지 않고, VPC 라우팅 테이블을 직접 활용합니다. 이를 통해 네트워크 홉을 최소화하고 MTU 문제를 원천적으로 방지합니다.
+VXLAN이나 Geneve와 같은 오버레이 캡슐화를 사용하지 않고, VPC 라우팅 테이블을 직접 활용합니다. 이를 통해 네트워크 홉을 최소화하고 오버레이 캡슐화로 인한 MTU 오버헤드를 피합니다. ENI 네이티브 라우팅에도 경로 MTU와 XDP/드라이버 제약은 남으므로 모든 MTU 문제를 없애지는 못합니다.
 
 :::tip
 ENI 모드는 VPC IP와 네이티브 라우팅이 필요한 EC2 노드에서 고려할 수 있습니다. 기존 Datadog 출처 표기의 40% 지연 감소·35% 처리량 향상은 이를 뒷받침하는 원본 실험을 확인하지 못했으므로 성능 근거로 사용하지 않습니다. 동일한 워크로드와 노드 구성으로 측정하세요.
@@ -179,9 +179,10 @@ graph LR
 - IPv4 Prefix Delegation은 /28당 16개 주소를 제공하며, 각 prefix는 ENI의 secondary IPv4 주소 슬롯 하나를 사용
 
 **7. Hubble (Observability)**
-- 네트워크 플로우 실시간 가시화
+- L3/L4 네트워크 플로우 실시간 가시화
 - 서비스 간 의존성 맵 자동 생성
-- L7 프로토콜 가시성 (HTTP, gRPC, Kafka, DNS)
+- L7 프로토콜 가시성(HTTP, Kafka, DNS)은 프록시/L7 정책이 활성화된 구간에 한함
+- 종단 간 암호화(TLS passthrough)된 페이로드는 복원하지 않음
 - Prometheus 메트릭 내보내기
 
 ### 트래픽 흐름 4단계
@@ -213,13 +214,13 @@ sequenceDiagram
     POD-->>ENVOY: HTTP 200 OK
     ENVOY-->>C: 응답 전송
 
-    Note over TPROXY,POD: Hubble이 모든 단계 관측
+    Note over TPROXY,POD: Hubble이 L3/L4 플로우를 관측 (L7은 프록시/정책 활성 구간)
 ```
 
 **단계 1: L4 로드밸런싱 (NLB)**
 - 클라이언트의 TCP 연결 요청을 수신
 - Target Group의 헬스체크 상태를 기반으로 정상 노드 선택
-- Flow Hash 알고리즘으로 연결 고정성 유지 (5-tuple 기반)
+- Flow Hash 알고리즘으로 연결 단위 고정성 유지 (TCP는 프로토콜·출발지/목적지 IP·포트에 TCP 시퀀스 번호를 더해 해시하고, UDP는 프로토콜·출발지/목적지 IP·포트의 5-tuple을 사용)
 
 **단계 2: 투명 프록시 (eBPF TPROXY)**
 - eBPF로 Service 트래픽을 가로채고 연결 추적 상태 확인
@@ -273,11 +274,16 @@ ENI 모드에서는 각 파드가 VPC의 실제 IP 주소를 사용하므로, �
 
 **서브넷 구성**
 - 각 가용 영역(AZ)별로 최소 1개의 서브넷 필요
-- 서브넷 태그 필수:
+- Cilium ENI IPAM의 서브넷 선택은 ELB role 태그를 요구하지 않습니다. Operator는 노드가 위치한 서브넷(또는 지정한 서브넷)에서 ENI를 할당합니다.
+- 서브넷 태그는 AWS Load Balancer Controller의 서브넷 자동 검색에 쓰입니다. 로드밸런서 scheme에 따라 태그를 구분합니다.
   ```
+  # internet-facing 로드밸런서 서브넷
+  kubernetes.io/role/elb = 1
+  # internal 로드밸런서 서브넷
   kubernetes.io/role/internal-elb = 1
   kubernetes.io/cluster/<클러스터명> = shared
   ```
+- 최신 Load Balancer Controller는 태그가 없으면 서브넷 도달성 기반 자동 검색을 시도하므로, 명시적으로 제어하려면 태그나 서브넷 ID를 직접 지정합니다.
 - Public/Private 서브넷 모두 사용 가능
 - Private 서브넷 권장 (보안 강화)
 
@@ -523,7 +529,7 @@ encryption:
 # 성능 최적화
 bpf:
   preallocateMaps: true
-  mapDynamicSizeRatio: 0.0025  # 메모리의 0.25% 사용
+  mapDynamicSizeRatio: 0.0025  # 동적 크기 조정 대상 맵에 호스트 메모리의 0.25%를 배분 (전체 Cilium 메모리 기준이 아님)
   monitorAggregation: medium
   lbMapMax: 65536  # 로드밸런서 맵 크기
 
@@ -542,24 +548,39 @@ API_SERVER=$(aws eks describe-cluster \
   --output text | sed 's/https:\/\///')
 
 # Helm 차트 설치
+# Hubble Relay/UI는 DNS로 peer 서비스를 해석해야 하므로, CoreDNS가 준비되기 전에
+# --wait로 relay 준비를 기다리면 부트스트랩 순환이 발생합니다. 먼저 relay/ui 없이
+# 코어 Cilium을 설치하고, CoreDNS(Step 5)가 Ready가 된 뒤 relay/ui를 활성화합니다.
 helm install cilium cilium/cilium \
   --version 1.19.3 \
   --namespace kube-system \
   --values cilium-values.yaml \
   --set k8sServiceHost=${API_SERVER} \
+  --set hubble.relay.enabled=false \
+  --set hubble.ui.enabled=false \
   --wait
 ```
 
-**Step 5: CoreDNS 설치**
+**Step 5: CoreDNS 설치 및 Hubble Relay/UI 활성화**
 
-`disableDefaultAddons`로 CoreDNS 설치도 생략했으므로 Cilium이 준비된 뒤 EKS add-on으로 설치합니다.
+`disableDefaultAddons`로 CoreDNS 설치도 생략했으므로 코어 Cilium이 준비된 뒤 EKS add-on으로 설치합니다. CoreDNS가 Ready가 되어야 Hubble Relay가 peer 서비스를 DNS로 해석할 수 있습니다.
 
 ```bash
 # CoreDNS 배포
 aws eks create-addon --cluster-name cilium-gateway-cluster --addon-name coredns
 
-# CoreDNS 파드 확인
+# CoreDNS 파드가 Ready가 될 때까지 대기
+kubectl rollout status deployment/coredns -n kube-system --timeout=300s
 kubectl get pods -n kube-system -l k8s-app=kube-dns
+
+# DNS가 준비된 뒤 Hubble Relay/UI 활성화
+helm upgrade cilium cilium/cilium \
+  --version 1.19.3 \
+  --namespace kube-system \
+  --reuse-values \
+  --set hubble.relay.enabled=true \
+  --set hubble.ui.enabled=true \
+  --wait
 ```
 
 **Step 6: 설치 검증**
@@ -568,11 +589,16 @@ kubectl get pods -n kube-system -l k8s-app=kube-dns
 # Cilium CLI 설치 (macOS)
 brew install cilium-cli
 
-# 또는 Linux/macOS 공통
+# 또는 Linux/macOS 공통 (운영체제·아키텍처 자동 판별)
 CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-curl -L --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-amd64.tar.gz{,.sha256sum}
-sudo tar xzvfC cilium-linux-amd64.tar.gz /usr/local/bin
-rm cilium-linux-amd64.tar.gz{,.sha256sum}
+GOOS=$(uname | tr '[:upper:]' '[:lower:]')   # linux 또는 darwin
+GOARCH=amd64
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then GOARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
+# 추출 전에 체크섬 검증
+sha256sum --check cilium-${GOOS}-${GOARCH}.tar.gz.sha256sum
+sudo tar xzvfC cilium-${GOOS}-${GOARCH}.tar.gz /usr/local/bin
+rm cilium-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
 
 # Cilium 상태 확인 (최대 5분 대기)
 cilium status --wait
@@ -714,7 +740,18 @@ kubectl get nodes -o name | xargs -I {} kubectl taint {} key=value:NoSchedule
 
 **Step 4: Cilium 설치 (신규 클러스터와 동일)**
 
-위의 "신규 클러스터" 섹션의 Step 2-7을 동일하게 수행합니다.
+위의 "신규 클러스터" 섹션의 Step 2-4(Gateway API CRD, Helm 저장소, 코어 Cilium 설치)와 Step 6-7(설치 검증, Gateway 리소스)을 동일하게 수행합니다. 단, Step 5의 CoreDNS 설치는 기존 클러스터에 이미 CoreDNS가 있는지 먼저 확인하고 분기하세요. `aws eks create-addon`은 멱등(upsert)이 아니므로 이미 있는 add-on에 대해 실행하면 실패합니다.
+
+```bash
+# CoreDNS가 add-on으로 이미 설치되어 있는지 확인
+if aws eks describe-addon --cluster-name <클러스터명> --addon-name coredns >/dev/null 2>&1; then
+  echo "CoreDNS add-on이 이미 있습니다. create-addon을 생략하고 준비 상태만 확인합니다."
+else
+  aws eks create-addon --cluster-name <클러스터명> --addon-name coredns
+fi
+# 어느 경로든 준비 상태 확인
+kubectl rollout status deployment/coredns -n kube-system --timeout=300s
+```
 
 **Step 5: 파드 재시작**
 
@@ -895,6 +932,19 @@ Gateway API의 핵심 장점인 역할 분리를 Cilium에서 구현하는 방�
 
 # 1. 플랫폼 팀: GatewayClass 관리 (cluster-admin)
 ---
+# 아래 GatewayClass가 참조하는 CiliumGatewayClassConfig (cilium.io/v2alpha1, 네임스페이스 범위).
+# 이 객체가 없으면 GatewayClass가 Accepted 되지 않습니다.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumGatewayClassConfig
+metadata:
+  name: production-gateway-config
+  namespace: kube-system
+spec:
+  description: "Production Gateways: LoadBalancer Service"
+  service:
+    type: LoadBalancer
+
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
@@ -902,9 +952,9 @@ metadata:
 spec:
   controllerName: io.cilium/gateway-controller
   parametersRef:
-    group: ""
-    kind: ConfigMap
-    name: gateway-config
+    group: cilium.io
+    kind: CiliumGatewayClassConfig
+    name: production-gateway-config
     namespace: kube-system
 
 ---
@@ -914,11 +964,12 @@ kind: Gateway
 metadata:
   name: shared-gateway
   namespace: infra
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
 spec:
   gatewayClassName: production-gateway
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
   listeners:
     - name: https
       protocol: HTTPS
@@ -977,39 +1028,52 @@ spec:
         - name: team-b-service
           port: 9090
 
----
-# 크로스 네임스페이스 참조 허용 (플랫폼 팀이 생성)
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: allow-team-routes
-  namespace: infra
-spec:
-  from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: team-a
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: team-b
-  to:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: shared-gateway
+# HTTPRoute가 Gateway에 연결(attach)되는 관계는 Gateway의 allowedRoutes가
+# 제어하므로 이를 위한 ReferenceGrant는 필요하지 않습니다. ReferenceGrant는
+# HTTPRoute가 다른 네임스페이스의 Service를 backend로 참조할 때처럼 실제
+# 크로스 네임스페이스 참조에만 사용합니다.
 ```
 
 **RBAC 설정:**
 
 ```yaml
 # rbac-platform-team.yaml
+# GatewayClass는 클러스터 범위 리소스이므로 ClusterRole로 관리하고,
+# Gateway와 인증서(Secret) 권한은 인프라 네임스페이스로 한정합니다.
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: gateway-infrastructure-admin
+  name: gatewayclass-admin
 rules:
   - apiGroups: ["gateway.networking.k8s.io"]
-    resources: ["gatewayclasses", "gateways"]
+    resources: ["gatewayclasses"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: platform-team-gatewayclass
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gatewayclass-admin
+subjects:
+  - kind: Group
+    name: platform-team
+    apiGroup: rbac.authorization.k8s.io
+
+---
+# Gateway와 인증서 Secret은 infra 네임스페이스로 한정 (클러스터 전체 Secret 접근 금지)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gateway-infra-admin
+  namespace: infra
+rules:
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources: ["gateways"]
     verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
   - apiGroups: [""]
     resources: ["secrets"]
@@ -1017,13 +1081,14 @@ rules:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: RoleBinding
 metadata:
-  name: platform-team-gateway
+  name: platform-team-gateway-infra
+  namespace: infra
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: gateway-infrastructure-admin
+  kind: Role
+  name: gateway-infra-admin
 subjects:
   - kind: Group
     name: platform-team
@@ -1150,14 +1215,15 @@ aws ec2 describe-instance-types \
 ### BPF 튜닝
 
 **맵 사전 할당 활성화**<br/>
-eBPF 맵을 동적 할당 대신 시작 시 사전 할당하여 지연 시간 지터를 제거합니다.
+eBPF 맵을 동적 할당 대신 시작 시 사전 할당합니다. 런타임 할당 지연을 줄이는 대신 시작 시점에 메모리를 더 점유하는 지연·메모리 트레이드오프이며, 지터를 완전히 없앤다고 보장하지는 않습니다.
 
 ```yaml
 # cilium-values.yaml
 bpf:
   preallocateMaps: true  # 맵 사전 할당
 
-  # 맵 크기 조정 (기본값의 2배)
+  # 아래 값은 고정 버전 1.19.3 차트의 기본값과 동일합니다. 더 큰 규모가 필요할 때
+  # 측정 결과에 따라 상향하세요(기본값의 자동 2배가 아닙니다).
   lbMapMax: 65536        # 로드밸런서 백엔드 최대 수
   natMax: 524288         # NAT 연결 추적 최대 수
   neighMax: 524288       # 이웃 테이블 최대 수
@@ -1231,11 +1297,9 @@ ip link show eth0 | grep xdp
 <InstanceTypeTable />
 
 **Graviton4 (8g 시리즈) 선택 이유:**
-- x86 대비 40% 가격 대비 성능 향상
-- 60% 에너지 효율 개선
-- eBPF JIT 최적화
-- Cilium과 완벽한 호환성
-- Graviton5 (M9g/M9gd, 2026년 6월 GA): M8g 대비 ~25% 성능 향상
+- AWS는 Graviton4 기반 M8g가 Graviton3 기반 M7g 대비 최대 30% 높은 성능을 제공한다고 밝힙니다([M8g 제품 페이지](https://aws.amazon.com/ec2/instance-types/m8g/)). 이는 세대 간 비교이며 워크로드에 따라 달라집니다.
+- eBPF JIT는 arm64를 지원하므로 Graviton에서 동작합니다. Cilium 관점의 성능 이점은 이 문서에서 측정하지 않았습니다.
+- Graviton5 (M9g/M9gd, 2026년 6월 GA): M8g 대비 최대 25% 성능 향상(벤더 발표)
 
 **Network Optimized (n 시리즈) 선택 기준:**
 - Gateway 노드 전용으로 사용
@@ -1265,15 +1329,23 @@ Cilium의 강력한 관측성 도구인 Hubble을 활용한 운영 가이드입�
 # Hubble CLI 설치
 brew install hubble
 
-# 또는 직접 다운로드
+# 또는 직접 다운로드 (운영체제·아키텍처 자동 판별)
 HUBBLE_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/hubble/master/stable.txt)
-curl -L --remote-name-all https://github.com/cilium/hubble/releases/download/$HUBBLE_VERSION/hubble-linux-amd64.tar.gz{,.sha256sum}
-sudo tar xzvfC hubble-linux-amd64.tar.gz /usr/local/bin
+GOOS=$(uname | tr '[:upper:]' '[:lower:]')   # linux 또는 darwin
+GOARCH=amd64
+if [ "$(uname -m)" = "aarch64" ] || [ "$(uname -m)" = "arm64" ]; then GOARCH=arm64; fi
+curl -L --fail --remote-name-all https://github.com/cilium/hubble/releases/download/$HUBBLE_VERSION/hubble-${GOOS}-${GOARCH}.tar.gz{,.sha256sum}
+# 추출 전에 체크섬 검증
+sha256sum --check hubble-${GOOS}-${GOARCH}.tar.gz.sha256sum
+sudo tar xzvfC hubble-${GOOS}-${GOARCH}.tar.gz /usr/local/bin
 
 # 포트 포워딩 설정
 cilium hubble port-forward &
 
-# 실시간 플로우 스트림 (모든 네임스페이스)
+# 실시간 플로우 스트림 (모든 네임스페이스) — --follow가 라이브 스트리밍
+hubble observe --all --follow
+
+# 버퍼에 저장된 최근 플로우 조회 (--all은 라이브 스트림이 아니라 저장된 플로우를 반환)
 hubble observe --all
 
 # 특정 파드의 플로우만 필터링
@@ -1315,18 +1387,19 @@ cilium hubble ui
 **L7 프로토콜 가시성**
 
 ```bash
-# HTTP 메서드별 통계
+# HTTP 메서드별 통계 (Hubble json은 GetFlowsResponse 직렬화이므로 .flow.l7.http 경로 사용)
 hubble observe --protocol http --output json | \
-  jq -r '.l7.http.method' | \
+  jq -r 'select(.flow.l7.http != null) | .flow.l7.http.method' | \
   sort | uniq -c | sort -rn
 
-# HTTP 응답 코드 분포
+# HTTP 응답 코드 분포 (응답 레코드만 선택)
 hubble observe --protocol http --output json | \
-  jq -r '.l7.http.code' | \
+  jq -r 'select(.flow.l7.http.code != null) | .flow.l7.http.code' | \
   sort | uniq -c | sort -rn
 
-# gRPC 메서드 호출 추적
-hubble observe --protocol grpc
+# gRPC(HTTP/2)는 고정 버전 1.19.3에서 --protocol grpc를 지원하지 않으므로
+# 지원되는 http 필터와 경로/메서드로 조회
+hubble observe --protocol http --http-path "/grpc.service/Method"
 
 # Kafka 토픽 트래픽
 hubble observe --protocol kafka
@@ -1361,8 +1434,10 @@ histogram_quantile(0.99, sum by (le, type, protocol, address_type) (cilium_node_
 # 초당 요청 수 (RPS)
 rate(envoy_http_downstream_rq_total[5m])
 
-# 응답 레이턴시 P95
-histogram_quantile(0.95, rate(envoy_http_downstream_rq_time_bucket[5m]))
+# 응답 레이턴시 P95 (fleet 전체 백분위는 le로 rate를 합산해야 함)
+# envoy_http_downstream_rq_time_bucket 단위는 밀리초입니다
+# (앞의 node_health_connectivity_latency_seconds_bucket는 초 단위).
+histogram_quantile(0.95, sum by (le) (rate(envoy_http_downstream_rq_time_bucket[5m])))
 
 # 5xx 에러율
 sum(rate(envoy_http_downstream_rq_xx{envoy_response_code_class="5"}[5m]))
@@ -1376,10 +1451,12 @@ rate(envoy_cluster_upstream_cx_connect_fail[5m])
 envoy_http_downstream_cx_active
 ```
 
+위 Envoy 메트릭을 수집하려면 Envoy 스크레이프 경로를 별도로 설정해야 합니다. 위 Helm values는 operator와 agent의 ServiceMonitor만 활성화하며 Envoy용 ServiceMonitor는 포함하지 않으므로, Envoy 메트릭 포트를 노출하고 해당 ServiceMonitor/스크레이프 설정을 추가한 뒤 메트릭 이름을 1.19 기준으로 검증하세요.
+
 **ENI 메트릭**
 
 ```promql
-# 노드별 사용 중인 ENI 수
+# IP 할당 여유가 남은 연결된 인터페이스 수 (operator 관점의 집계값, 노드별 사용 중 ENI 수가 아님)
 cilium_operator_ipam_interface_candidates
 
 # 사용 가능한 IP 주소 수
@@ -1397,15 +1474,17 @@ rate(cilium_operator_ipam_allocation_duration_seconds_count{status!="success"}[5
 **공식 대시보드 가져오기**
 
 ```bash
-# Cilium 공식 대시보드 (Grafana ID: 16611)
+# Cilium v1.12 Agent Metrics 대시보드 (Grafana ID: 16611)
 # Grafana UI > Dashboards > Import > 16611 입력
 
 # 또는 JSON 파일 직접 다운로드
-curl -o cilium-dashboard.json https://grafana.com/api/dashboards/16611/revisions/latest/download
+curl -o cilium-agent-dashboard.json https://grafana.com/api/dashboards/16611/revisions/latest/download
 
-# Hubble 대시보드 (Grafana ID: 16612)
-curl -o hubble-dashboard.json https://grafana.com/api/dashboards/16612/revisions/latest/download
+# Cilium v1.12 Operator Metrics 대시보드 (Grafana ID: 16612, Hubble 대시보드가 아님)
+curl -o cilium-operator-dashboard.json https://grafana.com/api/dashboards/16612/revisions/latest/download
 ```
+
+위 두 대시보드는 Cilium v1.12 기준으로 게시되었으므로, 고정 버전 1.19에서 사용하려면 패널의 메트릭 이름을 먼저 확인하세요. Hubble 메트릭은 별도 대시보드가 필요합니다.
 
 **주요 대시보드 패널:**
 - Network Throughput (in/out bytes per second)
@@ -1427,6 +1506,11 @@ curl -o hubble-dashboard.json https://grafana.com/api/dashboards/16612/revisions
 
 ```yaml
 # gateway-with-xff.yaml
+# 아래는 target-group-attributes 애너테이션만 보여 주는 독립 예시입니다.
+# 이 매니페스트를 앞서 만든 cilium-gateway에 그대로 적용하면 listeners가 단일
+# HTTPS 리스너로 교체되고 allowedRoutes가 기본값(Same)으로 돌아가, 앞에서
+# 만든 운영 HTTPRoute 연결이 끊깁니다. 운영 중인 Gateway에는 아래 애너테이션만
+# 패치(kubectl patch)하고 기존 listeners/allowedRoutes는 유지하세요.
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
@@ -1438,10 +1522,20 @@ spec:
       service.beta.kubernetes.io/aws-load-balancer-type: external
       service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: instance
       service.beta.kubernetes.io/aws-load-balancer-target-group-attributes: preserve_client_ip.enabled=true
+  # 아래 listeners/allowedRoutes는 앞 예시와 동일하게 유지합니다.
   listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
     - name: https
       protocol: HTTPS
       port: 443
+      allowedRoutes:
+        namespaces:
+          from: All
       tls:
         mode: Terminate
         certificateRefs:
@@ -1484,11 +1578,13 @@ kubectl exec -n kube-system ds/cilium -- cilium-dbg envoy admin listeners
 # 5. 백엔드 엔드포인트 확인
 kubectl exec -n kube-system ds/cilium -- cilium-dbg service list
 
-# 6. ENI 할당 상태
-kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.status.eni.available}{"\t"}{.status.ipam.used}{"\n"}{end}'
+# 6. ENI 할당 상태 (.status.eni.enis는 ENI ID를 키로 갖는 맵이며 'available' 필드는 없음)
+#    아래는 노드별 ENI ID 목록과 사용 중 IP 할당 맵(.status.ipam.used, IP를 키로 갖는 맵이며 개수가 아님)을 출력합니다.
+kubectl get ciliumnodes -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{range .status.eni.enis.*}{.id}{" "}{end}{"\t"}{.status.ipam.used}{"\n"}{end}'
 
-# 7. 플로우 모니터링 (30초간)
+# 7. 최근 30초 플로우 조회 (--since는 과거를 조회; 앞으로 30초를 보려면 --follow를 timeout과 함께 사용)
 hubble observe --all --since 30s
+timeout 30 hubble observe --all --follow
 
 # 8. 네트워크 정책 검증
 cilium endpoint list

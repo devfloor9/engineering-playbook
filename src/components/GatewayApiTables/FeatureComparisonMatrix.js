@@ -20,10 +20,10 @@ const categories = [
     rows: [
       { label: { ko: '지원 버전', en: 'Supported Version' }, values: ['v1.3', 'v1.3', 'v1.3+', 'v1.3', 'v1.4', 'v1.3 (KIC 3.5+)'] },
       { label: { ko: 'HTTPRoute', en: 'HTTPRoute' }, values: ['✅', '✅', '✅', '✅', '✅', '✅'] },
-      { label: { ko: 'GRPCRoute', en: 'GRPCRoute' }, values: ['✅', '✅', '✅', '✅', '✅', '⚠️ 하이브리드 모드'] },
-      { label: { ko: 'TLSRoute', en: 'TLSRoute' }, values: ['✅ (NLB)', '✅', '✅', '✅', '✅', '❌'] },
-      { label: { ko: 'TCPRoute', en: 'TCPRoute' }, values: ['✅ (NLB)', '⚠️ Experimental', '❌', '✅', '✅', '✅'] },
-      { label: { ko: 'UDPRoute', en: 'UDPRoute' }, values: ['✅ (NLB)', '⚠️ Experimental', '❌', '✅', '✅', '✅'] }
+      { label: { ko: 'GRPCRoute', en: 'GRPCRoute' }, values: ['✅', '✅', '✅', '✅', '✅', '✅'] },
+      { label: { ko: 'TLSRoute', en: 'TLSRoute' }, values: ['✅ (NLB)', '✅', '✅', '✅', '✅', '⚠️ feature gate'] },
+      { label: { ko: 'TCPRoute', en: 'TCPRoute' }, values: ['✅ (NLB)', '❌', '❌', '✅', '✅', '✅'] },
+      { label: { ko: 'UDPRoute', en: 'UDPRoute' }, values: ['✅ (NLB)', '❌', '❌', '✅', '✅', '✅'] }
     ]
   },
   {
@@ -38,7 +38,7 @@ const categories = [
       { label: { ko: 'URL Rewrite', en: 'URL Rewrite' }, values: ['✅', '✅', '✅', '✅', '✅', '✅'] },
       { label: { ko: '인증/인가', en: 'Auth' }, values: ['Lambda/Cognito/JWT', 'L7 Policy', 'OIDC Policy', 'ExtAuth/OIDC', 'JWT/OAuth/OIDC', 'KongPlugin (JWT/OAuth/OIDC/key-auth)'] },
       { label: { ko: 'Canary 배포', en: 'Canary Deploy' }, values: ['✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight', '✅ Weight'] },
-      { label: { ko: '세션 어피니티', en: 'Session Affinity' }, values: ['✅ TG Stickiness', '⚠️ 수동', '✅ Upstream Config', '✅ Session Persistence', '✅ RouteOption', '✅ KongPlugin (session)'] }
+      { label: { ko: '세션 어피니티', en: 'Session Affinity' }, values: ['✅ TG Stickiness', '⚠️ 수동', '✅ Upstream Config', '✅ Session Persistence', '✅ RouteOption', '⚠️ Upstream 해시 (쿠키/컨슈머)'] }
     ]
   },
   {
@@ -71,7 +71,7 @@ const categories = [
       { label: { ko: '고가용성', en: 'HA' }, values: ['AWS 내장 HA', 'DaemonSet', 'Pod + PDB', 'Pod + PDB', 'Pod + PDB', 'Pod + PDB'] },
       { label: { ko: '모니터링', en: 'Monitoring' }, values: ['CloudWatch', 'Hubble + Prometheus', 'Prometheus', 'Prometheus', 'Prometheus', 'Prometheus (플러그인)'] },
       { label: { ko: '운영 부담', en: 'Ops Overhead' }, values: ['✅ 낮음', '중간', '중간', '중간', '중간', '중간'] },
-      { label: { ko: 'SLA 보장', en: 'SLA' }, values: ['✅ 99.99%', '❌', '⚠️ F5 지원 시', '❌', '⚠️ Solo 지원 시', '⚠️ Kong 지원 시'] }
+      { label: { ko: 'SLA 보장', en: 'SLA' }, values: ['⚠️ ELB SLA (멀티 AZ 99.99%/단일 AZ 99.9%, 서비스 크레딧·제외 조건)', '❌', '⚠️ F5 지원 시', '❌', '⚠️ Solo 지원 시', '⚠️ Kong 지원 시'] }
     ]
   },
   {
@@ -82,7 +82,7 @@ const categories = [
       { label: { ko: 'GAMMA', en: 'GAMMA' }, values: ['❌', '✅ GA', '❌', '⚠️ 제한적', '✅ GA', '❌'] },
       { label: { ko: 'Service Mesh', en: 'Service Mesh' }, values: ['❌', '✅ (네이티브)', '❌', 'Istio 호환', '✅ (네이티브)', '⚠️ Kong Mesh (별도 제품)'] },
       { label: { ko: 'East-West', en: 'East-West' }, values: ['❌', '✅ eBPF', '❌', '⚠️', '✅', '❌ (North-South)'] },
-      { label: { ko: '사이드카 불필요', en: 'No Sidecar' }, values: ['-', '✅', '-', '❌', '⚠️', '-'] }
+      { label: { ko: '사이드카 불필요', en: 'No Sidecar' }, values: ['-', '✅', '-', '✅ 게이트웨이 배포', '⚠️', '-'] }
     ]
   },
   {
@@ -90,7 +90,7 @@ const categories = [
     title: { ko: '고급 기능', en: 'Advanced Features' },
     color: '#0d47a1',
     rows: [
-      { label: { ko: 'Circuit Breaking', en: 'Circuit Breaking' }, values: ['❌', '✅', '⚠️ 제한적', '✅', '✅', '❌'] },
+      { label: { ko: 'Circuit Breaking', en: 'Circuit Breaking' }, values: ['❌', '✅', '⚠️ 제한적', '✅', '✅', '⚠️ 수동 상태 검사'] },
       { label: { ko: 'Fault Injection', en: 'Fault Injection' }, values: ['❌', '✅', '❌', '✅', '✅', '❌'] },
       { label: { ko: 'Retry 정책', en: 'Retry Policy' }, values: ['⚠️ 기본', '✅', '✅', '✅', '✅', '⚠️ 제한적'] },
       { label: { ko: 'Timeout 정책', en: 'Timeout Policy' }, values: ['✅', '✅', '✅', '✅', '✅', '✅ KongPlugin'] },
@@ -176,7 +176,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
           {locale === 'ko' ? 'Gateway API 솔루션 종합 비교' : 'Gateway API Solution Comprehensive Comparison'}
         </div>
         <div style={{ fontSize: '0.72rem', opacity: 0.7, marginTop: 2 }}>
-          {locale === 'ko' ? '73개 비교 항목 · 10개 카테고리 · 6개 솔루션' : '73 comparison items · 10 categories · 6 solutions'}
+          {locale === 'ko' ? '58개 비교 항목 · 12개 카테고리 · 6개 솔루션' : '58 comparison items · 12 categories · 6 solutions'}
         </div>
       </div>
 

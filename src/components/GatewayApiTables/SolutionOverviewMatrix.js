@@ -12,8 +12,8 @@ const solutions = [
     maturity: { ko: '높음', en: 'High' },
     gaDate: '2026-01',
     keyFeatures: {
-      ko: ['L4/L7 지원', 'JWT 검증', 'AWS WAF/Shield/ACM 통합', '관리형 서비스 SLA 99.99%'],
-      en: ['L4/L7 support', 'JWT verification', 'AWS WAF/Shield/ACM integration', 'Managed service SLA 99.99%']
+      ko: ['L4/L7 지원', 'JWT 검증', 'AWS WAF/Shield/ACM 통합', 'ELB SLA(멀티 AZ 99.99%, 서비스 크레딧)'],
+      en: ['L4/L7 support', 'JWT verification', 'AWS WAF/Shield/ACM integration', 'ELB SLA (multi-AZ 99.99%, service credits)']
     },
     limitations: {
       ko: ['mTLS 제한적', 'Rate Limiting에 WAF 비용 필요', 'AWS 종속'],
@@ -111,13 +111,13 @@ const solutions = [
     name: 'kGateway',
     color: '#9c27b0',
     provider: { ko: 'CNCF Sandbox (前 Solo.io Gloo)', en: 'CNCF Sandbox (formerly Solo.io Gloo)' },
-    dataPlane: 'Envoy Proxy',
+    dataPlane: { ko: 'Envoy(API 게이트웨이) / agentgateway(AI·MCP) 분리', en: 'Envoy (API gateway) / agentgateway (AI·MCP), separate' },
     license: 'Apache 2.0',
     maturity: { ko: '중간 (Gloo 계보 2018~, kgateway 2025~)', en: 'Medium (Gloo lineage since 2018, kgateway since 2025)' },
     gaDate: '2025 (kgateway)',
     keyFeatures: {
-      ko: ['통합 게이트웨이 (4-in-1)', 'AI/ML 워크로드 라우팅', 'JWT/OAuth/OIDC 네이티브', 'Gateway API v1.4.0 완전 지원'],
-      en: ['Unified gateway (4-in-1)', 'AI/ML workload routing', 'JWT/OAuth/OIDC native', 'Gateway API v1.4.0 full support']
+      ko: ['Envoy 데이터 플레인 기반 게이트웨이', 'AI/MCP는 별도 agentgateway 데이터 플레인에서 처리', 'JWT/OAuth/OIDC 네이티브', 'Gateway API v1.4.0 지원'],
+      en: ['Gateway on the Envoy data plane', 'AI/MCP handled by a separate agentgateway data plane', 'JWT/OAuth/OIDC native', 'Gateway API v1.4.0 support']
     },
     limitations: {
       ko: ['CNCF Sandbox 단계', 'AI 프로덕션 사례 제한적', '작은 프로젝트엔 오버엔지니어링'],

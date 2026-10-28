@@ -1,11 +1,11 @@
 ---
-title: "Feature Implementation Cookbook: 6 Gateway API Implementations"
+title: "Feature Implementation Cookbook: 5 Gateway API Implementations"
 description: Reference for implementing authentication, rate limiting, IP control, URL rewrite, header manipulation, session affinity, body size limits, and custom error pages as YAML across AWS LBC, Cilium, NGINX GF, Envoy Gateway, and kGateway
 created: "2026-06-17"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-15
   author: devfloor9
-reading_time: 32
+reading_time: 45
 tags:
   - eks
   - gateway-api
@@ -27,7 +27,7 @@ This document is a deep-dive guide for the [Gateway API Adoption Guide](/docs/ek
 
 ## Overview
 
-This cookbook covers how to implement the following 8 features for AWS Native (LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, and kGateway. URL Rewrite and header manipulation are Gateway API v1 standard features that work identically across all implementations.
+This cookbook covers how to implement the following 8 features for AWS Native (LBC v3), Cilium, NGINX Gateway Fabric, Envoy Gateway, and kGateway. URL Rewrite and header manipulation are Gateway API v1 standard features, but the standard defines Core and Extended support levels per feature, and the supported scope can vary by implementation and version. Confirm that the required filter is supported in each implementation before using it.
 
 **Table 1. The eight features covered in this cookbook and their standard status**
 
@@ -411,16 +411,31 @@ AWS Native (LBC v3) does not support gateway-level native rate limiting. IP-base
 :::
 
 ```yaml
-# Attach a WAF Rate-based Rule to the ALB
+# Attach a WAF Rate-based Rule to the ALB (LBC v3 Gateway)
+# WAF is attached via LoadBalancerConfiguration.spec.wafV2.webACL (an ARN string),
+# not a Gateway annotation; the Gateway references it through
+# spec.infrastructure.parametersRef.
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit/a1b2c3d4
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    # Rate limiting WAF ACL ARN
-    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/rate-limit/a1b2c3d4
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -443,11 +458,8 @@ aws iam create-role \
     "Version": "2012-10-17",
     "Statement": [{
       "Effect": "Allow",
-      "Principal": { "Service": "eks.amazonaws.com" },
-      "Action": "sts:AssumeRole",
-      "Condition": {
-        "StringEquals": { "aws:SourceAccount": "<ACCOUNT_ID>" }
-      }
+      "Principal": { "Service": "capabilities.eks.amazonaws.com" },
+      "Action": ["sts:AssumeRole", "sts:TagSession"]
     }]
   }'
 
@@ -466,13 +478,19 @@ aws iam put-role-policy \
 
 # 2. Create the ACK Capability on the EKS cluster
 aws eks create-capability \
+  --region <REGION> \
   --cluster-name my-eks-cluster \
-  --capability-type ACK \
-  --capability-configuration '{
-    "capabilityRoleArn": "arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role"
-  }'
+  --capability-name my-ack \
+  --type ACK \
+  --role-arn arn:aws:iam::<ACCOUNT_ID>:role/EKS-ACK-Capability-Role \
+  --delete-propagation-policy RETAIN
 
-# 3. Verify CRD registration
+# 3. Wait until the capability is ACTIVE, then verify CRD registration
+aws eks describe-capability \
+  --region <REGION> \
+  --cluster-name my-eks-cluster \
+  --capability-name my-ack \
+  --query 'capability.status' --output text
 kubectl get crds | grep wafv2
 ```
 
@@ -512,8 +530,9 @@ spec:
         block: {}
       statement:
         rateBasedStatement:
-          limit: 500            # max requests per 5 minutes (100~2,000,000,000)
-          aggregateKeyType: IP  # aggregate by IP
+          limit: 500            # requests allowed per evaluation window (example); minimum allowed is 10
+          evaluationWindowSec: 300  # evaluation window: one of 60/120/300/600 seconds (default 300)
+          aggregateKeyType: IP  # one aggregation option: aggregate by source IP
       visibilityConfig:
         sampledRequestsEnabled: true
         cloudWatchMetricsEnabled: true
@@ -529,14 +548,27 @@ spec:
 # After WebACL creation, find the ARN in status.ackResourceMetadata.arn:
 #   kubectl get webacl rate-limit-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: <WebACL ARN>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -629,20 +661,32 @@ spec:
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
 ```yaml
+# In NGINX Gateway Fabric 2.4.0, rate limiting is configured with a
+# RateLimitPolicy (gateway.nginx.org/v1alpha1) attached to an HTTPRoute/Gateway,
+# not with NginxProxy.
 apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
+kind: RateLimitPolicy
 metadata:
   name: rate-limit
+  namespace: production
 spec:
-  rateLimiting:
-    rate: 100r/s  # 100 requests per second
-    burst: 200    # burst of 200 requests
-    noDelay: true # apply limit immediately
-    zoneSize: 10m # memory zone size
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: api-route
+  rateLimit:
+    local:
+      rules:
+        - zoneSize: 10m
+          key: "$binary_remote_addr"
+          rate: 100r/s
+          burst: 200
 ```
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
+
+`rateLimit.type: Global` is a cluster-wide limit, not an Envoy process-local one, so it requires a separate global rate-limit service (the default implementation uses a Redis backend) configured under `rateLimit` in the `EnvoyGateway` config. Applying the policy without that backend does not enforce a global limit. Also, using a header a client can set freely, such as `x-user-id`, as the key does not establish per-user quotas; use a trusted header that an authentication step verified and injected.
 
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -709,15 +753,28 @@ spec:
 <TabItem value="aws" label="AWS Native" default>
 
 ```yaml
-# Attach WAF to ALB Ingress (LBC v3)
+# Attach WAF IP Allowlist to the ALB (LBC v3 Gateway)
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/ip-allowlist/a1b2c3d4
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/ip-allowlist/a1b2c3d4
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -783,14 +840,27 @@ spec:
 # After WebACL creation, find the ARN in status.ackResourceMetadata.arn:
 #   kubectl get webacl ip-allowlist-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: <WebACL ARN>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -805,6 +875,8 @@ spec:
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
+
+The `CiliumNetworkPolicy` below restricts the source CIDRs of connections reaching the backend Pods (`app: api-service`). A CIDR evaluated at the backend after an L7 proxy or Gateway may be the proxy/node address rather than the original external client address, so to filter by the original client, apply it at a verified ingress/client-IP detection boundary or scope this policy to actual network peers. Cilium Gateway uses ingress identity, so do not interpret this as a policy that inspects the client address in HTTP headers.
 
 ```yaml
 apiVersion: cilium.io/v2
@@ -830,22 +902,12 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
-```yaml
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
-metadata:
-  name: ip-filter
-spec:
-  ipFiltering:
-    allow:
-      - "10.0.0.0/8"
-      - "192.168.1.0/24"
-    deny:
-      - "203.0.113.0/24"  # IP range to block
-```
+NGINX Gateway Fabric configures IP allow/deny through a dedicated policy resource, not an arbitrary `NginxProxy` field. Attach the policy supported by your release (for example, `AccessPolicy` for IP allowlists/denylists) to an `HTTPRoute`/`Gateway`; rules follow an `action: Allow`/`Deny` model evaluated in order. Confirm the field names and supported scope in the pinned version before use. When deployed behind a proxy/load balancer, also configure `RewriteClientIP` so the original client IP is restored for accurate decisions. For the full list of policies, see [NGINX Gateway Fabric custom policies](https://docs.nginx.com/nginx-gateway-fabric/overview/custom-policies/).
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
+
+Envoy Gateway's `SecurityPolicy.authorization` consists of a `defaultAction` and ordered `rules[]`. Each rule's `action` is `Allow`/`Deny` (capitalized), and the IP condition is set under `principal.clientCIDRs`. The example below sets the default action to `Deny` and allows only the listed CIDRs. When deployed behind a proxy/load balancer, configure trusted client-IP detection (for example, `ClientTrafficPolicy` clientIPDetection) that matches the actual proxy chain so decisions use the original client address.
 
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
@@ -858,18 +920,13 @@ spec:
       kind: Gateway
       name: production-gateway
   authorization:
+    defaultAction: Deny
     rules:
-      - action: ALLOW
-        from:
-          - source:
-              principals:
-                - "10.0.0.0/8"
-                - "192.168.1.0/24"
-      - action: DENY
-        from:
-          - source:
-              principals:
-                - "*"
+      - action: Allow
+        principal:
+          clientCIDRs:
+            - "10.0.0.0/8"
+            - "192.168.1.0/24"
 ```
 
 </TabItem>
@@ -911,7 +968,7 @@ spec:
 ## 4. URL Rewrite
 
 :::note Gateway API Standard
-URL Rewrite is a Gateway API v1 standard feature that works identically across all implementations.
+URL Rewrite is a Gateway API v1 standard feature, but the support level for prefix rewrite (ReplacePrefixMatch) and full-path rewrite can vary by implementation and version. Confirm the implementation's supported scope before use.
 :::
 
 ```yaml
@@ -958,7 +1015,7 @@ spec:
 ## 5. Header Manipulation
 
 :::note Gateway API Standard
-Header manipulation is a Gateway API v1 standard feature that works identically across all implementations.
+Header manipulation is a Gateway API v1 standard feature, but the support level of request/response header modifier filters can vary by implementation and version. Confirm the implementation's supported scope before use.
 :::
 
 ```yaml
@@ -1003,14 +1060,32 @@ spec:
 <TabItem value="aws" label="AWS Native" default>
 
 ```yaml
+# On an LBC v3 Gateway, stickiness is not configured through HTTPRoute
+# annotations. Define a TargetGroupConfiguration (targetReference points to the
+# backend Service) and set the target group attributes (key/value) under
+# targetGroupProps.targetGroupAttributes.
+apiVersion: gateway.k8s.aws/v1
+kind: TargetGroupConfiguration
+metadata:
+  name: api-service-tg-config
+  namespace: production
+spec:
+  targetReference:
+    name: api-service
+  defaultConfiguration:
+    targetGroupAttributes:
+      - key: stickiness.enabled
+        value: "true"
+      - key: stickiness.type
+        value: lb_cookie
+      - key: stickiness.lb_cookie.duration_seconds
+        value: "3600"
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: sticky-session
-  annotations:
-    aws.load-balancer.target-group.stickiness.enabled: "true"
-    aws.load-balancer.target-group.stickiness.type: "lb_cookie"
-    aws.load-balancer.target-group.stickiness.duration: "3600"
+  namespace: production
 spec:
   parentRefs:
     - name: production-gateway
@@ -1026,6 +1101,8 @@ spec:
 :::warning Limitation
 Cilium does not support native cookie-based session affinity. You can configure Envoy's consistent hashing or ring hash via CiliumEnvoyConfig.
 :::
+
+The configuration below does not, by itself, establish cookie-based affinity. Two things must be fixed. First, there is no listener to attach the `RouteConfiguration`, so the route is not applied to the traffic path; define a listener that receives traffic and attach this route to it. Second, `STRICT_DNS` to an ordinary ClusterIP Service (`api-service.production.svc.cluster.local`) resolves to a single VIP, so ring hashing cannot pin requests to individual Pods; to hash to individual endpoints, use endpoint-aware EDS discovery or target a headless Service. Also, hash consistency is not preserved when the endpoint set changes, so distinguish it from application-level session persistence.
 
 ```yaml
 apiVersion: cilium.io/v2
@@ -1148,19 +1225,32 @@ sessionPersistence:
 <TabItem value="aws" label="AWS Native" default>
 
 :::warning Limitation
-Use an AWS WAF Rule to limit request body size (Console/CloudFormation configuration).
+AWS WAF attached to an ALB inspects only the first 8 KiB (8,192 bytes) of the request body. The `oversizeHandling: MATCH` in the `sizeConstraintStatement` below matches (blocks) any body larger than 8 KiB regardless of the configured `size` threshold, so this rule is "block bodies that exceed the inspection limit," not a "10 MiB upload cap." To cap the full request body size, enforce it at a component that receives the entire request (for example, Envoy request buffering or NGINX body-size settings).
 :::
 
 ```yaml
-# Attach a WAF Body Size Limit Rule to the ALB
+# Attach a WAF Body Size Limit Rule to the ALB (LBC v3 Gateway)
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/body-size-limit/a1b2c3d4
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: arn:aws:wafv2:us-west-2:123456789012:regional/webacl/body-size-limit/a1b2c3d4
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -1192,9 +1282,9 @@ spec:
         sizeConstraintStatement:
           fieldToMatch:
             body:
-              oversizeHandling: MATCH  # also match oversized bodies
+              oversizeHandling: MATCH  # match (block) bodies larger than 8 KiB, regardless of size
           comparisonOperator: GT
-          size: 10485760              # 10MB (in bytes)
+          size: 10485760              # 10 MiB (in bytes); separate from WAF's body inspection limit
           textTransformations:
             - priority: 0
               type: NONE
@@ -1213,14 +1303,27 @@ spec:
 # After WebACL creation, find the ARN in status.ackResourceMetadata.arn:
 #   kubectl get webacl body-size-limit-acl -n production \
 #     -o jsonpath='{.status.ackResourceMetadata.arn}'
+apiVersion: gateway.k8s.aws/v1
+kind: LoadBalancerConfiguration
+metadata:
+  name: production-lb-config
+  namespace: production
+spec:
+  wafV2:
+    webACL: <WebACL ARN>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: production-gateway
-  annotations:
-    aws.load-balancer.waf-acl-arn: <WebACL ARN>
+  namespace: production
 spec:
   gatewayClassName: aws-alb
+  infrastructure:
+    parametersRef:
+      group: gateway.k8s.aws
+      kind: LoadBalancerConfiguration
+      name: production-lb-config
   listeners:
     - name: http
       port: 80
@@ -1229,6 +1332,8 @@ spec:
 
 :::note Consolidate Rules into a Single WebACL
 If you use IP Allowlist, Rate Limiting, and Body Size limits all together, you do not need to create separate WebACLs for each — you can **consolidate multiple rules into a single WebACL, distinguished by `priority`**. Since only one WebACL can be attached per ALB, consolidated management is essential.
+
+When consolidating, mind the evaluation order. If an allowlist rule permits a request with `action: allow`, evaluation terminates at that rule and the lower-priority rate-limit and body-size rules do not run. To apply rate and body checks to allowed IPs as well, place those checks at a higher priority than the allow rule, or design the rule structure so the allow rule does not terminate evaluation. Test both abusive requests from permitted IPs and requests from denied IPs to confirm the intended ordering.
 :::
 
 </TabItem>
@@ -1297,33 +1402,41 @@ spec:
 </TabItem>
 <TabItem value="nginx" label="NGINX Gateway Fabric">
 
+In NGINX Gateway Fabric, cap the request-body size with `ClientSettingsPolicy` (gateway.nginx.org/v1alpha1) `body.maxSize`, attached to an `HTTPRoute`/`Gateway`, not an arbitrary `NginxProxy` field. A value without a unit is bytes, and `m` means megabytes.
+
 ```yaml
 apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
+kind: ClientSettingsPolicy
 metadata:
   name: body-size-limit
+  namespace: production
 spec:
-  clientMaxBodySize: 10m  # max 10MB
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: api-route
+  body:
+    maxSize: 10m  # max 10MB
 ```
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
 
+In Envoy Gateway, cap the full request-body size with `BackendTrafficPolicy.spec.requestBuffer.limit`. Requests larger than the limit stop buffering and return HTTP 413 (Content Too Large). Because the full body is received before forwarding upstream, do not use it for streaming or upgrade traffic such as gRPC streaming or WebSocket. The `ClientTrafficPolicy` connection-buffer and header-size settings are not a full request-body cap, so do not use them for this purpose.
+
 ```yaml
 apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: ClientTrafficPolicy
+kind: BackendTrafficPolicy
 metadata:
   name: body-size-limit
+  namespace: production
 spec:
   targetRefs:
     - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: production-gateway
-  http1:
-    http10Disabled: false
-    maxRequestHeadersKb: 60
-  connection:
-    bufferLimitBytes: 10485760  # 10MB
+      kind: HTTPRoute
+      name: api-route
+  requestBuffer:
+    limit: 10Mi  # 10 MiB; HTTP 413 when exceeded
 ```
 
 </TabItem>
@@ -1360,24 +1473,15 @@ spec:
 <Tabs>
 <TabItem value="aws" label="AWS Native" default>
 
+On an LBC v3 Gateway, a fixed response is not configured with the Ingress `alb.ingress.kubernetes.io/actions.*` annotation or a nonexistent `error-503` Service. Attach a `ListenerRuleConfiguration` (gateway.k8s.aws/v1beta1) to the HTTPRoute via `ExtensionRef` and define a fixed-response action inside it. After deploying, verify the actual response code and body are returned as intended.
+
 ```yaml
-# Use the ALB Fixed Response action
+# LBC v3 Gateway: ListenerRuleConfiguration fixed-response action
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: error-response
   namespace: production
-  annotations:
-    # Configure a fixed response with an ALB action annotation
-    alb.ingress.kubernetes.io/actions.error-503: |
-      {
-        "type": "fixed-response",
-        "fixedResponseConfig": {
-          "contentType": "text/html",
-          "statusCode": "503",
-          "messageBody": "<html><body><h1>Service Under Maintenance</h1><p>Please try again later.</p></body></html>"
-        }
-      }
 spec:
   parentRefs:
     - name: production-gateway
@@ -1386,17 +1490,32 @@ spec:
         - path:
             type: PathPrefix
             value: /maintenance
-      backendRefs:
-        - name: error-503  # action name defined in the annotation
-          kind: Service
-          port: 503
+      filters:
+        - type: ExtensionRef
+          extensionRef:
+            group: gateway.k8s.aws
+            kind: ListenerRuleConfiguration
+            name: error-503
+---
+apiVersion: gateway.k8s.aws/v1beta1
+kind: ListenerRuleConfiguration
+metadata:
+  name: error-503
+  namespace: production
+spec:
+  actions:
+    - type: fixed-response
+      fixedResponseConfig:
+        contentType: text/html
+        statusCode: "503"
+        messageBody: "<html><body><h1>Service Under Maintenance</h1><p>Please try again later.</p></body></html>"
 ```
 
 </TabItem>
 <TabItem value="cilium" label="Cilium">
 
 :::warning Limitation
-The Cilium Gateway API does not support native custom error pages. Deploy a separate error page service and route to it from the HTTPRoute.
+The Cilium Gateway API does not support native custom error pages that automatically intercept and replace upstream 500/503 responses. The example below routes **explicit paths** such as `/error` and `/maintenance` to an error-page service; it does not replace arbitrary backend error responses. To replace backend error responses automatically, use a response-override mechanism that supports it (where the implementation provides one) separately.
 :::
 
 ```yaml
@@ -1413,7 +1532,7 @@ spec:
     - port: 80
 
 ---
-# Route to error-page-service when an error occurs
+# Route explicit /error and /maintenance paths to error-page-service (not backend error replacement)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1485,25 +1604,19 @@ spec:
       backendRefs:
         - name: error-page-service
           port: 80
-
----
-# Configure error page directives with NginxProxy (optional)
-apiVersion: gateway.nginx.org/v1alpha1
-kind: NginxProxy
-metadata:
-  name: error-pages
-spec:
-  errorPages:
-    - codes: [500, 502, 503, 504]
-      return:
-        statusCode: 503
-        body: "<html><body><h1>Service Unavailable</h1></body></html>"
 ```
+
+To replace the 500/502/503/504 responses returned by the upstream with a custom page, use a supported mechanism rather than an arbitrary `NginxProxy` field. NGINX Gateway Fabric injects NGINX directives such as `error_page`/`proxy_intercept_errors` through `SnippetsPolicy`, or routes an explicit path to an error-page Service as shown above. Confirm the directive-injection scope and fields in the pinned version before use.
 
 </TabItem>
 <TabItem value="envoy" label="Envoy Gateway">
 
+To replace the upstream's own 500/503 responses with a custom page, use `BackendTrafficPolicy.spec.responseOverride`. `responseOverride` is a **list** where `match.statusCodes` selects target status codes and `response` defines the replacement. The first example below replaces 500 and 503 responses with a maintenance page.
+
+To return a fixed response on an explicit `/maintenance` path, attach Envoy Gateway's `HTTPRouteFilter.spec.directResponse` via `ExtensionRef`. That directly responds on a specific path and differs from intercepting and replacing upstream error responses. Fault injection (`faultInjection`) is an object (`abort`/`delay`) that **injects** faults/delays rather than replacing responses, so do not use it for error pages.
+
 ```yaml
+# Replace upstream 500/503 responses with a maintenance page
 apiVersion: gateway.envoyproxy.io/v1alpha1
 kind: BackendTrafficPolicy
 metadata:
@@ -1514,16 +1627,40 @@ spec:
     - group: gateway.networking.k8s.io
       kind: HTTPRoute
       name: api-route
-  faultInjection:
+  responseOverride:
     - match:
-        headers:
-          - name: x-trigger-error
-      abort:
-        httpStatus: 503
-        percentage: 100
-
+        statusCodes:
+          - type: Value
+            value: 500
+          - type: Value
+            value: 503
+      response:
+        contentType: text/html
+        body:
+          type: Inline
+          inline: |
+            <html><body><h1>Service Under Maintenance</h1><p>Please try again later.</p></body></html>
 ---
-# Fixed Response in the HTTPRoute
+# Fixed response on an explicit /maintenance path
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: HTTPRouteFilter
+metadata:
+  name: maintenance-response
+  namespace: production
+spec:
+  directResponse:
+    statusCode: 503
+    contentType: text/html
+    body:
+      type: Inline
+      inline: |
+        <html>
+        <body>
+          <h1>Service Under Maintenance</h1>
+          <p>Please try again later.</p>
+        </body>
+        </html>
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -1541,26 +1678,8 @@ spec:
         - type: ExtensionRef
           extensionRef:
             group: gateway.envoyproxy.io
-            kind: DirectResponse
+            kind: HTTPRouteFilter
             name: maintenance-response
-
----
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: DirectResponse
-metadata:
-  name: maintenance-response
-  namespace: production
-spec:
-  statusCode: 503
-  body:
-    type: Inline
-    inline: |
-      <html>
-      <body>
-        <h1>Service Under Maintenance</h1>
-        <p>Please try again later.</p>
-      </body>
-      </html>
 ```
 
 </TabItem>

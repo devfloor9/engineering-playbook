@@ -2,7 +2,7 @@ import React from 'react';
 
 const data = {
   ko: [
-    { route: 'AWS Native', bestFor: 'AWS 올인 조직', advantages: '완전 관리형, 자동 스케일링, 제로 운영', color: '#ff9800' },
+    { route: 'AWS Native', bestFor: 'AWS 올인 조직', advantages: '관리형 데이터 플레인(ALB/NLB) 자동 스케일링. 컨트롤러·IAM·정책은 사용자가 운영', color: '#ff9800' },
     { route: 'Cilium', bestFor: '고성능 + 관측성 중시', advantages: 'eBPF 최고 성능, Hubble 가시성, ENI 네이티브', color: '#2196f3' },
     { route: 'NGINX Fabric', bestFor: 'NGINX 경험 활용', advantages: '검증된 안정성, 익숙한 설정, 빠른 전환', color: '#4caf50' },
     { route: 'Envoy Gateway', bestFor: 'CNCF 표준 + 서비스 메시', advantages: 'L7 기능 풍부, Istio 통합, 확장성', color: '#f44336' },
@@ -10,7 +10,7 @@ const data = {
     { route: 'Kong', bestFor: '엔터프라이즈 API 관리 + LLM 프록시', advantages: '100+ 플러그인, 24x7 지원, Kong AI Gateway(외부 LLM 라우팅)', color: '#00b9aa' },
   ],
   en: [
-    { route: 'AWS Native', bestFor: 'AWS all-in organizations', advantages: 'Fully managed, auto-scaling, zero ops', color: '#ff9800' },
+    { route: 'AWS Native', bestFor: 'AWS all-in organizations', advantages: 'Managed data plane (ALB/NLB) with auto-scaling. Controller, IAM, and policies are customer-operated', color: '#ff9800' },
     { route: 'Cilium', bestFor: 'High performance + observability focus', advantages: 'Best eBPF performance, Hubble visibility, ENI native', color: '#2196f3' },
     { route: 'NGINX Fabric', bestFor: 'Leveraging NGINX experience', advantages: 'Proven stability, familiar config, fast transition', color: '#4caf50' },
     { route: 'Envoy Gateway', bestFor: 'CNCF standard + service mesh', advantages: 'Rich L7 features, Istio integration, extensibility', color: '#f44336' },

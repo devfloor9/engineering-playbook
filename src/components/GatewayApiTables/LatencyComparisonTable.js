@@ -2,12 +2,12 @@ import React from 'react';
 
 const data = {
   ko: [
-    { component: 'L4 로드밸런서', alb: 'ALB: 10ms', nlb: 'NLB: 0.4ms', improvement: '96', isTotal: false },
+    { component: '로드밸런서 (ALB: L7 / NLB: L4)', alb: 'ALB: 10ms', nlb: 'NLB: 0.4ms', improvement: '96', isTotal: false },
     { component: 'L7 프록시', alb: 'NGINX: 5ms', nlb: 'eBPF+Envoy: 3.1ms', improvement: '38', isTotal: false },
     { component: '총 레이턴시', alb: '15ms', nlb: '3.5ms', improvement: '77', isTotal: true },
   ],
   en: [
-    { component: 'L4 Load Balancer', alb: 'ALB: 10ms', nlb: 'NLB: 0.4ms', improvement: '96', isTotal: false },
+    { component: 'Load Balancer (ALB: L7 / NLB: L4)', alb: 'ALB: 10ms', nlb: 'NLB: 0.4ms', improvement: '96', isTotal: false },
     { component: 'L7 Proxy', alb: 'NGINX: 5ms', nlb: 'eBPF+Envoy: 3.1ms', improvement: '38', isTotal: false },
     { component: 'Total Latency', alb: '15ms', nlb: '3.5ms', improvement: '77', isTotal: true },
   ],

@@ -50,11 +50,11 @@ const i18n = {
       title: '설정 방식 비교',
       traditional: {
         label: '기존 방식',
-        ingressTitle: 'Ingress (별도 CRD)',
-        ingressDesc: 'Ingress/VirtualService 등',
+        ingressTitle: 'Ingress (내장 리소스)',
+        ingressDesc: 'Ingress(기본 리소스) + 메시별 확장',
         meshTitle: 'Mesh (별도 CRD)',
         meshDesc: 'ServiceEntry/DestinationRule 등',
-        problem: '→ 2가지 API 학습 필요'
+        problem: '→ 라우팅/정책 API를 2가지 체계로 학습'
       },
       gamma: {
         label: 'GAMMA 방식',
@@ -68,7 +68,7 @@ const i18n = {
       title: 'GAMMA HTTPRoute 예제',
       subtitle: 'Service에 직접 L7 정책 적용',
       comment1: '# Gateway가 아닌 Service에 attach',
-      comment2: '# Service B로 가는 트래픽에 재시도/타임아웃 적용'
+      comment2: '# Service B로 가는 트래픽에 요청 타임아웃 적용(재시도 등 Experimental 필드는 Experimental 채널 설치 후 사용)'
     }
   },
   en: {
@@ -119,11 +119,11 @@ const i18n = {
       title: 'Configuration Comparison',
       traditional: {
         label: 'Traditional',
-        ingressTitle: 'Ingress (Separate CRD)',
-        ingressDesc: 'Ingress/VirtualService etc.',
+        ingressTitle: 'Ingress (built-in resource)',
+        ingressDesc: 'Ingress (core resource) + mesh-specific extensions',
         meshTitle: 'Mesh (Separate CRD)',
         meshDesc: 'ServiceEntry/DestinationRule etc.',
-        problem: '→ Need to learn 2 APIs'
+        problem: '→ Learn routing/policy across 2 API systems'
       },
       gamma: {
         label: 'GAMMA',
@@ -137,7 +137,7 @@ const i18n = {
       title: 'GAMMA HTTPRoute Example',
       subtitle: 'Apply L7 policies directly to Service',
       comment1: '# Attach to Service, not Gateway',
-      comment2: '# Apply retry/timeout to traffic destined for Service B'
+      comment2: '# Apply a request timeout to traffic destined for Service B (retry and other Experimental fields require the Experimental channel)'
     }
   },
   zh: {
@@ -188,11 +188,11 @@ const i18n = {
       title: '配置方式对比',
       traditional: {
         label: '传统方式',
-        ingressTitle: 'Ingress (独立 CRD)',
-        ingressDesc: 'Ingress/VirtualService 等',
+        ingressTitle: 'Ingress (内置资源)',
+        ingressDesc: 'Ingress(核心资源) + 各网格扩展',
         meshTitle: 'Mesh (独立 CRD)',
         meshDesc: 'ServiceEntry/DestinationRule 等',
-        problem: '→ 需要学习2种 API'
+        problem: '→ 需要学习2套路由/策略 API 体系'
       },
       gamma: {
         label: 'GAMMA 方式',
@@ -206,7 +206,7 @@ const i18n = {
       title: 'GAMMA HTTPRoute 示例',
       subtitle: '直接对 Service 应用 L7 策略',
       comment1: '# 附加到 Service 而非 Gateway',
-      comment2: '# 对发往 Service B 的流量应用重试/超时策略'
+      comment2: '# 对发往 Service B 的流量应用请求超时(重试等 Experimental 字段需安装 Experimental 通道)'
     }
   }
 };
@@ -644,9 +644,6 @@ spec:
           port: 8080
       timeouts:
         request: 10s
-      retry:
-        attempts: 3
-        backoff: 100ms
       ${t.example.comment2}`}
           </pre>
         </div>

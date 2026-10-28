@@ -2,20 +2,20 @@ import React from 'react';
 
 const data = {
   ko: [
-    { type: 'm7g.xlarge', vcpu: '4', memory: '16GB', bandwidth: '최대 12.5Gbps', eni: '4', ipPerEni: '15', usage: '범용, 비용 효율', family: 'm7g' },
-    { type: 'c7gn.xlarge', vcpu: '4', memory: '8GB', bandwidth: '최대 30Gbps', eni: '4', ipPerEni: '15', usage: '고성능 게이트웨이', family: 'c7gn' },
-    { type: 'm7g.2xlarge', vcpu: '8', memory: '32GB', bandwidth: '최대 15Gbps', eni: '4', ipPerEni: '15', usage: '중규모 워크로드', family: 'm7g' },
-    { type: 'c7gn.4xlarge', vcpu: '16', memory: '32GB', bandwidth: '최대 50Gbps', eni: '8', ipPerEni: '30', usage: '대규모 트래픽', family: 'c7gn' },
-    { type: 'm7g.8xlarge', vcpu: '32', memory: '128GB', bandwidth: '25Gbps', eni: '8', ipPerEni: '30', usage: '고밀도 파드', family: 'm7g' },
-    { type: 'c7gn.12xlarge', vcpu: '48', memory: '96GB', bandwidth: '100Gbps', eni: '15', ipPerEni: '50', usage: '초고성능', family: 'c7gn' },
+    { type: 'm7g.xlarge', vcpu: '4', memory: '16GiB', bandwidth: '최대 12.5Gbps', eni: '4', ipPerEni: '15', usage: '범용, 비용 효율', family: 'm7g' },
+    { type: 'c7gn.xlarge', vcpu: '4', memory: '8GiB', bandwidth: '최대 40Gbps', eni: '4', ipPerEni: '15', usage: '고성능 게이트웨이', family: 'c7gn' },
+    { type: 'm7g.2xlarge', vcpu: '8', memory: '32GiB', bandwidth: '최대 15Gbps', eni: '4', ipPerEni: '15', usage: '중규모 워크로드', family: 'm7g' },
+    { type: 'c7gn.4xlarge', vcpu: '16', memory: '32GiB', bandwidth: '최대 50Gbps', eni: '8', ipPerEni: '30', usage: '대규모 트래픽', family: 'c7gn' },
+    { type: 'm7g.8xlarge', vcpu: '32', memory: '128GiB', bandwidth: '15Gbps', eni: '8', ipPerEni: '30', usage: '고밀도 파드', family: 'm7g' },
+    { type: 'c7gn.12xlarge', vcpu: '48', memory: '96GiB', bandwidth: '150Gbps', eni: '8', ipPerEni: '30', usage: '초고성능', family: 'c7gn' },
   ],
   en: [
-    { type: 'm7g.xlarge', vcpu: '4', memory: '16GB', bandwidth: 'Up to 12.5Gbps', eni: '4', ipPerEni: '15', usage: 'General purpose, cost efficient', family: 'm7g' },
-    { type: 'c7gn.xlarge', vcpu: '4', memory: '8GB', bandwidth: 'Up to 30Gbps', eni: '4', ipPerEni: '15', usage: 'High-performance gateway', family: 'c7gn' },
-    { type: 'm7g.2xlarge', vcpu: '8', memory: '32GB', bandwidth: 'Up to 15Gbps', eni: '4', ipPerEni: '15', usage: 'Medium workloads', family: 'm7g' },
-    { type: 'c7gn.4xlarge', vcpu: '16', memory: '32GB', bandwidth: 'Up to 50Gbps', eni: '8', ipPerEni: '30', usage: 'Large-scale traffic', family: 'c7gn' },
-    { type: 'm7g.8xlarge', vcpu: '32', memory: '128GB', bandwidth: '25Gbps', eni: '8', ipPerEni: '30', usage: 'High-density pods', family: 'm7g' },
-    { type: 'c7gn.12xlarge', vcpu: '48', memory: '96GB', bandwidth: '100Gbps', eni: '15', ipPerEni: '50', usage: 'Ultra-high performance', family: 'c7gn' },
+    { type: 'm7g.xlarge', vcpu: '4', memory: '16GiB', bandwidth: 'Up to 12.5Gbps', eni: '4', ipPerEni: '15', usage: 'General purpose, cost efficient', family: 'm7g' },
+    { type: 'c7gn.xlarge', vcpu: '4', memory: '8GiB', bandwidth: 'Up to 40Gbps', eni: '4', ipPerEni: '15', usage: 'High-performance gateway', family: 'c7gn' },
+    { type: 'm7g.2xlarge', vcpu: '8', memory: '32GiB', bandwidth: 'Up to 15Gbps', eni: '4', ipPerEni: '15', usage: 'Medium workloads', family: 'm7g' },
+    { type: 'c7gn.4xlarge', vcpu: '16', memory: '32GiB', bandwidth: 'Up to 50Gbps', eni: '8', ipPerEni: '30', usage: 'Large-scale traffic', family: 'c7gn' },
+    { type: 'm7g.8xlarge', vcpu: '32', memory: '128GiB', bandwidth: '15Gbps', eni: '8', ipPerEni: '30', usage: 'High-density pods', family: 'm7g' },
+    { type: 'c7gn.12xlarge', vcpu: '48', memory: '96GiB', bandwidth: '150Gbps', eni: '8', ipPerEni: '30', usage: 'Ultra-high performance', family: 'c7gn' },
   ],
 };
 
@@ -27,7 +27,7 @@ export default function InstanceTypeTable({ locale = 'ko' }) {
     ? { type: '인스턴스 타입', vcpu: 'vCPU', memory: '메모리', bandwidth: '네트워크 대역폭', eni: 'ENI', ipPerEni: 'IP/ENI', usage: '권장 용도' }
     : { type: 'Instance Type', vcpu: 'vCPU', memory: 'Memory', bandwidth: 'Network Bandwidth', eni: 'ENI', ipPerEni: 'IP/ENI', usage: 'Recommended Use' };
 
-  const maxBandwidth = 100;
+  const maxBandwidth = 150;
 
   return (
     <div style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', maxWidth: 760, margin: '0 0 1.5rem 0' }}>

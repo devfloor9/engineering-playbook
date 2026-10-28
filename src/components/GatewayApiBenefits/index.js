@@ -41,7 +41,7 @@ const GatewayApiBenefits = () => {
         en: 'Role-Based Access Control',
         zh: '基于角色的访问控制',
       },
-      diagram: <RBACDiagram isDark={isDark} />,
+      diagram: <RBACDiagram isDark={isDark} locale={locale} />,
       yaml: `# 애플리케이션 팀은 HTTPRoute만 수정 가능 (인프라 설정 격리)
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -69,7 +69,7 @@ spec:
         en: 'Expressive Routing',
         zh: '表达式路由',
       },
-      diagram: <ExpressiveRoutingDiagram isDark={isDark} />,
+      diagram: <ExpressiveRoutingDiagram isDark={isDark} locale={locale} />,
       yaml: `apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -109,7 +109,7 @@ spec:
         en: 'Extensible Design',
         zh: '可扩展设计',
       },
-      diagram: <ExtensibleDesignDiagram isDark={isDark} />,
+      diagram: <ExtensibleDesignDiagram isDark={isDark} locale={locale} />,
       yaml: `# 표준 Gateway API 리소스
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
@@ -121,11 +121,13 @@ spec:
     - name: api-service
       port: 80
 ---
-# Cilium의 Rate Limiting Policy (별도 리소스)
+# Cilium의 L7 접근 제어 Policy (별도 리소스)
+# 참고: CiliumNetworkPolicy의 http 규칙은 method/path/header 매칭을 지원하며,
+# 요청 속도 제한 필드는 없습니다. 속도 제한은 구현체별 L7 메커니즘으로 처리합니다.
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: api-rate-limit
+  name: api-l7-access
 spec:
   endpointSelector:
     matchLabels:
@@ -136,8 +138,8 @@ spec:
       - port: "80"
       rules:
         http:
-        - rateLimit:
-            requestsPerSecond: 1000`,
+        - method: "GET"
+          path: "/api/.*"`,
     },
     {
       icon: '🌐',
@@ -146,7 +148,7 @@ spec:
         en: 'Multi-Protocol Support',
         zh: '多协议支持',
       },
-      diagram: <MultiProtocolDiagram isDark={isDark} />,
+      diagram: <MultiProtocolDiagram isDark={isDark} locale={locale} />,
       yaml: `# gRPC 서비스 라우팅
 apiVersion: gateway.networking.k8s.io/v1
 kind: GRPCRoute
@@ -171,7 +173,7 @@ spec:
         en: 'Portability',
         zh: '可移植性',
       },
-      diagram: <PortabilityDiagram isDark={isDark} />,
+      diagram: <PortabilityDiagram isDark={isDark} locale={locale} />,
       yaml: `# Before: Cilium
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
@@ -186,7 +188,7 @@ kind: GatewayClass
 metadata:
   name: aws-lb
 spec:
-  controllerName: aws.gateway.networking.k8s.io`,
+  controllerName: gateway.k8s.aws/alb`,
     },
     {
       icon: '✅',
@@ -195,7 +197,7 @@ spec:
         en: 'Type Safety',
         zh: '类型安全',
       },
-      diagram: <TypeSafetyDiagram isDark={isDark} />,
+      diagram: <TypeSafetyDiagram isDark={isDark} locale={locale} />,
       yaml: `# ❌ NGINX Ingress: 어노테이션 오타 시 런타임 에러
 annotations:
   nginx.ingress.kubernetes.io/rewrite-traget: /  # 오타!
@@ -476,7 +478,13 @@ const YAMLCodeBlock = ({ yaml, isDark }) => {
 
 // Diagram Components with Enhanced Visuals
 
-const RBACDiagram = ({ isDark }) => {
+const RBACDiagram = ({ isDark, locale = 'en' }) => {
+  const L = {
+    ko: { legacy: '기존 Ingress', single: '단일 권한 모델', infra: '인프라 팀 → GatewayClass', rbac: 'RBAC 격리', platform: '플랫폼 팀 → Gateway', app: '앱 팀 → HTTPRoute' },
+    en: { legacy: 'Legacy Ingress', single: 'Single permission model', infra: 'Infra team → GatewayClass', rbac: 'RBAC isolation', platform: 'Platform team → Gateway', app: 'App team → HTTPRoute' },
+    zh: { legacy: '传统 Ingress', single: '单一权限模型', infra: '基础设施团队 → GatewayClass', rbac: 'RBAC 隔离', platform: '平台团队 → Gateway', app: '应用团队 → HTTPRoute' },
+  }[locale] || null;
+  const t = L || { legacy: 'Legacy Ingress', single: 'Single permission model', infra: 'Infra team → GatewayClass', rbac: 'RBAC isolation', platform: 'Platform team → Gateway', app: 'App team → HTTPRoute' };
   const containerStyle = {
     display: 'flex',
     gap: '3rem',
@@ -568,8 +576,8 @@ const RBACDiagram = ({ isDark }) => {
         <div style={crossStyle}>✕</div>
         <div style={{ position: 'relative', zIndex: 1, color: isDark ? '#fca5a5' : '#dc2626' }}>
           <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🚫</div>
-          <strong style={{ fontSize: '1.125rem' }}>기존 Ingress</strong>
-          <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', opacity: 0.9 }}>단일 권한 모델</div>
+          <strong style={{ fontSize: '1.125rem' }}>{t.legacy}</strong>
+          <div style={{ marginTop: '0.5rem', fontSize: '0.875rem', opacity: 0.9 }}>{t.single}</div>
         </div>
       </div>
 
@@ -580,11 +588,11 @@ const RBACDiagram = ({ isDark }) => {
             ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(37, 99, 235, 0.25) 100%)'
             : 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(147, 197, 253, 0.15) 100%)'
         )}>
-          <span><span style={iconStyle}>🏢</span> 인프라 팀 → GatewayClass</span>
+          <span><span style={iconStyle}>🏢</span> {t.infra}</span>
           <span style={{ fontSize: '1.25rem' }}>🔒</span>
         </div>
         <div style={separatorStyle}>
-          <span style={separatorLabelStyle}>RBAC 격리</span>
+          <span style={separatorLabelStyle}>{t.rbac}</span>
         </div>
         <div style={layerStyle(
           '#10b981',
@@ -592,11 +600,11 @@ const RBACDiagram = ({ isDark }) => {
             ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.25) 0%, rgba(5, 150, 105, 0.25) 100%)'
             : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(110, 231, 183, 0.15) 100%)'
         )}>
-          <span><span style={iconStyle}>🔧</span> 플랫폼 팀 → Gateway</span>
+          <span><span style={iconStyle}>🔧</span> {t.platform}</span>
           <span style={{ fontSize: '1.25rem' }}>🔒</span>
         </div>
         <div style={separatorStyle}>
-          <span style={separatorLabelStyle}>RBAC 격리</span>
+          <span style={separatorLabelStyle}>{t.rbac}</span>
         </div>
         <div style={layerStyle(
           '#f59e0b',
@@ -604,7 +612,7 @@ const RBACDiagram = ({ isDark }) => {
             ? 'linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.25) 100%)'
             : 'linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(252, 211, 77, 0.15) 100%)'
         )}>
-          <span><span style={iconStyle}>💻</span> 앱 팀 → HTTPRoute</span>
+          <span><span style={iconStyle}>💻</span> {t.app}</span>
           <span style={{ fontSize: '1.25rem' }}>🔒</span>
         </div>
       </div>
@@ -770,7 +778,12 @@ const ExpressiveRoutingDiagram = ({ isDark }) => {
   );
 };
 
-const ExtensibleDesignDiagram = ({ isDark }) => {
+const ExtensibleDesignDiagram = ({ isDark, locale = 'en' }) => {
+  const t = ({
+    ko: { rate: '요청 속도 제한', retry: '자동 재시도', auth: '인증/인가', pattern: 'Policy Attachment 패턴 (확장 가능)' },
+    en: { rate: 'Request rate limiting', retry: 'Automatic retries', auth: 'Authn/Authz', pattern: 'Policy Attachment pattern (extensible)' },
+    zh: { rate: '请求速率限制', retry: '自动重试', auth: '认证/授权', pattern: 'Policy Attachment 模式（可扩展）' },
+  })[locale] || { rate: 'Request rate limiting', retry: 'Automatic retries', auth: 'Authn/Authz', pattern: 'Policy Attachment pattern (extensible)' };
   const containerStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -850,7 +863,7 @@ const ExtensibleDesignDiagram = ({ isDark }) => {
         )}>
           <div style={{ fontSize: '2rem' }}>⏱️</div>
           <div>RateLimit Policy</div>
-          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>요청 속도 제한</div>
+          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t.rate}</div>
         </div>
 
         <div style={policyBoxStyle(
@@ -862,7 +875,7 @@ const ExtensibleDesignDiagram = ({ isDark }) => {
         )}>
           <div style={{ fontSize: '2rem' }}>🔄</div>
           <div>Retry Policy</div>
-          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>자동 재시도</div>
+          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t.retry}</div>
         </div>
 
         <div style={policyBoxStyle(
@@ -874,12 +887,12 @@ const ExtensibleDesignDiagram = ({ isDark }) => {
         )}>
           <div style={{ fontSize: '2rem' }}>🔐</div>
           <div>Auth Policy</div>
-          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>인증/인가</div>
+          <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>{t.auth}</div>
         </div>
       </div>
 
       <div style={labelStyle}>
-        Policy Attachment 패턴 (확장 가능)
+        {t.pattern}
       </div>
     </div>
   );
@@ -1016,7 +1029,12 @@ const MultiProtocolDiagram = ({ isDark }) => {
   );
 };
 
-const PortabilityDiagram = ({ isDark }) => {
+const PortabilityDiagram = ({ isDark, locale = 'en' }) => {
+  const t = ({
+    ko: { swap: 'GatewayClass만 교체', rest: '나머지는 변경 없음' },
+    en: { swap: 'Swap only the GatewayClass', rest: 'Everything else unchanged' },
+    zh: { swap: '仅替换 GatewayClass', rest: '其余保持不变' },
+  })[locale] || { swap: 'Swap only the GatewayClass', rest: 'Everything else unchanged' };
   const containerStyle = {
     display: 'flex',
     gap: '2.5rem',
@@ -1124,8 +1142,8 @@ const PortabilityDiagram = ({ isDark }) => {
       <div style={arrowContainerStyle}>
         <div style={arrowStyle}>→</div>
         <div style={arrowLabelStyle}>
-          <div>GatewayClass만 교체</div>
-          <div style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.85 }}>나머지는 변경 없음</div>
+          <div>{t.swap}</div>
+          <div style={{ fontSize: '0.75rem', marginTop: '0.25rem', opacity: 0.85 }}>{t.rest}</div>
         </div>
       </div>
 
@@ -1152,7 +1170,12 @@ const PortabilityDiagram = ({ isDark }) => {
   );
 };
 
-const TypeSafetyDiagram = ({ isDark }) => {
+const TypeSafetyDiagram = ({ isDark, locale = 'en' }) => {
+  const t = ({
+    ko: { typo: '# 오타!', runtime: '런타임 에러 발생', blocked: '배포 시점에 차단' },
+    en: { typo: '# typo!', runtime: 'Runtime error', blocked: 'Blocked at deploy time' },
+    zh: { typo: '# 拼写错误!', runtime: '发生运行时错误', blocked: '部署时阻止' },
+  })[locale] || { typo: '# typo!', runtime: 'Runtime error', blocked: 'Blocked at deploy time' };
   const containerStyle = {
     display: 'flex',
     gap: '2.5rem',
@@ -1251,7 +1274,7 @@ const TypeSafetyDiagram = ({ isDark }) => {
             rewrite-traget: /
           </div>
           <div style={{ color: '#6ee7b7', marginLeft: '1rem' }}>
-            # 오타!
+            {t.typo}
           </div>
         </div>
         <div style={arrowStyle(
@@ -1269,7 +1292,7 @@ const TypeSafetyDiagram = ({ isDark }) => {
             : 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(252, 165, 165, 0.2) 100%)'
         )}>
           <span style={{ fontSize: '2rem' }}>⚠️</span>
-          <span>런타임 에러 발생</span>
+          <span>{t.runtime}</span>
         </div>
       </div>
 
@@ -1315,7 +1338,7 @@ const TypeSafetyDiagram = ({ isDark }) => {
             : 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(134, 239, 172, 0.2) 100%)'
         )}>
           <span style={{ fontSize: '2rem' }}>✓</span>
-          <span>배포 시점에 차단</span>
+          <span>{t.blocked}</span>
         </div>
       </div>
     </div>

@@ -2,15 +2,15 @@ import React from 'react';
 
 const data = {
   ko: [
-    { item: 'EKS 버전', requirement: '1.28 이상 (권장: 1.32)', notes: 'Gateway API v1.4 호환성', badge: 'version' },
-    { item: '컨트롤 플레인', requirement: 'kube-proxy 비활성화', notes: 'Cilium이 kube-proxy 대체', badge: 'critical' },
+    { item: 'EKS 버전', requirement: '고정 테스트: 1.32 (1.28 등 이전 버전은 미검증)', notes: 'Cilium 1.19.3 + Gateway API v1.4.1 기준', badge: 'version' },
+    { item: '노드 Service 네트워킹', requirement: 'kube-proxy 비활성화', notes: 'Cilium이 노드 Service 네트워킹에서 kube-proxy를 대체', badge: 'critical' },
     { item: '노드 운영체제', requirement: 'Amazon Linux 2023 또는 Ubuntu 22.04', notes: 'eBPF 커널 지원 필요 (5.10+)', badge: 'os' },
     { item: '컨테이너 런타임', requirement: 'containerd 1.6+', notes: 'CRI 호환성', badge: 'runtime' },
     { item: 'VPC CNI 제거', requirement: '필수', notes: 'Cilium이 CNI 역할 수행', badge: 'critical' },
   ],
   en: [
-    { item: 'EKS Version', requirement: '1.28+ (recommended: 1.32)', notes: 'Gateway API v1.4 compatibility', badge: 'version' },
-    { item: 'Control Plane', requirement: 'Disable kube-proxy', notes: 'Cilium replaces kube-proxy', badge: 'critical' },
+    { item: 'EKS Version', requirement: 'Pinned/tested: 1.32 (older such as 1.28 unverified)', notes: 'Based on Cilium 1.19.3 + Gateway API v1.4.1', badge: 'version' },
+    { item: 'Node Service Networking', requirement: 'Disable kube-proxy', notes: 'Cilium replaces kube-proxy for node Service networking', badge: 'critical' },
     { item: 'Node OS', requirement: 'Amazon Linux 2023 or Ubuntu 22.04', notes: 'eBPF kernel support required (5.10+)', badge: 'os' },
     { item: 'Container Runtime', requirement: 'containerd 1.6+', notes: 'CRI compatibility', badge: 'runtime' },
     { item: 'VPC CNI Removal', requirement: 'Required', notes: 'Cilium performs CNI role', badge: 'critical' },
