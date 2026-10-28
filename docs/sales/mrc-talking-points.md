@@ -91,7 +91,7 @@ The Modern Agentic Infra track is exactly that starting point. **EKS-based conta
 
 ### Q3. GPUs are expensive — AI adoption is a financial burden.
 
-That is exactly why GPU optimization is critical. On EKS, **GPU Operator + run.ai** precisely allocate GPUs at the workload level, and **MIG partitioning** divides a single GPU into up to 7 partitions, enabling **75% cost savings**. Adding Semantic Caching and Karpenter autoscaling reduces costs further.
+That is exactly why GPU optimization is critical. On EKS, **GPU Operator + run.ai** precisely allocate GPUs at the workload level, and **MIG partitioning** divides a single GPU into up to 7 partitions, which lowers GPU cost (the **75% cost savings** figure is an illustrative figure; primary source not verified as of 2026-10-29. The actual saving depends on the workload's GPU utilization and the MIG profile configuration). Adding Semantic Caching and Karpenter autoscaling reduces costs further.
 
 ### Q4. Isn't it enough to use only Bedrock?
 
@@ -183,7 +183,7 @@ Event attendees may be offered **PoC priority notice** and **AWS SA support**. A
 
 :::tip Points to emphasize on invitation
 - "If you're curious about the next step after digital transformation"
-- "If AI infrastructure cost is a concern — we share a case of 75% GPU savings"
+- "If AI infrastructure cost is a concern — we share how MIG partitioning lowers GPU cost" (the 75% saving is an illustrative figure, not a measured customer case, so do not call it a "case")
 - "The event was operated at a capacity of 200"
 - "The event leads into follow-on PoC tracks"
 :::

@@ -5,7 +5,7 @@ created: "2026-03-19"
 last_update:
   date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 13
 tags:
   - sales
   - gtm
@@ -91,7 +91,7 @@ Modern Agentic Infra 트랙이 바로 그 시작점입니다. **EKS 기반 컨�
 
 ### Q3. GPU가 비싸서 AI 도입이 부담됩니다.
 
-그래서 GPU 최적화가 핵심입니다. EKS 위에서 **GPU Operator + run.ai**로 GPU를 워크로드 단위로 정밀 할당하고, **MIG 파티셔닝**으로 하나의 GPU를 최대 7개로 분할하여 **비용 75% 절감**이 가능합니다. 여기에 Semantic Caching과 Karpenter 자동 스케일링을 더하면 비용을 더욱 낮출 수 있습니다.
+그래서 GPU 최적화가 핵심입니다. EKS 위에서 **GPU Operator + run.ai**로 GPU를 워크로드 단위로 정밀 할당하고, **MIG 파티셔닝**으로 하나의 GPU를 최대 7개로 분할하면 GPU 비용을 낮출 수 있습니다(**비용 75% 절감**은 예시 수치이며, 1차 출처를 확인하지 못했습니다(2026-10-29 기준). 실제 절감 폭은 워크로드의 GPU 사용률과 MIG 프로파일 구성에 따라 달라집니다). 여기에 Semantic Caching과 Karpenter 자동 스케일링을 더하면 비용을 더욱 낮출 수 있습니다.
 
 ### Q4. Bedrock만 쓰면 되는 거 아닌가요?
 
@@ -183,7 +183,7 @@ GCP/Azure도 유사 서비스를 제공하지만, AWS는 **EKS 위에서 LLMOps 
 
 :::tip 초대 시 강조 포인트
 - "디지털 전환의 다음 단계가 궁금하시다면"
-- "AI 인프라 비용이 걱정되신다면 — GPU 75% 절감 사례를 공유합니다"
+- "AI 인프라 비용이 걱정되신다면 — MIG 파티셔닝으로 GPU 비용을 낮추는 방법을 공유합니다"(75% 절감은 측정된 고객 사례가 아닌 예시 수치이므로 "사례"로 말하지 않습니다)
 - "정원 200명 규모로 운영한 행사입니다"
 - "행사 후 PoC로 이어지는 트랙을 안내합니다"
 :::
