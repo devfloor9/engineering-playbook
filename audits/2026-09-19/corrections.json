@@ -46950,6 +46950,566 @@
       ],
       "primary_urls": [],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-guard-007",
+      "package": "agentic-operations",
+      "id": "AOR-GUARD-007",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "EN said Llama Guard 3 has 13 categories; both locales now state 14 categories (S1~S14: MLCommons 13 + S14 Code Interpreter Abuse) in the table and the reference note.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "7565bec6ae716626a815db504ebb8d73ed76492f"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'Model-based 13-category' -- docs/... i18n/en/.../ai-gateway-guardrails.md: 7565bec6ae716626a815db504ebb8d73ed76492f (2026-09-22, fix(agentic-ai-platform): EN ai-gateway-guardrails heading 6->7 attacks + Llama Guard 3 14-category S1~S14 sync to KO; metadata date 2026-09-21).",
+        "Current text: docs/.../ai-gateway-guardrails.md:123 'Model-based 14-category classification (S1~S14: MLCommons 13 + S14 Code Interpreter Abuse)'; :685 '14 category classification (S1~S14: MLCommons 13 risk categories + Code Interpreter Abuse)'; i18n/ko/...:123 '14개 카테고리(S1~S14: MLCommons 13개 + S14 Code Interpreter Abuse)'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-mon-006",
+      "package": "agentic-operations",
+      "id": "AOR-MON-006",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "EN lacked the Cascade Fallback chapter; EN now has §6 Cascade Fallback Strategy with later anchors preserved, but it reproduces the KO no-interruption guarantee and 80/20 schema content.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "5aa54c513293df7820e3e3e0fa13aca35fef1ad2"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/observability/agent-monitoring.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'Cascade Fallback Strategy' -- docs/... i18n/en/.../agent-monitoring.md: 5aa54c513293df7820e3e3e0fa13aca35fef1ad2 (2026-10-15, docs(agentic-ai-platform): #96 감사 교정 g96-observability-data-u1 (KO/EN)).",
+        "Current text: docs/.../agent-monitoring.md:328 '## 6. Cascade Fallback Strategy'; :396 '## 7. Cost Tracking {#6-cost-tracking}' (old anchor kept); :330 '…keeps the service running without interruption…'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Correction required not propagating the KO guarantees/schema errors; EN §6 copies them (EN:330 no-interruption, :365 match/request.model, :369-372 integer weights, :386 'Immediate Bedrock response', :389 80/20 peak-offload wording). Closes only together with AOR-MON-005."
+    },
+    {
+      "record_id": "2026-09-19-aor-llmops-010",
+      "package": "agentic-operations",
+      "id": "AOR-LLMOPS-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Star ratings were replaced with High/Medium/Low labels declared as the author's qualitative assessment, but the table still lists self-hosted scale as 'Unlimited' without resource bounds.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "d62ec78395868febc8e35a17031f1a0c7592443b"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/observability/llmops-observability.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/observability/llmops-observability.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'★★★★★ (Version, A/B)' / -S'★★★★★ (버전, A/B)' -- the two listed source files (KO and EN): d62ec78395868febc8e35a17031f1a0c7592443b (2026-10-14, docs(agentic-ai-platform): AI Doc Ready 구조 정비 A04 -- 표·그림 캡션, 글리프 판정, 번호 (KO/EN)).",
+        "Current text: docs/.../llmops-observability.md:144 'The per-feature levels (High, Medium, Low) in the table below are the author's qualitative assessment, not measured values.'; :160 '| **Data Sovereignty** | High | Low | High |'; i18n/ko/...:144 '…측정값이 아니라 저자의 정성적 평가입니다.'"
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Both locales :159 '| **Scale Limits** | Unlimited (self-hosted) |' / '| **스케일 한계** | 무제한 (셀프호스트) |' remain with no tested resource/capacity bounds; KO:109 also says '무제한 확장'. Data-sovereignty row is still a ranking without edition/data-flow assumptions in the table (conditions appear only later at :349)."
+    },
+    {
+      "record_id": "2026-09-19-aor-adv-001",
+      "package": "agentic-operations",
+      "id": "AOR-ADV-001",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The classifier proxy exited the AsyncClient context before the stream was consumed; it now uses a long-lived client closed on shutdown and closes the upstream response in a finally block after relaying.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "dcc9ad81f2f35617f38eb76f7473e545b20d160c"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'async with httpx.AsyncClient(timeout=300) as client' -- the two listed source files (KO and EN): dcc9ad81f2f35617f38eb76f7473e545b20d160c (2026-10-14, fix(agentic): Repair classifier proxy example).",
+        "Current text: docs/.../advanced-features.md:75 'client = httpx.AsyncClient(timeout=300)'; :78-80 lifespan 'await client.aclose()'; :162-168 relay_body() 'finally: await resp.aclose()'; i18n/ko/... same at :75-82,:168."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-adv-002",
+      "package": "agentic-operations",
+      "id": "AOR-ADV-002",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The proxy forwarded model=auto unchanged, accepted only POST, dropped upstream status and mislabeled a character count; it now rewrites body['model'], accepts GET and POST, relays upstream status, flattens array content and names the CHAR_THRESHOLD heuristic.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "dcc9ad81f2f35617f38eb76f7473e545b20d160c"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'methods=[\"POST\"]' -- the two listed source files (KO and EN): dcc9ad81f2f35617f38eb76f7473e545b20d160c (2026-10-14, fix(agentic): Repair classifier proxy example).",
+        "Current text: docs/.../advanced-features.md:134 '@app.api_route(\"/v1/{path:path}\", methods=[\"GET\", \"POST\"])'; :154 'body[\"model\"] = model'; :91 'CHAR_THRESHOLD = 500'; :178-182 'return Response(content=resp.content, status_code=resp.status_code, …)'; i18n/ko/... :91,:134,:154 identical code."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-basic-009",
+      "package": "agentic-operations",
+      "id": "AOR-BASIC-009",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "EN required trace_type otel and said collector_url used only the base path; both locales now set trace_type genai_extension and state that collector_url is used as the full URL including the OTLP path.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "7eeb429ff6085a4ce1a122a3b29b1836efbc8467"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/basic-deployment.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/basic-deployment.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'uses only the base path of' -- the two listed source files (KO and EN) (collector_url fix); trace_type fix: git log -S\"traces won't arrive at Langfuse\" -> 6fc88a1d570f2037c8647ed78d77e5db915cabe1 (2026-09-22): 7eeb429ff6085a4ce1a122a3b29b1836efbc8467 (2026-10-15, docs(agentic-ai-platform): #96 감사 교정 g96-inference-gateway-u1 (KO/EN)).",
+        "Current text: docs/.../basic-deployment.md:333 'The Bifrost OTel plugin uses `collector_url` as a full URL (including the path)'; :436 '`trace_type` must be `\"genai_extension\"`'; i18n/ko/...:333 '`collector_url`을 전체 URL(경로 포함)로 사용', :436 same."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-monset-008",
+      "package": "agentic-operations",
+      "id": "AOR-MONSET-008",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The correct/incorrect table marked otel correct and genai_extension wrong; both locales now configure genai_extension and mark otel as the incorrect value, keeping the full collector URL and Basic auth.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "912980fd9f643655384112c0a288591908c7fe53"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/integrations/monitoring-observability-setup.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/monitoring-observability-setup.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'| `trace_type` | `\"otel\"` | `\"genai_extension\"` |' -- the two listed source files (KO and EN) (KO fixed same day by db3658ef5f1448586cd9e2a92c830e6926d2863b): 912980fd9f643655384112c0a288591908c7fe53 (2026-09-22, fix(agentic-ai-platform): EN monitoring-observability-setup trace_type -> genai_extension (5.1 config + table); metadata date 2026-09-21).",
+        "Current text: docs/.../monitoring-observability-setup.md:496 '\"trace_type\": \"genai_extension\"'; :512 '| `trace_type` | `\"genai_extension\"` | `\"otel\"` |'; i18n/ko/...:494, :510 same."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-ctidx-004",
+      "package": "agentic-operations",
+      "id": "AOR-CTIDX-004",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "The 400% revenue claim was replaced with an illustrative-scenario ROI goal, but the ~$4K/month cost and 1% monthly faithfulness target remain without workload, price date, unit or evaluation set.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "50a92206d8b5fd5cd45d6db6dec74392bb0b2aac"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/index.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/index.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'400%' -- the two listed source files (KO and EN) (EN removed by 537cb2c655251ff2419787138d6be9a922cd40a9, same date): 50a92206d8b5fd5cd45d6db6dec74392bb0b2aac (2026-09-22, docs(agentic-ai-platform/reference-architecture): normalize prose KO continuous-training/index (refs #116)).",
+        "Current text: docs/.../continuous-training/index.md:133 'ROI: In an illustrative scenario, the goal is to increase revenue relative to training cost (varies by workload and quality improvement).'; i18n/ko/...:133 '가상 시나리오 기준, 학습 비용 대비 매출 증대를 목표로 합니다'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Both locales :130 '~$4K/month' / '$4K/월 수준' has no workload, price date or cost boundary; :131 'Target 1% monthly faithfulness increase' does not say relative percent vs percentage points or name the evaluation set."
+    },
+    {
+      "record_id": "2026-09-19-aor-cpipe-010",
+      "package": "agentic-operations",
+      "id": "AOR-CPIPE-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Unsupported 70%/92%/66% figures are now labelled as input assumptions and a calculated linear-model difference, with quality to be measured, but the diagram's hourly rates still do not reconcile with the assumed monthly costs.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "d825738cd9788e16cd7396e884e0ad2c57ce39f7"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'immediately worthwhile' -- the two listed source files (KO and EN): d825738cd9788e16cd7396e884e0ad2c57ce39f7 (2026-10-14, docs: Qualify cascade cost assumptions).",
+        "Current text: docs/.../custom-model-pipeline.md:352 'This is an input assumption, not a measured result'; :374 '| **Quality** | Measure on the workload | … | Re-evaluate after routing |'; :379 'not a measured savings rate'; i18n/ko/...:352,:379 '실측 절감률이 아닙니다'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Both locales: Figure 3 still shows 'g6.xlarge ~$0.80/hr' and 'p5en.48xlarge ~$63/hr' (EN:360-361) while the table assumes $500 and $8,900/month, with no utilization/scaling or regional/pricing-date assumption explaining the gap."
+    },
+    {
+      "record_id": "2026-09-19-aor-cpipe-013",
+      "package": "agentic-operations",
+      "id": "AOR-CPIPE-013",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text claimed a 375x ROI; both locales now present an assumption-based benefit calculation and state that $750,000 / $2,000 uses only training cost and is not a complete ROI figure.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "d825738cd9788e16cd7396e884e0ad2c57ce39f7"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'ROI: 375' -- the two listed source files (KO and EN): d825738cd9788e16cd7396e884e0ad2c57ce39f7 (2026-10-14, docs: Qualify cascade cost assumptions).",
+        "Current text: docs/.../custom-model-pipeline.md:558 ':::tip Assumption-Based Benefit Calculation'; :564 'uses only training cost as its denominator, so it is not a complete return-on-investment figure'; i18n/ko/...:564 '…전체 투자수익률(ROI)이 아닙니다'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-milvus-006",
+      "package": "agentic-reference",
+      "id": "PARFIT-MILVUS-006",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "The EN 50% vs KO 80% mismatch is gone (both say up to 80% with the 2025-04 price-cut basis) and the price table is gone, but '10x faster performance' is still stated without the AWS 'up to' qualifier.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "f6d1ac9765b9534a471418a76972ae69bf679b46"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'50%' -- the two listed source files (KO and EN): f6d1ac9765b9534a471418a76972ae69bf679b46 (2026-09-22, fix(agentic-ai-platform): EN milvus-vector-database sync to KO (S3 up-to-80% cost cut + Helm 4.2.x); metadata date 2026-09-21).",
+        "Current text: docs/.../milvus-vector-database.md:153 'up to 80% request cost reduction (reflecting the 2025-04 price cut: PUT -55%, GET -85%, storage -31%)'; i18n/ko/...:153 '요청 비용 최대 80% 절감 (2025-04 가격 인하 반영…)'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Both locales still assert an unqualified 10x: EN:151 '10x faster performance: 10x faster data access vs standard S3', :524, :537; KO:151 '10배 빠른 성능', :526, :539. Needs 'up to' and object-access scope (not Milvus query/index speed)."
+    },
+    {
+      "record_id": "2026-09-19-parfit-milvus-013",
+      "package": "agentic-reference",
+      "id": "PARFIT-MILVUS-013",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "EN chose Helm chart 4.1.x for Milvus 2.4.x while KO chose 4.2.x; both locales now specify chart 4.2.x for Milvus 2.4.x and scope 4.1.x to 2.4.0-2.4.5.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "f6d1ac9765b9534a471418a76972ae69bf679b46"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'4.1.x' -- the two listed source files (KO and EN): f6d1ac9765b9534a471418a76972ae69bf679b46 (2026-09-22, fix(agentic-ai-platform): EN milvus-vector-database sync to KO (S3 up-to-80% cost cut + Helm 4.2.x); metadata date 2026-09-21).",
+        "Current text: docs/.../milvus-vector-database.md:527 'Use Helm chart version 4.2.x to deploy Milvus 2.4.x (4.1.x supports only 2.4.0–2.4.5; 4.2.0+ drops Milvus 2.3.x support)'; i18n/ko/...:529 'Helm 차트 버전 4.2.x를 사용하여 Milvus 2.4.x를 배포하세요 (4.1.x는 2.4.0~2.4.5까지만 지원…)'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-setup-duplicate-heading",
+      "package": "agentic-reference",
+      "id": "PARFIT-SETUP-DUPLICATE-HEADING",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "EN setup/index had 'Deployment Stages Overview' twice in a row; it now appears once, matching the single KO heading.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "9b14e39136fc8eac3982a2a8e4b056adee0b47d1"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -G'^## Deployment Stages Overview' -- the two listed source files (KO and EN): 9b14e39136fc8eac3982a2a8e4b056adee0b47d1 (2026-09-22, docs(agentic-ai-platform/reference-architecture): fix duplicate heading EN setup/index (refs #114)).",
+        "Current text: docs/.../setup/index.md:66 '## Deployment Stages Overview' (only occurrence); i18n/ko/...:66 '## 배포 단계 개요' (only occurrence)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trouble-002",
+      "package": "agentic-reference",
+      "id": "PARFIT-TROUBLE-002",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Section 2, the config and the checklist conflicted on otel vs genai_extension; both locales now use genai_extension consistently, but still assert it is required as of v1.5.0+ without release evidence.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "f79de31b98f7ccc9c309caba8ee9816bf439c399"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'`\"otel\"` (not `\"genai_extension\"`)' -- the two listed source files (KO and EN) (KO checklist fixed by 9a43d90be5ee6505c3f18b5989eec8dd94130b78, same date): f79de31b98f7ccc9c309caba8ee9816bf439c399 (2026-09-22, fix(agentic-ai-platform): EN troubleshooting-guide trace_type -> genai_extension (table/comment/checklist); metadata date 2026-09-21).",
+        "Current text: docs/.../troubleshooting-guide.md:117 'legacy `\"otel\"` → `\"genai_extension\"` (required as of v1.5.0+)'; :152 '\"trace_type\": \"genai_extension\"'; :299 '`\"genai_extension\"` (not `\"otel\"`)'; i18n/ko/...:117,:152,:299 same."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Correction asked to avoid claiming an exact removal release without release evidence: EN/KO:117 '(required as of v1.5.0+)' / '(v1.5.0+ 필수)' and EN:142 'the legacy otel value is no longer used' remain without a cited Bifrost release note; no pinned runtime/plugin version is stated."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-011",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-011",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The Cilium local-rate-limit CEC omitted filter_enabled/filter_enforced (default 0%, so nothing was enforced) and had no metadata namespace; it now sets both fractions to 100/HUNDRED, declares namespace: production on the CEC and its Service, uses a complete listener/route/EDS cluster, and states the bucket is a per-Envoy-process limit, not a cluster-wide or per-user quota.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "a1e450a4af1a7f50a179213d11cd5be41ff78787"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S 'filter_enforced' -- the two listed cookbook files (KO and EN); git log -S 'backendServices' -- the same two files (a1e450a4 is the newest commit removing backendServices and adding filter_enforced; a1e450a4^ shows the CEC without metadata namespace or filter_enabled/filter_enforced): a1e450a4af1a7f50a179213d11cd5be41ff78787 (2026-09-20, Align Gateway cookbook examples with controller APIs).",
+        "Current text: docs/.../feature-implementation-cookbook.md:592 'The token bucket starts with 200 tokens and refills 100 each second **per Envoy process**. Activation and enforcement are both 100%.'; :630-637 filter_enabled/filter_enforced default_value numerator: 100 denominator: HUNDRED; :601 'namespace: production'. i18n/ko/.../feature-implementation-cookbook.md:592 '필터 활성화와 제한 적용 비율은 모두 100%입니다', :630/:634 same fields."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-cb-020",
+      "package": "eks-platform-networking",
+      "id": "EPN-CB-020",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The Cilium body-size snippet put maxRequestHeadersKb under commonHttpProtocolOptions and perConnectionBufferLimitBytes inside the HCM without installing a buffer filter; it now installs envoy.filters.http.buffer with max_request_bytes: 10485760 and states that larger bodies get HTTP 413 while connection buffers and header sizes are separate limits.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "a1e450a4af1a7f50a179213d11cd5be41ff78787"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/feature-implementation-cookbook.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S 'perConnectionBufferLimitBytes' -- the two listed cookbook files (KO and EN); git log -S 'max_request_bytes' -- the same two files (a1e450a4 removes the HCM perConnectionBufferLimitBytes/maxRequestHeadersKb lines at a1e450a4^:1212/1216 and adds the buffer filter): a1e450a4af1a7f50a179213d11cd5be41ff78787 (2026-09-20, Align Gateway cookbook examples with controller APIs).",
+        "Current text: docs/.../feature-implementation-cookbook.md:1346 '`max_request_bytes: 10485760` limits the body buffered by this filter to **10 MiB**; larger bodies receive HTTP 413. Connection buffers and header sizes have separate limits.'; :1376 '- name: envoy.filters.http.buffer', :1379 'max_request_bytes: 10485760'. i18n/ko/...:1344, :1374, :1377 same. No maxRequestHeadersKb or perConnectionBufferLimitBytes remains in either locale."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-199",
+      "package": "eks-operations",
+      "id": "HYP-OPS-199",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Text reported 45→13 s scheduling (70%) and 99.8% fewer readiness timeouts for a 1,000-GPU case; the numeric figures are removed in both locales, but the case still presents unsourced qualitative 'Results' rather than a proposed evaluation.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "ae435a9b3066a0dde2106607f604e1d67804313c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S '45 seconds' -- docs/.../probe-eks-features.md; git log -S '45초' -- i18n/ko/.../probe-eks-features.md: ae435a9b3066a0dde2106607f604e1d67804313c (2026-10-15, docs(pod-lifecycle): 콘텐츠 리스크 카드 결정 반영 -- 출처 없는 수치 삭제·예시/경험치 표기 (KO/EN)).",
+        "Current text: docs/.../probe-eks-features.md:393-394 '- Reduced Pod scheduling time' / '- Fewer Readiness Probe timeouts'; i18n/ko/.../probe-eks-features.md:393 '- Pod 스케줄링 시간 단축'"
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "EN lines 392-395 / KO 392-395 keep '**Results**:/**결과**:' with 'Reduced Pod scheduling time', 'Fewer Readiness Probe timeouts' as observed outcomes of an unsourced case; not labeled as illustrative/proposed and no workload/setup limits given."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-253",
+      "package": "eks-operations",
+      "id": "HYP-OPS-253",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Text attributed automated Pod evacuation to an unspecified ARC/Karpenter integration 'announced in 2025'; it now cites the AWS Containers blog of 10 February 2026, but still says EKS integration automates safe Pod relocation and does not distinguish the blog's reference controller from native EKS ARC.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "ae435a9b3066a0dde2106607f604e1d67804313c"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S 'announced in 2025' -- docs/.../shutdown-karpenter.md; git log -S '2025년 발표' -- i18n/ko/.../shutdown-karpenter.md: ae435a9b3066a0dde2106607f604e1d67804313c (2026-10-15, docs(pod-lifecycle): 콘텐츠 리스크 카드 결정 반영 -- 출처 없는 수치 삭제·예시/경험치 표기 (KO/EN)).",
+        "Current text: docs/.../shutdown-karpenter.md:89 '(as described in the AWS Containers blog post ... published on February 10, 2026)'; i18n/ko/.../shutdown-karpenter.md:89 '2026년 2월 10일 게시 기준'"
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "EN line 93 'Integration with EKS also automates safe Pod relocation.' and KO line 93 'EKS와 통합 시 Pod의 안전한 이동까지 자동화됩니다.' remain (native EKS ARC retains existing Pods/nodes); line 89 still says the integration 'automatically moves workloads' without naming it an unsupported reference controller or its controller/EventBridge/SQS path, versions, drift behavior or support limits."
+    },
+    {
+      "record_id": "2026-09-19-eo-av-karp-01",
+      "package": "hybrid-rosa-and-operations",
+      "id": "EO-AV-KARP-01",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The NodePool example used consolidationPolicy WhenUnderutilized and spec.disruption.expireAfter; it now pins Karpenter v1.14.1, uses WhenEmptyOrUnderutilized with consolidateAfter, places expireAfter under spec.template.spec, and labels the YAML as selected fields to merge while retaining nodeClassRef, in both locales.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "94a25ba53bad4d769f25b84f4bae6c97d72efc86"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/karpenter.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/karpenter.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S 'consolidationPolicy: WhenUnderutilized' -- docs/.../eks-debugging/karpenter.md and -- i18n/en/.../eks-debugging/karpenter.md (pre-swap paths; both hit 94a25ba5, which removed 6 such lines): 94a25ba53bad4d769f25b84f4bae6c97d72efc86 (2026-09-20, Correct remaining Karpenter consolidation and expiration fields).",
+        "Current text: docs/.../karpenter.md:124 'selected NodePool fields from the Karpenter v1.14.1 CRD. Retain omitted settings such as `spec.template.spec.nodeClassRef`'; docs/.../karpenter.md:138,157 'expireAfter: 720h' under template.spec, 'consolidationPolicy: WhenEmptyOrUnderutilized'; i18n/ko/.../karpenter.md:124 'NodePool의 일부 필드를 보여 줍니다 ... `spec.template.spec.nodeClassRef` 등 생략된 설정을 유지합니다'"
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c035",
+      "package": "aidlc",
+      "id": "AIDLC-C035",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Text required recovery within 1 minute and immediate regression detection; it now labels 1 minute as an example recovery objective to test, while detection is still described as immediate.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md",
+        "docs/aidlc/enterprise/agent-versioning/index.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'within 1 minute when' -- the two listed source files (EN and KO) ; git log -S'1분 이내 복구 가능한' -- the two listed source files (EN and KO): 1e9bdc1c980bdf4027a62a6ed11dc0cd0b1a3fcd (2026-09-19, Correct prompt version APIs and recovery claims).",
+        "Current text: docs/aidlc/enterprise/agent-versioning/index.md:80 'Set a recovery objective, such as “within 1 minute,” and test it ... One minute is an example target in this guide.'; i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md:80 '1분은 이 문서의 예시 목표입니다.'"
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Detection deadline not labeled as a design target in either locale: docs/aidlc/enterprise/agent-versioning/index.md:79 'Immediately detect performance degradation'; i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md:79 '성능 저하를 즉시 탐지'."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c040",
+      "package": "aidlc",
+      "id": "AIDLC-C040",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Comparison table rated Langfuse '⭐ High' and Bedrock PM alias as supported; it now drops the star, labels the suitability row as the author's qualitative assessment and describes Bedrock as application-owned version-ARN mapping, while the other feature cells remain unscoped.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "f30f656077c2b5e8d21eba79777bc854c85974db"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'**⭐ High**' / -S'작성자의 정성적 평가' -- the two listed source files (EN and KO) ; Bedrock alias cell via -S'| **Labels/Alias** | ✅ | ✅ | ❌ | ✅ |' -> 1e9bdc1c (2026-09-19): f30f656077c2b5e8d21eba79777bc854c85974db (2026-10-14, docs(aidlc): AI Doc Ready 구조 정비 A12 — 표·그림 캡션, 글리프 판정, 번호 (KO/EN)).",
+        "Current text: docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md:230 'The High/Medium levels in the 'AIDLC Suitability' row are the author's qualitative assessment.'; :238 'Application-owned version-ARN mapping'; i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md:230 '작성자의 정성적 평가입니다'"
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "remaining": "Feature cells (Deployment, Approval Workflow, Data Sovereignty, Labels for Braintrust) and the recommendation still carry no as-of date, edition or scope in either locale, e.g. docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md:243 '| **Data Sovereignty** | Supported | Not supported | Not supported |'."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c184",
+      "package": "aidlc",
+      "id": "AIDLC-C184",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Istio DestinationRule used the invalid 'consecutiveErrors' field; it now uses 'consecutive5xxErrors' and states that host registration and TLS must be prepared separately, in both locales.",
+      "recorded_on": "2026-10-28",
+      "reviewed_revision": "5d98236a03c19c38486cb702308ca4ed5c5552ca",
+      "source_commits": [
+        "7667b7021156917380b8c38ab405e64178a6e3ce"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md",
+        "docs/aidlc/methodology/ddd-integration.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-28 at main 5d98236a03c19c38486cb702308ca4ed5c5552ca by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'consecutiveErrors: 5' -- the two listed source files (EN and KO) ; git log -S'host registration and TLS' -- the two listed source files (EN and KO): 7667b7021156917380b8c38ab405e64178a6e3ce (2026-09-20, Fix remaining Istio outlier and locality examples).",
+        "Current text: docs/aidlc/methodology/ddd-integration.md:419 'consecutive5xxErrors: 5'; :408 'prepare host registration and TLS configuration separately'; i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md:405 'host 등록과 TLS 설정을 별도로 준비해야 합니다'"
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
     }
   ]
 }
