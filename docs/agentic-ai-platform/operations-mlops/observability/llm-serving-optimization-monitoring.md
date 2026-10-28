@@ -3,9 +3,9 @@ title: Monitoring Strategy for LLM Serving Optimization
 description: Connect cache efficiency, KV capacity, latency, and routing across seven observability layers, with explicit delivery, evaluation coverage, and quality gates.
 created: "2026-09-03"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 49
+reading_time: 52
 tags:
   - vllm
   - prometheus
@@ -60,7 +60,7 @@ Preemption returns a running request to a waiting state for later resumption. It
 
 TTFT (Time to First Token) is the time from a request to its first output token. ITL (Inter-Token Latency) is the gap between consecutive output tokens. TPOT (Time per Output Token) is the mean generation time per output token for one request.
 
-An ITL histogram records individual token gaps, so longer responses contribute more observations. A histogram of per-request mean TPOT records one mean for each request. These histograms have different weighting even for the same request set and should not be treated as the same metric.
+In `v0.26.0`, the ITL histogram records one interval per non-prefill engine output (the gap since the previous output), not one per token, so longer responses contribute more observations. When each engine output carries one token, the value approximates the individual token gap, but when one output carries several tokens, as with speculative decoding, the observation count and weighting differ from a per-token basis ([statistics source](https://github.com/vllm-project/vllm/blob/v0.26.0/vllm/v1/metrics/stats.py)). A histogram of per-request mean TPOT records one mean for each request. These histograms have different weighting even for the same request set and should not be treated as the same metric.
 
 The arrows below show an analysis sequence, not causal relationships between layers.
 

@@ -41,7 +41,7 @@ const GPUIndexingPerformanceTable = () => {
       fontWeight: '600',
       fontSize: '16px'
     }}>
-        {isKo ? 'GPU 인덱싱 성능 비교' : 'GPU Indexing Performance Comparison'}
+        {isKo ? 'GPU 인덱싱 성능 비교 (예시 수치, 실측 아님)' : 'GPU Indexing Performance Comparison (illustrative figures, not measured)'}
       </div>
 
       <div style={{

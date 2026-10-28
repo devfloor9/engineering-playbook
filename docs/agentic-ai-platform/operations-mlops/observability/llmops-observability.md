@@ -3,9 +3,9 @@ title: LLMOps Observability Comparison Guide
 description: LLMOps observability tool comparison — Langfuse·LangSmith·Helicone·CloudWatch selection criteria and hybrid architecture (for Langfuse operations, see Agent Monitoring)
 created: "2026-03-16"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 28
+reading_time: 29
 tags:
   - eks
   - observability
@@ -106,7 +106,7 @@ The token counts, costs ($0.0024, $0.0285), and quality scores (Faithfulness 0.9
 - **Evaluation**: LLM-as-Judge, rule-based automated evaluation, annotation queue manual evaluation, dataset management
 - **Architecture**: PostgreSQL (metadata) + ClickHouse (analytics) + Redis (cache)
 
-**Advantages**: Complete data ownership, unlimited scaling, robust evaluation pipeline, cost efficiency (self-hosted)
+**Advantages**: Complete data ownership, scaling without plan limits (within the infrastructure capacity the operator provides), robust evaluation pipeline, cost efficiency (self-hosted)
 
 **Disadvantages**: Operational overhead (PG+CH+Redis management), initial configuration complexity
 
@@ -156,8 +156,10 @@ The per-feature levels (High, Medium, Low) in the table below are the author's q
 | **LangChain Integration** | High | High | Medium |
 | **Framework Neutrality** | High | Medium | High |
 | **Gateway Features** | None | None | High |
-| **Scale Limits** | Unlimited (self-hosted) | Plan limits | Plan limits |
-| **Data Sovereignty** | High | Low | High |
+| **Scale Limits** | No plan limits (self-hosted, bounded by infrastructure capacity) | Plan limits | Plan limits |
+| **Data Sovereignty** | High (when self-hosted) | Low (SaaS default) | High (when self-hosted) |
+
+"No plan limits" in the Scale Limits row means that self-hosted Langfuse has no pricing-plan usage limits; the actual throughput limit is set by the capacity of the storage (Postgres, ClickHouse, and so on) and workers the operator configures. This document has not measured that capacity limit, so confirm it with a load test at your target traffic. The Data Sovereignty level assumes a self-hosted deployment, and it does not hold if trace data flows out to external evaluators (LLM-as-Judge) or model providers (see Table 6 in §7 for the conditions per scenario).
 
 ### 3.5 AWS Native Observability: CloudWatch Generative AI Observability
 

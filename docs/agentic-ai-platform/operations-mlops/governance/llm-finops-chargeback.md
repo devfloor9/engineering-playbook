@@ -3,9 +3,9 @@ title: LLM FinOps — Chargeback and Cost Allocation
 description: LLM platform FinOps methodology — token metering, showback/chargeback strategies, agentic cost models, budget policies, and gateway integration
 created: 2026-08-11
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 36
+reading_time: 37
 tags:
   - finops
   - chargeback
@@ -260,7 +260,7 @@ Key operational mechanics:
 
 - **Subject Interpretation**: Each event contains a billing subject identifier, resolved from Consumer, Dev Portal application, or request headers (e.g., `x-customer-id`). Events without resolvable subjects are discarded.
 - **Event Delivery**: Batch delivery to Konnect or self-hosted OpenMeter ingest endpoints. The plugin itself is stateless and does not preserve events on restart.
-- **Metering Only**: This plugin collects usage only and does not enforce limits. For budget enforcement, combine with the AI Rate Limiting Advanced plugin ([AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) reference).
+- **Metering Only**: This plugin collects usage only and does not enforce limits. To enforce metered usage allowances (entitlements), add the [Entitlement Enforcement plugin](https://developer.konghq.com/plugins/entitlement-enforcement/) of Kong Gateway 3.16+. That plugin is supported only on Konnect deployments (hybrid, cloud gateways, serverless) and is incompatible with on-prem, and because it decides from periodically cached usage aggregated in Metering & Billing, enforcement is eventually consistent rather than real time (as of 2026-10-29). Where Entitlement Enforcement is not available for your version or deployment type, or where the goal is traffic protection, set token limits with the AI Rate Limiting Advanced plugin ([AI Gateway Multi-Tenancy](./ai-gateway-multi-tenancy.md) reference).
 
 ---
 
