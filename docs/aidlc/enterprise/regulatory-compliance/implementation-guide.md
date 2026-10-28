@@ -3,9 +3,9 @@ title: Regulatory Compliance Implementation Guide
 description: Practical implementation guide and phased adoption roadmap for integrating regulatory requirements into AIDLC process
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 8
+reading_time: 9
 tags:
   - compliance
   - implementation
@@ -38,13 +38,16 @@ eu_ai_act:
 # NIST AI RMF: MAP
 nist_ai_rmf:
   map_1_1_business_context: "Payment service new feature development"
-  map_3_1_identified_risks:
+  # MAP 4.1: technology and legal risks of components identified (MAP 3.1 covers expected benefits)
+  map_4_1_identified_risks:
     - "SQL Injection vulnerabilities"
     - "PII exposure risk"
     - "Incorrect business logic"
   map_5_1_impact: "Medium (financial transaction impact)"
 
 # ISO/IEC 42001: A.10.2 Risk Management
+# The ISO control identifiers below (A.10.2, A.7.3, A.12.5) are examples not checked against the (paid) normative text (as of 2026-10-29).
+# Public secondary guides describe Annex A as 38 controls under A.2-A.10, so confirm identifiers against the standard before recording them.
 iso_42001:
   risk_id: RISK-2026-04-001
   controls:
@@ -395,7 +398,8 @@ nist_rmf:
 ```yaml
 # .aidlc/logging/unified-audit.yaml
 unified_audit:
-  # PIPA requirements
+  # PIPA-related events — retention values are example organizational policy, not statutory periods
+  # (check the statutory period for each record type in PIPA's subordinate regulations and notices)
   pipa:
     - event: "personal_data_access"
       fields: [user_id, data_subject_id, purpose, timestamp]
@@ -405,7 +409,8 @@ unified_audit:
       fields: [data_subject_id, consent_items, timestamp]
       retention: 3y
 
-  # Korea AI Basic Act requirements
+  # Korea AI Basic Act-related events — the Act's Article 34 requires preparing and storing documents but sets no retention period (as of 2026-10-29)
+  # 6m is an example value borrowed from the EU AI Act Art. 19 minimum of six months for automatically generated logs
   ai_law:
     - event: "ai_decision"
       fields: [decision_id, input, output, explanation, timestamp]
@@ -696,12 +701,12 @@ pdca_cycle:
 - Live demo of monitoring dashboards
 - Interview preparation (role-specific responsibility understanding)
 
-**Estimated Cost**: 2 engineers + consultant + certification fees = **30 man-months + $50k**
+**Estimated Cost**: 2 engineers + consultant + certification fees = **30 man-months + $50k** (an example planning estimate, not a measured result; actual cost depends on the certification scope, organization size, and certification body)
 
 **Success Criteria:**
 - [ ] Gap Analysis completed
-- [ ] 100% implementation of 72 Annex A Controls
-- [ ] 1-year evidence of PDCA cycle operation
+- [ ] 100% implementation of the Annex A controls marked applicable in the Statement of Applicability (confirm the control count and identifiers against the ISO/IEC 42001:2023 text)
+- [ ] Evidence of PDCA cycle operation (1 year is a planning example; confirm the operating period required before the audit with the certification body)
 - [ ] Stage 1/2 Audit passed
 - [ ] ISO/IEC 42001 certification obtained
 

@@ -3,7 +3,7 @@ title: 한국 AI 기본법 — 고영향 AI 규제와 생성형 AI 표시 의무
 description: 한국 AI 기본법의 고영향 AI 시스템 영향 평가, 생성형 AI 표시 의무, PIPA/ISMS-P 교차 준수 및 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 4
 tags:
@@ -141,7 +141,7 @@ post_market_monitoring:
 
   # 시정 조치
   corrective_action:
-    sla: 7d  # 오작동 발견 시 7일 이내 시정
+    sla: 7d  # 조직 내부 목표 예시 — AI 기본법 본문에는 시정 기한 규정이 없음(시행령·고시 기준은 미확인, 2026-10-29 기준)
     escalation: "중대 사고 시 과기정통부 보고"
 ```
 

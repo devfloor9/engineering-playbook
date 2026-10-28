@@ -3,7 +3,7 @@ title: 규제 컴플라이언스 구현 가이드
 description: AIDLC 프로세스에 규제 요구사항을 통합하는 실전 구현 가이드 및 단계별 Adoption 로드맵
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 4
 tags:
@@ -38,13 +38,16 @@ eu_ai_act:
 # NIST AI RMF: MAP
 nist_ai_rmf:
   map_1_1_business_context: "결제 서비스 신규 기능 개발"
-  map_3_1_identified_risks:
+  # MAP 4.1: 구성 요소의 기술·법적 위험 식별 (MAP 3.1은 기대 편익을 다루는 항목)
+  map_4_1_identified_risks:
     - "SQL Injection 취약점"
     - "PII 노출 위험"
     - "Incorrect 비즈니스 로직"
   map_5_1_impact: "Medium (금융 거래 영향)"
 
 # ISO/IEC 42001: A.10.2 위험 관리
+# 아래 ISO 통제 식별자(A.10.2, A.7.3, A.12.5)는 표준 원문(유료)과 대조하지 못한 예시입니다(2026-10-29 기준).
+# 공개 2차 해설 자료는 Annex A를 A.2~A.10의 38개 통제로 설명하므로, 원문으로 식별자를 확인한 뒤 기록합니다.
 iso_42001:
   risk_id: RISK-2026-04-001
   controls:
@@ -395,7 +398,8 @@ nist_rmf:
 ```yaml
 # .aidlc/logging/unified-audit.yaml
 unified_audit:
-  # PIPA 요구사항
+  # PIPA 관련 이벤트 — retention 값은 조직 정책 예시이며 법정 보존기간이 아님
+  # (기록 유형별 법정 보존기간은 PIPA 하위 법령·고시에서 확인)
   pipa:
     - event: "personal_data_access"
       fields: [user_id, data_subject_id, purpose, timestamp]
@@ -405,7 +409,8 @@ unified_audit:
       fields: [data_subject_id, consent_items, timestamp]
       retention: 3y
 
-  # AI 기본법 요구사항
+  # AI 기본법 관련 이벤트 — 법률 본문은 제34조에서 문서 작성·보관을 요구하지만 보존기간은 정하지 않음(2026-10-29 기준)
+  # 6m은 EU AI Act Art. 19의 자동 생성 로그 최소 6개월 보존을 준용한 예시값
   ai_law:
     - event: "ai_decision"
       fields: [decision_id, input, output, explanation, timestamp]
@@ -695,12 +700,12 @@ pdca_cycle:
 - Monitoring 대시보드 라이브 데모
 - 인터뷰 대응 (역할별 책임 이해도)
 
-**예상 비용**: 엔지니어 2명 + 컨설턴트 + 인증 비용 = **30 man-months + $50k**
+**예상 비용**: 엔지니어 2명 + 컨설턴트 + 인증 비용 = **30 man-months + $50k** (계획용 예시 추정값이며 측정값이 아닙니다. 실제 비용은 인증 범위, 조직 규모, 인증기관에 따라 달라집니다)
 
 **성공 기준:**
 - [ ] Gap Analysis 완료
-- [ ] Annex A 72개 Controls 100% 구현
-- [ ] PDCA 사이클 1년 운영 증적
+- [ ] 적용성 보고서(Statement of Applicability)에서 적용 대상으로 정한 Annex A 통제 100% 구현 (통제 수와 식별자는 ISO/IEC 42001:2023 원문으로 확인)
+- [ ] PDCA 사이클 운영 증적 (1년은 계획 예시이며, 심사 전 필요한 운영 기간은 인증기관에 확인)
 - [ ] Stage 1/2 Audit 통과
 - [ ] ISO/IEC 42001 인증 취득
 

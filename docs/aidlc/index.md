@@ -3,9 +3,9 @@ title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — Enterprise adoption guide for AI-driven software development methodology
 created: "2026-03-23"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-29
   author: devfloor9
-reading_time: 4
+reading_time: 5
 tags:
   - scope:nav
 sidebar_label: AIDLC
@@ -14,6 +14,10 @@ category: aidlc
 ---
 
 # AIDLC: AI-Driven Development Lifecycle
+
+:::info Official AIDLC reference
+This section builds on [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) (v0.1.7, 2026-04-02) and adds DDD, Ontology, and Harness extensions. The official terms map to the engineering-playbook terms as follows: User Request/Requirements corresponds to Intent, Unit of Work corresponds to Unit, and Bolt is an engineering-playbook term with no official equivalent. The execution model is described in [10 Principles and Execution Model](./methodology/principles-and-model.md).
+:::
 
 AIDLC (AI-Driven Development Lifecycle) organizes AI-assisted requirements analysis, design, implementation, and testing around **Intent → Unit → Bolt**. An Intent states a business goal, a Unit divides that goal into a bounded piece of work, and a Bolt is a short iteration for carrying out the work. AI proposes plans and artifacts; people review them against the project's requirements and constraints.
 

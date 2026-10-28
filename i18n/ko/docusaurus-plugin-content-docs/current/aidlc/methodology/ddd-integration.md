@@ -3,7 +3,7 @@ title: DDD 통합 — AI 주도 개발에서의 필수 코어
 description: AIDLC에서 DDD가 필수 코어인 이유 — 도메인 설계부터 논리 설계까지 AI 주도 개발
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -432,7 +432,7 @@ Payment Service는 트래픽 패턴이 불규칙하고 예측 불가능합니다
 Provisioned Capacity 대신 On-Demand를 선택합니다.
 
 ## Consequences
-- 비용: 예측 가능한 트래픽 대비 15% 더 비쌈
+- 비용: 트래픽이 꾸준하고 예측 가능한 구간에서는 Provisioned Capacity보다 비쌀 수 있음(차이는 트래픽 패턴과 사용률에 따라 다르므로 요금 계산으로 확인해 기록)
 - 장점: 스파이크 트래픽 대응 자동, 스케일링 운영 불필요
 - 단점: 비용 최적화 한계
 ```
@@ -592,7 +592,7 @@ Bolt 3: CQRS 분리
 
 ## 6. 온톨로지로의 확장: DDD에서 형식 온톨로지로
 
-> "프롬프트 엔지니어링은 온톨로지 엔지니어링이다" — 2026 AI 커뮤니티 컨센서스
+> "프롬프트 엔지니어링은 온톨로지 엔지니어링이다" — 이 문서의 관점을 요약한 문장이며, 특정 출처의 인용이 아닙니다
 
 DDD의 Ubiquitous Language는 팀 내 소통을 위한 **비형식적 합의**입니다. AI 시대에는 이를 **형식 온톨로지(typed world model)**로 격상하여 AI가 기계적으로 이해하고 준수할 수 있게 만들어야 합니다.
 

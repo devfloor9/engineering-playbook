@@ -3,9 +3,9 @@ title: AI 규제 컴플라이언스 프레임워크
 description: EU AI Act, NIST AI RMF, ISO/IEC 42001, 한국 AI 기본법 4개 프레임워크의 AIDLC 통합 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 7
+reading_time: 8
 tags:
   - compliance
   - regulation
@@ -146,13 +146,15 @@ graph TB
 | **리스크 평가** | Art. 6, 9 (위험 관리) | MAP 5.1 | A.5.1 (정책), A.10.2 (위험 관리) | 영향 평가 (고영향 AI) |
 | **데이터 거버넌스** | Art. 10 (데이터 품질) | MAP 2.3 | A.7.* (데이터 12개 controls) | PIPA 준수 |
 | **투명성·설명가능성** | Art. 13 (투명성) | MEASURE 2.8 / 2.9 | A.8.2 (투명성), A.8.3 (설명) | 생성형 AI 표시 의무 |
-| **인간 감독 (HITL)** | Art. 14 (인간 감독) | MAP 3.5 | A.10.5 (인간 개입) | - |
-| **기술 문서** | Art. 11 (문서화) | GOVERN 1.4 | A.8.1 (문서), A.10.6 (기록) | - |
+| **인간 감독 (HITL)** | Art. 14 (인간 감독) | MAP 3.5 | A.10.5 (인간 개입) | 제34조제1항제4호 (고영향 AI에 대한 사람의 관리·감독) |
+| **기술 문서** | Art. 11 (문서화) | GOVERN 1.4 | A.8.1 (문서), A.10.6 (기록) | 제34조제1항제5호 (안전성·신뢰성 확보 조치 문서의 작성·보관, 고영향 AI) |
 | **성능 모니터링** | Art. 15 (정확성) | MEASURE 2.3 / 2.4 | A.11.1 (성능 메트릭) | - |
 | **사후 모니터링** | Art. 72 (post-market) | MANAGE 4.1 | A.10.10 (지속 모니터링) | 사후 관리 의무 |
 | **사고 보고** | Art. 73 (지체 없이·일반 15일/광범위·중대 2일/사망 10일, 고위험 제공자) | MANAGE 4.3 | A.10.11 (사고 대응) | 중대 사고 보고 |
 | **보안** | Art. 15 (사이버보안) | MEASURE 2.7 | A.12.* (보안 10개) | ISMS-P 연계 |
 | **공급망 관리** | - | GOVERN 6.1 / MANAGE 3.1 | A.13.* (타사 6개) | - |
+
+ISO/IEC 42001 열의 통제 식별자는 표준 원문(유료)과 대조하지 못한 값입니다(2026-10-29 기준). 공개된 2차 해설 자료는 Annex A를 A.2~A.10의 9개 통제 목표와 38개 통제로 설명하므로, 이 열의 식별자(A.11~A.13 포함)는 인증이나 감사의 근거로 쓰기 전에 원문으로 확인해야 합니다. 한국 AI 기본법 열의 `-`는 법률 본문에서 해당 통제를 직접 정한 조문을 찾지 못했다는 뜻이며, 시행령과 고시는 확인하지 못했습니다.
 
 ### AIDLC 단계별 규제 요구사항 집계
 
@@ -228,7 +230,7 @@ import DocCardList from '@theme/DocCardList';
 
 ### AWS 관련 자료
 
-- [AWS Artifact (Compliance Reports)](https://aws.amazon.com/artifact/) — EU AI Act, ISO 42001 대응 보고서
+- [AWS Artifact (Compliance Reports)](https://aws.amazon.com/artifact/) — AWS의 ISO/IEC 42001:2023 인증서를 열람할 수 있습니다(2026-10-29 기준, [AWS ISO/IEC 42001 FAQ](https://aws.amazon.com/compliance/iso-42001-faqs/)). EU AI Act 관련 보고서 제공 여부는 확인하지 못했으므로 Artifact에서 현재 제공 목록을 직접 확인하세요.
 - [AWS Compliance Center](https://aws.amazon.com/compliance/programs/) — 지역별 규제 매핑
 - [Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) — 런타임 가드레일 구현
 

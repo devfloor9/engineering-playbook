@@ -3,7 +3,7 @@ title: Korea AI Basic Act — High-Impact AI Regulation and Generative AI Labeli
 description: Korea AI Basic Act's high-impact AI impact assessment, generative AI labeling obligations, PIPA/ISMS-P cross-compliance, and AIDLC integration guide
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
 reading_time: 9
 tags:
@@ -141,7 +141,7 @@ post_market_monitoring:
 
   # Corrective action
   corrective_action:
-    sla: 7d  # Correct within 7 days of malfunction detection
+    sla: 7d  # Example internal target — the Act's text sets no correction deadline (enforcement decree/notices unverified as of 2026-10-29)
     escalation: "Report to Ministry of Science and ICT for major incidents"
 ```
 

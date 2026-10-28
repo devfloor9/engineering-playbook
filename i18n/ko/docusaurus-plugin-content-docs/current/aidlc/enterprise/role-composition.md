@@ -3,9 +3,9 @@ title: 역할 재정의
 description: AIDLC 엔터프라이즈 - role-composition
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 13
 tags:
   - aidlc
   - enterprise
@@ -100,10 +100,10 @@ graph LR
 
 ### 패러다임 전환: "코드 생성은 AI, 인간은 하네스 설계자"
 
-OpenAI Codex 사례에서 100만 줄 이상의 코드가 AI로 생성되었지만, **인간 엔지니어는 하네스 설계에 집중**하여 품질과 안정성을 보장했습니다.
+OpenAI가 2026년 2월 공개한 Harness engineering 사례에서는 5개월 동안 약 100만 줄 규모의 제품 코드를 사람이 직접 작성하지 않고 Codex 에이전트로 생성했으며, **인간 엔지니어는 환경 설계, 의도 명세, 피드백 루프 구축에 집중**했습니다.
 
 > "We don't write code anymore. We design guardrails and circuit breakers that keep AI-generated code safe and aligned with business intent."  
-> — Production Engineering Team, OpenAI (2024)
+> — 출처 미확인 인용문입니다. OpenAI 공개 자료에서 이 문장과 "Production Engineering Team, OpenAI (2024)"라는 출처를 찾지 못했습니다(2026-10-29 기준).
 
 ### 핵심 역량
 
@@ -257,7 +257,7 @@ AIDLC 도입으로 팀 구성 비율이 근본적으로 변화합니다.
 
 **변화 해석** (아래 인원·비율·절감 수치는 측정값이 아니라 역할 재배치를 설명하기 위한 계획 가정·예시입니다):
 - 개발자 30명 → 하네스 엔지니어 20명: 역할 재배치 자체는 인원 변화를 뜻하지 않습니다. 예시 가정에서 이 재배치를 **33% 인력 감축**으로 쓸 수도, **동일 인력으로 약 50% 더 많은 기능 개발**로 쓸 수도 있으며(두 값 모두 예시 목표치), 실제 결과는 조직·프로젝트에 따라 다릅니다.
-- 보안 3명 → 9명: Shift-Left로 인력을 늘리는 예시 구성입니다. "재작업 비용 90% 감축"은 아래 Shift-Left 절의 NIST 참고에 근거한 예시 목표치입니다.
+- 보안 3명 → 9명: Shift-Left로 인력을 늘리는 예시 구성입니다. "재작업 비용 90% 감축"은 아래 Shift-Left 절의 예시 목표치이며, NIST 연구로 인용해 온 수치이지만 1차 출처를 확인하지 못했습니다(2026-10-29 기준).
 - 온톨로지 스튜어드 6명: 복잡한 도메인 온톨로지 관리 (금융, 의료, 물류 통합)
 
 ### 비용 효과
@@ -316,7 +316,7 @@ gantt
 **효과**:
 - 보안 정책이 하네스에 내장 → 코드 생성 시점부터 보안 규칙 적용
 - 연속 보안 검증 → 취약점을 즉시 발견하고 자동 수정
-- 재작업 비용 **90% 감축** (NIST 연구: Shift-Left 효과)
+- 재작업 비용 **90% 감축** (예시 목표치입니다. "NIST 연구: Shift-Left 효과"로 인용해 온 수치이나 1차 출처를 확인하지 못했습니다(2026-10-29 기준))
 
 ### Shift-Left 보안 역할
 
@@ -462,4 +462,5 @@ graph TD
 - [도입 전략](./adoption-strategy.md) — 점진적 역할 전환 로드맵
 - [비용 효과](./cost-estimation.md) — 팀 구성 비율 변화의 비용 영향
 - Team Topologies (Matthew Skelton, Manuel Pais, 2019)
-- "The Cost of Fixing Bugs: Shift-Left vs Shift-Right" (NIST, 2023)
+- "The Cost of Fixing Bugs: Shift-Left vs Shift-Right" (NIST, 2023) — 1차 출처를 확인하지 못했습니다(2026-10-29 기준)
+- OpenAI, "Harness engineering: leveraging Codex in an agent-first world" (2026-02) — 위 100만 줄 사례의 출처

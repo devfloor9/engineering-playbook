@@ -3,7 +3,7 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC 공식 11개 공통 규칙 해설 — Question Format부터 Audit Logging까지, 엔터프라이즈 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 16
 tags:
@@ -557,7 +557,7 @@ diff .aidlc/test-1/requirements.md .aidlc/test-2/requirements.md
 ### 엔터프라이즈 적용 팁
 - **모델 업그레이드 시 재현성 회귀 테스트** 필수 (골든 입력 세트 유지)
 - 모델 교체로 인한 **산출물 drift > 20%** 시 롤백
-- 규제 산업은 모델 버전을 3-5년 고정 유지 (NIST SP 800-218A 권장)
+- 규제 산업은 감사·재현 요구 기간에 맞춰 모델 버전 고정 기간을 정합니다. 3-5년은 이 가이드의 예시이며 NIST SP 800-218A의 권장이 아닙니다. SP 800-218A는 고정 기간을 정하지 않고, AI 모델의 사용 중단과 이전 버전 롤백 기준을 수립하도록 권고합니다.
 
 ---
 
