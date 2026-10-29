@@ -3,9 +3,9 @@ title: AI 기반 Probe 최적화
 description: 관측 데이터와 AI를 활용하는 Probe 최적화 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 8
 tags:
   - eks
   - kubernetes
@@ -92,8 +92,10 @@ Kiro는 AWS의 AI 기반 운영 도구로, MCP(Model Context Protocol) 서버를
 아래 워크플로우의 단계가 참조하는 데이터 소스는 각각 다른 MCP 서버와 권한을 요구합니다. `getPodLogs`와 `getKubernetesEvents`는 EKS MCP 서버가 제공하는 읽기 범위의 기능에 해당하지만, CloudWatch 지표(`getCloudWatchMetrics`)와 네트워크 관측성(`getNetworkObservability`)은 EKS MCP 서버의 기본 도구가 아니며 별도의 서버·IAM 권한 구성이 필요합니다. 하나의 MCP 설정만으로 모든 데이터 소스와 쓰기 작업이 자동으로 열리지는 않으므로, 사용하려는 도구마다 제공 서버와 읽기/쓰기 권한을 확인합니다.
 :::
 
+아래 YAML은 Probe 실패 대응 흐름을 개념적으로 보여주는 예시이며, 실제 Kiro API가 아닙니다. `kiro.aws/v1alpha1` API 그룹의 `Agent` 리소스와 `spec.cluster`, `triggers`, `actions` 필드는 Kiro가 제공하지 않습니다. Kiro 커스텀 에이전트는 로컬 JSON 또는 Markdown 파일로 정의하며 `name`, `description`, `prompt`, `mcpServers`, `tools`, `resources`, `permissions`, `hooks` 같은 필드를 사용하고, 클러스터의 Probe 실패 이벤트를 받아 에이전트를 실행하는 필드는 [에이전트 설정 레퍼런스](https://kiro.dev/docs/custom-agents/configuration-reference/)에 없습니다(2026-10-29 기준). 이 흐름을 구현하려면 이벤트 수집과 트리거는 별도 컴포넌트로 만들고, 에이전트에는 해당 MCP 서버와 도구 권한만 설정합니다.
+
 ```yaml
-# Kiro Agent 설정 - Probe 실패 자동 대응
+# (개념 예시) Kiro API가 아닌 가상 리소스 - Probe 실패 자동 대응
 apiVersion: kiro.aws/v1alpha1
 kind: Agent
 metadata:
@@ -220,7 +222,7 @@ spec:
 위 `auto-remediate` 단계는 모델 신뢰도(`confidence: ">0.8"`)만으로 프로덕션 Deployment를 패치합니다. 출력 스키마 검증, 권장값의 상·하한 범위, 변경 후 독립적인 성공 확인, 자동 롤백, 프로덕션 변경에 대한 사람 승인 같은 가드레일이 구현되어 있지 않으므로, 이 블록을 그대로 프로덕션 지침으로 적용하지 않습니다. 프로덕션에서는 이러한 가드레일을 갖추거나, 변경 적용 전 운영자 승인을 거치는 Suggest Mode로 운용합니다.
 :::
 
-**실제 사용 예시 - Probe 타임아웃 자동 최적화:**
+**대화 예시 - Probe 타임아웃 자동 최적화:**
 
 ```bash
 # Kiro를 통한 대화형 Probe 최적화
@@ -261,8 +263,10 @@ Kiro: ✅ Applied Probe Optimization
       - Recommendation recorded in tribal knowledge
 
       💡 Suggestion: Consider moving database to same VPC
-          to reduce network latency permanently.
+          as one option to reduce network latency.
 ```
+
+위 대화는 가상의 세션 예시이며, 출력의 신뢰도 92%, p99 지연 2.8초, 시간당 12건에서 0건으로 줄었다는 결과는 예시 수치입니다(실측 데이터가 아닌 가상 시나리오). 5분 관찰만으로는 변경 효과를 확정할 수 없으므로, 실제 환경에서는 더 긴 기간의 Probe 실패 추이로 효과를 확인합니다. 데이터베이스를 같은 VPC로 옮기는 방안은 네트워크 지연을 줄일 수 있는 선택지 중 하나이며, 지연 문제를 영구적으로 해결한다는 보장은 아닙니다.
 
 ### Amazon Q Developer를 활용한 Probe 이슈 디버깅 {#amazon-q-developer를-활용한-probe-이슈-디버깅}
 
@@ -319,10 +323,14 @@ Recommendation:
 Apply Suggestions? [Yes] [No] [Explain More]
 ```
 
-**실시간 코드 실행 검증 (Amazon Q Developer):**
+위 제안의 timeoutSeconds 3-5초와 Startup Probe 추가 기준 30초는 예시 값이며, 모든 워크로드에 적용되는 기준이 아닙니다. 1초는 Kubernetes `timeoutSeconds`의 기본값이며, EKS 환경이라는 이유만으로 1초가 부족하다고 단정할 수는 없습니다. 적정 값은 애플리케이션의 측정된 응답 지연 분포와 시작 시간에 맞춰 정합니다.
+
+**검증 흐름 개념 예시 (Amazon Q Developer):**
+
+아래 블록은 원하는 검증 흐름을 개념적으로 보여주는 가상 출력입니다. `q-dev validate` 명령은 존재하지 않습니다. Amazon Q Developer의 명령줄 도구는 Kiro CLI로 전환되었고([Amazon Q Developer 사용 설명서](https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/command-line.html)), [Kiro CLI 명령 레퍼런스](https://kiro.dev/docs/reference/cli-commands/)에도 매니페스트를 클러스터 기준으로 시뮬레이션해 Probe 성공률이나 시작·종료 시간을 추정하는 명령은 없습니다(2026-10-29 기준). 출력의 성공률 94%, 시작 시간 45초, 종료 시간 25초와 `terminationGracePeriodSeconds` 60초 이상 권고는 예시 수치입니다(실측 데이터가 아닌 가상 시나리오). 매니페스트 문법과 스키마는 `kubectl apply --dry-run=server`로 검증할 수 있습니다.
 
 ```bash
-# Q Developer가 로컬에서 Probe 설정 검증
+# (가상 명령) 실제 Amazon Q Developer 또는 Kiro CLI 명령이 아닙니다
 $ q-dev validate deployment.yaml --cluster production-eks
 
 ✅ Syntax Valid
@@ -473,6 +481,8 @@ data:
       ]
     }
 ```
+
+이 ConfigMap만으로는 Grafana 대시보드가 만들어지지 않습니다. Grafana Helm 차트의 대시보드 사이드카(`sidecar.dashboards.enabled`, grafana-community 차트 기본값 `false`)를 켜고 ConfigMap에 사이드카가 찾는 레이블(기본값 `grafana_dashboard`)을 붙여야 Grafana가 이 JSON을 읽으며(2026-10-29 기준), 각 패널에는 데이터 소스와 패널 유형을 지정해야 합니다. 또한 `kiro_*` 지표와 `probe_failures_total`, `probe_failures_ai_optimized_total`은 Kiro나 Kubernetes가 기본으로 내보내는 것으로 확인된 지표가 아니라 이 예시를 위한 가상의 지표 이름이므로, 직접 구현한 자동화 컴포넌트가 이 지표를 노출해야 합니다. kubelet은 Probe 결과를 `/metrics/probes` 엔드포인트의 `prober_probe_total` 카운터(`probe_type`, `result` 레이블)로 노출합니다.
 
 **ROI 측정 예시:**
 

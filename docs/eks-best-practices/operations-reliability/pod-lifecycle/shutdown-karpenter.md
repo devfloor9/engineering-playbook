@@ -3,9 +3,9 @@ title: Karpenter and node drain
 description: Review Pod termination during node replacement and scale-down.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 13
+reading_time: 15
 tags:
   - eks
   - kubernetes
@@ -86,11 +86,11 @@ If a PodDisruptionBudget is too strict (for example, `minAvailable` equals the r
 
 **Overview:**
 
-The integration of AWS Application Recovery Controller (ARC) and Karpenter (as described in the [AWS Containers blog post](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/) published on February 10, 2026) provides a high-availability pattern that automatically moves workloads to other Availability Zones (AZs) when an AZ fails. This ensures graceful shutdown and minimizes service disruption during AZ failures or gray failures.
+The integration of AWS Application Recovery Controller (ARC) and Karpenter described in the [AWS Containers blog post](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/) (published on February 10, 2026) is an open source reference implementation controller that is not officially supported by AWS, and the post presents it as a stop-gap until Karpenter natively integrates with ARC zonal shift and autoshift. The setup consists of an Amazon EventBridge rule that watches for zonal autoshift events, an Amazon SQS queue that temporarily stores those events, and a controller that periodically polls the queue and removes the impaired Availability Zone (AZ) from the zone requirement of Karpenter NodePools. With the default setting, nodes in the impaired AZ are terminated and their Pods are rescheduled onto other AZs; with the `--enable-do-not-disrupt` flag, the controller keeps existing nodes the way managed node groups do (as of 2026-10-29). This pattern can be used to reduce service disruption during AZ failures or gray failures.
 
 **About ARC Zonal Shift:**
 
-Zonal Shift automatically shifts traffic from an AZ to other healthy AZs when a failure or performance degradation is detected in that AZ. Integration with EKS also automates safe Pod relocation.
+Zonal Shift automatically shifts traffic from an AZ to other healthy AZs when a failure or performance degradation is detected in that AZ. When integrated with EKS, ARC cordons worker nodes in the impaired AZ to prevent new Pod placement, removes the endpoints of Pods running in that AZ from EndpointSlices and AWS load balancer targets to redirect traffic to healthy AZs, and temporarily reconfigures Auto Scaling groups and managed node groups so that they do not provision new capacity in the impaired AZ. Existing Pods and nodes keep running, so ARC itself does not move Pods to other AZs, and the post describes the fact that this behavior does not apply to Karpenter NodePools as the gap that the reference controller above fills.
 
 **Table 1. Architecture components and roles of the ARC + Karpenter AZ evacuation pattern**
 

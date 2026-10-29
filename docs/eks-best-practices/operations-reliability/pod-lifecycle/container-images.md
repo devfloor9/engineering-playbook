@@ -3,9 +3,9 @@ title: Container images and startup time
 description: Review image builds, pre-pulling, and startup time comparisons.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 5
+reading_time: 6
 tags:
   - eks
   - kubernetes
@@ -49,10 +49,12 @@ USER 65534:65534
 ENTRYPOINT ["/main"]
 ```
 
-**Results:**
+**Example results:**
 - Build image: 300MB+
 - Final image: 5-10MB
 - Startup time: Less than 1 second
+
+These values are illustrative figures, not measured results. Build image size, final image size, and startup time depend on the application code and its dependencies, the base image, and how startup time is measured, so measure them with your own image.
 
 #### Node.js Application {#nodejs-애플리케이션}
 

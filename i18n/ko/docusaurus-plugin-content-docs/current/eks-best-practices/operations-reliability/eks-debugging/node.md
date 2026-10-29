@@ -3,9 +3,9 @@ title: 노드 레벨 디버깅
 description: EKS 노드 문제 진단 및 해결 가이드
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 12
 tags:
   - eks
   - kubernetes
@@ -229,14 +229,18 @@ subjects:
 kubectl auth reconcile -f eks-node-manager-role.yaml
 ```
 
-**방법 2: 노드 그룹 재생성**
+적용 전에 `kubectl describe clusterrole eks:node-manager`와 `kubectl describe clusterrolebinding eks:node-manager`로 객체가 없거나 위 예시와 다른지 먼저 확인하고, 적용한 뒤에는 실패했던 노드 그룹 작업을 다시 시도합니다. 이것이 AWS EKS 문제 해결 문서에 기재된 복구 절차입니다.
+
+방법 2와 3은 AWS 문서에 복구 절차로 기재되어 있지 않습니다. EKS는 관리형 노드 그룹 온보딩 과정에서 이 리소스를 만든다고 설명하지만, 노드 그룹이 이미 있는 클러스터에서 새 노드 그룹 생성이나 업그레이드가 삭제된 RBAC 객체를 다시 만드는지는 1차 출처를 확인하지 못했습니다(2026-10-29 기준). 방법 1을 적용할 수 없는 경우에만 시도하고, 시도한 뒤에도 위 `kubectl describe` 명령으로 객체가 복원되었는지 확인합니다.
+
+**방법 2: 노드 그룹 재생성 (미확인 대안)**
 
 ```bash
-# 새 노드 그룹 생성 시 RBAC 리소스가 함께 생성됨
+# 새 노드 그룹 생성 시 RBAC 리소스가 다시 생성되는지는 미확인
 eksctl create nodegroup --cluster=<cluster-name> --name=<new-nodegroup-name>
 ```
 
-**방법 3: 노드 그룹 업그레이드**
+**방법 3: 노드 그룹 업그레이드 (미확인 대안)**
 
 ```bash
 # 업그레이드 과정에서 RBAC 재설정이 트리거될 수 있음

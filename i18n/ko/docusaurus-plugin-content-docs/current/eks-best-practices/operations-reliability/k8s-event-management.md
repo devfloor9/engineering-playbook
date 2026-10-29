@@ -3,9 +3,9 @@ title: Kubernetes 이벤트 보존과 AI Agent 조회 아키텍처
 description: EKS Kubernetes 이벤트의 1시간 TTL 제약과 export 파이프라인 설계, EKS·CloudWatch MCP 서버 기반 AI Agent 조회 아키텍처를 다룹니다.
 created: "2026-07-14"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 13
+reading_time: 14
 tags:
   - eks
   - kubernetes
@@ -27,10 +27,10 @@ sidebar_label: K8s 이벤트 보존과 AI 조회
 
 ### 1시간 TTL
 
-Kubernetes Event 객체는 etcd에 저장되며, `kube-apiserver`의 `--event-ttl` 플래그 기본값은 `1h0m0s`입니다. EKS는 업스트림 기본값인 60분을 유지해 왔으며, 이벤트가 etcd를 채우면 API 서버 성능이 저하되기 때문에 오랫동안 이 설정의 변경을 허용하지 않았습니다([containers-roadmap #785](https://github.com/aws/containers-roadmap/issues/785)). 60분이 지나면 etcd가 이벤트를 삭제하므로 `kubectl get events`로는 최근 1시간의 이벤트만 조회할 수 있습니다.
+Kubernetes Event 객체는 etcd에 저장되며, `kube-apiserver`의 `--event-ttl` 플래그 기본값은 `1h0m0s`입니다. EKS는 업스트림 기본값인 60분을 유지해 왔으며, 이벤트가 etcd를 채우면 API 서버 성능이 저하되기 때문에 오랫동안 이 설정의 변경을 허용하지 않았습니다([containers-roadmap #785](https://github.com/aws/containers-roadmap/issues/785)). 기본 설정에서는 이벤트가 60분 TTL이 지나면 etcd에서 삭제되므로 `kubectl get events`로는 대략 최근 1시간의 이벤트만 조회할 수 있습니다. 다만 TTL은 클러스터 설정에 따라 이보다 짧을 수 있고, EKS 문서에 따르면 컨트롤 플레인 리더 선출 중 etcd lease가 갱신되면 이벤트가 설정값보다 약간 더 오래 남을 수 있으므로 1시간은 정확한 조회 경계가 아닙니다.
 
 :::info EKS Control Plane Customization (신규)
-EKS는 최근 Kubernetes control plane customization 기능을 통해 scheduler, controller manager, API server 설정 일부를 노출하기 시작했으며, 여기에 event time-to-live 설정이 포함됩니다([EKS 콘솔 도움말](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html)). 다만 TTL을 늘리면 etcd 저장 객체가 증가해 컨트롤 플레인 성능에 영향을 줄 수 있고, 아래의 best-effort 특성은 그대로 유지되므로, TTL 연장은 export 파이프라인의 대체재가 아니라 보완재로 취급해야 합니다. 지원 버전·API 세부 사항은 적용 전 최신 문서에서 확인이 필요합니다.
+EKS는 Kubernetes control plane customization 기능을 통해 scheduler, controller manager, API server 설정 일부를 노출하며, 여기에 event time-to-live 설정이 포함됩니다([EKS 콘솔 도움말](https://docs.aws.amazon.com/help-panel/eks/latest/console/hp-control-plane-event-ttl.html)). EKS 사용자 가이드에 따르면 이 기능은 Kubernetes 1.31 이상 클러스터에서 지원되며, API 서버의 `eventTtl`은 10분~60분 범위에서 설정할 수 있고 기본값은 60분입니다(2026-10-29 기준, [Advanced Kubernetes control plane configuration](https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html)). 즉 이 설정으로는 보존 기간을 줄일 수만 있고 60분보다 늘릴 수 없으므로, 1시간보다 오래된 이벤트를 조사하려면 아래의 export 파이프라인이 필요합니다. 지원 범위와 기본값은 버전에 따라 바뀔 수 있으므로 적용 전 `DescribeClusterVersions` 응답에서 확인합니다.
 :::
 
 ### Best-effort 데이터

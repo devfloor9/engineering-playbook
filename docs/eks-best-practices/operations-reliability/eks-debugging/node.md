@@ -3,9 +3,9 @@ title: Node-Level Debugging
 description: Guide to diagnosing and resolving EKS node issues
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 16
+reading_time: 20
 tags:
   - eks
   - kubernetes
@@ -229,14 +229,18 @@ subjects:
 kubectl auth reconcile -f eks-node-manager-role.yaml
 ```
 
-**Method 2: Recreate the node group**
+Before applying, use `kubectl describe clusterrole eks:node-manager` and `kubectl describe clusterrolebinding eks:node-manager` to confirm that the objects are missing or differ from the example above; after applying, retry the node group operation that failed. This is the recovery procedure documented in the AWS EKS troubleshooting guide.
+
+Methods 2 and 3 are not documented by AWS as recovery procedures. EKS states that it sets up these resources as part of onboarding with managed node groups, but whether creating or upgrading a node group in a cluster that already has node groups re-creates deleted RBAC objects is unverified; primary source not verified as of 2026-10-29. Try them only when Method 1 cannot be applied, and afterwards confirm with the `kubectl describe` commands above that the objects were restored.
+
+**Method 2: Recreate the node group (unverified alternative)**
 
 ```bash
-# Creating a new node group also creates the RBAC resources
+# Whether creating a new node group re-creates the RBAC resources is unverified
 eksctl create nodegroup --cluster=<cluster-name> --name=<new-nodegroup-name>
 ```
 
-**Method 3: Upgrade the node group**
+**Method 3: Upgrade the node group (unverified alternative)**
 
 ```bash
 # RBAC reconciliation may be triggered during upgrade

@@ -3,7 +3,7 @@ title: Pod lifecycle hooks
 description: Review the execution flow and examples for PostStart and PreStop.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
 reading_time: 5
 tags:
@@ -154,7 +154,7 @@ lifecycle:
 ```
 
 :::warning Hook Execution Is "At Least Once"
-Kubernetes guarantees that a hook runs at least once, but it may run multiple times. Hook logic must be **idempotent**.
+The Kubernetes documentation describes hook delivery as intended to be "at least once", so a hook may be called multiple times for the same event. Hook logic must be **idempotent**. This is not a guarantee that a hook always runs. Generally only a single delivery is made, and if an HTTP hook receiver is down and cannot take traffic, there is no attempt to resend. A call to the `PreStop` hook also fails if the container is already in a terminated or completed state ([Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/)).
 :::
 
 ---

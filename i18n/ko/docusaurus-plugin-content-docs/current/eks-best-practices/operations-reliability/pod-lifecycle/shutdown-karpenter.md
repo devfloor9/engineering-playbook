@@ -3,9 +3,9 @@ title: Karpenter와 Node Drain
 description: 노드 교체 및 축소 과정에서 Pod 종료를 점검합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 8
+reading_time: 9
 tags:
   - eks
   - kubernetes
@@ -86,11 +86,11 @@ PodDisruptionBudget이 너무 엄격하면 (예: `minAvailable`이 replica 수�
 
 **개요:**
 
-AWS Application Recovery Controller(ARC)와 Karpenter의 통합([AWS Containers 블로그](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/) 2026년 2월 10일 게시 기준)은 Availability Zone(AZ) 장애 시 자동으로 워크로드를 다른 AZ로 이동시키는 고가용성 패턴을 제공합니다. 이를 통해 AZ 장애 또는 Gray Failure 상황에서도 Graceful Shutdown을 보장하며 서비스 중단을 최소화할 수 있습니다.
+[AWS Containers 블로그](https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/)(2026년 2월 10일 게시)가 소개한 AWS Application Recovery Controller(ARC)와 Karpenter의 통합은 AWS가 공식 지원하지 않는 오픈 소스 참조 구현 컨트롤러이며, 블로그는 이를 Karpenter가 ARC Zonal Shift·Autoshift와 기본 통합되기 전까지 쓰는 임시 방편으로 설명합니다. 이 구성은 Zonal Autoshift 이벤트를 감시하는 Amazon EventBridge 규칙, 이벤트를 임시로 보관하는 Amazon SQS 큐, 큐를 주기적으로 확인해 Karpenter NodePool의 영역(zone) 요구 조건에서 장애 Availability Zone(AZ)을 제외하는 컨트롤러로 이루어집니다. 기본 설정에서는 장애 AZ의 노드가 종료되고 그 노드의 Pod이 다른 AZ로 다시 스케줄되며, `--enable-do-not-disrupt` 플래그를 지정하면 관리형 노드 그룹처럼 기존 노드를 유지합니다(2026-10-29 기준). 이 패턴은 AZ 장애 또는 Gray Failure 상황에서 서비스 중단을 줄이는 데 쓸 수 있습니다.
 
 **ARC Zonal Shift란:**
 
-Zonal Shift는 특정 AZ에서 발생한 장애나 성능 저하를 감지했을 때, 해당 AZ의 트래픽을 자동으로 다른 정상 AZ로 전환하는 기능입니다. EKS와 통합 시 Pod의 안전한 이동까지 자동화됩니다.
+Zonal Shift는 특정 AZ에서 발생한 장애나 성능 저하를 감지했을 때, 해당 AZ의 트래픽을 자동으로 다른 정상 AZ로 전환하는 기능입니다. EKS와 통합하면 ARC는 장애 AZ의 워커 노드를 cordon해 신규 Pod 배치를 막고, 그 AZ에서 실행 중인 Pod의 엔드포인트를 EndpointSlice와 AWS 로드 밸런서 대상에서 제거해 트래픽을 정상 AZ로 돌리며, Auto Scaling 그룹과 관리형 노드 그룹이 장애 AZ에 새 용량을 만들지 않도록 일시적으로 재구성합니다. 이때 기존 Pod과 노드는 계속 실행되므로 ARC 자체가 Pod을 다른 AZ로 옮기지는 않으며, 블로그는 이 동작이 Karpenter NodePool에는 적용되지 않는 점을 위 참조 컨트롤러가 메우는 공백으로 설명합니다.
 
 **표 1. ARC + Karpenter AZ 대피 패턴의 아키텍처 구성 요소와 역할**
 

@@ -3,7 +3,7 @@ title: Pod Lifecycle Hooks
 description: PostStart와 PreStop의 실행 흐름과 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 3
 tags:
@@ -153,7 +153,7 @@ lifecycle:
 ```
 
 :::warning Hook 실행은 "At Least Once"
-Kubernetes는 Hook이 최소 한 번 실행되도록 보장하지만, 여러 번 실행될 수 있습니다. Hook 로직은 **멱등성(idempotent)**을 보장해야 합니다.
+Kubernetes 문서는 Hook 전달이 "최소 한 번(at least once)"을 의도한다고 설명하며, 따라서 같은 이벤트에 Hook이 여러 번 호출될 수 있습니다. Hook 로직은 **멱등성(idempotent)**을 보장해야 합니다. 이는 Hook이 반드시 실행된다는 보장이 아닙니다. 일반적으로 전달은 한 번만 이루어지고, HTTP Hook 수신 측이 다운되어 요청을 받지 못하면 재전송하지 않습니다. 또한 컨테이너가 이미 종료(terminated)되었거나 완료(completed)된 상태이면 `PreStop` Hook 호출은 실패합니다([Container Lifecycle Hooks](https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/)).
 :::
 
 ---

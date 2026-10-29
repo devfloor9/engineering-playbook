@@ -3,7 +3,7 @@ title: 네트워킹 디버깅
 description: EKS 네트워킹 문제 진단 및 해결 가이드 - VPC CNI, DNS, Service, NetworkPolicy
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 11
 tags:
@@ -381,7 +381,7 @@ spec:
 
 ```yaml
 # OR 로직 (별도의 from 항목으로 분리)
-# "alice 네임스페이스의 모든 Pod" 또는 "모든 네임스페이스의 client 역할 Pod" 허용
+# "alice 네임스페이스의 모든 Pod" 또는 "이 정책과 같은 네임스페이스의 client 역할 Pod" 허용
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -401,7 +401,7 @@ spec:
 ```
 
 :::danger AND vs OR 주의
-위 두 YAML은 indent 한 레벨 차이로 완전히 다른 보안 정책이 됩니다. AND 로직에서는 `namespaceSelector`와 `podSelector`가 **같은 `- from` 항목** 안에 있고, OR 로직에서는 **별도의 `- from` 항목**으로 분리됩니다.
+위 두 YAML은 indent 한 레벨 차이로 완전히 다른 보안 정책이 됩니다. AND 로직에서는 `namespaceSelector`와 `podSelector`가 **같은 `- from` 항목** 안에 있고, OR 로직에서는 **별도의 `- from` 항목**으로 분리됩니다. `namespaceSelector` 없이 `podSelector`만 둔 항목은 NetworkPolicy가 속한 네임스페이스의 Pod만 선택합니다. 모든 네임스페이스의 `role: client` Pod를 의도적으로 허용하려면 같은 항목에 `namespaceSelector: {}`를 함께 두어야 하며, 이렇게 하면 다른 팀의 네임스페이스에서도 해당 라벨만 붙이면 접근할 수 있게 되므로 허용 범위를 넓히는 보안상 이유를 정책 주석이나 리뷰 기록에 남깁니다.
 :::
 
 ### NetworkPolicy 차단 디버깅

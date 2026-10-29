@@ -3,9 +3,9 @@ title: Node Readiness Controller
 description: Review configuration for managing node infrastructure readiness.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 16
+reading_time: 19
 tags:
   - eks
   - kubernetes
@@ -71,6 +71,8 @@ Setting the `dryRun: true` option simulates rule behavior without applying actua
 Applies rules only to specific node groups based on labels. Different readiness rules can be applied to GPU nodes and general-purpose nodes.
 
 ### YAML examples {#yaml-예시}
+
+The condition types in this section and in the EKS scenarios below (`cniplugin.example.net/NetworkReady`, `nvidia.com/gpu-driver-ready`, `nvidia.com/gpu-device-plugin-ready`, `ebs.csi.aws.com/VolumeAttachReady`, `vpc.amazonaws.com/CNIReady`, `example.com/CustomHealthCheck`) are illustrative names. We could not find evidence that the VPC CNI, the NVIDIA driver and Device Plugin, or the EBS CSI driver report node conditions with these names by default (as of 2026-10-29). NRC only reads conditions that other components write to the node and manages taints from them; it does not create conditions itself, so using these rules requires deploying a reporter that writes the conditions. A reporter can be the NRC project's `readiness-condition-reporter` (which periodically checks a component's health endpoint and writes the condition named in `CONDITION_TYPE`; see [Reporter Configuration](https://node-readiness-controller.sigs.k8s.io/reference/reporter-configuration.html)), Node Problem Detector, or a DaemonSet you implement yourself. The condition-setting code in the VPC CNI and NVIDIA examples below illustrates how to implement such a reporter yourself; it is not a feature included in those components.
 
 #### CNI bootstrap - bootstrap-only mode {#cni-부트스트랩---bootstrap-only-모드}
 
@@ -299,7 +301,7 @@ spec:
 
 **Set conditions in the NVIDIA Device Plugin:**
 ```go
-// Health check logic in the NVIDIA Device Plugin
+// Example of a condition reporter you implement yourself (not logic included in the NVIDIA Device Plugin)
 func updateNodeCondition(nodeName string) error {
     // Check GPU driver status (go-nvml returns an nvml.Return code, not an error)
     version, ret := nvml.SystemGetDriverVersion()
@@ -443,8 +445,10 @@ spec:
           failureThreshold: 2
 
       # Layer 2: Pod Readiness Gate
-      readinessGates:
-      - conditionType: "target-health.alb.ingress.k8s.aws/production-alb"
+      # Do not write readinessGates by hand. When the namespace carries the
+      # elbv2.k8s.aws/pod-readiness-gate-inject=enabled label (target-type: ip only),
+      # the AWS Load Balancer Controller injects the
+      # target-health.elbv2.k8s.aws/<TargetGroupBinding name> condition at Pod creation and updates its status.
 
       # Layer 3: Node Readiness (handled automatically by NodeReadinessRule)
       # - Check node CNI, GPU, and storage readiness
@@ -578,7 +582,7 @@ Node Readiness Controller is currently at alpha version v0.1.1. Before applying 
 :::
 
 :::tip Operational best practices
-1. **Prefer bootstrap-only**: Bootstrap-only mode is sufficient in most cases. Use continuous mode only for components that frequently fail at runtime, such as GPU drivers.
+1. **Choose the mode by the nature of the dependency**: The NRC documentation gives `bootstrap-only` as the example for one-time initialization that only needs to happen once per boot, such as pre-pulling images or initializing a local cache, and `continuous` for dependencies that must stay healthy for the node's whole lifetime, such as a CNI plugin or a storage daemon ([Concepts](https://node-readiness-controller.sigs.k8s.io/user-guide/concepts.html)). It does not state that either mode is sufficient in most cases, so choose the mode by whether new Pod placement must be blocked when the condition changes at runtime.
 2. **Make effective use of nodeSelector**: Define rules by workload type instead of applying the same rule to all nodes.
 3. **Integrate Node Problem Detector**: Using NRC and NPD together enables automated responses to hardware/OS-level issues as well.
 4. **Monitoring and alerts**: Collect taint application/removal events in CloudWatch or Prometheus, and configure alerts for taints that remain in place for a long time.

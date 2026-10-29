@@ -3,9 +3,9 @@ title: Node Readiness Controller
 description: 노드의 인프라 준비 상태를 관리하는 구성을 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 10
 tags:
   - eks
   - kubernetes
@@ -71,6 +71,8 @@ Node Readiness Controller(NRC)는 2026년 2월 Kubernetes 공식 블로그에서
 라벨 기반으로 특정 노드 그룹에만 규칙을 적용합니다. GPU 노드와 범용 노드에 서로 다른 readiness 규칙을 적용할 수 있습니다.
 
 ### YAML 예시 {#yaml-예시}
+
+이 절과 아래 EKS 적용 시나리오의 조건 유형(`cniplugin.example.net/NetworkReady`, `nvidia.com/gpu-driver-ready`, `nvidia.com/gpu-device-plugin-ready`, `ebs.csi.aws.com/VolumeAttachReady`, `vpc.amazonaws.com/CNIReady`, `example.com/CustomHealthCheck`)은 설명을 위한 예시 이름입니다. VPC CNI, NVIDIA 드라이버와 Device Plugin, EBS CSI 드라이버가 이 이름의 노드 조건을 기본으로 보고한다는 근거는 확인하지 못했습니다(2026-10-29 기준). NRC는 다른 컴포넌트가 노드에 기록한 조건을 읽고 Taint를 관리할 뿐 조건을 직접 만들지 않으므로, 이 규칙을 쓰려면 조건을 기록하는 리포터를 함께 배포해야 합니다. 리포터로는 NRC 프로젝트의 `readiness-condition-reporter`(컴포넌트의 헬스 엔드포인트를 주기적으로 확인해 `CONDITION_TYPE`에 지정한 조건을 기록, [Reporter Configuration](https://node-readiness-controller.sigs.k8s.io/reference/reporter-configuration.html)), Node Problem Detector, 또는 직접 구현한 DaemonSet을 쓸 수 있습니다. 아래 VPC CNI와 NVIDIA 예시의 조건 설정 코드는 리포터를 직접 구현하는 방법의 예시이며, 해당 컴포넌트에 포함된 기능이 아닙니다.
 
 #### CNI 부트스트랩 - Bootstrap-only 모드 {#cni-부트스트랩---bootstrap-only-모드}
 
@@ -299,7 +301,7 @@ spec:
 
 **NVIDIA Device Plugin에서 조건 설정:**
 ```go
-// NVIDIA Device Plugin의 헬스체크 로직
+// 직접 구현하는 조건 리포터 예시(NVIDIA Device Plugin에 포함된 로직이 아님)
 func updateNodeCondition(nodeName string) error {
     // GPU 드라이버 상태 확인 (go-nvml은 error가 아닌 nvml.Return 코드를 반환)
     version, ret := nvml.SystemGetDriverVersion()
@@ -443,8 +445,10 @@ spec:
           failureThreshold: 2
 
       # 2계층: Pod Readiness Gate
-      readinessGates:
-      - conditionType: "target-health.alb.ingress.k8s.aws/production-alb"
+      # readinessGates는 직접 작성하지 않습니다. 네임스페이스에
+      # elbv2.k8s.aws/pod-readiness-gate-inject=enabled 레이블을 붙이면(target-type: ip 한정)
+      # AWS Load Balancer Controller가 Pod 생성 시
+      # target-health.elbv2.k8s.aws/<TargetGroupBinding 이름> 조건을 주입하고 상태를 갱신합니다.
 
       # 3계층: Node Readiness (NodeReadinessRule로 자동 처리)
       # - 노드의 CNI, GPU, 스토리지 준비 상태 확인
@@ -578,7 +582,7 @@ Node Readiness Controller는 현재 v0.1.1 알파 버전입니다. 프로덕션 
 :::
 
 :::tip 운영 Best Practice
-1. **Bootstrap-only 우선 사용**: 대부분의 경우 부트스트랩 전용 모드로 충분합니다. Continuous 모드는 런타임 중 장애가 빈번한 컴포넌트(GPU 드라이버 등)에만 사용하세요.
+1. **의존성 성격에 맞는 모드 선택**: NRC 문서는 이미지 프리풀이나 로컬 캐시 초기화처럼 부팅당 한 번이면 되는 초기화에는 `bootstrap-only`를, CNI 플러그인이나 스토리지 데몬처럼 노드 수명 내내 정상이어야 하는 의존성에는 `continuous`를 예로 듭니다([Concepts](https://node-readiness-controller.sigs.k8s.io/user-guide/concepts.html)). 어느 한 모드가 대부분의 경우에 충분하다는 기준은 제시하지 않으므로, 조건이 런타임에 바뀔 때 신규 Pod 배치를 막아야 하는지에 따라 모드를 고르세요.
 2. **nodeSelector 적극 활용**: 모든 노드에 동일한 규칙을 적용하지 말고, 워크로드 유형별로 세분화하세요.
 3. **Node Problem Detector 통합**: NRC와 NPD를 함께 사용하면 하드웨어/OS 수준 문제까지 자동 대응할 수 있습니다.
 4. **모니터링 및 알림**: Taint 적용/제거 이벤트를 CloudWatch나 Prometheus로 수집하고, 장시간 Taint가 유지되면 알림을 받도록 설정하세요.

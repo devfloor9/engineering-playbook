@@ -3,7 +3,7 @@ title: 워크로드 디버깅
 description: EKS 워크로드 문제 진단 및 해결 가이드 - Pod 상태별 디버깅, 배포 실패 패턴, Probe 설정
 created: "2026-04-07"
 last_update:
-  date: 2026-10-19
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 10
 tags:
@@ -165,7 +165,7 @@ flowchart TD
     의존 서비스 점검`"]
 
     CHECK_PROBE -->|timeout 부족| FIX_TIMEOUT["`timeoutSeconds 증가
-    (기본 1초는 너무 짧음)`"]
+    (측정한 응답 시간이 기본값 1초를 넘는 경우)`"]
 
     style NOTREADY fill:#ff4444,stroke:#cc3636,color:#fff
     style FIX_PATH fill:#34a853,stroke:#2a8642,color:#fff
@@ -181,7 +181,7 @@ flowchart TD
 | 원인 | 증상 | 해결 방법 |
 |------|------|----------|
 | **readinessProbe path ≠ 실제 endpoint** | Probe가 404 Not Found 반환 | 앱의 실제 헬스체크 경로와 일치시키기 (`/health`, `/healthz`, `/ready` 등) |
-| **initialDelaySeconds < 앱 부팅 시간** | 앱이 준비되기 전에 Probe 시작 → 실패 | Spring Boot/JVM 앱은 30초 이상 필요. initialDelaySeconds 증가 또는 startupProbe 사용 |
+| **initialDelaySeconds < 앱 부팅 시간** | 앱이 준비되기 전에 Probe 시작 → 실패 | 앱의 실제 부팅 시간을 측정해 initialDelaySeconds를 늘리거나 startupProbe 사용. Spring Boot/JVM 앱의 "30초 이상"은 예시 수치이며 측정값이 아닙니다(부팅 시간은 앱과 리소스 할당에 따라 다름) |
 | **startupProbe 미사용 (livenessProbe와 함께 쓸 때)** | 느린 앱이 준비 전 livenessProbe에 걸려 반복 재시작(readiness가 아닌 liveness/재시작 문제) | startupProbe를 추가하여 초기 시작 시간 확보 (최대 failureThreshold × periodSeconds) |
 | **헬스체크에 외부 의존성 포함** | DB 장애 시 모든 Pod Ready=false | readinessProbe는 보통 Pod 자체 준비 상태만 확인하고 하드 외부 의존성(DB 등)은 제외합니다. 단, 해당 의존성 없이는 요청을 처리할 수 없는 경우에는 포함을 고려합니다 |
 

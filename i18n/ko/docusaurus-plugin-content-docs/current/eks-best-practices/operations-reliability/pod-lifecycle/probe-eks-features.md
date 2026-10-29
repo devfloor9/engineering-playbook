@@ -3,9 +3,9 @@ title: EKS 기능과 Probe 통합
 description: EKS 기능별 Probe 통합 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 11
+reading_time: 15
 tags:
   - eks
   - kubernetes
@@ -263,7 +263,7 @@ spec:
         "title": "API Server 지연 vs Probe 실패율",
         "metrics": [
           ["AWS/EKS", "apiserver_request_duration_seconds", {"stat": "p99", "label": "API Server p99 지연"}],
-          ["ContainerInsights", "ReadinessProbeFailure", {"stat": "Sum", "yAxis": "right"}]
+          ["ContainerInsights", "ReadinessProbeFailure", "ClusterName", "production-eks", {"stat": "Sum", "yAxis": "right"}]
         ],
         "period": 60,
         "region": "ap-northeast-2",
@@ -276,6 +276,8 @@ spec:
   ]
 }
 ```
+
+`ReadinessProbeFailure`는 Container Insights가 기본으로 수집하는 지표가 아닙니다. Container Insights(향상된 관측성 포함)의 Pod 지표에는 `pod_status_ready`, `pod_container_status_waiting_reason_crash_loop_back_off` 같은 상태 지표가 있지만 Probe 실패 횟수 지표는 없습니다(2026-10-29 기준). 이 위젯과 앞의 알람 예시를 쓰려면 kubelet의 `prober_probe_total` 카운터(`/metrics/probes`) 등을 수집해 CloudWatch로 게시하는 파이프라인을 직접 구성해야 하며, 위젯에는 그 파이프라인이 게시할 때 지정한 네임스페이스, 지표 이름, 차원(예: `ClusterName`)을 그대로 적어야 합니다. CloudWatch는 네임스페이스, 지표 이름, 차원 조합이 정확히 일치하는 지표만 조회합니다.
 
 :::warning 대규모 클러스터의 API Server 부하
 kubelet의 HTTP/TCP/exec/gRPC Probe는 노드에서 대상 Pod을 직접 호출하며 API Server를 거치지 않으므로, Probe 자체가 API Server에 부하를 집중시키지는 않습니다. 다만 대규모 클러스터에서는 kubelet의 상태 보고와 watch, 그 밖의 API 호출이 API Server 부하를 높일 수 있고, 이때 Pod 상태 업데이트가 지연되면 Probe 결과 반영이 느려질 수 있습니다. API Server에 의존하는 호출 부하가 문제가 되면 해당 호출의 주기를 조정하세요. Provisioned Control Plane은 사전 할당된 제어 플레인 용량으로 이런 API Server 부하 상황을 완화할 수 있지만, kubelet이 로컬에서 수행하는 Probe 실행 경로를 바꾸지는 않습니다(Section 2.7.3).
@@ -297,7 +299,7 @@ Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플�
 | **2XL** | 매우 높음 | 2,500 | 대규모 배치 |
 | **4XL** | 초고속 | 5,000 | 초대규모 ML |
 
-티어별 Pod 스케줄링 처리량과 Probe 응답 지연 보장치는 공식 출처가 확인되지 않아 이 표에 수치로 제시하지 않습니다. 표의 최대 노드 수(1,000/2,500/5,000)도 공식 출처로 확인된 값이 아닌 참고용 추정치이므로, 실제 지원 규모와 성능은 대상 환경에서 측정하고 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)로 확인해야 합니다.
+티어별 Probe 응답 지연 보장치는 공식 출처가 없어 이 표에 수치로 제시하지 않습니다. AWS 문서는 티어(XL, 2XL, 4XL, 8XL)를 API 요청 동시성(seat), Pod 스케줄링 속도(pods/sec), 클러스터 데이터베이스 크기, SLA의 네 가지 속성으로 정의하며, 최대 노드 수는 티어 속성에 포함되지 않습니다. EKS 1.34 이상에서 XL, 2XL, 4XL, 8XL의 API 요청 동시성은 각각 2,000, 4,000, 8,000, 16,000 seat(1.30-1.33은 1,700, 3,400, 6,800, 13,600 seat)이고, Pod 스케줄링 속도는 167, 283, 400, 400 pods/sec, 데이터베이스 크기는 16GB, SLA는 99.99%입니다(2026-10-29 기준). 표의 최대 노드 수(1,000/2,500/5,000)는 공식 출처로 확인된 값이 아닌 참고용 추정치입니다. AWS 문서도 실제 성능은 워크로드 패턴과 구성에 따라 달라진다고 설명하므로, 실제 지원 규모와 성능은 대상 환경에서 측정하고 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)로 확인해야 합니다.
 
 **그림 2. Standard와 Provisioned Control Plane의 부하 처리 비교**
 
@@ -385,14 +387,16 @@ spec:
           timeoutSeconds: 2
 ```
 
-**사용 사례: AI/ML Training 클러스터**
+**사용 사례(가상 시나리오): AI/ML Training 클러스터**
 
 - **문제**: 1,000개의 GPU 노드에서 동시에 수백 개의 Training Pod 시작 시, Standard Control Plane에서 API Server 응답 지연 발생
 - **해결**: Provisioned Control Plane XL 티어 사용
-- **결과**:
+- **기대 효과**:
   - Pod 스케줄링 시간 단축
   - Readiness Probe 타임아웃 감소
   - Training Job 시작 안정성 향상
+
+이 사례는 측정한 사례가 아니라 가상의 시나리오이며, 위 효과는 관측된 결과가 아니라 검증해야 할 기대 효과입니다. kubelet Probe는 API Server를 거치지 않으므로, Readiness Probe 타임아웃이 줄어드는지는 Probe가 확인하는 의존성이 API Server 지연의 영향을 받는 경우에만 기대할 수 있습니다. 효과는 노드 수, 동시에 시작하는 Pod 수, 선택한 티어를 정해 Standard 모드와 비교 측정해 확인합니다.
 
 **Cost vs Performance 고려사항:**
 
@@ -413,12 +417,11 @@ Provisioned Control Plane은 짧은 시간 내에 수천 개의 Pod을 동시에
 
 **개요:**
 
-GuardDuty Extended Threat Detection(EKS 지원: 2025년 6월)은 Probe 엔드포인트의 비정상 접근 패턴을 탐지하여, 악의적인 워크로드가 헬스체크를 우회하거나 조작하는 공격을 식별합니다.
+GuardDuty Extended Threat Detection(EKS 지원: 2025년 6월)은 EKS 감사 로그, 컨테이너 런타임 행동, AWS API 활동에서 나온 신호와 기존 GuardDuty 탐지 결과를 상관 분석해, 여러 단계에 걸친 공격을 하나의 Critical 공격 시퀀스 탐지 결과(`AttackSequence:EKS/CompromisedCluster`)로 생성합니다. EKS에서 이 기능을 쓰려면 EKS Protection 또는 Runtime Monitoring(EKS 애드온) 중 하나 이상을 켜야 합니다. AWS 문서는 Probe 엔드포인트 접근 패턴이나 헬스체크 위조를 탐지 대상으로 설명하지 않으므로([Extended Threat Detection](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty-extended-threat-detection.html), 2026-10-29 기준), 헬스체크로 정상처럼 보이는 악성 워크로드도 Probe 응답이 아니라 이러한 감사 로그·런타임·API 신호로 탐지됩니다.
 
 **주요 기능:**
 - EKS 감사 로그 + 런타임 행동 + 맬웨어 실행 + AWS API 활동 상관 분석
 - AI/ML 기반 다단계 공격 시퀀스 탐지
-- Probe 엔드포인트 비정상 접근 패턴 식별
 - 크립토마이닝 등 악의적 워크로드 자동 탐지
 
 **활성화:**
@@ -494,7 +497,7 @@ spec:
               key: health-token
 ```
 
-**그림 3. GuardDuty의 헬스체크 위조 탐지와 자동 대응 시나리오**
+**그림 3. 악성 Pod 배포 이후 GuardDuty 복합 탐지와 자동 대응의 가상 시나리오**
 
 ```mermaid
 flowchart TD
@@ -533,6 +536,8 @@ flowchart TD
 4. GuardDuty가 비정상적인 네트워크 트래픽 + CPU 사용 패턴 탐지
 
 **탐지 후 자동 대응:**
+
+아래 ConfigMap은 EventBridge 규칙 패턴과 Lambda 코드의 골격을 문자열로 담아 둔 참고 예시이며, 이 ConfigMap을 적용해도 어떤 대응도 실행되지 않습니다. 실제 자동 대응에는 GuardDuty Finding 이벤트를 매칭하는 EventBridge 규칙과 그 대상(target)으로 등록한 Lambda 함수를 배포해야 합니다. Lambda 함수에는 클러스터 접근 권한(예: EKS 액세스 엔트리)을 받은 IAM 역할과, 그 자격 증명으로 Kubernetes API를 호출해 NetworkPolicy를 만드는 클라이언트 코드가 필요합니다. 아래 `isolate_pod`는 kubectl 명령 문자열을 만들 뿐 실행하지 않습니다. 또한 규칙 패턴의 `"severity": [7, 8, 9]`는 정확히 그 값만 일치하므로, 7.5처럼 소수점이 있는 심각도의 탐지 결과는 매칭되지 않습니다(GuardDuty 문서의 예시 패턴은 소수 값까지 나열합니다, [EventBridge 규칙 생성](https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings_eventbridge.html)).
 
 ```yaml
 # EventBridge Rule: GuardDuty Finding → Lambda → Pod 격리
