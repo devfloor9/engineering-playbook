@@ -49204,6 +49204,2011 @@
       ],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
       "followup_of": "2026-09-19-hyp-ops-253"
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c007",
+      "package": "aidlc",
+      "id": "AIDLC-C007",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text claimed 'LiteLLM has no native shadow feature' -> now states that the LiteLLM Router/Proxy provide traffic mirroring via silent_model (as of 2026-10-29, linked) and that the example is the manual pattern for direct acompletion calls.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+        "docs/aidlc/enterprise/agent-versioning/deployment-strategies.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "LiteLLM docs 'A/B Testing - Traffic Mirroring' describe silent_model in litellm_params, background call, is_silent_experiment metadata; claim was wrong, corrected and dated. Inline link added because the passage already links products inline (LaunchDarkly)."
+      ],
+      "primary_urls": [
+        "https://docs.litellm.ai/docs/traffic_mirroring"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c008",
+      "package": "aidlc",
+      "id": "AIDLC-C008",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Shadow example gathered both calls with return_exceptions=True and returned an exception object on primary failure -> now awaits only the primary task (errors propagate, shadow cancelled), logs the shadow result in a referenced background task; the Advantages note is updated to match.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+        "docs/aidlc/enterprise/agent-versioning/deployment-strategies.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Code fix from Python asyncio semantics (gather(return_exceptions=True) returns exceptions as values); both locales' code blocks identical except comments; ast.parse and run9 step 8 pass."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c009",
+      "package": "aidlc",
+      "id": "AIDLC-C009",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Both LaunchDarkly examples used LDClient(sdk_key=...) -> now ldclient.set_config(Config(key)) and ldclient.get(), the SDK's documented singleton pattern.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/deployment-strategies.md",
+        "docs/aidlc/enterprise/agent-versioning/deployment-strategies.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "SDK API docs: class ldclient.client.LDClient(config: Config, start_wait=5); ldclient.set_config(config) and ldclient.get() documented as the recommended singleton; no sdk_key keyword."
+      ],
+      "primary_urls": [
+        "https://launchdarkly-python-sdk.readthedocs.io/en/latest/api-main.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c035-w3",
+      "package": "aidlc",
+      "id": "AIDLC-C035",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Principle 3 said regressions are detected 'immediately' -> now says detection time depends on evaluation cycle and metric aggregation, cannot be guaranteed immediate, and must be set as a design target verified by an injected-regression test.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/index.md",
+        "docs/aidlc/enterprise/agent-versioning/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Remaining part of the partial record was document work (label detection as a design target); no number added."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-aidlc-c035"
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c037",
+      "package": "aidlc",
+      "id": "AIDLC-C037",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Langfuse disadvantages said 'Python SDK-centric (TS SDK limited)' and 'no approval workflow' undated -> now: Python and JS/TS SDKs both support prompt create/fetch/label update; no approval workflow, protected labels only on Pro (Teams add-on)/Enterprise/self-hosted EE (as of 2026-10-29).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Langfuse version-control page shows JS/TS SDK prompt.create/get/update with labels and the 'Protected prompt labels' availability box (Hobby/Core not available, Pro Teams add-on, Enterprise, Self Hosted Enterprise Edition)."
+      ],
+      "primary_urls": [
+        "https://langfuse.com/docs/prompt-management/features/prompt-version-control"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c038",
+      "package": "aidlc",
+      "id": "AIDLC-C038",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "PromptLayer described as SaaS only / no on-premises -> now SaaS by default with an Enterprise-only self-hosted deployment (as of 2026-10-29); the data-sovereignty bullet is scoped to SaaS use.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "PromptLayer docs: 'Self-hosted PromptLayer is an Enterprise-only feature', Helm on AWS/GCP. Claim was wrong; corrected and dated."
+      ],
+      "primary_urls": [
+        "https://docs.promptlayer.com/self-hosted"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c040-w3",
+      "package": "aidlc",
+      "id": "AIDLC-C040",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Comparison cells were unscoped -> Deployment, Labels/Alias (Braintrust: per-environment version assignment), Auto Evaluation (PromptLayer: Evals), Data Sovereignty and the recommendation now state plan/edition scope as of 2026-10-29; the note says which rows were checked and that Visual Diff/Approval/A-B cells were not re-verified.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/agent-versioning/prompt-model-registry.md",
+        "docs/aidlc/enterprise/agent-versioning/prompt-model-registry.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Braintrust self-hosting page: 'Self-hosting is only available on the Enterprise plan' (data plane in customer cloud, control plane hosted); Braintrust prompts can be assigned to environments; PromptLayer docs list Release Labels and SDK Evals. Cells not re-checked are disclosed as unverified rather than changed."
+      ],
+      "primary_urls": [
+        "https://docs.promptlayer.com/self-hosted",
+        "https://docs.promptlayer.com/features/prompt-registry/release-labels",
+        "https://www.braintrust.dev/docs/guides/self-hosting/index",
+        "https://www.braintrust.dev/docs/deploy/environments",
+        "https://langfuse.com/docs/prompt-management/features/prompt-version-control"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-aidlc-c040"
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c042",
+      "package": "aidlc",
+      "id": "AIDLC-C042",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Financial scenario listed 1+2+3-month phases and a 4.8-month assumed schedule without explanation -> a paragraph now says the phase durations are planned (sum = 6 months) and 4.8 months is an illustrative value assuming early finishes or overlapping phases; actual per-phase durations are not defined.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/case-studies.md",
+        "docs/aidlc/enterprise/case-studies.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Fictional scenario; the honest fix is to explain the relationship, not to invent phase overlaps. Existing numbers only referenced."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c068",
+      "package": "aidlc",
+      "id": "AIDLC-C068",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text implied official security/ and testing/ extensions with rules.yaml (SEC-00x/TEST-00x) -> now states v0.1.7 has security/baseline (security-baseline.md, SECURITY-01..15 + .opt-in.md) and testing/property-based (PBT-01..10 + .opt-in.md) Markdown files, labels the rules.yaml blocks as this guide's illustrations, and notes the latest release v2.11.2 was not compared.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+        "docs/aidlc/enterprise/extension-system.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Read the v0.1.7 git tree via GitHub API and the raw rule/opt-in files (rule headings SECURITY-01..15, PBT-01..10). Releases API shows v2.11.2 published 2026-10-28."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/awslabs/aidlc-workflows/git/trees/v0.1.7?recursive=1",
+        "https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/extensions",
+        "https://api.github.com/repos/awslabs/aidlc-workflows/releases?per_page=5"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c069",
+      "package": "aidlc",
+      "id": "AIDLC-C069",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text said activation is controlled by .aidlc/opt-in.md and AIDLC auto-adds extensions after an A-E answer -> now describes v0.1.7: *.opt-in.md scan at start, opt-in prompts in Requirements Analysis, answers recorded in aidlc-docs/aidlc-state.md, rules loaded on opt-in, default enforced; .aidlc/opt-in.md and the A-E menu are labelled a proposed convention.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+        "docs/aidlc/enterprise/extension-system.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "core-workflow.md 'MANDATORY: Extensions Loading' and requirements-analysis.md Step 5.1 read at tag v0.1.7."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/aidlc-rules/aws-aidlc-rules/core-workflow.md",
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception/requirements-analysis.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c071",
+      "package": "aidlc",
+      "id": "AIDLC-C071",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "ISMS-P rule IDs and numeric controls (9 chars/3 types, 10-minute timeout, 5 failures, 24-hour report, AES-256) were asserted as the standard -> now labelled as example values not verified against the current ISMS-P criteria (as of 2026-10-29).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+        "docs/aidlc/enterprise/extension-system.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Searched for the ISMS-P criteria item list (2.5.1/2.8.2/2.9.1) and KISA source within the budget; no primary text read (criteria/explanatory guide not retrieved). Qualified rather than changed."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c072",
+      "package": "aidlc",
+      "id": "AIDLC-C072",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "finance-korea rules (EFSR-8/13/DR, RTO<=3h, RPO<=24h, annual DR drill, TLS 1.3, AES-256, 6-digit masking) were asserted as regulation -> now labelled as example settings not verified against the Electronic Financial Supervision Regulations text (as of 2026-10-29).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+        "docs/aidlc/enterprise/extension-system.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Searched for 전자금융감독규정 제23조 RTO and 망분리 articles; no primary text (law.go.kr) retrieved within budget. Qualified."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c073",
+      "package": "aidlc",
+      "id": "AIDLC-C073",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Section 5 presented metadata.yaml/rules.yaml specs and 'aidlc extension validate/check-conflicts', 'aidlc run --pilot' as the interface -> now labelled a proposed convention; states v0.1.7 has no such spec or CLI and that an official extension is <name>.md plus optional <name>.opt-in.md.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+        "docs/aidlc/enterprise/extension-system.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "v0.1.7 tree has no CLI and no metadata/rules YAML; the current main CLI reference (native aidlc command, /aidlc plugin validate) has no extension validate/check-conflicts/run --pilot."
+      ],
+      "primary_urls": [
+        "https://api.github.com/repos/awslabs/aidlc-workflows/git/trees/v0.1.7?recursive=1",
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/v0.1.7/aidlc-rules/aws-aidlc-rules/core-workflow.md",
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/main/docs/guide/12-cli-commands.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c074",
+      "package": "aidlc",
+      "id": "AIDLC-C074",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Examples attributed a named vendor (org-lg-security, LG CNS, security-team@lgcns.com, extensions.lgcns.internal, sha256:abc123...) -> replaced with neutral placeholders (org-example-security, example.com, sha256:<content-digest>) and labelled the metadata/registry values as illustrative.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/extension-system.md",
+        "docs/aidlc/enterprise/extension-system.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No public evidence of authorization to attribute LG CNS; the proposed edit's placeholder option is the honest fix."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c077",
+      "package": "aidlc",
+      "id": "AIDLC-C077",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Steering files were said to be injected into agents without a loading/enforcement mechanism -> now: Claude Code auto-loads CLAUDE.md as context (not enforcement; PreToolUse hook to block), Aider reads only --read / .aider.conf.yml read: files, Continue unverified, .aidlc YAML/inherits is a proposed format needing a merge script and CI/review enforcement.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/governance-framework.md",
+        "docs/aidlc/enterprise/governance-framework.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Claude Code memory docs: CLAUDE.md loaded every session, 'context, not enforced configuration', PreToolUse hook to block. Aider conventions docs: --read and .aider.conf.yml read:. Continue config not checked (marked unverified)."
+      ],
+      "primary_urls": [
+        "https://docs.anthropic.com/en/docs/claude-code/memory",
+        "https://aider.chat/docs/usage/conventions.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c082",
+      "package": "aidlc",
+      "id": "AIDLC-C082",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Korean AI Act section listed blanket requirements (disclose model and training-data sources, define liability) -> now names the Act, its 2026-01-22 effective date, scopes duties to AI business operators by AI type and summarises Articles 31-34; no public model/data-source disclosure duty found; AIDLC practices labelled as non-statutory examples.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/governance-framework.md",
+        "docs/aidlc/enterprise/governance-framework.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "CSET English translation (sourced from the National Law Information Center, promulgated 2025-01-21, in force one year later) Articles 31, 32, 33, 34 and Addenda read. Translation, not the Korean original; text says 'public English translation'."
+      ],
+      "primary_urls": [
+        "https://cset.georgetown.edu/wp-content/uploads/t0625_south_korea_ai_law_EN.pdf"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c084",
+      "package": "aidlc",
+      "id": "AIDLC-C084",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text said code-generation AI is 'medium risk' under the EU AI Act -> now explains the Act's structure (Art. 5 prohibited, Art. 6/Annex III high-risk, Art. 50 transparency), that there is no medium tier, that classification follows deployed use and provider/deployer role; requirements scoped to high-risk (Arts 9, 11, 43, 48) vs Art. 50; YAML comment relabelled as an example.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/governance-framework.md",
+        "docs/aidlc/enterprise/governance-framework.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "AI Act Explorer table of contents (Chapter II Art. 5, Chapter III Arts 6-49 incl. Arts 9, 11, 43, 48, Chapter IV Art. 50) read on 2026-10-29."
+      ],
+      "primary_urls": [
+        "https://artificialintelligenceact.eu/article/50/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c092",
+      "package": "aidlc",
+      "id": "AIDLC-C092",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "CI pipelines invoked an undefined aidlc-cli and the quality-gate job could not see harness results -> a paragraph labels aidlc-cli as a placeholder for an organization-built validator (no public CLI found, as of 2026-10-29) and the YAML now uploads harness results with actions/upload-artifact@v4 and downloads them in quality-gate.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/implementation/harness-checklist.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/msa-complexity/implementation/verification.md",
+        "docs/aidlc/enterprise/msa-complexity/implementation/harness-checklist.md",
+        "docs/aidlc/enterprise/msa-complexity/implementation/verification.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Web search for 'aidlc-cli' found no such published tool (only awslabs/aidlc-workflows' own native 'aidlc' command). Artifact passing follows GitHub Actions job isolation; run9 step 8 parses the YAML."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c118",
+      "package": "aidlc",
+      "id": "AIDLC-C118",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Annex A table used invented IDs A.5-A.13 with 72 controls -> now A.2-A.10 with the published titles and counts 3/2/5/4/9/5/4/3/3 (38), noted as checked against public secondary sources; a note flags the later sections' A.10-A.12/sub-numbers as legacy illustrative labels. Parent follow-up (PR #214 commit bab618ea): regulatory-compliance/index.md (KO/EN) '72 controls across 9 categories' aligned to the same 38 controls / nine objectives (A.2-A.10) statement.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "0730d5edc66e1f75464db5d596fce3719fe91a64",
+        "bab618ea89ce8e89c75b92e08e27526336816c29"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/regulatory-compliance/frameworks/iso-42001.md",
+        "docs/aidlc/enterprise/regulatory-compliance/index.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/iso-42001.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Two independent secondary sources agree (nine objectives A.2-A.10, 38 controls; per-group counts from arphie). iso.org returned 403 and the normative text is paid, so the text says secondary sources and directs SoA work to the standard."
+      ],
+      "primary_urls": [
+        "https://www.konfirmity.com/blog/iso-42001-controls",
+        "https://www.arphie.ai/blog/iso-42001-controls"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c125",
+      "package": "aidlc",
+      "id": "AIDLC-C125",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The YAML comment presented 'sla: 7d' as a statutory 7-day correction deadline after malfunction detection; it now labels 7d as an example internal target and states the Act's text sets no correction deadline (decree/notices unverified as of 2026-10-29).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/regulatory-compliance/frameworks/korea-ai-law.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/frameworks/korea-ai-law.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Read the full Act text (official MOLEG translation published by CSET, Law No. 20676): Arts. 31-36 and 40 contain no correction deadline; Art. 40(3) only allows a correction order after investigation. Enforcement decree text could not be retrieved (law.go.kr is JS-rendered) within the budget, so the decree is marked unverified."
+      ],
+      "primary_urls": [
+        "https://cset.georgetown.edu/publication/south-korea-ai-law-2025/",
+        "https://cset.georgetown.edu/wp-content/uploads/t0625_south_korea_ai_law_EN.pdf"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c129",
+      "package": "aidlc",
+      "id": "AIDLC-C129",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The NIST crosswalk filed identified risks under 'map_3_1' (MAP 3.1 is expected benefits); it now uses 'map_4_1_identified_risks' (MAP 4.1, technology/legal risks of components). The ISO ids A.10.2/A.7.3/A.12.5 are labelled as examples not checked against the paid normative text, noting public guides describe Annex A as 38 controls under A.2-A.10.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/implementation-guide.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "NIST AIRC Playbook MAP page: MAP 1.1 = intended purpose/context, MAP 3.1 = potential benefits, MAP 4.1 = mapping technology and legal risks of components, MAP 5.1 = likelihood/magnitude of impacts. ISO/IEC 42001 text is paid (AWS FAQ confirms it cannot be redistributed); several independent secondary guides agree on 38 controls A.2-A.10, so the ISO ids are qualified, not rewritten."
+      ],
+      "primary_urls": [
+        "https://airc.nist.gov/airmf-resources/playbook/map/",
+        "https://www.konfirmity.com/blog/iso-42001-controls",
+        "https://www.complyjet.com/blog/iso-42001-checklist",
+        "https://www.bemopro.com/cybersecurity-blog/iso-42001-annex-a-requirements-checklist"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c135",
+      "package": "aidlc",
+      "id": "AIDLC-C135",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The unified audit log presented 'retention: 3y' as a PIPA requirement and 'retention: 6m' as a Korea AI Basic Act requirement; the comments now say the PIPA values are example policy (statutory periods to be checked per record type) and that the Act requires documents to be prepared/stored (Art. 34) but sets no period, 6m being borrowed from EU AI Act Art. 19.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/implementation-guide.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Searched the Act text for any retention/day/month term: none. EU AI Act Art. 19(1) keeps automatically generated logs for at least six months. A primary PIPA source for per-record periods (e.g. the safety-measures notice) was not retrieved within the budget, so PIPA periods are not asserted."
+      ],
+      "primary_urls": [
+        "https://cset.georgetown.edu/wp-content/uploads/t0625_south_korea_ai_law_EN.pdf",
+        "https://artificialintelligenceact.eu/article/19/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c139",
+      "package": "aidlc",
+      "id": "AIDLC-C139",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Tier-3 'Estimated Cost 30 man-months + $50k', '100% of 72 Annex A Controls' and '1-year PDCA evidence' were stated as plan facts; the cost is now labelled an example planning estimate, the 72-count is replaced by 'controls marked applicable in the Statement of Applicability (confirm count/ids against the standard)', and 1 year is labelled a planning example to confirm with the certification body.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/regulatory-compliance/implementation-guide.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/implementation-guide.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No public source for the cost; ISO normative text is paid. Secondary guides describe 38 Annex A controls selected via a Statement of Applicability, which contradicts '72' but cannot be confirmed from the standard itself, so the count was removed rather than replaced."
+      ],
+      "primary_urls": [
+        "https://www.konfirmity.com/blog/iso-42001-controls",
+        "https://www.complyjet.com/blog/iso-42001-checklist",
+        "https://www.bemopro.com/cybersecurity-blog/iso-42001-annex-a-requirements-checklist",
+        "https://aws.amazon.com/compliance/iso-42001-faqs/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c142",
+      "package": "aidlc",
+      "id": "AIDLC-C142",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The comparative matrix left the Korea column '-' for Human Oversight and Technical Documentation and gave unqualified ISO ids; those cells now cite Art. 34(1)(4) (human management and supervision) and Art. 34(1)(5) (preparing/storing documents), and a paragraph after the table qualifies the ISO column (not checked against the paid text; public guides: 38 controls A.2-A.10) and explains the remaining '-' cells.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a",
+        "bab618ea89ce8e89c75b92e08e27526336816c29"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/regulatory-compliance/index.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Art. 34(1) items 1-6 read in the official translation. NIST column cross-checked against the AIRC Playbook (GOVERN 1.4/6.1, MEASURE 2.3/2.4/2.7/2.8/2.9, MANAGE 3.1/4.1/4.3) and found consistent, so left unchanged. Performance Monitoring and Supply Chain have no direct article in the Act, so '-' stays with an explanation."
+      ],
+      "primary_urls": [
+        "https://cset.georgetown.edu/wp-content/uploads/t0625_south_korea_ai_law_EN.pdf",
+        "https://airc.nist.gov/airmf-resources/playbook/govern/",
+        "https://airc.nist.gov/airmf-resources/playbook/measure/",
+        "https://airc.nist.gov/airmf-resources/playbook/manage/",
+        "https://www.konfirmity.com/blog/iso-42001-controls",
+        "https://www.complyjet.com/blog/iso-42001-checklist",
+        "https://www.bemopro.com/cybersecurity-blog/iso-42001-annex-a-requirements-checklist"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c144",
+      "package": "aidlc",
+      "id": "AIDLC-C144",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "AWS Artifact was described as providing 'EU AI Act, ISO 42001 compliance reports'; it now says Artifact provides AWS's ISO/IEC 42001:2023 certificate (as of 2026-10-29, linked to the AWS ISO 42001 FAQ) and that availability of an EU AI Act report was not verified.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a",
+        "bab618ea89ce8e89c75b92e08e27526336816c29"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/regulatory-compliance/index.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/regulatory-compliance/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The AWS ISO/IEC 42001 FAQ states the certificate (Schellman, ANAB) is accessible in the console through AWS Artifact. No AWS page describing an EU AI Act report in Artifact was found."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/compliance/iso-42001-faqs/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c146",
+      "package": "aidlc",
+      "id": "AIDLC-C146",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'OpenAI Codex case, over 1 million lines... to ensure quality and stability' plus a verbatim quote attributed to 'Production Engineering Team, OpenAI (2024)'; the case is now dated and described per OpenAI's Feb 2026 Harness engineering post (about 1M lines over five months, no manually written code, engineers designing environments/intent/feedback loops) with a plain-text reference entry, and the quote is labelled unverified.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/role-composition.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/role-composition.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "InfoQ (2026-02-21) and the openai.com search snippet of 'Harness engineering: leveraging Codex in an agent-first world' confirm ~1M lines, five months, no manually written code. openai.com returned HTTP 403 to the fetcher, so the post body was read via InfoQ and the search result. The quoted sentence was not found anywhere; kept but labelled unverified per policy (not silently deleted)."
+      ],
+      "primary_urls": [
+        "https://www.infoq.com/news/2026/02/openai-harness-engineering-codex/",
+        "https://openai.com/index/harness-engineering"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c150",
+      "package": "aidlc",
+      "id": "AIDLC-C150",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'Rework cost 90% reduction (NIST research: Shift-Left effect)' is now an example target whose NIST attribution the authors could not verify; the same qualification is applied to the second mention in Change Interpretation and to the reference entry 'The Cost of Fixing Bugs: Shift-Left vs Shift-Right (NIST, 2023)'.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/role-composition.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/role-composition.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Searched for the cited NIST 2023 title (no hit) and for NIST shift-left cost studies; the known NIST source is Planning Report 02-3 (2002), which discusses relative cost of late defect fixes, not a 90% rework reduction. Attribution labelled unverified, not deleted."
+      ],
+      "primary_urls": [
+        "https://www.nist.gov/document/report02-3pdf"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c154",
+      "package": "aidlc",
+      "id": "AIDLC-C154",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The EN AIDLC index lacked the KO 'official AIDLC reference' box; an ':::info Official AIDLC reference' box now states the AWS Labs AIDLC Workflows v0.1.7 (2026-04-02) base and the official-term mapping (User Request/Requirements -> Intent, Unit of Work -> Unit, Bolt has no official equivalent), linking the EN execution-model page.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Translated from the KO index box and the KO principles-and-model 1.2 mapping table. The EN principles-and-model page has no term-mapping section (EN 1.2 is 'Core Shift'), so instead of linking a Hangul anchor the mapping is stated inline and the link targets the page without an anchor."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost. EN docs/aidlc/methodology/principles-and-model.md lacks the KO sections 1.2 (term mapping) and 1.3 (official 5 principles); outside files_owned."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c174",
+      "package": "aidlc",
+      "id": "AIDLC-C174",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'Regulated industries should freeze model versions for 3-5 years (NIST SP 800-218A recommendation)' now says the freeze period follows audit/reproducibility requirements, 3-5 years is this guide's example and not an SP 800-218A recommendation, and SP 800-218A instead recommends criteria for stopping use of a model and rolling back.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/methodology/common-rules.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/common-rules.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Full text of SP 800-218A extracted: the word 'year' never occurs; it recommends versioning/tracking and 'criteria and processes for when to stop using an AI model and when to roll back to a previous version'."
+      ],
+      "primary_urls": [
+        "https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-218A.pdf"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c185",
+      "package": "aidlc",
+      "id": "AIDLC-C185",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The example ADR stated 'Cost: 15% more expensive than predictable traffic'; it now says on-demand can be more expensive than Provisioned Capacity for steady, predictable traffic and that the difference depends on traffic pattern and utilization and should be calculated from pricing.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/methodology/ddd-integration.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "DynamoDB capacity-mode guide: on-demand is the default/recommended mode with pay-per-request; provisioned suits steady workloads with predictable growth for cost predictability. No fixed percentage exists, so the number was removed and the relationship stated in words."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/capacity-mode.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c195",
+      "package": "aidlc",
+      "id": "AIDLC-C195",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The ':::danger Real Case: $2,200 Loss Incident' box is now 'Hypothetical Case: $2,200 Loss Scenario', opens with the repository's illustrative-figures label, states no source postmortem was found (as of 2026-10-29), and frames the 847 retries as an assumption.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/methodology/harness-engineering.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/harness-engineering.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Searched for the 847 retries / $2,200 / 14 emails / 3h incident: no postmortem or original report found (only unrelated runaway-agent anecdotes with other figures). Numbers kept as labelled example values."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c207",
+      "package": "aidlc",
+      "id": "AIDLC-C207",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The opening quote 'Prompt engineering is ontology engineering' was attributed to '2026 AI Community Consensus' in ontology-engineering and ddd-integration section 6; both now say it summarizes the document's own position and is not a quotation from a specific source.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/methodology/ontology-engineering.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/ontology-engineering.md",
+        "docs/aidlc/methodology/ddd-integration.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/ddd-integration.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Exact-phrase web search found no source for the sentence or a '2026 AI community consensus'."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c209",
+      "package": "aidlc",
+      "id": "AIDLC-C209",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sections 2.3, 6.2 and 8.1 presented 31% accuracy, 67% fewer false positives, 8.3%->1.2% in 31 days and a $28K no-loop case as measured ontology evidence; all three now attribute them to a Braincuber vendor blog (2026-03-07), mark them unverified, state they concern HITL feedback loops in general (not ontology), relabel Before/After as without/with a rebuilt feedback loop, call $28K a retraining cost, and drop the unsupported 'significant operational cost reduction'.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1d2676c476dbc253f27dba96d042149bbcf4750a"
+      ],
+      "source_files": [
+        "docs/aidlc/methodology/ontology-engineering.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/ontology-engineering.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The Braincuber post (already in 6.4 references) lists: HITL boosts decision accuracy by 31% and cuts false positives by 67%; a client spent $28,000 retraining without a loop (8.3% -> 7.9%), then the rebuilt loop hit 1.2% in 31 days. The article never mentions ontology or operating-cost savings; no measurement artifacts are published. Three instances kept (structure parity) but each qualified."
+      ],
+      "primary_urls": [
+        "https://www.braincuber.com/blog/how-to-build-feedback-loop-ai-agent-improvement"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c001",
+      "package": "aidlc",
+      "id": "AIDLC-C001",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Bolt was defined as a minimum deployable unit mapped 1:1 to Deployment/Helm/Terraform objects and as one full Construction Phase run -> now the Method Definition iteration (smallest iteration implementing a Unit or tasks within it; a Unit runs through one or more Bolts; operational artifacts belong to Deployment Units). adoption-strategy 2-week cadence not edited (outside files_owned). Parent follow-up (PR #214 commit bab618ea): adoption-strategy.md (KO/EN) now labels the 2-week Bolt cadence as this strategy's enterprise proposal, distinct from the Method Definition Bolt (hours to days), in the bullet and the diagram label.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862",
+        "bab618ea89ce8e89c75b92e08e27526336816c29"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/adoption-strategy.md",
+        "docs/aidlc/methodology/adaptive-execution.md",
+        "docs/aidlc/methodology/principles-and-model.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/adoption-strategy.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/adaptive-execution.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/principles-and-model.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Method Definition PDF (III.1 Artefacts) defines Bolt as the smallest iteration, one or more Bolts per Unit, Deployment Units as separate operational artifacts; blog: bolts measured in hours or days; v0.1.7 rules contain no Bolt stage."
+      ],
+      "primary_urls": [
+        "https://prod.d13rzhkk8cj2z0.amplifyapp.com/aidlc.pdf",
+        "https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/",
+        "https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c163",
+      "package": "aidlc",
+      "id": "AIDLC-C163",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KakaoPay amount range (min 100, max 10_000_000) and 15-minute session limit stated as business rules -> labelled as illustrative assumptions to be checked against the KakaoPay developer docs for the API version in use; primary source not verified as of 2026-10-29.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/adaptive-execution.md",
+        "docs/aidlc/methodology/adaptive-execution.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "KakaoPay developer page is JS-rendered; the API contract text was not retrievable within budget; web search returned only third-party blogs. Qualification is the honest fix; code block unchanged."
+      ],
+      "primary_urls": [
+        "https://developers.kakaopay.com/docs/payment/online/single-payment"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c237",
+      "package": "aidlc",
+      "id": "AIDLC-C237",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Intro attributed Rule 7/Rule 8 numbering and \"highest governance weight\" to AWS Labs Common Rules and presented the production controls as the rules -> now states what v0.1.7 actually requires (explicit approval per stage, verbatim audit.md logging), labels numbering/weighting as playbook classification and the multi-approver/auto-block/KMS/CLI controls as this document's proposal, not a regulated-industry compliance guarantee.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/audit-governance.md",
+        "docs/aidlc/operations/audit-governance.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Downloaded v0.1.7 tarball: core-workflow.md requires \"Wait for Explicit Approval\" and \"Log ... in audit.md with complete raw input\"; no \"Rule 7\"/\"Rule 8\" numbering exists in aidlc-rules; common/ holds 11 files without numbering."
+      ],
+      "primary_urls": [
+        "https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules",
+        "https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c238",
+      "package": "aidlc",
+      "id": "AIDLC-C238",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Table 1 assigned fixed 5/3/6/7/3-year periods to broad log categories -> HIPAA row now cites 45 CFR 164.316(b) documentation (6 years from creation or last effective date), SOX row cites SEC 17 CFR 210.2-06 auditor records (7 years after audit/review); Korean rows marked \"provision not verified\"; table framed as an illustrative mapping with organization retention policy deciding actual periods.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/audit-governance.md",
+        "docs/aidlc/operations/audit-governance.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "eCFR text read: 164.316(b)(2)(i) retain required documentation 6 years from creation or last in effect; 210.2-06(a) accountant retains audit/review records seven years. Korean provisions (EFSR, PIPA, ISMS-P) not traced to primary text within budget (law portal not retrievable; search gave secondary sources only), so labelled unverified rather than changed."
+      ],
+      "primary_urls": [
+        "https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-C/part-164/subpart-C/section-164.316",
+        "https://www.ecfr.gov/current/title-17/chapter-II/part-210/subject-group-ECFR6b6f30ba3d2bd3d/section-210.2-06"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c244",
+      "package": "aidlc",
+      "id": "AIDLC-C244",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "§5.1 showed `aidlc audit query/gates/verify-artifacts` with verified/PASSED output as if a shipped tool -> labelled (incl. §7.3) as a proposed interface not in AWS Labs AIDLC Workflows, output as a hypothetical example, and required real implementations to report failure/unverified outcomes.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/audit-governance.md",
+        "docs/aidlc/operations/audit-governance.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "v0.1.7 tarball contains no aidlc audit CLI (only markdown rules and an evaluator script). Code block left unchanged."
+      ],
+      "primary_urls": [
+        "https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c247",
+      "package": "aidlc",
+      "id": "AIDLC-C247",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "\"Manual 2 hours -> AI 5 minutes\", unmanned 24/7 operation, eliminated judgment variance and continuous accuracy gains stated as fact -> MTTR figure labelled illustrative, other bullets restated as goals with residual human responsibility, LLM variance and an evaluation requirement.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/autonomous-response.md",
+        "docs/aidlc/operations/autonomous-response.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No workload, dataset or study is cited or findable for these figures; they are scenario values. Qualification per policy; numbers kept with an explicit illustrative label."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c254",
+      "package": "aidlc",
+      "id": "AIDLC-C254",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "OOMKilled trace presented a confirmed Redis leak and auto-fix PR from pseudo tool calls -> labelled as a hypothetical scenario whose tool names may differ from the EKS MCP server spec, noting a 1-hour window cannot establish a 2-hour pattern and requiring evidenced root cause before a code-patch PR (limit raise as temporary measure).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/autonomous-response.md",
+        "docs/aidlc/operations/autonomous-response.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Trace is illustrative by construction; no incident evidence exists. Code block unchanged."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c257",
+      "package": "aidlc",
+      "id": "AIDLC-C257",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Chaos analyzer SOP step 3 auto-updated SOP rules and escalation thresholds -> step renamed to drafting changes not applied before human review/approval, plus a paragraph requiring provenance, negative-case validation, approval, versioned SOP and rollback, especially for permission-widening changes.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/autonomous-response.md",
+        "docs/aidlc/operations/autonomous-response.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Governance gap, not a factual claim; fix follows the audit correction meaning. Python string edit only (syntax unaffected; run9 step 8 passed)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c260",
+      "package": "aidlc",
+      "id": "AIDLC-C260",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "\"Managed Add-ons (22+)\", \"managed open source services (AMP, AMG, ADOT)\", \"AWS MCP servers (50+ GA)\" and autonomous control -> add-on count dated (EKS User Guide AWS add-ons list, 22+ as of 2026-10-29), ADOT separated as an AWS-supported distribution, MCP server count dated with open-source/managed/preview/deprecated distinction (no blanket GA), Kiro+MCP framed as a proposed configuration bounded by granted IAM permissions.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/index.md",
+        "docs/aidlc/operations/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "EKS AWS add-ons table had 24 rows on 2026-10-29 (kept \"22+\"); ADOT described there as \"AWS supported distribution of the OpenTelemetry project\"; awslabs/mcp README lists 57 unique src servers, marks the AWS MCP Server \"in preview\", 2 deprecated entries, and AWS-hosted managed servers."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/workloads-add-ons-available-eks.html",
+        "https://github.com/awslabs/mcp"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c261",
+      "package": "aidlc",
+      "id": "AIDLC-C261",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "\"Claude Opus 4.7's 1M tokens\" and a sharp accuracy drop at 20+ MCP tools (and 15 tools / 2,000 tokens in §9.1) stated as fact citing Anthropic 2024 -> thresholds labelled workload-dependent author hypotheses needing a benchmark, the Opus 4.7 1M figure marked unverified, and the Anthropic article described as giving no tool-count threshold.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+        "docs/aidlc/operations/multi-agent-collaboration.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Read the Anthropic article (Dec 19, 2024): no numeric tool-count threshold. Current models overview lists 1M context for current models but Opus 4.7 is not on the current or legacy page as retrieved, so its figure stays unverified."
+      ],
+      "primary_urls": [
+        "https://www.anthropic.com/engineering/building-effective-agents",
+        "https://docs.anthropic.com/en/docs/about-claude/models/overview"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c264",
+      "package": "aidlc",
+      "id": "AIDLC-C264",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "OpenAI Deep Research \"(Planner + Browser + Writer)\" and Claude Code \"TodoWrite + executor\" asserted as internal architectures; \"GPT-5 Reasoning\" as a model -> LangChain kept as direct implementation, the two products described as the author's interpretation of observable behavior with internals unverified (as of 2026-10-29); model named as an example family with pinned IDs required at deployment.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+        "docs/aidlc/operations/multi-agent-collaboration.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No primary source documents the named internal roles; per audit scope, private implementation material was not sought. \"GPT-5 Reasoning\" is not a pinned identifier, so it was generalized."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c274",
+      "package": "aidlc",
+      "id": "AIDLC-C274",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "§8.4 \"3 Months Operation\" MTTR 112->6 min, 68% autonomous, 32% escalation, <=3% false positives presented as real outcomes -> labelled illustrative (hypothetical scenario) with the measurement window, incident denominator, criteria and method required to present them as results. Heading kept to preserve the anchor.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+        "docs/aidlc/operations/multi-agent-collaboration.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No incident dataset or source exists; only customer runtime evidence could settle it. Numbers kept with label."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c275",
+      "package": "aidlc",
+      "id": "AIDLC-C275",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Per-agent monthly costs and \"Opus for Monitor would be $1,000+ ... tiering alone 95% reduction\" -> table costs labelled unvalidated author estimates, worksheet inputs (tokens/call, duty cycle, cache hit rate, per-token price, escalation ratio) named, and $1,000+/95% marked as not computable from the table; direction of the tiering effect kept.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+        "docs/aidlc/operations/multi-agent-collaboration.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Figures cannot be reproduced from call counts (e.g., 3,600 calls/h ~ 2.6M calls/month for ~$20); no worksheet exists, so qualification rather than a fabricated worksheet."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c279",
+      "package": "aidlc",
+      "id": "AIDLC-C279",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "\"Pinned version + canary to prevent regression\" and write-once storage of all prompts/responses/tool calls -> pinning/canary described as risk controls that reduce, not prevent, regressions; audit capture bounded to required fields with redaction/classification, access control, lawful retention and deletion.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/multi-agent-collaboration.md",
+        "docs/aidlc/operations/multi-agent-collaboration.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Normative wording fix per audit scope; no external fact required."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c283",
+      "package": "aidlc",
+      "id": "AIDLC-C283",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "\"In EKS 1.28+, Enhanced Container Insights provides Control Plane metrics\" with etcd_* and scheduler_scheduling_duration_seconds names and a fixed $50-200/month -> collection paths separated (Enhanced CI: API server metrics; 1.28+: free AWS/EKS vended metrics and metrics.eks.amazonaws.com scheduler/controller-manager metrics), metric names corrected to apiserver_storage_db_total_size_in_bytes, apiserver_storage_objects, scheduler_scheduling_attempt_duration_seconds; cost labelled author estimate dependent on collection scale.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/observability-stack.md",
+        "docs/aidlc/operations/observability-stack.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "EKS cloudwatch.html: 1.28+ vended metrics free in AWS/EKS incl. apiserver_request_total, scheduler_schedule_attempts_total; view-raw-metrics: 1.28+ metrics.eks.amazonaws.com with scheduler_scheduling_attempt_duration_seconds, workqueue_depth, workqueue_adds_total; Enhanced CI EKS metrics list apiserver_request_total, apiserver_request_duration_seconds, apiserver_storage_db_total_size_in_bytes, apiserver_storage_objects; etcd_db_total_size_in_bytes, etcd_server_slow_apply_total and scheduler_scheduling_duration_seconds appear in none of them."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/cloudwatch.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/view-raw-metrics.html",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-enhanced-EKS.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c285",
+      "package": "aidlc",
+      "id": "AIDLC-C285",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "\"GA August 2025\" with 10 regions all \"local processing\" and only ap-east-1 cross-region -> per AWS doc (as of 2026-10-29): GA in 10 Regions; prompts processed in-Region only in us-east-1, us-west-2, ap-northeast-1, eu-central-1; us-east-2, eu-west-1, eu-north-1 -> us-east-1; ap-east-1, ap-southeast-1, ap-southeast-2 -> us-west-2; availability separated from processing location; Logs Insights to be checked separately.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/observability-stack.md",
+        "docs/aidlc/operations/observability-stack.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Metrics Insights query-assist page table \"Supported Region / Region where prompt is processed\" read on 2026-10-29; Logs Insights page says some Regions make cross-Region calls to US Regions without its own table. The August 2025 GA date was not found in either page and was dropped."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/cloudwatch-metrics-insights-query-assist.html",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CloudWatchLogs-Insights-Query-Assist.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c289",
+      "package": "aidlc",
+      "id": "AIDLC-C289",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "\"diagnosis becomes faster and more accurate\" and \"50-200 alerts per day / 10-15% actionable\" stated as fact -> gain restated as a potential to be measured per workload; alert figures labelled illustrative with cluster alert history as the source of real values.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/observability-stack.md",
+        "docs/aidlc/operations/observability-stack.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No study or dataset supports typical EKS alert volumes; numbers kept with an explicit illustrative label."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c294",
+      "package": "aidlc",
+      "id": "AIDLC-C294",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "50-node before/after log cost ranges and \"70%+ savings\" -> labelled unvalidated illustrative estimates, cost drivers (ingestion, compression, scans, retention, S3, Regional price) named, matched daily ingestion required, and 70%+ stated as not guaranteed across range combinations.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/observability-stack.md",
+        "docs/aidlc/operations/observability-stack.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Ranges lack volume inputs; e.g., $1,500 before vs $600 after is 60%, so 70%+ is not guaranteed. No worksheet fabricated."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c399",
+      "package": "aidlc",
+      "id": "AIDLC-C399",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO §1.2-1.3 called Intent/Unit/Bolt playbook-own terms (Bolt = \"Phase Execution\"), said the common/ directory defines five official principles, and called the ten principles their extension -> terms attributed to the AI-DLC Method Definition with a Method Definition vs Workflows v0.1.7 correspondence table (Bolt: no stage), the five items identified as the Workflows README Tenets (not common/), and §2 ten principles attributed to the Method Definition Key Principles. EN has no counterpart section.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/principles-and-model.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Method Definition PDF defines Intent, Unit, Bolt and the ten Key Principles (matching AidlcPrinciples component names); README v0.1.7 \"Tenets\" lists the five; common/ contains 11 rule files, none defining tenets; no Bolt or Phase Execution term in aidlc-rules."
+      ],
+      "primary_urls": [
+        "https://prod.d13rzhkk8cj2z0.amplifyapp.com/aidlc.pdf",
+        "https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md",
+        "https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c400",
+      "package": "aidlc",
+      "id": "AIDLC-C400",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO Reproducible tenet said \"same model yields the same artifact\" and Methodology first listed 7 platforms including AGENTS.md as running identically -> Reproducible restored to the README meaning (different models produce similar outcomes, variance minimized, no identical-output guarantee); supported tools listed per README prerequisites incl. Kiro CLI, AGENTS.md described as a rules file format, not a tool.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "edbe26e0c1b990062dae7ae7510fce18639ab862"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/principles-and-model.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "README v0.1.7 Tenets: \"Rules should be clear enough that different models produce similar outcomes...\"; Prerequisites table: Kiro, Kiro CLI, Amazon Q Developer IDE Plugin, Cursor IDE, Cline, Claude Code CLI, GitHub Copilot; AGENTS.md appears as \"Option 2: AGENTS.md (Simple Alternative)\" in the Cursor setup."
+      ],
+      "primary_urls": [
+        "https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c054",
+      "package": "aidlc",
+      "id": "AIDLC-C054",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 4.2 asserted a McKinsey '87% vs 62% accuracy' figure and an ontology ROI conversion (7x, KRW 255M, ROI 2,584%) as fact -> the McKinsey figure is now labelled as an attribution whose primary source was not verified as of 2026-10-29, and the 7x / project conversion is labelled as an example calculation on the already-illustrative Table 8 (defect cost 'assumed', not 'average').",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/cost-estimation.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/cost-estimation.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The Strawberry Manifesto table had already been relabelled as illustrative before this wave. Searched for the McKinsey 2023 report; mckinsey.com (HTML and PDF) refused every fetch from this host and search snippets did not show an 87%/62% accuracy figure, so the attribution could not be traced and was qualified rather than deleted."
+      ],
+      "primary_urls": [
+        "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-economic-potential-of-generative-ai-the-next-productivity-frontier"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c062",
+      "package": "aidlc",
+      "id": "AIDLC-C062",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 7.4 attributed an industry productivity/ROI-period table to McKinsey 2023 and stated a Korean SI 20-30% target as fact -> the table is now introduced as figures cited with McKinsey as source that could not be traced in the report (as of 2026-10-29, examples for planning only), and the 20-30% target is labelled as an author's estimate.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/cost-estimation.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/cost-estimation.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Same McKinsey search as C054; the report page/PDF could not be fetched from this host and no primary-source location for the table values was found, so the honest fix is an unverified-attribution label."
+      ],
+      "primary_urls": [
+        "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-economic-potential-of-generative-ai-the-next-productivity-frontier"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c297",
+      "package": "aidlc",
+      "id": "AIDLC-C297",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 1 claimed predictive scaling maintains service quality with 'no performance degradation' and framed HPA as purely reactive -> text now states the benefit holds only when forecasts are accurate, predictive scaling runs alongside reactive scaling, and HPA/KEDA can consume the forecast as a custom/external metric; the diagram label reads 'degradation minimized if the forecast is accurate'.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/operations/predictive-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "HPA autoscaling/v2 accepts custom and external metrics (Kubernetes HPA docs); the document's own Section 2.3 already exposes the forecast as a Prometheus custom metric for HPA/KEDA."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c298",
+      "package": "aidlc",
+      "id": "AIDLC-C298",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 2.1 rendered <ScalingComparison/> ratings (response time/accuracy/complexity) and an ASCII figure showing 'no degradation' as fact -> a sentence after the component labels the ratings and figure as qualitative assumptions, not measurements, and the figure label is qualified.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/operations/predictive-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The component's ratings are qualitative judgments with no measurement behind them; the component file is outside files_owned, so the qualifier is in the surrounding text as the item allows."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c301",
+      "package": "aidlc",
+      "id": "AIDLC-C301",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 2.3 presented Prophet hyperparameters and forecast window as a working config -> the precondition note now says these are example starting values, and requires backtesting with Prophet cross_validation over the intended horizon and checking error metrics plus interval coverage (default interval_width=0.8 -> ~80% expected).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/operations/predictive-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Prophet diagnostics docs confirm cross_validation with a horizon parameter, performance_metrics comparing yhat/yhat_lower/yhat_upper to y, hyperparameter tuning of changepoint_prior_scale via CV, and interval_width default 0.8 (80% interval). Code block unchanged."
+      ],
+      "primary_urls": [
+        "https://github.com/facebook/prophet/blob/main/docs/_docs/diagnostics.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c311",
+      "package": "aidlc",
+      "id": "AIDLC-C311",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 5.4 listed over-provisioning 40-60% -> 20-30% and 30-50% annual savings as expected savings -> the label now states they are illustrative figures, not measured, and depend on workload load variation and current requests.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/operations/predictive-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No measurement or source exists for these ranges in the document or its references; kept the numbers with an explicit example label (WRITING_GUIDE 5)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c312",
+      "package": "aidlc",
+      "id": "AIDLC-C312",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 6 presented <MaturityTable/> (3 stages with MTTR/MTTD/alert KPIs) next to Level 0-4 prose as a defined model -> a sentence now says the model is proposed by this document, maps the 3 stages to Level 0 / 1-2 / 3-4, and labels the KPIs as illustrative targets.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/operations/predictive-operations.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/operations/predictive-operations.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The 3-stage component and 5-level prose were not reconciled anywhere; the mapping follows the stage characteristics in the component (read-only) and the level bullets. Component is outside files_owned."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c316",
+      "package": "aidlc",
+      "id": "AIDLC-C316",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 3.2 said Q Developer automatically scans Kubernetes YAML with specific detectors and suggests fixes -> text now states Q Developer code reviews/auto-fixes cover application languages and CloudFormation/Terraform/CDK IaC (as of 2026-10-29), Kubernetes YAML is not on the list, and the check items/fix manifest are examples, with kube-linter or Q chat for manifests.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/ai-coding-agents.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "AWS 'Supported languages for Amazon Q Developer in the IDE' -> 'Language support for code reviews' lists Java...JSX plus IaC CloudFormation, Terraform, AWS CDK; Kubernetes manifests are not listed. YAML code blocks unchanged."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/q-language-ide-support.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c318",
+      "package": "aidlc",
+      "id": "AIDLC-C318",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 4 rendered <AiCodingAgentComparison/> with undated model/plan/price cells and 1-5 ratings -> a sentence after the component dates the table, labels ratings as subjective, and records two checked facts: codex-1 is o3-based (table's 'o3-mini based' is inaccurate) and Q Developer IDE plugins reach end of support on 2027-04-30. Parent follow-up (PR #214 commit bab618ea): the shared comparison component's model cell now reads 'codex-1 (o3-based)'. Plan prices in the component remain as listed and are dated by the sentence under the table.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba",
+        "bab618ea89ce8e89c75b92e08e27526336816c29"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/ai-coding-agents.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md",
+        "src/components/AidlcTables/AiCodingAgentComparison.js"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "OpenAI 'Introducing Codex' (via search snippet; page returned 403 to fetch): 'codex-1, a version of OpenAI o3'. AWS Q Developer doc end-of-support notice: IDE plugins discontinued April 30, 2027. Prices (Pro $19, Pro $20, Max $100-200) not re-verified."
+      ],
+      "primary_urls": [
+        "https://openai.com/index/introducing-codex/",
+        "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/q-language-ide-support.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c362",
+      "package": "aidlc",
+      "id": "AIDLC-C362",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Model landscape GLM row listed a single license (now GLM-4.5 'MIT'; reference said 'MIT license' for the GitHub repo) -> the cell now reads 'weights MIT, code Apache 2.0', a sentence cites the HF model card revision cbb2c7c (MIT) and the GitHub repo code license (Apache 2.0) as of 2026-10-29, and the reference line is corrected the same way.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/open-weight-models.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/open-weight-models.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "HF API for zai-org/GLM-4.5: sha cbb2c7cfb52f..., cardData.license=mit; GitHub zai-org/GLM-4.5 LICENSE file is Apache License 2.0, README says the models are released under MIT. The audit baseline row (GLM-5, THUDM, 405B, Apache 2.0) had already been replaced by GLM-4.5 before this wave; GLM-5 is actually 744B/40B active, MIT on HF."
+      ],
+      "primary_urls": [
+        "https://huggingface.co/api/models/zai-org/GLM-4.5",
+        "https://huggingface.co/zai-org/GLM-5",
+        "https://raw.githubusercontent.com/zai-org/GLM-4.5/main/LICENSE",
+        "https://raw.githubusercontent.com/zai-org/GLM-4.5/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c386",
+      "package": "aidlc",
+      "id": "AIDLC-C386",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 2 table rated KRO 'GA' and Gateway API + LBC v3 'GA' with 'ExtProc support' -> KRO now reads 'EKS managed capability, API v1alpha1 (upstream v0.9.x, as of 2026-10-29)' with a breaking-change note; LBC row reads 'GA (since LBC v3.0.0)', L7 via ALB / L4 via NLB, and states ExtProc is not in LBC docs so an Envoy-based implementation is needed.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/technology-roadmap.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "kro release tags top out at v0.9.4 / v0.10.0-rc.0 and README says the API is v1alpha1; EKS user guide offers kro as a managed capability (RGD kro.run/v1alpha1). LBC discussion #4552: Gateway API GA in v3.0.0; latest release v3.6.2; LBC gateway guide: L7 via ALB, L4 via NLB, no mention of ExtProc."
+      ],
+      "primary_urls": [
+        "https://github.com/kubernetes-sigs/kro/releases",
+        "https://raw.githubusercontent.com/kubernetes-sigs/kro/main/README.md",
+        "https://docs.aws.amazon.com/eks/latest/userguide/kro.html",
+        "https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases",
+        "https://github.com/kubernetes-sigs/aws-load-balancer-controller/discussions/4552",
+        "https://kubernetes-sigs.github.io/aws-load-balancer-controller/latest/guide/gateway/gateway/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c387",
+      "package": "aidlc",
+      "id": "AIDLC-C387",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 2.1 Kiro weakness 'vendor lock-in (AWS only)' and Sec 5 row 'High (AWS only) / Low (spec -> code rewrite needed)' conflated tool dependence with app portability -> weakness now says the tool is an AWS-hosted service and this is separate from generated-code portability; Sec 5 row splits portability into application code/spec files (high, kept in Git) and tool workflow (low, Kiro-specific spec stages/hooks/steering must be rebuilt).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/technology-roadmap.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Fixes exactly recon_verify_2026_10_28.remaining (both places, both locales). Kiro's generated code and spec Markdown are files in the user's repository (as the companion ai-coding-agents page already describes)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c388",
+      "package": "aidlc",
+      "id": "AIDLC-C388",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Q Developer weakness 'weaker than GitHub Copilot in non-AWS environments' -> now says its strengths are tuned to AWS code, no public same-task benchmark comparing it with Copilot outside AWS was identified (as of 2026-10-29), and teams should compare on their own tasks.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/technology-roadmap.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The document cites no benchmark for the comparison and no dedicated benchmark search was run for this item within the time budget, so no public same-task comparison is known; the comparative claim was scoped to what can be stated (AWS-tuned strengths) and the reader is told to compare on their own tasks."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c390",
+      "package": "aidlc",
+      "id": "AIDLC-C390",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 4 Gantt showed done/active/crit/milestone statuses and 6/12/18-month horizons as if actual -> a sentence labels the timeline as a planning example for an org starting in 2026 Q2, says statuses are hypothetical, and explains that the horizons are approximate and do not match the overlapping Gantt months exactly.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/technology-roadmap.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The Gantt dates (Phase 2 ends 2026-12, Phase 3 ends 2027-06 from a 2026-04 start) do not equal 12/18 months, so the horizon basis is stated in words; Mermaid code unchanged."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c391",
+      "package": "aidlc",
+      "id": "AIDLC-C391",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 4.1-4.3 deliverables and success metrics (30% speed, 80%+ automation, etc.) were stated as hard targets -> a paragraph labels them as illustrative targets, not measurements, and defines acceptance evidence: baseline, measurement method/data source, acceptance criterion, with lead-time and code-generation-rate examples.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/technology-roadmap.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No measurement basis exists for these targets; qualification plus acceptance-evidence definition is the honest fix proposed by the reconciliation."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c392",
+      "package": "aidlc",
+      "id": "AIDLC-C392",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 4.3 listed AI chaos/auto-recovery deliverables and 60%/85%/40% metrics with no boundaries -> metrics are covered by the illustrative-target paragraph, and a new list after 4.3 metrics defines authorized boundaries: approved scope and blast radius, stop conditions/rollback and Chaos Mesh duration, pre-approved action list with human approval for other changes, audit logging.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/technology-roadmap.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Boundary guidance is a practice statement, not a measured claim; Chaos Mesh experiments have a duration field."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c395",
+      "package": "aidlc",
+      "id": "AIDLC-C395",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 6 investment/ROI templates were framed only as 'expected' -> the Sec 6 intro now states the investment and ROI figures in each template are hypothetical planning inputs, not benchmarks or measurements, to be replaced by the organization's quotes and post-adoption measurements.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/technology-roadmap.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/technology-roadmap.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Only measured deployment data could substantiate these figures; none is available, so an explicit hypothetical label was added once for all templates."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c402",
+      "package": "aidlc",
+      "id": "AIDLC-C402",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 0 said AWS Labs defines seven officially supported platforms that must implement the Common Rules, and the 0.8 table rated rule support as if conformance -> intro now describes setup targets (harnesses) that install one shared core, states this is not certification, lists the README v2.11.2 harnesses as of 2026-10-29 (Claude Code, Kiro CLI, Kiro IDE, Codex CLI, Cursor, opencode, GitHub Copilot) and notes Q Developer, Cline and AGENTS.md are not in it; a sentence before the 0.8 table labels the ratings as the author's assessment.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/ai-coding-agents.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "awslabs/aidlc-workflows README (v2.11.2): 'One harness-neutral core runs natively in Claude Code, Kiro CLI, Kiro IDE, Codex CLI, Cursor, opencode, and GitHub Copilot', configured with aidlc config --harness. Heading '0. 공식 AIDLC 지원 플랫폼 7종' left unchanged to keep the anchor."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/main/README.md",
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/main/docs/guide/harnesses/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c403",
+      "package": "aidlc",
+      "id": "AIDLC-C403",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 0.1-0.3 mixed product features with shared AIDLC rules (Kiro 'supports all 11 Common Rules fully', Q 'Loss Function triggers', Cursor 'Extension System unsupported') -> Kiro strengths separate product features from rule files installed by AIDLC Workflows; Q notes build/test is a product feature usable as the Loss Function and that Q is not an AIDLC harness; Cursor notes the installed rule file and marks the old Extension/Audit assessment as to be re-checked.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/ai-coding-agents.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Harness guide: 'The methodology ... is identical on every harness. What differs is the shell'; onboarding files per harness (Cursor .cursor/rules/aidlc-onboarding.mdc). The '11 Common Rules' count could not be confirmed in the current README and was removed with the conformance framing."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/main/README.md",
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/main/docs/guide/harnesses/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c404",
+      "package": "aidlc",
+      "id": "AIDLC-C404",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Sec 0.5-0.7 described instruction discovery generically (AGENTS.md/CLAUDE.md; 'AGENTS.md recognition expanding in Copilot Enterprise'; AGENTS.md 'supported by Claude Code, Cursor, Cline') -> now documents per tool: Claude Code reads CLAUDE.md and can read AGENTS.md, AIDLC installs .claude/CLAUDE.md; Copilot (CLI >=1.0.74, VS Code >=1.130) gets root AGENTS.md; Kiro .kiro/steering/aidlc-onboarding.md; Cursor .cursor/rules/aidlc-onboarding.mdc; shared root AGENTS.md block for Kiro/Codex/Cursor/opencode.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "1298e7f965f565a53e2517d9c4ce9fb9b4e5daba"
+      ],
+      "source_files": [
+        "docs/aidlc/toolchain/ai-coding-agents.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/toolchain/ai-coding-agents.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-99 merged by PR #214 (https://github.com/devfloor9/engineering-playbook/pull/214); merge commit 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "AIDLC harness guide 'Onboarding is installed in each harness's native instruction surface' table; Claude Code memory docs: CLAUDE.md files, and 'Claude can also read a repository's AGENTS.md files in place of CLAUDE.md'. Cline claim dropped (not verified)."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/main/docs/guide/harnesses/README.md",
+        "https://raw.githubusercontent.com/awslabs/aidlc-workflows/main/README.md",
+        "https://code.claude.com/docs/en/memory"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aidlc-c056",
+      "package": "aidlc",
+      "id": "AIDLC-C056",
+      "issue": 99,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Section 5.1 'Fintech Runaway' presented an anonymous incident as a verified Hamel & Patil (2024) case and extended it into a 123-call/$320/50-email intervention; both locales now introduce the section as an illustrative scenario (not a documented real case) for the lack-of-feedback-loop problem discussed in Hamel Husain's 'A Field Guide to Rapidly Improving AI Products' (2025), so the 847-call/$2,200 and 123-call/$320 figures sit under that qualifier and the Strawberry Manifesto attribution is gone from the AI-DLC pages. The wave-3 fix unit (w3-99-u4) found no edit left to make.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "1b79b879866e7b4b8bca37acdc7a640b6d16a3d5",
+      "source_commits": [
+        "a21cb8a399788e0ded8ceef3d1ea05d0c8b0b7c8"
+      ],
+      "source_files": [
+        "docs/aidlc/enterprise/cost-estimation.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/cost-estimation.md"
+      ],
+      "verification": [
+        "October 2026 re-check: the defect was judged already corrected in main before the fix units ran; independently re-verified on 2026-10-29 at main 1b79b879866e7b4b8bca37acdc7a640b6d16a3d5 by reading the current text of the listed files (ko, en) against the frozen finding.",
+        "Correcting commit attributed with git log -S'An illustrative scenario (not a documented real case)' -- docs/aidlc (EN) and git log -S'예시 시나리오(실측 사례가 아님)' -- i18n/ko (KO), both returning the single commit a21cb8a3; the section text is byte-identical between the wave-3 base a3de3689 and main 1b79b879: a21cb8a399788e0ded8ceef3d1ea05d0c8b0b7c8 (2026-10-15, docs(aidlc): #99 감사 교정 g99-enterprise-1-u2 -- 비용·확장 사실 교정 (KO/EN)).",
+        "Current text: docs/aidlc/enterprise/cost-estimation.md:367 'An illustrative scenario (not a documented real case) for the lack-of-feedback-loop problem discussed in Hamel Husain, \"A Field Guide to Rapidly Improving AI Products\" (2025):'; i18n/ko/docusaurus-plugin-content-docs/current/aidlc/enterprise/cost-estimation.md:367 'Husain, Hamel의 \"A Field Guide to Rapidly Improving AI Products\" (2025)가 다루는 피드백 루프 부재 문제를 설명하기 위한 예시 시나리오(실측 사례가 아님):'; git grep -i 'strawberry|patil' on main returns no match under docs/aidlc or its Korean twin. Re-verified on 2026-10-29 at main 1b79b879 by the wave-3 session (chat-44) from the w3-99-u4 result note, after the fix unit reported the item not reproducible at base a3de3689."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
     }
   ]
 }
