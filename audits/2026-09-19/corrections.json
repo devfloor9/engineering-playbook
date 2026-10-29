@@ -47593,6 +47593,191 @@
         "https://llm-d.ai/blog/predicted-latency-based-scheduling-for-llms"
       ],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-gw-018",
+      "package": "eks-platform-networking",
+      "id": "EPN-GW-018",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "CostComparisonTable presented fixed latency increments (WAF +0.5-1ms, OSS <0.1ms/<1ms, +1-5ms/+2-5ms cumulative) as facts; the column header now reads 'Performance Impact (estimate)' and the subtitle states the ms figures are the author's estimate, not measured, with no defined workload/topology, and must be measured (ko/en/zh strings).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "3f4055c4da97ee7d470a69bdc86d253c0883b8e6",
+      "source_commits": [
+        "ce1e089653ee9b2ecf3d75f1c1fc3556a5dc329c"
+      ],
+      "source_files": [
+        "src/components/GatewayApiTables/CostComparisonTable.js"
+      ],
+      "verification": [
+        "Group branch fix/w3-97 merged by PR #206 (https://github.com/devfloor9/engineering-playbook/pull/206); merge commit 3f4055c4da97ee7d470a69bdc86d253c0883b8e6; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No measurement artifact exists in the repository for these increments (the guide itself says actual EKS performance measurement is pending), and vendor docs do not publish per-rule WAF latency; qualification is the honest fix. The Lambda +5-50ms value cited by recon is no longer in the table at base a3de3689."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-gw-021",
+      "package": "eks-platform-networking",
+      "id": "EPN-GW-021",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The reference-version banner (Gateway API v1.5.1, Cilium v1.19.0, EKS 1.33+, LBC v3.0.0, Envoy Gateway v1.7.0) implied a validated bundle; a note now says these are reference versions, not a validated combination, lists each project's documented Gateway API CRD version (LBC v3.0.0: v1.3.0; Cilium v1.19 and EG v1.7: v1.4.1, as of 2026-10-29), states EG v1.7 reached EOL on 2026-08-05, and tells readers to check each implementation's compatibility docs.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "3f4055c4da97ee7d470a69bdc86d253c0883b8e6",
+      "source_commits": [
+        "ce1e089653ee9b2ecf3d75f1c1fc3556a5dc329c"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md",
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-97 merged by PR #206 (https://github.com/devfloor9/engineering-playbook/pull/206); merge commit 3f4055c4da97ee7d470a69bdc86d253c0883b8e6; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "LBC v3.0.0 release notes require Gateway API v1.3.0 standard CRDs; Cilium v1.19 docs state support for Gateway API v1.4.1 and require v1.4.1 CRDs; the Envoy Gateway compatibility matrix lists v1.7 with Gateway API v1.4.1 and End of Life 2026/08/05. Banner versions kept unchanged."
+      ],
+      "primary_urls": [
+        "https://github.com/kubernetes-sigs/aws-load-balancer-controller/releases/tag/v3.0.0",
+        "https://docs.cilium.io/en/v1.19/network/servicemesh/gateway-api/gateway-api/",
+        "https://gateway.envoyproxy.io/news/releases/matrix/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-gw-024-w3",
+      "package": "eks-platform-networking",
+      "id": "EPN-GW-024",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Remaining Korean YAML comments in GatewayApiBenefits now come from a per-locale comment map interpolated into each benefit.yaml template literal (benefit.yaml stays a string, so the llm-wiki adapter is unchanged); YAML keys/values unchanged. FeatureComparisonMatrix count suffixes ('개', '개 항목') are now locale-aware; the 58 items / 12 categories headline already matched the data.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "3f4055c4da97ee7d470a69bdc86d253c0883b8e6",
+      "source_commits": [
+        "ce1e089653ee9b2ecf3d75f1c1fc3556a5dc329c"
+      ],
+      "source_files": [
+        "src/components/GatewayApiBenefits/index.js",
+        "src/components/GatewayApiTables/FeatureComparisonMatrix.js"
+      ],
+      "verification": [
+        "Group branch fix/w3-97 merged by PR #206 (https://github.com/devfloor9/engineering-playbook/pull/206); merge commit 3f4055c4da97ee7d470a69bdc86d253c0883b8e6; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Offline: counted rows 5+6+8+4+3+5+4+6+4+4+5+4=58 across 12 categories; scripts/llm-wiki-static.js evaluates ConditionalExpression and TemplateLiteral, and run9 step llm-wiki-components passed with the change; node --check passed on both files."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-epn-gw-024"
+    },
+    {
+      "record_id": "2026-09-19-epn-mg-004",
+      "package": "eks-platform-networking",
+      "id": "EPN-MG-004",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The validation script checked the selected listener only in spec and accepted a sectionName-less parentRef for any listener; it now also requires the listener's status conditions (Accepted, Programmed, ResolvedRefs), listener and Route hostname match with the probe host, and allowedRoutes admission (namespaces Same/All, kinds include HTTPRoute; Selector is reported as not evaluated), and the prose states these checks and the Selector limitation while keeping the backend-identity limitation.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "3f4055c4da97ee7d470a69bdc86d253c0883b8e6",
+      "source_commits": [
+        "ce1e089653ee9b2ecf3d75f1c1fc3556a5dc329c",
+        "663895d56d0138b6dce0c852b2eedd7183c3f533"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.md",
+        "docs/eks-best-practices/networking-performance/gateway-api-adoption-guide/migration-execution-strategy.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-97 merged by PR #206 (https://github.com/devfloor9/engineering-playbook/pull/206); merge commit 3f4055c4da97ee7d470a69bdc86d253c0883b8e6; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Offline: new jq filter tested against 12 mock Gateway/Route cases (wildcard hostnames, namespace Same/All/Selector, kinds, false conditions) with expected pass/fail on jq 1.6; bash -n on the extracted script passed; KO/EN code blocks identical. Not run against a live cluster. Gateway API listener/attachment semantics applied from the existing script's model; spec page not re-opened in this session."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-multimesh-002",
+      "package": "eks-platform-networking",
+      "id": "EPN-MULTIMESH-002",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Table 1 row 2 said all mesh options presuppose L3 reachability and non-overlapping CIDRs; it now scopes that to Cilium ClusterMesh and direct-connectivity meshes (Istio single-network, Linkerd flat mode) and says gateway-based designs (Istio multi-network, Linkerd gateway mode) need no direct PodCIDR routing but still need reachability to the remote gateways and API server (see Table 2).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "3f4055c4da97ee7d470a69bdc86d253c0883b8e6",
+      "source_commits": [
+        "ce1e089653ee9b2ecf3d75f1c1fc3556a5dc329c"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+        "docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-97 merged by PR #206 (https://github.com/devfloor9/engineering-playbook/pull/206); merge commit 3f4055c4da97ee7d470a69bdc86d253c0883b8e6; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Internal consistency fix against the document's own Table 2 and Section 4.5, as the audit required; no new external fact."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-multimesh-005",
+      "package": "eks-platform-networking",
+      "id": "EPN-MULTIMESH-005",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Lattice TCP limits (SNI, default rule, 10-minute lifetime) were presented as Lattice-wide; Section 6, Table 1 row 1, Table 3 stability row and the decision-tree node now scope them to the service/TLS passthrough path and add the resource gateway/resource configuration path (TCP, no connection-lifetime cap, 350-second idle timeout extendable with TCP keepalives, as of 2026-10-29), noting not to assume the AWS Gateway API Controller configures it.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "3f4055c4da97ee7d470a69bdc86d253c0883b8e6",
+      "source_commits": [
+        "ce1e089653ee9b2ecf3d75f1c1fc3556a5dc329c"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+        "docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-97 merged by PR #206 (https://github.com/devfloor9/engineering-playbook/pull/206); merge commit 3f4055c4da97ee7d470a69bdc86d253c0883b8e6; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "VPC Lattice quotas page: services have a 10-minute maximum connection lifetime; for resources 'VPC Lattice doesn't impose any lifetime connection limits' with a 350-second idle timeout extendable by TCP keepalives. Resource configuration page: only TCP is supported (CIDR type TCP_UDP with UDP only for DNS). Whether the Gateway API Controller manages resource configurations was not settled in the search budget, so the text tells readers not to assume it."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/vpc-lattice/latest/ug/quotas.html",
+        "https://docs.aws.amazon.com/vpc-lattice/latest/ug/resource-configuration.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-epn-multimesh-007",
+      "package": "eks-platform-networking",
+      "id": "EPN-MULTIMESH-007",
+      "issue": 97,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Conclusion 3 said Lattice is the only option that removes the control plane from customer clusters; it now limits the comparison to the evaluated configurations (Lattice, Cilium ClusterMesh, Istio multi-primary with istiod per cluster), says the integration controller (AWS Gateway API Controller) stays in customer clusters, and notes Istio primary-remote/external control plane options run istiod in another customer-operated cluster; Conclusion 1 and Tables 3/7 distinguish the managed control plane from the in-cluster controller.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "3f4055c4da97ee7d470a69bdc86d253c0883b8e6",
+      "source_commits": [
+        "ce1e089653ee9b2ecf3d75f1c1fc3556a5dc329c"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md",
+        "docs/eks-best-practices/networking-performance/service-mesh/multi-cluster-communication.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-97 merged by PR #206 (https://github.com/devfloor9/engineering-playbook/pull/206); merge commit 3f4055c4da97ee7d470a69bdc86d253c0883b8e6; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Istio docs list Primary-Remote and External Control Plane install models; the document's own Table 2 already states only a lightweight controller lives in-cluster for Lattice."
+      ],
+      "primary_urls": [
+        "https://istio.io/latest/docs/setup/install/external-controlplane/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
     }
   ]
 }
