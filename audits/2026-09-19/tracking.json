@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 1756,
-    "open": 151,
+    "source_correction_accepted": 1759,
+    "open": 148,
     "withdrawn": 284
   },
   "assignment_counts": {
@@ -28753,9 +28753,12 @@
       "issue": 100,
       "proposed_issue_key": "industry",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/100",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "023b2b4f54ea88995db9208bd8b513bb36e0ca60",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sales-03"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -28764,9 +28767,12 @@
       "issue": 100,
       "proposed_issue_key": "industry",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/100",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "023b2b4f54ea88995db9208bd8b513bb36e0ca60",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sales-04"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
@@ -28775,9 +28781,12 @@
       "issue": 100,
       "proposed_issue_key": "industry",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/100",
-      "source_correction_status": "open",
-      "commit": null,
-      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap."
+      "source_correction_status": "source_correction_accepted",
+      "commit": "023b2b4f54ea88995db9208bd8b513bb36e0ca60",
+      "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
+      "correction_records": [
+        "2026-09-19-hr-sales-05"
+      ]
     },
     {
       "package": "hybrid-rosa-and-operations",
