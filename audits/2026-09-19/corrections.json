@@ -47778,6 +47778,722 @@
         "https://istio.io/latest/docs/setup/install/external-controlplane/"
       ],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-comp-003",
+      "package": "agentic-operations",
+      "id": "AOR-COMP-003",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Table 7 presented 3y/5y/permanent/1y/3y retention as backed by a 'Legal Basis' column; it now labels the periods as example organization policy, renames the column to 'Related Control (reference)', and states that edition, provision, data class and applicability must be confirmed before calling any period legally required (unverified as of 2026-10-29). The S3 lifecycle sentence no longer says API logs 'must' be kept 5 years.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/governance/compliance-framework.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/compliance-framework.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Searched for the 전자금융감독규정 제19조 / 전자금융거래법 시행령 retention text within budget; search returned no usable primary-source (law.go.kr) page. ISO27001 A.12.4, SOC2 CC8.1 and ISMS-P 2.11 are control areas, not duration mandates, so the honest fix is to separate example policy from mandate and mark the mapping unverified."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-domain-007",
+      "package": "agentic-operations",
+      "id": "AOR-DOMAIN-007",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Scenario 3 presented regulation-article annotations (Banking Supervision Regulation Art. 35, EFSR Art. 34/15/17) as real auto-generated compliance code; a paragraph now labels the example as synthetic, states the article mapping is not verified against current law and the code does not guarantee compliance, and requires legal review and validation of the referenced controls.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/governance/domain-customization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/domain-customization.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "The exact current legal mapping is normative and not settleable from public sources within budget; the item asks for a qualification. Code blocks left unchanged."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-domain-010",
+      "package": "agentic-operations",
+      "id": "AOR-DOMAIN-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Table 5 roadmap durations and costs (70% savings, +$500/month, GPU $2K) had no label; a paragraph now marks them as planning assumptions, states what each cost is assumed to include and exclude (labor, data preparation, evaluation excluded), and requires re-estimation by measurement in the target environment.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/governance/domain-customization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/domain-customization.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No measurement exists for these figures; labelled as assumptions per WRITING_GUIDE section 5. Table cells unchanged."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-finops-004",
+      "package": "agentic-operations",
+      "id": "AOR-FINOPS-004",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The Metering & Billing bullet said budget enforcement requires AI Rate Limiting Advanced; it now names Kong's Entitlement Enforcement plugin (Kong Gateway 3.16+, Konnect hybrid/cloud-gateways/serverless only, incompatible with on-prem, eventually consistent) for metered allowances, and keeps AI Rate Limiting Advanced for unsupported versions/deployments and traffic protection (as of 2026-10-29).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/governance/llm-finops-chargeback.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/llm-finops-chargeback.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Entitlement Enforcement page: 'Minimum Version Kong Gateway - 3.16', 'Incompatible with on-prem', supported Konnect deployments hybrid/cloud-gateways/serverless, 'eventually consistent, not real time'. Metering & Billing page lists it as a related resource."
+      ],
+      "primary_urls": [
+        "https://developer.konghq.com/plugins/entitlement-enforcement/",
+        "https://developer.konghq.com/plugins/metering-and-billing/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-guard-005",
+      "package": "agentic-operations",
+      "id": "AOR-GUARD-005",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Table 2 per-layer latency figures (+20~100ms etc.) were unlabelled; a sentence now marks them as illustrative planning estimates without a reproducible benchmark and asks readers to measure p50/p95 per layer and record SLO targets separately from measured results.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Only a reproducible benchmark could settle the numbers and none exists; qualification is the honest fix. Table cells unchanged."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-guard-014",
+      "package": "agentic-operations",
+      "id": "AOR-GUARD-014",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Blanket '3 years / 3+ years' retention in Table 6 (ISMS-P 3.5 row), Table 7 (PIPA Art. 29 row) and checklist 9.5 replaced with retention per a documented schedule by log/data class, legal basis, purpose and institution, minimization/masking before retention, and separation of legally preserved records from optional telemetry.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/governance/ai-gateway-guardrails.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No primary source establishes a uniform 3-year duration for these log classes; the item's correction is a per-class schedule. No replacement duration was invented."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-kagent-003-w3",
+      "package": "agentic-operations",
+      "id": "AOR-KAGENT-003",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Doc text in both locales already shows v1alpha2 Tool (nested type) and Memory (Agent spec field), and Figure 1 in both locales already lists only Agent, ModelConfig, RemoteMCPServer/MCPServer and Workflow*; no doc edit was needed. The shared ComponentsTable still has a 'Tool CRD' row. Parent follow-up (PR #208 commit 9c5f5b16): the shared ComponentsTable now lists ModelConfig and RemoteMCPServer/MCPServer CRDs instead of the non-existent 'Tool CRD' row, notes that tools and memory live in the Agent spec, and marks the Workflow row as a design proposal (matching Figure 1). Review follow-up (PR #208 commit f6ccdeff): the 'not separate CRDs' statement is qualified as 'in the v1alpha2 API', because the kagent-crds chart (v0.9.12) still installs v1alpha1-only Memory and ToolServer CRDs.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d",
+        "9c5f5b16749d4938df43a9c9aa185f94a15875d9",
+        "f6ccdeff6ed8d87c6f0f679c8b3e37b5e47a9a1d"
+      ],
+      "source_files": [
+        "src/components/KagentTables/ComponentsTable.js"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Read KO/EN kagent-kubernetes-agents.md at a3de3689: EN '### Tool (nested type in the Agent spec) {#tool-crd}', '### Memory (field in the Agent spec) {#memory-crd}'; Figure 1 nodes A_CRD, MC_CRD, MCP_CRD, W_CRD with note 'Tools and memory are not separate CRDs'. Parent check: rows aligned with the doc's Figure 1 and section 3 (kagent.dev/v1alpha2: Agent, ModelConfig, RemoteMCPServer/MCPServer; Workflow* = proposal)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-aor-kagent-003"
+    },
+    {
+      "record_id": "2026-09-19-aor-llmops-010-w3",
+      "package": "agentic-operations",
+      "id": "AOR-LLMOPS-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'Unlimited (self-hosted)' scale and the bare data-sovereignty ranking now read 'No plan limits (self-hosted, bounded by infrastructure capacity)' and 'High (when self-hosted) / Low (SaaS default)'; a paragraph explains capacity is bounded by operator-provisioned Postgres/ClickHouse and workers (not measured here) and that sovereignty fails if traces flow to external evaluators or providers. The §2 advantages line 'unlimited scaling' was scoped the same way.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/observability/llmops-observability.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/observability/llmops-observability.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Langfuse self-hosting page lists Postgres and ClickHouse storage components on the operator's infrastructure; no capacity figure added."
+      ],
+      "primary_urls": [
+        "https://langfuse.com/self-hosting"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-aor-llmops-010"
+    },
+    {
+      "record_id": "2026-09-19-aor-mon-005",
+      "package": "agentic-operations",
+      "id": "AOR-MON-005",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "KO §6 promised uninterrupted service, 'Bedrock 즉시 응답', and showed match/request.model with integer 80/20 weights described as peak offload; it now states fallback limits (after the primary provider's retries are exhausted Bifrost falls back regardless of the error type, so a rejected credential or a retired model also fails over; the exceptions are caller cancellation, an expired request deadline and a plugin that disallows fallbacks; no mid-stream stitching; Bedrock quotas), uses the documented governance.routing_rules schema (cel_expression \"model == ...\", weights 0.8/0.2 summing to 1, probabilistic per request), adds the ttft_timeout_ms cutoff, and distinguishes the probabilistic split from capacity-conditioned overflow. Review follow-up (PR #208 commit f6ccdeff): the trigger list was widened to the rule documented on the Bifrost retries-and-fallbacks page (KO line 330, EN line 359).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d",
+        "f6ccdeff6ed8d87c6f0f679c8b3e37b5e47a9a1d"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/observability/agent-monitoring.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "routing-rules.mdx: fields name/cel_expression/targets/fallbacks/scope/priority, CEL variable 'model', 'weight ... all weights in a rule must sum to 1', 'one is selected probabilistically'; capacity variables budget_used/tokens_used/request; ttft_timeout_ms. retries-and-fallbacks.mdx: 5xx/network/429 classes, 'an expired request deadline ends the request, so no fallback runs', cancelled -> no fallback."
+      ],
+      "primary_urls": [
+        "https://github.com/maximhq/bifrost/blob/main/docs/providers/routing-rules.mdx",
+        "https://github.com/maximhq/bifrost/blob/main/docs/features/retries-and-fallbacks.mdx"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-mon-006-w3",
+      "package": "agentic-operations",
+      "id": "AOR-MON-006",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "EN §6 copied the KO guarantees and schema errors; the same correction as AOR-MON-005 is mirrored in EN, with the {#6-cost-tracking} anchor on §7 left intact. Review follow-up (PR #208 commit f6ccdeff) mirrored the widened fallback-trigger wording in EN.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d",
+        "f6ccdeff6ed8d87c6f0f679c8b3e37b5e47a9a1d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/observability/agent-monitoring.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Same sources as AOR-MON-005; EN code block identical to KO except comments."
+      ],
+      "primary_urls": [
+        "https://github.com/maximhq/bifrost/blob/main/docs/providers/routing-rules.mdx",
+        "https://github.com/maximhq/bifrost/blob/main/docs/features/retries-and-fallbacks.mdx"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-aor-mon-006"
+    },
+    {
+      "record_id": "2026-09-19-aor-serve-001",
+      "package": "agentic-operations",
+      "id": "AOR-SERVE-001",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'ITL histogram records individual token gaps' now says that in v0.26.0 it records one interval per non-prefill engine output, approximating per-token gaps only when each output carries one token, and that multi-token outputs (e.g. speculative decoding) change the observation count and weighting; the warning against mixing ITL and per-request TPOT is kept.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/observability/llm-serving-optimization-monitoring.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/observability/llm-serving-optimization-monitoring.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "stats.py v0.26.0 update_from_output: when not is_prefilling, itl = engine_core_timestamp - req_stats.last_token_ts appended once per output regardless of len(output.new_token_ids). Link style matches existing '[statistics source]' links in the same doc."
+      ],
+      "primary_urls": [
+        "https://github.com/vllm-project/vllm/blob/v0.26.0/vllm/v1/metrics/stats.py"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-milvus-005",
+      "package": "agentic-reference",
+      "id": "PARFIT-MILVUS-005",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The A10G build-time/4.8-5.6x table had no qualifier and used CPU index names; the component title now says 'illustrative figures, not measured', and a paragraph after it labels the numbers as hypothetical, names the documented GPU index types (GPU_CAGRA, GPU_IVF_FLAT, GPU_IVF_PQ, GPU_BRUTE_FORCE, as of 2026-10-29), says GPU allocation alone does not reproduce the results, and adds the QueryNode GPU memory / OOM and memory-pool prerequisites.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+        "src/components/MilvusTables/GPUIndexingPerformanceTable.js"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Milvus docs v2.6.x index-with-gpu.md: valid index_type GPU_CAGRA/GPU_IVF_FLAT/GPU_IVF_PQ/GPU_BRUTE_FORCE; initMemSize/maxMemSize pool; 'Loading OOM protection for GPU indexes is not fully supported, too much data might lead to QueryNode crashes'. No run artifacts for the table found, so rows are kept but labelled (not asserted false)."
+      ],
+      "primary_urls": [
+        "https://github.com/milvus-io/milvus-docs/blob/v2.6.x/site/en/userGuide/manage-indexes/index-with-gpu.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-milvus-006-w3",
+      "package": "agentic-reference",
+      "id": "PARFIT-MILVUS-006",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Three unqualified '10x faster performance' claims for S3 Express One Zone (tip bullet, recommendations bullet, production recommendation) now say 'up to 10x faster object data access than S3 Standard', with the tip bullet stating it does not mean 10x faster Milvus search or index builds.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "e4602b00a9a35bdb29223e16dab589d65ddf489d"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/operations-mlops/data-infrastructure/milvus-vector-database.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "AWS page: 'delivers data access speed up to 10x faster and request costs up to 80% lower than S3 Standard'."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/s3/storage-classes/express-one-zone/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-parfit-milvus-006"
+    },
+    {
+      "record_id": "2026-09-19-aor-adv-006",
+      "package": "agentic-operations",
+      "id": "AOR-ADV-006",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The helm install set no failureMode while the rendered pool was annotated 'FailClose (default)'. The helm command now sets inferenceExtension.failureMode=FailClose and the text distinguishes the InferencePool v1 API default (FailClose) from the v1.5.0 chart default (FailOpen).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md",
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "v1.5.0 values.yaml has inferenceExtension.failureMode: \"FailOpen\"; the inferencepool template renders failureMode from that value (default FailOpen); api/v1 types declare +kubebuilder:default=\"FailClose\"."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api-inference-extension/v1.5.0/config/charts/inferencepool/values.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api-inference-extension/v1.5.0/config/charts/inferencepool/templates/inferencepool.yaml",
+        "https://raw.githubusercontent.com/kubernetes-sigs/gateway-api-inference-extension/v1.5.0/api/v1/inferencepool_types.go"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-adv-007",
+      "package": "agentic-operations",
+      "id": "AOR-ADV-007",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Both semantic and dimension=1 direct examples nested vector_store{type,url} inside the plugin config. Both now use a top-level vector_store {enabled,type:redis,config:{addr}} with the plugin config separate; the key-items list and direct-mode lead-in explain the contract (Valkey uses type redis; direct mode omits provider/embedding_model).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md",
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/advanced-features.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Bifrost Semantic Caching docs: vector store required for both modes, minimal config is top-level vector_store with enabled/type/config.addr; direct-only = dimension 1 and omit provider; Valkey keeps type redis."
+      ],
+      "primary_urls": [
+        "https://docs.getbifrost.ai/features/semantic-caching"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-cdep-010",
+      "package": "agentic-operations",
+      "id": "AOR-CDEP-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The warning required GPU node recreation after any Device Plugin conflict. It now makes recreation conditional on the failure persisting after reinstall with devicePlugin.enabled=false (nvidia.com/gpu still 0 or Device Plugin pod in CrashLoopBackOff), states it was the 2026-04 GLM-5 work's recovery and not verified as always required, and adds the availability precondition.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment.md",
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No public source can establish the historical incident; the failure signature used is the one the same document already shows (allocatable nvidia.com/gpu 0, device-plugin CrashLoopBackOff). Qualification is the honest fix."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-cdep-012",
+      "package": "agentic-operations",
+      "id": "AOR-CDEP-012",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The 2026-04-03 GLM-5.1 run listed vLLM v0.23.0, a later release. The cell now restores the run's recorded runtime 'v0.18.2rc1 nightly + transformers v5.5.0.dev0', labelled as the image used in the 2026-04-03 run, with a pointer to the current recommendation section.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment.md",
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Recovered from repository history: commit f0b87192 (2026-04-04, the commit that added the run record) shows 'v0.18.2rc1 nightly + transformers v5.5.0.dev0'; commit 6f27ec59 (2026-06-15 fact-check) overwrote it with v0.23.0 and bc365734 propagated that to EN. The doc itself says vLLM v0.19.0 (GLM-5 support) was released 2026-04-03, so v0.23.0 could not have been the run image."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-cdep-014",
+      "package": "agentic-operations",
+      "id": "AOR-CDEP-014",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The caution declared vLLM V1 non-Ray multi-node PP unfit for production as of April 2026. It is now scoped to the one tested configuration (GLM-5 FP8, 2x p5.48xlarge H100 80GB x8, PP=2, LeaderWorkerSet, multiproc_executor, vLLM nightly custom image with transformers v5.5), the observed engine-ready-timeout deadlock in the logs above, and states later releases/Ray/other models were not verified.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment.md",
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-deployment.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Tested configuration taken from the original run record in repository history (commit f0b87192: p5.48xlarge x2, PP=2, LWS, vllm-glm5:nightly custom image). Original run logs are not public, so the claim is scoped rather than confirmed."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-aor-cpipe-010-w3",
+      "package": "agentic-operations",
+      "id": "AOR-CPIPE-010",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Figure 3 showed ~$0.80/hr and ~$63/hr that did not reconcile with the assumed $500/$8,900 monthly costs. Hourly prices are removed from the Mermaid nodes (WRITING_GUIDE s2), and a paragraph states the monthly values are illustrative inputs not derived from the hourly rates, with no region/pricing-date/purchase-option assumption, and how to compute real monthly cost (rate x instances x hours, autoscaling; ~730 h per month).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline.md",
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/custom-model-pipeline.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Price verification attempted (AWS Price List API: no credentials; public pricing JSON not retrievable); removing the unsourced node prices and stating the assumption boundary finishes the remaining document work."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-aor-cpipe-010"
+    },
+    {
+      "record_id": "2026-09-19-aor-ctidx-004-w3",
+      "package": "agentic-operations",
+      "id": "AOR-CTIDX-004",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'~$4K/month' and 'Target 1% monthly faithfulness increase' lacked workload, price date, cost boundary, unit and evaluation set. Both bullets now label $4K as an author's estimate with undefined workload/region/pricing date/cost boundary, and state that the 1% unit (relative vs percentage points) and evaluation set are undefined and must be fixed via the Eval Gate dataset.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/index.md",
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/continuous-training/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No derivation of $4K or the 1% target exists in the continuous-training pages (searched the directory); choosing a unit would be an author decision, so the text now states it is undefined."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-aor-ctidx-004"
+    },
+    {
+      "record_id": "2026-09-19-parfit-deploy-price-premium",
+      "package": "agentic-reference",
+      "id": "PARFIT-DEPLOY-PRICE-PREMIUM",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "$63/hr (us-east-1), $79/hr (Tokyo) and the ~25% premium were presented as pricing. They are now labelled illustrative unit prices whose dated region/OS/tenancy/purchase-option source was not verified as of 2026-10-29, and the 25% is stated as computed from those illustrative prices, not a current-pricing basis.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md",
+        "docs/agentic-ai-platform/reference-architecture/integrations/open-weight-model-deployment.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Tried the AWS Price List API (no valid credentials in this environment) and the public EC2 on-demand pricing JSON (not retrievable); the linked P5 instance page does not state per-region prices. Qualification per bucket policy."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-index-diagram-model",
+      "package": "agentic-reference",
+      "id": "PARFIT-INDEX-DIAGRAM-MODEL",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The embedded draw.io diagram labels the large serving box 'vLLM-Large (Qwen3-72B)'. index.md (both locales) now states Qwen3-72B is not in the official Qwen3 list (dense 0.6B-32B, MoE 30B-A3B/235B-A22B) and must be read as an example label for the large-model serving role. Parent follow-up (PR #208 commit 9c5f5b16): the draw.io label is now 'vLLM-Large (Qwen3-32B)', an identifier in the official list, and the index.md sentence in both locales describes it as an example of the large-model serving role, not a recommendation.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e",
+        "9c5f5b16749d4938df43a9c9aa185f94a15875d9"
+      ],
+      "source_files": [
+        "docs/agentic-ai-platform/reference-architecture/index.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/index.md",
+        "static/Agentic AI Platform(with Ontology and fine tunning feature).drawio"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Qwen3 README lists dense 0.6B,1.7B,4B,8B,14B,32B and MoE 30B-A3B,235B-A22B (plus 2507 updates of 235B-A22B/30B-A3B/4B); no 72B."
+      ],
+      "primary_urls": [
+        "https://github.com/QwenLM/Qwen3"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-pipe-reference-scores",
+      "package": "agentic-reference",
+      "id": "PARFIT-PIPE-REFERENCE-SCORES",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "published_scores mmlu_pro 58.4 / gsm8k 89.1 were reference values without source. The YAML comment and a new paragraph mark them as placeholders with unverified source (as of 2026-10-29), list the provenance a real profile must record, and require unit alignment (harness 0-1 fraction vs percent); the decision text now checks protocol match first and routes a zero/missing published score to G2 as 'no reference value'.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md",
+        "docs/agentic-ai-platform/reference-architecture/model-lifecycle/open-weight-model-pipeline.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Could not trace 58.4/89.1 to a Qwen3-8B model card or report within the budget; unit behaviour (lm-eval reports 0-1 accuracy) is standard harness output. Qualification per policy."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-setup-e2e",
+      "package": "agentic-reference",
+      "id": "PARFIT-SETUP-E2E",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The embedded asset claimed 'Production Ready · E2E Verified' and showed a bare internet-facing NLB on port 80. The badge now reads 'Reference Architecture · Target Configuration', the entry node reads 'CloudFront (WAF/Shield) → AWS NLB' with 'TLS terminates at CloudFront · NLB is the CloudFront origin', and the setup index note says no E2E deployment/verification record is attached.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "static/agentic-platform-architecture.html",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No deployment/test record exists in the repo for E2E verification; the CloudFront/WAF/TLS boundary is taken from the parent page's own flow (CloudFront(WAF/Shield) -> NLB -> kgateway) and its ACM/CloudFront TLS prerequisite."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-setup-metric-version",
+      "package": "agentic-reference",
+      "id": "PARFIT-SETUP-METRIC-VERSION",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The governance card was titled 'llm-d v1.0.23' and claimed 'KV Cache hit 87%+'. The card now reads 'llm-d' and the bullet 'Prefix-aware routing (KV Cache reuse)' (KO and data-en).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "static/agentic-platform-architecture.html"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "llm-d releases list v1.0.0 (latest, 2026-10-20), v0.10.0, v0.9.0, v0.8.1 ...; no v1.0.23 exists. No benchmark/denominator for 87% exists in the repo, so the figure was removed rather than qualified; no replacement version was invented because the diagram was not tied to a release."
+      ],
+      "primary_urls": [
+        "https://github.com/llm-d/llm-d/releases"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-setup-times",
+      "package": "agentic-reference",
+      "id": "PARFIT-SETUP-TIMES",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "45 min / 60-90 min / 3-4 h were presented without assumptions. The guide-structure box now states the times are author's estimates (not measured) assuming the Prerequisites are in place, and that completion is judged by each document's checks, not elapsed time.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md",
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No timing evidence exists; bucket policy qualification with a completion criterion."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-parfit-trouble-002-w3",
+      "package": "agentic-reference",
+      "id": "PARFIT-TROUBLE-002",
+      "issue": 96,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'(required as of v1.5.0+)' and 'the legacy otel value is no longer used' had no release evidence. The table cell now cites the current documented trace_type values (genai_extension, vercel, open_inference, as of 2026-10-29) and the config paragraph states the release that removed otel was not confirmed from release notes and to check the docs of the running version.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
+      "source_commits": [
+        "5abc67a8000da6b4b7ce7a2f8518cd8083a9033e"
+      ],
+      "source_files": [
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md",
+        "docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/troubleshooting-guide.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-96 merged by PR #208 (https://github.com/devfloor9/engineering-playbook/pull/208); merge commit b21369604e29dd8266f022f87b902df63d2d84c3; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Bifrost OTel docs: trace_type 'One of: genai_extension, vercel, open_inference'. The v1.5.0 migration guide's 16 breaking changes do not mention trace_type, so 'v1.5.0+ required' is unsupported."
+      ],
+      "primary_urls": [
+        "https://docs.getbifrost.ai/features/observability/otel.md",
+        "https://docs.getbifrost.ai/migration-guides/v1.5.0"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-parfit-trouble-002"
     }
   ]
 }
