@@ -327,7 +327,7 @@ tenant_monthly_budget_usd
 
 ## 6. Cascade Fallback 전략
 
-Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 때 실패하는 요청을 줄일 수 있습니다. 다만 이 구성은 무중단을 보장하지 않습니다. 폴백은 재시도 가능한 실패와 프로바이더 타임아웃에만 동작하고, 요청 자체의 deadline이 만료되었거나 클라이언트가 요청을 취소한 경우에는 실행되지 않습니다. 스트리밍 응답이 클라이언트에 전달되기 시작한 뒤의 오류는 다른 프로바이더의 응답으로 이어 붙일 수 없고, Bedrock 쪽 할당량(quota)이나 스로틀링에 걸리면 폴백 요청도 실패합니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
+Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 때 실패하는 요청을 줄일 수 있습니다. 다만 이 구성은 무중단을 보장하지 않습니다. 폴백은 기본 프로바이더의 재시도가 소진된 뒤 오류 종류와 무관하게 동작하지만, 클라이언트가 요청을 취소했거나 요청 자체의 deadline이 만료되었거나 플러그인이 폴백을 차단한 경우에는 실행되지 않습니다. 스트리밍 응답이 클라이언트에 전달되기 시작한 뒤의 오류는 다른 프로바이더의 응답으로 이어 붙일 수 없고, Bedrock 쪽 할당량(quota)이나 스로틀링에 걸리면 폴백 요청도 실패합니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
 
 **그림 4. Self-hosted 장애 시 Bedrock으로 전환하는 Cascade 폴백 흐름**
 
@@ -356,7 +356,7 @@ flowchart LR
 
 ### Fallback 조건 설정
 
-Bifrost는 요청 본문의 `fallbacks` 배열과 governance `routing_rules`(CEL 표현식 + weighted targets)로 폴백을 구성합니다. 폴백 트리거는 Bifrost가 고정된 규칙으로 분류하는 실패, 즉 5xx·네트워크 오류와 재시도·키 교체 후에도 남은 429, 프로바이더 타임아웃입니다. 지연 기준으로는 스트리밍 요청의 첫 토큰 대기 한도(`ttft_timeout_ms`)를 규칙에 둘 수 있고, 한도 안에 첫 토큰이 오지 않으면 다음 폴백으로 넘어갑니다(2026-10-29 기준). 임의의 status code·error-rate 조건으로 폴백을 거는 설정은 2026-05 기준 feature request(issue #3261)였습니다.
+Bifrost는 요청 본문의 `fallbacks` 배열과 governance `routing_rules`(CEL 표현식 + weighted targets)로 폴백을 구성합니다. 폴백 트리거는 기본 프로바이더의 재시도와 키 교체 뒤에도 남은 모든 실패(5xx·네트워크 오류, 계속되는 429, 거부된 자격 증명, 접근할 수 없거나 퇴역한 모델, 프로바이더 타임아웃)이며, 클라이언트가 취소한 요청, 만료된 요청 deadline, 플러그인이 폴백을 차단한 오류만 예외입니다. 지연 기준으로는 스트리밍 요청의 첫 토큰 대기 한도(`ttft_timeout_ms`)를 규칙에 둘 수 있고, 한도 안에 첫 토큰이 오지 않으면 다음 폴백으로 넘어갑니다(2026-10-29 기준). 임의의 status code·error-rate 조건으로 폴백을 거는 설정은 2026-05 기준 feature request(issue #3261)였습니다.
 
 아래 예시의 `targets` 가중치는 요청마다 대상을 확률적으로 고르는 분할입니다. 따라서 0.8/0.2 설정에서는 Self-hosted에 여유가 있는 평시에도 요청의 약 20%가 Bedrock으로 갑니다. 피크 때만 Bedrock으로 넘기려면 가중치 분할 대신, 용량 지표(`request`, `tokens_used`, `budget_used`: 설정한 rate limit·예산 대비 사용률)를 조건으로 쓰는 별도 규칙이나 폴백을 사용합니다.
 

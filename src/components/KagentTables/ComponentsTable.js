@@ -34,7 +34,7 @@ const ComponentsTable = () => {
     id: 'mcp-crd',
     component: isKo ? 'RemoteMCPServer / MCPServer CRD' : 'RemoteMCPServer / MCPServer CRD',
     role: isKo ? '도구 서버 정의' : 'Tool server definition',
-    description: isKo ? 'Agent가 type: McpServer 도구로 바인딩하는 MCP 서버 정의(도구와 메모리는 별도 CRD가 아니라 Agent spec에 포함)' : 'MCP server that an Agent binds as type: McpServer tools (tools and memory are not separate CRDs; they live in the Agent spec)'
+    description: isKo ? 'Agent가 type: McpServer 도구로 바인딩하는 MCP 서버 정의(v1alpha2 API에서는 도구와 메모리가 별도 CRD가 아니라 Agent spec에 포함되며, 차트에는 v1alpha1 전용 Memory·ToolServer CRD가 아직 함께 설치됨)' : 'MCP server that an Agent binds as type: McpServer tools (in the v1alpha2 API, tools and memory are not separate CRDs and live in the Agent spec; the chart still ships v1alpha1-only Memory/ToolServer CRDs)'
   }, {
     id: 'workflow-crd',
     component: isKo ? 'Workflow CRD (설계 제안)' : 'Workflow CRD (design proposal)',
