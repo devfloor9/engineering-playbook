@@ -33,6 +33,39 @@ const GatewayApiBenefits = () => {
 
   const currentLabels = labels[locale] || labels.en;
 
+  // YAML comment text per locale; the YAML keys and values stay identical across locales.
+  const yc = locale === 'ko' ? {
+    rbacScope: '애플리케이션 팀은 HTTPRoute만 수정 가능 (인프라 설정 격리)',
+    rbacParent: '플랫폼 팀이 관리하는 Gateway 참조',
+    header: '헤더 기반 라우팅 (A/B 테스트)',
+    query: '쿼리 파라미터 기반 라우팅',
+    method: 'HTTP 메서드 기반 라우팅',
+    standard: '표준 Gateway API 리소스',
+    ciliumPolicy: 'Cilium의 L7 접근 제어 Policy (별도 리소스)',
+    ciliumNote1: '참고: CiliumNetworkPolicy의 http 규칙은 method/path/header 매칭을 지원하며,',
+    ciliumNote2: '요청 속도 제한 필드는 없습니다. 속도 제한은 구현체별 L7 메커니즘으로 처리합니다.',
+    grpc: 'gRPC 서비스 라우팅',
+    after: 'After: AWS Load Balancer Controller (HTTPRoute는 동일)',
+    nginxTypo: '❌ NGINX Ingress: 어노테이션 오타 시 런타임 에러',
+    typo: '오타!',
+    schema: '✅ Gateway API: CRD 스키마 검증으로 사전 차단',
+  } : {
+    rbacScope: 'Application teams can modify only HTTPRoute (infrastructure settings isolated)',
+    rbacParent: 'References the Gateway managed by the platform team',
+    header: 'Header-based routing (A/B testing)',
+    query: 'Query-parameter-based routing',
+    method: 'HTTP-method-based routing',
+    standard: 'Standard Gateway API resource',
+    ciliumPolicy: 'Cilium L7 access-control policy (separate resource)',
+    ciliumNote1: 'Note: CiliumNetworkPolicy http rules support method/path/header matching',
+    ciliumNote2: 'but have no rate-limit field. Rate limiting is handled by each implementation\'s L7 mechanism.',
+    grpc: 'gRPC service routing',
+    after: 'After: AWS Load Balancer Controller (HTTPRoute unchanged)',
+    nginxTypo: '❌ NGINX Ingress: an annotation typo causes a runtime error',
+    typo: 'typo!',
+    schema: '✅ Gateway API: rejected up front by CRD schema validation',
+  };
+
   const benefits = [
     {
       icon: '🔐',
@@ -42,7 +75,7 @@ const GatewayApiBenefits = () => {
         zh: '基于角色的访问控制',
       },
       diagram: <RBACDiagram isDark={isDark} locale={locale} />,
-      yaml: `# 애플리케이션 팀은 HTTPRoute만 수정 가능 (인프라 설정 격리)
+      yaml: `# ${yc.rbacScope}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -50,7 +83,7 @@ metadata:
   namespace: production-app
 spec:
   parentRefs:
-  - name: shared-gateway  # 플랫폼 팀이 관리하는 Gateway 참조
+  - name: shared-gateway  # ${yc.rbacParent}
     namespace: gateway-system
     sectionName: https
   rules:
@@ -76,7 +109,7 @@ metadata:
   name: advanced-routing
 spec:
   rules:
-  # 헤더 기반 라우팅 (A/B 테스트)
+  # ${yc.header}
   - matches:
     - headers:
       - name: X-User-Group
@@ -84,7 +117,7 @@ spec:
     backendRefs:
     - name: backend-beta
       port: 8080
-  # 쿼리 파라미터 기반 라우팅
+  # ${yc.query}
   - matches:
     - queryParams:
       - name: version
@@ -92,7 +125,7 @@ spec:
     backendRefs:
     - name: backend-v2
       port: 8080
-  # HTTP 메서드 기반 라우팅
+  # ${yc.method}
   - matches:
     - method: POST
       path:
@@ -110,7 +143,7 @@ spec:
         zh: '可扩展设计',
       },
       diagram: <ExtensibleDesignDiagram isDark={isDark} locale={locale} />,
-      yaml: `# 표준 Gateway API 리소스
+      yaml: `# ${yc.standard}
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -121,9 +154,9 @@ spec:
     - name: api-service
       port: 80
 ---
-# Cilium의 L7 접근 제어 Policy (별도 리소스)
-# 참고: CiliumNetworkPolicy의 http 규칙은 method/path/header 매칭을 지원하며,
-# 요청 속도 제한 필드는 없습니다. 속도 제한은 구현체별 L7 메커니즘으로 처리합니다.
+# ${yc.ciliumPolicy}
+# ${yc.ciliumNote1}
+# ${yc.ciliumNote2}
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
@@ -149,7 +182,7 @@ spec:
         zh: '多协议支持',
       },
       diagram: <MultiProtocolDiagram isDark={isDark} locale={locale} />,
-      yaml: `# gRPC 서비스 라우팅
+      yaml: `# ${yc.grpc}
 apiVersion: gateway.networking.k8s.io/v1
 kind: GRPCRoute
 metadata:
@@ -182,7 +215,7 @@ metadata:
 spec:
   controllerName: io.cilium/gateway-controller
 ---
-# After: AWS Load Balancer Controller (HTTPRoute는 동일)
+# ${yc.after}
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
@@ -198,11 +231,11 @@ spec:
         zh: '类型安全',
       },
       diagram: <TypeSafetyDiagram isDark={isDark} locale={locale} />,
-      yaml: `# ❌ NGINX Ingress: 어노테이션 오타 시 런타임 에러
+      yaml: `# ${yc.nginxTypo}
 annotations:
-  nginx.ingress.kubernetes.io/rewrite-traget: /  # 오타!
+  nginx.ingress.kubernetes.io/rewrite-traget: /  # ${yc.typo}
 
-# ✅ Gateway API: CRD 스키마 검증으로 사전 차단
+# ${yc.schema}
 spec:
   rules:
   - filters:

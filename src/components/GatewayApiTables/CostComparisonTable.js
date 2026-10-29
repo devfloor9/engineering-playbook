@@ -3,8 +3,8 @@ import React from 'react';
 const data = {
   ko: {
     title: 'AWS Native vs 오픈소스 비용 및 성능 영향 비교',
-    subtitle: '기능별 추가 비용, 지연 오버헤드, 홉 증가 여부 종합 비교',
-    headers: { feature: '기능', awsCost: 'AWS Native 비용', ossCost: '오픈소스 비용', perfImpact: '성능 영향' },
+    subtitle: '기능별 추가 비용, 지연 오버헤드, 홉 증가 여부 종합 비교. 지연 수치(ms)는 저자 추정값이며 측정값이 아닙니다(워크로드·토폴로지를 정한 측정 결과 없음). 실제 구성과 부하에서 측정해 확인해야 합니다.',
+    headers: { feature: '기능', awsCost: 'AWS Native 비용', ossCost: '오픈소스 비용', perfImpact: '성능 영향 (추정)' },
     items: [
       {
         feature: '인증 (OIDC/Cognito)',
@@ -50,8 +50,8 @@ const data = {
   },
   en: {
     title: 'AWS Native vs Open Source: Cost & Performance Impact',
-    subtitle: 'Comprehensive comparison of additional costs, latency overhead, and hop increases per feature',
-    headers: { feature: 'Feature', awsCost: 'AWS Native Cost', ossCost: 'Open Source Cost', perfImpact: 'Performance Impact' },
+    subtitle: 'Comprehensive comparison of additional costs, latency overhead, and hop increases per feature. Latency figures (ms) are the author\'s estimate, not a measured result (no measurement with a defined workload and topology exists). Confirm them by measuring under the actual configuration and load.',
+    headers: { feature: 'Feature', awsCost: 'AWS Native Cost', ossCost: 'Open Source Cost', perfImpact: 'Performance Impact (estimate)' },
     items: [
       {
         feature: 'Authentication (OIDC/Cognito)',
@@ -97,8 +97,8 @@ const data = {
   },
   zh: {
     title: 'AWS Native vs 开源：成本与性能影响对比',
-    subtitle: '按功能综合比较额外成本、延迟开销和跳数增加',
-    headers: { feature: '功能', awsCost: 'AWS Native 成本', ossCost: '开源成本', perfImpact: '性能影响' },
+    subtitle: '按功能综合比较额外成本、延迟开销和跳数增加。延迟数值（ms）为作者估计值，并非实测结果（没有确定工作负载与拓扑的测量结果）。需在实际配置和负载下测量确认。',
+    headers: { feature: '功能', awsCost: 'AWS Native 成本', ossCost: '开源成本', perfImpact: '性能影响（估计）' },
     items: [
       {
         feature: '认证 (OIDC/Cognito)',

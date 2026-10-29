@@ -3,9 +3,9 @@ title: "Gateway API 도입 가이드: NGINX Ingress에서 차세대 트래픽 �
 description: NGINX Ingress Controller EOL 대응, Gateway API 아키텍처, GAMMA Initiative, AWS Native vs 오픈소스 솔루션 비교(AWS LBC·Cilium·NGINX Gateway Fabric·Envoy Gateway·kGateway·Kong), Cilium ENI 통합, 마이그레이션 전략 및 벤치마크 계획
 created: "2026-02-14"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 47
+reading_time: 48
 tags:
   - eks
   - gateway-api
@@ -50,6 +50,8 @@ import {
 # Gateway API 도입 가이드
 
 > **📌 기준 버전**: Gateway API v1.5.1, Cilium v1.19.0, EKS 1.33+, AWS LBC v3.0.0, Envoy Gateway v1.7.0
+>
+> 이 버전들은 문서 작성 시점에 참조한 버전이며, 함께 설치해 동작을 검증한 호환 조합이 아닙니다. 각 프로젝트 문서가 명시한 Gateway API CRD 버전도 서로 다릅니다(2026-10-29 기준). AWS LBC v3.0.0 릴리스 노트는 Gateway API v1.3.0 CRD 설치를 안내하고, Cilium v1.19 문서와 Envoy Gateway v1.7 호환성 매트릭스는 Gateway API v1.4.1을 명시합니다. Envoy Gateway v1.7은 2026-08-05에 지원이 종료(EOL)되었습니다. 설치 전에 사용할 구현체의 호환성 문서에서 지원하는 Gateway API 버전과 지원 기간을 확인하세요.
 
 ## 1. 개요
 

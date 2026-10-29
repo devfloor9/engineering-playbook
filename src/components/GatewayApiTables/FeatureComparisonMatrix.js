@@ -189,7 +189,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
           {categories.map((cat) => (
             <div key={cat.id} style={{ marginBottom: '0.5rem', border: '1px solid var(--ifm-color-emphasis-200)', borderRadius: 8, overflow: 'hidden' }}>
               <div onClick={() => toggleCategory(cat.id)} style={{ background: cat.color, color: '#fff', padding: '0.6rem 1rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 700 }}>
-                <span>{cat.title[locale]} ({cat.rows.length}개)</span>
+                <span>{cat.title[locale]} ({cat.rows.length}{locale === 'ko' ? '개' : ''})</span>
                 <span style={{ fontSize: '1rem' }}>{expanded[cat.id] ? '▼' : '▶'}</span>
               </div>
 
@@ -220,7 +220,7 @@ export default function FeatureComparisonMatrix({ locale = 'ko' }) {
 
               {!expanded[cat.id] && (
                 <div style={{ padding: '0.6rem 1rem', fontSize: '0.72rem', color: 'var(--ifm-color-emphasis-600)', fontStyle: 'italic', background: 'var(--ifm-background-surface-color)' }}>
-                  {locale === 'ko' ? '클릭하여 펼치기' : 'Click to expand'} · {cat.rows.length}개 항목
+                  {locale === 'ko' ? '클릭하여 펼치기' : 'Click to expand'} · {cat.rows.length}{locale === 'ko' ? '개 항목' : ' items'}
                 </div>
               )}
             </div>
