@@ -681,22 +681,24 @@ PORT=$(jq -r '.port' <<<"$LISTENER_JSON")
 PROTOCOL=$(jq -r '.protocol' <<<"$LISTENER_JSON")
 case "$PROTOCOL" in HTTP) SCHEME=http ;; HTTPS) SCHEME=https ;; *) echo "Only HTTP/HTTPS probes are supported" >&2; exit 1 ;; esac
 
-# The selected listener must be ready and must admit this HTTPRoute for the probe host:
-# listener status conditions, listener/Route hostname intersection, and allowedRoutes.
-jq -e --arg l "$LISTENER" --arg ns "$NS" --arg gns "$GW_NS" --arg h "$HOST" \
-  --argjson rh "$(jq -c '.spec.hostnames // []' <<<"$ROUTE")" '
-  def hostok($p): ($p == null) or ($p == $h) or
-    (($p | startswith("*.")) and ($h | endswith($p[1:])) and ($h | length) > ($p | length) - 1);
-  .metadata.generation as $g |
-  (.spec.listeners[] | select(.name == $l)) as $L |
+# The selected listener must be ready and must admit this HTTPRoute for the probe host.
+# Three separate checks so that the failing condition is named: listener status
+# conditions, listener/Route hostname intersection, and allowedRoutes.
+jq -e --arg l "$LISTENER" '.metadata.generation as $g |
   (.status.listeners[]? | select(.name == $l)) as $S |
   all(["Accepted", "Programmed", "ResolvedRefs"][]; . as $t |
-    any($S.conditions[]?; .type == $t and .status == "True" and (.observedGeneration // $g) == $g)) and
-  hostok($L.hostname) and (($rh | length) == 0 or any($rh[]; hostok(.))) and
-  (($L.allowedRoutes.namespaces.from // "Same") as $from | $from == "All" or ($from == "Same" and $ns == $gns)) and
-  (($L.allowedRoutes.kinds // []) | length == 0 or any(.[];
-    (.group // "gateway.networking.k8s.io") == "gateway.networking.k8s.io" and .kind == "HTTPRoute"))' <<<"$GW" >/dev/null ||
-  { echo "Listener $LISTENER is not ready or does not admit this HTTPRoute for $HOST (Selector namespaces are not evaluated)" >&2; exit 1; }
+    any($S.conditions[]?; .type == $t and .status == "True" and (.observedGeneration // $g) == $g))' <<<"$GW" >/dev/null ||
+  { echo "Listener $LISTENER is not Accepted/Programmed/ResolvedRefs at generation $(jq -r '.metadata.generation' <<<"$GW") (or has no status entry)" >&2; exit 1; }
+jq -e --arg h "$HOST" --argjson rh "$(jq -c '.spec.hostnames // []' <<<"$ROUTE")" '
+  def hostok($p): ($p == null) or ($p == $h) or
+    (($p | startswith("*.")) and ($h | endswith($p[1:])) and ($h | length) > ($p | length) - 1);
+  hostok(.hostname) and (($rh | length) == 0 or any($rh[]; hostok(.)))' <<<"$LISTENER_JSON" >/dev/null ||
+  { echo "Probe host $HOST is not covered by the hostname of listener $LISTENER and the HTTPRoute hostnames" >&2; exit 1; }
+jq -e --arg ns "$NS" --arg gns "$GW_NS" '
+  ((.allowedRoutes.namespaces.from // "Same") as $from | $from == "All" or ($from == "Same" and $ns == $gns)) and
+  ((.allowedRoutes.kinds // []) | length == 0 or any(.[];
+    (.group // "gateway.networking.k8s.io") == "gateway.networking.k8s.io" and .kind == "HTTPRoute"))' <<<"$LISTENER_JSON" >/dev/null ||
+  { echo "allowedRoutes of listener $LISTENER does not admit HTTPRoute $NS/$ROUTE_NAME (Selector namespaces are not evaluated)" >&2; exit 1; }
 
 # Match the intended parent and its controller, including namespace, sectionName and port.
 jq -e --arg ns "$NS" --arg gn "$GW_NAME" --arg gns "$GW_NS" --arg l "$LISTENER" \
