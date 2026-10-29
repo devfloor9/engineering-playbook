@@ -3,9 +3,9 @@ title: LLMOps Observability 비교 가이드
 description: LLMOps Observability 도구 비교 전용 문서 — Langfuse·LangSmith·Helicone·CloudWatch 선택 기준과 하이브리드 아키텍처 (Langfuse 운영은 Agent 모니터링 문서 참조)
 created: "2026-03-16"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 15
+reading_time: 16
 tags:
   - eks
   - observability
@@ -106,7 +106,7 @@ flowchart TB
 - **Evaluation**: LLM-as-Judge, 규칙 기반 자동 평가, Annotation Queue 수동 평가, Dataset 관리
 - **아키텍처**: PostgreSQL(메타데이터) + ClickHouse(분석) + Redis(캐시). v3(2024-12+)는 ClickHouse+Redis+S3+Worker로 v2 대비 셀프호스팅 복잡도 증가
 
-**장점**: 완전한 데이터 소유권, 무제한 확장, 강력한 평가 파이프라인, 비용 효율(셀프호스트)
+**장점**: 완전한 데이터 소유권, 플랜 한도 없는 확장(운영자가 확보한 인프라 용량 범위 안), 강력한 평가 파이프라인, 비용 효율(셀프호스트)
 
 **단점**: 운영 오버헤드(PG+CH+Redis 관리), 초기 설정 복잡도
 
@@ -156,8 +156,10 @@ flowchart TB
 | **LangChain 통합** | 높음 | 높음 | 중간 |
 | **프레임워크 중립성** | 높음 | 중간 | 높음 |
 | **Gateway 기능** | 없음 | 없음 | 높음 |
-| **스케일 한계** | 무제한 (셀프호스트) | 플랜 제한 | 플랜 제한 |
-| **데이터 주권** | 높음 | 낮음 | 높음 |
+| **스케일 한계** | 플랜 한도 없음 (셀프호스트, 인프라 용량에 따름) | 플랜 제한 | 플랜 제한 |
+| **데이터 주권** | 높음 (셀프호스트 시) | 낮음 (SaaS 기본) | 높음 (셀프호스트 시) |
+
+스케일 한계의 "플랜 한도 없음"은 셀프호스트 Langfuse에 요금제 기반 사용량 한도가 없다는 뜻이며, 실제 처리 한계는 운영자가 구성한 Postgres·ClickHouse 등 저장소와 워커의 용량으로 정해집니다. 이 문서는 그 용량 한계를 측정하지 않았으므로 목표 트래픽으로 부하 시험을 해서 확인해야 합니다. 데이터 주권 수준은 셀프호스트 배포를 전제로 한 평가이며, 외부 평가자(LLM-as-Judge)나 모델 프로바이더로 트레이스 데이터가 나가는 구성이면 이 평가가 성립하지 않습니다(조건은 §7 시나리오별 추천의 표 6 참조).
 
 ### 3.5 AWS 네이티브 관측성: CloudWatch Generative AI Observability
 

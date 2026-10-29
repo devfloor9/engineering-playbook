@@ -3,9 +3,9 @@ title: Enterprise Compliance Framework
 description: Compliance guide mapping SOC2, ISO27001, Electronic Financial Supervisory Regulation (전자금융감독규정), and ISMS-P to AI operations
 created: "2026-04-04"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 20
+reading_time: 21
 tags:
   - compliance
   - soc2
@@ -264,9 +264,11 @@ def check_compliance(playbook_path):
 
 ### Per-Data-Classification Retention Criteria
 
-**Table 7. Audit data retention location, period, access authority, and legal basis by classification**
+The retention periods in the table below are examples of an internal organization retention policy. The last column lists related controls that require log and change-history management, for reference only; it does not mean that a law or standard mandates the listed period. Before labeling any retention period as legally required, confirm the edition and provision of the applicable regulation or standard, the data class it covers, and whether it applies to your organization; the provision mapping and periods in this table have not gone through that check (unverified as of 2026-10-29).
 
-| Data | Storage Location | Retention Period | Access Authority | Legal Basis |
+**Table 7. Audit data retention location, period (example organization policy), access authority, and related control by classification**
+
+| Data | Storage Location | Retention Period (example org policy) | Access Authority | Related Control (reference) |
 |------|-----------------|-----------------|-----------------|------------|
 | **Inference traces** | LLM Tracing + S3 | 3 years | Audit team, DevOps | ISO27001 A.12.4 |
 | **API call logs** | CloudTrail + S3 | 5 years | Security team, Audit team | Electronic Financial Supervisory Regulation (전자금융감독규정) Article 19 |
@@ -276,7 +278,7 @@ def check_compliance(playbook_path):
 
 ### S3 Lifecycle Policy Example
 
-The rule below scopes transitions and expiration to inference-trace objects only by specifying the `inference-traces/` prefix in `Filter`. Without a `Filter`, the expiration rule applies to the entire bucket and could delete other data classes after 1095 days (3 years) — including API call logs that must be retained for 5 years. Separate each data class by prefix and keep a distinct rule matching that class's retention period. Also validate this rule against the target bucket's versioning and Object Lock settings before applying it, to confirm expiration does not delete versions or objects that must be retained.
+The rule below scopes transitions and expiration to inference-trace objects only by specifying the `inference-traces/` prefix in `Filter`. Without a `Filter`, the expiration rule applies to the entire bucket and could delete other data classes after 1095 days (3 years) — including API call logs whose retention period is set to 5 years. Separate each data class by prefix and keep a distinct rule matching that class's retention period. Also validate this rule against the target bucket's versioning and Object Lock settings before applying it, to confirm expiration does not delete versions or objects that must be retained.
 
 ```json
 {

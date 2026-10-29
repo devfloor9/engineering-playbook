@@ -3,9 +3,9 @@ title: LLM 서빙 최적화를 위한 모니터링 전략
 description: 캐시 효율·KV 용량·지연·라우팅 지표를 7개 관측 계층으로 연결하고, 스트림 완료·평가 커버리지·품질 점수를 구분하여 서빙 최적화의 효과와 회귀를 검증하는 운영 전략입니다.
 created: "2026-09-03"
 last_update:
-  date: "2026-10-06"
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 25
+reading_time: 26
 tags:
   - vllm
   - prometheus
@@ -58,7 +58,7 @@ Preemption은 실행 중인 요청을 대기 상태로 되돌려 나중에 재�
 
 TTFT(Time to First Token)는 요청 후 첫 토큰을 받을 때까지의 시간입니다. ITL(Inter-Token Latency)은 연속된 출력 토큰 사이의 간격이고, TPOT(Time per Output Token)는 요청 하나에서 출력 토큰을 생성하는 데 걸린 평균 시간입니다.
 
-ITL 히스토그램에는 토큰 사이의 간격이 각각 들어가므로 긴 응답이 더 많은 표본을 만듭니다. 요청별 평균 TPOT 히스토그램에는 요청마다 평균값 하나가 들어갑니다. 두 히스토그램은 같은 요청 집합에서도 가중치가 다르므로 동일한 지표처럼 섞지 않습니다.
+`v0.26.0`의 ITL 히스토그램은 토큰마다가 아니라 prefill이 아닌 엔진 출력(engine output)마다 직전 출력과의 간격을 하나씩 기록하므로, 긴 응답이 더 많은 표본을 만듭니다. 엔진 출력 하나에 토큰이 하나씩 들어가는 경우에는 이 값이 개별 토큰 간격에 가깝지만, speculative decoding처럼 한 출력에 여러 토큰이 들어가면 표본 수와 가중치가 토큰 기준과 달라집니다([통계 소스](https://github.com/vllm-project/vllm/blob/v0.26.0/vllm/v1/metrics/stats.py)). 요청별 평균 TPOT 히스토그램에는 요청마다 평균값 하나가 들어갑니다. 두 히스토그램은 같은 요청 집합에서도 가중치가 다르므로 동일한 지표처럼 섞지 않습니다.
 
 다음 화살표는 분석 순서이며 계층 사이의 인과관계를 뜻하지 않습니다.
 

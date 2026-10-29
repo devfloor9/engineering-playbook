@@ -3,9 +3,9 @@ title: AI Gateway Guardrails
 description: LLM Gateway 레벨 Guardrails — PII Redaction, Prompt Injection 방어, Content Filtering, 도구 비교와 한국 금융권 컴플라이언스 매핑
 created: "2026-04-17"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 24
 tags:
   - guardrails
   - pii
@@ -92,6 +92,8 @@ flowchart LR
 ```
 
 ### 2.1 레이어별 책임
+
+표 2의 지연 영향 값은 측정값이 아니라 계획 수립용 예시 추정치입니다. 재현 가능한 벤치마크(워크로드, 모델·탐지기 버전, 백분위 정의)로 측정한 결과가 아니므로, 지연 예산을 정할 때는 대상 환경에서 레이어별 p50/p95 지연을 직접 측정하고, SLO 목표치와 측정 결과를 구분해 기록합니다.
 
 **표 2. 방어 레이어별 위치·책임·지연 영향**
 
@@ -589,7 +591,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 | **암호통제** | 2.7 암호통제 | 중요 정보 암호화 저장·전송 | Audit log (Langfuse + S3 KMS), TLS 1.3 게이트웨이 |
 | **침해사고 대응** | 2.11 사고 예방 및 대응 | 이상행위 탐지, 대응 절차 | injection_attempts_total 메트릭 + SOC 연동 |
 | **접근통제** | 2.6 접근통제 | 최소 권한 원칙 | Tool Allow-list + Scoped Token + MCP Fingerprint |
-| **개인정보 처리방침** | 3.5 정보주체 권리보장 | 처리 내역 공개, 열람·정정 | Langfuse 추론 트레이스 3년 보관, 주체 식별자 매핑 |
+| **개인정보 처리방침** | 3.5 정보주체 권리보장 | 처리 내역 공개, 열람·정정 | 추론 트레이스를 최소화·마스킹한 뒤 데이터 분류별 보관 일정에 따라 Langfuse에 보관, 주체 식별자 매핑 |
 
 ### 8.2 개인정보보호법(PIPA) 관점
 
@@ -600,7 +602,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 | **제15조** 수집·이용 | 동의 기반 수집, 목적 외 이용 금지 | Input Guard에서 수집 목적 외 PII 차단, 목적 초과 요청 거부 |
 | **제23조** 민감정보 | 사상·신념·건강 등 민감정보 별도 동의 | Llama Guard 3 카테고리 매핑 + 민감정보 전용 redaction 정책 |
 | **제24조·제24조의2** 고유식별정보·주민등록번호 | 고유식별정보 처리 제한(제24조), 주민등록번호 처리 제한(제24조의2) | 처리의 법적 근거·목적 최소화는 별도로 확보해야 하며, Presidio `KR_RRN` recognizer + 마스킹은 기술적 안전조치일 뿐 마스킹 자체가 처리를 허용하지 않음 |
-| **제29조** 안전조치 | 암호화, 접근기록 보관 | 모든 Guardrails 이벤트 CloudTrail/Langfuse 3년 이상 보관 |
+| **제29조** 안전조치 | 암호화, 접근기록 보관 | 접근기록과 Guardrails 이벤트를 로그 분류별 보관 일정(분류·법적 근거·목적·적용 기관별 기간)에 따라 CloudTrail/Langfuse에 보관하고, 법적으로 보존해야 하는 기록과 선택적 텔레메트리를 구분 |
 | **제30조** 처리방침 공개 | 처리 목적·항목 등 공개 | Guardrails 정책 문서화 + 감사 추적 가능성 확보 |
 
 ### 8.3 금융 분야 — 전자금융감독규정·망분리
@@ -664,7 +666,7 @@ Langfuse는 LLM 호출별 span을 제공하므로 `safety_violation=true` 필터
 ### 9.5 관측성·감사
 - [ ] Langfuse `safety_violation` 태깅 + SIEM 연동
 - [ ] `guardrails_fail_open_count = 0` 알림
-- [ ] 위반 이벤트 3년 이상 보관 (ISMS-P, 전자금융감독규정)
+- [ ] 위반 이벤트의 보관 기간을 로그·데이터 분류, 법적 근거, 목적, 적용 기관별로 정한 보관 일정으로 문서화(ISMS-P·전자금융감독규정의 적용 여부와 의무 기간은 기관별로 확인)하고, 보관 전 프롬프트·응답 본문을 최소화·마스킹
 
 ### 9.6 컴플라이언스
 - [ ] 망분리 환경: OSS 자체 호스팅 조합 채택 (NeMo + Presidio + Llama Guard). 각 구성요소의 외부 송신 차단(no-egress), 고정 버전과 필요한 모델 의존성(Llama Guard GPU 가중치, Presidio NLP 모델 등), 익명 사용량 텔레메트리 비활성화 설정을 전제로 명시하고, 익명 사용량 텔레메트리와 프롬프트 본문 외부 전송을 구분해 후자가 발생하지 않도록 통제

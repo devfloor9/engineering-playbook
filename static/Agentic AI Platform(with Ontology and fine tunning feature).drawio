@@ -119,7 +119,7 @@
         <mxCell id="131" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#76B900;strokeColor=#5E9400;fontColor=#FFFFFF;fontSize=9;" value="llm-d or NVIDIA Dynamo&lt;br style=&quot;border-color: rgb(218, 220, 224);&quot;&gt;(KV+LoRA-aware) or (Router+Planner)" vertex="1">
           <mxGeometry height="35" width="563" x="357" y="387" as="geometry" />
         </mxCell>
-        <mxCell id="134" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFD93D;strokeColor=#CCB030;fontColor=#333333;fontSize=8;" value="vLLM-Large&#xa;(Qwen3-72B)" vertex="1">
+        <mxCell id="134" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFD93D;strokeColor=#CCB030;fontColor=#333333;fontSize=8;" value="vLLM-Large&#xa;(Qwen3-32B)" vertex="1">
           <mxGeometry height="40" width="85" x="396" y="437" as="geometry" />
         </mxCell>
         <mxCell id="139" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#76B900;strokeColor=#5E9400;fontColor=#FFFFFF;fontSize=8;" value="GPU: NVIDIA H100/L40s (EKS Auto Mode)&amp;nbsp;&amp;nbsp;| DRA (GPU partitioning) for MNG Node Group | DCGM→AMP→AMG | Kubecost" vertex="1">

@@ -26,15 +26,20 @@ const ComponentsTable = () => {
     role: isKo ? '에이전트 정의' : 'Agent definition',
     description: isKo ? 'AI 에이전트의 스펙, 모델, 도구 설정' : 'Spec, model, and tool configuration for AI agents'
   }, {
-    id: 'tool-crd',
-    component: isKo ? 'Tool CRD' : 'Tool CRD',
-    role: isKo ? '도구 정의' : 'Tool definition',
-    description: isKo ? '에이전트가 사용할 도구(API, 검색 등) 정의' : 'Define tools (API, search, etc.) for agent use'
+    id: 'modelconfig-crd',
+    component: isKo ? 'ModelConfig CRD' : 'ModelConfig CRD',
+    role: isKo ? '모델 정의' : 'Model definition',
+    description: isKo ? 'Agent가 modelConfig로 참조하는 모델 제공자, 모델 이름, API 키 참조 정의' : 'Model provider, model name, and API key reference that an Agent references via modelConfig'
+  }, {
+    id: 'mcp-crd',
+    component: isKo ? 'RemoteMCPServer / MCPServer CRD' : 'RemoteMCPServer / MCPServer CRD',
+    role: isKo ? '도구 서버 정의' : 'Tool server definition',
+    description: isKo ? 'Agent가 type: McpServer 도구로 바인딩하는 MCP 서버 정의(v1alpha2 API에서는 도구와 메모리가 별도 CRD가 아니라 Agent spec에 포함되며, 차트에는 v1alpha1 전용 Memory·ToolServer CRD가 아직 함께 설치됨)' : 'MCP server that an Agent binds as type: McpServer tools (in the v1alpha2 API, tools and memory are not separate CRDs and live in the Agent spec; the chart still ships v1alpha1-only Memory/ToolServer CRDs)'
   }, {
     id: 'workflow-crd',
-    component: isKo ? 'Workflow CRD' : 'Workflow CRD',
+    component: isKo ? 'Workflow CRD (설계 제안)' : 'Workflow CRD (design proposal)',
     role: isKo ? '워크플로우 정의' : 'Workflow definition',
-    description: isKo ? '멀티 에이전트 협업 워크플로우 정의' : 'Define multi-agent collaboration workflows'
+    description: isKo ? '멀티 에이전트 협업 워크플로우 정의. 공식 kagent.dev/v1alpha2 API에는 없으며 별도 CRD와 컨트롤러가 필요한 설계 제안(§4)' : 'Define multi-agent collaboration workflows. Not in the official kagent.dev/v1alpha2 API; a design proposal that needs its own CRD and controller (§4)'
   }];
   return <div style={{
     maxWidth: '100%',

@@ -3,9 +3,9 @@ title: AI Gateway Guardrails
 description: LLM Gateway-level Guardrails — PII redaction, prompt injection defense, content filtering, tool comparison, and Korean financial compliance mapping
 created: "2026-04-17"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 42
+reading_time: 43
 tags:
   - guardrails
   - pii
@@ -92,6 +92,8 @@ flowchart LR
 ```
 
 ### 2.1 Layer Responsibilities
+
+The latency-impact values in Table 2 are illustrative planning estimates, not measured values. They do not come from a reproducible benchmark (workload, model/detector versions, percentile definition), so when you set a latency budget, measure per-layer p50/p95 latency in the target environment yourself and record SLO targets separately from measured results.
 
 **Table 2. Location, responsibility, and latency impact by defense layer**
 
@@ -592,7 +594,7 @@ Article numbers below are based on publicly available regulations and subject to
 | **Cryptographic control** | 2.7 Cryptographic control | Encrypt and transmit important information | Audit log (Langfuse + S3 KMS), TLS 1.3 gateway |
 | **Incident response** | 2.11 Incident prevention and response | Abnormal behavior detection, response procedures | injection_attempts_total metric + SOC integration |
 | **Access control** | 2.6 Access control | Least privilege principle | Tool Allow-list + Scoped Token + MCP Fingerprint |
-| **Personal info processing policy** | 3.5 Data subject rights protection | Disclosure of processing history, access/correction | Langfuse inference trace retention for 3 years, subject identifier mapping |
+| **Personal info processing policy** | 3.5 Data subject rights protection | Disclosure of processing history, access/correction | Retain minimized and masked inference traces in Langfuse according to the per-data-class retention schedule, subject identifier mapping |
 
 ### 8.2 Personal Information Protection Act (PIPA) Perspective
 
@@ -603,7 +605,7 @@ Article numbers below are based on publicly available regulations and subject to
 | **Article 15** Collection/use | Consent-based collection, prohibition of use beyond purpose | Block non-purpose PII at input guard, reject requests beyond purpose |
 | **Article 23** Sensitive information | Separate consent for sensitive info like ideology/beliefs/health | Llama Guard 3 category mapping + sensitive info-specific redaction policy |
 | **Article 24 / Article 24-2** Unique identification info / resident registration number | Restrictions on processing unique identification info (Art. 24), restrictions on processing resident registration numbers (Art. 24-2) | The legal basis and purpose-minimization for processing must be secured separately; the Presidio `KR_RRN` recognizer + masking is only a technical safeguard, and masking itself does not authorize processing |
-| **Article 29** Security measures | Encryption, access log retention | Retain all Guardrails events in CloudTrail/Langfuse for 3+ years |
+| **Article 29** Security measures | Encryption, access log retention | Retain access records and Guardrails events in CloudTrail/Langfuse according to a per-log-class retention schedule (period by class, legal basis, purpose, and applicable institution), and separate records that must be legally preserved from optional telemetry |
 | **Article 30** Processing policy disclosure | Disclose processing purpose/items, etc. | Document Guardrails policy + ensure audit traceability |
 
 ### 8.3 Financial Sector — Electronic Financial Supervision Regulation & Network Separation
@@ -667,7 +669,7 @@ Verify OpenRouter's detailed data-handling specifics (prompt caching, BYOK, etc.
 ### 9.5 Observability·Audit
 - [ ] Langfuse `safety_violation` tagging + SIEM integration
 - [ ] `guardrails_fail_open_count = 0` alert
-- [ ] Retain violation events for 3+ years (ISMS-P, Electronic Financial Supervision Regulation)
+- [ ] Document the retention period of violation events in a retention schedule defined by log/data class, legal basis, purpose, and applicable institution (confirm per institution whether ISMS-P and the Electronic Financial Supervision Regulation apply and what period they mandate), and minimize/mask prompt and response content before retention
 
 ### 9.6 Compliance
 - [ ] Network-separated environment: Adopt self-hosted OSS combination (NeMo + Presidio + Llama Guard). State the assumptions explicitly — each component's outbound egress blocked (no-egress), pinned versions and required model dependencies (Llama Guard GPU weights, Presidio NLP models, etc.), and anonymous-usage-telemetry disabled — and keep anonymous usage telemetry distinct from prompt-content export, controlling so that the latter does not occur

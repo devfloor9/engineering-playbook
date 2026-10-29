@@ -3,9 +3,9 @@ title: Milvus Vector Database Integration
 description: Deploying Milvus vector database on Amazon EKS and integrating with RAG pipelines
 created: "2026-02-05"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 22
+reading_time: 24
 tags:
   - milvus
   - vector-database
@@ -148,7 +148,7 @@ Using Amazon S3 directly instead of MinIO reduces operational burden. S3 Express
 
 :::tip S3 Express One Zone Benefits
 
-- **10x faster performance**: 10x faster data access vs standard S3
+- **Up to 10x faster data access**: object data access up to 10x faster than S3 Standard (an AWS-published figure; it does not mean Milvus search or index builds become 10x faster)
 - **Consistent millisecond latency**: Single-digit millisecond latency
 - **Cost efficiency**: up to 80% request cost reduction (reflecting the 2025-04 price cut: PUT -55%, GET -85%, storage -31%)
 - **Single AZ**: Optimal when used with compute resources in the same AZ
@@ -494,6 +494,8 @@ Assigning GPUs to Index Nodes can significantly improve index build speed.
 
 <GPUIndexingPerformanceTable />
 
+The build times and speedup factors in the table above are illustrative figures without run records (a hypothetical scenario, not measured data). The index names in the table (IVF_FLAT, HNSW, IVF_SQ8, SCANN) are CPU index types; the GPU index types that the Milvus documentation supports are `GPU_CAGRA`, `GPU_IVF_FLAT`, `GPU_IVF_PQ`, and `GPU_BRUTE_FORCE` ([Milvus GPU index documentation](https://github.com/milvus-io/milvus-docs/blob/v2.6.x/site/en/userGuide/manage-indexes/index-with-gpu.md), as of 2026-10-29). Allocating GPU resources alone does not reproduce the table's results, so measure with your own Milvus version, GPU index type, and dataset. GPU indexes use the QueryNode's GPU memory during search, and the same documentation notes that loading OOM protection for GPU indexes is not fully supported, so too much data can crash the QueryNode; check the QueryNode GPU memory capacity and the memory pool settings (`initMemSize`, `maxMemSize`) first.
+
 :::info Detailed Operator Guide
 For Milvus Operator installation, CRD schema, GPU configuration examples, see [Milvus Operator Documentation](https://milvus.io/docs/install_cluster-milvusoperator.md).
 :::
@@ -521,7 +523,7 @@ For Milvus Operator installation, CRD schema, GPU configuration examples, see [M
 - Operate at least 3 Query Nodes in production environments
 - Consider DISKANN index for large datasets (100M+ vectors)
 - Using S3 as storage significantly reduces operational complexity
-- S3 Express One Zone provides 10x faster performance and up to 80% cheaper request costs (2025-04 price cut)
+- S3 Express One Zone provides up to 10x faster object data access than S3 Standard and up to 80% cheaper request costs (2025-04 price cut)
 - GPU-accelerated indexing can significantly reduce build times (g5.xlarge recommended)
 - Milvus v2.4.x provides advanced features including SCANN index, hybrid search, scalar filtering, and dynamic schema
 - Use Helm chart version 4.2.x to deploy Milvus 2.4.x (4.1.x supports only 2.4.0–2.4.5; 4.2.0+ drops Milvus 2.3.x support)
@@ -534,7 +536,7 @@ For Milvus Operator installation, CRD schema, GPU configuration examples, see [M
 **Recommendations:**
 - **Dev/Test**: MinIO (simple setup)
 - **Production (general)**: S3 Standard (cost efficient)
-- **Production (high-perf)**: S3 Express One Zone (10x faster performance)
+- **Production (high-perf)**: S3 Express One Zone (up to 10x faster object data access)
 
 :::warning Cautions
 

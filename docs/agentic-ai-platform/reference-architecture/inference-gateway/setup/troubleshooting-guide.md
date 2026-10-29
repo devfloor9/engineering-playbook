@@ -3,9 +3,9 @@ title: Troubleshooting Guide
 description: Common issues and solutions during Inference Gateway deployment and operations
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 18
+reading_time: 19
 tags:
   - troubleshooting
   - debugging
@@ -114,7 +114,7 @@ spec:
 | `Provider not found: vllm` | Not using built-in provider name | Use built-in names like `openai`, `anthropic` |
 | `Model not found: glm-5` | Missing provider prefix | Send as `openai/glm-5` format in request |
 | Settings not displayed in UI | providers written as array | `"providers": [...]` → `"providers": {...}` (map) |
-| OTel trace not arriving | trace_type error | legacy `"otel"` → `"genai_extension"` (required as of v1.5.0+) |
+| OTel trace not arriving | trace_type error | legacy `"otel"` → `"genai_extension"` (current documented values: `genai_extension`, `vercel`, `open_inference`, as of 2026-10-29) |
 | Langfuse 403/401 | Authorization format error | Verify `Basic <BASE64(public_key:secret_key)>` |
 
 **Correct config.json Format**:
@@ -139,7 +139,7 @@ spec:
 }
 ```
 
-**Correct OTel Plugin Configuration**: Set `trace_type` to `genai_extension` (the legacy `otel` value is no longer used).
+**Correct OTel Plugin Configuration**: Set `trace_type` to `genai_extension`. As of 2026-10-29, the Bifrost OpenTelemetry documentation defines the allowed `trace_type` values as `genai_extension`, `vercel` and `open_inference`; `otel` is not in that list. The Bifrost release that removed the `otel` value has not been confirmed from release notes, so check the allowed values in the documentation for the Bifrost version you run.
 
 ```json
 {

@@ -3,9 +3,9 @@ title: Custom Model Pipeline Guide
 description: Building a domain-optimized model serving pipeline with LoRA Fine-tuning, Multi-LoRA Hot-swap, and SLM Cascade Routing
 created: "2026-04-06"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 30
+reading_time: 31
 tags:
   - lora
   - fine-tuning
@@ -356,8 +356,8 @@ The example below assumes that 70% of requests can be routed to a small model (S
 ```mermaid
 graph LR
     Req[Request] --> BF[Bifrost]
-    BF -->|Low complexity| SLM[SLM Llama-3.1-8B<br/>g6.xlarge ~$0.80/hr]
-    BF -->|High complexity| LLM[GLM-5 744B<br/>p5en.48xlarge ~$63/hr]
+    BF -->|Low complexity| SLM[SLM Llama-3.1-8B<br/>g6.xlarge]
+    BF -->|High complexity| LLM[GLM-5 744B<br/>p5en.48xlarge]
     SLM --> Resp[Response]
     LLM --> Resp
     
@@ -368,6 +368,8 @@ graph LR
 ### Assumption-Based Cost Example
 
 This table uses a simplified model in which monthly cost scales linearly with the share of requests. Given assumed monthly costs of $500 for the SLM and $8,900 for the LLM, the Cascade cost is `0.7 × $500 + 0.3 × $8,900 = $3,020`. Self-hosted costs may not scale linearly because idle GPUs and minimum capacity remain allocated, and quality must be measured separately for routed requests.
+
+The $500 and $8,900 values are not calculated from the hourly rates of the instance types named in Figure 3; they are input values chosen for illustration and do not assume a particular region, pricing date or purchase option. To calculate an actual monthly cost, multiply the hourly rate for your region and purchase option (On-Demand, Spot, Savings Plans) by the number of instances and the monthly running hours, and account for the hours in which autoscaling reduces the instance count. One instance running for a full month runs about 730 hours.
 
 | | SLM Only | LLM Only | **Cascade (Assumed 70:30)** |
 |---|---|---|---|

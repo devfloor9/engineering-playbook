@@ -3,9 +3,9 @@ title: Domain Specialization (LoRA + RAG)
 description: Guide to improving technical domain coding quality with LoRA Fine-tuning, VectorRAG, and GraphRAG — including FSI SI production scenarios
 created: "2026-04-04"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 21
+reading_time: 23
 tags:
   - lora
   - rag
@@ -454,6 +454,8 @@ The figures below are not measurements but illustrative adoption targets.
 
 Automatically reflects financial regulations (Electronic Financial Supervisory Regulation (전자금융감독규정), Banking Supervision Regulation (은행업감독규정)) into code.
 
+The training data and generated result below are a synthetic example that shows how regulatory requirements can be marked with annotations and comments. The article numbers and the annotation mapping in the example have not been verified against the current text of the regulations, and the generated code does not guarantee regulatory compliance. Before applying this pattern, legal and compliance staff must review the current articles and the mapping, and the controls the annotations point to (audit logging, access control, identity verification) must be separately validated as actually implemented, authenticated, and working.
+
 #### Training Data Example
 
 ```json
@@ -528,6 +530,8 @@ Continuously validate the quality of domain-specialized models. Follow these eva
 ---
 
 ## Phase-by-Phase Adoption Roadmap
+
+The durations and costs in the table below are planning assumptions (illustrative figures), not measured values. "70% savings" is an illustrative target that assumes SLM Cascade hands part of the requests to small models; "+$500/month" assumes only the additional monthly cost of the SLM serving infrastructure, and "GPU $2K" assumes only the GPU usage cost for LoRA training, excluding labor, data preparation, and evaluation costs. Re-estimate the actual durations and costs by measuring with the target environment's traffic, models, and instance prices.
 
 **Table 5. Duration, configuration, effect, and cost by adoption phase**
 

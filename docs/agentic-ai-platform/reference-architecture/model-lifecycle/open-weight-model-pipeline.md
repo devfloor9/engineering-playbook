@@ -3,9 +3,9 @@ title: Automated Deployment and Management Pipeline Architecture for Open-Weight
 description: An architecture that automates open-weight model onboarding through a seven-stage pipeline, from HuggingFace leaderboard scanning and benchmark reproduction to instance performance profiling, deployment guide generation for multiple targets, and global Spot capacity acquisition, with human involvement at approval gates
 created: "2026-07-28"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 48
+reading_time: 49
 tags:
   - mlops
   - argo-workflows
@@ -169,13 +169,15 @@ model:
 intake:
   source: leaderboard-scan   # leaderboard-scan | pfr | customer-request
   detected_at: 2026-07-28
-  published_scores:          # Reference values for reproduction checks
+  published_scores:          # Reference values for reproduction checks (example placeholders below, source unverified)
     mmlu_pro: 58.4
     gsm8k: 89.1
 validate: {}                 # Populated by the Validate stage
 profiles: []                 # Populated with profiling results by instance type
 serving: {}                  # Populated with optimal settings from CI/CD sweeps
 ```
+
+The 58.4 and 89.1 values under `published_scores` above are placeholders that show the profile format; their primary source was not verified as of 2026-10-29. A real profile records, for each score, its source (model card, technical report or leaderboard dataset), the task name and revision, the few-shot count, the prompt template, the scoring method, the precision and the model commit SHA. lm-evaluation-harness reports accuracy as a 0-1 fraction, so align the units of the two values before comparing against a score published as a percentage.
 
 Resolve and record the model revision as a commit SHA (and weight checksums) before Validate, and use that pinned revision from mirroring and testing onward. Leaving the revision as a mutable `main` and pinning a SHA only after the run can attribute results to weights different from those actually fetched. Use the pinned revision identically for all later artifacts and approval records.
 
@@ -213,7 +215,7 @@ lm_eval --model local-completions \
   --batch_size auto --output_path /results
 ```
 
-A simple comparison is sufficient for the decision logic: `abs(reproduced_score - published_score) / published_score <= 0.05`. Establish the following two documented rules.
+Before deciding, first confirm that the two scores share the same unit and evaluation protocol (task revision, few-shot count, prompt template and scoring method). When the protocol matches, the decision formula is `abs(reproduced_score - published_score) / published_score <= 0.05`. If the published score is 0 or not recorded, this formula cannot be computed, so do not decide automatically; submit the profile to the G2 gate as "no reference value". Establish the following two documented rules.
 
 - **Reproduction failure does not mean immediate rejection.** Published scores are sensitive to evaluation prompts, few-shot counts, and scoring methods. On failure, retry automatically once after replacing the harness version and task configuration with those specified in the model card. If reproduction still fails, submit the result to G2 with a "not reproducible" flag. The decision is handed to a person; the pipeline does not pass it on its own.
 - **Quantized variants need separate profiles.** FP8 and INT4 variants are expected to score differently from the original, so define a separate tolerance for degradation relative to the original, for example −2 percentage points.

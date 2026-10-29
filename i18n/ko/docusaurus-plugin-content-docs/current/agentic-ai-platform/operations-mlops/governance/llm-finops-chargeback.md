@@ -3,9 +3,9 @@ title: LLM FinOps — Chargeback 및 비용 배부
 description: LLM 플랫폼 FinOps 방법론 — 토큰 메터링, showback/chargeback 전략, 에이전틱 비용 모델, 예산 정책 및 게이트웨이 통합
 created: 2026-08-11
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 19
 tags:
   - finops
   - chargeback
@@ -260,7 +260,7 @@ Kong의 [Metering & Billing 플러그인](https://developer.konghq.com/plugins/m
 
 - **과금 주체(subject) 해석**: 각 이벤트는 과금 대상 식별자를 포함하며, Consumer·Dev Portal 애플리케이션·요청 헤더(예: `x-customer-id`)에서 해석합니다. 주체를 해석할 수 없는 이벤트는 폐기됩니다.
 - **이벤트 전달**: Konnect 또는 self-hosted OpenMeter의 ingest 엔드포인트로 배치 전달하며, 플러그인 자체는 stateless라 재시작 시 이벤트를 보존하지 않습니다.
-- **메터링 전용**: 이 플러그인은 사용량 수집만 수행하고 한도 강제는 하지 않습니다. 예산 강제가 필요하면 AI Rate Limiting Advanced 플러그인과 조합합니다 ([AI Gateway 멀티테넌시](./ai-gateway-multi-tenancy.md) 참조).
+- **메터링 전용**: 이 플러그인은 사용량 수집만 수행하고 한도 강제는 하지 않습니다. 메터링한 사용량 한도(entitlement)를 강제하려면 Kong Gateway 3.16+의 [Entitlement Enforcement 플러그인](https://developer.konghq.com/plugins/entitlement-enforcement/)을 함께 씁니다. 이 플러그인은 Konnect 배포(hybrid·cloud gateway·serverless)에서만 지원되고 on-prem과는 호환되지 않으며, Metering & Billing에 집계된 사용량을 주기적으로 캐시해 판정하므로 강제 시점이 실시간이 아니라 최종 일관성(eventually consistent)을 따릅니다(2026-10-29 기준). Entitlement Enforcement를 쓸 수 없는 버전·배포 형태이거나 트래픽 보호가 목적이면 AI Rate Limiting Advanced 플러그인으로 토큰 한도를 둡니다 ([AI Gateway 멀티테넌시](./ai-gateway-multi-tenancy.md) 참조).
 
 ---
 

@@ -3,9 +3,9 @@ title: AI Agent 모니터링 및 운영
 description: Langfuse 기반 Agent 모니터링 운영 전용 문서 — 모니터링 아키텍처·핵심 메트릭·PromQL·알림·비용 추적 (도구 비교는 LLMOps Observability 문서 참조)
 created: "2026-02-05"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 14
 tags:
   - eks
   - langfuse
@@ -327,7 +327,7 @@ tenant_monthly_budget_usd
 
 ## 6. Cascade Fallback 전략
 
-Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 시에도 무중단 서비스를 유지할 수 있습니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
+Self-hosted 모델(vLLM/llm-d)이 과부하이거나 장애일 때, Amazon Bedrock의 관리형 모델로 자동 폴백하는 Cascade Routing을 구성하면 GPU 장애·Spot 중단 때 실패하는 요청을 줄일 수 있습니다. 다만 이 구성은 무중단을 보장하지 않습니다. 폴백은 기본 프로바이더의 재시도가 소진된 뒤 오류 종류와 무관하게 동작하지만, 클라이언트가 요청을 취소했거나 요청 자체의 deadline이 만료되었거나 플러그인이 폴백을 차단한 경우에는 실행되지 않습니다. 스트리밍 응답이 클라이언트에 전달되기 시작한 뒤의 오류는 다른 프로바이더의 응답으로 이어 붙일 수 없고, Bedrock 쪽 할당량(quota)이나 스로틀링에 걸리면 폴백 요청도 실패합니다. Bifrost(또는 LiteLLM)가 Gateway 역할을 하며, 응답 실패·타임아웃 시 Bedrock으로 요청을 전환합니다.
 
 **그림 4. Self-hosted 장애 시 Bedrock으로 전환하는 Cascade 폴백 흐름**
 
@@ -356,22 +356,28 @@ flowchart LR
 
 ### Fallback 조건 설정
 
-Bifrost는 요청 본문의 `fallbacks` 배열과 governance `routing_rules`(CEL 표현식 + weighted targets)로 폴백을 구성합니다. 폴백 트리거는 5xx/429 등 재시도 가능한 에러로 하드코딩되어 있습니다(status code/latency/error-rate 기반 조건부 폴백은 2026-05 기준 feature request, issue #3261).
+Bifrost는 요청 본문의 `fallbacks` 배열과 governance `routing_rules`(CEL 표현식 + weighted targets)로 폴백을 구성합니다. 폴백 트리거는 기본 프로바이더의 재시도와 키 교체 뒤에도 남은 모든 실패(5xx·네트워크 오류, 계속되는 429, 거부된 자격 증명, 접근할 수 없거나 퇴역한 모델, 프로바이더 타임아웃)이며, 클라이언트가 취소한 요청, 만료된 요청 deadline, 플러그인이 폴백을 차단한 오류만 예외입니다. 지연 기준으로는 스트리밍 요청의 첫 토큰 대기 한도(`ttft_timeout_ms`)를 규칙에 둘 수 있고, 한도 안에 첫 토큰이 오지 않으면 다음 폴백으로 넘어갑니다(2026-10-29 기준). 임의의 status code·error-rate 조건으로 폴백을 거는 설정은 2026-05 기준 feature request(issue #3261)였습니다.
+
+아래 예시의 `targets` 가중치는 요청마다 대상을 확률적으로 고르는 분할입니다. 따라서 0.8/0.2 설정에서는 Self-hosted에 여유가 있는 평시에도 요청의 약 20%가 Bedrock으로 갑니다. 피크 때만 Bedrock으로 넘기려면 가중치 분할 대신, 용량 지표(`request`, `tokens_used`, `budget_used`: 설정한 rate limit·예산 대비 사용률)를 조건으로 쓰는 별도 규칙이나 폴백을 사용합니다.
 
 ```yaml
-# bifrost Helm values - governance routing_rules 예시
-routing_rules:
-  - name: cost-optimized-cascade
-    match: "request.model == 'qwen3-32b'"
-    targets:
-      - provider: "self-hosted"
-        model: "qwen3-32b"
-        weight: 80
-      - provider: "bedrock"
-        model: "claude-sonnet"
-        weight: 20
-    fallbacks:
-      - "bedrock/claude-sonnet"  # 순서대로 시도
+# Bifrost config의 governance.routing_rules 구조를 YAML로 옮긴 예시
+governance:
+  routing_rules:
+    - name: cost-optimized-cascade
+      enabled: true
+      cel_expression: "model == 'qwen3-32b'"
+      targets:
+        - provider: "self-hosted"
+          model: "qwen3-32b"
+          weight: 0.8  # 요청마다 확률적으로 선택, 가중치 합계는 1
+        - provider: "bedrock"
+          model: "claude-sonnet"
+          weight: 0.2
+      fallbacks:
+        - "bedrock/claude-sonnet"  # 순서대로 시도
+      scope: "global"
+      priority: 10
 ```
 
 ### 가용성·비용 관점 비교
@@ -380,13 +386,13 @@ routing_rules:
 
 | 관점 | Self-hosted 단독 | Cascade (Self-hosted + Bedrock) |
 |------|----------------|-------------------------------|
-| **가용성** | GPU 장애 시 서비스 중단 | Bedrock 폴백으로 무중단 |
-| **비용** | GPU 고정 비용 | 평시 Self-hosted(저비용) + 피크 Bedrock(종량제) |
-| **용량 계획** | 피크 트래픽 기준 GPU 확보 | 기본 트래픽만 GPU, 초과분 Bedrock |
-| **Cold Start** | Spot 중단 시 수 분 지연 | Bedrock 즉시 응답 |
+| **가용성** | GPU 장애 시 서비스 중단 | 재시도 가능한 실패·타임아웃 시 Bedrock 폴백 (deadline·Bedrock 할당량 범위 안) |
+| **비용** | GPU 고정 비용 | Self-hosted GPU 고정 비용 + Bedrock으로 간 요청의 종량제 비용 |
+| **용량 계획** | 피크 트래픽 기준 GPU 확보 | 기본 트래픽만 GPU, 초과분은 용량 조건 규칙·폴백으로 Bedrock |
+| **Cold Start** | Spot 중단 시 수 분 지연 | Spot 중단 동안 폴백된 요청을 Bedrock이 처리 (Bedrock 응답 지연·할당량 적용) |
 
 :::tip 비용 최적화 패턴
-평시 트래픽의 80%를 Self-hosted로 처리하고 피크 시 20%를 Bedrock으로 오프로드하는 하이브리드 패턴은 GPU를 피크 기준으로 프로비저닝할 필요를 줄입니다. 실제 절감률은 트래픽 패턴에 따라 크게 달라지며(제3자 추정 30-70%), 일반화는 어렵습니다.
+기본 트래픽은 Self-hosted로 처리하고 용량 조건 규칙으로 피크 초과분만 Bedrock으로 넘기는 하이브리드 패턴은 GPU를 피크 기준으로 프로비저닝할 필요를 줄입니다. 위 예시의 0.8/0.2 가중치 분할은 피크와 무관하게 항상 약 20%를 Bedrock으로 보내므로, 피크 오프로드와는 다른 비용 구조입니다. 실제 절감률은 트래픽 패턴에 따라 크게 달라지며(제3자 추정 30-70%), 일반화는 어렵습니다.
 :::
 
 온프레미스 GPU 팜까지 포함한 3-Tier Cascade(On-Prem → Cloud → Bedrock) 구성은 [하이브리드 GPU 워크로드와 SR-IOV 네트워킹](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking), Gateway 레벨 라우팅 튜닝은 [Cascade 라우팅 튜닝](../../model-serving/inference-routing/cascade-routing-tuning.md)을 참조하세요.

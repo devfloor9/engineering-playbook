@@ -3,9 +3,9 @@ title: Reference Architecture
 description: Production deployment and configuration reference architecture for the Agentic AI Platform
 created: "2026-04-06"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 28
+reading_time: 29
 tags:
   - reference-architecture
   - deployment
@@ -72,7 +72,7 @@ Check the tool versions and cluster compatibility specified by the deployment ch
 
 ## Platform Architecture
 
-The diagram shows six runtime layers, three cross-cutting planes, the Knowledge Feature Store, and serving/fine-tuning paths. The six deployment areas below describe implementation stages, not matching runtime-layer numbers.
+The diagram shows six runtime layers, three cross-cutting planes, the Knowledge Feature Store, and serving/fine-tuning paths. The six deployment areas below describe implementation stages, not matching runtime-layer numbers. The `Qwen3-32B` label on the large-model serving box in the diagram is an example of the large-model serving role (the largest dense model in the official Qwen3 list, which runs from 0.6B to 32B dense plus the 30B-A3B and 235B-A22B MoE models), not a recommendation. Choose the actual model and revision for your deployment environment.
 
 <Figure title="Platform architecture" description="The original architecture diagram shows request processing and shared control areas. The iframe and the source link below load the file from the repository's main branch (static/Agentic AI Platform(...).drawio) directly, so it is not version-pinned and may diverge from the snapshot described in this article as main changes. What this article describes is a 2026-09 snapshot. Use the source link below to inspect detailed connections on a larger canvas." source={<a href="https://app.diagrams.net/?src=about#Uhttps%3A%2F%2Fraw.githubusercontent.com%2Fdevfloor9%2Fengineering-playbook%2Fmain%2Fstatic%2FAgentic%2520AI%2520Platform(with%2520Ontology%2520and%2520fine%2520tunning%2520feature).drawio">Open source diagram</a>}>
 <iframe

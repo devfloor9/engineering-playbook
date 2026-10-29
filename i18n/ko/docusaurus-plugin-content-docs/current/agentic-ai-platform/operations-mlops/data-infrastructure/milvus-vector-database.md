@@ -3,9 +3,9 @@ title: Milvus 벡터 데이터베이스 통합
 description: Amazon EKS에서 Milvus 벡터 데이터베이스를 배포하고 RAG 파이프라인과 통합하는 방법
 created: "2026-02-05"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 14
 tags:
   - milvus
   - vector-database
@@ -148,7 +148,7 @@ MinIO 대신 Amazon S3를 직접 사용하면 운영 부담을 줄일 수 있습
 
 :::tip S3 Express One Zone 장점
 
-- **10배 빠른 성능**: 표준 S3 대비 10배 빠른 데이터 액세스
+- **최대 10배 빠른 데이터 액세스**: S3 Standard 대비 객체 데이터 액세스 속도가 최대 10배 빠름(AWS 공표 수치이며, Milvus 검색·인덱스 빌드 속도가 10배 빨라진다는 뜻은 아님)
 - **일관된 밀리초 지연**: 단일 자리 밀리초 지연 시간
 - **비용 효율**: 요청 비용 최대 80% 절감 (2025-04 가격 인하 반영: PUT -55%, GET -85%, 스토리지 -31%)
 - **단일 AZ**: 동일 AZ 내 컴퓨팅 리소스와 함께 사용 시 최적
@@ -496,6 +496,8 @@ Index Node에 GPU를 할당하면 인덱스 빌드 속도를 크게 향상시킬
 
 <GPUIndexingPerformanceTable />
 
+위 표의 빌드 시간과 속도 향상 배수는 실행 기록이 없는 예시 수치입니다(실측 데이터가 아닌 가상 시나리오). 표의 인덱스 이름(IVF_FLAT, HNSW, IVF_SQ8, SCANN)은 CPU 인덱스 유형이며, Milvus 문서가 GPU 인덱스로 지원하는 유형은 `GPU_CAGRA`, `GPU_IVF_FLAT`, `GPU_IVF_PQ`, `GPU_BRUTE_FORCE`입니다([Milvus GPU 인덱스 문서](https://github.com/milvus-io/milvus-docs/blob/v2.6.x/site/en/userGuide/manage-indexes/index-with-gpu.md), 2026-10-29 기준). GPU 리소스를 할당하는 것만으로 표의 결과가 재현된다고 볼 수 없으므로, 사용하는 Milvus 버전·GPU 인덱스 유형·데이터셋으로 직접 측정합니다. GPU 인덱스는 검색 시 QueryNode의 GPU 메모리를 쓰고, 같은 문서는 GPU 인덱스 로딩의 OOM 보호가 완전하지 않아 데이터가 너무 많으면 QueryNode가 중단될 수 있다고 안내하므로, QueryNode GPU 메모리 용량과 메모리 풀 설정(`initMemSize`, `maxMemSize`)을 먼저 확인합니다.
+
 :::info 상세 Operator 가이드
 Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문서](https://milvus.io/docs/install_cluster-milvusoperator.md)를 참조하세요.
 :::
@@ -523,7 +525,7 @@ Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문
 - 프로덕션 환경에서는 최소 3개의 Query Node를 운영하세요
 - 대규모 데이터셋(1억+ 벡터)에서는 DISKANN 인덱스를 고려하세요
 - S3를 스토리지로 사용하면 운영 복잡도를 크게 줄일 수 있습니다
-- S3 Express One Zone을 사용하면 10배 빠른 성능과 최대 80% 저렴한 요청 비용을 제공합니다 (2025-04 가격 인하)
+- S3 Express One Zone을 사용하면 S3 Standard 대비 최대 10배 빠른 객체 데이터 액세스와 최대 80% 저렴한 요청 비용을 제공합니다 (2025-04 가격 인하)
 - GPU를 사용한 인덱싱으로 빌드 시간을 크게 단축할 수 있습니다 (g5.xlarge 권장)
 - Milvus v2.4.x는 SCANN 인덱스, 하이브리드 검색, 스칼라 필터링, 동적 스키마 등 고급 기능을 제공합니다
 - Helm 차트 버전 4.2.x를 사용하여 Milvus 2.4.x를 배포하세요 (4.1.x는 2.4.0~2.4.5까지만 지원, 4.2.0부터 Milvus 2.3.x 미지원)
@@ -536,7 +538,7 @@ Milvus Operator 설치, CRD 스키마, GPU 설정 예제는 [Milvus Operator 문
 **권장 사항:**
 - **개발/테스트**: MinIO (간편한 설정)
 - **프로덕션 (일반)**: S3 Standard (비용 효율)
-- **프로덕션 (고성능)**: S3 Express One Zone (10배 빠른 성능)
+- **프로덕션 (고성능)**: S3 Express One Zone (최대 10배 빠른 객체 데이터 액세스)
 
 :::warning 주의사항
 

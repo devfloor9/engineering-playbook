@@ -3,9 +3,9 @@ title: Advanced Features
 description: LLM Classifier, CloudFront/WAF, Semantic Caching configuration
 created: "2026-04-06"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 30
+reading_time: 31
 tags:
   - llm-classifier
   - inference-extension
@@ -389,6 +389,7 @@ helm install ${POOL_NAME} \
   --version ${IGW_CHART_VERSION} \
   --namespace ai-inference \
   --set inferencePool.modelServers.matchLabels.app=glm5-serving \
+  --set inferenceExtension.failureMode=FailClose \
   --set provider.name=none   # none for kgateway/Envoy-family; specify the provider for GKE/Istio etc.
 ```
 
@@ -396,7 +397,7 @@ helm install ${POOL_NAME} \
 Set `provider.name` to match the gateway implementation. kgateway is Envoy-family, so leave it as `none` with no separate provider integration, deploy only InferencePool/EPP, then reference the InferencePool as a backend in the HTTPRoute below. Confirm the exact value and options against the deployment-time [GIE v1.5.0 InferencePool chart values](https://github.com/kubernetes-sigs/gateway-api-inference-extension/blob/v1.5.0/config/charts/inferencepool/values.yaml).
 :::
 
-The InferencePool the chart creates has the following form (for reference when authoring directly — fields follow `inference.networking.k8s.io/v1`):
+The InferencePool the chart creates has the following form (for reference when authoring directly — fields follow `inference.networking.k8s.io/v1`). The InferencePool API (v1) defaults `failureMode` to `FailClose` when it is unspecified, but the GIE v1.5.0 chart renders `FailOpen` when `inferenceExtension.failureMode` is not set. The `helm install` above therefore sets `inferenceExtension.failureMode=FailClose` explicitly:
 
 ```yaml
 apiVersion: inference.networking.k8s.io/v1
@@ -414,7 +415,7 @@ spec:
     name: glm5-pool-epp
     port:
       number: 9002
-    failureMode: FailClose     # FailOpen | FailClose (default)
+    failureMode: FailClose     # FailOpen | FailClose (API default FailClose, v1.5.0 chart default FailOpen)
 ```
 
 ### 2.3 HTTPRoute → InferencePool
@@ -887,6 +888,13 @@ Bifrost v1.5.0+ provides a native `semantic_cache` plugin that supports both dir
 
 ```json
 {
+  "vector_store": {
+    "enabled": true,
+    "type": "redis",
+    "config": {
+      "addr": "redis-service:6379"
+    }
+  },
   "plugins": [
     {
       "enabled": true,
@@ -895,11 +903,7 @@ Bifrost v1.5.0+ provides a native `semantic_cache` plugin that supports both dir
         "provider": "openai",
         "embedding_model": "text-embedding-3-small",
         "dimension": 1536,
-        "threshold": 0.8,
-        "vector_store": {
-          "type": "redis",
-          "url": "redis://redis-service:6379"
-        }
+        "threshold": 0.8
       }
     }
   ]
@@ -911,23 +915,26 @@ Bifrost v1.5.0+ provides a native `semantic_cache` plugin that supports both dir
 - `embedding_model`: embedding model name
 - `dimension`: embedding dimension (text-embedding-3-small is 1536). Setting `dimension: 1` enables exact-match-only mode
 - `threshold`: similarity threshold (0.8 = cache hit when ≥ 80% similar)
-- `vector_store.type`: redis, weaviate, qdrant, pinecone, valkey supported
+- `vector_store`: the store configuration placed at the top level of config.json, not inside the plugin `config`. `type` supports redis, weaviate, qdrant and pinecone; for Valkey, keep `type` as `redis` and point `config.addr` at the Valkey endpoint. Direct mode also stores its entries in this store, so both modes need `vector_store` enabled
 
 It can also be toggled on from Settings → Caching in the Web UI.
 
-**Exact-match-only mode** (no embedding, speed first):
+**Exact-match-only mode** (no embedding, speed first). Set `dimension: 1` and omit `provider` and `embedding_model`; if `provider` is also set, the plugin runs in semantic mode:
 ```json
 {
+  "vector_store": {
+    "enabled": true,
+    "type": "redis",
+    "config": {
+      "addr": "redis-service:6379"
+    }
+  },
   "plugins": [
     {
       "enabled": true,
       "name": "semantic_cache",
       "config": {
-        "dimension": 1,
-        "vector_store": {
-          "type": "redis",
-          "url": "redis://redis-service:6379"
-        }
+        "dimension": 1
       }
     }
   ]

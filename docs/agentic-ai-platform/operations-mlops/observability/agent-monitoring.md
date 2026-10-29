@@ -3,9 +3,9 @@ title: AI Agent Monitoring and Operations
 description: Langfuse-based agent monitoring operations — monitoring architecture, key metrics, PromQL, alerting, and cost tracking (for tool comparison, see LLMOps Observability)
 created: "2026-02-05"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 22
+reading_time: 25
 tags:
   - eks
   - langfuse
@@ -327,7 +327,7 @@ tenant_monthly_budget_usd
 
 ## 6. Cascade Fallback Strategy
 
-When self-hosted models (vLLM/llm-d) are overloaded or failing, configuring Cascade Routing that automatically falls back to Amazon Bedrock managed models keeps the service running without interruption even during GPU failures or Spot interruptions. Bifrost (or LiteLLM) acts as the gateway and switches requests to Bedrock on response failures or timeouts.
+When self-hosted models (vLLM/llm-d) are overloaded or failing, configuring Cascade Routing that automatically falls back to Amazon Bedrock managed models reduces the requests that fail during GPU failures or Spot interruptions. This configuration does not guarantee uninterrupted service, however. Fallback runs after the primary provider's retries are exhausted, whatever the error, except when the caller cancelled the request, the request's own deadline has expired, or a plugin blocked fallbacks. An error after a streaming response has started reaching the client cannot be stitched onto another provider's response, and if Bedrock-side quotas or throttling apply, the fallback request fails too. Bifrost (or LiteLLM) acts as the gateway and switches requests to Bedrock on response failures or timeouts.
 
 **Figure 4. Cascade fallback flow switching to Bedrock on self-hosted failure**
 
@@ -356,22 +356,28 @@ flowchart LR
 
 ### Fallback Condition Configuration
 
-Bifrost configures fallback via the request body's `fallbacks` array and governance `routing_rules` (CEL expressions + weighted targets). The fallback triggers are hardcoded to retryable errors such as 5xx/429 (conditional fallback based on status code/latency/error-rate is a feature request as of 2026-05, issue #3261).
+Bifrost configures fallback via the request body's `fallbacks` array and governance `routing_rules` (CEL expressions + weighted targets). Fallback is triggered by any failure that remains after the primary provider's retries and key rotation (5xx and network errors, a persisting 429, a rejected credential, an unreachable or retired model, a provider timeout); only a cancelled request, an expired request deadline or a plugin that blocked fallbacks is excepted. For latency, a rule can set a first-token wait limit for streaming requests (`ttft_timeout_ms`); if the first token does not arrive within the limit, Bifrost moves to the next fallback (as of 2026-10-29). Fallback on arbitrary status-code or error-rate conditions was a feature request as of 2026-05 (issue #3261).
+
+The `targets` weights in the example below are a split that selects a target probabilistically for each request. With a 0.8/0.2 setting, about 20% of requests therefore go to Bedrock even at steady state when self-hosted has spare capacity. To send traffic to Bedrock only at peak, use a separate rule or fallback conditioned on capacity metrics (`request`, `tokens_used`, `budget_used`: usage as a percentage of the configured rate limit or budget) instead of a weighted split.
 
 ```yaml
-# bifrost Helm values - governance routing_rules example
-routing_rules:
-  - name: cost-optimized-cascade
-    match: "request.model == 'qwen3-32b'"
-    targets:
-      - provider: "self-hosted"
-        model: "qwen3-32b"
-        weight: 80
-      - provider: "bedrock"
-        model: "claude-sonnet"
-        weight: 20
-    fallbacks:
-      - "bedrock/claude-sonnet"  # tried in order
+# Bifrost config governance.routing_rules structure, written as YAML
+governance:
+  routing_rules:
+    - name: cost-optimized-cascade
+      enabled: true
+      cel_expression: "model == 'qwen3-32b'"
+      targets:
+        - provider: "self-hosted"
+          model: "qwen3-32b"
+          weight: 0.8  # selected probabilistically per request; weights sum to 1
+        - provider: "bedrock"
+          model: "claude-sonnet"
+          weight: 0.2
+      fallbacks:
+        - "bedrock/claude-sonnet"  # tried in order
+      scope: "global"
+      priority: 10
 ```
 
 ### Availability and Cost Comparison
@@ -380,13 +386,13 @@ routing_rules:
 
 | Aspect | Self-hosted only | Cascade (Self-hosted + Bedrock) |
 |--------|------------------|---------------------------------|
-| **Availability** | Service outage on GPU failure | No interruption via Bedrock fallback |
-| **Cost** | Fixed GPU cost | Self-hosted (low cost) at steady state + Bedrock (pay-per-use) at peak |
-| **Capacity planning** | Provision GPUs for peak traffic | GPUs for base traffic only, overflow to Bedrock |
-| **Cold Start** | Several-minute delay on Spot interruption | Immediate Bedrock response |
+| **Availability** | Service outage on GPU failure | Bedrock fallback on retryable failures and timeouts (within the deadline and Bedrock quotas) |
+| **Cost** | Fixed GPU cost | Fixed self-hosted GPU cost + pay-per-use cost of requests sent to Bedrock |
+| **Capacity planning** | Provision GPUs for peak traffic | GPUs for base traffic only, overflow to Bedrock via capacity-conditioned rules and fallback |
+| **Cold Start** | Several-minute delay on Spot interruption | Bedrock serves the requests that fall back during the Spot interruption (Bedrock response latency and quotas apply) |
 
 :::tip Cost optimization pattern
-A hybrid pattern that handles 80% of steady-state traffic on self-hosted and offloads 20% to Bedrock at peak reduces the need to provision GPUs for peak. Actual savings vary widely by traffic pattern (third-party estimate 30-70%) and are hard to generalize.
+A hybrid pattern that handles base traffic on self-hosted and sends only the peak overflow to Bedrock through a capacity-conditioned rule reduces the need to provision GPUs for peak. The 0.8/0.2 weighted split in the example above always sends about 20% to Bedrock regardless of peak, so it is a different cost structure from peak offload. Actual savings vary widely by traffic pattern (third-party estimate 30-70%) and are hard to generalize.
 :::
 
 A 3-tier Cascade (On-Prem -> Cloud -> Bedrock) that also includes an on-premises GPU farm is covered in [Hybrid GPU Workloads and SR-IOV Networking](/docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking); for gateway-level routing tuning, see [Cascade Routing Tuning](../../model-serving/inference-routing/cascade-routing-tuning.md).
