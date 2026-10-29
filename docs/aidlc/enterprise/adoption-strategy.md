@@ -3,9 +3,9 @@ title: Enterprise AIDLC Adoption Strategy
 description: AIDLC Enterprise Adoption Strategy — Waterfall→Hybrid Transition, Champion Model, Phased Rollout Roadmap
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 25
+reading_time: 26
 tags:
   - aidlc
   - enterprise
@@ -92,14 +92,14 @@ Maintain waterfall framework but introduce **Bolt cycles** and **Mob Programming
 
 - Requirements Analysis: Waterfall (maintain deliverable format)
 - Design: Waterfall + **Mob Elaboration** (core modules only)
-- **Development**: **Bolt cycles** (2-week cycles producing Working Software)
+- **Development**: **Bolt cycles** (2-week cycles producing Working Software). The 2-week cadence is this adoption strategy's proposal for enterprise teams, not the Bolt of the AI-DLC Method Definition, which is the smallest iteration implementing a Unit and runs in hours to days (see [Adaptive Execution](../methodology/adaptive-execution.md))
 - Testing: **Continuous Validation** (demonstration per Bolt)
 
 #### Bolt Cycle Structure
 
 ```mermaid
 graph TD
-    Intent["Define Intent<br/>(2-week Bolt goal)"]
+    Intent["Define Intent<br/>(2-week Bolt goal, enterprise cadence proposal)"]
     Unit["Decompose Units<br/>(1-3 day tasks)"]
     Dev["Mob Programming<br/>(Complete daily Units)"]
     Val["Bolt Validation<br/>(Working Demo)"]

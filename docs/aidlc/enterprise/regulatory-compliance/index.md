@@ -3,9 +3,9 @@ title: AI Regulatory Compliance Framework
 description: "AIDLC integration guide for 4 frameworks: EU AI Act, NIST AI RMF, ISO/IEC 42001, and Korea AI Basic Act"
 created: "2026-04-18"
 last_update:
-  date: 2026-10-28
+  date: 2026-10-29
   author: devfloor9
-reading_time: 13
+reading_time: 15
 tags:
   - compliance
   - regulation
@@ -110,7 +110,7 @@ The four Functions are iterative rather than one-time sequential stages, and GOV
 **Key Features:**
 - International AI Management System standard (certifiable)
 - PDCA-based (Plan-Do-Check-Act cycle)
-- 72 Controls across 9 categories (Annex A)
+- 38 controls under nine control objectives, A.2 to A.10 (Annex A; checked against published secondary sources as of 2026-10-29, not the paid normative text)
 - Integrable with ISMS (ISO 27001), QMS (ISO 9001)
 
 **AIDLC Application:**
@@ -146,13 +146,15 @@ The four Functions are iterative rather than one-time sequential stages, and GOV
 | **Risk Assessment** | Art. 6, 9 (risk mgmt) | MAP 5.1 | A.5.1 (policy), A.10.2 (risk mgmt) | Impact assessment (high-impact AI) |
 | **Data Governance** | Art. 10 (data quality) | MAP 2.3 | A.7.* (12 data controls) | PIPA compliance |
 | **Transparency & Explainability** | Art. 13 (transparency) | MEASURE 2.8 / 2.9 | A.8.2 (transparency), A.8.3 (explanation) | Generative AI labeling obligation |
-| **Human Oversight (HITL)** | Art. 14 (human oversight) | MAP 3.5 | A.10.5 (human intervention) | - |
-| **Technical Documentation** | Art. 11 (documentation) | GOVERN 1.4 | A.8.1 (docs), A.10.6 (records) | - |
+| **Human Oversight (HITL)** | Art. 14 (human oversight) | MAP 3.5 | A.10.5 (human intervention) | Art. 34(1)(4) (human management and supervision of high-impact AI) |
+| **Technical Documentation** | Art. 11 (documentation) | GOVERN 1.4 | A.8.1 (docs), A.10.6 (records) | Art. 34(1)(5) (preparing and storing documents on safety and reliability measures, high-impact AI) |
 | **Performance Monitoring** | Art. 15 (accuracy) | MEASURE 2.3 / 2.4 | A.11.1 (performance metrics) | - |
 | **Post-Market Monitoring** | Art. 72 (post-market) | MANAGE 4.1 | A.10.10 (continuous monitoring) | Post-deployment mgmt obligation |
 | **Incident Reporting** | Art. 73 (without undue delay; generally 15 days / 2 days widespread or severe / 10 days where a death is involved; high-risk providers) | MANAGE 4.3 | A.10.11 (incident response) | Major incident reporting |
 | **Security** | Art. 15 (cybersecurity) | MEASURE 2.7 | A.12.* (10 security controls) | ISMS-P integration |
 | **Supply Chain Management** | - | GOVERN 6.1 / MANAGE 3.1 | A.13.* (6 third-party controls) | - |
+
+The control identifiers in the ISO/IEC 42001 column have not been checked against the (paid) normative text (as of 2026-10-29). Public secondary guides describe Annex A as 38 controls under nine control objectives A.2-A.10, so confirm the identifiers in this column (including A.11-A.13) against the standard before using them as certification or audit evidence. A `-` in the Korea AI Basic Act column means no article in the Act's text directly sets that control; the enforcement decree and notices were not checked.
 
 ### Regulatory Requirements by AIDLC Stage
 
@@ -228,7 +230,7 @@ import DocCardList from '@theme/DocCardList';
 
 ### AWS Resources
 
-- [AWS Artifact (Compliance Reports)](https://aws.amazon.com/artifact/) — EU AI Act, ISO 42001 compliance reports
+- [AWS Artifact (Compliance Reports)](https://aws.amazon.com/artifact/) — provides access to AWS's ISO/IEC 42001:2023 certificate (as of 2026-10-29, [AWS ISO/IEC 42001 FAQ](https://aws.amazon.com/compliance/iso-42001-faqs/)). Whether an EU AI Act report is offered was not verified; check the current list in Artifact directly.
 - [AWS Compliance Center](https://aws.amazon.com/compliance/programs/) — Regional regulatory mapping
 - [Amazon Bedrock Guardrails](https://docs.aws.amazon.com/bedrock/latest/userguide/guardrails.html) — Runtime guardrails implementation
 

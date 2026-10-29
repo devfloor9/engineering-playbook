@@ -3,9 +3,9 @@ title: Observability Stack
 description: The data foundation of AIDLC Operations — building 3-Pillar observability + AI analysis layer
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 31
+reading_time: 35
 tags:
   - observability
   - adot
@@ -218,19 +218,19 @@ AMG ← PromQL Query ← Grafana Dashboard
 
 ### 4.1 Container Insights Enhanced
 
-In **EKS 1.28+**, Enhanced Container Insights provides deep observability including **Control Plane metrics**.
+Enhanced Container Insights collects **Control Plane metrics** reported by the API server along with Pod and node metrics. Separately, for **EKS 1.28+** clusters, CloudWatch provides basic Control Plane metrics in the `AWS/EKS` namespace at no additional cost, and EKS exposes kube-scheduler and kube-controller-manager metrics in Prometheus format under the `metrics.eks.amazonaws.com` API group (checked against AWS documentation as of 2026-10-29). The list below shows metrics available through these paths together.
 
 **Collected Metric Scope**:
 - **Pod Metrics**: CPU, memory, network, disk I/O
 - **Node Metrics**: Resource utilization, Kubelet status
 - **Control Plane Metrics** (EKS 1.28+):
   - **API Server**: `apiserver_request_total`, `apiserver_request_duration_seconds`
-  - **etcd**: `etcd_db_total_size_in_bytes`, `etcd_server_slow_apply_total`
-  - **Scheduler**: `scheduler_schedule_attempts_total`, `scheduler_scheduling_duration_seconds`
+  - **etcd** (storage metrics reported by the API server): `apiserver_storage_db_total_size_in_bytes`, `apiserver_storage_objects`
+  - **Scheduler**: `scheduler_schedule_attempts_total`, `scheduler_scheduling_attempt_duration_seconds`
   - **Controller Manager**: `workqueue_depth`, `workqueue_adds_total`
 
 :::warning Cost Considerations
-Enhanced Container Insights incurs additional costs of $50-200/month. Recommended to use basic Container Insights for dev/staging, Enhanced only for production.
+Enhanced Container Insights incurs additional costs. "$50-200/month" is an author's estimate, not a measured result. The actual cost depends on collection scale, such as the number of nodes, Pods, and containers, so estimate it from the CloudWatch pricing page. Recommended to use basic Container Insights for dev/staging, Enhanced only for production.
 :::
 
 ### 4.2 Application Signals
@@ -290,9 +290,9 @@ Question: "Which services have slower API response times today vs yesterday?"
 → Automatically generates comparison analysis query
 ```
 
-**Regional Availability (GA August 2025)**:
-- **Local Processing**: us-east-1, us-east-2, us-west-2, ap-northeast-1, ap-southeast-1/2, eu-central-1, eu-west-1, eu-north-1
-- **Cross-Region Processing**: ap-east-1 (Hong Kong) → prompt sent to US regions
+**Regional Availability (as of 2026-10-29, per the CloudWatch Metrics Insights natural-language query generation documentation)**: The feature is generally available in 10 Regions, and the Region where the feature is available differs from the Region that processes the prompt. If you have data-location requirements, decide based on the processing Region below; check the processing Regions for Logs Insights query generation separately in that feature's AWS documentation.
+- **Processed in the same Region**: us-east-1, us-west-2, ap-northeast-1, eu-central-1
+- **Prompt sent to a US Region**: us-east-2, eu-west-1, eu-north-1 → us-east-1; ap-east-1 (Hong Kong), ap-southeast-1, ap-southeast-2 → us-west-2
 
 ### 5.2 CloudWatch Investigations
 
@@ -406,7 +406,7 @@ Integrated analysis process in Kiro through MCP. The calls below (`list_pods`, e
 ```
 
 :::info Programmatic Observability Automation
-The core value of MCP is **unifying multiple data sources through a single interface**. By giving AI Agents access to CloudWatch metrics, X-Ray traces, EKS API, and DevOps Guru insights at once, diagnosis becomes faster and more accurate than manually navigating multiple consoles.
+The core value of MCP is **unifying multiple data sources through a single interface**. Giving AI Agents access to CloudWatch metrics, X-Ray traces, EKS API, and DevOps Guru insights at once can potentially make diagnosis faster and more accurate than manually navigating multiple consoles. Whether it actually does must be confirmed by measuring diagnosis time and accuracy on the workload in question.
 :::
 
 ---
@@ -415,7 +415,7 @@ The core value of MCP is **unifying multiple data sources through a single inter
 
 ### 7.1 Alert Fatigue Problem
 
-Alert fatigue is a serious operational issue in EKS environments:
+Alert fatigue is a serious operational issue in EKS environments. The alert counts and ratios below are illustrative figures (a hypothetical scenario, not measured data); confirm the actual values from your cluster's alert history:
 
 - **Average EKS cluster**: 50-200 alerts per day
 - **Alerts requiring actual action**: 10-15% of total
@@ -529,6 +529,9 @@ aws logs put-retention-policy \
 ```
 
 **50-node Cluster Cost Comparison**:
+
+The amounts below are unvalidated illustrative estimates (a hypothetical scenario, not measured data). Log cost is determined not by node count but by ingestion volume, compression, query scan volume, retention period, S3 requests and storage, and Regional prices, so a before/after comparison must assume the same daily log ingestion volume for both cases. The savings rate also varies with how the ends of the ranges are combined, so 70%+ savings is not guaranteed.
+
 - **Before Optimization**: $1,500-3,000/month (all CloudWatch Logs)
 - **After Optimization**: $400-600/month (7-day CW + long-term S3)
 - **Savings**: $1,100-2,400/month (70%+ savings)

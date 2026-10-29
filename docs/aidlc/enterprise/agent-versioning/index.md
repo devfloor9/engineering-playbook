@@ -3,9 +3,9 @@ title: Agent Versioning & Change Management
 description: Integrated change management system for enterprise agent prompts, models, deployment strategies, and governance
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 9
+reading_time: 10
 tags:
   - agent-versioning
   - prompt-registry
@@ -76,7 +76,7 @@ Regression detection, automatic rollback, approval workflows, audit trails, and 
 
 1. **All Changes Are Version Controlled**: Prompt, model, and parameter changes must be traceable like Git commits.
 2. **Progressive Deployment**: Don't change all traffic at once. Canary → gradual expansion.
-3. **Automatic Regression Detection**: Immediately detect performance degradation through Golden Dataset evaluation + real-time metric monitoring.
+3. **Automatic Regression Detection**: Detect performance degradation through Golden Dataset evaluation and real-time metric monitoring. Detection time depends on the evaluation cycle and the metric aggregation interval, so “immediate” detection cannot be guaranteed. Set how many minutes after deployment detection must happen as a design target, and verify that target with a test that injects a regression on purpose.
 4. **Fast Rollback**: Set a recovery objective, such as “within 1 minute,” and test it. Measure from the label or configuration change through application and traffic recovery, including requests in progress and fallback behavior. One minute is an example target in this guide.
 5. **Audit Evidence**: Use 7 years as an example to review when setting an organizational retention policy. Do not apply it as a universal statutory period. Define the authority for each record's retention, minimum collection, access, deletion and legal-hold requirements in the [audit-evidence policy](./governance-automation.md#audit-evidence).
 

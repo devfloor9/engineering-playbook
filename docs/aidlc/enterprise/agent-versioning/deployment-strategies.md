@@ -3,9 +3,9 @@ title: Deployment Strategies — Shadow·Canary·A/B·Blue-Green
 description: Progressive model replacement strategies and Feature Flag-based prompt rollout approaches
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 14
+reading_time: 15
 tags:
   - deployment
   - canary
@@ -46,29 +46,45 @@ sequenceDiagram
 - To compare the new model's latency, error rate, and output quality on production requests without showing its responses to users
 - When the additional cost is acceptable (the comparison here assumes 2x cost per request)
 
-**Implementation Example (Python, LiteLLM)**: LiteLLM has no native shadow feature, so implement directly:
+**Implementation Example (Python, LiteLLM)**: The LiteLLM Router and Proxy provide [traffic mirroring](https://docs.litellm.ai/docs/traffic_mirroring), enabled by setting `silent_model` in a deployment's `litellm_params` (as of 2026-10-29). It runs the shadow call in the background and tags it with `is_silent_experiment` metadata. The example below implements the same pattern when you call `acompletion` directly without the Router:
 
 ```python
 import asyncio
 from litellm import acompletion
 
+_background_tasks = set()
+
 async def shadow_call(user_request):
     # Old model (production)
-    old_task = acompletion(model="gpt-4", messages=user_request)
+    old_task = asyncio.create_task(acompletion(model="gpt-4", messages=user_request))
     # New model (shadow)
-    new_task = acompletion(model="claude-3-5-sonnet-20241022", messages=user_request)
+    new_task = asyncio.create_task(acompletion(model="claude-3-5-sonnet-20241022", messages=user_request))
 
-    old_resp, new_resp = await asyncio.gather(old_task, new_task, return_exceptions=True)
+    # Wait only for the old model; its errors propagate to the caller unchanged
+    try:
+        old_resp = await old_task
+    except Exception:
+        new_task.cancel()
+        raise
 
-    # Logging: compare both responses
-    log_to_langfuse(user_request, old_resp, new_resp, shadow=True)
+    # Logging: collect the shadow result in the background and compare both responses (a shadow failure does not affect the user response)
+    async def log_shadow():
+        try:
+            new_resp = await new_task
+        except Exception as exc:
+            new_resp = exc
+        log_to_langfuse(user_request, old_resp, new_resp, shadow=True)
+
+    task = asyncio.create_task(log_shadow())
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
     # Return only old model response to user
     return old_resp
 ```
 
 **Advantages**:
-- Users receive only the old model's response. The example above waits for both calls, so the shadow call can still delay that response.
+- Users receive only the old model's response. The example above waits only for the old model and records the shadow result or error in the background, so the shadow call neither holds the response nor makes it fail. If the old model call fails, its error reaches the caller unchanged.
 - Testing with actual traffic patterns
 
 **Disadvantages**:
@@ -92,9 +108,12 @@ async def shadow_call(user_request):
 **Implementation Example (LaunchDarkly)**: Control model selection with Feature Flag
 
 ```python
-from ldclient import LDClient, Context
+import ldclient
+from ldclient import Context
+from ldclient.config import Config
 
-ld_client = LDClient(sdk_key="your-key")
+ldclient.set_config(Config("your-key"))
+ld_client = ldclient.get()
 
 def get_model_for_user(user_id: str):
     context = Context.builder(user_id).kind("user").build()
@@ -316,9 +335,12 @@ spec:
 **Prompt Rollout Example**:
 
 ```python
-from ldclient import LDClient, Context
+import ldclient
+from ldclient import Context
+from ldclient.config import Config
 
-ld_client = LDClient(sdk_key="sdk-key")
+ldclient.set_config(Config("sdk-key"))
+ld_client = ldclient.get()
 
 def get_prompt_version(user_id: str, org_id: str) -> int:
     context = Context.builder(user_id) \

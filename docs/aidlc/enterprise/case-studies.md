@@ -3,9 +3,9 @@ title: AIDLC Adoption Scenarios and Validation Plans
 description: Illustrative financial, manufacturing, public-sector, and fintech scenarios for planning AIDLC adoption and harness validation
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 35
+reading_time: 36
 tags:
   - aidlc
   - enterprise
@@ -97,6 +97,8 @@ Strategy:
   - Ontology-based domain modeling
   - Gradual migration (Strangler Fig pattern)
 ```
+
+The phase durations above (1, 2 and 3 months) are planned durations; they add up to the 6-month project duration in 1.1. The "4.8 months assumed" in 1.4 is an illustrative value that assumes some phases finish earlier than planned or that adjacent phases overlap. This scenario does not define the actual duration of each phase or the overlapping periods.
 
 ### 1.4 Quantitative Results
 

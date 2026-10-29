@@ -3,9 +3,9 @@ title: 검증 방법론
 description: 복잡 MSA에서 AIDLC 적용 시 품질을 보장하는 검증 방법
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 3
+reading_time: 4
 tags:
   - verification
   - testing
@@ -48,6 +48,8 @@ sidebar_position: 3
 
 ### CI/CD 파이프라인
 
+`aidlc-cli`는 공개 배포된 도구가 아니라, 조직이 직접 구현해야 하는 온톨로지·하네스·품질 게이트 검증기를 가리키는 자리표시자입니다. 같은 이름의 공개 CLI는 확인하지 못했으며(2026-10-29 기준), 아래 명령과 옵션은 그 검증기가 제공해야 할 인터페이스의 예시입니다. GitHub Actions의 각 job은 별도 러너에서 실행되므로, `quality-gate` job이 하네스 결과를 읽으려면 `run-harness` job이 결과 파일을 artifact로 올리고 `quality-gate` job이 내려받아야 합니다. `needs:`는 실행 순서와 앞 job의 성공 여부만 전달합니다.
+
 ```yaml
 # .github/workflows/aidlc-validation.yml
 name: AIDLC Validation
@@ -69,16 +71,26 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run Harness Tests
         run: |
-          aidlc-cli run-harness --suite saga
-          aidlc-cli run-harness --suite idempotency
+          aidlc-cli run-harness --suite saga --output harness-results/saga.json
+          aidlc-cli run-harness --suite idempotency --output harness-results/idempotency.json
+      - name: Upload Harness Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-results
+          path: harness-results/
 
   quality-gate:
     runs-on: ubuntu-latest
     needs: [validate-ontology, run-harness]
     steps:
+      - name: Download Harness Results
+        uses: actions/download-artifact@v4
+        with:
+          name: harness-results
+          path: harness-results/
       - name: Check Quality Gate
         run: |
-          aidlc-cli quality-gate --threshold 80
+          aidlc-cli quality-gate --threshold 80 --results harness-results/
 ```
 
 ## 전문가 리뷰

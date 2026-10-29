@@ -3,9 +3,9 @@ title: 배포 전략 — Shadow·Canary·A/B·Blue-Green
 description: 점진적 모델 교체 전략과 Feature Flag 기반 프롬프트 전개 방식
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 7
+reading_time: 8
 tags:
   - deployment
   - canary
@@ -46,29 +46,45 @@ sequenceDiagram
 - 신모델의 응답을 사용자에게 보여주지 않으면서, 운영 요청으로 지연·오류율·출력 품질을 비교할 때
 - 추가 비용을 감당할 수 있을 때(이 비교에서는 요청당 비용을 2배로 가정)
 
-**구현 예시(Python, LiteLLM)**: LiteLLM은 native shadow 기능이 없으므로 직접 구현:
+**구현 예시(Python, LiteLLM)**: LiteLLM Router와 Proxy는 deployment의 `litellm_params`에 `silent_model`을 지정하는 [traffic mirroring](https://docs.litellm.ai/docs/traffic_mirroring) 기능을 제공합니다(2026-10-29 기준). 이 기능은 shadow 호출을 백그라운드에서 실행하고 `is_silent_experiment` 메타데이터로 기록합니다. 아래 예시는 Router 없이 `acompletion`을 직접 호출할 때의 구현입니다:
 
 ```python
 import asyncio
 from litellm import acompletion
 
+_background_tasks = set()
+
 async def shadow_call(user_request):
     # 구모델(production)
-    old_task = acompletion(model="gpt-4", messages=user_request)
+    old_task = asyncio.create_task(acompletion(model="gpt-4", messages=user_request))
     # 신모델(shadow)
-    new_task = acompletion(model="claude-3-5-sonnet-20241022", messages=user_request)
+    new_task = asyncio.create_task(acompletion(model="claude-3-5-sonnet-20241022", messages=user_request))
 
-    old_resp, new_resp = await asyncio.gather(old_task, new_task, return_exceptions=True)
+    # 사용자 응답은 구모델 결과만 기다림. 구모델 오류는 호출자에게 그대로 전달
+    try:
+        old_resp = await old_task
+    except Exception:
+        new_task.cancel()
+        raise
 
-    # 로깅: 두 응답 비교
-    log_to_langfuse(user_request, old_resp, new_resp, shadow=True)
+    # 로깅: shadow 결과는 백그라운드에서 받아 두 응답 비교(shadow 실패는 사용자 응답에 영향 없음)
+    async def log_shadow():
+        try:
+            new_resp = await new_task
+        except Exception as exc:
+            new_resp = exc
+        log_to_langfuse(user_request, old_resp, new_resp, shadow=True)
+
+    task = asyncio.create_task(log_shadow())
+    _background_tasks.add(task)
+    task.add_done_callback(_background_tasks.discard)
 
     # 사용자에게는 구모델 응답만 반환
     return old_resp
 ```
 
 **장점**:
-- 사용자에게는 기존 모델의 응답만 반환합니다. 다만 위 예제는 두 호출이 모두 끝나기를 기다리므로 shadow 호출도 사용자 응답을 늦출 수 있습니다.
+- 사용자에게는 기존 모델의 응답만 반환합니다. 위 예제는 구모델 응답만 기다리고 shadow 호출의 결과와 오류는 백그라운드에서 기록하므로, shadow 호출이 사용자 응답을 기다리게 하거나 실패시키지 않습니다. 구모델 호출이 실패하면 그 오류가 호출자에게 그대로 전달됩니다.
 - 실제 트래픽 패턴으로 테스트
 
 **단점**:
@@ -92,9 +108,12 @@ async def shadow_call(user_request):
 **구현 예시(LaunchDarkly)**: Feature Flag로 모델 선택 제어
 
 ```python
-from ldclient import LDClient, Context
+import ldclient
+from ldclient import Context
+from ldclient.config import Config
 
-ld_client = LDClient(sdk_key="your-key")
+ldclient.set_config(Config("your-key"))
+ld_client = ldclient.get()
 
 def get_model_for_user(user_id: str):
     context = Context.builder(user_id).kind("user").build()
@@ -316,9 +335,12 @@ spec:
 **프롬프트 전개 예시**:
 
 ```python
-from ldclient import LDClient, Context
+import ldclient
+from ldclient import Context
+from ldclient.config import Config
 
-ld_client = LDClient(sdk_key="sdk-key")
+ldclient.set_config(Config("sdk-key"))
+ld_client = ldclient.get()
 
 def get_prompt_version(user_id: str, org_id: str) -> int:
     context = Context.builder(user_id) \

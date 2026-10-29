@@ -3,9 +3,9 @@ title: Ontology Engineering
 description: The first axis of AIDLC reliability — An ontology approach to prevent AI hallucination and ensure domain accuracy through a Typed World Model
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 31
+reading_time: 33
 tags:
   - aidlc
   - ontology
@@ -18,7 +18,7 @@ sidebar_label: Ontology Engineering
 Ontology and harness engineering are not part of the [official AWS Labs AIDLC methodology](https://github.com/awslabs/aidlc-workflows); they are engineering-playbook's own extension content. They reflect DDD and 2026 agentic-AI best practices to strengthen enterprise AI reliability. When applying official AIDLC, this axis can be adopted optionally.
 :::
 
-> "Prompt engineering is ontology engineering" — 2026 AI Community Consensus
+> "Prompt engineering is ontology engineering" — a summary of this document's position, not a quotation from a specific source
 
 In this guide, **ontology engineering** expresses domain-driven design (DDD) terminology as a machine-readable schema of entities, relationships, and constraints. The schema gives agents a shared domain reference and gives validation code explicit rules to check. It can expose inconsistent or invalid outputs, but defining the schema alone does not ensure that generated output follows it.
 
@@ -75,13 +75,13 @@ The failure patterns below share a domain-modeling problem: entities, relationsh
 
 ### 2.3 Real-World Evidence
 
-:::info Quantitative Improvement Effects
-When integrating HITL (Human-in-the-Loop) based ontology feedback loops:
-- **31% improvement in accuracy**
-- **67% reduction in False Positives**
-- **Error rate 8.3% → 1.2%** (achieved in 31 days)
+:::info Vendor-reported figures (unverified)
+The figures below are vendor-reported numbers from the Braincuber blog post listed in the 6.4 references (2026-03-07). The measurement conditions and raw data are not published, so they could not be verified (as of 2026-10-29), and the report concerns HITL (Human-in-the-Loop) feedback loops for AI agents in general, not a measured effect of applying an ontology.
+- **31% improvement in accuracy** (with HITL integration, vendor-reported)
+- **67% reduction in False Positives** (with HITL integration, vendor-reported)
+- **Error (misclassification) rate 8.3% → 1.2%** (one client case, 31 days after the feedback loop was rebuilt)
 
-Without feedback loops: $28K cost with minimal improvement in error rate 8.3%→7.9%.
+For the same client, retraining without a feedback loop reportedly cost $28K and improved the error rate only from 8.3% to 7.9%.
 :::
 
 ## 3. Ontology Structure
@@ -424,14 +424,15 @@ graph TD
 
 ### 6.2 HITL Integration Effects
 
-:::info Quantitative Evidence
-- **31% improvement in accuracy**: Domain accuracy of AI-generated code
+:::info Vendor-reported figures (unverified)
+These are the same Braincuber-reported figures as in section 2.3 and could not be verified (as of 2026-10-29). They are not a measured effect of applying an ontology.
+- **31% improvement in accuracy**: decision accuracy as stated in the source (not a measurement of the domain accuracy of AI-generated code)
 - **67% reduction in False Positives**: Decrease in unnecessary error alerts
-- **Error rate 8.3% → 1.2%**: Achieved in 31 days
+- **Error rate 8.3% → 1.2%**: one client case, 31 days after the feedback loop was rebuilt
 
-**Cost Comparison:**
-- Without feedback loops: $28K cost, error rate 8.3%→7.9% (minimal improvement)
-- With HITL-based feedback loops: Significant reduction in operational costs, 85% error reduction
+**Cost Comparison (same client case):**
+- Retraining without a feedback loop: $28K retraining cost, error rate 8.3%→7.9% (minimal improvement)
+- Rebuilt feedback loop: error rate 8.3%→1.2% (about 85% reduction). No change in operational cost was reported
 :::
 
 ### 6.3 HITL Feedback Collection Points
@@ -533,18 +534,20 @@ Kiro AI agent injects this ontology into the context window. Embedding the ontol
 
 ### 8.1 Error Rate Reduction Case
 
-:::tip Real-World Data
-**Before (without ontology):**
+:::tip Vendor-reported case (unverified)
+This is the same Braincuber-reported case (one client) as in section 2.3 and could not be verified (as of 2026-10-29). The source compares running with and without a feedback loop, not with and without an ontology.
+
+**Before (retraining without a feedback loop):**
 - Initial error rate: 8.3%
-- Investment: $28K
-- Error rate after 31 days: 7.9%
+- Retraining cost: $28K
+- Error rate after retraining: 7.9%
 - Improvement: 0.4%p (minimal)
 
-**After (with ontology + feedback loops):**
+**After (rebuilt feedback loop):**
 - Initial error rate: 8.3%
 - Error rate after 31 days: 1.2%
 - Improvement: 7.1%p (85% reduction)
-- Additional effects: 67% False Positive reduction, 31% accuracy improvement
+- Additional effects (general HITL figures the vendor reported separately): 67% False Positive reduction, 31% accuracy improvement
 :::
 
 ### 8.2 Productivity Metrics

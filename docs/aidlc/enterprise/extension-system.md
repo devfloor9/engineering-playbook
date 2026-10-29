@@ -3,9 +3,9 @@ title: Extension System
 description: AWS Labs AIDLC Extension System — integrate organization-specific security, compliance, and domain rules into AIDLC workflows via opt-in mechanism
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 11
+reading_time: 18
 tags:
   - aidlc
   - extension
@@ -54,7 +54,7 @@ graph TB
 **Core Principles:**
 - Core contains **minimum rules common to all organizations and industries**
 - Extensions are **selectively applied by organization, industry, or project**
-- **Presence and content of `opt-in.md` file determines activation**
+- **In the official v0.1.7, the user's answer to each extension's `*.opt-in.md` question determines activation**
 
 ### 1.2 Extension Benefits
 
@@ -73,7 +73,7 @@ These benefits are not guaranteed automatically by merely applying an Extension.
 
 ## 2. Built-in Extensions
 
-AWS Labs repository provides two **Built-in Extensions** by default: `security/` and `testing/`.
+The AWS Labs repository release this guide pins, v0.1.7, has two **Built-in Extensions** under `aidlc-rules/aws-aidlc-rule-details/extensions/` (checked 2026-10-29). `security/baseline/` holds the rule file `security-baseline.md` (SECURITY-01 to SECURITY-15) and the opt-in question file `security-baseline.opt-in.md`; `testing/property-based/` holds `property-based-testing.md` (PBT-01 to PBT-10) and `property-based-testing.opt-in.md`. The official rule files are Markdown, and there is no `rules.yaml`. The `rules.yaml` blocks in 2.1 and 2.2 below are not official files; they are YAML illustrations this guide made to explain how an extension is organized, so their rule IDs, tools and numbers (SEC-001, 80% coverage, and so on) also differ from the official rules. Read the official rules in the Markdown files above. This guide is based on v0.1.7 and was not compared with the latest release (v2.11.2, 2026-10-28).
 
 ### 2.1 security/ Extension
 
@@ -159,7 +159,9 @@ testing_extension:
 
 ### 3.1 opt-in.md File Structure
 
-Extension activation is controlled by the **`opt-in.md`** file at the project root.
+The official v0.1.7 activates extensions as follows (checked 2026-10-29). At workflow start it reads only the `*.opt-in.md` files in the subdirectories of `extensions/`; in Requirements Analysis it adds each file's `## Opt-In Prompt` question to the clarifying-questions file and asks the user. It records the answers in the `## Extension Configuration` table of `aidlc-docs/aidlc-state.md` and only then loads the rule files (the `.opt-in.md` name with `.md` instead) of the extensions the user opted into. Extensions without a `*.opt-in.md` file are always enforced, and an extension with no recorded configuration is treated as enforced.
+
+The **`opt-in.md`** file below and the A-E selection question in 3.2 are not an official specification; they are a convention this guide proposes for managing several organization and domain extensions per project in one place. The official workflow does not read this file, so using the convention requires connecting it through separate instructions or tooling.
 
 **Location**: `<project-root>/.aidlc/opt-in.md`
 
@@ -177,7 +179,7 @@ Extension activation is controlled by the **`opt-in.md`** file at the project ro
 - [x] testing (version 0.1.0)
 
 ### Organization
-- [x] org-lg-security (version 1.2.0) — LG CNS internal security standards
+- [x] org-example-security (version 1.2.0) — Example organization's internal security standards
 - [x] org-compliance-ismsp (version 2.1.0) — ISMS-P (Korean Personal Information & Information Security Management System) certification standards
 
 ### Domain
@@ -191,7 +193,7 @@ Extension activation is controlled by the **`opt-in.md`** file at the project ro
 
 ### 3.2 Requirements Analysis Stage opt-in Questions
 
-The AIDLC Requirements Analysis stage reads the `opt-in.md` file to check activated extensions. **If the file doesn't exist or no extensions are specified**, Common Rules rule 1 (Question Format) asks the user:
+In this convention, you instruct the Requirements Analysis stage to read the `opt-in.md` file to check activated extensions. **If the file doesn't exist or no extensions are specified**, you instruct it to ask the user as follows, following Common Rules rule 1 (Question Format):
 
 ```markdown
 Q. Select Extensions to apply to this project (multiple choice):
@@ -205,8 +207,8 @@ E. None (demo/PoC only, prohibited for production)
 [Answer]:
 ```
 
-**Auto-generation after response:**
-- `[Answer]: C` → AIDLC adds security, testing, and organization extensions to `opt-in.md`
+**Handling the response (proposed convention):**
+- `[Answer]: C` → instruct the agent to record security, testing, and organization extensions in `opt-in.md`. The official workflow does not do this automatically.
 
 ### 3.3 Extension Priority
 
@@ -238,6 +240,8 @@ Organization Extension (finance): Allows Temperature = 0.1 (some creativity allo
 ### 4.1 Korea ISMS-P Extension
 
 **Background**: ISMS-P (Korean Personal Information & Information Security Management System) is a private certification requiring compliance with Korea information security laws. Virtually mandatory for public contracts and financial services entry.
+
+The rule IDs below (ISMSP-2.5.1 and so on) and the numbers (passwords of 9+ characters with 3+ character types, logout after 10 minutes of inactivity, lockout after 5 failed logins, reporting within 24 hours, AES-256) are example values made for this guide. They were not checked against the current ISMS-P certification criteria or the related notices and guides (as of 2026-10-29), and they are not assumed to match the item numbers or names of the criteria. When you put them into an organization extension, re-check the items and numbers against the applicable edition of the criteria and the legal text.
 
 **Extension Directory Structure:**
 ```
@@ -297,6 +301,8 @@ extension:
 
 **Background**: Electronic Financial Supervision Regulations (Financial Supervisory Service) and mandatory network separation/ISMS-P.
 
+The rule IDs below (EFSR-8 and so on) and the required levels (RTO ≤ 3 hours, RPO ≤ 24 hours, DR drill at least once a year, TLS 1.3 or higher, AES-256, masking of 6+ digits) are example settings made for this guide. They were not checked against the article numbers and requirements of the Electronic Financial Supervision Regulations (as of 2026-10-29), so confirm them against the current text of the regulation on the Korean National Law Information Center before applying them.
+
 **rules.yaml Excerpt:**
 ```yaml
 extension:
@@ -340,6 +346,8 @@ extension:
 
 ## 5. Custom Extension Creation Guide
 
+The directory structure, the `metadata.yaml` and `rules.yaml` specifications in this section and the `aidlc extension …` and `aidlc run --pilot` commands in 5.4 are an organization-extension convention proposed by this guide. The official v0.1.7 repository has no such file specification or CLI (checked 2026-10-29). An extension that the official workflow reads consists of a rule file `<name>.md` and an optional opt-in question file `<name>.opt-in.md` in a subdirectory of `extensions/`, so even when you use the convention below, you must also create these two Markdown files to connect the extension to the official workflow.
+
 ### 5.1 Directory Structure
 
 ```
@@ -357,12 +365,14 @@ extensions/<extension-name>/
 
 ### 5.2 metadata.yaml Specification
 
+The extension name, contact, dates and checksum below are illustrative placeholder values.
+
 ```yaml
 extension:
-  name: org-lg-security
+  name: org-example-security
   version: 1.2.0
-  description: "LG CNS internal security standards AIDLC integration"
-  author: security-team@lgcns.com
+  description: "Example organization internal security standards AIDLC integration"
+  author: security-team@example.com
   license: Proprietary
   created: 2026-02-15
   updated: 2026-04-10
@@ -378,7 +388,7 @@ extension:
     industries: []          # Empty array = all industries
     regions: [KR]
 
-  checksum: sha256:abc123... # Tampering prevention
+  checksum: sha256:<content-digest> # Tampering prevention
 ```
 
 ### 5.3 rules.yaml Specification
@@ -404,7 +414,7 @@ rules:
 
 ### 5.4 Extension Testing
 
-The following tests are mandatory before deploying new Extensions:
+Run the following tests before deploying a new Extension. The `aidlc` commands below are examples that assume a validation tool your organization implements:
 
 ```bash
 # 1. Syntax validation
@@ -445,14 +455,14 @@ stateDiagram-v2
 
 ### 6.2 Extension Registry
 
-Organizations operate internal Extension Registry to manage extensions:
+Organizations operate internal Extension Registry to manage extensions. The address, extension names, owning teams and review dates below are illustrative placeholder values:
 
 ```yaml
 # internal-registry.yaml
 registry:
-  url: https://extensions.lgcns.internal/aidlc/
+  url: https://extensions.example.com/aidlc/
   extensions:
-    - name: org-lg-security
+    - name: org-example-security
       version: 1.2.0
       status: published
       owner: security-team

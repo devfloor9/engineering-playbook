@@ -3,9 +3,9 @@ title: Autonomous Response
 description: AI Agent-based autonomous incident response — Strands/Kagent integration, Chaos Engineering + AI, ontology feedback loop
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 24
+reading_time: 27
 tags:
   - aidlc
   - operations
@@ -37,10 +37,10 @@ import { OperationPatternsComparison, AiopsMaturityModel } from '@site/src/compo
 
 ### Why Autonomous Response is Needed
 
-- **MTTR Reduction**: Manual response average 2 hours → AI autonomous response average 5 minutes
-- **24/7 Unmanned Operations**: Significantly reduced burden of nighttime/weekend alerts
-- **Consistency**: Eliminate human judgment variance, standardized response
-- **Learning Effect**: Continuously improve accuracy by learning response patterns
+- **MTTR Reduction (goal)**: The goal is to shorten the time from detection to action for recurring incident types. "Manual response average 2 hours → AI autonomous response average 5 minutes" is an illustrative figure (a hypothetical scenario, not measured data).
+- **24/7 Response Support**: The goal is to reduce the on-call burden by having the agent handle nighttime/weekend alerts that fall within the automated scope. Alerts outside that scope and final responsibility remain with people.
+- **Consistency**: Standardized SOPs reduce variance in the response procedure. LLM judgments can also vary between runs or be wrong, so high-risk actions require human approval.
+- **Learning Effect**: The goal is to improve accuracy by learning response patterns. Whether accuracy actually improves must be checked with evaluation metrics such as false-positive and miss rates.
 
 ---
 
@@ -438,6 +438,8 @@ graph TD
 
 ### 5.3 Specific Scenario: OOMKilled Automatic Response
 
+The trace below is a hypothetical scenario that illustrates the flow, and the tool call names and arguments may differ from the actual EKS MCP server's tool specification. A one-hour metric window alone cannot establish a pattern that repeats every two hours. In a real response, the Redis connection leak must be confirmed with evidence such as the memory trend over a sufficiently long observation window, heap profiles, and connection counts before a code patch PR is created. Raising memory limits is a temporary measure that can be applied before the cause is confirmed.
+
 ```
 [Kiro Programmatic Debugging: OOMKilled]
 
@@ -504,7 +506,7 @@ chaos_analyzer = Agent(
        - Identify vulnerable points
        - Identify recovery bottlenecks
 
-    3. Update response rules
+    3. Draft response rule changes (not applied before human review and approval)
        - Add learning content to existing SOP
        - Create response rules for new patterns
        - Adjust escalation thresholds
@@ -516,6 +518,8 @@ chaos_analyzer = Agent(
     """
 )
 ```
+
+The output of step 3 is a proposed change and is not applied to production automatically. A repeated failure alone does not prove causality or the correctness of a rule, so each proposed change is recorded together with the experiments it is based on and the results of validation against negative cases. Only changes a person has reviewed and approved are applied to the version-controlled SOP, and it must be possible to roll back to the previous version if a problem occurs. Changes that widen the permission scope of automated actions in particular must go through this approval process.
 
 ### 6.3 FIS Experiment Example: Pod Deletion with SLO Protection
 

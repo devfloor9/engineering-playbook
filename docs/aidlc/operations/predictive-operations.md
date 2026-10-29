@@ -3,9 +3,9 @@ title: Predictive Operations
 description: ML-based predictive scaling and anomaly detection — Karpenter+AI, CloudWatch Anomaly Detection, AI Right-Sizing
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 25
+reading_time: 28
 tags:
   - aidlc
   - operations
@@ -27,7 +27,7 @@ import { ScalingComparison, MLModelComparison, MaturityTable } from '@site/src/c
 
 Traditional EKS operations are **reactive**. HPA starts scaling **after** CPU/memory exceeds thresholds, so users are already impacted when traffic spikes.
 
-**Predictive Operations** uses ML models to learn traffic patterns and **scales out proactively before increases**, maintaining service quality.
+**Predictive Operations** uses ML models to learn traffic patterns and **scales out proactively before increases**, maintaining service quality. This benefit appears only when the forecast matches actual traffic; when the forecast is wrong, under- or over-provisioning results. Predictive scaling therefore runs alongside reactive scaling rather than replacing it. HPA can take custom and external metrics as scaling inputs in addition to CPU/memory, so exposing the forecast as a custom metric, as in Section 2.3, lets HPA or KEDA use the predictive signal together with current metrics.
 
 ```
 Reactive Scaling Problem:
@@ -37,7 +37,7 @@ Reactive Scaling Problem:
 
 Predictive Scaling Solution:
   ML prediction (30 min ahead) → preemptive scale-out → actual traffic arrives
-  → Nodes/Pods ready → no performance degradation
+  → Nodes/Pods ready → degradation minimized if the forecast is accurate
 ```
 
 ### Core Value
@@ -57,6 +57,8 @@ HPA (Horizontal Pod Autoscaler) only reacts to **current metrics**, causing stru
 
 <ScalingComparison />
 
+The response-time, accuracy, and complexity ratings in the comparison above and the figure below are qualitative assumptions to explain the difference between approaches, not measured results. The accuracy of the predictive and autonomous approaches depends on how well the forecast model and the agent have been validated on the actual workload.
+
 ```
 [HPA Reactive]
 Traffic ████████████████████████░░░░░░░░░
@@ -72,7 +74,7 @@ Traffic ████████████████████████
 Pods    ██████████████████████████████████
              ↑ preemptive scale-out
 User    ✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓✓
-Experience (no degradation)
+Experience (minimal degradation if the forecast is accurate)
 ```
 
 ### 2.2 Time Series Prediction Models
@@ -124,7 +126,7 @@ def calculate_required_pods(forecast_df, pod_capacity_rps=100):
     return max(required, 2)
 ```
 
-> **Precondition**: The calculation above is trustworthy only after the model passes validation on a holdout window (for example, checking an error metric such as MAPE). Wiring an unvalidated forecast directly into scaling can cause under- or over-provisioning.
+> **Precondition**: The calculation above is trustworthy only after the model passes validation on a holdout window (for example, checking an error metric such as MAPE). Wiring an unvalidated forecast directly into scaling can cause under- or over-provisioning. The values passed to `Prophet()`, such as `changepoint_prior_scale=0.05` and `seasonality_mode='multiplicative'`, and the forecast window `forecast_hours=2` are example starting values, not tuned values. Before use, backtest with Prophet's `cross_validation` over the horizon you will actually use, and check the error metrics and `coverage` from `performance_metrics` (the share of actual values that fall inside `yhat_lower` to `yhat_upper`; with the default `interval_width=0.8`, about 80% is expected) to confirm that the hyperparameters and the forecast horizon fit the workload.
 
 **Automation Pattern**:
 - Run predictions every 15 minutes with CronJob
@@ -436,7 +438,7 @@ In K8s 1.34 and below, VPA `Auto` mode restarts Pods to adjust resources. For St
 
 ### 5.4 Right-Sizing Impact
 
-**Expected Cost Savings**:
+**Expected Cost Savings** (illustrative figures, not measured results; actual savings depend on the workload's load variation and its current request settings):
 - Over-provisioning reduced from 40-60% to 20-30%
 - 30-50% annual cluster cost savings
 - Increased node consolidation efficiency
@@ -446,6 +448,8 @@ In K8s 1.34 and below, VPA `Auto` mode restarts Pods to adjust resources. For St
 ## 6. Maturity Model
 
 <MaturityTable />
+
+This maturity model is a classification proposed by this document, not an industry-standard model. The three stages in the table above simplify Level 0-4 below: Reactive corresponds roughly to Level 0, Predictive to Level 1-2, and Autonomous to Level 3-4. The KPIs in the table (MTTR, MTTD, daily alert count) are illustrative targets that show the difference between stages, not measured values.
 
 **Level 0: Reactive**
 - Basic HPA/VPA configuration

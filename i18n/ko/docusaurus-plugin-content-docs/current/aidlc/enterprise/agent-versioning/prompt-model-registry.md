@@ -3,9 +3,9 @@ title: 프롬프트·모델 레지스트리
 description: Langfuse, PromptLayer, Braintrust, AWS Bedrock Prompt Management 비교 및 구축 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 14
 tags:
   - prompt-registry
   - versioning
@@ -117,14 +117,14 @@ def confirm_registry_target(client, *, prompt_name, expected_version):
 - Observability와 통합(trace에서 프롬프트 버전 자동 기록)
 
 **단점**:
-- Python SDK 중심(TypeScript SDK는 있지만 기능 제한적)
-- UI는 단순(diff는 보이지만 승인 워크플로 없음)
+- Python SDK와 JS/TS SDK 모두 프롬프트 생성·조회·라벨 변경을 지원합니다(2026-10-29 기준). 이 문서의 코드 예제는 Python SDK 기준입니다.
+- UI는 버전 diff를 보여주지만 변경을 승인하는 워크플로는 없습니다. `production` 같은 라벨을 project admin·owner만 바꾸도록 막는 protected prompt labels는 Pro(Teams add-on)·Enterprise 플랜과 self-hosted Enterprise Edition에서만 제공됩니다(2026-10-29 기준).
 
 ---
 
 ## PromptLayer
 
-[PromptLayer](https://promptlayer.com/)는 SaaS 프롬프트 레지스트리입니다.
+[PromptLayer](https://promptlayer.com/)는 SaaS로 제공되는 프롬프트 레지스트리이며, Enterprise 플랜에서는 자체 인프라에 설치하는 self-hosted 배포도 제공합니다(2026-10-29 기준).
 
 - **버전 태깅**: Git 스타일 태그(`v1.0`, `v1.1-alpha`)
 - **Visual Diff**: 두 버전 간 단어 단위 변경 강조
@@ -136,8 +136,8 @@ def confirm_registry_target(client, *, prompt_name, expected_version):
 - 팀 협업 기능(댓글, 승인 워크플로)
 
 **단점**:
-- SaaS 전용(온프레미스 불가)
-- 데이터 주권 이슈(프롬프트가 외부 서버에 저장)
+- 기본 제공 형태는 SaaS이며, 자체 인프라 배포(self-hosted)는 Enterprise 플랜 전용입니다(2026-10-29 기준).
+- SaaS를 쓰면 데이터 주권 이슈가 생깁니다(프롬프트가 외부 서버에 저장).
 
 ---
 
@@ -227,23 +227,23 @@ def snapshot_prompt(bedrock, prompt_arn, *, description, client_token):
 
 ## 비교표
 
-'AIDLC 적합성' 행의 높음·중간 수준은 작성자의 정성적 평가입니다.
+'AIDLC 적합성' 행의 높음·중간 수준은 작성자의 정성적 평가입니다. 배포 방식, 라벨/Alias, 자동 평가 연동, 데이터 주권 행의 Langfuse·PromptLayer·Braintrust 셀은 2026-10-29에 각 제품 공식 문서로 확인한 내용이며, 플랜(에디션)에 따라 달라지는 기능은 셀에 플랜을 적었습니다. 그 밖의 셀(Visual Diff, 승인 워크플로, A/B 실험)은 1차 출처로 다시 확인하지 못했습니다(2026-10-29 기준). 제품 기능과 플랜별 제공 범위는 바뀔 수 있으므로 도입 전에 공식 문서로 확인합니다.
 
 **표 1. 프롬프트 레지스트리 도구별 기능 지원 비교**
 
 | 기능 | Langfuse | PromptLayer | Braintrust | Bedrock PM |
 |------|----------|-------------|------------|------------|
-| **배포 방식** | Self-hosted | SaaS | SaaS | AWS Managed |
+| **배포 방식** | Self-hosted 또는 Langfuse Cloud | SaaS(Enterprise는 self-hosted 가능) | SaaS(Enterprise는 데이터 플레인 self-hosting 가능) | AWS Managed |
 | **버전 관리** | 지원 | 지원 | 지원 | 지원 |
-| **라벨/Alias** | 지원 | 지원 | 미지원 | 애플리케이션의 버전 ARN 매핑 |
+| **라벨/Alias** | 지원 | 지원(Release Labels) | 환경(Environment)별 버전 지정 | 애플리케이션의 버전 ARN 매핑 |
 | **Visual Diff** | 기본 | 지원 | 지원 | 미지원 |
-| **승인 워크플로** | 미지원 | 지원 | 미지원 | 미지원(IAM으로 구현) |
+| **승인 워크플로** | 미지원(protected labels는 상위 플랜) | 지원 | 미지원 | 미지원(IAM으로 구현) |
 | **A/B 실험** | 수동 | 지원 | 지원 | 수동 |
-| **자동 평가 연동** | 가능(trace 기반) | 미지원 | 지원 | 가능(Lambda) |
-| **데이터 주권** | 지원 | 미지원 | 미지원 | 지원(리전 내) |
+| **자동 평가 연동** | 가능(trace 기반) | 지원(Evals) | 지원 | 가능(Lambda) |
+| **데이터 주권** | 지원(self-hosted 시) | SaaS 미지원(Enterprise self-hosted 시 지원) | SaaS 미지원(Enterprise 데이터 플레인 self-hosting 시 지원) | 지원(리전 내) |
 | **AIDLC 적합성** | 높음 | 중간(SaaS) | 높음(Eval 중심) | 높음(Bedrock 전용) |
 
-**AIDLC 권장**: **Langfuse**(self-hosted 요구사항) 또는 **AWS Bedrock PM**(Bedrock 사용 시). PromptLayer/Braintrust는 SaaS 허용 시.
+**AIDLC 권장**: **Langfuse**(self-hosted 요구사항) 또는 **AWS Bedrock PM**(Bedrock 사용 시). PromptLayer/Braintrust는 SaaS를 허용하거나 Enterprise 플랜의 self-hosted 배포를 쓸 수 있을 때 검토합니다(2026-10-29 기준).
 
 ---
 

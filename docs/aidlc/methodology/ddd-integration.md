@@ -3,7 +3,7 @@ title: DDD Integration — Essential Core in AI-Driven Development
 description: Why DDD is an essential core in AIDLC — AI-driven development from domain design to logical design
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
 reading_time: 26
 tags:
@@ -435,7 +435,7 @@ Payment Service has irregular and unpredictable traffic patterns.
 Choose On-Demand instead of Provisioned Capacity.
 
 ## Consequences
-- Cost: 15% more expensive than predictable traffic
+- Cost: can be more expensive than Provisioned Capacity when traffic is steady and predictable (the difference depends on traffic pattern and utilization, so calculate it from pricing and record the result)
 - Advantage: Automatic spike traffic handling, no scaling operations
 - Disadvantage: Cost optimization limitations
 ```
@@ -595,7 +595,7 @@ Bolt 3: CQRS Separation
 
 ## 6. Extension to Ontology: From DDD to Formal Ontology
 
-> "Prompt engineering is ontology engineering" — 2026 AI Community Consensus
+> "Prompt engineering is ontology engineering" — a summary of this document's position, not a quotation from a specific source
 
 DDD's Ubiquitous Language is an **informal agreement** for team communication. In the AI era, this must be elevated to **formal ontology (typed world model)** so AI can mechanically understand and comply.
 

@@ -3,9 +3,9 @@ title: Open-Weight Models
 description: Open-weight model utilization strategies for data residency and cost optimization — on-premises deployment, hybrid configuration, TCO comparison
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 24
+reading_time: 25
 tags:
   - aidlc
   - toolchain
@@ -58,12 +58,14 @@ Open-weight models can be optimized for specific domains through fine-tuning, pr
 
 | Model | Provider | Parameters | Key Features | License | Recommended Deployment |
 |-------|----------|-----------|--------------|---------|----------------------|
-| **GLM-4.5** | Zhipu AI (Z.ai) | 355B total, 32B active (MoE) | Multilingual (KO/ZH/EN) strength, excellent math/reasoning | MIT | p5en.48xlarge (H200×8) |
+| **GLM-4.5** | Zhipu AI (Z.ai) | 355B total, 32B active (MoE) | Multilingual (KO/ZH/EN) strength, excellent math/reasoning | Weights MIT, code Apache 2.0 | p5en.48xlarge (H200×8) |
 | **Qwen3-Coder** | Alibaba | 480B total, 35B active (MoE) / 30B total, 3B active variant | Coding specialized, agentic tasks | Apache 2.0 | p5.48xlarge (H100×8) / g6e.xlarge (L40S×1) |
 | **Qwen3-235B** | Alibaba | 235B total, 22B active (MoE) | MoE architecture, text-only | Apache 2.0 | p5.48xlarge (H100×8) |
 | **DeepSeek-R1** | DeepSeek | 671B total, 37B active (MoE) | CoT reasoning specialized, RL-based training | MIT | p5en.48xlarge (H200×8) |
 | **Llama 4 Scout / Maverick** | Meta | Scout 109B total·17B active (16 experts) / Maverick 400B total·17B active (128 experts) | Broad ecosystem, natively multimodal | Llama 4 Community License | p5.48xlarge (H100×8) |
 | **Mistral Large 2** | Mistral | 123B | European data sovereignty considered design | Mistral License | p4d.24xlarge (A100×8) |
+
+GLM-4.5 has different licenses for its weights and its code. As of 2026-10-29, the Hugging Face model card (`zai-org/GLM-4.5`, revision `cbb2c7c`) lists the weight license as MIT, and the code in the GitHub repository `zai-org/GLM-4.5` is under the Apache 2.0 license. When adopting the model, check the license again for the revision you use.
 
 The "Recommended Deployment" column is an example sizing. Where FP16 weights (parameters × 2 bytes) would exceed the listed GPU memory, the cell assumes the vendor-published 8-bit checkpoint: Qwen3-Coder 480B-A35B on H100×8 and 30B-A3B on a single L40S (48GB) assume the `-FP8` checkpoints Qwen publishes, and the Llama 4 Maverick cell follows Meta's statement that it runs on a single H100 host. FP16 serving needs roughly twice the memory; see "Infrastructure Requirements" below.
 
@@ -475,7 +477,7 @@ The list above is a summary of requirements; the scope, timing, and exact provis
 - [Ontology Engineering](../methodology/ontology-engineering.md) — Ontology injection patterns
 
 ### Official Model Documentation
-- [GLM-4.5 GitHub](https://github.com/zai-org/GLM-4.5) — MIT license
+- [GLM-4.5 GitHub](https://github.com/zai-org/GLM-4.5) — model weights MIT, repository code Apache 2.0 license
 - [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B-A22B) — MoE architecture details
 - [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL training methodology
 - [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — Serving optimization

@@ -3,7 +3,7 @@ title: 오픈 웨이트 모델
 description: 데이터 레지던시와 비용 최적화를 위한 오픈 웨이트 모델 활용 전략 — 온프레미스 배포, 하이브리드 구성, TCO 비교
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
 reading_time: 12
 tags:
@@ -58,12 +58,14 @@ graph TD
 
 | 모델 | 제공사 | 파라미터 | 주요 특징 | 라이선스 | 권장 배포 |
 |------|--------|---------|----------|---------|----------|
-| **GLM-4.5** | Zhipu AI (Z.ai) | 355B 총, 32B 활성 (MoE) | 다국어(한/중/영) 강점, 수학/추론 성능 우수 | MIT | p5en.48xlarge (H200×8) |
+| **GLM-4.5** | Zhipu AI (Z.ai) | 355B 총, 32B 활성 (MoE) | 다국어(한/중/영) 강점, 수학/추론 성능 우수 | 가중치 MIT, 코드 Apache 2.0 | p5en.48xlarge (H200×8) |
 | **Qwen3-Coder** | Alibaba | 480B 총, 35B 활성 (MoE) / 30B 총, 3B 활성 변형 | 코딩 특화, 에이전트 작업 | Apache 2.0 | p5.48xlarge (H100×8) / g6e.xlarge (L40S×1) |
 | **Qwen3-235B** | Alibaba | 235B 총, 22B 활성 (MoE) | MoE 아키텍처, 텍스트 전용 | Apache 2.0 | p5.48xlarge (H100×8) |
 | **DeepSeek-R1** | DeepSeek | 671B 총, 37B 활성 (MoE) | CoT 추론 특화, RL 기반 학습 | MIT | p5en.48xlarge (H200×8) |
 | **Llama 4 Scout / Maverick** | Meta | Scout 109B 총·17B 활성 (16 전문가) / Maverick 400B 총·17B 활성 (128 전문가) | 넓은 생태계, 네이티브 멀티모달 | Llama 4 Community License | p5.48xlarge (H100×8) |
 | **Mistral Large 2** | Mistral | 123B | 유럽 데이터 주권 고려 설계 | Mistral License | p4d.24xlarge (A100×8) |
+
+GLM-4.5의 라이선스는 가중치와 코드가 다릅니다. 2026-10-29 기준 Hugging Face 모델 카드(`zai-org/GLM-4.5`, 리비전 `cbb2c7c`)는 가중치 라이선스를 MIT로 표기하고, GitHub 저장소 `zai-org/GLM-4.5`의 코드는 Apache 2.0 라이선스입니다. 도입할 때는 사용하는 리비전의 라이선스를 다시 확인합니다.
 
 "권장 배포" 열은 예시 산정입니다. FP16 가중치(파라미터 수 × 2바이트)가 표기된 GPU 메모리를 넘는 행은 제공사가 공개한 8비트 체크포인트를 전제로 합니다. Qwen3-Coder 480B-A35B의 H100×8과 30B-A3B의 단일 L40S(48GB)는 Qwen이 공개한 `-FP8` 체크포인트를 전제로 하며, Llama 4 Maverick 행은 "단일 H100 호스트에서 실행 가능"하다는 Meta의 설명을 따른 것입니다. FP16으로 서빙하려면 약 2배의 메모리가 필요하며, 아래 "인프라 요구사항"을 참고하세요.
 
@@ -474,7 +476,7 @@ class OutputFilter:
 - [온톨로지 엔지니어링](../methodology/ontology-engineering.md) — 온톨로지 주입 패턴
 
 ### 모델 공식 문서
-- [GLM-4.5 GitHub](https://github.com/zai-org/GLM-4.5) — MIT 라이선스
+- [GLM-4.5 GitHub](https://github.com/zai-org/GLM-4.5) — 모델 가중치 MIT, 저장소 코드 Apache 2.0 라이선스
 - [Qwen3 Model Card](https://huggingface.co/Qwen/Qwen3-235B-A22B) — MoE 아키텍처 상세
 - [DeepSeek-R1 Paper](https://arxiv.org/abs/2501.12948) — RL 훈련 방법론
 - [vLLM Documentation](https://docs.vllm.ai/en/v0.18.2/) — 서빙 최적화

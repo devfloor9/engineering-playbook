@@ -3,9 +3,9 @@ title: "AgenticOps: AI Agent-Based Autonomous Operations"
 description: AI agent-based autonomous operations for software developed with AIDLC — observability, prediction, and automated response
 created: "2026-04-07"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-29
   author: devfloor9
-reading_time: 4
+reading_time: 5
 tags:
   - scope:nav
 sidebar_label: AgenticOps
@@ -46,7 +46,7 @@ Reading in the order **1 → 2 → 3** allows you to follow the entire journey f
 
 ## Core Foundation: AWS Open Source Strategy
 
-AWS provides core Kubernetes ecosystem tools as Managed Add-ons (22+) and managed open source services (AMP, AMG, ADOT). On this foundation, **Kiro + MCP (Model Context Protocol)** operates as the core tool for AgenticOps, autonomously controlling EKS clusters, analyzing CloudWatch metrics, and optimizing costs through AWS MCP servers (50+ GA).
+AWS provides core Kubernetes ecosystem tools as EKS add-ons (as of 2026-10-29, the AWS add-ons list in the EKS User Guide has 22 or more entries). Prometheus and Grafana are offered as managed services (AMP, AMG), and OpenTelemetry as an AWS-supported distribution (ADOT, also installable as an EKS add-on). On this foundation, this guide proposes using **Kiro + MCP (Model Context Protocol)** as the core tool for AgenticOps. Most servers in the AWS Labs MCP repository (50 or more as of 2026-10-29) are open-source servers that run in the user's environment; some are AWS-hosted managed servers, and some are in preview or deprecated. Through these servers, an agent can query and control EKS clusters, analyze CloudWatch metrics, and analyze costs within the IAM permissions it has been granted.
 
 ## References
 

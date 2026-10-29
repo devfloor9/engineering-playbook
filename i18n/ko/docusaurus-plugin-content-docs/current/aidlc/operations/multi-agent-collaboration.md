@@ -3,9 +3,9 @@ title: Multi-Agent Collaboration Patterns
 description: Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor 패턴과 LangGraph/CrewAI/AutoGen/Strands Agents SDK 구현
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 23
+reading_time: 25
 tags:
   - multi-agent
   - orchestrator
@@ -22,8 +22,8 @@ sidebar_label: 멀티 에이전트 협업
 
 단일 LLM 에이전트는 도메인이 넓어지고 툴 사용이 복잡해질수록 빠르게 한계를 드러냅니다. 운영 환경에서 관찰되는 대표적인 한계는 다음과 같습니다.
 
-- **컨텍스트 윈도우 포화**: Claude Opus 4.7의 1M 토큰도 대형 모노레포·장기 세션에서는 빠르게 소진되며, 주요 맥락이 요약 손실로 밀려남.
-- **툴 스프롤 (Tool Sprawl)**: 하나의 에이전트에 20개 이상의 MCP 툴을 연결하면 tool-choice 정확도가 급격히 떨어짐 (Anthropic 2024 "Building effective agents" 참조).
+- **컨텍스트 윈도우 포화**: 1M 토큰급 컨텍스트 윈도우도 대형 모노레포·장기 세션에서는 빠르게 소진될 수 있으며, 주요 맥락이 요약 과정에서 손실될 수 있습니다. 모델별 컨텍스트 크기는 공급자 문서에서 확인해야 합니다(Claude Opus 4.7의 1M 토큰 수치는 2026-10-29 기준 1차 출처를 확인하지 못했습니다).
+- **툴 스프롤 (Tool Sprawl)**: 하나의 에이전트에 연결한 MCP 툴이 많아질수록 tool-choice 정확도가 떨어질 수 있습니다. "20개 이상"은 작업 부하에 따라 달라지는 저자의 가설이며 고정된 한계가 아니므로, 실제 임계값은 자체 워크로드 벤치마크로 확인해야 합니다. 참조한 Anthropic 2024 "Building effective agents"는 도구 정의를 신중하게 설계하라고 권하지만 특정 도구 개수의 임계값은 제시하지 않습니다.
 - **전문성 범위 제한**: 코드 리뷰·SQL 작성·보안 분석은 시스템 프롬프트와 few-shot 구성이 상이. 하나의 프롬프트로 모두 만족시키기 어려움.
 - **비용-정확도 트레이드오프**: Opus 급 모델을 모든 하위 작업에 쓰면 비용이 폭증, Haiku 급만 쓰면 복잡 추론에서 실패율 상승.
 
@@ -132,9 +132,9 @@ flowchart LR
 
 Planner 에이전트가 전체 실행 계획을 먼저 수립하고, Executor 에이전트(들)가 단계별로 실행합니다. 필요시 Re-Planner가 중간 결과를 받아 계획을 수정합니다.
 
-- **대표 구현**: LangChain Plan-and-Execute, OpenAI Deep Research (Planner + Browser + Writer), Claude Code의 TodoWrite + executor 패턴.
+- **대표 구현**: LangChain Plan-and-Execute가 이 패턴을 직접 구현합니다. OpenAI Deep Research와 Claude Code의 TodoWrite 기반 작업 목록 관리도 계획을 먼저 세우고 단계별로 실행하는 것으로 보이지만, 이는 공개된 동작을 바탕으로 한 저자의 해석입니다. 두 제품의 내부 아키텍처(예: Planner·Browser·Writer 역할 분리, executor 구성)는 1차 출처를 확인하지 못했습니다(2026-10-29 기준).
 - **적합**: 장기 실행 태스크 (연구 보고서, 대규모 리팩터링, 멀티스텝 데이터 파이프라인).
-- **핵심**: 계획 수립을 고성능 모델 (Opus, GPT-5 Reasoning)로, 실행은 중저가 모델로 분리해 비용 효율 확보.
+- **핵심**: 계획 수립을 고성능 추론 모델(예: Opus 급, GPT-5 계열 모델)로, 실행은 중저가 모델로 분리해 비용 효율 확보. 실제로 사용할 모델 ID와 엔드포인트는 배포 시 고정해 명시합니다.
 
 ### 2.6 Blackboard / Shared Memory
 
@@ -447,7 +447,7 @@ flowchart LR
 | Responder | claude-sonnet-4-5 + Opus escalation | 30 | ~$40 |
 | Judge (위험 행동 승인) | claude-opus-4-7 | 5 | ~$15 |
 
-Opus를 Monitor에 썼다면 월 $1,000+ 로 급증. 티어링만으로 95% 비용 절감.
+표의 월 비용은 검증하지 않은 저자 추정값이며 측정값이 아닙니다. 호출 수만으로는 금액을 재현할 수 없으므로, 비교하려면 호출당 입력·출력 토큰 수, 가동 시간 비율, 프롬프트 캐시 적중률, 모델별 토큰 단가, Opus 에스컬레이션 비율을 같은 가정으로 두고 계산해야 합니다. Monitor처럼 호출이 많은 역할에 Opus 급 모델을 쓰면 비용이 크게 늘어난다는 방향은 유효하지만, "월 $1,000+"와 "티어링만으로 95% 비용 절감"은 이 표에서 계산되지 않는 추정치입니다.
 
 ### 8.3 핸드오프 계약 (Handoff Contract)
 
@@ -478,6 +478,8 @@ Opus를 Monitor에 썼다면 월 $1,000+ 로 급증. 티어링만으로 95% 비�
 
 ### 8.4 결과 (3개월 운영)
 
+아래 수치는 사례를 설명하기 위한 예시 수치입니다(실측 데이터가 아닌 가상 시나리오). 실제 운영 결과로 제시하려면 측정 기간, 대상 인시던트 수(분모), 자율 해결·오탐 판정 기준과 측정 방법을 함께 밝혀야 합니다.
+
 - **MTTR**: 112분 → 6분 (95% 감소)
 - **자율 해결 비율**: 전체 인시던트 중 68%
 - **Human escalation**: 32% (위험도 높음 + 신규 패턴)
@@ -489,7 +491,7 @@ Opus를 Monitor에 썼다면 월 $1,000+ 로 급증. 티어링만으로 95% 비�
 
 ### 9.1 God Agent
 
-모든 툴과 지식을 하나의 에이전트에 몰아넣는 패턴. 초기에는 편해 보이지만 툴이 15개를 넘어가면 tool-choice 정확도가 급락합니다.
+모든 툴과 지식을 하나의 에이전트에 몰아넣는 패턴. 초기에는 편해 보이지만 툴이 늘어날수록 tool-choice 정확도가 떨어질 수 있습니다. 아래 징후의 수치(15개·20개, 2,000 토큰)는 작업 부하에 따라 달라지는 저자의 가설이며, 실제 임계값은 워크로드 벤치마크로 확인해야 합니다.
 
 - **징후**: 시스템 프롬프트가 2,000 토큰 초과, 툴 20개 이상.
 - **해결**: 도메인별로 에이전트 분리 + Orchestrator-Worker 도입.
@@ -537,10 +539,10 @@ A → B → A → B → ... 핑퐁. 각 에이전트가 자신의 역할이 아�
 - [ ] **비용·지연 시간 상한**: 요청당 최대 토큰, 최대 라운드, 최대 실행 시간 하드 리밋.
 - [ ] **관측성 속성 표준화**: `agent.name`, `agent.role`, `handoff.reason`을 모든 span에 강제.
 - [ ] **실패 경로 정의**: 에이전트 실패 시 사용자에게 무엇을 보여줄지 (부분 결과 / 에러 / 재시도 안내).
-- [ ] **모델 버전 고정**: 모델 업데이트 시 회귀 방지를 위해 pinned version + canary 롤아웃.
+- [ ] **모델 버전 고정**: pinned version과 canary 롤아웃으로 모델 업데이트에 따른 회귀 위험을 줄입니다. 두 방법은 위험 통제 수단이며 모든 회귀를 막는다는 보장은 아닙니다.
 - [ ] **테스트 스위트**: 각 에이전트를 개별 테스트, 시스템 전체 E2E 테스트 (LangSmith, Langfuse experiments).
 - [ ] **Human-on-the-Loop 진입점**: 자율 실행 중에도 사람이 개입할 수 있는 취소·수정 API.
-- [ ] **감사 로그 불변성**: 모든 에이전트 결정 근거(prompt + response + tool call)를 write-once 저장소에 보존.
+- [ ] **감사 로그 불변성**: 에이전트 결정 근거(prompt, response, tool call) 중 감사에 필요한 필드를 write-once 저장소에 보존합니다. 저장 전에 비밀값과 개인정보를 마스킹·분류하고, 접근 권한, 법적 보존 기간, 보존 기간이 지난 뒤의 삭제 절차를 함께 정합니다.
 
 ---
 

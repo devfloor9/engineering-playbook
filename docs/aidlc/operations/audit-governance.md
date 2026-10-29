@@ -3,9 +3,9 @@ title: Audit & Governance Logging
 description: AIDLC Checkpoint Approval gates and ISO 8601-based audit logs — Implementation guide for AIDLC audit trails in regulated industries
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 17
+reading_time: 20
 tags:
   - aidlc
   - audit
@@ -20,7 +20,7 @@ category: aidlc
 
 > 📅 **Date**: 2026-04-18 | ⏱️ **Reading Time**: ~17 minutes
 
-Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common), the two rules with the highest governance weight are **Checkpoint Approval (Rule 7)** and **Audit Logging (Rule 8)**. This document is a practical guide for implementing these rules in production environments to meet audit requirements in **regulated industries (finance, healthcare, public sector)**.
+The AWS Labs AIDLC Workflows v0.1.7 workflow rules require the agent not to proceed to the next stage until the user explicitly approves the completed stage, and to record user inputs and responses verbatim in `audit.md` (see [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7/aidlc-rules/aws-aidlc-rule-details/common) and the core workflow rules). This document calls these two requirements **Checkpoint Approval (Rule 7)** and **Audit Logging (Rule 8)**. The rule numbers and the judgment that they carry "the highest governance weight" are engineering-playbook's classification, not the AWS Labs text. The operational controls below, such as the multi-approver matrix, auto-block conditions, KMS signatures, storage layout, and the `aidlc audit` CLI, are this document's proposed implementation that the original rules do not provide, and applying this example alone does not mean the audit requirements of **regulated industries (finance, healthcare, public sector)** are met.
 
 ---
 
@@ -28,15 +28,17 @@ Among AWS Labs [AIDLC Common Rules](https://github.com/awslabs/aidlc-workflows/t
 
 ### 1.1 Regulatory Requirements
 
+The table below is an illustrative mapping of regulations to AIDLC records. A regulation's retention period applies to the record category that regulation specifies (for example, the policies and procedures documentation of the HIPAA Security Rule, or the auditor records of the SEC rule); it is not a statutory period that applies as-is to all application logs or AIDLC decision history. The periods in the Korean regulation rows have not been traced to a governing provision (as of 2026-10-29). The actual retention period must be set in a retention policy by the organization's legal and compliance function after confirming the applicable provision, record category, and start event.
+
 **Table 1. Audit requirements, retention periods, and AIDLC relevance by regulation**
 
 | Regulation | Audit Requirement | Retention Period | AIDLC Relevance |
 |-----------|------------------|------------------|----------------|
-| **Korea Electronic Financial Supervision Regulations** | Complete IT change & access history | 5 years | All AIDLC stage approval & decision history |
-| **Korea Personal Information Protection Act** | Personal data processing decision history | 3 years | Requirements Analysis, Application Design |
-| **HIPAA (US)** | PHI access & processing logs | 6 years | Healthcare domain modeling decisions |
-| **SOX (US)** | Financial system change control | 7 years | Checkpoint Approval, artifact hashes |
-| **ISMS-P (KR)** | Information system operation logs | 3 years | Complete Session history |
+| **Korea Electronic Financial Supervision Regulations** | Complete IT change & access history | 5 years (provision not verified) | All AIDLC stage approval & decision history |
+| **Korea Personal Information Protection Act** | Personal data processing decision history | 3 years (provision not verified) | Requirements Analysis, Application Design |
+| **HIPAA (US)** | Policies and procedures documentation for Security Rule compliance and records of required actions and assessments (45 CFR 164.316(b)) | 6 years from creation or last effective date, whichever is later | Healthcare domain modeling decisions |
+| **SOX (US)** | Auditor's audit and review records (SEC rule 17 CFR 210.2-06, an auditor obligation) | 7 years after the audit or review concludes | Checkpoint Approval, artifact hashes |
+| **ISMS-P (KR)** | Information system operation logs | 3 years (provision not verified) | Complete Session history |
 | **GDPR (EU)** | Personal data decision rationale | Case by case | Ontology decisions, data processing design |
 
 ### 1.2 AIDLC-Specific Audit Challenges
@@ -473,6 +475,9 @@ A hash chain alone does not prevent tampering, because anyone who holds the whol
 **Audit Scenario**: Financial Supervisory Service IT inspection requests "approval path for payment service API changes on March 15, 2026."
 
 **AIDLC Audit Response:**
+
+The `aidlc audit` commands below (including §7.3) are an interface this document proposes, not a tool included in AWS Labs AIDLC Workflows, and the output is a hypothetical example, not an execution result. A real implementation must also report failed or unverified outcomes as they are, such as a signature verification failure, an artifact hash mismatch, or a regulatory check that was not run.
+
 ```bash
 # 1. Search session at that time
 aidlc audit query --date 2026-03-15 --service payment-service

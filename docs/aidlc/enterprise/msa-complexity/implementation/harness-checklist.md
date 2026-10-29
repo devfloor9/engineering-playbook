@@ -3,9 +3,9 @@ title: Harness Checklist
 description: Required harnesses and implementation guide by MSA pattern
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 4
+reading_time: 5
 tags:
   - harness
   - testing
@@ -124,6 +124,8 @@ Quality improvement or operational convenience
 
 ### Automation Pipeline
 
+`aidlc-cli` is not a published tool; it is a placeholder for the ontology, harness and quality-gate validator that your organization must implement. No public CLI with this name was found (as of 2026-10-29), and the commands and options below are examples of the interface that validator should provide. Each GitHub Actions job runs on a separate runner, so for the `quality-gate` job to read the harness results, the `run-harness` job must upload the result files as an artifact and the `quality-gate` job must download them. `needs:` passes only the execution order and whether the earlier jobs succeeded.
+
 ```yaml
 # .github/workflows/aidlc-validation.yml
 name: AIDLC Validation
@@ -145,16 +147,26 @@ jobs:
       - uses: actions/checkout@v2
       - name: Run Harness Tests
         run: |
-          aidlc-cli run-harness --suite saga
-          aidlc-cli run-harness --suite idempotency
+          aidlc-cli run-harness --suite saga --output harness-results/saga.json
+          aidlc-cli run-harness --suite idempotency --output harness-results/idempotency.json
+      - name: Upload Harness Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-results
+          path: harness-results/
 
   quality-gate:
     runs-on: ubuntu-latest
     needs: [validate-ontology, run-harness]
     steps:
+      - name: Download Harness Results
+        uses: actions/download-artifact@v4
+        with:
+          name: harness-results
+          path: harness-results/
       - name: Check Quality Gate
         run: |
-          aidlc-cli quality-gate --threshold 80
+          aidlc-cli quality-gate --threshold 80 --results harness-results/
 ```
 
 ## Next Steps

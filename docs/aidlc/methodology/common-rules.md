@@ -3,9 +3,9 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC official 11 common rules explained — Question Format through Audit Logging with enterprise adoption guide
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 30
+reading_time: 31
 tags:
   - aidlc
   - common-rules
@@ -557,7 +557,7 @@ diff .aidlc/test-1/requirements.md .aidlc/test-2/requirements.md
 ### Enterprise Adoption Tips
 - **Reproducibility regression testing on model upgrades** required (maintain golden input set)
 - Roll back if model change causes **artifact drift > 20%**
-- Regulated industries should freeze model versions for 3-5 years (NIST SP 800-218A recommendation)
+- Regulated industries set a model-version freeze period that matches their audit and reproducibility requirements. 3-5 years is this guide's example, not a NIST SP 800-218A recommendation; SP 800-218A sets no freeze period and instead recommends establishing criteria for when to stop using an AI model and when to roll back to a previous version.
 
 ---
 

@@ -3,9 +3,9 @@ title: AIDLC 10대 원칙과 실행 모델
 description: AIDLC의 핵심 철학과 Intent → Unit → Bolt 실행 모델 — AWS Labs 공식 용어 매핑 포함
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 22
+reading_time: 24
 tags:
   - aidlc
   - principles
@@ -41,31 +41,31 @@ import { AidlcPrinciples, AidlcArtifacts, AidlcPhaseMapping, AidlcPhaseActivitie
 
 ### 1.2 AWS Labs AIDLC 공식 용어 매핑
 
-engineering-playbook 은 독자 확장 용어(Intent · Unit · Bolt)를 사용합니다. 이는 AWS Labs 의 [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 공식 용어와 다음과 같이 매핑됩니다:
+Intent · Unit · Bolt는 engineering-playbook의 독자 용어가 아니라 AWS의 [AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/)이 정의한 방법론 용어입니다. AWS Labs의 [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 저장소(v0.1.7)는 이 방법론을 코딩 에이전트용 규칙으로 구현하면서 stage와 산출물에 별도 이름을 씁니다. 두 출처의 용어는 다음과 같이 대응합니다:
 
-| engineering-playbook 용어 | AWS Labs 공식 용어 | 비고 |
+| Method Definition 용어 | AIDLC Workflows(v0.1.7)의 대응 | 비고 |
 |---------------------------|------------------|------|
-| **Intent** | User Request / Requirements | 비즈니스 목적. 공식 저장소는 자연어 형태 User Request 를 Requirements Document 로 정제함. 동일 개념 |
-| **Unit** | Unit of Work | DDD Subdomain 단위 작업. 공식 저장소는 `construction/` 단계에서 여러 Unit of Work 를 병렬·순차 실행 — 동일 개념 |
-| **Bolt** | Phase Execution | Sprint 대체 개념으로 **engineering-playbook 독자 용어**. 공식 저장소에는 동치어가 없고 Phase 별 stage 실행으로 표현됨 |
+| **Intent** | User Request / Requirements | Method Definition은 Intent를 달성할 비즈니스 목표, 기능 또는 기술적 결과를 담은 고수준 목적 진술로 정의합니다. Workflows 저장소는 사용자 요청을 Requirements Analysis stage에서 요구사항 문서로 정제합니다 |
+| **Unit** | Unit of Work (Units Generation stage의 산출물) | Method Definition은 Unit을 Intent에서 도출한, 측정 가능한 가치를 내는 응집된 독립 작업 요소로 정의하고 DDD Subdomain이나 Scrum Epic에 비유합니다. Workflows 저장소는 `construction/` 단계에서 Unit of Work마다 stage를 반복 실행합니다 |
+| **Bolt** | 대응 stage나 산출물 없음 | Method Definition은 Bolt를 하나의 Unit 또는 Unit 안의 태스크 묶음을 빠르게 구현하는 가장 작은 반복으로 정의하며, 하나의 Unit은 하나 이상의 Bolt로 병렬 또는 순차 실행됩니다. Workflows 저장소 v0.1.7에는 Bolt라는 이름의 stage나 산출물이 없습니다 |
 
 :::info 용어 선택 이유
-engineering-playbook 은 한국 엔터프라이즈 컨텍스트(워터폴→하이브리드 전환, RFP 고정가 입찰 등)에서 **팀 내 소통 효율**을 위해 짧고 의미가 명확한 용어(Intent · Unit · Bolt)를 채택했습니다. 공식 AWS Labs 저장소와 협업하거나 원문을 참조할 때는 위 매핑 표로 용어를 번역해 사용하세요.
+engineering-playbook은 방법론 원문인 Method Definition의 용어(Intent · Unit · Bolt)를 그대로 사용합니다. AWS Labs Workflows 저장소와 협업하거나 그 규칙 파일을 읽을 때는 위 표로 용어를 대응시켜 사용하세요.
 :::
 
 ### 1.3 AWS Labs AIDLC 공식 5대 원칙
 
-AWS Labs 저장소의 `aws-aidlc-rule-details/common/` 디렉터리는 AIDLC 동작의 기초가 되는 공식 5대 원칙을 정의합니다. engineering-playbook 의 10대 원칙은 이 5대 원칙을 기반으로 확장·심화한 것입니다.
+AWS Labs Workflows 저장소의 README는 "Tenets" 절에서 저장소 운영의 의사결정 기준이 되는 다섯 가지 원칙을 제시합니다. 이 다섯 원칙은 `aws-aidlc-rule-details/common/` 디렉터리의 규칙 파일이 정의하는 것이 아니며, §2의 10대 원칙과도 출처가 다릅니다.
 
-:::note AWS Labs AIDLC 공식 5대 원칙
-1. **No duplication** — 단일 진실 원천(SSOT) 유지. 동일 정보를 여러 문서·도구에 중복 생성하지 않음
-2. **Methodology first** — AIDLC 방법론이 도구·플랫폼에 선행. 7개 지원 플랫폼(Kiro · Q Developer · Cursor · Cline · Claude Code · GitHub Copilot · AGENTS.md) 어디서든 동일하게 동작
-3. **Reproducible** — 동일 입력(User Request, Workspace 상태)에 대해 **동일 모델이면 동일 산출물** 생산. 모델 교체 시 결과가 크게 변하지 않도록 구조화된 질문/응답 포맷 강제
-4. **Agnostic** — 특정 언어·프레임워크·클라우드에 종속되지 않음. 산출물은 평문 Markdown + 표준화된 섹션 구조로 작성
-5. **Human in the loop** — Checkpoint Approval 게이트로 각 stage 전환마다 명시적 승인 필요. AI 자율성과 인간 통제의 균형 유지
+:::note AWS Labs AIDLC Workflows README의 5대 원칙(Tenets)
+1. **No duplication** — 진실 원천은 한 곳에 둡니다. 새 도구나 형식이 별도 파일을 요구하면 사본을 따로 관리하지 않고 원천에서 생성합니다.
+2. **Methodology first** — AI-DLC는 도구가 아니라 방법론이므로 시작하는 데 별도 설치가 필요하지 않아야 합니다. README는 지원 도구로 Kiro, Kiro CLI, Amazon Q Developer IDE 플러그인, Cursor IDE, Cline, Claude Code CLI, GitHub Copilot을 나열하며, `AGENTS.md`는 도구가 아니라 규칙을 담는 파일 형식(Cursor 설정의 대안)으로 안내합니다.
+3. **Reproducible** — 규칙은 서로 다른 모델이 비슷한 결과를 내도록 명확해야 합니다. README는 모델마다 동작이 다르다는 점을 인정하고, 명시적 지침으로 편차를 줄이는 것을 목표로 둡니다. 같은 모델이 같은 산출물을 낸다는 보장은 아닙니다.
+4. **Agnostic** — 방법론은 특정 IDE, 에이전트, 모델에 묶이지 않습니다.
+5. **Human in the loop** — 중요한 결정에는 사용자의 명시적 확인이 필요합니다. 에이전트가 제안하고 사람이 승인합니다.
 :::
 
-engineering-playbook 의 10대 원칙 (§2) 은 공식 5대 원칙에 DDD/BDD/TDD 내장, 연속 흐름(Loss Function), 온톨로지·하네스 엔지니어링 등 **엔터프라이즈 특화 축**을 덧붙인 확장입니다.
+§2의 10대 원칙은 위 다섯 원칙을 확장한 것이 아니라 Method Definition의 "Key Principles" 절이 정의한 열 가지 원칙입니다. engineering-playbook이 덧붙인 온톨로지·하네스 엔지니어링 같은 엔터프라이즈 특화 축은 이 저장소의 확장이며, 원문 원칙과 구분해 읽어야 합니다.
 
 ### 1.4 핵심 전환: 대화의 방향을 역전
 
@@ -239,7 +239,7 @@ Planning → Daily → Review         AI 제안 → 검증 → 실행 → 검증
 Sprint 중 증분 전달 (완료 시)      완료 즉시 배포 (GitOps)
 ```
 
-Bolt는 **완료 조건이 명확한 최소 배포 단위**입니다. Kubernetes Deployment, Helm Release, Terraform Module 등 실제 인프라 구성 요소와 1:1 매핑됩니다.
+Method Definition에 따르면 Bolt는 **AIDLC의 가장 작은 반복**으로, 하나의 Unit 또는 Unit 안의 태스크 묶음(예: Unit에 속한 User Story 일부)을 구현하는 작업 주기입니다. 하나의 Unit은 하나 이상의 Bolt로 실행되며, Bolt는 병렬 또는 순차로 진행될 수 있습니다. 컨테이너 이미지, Helm Chart, Terraform 스택 같은 운영 산출물은 Bolt가 아니라 별도 산출물인 Deployment Unit에 속하므로, Bolt와 인프라 구성 요소 사이에 1:1 대응 규칙은 없습니다.
 
 :::tip Context Memory와 추적성
 모든 산출물(Intent, Unit, Domain Design, Logical Design, Deployment Unit)은 **Context Memory**로 저장되어 AI가 라이프사이클 전체에서 참조합니다. 산출물 간 양방향 추적(Domain Model ↔ User Story ↔ 테스트 계획)은 산출물이 서로 동기화된 상태로 유지될 때 성립하며, 이때 AI가 더 정확한 맥락에서 작업할 수 있습니다.

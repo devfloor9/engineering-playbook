@@ -3,9 +3,9 @@ title: Multi-Agent Collaboration Patterns
 description: Orchestrator-Worker, Voting, Debate, Hierarchical Supervisor patterns and LangGraph/CrewAI/AutoGen/Strands Agents SDK implementation
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 40
+reading_time: 44
 tags:
   - multi-agent
   - orchestrator
@@ -26,8 +26,8 @@ sidebar_label: Multi-Agent Collaboration
 
 Single LLM agents quickly reveal their limitations as domains expand and tool usage becomes complex. Key limitations observed in production environments include:
 
-- **Context Window Saturation**: Even Claude Opus 4.7's 1M tokens are quickly exhausted in large monorepos and long sessions, with key context pushed out by summarization loss.
-- **Tool Sprawl**: Connecting 20+ MCP tools to a single agent causes tool-choice accuracy to drop sharply (see Anthropic 2024 "Building effective agents").
+- **Context Window Saturation**: Even a 1M-token-class context window can be exhausted quickly in large monorepos and long sessions, and key context can be lost during summarization. Check each model's context size in the provider's documentation (the 1M-token figure for Claude Opus 4.7 has no verified primary source as of 2026-10-29).
+- **Tool Sprawl**: The more MCP tools are connected to a single agent, the more tool-choice accuracy can drop. "20+" is the author's workload-dependent hypothesis, not a fixed limit; confirm the actual threshold with a benchmark on your own workload. The cited Anthropic 2024 "Building effective agents" recommends designing tool definitions carefully but does not give a threshold for a specific number of tools.
 - **Expertise Range Limits**: Code review, SQL writing, and security analysis require different system prompts and few-shot configurations. Hard to satisfy all with one prompt.
 - **Cost-Accuracy Tradeoff**: Using Opus-class models for all subtasks explodes costs; using only Haiku-class increases failure rate in complex reasoning.
 
@@ -136,9 +136,9 @@ flowchart LR
 
 Planner agent establishes overall execution plan first, then Executor agent(s) execute step-by-step. When needed, Re-Planner receives intermediate results and revises the plan.
 
-- **Representative Implementations**: LangChain Plan-and-Execute, OpenAI Deep Research (Planner + Browser + Writer), Claude Code's TodoWrite + executor pattern.
+- **Representative Implementations**: LangChain Plan-and-Execute implements this pattern directly. OpenAI Deep Research and Claude Code's TodoWrite-based task list also appear to plan first and then execute step by step, but this is the author's interpretation of their observable behavior. The internal architecture of the two products (for example, a Planner/Browser/Writer role split or an executor setup) has no verified primary source (as of 2026-10-29).
 - **Best For**: Long-running tasks (research reports, large-scale refactoring, multi-step data pipelines).
-- **Key Point**: Secure cost efficiency by separating planning to high-performance models (Opus, GPT-5 Reasoning) and execution to mid/low-tier models.
+- **Key Point**: Secure cost efficiency by separating planning to high-performance reasoning models (for example, Opus-class or GPT-5-family models) and execution to mid/low-tier models. Pin and state the actual model IDs and endpoints at deployment.
 
 ### 2.6 Blackboard / Shared Memory
 
@@ -451,7 +451,7 @@ flowchart LR
 | Responder | claude-sonnet-4-5 + Opus escalation | 30 | ~$40 |
 | Judge (risky action approval) | claude-opus-4-7 | 5 | ~$15 |
 
-Opusfor Monitor would be monthly $1,000+ spike. Tiering alone 95% cost reduction.
+The monthly costs in the table are the author's unvalidated estimates, not measured results. Call counts alone cannot reproduce the amounts; a comparison must compute them under the same assumptions for input/output tokens per call, duty cycle, prompt cache hit rate, per-token price by model, and the Opus escalation ratio. The direction holds that using an Opus-class model for a high-call role such as Monitor raises cost substantially, but "monthly $1,000+" and "95% cost reduction from tiering alone" are estimates that cannot be computed from this table.
 
 ### 8.3 Handoff Contract
 
@@ -482,6 +482,8 @@ This schema maps 1:1 to `Incident`, `Resource`, `Action` entities, ensuring voca
 
 ### 8.4 Results (3 Months Operation)
 
+The figures below are illustrative figures for the case (a hypothetical scenario, not measured data). To present them as real operational results, state the measurement window, the number of incidents in scope (the denominator), the criteria for autonomous resolution and false positives, and the measurement method.
+
 - **MTTR**: 112 min → 6 min (95% reduction)
 - **Autonomous Resolution Rate**: of all incidents 68%
 - **Human Escalation**: 32% (High risk + new patterns)
@@ -493,7 +495,7 @@ This schema maps 1:1 to `Incident`, `Resource`, `Action` entities, ensuring voca
 
 ### 9.1 God Agent
 
-Pattern of cramming all tools and knowledge into one agent. Initially convenient but tool-choice accuracy plummets when tools exceed 15.
+Pattern of cramming all tools and knowledge into one agent. Initially convenient, but tool-choice accuracy can drop as the number of tools grows. The figures in the symptoms below (15 or 20 tools, 2,000 tokens) are the author's workload-dependent hypotheses; confirm the actual thresholds with a workload benchmark.
 
 - **Symptoms**: System prompt exceeds 2,000 tokens, tools exceed 20.
 - **Solution**: Separate agents by domain + Orchestrator-Worker introduction.
@@ -541,10 +543,10 @@ Checklist items before putting multi-agent system into production.
 - [ ] **Cost/Latency Limits**: Hard limits on max tokens per request, max rounds, max execution time.
 - [ ] **Standardize Observability Attributes**: `agent.name`, `agent.role`, `handoff.reason`mandatory on all spans.
 - [ ] **Define Failure Paths**: What to show user when agent fails (partial result / error / retry guidance).
-- [ ] **Pin Model Versions**: Pinned version + canary rollout to prevent regression on model updates.
+- [ ] **Pin Model Versions**: Pinned versions and canary rollouts reduce the risk of regression on model updates. They are risk controls, not a guarantee that every regression is prevented.
 - [ ] **Test Suite**: Individual agent tests, full system E2E tests (LangSmith, Langfuse experiments).
 - [ ] **Human-on-the-Loop Entry Point**: Cancel/modify API allowing human intervention even during autonomous execution.
-- [ ] **Audit Log Immutability**: all agent decision rationale(prompt + response + tool call) in write-once storage.
+- [ ] **Audit Log Immutability**: Keep the fields of agent decision rationale (prompt, response, tool call) that audits require in write-once storage. Before storing, redact and classify secrets and personal data, and define access control, the lawful retention period, and the deletion procedure after that period ends.
 
 ---
 

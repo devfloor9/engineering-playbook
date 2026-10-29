@@ -3,9 +3,9 @@ title: Technology Roadmap
 description: AIDLC technology investment decision-making — Build-vs-Wait matrix, tool maturity assessment, 6/12/18-month horizons
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
-reading_time: 35
+reading_time: 41
 tags:
   - aidlc
   - toolchain
@@ -72,8 +72,8 @@ The following table summarizes maturity, recommendations, and alternative availa
 | **Q Developer** | GA | ✅ Immediate Adoption | AWS native, real-time code generation. Alternatives: GitHub Copilot, Cursor |
 | **Managed Argo CD** | GA | ✅ Immediate Adoption | EKS native GitOps. Alternative: Flux CD (self-hosted) |
 | **ACK (AWS Controllers for Kubernetes)** | GA (50+ services) | ✅ Immediate Adoption | Declarative AWS resource management. Alternative: Crossplane |
-| **KRO (Kubernetes Resource Orchestrator)** | GA | ✅ Immediate Adoption | Complex Kubernetes resource graph automation. Alternatives: Helm, Kustomize |
-| **Gateway API + LBC v3** | GA | ✅ Immediate Adoption | ExtProc support, AI Gateway foundation. Alternative: Istio + EnvoyFilter |
+| **KRO (Kubernetes Resource Orchestrator)** | Offered as an EKS managed capability; API is `v1alpha1` (upstream v0.9.x, as of 2026-10-29) | ✅ Immediate Adoption | Complex Kubernetes resource graph automation. The API is at alpha, so breaking changes are possible. Alternatives: Helm, Kustomize |
+| **Gateway API + LBC v3** | GA (since LBC v3.0.0, as of 2026-10-29) | ✅ Immediate Adoption | L7 routes are handled by ALB and L4 routes by NLB. The LBC documentation does not list ExtProc (Envoy external processing) support, so an AI Gateway that needs ExtProc requires an Envoy-based implementation. Alternative: Istio + EnvoyFilter |
 | **MCP Servers** | Varies by server | 🟡 Selective Adoption | Large maturity variance by tool. Adopt only stabilized ones after experimentation. See [MCP Registry](https://registry.modelcontextprotocol.io) |
 | **Kagent** | Early | 🟠 Experimental | K8s AI Agent automation. Thorough testing before production. Alternative: kubectl + scripts |
 | **Strands Agents SDK** | GA | ✅ For Custom Agents | Model/provider-agnostic open-source agent SDK, separate from Bedrock AgentCore (managed runtime) and CDK deployment. Alternatives: LangGraph, CrewAI |
@@ -95,7 +95,7 @@ The grades below are a coarse composite of three axes (release stage, feature co
 #### Kiro (Spec-Driven Development)
 - **Maturity**: GA (officially released November 2025)
 - **Strengths**: Requirements → code auto-generation, MCP integration, fully automated through Git commits
-- **Weaknesses**: Vendor lock-in (AWS only), initial learning curve
+- **Weaknesses**: The tool itself is a service provided and hosted by AWS, so using the tool (subscription, model access) depends on AWS. This dependence is separate from the portability of the application code it generates. Initial learning curve
 - **Recommendation**: Start with new microservice development, combine with Mob Elaboration ritual
 - **Alternatives**: Cursor Composer (multi-cloud), Windsurf Flows (IDE-independent)
 
@@ -104,7 +104,7 @@ See **[AI Coding Agents](./ai-coding-agents.md)** for details.
 #### Q Developer
 - **Maturity**: GA (launched 2024, continuous updates)
 - **Strengths**: Optimized AWS service code generation, excellent IDE integration, free tier available
-- **Weaknesses**: Weaker than GitHub Copilot in non-AWS environments
+- **Weaknesses**: Its strengths are tuned to AWS service code. No public benchmark comparing it with GitHub Copilot on the same tasks in non-AWS environments was found (as of 2026-10-29), so teams with much non-AWS work should compare the two tools on their own tasks before choosing
 - **Recommendation**: AWS-centric organizations should adopt as standard tool
 - **Alternatives**: GitHub Copilot (general purpose), Cursor (AI-first IDE)
 
@@ -194,7 +194,9 @@ graph TD
 
 ## 4. Investment Horizons: 6 Months / 12 Months / 18 Months
 
-The following timeline shows **phased investment priorities** for AIDLC adoption.
+The following timeline shows **phased investment priorities** for AIDLC adoption. This timeline is a planning example that assumes an organization starting adoption in 2026 Q2. The periods and status markers in the Gantt chart (`done`, `active`, `crit`, `milestone`) show a hypothetical schedule, not an actual organization's progress. The 6/12/18 months are approximate investment horizons, counted from the start, by which each phase is expected to deliver results; because the example schedule lets phases overlap, they do not match the Gantt start and end months exactly.
+
+The deliverables and success-metric figures in 4.1-4.3 are illustrative targets an organization can use as a starting point, not measured values or benchmarks. To adopt one as a target, first define for each metric a pre-adoption baseline, the measurement method and data source, and the acceptance criterion. For example, measure deployment lead time as the time from commit to production, compared from CI/CD and Argo CD history over periods of equal length before and after adoption, and measure the code generation automation rate only after defining how AI-generated code is counted among merged changes.
 
 ```mermaid
 gantt
@@ -266,6 +268,13 @@ gantt
 - 85%+ predictive scaling accuracy (KEDA + AI)
 - 40%+ automatic failure recovery rate (Chaos + AI)
 
+The operations automation rate and the automatic failure recovery rate are meaningful only after the scope within which AI agents may change the production environment has been defined. Run Chaos Engineering experiments and AI-driven recovery within the following boundaries.
+
+- Limit experiments to approved clusters, namespaces, and time windows, and define the blast radius before each experiment.
+- Give every experiment stop conditions and a rollback procedure, and set `duration` on Chaos Mesh experiments so that they end on their own.
+- Limit an AI agent's automatic actions to a pre-approved list (for example, restarting a Pod or adjusting the replica count), and require human approval for any other change (deleting resources, replacing nodes, changing configuration).
+- Record every experiment and automatic action in an audit log, and use that log as the basis for calculating the recovery-rate metric.
+
 :::tip Investment Priority by Horizon
 - **6 Months**: Immediate ROI tools (Kiro, Q Developer, Argo CD)
 - **12 Months**: Automation expansion (MCP, Quality Gates)
@@ -280,7 +289,7 @@ When selecting AIDLC tools, consider **vendor lock-in risk** and **portability**
 
 | Tool | Vendor Lock-in Risk | Alternative Availability | Portability |
 |------|-------------------|------------------------|-------------|
-| **Kiro** | 🔴 High (AWS only) | ✅ Cursor, Windsurf | Low (spec → code rewrite needed) |
+| **Kiro** | 🔴 High (the tool is an AWS-hosted service) | ✅ Cursor, Windsurf | Application code and spec files: High (they remain as source and Markdown files in Git) / Tool workflow: Low (Kiro-specific Spec stages, hooks, and steering settings must be rebuilt in another tool) |
 | **Q Developer** | 🔴 High (AWS only) | ✅ GitHub Copilot, Cursor | Medium (IDE replacement possible) |
 | **Managed Argo CD** | 🟡 Medium (EKS only) | ✅ Flux CD, self-hosted Argo CD | High (Git-based, K8s standard) |
 | **ACK** | 🟡 Medium (AWS only) | ✅ Crossplane, Terraform | Low (CRD → other IaC migration needed) |
@@ -319,7 +328,7 @@ The **Kiro + Q Developer + Managed Argo CD** combination is powerful but **highl
 
 ## 6. Investment Planning Template
 
-Recommended tool combinations based on project scale and organizational maturity.
+Recommended tool combinations based on project scale and organizational maturity. The expected investment (period, licenses, infrastructure cost) and expected ROI figures in each template are hypothetical planning inputs, not benchmarks or measured values. Replace them with the organization's actual quotes and post-adoption measurements.
 
 ### 6.1 Small Teams (5-20 people, 3-10 microservices)
 

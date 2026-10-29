@@ -3,7 +3,7 @@ title: Harness Engineering
 description: The second axis of AIDLC reliability — Harness design that architecturally enforces AI execution safety
 created: "2026-04-07"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: devfloor9
 reading_time: 22
 tags:
@@ -84,9 +84,11 @@ Many teams use "guardrails" and "harness" interchangeably, but they are **fundam
 
 ## Fintech Runaway Case: AI Failure Without Harness
 
-:::danger Real Case: $2,200 Loss Incident
+:::danger Hypothetical Case: $2,200 Loss Scenario
 
-A fintech startup's AI agent executed **847 API retries in a single loop**, resulting in:
+The figures in this box are illustrative figures (a hypothetical scenario, not measured data). No source postmortem could be found (as of 2026-10-29), so do not cite it as a real incident.
+
+Suppose a fintech startup's AI agent executed **847 API retries in a single loop**; the result would be:
 - **$2,200 in LLM API costs**
 - **14 incomplete emails** sent to customers
 - **3 hours of service outage** (manual intervention required)

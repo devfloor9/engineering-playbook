@@ -3,9 +3,9 @@ title: Extension System
 description: AWS Labs AIDLC Extension System — opt-in 메커니즘으로 조직별 보안·컴플라이언스·도메인 규칙을 AIDLC 워크플로에 통합
 created: "2026-04-18"
 last_update:
-  date: 2026-10-15
+  date: 2026-10-29
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 9
 tags:
   - aidlc
   - extension
@@ -54,7 +54,7 @@ graph TB
 **핵심 원칙:**
 - Core 는 **모든 조직·산업에 공통** 으로 적용되는 최소 규칙
 - Extension 은 **조직·산업·프로젝트별로 선택적 적용**
-- **`opt-in.md` 파일의 존재·내용이 활성화 여부를 결정**
+- **공식 v0.1.7에서는 각 확장의 `*.opt-in.md` 질문에 대한 사용자 응답이 활성화 여부를 결정**
 
 ### 1.2 Extension 도입 효과
 
@@ -73,7 +73,7 @@ graph TB
 
 ## 2. Built-in Extensions
 
-AWS Labs 저장소는 2개의 **Built-in Extension** 을 기본 제공합니다: `security/` 와 `testing/`.
+이 문서가 고정한 AWS Labs 저장소 v0.1.7에는 `aidlc-rules/aws-aidlc-rule-details/extensions/` 아래 2개의 **Built-in Extension** 이 있습니다(2026-10-29 확인). `security/baseline/`에는 규칙 파일 `security-baseline.md`(SECURITY-01~SECURITY-15)와 opt-in 질문 파일 `security-baseline.opt-in.md`가 있고, `testing/property-based/`에는 `property-based-testing.md`(PBT-01~PBT-10)와 `property-based-testing.opt-in.md`가 있습니다. 공식 규칙 파일은 Markdown이며 `rules.yaml`은 없습니다. 아래 2.1·2.2의 `rules.yaml` 블록은 공식 파일이 아니라 이 문서가 확장의 구성을 설명하려고 만든 YAML 표현 예시이므로, 규칙 ID·도구·수치(SEC-001, 커버리지 80% 등)도 공식 규칙과 다릅니다. 공식 규칙은 위 Markdown 파일에서 확인합니다. 이 문서는 v0.1.7 기준이며, 최신 릴리스(v2.11.2, 2026-10-28)와는 대조하지 않았습니다.
 
 ### 2.1 security/ 확장
 
@@ -159,7 +159,9 @@ testing_extension:
 
 ### 3.1 opt-in.md 파일 구조
 
-Extension 활성화는 프로젝트 루트의 **`opt-in.md`** 파일로 제어합니다.
+공식 v0.1.7의 활성화 방식은 다음과 같습니다(2026-10-29 확인). 워크플로 시작 시 `extensions/` 하위 디렉터리에서 `*.opt-in.md` 파일만 읽고, Requirements Analysis 단계에서 각 파일의 `## Opt-In Prompt` 질문을 확인 질문 파일에 넣어 사용자에게 묻습니다. 응답은 `aidlc-docs/aidlc-state.md`의 `## Extension Configuration` 표에 기록하며, 사용자가 선택한 확장의 규칙 파일(`.opt-in.md`를 `.md`로 바꾼 이름)만 그때 읽습니다. `*.opt-in.md`가 없는 확장은 항상 적용되고, 설정 기록이 없으면 적용으로 간주합니다.
+
+아래 **`opt-in.md`** 파일과 3.2의 A~E 선택 질문은 공식 규격이 아니라, 여러 조직·도메인 확장을 프로젝트 단위로 한곳에서 관리하려고 이 문서가 제안하는 관례입니다. 공식 워크플로는 이 파일을 읽지 않으므로, 이 관례를 쓰려면 별도 지시나 도구로 연결해야 합니다.
 
 **위치**: `<project-root>/.aidlc/opt-in.md`
 
@@ -177,7 +179,7 @@ Extension 활성화는 프로젝트 루트의 **`opt-in.md`** 파일로 제어�
 - [x] testing (version 0.1.0)
 
 ### Organization
-- [x] org-lg-security (version 1.2.0) — LG CNS 내부 보안 표준
+- [x] org-example-security (version 1.2.0) — 예시 조직의 내부 보안 표준
 - [x] org-compliance-ismsp (version 2.1.0) — ISMS-P 인증기준
 
 ### Domain
@@ -191,7 +193,7 @@ Extension 활성화는 프로젝트 루트의 **`opt-in.md`** 파일로 제어�
 
 ### 3.2 Requirements Analysis 단계의 opt-in 질문
 
-AIDLC 의 Requirements Analysis stage 는 `opt-in.md` 파일을 읽어 활성화된 확장을 확인합니다. **파일이 없거나 확장이 지정되지 않은 경우**, Common Rules 규칙 1 (Question Format) 에 따라 사용자에게 질문합니다:
+이 관례에서는 Requirements Analysis 단계가 `opt-in.md` 파일을 읽도록 지시해 활성화된 확장을 확인합니다. **파일이 없거나 확장이 지정되지 않은 경우**, Common Rules 규칙 1 (Question Format) 에 따라 사용자에게 다음과 같이 묻도록 지시합니다:
 
 ```markdown
 Q. 본 프로젝트에 적용할 Extension 을 선택하세요 (복수 선택 가능):
@@ -205,8 +207,8 @@ E. None (데모·PoC 용, 프로덕션 금지)
 [Answer]:
 ```
 
-**응답 후 자동 생성:**
-- `[Answer]: C` → AIDLC 가 `opt-in.md` 에 security, testing, 조직 확장 추가
+**응답 처리(제안 관례):**
+- `[Answer]: C` → security, testing, 조직 확장을 `opt-in.md` 에 기록하도록 지시합니다. 공식 워크플로가 자동으로 수행하는 동작은 아닙니다.
 
 ### 3.3 Extension 우선순위
 
@@ -238,6 +240,8 @@ Organization Extension (금융): Temperature = 0.1 허용 (창의성 일부 허�
 ### 4.1 한국 ISMS-P 확장
 
 **배경**: ISMS-P (정보보호 및 개인정보보호 관리체계) 는 한국 정보보호 관련 법규 준수를 요구하는 민간 인증. 공공 계약·금융 서비스 진출 시 사실상 필수.
+
+아래 규칙 ID(ISMSP-2.5.1 등)와 수치(패스워드 9자 이상·3종 조합, 10분 비활성 시 로그아웃, 로그인 5회 실패 시 잠금, 24시간 이내 신고, AES-256)는 이 문서가 만든 예시 값입니다. 현행 ISMS-P 인증기준과 관련 고시·해설서로 확인하지 못했으며(2026-10-29 기준), 인증기준의 항목 번호·명칭과 일치한다고 가정하지 않습니다. 조직 확장에 넣을 때는 적용되는 인증기준 판과 법령 원문에서 항목과 수치를 다시 확인합니다.
 
 **확장 디렉터리 구조:**
 ```
@@ -297,6 +301,8 @@ extension:
 
 **배경**: 전자금융감독규정 (금융감독원) 및 망분리·ISMS-P 의무화.
 
+아래 규칙 ID(EFSR-8 등)와 요구 수준(RTO ≤ 3시간, RPO ≤ 24시간, 연 1회 이상 DR 훈련, TLS 1.3 이상, AES-256, 6자리 이상 마스킹)은 이 문서가 만든 예시 설정입니다. 전자금융감독규정 원문의 조항 번호·요구 수준과 일치하는지 확인하지 못했으므로(2026-10-29 기준), 적용 전에 국가법령정보센터의 현행 고시 원문으로 확인합니다.
+
 **rules.yaml 일부:**
 ```yaml
 extension:
@@ -340,6 +346,8 @@ extension:
 
 ## 5. 커스텀 Extension 작성 가이드
 
+이 절의 디렉터리 구조, `metadata.yaml`·`rules.yaml` 규격과 5.4의 `aidlc extension …`·`aidlc run --pilot` 명령은 이 문서가 제안하는 조직 확장 관례입니다. 공식 v0.1.7 저장소에는 이런 파일 규격과 CLI가 없습니다(2026-10-29 확인). 공식 워크플로가 읽는 확장은 `extensions/` 아래 하위 디렉터리에 둔 규칙 파일 `<name>.md`와 선택적인 opt-in 질문 파일 `<name>.opt-in.md`로 구성되므로, 아래 관례를 쓰더라도 공식 워크플로에 연결하려면 이 두 Markdown 파일을 함께 만들어야 합니다.
+
 ### 5.1 디렉터리 구조
 
 ```
@@ -357,12 +365,14 @@ extensions/<extension-name>/
 
 ### 5.2 metadata.yaml 규격
 
+아래 확장 이름, 연락처, 날짜, checksum은 설명용 가상 값입니다.
+
 ```yaml
 extension:
-  name: org-lg-security
+  name: org-example-security
   version: 1.2.0
-  description: "LG CNS 내부 보안 표준 AIDLC 통합"
-  author: security-team@lgcns.com
+  description: "예시 조직 내부 보안 표준 AIDLC 통합"
+  author: security-team@example.com
   license: Proprietary
   created: 2026-02-15
   updated: 2026-04-10
@@ -378,7 +388,7 @@ extension:
     industries: []          # 빈 배열 = 모든 산업
     regions: [KR]
 
-  checksum: sha256:abc123... # 변조 방지
+  checksum: sha256:<content-digest> # 변조 방지
 ```
 
 ### 5.3 rules.yaml 규격
@@ -404,7 +414,7 @@ rules:
 
 ### 5.4 Extension 테스트
 
-새 Extension 을 배포하기 전 다음 테스트 필수:
+새 Extension 을 배포하기 전 다음 테스트를 수행합니다. 아래 `aidlc` 명령은 조직이 직접 구현할 검증 도구를 가정한 예시입니다:
 
 ```bash
 # 1. 문법 검증
@@ -445,14 +455,14 @@ stateDiagram-v2
 
 ### 6.2 Extension 레지스트리
 
-조직은 내부 Extension Registry 를 운영하여 확장을 관리합니다:
+조직은 내부 Extension Registry 를 운영하여 확장을 관리합니다. 아래 주소, 확장 이름, 담당 팀, 검토 날짜는 설명용 가상 값입니다:
 
 ```yaml
 # internal-registry.yaml
 registry:
-  url: https://extensions.lgcns.internal/aidlc/
+  url: https://extensions.example.com/aidlc/
   extensions:
-    - name: org-lg-security
+    - name: org-example-security
       version: 1.2.0
       status: published
       owner: security-team
