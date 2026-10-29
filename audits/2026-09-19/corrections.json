@@ -47943,7 +47943,6 @@
       "recorded_on": "2026-10-29",
       "reviewed_revision": "b21369604e29dd8266f022f87b902df63d2d84c3",
       "source_commits": [
-        "e4602b00a9a35bdb29223e16dab589d65ddf489d",
         "9c5f5b16749d4938df43a9c9aa185f94a15875d9",
         "f6ccdeff6ed8d87c6f0f679c8b3e37b5e47a9a1d"
       ],
@@ -48494,6 +48493,717 @@
       ],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
       "followup_of": "2026-09-19-parfit-trouble-002"
+    },
+    {
+      "record_id": "2026-09-19-eo-av-net-05",
+      "package": "hybrid-rosa-and-operations",
+      "id": "EO-AV-NET-05",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The OR-logic example comment claimed the bare podSelector peer allows role=client Pods across all namespaces -> it now says Pods in the policy's own namespace, and the danger admonition explains that cross-namespace selection needs namespaceSelector: {} in the same peer plus a recorded security reason.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/networking.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/networking.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Kubernetes NetworkPolicy semantics: a peer with only podSelector selects Pods in the NetworkPolicy's namespace (no research needed beyond the correction_meaning). YAML unchanged; only the comment and one admonition sentence changed. run9 step 8 (document examples) passed."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-001",
+      "package": "eks-operations",
+      "id": "HYP-OPS-001",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The shared EksDebugTables components rendered Korean cells, titles and labels on English pages -> every visible string now has ko/en variants selected via useDocusaurusContext().i18n.currentLocale ('ko' -> Korean, otherwise English); exports, props, row order and doc import lines are unchanged. The unit covered ClusterHealthTable, ControlPlaneLogTable, ErrorQuickRefTable and NodeGroupErrorTable; the parent follow-up on the pull request (PR #210 commit 44d50fc4) applied the same split to IncidentEscalationTable and ZonalShiftImpactTable, so all six components of the family render English strings on English pages.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8",
+        "44d50fc4a8c85e4b26ab4f7010bfc4862f3a2b83"
+      ],
+      "source_files": [
+        "src/components/EksDebugTables/ClusterHealthTable.js",
+        "src/components/EksDebugTables/ControlPlaneLogTable.js",
+        "src/components/EksDebugTables/ErrorQuickRefTable.js",
+        "src/components/EksDebugTables/NodeGroupErrorTable.js",
+        "src/components/EksDebugTables/IncidentEscalationTable.js",
+        "src/components/EksDebugTables/ZonalShiftImpactTable.js"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Author decision applied per brief. Korean strings kept byte-identical except the HYP-OPS-057 row (checked by extracting all Hangul literals before/after). node --check passes on all four files; a Babel+react-dom/server render with a mocked context produced output for both locales, with 0 Hangul characters in the en render of every component. No doc file importing the family changed. IncidentEscalationTable.js and ZonalShiftImpactTable.js were outside the unit's files_owned; the parent follow-up 44d50fc4 split them the same way and re-rendered all six components with react-dom/server: KO output byte-identical to the base except the intended HYP-OPS-057 row, EN output 0 Hangul characters (confirmed independently by the PR #210 review)."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-017",
+      "package": "eks-operations",
+      "id": "HYP-OPS-017",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The baseline line listed Ingress-NGINX v1.11+ with no retirement context -> a dated note now states the 2025-11-11 retirement announcement (best-effort maintenance until March 2026, then no releases, bug fixes or security fixes), that the GitHub repository is archived as of 2026-10-29, and that new setups should evaluate Gateway API or another Ingress controller.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/health-check-mismatch.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/health-check-mismatch.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Blog post text read: 'Best-effort maintenance will continue until March 2026. Afterward, there will be no further releases, no bugfixes, and no updates to resolve any security vulnerabilities'; recommends Gateway API or alternative Ingress controllers. GitHub API on 2026-10-28: archived=true, pushed_at 2026-03-23."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/",
+        "https://api.github.com/repos/kubernetes/ingress-nginx"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-057",
+      "package": "eks-operations",
+      "id": "HYP-OPS-057",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The InsufficientFreeAddresses fix said 'expand the subnet CIDR or add a new subnet' to the existing node group -> it now says the subnet list of an existing managed node group cannot be changed with UpdateNodegroupConfig, and to create a new node group in subnets with enough free IPs (if needed, from a secondary VPC CIDR) and move workloads; cause reworded to 'subnets associated with the node group'.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "src/components/EksDebugTables/NodeGroupErrorTable.js"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "UpdateNodegroupConfig request syntax read: labels, taints, scaling, update and repair config; the word 'subnets' does not occur on the page. EKS troubleshooting: 'One or more of the subnets associated with your managed node group doesn't have enough available IP addresses for new nodes.' The in-place subnet CIDR resize claim was dropped rather than replaced, because I did not find a VPC page stating it either way within budget."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/APIReference/API_UpdateNodegroupConfig.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/troubleshooting.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-063",
+      "package": "eks-operations",
+      "id": "HYP-OPS-063",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Recreate/upgrade node group were presented as RBAC repair methods -> Method 1 now adds the documented inspect (kubectl describe clusterrole/clusterrolebinding eks:node-manager) and retry steps, and Methods 2/3 are labelled unverified alternatives not documented by AWS, to be tried only if Method 1 cannot be applied and followed by a re-check.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/node.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/node.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "AWS troubleshooting procedure read: verify the ClusterRole/ClusterRoleBinding exist and compare, apply eks-node-manager-role.yaml, 'Retry the node group operation'. AWS says EKS sets these up 'as part of onboarding with managed node groups' but nothing found on whether a later create/upgrade re-creates deleted objects, so qualification is the honest fix."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/troubleshooting.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-071",
+      "package": "eks-operations",
+      "id": "HYP-OPS-071",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'default 1s is too short' and 'Spring Boot/JVM apps need 30s+' were categorical -> the diagram node now says to increase timeoutSeconds when measured response time exceeds the 1s default, and the table cell says to measure actual startup time and labels '30s+' as an illustrative figure, not a measured result.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/eks-debugging/workload.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/eks-debugging/workload.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Kubernetes probe docs confirm timeoutSeconds defaults to 1 second. No source gives a universal Spring Boot/JVM startup minimum; startup time is workload-dependent, so the figure is kept only with the illustrative label."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-095",
+      "package": "eks-operations",
+      "id": "HYP-OPS-095",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The migration plan implied importing Terraform state into KRO, managing all AWS resources with KRO and fully removing Terraform -> phases and durations are labelled an example roadmap, the scope is limited to resources ACK supports, Phase 1 brings Terraform-created resources under management via ACK adoption, and Terraform is removed only where no ACK-unsupported resources remain.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/gitops-cluster-operation.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/gitops-cluster-operation.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "kro README: kro composes Kubernetes resources (native or custom) via ResourceGraphDefinition; no Terraform-state import. EKS ACK page: 'ACK supports adopting existing AWS resources without recreating them, enabling zero-downtime migration from CloudFormation, Terraform...' with the adoption-policy annotation. The EN page carried the same unqualified phases (recon note that EN was already neutral did not match a3de3689), so both locales were changed."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/kro/main/README.md",
+        "https://docs.aws.amazon.com/eks/latest/userguide/ack-considerations.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-103",
+      "package": "eks-operations",
+      "id": "HYP-OPS-103",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text gave a strict one-hour lookup boundary and treated TTL extension as an option -> it now says roughly the last hour under the default, notes the TTL can be shorter and can slightly overrun due to etcd lease renewal, and states that EKS (1.31+) eventTtl is configurable 10-60 minutes with a 60-minute default, so it can only shorten retention; older events need the export pipeline.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/k8s-event-management.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/k8s-event-management.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "EKS User Guide parameter table read: 'kube-apiserver eventTtl 10m to 60m 60m (minutes)', 'supported on new and existing clusters running Kubernetes version 1.31 or later', 'an event's expiry can be extended past the value you configured because of etcd lease renewal that might happen during control plane leader election', DescribeClusterVersions is the source of truth. The previous 'increasing the TTL' wording was factually wrong for EKS and was removed. Heading '1-Hour TTL'/'1시간 TTL' and frontmatter description left unchanged (anchor/frontmatter rules)."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/control-plane-configuration.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-111",
+      "package": "eks-operations",
+      "id": "HYP-OPS-111",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Text said the agent starts privileged and keeps only CAP_BPF -> it now states the chart's actual securityContext (not privileged; drop ALL, add BPF/NET_ADMIN/PERFMON, plus SYS_ADMIN/SYS_PTRACE when OPEN_METRICS=on, main branch as of 2026-10-29), that drop_capabilities removes exactly three capabilities so SYS_PTRACE remains with OpenMetrics, that a failed drop only logs a warning, and how to check the remaining set in the startup log.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "3a6af3eeee8c778e294cc565b61115ec69b62ee8"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/network-flow-monitor.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/network-flow-monitor.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "lib.rs read: caps_to_drop = CAP_SYS_ADMIN, CAP_PERFMON, CAP_NET_ADMIN over Effective/Permitted/Inheritable; caller does 'if let Err(e) = drop_capabilities() { warn!(...) }'; logs 'Will operate with following effective capabilities'. daemonSet.yaml read: capabilities add BPF, NET_ADMIN, PERFMON (+SYS_ADMIN, SYS_PTRACE if OPEN_METRICS on), drop ALL; no privileged: true."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/aws/network-flow-monitor-agent/main/nfm-controller/src/lib.rs",
+        "https://raw.githubusercontent.com/aws/network-flow-monitor-agent/main/charts/amazon-network-flow-monitor-agent/templates/daemonSet.yaml"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-127",
+      "package": "eks-operations",
+      "id": "HYP-OPS-127",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The kiro.aws/v1alpha1 Agent YAML was presented as Kiro agent configuration -> it is now labelled a conceptual example that is not a Kiro API, with the documented local JSON/Markdown agent fields named and linked.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Kiro agent configuration reference (fetched 2026-10-29) lists name/description/prompt/mcpServers/tools/resources/permissions/hooks etc.; no apiVersion/kind/cluster/triggers fields and no cluster-event trigger. Kept the YAML as a conceptual illustration (KO/EN code identical except the first comment)."
+      ],
+      "primary_urls": [
+        "https://kiro.dev/docs/custom-agents/configuration-reference/",
+        "https://kiro.dev/docs/reference/cli-commands/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-131",
+      "package": "eks-operations",
+      "id": "HYP-OPS-131",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The Kiro chat transcript declared 12->0 failures/hour after 5 minutes and a permanent same-VPC fix -> the label is now 'conversation example', a paragraph marks the figures as illustrative and the same-VPC line as one possible option.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Runtime result of a hypothetical session; no source can settle it, so the honest fix is the repo's 'illustrative figures (hypothetical scenario)' qualifier. Transcript line 'permanently' -> 'as one option' changed identically in both locales."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-133",
+      "package": "eks-operations",
+      "id": "HYP-OPS-133",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Q Developer suggestions treated 1s as too short for EKS and 30s as a universal startup cutoff -> a sentence now labels 3-5s/30s as example values, notes 1s is the Kubernetes timeoutSeconds default, and ties values to measured latency/startup.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Kubernetes probe task page confirms timeoutSeconds defaults to 1s; no source makes 1s inherently too short on EKS. The 60s grace-period figure is in the q-dev output and is qualified under HYP-OPS-134."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-134",
+      "package": "eks-operations",
+      "id": "HYP-OPS-134",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'q-dev validate' was presented as an Amazon Q command that simulates probe success and timings -> the label is now a conceptual validation example and a paragraph states the command does not exist (Q CLI became Kiro CLI), the figures are illustrative, and kubectl --dry-run=server is the real syntax/schema check.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "AWS Q Developer user guide page states 'The Q CLI has become the Kiro CLI'; Kiro CLI command reference has no manifest/cluster simulation command. Kept the block as a labelled conceptual illustration (consistent with the page's existing 'example commands' note) rather than deleting it."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/command-line.html",
+        "https://kiro.dev/docs/reference/cli-commands/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-136",
+      "package": "eks-operations",
+      "id": "HYP-OPS-136",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "A ConfigMap of dashboard JSON was presented as provisioning a Grafana dashboard over kiro_*/probe_* metrics -> a paragraph now states the Grafana chart dashboard sidecar and label are required, panels need datasource/type, the kiro_*/probe_failures_* names are hypothetical, and kubelet exposes prober_probe_total.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/ai-probe-optimization.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "grafana-community chart values.yaml: sidecar.dashboards.enabled false, label grafana_dashboard (2026-10-29). Kubernetes metrics reference: prober_probe_total (kubelet /metrics/probes, labels probe_type/result). No Kiro source for kiro_* metrics found."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/grafana-community/helm-charts/main/charts/grafana/values.yaml",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/reference/instrumentation/metrics.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-141",
+      "package": "eks-operations",
+      "id": "HYP-OPS-141",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Go multi-stage 'Results' asserted 300MB+/5-10MB/<1s startup -> label now 'Example results' and a sentence says the values are illustrative and depend on code, dependencies, base image and measurement method.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/container-images.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/container-images.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No application, digest or measurement exists to verify; the honest fix is the illustrative-figure qualifier. Numbers kept, labelled."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-159",
+      "package": "eks-operations",
+      "id": "HYP-OPS-159",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'Kubernetes guarantees that a hook runs at least once' -> now 'hook delivery is intended to be at least once', not a guarantee of execution; single delivery is typical, no resend if an HTTP receiver is down, and PreStop fails on an already terminated/completed container.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/lifecycle-hooks.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/lifecycle-hooks.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Wording taken from the 'Hook delivery guarantees' and PreStop sections of the Kubernetes Container Lifecycle Hooks page."
+      ],
+      "primary_urls": [
+        "https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/containers/container-lifecycle-hooks.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-163",
+      "package": "eks-operations",
+      "id": "HYP-OPS-163",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "CNI/GPU/CSI NodeReadinessRule examples used custom condition types with no reporter -> a paragraph now lists them as illustrative names not reported by default, explains NRC only reads conditions, names reporter options (NRC readiness-condition-reporter, NPD, own DaemonSet), and the Go comment says it is a self-implemented reporter.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "NRC README/concepts: controller manages taints from conditions reported by NPD or custom daemons; reporter-configuration page documents readiness-condition-reporter (CHECK_ENDPOINT, CONDITION_TYPE). No evidence found that VPC CNI/NVIDIA/EBS CSI publish the named conditions (searched NRC docs and repo tree), so qualified as illustrative."
+      ],
+      "primary_urls": [
+        "https://node-readiness-controller.sigs.k8s.io/reference/reporter-configuration.html",
+        "https://node-readiness-controller.sigs.k8s.io/user-guide/concepts.html",
+        "https://raw.githubusercontent.com/kubernetes-sigs/node-readiness-controller/main/README.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-173",
+      "package": "eks-operations",
+      "id": "HYP-OPS-173",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Hand-written readinessGates with legacy 'target-health.alb.ingress.k8s.aws/production-alb' -> replaced by comments: label the namespace elbv2.k8s.aws/pod-readiness-gate-inject=enabled (target-type ip) and the AWS LB Controller injects target-health.elbv2.k8s.aws/<TargetGroupBinding name>.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "LBC pod readiness gate doc: injection via mutating webhook on labelled namespaces, prefix target-health.elbv2.k8s.aws, ip target type only, legacy readiness-gate config is removed by the controller."
+      ],
+      "primary_urls": [
+        "https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/deploy/pod_readiness_gate.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-177",
+      "package": "eks-operations",
+      "id": "HYP-OPS-177",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Tip 'bootstrap-only is sufficient in most cases; continuous only for frequently failing components' -> now 'choose the mode by the nature of the dependency', citing NRC Concepts (bootstrap-only for one-time init such as image pre-pull; continuous for CNI/storage daemons that must stay healthy).",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/node-readiness.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "NRC Concepts page gives these use cases per enforcement mode and does not state a 'most cases' default."
+      ],
+      "primary_urls": [
+        "https://node-readiness-controller.sigs.k8s.io/user-guide/concepts.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-194",
+      "package": "eks-operations",
+      "id": "HYP-OPS-194",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "Dashboard widget assumed ContainerInsights publishes ReadinessProbeFailure and had no dimensions -> ClusterName dimension added and a paragraph states Container Insights has no probe-failure metric, a custom pipeline (e.g. from kubelet prober_probe_total) must publish it, and namespace/name/dimensions must match exactly.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "Enhanced-observability metric list (pod_status_ready, pod_container_status_* etc.) and classic list contain no probe metric (checked 2026-10-29)."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-metrics-enhanced-EKS.html",
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/container-insights-eks-classic-metrics.html",
+        "https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/reference/instrumentation/metrics.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-196-w3",
+      "package": "eks-operations",
+      "id": "HYP-OPS-196",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "partial",
+      "summary": "Disclaimer said per-tier Pod scheduling throughput had no official source and Maximum Nodes were estimates -> now states the official tier attributes (XL/2XL/4XL/8XL; API concurrency seats by K8s version, pods/sec, 16GB DB, 99.99% SLA), that max node count is not a tier attribute, and keeps the Maximum Nodes column marked as estimates.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "EKS Provisioned Control Plane doc tier tables (v1.30-1.33 and v1.34+) read 2026-10-29. The existing 'no official source for scheduling throughput' sentence was wrong and is corrected."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html",
+        "https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.md"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-hyp-ops-196",
+      "remaining": "The 'Maximum Nodes' column of Table 2 stays, marked as indicative estimates: maximum node count is not an official tier attribute, so whether to drop the column, replace the qualitative API-concurrency cells with the official seat numbers and add the 8XL row is an author content decision that this correction does not make."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-199-w3",
+      "package": "eks-operations",
+      "id": "HYP-OPS-199",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "1,000-GPU case listed unsourced 'Results' -> heading marked hypothetical scenario, 'Results' -> 'Expected effects', and a paragraph says these are effects to verify, probe-timeout reduction applies only when the checked dependency depends on API Server latency, and how to measure.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No benchmark exists; remainder was a document qualification, finished in both locales."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-hyp-ops-199"
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-201",
+      "package": "eks-operations",
+      "id": "HYP-OPS-201",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "GuardDuty ETD was described as detecting anomalous probe-endpoint access / health-check forgery -> now describes its documented scope (correlating EKS audit logs, runtime, API signals into a Critical AttackSequence:EKS/CompromisedCluster finding; needs EKS Protection or Runtime Monitoring), removes the probe-endpoint bullet, and Figure 3 caption is a hypothetical scenario.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "ETD user guide (markdown) read 2026-10-29: EKS section lists audit log/runtime/API correlation; no probe or health-check detection."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty-extended-threat-detection.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-204",
+      "package": "eks-operations",
+      "id": "HYP-OPS-204",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "ConfigMap holding EventBridge/Lambda text was presented as an automated response -> a paragraph now states it runs nothing, that a deployed EventBridge rule+Lambda target with cluster-authorized IAM role and Kubernetes client is required, that isolate_pod only builds a string, and that severity [7,8,9] misses fractional severities.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "GuardDuty EventBridge doc: example pattern lists fractional severity values explicitly; exact-value matching follows. Qualification mirrors the page's existing alarm-ConfigMap note."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/guardduty/latest/ug/guardduty_findings_eventbridge.html"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-222",
+      "package": "eks-operations",
+      "id": "HYP-OPS-222",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "The Table 1 qualifier covered cold-start and memory figures only -> it now also covers the probe-timeout values as experiential, not official.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-workloads.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-workloads.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "No official Windows probe-timeout figure exists; extended the existing qualifier as proposed."
+      ],
+      "primary_urls": [],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-09-19-hyp-ops-253-w3",
+      "package": "eks-operations",
+      "id": "HYP-OPS-253",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "summary": "'Integration ... automatically moves workloads' and 'EKS integration automates safe Pod relocation' -> now names the blog's controller as an AWS-unsupported open source reference implementation (EventBridge rule + SQS + NodePool-editing controller, default terminates impaired-AZ nodes, --enable-do-not-disrupt keeps them) and states native ARC with EKS cordons, removes endpoints and keeps existing Pods/nodes.",
+      "recorded_on": "2026-10-29",
+      "reviewed_revision": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_commits": [
+        "a5f4ec0f3e3ce6a1e4ba49c6d6ffbebf608578ce"
+      ],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/shutdown-karpenter.md"
+      ],
+      "verification": [
+        "Group branch fix/w3-98 merged by PR #210 (https://github.com/devfloor9/engineering-playbook/pull/210); merge commit 9c18f345578a727a07277a20a95b035695b4b201; the PR's 'Build and Deploy' run succeeded (full English and Korean Docusaurus build, llms.txt and LLM wiki export, internal link validation).",
+        "Offline gates before push on the rebased group branch: nine-step offline test suite with 0 failed steps and no tracked-file pollution, anchor/fence/YAML check 0 problems, Korean lint warning count unchanged against main, fact guard with every removed figure or code block attributed to an item.",
+        "All behaviour taken from the AWS Containers blog of 10 Feb 2026 (read 2026-10-29). Controller version/drift details are not given in the post and were not added."
+      ],
+      "primary_urls": [
+        "https://aws.amazon.com/blogs/containers/enhance-kubernetes-high-availability-with-amazon-application-recovery-controller-and-karpenter-integration/"
+      ],
+      "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost.",
+      "followup_of": "2026-09-19-hyp-ops-253"
     }
   ]
 }
