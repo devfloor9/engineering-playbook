@@ -106,6 +106,15 @@ jobs:
       - name: Verify Gateway benchmark evidence and harness
         run: npm run test:gateway-benchmark
 
+      - name: Verify operational evidence gates with offline fixtures
+        run: npm run test:acceptance
+
+      - name: Verify Ralph coverage and measured-data boundaries
+        run: npm run test:ralph-series
+
+      - name: Verify audit closure evidence and preserved slide artifact
+        run: npm run test:audit-residuals && npm run check:audit-residuals
+
       - name: Build website
         run: npm run build
 
