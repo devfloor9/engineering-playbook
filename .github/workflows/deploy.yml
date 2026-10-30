@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  issues: read
   pages: write
   id-token: write
 
@@ -61,6 +62,43 @@ jobs:
 
       - name: Verify document revision metadata
         run: npm run test:metadata
+
+      - name: Verify document quality tools
+        run: npm run test:quality
+
+      - name: Report bilingual review candidates
+        run: |
+          node scripts/check-locale-parity.cjs --json > locale-parity-report.json
+          node scripts/check-locale-parity.cjs --summary
+
+      - name: Report document review metadata
+        run: |
+          node scripts/check-doc-review.cjs --json > doc-review-report.json
+          node scripts/check-doc-review.cjs --summary
+
+      - name: Compare audit items with GitHub issues (advisory)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set +e
+          node scripts/check-audit-issues.cjs --live --json > audit-issue-report.json
+          status=$?
+          if [ "$status" -eq 1 ]; then
+            echo "::warning::Closed issues have unresolved audit items; inspect the report."
+          elif [ "$status" -ne 0 ]; then
+            echo "::warning::Audit issue status could not be verified; inspect the report."
+          fi
+
+      - name: Upload document quality reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: document-quality-reports
+          path: |
+            locale-parity-report.json
+            doc-review-report.json
+            audit-issue-report.json
+          if-no-files-found: warn
 
       - name: Verify documented examples with offline fixtures
         run: npm run test:examples

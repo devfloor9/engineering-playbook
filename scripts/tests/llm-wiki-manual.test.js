@@ -72,3 +72,5 @@ test('shared tables retain captions, all rows, and localized status text', () =>
     for (const text of ['Failure', 'Queue full', 'Reduce concurrency', locale === 'ko' ? '높음' : 'High']) assert.ok(troubleshooting.includes(text));
   }
 });
+
+require('./llm-wiki-language.test');

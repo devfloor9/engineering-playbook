@@ -30,7 +30,7 @@ const DOCS_DIR = path.join(ROOT, 'docs');
 const SITE = {
   title: 'Engineering Playbook',
   description:
-    'Amazon EKS 기반 인프라, Agentic AI 플랫폼, AI/ML 워크플로우, 보안, 자동화된 운영에 대한 실전 엔지니어링 가이드',
+    'Practical engineering guides for Amazon EKS infrastructure, agentic AI platforms, AI/ML workflows, security, and automated operations.',
   baseUrl: 'https://devfloor9.github.io/engineering-playbook',
 };
 
@@ -358,7 +358,7 @@ async function main() {
   index += `- Pages with omitted technical content: ${manifest.component_coverage.docs_with_technical_omissions}\n`;
   index += `- Pages with omitted navigation: ${manifest.component_coverage.docs_with_navigation_omissions}\n`;
   index += `- Documents: ${docs.length}\n`;
-  index += `- Language: Korean (ko)\n`;
+  index += `- Language: English (en)\n`;
   index += `- Discovery: ${SITE.baseUrl}/llms.txt\n\n`;
   for (const d of orderedDomains) {
     index += `## ${DOMAIN_LABELS[d] || d}\n\n`;

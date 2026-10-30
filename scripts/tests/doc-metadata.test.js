@@ -39,6 +39,18 @@ test('missing update fields and inline objects preserve existing metadata', () =
   assert.throws(() => updateContentMetadata(source, '2026-02-30', 2), /valid/);
 });
 
+test('content revisions preserve independent review ownership and dates', () => {
+  const input = source.replace('reading_time: 4', `review:
+  owner: docs-team
+  reviewed_on: "2026-08-01"
+  status: published
+  next_review: "2026-11-01"
+reading_time: 4`);
+  const output = updateContentMetadata(input, '2026-09-18', 6);
+  assert.deepEqual(matter(output).data.review, matter(input).data.review);
+  assert.equal(matter(output).data.review.reviewed_on, '2026-08-01');
+});
+
 test('reading estimate follows visible prose and table text, excluding code and presentation markup', async () => {
   const text = 'Read '.repeat(200);
   const plain = await readingTime(`${source}\n${text}`, filePath);
