@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "audit_baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "reviewed_on": "2026-10-30",
+  "umbrella_issue": 83,
+  "limits": "This register specifies missing evidence, not completed verification. Source corrections, passing offline checks and closed workstream issues do not establish runtime, cost, incident or legal acceptance.",
+  "items": [
+    {
+      "id": "ADS-ADR003",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "measured_cost",
+      "correction_record": "2026-09-19-ads-adr003",
+      "required_evidence": [
+        "Dated region, instance type, purchase option and quoted or billed hourly rate for the stated GRPO workload.",
+        "Measured training duration, GPU count and utilization for that same workload.",
+        "Reproducible cost arithmetic tying those inputs to the claimed $2,000-$4,000 or $15,000 figures."
+      ]
+    },
+    {
+      "id": "ADS-CASCADE-014",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "measured_cost",
+      "correction_record": "2026-09-19-ads-cascade-014",
+      "required_evidence": [
+        "Matched workload traces, billed node hours and utilization for the cascade and non-cascade deployments.",
+        "Scaling schedule, idle or warm-standby capacity and cold-start behavior for both deployments.",
+        "A cost calculation that includes those deployment costs before treating the hypothetical 66% saving or 0.30 multiplier as measured."
+      ]
+    },
+    {
+      "id": "ADS-MOE-008",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "primary_specification",
+      "correction_record": "2026-09-19-ads-moe-008",
+      "required_evidence": [
+        "An authoritative, versioned resolution of the conflicting EC2 and Neuron Trainium2 memory or bandwidth specifications.",
+        "The exact instance and chip scope, units, retrieval date and primary source for each number retained.",
+        "Matching Korean and English specification text after that conflict is resolved."
+      ]
+    },
+    {
+      "id": "ADS-NODE-007",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "incident_reproduction",
+      "correction_record": "2026-09-19-ads-node-007",
+      "required_evidence": [
+        "The original Auto Mode and Managed Node Group scheduling-stall incident logs and relevant NodePool, node and Pod configuration.",
+        "Pinned EKS, Karpenter and add-on versions, workload conditions and a reproducible failure or an authoritative compatibility finding.",
+        "Evidence identifying the stall cause rather than inferring it from coexisting node-management modes."
+      ]
+    },
+    {
+      "id": "ADS-NODE-009",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "incident_reproduction",
+      "correction_record": "2026-09-19-ads-node-009",
+      "required_evidence": [
+        "Time-aligned ALB access logs identifying the reported 503 origin and target-state history.",
+        "Karpenter consolidation events, workload readiness and termination events for the same interval.",
+        "A causal account distinguishing ALB fail-open behavior from the specific incident's 503 cause."
+      ]
+    },
+    {
+      "id": "ADS-OCLAW004",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "account_availability",
+      "correction_record": "2026-09-19-ads-oclaw004",
+      "required_evidence": [
+        "Official model IDs, supported API and dated regional availability for both GLM 4.7 and Solar Pro 3 on Amazon Bedrock.",
+        "The target account's authorized model access or an operator-provided availability check without copied credentials.",
+        "Documented model-selection configuration matching those exact IDs and APIs; no paid inference is required merely to record the gap."
+      ]
+    },
+    {
+      "id": "ADS-SOVEREIGN009",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "legal_acceptance",
+      "correction_record": "2026-09-19-ads-sovereign009",
+      "required_evidence": [
+        "The specific current Korean Electronic Financial Supervision Regulation, ISMS-P and PIPA clauses relevant to each retained residency claim.",
+        "The data category, regulated entity, cross-border-transfer mechanism and scope to which each clause applies.",
+        "A qualified domain or legal review of that applicability; GDPR Chapter V alone cannot establish the Korean claims."
+      ]
+    },
+    {
+      "id": "ADS-VLLM-007",
+      "issue": 95,
+      "status": "unresolved",
+      "kind": "incident_reproduction",
+      "correction_record": "2026-09-19-ads-vllm-007",
+      "required_evidence": [
+        "Original pipeline-parallel loading incident logs, model, hardware and pinned vLLM, SGLang and dependency versions.",
+        "A bounded reproduction distinguishing slow loading from an actual deadlock.",
+        "Comparable evidence for the stated SGLang behavior under the same conditions."
+      ]
+    },
+    {
+      "id": "EKSN-POD-080",
+      "issue": 92,
+      "status": "unresolved",
+      "kind": "measured_performance",
+      "correction_record": "2026-09-19-eksn-pod-080",
+      "required_evidence": [
+        "Original workload, protocol, network path, sample size and latency percentiles for the comparison.",
+        "Dated AWS region, direction, service, purchase tier and primary transfer-price references.",
+        "Evidence connecting the stated latency and transfer-price cells to those conditions before restoring unscoped numbers."
+      ]
+    },
+    {
+      "id": "AIDLC-C175",
+      "issue": 99,
+      "status": "unresolved",
+      "kind": "versioned_tool_behavior",
+      "correction_record": "2026-09-19-aidlc-c175",
+      "required_evidence": [
+        "Pinned versions and setup for every compared AI coding agent.",
+        "Primary feature documentation and repeatable checks for the compared behaviors.",
+        "An explicit rating rule and observed results before replacing the Full, Partial and Limited author estimates with verified ratings."
+      ]
+    },
+    {
+      "id": "HR-SRIOV-07",
+      "issue": 88,
+      "status": "unresolved",
+      "kind": "versioned_configuration",
+      "correction_record": "2026-09-19-hr-sriov-07",
+      "required_evidence": [
+        "An operator-selected, pinned NVIDIA Network Operator chart and CRD version with documented host, NIC and Kubernetes prerequisites.",
+        "Matching NicClusterPolicy, SriovNetworkNodePolicy, NetworkAttachmentDefinition and workload resources for that version.",
+        "Reconciliation results, VF ownership and a successful workload attachment before treating the current starting-point values as validated."
+      ]
+    }
+  ]
+}

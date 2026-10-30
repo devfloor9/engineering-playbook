@@ -51209,6 +51209,116 @@
       ],
       "primary_urls": [],
       "evidence_limit": "Source correction and offline verification only. This record does not establish cloud execution, runtime compatibility, recovery, performance or measured cost."
+    },
+    {
+      "record_id": "2026-10-30-hr-obs-04",
+      "package": "hybrid-rosa-and-operations",
+      "id": "HR-OBS-04",
+      "issue": 88,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "followup_of": "2026-09-19-hr-obs-04",
+      "summary": "Both locales now state the published NFM OpenMetrics defaults: OPEN_METRICS is off unless supplied, OPEN_METRICS_ADDRESS defaults to 127.0.0.1 and OPEN_METRICS_PORT defaults to 80. Local and remote scraping guidance preserves the same-network-namespace requirement and requires deliberate, restricted remote binding.",
+      "recorded_on": "2026-10-30",
+      "reviewed_revision": "c358ca3d0a64495ab459087f9dd559292b636806",
+      "source_commits": ["c358ca3d0a64495ab459087f9dd559292b636806"],
+      "source_files": [
+        "docs/eks-hybrid-nodes/operations-cost/observability-monitoring.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/operations-cost/observability-monitoring.md"
+      ],
+      "verification": [
+        "Read the official NFM third-party monitoring configuration reference on 2026-10-30; it explicitly supplies the three defaults missing from the prior source review.",
+        "Focused offline tests passed: 19 audit-issue/artifact tests and 26 metadata/locale-parity tests; git diff --check passed. No binding, scrape or AWS environment was changed."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-agents-kubernetes-eks-third-party.html"
+      ],
+      "evidence_limit": "The missing public default is now documented. This record does not establish a real agent's configuration, endpoint reachability, scrape success or cloud execution."
+    },
+    {
+      "record_id": "2026-10-30-hyp-ops-196",
+      "package": "eks-operations",
+      "id": "HYP-OPS-196",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "followup_of": "2026-09-19-hyp-ops-196-w3",
+      "summary": "Replaced the unsupported 1,000/2,500/5,000 maximum-node estimates with the documented XL/2XL/4XL/8XL API concurrency seats for Kubernetes 1.30-1.33 and 1.34+, and the documented Pod scheduling rates. The original workload categories remain in prose. Removed the adjacent claim that provisioned API capacity itself guarantees kubelet probe latency.",
+      "recorded_on": "2026-10-30",
+      "reviewed_revision": "c358ca3d0a64495ab459087f9dd559292b636806",
+      "source_commits": ["c358ca3d0a64495ab459087f9dd559292b636806"],
+      "source_files": [
+        "docs/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/eks-best-practices/operations-reliability/pod-lifecycle/probe-eks-features.md"
+      ],
+      "verification": [
+        "Read the official EKS provisioned-control-plane tables on 2026-10-30: seats 1,700/3,400/6,800/13,600 for 1.30-1.33, 2,000/4,000/8,000/16,000 for 1.34+, and 167/283/400/400 Pods per second.",
+        "Focused offline tests passed: 19 audit-issue/artifact tests and 26 metadata/locale-parity tests; git diff --check passed. Both locale sources retain their routes, heading anchors and original author/creation metadata."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html"
+      ],
+      "evidence_limit": "Documented service-tier attributes are not measured workload capacity, maximum-node guarantees or probe latency measurements."
+    },
+    {
+      "record_id": "2026-10-30-eo-av-stor-13",
+      "package": "hybrid-rosa-and-operations",
+      "id": "EO-AV-STOR-13",
+      "issue": 98,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "followup_of": "2026-09-19-eo-av-stor-13",
+      "summary": "Removed the remaining universal Nitro 'maximum 128' claim from the PVC failure slide and its published JavaScript. The replacement states that type and size determine shared or dedicated attachment limits, matching the already-corrected storage document pair.",
+      "recorded_on": "2026-10-30",
+      "reviewed_revision": "c358ca3d0a64495ab459087f9dd559292b636806",
+      "source_commits": ["c358ca3d0a64495ab459087f9dd559292b636806"],
+      "source_files": [
+        "slides/eks-debugging/src/slides/40-PvcFailures.tsx",
+        "static/slides/eks-debugging/assets/index-audit-dcd93abe.js",
+        "static/slides/eks-debugging/index.html",
+        "scripts/repair-eks-debugging-artifact.cjs",
+        "scripts/tests/audit-slide-repair.test.cjs"
+      ],
+      "verification": [
+        "Checked official EC2 volume limits and EbsInfo attributes; a universal Nitro maximum is not a supported specification.",
+        "The slide TypeScript/Vite build succeeded. Its unpinned dependency installation produced a broader artifact change, so that output was not published.",
+        "A narrowly guarded one-text publication repair preserved every other JavaScript byte and all CSS. SHA-256 changed from b607edbacfc31734dc80c11446fc5b55de28a997d968ced47cdcbc709d894c63 to dcd93abe78cebbd28a7d0e1fc96376c4270bb2d5f38c2098396bf45c2c60d2b4; the HTML points to the new asset, the old asset is absent and neither bundle has a source-map directive.",
+        "The six independent repair guards passed within the 19 audit/artifact tests; 26 metadata/locale-parity tests also passed. Visual acceptance and a full site build are separate integration checks, not claimed by this record."
+      ],
+      "primary_urls": [
+        "https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/volume_limits.html",
+        "https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_EbsInfo.html"
+      ],
+      "evidence_limit": "This fixes a published specification claim. It does not validate an instance's available attachments, the EBS CSI driver or a running workload."
+    },
+    {
+      "record_id": "2026-10-30-ads-route014",
+      "package": "agentic-design-serving",
+      "id": "ADS-ROUTE014",
+      "issue": 95,
+      "previous_status": "open",
+      "disposition": "addressed",
+      "followup_of": "2026-09-19-ads-route014",
+      "summary": "Replaced invented/example metric-name mappings with exact Envoy v1.36.0 admin statistic contracts, including request-duration histogram units in milliseconds. Both locale documents now transcribe the full pinned kgateway Prometheus examples and their labels, distinguish admin names from PromQL series and warn that usedonly omits unused counters.",
+      "recorded_on": "2026-10-30",
+      "reviewed_revision": "1ff6415bb431e026e1aa0fec70161b6cc69be90c",
+      "source_commits": ["1ff6415bb431e026e1aa0fec70161b6cc69be90c"],
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-routing/routing-strategy.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-routing/routing-strategy.md",
+        "src/components/InferenceGatewayTables/MonitoringMetricsTable.js"
+      ],
+      "verification": [
+        "Read the complete kgateway source page at 50124775568e29da3b63386a976442f85f2e78d9 and the two complete Envoy v1.36.0 statistic references, rather than a truncated fetch.",
+        "LLM Wiki component checks passed 184 tests with one existing skipped baseline-HTML test and no failures. The shared metrics table participates in independent rendered-React versus Markdown corpus comparison, preserving statistic placeholders, labels and units.",
+        "git diff --check passed. No gateway was provisioned, reconfigured or scraped; live query rules still require the actual proxy version and scrape."
+      ],
+      "primary_urls": [
+        "https://github.com/kgateway-dev/kgateway.dev/blob/50124775568e29da3b63386a976442f85f2e78d9/assets/kgw-docs/pages/observability/gateway-metrics.md",
+        "https://github.com/envoyproxy/envoy/blob/v1.36.0/docs/root/configuration/http/http_conn_man/stats.rst",
+        "https://github.com/envoyproxy/envoy/blob/v1.36.0/docs/root/configuration/upstream/cluster_manager/cluster_stats.rst"
+      ],
+      "evidence_limit": "Pinned public statistic contracts are now transcribed. They do not prove the series or labels exposed by any particular deployed proxy."
     }
   ]
 }
