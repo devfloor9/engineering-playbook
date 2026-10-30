@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {stripMdx} = require('../generate-llm-wiki');
 const metrics = require('../../src/data/coredns-metrics.json');
+const models = require('../../src/data/moe-memory-models.json');
 const parallelization = require('../../src/data/moe-parallelization.json');
 const moeImport = "import { GpuMemoryRequirements, ParallelizationStrategies } from '@site/src/components/MoeModelTables';";
 const cardImport = "import { DocCard, DocCardGrid } from '@site/src/components/DocCards';";
@@ -12,19 +13,38 @@ test('CoreDNS export retains all eight rows and exact copyable queries', () => {
   const source = fs.readFileSync(path.join(__dirname, '../../docs/eks-best-practices/networking-performance/coredns-monitoring-optimization.md'), 'utf8');
   const serialized = new Set();
   const output = stripMdx(source, {serialized});
+  const table = stripMdx("import { CoreDnsMetricsTable } from '@site/src/components/CoreDnsTables';\n<CoreDnsMetricsTable />");
   assert.equal(metrics.rows.length, 8);
   assert.ok(serialized.has('CoreDnsMetricsTable'));
+  assert.ok(table.includes('CoreDNS Prometheus metrics'));
+  assert.ok(table.includes(metrics.scope.en));
+  assert.doesNotMatch(table, /[가-힣]/);
   for (const row of metrics.rows) {
-    assert.ok(output.includes(`\`${row.query}\``), row.name);
-    assert.ok(output.includes(row.description.ko), row.name);
+    const line = table.split('\n').find(value => value.startsWith(`| \`${row.name}\` |`));
+    assert.ok(line, row.name);
+    for (const value of [row.type, row.signal.en, row.description.en, `\`${row.query}\``]) {
+      assert.ok(line.includes(value), `${row.name}: ${value}`);
+    }
   }
   assert.ok(output.includes('coredns_panics_total'));
-  assert.ok(output.includes(metrics.scope.ko));
 });
 
 test('MoE export states weight units and keeps precision arithmetic', () => {
   const output = stripMdx(`${moeImport}\n<GpuMemoryRequirements />`);
-  assert.match(output, /런타임 메모리 제외/);
+  assert.match(output, /MoE weight-size estimates — runtime memory excluded/);
+  assert.match(output, /B = 10⁹ parameters; GB = 10⁹ bytes/);
+  assert.match(output, /16-bit weights \(GB\).*8-bit weights \(GB\).*4-bit weights \(GB\)/);
+  assert.doesNotMatch(output, /[가-힣]/);
+  for (const model of models) {
+    const line = output.split('\n').find(value => value.startsWith(`| ${model.model} |`));
+    assert.ok(line, model.model);
+    const cells = line.split('|').slice(1, -1).map(value => value.trim());
+    const expectedWeights = [2, 1, 0.5].map(bytes =>
+      Number((model.totalBillions * bytes).toFixed(1)).toLocaleString('en-US'));
+    assert.deepEqual(cells, [
+      model.model, String(model.totalBillions), String(model.activeBillions), ...expectedWeights,
+    ]);
+  }
   assert.match(output, /DeepSeek-V3 \(main model\) \| 671 \| 37 \| 1,342 \| 671 \| 335.5/);
   assert.match(output, /Kimi K2.5 \| 1000 \| 32 \| 2,000 \| 1,000 \| 500/);
 });
@@ -59,9 +79,13 @@ test('custom props do not silently select default component data', () => {
 
 test('shared parallelization data reaches the Markdown table without dropping tradeoffs', () => {
   const output = stripMdx(`${moeImport}\n<ParallelizationStrategies />`);
+  assert.ok(output.includes('MoE Model Parallelization Strategies'));
+  assert.doesNotMatch(output, /[가-힣]/);
   for (const row of parallelization) {
-    for (const value of [row.strategy, row.description.ko, row.advantages.ko, row.disadvantages.ko]) {
-      assert.ok(output.includes(value), value);
+    const line = output.split('\n').find(value => value.startsWith(`| ${row.strategy} |`));
+    assert.ok(line, row.strategy);
+    for (const value of [row.description.en, row.advantages.en, row.disadvantages.en]) {
+      assert.ok(line.includes(value), `${row.strategy}: ${value}`);
     }
   }
   const component = fs.readFileSync(path.join(__dirname, '../../src/components/MoeModelTables/ParallelizationStrategies.js'), 'utf8');

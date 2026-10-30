@@ -335,6 +335,8 @@ Each ledger entry identifies the source commit, reviewed files, checks and remai
 
 [tracking.json](tracking.json) assigns every grouped item to a registered GitHub issue. Each workstream requires a disposition for the complete assigned inventory, not only the examples in an issue description.
 
+As checked on 30 October 2026, GitHub issues #88, #92, #95, #98 and #99 are closed, while the tracking ledger still records 15 open partial corrections linked to them. The issue state and the individual correction state are separate; closing an issue does not resolve its remaining evidence or author decisions. Recheck the current issue state before relying on this dated observation.
+
 The new correction workstreams are:
 
 - [#95 — Agentic architecture and serving](https://github.com/devfloor9/engineering-playbook/issues/95): 391 items covering model sizing, runtime contracts, examples, security boundaries and bilingual presentation.

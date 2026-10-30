@@ -70,7 +70,7 @@ export default function AiDocs() {
           <Icon name="info" size={20} />
           <div>
             <h2 id="coverage-title">{ko ? '제공 범위와 읽는 방법' : 'Coverage and interpretation'}</h2>
-            <p>{ko ? 'LLM Wiki는 한국어 기술 문서와 시작 안내를 제공합니다. 영어 페이지와 sales 문서는 내보내기 대상에 포함되지 않습니다.' : 'The LLM Wiki exports Korean technical documents and the introduction. English pages and sales documents are outside its scope.'}</p>
+            <p>{ko ? 'LLM Wiki는 영어 기술 문서와 시작 안내를 제공합니다. 한국어 페이지와 sales 문서는 내보내기 대상에 포함되지 않습니다.' : 'The LLM Wiki exports English technical documents and the introduction. Korean pages and sales documents are outside its scope.'}</p>
             <p>{ko ? '지원되는 표·그림·탐색 요소는 저장소의 원본 데이터에서 내보냅니다. 변환하지 못한 요소는 Export note와 웹 문서 링크로 표시합니다.' : 'Supported tables, figures, and navigation are exported from repository sources. Unsupported elements have an Export note and a link to the web page.'}</p>
             <p>{ko ? 'manifest의 ' : 'Inspect '}<code>content_coverage</code>{ko ? '에서 변환·누락 항목과 출처를 확인하세요. 대화형 제어와 애니메이션은 Markdown에 재현되지 않습니다.' : ' in the manifest for serialized elements, omissions, and source provenance. Interactive controls and animations are not reproduced in Markdown.'}</p>
           </div>

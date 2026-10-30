@@ -32,27 +32,31 @@ function table(headers, rows) {
 
 const renderers = {
   CoreDnsMetricsTable: () => [
-    metrics.scope.ko,
-    table(['메트릭', '타입', '시그널', '설명', 'PromQL'], metrics.rows.map(row => [
-      `\`${row.name}\``, row.type, row.signal.ko, row.description.ko, `\`${row.query}\``,
+    'CoreDNS Prometheus metrics',
+    metrics.scope.en,
+    table(['Metric', 'Type', 'Signal', 'Description', 'PromQL'], metrics.rows.map(row => [
+      `\`${row.name}\``, row.type, row.signal.en, row.description.en, `\`${row.query}\``,
     ])),
   ].join('\n\n'),
   GpuMemoryRequirements: () => [
-    'MoE 가중치 크기 산술 추정 — 런타임 메모리 제외. B = 10⁹ parameters; GB = 10⁹ bytes.',
+    'MoE weight-size estimates — runtime memory excluded. B = 10⁹ parameters; GB = 10⁹ bytes.',
     table(
-      ['모델', '총 파라미터 (B)', '활성 파라미터 (B)', '16-bit 가중치 (GB)', '8-bit 가중치 (GB)', '4-bit 가중치 (GB)'],
+      ['Model', 'Total parameters (B)', 'Active parameters (B)', '16-bit weights (GB)', '8-bit weights (GB)', '4-bit weights (GB)'],
       models.map(model => [
         model.model, model.totalBillions, model.activeBillions,
         ...[2, 1, 0.5].map(bytes => Number((model.totalBillions * bytes).toFixed(1)).toLocaleString('en-US')),
       ]),
     ),
   ].join('\n\n'),
-  ParallelizationStrategies: () => table(
-    ['병렬화 전략', '설명', '장점', '단점'],
-    parallelization.map(row => [
-      row.strategy, row.description.ko, row.advantages.ko, row.disadvantages.ko,
-    ]),
-  ),
+  ParallelizationStrategies: () => [
+    'MoE Model Parallelization Strategies',
+    table(
+      ['Strategy', 'Description', 'Advantages', 'Disadvantages'],
+      parallelization.map(row => [
+        row.strategy, row.description.en, row.advantages.en, row.disadvantages.en,
+      ]),
+    ),
+  ].join('\n\n'),
   ...ralphRenderers(staticRenderer),
 };
 

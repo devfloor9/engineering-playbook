@@ -22,7 +22,7 @@ const DOCS_DIR = path.join(ROOT, 'docs');
 const SITE = {
   title: 'Engineering Playbook',
   description:
-    'Amazon EKS 기반 인프라, Agentic AI 플랫폼, AI/ML 워크플로우, 보안, 자동화된 운영에 대한 실전 엔지니어링 가이드',
+    'Practical engineering guides for Amazon EKS infrastructure, agentic AI platforms, AI/ML workflows, security, and automated operations.',
   baseUrl: 'https://devfloor9.github.io/engineering-playbook',
 };
 
@@ -149,7 +149,7 @@ function main() {
   llms += `- Site: ${SITE.baseUrl}\n`;
   llms += `- Full text: ${SITE.baseUrl}/llms-full.txt\n`;
   llms += `- LLM Wiki (per-page markdown + manifest): ${SITE.baseUrl}/llm-wiki/manifest.json\n`;
-  llms += `- Language: Korean (ko) primary, English (en) mirror under /en/\n`;
+  llms += `- Language: English (en); Korean (ko) web pages are available under /ko/\n`;
   llms += `- Topics: Amazon EKS, Agentic AI, model serving (vLLM/llm-d), MLOps, observability, security & governance\n\n`;
 
   let linkCount = 0;

@@ -1,8 +1,12 @@
 # LLM Wiki static content export (#52)
 
-`generate-llm-wiki.js` exports the included Korean technical corpus. It reads
-Markdown, component source and local data; it does not build the site, load remote
-pages, run application modules, or call models.
+`generate-llm-wiki.js` exports English source pages from `docs/`: six technical
+domains and the root introduction. The Korean translation tree and sales material
+are excluded. The manifest identifies the export language and source pages.
+
+It reads Markdown, component source and local data; it does not build the site,
+load remote pages, run application modules, or call models. The generated wiki
+under `build/` is a deployment artifact, not a committed source.
 
 ## Source resolution and coverage
 
