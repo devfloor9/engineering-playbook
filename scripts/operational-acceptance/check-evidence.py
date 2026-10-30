@@ -76,7 +76,12 @@ def strict_json(text):
     def invalid(value):
         raise ValueError(f"nonfinite JSON value: {value}")
 
-    return json.loads(text, object_pairs_hook=pairs, parse_constant=invalid)
+    def floating(value):
+        parsed = float(value)
+        require(math.isfinite(parsed), f"nonfinite JSON value: {value}")
+        return parsed
+
+    return json.loads(text, object_pairs_hook=pairs, parse_constant=invalid, parse_float=floating)
 
 
 def text(value, label):
@@ -127,7 +132,7 @@ def artifact(value, root, label):
 def template(issue):
     require(issue in REQUIREMENTS, "unsupported issue")
     return {
-        "schema_version": 1, "issue": issue,
+        "schema_version": 1, "issue": issue, "campaign_id": None,
         "evidence_scope": "implementation-measurement" if issue == 80 else "operator-deployment",
         "environment": {"target_alias": None, "region": None, "namespace": None,
                         "deployment_manifest": {"path": None, "sha256": None}},
@@ -144,7 +149,13 @@ def template(issue):
         "cost": {"complete": False, "report": {"path": None, "sha256": None}},
         "operator_review": {"accepted_at": None, "approver_roles": [],
                             "approval": {"path": None, "sha256": None}},
-        "dependencies": {},
+        "dependencies": {
+            str(number): {
+                "path": None, "sha256": None, "target_alias": None,
+                "deployment_manifest_sha256": None, "protocol_manifest_sha256": None,
+            }
+            for number in (5, 7)
+        } if issue == 4 else {},
     }
 
 
@@ -155,6 +166,7 @@ def validate(bundle, root, mode="evidence", now=None, seen=None):
             "unsupported schema_version")
     issue = bundle.get("issue")
     require(type(issue) is int and issue in REQUIREMENTS, "unsupported issue")
+    campaign = text(bundle.get("campaign_id"), "campaign_id")
     require(bundle.get("evidence_scope") in SCOPES,
             "fixture/upstream/unmeasured evidence cannot close live gaps")
     require((issue == 80) == (bundle["evidence_scope"] == "implementation-measurement"),
@@ -186,6 +198,15 @@ def validate(bundle, root, mode="evidence", now=None, seen=None):
     ids = [case.get("id") for case in cases]
     require(len(ids) == len(set(map(str, ids))) and set(map(str, ids)) == set(REQUIREMENTS[issue]),
             "all issue cases must appear exactly once")
+    for case in cases:
+        limitations = case.get("limitations")
+        require(isinstance(limitations, list), f"cases.{case['id']}: limitations array required")
+        for limitation in limitations:
+            text(limitation, f"cases.{case['id']}.limitations")
+    roles = bundle.get("operator_review", {}).get("approver_roles")
+    require(isinstance(roles, list), "operator_review: approver roles array required")
+    for role in roles:
+        text(role, "operator_review.approver_roles")
     if mode == "preflight":
         require(all(case.get("status") == "not_run" for case in cases),
                 "preflight must not present case outcomes as measurements")
@@ -203,11 +224,13 @@ def validate(bundle, root, mode="evidence", now=None, seen=None):
         text(case.get("observed"), f"{label}.observed")
         artifact(case.get("raw"), root, f"{label}.raw")
         limitations = case.get("limitations")
-        require(isinstance(limitations, list) and all(isinstance(v, str) and v.strip() for v in limitations),
-                f"{label}: limitations array required")
         if case["status"] == "unsupported":
             require(case["id"] in UNSUPPORTED_CASES.get(issue, set()) and limitations,
                     f"{label}: required case cannot be skipped; optional support requires limitations")
+            for field in ("samples", "repetitions"):
+                require(field in case, f"{label}.{field}: explicit null or positive integer required")
+                if case.get(field) is not None:
+                    positive(case[field], f"{label}.{field}", True)
         else:
             require(positive(case.get("samples"), f"{label}.samples", True) >= minimum,
                     f"{label}: fewer samples than preregistered minimum")
@@ -219,9 +242,7 @@ def validate(bundle, root, mode="evidence", now=None, seen=None):
     review = bundle.get("operator_review", {})
     reviewed = utc(review.get("accepted_at"), "operator_review.accepted_at")
     require(finished <= reviewed <= now, "operator review must follow execution and precede now")
-    roles = review.get("approver_roles")
-    require(isinstance(roles, list) and roles and all(isinstance(role, str) and role.strip() for role in roles),
-            "operator_review: dated approver roles required")
+    require(roles, "operator_review: dated approver roles required")
     artifact(review.get("approval"), root, "operator_review.approval")
     dependencies = bundle.get("dependencies", {})
     require(isinstance(dependencies, dict), "dependencies must be an object")
@@ -236,6 +257,17 @@ def validate(bundle, root, mode="evidence", now=None, seen=None):
             child = strict_json(path.read_text())
             require(child.get("issue") == number, "dependency names the wrong issue")
             validate(child, path.parent, now=now, seen=seen | {path})
+            require(child["campaign_id"] == campaign, "dependency belongs to a different campaign")
+            require(text(reference.get("target_alias"), f"dependencies.{number}.target_alias") ==
+                    child["environment"]["target_alias"], "dependency target_alias binding mismatch")
+            for field, expected in (
+                ("deployment_manifest_sha256", child["environment"]["deployment_manifest"]["sha256"]),
+                ("protocol_manifest_sha256", child["protocol"]["manifest"]["sha256"]),
+            ):
+                require(reference.get(field) == expected,
+                        f"dependencies.{number}.{field}: binding mismatch")
+            require(utc(child["operator_review"]["accepted_at"], f"dependencies.{number}.accepted_at") <=
+                    reviewed, "umbrella operator review predates dependency acceptance")
     else:
         require(not dependencies, "only issue 4 has issue dependencies")
     return {"issue": issue, "status": "complete_for_operator_review", "cases": len(cases),

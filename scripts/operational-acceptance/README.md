@@ -36,6 +36,8 @@ python3 scripts/operational-acceptance/check-evidence.py --template 4
 
 Record private identifiers in the hashed deployment manifest. `target_alias`
 is a deidentified display name, not a substitute for that full manifest.
+Every package needs a non-placeholder `campaign_id` identifying the approved
+acceptance campaign. The umbrella and its #5/#7 packages must share that ID.
 Approval and protocol manifests are local, nonempty files accompanied by their
 SHA-256 digests. Artifact paths must remain inside the evidence folder, including
 after resolving symbolic links. Keep credentials outside this folder.
@@ -71,12 +73,18 @@ accepted scope. Required readiness, drain, HTTP, TLS, recovery and cost cases
 cannot be skipped. Required Gateway feature probes cannot be skipped as a group;
 record the support/skip reasons for individual Extended/custom features in their
 raw report. Unsupported is never evidence that an untested feature works.
+Its sample/repetition counts must be null or positive integers. Every limitation
+and approver role must contain actual text rather than TODO/TBD placeholders.
 
 Record a completed UTC execution window, complete cost accounting, and dated
 operator/domain-owner review backed by an approval file. For #4, `dependencies`
-must contain `"5"` and `"7"` artifact references to complete packages; their
-hashes and case requirements are checked recursively. A previous issue number
-or an asserted `closed` status alone is insufficient.
+must contain `"5"` and `"7"` artifact references to complete packages. Each
+reference also binds the child's `target_alias`, `deployment_manifest_sha256`,
+and `protocol_manifest_sha256`. Their hashes, campaign, target/configuration
+bindings and case requirements are checked recursively. Child acceptance must
+precede or match the umbrella's acceptance date. The systems may intentionally
+use different clusters or Regions; those differences remain in their manifests.
+A previous issue number or an asserted `closed` status alone is insufficient.
 
 ```sh
 python3 scripts/operational-acceptance/check-evidence.py \
