@@ -3,9 +3,9 @@ title: "Foundation Model별 토큰 비용 비교: 코딩 에이전트 랄프 루
 description: RealWorld 백엔드 구현 과제를 랄프 루프로 Amazon Bedrock us-east-1의 14개 모델에서 5회씩 실행하고, 완주 여부와 토큰·비용·LLM 요청 수를 비교한 실측 보고서
 created: "2026-10-13"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-30
   author: YoungJoon Jeong
-reading_time: 27
+reading_time: 35
 tags:
   - benchmark
   - bedrock
@@ -32,6 +32,9 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 수치는 모두 실행 기록에서 스크립트로 생성했습니다. 값의 근거는 [사실](직접 실행·조회), [계산](토큰 × 단가처럼 정해진 규칙), [추정](가정 포함), [출처](근거 자료)로 표시했고, 확인되지 않은 값은 "확인 불가"로 적었습니다.
 :::
 
+**시리즈:** [전체 안내](./ralph-loop-series.md) · **1편: Bedrock** · [2편: EKS 기준선 — 계획](./ralph-loop-coding-agent-eks.md) · [3편: EKS 추론 최적화 — 계획](./ralph-loop-inference-optimization.md).
+공개된 이 데이터에는 아래 14개 모델의 과거 결과만 있습니다. Terra 후속 실행과 EKS 단계의 검증된 결과는 아직 포함하지 않았습니다.
+
 <RalphKpiStrip />
 
 ## 개요
@@ -45,6 +48,36 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 - **그룹보다 모델 차이가 큽니다** [계산]: 중국 오픈웨이트 그룹의 대표값($1.621)은 프론티어($0.831)의 약 2.0배였지만, 프론티어 안에서의 차이는 약 130배였습니다.
 - **캐시 읽기가 비용의 큰 몫입니다** [계산]: 완주한 run 토큰의 94%가 캐시 읽기였습니다. 캐시 읽기는 단가가 낮아도 양이 많아, 모델에 따라 run 비용의 상당 부분이 여기서 나왔습니다.
 - **실행 비용** [계산]: 모두 $106.02입니다(집계에 쓴 실행 $88.42 + 폐기한 1차 실행 $17.60). 실제 청구액이 아닙니다.
+
+**GPT-6 Astra도 포함되어 있습니다.** 기록된 ID는 `us.openai.gpt-6-astra`입니다. 5/5회를 모두 랄프 반복 1회에 완주했고, 비용 중앙값은 **$3.4954**, 시간 중앙값은 **7.883분**입니다. 이 과제의 14개 모델 중 비용 중앙값이 가장 높았다는 뜻이며, 일반적인 코딩 품질을 평가한 결과가 아닙니다. [Astra 상세 결과](#astra-historical-result), [전체 실측 모델](#모델별-결과), [근거 확인 범위](#model-evidence-coverage)를 확인하세요.
+
+### 모델별 근거 확인 범위 {#model-evidence-coverage}
+
+범위 검토일은 **2026-10-30**입니다. "재확인 안 함"은 이번 변경에서 날짜와 정확한 버전이 맞는 공식 평가나 현재 Bedrock 단가를 확인하지 않았다는 뜻입니다. 공개 자료가 없다는 뜻은 아닙니다. [적용 단가](#적용-단가-출처)는 과거 스냅샷이며, 오늘의 단가가 아닙니다. 모든 제공사와 서비스 등급에 같은 기준을 적용합니다.
+
+<DataTableFrame minWidth="60rem">
+
+| 모델 | 기록된 / 계획 ID | 로컬 측정 | 공개 평가 | 현재 Bedrock 단가 |
+|---|---|---|---|---|
+| Claude Opus 5.5 | `us.anthropic.claude-opus-5-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Claude Sonnet 5.5 | `us.anthropic.claude-sonnet-5-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Claude Haiku 5.5 | `us.anthropic.claude-haiku-5-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Claude Fable 5.1 | `us.anthropic.claude-fable-5-1` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Claude Opus 5 | `us.anthropic.claude-opus-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Claude Sonnet 5 | `us.anthropic.claude-sonnet-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Claude Opus 4.8 | `us.anthropic.claude-opus-4-8` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GPT-6 Astra | `us.openai.gpt-6-astra` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GPT-6 Sol | `us.openai.gpt-6-sol` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GPT-6 Luna | `us.openai.gpt-6-luna` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GPT-5.6 Sol | `us.openai.gpt-5.6-sol` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Kimi K3 | `us.moonshotai.kimi-k3` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GLM 5.3 | `us.zai.glm-5.3` | 4/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` (후속 대상) | 검증된 배치 없음 | 재확인 안 함 | 재확인 안 함 |
+
+</DataTableFrame>
+
+공개 제공사 평가, 과거 RealWorld 실측, 토큰 단가 계산은 다른 근거입니다. 이 표에 모델을 추가해도 차트에 점을 추가하지 않습니다. 새 평가나 단가를 넣을 때는 정확한 모델·버전, 공식 출처, 확인일과 벤치마크·하네스 또는 리전·라우팅·등급·컨텍스트·캐시 조건이 필요합니다. Sol의 서비스 등급이 다르다고 모델이 추가되는 것은 아닙니다.
 
 ## 측정 방식
 
@@ -127,6 +160,37 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 | 프론티어 | GPT-5.6 Sol | 5/5 | $0.755 ($0.667–$0.908) | 12,032 (10,223–12,787) | 584,537 (505,256–775,728) | 31 (27–34) | 1 | 4.1 (3.4–5.8) |
 | 중국 오픈웨이트 | Kimi K3 | 5/5 | $1.422 ($1.154–$1.640) | 39,505 (32,640–47,056) | 1,658,186 (1,276,997–1,856,453) | 61 (57–65) | 1 | 10.5 (8.2–12.0) |
 | 중국 오픈웨이트 | GLM 5.3 | 4/5 | $1.821 ($1.402–$2.062) | 59,582 (48,793–77,914) | 3,766,802 (2,876,201–4,364,926) | 80 (73–89) | 1 | 10.1 (8.2–15.0) |
+
+</DataTableFrame>
+
+#### Astra 과거 결과 {#astra-historical-result}
+
+`gpt6astra` 기록 5개는 펼칠 수 있는 모델 행과 원본 데이터에 그대로 있습니다. 모두 `status: done`, `iterations: 1`입니다. 비용 중앙값은 $3.4954, 시간 중앙값은 7.883분입니다. 단가 스냅샷, run ID, 토큰 수와 다른 모델은 바꾸지 않았습니다.
+
+### 실패 비용을 포함한 완주당 비용 {#failure-inclusive-cost}
+
+**표 3. 모든 시도 비용 ÷ 완주 수**
+
+기록된 시도 5개의 비용 합계를 해당 모델의 완주 수로 나눕니다. 실패한 시도의 비용도 포함합니다. 이 값은 비율이며, 표 1의 완주 run 중앙값과 다릅니다. 과거 데이터의 반올림된 run별 비용을 사용했고, 폐기한 1차 실행과 사전 확인은 이 표에서 제외합니다. 완주가 0회면 값은 0이 아니라 정의할 수 없음입니다.
+
+<DataTableFrame minWidth="40rem">
+
+| 모델 | 시도 | 완주 | 전체 시도 비용(USD) | 완주당 비용(USD) |
+|---|---|---|---|---|
+| Claude Opus 5.5 | 5 | 5 | $4.7279 | $0.9456 |
+| Claude Sonnet 5.5 | 5 | 5 | $1.5158 | $0.3032 |
+| Claude Haiku 5.5 | 5 | 5 | $0.3237 | $0.0647 |
+| Claude Fable 5.1 | 5 | 5 | $12.8723 | $2.5745 |
+| Claude Opus 5 | 5 | 5 | $11.4937 | $2.2987 |
+| Claude Sonnet 5 | 5 | 5 | $6.3291 | $1.2658 |
+| Claude Opus 4.8 | 5 | 5 | $10.6600 | $2.1320 |
+| GPT-6.1 Sol | 5 | 5 | $2.5741 | $0.5148 |
+| GPT-6 Astra | 5 | 5 | $16.8230 | $3.3646 |
+| GPT-6 Sol | 5 | 5 | $1.5152 | $0.3030 |
+| GPT-6 Luna | 5 | 5 | $0.1714 | $0.0343 |
+| GPT-5.6 Sol | 5 | 5 | $3.8570 | $0.7714 |
+| Kimi K3 | 5 | 5 | $7.0211 | $1.4042 |
+| GLM 5.3 | 5 | 4 | $8.5371 | $2.1343 |
 
 </DataTableFrame>
 

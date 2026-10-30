@@ -3,7 +3,7 @@ title: EKS Performance Benchmark Reports
 description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations, AI Agents
 created: "2026-02-09"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-30
   author: devfloor9
 reading_time: 5
 tags:
@@ -52,13 +52,15 @@ Performance reports and measurement plans for EKS. Check each report's evidence 
 
 ## AI Agents
 
-Measurements of AI coding agents run on Amazon Bedrock, not in an EKS environment.
+The published measurements ran on Amazon Bedrock. EKS follow-up stages remain planned.
 
 **Table 4. AI agent benchmark reports and validation status**
 
 | # | Report | Status |
 |---|--------|--------|
 | 9 | [Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measured with a Coding-Agent Ralph Loop](./ralph-loop-coding-agent-bedrock.md) | Measured; raw data not included |
+
+[Ralph loop series](./ralph-loop-series.md): the existing Bedrock report is Part 1; [Part 2's EKS baseline](./ralph-loop-coding-agent-eks.md) and [Part 3's controlled optimizations](./ralph-loop-inference-optimization.md) have no measured results yet.
 
 ## Benchmark Methodology
 

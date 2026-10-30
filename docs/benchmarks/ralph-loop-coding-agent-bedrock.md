@@ -3,9 +3,9 @@ title: "Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measure
 description: Measured report that ran a RealWorld backend implementation task in a Ralph loop five times on each of 14 models in Amazon Bedrock us-east-1 and compares completion, tokens, cost and LLM requests
 created: "2026-10-13"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-30
   author: devfloor9
-reading_time: 44
+reading_time: 57
 tags:
   - benchmark
   - bedrock
@@ -32,6 +32,9 @@ This benchmark was built with reference to the [Ralph loop completion by model](
 Every number was generated from the run records by script. Each value is labelled by its basis: [fact] (run or queried directly), [calculated] (a fixed rule such as tokens × price), [estimate] (involves an assumption) or [source] (the supporting material). Values that could not be confirmed are marked "not verified".
 :::
 
+**Series:** [Index](./ralph-loop-series.md) · **Part 1: Bedrock** · [Part 2: EKS baseline — planned](./ralph-loop-coding-agent-eks.md) · [Part 3: EKS optimizations — planned](./ralph-loop-inference-optimization.md).
+Only the 14 historical models below have results in this published dataset. The Terra follow-up and EKS stages have no verified results here.
+
 <RalphKpiStrip />
 
 ## Overview
@@ -45,6 +48,36 @@ This report measures, on Amazon Bedrock, how many tokens, how much money and how
 - **Models differ more than groups** [calculated]: the Chinese open-weight group value ($1.621) was about 2.0× the frontier value ($0.831), while costs inside the frontier group differ by about 130×.
 - **Cache reads are a large share of cost** [calculated]: 94% of the tokens in completed runs were cache reads. They are cheap per token but so numerous that they made up a large part of the run cost for many models.
 - **Spend** [calculated]: $106.02 in total, the $88.42 of runs used in the results plus $17.60 for the discarded first attempt. These are not billed amounts.
+
+**GPT-6 Astra is included.** Its recorded ID is `us.openai.gpt-6-astra`. It completed 5/5 attempts, all in one Ralph iteration, with median calculated cost **$3.4954** and median elapsed time **7.883 minutes**. This was the highest median cost among these 14 models on this task; it does not establish general coding quality. See [Astra's detailed result](#astra-historical-result), [all measured models](#results-by-model), and the [evidence coverage](#model-evidence-coverage).
+
+### Model evidence coverage {#model-evidence-coverage}
+
+Coverage reviewed **2026-10-30**. "Not reverified" means this update has not established a dated, version-matched primary-source result or current Bedrock price. It does not mean no public evidence exists. The recorded prices under [Prices applied](#prices-applied-source) remain the historical snapshot; they are not today's prices. The same coverage rule applies to every provider and every service tier.
+
+<DataTableFrame minWidth="60rem">
+
+| Model | Recorded / proposed ID | Local measurement | Public evaluation | Current Bedrock price |
+|---|---|---|---|---|
+| Claude Opus 5.5 | `us.anthropic.claude-opus-5-5` | 5/5 completed | Not reverified | Not reverified |
+| Claude Sonnet 5.5 | `us.anthropic.claude-sonnet-5-5` | 5/5 completed | Not reverified | Not reverified |
+| Claude Haiku 5.5 | `us.anthropic.claude-haiku-5-5` | 5/5 completed | Not reverified | Not reverified |
+| Claude Fable 5.1 | `us.anthropic.claude-fable-5-1` | 5/5 completed | Not reverified | Not reverified |
+| Claude Opus 5 | `us.anthropic.claude-opus-5` | 5/5 completed | Not reverified | Not reverified |
+| Claude Sonnet 5 | `us.anthropic.claude-sonnet-5` | 5/5 completed | Not reverified | Not reverified |
+| Claude Opus 4.8 | `us.anthropic.claude-opus-4-8` | 5/5 completed | Not reverified | Not reverified |
+| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | 5/5 completed | Not reverified | Not reverified |
+| GPT-6 Astra | `us.openai.gpt-6-astra` | 5/5 completed | Not reverified | Not reverified |
+| GPT-6 Sol | `us.openai.gpt-6-sol` | 5/5 completed | Not reverified | Not reverified |
+| GPT-6 Luna | `us.openai.gpt-6-luna` | 5/5 completed | Not reverified | Not reverified |
+| GPT-5.6 Sol | `us.openai.gpt-5.6-sol` | 5/5 completed | Not reverified | Not reverified |
+| Kimi K3 | `us.moonshotai.kimi-k3` | 5/5 completed | Not reverified | Not reverified |
+| GLM 5.3 | `us.zai.glm-5.3` | 4/5 completed | Not reverified | Not reverified |
+| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` (follow-up target) | No verified batch here | Not reverified | Not reverified |
+
+</DataTableFrame>
+
+Public provider evaluations, historical RealWorld measurements, and token-price examples are separate evidence classes. Adding a model to this table adds no chart point. A new evaluation or price row requires its exact model/version, primary source, verification date, benchmark/harness or Region/routing/tier/context/cache conditions. Different Sol service tiers do not represent additional models.
 
 ## How It Was Measured
 
@@ -127,6 +160,37 @@ Switch metrics to compare the range of the five runs (bar) and the median (tick)
 | Frontier | GPT-5.6 Sol | 5/5 | $0.755 ($0.667–$0.908) | 12,032 (10,223–12,787) | 584,537 (505,256–775,728) | 31 (27–34) | 1 | 4.1 (3.4–5.8) |
 | Chinese open-weight | Kimi K3 | 5/5 | $1.422 ($1.154–$1.640) | 39,505 (32,640–47,056) | 1,658,186 (1,276,997–1,856,453) | 61 (57–65) | 1 | 10.5 (8.2–12.0) |
 | Chinese open-weight | GLM 5.3 | 4/5 | $1.821 ($1.402–$2.062) | 59,582 (48,793–77,914) | 3,766,802 (2,876,201–4,364,926) | 80 (73–89) | 1 | 10.1 (8.2–15.0) |
+
+</DataTableFrame>
+
+#### Astra historical result {#astra-historical-result}
+
+The five `gpt6astra` records remain available in the expandable model row and the original dataset. They all have `status: done` and `iterations: 1`. Their cost median is $3.4954, and their elapsed-time median is 7.883 minutes. The price snapshot, run IDs, token counts and other models are unchanged.
+
+### Failure-inclusive cost {#failure-inclusive-cost}
+
+**Table 3. All-attempt cost divided by successful completions**
+
+This is the sum of all five recorded attempt costs divided by that model's completed-attempt count, including failed-attempt cost. It is a ratio, not the completed-run median in Table 1. These values use rounded per-run costs from the historical dataset; the discarded first attempt and preflight are outside this table. With zero completions this ratio is undefined, not zero.
+
+<DataTableFrame minWidth="40rem">
+
+| Model | Attempts | Completed | All-attempt cost (USD) | Cost per completion (USD) |
+|---|---|---|---|---|
+| Claude Opus 5.5 | 5 | 5 | $4.7279 | $0.9456 |
+| Claude Sonnet 5.5 | 5 | 5 | $1.5158 | $0.3032 |
+| Claude Haiku 5.5 | 5 | 5 | $0.3237 | $0.0647 |
+| Claude Fable 5.1 | 5 | 5 | $12.8723 | $2.5745 |
+| Claude Opus 5 | 5 | 5 | $11.4937 | $2.2987 |
+| Claude Sonnet 5 | 5 | 5 | $6.3291 | $1.2658 |
+| Claude Opus 4.8 | 5 | 5 | $10.6600 | $2.1320 |
+| GPT-6.1 Sol | 5 | 5 | $2.5741 | $0.5148 |
+| GPT-6 Astra | 5 | 5 | $16.8230 | $3.3646 |
+| GPT-6 Sol | 5 | 5 | $1.5152 | $0.3030 |
+| GPT-6 Luna | 5 | 5 | $0.1714 | $0.0343 |
+| GPT-5.6 Sol | 5 | 5 | $3.8570 | $0.7714 |
+| Kimi K3 | 5 | 5 | $7.0211 | $1.4042 |
+| GLM 5.3 | 5 | 4 | $8.5371 | $2.1343 |
 
 </DataTableFrame>
 

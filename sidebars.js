@@ -674,6 +674,9 @@ const sidebars = {
       collapsed: false,
       items: [
         'benchmarks/ralph-loop-coding-agent-bedrock',
+        'benchmarks/ralph-loop-series',
+        'benchmarks/ralph-loop-coding-agent-eks',
+        'benchmarks/ralph-loop-inference-optimization',
       ],
     },
   ],
