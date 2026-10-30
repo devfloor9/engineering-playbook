@@ -60,21 +60,21 @@ Coverage reviewed **2026-10-30**. "Not reverified" means this update has not est
 <table>
   <thead><tr><th scope="col">Model</th><th scope="col">Recorded / proposed ID</th><th scope="col">Local measurement</th><th scope="col">Public evaluation</th><th scope="col">Current Bedrock price</th></tr></thead>
   <tbody>
-    <tr><td>Claude Opus 5.5</td><td><code>us.anthropic.claude-opus-5-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>Claude Sonnet 5.5</td><td><code>us.anthropic.claude-sonnet-5-5</code></td><td>5/5 completed</td><td>Provider report located; conditions below</td><td>Not reverified</td></tr>
-    <tr><td>Claude Haiku 5.5</td><td><code>us.anthropic.claude-haiku-5-5</code></td><td>5/5 completed</td><td>Provider report located; conditions below</td><td>Not reverified</td></tr>
-    <tr><td>Claude Fable 5.1</td><td><code>us.anthropic.claude-fable-5-1</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>Claude Opus 5</td><td><code>us.anthropic.claude-opus-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>Claude Sonnet 5</td><td><code>us.anthropic.claude-sonnet-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>Claude Opus 4.8</td><td><code>us.anthropic.claude-opus-4-8</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>GPT-6.1 Sol</td><td><code>us.openai.gpt-6.1-sol</code></td><td>5/5 completed</td><td>Model documentation verified; matched task evaluation pending</td><td>Verified Standard US CRIS; below</td></tr>
-    <tr><td>GPT-6 Astra</td><td><code>us.openai.gpt-6-astra</code></td><td>5/5 completed</td><td>System-card source located; scoped review below</td><td>Verified Standard US CRIS; below</td></tr>
-    <tr><td>GPT-6 Sol</td><td><code>us.openai.gpt-6-sol</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>GPT-6 Luna</td><td><code>us.openai.gpt-6-luna</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>GPT-5.6 Sol</td><td><code>us.openai.gpt-5.6-sol</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>Kimi K3</td><td><code>us.moonshotai.kimi-k3</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>GLM 5.3</td><td><code>us.zai.glm-5.3</code></td><td>4/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
-    <tr><td>GPT-6.1 Terra</td><td><code>us.openai.gpt-6.1-terra</code> (follow-up target)</td><td>No verified batch here</td><td>System-card addendum located; scoped review below</td><td>Verified Standard US CRIS; below</td></tr>
+    <tr><th scope="row">Claude Opus 5.5</th><td><code>us.anthropic.claude-opus-5-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Sonnet 5.5</th><td><code>us.anthropic.claude-sonnet-5-5</code></td><td>5/5 completed</td><td>Provider report located; conditions below</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Haiku 5.5</th><td><code>us.anthropic.claude-haiku-5-5</code></td><td>5/5 completed</td><td>Provider report located; conditions below</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Fable 5.1</th><td><code>us.anthropic.claude-fable-5-1</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Opus 5</th><td><code>us.anthropic.claude-opus-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Sonnet 5</th><td><code>us.anthropic.claude-sonnet-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Opus 4.8</th><td><code>us.anthropic.claude-opus-4-8</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td><code>us.openai.gpt-6.1-sol</code></td><td>5/5 completed</td><td>Model documentation verified; matched task evaluation pending</td><td>Verified Standard US CRIS; below</td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td><code>us.openai.gpt-6-astra</code></td><td>5/5 completed</td><td>System-card source located; scoped review below</td><td>Verified Standard US CRIS; below</td></tr>
+    <tr><th scope="row">GPT-6 Sol</th><td><code>us.openai.gpt-6-sol</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-6 Luna</th><td><code>us.openai.gpt-6-luna</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-5.6 Sol</th><td><code>us.openai.gpt-5.6-sol</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Kimi K3</th><td><code>us.moonshotai.kimi-k3</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GLM 5.3</th><td><code>us.zai.glm-5.3</code></td><td>4/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-6.1 Terra</th><td><code>us.openai.gpt-6.1-terra</code> (follow-up target)</td><td>No verified batch here</td><td>System-card addendum located; scoped review below</td><td>Verified Standard US CRIS; below</td></tr>
   </tbody>
 </table>
 
@@ -106,9 +106,9 @@ Checked **2026-10-30** in each official model card: **Standard**, commercial **U
 <table>
   <thead><tr><th scope="col">Model</th><th scope="col">US inference profile</th><th scope="col">Input</th><th scope="col">Cache write</th><th scope="col">Cache read</th><th scope="col">Output</th><th scope="col">Primary source</th></tr></thead>
   <tbody>
-    <tr><td>GPT-6 Astra</td><td><code>us.openai.gpt-6-astra</code></td><td>$11.00</td><td>$13.75</td><td>$1.10</td><td>$55.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html">Bedrock model card</a></td></tr>
-    <tr><td>GPT-6.1 Terra</td><td><code>us.openai.gpt-6.1-terra</code></td><td>$1.10</td><td>$1.375</td><td>$0.055</td><td>$5.50</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html">Bedrock model card</a></td></tr>
-    <tr><td>GPT-6.1 Sol</td><td><code>us.openai.gpt-6.1-sol</code></td><td>$2.20</td><td>$2.75</td><td>$0.11</td><td>$11.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html">Bedrock model card</a></td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td><code>us.openai.gpt-6-astra</code></td><td>$11.00</td><td>$13.75</td><td>$1.10</td><td>$55.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html">Bedrock model card</a></td></tr>
+    <tr><th scope="row">GPT-6.1 Terra</th><td><code>us.openai.gpt-6.1-terra</code></td><td>$1.10</td><td>$1.375</td><td>$0.055</td><td>$5.50</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html">Bedrock model card</a></td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td><code>us.openai.gpt-6.1-sol</code></td><td>$2.20</td><td>$2.75</td><td>$0.11</td><td>$11.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html">Bedrock model card</a></td></tr>
   </tbody>
 </table>
 
@@ -215,20 +215,20 @@ This is the sum of all five recorded attempt costs divided by that model's compl
 <table>
   <thead><tr><th scope="col">Model</th><th scope="col">Attempts</th><th scope="col">Completed</th><th scope="col">All-attempt cost (USD)</th><th scope="col">Cost per completion (USD)</th></tr></thead>
   <tbody>
-    <tr><td>Claude Opus 5.5</td><td>5</td><td>5</td><td>$4.7279</td><td>$0.9456</td></tr>
-    <tr><td>Claude Sonnet 5.5</td><td>5</td><td>5</td><td>$1.5158</td><td>$0.3032</td></tr>
-    <tr><td>Claude Haiku 5.5</td><td>5</td><td>5</td><td>$0.3237</td><td>$0.0647</td></tr>
-    <tr><td>Claude Fable 5.1</td><td>5</td><td>5</td><td>$12.8723</td><td>$2.5745</td></tr>
-    <tr><td>Claude Opus 5</td><td>5</td><td>5</td><td>$11.4937</td><td>$2.2987</td></tr>
-    <tr><td>Claude Sonnet 5</td><td>5</td><td>5</td><td>$6.3291</td><td>$1.2658</td></tr>
-    <tr><td>Claude Opus 4.8</td><td>5</td><td>5</td><td>$10.6600</td><td>$2.1320</td></tr>
-    <tr><td>GPT-6.1 Sol</td><td>5</td><td>5</td><td>$2.5741</td><td>$0.5148</td></tr>
-    <tr><td>GPT-6 Astra</td><td>5</td><td>5</td><td>$16.8230</td><td>$3.3646</td></tr>
-    <tr><td>GPT-6 Sol</td><td>5</td><td>5</td><td>$1.5152</td><td>$0.3030</td></tr>
-    <tr><td>GPT-6 Luna</td><td>5</td><td>5</td><td>$0.1714</td><td>$0.0343</td></tr>
-    <tr><td>GPT-5.6 Sol</td><td>5</td><td>5</td><td>$3.8570</td><td>$0.7714</td></tr>
-    <tr><td>Kimi K3</td><td>5</td><td>5</td><td>$7.0211</td><td>$1.4042</td></tr>
-    <tr><td>GLM 5.3</td><td>5</td><td>4</td><td>$8.5371</td><td>$2.1343</td></tr>
+    <tr><th scope="row">Claude Opus 5.5</th><td>5</td><td>5</td><td>$4.7279</td><td>$0.9456</td></tr>
+    <tr><th scope="row">Claude Sonnet 5.5</th><td>5</td><td>5</td><td>$1.5158</td><td>$0.3032</td></tr>
+    <tr><th scope="row">Claude Haiku 5.5</th><td>5</td><td>5</td><td>$0.3237</td><td>$0.0647</td></tr>
+    <tr><th scope="row">Claude Fable 5.1</th><td>5</td><td>5</td><td>$12.8723</td><td>$2.5745</td></tr>
+    <tr><th scope="row">Claude Opus 5</th><td>5</td><td>5</td><td>$11.4937</td><td>$2.2987</td></tr>
+    <tr><th scope="row">Claude Sonnet 5</th><td>5</td><td>5</td><td>$6.3291</td><td>$1.2658</td></tr>
+    <tr><th scope="row">Claude Opus 4.8</th><td>5</td><td>5</td><td>$10.6600</td><td>$2.1320</td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td>5</td><td>5</td><td>$2.5741</td><td>$0.5148</td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td>5</td><td>5</td><td>$16.8230</td><td>$3.3646</td></tr>
+    <tr><th scope="row">GPT-6 Sol</th><td>5</td><td>5</td><td>$1.5152</td><td>$0.3030</td></tr>
+    <tr><th scope="row">GPT-6 Luna</th><td>5</td><td>5</td><td>$0.1714</td><td>$0.0343</td></tr>
+    <tr><th scope="row">GPT-5.6 Sol</th><td>5</td><td>5</td><td>$3.8570</td><td>$0.7714</td></tr>
+    <tr><th scope="row">Kimi K3</th><td>5</td><td>5</td><td>$7.0211</td><td>$1.4042</td></tr>
+    <tr><th scope="row">GLM 5.3</th><td>5</td><td>4</td><td>$8.5371</td><td>$2.1343</td></tr>
   </tbody>
 </table>
 

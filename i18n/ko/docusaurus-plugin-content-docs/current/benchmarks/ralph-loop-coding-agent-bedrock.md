@@ -60,21 +60,21 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 <table>
   <thead><tr><th scope="col">모델</th><th scope="col">기록된 / 계획 ID</th><th scope="col">로컬 측정</th><th scope="col">공개 평가</th><th scope="col">현재 Bedrock 단가</th></tr></thead>
   <tbody>
-    <tr><td>Claude Opus 5.5</td><td><code>us.anthropic.claude-opus-5-5</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>Claude Sonnet 5.5</td><td><code>us.anthropic.claude-sonnet-5-5</code></td><td>5/5 완주</td><td>제공사 보고서 확인; 아래 조건 참조</td><td>재확인 안 함</td></tr>
-    <tr><td>Claude Haiku 5.5</td><td><code>us.anthropic.claude-haiku-5-5</code></td><td>5/5 완주</td><td>제공사 보고서 확인; 아래 조건 참조</td><td>재확인 안 함</td></tr>
-    <tr><td>Claude Fable 5.1</td><td><code>us.anthropic.claude-fable-5-1</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>Claude Opus 5</td><td><code>us.anthropic.claude-opus-5</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>Claude Sonnet 5</td><td><code>us.anthropic.claude-sonnet-5</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>Claude Opus 4.8</td><td><code>us.anthropic.claude-opus-4-8</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>GPT-6.1 Sol</td><td><code>us.openai.gpt-6.1-sol</code></td><td>5/5 완주</td><td>모델 문서 확인; 같은 과제 평가 대기</td><td>Standard US CRIS 확인; 아래 참조</td></tr>
-    <tr><td>GPT-6 Astra</td><td><code>us.openai.gpt-6-astra</code></td><td>5/5 완주</td><td>시스템 카드 확인; 아래 검토 범위 참조</td><td>Standard US CRIS 확인; 아래 참조</td></tr>
-    <tr><td>GPT-6 Sol</td><td><code>us.openai.gpt-6-sol</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>GPT-6 Luna</td><td><code>us.openai.gpt-6-luna</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>GPT-5.6 Sol</td><td><code>us.openai.gpt-5.6-sol</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>Kimi K3</td><td><code>us.moonshotai.kimi-k3</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>GLM 5.3</td><td><code>us.zai.glm-5.3</code></td><td>4/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
-    <tr><td>GPT-6.1 Terra</td><td><code>us.openai.gpt-6.1-terra</code> (후속 대상)</td><td>검증된 배치 없음</td><td>시스템 카드 부록 확인; 아래 검토 범위 참조</td><td>Standard US CRIS 확인; 아래 참조</td></tr>
+    <tr><th scope="row">Claude Opus 5.5</th><td><code>us.anthropic.claude-opus-5-5</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">Claude Sonnet 5.5</th><td><code>us.anthropic.claude-sonnet-5-5</code></td><td>5/5 완주</td><td>제공사 보고서 확인; 아래 조건 참조</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">Claude Haiku 5.5</th><td><code>us.anthropic.claude-haiku-5-5</code></td><td>5/5 완주</td><td>제공사 보고서 확인; 아래 조건 참조</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">Claude Fable 5.1</th><td><code>us.anthropic.claude-fable-5-1</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">Claude Opus 5</th><td><code>us.anthropic.claude-opus-5</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">Claude Sonnet 5</th><td><code>us.anthropic.claude-sonnet-5</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">Claude Opus 4.8</th><td><code>us.anthropic.claude-opus-4-8</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td><code>us.openai.gpt-6.1-sol</code></td><td>5/5 완주</td><td>모델 문서 확인; 같은 과제 평가 대기</td><td>Standard US CRIS 확인; 아래 참조</td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td><code>us.openai.gpt-6-astra</code></td><td>5/5 완주</td><td>시스템 카드 확인; 아래 검토 범위 참조</td><td>Standard US CRIS 확인; 아래 참조</td></tr>
+    <tr><th scope="row">GPT-6 Sol</th><td><code>us.openai.gpt-6-sol</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">GPT-6 Luna</th><td><code>us.openai.gpt-6-luna</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">GPT-5.6 Sol</th><td><code>us.openai.gpt-5.6-sol</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">Kimi K3</th><td><code>us.moonshotai.kimi-k3</code></td><td>5/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">GLM 5.3</th><td><code>us.zai.glm-5.3</code></td><td>4/5 완주</td><td>재확인 안 함</td><td>재확인 안 함</td></tr>
+    <tr><th scope="row">GPT-6.1 Terra</th><td><code>us.openai.gpt-6.1-terra</code> (후속 대상)</td><td>검증된 배치 없음</td><td>시스템 카드 부록 확인; 아래 검토 범위 참조</td><td>Standard US CRIS 확인; 아래 참조</td></tr>
   </tbody>
 </table>
 
@@ -106,9 +106,9 @@ OpenAI 공식 API 모델 문서도 [Astra](https://developers.openai.com/api/doc
 <table>
   <thead><tr><th scope="col">모델</th><th scope="col">미국 추론 프로필</th><th scope="col">입력</th><th scope="col">캐시 쓰기</th><th scope="col">캐시 읽기</th><th scope="col">출력</th><th scope="col">공식 출처</th></tr></thead>
   <tbody>
-    <tr><td>GPT-6 Astra</td><td><code>us.openai.gpt-6-astra</code></td><td>$11.00</td><td>$13.75</td><td>$1.10</td><td>$55.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html">Bedrock 모델 카드</a></td></tr>
-    <tr><td>GPT-6.1 Terra</td><td><code>us.openai.gpt-6.1-terra</code></td><td>$1.10</td><td>$1.375</td><td>$0.055</td><td>$5.50</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html">Bedrock 모델 카드</a></td></tr>
-    <tr><td>GPT-6.1 Sol</td><td><code>us.openai.gpt-6.1-sol</code></td><td>$2.20</td><td>$2.75</td><td>$0.11</td><td>$11.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html">Bedrock 모델 카드</a></td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td><code>us.openai.gpt-6-astra</code></td><td>$11.00</td><td>$13.75</td><td>$1.10</td><td>$55.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html">Bedrock 모델 카드</a></td></tr>
+    <tr><th scope="row">GPT-6.1 Terra</th><td><code>us.openai.gpt-6.1-terra</code></td><td>$1.10</td><td>$1.375</td><td>$0.055</td><td>$5.50</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html">Bedrock 모델 카드</a></td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td><code>us.openai.gpt-6.1-sol</code></td><td>$2.20</td><td>$2.75</td><td>$0.11</td><td>$11.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html">Bedrock 모델 카드</a></td></tr>
   </tbody>
 </table>
 
@@ -215,20 +215,20 @@ OpenAI 공식 API 모델 문서도 [Astra](https://developers.openai.com/api/doc
 <table>
   <thead><tr><th scope="col">모델</th><th scope="col">시도</th><th scope="col">완주</th><th scope="col">전체 시도 비용(USD)</th><th scope="col">완주당 비용(USD)</th></tr></thead>
   <tbody>
-    <tr><td>Claude Opus 5.5</td><td>5</td><td>5</td><td>$4.7279</td><td>$0.9456</td></tr>
-    <tr><td>Claude Sonnet 5.5</td><td>5</td><td>5</td><td>$1.5158</td><td>$0.3032</td></tr>
-    <tr><td>Claude Haiku 5.5</td><td>5</td><td>5</td><td>$0.3237</td><td>$0.0647</td></tr>
-    <tr><td>Claude Fable 5.1</td><td>5</td><td>5</td><td>$12.8723</td><td>$2.5745</td></tr>
-    <tr><td>Claude Opus 5</td><td>5</td><td>5</td><td>$11.4937</td><td>$2.2987</td></tr>
-    <tr><td>Claude Sonnet 5</td><td>5</td><td>5</td><td>$6.3291</td><td>$1.2658</td></tr>
-    <tr><td>Claude Opus 4.8</td><td>5</td><td>5</td><td>$10.6600</td><td>$2.1320</td></tr>
-    <tr><td>GPT-6.1 Sol</td><td>5</td><td>5</td><td>$2.5741</td><td>$0.5148</td></tr>
-    <tr><td>GPT-6 Astra</td><td>5</td><td>5</td><td>$16.8230</td><td>$3.3646</td></tr>
-    <tr><td>GPT-6 Sol</td><td>5</td><td>5</td><td>$1.5152</td><td>$0.3030</td></tr>
-    <tr><td>GPT-6 Luna</td><td>5</td><td>5</td><td>$0.1714</td><td>$0.0343</td></tr>
-    <tr><td>GPT-5.6 Sol</td><td>5</td><td>5</td><td>$3.8570</td><td>$0.7714</td></tr>
-    <tr><td>Kimi K3</td><td>5</td><td>5</td><td>$7.0211</td><td>$1.4042</td></tr>
-    <tr><td>GLM 5.3</td><td>5</td><td>4</td><td>$8.5371</td><td>$2.1343</td></tr>
+    <tr><th scope="row">Claude Opus 5.5</th><td>5</td><td>5</td><td>$4.7279</td><td>$0.9456</td></tr>
+    <tr><th scope="row">Claude Sonnet 5.5</th><td>5</td><td>5</td><td>$1.5158</td><td>$0.3032</td></tr>
+    <tr><th scope="row">Claude Haiku 5.5</th><td>5</td><td>5</td><td>$0.3237</td><td>$0.0647</td></tr>
+    <tr><th scope="row">Claude Fable 5.1</th><td>5</td><td>5</td><td>$12.8723</td><td>$2.5745</td></tr>
+    <tr><th scope="row">Claude Opus 5</th><td>5</td><td>5</td><td>$11.4937</td><td>$2.2987</td></tr>
+    <tr><th scope="row">Claude Sonnet 5</th><td>5</td><td>5</td><td>$6.3291</td><td>$1.2658</td></tr>
+    <tr><th scope="row">Claude Opus 4.8</th><td>5</td><td>5</td><td>$10.6600</td><td>$2.1320</td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td>5</td><td>5</td><td>$2.5741</td><td>$0.5148</td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td>5</td><td>5</td><td>$16.8230</td><td>$3.3646</td></tr>
+    <tr><th scope="row">GPT-6 Sol</th><td>5</td><td>5</td><td>$1.5152</td><td>$0.3030</td></tr>
+    <tr><th scope="row">GPT-6 Luna</th><td>5</td><td>5</td><td>$0.1714</td><td>$0.0343</td></tr>
+    <tr><th scope="row">GPT-5.6 Sol</th><td>5</td><td>5</td><td>$3.8570</td><td>$0.7714</td></tr>
+    <tr><th scope="row">Kimi K3</th><td>5</td><td>5</td><td>$7.0211</td><td>$1.4042</td></tr>
+    <tr><th scope="row">GLM 5.3</th><td>5</td><td>4</td><td>$8.5371</td><td>$2.1343</td></tr>
   </tbody>
 </table>
 

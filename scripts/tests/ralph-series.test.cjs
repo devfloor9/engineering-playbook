@@ -7,6 +7,10 @@ const matter = require('gray-matter');
 const {stripMdx} = require('../generate-llm-wiki');
 const {staticRenderer} = require('../llm-wiki-components');
 const {readingTime} = require('../doc-metadata');
+const {parseFragment} = require('parse5');
+const React = require('react');
+const jsxRuntime = require('react/jsx-runtime');
+const {renderToStaticMarkup} = require('react-dom/server');
 
 const root = path.resolve(__dirname, '../..');
 const datasetPath = path.join(root, 'src/data/ralph-loop-bedrock.json');
@@ -69,6 +73,51 @@ test('table assertions reject flattened and escaped pipe-table text', () => {
   assert.deepEqual(exportedTable(correct, 'probe', headers), [['GPT-6 Astra', '$3.4954']]);
   assert.throws(() => exportedTable(correct.replaceAll('\n', ' '), 'probe', headers));
   assert.throws(() => exportedTable(correct.replaceAll('|', '\\|'), 'probe', headers));
+});
+
+test('each new table retains scoped model row headers in source and compiled HTML', async () => {
+  const {evaluate} = await import('@mdx-js/mdx');
+  const tables = [
+    ['model-evidence-coverage', 5, [...data.models.map(model => model.name), 'GPT-6.1 Terra']],
+    ['current-bedrock-prices', 7, ['GPT-6 Astra', 'GPT-6.1 Terra', 'GPT-6.1 Sol']],
+    ['failure-inclusive-cost', 5, data.models.map(model => model.name)],
+  ];
+  const descendants = (node, tag) => [
+    ...(node.tagName === tag ? [node] : []),
+    ...(node.childNodes || []).flatMap(child => descendants(child, tag)),
+  ];
+  const text = node => node.nodeName === '#text' ? node.value
+    : (node.childNodes || []).map(text).join('');
+  const scope = node => node.attrs.find(attribute => attribute.name === 'scope')?.value;
+  for (const locale of Object.keys(directories)) {
+    const article = source(locale, articles[0]);
+    for (const [anchor, width, modelNames] of tables) {
+      const section = article.slice(article.indexOf(`{#${anchor}}`));
+      const block = section.match(/<table>[\s\S]*?<\/table>/)?.[0];
+      assert.ok(block, `${locale}: ${anchor} source table`);
+      const compiled = await evaluate(block, {...jsxRuntime});
+      const html = renderToStaticMarkup(React.createElement(compiled.default));
+      for (const [kind, markup] of [['source', block], ['compiled', html]]) {
+        const table = descendants(parseFragment(markup), 'table')[0];
+        const header = descendants(table, 'thead')[0];
+        const columns = descendants(header, 'th');
+        assert.equal(columns.length, width, `${locale}: ${anchor} ${kind} column count`);
+        assert.ok(columns.every(cell => scope(cell) === 'col'),
+          `${locale}: ${anchor} ${kind} scoped column headers`);
+        const rows = descendants(descendants(table, 'tbody')[0], 'tr');
+        assert.equal(rows.length, modelNames.length, `${locale}: ${anchor} ${kind} row count`);
+        rows.forEach((row, index) => {
+          const cells = row.childNodes.filter(node => ['th', 'td'].includes(node.tagName));
+          assert.equal(cells.length, width, `${locale}: ${anchor} ${kind} row width`);
+          assert.equal(cells[0].tagName, 'th', `${locale}: ${anchor} ${kind} model header`);
+          assert.equal(scope(cells[0]), 'row', `${locale}: ${anchor} ${kind} row scope`);
+          assert.equal(text(cells[0]), modelNames[index], `${locale}: ${anchor} ${kind} model name`);
+          assert.ok(cells.slice(1).every(cell => cell.tagName === 'td'),
+            `${locale}: ${anchor} ${kind} values remain data cells`);
+        });
+      }
+    }
+  }
 });
 
 test('the original 14-model, 70-attempt dataset remains byte-identical', () => {
