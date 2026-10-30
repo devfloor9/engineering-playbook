@@ -5,7 +5,7 @@ created: "2026-10-13"
 last_update:
   date: 2026-10-30
   author: devfloor9
-reading_time: 57
+reading_time: 63
 tags:
   - benchmark
   - bedrock
@@ -60,24 +60,55 @@ Coverage reviewed **2026-10-30**. "Not reverified" means this update has not est
 | Model | Recorded / proposed ID | Local measurement | Public evaluation | Current Bedrock price |
 |---|---|---|---|---|
 | Claude Opus 5.5 | `us.anthropic.claude-opus-5-5` | 5/5 completed | Not reverified | Not reverified |
-| Claude Sonnet 5.5 | `us.anthropic.claude-sonnet-5-5` | 5/5 completed | Not reverified | Not reverified |
-| Claude Haiku 5.5 | `us.anthropic.claude-haiku-5-5` | 5/5 completed | Not reverified | Not reverified |
+| Claude Sonnet 5.5 | `us.anthropic.claude-sonnet-5-5` | 5/5 completed | Provider report located; conditions below | Not reverified |
+| Claude Haiku 5.5 | `us.anthropic.claude-haiku-5-5` | 5/5 completed | Provider report located; conditions below | Not reverified |
 | Claude Fable 5.1 | `us.anthropic.claude-fable-5-1` | 5/5 completed | Not reverified | Not reverified |
 | Claude Opus 5 | `us.anthropic.claude-opus-5` | 5/5 completed | Not reverified | Not reverified |
 | Claude Sonnet 5 | `us.anthropic.claude-sonnet-5` | 5/5 completed | Not reverified | Not reverified |
 | Claude Opus 4.8 | `us.anthropic.claude-opus-4-8` | 5/5 completed | Not reverified | Not reverified |
-| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | 5/5 completed | Not reverified | Not reverified |
-| GPT-6 Astra | `us.openai.gpt-6-astra` | 5/5 completed | Not reverified | Not reverified |
+| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | 5/5 completed | Model documentation verified; matched task evaluation pending | Verified Standard US CRIS; below |
+| GPT-6 Astra | `us.openai.gpt-6-astra` | 5/5 completed | System-card source located; scoped review below | Verified Standard US CRIS; below |
 | GPT-6 Sol | `us.openai.gpt-6-sol` | 5/5 completed | Not reverified | Not reverified |
 | GPT-6 Luna | `us.openai.gpt-6-luna` | 5/5 completed | Not reverified | Not reverified |
 | GPT-5.6 Sol | `us.openai.gpt-5.6-sol` | 5/5 completed | Not reverified | Not reverified |
 | Kimi K3 | `us.moonshotai.kimi-k3` | 5/5 completed | Not reverified | Not reverified |
 | GLM 5.3 | `us.zai.glm-5.3` | 4/5 completed | Not reverified | Not reverified |
-| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` (follow-up target) | No verified batch here | Not reverified | Not reverified |
+| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` (follow-up target) | No verified batch here | System-card addendum located; scoped review below | Verified Standard US CRIS; below |
 
 </DataTableFrame>
 
 Public provider evaluations, historical RealWorld measurements, and token-price examples are separate evidence classes. Adding a model to this table adds no chart point. A new evaluation or price row requires its exact model/version, primary source, verification date, benchmark/harness or Region/routing/tier/context/cache conditions. Different Sol service tiers do not represent additional models.
+
+### Verified primary-source scope {#verified-primary-sources}
+
+The following sources were read on **2026-10-30**. Locating an evaluation source does not mean its complete system card was audited or its results reproduced. No provider score is added to the Ralph charts.
+
+| Model | Primary source | Verified scope / comparison limit |
+|---|---|---|
+| GPT-6 Astra | [OpenAI system card](https://deploymentsafety.openai.com/gpt-6-astra) | Published 2026-09-03; scoped safety/alignment evaluation review. These are not matched RealWorld runs. |
+| GPT-6.1 Terra | [OpenAI system-card addendum](https://deploymentsafety.openai.com/gpt-6-1-terra) | Published 2026-10-26; research/API evaluations may use different prompts, tools and efforts. Earlier-model comparison values may reflect later revisions. |
+| Claude Sonnet 5.5 | [Anthropic provider report](https://www.anthropic.com/claude-sonnet-5-5) | Published 2026-09-28; includes Terminal-Bench 4.0 and other named evaluations. The report notes effort and prerelease caveats; this check did not harmonize its runner with Ralph. |
+| Claude Haiku 5.5 | [Anthropic provider report](https://www.anthropic.com/claude-haiku-5-5) | Published 2026-10-07; includes Terminal-Bench 4.0 and OSWorld 2.1 offline-subset results. These are separate workloads; runner/effort parity with Ralph is not established. |
+
+Official OpenAI API model pages were also read for [Astra](https://developers.openai.com/api/docs/models/gpt-6-astra), [Terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra) and [Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol). They establish named API model and pricing documentation, not a comparable RealWorld score. First-party API rates are not substituted for Bedrock rates.
+
+The [Terra announcement](https://openai.com/index/introducing-gpt-6-1-terra/) returned HTTP 403 with a browser challenge in this check. Its unread body is not evidence here; the accessible model card and system-card addendum remain separate verified sources. Other models' current prices and matched public-task evaluations remain explicitly unverified rather than inferred from a family or tier.
+
+### Current documented Bedrock prices {#current-bedrock-prices}
+
+Checked **2026-10-30** in each official model card: **Standard**, commercial **US geographic cross-Region inference**, `bedrock-runtime`, from the `us-east-1` source Region, **at most 272,000 input tokens**. Values are **USD per 1 million tokens**. The US premium is already included. Cache-write rows use **30-minute retention**.
+
+<DataTableFrame minWidth="55rem">
+
+| Model | US inference profile | Input | Cache write | Cache read | Output | Primary source |
+|---|---|---|---|---|---|---|
+| GPT-6 Astra | `us.openai.gpt-6-astra` | $11.00 | $13.75 | $1.10 | $55.00 | [Bedrock model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html) |
+| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` | $1.10 | $1.375 | $0.055 | $5.50 | [Bedrock model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html) |
+| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | $2.20 | $2.75 | $0.11 | $11.00 | [Bedrock model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html) |
+
+</DataTableFrame>
+
+For these cards, requests above 272,000 input tokens use long-context rates for the full request: 2× the input/cache rates and 1.5× the output rate. Other routing and service tiers require their own rows. This dated price table changes no historical run, cost, cache record or rank; it is neither a new benchmark batch nor a verified bill. Account access, actual routing and cache behavior were not exercised by this document check.
 
 ## How It Was Measured
 

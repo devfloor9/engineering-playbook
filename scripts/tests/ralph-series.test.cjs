@@ -94,6 +94,37 @@ test('failure-inclusive tables reproduce cost and denominators from all attempts
   }
 });
 
+test('current Bedrock prices retain primary sources, US IDs and both-locale token rates', () => {
+  const expected = [
+    ['GPT-6 Astra', 'us.openai.gpt-6-astra', '$11.00', '$13.75', '$1.10', '$55.00',
+      'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html'],
+    ['GPT-6.1 Terra', 'us.openai.gpt-6.1-terra', '$1.10', '$1.375', '$0.055', '$5.50',
+      'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html'],
+    ['GPT-6.1 Sol', 'us.openai.gpt-6.1-sol', '$2.20', '$2.75', '$0.11', '$11.00',
+      'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html'],
+  ];
+  for (const locale of Object.keys(directories)) {
+    const text = exportArticle(locale, articles[0]);
+    const article = source(locale, articles[0]);
+    const section = article.slice(article.indexOf('{#current-bedrock-prices}'));
+    const table = section.slice(0, section.indexOf(locale === 'en' ? '## How It Was Measured' : '## 측정 방식'));
+    assert.ok(table.includes('2026-10-30'));
+    assert.ok(table.includes('Standard'));
+    assert.ok(table.includes('us-east-1'));
+    assert.ok(table.includes('272,000'));
+    for (const [model, id, ...values] of expected) {
+      const row = table.split('\n').find(line => line.startsWith(`| ${model} |`));
+      assert.ok(row, `${locale}: ${model}`);
+      const cells = row.split('|').slice(1, -1).map(cell => cell.trim());
+      assert.deepEqual(cells.slice(0, 6), [model, `\`${id}\``, ...values.slice(0, 4)]);
+      assert.ok(cells[6].includes(values[4]), `${locale}: ${model} primary source`);
+      for (const value of [model, id, ...values]) {
+        assert.ok(text.includes(value), `${locale}: ${model} exports ${value}`);
+      }
+    }
+  }
+});
+
 test('series links resolve reciprocally in both locales', () => {
   for (const locale of Object.keys(directories)) {
     for (const article of articles) {

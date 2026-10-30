@@ -5,7 +5,7 @@ created: "2026-10-13"
 last_update:
   date: 2026-10-30
   author: YoungJoon Jeong
-reading_time: 35
+reading_time: 39
 tags:
   - benchmark
   - bedrock
@@ -60,24 +60,55 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 | 모델 | 기록된 / 계획 ID | 로컬 측정 | 공개 평가 | 현재 Bedrock 단가 |
 |---|---|---|---|---|
 | Claude Opus 5.5 | `us.anthropic.claude-opus-5-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
-| Claude Sonnet 5.5 | `us.anthropic.claude-sonnet-5-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
-| Claude Haiku 5.5 | `us.anthropic.claude-haiku-5-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| Claude Sonnet 5.5 | `us.anthropic.claude-sonnet-5-5` | 5/5 완주 | 제공사 보고서 확인; 아래 조건 참조 | 재확인 안 함 |
+| Claude Haiku 5.5 | `us.anthropic.claude-haiku-5-5` | 5/5 완주 | 제공사 보고서 확인; 아래 조건 참조 | 재확인 안 함 |
 | Claude Fable 5.1 | `us.anthropic.claude-fable-5-1` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
 | Claude Opus 5 | `us.anthropic.claude-opus-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
 | Claude Sonnet 5 | `us.anthropic.claude-sonnet-5` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
 | Claude Opus 4.8 | `us.anthropic.claude-opus-4-8` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
-| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
-| GPT-6 Astra | `us.openai.gpt-6-astra` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
+| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | 5/5 완주 | 모델 문서 확인; 같은 과제 평가 대기 | Standard US CRIS 확인; 아래 참조 |
+| GPT-6 Astra | `us.openai.gpt-6-astra` | 5/5 완주 | 시스템 카드 확인; 아래 검토 범위 참조 | Standard US CRIS 확인; 아래 참조 |
 | GPT-6 Sol | `us.openai.gpt-6-sol` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
 | GPT-6 Luna | `us.openai.gpt-6-luna` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
 | GPT-5.6 Sol | `us.openai.gpt-5.6-sol` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
 | Kimi K3 | `us.moonshotai.kimi-k3` | 5/5 완주 | 재확인 안 함 | 재확인 안 함 |
 | GLM 5.3 | `us.zai.glm-5.3` | 4/5 완주 | 재확인 안 함 | 재확인 안 함 |
-| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` (후속 대상) | 검증된 배치 없음 | 재확인 안 함 | 재확인 안 함 |
+| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` (후속 대상) | 검증된 배치 없음 | 시스템 카드 부록 확인; 아래 검토 범위 참조 | Standard US CRIS 확인; 아래 참조 |
 
 </DataTableFrame>
 
 공개 제공사 평가, 과거 RealWorld 실측, 토큰 단가 계산은 다른 근거입니다. 이 표에 모델을 추가해도 차트에 점을 추가하지 않습니다. 새 평가나 단가를 넣을 때는 정확한 모델·버전, 공식 출처, 확인일과 벤치마크·하네스 또는 리전·라우팅·등급·컨텍스트·캐시 조건이 필요합니다. Sol의 서비스 등급이 다르다고 모델이 추가되는 것은 아닙니다.
+
+### 확인한 공식 출처 범위 {#verified-primary-sources}
+
+아래 출처는 **2026-10-30**에 읽었습니다. 평가 출처를 찾았다고 시스템 카드 전체를 감사하거나 결과를 재현한 것은 아닙니다. 제공사 점수는 Ralph 차트에 넣지 않습니다.
+
+| 모델 | 공식 출처 | 확인 범위 / 비교 한계 |
+|---|---|---|
+| GPT-6 Astra | [OpenAI 시스템 카드](https://deploymentsafety.openai.com/gpt-6-astra) | 2026-09-03 게시; 안전·정렬 평가의 일부 범위를 검토했습니다. 같은 RealWorld 과제 실행이 아닙니다. |
+| GPT-6.1 Terra | [OpenAI 시스템 카드 부록](https://deploymentsafety.openai.com/gpt-6-1-terra) | 2026-10-26 게시; 연구·API 평가는 프롬프트·도구·effort가 다를 수 있습니다. 이전 모델 비교값은 나중의 revision일 수 있습니다. |
+| Claude Sonnet 5.5 | [Anthropic 제공사 보고서](https://www.anthropic.com/claude-sonnet-5-5) | 2026-09-28 게시; Terminal-Bench 4.0 등 평가가 있습니다. effort와 사전 배포 주의가 있으며, 이번 확인에서 Ralph 실행기와 동등성을 검증하지 않았습니다. |
+| Claude Haiku 5.5 | [Anthropic 제공사 보고서](https://www.anthropic.com/claude-haiku-5-5) | 2026-10-07 게시; Terminal-Bench 4.0, OSWorld 2.1 오프라인 하위 집합 등이 있습니다. 다른 과제이며 Ralph와 실행기·effort 동등성을 확인하지 않았습니다. |
+
+OpenAI 공식 API 모델 문서도 [Astra](https://developers.openai.com/api/docs/models/gpt-6-astra), [Terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra), [Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol)에 대해 읽었습니다. 해당 이름의 API 모델과 단가 문서가 있다는 근거이며, 비교 가능한 RealWorld 점수의 근거는 아닙니다. OpenAI 자체 API 단가를 Bedrock 단가로 대신 사용하지 않습니다.
+
+[Terra 소개 페이지](https://openai.com/index/introducing-gpt-6-1-terra/)는 이번 확인에서 브라우저 확인 화면과 HTTP 403을 반환했습니다. 읽지 못한 본문은 근거로 쓰지 않았습니다. 접근 가능한 모델 카드와 시스템 카드 부록은 따로 확인한 출처입니다. 다른 모델의 현재 단가와 같은 과제의 공개 평가는 모델군이나 등급에서 추정하지 않고 미확인으로 둡니다.
+
+### 현재 문서에 적힌 Bedrock 단가 {#current-bedrock-prices}
+
+공식 모델 카드별 확인일은 **2026-10-30**입니다. **Standard**, 상용 **미국 지리적 교차 리전 추론**, `bedrock-runtime`, 출발 리전 `us-east-1`, **입력 272,000토큰 이하** 조건입니다. 단위는 **100만 토큰당 USD**입니다. 미국 추가 요금은 이미 포함되어 있습니다. 캐시 쓰기는 **30분 보존** 행입니다.
+
+<DataTableFrame minWidth="55rem">
+
+| 모델 | 미국 추론 프로필 | 입력 | 캐시 쓰기 | 캐시 읽기 | 출력 | 공식 출처 |
+|---|---|---|---|---|---|---|
+| GPT-6 Astra | `us.openai.gpt-6-astra` | $11.00 | $13.75 | $1.10 | $55.00 | [Bedrock 모델 카드](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html) |
+| GPT-6.1 Terra | `us.openai.gpt-6.1-terra` | $1.10 | $1.375 | $0.055 | $5.50 | [Bedrock 모델 카드](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html) |
+| GPT-6.1 Sol | `us.openai.gpt-6.1-sol` | $2.20 | $2.75 | $0.11 | $11.00 | [Bedrock 모델 카드](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html) |
+
+</DataTableFrame>
+
+이 카드들에서는 입력이 272,000토큰을 넘으면 전체 요청에 장문 단가를 적용합니다. 입력·캐시 단가는 2배, 출력 단가는 1.5배입니다. 다른 라우팅과 서비스 등급은 별도 행이 필요합니다. 이 날짜별 단가 표는 과거 run·비용·캐시 기록·순위를 바꾸지 않습니다. 새 벤치마크 배치나 확인된 청구액도 아닙니다. 이번 문서 확인에서는 계정 접근, 실제 라우팅과 캐시 동작을 실행하지 않았습니다.
 
 ## 측정 방식
 
