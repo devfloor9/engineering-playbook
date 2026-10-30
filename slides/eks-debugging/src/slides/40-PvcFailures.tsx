@@ -17,7 +17,7 @@ export default function PvcFailures() {
         </Card>
         <Card title="볼륨 제한 초과" icon={<Layers size={22} />} accent="amber" delay={0.2}>
           <p>인스턴스 타입마다 <span className="text-amber-400 font-bold">최대 EBS 볼륨 수</span> 제한</p>
-          <p className="mt-2">Nitro: 타입별 상이 (최대 128개)</p>
+          <p className="mt-2">Nitro: 타입·크기별 상이 (공유 또는 전용 한도)</p>
           <p className="text-emerald-400 mt-2 font-semibold">해결: 더 큰 인스턴스 타입 또는 볼륨 분산</p>
         </Card>
         <Card title="ReadWriteOnce (RWO)" icon={<Lock size={22} />} accent="rose" delay={0.3}>

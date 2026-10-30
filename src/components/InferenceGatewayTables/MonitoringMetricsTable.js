@@ -7,31 +7,31 @@ const MonitoringMetricsTable = () => {
   const isKo = i18n.currentLocale === 'ko';
   const metrics = [{
     id: 'requests-total',
-    metric: isKo ? '요청 수 (예: Envoy downstream rq 계열)' : 'Request count (e.g. Envoy downstream rq series)',
+    metric: 'http.<stat_prefix>.downstream_rq_total',
     description: isKo ? '총 요청 수' : 'Total request count',
     usage: isKo ? '트래픽 모니터링' : 'Traffic monitoring',
     color: '#3b82f6'
   }, {
     id: 'request-duration',
-    metric: isKo ? '요청 처리 시간 (예: Envoy rq duration 계열)' : 'Request duration (e.g. Envoy rq duration series)',
-    description: isKo ? '요청 처리 시간' : 'Request processing time',
+    metric: 'http.<stat_prefix>.downstream_rq_time',
+    description: isKo ? '요청·응답 전체 시간 히스토그램 (밀리초)' : 'Total request/response time histogram (milliseconds)',
     usage: isKo ? '지연 시간 분석' : 'Latency analysis',
     color: '#8b5cf6'
   }, {
     id: 'upstream-rq',
-    metric: isKo ? '백엔드 응답 코드 (예: Envoy upstream rq xx 계열)' : 'Backend response codes (e.g. Envoy upstream rq xx series)',
+    metric: 'cluster.<name>.upstream_rq_<code>',
     description: isKo ? '백엔드 응답 코드별 수' : 'Backend response codes',
     usage: isKo ? '오류율 추적' : 'Error tracking',
     color: '#f59e0b'
   }, {
     id: 'upstream-cx',
-    metric: isKo ? '활성 연결 수 (예: Envoy upstream cx active 계열)' : 'Active connections (e.g. Envoy upstream cx active series)',
+    metric: 'cluster.<name>.upstream_cx_active',
     description: isKo ? '활성 연결 수' : 'Active connections',
     usage: isKo ? '용량 계획' : 'Capacity planning',
     color: '#10b981'
   }, {
     id: 'retry-count',
-    metric: isKo ? '재시도 수 (예: Envoy upstream rq retry 계열)' : 'Retry count (e.g. Envoy upstream rq retry series)',
+    metric: 'cluster.<name>.upstream_rq_retry',
     description: isKo ? '재시도 횟수' : 'Retry count',
     usage: isKo ? '안정성 분석' : 'Stability analysis',
     color: '#ef4444'
@@ -50,7 +50,7 @@ const MonitoringMetricsTable = () => {
       fontWeight: '600',
       fontSize: '16px'
     }}>
-        {isKo ? '📊 Kgateway(Envoy) 관측 메트릭 — 예시 매핑' : '📊 Kgateway (Envoy) observability metrics — example mapping'}
+        {isKo ? '📊 Envoy v1.36.0 관리 통계 이름' : '📊 Envoy v1.36.0 admin statistic names'}
       </div>
 
       <div style={{

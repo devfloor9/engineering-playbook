@@ -3,9 +3,9 @@ title: 추론 게이트웨이 & LLM Gateway 라우팅 전략
 description: kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴
 created: "2025-02-05"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-30
   author: YoungJoon Jeong
-reading_time: 46
+reading_time: 47
 tags:
   - kgateway
   - bifrost
@@ -578,7 +578,9 @@ agentgateway는 kgateway v2.2 계보에서 분리된 AI 전용 데이터 플레�
 
 ### 핵심 메트릭
 
-AI 추론 게이트웨이에서 모니터링해야 하는 핵심 메트릭은 다음과 같습니다. 아래 표의 메트릭 **이름은 예시**입니다. kgateway의 게이트웨이 프록시는 Envoy이므로 실제 시계열은 Envoy가 내보내는 series(예: downstream/upstream request·connection 계열)로 노출되며, 정확한 메트릭 이름·레이블은 배포하려는 버전의 [kgateway Gateway proxy metrics 문서](https://kgateway.dev/docs/envoy/latest/observability/gateway-metrics/)와 실제 scrape 결과로 확인한 뒤 쿼리·recording rule을 작성해야 합니다.
+아래 표는 2026년 10월 30일 확인한 [Envoy v1.36.0 HTTP connection-manager 문서](https://github.com/envoyproxy/envoy/blob/v1.36.0/docs/root/configuration/http/http_conn_man/stats.rst)와 [cluster 문서](https://github.com/envoyproxy/envoy/blob/v1.36.0/docs/root/configuration/upstream/cluster_manager/cluster_stats.rst)의 **정확한 관리 통계 이름**과 설정별 트리 접두사를 사용합니다. `<stat_prefix>`, `<name>`, `<code>`는 각각 설정된 HTTP 접두사, upstream cluster, 응답 코드의 자리표시자입니다. 점으로 구분한 관리 통계 이름은 **PromQL 시계열 이름이 아닙니다**.
+
+[kgateway 지표 문서 스냅샷](https://github.com/kgateway-dev/kgateway.dev/blob/50124775568e29da3b63386a976442f85f2e78d9/assets/kgw-docs/pages/observability/gateway-metrics.md)은 `envoy_cluster_external_upstream_rq{envoy_response_code="200",envoy_cluster_name="kube_httpbin_httpbin_8000"}`를 Prometheus 예제로 제시합니다. listener 쿼리는 `envoy_http_downstream_rq_total`과 `envoy_http_conn_manager_prefix` 라벨을 사용하며, 접두사 값은 kgateway 버전과 listener 설정에 따라 다릅니다. 쿼리나 recording rule을 만들기 전에 배포 버전, 태그 추출, 히스토그램 단위, 실제 `/stats/prometheus` 스크래핑 결과를 확인해야 합니다. 기본 `?usedonly` 필터는 값이 0인 시계열을 생략할 수 있으므로, 시계열이 없다는 이유만으로 트래픽이 0이라고 판단하지 마세요. 이는 공식 문서의 계약이며 이 보고서 환경에서 수집한 지표가 아닙니다.
 
 import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTables';
 

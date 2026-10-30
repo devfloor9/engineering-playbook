@@ -3,7 +3,7 @@ title: EKS 성능 벤치마크 보고서
 description: EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영, AI 에이전트
 created: "2026-02-09"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-30
   author: devfloor9
 reading_time: 2
 tags:
@@ -50,13 +50,15 @@ EKS 환경의 성능 보고서와 측정 계획을 모았습니다. 각 보고�
 
 ## AI 에이전트
 
-Amazon Bedrock에서 실행한 AI 코딩 에이전트 측정입니다. EKS 환경에서 측정한 결과가 아닙니다.
+공개된 AI 코딩 에이전트 결과는 Amazon Bedrock에서 측정했습니다. EKS 후속 단계는 아직 계획입니다.
 
 **표 4. AI 에이전트 벤치마크 보고서와 검증 상태**
 
 | # | 보고서 | 상태 |
 |---|--------|------|
 | 9 | [Foundation Model별 토큰 비용 비교: 코딩 에이전트 랄프 루프로 실측한 Amazon Bedrock 14개 모델](./ralph-loop-coding-agent-bedrock.md) | 실측 완료 / 원 데이터 미포함 |
+
+[랄프 루프 시리즈](./ralph-loop-series.md): 기존 Bedrock 보고서는 1편이며, [2편 EKS 기준선](./ralph-loop-coding-agent-eks.md)과 [3편 통제된 최적화](./ralph-loop-inference-optimization.md)는 아직 실측 결과가 없습니다.
 
 ## 벤치마크 방법론
 

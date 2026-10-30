@@ -3,9 +3,9 @@ title: "Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measure
 description: Measured report that ran a RealWorld backend implementation task in a Ralph loop five times on each of 14 models in Amazon Bedrock us-east-1 and compares completion, tokens, cost and LLM requests
 created: "2026-10-13"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-30
   author: devfloor9
-reading_time: 44
+reading_time: 63
 tags:
   - benchmark
   - bedrock
@@ -32,6 +32,9 @@ This benchmark was built with reference to the [Ralph loop completion by model](
 Every number was generated from the run records by script. Each value is labelled by its basis: [fact] (run or queried directly), [calculated] (a fixed rule such as tokens × price), [estimate] (involves an assumption) or [source] (the supporting material). Values that could not be confirmed are marked "not verified".
 :::
 
+**Series:** [Index](./ralph-loop-series.md) · **Part 1: Bedrock** · [Part 2: EKS baseline — planned](./ralph-loop-coding-agent-eks.md) · [Part 3: EKS optimizations — planned](./ralph-loop-inference-optimization.md).
+Only the 14 historical models below have results in this published dataset. The Terra follow-up and EKS stages have no verified results here.
+
 <RalphKpiStrip />
 
 ## Overview
@@ -45,6 +48,73 @@ This report measures, on Amazon Bedrock, how many tokens, how much money and how
 - **Models differ more than groups** [calculated]: the Chinese open-weight group value ($1.621) was about 2.0× the frontier value ($0.831), while costs inside the frontier group differ by about 130×.
 - **Cache reads are a large share of cost** [calculated]: 94% of the tokens in completed runs were cache reads. They are cheap per token but so numerous that they made up a large part of the run cost for many models.
 - **Spend** [calculated]: $106.02 in total, the $88.42 of runs used in the results plus $17.60 for the discarded first attempt. These are not billed amounts.
+
+**GPT-6 Astra is included.** Its recorded ID is `us.openai.gpt-6-astra`. It completed 5/5 attempts, all in one Ralph iteration, with median calculated cost **$3.4954** and median elapsed time **7.883 minutes**. This was the highest median cost among these 14 models on this task; it does not establish general coding quality. See [Astra's detailed result](#astra-historical-result), [all measured models](#results-by-model), and the [evidence coverage](#model-evidence-coverage).
+
+### Model evidence coverage {#model-evidence-coverage}
+
+Coverage reviewed **2026-10-30**. "Not reverified" means this update has not established a dated, version-matched primary-source result or current Bedrock price. It does not mean no public evidence exists. The recorded prices under [Prices applied](#prices-applied-source) remain the historical snapshot; they are not today's prices. The same coverage rule applies to every provider and every service tier.
+
+<DataTableFrame minWidth="60rem">
+
+<table>
+  <thead><tr><th scope="col">Model</th><th scope="col">Recorded / proposed ID</th><th scope="col">Local measurement</th><th scope="col">Public evaluation</th><th scope="col">Current Bedrock price</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Claude Opus 5.5</th><td><code>us.anthropic.claude-opus-5-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Sonnet 5.5</th><td><code>us.anthropic.claude-sonnet-5-5</code></td><td>5/5 completed</td><td>Provider report located; conditions below</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Haiku 5.5</th><td><code>us.anthropic.claude-haiku-5-5</code></td><td>5/5 completed</td><td>Provider report located; conditions below</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Fable 5.1</th><td><code>us.anthropic.claude-fable-5-1</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Opus 5</th><td><code>us.anthropic.claude-opus-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Sonnet 5</th><td><code>us.anthropic.claude-sonnet-5</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Claude Opus 4.8</th><td><code>us.anthropic.claude-opus-4-8</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td><code>us.openai.gpt-6.1-sol</code></td><td>5/5 completed</td><td>Model documentation verified; matched task evaluation pending</td><td>Verified Standard US CRIS; below</td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td><code>us.openai.gpt-6-astra</code></td><td>5/5 completed</td><td>System-card source located; scoped review below</td><td>Verified Standard US CRIS; below</td></tr>
+    <tr><th scope="row">GPT-6 Sol</th><td><code>us.openai.gpt-6-sol</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-6 Luna</th><td><code>us.openai.gpt-6-luna</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-5.6 Sol</th><td><code>us.openai.gpt-5.6-sol</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">Kimi K3</th><td><code>us.moonshotai.kimi-k3</code></td><td>5/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GLM 5.3</th><td><code>us.zai.glm-5.3</code></td><td>4/5 completed</td><td>Not reverified</td><td>Not reverified</td></tr>
+    <tr><th scope="row">GPT-6.1 Terra</th><td><code>us.openai.gpt-6.1-terra</code> (follow-up target)</td><td>No verified batch here</td><td>System-card addendum located; scoped review below</td><td>Verified Standard US CRIS; below</td></tr>
+  </tbody>
+</table>
+
+</DataTableFrame>
+
+Public provider evaluations, historical RealWorld measurements, and token-price examples are separate evidence classes. Adding a model to this table adds no chart point. A new evaluation or price row requires its exact model/version, primary source, verification date, benchmark/harness or Region/routing/tier/context/cache conditions. Different Sol service tiers do not represent additional models.
+
+### Verified primary-source scope {#verified-primary-sources}
+
+The following sources were read on **2026-10-30**. Locating an evaluation source does not mean its complete system card was audited or its results reproduced. No provider score is added to the Ralph charts.
+
+| Model | Primary source | Verified scope / comparison limit |
+|---|---|---|
+| GPT-6 Astra | [OpenAI system card](https://deploymentsafety.openai.com/gpt-6-astra) | Published 2026-09-03; scoped safety/alignment evaluation review. These are not matched RealWorld runs. |
+| GPT-6.1 Terra | [OpenAI system-card addendum](https://deploymentsafety.openai.com/gpt-6-1-terra) | Published 2026-10-26; research/API evaluations may use different prompts, tools and efforts. Earlier-model comparison values may reflect later revisions. |
+| Claude Sonnet 5.5 | [Anthropic provider report](https://www.anthropic.com/claude-sonnet-5-5) | Published 2026-09-28; includes Terminal-Bench 4.0 and other named evaluations. The report notes effort and prerelease caveats; this check did not harmonize its runner with Ralph. |
+| Claude Haiku 5.5 | [Anthropic provider report](https://www.anthropic.com/claude-haiku-5-5) | Published 2026-10-07; includes Terminal-Bench 4.0 and OSWorld 2.1 offline-subset results. These are separate workloads; runner/effort parity with Ralph is not established. |
+
+Official OpenAI API model pages were also read for [Astra](https://developers.openai.com/api/docs/models/gpt-6-astra), [Terra](https://developers.openai.com/api/docs/models/gpt-6.1-terra) and [Sol](https://developers.openai.com/api/docs/models/gpt-6.1-sol). They establish named API model and pricing documentation, not a comparable RealWorld score. First-party API rates are not substituted for Bedrock rates.
+
+The [Terra announcement](https://openai.com/index/introducing-gpt-6-1-terra/) returned HTTP 403 with a browser challenge in this check. Its unread body is not evidence here; the accessible model card and system-card addendum remain separate verified sources. Other models' current prices and matched public-task evaluations remain explicitly unverified rather than inferred from a family or tier.
+
+### Current documented Bedrock prices {#current-bedrock-prices}
+
+Checked **2026-10-30** in each official model card: **Standard**, commercial **US geographic cross-Region inference**, `bedrock-runtime`, from the `us-east-1` source Region, **at most 272,000 input tokens**. Values are **USD per 1 million tokens**. The US premium is already included. Cache-write rows use **30-minute retention**.
+
+<DataTableFrame minWidth="55rem">
+
+<table>
+  <thead><tr><th scope="col">Model</th><th scope="col">US inference profile</th><th scope="col">Input</th><th scope="col">Cache write</th><th scope="col">Cache read</th><th scope="col">Output</th><th scope="col">Primary source</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">GPT-6 Astra</th><td><code>us.openai.gpt-6-astra</code></td><td>$11.00</td><td>$13.75</td><td>$1.10</td><td>$55.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-astra.html">Bedrock model card</a></td></tr>
+    <tr><th scope="row">GPT-6.1 Terra</th><td><code>us.openai.gpt-6.1-terra</code></td><td>$1.10</td><td>$1.375</td><td>$0.055</td><td>$5.50</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-terra.html">Bedrock model card</a></td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td><code>us.openai.gpt-6.1-sol</code></td><td>$2.20</td><td>$2.75</td><td>$0.11</td><td>$11.00</td><td><a href="https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-6-1-sol.html">Bedrock model card</a></td></tr>
+  </tbody>
+</table>
+
+</DataTableFrame>
+
+For these cards, requests above 272,000 input tokens use long-context rates for the full request: 2× the input/cache rates and 1.5× the output rate. Other routing and service tiers require their own rows. This dated price table changes no historical run, cost, cache record or rank; it is neither a new benchmark batch nor a verified bill. Account access, actual routing and cache behavior were not exercised by this document check.
 
 ## How It Was Measured
 
@@ -127,6 +197,40 @@ Switch metrics to compare the range of the five runs (bar) and the median (tick)
 | Frontier | GPT-5.6 Sol | 5/5 | $0.755 ($0.667–$0.908) | 12,032 (10,223–12,787) | 584,537 (505,256–775,728) | 31 (27–34) | 1 | 4.1 (3.4–5.8) |
 | Chinese open-weight | Kimi K3 | 5/5 | $1.422 ($1.154–$1.640) | 39,505 (32,640–47,056) | 1,658,186 (1,276,997–1,856,453) | 61 (57–65) | 1 | 10.5 (8.2–12.0) |
 | Chinese open-weight | GLM 5.3 | 4/5 | $1.821 ($1.402–$2.062) | 59,582 (48,793–77,914) | 3,766,802 (2,876,201–4,364,926) | 80 (73–89) | 1 | 10.1 (8.2–15.0) |
+
+</DataTableFrame>
+
+#### Astra historical result {#astra-historical-result}
+
+The five `gpt6astra` records remain available in the expandable model row and the original dataset. They all have `status: done` and `iterations: 1`. Their cost median is $3.4954, and their elapsed-time median is 7.883 minutes. The price snapshot, run IDs, token counts and other models are unchanged.
+
+### Failure-inclusive cost {#failure-inclusive-cost}
+
+**Table 3. All-attempt cost divided by successful completions**
+
+This is the sum of all five recorded attempt costs divided by that model's completed-attempt count, including failed-attempt cost. It is a ratio, not the completed-run median in Table 1. These values use rounded per-run costs from the historical dataset; the discarded first attempt and preflight are outside this table. With zero completions this ratio is undefined, not zero.
+
+<DataTableFrame minWidth="40rem">
+
+<table>
+  <thead><tr><th scope="col">Model</th><th scope="col">Attempts</th><th scope="col">Completed</th><th scope="col">All-attempt cost (USD)</th><th scope="col">Cost per completion (USD)</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">Claude Opus 5.5</th><td>5</td><td>5</td><td>$4.7279</td><td>$0.9456</td></tr>
+    <tr><th scope="row">Claude Sonnet 5.5</th><td>5</td><td>5</td><td>$1.5158</td><td>$0.3032</td></tr>
+    <tr><th scope="row">Claude Haiku 5.5</th><td>5</td><td>5</td><td>$0.3237</td><td>$0.0647</td></tr>
+    <tr><th scope="row">Claude Fable 5.1</th><td>5</td><td>5</td><td>$12.8723</td><td>$2.5745</td></tr>
+    <tr><th scope="row">Claude Opus 5</th><td>5</td><td>5</td><td>$11.4937</td><td>$2.2987</td></tr>
+    <tr><th scope="row">Claude Sonnet 5</th><td>5</td><td>5</td><td>$6.3291</td><td>$1.2658</td></tr>
+    <tr><th scope="row">Claude Opus 4.8</th><td>5</td><td>5</td><td>$10.6600</td><td>$2.1320</td></tr>
+    <tr><th scope="row">GPT-6.1 Sol</th><td>5</td><td>5</td><td>$2.5741</td><td>$0.5148</td></tr>
+    <tr><th scope="row">GPT-6 Astra</th><td>5</td><td>5</td><td>$16.8230</td><td>$3.3646</td></tr>
+    <tr><th scope="row">GPT-6 Sol</th><td>5</td><td>5</td><td>$1.5152</td><td>$0.3030</td></tr>
+    <tr><th scope="row">GPT-6 Luna</th><td>5</td><td>5</td><td>$0.1714</td><td>$0.0343</td></tr>
+    <tr><th scope="row">GPT-5.6 Sol</th><td>5</td><td>5</td><td>$3.8570</td><td>$0.7714</td></tr>
+    <tr><th scope="row">Kimi K3</th><td>5</td><td>5</td><td>$7.0211</td><td>$1.4042</td></tr>
+    <tr><th scope="row">GLM 5.3</th><td>5</td><td>4</td><td>$8.5371</td><td>$2.1343</td></tr>
+  </tbody>
+</table>
 
 </DataTableFrame>
 

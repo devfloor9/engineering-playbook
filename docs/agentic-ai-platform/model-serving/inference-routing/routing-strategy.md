@@ -3,9 +3,9 @@ title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
 created: "2025-02-05"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-30
   author: YoungJoon Jeong
-reading_time: 75
+reading_time: 79
 tags:
   - kgateway
   - bifrost
@@ -568,7 +568,9 @@ agentgateway is an AI-dedicated data plane separated from the kgateway project i
 
 ### Core Metrics
 
-Core metrics to monitor in AI inference gateways. The metric **names in the table below are examples**. kgateway's gateway proxy is Envoy, so the actual time series are exposed as Envoy-exported series (e.g. downstream/upstream request and connection series); confirm exact metric names and labels against the [kgateway Gateway proxy metrics docs](https://kgateway.dev/docs/envoy/latest/observability/gateway-metrics/) for the version you deploy and against an actual scrape before writing queries/recording rules.
+The table below uses the exact **Envoy admin-statistic names**, including their configurable tree prefixes, from the [Envoy v1.36.0 HTTP connection-manager reference](https://github.com/envoyproxy/envoy/blob/v1.36.0/docs/root/configuration/http/http_conn_man/stats.rst) and [cluster reference](https://github.com/envoyproxy/envoy/blob/v1.36.0/docs/root/configuration/upstream/cluster_manager/cluster_stats.rst), checked on 30 October 2026. `<stat_prefix>`, `<name>`, and `<code>` are placeholders for the configured HTTP prefix, upstream cluster, and response code. Dotted admin names are **not PromQL series names**.
+
+The [kgateway metrics documentation snapshot](https://github.com/kgateway-dev/kgateway.dev/blob/50124775568e29da3b63386a976442f85f2e78d9/assets/kgw-docs/pages/observability/gateway-metrics.md) shows `envoy_cluster_external_upstream_rq{envoy_response_code="200",envoy_cluster_name="kube_httpbin_httpbin_8000"}` as a Prometheus example. Its listener queries use `envoy_http_downstream_rq_total` with `envoy_http_conn_manager_prefix`; prefix values depend on the kgateway version and listener configuration. Inspect the deployed version, tag extraction, histogram units, and actual `/stats/prometheus` scrape before creating queries or recording rules. The default `?usedonly` filtering can omit zero-valued series; an absent series is not automatically zero traffic. These are documented contracts, not a scrape from this report's deployment.
 
 import { MonitoringMetricsTable } from '@site/src/components/InferenceGatewayTables';
 

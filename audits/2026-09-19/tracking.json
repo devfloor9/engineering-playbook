@@ -4,8 +4,8 @@
   "state": "all_issues_registered",
   "grouped_review_items": 2191,
   "source_correction_status_counts": {
-    "source_correction_accepted": 1892,
-    "open": 15,
+    "source_correction_accepted": 1896,
+    "open": 11,
     "withdrawn": 284
   },
   "assignment_counts": {
@@ -4790,11 +4790,12 @@
       "issue": 95,
       "proposed_issue_key": "design-serving",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/95",
-      "source_correction_status": "open",
-      "commit": "b6690e722b073b24d43107f21e059a65763596af",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "1ff6415bb431e026e1aa0fec70161b6cc69be90c",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-ads-route014"
+        "2026-09-19-ads-route014",
+        "2026-10-30-ads-route014"
       ]
     },
     {
@@ -15512,12 +15513,13 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": "9c18f345578a727a07277a20a95b035695b4b201",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "c358ca3d0a64495ab459087f9dd559292b636806",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
         "2026-09-19-hyp-ops-196",
-        "2026-09-19-hyp-ops-196-w3"
+        "2026-09-19-hyp-ops-196-w3",
+        "2026-10-30-hyp-ops-196"
       ]
     },
     {
@@ -27808,11 +27810,12 @@
       "issue": 98,
       "proposed_issue_key": "eks-operations",
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/98",
-      "source_correction_status": "open",
-      "commit": "28666153446096dae5d6f7678683cda35087cee1",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "c358ca3d0a64495ab459087f9dd559292b636806",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-eo-av-stor-13"
+        "2026-09-19-eo-av-stor-13",
+        "2026-10-30-eo-av-stor-13"
       ]
     },
     {
@@ -28735,11 +28738,12 @@
       "issue": 88,
       "proposed_issue_key": null,
       "issue_url": "https://github.com/devfloor9/engineering-playbook/issues/88",
-      "source_correction_status": "open",
-      "commit": "b6699dd7b6ea9fc6e8855004cbbb4c77a3e4c0bd",
+      "source_correction_status": "source_correction_accepted",
+      "commit": "c358ca3d0a64495ab459087f9dd559292b636806",
       "evidence_status": "See the claim-specific catalog; a source correction does not resolve every evidence gap.",
       "correction_records": [
-        "2026-09-19-hr-obs-04"
+        "2026-09-19-hr-obs-04",
+        "2026-10-30-hr-obs-04"
       ]
     },
     {

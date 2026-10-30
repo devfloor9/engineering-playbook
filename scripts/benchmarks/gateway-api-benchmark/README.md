@@ -15,6 +15,12 @@ This kit checks explicit endpoint contracts and records bounded HTTP load runs. 
 
 No dependencies are installed. No installer, Kubernetes manifests, cluster operations or cloud provisioner are included. Upstream analysis in `analyze-conformance.cjs` and `results/upstream/` is separate from the runtime scripts.
 
+The [live evidence handoff](../../operational-acceptance/README.md) adds a read-only
+preflight/package check for the remaining #80 deployment work. Its blank
+`--template 80` output records the target, approval, budget, preregistered
+protocol, required cases and hashed evidence. The check executes no requests and
+does not convert local fixtures into implementation measurements.
+
 ## Prepare a local run
 
 From the repository root, with the pinned images available in a local arm64 Docker engine:
