@@ -3,9 +3,9 @@ title: Observability Integration — Self-Diagnosis, Container Insights, eBPF
 description: "Observability implementation guide for EKS Hybrid Nodes — covers Cluster Insights configuration self-diagnosis, CloudWatch Container Insights hybrid configuration (RUN_WITH_IRSA), NVIDIA GPU metric integration, a Cilium Hubble-based eBPF dashboard, and Network Flow Monitor applicability analysis."
 created: "2026-08-26"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-30
   author: YoungJoon Jeong
-reading_time: 25
+reading_time: 26
 tags:
   - eks
   - hybrid-node
@@ -173,7 +173,7 @@ CloudWatch Network Flow Monitor (NFM) is a service built on a lightweight eBPF (
 
 **Conclusion**: Hybrid nodes support for NFM is not documented (there is no explicit prohibition either, but it is absent from the validated list), so in production designs it is safest to position NFM as an observability tool for the **cloud-node segment only** in mixed-mode clusters. The resulting recommended arrangement is a division of roles.
 
-- **Cloud node segment**: the NFM add-on — EKS console service map and flow table, AWS network health indicator (NHI). Scraping the OpenMetrics endpoint the agent exposes (`OPEN_METRICS=on`) with Prometheus folds the cloud segment into the unified Grafana dashboard above as its own panel family. Note that the agent's metrics endpoint must be reachable from your remote Prometheus — its bind address, port, and scrape path have to be exposed (if the endpoint binds to local-only it cannot be scraped remotely) — so configure the exposure to match your host/pod networking, or use a scraper local to the same node.
+- **Cloud node segment**: the NFM add-on — EKS console service map and flow table, AWS network health indicator (NHI). Scraping its OpenMetrics endpoint with Prometheus folds the cloud segment into the unified Grafana dashboard above. The [official third-party monitoring configuration](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-agents-kubernetes-eks-third-party.html), checked on 30 October 2026, states that metrics are disabled unless `OPEN_METRICS=on`; `OPEN_METRICS_ADDRESS` defaults to `127.0.0.1` and `OPEN_METRICS_PORT` to `80`. Turning metrics on alone therefore does not permit a remote scrape. Use a scraper local to the endpoint's network namespace, or explicitly set a reachable listening address and port with network controls restricted to your authorized monitoring systems. Binding to `0.0.0.0` exposes the endpoint on every interface; do not treat it as a default.
 - **Hybrid node segment**: Cilium Hubble — the same eBPF class of data (flows, drops, DNS) collected on-premises, covering the segment NFM cannot.
 - **The junction between the two (cross-network)**: covered by Gateway metrics and DX/VPN CloudWatch metrics.
 

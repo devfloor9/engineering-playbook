@@ -3,7 +3,7 @@ title: EKS 기능과 Probe 통합
 description: EKS 기능별 Probe 통합 예제를 확인합니다.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-29
+  date: 2026-10-30
   author: YoungJoon Jeong
 reading_time: 15
 tags:
@@ -289,17 +289,18 @@ kubelet의 HTTP/TCP/exec/gRPC Probe는 노드에서 대상 Pod을 직접 호출�
 
 **개요:**
 
-Provisioned Control Plane(2025년 11월 발표)은 사전 할당된 제어 플레인 용량으로 예측 가능한 고성능 Kubernetes 운영을 보장합니다. 대규모 클러스터에서 Probe 요청이 API Server 성능 저하의 영향을 받지 않도록 합니다.
+Provisioned Control Plane(2025년 11월 발표)은 AI Training, HPC, 대규모 배치 같은 워크로드에 사전 할당된 제어 플레인 용량을 제공합니다. kubelet Probe는 노드에서 실행하므로, 이 용량은 API 동시성과 스케줄링을 위한 것이며 Probe 지연 보장치가 아닙니다.
 
 **표 2. Provisioned Control Plane 티어별 성능 특성과 적합 워크로드**
 
-| 티어 | API 동시성 | 최대 노드 수 | 적합 워크로드 |
-|------|----------|------------|-------------|
-| **XL** | 높음 | 1,000 | AI Training, HPC |
-| **2XL** | 매우 높음 | 2,500 | 대규모 배치 |
-| **4XL** | 초고속 | 5,000 | 초대규모 ML |
+| 티어 | API 동시성, EKS 1.30–1.33 (seat) | API 동시성, EKS 1.34+ (seat) | Pod 스케줄링 (pods/sec) |
+|------|--------------------------------|-----------------------------|------------------------|
+| **XL** | 1,700 | 2,000 | 167 |
+| **2XL** | 3,400 | 4,000 | 283 |
+| **4XL** | 6,800 | 8,000 | 400 |
+| **8XL** | 13,600 | 16,000 | 400 |
 
-티어별 Probe 응답 지연 보장치는 공식 출처가 없어 이 표에 수치로 제시하지 않습니다. AWS 문서는 티어(XL, 2XL, 4XL, 8XL)를 API 요청 동시성(seat), Pod 스케줄링 속도(pods/sec), 클러스터 데이터베이스 크기, SLA의 네 가지 속성으로 정의하며, 최대 노드 수는 티어 속성에 포함되지 않습니다. EKS 1.34 이상에서 XL, 2XL, 4XL, 8XL의 API 요청 동시성은 각각 2,000, 4,000, 8,000, 16,000 seat(1.30-1.33은 1,700, 3,400, 6,800, 13,600 seat)이고, Pod 스케줄링 속도는 167, 283, 400, 400 pods/sec, 데이터베이스 크기는 16GB, SLA는 99.99%입니다(2026-10-29 기준). 표의 최대 노드 수(1,000/2,500/5,000)는 공식 출처로 확인된 값이 아닌 참고용 추정치입니다. AWS 문서도 실제 성능은 워크로드 패턴과 구성에 따라 달라진다고 설명하므로, 실제 지원 규모와 성능은 대상 환경에서 측정하고 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)로 확인해야 합니다.
+이 표는 2026년 10월 30일 [EKS Provisioned Control Plane 문서](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html)에서 확인한 티어 속성입니다. 모든 티어의 클러스터 데이터베이스는 16 GB이며, SLA는 1분 단위로 측정한 99.99%입니다. 최대 노드 수와 Probe 지연은 티어 보장치가 아니므로, 공식 근거가 없던 1,000/2,500/5,000개 노드 추정치는 제거했습니다. API 동시성과 스케줄러 처리량은 kubelet Probe 지연 측정값이 아닙니다. 클러스터의 Kubernetes 버전과 실제 사용률로 용량을 선택하고, 워크로드 패턴과 구성에 따른 지원 규모와 성능은 대상 환경에서 측정해야 합니다.
 
 **그림 2. Standard와 Provisioned Control Plane의 부하 처리 비교**
 

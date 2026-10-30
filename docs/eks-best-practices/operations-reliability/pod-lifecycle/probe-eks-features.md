@@ -3,7 +3,7 @@ title: EKS features and probes
 description: Explore examples of integrating probes with EKS features.
 created: "2026-02-12"
 last_update:
-  date: 2026-10-29
+  date: 2026-10-30
   author: devfloor9
 reading_time: 26
 tags:
@@ -289,17 +289,18 @@ A kubelet's HTTP/TCP/exec/gRPC probes call the target Pod directly from the node
 
 **Overview:**
 
-Provisioned Control Plane (announced in November 2025) ensures predictable, high-performance Kubernetes operations with preallocated control plane capacity. It prevents probe requests in large clusters from being affected by API Server performance degradation.
+Provisioned Control Plane (announced in November 2025) provides preallocated control plane capacity for workloads such as AI training, HPC, and large-scale batch processing. Kubelet probes execute on the nodes; this capacity addresses API concurrency and scheduling, rather than guaranteeing probe latency.
 
 **Table 2. Performance characteristics and suitable workloads by Provisioned Control Plane tier**
 
-| Tier | API Concurrency | Maximum Nodes | Suitable Workloads |
-|------|----------|------------|-------------|
-| **XL** | High | 1,000 | AI Training, HPC |
-| **2XL** | Very high | 2,500 | Large-scale batch processing |
-| **4XL** | Ultra-fast | 5,000 | Massive-scale ML |
+| Tier | API concurrency, EKS 1.30–1.33 (seats) | API concurrency, EKS 1.34+ (seats) | Pod scheduling (pods/sec) |
+|------|--------------------------------------|----------------------------------|---------------------------|
+| **XL** | 1,700 | 2,000 | 167 |
+| **2XL** | 3,400 | 4,000 | 283 |
+| **4XL** | 6,800 | 8,000 | 400 |
+| **8XL** | 13,600 | 16,000 | 400 |
 
-Per-tier probe latency guarantees are not given as figures in this table because no official source for them exists. The AWS documentation defines the tiers (XL, 2XL, 4XL, 8XL) by four attributes: API request concurrency (seats), Pod scheduling rate (pods/sec), cluster database size, and SLA; maximum node count is not a tier attribute. On EKS 1.34 and later, the API request concurrency of XL, 2XL, 4XL, and 8XL is 2,000, 4,000, 8,000, and 16,000 seats respectively (1,700, 3,400, 6,800, and 13,600 seats on 1.30-1.33), the Pod scheduling rate is 167, 283, 400, and 400 pods/sec, the database size is 16GB, and the SLA is 99.99% (as of 2026-10-29). The Maximum Nodes figures in the table (1,000/2,500/5,000) are indicative estimates rather than values confirmed against an official source. The AWS documentation also states that actual performance depends on workload patterns and configuration, so measure the actual supported scale and performance in your target environment and confirm them against the [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html).
+The table reproduces the published tier attributes, verified on 30 October 2026 against the [EKS Provisioned Control Plane documentation](https://docs.aws.amazon.com/eks/latest/userguide/eks-provisioned-control-plane.html). Every tier has a 16 GB cluster database and a 99.99% SLA measured in one-minute intervals. Maximum node count and probe latency are not tier guarantees; the earlier 1,000/2,500/5,000 node estimates were not supported by that source and have been removed. API concurrency and scheduler throughput do not measure kubelet probe latency. Select capacity using the cluster's Kubernetes version and observed utilization; actual supported scale and performance still depend on workload patterns and configuration.
 
 **Figure 2. Load handling comparison between Standard and Provisioned Control Plane**
 

@@ -3,9 +3,9 @@ title: 관측성 통합 — 자가진단·Container Insights·eBPF
 description: "EKS Hybrid Nodes 관측성 구현 가이드 — Cluster Insights 구성 자가진단, CloudWatch Container Insights 하이브리드 구성(RUN_WITH_IRSA), NVIDIA GPU 메트릭 통합, Cilium Hubble 기반 eBPF 대시보드, Network Flow Monitor 적용성 분석을 다룹니다."
 created: "2026-08-26"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-30
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 15
 tags:
   - eks
   - hybrid-node
@@ -172,7 +172,7 @@ CloudWatch Network Flow Monitor(NFM)는 eBPF(`bpf_sock_ops`) 기반 경량 에�
 
 **결론**: NFM의 하이브리드 노드 지원은 문서화되어 있지 않으며(명시적 금지 문구도 없으나 검증 목록 부재), 프로덕션 설계에서는 mixed mode 클러스터의 **클라우드 노드 구간 전용** 관측 도구로 위치시키는 것이 안전합니다. 결과적으로 권장 구도는 역할 분담입니다.
 
-- **클라우드 노드 구간**: NFM 애드온 — EKS 콘솔 서비스 맵·플로우 테이블, AWS 네트워크 헬스 인디케이터(NHI). 에이전트가 노출하는 OpenMetrics 엔드포인트(`OPEN_METRICS=on`)를 Prometheus로 스크래핑하면 위 통합 Grafana 대시보드에 클라우드 구간 패널로 편입할 수 있습니다. 다만 에이전트의 메트릭 엔드포인트가 원격 Prometheus에서 도달 가능하도록 바인드 주소·포트와 스크래핑 경로가 노출되어 있어야 하며(엔드포인트가 로컬 전용으로 바인드되는 경우 원격 스크래핑이 되지 않습니다), 호스트/파드 네트워킹 구성에 맞춰 노출 범위를 설정하거나 동일 노드의 로컬 스크래퍼를 사용합니다.
+- **클라우드 노드 구간**: NFM 애드온 — EKS 콘솔 서비스 맵·플로우 테이블, AWS 네트워크 헬스 인디케이터(NHI). OpenMetrics 엔드포인트를 Prometheus로 스크래핑하면 위 통합 Grafana 대시보드에 클라우드 구간 패널로 편입할 수 있습니다. 2026년 10월 30일 확인한 [공식 외부 모니터링 설정](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-NetworkFlowMonitor-agents-kubernetes-eks-third-party.html)에 따르면 `OPEN_METRICS=on`을 지정하지 않으면 메트릭은 비활성화되며, `OPEN_METRICS_ADDRESS` 기본값은 `127.0.0.1`, `OPEN_METRICS_PORT` 기본값은 `80`입니다. 따라서 메트릭 활성화만으로 원격 스크래핑이 가능하지는 않습니다. 엔드포인트와 같은 네트워크 네임스페이스의 로컬 스크래퍼를 사용하거나, 승인된 모니터링 시스템만 접근하도록 네트워크 통제를 적용한 주소와 포트를 명시하세요. `0.0.0.0`은 모든 인터페이스에 엔드포인트를 노출하므로 기본값처럼 사용하면 안 됩니다.
 - **하이브리드 노드 구간**: Cilium Hubble — 동일한 eBPF 계열 데이터(플로우·드롭·DNS)를 온프레미스에서 수집. NFM이 커버하지 못하는 구간을 보완합니다.
 - **두 구간의 접점(크로스 네트워크)**: Gateway 메트릭과 DX/VPN CloudWatch 메트릭이 담당합니다.
 
