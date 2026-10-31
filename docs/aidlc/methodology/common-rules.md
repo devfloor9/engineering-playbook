@@ -3,9 +3,9 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC official 11 common rules explained — Question Format through Audit Logging with enterprise adoption guide
 created: "2026-04-18"
 last_update:
-  date: 2026-10-29
+  date: 2026-10-31
   author: devfloor9
-reading_time: 31
+reading_time: 32
 tags:
   - aidlc
   - common-rules
@@ -594,15 +594,18 @@ gantt
 
 The Full/Partial/Limited values below are not measured conformance scores but **unverified estimates** as of 2026-04. They are not backed by versioned setup evidence, so verify them directly on the relevant version of each tool before using them for an adoption decision. Each cell may differ for a specific setup or version.
 
-| Platform | Rules 1-4 | Rules 5-8 | Rules 9-11 | Notes (unverified estimate) |
+| Platform | Rules 1-4 | Rules 5-8 | Rules 9-11 | Notes |
 |----------|-----------|-----------|------------|-------|
-| **Kiro** | Full | Full | Full | Spec-Driven built-in |
+| **Kiro** | Full | Full | Full | v0.1.7 setup: steering files, Kiro IDE Vibe mode |
 | **Claude Code** | Full | Full | Partial | reproducibility lacks seed support |
 | **Cursor** | Partial | Partial | Partial | extensions needed |
 | **Q Developer** | Full | Full | Full | excellent AWS integration |
 | **Cline** | Partial | Partial | Full | CLI-centric |
 | **Copilot** | Partial | Limited | Limited | interaction constraints |
-| **AGENTS.md** | Full | Full | Full | document-based |
+
+The [official v0.1.7 setup guide](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md#kiro) installs the rules under `.kiro/steering/aws-aidlc-rules/` and the details under `.kiro/aws-aidlc-rule-details/`. It instructs Kiro IDE users to run this workflow in **Vibe mode** and decline prompts to switch to spec mode. This documented setup does not validate the Kiro scores above; the other notes remain author estimates.
+
+`AGENTS.md` is an instructions file, not an agent or a platform with its own conformance score. The same version's guide offers it as an alternative setup for [Cursor](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md#cursor-ide) and [Cline](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md#cline). Loading a file does not establish that its consuming agent follows every rule.
 
 ---
 

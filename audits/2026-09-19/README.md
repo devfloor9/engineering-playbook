@@ -394,3 +394,18 @@ The public payload contains repository-relative source references and public evi
 The [legal reconfirmation record](aidlc/legal-reconfirmation.json) distinguishes current provisions from changes adopted after a document's revision date. It does not establish compliance for a particular organization or system.
 
 See [verification.json](verification.json) for recorded checks and verification limits, and [manifest.json](manifest.json) for the complete data file inventory. Package preparation notes describe their original review stage; the central tracking file records subsequent issue ownership.
+
+## Twenty-fourth follow-up — additional public-source corrections (31 October 2026)
+
+[source-followup-2026-10-31.json](source-followup-2026-10-31.json) adds dated primary-source evidence for four existing partial findings. Each correction is paired in English and Korean.
+
+| Item | Additional source correction | Remaining limit |
+| --- | --- | --- |
+| `AIDLC-C175` | State the official `v0.1.7` Kiro steering-file setup and Vibe mode instruction; describe `AGENTS.md` as an instructions file instead of a scored platform. | The retained author scores still need pinned tool versions, repeatable checks and a rating rule. |
+| `ADS-NODE-009` | Distinguish documented no-target/all-unused ALB 503 causes, the target-optimizer condition and all-unhealthy fail-open behavior; label the July incident as observations while preserving its anchors. | Original ALB logs, target-state history and correlated consolidation/readiness events remain missing. |
+| `ADS-MOE-008` | Explain Neuron's 3.2Tbps **per instance** versus EC2's 12.8Tbps **across four instances**. | The official accelerator-memory conflict remains unresolved. |
+| `ADS-OCLAW004` | Record GLM 4.7's `zai.glm-4.7` identifier, supported APIs and dated in-region support from the official model card, checking its primary HTML support icons. | Solar Pro 3's Bedrock details and the target account's authorized availability remain unconfirmed. |
+
+The frozen 628-document inventory, 2,191 grouped identities, earlier correction records and residual register are unchanged. Counts remain **1,896 accepted source corrections, 11 open partials and 284 withdrawn findings**. This follow-up adds source evidence without accepting any residual. Issue #83 remains open under the existing evidence requirements; no incident reproduction, agent conformance test, account check or paid inference was performed.
+
+The source-follow-up and residual-integrity suites passed **17 tests with no failures or skips**. All eight edited documents match the repository reading-time calculation with revision date 2026-10-31, and `git diff --check` passed. `node --test scripts/tests/audit-source-followup.test.cjs` checks the corrected source distinctions, paired evidence, preserved metadata ownership, explicit anchors, executable examples and unresolved audit state. Metadata calculation and these offline checks do not establish rendering, publication or runtime acceptance.

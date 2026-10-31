@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "audit_baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "reviewed_base_revision": "e2dab62657a1b3bb9113259d195d3ae0d1c71456",
+  "reviewed_on": "2026-10-31",
+  "umbrella_issue": 83,
+  "scope": "Additional public-source corrections within four existing partial findings. Earlier correction records, frozen audit artifacts, tracking counts and the 11 unresolved residuals are preserved.",
+  "evidence_limit": "Primary documentation establishes the stated setup, API and specification wording only. No cloud execution, target-account availability, incident reproduction, tool conformance, performance or legal acceptance is claimed.",
+  "verification": {
+    "focused_command": "node --test scripts/tests/audit-source-followup.test.cjs scripts/tests/audit-residuals.test.cjs",
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0,
+    "metadata": "All eight edited documents match the repository reading-time calculation and have content revision date 2026-10-31; creation dates and other metadata are preserved.",
+    "diff_check": "git diff --check passed.",
+    "integration_limit": "Full locale builds, rendered exports, links and published-page verification are separate integration checks; these source checks do not establish them."
+  },
+  "items": [
+    {
+      "id": "AIDLC-C175",
+      "issue": 99,
+      "original_partial_record": "2026-09-19-aidlc-c175",
+      "disposition": "partial",
+      "source_files": [
+        "docs/aidlc/methodology/common-rules.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/aidlc/methodology/common-rules.md"
+      ],
+      "correction": "State the pinned v0.1.7 Kiro steering-file setup and Vibe mode instruction; describe AGENTS.md as a consuming agent's instructions file rather than a scored platform. Retain the remaining tool scores as unverified author estimates.",
+      "primary_sources": [
+        {
+          "url": "https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md",
+          "retrieved_on": "2026-10-31",
+          "version": "v0.1.7",
+          "scope": "Kiro setup requires steering files and Vibe mode; Cursor and Cline offer AGENTS.md as an alternative instructions-file setup."
+        }
+      ],
+      "remaining": "Pinned versions and setup for all compared agents, repeatable behavior checks, explicit rating rules and observed conformance results are still missing."
+    },
+    {
+      "id": "ADS-NODE-009",
+      "issue": 95,
+      "original_partial_record": "2026-09-19-ads-node-009",
+      "disposition": "partial",
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/gpu-infrastructure/eks-gpu-node-strategy.md"
+      ],
+      "correction": "Use the documented no-registered-target/all-unused 503 causes, distinguish the target-optimizer condition and all-unhealthy fail-open behavior, and remove the universal initial/draining assertion. Label the July incident as observations while preserving its explicit anchors.",
+      "primary_sources": [
+        {
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-troubleshooting.html#http-503-issues",
+          "retrieved_on": "2026-10-31",
+          "scope": "503 causes include no registered targets or all registered targets unused; target optimizer can reject a request when no targets are ready."
+        },
+        {
+          "url": "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html",
+          "retrieved_on": "2026-10-31",
+          "scope": "An ALB routes to unhealthy registered targets when all targets are unhealthy, failing open."
+        }
+      ],
+      "remaining": "Time-aligned ALB access logs, target-state history and consolidation/readiness/termination events are still required to identify the reported 503 origin and establish the incident's cause."
+    },
+    {
+      "id": "ADS-MOE-008",
+      "issue": 95,
+      "original_partial_record": "2026-09-19-ads-moe-008",
+      "disposition": "partial",
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-frameworks/moe-model-serving.md"
+      ],
+      "correction": "Explain Neuron's explicitly per-instance 3.2Tbps network specification and EC2's 12.8Tbps aggregate for four instances. Retain the unresolved accelerator-memory conflict with dated source attribution.",
+      "primary_sources": [
+        {
+          "url": "https://awsdocs-neuron.readthedocs-hosted.com/en/latest/about-neuron/arch/neuron-hardware/trn2-arch.html",
+          "retrieved_on": "2026-10-31",
+          "scope": "The Network bandwidth (Tbps) row gives UltraServer 3.2 per instance; device memory is 1,536GiB per instance and 6,144GiB per UltraServer."
+        },
+        {
+          "url": "https://aws.amazon.com/ec2/instance-types/trn2/",
+          "retrieved_on": "2026-10-31",
+          "scope": "A four-instance UltraServer has 12.8Tbps aggregate EFA bandwidth; product memory is stated as 1.5TB per instance and 6TB per UltraServer."
+        },
+        {
+          "url": "https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html",
+          "retrieved_on": "2026-10-31",
+          "scope": "The performance table still lists trn2.48xlarge accelerator memory as 8,192GiB and trn2u.48xlarge accelerators as absent, conflicting with the other primary sources."
+        }
+      ],
+      "remaining": "An authoritative, versioned resolution of the accelerator-memory conflict and exact instance/chip scope and units are still required. Network-scope clarification does not resolve the entire finding."
+    },
+    {
+      "id": "ADS-OCLAW004",
+      "issue": 95,
+      "original_partial_record": "2026-09-19-ads-oclaw004",
+      "disposition": "partial",
+      "source_files": [
+        "docs/agentic-ai-platform/model-serving/inference-routing/openclaw-example.md",
+        "i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/model-serving/inference-routing/openclaw-example.md"
+      ],
+      "correction": "Record GLM 4.7's exact official model ID, supported APIs and dated in-region availability without changing the configured provider routes or asserting target-account access.",
+      "primary_sources": [
+        {
+          "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-zai-glm-4-7.html",
+          "retrieved_on": "2026-10-31",
+          "scope": "The programmatic-access table lists zai.glm-4.7 for bedrock-runtime and bedrock-mantle. Primary HTML icon-yes/icon-no values were inspected for API and regional support; enumerating unmarked rows was not used as support evidence."
+        }
+      ],
+      "model_id": "zai.glm-4.7",
+      "supported_apis": [
+        "Invoke",
+        "Converse",
+        "Chat Completions"
+      ],
+      "unsupported_apis": [
+        "Responses"
+      ],
+      "in_region_support": [
+        "us-east-1",
+        "us-east-2",
+        "us-west-2",
+        "eu-north-1",
+        "eu-west-2",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-south-1",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "sa-east-1"
+      ],
+      "geo_inference_support": false,
+      "global_inference_support": false,
+      "remaining": "Solar Pro 3's official Bedrock model ID, APIs and regional availability remain unconfirmed, as does authorized availability in the target account. Existing model-selection configuration still requires operator verification; no paid inference is necessary merely to record this gap."
+    }
+  ]
+}

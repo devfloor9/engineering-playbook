@@ -3,9 +3,9 @@ title: EKS GPU 노드 전략
 description: EKS Auto Mode, Karpenter, MNG, Hybrid Node의 GPU 워크로드별 최적 노드 전략
 created: "2026-03-16"
 last_update:
-  date: 2026-10-14
+  date: 2026-10-31
   author: devfloor9
-reading_time: 34
+reading_time: 35
 tags:
   - eks
   - gpu
@@ -189,11 +189,11 @@ Auto Mode가 관리하는 EC2 인스턴스는 직접 `ec2:TerminateInstances` �
 3. **Karpenter는 대기 중인 Pod가 여전히 용량을 필요로 할 때만 교체 노드를 프로비저닝합니다.** 교체 노드의 사전 기동(pre-spin)은 드레인 중 스케줄링 시뮬레이션이 필요한 Pod를 찾을 때 일어나며, 고정된 시간 간격은 없습니다. 교체 소요 시간은 인스턴스 가용성과 이미지 pull에 따라 달라지며 5~10분으로 보장되지 않습니다.
 4. **복구를 확인하고 실패를 처리하세요.** 새 노드가 `Ready`가 되고 Pod가 `Running`인지 확인하세요. 교체 노드를 기동할 수 없으면(예: `InsufficientInstanceCapacity`, 적격 NodePool 없음) Karpenter는 taint를 해제하고 재시도하며, 용량이 확보될 때까지 워크로드는 pending 상태로 남습니다.
 
-### Consolidation과 단일 Replica 서비스 가용성 (2026-07 검증) {#consolidation과-단일-replica-서비스-가용성-202607-검증}
+### Consolidation과 단일 Replica 서비스 가용성 (2026-07 관찰) {#consolidation과-단일-replica-서비스-가용성-202607-검증}
 
-Auto Mode의 내장 Karpenter는 비용 최적화를 위해 노드 consolidation(통합·회수)을 상시 수행합니다. 이 과정에서 **replica 1개로 운영되는 서비스는 Pod 재배치 동안 짧게 `Ready` Pod가 없을 수 있습니다.** 해당 서비스가 ALB 뒤에 있고 타깃그룹에 healthy한 등록 타깃이 하나도 남지 않으면 ALB는 `503 Service Unavailable`을 반환합니다. 응답 헤더가 `server: awselb/2.0`이면 애플리케이션이 아닌 ALB가 직접 생성한 503입니다.
+Auto Mode의 내장 Karpenter는 비용 최적화를 위해 노드 consolidation(통합·회수)을 상시 수행합니다. 이 과정에서 **replica 1개로 운영되는 서비스는 Pod 재배치 동안 짧게 `Ready` Pod가 없을 수 있습니다.** ALB의 [문서화된 503 원인](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-troubleshooting.html#http-503-issues)에는 등록 타깃이 없거나 등록 타깃이 모두 `unused` 상태인 경우가 포함됩니다. **target optimizer가 활성화된** 타깃그룹으로 라우팅된 요청도 요청을 받을 준비가 된 타깃이 없으면 503을 받을 수 있습니다. 이 조건들은 healthy 타깃이 없다는 조건과 같지 않습니다.
 
-단, 이 finding이 지적하는 구분에 유의하세요: **등록 타깃이 없거나**(또는 모두 `initial`/`draining`) 하면 ALB는 503을 반환하지만, 타깃이 모두 **unhealthy**인 경우에는 fail-open으로 설정되어 트래픽을 계속 라우팅할 수 있습니다. 특정 503을 consolidation 탓으로 귀속하려면 타깃이 없었다는 관찰만으로는 부족하며, ALB 액세스 로그와 타깃그룹의 타깃 상태 이력이 필요합니다.
+타깃그룹에 **unhealthy인 등록 타깃만** 있으면 ALB는 [fail-open으로 상태와 관계없이 해당 타깃에 라우팅합니다](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/target-group-health-checks.html). `initial`이나 `draining` 상태만으로 항상 503이 발생한다고 단정할 수는 없습니다. 특정 503을 consolidation 탓으로 귀속하기 전에 ALB 액세스 로그로 로드 밸런서가 생성한 503과 타깃 응답을 구분하고, 타깃그룹 상태 이력 및 consolidation/readiness 이벤트의 시간을 맞춰 확인해야 합니다.
 
 운영 중 관찰(독립적으로 재현된 벤치마크 아님): Langfuse(replica 1)를 Auto Mode 클러스터에서 운영할 때 consolidation이 하루 수차례 노드를 교체했고, 타깃 `DeregisterTargets` → 신규 Pod 기동 → `RegisterTargets` 사이의 공백에서 503이 나타났습니다. 이 패턴은 CloudTrail에서 `eks-auto-mode-compute` 역할의 `TerminateInstances`와 타깃그룹 `DeregisterTargets`/`RegisterTargets` 이벤트가 반복되는 형태로 보이지만, 그 자체로 인과를 증명하지 않으므로 조사가 필요한 상관관계로 다루세요.
 

@@ -3,9 +3,9 @@ title: MoE 모델 서빙 개념 가이드
 description: Mixture of Experts 모델의 아키텍처 개념, 분산 배포 전략, 성능 최적화 원리
 created: "2026-02-05"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-31
   author: YoungJoon Jeong
-reading_time: 26
+reading_time: 28
 tags:
   - eks
   - moe
@@ -379,7 +379,9 @@ AWS Trainium2와 Inferentia2는 Neuron 소프트웨어 스택을 사용하는 �
 표의 대역폭은 제품 사양이며 애플리케이션에서 측정한 전송량이 아닙니다. HBM도 모든 프로세스가 제약 없이 사용할 수 있는 단일 GPU 메모리를 뜻하지 않습니다.
 
 :::info 사양 확인이 남아 있는 항목
-2026년 9월 19일 확인한 [EC2 인스턴스 사양 표](https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html)는 trn2.48xlarge의 가속기 메모리를 8,192GiB로, trn2u.48xlarge는 가속기 없음으로 표시하여 위 Neuron 문서와 다릅니다. Neuron의 UltraServer 네트워크 표에는 3,200Gbps가 표시되지만 EC2 제품 페이지는 4대 합계 12.8Tbps를 제시합니다. 위 표는 출처별 값을 구분해 적은 것이며, 이 차이가 해소된 사양으로 간주하지 않습니다. 용량이나 비용 산정에 사용하기 전에 대상 구성의 사양을 확인해야 합니다.
+2026년 10월 31일 다시 확인한 [EC2 인스턴스 사양 표](https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html)는 여전히 trn2.48xlarge의 가속기 메모리를 8,192GiB로, trn2u.48xlarge는 가속기 없음으로 표시하여 위 Neuron 문서와 다릅니다. **메모리 사양의 충돌은 미해결**이며, 위 표는 Neuron의 값을 명시할 뿐 그 충돌을 해소하지 않습니다.
+
+네트워크 수치는 범위가 다릅니다. Neuron의 **Network bandwidth (Tbps)** 행은 UltraServer에 대해 **인스턴스당 3.2**를 명시하고, [EC2 제품 페이지](https://aws.amazon.com/ec2/instance-types/trn2/)는 **4대 합계 12.8Tbps**를 제시합니다. 4 × 3.2Tbps = 12.8Tbps이므로 이는 일치하는 인스턴스별·합계 사양이며, 서로 충돌하는 애플리케이션 측정값이 아닙니다. 용량이나 비용 산정에 사용하기 전에 대상 구성의 사양을 확인해야 합니다.
 :::
 
 **표 7. GPU·Trainium2 비용 비교 후보와 고정·기록할 조건**

@@ -3,9 +3,9 @@ title: AIDLC Common Rules
 description: AWS Labs AIDLC 공식 11개 공통 규칙 해설 — Question Format부터 Audit Logging까지, 엔터프라이즈 적용 가이드
 created: "2026-04-18"
 last_update:
-  date: 2026-10-29
+  date: 2026-10-31
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 17
 tags:
   - aidlc
   - common-rules
@@ -594,15 +594,18 @@ gantt
 
 아래 Full/Partial/Limited 는 측정된 적합성 점수가 아니라 2026-04 시점의 **미검증 추정**입니다. 버전별 설정 증거로 뒷받침되지 않았으므로 도입 판단의 근거로 삼기 전에 각 도구의 해당 버전에서 직접 확인해야 합니다. 각 셀은 특정 설정·버전에서 달라질 수 있습니다.
 
-| 플랫폼 | 규칙 1-4 | 규칙 5-8 | 규칙 9-11 | 비고 (미검증 추정) |
+| 플랫폼 | 규칙 1-4 | 규칙 5-8 | 규칙 9-11 | 비고 |
 |--------|---------|---------|-----------|------|
-| **Kiro** | Full | Full | Full | Spec-Driven 기본 탑재 |
+| **Kiro** | Full | Full | Full | v0.1.7 설정: steering 파일, Kiro IDE Vibe 모드 |
 | **Claude Code** | Full | Full | Partial | reproducibility 는 seed 미지원 |
 | **Cursor** | Partial | Partial | Partial | 확장 필요 |
 | **Q Developer** | Full | Full | Full | AWS 통합 우수 |
 | **Cline** | Partial | Partial | Full | CLI 중심 |
 | **Copilot** | Partial | Limited | Limited | 상호작용 제한 |
-| **AGENTS.md** | Full | Full | Full | 문서 기반 |
+
+[공식 v0.1.7 설정 가이드](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md#kiro)는 규칙을 `.kiro/steering/aws-aidlc-rules/`에, 상세 규칙을 `.kiro/aws-aidlc-rule-details/`에 설치하도록 안내합니다. Kiro IDE에서는 이 워크플로를 **Vibe 모드**로 실행하고 spec 모드 전환 요청을 거절하도록 명시합니다. 이 문서화된 설정이 위 Kiro 점수를 검증하는 것은 아니며, 나머지 비고는 작성자의 추정입니다.
+
+`AGENTS.md`는 instructions 파일이며, 자체 적합성 점수가 있는 에이전트나 플랫폼이 아닙니다. 같은 버전의 가이드는 이를 [Cursor](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md#cursor-ide)와 [Cline](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/README.md#cline)의 대체 설정 방법으로 제공합니다. 파일을 읽는다는 사실만으로 해당 에이전트가 모든 규칙을 따른다고 확인할 수는 없습니다.
 
 ---
 
