@@ -3,9 +3,9 @@ title: OpenClaw AI Agent Gateway Deployment & Full Observability
 description: Deploy OpenClaw AI Agent Gateway on EKS with cost optimization, and achieve full observability using LiteLLM Auto Router + Cilium Hubble + Langfuse
 created: "2026-03-06"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-31
   author: devfloor9
-reading_time: 54
+reading_time: 57
 tags:
   - eks
   - openclaw
@@ -127,11 +127,15 @@ spec:
 | Query Type | Model | Provider | Rationale |
 |------------|-------|----------|-----------|
 | General (default) | **Claude Sonnet 4.6** | Bedrock | Routing default, using the context length Bedrock supports. "Best performance" holds only against specific benchmarks, so compare on your target tasks before adopting |
-| Coding / Programming | **GLM-4.7** | Bedrock | MoE architecture, optimized for code generation. About 355B total parameters with about 32B active per token. The model card README gives no figure, so this was checked against [config.json](https://huggingface.co/zai-org/GLM-4.7/raw/main/config.json) (same structure as GLM-4.5: 92 layers, 8 of 160 routed experts plus 1 shared expert active). The safetensors parameter count reported by Hugging Face is 358.3B including the MTP layer (checked 2026-10-13). Verify Bedrock availability and the model ID per region in the [Bedrock model reference](https://docs.aws.amazon.com/bedrock/latest/userguide/foundation-models-reference.html) |
+| Coding / Programming | **GLM-4.7** | Bedrock | MoE architecture, optimized for code generation. About 355B total parameters with about 32B active per token. The model card README gives no figure, so this was checked against [config.json](https://huggingface.co/zai-org/GLM-4.7/raw/main/config.json) (same structure as GLM-4.5: 92 layers, 8 of 160 routed experts plus 1 shared expert active). The safetensors parameter count reported by Hugging Face is 358.3B including the MTP layer (checked 2026-10-13). Bedrock's [official model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-zai-glm-4-7.html) confirms ID `zai.glm-4.7`; see the dated API/region details below |
 | Korean / Korea-related | **Solar Pro 3** | External (OpenRouter / Upstage Console API) | 128K context, Korean-optimized. Solar Pro 3 was not found in the Bedrock model reference, so it is listed via an external provider. Re-check the model reference for whether it has since been added (do not assert "unavailable" from a failed lookup) |
 
 :::note Model identity and provider verification
-The model IDs, providers, and context lengths above are as of writing; Bedrock-provided models and regions change over time. Before deploying, confirm each model's exact checkpoint/model ID and supported regions in the Bedrock console or model reference.
+The [official GLM 4.7 model card](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-zai-glm-4-7.html), checked on **2026-10-31**, lists model ID `zai.glm-4.7` for `bedrock-runtime` and `bedrock-mantle`. It supports **Invoke, Converse, and Chat Completions**, but not Responses. This gateway's `bedrock/zai.glm-4.7` configuration uses that exact model ID.
+
+The card lists **in-region** availability in `us-east-1`, `us-east-2`, `us-west-2`, `eu-north-1`, `eu-west-2`, `ap-northeast-1`, `ap-northeast-2`, `ap-south-1`, `ap-southeast-1`, `ap-southeast-2`, `ap-southeast-3`, `ap-southeast-4`, and `sa-east-1`; it lists no Geo or Global cross-region inference ID for this model.
+
+These are public API and region specifications, **not a check of the target account's access, quotas, or gateway execution**. Model availability can change; before deployment, recheck the model card and your account's authorized availability. Solar Pro 3's Bedrock model ID, APIs, regions, and target-account availability remain unconfirmed here; the external-provider route above remains the proposed path. No paid inference was performed for this source check.
 :::
 
 ### Networking

@@ -3,9 +3,9 @@ title: MoE Model Serving Concept Guide
 description: Architecture concepts, distributed deployment strategies, and performance optimization principles for Mixture of Experts models
 created: "2026-02-05"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-31
   author: devfloor9
-reading_time: 48
+reading_time: 52
 tags:
   - eks
   - moe
@@ -379,7 +379,9 @@ First distinguish the hardware units being priced. HBM uses the **GiB** values i
 The bandwidth values are product specifications, not measured application transfer rates. HBM also does not mean a single GPU memory space that every process can use without constraints.
 
 :::info Specifications still to confirm
-On September 19, 2026, the [EC2 instance specification table](https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html) listed 8,192GiB of accelerator memory for trn2.48xlarge and no accelerators for trn2u.48xlarge, conflicting with the Neuron documentation above. Neuron's UltraServer network table lists 3,200Gbps, while the EC2 product page gives 12.8Tbps across four instances. The table above attributes values to their sources; it does not resolve these differences. Confirm the target configuration before using the figures for capacity or cost planning.
+Rechecked on October 31, 2026, the [EC2 instance specification table](https://docs.aws.amazon.com/ec2/latest/instancetypes/ac.html) still lists 8,192GiB of accelerator memory for trn2.48xlarge and no accelerators for trn2u.48xlarge, conflicting with the Neuron documentation above. The **memory specification remains unresolved**; the table attributes its values to Neuron rather than reconciling that conflict.
+
+The networking figures have different scopes: Neuron's **Network bandwidth (Tbps)** row explicitly gives **3.2 per instance** for the UltraServer, while the [EC2 product page](https://aws.amazon.com/ec2/instance-types/trn2/) gives **12.8Tbps across four instances**. Four × 3.2Tbps = 12.8Tbps, so these are consistent per-instance and aggregate specifications, not conflicting application measurements. Confirm the target configuration before using the figures for capacity or cost planning.
 :::
 
 **Table 7. GPU and Trainium2 cost-comparison candidates and the conditions to hold constant**

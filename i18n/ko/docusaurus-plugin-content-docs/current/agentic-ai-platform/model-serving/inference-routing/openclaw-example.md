@@ -3,9 +3,9 @@ title: OpenClaw AI Agent Gateway 배포 및 Full Observability
 description: OpenClaw AI 에이전트 게이트웨이를 EKS에 비용 최적화 배포하고, LiteLLM Auto Router + Cilium Hubble + Langfuse로 Full Observability 구현
 created: "2026-03-06"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-31
   author: YoungJoon Jeong
-reading_time: 33
+reading_time: 35
 tags:
   - eks
   - openclaw
@@ -127,11 +127,15 @@ spec:
 | 질의 유형 | 모델 | 프로바이더 | 근거 |
 |-----------|------|-----------|------|
 | 범용 (기본) | **Claude Sonnet 4.6** | Bedrock | Bedrock에서 지원하는 컨텍스트 길이로 라우팅 기본값. "최고 성능"은 특정 벤치마크 기준으로만 성립하므로, 채택 전 대상 작업으로 비교해야 합니다 |
-| 코딩 / 프로그래밍 | **GLM-4.7** | Bedrock | MoE 아키텍처, 코드 생성에 최적화. 총 파라미터 약 355B, 토큰당 활성 파라미터 약 32B입니다. 모델 카드 README에는 수치가 없어 [config.json](https://huggingface.co/zai-org/GLM-4.7/raw/main/config.json)으로 확인했습니다(GLM-4.5와 같은 구조: 92개 레이어, routed expert 160개 중 8개와 shared expert 1개 활성). Hugging Face가 집계한 safetensors 파라미터는 MTP 레이어를 포함해 358.3B입니다(2026-10-13 확인). Bedrock 제공 여부와 모델 ID는 [Bedrock 모델 레퍼런스](https://docs.aws.amazon.com/bedrock/latest/userguide/foundation-models-reference.html)에서 리전별로 확인하세요 |
+| 코딩 / 프로그래밍 | **GLM-4.7** | Bedrock | MoE 아키텍처, 코드 생성에 최적화. 총 파라미터 약 355B, 토큰당 활성 파라미터 약 32B입니다. 모델 카드 README에는 수치가 없어 [config.json](https://huggingface.co/zai-org/GLM-4.7/raw/main/config.json)으로 확인했습니다(GLM-4.5와 같은 구조: 92개 레이어, routed expert 160개 중 8개와 shared expert 1개 활성). Hugging Face가 집계한 safetensors 파라미터는 MTP 레이어를 포함해 358.3B입니다(2026-10-13 확인). Bedrock의 [공식 모델 카드](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-zai-glm-4-7.html)에서 ID `zai.glm-4.7`을 확인했으며, 날짜가 명시된 API·리전 정보는 아래를 참조하세요 |
 | 한국어 / 한국 관련 | **Solar Pro 3** | 외부 경유(OpenRouter / Upstage Console API) | 128K context, 한국어 최적화. Bedrock 모델 레퍼런스에서 Solar Pro 3를 확인하지 못했으므로 외부 프로바이더 경유로 표기합니다. Bedrock에 추가되었는지는 모델 레퍼런스에서 다시 확인하세요(미확인을 "미제공"으로 단정하지 않음) |
 
 :::note 모델 식별·프로바이더 확인
-위 모델 ID·프로바이더·컨텍스트 길이는 작성 시점 기준이며, Bedrock 제공 모델과 리전은 수시로 바뀝니다. 배포 전 각 모델의 정확한 체크포인트/모델 ID와 지원 리전을 Bedrock 콘솔 또는 모델 레퍼런스에서 확인하세요.
+**2026-10-31** 확인한 [공식 GLM 4.7 모델 카드](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-zai-glm-4-7.html)는 `bedrock-runtime`과 `bedrock-mantle`의 모델 ID로 `zai.glm-4.7`을 명시합니다. **Invoke, Converse, Chat Completions**를 지원하며 Responses는 지원하지 않습니다. 이 게이트웨이의 `bedrock/zai.glm-4.7` 설정은 해당 모델 ID와 일치합니다.
+
+모델 카드의 **in-region** 지원 리전은 `us-east-1`, `us-east-2`, `us-west-2`, `eu-north-1`, `eu-west-2`, `ap-northeast-1`, `ap-northeast-2`, `ap-south-1`, `ap-southeast-1`, `ap-southeast-2`, `ap-southeast-3`, `ap-southeast-4`, `sa-east-1`입니다. 이 모델의 Geo·Global cross-region inference ID는 명시되어 있지 않습니다.
+
+이는 공개 API·리전 사양이며, **대상 계정의 접근 권한·할당량이나 게이트웨이 실행을 확인한 결과가 아닙니다**. 모델 가용성은 바뀔 수 있으므로 배포 전 모델 카드와 계정에서 승인된 가용성을 다시 확인하세요. Solar Pro 3의 Bedrock 모델 ID·API·리전·대상 계정 가용성은 여기서 미확인으로 남으며, 위 외부 프로바이더 경로는 제안된 경로로 유지합니다. 이 출처 확인을 위해 유료 inference는 실행하지 않았습니다.
 :::
 
 ### Networking

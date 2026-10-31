@@ -213,6 +213,62 @@ class ProbeTests(unittest.TestCase):
         observation["body"] = '{"path":"/old","headers":{"x-set":"old","x-remove":"bad"}}'
         self.assertEqual(probe.evaluate(case, [observation])["outcome"], "fail")
 
+    def test_invalid_absent_header_assertions_fail_before_any_request(self):
+        invalid = (
+            "x-secret", {}, {"x-secret": True}, None, True, 1,
+            [""], ["x secret"], ["x:secret"], ["x\nsecret"], ["x☃secret"],
+            ["x-secret", None], ["x-secret", 1], [["x-secret"]],
+        )
+        for value in invalid:
+            c = probe_config()
+            c["probe"]["cases"][-1]["expected"]["absent_response_headers"] = value
+            with self.subTest(value=value), patch(
+                "probe.request", side_effect=AssertionError("request sent before validation")
+            ) as request:
+                with self.assertRaisesRegex(ValueError, "absent_response_headers"):
+                    probe.run(json.dumps(c))
+                request.assert_not_called()
+
+    def test_invalid_absent_json_paths_fail_before_any_request(self):
+        invalid = (
+            "", "headers", {}, {"headers": ["x-secret"]}, None, True, 1,
+            [""], ["headers"], [[]], [["headers", None]], [["headers", 1]],
+            [["headers", ["x-secret"]]], [{"headers": "x-secret"}],
+        )
+        for value in invalid:
+            c = probe_config()
+            c["probe"]["cases"][-1]["expected"]["absent_json_paths"] = value
+            with self.subTest(value=value), patch(
+                "probe.request", side_effect=AssertionError("request sent before validation")
+            ) as request:
+                with self.assertRaisesRegex(ValueError, "absent_json_paths"):
+                    probe.run(json.dumps(c))
+                request.assert_not_called()
+
+    def test_valid_absence_arrays_preserve_header_tokens_and_json_keys(self):
+        c = probe_config()
+        c["probe"]["cases"] = [c["probe"]["cases"][0]]
+        case = c["probe"]["cases"][0]
+        case["expected"] = {
+            "status": 200, "protocol": "HTTP/1.1",
+            "absent_response_headers": ["X-Secret", "!#$%&'*+.^_`|~012AZ-"],
+            "absent_json_paths": [["headers", "x-secret"], [""]],
+        }
+        probe.validate_cases(c)
+        observation = {"status": 200, "protocol": "HTTP/1.1", "headers": {},
+                       "body": '{"headers":{}}'}
+        self.assertEqual(probe.evaluate(case, [observation])["outcome"], "pass")
+        observation["headers"] = {"x-secret": "leaked"}
+        self.assertEqual(probe.evaluate(case, [observation])["outcome"], "fail")
+        observation["headers"] = {}
+        for body in ('{"headers":{"x-secret":"leaked"}}', '{"headers":{},"":"leaked"}'):
+            observation["body"] = body
+            self.assertEqual(probe.evaluate(case, [observation])["outcome"], "fail")
+        for field in ("absent_response_headers", "absent_json_paths"):
+            case["expected"][field] = []
+        probe.validate_cases(c)
+        self.assertEqual(probe.evaluate(case, [observation])["outcome"], "pass")
+
     def test_cases_cannot_silently_ignore_typo_or_h2(self):
         for key, value in (("statuz", 200), ("protocol", "HTTP/2.0")):
             c = probe_config()
