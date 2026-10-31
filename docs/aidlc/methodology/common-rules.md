@@ -72,7 +72,7 @@ graph TB
 | 11 | Reproducible | Quality | Consistent results across models |
 
 :::info Why Common Rules Matter
-The Common Rules define a shared process for questions, approvals, validation, and audit records across **Kiro, Q Developer, Cursor, Cline, Claude Code, and GitHub Copilot**. The table also includes **AGENTS.md**, an instruction file that compatible tools can read. Output quality still needs to be evaluated for each tool and model.
+The Common Rules define a shared process for questions, approvals, validation, and audit records across **Kiro, Q Developer, Cursor, Cline, Claude Code, and GitHub Copilot**. **AGENTS.md** is an instruction file that compatible tools can read. Output quality still needs to be evaluated for each tool and model.
 :::
 
 ---

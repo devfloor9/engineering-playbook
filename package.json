@@ -28,7 +28,7 @@
     "test:quality": "node --test scripts/tests/locale-parity.test.cjs scripts/tests/audit-issues.test.cjs scripts/tests/doc-review.test.cjs",
     "test:acceptance": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s scripts/operational-acceptance -p test_evidence.py -v",
     "test:ralph-series": "node --test scripts/tests/ralph-series.test.cjs",
-    "test:audit-residuals": "node --test scripts/tests/audit-residuals.test.cjs scripts/tests/audit-slide-repair.test.cjs",
+    "test:audit-residuals": "node --test scripts/tests/audit-residuals.test.cjs scripts/tests/audit-slide-repair.test.cjs scripts/tests/audit-source-followup.test.cjs",
     "check:audit-residuals": "node scripts/check-audit-residuals.cjs && node scripts/repair-eks-debugging-artifact.cjs --check",
     "check:doc-review": "node scripts/check-doc-review.cjs",
     "check:locale-parity": "node scripts/check-locale-parity.cjs",
