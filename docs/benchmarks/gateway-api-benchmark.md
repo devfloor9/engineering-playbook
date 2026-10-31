@@ -3,9 +3,9 @@ title: Gateway API Architecture, Feature Comparison, and Test Report
 description: Architecture comparison, versioned conformance evidence, reproducible feature and performance test plans, and local validation for Gateway API implementations
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-31
   author: devfloor9
-reading_time: 41
+reading_time: 43
 tags:
   - benchmark
   - gateway-api
@@ -285,7 +285,7 @@ The [kit README][kit] describes pinned images, output formats, limits, and indiv
 | 4. Extend scenarios | TLS, route scale, failures, gRPC/SSE | Scenario-specific clients, telemetry, and recovery validated |
 | 5. Update report | Group-specific plots/tables, failure points, operating trade-offs | Every number traceable to raw execution evidence |
 
-[Issue #80](https://github.com/devfloor9/engineering-playbook/issues/80) tracks live measurements. Local fixture results do not complete the installed-Gateway stages.
+The architecture report and bounded test kit requested in [Issue #80](https://github.com/devfloor9/engineering-playbook/issues/80) are available. Its follow-up live campaign remains pending; the owner must reconcile the closing scope before issue closure. Live EKS implementation measurements remain `not_run`/`null` and require a confirmed account/profile, region, dedicated cluster and capacity, and budget. Local fixture results do not complete the installed-Gateway stages.
 
 ## Related Documents
 

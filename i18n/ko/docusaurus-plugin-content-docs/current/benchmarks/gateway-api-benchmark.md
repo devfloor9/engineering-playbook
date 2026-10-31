@@ -3,9 +3,9 @@ title: Gateway API 아키텍처·기능 비교 및 시험 보고서
 description: 대표 Gateway API 구현체의 아키텍처 비교, 공개 적합성 결과 재분석, 재현 가능한 기능·성능 시험 계획과 로컬 검증 보고서
 created: "2026-02-12"
 last_update:
-  date: 2026-09-19
+  date: 2026-10-31
   author: YoungJoon Jeong
-reading_time: 21
+reading_time: 22
 tags:
   - benchmark
   - gateway-api
@@ -285,7 +285,7 @@ python3 scripts/benchmarks/gateway-api-benchmark/run-local.py \
 | 4. 확장 시험 | TLS·Route 규모·장애·gRPC/SSE 결과 | 시나리오별 전용 클라이언트·관측·복구 검증 |
 | 5. 보고서 갱신 | 집단별 그래프·표·실패 지점·운영 trade-off | 모든 수치가 원시 실행 기록으로 추적 가능 |
 
-실측 진행은 [이슈 #80](https://github.com/devfloor9/engineering-playbook/issues/80)에서 추적합니다. 실제 Gateway 측정이 끝나기 전까지 로컬 fixture 결과로 이 단계를 완료 처리하지 않습니다.
+[이슈 #80](https://github.com/devfloor9/engineering-playbook/issues/80)이 요청한 아키텍처 보고서와 한정된 시험 키트는 제공되어 있습니다. 후속 실측은 남아 있으며, 이슈를 닫기 전에 소유자가 완료 범위를 정해야 합니다. 실제 Gateway의 EKS 실측은 `not_run`/`null` 상태이며, 확정된 계정·프로필·리전·전용 클러스터·용량·예산이 필요합니다. 로컬 fixture 결과는 실제 Gateway 측정 단계를 완료한 근거가 아닙니다.
 
 ## 관련 문서
 

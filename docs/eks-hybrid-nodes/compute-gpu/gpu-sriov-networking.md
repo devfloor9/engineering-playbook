@@ -3,9 +3,9 @@ title: Hybrid GPU Workloads and SR-IOV Networking
 description: A hands-on guide to using on-premises GPU nodes as the primary inference tier on EKS Hybrid Nodes, and resolving DGX H200 SR-IOV VF name inconsistency through driver compatibility, persistent naming, and systemd orchestration
 created: "2025-09-01"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-31
   author: YoungJoon Jeong
-reading_time: 32
+reading_time: 34
 tags:
   - eks
   - hybrid-node
@@ -215,6 +215,8 @@ The following is a reference NVIDIA Network Operator configuration. These values
 - Assign a single owner for the VF lifecycle (creation and GUID assignment). If the systemd service above creates the VFs, configure the Operator so it does not duplicate the same work.
 - This example alone does not complete the SR-IOV attachment. Attaching a VF to a pod additionally requires a matching `NicClusterPolicy`/`NetworkAttachmentDefinition` and workload manifest.
 
+The [RDMA shared-device plugin selector contract](https://github.com/Mellanox/k8s-rdma-shared-dev-plugin/blob/5dce4b4130111440ec5caa1c56d0f2fc42310bd7/README.md#devices-selectors) uses string lists for hexadecimal vendor/device IDs and host network-interface names. The [SR-IOV device plugin selector contract](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin/blob/2ae9a457cd5a4c3780dcf1dfa193de07804990ae/README.md#network-devices-selectors) uses exact PF network-interface names, optionally followed by a `#` VF range. The `REPLACE_WITH_...` strings below are required operator inputs, not working interface names: replace them with the node's inventoried network-interface names and reconcile the resource selections before applying. An RDMA device name such as `mlx5_0` does not by itself identify the PF network interface. These selector contracts were checked on 2026-10-31; they do not validate the unpinned Operator chart or the complete configuration.
+
 ```yaml
 # values.yaml for the Network Operator Helm chart
 deployCR: true
@@ -234,9 +236,9 @@ rdmaSharedDevicePlugin:
   deploy: true
   resources:
     - name: dgx_h200_ib
-      vendors: [15b3]
-      deviceIDs: [1017,1018,101b,101c]
-      ifNames: [mlx-*]
+      vendors: ["15b3"]
+      deviceIDs: ["1017", "1018", "101b", "101c"]
+      ifNames: ["REPLACE_WITH_EXACT_NETDEV_NAME"]
 
 multus:
   deploy: false  # Already deployed alongside Cilium
@@ -250,7 +252,7 @@ sriovDevicePlugin:
         "selectors": {
           "vendors": ["15b3"],
           "devices": ["101c"],
-          "pfNames": ["mlx-*"],
+          "pfNames": ["REPLACE_WITH_EXACT_PF_NETDEV_NAME_1"],
           "isRdma": true
         }
       }]
@@ -274,7 +276,7 @@ spec:
   numVfs: 8
   nicSelector:
     vendor: "15b3"
-    pfNames: ["mlx-pf0", "mlx-pf1", "mlx-pf2", "mlx-pf3"]
+    pfNames: ["REPLACE_WITH_EXACT_PF_NETDEV_NAME_1", "REPLACE_WITH_EXACT_PF_NETDEV_NAME_2", "REPLACE_WITH_EXACT_PF_NETDEV_NAME_3", "REPLACE_WITH_EXACT_PF_NETDEV_NAME_4"]
   linkType: ib
   isRdma: true
 ```
