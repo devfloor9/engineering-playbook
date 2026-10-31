@@ -50,14 +50,19 @@ def validate_cases(config):
         if "body_contains" in expected:
             require(isinstance(expected["body_contains"], str) and expected["body_contains"], "empty body assertion")
         require(isinstance(expected.get("json", {}), dict), "expected.json must be a subset object")
-        for path in expected.get("absent_json_paths", []):
+        absent_paths = expected.get("absent_json_paths", [])
+        require(isinstance(absent_paths, list), "absent_json_paths must be an array of key arrays")
+        for path in absent_paths:
             require(isinstance(path, list) and path and all(isinstance(key, str) for key in path),
                     "absent_json_paths must contain key arrays")
         require(isinstance(expected.get("response_headers", {}), dict), "response_headers must be an object")
         for key, value in expected.get("response_headers", {}).items():
             require(isinstance(key, str) and isinstance(value, str), "response header assertions must be strings")
-        require(all(isinstance(key, str) for key in expected.get("absent_response_headers", [])),
-                "absent response headers must be strings")
+        absent_headers = expected.get("absent_response_headers", [])
+        require(isinstance(absent_headers, list), "absent_response_headers must be an array")
+        for key in absent_headers:
+            require(isinstance(key, str) and re.fullmatch(r"[!#$%&'*+.^_`|~0-9A-Za-z-]+", key),
+                    "absent_response_headers must contain valid nonempty header names")
         samples = number(case.get("samples", 1), "samples", 1, True)
         require(samples <= 500, "case exceeds 500 requests")
         total += samples
