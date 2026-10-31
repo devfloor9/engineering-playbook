@@ -3,9 +3,9 @@ title: 하이브리드 GPU 워크로드와 SR-IOV 네트워킹
 description: EKS Hybrid Nodes에서 온프렘 GPU 노드를 1차 추론 계층으로 활용하고, DGX H200 SR-IOV VF 이름 불일치 문제를 드라이버 호환성·영구 명명·systemd 오케스트레이션으로 해결하는 실전 가이드
 created: "2025-09-01"
 last_update:
-  date: 2026-10-13
+  date: 2026-10-31
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 19
 tags:
   - eks
   - hybrid-node
@@ -215,6 +215,8 @@ systemctl status dgx-sriov-setup.service
 - VF 수명주기(생성·GUID 할당)의 소유자를 하나로 정해야 합니다. 앞의 systemd 서비스로 VF를 만든다면 Operator가 동일 작업을 중복 수행하지 않도록 구성합니다.
 - 이 예시만으로는 SR-IOV 연결이 완성되지 않습니다. 실제로 파드에 VF를 연결하려면 일치하는 `NicClusterPolicy`/`NetworkAttachmentDefinition`과 워크로드 매니페스트가 추가로 필요합니다.
 
+[RDMA shared-device plugin의 선택자 계약](https://github.com/Mellanox/k8s-rdma-shared-dev-plugin/blob/5dce4b4130111440ec5caa1c56d0f2fc42310bd7/README.md#devices-selectors)은 16진수 vendor/device ID와 호스트 네트워크 인터페이스 이름을 문자열 목록으로 받습니다. [SR-IOV device plugin의 선택자 계약](https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin/blob/2ae9a457cd5a4c3780dcf1dfa193de07804990ae/README.md#network-devices-selectors)은 정확한 PF 네트워크 인터페이스 이름을 받으며, 필요하면 `#` 뒤에 VF 범위를 지정할 수 있습니다. 아래 `REPLACE_WITH_...` 문자열은 작동하는 인터페이스 이름이 아니라 운영자가 반드시 채워야 할 입력입니다. 적용 전에 노드에서 확인한 네트워크 인터페이스 이름으로 교체하고 리소스 선택 범위를 맞춰야 합니다. `mlx5_0` 같은 RDMA 장치 이름만으로 PF 네트워크 인터페이스를 식별할 수는 없습니다. 이 선택자 계약은 2026-10-31에 확인했으며, 버전이 고정되지 않은 Operator 차트나 전체 구성의 유효성을 검증한 것은 아닙니다.
+
 ```yaml
 # Network Operator Helm 차트용 values.yaml
 deployCR: true
@@ -234,9 +236,9 @@ rdmaSharedDevicePlugin:
   deploy: true
   resources:
     - name: dgx_h200_ib
-      vendors: [15b3]
-      deviceIDs: [1017,1018,101b,101c]
-      ifNames: [mlx-*]
+      vendors: ["15b3"]
+      deviceIDs: ["1017", "1018", "101b", "101c"]
+      ifNames: ["REPLACE_WITH_EXACT_NETDEV_NAME"]
 
 multus:
   deploy: false  # Cilium과 함께 이미 배포됨
@@ -250,7 +252,7 @@ sriovDevicePlugin:
         "selectors": {
           "vendors": ["15b3"],
           "devices": ["101c"],
-          "pfNames": ["mlx-*"],
+          "pfNames": ["REPLACE_WITH_EXACT_PF_NETDEV_NAME_1"],
           "isRdma": true
         }
       }]
@@ -274,7 +276,7 @@ spec:
   numVfs: 8
   nicSelector:
     vendor: "15b3"
-    pfNames: ["mlx-pf0", "mlx-pf1", "mlx-pf2", "mlx-pf3"]
+    pfNames: ["REPLACE_WITH_EXACT_PF_NETDEV_NAME_1", "REPLACE_WITH_EXACT_PF_NETDEV_NAME_2", "REPLACE_WITH_EXACT_PF_NETDEV_NAME_3", "REPLACE_WITH_EXACT_PF_NETDEV_NAME_4"]
   linkType: ib
   isRdma: true
 ```

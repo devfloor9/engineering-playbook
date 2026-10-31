@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "reviewed_on": "2026-10-31",
+  "umbrella_issue": 83,
+  "audit_baseline": "eb93387d33bd991beef2c4885890a312a093b5c3",
+  "reviewed_base_revision": "2fe8d16431699376eef1261f672be60a8d857dde",
+  "state": "documentary_source_review_complete_integration_pending",
+  "scope": "Review of the original issue 83 body against the recorded audit and the current paired passages for all 11 partial findings. This is not a new complete reading of the 628 baseline sources.",
+  "issue_body": "https://github.com/devfloor9/engineering-playbook/issues/83",
+  "scope_interpretation": {
+    "original_requirement": "Record evidence gaps explicitly, correct confirmed errors and misleading explanations, identify remaining verification limits, and report unresolved questions.",
+    "conclusion": "The original documentary criteria permit explicitly reported unresolved evidence. They do not require every benchmark, private incident, account permission, tool rating or legal applicability question to acquire experimental or operator acceptance.",
+    "later_requirement": "The 2026-10-30 and 2026-10-31 issue comments and report add a stronger closure requirement: an evidence-backed disposition for every remaining partial.",
+    "later_requirement_references": [
+      "https://github.com/devfloor9/engineering-playbook/issues/83#issuecomment-6535722154",
+      "https://github.com/devfloor9/engineering-playbook/issues/83#issuecomment-6545845304",
+      "https://github.com/devfloor9/engineering-playbook/issues/83#issuecomment-6546052024"
+    ],
+    "closure_limit": "This review does not close issue 83, waive the published stronger requirement or accept any residual. The issue owner must reconcile the original documentary scope with the later closure requirement before relying on documentary completion alone."
+  },
+  "criteria": [
+    {
+      "criterion": "Every baseline source has a complete reading record and a document-specific review result.",
+      "assessment": "Supported by the existing recorded review.",
+      "evidence": [
+        "documents.json: 628 unique source records, 314 per locale, all marked full_text_read with consecutive ranges covering 192,321 lines and an individual baseline_review_status.",
+        "coverage.json: 488 verification_pending, 91 reviewed_with_findings and 49 reviewed_no_findings; package catalogs retain the document-specific occurrences and evidence."
+      ],
+      "limit": "This review checked record integrity and consulted the recorded analysis; it did not repeat all 628 deep readings. A full_text_read flag or passing static inventory check alone cannot prove careful reading or factual correctness."
+    },
+    {
+      "criterion": "Findings distinguish confirmed errors, misleading wording and claims that lack sufficient evidence.",
+      "assessment": "Supported by the report and preserved package classifications.",
+      "evidence": [
+        "README.md: Scope and method assessment categories.",
+        "agentic-design-serving/canonical-findings.json and aidlc/canonical-findings.json: claim-specific confirmed, misleading_or_unsupported and verification_pending classifications.",
+        "corrections.json and tracking.json: subsequent documentary dispositions remain separate from original classifications."
+      ],
+      "limit": "Scheduling and industry disposition schemas are qualified in the report; their items are not silently counted as confirmed errors."
+    },
+    {
+      "criterion": "Corrections preserve Korean/English meaning and identify remaining verification limits.",
+      "assessment": "Documentary source correction scope complete for the reviewed 11 partials after the paired selector correction in this change.",
+      "evidence": [
+        "corrections.json: preserved partial records for all 11 items, with source commits, locale paths and remaining evidence.",
+        "source-followup-2026-10-31.json: paired primary-source clarifications for AIDLC-C175, ADS-NODE-009, ADS-MOE-008 and ADS-OCLAW004.",
+        "Paired gpu-sriov-networking.md sources: hexadecimal ID strings and required exact-interface placeholders now replace the known mixed types and wildcard selector literals."
+      ],
+      "limit": "The review compared the relevant paired passages for all 11 partials, not every current sentence of the manual. The historical records remain unchanged and all 11 residual statuses remain unresolved."
+    },
+    {
+      "criterion": "A report lists coverage, findings, evidence and unresolved questions without treating pattern scans or static checks as full validation.",
+      "assessment": "Supported by the existing audit report and explicit evidence registers.",
+      "evidence": [
+        "README.md, coverage.json, documents.json, package catalogs, corrections.json and verification.json.",
+        "residuals-2026-10-30.json: exact missing evidence for all 11 partials."
+      ],
+      "limit": "Offline tests establish their stated source, parser, fixture or integrity scope only; they do not establish runtime, performance, billing, incident, account, legal or tool acceptance."
+    },
+    {
+      "criterion": "Relevant tests, both locale builds, rendered exports, internal links and published pages are verified after changes.",
+      "assessment": "Prior base revision is documented as verified; final integration for this new paired change is pending.",
+      "evidence": [
+        "verification.json and corrections.json: dated historical verification records.",
+        "Issue comment 6546052024: exact base SHA 2fe8d16431699376eef1261f672be60a8d857dde, successful main build/deployment run 41218090055 and eight corrected public pages checked HTTP 200 on 2026-10-31.",
+        "Existing audit-residuals, audit-source-followup and doc-metadata suites: 28 tests passed without failures or skips for the isolated source change."
+      ],
+      "limit": "Earlier CI and public-page checks do not verify this new change. Both locale builds, actual rendered exports, internal links, browser rendering and publication must be checked on its final revision before this criterion is complete."
+    }
+  ],
+  "reviewed_partials": [
+    {"id": "ADS-ADR003", "documentary_result": "Approved budget and per-GPU unit accounting replace conflicting monetary guarantees; measured GRPO price/duration remain unresolved."},
+    {"id": "ADS-CASCADE-014", "documentary_result": "Paired arithmetic is reconciled and node-hour savings are explicitly hypothetical; measured deployment costs remain unresolved."},
+    {"id": "ADS-MOE-008", "documentary_result": "Chip/core/instance scope and per-instance versus aggregate networking are corrected; the dated primary memory conflict is explicitly unresolved."},
+    {"id": "ADS-NODE-007", "documentary_result": "Supported coexistence replaces the platform-wide impossibility claim; the private provisioning failure remains an unreproduced incident."},
+    {"id": "ADS-NODE-009", "documentary_result": "Documented 503 causes are distinguished from all-unhealthy fail-open; the private incident remains a correlation with missing causal artifacts."},
+    {"id": "ADS-OCLAW004", "documentary_result": "Model parameters, provider paths and dated GLM model/API/region scope are reconciled; Solar Bedrock and account availability remain unconfirmed."},
+    {"id": "ADS-SOVEREIGN009", "documentary_result": "The blanket GDPR residency claim is corrected; Korean regulatory clauses and applicability remain explicitly unverified."},
+    {"id": "ADS-VLLM-007", "documentary_result": "Startup readiness timeout is distinguished from deadlock and universal recovery promises are removed; original incident and comparative stability remain unverified."},
+    {"id": "EKSN-POD-080", "documentary_result": "Unscoped numeric latency/price cells are replaced with qualified locality tendencies; restoring numbers requires measured and dated evidence."},
+    {"id": "AIDLC-C175", "documentary_result": "Pinned Kiro setup and AGENTS.md file semantics are corrected; retained author scores are explicitly unverified estimates."},
+    {"id": "HR-SRIOV-07", "documentary_result": "The known ID-type and literal-interface-selector defects are corrected in this change; chart/CRD choice, complete attachment resources and runtime reconciliation remain unresolved."}
+  ],
+  "source_correction": {
+    "finding": "HR-SRIOV-07",
+    "source_files": [
+      "docs/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md",
+      "i18n/ko/docusaurus-plugin-content-docs/current/eks-hybrid-nodes/compute-gpu/gpu-sriov-networking.md"
+    ],
+    "primary_sources": [
+      {
+        "url": "https://github.com/Mellanox/k8s-rdma-shared-dev-plugin/blob/5dce4b4130111440ec5caa1c56d0f2fc42310bd7/README.md#devices-selectors",
+        "checked_on": "2026-10-31",
+        "scope": "RDMA shared-device vendors and deviceIDs are hexadecimal string lists; ifNames selects host network-interface names."
+      },
+      {
+        "url": "https://github.com/k8snetworkplumbingwg/sriov-network-device-plugin/blob/2ae9a457cd5a4c3780dcf1dfa193de07804990ae/README.md#network-devices-selectors",
+        "checked_on": "2026-10-31",
+        "scope": "SR-IOV pfNames selects exact PF network-interface names, with optional # VF ranges; the same revision's selector implementation matches the PF name."
+      }
+    ],
+    "limit": "Explicit REPLACE_WITH_ inputs require operator inventory. No hardware interface, Operator chart/CRD version, complete workload or successful attachment is invented."
+  },
+  "preservation": {
+    "accepted_source_corrections": 1896,
+    "unresolved_partials": 11,
+    "withdrawn_findings": 284,
+    "historical_records": "Frozen artifacts, corrections.json, tracking.json and residuals-2026-10-30.json are unchanged.",
+    "raw_records": "No historical quote, result, benchmark or evidence artifact was rewritten."
+  }
+}
