@@ -5,7 +5,7 @@ created: "2026-04-07"
 last_update:
   date: "2026-06-30"
   author: devfloor9
-reading_time: 5
+reading_time: 4
 tags:
   - aidlc
   - enterprise

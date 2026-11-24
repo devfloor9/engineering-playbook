@@ -3,9 +3,14 @@ title: ROSA (Red Hat OpenShift on AWS)
 description: Red Hat OpenShift Service on AWS (ROSA) 구축 및 운영에 대한 기술 문서
 created: "2025-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-11-24
   author: devfloor9
 reading_time: 10
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - scope:nav
 sidebar_label: ROSA
@@ -17,9 +22,9 @@ ROSA는 AWS에서 실행되는 관리형 OpenShift 서비스입니다. AWS는 �
 
 ## 주요 문서 (구현 순서)
 
-### 1단계: 클러스터 설치 및 구성
+### ROSA Classic 단일 AZ 데모 기록 {#1단계-클러스터-설치-및-구성}
 
-[ROSA 데모 설치](./rosa-demo-installation.md)에서 Classic 단일 AZ 클러스터의 과거 구성, STS 역할, 고정된 워커 수와 확인 절차를 살펴봅니다. 기록된 버전을 그대로 새로 설치하는 절차가 아니므로, 재현 전 현재 지원 버전과 계정 준비 조건을 확인하세요.
+[Classic 단일 AZ 데모 기록](./rosa-demo-installation.md)에는 당시의 STS 역할과 워커 2대 고정 구성이 나옵니다. 새 클러스터를 설치할 때는 [공식 Classic CLI 설치 절차](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html)를 따릅니다.
 
 ### 2단계: 보안 및 접근 제어
 

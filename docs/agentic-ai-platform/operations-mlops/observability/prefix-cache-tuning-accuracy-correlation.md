@@ -5,7 +5,7 @@ created: "2026-09-05"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 38
+reading_time: 40
 tags:
   - vllm
   - langfuse

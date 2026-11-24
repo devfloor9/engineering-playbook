@@ -5,7 +5,7 @@ created: "2025-05-20"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 32
+reading_time: 33
 tags:
   - eks
   - coredns

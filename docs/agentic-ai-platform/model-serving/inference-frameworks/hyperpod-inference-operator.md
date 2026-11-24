@@ -5,7 +5,7 @@ created: "2026-06-23"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 29
+reading_time: 30
 tags:
   - hyperpod
   - sagemaker

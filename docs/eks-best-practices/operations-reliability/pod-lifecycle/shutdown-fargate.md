@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 19
+reading_time: 20
 tags:
   - eks
   - kubernetes

@@ -3,9 +3,14 @@ title: Probe vs Health Check 불일치 디버깅
 description: K8s Probe와 ALB/NLB/Ingress Controller Health Check의 메커니즘 차이 및 timeout 불일치로 인한 장애 진단 가이드
 created: "2026-04-07"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: YoungJoon Jeong
 reading_time: 18
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: review_needed
+  next_review: null
 tags:
   - eks
   - debugging
@@ -18,7 +23,7 @@ tags:
 sidebar_label: Health Check 불일치
 ---
 
-> **📌 기준 환경**: EKS 1.33+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
+> **예제의 작성 기준 버전**은 EKS 1.33, AWS Load Balancer Controller v2.9, Ingress-NGINX v1.11입니다. 최소 동작 버전이나 이후 버전과의 호환성을 확인한 시험 기록은 이 문서에 없습니다.
 >
 > Kubernetes SIG Network와 Security Response Committee는 2025-11-11에 Ingress-NGINX의 은퇴를 발표했습니다. 발표에 따르면 best-effort 유지보수는 2026년 3월까지였고, 그 이후에는 새 릴리스, 버그 수정, 보안 취약점 수정이 제공되지 않습니다. GitHub의 `kubernetes/ingress-nginx` 저장소는 보관(archived) 상태입니다(2026-10-29 기준). 이 문서의 Ingress-NGINX 내용은 기존 배포를 진단하기 위한 것이며, 신규 구성에는 Gateway API 또는 다른 Ingress 컨트롤러로의 이전을 검토합니다([Ingress NGINX Retirement](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)).
 
@@ -773,6 +778,8 @@ terminationGracePeriodSeconds = preStop_sleep + app_shutdown_buffer
 ---
 
 ## 6. 진단 명령어 모음
+
+헬스 체크 결과를 비교하기 전에 `kubectl version`에 표시되는 Kubernetes 서버 버전과 배포된 컨트롤러 이미지의 태그 또는 다이제스트를 기록합니다. ALB를 사용한다면 AWS Load Balancer Controller 이미지를 확인합니다. 기존 Ingress-NGINX 배포를 진단한다면 해당 컨트롤러 이미지를 확인합니다. 아래 명령의 네임스페이스와 배포 이름은 실제 클러스터에 맞춥니다.
 
 ### 6.1 K8s Endpoints 확인
 

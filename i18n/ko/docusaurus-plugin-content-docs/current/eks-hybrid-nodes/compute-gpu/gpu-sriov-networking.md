@@ -1,11 +1,16 @@
 ---
 title: 하이브리드 GPU 워크로드와 SR-IOV 네트워킹
-description: EKS Hybrid Nodes에서 온프렘 GPU 노드를 1차 추론 계층으로 활용하고, DGX H200 SR-IOV VF 이름 불일치 문제를 드라이버 호환성·영구 명명·systemd 오케스트레이션으로 해결하는 실전 가이드
+description: EKS Hybrid Nodes에서 온프렘 GPU를 활용하고, DGX H200에서 관찰된 VF 이름 변경, Ethernet 링크 모드, PORT_DOWN을 증상별로 진단합니다.
 created: "2025-09-01"
 last_update:
-  date: 2026-10-31
+  date: 2026-11-24
   author: YoungJoon Jeong
 reading_time: 19
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: review_needed
+  next_review: null
 tags:
   - eks
   - hybrid-node
@@ -22,7 +27,7 @@ category: hybrid-multicloud
 
 ## 소개
 
-본 문서는 EKS Hybrid Nodes의 GPU 워크로드 아키텍처와 고성능 네트워킹 구성을 다룹니다. 전반부는 보유 GPU 자산을 1차 추론 계층으로 활용하는 3-Tier 아키텍처를, 후반부는 NVIDIA DGX H200 시스템에서 SR-IOV VF(Virtual Function) 인터페이스 이름이 재부팅마다 변경되어 CNI 스택이 손상되는 문제의 근본 원인 분석과 해결 방안을 실사례 기반으로 설명합니다.
+전반부는 보유 GPU를 활용하는 3계층 추론 아키텍처를 다룹니다. 후반부는 EKS Hybrid Nodes에 연결한 DGX H200의 장애 기록입니다. SR-IOV VF(Virtual Function) 이름 변경, 일부 포트의 Ethernet 표시, 일부 VF의 `PORT_DOWN`을 각각 어떻게 확인할지 설명합니다.
 
 ## 하이브리드 GPU 워크로드 아키텍처
 
@@ -54,7 +59,7 @@ Amazon EKS 컨트롤 플레인은 Hybrid Nodes 기능을 통해 온프렘 DGX H2
 
 ## 문제 상황: VF 이름 불일치
 
-DGX H200 클러스터(클러스터 패브릭의 8개 단일 포트 ConnectX-7 400G InfiniBand 포트)를 Amazon EKS Hybrid Nodes와 통합하고 ML 워크로드를 실행할 준비를 마쳤을 때, 파드가 배포에 실패하기 시작했습니다. 원인은 SR-IOV VF 인터페이스가 파드 배포 중 예측 불가능하게 이름을 변경하기 때문입니다.
+DGX H200 클러스터를 EKS Hybrid Nodes에 연결한 뒤 파드 배포가 실패했습니다. 배포 중 운영자는 VF 인터페이스 이름이 바뀌고 CNI와 디바이스 플러그인의 바인딩이 실패하는 현상을 관찰했습니다.
 
 환경 구성:
 
@@ -69,9 +74,9 @@ DGX H200 클러스터(클러스터 패브릭의 8개 단일 포트 ConnectX-7 40
 - 일부 포트가 Ethernet 모드로 폴백됨
 - SR-IOV VF가 간헐적으로 PORT_DOWN 상태를 표시함
 
-## 원인 분석: 드라이버 호환성 문제
+## 장애 기록에서 확인할 수 있는 내용 {#원인-분석-드라이버-호환성-문제}
 
-며칠간의 디버깅 끝에 근본 원인이 발견되었습니다. **MLNX_OFED 25.01이 kernel 6.8.0과 근본적으로 호환되지 않았습니다.** 드라이버가 로드되는 것처럼 보였기 때문에 즉시 명확하지 않았지만, 중요한 커널 API 변경으로 인해 기능이 손상되었습니다.
+사례에 기록된 환경은 MLNX_OFED 25.01과 커널 `6.8.0-55-generic`입니다. 아래 커널 로그에는 심볼을 찾지 못한 오류와 특정 PCI 주소의 probe 실패가 기록돼 있습니다.
 
 ```bash
 # dmesg에서 확인된 내용 (간략화)
@@ -79,18 +84,26 @@ DGX H200 클러스터(클러스터 패브릭의 8개 단일 포트 ConnectX-7 40
 [  123.456790] mlx5_core: probe of 0000:18:00.2 failed with error -2
 ```
 
-kernel 6.8.0은 MLNX_OFED 25.01이 의존하는 여러 함수(`strlcpy`, `xdp_do_flush_map` 등)를 제거했습니다. 이 비호환성은 예측 불가능한 VF probe 시퀀스와 명명 할당으로 이어졌습니다.
+**표 2. DGX H200에서 관찰한 증상과 증상별 확인 방법**
+
+| 관찰된 증상 | 기록으로 확인한 사실 | 가능한 원인 | 확인에 필요한 자료 |
+| --- | --- | --- | --- |
+| VF 이름 변경 | 바인딩이 실패했고 `0000:18:00.2`에서 probe가 실패했습니다. 로그에는 이름이 바뀐 VF가 표시되지 않습니다. | 드라이버 빌드 불일치 또는 udev 명명 규칙의 적용 순서. | 재부팅 또는 파드 재배포 전후에 같은 PF의 같은 VF 번호를 PCI 주소와 인터페이스 이름에 대응시킵니다. 각 부팅의 `udevadm info`와 커널 로그를 비교합니다. |
+| InfiniBand로 예상한 포트에서 Ethernet 표시 | 일부 포트에서 Ethernet이 보고됐습니다. 같은 물리 포트의 전후 기록은 없습니다. | 포트 식별 오류, 링크 유형 설정 또는 펌웨어와 드라이버의 조합. | PCI 주소와 포트 번호를 확인합니다. `ibstat`의 현재 링크 계층과 `mlxconfig`의 다음 부팅 `LINK_TYPE_P1` 설정(해당 시 `P2`)을 대조합니다. 어댑터 PSID, 펌웨어와 드라이버 버전도 기록합니다. |
+| VF의 `PORT_DOWN` | 간헐적인 다운 상태가 보고됐습니다. 같은 시각의 물리 포트나 서브넷 매니저 로그는 없습니다. | 물리 링크, VF 포트 정책·GUID 또는 서브넷 매니저 상태. | 같은 시각의 PF·VF `ibstat`, sysfs의 VF별 `node`·`port`·`policy`, 서브넷 매니저 로그를 확보합니다. |
+
+NVIDIA 문서는 [VF별 GUID와 포트 정책](https://networking-docs.nvidia.com/mlnxofedswum/24.10-5.1.6.1lts/single-root-io-virtualization-sr-iov), [다음 부팅의 링크 설정](https://networking-docs.nvidia.com/mftswum/4310/using-mlxconfig)을 설명합니다. 세 증상의 인과관계를 확인하려면 해당 노드의 기록이 필요합니다.
 
 ## 3계층 해결 방안
 
-이 문제를 해결하기 위해 포괄적인 3계층 접근 방식이 개발되었습니다.
+영향받은 VF에서 확보한 근거에 따라 조치를 선택합니다. 이름 변경만으로는 드라이버 교체가 필요하다고 판단할 수 없습니다.
 
 ### 계층 1: 기반 수정 - 드라이버 업그레이드
 
-먼저 드라이버 비호환성을 해결합니다. 아래 절차는 활성 InfiniBand 드라이버를 제거하고 교체하므로, 반드시 **노드 드레인 → 콘솔(BMC/IPMI) 접근 확보 → 기존 드라이버·설정 백업 → 적용 → 검증** 순서의 통제된 유지보수 작업으로 수행해야 합니다. 원격 SSH만으로 진행하면 드라이버 제거 시점에 네트워크가 끊겨 노드에 다시 접근하지 못할 수 있습니다. 명령에 사용된 OFED/커널 버전·PCI 주소·파일명은 예시이며, 대상 노드의 실제 값과 지원 조합(MLNX_OFED 릴리스 노트의 OS·커널 매트릭스)으로 반드시 교체해야 합니다.
+설치한 모듈과 실행 중인 커널의 비호환성을 확인했다면 MLNX_OFED의 OS·커널 지원표에서 맞는 빌드를 선택합니다. 활성 InfiniBand 드라이버 교체는 **노드 드레인 → 콘솔(BMC/IPMI) 접근 확보 → 기존 드라이버·설정 백업 → 적용 → 검증** 순서로 진행합니다. SSH로만 접속하면 드라이버 제거 시점에 연결이 끊길 수 있습니다. 예시의 패키지·커널·PCI 주소는 대상 노드에 맞게 교체하십시오.
 
 :::danger 서비스 중단 및 복구 불가 위험
-`ofed_uninstall.sh --force`는 의존성 확인 없이 현재 적재된 네트워크 드라이버를 제거하므로 원격 접근이 끊길 수 있습니다. 실행 전에 (1) `kubectl drain`으로 워크로드를 비우고, (2) BMC/IPMI 등 대역 외(out-of-band) 콘솔 접근을 확보하며, (3) 현재 드라이버 버전·`/etc/opensm`·systemd 설정·펌웨어 설정을 백업하고, (4) 실패 시 복귀할 수 있는 롤백 계획(이전 OFED 패키지 보관, 재설치 절차)을 준비하십시오.
+설치된 OFED 패키지를 제거한 뒤 드라이버를 다시 로드하거나 재부팅하면 노드에 접속할 수 없게 될 수 있습니다. 패키지 제거 전 워크로드를 비우고 대역 외 콘솔 접근을 확보합니다. 드라이버와 설정을 백업하고 이전 패키지와 재설치 절차를 준비합니다.
 :::
 
 ```bash
@@ -155,7 +168,7 @@ EOF
 - **kubelet 의존성은 순서(ordering)만으로 부족합니다.** `Before=kubelet.service`는 순서만 지정하며, 이 서비스가 실패해도 kubelet 시작을 막지 못합니다. kubelet 유닛 쪽에 `After=`와 `Requires=`(또는 `BindsTo=`)를 함께 설정해, VF 준비 실패 시 kubelet이 기동하지 않도록 해야 합니다.
 - **`enable`은 현재 세션을 초기화하지 않습니다.** `systemctl enable`은 부팅 시 활성화만 하므로, 즉시 적용하려면 `systemctl start`로 실행하고 결과(`systemctl status`, 저널)를 확인한 뒤, 재부팅으로 부팅 경로도 검증해야 합니다.
 
-아래 PF 목록·GUID 공식·sysfs 경로는 예시이며, 대상 노드에서 실제 값으로 교체해야 합니다.
+예시는 PF당 VF 8개를 사용합니다. 확인한 PF 목록의 순서를 고정합니다. `GUID_PREFIX`에는 패브릭에서 이 호스트에만 할당한 6옥텟 접두사를 넣습니다. 다음 옥텟은 VF를 식별하고 마지막 옥텟은 노드와 포트를 구분합니다. 접두사를 비워 두면 쓰기를 시작하기 전에 서비스가 중단됩니다.
 
 ```bash
 cat > /etc/systemd/system/dgx-sriov-setup.service << 'EOF'
@@ -169,22 +182,27 @@ After=network-pre.target
 Type=oneshot
 RemainAfterExit=yes
 # 대상 PF 집합은 노드에서 'ibstat'/'ls /sys/class/infiniband'로 확인한 실제 값으로 교체
-Environment=PFS="mlx5_0 mlx5_1 mlx5_2 mlx5_3 mlx5_4 mlx5_5 mlx5_6 mlx5_7"
-Environment=HOSTID=00  # 패브릭 전역 고유성을 위한 호스트 식별자(실제 값으로 교체)
-ExecStart=/bin/bash -euo pipefail -c '\
+Environment="PFS=mlx5_0 mlx5_1 mlx5_2 mlx5_3 mlx5_4 mlx5_5 mlx5_6 mlx5_7"
+Environment=GUID_PREFIX=
+ExecStart=:/bin/bash -euo pipefail -c '\
+  [[ "$GUID_PREFIX" =~ ^([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}$ ]] || { echo "Set a six-octet GUID_PREFIX" >&2; exit 1; }; \
   for pf in $PFS; do \
-    echo 8 > /sys/class/infiniband/$pf/device/sriov_numvfs; \
-    sleep 0.5; \
+    count=/sys/class/infiniband/$pf/device/sriov_numvfs; \
+    case "$(cat "$count")" in 0|8) ;; *) echo "Unexpected VF count on $pf" >&2; exit 1 ;; esac; \
+  done; \
+  for pf in $PFS; do \
+    count=/sys/class/infiniband/$pf/device/sriov_numvfs; \
+    if [[ "$(cat "$count")" == 0 ]]; then echo 8 > "$count"; fi; \
   done'
 ExecStart=/usr/bin/udevadm settle --timeout=30
-ExecStart=/bin/bash -euo pipefail -c '\
+ExecStart=:/bin/bash -euo pipefail -c '\
   idx=0; \
   for pf in $PFS; do \
     for vf in 0 1 2 3 4 5 6 7; do \
       base=/sys/class/infiniband/$pf/device/sriov/$vf; \
       [ -e "$base/node" ] || { echo "missing $base/node" >&2; exit 1; }; \
-      printf "00:11:22:%s:%02x:1\n" "$HOSTID" "$idx" > "$base/node"; \
-      printf "00:11:22:%s:%02x:2\n" "$HOSTID" "$idx" > "$base/port"; \
+      printf "%%s:%%02x:01\\n" "$GUID_PREFIX" "$idx" > "$base/node"; \
+      printf "%%s:%%02x:02\\n" "$GUID_PREFIX" "$idx" > "$base/port"; \
       idx=$((idx+1)); \
     done; \
   done'
@@ -195,6 +213,7 @@ WantedBy=multi-user.target
 EOF
 
 # 즉시 적용 + 결과 확인(enable만으로는 현재 세션이 설정되지 않음)
+sudo systemctl daemon-reload
 sudo systemctl enable --now dgx-sriov-setup.service
 systemctl status dgx-sriov-setup.service
 ```
@@ -283,43 +302,31 @@ spec:
 
 ## InfiniBand에서 Ethernet으로의 폴백 방지
 
-특히 당혹스러운 문제는 포트가 무작위로 Ethernet 모드로 폴백되는 것이었습니다. 이는 ConnectX-7 어댑터와 드라이버 기대치 간의 펌웨어 불일치로 인해 발생했습니다.
+먼저 Ethernet이 표시된 물리 포트를 식별합니다. DGX H200에는 전용 Ethernet 어댑터도 있습니다. InfiniBand로 사용할 포트라면 펌웨어 설정을 바꾸기 전에 현재 링크 계층과 설정된 링크 유형을 대조합니다.
 
 ### 해결 방법: 펌웨어·링크 설정 점검 {#해결-방법-펌웨어-업데이트-및-구성}
 
 :::danger 패브릭 영향 및 복구 위험
-아래 명령은 NIC 펌웨어 **설정(mlxconfig)**과 서브넷 매니저(OpenSM) 구성을 변경합니다. 이는 펌웨어 이미지 자체를 갱신하는 작업과 다릅니다. 설정 변경은 대부분 재부팅 또는 전원 재투입 후에만 적용되며, OpenSM 구성을 덮어쓰면 기존 패브릭 관리자 설정이 사라져 패브릭 전체에 영향을 줄 수 있습니다. 실행 전에 (1) 기존 `mlxconfig -d <dev> q` 출력과 `/etc/opensm/opensm.conf`를 백업하고, (2) 패브릭의 서브넷 매니저 소유 주체(이 호스트인지, 외부 관리 노드인지)를 확인하며, (3) 적용/재부팅 시점과 롤백 절차를 사전에 정하십시오. PCI 주소와 포트 수(단일/듀얼)는 어댑터마다 다르므로 `lspci`/`mlxconfig`로 실제 장치를 먼저 인벤토리해야 합니다.
+`mlxconfig set` 예시는 다음 부팅에 적용할 NIC 설정을 변경합니다. 실행 전에 InfiniBand 어댑터를 식별하고 기존 설정을 보관합니다. 패브릭 담당자와 유지보수 시간과 복구 절차를 합의합니다. 서브넷 매니저에서 OpenSM 설정을 바꾸면 패브릭 전체에 영향을 줄 수 있습니다.
 :::
 
 ```bash
 # 1) 현재 펌웨어 이미지 버전 확인 (이미지 갱신이 필요한지 판단)
 sudo mlxfwmanager --query
 
-# 2) 변경 전 현재 설정 백업
-for dev in 18:00.0 9a:00.0 ce:00.0 c0:00.0; do
-  sudo mlxconfig -d $dev q > /root/mlxconfig-$dev.bak
-done
-sudo cp -a /etc/opensm/opensm.conf /root/opensm.conf.bak 2>/dev/null || true
-
-# 3) (설정 변경, 펌웨어 이미지 갱신 아님) InfiniBand 모드와 SR-IOV 활성화
-#    - 단일 포트 어댑터는 LINK_TYPE_P2가 없을 수 있으므로 포트 수에 맞게 조정
-for dev in 18:00.0 9a:00.0 ce:00.0 c0:00.0; do
-  sudo mlxconfig -d $dev set LINK_TYPE_P1=1
-  sudo mlxconfig -d $dev set SRIOV_EN=1 NUM_OF_VFS=8
-done
+# 2) IB_PCI에 확인한 어댑터 주소를 지정하고 포트 1 변경 전 설정을 보관
+: "${IB_PCI:?Set IB_PCI to the confirmed adapter PCI address}"
+sudo mlxconfig -d "$IB_PCI" q > "mlxconfig-${IB_PCI}-before.txt" &&
+  sudo mlxconfig -d "$IB_PCI" set LINK_TYPE_P1=1 SRIOV_EN=1 NUM_OF_VFS=8
 # mlxconfig 변경은 재부팅/전원 재투입 후 적용됩니다.
 
-# 4) OpenSM 가상화 지원: 이 호스트가 서브넷 매니저를 소유하는 경우에만, 기존 설정을 보존하며 추가
-#    (아래처럼 통째로 덮어쓰지 말고 백업본을 기준으로 필요한 키만 병합)
-sudo install -m 0644 /dev/stdin /etc/opensm/opensm.conf.d/10-virt.conf << 'EOF'
-# 가상화 지원 (기존 opensm.conf를 덮어쓰지 않고 드롭인으로 추가)
-virt_enabled 2
-virt_max_ports_in_process 256
-virt_default_hop_limit 64
-EOF
-
-sudo systemctl restart opensm
+# 4) 서브넷 매니저 호스트에서 실행 중인 서비스가 읽는 설정 파일 확인
+systemctl cat opensm
+# 실제 설정 파일이 /etc/opensm/opensm.conf인 경우:
+grep -E '^[[:space:]]*virt_enabled[[:space:]]' /etc/opensm/opensm.conf
 ```
+
+가상화가 필요하면 패브릭 담당자가 유지보수 시간에 실제 OpenSM 설정에 `virt_enabled 2`를 반영하고 해당 포트 상태를 다시 확인합니다. 드롭인 디렉터리에 파일만 두어도 되는지는 실행 중인 서비스가 그 파일을 읽는지에 달려 있습니다.
 
 :::warning Critical
 MLNX_OFED 24.10 릴리스 노트의 "General Support"는 특정 어댑터 펌웨어 버전을 **번들/테스트된(bundled, tested-with) 버전**으로 명시하며, 이는 모든 환경에 적용되는 절대 최소 요구치가 아닙니다. 같은 문서는 **BlueField-2와 ConnectX-7이 MLNX_OFED가 지원하는 마지막 세대**임을 밝히고 있어, BlueField-3은 이 MLNX_OFED 세대의 지원 범위에 포함되지 않습니다(BlueField-3은 별도의 DOCA 릴리스·펌웨어 체계를 따릅니다). 따라서 "ConnectX-7은 28.43.1014 이상, BlueField-3은 32.43.1014 필요"처럼 단정하지 말고, 실제 어댑터의 PSID와 사용 중인 드라이버 릴리스에 대응하는 공식 펌웨어 매트릭스를 확인해 적용하십시오. 예시의 버전 번호는 참고용이며 환경의 실제 지원 조합으로 교체해야 합니다.
@@ -331,18 +338,22 @@ MLNX_OFED 24.10 릴리스 노트의 "General Support"는 특정 어댑터 펌웨
 2. **솔루션을 계층화**: 단일 접근 방식으로는 복잡한 네트워킹 문제를 해결하기 어렵습니다. 3계층 솔루션은 문제의 다양한 측면을 다룹니다.
 3. **GUID 할당의 중요성**: Zero GUID(`0x000000`)는 VF 식별 실패를 유발합니다. 항상 고유 GUID를 프로그래밍 방식으로 할당합니다.
 4. **타이밍이 전부**: 작업 순서(드라이버 로드 → VF 생성 → GUID 할당 → udev 처리 → kubelet 시작)가 중요합니다.
-5. **스테이징 환경에서 펌웨어 업데이트 테스트**: 펌웨어 불일치는 진단하기 어려운 프로토콜 폴백을 유발할 수 있습니다.
+5. **펌웨어 변경 전 포트 모드 기록**: 같은 포트의 현재 링크 계층, 다음 부팅 설정, PSID, 펌웨어 버전을 보관합니다. 변경은 스테이징에서 시험합니다.
 
 ## 모니터링 및 검증
 
 구현 후 다음 핵심 메트릭을 모니터링합니다.
 
 ```bash
-# VF 명명 일관성 확인
-ip link show | grep -E "mlx-|sriov-" | wc -l
+# 호스트에서 보이는 VF별로 PF·VF 번호와 PCI 주소, 인터페이스 이름 대조
+for vf in /sys/bus/pci/devices/*/virtfn*; do
+  [ -L "$vf" ] || continue
+  printf '%s -> %s\n' "$vf" "$(readlink -f "$vf")"
+  ls -1 "$vf/net" 2>/dev/null
+done
 
-# PORT_DOWN 문제 확인
-ibstat | grep -c "State: Active"
+# 어댑터·포트 번호와 함께 링크 계층, 상태, GUID 확인
+ibstat
 
 # GUID 할당 검증
 # 주의: ports/1/gids/0 은 PF의 GID(index 0)이며 VF별 GUID가 아닙니다. 또한 GID는
@@ -354,15 +365,16 @@ PFS="mlx5_0 mlx5_1 mlx5_2 mlx5_3 mlx5_4 mlx5_5 mlx5_6 mlx5_7"
 for pf in $PFS; do
   for vf in 0 1 2 3 4 5 6 7; do
     base=/sys/class/infiniband/$pf/device/sriov/$vf
-    node=$(cat "$base/node" 2>/dev/null)
-    echo "$pf vf$vf node=$node"
-    case "$node" in ""|00:00:00:00:00:00:00:00)
-      echo "  !! zero/empty GUID on $pf vf$vf" >&2 ;;
-    esac
+    for field in node port; do
+      guid=$(cat "$base/$field") || continue
+      printf '%s vf%s %s %s\n' "$pf" "$vf" "$field" "$guid"
+      case "$guid" in ""|00:00:00:00:00:00:00:00)
+        echo "  !! zero/empty $field GUID on $pf vf$vf" >&2 ;;
+      esac
+    done
   done
 done
-# 전역 중복 검사: 위 출력의 node 값에서 중복이 없어야 함
-# (수집한 모든 호스트의 GUID를 합쳐 'sort | uniq -d' 결과가 비어 있어야 함)
+# 모든 호스트의 GUID 열을 모아 sort | uniq -d 로 중복 확인
 
 # 포트/링크 상태는 GUID 검증과 분리해 별도로 확인
 ibstat | grep -E "State:|Port GUID:"
@@ -373,9 +385,9 @@ kubectl get nodes -o json | jq '.items[].status.allocatable' | grep dgx_h200_vfs
 
 ## 결론
 
-Amazon EKS Hybrid Nodes를 실행하는 DGX H200 시스템에서 SR-IOV VF 명명 불일치를 해결하려면 드라이버 호환성, systemd 네트워킹, Kubernetes CNI 상호 작용에 대한 깊은 조사가 필요했습니다. 핵심 인사이트는 겉보기에 관련 없어 보이는 증상(명명 변경, 프로토콜 폴백, PORT_DOWN 상태)이 모두 근본적인 드라이버-커널 비호환성에서 비롯되었다는 것을 인식하는 것이었습니다.
+기록에서 확인한 것은 `mlx5_core`의 probe 실패입니다. 이름이 유지되는지는 재부팅과 파드 재배포 전후에 같은 VF에서 확인합니다. 링크 계층과 포트 상태는 영향을 받은 포트에서 각각 확인합니다. Ethernet 표시와 `PORT_DOWN`의 원인은 아직 미확인입니다.
 
-이 문서의 대응은 드라이버 수정, 재부팅 후에도 유지되는 VF 이름 설정, VF 생성 과정 제어로 나뉩니다. 구성을 적용한 뒤에는 재부팅과 Pod 재배포 후에도 이름이 유지되는지 확인하고, PORT_DOWN 상태와 GUID 할당 결과를 함께 점검합니다.
+Operator 예제의 검증은 별도 항목(`HR-SRIOV-07`)입니다. 설치한 차트·CRD, 적용한 정책·`NetworkAttachmentDefinition`, 대상 파드가 의도한 VF를 받았다는 증거를 기록합니다. 노드의 할당 가능 수량만으로는 파드 연결을 확인할 수 없습니다.
 
 ## 참고 자료
 

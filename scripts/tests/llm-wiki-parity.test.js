@@ -248,15 +248,22 @@ test('OpenClaw equivalent retains all 24 boxes, 13 directed polylines and 32 lab
   }
 });
 
-test('inline architecture retains static HTML content and never exports ESM or executes its scripts', () => {
-  const file = path.join(root, 'docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md');
-  const output = stripMdx(fs.readFileSync(file, 'utf8'), {filePath: file});
+test('both inline architecture articles retain the static HTML and cite their own source', () => {
+  const article = 'agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md';
   const html = fromHtml(fs.readFileSync(path.join(root, 'static/agentic-platform-architecture.html'), 'utf8'));
-  for (const text of visibleText(descendants(html, 'main'))) assert.ok(normalize(output).includes(normalize(text)), text);
-  assert.ok(output.includes('↓'));
-  assert.ok(output.includes('Interactive architecture'));
-  assert.ok(!output.includes('postMessage'));
-  assert.ok(!output.includes('export const'));
+  for (const directory of ['docs', 'i18n/ko/docusaurus-plugin-content-docs/current']) {
+    const relative = `${directory}/${article}`;
+    const file = path.join(root, relative);
+    const renderedSources = [];
+    const output = stripMdx(fs.readFileSync(file, 'utf8'), {filePath: file, renderedSources});
+    const diagram = renderedSources.find(source => source.method === 'static-html-source');
+    assert.equal(diagram?.source, `${relative}#InferencePipelineDiagram`);
+    for (const text of visibleText(descendants(html, 'main'))) assert.ok(normalize(output).includes(normalize(text)), text);
+    assert.ok(output.includes('↓'));
+    assert.ok(output.includes('Interactive architecture'));
+    assert.ok(!output.includes('postMessage'));
+    assert.ok(!output.includes('export const'));
+  }
 });
 
 test('all source navigation lists retain static destinations, descriptions and legacy fragments', () => {

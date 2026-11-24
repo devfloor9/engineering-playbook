@@ -5,7 +5,7 @@ created: "2025-02-09"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 82
+reading_time: 83
 tags:
   - eks
   - karpenter

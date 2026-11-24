@@ -3,9 +3,14 @@ title: "AIDLC: AI-Driven Development Lifecycle"
 description: AI-Driven Development Lifecycle — AWS Labs 공식 방법론 기반 + DDD·Ontology·Harness 엔터프라이즈 확장
 created: "2026-03-23"
 last_update:
-  date: 2026-09-19
+  date: 2026-11-24
   author: devfloor9
 reading_time: 3
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - aidlc
   - methodology
@@ -18,7 +23,7 @@ category: aidlc
 # AIDLC: AI-Driven Development Lifecycle
 
 :::info 공식 AIDLC 레퍼런스
-본 섹션은 [AWS Labs AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) (v0.1.7, 2026-04-02) 를 기반으로 DDD·Ontology·Harness 확장을 덧붙였습니다. 공식 용어(User Request/Requirements, Unit of Work)와 engineering-playbook 용어(Intent, Unit, Bolt)의 매핑은 [10대 원칙과 실행 모델](./methodology/principles-and-model.md#12-aws-labs-aidlc-공식-용어-매핑) 에서 확인하세요.
+[AWS AI-DLC 방법론](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)은 짧은 작업 주기를 **Bolt**라고 부릅니다. [AI-DLC Workflows v0.1.7](https://github.com/awslabs/aidlc-workflows/tree/v0.1.7)은 Requirements Analysis와 Units Generation 같은 단계로 방법론을 구현합니다. DDD·온톨로지·하네스 지침은 이 플레이북의 확장입니다. [방법론 용어와 구현 단계 대응표](./methodology/principles-and-model.md#12-aws-labs-aidlc-공식-용어-매핑)에서 차이를 확인할 수 있습니다.
 :::
 
 AIDLC(AI-Driven Development Lifecycle)는 **Intent → Unit → Bolt** 모델로 AI를 활용한 요구사항 분석, 설계, 구현, 테스트를 구성합니다. Intent는 달성할 업무 목표이고, Unit은 그 목표를 나눈 작업 단위이며, Bolt는 작업을 수행하는 짧은 반복 주기입니다. AI가 계획과 산출물을 제안하면 사람이 프로젝트의 요구사항과 제약에 맞는지 검토합니다.

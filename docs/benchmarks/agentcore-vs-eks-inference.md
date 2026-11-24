@@ -5,7 +5,7 @@ created: "2026-03-18"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 31
+reading_time: 32
 tags:
   - benchmark
   - bedrock

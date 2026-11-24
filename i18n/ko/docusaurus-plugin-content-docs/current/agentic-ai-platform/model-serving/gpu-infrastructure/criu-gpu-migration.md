@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-10-12
   author: YoungJoon Jeong
-reading_time: 18
+reading_time: 19
 tags:
   - criu
   - gpu

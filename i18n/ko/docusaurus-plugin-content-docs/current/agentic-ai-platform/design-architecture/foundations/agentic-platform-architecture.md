@@ -5,7 +5,7 @@ created: "2026-02-05"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 43
+reading_time: 45
 tags:
   - architecture
   - agentic-ai

@@ -5,7 +5,7 @@ created: "2025-02-05"
 last_update:
   date: 2026-09-18
   author: YoungJoon Jeong
-reading_time: 60
+reading_time: 61
 tags:
   - eks
   - cost-management

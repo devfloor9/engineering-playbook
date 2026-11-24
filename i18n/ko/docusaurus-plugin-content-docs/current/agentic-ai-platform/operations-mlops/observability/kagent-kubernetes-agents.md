@@ -5,7 +5,7 @@ created: "2026-02-05"
 last_update:
   date: 2026-10-15
   author: YoungJoon Jeong
-reading_time: 13
+reading_time: 14
 tags:
   - eks
   - kagent

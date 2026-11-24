@@ -34,7 +34,7 @@ const STRINGS = {
     priciest: '최고가 모델',
     costRatio: '비용 격차 (최대/최소)',
     cacheReadShare: '캐시 읽기 토큰 비중',
-    totalSpend: '총 지출',
+    totalSpend: '총 비용(계산값)',
     // metrics / card fields
     cost: '비용',
     runMinutes: '실행 시간(분)',
@@ -77,7 +77,7 @@ const STRINGS = {
     priciest: 'Priciest model',
     costRatio: 'Cost ratio (max/min)',
     cacheReadShare: 'Cache-read token share',
-    totalSpend: 'Total spend',
+    totalSpend: 'Total cost (calculated)',
     cost: 'Cost',
     runMinutes: 'Run minutes',
     outputTokens: 'Output tokens',

@@ -3,9 +3,14 @@ title: 거버넌스 프레임워크
 description: AIDLC 엔터프라이즈 - governance-framework
 created: "2026-04-07"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: YoungJoon Jeong
-reading_time: 14
+reading_time: 15
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - aidlc
   - enterprise
@@ -252,6 +257,8 @@ constraints:
   - transaction_timeout_5s
   - async_messaging_only
 ```
+
+앞의 `models.test_generation` 예시는 `gpt-4o-mini`를 사용합니다. 주문 관리 예시는 `model_routing.test_generation: gpt-4.1-mini`를 사용합니다. 두 설정은 서로 다른 예시입니다. 실제 배포 모델이나 호출 가능한 엔드포인트는 별도로 확인해야 합니다.
 
 ### 멀티 LLM 스티어링
 

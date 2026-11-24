@@ -5,7 +5,7 @@ created: "2026-08-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 37
+reading_time: 38
 tags:
   - eks
   - hybrid-node

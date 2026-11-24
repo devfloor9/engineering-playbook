@@ -1,11 +1,16 @@
 ---
 title: NVIDIA Dynamo 추론 벤치마크
-description: EKS에서 NVIDIA Dynamo의 통합·분리 서빙을 비교하기 위한 하드웨어 조건, 네 가지 워크로드와 측정 계획
+description: EKS에서 NVIDIA Dynamo의 통합·분리 서빙을 비교하는 측정 계획입니다. 제안한 네 가지 워크로드의 결과는 아직 수집하지 않았습니다.
 created: "2026-03-20"
 last_update:
-  date: 2026-10-13
+  date: 2026-11-24
   author: YoungJoon Jeong
-reading_time: 12
+reading_time: 13
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - benchmark
   - nvidia
@@ -18,13 +23,13 @@ tags:
   - kv-cache
   - nixl
   - scope:tech
-sidebar_label: Report 5. Dynamo 추론 [신규]
+sidebar_label: "Report 5. Dynamo [측정 계획 · 결과 미수집]"
 sidebar_position: 5
 category: benchmark
 ---
 
 :::info 문서 상태
-**신규** — 벤치마크 실행 계획 수립 단계입니다.
+**측정 계획 · 결과 미수집.** 아래 표는 EKS에서 측정할 항목을 정의합니다.
 :::
 
 ## 개요
@@ -180,8 +185,8 @@ TTFT는 요청 시작부터 첫 출력 토큰까지, ITL은 연속 출력 토큰
 
 ## 벤치마크 결과
 
-:::note 데이터 수집 예정
-벤치마크 실행 후 결과 데이터를 업데이트할 예정입니다.
+:::note 측정 계획 · 결과 미수집
+아래 표의 빈칸은 결과를 입력할 자리입니다. 측정 후 각 값에 하드웨어, 워크로드, 실행 횟수와 단위를 함께 기록합니다.
 :::
 
 ### 예상 결과 구조

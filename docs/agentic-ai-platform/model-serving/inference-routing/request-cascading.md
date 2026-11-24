@@ -3,9 +3,14 @@ title: Request Cascading — Intelligent Model Routing
 description: Complexity-based automatic model routing — comparison of LLM Classifier, LiteLLM, and vLLM Semantic Router approaches, RouteLLM research reference, and cost savings
 created: "2026-07-04"
 last_update:
-  date: 2026-10-13
+  date: 2026-11-24
   author: YoungJoon Jeong
-reading_time: 31
+reading_time: 32
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: review_needed
+  next_review: null
 tags:
   - cascade-routing
   - kgateway
@@ -286,16 +291,23 @@ Running the **same workload** (identical per-tier token counts) entirely on Opus
 - GLM-5 744B strong tier (p5en.48xlarge 8×H200 Spot ~$16/hr × 24h × 30d × **0.30 node-hours**) = ~$3,456/month
 - Langfuse + AMP/AMG = $200/month
 
-**Total: ~$3,879/month** vs GLM-5 alone running the same node always-on (~$16/hr × 24h × 30d = ~$11,520/month) → **~66% savings**
+**Table 6. Monthly cost at two strong-node duty cycles**
 
-:::warning The 0.30 factor is billed node-hours, not request share
-A GPU node is billed per node-hour whether it serves 30% or 100% of requests, so routing 30% of *requests* to the strong model does **not** by itself cut the GPU bill. The ~66% figure only holds if the GLM-5 node actually runs ~30% of the time — i.e., an autoscaling / scale-to-zero schedule that spins the node down when idle, with cold-start latency and warm-standby cost accounted for separately. Treat this as a hypothetical target to validate with measured node-hours, utilization, and startup cost, not a guaranteed saving.
+| Calculated monthly scenario | Billed hours on the strong node | Total at the example rates |
+| --- | ---: | ---: |
+| GLM-5 alone, always on (baseline) | 720 | $11,520 |
+| Cascade, strong node shut down when idle | 216 (30% of 720) | ~$3,879, about 66% below baseline |
+| Cascade, strong node kept warm all month | 720 | ~$11,943, about 4% above baseline |
+
+:::warning Calculated example · no measured savings
+The denominator is 720 billed node-hours in a 30-day month. Sending 30% of requests to GLM-5 only saves node cost if the deployment releases capacity. Both cascade rows add $223 for the weak tier and $200 for observability. For a measured comparison (`ADS-CASCADE-014`), replay the same workload and reconcile billed node-hours, idle capacity, startup cost and cold-start latency for both deployments.
+:::
 
 ### Enterprise Model Routing Patterns
 
 **Implementation Location Priority**: Gateway > IDE > Client
 
-**Table 6. Advantages and suitable environment by routing implementation location**
+**Table 7. Advantages and suitable environment by routing implementation location**
 
 | Location | Advantages | Suitable Environment |
 |------|------|----------|
@@ -327,7 +339,7 @@ graph TD
     style SLM fill:#76b900,stroke:#333,color:#000
 ```
 
-**Table 7. RouteLLM vs. our LLM Classifier**
+**Table 8. RouteLLM vs. our LLM Classifier**
 
 | Item | RouteLLM (Research) | LLM Classifier (our rule-based router) |
 |------|----------------|---------------------|

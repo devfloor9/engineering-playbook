@@ -5,7 +5,7 @@ created: "2026-04-20"
 last_update:
   date: "2026-06-26"
   author: devfloor9
-reading_time: 1
+reading_time: 2
 tags:
   - agentic-ai
   - architecture

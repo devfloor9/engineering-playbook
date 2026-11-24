@@ -3,9 +3,14 @@ title: AIDLC 10 Principles and Execution Model
 description: Core philosophy of AIDLC and the Intent → Unit → Bolt execution model
 created: "2026-04-07"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: devfloor9
-reading_time: 35
+reading_time: 36
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - aidlc
   - principles
@@ -38,6 +43,18 @@ Role silos (FE/BE/DevOps)            AI transcends role boundaries
 Manual requirements analysis          AI decomposes Intent into Units
 Sequential handoffs                   Continuous flow + Loss Function validation
 ```
+
+### Method terminology and workflow stages {#aws-aidlc-terminology}
+
+**Table 1. AI-DLC methodology terms and their implementation in Workflows v0.1.7**
+
+| AWS method term | Workflows v0.1.7 | How to read it |
+| --- | --- | --- |
+| Intent | User request, then Requirements Analysis | The business objective is refined into a requirements document. |
+| Unit | Units Generation, when needed | The agreed units of work are the inputs to per-unit Construction. |
+| Bolt | No stage or artifact named Bolt | A short iteration can deliver a Unit or tasks within it. |
+
+The [AWS methodology](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/) describes Bolts. The pinned implementation defines [Requirements Analysis](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception/requirements-analysis.md) and [Units Generation](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception/units-generation.md).
 
 ### 1.2 Core Shift: Reversing the Conversation Direction
 

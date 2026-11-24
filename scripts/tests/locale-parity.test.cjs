@@ -161,31 +161,23 @@ test('does not follow a symlink at a documentation root', t => {
   assert.equal(result.summary.missingEnglish, 0);
 });
 
-function healthBaselineFixture(english, korean) {
-  const baseline = /\bEKS\s+(\d+\.\d+)\+/;
-  const enVersion = english.match(baseline)?.[1];
-  const koVersion = korean.match(baseline)?.[1];
-  assert.ok(enVersion && koVersion, 'both health-check pages need a baseline version');
-  // If the documents are fixed later, retain a mismatch fixture without freezing the defect.
-  const expectedKo = enVersion === koVersion ? '999.998' : koVersion;
-  if (enVersion === koVersion) korean = korean.replace(baseline, `EKS ${expectedKo}+`);
-  return {enVersion, expectedKo, result: compareDocuments(english, korean)};
-}
-
-test('detects the health-check baseline version difference', () => {
+test('the health-check guides cite the same reference version without claiming a minimum', () => {
   const file = 'eks-best-practices/operations-reliability/eks-debugging/health-check-mismatch.md';
-  const english = fs.readFileSync(path.join(root, 'docs', file), 'utf8');
-  const korean = fs.readFileSync(path.join(root, koDir, file), 'utf8');
-  const {enVersion, expectedKo, result} = healthBaselineFixture(english, korean);
-  assert.ok(result.versions.english.some(item => item.value === enVersion));
-  assert.ok(result.versions.korean.some(item => item.value === expectedKo));
+  const references = ['docs', koDir].map(directory => {
+    const text = fs.readFileSync(path.join(root, directory, file), 'utf8');
+    const reference = text.split('\n').find(line => line.startsWith('>') && /\bEKS \d/.test(line));
+    assert.ok(reference, directory);
+    assert.doesNotMatch(reference, /\d\.\d+\+/);
+    return analyzeDocument(reference).versions.map(({product, value}) => [product, value]);
+  });
+  assert.ok(references[0].some(([product]) => product === 'eks'));
+  assert.deepEqual(references[0], references[1]);
 });
 
-test('health-check test remains valid after the baseline mismatch is fixed', () => {
-  const english = '## Overview\nEKS 1.32+ and v2.9';
-  const korean = '## 개요\nEKS 1.32+ 및 v2.9';
-  const {enVersion, expectedKo, result} = healthBaselineFixture(english, korean);
-  assert.equal(enVersion, '1.32');
-  assert.equal(expectedKo, '999.998');
-  assert.ok(result.versions.korean.some(item => item.value === '999.998'));
+test('a changed EKS version is reported with or without a range suffix', () => {
+  for (const suffix of ['', '+']) {
+    const {versions} = compareDocuments(`EKS 1.32${suffix}`, `EKS 1.33${suffix}`);
+    assert.deepEqual(versions.english.map(item => item.value), ['1.32']);
+    assert.deepEqual(versions.korean.map(item => item.value), ['1.33']);
+  }
 });

@@ -5,7 +5,7 @@ created: "2026-06-25"
 last_update:
   date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 16
+reading_time: 17
 tags:
   - caching
   - kv-cache

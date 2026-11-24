@@ -3,9 +3,14 @@ title: EKS 성능 벤치마크 보고서
 description: EKS 환경 성능 벤치마크 보고서 모음 — 네트워킹, AI/ML 추론, 인프라 & 운영, AI 에이전트
 created: "2026-02-09"
 last_update:
-  date: 2026-10-30
+  date: 2026-11-24
   author: devfloor9
 reading_time: 2
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - benchmark
   - performance
@@ -36,7 +41,7 @@ EKS 환경의 성능 보고서와 측정 계획을 모았습니다. 각 보고�
 |---|--------|------|
 | 3 | [Llama 4 서빙 비교: 사양과 검증 계획](./ai-ml-workload.md) | 사양 검토 / 성능·비용 실측 대기 |
 | 4 | [추론 플랫폼: AgentCore vs EKS 자체 구축](./agentcore-vs-eks-inference.md) | 계획 |
-| 5 | [NVIDIA Dynamo 추론 벤치마크](./dynamo-inference-benchmark.md) | 신규 |
+| 5 | [NVIDIA Dynamo 추론 벤치마크](./dynamo-inference-benchmark.md) | 측정 계획 · 결과 미수집 |
 
 ## 인프라 & 운영
 

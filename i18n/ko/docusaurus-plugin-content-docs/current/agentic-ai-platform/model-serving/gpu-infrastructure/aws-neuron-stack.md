@@ -5,7 +5,7 @@ created: "2026-04-17"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 28
+reading_time: 29
 tags:
   - trainium2
   - inferentia2

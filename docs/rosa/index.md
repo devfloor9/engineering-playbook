@@ -3,9 +3,14 @@ title: ROSA (Red Hat OpenShift on AWS)
 description: Technical documentation on deploying and operating Red Hat OpenShift Service on AWS (ROSA)
 created: "2025-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-11-24
   author: devfloor9
 reading_time: 21
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - scope:nav
 sidebar_label: ROSA
@@ -19,9 +24,9 @@ ROSA is a managed OpenShift service running on AWS. AWS operates the underlying 
 
 ## Key Documents (Implementation Order)
 
-### Step 1: Cluster Installation & Configuration
+### Historical ROSA Classic single-AZ demo {#step-1-cluster-installation--configuration}
 
-The [ROSA demo installation](./rosa-demo-installation.md) explains a historical Classic single-AZ configuration, its STS roles, fixed worker capacity, and verification steps. Check current supported releases and account prerequisites before attempting a new installation.
+The [Classic single-AZ demo record](./rosa-demo-installation.md) describes its STS roles and two fixed workers. For a new cluster, follow the [current Classic CLI installation procedure](https://docs.aws.amazon.com/rosa/latest/userguide/getting-started-classic-cli.html).
 
 ### Step 2: Security & Access Control
 

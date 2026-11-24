@@ -1,11 +1,16 @@
 ---
-title: ROSA Demo Installation Guide
-description: ROSA cluster installation demo - STS-based cluster creation, IAM role configuration, autoscaling setup, and admin access configuration guide
+title: ROSA Classic single-AZ demo record
+description: Historical ROSA Classic single-AZ demo with two fixed workers. Includes the recorded command and links to current installation instructions.
 created: "2025-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-11-24
   author: devfloor9
-reading_time: 10
+reading_time: 11
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - rosa
   - openshift
@@ -15,7 +20,7 @@ tags:
   - autoscaling
   - iam
   - scope:ops
-sidebar_label: ROSA Demo Installation
+sidebar_label: ROSA Classic single-AZ demo record
 category: rosa
 ---
 

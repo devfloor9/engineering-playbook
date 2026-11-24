@@ -3,9 +3,14 @@ title: 추론 게이트웨이 & LLM Gateway 라우팅 전략
 description: kgateway + Bifrost/LiteLLM 2-Tier 아키텍처와 Cascade Routing, Semantic Router, Hybrid Routing 설계 패턴
 created: "2025-02-05"
 last_update:
-  date: 2026-10-30
+  date: 2026-11-24
   author: YoungJoon Jeong
 reading_time: 47
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - kgateway
   - bifrost
@@ -569,7 +574,7 @@ Semantic Caching은 의미적으로 유사한 프롬프트를 감지하여 이�
 **4. 인가(Authorization)**: JWT 토큰 검증, 역할 기반 도구 접근 등 per-session 인가 정책을 구성할 수 있습니다. 세션 하이재킹 방지는 이러한 인증·인가 정책을 올바르게 구성했을 때 얻는 효과이며, 설정 없이 자동으로 보장되지 않습니다.
 
 :::info agentgateway 프로젝트 현황
-agentgateway는 kgateway v2.2 계보에서 분리된 AI 전용 데이터 플레인입니다. 2026년 2~3월경 agentgateway v1.0부터 AI/에이전트 제어 평면 컨트롤러가 agentgateway 저장소로 이관되어 독립 릴리스 체계를 채택했습니다. 현재 활발하게 개발 중이며, MCP 프로토콜과 A2A 프로토콜의 빠른 발전에 맞춰 기능이 지속적으로 추가되고 있습니다.
+이전 kgateway 릴리스는 agentgateway 데이터 평면을 관리할 수 있었습니다. **kgateway v2.3.0**부터 **agentgateway 제어 평면**이 agentgateway 저장소로 이관됐습니다. 이 구성을 적용하기 전에 사용할 릴리스의 컨트롤러와 CRD 버전을 고정합니다. [kgateway v2.3.0 이관 안내](https://github.com/kgateway-dev/kgateway/blob/v2.3.0/README.md#L41-L43)
 :::
 
 ---

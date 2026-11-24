@@ -5,7 +5,7 @@ created: "2026-02-09"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 9
+reading_time: 10
 tags:
   - benchmark
   - ai

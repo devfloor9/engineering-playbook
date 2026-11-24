@@ -5,7 +5,7 @@ created: 2026-08-11
 last_update:
   date: 2026-10-13
   author: devfloor9
-reading_time: 31
+reading_time: 32
 tags:
   - mcp
   - agent

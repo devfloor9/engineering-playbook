@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 63
+reading_time: 65
 tags:
   - evaluation
   - ragas

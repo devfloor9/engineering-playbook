@@ -1,11 +1,16 @@
 ---
 title: "Foundation Model별 토큰 비용 비교: 코딩 에이전트 랄프 루프로 실측한 Amazon Bedrock 14개 모델"
-description: RealWorld 백엔드 구현 과제를 랄프 루프로 Amazon Bedrock us-east-1의 14개 모델에서 5회씩 실행하고, 완주 여부와 토큰·비용·LLM 요청 수를 비교한 실측 보고서
+description: Bedrock us-east-1에서 14개 모델로 70회 시도해 69회 완주한 과거 벤치마크입니다. 토큰 사용량은 실행 기록이며 비용은 당시 단가로 계산했습니다.
 created: "2026-10-13"
 last_update:
-  date: 2026-10-30
+  date: 2026-11-24
   author: YoungJoon Jeong
 reading_time: 38
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - benchmark
   - bedrock
@@ -29,7 +34,7 @@ import DataTableFrame from '@site/src/components/DataTableFrame';
 
 :::info 측정 상태
 **실측 완료** — Amazon Bedrock us-east-1에서 14개 모델을 5회씩, 모두 70개 run을 실행했고 그중 69개가 완주했습니다. Claude Fable 5.1을 뺀 13개 모델은 2026-10-12 22:28 ~ 2026-10-13 00:18 UTC에 실행했습니다. Claude Fable 5.1은 계정의 데이터 보존 설정을 바꾼 뒤 2026-10-13 04:36 ~ 05:21 UTC에 따로 실행했습니다.
-수치는 모두 실행 기록에서 스크립트로 생성했습니다. 값의 근거는 [사실](직접 실행·조회), [계산](토큰 × 단가처럼 정해진 규칙), [추정](가정 포함), [출처](근거 자료)로 표시했고, 확인되지 않은 값은 "확인 불가"로 적었습니다.
+완주 여부, 요청 수, 토큰 수는 실행 기록에서 가져왔습니다. 금액은 해당 토큰 수에 당시 단가를 곱한 계산값입니다. 제공사 평가는 각 제공사가 다른 과제로 측정한 결과입니다. 본문에는 직접 관찰, 계산, 추정, 출처를 구분해 표시합니다.
 :::
 
 **시리즈:** [전체 안내](./ralph-loop-series.md) · **1편: Bedrock** · [2편: EKS 기준선 — 계획](./ralph-loop-coding-agent-eks.md) · [3편: EKS 추론 최적화 — 계획](./ralph-loop-inference-optimization.md).

@@ -3,9 +3,14 @@ title: Probe vs Health Check Mismatch Debugging
 description: Guide to diagnosing outages caused by mechanism differences and timeout mismatches between K8s Probes and ALB/NLB/Ingress Controller Health Checks
 created: "2026-04-07"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: devfloor9
-reading_time: 27
+reading_time: 28
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: review_needed
+  next_review: null
 tags:
   - eks
   - debugging
@@ -18,7 +23,7 @@ tags:
 sidebar_label: Health Check Mismatch
 ---
 
-> **Baseline environment**: EKS 1.32+, AWS Load Balancer Controller v2.9+, Ingress-NGINX v1.11+
+> **Reference versions for the examples** — EKS 1.33, AWS Load Balancer Controller v2.9, and Ingress-NGINX v1.11. The guide includes no test record establishing a minimum working version or compatibility with later releases.
 >
 > Kubernetes SIG Network and the Security Response Committee announced the retirement of Ingress-NGINX on 2025-11-11. According to the announcement, best-effort maintenance continued until March 2026, and after that there are no further releases, bug fixes, or fixes for security vulnerabilities. The `kubernetes/ingress-nginx` repository on GitHub is archived (as of 2026-10-29). The Ingress-NGINX content in this document is for diagnosing existing deployments; for new setups, evaluate migrating to Gateway API or another Ingress controller ([Ingress NGINX Retirement](https://kubernetes.io/blog/2025/11/11/ingress-nginx-retirement/)).
 
@@ -773,6 +778,8 @@ Example:
 ---
 
 ## 6. Diagnostic Commands
+
+Record the Kubernetes server version from `kubectl version` and the deployed controller image tag or digest before comparing health check results. For an ALB, check the AWS Load Balancer Controller image. For an existing Ingress-NGINX deployment, check that controller's image. Use the namespace and deployment names from your cluster.
 
 ### 6.1 Checking K8s Endpoints
 

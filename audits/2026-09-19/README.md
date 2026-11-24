@@ -419,3 +419,21 @@ One documentary defect still required correction: the SR-IOV example warned agai
 The reviewed documentary source corrections and explicit limitations now satisfy the source-review portion of the original body. Final integration for these two new source changes is still pending: relevant tests, both locale builds, actual rendered exports, internal links, browser rendering and published pages must be verified on the final revision. Earlier successful CI and publication establish the earlier revision only. The existing audit-preservation and metadata suites passed 28 tests without failures or skips, and the updated reading estimates are 34 minutes in English and 19 in Korean.
 
 All **11 residuals remain unresolved**, and counts stay **1,896 accepted source corrections, 11 open partials and 284 withdrawn findings**. Historical records and the residual requirements are unchanged. Issue #83 remains open under its published stronger closure requirement; the owner must reconcile that requirement with the original documentary scope before relying on documentary completion alone. This review does not waive runtime, cost, incident, account, legal or tool acceptance.
+
+## Evidence still needed (24 November 2026)
+
+The [residual register](residuals-2026-10-30.json) defines the evidence required for each ID. The [October follow-up](source-followup-2026-10-31.json) and [documentary review](completion-review-2026-10-31.json) record which claims could be corrected from available sources. The roles below identify who could supply the next evidence. They are proposed contacts, not assigned owners or sign-offs.
+
+| ID | What the reader can rely on | Evidence still needed | Suggested role |
+| --- | --- | --- | --- |
+| `ADS-ADR003` | The GRPO budget is expressed in GPU-hours. | Match measured duration, GPU count and utilization to a dated regional rate and purchase option for the same run. | Training operator and cost analyst |
+| `ADS-CASCADE-014` | At the example rates, 216 versus 720 billed hours yields about 66% savings. Keeping the strong node warm for 720 hours costs about 4% more. | Matched traffic for both deployments, billed node-hours, idle capacity, startup cost and latency. | Inference operator and cost analyst |
+| `ADS-MOE-008` | The network figures have per-instance and four-instance scopes. | Versioned EC2 and Neuron sources that resolve the accelerator-memory discrepancy, including units and chip versus instance scope. | Accelerator documentation maintainer |
+| `ADS-NODE-007` | The reported provisioning stall was an individual incident. | NodePool, node and Pod configuration, pinned versions, controller events and a reproducible cause. | EKS cluster operator |
+| `ADS-NODE-009` | Documented ALB 503 and fail-open conditions are distinct. | Time-aligned ALB access logs, target states, consolidation events and Pod readiness/termination for the incident. | Load balancer and EKS operators |
+| `ADS-OCLAW004` | The existing follow-up records a dated public GLM model/API/Region reference. | Dated Solar model/API/Region documentation and the target account's verified access for both model IDs. | Bedrock account operator |
+| `ADS-SOVEREIGN009` | The document qualifies its data-residency claims. | Exact Korean provisions, jurisdiction, workload/data scope and a qualified applicability review. | Legal or compliance reviewer |
+| `ADS-VLLM-007` | A readiness timeout is recorded; a deadlock and cross-engine recovery remain unverified. | Original model, versions, parameters and logs; matching vLLM/SGLang runs with identical readiness criteria. | Model-serving operator |
+| `EKSN-POD-080` | The placement guidance describes relative locality. | Workload, network path, protocol, sample size and latency percentiles; dated transfer price by service, Region and direction. | Network operator and cost analyst |
+| `AIDLC-C175` | The workflow setup is documented for v0.1.7; the comparative scores are author estimates. | Pinned tools, repeatable feature checks, a scoring rule and results for every rated tool. | Developer-tool maintainer |
+| `HR-SRIOV-07` | The reference selectors use literal host interface names and string device IDs. | Installed chart and CRDs, applied policies, NAD and Pod, controller reconciliation, VF owner and proof the Pod received that VF. | Hybrid cluster and fabric operators |

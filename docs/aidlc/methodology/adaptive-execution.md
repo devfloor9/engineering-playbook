@@ -3,9 +3,14 @@ title: AIDLC Adaptive Execution
 description: AIDLC official Adaptive Workflows — conditional stage execution decision tree, Inception 7-stage and Construction per-unit loop explained
 created: "2026-04-18"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: devfloor9
 reading_time: 24
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - aidlc
   - adaptive-execution
@@ -428,11 +433,11 @@ The "Illustrative Duration" column below is not a measured average but a plannin
 
 ---
 
-## 5. Mapping to engineering-playbook Intent/Unit/Bolt
+## 5. AWS method terms in Workflows v0.1.7 {#5-mapping-to-engineering-playbook-intentunitbolt}
 
-**Table 3. Mapping between engineering-playbook terms and official AIDLC stages**
+**Table 3. AWS method terms and their counterparts in Workflows v0.1.7**
 
-| engineering-playbook Term | Position in Official AIDLC | Mapping Description |
+| Method term | Workflows v0.1.7 | Mapping description |
 |--------------------------|----------------------------|---------------------|
 | **Intent** | Input + artifacts of Stage 1-3 (Workspace Detection → Requirements Analysis) | Intent is synthesis of User Request + Requirements Document |
 | **Unit** | Artifacts of Stage 7 (Units Generation) | 1:1 correspondence with Unit of Work |
@@ -444,7 +449,7 @@ The "Illustrative Duration" column below is not a measured average but a plannin
 
 ```mermaid
 flowchart TB
-    subgraph Official["AWS Labs Official AIDLC"]
+    subgraph Official["AI-DLC Workflows v0.1.7"]
         direction TB
         I1[1. Workspace Detection]
         I2[2. Reverse Engineering]
@@ -456,7 +461,7 @@ flowchart TB
         C[Construction<br/>per-Unit Loop]
     end
 
-    subgraph Playbook["engineering-playbook Terms"]
+    subgraph Playbook["AWS method terms"]
         direction TB
         INTENT[Intent<br/>Business Purpose]
         UNIT[Unit<br/>DDD Subdomain]
@@ -467,7 +472,7 @@ flowchart TB
     I2 -.maps to.-> INTENT
     I3 -.maps to.-> INTENT
     I7 -.maps to.-> UNIT
-    C -.carried out in one or more Bolts.-> BOLT
+    C -.no named Bolt stage.-> BOLT
 
     style Official fill:#326ce5,color:#fff
     style Playbook fill:#ff9900,color:#fff

@@ -5,7 +5,7 @@ created: "2026-03-25"
 last_update:
   date: "2026-06-30"
   author: devfloor9
-reading_time: 3
+reading_time: 1
 tags:
   - eks
   - operations

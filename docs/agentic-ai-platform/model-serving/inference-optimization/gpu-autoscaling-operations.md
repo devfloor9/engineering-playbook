@@ -6,7 +6,7 @@ created: "2026-04-03"
 last_update:
   date: 2026-10-14
   author: devfloor9
-reading_time: 35
+reading_time: 36
 tags:
   - inference
   - optimization

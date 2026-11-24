@@ -3,9 +3,14 @@ title: AIDLC 10대 원칙과 실행 모델
 description: AIDLC의 핵심 철학과 Intent → Unit → Bolt 실행 모델 — AWS Labs 공식 용어 매핑 포함
 created: "2026-04-07"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: YoungJoon Jeong
-reading_time: 24
+reading_time: 23
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - aidlc
   - principles
@@ -41,7 +46,9 @@ import { AidlcPrinciples, AidlcArtifacts, AidlcPhaseMapping, AidlcPhaseActivitie
 
 ### 1.2 AWS Labs AIDLC 공식 용어 매핑
 
-Intent · Unit · Bolt는 engineering-playbook의 독자 용어가 아니라 AWS의 [AI-DLC Method Definition](https://prod.d13rzhkk8cj2z0.amplifyapp.com/)이 정의한 방법론 용어입니다. AWS Labs의 [AIDLC Workflows](https://github.com/awslabs/aidlc-workflows) 저장소(v0.1.7)는 이 방법론을 코딩 에이전트용 규칙으로 구현하면서 stage와 산출물에 별도 이름을 씁니다. 두 출처의 용어는 다음과 같이 대응합니다:
+Intent·Unit·Bolt는 [AWS AI-DLC 방법론](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/)에서 쓰는 용어입니다. Workflows v0.1.7은 [Requirements Analysis](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception/requirements-analysis.md)와 [Units Generation](https://github.com/awslabs/aidlc-workflows/blob/v0.1.7/aidlc-rules/aws-aidlc-rule-details/inception/units-generation.md) 규칙에서 실제 단계와 산출물을 정의합니다.
+
+**표 1. AI-DLC 방법론 용어와 Workflows v0.1.7의 구현**
 
 | Method Definition 용어 | AIDLC Workflows(v0.1.7)의 대응 | 비고 |
 |---------------------------|------------------|------|

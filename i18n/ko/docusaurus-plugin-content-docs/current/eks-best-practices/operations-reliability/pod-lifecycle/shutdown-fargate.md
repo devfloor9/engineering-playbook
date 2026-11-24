@@ -5,7 +5,7 @@ created: "2026-02-12"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong
-reading_time: 10
+reading_time: 11
 tags:
   - eks
   - kubernetes

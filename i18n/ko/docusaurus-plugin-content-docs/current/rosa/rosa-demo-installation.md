@@ -1,11 +1,16 @@
 ---
-title: ROSA 데모 설치 가이드
-description: ROSA 클러스터 설치 데모 - STS 기반 클러스터 생성, IAM 역할 구성, 오토스케일링 설정 및 관리자 접근 구성 가이드
+title: ROSA Classic 단일 AZ 데모 기록
+description: 워커 2대로 고정한 ROSA Classic 단일 AZ 과거 데모 기록입니다. 당시 명령과 새 설치용 공식 절차를 함께 제공합니다.
 created: "2025-02-05"
 last_update:
-  date: 2026-09-19
+  date: 2026-11-24
   author: YoungJoon Jeong
-reading_time: 5
+reading_time: 6
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - rosa
   - openshift
@@ -15,7 +20,7 @@ tags:
   - autoscaling
   - iam
   - scope:ops
-sidebar_label: ROSA 데모 설치
+sidebar_label: ROSA Classic 단일 AZ 데모 기록
 category: rosa
 ---
 

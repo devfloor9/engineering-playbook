@@ -3,9 +3,14 @@ title: Governance Framework
 description: AIDLC Enterprise Governance — 3-Layer Model, Steering File Automation, Data Sovereignty, AI Act Compliance
 created: "2026-04-07"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: devfloor9
-reading_time: 31
+reading_time: 32
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - aidlc
   - enterprise
@@ -245,13 +250,15 @@ harness:
 model_routing:
   code_generation: Claude Sonnet 4.6
   code_review: qwen3-coder-32b-instruct  # on-premises
-  test_generation: gpt-4o-mini
+  test_generation: gpt-4.1-mini
 
 constraints:
   - no_jpa_n_plus_1_query
   - transaction_timeout_5s
   - async_messaging_only
 ```
+
+The earlier `models.test_generation` example uses `gpt-4o-mini`. The order-management example uses `model_routing.test_generation: gpt-4.1-mini`. These are separate illustrative configurations. Neither establishes a deployed model or an available endpoint.
 
 ### Multi-LLM Steering
 

@@ -5,7 +5,7 @@ created: "2026-03-18"
 last_update:
   date: 2026-10-13
   author: devfloor9
-reading_time: 51
+reading_time: 54
 tags:
   - agentcore
   - bedrock

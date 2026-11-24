@@ -5,7 +5,7 @@ created: "2026-02-10"
 last_update:
   date: 2026-10-14
   author: YoungJoon Jeong
-reading_time: 28
+reading_time: 29
 tags:
   - eks
   - llm-d

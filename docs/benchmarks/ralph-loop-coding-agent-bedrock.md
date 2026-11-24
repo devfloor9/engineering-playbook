@@ -1,11 +1,16 @@
 ---
 title: "Foundation Model Token Cost Comparison: 14 Amazon Bedrock Models Measured with a Coding-Agent Ralph Loop"
-description: Measured report that ran a RealWorld backend implementation task in a Ralph loop five times on each of 14 models in Amazon Bedrock us-east-1 and compares completion, tokens, cost and LLM requests
+description: Historical Bedrock benchmark in us-east-1. Of 70 attempts across 14 models, 69 completed. Token usage was recorded and costs were calculated at the run-date prices.
 created: "2026-10-13"
 last_update:
-  date: 2026-10-30
+  date: 2026-11-24
   author: devfloor9
 reading_time: 63
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - benchmark
   - bedrock
@@ -29,7 +34,7 @@ This benchmark was built with reference to the [Ralph loop completion by model](
 
 :::info Measurement Status
 **Measured** — 14 models ran five times each on Amazon Bedrock in us-east-1, 70 runs in total, of which 69 completed. The 13 models other than Claude Fable 5.1 ran from 2026-10-12 22:28 to 2026-10-13 00:18 UTC. Claude Fable 5.1 ran separately from 2026-10-13 04:36 to 05:21 UTC, after the account's data retention setting was changed.
-Every number was generated from the run records by script. Each value is labelled by its basis: [fact] (run or queried directly), [calculated] (a fixed rule such as tokens × price), [estimate] (involves an assumption) or [source] (the supporting material). Values that could not be confirmed are marked "not verified".
+Completion, request counts and token counts come from the run records. Dollar amounts use those token counts and the historical price snapshot. Provider evaluations are attributed to their publishers and use separate tasks. Labels below identify direct observations, calculations, estimates and sources.
 :::
 
 **Series:** [Index](./ralph-loop-series.md) · **Part 1: Bedrock** · [Part 2: EKS baseline — planned](./ralph-loop-coding-agent-eks.md) · [Part 3: EKS optimizations — planned](./ralph-loop-inference-optimization.md).

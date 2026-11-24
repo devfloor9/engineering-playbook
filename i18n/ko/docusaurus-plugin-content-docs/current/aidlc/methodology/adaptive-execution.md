@@ -3,9 +3,14 @@ title: AIDLC Adaptive Execution
 description: AIDLC 공식 Adaptive Workflows — 조건부 stage 실행 decision tree, Inception 7단계와 Construction per-unit 루프 해설
 created: "2026-04-18"
 last_update:
-  date: 2026-10-29
+  date: 2026-11-24
   author: YoungJoon Jeong
 reading_time: 14
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - aidlc
   - adaptive-execution
@@ -428,11 +433,11 @@ resources:
 
 ---
 
-## 5. engineering-playbook Intent/Unit/Bolt 와의 매핑
+## 5. AWS 방법론 용어와 Workflows v0.1.7의 대응 {#5-engineering-playbook-intentunitbolt-와의-매핑}
 
-**표 3. engineering-playbook 용어와 공식 AIDLC 단계의 매핑**
+**표 3. AWS 방법론 용어와 Workflows v0.1.7의 구현 단계**
 
-| engineering-playbook 용어 | 공식 AIDLC 상 위치 | 매핑 설명 |
+| 방법론 용어 | Workflows v0.1.7 | 대응 관계 |
 |---------------------------|---------------------|----------|
 | **Intent** | Stage 1-3 (Workspace Detection → Requirements Analysis) 의 입력 + 산출물 | Intent 는 User Request + Requirements Document 의 종합 |
 | **Unit** | Stage 7 (Units Generation) 의 산출물 | Unit of Work 와 1:1 대응 |
@@ -444,7 +449,7 @@ resources:
 
 ```mermaid
 flowchart TB
-    subgraph Official["AWS Labs 공식 AIDLC"]
+    subgraph Official["AI-DLC Workflows v0.1.7"]
         direction TB
         I1[1. Workspace Detection]
         I2[2. Reverse Engineering]
@@ -456,7 +461,7 @@ flowchart TB
         C[Construction<br/>per-Unit Loop]
     end
 
-    subgraph Playbook["engineering-playbook 용어"]
+    subgraph Playbook["AWS 방법론 용어"]
         direction TB
         INTENT[Intent<br/>비즈니스 목적]
         UNIT[Unit<br/>DDD Subdomain]
@@ -467,7 +472,7 @@ flowchart TB
     I2 -.매핑.-> INTENT
     I3 -.매핑.-> INTENT
     I7 -.매핑.-> UNIT
-    C -.하나 이상의 Bolt로 수행.-> BOLT
+    C -.Bolt라는 단계 없음.-> BOLT
 
     style Official fill:#326ce5,color:#fff
     style Playbook fill:#ff9900,color:#fff

@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong
-reading_time: 17
+reading_time: 18
 tags:
   - agentcore
   - bedrock

@@ -1,11 +1,16 @@
 ---
 title: NVIDIA Dynamo Inference Benchmark
-description: Hardware requirements, four workload families, and a measurement plan for comparing aggregated and disaggregated NVIDIA Dynamo serving on EKS
+description: Measurement plan for NVIDIA Dynamo on EKS. No results have been collected for the four proposed workloads.
 created: "2026-03-20"
 last_update:
-  date: 2026-09-19
+  date: 2026-11-24
   author: devfloor9
-reading_time: 22
+reading_time: 24
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - benchmark
   - nvidia
@@ -18,13 +23,13 @@ tags:
   - kv-cache
   - nixl
   - scope:tech
-sidebar_label: Report 5. Dynamo Inference [New]
+sidebar_label: "Report 5. Dynamo [Measurement plan · No results collected]"
 sidebar_position: 5
 category: benchmark
 ---
 
 :::info Document Status
-**New** — Benchmark execution planning stage.
+**Measurement plan · No results collected.** The tables specify what to measure on EKS.
 :::
 
 ## Overview
@@ -180,8 +185,8 @@ Define TTFT from request start to the first output token, and ITL between succes
 
 ## Benchmark Results
 
-:::note Data Collection Pending
-Results data will be updated after benchmark execution.
+:::note Measurement plan · No results collected
+The blank cells below are placeholders. Record the hardware, workload, run count and units alongside each result when measurements become available.
 :::
 
 ### Expected Result Structure

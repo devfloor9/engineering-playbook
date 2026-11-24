@@ -5,7 +5,7 @@ created: "2026-06-25"
 last_update:
   date: 2026-10-13
   author: YoungJoon Jeong · Juwon Hwang
-reading_time: 15
+reading_time: 16
 tags:
   - lmcache
   - kv-cache

@@ -3,9 +3,14 @@ title: EKS Pod Scheduling & Availability Patterns
 description: Kubernetes Pod scheduling strategies, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations best practices
 created: "2026-02-12"
 last_update:
-  date: 2026-10-13
+  date: 2026-11-24
   author: devfloor9
-reading_time: 215
+reading_time: 224
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - eks
   - kubernetes
@@ -30,9 +35,15 @@ Kubernetes Pod scheduling is a core mechanism that directly affects service avai
 - **High availability**: Minimize service interruptions by separating failure domains
 - **Performance optimization**: Improve response times by placing workloads on suitable nodes
 - **Resource efficiency**: Reduce costs through balanced use of node resources
-- **Stable operations**: Guarantee resources based on priority and control preemption
+- **Resource contention**: Priority determines which waiting Pod is considered first. Placement still requires an eligible node.
 
 This document covers core Pod scheduling concepts through advanced patterns, with practical YAML examples and decision guidance for EKS environments.
+
+**Start with the symptom**
+
+- **Pod stays `Pending`** — Read the `FailedScheduling` events in `kubectl describe pod`. Use the [scheduling decision flow](#92-scheduling-decision-flowchart) to check labels, taints and requests.
+- **Node drain stalls** — Follow [PDB troubleshooting](#63-pdb-troubleshooting). Compare `disruptionsAllowed` with the available replicas selected by the budget.
+- **A critical Pod is waiting behind other work** — Check its priority and `preemptionPolicy`, then follow the [preemption decision](#73-understanding-preemption-behavior).
 
 :::info High Availability Architecture Reference
 This document focuses on scheduling patterns at the **Pod level**. For cluster-wide high availability architecture (Multi-AZ strategies, Topology Spread, and Cell Architecture), see the [EKS High Availability Architecture Guide](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide).
@@ -48,7 +59,7 @@ This document focuses on scheduling patterns at the **Pod level**. For cluster-w
 | **Resource contention** | CPU-intensive Pods concentrated on one node → Performance degradation | Separate workloads with Node Affinity → Stable performance |
 | **Cost optimization** | Pods that do not need GPUs placed on GPU nodes → Wasted cost | Isolate dedicated nodes with Taints/Tolerations → Lower cost |
 | **Upgrade safety** | Unplanned rollout strategy/readiness and no PDB for node drains → Excessive loss of available replicas | Control rolling updates through workload controller settings and constrain Eviction API-based node drains with a PDB |
-| **Emergency response** | No priorities configured → Critical workloads remain Pending | PriorityClass configured → Critical Pods scheduled first |
+| **Emergency response** | A critical Pod waits while nodes are full | A higher priority moves it ahead in the queue. Preemption can help only if removing lower-priority Pods makes a node feasible. |
 
 ---
 
@@ -1994,7 +2005,7 @@ This configuration allows Karpenter to consolidate nodes flexibly while respecti
 
 ## 7. Priority & Preemption
 
-PriorityClass defines Pod priority. When resources are insufficient, lower-priority Pods are evicted (preemption) to schedule higher-priority Pods.
+`PriorityClass` influences queue order. If no node fits, the scheduler can consider preemption when the Pod's policy allows it. Suppose a critical Pod requires `accelerator=h200` and no node has that label. Even at the head of the queue it stays `Pending`: removing lower-priority Pods cannot supply the label. Check the scheduling events before changing priorities. [Kubernetes Pod priority and preemption](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/)
 
 ### 7.1 Defining a PriorityClass
 
@@ -2143,18 +2154,21 @@ Preemption frees resources by evicting lower-priority Pods when a higher-priorit
 ```mermaid
 flowchart TB
     START[High-priority Pod<br/>scheduling request]
-    CHECK{Sufficient resources?}
-    SCHEDULE[Schedule immediately]
+    CHECK{Any feasible node now?}
+    SCHEDULE[Schedule on a feasible node]
+    POLICY{Preemption allowed?}
     FIND[Find candidate nodes<br/>for preemption]
-    CANDIDATE{Lower-priority<br/>Pods present?}
+    CANDIDATE{Would removing lower-priority Pods<br/>make a node feasible?}
     EVICT[Evict<br/>lower-priority Pods]
     WAIT[Wait for eviction to complete<br/>gracePeriod]
-    BIND[Schedule<br/>high-priority Pod]
-    PENDING[Remain Pending<br/>Wait for Cluster Autoscaler]
+    BIND[Retry scheduling after termination]
+    PENDING[Remain Pending<br/>check scheduling events]
 
     START --> CHECK
     CHECK -->|Yes| SCHEDULE
-    CHECK -->|No| FIND
+    CHECK -->|No| POLICY
+    POLICY -->|Yes| FIND
+    POLICY -->|No| PENDING
     FIND --> CANDIDATE
     CANDIDATE -->|Yes| EVICT
     CANDIDATE -->|No| PENDING
@@ -2174,7 +2188,7 @@ flowchart TB
 3. **Select victim Pods**: Select Pods for removal starting with the lowest priority
 4. **Consider PDB**: Prefer victim sets that avoid PDB violations, but allow preemption that violates a PDB if no suitable set exists
 5. **Graceful eviction**: Evict while respecting `terminationGracePeriodSeconds`
-6. **Schedule after resources become available**: Place the high-priority Pod
+6. **Retry scheduling**: Re-evaluate feasibility when resources become available. Another Pod or a changed node can affect the result.
 
 :::tip Relationship Between Preemption and PDB
 Scheduler preemption considers PDBs on a **best-effort basis**. If it cannot find victims that avoid a PDB violation, it can remove lower-priority Pods despite violating the PDB. This is not the same guarantee as budget enforcement through the Eviction API. See [Kubernetes PDB support during preemption](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#poddisruptionbudget-is-supported-but-not-guaranteed).

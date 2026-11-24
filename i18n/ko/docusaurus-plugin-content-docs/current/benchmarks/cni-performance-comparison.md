@@ -5,7 +5,7 @@ created: "2026-02-09"
 last_update:
   date: 2026-09-19
   author: YoungJoon Jeong · SiYeon Hwang
-reading_time: 21
+reading_time: 22
 tags:
   - benchmark
   - cni

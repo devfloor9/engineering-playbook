@@ -5,7 +5,7 @@ created: "2026-10-06"
 last_update:
   date: "2026-10-06"
   author: YoungJoon Jeong
-reading_time: 26
+reading_time: 55
 tags:
   - vllm
   - sglang

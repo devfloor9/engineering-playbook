@@ -5,7 +5,7 @@ created: "2025-05-20"
 last_update:
   date: 2026-10-15
   author: devfloor9
-reading_time: 45
+reading_time: 47
 tags:
   - eks
   - coredns

@@ -3,9 +3,14 @@ title: EKS Pod 스케줄링 & 가용성 패턴
 description: Kubernetes Pod 스케줄링 전략, Affinity/Anti-Affinity, PDB, Priority/Preemption, Taints/Tolerations 모범 사례
 created: "2026-02-12"
 last_update:
-  date: 2026-10-13
+  date: 2026-11-24
   author: YoungJoon Jeong
-reading_time: 122
+reading_time: 127
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - eks
   - kubernetes
@@ -30,9 +35,15 @@ Kubernetes의 Pod 스케줄링은 서비스 가용성, 성능, 비용 효율성�
 - **고가용성**: 장애 도메인 분리를 통한 서비스 중단 최소화
 - **성능 최적화**: 워크로드 특성에 맞는 노드 배치로 응답 시간 개선
 - **리소스 효율**: 노드 리소스의 균형 있는 활용으로 비용 절감
-- **안정적 운영**: 우선순위 기반 리소스 보장 및 Preemption 제어
+- **리소스 경합**: 우선순위는 대기 중인 Pod의 검토 순서를 정합니다. 배치하려면 조건에 맞는 노드가 있어야 합니다.
 
 본 문서는 Pod 스케줄링의 핵심 개념부터 고급 패턴까지 다루며, EKS 환경에서 실전 적용 가능한 YAML 예시와 의사결정 가이드를 제공합니다.
+
+**증상에서 시작하기**
+
+- **Pod가 `Pending`에 머무름** — `kubectl describe pod`의 `FailedScheduling` 이벤트를 읽습니다. [스케줄링 의사결정 흐름](#92-스케줄링-의사결정-플로우차트)에서 레이블, 테인트, 리소스 요청량을 확인합니다.
+- **노드 드레인이 멈춤** — [PDB 트러블슈팅](#63-pdb-트러블슈팅)에서 `disruptionsAllowed`와 예산이 선택한 가용 복제본 수를 대조합니다.
+- **중요한 Pod가 계속 대기함** — Pod의 우선순위와 `preemptionPolicy`를 확인한 뒤 [선점 판단 절차](#73-preemption-동작-이해)를 따릅니다.
 
 :::info 고가용성 아키텍처 참고
 본 문서는 **Pod 수준**의 스케줄링 패턴에 초점을 맞춥니다. 클러스터 전체의 고가용성 아키텍처(Multi-AZ 전략, Topology Spread, Cell Architecture)는 [EKS 고가용성 아키텍처 가이드](/docs/eks-best-practices/operations-reliability/eks-resiliency-guide)를 참조하세요.
@@ -48,7 +59,7 @@ Kubernetes의 Pod 스케줄링은 서비스 가용성, 성능, 비용 효율성�
 | **리소스 경합** | CPU 집약적 Pod들이 한 노드에 집중 → 성능 저하 | Node Affinity로 워크로드 분리 → 안정적 성능 |
 | **비용 최적화** | GPU 필요 없는 Pod가 GPU 노드에 배치 → 비용 낭비 | Taints/Tolerations로 전용 노드 격리 → 비용 절감 |
 | **업그레이드 안전성** | 롤아웃 전략·Readiness 미설계, 노드 Drain 시 PDB 미설정 → 가용 replica 과다 감소 | 롤링 업데이트는 workload controller 설정으로 제어하고, Eviction API 기반 노드 Drain은 PDB로 제한 |
-| **긴급 대응** | 우선순위 미설정 → 중요 워크로드 Pending | PriorityClass 설정 → 중요 Pod 우선 스케줄링 |
+| **긴급 대응** | 모든 노드가 찬 상태에서 중요 Pod가 대기 | 높은 우선순위는 대기열 검토 순서를 앞당깁니다. 낮은 우선순위 Pod를 제거해 배치 가능한 노드가 생길 때만 선점이 도움이 됩니다. |
 
 ---
 
@@ -1991,7 +2002,7 @@ spec:
 
 ## 7. Priority & Preemption
 
-PriorityClass는 Pod의 우선순위를 정의하며, 리소스 부족 시 낮은 우선순위 Pod를 Evict(Preemption)하여 높은 우선순위 Pod를 스케줄링합니다.
+`PriorityClass`는 대기열에서 Pod를 검토할 순서에 영향을 줍니다. 적격 노드가 없으면 스케줄러는 Pod 정책이 허용하는 경우 선점을 검토합니다. 예를 들어 중요 Pod가 `accelerator=h200`을 요구하는데 해당 레이블이 있는 노드가 하나도 없으면, 대기열 맨 앞에서도 `Pending`입니다. 낮은 우선순위 Pod를 제거해도 레이블은 생기지 않습니다. 우선순위를 바꾸기 전에 스케줄링 이벤트를 확인합니다. [Kubernetes의 Pod 우선순위와 선점](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/)
 
 ### 7.1 PriorityClass 정의
 
@@ -2140,18 +2151,21 @@ Preemption은 높은 우선순위 Pod가 스케줄링되지 못할 때, 낮은 �
 ```mermaid
 flowchart TB
     START[높은 우선순위 Pod<br/>스케줄링 요청]
-    CHECK{리소스 충분?}
-    SCHEDULE[즉시 스케줄링]
+    CHECK{지금 배치 가능한 노드가 있는가?}
+    SCHEDULE[적격 노드에 배치]
+    POLICY{선점이 허용되는가?}
     FIND[Preemption 후보<br/>노드 탐색]
-    CANDIDATE{낮은 우선순위<br/>Pod 존재?}
+    CANDIDATE{낮은 우선순위 Pod를 제거하면<br/>배치 가능한 노드가 생기는가?}
     EVICT[낮은 우선순위 Pod<br/>Evict]
     WAIT[Evict 완료 대기<br/>gracePeriod]
-    BIND[높은 우선순위 Pod<br/>스케줄링]
-    PENDING[Pending 상태 유지<br/>Cluster Autoscaler 대기]
+    BIND[종료 후 스케줄링 재시도]
+    PENDING[Pending 유지<br/>스케줄링 이벤트 확인]
 
     START --> CHECK
     CHECK -->|예| SCHEDULE
-    CHECK -->|아니오| FIND
+    CHECK -->|아니오| POLICY
+    POLICY -->|예| FIND
+    POLICY -->|아니오| PENDING
     FIND --> CANDIDATE
     CANDIDATE -->|예| EVICT
     CANDIDATE -->|아니오| PENDING
@@ -2171,7 +2185,7 @@ flowchart TB
 3. **Victim Pod 선택**: 가장 낮은 우선순위부터 제거 대상 선정
 4. **PDB 고려**: PDB 위반을 피하는 Victim 조합을 우선 탐색하되, 가능한 조합이 없으면 PDB를 위반하는 Preemption도 허용
 5. **Graceful Eviction**: `terminationGracePeriodSeconds` 존중하며 Evict
-6. **리소스 확보 후 스케줄링**: 높은 우선순위 Pod 배치
+6. **스케줄링 재시도**: 리소스가 확보되면 배치 조건을 다시 평가합니다. 다른 Pod나 노드 상태 변화가 결과에 영향을 줄 수 있습니다.
 
 :::tip Preemption과 PDB의 관계
 스케줄러의 Preemption은 PDB를 **best effort로 고려**합니다. PDB를 위반하지 않는 Victim을 찾지 못하면 낮은 우선순위 Pod를 제거하면서 PDB를 위반할 수 있습니다. Eviction API의 예산 강제와 같은 보장이 아닙니다. [Kubernetes Preemption의 PDB 지원 범위](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#poddisruptionbudget-is-supported-but-not-guaranteed)를 참조하세요.

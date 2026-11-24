@@ -3,9 +3,14 @@ title: EKS Performance Benchmark Reports
 description: Collection of EKS environment performance benchmark reports — Networking, AI/ML Inference, Infrastructure & Operations, AI Agents
 created: "2026-02-09"
 last_update:
-  date: 2026-10-30
+  date: 2026-11-24
   author: devfloor9
 reading_time: 5
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - benchmark
   - performance
@@ -38,7 +43,7 @@ Performance reports and measurement plans for EKS. Check each report's evidence 
 |---|--------|--------|
 | 3 | [Llama 4 Serving Comparison: Specifications and Validation Plan](./ai-ml-workload.md) | Specifications reviewed; performance/cost measurements pending |
 | 4 | [Inference Platform: AgentCore vs EKS Self-Built](./agentcore-vs-eks-inference.md) | Planned |
-| 5 | [NVIDIA Dynamo Inference Benchmark](./dynamo-inference-benchmark.md) | New |
+| 5 | [NVIDIA Dynamo Inference Benchmark](./dynamo-inference-benchmark.md) | Measurement plan · No results collected |
 
 ## Infrastructure & Operations
 

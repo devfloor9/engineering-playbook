@@ -5,7 +5,7 @@ created: "2026-02-10"
 last_update:
   date: 2026-10-14
   author: devfloor9
-reading_time: 47
+reading_time: 49
 tags:
   - eks
   - llm-d

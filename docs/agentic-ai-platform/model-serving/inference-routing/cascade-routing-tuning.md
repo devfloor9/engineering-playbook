@@ -5,7 +5,7 @@ created: "2026-04-18"
 last_update:
   date: 2026-10-13
   author: devfloor9
-reading_time: 34
+reading_time: 35
 tags:
   - cascade-routing
   - inference-gateway

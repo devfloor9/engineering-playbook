@@ -3,9 +3,14 @@ title: Inference Gateway & LLM Gateway Routing Strategy
 description: kgateway + Bifrost/LiteLLM 2-Tier architecture with Cascade Routing, Semantic Router, and Hybrid Routing design patterns
 created: "2025-02-05"
 last_update:
-  date: 2026-10-30
+  date: 2026-11-24
   author: YoungJoon Jeong
 reading_time: 79
+review:
+  owner: null
+  reviewed_on: 2026-11-24
+  status: null
+  next_review: null
 tags:
   - kgateway
   - bifrost
@@ -559,7 +564,7 @@ Design principles (3-tier cache comparison, similarity threshold tradeoffs, tool
 **4. Authorization**: per-session authorization policies such as JWT token verification and role-based tool access can be configured. Session-hijacking prevention is an effect of configuring these authentication/authorization policies correctly, not something guaranteed automatically without configuration.
 
 :::info agentgateway Project Status
-agentgateway is an AI-dedicated data plane separated from the kgateway project in late 2025, currently under active development. Features are continuously added to keep pace with rapid evolution of MCP and A2A protocols.
+Earlier kgateway releases could manage the agentgateway data plane. Starting with **kgateway v2.3.0**, the **agentgateway control plane** moved to the agentgateway repository. Pin the controller and CRDs for your chosen release before using this design. See the [kgateway v2.3.0 migration notice](https://github.com/kgateway-dev/kgateway/blob/v2.3.0/README.md#L41-L43).
 :::
 
 ---

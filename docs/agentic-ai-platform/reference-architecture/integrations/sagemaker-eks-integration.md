@@ -5,7 +5,7 @@ created: "2026-02-11"
 last_update:
   date: 2026-09-19
   author: devfloor9
-reading_time: 32
+reading_time: 33
 tags:
   - sagemaker
   - eks

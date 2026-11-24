@@ -76,15 +76,17 @@ function dataTable(headers, rows) {
 
 function inlinePipeline(tag, {filePath, declarations, renderer}) {
   const relative = filePath && renderer.relative(filePath);
-  if (relative !== 'docs/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md' ||
-      tag !== 'InferencePipelineDiagram') return null;
+  const article = 'agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md';
+  if (tag !== 'InferencePipelineDiagram' ||
+      (relative !== `docs/${article}` && relative !== `i18n/ko/docusaurus-plugin-content-docs/current/${article}`)) return null;
   const declaration = declarations.get(tag);
   let iframe;
   walk(declaration, n => { if (n.type === 'JSXElement' && n.openingElement.name.name === 'iframe') iframe = n; });
   const src = iframe?.openingElement.attributes.find(a => a.name?.name === 'src')?.value?.expression;
   if (src?.type !== 'TemplateLiteral' ||
-      src.quasis.map(q => q.value.cooked).join('') !== '/engineering-playbook/agentic-platform-architecture.html?theme=' ||
-      src.expressions.length !== 1 || src.expressions[0].name !== 'colorMode') {
+      src.expressions.length !== 1 || src.expressions[0].name !== 'colorMode' ||
+      src.quasis[0].value.cooked !== '/engineering-playbook/agentic-platform-architecture.html?theme=' ||
+      src.quasis[1].value.cooked !== '') {
     throw new StaticGap('Pipeline iframe source changed; review the static HTML adapter');
   }
   const htmlFile = path.join(renderer.root, 'static/agentic-platform-architecture.html');

@@ -78,6 +78,17 @@ test('English sidebar cards contribute localized text to reading estimates', asy
   assert.equal(require('../llm-wiki-components').staticRenderer.locale, 'en');
 });
 
+test('reading estimates reject the inline pipeline at another path or with a different iframe URL', async () => {
+  const file = path.resolve(__dirname, '../../i18n/ko/docusaurus-plugin-content-docs/current/agentic-ai-platform/reference-architecture/inference-gateway/setup/index.md');
+  const article = fs.readFileSync(file, 'utf8');
+  const omitted = /Cannot estimate omitted content.*InferencePipelineDiagram/;
+  await assert.rejects(readingTime(article, filePath), omitted);
+  const url = '/engineering-playbook/agentic-platform-architecture.html?theme=${colorMode}';
+  for (const replacement of ['/${colorMode}engineering-playbook/agentic-platform-architecture.html?theme=', '/different.html?theme=${colorMode}']) {
+    await assert.rejects(readingTime(article.replace(url, replacement), file), omitted);
+  }
+});
+
 test('presentation mode leaves source dates and reading time byte-for-byte unchanged', async () => {
   const {main} = require('../update-doc-metadata');
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'ep-metadata-'));
